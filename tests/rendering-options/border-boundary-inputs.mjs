@@ -22,7 +22,13 @@ export async function boundaryInput(choice) {
     const rgba = new Uint8Array(a.rgba);
     for (let i = 0; i < rgba.length; i += 4) if (rgba[i + 3] === 0) rgba.fill(0, i, i + 3);
     const cinf = ref.cinfResourceIndex === null ? null : raw[ref.cinfResourceIndex].data;
-    return [key, { cicnResourceIndex: ref.cicnResourceIndex, cinfResourceIndex: ref.cinfResourceIndex,
+    const view = cinf && cinf.length >= 18 ? new DataView(cinf.buffer, cinf.byteOffset, cinf.byteLength) : null;
+    const request = view ? { mode: cinf[3], resourceId: view.getInt16(4) } : null;
+    const body = view ? { request, anchor: [view.getInt16(8), view.getInt16(6)], sample: e.colorSamples?.background ?? null,
+      sampleModel: e.colorSamples?.model ?? null, displayPolicy: e.colorSamples?.displayPolicy ?? null,
+      unavailableReason: e.colorSamplesUnavailableReason ?? null,
+      rawPatternOccurrences: raw.flatMap((r, i) => r.type === 'ppat' && r.id === request.resourceId ? [i] : []) } : null;
+    return [key, { body, cicnResourceIndex: ref.cicnResourceIndex, cinfResourceIndex: ref.cinfResourceIndex,
       signedId: e.sourceCicnId, width: a.width, height: a.height, rgbaSha256: hash(rgba),
       cinf: cinf && cinf.length >= 18 ? { corner: cinf[0], side: cinf[1], tile: cinf[2] !== 0 } : null,
       status: cinf === null ? 'missing-cinf' : cinf.length < 18 ? 'unsafe-short-cinf' : 'candidate' }];

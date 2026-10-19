@@ -55,3 +55,33 @@ export function borderWriter(input, destination, x, y, alphaAt) {
   }
   return null;
 }
+
+/** Conditional modern same-owner NULL, not an original Resource Manager claim.
+ * Raw inventory must be complete at the caller. A present undecoded/ambiguous
+ * ppat cannot be converted into a source-backed NULL by absence from a manifest. */
+export function admitSolidBody(input) {
+  const { request, anchor, sample, width, height, rawPatternOccurrences, lookup, sampleModel, displayPolicy, unavailableReason } = input;
+  const triple = (v, max) => Array.isArray(v) && v.length === 3 && Array.from(v).every(n => Number.isInteger(n) && n >= 0 && n <= max);
+  if (!Number.isInteger(width) || !Number.isInteger(height) || width <= 0 || height <= 0
+    || lookup !== 'declared-same-owner-null' || !request || !Number.isInteger(request.mode) || request.mode < 0 || request.mode > 255 || request.mode === 5
+    || !Number.isInteger(request.resourceId) || request.resourceId < -32768 || request.resourceId > 32767
+    || !Array.isArray(rawPatternOccurrences) || rawPatternOccurrences.length !== 0
+    || !Array.isArray(anchor) || anchor.length !== 2 || !Array.from(anchor).every(Number.isInteger)
+    || anchor[0] < 0 || anchor[1] < 0 || anchor[0] >= width || anchor[1] >= height
+    || sampleModel !== 'kdef-2.3.1-color' || displayPolicy !== 'mac-1.8-to-2.2-high-byte' || unavailableReason
+    || !triple(sample?.rgb16, 65535) || !triple(sample?.displayRgb, 255)) return null;
+  // Original background sampling ignores the source mask. Raster alpha/RGB
+  // are deliberately NOT inputs to this decision or the resulting body color.
+  return { rgb16: [...sample.rgb16], displayRgb: [...sample.displayRgb] };
+}
+
+/** Applied only after no opaque border writer survives. Coordinates and union
+ * derive independently from10b72–10bb8; initial is explicit modern transparent
+ * allocation, never inferred original port/mask truth. */
+export function solidBodyOrInitial(input, destination, x, y, background) {
+  const { corner: c, side: s } = input, { width: W, height: H } = destination;
+  const inside = (x >= c && x < W - c && y >= s && y < H - s)
+    || (x >= s && x < W - s && y >= c && y < H - c);
+  return inside ? { kind: 'body', rgba: [...background.displayRgb, 255] }
+    : { kind: 'initial', rgba: [0, 0, 0, 0] };
+}

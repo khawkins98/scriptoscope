@@ -65,7 +65,7 @@ exercise a height3 destination (bottom corner begins at−1) and a masked final
 partial tile with an exclusive clip edge. Existing sampled-band public tests
 separately establish the ordinary red versus sampled gray48 collision.
 
-## Report and limitations
+## Border-only report and limitations
 
 Each composition reports exact size, asserted opaque-border pixels, unassessed
 body/mask-hole pixels, final-writer counts, output hash and completed paint
@@ -78,8 +78,47 @@ bounded current-display sampling-equivalence record; otherwise those pixels
 remain unknown. Missing/short cinf, unsafe source spans, missing faces and
 legacy painter paths remain explicit. No inferred slice defaults replace
 missing cinf. All-transparent/unassessed borders have no verified-pixel claim.
-This is a conditional composition check against decoded inputs, not independent
-palette, decoder, body, alpha-hole, provider, historical state-selection or
-whole-output validation. The original port and destination-device conditions
+The border-only result is a conditional composition check against decoded
+inputs, not independent palette, decoder, body, alpha-hole, provider, historical
+state-selection or whole-output validation. The narrowly admitted solid subset
+below additionally checks declared modern body/initial pixels. The original port and destination-device conditions
 remain unknown. Broader 15-family envelope closure and every ledger case remain
 OPEN; these varying options are not assigned to unrelated exact ledger cases.
+
+
+## Conditional solid-body full-face subset
+
+The same groups and sizes additionally check the full **face rectangle only**
+when complete selected-fork input has no matching ppat, current same-owner
+lookup explicitly reports `same-face-owner-pattern-unavailable`, usable raw
+background samples are bound to the actual cicn/cinf, and all visible border
+sampling is supported. Mode5, present/ambiguous/undecodable patterns, missing cinf,
+invalid samples and legacy painting remain outside this claim. A same-owner
+modern NULL is a **declared condition**, not an observed original GetResource
+result; see [cinf lookup contract](cinf-lookup-contract.md).
+
+Original background sampling at `10904–1091a` reads cinf y+6/x+8, and
+`109b2–109b6` sets RGBBackColor without using the returned mask. Under the
+pattern-NULL branch `10a96–10a9a → 10b72`, the two half-open rectangles are
+`[c,s,W−c,H−s)` and `[s,c,W−s,H−c)` (`10b72–10bb8`), with empty extents skipped.
+The independent expected pixel is last opaque border writer, otherwise raw
+sampled background inside their union, otherwise explicitly initialized modern
+transparent RGBA. Raster bgPixel alpha/RGB never substitutes for raw sampler
+RGB16 and its once-realized current display RGB. Existing literal masked and
+opaque palette-collision inputs independently anchor the complete 29×9 rows.
+
+Each full-face case binds the actual missing-pattern admission step, owner/ID,
+raw request and anchor, raw RGB16/display tuple, and completed themed outcome.
+The existing trace does not separately record non-mode5 solid pixel writes;
+these are verified by the independent output comparison, not invented trace
+occupancy. Exact full-face context/clip and empty-label/defaultfalse conditions
+remain enforced; the reserved ring outset is not part of the pixel claim.
+
+Preparation predicts 146 tuples / 670 full-face compositions, adding 24,786
+union pixels and 1,152 declared-initial pixels to 163,480 opaque-border pixels:
+189,418 full-face pixels per runtime. The other 13 pattern-present tuples /
+290 compositions retain their border-only coverage and 1,009,232 unassessed
+pixels. The 87 missing-cinf tuples remain unknown. Actual execution reports
+full-face versus border-only cases and body/border/initial counts separately.
+No original destination transparency, mask truth, device colors, provider order,
+whole-control fidelity or ledger closure follows from this conditional result.

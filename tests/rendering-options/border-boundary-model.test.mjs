@@ -36,3 +36,45 @@ test('finite thresholds retain public minimum exclusions and all state option tu
   assert.deepEqual(plan.axes[0].map(r => [r.middle, r.reachable]), [[0, false], [1, false], [2, false], [3, false]]);
   assert.deepEqual(plan.sizes, [[24, 6], [24, 7], [24, 8], [24, 9]]);
 });
+
+import { admitSolidBody, solidBodyOrInitial } from './border-boundary-model.mjs';
+import { solidBackgroundIcon, solidBackgroundInfo, solidBackgroundRows } from '../decoder-fixtures/solid-background.mjs';
+import { forkOf } from '../resource-provenance/fixtures.mjs';
+import { convertScheme } from '../../tools/theme-loader/convert.js';
+const solidInput = () => ({ width: 7, height: 7, request: { mode: 0, resourceId: 0 }, anchor: [3, 3],
+  sample: { rgb16: [0x2121, 0x2121, 0x2121], displayRgb: [48, 48, 48] },
+  rawPatternOccurrences: [], lookup: 'declared-same-owner-null', sampleModel: 'kdef-2.3.1-color',
+  displayPolicy: 'mac-1.8-to-2.2-high-byte', unavailableReason: null });
+test('conditional solid union matches existing full literal rows for masked and opaque palette-collision sources', () => {
+  for (const collision of [false, true]) {
+    const converted = convertScheme(forkOf([{ type: 'cicn', id: -10239, name: 'face', data: solidBackgroundIcon({ opaqueBackground: collision, collision }) },
+      { type: 'cinf', id: -10239, data: solidBackgroundInfo() }]));
+    const e = converted.theme.chromeElements.face, art = converted.assets.find(a => a.path === e.asset);
+    assert.deepEqual(e.colorSamples.background, solidInput().sample);
+    const background = admitSolidBody({ ...solidInput(), sample: e.colorSamples.background });
+    const model = { width: 7, height: 7, corner: 3, side: 1, tile: false }, destination = { width: 29, height: 9 };
+    const rows = Array.from({ length: 9 }, (_, y) => Array.from({ length: 29 }, (_, x) => {
+      const writer = borderWriter(model, destination, x, y, (sx, sy) => art.rgba[(sy * 7 + sx) * 4 + 3]);
+      const p = writer ? Array.from(art.rgba.slice((writer.source[1] * 7 + writer.source[0]) * 4, (writer.source[1] * 7 + writer.source[0]) * 4 + 4))
+        : solidBodyOrInitial(model, destination, x, y, background).rgba;
+      return p[3] === 0 ? '.' : p.every((v, i) => v === [48, 48, 48, 255][i]) ? 'G'
+        : p.every((v, i) => v === [0, 0, 255, 255][i]) ? 'B' : '?';
+    }).join(''));
+    assert.deepEqual(rows, solidBackgroundRows);
+    // These alpha/RGB values would make a raster-background oracle wrong.
+    const raster = Array.from(art.rgba.slice((3 * 7 + 3) * 4, (3 * 7 + 3) * 4 + 4));
+    assert.equal(raster[3], collision ? 255 : 0);
+    if (collision) assert.deepEqual(raster, [255, 0, 0, 255]);
+  }
+});
+test('solid admission rejects present or ambiguous pattern evidence and malformed raw samples/anchors', () => {
+  for (const mutate of [x => { x.rawPatternOccurrences = [9]; }, x => { x.lookup = 'ambiguous'; },
+    x => { x.lookup = 'unknown'; }, x => { x.request.mode = 5; }, x => { x.request.resourceId = 65535; },
+    x => { x.width = undefined; }, x => { x.sample.rgb16 = new Array(3); }, x => { x.anchor = [7, 3]; }, x => { x.anchor = [-1, 0]; }, x => { x.sample.rgb16 = [65536, 0, 0]; },
+    x => { x.sample.displayRgb = [256, 0, 0]; }, x => { x.sampleModel = 'guessed'; },
+    x => { x.displayPolicy = 'unbound'; }, x => { x.unavailableReason = 'ambiguous-asset-path'; }]) {
+    const input = solidInput(); mutate(input); assert.equal(admitSolidBody(input), null);
+  }
+  assert.deepEqual(solidBodyOrInitial({ corner: 4, side: 1 }, { width: 8, height: 2 }, 4, 1,
+    admitSolidBody(solidInput())), { kind: 'initial', rgba: [0, 0, 0, 0] }); // both union rectangles empty
+});

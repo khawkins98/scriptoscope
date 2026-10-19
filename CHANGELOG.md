@@ -7,6 +7,8 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+- Extend existing border-boundary checks to conditional solid-body full face rectangles using bound raw background samples, actual modern null-pattern admission and explicitly transparent initialization; retain pattern/missing-cinf cases and original environment claims as unresolved (#221).
+
 - Specify the source-derived cinf same-ID/default lookup sequence with synthetic conditional fixtures and explicit unknown provider environments; correct `$A9A0` to GetResource in the source reference without changing runtime loading or injecting defaults (#221).
 
 - Add finite source/built push and bevel border-size checks across all 18 inputs, with independent opaque-writer coordinates, exact input/paint joins and explicit unreachable or unknown cases; broader fidelity and ledger closure remain OPEN (#221).
