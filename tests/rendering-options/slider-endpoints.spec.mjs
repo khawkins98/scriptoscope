@@ -95,5 +95,5 @@ for(const mode of ['source','built']) test(`${mode}: declared group2 slider endp
     expect(result.thumbs).toHaveLength(2);
     for(const e of result.thumbs){const vertical=e.sourceCicnId===-10113;expect(result.calls).toContain(e.asset);expect(result.provenance.resources[e.byteProvenance.cicnResourceIndex]).toMatchObject({resourceIndex:vertical?5:2,type:'cicn',signedId:vertical?-10113:-10129,status:'decoded',sha256:sha(endpointIcon(vertical,true))});expect(e.sliderLayoutCinf).toMatchObject({status:'ready',corner:3,selected:{providerId:'layout',forkSha256:sha(endpointProvider()),byteLength:1,sha256:sha(new Uint8Array([3])),occurrence:vertical?1:0,signedId:vertical?-10116:-10132}});expect(e.byteProvenance.loadId).toBe(result.provenance.loadId);}
   }catch(error){await attachCase(page,info,{mode,result},error);throw error;}
-  await attachObservations(info,'slider-endpoints',mode,{...result,inputSha256:sha(endpointFork()),claim:'Declared group-base endpoint geometry; normalized pointer/keyboard policy, not original range/provider or transfer certification'});
+  await attachObservations(info,'slider-endpoints',mode,{mode,...result,inputSha256:sha(endpointFork()),claim:'Declared group-base endpoint geometry; normalized pointer/keyboard policy, not original range/provider or transfer certification'});
 });
