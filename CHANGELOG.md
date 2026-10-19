@@ -7,6 +7,8 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+- Qualify the historical chrome QA punchlist and unversioned previews as visual context, preserving its findings without implying current all-type fidelity certification.
+
 - Record exact pinned-source reproduction of the preserved emulator JS/WASM, with sanitized build identities and explicit unintegrated-observer/provider limits.
 
 - Propose a full 18-scheme acceptance inventory with explicit API paths, option classes and unresolved boundary obligations; preserve existing evidence and open closure.
