@@ -1,3 +1,4 @@
+import { verifyMixedRows } from '../rendering-requirements/mixed-cases.mjs';
 import { createHash } from 'node:crypto';
 import { test, expect, openHarness, attachCase, attachObservations } from './fixtures.mjs';
 import { onePixelCicn } from '../resource-provenance/fixtures.mjs';
@@ -7,6 +8,7 @@ const colors = [[255,0,0,255],[0,255,0,255],[0,0,255,255],[255,255,0,255],[255,0
 const ids = { checkbox: [-9503,-9504,-9500,-9501,-9497,-9498], radio: [-9491,-9492,-9488,-9489,-9485,-9486] };
 const payload = color => { const bytes=onePixelCicn();const view=new DataView(bytes.buffer);color.slice(0,3).forEach((v,i)=>view.setUint16(94+2*i,v*257));return bytes; };
 for (const mode of ['source','built']) test(`${mode}: mixed checkables select owned CICNs before checked fallback`, async ({page,servers}, info) => {
+  test.info().annotations.push({type:'fidelity-assertion',description:'checkable.mixed-cicn-selection'});
   await openHarness(page,servers,mode); let result;
   try {
     result=await page.evaluate(async ({mode,ids,colors})=>{
@@ -18,7 +20,7 @@ for (const mode of ['source','built']) test(`${mode}: mixed checkables select ow
         const cases=[
           ...[false,true].flatMap(disabled=>[false,true].flatMap(checked=>[false,true].map(mixed=>({name:'all',disabled,checked,mixed,keep:[0,1,2,3,4,5],expected:mixed?4+Number(disabled):checked?2+Number(disabled):Number(disabled)})))),
           {name:'mixed-miss-checked-tier',mixed:true,disabled:true,keep:[0,1,2,3,4],expected:3},
-          {name:'mixed-miss-checked-normal',mixed:true,keep:[0,2],expected:2},
+          {name:'mixed-miss-checked-normal',mixed:true,keep:[0,1,2,3,5],expected:2},
           {name:'modern-active-checked',mixed:true,disabled:true,keep:[0,2],expected:2},
           {name:'existing-disabled-off-fallback',disabled:true,keep:[0],expected:0},
         ];
@@ -27,9 +29,10 @@ for (const mode of ['source','built']) test(`${mode}: mixed checkables select ow
           const calls=[],decode=HTMLImageElement.prototype.decode;
           HTMLImageElement.prototype.decode=function(){calls.push(this.src);return decode.call(this);};
           try {
-            const out=await api.composeCheckable(theme,kind,{label:'',checked:!!c.checked,mixed:!!c.mixed,disabled:!!c.disabled});
+            const options={label:'',checked:!!c.checked,mixed:!!c.mixed,disabled:!!c.disabled};
+            const out=await api.composeCheckable(theme,kind,options);
             const selected=Object.entries(theme.manifest.chromeElements).filter(([,e])=>calls.includes(api.assetUrl(theme,e.asset)));
-            rows.push({kind,...c,pixels:Array.from(out.data),size:[out.width,out.height],calls,selected,provenance:theme.byteProvenance});
+            rows.push({kind,...c,options,pixels:Array.from(out.data),size:[out.width,out.height],calls,selected,provenance:theme.byteProvenance});
           }finally{HTMLImageElement.prototype.decode=decode;theme.dispose();}
         }
         // Existing icon fallback stays mixed-first and self-only. Explicit mask avoids corner flood policy.
@@ -46,6 +49,7 @@ for (const mode of ['source','built']) test(`${mode}: mixed checkables select ow
       }
       return rows;
     },{mode,ids,colors});
+    verifyMixedRows(result);
     for(const row of result){
       if(row.name==='icons'){expect(row.size).toEqual([16,16]);expect(row.pixels).toEqual(Array.from({length:256},()=>[0,0,0,255]).flat());continue;}
       if(row.name==='no-base-borrow'){expect(row.value).toBeNull();continue;}

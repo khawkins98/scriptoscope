@@ -1,3 +1,4 @@
+import {mixedCaseIds,validateMixedCase,verifyMixedFixtures} from './mixed-cases.mjs';
 import {bitmapCaseIds,validateBitmapCase,verifyBitmapFixtures} from './bitmap-cases.mjs';
 import {readRecordedContext,validateRecordedBinding,REQUIREMENT} from './recorded-face.mjs';
 import { createHash } from 'node:crypto';
@@ -77,8 +78,12 @@ export function validateLedger(ledger, { root, read = path => readFileSync(path)
   if (ledger.cases?.some(c=>bitmapCaseIds.includes(c.id))) {
     try {verifyBitmapFixtures(root);} catch(error) {check(false,error.message);}
   }
+  if (ledger.cases?.some(c=>mixedCaseIds.includes(c.id))) {
+    try {verifyMixedFixtures(root);} catch(error) {check(false,error.message);}
+  }
   const declared = new Map();
   for (const c of cases.values()) {
+    if (mixedCaseIds.includes(c.id)) {try {validateMixedCase(c,inputs.get(c.inputs?.[0]));} catch(error) {check(false,`${c.id}: ${error.message}`);}}
     if (bitmapCaseIds.includes(c.id)) {try {validateBitmapCase(c,inputs.get(c.inputs?.[0]));} catch(error) {check(false,`${c.id}: ${error.message}`);}}
     refs(c.inputs, inputs, `${c.id}.inputs`); refs(c.baseInputs, inputs, `${c.id}.baseInputs`, false);
     text(c.family, `${c.id}.family`); check(c.options && typeof c.options === 'object' && !Array.isArray(c.options), `${c.id}: missing exact options`);

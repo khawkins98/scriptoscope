@@ -1,7 +1,7 @@
 # Partial rendering requirement ledger
 
 `ledger.json` is reviewed acceptance data, separate from rendering and screenshots.
-Inventory 1.8.0 declares thirty-two exact direct cases and seven explicit dimensions per
+Inventory 1.9.0 declares forty exact direct cases and seven explicit dimensions per
 case. **Every case has OPEN inventory closure.** The declared obligation
 count is a finite bookkeeping denominator, not an exhaustive denominator of
 historical control behavior. No whole-control completion percentage is reported.
@@ -233,3 +233,20 @@ from SOURCE requirements and never close cases.
 ## Sampled whole-header support (1.8.0)
 
 The unchanged `synthetic.header.collision.repeat.state1.w11.h16` input now uses its retained owner-bound sampled companion. One `fill.sampled-line-color` obligation moves from unsupported to verified after independent source/literal review; all other assessments and definitions remain exact. Counts: 32 OPEN cases,269 obligations,51 verified,0 unsupported,218 unknown. The prior ledger is exactly reconstructible from [header-sampling-transition.json](header-sampling-transition.json); original observations and request semantic digests are unchanged. Missing-companion rejection remains separately tested. See [the bounded model](../../docs/spec/header-sampled-lines.md).
+
+
+## Conditional mixed checkable selection
+
+Eight owned 1×1 cases reuse the existing mixed-checkable source/built test:
+checkbox/radio × normal/disabled × mixed present/absent. Only conditional selector
+arithmetic and the same-tier checked retry are source-verified, assuming explicit
+native kind/value2/tier and declared resource availability. The separate modern
+invocation is `mixed:true, checked:false` with an empty label. Exact fork, decoded
+occurrence, payload, decode URL and full literal endpoint output are joined.
+
+Mixed-over-checked precedence, active-state/icon compatibility tails, historical
+provider/cache selection, decoder/device behavior, typography and whole-control
+fidelity are outside this assertion. The five existing broad obligations remain
+unknown for each case. All 32 prior cases and 269 assessments remain exact; eight
+conditional obligations plus 40 unknown obligations bring the inventory to 317.
+No original capture, intake policy, request digest or original artifact changes.
