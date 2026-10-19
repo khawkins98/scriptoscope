@@ -266,4 +266,9 @@ test('Animals recorded extension preserves the complete prior 66 cases and 473 a
   assert.equal(digest(JSON.stringify(prior)), transition.priorObjectSha256);
   assert.equal(prior.cases.length, 66); assert.equal(prior.assessments.length, 473);
   assert.deepEqual(makeReport(prior).requirementStatus.counts, { verified: 85, mismatched: 0, unsupported: 0, unknown: 388 });
+  const added = original.assessments.slice(transition.counts.assessments);
+  assert.equal(added.length, 18);
+  assert.equal(added.filter(a => a.status === 'verified').length, 3);
+  assert(added.every(a => a.status === (a.requirementId === 'output.recorded-composited-face' ? 'verified' : 'unknown')));
+  assert.deepEqual(makeReport(original).requirementStatus.counts, { verified: 88, mismatched: 0, unsupported: 0, unknown: 403 });
 });

@@ -462,6 +462,16 @@
             "signedId": -10239,
             "sourceCinfId": -10239,
             "manifestKey": "solo-menu-background-2"
+          },
+          {
+            "role": "body-fill",
+            "usage": "paint",
+            "ownerId": "theme.animals",
+            "chainDepth": 0,
+            "type": "ppat",
+            "signedId": -12239,
+            "sourceCinfId": null,
+            "manifestKey": "ppat--12239"
           }
         ],
         "noPaintRoles": [
@@ -525,6 +535,14 @@
           "presence": "present",
           "payloadSha256": "77915b3acb8858e3a3334d705428676d699f431d1d73bc7f8f14532ad44f9932",
           "byteLength": 18
+        },
+        {
+          "slug": "animals",
+          "type": "ppat",
+          "signedId": -12239,
+          "presence": "present",
+          "payloadSha256": "b45c140dc0d8edb45a97860e3d2da3a4ddc576342485cfc8509cec9d8844df7f",
+          "byteLength": 454
         }
       ],
       "notes": "Exact signed normal ID -10239 resolves despite friendly label/key or competing named art. Synthetic case IDs retain their historical spelling. This is finite API selection/availability, not original provider or pixel-fidelity certification.",
@@ -562,6 +580,16 @@
             "signedId": -10239,
             "sourceCinfId": -10239,
             "manifestKey": "solo-menu-background-2"
+          },
+          {
+            "role": "body-fill",
+            "usage": "paint",
+            "ownerId": "theme.monkey-paradise",
+            "chainDepth": 0,
+            "type": "ppat",
+            "signedId": 128,
+            "sourceCinfId": null,
+            "manifestKey": "ppat-128"
           }
         ],
         "noPaintRoles": [
@@ -625,6 +653,14 @@
           "presence": "present",
           "payloadSha256": "e1439cb976e79d782327a62c405aa8ae7abd3de3ae41b5788f609eb7f1099396",
           "byteLength": 18
+        },
+        {
+          "slug": "monkey-paradise",
+          "type": "ppat",
+          "signedId": 128,
+          "presence": "present",
+          "payloadSha256": "b45c140dc0d8edb45a97860e3d2da3a4ddc576342485cfc8509cec9d8844df7f",
+          "byteLength": 454
         }
       ],
       "notes": "Exact signed normal ID -10239 resolves despite friendly label/key or competing named art. Synthetic case IDs retain their historical spelling. This is finite API selection/availability, not original provider or pixel-fidelity certification.",
@@ -1853,7 +1889,7 @@
     {
       "slug": "1984",
       "archiveSha256": "1fbf62f376ad4f7277ea8cd87cf379c7ea71382e84d83f88e96d5c6502022c21",
-      "entryName": "1984 �/1984",
+      "entryName": "1984 \ufffd/1984",
       "entryIndex": 0,
       "forkSha256": "f086875e048980d1a7523b949000bc37daf3e22848c97230c107c4b426eba873",
       "unlistedFamiliesStatesOptionsAndBaseChains": "unknown",
@@ -1945,7 +1981,7 @@
     {
       "slug": "floppies",
       "archiveSha256": "45557a8b2eae7419b5175c02f46363b9edb2efe2cdf109ef1bf70806acadf5c9",
-      "entryName": "Floppies! �/Floppies!",
+      "entryName": "Floppies! \ufffd/Floppies!",
       "entryIndex": 0,
       "forkSha256": "5121774b5594cd660965b77e4e71d5ef9d24e82023fd80b8a11c7cca335bd062",
       "unlistedFamiliesStatesOptionsAndBaseChains": "unknown",
@@ -2022,7 +2058,7 @@
       ]
     }
   ],
-  "inventorySha256": "a24bfb8cd11af200467a6efd8880eca4420edc3964e1ed6cdae239c1e69ac523",
+  "inventorySha256": "fde472f13748fbe83e53b04a6777dadaa843dc1e7ae8883fdceed59f1f8eab12",
   "engineEvidence": {
     "id": "Kaleidoscope2.3.1-kDEF0",
     "version": "Kaleidoscope 2.3.1 kDEF 0 68k",
@@ -2047,11 +2083,11 @@
   "review": {
     "date": "2026-10-19",
     "reviewers": [
-      "root: independent automated source/expectation review of inventory1.0.7 a24bfb8c on 2026-10-19; exact six selection changes and three detail-document hash refreshes, not whole-control fidelity or original provider approval"
+      "root: independent automated numeric-dispatch and six-case expectation review, plus exact two raw cinf mode2/ppat dependency additions at digest fde472f1 on 2026-10-19; no whole-control fidelity or original provider approval"
     ],
     "inventoryVersion": "1.0.7",
-    "inventorySha256": "a24bfb8cd11af200467a6efd8880eca4420edc3964e1ed6cdae239c1e69ac523",
-    "transition": "Canonical negative push ID precedes friendly names and label heuristics: six exact case selections revised, including raw-only UNKNOWN to themed; all fixture/input bytes unchanged. No original pixel, provider or ledger promotion. Three prior ring detail-document hashes refresh after the source-note addition; ring claims unchanged.",
+    "inventorySha256": "fde472f13748fbe83e53b04a6777dadaa843dc1e7ae8883fdceed59f1f8eab12",
+    "transition": "Canonical negative push ID precedes friendly names and label heuristics: six exact case selections revised, including raw-only UNKNOWN to themed; all fixture/input bytes unchanged. No original pixel, provider or ledger promotion. Three prior ring detail-document hashes refresh after the source-note addition; ring claims unchanged. Normal Animals/Monkey also declare their independently raw-cinf-bound same-owner ppats; no body dependency is omitted.",
     "previousReview": {
       "date": "2026-10-19",
       "reviewers": [
@@ -2067,7 +2103,7 @@
         ],
         "inventoryVersion": "1.0.5",
         "inventorySha256": "409b8b6254e5ec0d6baf7d653fbbe35d712632ac7e24d0dd9cc8f67967642882",
-        "transition": "Only three full-document source hashes changed after correcting A9A0 to GetResource and documenting conditional cinf lookup. Ring dispatch at 0x76c4/0x76d2–0x76fe, detailed source evidence, all 27 exact inputs/outcomes and payload pins are unchanged.",
+        "transition": "Only three full-document source hashes changed after correcting A9A0 to GetResource and documenting conditional cinf lookup. Ring dispatch at 0x76c4/0x76d2\u20130x76fe, detailed source evidence, all 27 exact inputs/outcomes and payload pins are unchanged.",
         "previousReview": {
           "date": "2026-10-18",
           "reviewers": [

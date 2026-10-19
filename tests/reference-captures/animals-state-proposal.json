@@ -1,5 +1,5 @@
 {
-  "status": "PROPOSED_INTAKE_PENDING_INDEPENDENT_SCOPED_REVIEW",
+  "status": "SCOPED_REVIEWS_ACCEPTED_DEVELOPMENT_COMPARISON_MATCHED",
   "baseCommit": "d3c0c4274f00a16c0c291ea2a011151a62d3435e",
   "candidates": [
     {
@@ -60,11 +60,9 @@
     "scopeChanges": 0
   },
   "pending": [
-    "Independent scoped intake review of actual three-state conditions and support bytes",
-    "Registered source/built actual pixel comparisons",
-    "Any narrowly justified ledger increment"
+    "Final combined implementation review and required registered execution"
   ],
-  "currentEffect": "Three capture candidates registered pending independent scoped review; no review, eligibility, comparison or ledger closure authored by the acquisition agent.",
+  "currentEffect": "Three independently root-reviewed v5 scoped records appended; source/built development comparison at b6ac38af matched all three 1,600-pixel faces after the source-defined numeric selector correction. All broader fidelity and inventory closure claims remain unknown/open.",
   "calibration": {
     "path": "animals-calibration/measurement.json",
     "sha256": "8ac86b9c3a92272a6a5fbd961d8df8856c797bd1dd9b2777306677a2d1312940",
@@ -72,6 +70,32 @@
       "path": "tests/decoder-fixtures/measured-display-profile-animals.json",
       "sha256": "8212d54dc56f28dd4825c55591e09b18ce5d9c317b647995a3d4b0635b99c5d5",
       "id": "display-profile:287bde96a0ee72c13658b53c2e24643264325f79ded18ae0cd8d96257a9082b7"
+    }
+  },
+  "comparisonHistory": {
+    "before": {
+      "head": "fb9f7ecdf8d225daa3cfa0308885c5eb89c69c3a",
+      "normalDifferentPixels": 1404,
+      "selectedSignedId": -10238,
+      "referenceUnchanged": true
+    },
+    "after": {
+      "head": "b6ac38af3155096f71dab1d800a6c69190700dcd",
+      "states": [
+        "normal",
+        "pressed",
+        "inactive"
+      ],
+      "pixelsPerState": 1600,
+      "differentPixelsPerState": [
+        0,
+        0,
+        0
+      ],
+      "modes": [
+        "source",
+        "built"
+      ]
     }
   }
 }

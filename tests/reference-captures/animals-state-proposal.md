@@ -29,10 +29,18 @@ retains that distinction and the original private supplement's hash.
 
 `animals-state-proposal.json` references the existing v5 scope and three existing
 requests. It retains the prior 12 registered captures, 12 reviews and 59
-requests exactly. Three records are appended pending independent scoped review;
-no review is authored by the acquisition agent. Acquisition approval is not scoped intake approval. The candidates remain pending independent scoped review and actual source/built
-pixel comparison. A separate 209-tuple measured profile and bounded cross-run
-condition join are now available in `animals-calibration/measurement.json`;
-calibration coverage is not pixel agreement or original provider proof. No
-eligibility or ledger closure is supplied by this proposal. Original provider, cache, pattern
-origin, mask, font and whole-control truth remain unknown.
+requests exactly. Root independently authored the three scoped review objects;
+acquisition approval alone did not supply those attestations. A separate
+209-tuple measured profile and bounded cross-run condition join are included in
+`animals-calibration/measurement.json`.
+
+The first clean source/built comparison at `fb9f7ecd` found 1,404 mismatching
+normal-face pixels: author-label rejection had selected −10238 instead of the
+source-defined −10239. Those failed planes and execution bindings remain retained.
+After the numeric selector correction, the clean pair at `b6ac38af` matched all
+1,600 pixels in each of the three states in both modes. Original captures,
+profile mappings and expected source pins were unchanged. Root independently
+checked these actual planes; final combined review and registered execution
+remain required. The ledger's three narrow output assessments do not close any
+inventory case. Original provider, cache, pattern origin, mask, font and
+whole-control truth remain unknown.

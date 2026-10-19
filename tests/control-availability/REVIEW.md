@@ -1,6 +1,6 @@
 # #228 finite expectation review
 
-**Version 1.0.7 independently reviewed by root. Prior reviews below remain historical records.**
+**Version 1.0.7 canonical-ID migration and two normal-body ppat dependencies independently reviewed by root. Prior reviews below remain historical records.**
 
 27 exact cases: 27 reviewed API-policy outcomes. The outcomes below are source/policy expectations, never generated from renderer or matrix outcomes.
 
@@ -12,8 +12,8 @@
 | system7-nostalgia-silver.push.normal | themed | face: theme.system7-nostalgia-silver@0 / -10239 / `active-push-button` | canonical-push-states, plain-ring-reservation |
 | system7-nostalgia-silver.push.pressed | themed | face: theme.system7-nostalgia-silver@0 / -10238 / `pressed-push-button` | canonical-push-states, plain-ring-reservation |
 | system7-nostalgia-silver.push.disabled | themed | face: theme.system7-nostalgia-silver@0 / -10240 / `inactive-push-button` | canonical-push-states, plain-ring-reservation |
-| animals.push.normal | themed | face: theme.animals@0 / -10239 / `solo-menu-background-2` | canonical-first; source numeric dispatch; API-only |
-| monkey-paradise.push.normal | themed | face: theme.monkey-paradise@0 / -10239 / `solo-menu-background-2` | canonical-first; source numeric dispatch; API-only |
+| animals.push.normal | themed | face: theme.animals@0 / -10239 / `solo-menu-background-2`; body ppat -12239 / `ppat--12239` | canonical-first; source numeric dispatch; API-only |
+| monkey-paradise.push.normal | themed | face: theme.monkey-paradise@0 / -10239 / `solo-menu-background-2`; body ppat 128 / `ppat-128` | canonical-first; source numeric dispatch; API-only |
 | windows-95.default.normal | themed | face: theme.windows-95@0 / -10239 / `cicn--10239`; default-ring: theme.windows-95@0 / -10231 / `cicn--10231` | canonical-push-states |
 | windows-95.default.pressed | themed | face: theme.windows-95@0 / -10238 / `cicn--10238`; default-ring: theme.windows-95@0 / -10231 / `cicn--10231` | canonical-push-states |
 | windows-95.default.disabled | themed | face: theme.windows-95@0 / -10240 / `cicn--10240`; default-ring: theme.windows-95@0 / -10232 / `cicn--10232` | canonical-push-states |
@@ -104,3 +104,13 @@ covered by the trace regressions. Root independently checked the numeric dispatc
 on 2026-10-19, including all inputs/fixture bytes and the three mechanical hashes.
 Approved digest: `a24bfb8cd11af200467a6efd8880eca4420edc3964e1ed6cdae239c1e69ac523`.
 The full previous review object is retained in expectations.json.
+
+The first focused availability run exposed omitted body dependencies in the two
+real normal expectations. Their raw cinf mode2 requests ppat -12239 (Animals)
+and128 (Monkey Paradise); both exact payloads and owners are now pinned. The
+validator checks raw fork bytes and the cinf request, without treating a ppat
+as a cicn/cinf pair or dropping the extra trace. Revised candidate digest:
+`fde472f13748fbe83e53b04a6777dadaa843dc1e7ae8883fdceed59f1f8eab12`.
+Root independently selected both raw forks and checked exact cinf mode2, ppat
+IDs/payloads and the unchanged remainder on 2026-10-19; this dependency delta
+is approved.

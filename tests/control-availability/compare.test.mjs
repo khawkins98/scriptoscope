@@ -12,7 +12,7 @@ const observation = c => ({ caseId: c.id, options: c.options, result: { kind: 't
   traces: [{ version: 1, correlationId: c.id, family: c.family, requested: { state: c.options.disabled ? 'inactive' : c.options.pressed ? 'pressed' : 'active', pressed: Boolean(c.options.pressed), disabled: Boolean(c.options.disabled), default: Boolean(c.options.default), on: Boolean(c.options.on), small: Boolean(c.options.small) }, outcome: { status: 'themed', width: 80, height: 28 },
     steps: [...c.proposed.paint.map(p => ({ role: p.role, action: 'selected', usage: 'paint',
       owner: { baseUrl: `fixture://${p.ownerId}`, chainDepth: p.chainDepth },
-      resource: { type: p.type, signedId: p.signedId, sourceCinfId: p.sourceCinfId, manifestKey: p.manifestKey, assetUrl: 'blob:volatile' } })), ...(c.proposed.requiredDecisions ?? [])] }] });
+      resource: { type: p.type, signedId: p.signedId, sourceCinfId: p.sourceCinfId, manifestKey: p.manifestKey, assetUrl: 'blob:volatile' } })), ...(c.proposed.requiredDecisions ?? []).map(d=>({...d,...(d.signedId===undefined?{}:{resource:{signedId:d.signedId}})}))] }] });
 test('equal source and built null does not pass a known-themed expectation', () => {
   const c = expected('windows-95.push.normal');
   const sharedNull = { caseId: c.id, options: c.options, result: { kind: 'unavailable' }, traces: [{ version: 1, correlationId: c.id, family: c.family, requested: { state: c.options.disabled ? 'inactive' : c.options.pressed ? 'pressed' : 'active', pressed: Boolean(c.options.pressed), disabled: Boolean(c.options.disabled), default: Boolean(c.options.default), on: Boolean(c.options.on), small: Boolean(c.options.small) }, outcome: { status: 'unavailable' }, steps: [] }] };
@@ -60,5 +60,12 @@ test('native BUTTON tag and keyboard semantics cannot conceal themed art or a wr
   assert.equal(compareAvailability(c, native()).status, 'passed');
   for (const mutate of [o => o.traces[0].outcome.status = 'themed', o => o.traces[0].steps.push({ action: 'selected', usage: 'paint', role: 'face' }), o => o.native.canvasCount = 1, o => o.traces[0].requested.pressed = true]) {
     const o = native(); mutate(o); assert.equal(compareAvailability(c, o).status, 'failed');
+  }
+});
+
+test('selected normal body pattern cannot disappear or change owner or identity', () => {
+  const c=expected('animals.push.normal'); assert.equal(compareAvailability(c,observation(c)).status,'passed');
+  for(const mutate of [o=>o.traces[0].steps.splice(1,1), o=>o.traces[0].steps[1].resource.signedId=128, o=>o.traces[0].steps[1].owner.chainDepth=1]) {
+    const o=observation(c);mutate(o);assert.equal(compareAvailability(c,o).status,'failed');
   }
 });

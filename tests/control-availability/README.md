@@ -54,7 +54,9 @@ Source validation reextracts all 18 archives, compares the saved four-theme
 candidates, validates every present/absent cicn/cinf reference and payload hash,
 fixture graph/hash, and cited document hash/address. It validates review version,
 digest and state consistency too. The original engine binary is not distributed
-or executed in CI; document validation does not reauthenticate its fingerprint.
+or executed in CI; document validation does not reauthenticate its fingerprint. The two normal-body ppat dependencies are
+validated directly against the same selected raw fork and each face cinf request;
+the saved cicn/cinf candidate catalog is unchanged.
 
 ## Execute against actual runtime decisions
 

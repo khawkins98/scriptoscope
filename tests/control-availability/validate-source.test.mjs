@@ -34,3 +34,10 @@ test('case input and base declaration cannot disagree with the selected fixture 
   await assert.rejects(validateSourceEvidence(changed(d => d.inventory.cases.find(c => c.id === 'synthetic.child-canonical').input = 'fixture.empty-cycle')), /input\/fixture evidence mismatch/);
   await assert.rejects(validateSourceEvidence(changed(d => d.inventory.cases.find(c => c.id === 'synthetic.child-canonical').baseInputs = [])), /baseInputs disagree/);
 });
+
+test('normal body dependencies bind raw ppat bytes and actual cinf request', async () => {
+  const change = fn => changed(d => fn(d.inventory.cases.find(c => c.id === 'animals.push.normal')));
+  await assert.rejects(validateSourceEvidence(change(c => c.sourceEvidence.find(r => r.type === 'ppat').payloadSha256 = '0'.repeat(64))), /ppat payload/);
+  await assert.rejects(validateSourceEvidence(change(c => c.proposed.paint.find(p => p.type === 'ppat').signedId = 128)), /painted ppat evidence/);
+  await assert.rejects(validateSourceEvidence(change(c => c.proposed.paint[0].sourceCinfId = -10238)), /pattern request mismatch/);
+});

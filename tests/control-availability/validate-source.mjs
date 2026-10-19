@@ -3,7 +3,8 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
 import { isDeepStrictEqual } from 'node:util';
-import { sha256, sourceCandidate } from './source.mjs';
+import { parseResourceFork } from '../../tools/theme-loader/resource-fork.js';
+import { sha256, sourceCandidate, enumerateForks, selectFork } from './source.mjs';
 import { validateInventory } from './inventory.mjs';
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const json = name => JSON.parse(readFileSync(new URL(name, import.meta.url)));
@@ -20,7 +21,15 @@ export async function validateSourceEvidence({ inventory, choices, candidates, f
   const read = path => readFileSync(resolve(repositoryRoot, path));
   validateInventory(inventory);
   for (const [path, hash] of Object.entries(candidates.toolchain)) check(sha256(read(path)) === hash, `${path}: extraction toolchain hash drift`);
-  const actualSources = new Map();
+  const actualSources = new Map(), rawPatternSources = new Map();
+  const patternResources = async slug => {
+    if (!rawPatternSources.has(slug)) {
+      const choice = unique(choices.sources, s => s.slug === slug, 'pattern source');
+      const bytes = read(choice.path), selected = selectFork(bytes, await enumerateForks(bytes, choice.format), choice);
+      rawPatternSources.set(slug, parseResourceFork(selected.bytes));
+    }
+    return rawPatternSources.get(slug);
+  };
   for (const choice of choices.sources) {
     check(!actualSources.has(choice.slug), `${choice.slug}: duplicate explicit source choice`);
     actualSources.set(choice.slug, await sourceCandidate(read(choice.path), choice));
@@ -54,6 +63,11 @@ export async function validateSourceEvidence({ inventory, choices, candidates, f
       if (ref.slug) {
         check(c.input === `theme.${ref.slug}`, `${c.id}: input/source evidence mismatch`);
         const theme = unique(candidates.themes, theme => theme.slug === ref.slug, `${c.id}: source ${ref.slug}`);
+        if (ref.type === 'ppat') {
+          const raw = unique(await patternResources(ref.slug), r => r.type === 'ppat' && r.id === ref.signedId, `${c.id}: raw ppat`);
+          check(ref.presence === 'present' && ref.payloadSha256 === sha256(raw.data) && ref.byteLength === raw.data.length, `${c.id}: ppat payload hash/size mismatch`);
+          continue;
+        }
         const resource = unique(theme.candidates, resource => resource.type === ref.type && resource.signedId === ref.signedId, `${c.id}: resource ${ref.type}/${ref.signedId}`);
         check(ref.presence === resource.presence, `${c.id}: resource presence mismatch`);
         if (resource.presence === 'present') check(ref.payloadSha256 === resource.payloadSha256 && ref.byteLength === resource.byteLength, `${c.id}: resource payload hash/size mismatch`);
@@ -83,6 +97,18 @@ export async function validateSourceEvidence({ inventory, choices, candidates, f
       if (c.input.startsWith('theme.')) {
         const slug = c.input.slice('theme.'.length);
         check(paint.ownerId === c.input && paint.chainDepth === 0, `${c.id}: real input has no base`);
+        if (paint.type === 'ppat') {
+          check(paint.role === 'body-fill' && paint.sourceCinfId === null, `${c.id}: ppat typed dependency mismatch`);
+          const ref = unique(c.sourceEvidence, r => r.slug === slug && r.type === 'ppat' && r.signedId === paint.signedId, `${c.id}: painted ppat evidence`);
+          check(ref.presence === 'present', `${c.id}: painted ppat missing`);
+          const face = unique(c.proposed.paint, p => p.role === 'face', `${c.id}: pattern face`);
+          const ci = unique(await patternResources(slug), r => r.type === 'cinf' && r.id === face.sourceCinfId, `${c.id}: pattern cinf`);
+          check(ci.data.length >= 6, `${c.id}: pattern cinf too short`);
+          const view = new DataView(ci.data.buffer, ci.data.byteOffset, ci.data.byteLength);
+          check(view.getUint8(3) === 2 && view.getInt16(4) === paint.signedId, `${c.id}: pattern request mismatch`);
+          continue;
+        }
+        check(paint.type === 'cicn', `${c.id}: unsupported paint resource type`);
         for (const [type, signedId, presence] of [['cicn', paint.signedId, 'present'], ['cinf', paint.sourceCinfId ?? paint.signedId, paint.sourceCinfId === null ? 'absent-from-selected-fork' : 'present']]) {
           const ref = unique(c.sourceEvidence, ref => ref.slug === slug && ref.type === type && ref.signedId === signedId, `${c.id}: painted ${type} evidence`);
           check(ref.presence === presence, `${c.id}: painted ${type} presence mismatch`);
