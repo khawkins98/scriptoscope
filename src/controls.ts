@@ -1856,8 +1856,8 @@ async function loadCheckableIcon(
   opts: { mixed?: boolean; checked?: boolean; disabled?: boolean },
 ): Promise<PixelBuffer | null> {
   const value = opts.mixed ? 2 : opts.checked ? 1 : 0;
-  const normal = kind === 'checkbox' ? [-10236, -10235, -10234] : [-10220, -10219, -10218];
-  const disabled = kind === 'checkbox' ? [-10240, -10239, -10238] : [-10224, -10223, -10222];
+  const normal: readonly [number, number, number] = kind === 'checkbox' ? [-10236, -10235, -10234] : [-10220, -10219, -10218];
+  const disabled: readonly [number, number, number] = kind === 'checkbox' ? [-10240, -10239, -10238] : [-10224, -10223, -10222];
   const row = opts.disabled ? disabled : normal;
   // Hand-built themes without an inspector retain unobserved color-art fallback.
   // A present but incomplete/contradictory inspector never takes this path.
@@ -1868,9 +1868,10 @@ async function loadCheckableIcon(
   if (!masks) return null;
   const maskState = (id: number) => {
     const found = masks.filter(r => r.id === id);
-    if (!found.length) return 'missing';
-    return found.length === 1 && Number.isInteger(found[0].resourceIndex) && found[0].resourceIndex >= 0
-      && Number.isInteger(found[0].byteLength) && found[0].byteLength >= 64 ? 'decoded' : 'invalid';
+    const first = found[0];
+    if (!first) return 'missing';
+    return found.length === 1 && Number.isInteger(first.resourceIndex) && first.resourceIndex >= 0
+      && Number.isInteger(first.byteLength) && first.byteLength >= 64 ? 'decoded' : 'invalid';
   };
   let id = row[value];
   // 0x73ae–0x73d8 retries checked ONLY for a missing mixed mask, not missing color art.
@@ -1883,7 +1884,7 @@ async function loadCheckableIcon(
   const entries = theme.inspector.iconIndex.filter(e => e.id === id && e.url === url);
   if (entries.length !== 1) return null;
   const entry = entries[0];
-  if (entry.size !== 16 || !entry.masked || !Number.isInteger(entry.resourceIndex)
+  if (!entry || entry.size !== 16 || !entry.masked || !Number.isInteger(entry.resourceIndex) || (entry.resourceIndex ?? -1) < 0
     || !((entry.type === 'ics4' && entry.depth === 4) || (entry.type === 'ics8' && entry.depth === 8))) return null;
   return loadCicnBuffer(url);
 }
