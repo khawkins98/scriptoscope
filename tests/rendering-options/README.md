@@ -24,6 +24,14 @@ bounded cases in Chromium at DPR 2, Firefox and WebKit at DPR 1 (install those
 browsers first). See the runner's configuration for selection and artifact paths.
 These checks do not claim original-engine fidelity from agreement with ourselves.
 
+Non-golden runs default to one worker. Set `SCRIPTOSCOPE_RENDERING_WORKERS=2`
+to run files concurrently (CI opts in); only `1` and `2` are accepted. Tests within
+each file stay sequential. Each worker uses separate source/demo Vite caches under
+ignored `node_modules/.vite/rendering/`, keyed by process and worker. Golden runs
+always use one worker. Timeouts, retries and evidence filenames are unchanged.
+Compare elapsed time and complete case/assertion/artifact counts when evaluating
+the two-worker CI run; concurrency alone does not establish a speedup.
+
 The separate golden workflow is explicit:
 
 ```sh

@@ -13,8 +13,8 @@ export const test = base.extend({
       configuredDeviceScaleFactor: info.project.use.deviceScaleFactor ?? 1 });
     try { await use(); } finally { executionContexts.delete(info); }
   }, { auto: true }],
-  servers: [async ({}, use) => {
-    const servers = await startServers();
+  servers: [async ({}, use, workerInfo) => {
+    const servers = await startServers(workerInfo.workerIndex);
     try { await use(servers); } finally { await servers.close(); }
   }, { scope: 'worker' }],
 });

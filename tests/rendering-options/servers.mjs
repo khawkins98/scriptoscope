@@ -11,8 +11,13 @@ const mime = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/jav
   '.json': 'application/json', '.css': 'text/css', '.png': 'image/png', '.woff': 'font/woff',
   '.woff2': 'font/woff2', '.ttf': 'font/ttf', '.wasm': 'application/wasm' };
 
+// Vite dependency optimization writes to disk. Separate each worker and server
+// kind, including concurrent Playwright processes, without changing evidence paths.
+export const workerCacheDir = (kind, workerIndex) =>
+  resolve(root, 'node_modules/.vite/rendering', `${process.pid}-${workerIndex}`, kind);
+
 /** Separate transports matter: built parity must not silently resolve to source. */
-export async function startServers() {
+export async function startServers(workerIndex) {
   const built = createHttpServer(async (req, res) => {
     try {
       const pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
@@ -30,7 +35,7 @@ export async function startServers() {
     await new Promise(resolve => reservation.listen(0, '127.0.0.1', resolve));
     const port = reservation.address().port;
     await new Promise((resolve, reject) => reservation.close(error => error ? reject(error) : resolve()));
-    source = await createViteServer({ configFile: false, root, publicDir: false,
+    source = await createViteServer({ configFile: false, root, publicDir: false, cacheDir: workerCacheDir('source', workerIndex),
       server: { host: '127.0.0.1', port, strictPort: true, open: false },
       resolve: { alias: { scriptoscope: resolve(root, 'src/index.ts') } } });
     await source.listen();

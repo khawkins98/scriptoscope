@@ -7,6 +7,8 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+- Opt CI rendering contracts into two file-level workers with isolated Vite caches; retain a one-worker default and serial pinned goldens.
+
 - Register eight exact owned mixed checkbox/radio selector and same-tier fallback cases in the partial requirement ledger, with actual source/built fork/occurrence/pixel joins and explicit historical-environment limits (#221).
 - Correct checkbox/radio normal icon IDs from the pinned kDEF table, and retry checked art at the same tier only when the mixed `ics#` mask is absent. Expose a same-fork mask census; reject short/duplicate masks or contradictory catalogs while retaining unobserved manual-theme compatibility.
 

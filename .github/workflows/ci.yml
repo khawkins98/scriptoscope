@@ -81,6 +81,8 @@ jobs:
       # coverage exercises real consumer DOM and the built public entry as well
       # as raw source pixels; gates alone cannot see CSS decoration regressions.
       - name: Rendering option contracts (bounded corpus matrix)
+        env:
+          SCRIPTOSCOPE_RENDERING_WORKERS: '2'
         run: npm run test:rendering
 
       - name: Reviewed rendering goldens (exact Linux comparison)
