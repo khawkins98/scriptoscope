@@ -88,7 +88,7 @@ import { ManagedContentPort, type ManagedControlPort } from './managedContentPor
 import { resolveWindowSelection, resolveCollapsedWindowTypeSlug } from './resolveWindowType.js';
 import { listenUntilAborted } from './listenUntilAborted.js';
 import {
-  composeCheckable, composeDisclosure, composeSlider, composeSliderWithLayout, composeScrollbar,
+  composeCheckable, composeDisclosure, composeSliderWithLayout, composeScrollbar,
   baselineButton, baselineCheckable, bufferToCanvas,
   type ButtonOptions, type ControlState,
 } from './controls.js';
@@ -385,7 +385,7 @@ async function buildDraggable(
   let raf = 0;
   let paintVersion = 0;
   let paintedLayout: SliderLayout | null = null;
-  let nativeDrag: { axisLength: number; travel: number; pointer: number; value: number; exact: string } | null = null;
+  let nativeDrag: { axisLength: number; travel: number; pointer: number; value: number; exact: string; direction: 1 | -1 } | null = null;
   const events = new AbortController();
   controlDisposers.set(el, () => {
     events.abort();
@@ -490,20 +490,20 @@ async function buildDraggable(
     } else { value = position; onChange?.(value); }
   };
   const onMove = (e: PointerEvent): void => {
-    if (native && e.pointerId !== pointerId) return;
-    if (native) {
+    if ((native || nativeDrag) && e.pointerId !== pointerId) return;
+    if (native || nativeDrag) {
       if (!nativeDrag || nativeDrag.travel <= 0) return;
       const point = nativePoint(e, nativeDrag.axisLength);
       if (!point) return;
       const delta = point.axis - nativeDrag.pointer;
       // Use the exact native starting value, not inversion of rounded raster
       // coordinates. Returning to the same pointer coordinate restores it too.
-      update(clamp01(nativeDrag.value + delta / nativeDrag.travel), delta === 0 ? nativeDrag.exact : undefined);
+      update(clamp01(nativeDrag.value + nativeDrag.direction * delta / nativeDrag.travel), native && delta === 0 ? nativeDrag.exact : undefined);
     } else update(valueAt(e));
     schedule();
   };
   const onUp = (e: PointerEvent): void => {
-    if (native && e.pointerId !== pointerId) return;
+    if ((native || nativeDrag) && e.pointerId !== pointerId) return;
     dragging = false;
     nativeDrag = null;
     stopDrag();
@@ -513,37 +513,40 @@ async function buildDraggable(
     void repaint();
   };
   listenUntilAborted(events.signal, el, 'pointerdown', (e) => {
-    if (!live() || disabled() || (native && (e.button !== 0 || dragging))) return;
+    const mapped = !!native || paintedLayout?.endpointPolicy === 'declared-group2';
+    if (!live() || disabled() || (mapped && (e.button !== 0 || dragging))) return;
     // A stretched wrapper can have blank space outside its real canvas. Only
     // the canvas begins native interaction; an active drag may leave its bounds.
-    const layout = native ? paintedLayout : null;
+    const layout = mapped ? paintedLayout : null;
     const point = layout ? nativePoint(e, layout.axisLength) : null;
-    if (native && (!layout || !point?.inside)) return;
+    if (mapped && (!layout || !point?.inside)) return;
     e.preventDefault();
     if (native) {
       native.input.focus({ preventScroll: true }); dragStart = native.input.value;
       value = nativeRangeValue(native.input);
     }
     dragging = true; pointerId = e.pointerId;
-    if (native && layout && point) {
+    if (mapped && layout && point) {
       const thumb = layout.thumb;
       const grabbed = thumb && point.x >= thumb.x && point.x < thumb.x + thumb.w
         && point.y >= thumb.y && point.y < thumb.y + thumb.h;
       const travel = thumb ? layout.travelEnd - layout.travelStart : layout.axisLength;
+      const direction = layout.valueDirection ?? 1;
       if (!grabbed && travel > 0) {
         // Explicit track policy: center an existing thumb under the pointer.
         // A track without thumb art uses its full axis. Zero travel is inert.
         const half = thumb ? (orientation === 'horizontal' ? thumb.w : thumb.h) / 2 : 0;
-        update(clamp01((point.axis - layout.travelStart - half) / travel));
+        const spatial = (point.axis - layout.travelStart - half) / travel;
+        update(clamp01(direction === 1 ? spatial : 1 - spatial));
       }
       nativeDrag = { axisLength: layout.axisLength, travel, pointer: point.axis,
-        value: nativeRangeValue(native.input), exact: native.input.value };
+        value: native ? nativeRangeValue(native.input) : value, exact: native?.input.value ?? '', direction };
     } else update(valueAt(e));
     if (!live()) return;
     stopDrag();
     const removeMove = listenUntilAborted(events.signal, window, 'pointermove', onMove);
     const removeUp = listenUntilAborted(events.signal, window, 'pointerup', onUp);
-    const removeCancel = native ? listenUntilAborted(events.signal, window, 'pointercancel', event => {
+    const removeCancel = mapped ? listenUntilAborted(events.signal, window, 'pointercancel', event => {
       if (event.pointerId !== pointerId) return;
       dragging = false; nativeDrag = null; stopDrag(); void repaint();
     }) : () => {};
@@ -644,8 +647,11 @@ export async function interactiveSlider(theme: LoadedTheme, opts: InteractiveSli
   const el = document.createElement('span');
   el.className = 'scriptoscope-slider';
   await buildDraggable(el, orientation, value, scale,
-    async (v, state) => (await composeSlider(theme, { orientation, length, value: v, state }))
-      ?? platinumSlider({ orientation, length, value: v }),
+    async (v, state, signal) => {
+      const frame = await composeSliderWithLayout(theme, { orientation, length, value: v, state }, signal);
+      if (signal.aborted) return null;
+      return frame ?? platinumSlider({ orientation, length, value: v });
+    },
     onChange);
   return el;
 }

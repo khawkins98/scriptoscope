@@ -86,6 +86,11 @@ consumer.ready = (async () => {
   const cinfFace = Object.values(cinfLoaded.manifest.chromeElements).find(e => e.sourceCicnId === -10239);
   if (!cinfEnvironment.id.startsWith('cinf-environment:') || cinfFace?.bodyCinf?.status !== 'ready'
     || cinfFace.bodyCinf.selected?.providerId !== 'actual') throw new Error('Packed cinf environment/role view failed');
+  const sliderLoaded = await loadKaleidoscopeScheme(bytes, { sliderLayoutEnvironment: cinfEnvironment, encodeAssets: false });
+  const sliderThumb = Object.values(sliderLoaded.manifest.chromeElements).find(e => e.sourceCicnId === -10129);
+  if (sliderLoaded.manifest.sliderLayoutEnvironment?.scope !== 'standalone-group2-slider-layout'
+    || sliderThumb?.sliderLayoutCinf?.orientation !== 'horizontal'
+    || !['ready', 'unsupported'].includes(sliderThumb.sliderLayoutCinf.status)) throw new Error('Packed slider layout role failed');
   consumer.handle = await mountDeclarative({
     root, pageThemeDefault: 'windows-95',
     themeBaseUrl: `${import.meta.env.BASE_URL}themes`,

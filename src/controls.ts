@@ -1,4 +1,4 @@
-import { CinfEnvironmentError, snapshotBodyCinfFace, type CinfLookupView } from '../tools/theme-loader/cinf-environment.js';
+import { CinfEnvironmentError, snapshotBodyCinfFace, snapshotSliderLayoutCinf, type CinfLookupView } from '../tools/theme-loader/cinf-environment.js';
 import { prepareBitmapGlyphRun, type PreparedBitmapFont, type BitmapGlyphRun } from './preparedBitmapFont.js';
 import { paintBitmapText } from './paintBitmapText.js';
 import { ownerDisplayPolicyMatches } from '../tools/theme-loader/display-profile.js';
@@ -737,6 +737,15 @@ export async function composeSliderWithLayout(
   const value = Math.min(1, Math.max(0, opts.value ?? 0.5));
   const state = opts.state ?? 'normal';
   const horiz = orientation === 'horizontal';
+  const thumbElement = elementById(theme, horiz ? 10129 : 10113);
+  const endpoint = snapshotSliderLayoutCinf(theme.manifest, thumbElement, orientation);
+  const unsupported = (reason: string): never => {
+    throw new CinfEnvironmentError(`Unsupported group2 slider layout: ${reason}`, 'UNSUPPORTED_CINF_ENVIRONMENT');
+  };
+  if (endpoint && (endpoint.status !== 'ready' || endpoint.corner === undefined)) unsupported(endpoint.reason ?? 'missing corner');
+  if (endpoint && (theme.base || !Number.isInteger(length) || length > 32767 || !Number.isFinite(value))) unsupported('base chain or geometry outside admitted local Rect');
+  // The identity is checked before decoding; later mutation cannot redirect this load.
+  const thumbUrl = endpoint && thumbElement ? assetUrl(theme, thumbElement.asset) : undefined;
 
   // Resolve by RESOURCE ID (slugs vary per scheme; ids are stable). The
   // non-directional slider: horizontal track -10131 (pressed -10130 /
@@ -754,9 +763,10 @@ export async function composeSliderWithLayout(
   // scrollbar thumb / directional indicators, not a groove+thumb pair — verified
   // by pixel-decode), so they fall to platinumSlider rather than the replica's.
   const selectedTrack = (await load(tId)) ?? (await load(tA));
-  if (!selectedTrack) return null;
+  if (signal?.aborted) return null;
+  if (!selectedTrack) return endpoint ? unsupported('missing track') : null;
   const { buffer: track, element: trackEl } = selectedTrack;
-  const thumbs = (await load(horiz ? 10129 : 10113))?.buffer ?? null;
+  const thumbs = thumbUrl ? await loadCicnBuffer(thumbUrl) : (await load(horiz ? 10129 : 10113))?.buffer ?? null;
   if (signal?.aborted) return null;
 
   const thickness = horiz ? track.height : track.width;
@@ -797,10 +807,18 @@ export async function composeSliderWithLayout(
   // The groove is often much thinner than the authored thumb cell (Windows95:
   // 4px groove, 16px cell). Keep both at native cross-axis size instead of
   // clipping the thumb to the groove's buffer. Floor-centering is our explicit
-  // integer placement policy; exact 2.3.1 slider geometry remains untraced.
+  // integer placement policy. The opted group2 local Rect has cross-size16;
+  // native groove centering/transfer is outside that endpoint-only contract.
   const cellW = thumbs ? (horiz ? thumbs.width : Math.floor(thumbs.width / 4)) : 0;
   const cellH = thumbs ? (horiz ? Math.floor(thumbs.height / 4) : thumbs.height) : 0;
-  const cross = Math.max(thickness, horiz ? cellH : cellW);
+  const naturalCross = Math.max(thickness, horiz ? cellH : cellW);
+  const inset = endpoint?.corner ?? 0;
+  const extent = horiz ? cellW : cellH;
+  if (endpoint && (!thumbs || cellW <= 0 || cellH <= 0 || naturalCross > 16 || (horiz ? cellH : cellW) !== 16
+    || (horiz ? thumbs.height : thumbs.width) % 4 !== 0 || length - extent - 2 * inset < 0)) {
+    unsupported('thumb geometry or travel outside admitted local Rect');
+  }
+  const cross = endpoint ? 16 : naturalCross;
   const out = horiz ? PixelBuffer.alloc(length, cross) : PixelBuffer.alloc(cross, length);
   const grooveOffset = Math.floor((cross - thickness) / 2);
   out.copyBits(groove, { x: 0, y: 0, w: groove.width, h: groove.height },
@@ -809,16 +827,19 @@ export async function composeSliderWithLayout(
   // Retain the complete selected state cell. Preserve the existing srcCopy
   // transfer behavior; the original slider's mask/painter path is untraced.
   let thumb: SliderComposition['layout']['thumb'] = null;
-  const travel = Math.max(0, length - (horiz ? cellW : cellH));
+  const travel = Math.max(0, length - extent - 2 * inset);
+  const direction = endpoint && !horiz ? -1 : 1;
   if (thumbs && cellW > 0 && cellH > 0) {
     const stateRow = state === 'pressed' ? 2 : state === 'disabled' || state === 'inactive' ? 3 : 1;
-    const pos = Math.round(value * travel);
+    const offset = (direction === 1 ? value : 1 - value) * travel;
+    const pos = inset + (endpoint ? Math.trunc(offset) : Math.round(offset));
     const thumbOffset = Math.floor((cross - (horiz ? cellH : cellW)) / 2);
     thumb = { x: horiz ? pos : thumbOffset, y: horiz ? thumbOffset : pos, w: cellW, h: cellH };
     out.copyBits(thumbs,
       { x: horiz ? 0 : stateRow * cellW, y: horiz ? stateRow * cellH : 0, w: cellW, h: cellH }, thumb);
   }
-  return { buffer: out, layout: { orientation, axisLength: length, thumb, travelStart: 0, travelEnd: travel, value } };
+  return { buffer: out, layout: { orientation, axisLength: length, thumb, travelStart: inset, travelEnd: inset + travel, value,
+    ...(endpoint ? { endpointPolicy: 'declared-group2' as const, valueDirection: direction as 1 | -1 } : {}) } };
 }
 
 export interface DisclosureOptions {

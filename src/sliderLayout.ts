@@ -9,6 +9,10 @@ export interface SliderLayout {
   travelStart: number;
   travelEnd: number;
   value: number;
+  /** Explicit loader admission; absent keeps imperative full-canvas policy. */
+  endpointPolicy?: 'declared-group2';
+  /** Increasing value follows (1) or opposes (-1) the spatial travel axis. */
+  valueDirection?: 1 | -1;
 }
 export interface SliderComposition {
   buffer: PixelBuffer;
