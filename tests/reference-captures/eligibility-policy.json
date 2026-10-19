@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "id": "scriptoscope.reference-eligibility",
+  "sections": {
+    "common": {
+      "version": 1,
+      "rules": [
+        "Eligibility is evidence intake only, never renderer fidelity, historical authentication, whole-case certification or automatic ledger verification.",
+        "An independent original must bind exact request conditions, selected source record and engine component; identify observed original OS and Kaleidoscope 2.3.1 installation; record producer, capture time and method.",
+        "Validate image bytes, SHA-256, lossless PNG structure and exact request dimensions. Resolve artifact paths inside the intake root, including symlinks; reject files or decoded images over 40 MiB.",
+        "Reject known self-regression or qualitative image bytes presented as independent originals, including full frames; known-byte screening is not authentication of unknown images.",
+        "Hash every provenance artifact. Require capture-log and environment-manifest; the environment manifest must exactly join source, engineComponent and observed fields.",
+        "Require one accepted independent reviewer, valid timestamp, notes, exact request digest, entire capture digest, target IDs and equal capture/review scope; missing checks stay partial and rejected/stale decisions never pass.",
+        "All request targets stay unresolved in reports; scoped observations never satisfy a whole request. Non-independent evidence remains separately classified."
+      ]
+    },
+    "full": {
+      "version": 1,
+      "rules": [
+        "Omitted scope means full v1; no scoped relaxation applies. Require named/versioned/hashed font, original ordered resource providers, base chain and patch stack. Empty base/patch arrays need reasons; unknowns are incomplete.",
+        "Require actual integer procedureId/variant/hilite/value, matching enabled/window-active flags, recorded default mechanism/invocation, positive font size/style, palette depth/hash/description and capture method.",
+        "Require review checks originalEnvironment, sourceAndBaseIdentity, engineAndPatchStack, conditionsAndTransform, imageAndArtifacts, independentOfScriptoscope."
+      ]
+    },
+    "publicFace": {
+      "version": 1,
+      "rules": [
+        "Only exact publicFaceScope admission applies: complete 80x20 empty face, 160x80 full port image, retained context, scale1, origin0, white opaque composited background. Preserve the exact versioned scope and exclusions.",
+        "Require observed NewControl/Draw1Control, procedure0/variant0/value0, exact state/Rect/title and no default API invocation. Private default state must remain explicitly unknown, distinct from requested defaultRing false.",
+        "Allow only explicit null plus reason for font, patchStack, baseChain, resourceSearchOrder, selectedProvider, resourceCache and privateDefaultState. Known values still undergo their normal identity checks.",
+        "Require configured archive/fork identity separate from actual provider, indexed palette depth/hash, exact external producer build identities, producer table/encoding/color realization/timing, and observed producer version or explicit unknown reason.",
+        "Require full-frame image/hash/bounds and exact no-resampling crop transform. Require unique configured-scheme/public-invocation/pixel-conditions/indexed-palette/producer-identities/producer-table/full-frame artifact roles with exact observed metadata/hash joins.",
+        "Require review checks originalEnvironment, installationAndConfiguredSource, publicInvocation, recordedPixelConditions, conditionsAndTransform, imageAndArtifacts, independentOfScriptoscope, scopeAndLimits. Associated geometry/fill IDs remain unverified; all requested requirements remain unresolved."
+      ]
+    },
+    "publicFaceV1": {
+      "version": 1,
+      "rules": [
+        "Only Windows95 and System7 normal requests qualify; hilite0, enabled, active window. Claim recorded composited normal pixels only, not alpha, font independence, automatic size, other states, default rings or private selection."
+      ]
+    },
+    "publicFaceV2": {
+      "version": 1,
+      "rules": [
+        "Only Windows95 and System7 pressed/inactive requests qualify; require HiliteControl10/enabled or HiliteControl255/disabled in an active window. Exclude physical mouse gesture and inactive-window claims."
+      ]
+    },
+    "patternOrigin": {
+      "version": 1,
+      "rules": [
+        "Requests declaring patternOriginState require observed API availability and evidence; available requires integer offset pair, unavailable forbids an invented offset. Require independent patternOriginState review."
+      ]
+    },
+    "directOrigin": {
+      "version": 1,
+      "rules": [
+        "Nonzero origin requires reviewed-direct-drawing invocation, nonzero-origin justification and source reference. Exact direct-origin-invocation artifact joins controlDefinition, directOriginEvidence and patternOriginState; independent directOriginInvocation review is required."
+      ]
+    }
+  },
+  "maintenance": {
+    "rule": "Changes to eligibility behavior or normative requirements require review of affected policy sections and version/rule updates. Pure refactors with unchanged semantics require explicit no-policy-impact review; never silently change a decision rule.",
+    "transitiveDependencies": [
+      "contract.mjs: readContract, publicFaceScope, requiredReviewChecks, assessCapture, assessCorpus, inside, knownImages, digest/reviewDigest",
+      "png.mjs: inspectPNG and imported zlib decoding semantics",
+      "Source registry selection identity, request baseline dependencies and target requirement definitions",
+      "Artifact/path/image checks, contamination inventory discovery, scope selection, reviewer and report-status rules"
+    ],
+    "provenanceOnly": "Global authority document bytes/version, catalog version, ledger inventoryVersion and registry-wide review/schema metadata do not alter an individual request obligation. Normative changes must enter the applicable sections or actual request/target/scope/source/engine bindings."
+  }
+}

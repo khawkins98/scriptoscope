@@ -7,6 +7,8 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+- Bind reference attestations to request-specific semantics and versioned eligibility rules, retaining global documentation/ledger versions as provenance. Preserve prior attestations through one reviewed metadata migration; admission outcomes and original artifacts stay unchanged.
+
 - Register two existing prepared bitmap-font SOURCE assertions: declared strike identity, signed source pen and literal clipped mask paint. Ledger 1.5.0 keeps original typography/provider unknown; authority 0.1.11 requires metadata-only reference re-attestation.
 
 ### Added (2026-10-19)

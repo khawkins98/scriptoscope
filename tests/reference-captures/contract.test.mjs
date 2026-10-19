@@ -156,7 +156,7 @@ test('a swapped environment manifest or changed capture log is rejected independ
 function contractRoot(t) {
   const root = mkdtempSync(join(tmpdir(), 'reference-contract-authority-test-'));
   t.after(() => rmSync(root, { recursive: true, force: true }));
-  for (const path of ['tests/reference-captures/requests.json', 'tests/control-availability/source-choices.json', 'tests/rendering-requirements/ledger.json', 'docs/spec/fidelity-compatibility-contract.md']) {
+  for (const path of ['tests/reference-captures/requests.json', 'tests/reference-captures/eligibility-policy.json', 'tests/control-availability/source-choices.json', 'tests/rendering-requirements/ledger.json', 'docs/spec/fidelity-compatibility-contract.md']) {
     mkdirSync(dirname(join(root, path)), { recursive: true });
     writeFileSync(join(root, path), readFileSync(join(repositoryRoot, path)));
   }
@@ -171,15 +171,22 @@ for (const [field, value, expected] of [['contractId', 'another.contract', /cont
     assert.throws(() => readContract(root), expected);
   });
 }
-test('a changed authoritative document invalidates prior request and review bindings even without a version increment', t => {
+test('unrelated authority prose changes provenance without invalidating an attestation', t => {
   const root = contractRoot(t), path = join(root, 'docs/spec/fidelity-compatibility-contract.md');
-  const original = readContract(root); assert.equal(original.compatibility.version, contract.compatibility.version);
-  writeFileSync(path, readFileSync(path, 'utf8') + '\nA changed acceptance boundary requires fresh review.\n');
+  writeFileSync(path, readFileSync(path, 'utf8') + '\nUnrelated documented example.\n');
   const changed = readContract(root), nextRequest = changed.requests.find(r => r.id === request.id);
-  assert.notEqual(changed.compatibility.sha256, original.compatibility.sha256);
-  assert.notEqual(nextRequest.requestDigest, request.requestDigest);
+  assert.notEqual(changed.compatibility.sha256, contract.compatibility.sha256);
+  assert.equal(nextRequest.requestDigest, request.requestDigest);
   const f = fixture(t), review = f.approve(f.capture);
-  const result = assessCapture(f.capture, nextRequest, [review], { intakeRoot: f.root });
+  assert.equal(assessCapture(f.capture, nextRequest, [review], { intakeRoot: f.root }).status, 'reviewed-independent-capture');
+});
+test('changed normative policy invalidates an existing capture and its review', t => {
+  const root = contractRoot(t), path = join(root, 'tests/reference-captures/eligibility-policy.json');
+  const policy = JSON.parse(readFileSync(path)); policy.sections.common.rules.push('A new eligibility obligation.');
+  writeFileSync(path, JSON.stringify(policy));
+  const next = readContract(root).requests.find(r => r.id === request.id);
+  assert.notEqual(next.requestDigest, request.requestDigest);
+  const f = fixture(t), result = assessCapture(f.capture, next, [f.approve(f.capture)], { intakeRoot: f.root });
   assert.equal(result.status, 'rejected');
   assert.ok(result.rejected.some(r => r.startsWith('requestDigest')));
   assert.ok(result.rejected.some(r => r.startsWith('review.requestDigest')));
@@ -398,9 +405,9 @@ test('scoped original frame and palette/producer artifacts remain bound and cont
   f.capture.observed.publicApiFace.fullFrame.requestImageRect=[600,400,160,80];assert.equal(f.assess().status,'rejected');
 });
 
-test('scope policy is bound in request identity while exact13 request objects remain unchanged',t=>{
+test('catalog version is provenance while actual scope admission remains exact',t=>{
   const root=contractRoot(t),path=join(root,'tests/reference-captures/requests.json'),c=JSON.parse(readFileSync(path));
-  c.requestVersion='0.1.1';writeFileSync(path,JSON.stringify(c));assert.notEqual(readContract(root).requests[0].requestDigest,contract.requests[0].requestDigest);
+  c.requestVersion='0.1.1';writeFileSync(path,JSON.stringify(c));assert.equal(readContract(root).requests[0].requestDigest,contract.requests[0].requestDigest);
   const scoped=publicFaceScope(request);assert.equal(scoped.version,1);assert.deepEqual(scoped.faceImageRect,[20,20,80,20]);
   assert.equal(publicFaceScope({...request,conditions:{...request.conditions,controlRect:[20,20,40,20]}}),null);
 });
@@ -437,4 +444,41 @@ test('state scope v2 admits only logical highlight or disabled faces in an activ
     assert.equal(f.assess(full).status,'partial');
     assert.equal(publicFaceScope({...req,conditions:{...req.conditions,windowActive:false}}),null);
   }
+});
+
+// Finite dependency checks: no browser, renderer or new original evidence.
+test('unrelated ledger/registry additions and synchronized global versions preserve every request digest', t => {
+  const root = contractRoot(t);
+  const edit = (path, fn) => { const file=join(root,path), value=JSON.parse(readFileSync(file)); fn(value); writeFileSync(file,JSON.stringify(value)); };
+  edit('tests/rendering-requirements/ledger.json', l => { l.inventoryVersion='99.0.0';l.requirements.push({id:'unrelated',claim:'Another family'}); });
+  edit('tests/control-availability/source-choices.json', c => { c.reviewStatus='unrelated registry-wide update';c.sources.push({slug:'unrelated'}); });
+  edit('tests/reference-captures/requests.json', c => {c.requestVersion='99.0.0';c.contractVersion='99.0.0';});
+  const doc=join(root,'docs/spec/fidelity-compatibility-contract.md');
+  writeFileSync(doc,readFileSync(doc,'utf8').replace(`**${contract.compatibility.version}**`,'**99.0.0**'));
+  const next=readContract(root);
+  assert.deepEqual(next.requests.map(r=>r.requestDigest),contract.requests.map(r=>r.requestDigest));
+  assert.notDeepEqual(next.provenance,contract.provenance);
+});
+for (const [name,path,mutate] of [
+  ['selected source fork','tests/control-availability/source-choices.json',c=>c.sources.find(s=>s.slug==='windows-95').forkSha256='a'.repeat(64)],
+  ['engine component','tests/rendering-requirements/ledger.json',l=>l.inputs.find(i=>i.id===contract.catalog.engineComponentId).sha256='a'.repeat(64)],
+  ['actual input','tests/reference-captures/requests.json',c=>c.requests.find(r=>r.id===request.id).conditions.controlRect[2]=79],
+  ['required observation','tests/reference-captures/requests.json',c=>c.requests.find(r=>r.id===request.id).toObserve.newCondition=null],
+  ['full policy','tests/reference-captures/eligibility-policy.json',p=>p.sections.full.version++],
+]) test(`${name} changes the semantic binding`,t=>{
+  const root=contractRoot(t),file=join(root,path),value=JSON.parse(readFileSync(file));mutate(value);writeFileSync(file,JSON.stringify(value));
+  assert.notEqual(readContract(root).requests.find(r=>r.id===request.id).requestDigest,request.requestDigest);
+});
+test('policy changes are limited to requests using that section; missing rules fail closed',t=>{
+  const root=contractRoot(t),file=join(root,'tests/reference-captures/eligibility-policy.json'),p=JSON.parse(readFileSync(file));
+  p.sections.publicFaceV2.rules.push('A state-only obligation.');writeFileSync(file,JSON.stringify(p));
+  const next=readContract(root);
+  for(const r of contract.requests) assert.equal(next.requests.find(n=>n.id===r.id).requestDigest===r.requestDigest,publicFaceScope(r)?.version!==2);
+  p.sections.common.rules=[];writeFileSync(file,JSON.stringify(p));assert.throws(()=>readContract(root),/normative eligibility/);
+});
+test('origin experiments bind transitive baseline inputs without changing unrelated requests',t=>{
+  const root=contractRoot(t),file=join(root,'tests/reference-captures/requests.json'),c=JSON.parse(readFileSync(file));
+  c.requests.find(r=>r.id==='crayon-os.normal').toObserve.baselineCondition=null;writeFileSync(file,JSON.stringify(c));
+  const next=readContract(root);
+  for(const r of contract.requests) assert.equal(next.requests.find(n=>n.id===r.id).requestDigest===r.requestDigest,r.sourceSlug!=='crayon-os');
 });

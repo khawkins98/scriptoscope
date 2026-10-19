@@ -87,13 +87,20 @@ Pinned source references for these experimental constraints:
 
 `requests.json` is authoritative for exact inputs. It references the existing
 [source-choice registry](../control-availability/source-choices.json); it does not
-create a competing source catalog. A request digest includes its version/content,
-source entry/archive/fork pins and selection-review status, authoritative compatibility
-document ID/version/full-file SHA-256, ledger version, exact target requirement
-wording and engine component pin. Source-registry/ledger paths are also checked
-against their existing authorities.
-The compatibility document is the single identity/version authority: request pins must match its authoritative header. Even an unversioned document edit invalidates prior request digests;
-reviewed document changes still require a version increment. These draft source
+create a competing source catalog. The `request-semantic-v1` digest binds the exact request object, selected source
+record, engine component, target requirement definitions, supported scope
+objects, transitive experiment baseline inputs and applicable sections of the
+[normative eligibility policy](./eligibility-policy.json). Changing any of these
+requires new review bindings. See the [digest/migration spec](../../docs/spec/reference-semantic-digest.md).
+
+The authority ID remains pinned and catalog/header versions must agree. Global
+authority bytes/version, catalog request version, ledger inventory version and
+registry-wide metadata are reported provenance, not individual obligations.
+Unrelated documentation or ledger additions therefore do not stale attestations.
+Source-registry/ledger paths and source archive bytes still undergo their existing
+checks. Normative eligibility changes must update the relevant policy rules and
+version; an unrelated prose edit cannot silently introduce a new decision rule.
+These draft source
 choices identify
 requested bytes; they do **not** approve historical Resource Manager selection or
 which provider owned each resource. The known kDEF0 2.3.1 hash identifies one
