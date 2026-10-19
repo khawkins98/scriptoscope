@@ -355,6 +355,11 @@ export interface LoadedTheme {
  *  off `theme.inspector` without re-fetching the bundle. URLs are pre-baked (blob: in a
  *  browser; pass-through in Node when an `assetUrlFactory` was set). */
 export interface ThemeInspector {
+  /** Complete same-fork ics# input census, including masks without color art.
+   * Absent means unknown; [] means no such raw resources. Duplicate IDs and
+   * fewer than 64 bytes are unsupported by the checkable icon path, not NULL.
+   * Occurrence indices refer to parsed resource order in this loaded fork. */
+  iconMaskResources?: Array<{ id: number; resourceIndex: number; byteLength: number }>;
   iconIndex: Array<{
     id: number;
     type: 'icl4' | 'ics4' | 'icl8' | 'ics8';
@@ -364,7 +369,9 @@ export interface ThemeInspector {
     name?: string | null;
     /** Asset URL (blob: in a browser; pass-through in Node when assetUrlFactory was set). */
     url?: string;
-    /** True iff the icon's matching mask resource (ics#/icl#) is present + non-empty. */
+    /** Raw color-resource occurrence in this loaded fork, when decoded by the loader. */
+    resourceIndex?: number;
+    /** True iff the first matching mask supplied a complete decoded mask plane. */
     masked?: boolean;
     /** Decoder-side coverage metric (fraction of opaque pixels). */
     coverage?: number;

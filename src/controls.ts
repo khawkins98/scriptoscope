@@ -1849,33 +1849,47 @@ export async function composeListHeader(theme: LoadedTheme, opts: ListHeaderOpti
   return out;
 }
 
-/**
- * Compose a THEMED checkbox/radio glyph + label into a buffer. Stamps
- * the fixed-size state cicn 1:1 (radio: `radio-buttons-{on|off}-...`;
- * checkbox: `normal-{on|off}-...`). Returns null → baselineCheckable.
- *
- * Resolution is deliberately SELF-ONLY (no base-chain walk): a scheme renders
- * its OWN checkbox/radio art, and one that ships none returns null so the caller
- * draws the procedural Platinum glyph — rather than inheriting from an unrelated
- * base bundle. Every texture/cicn scheme (1138/1984/beos/evolution) and 1990 ship
- * -9488..-9504 as cicns in their OWN bundle, so they resolve on the first hop
- * unchanged.
- *
- * The corner-sprite Platinum-family schemes — apple-platinum-2 / platinum-8 /
- * system7-nostalgia-silver — ship NO checkbox/radio CICN, but they DO author the
- * art as ics4 GLYPHS in the -10214..-10240 family (pixel-VERIFIED across all
- * three schemes, 12×12 each, identical glyph shapes to the replica's -9488/-9500
- * cicns):
- *   • CHECKBOX (square box; cols = X / dash=mixed / CHECK / empty, rows =
- *     active / pressed / disabled — pixel-verified 8× grid):
- *       active  → empty -10232 · checked(✓) -10231 · mixed(–) -10230
- *       disabled→ empty -10240 · checked(✓) -10239 · mixed(–) -10238
- *   • RADIO (round orb; cols = mixed / ON / off, rows = active/pressed/disabled):
- *       active  → off -10216 · on -10215 · mixed -10214
- *       disabled→ off -10224 · on -10223 · mixed -10222
- * So self-resolution now hits the scheme's OWN glyph; only a scheme that ships
- * neither cicn nor ics4 falls through to the procedural Platinum glyph.
- */
+/** Source table at 0x18b88, copied at 0x710e–0x712c. No pressed public option.
+ * Modern same-owner selection does not establish original Resource Manager order. */
+async function loadCheckableIcon(
+  theme: LoadedTheme, kind: 'checkbox' | 'radio',
+  opts: { mixed?: boolean; checked?: boolean; disabled?: boolean },
+): Promise<PixelBuffer | null> {
+  const value = opts.mixed ? 2 : opts.checked ? 1 : 0;
+  const normal = kind === 'checkbox' ? [-10236, -10235, -10234] : [-10220, -10219, -10218];
+  const disabled = kind === 'checkbox' ? [-10240, -10239, -10238] : [-10224, -10223, -10222];
+  const row = opts.disabled ? disabled : normal;
+  // Hand-built themes without an inspector retain unobserved color-art fallback.
+  // A present but incomplete/contradictory inspector never takes this path.
+  if (!theme.inspector) {
+    return (await loadGlyphByIdSelf(theme, row[value])) ?? (await loadGlyphByIdSelf(theme, normal[value]));
+  }
+  const masks = theme.inspector.iconMaskResources;
+  if (!masks) return null;
+  const maskState = (id: number) => {
+    const found = masks.filter(r => r.id === id);
+    if (!found.length) return 'missing';
+    return found.length === 1 && Number.isInteger(found[0].resourceIndex) && found[0].resourceIndex >= 0
+      && Number.isInteger(found[0].byteLength) && found[0].byteLength >= 64 ? 'decoded' : 'invalid';
+  };
+  let id = row[value];
+  // 0x73ae–0x73d8 retries checked ONLY for a missing mixed mask, not missing color art.
+  if (value === 2 && maskState(id) === 'missing') id = row[1];
+  // f50c–f51e also requires the selected mask. Short/duplicate masks are unsupported.
+  if (maskState(id) !== 'decoded') return null;
+  const asset = theme.glyphs?.[String(id)];
+  if (!asset) return null;
+  const url = assetUrl(theme, asset);
+  const entries = theme.inspector.iconIndex.filter(e => e.id === id && e.url === url);
+  if (entries.length !== 1) return null;
+  const entry = entries[0];
+  if (entry.size !== 16 || !entry.masked || !Number.isInteger(entry.resourceIndex)
+    || !((entry.type === 'ics4' && entry.depth === 4) || (entry.type === 'ics8' && entry.depth === 8))) return null;
+  return loadCicnBuffer(url);
+}
+
+/** Compose self-owned checkable art. CICN selection and the icon table are
+ * separate source paths; icon color depth remains the loader's modern policy. */
 export async function composeCheckable(
   theme: LoadedTheme,
   kind: 'checkbox' | 'radio',
@@ -1888,38 +1902,11 @@ export async function composeCheckable(
   const activeId = kind === 'radio' ? (checked ? 9488 : 9491) : (checked ? 9500 : 9503);
   const wantId = activeId + Number(!!opts.disabled);
   const mixedId = (kind === 'radio' ? 9485 : 9497) + Number(!!opts.disabled);
-  // The corner-sprite schemes' OWN ics4 glyph ids for this control+state (the
-  // -10214..-10240 family, pixel-verified — see the doc-comment). Tried as ics4
-  // glyphs, NEVER walking the base chain. Active-state id is the fallback so a
-  // disabled control that lacks a disabled glyph still shows the scheme's own art.
-  // The cluster is 4 marks × 3 tiers (pixel-verified across the 3 schemes):
-  //   checkbox cols = [X, mixed/dash, CHECK, empty]; rows = active / pressed / disabled.
-  //     active  -10229..-10232 · pressed -10233..-10236 · DISABLED -10237..-10240
-  //   radio    cols = [mixed, ON, off]; rows = active / pressed / disabled.
-  //     active  -10214..-10216 · pressed -10218..-10220 · DISABLED -10222..-10224
-  // "checked" is the CHECK glyph (not the X), and the inactive/disabled state is
-  // the grayed THIRD row (not the pressed second row).
-  let glyphId: number, glyphActiveId: number;
-  if (kind === 'radio') {
-    glyphActiveId = opts.mixed ? 10214 : opts.checked ? 10215 : 10216;
-    glyphId = opts.disabled ? (opts.mixed ? 10222 : opts.checked ? 10223 : 10224) : glyphActiveId;
-  } else {
-    glyphActiveId = opts.mixed ? 10230 : opts.checked ? 10231 : 10232;
-    glyphId = opts.disabled ? (opts.mixed ? 10238 : opts.checked ? 10239 : 10240) : glyphActiveId;
-  }
-  // SELF-ONLY resolution order (no base-chain hop → no replica borrow):
-  //   0. own mixed cicn, when requested; missing retries checked at same tier
-  //   1. own cicn for this state          (texture/cicn schemes, 1990, replica)
-  //   2. own cicn for the active state (modern compatibility fallback)     (cicn scheme lacking a disabled cell)
-  //   3. own ics4 glyph at the -1021x..-1024x family for this state  (icon schemes)
-  //   4. own ics4 glyph at the active state of that family
-  // Falls to null (→ procedural baseline) only when the scheme ships neither.
   const glyph =
     (opts.mixed ? await loadByIdSelf(theme, mixedId) : null) ??
     (await loadByIdSelf(theme, wantId)) ??
     (await loadByIdSelf(theme, activeId)) ??
-    (await loadGlyphByIdSelf(theme, -glyphId)) ??
-    (await loadGlyphByIdSelf(theme, -glyphActiveId));
+    (await loadCheckableIcon(theme, kind, opts));
   if (!glyph) return null;
   const label = opts.label ?? '';
   const glyphs = label ? rasterizeText(label, 9, opts.fg ?? '#000000') : null;

@@ -35,10 +35,10 @@ for (const mode of ['source','built']) test(`${mode}: mixed checkables select ow
             rows.push({kind,...c,options,pixels:Array.from(out.data),size:[out.width,out.height],calls,selected,provenance:theme.byteProvenance});
           }finally{HTMLImageElement.prototype.decode=decode;theme.dispose();}
         }
-        // Existing icon fallback stays mixed-first and self-only. Explicit mask avoids corner flood policy.
-        const glyphId=kind==='checkbox'?-10238:-10222,activeId=kind==='checkbox'?-10230:-10214;
+        // Icon mixed-mask miss retries checked at the same tier; CICN cases above stay unchanged.
+        const glyphId=kind==='checkbox'?-10238:-10222,checkedId=kind==='checkbox'?-10239:-10223;
         for(const disabledArt of [true,false]){
-          const id=disabledArt?glyphId:activeId;
+          const id=disabledArt?glyphId:checkedId;
           const theme=await api.loadKaleidoscopeScheme(forkOf([{type:'ics4',id,data:new Uint8Array(128).fill(255)},{type:'ics#',id,data:new Uint8Array(64).fill(255)}]),{provenance:true});
           try{const out=await api.composeCheckable(theme,kind,{label:'',mixed:true,checked:true,disabled:true});rows.push({kind,name:'icons',disabledArt,pixels:Array.from(out.data),size:[out.width,out.height]});}finally{theme.dispose();}
         }

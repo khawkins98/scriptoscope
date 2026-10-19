@@ -1,5 +1,13 @@
 # Learnings
 
+## 2026-10-19 — Icon color availability is not mask availability
+
+Checkable icon fallback tests `ics#` before choosing color art. A valid mask can
+exist without a supported color resource; `masked: false` also covers a short
+mask. Keep a complete raw mask census separate from emitted color entries. The
+pinned table also assigns normal and pressed rows differently from earlier
+visual guesses. See [checkable icon selection](docs/spec/checkable-icons.md).
+
 ## 2026-10-19 — Consumed cinf ownership is separate from the local pair
 
 A face can use cinf from an explicitly declared provider while its static
