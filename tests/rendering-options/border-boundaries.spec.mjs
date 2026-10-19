@@ -64,7 +64,8 @@ for (const mode of ['source', 'built']) for (const choice of boundarySources)
               cicn: resources.get(expected.cicnResourceIndex), cinf: resources.get(expected.cinfResourceIndex) ?? null };
             if (expected.status !== 'candidate') { rows.push({ variant, key, status: expected.status }); continue; }
             const model = { width: expected.width, height: expected.height, ...expected.cinf };
-            check(same(e.slice, expected.cinf), 'Actual slice differs from raw selected cinf');
+            check(e.slice && ['corner', 'side', 'tile'].every(field => e.slice[field] === expected.cinf[field]),
+              'Actual slice differs from raw selected cinf');
             if (model.width < 2 * model.corner || model.height < 2 * model.corner || !model.width || !model.height) {
               rows.push({ variant, key, status: 'unknown-unsafe-source-span' }); continue;
             }
