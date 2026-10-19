@@ -1748,7 +1748,14 @@ export async function composeHeaderSurface(theme: LoadedTheme, opts: HeaderSurfa
       if (!body.solidFallback) return finish({ status: 'unsupported', reason: 'ambiguous-body-selection' });
       const background = headerBackground(face.buffer, face.element, face.theme.manifest);
       if (!background) return finish({ status: 'unsupported', reason: 'missing-background-sample' });
-      const painted = paintHeaderSurface(face.buffer, face.element, plan, background, face.theme.manifest);
+      const companion = face.element.sampledBandAsset;
+      const companionUrl = companion ? assetUrl(face.theme, companion.asset) : null;
+      const painted = await paintHeaderSurface(face.buffer, face.element, plan, background, face.theme.manifest,
+        companionUrl ? () => loadCicnBuffer(companionUrl) : undefined);
+      if (identity && companion && companionUrl) for (const band of painted.sampledRegions ?? []) trace?.bandPaint({
+        ...identity, role: 'face', ...band, policy: 'sampled-companion',
+        derived: { path: companion.derivedPath, assetUrl: companionUrl, model: companion.model, displayPolicy: companion.displayPolicy },
+      });
       if (painted.painted && identity) trace?.record({ ...identity, role: 'face', requestedId: -id,
         action: 'selected', basis: 'compatibility-policy', usage: 'paint', reason: 'admitted-header-surface-paint' });
       return finish(painted.result, { ...(painted.result.status === 'rendered' ? { painted: painted.painted,

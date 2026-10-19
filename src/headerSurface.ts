@@ -1,7 +1,7 @@
 import { ownerDisplayPolicyMatches } from '../tools/theme-loader/display-profile.js';
 import type { ThemeManifest } from './types.js';
 import { snapshotControlComposition, type ControlCompositionContext, type ControlCompositionSnapshot, type ControlRect } from './controlComposition.js';
-import type { ControlDiagnostics } from './controlDiagnostics.js';
+import type { ControlBandPaint, ControlDiagnostics } from './controlDiagnostics.js';
 import type { ChromeElement } from './types.js';
 import { PixelBuffer } from './pixelBuffer.js';
 
@@ -38,7 +38,7 @@ export interface HeaderSurfaceTrace {
   readonly geometry: 'pach130-ordinary-full-color';
   readonly sourceSelection: 'current-manifest-compatibility';
   readonly backgroundPolicy?: 'raw-sample-current-display';
-  readonly lineSampling?: 'not-required' | 'equivalent-current-display' | 'unverified';
+  readonly lineSampling?: 'not-required' | 'equivalent-current-display' | 'sampled-companion' | 'unverified';
 }
 
 export interface HeaderSurfacePlan {
@@ -117,8 +117,8 @@ function headerRegions(source: PixelBuffer, element: ChromeElement, width: numbe
 
 /** Internal admitted solid painter. Full-color, ordinary nonrecording display
  * policy only; optional original device caches are not reproduced. */
-export function paintHeaderSurface(source: PixelBuffer, element: ChromeElement, plan: HeaderSurfacePlan,
-  background: readonly number[], owner?: ThemeManifest): { result: HeaderSurfaceResult; lineSampling: NonNullable<HeaderSurfaceTrace['lineSampling']>; painted: boolean } {
+export async function paintHeaderSurface(source: PixelBuffer, element: ChromeElement, plan: HeaderSurfacePlan,
+  background: readonly number[], owner?: ThemeManifest, loadSampled?: () => Promise<PixelBuffer>): Promise<{ result: HeaderSurfaceResult; lineSampling: NonNullable<HeaderSurfaceTrace['lineSampling']>; painted: boolean; sampledRegions?: readonly { region: number; branch: ControlBandPaint['branch'] }[] }> {
   const { w: width, h: height } = plan.requestedRect, paintHeight = plan.paintRect.h;
   const clip = plan.effectiveClip!;
   const x0 = Math.max(0, clip.x - plan.requestedRect.x), y0 = Math.max(0, clip.y - plan.requestedRect.y);
@@ -132,14 +132,32 @@ export function paintHeaderSurface(source: PixelBuffer, element: ChromeElement, 
   if (regions.some(region => visible(region) && (region[0] < 0 || region[1] < 0
     || region[0] + region[2] > source.width || region[1] + region[3] > source.height)))
     return { result: { status: 'unsupported', reason: 'unsafe-source-geometry' }, lineSampling: needsSampling ? 'unverified' : 'not-required', painted: false };
-  // Optional additive decoder field; older manifests remain explicitly unsupported.
+  const matches = (value: ChromeElement['samplingEquivalence'] | ChromeElement['sampledBandAsset']): boolean =>
+    value?.model === 'kaleidoscope-2.3.1-opaque-sampling-v1' && value.comparison === 'opaque-current-display-rgb'
+    && ownerDisplayPolicyMatches(owner, value.displayPolicy) && value.width === source.width && value.height === source.height;
   const proof = element.samplingEquivalence;
-  if (needsSampling && !(proof?.model === 'kaleidoscope-2.3.1-opaque-sampling-v1' && proof.comparison === 'opaque-current-display-rgb'
-    && ownerDisplayPolicyMatches(owner, proof.displayPolicy) && proof.width === source.width && proof.height === source.height
-    && proof.status === 'equivalent' && proof.reason === 'all-opaque-display-rgb-equal')) return { result: { status: 'unsupported', reason: 'unverified-line-sampling' }, lineSampling: 'unverified', painted: false };
-  const lineSampling = needsSampling ? 'equivalent-current-display' : 'not-required';
+  const equivalent = matches(proof) && proof?.status === 'equivalent' && proof.reason === 'all-opaque-display-rgb-equal';
+  let lineSampling: NonNullable<HeaderSurfaceTrace['lineSampling']> = needsSampling ? equivalent ? 'equivalent-current-display' : 'unverified' : 'not-required';
   for (let i = 3; i < source.data.length; i += 4) if (source.data[i] !== 0 && source.data[i] !== 255)
     return { result: { status: 'unsupported', reason: 'nonbinary-mask' }, lineSampling, painted: false };
+  let sampled: PixelBuffer | null = null;
+  if (needsSampling && !equivalent) {
+    const companion = element.sampledBandAsset;
+    if (matches(companion) && companion && typeof companion.asset === 'string' && companion.asset.length > 0
+      && /^cicn-sampled\/[^/]+\.png$/.test(companion.derivedPath) && loadSampled) {
+      // The retained companion uses PACH5874/687e's full-color samples. It is
+      // already in the owner's display policy; never transform it a second time.
+      const decoded = await loadSampled();
+      if (decoded.width === source.width && decoded.height === source.height) {
+        let sameMask = true;
+        for (let i = 3; i < source.data.length; i += 4) if (decoded.data[i] !== source.data[i]) { sameMask = false; break; }
+        if (sameMask) sampled = decoded;
+      }
+    }
+    if (!sampled) return { result: { status: 'unsupported', reason: 'unverified-line-sampling' }, lineSampling, painted: false };
+    lineSampling = 'sampled-companion';
+  }
+  const sampledRegions: { region: number; branch: ControlBandPaint['branch'] }[] = [];
   const out = PixelBuffer.alloc(width, height), { corner: c, side: s } = element.slice!;
   let painted = false;
   // 721a..7260 fills the union before any border. Clip never restarts a tile.
@@ -150,16 +168,22 @@ export function paintHeaderSurface(source: PixelBuffer, element: ChromeElement, 
       painted = true;
     }
   }
-  for (const region of regions) {
+  for (const [regionIndex, region] of regions.entries()) {
     if (!visible(region)) continue;
     const [sx, sy, sw, sh, dx, dy, dw, dh] = region;
+    // Select from original dimensions before clipping, width expansion first.
+    const branch = sw === 1 && dw > 1 ? 'horizontal-lines' : sh === 1 && dh > 1 ? 'vertical-lines' : 'copy';
+    const pixels = branch !== 'copy' && sampled ? sampled : source;
+    let regionPainted = false;
     for (let y = Math.max(y0, dy); y < Math.min(y1, dy + dh); y++) for (let x = Math.max(x0, dx); x < Math.min(x1, dx + dw); x++) {
-      const pixel = source.getPixel(sx + (x - dx) % sw, sy + (y - dy) % sh);
+      const pixel = pixels.getPixel(sx + (x - dx) % sw, sy + (y - dy) % sh);
       if (pixel[3]) {
         out.setPixel(x, y, ...pixel); // ordinary CopyMask preserves earlier paint beneath holes
         painted = true;
+        regionPainted = true;
       }
     }
+    if (regionPainted && pixels === sampled) sampledRegions.push({ region: regionIndex, branch });
   }
-  return { result: { status: 'rendered', buffer: out }, lineSampling, painted };
+  return { result: { status: 'rendered', buffer: out }, lineSampling, painted, sampledRegions };
 }

@@ -7,6 +7,8 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+- Support whole-header one-pixel line colors through the existing owner-bound sampled companion, preserving strict missing-data, mask and device-policy limits.
+
 - Qualify the historical chrome QA punchlist and unversioned previews as visual context, preserving its findings without implying current all-type fidelity certification.
 
 - Record exact pinned-source reproduction of the preserved emulator JS/WASM, with sanitized build identities and explicit unintegrated-observer/provider limits.

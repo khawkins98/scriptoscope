@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { test, expect, openHarness, attachCase, attachObservations } from './fixtures.mjs';
-import { headerSurfaceIcon, headerSurfaceInfo, windowHeaderRows, listViewHeaderRows,
+import { headerCollisionSampledRows, headerSurfaceIcon, headerSurfaceInfo, windowHeaderRows, listViewHeaderRows,
   clippedWindowHeaderRows, clippedListViewHeaderRows, headerOverlapIcon, headerOverlapInfo,
   headerOverlapWindowRows, headerOverlapListRows, headerOverlapClippedWindowRows, headerOverlapClippedListRows } from '../decoder-fixtures/header-surface.mjs';
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
@@ -84,7 +84,8 @@ for (const mode of ['source', 'built']) test(`${mode}: header admission keeps mi
       const options={kind:'window-header',width:11,height:16,drawState:1,compositionContext:{controlOrigin:[10,20],portOrigin:[3,5],patternOrigin:{status:'unknown'},clip:{kind:'unbounded'}}};
       try {
         for(const variant of ['unknown-clip','special-origin','missing-face','missing-slice','invalid-slice','missing-request','invalid-request','mode5','pattern0','pattern17','ambiguous-pattern','missing-bg','ambiguous-bg','missing-proof','different-proof','unknown-proof','wrong-model','wrong-comparison','wrong-policy','wrong-reason','wrong-width','wrong-height','unsafe-source','true-one-pixel','nonbinary']) {
-          const el=structuredClone(initial); owner.manifest.chromeElements={[key]:el}; owner.manifest.patterns={};
+          const el=structuredClone(initial); delete el.sampledBandAsset; // Exercise equivalence-only admission; companion admission has its own case.
+          owner.manifest.chromeElements={[key]:el}; owner.manifest.patterns={};
           const opts=structuredClone(options);
           if(variant==='unknown-clip') opts.compositionContext.clip={kind:'unknown'};
           if(variant==='special-origin') opts.compositionContext.controlOrigin=[-1,-1];
@@ -201,7 +202,7 @@ for (const mode of ['source', 'built']) test(`${mode}: header diagnostics freeze
   }catch(error){await attachCase(page,info,{mode,result},error);throw error;}
 });
 
-for (const mode of ['source','built']) test(`${mode}: actual palette collisions remain unsupported for both one-pixel expansion flags`,async({page,servers},info)=>{
+for (const mode of ['source','built']) test(`${mode}: actual palette collisions use retained samples for both one-pixel expansion flags`,async({page,servers},info)=>{
   await openHarness(page,servers,mode);let result;
   try{
     result=await page.evaluate(async mode=>{
@@ -215,15 +216,16 @@ for (const mode of ['source','built']) test(`${mode}: actual palette collisions 
           let trace;const value=await api.composeHeaderSurface(owner,{kind:'window-header',width:11,height:16,drawState:1,compositionContext:{controlOrigin:[0,0],portOrigin:[0,0],patternOrigin:{status:'unknown'},clip:{kind:'unbounded'}},diagnostics:{onComplete:t=>{trace=t;}}});
           const selected=trace.steps.find(s=>s.role==='face'&&s.action==='selected'),el=owner.manifest.chromeElements[selected.resource.manifestKey];
           const decoded=await api.loadCicnBuffer(el.asset);
-          rows.push({tile,status:value.status,reason:value.reason,trace,sampling:el.samplingEquivalence,background:el.colorSamples.background,
+          rows.push({tile,status:value.status,reason:value.reason,pixels:value.status==='rendered'?Array.from({length:value.buffer.height},(_,y)=>Array.from({length:value.buffer.width},(_,x)=>value.buffer.getPixel(x,y))):null,trace,sampling:el.samplingEquivalence,background:el.colorSamples.background,
             topSample:decoded.getPixel(3,0),leftSample:decoded.getPixel(0,3),resource:owner.byteProvenance.resources.find(r=>r.resourceIndex===selected.resource.byteProvenance.cicnResourceIndex)});
         }finally{owner.dispose();}
       }return rows;
     },mode);
     for(const row of result){
-      expect(row).toMatchObject({status:'unsupported',reason:'unverified-line-sampling',sampling:{status:'different'},background:{rgb16:[8481,8481,8481],displayRgb:[48,48,48]},topSample:[255,0,0,255],leftSample:[255,0,0,255],resource:{sha256:'ae6a14ab40e4f69489f9444084133376abe2ff5872c3f82c4fa0e56290831231'}});
-      expect(row.trace.headerSurface.lineSampling).toBe('unverified'); expect(row.trace.steps.some(s=>s.usage==='paint')).toBe(false);
+      expect(row).toMatchObject({status:'rendered',sampling:{status:'different'},background:{rgb16:[8481,8481,8481],displayRgb:[48,48,48]},topSample:[255,0,0,255],leftSample:[255,0,0,255],resource:{sha256:'ae6a14ab40e4f69489f9444084133376abe2ff5872c3f82c4fa0e56290831231'}});
+      expect(row.pixels).toEqual(headerCollisionSampledRows.map(r=>[...r].map(c=>c==='.'?[0,0,0,0]:[48,48,48,255])));
+      expect(row.trace.headerSurface.lineSampling).toBe('sampled-companion'); expect(row.trace.bandPaints).toHaveLength(2);
     }
-    await attachObservations(info,'header-surface',`${mode}-palette-boundary`,{mode,result,limits:'Real decoder collision rejected; no false proof from tile flag or current raster RGB'});
+    await attachObservations(info,'header-surface',`${mode}-palette-boundary`,{mode,result,limits:'Real decoder collision uses retained raw-sampler companion; no device or original ownership claim'});
   }catch(error){await attachCase(page,info,{mode,result},error);throw error;}
 });

@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { headerCollisionSampledRows } from '../decoder-fixtures/header-surface.mjs';
 import { compareByteProvenance } from '../resource-provenance/compare.mjs';
 export const headerBandPins = JSON.parse(readFileSync(new URL('../decoder-fixtures/header-band-source-pins.json',import.meta.url)));
 export const headerBandCaseIds = headerBandPins.cases.map(p=>p.id);
@@ -41,10 +42,18 @@ export function verifyHeaderBandRows(rows,indices) {
         assert.deepEqual(h.effectiveClip,index===0?{x:10,y:20,w:19,h:13}:{x:15,y:22,w:8,h:9});
         assert.deepEqual(row.trace.steps.filter(s=>s.usage==='paint'),[{...face,usage:'paint',reason:'admitted-header-surface-paint'}]);
       }else{
-        assert.equal(row.status,'unsupported');assert.equal(row.reason,'unverified-line-sampling');assert.equal(row.pixels,null);assert.equal(row.size,null);
-        assert.equal(h.admission,'unsupported');assert.equal(h.reason,'unverified-line-sampling');assert.equal(h.lineSampling,'unverified');assert.equal(h.backgroundPolicy,undefined);
-        assert.deepEqual(row.trace.outcome,{status:'unavailable'});assert.equal(row.sampling.status,'different');
-        assert.equal(row.trace.steps.some(s=>s.usage==='paint'),false);assert.equal(row.trace.bandPaints,undefined);
+        assert.equal(row.status,'rendered');assert.equal(row.reason,undefined);assert.deepEqual(row.size,[11,16]);
+        assert.deepEqual(row.pixels,headerCollisionSampledRows.map(r=>[...r].map(c=>c==='.'?[0,0,0,0]:[48,48,48,255])));
+        assert.equal(h.admission,'rendered');assert.equal(h.lineSampling,'sampled-companion');assert.equal(h.painted,true);assert.equal(h.backgroundPolicy,'raw-sample-current-display');
+        assert.deepEqual(row.trace.outcome,{status:'themed',width:11,height:16});assert.equal(row.sampling.status,'different');
+        assert.deepEqual(row.trace.steps.filter(s=>s.usage==='paint'),[{...face,usage:'paint',reason:'admitted-header-surface-paint'}]);
+        assert.deepEqual(row.trace.bandPaints.map(b=>[b.region,b.branch]),[[2,'horizontal-lines'],[6,'vertical-lines']]);
+        for(const b of row.trace.bandPaints){
+          assert.equal(b.policy,'sampled-companion');assert.equal(b.role,'face');assert.deepEqual(b.owner,face.owner);assert.deepEqual(b.resource,face.resource);
+          actualJoin({...b,action:'selected',usage:'admission'},row,pin);
+          assert.equal(b.derived.path,'cicn-sampled/cicn-n9567-unnamed.png');
+          assert.equal(b.derived.assetUrl,row.owner.element.sampledBandAsset.asset);
+        }
       }
     }else{
       assert.equal(row.trace.family,'push-button');assert.deepEqual(row.trace.requested,{state:'active',pressed:false,disabled:false,default:false});

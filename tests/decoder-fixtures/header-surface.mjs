@@ -242,3 +242,26 @@ export function headerSamplingCollisionIcon() {
   const hex = '000000008008000000000007000700000000000000000000000000000000000000080001000800000000000000000000000000000000000100000000000700070000000000000000000000000000000000001000008000000000000000800000020007ffff000000000000212121212121000300000000ffff0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000';
   return Uint8Array.from(hex.match(/../g), byte => Number.parseInt(byte,16));
 }
+
+// PACH one-pixel sampler for the unchanged 7x7 collision source, c3/s1,
+// ordinary 11x16 header. Only source (3,0) and (0,3) have mask bits.
+// The five-pixel horizontal line and ten-pixel vertical line are gray48;
+// masked holes preserve gray48 solid union. No decoded red is painted.
+export const headerCollisionSampledRows = [
+  '...@@@@@...',
+  '...@@@@@...',
+  '...@@@@@...',
+  '@@@@@@@@@@.',
+  '@@@@@@@@@@.',
+  '@@@@@@@@@@.',
+  '@@@@@@@@@@.',
+  '@@@@@@@@@@.',
+  '@@@@@@@@@@.',
+  '@@@@@@@@@@.',
+  '@@@@@@@@@@.',
+  '@@@@@@@@@@.',
+  '@@@@@@@@@@.',
+  '...@@@@@...',
+  '...@@@@@...',
+  '...........',
+];
