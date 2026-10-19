@@ -84,3 +84,28 @@ test('builder excludes explicit failed wnd records without claiming a decoded re
   ] });
   assert.equal(theme.windowTypes, undefined);
 });
+
+test('corner file-nullish fallback preserves missing/null versus empty-string decisions', () => {
+  const asset = (type, id, file, index) => ({ type, id, status: 'ok', file, width: 1, height: 1,
+    byteReference: { loadId: 'fixture', resourceIndex: index } });
+  for (const missing of [undefined, null]) {
+    const theme = buildThemeJson({ assets: [
+      asset('cicn', -14332, 'active.png', 0), asset('cicn', -14336, missing, 1),
+      asset('cicn', -14331, missing, 2), asset('ppat', -14331, 'stripe.png', 3),
+    ] });
+    const wt = theme.windowTypes['document-window'];
+    assert.deepEqual(wt.chrome, { active: 'active.png', inactive: 'active.png' });
+    assert.deepEqual(wt.byteProvenance.chrome, { active: 0, inactive: 0 });
+    assert.equal(wt.sprites.pinstripe, 'stripe.png');
+    assert.deepEqual(wt.byteProvenance.sprites.pinstripe, { type: 'ppat', resourceIndex: 3 });
+  }
+  const theme = buildThemeJson({ assets: [
+    asset('cicn', -14332, 'active.png', 0), asset('cicn', -14336, '', 1),
+    asset('cicn', -14331, '', 2), asset('ppat', -14331, 'stripe.png', 3),
+  ] });
+  const wt = theme.windowTypes['document-window'];
+  assert.equal(wt.chrome.inactive, '');
+  assert.equal(wt.byteProvenance.chrome.inactive, 1);
+  assert.equal(wt.sprites, undefined);
+  assert.deepEqual(wt.byteProvenance.sprites, {});
+});

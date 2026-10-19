@@ -250,7 +250,11 @@ export function buildThemeJson(manifest, options = {}) {
   // uses the faithful sliced path).
   if (Object.keys(windowTypes).length === 0) {
     // Resolve a row to PNG files; skip the row if its corner cicns are absent.
-    const cicnRecord = (id) => byTypeAndId[`cicn:${id}`] ?? null;
+    const usableFileRecord = (type, id) => {
+      const record = byTypeAndId[`${type}:${id}`];
+      return record?.file != null ? record : null;
+    };
+    const cicnRecord = (id) => usableFileRecord('cicn', id);
     // Side-utility ships no own pinstripe (-14318 is absent in the corpus); it
     // reuses the utility racing-stripes (-14314). The table notes the fallback.
     // Sprite resolver: cicn preferred (pre-rendered raster), ppat fallback (tile
@@ -260,7 +264,7 @@ export function buildThemeJson(manifest, options = {}) {
     // theme.json level. Used for ALL sprite roles (pinstripe, growBox, …) so future
     // ppat-shipped scheme variants don't silently lose their sprites.
     const cicnOrPpatRecord = (id) =>
-      cicnRecord(id) ?? byTypeAndId[`ppat:${id}`] ?? null;
+      cicnRecord(id) ?? usableFileRecord('ppat', id);
     for (const row of CORNER_SPRITE_WINDOWS) {
       const rec = WINDOW_RECIPES[row.slug]; // titleH / widgets / collapsed (shared)
       if (!rec) continue; // a wired slug with no recipe would be a spec bug
@@ -302,8 +306,8 @@ export function buildThemeJson(manifest, options = {}) {
       // to the prior single-type output (which omitted the field).
       if (!isDefaultWidgets(rec.widgets)) wt.widgets = rec.widgets;
       const spriteRecords = {};
-      if (pinstripeRecord) spriteRecords.pinstripe = pinstripeRecord;
-      if (growRecord) spriteRecords.growBox = growRecord;
+      if (pinstripeFile) spriteRecords.pinstripe = pinstripeRecord;
+      if (growFile) spriteRecords.growBox = growRecord;
       const provenance = windowByteProvenance(row.slug, null, row.slug,
         { active: activeRecord, inactive: inactiveRecord }, null, spriteRecords);
       if (provenance) wt.byteProvenance = provenance;

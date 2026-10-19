@@ -57,7 +57,7 @@
     },
     {
       "path": "tools/theme-loader/buildThemeJson.js",
-      "sha256": "5db9eca0ad3c6154e4ba75775d5ed6ac928d40c8eb714b6c259118f086eebc18"
+      "sha256": "8105b66087ef90378c0711aad31d52513d6da90214a84fdb2860bc56b6ee0fe1"
     },
     {
       "path": "tools/theme-loader/cicn-body.js",
