@@ -4458,3 +4458,13 @@ erase/redraw did not explain the older v6 border. Preserve both observations:
 a successful setter and standard-filter participation do not identify the
 original internal painter or establish equivalence with `composeButton`'s
 kDEF-style ring request. See the [bounded observations](docs/research/default-dialog-transitions/2026-10-19/README.md).
+
+## 2026-10-19 — Advance, line metrics and ink are different rectangles
+
+The ordinary push label helper uses TextWidth and GetFontInfo, not glyph ink
+bounds: kDEF0 centers advance with signed truncation (707c–709c) and computes
+baseline from ascent/descent/leading (6ff2–7036), including a short-line offset.
+A bitmap strike must preserve signed bearings and overhang until face/port clip;
+allocating only advance×lineHeight loses valid pixels. A content-derived prepared
+font ID binds caller data, not the original selected provider. The opt-in path
+keeps browser glyph defaults unchanged; see [the finite contract](docs/spec/prepared-bitmap-font.md).

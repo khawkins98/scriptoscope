@@ -1,3 +1,5 @@
+import { prepareBitmapGlyphRun, type PreparedBitmapFont, type BitmapGlyphRun } from './preparedBitmapFont.js';
+import { paintBitmapText } from './paintBitmapText.js';
 import { ownerDisplayPolicyMatches } from '../tools/theme-loader/display-profile.js';
 import { snapshotControlComposition, bodyPatternPhase, controlPointVisible, type ControlCompositionContext, type ControlCompositionSnapshot, type ButtonComposition } from './controlComposition.js';
 import type { SliderComposition } from './sliderLayout.js';
@@ -1080,8 +1082,10 @@ export interface ButtonOptions {
   /** Opt-in completed resource-resolution trace; does not certify fidelity. */
   diagnostics?: ControlDiagnostics;
   label?: string;
-  /** Resolved nominal CSS pixel size, finite and >= 6. Compatibility default: 12, independent of face height. */
+  /** Resolved nominal CSS pixel size, finite and >= 6. Compatibility default: 12, independent of face height; a supplied bitmapFont defaults to its strikeSize. */
   fontSize?: number;
+  /** Opt-in caller-owned single-line strike. Explicit fontSize must match; no scaling or provider lookup. */
+  bitmapFont?: PreparedBitmapFont;
   /** Request the kDEF-style control-painter ring; does not select a DialogManager default item or bind Return/Enter. */
   default?: boolean;
   pressed?: boolean;
@@ -1115,7 +1119,7 @@ export interface BevelButtonOptions {
   fg?: string;
 }
 
-interface FaceOptions { composition?: ControlCompositionSnapshot; signal?: AbortSignal | undefined; trace?: ControlTraceCollector | undefined; label?: string; fontSize?: number; disabled?: boolean; minWidth?: number; fg?: string; padX?: number; width?: number; height?: number; align?: 'center' | 'left'; }
+interface FaceOptions { composition?: ControlCompositionSnapshot; signal?: AbortSignal | undefined; trace?: ControlTraceCollector | undefined; label?: string; bitmapRun?: BitmapGlyphRun; fontSize?: number; disabled?: boolean; minWidth?: number; fg?: string; padX?: number; width?: number; height?: number; align?: 'center' | 'left'; }
 
 function buttonFontSize(value: number | undefined): number {
   const size = value === undefined ? 12 : value;
@@ -1291,12 +1295,13 @@ async function composeFaceButton(
   // kDEF reads effective port txSize (0x7546/0x754a), not Rect height.
   // Keep the separate multi-column compatibility helper's existing typography.
   let fontSize = geometry === 'button' ? opts.fontSize! : Math.max(8, Math.round(lineH * 0.6));
-  let glyphs = label ? rasterizeText(label, fontSize, fg) : null;
+  const bitmapRun = opts.bitmapRun;
+  let glyphs = !bitmapRun && label ? rasterizeText(label, fontSize, fg) : null;
   // A cicn is a resizable template, not a minimum control rectangle. Tiny
   // templates (e.g. a 5×6 face) cannot contain even our smallest label raster.
   // Use the existing standard height without changing the button font size.
   // Caller-specified heights remain authoritative, including compact controls.
-  if (opts.height == null && glyphs && glyphs.height > lineH) {
+  if (opts.height == null && ((glyphs && glyphs.height > lineH) || (bitmapRun && label && bitmapRun.lineHeight > lineH))) {
     lineH = APPLE_PUSH_BUTTON_HEIGHT;
     if (geometry === 'legacy-list-header') {
       fontSize = Math.max(8, Math.round(lineH * 0.6));
@@ -1304,7 +1309,7 @@ async function composeFaceButton(
     }
   }
   const padX = opts.padX ?? 12;
-  const innerW = opts.width ?? Math.max(opts.minWidth ?? 56, (glyphs ? glyphs.width : 0) + padX * 2);
+  const innerW = opts.width ?? Math.max(opts.minWidth ?? 56, (bitmapRun ? bitmapRun.advance : glyphs ? glyphs.width : 0) + padX * 2);
   const innerH = lineH;
   const out = PixelBuffer.alloc(innerW, innerH);
   const context = opts.composition ?? snapshotControlComposition();
@@ -1430,6 +1435,7 @@ async function composeFaceButton(
       }
     }
   }
+  const bitmapTextPaint = bitmapRun ? paintBitmapText(out, bitmapRun, context, fg, colors.emboss) : null;
   if (glyphs) {
     const gx = opts.align === 'left' ? padX : Math.round((innerW - glyphs.width) / 2);
     const gy = Math.round((innerH - glyphs.height) / 2);
@@ -1443,6 +1449,7 @@ async function composeFaceButton(
   assertControlAlive(opts.signal);
   if (mode5PaintStep) opts.trace?.record(mode5PaintStep);
   if (legacyFacePaint) opts.trace?.legacyFacePaint(legacyFacePaint);
+  if (bitmapTextPaint) opts.trace?.bitmapTextPaint(bitmapTextPaint);
   return out;
 }
 
@@ -1552,15 +1559,24 @@ export async function composeButtonWithLayout(theme: LoadedTheme, opts: ButtonOp
   await withControlDiagnostics(opts.diagnostics, 'push-button', {
     state, pressed: !!opts.pressed, disabled: !!opts.disabled, default: !!opts.default,
   }, async trace => {
-    const composition = preparedContext ?? snapshotControlComposition(opts.compositionContext);
-    const preparedOptions = { ...opts, fontSize: buttonFontSize(opts.fontSize) };
+    let composition = preparedContext ?? snapshotControlComposition(opts.compositionContext);
+    // Omitted context is explicitly local compatibility geometry, not observed
+    // original port state. An explicitly unknown caller clip still rejects.
+    if (opts.bitmapFont && composition.basis === 'compatibility-default')
+      composition = Object.freeze({ ...composition, clip: Object.freeze({ kind: 'unbounded' as const }) });
+    const bitmapRun = opts.bitmapFont ? prepareBitmapGlyphRun(opts.bitmapFont, opts.label ?? '', opts.fontSize, composition) : undefined;
+    if (bitmapRun) for (const [name, value] of [['height', opts.height], ['minWidth', opts.minWidth]] as const)
+      if (value !== undefined && (!Number.isInteger(value) || value < (name === 'height' ? 1 : 0) || value > 32767))
+        throw new RangeError(`Bitmap ${name} must be a bounded integer`);
+    const preparedOptions = { ...opts, fontSize: bitmapRun ? bitmapRun.font.data.strikeSize : buttonFontSize(opts.fontSize),
+      ...(bitmapRun ? { bitmapRun } : {}) };
     result = await composeButtonWithTrace(theme, preparedOptions, composition, trace, signal);
     return result?.buffer ?? null;
   });
   return result;
 }
 
-async function composeButtonWithTrace(theme: LoadedTheme, opts: ButtonOptions, composition: ControlCompositionSnapshot,
+async function composeButtonWithTrace(theme: LoadedTheme, opts: ButtonOptions & { bitmapRun?: BitmapGlyphRun }, composition: ControlCompositionSnapshot,
   trace?: ControlTraceCollector, signal?: AbortSignal): Promise<ButtonComposition | null> {
   assertControlAlive(signal);
   const faceId = opts.disabled ? 10240 : opts.pressed ? 10238 : 10239;

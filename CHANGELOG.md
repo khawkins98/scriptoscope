@@ -7,6 +7,13 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+### Added (2026-10-19)
+
+- Add opt-in prepared bitmap strikes for single-line plain push labels, with
+  immutable caller-owned identity, explicit glyph mappings, source-derived pen
+  placement and completed clipped-ink diagnostics. Browser fonts remain the
+  default; no original font data or provider certification is included (#314).
+
 ### Fixed (2026-10-19)
 
 - Decouple themed push/bevel label size from face height. `fontSize` now accepts

@@ -139,3 +139,5 @@ export {
 export type { ElementByteProvenance, PatternByteProvenance, ThemeByteProvenance } from './loadProvenance.js';
 
 export { prepareDisplayProfile, DisplayProfileError, type DisplayProfile, type DisplayProfileData, type DisplayPolicy } from '../tools/theme-loader/display-profile.js';
+
+export { prepareBitmapFont, type BitmapFontData, type BitmapGlyph, type PreparedBitmapFont, type BitmapTextPaint } from './preparedBitmapFont.js';
