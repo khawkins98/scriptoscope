@@ -103,7 +103,8 @@ silently asserted as original state.
 
 ## Source bindings
 
-Static inspection only; original code is neither executed nor redistributed.
+These header bindings come from static inspection. The product runtime and CI
+do not execute or redistribute original engine code.
 The selected Kaleidoscope 2.3.1 `PACH`130 payload is 87,914 bytes, SHA256
 `bf113e709425a811e0805e97dea7c028e46c50909fadb781226295e0b52d5b44`.
 Addresses below are offsets within that payload, not kDEF offsets.
