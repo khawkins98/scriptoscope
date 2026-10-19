@@ -48,8 +48,8 @@ function fixture(t, request = contract.requests.find(r => r.id === 'windows-95.n
 
 test('actual checked-in originals are scoped observations with every broader requirement unresolved', () => {
   const report = assessCorpus(contract, JSON.parse(readFileSync(new URL('./captures.json', import.meta.url))), JSON.parse(readFileSync(new URL('./reviews.json', import.meta.url))), { intakeRoot: join(repositoryRoot, 'tests/reference-captures'), known: knownImages() });
-  assert.equal(report.requests.length, 13);
-  assert.equal(report.requests.filter(r => r.status === 'missing').length, 5);
+  assert.equal(report.requests.length, 59);
+  assert.equal(report.requests.filter(r => r.status === 'missing').length, 51);
   assert.deepEqual(report.requests.filter(r => r.status === 'evidence-incomplete').map(r => r.id), ['windows-95.normal', 'windows-95.pressed', 'windows-95.inactive', 'system7-nostalgia-silver.normal', 'system7-nostalgia-silver.pressed', 'system7-nostalgia-silver.inactive', 'apple-lisa.normal', 'crayon-os.normal']);
   assert.equal(report.captures.length, 8);
   for (const capture of report.captures) {
@@ -293,7 +293,7 @@ function scopedFixture(t, req = request) {
   c.observed.palette.sha256 = sha256(artifacts['indexed-palette']);
   c.observed.publicApiFace = {
     configuredScheme: { archiveSha256: req.source.archiveSha256, forkSha256: req.source.forkSha256, evidence: 'TEST configured file only; private selection unknown' },
-    invocation: { api: 'NewControl', drawApi: 'Draw1Control', controlRect: [20,20,80,20], title: '', state: req.conditions.state, defaultRing: false, defaultApiInvoked: false, ...(template.reviewScope.version === 2 ? {stateApi:'HiliteControl'} : {}) },
+    invocation: { api: 'NewControl', drawApi: 'Draw1Control', controlRect: [20,20,80,20], title: '', state: req.conditions.state, defaultRing: false, defaultApiInvoked: false, ...([2,5].includes(template.reviewScope.version) ? {stateApi:'HiliteControl'} : {}) },
     port: { origin: [0,0], bounds: [0,0,160,80], effectiveClipRect: [0,0,160,80], backgroundRGB: [255,255,255], backgroundOpaque: true },
     producer: { name: 'TEST producer', buildArtifacts: [{name:'TEST external emulator build',sha256:'1'.repeat(64)}], tableSha256: sha256(artifacts['producer-table']),
       pixelEncoding: 'rgba8', colorRealization: 'TEST ONLY recorded display/producer conditions, not general transfer proof',
@@ -480,7 +480,7 @@ test('origin experiments bind transitive baseline inputs without changing unrela
   const root=contractRoot(t),file=join(root,'tests/reference-captures/requests.json'),c=JSON.parse(readFileSync(file));
   c.requests.find(r=>r.id==='crayon-os.normal').toObserve.baselineCondition=null;writeFileSync(file,JSON.stringify(c));
   const next=readContract(root);
-  for(const r of contract.requests) assert.equal(next.requests.find(n=>n.id===r.id).requestDigest===r.requestDigest,r.sourceSlug!=='crayon-os');
+  for(const r of contract.requests) assert.equal(next.requests.find(n=>n.id===r.id).requestDigest===r.requestDigest,!['crayon-os.normal','crayon-os.normal.shifted-port','crayon-os.normal.fixed-physical-phase'].includes(r.id));
 });
 
 test('adding a future unrelated scoped policy leaves all current bindings exact',t=>{
@@ -530,8 +530,8 @@ test('Crayon v3 is one conditioned normal output with explicit unknown phase; fu
   const changed=structuredClone(f.capture);mutate(changed);assert(['partial','rejected'].includes(f.assess(changed).status));
  }
  const full=structuredClone(f.capture);delete full.reviewScope;assert.equal(f.assess(full).status,'partial');
- for(const change of [{id:'crayon-os.pressed',conditions:{...req.conditions,state:'pressed'}},
-  {id:'crayon-os.shifted',conditions:{...req.conditions,portOrigin:[10,10]}}])assert.equal(publicFaceScope({...req,...change}),null);
+ assert.equal(publicFaceScope({...req,id:'crayon-os.pressed',conditions:{...req.conditions,state:'pressed'}}).version,5);
+ assert.equal(publicFaceScope({...req,id:'crayon-os.shifted',conditions:{...req.conditions,portOrigin:[10,10]}}),null);
 });
 test('Crayon-only scoped policy cannot stale existing six request/review bindings',t=>{
  const root=contractRoot(t),file=join(root,'tests/reference-captures/eligibility-policy.json'),policy=JSON.parse(readFileSync(file));
@@ -549,12 +549,66 @@ test('Lisa v4 admits only its exact normal output and cannot stale seven prior b
  for(const change of [c=>c.reviewScope.version=1,c=>c.observed.publicApiFace.port.effectiveClipRect=[0,0,80,20]]){
   const c=structuredClone(f.capture);change(c);assert.equal(f.assess(c).status,'rejected');
  }
- for(const change of [{id:'apple-lisa.pressed',conditions:{...req.conditions,state:'pressed'}},
-  {conditions:{...req.conditions,text:'OK'}},{conditions:{...req.conditions,portOrigin:[10,10]}}])
+ assert.equal(publicFaceScope({...req,id:'apple-lisa.pressed',conditions:{...req.conditions,state:'pressed'}}).version,5);
+ for(const change of [{conditions:{...req.conditions,text:'OK'}},{conditions:{...req.conditions,portOrigin:[10,10]}}])
   assert.equal(publicFaceScope({...req,...change}),null);
  const root=contractRoot(t),file=join(root,'tests/reference-captures/eligibility-policy.json'),policy=JSON.parse(readFileSync(file));
  policy.sections.publicFaceV4.version++;writeFileSync(file,JSON.stringify(policy));const next=readContract(root);
  const old=JSON.parse(readFileSync(new URL('./captures.json',import.meta.url))).captures.slice(0,7);
  for(const c of old)assert.equal(next.requests.find(r=>r.id===c.requestId).requestDigest,c.requestDigest);
  assert.notEqual(next.requests.find(r=>r.id===req.id).requestDigest,req.requestDigest);
+});
+
+
+test('campaign additions preserve all thirteen request objects/digests and eight original records/reviews',()=>{
+ const prior=JSON.parse(readFileSync(new URL('./campaign-retention.json',import.meta.url)));
+ for(const pinned of prior.requests){
+  assert.equal(digest(contract.catalog.requests.find(r=>r.id===pinned.id)),pinned.objectSha256);
+  assert.equal(contract.requests.find(r=>r.id===pinned.id).requestDigest,pinned.requestDigest);
+ }
+ const captures=JSON.parse(readFileSync(new URL('./captures.json',import.meta.url)));
+ const reviews=JSON.parse(readFileSync(new URL('./reviews.json',import.meta.url)));
+ assert.equal(digest({...captures,captures:captures.captures.slice(0,8)}),prior.capturesSha256);
+ assert.equal(digest({...reviews,reviews:reviews.reviews.slice(0,8)}),prior.reviewsSha256);
+ for(const pinned of prior.captures)assert.equal(digest(captures.captures.find(c=>c.id===pinned.id)),pinned.digest);
+});
+test('v5 covers only forty-six new fixed campaign IDs; prior scopes and missing captures stay explicit',()=>{
+ const planned=contract.requests.filter(r=>publicFaceScope(r)?.version===5);
+ assert.equal(planned.length,46);
+ assert.equal(contract.requests.filter(r=>publicFaceScope(r)).length,54);
+ assert.equal(new Set(contract.requests.filter(r=>publicFaceScope(r)).map(r=>r.sourceSlug)).size,18);
+ for(const req of planned){
+  const s=publicFaceScope(req);assert.equal(s.publicInvocation.hilite,{normal:0,pressed:10,inactive:255}[req.conditions.state]);
+  assert.equal(s.publicInvocation.stateApi,'HiliteControl');
+  assert(s.excludedClaims.includes('original-pattern-phase'));
+ }
+ const req=planned[0];
+ for(const mutate of [r=>r.sourceSlug='unregistered',r=>r.id+='-other',r=>r.conditions.defaultRing=true,
+  r=>r.conditions.portOrigin=[1,0],r=>r.conditions.controlRect[0]++,r=>r.conditions.text='OK',
+  r=>r.conditions.windowActive=false,r=>r.conditions.enabled=false]){
+  const changed=structuredClone(req);mutate(changed);assert.equal(publicFaceScope(changed),null);
+ }
+});
+test('v5 requires actual state API, exact hilite and explicit unknown phase; full scope remains strict',t=>{
+ for(const id of ['1138.normal','crayon-os.pressed','apple-lisa.inactive']){
+  const req=contract.requests.find(r=>r.id===id),f=scopedFixture(t,req);
+  f.capture.observed.patternOriginState=null;
+  f.capture.observed.unknownConditions.patternOriginState='TEST ONLY: phase and API not observed';
+  const result=f.assess();assert.equal(result.status,'reviewed-scoped-observation',JSON.stringify(result));
+  assert.deepEqual(result.verifiedRequirementIds,[]);assert.equal(result.unresolvedRequirementIds.length,5);
+  assert.equal(f.assess(f.capture,[]).status,'awaiting-independent-review');
+  for(const mutate of [c=>delete c.observed.publicApiFace.invocation.stateApi,
+   c=>c.observed.controlDefinition.hilite=99,c=>delete c.observed.unknownConditions.patternOriginState,
+   c=>c.observed.patternOriginState={apiAvailability:'available',offset:[0,0],evidence:'inferred'},
+   c=>c.observed.publicApiFace.port.effectiveClipRect=[0,0,80,20],c=>c.reviewScope.version=4]){
+   const changed=structuredClone(f.capture);mutate(changed);assert(['partial','rejected'].includes(f.assess(changed).status));
+  }
+  const full=structuredClone(f.capture);delete full.reviewScope;assert.equal(f.assess(full).status,'partial');
+ }
+});
+test('v5 policy changes invalidate only new campaign requests, never old applicable dependencies',t=>{
+ const root=contractRoot(t),file=join(root,'tests/reference-captures/eligibility-policy.json'),p=JSON.parse(readFileSync(file));
+ p.sections.publicFaceV5.version++;writeFileSync(file,JSON.stringify(p));
+ const next=readContract(root);
+ for(const req of contract.requests)assert.equal(next.requests.find(r=>r.id===req.id).requestDigest===req.requestDigest,publicFaceScope(req)?.version!==5);
 });

@@ -1,0 +1,106 @@
+{
+  "base": "ae341808",
+  "requests": [
+    {
+      "id": "windows-95.normal",
+      "objectSha256": "fbbdcc1b18400f45d24871ad528bad6acf28e19f23735c11926fbea98e8f119c",
+      "requestDigest": "8e4252db9a235ea4b500ac74fe23c7b037e013a28f28255c3a41697334db8a30"
+    },
+    {
+      "id": "windows-95.pressed",
+      "objectSha256": "d8e4b254fac5b70122d2332fc7d401342e9b65aa6e45cf492cc343d093ca78d8",
+      "requestDigest": "20c60aac92353913e68a43073fba0835ba722ea62db682581e4303a9c4232dad"
+    },
+    {
+      "id": "windows-95.inactive",
+      "objectSha256": "b9aefa89acacb26e567b4386199f8b9a47a14379344268e28975fc703410ef9e",
+      "requestDigest": "ab653bb949bbeeab42c6b1e5609e5bcba6c483cb8c41f504e9d5c1d270be05e5"
+    },
+    {
+      "id": "windows-95.default",
+      "objectSha256": "353d75eb236386a91b9b01f7fe167905099baf0d3b0eeaf4f3e7c844be9e7cb1",
+      "requestDigest": "dfc8e3a2caaf338bb4a8e6426bdee82b2073f83b8394cfcd2eb43f5dc617b02f"
+    },
+    {
+      "id": "system7-nostalgia-silver.normal",
+      "objectSha256": "1e9bb5e03da2c121aed5f99957e72552693d9b0aec10a7914383a7968b4cc86e",
+      "requestDigest": "9c96bd9093cc0c5d4e9d3221b49add6b6102255f4f838a829a8542d86fdd8e1a"
+    },
+    {
+      "id": "system7-nostalgia-silver.pressed",
+      "objectSha256": "a6ba170435f164e05e5ebc55f1f25df414b7b4ceaf206f2e77077aa8c9c31a18",
+      "requestDigest": "736a6a7d29281d418c4648499bf1e74eb06a4f6475f74568b91378582f98f998"
+    },
+    {
+      "id": "system7-nostalgia-silver.inactive",
+      "objectSha256": "3abd61ac130e6bff64bdafde10a0cbd8b73f56011f99682c01beeb28ae2020a6",
+      "requestDigest": "ef415a5b8220936349a3a35e3229556fc9c03562a3c5ffa22a04a933156b7e51"
+    },
+    {
+      "id": "system7-nostalgia-silver.default",
+      "objectSha256": "5f7325a776ccb128e7f9e843d0acc7d4c0df4c707ec259be1298c9acb4da162b",
+      "requestDigest": "bcd74758400fe4171a198ade56ba5611eff7cd9730fd7be8d6926b4f5f8f2ffa"
+    },
+    {
+      "id": "apple-lisa.normal",
+      "objectSha256": "428dd308b3139bf01224d5fc40ce1fb39714ef55bdb41735a126ba0226d66f48",
+      "requestDigest": "70da66e6307d3b08cb8a2853db2e32e78c7a2f9553e9bf4ad8f9a6d3335b8d56"
+    },
+    {
+      "id": "1990.default",
+      "objectSha256": "a4a3b45798b87eeab2250d8e05f7a591e4f455d75f450e2a24e960996970c97c",
+      "requestDigest": "907d45a2596af2c616a521ba3b830b27f016cb4af3cbfa31548431fb0e842859"
+    },
+    {
+      "id": "crayon-os.normal",
+      "objectSha256": "fe89f350232d4ba1d8ed42e6f85eda086855c103a9181276bec160383aa7a453",
+      "requestDigest": "80d332f11d006a4003f21e661de335422501f81a09dd52415ea3886f8a4e1218"
+    },
+    {
+      "id": "crayon-os.normal.shifted-port",
+      "objectSha256": "a4c5be5481a4e6d2ccccef21426a45fb55e15271d7ca7aed4b0dd160d3897b66",
+      "requestDigest": "93d98b38dc12e67f4702d9468a84306c1c325f188abd8ce1ab3028b98d670f61"
+    },
+    {
+      "id": "crayon-os.normal.fixed-physical-phase",
+      "objectSha256": "6255dda904d5511ee9d78d12dee1bf791a0ac109266441d7f3310c6ecc2b391d",
+      "requestDigest": "005b4ac4fa3963371cf9fb5eed31ccc1a0e80b0560b8bdd6188ef43382d033e6"
+    }
+  ],
+  "captures": [
+    {
+      "id": "windows-95.normal.v9.draft",
+      "digest": "2371425a7ad8d187d69f9c473feb2bb034cc0459542984b82fea4e0db75e7f3d"
+    },
+    {
+      "id": "system7-nostalgia-silver.normal.v7d.draft",
+      "digest": "bc3ee8a1f3e46a71a37c1f9138bc27e6e9d622f0691820f03178c341a051c2ae"
+    },
+    {
+      "id": "windows-95.pressed.v10w.draft",
+      "digest": "99eec783762099f59d7469523e50e40383552dc8f0a8d79a80452718296d59c5"
+    },
+    {
+      "id": "windows-95.inactive.v10w.draft",
+      "digest": "e7d5665897b00164f728c616e9d5354f71e7043dc8813f6e2a4fdacd03953e23"
+    },
+    {
+      "id": "system7-nostalgia-silver.pressed.v10s.draft",
+      "digest": "571404476b72d404ba92cd60cd378dbdd5edb6cd84cedc7ae0036f53463489ed"
+    },
+    {
+      "id": "system7-nostalgia-silver.inactive.v10s.draft",
+      "digest": "02dd210323ff821ca2f16c1eb4d0ddb5161f06bd79a83221016c402eddd12ce9"
+    },
+    {
+      "id": "crayon-os.normal.v14c.draft",
+      "digest": "19a9410ee2615684b10df57b5e6d1262076828ca4444e908e23b6520e675be01"
+    },
+    {
+      "id": "apple-lisa.normal.v16l",
+      "digest": "72080c09a93c6c54e983e31a6feff7e50f5f06d9ebdec3fff759792c1de4b14f"
+    }
+  ],
+  "reviewsSha256": "b96eae1dfc4432949237df5f0243d2ce4a2cf98445526e2d015fc4530aec0f09",
+  "capturesSha256": "c7d364a0b2987863aab4e07b7f883c13e37a0592cda6cb20c369dffc0699e422"
+}
