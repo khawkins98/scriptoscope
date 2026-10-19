@@ -7,6 +7,8 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+- Record exact pinned-source reproduction of the preserved emulator JS/WASM, with sanitized build identities and explicit unintegrated-observer/provider limits.
+
 - Propose a full 18-scheme acceptance inventory with explicit API paths, option classes and unresolved boundary obligations; preserve existing evidence and open closure.
 
 - Preserve one quarantined System7 AgjpQy observation and exact conditional public prepared-strike comparison, with public metrics and explicit provider/whole-font limits (#221, #190, #315).
