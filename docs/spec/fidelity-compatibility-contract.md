@@ -100,7 +100,7 @@ thirty-two OPEN cases and 269 declared obligations: 50 narrowly verified,
 obligations concern only complete recorded-condition empty80×20 faces under an
 explicit measured profile, including one Crayon normal face with recorded port placement
 and original pattern origin explicitly unknown, plus one Lisa normal face with a
-separate22-tuple same-run profile. They are reported separately and do not establish
+separate 22-tuple same-run profile. They are reported separately and do not establish
 original alpha/mask, typography, hidden selection, general state/placement or
 default-display fidelity. Six additional SOURCE obligations cover only two caller-declared
 synthetic prepared-strike identities, signed source-metric pens and literal clipped

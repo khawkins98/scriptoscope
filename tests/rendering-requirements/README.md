@@ -221,11 +221,11 @@ No original phase/mask/provider or general body claim follows.
 
 ## Lisa recorded output (1.7.0)
 
-One new OPEN direct case compares the complete recorded80×20 empty normal face
-under its same-run22-tuple profile. Source/built execution must join the exact
+One new OPEN direct case compares the complete recorded 80×20 empty normal face
+under its same-run 22-tuple profile. Source/built execution must join the exact
 scope-v4 capture, selected face/cinf payloads, completed face paint, explicit port
-context and modern no-ppat0 observation. The original provider/cache/pattern state,
-mask and broader requirements remain unknown. Existing31 cases/263 assessments
-and definitions remain exact. Totals:32 OPEN,269 obligations,50 narrow verified,
+context and modern no-ppat 0 observation. The original provider/cache/pattern state,
+mask and broader requirements remain unknown. Existing 31 cases/263 assessments
+and definitions remain exact. Totals: 32 OPEN, 269 obligations, 50 narrow verified,
 1 unsupported,218 unknown. Eight recorded-condition comparisons remain separate
 from SOURCE requirements and never close cases.
