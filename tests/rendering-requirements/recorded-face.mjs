@@ -78,6 +78,7 @@ export function validateRecordedExecution(row, binding, capture) {
   check(paints.length > 0 && paints.every(p => p && same(p.owner, s.owner) && same(p.resource, s.resource)), 'missing or wrong completed paint dependency');
   if (row.slug === 'crayon-os') {
     check(same(row.composition?.faceRect, {x:20,y:20,w:80,h:20}), 'wrong port face placement');
+    check(same(row.composition?.context, {...CRAYON_CONTEXT,basis:'caller-declared'}) && row.composition.appliedUnknownPatternOffset === true && row.composition.originalPortState === 'unverified', 'wrong actual port context');
     const pins = row.recordedSourcePins;
     check(same(pins, CRAYON_SOURCE_PINS), 'wrong independently pinned payloads');
     for (const [actual, pin] of [[resource,pins.face],[cinf,pins.cinf]])
