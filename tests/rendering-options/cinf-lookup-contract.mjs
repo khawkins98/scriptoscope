@@ -17,6 +17,7 @@ function environmentLookup(environment, id) {
     check(typeof provider.complete === 'boolean' && Array.isArray(provider.resources), 'Declare provider completeness');
     for (const resource of provider.resources) check(signedId(resource.id) && identity({ ...resource, provider: provider.id }), 'Invalid declared resource identity');
   }
+  if (!environment.complete) return { outcome: 'unknown', reason: 'incomplete-environment' };
   for (const provider of environment.providers) {
     // Even an inventoried match cannot prove which occurrence an incomplete
     // provider would return. Do not continue into lower declared providers.
@@ -26,7 +27,7 @@ function environmentLookup(environment, id) {
     if (matches.length === 1) return { outcome: 'found', resource: { provider: provider.id,
       occurrence: matches[0].occurrence, sha256: matches[0].sha256 } };
   }
-  return environment.complete ? { outcome: 'missing' } : { outcome: 'unknown', reason: 'incomplete-environment' };
+  return { outcome: 'missing' };
 }
 
 /** Transcript results mean the cinf helper returned a valid handle, NULL, or

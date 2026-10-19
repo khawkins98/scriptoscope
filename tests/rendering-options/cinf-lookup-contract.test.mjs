@@ -33,6 +33,7 @@ test('two explicit misses skip this body/border stage; coincident IDs are not de
 test('incomplete environment/provider and duplicate occurrences stay unknown without fallback', () => {
   const declarations = [
     { complete: false, providers: [provider('partial-list', [])] },
+    { complete: false, providers: [provider('partial-list-with-match', [record(-10239)])] },
     environment(provider('unknown-priority-provider', [], false), provider('lower', [record(-10239)])),
     environment(provider('partial-provider-with-match', [record(-10239)], false)),
     environment(provider('duplicate', [record(-10239, 1), record(-10239, 2)])),

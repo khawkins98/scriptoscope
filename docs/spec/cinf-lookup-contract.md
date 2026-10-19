@@ -36,7 +36,8 @@ The corrected trap name does not by itself establish any provider order.
   declaration for the provider list. These declarations are assumptions, not
   evidence that the historical process used this ordering. Duplicate matches
   within one provider remain ambiguous. An incomplete provider stops lookup
-  even if it lists a match; an exhausted incomplete list remains unknown.
+  even if it lists a match; any incomplete provider list also remains unknown,
+  even with a listed match (its missing providers have unspecified priority).
 - An exact caller-declared lookup transcript: ID and found/missing/unknown/
   ambiguous result per call. Found requires provider, occurrence and payload
   hash. Missing means an explicitly observed/declared NULL helper result, never
@@ -72,7 +73,7 @@ They are not automatically inserted into manifests or the fixture environment.
 ## Current corpus gap
 
 The retained #333 source/built CI observations and complete occurrence inventory
-identify 87 missing-cinf tuples, each selecting distinct 16×16 art:
+identify 87 missing-cinf tuples, each selecting 16×16 art:
 
 | Sources | Push tuples | Bevel tuples |
 |---|---:|---:|
