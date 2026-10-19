@@ -31,9 +31,8 @@ silently eliminate vertical transitions. Cross the remaining finite axis sets.
 Planning only: 270 option tuples yielded 159 cinf-backed candidates, 87 missing
 cinf cases and 24 missing faces; 623 axis transitions were below public limits.
 The estimated 960 compositions per runtime exclude 270 selection-only probes.
-The threshold set begins at middle0: below-2c overlap is covered by the literal
-short-height vectors (and incidental minimum-width anchors), not systematically
-across corpus heights. Ring footprint offset is current standalone layout policy,
+That original threshold set begins at middle0. The separate tiny-height tranche
+below adds finite below-2c overlap checks without changing these cases. Ring footprint offset is current standalone layout policy,
 not historical geometry or a general base-chain claim.
 Executed observations, not this estimate, report actual selected faces/counts.
 The probes use minimum width/height1 solely to observe selection, without pixel
@@ -191,3 +190,30 @@ border-only; default missing-cinf rows retain unknown pixels even when their
 modern dimensions and actual legacy dependency are observed. The separate
 provider rows retain their conditional source checks. No labels, native control
 sizing, original provider/device behavior or ledger assessments are promoted.
+
+
+## Tiny heights and overlapping corners
+
+For each admitted corpus face (including the separately declared cinf provider),
+add positive deduplicated heights `1,c−1,c,c+1,2c−1` and side boundaries
+`s−1,s,s+1,2s−1,2s,2s+1`. The latter cross top/bottom strip overlap and inset-union
+thresholds when side thickness differs from the corner. Use only the existing
+minimum-width anchor: 24 for push or 16 for bevel. Remove exact size pairs already
+in the explicit-size set. Record height candidates, removed duplicates and
+horizontal analogues below the width floor as unreachable; do not bypass public
+width policy or create a new Cartesian matrix.
+
+`tinyCases` are separate from old explicit, known-pattern and omitted-dimension
+results. They reuse the same reverse opaque-writer/body oracle and exact
+resource/consumed-provider joins, with the existing unknown pattern-origin
+context. Missing metadata/faces and unknown body pixels stay visible. No original
+provider, decoder/device, automatic sizing or ledger claim changes.
+
+At `10c18–10e0e`, corner extents clamp to the **source**, not half the destination.
+The `10c18–10f82` call order and retained destination origin under clipping mean a
+height1 destination with source9×9/c4 samples bottom row8 at local y0, because its
+bottom corner starts at−3. A transparent bottom sample exposes the earlier top
+corner. Independent literals also cover a clipped three-row bottom strip and
+absence of vertical middle writers when `H−2c≤0`; nonpositive inset unions leave
+the declared initial destination untouched. No production region or clipping
+helper supplies expected coordinates.

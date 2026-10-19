@@ -21,6 +21,19 @@ export function boundarySizes({ width, height, corner, tile }, family) {
   return { spans, axes, minimumWidth, sizes: widths.flatMap(w => heights.map(h => [w, h])) };
 }
 
+/** Vertical overlap tranche at existing public width anchors, not a Cartesian
+ * extension. Keep impossible horizontal analogues visible without bypassing API. */
+export function tinyBoundarySizes(model, family) {
+  const { corner: c, side: s } = model, width = family === 'push' ? 24 : 16;
+  const heights = [...new Set([1, c - 1, c, c + 1, 2 * c - 1,
+    s - 1, s, s + 1, 2 * s - 1, 2 * s, 2 * s + 1])].filter(v => v > 0).sort((a, b) => a - b);
+  const existing = new Set(boundarySizes(model, family).sizes.map(size => size.join(',')));
+  const candidates = heights.map(height => [width, height]);
+  return { widthAnchor: width, heights, unreachableWidths: heights.filter(v => v < width),
+    alreadyExplicit: candidates.filter(size => existing.has(size.join(','))),
+    sizes: candidates.filter(size => !existing.has(size.join(','))) };
+}
+
 /** Decide one destination pixel by searching LATEST to EARLIEST original
  * painter, never by replaying the production region array. Null leaves body / 
  * all-transparent border unassessed. All coordinates are face-local. */
