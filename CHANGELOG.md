@@ -7,6 +7,8 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+- Register existing conditional slider endpoint and checkable icon selector assertions in the partial requirement ledger, binding owned inputs and actual source/built output while preserving all historical provider, decoder and whole-control unknowns (#221). Document coherent implementation/harness/ledger/documentation batches with one reviewed final check chain and retained unchanged-input receipts.
+
 - Add an explicit group2 slider layout environment with independently owned cinf metadata, inset horizontal/reversed vertical endpoints and committed pointer geometry; preserve default compatibility behavior and reject unsupported inputs.
 
 - Keep slider groove cap/tile metadata attached to the actual selected resource when a missing requested state falls back to active art; add literal public-loader checks without changing endpoint policy.
