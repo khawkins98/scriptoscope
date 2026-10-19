@@ -6,7 +6,8 @@ cached load per group. It checks empty push faces in active/pressed/inactive
 states and all twelve bevel combinations of small/normal, on/off and those
 three states. It never sets pressed and disabled simultaneously. Existing
 resolver fallbacks are observed modern policy, not an original selection oracle.
-Default rings and typography are outside this claim.
+Default rings and typography are outside this claim. Every generated composition
+supplies minWidth and height; omitted/default-dimension behavior remains OPEN.
 
 ## Inputs and size selection
 
