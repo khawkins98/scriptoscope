@@ -10,7 +10,7 @@ for (const mode of ['source', 'built']) for (const choice of boundarySources)
     try {
       result = await page.evaluate(async ({ mode, input }) => {
         const api = await import(mode === 'source' ? '/src/index.ts' : '/dist/scriptoscope.js');
-        const { boundaryVariants, boundarySizes, borderWriter } = await import('/tests/rendering-options/border-boundary-model.mjs');
+        const { boundaryVariants, boundarySizes, borderWriter, admitSolidBody, solidBodyOrInitial } = await import('/tests/rendering-options/border-boundary-model.mjs');
         const check = (value, message) => { if (!value) throw new Error(message); };
         const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
         const digest = async bytes => [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))].map(v => v.toString(16).padStart(2, '0')).join('');
@@ -86,7 +86,15 @@ for (const mode of ['source', 'built']) for (const choice of boundarySources)
               && equivalence.comparison === 'opaque-current-display-rgb' && equivalence.displayPolicy === 'mac-1.8-to-2.2-high-byte'
               && equivalence.width === model.width && equivalence.height === model.height && equivalence.status === 'equivalent'
               && equivalence.reason === 'all-opaque-display-rgb-equal';
-            const plan = boundarySizes(model, variant.family), row = { variant, key, status: 'observed', plan, cases: [] };
+            const bodyInput = expected.body;
+            check(same(e.bodyRequest, bodyInput.request) && same(e.bgAnchor, bodyInput.anchor)
+              && same(e.colorSamples?.background ?? null, bodyInput.sample)
+              && (e.colorSamples?.model ?? null) === bodyInput.sampleModel
+              && (e.colorSamples?.displayPolicy ?? null) === bodyInput.displayPolicy
+              && (e.colorSamplesUnavailableReason ?? null) === bodyInput.unavailableReason, 'Actual body metadata differs from bound input');
+            const solid = equalSampler ? admitSolidBody({ ...bodyInput, width: model.width, height: model.height,
+              lookup: 'declared-same-owner-null' }) : null;
+            const plan = boundarySizes(model, variant.family), row = { variant, key, status: 'observed', bodyScope: solid ? 'conditional-solid-full-face' : 'border-only', plan, cases: [] };
             rows.push(row);
             for (const [width, height] of plan.sizes) {
               const { buffer, trace, context } = await compose(variant, width, height);
@@ -103,21 +111,37 @@ for (const mode of ['source', 'built']) for (const choice of boundarySources)
                 check(p.role === 'face' && p.owner.chainDepth === 0 && p.owner.baseUrl === theme.baseUrl && join(p.resource).key === key,
                   'Completed band dependency mismatch');
               }
-              let asserted = 0, unassessed = 0, unknownSampler = 0, mismatches = 0;
+              let bodyAdmission;
+              if (solid) {
+                const bodySteps = trace.steps.filter(s => s.role === 'body-fill' && s.usage === 'paint');
+                bodyAdmission = bodySteps.find(s => s.action === 'missing' && s.reason === 'same-face-owner-pattern-unavailable');
+                check(bodyAdmission && bodyAdmission.requestedId === bodyInput.request.resourceId
+                  && bodyAdmission.bodyMode === bodyInput.request.mode && bodyAdmission.requestedResourceType === 'ppat'
+                  && bodyAdmission.owner?.baseUrl === theme.baseUrl && bodyAdmission.owner?.chainDepth === 0
+                  && !bodySteps.some(s => s.action === 'selected' || s.action === 'rejected' || s.action === 'fallback'),
+                'Conditional NULL body admission not observed');
+              }
+              let asserted = 0, unassessed = 0, unknownSampler = 0, mismatches = 0, bodyPixels = 0, initialPixels = 0, borderPixels = 0;
               const writers = {}, failures = [];
               for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
                 const writer = borderWriter(model, { width, height }, x, y, (sx, sy) => art.getPixel(sx, sy)[3]);
-                if (!writer) { unassessed++; continue; }
-                if (writer.branch !== 'copy' && !equalSampler) { unknownSampler++; unassessed++; continue; }
-                const expectedPixel = art.getPixel(...writer.source), actual = buffer.getPixel(x + offset, y + offset);
-                asserted++; writers[writer.region] = (writers[writer.region] ?? 0) + 1;
-                check(paints.some(p => p.region === writer.region && p.branch === writer.branch
-                  && p.policy === (writer.branch === 'copy' ? 'ordinary-raster' : 'equivalent-raster')), 'Missing completed source-band dependency');
-                if (!same(actual, expectedPixel)) { mismatches++; if (failures.length < 8) failures.push({ at: [x, y], writer, expected: expectedPixel, actual }); }
+                if (!writer && !solid) { unassessed++; continue; }
+                if (writer && writer.branch !== 'copy' && !equalSampler) { unknownSampler++; unassessed++; continue; }
+                const fallback = writer ? null : solidBodyOrInitial(model, { width, height }, x, y, solid);
+                const expectedPixel = writer ? art.getPixel(...writer.source) : fallback.rgba, actual = buffer.getPixel(x + offset, y + offset);
+                asserted++;
+                if (writer) {
+                  borderPixels++; writers[writer.region] = (writers[writer.region] ?? 0) + 1;
+                  check(paints.some(p => p.region === writer.region && p.branch === writer.branch
+                    && p.policy === (writer.branch === 'copy' ? 'ordinary-raster' : 'equivalent-raster')), 'Missing completed source-band dependency');
+                } else if (fallback.kind === 'body') bodyPixels++; else initialPixels++;
+                if (!same(actual, expectedPixel)) { mismatches++; if (failures.length < 8) failures.push({ at: [x, y], writer, fallback, expected: expectedPixel, actual }); }
               }
-              const summary = { size: [width, height], status: asserted ? (unknownSampler ? 'partial-unknown-sampler' : 'asserted-opaque-border') : 'unknown-no-assessed-border',
-                asserted, unassessed, unknownSampler, writers, mismatches, outputSha256: await digest(buffer.data),
+              const summary = { size: [width, height], status: solid ? 'asserted-conditional-solid-full-face' : asserted ? (unknownSampler ? 'partial-unknown-sampler' : 'asserted-opaque-border') : 'unknown-no-assessed-border',
+                asserted, unassessed, borderPixels, bodyPixels, initialPixels, unknownSampler, writers, mismatches,
+                ...(solid ? { bodyAdmission, background: solid, initialDestination: [0, 0, 0, 0], completedOutcome: trace.outcome.status } : {}), outputSha256: await digest(buffer.data),
                 paintRegions: paints.map(p => [p.region, p.branch, p.policy]), ...(failures.length ? { failures } : {}) };
+              if (solid) check(asserted === width * height && unassessed === 0, 'Full-face coverage incomplete');
               row.cases.push(summary);
               if (mismatches) { document.body.append(api.bufferToCanvas(buffer)); return { failed: { variant, key, model, summary }, rows, faces, loadId: provenance.loadId }; }
             }
@@ -129,5 +153,5 @@ for (const mode of ['source', 'built']) for (const choice of boundarySources)
       expect(result.rows).toHaveLength(15);
     } catch (error) { await attachCase(page, info, { mode, slug: choice.slug, result }, error); throw error; }
     await attachObservations(info, 'border-boundaries', `${mode}-${choice.slug}`, { mode, slug: choice.slug,
-      sourceChoicesSha256: input.choicesSha256, claim: 'finite opaque-border source model only; body, holes, legacy, selection/history and full fidelity remain OPEN', result });
+      sourceChoicesSha256: input.choicesSha256, claim: 'conditional solid full-face or opaque-border-only source model; decoded inputs, modern same-owner NULL and transparent initialization declared, original providers/destination and broader fidelity OPEN', result });
   });
