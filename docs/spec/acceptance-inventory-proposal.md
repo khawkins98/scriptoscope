@@ -97,3 +97,13 @@ The two entry points are [src/index.ts](../../src/index.ts) and [src/declarative
 3. Justify each boundary invariant from applicable source/reference evidence or retain it unknown with the unresolved input domain visible. Review finite-combination reduction explicitly; do not silently treat pairwise or diagonal coverage as exhaustive.
 4. Link exact existing [availability records](../../tests/control-availability/expectations.json), [requirement assessments](../../tests/rendering-requirements/ledger.json), [matrix samples](../../tests/rendering-options/cases.mjs) and [original observations](../../tests/reference-captures/README.md). Preserve their distinct scopes; reviewed goldens establish regression stability, not historical expected pixels.
 5. Independently review the resulting inventory and only then propose its frozen version. This draft itself closes neither the inventory nor fidelity; unknown availability, provider, evidence and boundary justification remain counted work. No overall percentage is authorized.
+
+## Modern input binding tranche
+
+[The shared binding artifact](../../tests/acceptance-bindings/README.md) retains
+all 18 sources and all envelope cells, every raw resource occurrence, actual
+conversion status and all emitted window identities. Canonical choices and
+modern loader selection are compared explicitly. Standalone `baseChain: []`
+is a declared modern recipe; arbitrary chains, settings, original environments
+and family-specific consumption remain OPEN. This adds no acceptance claim or
+representative cases and changes no existing ledger or intake authority.

@@ -7,6 +7,8 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+- Bind all 18 sources and the full draft acceptance envelope to repeatable modern loader/resource/window-key inventories, retaining duplicate/error occurrences and explicit canonical-versus-loader selection comparisons. No fidelity or coverage promotion.
+
 - Record a quarantined executed font-result and RAM-strike follow-up for the existing AgjpQy research note; retain cache/provider, whole-font and pixel-contribution limits without new intake or runtime claims (#221, #190, #315).
 
 - Materialize a DRAFT acceptance envelope for all 18 source references and 15 contracted families across 33 public family/path bindings, preserving unresolved options, boundaries and evidence without coverage or closure claims.
