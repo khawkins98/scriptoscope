@@ -1,4 +1,4 @@
-import { VERSION, prepareDisplayProfile, DisplayProfileError, type DisplayProfileData, loadKaleidoscopeScheme, composeTab, composeHeaderSurface,
+import { VERSION, prepareBitmapFont, type BitmapFontData, type PreparedBitmapFont, type BitmapTextPaint, prepareDisplayProfile, DisplayProfileError, type DisplayProfileData, loadKaleidoscopeScheme, composeTab, composeHeaderSurface,
   type ButtonOptions, type BevelButtonOptions, type ControlDiagnostics, type TabBodyTrace, type CicnSamplingEquivalence, type CicnSampledBandAsset, type CicnBodyBinding, type HeaderSurfaceOptions, type HeaderSurfaceResult, type HeaderSurfaceTrace } from 'scriptoscope';
 import { mountDeclarative, type MountHandle } from 'scriptoscope/declarative';
 import 'scriptoscope/scriptoscope.css';
@@ -52,6 +52,16 @@ const consumer = {
 declare global { interface Window { packedConsumer: typeof consumer } }
 window.packedConsumer = consumer;
 consumer.ready = (async () => {
+  const bitmapData: BitmapFontData = { version: 1, strikeSize: 12,
+    metrics: { ascent: 8, descent: 2, leading: 1 },
+    provenance: { kind: 'caller-declared', description: 'Owned synthetic packed-consumer glyph' },
+    glyphs: [{ character: 'x', advance: 2, bearingX: 0, bearingY: -1, width: 1, height: 1, mask: [1] }] };
+  const bitmapFont: PreparedBitmapFont = await prepareBitmapFont(bitmapData);
+  const preparedOptions: ButtonOptions = { bitmapFont, label: 'x', diagnostics: { onComplete(trace) {
+    const paint: BitmapTextPaint | undefined = trace.bitmapTextPaint; void paint;
+  } } };
+  if (!bitmapFont.id.startsWith('bitmap-font:') || !Object.isFrozen(bitmapFont.data.glyphs[0]!.mask)) throw new Error('Packed bitmap font preparation failed');
+  void preparedOptions;
   const channel = Array.from({ length: 256 }, (_, i) => i);
   const data: DisplayProfileData = { version: 1, conditions: { kind: 'package-boundary-negative' },
     evidence: [{ sha256: '0'.repeat(64), description: 'Synthetic finite profile, not original evidence' }],

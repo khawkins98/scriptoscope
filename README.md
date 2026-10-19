@@ -495,6 +495,11 @@ Themed push and bevel buttons accept an explicit `fontSize` (finite, at least
 6px), with a 12px compatibility default independent of face height. See the
 [font-size policy and source boundary](docs/spec/control-font-size.md).
 
+Plain push buttons also accept an opt-in caller-owned `bitmapFont`, prepared with
+`prepareBitmapFont`. It keeps advances, line metrics and signed ink bearings
+separate and uses the bounded source-derived single-line layout. Browser fonts
+remain the default; see [the prepared-strike contract](docs/spec/prepared-bitmap-font.md).
+
 ### Managed button pattern context
 
 Push buttons promoted inside a window owned by the same declarative mount follow

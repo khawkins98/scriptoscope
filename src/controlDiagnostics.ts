@@ -1,3 +1,4 @@
+import type { BitmapTextPaint } from './preparedBitmapFont.js';
 import type { ControlColorSamples } from './types.js';
 import type { ControlCompositionSnapshot, ControlRect } from './controlComposition.js';
 import type { ElementByteProvenance, PatternByteProvenance } from './loadProvenance.js';
@@ -98,6 +99,7 @@ export interface ControlRenderTrace {
   readonly tabBody?: TabBodyTrace;
   readonly bandPaints?: readonly ControlBandPaint[];
   readonly legacyFacePaint?: LegacyFacePaint;
+  readonly bitmapTextPaint?: BitmapTextPaint;
   readonly headerSurface?: HeaderSurfaceTrace;
   /** Actual label policy for the selected face; no original font/device claim. */
   readonly textColors?: {
@@ -130,6 +132,7 @@ export interface ControlTraceCollector {
   record(step: ControlResolutionStep): void;
   bandPaint(value: ControlBandPaint): void;
   legacyFacePaint(value: LegacyFacePaint): void;
+  bitmapTextPaint(value: BitmapTextPaint): void;
   tabBody(value: TabBodyTrace): void;
   headerSurface(value: HeaderSurfaceTrace): void;
   textColors(value: NonNullable<ControlRenderTrace['textColors']>): void;
@@ -156,10 +159,12 @@ export async function withControlDiagnostics(
   let tabBody: TabBodyTrace | undefined;
   const bandPaints: ControlBandPaint[] = [];
   let legacyFacePaint: LegacyFacePaint | undefined;
+  let bitmapTextPaint: BitmapTextPaint | undefined;
   let headerSurface: HeaderSurfaceTrace | undefined;
   let textColors: ControlRenderTrace['textColors'];
   let composition: ControlRenderTrace['composition'];
   const collector: ControlTraceCollector = {
+    bitmapTextPaint: value => { bitmapTextPaint = value; },
     legacyFacePaint: value => { legacyFacePaint = value; },
     bandPaint: value => { bandPaints.push(value); }, headerSurface: value => { headerSurface = value; },
     tabBody: value => { tabBody = value; }, record: step => { steps.push(step); },
@@ -176,6 +181,7 @@ export async function withControlDiagnostics(
     // A later default-ring failure can invalidate an already composed face.
     // Keep lookup observations, but never label its mode-5 writes as published.
     family, requested, steps: failed ? steps.filter(step => !step.bodyPaint) : steps,
+    ...(!failed && result && bitmapTextPaint ? { bitmapTextPaint } : {}),
     ...(!failed && result && legacyFacePaint ? { legacyFacePaint } : {}),
     ...(bandPaints.length ? { bandPaints } : {}), ...(tabBody ? { tabBody } : {}), ...(headerSurface ? { headerSurface } : {}), ...(textColors ? { textColors } : {}), ...(composition ? { composition } : {}),
     outcome: failed ? { status: 'error' } : result
