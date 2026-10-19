@@ -226,7 +226,7 @@ The existing collision input is unchanged. PACH1305cb8/5d48..5e26/5874/687e supp
 
 ## Four conditioned Crayon/Lisa state comparisons
 
-The following proposed claims require the independently reviewed capture bindings and actual clean source/built equality. Original provider, mask, phase and whole-control obligations remain unknown.
+Independent automated root review approved the following claims at 8600ff04; frontend review confirmed shared bindings and retention. The clean development source/built pair matched every face. The claims require the independently reviewed capture bindings and current clean registered execution. Original provider, mask, phase and whole-control obligations remain unknown.
 
 One crayon-os pressed empty 80×20 face from crayon-os.pressed.c18h, with original public HiliteControl(10), is compared over recorded white using the retained measured profile and explicit port (20,20) with unknown pattern origin. Exact selected face/cinf and same-owner ppat selection or ppat 0 absence are joined to actual load and completed face paint; no original private selection or pattern-write occupancy claim.
 

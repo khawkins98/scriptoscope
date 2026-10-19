@@ -307,7 +307,7 @@ CONTRIBUTING.
 
 Four additional fixed empty 80×20 cases reuse the existing measured-profile
 source/built loop: logical highlight and disabled state for Crayon OS and Apple
-Lisa. The proposed output obligation compares all 1,600 face pixels over the
+Lisa. The reviewed output obligation compares all 1,600 face pixels over the
 recorded white background. Source archive/fork, exact face/cinf occurrences,
 selected same-owner ppat or ppat 0 absence, prepared profile, port context and
 completed composition must join the independently reviewed capture. This does
@@ -320,7 +320,9 @@ The capture remains valid evidence if comparison fails; its pixels and the
 expected oracle must not be adjusted to the renderer.
 
 `four-state-recorded-transition.json` preserves the complete prior inventory,
-including all 62 cases and 449 assessments. The proposed inventory is 66 OPEN
-cases and 473 obligations (85 narrow verified, 388 unknown), pending independent
-integration review and clean comparison execution. No historical provider,
+including all 62 cases and 449 assessments. The reviewed inventory is 66 OPEN
+cases and 473 obligations (85 narrow verified, 388 unknown). Independent automated
+root and frontend review approved the bounded integration at 8600ff04; the clean
+development source/built pair matched all 1,600 pixels per face. Final registered
+execution remains separately required. No historical provider,
 alpha/mask, original phase, font, whole request or whole-control claim is added.
