@@ -253,3 +253,21 @@ background. `patternOriginState` must be null with an explicit reason for this
 scoped output; origin0 does not establish original phase or API availability.
 Full-request phase requirements remain unchanged. The new applicable policy
 section leaves v1/v2 captures, reviews and request digests exact.
+
+### Native telemetry acquisition: verify the stopped-media export
+
+A successful API return or visible UI result does not establish a complete telemetry export. Record requested and actual write counts, detect short writes, and record close, `FlushVol` and readback results as diagnostics. Then stop the environment and verify the actual exported bytes: complete expected length/content, hashes, and joins to the exact source, run and observed conditions. Runtime readback alone is not a substitute for that export.
+
+The Lisa v15 attempt reported write status 0 while the stopped HFS file had EOF 0. Its v16 correction passed all File Manager checks with expected/written/readback EOF of34,254 bytes, followed by an ordinary stopped HFS export of exactly34,254 complete bytes. This is the observed corrected run, not a guarantee of future exports.
+
+Data recovered from physical writes must remain explicitly labeled as recovered and quarantined pending separate review. Do not silently present reconstructed bytes as an ordinary complete file export.
+
+This is acquisition guidance, not a new eligibility rule or a retrospective rejection of the seven complete exports already reviewed. Retain their existing evidence and scoped decisions unchanged.
+
+## Lisa conditioned normal face (scope v4)
+
+Only `apple-lisa.normal` adds a scoped observation: empty80×20 at20,20 in a
+160×80 white port, with its separate same-run22-tuple profile. The original
+private resource/provider/cache and pattern state remain unknown. The modern
+selected face/cinf bytes and missing ppat0 observation are checked separately;
+no whole-request or mask/phase claim follows. Prior scopes and records remain exact.

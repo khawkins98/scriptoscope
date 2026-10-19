@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "inventoryVersion": "1.6.0",
+  "inventoryVersion": "1.7.0",
   "scope": {
-    "description": "Thirty-one exact direct composition cases, including seven separately reported recorded-condition composed-pixel comparisons and two declared prepared-strike SOURCE cases; all inventory closures OPEN. Not a whole-control denominator.",
+    "description": "Thirty-two exact direct composition cases, including eight separately reported recorded-condition composed-pixel comparisons and two declared prepared-strike SOURCE cases; all inventory closures OPEN. Not a whole-control denominator.",
     "dimensions": [
       "resourceSelection",
       "geometry",
@@ -2085,6 +2085,55 @@
           "sha256": "fbd0eb8abb9e5e153fa4ddb0d825a2fea045a6f4a19baca445d12b449ff47b5a"
         }
       }
+    },
+    {
+      "id": "recorded.apple-lisa.normal",
+      "kind": "scoped-original",
+      "inputs": [
+        "theme.apple-lisa"
+      ],
+      "document": "tests/rendering-requirements/EVIDENCE.md",
+      "locator": "One Lisa v16 empty normal80×20 face at port20,20 is compared over recorded white using its same-run22-tuple display profile. Normal stopped HFS export contains all34,254 bytes after explicit File Manager checks. Actual selected cicn−10239/cinf−10239 payloads and completed face output join this case; modern ppat0 absence is observed separately. Original private provider/cache/pattern phase, mask and general body behavior remain unknown.",
+      "excerptSha256": "fbc8b4d100c1552f6f833b603860356739290f69b64e5ba48823d0d1791915e7",
+      "claim": "Only the complete recorded-condition composited face pixels.",
+      "limits": "Exact scope/profile/context/image and clean execution required; no original provider/phase/mask or general body proof.",
+      "requirementIds": [
+        "output.recorded-composited-face"
+      ],
+      "reference": {
+        "captureId": "apple-lisa.normal.v16l",
+        "requestId": "apple-lisa.normal",
+        "requestDigest": "70da66e6307d3b08cb8a2853db2e32e78c7a2f9553e9bf4ad8f9a6d3335b8d56",
+        "captureDigest": "72080c09a93c6c54e983e31a6feff7e50f5f06d9ebdec3fff759792c1de4b14f",
+        "imageSha256": "6667c2d5dbbb019ff0f32d0baf3196b341a5647b0773ec73d9eaac35abb6ec39",
+        "reviewScope": {
+          "id": "public-api-empty-face",
+          "version": 4,
+          "digest": "7a66af0ab86ab2e7855fbfb012d54761f86017f41c41746c5289fe3f917e7720"
+        },
+        "faceImageRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "publicFaceRect": [
+          4,
+          4,
+          80,
+          20
+        ],
+        "background": [
+          255,
+          255,
+          255
+        ],
+        "profile": {
+          "path": "tests/decoder-fixtures/measured-display-profile-lisa.json",
+          "id": "display-profile:9bbdfe3464638676c8c8aac27d1b316a3f6bd21837be19f937e59fa5df4730a2",
+          "sha256": "f48d2807c6b881b0a3fdd851b866a47116e2df2b998201b95c6c5854befdd1d6"
+        }
+      }
     }
   ],
   "requirements": [
@@ -2490,6 +2539,19 @@
         "recorded.crayon-os.normal.empty.w80.h20.v14c-profile"
       ],
       "claim": "One complete80×20 original composed-pixel comparison with exact v14c profile, port placement and actual face/cinf/ppat byte joins; not pattern occupancy.",
+      "modes": [
+        "source",
+        "built"
+      ]
+    },
+    {
+      "id": "recorded.lisa-normal",
+      "path": "tests/rendering-options/display-profile.spec.mjs",
+      "marker": "description:'recorded.lisa-normal'",
+      "caseIds": [
+        "recorded.apple-lisa.normal.empty.w80.h20.v16l-profile"
+      ],
+      "claim": "One complete80×20 original composed-pixel comparison with exact v16 profile, port placement and actual face/cinf byte joins; modern no-ppat0 condition, not original provider attribution.",
       "modes": [
         "source",
         "built"
@@ -4486,6 +4548,114 @@
           "path": "tests/decoder-fixtures/measured-display-profile-crayon.json",
           "id": "display-profile:d4e4f9ffb69f1292f2c86b3fb2914561c58f8b38a5aeb53336e6cf914b10a1a0",
           "sha256": "fbd0eb8abb9e5e153fa4ddb0d825a2fea045a6f4a19baca445d12b449ff47b5a"
+        }
+      }
+    },
+    {
+      "id": "recorded.apple-lisa.normal.empty.w80.h20.v16l-profile",
+      "inputs": [
+        "theme.apple-lisa"
+      ],
+      "baseInputs": [],
+      "mode": "direct",
+      "family": "push",
+      "options": {
+        "label": "",
+        "minWidth": 80,
+        "height": 20,
+        "default": false,
+        "pressed": false,
+        "disabled": false,
+        "compositionContext": {
+          "controlOrigin": [
+            20,
+            20
+          ],
+          "portOrigin": [
+            0,
+            0
+          ],
+          "patternOrigin": {
+            "status": "unknown"
+          },
+          "clip": {
+            "kind": "rect",
+            "rect": {
+              "x": 0,
+              "y": 0,
+              "w": 160,
+              "h": 80
+            }
+          }
+        }
+      },
+      "dimensions": {
+        "resourceSelection": [
+          "selection.original"
+        ],
+        "geometry": [
+          "geometry.remaining"
+        ],
+        "fillMask": [
+          "output.recorded-composited-face",
+          "fill.remaining"
+        ],
+        "typography": {
+          "excluded": "No label raster in this exact direct case.",
+          "review": "Proposed bounded empty-label/direct-composition exclusion; independent integration review pending."
+        },
+        "state": [
+          "state.original"
+        ],
+        "placement": [
+          "placement.original"
+        ],
+        "interaction": {
+          "excluded": "Direct pixel composition only. DOM focus, names, actions and teardown require separate cases.",
+          "review": "Proposed bounded empty-label/direct-composition exclusion; independent integration review pending."
+        }
+      },
+      "inventoryClosure": {
+        "status": "open",
+        "reason": "Only the exact recorded-condition composed output is claimed; broad original requirements remain unknown."
+      },
+      "substitutions": [
+        "Explicit same-run v16 Lisa22-tuple measured profile; private original provider/cache/search state unknown.",
+        "Modern explicit port placement20,20 and unknown pattern offset; no original phase claim.",
+        "Buffer-local face[4,4,80,20] over recorded white; no original alpha/mask claim."
+      ],
+      "recordedComparison": {
+        "captureId": "apple-lisa.normal.v16l",
+        "requestId": "apple-lisa.normal",
+        "requestDigest": "70da66e6307d3b08cb8a2853db2e32e78c7a2f9553e9bf4ad8f9a6d3335b8d56",
+        "captureDigest": "72080c09a93c6c54e983e31a6feff7e50f5f06d9ebdec3fff759792c1de4b14f",
+        "imageSha256": "6667c2d5dbbb019ff0f32d0baf3196b341a5647b0773ec73d9eaac35abb6ec39",
+        "reviewScope": {
+          "id": "public-api-empty-face",
+          "version": 4,
+          "digest": "7a66af0ab86ab2e7855fbfb012d54761f86017f41c41746c5289fe3f917e7720"
+        },
+        "faceImageRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "publicFaceRect": [
+          4,
+          4,
+          80,
+          20
+        ],
+        "background": [
+          255,
+          255,
+          255
+        ],
+        "profile": {
+          "path": "tests/decoder-fixtures/measured-display-profile-lisa.json",
+          "id": "display-profile:9bbdfe3464638676c8c8aac27d1b316a3f6bd21837be19f937e59fa5df4730a2",
+          "sha256": "f48d2807c6b881b0a3fdd851b866a47116e2df2b998201b95c6c5854befdd1d6"
         }
       }
     }
@@ -7634,7 +7804,71 @@
       "issues": [],
       "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
       "review": "Independent automated Astra scope/data approval at0ff88d3d; exact new scoped attestation adopted. Registered clean source/built execution remains required; not human attestation."
+    },
+    {
+      "caseId": "recorded.apple-lisa.normal.empty.w80.h20.v16l-profile",
+      "requirementId": "selection.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Proposed narrow recorded-condition assessment; independent scoped intake/integration review pending."
+    },
+    {
+      "caseId": "recorded.apple-lisa.normal.empty.w80.h20.v16l-profile",
+      "requirementId": "geometry.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Proposed narrow recorded-condition assessment; independent scoped intake/integration review pending."
+    },
+    {
+      "caseId": "recorded.apple-lisa.normal.empty.w80.h20.v16l-profile",
+      "requirementId": "output.recorded-composited-face",
+      "status": "verified",
+      "evidence": [
+        "recorded.apple-lisa.normal"
+      ],
+      "assertions": [
+        "recorded.lisa-normal"
+      ],
+      "issues": [],
+      "rationale": "Only complete composed face pixels under this exact measured profile and explicit port context; original private provider/phase and broad requirements remain unknown.",
+      "review": "Proposed narrow recorded-condition assessment; independent scoped intake/integration review pending."
+    },
+    {
+      "caseId": "recorded.apple-lisa.normal.empty.w80.h20.v16l-profile",
+      "requirementId": "fill.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Proposed narrow recorded-condition assessment; independent scoped intake/integration review pending."
+    },
+    {
+      "caseId": "recorded.apple-lisa.normal.empty.w80.h20.v16l-profile",
+      "requirementId": "state.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Proposed narrow recorded-condition assessment; independent scoped intake/integration review pending."
+    },
+    {
+      "caseId": "recorded.apple-lisa.normal.empty.w80.h20.v16l-profile",
+      "requirementId": "placement.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Proposed narrow recorded-condition assessment; independent scoped intake/integration review pending."
     }
   ],
-  "inventorySha256": "96cfc8751fecdb1c17f4e9b69437fac85579678c9a8f2b8eac57c29f5496df7a"
+  "inventorySha256": "76c21785db1010621f0a8ec24cfd5b4880a890596c40fa637abc1f206266270c"
 }

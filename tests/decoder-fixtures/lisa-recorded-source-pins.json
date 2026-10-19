@@ -1,0 +1,13 @@
+{
+  "face": {
+    "payloadSha256": "fbd7200590e89ea4fad804e27f8d585d3d95e65fba7a453d5bcfb5e19bff75bc",
+    "resourceIndex": 4,
+    "signedId": -10239
+  },
+  "cinf": {
+    "payloadSha256": "575160d52d947deac2ca0c128f1b3e27f20e47eb67b8178e50e9362053c75610",
+    "resourceIndex": 480,
+    "signedId": -10239
+  },
+  "missingPatternId": 0
+}

@@ -41,7 +41,8 @@ export function publicFaceScope(request) {
   const c = request?.conditions;
   const state = c?.state;
   const crayon = request?.sourceSlug === 'crayon-os' && request.id === 'crayon-os.normal' && state === 'normal';
-  const supported = crayon || (['windows-95', 'system7-nostalgia-silver'].includes(request?.sourceSlug)
+  const lisa = request?.sourceSlug === 'apple-lisa' && request.id === 'apple-lisa.normal' && state === 'normal';
+  const supported = lisa || crayon || (['windows-95', 'system7-nostalgia-silver'].includes(request?.sourceSlug)
     && ['normal', 'pressed', 'inactive'].includes(state) && request.id === `${request.sourceSlug}.${state}`);
   const enabled = state !== 'inactive';
   if (!(supported && c.surface === 'push-button' && c.text === '' && c.defaultRing === false
@@ -53,6 +54,10 @@ export function publicFaceScope(request) {
   if (crayon) return { ...structuredClone(faceScope), version: 3,
     claim: 'Recorded composited pixels of the complete fixed empty Crayon normal face under the observed public invocation, environment and background; original pattern phase remains unknown.',
     excludedClaims: [...faceScope.excludedClaims, 'original-pattern-phase', 'general-body-paint', 'pattern-mask', 'private-pattern-provider'],
+  };
+  if (lisa) return { ...structuredClone(faceScope), version: 4,
+    claim: 'Recorded composited pixels of the complete fixed empty Lisa normal face under the observed public invocation, environment and background.',
+    excludedClaims: [...faceScope.excludedClaims, 'original-pattern-phase', 'general-body-paint', 'private-pattern-provider'],
   };
   // Keep the already-reviewed normal v1 scope definition exact.
   if (state === 'normal') return structuredClone(faceScope);

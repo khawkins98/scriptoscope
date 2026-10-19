@@ -1,5 +1,13 @@
 # Learnings
 
+### 2026-10-19: a successful close is not the stopped telemetry export
+
+Lisa v15 returned success but its stopped HFS catalog held EOF0. The separate
+v16 fixture checks short writes, close, public FlushVol and exact EOF readback;
+its stopped export then contained all34,254 bytes. Keep recovered data labeled
+separately and verify actual exports. This acquisition guidance does not invalidate
+prior complete references or establish private resource/pattern ownership.
+
 > **Read this first — this is a historical, append-only running log.** Entries are
 > never deleted; they're added chronologically as the project ships. The
 > **authoritative current narrative and architecture now live elsewhere**:

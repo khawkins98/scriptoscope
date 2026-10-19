@@ -49,9 +49,9 @@ function fixture(t, request = contract.requests.find(r => r.id === 'windows-95.n
 test('actual checked-in originals are scoped observations with every broader requirement unresolved', () => {
   const report = assessCorpus(contract, JSON.parse(readFileSync(new URL('./captures.json', import.meta.url))), JSON.parse(readFileSync(new URL('./reviews.json', import.meta.url))), { intakeRoot: join(repositoryRoot, 'tests/reference-captures'), known: knownImages() });
   assert.equal(report.requests.length, 13);
-  assert.equal(report.requests.filter(r => r.status === 'missing').length, 6);
-  assert.deepEqual(report.requests.filter(r => r.status === 'evidence-incomplete').map(r => r.id), ['windows-95.normal', 'windows-95.pressed', 'windows-95.inactive', 'system7-nostalgia-silver.normal', 'system7-nostalgia-silver.pressed', 'system7-nostalgia-silver.inactive', 'crayon-os.normal']);
-  assert.equal(report.captures.length, 7);
+  assert.equal(report.requests.filter(r => r.status === 'missing').length, 5);
+  assert.deepEqual(report.requests.filter(r => r.status === 'evidence-incomplete').map(r => r.id), ['windows-95.normal', 'windows-95.pressed', 'windows-95.inactive', 'system7-nostalgia-silver.normal', 'system7-nostalgia-silver.pressed', 'system7-nostalgia-silver.inactive', 'apple-lisa.normal', 'crayon-os.normal']);
+  assert.equal(report.captures.length, 8);
   for (const capture of report.captures) {
     assert.equal(capture.status, 'reviewed-scoped-observation');
     assert.deepEqual(capture.missing, []); assert.deepEqual(capture.rejected, []);
@@ -539,4 +539,22 @@ test('Crayon-only scoped policy cannot stale existing six request/review binding
  const captures=JSON.parse(readFileSync(new URL('./captures.json',import.meta.url))).captures;
  for(const c of captures.slice(0,6))assert.equal(next.requests.find(r=>r.id===c.requestId).requestDigest,c.requestDigest);
  assert.notEqual(next.requests.find(r=>r.id==='crayon-os.normal').requestDigest,contract.requests.find(r=>r.id==='crayon-os.normal').requestDigest);
+});
+
+test('Lisa v4 admits only its exact normal output and cannot stale seven prior bindings',t=>{
+ const req=contract.requests.find(r=>r.id==='apple-lisa.normal'),f=scopedFixture(t,req);
+ assert.equal(f.capture.reviewScope.version,4);
+ assert.equal(f.assess().status,'reviewed-scoped-observation');
+ assert.deepEqual(f.assess().verifiedRequirementIds,[]);
+ for(const change of [c=>c.reviewScope.version=1,c=>c.observed.publicApiFace.port.effectiveClipRect=[0,0,80,20]]){
+  const c=structuredClone(f.capture);change(c);assert.equal(f.assess(c).status,'rejected');
+ }
+ for(const change of [{id:'apple-lisa.pressed',conditions:{...req.conditions,state:'pressed'}},
+  {conditions:{...req.conditions,text:'OK'}},{conditions:{...req.conditions,portOrigin:[10,10]}}])
+  assert.equal(publicFaceScope({...req,...change}),null);
+ const root=contractRoot(t),file=join(root,'tests/reference-captures/eligibility-policy.json'),policy=JSON.parse(readFileSync(file));
+ policy.sections.publicFaceV4.version++;writeFileSync(file,JSON.stringify(policy));const next=readContract(root);
+ const old=JSON.parse(readFileSync(new URL('./captures.json',import.meta.url))).captures.slice(0,7);
+ for(const c of old)assert.equal(next.requests.find(r=>r.id===c.requestId).requestDigest,c.requestDigest);
+ assert.notEqual(next.requests.find(r=>r.id===req.id).requestDigest,req.requestDigest);
 });

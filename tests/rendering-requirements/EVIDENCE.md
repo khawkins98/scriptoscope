@@ -215,3 +215,7 @@ The pinned engine identity is unchanged. See [prepared text contract](../../docs
 ## Crayon recorded condition (1.6.0)
 
 One Crayon v14c empty normal80×20 face at port20,20 is compared over recorded white using its same-run2263-tuple display profile. Full port clip is observed, but original pattern phase, private provider/cache, alpha/mask and general body behavior remain unknown. Actual selected cicn−10239/cinf−10239/ppat17 bytes and completed face output are joined; selected pattern metadata is not a completed pattern occupancy measurement.
+
+## Lisa recorded condition (1.7.0)
+
+One Lisa v16 empty normal80×20 face at port20,20 is compared over recorded white using its same-run22-tuple display profile. Normal stopped HFS export contains all34,254 bytes after explicit File Manager checks. Actual selected cicn−10239/cinf−10239 payloads and completed face output join this case; modern ppat0 absence is observed separately. Original private provider/cache/pattern phase, mask and general body behavior remain unknown.
