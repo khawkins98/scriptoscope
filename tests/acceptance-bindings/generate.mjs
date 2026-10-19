@@ -8,6 +8,9 @@ import { convertScheme } from '../../tools/theme-loader/convert.js';
 import { loadKaleidoscopeScheme } from '../../tools/theme-loader/loadKaleidoscopeScheme.js';
 import { stuffItResourceForkWithSelection } from '../../tools/sit-wasm/index.mjs';
 import { canonicalWindowTypeSlug, equivalentWindowTypeKeys } from '../../src/wndCascade.ts';
+import { WINDOW_TYPE_IDENTITIES } from '../../tools/theme-loader/window-type-identities.js';
+import '../helpers/registerTs.mjs';
+const { resolveWindowSelection } = await import('../../src/resolveWindowType.ts');
 
 export const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 export const OUTPUT = 'tests/acceptance-bindings/bindings.json';
@@ -87,9 +90,18 @@ export function describeConversion(bytes, meta = {}, source = 'scheme.rsrc') {
   const windows = Object.entries(theme.windowTypes ?? {}).map(([key, value]) => ({
     key, canonicalIdentity: canonicalWindowTypeSlug(key), equivalentKeys: equivalentWindowTypeKeys(key),
     model: value.model ?? 'sliced', valueSha256: hashObject(value),
+    recipeOccurrence: { status: 'OPEN', reason: 'buildThemeJson-does-not-return-window-recipe-occurrence' },
     assets: assetPaths(value, paths).map(ref => ({ ...ref, candidateOccurrences: resources.filter(r => r.assetPaths.includes(ref.path)).map(r => r.resourceIndex) })),
   }));
-  return { status: 'converted', resources, catalogs, icons, windows,
+  const requests = [...new Set([...Object.keys(theme.windowTypes ?? {}), ...WINDOW_TYPE_IDENTITIES.flatMap(i => equivalentWindowTypeKeys(i.canonicalSlug))])];
+  const loaded = { manifest: theme, baseUrl: '' };
+  const windowSelections = requests.flatMap(request => ['active', 'inactive', 'collapsed-active', 'collapsed-inactive'].map(state => {
+    const selected = resolveWindowSelection(loaded, request, state);
+    const selectedKey = selected ? Object.entries(theme.windowTypes ?? {}).find(([, value]) => value === selected.wt)?.[0] : null;
+    check(!selected || (selected.owner === loaded && selectedKey), 'Unexpected standalone window owner or key');
+    return [request, state, selectedKey ?? null, selected?.cicnPath ?? null, selected ? 'self' : null];
+  }));
+  return { status: 'converted', resources, catalogs, icons, windows, windowSelections,
     assets: assets.map(a => ({ path: a.path, width: a.width, height: a.height, rgbaSha256: sha256(a.rgba) })),
     manifestSha256: hashObject(withoutReferences(theme)), manifest: withoutReferences(theme) };
 }
@@ -126,15 +138,17 @@ export async function generate(root = ROOT) {
     const canonical = describeConversion(selected.bytes, meta, source);
     const matches = sha256(actual.bytes) === choice.forkSha256 && actual.selection.entryIndex === choice.entryIndex && actual.selection.entryName === choice.entryName;
     const loader = matches ? canonical : describeConversion(actual.bytes, meta, source);
+    let loaded, loadError;
+    try { loaded = await loadKaleidoscopeScheme(bytes, { meta, source, encodeAssets: false }); }
+    catch (error) { loadError = error; }
     let publicLoad;
-    try {
-      const loaded = await loadKaleidoscopeScheme(bytes, { meta, source, encodeAssets: false });
+    if (loadError) {
+      check(loader.status === 'error', `${choice.slug}: public loader rejected a successful conversion: ${loadError.message}`);
+      publicLoad = { status: 'error', error: String(loadError.message) };
+    } else {
       check(loader.status === 'converted' && isDeepStrictEqual(loaded.manifest, loader.manifest), `${choice.slug}: actual loader manifest differs`);
       check(isDeepStrictEqual(loaded.assets.map(a => ({ path: a.path, width: a.width, height: a.height, rgbaSha256: sha256(a.rgba) })), loader.assets), `${choice.slug}: actual loader assets differ`);
       publicLoad = { status: 'converted', manifestSha256: hashObject(loaded.manifest), assetPlaneParity: true };
-    } catch (error) {
-      if (loader.status === 'converted') throw error;
-      publicLoad = { status: 'error', error: String(error.message) };
     }
     delete canonical.manifest; if (!matches) delete loader.manifest;
     compactInventory(canonical); if (!matches) compactInventory(loader);
@@ -146,7 +160,7 @@ export async function generate(root = ROOT) {
   const cells = envelope.requiredEnvelope.map(row => ({ sourceRef: row.sourceRef, bindingRef: row.sourceRef, familyPathRefs: row.familyPathRefs }));
   check(cells.length === sources.length && cells.every(c => sources.some(s => s.id === c.sourceRef)), 'Envelope source coverage mismatch');
   const paths = [...new Set([...sourceFiles(root, 'tools/theme-loader'), 'tools/sit-wasm/index.mjs', 'tools/sit-wasm/dist/munbox.mjs', 'tools/sit-wasm/dist/munbox.wasm',
-    'tests/control-availability/source.mjs', 'src/wndCascade.ts', 'src/resolveWindowType.ts', 'src/baseChain.ts', 'src/loadTheme.ts', 'tests/acceptance-bindings/generate.mjs'])].sort();
+    'tests/control-availability/source.mjs', 'tests/helpers/registerTs.mjs', 'src/wndCascade.ts', 'src/resolveWindowType.ts', 'src/baseChain.ts', 'src/loadTheme.ts', 'tests/acceptance-bindings/generate.mjs'])].sort();
   return { schemaVersion: 1, status: 'OBSERVED_MODERN_INPUT_BINDINGS', closure: 'OPEN',
     registry: { path: registryPath, sha256: sha256(read(registryPath)) }, envelope: { path: envelopePath, sha256: sha256(read(envelopePath)) },
     toolchain: paths.map(path => ({ path, sha256: sha256(read(path)) })),
@@ -160,7 +174,9 @@ export async function generate(root = ROOT) {
       'No browser encoding, font rasterization, device realization or original provider/selection is established.'],
     tables: { resources: RESOURCE_COLUMNS, resourceIndex: 'zero-based row position, preserving parser order and duplicates',
       icons: ['key', 'path', 'resourceIndex', 'maskResourceIndex', 'maskPolicy', 'width', 'height'],
-      catalogs: ['key', 'asset', 'valueSha256', 'occurrences'] },
+      catalogs: ['key', 'asset', 'valueSha256', 'occurrences'],
+      windowSelections: ['requestedKey', 'state', 'selectedKey', 'selectedAsset', 'owner'],
+      windowSelectionScope: 'finite emitted/identity-alias names, four states, standalone modern recipe; not arbitrary names or collapsed resolver execution' },
     sources, cells };
 }
 export function serialize(value) {

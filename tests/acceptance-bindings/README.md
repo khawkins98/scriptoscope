@@ -42,9 +42,14 @@ corner-sprite synthesis. Canonical/equivalent keys come from the existing
 `wndCascade` identity helpers, whose authority is `window-type-identities.js`.
 Window asset links list **all matching occurrence candidates**; a duplicated
 path is not a unique ownership proof. Window geometry and complete manifest
-values are hash-bound, not copied as a second recipe authority. The generator
-does not execute window resolution, state fallback, collapse, base-chain lookup
-or paint. Alias equivalence is not missing-resource fallback. Current child
+values are hash-bound, not copied as a second recipe authority. `windowSelections` executes the existing `resolveWindowSelection` for the
+finite union of emitted keys and authority identity aliases across four states,
+recording actual key/path/standalone owner or null. This includes the modern
+resolver's state fallback; it does not execute collapse selection, arbitrary
+base chains or paint. Exact `wnd#` occurrence → emitted window-key binding remains
+OPEN: the builder exposes no occurrence reference for that output. Raw `wnd#`
+records and emitted keys remain separately complete; geometry hashes and asset
+candidates do not fill that gap. Alias equivalence is not missing-resource fallback. Current child
 selection may choose a heuristic before consulting a base; this inventory does
 not certify that behavior historically.
 
