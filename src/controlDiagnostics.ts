@@ -1,3 +1,4 @@
+import type { CinfLookupView } from '../tools/theme-loader/cinf-environment.js';
 import type { BitmapTextPaint } from './preparedBitmapFont.js';
 import type { ControlColorSamples } from './types.js';
 import type { ControlCompositionSnapshot, ControlRect } from './controlComposition.js';
@@ -7,6 +8,8 @@ import type { HeaderSurfaceTrace } from './headerSurface.js';
 
 /** Observed selection decisions, not proof of original-engine fidelity. */
 export interface ControlResolutionStep {
+  /** Explicit role-view admission, separate from static local pair identity. */
+  readonly cinfLookup?: CinfLookupView;
   readonly role: 'face' | 'default-ring' | 'body-fill';
   /** Raw cinf mode for body dependency decisions; never inferred from a label. */
   readonly bodyMode?: number;
@@ -17,7 +20,9 @@ export interface ControlResolutionStep {
   readonly owner?: { readonly baseUrl: string; readonly chainDepth: number };
   readonly resource?: {
     readonly signedId: number | null;
+    /** Static local pair; consumedCinf identifies an opted-in role view instead. */
     readonly sourceCinfId: number | null;
+    readonly consumedCinf?: CinfLookupView;
     readonly manifestKey: string;
     /** Volatile diagnostic detail; blob URLs are not stable identity keys. */
     readonly assetUrl: string;

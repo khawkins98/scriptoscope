@@ -1,4 +1,4 @@
-import { VERSION, prepareBitmapFont, type BitmapFontData, type PreparedBitmapFont, type BitmapTextPaint, prepareDisplayProfile, DisplayProfileError, type DisplayProfileData, loadKaleidoscopeScheme, composeTab, composeHeaderSurface,
+import { VERSION, prepareCinfEnvironment, type CinfEnvironmentInput, type PreparedCinfEnvironment, prepareBitmapFont, type BitmapFontData, type PreparedBitmapFont, type BitmapTextPaint, prepareDisplayProfile, DisplayProfileError, type DisplayProfileData, loadKaleidoscopeScheme, composeTab, composeHeaderSurface,
   type WindowByteProvenance, type ButtonOptions, type BevelButtonOptions, type ControlDiagnostics, type TabBodyTrace, type CicnSamplingEquivalence, type CicnSampledBandAsset, type CicnBodyBinding, type HeaderSurfaceOptions, type HeaderSurfaceResult, type HeaderSurfaceTrace } from 'scriptoscope';
 import { mountDeclarative, type MountHandle } from 'scriptoscope/declarative';
 import 'scriptoscope/scriptoscope.css';
@@ -76,6 +76,12 @@ consumer.ready = (async () => {
   try { await loadKaleidoscopeScheme(bytes, { displayProfile, assetUrlFactory: () => { encoded++; return 'invalid'; } }); }
   catch (error) { if (!(error instanceof DisplayProfileError) || error.code !== 'MISSING_MAPPING') throw error; rejected = true; }
   if (!rejected || encoded) throw new Error('Packed profile failed to reject missing colors before encoding');
+  const cinfData: CinfEnvironmentInput = { version: 1, complete: true, providers: [{ kind: 'theme-fork', id: 'actual', complete: true }] };
+  const cinfEnvironment: PreparedCinfEnvironment = await prepareCinfEnvironment(cinfData);
+  const cinfLoaded = await loadKaleidoscopeScheme(bytes, { cinfEnvironment, encodeAssets: false });
+  const cinfFace = Object.values(cinfLoaded.manifest.chromeElements).find(e => e.sourceCicnId === -10239);
+  if (!cinfEnvironment.id.startsWith('cinf-environment:') || cinfFace?.bodyCinf?.status !== 'ready'
+    || cinfFace.bodyCinf.selected?.providerId !== 'actual') throw new Error('Packed cinf environment/role view failed');
   consumer.handle = await mountDeclarative({
     root, pageThemeDefault: 'windows-95',
     themeBaseUrl: `${import.meta.env.BASE_URL}themes`,

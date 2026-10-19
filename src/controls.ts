@@ -1,3 +1,4 @@
+import { CinfEnvironmentError, isBoundBodyCinfView, type CinfLookupView } from '../tools/theme-loader/cinf-environment.js';
 import { prepareBitmapGlyphRun, type PreparedBitmapFont, type BitmapGlyphRun } from './preparedBitmapFont.js';
 import { paintBitmapText } from './paintBitmapText.js';
 import { ownerDisplayPolicyMatches } from '../tools/theme-loader/display-profile.js';
@@ -76,7 +77,7 @@ async function loadByKey(theme: LoadedTheme, key: string): Promise<PixelBuffer |
  * matches its absolute value for compatibility with signed corpus aliases;
  * diagnostics preserve the actual sign instead of claiming an original alias.
  */
-interface ResolvedFaceMetadata { theme: LoadedTheme; element: ChromeElement; key: string; chainDepth: number; }
+interface ResolvedFaceMetadata { consumedCinf?: CinfLookupView; theme: LoadedTheme; element: ChromeElement; key: string; chainDepth: number; }
 interface ResolvedControlFace extends ResolvedFaceMetadata { buffer: PixelBuffer; loadedIdentity?: Pick<LegacyFacePaint, 'owner' | 'resource'>; }
 type TraceLookup = Pick<ControlResolutionStep, 'role' | 'basis' | 'usage'>;
 const FACE_LOOKUP: TraceLookup = { role: 'face', basis: 'source-dispatch', usage: 'paint' };
@@ -85,6 +86,7 @@ function resourceIdentity(hit: ResolvedFaceMetadata): Extract<NonNullable<Contro
   return { type: 'cicn', signedId: Number.isInteger(hit.element.sourceCicnId) ? hit.element.sourceCicnId! : null,
     sourceCinfId: Number.isInteger(hit.element.sourceCinfId) ? hit.element.sourceCinfId! : null, manifestKey: hit.key,
     assetUrl: assetUrl(hit.theme, hit.element.asset),
+    ...(hit.consumedCinf ? { consumedCinf: hit.consumedCinf } : {}),
     ...(hit.element.byteProvenance ? { byteProvenance: hit.element.byteProvenance } : {}) };
 }
 
@@ -131,6 +133,43 @@ async function loadResolvedFace(hit: ResolvedFaceMetadata, trace?: ControlTraceC
     resource: { ...resource, assetUrl: url, ...(resource.byteProvenance ? { byteProvenance: { ...resource.byteProvenance } } : {}) },
   } : undefined;
   return { ...hit, buffer: await loadCicnBuffer(url), ...(loadedIdentity ? { loadedIdentity } : {}) };
+}
+
+/** Select a prepared role view without mutating common element/local pair facts. */
+function declaredBodyFace(root: LoadedTheme, face: ResolvedControlFace, requestedId: number, label: string,
+  defaultRing: boolean, trace?: ControlTraceCollector): ResolvedControlFace {
+  const environment = root.manifest.cinfEnvironment ?? face.theme.manifest.cinfEnvironment;
+  if (!environment) return face;
+  const view = face.element.bodyCinf;
+  const reject = (reason: string): never => {
+    trace?.record({ role: 'face', usage: 'admission', basis: 'compatibility-policy', action: 'rejected',
+      requestedId, reason, ...(view ? { cinfLookup: lookupOnly(view) } : {}) });
+    throw new CinfEnvironmentError(reason, 'UNSUPPORTED_CINF_ENVIRONMENT');
+  };
+  if (root.base || face.chainDepth !== 0 || face.theme !== root) reject('cinf-environment-base-inheritance');
+  if (defaultRing) reject('cinf-environment-default-ring-unsupported');
+  if (face.element.sourceCicnId !== requestedId) reject('cinf-environment-requested-selected-id-mismatch');
+  if (!isBoundBodyCinfView(environment, view) || !view || view.requestedId !== requestedId) reject('cinf-environment-role-binding-missing');
+  const consumed = lookupOnly(view!);
+  if (view!.status === 'unsupported') reject(view!.reason ?? 'cinf-environment-unknown');
+  if (!ownerDisplayPolicyMatches(face.theme.manifest, view!.displayPolicy)) reject('cinf-environment-display-policy-mismatch');
+  if (view!.status === 'no-body-or-border') {
+    if (label.length) reject('cinf-environment-text-outputs-unavailable');
+  } else {
+    const metadata = view!.metadata;
+    if (!metadata?.slice || !metadata.bodyRequest) reject('cinf-environment-metadata-unavailable');
+    if (metadata!.bodyRequest!.mode === 5) reject('cinf-environment-mode5-unsupported');
+    if (label.length && (!metadata!.colorSamples?.text || metadata!.colorSamples.embossDecision === 'unknown'))
+      reject('cinf-environment-text-sampling-unavailable');
+  }
+  trace?.record({ role: 'face', usage: 'admission', basis: 'compatibility-policy', action: view!.status === 'ready' ? 'selected' : 'missing',
+    requestedId, reason: view!.status === 'ready' ? 'declared-cinf-role-view' : 'declared-cinf-two-null-skip',
+    owner: { baseUrl: face.theme.baseUrl, chainDepth: 0 }, cinfLookup: consumed });
+  return { ...face, consumedCinf: consumed, element: view!.status === 'ready' ? { ...face.element, ...view!.metadata } : face.element };
+}
+function lookupOnly(view: NonNullable<ChromeElement['bodyCinf']>): CinfLookupView {
+  const { metadata: _metadata, ...lookup } = view;
+  return lookup;
 }
 
 async function loadFaceById(theme: LoadedTheme, id: number, trace?: ControlTraceCollector,
@@ -1264,6 +1303,13 @@ async function composeFaceButton(
 ): Promise<PixelBuffer> {
   const label = opts.label ?? '';
   const { buffer: face, element: faceEl } = resolved;
+  if (geometry === 'button' && resolved.consumedCinf?.status === 'no-body-or-border') {
+    const width = opts.width ?? Math.max(opts.minWidth ?? 56, (opts.padX ?? 12) * 2), height = resolveControlHeight(face, opts.height);
+    const context = opts.composition ?? snapshotControlComposition();
+    opts.trace?.composition({ context, originalPortState: 'unverified', faceRect: { x: context.controlOrigin[0], y: context.controlOrigin[1], w: width, h: height },
+      appliedUnknownPatternOffset: context.patternOrigin.status === 'unknown' });
+    return PixelBuffer.alloc(width, height); // Explicit modern initial plane; no legacy or successful paint.
+  }
   const fIns = faceEl?.slice?.corner ?? sliceInset(face.width, face.height);
   const fSide = faceEl?.slice?.side ?? fIns;
   // TMPL 129 bgPixel is a source RGB sample, not a tiling origin. kDEF
@@ -1328,6 +1374,8 @@ async function composeFaceButton(
   const body = mode5 ? { buffer: null, solidFallback: cicnBody?.kind === 'missing' }
     : geometry === 'button' ? await loadBodyPattern(resolved, opts) : { buffer: null, solidFallback: false };
   const pattern = body.buffer;
+  if (resolved.consumedCinf && !pattern && !body.solidFallback)
+    throw new CinfEnvironmentError('Declared cinf body pattern lookup is ambiguous or unsupported', 'UNSUPPORTED_CINF_ENVIRONMENT');
   const samples = faceEl.colorSamples;
   const rawBg = samples?.background;
   const triple = (values: readonly number[] | undefined, max: number): boolean =>
@@ -1344,6 +1392,8 @@ async function composeFaceButton(
     && bg && Number.isInteger(bg[0]) && Number.isInteger(bg[1])
     && bg[0] >= 0 && bg[0] < face.width && bg[1] >= 0 && bg[1] < face.height
     ? rawBg.displayRgb : null;
+  if (resolved.consumedCinf && !pattern && !sourceBg)
+    throw new CinfEnvironmentError('Declared cinf raw background sample unavailable', 'UNSUPPORTED_CINF_ENVIRONMENT');
   if (cicnBody?.kind === 'missing' && !sourceBg) opts.trace?.record({
     role: 'body-fill', requestedId: faceEl.bodyRequest!.resourceId, bodyMode: 5, requestedResourceType: 'cicn',
     basis: 'compatibility-policy', usage: 'paint', owner: { baseUrl: resolved.theme.baseUrl, chainDepth: resolved.chainDepth },
@@ -1615,6 +1665,7 @@ async function composeButtonWithTrace(theme: LoadedTheme, opts: ButtonOptions & 
   }
   assertControlAlive(signal);
   if (!face) return null; // baseline path
+  face = declaredBodyFace(theme, face, -faceId, opts.label ?? '', !!opts.default, trace);
   const faceBuf = await composeFaceButton(face, { ...opts, composition, signal, trace });
   assertControlAlive(signal);
   // kDEF 2.3.1 copies the control rectangle at 0x7434, draws its face
@@ -1704,6 +1755,7 @@ async function composeBevelButtonWithTrace(theme: LoadedTheme, opts: BevelButton
     if (face) break;
   }
   if (!face) return null; // → platinumBevelButton
+  face = declaredBodyFace(theme, face, -reqId, opts.label ?? '', false, trace);
   const faceOpts: FaceOptions = { composition, trace, fontSize: opts.fontSize!, padX: 8, minWidth: opts.minWidth ?? (opts.small ? 18 : 22) };
   if (opts.label != null) faceOpts.label = opts.label;
   if (opts.disabled != null) faceOpts.disabled = opts.disabled;

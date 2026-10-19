@@ -7,6 +7,8 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+- Add an opt-in prepared cinf-only provider environment for standalone push/bevel faces, with separate consumed-owner diagnostics and explicit unknown/unsupported results; preserve common metadata and default loading behavior (#221).
+
 - Add declared known-origin pattern full-face checks to the existing source/built border groups, binding actual ppat bytes and independent control-body phase while retaining unknown-origin invocations and original environment limits (#221).
 
 - Extend existing border-boundary checks to conditional solid-body full face rectangles using bound raw background samples, actual modern null-pattern admission and explicitly transparent initialization; retain pattern/missing-cinf cases and original environment claims as unresolved (#221).

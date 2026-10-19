@@ -17,7 +17,7 @@
     },
     {
       "path": "src/loadTheme.ts",
-      "sha256": "0256018d272dc4d886ac7e8757bbf4e10fb98b783017cba52aa5edc33e779d84"
+      "sha256": "dc60ea02f7501d39a319bd6788299e77f4445cee48ba7be428156016ec67eec3"
     },
     {
       "path": "src/resolveWindowType.ts",
@@ -57,11 +57,15 @@
     },
     {
       "path": "tools/theme-loader/buildThemeJson.js",
-      "sha256": "8105b66087ef90378c0711aad31d52513d6da90214a84fdb2860bc56b6ee0fe1"
+      "sha256": "e76516e9311a1cc6e3c42cc8976aeb07b0786428c26108070f538475d0617d21"
     },
     {
       "path": "tools/theme-loader/cicn-body.js",
       "sha256": "2fdc7e9d7dfb4332d858e754257814db0a96f5daa0828bf5a04fc54b68eba966"
+    },
+    {
+      "path": "tools/theme-loader/cinf-environment.js",
+      "sha256": "6ef97174ddce4ac92f42e30a6b44c3ca3b3ac41986a276f4fe6c264a1cbf7215"
     },
     {
       "path": "tools/theme-loader/classifyResources.js",
@@ -73,7 +77,7 @@
     },
     {
       "path": "tools/theme-loader/convert.js",
-      "sha256": "9d1c666810646ed4dc6066f93c2e6222e4bee51e8d19d4c17f44127e5c0746cf"
+      "sha256": "186ff07182c80c93831c22aa69f55ff31b1315670b0e54e2fd6169a1734d44b7"
     },
     {
       "path": "tools/theme-loader/decoders/cicn.js",
@@ -117,7 +121,7 @@
     },
     {
       "path": "tools/theme-loader/kdef-color-samples.js",
-      "sha256": "f77130ddc7c6a8b6401d035185cf5a2a077a6f41960dcdd3cc6692deb7387b23"
+      "sha256": "84cee437c3fdfdae8c8efe7f7ed3f27ea14228a6446ad7a00936215fc6b06fb4"
     },
     {
       "path": "tools/theme-loader/loadKaleidoscopeIcon.js",
@@ -125,7 +129,7 @@
     },
     {
       "path": "tools/theme-loader/loadKaleidoscopeScheme.js",
-      "sha256": "bae27e108c887b38937650e06cf376bed8e3857f82314aba973b639466c184da"
+      "sha256": "30415816ff1077428b73eade21dcdec8597c4ec185342d4f7c5585c41038a358"
     },
     {
       "path": "tools/theme-loader/loadProvenance.js",

@@ -20,3 +20,7 @@ const profileImport = "import('../../src/types.js')";
 if (profile.split(profileImport).length !== 2) throw new Error('Profile declaration dependencies changed');
 await writeFile(resolve(root, 'dist/tools/theme-loader/display-profile.d.ts'),
   profile.replace(profileImport, "import('../../types/types.js')"));
+
+const cinf = await readFile(resolve(root, 'tools/theme-loader/cinf-environment.d.ts'), 'utf8');
+await writeFile(resolve(root, 'dist/tools/theme-loader/cinf-environment.d.ts'),
+  cinf.replace("from '../../src/types.js'", "from '../../types/types.js'"));

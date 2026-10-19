@@ -141,3 +141,5 @@ export type { ElementByteProvenance, PatternByteProvenance, ThemeByteProvenance,
 export { prepareDisplayProfile, DisplayProfileError, type DisplayProfile, type DisplayProfileData, type DisplayPolicy } from '../tools/theme-loader/display-profile.js';
 
 export { prepareBitmapFont, type BitmapFontData, type BitmapGlyph, type PreparedBitmapFont, type BitmapTextPaint } from './preparedBitmapFont.js';
+
+export { prepareCinfEnvironment, CinfEnvironmentError, type PreparedCinfEnvironment, type CinfEnvironmentInput, type CinfLookupView, type CinfProviderReference } from '../tools/theme-loader/cinf-environment.js';

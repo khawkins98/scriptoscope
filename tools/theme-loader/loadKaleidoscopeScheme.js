@@ -9,6 +9,7 @@
 // produces the runtime's LoadedTheme contract. The Node CLIs (extract-*.mjs) are the
 // parallel Node shell. See docs/superpowers/specs/2026-05-27-browser-conversion-design.md.
 
+import { assertCinfEnvironment, bindCinfEnvironment } from './cinf-environment.js';
 import { beginLoadProvenance } from './loadProvenance.js';
 import { notifyAssetUrlReleased } from './assetLifecycle.js';
 import { convertScheme } from './convert.js';
@@ -25,6 +26,7 @@ import { buildResourceRoles, parseCicnFilename, parsePpatFilename } from './clas
  *   browser w/ OffscreenCanvas). When false, returns the raw RGBA assets instead — for
  *   Node tests or a caller doing its own encoding.
  * @property {boolean} [provenance] Opt-in immutable decoder-input byte evidence.
+ * @property {object} [cinfEnvironment] Prepared explicit standalone push/bevel body cinf environment.
  * @property {(rgba: Uint8Array, w: number, h: number, path: string) => (string|Promise<string>)} [assetUrlFactory]
  *   Custom RGBA→URL encoder. Default: OffscreenCanvas PNG blob URL (browser only).
  */
@@ -43,11 +45,13 @@ import { buildResourceRoles, parseCicnFilename, parsePpatFilename } from './clas
  */
 export async function loadKaleidoscopeScheme(input, options = {}) {
   const displayProfile = options.displayProfile;
+  const cinfEnvironment = options.cinfEnvironment;
+  assertCinfEnvironment(cinfEnvironment);
   displayRealizer(displayProfile);
   // Snapshot caller-owned byte inputs synchronously, before any await. Every
   // digest and decoder receives this same private snapshot when opted in.
-  if (options.provenance && input instanceof Uint8Array) input = new Uint8Array(input);
-  else if (options.provenance && input && typeof input.byteLength === 'number' && !ArrayBuffer.isView(input)) {
+  if ((options.provenance || cinfEnvironment) && input instanceof Uint8Array) input = new Uint8Array(input);
+  else if ((options.provenance || cinfEnvironment) && input && typeof input.byteLength === 'number' && !ArrayBuffer.isView(input)) {
     input = new Uint8Array(new Uint8Array(input));
   }
   const bytes = await toUint8Array(input);
@@ -70,10 +74,11 @@ export async function loadKaleidoscopeScheme(input, options = {}) {
       entryIndex: null, entryName: null, forkType: container === 'raw' ? 1 : null, fileType: null, creator: null };
   }
   if (evidence) await evidence.selectedFork(fork, selection);
+  const cinfBinding = await bindCinfEnvironment(cinfEnvironment, fork);
   let converted;
   try {
     converted = convertScheme(fork, {
-      meta: options.meta, source: options.source ?? 'resource-fork', displayProfile,
+      meta: options.meta, source: options.source ?? 'resource-fork', displayProfile, cinfBinding,
       ...(evidence ? { resourceObserver: evidence.observer } : {}),
     });
   } catch (error) {
@@ -199,7 +204,7 @@ function rewriteAssetRefs(node, urlByPath) {
   if (node && typeof node === 'object') {
     for (const k of Object.keys(node)) {
       const v = node[k];
-      if (k === 'displayProfile') continue; // immutable condition/evidence data, never asset references
+      if (k === 'displayProfile' || k === 'bodyCinf' || k === 'cinfEnvironment') continue; // immutable condition/evidence data, never asset references
       // Stable derivation identity is not an asset URL. Replace this immutable
       // scalar link as a unit; never recursively rewrite its derivedPath.
       if ((k === 'sampledBandAsset' || k === 'cicnBody') && v && typeof v === 'object') {

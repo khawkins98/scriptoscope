@@ -28,7 +28,7 @@
     "tools/sit-wasm/dist/munbox.wasm": "2c91a30904144a34277d54975d88c4a57baabd58466f579e3baef60bf0ced812",
     "tools/theme-loader/resource-fork.js": "b7ee1950661303ec0cee1afc0e312948ded660b0c135a2d4bb1a41498f5b16b4",
     "tools/theme-loader/decoders/cicn.js": "31e0961d1ca84812e262c5e89c33ea5c3f219da72f32fdddafaa77190c9a5d4c",
-    "tools/theme-loader/kdef-color-samples.js": "f77130ddc7c6a8b6401d035185cf5a2a077a6f41960dcdd3cc6692deb7387b23",
+    "tools/theme-loader/kdef-color-samples.js": "84cee437c3fdfdae8c8efe7f7ed3f27ea14228a6446ad7a00936215fc6b06fb4",
     "tools/theme-loader/sampling-equivalence.js": "04462651b68fd372fe86219d86338ef6a6326cf0a5be1ae7b1228f5b74c96abe",
     "tools/theme-loader/cicn-body.js": "2fdc7e9d7dfb4332d858e754257814db0a96f5daa0828bf5a04fc54b68eba966",
     "tools/theme-loader/mac-gamma.js": "cd496a62fc96ce81a5609a1111987c2d1f99ba34ca5a84bdd69f954dfb33ce21"
