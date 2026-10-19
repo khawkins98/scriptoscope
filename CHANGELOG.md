@@ -7,6 +7,8 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+- Specify the source-derived cinf same-ID/default lookup sequence with synthetic conditional fixtures and explicit unknown provider environments; correct `$A9A0` to GetResource in the source reference without changing runtime loading or injecting defaults (#221).
+
 - Add finite source/built push and bevel border-size checks across all 18 inputs, with independent opaque-writer coordinates, exact input/paint joins and explicit unreachable or unknown cases; broader fidelity and ledger closure remain OPEN (#221).
 
 - Reject truncated wnd# counts/records and invalid negative list counts before decoding fabricated window geometry; preserve the signed empty sentinel and valid corpus outputs (#330).

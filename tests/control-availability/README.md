@@ -122,3 +122,9 @@ bounded raw-background solid-fill correction. The ring
 source addresses, all27 exact cases/outcomes and source inputs are unchanged;
 the prior review is retained. This documentation update adds no availability or
 historical-fidelity claim.
+
+Inventory 1.0.5 refreshes only the same three full-document hashes after correcting
+A9A0 to GetResource and documenting conditional cinf fallback. The ring dispatch
+claims, detailed source evidence, all 27 case inputs/outcomes and payload pins
+remain unchanged. The complete 1.0.4 review history is retained; this adds no
+provider-order or pixel-fidelity claim.
