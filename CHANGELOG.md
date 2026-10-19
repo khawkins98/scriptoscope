@@ -8,6 +8,7 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 ## [Unreleased]
 
 - Register eight exact owned mixed checkbox/radio selector and same-tier fallback cases in the partial requirement ledger, with actual source/built fork/occurrence/pixel joins and explicit historical-environment limits (#221).
+- Correct checkbox/radio normal icon IDs from the pinned kDEF table, and retry checked art at the same tier only when the mixed `ics#` mask is absent. Expose a same-fork mask census; reject short/duplicate masks or contradictory catalogs while retaining unobserved manual-theme compatibility.
 
 - Select mixed checkbox/radio CICNs before the source-defined same-tier checked fallback; preserve existing active-state and icon compatibility fallbacks. Add literal public-loader source/built state and ownership checks.
 

@@ -347,12 +347,15 @@ export function convertIcons(fork, { ids, displayProfile } = {}) {
       const coverage = +(opaque / (cfg.size * cfg.size)).toFixed(3);
       const fname = `${type}-${idStr(e.id)}.png`;
       assets.push({ path: `icons/${fname}`, rgba, width: cfg.size, height: cfg.size });
-      index.push({ id: e.id, type, size: cfg.size, depth: cfg.depth, file: fname, name: e.name || null, masked: !!mask, coverage });
+      index.push({ id: e.id, type, size: cfg.size, depth: cfg.depth, file: fname, name: e.name || null, masked: !!mask, coverage, resourceIndex: entries.indexOf(e) });
       done.add(key);
     }
   }
   index.sort((a, b) => (b.size - a.size) || (a.id - b.id));
-  return { assets, index, census };
+  // Complete same-fork input census, including masks without supported color art.
+  const iconMaskResources = entries.flatMap((e, resourceIndex) => e.type === 'ics#'
+    ? [{ id: e.id, resourceIndex, byteLength: e.data.length }] : []);
+  return { assets, index, census, iconMaskResources };
 }
 
 /**
@@ -376,6 +379,7 @@ export function convertScheme(fork, { meta = {}, source = 'scheme.rsrc', resourc
     theme: chrome.theme,
     assets: [...chrome.assets, ...icons.assets],
     iconIndex: icons.index,
+    iconMaskResources: icons.iconMaskResources,
     manifest: chrome.manifest,
   };
 }

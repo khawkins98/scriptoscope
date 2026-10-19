@@ -1,7 +1,11 @@
 import { VERSION, prepareCinfEnvironment, type CinfEnvironmentInput, type PreparedCinfEnvironment, prepareBitmapFont, type BitmapFontData, type PreparedBitmapFont, type BitmapTextPaint, prepareDisplayProfile, DisplayProfileError, type DisplayProfileData, loadKaleidoscopeScheme, composeTab, composeHeaderSurface,
-  type WindowByteProvenance, type ButtonOptions, type BevelButtonOptions, type ControlDiagnostics, type TabBodyTrace, type CicnSamplingEquivalence, type CicnSampledBandAsset, type CicnBodyBinding, type HeaderSurfaceOptions, type HeaderSurfaceResult, type HeaderSurfaceTrace } from 'scriptoscope';
+  type ThemeInspector, type WindowByteProvenance, type ButtonOptions, type BevelButtonOptions, type ControlDiagnostics, type TabBodyTrace, type CicnSamplingEquivalence, type CicnSampledBandAsset, type CicnBodyBinding, type HeaderSurfaceOptions, type HeaderSurfaceResult, type HeaderSurfaceTrace } from 'scriptoscope';
 import { mountDeclarative, type MountHandle } from 'scriptoscope/declarative';
 import 'scriptoscope/scriptoscope.css';
+
+const iconMaskDeclaration: ThemeInspector['iconMaskResources'] = [{ id: -10234, resourceIndex: 0, byteLength: 64 }];
+const iconOccurrenceDeclaration: ThemeInspector['iconIndex'][number]['resourceIndex'] = 1;
+void iconMaskDeclaration; void iconOccurrenceDeclaration;
 
 const root = document.querySelector<HTMLElement>('#consumer-root')!;
 const article = root.querySelector<HTMLElement>('article')!;
