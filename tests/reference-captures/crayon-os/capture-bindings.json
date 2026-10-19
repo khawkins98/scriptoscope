@@ -1,0 +1,39 @@
+{
+  "originalIndexSha256": "2eca5a645cbff0d0ef9098307f5e842874a7367c1c7b65f0ce3a9ccce0902fac",
+  "originalCaptureReceiptSha256": "ab65f126df3b85c83e7682d702e493a9da16873894d33bd22e4e63fde7cabe77",
+  "rawProducer": {
+    "bytes": 1228800,
+    "sha256": "e5dffe03a962c03a98fd0db4f34bcc9384425a21132ec5505a046f6f29c5fd85"
+  },
+  "transport": {
+    "bytesCompared": 1228800,
+    "rawEqualsPng": true,
+    "rawRepeatedChangedBytes": 0,
+    "noResampling": true
+  },
+  "portFrameBoxLTRB": [
+    80,
+    90,
+    240,
+    170
+  ],
+  "contextFrameBoxLTRB": [
+    92,
+    102,
+    188,
+    138
+  ],
+  "faceFrameBoxLTRB": [
+    100,
+    110,
+    180,
+    130
+  ],
+  "nonce": "V14C-20261019-01",
+  "sequence": 1,
+  "mappingRows": 4526,
+  "exactRepeatedMappings": 2263,
+  "profileDataSha256": "fbd0eb8abb9e5e153fa4ddb0d825a2fea045a6f4a19baca445d12b449ff47b5a",
+  "profileId": "display-profile:d4e4f9ffb69f1292f2c86b3fb2914561c58f8b38a5aeb53336e6cf914b10a1a0",
+  "profileRelationship": "Same-run mappings/palette/producer table; no imported mappings. Timing is after draw."
+}

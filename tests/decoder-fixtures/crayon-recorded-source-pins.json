@@ -1,0 +1,17 @@
+{
+  "face": {
+    "payloadSha256": "bdc714e995a9c97f3dae29a4299fc0fd156534609fd1abdd2effde10d274ac3b",
+    "resourceIndex": 126,
+    "signedId": -10239
+  },
+  "cinf": {
+    "payloadSha256": "ea18f707f13b5fe0f28cc5274ebc716db3befc174550b79da701fe0fc245401f",
+    "resourceIndex": 264,
+    "signedId": -10239
+  },
+  "pattern": {
+    "payloadSha256": "35c7aa22b9da7e01f83fa5dbd6443e5c93459a3450401ab2c18050f37cdcfea4",
+    "resourceIndex": 178,
+    "signedId": 17
+  }
+}

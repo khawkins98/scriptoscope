@@ -56,6 +56,14 @@
       "rules": [
         "Nonzero origin requires reviewed-direct-drawing invocation, nonzero-origin justification and source reference. Exact direct-origin-invocation artifact joins controlDefinition, directOriginEvidence and patternOriginState; independent directOriginInvocation review is required."
       ]
+    },
+    "publicFaceV3": {
+      "version": 1,
+      "rules": [
+        "Only crayon-os.normal qualifies: empty80x20 at20,20, origin0, full160x80 effective clip, normal hilite0/enabled/active and no default API. Preserve all v1/v2 scopes unchanged.",
+        "For this scope only, patternOriginState must be explicit null with a nonempty unknown reason. Port origin0 does not establish original pattern phase or API availability. The full request still requires patternOrigin evidence.",
+        "Claim only complete conditioned composited-face output. Exclude original pattern phase, general body paint, pattern mask and private pattern provider; all broad request targets stay unresolved."
+      ]
     }
   },
   "maintenance": {

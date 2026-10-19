@@ -243,3 +243,13 @@ cases cover missing pins/version/hash/conditions, mismatched state/rect/origin/
 crop/scale/text, changed request/source identity, swapped image bytes, relabeled
 selfgoldens/previews and absent/self/stale/rejected review. No count here is an
 overall fidelity percentage or an assertion that the historical target is closed.
+
+
+### Crayon normal scope v3
+
+Only `crayon-os.normal` gains v3 of `public-api-empty-face`. It preserves the
+fixed empty80×20/public normal invocation, full-port clip and recorded white
+background. `patternOriginState` must be null with an explicit reason for this
+scoped output; origin0 does not establish original phase or API availability.
+Full-request phase requirements remain unchanged. The new applicable policy
+section leaves v1/v2 captures, reviews and request digests exact.

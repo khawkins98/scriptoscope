@@ -47,6 +47,26 @@ test('completed modern paint joins reject wrong owners, occurrences, profile and
 test('recorded comparisons remain execution-unverified when the registered source/built marker is absent or stale',async()=>{
  const {makeReport}=await import('./ledger.mjs');
  const report=makeReport(ledger,{executionCommit:'current',workingTreeDirty:false,execution:{executionCommit:'older',workingTreeDirty:false,assertions:[{id:'recorded.empty-face-six',mode:'source',path:'tests/rendering-options/display-profile.spec.mjs',status:'passed'}]}});
- assert.equal(report.recordedConditionComparisons.cases.length,6);
+ assert.equal(report.recordedConditionComparisons.cases.length,7);
  assert(report.recordedConditionComparisons.cases.every(c=>c.status==='unknown'&&c.execution.every(m=>m.status==='not run')));
+});
+
+
+test('Crayon exact context/profile and selected pattern payload are required without a pattern occupancy claim',()=>{
+ const capture=captures.find(c=>c.requestId==='crayon-os.normal'),binding=captureBinding(capture);
+ const pins=JSON.parse(readFileSync(new URL('../decoder-fixtures/crayon-recorded-source-pins.json',import.meta.url)));
+ const make=()=>{
+  const r=execution().row;Object.assign(r,{slug:'crayon-os',options:exactOptions('normal','crayon-os'),profile:binding.profile.id,policy:binding.profile.id,
+   profileInput:capture.source.archiveSha256,profileFork:capture.source.forkSha256,originalComparison:{binding,differentPixels:0,comparedPixels:1600},
+   composition:{faceRect:{x:20,y:20,w:80,h:20},context:{...exactOptions('normal','crayon-os').compositionContext,basis:'caller-declared'},appliedUnknownPatternOffset:true,originalPortState:'unverified'},recordedSourcePins:structuredClone(pins),patternAsset:'unit:pattern'});
+  r.source.cicnResourceIndex=pins.face.resourceIndex;r.source.cinfResourceIndex=pins.cinf.resourceIndex;
+  r.resources=[...['face','cinf','pattern'].map(k=>({resourceIndex:pins[k].resourceIndex,signedId:pins[k].signedId,sha256:pins[k].payloadSha256,status:'decoded',type:k==='face'?'cicn':k==='pattern'?'ppat':'cinf'}))];
+  r.paintSelectionSteps.push({role:'body-fill',usage:'paint',action:'selected',owner:r.paintSelectionSteps[0].owner,resource:{type:'ppat',signedId:17,manifestKey:'unit-pattern',assetUrl:'unit:pattern',byteProvenance:{loadId:r.loadId,manifestKey:'unit-pattern',ppatResourceIndex:pins.pattern.resourceIndex}}});return r;
+ };
+ validateRecordedExecution(make(),binding,capture);
+ for(const [change,re]of [[r=>delete r.options.compositionContext,/options/],
+  [r=>r.composition.faceRect.x=0,/port face/],[r=>r.profile=PROFILE.id,/profile/],[r=>r.composition.context.clip.rect.w=80,/actual port context/],
+  [r=>r.resources[2].sha256='bad',/pattern owner\/payload/],
+  [r=>r.paintSelectionSteps[1].resource.byteProvenance.loadId='foreign',/pattern owner\/payload/],
+  [r=>r.bandPaints=[],/paint dependency/]]){const r=make();change(r);assert.throws(()=>validateRecordedExecution(r,binding,capture),re);}
 });

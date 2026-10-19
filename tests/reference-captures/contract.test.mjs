@@ -49,9 +49,9 @@ function fixture(t, request = contract.requests.find(r => r.id === 'windows-95.n
 test('actual checked-in originals are scoped observations with every broader requirement unresolved', () => {
   const report = assessCorpus(contract, JSON.parse(readFileSync(new URL('./captures.json', import.meta.url))), JSON.parse(readFileSync(new URL('./reviews.json', import.meta.url))), { intakeRoot: join(repositoryRoot, 'tests/reference-captures'), known: knownImages() });
   assert.equal(report.requests.length, 13);
-  assert.equal(report.requests.filter(r => r.status === 'missing').length, 7);
-  assert.deepEqual(report.requests.filter(r => r.status === 'evidence-incomplete').map(r => r.id), ['windows-95.normal', 'windows-95.pressed', 'windows-95.inactive', 'system7-nostalgia-silver.normal', 'system7-nostalgia-silver.pressed', 'system7-nostalgia-silver.inactive']);
-  assert.equal(report.captures.length, 6);
+  assert.equal(report.requests.filter(r => r.status === 'missing').length, 6);
+  assert.deepEqual(report.requests.filter(r => r.status === 'evidence-incomplete').map(r => r.id), ['windows-95.normal', 'windows-95.pressed', 'windows-95.inactive', 'system7-nostalgia-silver.normal', 'system7-nostalgia-silver.pressed', 'system7-nostalgia-silver.inactive', 'crayon-os.normal']);
+  assert.equal(report.captures.length, 7);
   for (const capture of report.captures) {
     assert.equal(capture.status, 'reviewed-scoped-observation');
     assert.deepEqual(capture.missing, []); assert.deepEqual(capture.rejected, []);
@@ -342,8 +342,8 @@ test('scope wording, version, face region and excluded-claim expansion reject fr
 test('normal v1 scope cannot expand to labels, defaults, other states or Crayon',t=>{
   for(const id of ['windows-95.default','windows-95.pressed','system7-nostalgia-silver.inactive','crayon-os.normal']) {
     const req=contract.requests.find(r=>r.id===id);
-    if (id.endsWith('.default') || id.startsWith('crayon')) assert.throws(()=>captureTemplate(req,{scope:'public-api-empty-face'}),/unsupported review scope/);
-    else assert.equal(captureTemplate(req,{scope:'public-api-empty-face'}).reviewScope.version,2);
+    if (id.endsWith('.default')) assert.throws(()=>captureTemplate(req,{scope:'public-api-empty-face'}),/unsupported review scope/);
+    else assert.equal(captureTemplate(req,{scope:'public-api-empty-face'}).reviewScope.version,id.startsWith('crayon')?3:2);
     const f=scopedFixture(t);f.capture.requestId=req.id;f.capture.requestDigest=req.requestDigest;f.capture.source=req.source;f.capture.conditions=structuredClone(req.conditions);
     const result=assessCapture(f.capture,req,[f.approve(f.capture)],{intakeRoot:f.root});assert.equal(result.status,'rejected');
   }
@@ -501,11 +501,11 @@ test('migration preserves prior facts and rejects old bindings instead of grandf
   const priorBytes=read('captures-before-semantic-v1.json'), priorReviewBytes=read('reviews-before-semantic-v1.json');
   assert.equal(sha256(priorBytes),receipt.priorCapturesFileSha256);
   assert.equal(sha256(priorReviewBytes),receipt.priorReviewsFileSha256);
-  assert.equal(sha256(read('captures.json')),receipt.capturesFileSha256);
-  assert.equal(sha256(read('reviews.json')),receipt.amendedReviewsFileSha256);
+  assert.equal(sha256(JSON.stringify({...JSON.parse(read('captures.json')),captures:JSON.parse(read('captures.json')).captures.slice(0,6)},null,2)+'\n'),receipt.capturesFileSha256);
+  assert.equal(sha256(JSON.stringify({...JSON.parse(read('reviews.json')),reviews:JSON.parse(read('reviews.json')).reviews.slice(0,6)},null,2)+'\n'),receipt.amendedReviewsFileSha256);
   const prior=JSON.parse(priorBytes),current=JSON.parse(read('captures.json'));
   assert.equal(prior.captures.length,6);
-  assert.deepEqual(current.captures.map(c=>({...c,requestDigest:null})),prior.captures.map(c=>({...c,requestDigest:null})));
+  assert.deepEqual(current.captures.slice(0,6).map(c=>({...c,requestDigest:null})),prior.captures.map(c=>({...c,requestDigest:null})));
   for(const c of prior.captures){
     const q=contract.requests.find(r=>r.id===c.requestId);
     assert.notEqual(c.requestDigest,q.requestDigest);
@@ -513,4 +513,30 @@ test('migration preserves prior facts and rejects old bindings instead of grandf
     assert.equal(result.status,'rejected');
     assert.ok(result.rejected.some(r=>r==='requestDigest: does not match request/pin'));
   }
+});
+
+
+test('Crayon v3 is one conditioned normal output with explicit unknown phase; full request stays incomplete',t=>{
+ const req=contract.requests.find(r=>r.id==='crayon-os.normal'),f=scopedFixture(t,req);
+ f.capture.observed.patternOriginState=null;
+ f.capture.observed.unknownConditions.patternOriginState='TEST: original phase/API unobserved';
+ const result=f.assess();assert.equal(result.status,'reviewed-scoped-observation',JSON.stringify(result));
+ assert.deepEqual(result.verifiedRequirementIds,[]);assert.equal(result.unresolvedRequirementIds.length,5);
+ assert(result.excludedClaims.includes('original-pattern-phase'));
+ assert(result.unresolvedConditions.some(x=>x.field==='patternOriginState'));
+ for(const mutate of [c=>delete c.observed.unknownConditions.patternOriginState,
+  c=>c.observed.patternOriginState={apiAvailability:'available',offset:[0,0],evidence:'invented'},
+  c=>c.reviewScope.version=1,c=>c.observed.publicApiFace.port.effectiveClipRect=[0,0,80,20]]){
+  const changed=structuredClone(f.capture);mutate(changed);assert(['partial','rejected'].includes(f.assess(changed).status));
+ }
+ const full=structuredClone(f.capture);delete full.reviewScope;assert.equal(f.assess(full).status,'partial');
+ for(const change of [{id:'crayon-os.pressed',conditions:{...req.conditions,state:'pressed'}},
+  {id:'crayon-os.shifted',conditions:{...req.conditions,portOrigin:[10,10]}}])assert.equal(publicFaceScope({...req,...change}),null);
+});
+test('Crayon-only scoped policy cannot stale existing six request/review bindings',t=>{
+ const root=contractRoot(t),file=join(root,'tests/reference-captures/eligibility-policy.json'),policy=JSON.parse(readFileSync(file));
+ policy.sections.publicFaceV3.version++;writeFileSync(file,JSON.stringify(policy));const next=readContract(root);
+ const captures=JSON.parse(readFileSync(new URL('./captures.json',import.meta.url))).captures;
+ for(const c of captures.slice(0,6))assert.equal(next.requests.find(r=>r.id===c.requestId).requestDigest,c.requestDigest);
+ assert.notEqual(next.requests.find(r=>r.id==='crayon-os.normal').requestDigest,contract.requests.find(r=>r.id==='crayon-os.normal').requestDigest);
 });

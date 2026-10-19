@@ -6,10 +6,14 @@ import { readContract, assessCorpus, reviewDigest, digest } from '../reference-c
 
 export const REQUIREMENT = 'output.recorded-composited-face';
 export const PROFILE = { path: 'tests/decoder-fixtures/measured-display-profile.json', id: 'display-profile:506eb4e615f81385b6143c63a9612f4c899b14e2c93c60b67358b436777f772d', sha256: 'd8c495d980029f857633652c5e1abd3bc4f289fb8705e03fd750bc9bdff96d00' };
+const CRAYON_SOURCE_PINS = JSON.parse(readFileSync(new URL('../decoder-fixtures/crayon-recorded-source-pins.json', import.meta.url)));
+export const CRAYON_PROFILE = { path: 'tests/decoder-fixtures/measured-display-profile-crayon.json', id: 'display-profile:d4e4f9ffb69f1292f2c86b3fb2914561c58f8b38a5aeb53336e6cf914b10a1a0', sha256: 'fbd0eb8abb9e5e153fa4ddb0d825a2fea045a6f4a19baca445d12b449ff47b5a' };
+export const profileFor = slug => slug === 'crayon-os' ? CRAYON_PROFILE : PROFILE;
+export const CRAYON_CONTEXT = { controlOrigin: [20,20], portOrigin: [0,0], patternOrigin: {status:'unknown'}, clip: {kind:'rect',rect:{x:0,y:0,w:160,h:80}} };
 const check = (ok, message) => { if (!ok) throw Error(`recorded face: ${message}`); };
-export const caseId = (slug, state) => `recorded.${slug}.${state}.empty.w80.h20.v9-profile`;
-export const exactOptions = state => ({ label: '', minWidth: 80, height: 20, default: false, pressed: state === 'pressed', disabled: state === 'inactive' });
-export const captureBinding = capture => ({ captureId: capture.id, requestId: capture.requestId, requestDigest: capture.requestDigest, captureDigest: reviewDigest(capture), imageSha256: capture.image.sha256, reviewScope: { id: capture.reviewScope.id, version: capture.reviewScope.version, digest: digest(capture.reviewScope) }, faceImageRect: [20, 20, 80, 20], publicFaceRect: [4, 4, 80, 20], background: [255, 255, 255], profile: PROFILE });
+export const caseId = (slug, state) => `recorded.${slug}.${state}.empty.w80.h20.${slug === 'crayon-os' ? 'v14c' : 'v9'}-profile`;
+export const exactOptions = (state, slug) => ({ label: '', minWidth: 80, height: 20, default: false, pressed: state === 'pressed', disabled: state === 'inactive', ...(slug === 'crayon-os' ? {compositionContext: structuredClone(CRAYON_CONTEXT)} : {}) });
+export const captureBinding = capture => ({ captureId: capture.id, requestId: capture.requestId, requestDigest: capture.requestDigest, captureDigest: reviewDigest(capture), imageSha256: capture.image.sha256, reviewScope: { id: capture.reviewScope.id, version: capture.reviewScope.version, digest: digest(capture.reviewScope) }, faceImageRect: [20, 20, 80, 20], publicFaceRect: [4, 4, 80, 20], background: [255, 255, 255], profile: profileFor(capture.source.slug) });
 
 /** Reuse the intake authority. A matching filename or runtime observation is insufficient. */
 export function readRecordedContext(root) {
@@ -17,8 +21,10 @@ export function readRecordedContext(root) {
   const corpus = JSON.parse(readFileSync(resolve(root, 'tests/reference-captures/captures.json')));
   const reviews = JSON.parse(readFileSync(resolve(root, 'tests/reference-captures/reviews.json')));
   const report = assessCorpus(contract, corpus, reviews, { intakeRoot: resolve(root, 'tests/reference-captures'), known: [] });
-  const profileSha = createHash('sha256').update(readFileSync(resolve(root, PROFILE.path))).digest('hex');
-  check(profileSha === PROFILE.sha256, 'profile DATA bytes changed');
+  for (const profile of [PROFILE, CRAYON_PROFILE]) {
+    const profileSha = createHash('sha256').update(readFileSync(resolve(root, profile.path))).digest('hex');
+    check(profileSha === profile.sha256, 'profile DATA bytes changed');
+  }
   return { captures: corpus.captures, report };
 }
 export function validateRecordedBinding(c, binding, context) {
@@ -28,9 +34,9 @@ export function validateRecordedBinding(c, binding, context) {
   check(assessed?.status === 'reviewed-scoped-observation', 'capture is not currently reviewed scoped evidence');
   check(same(binding, captureBinding(capture)), 'stale or wrong capture/profile/crop binding');
   const slug = capture.source.slug, state = capture.conditions.state;
-  check(['windows-95', 'system7-nostalgia-silver'].includes(slug) && ['normal', 'pressed', 'inactive'].includes(state), 'outside six recorded cases');
+  check((['windows-95', 'system7-nostalgia-silver'].includes(slug) && ['normal', 'pressed', 'inactive'].includes(state)) || (slug === 'crayon-os' && state === 'normal'), 'outside finite recorded cases');
   check(c.mode === 'direct' && c.family === 'push', 'wrong exact mode/family');
-  check(c.id === caseId(slug, state) && same(c.options, exactOptions(state)), 'wrong exact case/options');
+  check(c.id === caseId(slug, state) && same(c.options, exactOptions(state, slug)), 'wrong exact case/options');
   check(same(c.inputs, ['theme.' + slug]) && same(c.baseInputs, []), 'wrong exact source/base inputs');
   check(same(c.recordedComparison, binding), 'case/evidence binding differs');
   return capture;
@@ -51,8 +57,8 @@ export function compareRecordedPixels(raw, original) {
 export function validateRecordedExecution(row, binding, capture) {
   check(same(row.outcome,{status:'themed',width:88,height:28}), 'composition did not complete');
   check(row.slug === capture.source.slug && row.state === capture.conditions.state, 'wrong execution case');
-  check(row.profile === PROFILE.id && row.policy === PROFILE.id, 'wrong prepared profile');
-  check(same(row.options, exactOptions(row.state)), 'wrong actual options');
+  check(row.profile === binding.profile.id && row.policy === binding.profile.id, 'wrong prepared profile');
+  check(same(row.options, exactOptions(row.state, row.slug)), 'wrong actual options');
   check(same(row.originalComparison.binding, binding), 'wrong execution reference/crop');
   check(row.profileInput === capture.source.archiveSha256 && row.profileFork === capture.source.forkSha256, 'wrong loaded source bytes');
   check(same(row.size, [88, 28]) && same(row.facePlane.rect, binding.publicFaceRect), 'wrong face geometry');
@@ -70,6 +76,22 @@ export function validateRecordedExecution(row, binding, capture) {
   check(s.resource.sourceCinfId === row.selectedCinfId && row.source.manifestKey === row.selectedKey, 'wrong paired metadata/key');
   const paints = row.slug === 'system7-nostalgia-silver' ? [row.legacyFacePaint] : row.bandPaints.filter(p => p.role === 'face');
   check(paints.length > 0 && paints.every(p => p && same(p.owner, s.owner) && same(p.resource, s.resource)), 'missing or wrong completed paint dependency');
+  if (row.slug === 'crayon-os') {
+    check(same(row.composition?.faceRect, {x:20,y:20,w:80,h:20}), 'wrong port face placement');
+    check(same(row.composition?.context, {...CRAYON_CONTEXT,basis:'caller-declared'}) && row.composition.appliedUnknownPatternOffset === true && row.composition.originalPortState === 'unverified', 'wrong actual port context');
+    const pins = row.recordedSourcePins;
+    check(same(pins, CRAYON_SOURCE_PINS), 'wrong independently pinned payloads');
+    for (const [actual, pin] of [[resource,pins.face],[cinf,pins.cinf]])
+      check(actual?.resourceIndex === pin.resourceIndex && actual.signedId === pin.signedId && actual.sha256 === pin.payloadSha256, 'wrong face/cinf payload');
+    const patterns = row.paintSelectionSteps.filter(p=>p.role==='body-fill' && p.resource?.type==='ppat');
+    check(patterns.length===1, 'missing exact selected pattern');
+    const p=patterns[0], proof=p.resource.byteProvenance;
+    const actual=row.resources.find(r=>r.resourceIndex===proof?.ppatResourceIndex);
+    check(same(p.owner,s.owner) && proof?.loadId===row.loadId && p.resource.signedId===17 &&
+      proof.manifestKey===p.resource.manifestKey && p.resource.assetUrl===row.patternAsset &&
+      actual?.type==='ppat' && actual.status==='decoded' && actual.resourceIndex===pins.pattern.resourceIndex &&
+      actual.signedId===pins.pattern.signedId && actual.sha256===pins.pattern.payloadSha256, 'wrong selected pattern owner/payload');
+  }
   if (row.slug === 'system7-nostalgia-silver') {
     const p = row.legacyFacePaint;
     check(p.basis === 'compatibility-policy' && p.operation === 'legacy-nine-slice-and-sample-fill' && same(p.destinationRect, { x: 0, y: 0, w: 80, h: 20 }), 'wrong legacy paint stage');

@@ -416,6 +416,76 @@
         "scopeAndLimits": true
       },
       "notes": "Independent AI scope/evidence review under public-api-empty-face v2 only. Candidate image, source/installation/configured-file, native invocation/state, clip/palette/gamma and capture bindings match the previously independently reviewed sealed v10 observation. Sanitized retained lines and redaction digests bind to that observation; full frame and exact port/context PNG hashes are unchanged. Original producer RGBA/frame equality and integer crops were established in that prior factual review, not inferred from modern renderer output.\n\nActual public NewControl(proc0), Draw1Control and HiliteControl(255) are recorded with variant/value0, empty fixed80x20 Rect and active window. Hilite10 means logical control highlight, not a physical held mouse gesture. Hilite255 means disabled control in an active window, not an inactive window. No public default API was invoked; private default flags remain unknown.\n\nConditions bracket the public draw. The v9 measured-profile relationship is cross-run equality of recorded palette/gamma bytes only, not identical hidden environment or a universal color-transfer algorithm. Modern comparison files were not used to authenticate original capture pixels or determine this review verdict.\n\nConfigured file and actual CDEF/WDEF wrapper identities do not establish selected original cicn/cinf/private painter or cache ownership. Font realization, complete patch/base/search order, selected provider/cache and private default state remain explicitly unknown. OS identity is a copied preboot volume hash, not an isolated System-file hash; producer semantic release and clean-shutdown acknowledgment remain unestablished.\n\nAccepted only as the recorded composited face on an opaque white background. No alpha/mask, font independence, automatic sizing, other states, margins/rings, physical gesture, inactive-window or whole-device claim. ZERO requirements verified; ALL FIVE target requirements remain unresolved and the whole request remains evidence-incomplete. No ledger promotion. Original engine/OS/ROM/font/emulator/app payloads are excluded from the candidate intake; retained original binary support is limited to palette/gamma tables.\n\nMetadata-only amendment: compatibility authority0.1.10 and ledger1.4.0 change the bound request identity. Independently confirmed that only capture.requestDigest changes; original image/artifact bytes, conditions, source, scope and all13 request definitions are unchanged. Prior independent factual review is carried forward, not repeated. Prior requestDigest 2a3252be0320ecd42131250ead80f3cdcc0914d16c79079643f7c71650cf1596; prior captureDigest 199ed535b7b515c21edb430a745902da2202a35a0fab3a1d6ddbca4ed8b6c3d3; prior reviewedAt 2026-10-18T23:18:04.872Z; prior review object SHA256 4c5283aa6aac3db0f23b0192c68457e29894208c5dad451190c634be174c2582 (JSON.stringify encoding). The complete preceding review corpus is preserved with SHA256 8b5c1536648ae686b91d2cde6127a4bdae6aff693d7633011991723db3d970ca. ZERO intake requirements are verified and ALL FIVE broader request targets remain unresolved. Separate ledger recorded-output comparisons do not expand this capture attestation.\n\nMetadata-only amendment: compatibility authority0.1.11 and ledger1.5.0 change the bound request identity. Independently confirmed that only capture.requestDigest changes; original image/artifact bytes, conditions, source, scope and all13 request definitions are unchanged. Prior independent factual review is carried forward, not repeated. Prior requestDigest e68b01508f4a4d21fd297dc631793cc6ea88b6b92a7c9667f48bb09af25e4f5e; prior captureDigest f638fb3a4bd92313318153f5948e2fa02e41f07bec48ba0f4da8c7c8fc6b4d6e; prior reviewedAt 2026-10-18T23:55:43.305Z; prior review object SHA256 daa38d3191ab8f931be10e03b403b4d880d0daee9e228b3828ea07585546a3c4 (JSON.stringify encoding). The complete preceding review corpus is preserved with SHA256 ccf18dd5d231a9206849af25f2fa5dab655a0ff9d504b6320389bc533466b3ee. ZERO intake requirements are verified and ALL FIVE broader request targets remain unresolved. Separate ledger recorded-output comparisons do not expand this capture attestation.\n\nMetadata-only request-semantic-v1 migration: independently reviewed the unchanged admission predicates and the new applicable normative-policy/request dependency binding. Confirmed that only capture.requestDigest changes; all original images/artifacts, observed conditions, source identities, scopes, thirteen request definitions and existing requirement assessments remain unchanged. Prior factual evidence review is carried forward without a repeated original audit. Prior requestDigest 80093481cbbfbf05c0a39618183a0400a95ace06ea1a7b63e80289fa38274bd0; prior captureDigest 1ef0f6fa2ff46b8b296ea75912016887e6357fbca947a50819c03d7eb76a29f9; prior reviewedAt 2026-10-19T01:42:43.052Z; prior review object SHA256 f63596953b31c5af1878797165e283226c96e3ff5baf56e4cd3469560fdd97c4 (JSON.stringify encoding). Complete preceding review corpus SHA256 df04c623e157eccb5e36d474e621fcca1783b4c4c87174481de524f35fbae5a4. Migration implementation 986f227b13599d2380848559addcfacdc592c80e; normative policy file SHA256 279feb69e99fec339e3776b574a0c5d93377b27ad2e160662616a3d145473072. ZERO intake requirements are verified and ALL FIVE broader targets remain unresolved. Applicable eligibility semantics still require explicit policy-impact review; this amendment is not human attestation or historical provider authentication."
+    },
+    {
+      "reviewScope": {
+        "id": "public-api-empty-face",
+        "version": 3,
+        "comparisonLayer": "composited-face-pixels",
+        "facePortRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "faceImageRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "publicInvocation": {
+          "api": "NewControl",
+          "drawApi": "Draw1Control",
+          "procedureId": 0,
+          "variant": 0,
+          "hilite": 0,
+          "value": 0,
+          "defaultApiInvoked": false
+        },
+        "associatedRequirementIds": [
+          "geometry.remaining",
+          "fill.remaining"
+        ],
+        "claim": "Recorded composited pixels of the complete fixed empty Crayon normal face under the observed public invocation, environment and background; original pattern phase remains unknown.",
+        "excludedClaims": [
+          "alpha-or-mask",
+          "font-independence",
+          "automatic-sizing",
+          "other-states",
+          "outside-face-or-margins",
+          "default-ring",
+          "private-resource-or-painter-selection",
+          "provider-cache-or-search-order",
+          "whole-requirements",
+          "whole-request",
+          "original-pattern-phase",
+          "general-body-paint",
+          "pattern-mask",
+          "private-pattern-provider"
+        ]
+      },
+      "captureId": "crayon-os.normal.v14c.draft",
+      "verdict": "accepted",
+      "reviewer": "Independent Astra AI architecture reviewer (/root/theme_architecture_review; automated independent review, not human or maintainer attestation)",
+      "reviewedAt": "2026-10-19T02:35:05.752Z",
+      "captureDigest": "19a9410ee2615684b10df57b5e6d1262076828ca4444e908e23b6520e675be01",
+      "requestDigest": "80d332f11d006a4003f21e661de335422501f81a09dd52415ea3886f8a4e1218",
+      "targetRequirementIds": [
+        "geometry.remaining",
+        "fill.remaining"
+      ],
+      "checks": {
+        "originalEnvironment": true,
+        "installationAndConfiguredSource": true,
+        "publicInvocation": true,
+        "recordedPixelConditions": true,
+        "conditionsAndTransform": true,
+        "imageAndArtifacts": true,
+        "independentOfScriptoscope": true,
+        "scopeAndLimits": true
+      },
+      "notes": "Accepted only public-api-empty-face v3 for this recorded Crayon normal empty80x20 face. Carried forward the previously completed independent v14 factual review, bound by evidence-index SHA256 2eca5a645cbff0d0ef9098307f5e842874a7367c1c7b65f0ce3a9ccce0902fac. Reviewed the new scope, sanitized artifact joins and exact copied image/palette/table/profile bytes; retained native log excerpts match their declared source lines. Native NewControl/Draw1Control procedure0/variant0/hilite0/value0, enabled active window, Rect20,20,80,20 and full160x80 port/effective clip are recorded. Public Copl/FCB volume−3,parent2,file18 joins the stopped canonical Crayon fork; it does not identify the actual private painter/cache provider. The inherited Windows95 wrapper subject is preserved and explicitly corrected using those independent bindings. Conditions bracket the mapping batch AFTER drawing, not Draw1Control itself. Full-frame/port/context transforms and opaque-white composition retain the previously reviewed no-resampling transport. Exact producer builds, same-run palette/gamma and finite profile are identified, without claiming universal device conversion. Original pattern origin/API state, private provider/cache/base/search/patch order, font realization, private default state and source alpha/mask remain unknown. This attestation verifies ZERO broad requirement IDs; ALL FIVE request targets remain unresolved and the request remains evidence-incomplete. Separate modern recorded-output assertions do not expand this scope. No new guest capture or repeated original evidence audit was performed."
     }
   ]
 }

@@ -4,8 +4,9 @@ import {fileURLToPath} from 'node:url';
 import {literalCicn,faceInfo} from '../decoder-fixtures/mode5.mjs';
 import {test,expect,openHarness,attachObservations} from './fixtures.mjs';
 for(const mode of ['source','built']) {
- test(`${mode}: measured profile loads both real themes without asset overrides and isolates default pixels`,async({page,servers},info)=>{
+ test(`${mode}: measured profile loads real themes without asset overrides and isolates default pixels`,async({page,servers},info)=>{
   info.annotations.push({type:'fidelity-assertion',description:'recorded.empty-face-six'});
+  info.annotations.push({type:'fidelity-assertion',description:'recorded.crayon-normal'});
   const referenceContext=readRecordedContext(fileURLToPath(new URL('../../',import.meta.url)));
   const bindings=referenceContext.captures.map(c=>captureBinding(c));
   const ledger=JSON.parse(readFileSync(new URL('../rendering-requirements/ledger.json',import.meta.url)));
@@ -17,10 +18,12 @@ for(const mode of ['source','built']) {
    // Eligibility/digests are checked by the reference gate; these independent
    // original PNG bytes supply the pixel oracle for the existing render.
    const {captures}=await(await fetch('/tests/reference-captures/captures.json')).json();
-   for(const slug of ['windows-95','system7-nostalgia-silver']){
-    const a=await api.loadTheme('/themes/'+slug,{provenance:true}),b=await api.loadTheme('/themes/'+slug,{provenance:true,displayProfile:profile});
-    for(const state of ['normal','pressed','inactive']){
-    let trace;const options={label:'',minWidth:80,height:20,default:false,pressed:state==='pressed',disabled:state==='inactive'};
+   for(const slug of ['windows-95','system7-nostalgia-silver','crayon-os']){
+    const selectedProfile=slug==='crayon-os'?await api.prepareDisplayProfile(await(await fetch('/tests/decoder-fixtures/measured-display-profile-crayon.json')).json()):profile;
+    const recordedSourcePins=slug==='crayon-os'?await(await fetch('/tests/decoder-fixtures/crayon-recorded-source-pins.json')).json():null;
+    const a=await api.loadTheme('/themes/'+slug,{provenance:true}),b=await api.loadTheme('/themes/'+slug,{provenance:true,displayProfile:selectedProfile});
+    for(const state of (slug==='crayon-os'?['normal']:['normal','pressed','inactive'])){
+    let trace;const options={label:'',minWidth:80,height:20,default:false,pressed:state==='pressed',disabled:state==='inactive',...(slug==='crayon-os'?{compositionContext:{controlOrigin:[20,20],portOrigin:[0,0],patternOrigin:{status:'unknown'},clip:{kind:'rect',rect:{x:0,y:0,w:160,h:80}}}}:{})};
     const normal=await api.composeButton(b,{...options,diagnostics:{onComplete:t=>trace=t}}),legacy=await api.composeButton(a,options);
     const selected=trace.steps.find(s=>s.role==='face'&&s.action==='selected'),el=b.manifest.chromeElements[selected.resource.manifestKey];
     const faceRgba=Uint8Array.from(Array.from({length:20},(_,y)=>Array.from({length:80},(_,x)=>normal.getPixel(x+4,y+4))).flat(2));
@@ -34,7 +37,8 @@ for(const mode of ['source','built']) {
     let differentPixels=0;for(let i=0;i<faceRgba.length;i+=4){const alpha=faceRgba[i+3];
      if(original[i+3]!==255||[0,1,2].some(c=>Math.round((faceRgba[i+c]*alpha+255*(255-alpha))/255)!==original[i+c]))differentPixels++;
     }
-    rows.push({slug,state,options,loadId:b.byteProvenance.loadId,profileFork:b.byteProvenance.fork.sha256,selectedKey:selected.resource.manifestKey,selectedAsset:el.asset,selectedCinfId:el.sourceCinfId??null,outcome:trace.outcome,requested:trace.requested,profile:b.manifest.displayProfile.id,baseUrl:a.baseUrl,profileBaseUrl:b.baseUrl,input:a.byteProvenance.input.sha256,profileInput:b.byteProvenance.input.sha256,
+    const patternStep=trace.steps.find(s=>s.role==='body-fill'&&s.action==='selected'&&s.resource?.type==='ppat');
+    rows.push({slug,state,options,composition:trace.composition,recordedSourcePins,patternAsset:patternStep?b.manifest.patterns[patternStep.resource.manifestKey]?.asset:null,loadId:b.byteProvenance.loadId,profileFork:b.byteProvenance.fork.sha256,selectedKey:selected.resource.manifestKey,selectedAsset:el.asset,selectedCinfId:el.sourceCinfId??null,outcome:trace.outcome,requested:trace.requested,profile:b.manifest.displayProfile.id,baseUrl:a.baseUrl,profileBaseUrl:b.baseUrl,input:a.byteProvenance.input.sha256,profileInput:b.byteProvenance.input.sha256,
      originalComparison:{binding:bindings.find(b=>b.captureId===reference.id),comparedPixels:1600,originalRgba:btoa(String.fromCharCode(...original)),captureId:reference.id,requestDigest:reference.requestDigest,imageSha256,imageSize:[canvas.width,canvas.height],sourceArchiveSha256:reference.source.archiveSha256,
       layer:'composited-face-pixels',background:[255,255,255],differentPixels,verifiedRequirementIds:[]},
      source:el.byteProvenance,resources:b.byteProvenance.resources,selected,facePlane:{rect:[4,4,80,20],encoding:'base64-rgba8',rgba:btoa(String.fromCharCode(...faceRgba))},paintSelectionSteps:trace.steps.filter(s=>s.usage==='paint'&&s.action==='selected'),bandPaints:trace.bandPaints??[],legacyFacePaint:trace.legacyFacePaint??null,policy:el.colorSamples?.displayPolicy??el.samplingEquivalence?.displayPolicy,
@@ -55,7 +59,7 @@ for(const mode of ['source','built']) {
    if(row.slug==='system7-nostalgia-silver')expect(row.legacyFacePaint.resource.byteProvenance).toEqual(row.selected.resource.byteProvenance);
    else expect(row.bandPaints.some(p=>p.role==='face')).toBe(true);
   }
-  expect(result).toHaveLength(6);
+  expect(result).toHaveLength(7);
   expect(result[0].body).toEqual([218,218,218,255]);
   await attachObservations(info,'display-profile',mode,{mode,rows:result,claim:'Exact recorded empty-face composited pixels under the explicit measured profile only; no mask, font, private-painter or whole-requirement verification.'});
  });
