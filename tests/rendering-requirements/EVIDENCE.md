@@ -235,3 +235,13 @@ One crayon-os inactive empty 80×20 face from crayon-os.inactive.c18d, with orig
 One apple-lisa pressed empty 80×20 face from apple-lisa.pressed.l18h, with original public HiliteControl(10), is compared over recorded white using the retained measured profile and explicit port (20,20) with unknown pattern origin. Exact selected face/cinf and same-owner ppat selection or ppat 0 absence are joined to actual load and completed face paint; no original private selection or pattern-write occupancy claim.
 
 One apple-lisa inactive empty 80×20 face from apple-lisa.inactive.l18d, with original public HiliteControl(255), is compared over recorded white using the retained measured profile and explicit port (20,20) with unknown pattern origin. Exact selected face/cinf and same-owner ppat selection or ppat 0 absence are joined to actual load and completed face paint; no original private selection or pattern-write occupancy claim.
+
+## Three conditioned Animals state comparisons
+
+Independent root scoped-intake and actual-plane reviews support only the following recorded-output claims. The retained pre-fix normal mismatch and subsequent numeric selector correction are documented separately; original pixels and measured mappings did not change.
+
+One Animals normal empty 80×20 face from animals.normal.a3a, with original public HiliteControl(0), is compared over recorded white using the independently measured 209-tuple A209 profile and explicit port (20,20) with unknown pattern origin. Actual face/cinf and same-owner ppat selection or absence join the completed composition. The three observations share a fixed-order boot; no original provider, cache, phase, mask or complete font identity is claimed.
+
+One Animals pressed empty 80×20 face from animals.pressed.a3a, with original public HiliteControl(10), is compared over recorded white using the independently measured 209-tuple A209 profile and explicit port (20,20) with unknown pattern origin. Actual face/cinf and same-owner ppat selection or absence join the completed composition. The three observations share a fixed-order boot; no original provider, cache, phase, mask or complete font identity is claimed.
+
+One Animals inactive empty 80×20 face from animals.inactive.a3a, with original public HiliteControl(255), is compared over recorded white using the independently measured 209-tuple A209 profile and explicit port (20,20) with unknown pattern origin. Actual face/cinf and same-owner ppat selection or absence join the completed composition. The three observations share a fixed-order boot; no original provider, cache, phase, mask or complete font identity is claimed.
