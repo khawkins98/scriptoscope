@@ -54,19 +54,21 @@ availability of every later named `ThemeDrawState` constant.
 
 ## Admitted source model
 
-The initial subset is ordinary, full-color, non-picture-recording solid drawing
+The initial subset is ordinary, full-color, non-picture-recording solid or direct PixPat drawing
 under Scriptoscope's declared current-display color policy:
 
 - Actual selected face and same-owner `cinf` metadata must be usable. Current
   manifest ID aliases, base search, duplicate policy and body-pattern ownership
   remain compatibility policies, not reconstructed Resource Manager search.
 - A valid explicit non5 body request performs the current same-owner pattern
-  lookup, including resource ID0. A selected pattern takes priority and returns
-  `unsupported: pattern-body`; a decode error rejects. An ambiguous selection
+  lookup, including resource ID0. A selected opaque pattern takes priority;
+  a decode error rejects. Pattern origin must be explicitly known or declared
+  API-unavailable; unknown origin returns `unsupported: unknown-pattern-origin`.
+  Nonopaque substituted pattern images are unsupported. An ambiguous selection
   cannot be called a missing pattern. Only an established current lookup miss
   admits the solid body. Mode5 cicn bodies remain unsupported.
 - The actual face owner's valid raw background sample supplies display RGB,
-  independent of mask. No raster corner, label color or opaque-anchor fallback
+  independent of mask, when the selected body path is solid. No raster corner, label color or opaque-anchor fallback
   substitutes for missing sample metadata. Direct handcrafted theme metadata is
   a caller declaration; shape validation does not authenticate its bytes.
 - The body is the union of the two transposed corner/side inset rectangles,
@@ -94,8 +96,7 @@ under Scriptoscope's declared current-display color policy:
 `rendered`, `unavailable` and `unsupported` are distinct public results. Missing
 face is unavailable. Missing/malformed metadata and the excluded paths above
 are unsupported, with finite reason strings. There is no automatic legacy or
-procedural fallback. Mono/global foreground/background, selected patterned or
-mode5 bodies, recording paths, optional device-color caches, original device
+procedural fallback. Mono/global foreground/background, mode5 bodies, recording paths, optional device-color caches, original device
 conversion and historical resource ownership remain outside this subset. Solid
 fills do not need a known pattern origin, and no unknown pattern offset is
 silently asserted as original state.
@@ -138,14 +139,14 @@ admitted body or border pixel was written (`painted`). Only actual writes add
 the selected face's `usage: paint` record, reusing the prepared identity without
 another lookup/decode. An empty effective clip can return a rendered transparent
 buffer without a paint claim. This records an executed paint operation, not the
-final contribution of each pixel after overlapping writes. An unsupported pattern or failed decode never receives a
+final contribution of each pixel after overlapping writes. An unsupported pattern context or failed decode never receives a
 successful painted dependency record. Callback success/error precedence follows
 `ControlDiagnostics`; off-mode performs no diagnostic decode.
 
 The hand-serialized fixture in `tests/decoder-fixtures/header-surface.mjs` has
 independent literal rows for c2/s1 first-strip masking and c2/s3 overlapping bands,
 partial final tiles, clip-through-tile phase, and ordinary/list-view lower edges.
-A separate bit15/ColorSpec collision is rejected for both tile flags. Browser
+A separate bit15/ColorSpec collision uses the retained sampled companion for both tile flags, with strict missing-data rejection. Browser
 checks exercise source/built public loaders, raw states0/1/2/0xffffffff, actual
 owner/occurrence/payload joins, missing/invalid evidence, tiny rectangles, frozen
 concurrent contexts, decode/callback boundaries, and unchanged old column pixels.
@@ -153,3 +154,31 @@ The old column output differs from the whole-header literals by 146/176 pixels o
 the fixed 11×16 experiment; that demonstrates the API boundary, not permission to
 silently migrate existing callers. No golden or ledger status is promoted by
 these synthetic inputs or regression checks.
+
+## Direct full-color pattern body
+
+PACH130 `0x7114..0x713a` selects a PixPat, including ID0. Its original paint Rect
+sets P at `0x7156..0x719e`: mode1 TL,2 TR,3 BL,4 BR, otherwise zero (mode5 is
+excluded earlier). Both transposed inset rectangles use that same P at
+`0x71a2..0x7202`. Helper `0x574a` saves O, sets O−P (`0x5768..0x577c`), translates
+the finite clip and Rect by−P (`0x579a..0x57c2`), and calls the full-color
+`FillCRect` path (`0x57cc`→`0x5698`→`0x572a`) before restoring coordinates.
+The existing [declared pattern-offset convention](control-pattern-context.md)
+therefore applies: sample(q)=floorMod(D.origin+q−P+R, tile size). Port translation
+cancels from physical placement; it is not an extra subtraction from sampling.
+List-view P uses the extended bottom **before** original-height clipping.
+
+This API does not substitute zero for unknown R. API-unavailable is an explicit
+caller declaration, not evidence of the original environment. The decoded tile
+already uses its owning theme's display policy; painting does not transform it
+again. Original lookup/cache/device/recording and nonzero-origin API invocation
+remain unverified. Borrowed theme lifetime remains caller-owned.
+
+`headerSurface.patternBody` records phase, tile size and clipped body-union pixel count
+before masked borders (not final surviving pixels). Only a successful, nonempty
+body adds its actual prepared ppat identity with `usage: paint`; empty clips,
+unsupported mappings and later failures retain admission observations alone.
+The hand-encoded4×2 PixPat in `tests/decoder-fixtures/header-pattern.mjs` has literal
+rows for all four corner anchors, negative D, translated O, a nonzero R, masked
+border overlap and clipped list-view extension. These are finite synthetic
+current-display expectations, not original captures or new ledger assessments.

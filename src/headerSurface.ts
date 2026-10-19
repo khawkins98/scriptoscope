@@ -1,6 +1,6 @@
 import { ownerDisplayPolicyMatches } from '../tools/theme-loader/display-profile.js';
 import type { ThemeManifest } from './types.js';
-import { snapshotControlComposition, type ControlCompositionContext, type ControlCompositionSnapshot, type ControlRect } from './controlComposition.js';
+import { snapshotControlComposition, bodyPatternPhase, type ControlCompositionContext, type ControlCompositionSnapshot, type ControlRect } from './controlComposition.js';
 import type { ControlBandPaint, ControlDiagnostics } from './controlDiagnostics.js';
 import type { ChromeElement } from './types.js';
 import { PixelBuffer } from './pixelBuffer.js';
@@ -16,7 +16,7 @@ export interface HeaderSurfaceOptions {
   diagnostics?: ControlDiagnostics;
 }
 export type HeaderSurfaceUnsupportedReason = 'unknown-clip' | 'special-window-origin' | 'missing-slice' | 'invalid-slice'
-  | 'missing-body-request' | 'invalid-body-request' | 'cicn-body' | 'pattern-body'
+  | 'missing-body-request' | 'invalid-body-request' | 'cicn-body' | 'unknown-pattern-origin' | 'nonopaque-pattern'
   | 'ambiguous-body-selection' | 'missing-background-sample' | 'unverified-line-sampling' | 'unsafe-source-geometry' | 'nonbinary-mask';
 export type HeaderSurfaceResult = { status: 'rendered'; buffer: PixelBuffer }
   | { status: 'unavailable'; reason: 'missing-face' }
@@ -38,6 +38,8 @@ export interface HeaderSurfaceTrace {
   readonly geometry: 'pach130-ordinary-full-color';
   readonly sourceSelection: 'current-manifest-compatibility';
   readonly backgroundPolicy?: 'raw-sample-current-display';
+  /** Clipped union coverage before masked borders, not final visible contribution. */
+  readonly patternBody?: { readonly phase: readonly [number, number]; readonly width: number; readonly height: number; readonly paintedPixels: number };
   readonly lineSampling?: 'not-required' | 'equivalent-current-display' | 'sampled-companion' | 'unverified';
 }
 
@@ -115,10 +117,10 @@ function headerRegions(source: PixelBuffer, element: ChromeElement, width: numbe
   ];
 }
 
-/** Internal admitted solid painter. Full-color, ordinary nonrecording display
+/** Internal admitted solid/direct-pattern painter. Full-color, ordinary nonrecording display
  * policy only; optional original device caches are not reproduced. */
 export async function paintHeaderSurface(source: PixelBuffer, element: ChromeElement, plan: HeaderSurfacePlan,
-  background: readonly number[], owner?: ThemeManifest, loadSampled?: () => Promise<PixelBuffer>): Promise<{ result: HeaderSurfaceResult; lineSampling: NonNullable<HeaderSurfaceTrace['lineSampling']>; painted: boolean; sampledRegions?: readonly { region: number; branch: ControlBandPaint['branch'] }[] }> {
+  background: readonly number[], owner?: ThemeManifest, loadSampled?: () => Promise<PixelBuffer>, pattern?: PixelBuffer): Promise<{ result: HeaderSurfaceResult; lineSampling: NonNullable<HeaderSurfaceTrace['lineSampling']>; painted: boolean; patternBody?: HeaderSurfaceTrace['patternBody']; sampledRegions?: readonly { region: number; branch: ControlBandPaint['branch'] }[] }> {
   const { w: width, h: height } = plan.requestedRect, paintHeight = plan.paintRect.h;
   const clip = plan.effectiveClip!;
   const x0 = Math.max(0, clip.x - plan.requestedRect.x), y0 = Math.max(0, clip.y - plan.requestedRect.y);
@@ -157,14 +159,29 @@ export async function paintHeaderSurface(source: PixelBuffer, element: ChromeEle
     if (!sampled) return { result: { status: 'unsupported', reason: 'unverified-line-sampling' }, lineSampling, painted: false };
     lineSampling = 'sampled-companion';
   }
+  if (pattern) {
+    if (plan.context.patternOrigin.status === 'unknown')
+      return { result: { status: 'unsupported', reason: 'unknown-pattern-origin' }, lineSampling, painted: false };
+    // FillCRect supplies opaque full-color pixels, not browser alpha blending.
+    for (let i = 3; i < pattern.data.length; i += 4) if (pattern.data[i] !== 255)
+      return { result: { status: 'unsupported', reason: 'nonopaque-pattern' }, lineSampling, painted: false };
+  }
+  const phase = pattern ? bodyPatternPhase(plan.context, element.bodyRequest!.mode, width, paintHeight) : null;
+  let bodyPixels = 0;
   const sampledRegions: { region: number; branch: ControlBandPaint['branch'] }[] = [];
   const out = PixelBuffer.alloc(width, height), { corner: c, side: s } = element.slice!;
   let painted = false;
-  // 721a..7260 fills the union before any border. Clip never restarts a tile.
+  // 71a2..7202 (pattern) / 721a..7260 (solid): shared original-Rect phase
+  // for both insets, before any border. List-view uses extended bottom for P.
   for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) {
     if ((x >= c && x < width - c && y >= s && y < paintHeight - s)
       || (x >= s && x < width - s && y >= c && y < paintHeight - c)) {
-      out.setPixel(x, y, background[0]!, background[1]!, background[2]!, 255);
+      if (pattern && phase) {
+        const px = ((phase[0] + x) % pattern.width + pattern.width) % pattern.width;
+        const py = ((phase[1] + y) % pattern.height + pattern.height) % pattern.height;
+        out.setPixel(x, y, ...pattern.getPixel(px, py));
+      } else out.setPixel(x, y, background[0]!, background[1]!, background[2]!, 255);
+      bodyPixels++;
       painted = true;
     }
   }
@@ -185,5 +202,6 @@ export async function paintHeaderSurface(source: PixelBuffer, element: ChromeEle
     }
     if (regionPainted && pixels === sampled) sampledRegions.push({ region: regionIndex, branch });
   }
-  return { result: { status: 'rendered', buffer: out }, lineSampling, painted, sampledRegions };
+  return { result: { status: 'rendered', buffer: out }, lineSampling, painted, sampledRegions,
+    ...(pattern && phase && bodyPixels ? { patternBody: { phase, width: pattern.width, height: pattern.height, paintedPixels: bodyPixels } } : {}) };
 }

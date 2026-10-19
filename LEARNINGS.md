@@ -1,5 +1,13 @@
 # Learnings
 
+### 2026-10-19: list-view extension participates in pattern anchoring
+
+PACH130 chooses the body-pattern anchor from the full paint Rect before filling
+its two inset rectangles. The list-view wrapper extends bottom first, so BL/BR
+phase changes even when clipping hides the extra row. Preserve that phase across
+the inset union and clip; never restart each inset tile. Unknown pattern-origin
+state remains a separate unsupported input for the explicit header API.
+
 ### 2026-10-19: a successful close is not the stopped telemetry export
 
 Lisa v15 returned success but its stopped HFS catalog held EOF 0. The separate
