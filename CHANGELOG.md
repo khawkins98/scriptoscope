@@ -7,6 +7,8 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+- Propose a full 18-scheme acceptance inventory with explicit API paths, option classes and unresolved boundary obligations; preserve existing evidence and open closure.
+
 - Preserve one quarantined System7 AgjpQy observation and exact conditional public prepared-strike comparison, with public metrics and explicit provider/whole-font limits (#221, #190, #315).
 
 - Document #315’s later exact public prepared-strike O/K comparison alongside the unchanged historical candidate observation and its provider/whole-font limits.
