@@ -1,0 +1,142 @@
+{
+  "status": "QUARANTINED_PARTIAL",
+  "scope": "One later validated DrawText boundary and bounded offline font-result/data-consumption analysis",
+  "captureAndPreparationAgent": "OpenAI Codex AI resource_correctness_fixes",
+  "independentReviewer": "Independent Astra AI",
+  "humanAttestation": false,
+  "included": [
+    {
+      "label": "TRACE-FOLLOWUP.md",
+      "bytes": 2735,
+      "sha256": "b5419f68de5468c8fbe7f2f9ae439ac2c8120f7fa530d35c4101f67074e6cae5"
+    }
+  ],
+  "externalIdentityPolicy": "Labels identify retained private artifacts; no repository-relative file availability or approval authority is implied. Payloads are excluded.",
+  "source": {
+    "upstreamMacemuCommit": "b8f4eb889d507551b57090c48f41c8de1db73ed8",
+    "observerCommit": "847ab977359af7a7756ea1cf867c851df258a88b",
+    "runtimeIdentityModel": "kdef231-source-runtime-image-v1",
+    "sourceMapSha256": "a7385e78e10c47d8def4a71960f89d448713b4407741f3df67bf96cdcd234b87",
+    "kdef0Sha256": "2c027276dae2355964a0dde1ace31f60ba845ab2c5fbf0496fd34ab2afe7c342",
+    "fixtureSourceSha256": "7fe8a7da2d07b204923c106f6b0d889b0538d7447c93bb866d9327228f88eea2",
+    "fixtureAppSha256": "a4f6ad7ab628ddac6c5c24a489ec3b0ca2ac93ece96fcad1182411d52e367595"
+  },
+  "run": {
+    "identity": "production-runtime-identity-on-261019",
+    "token": 26101904,
+    "fixtureNonce": "V17S-20261019-01",
+    "fixtureLaunchTicks": 121,
+    "captureSequence": 1,
+    "armAcceptedHostObservedAt": "2026-10-19T05:26:08.895Z",
+    "captureBracketedTraceInvocation": "UNKNOWN"
+  },
+  "results": {
+    "completedTraceRecords": 3876,
+    "observedStrikeReads": 188,
+    "distinctStrikeBytes": 574,
+    "headerReads": 13,
+    "metricReads": 24,
+    "bitmapReads": 151,
+    "characterMetricJoins": 6,
+    "candidateInkAddressesCovered": 211,
+    "recordedROMOperandReads": 0,
+    "portPixelsCompared": 12800,
+    "portPixelDifferences": 0,
+    "fullFramePixelDifferences": 66,
+    "normalHfsExportBytes": 19811,
+    "unaffectedObjectHashesExact": 62
+  },
+  "limits": [
+    "Observed subset only; no whole-current-strike identity or per-read final pixel contribution.",
+    "No cache construction, publication history, ultimate provider or ROM-copy lineage.",
+    "No intake, policy, ledger or runtime promotion; prior images/index unchanged.",
+    "External reviews are automated attestations of the stated private evidence only."
+  ],
+  "external": [
+    {
+      "label": "sealed calibration result",
+      "bytes": 19524,
+      "sha256": "8878ab1940320f619efe632c6882418c1065fd7e19cd5954627dfdf56fa1698b"
+    },
+    {
+      "label": "executed RAM data analysis",
+      "bytes": 214344,
+      "sha256": "9ce3f16b389feb573fdba02703402b2a2b00b7c47e2f62528919b53e7f022eba"
+    },
+    {
+      "label": "typed FMSwapFont result analysis",
+      "bytes": 15543,
+      "sha256": "855d01d4c9e646deb8f387d7b7bbca4e7d868295cbb1dea2a79ac9fe29fcf7dc"
+    },
+    {
+      "label": "incremental build receipt",
+      "bytes": 14944,
+      "sha256": "a0568c39f626a170a1c21026878c8a052bd26d3960ebf12df8383ec759e90d3e"
+    },
+    {
+      "label": "independent source-model review",
+      "bytes": 2929,
+      "sha256": "be3df09682123c0c84823fba4b72f71323d8f8ead92634f07029adf09ed75e4f"
+    },
+    {
+      "label": "independent retained-result review",
+      "bytes": 2352,
+      "sha256": "10005cf40db3bc217765512d49c8171fa4df0ee785f62c8b974aaf6a89c29fd8"
+    },
+    {
+      "label": "independent observed-subset review",
+      "bytes": 1726,
+      "sha256": "50acff934fecfe62fe92a8e78d02a818b7bfc05508be7a4f202594ee18ede40a"
+    },
+    {
+      "label": "independent typed-result review",
+      "bytes": 1241,
+      "sha256": "0d3e00b975cb7e0032420e9b30d7b54ecbf1dc22176cc837408dab4d2e519f79"
+    },
+    {
+      "label": "instrumented emulator JS",
+      "bytes": 158185,
+      "sha256": "127e4929846edbaae1575ffd144d4d45fa95dfb91ec94d1a65dadbc1c399e210"
+    },
+    {
+      "label": "instrumented emulator WASM",
+      "bytes": 1734799,
+      "sha256": "700aaac977931a2578bf4228a896060b0c2889254ae1f0c52365a17eba815c20"
+    },
+    {
+      "label": "normal stopped HFS export",
+      "bytes": 19811,
+      "sha256": "309fedda86fb921152b7a84d46e403340a962517290ea7615607aeae493260a1"
+    },
+    {
+      "label": "later full native frame",
+      "bytes": 34914,
+      "sha256": "c277635650526b675e302c01d44c347551be6fe7d89328445ca0cba0ce6a0be5"
+    },
+    {
+      "label": "later native port",
+      "bytes": 610,
+      "sha256": "f695049b68046a68fb1e9fcf7f2ddcff986ea93720b5da1b5aff6e1fd99f423a"
+    },
+    {
+      "label": "later raw producer plane",
+      "bytes": 1228800,
+      "sha256": "3bc80ba686deb9e9055109327b5d478ded9d0a7cc6f453bee9a76458b8a03dca"
+    },
+    {
+      "label": "private prepush runtime image",
+      "bytes": 107726,
+      "sha256": "2f5aa7273bc287e156653476f6c17cb043492d0681ff4c445ed1f0cd16fec930"
+    },
+    {
+      "label": "private trap runtime image",
+      "bytes": 107726,
+      "sha256": "2f5aa7273bc287e156653476f6c17cb043492d0681ff4c445ed1f0cd16fec930"
+    },
+    {
+      "label": "private continuation runtime image",
+      "bytes": 107726,
+      "sha256": "2f5aa7273bc287e156653476f6c17cb043492d0681ff4c445ed1f0cd16fec930"
+    }
+  ]
+}
