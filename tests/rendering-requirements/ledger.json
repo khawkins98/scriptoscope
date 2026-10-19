@@ -1643,7 +1643,7 @@
         "721a..7260 solid union",
         "72a8..7620 corners/bands and order",
         "5e86..5f84 forward repeat/partial CopyMask",
-        "0x5cb8;0x5d48..0x5e26;0x5810→0x5874;0x5a32→0x687e"
+        "0x5cb8;0x5d48..0x5e26;0x5810\u21920x5874;0x5a32\u21920x687e"
       ]
     },
     {
@@ -1705,7 +1705,7 @@
         "theme.windows-95"
       ],
       "document": "tests/rendering-requirements/EVIDENCE.md",
-      "locator": "Six exact Windows95/System7 empty80×20 normal, logically highlighted and disabled-active observations supply opaque-white composed-pixel references under the explicit v9 measured profile. Original source alpha, font realization, private painter/provider, physical gesture and other conditions remain unverified.",
+      "locator": "Six exact Windows95/System7 empty80\u00d720 normal, logically highlighted and disabled-active observations supply opaque-white composed-pixel references under the explicit v9 measured profile. Original source alpha, font realization, private painter/provider, physical gesture and other conditions remain unverified.",
       "excerptSha256": "adba113a84f02143e49481bea831f9e3df1a12250e0a9c70fb427b6f54c35535",
       "claim": "Only the complete recorded-condition composited face pixels.",
       "limits": "Reviewed scope and exact profile/case/image binding required. No broad requirement or original mask/font/provider/gesture claim.",
@@ -1754,7 +1754,7 @@
         "theme.windows-95"
       ],
       "document": "tests/rendering-requirements/EVIDENCE.md",
-      "locator": "Six exact Windows95/System7 empty80×20 normal, logically highlighted and disabled-active observations supply opaque-white composed-pixel references under the explicit v9 measured profile. Original source alpha, font realization, private painter/provider, physical gesture and other conditions remain unverified.",
+      "locator": "Six exact Windows95/System7 empty80\u00d720 normal, logically highlighted and disabled-active observations supply opaque-white composed-pixel references under the explicit v9 measured profile. Original source alpha, font realization, private painter/provider, physical gesture and other conditions remain unverified.",
       "excerptSha256": "adba113a84f02143e49481bea831f9e3df1a12250e0a9c70fb427b6f54c35535",
       "claim": "Only the complete recorded-condition composited face pixels.",
       "limits": "Reviewed scope and exact profile/case/image binding required. No broad requirement or original mask/font/provider/gesture claim.",
@@ -1803,7 +1803,7 @@
         "theme.windows-95"
       ],
       "document": "tests/rendering-requirements/EVIDENCE.md",
-      "locator": "Six exact Windows95/System7 empty80×20 normal, logically highlighted and disabled-active observations supply opaque-white composed-pixel references under the explicit v9 measured profile. Original source alpha, font realization, private painter/provider, physical gesture and other conditions remain unverified.",
+      "locator": "Six exact Windows95/System7 empty80\u00d720 normal, logically highlighted and disabled-active observations supply opaque-white composed-pixel references under the explicit v9 measured profile. Original source alpha, font realization, private painter/provider, physical gesture and other conditions remain unverified.",
       "excerptSha256": "adba113a84f02143e49481bea831f9e3df1a12250e0a9c70fb427b6f54c35535",
       "claim": "Only the complete recorded-condition composited face pixels.",
       "limits": "Reviewed scope and exact profile/case/image binding required. No broad requirement or original mask/font/provider/gesture claim.",
@@ -1852,7 +1852,7 @@
         "theme.system7-nostalgia-silver"
       ],
       "document": "tests/rendering-requirements/EVIDENCE.md",
-      "locator": "Six exact Windows95/System7 empty80×20 normal, logically highlighted and disabled-active observations supply opaque-white composed-pixel references under the explicit v9 measured profile. Original source alpha, font realization, private painter/provider, physical gesture and other conditions remain unverified.",
+      "locator": "Six exact Windows95/System7 empty80\u00d720 normal, logically highlighted and disabled-active observations supply opaque-white composed-pixel references under the explicit v9 measured profile. Original source alpha, font realization, private painter/provider, physical gesture and other conditions remain unverified.",
       "excerptSha256": "adba113a84f02143e49481bea831f9e3df1a12250e0a9c70fb427b6f54c35535",
       "claim": "Only the complete recorded-condition composited face pixels.",
       "limits": "Reviewed scope and exact profile/case/image binding required. No broad requirement or original mask/font/provider/gesture claim.",
@@ -1901,7 +1901,7 @@
         "theme.system7-nostalgia-silver"
       ],
       "document": "tests/rendering-requirements/EVIDENCE.md",
-      "locator": "Six exact Windows95/System7 empty80×20 normal, logically highlighted and disabled-active observations supply opaque-white composed-pixel references under the explicit v9 measured profile. Original source alpha, font realization, private painter/provider, physical gesture and other conditions remain unverified.",
+      "locator": "Six exact Windows95/System7 empty80\u00d720 normal, logically highlighted and disabled-active observations supply opaque-white composed-pixel references under the explicit v9 measured profile. Original source alpha, font realization, private painter/provider, physical gesture and other conditions remain unverified.",
       "excerptSha256": "adba113a84f02143e49481bea831f9e3df1a12250e0a9c70fb427b6f54c35535",
       "claim": "Only the complete recorded-condition composited face pixels.",
       "limits": "Reviewed scope and exact profile/case/image binding required. No broad requirement or original mask/font/provider/gesture claim.",
@@ -1950,7 +1950,7 @@
         "theme.system7-nostalgia-silver"
       ],
       "document": "tests/rendering-requirements/EVIDENCE.md",
-      "locator": "Six exact Windows95/System7 empty80×20 normal, logically highlighted and disabled-active observations supply opaque-white composed-pixel references under the explicit v9 measured profile. Original source alpha, font realization, private painter/provider, physical gesture and other conditions remain unverified.",
+      "locator": "Six exact Windows95/System7 empty80\u00d720 normal, logically highlighted and disabled-active observations supply opaque-white composed-pixel references under the explicit v9 measured profile. Original source alpha, font realization, private painter/provider, physical gesture and other conditions remain unverified.",
       "excerptSha256": "adba113a84f02143e49481bea831f9e3df1a12250e0a9c70fb427b6f54c35535",
       "claim": "Only the complete recorded-condition composited face pixels.",
       "limits": "Reviewed scope and exact profile/case/image binding required. No broad requirement or original mask/font/provider/gesture claim.",
@@ -2192,7 +2192,7 @@
     {
       "id": "output.recorded-composited-face",
       "dimension": "fillMask",
-      "claim": "Every pixel of the exact empty80×20 face, composited over recorded white under the explicit measured v9 profile, equals its reviewed original observation. Does not establish source alpha/mask, hidden painter, other conditions or broad requirements."
+      "claim": "Every pixel of the exact empty80\u00d720 face, composited over recorded white under the explicit measured v9 profile, equals its reviewed original observation. Does not establish source alpha/mask, hidden painter, other conditions or broad requirements."
     },
     {
       "id": "text.prepared-strike-identity",
@@ -2413,7 +2413,7 @@
         "recorded.system7-nostalgia-silver.pressed.empty.w80.h20.v9-profile",
         "recorded.system7-nostalgia-silver.inactive.empty.w80.h20.v9-profile"
       ],
-      "claim": "Six exact full80×20 composited RGBA comparisons with reviewed original intake, actual measured-profile/source/paint joins.",
+      "claim": "Six exact full80\u00d720 composited RGBA comparisons with reviewed original intake, actual measured-profile/source/paint joins.",
       "modes": [
         "source",
         "built"
@@ -7121,7 +7121,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "Prepared synthetic output does not establish this broader original obligation.",
-      "review": "Proposed finite prepared-strike SOURCE assessment; independent automated review pending. No original-font/provider or reference admission."
+      "review": "Independent Astra AI architecture review approved the finite prepared-strike SOURCE scope at 60c800d7 plus count-only 6702b7af (2026-10-19), scope digest b54ee98703ac03359ef3cca0a24b3dbc6e325aea79d8c62d2443f8e9a796af81. Actual clean execution separately required; not human attestation or original-font/provider approval."
     },
     {
       "caseId": "synthetic.bitmap.push.X-space-X.auto",
@@ -7131,7 +7131,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "Prepared synthetic output does not establish this broader original obligation.",
-      "review": "Proposed finite prepared-strike SOURCE assessment; independent automated review pending. No original-font/provider or reference admission."
+      "review": "Independent Astra AI architecture review approved the finite prepared-strike SOURCE scope at 60c800d7 plus count-only 6702b7af (2026-10-19), scope digest b54ee98703ac03359ef3cca0a24b3dbc6e325aea79d8c62d2443f8e9a796af81. Actual clean execution separately required; not human attestation or original-font/provider approval."
     },
     {
       "caseId": "synthetic.bitmap.push.X-space-X.auto",
@@ -7141,7 +7141,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "Prepared synthetic output does not establish this broader original obligation.",
-      "review": "Proposed finite prepared-strike SOURCE assessment; independent automated review pending. No original-font/provider or reference admission."
+      "review": "Independent Astra AI architecture review approved the finite prepared-strike SOURCE scope at 60c800d7 plus count-only 6702b7af (2026-10-19), scope digest b54ee98703ac03359ef3cca0a24b3dbc6e325aea79d8c62d2443f8e9a796af81. Actual clean execution separately required; not human attestation or original-font/provider approval."
     },
     {
       "caseId": "synthetic.bitmap.push.X-space-X.auto",
@@ -7151,7 +7151,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "Prepared synthetic output does not establish this broader original obligation.",
-      "review": "Proposed finite prepared-strike SOURCE assessment; independent automated review pending. No original-font/provider or reference admission."
+      "review": "Independent Astra AI architecture review approved the finite prepared-strike SOURCE scope at 60c800d7 plus count-only 6702b7af (2026-10-19), scope digest b54ee98703ac03359ef3cca0a24b3dbc6e325aea79d8c62d2443f8e9a796af81. Actual clean execution separately required; not human attestation or original-font/provider approval."
     },
     {
       "caseId": "synthetic.bitmap.push.X-space-X.auto",
@@ -7165,7 +7165,7 @@
       ],
       "issues": [],
       "rationale": "Exact declared synthetic strike, independently derived source pen and literal pixel/occupancy observations only; actual clean source/built execution separately required.",
-      "review": "Proposed finite prepared-strike SOURCE assessment; independent automated review pending. No original-font/provider or reference admission."
+      "review": "Independent Astra AI architecture review approved the finite prepared-strike SOURCE scope at 60c800d7 plus count-only 6702b7af (2026-10-19), scope digest b54ee98703ac03359ef3cca0a24b3dbc6e325aea79d8c62d2443f8e9a796af81. Actual clean execution separately required; not human attestation or original-font/provider approval."
     },
     {
       "caseId": "synthetic.bitmap.push.X-space-X.auto",
@@ -7180,7 +7180,7 @@
       ],
       "issues": [],
       "rationale": "Exact declared synthetic strike, independently derived source pen and literal pixel/occupancy observations only; actual clean source/built execution separately required.",
-      "review": "Proposed finite prepared-strike SOURCE assessment; independent automated review pending. No original-font/provider or reference admission."
+      "review": "Independent Astra AI architecture review approved the finite prepared-strike SOURCE scope at 60c800d7 plus count-only 6702b7af (2026-10-19), scope digest b54ee98703ac03359ef3cca0a24b3dbc6e325aea79d8c62d2443f8e9a796af81. Actual clean execution separately required; not human attestation or original-font/provider approval."
     },
     {
       "caseId": "synthetic.bitmap.push.X-space-X.auto",
@@ -7195,7 +7195,7 @@
       ],
       "issues": [],
       "rationale": "Exact declared synthetic strike, independently derived source pen and literal pixel/occupancy observations only; actual clean source/built execution separately required.",
-      "review": "Proposed finite prepared-strike SOURCE assessment; independent automated review pending. No original-font/provider or reference admission."
+      "review": "Independent Astra AI architecture review approved the finite prepared-strike SOURCE scope at 60c800d7 plus count-only 6702b7af (2026-10-19), scope digest b54ee98703ac03359ef3cca0a24b3dbc6e325aea79d8c62d2443f8e9a796af81. Actual clean execution separately required; not human attestation or original-font/provider approval."
     },
     {
       "caseId": "synthetic.bitmap.push.X-space-X.auto",
@@ -7205,7 +7205,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "Prepared synthetic output does not establish this broader original obligation.",
-      "review": "Proposed finite prepared-strike SOURCE assessment; independent automated review pending. No original-font/provider or reference admission."
+      "review": "Independent Astra AI architecture review approved the finite prepared-strike SOURCE scope at 60c800d7 plus count-only 6702b7af (2026-10-19), scope digest b54ee98703ac03359ef3cca0a24b3dbc6e325aea79d8c62d2443f8e9a796af81. Actual clean execution separately required; not human attestation or original-font/provider approval."
     },
     {
       "caseId": "synthetic.bitmap.push.X-space-X.auto",
@@ -7215,7 +7215,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "Prepared synthetic output does not establish this broader original obligation.",
-      "review": "Proposed finite prepared-strike SOURCE assessment; independent automated review pending. No original-font/provider or reference admission."
+      "review": "Independent Astra AI architecture review approved the finite prepared-strike SOURCE scope at 60c800d7 plus count-only 6702b7af (2026-10-19), scope digest b54ee98703ac03359ef3cca0a24b3dbc6e325aea79d8c62d2443f8e9a796af81. Actual clean execution separately required; not human attestation or original-font/provider approval."
     },
     {
       "caseId": "synthetic.bitmap.push.X-space-X.auto",
@@ -7225,7 +7225,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "Prepared synthetic output does not establish this broader original obligation.",
-      "review": "Proposed finite prepared-strike SOURCE assessment; independent automated review pending. No original-font/provider or reference admission."
+      "review": "Independent Astra AI architecture review approved the finite prepared-strike SOURCE scope at 60c800d7 plus count-only 6702b7af (2026-10-19), scope digest b54ee98703ac03359ef3cca0a24b3dbc6e325aea79d8c62d2443f8e9a796af81. Actual clean execution separately required; not human attestation or original-font/provider approval."
     },
     {
       "caseId": "synthetic.bitmap.push.X-space-X.auto",
@@ -7235,7 +7235,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "Prepared synthetic output does not establish this broader original obligation.",
-      "review": "Proposed finite prepared-strike SOURCE assessment; independent automated review pending. No original-font/provider or reference admission."
+      "review": "Independent Astra AI architecture review approved the finite prepared-strike SOURCE scope at 60c800d7 plus count-only 6702b7af (2026-10-19), scope digest b54ee98703ac03359ef3cca0a24b3dbc6e325aea79d8c62d2443f8e9a796af81. Actual clean execution separately required; not human attestation or original-font/provider approval."
     },
     {
       "caseId": "synthetic.bitmap.push.X-space-X.auto",
@@ -7245,7 +7245,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "Prepared synthetic output does not establish this broader original obligation.",
-      "review": "Proposed finite prepared-strike SOURCE assessment; independent automated review pending. No original-font/provider or reference admission."
+      "review": "Independent Astra AI architecture review approved the finite prepared-strike SOURCE scope at 60c800d7 plus count-only 6702b7af (2026-10-19), scope digest b54ee98703ac03359ef3cca0a24b3dbc6e325aea79d8c62d2443f8e9a796af81. Actual clean execution separately required; not human attestation or original-font/provider approval."
     },
     {
       "caseId": "synthetic.bitmap.push.X-space-X.auto",
@@ -7255,7 +7255,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "Prepared synthetic output does not establish this broader original obligation.",
-      "review": "Proposed finite prepared-strike SOURCE assessment; independent automated review pending. No original-font/provider or reference admission."
+      "review": "Independent Astra AI architecture review approved the finite prepared-strike SOURCE scope at 60c800d7 plus count-only 6702b7af (2026-10-19), scope digest b54ee98703ac03359ef3cca0a24b3dbc6e325aea79d8c62d2443f8e9a796af81. Actual clean execution separately required; not human attestation or original-font/provider approval."
     },
     {
       "caseId": "synthetic.bitmap.push.X-space-X.negative-overhang.clip",
@@ -7265,7 +7265,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "Prepared synthetic output does not establish this broader original obligation.",
-      "review": "Proposed finite prepared-strike SOURCE assessment; independent automated review pending. No original-font/provider or reference admission."
+      "review": "Independent Astra AI architecture review approved the finite prepared-strike SOURCE scope at 60c800d7 plus count-only 6702b7af (2026-10-19), scope digest b54ee98703ac03359ef3cca0a24b3dbc6e325aea79d8c62d2443f8e9a796af81. Actual clean execution separately required; not human attestation or original-font/provider approval."
     },
     {
       "caseId": "synthetic.bitmap.push.X-space-X.negative-overhang.clip",
@@ -7275,7 +7275,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "Prepared synthetic output does not establish this broader original obligation.",
-      "review": "Proposed finite prepared-strike SOURCE assessment; independent automated review pending. No original-font/provider or reference admission."
+      "review": "Independent Astra AI architecture review approved the finite prepared-strike SOURCE scope at 60c800d7 plus count-only 6702b7af (2026-10-19), scope digest b54ee98703ac03359ef3cca0a24b3dbc6e325aea79d8c62d2443f8e9a796af81. Actual clean execution separately required; not human attestation or original-font/provider approval."
     },
     {
       "caseId": "synthetic.bitmap.push.X-space-X.negative-overhang.clip",
@@ -7285,7 +7285,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "Prepared synthetic output does not establish this broader original obligation.",
-      "review": "Proposed finite prepared-strike SOURCE assessment; independent automated review pending. No original-font/provider or reference admission."
+      "review": "Independent Astra AI architecture review approved the finite prepared-strike SOURCE scope at 60c800d7 plus count-only 6702b7af (2026-10-19), scope digest b54ee98703ac03359ef3cca0a24b3dbc6e325aea79d8c62d2443f8e9a796af81. Actual clean execution separately required; not human attestation or original-font/provider approval."
     },
     {
       "caseId": "synthetic.bitmap.push.X-space-X.negative-overhang.clip",
@@ -7295,7 +7295,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "Prepared synthetic output does not establish this broader original obligation.",
-      "review": "Proposed finite prepared-strike SOURCE assessment; independent automated review pending. No original-font/provider or reference admission."
+      "review": "Independent Astra AI architecture review approved the finite prepared-strike SOURCE scope at 60c800d7 plus count-only 6702b7af (2026-10-19), scope digest b54ee98703ac03359ef3cca0a24b3dbc6e325aea79d8c62d2443f8e9a796af81. Actual clean execution separately required; not human attestation or original-font/provider approval."
     },
     {
       "caseId": "synthetic.bitmap.push.X-space-X.negative-overhang.clip",
@@ -7309,7 +7309,7 @@
       ],
       "issues": [],
       "rationale": "Exact declared synthetic strike, independently derived source pen and literal pixel/occupancy observations only; actual clean source/built execution separately required.",
-      "review": "Proposed finite prepared-strike SOURCE assessment; independent automated review pending. No original-font/provider or reference admission."
+      "review": "Independent Astra AI architecture review approved the finite prepared-strike SOURCE scope at 60c800d7 plus count-only 6702b7af (2026-10-19), scope digest b54ee98703ac03359ef3cca0a24b3dbc6e325aea79d8c62d2443f8e9a796af81. Actual clean execution separately required; not human attestation or original-font/provider approval."
     },
     {
       "caseId": "synthetic.bitmap.push.X-space-X.negative-overhang.clip",
@@ -7324,7 +7324,7 @@
       ],
       "issues": [],
       "rationale": "Exact declared synthetic strike, independently derived source pen and literal pixel/occupancy observations only; actual clean source/built execution separately required.",
-      "review": "Proposed finite prepared-strike SOURCE assessment; independent automated review pending. No original-font/provider or reference admission."
+      "review": "Independent Astra AI architecture review approved the finite prepared-strike SOURCE scope at 60c800d7 plus count-only 6702b7af (2026-10-19), scope digest b54ee98703ac03359ef3cca0a24b3dbc6e325aea79d8c62d2443f8e9a796af81. Actual clean execution separately required; not human attestation or original-font/provider approval."
     },
     {
       "caseId": "synthetic.bitmap.push.X-space-X.negative-overhang.clip",
@@ -7339,7 +7339,7 @@
       ],
       "issues": [],
       "rationale": "Exact declared synthetic strike, independently derived source pen and literal pixel/occupancy observations only; actual clean source/built execution separately required.",
-      "review": "Proposed finite prepared-strike SOURCE assessment; independent automated review pending. No original-font/provider or reference admission."
+      "review": "Independent Astra AI architecture review approved the finite prepared-strike SOURCE scope at 60c800d7 plus count-only 6702b7af (2026-10-19), scope digest b54ee98703ac03359ef3cca0a24b3dbc6e325aea79d8c62d2443f8e9a796af81. Actual clean execution separately required; not human attestation or original-font/provider approval."
     },
     {
       "caseId": "synthetic.bitmap.push.X-space-X.negative-overhang.clip",
@@ -7349,7 +7349,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "Prepared synthetic output does not establish this broader original obligation.",
-      "review": "Proposed finite prepared-strike SOURCE assessment; independent automated review pending. No original-font/provider or reference admission."
+      "review": "Independent Astra AI architecture review approved the finite prepared-strike SOURCE scope at 60c800d7 plus count-only 6702b7af (2026-10-19), scope digest b54ee98703ac03359ef3cca0a24b3dbc6e325aea79d8c62d2443f8e9a796af81. Actual clean execution separately required; not human attestation or original-font/provider approval."
     },
     {
       "caseId": "synthetic.bitmap.push.X-space-X.negative-overhang.clip",
@@ -7359,7 +7359,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "Prepared synthetic output does not establish this broader original obligation.",
-      "review": "Proposed finite prepared-strike SOURCE assessment; independent automated review pending. No original-font/provider or reference admission."
+      "review": "Independent Astra AI architecture review approved the finite prepared-strike SOURCE scope at 60c800d7 plus count-only 6702b7af (2026-10-19), scope digest b54ee98703ac03359ef3cca0a24b3dbc6e325aea79d8c62d2443f8e9a796af81. Actual clean execution separately required; not human attestation or original-font/provider approval."
     },
     {
       "caseId": "synthetic.bitmap.push.X-space-X.negative-overhang.clip",
@@ -7369,7 +7369,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "Prepared synthetic output does not establish this broader original obligation.",
-      "review": "Proposed finite prepared-strike SOURCE assessment; independent automated review pending. No original-font/provider or reference admission."
+      "review": "Independent Astra AI architecture review approved the finite prepared-strike SOURCE scope at 60c800d7 plus count-only 6702b7af (2026-10-19), scope digest b54ee98703ac03359ef3cca0a24b3dbc6e325aea79d8c62d2443f8e9a796af81. Actual clean execution separately required; not human attestation or original-font/provider approval."
     },
     {
       "caseId": "synthetic.bitmap.push.X-space-X.negative-overhang.clip",
@@ -7379,7 +7379,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "Prepared synthetic output does not establish this broader original obligation.",
-      "review": "Proposed finite prepared-strike SOURCE assessment; independent automated review pending. No original-font/provider or reference admission."
+      "review": "Independent Astra AI architecture review approved the finite prepared-strike SOURCE scope at 60c800d7 plus count-only 6702b7af (2026-10-19), scope digest b54ee98703ac03359ef3cca0a24b3dbc6e325aea79d8c62d2443f8e9a796af81. Actual clean execution separately required; not human attestation or original-font/provider approval."
     },
     {
       "caseId": "synthetic.bitmap.push.X-space-X.negative-overhang.clip",
@@ -7389,7 +7389,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "Prepared synthetic output does not establish this broader original obligation.",
-      "review": "Proposed finite prepared-strike SOURCE assessment; independent automated review pending. No original-font/provider or reference admission."
+      "review": "Independent Astra AI architecture review approved the finite prepared-strike SOURCE scope at 60c800d7 plus count-only 6702b7af (2026-10-19), scope digest b54ee98703ac03359ef3cca0a24b3dbc6e325aea79d8c62d2443f8e9a796af81. Actual clean execution separately required; not human attestation or original-font/provider approval."
     },
     {
       "caseId": "synthetic.bitmap.push.X-space-X.negative-overhang.clip",
@@ -7399,7 +7399,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "Prepared synthetic output does not establish this broader original obligation.",
-      "review": "Proposed finite prepared-strike SOURCE assessment; independent automated review pending. No original-font/provider or reference admission."
+      "review": "Independent Astra AI architecture review approved the finite prepared-strike SOURCE scope at 60c800d7 plus count-only 6702b7af (2026-10-19), scope digest b54ee98703ac03359ef3cca0a24b3dbc6e325aea79d8c62d2443f8e9a796af81. Actual clean execution separately required; not human attestation or original-font/provider approval."
     }
   ],
   "inventorySha256": "b54ee98703ac03359ef3cca0a24b3dbc6e325aea79d8c62d2443f8e9a796af81"
