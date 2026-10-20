@@ -172,11 +172,12 @@ This draft does not choose that threshold or certify the current implementation.
 
 ## Reference capture intake implementation (#190)
 
-[Capture requests and validation](../../tests/reference-captures/README.md) now
-provide a finite provisional thirteen-request first batch and an initially empty
-capture/review corpus. Requests reuse the draft source-choice pins, name target
-requirements, and specify body-only geometry/state/port/crop conditions. Unknown
-original environment, base/search-chain, font and palette information stays
+[Capture requests and validation](../../tests/reference-captures/README.md)
+currently track 59 requests and 36 independently reviewed scoped observations.
+The observed whole requests remain evidence-incomplete; a scoped pixel match
+is not whole-control certification. Requests reuse the source-choice pins, name
+target requirements, and specify body-only geometry/state/port/crop conditions.
+Unobserved environment, base/search-chain, font and palette information remains
 unknown until external evidence and independent review supply it. The validator
 separates eligibility from rendering verdicts, rejects known self-image
 contamination and stale/mismatched provenance, and reports missing evidence
