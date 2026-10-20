@@ -28,10 +28,18 @@ export interface ControlResolutionStep {
     readonly assetUrl: string;
   } & ({ readonly type: 'cicn'; readonly byteProvenance?: ElementByteProvenance }
     | { readonly type: 'ppat'; readonly byteProvenance?: PatternByteProvenance });
-  /** Actual bounded mode5 paint; absent for unsupported/selection-only decisions. */
+  /** Completed bounded body stage; absent for selection-only or unpublished writes. */
   readonly bodyPaint?: { readonly branch: 'masked-copy' | 'unmasked-copy' | 'missing-erase';
     readonly sourceRect?: ControlRect; readonly destinationRect: ControlRect;
-    readonly paintedPixels: number; readonly sourceAssetUrl?: string; readonly derivedPath?: string };
+    readonly paintedPixels: number; readonly sourceAssetUrl?: string; readonly derivedPath?: string }
+    | { readonly branch: 'pattern-fill-union'; readonly coordinateSpace: 'face-local-before-ring';
+      /** Within the face allocation, before the separately declared port clip. Overlap is written once. */
+      readonly unionRects: readonly ControlRect[]; readonly paintedPixels: number;
+      readonly sourceAssetUrl: string; readonly sourceSize: readonly [number, number];
+      /** Resolved sampling offset, not original QuickDraw phase evidence. */
+      readonly phase: { readonly basis: 'modern-composition-policy'; readonly offset: readonly [number, number];
+        readonly originalPatternPhase: 'unverified' };
+      readonly context: ControlCompositionSnapshot };
   readonly reason: string;
   readonly basis: 'source-dispatch' | 'compatibility-policy';
   readonly usage: 'paint' | 'layout-reservation' | 'admission';
@@ -135,6 +143,8 @@ export interface ControlDiagnostics {
 /** Private per-invocation collector. Never stores themes or decoded buffers. */
 export interface ControlTraceCollector {
   record(step: ControlResolutionStep): void;
+  /** Enrich exactly the earlier observed selection without adding a second selection. */
+  completeBodyPaint(selection: ControlResolutionStep, paint: NonNullable<ControlResolutionStep['bodyPaint']>): void;
   bandPaint(value: ControlBandPaint): void;
   legacyFacePaint(value: LegacyFacePaint): void;
   bitmapTextPaint(value: BitmapTextPaint): void;
@@ -169,6 +179,10 @@ export async function withControlDiagnostics(
   let textColors: ControlRenderTrace['textColors'];
   let composition: ControlRenderTrace['composition'];
   const collector: ControlTraceCollector = {
+    completeBodyPaint: (selection, bodyPaint) => {
+      const index = steps.indexOf(selection);
+      if (index >= 0) steps[index] = { ...selection, bodyPaint };
+    },
     bitmapTextPaint: value => { bitmapTextPaint = value; },
     legacyFacePaint: value => { legacyFacePaint = value; },
     bandPaint: value => { bandPaints.push(value); }, headerSurface: value => { headerSurface = value; },
@@ -184,8 +198,14 @@ export async function withControlDiagnostics(
     version: 1,
     ...(correlationId === undefined ? {} : { correlationId }),
     // A later default-ring failure can invalidate an already composed face.
-    // Keep lookup observations, but never label its mode-5 writes as published.
-    family, requested, steps: failed ? steps.filter(step => !step.bodyPaint) : steps,
+    // Keep patterned lookup observations, but never label unpublished writes as completed.
+    family, requested, steps: steps.flatMap(step => {
+      if ((!result || failed) && step.bodyPaint?.branch === 'pattern-fill-union') {
+        const { bodyPaint: _unpublished, ...selection } = step;
+        return [selection];
+      }
+      return failed && step.bodyPaint ? [] : [step];
+    }),
     ...(!failed && result && bitmapTextPaint ? { bitmapTextPaint } : {}),
     ...(!failed && result && legacyFacePaint ? { legacyFacePaint } : {}),
     ...(bandPaints.length ? { bandPaints } : {}), ...(tabBody ? { tabBody } : {}), ...(headerSurface ? { headerSurface } : {}), ...(textColors ? { textColors } : {}), ...(composition ? { composition } : {}),

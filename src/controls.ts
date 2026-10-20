@@ -1364,6 +1364,7 @@ async function composeFaceButton(
   // A completed body dependency describes a published composition, not an
   // intermediate offscreen write. Borders can still decode asynchronously.
   let mode5PaintStep: ControlResolutionStep | undefined;
+  let patternPaint: NonNullable<ControlResolutionStep['bodyPaint']> | undefined;
   let legacyFacePaint: LegacyFacePaint | undefined;
   if (geometry === 'button') opts.trace?.composition({ context, originalPortState: 'unverified',
     faceRect: { x: context.controlOrigin[0], y: context.controlOrigin[1], w: innerW, h: innerH },
@@ -1419,6 +1420,7 @@ async function composeFaceButton(
     out.drawOver(await composeControlBorder(resolved, innerW, innerH, opts, (x, y) => controlPointVisible(context, x, y)), 0, 0);
   } else if (pattern && faceEl.slice && faceEl.bodyRequest) {
     const [phaseX, phaseY] = bodyPatternPhase(context, faceEl.bodyRequest.mode, innerW, innerH);
+    let paintedPixels = 0;
     // Full-color f7cc/FillCRect: both inset rectangles share the original D/P
     // phase. Their union is filled before the masked border; do not tile each
     // inset from its own origin or alpha-mask the body by the face raster.
@@ -1429,6 +1431,21 @@ async function composeFaceButton(
       const px = ((phaseX + x) % pattern.width + pattern.width) % pattern.width;
       const py = ((phaseY + y) % pattern.height + pattern.height) % pattern.height;
       out.setPixel(x, y, ...pattern.getPixel(px, py));
+      // Count writes, including transparent samples, once across the overlapping union.
+      paintedPixels++;
+    }
+    if (opts.trace && body.selection && paintedPixels) {
+      const rect = (x: number, y: number) => {
+        const left = Math.max(0, x), top = Math.max(0, y);
+        return { x: left, y: top, w: Math.max(0, Math.min(innerW, innerW - x) - left),
+          h: Math.max(0, Math.min(innerH, innerH - y) - top) };
+      };
+      const unionRects = [rect(fIns, fSide), ...(fIns === fSide ? [] : [rect(fSide, fIns)])]
+        .filter(r => r.w > 0 && r.h > 0);
+      patternPaint = { branch: 'pattern-fill-union', coordinateSpace: 'face-local-before-ring',
+        unionRects, paintedPixels, sourceAssetUrl: body.selection.resource!.assetUrl,
+        sourceSize: [pattern.width, pattern.height], context,
+        phase: { basis: 'modern-composition-policy', offset: [phaseX, phaseY], originalPatternPhase: 'unverified' } };
     }
     out.drawOver(await composeControlBorder(resolved, innerW, innerH, opts, (x, y) => controlPointVisible(context, x, y)), 0, 0);
   } else if (geometry === 'button' && faceEl.slice && (sourceBg || validBg)) {
@@ -1499,6 +1516,7 @@ async function composeFaceButton(
       if (!controlPointVisible(context, x, y)) out.setPixel(x, y, 0, 0, 0, 0);
   }
   assertControlAlive(opts.signal);
+  if (patternPaint && body.selection) opts.trace?.completeBodyPaint(body.selection, patternPaint);
   if (mode5PaintStep) opts.trace?.record(mode5PaintStep);
   if (legacyFacePaint) opts.trace?.legacyFacePaint(legacyFacePaint);
   if (bitmapTextPaint) opts.trace?.bitmapTextPaint(bitmapTextPaint);

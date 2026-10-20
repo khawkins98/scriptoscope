@@ -35,3 +35,24 @@ export function comparePatternBinding(owner, key, expected) {
     byteLength: expected.byteLength, sha256: expected.payloadSha256, status: 'decoded' })) check(record?.[field], wanted, field);
   return { status: failures.length ? 'mismatch' : 'matched', failures };
 }
+
+/** Actual completed modern patterned body, separate from native phase/provider claims. */
+export function compareCompletedPatternPaint(owner, step, expected) {
+  const failures = [...comparePatternBinding(owner, step?.resource?.manifestKey, expected).failures ?? []];
+  const check = (actual, wanted, label) => { if (JSON.stringify(actual) !== JSON.stringify(wanted)) failures.push(label); };
+  if (comparePatternBinding(owner, step?.resource?.manifestKey, expected).status !== 'matched') failures.push('binding');
+  const entry=owner.manifest.patterns?.[step?.resource?.manifestKey], paint=step?.bodyPaint;
+  for(const [actual,wanted,label] of [
+    [step?.role,'body-fill','role'],[step?.action,'selected','action'],[step?.usage,'paint','usage'],
+    [step?.requestedId,expected.signedId,'requestedId'],[step?.requestedResourceType,'ppat','requestedResourceType'],
+    [step?.bodyMode,expected.bodyMode,'bodyMode'],[step?.owner,{baseUrl:owner.baseUrl,chainDepth:expected.chainDepth},'owner'],
+    [step?.resource?.type,'ppat','resource.type'],[step?.resource?.signedId,expected.signedId,'resource.signedId'],
+    [step?.resource?.byteProvenance,entry?.byteProvenance,'resource.byteProvenance'],
+    [step?.resource?.assetUrl,entry?.asset,'resource.assetUrl'],[paint?.sourceAssetUrl,entry?.asset,'sourceAssetUrl'],
+    [paint?.branch,'pattern-fill-union','branch'],[paint?.coordinateSpace,'face-local-before-ring','coordinateSpace'],
+    [paint?.unionRects,expected.unionRects,'unionRects'],[paint?.paintedPixels,expected.paintedPixels,'paintedPixels'],
+    [paint?.sourceSize,expected.sourceSize,'sourceSize'],[paint?.context,expected.context,'context'],
+    [paint?.phase,{basis:'modern-composition-policy',offset:expected.phaseOffset,originalPatternPhase:'unverified'},'phase'],
+  ])check(actual,wanted,label);
+  return {status:failures.length?'mismatch':'matched',failures};
+}
