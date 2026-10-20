@@ -379,6 +379,15 @@ Each uses its own 307 repeat-measured RGB16 mappings. The explicit
 kind; nullable source pins distinguish paired-cinf bands from actual completed
 legacy-face compatibility paint. Neither path identifies the historical painter.
 
+The registry's `profile` remains the default for every state. An optional
+`profilesByState` maps a registered state to a complete `{path, id, sha256}`
+binding from its own reviewed acquisition. Capture bindings and browser case
+descriptors resolve the same slug/state pair; every declared profile file is
+hash-checked, and malformed overrides fail rather than use the default. The
+browser loads each distinct profile separately within a subject. This allows a
+later state's calibration without replacing earlier accepted bindings; declaring
+an override does not admit a capture or promote an output obligation.
+
 The reviewed private source/built execution compared 57,600 pixels without a
 difference. Public execution still requires the exact scoped capture bindings,
 completed paint and full-plane equality. Only 18 recorded-output obligations

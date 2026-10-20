@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {validateCompletedFacePaint,captureBinding,validateRecordedBinding,validateRecordedExecution,compareRecordedPixels,PROFILE,exactOptions} from './recorded-face.mjs';
+import {fileURLToPath} from 'node:url';
+import {validateCompletedFacePaint,captureBinding,validateRecordedBinding,validateRecordedExecution,compareRecordedPixels,PROFILE,CRAYON_PROFILE,RECORDED_CASES,profileFor,recordedSubjects,validateRecordedProfiles,exactOptions} from './recorded-face.mjs';
 const ledger=JSON.parse(readFileSync(new URL('./ledger.json',import.meta.url)));
 const captures=JSON.parse(readFileSync(new URL('../reference-captures/captures.json',import.meta.url))).captures;
 // Synthetic assessor results exercise the join; these are not review records.
@@ -188,4 +189,42 @@ test('completed recorded pattern requires catalog/load/URL, exact plane and actu
  for(const change of [x=>delete x.step.bodyPaint,x=>x.step.bodyPaint.paintedPixels=0,x=>x.step.bodyPaint.unionRects=[],x=>x.step.bodyPaint.phase.originalPatternPhase='verified',x=>x.row.patternCatalog.entry.asset='foreign',x=>x.row.patternLoad.loadId='foreign',x=>x.row.resources[0].sha256='bad',x=>x.row.patternPlane.rgba=Buffer.alloc(raw.length).toString('base64'),x=>x.step.bodyPaint.context.clip.rect.w=80]){
   x=make();change(x);assert.throws(()=>validateRecordedPatternPaint(x.row,x.step,pins),/pattern/);
  }
+});
+
+
+test('state profile selection keeps defaults and binds the same override to capture and execution inputs',()=>{
+ // Existing bindings serve as distinct unit inputs, not new measured-theme claims.
+ const registry={'windows-95':{...RECORDED_CASES['windows-95'],profilesByState:{pressed:CRAYON_PROFILE}}};
+ const subject=recordedSubjects(registry)[0];
+ assert.deepEqual(subject.cases.map(c=>c.profile.id),[PROFILE.id,CRAYON_PROFILE.id,PROFILE.id]);
+ for(const item of subject.cases){
+  const capture=captures.find(c=>c.requestId==='windows-95.'+item.state);
+  assert.deepEqual(captureBinding(capture,registry).profile,item.profile);
+  assert.deepEqual(item.options,exactOptions(item.state,'windows-95'));
+ }
+ assert.equal(profileFor('windows-95',undefined,registry),PROFILE);
+ assert.equal(profileFor('unknown','pressed',registry),undefined);
+ validateRecordedProfiles(fileURLToPath(new URL('../../',import.meta.url)),registry);
+ const malformed=structuredClone(registry);malformed['windows-95'].profilesByState.pressed=null;
+ assert.throws(()=>profileFor('windows-95','pressed',malformed),/invalid registered profile/);
+ assert.throws(()=>recordedSubjects(malformed),/invalid registered profile/);
+ assert.throws(()=>captureBinding(captures.find(c=>c.requestId==='windows-95.pressed'),malformed),/invalid registered profile/);
+ const drift=structuredClone(registry);drift['windows-95'].profilesByState.pressed.sha256='0'.repeat(64);
+ assert.throws(()=>validateRecordedProfiles(fileURLToPath(new URL('../../',import.meta.url)),drift),/profile DATA bytes changed/);
+ const typo=structuredClone(registry);typo['windows-95'].profilesByState.presssed=typo['windows-95'].profilesByState.pressed;
+ assert.throws(()=>validateRecordedProfiles(fileURLToPath(new URL('../../',import.meta.url)),typo),/outside registered states/);
+ const badShape=structuredClone(registry);badShape['windows-95'].profilesByState=[];
+ assert.throws(()=>validateRecordedProfiles(fileURLToPath(new URL('../../',import.meta.url)),badShape),/invalid state profile registry/);
+});
+
+test('state-profile support preserves every existing recorded binding including Evolution normal/inactive',()=>{
+ const subjects=recordedSubjects();
+ for(const capture of captures){
+  const old=ledger.cases.find(c=>c.recordedComparison?.captureId===capture.id);
+  assert.deepEqual(captureBinding(capture),old.recordedComparison,capture.id);
+  assert.deepEqual(subjects.find(s=>s.slug===capture.source.slug).cases.find(c=>c.state===capture.conditions.state).profile,old.recordedComparison.profile);
+ }
+ const evolution=subjects.find(s=>s.slug==='evolution');
+ assert.deepEqual(evolution.cases.map(c=>c.state),['normal','inactive']);
+ for(const c of evolution.cases)assert.deepEqual(c.profile,RECORDED_CASES.evolution.profile);
 });

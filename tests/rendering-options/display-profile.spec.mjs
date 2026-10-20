@@ -1,4 +1,4 @@
-import {RECORDED_CASES,sourcePinsFor,exactOptions,readRecordedContext,captureBinding,validateRecordedExecution,validateRecordedBinding,compareRecordedPixels} from '../rendering-requirements/recorded-face.mjs';
+import {RECORDED_CASES,recordedSubjects,readRecordedContext,captureBinding,validateRecordedExecution,validateRecordedBinding,compareRecordedPixels} from '../rendering-requirements/recorded-face.mjs';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {literalCicn,faceInfo} from '../decoder-fixtures/mode5.mjs';
@@ -66,7 +66,7 @@ for(const mode of ['source','built']) {
   const ledger=JSON.parse(readFileSync(new URL('../rendering-requirements/ledger.json',import.meta.url)));
   for(const binding of bindings)validateRecordedBinding(ledger.cases.find(c=>c.recordedComparison?.captureId===binding.captureId),binding,referenceContext);
   await openHarness(page,servers,mode);
-  const subjects=Object.entries(RECORDED_CASES).map(([slug,entry])=>({slug,...entry,cases:entry.states.map(state=>({state,options:exactOptions(state,slug),sourcePins:sourcePinsFor(slug,state)??null}))}));
+  const subjects=recordedSubjects();
   const result=await page.evaluate(async ({mode,bindings,subjects})=>{
    const api=await import(mode==='built'?'/dist/scriptoscope.js':'/src/index.ts');
    const rows=[];
@@ -75,10 +75,17 @@ for(const mode of ['source','built']) {
    const {captures}=await(await fetch('/tests/reference-captures/captures.json')).json();
    for(const subject of subjects){
     const {slug}=subject;
-    const selectedProfile=await api.prepareDisplayProfile(await(await fetch('/'+subject.profile.path)).json());
-    if(selectedProfile.id!==subject.profile.id)throw Error('Wrong registered profile '+slug);
-    const a=await api.loadTheme('/themes/'+slug,{provenance:true}),b=await api.loadTheme('/themes/'+slug,{provenance:true,displayProfile:selectedProfile});
-    for(const {state,options,sourcePins:recordedSourcePins} of subject.cases){
+    const a=await api.loadTheme('/themes/'+slug,{provenance:true}),profileThemes=new Map();
+    try {
+    for(const {state,profile,options,sourcePins:recordedSourcePins} of subject.cases){
+    const profileKey=JSON.stringify([profile.path,profile.id,profile.sha256]);
+    let b=profileThemes.get(profileKey);
+    if(!b){
+     const selectedProfile=await api.prepareDisplayProfile(await(await fetch('/'+profile.path)).json());
+     if(selectedProfile.id!==profile.id)throw Error('Wrong registered profile '+slug+'/'+state);
+     b=await api.loadTheme('/themes/'+slug,{provenance:true,displayProfile:selectedProfile});
+     profileThemes.set(profileKey,b);
+    }
     let trace,completionCount=0;
     const normal=await api.composeButton(b,{...options,diagnostics:{onComplete:t=>{completionCount++;trace=t;}}}),legacy=await api.composeButton(a,options);
     const selected=trace.steps.find(s=>s.role==='face'&&s.action==='selected'),el=b.manifest.chromeElements[selected.resource.manifestKey];
@@ -112,7 +119,7 @@ for(const mode of ['source','built']) {
      different:normal.data.some((v,i)=>v!==legacy.data[i]),size:[normal.width,normal.height],body:[...normal.getPixel(44,14)],
      urlsDistinct:Object.keys(a.manifest.chromeElements).every(k=>a.manifest.chromeElements[k].asset!==b.manifest.chromeElements[k].asset)});
     }
-    a.dispose();b.dispose();
+    } finally { a.dispose();for(const theme of profileThemes.values())theme.dispose(); }
    }return rows;
   },{mode,bindings,subjects});
   await info.attach('recorded-before-validation.json',{body:JSON.stringify(result,null,2),contentType:'application/json'});
