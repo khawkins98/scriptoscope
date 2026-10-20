@@ -687,5 +687,114 @@
       ],
       "missingPatternId": 0
     }
+  },
+  "monkey-paradise": {
+    "normal": {
+      "sourceArchiveSha256": "2694f0b976eb8928e82a55f1509537865776c5dba932d7a9f8446fe2b4fcab42",
+      "sourceForkSha256": "6532ba12cbecfb8b820b9f172f43980de4a4927dd50f0ff6b37c41e5a27d4e70",
+      "emittedKey": "solo-menu-background-2",
+      "face": {
+        "resourceIndex": 215,
+        "signedId": -10239,
+        "bytes": 314,
+        "payloadSha256": "9ee11b23383ff1ab88e58f1d8ca5e4df4688f0bb1be5cb4d4f0a9341b8a0c128"
+      },
+      "cinf": {
+        "resourceIndex": 480,
+        "signedId": -10239,
+        "bytes": 18,
+        "payloadSha256": "e1439cb976e79d782327a62c405aa8ae7abd3de3ae41b5788f609eb7f1099396"
+      },
+      "bodyRequest": {
+        "mode": 2,
+        "resourceId": 128
+      },
+      "paintKind": "cinf-bands",
+      "sourceSize": [
+        14,
+        14
+      ],
+      "pattern": {
+        "resourceIndex": 459,
+        "signedId": 128,
+        "bytes": 454,
+        "payloadSha256": "b45c140dc0d8edb45a97860e3d2da3a4ddc576342485cfc8509cec9d8844df7f"
+      },
+      "completedPattern": {
+        "sourceSize": [
+          32,
+          16
+        ],
+        "unionRects": [
+          {
+            "x": 2,
+            "y": 2,
+            "w": 76,
+            "h": 16
+          }
+        ],
+        "paintedPixels": 1216,
+        "phaseOffset": [
+          -80,
+          0
+        ],
+        "decodedRgbaSha256": "bffa782da9dead9a30c1486a80b3fb9aa7feba7788a7e543be2fcd6f8a5967ff",
+        "phaseClaim": "Modern composition policy only; original phase unknown."
+      }
+    },
+    "pressed": {
+      "sourceArchiveSha256": "2694f0b976eb8928e82a55f1509537865776c5dba932d7a9f8446fe2b4fcab42",
+      "sourceForkSha256": "6532ba12cbecfb8b820b9f172f43980de4a4927dd50f0ff6b37c41e5a27d4e70",
+      "emittedKey": "pressed-push-button",
+      "face": {
+        "resourceIndex": 130,
+        "signedId": -10238,
+        "bytes": 314,
+        "payloadSha256": "1bfa32584929c9e8df52c0c250a82776100ae935f7e8ddfd92e23977a359c078"
+      },
+      "cinf": {
+        "resourceIndex": 479,
+        "signedId": -10238,
+        "bytes": 18,
+        "payloadSha256": "7912efafb6cdd3cb37b301d952ec05574ea72de410e6d853516f29e7f9a5ffa2"
+      },
+      "bodyRequest": {
+        "mode": 0,
+        "resourceId": 0
+      },
+      "paintKind": "cinf-bands",
+      "sourceSize": [
+        14,
+        14
+      ],
+      "missingPatternId": 0
+    },
+    "inactive": {
+      "sourceArchiveSha256": "2694f0b976eb8928e82a55f1509537865776c5dba932d7a9f8446fe2b4fcab42",
+      "sourceForkSha256": "6532ba12cbecfb8b820b9f172f43980de4a4927dd50f0ff6b37c41e5a27d4e70",
+      "emittedKey": "inactive-push-button",
+      "face": {
+        "resourceIndex": 129,
+        "signedId": -10240,
+        "bytes": 298,
+        "payloadSha256": "a9e62888e7679b16a738e0c448af1b024b8e2fd8cfa53aa1fb8393871e348c1c"
+      },
+      "cinf": {
+        "resourceIndex": 481,
+        "signedId": -10240,
+        "bytes": 18,
+        "payloadSha256": "7912efafb6cdd3cb37b301d952ec05574ea72de410e6d853516f29e7f9a5ffa2"
+      },
+      "bodyRequest": {
+        "mode": 0,
+        "resourceId": 0
+      },
+      "paintKind": "cinf-bands",
+      "sourceSize": [
+        14,
+        14
+      ],
+      "missingPatternId": 0
+    }
   }
 }

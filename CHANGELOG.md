@@ -7,6 +7,8 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+- Add three independently reviewed Monkey Paradise empty-state capture candidates and their actual 288-key measured profile. Join normal output to the loaded same-owner pattern and completed body union; keep registered pixel obligations pending until public execution review, and preserve all prior evidence and broader unknowns.
+
 - Record completed patterned control-body unions with actual resource, phase policy and write counts; preserve lookup-only diagnostics on empty or failed compositions.
 
 - Bind titlebar close, zoom and shade actions to authored widget identities, including right-grouped and vertically stacked controls; put shade outermost in the synthetic document layout and remove the resize overlay while collapsed so shade can restore the window.

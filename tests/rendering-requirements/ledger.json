@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "inventoryVersion": "1.15.0",
+  "inventoryVersion": "1.16.0",
   "scope": {
-    "description": "Ninety-two exact direct composition cases: prior ninety plus two Evolution empty normal/inactive recorded-condition faces. All closures OPEN; not a whole-control denominator.",
+    "description": "Ninety-five exact direct composition cases: prior ninety-two plus three Monkey Paradise empty recorded-condition faces. All closures OPEN; not a whole-control denominator.",
     "dimensions": [
       "resourceSelection",
       "geometry",
@@ -1314,6 +1314,12 @@
       "kind": "theme-archive",
       "path": "themes/evolution/scheme.rsrc",
       "sha256": "9491fd7a68134249988b07971d222527709636438c59ca1d0daf5ade82a26740"
+    },
+    {
+      "id": "theme.monkey-paradise",
+      "kind": "theme-archive",
+      "path": "themes/monkey-paradise/scheme.sit",
+      "sha256": "2694f0b976eb8928e82a55f1509537865776c5dba932d7a9f8446fe2b4fcab42"
     }
   ],
   "evidence": [
@@ -2302,6 +2308,153 @@
           "sha256": "646be3846ec055419aebfd87ca38a9f79912ee231c5b0a0863ebff26b84da784"
         }
       }
+    },
+    {
+      "id": "recorded.monkey-paradise.normal",
+      "kind": "scoped-original",
+      "inputs": [
+        "theme.monkey-paradise"
+      ],
+      "document": "tests/rendering-requirements/EVIDENCE.md",
+      "locator": "Monkey Paradise normal empty80\u00d720 face from monkey-paradise.normal.m288 uses its own finite288-key measured profile and declared port(20,20), compared over recorded white. Exact face/cinf occurrences, owner/URL and completed bands join the output. Normal additionally requires same-owner ppat128 occurrence459, exact decoded pattern plane and generic completed1216-write pattern-fill-union; its modern phase is not original phase truth. Pressed/inactive retain missingppat0 without invented body completion. Font identity, consumer port-table/current-main, original provider/cache/phase/mask and whole controls remain unknown.",
+      "excerptSha256": "40a2bcaf2019ef82326cc3fc50c262604f8bdb84fa064bd8bd151699f57820ff",
+      "claim": "Only complete recorded-condition empty composited face pixels.",
+      "limits": "Reviewed v5 capture/profile/context and registered source/built execution required; no typography, native provider/painter/mask/phase or whole-control claim.",
+      "requirementIds": [
+        "output.recorded-composited-face"
+      ],
+      "reference": {
+        "captureId": "monkey-paradise.normal.m288",
+        "requestId": "monkey-paradise.normal",
+        "requestDigest": "1f131478668921a8a67afcd2f3e71cd17b69b54214610d6015b76066df8c3e00",
+        "captureDigest": "aa2c72699437432e79e1f771d8d572659706928f95a1843f047000065ab087ce",
+        "imageSha256": "d14fce248b418581a1461fa6e2625823439d2d5df07dda094d76bfcbaaba9802",
+        "reviewScope": {
+          "id": "public-api-empty-face",
+          "version": 5,
+          "digest": "6223fd19c982fb53ea2196103e26c9d15e7a5fec6e493f0f71b9db9680d26d09"
+        },
+        "faceImageRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "publicFaceRect": [
+          4,
+          4,
+          80,
+          20
+        ],
+        "background": [
+          255,
+          255,
+          255
+        ],
+        "profile": {
+          "path": "tests/decoder-fixtures/measured-display-profile-monkey-paradise.json",
+          "id": "display-profile:f185c519b60e234ed17c69195c081b41b6cd2db629d9b295f82280e4d47b03c6",
+          "sha256": "a22a2812126867eef6797b01f0aca2a1a024a5e6960a77426ba27c907e8da16c"
+        }
+      }
+    },
+    {
+      "id": "recorded.monkey-paradise.pressed",
+      "kind": "scoped-original",
+      "inputs": [
+        "theme.monkey-paradise"
+      ],
+      "document": "tests/rendering-requirements/EVIDENCE.md",
+      "locator": "Monkey Paradise pressed empty80\u00d720 face from monkey-paradise.pressed.m288 uses its own finite288-key measured profile and declared port(20,20), compared over recorded white. Exact face/cinf occurrences, owner/URL and completed bands join the output. Normal additionally requires same-owner ppat128 occurrence459, exact decoded pattern plane and generic completed1216-write pattern-fill-union; its modern phase is not original phase truth. Pressed/inactive retain missingppat0 without invented body completion. Font identity, consumer port-table/current-main, original provider/cache/phase/mask and whole controls remain unknown.",
+      "excerptSha256": "4d34aedc72cc4d1b5db32dbc5de43c040cdc2e36befafe6f6856e598bd0d35b0",
+      "claim": "Only complete recorded-condition empty composited face pixels.",
+      "limits": "Reviewed v5 capture/profile/context and registered source/built execution required; no typography, native provider/painter/mask/phase or whole-control claim.",
+      "requirementIds": [
+        "output.recorded-composited-face"
+      ],
+      "reference": {
+        "captureId": "monkey-paradise.pressed.m288",
+        "requestId": "monkey-paradise.pressed",
+        "requestDigest": "86abeb101faed3caa212b41b6758f03c9a94dbf23d08ab705ea0728c5df3e0f2",
+        "captureDigest": "71c8f9c0589e23412d834ce0a861f1bd9ede94ce2c408b5d6a3f7d00b936ccde",
+        "imageSha256": "56f16a6d6bbaca483d21b120e4209d186f5eba6208d8dc666a8121cfdd6ae553",
+        "reviewScope": {
+          "id": "public-api-empty-face",
+          "version": 5,
+          "digest": "cea5082fee796892d86566b3b05e2fb756ca5b760f7e8c00c616518bef798361"
+        },
+        "faceImageRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "publicFaceRect": [
+          4,
+          4,
+          80,
+          20
+        ],
+        "background": [
+          255,
+          255,
+          255
+        ],
+        "profile": {
+          "path": "tests/decoder-fixtures/measured-display-profile-monkey-paradise.json",
+          "id": "display-profile:f185c519b60e234ed17c69195c081b41b6cd2db629d9b295f82280e4d47b03c6",
+          "sha256": "a22a2812126867eef6797b01f0aca2a1a024a5e6960a77426ba27c907e8da16c"
+        }
+      }
+    },
+    {
+      "id": "recorded.monkey-paradise.inactive",
+      "kind": "scoped-original",
+      "inputs": [
+        "theme.monkey-paradise"
+      ],
+      "document": "tests/rendering-requirements/EVIDENCE.md",
+      "locator": "Monkey Paradise inactive empty80\u00d720 face from monkey-paradise.inactive.m288 uses its own finite288-key measured profile and declared port(20,20), compared over recorded white. Exact face/cinf occurrences, owner/URL and completed bands join the output. Normal additionally requires same-owner ppat128 occurrence459, exact decoded pattern plane and generic completed1216-write pattern-fill-union; its modern phase is not original phase truth. Pressed/inactive retain missingppat0 without invented body completion. Font identity, consumer port-table/current-main, original provider/cache/phase/mask and whole controls remain unknown.",
+      "excerptSha256": "8d6e758e37ed94fe3c57268fa5b723b78e1244206ae4e85549ffd678d9910d18",
+      "claim": "Only complete recorded-condition empty composited face pixels.",
+      "limits": "Reviewed v5 capture/profile/context and registered source/built execution required; no typography, native provider/painter/mask/phase or whole-control claim.",
+      "requirementIds": [
+        "output.recorded-composited-face"
+      ],
+      "reference": {
+        "captureId": "monkey-paradise.inactive.m288",
+        "requestId": "monkey-paradise.inactive",
+        "requestDigest": "8f4874ef52daa152f6b0ba6a35c349afcf8b43a2880e10fe588f6c36853eae6f",
+        "captureDigest": "aa953c94da437cd81ebdfb1636e6a1a393b8f32cf063f253987407c3baba1ad9",
+        "imageSha256": "5139050ef38be5b653bcc3d69357dc995744fc1ee4b8b1149a4335ae6b355e1d",
+        "reviewScope": {
+          "id": "public-api-empty-face",
+          "version": 5,
+          "digest": "35918d1e214911cd34ca927f8fcba47dafc1feff8890b1ef433bdd9ac3582e12"
+        },
+        "faceImageRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "publicFaceRect": [
+          4,
+          4,
+          80,
+          20
+        ],
+        "background": [
+          255,
+          255,
+          255
+        ],
+        "profile": {
+          "path": "tests/decoder-fixtures/measured-display-profile-monkey-paradise.json",
+          "id": "display-profile:f185c519b60e234ed17c69195c081b41b6cd2db629d9b295f82280e4d47b03c6",
+          "sha256": "a22a2812126867eef6797b01f0aca2a1a024a5e6960a77426ba27c907e8da16c"
+        }
+      }
     }
   ],
   "requirements": [
@@ -2744,6 +2897,21 @@
         "recorded.evolution.inactive.empty.w80.h20.e1971-profile"
       ],
       "claim": "Two complete recorded-condition Evolution empty80\u00d720 normal/inactive faces with a finite1971-input measured profile, exact public invocation/source/context and actual completed face-band dependencies. Same-owner ppat0 is absent; no invented completed body-fill trace, native provider or typography claim.",
+      "modes": [
+        "source",
+        "built"
+      ]
+    },
+    {
+      "id": "recorded.monkey-three-state",
+      "path": "tests/rendering-options/display-profile.spec.mjs",
+      "marker": "description:'recorded.monkey-three-state'",
+      "caseIds": [
+        "recorded.monkey-paradise.normal.empty.w80.h20.m288-profile",
+        "recorded.monkey-paradise.pressed.empty.w80.h20.m288-profile",
+        "recorded.monkey-paradise.inactive.empty.w80.h20.m288-profile"
+      ],
+      "claim": "Three complete recorded-condition Monkey Paradise empty80\u00d720 normal/pressed/inactive faces, finite288-key measured profile and exact source/context. Normal requires actual same-owner ppat128 catalog/load/URL/decoded plane and completed pattern-fill-union; modern phase is not original phase truth. Other states retain missing0 without invented body completion.",
       "modes": [
         "source",
         "built"
@@ -5128,6 +5296,339 @@
           "path": "tests/decoder-fixtures/measured-display-profile-evolution.json",
           "id": "display-profile:b97272731fe52ce8a45726f7e736b4d03c6bba739879a45d7f88f22623cd3a1d",
           "sha256": "646be3846ec055419aebfd87ca38a9f79912ee231c5b0a0863ebff26b84da784"
+        }
+      }
+    },
+    {
+      "id": "recorded.monkey-paradise.normal.empty.w80.h20.m288-profile",
+      "inputs": [
+        "theme.monkey-paradise"
+      ],
+      "baseInputs": [],
+      "mode": "direct",
+      "family": "push",
+      "options": {
+        "label": "",
+        "minWidth": 80,
+        "height": 20,
+        "default": false,
+        "pressed": false,
+        "disabled": false,
+        "compositionContext": {
+          "controlOrigin": [
+            20,
+            20
+          ],
+          "portOrigin": [
+            0,
+            0
+          ],
+          "patternOrigin": {
+            "status": "unknown"
+          },
+          "clip": {
+            "kind": "rect",
+            "rect": {
+              "x": 0,
+              "y": 0,
+              "w": 160,
+              "h": 80
+            }
+          }
+        }
+      },
+      "dimensions": {
+        "resourceSelection": [
+          "selection.original"
+        ],
+        "geometry": [
+          "geometry.remaining"
+        ],
+        "fillMask": [
+          "output.recorded-composited-face",
+          "fill.remaining"
+        ],
+        "typography": {
+          "excluded": "No label raster in this exact direct case.",
+          "review": "Independent acquisition and corrected private comparison accepted; original six trace rejections retained. Public scoped attestation and registered execution require separate review. Three output obligations remain UNKNOWN until exact registered execution is accepted; all broader obligations unknown."
+        },
+        "state": [
+          "state.original"
+        ],
+        "placement": [
+          "placement.original"
+        ],
+        "interaction": {
+          "excluded": "Direct pixel composition only. DOM focus, names, actions and teardown require separate cases.",
+          "review": "Independent acquisition and corrected private comparison accepted; original six trace rejections retained. Public scoped attestation and registered execution require separate review. Three output obligations remain UNKNOWN until exact registered execution is accepted; all broader obligations unknown."
+        }
+      },
+      "inventoryClosure": {
+        "status": "open",
+        "reason": "Only the exact recorded-condition composed output is claimed; broad original requirements remain unknown."
+      },
+      "substitutions": [
+        "Only576 actual same-run queries/288 repeat-equal RGB16 mappings with observed palette/gamma/producer; no pooling.",
+        "Empty80\u00d720 face, Hilite0/10/255 in active window, origin20,20/full160\u00d780 clip and white recorded background; no default API.",
+        "Actual font0/size12/face0 and metrics, identity null; no font query/glyph bytes or typography claim.",
+        "Normal paired cinf mode2/corner2/side2 requests actual same-owner ppat128. Its catalog/load/URL/payload459/decoded plane and completed1216-write pattern-fill-union must join actual output; modern phase[-80,0] does not establish original phase.",
+        "Pressed/inactive mode0/corner6/side4 request absent same-owner ppat0. Actual completed bands retained; no invented body event.",
+        "Shared boot/fixed order, missing consumer current/main/portColorTable and original provider/cache/search/patch/phase/mask/whole-control limits remain explicit."
+      ],
+      "recordedComparison": {
+        "captureId": "monkey-paradise.normal.m288",
+        "requestId": "monkey-paradise.normal",
+        "requestDigest": "1f131478668921a8a67afcd2f3e71cd17b69b54214610d6015b76066df8c3e00",
+        "captureDigest": "aa2c72699437432e79e1f771d8d572659706928f95a1843f047000065ab087ce",
+        "imageSha256": "d14fce248b418581a1461fa6e2625823439d2d5df07dda094d76bfcbaaba9802",
+        "reviewScope": {
+          "id": "public-api-empty-face",
+          "version": 5,
+          "digest": "6223fd19c982fb53ea2196103e26c9d15e7a5fec6e493f0f71b9db9680d26d09"
+        },
+        "faceImageRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "publicFaceRect": [
+          4,
+          4,
+          80,
+          20
+        ],
+        "background": [
+          255,
+          255,
+          255
+        ],
+        "profile": {
+          "path": "tests/decoder-fixtures/measured-display-profile-monkey-paradise.json",
+          "id": "display-profile:f185c519b60e234ed17c69195c081b41b6cd2db629d9b295f82280e4d47b03c6",
+          "sha256": "a22a2812126867eef6797b01f0aca2a1a024a5e6960a77426ba27c907e8da16c"
+        }
+      }
+    },
+    {
+      "id": "recorded.monkey-paradise.pressed.empty.w80.h20.m288-profile",
+      "inputs": [
+        "theme.monkey-paradise"
+      ],
+      "baseInputs": [],
+      "mode": "direct",
+      "family": "push",
+      "options": {
+        "label": "",
+        "minWidth": 80,
+        "height": 20,
+        "default": false,
+        "pressed": true,
+        "disabled": false,
+        "compositionContext": {
+          "controlOrigin": [
+            20,
+            20
+          ],
+          "portOrigin": [
+            0,
+            0
+          ],
+          "patternOrigin": {
+            "status": "unknown"
+          },
+          "clip": {
+            "kind": "rect",
+            "rect": {
+              "x": 0,
+              "y": 0,
+              "w": 160,
+              "h": 80
+            }
+          }
+        }
+      },
+      "dimensions": {
+        "resourceSelection": [
+          "selection.original"
+        ],
+        "geometry": [
+          "geometry.remaining"
+        ],
+        "fillMask": [
+          "output.recorded-composited-face",
+          "fill.remaining"
+        ],
+        "typography": {
+          "excluded": "No label raster in this exact direct case.",
+          "review": "Independent acquisition and corrected private comparison accepted; original six trace rejections retained. Public scoped attestation and registered execution require separate review. Three output obligations remain UNKNOWN until exact registered execution is accepted; all broader obligations unknown."
+        },
+        "state": [
+          "state.original"
+        ],
+        "placement": [
+          "placement.original"
+        ],
+        "interaction": {
+          "excluded": "Direct pixel composition only. DOM focus, names, actions and teardown require separate cases.",
+          "review": "Independent acquisition and corrected private comparison accepted; original six trace rejections retained. Public scoped attestation and registered execution require separate review. Three output obligations remain UNKNOWN until exact registered execution is accepted; all broader obligations unknown."
+        }
+      },
+      "inventoryClosure": {
+        "status": "open",
+        "reason": "Only the exact recorded-condition composed output is claimed; broad original requirements remain unknown."
+      },
+      "substitutions": [
+        "Only576 actual same-run queries/288 repeat-equal RGB16 mappings with observed palette/gamma/producer; no pooling.",
+        "Empty80\u00d720 face, Hilite0/10/255 in active window, origin20,20/full160\u00d780 clip and white recorded background; no default API.",
+        "Actual font0/size12/face0 and metrics, identity null; no font query/glyph bytes or typography claim.",
+        "Normal paired cinf mode2/corner2/side2 requests actual same-owner ppat128. Its catalog/load/URL/payload459/decoded plane and completed1216-write pattern-fill-union must join actual output; modern phase[-80,0] does not establish original phase.",
+        "Pressed/inactive mode0/corner6/side4 request absent same-owner ppat0. Actual completed bands retained; no invented body event.",
+        "Shared boot/fixed order, missing consumer current/main/portColorTable and original provider/cache/search/patch/phase/mask/whole-control limits remain explicit."
+      ],
+      "recordedComparison": {
+        "captureId": "monkey-paradise.pressed.m288",
+        "requestId": "monkey-paradise.pressed",
+        "requestDigest": "86abeb101faed3caa212b41b6758f03c9a94dbf23d08ab705ea0728c5df3e0f2",
+        "captureDigest": "71c8f9c0589e23412d834ce0a861f1bd9ede94ce2c408b5d6a3f7d00b936ccde",
+        "imageSha256": "56f16a6d6bbaca483d21b120e4209d186f5eba6208d8dc666a8121cfdd6ae553",
+        "reviewScope": {
+          "id": "public-api-empty-face",
+          "version": 5,
+          "digest": "cea5082fee796892d86566b3b05e2fb756ca5b760f7e8c00c616518bef798361"
+        },
+        "faceImageRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "publicFaceRect": [
+          4,
+          4,
+          80,
+          20
+        ],
+        "background": [
+          255,
+          255,
+          255
+        ],
+        "profile": {
+          "path": "tests/decoder-fixtures/measured-display-profile-monkey-paradise.json",
+          "id": "display-profile:f185c519b60e234ed17c69195c081b41b6cd2db629d9b295f82280e4d47b03c6",
+          "sha256": "a22a2812126867eef6797b01f0aca2a1a024a5e6960a77426ba27c907e8da16c"
+        }
+      }
+    },
+    {
+      "id": "recorded.monkey-paradise.inactive.empty.w80.h20.m288-profile",
+      "inputs": [
+        "theme.monkey-paradise"
+      ],
+      "baseInputs": [],
+      "mode": "direct",
+      "family": "push",
+      "options": {
+        "label": "",
+        "minWidth": 80,
+        "height": 20,
+        "default": false,
+        "pressed": false,
+        "disabled": true,
+        "compositionContext": {
+          "controlOrigin": [
+            20,
+            20
+          ],
+          "portOrigin": [
+            0,
+            0
+          ],
+          "patternOrigin": {
+            "status": "unknown"
+          },
+          "clip": {
+            "kind": "rect",
+            "rect": {
+              "x": 0,
+              "y": 0,
+              "w": 160,
+              "h": 80
+            }
+          }
+        }
+      },
+      "dimensions": {
+        "resourceSelection": [
+          "selection.original"
+        ],
+        "geometry": [
+          "geometry.remaining"
+        ],
+        "fillMask": [
+          "output.recorded-composited-face",
+          "fill.remaining"
+        ],
+        "typography": {
+          "excluded": "No label raster in this exact direct case.",
+          "review": "Independent acquisition and corrected private comparison accepted; original six trace rejections retained. Public scoped attestation and registered execution require separate review. Three output obligations remain UNKNOWN until exact registered execution is accepted; all broader obligations unknown."
+        },
+        "state": [
+          "state.original"
+        ],
+        "placement": [
+          "placement.original"
+        ],
+        "interaction": {
+          "excluded": "Direct pixel composition only. DOM focus, names, actions and teardown require separate cases.",
+          "review": "Independent acquisition and corrected private comparison accepted; original six trace rejections retained. Public scoped attestation and registered execution require separate review. Three output obligations remain UNKNOWN until exact registered execution is accepted; all broader obligations unknown."
+        }
+      },
+      "inventoryClosure": {
+        "status": "open",
+        "reason": "Only the exact recorded-condition composed output is claimed; broad original requirements remain unknown."
+      },
+      "substitutions": [
+        "Only576 actual same-run queries/288 repeat-equal RGB16 mappings with observed palette/gamma/producer; no pooling.",
+        "Empty80\u00d720 face, Hilite0/10/255 in active window, origin20,20/full160\u00d780 clip and white recorded background; no default API.",
+        "Actual font0/size12/face0 and metrics, identity null; no font query/glyph bytes or typography claim.",
+        "Normal paired cinf mode2/corner2/side2 requests actual same-owner ppat128. Its catalog/load/URL/payload459/decoded plane and completed1216-write pattern-fill-union must join actual output; modern phase[-80,0] does not establish original phase.",
+        "Pressed/inactive mode0/corner6/side4 request absent same-owner ppat0. Actual completed bands retained; no invented body event.",
+        "Shared boot/fixed order, missing consumer current/main/portColorTable and original provider/cache/search/patch/phase/mask/whole-control limits remain explicit."
+      ],
+      "recordedComparison": {
+        "captureId": "monkey-paradise.inactive.m288",
+        "requestId": "monkey-paradise.inactive",
+        "requestDigest": "8f4874ef52daa152f6b0ba6a35c349afcf8b43a2880e10fe588f6c36853eae6f",
+        "captureDigest": "aa953c94da437cd81ebdfb1636e6a1a393b8f32cf063f253987407c3baba1ad9",
+        "imageSha256": "5139050ef38be5b653bcc3d69357dc995744fc1ee4b8b1149a4335ae6b355e1d",
+        "reviewScope": {
+          "id": "public-api-empty-face",
+          "version": 5,
+          "digest": "35918d1e214911cd34ca927f8fcba47dafc1feff8890b1ef433bdd9ac3582e12"
+        },
+        "faceImageRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "publicFaceRect": [
+          4,
+          4,
+          80,
+          20
+        ],
+        "background": [
+          255,
+          255,
+          255
+        ],
+        "profile": {
+          "path": "tests/decoder-fixtures/measured-display-profile-monkey-paradise.json",
+          "id": "display-profile:f185c519b60e234ed17c69195c081b41b6cd2db629d9b295f82280e4d47b03c6",
+          "sha256": "a22a2812126867eef6797b01f0aca2a1a024a5e6960a77426ba27c907e8da16c"
         }
       }
     }
@@ -8816,7 +9317,199 @@
       "issues": [],
       "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
       "review": "Independent automated root v5 scoped attestations and source/built output review approved on 2026-10-20 at execution95773d973bb7be6fbda13bb56f90a691ac6da47e. All38 registered faces/60800pixels per mode matched; only these two empty Evolution composited outputs are promoted. Typography, provider, phase, masks and whole-control obligations remain unknown. Completed interior-fill trace is not claimed."
+    },
+    {
+      "caseId": "recorded.monkey-paradise.normal.empty.w80.h20.m288-profile",
+      "requirementId": "selection.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Independent acquisition and corrected private comparison accepted; original six trace rejections retained. Public scoped attestation and registered execution require separate review. Three output obligations remain UNKNOWN until exact registered execution is accepted; all broader obligations unknown."
+    },
+    {
+      "caseId": "recorded.monkey-paradise.normal.empty.w80.h20.m288-profile",
+      "requirementId": "geometry.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Independent acquisition and corrected private comparison accepted; original six trace rejections retained. Public scoped attestation and registered execution require separate review. Three output obligations remain UNKNOWN until exact registered execution is accepted; all broader obligations unknown."
+    },
+    {
+      "caseId": "recorded.monkey-paradise.normal.empty.w80.h20.m288-profile",
+      "requirementId": "output.recorded-composited-face",
+      "status": "unknown",
+      "evidence": [
+        "recorded.monkey-paradise.normal"
+      ],
+      "assertions": [
+        "recorded.monkey-three-state"
+      ],
+      "issues": [],
+      "rationale": "Exact independently reviewed native 80\u00d720 composited face matched actual public source and built execution under the finite measured profile and recorded state/context. Only complete output pixels are verified; actual eight bands and missing ppat0 are joined without claiming a completed interior fill.",
+      "review": "Independent acquisition and corrected private comparison accepted; original six trace rejections retained. Public scoped attestation and registered execution require separate review. Three output obligations remain UNKNOWN until exact registered execution is accepted; all broader obligations unknown."
+    },
+    {
+      "caseId": "recorded.monkey-paradise.normal.empty.w80.h20.m288-profile",
+      "requirementId": "fill.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Independent acquisition and corrected private comparison accepted; original six trace rejections retained. Public scoped attestation and registered execution require separate review. Three output obligations remain UNKNOWN until exact registered execution is accepted; all broader obligations unknown."
+    },
+    {
+      "caseId": "recorded.monkey-paradise.normal.empty.w80.h20.m288-profile",
+      "requirementId": "state.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Independent acquisition and corrected private comparison accepted; original six trace rejections retained. Public scoped attestation and registered execution require separate review. Three output obligations remain UNKNOWN until exact registered execution is accepted; all broader obligations unknown."
+    },
+    {
+      "caseId": "recorded.monkey-paradise.normal.empty.w80.h20.m288-profile",
+      "requirementId": "placement.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Independent acquisition and corrected private comparison accepted; original six trace rejections retained. Public scoped attestation and registered execution require separate review. Three output obligations remain UNKNOWN until exact registered execution is accepted; all broader obligations unknown."
+    },
+    {
+      "caseId": "recorded.monkey-paradise.pressed.empty.w80.h20.m288-profile",
+      "requirementId": "selection.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Independent acquisition and corrected private comparison accepted; original six trace rejections retained. Public scoped attestation and registered execution require separate review. Three output obligations remain UNKNOWN until exact registered execution is accepted; all broader obligations unknown."
+    },
+    {
+      "caseId": "recorded.monkey-paradise.pressed.empty.w80.h20.m288-profile",
+      "requirementId": "geometry.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Independent acquisition and corrected private comparison accepted; original six trace rejections retained. Public scoped attestation and registered execution require separate review. Three output obligations remain UNKNOWN until exact registered execution is accepted; all broader obligations unknown."
+    },
+    {
+      "caseId": "recorded.monkey-paradise.pressed.empty.w80.h20.m288-profile",
+      "requirementId": "output.recorded-composited-face",
+      "status": "unknown",
+      "evidence": [
+        "recorded.monkey-paradise.pressed"
+      ],
+      "assertions": [
+        "recorded.monkey-three-state"
+      ],
+      "issues": [],
+      "rationale": "Exact independently reviewed native 80\u00d720 composited face matched actual public source and built execution under the finite measured profile and recorded state/context. Only complete output pixels are verified; actual eight bands and missing ppat0 are joined without claiming a completed interior fill.",
+      "review": "Independent acquisition and corrected private comparison accepted; original six trace rejections retained. Public scoped attestation and registered execution require separate review. Three output obligations remain UNKNOWN until exact registered execution is accepted; all broader obligations unknown."
+    },
+    {
+      "caseId": "recorded.monkey-paradise.pressed.empty.w80.h20.m288-profile",
+      "requirementId": "fill.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Independent acquisition and corrected private comparison accepted; original six trace rejections retained. Public scoped attestation and registered execution require separate review. Three output obligations remain UNKNOWN until exact registered execution is accepted; all broader obligations unknown."
+    },
+    {
+      "caseId": "recorded.monkey-paradise.pressed.empty.w80.h20.m288-profile",
+      "requirementId": "state.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Independent acquisition and corrected private comparison accepted; original six trace rejections retained. Public scoped attestation and registered execution require separate review. Three output obligations remain UNKNOWN until exact registered execution is accepted; all broader obligations unknown."
+    },
+    {
+      "caseId": "recorded.monkey-paradise.pressed.empty.w80.h20.m288-profile",
+      "requirementId": "placement.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Independent acquisition and corrected private comparison accepted; original six trace rejections retained. Public scoped attestation and registered execution require separate review. Three output obligations remain UNKNOWN until exact registered execution is accepted; all broader obligations unknown."
+    },
+    {
+      "caseId": "recorded.monkey-paradise.inactive.empty.w80.h20.m288-profile",
+      "requirementId": "selection.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Independent acquisition and corrected private comparison accepted; original six trace rejections retained. Public scoped attestation and registered execution require separate review. Three output obligations remain UNKNOWN until exact registered execution is accepted; all broader obligations unknown."
+    },
+    {
+      "caseId": "recorded.monkey-paradise.inactive.empty.w80.h20.m288-profile",
+      "requirementId": "geometry.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Independent acquisition and corrected private comparison accepted; original six trace rejections retained. Public scoped attestation and registered execution require separate review. Three output obligations remain UNKNOWN until exact registered execution is accepted; all broader obligations unknown."
+    },
+    {
+      "caseId": "recorded.monkey-paradise.inactive.empty.w80.h20.m288-profile",
+      "requirementId": "output.recorded-composited-face",
+      "status": "unknown",
+      "evidence": [
+        "recorded.monkey-paradise.inactive"
+      ],
+      "assertions": [
+        "recorded.monkey-three-state"
+      ],
+      "issues": [],
+      "rationale": "Exact independently reviewed native 80\u00d720 composited face matched actual public source and built execution under the finite measured profile and recorded state/context. Only complete output pixels are verified; actual eight bands and missing ppat0 are joined without claiming a completed interior fill.",
+      "review": "Independent acquisition and corrected private comparison accepted; original six trace rejections retained. Public scoped attestation and registered execution require separate review. Three output obligations remain UNKNOWN until exact registered execution is accepted; all broader obligations unknown."
+    },
+    {
+      "caseId": "recorded.monkey-paradise.inactive.empty.w80.h20.m288-profile",
+      "requirementId": "fill.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Independent acquisition and corrected private comparison accepted; original six trace rejections retained. Public scoped attestation and registered execution require separate review. Three output obligations remain UNKNOWN until exact registered execution is accepted; all broader obligations unknown."
+    },
+    {
+      "caseId": "recorded.monkey-paradise.inactive.empty.w80.h20.m288-profile",
+      "requirementId": "state.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Independent acquisition and corrected private comparison accepted; original six trace rejections retained. Public scoped attestation and registered execution require separate review. Three output obligations remain UNKNOWN until exact registered execution is accepted; all broader obligations unknown."
+    },
+    {
+      "caseId": "recorded.monkey-paradise.inactive.empty.w80.h20.m288-profile",
+      "requirementId": "placement.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Independent acquisition and corrected private comparison accepted; original six trace rejections retained. Public scoped attestation and registered execution require separate review. Three output obligations remain UNKNOWN until exact registered execution is accepted; all broader obligations unknown."
     }
   ],
-  "inventorySha256": "cb8e4d46c256c3123d5f232ee6e4c99b2fd13e4debb7ff3a4ebd3fc1b32e2d05"
+  "inventorySha256": "17381d908fbea0b1fe1fa9d760a535a904eacf69a6d68a00a1070daa46e60fe1"
 }

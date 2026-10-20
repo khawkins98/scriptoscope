@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "status": "INDEPENDENT_SCOPED_ACQUISITION_ACCEPTED_PUBLIC_EXECUTION_SEPARATE",
+  "reviewer": "root automated independent review",
+  "reviewedAt": "2026-10-20T15:49:59.840383+00:00",
+  "frozenSupportCommit": "95b8b3e8fb543eb12310f3bd57fb25176b83374e",
+  "independentSupportReviewSha256": "2ab936ebc43741900ae85fa9ecee11d77c2701cd1105861905cadcda30a805b1",
+  "publicManifestSha256": "0ed1fbcd3ec8e1b5c10c3792d41492908901d301b89477dc0d8774040ec48da3",
+  "captureBindings": [
+    {
+      "id": "monkey-paradise.normal.m288",
+      "requestId": "monkey-paradise.normal",
+      "requestDigest": "1f131478668921a8a67afcd2f3e71cd17b69b54214610d6015b76066df8c3e00",
+      "captureDigest": "aa2c72699437432e79e1f771d8d572659706928f95a1843f047000065ab087ce",
+      "scopeDigest": "6223fd19c982fb53ea2196103e26c9d15e7a5fec6e493f0f71b9db9680d26d09",
+      "status": "awaiting-independent-review",
+      "missing": [],
+      "rejected": []
+    },
+    {
+      "id": "monkey-paradise.pressed.m288",
+      "requestId": "monkey-paradise.pressed",
+      "requestDigest": "86abeb101faed3caa212b41b6758f03c9a94dbf23d08ab705ea0728c5df3e0f2",
+      "captureDigest": "71c8f9c0589e23412d834ce0a861f1bd9ede94ce2c408b5d6a3f7d00b936ccde",
+      "scopeDigest": "cea5082fee796892d86566b3b05e2fb756ca5b760f7e8c00c616518bef798361",
+      "status": "awaiting-independent-review",
+      "missing": [],
+      "rejected": []
+    },
+    {
+      "id": "monkey-paradise.inactive.m288",
+      "requestId": "monkey-paradise.inactive",
+      "requestDigest": "8f4874ef52daa152f6b0ba6a35c349afcf8b43a2880e10fe588f6c36853eae6f",
+      "captureDigest": "aa953c94da437cd81ebdfb1636e6a1a393b8f32cf063f253987407c3baba1ad9",
+      "scopeDigest": "35918d1e214911cd34ca927f8fcba47dafc1feff8890b1ef433bdd9ac3582e12",
+      "status": "awaiting-independent-review",
+      "missing": [],
+      "rejected": []
+    }
+  ],
+  "checks": {
+    "rootPublicArtifactHashes": 65,
+    "rootVisualFullFrames": 3,
+    "rootExactIntegerCropChains": 3,
+    "independentlyVerifiedPrivateImageCopies": 15,
+    "measuredMappings": 288,
+    "rawRepeatedRows": 576,
+    "priorRecordsPreserved": true
+  },
+  "scope": "Accepted only public-api-empty-face v5: complete fixed empty80x20 face over recorded white in actual HiliteControl0/10/255 state, active window. Root viewed all3full native frames and verified65publicartifact hashes and3exact integer full-frame/port/face/context crop chains. Independent support review2ab936eb verified15unchanged image copies/mtimes,576actual rows/288mappings/256palette/producer and sanitized raw/state/FCB/fork joins, preserving38priorcaptures/reviews and59requests. Actual port font0/size12/face0 remains observed with font identity null, not a typography claim. Private comparison acceptance b0f9aff1 combines4retained pressed/inactive observations revalidated offline and2new fully captured modern normal observations; the original6trace-validator rejects remain unchanged. This involved no native recapture or fitted phase/crop/palette. Normal catalog/decodedppat128 occurrence459/load/URL and completed1216-write union describe modern execution, not original phase/provider/painter proof. Consumer portColorTable/current-main equality, native font consumption/provider, cache/patch/search order, alpha/masks, original phase and broader states/placements/whole requests remain unknown. Fixed-order shared history and reused A3A labels are explicit; worker shutdown ACK unknown. Scoped acquisition acceptance and registered public source/built execution are separate gates."
+}

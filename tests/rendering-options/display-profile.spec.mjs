@@ -60,6 +60,7 @@ for(const mode of ['source','built']) {
   info.annotations.push({type:'fidelity-assertion',description:'recorded.beos-three-state'});
   info.annotations.push({type:'fidelity-assertion',description:'recorded.shared307-eighteen'});
   info.annotations.push({type:'fidelity-assertion',description:'recorded.evolution-empty-two'});
+  info.annotations.push({type:'fidelity-assertion',description:'recorded.monkey-three-state'});
   const referenceContext=readRecordedContext(fileURLToPath(new URL('../../',import.meta.url)));
   const bindings=referenceContext.captures.map(c=>captureBinding(c));
   const ledger=JSON.parse(readFileSync(new URL('../rendering-requirements/ledger.json',import.meta.url)));
@@ -93,7 +94,18 @@ for(const mode of ['source','built']) {
      if(original[i+3]!==255||[0,1,2].some(c=>Math.round((faceRgba[i+c]*alpha+255*(255-alpha))/255)!==original[i+c]))differentPixels++;
     }
     const patternStep=trace.steps.find(s=>s.role==='body-fill'&&s.action==='selected'&&s.resource?.type==='ppat');
+    // Retain the actual catalog and decoded plane before any fallible trace assertions.
+    let patternEvidence={};
+    if(recordedSourcePins?.completedPattern && patternStep){
+     const key=patternStep.resource.manifestKey,entry=b.manifest.patterns[key];
+     if(entry){
+      const im=await createImageBitmap(await(await fetch(entry.asset)).blob()),pc=new OffscreenCanvas(im.width,im.height),px=pc.getContext('2d');
+      px.drawImage(im,0,0);im.close();const rgba=px.getImageData(0,0,pc.width,pc.height).data;
+      patternEvidence={patternCatalog:{manifestKey:key,entry},patternLoad:b.byteProvenance,patternPlane:{size:[pc.width,pc.height],encoding:'base64-rgba8',rgba:btoa(String.fromCharCode(...rgba))}};
+     }
+    }
     rows.push({slug,state,options,completionCount,bodyFillSteps:trace.steps.filter(s=>s.role==='body-fill'),composition:trace.composition,recordedSourcePins,patternAsset:patternStep?b.manifest.patterns[patternStep.resource.manifestKey]?.asset:null,loadId:b.byteProvenance.loadId,profileFork:b.byteProvenance.fork.sha256,selectedKey:selected.resource.manifestKey,selectedAsset:el.asset,selectedCinfId:el.sourceCinfId??null,...(recordedSourcePins?{selectedBodyRequest:el.bodyRequest??null}:{}),outcome:trace.outcome,requested:trace.requested,profile:b.manifest.displayProfile.id,baseUrl:a.baseUrl,profileBaseUrl:b.baseUrl,input:a.byteProvenance.input.sha256,profileInput:b.byteProvenance.input.sha256,
+     ...patternEvidence,
      originalComparison:{binding:bindings.find(b=>b.captureId===reference.id),comparedPixels:1600,originalRgba:btoa(String.fromCharCode(...original)),captureId:reference.id,requestDigest:reference.requestDigest,imageSha256,imageSize:[canvas.width,canvas.height],sourceArchiveSha256:reference.source.archiveSha256,
       layer:'composited-face-pixels',background:[255,255,255],differentPixels,verifiedRequirementIds:[]},
      source:el.byteProvenance,resources:b.byteProvenance.resources,selected,facePlane:{rect:[4,4,80,20],encoding:'base64-rgba8',rgba:btoa(String.fromCharCode(...faceRgba))},paintSelectionSteps:trace.steps.filter(s=>s.usage==='paint'&&s.action==='selected'),bandPaints:trace.bandPaints??[],legacyFacePaint:trace.legacyFacePaint??null,policy:el.colorSamples?.displayPolicy??el.samplingEquivalence?.displayPolicy,
@@ -103,8 +115,7 @@ for(const mode of ['source','built']) {
     a.dispose();b.dispose();
    }return rows;
   },{mode,bindings,subjects});
-  if(result.some(row=>row.originalComparison.differentPixels!==0))
-   await info.attach('recorded-pixel-mismatch.json',{body:JSON.stringify(result,null,2),contentType:'application/json'});
+  await info.attach('recorded-before-validation.json',{body:JSON.stringify(result,null,2),contentType:'application/json'});
   for(const row of result){
    const capture=referenceContext.captures.find(c=>c.id===row.originalComparison.captureId);
    validateRecordedExecution(row,captureBinding(capture),capture);

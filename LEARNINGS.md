@@ -1,5 +1,18 @@
 # Learnings
 
+## 2026-10-20 — Retain evidence before validation and compare semantic JSON
+
+Monkey Paradise's first six private comparisons had exact native pixels but were
+correctly retained as rejected trace validations: object insertion order differed
+in JSON serialization. The shared semantic comparator now ignores object key
+order while preserving exact fields, primitives and ordered arrays. Required
+catalog and decoded-pattern artifacts must be captured before fallible assertions;
+the first normal traces lacked those artifacts, so only two bounded modern normal
+followups completed that evidence. The original six rejections and partial normal
+retention remain in the private history. Aggregate acceptance must reject any
+rejected row even when the browser command itself exits zero. Pixel equality,
+completed modern paint and original provider/phase claims remain separate.
+
 ## 2026-10-20 — Window widget identity survives custom placement
 
 The `wnd#` rectangle list has semantic part IDs: 1 close, 2 zoom, 3 shade.

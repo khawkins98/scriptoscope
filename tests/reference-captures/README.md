@@ -2,14 +2,14 @@
 
 This is a finite request and review contract for [#190](https://github.com/khawkins98/scriptoscope/issues/190),
 under the [draft compatibility target](../../docs/spec/fidelity-compatibility-contract.md).
-**Thirty-eight original observations have independent AI review under the narrow
+**Forty-one original observations have independent AI review under the narrow
 `public-api-empty-face` scopes v1–v5.** They satisfy no whole request and verify
 no intake target. The fixed empty-push campaign now plans all 18 canonical
 sources × normal/logically highlighted/disabled states: 54 requests, including
 those eight existing observations. Five earlier default/shift experiments remain
-separate, for 59 requests total. The Animals, BeOS, six-source Shared307 and two empty Evolution observations bring the stored corpus to thirty-eight
-reviewed scoped records; 21 requests have no capture (16 campaign states and
-five older experiments). All thirty-eight scoped requests remain evidence-incomplete.
+separate, for 59 requests total. The Animals, BeOS, six-source Shared307 two empty Evolution and three Monkey Paradise observations bring the stored corpus to forty-one
+reviewed scoped records; 18 requests have no capture (13 campaign states and
+five older experiments). All forty-one scoped requests remain evidence-incomplete.
 
 Scope v5 applies only to the 46 newly appended campaign IDs. It requires the
 same fixed port, face, background and full-image evidence, actual public
@@ -382,3 +382,21 @@ used size 12 after the four-state sequence. Shared boot/history and missing
 current/main-device, port-table, patch/cache and pattern-phase observations remain
 explicit. The two public comparison rows exercise empty composition without a
 caller-supplied font. Existing v5 authority and all prior records are unchanged.
+
+## Monkey Paradise three empty states
+
+The three `monkey-paradise.*.m288` records retain untouched full frames and integer
+crops, scalar invocation/condition logs with payloads withheld, actual canonical
+fork/FCB identities and durable ordinary exports. Existing v5 scopes and all
+38 earlier capture/review objects and 59 requests remain exact. The finite profile
+uses only the later same-boot 576 native queries, giving 288 repeat-equal mappings.
+Consumer current/main equality and port ColorTable are unobserved; typography,
+private provider/cache/phase/mask and whole-control fidelity remain unknown.
+
+The normal modern comparison requires actual same-owner ppat128 occurrence459,
+its catalog/load/URL and decoded plane, and completed `pattern-fill-union` writes.
+This proves a modern intermediate stage, not original phase or provider. Pressed
+and inactive requests retain missing ppat0 without inventing completion. Public
+registered execution and its output-obligation review remain separate gates.
+The private history retains six trace-rejected observations, four subsequent
+offline validations and two modern normal followups; no native capture was retried.

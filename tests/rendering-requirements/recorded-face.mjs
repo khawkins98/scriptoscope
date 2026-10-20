@@ -3,6 +3,7 @@ import { resolve } from 'node:path';
 import { isDeepStrictEqual as same } from 'node:util';
 import { createHash } from 'node:crypto';
 import { readContract, assessCorpus, reviewDigest, digest } from '../reference-captures/contract.mjs';
+import { compareCompletedPatternPaint } from '../resource-provenance/patterns.mjs';
 
 export const REQUIREMENT = 'output.recorded-composited-face';
 export const RECORDED_CASES = JSON.parse(readFileSync(new URL('../decoder-fixtures/recorded-case-registry.json', import.meta.url)));
@@ -73,6 +74,27 @@ export function validateCompletedFacePaint(row, selected, hasPairedCinf) {
   }
 }
 
+/** Opt-in case pins require the actual catalog, decoded plane and completed body stage. */
+export function validateRecordedPatternPaint(row, step, pins) {
+  const expected = pins.completedPattern, pattern = pins.pattern;
+  check(expected && pattern, 'missing completed pattern pins');
+  const catalog = row.patternCatalog;
+  check(catalog?.manifestKey === step.resource.manifestKey && catalog.entry?.asset === row.patternAsset, 'wrong retained pattern catalog');
+  const owner = {baseUrl: row.profileBaseUrl, byteProvenance: row.patternLoad, manifest: {patterns: {[catalog.manifestKey]: catalog.entry}}};
+  check(row.patternLoad?.loadId === row.loadId && same(row.patternLoad.resources, row.resources), 'wrong retained pattern load');
+  const result = compareCompletedPatternPaint(owner, step, {
+    inputSha256: pins.sourceArchiveSha256, forkSha256: pins.sourceForkSha256,
+    payloadSha256: pattern.payloadSha256, byteLength: pattern.bytes, resourceIndex: pattern.resourceIndex,
+    signedId: pattern.signedId, chainDepth: 0, bodyMode: pins.bodyRequest.mode,
+    sourceSize: expected.sourceSize, unionRects: expected.unionRects, paintedPixels: expected.paintedPixels,
+    phaseOffset: expected.phaseOffset, context: {...CRAYON_CONTEXT, basis: 'caller-declared'},
+  });
+  check(result.status === 'matched', 'wrong completed pattern paint: ' + result.failures.join(','));
+  const plane = row.patternPlane, raw = Buffer.from(plane?.rgba ?? '', 'base64');
+  check(same(plane?.size, expected.sourceSize) && raw.length === expected.sourceSize[0] * expected.sourceSize[1] * 4 &&
+    createHash('sha256').update(raw).digest('hex') === expected.decodedRgbaSha256, 'wrong decoded pattern plane');
+}
+
 /** Actual completed modern paint is required, without attributing the original painter. */
 export function validateRecordedExecution(row, binding, capture) {
   check(same(row.outcome,{status:'themed',width:88,height:28}), 'composition did not complete');
@@ -137,6 +159,7 @@ export function validateRecordedExecution(row, binding, capture) {
       actual?.type==='ppat' && actual.status==='decoded' && actual.resourceIndex===pins.pattern.resourceIndex &&
       actual.signedId===pins.pattern.signedId && actual.sha256===pins.pattern.payloadSha256 &&
       ((row.state==='normal' && row.slug==='crayon-os') || actual.byteLength===pins.pattern.bytes), 'wrong selected pattern owner/payload');
+    if (pins.completedPattern) validateRecordedPatternPaint(row, p, pins);
   }
   if (row.slug === 'apple-lisa' || sourcePins?.missingPatternId===0) {
     check(same(row.composition?.faceRect, {x:20,y:20,w:80,h:20}) &&
