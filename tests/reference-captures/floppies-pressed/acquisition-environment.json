@@ -1,0 +1,299 @@
+{
+  "source": {
+    "slug": "floppies",
+    "path": "themes/floppies/scheme.sit",
+    "format": "sit",
+    "archiveSha256": "45557a8b2eae7419b5175c02f46363b9edb2efe2cdf109ef1bf70806acadf5c9",
+    "entryIndex": 0,
+    "entryName": "Floppies! \ufffd/Floppies!",
+    "forkSha256": "5121774b5594cd660965b77e4e71d5ef9d24e82023fd80b8a11c7cca335bd062",
+    "selectionReviewStatus": "reviewed-contract-input",
+    "selectionReason": "Explicit scheme-named Colr entry \"Floppies! \ufffd/Floppies!\"; readme/icon/font forks excluded by this declared choice, never by size.",
+    "nameDecodingLimit": "Entry name contains a decoder replacement character. Exact index plus archive/fork hashes pin the choice; original filename decoding is not certified.",
+    "selectionReviewEvidence": "floppies"
+  },
+  "engineComponent": {
+    "id": "engine.kaleidoscope-2.3.1-kdef0",
+    "kind": "engine",
+    "version": "Kaleidoscope 2.3.1 kDEF 0 68k",
+    "bytes": 107726,
+    "sha256": "2c027276dae2355964a0dde1ace31f60ba845ab2c5fbf0496fd34ab2afe7c342",
+    "extractionReference": "docs/spec/kdef-binary-inventory.md",
+    "redistributed": false
+  },
+  "prebootDisks": [
+    {
+      "path": "system755-run.dsk",
+      "bytes": 25165824,
+      "sha256": "2c76c253a02fdb751ad4d1e09359bceb9d024e0ac64528a17b537bb8442a5bc7"
+    },
+    {
+      "path": "oracle64.dsk",
+      "bytes": 67108864,
+      "sha256": "6723c47d00cb2d9c9584a7b88dc814b1e012f560820f23cc841b4e4276c3c188"
+    }
+  ],
+  "fixtureAndProducerInputs": [
+    {
+      "name": "consumer-bindings.json",
+      "bytes": 1145,
+      "sha256": "fdf49af5810fb65a87ad4b21a295a180d7538f841f568f9dbead0b2981d0087d"
+    },
+    {
+      "name": "candidate.json",
+      "bytes": 1010,
+      "sha256": "9ca8b322b41df34e8a2056a7e5605601bacb60a1cb488f640e306d45f0e796c0"
+    },
+    {
+      "name": "run.json",
+      "bytes": 3092,
+      "sha256": "3f3b754bf11a5f10324346c922be648fb935394c82e8531bf960d3ac50891fb1"
+    },
+    {
+      "name": "log-capacity.json",
+      "bytes": 312,
+      "sha256": "16771fcc06e24c57734222cbe9eef0dee509d756896e77b3571e556226d43f2a"
+    },
+    {
+      "name": "PushThreeStates-reviewed.c",
+      "bytes": 19996,
+      "sha256": "ff3e5f58aadb84265a97d6d348bff5be3881742c6d1509eda557815b7145f2bb"
+    },
+    {
+      "name": "PushThreeStates-with-size.bin",
+      "bytes": 70656,
+      "sha256": "077e9fe7ccf39d11f2af2cbc3dd2a423f20d9f7240c63595033e5b60f1e7eafb"
+    },
+    {
+      "name": "ColorMapProbe-floppies3846.c",
+      "bytes": 119877,
+      "sha256": "9d95b3baf039a7d3375ecced47548b2ae5b76bf692384cf97440125f501e2918"
+    },
+    {
+      "name": "ColorMapProbe-floppies3846-with-size.bin",
+      "bytes": 94080,
+      "sha256": "f692fc447d1975002cd58a826c10b712b127d33a6df0cd9e9d5db6e9ce5e085c"
+    },
+    {
+      "name": "query-inputs.json",
+      "bytes": 279750,
+      "sha256": "efb94cb7862e62c4095737b457f09169a88dd7977224ce48fd43640a0df46449"
+    },
+    {
+      "name": "Floppies!.bin",
+      "bytes": 1393536,
+      "sha256": "b40db2ad407d3a80e8b0865381f466dc96290b1a435b1e87ba1fedd9befe2504"
+    },
+    {
+      "name": "scheme-wrapper.json",
+      "bytes": 1446,
+      "sha256": "624584760754ab3d64da167a4bffbc2d47f9b23d8b09074d1cee6213dfa017a4"
+    },
+    {
+      "name": "system755-before-boot.dsk",
+      "bytes": 25165824,
+      "sha256": "2c76c253a02fdb751ad4d1e09359bceb9d024e0ac64528a17b537bb8442a5bc7"
+    },
+    {
+      "name": "oracle-before-boot.dsk",
+      "bytes": 67108864,
+      "sha256": "6723c47d00cb2d9c9584a7b88dc814b1e012f560820f23cc841b4e4276c3c188"
+    },
+    {
+      "name": "reference.ts",
+      "bytes": 2256,
+      "sha256": "7012ea546b999833a396058fd78652cc2d74b5bab296a6e6e864f0e9e6136c63"
+    },
+    {
+      "name": "vite.config.mjs",
+      "bytes": 2151,
+      "sha256": "95a17c7d8f29ad40dceb286c2bde78e6c7b65d25fb3d8f9e64b98fad1746dcc8"
+    },
+    {
+      "name": "emulator-worker.ts",
+      "bytes": 38195,
+      "sha256": "2c85bfcebc0f91a076a528c2bb4d24a4d506a69b05cd64f85aa136fe76dc627f"
+    },
+    {
+      "name": "emulator-input.ts",
+      "bytes": 14561,
+      "sha256": "b69f0527aabd322e8cf0d0840d6faef769cd53a717a6d3d6e7cf36118a1dc0c5"
+    },
+    {
+      "name": "BasiliskII.js",
+      "bytes": 156114,
+      "sha256": "4fd750e202686a7b7c3bd0055dbe33d21dd6b3ce2639da8da814ef1036d1c66b"
+    },
+    {
+      "name": "BasiliskII.wasm",
+      "bytes": 1713564,
+      "sha256": "0be9b5ba1179b65d9d1bd30b3cc35ee56daf6713ba1353048c03229f641680bb"
+    },
+    {
+      "name": "Quadra-650.rom",
+      "bytes": 1048576,
+      "sha256": "05ad753fb594e656cf078023ec189e09e2a7655a780de993b75b8c51ed6b09ca"
+    },
+    {
+      "name": "preboot.json",
+      "bytes": 4757,
+      "sha256": "f3d99a89fbf18d43165c275c35c9a6f330c08d609768a0f25cb1de7ce282824b"
+    },
+    {
+      "name": "preboot-review.json",
+      "bytes": 1315,
+      "sha256": "1c0c7cbd2d4a9b581954abe33c4b8f5439f5a59690647e2bec67ee69ad71dee6"
+    },
+    {
+      "name": "preboot-checkpoint.json",
+      "bytes": 33685,
+      "sha256": "4c0062807d8db28bc2cd925c313233d78c0f87d6fcf49b0192b98e79148b91ba"
+    },
+    {
+      "name": "start.py",
+      "bytes": 1956,
+      "sha256": "d0d870fc85aa74efe903e555fbedc36aa4ef57abc0de5ea2d2b8655dd1474fb9"
+    },
+    {
+      "name": "export.py",
+      "bytes": 6724,
+      "sha256": "395ab23a43c6465756b5885a4f3b1abd2b2684975c54478f6ed294a0140c8a26"
+    },
+    {
+      "name": "ack-state.mjs",
+      "bytes": 236,
+      "sha256": "de8b10ca6a1e0cf7ff72e08311aa08ab23908c98f37ac8cd7ebdaeba3dbc2607"
+    },
+    {
+      "name": "capture-calibration.mjs",
+      "bytes": 2631,
+      "sha256": "21a3f9949fcc2d1ce506e9f768f4071ad46b39f275d061b6725672862e750054"
+    },
+    {
+      "name": "capture-state-absolute.mjs",
+      "bytes": 6481,
+      "sha256": "5395777323100c2e3652e588f57b6705c2dd27e83c7595ff154c879be551064f"
+    },
+    {
+      "name": "check-native.py",
+      "bytes": 3909,
+      "sha256": "aa2d043273d71d631cdfeae305c4e2111eca34821d562865d22691397ae327ca"
+    },
+    {
+      "name": "consumer_retention.py",
+      "bytes": 4105,
+      "sha256": "07cb6f30584340ba0f344a899a5159d550654fd907d86ba81263ae429fb613f0"
+    },
+    {
+      "name": "crop-state.py",
+      "bytes": 1009,
+      "sha256": "f043522d25ff2a7f53bcf69b4538ecc8361bb03aa06d4593909d2b95bc6dc077"
+    },
+    {
+      "name": "join-calibration.py",
+      "bytes": 5460,
+      "sha256": "8cae65dfcda1ec23a273827673a779d0806be17509089d66c02d46a867e80608"
+    },
+    {
+      "name": "physical-calibration-key.mjs",
+      "bytes": 2136,
+      "sha256": "cfc5184de2aaf1465d9ebf2bf57aff378623f091eacc76450dbfc09a684fe375"
+    },
+    {
+      "name": "physical-consumer-key.mjs",
+      "bytes": 3203,
+      "sha256": "e66bf2a86684df7e11330fe72fc2451eead87961a7f7da21369658823c5d3e5b"
+    },
+    {
+      "name": "retain-calibration.py",
+      "bytes": 1131,
+      "sha256": "fae6172c649e72bc7c6a3b2e90322a9de00a3f1be01a058711ca15b733e87294"
+    },
+    {
+      "name": "retain-final-ack.py",
+      "bytes": 53,
+      "sha256": "6fdb33ef3ff8d33dc42227292d48bb2cd4b40eb83432fcde4a1f41b3c8b2c0d5"
+    },
+    {
+      "name": "retain-state.py",
+      "bytes": 72,
+      "sha256": "15ea7125923d43a16dfcb4222a3645f36238f35b3aa814617a2bb1cc71e0303c"
+    },
+    {
+      "name": "validate-consumer-logs.py",
+      "bytes": 4022,
+      "sha256": "1c42eaf99fa620583377782c758774cd7b408ca04a971f797ab51f095cefcb46"
+    }
+  ],
+  "osVersionObserved": "7.5.5 (Gestalt 0x755)",
+  "observedControl": {
+    "procedureId": 0,
+    "variant": 0,
+    "hilite": 10,
+    "value": 0,
+    "enabled": true,
+    "windowActive": true,
+    "api": "NewControl",
+    "drawApi": "Draw1Control",
+    "stateApi": "HiliteControl",
+    "defaultApiInvoked": false,
+    "title": "",
+    "controlRect": [
+      20,
+      20,
+      80,
+      20
+    ],
+    "portOrigin": [
+      0,
+      0
+    ],
+    "portBounds": [
+      0,
+      0,
+      160,
+      80
+    ],
+    "effectiveClipRect": [
+      0,
+      0,
+      160,
+      80
+    ],
+    "backgroundRGB": [
+      255,
+      255,
+      255
+    ],
+    "state": "pressed",
+    "actualFontRequest": {
+      "number": 0,
+      "size": 12,
+      "face": 0
+    },
+    "actualFontInfo": {
+      "ascent": 12,
+      "descent": 3,
+      "widMax": 14,
+      "leading": 1
+    }
+  },
+  "unknown": [
+    "pattern origin",
+    "original selected painter/provider",
+    "cache/search/patch order",
+    "font provider/consumption",
+    "original mask/alpha",
+    "whole-control fidelity"
+  ],
+  "sharedBootIncident": "One boot, ordinary Floppies! selection before fixture; no modal or measurement retry. Shutdown acceptance unknown; Evolution Finder remained visible. No separate pre-export stopped-media copy; after-export copies retained.",
+  "closure": {
+    "normalShutdownRequested": true,
+    "browserClosed": true,
+    "serverClosed": true,
+    "hfsUnmounted": true,
+    "explicitWorkerPoweroffAcknowledgment": "UNKNOWN",
+    "preExportStoppedMediaSnapshot": "NOT_RETAINED_SEPARATELY; immutable after-export copies only",
+    "nativeShutdownEvidence": "ordinary Finder Special Shut Down selected; black/inert canvas retained"
+  }
+}

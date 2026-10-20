@@ -1,0 +1,39 @@
+{
+  "canonicalSource": {
+    "slug": "floppies",
+    "path": "themes/floppies/scheme.sit",
+    "format": "sit",
+    "archiveSha256": "45557a8b2eae7419b5175c02f46363b9edb2efe2cdf109ef1bf70806acadf5c9",
+    "entryIndex": 0,
+    "entryName": "Floppies! \ufffd/Floppies!",
+    "forkSha256": "5121774b5594cd660965b77e4e71d5ef9d24e82023fd80b8a11c7cca335bd062",
+    "selectionReviewStatus": "reviewed-contract-input",
+    "selectionReason": "Explicit scheme-named Colr entry \"Floppies! \ufffd/Floppies!\"; readme/icon/font forks excluded by this declared choice, never by size.",
+    "nameDecodingLimit": "Entry name contains a decoder replacement character. Exact index plus archive/fork hashes pin the choice; original filename decoding is not certified.",
+    "selectionReviewEvidence": "floppies"
+  },
+  "actualCopl": [
+    "CoplResourceFile.file.name=Floppies! volumeRef=-3 parentDir=2 fileID=18 flags=512 logicalEOF=1393335 physicalEOF=1393664",
+    "CoplResourceFile.file.name=Floppies! volumeRef=-3 parentDir=2 fileID=18 flags=512 logicalEOF=1393335 physicalEOF=1393664"
+  ],
+  "configuredFCB": {
+    "volumeRef": -3,
+    "parentDir": 2,
+    "fileID": 18
+  },
+  "stoppedConfiguredFile": {
+    "name": "stopped-Floppies!.bin",
+    "bytes": 1393536,
+    "sha256": "99103f237db17cb4af3948959265b6e58a507a6225e000364ec7f7cdb245d4f1"
+  },
+  "resourceFork": {
+    "bytes": 1393335,
+    "sha256": "5121774b5594cd660965b77e4e71d5ef9d24e82023fd80b8a11c7cca335bd062"
+  },
+  "installedEngineResourceFork": {
+    "bytes": 1005535,
+    "sha256": "cb903bef4410feb096d65b5a4c9383fa2a3c943e6afef6d3c13463b48267d333"
+  },
+  "actualDefinitionsMatchStoppedKaleidoscope": "Independent acquisition review; hashes retained in conditions",
+  "limits": "Configured file only, not private selected resource/provider/cache."
+}

@@ -1,0 +1,17 @@
+{
+  "path": "evolution-pressed-calibration/prepared-profile.json",
+  "sha256": "97f360d2b994da12cdc05cc28c5b020bbd95b5d98c1463ae695231f6c8a57c8a",
+  "id": "display-profile:ec25f2c56ba72be6dd1d86aec16342efa58c473e32633ca63c1da063737b958f",
+  "status": "MEASURED_FINITE_RGB16_PREPARATION_BOUND_TO_EMPTY_OBSERVATIONS",
+  "sourceArchiveSha256": "9491fd7a68134249988b07971d222527709636438c59ca1d0daf5ade82a26740",
+  "measurement": {
+    "path": "evolution-pressed-calibration/measurement.json",
+    "sha256": "86b48ac261be1cdd7e0108df7031b48ebafc48950fb0b71ea70f2157e50f1fb6"
+  },
+  "privateProfile": {
+    "sha256": "f8759b04193e329b49318d0662aa31c3c5c6dbc30347f60fa8d2f740cdcd2c5e",
+    "id": "display-profile:2e458cf85effad2a67d5ddd8bc5ee2b193bdc4b34c7ea3a95e3d7d7327483b8e"
+  },
+  "metadataDelta": "Status/evidence descriptions changed only; measured mappings/devicePalette/producer exact to reviewed private profile.",
+  "executionScope": "Independent private batch: six faces, twelve source/built calls,19200pixels zero differences. Four public candidates only; new Evolution normal/inactive remain private controls. Registered public execution checked separately."
+}

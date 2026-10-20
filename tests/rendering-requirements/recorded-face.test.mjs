@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {validateCompletedFacePaint,captureBinding,validateRecordedBinding,validateRecordedExecution,compareRecordedPixels,PROFILE,exactOptions} from './recorded-face.mjs';
+import {fileURLToPath} from 'node:url';
+import {validateCompletedFacePaint,captureBinding,validateRecordedBinding,validateRecordedExecution,compareRecordedPixels,PROFILE,CRAYON_PROFILE,RECORDED_CASES,profileFor,recordedSubjects,validateRecordedProfiles,exactOptions} from './recorded-face.mjs';
 const ledger=JSON.parse(readFileSync(new URL('./ledger.json',import.meta.url)));
 const captures=JSON.parse(readFileSync(new URL('../reference-captures/captures.json',import.meta.url))).captures;
 // Synthetic assessor results exercise the join; these are not review records.
@@ -47,7 +48,7 @@ test('completed modern paint joins reject wrong owners, occurrences, profile and
 test('recorded comparisons remain execution-unverified when the registered source/built marker is absent or stale',async()=>{
  const {makeReport}=await import('./ledger.mjs');
  const report=makeReport(ledger,{executionCommit:'current',workingTreeDirty:false,execution:{executionCommit:'older',workingTreeDirty:false,assertions:[{id:'recorded.empty-face-six',mode:'source',path:'tests/rendering-options/display-profile.spec.mjs',status:'passed'}]}});
- assert.equal(report.recordedConditionComparisons.cases.length,41);
+ assert.equal(report.recordedConditionComparisons.cases.length,45);
  assert(report.recordedConditionComparisons.cases.every(c=>c.status==='unknown'&&c.execution.every(m=>m.status==='not run')));
 });
 
@@ -151,7 +152,7 @@ test('explicit recorded registry rejects unknown subjects and preserves nullable
   const binding=captureBinding(capture);
   const make=()=>{
    const r=execution().row,options=exactOptions(state,slug);
-   Object.assign(r,{slug,state,options,completionCount:1,profile:entry.profile.id,policy:entry.profile.id,
+   Object.assign(r,{slug,state,options,completionCount:1,profile:profileFor(slug,state).id,policy:profileFor(slug,state).id,
     requested:{state:state==='normal'?'active':state,pressed:options.pressed,disabled:options.disabled,default:false},
     profileInput:pins.sourceArchiveSha256,profileFork:pins.sourceForkSha256,selectedKey:pins.emittedKey,
     selectedCinfId:pins.cinf?.signedId??null,selectedBodyRequest:structuredClone(pins.bodyRequest),recordedSourcePins:structuredClone(pins),
@@ -161,6 +162,7 @@ test('explicit recorded registry rejects unknown subjects and preserves nullable
    Object.assign(r.paintSelectionSteps[0].resource,{signedId:pins.face.signedId,manifestKey:pins.emittedKey,sourceCinfId:pins.cinf?.signedId??null});
    r.resources=['face',...(pins.cinf?['cinf']:[])].map(k=>({resourceIndex:pins[k].resourceIndex,signedId:pins[k].signedId,sha256:pins[k].payloadSha256,byteLength:pins[k].bytes,status:'decoded',type:k==='face'?'cicn':'cinf'}));
    r.facePlane.rgba=Buffer.alloc(6400,255).toString('base64');
+   if(pins.completedFaceRegions)r.bandPaints=pins.completedFaceRegions.map(region=>({...r.bandPaints[0],region}));
    if(pins.cinf)r.bodyFillSteps=[{role:'body-fill',usage:'paint',action:'missing',owner:r.paintSelectionSteps[0].owner,requestedResourceType:'ppat',requestedId:0,bodyMode:0,reason:'same-face-owner-pattern-unavailable'}];
    else{r.legacyFacePaint={...r.bandPaints[0],basis:'compatibility-policy',operation:'legacy-nine-slice-and-sample-fill',sourceRect:{x:0,y:0,w:pins.sourceSize[0],h:pins.sourceSize[1]},destinationRect:{x:0,y:0,w:80,h:20},effectiveFaceClip:{x:0,y:0,w:80,h:20},controlOrigin:[20,20],declaredClip:options.compositionContext.clip,coordinateSpace:'face-local-before-ring',rasterAlpha:'copy-source-rgba',retainedNonzeroAlphaPixels:1600};r.bandPaints=[];}
    return r;
@@ -187,5 +189,57 @@ test('completed recorded pattern requires catalog/load/URL, exact plane and actu
  let x=make();validateRecordedPatternPaint(x.row,x.step,pins);
  for(const change of [x=>delete x.step.bodyPaint,x=>x.step.bodyPaint.paintedPixels=0,x=>x.step.bodyPaint.unionRects=[],x=>x.step.bodyPaint.phase.originalPatternPhase='verified',x=>x.row.patternCatalog.entry.asset='foreign',x=>x.row.patternLoad.loadId='foreign',x=>x.row.resources[0].sha256='bad',x=>x.row.patternPlane.rgba=Buffer.alloc(raw.length).toString('base64'),x=>x.step.bodyPaint.context.clip.rect.w=80]){
   x=make();change(x);assert.throws(()=>validateRecordedPatternPaint(x.row,x.step,pins),/pattern/);
+ }
+});
+
+
+test('state profile selection keeps defaults and binds the same override to capture and execution inputs',()=>{
+ // Existing bindings serve as distinct unit inputs, not new measured-theme claims.
+ const registry={'windows-95':{...RECORDED_CASES['windows-95'],profilesByState:{pressed:CRAYON_PROFILE}}};
+ const subject=recordedSubjects(registry)[0];
+ assert.deepEqual(subject.cases.map(c=>c.profile.id),[PROFILE.id,CRAYON_PROFILE.id,PROFILE.id]);
+ for(const item of subject.cases){
+  const capture=captures.find(c=>c.requestId==='windows-95.'+item.state);
+  assert.deepEqual(captureBinding(capture,registry).profile,item.profile);
+  assert.deepEqual(item.options,exactOptions(item.state,'windows-95'));
+ }
+ assert.equal(profileFor('windows-95',undefined,registry),PROFILE);
+ assert.equal(profileFor('unknown','pressed',registry),undefined);
+ validateRecordedProfiles(fileURLToPath(new URL('../../',import.meta.url)),registry);
+ const malformed=structuredClone(registry);malformed['windows-95'].profilesByState.pressed=null;
+ assert.throws(()=>profileFor('windows-95','pressed',malformed),/invalid registered profile/);
+ assert.throws(()=>recordedSubjects(malformed),/invalid registered profile/);
+ assert.throws(()=>captureBinding(captures.find(c=>c.requestId==='windows-95.pressed'),malformed),/invalid registered profile/);
+ const drift=structuredClone(registry);drift['windows-95'].profilesByState.pressed.sha256='0'.repeat(64);
+ assert.throws(()=>validateRecordedProfiles(fileURLToPath(new URL('../../',import.meta.url)),drift),/profile DATA bytes changed/);
+ const typo=structuredClone(registry);typo['windows-95'].profilesByState.presssed=typo['windows-95'].profilesByState.pressed;
+ assert.throws(()=>validateRecordedProfiles(fileURLToPath(new URL('../../',import.meta.url)),typo),/outside registered states/);
+ const badShape=structuredClone(registry);badShape['windows-95'].profilesByState=[];
+ assert.throws(()=>validateRecordedProfiles(fileURLToPath(new URL('../../',import.meta.url)),badShape),/invalid state profile registry/);
+});
+
+test('state-profile support preserves every existing recorded binding including Evolution normal/inactive',()=>{
+ const subjects=recordedSubjects();
+ for(const capture of captures){
+  const old=ledger.cases.find(c=>c.recordedComparison?.captureId===capture.id);
+  assert.deepEqual(captureBinding(capture),old.recordedComparison,capture.id);
+  assert.deepEqual(subjects.find(s=>s.slug===capture.source.slug).cases.find(c=>c.state===capture.conditions.state).profile,old.recordedComparison.profile);
+ }
+ const evolution=subjects.find(s=>s.slug==='evolution');
+ assert.deepEqual(evolution.cases.map(c=>c.state),['normal','pressed','inactive']);
+ for(const c of evolution.cases)assert.deepEqual(c.profile,c.state==='pressed'?RECORDED_CASES.evolution.profilesByState.pressed:RECORDED_CASES.evolution.profile);
+ assert.notDeepEqual(RECORDED_CASES.evolution.profilesByState.pressed,RECORDED_CASES.evolution.profile);
+});
+
+// Literal regions follow pinned cinf geometry and independently checked source alpha:
+// corner10/side10 at height20 leaves no vertical-side regions; corner6/side4 retains them.
+test('finite completed-region pins reject omitted, repeated and invented nonempty bands',()=>{
+ for(const regions of [[0,1,2,3,4,5],[0,1,2,3,4,5,6,7]]){
+  const row=execution().row,selected=row.paintSelectionSteps[0];
+  row.bandPaints=regions.map(region=>({...row.bandPaints[0],region}));
+  validateCompletedFacePaint(row,selected,true,regions);
+  for(const changed of [row.bandPaints.slice(1),[...row.bandPaints].reverse(),[...row.bandPaints,row.bandPaints[0]],[...row.bandPaints.slice(0,-1),{...row.bandPaints[0],region:99}]]){
+   assert.throws(()=>validateCompletedFacePaint({...row,bandPaints:changed},selected,true,regions),/completed regions/);
+  }
  }
 });

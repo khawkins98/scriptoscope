@@ -2,14 +2,14 @@
 
 This is a finite request and review contract for [#190](https://github.com/khawkins98/scriptoscope/issues/190),
 under the [draft compatibility target](../../docs/spec/fidelity-compatibility-contract.md).
-**Forty-one original observations have independent AI review under the narrow
+**Forty-five original observations have independent AI review under the narrow
 `public-api-empty-face` scopes v1–v5.** They satisfy no whole request and verify
 no intake target. The fixed empty-push campaign now plans all 18 canonical
 sources × normal/logically highlighted/disabled states: 54 requests, including
 those eight existing observations. Five earlier default/shift experiments remain
-separate, for 59 requests total. The Animals, BeOS, six-source Shared307 two empty Evolution and three Monkey Paradise observations bring the stored corpus to forty-one
-reviewed scoped records; 18 requests have no capture (13 campaign states and
-five older experiments). All forty-one scoped requests remain evidence-incomplete.
+separate, for 59 requests total. The Animals, BeOS, six-source Shared307, three Evolution, three Monkey Paradise and three Floppies observations bring the stored corpus to forty-five
+reviewed scoped records; 14 requests have no capture (9 campaign states and
+five older experiments). All forty-five scoped requests remain evidence-incomplete.
 
 Scope v5 applies only to the 46 newly appended campaign IDs. It requires the
 same fixed port, face, background and full-image evidence, actual public
@@ -401,3 +401,32 @@ independent root review accepted only three new output obligations. Scoped intak
 and actual execution remain separate gates.
 The private history retains six trace-rejected observations, four subsequent
 offline validations and two modern normal followups; no native capture was retried.
+
+## Floppies and Evolution pressed batch
+
+Four additional v5 records cover Floppies normal/pressed/inactive and Evolution
+pressed. The existing Evolution normal/inactive capture and profile bindings are
+unchanged. Each selected scheme has its own actual calibration: 7,692 rows/3,846
+keys for Floppies and 3,942 rows/1,971 keys for Evolution. The generic registry
+selects the new Evolution profile only for pressed; no measured rows are pooled.
+
+The [independent byte review](./floppies-evolution-independent-byte-review.json)
+binds four original full frames, crops, ordinary exports and sanitized conditions.
+The private comparison matched twelve calls and 19,200 pixels, including two
+private Evolution controls. The public registered source/built pair passed all45 faces/72,000 pixels per mode
+with zero differences. Independent root review accepted only the four new output
+obligations; all broader claims remain unknown. Floppies corner10/side10 at height20
+produces six nonempty face bands and no body height; Evolution has eight bands.
+All four request absent ppat0, with no invented completed body-fill event.
+
+Shutdown was requested; explicit worker/poweroff acknowledgement remains unknown.
+No separate pre-export stopped-media copy was retained; immutable after-export
+copies exist privately. Consumer current/main equality and port ColorTable,
+original phase/provider/cache/font/mask and whole-control fidelity remain unknown.
+No native font/query payload, engine binary, media or raw resource log is public.
+
+Private recovery evidence is stored as `floppies-evolution-empty-batch-20261020`
+in the maintainer asset store, commit `5b78f6be5c8d757744c49738264b5c3f90507827`.
+The archive SHA-256 is `a401622fa96b43eacd9ca13bae2cc5e8fab9a2d140b7743744584b79a090c402`;
+a fresh selective LFS restore verified all 550 regular files and two symlinks.
+This locator supplies private recovery, not additional public admission.

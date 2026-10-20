@@ -16,12 +16,43 @@ const CRAYON_SOURCE_PINS = JSON.parse(readFileSync(new URL('../decoder-fixtures/
 const LISA_SOURCE_PINS = JSON.parse(readFileSync(new URL('../decoder-fixtures/lisa-recorded-source-pins.json', import.meta.url)));
 export const STATE_SOURCE_PINS = JSON.parse(readFileSync(new URL('../decoder-fixtures/recorded-state-source-pins.json', import.meta.url)));
 export const sourcePinsFor = (slug,state) => STATE_SOURCE_PINS[slug]?.[state] ?? (state === 'normal' ? (slug === 'crayon-os' ? CRAYON_SOURCE_PINS : slug === 'apple-lisa' ? LISA_SOURCE_PINS : undefined) : undefined);
-export const profileFor = slug => RECORDED_CASES[slug]?.profile;
+/** A state override is a complete binding; a malformed declaration cannot fall back. */
+export function profileFor(slug, state, registry = RECORDED_CASES) {
+  const entry = registry[slug];
+  if (!entry) return undefined;
+  check(entry.profilesByState === undefined || (entry.profilesByState !== null && typeof entry.profilesByState === 'object' && !Array.isArray(entry.profilesByState)), 'invalid state profile registry');
+  const profile = Object.hasOwn(entry.profilesByState ?? {}, state) ? entry.profilesByState[state] : entry.profile;
+  check(profile && typeof profile.path === 'string' && profile.path.length > 0 &&
+    typeof profile.id === 'string' && profile.id.startsWith('display-profile:') &&
+    typeof profile.sha256 === 'string' && /^[a-f0-9]{64}$/.test(profile.sha256), 'invalid registered profile binding');
+  return profile;
+}
+
+/** The browser consumes this same per-state selection as captureBinding. */
+export const recordedSubjects = (registry = RECORDED_CASES) => Object.entries(registry).map(([slug, entry]) => ({
+  slug, cases: entry.states.map(state => ({state, profile: profileFor(slug, state, registry),
+    options: exactOptions(state, slug), sourcePins: sourcePinsFor(slug, state) ?? null})),
+}));
+
+export function validateRecordedProfiles(root, registry = RECORDED_CASES) {
+  const verified = new Set();
+  for (const [slug, entry] of Object.entries(registry)) {
+    for (const state of Object.keys(entry.profilesByState ?? {}))
+      check(entry.states.includes(state), 'profile override outside registered states');
+    for (const profile of [profileFor(slug, undefined, registry), ...entry.states.map(state => profileFor(slug, state, registry))]) {
+      const identity = JSON.stringify(profile);
+      if (verified.has(identity)) continue;
+      const profileSha = createHash('sha256').update(readFileSync(resolve(root, profile.path))).digest('hex');
+      check(profileSha === profile.sha256, 'profile DATA bytes changed');
+      verified.add(identity);
+    }
+  }
+}
 export const CRAYON_CONTEXT = { controlOrigin: [20,20], portOrigin: [0,0], patternOrigin: {status:'unknown'}, clip: {kind:'rect',rect:{x:0,y:0,w:160,h:80}} };
 const check = (ok, message) => { if (!ok) throw Error(`recorded face: ${message}`); };
 export const caseId = (slug, state) => `recorded.${slug}.${state}.empty.w80.h20.${RECORDED_CASES[slug]?.caseSuffix}-profile`;
 export const exactOptions = (state, slug) => ({ label: '', minWidth: 80, height: 20, default: false, pressed: state === 'pressed', disabled: state === 'inactive', ...(RECORDED_CASES[slug]?.explicitContext ? {compositionContext: structuredClone(CRAYON_CONTEXT)} : {}) });
-export const captureBinding = capture => ({ captureId: capture.id, requestId: capture.requestId, requestDigest: capture.requestDigest, captureDigest: reviewDigest(capture), imageSha256: capture.image.sha256, reviewScope: { id: capture.reviewScope.id, version: capture.reviewScope.version, digest: digest(capture.reviewScope) }, faceImageRect: [20, 20, 80, 20], publicFaceRect: [4, 4, 80, 20], background: [255, 255, 255], profile: profileFor(capture.source.slug) });
+export const captureBinding = (capture, registry = RECORDED_CASES) => ({ captureId: capture.id, requestId: capture.requestId, requestDigest: capture.requestDigest, captureDigest: reviewDigest(capture), imageSha256: capture.image.sha256, reviewScope: { id: capture.reviewScope.id, version: capture.reviewScope.version, digest: digest(capture.reviewScope) }, faceImageRect: [20, 20, 80, 20], publicFaceRect: [4, 4, 80, 20], background: [255, 255, 255], profile: profileFor(capture.source.slug, capture.conditions.state, registry) });
 
 /** Reuse the intake authority. A matching filename or runtime observation is insufficient. */
 export function readRecordedContext(root) {
@@ -29,10 +60,7 @@ export function readRecordedContext(root) {
   const corpus = JSON.parse(readFileSync(resolve(root, 'tests/reference-captures/captures.json')));
   const reviews = JSON.parse(readFileSync(resolve(root, 'tests/reference-captures/reviews.json')));
   const report = assessCorpus(contract, corpus, reviews, { intakeRoot: resolve(root, 'tests/reference-captures'), known: [] });
-  for (const profile of Object.values(RECORDED_CASES).map(c => c.profile)) {
-    const profileSha = createHash('sha256').update(readFileSync(resolve(root, profile.path))).digest('hex');
-    check(profileSha === profile.sha256, 'profile DATA bytes changed');
-  }
+  validateRecordedProfiles(root);
   return { captures: corpus.captures, report };
 }
 export function validateRecordedBinding(c, binding, context) {
@@ -62,9 +90,10 @@ export function compareRecordedPixels(raw, original) {
 }
 
 /** Validate the completed modern raster stage from paired metadata, not theme names. */
-export function validateCompletedFacePaint(row, selected, hasPairedCinf) {
+export function validateCompletedFacePaint(row, selected, hasPairedCinf, expectedRegions) {
   const paints = hasPairedCinf ? (row.bandPaints ?? []).filter(p => p.role === 'face') : [row.legacyFacePaint];
   check(paints.length > 0 && paints.every(p => p && same(p.owner, selected.owner) && same(p.resource, selected.resource)), 'missing or wrong completed paint dependency');
+  if (expectedRegions) check(hasPairedCinf && !row.legacyFacePaint && same(paints.map(p => p.region), expectedRegions), 'wrong source-eligible completed regions');
   if (!hasPairedCinf) {
     check(!row.resources.some(r => r.type === 'cinf' && r.signedId === selected.resource.signedId), 'paired metadata cannot be omitted');
     const p = row.legacyFacePaint;
@@ -118,8 +147,8 @@ export function validateRecordedExecution(row, binding, capture) {
   check(s.resource.sourceCinfId === row.selectedCinfId && row.source.manifestKey === row.selectedKey, 'wrong paired metadata/key');
   const paintKind = RECORDED_CASES[row.slug]?.paintKind;
   check((paintKind === 'cinf-bands' && cinf !== null) || (paintKind === 'legacy-face' && cinf === null), 'wrong registered paint kind');
-  validateCompletedFacePaint(row, s, cinf !== null);
   const sourcePins=sourcePinsFor(row.slug,row.state);
+  validateCompletedFacePaint(row, s, cinf !== null, sourcePins?.completedFaceRegions);
   if (STATE_SOURCE_PINS[row.slug]?.[row.state]) {
     if (sourcePins.paintKind) {
       check(sourcePins.paintKind === paintKind && same(row.recordedSourcePins, sourcePins), 'wrong explicit paint/source pins');

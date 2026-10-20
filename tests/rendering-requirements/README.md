@@ -1,7 +1,7 @@
 # Partial rendering requirement ledger
 
 `ledger.json` is reviewed acceptance data, separate from rendering and screenshots.
-Inventory 1.12.0 declares sixty-nine exact direct cases and seven explicit dimensions per
+Inventory 1.17.0 declares ninety-nine exact direct cases and seven explicit dimensions per
 case. **Every case has OPEN inventory closure.** The declared obligation
 count is a finite bookkeeping denominator, not an exhaustive denominator of
 historical control behavior. No whole-control completion percentage is reported.
@@ -379,6 +379,15 @@ Each uses its own 307 repeat-measured RGB16 mappings. The explicit
 kind; nullable source pins distinguish paired-cinf bands from actual completed
 legacy-face compatibility paint. Neither path identifies the historical painter.
 
+The registry's `profile` remains the default for every state. An optional
+`profilesByState` maps a registered state to a complete `{path, id, sha256}`
+binding from its own reviewed acquisition. Capture bindings and browser case
+descriptors resolve the same slug/state pair; every declared profile file is
+hash-checked, and malformed overrides fail rather than use the default. The
+browser loads each distinct profile separately within a subject. This allows a
+later state's calibration without replacing earlier accepted bindings; declaring
+an override does not admit a capture or promote an output obligation.
+
 The reviewed private source/built execution compared 57,600 pixels without a
 difference. Public execution still requires the exact scoped capture bindings,
 completed paint and full-plane equality. Only 18 recorded-output obligations
@@ -422,3 +431,14 @@ Pressed/inactive preserve missing0 and completed face bands. No theme-name
 exception, private-provider claim, new scope or typography closure is introduced.
 The registered pair retains full results before assertions, so rejected trace
 or pixel observations remain inspectable without being counted as acceptance.
+
+## Four-claim Floppies/Evolution extension
+
+Inventory1.17.0 appends four cases/24 obligations to the exact prior95/647.
+There are99 OPEN cases/671 obligations:118 narrowly verified and553 unknown. Only the four new
+output obligations were promoted after independent review of the registered
+source/built pair:45 faces and72,000 pixels per mode, zero differences.
+Floppies has six source-eligible bands at height20; Evolution pressed has eight.
+The generic per-state profile override preserves old Evolution normal/inactive
+bindings. Neither missingppat0 nor zero-height body invents completed body paint.
+All broader requirements and inventory closure remain open.

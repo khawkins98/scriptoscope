@@ -1,6 +1,6 @@
 # Reviewed original face observations
 
-The corpus contains forty-one `reviewed-scoped-observation` records under
+The corpus contains forty-five `reviewed-scoped-observation` records under
 [`public-api-empty-face` versions 1–5](../../docs/spec/scoped-reference-observations.md).
 An independent Astra AI agent reviewed the eight earlier observations. A separate independent automated root reviewer approved the four
 new records under v5. Its [byte review](./four-state-independent-byte-review.json)
@@ -176,7 +176,7 @@ The output comparison covers the complete face, while actual paint evidence
 contains eight metadata-defined bands and a missing ppat-0 lookup. It does not
 claim a completed interior-fill trace, original masks, typography, private
 provider choice, labeled rendering or whole-control fidelity. Evolution pressed
-remains a missing campaign capture. The public source/built pair matched all 38 registered faces and 60,800
+was still a missing campaign capture at that earlier batch; the later pressed record below is separate. The public source/built pair matched all 38 registered faces and 60,800
 composited pixels per mode; independent root review recomputed every PNG crop.
 Execution remains separately bound from acquisition and scoped intake approval.
 
@@ -200,3 +200,21 @@ Private originals and failure history are retained in asset
 `ce54c3330c3cbe00cdd50a2f0488776adb00f712`, archive SHA-256
 `e9a83a1f01ac88eaeb2d09940568ca5f9d0357f2aa8bb2345dd1e0054b50c719`.
 Public CI requires none of those private assets.
+
+## Floppies and later Evolution pressed
+
+| Request | Original face | Profile |
+| --- | --- | --- |
+| Floppies normal | [Face](./floppies-normal/face.png) | [3,846-key measurement](./floppies-calibration/measurement.json) |
+| Floppies pressed | [Face](./floppies-pressed/face.png) | Same Floppies run |
+| Floppies inactive | [Face](./floppies-inactive/face.png) | Same Floppies run |
+| Evolution pressed | [Face](./evolution-pressed/face.png) | [New 1,971-key measurement](./evolution-pressed-calibration/measurement.json) |
+
+These four independent v5 attestations preserve all prior41 records/reviews and
+59 requests exactly. Font0/size12/face0 is observed, with identity and consumption
+unknown. The old Evolution normal/inactive records retain their own conditions
+and profile; new same-run controls remain private. The registered public
+source/built pair matched all45 faces/72,000 pixels per mode; independent review
+accepted only the four narrow output obligations. Shutdown
+acknowledgement and pre-export media identity remain explicitly unestablished;
+original mask/phase/provider/cache, typography and whole controls remain unknown.

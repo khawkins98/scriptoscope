@@ -1,0 +1,36 @@
+{
+  "status": "ROOT_INDEPENDENT_PUBLIC_SUPPORT_AND_FOUR_SCOPED_ACQUISITIONS_ACCEPTED",
+  "supportFreezeSha256": "ccd5215b7cd425cfc7e93b99af529331120300efc351210ee5c52aaff1df67b2",
+  "publicFiles": 88,
+  "exactImageCopies": 20,
+  "scopedCaptureIds": [
+    "floppies.normal.f3846",
+    "floppies.pressed.f3846",
+    "floppies.inactive.f3846",
+    "evolution.pressed.e1971"
+  ],
+  "captureBindings": [
+    {
+      "captureId": "floppies.normal.f3846",
+      "captureDigest": "34659b2e9db16eabaf9efbd5ccf41c88ec80d0ee59ad6d68aa9b8c80799b92b1",
+      "requestDigest": "f8fb68ec40dea5bfe1d25830e4644feb117e060861ace3d1774b17263ab9fe3a"
+    },
+    {
+      "captureId": "floppies.pressed.f3846",
+      "captureDigest": "8ec9a212419d8476d8418f7f315fb27b156e3a2258df83c2b3ae56e9ffc64fbe",
+      "requestDigest": "383766df44d4c53e0f475ed195494bdf0af438a07a06367456cd1de604ffb02b"
+    },
+    {
+      "captureId": "floppies.inactive.f3846",
+      "captureDigest": "1d76992c3175fe07ea1793b3f20d2742fbcfb7315551d354a1b1ebfd7b180e76",
+      "requestDigest": "a178cbc3dbda2e7cc2383815a86f9504521872fe409e810a59c2f446c6e4d0b0"
+    },
+    {
+      "captureId": "evolution.pressed.e1971",
+      "captureDigest": "5cb01b55b75c2c1a4067824d23bf7711cfb98fefacc3c69fbd53135e7ac039bb",
+      "requestDigest": "a377818607eed271bd3121d4549419179e27495d7f92bb839d3e01450792eb6f"
+    }
+  ],
+  "registeredPublicOutput": "PENDING_NO_PROMOTION",
+  "notes": "Accepted only existing public-api-empty-face v5: fixed empty80x20 face over recorded white with actual HiliteControl0/10/255 and activewindow. Root independently viewed all4 full native candidate frames, checked88publicartifact hashes,20image byte/mtime joins, exact4full/raw/port/context/face crop chains, allsanitizedlog line/payload-redaction/Copl/fork joins, exact measured3846/1971mapping/palette/producer arrays and raw-row proof. Prior41captures/reviews,59requests and95/647ledger remain exact. Private independent12call comparison d8dfb9a5 verified19200pixels with zero differences, actual source/built fullbuffers/allassets and84eligible completedbands; Floppies has6, Evolution8. Missing same-owner ppat0 is an observed lookup, not an invented completed fill/nativepainter proof. Font0/size12/face0 observed but fontidentity remainsnull. Consumer port table/current-main, provider/cache/patch/search-order, alpha/masks, originalphase, wholecontrol and otherinputs remainunknown. Fixed sharedorder and reusedA3A labels explicit. Native shutdownacceptanceUNKNOWN; EvolutionFinder remained; no separatepre-exportstoppedcopy, only afterexportmedia. Before-Cseq0 screenshots independentlyviewed; reviewer initialmisattribution corrected, no actualchronologydiscrepancy. Registered publicexecution and outputpromotion stillpending; no fitting or native recapture."
+}

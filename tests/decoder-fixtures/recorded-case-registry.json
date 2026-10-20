@@ -203,8 +203,16 @@
     "expectNormalDefaultDifference": false,
     "states": [
       "normal",
+      "pressed",
       "inactive"
-    ]
+    ],
+    "profilesByState": {
+      "pressed": {
+        "path": "tests/decoder-fixtures/measured-display-profile-evolution-pressed.json",
+        "id": "display-profile:ec25f2c56ba72be6dd1d86aec16342efa58c473e32633ca63c1da063737b958f",
+        "sha256": "97f360d2b994da12cdc05cc28c5b020bbd95b5d98c1463ae695231f6c8a57c8a"
+      }
+    }
   },
   "monkey-paradise": {
     "profile": {
@@ -213,6 +221,22 @@
       "sha256": "a22a2812126867eef6797b01f0aca2a1a024a5e6960a77426ba27c907e8da16c"
     },
     "caseSuffix": "m288",
+    "explicitContext": true,
+    "paintKind": "cinf-bands",
+    "expectNormalDefaultDifference": false,
+    "states": [
+      "normal",
+      "pressed",
+      "inactive"
+    ]
+  },
+  "floppies": {
+    "profile": {
+      "path": "tests/decoder-fixtures/measured-display-profile-floppies.json",
+      "id": "display-profile:cf7c3ee68642fbc6d48ad560a60c55687704609f1f8e8e946ca17862ed6d2f6f",
+      "sha256": "92035413a445011ce539566f69ed899bfe0ee4b12ded1555ed26f1c8eb926cd9"
+    },
+    "caseSuffix": "f3846",
     "explicitContext": true,
     "paintKind": "cinf-bands",
     "expectNormalDefaultDifference": false,

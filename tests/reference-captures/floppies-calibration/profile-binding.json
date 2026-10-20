@@ -1,0 +1,17 @@
+{
+  "path": "floppies-calibration/prepared-profile.json",
+  "sha256": "92035413a445011ce539566f69ed899bfe0ee4b12ded1555ed26f1c8eb926cd9",
+  "id": "display-profile:cf7c3ee68642fbc6d48ad560a60c55687704609f1f8e8e946ca17862ed6d2f6f",
+  "status": "MEASURED_FINITE_RGB16_PREPARATION_BOUND_TO_EMPTY_OBSERVATIONS",
+  "sourceArchiveSha256": "45557a8b2eae7419b5175c02f46363b9edb2efe2cdf109ef1bf70806acadf5c9",
+  "measurement": {
+    "path": "floppies-calibration/measurement.json",
+    "sha256": "4399f913365ddcb11c85cee6309eb801e827fc14b439389554dc946c80d840a1"
+  },
+  "privateProfile": {
+    "sha256": "b7fed1f6bf3b6aee0de860918638f3e15cdf63dad803bf2524f010346eb58376",
+    "id": "display-profile:ccae0684499aea47b12d357e9f691edd6bcee12c82ee13ecfa5685c9d3e7e793"
+  },
+  "metadataDelta": "Status/evidence descriptions changed only; measured mappings/devicePalette/producer exact to reviewed private profile.",
+  "executionScope": "Independent private batch: six faces, twelve source/built calls,19200pixels zero differences. Four public candidates only; new Evolution normal/inactive remain private controls. Registered public execution checked separately."
+}
