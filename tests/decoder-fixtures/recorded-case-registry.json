@@ -1,0 +1,194 @@
+{
+  "windows-95": {
+    "profile": {
+      "path": "tests/decoder-fixtures/measured-display-profile.json",
+      "id": "display-profile:506eb4e615f81385b6143c63a9612f4c899b14e2c93c60b67358b436777f772d",
+      "sha256": "d8c495d980029f857633652c5e1abd3bc4f289fb8705e03fd750bc9bdff96d00"
+    },
+    "caseSuffix": "v9",
+    "explicitContext": false,
+    "paintKind": "cinf-bands",
+    "expectNormalDefaultDifference": true,
+    "states": [
+      "normal",
+      "pressed",
+      "inactive"
+    ]
+  },
+  "system7-nostalgia-silver": {
+    "profile": {
+      "path": "tests/decoder-fixtures/measured-display-profile.json",
+      "id": "display-profile:506eb4e615f81385b6143c63a9612f4c899b14e2c93c60b67358b436777f772d",
+      "sha256": "d8c495d980029f857633652c5e1abd3bc4f289fb8705e03fd750bc9bdff96d00"
+    },
+    "caseSuffix": "v9",
+    "explicitContext": false,
+    "paintKind": "legacy-face",
+    "expectNormalDefaultDifference": true,
+    "states": [
+      "normal",
+      "pressed",
+      "inactive"
+    ]
+  },
+  "crayon-os": {
+    "profile": {
+      "path": "tests/decoder-fixtures/measured-display-profile-crayon.json",
+      "id": "display-profile:d4e4f9ffb69f1292f2c86b3fb2914561c58f8b38a5aeb53336e6cf914b10a1a0",
+      "sha256": "fbd0eb8abb9e5e153fa4ddb0d825a2fea045a6f4a19baca445d12b449ff47b5a"
+    },
+    "caseSuffix": "v14c",
+    "explicitContext": true,
+    "paintKind": "cinf-bands",
+    "expectNormalDefaultDifference": true,
+    "states": [
+      "normal",
+      "pressed",
+      "inactive"
+    ]
+  },
+  "apple-lisa": {
+    "profile": {
+      "path": "tests/decoder-fixtures/measured-display-profile-lisa.json",
+      "id": "display-profile:9bbdfe3464638676c8c8aac27d1b316a3f6bd21837be19f937e59fa5df4730a2",
+      "sha256": "f48d2807c6b881b0a3fdd851b866a47116e2df2b998201b95c6c5854befdd1d6"
+    },
+    "caseSuffix": "v16l",
+    "explicitContext": true,
+    "paintKind": "cinf-bands",
+    "expectNormalDefaultDifference": false,
+    "states": [
+      "normal",
+      "pressed",
+      "inactive"
+    ]
+  },
+  "animals": {
+    "profile": {
+      "path": "tests/decoder-fixtures/measured-display-profile-animals.json",
+      "id": "display-profile:287bde96a0ee72c13658b53c2e24643264325f79ded18ae0cd8d96257a9082b7",
+      "sha256": "8212d54dc56f28dd4825c55591e09b18ce5d9c317b647995a3d4b0635b99c5d5"
+    },
+    "caseSuffix": "a209",
+    "explicitContext": true,
+    "paintKind": "cinf-bands",
+    "expectNormalDefaultDifference": false,
+    "states": [
+      "normal",
+      "pressed",
+      "inactive"
+    ]
+  },
+  "beos-r503": {
+    "profile": {
+      "path": "tests/decoder-fixtures/measured-display-profile-beos.json",
+      "id": "display-profile:913a5b3ad1d6501ad9059a4cad783c88c930a9647f32b0989993f4af7f2ee538",
+      "sha256": "e70ab19f818d1281488fc0a6d4a2df9a46e816e5e0127b1176be423cb94a2c58"
+    },
+    "caseSuffix": "b278-v2",
+    "explicitContext": true,
+    "paintKind": "cinf-bands",
+    "expectNormalDefaultDifference": false,
+    "states": [
+      "normal",
+      "pressed",
+      "inactive"
+    ]
+  },
+  "1138": {
+    "profile": {
+      "path": "tests/decoder-fixtures/measured-display-profile-1138.json",
+      "id": "display-profile:eab8f272f721e104bd2e204e8a0192f4b3ae1e25283cb06efe99bf0ed567038e",
+      "sha256": "3686ca8ca86d52830aaf943e1798d771bd8eb3cbaac5e81871e149cf96e55d3d"
+    },
+    "caseSuffix": "shared307",
+    "explicitContext": true,
+    "paintKind": "cinf-bands",
+    "expectNormalDefaultDifference": false,
+    "states": [
+      "normal",
+      "pressed",
+      "inactive"
+    ]
+  },
+  "apple-platinum-2": {
+    "profile": {
+      "path": "tests/decoder-fixtures/measured-display-profile-apple-platinum-2.json",
+      "id": "display-profile:c9bdc6fd08d20eeccdc74b32071a83e75dce9149f5be199079012ae03f2b51c7",
+      "sha256": "98b28f82fd5dcbb3a1770647e5deb4bd9c9b1e9576d512ecbfb0c9cd07e47c22"
+    },
+    "caseSuffix": "shared307",
+    "explicitContext": true,
+    "paintKind": "legacy-face",
+    "expectNormalDefaultDifference": false,
+    "states": [
+      "normal",
+      "pressed",
+      "inactive"
+    ]
+  },
+  "black-platinum": {
+    "profile": {
+      "path": "tests/decoder-fixtures/measured-display-profile-black-platinum.json",
+      "id": "display-profile:bdff2cf685e40e2937dbcee3e613d2d46524dfdcc7bac90968c206b45bf3ddc0",
+      "sha256": "99a845515e35aa8ef808d61f1020f5800a8e250c08f37169509ce9d291085c43"
+    },
+    "caseSuffix": "shared307",
+    "explicitContext": true,
+    "paintKind": "legacy-face",
+    "expectNormalDefaultDifference": false,
+    "states": [
+      "normal",
+      "pressed",
+      "inactive"
+    ]
+  },
+  "platinum-8": {
+    "profile": {
+      "path": "tests/decoder-fixtures/measured-display-profile-platinum-8.json",
+      "id": "display-profile:9f2383ac622a5a31851b66d00964cf111cbc47575f517d48d8432bed39c0ecb4",
+      "sha256": "d05652c25d7b127616b31461063264d0ebd0f49a41cd75cfb9b5f90bbac00692"
+    },
+    "caseSuffix": "shared307",
+    "explicitContext": true,
+    "paintKind": "legacy-face",
+    "expectNormalDefaultDifference": false,
+    "states": [
+      "normal",
+      "pressed",
+      "inactive"
+    ]
+  },
+  "slimes": {
+    "profile": {
+      "path": "tests/decoder-fixtures/measured-display-profile-slimes.json",
+      "id": "display-profile:36dc28105d8bb380b8df9588cee7ac100bd1294ea218fe56bec287f644c25973",
+      "sha256": "cc128c30089d593e97e5a07e7ffa33729a09b73fe5842d4085dfe54864bbb1f5"
+    },
+    "caseSuffix": "shared307",
+    "explicitContext": true,
+    "paintKind": "legacy-face",
+    "expectNormalDefaultDifference": false,
+    "states": [
+      "normal",
+      "pressed",
+      "inactive"
+    ]
+  },
+  "windows-31": {
+    "profile": {
+      "path": "tests/decoder-fixtures/measured-display-profile-windows-31.json",
+      "id": "display-profile:999c4aca04c0cffe407bd0d5c6e340d464139c1c389548d4987cb65214c23e06",
+      "sha256": "1413c9daf5d691dd63af377cf8da1c8dcdba0eb14c045f0c1922f617a4961682"
+    },
+    "caseSuffix": "shared307",
+    "explicitContext": true,
+    "paintKind": "cinf-bands",
+    "expectNormalDefaultDifference": false,
+    "states": [
+      "normal",
+      "pressed",
+      "inactive"
+    ]
+  }
+}

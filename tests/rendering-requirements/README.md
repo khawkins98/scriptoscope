@@ -369,3 +369,22 @@ remain exact. Only three `output.recorded-composited-face` obligations become
 verified. The resulting 72 OPEN cases contain 509 obligations: 91 narrow verified
 and 418 unknown. Original provider/cache/phase/mask and whole-control conditions
 remain unknown, including missing cross-run port-table and widMax observations.
+
+## Shared307 recorded-condition comparisons (1.14.0)
+
+Eighteen added cases cover normal, Hilite10 and Hilite255 empty 80×20 faces
+for 1138, Apple Platinum 2, Black Platinum, Platinum 8, Slimes and Windows 3.1.
+Each uses its own 307 repeat-measured RGB16 mappings. The explicit
+`recorded-case-registry.json` binds profile identity, options and modern paint
+kind; nullable source pins distinguish paired-cinf bands from actual completed
+legacy-face compatibility paint. Neither path identifies the historical painter.
+
+The reviewed private source/built execution compared 57,600 pixels without a
+difference. Public execution still requires the exact scoped capture bindings,
+completed paint and full-plane equality. Only 18 recorded-output obligations
+are added as verified: totals are 90 OPEN cases, 617 obligations, 109 verified
+and 508 unknown. `shared307-recorded-transition.json` and its tests preserve
+all prior 72 cases, 509 assessments and registry prefixes. Fixed-order shared
+boot/cache history, Black Platinum's startup anomaly and Slimes' uncaptured
+initial fixture launch remain conditions. Missing port color-table, calibration
+widMax, main-device equality and full font/provider observations remain unknown.
