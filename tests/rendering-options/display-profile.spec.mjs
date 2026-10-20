@@ -4,6 +4,53 @@ import {fileURLToPath} from 'node:url';
 import {literalCicn,faceInfo} from '../decoder-fixtures/mode5.mjs';
 import {test,expect,openHarness,attachObservations} from './fixtures.mjs';
 for(const mode of ['source','built']) {
+ test(`${mode}: finite BeOS direct profile loads the whole archive and prepares exact ppat128 pixels`,async({page,servers},info)=>{
+  await openHarness(page,servers,mode);
+  const row=await page.evaluate(async mode=>{
+   const api=await import(mode==='built'?'/dist/scriptoscope.js':'/src/index.ts');
+   const data=await(await fetch('/tests/decoder-fixtures/measured-display-profile-beos.json')).json();
+   const profile=await api.prepareDisplayProfile(data),theme=await api.loadTheme('/themes/beos-r503',{displayProfile:profile,provenance:true});
+   try {
+    const matches=Object.entries(theme.manifest.patterns).filter(([,p])=>p.sourcePpatId===128);
+    if(matches.length!==1)throw Error('Missing unique ppat128');
+    const [key,pattern]=matches[0],image=await createImageBitmap(await(await fetch(pattern.asset)).blob());
+    const canvas=document.createElement('canvas');canvas.width=image.width;canvas.height=image.height;
+    const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(image,0,0);image.close();
+    const pixels=ctx.getImageData(0,0,canvas.width,canvas.height).data;
+    // Independent serialized source: each of eight512px rows is35 aa,1 bb,476 dd,
+    // followed by16 padding bytes. Native context0 evidence gives192/205/231.
+    let differentPixels=0;
+    for(let y=0;y<8;y++)for(let x=0;x<512;x++){
+     const v=x<35?192:x===35?205:231,o=(y*512+x)*4;
+     if(pixels[o]!==v||pixels[o+1]!==v||pixels[o+2]!==v||pixels[o+3]!==255)differentPixels++;
+    }
+    let trace;await api.composeButton(theme,{label:'',minWidth:80,height:20,default:false,diagnostics:{onComplete:t=>trace=t}});
+    const face=trace.steps.find(s=>s.role==='face'&&s.usage==='paint'&&s.action==='selected');
+    const incomplete=structuredClone(data);incomplete.directRgb8.mappings=incomplete.directRgb8.mappings.filter(r=>r.rgb8[0]!==170);
+    let allocated=0,missingCode;
+    try{await api.loadKaleidoscopeScheme(new Uint8Array(await(await fetch('/themes/beos-r503/scheme.sit')).arrayBuffer()),{displayProfile:await api.prepareDisplayProfile(incomplete),assetUrlFactory:()=>{allocated++;return'never';}});}catch(e){missingCode=e.code;}
+    return {mode,profileId:profile.id,manifestProfileId:theme.manifest.displayProfile.id,baseUrl:theme.baseUrl,
+     load:theme.byteProvenance,pattern:{key,...pattern},size:[canvas.width,canvas.height],differentPixels,
+     pixelRgba:btoa(String.fromCharCode(...pixels)),sourceLayout:{width:512,height:8,rowBytes:2064,pmVersion:1},
+     normalFace:face,normalElement:theme.manifest.chromeElements[face.resource.manifestKey],bandPaints:trace.bandPaints??[],
+     bodyFillSteps:trace.steps.filter(s=>s.role==='body-fill'),missingCode,allocated};
+   }finally{theme.dispose();}
+  },mode);
+  await attachObservations(info,'display-profile-beos-direct',mode,row);
+  expect(row.profileId).toBe('display-profile:913a5b3ad1d6501ad9059a4cad783c88c930a9647f32b0989993f4af7f2ee538');
+  expect(row.manifestProfileId).toBe(row.profileId);
+  expect(row.load.input.sha256).toBe('04b315396840c5f6e53555381d51ab86087169d5687640261d92c3f85510c0c0');
+  expect(row.load.fork.sha256).toBe('f8d70eb86bdda078c07ba509a0e069f525700b7af1a2c7b022265c65decf2bac');
+  expect(row.pattern.byteProvenance).toMatchObject({loadId:row.load.loadId,manifestKey:row.pattern.key,ppatResourceIndex:1183});
+  expect(row.load.resources.filter(r=>r.resourceIndex===1183)).toEqual([expect.objectContaining({type:'ppat',signedId:128,status:'decoded',byteLength:16590,sha256:'0f18915ca70d1bce2a314669cbe84121922508639ede1ce7733791a506230bf2'})]);
+  expect(row.pattern.asset).toMatch(/^blob:/);expect(row.size).toEqual([512,8]);expect(row.differentPixels).toBe(0);
+  expect(row.normalFace.resource.signedId).toBe(-10239);expect(row.normalFace.owner).toMatchObject({baseUrl:row.baseUrl,chainDepth:0});
+  expect(row.normalElement.bodyRequest).toEqual({mode:0,resourceId:0});expect(row.normalElement.colorSamples.displayPolicy).toBe(row.profileId);
+  expect(row.normalFace.resource.byteProvenance).toMatchObject({loadId:row.load.loadId,cicnResourceIndex:190,cinfResourceIndex:394});
+  expect(row.bandPaints.some(p=>p.role==='face')).toBe(true);
+  expect(row.bodyFillSteps.some(s=>s.action==='selected'&&s.resource?.signedId===128)).toBe(false);
+  expect(row.missingCode).toBe('MISSING_MAPPING');expect(row.allocated).toBe(0);
+ });
  test(`${mode}: measured profile loads real themes without asset overrides and isolates default pixels`,async({page,servers},info)=>{
   info.annotations.push({type:'fidelity-assertion',description:'recorded.empty-face-six'});
   info.annotations.push({type:'fidelity-assertion',description:'recorded.crayon-normal'});
