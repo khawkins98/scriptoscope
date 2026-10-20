@@ -14,6 +14,22 @@ algorithm, **never** dump Apple's listing. Feeds the Phase-B reimplementation in
 #   m68k-elf-objdump -s -b binary -m m68k WDEF-125.bin | sed -n '<lines>'
 ```
 
+## 2026-10-20 correction: grow is not titlebar shade
+
+The earlier notes below misidentified the `0x11fc` rectangle as a collapse
+box. `wHit` calls that helper at `0xcdc`, tests its rectangle at `0xcf6`, and
+returns **3 (`wInGrow`)** at `0xcfc`. The helper takes the structure-region
+**bottom-right** corner (`top = bottom−7`, `left = right−7`), then offsets it
+by (1,1). This is grow-box geometry, not a titlebar shade position.
+
+All older “collapse” labels tied to `0x11fc`, its inline drawing, or hit code 3
+are retained as **superseded historical interpretation**. In particular, the
+claimed title/structure-rectangle coincidence and `drawCollapseBox` mapping
+below are withdrawn. These instructions do not establish a titlebar collapse
+glyph, its pressed feedback, or a three-widget order. The current synthetic
+corner-sprite shade layout is explicit compatibility policy; native kDEF
+window widgets instead retain their `wnd#` rectangle-part identities.
+
 ## Routine map
 | addr | name | role | calls | return |
 |---|---|---|---|---|
@@ -69,7 +85,7 @@ frame) → `jsr 0x392`; `4` (the **close box**) → `jsr 0xb10`; `5` and `6` (th
 **zoom box**, top/side-titlebar variants) → `jsr 0xbb6`. So the **whole-frame
 drawer is `0x392`** and the two procedural widget-highlight drawers are
 `0xb10` (close pressed) / `0xbb6` (zoom pressed). The widget↔part mapping is
-confirmed by `wHit 0xc84` (see Window widgets): part **3 = collapse**, part
+confirmed by `wHit 0xc84` (see Window widgets): part **3 = grow** (corrected above), part
 **4 = close**, part **5 = zoom**.
 
 ### Trap-fingerprint cross-check (labels confirmed)
@@ -760,6 +776,8 @@ else:                  drawBox(aux, boxRect)         # release -> normal bevel
 
 ### Could-not-pin / open questions
 
+The following collapse-specific hypotheses are superseded by the correction above.
+
 - **Collapse box source rect** (`0x11fc`): it is built from the **structure-region
   bbox**, not the title rect, then 7×7-cornered at the right + `OffsetRect(1,1)`.
   For a standard top-titlebar window the structRgn top coincides with the title
@@ -1110,7 +1128,7 @@ section above (cited). Nothing here is new.
   Appearance theme — not derivable from this resource. → Phase B decodes the
   `wctb`/theme (the ISO recon located a `wctb` + `ppat`/`PAT` in the System file).
   Expected outcome, not a failure.
-- **Collapse-box source-rect coincidence.** `0x11fc` derives the collapse box from
+- **Superseded: collapse-box source-rect coincidence.** The earlier interpretation that `0x11fc` derives a collapse box from
   the **structure-region bbox**, not the title rect `fp@(-356)`. For a standard
   top-titlebar window these top rows coincide, landing it inboard of the zoom box,
   but the asm does not prove the two rects coincide for all varCodes. → Verify in
@@ -1152,7 +1170,7 @@ Legend: ✓ planned-faithful · ≈ planned-approximation · ✗ deliberately no
 | `0x424`/`0x434` + `0x44a`–`0x49a` + `0x60c`–`0x686` | frame outer ring + bottom/right shadow + title raised bevel | `drawFrame` + `drawTitleBevel` (fixed 1-px insets, hardcoded edge order) | ✓ | **Key divergence vs kDEF:** Platinum uses fixed code-driven insets (1 px sides, title-height top) + procedural bevel; the kDEF derives insets from cicn `frameFromBody`/`drawableExtent`. No art measures the inset. |
 | `0x1018` + `0x904` | close box (7×7, empty beveled square) | `drawCloseBox` | ✓ | **Procedural** 7×7 box (`FrameRect`+`EraseRect`+highlight polyline); kDEF bakes the widget into chrome cicn art. Synthesize in code, expect no cicn. |
 | `0x110e` + `0x9dc` | zoom box (7×7 + inner-square glyph) | `drawZoomBox` | ✓ | Same as close + inner-square glyph drawn in outline color. Procedural, not cicn-baked. |
-| `0x11fc` + `0x708`–`0x786` | collapse box (7×7 from structRgn bbox corner, inline) | `drawCollapseBox` | ≈ | Source rect from structRgn bbox not title rect (coincidence unproven for all varCodes); horizontal-bar glyph not found in normal pass. Verify both in render. |
+| `0x11fc` + `0x708`–`0x786` | grow box (7×7 from structRgn bottom-right corner) | Historical `drawCollapseBox` mapping withdrawn | superseded | `wHit` returns 3 (`wInGrow`); this is not evidence for titlebar shade layout or glyphs. |
 | `0xb10` / `0xbb6` | close/zoom pressed-highlight (invert / fill / redraw-normal) | `drawPressedBox` (close/zoom) | ✓ | Pressed state via low-mem `0x0B20` toggle → reimpl as an explicit pressed flag. Collapse box has **no** pressed drawer (✗ — not ported, matches WDEF). |
 | `0x1356` (+ slots `+10..+106`) | color sourcing + per-channel blend `A+(B−A)·w/15` | `blend()` + a Platinum color-slot table | ✓ | **Literal colors/`wctb` sourced separately** — runtime data, not in this resource. Recon found a `wctb` + `ppat`/`PAT` in the System file; point Phase B there for the `+NN` → RGB values. WDEF is a pure consumer. |
 | `0x310` + gate `0x544`–`0x55a` | screen-depth gate (deep-color vs shallow flat) | `pickDepthPath` (deep iff `≥8`-bit + color table) | ≈ | Phase B likely targets the deep path only (themed Canvas/CSS is full-color); the shallow B&W fallback may be a `✗` (skipped) unless a low-depth mode is desired. Decide at impl time. |
