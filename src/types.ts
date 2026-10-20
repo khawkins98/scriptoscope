@@ -174,9 +174,9 @@ export interface ChromeElement {
   readonly sliderLayoutCinf?: SliderLayoutCinfView;
   readonly cicnBody?: CicnBodyBinding;
   readonly sampledBandAsset?: CicnSampledBandAsset;
-  /** Absent/null is unknown. No raw RGB16, cache/device or selection claim. */
   /** Finite unmasked transfer pixels with separately applied modern source-mask alpha. */
   readonly cicnTransfer?: import('../tools/theme-loader/cicn-transfer-results.js').CicnTransferProvenance;
+  /** Absent/null is unknown. No raw RGB16, cache/device or selection claim. */
   readonly samplingEquivalence?: CicnSamplingEquivalence | null;
   /** Actual decoded input references, only from an opted-in load. */
   readonly byteProvenance?: ElementByteProvenance;
