@@ -18,12 +18,16 @@ test('Shared307 retains the complete prior 72-case/509-obligation ledger and old
  Object.assign(prior,{inventoryVersion:transition.inventoryVersion,inventorySha256:transition.inventorySha256,scope:transition.scope});
  assert.equal(inventoryDigest(prior),transition.inventorySha256);assert.equal(hash(JSON.stringify(prior)),transition.priorObjectSha256);
  assert.deepEqual(makeReport(prior).requirementStatus.counts,{verified:91,mismatched:0,unsupported:0,unknown:418});
- const added=ledger.assessments.slice(transition.counts.assessments);
+ const next=json('tests/rendering-requirements/evolution-recorded-transition.json'),historical=structuredClone(ledger);
+ for(const [key,count] of Object.entries(next.counts))historical[key]=historical[key].slice(0,count);
+ Object.assign(historical,{inventoryVersion:next.inventoryVersion,inventorySha256:next.inventorySha256,scope:next.scope});
+ assert.equal(inventoryDigest(historical),next.inventorySha256);assert.equal(hash(JSON.stringify(historical)),next.priorObjectSha256);
+ const added=historical.assessments.slice(transition.counts.assessments);
  assert.equal(added.length,108);assert.equal(added.filter(a=>a.status==='verified').length,18);
  assert(added.every(a=>a.status===(a.requirementId==='output.recorded-composited-face'?'verified':'unknown')));
- assert.deepEqual(makeReport(ledger).requirementStatus.counts,{verified:109,mismatched:0,unsupported:0,unknown:508});
+ assert.deepEqual(makeReport(historical).requirementStatus.counts,{verified:109,mismatched:0,unsupported:0,unknown:508});
  assert(ledger.cases.every(c=>c.inventoryClosure.status==='open'));
- const oldPins=Object.fromEntries(Object.entries(STATE_SOURCE_PINS).filter(([slug])=>RECORDED_CASES[slug].caseSuffix!=='shared307'));
+ const oldPins=Object.fromEntries(Object.entries(STATE_SOURCE_PINS).filter(([slug])=>!['shared307','e1971'].includes(RECORDED_CASES[slug].caseSuffix)));
  assert.equal(hash(JSON.stringify(oldPins)),transition.priorSourcePinsSha256);
 });
 

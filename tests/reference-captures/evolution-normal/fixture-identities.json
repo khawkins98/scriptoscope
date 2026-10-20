@@ -1,0 +1,19 @@
+{
+  "source": {
+    "name": "EvolutionFourStates.c",
+    "bytes": 22805,
+    "sha256": "8eb5801385b83fba56a1dc48551b2500c7a2f216a3d2ebd5b34ffb4fabfeac59"
+  },
+  "compiledPackage": {
+    "name": "EvolutionFourStates-with-size.bin",
+    "bytes": 72448,
+    "sha256": "7051555c7ec9df94cba810f896601424799132cd0318cbe25cff996795c7b3b4"
+  },
+  "compiledAndStoppedResourceFork": {
+    "bytes": 72126,
+    "sha256": "bb2dae177bdffc378c6d07cfdd8fa960e25c8ec2bf6a8979facba4e2fe869105"
+  },
+  "installedEquality": true,
+  "protocol": "One C per fresh state; durable retention before N; native ACK4. Only empty state0/2 publicly packaged.",
+  "sourceRedistributed": false
+}

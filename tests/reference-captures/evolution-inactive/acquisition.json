@@ -1,0 +1,72 @@
+{
+  "bootNonce": "E4A-4a586c7f16",
+  "fixtureLabel": "E4A2-4a586c7f16",
+  "fixedOrder": [
+    "empty/0",
+    "A/0",
+    "empty/255",
+    "A/255"
+  ],
+  "ordinal": 2,
+  "controlGeneration": 3,
+  "actualAcquisitionLines": [
+    "acquisition.bootNonce=E4A-4a586c7f16 fixedOrder=EMPTY:0,A:0,EMPTY:255,A:255 sharedSchemeOSCacheHistory=1 providerCacheOrder=UNKNOWN",
+    "acquisition.setup=EraseRect;NewControl-implicit-draw;Draw1Control;HiliteControl;unbracketed-before-observation",
+    "acquisition.stateOrdinal=2 requestedHilite=255 controlGeneration=3 createdTicks=40598 priorDisposedTicks=40598",
+    "acquisition.priorAcknowledgedState=1 hostAckCount=2 lastHostAckTicks=40598 priorFile=E4A1-00007a32-001.txt",
+    "acquisition.faceDrawCount=2 initial=1 update=1 mouse=0 capture=0",
+    "acquisition.stateOrdinal=2 requestedHilite=255 controlGeneration=3 createdTicks=40598 priorDisposedTicks=40598",
+    "acquisition.priorAcknowledgedState=1 hostAckCount=2 lastHostAckTicks=40598 priorFile=E4A1-00007a32-001.txt",
+    "acquisition.faceDrawCount=3 initial=1 update=1 mouse=0 capture=1"
+  ],
+  "hostAck": {
+    "status": "COMMAND_SENT_NATIVE_ACCEPTANCE_PENDING",
+    "bootNonce": "E4A-4a586c7f16",
+    "key": "n",
+    "ordinal": 2,
+    "session": "scriptoscope-evolution-combined-20261020",
+    "at": "2026-10-20T13:23:30.065Z",
+    "candidateSha256": "1c6fc8b22bd3248d162a5b77b1af7e908419ec31a8fe40dc8d1d196bb7e24a6b",
+    "runSha256": "4e8930c37c10190fa00f86292e40cf5e9e1932355b0086c4cbeffccbf9a9be75",
+    "evidence": [
+      {
+        "path": "captures/state-2-retained.json",
+        "sha256": "8e790ea66c39b917ba7fdac48cd6c06131c6eb33a4f075d85aa362e8ed0bedf1"
+      }
+    ],
+    "limits": "Delivery is not native acceptance; no automatic retry. Actual state/ACK/query/closure joins remain required."
+  },
+  "finalNativeAckObservation": {
+    "basis": "visually read retained native status screenshot; not native log fields",
+    "ack": 4,
+    "stateOrdinal": 3,
+    "hilite": 255,
+    "generation": 4,
+    "screenshotSha256": "00f6e366e2c453a8387ddff729022a6925cf1c8d430e7eeef3c2f94d1e08f9c6"
+  },
+  "sharedHistory": "Fresh controls; fixed-order same boot. State2 follows private labeled state1. Separate post-ACK4 font query and calibration occur later; not cold-cache/order independence.",
+  "acquisitionReview": {
+    "name": "scriptoscope-evolution-acquisition-independent-review-20261020.json",
+    "bytes": 3156,
+    "sha256": "a26e934d8ee9e3dea961c77bd86b3a8ad5cf1b59cd03a9798072657f365e0f27"
+  },
+  "scopedIntakeReview": "Independent v5 attestation required separately",
+  "comparisonEvidence": {
+    "privateCheckpoint": {
+      "name": "checkpoint.json",
+      "bytes": 4961,
+      "sha256": "e01f6f305025855302fc0e0cdc1406953031c82fb12c73da94f031d6b176ec3d"
+    },
+    "independentReview": {
+      "name": "scriptoscope-evolution-private-comparison-independent-review-20261020.json",
+      "bytes": 2764,
+      "sha256": "772c8d37b4deeb979894b330a392f57c760731813dbe05edb9c3d5ceaf3e8dea"
+    },
+    "emptyStatesCompared": [
+      0,
+      2
+    ],
+    "result": "Exact empty native faces in source/built at frozen7bcd3b70; public registered execution remains a separate check."
+  },
+  "fontBoundary": "Only empty observations packaged. Labeled images, glyph candidate and font-query payload remain private."
+}

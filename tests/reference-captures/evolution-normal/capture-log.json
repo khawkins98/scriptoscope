@@ -1,0 +1,609 @@
+{
+  "status": "SANITIZED_ORIGINAL_EMPTY_STATE_LOG_PENDING_SCOPED_REVIEW",
+  "originalRawLog": {
+    "name": "state-0.raw",
+    "bytes": 20575,
+    "sha256": "73d1e2ec24eafff2bc27285f5a107dc4f70b1a3896908415163630d155a15bcc"
+  },
+  "lineNumberBasis": "1-based MacRoman CR-to-LF derivative; redaction hashes are LF-joined UTF-8 without trailing LF.",
+  "retainedLines": [
+    {
+      "line": 1,
+      "text": "status=QUARANTINED_PARTIAL fixture=E4A0-4a586c7f16 launchDate=3875354387 launchTicks=31282 sequence=1"
+    },
+    {
+      "line": 2,
+      "text": "acquisition.bootNonce=E4A-4a586c7f16 fixedOrder=EMPTY:0,A:0,EMPTY:255,A:255 sharedSchemeOSCacheHistory=1 providerCacheOrder=UNKNOWN"
+    },
+    {
+      "line": 3,
+      "text": "telemetryFile.volumeRef=-3 directoryID=2"
+    },
+    {
+      "line": 4,
+      "text": "acquisition.setup=EraseRect;NewControl-implicit-draw;Draw1Control;HiliteControl;unbracketed-before-observation"
+    },
+    {
+      "line": 5,
+      "text": "activePrivateProviderOrder=UNKNOWN;activePatchOrder=UNKNOWN;deviceGammaConfiguration=UNKNOWN"
+    },
+    {
+      "line": 6,
+      "text": "resourceContext.phase=before-condition-queries callerCurResFile=2540 queryHasOSErr=0"
+    },
+    {
+      "line": 7,
+      "text": "callerResourceFile.fileQuery=PBGetFCBInfoSync error=0 ioResult=0"
+    },
+    {
+      "line": 8,
+      "text": "callerResourceFile.file.name=Evolution Four States volumeRef=-3 parentDir=2 fileID=16 flags=768 logicalEOF=72126 physicalEOF=72704"
+    },
+    {
+      "line": 9,
+      "text": "resourceContext.Copl.status=0 fullResponseHex=00000a4a callerAfterGetter=2540"
+    },
+    {
+      "line": 10,
+      "text": "resourceContext.Copl.signedLow16Ref=2634"
+    },
+    {
+      "line": 11,
+      "text": "CoplResourceFile.fileQuery=PBGetFCBInfoSync error=0 ioResult=0"
+    },
+    {
+      "line": 12,
+      "text": "CoplResourceFile.file.name=Evolution volumeRef=-3 parentDir=2 fileID=18 flags=512 logicalEOF=1650192 physicalEOF=1650688"
+    },
+    {
+      "line": 13,
+      "text": "resourceContext.meaning=public-ref-observation-only;not-selected-cicn-cinf-ownership;private-cache-order-UNKNOWN"
+    },
+    {
+      "line": 14,
+      "text": "phase=before-public-draw ticks=33790"
+    },
+    {
+      "line": 15,
+      "text": "acquisition.stateOrdinal=0 requestedHilite=0 controlGeneration=1 createdTicks=31331 priorDisposedTicks=-1"
+    },
+    {
+      "line": 16,
+      "text": "acquisition.priorAcknowledgedState=-1 hostAckCount=0 lastHostAckTicks=-1 priorFile=NONE"
+    },
+    {
+      "line": 17,
+      "text": "acquisition.faceDrawCount=2 initial=1 update=1 mouse=0 capture=0"
+    },
+    {
+      "line": 18,
+      "text": "systemVersionHex=755 machineGestalt=36"
+    },
+    {
+      "line": 19,
+      "text": "portRect=0,0,160,80"
+    },
+    {
+      "line": 20,
+      "text": "globalOrigin=80,90 portVersion=-16384"
+    },
+    {
+      "line": 21,
+      "text": "controlRect=20,20,100,40"
+    },
+    {
+      "line": 22,
+      "text": "control.hilite=0 visible=255 value=0 min=0 max=1 titleLength=0 active=1 windowKind=8"
+    },
+    {
+      "line": 23,
+      "text": "invocation=shared-NewCWindow(proc0);fresh-NewControl(proc0);Draw1Control;HiliteControl(requestedHilite);no-default-API"
+    },
+    {
+      "line": 24,
+      "text": "requestedControlProc=0 actualControlDefinitionHandle=000dd448 actualWindowDefinitionHandle=000b0ecc"
+    },
+    {
+      "line": 25,
+      "text": "control.title.expectedLength=0 actualLength=0"
+    },
+    {
+      "line": 26,
+      "text": "label.width.query=TextWidth firstByte=0 byteCount=0 sameTargetPort=1 result=0"
+    },
+    {
+      "line": 27,
+      "text": "control.variant.query=GetControlVariant actual=0 queryHasOSErr=0"
+    },
+    {
+      "line": 28,
+      "text": "actualControlDefinition.resourceInfoError=0 homeRef=1130 homeResourceError=0 typeHex=43444546 id=0 name="
+    },
+    {
+      "line": 29,
+      "text": "actualControlDefinition.fileQuery=PBGetFCBInfoSync error=0 ioResult=0"
+    },
+    {
+      "line": 30,
+      "text": "actualControlDefinition.file.name=Kaleidoscope volumeRef=-1 parentDir=176 fileID=435 flags=768 logicalEOF=1005535 physicalEOF=1005568"
+    },
+    {
+      "line": 31,
+      "text": "actualControlDefinition.bytes=174"
+    },
+    {
+      "line": 35,
+      "text": "actualWindowDefinition.resourceInfoError=0 homeRef=1130 homeResourceError=0 typeHex=57444546 id=0 name="
+    },
+    {
+      "line": 36,
+      "text": "actualWindowDefinition.fileQuery=PBGetFCBInfoSync error=0 ioResult=0"
+    },
+    {
+      "line": 37,
+      "text": "actualWindowDefinition.file.name=Kaleidoscope volumeRef=-1 parentDir=176 fileID=435 flags=768 logicalEOF=1005535 physicalEOF=1005568"
+    },
+    {
+      "line": 38,
+      "text": "actualWindowDefinition.bytes=176"
+    },
+    {
+      "line": 42,
+      "text": "font.number=0 name=Chicago size=0 face=0 mode=1 ascent=12 descent=3 widMax=14 leading=1"
+    },
+    {
+      "line": 43,
+      "text": "clipBounds=-32767,-32767,32767,32767"
+    },
+    {
+      "line": 44,
+      "text": "clipRegion.bytes=10"
+    },
+    {
+      "line": 46,
+      "text": "visibleBounds=0,0,160,80"
+    },
+    {
+      "line": 47,
+      "text": "visibleRegion.bytes=10"
+    },
+    {
+      "line": 49,
+      "text": "portPixMap.bounds=-80,-90,560,390"
+    },
+    {
+      "line": 50,
+      "text": "effectiveClip.method=owned-SectRgn(clip,visible,portRect,portPixMap.bounds);IM-QuickDraw-2-12/Color-QuickDraw"
+    },
+    {
+      "line": 51,
+      "text": "effectiveClipBounds=0,0,160,80"
+    },
+    {
+      "line": 52,
+      "text": "effectiveClipRegion.bytes=10"
+    },
+    {
+      "line": 54,
+      "text": "device.ref=-49 id=0 type=0 flags=47137 mode=131"
+    },
+    {
+      "line": 55,
+      "text": "pixMap.depth=8 rowBytes=33408 pixelType=0"
+    },
+    {
+      "line": 56,
+      "text": "pixMap.bounds=0,0,640,480"
+    },
+    {
+      "line": 57,
+      "text": "colorTable.seed=1023 flags=32768 lastIndex=255"
+    },
+    {
+      "line": 58,
+      "text": "colorTable.bytes=2056"
+    },
+    {
+      "line": 92,
+      "text": "gamma.query=PBStatusSync csCode=8 actualDeviceRef=-49 status=0 ioResult=0 returnedPointer=0000d110"
+    },
+    {
+      "line": 93,
+      "text": "gamma.header.version=0 type=0 formulaBytes=0 channels=1 count=256 bitsPerEntry=8"
+    },
+    {
+      "line": 94,
+      "text": "gammaFixedPrefix.bytes=12"
+    },
+    {
+      "line": 96,
+      "text": "gamma.table=observed-version0-bounded-bytes;not-color-transform-proof"
+    },
+    {
+      "line": 97,
+      "text": "gammaTable.bytes=268"
+    },
+    {
+      "line": 103,
+      "text": "port.backgroundRGB16=ffff,ffff,ffff"
+    },
+    {
+      "line": 104,
+      "text": "port.foregroundRGB16=0000,0000,0000"
+    },
+    {
+      "line": 105,
+      "text": "body.GetCPixel=dddd,dddd,dddd"
+    },
+    {
+      "line": 106,
+      "text": "edge.GetCPixel=3333,3333,3333"
+    },
+    {
+      "line": 107,
+      "text": "sentinel.0.GetCPixel=ffff,0000,0000"
+    },
+    {
+      "line": 108,
+      "text": "sentinel.1.GetCPixel=0000,ffff,0000"
+    },
+    {
+      "line": 109,
+      "text": "sentinel.2.GetCPixel=0000,0000,ffff"
+    },
+    {
+      "line": 110,
+      "text": "sentinel.3.GetCPixel=ffff,ffff,ffff"
+    },
+    {
+      "line": 111,
+      "text": "sentinel.4.GetCPixel=0000,0000,0000"
+    },
+    {
+      "line": 112,
+      "text": "immediateBeforePublicFace.CurResFile=2540"
+    },
+    {
+      "line": 113,
+      "text": "immediateAfterPublicFace.CurResFile=2540"
+    },
+    {
+      "line": 114,
+      "text": "resourceContext.phase=after-public-draw callerCurResFile=2540 queryHasOSErr=0"
+    },
+    {
+      "line": 115,
+      "text": "callerResourceFile.fileQuery=PBGetFCBInfoSync error=0 ioResult=0"
+    },
+    {
+      "line": 116,
+      "text": "callerResourceFile.file.name=Evolution Four States volumeRef=-3 parentDir=2 fileID=16 flags=768 logicalEOF=72126 physicalEOF=72704"
+    },
+    {
+      "line": 117,
+      "text": "resourceContext.Copl.status=0 fullResponseHex=00000a4a callerAfterGetter=2540"
+    },
+    {
+      "line": 118,
+      "text": "resourceContext.Copl.signedLow16Ref=2634"
+    },
+    {
+      "line": 119,
+      "text": "CoplResourceFile.fileQuery=PBGetFCBInfoSync error=0 ioResult=0"
+    },
+    {
+      "line": 120,
+      "text": "CoplResourceFile.file.name=Evolution volumeRef=-3 parentDir=2 fileID=18 flags=512 logicalEOF=1650192 physicalEOF=1650688"
+    },
+    {
+      "line": 121,
+      "text": "resourceContext.meaning=public-ref-observation-only;not-selected-cicn-cinf-ownership;private-cache-order-UNKNOWN"
+    },
+    {
+      "line": 122,
+      "text": "phase=after-public-draw ticks=33792"
+    },
+    {
+      "line": 123,
+      "text": "acquisition.stateOrdinal=0 requestedHilite=0 controlGeneration=1 createdTicks=31331 priorDisposedTicks=-1"
+    },
+    {
+      "line": 124,
+      "text": "acquisition.priorAcknowledgedState=-1 hostAckCount=0 lastHostAckTicks=-1 priorFile=NONE"
+    },
+    {
+      "line": 125,
+      "text": "acquisition.faceDrawCount=3 initial=1 update=1 mouse=0 capture=1"
+    },
+    {
+      "line": 126,
+      "text": "systemVersionHex=755 machineGestalt=36"
+    },
+    {
+      "line": 127,
+      "text": "portRect=0,0,160,80"
+    },
+    {
+      "line": 128,
+      "text": "globalOrigin=80,90 portVersion=-16384"
+    },
+    {
+      "line": 129,
+      "text": "controlRect=20,20,100,40"
+    },
+    {
+      "line": 130,
+      "text": "control.hilite=0 visible=255 value=0 min=0 max=1 titleLength=0 active=1 windowKind=8"
+    },
+    {
+      "line": 131,
+      "text": "invocation=shared-NewCWindow(proc0);fresh-NewControl(proc0);Draw1Control;HiliteControl(requestedHilite);no-default-API"
+    },
+    {
+      "line": 132,
+      "text": "requestedControlProc=0 actualControlDefinitionHandle=000dd448 actualWindowDefinitionHandle=000b0ecc"
+    },
+    {
+      "line": 133,
+      "text": "control.title.expectedLength=0 actualLength=0"
+    },
+    {
+      "line": 134,
+      "text": "label.width.query=TextWidth firstByte=0 byteCount=0 sameTargetPort=1 result=0"
+    },
+    {
+      "line": 135,
+      "text": "control.variant.query=GetControlVariant actual=0 queryHasOSErr=0"
+    },
+    {
+      "line": 136,
+      "text": "actualControlDefinition.resourceInfoError=0 homeRef=1130 homeResourceError=0 typeHex=43444546 id=0 name="
+    },
+    {
+      "line": 137,
+      "text": "actualControlDefinition.fileQuery=PBGetFCBInfoSync error=0 ioResult=0"
+    },
+    {
+      "line": 138,
+      "text": "actualControlDefinition.file.name=Kaleidoscope volumeRef=-1 parentDir=176 fileID=435 flags=768 logicalEOF=1005535 physicalEOF=1005568"
+    },
+    {
+      "line": 139,
+      "text": "actualControlDefinition.bytes=174"
+    },
+    {
+      "line": 143,
+      "text": "actualWindowDefinition.resourceInfoError=0 homeRef=1130 homeResourceError=0 typeHex=57444546 id=0 name="
+    },
+    {
+      "line": 144,
+      "text": "actualWindowDefinition.fileQuery=PBGetFCBInfoSync error=0 ioResult=0"
+    },
+    {
+      "line": 145,
+      "text": "actualWindowDefinition.file.name=Kaleidoscope volumeRef=-1 parentDir=176 fileID=435 flags=768 logicalEOF=1005535 physicalEOF=1005568"
+    },
+    {
+      "line": 146,
+      "text": "actualWindowDefinition.bytes=176"
+    },
+    {
+      "line": 150,
+      "text": "font.number=0 name=Chicago size=0 face=0 mode=1 ascent=12 descent=3 widMax=14 leading=1"
+    },
+    {
+      "line": 151,
+      "text": "clipBounds=-32767,-32767,32767,32767"
+    },
+    {
+      "line": 152,
+      "text": "clipRegion.bytes=10"
+    },
+    {
+      "line": 154,
+      "text": "visibleBounds=0,0,160,80"
+    },
+    {
+      "line": 155,
+      "text": "visibleRegion.bytes=10"
+    },
+    {
+      "line": 157,
+      "text": "portPixMap.bounds=-80,-90,560,390"
+    },
+    {
+      "line": 158,
+      "text": "effectiveClip.method=owned-SectRgn(clip,visible,portRect,portPixMap.bounds);IM-QuickDraw-2-12/Color-QuickDraw"
+    },
+    {
+      "line": 159,
+      "text": "effectiveClipBounds=0,0,160,80"
+    },
+    {
+      "line": 160,
+      "text": "effectiveClipRegion.bytes=10"
+    },
+    {
+      "line": 162,
+      "text": "device.ref=-49 id=0 type=0 flags=47137 mode=131"
+    },
+    {
+      "line": 163,
+      "text": "pixMap.depth=8 rowBytes=33408 pixelType=0"
+    },
+    {
+      "line": 164,
+      "text": "pixMap.bounds=0,0,640,480"
+    },
+    {
+      "line": 165,
+      "text": "colorTable.seed=1023 flags=32768 lastIndex=255"
+    },
+    {
+      "line": 166,
+      "text": "colorTable.bytes=2056"
+    },
+    {
+      "line": 200,
+      "text": "gamma.query=PBStatusSync csCode=8 actualDeviceRef=-49 status=0 ioResult=0 returnedPointer=0000d110"
+    },
+    {
+      "line": 201,
+      "text": "gamma.header.version=0 type=0 formulaBytes=0 channels=1 count=256 bitsPerEntry=8"
+    },
+    {
+      "line": 202,
+      "text": "gammaFixedPrefix.bytes=12"
+    },
+    {
+      "line": 204,
+      "text": "gamma.table=observed-version0-bounded-bytes;not-color-transform-proof"
+    },
+    {
+      "line": 205,
+      "text": "gammaTable.bytes=268"
+    },
+    {
+      "line": 211,
+      "text": "port.backgroundRGB16=ffff,ffff,ffff"
+    },
+    {
+      "line": 212,
+      "text": "port.foregroundRGB16=0000,0000,0000"
+    },
+    {
+      "line": 213,
+      "text": "body.GetCPixel=dddd,dddd,dddd"
+    },
+    {
+      "line": 214,
+      "text": "edge.GetCPixel=3333,3333,3333"
+    },
+    {
+      "line": 215,
+      "text": "sentinel.0.GetCPixel=ffff,0000,0000"
+    },
+    {
+      "line": 216,
+      "text": "sentinel.1.GetCPixel=0000,ffff,0000"
+    },
+    {
+      "line": 217,
+      "text": "sentinel.2.GetCPixel=0000,0000,ffff"
+    },
+    {
+      "line": 218,
+      "text": "sentinel.3.GetCPixel=ffff,ffff,ffff"
+    },
+    {
+      "line": 219,
+      "text": "sentinel.4.GetCPixel=0000,0000,0000"
+    },
+    {
+      "line": 220,
+      "text": "observedLabel=EMPTY requestedHilite=0 callerFont=0 callerSize=0 callerFace=0"
+    },
+    {
+      "line": 221,
+      "text": "captureComplete=1"
+    }
+  ],
+  "redactedRanges": [
+    {
+      "firstLine": 32,
+      "lastLine": 34,
+      "sha256": "fdd8bb11a5e05902ca6059626cc056e013847f9005ad20164e1272081fd3fa57",
+      "reason": "Native binary payload withheld; scalar size and raw-export hash retained."
+    },
+    {
+      "firstLine": 39,
+      "lastLine": 41,
+      "sha256": "7ae4bba33b80e4176e17e85b5619cd373219dc10a5b34cf81aa96c36da5079a1",
+      "reason": "Native binary payload withheld; scalar size and raw-export hash retained."
+    },
+    {
+      "firstLine": 45,
+      "lastLine": 45,
+      "sha256": "d88f18ce62fc05ce1a7afede38525defae4c90336ff14debf80d7ca9af0b9d28",
+      "reason": "Native binary payload withheld; scalar size and raw-export hash retained."
+    },
+    {
+      "firstLine": 48,
+      "lastLine": 48,
+      "sha256": "59418cdd1a9d7270821e9e1ac0810bda82f378ceec72dc4b985994f53a17dd35",
+      "reason": "Native binary payload withheld; scalar size and raw-export hash retained."
+    },
+    {
+      "firstLine": 53,
+      "lastLine": 53,
+      "sha256": "4c22d10caafb7cedfebd6b574d3299791b9aa2f9a0d94c212ff5897217fc17c8",
+      "reason": "Native binary payload withheld; scalar size and raw-export hash retained."
+    },
+    {
+      "firstLine": 59,
+      "lastLine": 91,
+      "sha256": "546b2339a25ccaf2a16620208fe03526bce18d92fc115df5229c7462079c7c45",
+      "reason": "Native binary payload withheld; scalar size and raw-export hash retained."
+    },
+    {
+      "firstLine": 95,
+      "lastLine": 95,
+      "sha256": "ed4f34221dc34e3d22ca01743fee97446cfdefd6240e22e94c3e76596ccfca55",
+      "reason": "Native binary payload withheld; scalar size and raw-export hash retained."
+    },
+    {
+      "firstLine": 98,
+      "lastLine": 102,
+      "sha256": "f441220c0096db15fcaec00d75bc8fbe185a482f58e8d4a69f6da30b20700baf",
+      "reason": "Native binary payload withheld; scalar size and raw-export hash retained."
+    },
+    {
+      "firstLine": 140,
+      "lastLine": 142,
+      "sha256": "fdd8bb11a5e05902ca6059626cc056e013847f9005ad20164e1272081fd3fa57",
+      "reason": "Native binary payload withheld; scalar size and raw-export hash retained."
+    },
+    {
+      "firstLine": 147,
+      "lastLine": 149,
+      "sha256": "7ae4bba33b80e4176e17e85b5619cd373219dc10a5b34cf81aa96c36da5079a1",
+      "reason": "Native binary payload withheld; scalar size and raw-export hash retained."
+    },
+    {
+      "firstLine": 153,
+      "lastLine": 153,
+      "sha256": "d88f18ce62fc05ce1a7afede38525defae4c90336ff14debf80d7ca9af0b9d28",
+      "reason": "Native binary payload withheld; scalar size and raw-export hash retained."
+    },
+    {
+      "firstLine": 156,
+      "lastLine": 156,
+      "sha256": "59418cdd1a9d7270821e9e1ac0810bda82f378ceec72dc4b985994f53a17dd35",
+      "reason": "Native binary payload withheld; scalar size and raw-export hash retained."
+    },
+    {
+      "firstLine": 161,
+      "lastLine": 161,
+      "sha256": "4c22d10caafb7cedfebd6b574d3299791b9aa2f9a0d94c212ff5897217fc17c8",
+      "reason": "Native binary payload withheld; scalar size and raw-export hash retained."
+    },
+    {
+      "firstLine": 167,
+      "lastLine": 199,
+      "sha256": "546b2339a25ccaf2a16620208fe03526bce18d92fc115df5229c7462079c7c45",
+      "reason": "Native binary payload withheld; scalar size and raw-export hash retained."
+    },
+    {
+      "firstLine": 203,
+      "lastLine": 203,
+      "sha256": "ed4f34221dc34e3d22ca01743fee97446cfdefd6240e22e94c3e76596ccfca55",
+      "reason": "Native binary payload withheld; scalar size and raw-export hash retained."
+    },
+    {
+      "firstLine": 206,
+      "lastLine": 210,
+      "sha256": "f441220c0096db15fcaec00d75bc8fbe185a482f58e8d4a69f6da30b20700baf",
+      "reason": "Native binary payload withheld; scalar size and raw-export hash retained."
+    }
+  ]
+}

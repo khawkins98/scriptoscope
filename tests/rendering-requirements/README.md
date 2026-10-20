@@ -388,3 +388,21 @@ all prior 72 cases, 509 assessments and registry prefixes. Fixed-order shared
 boot/cache history, Black Platinum's startup anomaly and Slimes' uncaptured
 initial fixture launch remain conditions. Missing port color-table, calibration
 widMax, main-device equality and full font/provider observations remain unknown.
+
+## Evolution empty-state extension (1.15.0)
+
+The inventory appends two exact empty Evolution normal/inactive cases and twelve
+obligations, preserving all prior 90 cases and 617 assessments through
+`evolution-recorded-transition.json`. All 92 case closures remain OPEN. The two
+recorded-output obligations are narrowly verified after the public source/built
+pair passed and independent root review recomputed the native image comparisons;
+their other ten obligations remain unknown. Totals are 111 verified and 518 unknown
+assessments across 629 obligations. The existing generic source/metadata/paint verifier
+binds actual selected CICN/CINF occurrences, eight face bands and the missing
+ppat-0 lookup. No completed body-fill event is inferred.
+
+Only empty composition uses these two records. Native font/query payloads,
+labeled observations, original masks, font/provider identity, pattern phase and
+whole-control claims are excluded. Intake review and actual execution remain
+separate gates. This coherent batch includes data, finite profile, harness,
+ledger and documentation before its final required checks.

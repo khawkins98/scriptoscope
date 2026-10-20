@@ -1,0 +1,38 @@
+{
+  "canonicalSource": {
+    "slug": "evolution",
+    "path": "themes/evolution/scheme.rsrc",
+    "format": "rsrc",
+    "archiveSha256": "9491fd7a68134249988b07971d222527709636438c59ca1d0daf5ade82a26740",
+    "entryIndex": null,
+    "entryName": null,
+    "forkSha256": "9491fd7a68134249988b07971d222527709636438c59ca1d0daf5ade82a26740",
+    "selectionReviewStatus": "reviewed-contract-input",
+    "selectionReason": "Repository source is an explicit standalone resource fork, with no container selection.",
+    "selectionReviewEvidence": "evolution"
+  },
+  "actualCopl": [
+    "CoplResourceFile.file.name=Evolution volumeRef=-3 parentDir=2 fileID=18 flags=512 logicalEOF=1650192 physicalEOF=1650688",
+    "CoplResourceFile.file.name=Evolution volumeRef=-3 parentDir=2 fileID=18 flags=512 logicalEOF=1650192 physicalEOF=1650688"
+  ],
+  "configuredFCB": {
+    "volumeRef": -3,
+    "parentDir": 2,
+    "fileID": 18
+  },
+  "stoppedConfiguredFile": {
+    "name": "stopped-Evolution.bin",
+    "bytes": 1650432,
+    "sha256": "9d59f4357c177879097ca522a3a3c30bd5c0abc9ab54822050b6519ae1f41acf"
+  },
+  "resourceFork": {
+    "bytes": 1650192,
+    "sha256": "9491fd7a68134249988b07971d222527709636438c59ca1d0daf5ade82a26740"
+  },
+  "installedEngineResourceFork": {
+    "bytes": 1005535,
+    "sha256": "cb903bef4410feb096d65b5a4c9383fa2a3c943e6afef6d3c13463b48267d333"
+  },
+  "actualDefinitionsMatchStoppedKaleidoscope": "Independent acquisition review; hashes retained in conditions",
+  "limits": "Configured file only, not private selected resource/provider/cache."
+}

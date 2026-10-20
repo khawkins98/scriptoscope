@@ -1,6 +1,6 @@
 # Reviewed original face observations
 
-The corpus contains thirty-six `reviewed-scoped-observation` records under
+The corpus contains thirty-eight `reviewed-scoped-observation` records under
 [`public-api-empty-face` versions 1–5](../../docs/spec/scoped-reference-observations.md).
 An independent Astra AI agent reviewed the eight earlier observations. A separate independent automated root reviewer approved the four
 new records under v5. Its [byte review](./four-state-independent-byte-review.json)
@@ -153,3 +153,29 @@ per boot, separately calibrated with 307 exact RGB16 queries repeated twice.
 See the [campaign conditions](./README.md#shared307-six-source-campaign) for
 the retained Black/Slimes incidents, corrected 1138 profile identity, actual
 legacy-versus-cinf paint dependencies and unresolved device/provider conditions.
+
+## Evolution: two empty states, finite measured preparation
+
+[`evolution.normal.e1971`](./evolution-normal/port.png) and
+[`evolution.inactive.e1971`](./evolution-inactive/port.png) retain exact empty
+normal/hilite-0 and disabled/hilite-255 faces from the same four-state native
+sequence. The other two labeled states and all native font/query payloads remain
+private and are not admitted. The [independent byte review](./evolution-independent-byte-review.json)
+and [scope attestations](./reviews.json) bind the actual images and v5 conditions.
+
+The [measurement record](./evolution-calibration/measurement.json) contains the
+actual 3,942 Color2Index/Index2Color rows for 1,971 unique RGB16 keys. The finite
+[profile](../decoder-fixtures/measured-display-profile-evolution.json) preserves
+those measurements and actual palette/producer channels. Consumer font 0/size 0
+and later calibration size 12 are distinct; font identity is null. Missing
+current/main equality, consumer port ColorTable, patch/cache and original phase
+remain unknown. The Finder incident and ordinary same-boot recovery before
+measurement are retained, with cause unproven.
+
+The output comparison covers the complete face, while actual paint evidence
+contains eight metadata-defined bands and a missing ppat-0 lookup. It does not
+claim a completed interior-fill trace, original masks, typography, private
+provider choice, labeled rendering or whole-control fidelity. Evolution pressed
+remains a missing campaign capture. The public source/built pair matched all 38 registered faces and 60,800
+composited pixels per mode; independent root review recomputed every PNG crop.
+Execution remains separately bound from acquisition and scoped intake approval.

@@ -49,9 +49,9 @@ function fixture(t, request = contract.requests.find(r => r.id === 'windows-95.n
 test('actual checked-in originals are scoped observations with every broader requirement unresolved', () => {
   const report = assessCorpus(contract, JSON.parse(readFileSync(new URL('./captures.json', import.meta.url))), JSON.parse(readFileSync(new URL('./reviews.json', import.meta.url))), { intakeRoot: join(repositoryRoot, 'tests/reference-captures'), known: knownImages() });
   assert.equal(report.requests.length, 59);
-  assert.equal(report.requests.filter(r => r.status === 'missing').length, 23);
-  assert.deepEqual(report.requests.filter(r => r.status === 'evidence-incomplete').map(r => r.id).sort(), ['windows-95.normal', 'windows-95.pressed', 'windows-95.inactive', 'system7-nostalgia-silver.normal', 'system7-nostalgia-silver.pressed', 'system7-nostalgia-silver.inactive', 'apple-lisa.normal', 'crayon-os.normal', 'animals.normal', 'animals.pressed', 'animals.inactive', 'apple-lisa.pressed', 'apple-lisa.inactive', 'beos-r503.normal', 'beos-r503.pressed', 'beos-r503.inactive', 'crayon-os.pressed', 'crayon-os.inactive'].concat(["1138.normal", "1138.pressed", "1138.inactive", "apple-platinum-2.normal", "apple-platinum-2.pressed", "apple-platinum-2.inactive", "black-platinum.normal", "black-platinum.pressed", "black-platinum.inactive", "platinum-8.normal", "platinum-8.pressed", "platinum-8.inactive", "slimes.normal", "slimes.pressed", "slimes.inactive", "windows-31.normal", "windows-31.pressed", "windows-31.inactive"]).sort());
-  assert.equal(report.captures.length, 36);
+  assert.equal(report.requests.filter(r => r.status === 'missing').length, 21);
+  assert.deepEqual(report.requests.filter(r => r.status === 'evidence-incomplete').map(r => r.id).sort(), ['windows-95.normal', 'windows-95.pressed', 'windows-95.inactive', 'system7-nostalgia-silver.normal', 'system7-nostalgia-silver.pressed', 'system7-nostalgia-silver.inactive', 'apple-lisa.normal', 'crayon-os.normal', 'animals.normal', 'animals.pressed', 'animals.inactive', 'apple-lisa.pressed', 'apple-lisa.inactive', 'beos-r503.normal', 'beos-r503.pressed', 'beos-r503.inactive', 'crayon-os.pressed', 'crayon-os.inactive'].concat(["1138.normal", "1138.pressed", "1138.inactive", "apple-platinum-2.normal", "apple-platinum-2.pressed", "apple-platinum-2.inactive", "black-platinum.normal", "black-platinum.pressed", "black-platinum.inactive", "platinum-8.normal", "platinum-8.pressed", "platinum-8.inactive", "slimes.normal", "slimes.pressed", "slimes.inactive", "windows-31.normal", "windows-31.pressed", "windows-31.inactive", "evolution.normal", "evolution.inactive"]).sort());
+  assert.equal(report.captures.length, 38);
   for (const capture of report.captures) {
     assert.equal(capture.status, 'reviewed-scoped-observation');
     assert.deepEqual(capture.missing, []); assert.deepEqual(capture.rejected, []);
@@ -672,5 +672,25 @@ test('BeOS fixed-state intake preserves missing conditions and rejects state or 
       const changed = structuredClone(capture); mutate(changed);
       assert.ok(assess(changed).rejected.length > 0);
     }
+  }
+});
+
+test('Evolution intake retains all prior requests, captures and reviews exactly', () => {
+  const retained = JSON.parse(readFileSync(new URL('./evolution-retention.json', import.meta.url)));
+  const catalog = JSON.parse(readFileSync(new URL('./requests.json', import.meta.url)));
+  const captures = JSON.parse(readFileSync(new URL('./captures.json', import.meta.url))).captures;
+  const reviews = JSON.parse(readFileSync(new URL('./reviews.json', import.meta.url))).reviews;
+  assert.equal(retained.requests.length, 59);
+  assert.equal(retained.captures.length, 36); assert.equal(retained.reviews.length, 36);
+  for (const row of retained.requests) {
+    assert.equal(digest(catalog.requests.find(r => r.id === row.id)), row.objectSha256);
+    assert.equal(contract.requests.find(r => r.id === row.id).requestDigest, row.requestDigest);
+  }
+  for (const [i, row] of retained.captures.entries()) {
+    assert.equal(captures[i].id, row.id); assert.equal(reviewDigest(captures[i]), row.captureDigest);
+    assert.equal(digest(captures[i]), row.objectSha256);
+  }
+  for (const [i, row] of retained.reviews.entries()) {
+    assert.equal(reviews[i].captureId, row.captureId); assert.equal(digest(reviews[i]), row.objectSha256);
   }
 });

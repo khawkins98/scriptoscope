@@ -37,7 +37,7 @@ function reject(change, pattern, options = {}) {
 test('reviewed inventory validates and all open cases remain uncertified', () => {
   assert.deepEqual(validateLedger(original, { root }).errors, []);
   const report = makeReport(original);
-  assert.equal(report.cases.length, 90);
+  assert.equal(report.cases.length, 92);
   assert.equal(report.requirementStatus.denominator, original.assessments.length);
   assert.equal(report.cases.filter(c => c.status === 'verified').length, 0);
   assert(report.execution.assertions.every(a => a.modes.every(m => m.status === 'not run')));
@@ -159,7 +159,7 @@ test('evidence from a wholly unrelated archive or synthetic input cannot support
 });
 test('engine-wide rules and combined source-art evidence retain their bounded valid uses', () => {
   const result = validateLedger(original, { root });
-  assert.deepEqual(result.errors, []); assert.equal(result.declaredCount, 617);
+  assert.deepEqual(result.errors, []); assert.equal(result.declaredCount, 629);
   assert.deepEqual(original.evidence.find(e => e.id === 'kdef.square-corners').inputs, ['engine.kaleidoscope-2.3.1-kdef0']);
   const shared = original.evidence.find(e => e.id === 'art.tab-crop');
   assert.deepEqual(shared.inputs, ['theme.1138', 'theme.1990']);
@@ -294,4 +294,24 @@ test('BeOS recorded extension preserves all prior 69 cases and 491 assessments',
   const current = structuredClone(original), next = JSON.parse(readFileSync(new URL('./shared307-recorded-transition.json', import.meta.url)));
   for (const [key, count] of Object.entries(next.counts)) current[key] = current[key].slice(0, count);
   assert.deepEqual(makeReport(current).requirementStatus.counts, { verified: 91, mismatched: 0, unsupported: 0, unknown: 418 });
+});
+
+
+test('Evolution empty extension preserves all prior 90 cases and 617 assessments', () => {
+  const transition = JSON.parse(readFileSync(new URL('./evolution-recorded-transition.json', import.meta.url)));
+  const prior = structuredClone(original);
+  for (const [key, count] of Object.entries(transition.counts)) {
+    prior[key] = prior[key].slice(0, count);
+    assert.equal(digest(JSON.stringify(prior[key])), transition.prefixSha256[key], `${key} prefix`);
+  }
+  Object.assign(prior, { inventoryVersion: transition.inventoryVersion, inventorySha256: transition.inventorySha256, scope: transition.scope });
+  assert.equal(inventoryDigest(prior), transition.inventorySha256);
+  assert.equal(digest(JSON.stringify(prior)), transition.priorObjectSha256);
+  assert.deepEqual(makeReport(prior).requirementStatus.counts, { verified: 109, mismatched: 0, unsupported: 0, unknown: 508 });
+  const added = original.assessments.slice(transition.counts.assessments);
+  assert.equal(added.length, 12);
+  assert.equal(added.filter(a => a.status === 'verified').length, 2);
+  assert(added.every(a => a.status === (a.requirementId === 'output.recorded-composited-face' ? 'verified' : 'unknown')));
+  assert.deepEqual(makeReport(original).requirementStatus.counts, { verified: 111, mismatched: 0, unsupported: 0, unknown: 518 });
+  assert(original.cases.slice(90).every(c => c.inventoryClosure.status === 'open'));
 });

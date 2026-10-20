@@ -1,0 +1,187 @@
+{
+  "source": {
+    "slug": "evolution",
+    "path": "themes/evolution/scheme.rsrc",
+    "format": "rsrc",
+    "archiveSha256": "9491fd7a68134249988b07971d222527709636438c59ca1d0daf5ade82a26740",
+    "entryIndex": null,
+    "entryName": null,
+    "forkSha256": "9491fd7a68134249988b07971d222527709636438c59ca1d0daf5ade82a26740",
+    "selectionReviewStatus": "reviewed-contract-input",
+    "selectionReason": "Repository source is an explicit standalone resource fork, with no container selection.",
+    "selectionReviewEvidence": "evolution"
+  },
+  "engineComponent": {
+    "id": "engine.kaleidoscope-2.3.1-kdef0",
+    "kind": "engine",
+    "version": "Kaleidoscope 2.3.1 kDEF 0 68k",
+    "bytes": 107726,
+    "sha256": "2c027276dae2355964a0dde1ace31f60ba845ab2c5fbf0496fd34ab2afe7c342",
+    "extractionReference": "docs/spec/kdef-binary-inventory.md",
+    "redistributed": false
+  },
+  "observed": {
+    "os": {
+      "name": "Mac OS System",
+      "version": "7.5.5",
+      "sha256": "0d75bcfa6ab343dae7db9ed25c2b41e9e469d51185157c6c0d9a10181a7e0af5",
+      "identityScope": "Exact preboot copied boot-volume image; version from actual same-run Gestalt sysv=0x755; not an isolated System-file digest"
+    },
+    "engineInstallation": {
+      "name": "Kaleidoscope",
+      "version": "2.3.1",
+      "sha256": "cb903bef4410feb096d65b5a4c9383fa2a3c943e6afef6d3c13463b48267d333",
+      "identityScope": "Installed resource fork; stopped-file equality and actual CDEF/WDEF wrapper handles; not full active patch order"
+    },
+    "patchStack": null,
+    "baseChain": null,
+    "resourceSearchOrder": null,
+    "font": null,
+    "palette": {
+      "depth": 8,
+      "sha256": "6987f8e5bc61a7da95ed03f229cc3ecbee463bb6245965fdc2eddbd86a31ef9b",
+      "description": "Actual current-device indexed ColorTable,2056 bytes,seed1023,flags32768,lastIndex255. No inferred palette/lookup rule or consumer current/main equality."
+    },
+    "controlDefinition": {
+      "procedureId": 0,
+      "variant": 0,
+      "hilite": 0,
+      "value": 0,
+      "enabled": true,
+      "windowActive": true,
+      "defaultMechanism": "No default API invoked; private default state unknown",
+      "invocation": "NewCWindow(proc0); fresh NewControl(proc0, empty title, visible,value0/min0/max1); Draw1Control; HiliteControl(0); actual ControlRecord/GetControlVariant0. Fixed-order state0, generation1; shared selected Evolution boot. Not a physical gesture/inactive window."
+    },
+    "captureMethod": "Unchanged original full frame and integer crops; ordinary stopped export. Fresh controls in empty0/A0/empty255/A255 order, host retention before each ACK. Only empty states0/2 admitted here. Premeasurement Finder modal/recovery in same boot, cause unknown; no measurement retry.",
+    "baseChainReason": null,
+    "patchStackReason": null,
+    "selectedProvider": null,
+    "resourceCache": null,
+    "privateDefaultState": null,
+    "unknownConditions": {
+      "font": "Actual port font0/name Chicago/size0/face0/mode1 and FontInfo12/3/14/1, TextWidth(empty)=0 observed. Font identity, draw consumption and ultimate provider remain unknown. Calibration requested size12 separately; no fictitious positive-size font identity is supplied.",
+      "patchStack": "Installed Kaleidoscope components identified, but complete active extension/trap patch ordering unobserved.",
+      "baseChain": "Configured scheme file identified; original private base-resource chain not observed.",
+      "resourceSearchOrder": "Public Copl and caller refs observed, not complete transient original resource search order.",
+      "selectedProvider": "Configured public Copl file is not proof of actual cicn/cinf/private cache owner.",
+      "resourceCache": "Original private resource cache contents and hits not observed.",
+      "privateDefaultState": "No public default API invoked; private default flags not queried or inferred.",
+      "patternOriginState": "No original pattern-origin API/state measured. Port origin0 is observed; it does not establish private/global pattern phase.",
+      "portColorTable": "Consumer portColorTable payload not captured; actual current-device table retained. Calibration port table cannot retroactively supply the missing consumer observation.",
+      "mainDeviceEquality": "Consumer GetGDevice==GetMainDevice not observed; current-device identity is recorded. Calibration observation does not supply missing consumer equality."
+    },
+    "publicApiFace": {
+      "configuredScheme": {
+        "archiveSha256": "9491fd7a68134249988b07971d222527709636438c59ca1d0daf5ade82a26740",
+        "forkSha256": "9491fd7a68134249988b07971d222527709636438c59ca1d0daf5ade82a26740",
+        "evidence": "Same-run Copl/FCB volume-3,parent2,file18; exact stopped canonical Evolution fork. Configured file only, not private provider attribution."
+      },
+      "invocation": {
+        "api": "NewControl",
+        "drawApi": "Draw1Control",
+        "defaultApiInvoked": false,
+        "controlRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "title": "",
+        "state": "normal",
+        "defaultRing": false,
+        "stateApi": "HiliteControl"
+      },
+      "port": {
+        "origin": [
+          0,
+          0
+        ],
+        "bounds": [
+          0,
+          0,
+          160,
+          80
+        ],
+        "effectiveClipRect": [
+          0,
+          0,
+          160,
+          80
+        ],
+        "backgroundRGB": [
+          255,
+          255,
+          255
+        ],
+        "backgroundOpaque": true,
+        "originMeaning": "Observed local origin0; global origin80,90. Opaque recorded white background, not source-mask proof."
+      },
+      "producer": {
+        "name": "Private copied BasiliskII WebAssembly with bound worker/canvas/capture glue",
+        "buildArtifacts": [
+          {
+            "name": "reference.ts",
+            "bytes": 2257,
+            "sha256": "9f93f1b8bb1133245771359ced5421312eaad9693ad0b6bd907b463297cd7060"
+          },
+          {
+            "name": "vite.config.mjs",
+            "bytes": 2150,
+            "sha256": "24ee79c5b70b46b3a89c1c231862b84dd7384340d72ef1154461d4cc1b5979d6"
+          },
+          {
+            "name": "emulator-worker.ts",
+            "bytes": 38197,
+            "sha256": "36fef450c0c892f57ec88f3229c0d9579a85caa1629b9703b30e17792763969d"
+          },
+          {
+            "name": "emulator-input.ts",
+            "bytes": 14561,
+            "sha256": "b69f0527aabd322e8cf0d0840d6faef769cd53a717a6d3d6e7cf36118a1dc0c5"
+          },
+          {
+            "name": "BasiliskII.js",
+            "bytes": 156114,
+            "sha256": "4fd750e202686a7b7c3bd0055dbe33d21dd6b3ce2639da8da814ef1036d1c66b"
+          },
+          {
+            "name": "BasiliskII.wasm",
+            "bytes": 1713564,
+            "sha256": "0be9b5ba1179b65d9d1bd30b3cc35ee56daf6713ba1353048c03229f641680bb"
+          },
+          {
+            "name": "capture-state-absolute.mjs",
+            "bytes": 6705,
+            "sha256": "0349f7f9a7eb91f2eda9ccc7473406abdc25c5d9f1bedcdd5a80a3ca33401dc8"
+          },
+          {
+            "name": "crop-state.py",
+            "bytes": 1010,
+            "sha256": "36299e64a2072469a9803f7801335f4aabb930fc7d0cd59efb103c8c90a75fa2"
+          }
+        ],
+        "tableSha256": "c2eeb81da5ffc2bd502834d80d850f6f085813ab1cec8d9fb89ca36c2474125b",
+        "pixelEncoding": "rgba8",
+        "colorRealization": "Actual indexed8 current-device palette/gamma and GetCPixel/host samples. Later same-boot1971×2 Color2Index/Index2Color queries supply finite preparation mappings; no pooling. Consumer font size0 differs from calibration size12. Consumer current/main/port-table, private phase/cache/provider and font consumption remain unknown. Separate post-ACK4 font query is history only, not an empty-face dependency.",
+        "timing": "Conditions bracket explicit Draw1Control + HiliteControl; setup/update and host capture have shared history. Four consumers and the separate post-ACK font query precede calibration.",
+        "version": {
+          "status": "unknown",
+          "reason": "Exact external JS/WASM and glue build hashes recorded; semantic emulator release version not independently established."
+        }
+      },
+      "fullFrame": {
+        "sha256": "a9c9e0477862399db3bbfb11f1275961507f8315a916e56893e617c0ca8dcdeb",
+        "width": 640,
+        "height": 480,
+        "requestImageRect": [
+          80,
+          90,
+          160,
+          80
+        ],
+        "transform": "requestImageXY = fullFrameXY - requestImageRect.xy; no resampling or color conversion"
+      }
+    },
+    "patternOriginState": null
+  }
+}

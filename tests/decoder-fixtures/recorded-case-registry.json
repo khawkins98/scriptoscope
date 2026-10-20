@@ -190,5 +190,20 @@
       "pressed",
       "inactive"
     ]
+  },
+  "evolution": {
+    "profile": {
+      "path": "tests/decoder-fixtures/measured-display-profile-evolution.json",
+      "id": "display-profile:b97272731fe52ce8a45726f7e736b4d03c6bba739879a45d7f88f22623cd3a1d",
+      "sha256": "646be3846ec055419aebfd87ca38a9f79912ee231c5b0a0863ebff26b84da784"
+    },
+    "caseSuffix": "e1971",
+    "explicitContext": true,
+    "paintKind": "cinf-bands",
+    "expectNormalDefaultDifference": false,
+    "states": [
+      "normal",
+      "inactive"
+    ]
   }
 }
