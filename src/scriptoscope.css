@@ -25,9 +25,10 @@
 
 /* ─── CSS custom-property API — override at :root or any scope ─────────── */
 :root {
-  /* Outer drop shadow on windows. Mac OS 8.5 used a subtle offset shadow; this
-     matches that aesthetic. Set --scriptoscope-window-shadow: none to disable. */
-  --scriptoscope-window-shadow: 2px 2px 0 0 rgba(0, 0, 0, 0.35);
+  /* Optional host-page decoration, not theme artwork. Rectangular box shadows
+     fill transparent/nonrectangular chrome bounds, so leave them off by default.
+     Opt in explicitly, e.g. 2px 2px 0 0 rgba(0, 0, 0, 0.35). */
+  --scriptoscope-window-shadow: none;
 
   /* Optional desktop background. Default: none (transparent). Set this to a
      color, a gradient, or a url() to give Aaron windows a backdrop. Example:
@@ -58,7 +59,8 @@
    putting a window shadow there adds an extra rectangular bevel to their art. */
 [data-scriptoscope-window-host]::part(window) {
   /* Grid/flex can stretch the host beyond the frame. The exported window
-     part always bounds the actual chrome, so its shadow follows the art. */
+     part bounds the chrome canvas. An explicitly requested box-shadow follows
+     that rectangle, not the alpha silhouette of the theme artwork. */
   box-shadow: var(--scriptoscope-window-shadow);
 }
 

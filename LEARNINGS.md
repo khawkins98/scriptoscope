@@ -4645,3 +4645,7 @@ whole-control fidelity. See [the bounded selection contract](docs/spec/push-butt
 ### 2026-10-20: finite transfer output is not a source palette
 
 An observed destination-index plane can retain evidence for a sparse CIcon without inventing missing source RGB16. Resolve its recorded palette/producer once, keep source-mask alpha and kDEF scalar/mode5 sampling separate, and compare sampler equivalence per opaque coordinate rather than memoizing an output comparison by source index. Explicit preparation context is not original consumer or active native implementation proof. See [finite CIcon transfer preparation](docs/spec/finite-cicn-transfer.md).
+
+## 2026-10-20 — Window shell shadows do not own theme silhouettes
+
+The optional stylesheet applied a rectangular box-shadow to every window part, and the landing page amplified it. The part bounds the chrome canvas; it does not describe opaque artwork, so jagged or transparent themes acquired an unrelated rectangle. Default the shell decoration to none and keep explicit consumer opt-in. Do not infer historical shadows, change authored canvas pixels, or replace this with an unreviewed alpha filter/theme heuristic. Acceptance checks both classic and custom windows and proves opt-in changes CSS without changing canvas bytes.
