@@ -27,7 +27,7 @@ test('Shared307 retains the complete prior 72-case/509-obligation ledger and old
  assert(added.every(a=>a.status===(a.requirementId==='output.recorded-composited-face'?'verified':'unknown')));
  assert.deepEqual(makeReport(historical).requirementStatus.counts,{verified:109,mismatched:0,unsupported:0,unknown:508});
  assert(ledger.cases.every(c=>c.inventoryClosure.status==='open'));
- const oldPins=Object.fromEntries(Object.entries(STATE_SOURCE_PINS).filter(([slug])=>!['shared307','e1971'].includes(RECORDED_CASES[slug].caseSuffix)));
+ const oldPins=Object.fromEntries(Object.entries(STATE_SOURCE_PINS).filter(([slug])=>prior.cases.some(c=>c.recordedComparison && c.inputs.includes('theme.'+slug))));
  assert.equal(hash(JSON.stringify(oldPins)),transition.priorSourcePinsSha256);
 });
 
