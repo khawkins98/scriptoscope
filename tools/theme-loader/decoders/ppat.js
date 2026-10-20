@@ -59,7 +59,8 @@ export function decodePpat(bytes, { realizeRgb16, realizeDirectRgb8 } = {}) {
   if (realizeDirectRgb8 && (direct || pmap.pixelType === 16 || patType === 2)) {
     if (patType !== 1 || !pmap.isPixMap || pmap.pixelType !== 16 || pmap.pixelSize !== 32
         || pmap.cmpCount !== 3 || pmap.cmpSize !== 8 || pmap.bounds.top !== 0 || pmap.bounds.left !== 0
-        || pmap.width <= 0 || pmap.height <= 0 || pmap.pmVersion !== 1
+        || pmap.width <= 0 || pmap.height <= 0 || (pmap.width & (pmap.width - 1)) !== 0
+        || (pmap.height & (pmap.height - 1)) !== 0 || pmap.pmVersion !== 1
         || pmap.packType !== 0 || pmap.packSize !== 0 || pmap.planeBytes !== 0
         || pmap.rowBytes < pmap.width * 4 || pmap.rowBytes % 4 !== 0
         || patDataOffset < patMapOffset + 50 || patDataOffset + pmap.rowBytes * pmap.height > bytes.length) unsupportedDirect();

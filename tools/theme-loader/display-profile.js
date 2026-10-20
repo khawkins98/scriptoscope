@@ -58,7 +58,7 @@ export async function prepareDisplayProfile(input) {
     for (const e of direct.evidence) if (!/^[a-f0-9]{64}$/.test(e?.sha256) || typeof e.description !== 'string' || !e.description.trim()) fail('Invalid direct RGB8 evidence');
     directMap = new Map();
     for (const row of direct.mappings) {
-      if (!triple(row.rgb8, 255) || !triple(row.deviceRgb16, 65535) || !palette.has(row.deviceIndex)
+      if (!row || !triple(row.rgb8, 255) || !triple(row.deviceRgb16, 65535) || !palette.has(row.deviceIndex)
           || row.deviceRgb16.some((v, i) => v !== palette.get(row.deviceIndex)[i])) fail('Direct RGB8 mapping disagrees with recorded device palette');
       const key = row.rgb8.join(','); if (directMap.has(key)) fail('Duplicate joint RGB8 mapping');
       directMap.set(key, row.deviceRgb16.map((v, i) => data.producer.channels[i][v >> 8]));

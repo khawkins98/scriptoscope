@@ -29,6 +29,7 @@ test('v2 direct policy is separately typed, snapshotted and canonical; v1 identi
     d => d.version = 1, d => delete d.directRgb8, d => d.directRgb8.context = 'any-context',
     d => d.directRgb8.scope = 'renderer-enforced', d => d.directRgb8.operation = 'CopyBits',
     d => d.directRgb8.mappings.push(d.directRgb8.mappings[0]),
+    d => d.directRgb8.mappings.push(null),
     d => d.directRgb8.mappings[0].rgb8[0] = 256,
     d => d.directRgb8.mappings[0].deviceIndex = 99,
     d => d.directRgb8.mappings[0].deviceRgb16[0]++,
@@ -70,6 +71,7 @@ test('direct policy rejects unsupported layouts and exact-view truncation rather
   for (const mutate of [
     v => v.setUint16(0, 2), v => v.setUint16(58, 0), v => v.setUint16(60, 16),
     v => v.setUint16(62, 4), v => v.setUint16(64, 5),
+    v => v.setInt16(40, 3), v => v.setInt16(38, 3),
     v => v.setInt16(34, 1), v => v.setInt16(36, -1), v => v.setInt16(38, 0),
     v => v.setUint16(42, 0), v => v.setUint16(44, 1), v => v.setUint32(46, 8),
     v => v.setUint32(66, 1), v => v.setUint16(32, 12), v => v.setUint16(32, 0x8004),
