@@ -17,7 +17,7 @@
     },
     {
       "path": "src/loadTheme.ts",
-      "sha256": "87f2a1b3d2f78d43d010f2c7c3a6e3d21e3d1365622550231710726edf78f7cb"
+      "sha256": "ba31eb0047444bf878ecf36e96334f981a0aa7dcba5c75b106d7a324de1c47ae"
     },
     {
       "path": "src/resolveWindowType.ts",
@@ -57,11 +57,15 @@
     },
     {
       "path": "tools/theme-loader/buildThemeJson.js",
-      "sha256": "7a5332b5318015b91c6b60180c09388f5863978521304ccbbfa3c403f4cb524c"
+      "sha256": "f2256e76ab0a510b286f91f3cbc23d53c3b479e637e794801232718ccbd1bf3c"
     },
     {
       "path": "tools/theme-loader/cicn-body.js",
       "sha256": "2fdc7e9d7dfb4332d858e754257814db0a96f5daa0828bf5a04fc54b68eba966"
+    },
+    {
+      "path": "tools/theme-loader/cicn-transfer-results.js",
+      "sha256": "99fccb852f419b920e5cbd661a42661d438922ff41ae7d053a39d43ef4947b35"
     },
     {
       "path": "tools/theme-loader/cinf-environment.js",
@@ -77,11 +81,11 @@
     },
     {
       "path": "tools/theme-loader/convert.js",
-      "sha256": "0999f8e8aab70cd3a87560b135d033290e183750ceea6e4643826e3db8d96ad2"
+      "sha256": "ad3dfcfad2e08c6fa75a8c9139a5b0f5cd17eafa588a5e04463962f70de09146"
     },
     {
       "path": "tools/theme-loader/decoders/cicn.js",
-      "sha256": "31e0961d1ca84812e262c5e89c33ea5c3f219da72f32fdddafaa77190c9a5d4c"
+      "sha256": "35cc33ca8eae4181ab10d40e1c72afdccd7429977b62f99fb5f62f0bda314b7e"
     },
     {
       "path": "tools/theme-loader/decoders/cinf.js",
@@ -129,7 +133,7 @@
     },
     {
       "path": "tools/theme-loader/loadKaleidoscopeScheme.js",
-      "sha256": "167933c93167f388374a8eeec48d2dddb1e02943cc3f4012564ad04b0eaf21c0"
+      "sha256": "c199b69f92b9e8a713eb1f650c4333645edc990083973d34bb9b67593e6314b9"
     },
     {
       "path": "tools/theme-loader/loadProvenance.js",
@@ -145,7 +149,7 @@
     },
     {
       "path": "tools/theme-loader/sampling-equivalence.js",
-      "sha256": "04462651b68fd372fe86219d86338ef6a6326cf0a5be1ae7b1228f5b74c96abe"
+      "sha256": "ad4eff53c9132689571a3afc443034dd81f70c37b65a43446d3629a3a79ec2ad"
     },
     {
       "path": "tools/theme-loader/validateTheme.js",
