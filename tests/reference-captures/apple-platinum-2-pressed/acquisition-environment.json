@@ -1,0 +1,197 @@
+{
+  "source": {
+    "slug": "apple-platinum-2",
+    "path": "themes/apple-platinum-2/scheme.sit",
+    "format": "sit",
+    "archiveSha256": "ab667ce7ee19b2495413b25782013137a5e891adbe12c54143ed8f7ece34e091",
+    "entryIndex": 0,
+    "entryName": "Apple platinum 2/Apple platinum 2",
+    "forkSha256": "4b7bd9b05fc1ef0b98531a1c9580205f40f7e2eaa67842107146b62f414e0369",
+    "selectionReviewStatus": "reviewed-contract-input",
+    "selectionReason": "Explicit scheme-named Colr entry \"Apple platinum 2/Apple platinum 2\"; readme/icon/font forks excluded by this declared choice, never by size.",
+    "selectionReviewEvidence": "apple-platinum-2"
+  },
+  "engineComponent": {
+    "id": "engine.kaleidoscope-2.3.1-kdef0",
+    "kind": "engine",
+    "version": "Kaleidoscope 2.3.1 kDEF 0 68k",
+    "bytes": 107726,
+    "sha256": "2c027276dae2355964a0dde1ace31f60ba845ab2c5fbf0496fd34ab2afe7c342",
+    "extractionReference": "docs/spec/kdef-binary-inventory.md",
+    "redistributed": false
+  },
+  "prebootDisks": [
+    {
+      "path": "system755-run.dsk",
+      "bytes": 25165824,
+      "sha256": "0484c7dee00c1c1b3b65fd75d3d082c703841371b279ea733d37df988fabe2c3"
+    },
+    {
+      "path": "oracle64.dsk",
+      "bytes": 67108864,
+      "sha256": "ed2dd49f50ecbd17f479635dc23adf28e071f30eadeff59bfb54ddaccb1ad30f"
+    }
+  ],
+  "fixtureAndProducerInputs": [
+    {
+      "name": "run.json",
+      "bytes": 1910,
+      "sha256": "49677e04ec599f8cbf6544292483edad2c0f6b3d58cd8bc9e69e230ddd327341"
+    },
+    {
+      "name": "candidate.json",
+      "bytes": 1303,
+      "sha256": "09e7a2e7654e72e12a5088fb6ea7870c30039273c863adeee21cd24d9267ad73"
+    },
+    {
+      "name": "PushThreeStates.c",
+      "bytes": 19996,
+      "sha256": "ff3e5f58aadb84265a97d6d348bff5be3881742c6d1509eda557815b7145f2bb"
+    },
+    {
+      "name": "PushThreeStates-with-size.bin",
+      "bytes": 70656,
+      "sha256": "077e9fe7ccf39d11f2af2cbc3dd2a423f20d9f7240c63595033e5b60f1e7eafb"
+    },
+    {
+      "name": "reference.ts",
+      "bytes": 2250,
+      "sha256": "02bb3367f3eb667fe410c033a575cdde17734fd49d3696fe27522ce898cfcb94"
+    },
+    {
+      "name": "vite.config.mjs",
+      "bytes": 2153,
+      "sha256": "37ef34c9caaac7ee6044e07dd42bc2bd4fc74763931dfd67e9684a37ae334911"
+    },
+    {
+      "name": "emulator-worker.ts",
+      "bytes": 38183,
+      "sha256": "79121c9c8f370eb1ce4a46c525b669b21b9ab6081656314e3430987ebbb56d35"
+    },
+    {
+      "name": "emulator-input.ts",
+      "bytes": 14561,
+      "sha256": "b69f0527aabd322e8cf0d0840d6faef769cd53a717a6d3d6e7cf36118a1dc0c5"
+    },
+    {
+      "name": "system755-before-boot.dsk",
+      "bytes": 25165824,
+      "sha256": "0484c7dee00c1c1b3b65fd75d3d082c703841371b279ea733d37df988fabe2c3"
+    },
+    {
+      "name": "oracle-before-boot.dsk",
+      "bytes": 67108864,
+      "sha256": "ed2dd49f50ecbd17f479635dc23adf28e071f30eadeff59bfb54ddaccb1ad30f"
+    },
+    {
+      "name": "BasiliskII.js",
+      "bytes": 156114,
+      "sha256": "4fd750e202686a7b7c3bd0055dbe33d21dd6b3ce2639da8da814ef1036d1c66b"
+    },
+    {
+      "name": "BasiliskII.wasm",
+      "bytes": 1713564,
+      "sha256": "0be9b5ba1179b65d9d1bd30b3cc35ee56daf6713ba1353048c03229f641680bb"
+    },
+    {
+      "name": "Quadra-650.rom",
+      "bytes": 1048576,
+      "sha256": "05ad753fb594e656cf078023ec189e09e2a7655a780de993b75b8c51ed6b09ca"
+    },
+    {
+      "name": "capture-state-absolute.mjs",
+      "bytes": 4576,
+      "sha256": "db915822ba4dd18b36e597580d5035707f9cce63b744a8f1d61c388df4ce6bb4"
+    },
+    {
+      "name": "crop-state.py",
+      "bytes": 1009,
+      "sha256": "f043522d25ff2a7f53bcf69b4538ecc8361bb03aa06d4593909d2b95bc6dc077"
+    },
+    {
+      "name": "ack-state.mjs",
+      "bytes": 2842,
+      "sha256": "f86c64f0c80cff9214047e92ec1a4af7f11c367388e220687aa9f16392e37d72"
+    },
+    {
+      "name": "retain-state.py",
+      "bytes": 1378,
+      "sha256": "4dceae6411ddc102784679bbc1aa5b26b7b6c8629a591e9ef20f6aeb0df6b6ec"
+    },
+    {
+      "name": "physical-key.mjs",
+      "bytes": 813,
+      "sha256": "b4e10e965e46431b1aff7455c5301115ff2d54ec86798478f006efeff8a41573"
+    },
+    {
+      "name": "preboot.json",
+      "bytes": 1140,
+      "sha256": "2d675c39efb2fc059d11bcd64fa7595fce6d43fe4e28375317ccee1e6500a5ff"
+    }
+  ],
+  "osVersionObserved": "7.5.5 (Gestalt 0x755)",
+  "observedControl": {
+    "procedureId": 0,
+    "variant": 0,
+    "hilite": 10,
+    "value": 0,
+    "enabled": true,
+    "windowActive": true,
+    "api": "NewControl",
+    "drawApi": "Draw1Control",
+    "stateApi": "HiliteControl",
+    "defaultApiInvoked": false,
+    "title": "",
+    "controlRect": [
+      20,
+      20,
+      80,
+      20
+    ],
+    "portOrigin": [
+      0,
+      0
+    ],
+    "portBounds": [
+      0,
+      0,
+      160,
+      80
+    ],
+    "effectiveClipRect": [
+      0,
+      0,
+      160,
+      80
+    ],
+    "backgroundRGB": [
+      255,
+      255,
+      255
+    ],
+    "state": "pressed"
+  },
+  "unknown": [
+    "pattern origin",
+    "original selected painter/resource provider",
+    "cache/search/patch order",
+    "font provider",
+    "original mask/alpha",
+    "whole-control fidelity"
+  ],
+  "acquisitionLimits": [
+    "Acquisition and observed condition compatibility only; no profile or reference admission.",
+    "State setup includes unbracketed initial/implicit draws; conditions bracket the recorded explicit public draw. Calibration conditions bracket mapping AFTER drawing. Fixed 0,10,255 order shares OS/scheme/cache history; not order independence.",
+    "State portColorTable absent. Calibration widMax absent; compared font number/name/size/face/mode/ascent/descent/leading only, not font provider or full font identity.",
+    "Native provider/cache/patch order unknown. Copl is a configured public ref, not selected private resource ownership.",
+    "Exact producer build and full raw/canvas equality retained. Body/edge/five sentinels are observed samples; no all-index rendered swatch in this acquisition. Any broader producer table uses separately reviewed build semantics, not 614 new display measurements.",
+    "Donor A3A labels reused; unique enclosing run/root/session and source/package bindings distinguish acquisition. Native volume name unmeasured; dynamic actual ref -3 joins caller/Copl and stopped file IDs/forks.",
+    "Poweroff acknowledgment unknown; stopped ordinary exports and closed ownership recorded. Historical pending fields remain unmodified."
+  ],
+  "closure": {
+    "shutdown": "One native Special>ShutDown menu request;explicitworkerpoweroffACKUNKNOWN;no retry/reboot",
+    "serverClosed": true,
+    "browserClosed": true,
+    "hfsUnmounted": true
+  }
+}

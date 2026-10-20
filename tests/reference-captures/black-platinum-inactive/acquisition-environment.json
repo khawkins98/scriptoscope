@@ -1,0 +1,198 @@
+{
+  "source": {
+    "slug": "black-platinum",
+    "path": "themes/black-platinum/scheme.rsrc",
+    "format": "rsrc",
+    "archiveSha256": "84b1b90c49909cdf2107759784c0c5aa2da14499dec1cc070e9a67eac77db9fc",
+    "entryIndex": null,
+    "entryName": null,
+    "forkSha256": "84b1b90c49909cdf2107759784c0c5aa2da14499dec1cc070e9a67eac77db9fc",
+    "selectionReviewStatus": "reviewed-contract-input",
+    "selectionReason": "Repository source is an explicit standalone resource fork, with no container selection.",
+    "selectionReviewEvidence": "black-platinum"
+  },
+  "engineComponent": {
+    "id": "engine.kaleidoscope-2.3.1-kdef0",
+    "kind": "engine",
+    "version": "Kaleidoscope 2.3.1 kDEF 0 68k",
+    "bytes": 107726,
+    "sha256": "2c027276dae2355964a0dde1ace31f60ba845ab2c5fbf0496fd34ab2afe7c342",
+    "extractionReference": "docs/spec/kdef-binary-inventory.md",
+    "redistributed": false
+  },
+  "prebootDisks": [
+    {
+      "path": "system755-run.dsk",
+      "bytes": 25165824,
+      "sha256": "289794f11806cb8272d27bb64e994fb62ac2b2594abab9d115955ed51ca45b8b"
+    },
+    {
+      "path": "oracle64.dsk",
+      "bytes": 67108864,
+      "sha256": "e43c8115a278846aaa40aedfebc50c6d69474da1f95fae12032b6b7ec060b135"
+    }
+  ],
+  "fixtureAndProducerInputs": [
+    {
+      "name": "run.json",
+      "bytes": 1804,
+      "sha256": "c6c17281f76518035d766f34d735f2b9ca6ddd5e8186467e2dddef1be2f37f4e"
+    },
+    {
+      "name": "candidate.json",
+      "bytes": 1299,
+      "sha256": "f2fc1d711871d96144dffe1e346ec937fe223d18d39e439821f461697ce3903f"
+    },
+    {
+      "name": "PushThreeStates.c",
+      "bytes": 19996,
+      "sha256": "ff3e5f58aadb84265a97d6d348bff5be3881742c6d1509eda557815b7145f2bb"
+    },
+    {
+      "name": "PushThreeStates-with-size.bin",
+      "bytes": 70656,
+      "sha256": "077e9fe7ccf39d11f2af2cbc3dd2a423f20d9f7240c63595033e5b60f1e7eafb"
+    },
+    {
+      "name": "reference.ts",
+      "bytes": 2250,
+      "sha256": "02bb3367f3eb667fe410c033a575cdde17734fd49d3696fe27522ce898cfcb94"
+    },
+    {
+      "name": "vite.config.mjs",
+      "bytes": 2151,
+      "sha256": "734c7380616333506b746dee3c6ed0b43b1df3721c492c5371087a87d56310f0"
+    },
+    {
+      "name": "emulator-worker.ts",
+      "bytes": 38183,
+      "sha256": "79121c9c8f370eb1ce4a46c525b669b21b9ab6081656314e3430987ebbb56d35"
+    },
+    {
+      "name": "emulator-input.ts",
+      "bytes": 14561,
+      "sha256": "b69f0527aabd322e8cf0d0840d6faef769cd53a717a6d3d6e7cf36118a1dc0c5"
+    },
+    {
+      "name": "system755-before-boot.dsk",
+      "bytes": 25165824,
+      "sha256": "289794f11806cb8272d27bb64e994fb62ac2b2594abab9d115955ed51ca45b8b"
+    },
+    {
+      "name": "oracle-before-boot.dsk",
+      "bytes": 67108864,
+      "sha256": "e43c8115a278846aaa40aedfebc50c6d69474da1f95fae12032b6b7ec060b135"
+    },
+    {
+      "name": "BasiliskII.js",
+      "bytes": 156114,
+      "sha256": "4fd750e202686a7b7c3bd0055dbe33d21dd6b3ce2639da8da814ef1036d1c66b"
+    },
+    {
+      "name": "BasiliskII.wasm",
+      "bytes": 1713564,
+      "sha256": "0be9b5ba1179b65d9d1bd30b3cc35ee56daf6713ba1353048c03229f641680bb"
+    },
+    {
+      "name": "Quadra-650.rom",
+      "bytes": 1048576,
+      "sha256": "05ad753fb594e656cf078023ec189e09e2a7655a780de993b75b8c51ed6b09ca"
+    },
+    {
+      "name": "capture-state-absolute.mjs",
+      "bytes": 4574,
+      "sha256": "9c371ed4c69fb0ce5542754f3a314882a25fc3a82d636f130101407e5ce315f1"
+    },
+    {
+      "name": "crop-state.py",
+      "bytes": 1009,
+      "sha256": "f043522d25ff2a7f53bcf69b4538ecc8361bb03aa06d4593909d2b95bc6dc077"
+    },
+    {
+      "name": "ack-state.mjs",
+      "bytes": 2842,
+      "sha256": "f86c64f0c80cff9214047e92ec1a4af7f11c367388e220687aa9f16392e37d72"
+    },
+    {
+      "name": "retain-state.py",
+      "bytes": 1378,
+      "sha256": "4dceae6411ddc102784679bbc1aa5b26b7b6c8629a591e9ef20f6aeb0df6b6ec"
+    },
+    {
+      "name": "physical-key.mjs",
+      "bytes": 813,
+      "sha256": "b4e10e965e46431b1aff7455c5301115ff2d54ec86798478f006efeff8a41573"
+    },
+    {
+      "name": "preboot.json",
+      "bytes": 1134,
+      "sha256": "02272e62d2388a0e3932c974aaf17a1a667aee4a4a46069db5d53dca7cfde4b3"
+    }
+  ],
+  "osVersionObserved": "7.5.5 (Gestalt 0x755)",
+  "observedControl": {
+    "procedureId": 0,
+    "variant": 0,
+    "hilite": 255,
+    "value": 0,
+    "enabled": false,
+    "windowActive": true,
+    "api": "NewControl",
+    "drawApi": "Draw1Control",
+    "stateApi": "HiliteControl",
+    "defaultApiInvoked": false,
+    "title": "",
+    "controlRect": [
+      20,
+      20,
+      80,
+      20
+    ],
+    "portOrigin": [
+      0,
+      0
+    ],
+    "portBounds": [
+      0,
+      0,
+      160,
+      80
+    ],
+    "effectiveClipRect": [
+      0,
+      0,
+      160,
+      80
+    ],
+    "backgroundRGB": [
+      255,
+      255,
+      255
+    ],
+    "state": "inactive"
+  },
+  "unknown": [
+    "pattern origin",
+    "original selected painter/resource provider",
+    "cache/search/patch order",
+    "font provider",
+    "original mask/alpha",
+    "whole-control fidelity"
+  ],
+  "acquisitionLimits": [
+    "Initial browser-open transport failure and prolonged preselection idle retained. Explicit root continuation of the same already-booted guest; no capture retry/reboot. This is not a matched-duration/cold-boot comparison.",
+    "Acquisition and observed condition compatibility only; no profile or reference admission.",
+    "State setup includes unbracketed initial/implicit draws; conditions bracket the recorded explicit public draw. Calibration conditions bracket mapping AFTER drawing. Fixed 0,10,255 order shares OS/scheme/cache history; not order independence.",
+    "State portColorTable absent. Calibration widMax absent; compared font number/name/size/face/mode/ascent/descent/leading only, not font provider or full font identity.",
+    "Native provider/cache/patch order unknown. Copl is a configured public ref, not selected private resource ownership.",
+    "Exact producer build and full raw/canvas equality retained. Body/edge/five sentinels are observed samples; no all-index rendered swatch in this acquisition. Any broader producer table uses separately reviewed build semantics, not 614 new display measurements.",
+    "Donor A3A labels reused; unique enclosing run/root/session and source/package bindings distinguish acquisition. Native volume name unmeasured; dynamic actual ref -3 joins caller/Copl and stopped file IDs/forks.",
+    "Poweroff acknowledgment unknown; stopped ordinary exports and closed ownership recorded. Historical pending fields remain unmodified."
+  ],
+  "closure": {
+    "shutdown": "One native Special>ShutDown menu request;explicitworkerpoweroffACKUNKNOWN;no retry/reboot",
+    "serverClosed": true,
+    "browserClosed": true,
+    "hfsUnmounted": true
+  }
+}

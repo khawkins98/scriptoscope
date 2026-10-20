@@ -1,12 +1,15 @@
 # Reviewed original face observations
 
-The corpus contains eighteen `reviewed-scoped-observation` records under
+The corpus contains thirty-six `reviewed-scoped-observation` records under
 [`public-api-empty-face` versions 1–5](../../docs/spec/scoped-reference-observations.md).
 An independent Astra AI agent reviewed the eight earlier observations. A separate independent automated root reviewer approved the four
 new records under v5. Its [byte review](./four-state-independent-byte-review.json)
 is hash-bound in the [scope attestations](./reviews.json); acquisition review
 alone is not intake approval. The later Animals and BeOS batches add six
 separately reviewed scoped records, with attestations in the same review file.
+The Shared307 campaign adds eighteen more v5 records, independently checked by
+root against exact native images, calibration data and completed source/built
+output; its [byte review](./shared307-independent-byte-review.json) retains limits.
 This is explicitly automated review,
 not human or maintainer attestation. The capture/preparation producer is also
 identified as AI in [captures.json](./captures.json).
@@ -131,3 +134,22 @@ providers, pattern phase or general font identity. Missing cross-run port-table
 and widMax observations stay visible; equality of recorded fields is not proof
 of complete hidden-state equivalence. Scoped review is independent automated AI
 review, not a human or maintainer attestation.
+
+
+## Shared307 campaign observations
+
+The six-source campaign retains one fixed normal→highlighted→disabled sequence
+per boot, separately calibrated with 307 exact RGB16 queries repeated twice.
+
+| Source | Normal | Highlighted | Disabled |
+|---|---|---|---|
+| 1138 | [Face](./1138-normal/face.png) | [Face](./1138-pressed/face.png) | [Face](./1138-inactive/face.png) |
+| Apple Platinum 2 | [Face](./apple-platinum-2-normal/face.png) | [Face](./apple-platinum-2-pressed/face.png) | [Face](./apple-platinum-2-inactive/face.png) |
+| Black Platinum | [Face](./black-platinum-normal/face.png) | [Face](./black-platinum-pressed/face.png) | [Face](./black-platinum-inactive/face.png) |
+| Platinum 8 | [Face](./platinum-8-normal/face.png) | [Face](./platinum-8-pressed/face.png) | [Face](./platinum-8-inactive/face.png) |
+| Slimes | [Face](./slimes-normal/face.png) | [Face](./slimes-pressed/face.png) | [Face](./slimes-inactive/face.png) |
+| Windows 3.1 | [Face](./windows-31-normal/face.png) | [Face](./windows-31-pressed/face.png) | [Face](./windows-31-inactive/face.png) |
+
+See the [campaign conditions](./README.md#shared307-six-source-campaign) for
+the retained Black/Slimes incidents, corrected 1138 profile identity, actual
+legacy-versus-cinf paint dependencies and unresolved device/provider conditions.

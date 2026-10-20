@@ -1,5 +1,22 @@
 # Learnings
 
+## 2026-10-20 — Calibrated cases need resource-backed completion and honest conditions
+
+The Shared307 campaign matches eighteen recorded faces through separately
+measured profiles. Four schemes have no paired cinf and complete through the
+existing compatibility face painter; 1138 and Windows 3.1 use cinf bands.
+The harness now registers actual paint kinds and nullable metadata rather than
+adding theme-name branches or inventing body dependencies.
+
+Profile conditions are evidence too. An older private 1138 profile incorrectly
+asserted current/main-device equality without an observation. Removing that
+assertion changes the profile identity while preserving every measured mapping,
+palette entry and producer value. Preserve the old proof, correct the condition,
+and compare with the corrected identity; do not recapture or alter original
+pixels to hide a metadata error. Retain pre-capture launch/transport incidents
+as draw/cache history, even when a complete later observation is usable.
+See the [campaign limits](tests/reference-captures/README.md#shared307-six-source-campaign).
+
 ## 2026-10-20 — Sparse source colors and transfer coloration are separate
 
 A prepared CIcon can retain an absent logical palette index through GetCIcon.

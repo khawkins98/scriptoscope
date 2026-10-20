@@ -1,0 +1,38 @@
+{
+  "canonicalSource": {
+    "slug": "1138",
+    "path": "themes/1138/scheme.rsrc",
+    "format": "rsrc",
+    "archiveSha256": "2b14d10e0907e058474b980df57713191a9e1bf1b39c4ed7df8f82ba3ac1fcdb",
+    "entryIndex": null,
+    "entryName": null,
+    "forkSha256": "2b14d10e0907e058474b980df57713191a9e1bf1b39c4ed7df8f82ba3ac1fcdb",
+    "selectionReviewStatus": "reviewed-contract-input",
+    "selectionReason": "Repository source is an explicit standalone resource fork, with no container selection.",
+    "selectionReviewEvidence": "1138"
+  },
+  "actualCopl": [
+    "CoplResourceFile.file.name=1138 volumeRef=-3 parentDir=2 fileID=18 flags=512 logicalEOF=724796 physicalEOF=724992",
+    "CoplResourceFile.file.name=1138 volumeRef=-3 parentDir=2 fileID=18 flags=512 logicalEOF=724796 physicalEOF=724992"
+  ],
+  "configuredFCB": {
+    "volumeRef": -3,
+    "parentDir": 2,
+    "fileID": 18
+  },
+  "stoppedConfiguredFile": {
+    "name": "stopped-1138.bin",
+    "bytes": 724992,
+    "sha256": "f6f64622d4e9e2e68d6a780caf1f9b24653b9eecaf61673c0f763c5b3e5b11e9"
+  },
+  "resourceFork": {
+    "bytes": 724796,
+    "sha256": "2b14d10e0907e058474b980df57713191a9e1bf1b39c4ed7df8f82ba3ac1fcdb"
+  },
+  "installedEngineResourceFork": {
+    "bytes": 1005535,
+    "sha256": "cb903bef4410feb096d65b5a4c9383fa2a3c943e6afef6d3c13463b48267d333"
+  },
+  "actualDefinitionsMatchStoppedKaleidoscope": "Bound independent acquisition review; payload hashes retained in pixel conditions",
+  "limits": "Configured file only; no private selected resource/provider/cache inference."
+}

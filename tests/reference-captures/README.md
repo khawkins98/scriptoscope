@@ -2,14 +2,14 @@
 
 This is a finite request and review contract for [#190](https://github.com/khawkins98/scriptoscope/issues/190),
 under the [draft compatibility target](../../docs/spec/fidelity-compatibility-contract.md).
-**Eighteen original observations have independent AI review under the narrow
+**Thirty-six original observations have independent AI review under the narrow
 `public-api-empty-face` scopes v1–v5.** They satisfy no whole request and verify
 no intake target. The fixed empty-push campaign now plans all 18 canonical
 sources × normal/logically highlighted/disabled states: 54 requests, including
 those eight existing observations. Five earlier default/shift experiments remain
-separate, for 59 requests total. The Animals and BeOS state observations bring the stored corpus to eighteen
-reviewed scoped records; 41 requests have no capture (36 campaign states and
-five older experiments). All eighteen scoped requests remain evidence-incomplete.
+separate, for 59 requests total. The Animals, BeOS and six-source Shared307 observations bring the stored corpus to thirty-six
+reviewed scoped records; 23 requests have no capture (18 campaign states and
+five older experiments). All thirty-six scoped requests remain evidence-incomplete.
 
 Scope v5 applies only to the 46 newly appended campaign IDs. It requires the
 same fixed port, face, background and full-image evidence, actual public
@@ -339,3 +339,35 @@ logs omit portColorTable, while calibration omits widMax; neither full port-tabl
 nor full font/provider identity is claimed. Fixed normal→highlighted→disabled
 order and shared boot/cache history remain explicit. Only recorded opaque-white
 composited output is verified; whole requests and broader conditions stay open.
+
+
+## Shared307 six-source campaign
+
+1138, Apple Platinum 2, Black Platinum, Platinum 8, Slimes and Windows 3.1
+retain normal, logically highlighted and disabled empty faces from six separate
+boots. Each environment has its own 307 RGB16 inputs measured twice; the shared
+query list does not establish shared device/cache conditions or permit pooling
+profiles. All 18 faces match source and reviewed built output in the private
+comparison: 36 calls and 57,600 independently recomputed composited pixels.
+Public CI repeats the scoped comparisons using distributable inputs and actual
+completed-paint joins.
+
+Four sources have no paired cinf: their modern completion is explicitly the
+legacy compatibility face painter. 1138 and Windows 3.1 instead retain paired
+cinf bands and actual same-owner ppat0 absence. The shared verifier follows these
+resource identities rather than theme-name exceptions. Neither trace identifies
+the original private painter.
+
+Black Platinum retains a browser transport startup failure and prolonged idle.
+Slimes retains an uncaptured default-scheme fixture launch, ordinary quit,
+corrected scheme selection and a fresh fixture launch in the same boot. Neither
+incident retried a captured measurement; both remain part of cache/draw history.
+The older private 1138 profile's unobserved current/main-device equality assertion
+was removed, with measured mappings, palette and producer unchanged. The complete
+comparison uses the corrected profile identity; no native recapture was needed.
+
+State portColorTable and calibration widMax remain absent. Current-device palette
+identity does not establish equality with GetMainDevice. Original masks, phase,
+font/provider/cache identity, order independence and whole controls remain
+unknown. Acquisition review, scoped intake and actual public execution are
+separate checks; no broad requirement or whole request is certified.

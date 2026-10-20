@@ -1,0 +1,17 @@
+{
+  "path": "apple-platinum-2-calibration/prepared-profile.json",
+  "sha256": "98b28f82fd5dcbb3a1770647e5deb4bd9c9b1e9576d512ecbfb0c9cd07e47c22",
+  "id": "display-profile:c9bdc6fd08d20eeccdc74b32071a83e75dce9149f5be199079012ae03f2b51c7",
+  "status": "ACTUAL_PREPARED_PRIVATE_PROFILE_NOT_ADMITTED",
+  "sourceArchiveSha256": "ab667ce7ee19b2495413b25782013137a5e891adbe12c54143ed8f7ece34e091",
+  "sourceForkSha256": "4b7bd9b05fc1ef0b98531a1c9580205f40f7e2eaa67842107146b62f414e0369",
+  "preparationReceipt": {
+    "name": "strict-whole-load.json",
+    "sha256": "04e44469ac742d5c28f0a2b90b2765d50903a5ca8e647cdf042ca98a03e024cf"
+  },
+  "measurement": {
+    "path": "apple-platinum-2-calibration/measurement.json",
+    "sha256": "f0bbe9d3073e208d3b53b4ae3750f3702c0766cf281d2be7818591caaceda7e6"
+  },
+  "executionApproval": "ABSENT; no source/built result or fidelity claim inferred"
+}

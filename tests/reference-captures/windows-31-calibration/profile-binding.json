@@ -1,0 +1,17 @@
+{
+  "path": "windows-31-calibration/prepared-profile.json",
+  "sha256": "1413c9daf5d691dd63af377cf8da1c8dcdba0eb14c045f0c1922f617a4961682",
+  "id": "display-profile:999c4aca04c0cffe407bd0d5c6e340d464139c1c389548d4987cb65214c23e06",
+  "status": "ACTUAL_PREPARED_PRIVATE_PROFILE_NOT_ADMITTED",
+  "sourceArchiveSha256": "1daeb997cb3a84d96d2ac31680fe2cf099ef962cc80ca2bded3256b2243642e6",
+  "sourceForkSha256": "398958500f22ec988fd60600fac1c24064e1b89dd0b168a57de101edd71da441",
+  "preparationReceipt": {
+    "name": "strict-whole-load.json",
+    "sha256": "e79a5a78c2d8a1b4ddb41316e1248d4b328b5c5e0f3d6eabc4c9497dd3efe33e"
+  },
+  "measurement": {
+    "path": "windows-31-calibration/measurement.json",
+    "sha256": "97abe59b52b735b16eda72c42da2286b4e6ef6e5347ea6ceb3d83eddf5c77ddf"
+  },
+  "executionApproval": "ABSENT; no source/built result or fidelity claim inferred"
+}

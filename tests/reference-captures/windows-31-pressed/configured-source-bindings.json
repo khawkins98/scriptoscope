@@ -1,0 +1,38 @@
+{
+  "canonicalSource": {
+    "slug": "windows-31",
+    "path": "themes/windows-31/scheme.sit",
+    "format": "sit",
+    "archiveSha256": "1daeb997cb3a84d96d2ac31680fe2cf099ef962cc80ca2bded3256b2243642e6",
+    "entryIndex": 2,
+    "entryName": "Windows 3.1/Windows 3.1",
+    "forkSha256": "398958500f22ec988fd60600fac1c24064e1b89dd0b168a57de101edd71da441",
+    "selectionReviewStatus": "reviewed-contract-input",
+    "selectionReason": "Explicit scheme-named Colr entry \"Windows 3.1/Windows 3.1\"; readme/icon/font forks excluded by this declared choice, never by size.",
+    "selectionReviewEvidence": "windows-31"
+  },
+  "actualCopl": [
+    "CoplResourceFile.file.name=Windows 3.1 volumeRef=-3 parentDir=2 fileID=18 flags=512 logicalEOF=390327 physicalEOF=391168",
+    "CoplResourceFile.file.name=Windows 3.1 volumeRef=-3 parentDir=2 fileID=18 flags=512 logicalEOF=390327 physicalEOF=391168"
+  ],
+  "configuredFCB": {
+    "volumeRef": -3,
+    "parentDir": 2,
+    "fileID": 18
+  },
+  "stoppedConfiguredFile": {
+    "name": "stopped-Windows 3.1.bin",
+    "bytes": 390528,
+    "sha256": "f847fa0a4eb3bd9ea1682441eb1a6ee41b6dc92cacc03b6546c88deff262842b"
+  },
+  "resourceFork": {
+    "bytes": 390327,
+    "sha256": "398958500f22ec988fd60600fac1c24064e1b89dd0b168a57de101edd71da441"
+  },
+  "installedEngineResourceFork": {
+    "bytes": 1005535,
+    "sha256": "cb903bef4410feb096d65b5a4c9383fa2a3c943e6afef6d3c13463b48267d333"
+  },
+  "actualDefinitionsMatchStoppedKaleidoscope": "Bound independent acquisition review; payload hashes retained in pixel conditions",
+  "limits": "Configured file only; no private selected resource/provider/cache inference."
+}

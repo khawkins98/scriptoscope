@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "status": "APPROVED_SCOPED_BYTES_AND_IMAGES",
+  "reviewer": "Independent Codex root reviewer; automated AI, not human attestation",
+  "scope": "Exact public-api-empty-face v5 only",
+  "checkedPublicArtifacts": 411,
+  "exactOriginalImageCopies": 90,
+  "privateComparison": {
+    "calls": 36,
+    "independentlyComparedPixels": 57600,
+    "differentPixels": 0,
+    "actualCompletedPaintDependencies": 120,
+    "executionSha256": "495011b7db825b380b251cdef903c90205f70d87b930add7de0592bbaa65fdfa"
+  },
+  "limits": [
+    "Current-device identity does not establish GetMainDevice equality",
+    "State portColorTable/calibration widMax absent",
+    "Black startup idle and Slimes extra uncaptured launch retained",
+    "Original masks, phase, font/provider/cache identity, broader states and whole requests unresolved"
+  ]
+}
