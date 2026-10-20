@@ -19,9 +19,11 @@ export interface CornerSpriteGeometry {
     box: number;
     /** decode: close box left = title.left + 4 (4px from the LEFT title end). 0x1074. */
     closeFromLeft: number;
-    /** decode: zoom box right = title.right − 4 (4px from the RIGHT title end). 0x116e. */
+    /** Retained right inset (legacy field name). The synthetic layout places shade
+     *  outermost; WDEF 125 0x116e establishes a zoom inset, not a three-widget order. */
     zoomFromRight: number;
-    /** decode: collapse sits inboard of zoom; corner math top=bottom−7 then OffsetRect(1,1). 0x11fc. */
+    /** Modern gap between the two title widgets. WDEF 125's structure-bottom-right
+     *  rectangle at 0x11fc does not establish titlebar shade positioning. */
     collapseGap: number;
     /** tuning: procedural-fallback bevel (no shipped glyph) — lighten top/left, darken bottom/right. */
     bevel: { highlight: number; shadow: number };
@@ -47,7 +49,7 @@ export const CORNER_SPRITE_GEOMETRY: CornerSpriteGeometry = {
     box: 7,            // decode: 7×7 fixed (was manual max(7,min(13,titleH−7)) ⇒ ~12 at titleH 19)
     closeFromLeft: 4,  // decode: title.left + 4 (was manual frame.left + 3)
     zoomFromRight: 4,  // decode: title.right − 4
-    collapseGap: 2,    // inboard gap (manual; decode uses corner math, approximated as a gap here)
+    collapseGap: 2,    // modern title-widget gap
     bevel: { highlight: 0.5, shadow: 0.18 }, // tuning (procedural fallback only)
   },
   frame: { side: 1, bottom: 1 },             // decode: 1px (0x434)

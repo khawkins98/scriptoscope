@@ -7,6 +7,10 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+- Bind titlebar close, zoom and shade actions to authored widget identities, including right-grouped and vertically stacked controls; put shade outermost in the synthetic document layout and remove the resize overlay while collapsed so shade can restore the window.
+
+- Leave window shell shadows off by default, including the landing page, so rectangular CSS shadows do not fill transparent edges of custom chrome. Preserve the explicit shadow custom-property opt-in and theme-painted artwork.
+
 - Add opt-in finite CIcon transfer preparation with exact source/context bindings, explicit modern mask alpha, and owned loader/package acceptance; strict default and display-profile v1/v2 behavior remain unchanged.
 
 - Refresh the reference-intake status and document claim-focused fidelity batches, explicit ownership, delta review and finite-adapter stopping criteria without changing evidence admission or required checks.

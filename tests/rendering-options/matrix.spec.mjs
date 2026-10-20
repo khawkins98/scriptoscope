@@ -40,7 +40,7 @@ function assertOutput(result, c) {
       expect(window.isWindowHost).toBe(true);
       expect(window.boxShadow, 'stretchable outer hosts must not cast window shadows').toBe('none');
       expect(window.part, 'actual chrome exposes its window part').not.toBeNull();
-      expect(window.part.boxShadow, 'configured shadow reaches the actual chrome part').not.toBe('none');
+      expect(window.part.boxShadow, 'optional shell shadows default off').toBe('none');
     }
     if (result.native && 'disabled' in c.options) expect(result.native.disabled).toBe(c.options.disabled);
   }

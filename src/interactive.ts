@@ -693,17 +693,10 @@ export interface TitleWidgetHit {
 }
 
 /**
- * Resolve the title-bar widget hit zones for a cicn-rendered window. The widget
- * art is BAKED into the chrome cicn; the scheme exposes each widget's cicn-pixel
- * rect as a `wnd#` part (`part-1`…, with `part-0` the body and any ≤2px-wide
- * top-band part being the title-text MARKER, not a widget). We map each cicn rect
- * onto the STRETCHED window: the title bar grows in its middle, so left-anchored
- * widgets keep their x while right-anchored widgets shift right by the same
- * amount the compositor shifted the right fixed band (the max src→out delta among
- * the top cells, == fullWidth − drawableWidth). Roles follow the classic Mac
- * title-bar layout — close at the left; on the right the far box is the zoom, an
- * inner one the collapse/windowshade — a HIG-layout heuristic (the only signal
- * the scheme carries is the widgets' positions, not labels).
+ * Resolve title-bar hit zones from the same semantic widget IDs and composed
+ * placements used by rendering and press feedback, then apply display scale.
+ * Native wnd# rectangle parts 1/2/3 mean close/zoom/collapse independently of
+ * their positions; corner-sprite placements carry explicit roles.
  */
 export function titleWidgetHits(
   theme: LoadedTheme,
@@ -1644,6 +1637,10 @@ export class WindowManager {
       e.preventDefault();
       void this.toggleCollapse(entry);
     });
+
+    // A shaded window has no content area to resize. Its bottom-right resize
+    // overlay would cover the title widgets (and intercept the restore click).
+    if (entry.collapsed) return;
 
     // RESIZE — drag ONLY the bottom-right corner (the grow-box gripper), like classic Mac. NOT the
     // right/bottom edges: those run the length of the borders where the scrollbar tracks sit, and a

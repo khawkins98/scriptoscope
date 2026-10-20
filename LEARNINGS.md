@@ -1,5 +1,27 @@
 # Learnings
 
+## 2026-10-20 — Window widget identity survives custom placement
+
+The `wnd#` rectangle list has semantic part IDs: 1 close, 2 zoom, 3 shade.
+kDEF's iterator at `0x5ffc` maps selectors 0/1/3 to those parts; callers at
+`0x4138`, `0x4176` and `0x41d0` return hit codes 4, 5/6 and 9 respectively.
+These IDs are distinct from the side-list recipe codes. Sorting widget
+rectangles by x lost that identity: it swapped zoom/shade, misidentified
+Evolution's right-hand close button, and could not represent 1990's vertical
+stack. Rendering feedback, accessible labels and click actions now use the
+same ID-preserving resolver. Title clipping continues to use actual geometry.
+
+The corner-sprite three-widget layout is synthesized. Its explicit glyph and
+action roles must move together: shade outermost, zoom immediately inboard.
+The old WDEF 125 bottom-right rectangle citation does not prove a titlebar
+shade position; the retained synthetic gap is a compatibility choice.
+
+Actual collapse/restore clicks also exposed a resize overlay spanning the
+entire collapsed titlebar height. Its higher stacking order intercepted the
+restore button. A shaded window now retains move/shade controls but has no
+resize handle until expanded; raising shade's z-index would have hidden the
+incorrect resize state instead of fixing it.
+
 ## 2026-10-20 — Calibrated cases need resource-backed completion and honest conditions
 
 The Shared307 campaign matches eighteen recorded faces through separately
@@ -4645,3 +4667,7 @@ whole-control fidelity. See [the bounded selection contract](docs/spec/push-butt
 ### 2026-10-20: finite transfer output is not a source palette
 
 An observed destination-index plane can retain evidence for a sparse CIcon without inventing missing source RGB16. Resolve its recorded palette/producer once, keep source-mask alpha and kDEF scalar/mode5 sampling separate, and compare sampler equivalence per opaque coordinate rather than memoizing an output comparison by source index. Explicit preparation context is not original consumer or active native implementation proof. See [finite CIcon transfer preparation](docs/spec/finite-cicn-transfer.md).
+
+## 2026-10-20 — Window shell shadows do not own theme silhouettes
+
+The optional stylesheet applied a rectangular box-shadow to every window part, and the landing page amplified it. The part bounds the chrome canvas; it does not describe opaque artwork, so jagged or transparent themes acquired an unrelated rectangle. Default the shell decoration to none and keep explicit consumer opt-in. Do not infer historical shadows, change authored canvas pixels, or replace this with an unreviewed alpha filter/theme heuristic. Acceptance checks both classic and custom windows and proves opt-in changes CSS without changing canvas bytes.

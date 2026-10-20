@@ -120,17 +120,18 @@ export interface RenderWindowOptions {
   reuseCanvas?: HTMLCanvasElement;
 }
 
-/** A title-bar widget role, left→right: close · collapse(windowshade) · zoom. */
+/** A title-bar widget action, independent of its authored position. */
 export type TitleWidgetRole = 'close' | 'zoom' | 'collapse';
 
 /**
  * Resolve title-bar widget rects (UNSCALED, in composed-buffer pixel space) from the `wnd#`
- * parts, mapped onto the stretched window — the single source of truth shared by the pressed-
- * widget effect here and `interactive.titleWidgetHits` (which just ×scale's these). The widget
- * art is a `wnd#` part rect (`part-1`…; `part-0` is the body, any ≤2px-wide top-band part is the
- * title-text marker). The title bar grows in its middle, so left-anchored widgets keep their x
- * and right-anchored ones shift by the compositor's right-band delta. Roles follow the classic
- * Mac layout: close at the left; on the right the far box is zoom, an inner one collapse.
+ * parts, mapped onto the stretched window. Press feedback and interactive hit testing
+ * share this resolver. The rectangle list carries semantic part IDs: 1 close,
+ * 2 zoom, 3 collapse; 0 is the body and 4 the title marker. These are NOT the
+ * separate side-list recipe codes. kDEF 0x5ffc maps selectors 0/1/3 to these
+ * parts; hit dispatch 0x4138/0x4176/0x41d0 returns close/zoom/collapse.
+ * Preserve those IDs even when a scheme puts close on the right or stacks its
+ * widgets vertically. Geometry still follows the actual compositor placements.
  */
 export function resolveTitleWidgetRects(
   wt: WindowType,
@@ -158,9 +159,6 @@ export function resolveTitleWidgetRects(
   if (!top.length || !wt.parts) return [];
   const shiftOf = (s: (typeof top)[number]): number => (s.rects[0]?.x ?? s.src.x) - s.src.x;
   const rightShift = top.reduce((m, s) => Math.max(m, shiftOf(s)), 0);
-  const rightBandSrcX = rightShift > 0
-    ? top.reduce((m, s) => (shiftOf(s) === rightShift ? Math.min(m, s.src.x) : m), Infinity)
-    : Infinity;
   /** Source x → output x, looked up in the placement at the cell containing `sx`.
    *  The growth per cell isn't uniform (the title plate grows; widgets stay 1:1), so
    *  pick the placement whose src band covers `sx` and shift by (rects[0].x - src.x). */
@@ -168,30 +166,15 @@ export function resolveTitleWidgetRects(
     const hit = top.find((s) => sx >= s.src.x && sx <= s.src.x + s.src.w);
     return hit ? sx + shiftOf(hit) : sx + rightShift;
   };
-  const frameTop = composed.frame.top;
-  const placed: { right: boolean; x: number; y: number; w: number; h: number }[] = [];
-  for (const [slug, part] of Object.entries(wt.parts)) {
-    if (slug === 'part-0' || !part.rect) continue;
-    const [l, t, r, b] = part.rect;
-    if (r <= l || b <= t) continue; // empty rect
-    if (t < frameTop && r - l <= 2) continue; // thin title-text marker, not a widget
-    const right = (l + r) / 2 >= rightBandSrcX;
-    // Widget cells in the recipe are FIXED — drawStretch with srcLen=dstLen — so the
-    // mapped output position preserves width 1:1.
-    const ox = mapX(l);
-    placed.push({ right, x: ox, y: t, w: r - l, h: b - t });
-  }
   const out: { role: TitleWidgetRole; rect: { x: number; y: number; w: number; h: number } }[] = [];
-  const lefties = placed.filter((p) => !p.right).sort((a, b) => a.x - b.x);
-  const righties = placed.filter((p) => p.right).sort((a, b) => a.x - b.x);
-  if (lefties[0]) out.push({ role: 'close', rect: { x: lefties[0].x, y: lefties[0].y, w: lefties[0].w, h: lefties[0].h } });
-  // Right-side roles, per Mac OS 8.5+ Platinum convention: the OUTER (rightmost) box is ZOOM, the
-  // inner one is the windowshade/COLLAPSE. The wnd# parts carry NO role labels, so this is a
-  // positional heuristic — the icon ART in Platinum-replica/1138 confirms it: zoom-square outer,
-  // collapse-lines inner. (Was earlier "outer=collapse" verified against evolution only, which is
-  // non-classic and mislabeled every other scheme. Corner-sprite themes don't use this path — their
-  // roles come from the glyph names.)
-  righties.forEach((p, i) => out.push({ role: i === righties.length - 1 ? 'zoom' : 'collapse', rect: { x: p.x, y: p.y, w: p.w, h: p.h } }));
+  const roles = { 'part-1': 'close', 'part-2': 'zoom', 'part-3': 'collapse' } as const;
+  for (const [part, role] of Object.entries(roles)) {
+    const rect = wt.parts[part]?.rect;
+    if (!rect) continue;
+    const [l, t, r, b] = rect;
+    if (r <= l || b <= t) continue;
+    out.push({ role, rect: { x: mapX(l), y: t, w: r - l, h: b - t } });
+  }
   return out;
 }
 

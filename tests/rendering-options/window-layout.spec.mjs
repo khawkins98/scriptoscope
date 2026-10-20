@@ -3,6 +3,7 @@ import { test, expect, openHarness, attachCase } from './fixtures.mjs';
 for (const mode of ['source', 'built']) for (const slug of ['windows-95', 'system7-nostalgia-silver']) for (const layout of ['grid', 'flex']) {
   test(`${mode}: ${slug} ${layout} shadows follow visible chrome at native and 2x scale`, async ({ page, servers }, testInfo) => {
     await openHarness(page, servers, mode);
+    await page.evaluate(() => document.documentElement.style.setProperty('--scriptoscope-window-shadow', '2px 2px 0 #0006'));
     let result;
     try {
       for (const scale of [1, 2]) {
