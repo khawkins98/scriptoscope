@@ -191,3 +191,23 @@ on/off pixel/decode parity. The matrix also attaches direct tab traces. Successf
 observations retain only selected resource records; failures retain the full load
 records. This extends diagnostic coverage, not the separately reviewed requirement
 ledger or historical typography/device/variant-selection claims.
+
+### Literal push/default branch coverage
+
+The mandatory `control-trace.spec.mjs` source/built cases reuse the owned ring
+stencil from `visual-baselines/control-ring.spec.mjs`: unequal face/ring source
+sizes, a transparent margin, a pixel overlapping the face, and a colored ring
+body that must remain omitted. A literal decision table covers disabled before
+pressed (including both flags), present pressed art, pressed-to-active retry,
+missing inactive art without active retry, missing active art, and no ring/default.
+It asserts the four-pixel expansion of the face rectangle and after-face ring
+paint. Actual public `promoteButton` paths exercise normal/pressed/released and
+native-disabled behavior against the same independent pixel literals.
+
+These conditional source-branch assertions do not establish original caller
+state construction, aux-chain default eligibility, provider/cache identity or
+historical default-control pixels. Plain-button footprint reservation remains
+modern layout policy. The broader selection/geometry/default-caller obligations
+remain open; this test adds no capture or ledger promotion. Existing translated
+clip checks in `pattern-body.spec.mjs` and lifecycle/package checks retain their
+separate scope.
