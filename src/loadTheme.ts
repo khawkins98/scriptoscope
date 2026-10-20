@@ -1,3 +1,4 @@
+import { snapshotCicnTransfer, type CicnTransferOption } from '../tools/theme-loader/cicn-transfer-results.js';
 import { assertCinfEnvironment, CinfEnvironmentError, type PreparedCinfEnvironment } from '../tools/theme-loader/cinf-environment.js';
 import { displayRealizer, assertDisplayProfileChain, type DisplayProfile } from '../tools/theme-loader/display-profile.js';
 import type { LoadedTheme, ChromeElement } from './types.js';
@@ -49,9 +50,10 @@ export interface ThemeMeta {
  */
 export async function loadTheme(
   bundleUrl: string,
-  opts: { base?: LoadedTheme; source?: string; meta?: ThemeMeta; provenance?: boolean; displayProfile?: DisplayProfile; cinfEnvironment?: PreparedCinfEnvironment; sliderLayoutEnvironment?: PreparedCinfEnvironment } = {},
+  opts: { base?: LoadedTheme; source?: string; meta?: ThemeMeta; provenance?: boolean; cicnTransfer?: CicnTransferOption; displayProfile?: DisplayProfile; cinfEnvironment?: PreparedCinfEnvironment; sliderLayoutEnvironment?: PreparedCinfEnvironment } = {},
 ): Promise<LoadedTheme> {
   const displayProfile = opts.displayProfile;
+  const cicnTransfer = snapshotCicnTransfer(opts.cicnTransfer, displayProfile);
   const cinfEnvironment = opts.cinfEnvironment;
   assertCinfEnvironment(cinfEnvironment);
   const sliderLayoutEnvironment = opts.sliderLayoutEnvironment;
@@ -91,6 +93,7 @@ export async function loadTheme(
     ...(sliderLayoutEnvironment ? { sliderLayoutEnvironment } : {}),
     ...(opts.provenance ? { provenance: true } : {}),
     ...(displayProfile ? { displayProfile } : {}),
+    ...(cicnTransfer ? { cicnTransfer } : {}),
   });
 
   try { assertDisplayProfileChain(base, displayProfile); } catch (error) { loaded.dispose?.(); throw error; }

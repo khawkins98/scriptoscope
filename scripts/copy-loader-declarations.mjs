@@ -24,3 +24,5 @@ await writeFile(resolve(root, 'dist/tools/theme-loader/display-profile.d.ts'),
 const cinf = await readFile(resolve(root, 'tools/theme-loader/cinf-environment.d.ts'), 'utf8');
 await writeFile(resolve(root, 'dist/tools/theme-loader/cinf-environment.d.ts'),
   cinf.replace("from '../../src/types.js'", "from '../../types/types.js'"));
+const cicnTransfer = await readFile(resolve(root, 'tools/theme-loader/cicn-transfer-results.d.ts'), 'utf8');
+await writeFile(resolve(root, 'dist/tools/theme-loader/cicn-transfer-results.d.ts'), cicnTransfer);

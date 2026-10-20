@@ -1,3 +1,4 @@
+import { snapshotCicnTransfer, bindCicnTransfer } from './cicn-transfer-results.js';
 // Runtime Kaleidoscope scheme loader — the BROWSER shell over the portable
 // conversion core (convert.js). A single in-browser call instead of the Node
 // build pipeline: decode a dropped .ksc/.rsrc resource fork → a render-ready,
@@ -46,6 +47,7 @@ import { buildResourceRoles, parseCicnFilename, parsePpatFilename } from './clas
  */
 export async function loadKaleidoscopeScheme(input, options = {}) {
   const displayProfile = options.displayProfile;
+  const cicnTransfer = snapshotCicnTransfer(options.cicnTransfer, displayProfile);
   const cinfEnvironment = options.cinfEnvironment;
   assertCinfEnvironment(cinfEnvironment);
   const sliderLayoutEnvironment = options.sliderLayoutEnvironment;
@@ -53,8 +55,8 @@ export async function loadKaleidoscopeScheme(input, options = {}) {
   displayRealizer(displayProfile);
   // Snapshot caller-owned byte inputs synchronously, before any await. Every
   // digest and decoder receives this same private snapshot when opted in.
-  if ((options.provenance || cinfEnvironment || sliderLayoutEnvironment) && input instanceof Uint8Array) input = new Uint8Array(input);
-  else if ((options.provenance || cinfEnvironment || sliderLayoutEnvironment) && input && typeof input.byteLength === 'number' && !ArrayBuffer.isView(input)) {
+  if ((options.provenance || cinfEnvironment || sliderLayoutEnvironment || cicnTransfer) && input instanceof Uint8Array) input = new Uint8Array(input);
+  else if ((options.provenance || cinfEnvironment || sliderLayoutEnvironment || cicnTransfer) && input && typeof input.byteLength === 'number' && !ArrayBuffer.isView(input)) {
     input = new Uint8Array(new Uint8Array(input));
   }
   const bytes = await toUint8Array(input);
@@ -76,13 +78,15 @@ export async function loadKaleidoscopeScheme(input, options = {}) {
     selection = { policy: container === 'raw' ? 'raw-resource-fork' : 'unverified-container-unwrapping',
       entryIndex: null, entryName: null, forkType: container === 'raw' ? 1 : null, fileType: null, creator: null };
   }
+  if (cicnTransfer) fork = new Uint8Array(fork);
   if (evidence) await evidence.selectedFork(fork, selection);
   const cinfBinding = await bindCinfEnvironment(cinfEnvironment, fork);
   const sliderLayoutBinding = await bindCinfEnvironment(sliderLayoutEnvironment, fork);
+  const cicnTransferBinding = await bindCicnTransfer(cicnTransfer, fork);
   let converted;
   try {
     converted = convertScheme(fork, {
-      meta: options.meta, source: options.source ?? 'resource-fork', displayProfile, cinfBinding, sliderLayoutBinding,
+      meta: options.meta, source: options.source ?? 'resource-fork', displayProfile, cinfBinding, sliderLayoutBinding, cicnTransferBinding,
       ...(evidence ? { resourceObserver: evidence.observer } : {}),
     });
   } catch (error) {
@@ -213,7 +217,7 @@ function rewriteAssetRefs(node, urlByPath) {
   if (node && typeof node === 'object') {
     for (const k of Object.keys(node)) {
       const v = node[k];
-      if (k === 'displayProfile' || k === 'bodyCinf' || k === 'cinfEnvironment' || k === 'sliderLayoutCinf' || k === 'sliderLayoutEnvironment') continue; // immutable condition/evidence data, never asset references
+      if (k === 'cicnTransfer' || k === 'displayProfile' || k === 'bodyCinf' || k === 'cinfEnvironment' || k === 'sliderLayoutCinf' || k === 'sliderLayoutEnvironment') continue; // immutable condition/evidence data, never asset references
       // Stable derivation identity is not an asset URL. Replace this immutable
       // scalar link as a unit; never recursively rewrite its derivedPath.
       if ((k === 'sampledBandAsset' || k === 'cicnBody') && v && typeof v === 'object') {

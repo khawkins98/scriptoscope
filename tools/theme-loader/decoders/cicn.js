@@ -28,7 +28,7 @@ import { makeKdefColorSampler } from '../kdef-color-samples.js';
  * @param {Uint8Array} bytes  Raw cicn resource bytes
  * @returns {{width: number, height: number, rgba: Uint8Array, debug: object}|null} null for a structurally valid unsupported destination-palette variant
  */
-export function decodeCicn(bytes, { retainKdefColorSampler = false, realizeRgb16, displayPolicy } = {}) {
+export function readCicnIndexed(bytes) {
   requireBytes(bytes, 0, 82, 'headers');
   const r = new Reader(bytes);
 
@@ -74,15 +74,25 @@ export function decodeCicn(bytes, { retainKdefColorSampler = false, realizeRgb16
   // overlap/opaque-outside policy; its historical semantics remain unverified.
   const maskAlpha = expandMask(maskBytes, mask.width, mask.height, mask.rowBytes);
 
-  const rgba = composeRgba(indices, maskAlpha, pmap, mask, colorTable, realizeRgb16);
+  return { pmap, mask, bmap, colorTable, indices, maskAlpha };
+}
+
+export function decodeCicn(bytes, { retainKdefColorSampler = false, realizeRgb16, displayPolicy, finiteTransfer } = {}) {
+  const parsed = readCicnIndexed(bytes);
+  if (!parsed) return null;
+  const { pmap, mask, bmap, colorTable, indices, maskAlpha } = parsed;
+  const transfer = finiteTransfer?.(parsed);
+  const rgba = transfer ? applySourceMask(transfer.rgb, maskAlpha, pmap, mask)
+    : composeRgba(indices, maskAlpha, pmap, mask, colorTable, realizeRgb16);
   const sampler = makeKdefColorSampler(indices, pmap.width, pmap.height, colorTable.entries);
-  const samplingEquivalence = compareOpaqueSampling(indices, rgba, pmap, mask, sampler, realizeRgb16, displayPolicy);
+  const samplingEquivalence = compareOpaqueSampling(indices, rgba, pmap, mask, sampler, realizeRgb16, displayPolicy, !!transfer);
 
   return {
     width: pmap.width,
     height: pmap.height,
     rgba,
     samplingEquivalence,
+    ...(transfer ? { cicnTransfer: transfer.provenance } : {}),
     bodyCicnSource: inspectCicnBody(pmap, mask, bmap, colorTable, indices),
     sampledBandRgba: sampledBandPixels(indices, rgba, pmap, sampler, samplingEquivalence, realizeRgb16),
     ...(retainKdefColorSampler ? { sampleKdefRgb16: sampler } : {}),
@@ -156,4 +166,14 @@ function validateBitmap(map, depth, label, allowEmpty = false) {
   if (map.rowBytes < Math.ceil(map.width * depth / 8)) {
     throw new Error(`Invalid cicn ${label} rowBytes`);
   }
+}
+
+function applySourceMask(rgb, maskAlpha, pmap, mask) {
+  const rgba = new Uint8Array(pmap.width * pmap.height * 4);
+  for (let y = 0; y < pmap.height; y++) for (let x = 0; x < pmap.width; x++) {
+    const i = y * pmap.width + x;
+    rgba.set(rgb.subarray(i * 3, i * 3 + 3), i * 4);
+    rgba[i * 4 + 3] = x < mask.width && y < mask.height ? maskAlpha[y * mask.width + x] : 255;
+  }
+  return rgba;
 }

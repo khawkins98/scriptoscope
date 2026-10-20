@@ -143,3 +143,6 @@ export { prepareDisplayProfile, DisplayProfileError, type DisplayProfile, type D
 export { prepareBitmapFont, type BitmapFontData, type BitmapGlyph, type PreparedBitmapFont, type BitmapTextPaint } from './preparedBitmapFont.js';
 
 export { prepareCinfEnvironment, CinfEnvironmentError, type PreparedCinfEnvironment, type CinfEnvironmentInput, type CinfLookupView, type CinfProviderReference } from '../tools/theme-loader/cinf-environment.js';
+
+export { prepareCicnTransferResults, CicnTransferError } from '../tools/theme-loader/cicn-transfer-results.js';
+export type { CicnTransferData, PreparedCicnTransfers, CicnTransferOption, CicnTransferProvenance } from '../tools/theme-loader/cicn-transfer-results.js';
