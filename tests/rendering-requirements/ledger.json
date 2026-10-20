@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "inventoryVersion": "1.14.0",
+  "inventoryVersion": "1.15.0",
   "scope": {
-    "description": "Ninety exact direct composition cases: prior seventy-two plus eighteen conditioned Shared307 state face comparisons across six schemes; all inventory closures OPEN. Not a whole-control denominator.",
+    "description": "Ninety-two exact direct composition cases: prior ninety plus two Evolution empty normal/inactive recorded-condition faces. All closures OPEN; not a whole-control denominator.",
     "dimensions": [
       "resourceSelection",
       "geometry",
@@ -1308,7 +1308,13 @@
     {"id":"theme.black-platinum","kind":"theme-archive","path":"themes/black-platinum/scheme.rsrc","sha256":"84b1b90c49909cdf2107759784c0c5aa2da14499dec1cc070e9a67eac77db9fc"},
     {"id":"theme.platinum-8","kind":"theme-archive","path":"themes/platinum-8/scheme.sit","sha256":"1f064eb95c8c7ba5b71bf97b91b79bec08177ed289a44b985b5af9d3ac5683b7"},
     {"id":"theme.slimes","kind":"theme-archive","path":"themes/slimes/scheme.sit","sha256":"4c87df6b3d0ef2852458f6ebaee818db8b20f12edd75afac68a6f077d063372b"},
-    {"id":"theme.windows-31","kind":"theme-archive","path":"themes/windows-31/scheme.sit","sha256":"1daeb997cb3a84d96d2ac31680fe2cf099ef962cc80ca2bded3256b2243642e6"}
+    {"id":"theme.windows-31","kind":"theme-archive","path":"themes/windows-31/scheme.sit","sha256":"1daeb997cb3a84d96d2ac31680fe2cf099ef962cc80ca2bded3256b2243642e6"},
+    {
+      "id": "theme.evolution",
+      "kind": "theme-archive",
+      "path": "themes/evolution/scheme.rsrc",
+      "sha256": "9491fd7a68134249988b07971d222527709636438c59ca1d0daf5ade82a26740"
+    }
   ],
   "evidence": [
     {
@@ -2198,7 +2204,105 @@
     {"id":"recorded.slimes.inactive","kind":"scoped-original","inputs":["theme.slimes"],"document":"tests/rendering-requirements/EVIDENCE.md","locator":"One slimes inactive empty 80×20 face from slimes.inactive.shared307 is compared over recorded white using its own finite Shared307 profile and explicit port (20,20). Actual signed face, absent paired cinf and completed compatibility legacy-face paint join the composition. This is only a recorded-condition pixel claim; shared-boot history, incomplete port/font/provider identity and unknown native painter remain explicit.","excerptSha256":"d2546ec2e0c604eae6c71c2809143761c7baa916553a6358aca978cfc84965c4","claim":"Only complete recorded-condition composited face pixels.","limits":"Exact reviewed capture/profile/context and clean source/built execution required; no whole-request, native provider/painter, mask/font, main-device equality or cache/order independence.","requirementIds":["output.recorded-composited-face"],"reference":{"captureId":"slimes.inactive.shared307","requestId":"slimes.inactive","requestDigest":"a21282e34d4ffaadd4ee0da08dc983c632eef571f44ea4ca6c52d9037bf051a0","captureDigest":"2ae2e71655dc9eba946602ac6904de3741fa68bc34027439f2356db7a963b30c","imageSha256":"b93426c1504d90e64aefed477d02dd030901e43c66eae1d1807359ec53256380","reviewScope":{"id":"public-api-empty-face","version":5,"digest":"35918d1e214911cd34ca927f8fcba47dafc1feff8890b1ef433bdd9ac3582e12"},"faceImageRect":[20,20,80,20],"publicFaceRect":[4,4,80,20],"background":[255,255,255],"profile":{"path":"tests/decoder-fixtures/measured-display-profile-slimes.json","id":"display-profile:36dc28105d8bb380b8df9588cee7ac100bd1294ea218fe56bec287f644c25973","sha256":"cc128c30089d593e97e5a07e7ffa33729a09b73fe5842d4085dfe54864bbb1f5"}}},
     {"id":"recorded.windows-31.normal","kind":"scoped-original","inputs":["theme.windows-31"],"document":"tests/rendering-requirements/EVIDENCE.md","locator":"One windows-31 normal empty 80×20 face from windows-31.normal.shared307 is compared over recorded white using its own finite Shared307 profile and explicit port (20,20). Actual signed face/cinf, same-owner ppat0 absence and completed face-band paint join the composition. This is only a recorded-condition pixel claim; shared-boot history, incomplete port/font/provider identity and unknown native painter remain explicit.","excerptSha256":"8baa7a2707f68a6c090ee04013b88466f89be0dc3dd5ebd6487ec7277507c321","claim":"Only complete recorded-condition composited face pixels.","limits":"Exact reviewed capture/profile/context and clean source/built execution required; no whole-request, native provider/painter, mask/font, main-device equality or cache/order independence.","requirementIds":["output.recorded-composited-face"],"reference":{"captureId":"windows-31.normal.shared307","requestId":"windows-31.normal","requestDigest":"8600baad73754ad9dc17c216f25187fbea5c98482ae943b11243a7523240175f","captureDigest":"5d887095f9657f1d61cc61d418083b437b138b9470994fd223ee95637d7e8b96","imageSha256":"d10ba1f0b4fd3215aee975b1165405ab4fc9f453d37c64918dc0019a5ef76dd5","reviewScope":{"id":"public-api-empty-face","version":5,"digest":"6223fd19c982fb53ea2196103e26c9d15e7a5fec6e493f0f71b9db9680d26d09"},"faceImageRect":[20,20,80,20],"publicFaceRect":[4,4,80,20],"background":[255,255,255],"profile":{"path":"tests/decoder-fixtures/measured-display-profile-windows-31.json","id":"display-profile:999c4aca04c0cffe407bd0d5c6e340d464139c1c389548d4987cb65214c23e06","sha256":"1413c9daf5d691dd63af377cf8da1c8dcdba0eb14c045f0c1922f617a4961682"}}},
     {"id":"recorded.windows-31.pressed","kind":"scoped-original","inputs":["theme.windows-31"],"document":"tests/rendering-requirements/EVIDENCE.md","locator":"One windows-31 pressed empty 80×20 face from windows-31.pressed.shared307 is compared over recorded white using its own finite Shared307 profile and explicit port (20,20). Actual signed face/cinf, same-owner ppat0 absence and completed face-band paint join the composition. This is only a recorded-condition pixel claim; shared-boot history, incomplete port/font/provider identity and unknown native painter remain explicit.","excerptSha256":"fc2c9e1408152ffe947cb49a49278e47d28fcb3e8a8001245e8f025b47524223","claim":"Only complete recorded-condition composited face pixels.","limits":"Exact reviewed capture/profile/context and clean source/built execution required; no whole-request, native provider/painter, mask/font, main-device equality or cache/order independence.","requirementIds":["output.recorded-composited-face"],"reference":{"captureId":"windows-31.pressed.shared307","requestId":"windows-31.pressed","requestDigest":"888ddde4bfddb4427bd71caba50bb167fcd07f00144f537d03266fb8f15c24f0","captureDigest":"7cde3210d100357d39c81438a1767cd5b4533031f08082ef61c3d84e313e0371","imageSha256":"668e48e3911cf868b5ac4e7811a3bba12dd94329e9f301c6e547f053bfd5d7a1","reviewScope":{"id":"public-api-empty-face","version":5,"digest":"cea5082fee796892d86566b3b05e2fb756ca5b760f7e8c00c616518bef798361"},"faceImageRect":[20,20,80,20],"publicFaceRect":[4,4,80,20],"background":[255,255,255],"profile":{"path":"tests/decoder-fixtures/measured-display-profile-windows-31.json","id":"display-profile:999c4aca04c0cffe407bd0d5c6e340d464139c1c389548d4987cb65214c23e06","sha256":"1413c9daf5d691dd63af377cf8da1c8dcdba0eb14c045f0c1922f617a4961682"}}},
-    {"id":"recorded.windows-31.inactive","kind":"scoped-original","inputs":["theme.windows-31"],"document":"tests/rendering-requirements/EVIDENCE.md","locator":"One windows-31 inactive empty 80×20 face from windows-31.inactive.shared307 is compared over recorded white using its own finite Shared307 profile and explicit port (20,20). Actual signed face/cinf, same-owner ppat0 absence and completed face-band paint join the composition. This is only a recorded-condition pixel claim; shared-boot history, incomplete port/font/provider identity and unknown native painter remain explicit.","excerptSha256":"cfedf81f1c7c0bd7f88dd2e33587a7b3dcc2030b7816a4f436aed519a6511302","claim":"Only complete recorded-condition composited face pixels.","limits":"Exact reviewed capture/profile/context and clean source/built execution required; no whole-request, native provider/painter, mask/font, main-device equality or cache/order independence.","requirementIds":["output.recorded-composited-face"],"reference":{"captureId":"windows-31.inactive.shared307","requestId":"windows-31.inactive","requestDigest":"26699d87b43063781db90981eaa97eb4a0481429ff66007357104b7f4695dc79","captureDigest":"e556e9c397fbb10fd03151617365ab2a96173c1ceedcbb440c5fc9b3ff6b3f92","imageSha256":"d10ba1f0b4fd3215aee975b1165405ab4fc9f453d37c64918dc0019a5ef76dd5","reviewScope":{"id":"public-api-empty-face","version":5,"digest":"35918d1e214911cd34ca927f8fcba47dafc1feff8890b1ef433bdd9ac3582e12"},"faceImageRect":[20,20,80,20],"publicFaceRect":[4,4,80,20],"background":[255,255,255],"profile":{"path":"tests/decoder-fixtures/measured-display-profile-windows-31.json","id":"display-profile:999c4aca04c0cffe407bd0d5c6e340d464139c1c389548d4987cb65214c23e06","sha256":"1413c9daf5d691dd63af377cf8da1c8dcdba0eb14c045f0c1922f617a4961682"}}}
+    {"id":"recorded.windows-31.inactive","kind":"scoped-original","inputs":["theme.windows-31"],"document":"tests/rendering-requirements/EVIDENCE.md","locator":"One windows-31 inactive empty 80×20 face from windows-31.inactive.shared307 is compared over recorded white using its own finite Shared307 profile and explicit port (20,20). Actual signed face/cinf, same-owner ppat0 absence and completed face-band paint join the composition. This is only a recorded-condition pixel claim; shared-boot history, incomplete port/font/provider identity and unknown native painter remain explicit.","excerptSha256":"cfedf81f1c7c0bd7f88dd2e33587a7b3dcc2030b7816a4f436aed519a6511302","claim":"Only complete recorded-condition composited face pixels.","limits":"Exact reviewed capture/profile/context and clean source/built execution required; no whole-request, native provider/painter, mask/font, main-device equality or cache/order independence.","requirementIds":["output.recorded-composited-face"],"reference":{"captureId":"windows-31.inactive.shared307","requestId":"windows-31.inactive","requestDigest":"26699d87b43063781db90981eaa97eb4a0481429ff66007357104b7f4695dc79","captureDigest":"e556e9c397fbb10fd03151617365ab2a96173c1ceedcbb440c5fc9b3ff6b3f92","imageSha256":"d10ba1f0b4fd3215aee975b1165405ab4fc9f453d37c64918dc0019a5ef76dd5","reviewScope":{"id":"public-api-empty-face","version":5,"digest":"35918d1e214911cd34ca927f8fcba47dafc1feff8890b1ef433bdd9ac3582e12"},"faceImageRect":[20,20,80,20],"publicFaceRect":[4,4,80,20],"background":[255,255,255],"profile":{"path":"tests/decoder-fixtures/measured-display-profile-windows-31.json","id":"display-profile:999c4aca04c0cffe407bd0d5c6e340d464139c1c389548d4987cb65214c23e06","sha256":"1413c9daf5d691dd63af377cf8da1c8dcdba0eb14c045f0c1922f617a4961682"}}},
+    {
+      "id": "recorded.evolution.normal",
+      "kind": "scoped-original",
+      "inputs": [
+        "theme.evolution"
+      ],
+      "document": "tests/rendering-requirements/EVIDENCE.md",
+      "locator": "Evolution normal empty80\u00d720 face from evolution.normal.e1971 is compared over recorded white using its own finite1971-key measured profile and actual port(20,20). Exact signed face/cinf occurrences, selected owner/URL and eight completed face-band dependencies join the output. Same-owner ppat0 is absent; solid output agreement does not invent a completed fill trace or native provider. Actual font0/size0 remains an unknown identity; labeled captures and font payloads are private and excluded. Shared-boot incident/order, missing consumer port-table/current-main equality and cache/patch/phase limits remain explicit.",
+      "excerptSha256": "37ced5e24946393b79cf409e6b963adebbbcb524e728af654781ffe3630ec6a3",
+      "claim": "Only complete recorded-condition empty composited face pixels.",
+      "limits": "Reviewed v5 capture/profile/context and registered source/built execution required; no typography, native provider/painter/mask/phase or whole-control claim.",
+      "requirementIds": [
+        "output.recorded-composited-face"
+      ],
+      "reference": {
+        "captureId": "evolution.normal.e1971",
+        "requestId": "evolution.normal",
+        "requestDigest": "4a5006b18f878c366fada2daebdadea5ace5329751130988ac4337c5f04cf9d1",
+        "captureDigest": "404739128358cf0cd75e50b52c0ae2bda252efbc2e6134912ed40f9afe8e022f",
+        "imageSha256": "7a6f95eff859f343e56b7dd68c84136ed79bd827492cb8b455b9b26c5817f1d8",
+        "reviewScope": {
+          "id": "public-api-empty-face",
+          "version": 5,
+          "digest": "6223fd19c982fb53ea2196103e26c9d15e7a5fec6e493f0f71b9db9680d26d09"
+        },
+        "faceImageRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "publicFaceRect": [
+          4,
+          4,
+          80,
+          20
+        ],
+        "background": [
+          255,
+          255,
+          255
+        ],
+        "profile": {
+          "path": "tests/decoder-fixtures/measured-display-profile-evolution.json",
+          "id": "display-profile:b97272731fe52ce8a45726f7e736b4d03c6bba739879a45d7f88f22623cd3a1d",
+          "sha256": "646be3846ec055419aebfd87ca38a9f79912ee231c5b0a0863ebff26b84da784"
+        }
+      }
+    },
+    {
+      "id": "recorded.evolution.inactive",
+      "kind": "scoped-original",
+      "inputs": [
+        "theme.evolution"
+      ],
+      "document": "tests/rendering-requirements/EVIDENCE.md",
+      "locator": "Evolution inactive empty80\u00d720 face from evolution.inactive.e1971 is compared over recorded white using its own finite1971-key measured profile and actual port(20,20). Exact signed face/cinf occurrences, selected owner/URL and eight completed face-band dependencies join the output. Same-owner ppat0 is absent; solid output agreement does not invent a completed fill trace or native provider. Actual font0/size0 remains an unknown identity; labeled captures and font payloads are private and excluded. Shared-boot incident/order, missing consumer port-table/current-main equality and cache/patch/phase limits remain explicit.",
+      "excerptSha256": "4cb1d4b343684e8671e6a02945e616a526e87912f81415ae4dc951f8167f23a4",
+      "claim": "Only complete recorded-condition empty composited face pixels.",
+      "limits": "Reviewed v5 capture/profile/context and registered source/built execution required; no typography, native provider/painter/mask/phase or whole-control claim.",
+      "requirementIds": [
+        "output.recorded-composited-face"
+      ],
+      "reference": {
+        "captureId": "evolution.inactive.e1971",
+        "requestId": "evolution.inactive",
+        "requestDigest": "b71f3f4e48478b4acd91c20d12fd2c737b2c8832a24888cecc4f976149ec886f",
+        "captureDigest": "caa26e92402ea8ec8c1700c7dbca10b002e0974c147e78cb5f61941aed816bc4",
+        "imageSha256": "aaaafb11e0b320d5f97455cf005aa720538a75f21b95e499bf62f1398a111638",
+        "reviewScope": {
+          "id": "public-api-empty-face",
+          "version": 5,
+          "digest": "35918d1e214911cd34ca927f8fcba47dafc1feff8890b1ef433bdd9ac3582e12"
+        },
+        "faceImageRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "publicFaceRect": [
+          4,
+          4,
+          80,
+          20
+        ],
+        "background": [
+          255,
+          255,
+          255
+        ],
+        "profile": {
+          "path": "tests/decoder-fixtures/measured-display-profile-evolution.json",
+          "id": "display-profile:b97272731fe52ce8a45726f7e736b4d03c6bba739879a45d7f88f22623cd3a1d",
+          "sha256": "646be3846ec055419aebfd87ca38a9f79912ee231c5b0a0863ebff26b84da784"
+        }
+      }
+    }
   ],
   "requirements": [
     {
@@ -2630,7 +2734,21 @@
     {"id":"recorded.crayon-lisa-four-state","path":"tests/rendering-options/display-profile.spec.mjs","marker":"description:'recorded.crayon-lisa-four-state'","caseIds":["recorded.crayon-os.pressed.empty.w80.h20.v14c-profile","recorded.crayon-os.inactive.empty.w80.h20.v14c-profile","recorded.apple-lisa.pressed.empty.w80.h20.v16l-profile","recorded.apple-lisa.inactive.empty.w80.h20.v16l-profile"],"claim":"Four complete80×20 original composed-pixel comparisons with exact retained profiles, public state/context and actual face/cinf/ppat-or-absence/load/completed-face joins. No original provider or pattern occupancy claim.","modes":["source","built"]},
     {"id":"recorded.animals-three-state","path":"tests/rendering-options/display-profile.spec.mjs","marker":"description:'recorded.animals-three-state'","caseIds":["recorded.animals.normal.empty.w80.h20.a209-profile","recorded.animals.pressed.empty.w80.h20.a209-profile","recorded.animals.inactive.empty.w80.h20.a209-profile"],"claim":"Three complete 80×20 original composed-pixel comparisons with exact A209 profile, public state/context and actual face/cinf/ppat-or-absence/load/completed-face joins. No original provider, pattern occupancy or order-independence claim.","modes":["source","built"]},
     {"id":"recorded.beos-three-state","path":"tests/rendering-options/display-profile.spec.mjs","marker":"description:'recorded.beos-three-state'","caseIds":["recorded.beos-r503.normal.empty.w80.h20.b278-v2-profile","recorded.beos-r503.pressed.empty.w80.h20.b278-v2-profile","recorded.beos-r503.inactive.empty.w80.h20.b278-v2-profile"],"claim":"Three complete 80×20 original composed-pixel comparisons with exact B278 v2 profile, public state/context and actual signed face/cinf/ppat0-absence/load/completed-face joins. No original provider, direct32 body participation or order-independence claim.","modes":["source","built"]},
-    {"id":"recorded.shared307-eighteen","path":"tests/rendering-options/display-profile.spec.mjs","marker":"description:'recorded.shared307-eighteen'","caseIds":["recorded.1138.normal.empty.w80.h20.shared307-profile","recorded.1138.pressed.empty.w80.h20.shared307-profile","recorded.1138.inactive.empty.w80.h20.shared307-profile","recorded.apple-platinum-2.normal.empty.w80.h20.shared307-profile","recorded.apple-platinum-2.pressed.empty.w80.h20.shared307-profile","recorded.apple-platinum-2.inactive.empty.w80.h20.shared307-profile","recorded.black-platinum.normal.empty.w80.h20.shared307-profile","recorded.black-platinum.pressed.empty.w80.h20.shared307-profile","recorded.black-platinum.inactive.empty.w80.h20.shared307-profile","recorded.platinum-8.normal.empty.w80.h20.shared307-profile","recorded.platinum-8.pressed.empty.w80.h20.shared307-profile","recorded.platinum-8.inactive.empty.w80.h20.shared307-profile","recorded.slimes.normal.empty.w80.h20.shared307-profile","recorded.slimes.pressed.empty.w80.h20.shared307-profile","recorded.slimes.inactive.empty.w80.h20.shared307-profile","recorded.windows-31.normal.empty.w80.h20.shared307-profile","recorded.windows-31.pressed.empty.w80.h20.shared307-profile","recorded.windows-31.inactive.empty.w80.h20.shared307-profile"],"claim":"Eighteen complete recorded-condition 80×20 faces under six separately measured Shared307 profiles with exact public state/context, selected resources and actual completed cinf-band or compatibility legacy-face paint. No native painter, provider, alpha/mask or whole-control claim.","modes":["source","built"]}
+    {"id":"recorded.shared307-eighteen","path":"tests/rendering-options/display-profile.spec.mjs","marker":"description:'recorded.shared307-eighteen'","caseIds":["recorded.1138.normal.empty.w80.h20.shared307-profile","recorded.1138.pressed.empty.w80.h20.shared307-profile","recorded.1138.inactive.empty.w80.h20.shared307-profile","recorded.apple-platinum-2.normal.empty.w80.h20.shared307-profile","recorded.apple-platinum-2.pressed.empty.w80.h20.shared307-profile","recorded.apple-platinum-2.inactive.empty.w80.h20.shared307-profile","recorded.black-platinum.normal.empty.w80.h20.shared307-profile","recorded.black-platinum.pressed.empty.w80.h20.shared307-profile","recorded.black-platinum.inactive.empty.w80.h20.shared307-profile","recorded.platinum-8.normal.empty.w80.h20.shared307-profile","recorded.platinum-8.pressed.empty.w80.h20.shared307-profile","recorded.platinum-8.inactive.empty.w80.h20.shared307-profile","recorded.slimes.normal.empty.w80.h20.shared307-profile","recorded.slimes.pressed.empty.w80.h20.shared307-profile","recorded.slimes.inactive.empty.w80.h20.shared307-profile","recorded.windows-31.normal.empty.w80.h20.shared307-profile","recorded.windows-31.pressed.empty.w80.h20.shared307-profile","recorded.windows-31.inactive.empty.w80.h20.shared307-profile"],"claim":"Eighteen complete recorded-condition 80×20 faces under six separately measured Shared307 profiles with exact public state/context, selected resources and actual completed cinf-band or compatibility legacy-face paint. No native painter, provider, alpha/mask or whole-control claim.","modes":["source","built"]},
+    {
+      "id": "recorded.evolution-empty-two",
+      "path": "tests/rendering-options/display-profile.spec.mjs",
+      "marker": "description:'recorded.evolution-empty-two'",
+      "caseIds": [
+        "recorded.evolution.normal.empty.w80.h20.e1971-profile",
+        "recorded.evolution.inactive.empty.w80.h20.e1971-profile"
+      ],
+      "claim": "Two complete recorded-condition Evolution empty80\u00d720 normal/inactive faces with a finite1971-input measured profile, exact public invocation/source/context and actual completed face-band dependencies. Same-owner ppat0 is absent; no invented completed body-fill trace, native provider or typography claim.",
+      "modes": [
+        "source",
+        "built"
+      ]
+    }
   ],
   "cases": [
     {
@@ -4790,7 +4908,229 @@
     {"id":"recorded.slimes.inactive.empty.w80.h20.shared307-profile","inputs":["theme.slimes"],"baseInputs":[],"mode":"direct","family":"push","options":{"label":"","minWidth":80,"height":20,"default":false,"pressed":false,"disabled":true,"compositionContext":{"controlOrigin":[20,20],"portOrigin":[0,0],"patternOrigin":{"status":"unknown"},"clip":{"kind":"rect","rect":{"x":0,"y":0,"w":160,"h":80}}}},"dimensions":{"resourceSelection":["selection.original"],"geometry":["geometry.remaining"],"fillMask":["output.recorded-composited-face","fill.remaining"],"typography":{"excluded":"No label raster in this exact direct case.","review":"Independent root review approved the private 36-call source/built comparison on 4c405aeb: 57,600 recorded face pixels equal, actual completed paint and resource joins retained. Public scoped intake and final ledger scope review remain separate; no whole-request, native painter/provider or order/cache-independence certification."},"state":["state.original"],"placement":["placement.original"],"interaction":{"excluded":"Direct pixel composition only. DOM focus, names, actions and teardown require separate cases.","review":"Independent root review approved the private 36-call source/built comparison on 4c405aeb: 57,600 recorded face pixels equal, actual completed paint and resource joins retained. Public scoped intake and final ledger scope review remain separate; no whole-request, native painter/provider or order/cache-independence certification."}},"inventoryClosure":{"status":"open","reason":"Only the exact recorded-condition composed output is claimed; broad original requirements remain unknown."},"substitutions":["Explicit v1 profile uses only this scheme-selected environment’s 614 actual query rows / 307 repeat-equal RGB16 mappings; mappings are not pooled across schemes.","Public state/context is explicit: empty label, 80×20, default ring disabled, origin20,20, port0,0 and full160×80 clip; unknown pattern origin.","Native fresh control with Hilite255 in fixed-order shared boot, reused A3A labels; no physical gesture, inactive-window or order/cache-independence claim.","Selected face has no paired cinf. Actual modern legacy-nine-slice-and-sample-fill compatibility completion is checked; no invented native band/body participant.","State portColorTable, calibration widMax, GetMainDevice equality and complete font/provider identities are unobserved. Exact producer and finite sample joins do not establish an independently observed 256-index swatch.","Buffer-local face [4,4,80,20] is compared over recorded white; no original alpha/mask, whole-control or full-request claim.","Uncaptured default-scheme fixture launch precedes corrected selection/relaunch: two fixture launches, one measurement sequence, additional implicit draw/cache history."],"recordedComparison":{"captureId":"slimes.inactive.shared307","requestId":"slimes.inactive","requestDigest":"a21282e34d4ffaadd4ee0da08dc983c632eef571f44ea4ca6c52d9037bf051a0","captureDigest":"2ae2e71655dc9eba946602ac6904de3741fa68bc34027439f2356db7a963b30c","imageSha256":"b93426c1504d90e64aefed477d02dd030901e43c66eae1d1807359ec53256380","reviewScope":{"id":"public-api-empty-face","version":5,"digest":"35918d1e214911cd34ca927f8fcba47dafc1feff8890b1ef433bdd9ac3582e12"},"faceImageRect":[20,20,80,20],"publicFaceRect":[4,4,80,20],"background":[255,255,255],"profile":{"path":"tests/decoder-fixtures/measured-display-profile-slimes.json","id":"display-profile:36dc28105d8bb380b8df9588cee7ac100bd1294ea218fe56bec287f644c25973","sha256":"cc128c30089d593e97e5a07e7ffa33729a09b73fe5842d4085dfe54864bbb1f5"}}},
     {"id":"recorded.windows-31.normal.empty.w80.h20.shared307-profile","inputs":["theme.windows-31"],"baseInputs":[],"mode":"direct","family":"push","options":{"label":"","minWidth":80,"height":20,"default":false,"pressed":false,"disabled":false,"compositionContext":{"controlOrigin":[20,20],"portOrigin":[0,0],"patternOrigin":{"status":"unknown"},"clip":{"kind":"rect","rect":{"x":0,"y":0,"w":160,"h":80}}}},"dimensions":{"resourceSelection":["selection.original"],"geometry":["geometry.remaining"],"fillMask":["output.recorded-composited-face","fill.remaining"],"typography":{"excluded":"No label raster in this exact direct case.","review":"Independent root review approved the private 36-call source/built comparison on 4c405aeb: 57,600 recorded face pixels equal, actual completed paint and resource joins retained. Public scoped intake and final ledger scope review remain separate; no whole-request, native painter/provider or order/cache-independence certification."},"state":["state.original"],"placement":["placement.original"],"interaction":{"excluded":"Direct pixel composition only. DOM focus, names, actions and teardown require separate cases.","review":"Independent root review approved the private 36-call source/built comparison on 4c405aeb: 57,600 recorded face pixels equal, actual completed paint and resource joins retained. Public scoped intake and final ledger scope review remain separate; no whole-request, native painter/provider or order/cache-independence certification."}},"inventoryClosure":{"status":"open","reason":"Only the exact recorded-condition composed output is claimed; broad original requirements remain unknown."},"substitutions":["Explicit v1 profile uses only this scheme-selected environment’s 614 actual query rows / 307 repeat-equal RGB16 mappings; mappings are not pooled across schemes.","Public state/context is explicit: empty label, 80×20, default ring disabled, origin20,20, port0,0 and full160×80 clip; unknown pattern origin.","Native fresh control with Hilite0 in fixed-order shared boot, reused A3A labels; no physical gesture, inactive-window or order/cache-independence claim.","Selected face has paired cinf and requests absent same-owner ppat0. Actual completed face-band dependencies and missing-body event are checked.","State portColorTable, calibration widMax, GetMainDevice equality and complete font/provider identities are unobserved. Exact producer and finite sample joins do not establish an independently observed 256-index swatch.","Buffer-local face [4,4,80,20] is compared over recorded white; no original alpha/mask, whole-control or full-request claim."],"recordedComparison":{"captureId":"windows-31.normal.shared307","requestId":"windows-31.normal","requestDigest":"8600baad73754ad9dc17c216f25187fbea5c98482ae943b11243a7523240175f","captureDigest":"5d887095f9657f1d61cc61d418083b437b138b9470994fd223ee95637d7e8b96","imageSha256":"d10ba1f0b4fd3215aee975b1165405ab4fc9f453d37c64918dc0019a5ef76dd5","reviewScope":{"id":"public-api-empty-face","version":5,"digest":"6223fd19c982fb53ea2196103e26c9d15e7a5fec6e493f0f71b9db9680d26d09"},"faceImageRect":[20,20,80,20],"publicFaceRect":[4,4,80,20],"background":[255,255,255],"profile":{"path":"tests/decoder-fixtures/measured-display-profile-windows-31.json","id":"display-profile:999c4aca04c0cffe407bd0d5c6e340d464139c1c389548d4987cb65214c23e06","sha256":"1413c9daf5d691dd63af377cf8da1c8dcdba0eb14c045f0c1922f617a4961682"}}},
     {"id":"recorded.windows-31.pressed.empty.w80.h20.shared307-profile","inputs":["theme.windows-31"],"baseInputs":[],"mode":"direct","family":"push","options":{"label":"","minWidth":80,"height":20,"default":false,"pressed":true,"disabled":false,"compositionContext":{"controlOrigin":[20,20],"portOrigin":[0,0],"patternOrigin":{"status":"unknown"},"clip":{"kind":"rect","rect":{"x":0,"y":0,"w":160,"h":80}}}},"dimensions":{"resourceSelection":["selection.original"],"geometry":["geometry.remaining"],"fillMask":["output.recorded-composited-face","fill.remaining"],"typography":{"excluded":"No label raster in this exact direct case.","review":"Independent root review approved the private 36-call source/built comparison on 4c405aeb: 57,600 recorded face pixels equal, actual completed paint and resource joins retained. Public scoped intake and final ledger scope review remain separate; no whole-request, native painter/provider or order/cache-independence certification."},"state":["state.original"],"placement":["placement.original"],"interaction":{"excluded":"Direct pixel composition only. DOM focus, names, actions and teardown require separate cases.","review":"Independent root review approved the private 36-call source/built comparison on 4c405aeb: 57,600 recorded face pixels equal, actual completed paint and resource joins retained. Public scoped intake and final ledger scope review remain separate; no whole-request, native painter/provider or order/cache-independence certification."}},"inventoryClosure":{"status":"open","reason":"Only the exact recorded-condition composed output is claimed; broad original requirements remain unknown."},"substitutions":["Explicit v1 profile uses only this scheme-selected environment’s 614 actual query rows / 307 repeat-equal RGB16 mappings; mappings are not pooled across schemes.","Public state/context is explicit: empty label, 80×20, default ring disabled, origin20,20, port0,0 and full160×80 clip; unknown pattern origin.","Native fresh control with Hilite10 in fixed-order shared boot, reused A3A labels; no physical gesture, inactive-window or order/cache-independence claim.","Selected face has paired cinf and requests absent same-owner ppat0. Actual completed face-band dependencies and missing-body event are checked.","State portColorTable, calibration widMax, GetMainDevice equality and complete font/provider identities are unobserved. Exact producer and finite sample joins do not establish an independently observed 256-index swatch.","Buffer-local face [4,4,80,20] is compared over recorded white; no original alpha/mask, whole-control or full-request claim."],"recordedComparison":{"captureId":"windows-31.pressed.shared307","requestId":"windows-31.pressed","requestDigest":"888ddde4bfddb4427bd71caba50bb167fcd07f00144f537d03266fb8f15c24f0","captureDigest":"7cde3210d100357d39c81438a1767cd5b4533031f08082ef61c3d84e313e0371","imageSha256":"668e48e3911cf868b5ac4e7811a3bba12dd94329e9f301c6e547f053bfd5d7a1","reviewScope":{"id":"public-api-empty-face","version":5,"digest":"cea5082fee796892d86566b3b05e2fb756ca5b760f7e8c00c616518bef798361"},"faceImageRect":[20,20,80,20],"publicFaceRect":[4,4,80,20],"background":[255,255,255],"profile":{"path":"tests/decoder-fixtures/measured-display-profile-windows-31.json","id":"display-profile:999c4aca04c0cffe407bd0d5c6e340d464139c1c389548d4987cb65214c23e06","sha256":"1413c9daf5d691dd63af377cf8da1c8dcdba0eb14c045f0c1922f617a4961682"}}},
-    {"id":"recorded.windows-31.inactive.empty.w80.h20.shared307-profile","inputs":["theme.windows-31"],"baseInputs":[],"mode":"direct","family":"push","options":{"label":"","minWidth":80,"height":20,"default":false,"pressed":false,"disabled":true,"compositionContext":{"controlOrigin":[20,20],"portOrigin":[0,0],"patternOrigin":{"status":"unknown"},"clip":{"kind":"rect","rect":{"x":0,"y":0,"w":160,"h":80}}}},"dimensions":{"resourceSelection":["selection.original"],"geometry":["geometry.remaining"],"fillMask":["output.recorded-composited-face","fill.remaining"],"typography":{"excluded":"No label raster in this exact direct case.","review":"Independent root review approved the private 36-call source/built comparison on 4c405aeb: 57,600 recorded face pixels equal, actual completed paint and resource joins retained. Public scoped intake and final ledger scope review remain separate; no whole-request, native painter/provider or order/cache-independence certification."},"state":["state.original"],"placement":["placement.original"],"interaction":{"excluded":"Direct pixel composition only. DOM focus, names, actions and teardown require separate cases.","review":"Independent root review approved the private 36-call source/built comparison on 4c405aeb: 57,600 recorded face pixels equal, actual completed paint and resource joins retained. Public scoped intake and final ledger scope review remain separate; no whole-request, native painter/provider or order/cache-independence certification."}},"inventoryClosure":{"status":"open","reason":"Only the exact recorded-condition composed output is claimed; broad original requirements remain unknown."},"substitutions":["Explicit v1 profile uses only this scheme-selected environment’s 614 actual query rows / 307 repeat-equal RGB16 mappings; mappings are not pooled across schemes.","Public state/context is explicit: empty label, 80×20, default ring disabled, origin20,20, port0,0 and full160×80 clip; unknown pattern origin.","Native fresh control with Hilite255 in fixed-order shared boot, reused A3A labels; no physical gesture, inactive-window or order/cache-independence claim.","Selected face has paired cinf and requests absent same-owner ppat0. Actual completed face-band dependencies and missing-body event are checked.","State portColorTable, calibration widMax, GetMainDevice equality and complete font/provider identities are unobserved. Exact producer and finite sample joins do not establish an independently observed 256-index swatch.","Buffer-local face [4,4,80,20] is compared over recorded white; no original alpha/mask, whole-control or full-request claim."],"recordedComparison":{"captureId":"windows-31.inactive.shared307","requestId":"windows-31.inactive","requestDigest":"26699d87b43063781db90981eaa97eb4a0481429ff66007357104b7f4695dc79","captureDigest":"e556e9c397fbb10fd03151617365ab2a96173c1ceedcbb440c5fc9b3ff6b3f92","imageSha256":"d10ba1f0b4fd3215aee975b1165405ab4fc9f453d37c64918dc0019a5ef76dd5","reviewScope":{"id":"public-api-empty-face","version":5,"digest":"35918d1e214911cd34ca927f8fcba47dafc1feff8890b1ef433bdd9ac3582e12"},"faceImageRect":[20,20,80,20],"publicFaceRect":[4,4,80,20],"background":[255,255,255],"profile":{"path":"tests/decoder-fixtures/measured-display-profile-windows-31.json","id":"display-profile:999c4aca04c0cffe407bd0d5c6e340d464139c1c389548d4987cb65214c23e06","sha256":"1413c9daf5d691dd63af377cf8da1c8dcdba0eb14c045f0c1922f617a4961682"}}}
+    {"id":"recorded.windows-31.inactive.empty.w80.h20.shared307-profile","inputs":["theme.windows-31"],"baseInputs":[],"mode":"direct","family":"push","options":{"label":"","minWidth":80,"height":20,"default":false,"pressed":false,"disabled":true,"compositionContext":{"controlOrigin":[20,20],"portOrigin":[0,0],"patternOrigin":{"status":"unknown"},"clip":{"kind":"rect","rect":{"x":0,"y":0,"w":160,"h":80}}}},"dimensions":{"resourceSelection":["selection.original"],"geometry":["geometry.remaining"],"fillMask":["output.recorded-composited-face","fill.remaining"],"typography":{"excluded":"No label raster in this exact direct case.","review":"Independent root review approved the private 36-call source/built comparison on 4c405aeb: 57,600 recorded face pixels equal, actual completed paint and resource joins retained. Public scoped intake and final ledger scope review remain separate; no whole-request, native painter/provider or order/cache-independence certification."},"state":["state.original"],"placement":["placement.original"],"interaction":{"excluded":"Direct pixel composition only. DOM focus, names, actions and teardown require separate cases.","review":"Independent root review approved the private 36-call source/built comparison on 4c405aeb: 57,600 recorded face pixels equal, actual completed paint and resource joins retained. Public scoped intake and final ledger scope review remain separate; no whole-request, native painter/provider or order/cache-independence certification."}},"inventoryClosure":{"status":"open","reason":"Only the exact recorded-condition composed output is claimed; broad original requirements remain unknown."},"substitutions":["Explicit v1 profile uses only this scheme-selected environment’s 614 actual query rows / 307 repeat-equal RGB16 mappings; mappings are not pooled across schemes.","Public state/context is explicit: empty label, 80×20, default ring disabled, origin20,20, port0,0 and full160×80 clip; unknown pattern origin.","Native fresh control with Hilite255 in fixed-order shared boot, reused A3A labels; no physical gesture, inactive-window or order/cache-independence claim.","Selected face has paired cinf and requests absent same-owner ppat0. Actual completed face-band dependencies and missing-body event are checked.","State portColorTable, calibration widMax, GetMainDevice equality and complete font/provider identities are unobserved. Exact producer and finite sample joins do not establish an independently observed 256-index swatch.","Buffer-local face [4,4,80,20] is compared over recorded white; no original alpha/mask, whole-control or full-request claim."],"recordedComparison":{"captureId":"windows-31.inactive.shared307","requestId":"windows-31.inactive","requestDigest":"26699d87b43063781db90981eaa97eb4a0481429ff66007357104b7f4695dc79","captureDigest":"e556e9c397fbb10fd03151617365ab2a96173c1ceedcbb440c5fc9b3ff6b3f92","imageSha256":"d10ba1f0b4fd3215aee975b1165405ab4fc9f453d37c64918dc0019a5ef76dd5","reviewScope":{"id":"public-api-empty-face","version":5,"digest":"35918d1e214911cd34ca927f8fcba47dafc1feff8890b1ef433bdd9ac3582e12"},"faceImageRect":[20,20,80,20],"publicFaceRect":[4,4,80,20],"background":[255,255,255],"profile":{"path":"tests/decoder-fixtures/measured-display-profile-windows-31.json","id":"display-profile:999c4aca04c0cffe407bd0d5c6e340d464139c1c389548d4987cb65214c23e06","sha256":"1413c9daf5d691dd63af377cf8da1c8dcdba0eb14c045f0c1922f617a4961682"}}},
+    {
+      "id": "recorded.evolution.normal.empty.w80.h20.e1971-profile",
+      "inputs": [
+        "theme.evolution"
+      ],
+      "baseInputs": [],
+      "mode": "direct",
+      "family": "push",
+      "options": {
+        "label": "",
+        "minWidth": 80,
+        "height": 20,
+        "default": false,
+        "pressed": false,
+        "disabled": false,
+        "compositionContext": {
+          "controlOrigin": [
+            20,
+            20
+          ],
+          "portOrigin": [
+            0,
+            0
+          ],
+          "patternOrigin": {
+            "status": "unknown"
+          },
+          "clip": {
+            "kind": "rect",
+            "rect": {
+              "x": 0,
+              "y": 0,
+              "w": 160,
+              "h": 80
+            }
+          }
+        }
+      },
+      "dimensions": {
+        "resourceSelection": [
+          "selection.original"
+        ],
+        "geometry": [
+          "geometry.remaining"
+        ],
+        "fillMask": [
+          "output.recorded-composited-face",
+          "fill.remaining"
+        ],
+        "typography": {
+          "excluded": "No label raster in this exact direct case.",
+          "review": "Independent automated acquisition and private conditional source/built comparison reviews passed. Independent root v5 scoped attestations are accepted; final registered execution and combined ledger review remain pending; only two empty composited faces are proposed, not font/provider/whole-control certification."
+        },
+        "state": [
+          "state.original"
+        ],
+        "placement": [
+          "placement.original"
+        ],
+        "interaction": {
+          "excluded": "Direct pixel composition only. DOM focus, names, actions and teardown require separate cases.",
+          "review": "Independent automated acquisition and private conditional source/built comparison reviews passed. Independent root v5 scoped attestations are accepted; final registered execution and combined ledger review remain pending; only two empty composited faces are proposed, not font/provider/whole-control certification."
+        }
+      },
+      "inventoryClosure": {
+        "status": "open",
+        "reason": "Only the exact recorded-condition composed output is claimed; broad original requirements remain unknown."
+      },
+      "substitutions": [
+        "Finite v1 display profile uses only this Evolution-selected run\u2019s3942 actual queries/1971 repeat-equal RGB16 mappings, actual palette/gamma/producer; no pooling.",
+        "Empty80\u00d720 face, normal Hilite0 or inactive Hilite255 in active window, origin20,20/full160\u00d780 clip and white recorded background; no default API or original pattern phase claim.",
+        "Actual consumer font0/size0/face0 and metrics are recorded; font identity remains null. Later calibration size12 and post-ACK font query do not prove prior draw consumption. No font/glyph bytes supplied to the public comparison.",
+        "Paired cinf selects mode0/request0. Modern trace reports absent same-owner ppat0 and actual eight completed face bands; solid output pixels are checked without inventing a completed body-fill trace.",
+        "Fixed-order shared boot includes private labeled states and premeasurement Finder modal/recovery with unknown cause. No cold-cache, provider/search/patch or order independence.",
+        "Buffer-local face[4,4,80,20] compared over recorded white; source masks, typography, whole control and whole request remain unknown."
+      ],
+      "recordedComparison": {
+        "captureId": "evolution.normal.e1971",
+        "requestId": "evolution.normal",
+        "requestDigest": "4a5006b18f878c366fada2daebdadea5ace5329751130988ac4337c5f04cf9d1",
+        "captureDigest": "404739128358cf0cd75e50b52c0ae2bda252efbc2e6134912ed40f9afe8e022f",
+        "imageSha256": "7a6f95eff859f343e56b7dd68c84136ed79bd827492cb8b455b9b26c5817f1d8",
+        "reviewScope": {
+          "id": "public-api-empty-face",
+          "version": 5,
+          "digest": "6223fd19c982fb53ea2196103e26c9d15e7a5fec6e493f0f71b9db9680d26d09"
+        },
+        "faceImageRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "publicFaceRect": [
+          4,
+          4,
+          80,
+          20
+        ],
+        "background": [
+          255,
+          255,
+          255
+        ],
+        "profile": {
+          "path": "tests/decoder-fixtures/measured-display-profile-evolution.json",
+          "id": "display-profile:b97272731fe52ce8a45726f7e736b4d03c6bba739879a45d7f88f22623cd3a1d",
+          "sha256": "646be3846ec055419aebfd87ca38a9f79912ee231c5b0a0863ebff26b84da784"
+        }
+      }
+    },
+    {
+      "id": "recorded.evolution.inactive.empty.w80.h20.e1971-profile",
+      "inputs": [
+        "theme.evolution"
+      ],
+      "baseInputs": [],
+      "mode": "direct",
+      "family": "push",
+      "options": {
+        "label": "",
+        "minWidth": 80,
+        "height": 20,
+        "default": false,
+        "pressed": false,
+        "disabled": true,
+        "compositionContext": {
+          "controlOrigin": [
+            20,
+            20
+          ],
+          "portOrigin": [
+            0,
+            0
+          ],
+          "patternOrigin": {
+            "status": "unknown"
+          },
+          "clip": {
+            "kind": "rect",
+            "rect": {
+              "x": 0,
+              "y": 0,
+              "w": 160,
+              "h": 80
+            }
+          }
+        }
+      },
+      "dimensions": {
+        "resourceSelection": [
+          "selection.original"
+        ],
+        "geometry": [
+          "geometry.remaining"
+        ],
+        "fillMask": [
+          "output.recorded-composited-face",
+          "fill.remaining"
+        ],
+        "typography": {
+          "excluded": "No label raster in this exact direct case.",
+          "review": "Independent automated acquisition and private conditional source/built comparison reviews passed. Independent root v5 scoped attestations are accepted; final registered execution and combined ledger review remain pending; only two empty composited faces are proposed, not font/provider/whole-control certification."
+        },
+        "state": [
+          "state.original"
+        ],
+        "placement": [
+          "placement.original"
+        ],
+        "interaction": {
+          "excluded": "Direct pixel composition only. DOM focus, names, actions and teardown require separate cases.",
+          "review": "Independent automated acquisition and private conditional source/built comparison reviews passed. Independent root v5 scoped attestations are accepted; final registered execution and combined ledger review remain pending; only two empty composited faces are proposed, not font/provider/whole-control certification."
+        }
+      },
+      "inventoryClosure": {
+        "status": "open",
+        "reason": "Only the exact recorded-condition composed output is claimed; broad original requirements remain unknown."
+      },
+      "substitutions": [
+        "Finite v1 display profile uses only this Evolution-selected run\u2019s3942 actual queries/1971 repeat-equal RGB16 mappings, actual palette/gamma/producer; no pooling.",
+        "Empty80\u00d720 face, normal Hilite0 or inactive Hilite255 in active window, origin20,20/full160\u00d780 clip and white recorded background; no default API or original pattern phase claim.",
+        "Actual consumer font0/size0/face0 and metrics are recorded; font identity remains null. Later calibration size12 and post-ACK font query do not prove prior draw consumption. No font/glyph bytes supplied to the public comparison.",
+        "Paired cinf selects mode0/request0. Modern trace reports absent same-owner ppat0 and actual eight completed face bands; solid output pixels are checked without inventing a completed body-fill trace.",
+        "Fixed-order shared boot includes private labeled states and premeasurement Finder modal/recovery with unknown cause. No cold-cache, provider/search/patch or order independence.",
+        "Buffer-local face[4,4,80,20] compared over recorded white; source masks, typography, whole control and whole request remain unknown."
+      ],
+      "recordedComparison": {
+        "captureId": "evolution.inactive.e1971",
+        "requestId": "evolution.inactive",
+        "requestDigest": "b71f3f4e48478b4acd91c20d12fd2c737b2c8832a24888cecc4f976149ec886f",
+        "captureDigest": "caa26e92402ea8ec8c1700c7dbca10b002e0974c147e78cb5f61941aed816bc4",
+        "imageSha256": "aaaafb11e0b320d5f97455cf005aa720538a75f21b95e499bf62f1398a111638",
+        "reviewScope": {
+          "id": "public-api-empty-face",
+          "version": 5,
+          "digest": "35918d1e214911cd34ca927f8fcba47dafc1feff8890b1ef433bdd9ac3582e12"
+        },
+        "faceImageRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "publicFaceRect": [
+          4,
+          4,
+          80,
+          20
+        ],
+        "background": [
+          255,
+          255,
+          255
+        ],
+        "profile": {
+          "path": "tests/decoder-fixtures/measured-display-profile-evolution.json",
+          "id": "display-profile:b97272731fe52ce8a45726f7e736b4d03c6bba739879a45d7f88f22623cd3a1d",
+          "sha256": "646be3846ec055419aebfd87ca38a9f79912ee231c5b0a0863ebff26b84da784"
+        }
+      }
+    }
   ],
   "assessments": [
     {
@@ -8348,7 +8688,135 @@
     {"caseId":"recorded.windows-31.inactive.empty.w80.h20.shared307-profile","requirementId":"output.recorded-composited-face","status":"verified","evidence":["recorded.windows-31.inactive"],"assertions":["recorded.shared307-eighteen"],"issues":[],"rationale":"Exact independently reviewed native 80×20 composited face compared under the explicit finite profile and recorded public state/context; only this output obligation is verified.","review":"Independent root review approved the private 36-call source/built comparison on 4c405aeb: 57,600 recorded face pixels equal, actual completed paint and resource joins retained. Public scoped intake and final ledger scope review remain separate; no whole-request, native painter/provider or order/cache-independence certification."},
     {"caseId":"recorded.windows-31.inactive.empty.w80.h20.shared307-profile","requirementId":"fill.remaining","status":"unknown","evidence":[],"assertions":[],"issues":[],"rationale":"This broad original obligation is not established by equality of the single recorded-condition face.","review":"Independent root review approved the private 36-call source/built comparison on 4c405aeb: 57,600 recorded face pixels equal, actual completed paint and resource joins retained. Public scoped intake and final ledger scope review remain separate; no whole-request, native painter/provider or order/cache-independence certification."},
     {"caseId":"recorded.windows-31.inactive.empty.w80.h20.shared307-profile","requirementId":"state.original","status":"unknown","evidence":[],"assertions":[],"issues":[],"rationale":"This broad original obligation is not established by equality of the single recorded-condition face.","review":"Independent root review approved the private 36-call source/built comparison on 4c405aeb: 57,600 recorded face pixels equal, actual completed paint and resource joins retained. Public scoped intake and final ledger scope review remain separate; no whole-request, native painter/provider or order/cache-independence certification."},
-    {"caseId":"recorded.windows-31.inactive.empty.w80.h20.shared307-profile","requirementId":"placement.original","status":"unknown","evidence":[],"assertions":[],"issues":[],"rationale":"This broad original obligation is not established by equality of the single recorded-condition face.","review":"Independent root review approved the private 36-call source/built comparison on 4c405aeb: 57,600 recorded face pixels equal, actual completed paint and resource joins retained. Public scoped intake and final ledger scope review remain separate; no whole-request, native painter/provider or order/cache-independence certification."}
+    {"caseId":"recorded.windows-31.inactive.empty.w80.h20.shared307-profile","requirementId":"placement.original","status":"unknown","evidence":[],"assertions":[],"issues":[],"rationale":"This broad original obligation is not established by equality of the single recorded-condition face.","review":"Independent root review approved the private 36-call source/built comparison on 4c405aeb: 57,600 recorded face pixels equal, actual completed paint and resource joins retained. Public scoped intake and final ledger scope review remain separate; no whole-request, native painter/provider or order/cache-independence certification."},
+    {
+      "caseId": "recorded.evolution.normal.empty.w80.h20.e1971-profile",
+      "requirementId": "selection.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Independent automated acquisition and private conditional source/built comparison reviews passed. Independent root v5 scoped attestations are accepted; final registered execution and combined ledger review remain pending; only two empty composited faces are proposed, not font/provider/whole-control certification."
+    },
+    {
+      "caseId": "recorded.evolution.normal.empty.w80.h20.e1971-profile",
+      "requirementId": "geometry.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Independent automated acquisition and private conditional source/built comparison reviews passed. Independent root v5 scoped attestations are accepted; final registered execution and combined ledger review remain pending; only two empty composited faces are proposed, not font/provider/whole-control certification."
+    },
+    {
+      "caseId": "recorded.evolution.normal.empty.w80.h20.e1971-profile",
+      "requirementId": "output.recorded-composited-face",
+      "status": "unknown",
+      "evidence": [
+        "recorded.evolution.normal"
+      ],
+      "assertions": [
+        "recorded.evolution-empty-two"
+      ],
+      "issues": [],
+      "rationale": "Independently reviewed native face and finite preparation are bound; the public registered source/built execution is pending, so this output obligation remains unknown.",
+      "review": "Independent automated acquisition and private conditional source/built comparison reviews passed. Independent root v5 scoped attestations are accepted; final registered execution and combined ledger review remain pending; only two empty composited faces are proposed, not font/provider/whole-control certification."
+    },
+    {
+      "caseId": "recorded.evolution.normal.empty.w80.h20.e1971-profile",
+      "requirementId": "fill.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Independent automated acquisition and private conditional source/built comparison reviews passed. Independent root v5 scoped attestations are accepted; final registered execution and combined ledger review remain pending; only two empty composited faces are proposed, not font/provider/whole-control certification."
+    },
+    {
+      "caseId": "recorded.evolution.normal.empty.w80.h20.e1971-profile",
+      "requirementId": "state.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Independent automated acquisition and private conditional source/built comparison reviews passed. Independent root v5 scoped attestations are accepted; final registered execution and combined ledger review remain pending; only two empty composited faces are proposed, not font/provider/whole-control certification."
+    },
+    {
+      "caseId": "recorded.evolution.normal.empty.w80.h20.e1971-profile",
+      "requirementId": "placement.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Independent automated acquisition and private conditional source/built comparison reviews passed. Independent root v5 scoped attestations are accepted; final registered execution and combined ledger review remain pending; only two empty composited faces are proposed, not font/provider/whole-control certification."
+    },
+    {
+      "caseId": "recorded.evolution.inactive.empty.w80.h20.e1971-profile",
+      "requirementId": "selection.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Independent automated acquisition and private conditional source/built comparison reviews passed. Independent root v5 scoped attestations are accepted; final registered execution and combined ledger review remain pending; only two empty composited faces are proposed, not font/provider/whole-control certification."
+    },
+    {
+      "caseId": "recorded.evolution.inactive.empty.w80.h20.e1971-profile",
+      "requirementId": "geometry.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Independent automated acquisition and private conditional source/built comparison reviews passed. Independent root v5 scoped attestations are accepted; final registered execution and combined ledger review remain pending; only two empty composited faces are proposed, not font/provider/whole-control certification."
+    },
+    {
+      "caseId": "recorded.evolution.inactive.empty.w80.h20.e1971-profile",
+      "requirementId": "output.recorded-composited-face",
+      "status": "unknown",
+      "evidence": [
+        "recorded.evolution.inactive"
+      ],
+      "assertions": [
+        "recorded.evolution-empty-two"
+      ],
+      "issues": [],
+      "rationale": "Independently reviewed native face and finite preparation are bound; the public registered source/built execution is pending, so this output obligation remains unknown.",
+      "review": "Independent automated acquisition and private conditional source/built comparison reviews passed. Independent root v5 scoped attestations are accepted; final registered execution and combined ledger review remain pending; only two empty composited faces are proposed, not font/provider/whole-control certification."
+    },
+    {
+      "caseId": "recorded.evolution.inactive.empty.w80.h20.e1971-profile",
+      "requirementId": "fill.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Independent automated acquisition and private conditional source/built comparison reviews passed. Independent root v5 scoped attestations are accepted; final registered execution and combined ledger review remain pending; only two empty composited faces are proposed, not font/provider/whole-control certification."
+    },
+    {
+      "caseId": "recorded.evolution.inactive.empty.w80.h20.e1971-profile",
+      "requirementId": "state.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Independent automated acquisition and private conditional source/built comparison reviews passed. Independent root v5 scoped attestations are accepted; final registered execution and combined ledger review remain pending; only two empty composited faces are proposed, not font/provider/whole-control certification."
+    },
+    {
+      "caseId": "recorded.evolution.inactive.empty.w80.h20.e1971-profile",
+      "requirementId": "placement.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Independent automated acquisition and private conditional source/built comparison reviews passed. Independent root v5 scoped attestations are accepted; final registered execution and combined ledger review remain pending; only two empty composited faces are proposed, not font/provider/whole-control certification."
+    }
   ],
-  "inventorySha256": "fa3ee6c8060c5e78ac283096cc7aa4bbe521d8a455a6fd39378779bbda12d524"
+  "inventorySha256": "24ea3c8e3aec061719cdc1e48c5eacd842e2f627f0447fa14cc24fe3ac7bb217"
 }

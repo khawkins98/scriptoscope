@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "status": "INDEPENDENT_SCOPED_ACQUISITION_ACCEPTED_PUBLIC_EXECUTION_SEPARATE",
+  "reviewer": "/root automated independent review",
+  "reviewedAt": "2026-10-20T13:59:44.388812+00:00",
+  "frozenSupportCommit": "a26cf06f206f0fd48b6a12630916853a586b0285",
+  "independentSupportReviewSha256": "119890e90fecab4207a3514f1d1c42a0d5856a4b6ee56ff24a445ed8dfdb2dc4",
+  "publicManifestSha256": "3dfcd4b9d20c6ba53ddef20d7416bb9b7720fca88f342d7a005c1c1671cefb62",
+  "captureBindings": [
+    {
+      "id": "evolution.normal.e1971",
+      "requestId": "evolution.normal",
+      "requestDigest": "4a5006b18f878c366fada2daebdadea5ace5329751130988ac4337c5f04cf9d1",
+      "captureDigest": "404739128358cf0cd75e50b52c0ae2bda252efbc2e6134912ed40f9afe8e022f",
+      "scopeDigest": "6223fd19c982fb53ea2196103e26c9d15e7a5fec6e493f0f71b9db9680d26d09",
+      "status": "awaiting-independent-review",
+      "missing": [],
+      "rejected": []
+    },
+    {
+      "id": "evolution.inactive.e1971",
+      "requestId": "evolution.inactive",
+      "requestDigest": "b71f3f4e48478b4acd91c20d12fd2c737b2c8832a24888cecc4f976149ec886f",
+      "captureDigest": "caa26e92402ea8ec8c1700c7dbca10b002e0974c147e78cb5f61941aed816bc4",
+      "scopeDigest": "35918d1e214911cd34ca927f8fcba47dafc1feff8890b1ef433bdd9ac3582e12",
+      "status": "awaiting-independent-review",
+      "missing": [],
+      "rejected": []
+    }
+  ],
+  "checks": {
+    "rootPublicArtifactHashes": 44,
+    "rootVisualFullFrames": 2,
+    "rootExactIntegerCropChains": 2,
+    "independentlyVerifiedPrivateImageCopies": 10,
+    "measuredMappings": 1971,
+    "rawRepeatedRows": 3942,
+    "priorRecordsPreserved": true
+  },
+  "scope": "Accepted only public-api-empty-face v5: fixed empty80x20 white-composited face in observed HiliteControl0/255 states, active window. Root viewed both full native frames and verified44 public artifact hashes and exact integer full-frame/port/face/context crop joins. Independent support review119890e9 verified10 unchanged image copies,3942 repeated raw calibration rows/1971 mappings, palette/producer and sanitized state/source/FCB/fork bindings; prior36 captures/reviews and59 requests retained. Actual font0/size0/face0 and metrics12/3/14/1 remain recorded with font identity null; calibration size12 is separate. Same-boot modal recovery and intervening labeled state/query history are explicit. No font/glyph/query payload admitted. Native font consumption/provider, original masks/alpha/phase, consumer portColorTable/current-main equality, cache/patch/search order, general painter, other states and whole requests remain unknown. Missing ppat0 is traced separately; solid output equality is not a traced fill operation. Scoped acquisition acceptance does not certify subsequent public execution, which must pass independently."
+}

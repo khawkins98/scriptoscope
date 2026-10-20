@@ -2,21 +2,21 @@
 
 This is a finite request and review contract for [#190](https://github.com/khawkins98/scriptoscope/issues/190),
 under the [draft compatibility target](../../docs/spec/fidelity-compatibility-contract.md).
-**Thirty-six original observations have independent AI review under the narrow
+**Thirty-eight original observations have independent AI review under the narrow
 `public-api-empty-face` scopes v1–v5.** They satisfy no whole request and verify
 no intake target. The fixed empty-push campaign now plans all 18 canonical
 sources × normal/logically highlighted/disabled states: 54 requests, including
 those eight existing observations. Five earlier default/shift experiments remain
-separate, for 59 requests total. The Animals, BeOS and six-source Shared307 observations bring the stored corpus to thirty-six
-reviewed scoped records; 23 requests have no capture (18 campaign states and
-five older experiments). All thirty-six scoped requests remain evidence-incomplete.
+separate, for 59 requests total. The Animals, BeOS, six-source Shared307 and two empty Evolution observations bring the stored corpus to thirty-eight
+reviewed scoped records; 21 requests have no capture (16 campaign states and
+five older experiments). All thirty-eight scoped requests remain evidence-incomplete.
 
 Scope v5 applies only to the 46 newly appended campaign IDs. It requires the
 same fixed port, face, background and full-image evidence, actual public
 HiliteControl state and explicit unknown original pattern phase. It does not
 change old scopes, request objects, record/review digests or full-request
 requirements. A campaign request is a research gap, never a fabricated capture.
-The four new records retain their actual full frames, port/context/face crops,
+The scoped records retain their actual full frames, port/context/face crops,
 ordinary stopped HFS export checks and sanitized invocation/condition bindings.
 Separate independent automated root review approved their exact v5 scope.
 Acquisition and calibration review alone do not approve intake.
@@ -371,3 +371,14 @@ identity does not establish equality with GetMainDevice. Original masks, phase,
 font/provider/cache identity, order independence and whole controls remain
 unknown. Acquisition review, scoped intake and actual public execution are
 separate checks; no broad requirement or whole request is certified.
+
+## Evolution empty-state addition
+
+Only normal and inactive empty 80×20 faces are admitted. Their actual caller uses
+font 0, size 0 and face 0; font identity remains unknown. Labeled states, native
+font handles and post-capture font-query payloads are excluded from this corpus.
+The 1,971-key profile retains actual repeated Color2Index measurements; calibration
+used size 12 after the four-state sequence. Shared boot/history and missing
+current/main-device, port-table, patch/cache and pattern-phase observations remain
+explicit. The two public comparison rows exercise empty composition without a
+caller-supplied font. Existing v5 authority and all prior records are unchanged.

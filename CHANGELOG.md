@@ -11,6 +11,8 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 - Leave window shell shadows off by default, including the landing page, so rectangular CSS shadows do not fill transparent edges of custom chrome. Preserve the explicit shadow custom-property opt-in and theme-painted artwork.
 
+- Add two independently reviewed empty Evolution normal/inactive observations, actual 1,971-key measured preparation, public comparison cases and narrow ledger bindings. Preserve all prior records and typography, provider, phase and whole-control unknowns; exclude labeled captures and native font payloads (#190, #221).
+
 - Add opt-in finite CIcon transfer preparation with exact source/context bindings, explicit modern mask alpha, and owned loader/package acceptance; strict default and display-profile v1/v2 behavior remain unchanged.
 
 - Refresh the reference-intake status and document claim-focused fidelity batches, explicit ownership, delta review and finite-adapter stopping criteria without changing evidence admission or required checks.

@@ -47,7 +47,7 @@ test('completed modern paint joins reject wrong owners, occurrences, profile and
 test('recorded comparisons remain execution-unverified when the registered source/built marker is absent or stale',async()=>{
  const {makeReport}=await import('./ledger.mjs');
  const report=makeReport(ledger,{executionCommit:'current',workingTreeDirty:false,execution:{executionCommit:'older',workingTreeDirty:false,assertions:[{id:'recorded.empty-face-six',mode:'source',path:'tests/rendering-options/display-profile.spec.mjs',status:'passed'}]}});
- assert.equal(report.recordedConditionComparisons.cases.length,36);
+ assert.equal(report.recordedConditionComparisons.cases.length,38);
  assert(report.recordedConditionComparisons.cases.every(c=>c.status==='unknown'&&c.execution.every(m=>m.status==='not run')));
 });
 
@@ -142,8 +142,8 @@ test('completed paint follows paired metadata and rejects fabricated legacy depe
 test('explicit recorded registry rejects unknown subjects and preserves nullable metadata paint contracts',async()=>{
  const {RECORDED_CASES,STATE_SOURCE_PINS,profileFor,caseId}=await import('./recorded-face.mjs');
  assert.equal(profileFor('unregistered'),undefined);
- const added=Object.entries(RECORDED_CASES).filter(([,v])=>v.caseSuffix==='shared307');
- assert.equal(added.length,6);
+ const added=Object.entries(RECORDED_CASES).filter(([,v])=>['shared307','e1971'].includes(v.caseSuffix));
+ assert.equal(added.length,7);
  for(const [slug,entry] of added)for(const state of entry.states){
   const pins=STATE_SOURCE_PINS[slug][state];
   const capture=structuredClone(captures.find(c=>c.requestId==='beos-r503.normal'));
@@ -165,7 +165,7 @@ test('explicit recorded registry rejects unknown subjects and preserves nullable
    else{r.legacyFacePaint={...r.bandPaints[0],basis:'compatibility-policy',operation:'legacy-nine-slice-and-sample-fill',sourceRect:{x:0,y:0,w:pins.sourceSize[0],h:pins.sourceSize[1]},destinationRect:{x:0,y:0,w:80,h:20},effectiveFaceClip:{x:0,y:0,w:80,h:20},controlOrigin:[20,20],declaredClip:options.compositionContext.clip,coordinateSpace:'face-local-before-ring',rasterAlpha:'copy-source-rgba',retainedNonzeroAlphaPixels:1600};r.bandPaints=[];}
    return r;
   };
-  assert.match(caseId(slug,state),/shared307-profile$/);validateRecordedExecution(make(),binding,capture);
+  assert.match(caseId(slug,state),/(shared307|e1971)-profile$/);validateRecordedExecution(make(),binding,capture);
   const mutations=[r=>r.completionCount=0,r=>r.completionCount=2,r=>r.profile='other',r=>r.resources[0].sha256='wrong',r=>r.resources[0].resourceIndex++,r=>r.resources[0].byteLength++,r=>r.selectedBodyRequest={mode:0,resourceId:128},r=>r.recordedSourcePins.paintKind='invented',r=>r.composition.context.controlOrigin=[0,0]];
   if(pins.cinf)mutations.push(r=>r.bandPaints=[],r=>r.bodyFillSteps=[],r=>r.resources.push({type:'ppat',signedId:0}),r=>r.bodyFillSteps[0].usage='inspect');
   else mutations.push(r=>delete r.legacyFacePaint,r=>r.legacyFacePaint.sourceRect.w++,r=>r.legacyFacePaint.effectiveFaceClip.w=79,r=>r.legacyFacePaint.retainedNonzeroAlphaPixels--,r=>r.bandPaints=[r.legacyFacePaint],r=>r.bodyFillSteps=[{action:'missing'}],r=>r.resources.push({type:'cinf',signedId:pins.face.signedId}),r=>r.paintSelectionSteps.push({role:'body-fill',usage:'paint',action:'selected',resource:{type:'ppat',signedId:128}}));
