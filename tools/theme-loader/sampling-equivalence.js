@@ -9,7 +9,7 @@ export function samplingEquivalenceRecord(width, height, status, reason, display
 }
 
 /** Use the actual indexed decoder output; no second raster palette resolver. */
-export function compareOpaqueSampling(indices, rgba, pmap, mask, sample, realizeRgb16, displayPolicy) {
+export function compareOpaqueSampling(indices, rgba, pmap, mask, sample, realizeRgb16, displayPolicy, coordinatePlane = false) {
   const record = (status, reason) => samplingEquivalenceRecord(pmap.width, pmap.height, status, reason, displayPolicy);
   if (!pmap.isPixMap || pmap.pixelType !== 0 || pmap.cmpCount !== 1 || pmap.cmpSize !== pmap.pixelSize || pmap.packType !== 0
       || pmap.bounds.left !== 0 || pmap.bounds.top !== 0 || mask.bounds.left !== 0 || mask.bounds.top !== 0
@@ -21,7 +21,7 @@ export function compareOpaqueSampling(indices, rgba, pmap, mask, sample, realize
   for (let i = 0; i < indices.length; i++) {
     if (rgba[i * 4 + 3] === 0) continue; // original mask-check sampler exits first
     const index = indices[i];
-    let result = memo.get(index);
+    let result = coordinatePlane ? undefined : memo.get(index);
     if (result === undefined) {
       const rgb16 = sample(i % pmap.width, Math.floor(i / pmap.width));
       if (!rgb16) result = 'unknown';
@@ -31,7 +31,7 @@ export function compareOpaqueSampling(indices, rgba, pmap, mask, sample, realize
         const raster = realizeRgb16 ? rawRaster : macRgbToSrgb(rawRaster);
         result = source.every((value, channel) => value === raster[channel]) ? 'equivalent' : 'different';
       }
-      memo.set(index, result);
+      if (!coordinatePlane) memo.set(index, result);
     }
     if (result === 'different') return record('different', 'opaque-display-mismatch');
     if (result === 'unknown') unsafe = true;

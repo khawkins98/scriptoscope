@@ -1,3 +1,4 @@
+import { verifyFiniteTransfer } from './finite-transfer.js';
 import { VERSION, prepareCinfEnvironment, type CinfEnvironmentInput, type PreparedCinfEnvironment, prepareBitmapFont, type BitmapFontData, type PreparedBitmapFont, type BitmapTextPaint, prepareDisplayProfile, DisplayProfileError, type DisplayProfileData, loadKaleidoscopeScheme, composeTab, composeHeaderSurface,
   type ThemeInspector, type WindowByteProvenance, type ButtonOptions, type BevelButtonOptions, type ControlDiagnostics, type TabBodyTrace, type CicnSamplingEquivalence, type CicnSampledBandAsset, type CicnBodyBinding, type HeaderSurfaceOptions, type HeaderSurfaceResult, type HeaderSurfaceTrace } from 'scriptoscope';
 import { mountDeclarative, type MountHandle } from 'scriptoscope/declarative';
@@ -59,6 +60,7 @@ const consumer = {
 declare global { interface Window { packedConsumer: typeof consumer } }
 window.packedConsumer = consumer;
 consumer.ready = (async () => {
+  await verifyFiniteTransfer();
   const bitmapData: BitmapFontData = { version: 1, strikeSize: 12,
     metrics: { ascent: 8, descent: 2, leading: 1 },
     provenance: { kind: 'caller-declared', description: 'Owned synthetic packed-consumer glyph' },

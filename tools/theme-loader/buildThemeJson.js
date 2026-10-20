@@ -134,6 +134,7 @@ export function buildThemeJson(manifest, options = {}) {
         ? { sampledBandAsset: Object.freeze({ ...cicn.sampledBandAsset }) } : {}),
       colorSamples: cicnPathCounts.get(cicn.file) > 1 ? null : controlColorSamples(cicn.sampleKdefRgb16, cd, options.displayProfile),
       ...(cicnPathCounts.get(cicn.file) > 1 ? { colorSamplesUnavailableReason: 'ambiguous-asset-path' } : {}),
+      ...(cicn.cicnTransfer ? { cicnTransfer: cicn.cicnTransfer } : {}),
       sourceCicnId: cicn.id,
       sourceCinfId: cinf?.id ?? null,
       // The bundle author's original NAMED-resource label (verbatim, NOT

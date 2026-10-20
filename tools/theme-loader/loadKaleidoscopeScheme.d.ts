@@ -11,6 +11,7 @@ export interface LoadKaleidoscopeSchemeOptions {
   sliderLayoutEnvironment?: import('./cinf-environment.js').PreparedCinfEnvironment;
   /** Explicit standalone push/bevel body cinf lookup; absent preserves compatibility. */
   cinfEnvironment?: import('./cinf-environment.js').PreparedCinfEnvironment;
+  cicnTransfer?: import('./cicn-transfer-results.js').CicnTransferOption;
   displayProfile?: import('./display-profile.js').DisplayProfile;
   /** Opt-in actual input/fork/cicn/cinf byte evidence; requires Web Crypto. */
   provenance?: boolean;

@@ -4641,3 +4641,7 @@ and positive-ID aliases. Alias heuristics, base traversal and missing-state
 fallbacks remain explicitly modern compatibility behavior. This numeric branch
 does not establish historical resource-provider ordering, decoder truth, or
 whole-control fidelity. See [the bounded selection contract](docs/spec/push-button-selection.md).
+
+### 2026-10-20: finite transfer output is not a source palette
+
+An observed destination-index plane can retain evidence for a sparse CIcon without inventing missing source RGB16. Resolve its recorded palette/producer once, keep source-mask alpha and kDEF scalar/mode5 sampling separate, and compare sampler equivalence per opaque coordinate rather than memoizing an output comparison by source index. Explicit preparation context is not original consumer or active native implementation proof. See [finite CIcon transfer preparation](docs/spec/finite-cicn-transfer.md).

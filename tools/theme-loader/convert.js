@@ -1,3 +1,4 @@
+import { finiteCicnTransfer, CicnTransferError } from './cicn-transfer-results.js';
 // tools/theme-loader/convert.js
 // THE portable Kaleidoscope→Scriptoscope conversion core. Pure: no fs, no zlib, no
 // canvas — takes raw resource-fork bytes, returns the theme.json object + decoded
@@ -75,7 +76,7 @@ function asBytes(fork) {
  * @returns {{ theme: object, assets: {path:string,rgba:Uint8Array,width:number,height:number}[],
  *             manifest: { source:string, counts:object, assets:object[] } }}
  */
-export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourceObserver, displayProfile, cinfBinding, sliderLayoutBinding } = {}) {
+export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourceObserver, displayProfile, cinfBinding, sliderLayoutBinding, cicnTransferBinding } = {}) {
   const realizeRgb16 = displayRealizer(displayProfile);
   const realizeDirectRgb8 = directRgb8Realizer(displayProfile);
   const policy = displayPolicy(displayProfile);
@@ -110,7 +111,7 @@ export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourc
     if (byteReference) base.byteReference = byteReference;
     let payload = null, error = null;
     try {
-      if (e.type === 'cicn') payload = decodeCicn(e.data, { retainKdefColorSampler: true, realizeRgb16, displayPolicy: policy });
+      if (e.type === 'cicn') payload = decodeCicn(e.data, { retainKdefColorSampler: true, realizeRgb16, displayPolicy: policy, finiteTransfer: finiteCicnTransfer(cicnTransferBinding, resourceIndex, e.data) });
       else if (e.type === 'ppat') payload = decodePpat(e.data, { realizeRgb16, realizeDirectRgb8 });
       else if (e.type === 'cinf') payload = decodeCinf(e.data);
       else if (e.type === 'wnd#') payload = decodeWnd(e.data);
@@ -120,7 +121,7 @@ export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourc
       // wires the result into `theme.options` + `theme.origin`, so just decoding
       // here is enough to unlock the schema slots that were already reserved.
       else if (e.type === 'Colr') payload = decodeColr(e.data);
-    } catch (err) { if (err instanceof DisplayProfileError) throw err; error = err instanceof Error ? err.message : String(err); }
+    } catch (err) { if (err instanceof DisplayProfileError || err instanceof CicnTransferError) throw err; error = err instanceof Error ? err.message : String(err); }
 
     resourceObserver?.end(byteReference, error ? 'error' : payload ? 'decoded' : 'skipped');
     if (error) {
@@ -157,6 +158,7 @@ export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourc
       subAssets.push({ ...base, status: 'ok', file: `${sub}/${fname}`, width: payload.width, height: payload.height, debug: payload.debug,
         ...(sampledBandAsset ? { sampledBandAsset } : {}),
         ...(payload.bodyCicnSource ? { bodyCicnSource: payload.bodyCicnSource } : {}),
+        ...(payload.cicnTransfer ? { cicnTransfer: payload.cicnTransfer } : {}),
         ...(payload.samplingEquivalence ? { samplingEquivalence: payload.samplingEquivalence } : {}),
         ...(payload.sampleKdefRgb16 ? { sampleKdefRgb16: payload.sampleKdefRgb16 } : {}) });
     } else {
@@ -166,7 +168,9 @@ export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourc
     }
   }
 
-  const theme = buildThemeJson({ source, counts, assets: subAssets }, { meta, displayProfile, cinfBinding, sliderLayoutBinding });
+  for (const a of subAssets) if (a.cicnTransfer && subAssets.filter(other => other.file === a.file).length !== 1)
+    throw new CicnTransferError('Ambiguous finite transfer asset path');
+  const theme = buildThemeJson({ source, counts, assets: subAssets }, { meta, displayProfile, cinfBinding, sliderLayoutBinding, cicnTransferBinding });
   // Only actual surviving, unambiguous element links may allocate derived URLs.
   const usedCompanions = new Set(Object.values(theme.chromeElements ?? {}).flatMap(e => e.sampledBandAsset ? [e.sampledBandAsset.derivedPath] : []));
   for (let i = assets.length - 1; i >= 0; i--)
@@ -372,9 +376,9 @@ export function convertIcons(fork, { ids, displayProfile } = {}) {
  * @returns {{ theme: object, assets: {path,rgba,width,height}[], iconIndex: object[],
  *             manifest: object }}
  */
-export function convertScheme(fork, { meta = {}, source = 'scheme.rsrc', resourceObserver, displayProfile, cinfBinding, sliderLayoutBinding } = {}) {
+export function convertScheme(fork, { meta = {}, source = 'scheme.rsrc', resourceObserver, displayProfile, cinfBinding, sliderLayoutBinding, cicnTransferBinding } = {}) {
   const bytes = asBytes(fork); // parse once conceptually; chrome+icons each re-parse (cheap, KB)
-  const chrome = convertChrome(bytes, { meta, source, resourceObserver, displayProfile, cinfBinding, sliderLayoutBinding });
+  const chrome = convertChrome(bytes, { meta, source, resourceObserver, displayProfile, cinfBinding, sliderLayoutBinding, cicnTransferBinding });
   const icons = convertIcons(bytes, { displayProfile });
   return {
     theme: chrome.theme,
