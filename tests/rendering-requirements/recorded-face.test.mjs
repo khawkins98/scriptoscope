@@ -47,7 +47,7 @@ test('completed modern paint joins reject wrong owners, occurrences, profile and
 test('recorded comparisons remain execution-unverified when the registered source/built marker is absent or stale',async()=>{
  const {makeReport}=await import('./ledger.mjs');
  const report=makeReport(ledger,{executionCommit:'current',workingTreeDirty:false,execution:{executionCommit:'older',workingTreeDirty:false,assertions:[{id:'recorded.empty-face-six',mode:'source',path:'tests/rendering-options/display-profile.spec.mjs',status:'passed'}]}});
- assert.equal(report.recordedConditionComparisons.cases.length,15);
+ assert.equal(report.recordedConditionComparisons.cases.length,18);
  assert(report.recordedConditionComparisons.cases.every(c=>c.status==='unknown'&&c.execution.every(m=>m.status==='not run')));
 });
 
@@ -83,8 +83,8 @@ test('Lisa requires its exact profile/context/payloads and actual no-ppat0 obser
   r.bodyFillSteps=[{role:'body-fill',usage:'paint',action:'missing',owner:r.paintSelectionSteps[0].owner,requestedResourceType:'ppat',requestedId:0,bodyMode:0,reason:'same-face-owner-pattern-unavailable'}];return r;
  };
  validateRecordedExecution(make(),binding,capture);
- for(const [change,re]of [[r=>r.profile=PROFILE.id,/profile/],[r=>r.composition.context.portOrigin=[1,0],/Lisa port context/],
-  [r=>r.resources[0].sha256='bad',/Lisa face\/cinf/],[r=>r.bodyFillSteps=[],/no-ppat0/],
+ for(const [change,re]of [[r=>r.profile=PROFILE.id,/profile/],[r=>r.composition.context.portOrigin=[1,0],/pinned port context/],
+  [r=>r.resources[0].sha256='bad',/pinned face\/cinf/],[r=>r.bodyFillSteps=[],/no-ppat0/],
   [r=>r.resources.push({type:'ppat',signedId:0,status:'decoded'}),/no-ppat0/]]){
   const row=make();change(row);assert.throws(()=>validateRecordedExecution(row,binding,capture),re);
  }
@@ -92,7 +92,7 @@ test('Lisa requires its exact profile/context/payloads and actual no-ppat0 obser
 
 test('recorded state joins require their own face/cinf/body/pattern pins and completed paint',()=>{
  const statePins=JSON.parse(readFileSync(new URL('../decoder-fixtures/recorded-state-source-pins.json',import.meta.url)));
- for(const slug of ['crayon-os','apple-lisa','animals'])for(const state of slug==='animals'?['normal','pressed','inactive']:['pressed','inactive']){
+ for(const slug of ['crayon-os','apple-lisa','animals','beos-r503'])for(const state of ['animals','beos-r503'].includes(slug)?['normal','pressed','inactive']:['pressed','inactive']){
   // Synthetic trace structure isolates verifier failures; original PNGs remain the browser oracle.
   const capture=structuredClone(captures.find(c=>c.requestId===slug+'.normal'));
   capture.conditions.state=state;capture.requestId=slug+'.'+state;
@@ -121,6 +121,8 @@ test('recorded state joins require their own face/cinf/body/pattern pins and com
    [r=>r.bandPaints=[],/paint dependency/],
   ]){const r=make();mutate(r);assert.throws(()=>validateRecordedExecution(r,binding,capture),reason);}
   if(pins.pattern){const r=make();r.paintSelectionSteps[1].resource.signedId=pins.pattern.signedId===17?-10238:17;assert.throws(()=>validateRecordedExecution(r,binding,capture),/pattern owner\/payload/);}
-  else {const r=make();r.resources.push({type:'ppat',signedId:0});assert.throws(()=>validateRecordedExecution(r,binding,capture),/no-ppat0/);}
+  else {const r=make();r.resources.push({type:'ppat',signedId:0});assert.throws(()=>validateRecordedExecution(r,binding,capture),/no-ppat0/);
+   const selected=make();selected.paintSelectionSteps.push({role:'body-fill',usage:'paint',action:'selected',resource:{type:'ppat',signedId:128}});assert.throws(()=>validateRecordedExecution(selected,binding,capture),/no-ppat0/);
+  }
  }
 });
