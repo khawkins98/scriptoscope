@@ -2,6 +2,7 @@ import { macRgbToSrgb } from './mac-gamma.js';
 
 export const LEGACY_DISPLAY_POLICY = 'mac-1.8-to-2.2-high-byte';
 const prepared = new WeakMap();
+const preparedDirectRgb8 = new WeakMap();
 const freeze = value => { if (value && typeof value === 'object') { Object.values(value).forEach(freeze); Object.freeze(value); } return value; };
 const triple = (v, max) => Array.isArray(v) && v.length === 3 && v.every(x => Number.isInteger(x) && x >= 0 && x <= max);
 const jsonSnapshot = (value, seen = new Set()) => {
@@ -26,7 +27,7 @@ export class DisplayProfileError extends Error {
 export async function prepareDisplayProfile(input) {
   let data = jsonSnapshot(input);
   const fail = message => { throw new DisplayProfileError(message); };
-  if (data?.version !== 1 || !data.conditions || typeof data.conditions !== 'object' || Array.isArray(data.conditions)
+  if (![1, 2].includes(data?.version) || !data.conditions || typeof data.conditions !== 'object' || Array.isArray(data.conditions)
       || !Object.keys(data.conditions).length || !Array.isArray(data.evidence) || !data.evidence.length)
     fail('Display profile requires version, conditions and evidence identity');
   for (const e of data.evidence) if (!/^[a-f0-9]{64}$/.test(e?.sha256) || typeof e.description !== 'string' || !e.description.trim()) fail('Invalid profile evidence');
@@ -45,6 +46,25 @@ export async function prepareDisplayProfile(input) {
     const key = row.rgb16.join(','); if (map.has(key)) fail('Duplicate joint RGB16 mapping');
     map.set(key, row.deviceRgb16.map((v, i) => data.producer.channels[i][v >> 8]));
   }
+  // Version 1 retains its exact canonical data and identity. A direct operation
+  // declaration requires version 2; it never changes the RGB16 query semantics.
+  if (data.version === 1 && Object.hasOwn(data, 'directRgb8')) fail('Direct RGB8 preparation requires profile version 2');
+  let directMap;
+  if (data.version === 2) {
+    const direct = data.directRgb8;
+    if (!direct || direct.operation !== 'GetPixPat-FillCRect-patCopy' || direct.context !== 'declared-context0'
+        || direct.scope !== 'preparation-only' || !Array.isArray(direct.evidence) || !direct.evidence.length
+        || !Array.isArray(direct.mappings) || !direct.mappings.length) fail('Missing or unsupported direct RGB8 operation declaration');
+    for (const e of direct.evidence) if (!/^[a-f0-9]{64}$/.test(e?.sha256) || typeof e.description !== 'string' || !e.description.trim()) fail('Invalid direct RGB8 evidence');
+    directMap = new Map();
+    for (const row of direct.mappings) {
+      if (!triple(row.rgb8, 255) || !triple(row.deviceRgb16, 65535) || !palette.has(row.deviceIndex)
+          || row.deviceRgb16.some((v, i) => v !== palette.get(row.deviceIndex)[i])) fail('Direct RGB8 mapping disagrees with recorded device palette');
+      const key = row.rgb8.join(','); if (directMap.has(key)) fail('Duplicate joint RGB8 mapping');
+      directMap.set(key, row.deviceRgb16.map((v, i) => data.producer.channels[i][v >> 8]));
+    }
+    direct.mappings.sort((a,b) => a.rgb8[0]-b.rgb8[0] || a.rgb8[1]-b.rgb8[1] || a.rgb8[2]-b.rgb8[2]);
+  }
   data.devicePalette.sort((a,b) => a.index-b.index);
   data.mappings.sort((a,b) => a.rgb16[0]-b.rgb16[0] || a.rgb16[1]-b.rgb16[1] || a.rgb16[2]-b.rgb16[2]);
   data = canonical(data);
@@ -58,6 +78,12 @@ export async function prepareDisplayProfile(input) {
     if (!rgb) throw new DisplayProfileError(`Missing exact joint RGB16 mapping: ${rgb16.join(',')}`, 'MISSING_MAPPING');
     return [...rgb];
   });
+  if (directMap) preparedDirectRgb8.set(profile, rgb8 => {
+    if (!triple(rgb8, 255)) throw new DisplayProfileError('Invalid source RGB8', 'INVALID_SOURCE_COLOR');
+    const rgb = directMap.get(rgb8.join(','));
+    if (!rgb) throw new DisplayProfileError(`Missing exact joint RGB8 mapping: ${rgb8.join(',')}`, 'MISSING_MAPPING');
+    return [...rgb];
+  });
   return profile;
 }
 /** Synchronous conversion consumes only profiles returned by the async factory. */
@@ -66,6 +92,11 @@ export function displayRealizer(profile) {
   const realize = prepared.get(profile);
   if (!realize) throw new DisplayProfileError('Use prepareDisplayProfile before loading; prepared pixels cannot be retagged');
   return realize;
+}
+/** Internal decoder seam. This declares preparation conditions, not paint-context admission. */
+export function directRgb8Realizer(profile) {
+  displayRealizer(profile);
+  return profile === undefined ? undefined : preparedDirectRgb8.get(profile);
 }
 export function displayPolicy(profile) { displayRealizer(profile); return profile?.id ?? LEGACY_DISPLAY_POLICY; }
 export function realizeRgb16(rgb16, profile) { return displayRealizer(profile)?.(rgb16) ?? macRgbToSrgb(rgb16.map(v => v >> 8)); }

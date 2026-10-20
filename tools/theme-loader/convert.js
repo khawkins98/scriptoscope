@@ -20,7 +20,7 @@ import { decodeColr } from './decoders/colr.js';
 import { buildThemeJson } from './buildThemeJson.js';
 import { validateTheme } from './validateTheme.js';
 import { gammaCorrectRgba, gammaCorrectHex, macRgbToSrgb } from './mac-gamma.js';
-import { displayRealizer, displayPolicy, DisplayProfileError } from './display-profile.js';
+import { displayRealizer, directRgb8Realizer, displayPolicy, DisplayProfileError } from './display-profile.js';
 
 // ── Icon palettes (pre-gamma'd to sRGB at module load, same display transform) ──
 // Apple's canonical 16-colour 4-bit palette. Exact, fixed.
@@ -77,6 +77,7 @@ function asBytes(fork) {
  */
 export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourceObserver, displayProfile, cinfBinding, sliderLayoutBinding } = {}) {
   const realizeRgb16 = displayRealizer(displayProfile);
+  const realizeDirectRgb8 = directRgb8Realizer(displayProfile);
   const policy = displayPolicy(displayProfile);
   const entries = parseResourceFork(asBytes(fork));
   const assets = [];      // { path, rgba, width, height } — gamma-applied
@@ -110,7 +111,7 @@ export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourc
     let payload = null, error = null;
     try {
       if (e.type === 'cicn') payload = decodeCicn(e.data, { retainKdefColorSampler: true, realizeRgb16, displayPolicy: policy });
-      else if (e.type === 'ppat') payload = decodePpat(e.data, { realizeRgb16 });
+      else if (e.type === 'ppat') payload = decodePpat(e.data, { realizeRgb16, realizeDirectRgb8 });
       else if (e.type === 'cinf') payload = decodeCinf(e.data);
       else if (e.type === 'wnd#') payload = decodeWnd(e.data);
       // Colr: scheme-global flags (stretchScrollbarThumbFromCenter,
