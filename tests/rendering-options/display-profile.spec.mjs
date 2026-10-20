@@ -70,25 +70,28 @@ for(const mode of ['source','built']) {
   const subjects=recordedSubjects();
   const result=await page.evaluate(async ({mode,bindings,subjects})=>{
    const api=await import(mode==='built'?'/dist/scriptoscope.js':'/src/index.ts');
+   const {prepareRecordedTransfer,recordedLoadKey,retainRecordedTransfers}=await import('/tests/rendering-requirements/recorded-transfer.mjs');
    const rows=[];
    // Eligibility/digests are checked by the reference gate; these independent
    // original PNG bytes supply the pixel oracle for the existing render.
    const {captures}=await(await fetch('/tests/reference-captures/captures.json')).json();
    for(const subject of subjects){
     const {slug}=subject;
-    const a=await api.loadTheme('/themes/'+slug,{provenance:true}),profileThemes=new Map();
+    // Opted-in preparation has no unprofiled comparison; strict mapped-default rejection is tested separately.
+    const a=subject.cases.some(c=>c.cicnTransfer)?null:await api.loadTheme('/themes/'+slug,{provenance:true}),profileThemes=new Map();
     try {
-    for(const {state,profile,options,sourcePins:recordedSourcePins} of subject.cases){
-    const profileKey=JSON.stringify([profile.path,profile.id,profile.sha256]);
+    for(const {state,profile,cicnTransfer,options,sourcePins:recordedSourcePins} of subject.cases){
+    const profileKey=recordedLoadKey(profile,cicnTransfer);
     let b=profileThemes.get(profileKey);
     if(!b){
      const selectedProfile=await api.prepareDisplayProfile(await(await fetch('/'+profile.path)).json());
      if(selectedProfile.id!==profile.id)throw Error('Wrong registered profile '+slug+'/'+state);
-     b=await api.loadTheme('/themes/'+slug,{provenance:true,displayProfile:selectedProfile});
+     const transfer=await prepareRecordedTransfer(cicnTransfer,api);
+     b=await api.loadTheme('/themes/'+slug,{provenance:true,displayProfile:selectedProfile,...(transfer?{cicnTransfer:transfer}:{})});
      profileThemes.set(profileKey,b);
     }
     let trace,completionCount=0;
-    const normal=await api.composeButton(b,{...options,diagnostics:{onComplete:t=>{completionCount++;trace=t;}}}),legacy=await api.composeButton(a,options);
+    const normal=await api.composeButton(b,{...options,diagnostics:{onComplete:t=>{completionCount++;trace=t;}}}),legacy=a?await api.composeButton(a,options):null;
     const selected=trace.steps.find(s=>s.role==='face'&&s.action==='selected'),el=b.manifest.chromeElements[selected.resource.manifestKey];
     const faceRgba=Uint8Array.from(Array.from({length:20},(_,y)=>Array.from({length:80},(_,x)=>normal.getPixel(x+4,y+4))).flat(2));
     const reference=captures.find(c=>c.requestId===slug+'.'+state);
@@ -112,15 +115,15 @@ for(const mode of ['source','built']) {
       patternEvidence={patternCatalog:{manifestKey:key,entry},patternLoad:b.byteProvenance,patternPlane:{size:[pc.width,pc.height],encoding:'base64-rgba8',rgba:btoa(String.fromCharCode(...rgba))}};
      }
     }
-    rows.push({slug,state,options,completionCount,bodyFillSteps:trace.steps.filter(s=>s.role==='body-fill'),composition:trace.composition,recordedSourcePins,patternAsset:patternStep?b.manifest.patterns[patternStep.resource.manifestKey]?.asset:null,loadId:b.byteProvenance.loadId,profileFork:b.byteProvenance.fork.sha256,selectedKey:selected.resource.manifestKey,selectedAsset:el.asset,selectedCinfId:el.sourceCinfId??null,...(recordedSourcePins?{selectedBodyRequest:el.bodyRequest??null}:{}),outcome:trace.outcome,requested:trace.requested,profile:b.manifest.displayProfile.id,baseUrl:a.baseUrl,profileBaseUrl:b.baseUrl,input:a.byteProvenance.input.sha256,profileInput:b.byteProvenance.input.sha256,
-     ...patternEvidence,
+    rows.push({slug,state,options,completionCount,bodyFillSteps:trace.steps.filter(s=>s.role==='body-fill'),composition:trace.composition,recordedSourcePins,patternAsset:patternStep?b.manifest.patterns[patternStep.resource.manifestKey]?.asset:null,loadId:b.byteProvenance.loadId,profileFork:b.byteProvenance.fork.sha256,selectedKey:selected.resource.manifestKey,selectedAsset:el.asset,selectedCinfId:el.sourceCinfId??null,...(recordedSourcePins?{selectedBodyRequest:el.bodyRequest??null}:{}),outcome:trace.outcome,requested:trace.requested,profile:b.manifest.displayProfile.id,baseUrl:(a??b).baseUrl,profileBaseUrl:b.baseUrl,input:(a??b).byteProvenance.input.sha256,profileInput:b.byteProvenance.input.sha256,
+     ...patternEvidence,...retainRecordedTransfers(b,cicnTransfer),...(el.cicnTransfer?{selectedCicnTransfer:el.cicnTransfer}:{}),
      originalComparison:{binding:bindings.find(b=>b.captureId===reference.id),comparedPixels:1600,originalRgba:btoa(String.fromCharCode(...original)),captureId:reference.id,requestDigest:reference.requestDigest,imageSha256,imageSize:[canvas.width,canvas.height],sourceArchiveSha256:reference.source.archiveSha256,
       layer:'composited-face-pixels',background:[255,255,255],differentPixels,verifiedRequirementIds:[]},
      source:el.byteProvenance,resources:b.byteProvenance.resources,selected,facePlane:{rect:[4,4,80,20],encoding:'base64-rgba8',rgba:btoa(String.fromCharCode(...faceRgba))},paintSelectionSteps:trace.steps.filter(s=>s.usage==='paint'&&s.action==='selected'),bandPaints:trace.bandPaints??[],legacyFacePaint:trace.legacyFacePaint??null,policy:el.colorSamples?.displayPolicy??el.samplingEquivalence?.displayPolicy,
-     different:normal.data.some((v,i)=>v!==legacy.data[i]),size:[normal.width,normal.height],body:[...normal.getPixel(44,14)],
-     urlsDistinct:Object.keys(a.manifest.chromeElements).every(k=>a.manifest.chromeElements[k].asset!==b.manifest.chromeElements[k].asset)});
+     different:legacy?normal.data.some((v,i)=>v!==legacy.data[i]):null,size:[normal.width,normal.height],body:[...normal.getPixel(44,14)],
+     urlsDistinct:a?Object.keys(a.manifest.chromeElements).every(k=>a.manifest.chromeElements[k].asset!==b.manifest.chromeElements[k].asset):null});
     }
-    } finally { a.dispose();for(const theme of profileThemes.values())theme.dispose(); }
+    } finally { a?.dispose();for(const theme of profileThemes.values())theme.dispose(); }
    }return rows;
   },{mode,bindings,subjects});
   await info.attach('recorded-before-validation.json',{body:JSON.stringify(result,null,2),contentType:'application/json'});
@@ -129,7 +132,7 @@ for(const mode of ['source','built']) {
    validateRecordedExecution(row,captureBinding(capture),capture);
    expect(compareRecordedPixels(Buffer.from(row.facePlane.rgba,'base64'),Buffer.from(row.originalComparison.originalRgba,'base64'))).toBe(0);
   }
-  for(const row of result){expect(row.profileInput).toBe(row.input);expect(row.profileBaseUrl).toBe(row.baseUrl);expect(row.urlsDistinct).toBe(true);if(row.state==='normal'&&RECORDED_CASES[row.slug].expectNormalDefaultDifference)expect(row.different).toBe(true);expect(row.policy).toBe(row.profile);expect(row.selected.resource.byteProvenance).toBeTruthy();
+  for(const row of result){expect(row.profileInput).toBe(row.input);expect(row.profileBaseUrl).toBe(row.baseUrl);if(row.cicnTransfer){expect(row.urlsDistinct).toBeNull();expect(row.different).toBeNull();}else expect(row.urlsDistinct).toBe(true);if(!row.cicnTransfer&&row.state==='normal'&&RECORDED_CASES[row.slug].expectNormalDefaultDifference)expect(row.different).toBe(true);expect(row.policy).toBe(row.profile);expect(row.selected.resource.byteProvenance).toBeTruthy();
    expect(row.requested).toMatchObject({state:row.state==='normal'?'active':row.state,pressed:row.state==='pressed',disabled:row.state==='inactive',default:false});
    expect(row.originalComparison.imageSize).toEqual([160,80]);expect(row.originalComparison.sourceArchiveSha256).toBe(row.profileInput);expect(row.originalComparison.differentPixels).toBe(0);
    if(RECORDED_CASES[row.slug].paintKind==='legacy-face')expect(row.legacyFacePaint.resource.byteProvenance).toEqual(row.selected.resource.byteProvenance);

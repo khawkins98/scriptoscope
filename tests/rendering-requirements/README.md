@@ -463,3 +463,27 @@ for 1px source runs, because the 0xfeae direction byte is not decoded. Half exte
 flag-gated codes, masked composition, transparent/scaled pixels and the state
 pairing stay unknown, with their reasons. The five archives without `wnd#`
 (corner-sprite) get all-unknown cases: no original drawing path is decoded.
+
+
+### Optional finite CIcon preparation binding (held data extension)
+
+A subject may explicitly declare `cicnTransfer: {path, sha256, id, contractId,
+maskPolicy: 'source-mask-alpha'}` alongside its profile bindings. The closed
+binding is included in capture identity and the load-cache key; malformed,
+missing or altered data and mismatched prepared result/context IDs reject before
+loading. Existing subjects without this field retain their exact bindings and
+per-state profile selection.
+
+The ordinary public factory and loader prepare the results. Recorded execution
+retains each actual finite element, its inspector URL, typed occurrence, load/fork,
+source representation, operation context and destination-plane hash. This is a
+whole-load preparation dependency: the selected push face may use ordinary
+source decoding. Original consumer geometry and the finite preparation operation
+remain separate. Source-mask alpha is explicit modern preparation; sampler,
+original mask/provider and generalized missing-color claims remain unverified.
+
+Opted-in subjects report the unprofiled output/URL comparison as null; the owned
+fixture separately requires strict mapped-default decoding to reject its missing
+source color before URL allocation. This harness change adds no result data,
+captures, registered cases or verified obligations. Actual selected-scheme data,
+independent review and source/built execution are still required for a new claim.
