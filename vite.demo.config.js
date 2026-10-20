@@ -41,6 +41,8 @@ export default defineConfig({
         install: resolve(import.meta.dirname, 'demo/install.html'),
         story: resolve(import.meta.dirname, 'demo/story.html'),
         acknowledgements: resolve(import.meta.dirname, 'demo/acknowledgements.html'),
+        // The 1995 Apple ad the landing's art direction is drawn from, with preservation credit.
+        inspiration: resolve(import.meta.dirname, 'demo/inspiration.html'),
         // The developer / contributor diagnostic — was demo/index.html until the
         // 2026-05-30 swap. Houses the ribbon, per-scheme scene + reference comparison,
         // control playgrounds, geometry/slices/icons/rasters/roles inspectors, BYO drop zone.

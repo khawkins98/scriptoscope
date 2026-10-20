@@ -6,8 +6,12 @@ person and does not reproduce the person in the reference advertisement.
 The generated PNG was converted to a 960px JPEG for delivery (about 269 KiB).
 
 The user supplied a 1995 Apple New Media Forum ad as a layout reference.
-`inspiration-apple-new-media-forum-1995.png` is that original user-supplied
-advertisement, preserved for the visible inspiration credit on the page.
+`inspiration-apple-new-media-forum-1995.jpg` is that advertisement, shown with
+context on `demo/inspiration.html`. It is the 800×976 scan from The Mothership's
+Apple Advertising and Brochure Gallery (http://macmothership.com/gallery/gallery7.html, image http://macmothership.com/gallery/newads12/95_Media_Tour.jpg;
+server Last-Modified 2006-03-01), the oldest online copy we've found. A
+byte-identical copy appears in We Com'in's 2012-03-26 post (https://wecomin.wordpress.com/2012/03/26/levolution-des-publicites-apple-des-annees-70s-a-aujourdhui/).
+It replaced an earlier 640×781 PNG of the same scan on 2026-10-20.
 The website borrows its overlapping photographic panels, black field, large
 serif headline, italic invitation, and centered print-ad rhythm. The five window
 frames are rendered from the project's original scheme archives. Color and

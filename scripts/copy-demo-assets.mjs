@@ -33,10 +33,10 @@ await copy(
   resolve(outAssets, 'references'),
 );
 
-// User-supplied period advertisement linked from the landing's inspiration credit.
+// Period advertisement shown on inspiration.html (also linkable directly).
 await copy(
-  resolve(root, 'demo/assets/landing/inspiration-apple-new-media-forum-1995.png'),
-  resolve(outAssets, 'landing/inspiration-apple-new-media-forum-1995.png'),
+  resolve(root, 'demo/assets/landing/inspiration-apple-new-media-forum-1995.jpg'),
+  resolve(outAssets, 'landing/inspiration-apple-new-media-forum-1995.jpg'),
 );
 
 // themes-manifest.json — the canonical theme catalog the README's integration guide
