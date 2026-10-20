@@ -43,7 +43,15 @@ power-of-two dimension constraint.
 
 ## Finite controls and observations
 
-The retained `declared-color-controls.json` derives six opaque, actually used, explicitly declared source-color controls directly from the same raw source planes and exported destination indices/palette. Each is compared at the same source coordinate across both pairs and both operations. Pair 0 is black foreground/white background; pair 1 reverses them. Examples:
+Six opaque, actually used, explicitly declared source-color controls were derived
+from the raw source planes and exported destination indices/palette. The numeric
+examples below are reproducible from the retained raw export: unpack the
+MSB-first source index at the stated coordinate using the declared depth/stride,
+require its mask bit and unique logical ColorSpec, then read the same coordinate
+from each case's `resultDestinationIndices` and that index's positional
+`devicePalette` entry. Compare cases 0/1 against 2/3 for 1984 and cases 4/5 against
+6/7 for 1990/Dolphin. This derivation adds no color prediction. Pair 0 is black
+foreground/white background; pair 1 reverses them. Examples:
 
 | Input / source coordinate | Declared RGB16 | Pair 0 destination palette RGB16 | Reversed pair destination palette RGB16 |
 | --- | --- | --- | --- |
@@ -66,7 +74,7 @@ This is a representation boundary recommendation, not a request for a general Qu
 
 ## Limits and retained evidence
 
-One native environment and eight panels; CopyMask precedes CopyBits on each handle, so operation and order are not isolated. Fresh handle is not cold cache. Owned resource container is not a historical provider. No original button/control attribution, display-profile admission, decoder rule, or public fidelity promotion follows.
+One System 7.5.5 / Kaleidoscope 2.3.1 environment under Basilisk II, with BeOS R5.0.3 selected, and eight panels; CopyMask precedes CopyBits on each handle, so operation and order are not isolated. Fresh handle is not cold cache. Owned resource container is not a historical provider. No original button/control attribution, display-profile admission, decoder rule, or public fidelity promotion follows.
 
 - Raw export: 204154 bytes, SHA256 `4d28e0f578c73a7f9b545d991d789ca67d483c11e0a2dd2ad6b07bd97295a414`.
 - Final acquisition result SHA256 `e6ce8585474b51d527ae41b28deea9bcfa82b711c04c93b14714500ff3056528`.
@@ -89,8 +97,10 @@ The 46,438,199-byte archive SHA-256 is
 The fresh selective-LFS round trip verified 145 regular files and one symlink;
 receipt `forgejo-cicn-palette-roundtrip-20261020.json` has SHA-256
 `1763d90272a9ed9e512229b0128435ebee870fad97e2296fcd126cc202f87d3f`.
-The asset retains source, reviews, initial input history, export and finite
-analysis. No private resource payload, engine/OS bytes or native payload log is
+The asset retains source, reviews, initial input history, export and the root
+missing-index observations. The declared-color control derivation above is a
+subsequent analysis of that retained export, not an additional file claimed to
+exist in the frozen asset. No private resource payload, engine/OS bytes or native payload log is
 published by this document. See the [private reference environment](../maintainer-reference-environment.md).
 
 No runtime/profile, reference-intake acceptance, requirement-ledger count or
