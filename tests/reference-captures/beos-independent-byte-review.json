@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 1,
+  "status": "APPROVED_SCOPED_BYTES_AND_IMAGES",
+  "reviewer": "Independent Codex root reviewer; automated AI, not human attestation",
+  "reviewedAt": "2026-10-20T08:42:22.278247+00:00",
+  "images": [
+    {
+      "path": "beos-r503-normal/full-frame.png",
+      "bytes": 31633,
+      "sha256": "1ae8d7922b2191b7ccdd543e237ff9b544a0354c8c5acb932c624f58ca6619f4"
+    },
+    {
+      "path": "beos-r503-normal/port.png",
+      "bytes": 395,
+      "sha256": "9bb952dc28f23c10cb23e4fa294f5b1c7e334cff29212a3305f3a8d254e2664d"
+    },
+    {
+      "path": "beos-r503-normal/context.png",
+      "bytes": 260,
+      "sha256": "7390b10f5be923b356bff1e9aca2c3b2fd5697e996785f95adb11ddd9b13dee1"
+    },
+    {
+      "path": "beos-r503-normal/face.png",
+      "bytes": 194,
+      "sha256": "1cbaa2a4397520742651ffea84b97abad8899946fccb64f373e5127fd68e8f2e"
+    },
+    {
+      "path": "beos-r503-normal/durable-status.png",
+      "bytes": 24090,
+      "sha256": "8a860a51d86aade2c2950855dcdbbd23ea521385c0443fc27b42a7991571029a"
+    },
+    {
+      "path": "beos-r503-pressed/full-frame.png",
+      "bytes": 31796,
+      "sha256": "6fa0ba8f740dc96518376418e8404579a3cc2e1176d45bfe2d44a26b5e3d5e0a"
+    },
+    {
+      "path": "beos-r503-pressed/port.png",
+      "bytes": 389,
+      "sha256": "2802680b11cd1f1c0d317a45f63bd927b5dbb0ac29d98be65937a9104af773bd"
+    },
+    {
+      "path": "beos-r503-pressed/context.png",
+      "bytes": 258,
+      "sha256": "5c97eb488fdd2aec45e4aece0168c3d94bb26598cbf51769ee9cdc1ed055bfa9"
+    },
+    {
+      "path": "beos-r503-pressed/face.png",
+      "bytes": 194,
+      "sha256": "ae9188120074c9988d06ba523a39eadf9e5955782b0046ce5de034a2f5e0d4a5"
+    },
+    {
+      "path": "beos-r503-pressed/durable-status.png",
+      "bytes": 24111,
+      "sha256": "011b7907c16a9ec63ad3150d3ab5a59264f2e004e3249d25c81a1f0ca4c2fa4f"
+    },
+    {
+      "path": "beos-r503-inactive/full-frame.png",
+      "bytes": 31789,
+      "sha256": "dabb17765733b5cb247691612c5fabb00c22ab1a14b395a682fc3ab03ef1fe36"
+    },
+    {
+      "path": "beos-r503-inactive/port.png",
+      "bytes": 395,
+      "sha256": "9bb952dc28f23c10cb23e4fa294f5b1c7e334cff29212a3305f3a8d254e2664d"
+    },
+    {
+      "path": "beos-r503-inactive/context.png",
+      "bytes": 260,
+      "sha256": "7390b10f5be923b356bff1e9aca2c3b2fd5697e996785f95adb11ddd9b13dee1"
+    },
+    {
+      "path": "beos-r503-inactive/face.png",
+      "bytes": 194,
+      "sha256": "1cbaa2a4397520742651ffea84b97abad8899946fccb64f373e5127fd68e8f2e"
+    },
+    {
+      "path": "beos-r503-inactive/durable-status.png",
+      "bytes": 24191,
+      "sha256": "6f64e9abe90691231541ec05657059826b098121fdfa6fb7f0c3817dbbb8a97e"
+    }
+  ],
+  "scope": "Exact public-api-empty-face v5 only; original pixel copies and integer crops verified independently. Native acquisition and sanitized log review separately bound.",
+  "independentAcquisitionReviewSha256": "026691322638cb4580e14acda939816bc58220158b7a1657383cf34c22e43f87",
+  "independentSupportReviewSha256": "33075ffb7f623cc476a65980ccf830014450e4d763fd8dad45b8512895bb2e8d",
+  "privateSourceBuiltExecutionSha256": "6fb1b15a00ad19c6afa34b990728e482dae5857f2b88fd61a9d64f20b6c4a8a7",
+  "limits": [
+    "Recorded fields only; state portColorTable and calibration widMax absent",
+    "Original phase, mask, provider/cache/order/font independence and whole requirements unknown",
+    "Fixed-order shared boot; worker poweroff acknowledgment unknown"
+  ]
+}
