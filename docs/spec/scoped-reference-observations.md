@@ -157,4 +157,4 @@ patch/base/provider and all prior review checks, including for pressed/inactive
 requests. Default-ring and nonzero-origin full-admission gates are unchanged. Unknown scope IDs, expanded face
 regions/claims, stale versions or a review with different scope reject intake.
 Actual capture/review additions require a separate evidence review. The
-[current corpus](../../tests/reference-captures/ORIGINALS.md) lists the twelve separately reviewed scoped observations, with every broader target unresolved.
+[current corpus](../../tests/reference-captures/ORIGINALS.md) lists the eighteen separately reviewed scoped observations, with every broader target unresolved.

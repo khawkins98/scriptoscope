@@ -354,3 +354,18 @@ root independently checked the actual planes. Only the three recorded-output
 obligations become verified. The resulting 69 OPEN cases contain 491 obligations:
 88 narrowly verified and 403 unknown. Final combined review and registered
 execution remain separate gates; no original provider, phase or mask claim is added.
+
+
+## BeOS measured-profile comparisons (1.13.0)
+
+Three fixed empty BeOS state cases extend the existing source/built
+measured-profile assertion pair to eighteen rows and 28,800 compared pixels per
+mode. The v2 profile supports complete preparation, but the actual face traces
+retain signed cicn/cinf dependencies and a same-owner ppat0 miss. Prepared
+ppat128 is not a face participant.
+
+The prior 69 cases and 491 assessments, including all six registry prefixes,
+remain exact. Only three `output.recorded-composited-face` obligations become
+verified. The resulting 72 OPEN cases contain 509 obligations: 91 narrow verified
+and 418 unknown. Original provider/cache/phase/mask and whole-control conditions
+remain unknown, including missing cross-run port-table and widMax observations.

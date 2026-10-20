@@ -94,22 +94,18 @@ proves input identity, not decoder correctness. A trace proves actual selection,
 not the historical validity of a fallback policy. A self-golden proves stability,
 not original-engine pixels.
 
-The current [ledger 1.8.0](../../tests/rendering-requirements/ledger.json) contains
-thirty-two OPEN cases and 269 declared obligations: 51 narrowly verified,
-0 mismatched, 0 explicitly unsupported and 218 unknown. Eight of those verified
-obligations concern only complete recorded-condition empty80×20 faces under an
-explicit measured profile, including one Crayon normal face with recorded port placement
-and original pattern origin explicitly unknown, plus one Lisa normal face with a
-separate 22-tuple same-run profile. They are reported separately and do not establish
-original alpha/mask, typography, hidden selection, general state/placement or
-default-display fidelity. Six additional SOURCE obligations cover only two caller-declared
-synthetic prepared-strike identities, signed source-metric pens and literal clipped
-mask paint. They do not identify an original glyph provider or establish original
-typography, transfer or caller sizing. One additional synthetic SOURCE obligation
-now verifies the existing whole-header collision
-[sampled-line color](header-sampled-lines.md); its original-device/provider and
-broader header requirements remain unresolved. The separate [availability inventory 1.0.4](../../tests/control-availability/expectations.json)
-contains 26 reviewed API-policy outcomes and one UNKNOWN. Neither is a completion
+The current [ledger 1.13.0](../../tests/rendering-requirements/ledger.json) contains
+72 OPEN cases and 509 declared obligations: 91 narrowly verified, 0 mismatched,
+0 explicitly unsupported and 418 unknown. Eighteen verified obligations concern
+only complete recorded-condition empty 80×20 faces under explicit finite
+measured profiles. They do not establish original alpha/mask, typography, hidden
+selection, general state/placement, private provider/cache or default-display
+fidelity. Other verified assessments retain their individually declared source
+or modern-policy evidence; prepared synthetic font strikes do not identify an
+original glyph provider or establish historical typography or caller sizing.
+
+The separate [availability inventory 1.0.7](../../tests/control-availability/expectations.json)
+contains 27 finite API-policy outcomes. Neither inventory is a completion
 denominator for this proposed 18-scheme target. The overall denominator remains
 **unclosed; no overall fidelity percentage is established**.
 

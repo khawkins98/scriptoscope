@@ -2,14 +2,14 @@
 
 This is a finite request and review contract for [#190](https://github.com/khawkins98/scriptoscope/issues/190),
 under the [draft compatibility target](../../docs/spec/fidelity-compatibility-contract.md).
-**Fifteen original observations have independent AI review under the narrow
+**Eighteen original observations have independent AI review under the narrow
 `public-api-empty-face` scopes v1–v5.** They satisfy no whole request and verify
 no intake target. The fixed empty-push campaign now plans all 18 canonical
 sources × normal/logically highlighted/disabled states: 54 requests, including
 those eight existing observations. Five earlier default/shift experiments remain
-separate, for 59 requests total. The three Animals state observations bring the stored corpus to fifteen
-reviewed scoped records; 44 requests have no capture (39 campaign states and
-five older experiments). All fifteen scoped requests remain evidence-incomplete.
+separate, for 59 requests total. The Animals and BeOS state observations bring the stored corpus to eighteen
+reviewed scoped records; 41 requests have no capture (36 campaign states and
+five older experiments). All eighteen scoped requests remain evidence-incomplete.
 
 Scope v5 applies only to the 46 newly appended campaign IDs. It requires the
 same fixed port, face, background and full-image evidence, actual public
@@ -318,3 +318,24 @@ pixel comparison. See [the batch proposal](animals-state-proposal.md) and
 `animals-calibration/measurement.json`. The prior 12 capture/review objects and
 all 59 request objects/digests are pinned by `animals-retention.json`. No original
 mask, phase, private provider, default state or whole-control claim is added.
+
+
+## BeOS fixed-order observations
+
+The three BeOS records reuse the existing v5 scope and fixed campaign requests.
+Each retains its ordinary stopped log export, full raw/PNG equality, exact crops,
+state/ACK sequence and canonical configured fork. Acquisition review, scoped
+intake review and source/built comparison remain separate evidence steps.
+
+The finite B278 version2 profile binds 278 RGB16 inputs measured twice and
+three separately measured direct-RGB8 inputs. Zero-origin direct attribution
+was declared from source and primary documentation before offline comparison.
+That preparation permits complete theme conversion; pattern128 is not the
+observed button body dependency. The three faces instead retain actual signed
+face/cinf joins, same-owner ppat0 absence and completed paint dependencies.
+
+Cross-run device palette, gamma, definition payloads and producer agree. State
+logs omit portColorTable, while calibration omits widMax; neither full port-table
+nor full font/provider identity is claimed. Fixed normal→highlighted→disabled
+order and shared boot/cache history remain explicit. Only recorded opaque-white
+composited output is verified; whole requests and broader conditions stay open.
