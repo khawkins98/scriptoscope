@@ -59,6 +59,19 @@ export function compareRecordedPixels(raw, original) {
   return differentPixels;
 }
 
+/** Validate the completed modern raster stage from paired metadata, not theme names. */
+export function validateCompletedFacePaint(row, selected, hasPairedCinf) {
+  const paints = hasPairedCinf ? (row.bandPaints ?? []).filter(p => p.role === 'face') : [row.legacyFacePaint];
+  check(paints.length > 0 && paints.every(p => p && same(p.owner, selected.owner) && same(p.resource, selected.resource)), 'missing or wrong completed paint dependency');
+  if (!hasPairedCinf) {
+    check(!row.resources.some(r => r.type === 'cinf' && r.signedId === selected.resource.signedId), 'paired metadata cannot be omitted');
+    const p = row.legacyFacePaint;
+    check(p.basis === 'compatibility-policy' && p.operation === 'legacy-nine-slice-and-sample-fill' && same(p.destinationRect, { x: 0, y: 0, w: 80, h: 20 }), 'wrong legacy paint stage');
+    const raw = Buffer.from(row.facePlane.rgba, 'base64');
+    check(raw.length === 6400 && p.retainedNonzeroAlphaPixels === Array.from(raw).filter((a, i) => i % 4 === 3 && a > 0).length, 'wrong retained paint occupancy');
+  }
+}
+
 /** Actual completed modern paint is required, without attributing the original painter. */
 export function validateRecordedExecution(row, binding, capture) {
   check(same(row.outcome,{status:'themed',width:88,height:28}), 'composition did not complete');
@@ -80,13 +93,15 @@ export function validateRecordedExecution(row, binding, capture) {
   const cinf=row.source.cinfResourceIndex==null?null:row.resources.find(r=>r.resourceIndex===row.source.cinfResourceIndex);
   check(cinf===null ? row.selectedCinfId===null : cinf?.type==='cinf' && cinf.status==='decoded' && cinf.signedId===row.selectedCinfId,'wrong decoded metadata occurrence');
   check(s.resource.sourceCinfId === row.selectedCinfId && row.source.manifestKey === row.selectedKey, 'wrong paired metadata/key');
-  const paints = row.slug === 'system7-nostalgia-silver' ? [row.legacyFacePaint] : row.bandPaints.filter(p => p.role === 'face');
-  check(paints.length > 0 && paints.every(p => p && same(p.owner, s.owner) && same(p.resource, s.resource)), 'missing or wrong completed paint dependency');
+  validateCompletedFacePaint(row, s, cinf !== null);
   const sourcePins=sourcePinsFor(row.slug,row.state);
   if (STATE_SOURCE_PINS[row.slug]?.[row.state]) {
     check(row.selectedKey===sourcePins.emittedKey && row.profileInput===sourcePins.sourceArchiveSha256 && row.profileFork===sourcePins.sourceForkSha256, 'wrong state source/key pins');
     check(same(row.selectedBodyRequest,sourcePins.bodyRequest), 'wrong actual state body request');
-    check(resource?.byteLength===sourcePins.face.bytes && cinf?.byteLength===sourcePins.cinf.bytes, 'wrong state payload lengths');
+    check(resource?.byteLength===sourcePins.face.bytes && (sourcePins.cinf === null ? cinf === null && row.selectedCinfId === null : cinf?.byteLength===sourcePins.cinf.bytes), 'wrong state payload lengths');
+    for (const [actual, pin] of [[resource, sourcePins.face], [cinf, sourcePins.cinf]]) {
+      check(pin === null ? actual === null : actual?.resourceIndex === pin.resourceIndex && actual.signedId === pin.signedId && actual.sha256 === pin.payloadSha256, 'wrong state payload identity');
+    }
   }
   if (row.slug === 'crayon-os' || (row.slug === 'animals' && sourcePins.pattern)) {
     check(same(row.composition?.faceRect, {x:20,y:20,w:80,h:20}), 'wrong port face placement');
@@ -115,12 +130,6 @@ export function validateRecordedExecution(row, binding, capture) {
     const missing=row.bodyFillSteps?.filter(p=>p.usage==='paint' && p.action==='missing' && p.requestedResourceType==='ppat' && p.requestedId===0 && p.bodyMode===0);
     check(missing?.length===1 && same(missing[0].owner,s.owner) && missing[0].reason==='same-face-owner-pattern-unavailable' &&
       !row.resources.some(r=>r.type==='ppat'&&r.signedId===0) && !row.paintSelectionSteps.some(p=>p.role==='body-fill') && row.patternAsset===null, 'wrong pinned no-ppat0 observation');
-  }
-  if (row.slug === 'system7-nostalgia-silver') {
-    const p = row.legacyFacePaint;
-    check(p.basis === 'compatibility-policy' && p.operation === 'legacy-nine-slice-and-sample-fill' && same(p.destinationRect, { x: 0, y: 0, w: 80, h: 20 }), 'wrong legacy paint stage');
-    const raw = Buffer.from(row.facePlane.rgba, 'base64');
-    check(p.retainedNonzeroAlphaPixels === Array.from(raw).filter((a, i) => i % 4 === 3 && a > 0).length, 'wrong retained paint occupancy');
   }
   check(row.originalComparison.differentPixels === 0 && row.originalComparison.comparedPixels === 1600, 'pixel mismatch/incomplete comparison');
 }

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {captureBinding,validateRecordedBinding,validateRecordedExecution,compareRecordedPixels,PROFILE,exactOptions} from './recorded-face.mjs';
+import {validateCompletedFacePaint,captureBinding,validateRecordedBinding,validateRecordedExecution,compareRecordedPixels,PROFILE,exactOptions} from './recorded-face.mjs';
 const ledger=JSON.parse(readFileSync(new URL('./ledger.json',import.meta.url)));
 const captures=JSON.parse(readFileSync(new URL('../reference-captures/captures.json',import.meta.url))).captures;
 // Synthetic assessor results exercise the join; these are not review records.
@@ -125,4 +125,16 @@ test('recorded state joins require their own face/cinf/body/pattern pins and com
    const selected=make();selected.paintSelectionSteps.push({role:'body-fill',usage:'paint',action:'selected',resource:{type:'ppat',signedId:128}});assert.throws(()=>validateRecordedExecution(selected,binding,capture),/no-ppat0/);
   }
  }
+});
+
+
+test('completed paint follows paired metadata and rejects fabricated legacy dependencies',()=>{
+ const make=()=>{const r=execution().row; r.resources=r.resources.filter(x=>x.type!=='cinf');
+  r.facePlane.rgba=Buffer.alloc(6400,255).toString('base64');
+  r.legacyFacePaint={...r.bandPaints[0],basis:'compatibility-policy',operation:'legacy-nine-slice-and-sample-fill',destinationRect:{x:0,y:0,w:80,h:20},retainedNonzeroAlphaPixels:1600};return r;};
+ const good=make();validateCompletedFacePaint(good,good.paintSelectionSteps[0],false);
+ for(const change of [r=>delete r.legacyFacePaint,r=>r.legacyFacePaint.owner={baseUrl:'foreign'},r=>r.legacyFacePaint.operation='selected-only',r=>r.legacyFacePaint.retainedNonzeroAlphaPixels=1599,r=>r.facePlane.rgba='',r=>r.resources.push({type:'cinf',signedId:-10239})]){
+  const r=make();change(r);assert.throws(()=>validateCompletedFacePaint(r,r.paintSelectionSteps[0],false));
+ }
+ const paired=make();paired.bandPaints=[];assert.throws(()=>validateCompletedFacePaint(paired,paired.paintSelectionSteps[0],true),/paint dependency/);
 });

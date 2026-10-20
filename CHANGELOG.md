@@ -7,6 +7,8 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+- Validate recorded face completion through paired metadata and actual paint dependencies, replacing theme-name dispatch. Require exact state payload identities and explicit absent metadata; preserve current intake and fidelity claims (#221).
+
 - Document independently reviewed sparse CIcon preparation and ordinary transfer observations, separating documented foreground/background coloration from the unresolved missing-index lookup rule. Preserve runtime compatibility, strict profile rejection and all fidelity/intake statuses (#221).
 
 - Add three independently reviewed BeOS empty-face state observations with finite measured-profile source/built comparisons and narrow ledger bindings. Preserve prior capture/request records and explicit cross-run, provider, phase, mask and whole-control unknowns (#190, #221).
