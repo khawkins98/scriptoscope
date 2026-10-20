@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { comparePatternBinding } from '../resource-provenance/patterns.mjs';
+import { comparePatternBinding, compareCompletedPatternPaint, sameJson } from '../resource-provenance/patterns.mjs';
 const pins = JSON.parse(readFileSync(new URL('../resource-provenance/pattern-pins.json', import.meta.url)));
 import { test, expect, openHarness, attachCase, attachObservations } from './fixtures.mjs';
 
@@ -52,6 +52,8 @@ for (const mode of ['source', 'built']) test(`${mode}: pattern bodies preserve p
       expect(row.trace.composition.faceRect).toMatchObject({ w: 29, h: 9 });
       const paints = row.trace.steps.filter(step => step.role === 'body-fill' && step.action === 'selected');
       expect(paints).toHaveLength(1);
+      expect(paints[0].bodyPaint).toMatchObject({branch:'pattern-fill-union', unionRects:[{x:3,y:1,w:23,h:7},{x:1,y:3,w:27,h:3}],
+        paintedPixels:173, sourceSize:[4,2], phase:{basis:'modern-composition-policy',offset:row.shifted?[23,25]:[20,20],originalPatternPhase:'unverified'}});
       expect(paints[0]).toMatchObject({ requestedId: 0, basis: 'compatibility-policy', usage: 'paint',
         owner: { chainDepth: 1 }, resource: { type: 'ppat', signedId: 0, manifestKey: 'zero' } });
       expect(paints[0].owner.baseUrl).toContain('/owner/');
@@ -225,6 +227,8 @@ for (const mode of ['source', 'built']) test(`${mode}: numeric pattern names ret
         { type: 'cinf', id: -10239, data: request },
         { type: 'ppat', id: 0, name: '2', data: twoPixelPpat() },
         { type: 'ppat', id: 0, name: '1', data: twoPixelPpat({ red: 0 }) }]);
+      const hash=async bytes=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),v=>v.toString(16).padStart(2,'0')).join('');
+      const inputSha256=await hash(bytes),payloadSha256=await hash(twoPixelPpat({red:0}));
       const rows = [];
       for (const provenance of [false, true]) {
         const theme = await loader.loadKaleidoscopeScheme(bytes, { provenance });
@@ -233,7 +237,7 @@ for (const mode of ['source', 'built']) test(`${mode}: numeric pattern names ret
           let trace;
           const output = await api.composeButton(theme, { label: '', minWidth: 29, height: 9,
             diagnostics: { onComplete: value => { trace = value; } } });
-          const row = { provenance, keys: Object.keys(theme.manifest.patterns), bodyPattern: face.bodyPattern,
+          const row = { provenance, inputSha256,payloadSha256,owner:{baseUrl:theme.baseUrl,manifest:{patterns:theme.manifest.patterns},byteProvenance:theme.byteProvenance}, keys: Object.keys(theme.manifest.patterns), bodyPattern: face.bodyPattern,
             bgPattern: face.bgPattern, pixel: [...output.getPixel(0, 0)], trace, legacy: [] };
           delete face.bodyPattern;
           for (const linked of [false, true]) {
@@ -256,7 +260,18 @@ for (const mode of ['source', 'built']) test(`${mode}: numeric pattern names ret
       const selected = row.trace.steps.filter(step => step.role === 'body-fill' && step.action === 'selected');
       expect(selected).toHaveLength(1);
       expect(selected[0].resource).toMatchObject({ type: 'ppat', signedId: 0, manifestKey: '1' });
-      if (row.provenance) expect(selected[0].resource.byteProvenance.ppatResourceIndex).toBe(3);
+      if (row.provenance) {
+        expect(selected[0].resource.byteProvenance.ppatResourceIndex).toBe(3);
+        const expected={inputSha256:row.inputSha256,forkSha256:row.inputSha256,payloadSha256:row.payloadSha256,byteLength:104,resourceIndex:3,signedId:0,
+          chainDepth:0,bodyMode:0,sourceSize:[2,1],unionRects:[{x:0,y:0,w:29,h:9}],paintedPixels:261,phaseOffset:[0,0],context:row.trace.composition.context};
+        expect(compareCompletedPatternPaint(row.owner,selected[0],expected)).toEqual({status:'matched',failures:[]});
+        const reorder=v=>Array.isArray(v)?v.map(reorder):v&&typeof v==='object'?Object.fromEntries(Object.entries(v).reverse().map(([k,x])=>[k,reorder(x)])):v;
+        expect(compareCompletedPatternPaint(reorder(row.owner),reorder(selected[0]),reorder(expected))).toEqual({status:'matched',failures:[]});
+        expect(sameJson({rects:[{x:1},{x:2}]},{rects:[{x:2},{x:1}]})).toBe(false);
+        for(const mutate of [s=>s.bodyPaint.phase.offset[0]++,s=>s.bodyPaint.paintedPixels--,s=>s.resource.byteProvenance.ppatResourceIndex=2,s=>s.resource.assetUrl='unloaded:pattern',s=>delete s.bodyPaint,s=>delete s.bodyPaint.context.basis,s=>s.bodyPaint.unionRects.reverse().push({x:0,y:0,w:29,h:9})]) {
+          const changed=structuredClone(selected[0]);mutate(changed);expect(compareCompletedPatternPaint(row.owner,changed,expected).status).toBe('mismatch');
+        }
+      }
       else expect(selected[0].resource.byteProvenance).toBeUndefined();
       expect(selected[0].reason).toBe('carried-body-pattern-paint');
       const [ambiguous, linked] = row.legacy;
@@ -271,4 +286,44 @@ for (const mode of ['source', 'built']) test(`${mode}: numeric pattern names ret
     }
     await attachObservations(info, 'pattern-paint', `${mode}-numeric-order`, { mode, result });
   } catch (error) { await attachCase(page, info, { mode, result }, error); throw error; }
+});
+
+for (const mode of ['source', 'built']) test(`${mode}: completed pattern unions count transparent writes and exclude clipped empty or aborted stages`, async ({page,servers},info)=>{
+  await openHarness(page,servers,mode);let result;
+  try {
+    result=await page.evaluate(async mode=>{
+      const api=await import(mode==='built'?'/dist/scriptoscope.js':'/src/index.ts');
+      const face=api.PixelBuffer.alloc(5,5),tile=api.PixelBuffer.alloc(2,1); // Both transparent: write count is not occupancy.
+      const url=b=>api.bufferToCanvas(b).toDataURL();
+      const el={sourceCicnId:-10239,asset:url(face),width:5,height:5,slice:{corner:2,side:2,tile:true},bodyRequest:{mode:2,resourceId:0}};
+      const theme={baseUrl:location.origin,manifest:{chromeElements:{face:el},patterns:{tile:{sourcePpatId:0,asset:url(tile)}}}};
+      const rows=[];
+      for(const spec of [{name:'equal',corner:2,side:2,height:10},{name:'cross',corner:3,side:1,height:10},{name:'clipped',corner:3,side:1,height:10,clip:{kind:'rect',rect:{x:23,y:22,w:5,h:4}}},{name:'zero',corner:2,side:2,height:10,clip:{kind:'rect',rect:{x:100,y:100,w:1,h:1}}},{name:'no-body',corner:6,side:6,height:4}]){
+        el.slice={corner:spec.corner,side:spec.side,tile:true};let trace;
+        const out=await api.composeButton(theme,{label:'',minWidth:24,height:spec.height,compositionContext:{controlOrigin:[20,20],portOrigin:[0,0],patternOrigin:{status:'unknown'},clip:spec.clip??{kind:'unbounded'}},diagnostics:{onComplete:t=>trace=t}});
+        rows.push({name:spec.name,trace,nonzero:[...out.data].filter(Boolean).length});
+      }
+      // Hold the actual later border companion decode, after the body loop wrote.
+      face.fillRect({x:0,y:0,w:5,h:5},25,50,75,255);el.asset=url(face);el.slice={corner:2,side:1,tile:true};
+      const companion=new api.PixelBuffer(5,5,new Uint8ClampedArray(face.data));companion.setPixel(0,0,10,20,30,255);const heldUrl=url(companion);
+      el.sampledBandAsset={asset:heldUrl,derivedPath:'cicn-sampled/held.png',model:'kaleidoscope-2.3.1-opaque-sampling-v1',comparison:'opaque-current-display-rgb',displayPolicy:'mac-1.8-to-2.2-high-byte',width:5,height:5};
+      let entered,release,trace,error;const atDecode=new Promise(r=>entered=r),gate=new Promise(r=>release=r),original=Image.prototype.decode,controller=new AbortController();
+      Image.prototype.decode=async function(){if(this.src===heldUrl){entered();await gate}return original.call(this)};
+      try {
+        const pending=api.composeButton(theme,{label:'',minWidth:24,height:10,diagnostics:{onComplete:t=>trace=t}},controller.signal).catch(e=>{error=e.name});
+        await atDecode;controller.abort();release();await pending;
+      } finally {Image.prototype.decode=original}
+      return{rows,aborted:{trace,error}};
+    },mode);
+    const expected={equal:{unionRects:[{x:2,y:2,w:20,h:6}],paintedPixels:120},cross:{unionRects:[{x:3,y:1,w:18,h:8},{x:1,y:3,w:22,h:4}],paintedPixels:160},clipped:{unionRects:[{x:3,y:1,w:18,h:8},{x:1,y:3,w:22,h:4}],paintedPixels:20}};
+    for(const row of result.rows){
+      expect(row.nonzero).toBe(0);const selection=row.trace.steps.filter(s=>s.role==='body-fill'&&s.action==='selected');expect(selection).toHaveLength(1);
+      if(expected[row.name])expect(selection[0].bodyPaint).toMatchObject({...expected[row.name],branch:'pattern-fill-union',sourceSize:[2,1],phase:{basis:'modern-composition-policy',offset:[-24,0],originalPatternPhase:'unverified'}});
+      else expect(selection[0].bodyPaint).toBeUndefined();
+    }
+    expect(result.aborted.error).toBe('AbortError');expect(result.aborted.trace.outcome.status).toBe('error');
+    expect(result.aborted.trace.steps.filter(s=>s.role==='body-fill'&&s.action==='selected')).toHaveLength(1);
+    expect(result.aborted.trace.steps.some(s=>s.bodyPaint)).toBe(false);
+    await attachObservations(info,'pattern-paint',`${mode}-completion`,{mode,result});
+  }catch(error){await attachCase(page,info,{mode,result},error);throw error}
 });

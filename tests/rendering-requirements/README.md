@@ -406,3 +406,19 @@ labeled observations, original masks, font/provider identity, pattern phase and
 whole-control claims are excluded. Intake review and actual execution remain
 separate gates. This coherent batch includes data, finite profile, harness,
 ledger and documentation before its final required checks.
+
+## Monkey Paradise extension (1.16.0)
+
+Three cases and eighteen obligations append to the exact prior 92 cases and
+629 assessments, retained by `monkey-recorded-transition.json`. All 95 cases
+remain OPEN. After independent root review of actual registered source/built execution, totals
+are 114 verified and 533 unknown across 647 obligations. Only the three new
+recorded-output obligations are promoted; their other fifteen remain unknown.
+
+Independent pins join normal ppat128 occurrence459, exact payload/catalog/load/URL
+and decoded pattern plane to the generic completed body event: 1,216 writes in
+the 76×16 union. Modern phase[-80,0] is explicitly unverified original phase.
+Pressed/inactive preserve missing0 and completed face bands. No theme-name
+exception, private-provider claim, new scope or typography closure is introduced.
+The registered pair retains full results before assertions, so rejected trace
+or pixel observations remain inspectable without being counted as acceptance.

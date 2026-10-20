@@ -663,8 +663,8 @@ The [reference intake](./tests/reference-captures/README.md) also defines a narr
 review scope for complete fixed-size empty face observations.
 Such composited-pixel evidence leaves the broader requirements unresolved; it
 cannot certify masks, typography, unobserved states or private painter selection.
-The [original corpus](./tests/reference-captures/ORIGINALS.md) now contains thirty-eight
-independently AI-reviewed scoped observations. All thirty-eight whole requests remain
+The [original corpus](./tests/reference-captures/ORIGINALS.md) now contains forty-one
+independently AI-reviewed scoped observations. All forty-one whole requests remain
 evidence-incomplete, with all broader requirements unresolved. Maintainers can
 reuse the [private original-reference environment](./docs/maintainer-reference-environment.md)
 to acquire additional evidence; access is optional and never required by public CI.

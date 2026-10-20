@@ -205,5 +205,21 @@
       "normal",
       "inactive"
     ]
+  },
+  "monkey-paradise": {
+    "profile": {
+      "path": "tests/decoder-fixtures/measured-display-profile-monkey-paradise.json",
+      "id": "display-profile:f185c519b60e234ed17c69195c081b41b6cd2db629d9b295f82280e4d47b03c6",
+      "sha256": "a22a2812126867eef6797b01f0aca2a1a024a5e6960a77426ba27c907e8da16c"
+    },
+    "caseSuffix": "m288",
+    "explicitContext": true,
+    "paintKind": "cinf-bands",
+    "expectNormalDefaultDifference": false,
+    "states": [
+      "normal",
+      "pressed",
+      "inactive"
+    ]
   }
 }

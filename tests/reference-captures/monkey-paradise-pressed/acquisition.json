@@ -1,0 +1,72 @@
+{
+  "bootNonce": "A3A-84320f7f95",
+  "fixtureLabel": "A3A1-84320f7f95",
+  "fixedOrder": [
+    "empty/0",
+    "empty/10",
+    "empty/255"
+  ],
+  "ordinal": 1,
+  "controlGeneration": 2,
+  "actualAcquisitionLines": [
+    "acquisition.bootNonce=A3A-84320f7f95 fixedOrder=0,10,255 sharedSchemeOSCacheHistory=1 providerCacheOrder=UNKNOWN",
+    "acquisition.setup=EraseRect;NewControl-implicit-draw;Draw1Control;HiliteControl;unbracketed-before-observation",
+    "acquisition.stateOrdinal=1 requestedHilite=10 controlGeneration=2 createdTicks=14694 priorDisposedTicks=14693",
+    "acquisition.priorAcknowledgedState=0 hostAckCount=1 lastHostAckTicks=14693 priorFile=A3A0-000029cb-001.txt",
+    "acquisition.faceDrawCount=2 initial=1 update=1 mouse=0 capture=0",
+    "acquisition.stateOrdinal=1 requestedHilite=10 controlGeneration=2 createdTicks=14694 priorDisposedTicks=14693",
+    "acquisition.priorAcknowledgedState=0 hostAckCount=1 lastHostAckTicks=14693 priorFile=A3A0-000029cb-001.txt",
+    "acquisition.faceDrawCount=3 initial=1 update=1 mouse=0 capture=1"
+  ],
+  "hostAck": {
+    "status": "COMMAND_SENT_NATIVE_ACCEPTANCE_PENDING",
+    "bootNonce": "A3A-84320f7f95",
+    "key": "n",
+    "ordinal": 1,
+    "session": "scriptoscope-monkey288-combined-20261020",
+    "at": "2026-10-20T14:50:38.077Z",
+    "candidateSha256": "a400c56d12eb02594b51b855e1b738bdd5d3ce8867442bbff8e9a4d4f0a5b592",
+    "runSha256": "8e90a72efc6a9651b7df30513151eaf8d64a6555355fd0f099c14fa560add937",
+    "evidence": [
+      {
+        "path": "captures/state-1-retained.json",
+        "sha256": "f5d76f18f61255ba5e94bd40748f3f3aa2866b1ab7284162d9c3a181a2242ce4"
+      }
+    ],
+    "limits": "Delivery is not native acceptance; no automatic retry. Actual state/ACK/closure joins remain required."
+  },
+  "finalNativeAckObservation": {
+    "basis": "visually read retained native status screenshot; not native log fields",
+    "screenshotSha256": "50fc9e2cd5af4099807a4956aa0704b6a18ca49107100942a3828fb6e41af42e",
+    "ack": 3,
+    "stateOrdinal": 2,
+    "hilite": 255,
+    "generation": 3
+  },
+  "sharedHistory": "Fresh controls; fixed-order empty0/10/255 in one boot; calibration after ACK3 and consumer Q. No font query. Not cold-cache/order independence; retained A3A labels are not fresh native nonces.",
+  "acquisitionReview": {
+    "name": "scriptoscope-monkey288-acquisition-independent-review-20261020.json",
+    "bytes": 2788,
+    "sha256": "40bd4c784c1f82c40fb5ee06788f80d69628d1701c942c3385ac8a348836fc29"
+  },
+  "scopedIntakeReview": "Independent v5 attestation required separately",
+  "comparisonEvidence": {
+    "privateCheckpoint": {
+      "name": "combined-result-checkpoint.json",
+      "bytes": 7992,
+      "sha256": "f0bb1ad38af9ccf13fc5855a7ed182d4f44ca34b310049033d4f596b7d8f52bf"
+    },
+    "independentReview": {
+      "name": "scriptoscope-monkey288-final-comparison-independent-review-20261020.json",
+      "bytes": 3483,
+      "sha256": "b0f9aff1a21b6c9b48383397942e981d097172bc32505031dbb702f40d3cdbea"
+    },
+    "emptyStatesCompared": [
+      0,
+      1,
+      2
+    ],
+    "result": "Three exact empty faces: four retained pressed/inactive observations independently accepted offline plus two modern normal followups at b6bce75e/4b02. Original six trace-rejected statuses retained; followups are modern only, no native retry. Public registered execution remains separate."
+  },
+  "fontBoundary": "Only empty observations; no font query or glyph candidate was used. Original font identity/consumption remains unknown."
+}

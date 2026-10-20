@@ -1,0 +1,17 @@
+{
+  "path": "monkey-paradise-calibration/prepared-profile.json",
+  "sha256": "a22a2812126867eef6797b01f0aca2a1a024a5e6960a77426ba27c907e8da16c",
+  "id": "display-profile:f185c519b60e234ed17c69195c081b41b6cd2db629d9b295f82280e4d47b03c6",
+  "status": "MEASURED_FINITE_RGB16_PREPARATION_BOUND_TO_EMPTY_OBSERVATIONS",
+  "sourceArchiveSha256": "2694f0b976eb8928e82a55f1509537865776c5dba932d7a9f8446fe2b4fcab42",
+  "measurement": {
+    "path": "monkey-paradise-calibration/measurement.json",
+    "sha256": "4eb7e15b6c4dac3d8c1633f38554c8b04d16af8d3bc998ffc50989a27b2058a6"
+  },
+  "privateProfile": {
+    "sha256": "0ddbae302d2601f7be6590f6e3035141c2a2e65fc1b30008e632ede1654c0afc",
+    "id": "display-profile:17d6c2e9d9bbf463ef77fd038d2160f40c2cf34a1797f2fc06d9d55371335dcd"
+  },
+  "metadataDelta": "Status/evidence descriptions changed only; measured mappings/devicePalette/producer exact to reviewed private profile.",
+  "executionScope": "Three empty states; corrected private comparison independently accepted with original six rejected traces retained; public registered source/built execution checked separately."
+}

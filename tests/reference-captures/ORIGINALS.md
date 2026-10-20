@@ -1,6 +1,6 @@
 # Reviewed original face observations
 
-The corpus contains thirty-eight `reviewed-scoped-observation` records under
+The corpus contains forty-one `reviewed-scoped-observation` records under
 [`public-api-empty-face` versions 1–5](../../docs/spec/scoped-reference-observations.md).
 An independent Astra AI agent reviewed the eight earlier observations. A separate independent automated root reviewer approved the four
 new records under v5. Its [byte review](./four-state-independent-byte-review.json)
@@ -179,3 +179,24 @@ provider choice, labeled rendering or whole-control fidelity. Evolution pressed
 remains a missing campaign capture. The public source/built pair matched all 38 registered faces and 60,800
 composited pixels per mode; independent root review recomputed every PNG crop.
 Execution remains separately bound from acquisition and scoped intake approval.
+
+## Monkey Paradise empty-state observations
+
+| State | Original face | Full frame |
+|---|---|---|
+| Normal / hilite0 | [Face](./monkey-paradise-normal/face.png) | [Full frame](./monkey-paradise-normal/full-frame.png) |
+| Pressed / hilite10 | [Face](./monkey-paradise-pressed/face.png) | [Full frame](./monkey-paradise-pressed/full-frame.png) |
+| Inactive / hilite255 | [Face](./monkey-paradise-inactive/face.png) | [Full frame](./monkey-paradise-inactive/full-frame.png) |
+
+Fresh controls share one fixed-order boot and a subsequent 288-key calibration.
+Actual font0/size12 metrics are recorded, identity null; no glyph/query payload
+is included. Scoped intake approval is independent of registered source/built
+execution. The registered pair matched all41 faces/65,600 pixels per mode;
+independent root review recomputed original PNG comparisons and actual dependencies.
+Normal requires the actual nonuniform same-owner ppat128 and completed
+modern body stage; original phase/provider and general body fidelity are unknown.
+Private originals and failure history are retained in asset
+`monkey288-three-state-20261020`, private commit
+`ce54c3330c3cbe00cdd50a2f0488776adb00f712`, archive SHA-256
+`e9a83a1f01ac88eaeb2d09940568ca5f9d0357f2aa8bb2345dd1e0054b50c719`.
+Public CI requires none of those private assets.

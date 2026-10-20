@@ -1,0 +1,291 @@
+{
+  "source": {
+    "slug": "monkey-paradise",
+    "path": "themes/monkey-paradise/scheme.sit",
+    "format": "sit",
+    "archiveSha256": "2694f0b976eb8928e82a55f1509537865776c5dba932d7a9f8446fe2b4fcab42",
+    "entryIndex": 1,
+    "entryName": "MonkeyParadise/MonkeyParadise",
+    "forkSha256": "6532ba12cbecfb8b820b9f172f43980de4a4927dd50f0ff6b37c41e5a27d4e70",
+    "selectionReviewStatus": "reviewed-contract-input",
+    "selectionReason": "Explicit scheme-named Colr entry \"MonkeyParadise/MonkeyParadise\"; readme/icon/font forks excluded by this declared choice, never by size.",
+    "selectionReviewEvidence": "monkey-paradise"
+  },
+  "engineComponent": {
+    "id": "engine.kaleidoscope-2.3.1-kdef0",
+    "kind": "engine",
+    "version": "Kaleidoscope 2.3.1 kDEF 0 68k",
+    "bytes": 107726,
+    "sha256": "2c027276dae2355964a0dde1ace31f60ba845ab2c5fbf0496fd34ab2afe7c342",
+    "extractionReference": "docs/spec/kdef-binary-inventory.md",
+    "redistributed": false
+  },
+  "prebootDisks": [
+    {
+      "path": "system755-run.dsk",
+      "bytes": 25165824,
+      "sha256": "37da67c70d385759adf54d1c9bafe857341b134f58ce07dd4c7a25ecad2d92ec"
+    },
+    {
+      "path": "oracle64.dsk",
+      "bytes": 67108864,
+      "sha256": "2b5714d43d88ec0981bb04f61ab7d7b4fc9523ffb616956db37c4cca83cd46ef"
+    }
+  ],
+  "fixtureAndProducerInputs": [
+    {
+      "name": "consumer-bindings.json",
+      "bytes": 1121,
+      "sha256": "3eb126cc8d70525aacc62f6254d31de78d2cb6ff45d293182405ba1f32b61024"
+    },
+    {
+      "name": "candidate.json",
+      "bytes": 1010,
+      "sha256": "a400c56d12eb02594b51b855e1b738bdd5d3ce8867442bbff8e9a4d4f0a5b592"
+    },
+    {
+      "name": "run.json",
+      "bytes": 2070,
+      "sha256": "8e90a72efc6a9651b7df30513151eaf8d64a6555355fd0f099c14fa560add937"
+    },
+    {
+      "name": "PushThreeStates-reviewed.c",
+      "bytes": 19996,
+      "sha256": "ff3e5f58aadb84265a97d6d348bff5be3881742c6d1509eda557815b7145f2bb"
+    },
+    {
+      "name": "PushThreeStates-with-size.bin",
+      "bytes": 70656,
+      "sha256": "077e9fe7ccf39d11f2af2cbc3dd2a423f20d9f7240c63595033e5b60f1e7eafb"
+    },
+    {
+      "name": "ColorMapProbe-monkey288.c",
+      "bytes": 27347,
+      "sha256": "659e5f8081657368839e6b0d2007fab0735953d76e9218a97f46a14189fa9cc1"
+    },
+    {
+      "name": "ColorMapProbe-monkey288-with-size.bin",
+      "bytes": 72704,
+      "sha256": "46d2ce262e01b71c802a5294aacfe5b54654287e5d25b157203d15973f60e51c"
+    },
+    {
+      "name": "query-inputs.json",
+      "bytes": 21130,
+      "sha256": "31a4f59f22fec85c336ac910c120c127602cf4ba083c94db7ee55c4123b53f43"
+    },
+    {
+      "name": "MonkeyParadise.bin",
+      "bytes": 493824,
+      "sha256": "ec0268253ecbd09594815dbaa71b559d873947f684ea50d3212e255894a41279"
+    },
+    {
+      "name": "scheme-wrapper.json",
+      "bytes": 1309,
+      "sha256": "bd35ef8db843a58bc216901d16adafe09f32a0c81798b657004ebcce9cdd2459"
+    },
+    {
+      "name": "system755-before-boot.dsk",
+      "bytes": 25165824,
+      "sha256": "37da67c70d385759adf54d1c9bafe857341b134f58ce07dd4c7a25ecad2d92ec"
+    },
+    {
+      "name": "oracle-before-boot.dsk",
+      "bytes": 67108864,
+      "sha256": "2b5714d43d88ec0981bb04f61ab7d7b4fc9523ffb616956db37c4cca83cd46ef"
+    },
+    {
+      "name": "reference.ts",
+      "bytes": 2254,
+      "sha256": "432600410b5d681389f4572219513145006cdd80f4da9cf21d120bba0b8fe69b"
+    },
+    {
+      "name": "vite.config.mjs",
+      "bytes": 2147,
+      "sha256": "7baa78ed89ad16ee03e4fc7a825120dc3b2cfb61398796374205ef3e339216f0"
+    },
+    {
+      "name": "emulator-worker.ts",
+      "bytes": 38191,
+      "sha256": "cdc115718ba87ef62660b762a9d16691f7a447dd4a8e4414257bf6ad41849429"
+    },
+    {
+      "name": "emulator-input.ts",
+      "bytes": 14561,
+      "sha256": "b69f0527aabd322e8cf0d0840d6faef769cd53a717a6d3d6e7cf36118a1dc0c5"
+    },
+    {
+      "name": "BasiliskII.js",
+      "bytes": 156114,
+      "sha256": "4fd750e202686a7b7c3bd0055dbe33d21dd6b3ce2639da8da814ef1036d1c66b"
+    },
+    {
+      "name": "BasiliskII.wasm",
+      "bytes": 1713564,
+      "sha256": "0be9b5ba1179b65d9d1bd30b3cc35ee56daf6713ba1353048c03229f641680bb"
+    },
+    {
+      "name": "Quadra-650.rom",
+      "bytes": 1048576,
+      "sha256": "05ad753fb594e656cf078023ec189e09e2a7655a780de993b75b8c51ed6b09ca"
+    },
+    {
+      "name": "preboot.json",
+      "bytes": 5272,
+      "sha256": "6bee3727dffbf600e7a1fe80fbc23a41cd9d6db3e77f52cdb75f55e9da0d6cc9"
+    },
+    {
+      "name": "preboot-review.json",
+      "bytes": 542,
+      "sha256": "7298806fc1240e2b11b1fa68790035d28b2702ecfbb31a1d368ea22817404b4b"
+    },
+    {
+      "name": "preboot-checkpoint.json",
+      "bytes": 23118,
+      "sha256": "e537c43d6d598f508b84c5307fd25887d83580946d8ed6e31eaf84e0781d27fe"
+    },
+    {
+      "name": "start.py",
+      "bytes": 1936,
+      "sha256": "65afd0af2e8142f918ad5b3298d1bb9d919b2a6d567f2fb8319c5a27a9586dda"
+    },
+    {
+      "name": "export.py",
+      "bytes": 6554,
+      "sha256": "c27606f18cb8feaba2a738d736d7866014a1050d98b5bd0546fcd5eb37f89c2d"
+    },
+    {
+      "name": "ack-state.mjs",
+      "bytes": 236,
+      "sha256": "de8b10ca6a1e0cf7ff72e08311aa08ab23908c98f37ac8cd7ebdaeba3dbc2607"
+    },
+    {
+      "name": "capture-calibration.mjs",
+      "bytes": 2628,
+      "sha256": "54f9e8bff2801ec30275848deb3e9c335e20f05d3a778ff3968f9756458b7f49"
+    },
+    {
+      "name": "capture-state-absolute.mjs",
+      "bytes": 6486,
+      "sha256": "9018e47da282c081fa70ead866ac632be822a165fc46fb93631f82685361a82f"
+    },
+    {
+      "name": "check-native.py",
+      "bytes": 3898,
+      "sha256": "bbdac9b07d195cb72ef2d53fd544d2a5fa1c6b9d8aabeb6b42da9cc150047c99"
+    },
+    {
+      "name": "consumer_retention.py",
+      "bytes": 4105,
+      "sha256": "07cb6f30584340ba0f344a899a5159d550654fd907d86ba81263ae429fb613f0"
+    },
+    {
+      "name": "crop-state.py",
+      "bytes": 1009,
+      "sha256": "f043522d25ff2a7f53bcf69b4538ecc8361bb03aa06d4593909d2b95bc6dc077"
+    },
+    {
+      "name": "join-calibration.py",
+      "bytes": 5460,
+      "sha256": "8cae65dfcda1ec23a273827673a779d0806be17509089d66c02d46a867e80608"
+    },
+    {
+      "name": "physical-calibration-key.mjs",
+      "bytes": 2136,
+      "sha256": "cfc5184de2aaf1465d9ebf2bf57aff378623f091eacc76450dbfc09a684fe375"
+    },
+    {
+      "name": "physical-consumer-key.mjs",
+      "bytes": 3203,
+      "sha256": "e66bf2a86684df7e11330fe72fc2451eead87961a7f7da21369658823c5d3e5b"
+    },
+    {
+      "name": "retain-calibration.py",
+      "bytes": 1131,
+      "sha256": "fae6172c649e72bc7c6a3b2e90322a9de00a3f1be01a058711ca15b733e87294"
+    },
+    {
+      "name": "retain-final-ack.py",
+      "bytes": 53,
+      "sha256": "6fdb33ef3ff8d33dc42227292d48bb2cd4b40eb83432fcde4a1f41b3c8b2c0d5"
+    },
+    {
+      "name": "retain-state.py",
+      "bytes": 72,
+      "sha256": "15ea7125923d43a16dfcb4222a3645f36238f35b3aa814617a2bb1cc71e0303c"
+    },
+    {
+      "name": "validate-consumer-logs.py",
+      "bytes": 4022,
+      "sha256": "1c42eaf99fa620583377782c758774cd7b408ca04a971f797ab51f095cefcb46"
+    }
+  ],
+  "osVersionObserved": "7.5.5 (Gestalt 0x755)",
+  "observedControl": {
+    "procedureId": 0,
+    "variant": 0,
+    "hilite": 0,
+    "value": 0,
+    "enabled": true,
+    "windowActive": true,
+    "api": "NewControl",
+    "drawApi": "Draw1Control",
+    "stateApi": "HiliteControl",
+    "defaultApiInvoked": false,
+    "title": "",
+    "controlRect": [
+      20,
+      20,
+      80,
+      20
+    ],
+    "portOrigin": [
+      0,
+      0
+    ],
+    "portBounds": [
+      0,
+      0,
+      160,
+      80
+    ],
+    "effectiveClipRect": [
+      0,
+      0,
+      160,
+      80
+    ],
+    "backgroundRGB": [
+      255,
+      255,
+      255
+    ],
+    "state": "normal",
+    "actualFontRequest": {
+      "number": 0,
+      "size": 12,
+      "face": 0
+    },
+    "actualFontInfo": {
+      "ascent": 12,
+      "descent": 3,
+      "widMax": 14,
+      "leading": 1
+    }
+  },
+  "unknown": [
+    "pattern origin",
+    "original selected painter/provider",
+    "cache/search/patch order",
+    "font provider/consumption",
+    "original mask/alpha",
+    "whole-control fidelity"
+  ],
+  "sharedBootIncident": "None observed. One boot, ordinary MonkeyParadise selection before fixture, no modal or measurement retry.",
+  "closure": {
+    "normalShutdownRequested": true,
+    "browserClosed": true,
+    "serverClosed": true,
+    "hfsUnmounted": true,
+    "explicitWorkerPoweroffAcknowledgment": "UNKNOWN"
+  }
+}

@@ -1,5 +1,18 @@
 # Learnings
 
+## 2026-10-20 — Retain evidence before validation and compare semantic JSON
+
+Monkey Paradise's first six private comparisons had exact native pixels but were
+correctly retained as rejected trace validations: object insertion order differed
+in JSON serialization. The shared semantic comparator now ignores object key
+order while preserving exact fields, primitives and ordered arrays. Required
+catalog and decoded-pattern artifacts must be captured before fallible assertions;
+the first normal traces lacked those artifacts, so only two bounded modern normal
+followups completed that evidence. The original six rejections and partial normal
+retention remain in the private history. Aggregate acceptance must reject any
+rejected row even when the browser command itself exits zero. Pixel equality,
+completed modern paint and original provider/phase claims remain separate.
+
 ## 2026-10-20 — Window widget identity survives custom placement
 
 The `wnd#` rectangle list has semantic part IDs: 1 close, 2 zoom, 3 shade.
@@ -4671,3 +4684,12 @@ An observed destination-index plane can retain evidence for a sparse CIcon witho
 ## 2026-10-20 — Window shell shadows do not own theme silhouettes
 
 The optional stylesheet applied a rectangular box-shadow to every window part, and the landing page amplified it. The part bounds the chrome canvas; it does not describe opaque artwork, so jagged or transparent themes acquired an unrelated rectangle. Default the shell decoration to none and keep explicit consumer opt-in. Do not infer historical shadows, change authored canvas pixels, or replace this with an unreviewed alpha filter/theme heuristic. Acceptance checks both classic and custom windows and proves opt-in changes CSS without changing canvas bytes.
+
+
+## 2026-10-20 — A loaded pattern is not completed paint
+
+Pattern lookup diagnostics preceded the actual inset-union writes. The shared
+completion payload now enriches that same selection only after face/border
+composition succeeds; later failure strips completion while preserving lookup.
+Transparent samples count as writes, overlapping insets count once, and neither
+count proves final surviving pixels or native pattern phase/provider.

@@ -47,7 +47,7 @@ test('completed modern paint joins reject wrong owners, occurrences, profile and
 test('recorded comparisons remain execution-unverified when the registered source/built marker is absent or stale',async()=>{
  const {makeReport}=await import('./ledger.mjs');
  const report=makeReport(ledger,{executionCommit:'current',workingTreeDirty:false,execution:{executionCommit:'older',workingTreeDirty:false,assertions:[{id:'recorded.empty-face-six',mode:'source',path:'tests/rendering-options/display-profile.spec.mjs',status:'passed'}]}});
- assert.equal(report.recordedConditionComparisons.cases.length,38);
+ assert.equal(report.recordedConditionComparisons.cases.length,41);
  assert(report.recordedConditionComparisons.cases.every(c=>c.status==='unknown'&&c.execution.every(m=>m.status==='not run')));
 });
 
@@ -170,5 +170,22 @@ test('explicit recorded registry rejects unknown subjects and preserves nullable
   if(pins.cinf)mutations.push(r=>r.bandPaints=[],r=>r.bodyFillSteps=[],r=>r.resources.push({type:'ppat',signedId:0}),r=>r.bodyFillSteps[0].usage='inspect');
   else mutations.push(r=>delete r.legacyFacePaint,r=>r.legacyFacePaint.sourceRect.w++,r=>r.legacyFacePaint.effectiveFaceClip.w=79,r=>r.legacyFacePaint.retainedNonzeroAlphaPixels--,r=>r.bandPaints=[r.legacyFacePaint],r=>r.bodyFillSteps=[{action:'missing'}],r=>r.resources.push({type:'cinf',signedId:pins.face.signedId}),r=>r.paintSelectionSteps.push({role:'body-fill',usage:'paint',action:'selected',resource:{type:'ppat',signedId:128}}));
   for(const mutate of mutations){const row=make();mutate(row);assert.throws(()=>validateRecordedExecution(row,binding,capture),undefined,slug+'/'+state);}
+ }
+});
+
+test('completed recorded pattern requires catalog/load/URL, exact plane and actual union writes', async()=>{
+ const {validateRecordedPatternPaint,STATE_SOURCE_PINS}=await import('./recorded-face.mjs');
+ const pins=structuredClone(STATE_SOURCE_PINS['monkey-paradise'].normal),raw=Buffer.alloc(32*16*4,255);
+ const {createHash}=await import('node:crypto');pins.completedPattern.decodedRgbaSha256=createHash('sha256').update(raw).digest('hex');
+ const make=()=>{
+  const reference={loadId:'unit',manifestKey:'pattern',ppatResourceIndex:459},entry={asset:'unit:pattern',sourcePpatId:128,byteProvenance:reference};
+  const resources=[{resourceIndex:459,type:'ppat',status:'decoded',signedId:128,byteLength:454,sha256:pins.pattern.payloadSha256}];
+  const row={profileBaseUrl:'unit:owner',loadId:'unit',resources,patternAsset:entry.asset,patternCatalog:{manifestKey:'pattern',entry},patternPlane:{size:[32,16],rgba:raw.toString('base64')},patternLoad:{version:1,loadId:'unit',scope:{resourceTypes:['ppat'],evidence:'decoder-input-bytes'},input:{sha256:pins.sourceArchiveSha256},fork:{sha256:pins.sourceForkSha256},resources}};
+  const step={role:'body-fill',action:'selected',usage:'paint',requestedId:128,requestedResourceType:'ppat',bodyMode:2,owner:{baseUrl:'unit:owner',chainDepth:0},resource:{type:'ppat',signedId:128,manifestKey:'pattern',assetUrl:entry.asset,byteProvenance:reference},bodyPaint:{sourceAssetUrl:entry.asset,branch:'pattern-fill-union',coordinateSpace:'face-local-before-ring',unionRects:pins.completedPattern.unionRects,paintedPixels:1216,sourceSize:[32,16],context:{...exactOptions('normal','monkey-paradise').compositionContext,basis:'caller-declared'},phase:{basis:'modern-composition-policy',offset:[-80,0],originalPatternPhase:'unverified'}}};
+  return {row:structuredClone(row),step:structuredClone(step)};
+ };
+ let x=make();validateRecordedPatternPaint(x.row,x.step,pins);
+ for(const change of [x=>delete x.step.bodyPaint,x=>x.step.bodyPaint.paintedPixels=0,x=>x.step.bodyPaint.unionRects=[],x=>x.step.bodyPaint.phase.originalPatternPhase='verified',x=>x.row.patternCatalog.entry.asset='foreign',x=>x.row.patternLoad.loadId='foreign',x=>x.row.resources[0].sha256='bad',x=>x.row.patternPlane.rgba=Buffer.alloc(raw.length).toString('base64'),x=>x.step.bodyPaint.context.clip.rect.w=80]){
+  x=make();change(x);assert.throws(()=>validateRecordedPatternPaint(x.row,x.step,pins),/pattern/);
  }
 });

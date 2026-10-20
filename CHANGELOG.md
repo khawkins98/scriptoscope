@@ -7,6 +7,10 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+- Add three independently reviewed Monkey Paradise empty-state observations and their actual 288-key measured profile. Join normal output to the loaded same-owner pattern and completed body union; verify only the three registered output obligations after independent source/built review, and preserve all prior evidence and broader unknowns.
+
+- Record completed patterned control-body unions with actual resource, phase policy and write counts; preserve lookup-only diagnostics on empty or failed compositions.
+
 - Bind titlebar close, zoom and shade actions to authored widget identities, including right-grouped and vertically stacked controls; put shade outermost in the synthetic document layout and remove the resize overlay while collapsed so shade can restore the window.
 
 - Leave window shell shadows off by default, including the landing page, so rectangular CSS shadows do not fill transparent edges of custom chrome. Preserve the explicit shadow custom-property opt-in and theme-painted artwork.

@@ -118,6 +118,18 @@ Catalog presence alone does not create a paint step. This stage's lookup and
 render path actually loads and consumes the selected pattern. Empty or fully
 clipped coverage can still select art; selection does not assert visible pixels.
 
+After successful face composition, the same selected step gains a
+`bodyPaint.branch = "pattern-fill-union"` payload. It records the actual loaded
+pattern URL/size, face-local inset rectangles within the allocation, declared
+clip/context, resolved sampling offset and number of visible `setPixel` writes.
+Overlapping rectangles count once; transparent pattern samples still count as
+writes. This is a completed intermediate stage, not final surviving pixels.
+Zero coverage, absent patterns, aborted or failed compositions have no completed
+payload. Later ring failure retains lookup evidence but removes completion.
+The resolved phase is explicitly `modern-composition-policy`, with original
+pattern phase `unverified`; the event does not certify native provider or phase.
+Header/admission lookups and rendering pixels/order are unchanged.
+
 Promoted button/select lifetimes pass through face→pattern→pressed/ring sequential
 loads. An abort prevents subsequent loads and publication; an already-issued
 image decode is a distinct browser lifetime boundary. No delay, retained revoked

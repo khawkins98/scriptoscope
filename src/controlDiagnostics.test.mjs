@@ -49,3 +49,21 @@ test('shared callback receives isolated frozen completion records in completion 
   assert.equal(Object.isFrozen(records[1].requested), true);
   assert.throws(() => records[1].steps.push({}), TypeError);
 });
+
+test('pattern completion enriches one lookup but unpublished stages retain only selection', async () => {
+  const selection = { role:'body-fill', requestedId:0, action:'selected', usage:'paint', basis:'source-dispatch', reason:'fixture', resource:{type:'ppat',signedId:0,sourceCinfId:null,manifestKey:'pattern',assetUrl:'owned:pattern'} };
+  const paint = {branch:'pattern-fill-union',unionRects:[{x:2,y:2,w:4,h:4}],paintedPixels:16,phase:{basis:'modern-composition-policy',offset:[0,0],originalPatternPhase:'unverified'}};
+  const failure = new Error('later ring failed');
+  for(const outcome of ['complete','unavailable','error']) {
+    let trace;
+    const promise=withControlDiagnostics({onComplete:t=>trace=t},'push-button',requested,async collector=>{
+      collector.record(selection);collector.completeBodyPaint(selection,paint);
+      if(outcome==='error')throw failure;
+      return outcome==='complete'?{width:8,height:8}:null;
+    });
+    if(outcome==='error')await assert.rejects(promise,e=>e===failure);else await promise;
+    assert.equal(trace.steps.length,1);assert.equal(trace.steps[0].resource.assetUrl,'owned:pattern');
+    assert.deepEqual(trace.steps[0].bodyPaint,outcome==='complete'?paint:undefined);
+    if(outcome==='complete')assert(Object.isFrozen(trace.steps[0].bodyPaint.unionRects[0]));
+  }
+});
