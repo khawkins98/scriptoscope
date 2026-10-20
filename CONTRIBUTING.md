@@ -171,6 +171,31 @@ feat(api)!: rename ScriptoscopeWindow constructor option `theme` to `themeId`
 - Add a note to [`LEARNINGS.md`](./LEARNINGS.md) if you discovered something non-obvious along the way — Mac OS HIG quirks, browser quirks, theme-bundle format edge cases, accessibility tradeoffs, period-Mac trivia that informed a decision — future contributors will thank you.
 - Don't commit build artifacts (`dist/`, `node_modules/`, theme working files, etc.).
 
+## Fidelity acquisition and implementation batches
+
+- **Check the claim and dependencies before acquisition.** Name the public consumer,
+  source inputs, operation, required color mappings and conditions, and independent
+  pixel or source oracle. Identify missing dependencies before collecting outputs
+  that cannot support the intended comparison; never invent mappings to complete it.
+- **Batch a coherent claim.** Carry the related model, evidence, harness/ledger,
+  documentation and CHANGELOG changes to one reviewable freeze. Keep independent
+  file ownership explicit and unresolved claims visible; avoid a PR per receipt or
+  theme when they share one model and acceptance boundary.
+- **Keep one current stage owner and manifest.** Record the authoritative inputs/head,
+  active process or terminal exit, evidence locations and next gate. Link immutable
+  receipts instead of copying their status into competing handoffs. Scope operational
+  locks to the actual owned processes, media and shared resources.
+- **Review and validate the delta.** Carry prior review over provably unchanged inputs;
+  independently review changed claims and material dependencies. Preserve failures,
+  record each command's own exit status, and use the finished-tree checks above.
+  Equivalent rebases or metadata-only changes do not justify repeating unaffected
+  suites; required CI and applicable independent original-evidence review remain mandatory.
+- **Bound finite adapters.** Name the exact supported inputs/operation and the consumer
+  claim or preparation dependency they serve. Stop on an unmatched context, missing
+  mapping or unexplained difference. A finite result is not a general source rule:
+  preserve strict defaults and unknown branches, and require a concrete next claim
+  before adding more isolated cases.
+
 ## Periodic documentation cut-throughs
 
 Docs and LEARNINGS rot. The faster the project moves, the faster they rot. Stale guidance is worse than no guidance — a future contributor reading a confidently-worded paragraph that hasn't been true for three months will burn an afternoon before realising. To keep that from happening, schedule deliberate cut-through passes:
