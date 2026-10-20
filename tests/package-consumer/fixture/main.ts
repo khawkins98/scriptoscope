@@ -51,6 +51,7 @@ const consumer = {
   version: VERSION,
   decoderExport: typeof loadKaleidoscopeScheme,
   headerSurfaceExport: typeof composeHeaderSurface,
+  directProfilePixels: [] as number[],
   root, article, inputs, events,
   handle: null as MountHandle | null,
   ready: Promise.resolve(),
@@ -80,6 +81,25 @@ consumer.ready = (async () => {
   try { await loadKaleidoscopeScheme(bytes, { displayProfile, assetUrlFactory: () => { encoded++; return 'invalid'; } }); }
   catch (error) { if (!(error instanceof DisplayProfileError) || error.code !== 'MISSING_MAPPING') throw error; rejected = true; }
   if (!rejected || encoded) throw new Error('Packed profile failed to reject missing colors before encoding');
+  // Owned literal 2x2 RGBDirect ppat (version 1, padded rows and varied unused
+  // high bytes). This is embedded input, not an import from repository tooling.
+  const directFork = Uint8Array.from(atob('AAAAEAAAAHoAAABqAAAAMgAAAGYAAQAAABwAAABOAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIAMAAAAAAACAAIAAQAAAAAAAABIAAAASAAAABAAIAADAAgAAAAAAAAAAAAAAAAAqqqq/7u7u15eXl5V3d3dqqqqql5eXl4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHAAyAABwcGF0AAAACgCA//8AAAAAAAAAAA=='), c => c.charCodeAt(0));
+  const directData: DisplayProfileData = { ...data, version: 2,
+    devicePalette: [{ index: 0, rgb16: [0, 0, 0] }, { index: 1, rgb16: [0x1234, 0x5678, 0x9abc] }],
+    directRgb8: { operation: 'GetPixPat-FillCRect-patCopy', context: 'declared-context0', scope: 'preparation-only',
+      evidence: data.evidence,
+      mappings: [170, 187, 221].map(v => ({ rgb8: [v, v, v] as const,
+        deviceIndex: 1, deviceRgb16: [0x1234, 0x5678, 0x9abc] as const })) } };
+  const directProfile = await prepareDisplayProfile(directData);
+  let directAssets = 0;
+  const directLoaded = await loadKaleidoscopeScheme(directFork, { displayProfile: directProfile,
+    assetUrlFactory: (rgba, width, height) => {
+      if (width !== 2 || height !== 2) throw new Error('Packed direct asset geometry drift');
+      directAssets++; consumer.directProfilePixels = [...rgba]; return 'owned:direct-pattern';
+    } });
+  if (directAssets !== 1 || directLoaded.manifest.displayProfile !== directProfile
+    || !Object.values(directLoaded.manifest.patterns ?? {}).some(p => p.sourcePpatId === 128 && p.asset === 'owned:direct-pattern'))
+    throw new Error('Packed v2 direct asset/profile join failed');
   const cinfData: CinfEnvironmentInput = { version: 1, complete: true, providers: [{ kind: 'theme-fork', id: 'actual', complete: true }] };
   const cinfEnvironment: PreparedCinfEnvironment = await prepareCinfEnvironment(cinfData);
   const cinfLoaded = await loadKaleidoscopeScheme(bytes, { cinfEnvironment, encodeAssets: false });
