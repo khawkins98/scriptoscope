@@ -1,5 +1,15 @@
 # Learnings
 
+## 2026-10-20 — Sparse source colors and transfer coloration are separate
+
+A prepared CIcon can retain an absent logical palette index through GetCIcon.
+Ordinary CopyBits foreground/background coloration also affects declared source
+colors, so reversal alone does not reveal the missing-entry lookup rule. Keep
+raw indices, sparse logical entries and transfer context distinct; do not borrow
+the manual’s PixPat-only interpolation rule or the engine sampler’s entry-zero
+fallback. Current default black compatibility and strict profile rejection remain
+explicit. See [the finite CIcon evidence](docs/spec/cicn-sparse-transfer.md).
+
 ## 2026-10-19 — Layout metadata has its own resource role
 
 Slider group-base cinf supplies an endpoint corner independently of selected

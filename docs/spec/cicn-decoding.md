@@ -44,6 +44,9 @@ binding; malformed payloads remain errors.
 The remaining policies are deliberately narrower than historical truth:
 
 - Undefined palette indices keep the existing black compatibility fallback.
+  Strict display-profile preparation rejects them. The separately reviewed
+  [sparse CIcon transfer observations](cicn-sparse-transfer.md) establish finite
+  preparation/transfer facts, not a replacement missing-index algorithm.
 - RGB16 components retain their existing high-byte conversion to RGBA8; no
   display/gamma/device-matching fidelity is established here.
 - Duplicate `ColorSpec.value` records use an explicit first-entry compatibility
