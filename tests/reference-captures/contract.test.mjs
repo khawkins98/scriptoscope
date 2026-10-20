@@ -50,7 +50,7 @@ test('actual checked-in originals are scoped observations with every broader req
   const report = assessCorpus(contract, JSON.parse(readFileSync(new URL('./captures.json', import.meta.url))), JSON.parse(readFileSync(new URL('./reviews.json', import.meta.url))), { intakeRoot: join(repositoryRoot, 'tests/reference-captures'), known: knownImages() });
   assert.equal(report.requests.length, 59);
   assert.equal(report.requests.filter(r => r.status === 'missing').length, 41);
-  assert.deepEqual(report.requests.filter(r => r.status === 'evidence-incomplete').map(r => r.id), ['windows-95.normal', 'windows-95.pressed', 'windows-95.inactive', 'system7-nostalgia-silver.normal', 'system7-nostalgia-silver.pressed', 'system7-nostalgia-silver.inactive', 'apple-lisa.normal', 'crayon-os.normal', 'animals.normal', 'animals.pressed', 'animals.inactive', 'beos-r503.normal', 'beos-r503.pressed', 'beos-r503.inactive', 'apple-lisa.pressed', 'apple-lisa.inactive', 'crayon-os.pressed', 'crayon-os.inactive']);
+  assert.deepEqual(report.requests.filter(r => r.status === 'evidence-incomplete').map(r => r.id), ['windows-95.normal', 'windows-95.pressed', 'windows-95.inactive', 'system7-nostalgia-silver.normal', 'system7-nostalgia-silver.pressed', 'system7-nostalgia-silver.inactive', 'apple-lisa.normal', 'crayon-os.normal', 'animals.normal', 'animals.pressed', 'animals.inactive', 'apple-lisa.pressed', 'apple-lisa.inactive', 'beos-r503.normal', 'beos-r503.pressed', 'beos-r503.inactive', 'crayon-os.pressed', 'crayon-os.inactive']);
   assert.equal(report.captures.length, 18);
   for (const capture of report.captures) {
     assert.equal(capture.status, 'reviewed-scoped-observation');
