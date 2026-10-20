@@ -180,7 +180,21 @@ feat(api)!: rename ScriptoscopeWindow constructor option `theme` to `themeId`
 - **Batch a coherent claim.** Carry the related model, evidence, harness/ledger,
   documentation and CHANGELOG changes to one reviewable freeze. Keep independent
   file ownership explicit and unresolved claims visible; avoid a PR per receipt or
-  theme when they share one model and acceptance boundary.
+  theme when they share one model and acceptance boundary. Batch shared mechanisms
+  across compatible themes and states, with explicit per-case inputs and conditions.
+  Prepare independent source, fixture and comparison work in parallel where useful;
+  serialize access to shared media, native runs and other locked resources.
+- **Consolidate the preboot gate.** Review the frozen source, compiled packages,
+  copied media and host protocol together before execution. Carry approved inputs
+  forward; reopen the affected review for material changes or unresolved findings,
+  rather than repeating unchanged audits at each preparation step.
+- **Separate acquisition identity from execution identity.** Preserve immutable
+  acquisition and profile inputs, and bind runtime, comparator and validator versions
+  separately to each execution. A comparator correction must not rewrite captures or
+  silently replace their original validation results. Review the changed validator
+  and revalidate retained evidence where sufficient. Identify the evidence gap before
+  repeating acquisition; link new acquisition or runtime execution to the preserved
+  inputs and prior results.
 - **Keep one current stage owner and manifest.** Record the authoritative inputs/head,
   active process or terminal exit, evidence locations and next gate. Link immutable
   receipts instead of copying their status into competing handoffs. Scope operational
@@ -190,6 +204,12 @@ feat(api)!: rename ScriptoscopeWindow constructor option `theme` to `themeId`
   record each command's own exit status, and use the finished-tree checks above.
   Equivalent rebases or metadata-only changes do not justify repeating unaffected
   suites; required CI and applicable independent original-evidence review remain mandatory.
+- **Finish one delivery batch.** Use targeted checks during development, then one
+  final change-appropriate validation chain, consolidated PR and CHANGELOG entry for
+  the coherent batch. Rerun affected checks when subsequent changes or failures
+  require it. Keep bounded research separate from delivery: state its question,
+  evidence needed and stop criteria, and bring it into the batch only when it
+  supports the named claim or a demonstrated shared correction.
 - **Bound finite adapters.** Name the exact supported inputs/operation and the consumer
   claim or preparation dependency they serve. Stop on an unmatched context, missing
   mapping or unexplained difference. A finite result is not a general source rule:
