@@ -11,6 +11,8 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 - Allow recorded-face comparisons to bind a complete measured profile per state while preserving each theme’s existing default profile and earlier capture bindings.
 
+- Cover source-derived push/default state precedence, missing-ring branches and face-rectangle expansion through direct composition and actual promoted buttons, using owned literal art in mandatory source/built tests. Preserve original caller/provider and broader fidelity unknowns.
+
 - Add three independently reviewed Monkey Paradise empty-state observations and their actual 288-key measured profile. Join normal output to the loaded same-owner pattern and completed body union; verify only the three registered output obligations after independent source/built review, and preserve all prior evidence and broader unknowns.
 
 - Record completed patterned control-body unions with actual resource, phase policy and write counts; preserve lookup-only diagnostics on empty or failed compositions.
