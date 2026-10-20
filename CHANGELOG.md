@@ -7,6 +7,8 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+- Add three independently reviewed BeOS empty-face state observations with finite measured-profile source/built comparisons and narrow ledger bindings. Preserve prior capture/request records and explicit cross-run, provider, phase, mask and whole-control unknowns (#190, #221).
+
 - Add an opt-in version 2 finite direct-RGB8 preparation policy for strictly bounded full-color patterns, separate from RGB16 mappings. Preserve version 1/default behavior and whole-load rejection; retain explicit paint-context and original-evidence limits. Add a measured BeOS test profile and source/built whole-load checks without promoting capture intake or ledger claims (#221, #190).
 
 - Document the fidelity workflow: prefer shared-model corrections, retain evidence and limits for interim overrides, and consolidate them when independent references establish the common behavior.

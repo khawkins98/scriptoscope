@@ -1,0 +1,78 @@
+{
+  "stableScalarLines": [
+    "systemVersionHex=755 machineGestalt=36",
+    "portRect=0,0,160,80",
+    "globalOrigin=80,90 portVersion=-16384",
+    "controlRect=20,20,100,40",
+    "control.hilite=10 visible=255 value=0 min=0 max=1 titleLength=0 active=1 windowKind=8",
+    "control.title.expectedEmpty=1 actualLength=0",
+    "control.variant.query=GetControlVariant actual=0 queryHasOSErr=0",
+    "font.number=0 name=Chicago size=12 face=0 mode=1 ascent=12 descent=3 widMax=14 leading=1",
+    "clipBounds=-32767,-32767,32767,32767",
+    "visibleBounds=0,0,160,80",
+    "portPixMap.bounds=-80,-90,560,390",
+    "effectiveClipBounds=0,0,160,80",
+    "device.ref=-49 id=0 type=0 flags=47137 mode=131",
+    "pixMap.depth=8 rowBytes=33408 pixelType=0",
+    "pixMap.bounds=0,0,640,480",
+    "colorTable.seed=1023 flags=32768 lastIndex=255",
+    "gamma.query=PBStatusSync csCode=8 actualDeviceRef=-49 status=0 ioResult=0 returnedPointer=0000d110",
+    "port.backgroundRGB16=ffff,ffff,ffff"
+  ],
+  "stableBeforeAfterPayloads": [
+    {
+      "name": "actualControlDefinition",
+      "bytes": 174,
+      "sha256": "aeae16018c5b2b6fc377ba7b7a09eb5ed4a8fec0c5c581f39ce29d113deed28c",
+      "equalBeforeAfter": true
+    },
+    {
+      "name": "actualWindowDefinition",
+      "bytes": 176,
+      "sha256": "4dbd59ae18774bacc80b84521d7fd8e2eddc44614642746e388c6ee2f2bf4006",
+      "equalBeforeAfter": true
+    },
+    {
+      "name": "clipRegion",
+      "bytes": 10,
+      "sha256": "349ac4369aec9010457e1bd0d06e95b7386d73c407ef9446df9fd66f09370fa6",
+      "equalBeforeAfter": true
+    },
+    {
+      "name": "visibleRegion",
+      "bytes": 10,
+      "sha256": "c014620701850ed8caf3b2e500b656ca2fdc63e9e7ac26c2ea2f23f9fd0f93c3",
+      "equalBeforeAfter": true
+    },
+    {
+      "name": "effectiveClipRegion",
+      "bytes": 10,
+      "sha256": "c014620701850ed8caf3b2e500b656ca2fdc63e9e7ac26c2ea2f23f9fd0f93c3",
+      "equalBeforeAfter": true
+    },
+    {
+      "name": "colorTable",
+      "bytes": 2056,
+      "sha256": "6987f8e5bc61a7da95ed03f229cc3ecbee463bb6245965fdc2eddbd86a31ef9b",
+      "equalBeforeAfter": true
+    },
+    {
+      "name": "gammaFixedPrefix",
+      "bytes": 12,
+      "sha256": "b0705e174b70023061519516ca0243bde00bcd4fe44ee43a8b5b2f50a57b4cf1",
+      "equalBeforeAfter": true
+    },
+    {
+      "name": "gammaTable",
+      "bytes": 268,
+      "sha256": "c2eeb81da5ffc2bd502834d80d850f6f085813ab1cec8d9fb89ca36c2474125b",
+      "equalBeforeAfter": true
+    }
+  ],
+  "timing": "Conditions bracket the fixture Draw1Control + HiliteControl redraw. NewControl and setup/update draws precede this bracket; the later host frame is not uniquely bracketed by it.",
+  "paletteFile": "indexed-palette.bin",
+  "gammaFile": "producer-table.bin",
+  "displayProfile": null,
+  "patternOriginState": null,
+  "calibrationStatus": "Separate B278/D32 acquisition and finite measured v2 profile; raw state portColorTable and calibration widMax not recorded. No complete cross-run identity or direct-pattern button participation claim."
+}

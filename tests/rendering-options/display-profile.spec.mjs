@@ -57,6 +57,7 @@ for(const mode of ['source','built']) {
   info.annotations.push({type:'fidelity-assertion',description:'recorded.lisa-normal'});
   info.annotations.push({type:'fidelity-assertion',description:'recorded.crayon-lisa-four-state'});
   info.annotations.push({type:'fidelity-assertion',description:'recorded.animals-three-state'});
+  info.annotations.push({type:'fidelity-assertion',description:'recorded.beos-three-state'});
   const referenceContext=readRecordedContext(fileURLToPath(new URL('../../',import.meta.url)));
   const bindings=referenceContext.captures.map(c=>captureBinding(c));
   const ledger=JSON.parse(readFileSync(new URL('../rendering-requirements/ledger.json',import.meta.url)));
@@ -68,14 +69,14 @@ for(const mode of ['source','built']) {
    // Eligibility/digests are checked by the reference gate; these independent
    // original PNG bytes supply the pixel oracle for the existing render.
    const {captures}=await(await fetch('/tests/reference-captures/captures.json')).json();
-   for(const slug of ['windows-95','system7-nostalgia-silver','crayon-os','apple-lisa','animals']){
-    const selectedProfile=slug==='animals'?await api.prepareDisplayProfile(await(await fetch('/tests/decoder-fixtures/measured-display-profile-animals.json')).json()):slug==='apple-lisa'?await api.prepareDisplayProfile(await(await fetch('/tests/decoder-fixtures/measured-display-profile-lisa.json')).json()):slug==='crayon-os'?await api.prepareDisplayProfile(await(await fetch('/tests/decoder-fixtures/measured-display-profile-crayon.json')).json()):profile;
+   for(const slug of ['windows-95','system7-nostalgia-silver','crayon-os','apple-lisa','animals','beos-r503']){
+    const selectedProfile=slug==='beos-r503'?await api.prepareDisplayProfile(await(await fetch('/tests/decoder-fixtures/measured-display-profile-beos.json')).json()):slug==='animals'?await api.prepareDisplayProfile(await(await fetch('/tests/decoder-fixtures/measured-display-profile-animals.json')).json()):slug==='apple-lisa'?await api.prepareDisplayProfile(await(await fetch('/tests/decoder-fixtures/measured-display-profile-lisa.json')).json()):slug==='crayon-os'?await api.prepareDisplayProfile(await(await fetch('/tests/decoder-fixtures/measured-display-profile-crayon.json')).json()):profile;
     const normalSourcePins=slug==='apple-lisa'?await(await fetch('/tests/decoder-fixtures/lisa-recorded-source-pins.json')).json():slug==='crayon-os'?await(await fetch('/tests/decoder-fixtures/crayon-recorded-source-pins.json')).json():null;
     const a=await api.loadTheme('/themes/'+slug,{provenance:true}),b=await api.loadTheme('/themes/'+slug,{provenance:true,displayProfile:selectedProfile});
-    const stateSourcePins=['crayon-os','apple-lisa','animals'].includes(slug)?await(await fetch('/tests/decoder-fixtures/recorded-state-source-pins.json')).json():null;
+    const stateSourcePins=['crayon-os','apple-lisa','animals','beos-r503'].includes(slug)?await(await fetch('/tests/decoder-fixtures/recorded-state-source-pins.json')).json():null;
     for(const state of ['normal','pressed','inactive']){
     const recordedSourcePins=stateSourcePins?.[slug]?.[state]??(state==='normal'?normalSourcePins:null);
-    let trace;const options={label:'',minWidth:80,height:20,default:false,pressed:state==='pressed',disabled:state==='inactive',...(['crayon-os','apple-lisa','animals'].includes(slug)?{compositionContext:{controlOrigin:[20,20],portOrigin:[0,0],patternOrigin:{status:'unknown'},clip:{kind:'rect',rect:{x:0,y:0,w:160,h:80}}}}:{})};
+    let trace;const options={label:'',minWidth:80,height:20,default:false,pressed:state==='pressed',disabled:state==='inactive',...(['crayon-os','apple-lisa','animals','beos-r503'].includes(slug)?{compositionContext:{controlOrigin:[20,20],portOrigin:[0,0],patternOrigin:{status:'unknown'},clip:{kind:'rect',rect:{x:0,y:0,w:160,h:80}}}}:{})};
     const normal=await api.composeButton(b,{...options,diagnostics:{onComplete:t=>trace=t}}),legacy=await api.composeButton(a,options);
     const selected=trace.steps.find(s=>s.role==='face'&&s.action==='selected'),el=b.manifest.chromeElements[selected.resource.manifestKey];
     const faceRgba=Uint8Array.from(Array.from({length:20},(_,y)=>Array.from({length:80},(_,x)=>normal.getPixel(x+4,y+4))).flat(2));
@@ -107,13 +108,13 @@ for(const mode of ['source','built']) {
    validateRecordedExecution(row,captureBinding(capture),capture);
    expect(compareRecordedPixels(Buffer.from(row.facePlane.rgba,'base64'),Buffer.from(row.originalComparison.originalRgba,'base64'))).toBe(0);
   }
-  for(const row of result){expect(row.profileInput).toBe(row.input);expect(row.profileBaseUrl).toBe(row.baseUrl);expect(row.urlsDistinct).toBe(true);if(row.state==='normal'&&!['apple-lisa','animals'].includes(row.slug))expect(row.different).toBe(true);expect(row.policy).toBe(row.profile);expect(row.selected.resource.byteProvenance).toBeTruthy();
+  for(const row of result){expect(row.profileInput).toBe(row.input);expect(row.profileBaseUrl).toBe(row.baseUrl);expect(row.urlsDistinct).toBe(true);if(row.state==='normal'&&!['apple-lisa','animals','beos-r503'].includes(row.slug))expect(row.different).toBe(true);expect(row.policy).toBe(row.profile);expect(row.selected.resource.byteProvenance).toBeTruthy();
    expect(row.requested).toMatchObject({state:row.state==='normal'?'active':row.state,pressed:row.state==='pressed',disabled:row.state==='inactive',default:false});
    expect(row.originalComparison.imageSize).toEqual([160,80]);expect(row.originalComparison.sourceArchiveSha256).toBe(row.profileInput);expect(row.originalComparison.differentPixels).toBe(0);
    if(row.slug==='system7-nostalgia-silver')expect(row.legacyFacePaint.resource.byteProvenance).toEqual(row.selected.resource.byteProvenance);
    else expect(row.bandPaints.some(p=>p.role==='face')).toBe(true);
   }
-  expect(result).toHaveLength(15);
+  expect(result).toHaveLength(18);
   expect(result[0].body).toEqual([218,218,218,255]);
   await attachObservations(info,'display-profile',mode,{mode,rows:result,claim:'Exact recorded empty-face composited pixels under the explicit measured profile only; no mask, font, private-painter or whole-requirement verification.'});
  });

@@ -1,14 +1,15 @@
 # Reviewed original face observations
 
-The corpus contains twelve `reviewed-scoped-observation` records under
+The corpus contains eighteen `reviewed-scoped-observation` records under
 [`public-api-empty-face` versions 1–5](../../docs/spec/scoped-reference-observations.md).
 An independent Astra AI agent reviewed the eight earlier observations. A separate independent automated root reviewer approved the four
 new records under v5. Its [byte review](./four-state-independent-byte-review.json)
 is hash-bound in the [scope attestations](./reviews.json); acquisition review
-alone is not intake approval. This is explicitly automated review,
+alone is not intake approval. The later Animals and BeOS batches add six
+separately reviewed scoped records, with attestations in the same review file.
+This is explicitly automated review,
 not human or maintainer attestation. The capture/preparation producer is also
 identified as AI in [captures.json](./captures.json).
-
 | Request | Original run | Retained images | Measurement timing |
 |---|---|---|---|
 | `windows-95.normal` | `V9-20261018-01` | [Full frame](./windows-95/full-frame.png), [port](./windows-95/port.png), [context](./windows-95/context.png) | Palette/producer measurements bracket the mapping batch after drawing |
@@ -17,13 +18,18 @@ identified as AI in [captures.json](./captures.json).
 | `windows-95.inactive` | `V10W-20261019-01` | [Full frame](./windows-95-disabled/full-frame.png), [port](./windows-95-disabled/port.png), [context](./windows-95-disabled/context.png) | Conditions bracket `Draw1Control` + `HiliteControl` |
 | `system7-nostalgia-silver.pressed` | `V10S-20261019-01` | [Full frame](./system7-nostalgia-silver-highlighted/full-frame.png), [port](./system7-nostalgia-silver-highlighted/port.png), [context](./system7-nostalgia-silver-highlighted/context.png) | Conditions bracket `Draw1Control` + `HiliteControl` |
 | `system7-nostalgia-silver.inactive` | `V10S-20261019-01` | [Full frame](./system7-nostalgia-silver-disabled/full-frame.png), [port](./system7-nostalgia-silver-disabled/port.png), [context](./system7-nostalgia-silver-disabled/context.png) | Conditions bracket `Draw1Control` + `HiliteControl` |
-
 | `crayon-os.normal` | `V14C` | [Full frame](./crayon-os/full-frame.png), [port](./crayon-os/port.png), [context](./crayon-os/context.png) | Palette/producer measurements bracket the mapping batch after drawing |
 | `apple-lisa.normal` | `V16L` | [Full frame](./apple-lisa/full-frame.png), [port](./apple-lisa/port.png), [context](./apple-lisa/context.png) | Palette/producer measurements bracket the mapping batch after drawing |
 | `crayon-os.pressed` | `C18H` | [Full frame](./crayon-os-pressed/full-frame.png), [port](./crayon-os-pressed/port.png), [context](./crayon-os-pressed/context.png), [face](./crayon-os-pressed/face.png) | Conditions bracket `Draw1Control` + `HiliteControl` |
 | `crayon-os.inactive` | `C18D` | [Full frame](./crayon-os-inactive/full-frame.png), [port](./crayon-os-inactive/port.png), [context](./crayon-os-inactive/context.png), [face](./crayon-os-inactive/face.png) | Conditions bracket `Draw1Control` + `HiliteControl` |
 | `apple-lisa.pressed` | `L18H` | [Full frame](./apple-lisa-pressed/full-frame.png), [port](./apple-lisa-pressed/port.png), [context](./apple-lisa-pressed/context.png), [face](./apple-lisa-pressed/face.png) | Conditions bracket `Draw1Control` + `HiliteControl` |
 | `apple-lisa.inactive` | `L18D` | [Full frame](./apple-lisa-inactive/full-frame.png), [port](./apple-lisa-inactive/port.png), [context](./apple-lisa-inactive/context.png), [face](./apple-lisa-inactive/face.png) | Conditions bracket `Draw1Control` + `HiliteControl` |
+| `animals.normal` | Animals fixed-order generation1 | [Full frame](./animals-normal/full-frame.png), [port](./animals-normal/port.png), [context](./animals-normal/context.png), [face](./animals-normal/face.png) | Conditions bracket public drawing/state calls |
+| `animals.pressed` | Animals fixed-order generation2 | [Full frame](./animals-pressed/full-frame.png), [port](./animals-pressed/port.png), [context](./animals-pressed/context.png), [face](./animals-pressed/face.png) | Conditions bracket public drawing/state calls |
+| `animals.inactive` | Animals fixed-order generation3 | [Full frame](./animals-inactive/full-frame.png), [port](./animals-inactive/port.png), [context](./animals-inactive/context.png), [face](./animals-inactive/face.png) | Conditions bracket public drawing/state calls |
+| `beos-r503.normal` | BeOS fixed-order generation1 | [Full frame](./beos-r503-normal/full-frame.png), [port](./beos-r503-normal/port.png), [context](./beos-r503-normal/context.png), [face](./beos-r503-normal/face.png) | Conditions bracket public drawing/state calls |
+| `beos-r503.pressed` | BeOS fixed-order generation2 | [Full frame](./beos-r503-pressed/full-frame.png), [port](./beos-r503-pressed/port.png), [context](./beos-r503-pressed/context.png), [face](./beos-r503-pressed/face.png) | Conditions bracket public drawing/state calls |
+| `beos-r503.inactive` | BeOS fixed-order generation3 | [Full frame](./beos-r503-inactive/full-frame.png), [port](./beos-r503-inactive/port.png), [context](./beos-r503-inactive/context.png), [face](./beos-r503-inactive/face.png) | Conditions bracket public drawing/state calls |
 
 Each record retains the complete unaltered 640×480 native frame, exact 160×80
 port and 96×36 context. The entire 80×20 face is at port/image (20,20), with
@@ -106,3 +112,22 @@ The public comparison supplies control origin (20,20), port origin (0,0), full
 buffer (4,4), whereas the composition trace uses port (20,20). Only the complete
 face composited over white is compared; original masks, private cinf provider,
 pattern cache/phase, typography and full control behavior remain unestablished.
+
+
+## BeOS three-state batch
+
+The normal, logically highlighted and disabled observations come from one
+fixed-order System7.5.5/Kaleidoscope2.3.1 boot with fresh controls. Native
+ordinary exports are 20,403 / 20,452 / 20,457 bytes. Full producer RGBA/PNG,
+state/ACK joins and the canonical configured fork were independently reviewed.
+The later B278/D32 calibration boot is distinct; its shared history is explicit.
+
+The measured version2 profile allows whole-load preparation without converting
+direct RGB8 inputs to invented RGB16 queries. Prepared pattern128 is checked independently
+and is not attributed to these faces. All three recorded 80×20 faces match the
+public source and built renderer over white, with actual selected and completed
+paint dependencies. This does not recover original alpha/masks, private
+providers, pattern phase or general font identity. Missing cross-run port-table
+and widMax observations stay visible; equality of recorded fields is not proof
+of complete hidden-state equivalence. Scoped review is independent automated AI
+review, not a human or maintainer attestation.

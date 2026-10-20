@@ -173,5 +173,73 @@
       },
       "missingPatternId": 0
     }
+  },
+  "beos-r503": {
+    "normal": {
+      "sourceArchiveSha256": "04b315396840c5f6e53555381d51ab86087169d5687640261d92c3f85510c0c0",
+      "sourceForkSha256": "f8d70eb86bdda078c07ba509a0e069f525700b7af1a2c7b022265c65decf2bac",
+      "emittedKey": "active-button",
+      "face": {
+        "resourceIndex": 190,
+        "signedId": -10239,
+        "bytes": 338,
+        "payloadSha256": "3003c82ee94b8ca1af2134bfb8d27e8733385bfb88c963dd3fc92131086f5444"
+      },
+      "cinf": {
+        "resourceIndex": 394,
+        "signedId": -10239,
+        "bytes": 18,
+        "payloadSha256": "93602eb60791a06492c24331aa2be2a05605e5d4bacd919625a9aad092333f91"
+      },
+      "bodyRequest": {
+        "mode": 0,
+        "resourceId": 0
+      },
+      "missingPatternId": 0
+    },
+    "pressed": {
+      "sourceArchiveSha256": "04b315396840c5f6e53555381d51ab86087169d5687640261d92c3f85510c0c0",
+      "sourceForkSha256": "f8d70eb86bdda078c07ba509a0e069f525700b7af1a2c7b022265c65decf2bac",
+      "emittedKey": "pushed-button",
+      "face": {
+        "resourceIndex": 191,
+        "signedId": -10238,
+        "bytes": 346,
+        "payloadSha256": "18af3cd4aed29b69c651dbca680ac128be6eb3c695528920f9f7df60f65c96b8"
+      },
+      "cinf": {
+        "resourceIndex": 395,
+        "signedId": -10238,
+        "bytes": 18,
+        "payloadSha256": "93602eb60791a06492c24331aa2be2a05605e5d4bacd919625a9aad092333f91"
+      },
+      "bodyRequest": {
+        "mode": 0,
+        "resourceId": 0
+      },
+      "missingPatternId": 0
+    },
+    "inactive": {
+      "sourceArchiveSha256": "04b315396840c5f6e53555381d51ab86087169d5687640261d92c3f85510c0c0",
+      "sourceForkSha256": "f8d70eb86bdda078c07ba509a0e069f525700b7af1a2c7b022265c65decf2bac",
+      "emittedKey": "inactive-button",
+      "face": {
+        "resourceIndex": 189,
+        "signedId": -10240,
+        "bytes": 322,
+        "payloadSha256": "efb4f43e853f570766eb109e6a16f84fe82ff47fd933da71d8c94ddc2c83fe18"
+      },
+      "cinf": {
+        "resourceIndex": 393,
+        "signedId": -10240,
+        "bytes": 18,
+        "payloadSha256": "93602eb60791a06492c24331aa2be2a05605e5d4bacd919625a9aad092333f91"
+      },
+      "bodyRequest": {
+        "mode": 0,
+        "resourceId": 0
+      },
+      "missingPatternId": 0
+    }
   }
 }

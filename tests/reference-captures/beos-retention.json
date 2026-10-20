@@ -1,0 +1,439 @@
+{
+  "baseCommit": "6c376380",
+  "requests": [
+    {
+      "id": "windows-95.normal",
+      "objectSha256": "fbbdcc1b18400f45d24871ad528bad6acf28e19f23735c11926fbea98e8f119c",
+      "requestDigest": "8e4252db9a235ea4b500ac74fe23c7b037e013a28f28255c3a41697334db8a30"
+    },
+    {
+      "id": "windows-95.pressed",
+      "objectSha256": "d8e4b254fac5b70122d2332fc7d401342e9b65aa6e45cf492cc343d093ca78d8",
+      "requestDigest": "20c60aac92353913e68a43073fba0835ba722ea62db682581e4303a9c4232dad"
+    },
+    {
+      "id": "windows-95.inactive",
+      "objectSha256": "b9aefa89acacb26e567b4386199f8b9a47a14379344268e28975fc703410ef9e",
+      "requestDigest": "ab653bb949bbeeab42c6b1e5609e5bcba6c483cb8c41f504e9d5c1d270be05e5"
+    },
+    {
+      "id": "windows-95.default",
+      "objectSha256": "353d75eb236386a91b9b01f7fe167905099baf0d3b0eeaf4f3e7c844be9e7cb1",
+      "requestDigest": "dfc8e3a2caaf338bb4a8e6426bdee82b2073f83b8394cfcd2eb43f5dc617b02f"
+    },
+    {
+      "id": "system7-nostalgia-silver.normal",
+      "objectSha256": "1e9bb5e03da2c121aed5f99957e72552693d9b0aec10a7914383a7968b4cc86e",
+      "requestDigest": "9c96bd9093cc0c5d4e9d3221b49add6b6102255f4f838a829a8542d86fdd8e1a"
+    },
+    {
+      "id": "system7-nostalgia-silver.pressed",
+      "objectSha256": "a6ba170435f164e05e5ebc55f1f25df414b7b4ceaf206f2e77077aa8c9c31a18",
+      "requestDigest": "736a6a7d29281d418c4648499bf1e74eb06a4f6475f74568b91378582f98f998"
+    },
+    {
+      "id": "system7-nostalgia-silver.inactive",
+      "objectSha256": "3abd61ac130e6bff64bdafde10a0cbd8b73f56011f99682c01beeb28ae2020a6",
+      "requestDigest": "ef415a5b8220936349a3a35e3229556fc9c03562a3c5ffa22a04a933156b7e51"
+    },
+    {
+      "id": "system7-nostalgia-silver.default",
+      "objectSha256": "5f7325a776ccb128e7f9e843d0acc7d4c0df4c707ec259be1298c9acb4da162b",
+      "requestDigest": "bcd74758400fe4171a198ade56ba5611eff7cd9730fd7be8d6926b4f5f8f2ffa"
+    },
+    {
+      "id": "apple-lisa.normal",
+      "objectSha256": "428dd308b3139bf01224d5fc40ce1fb39714ef55bdb41735a126ba0226d66f48",
+      "requestDigest": "70da66e6307d3b08cb8a2853db2e32e78c7a2f9553e9bf4ad8f9a6d3335b8d56"
+    },
+    {
+      "id": "1990.default",
+      "objectSha256": "a4a3b45798b87eeab2250d8e05f7a591e4f455d75f450e2a24e960996970c97c",
+      "requestDigest": "907d45a2596af2c616a521ba3b830b27f016cb4af3cbfa31548431fb0e842859"
+    },
+    {
+      "id": "crayon-os.normal",
+      "objectSha256": "fe89f350232d4ba1d8ed42e6f85eda086855c103a9181276bec160383aa7a453",
+      "requestDigest": "80d332f11d006a4003f21e661de335422501f81a09dd52415ea3886f8a4e1218"
+    },
+    {
+      "id": "crayon-os.normal.shifted-port",
+      "objectSha256": "a4c5be5481a4e6d2ccccef21426a45fb55e15271d7ca7aed4b0dd160d3897b66",
+      "requestDigest": "93d98b38dc12e67f4702d9468a84306c1c325f188abd8ce1ab3028b98d670f61"
+    },
+    {
+      "id": "crayon-os.normal.fixed-physical-phase",
+      "objectSha256": "6255dda904d5511ee9d78d12dee1bf791a0ac109266441d7f3310c6ecc2b391d",
+      "requestDigest": "005b4ac4fa3963371cf9fb5eed31ccc1a0e80b0560b8bdd6188ef43382d033e6"
+    },
+    {
+      "id": "1138.normal",
+      "objectSha256": "6fdfdaa6acd06f8bceeb5a736cb8f60dd9d9fc5e9915fa988c81695ea633c9bc",
+      "requestDigest": "4d8f554820e24278bb460b278b1e406da6a9b1737386221ea062cd4b60a746ad"
+    },
+    {
+      "id": "1138.pressed",
+      "objectSha256": "f141f10a84c169eb191027c911ee38170c625257d1b1ae1af2b1f297033dc05f",
+      "requestDigest": "4a82f96cc799f86524936d4254f937e0ba7be0279456d2e3236c0cde4b549d82"
+    },
+    {
+      "id": "1138.inactive",
+      "objectSha256": "a1a0a2ce2281a97a9a21c7e793afcb506832cc7777e15044ba942ca769c8c56c",
+      "requestDigest": "3efb0ba3fc3b825ffcbec8d8430e9b1ca5e3a777bb0b0b7612db4ca80686468b"
+    },
+    {
+      "id": "1984.normal",
+      "objectSha256": "b63e0fe55c6a9a689a8262d98b66793593547e62daac35fed8068a14356f406b",
+      "requestDigest": "3dcb46cd93376b0182927c780f2f3870b94062f24122429f7f7c205df2e85f29"
+    },
+    {
+      "id": "1984.pressed",
+      "objectSha256": "bad32e765bf150a57ab7aff671408bffb646a2328baa650a402a5d37390b4278",
+      "requestDigest": "e81c72e3588e1c822ba3d92ea8c69a33c6aabb2d58b641e0544659867808d8c7"
+    },
+    {
+      "id": "1984.inactive",
+      "objectSha256": "e773a904450a98cb6c1e639361218044956cc7b32cdbb83d9b09b450a97e4426",
+      "requestDigest": "1af1849f524543efa9c6962a55e04de64e20837c6815cf5213de882c40babf43"
+    },
+    {
+      "id": "1990.normal",
+      "objectSha256": "91550e4ec8c2c22bb3d7fbddc98e8c4fc412e5258d2dae9242abe624551f7179",
+      "requestDigest": "7d5b8cb13bf7e896bdb722acc77f1f0340ffc3edd64d8a465fb2b9d3ca2d60a8"
+    },
+    {
+      "id": "1990.pressed",
+      "objectSha256": "fd29971418369c6521212f8b8d4ea8c903d4e42a3fc1f91d306286bbcaff283a",
+      "requestDigest": "256bc4be5fce1727e558a21f7062e53f32f14c9db234335a34828d93dda11336"
+    },
+    {
+      "id": "1990.inactive",
+      "objectSha256": "d297c1c95156e022085bcb19611fb4656d39b052e3b1495a7b3bd6ddec3d508e",
+      "requestDigest": "3558c1df2505968cdbd923df0dc850a2523461e24f37a071c78d2017f0d9c2ad"
+    },
+    {
+      "id": "animals.normal",
+      "objectSha256": "6fcaa27cf01094cd10d425c19acd5b092111c436fff3801cfd6227ee348d18c4",
+      "requestDigest": "f611e030e330be2cec30f375736419000663db140e2d4560210bd255a9c250f0"
+    },
+    {
+      "id": "animals.pressed",
+      "objectSha256": "1c226093d34eae717f71e3baf48089d3a7599a8cb71db4dab209ed935ec5a568",
+      "requestDigest": "865d92e840cd6fd316beac28b1a97ae5ec6055af33751db43b4805b1562e1976"
+    },
+    {
+      "id": "animals.inactive",
+      "objectSha256": "1c3800b23403541afdd3fe1e80ffc5a3dd7714a1286f603d209cf9673fbc7b39",
+      "requestDigest": "b5b6ba6dc22f0bdd2b3d62c5e707f60e089364474c66024169179694b1377fca"
+    },
+    {
+      "id": "apple-lisa.pressed",
+      "objectSha256": "72731e52ec07c6bc3628a5ef6c579a3069020626c20806be6bf25db34136f5cc",
+      "requestDigest": "863ab9b718c50864f9f985647b1898540985e3c54626c64a4e49661508226c95"
+    },
+    {
+      "id": "apple-lisa.inactive",
+      "objectSha256": "c63d95ed0e54f6ba060fdad7febe6d6c29ecf6c735aa6f58dd8c431d9ce384f9",
+      "requestDigest": "0e8eae73399aca705c4fc88f907f2cb3263becefff4a2a3be68c1c2f98aa38a2"
+    },
+    {
+      "id": "apple-platinum-2.normal",
+      "objectSha256": "92a2ec4a1a7435e969f0a06ec87c42188f69abab59d0af23c25cfa3190dc004a",
+      "requestDigest": "076bc3cbf9095ab4d57cda9fe3b88699e2ed863660d956e1ebe3dcfec0e34875"
+    },
+    {
+      "id": "apple-platinum-2.pressed",
+      "objectSha256": "72556a418a1e9e23309b6077703b6c1a73547ecb8724efab767083ff754a698e",
+      "requestDigest": "3756cca5bf13ab77b152719df2e27abe404cdd405f378952e7058da6ce137dd1"
+    },
+    {
+      "id": "apple-platinum-2.inactive",
+      "objectSha256": "5660af7d5afed4ec8ed6945279f387fa7b6c99fe0619c30ab607e78c5ae07dea",
+      "requestDigest": "b937852483cc4d98463d4a28c23417aec54089d7a451ce70950043413c932d1c"
+    },
+    {
+      "id": "beos-r503.normal",
+      "objectSha256": "94ee2df938a468d20e13b66931eb5a51c70400991c516a27f3dd828138b7ae45",
+      "requestDigest": "f1199c3ab0c9cad1a5e9c1fe4df8f2b21cfebdbfc9e02b8985a740b87f0d5c85"
+    },
+    {
+      "id": "beos-r503.pressed",
+      "objectSha256": "18f5da528acff47a34751ebcfbfc2c81b0f4a6735c66d59ea6ebd3f567c4dc21",
+      "requestDigest": "b555c131e218f615b814d7f16e2c3a816a7c617d266eecc0d5ca12f60d90b4ea"
+    },
+    {
+      "id": "beos-r503.inactive",
+      "objectSha256": "f22975ccbf857062401ecb4cea7f1c74f580dbbb15ba1622da0d7d1ef18a163d",
+      "requestDigest": "36e3a58d1be96cfa9237fe89013d02636ebcfe624e8a33dc4919d385f9fb752e"
+    },
+    {
+      "id": "black-platinum.normal",
+      "objectSha256": "f92f77234d113d8919ee19249163949710119a2ba634800bd8acd3478678e5cd",
+      "requestDigest": "a5cb334387107c469579906d1277acffee0c730dffc9a4f0cb948b5ecd059f50"
+    },
+    {
+      "id": "black-platinum.pressed",
+      "objectSha256": "d8f98526b6b35fb7c67f8807f3c6159fd7de046d8e8fded565b3788fe70c2fe5",
+      "requestDigest": "4535eb35348ef22438673577e40556d18d7af922654c800158178d1084dee56c"
+    },
+    {
+      "id": "black-platinum.inactive",
+      "objectSha256": "544e5d3f5238b283a6236a5ee11fe9a667fb3cb1ad00261e9df813378ce54758",
+      "requestDigest": "3a5c67ee9536e3485bfdfe30b29e79cd57148dee3665c6a975a2a1e30694c5de"
+    },
+    {
+      "id": "crayon-os.pressed",
+      "objectSha256": "0497f862f72fb60e65a8094f27f51ce7f9dae28e76b4cff50add66b0e0e219b2",
+      "requestDigest": "3a06217803f11c88c7cef75c97b388b0feace06f9cc53f3b9d68e5b4397df63d"
+    },
+    {
+      "id": "crayon-os.inactive",
+      "objectSha256": "ece1e3bb02f60472bdcdf78a8b1790aa8781a3c02e84d44ce316e3549a4132d4",
+      "requestDigest": "bbbf3adf5ceb1f9efa017ac61605aede355e58840671a69d6dedfaba1ad7dbca"
+    },
+    {
+      "id": "dolphin-som.normal",
+      "objectSha256": "4e6197555b3db5111ef8d2138c8a2a229666c7a4db8c3c64d280b5ac9a85616f",
+      "requestDigest": "e39247c8024da0a4a99aa01e2c66739e0a3d3d259f4b893f4bb8123bb2d6b9dc"
+    },
+    {
+      "id": "dolphin-som.pressed",
+      "objectSha256": "7676c3911aaef015327f73db6de6348acb0e2ddf177064ebf5be54014fd864b1",
+      "requestDigest": "c9fec73c9a664fa8d63b13e2e32ca1bb662e271138345d07fc65158c71c1654c"
+    },
+    {
+      "id": "dolphin-som.inactive",
+      "objectSha256": "b04d7aaf8ba77ecb490bb6a4ef201c34653a6d996cb7da8d4e8f03be999ee817",
+      "requestDigest": "9ac5d0c395d453d6f2a132070f3c3bd72088e74481a1cc66674918cea4d42882"
+    },
+    {
+      "id": "evolution.normal",
+      "objectSha256": "67b41f8884327783a6857b9e6714bf78f809937d07df12d0339cc79137f24b1b",
+      "requestDigest": "4a5006b18f878c366fada2daebdadea5ace5329751130988ac4337c5f04cf9d1"
+    },
+    {
+      "id": "evolution.pressed",
+      "objectSha256": "54dfe1c5bbccc7c60cc5fa5f86742e470fe15221f91ec5a35ddf9a0d3ebb1d78",
+      "requestDigest": "a377818607eed271bd3121d4549419179e27495d7f92bb839d3e01450792eb6f"
+    },
+    {
+      "id": "evolution.inactive",
+      "objectSha256": "af496d4f6ae7f610122fb1a6cdff4e91249627180ad60a8266fbe196d063c414",
+      "requestDigest": "b71f3f4e48478b4acd91c20d12fd2c737b2c8832a24888cecc4f976149ec886f"
+    },
+    {
+      "id": "floppies.normal",
+      "objectSha256": "31542f450129153e0db1a64c297a9b5453200332d5aa2022930254181ac064d2",
+      "requestDigest": "f8fb68ec40dea5bfe1d25830e4644feb117e060861ace3d1774b17263ab9fe3a"
+    },
+    {
+      "id": "floppies.pressed",
+      "objectSha256": "310a60e8db34616ad71a34cd4ee155f515f827574da79e037b2d4239e90fb29e",
+      "requestDigest": "383766df44d4c53e0f475ed195494bdf0af438a07a06367456cd1de604ffb02b"
+    },
+    {
+      "id": "floppies.inactive",
+      "objectSha256": "69c6fb9a1fe713465e94420a177c29bdef31545e2956d712c9010edce3977750",
+      "requestDigest": "a178cbc3dbda2e7cc2383815a86f9504521872fe409e810a59c2f446c6e4d0b0"
+    },
+    {
+      "id": "monkey-paradise.normal",
+      "objectSha256": "4a329bdcec42dd0b34f7553f696cb96cee964edc58d19579908e4b269f741bbb",
+      "requestDigest": "1f131478668921a8a67afcd2f3e71cd17b69b54214610d6015b76066df8c3e00"
+    },
+    {
+      "id": "monkey-paradise.pressed",
+      "objectSha256": "8aefff02fd3b85bdc5d42f3aa57f2e2b7d3e8f323150520a6f4e7f85694ea2e4",
+      "requestDigest": "86abeb101faed3caa212b41b6758f03c9a94dbf23d08ab705ea0728c5df3e0f2"
+    },
+    {
+      "id": "monkey-paradise.inactive",
+      "objectSha256": "b375b168d0f5af005dd7af327f4fb791f5e6fe97cd8fe8e42c4e0c431a4bc0b2",
+      "requestDigest": "8f4874ef52daa152f6b0ba6a35c349afcf8b43a2880e10fe588f6c36853eae6f"
+    },
+    {
+      "id": "platinum-8.normal",
+      "objectSha256": "4be954daa9cf7572d3565e92160e5882776b5558d4db9ca9b02c6459f5e701e7",
+      "requestDigest": "bbce8fd20aeb83bc01fcc4a35bbd6ac7b3ecde4b020afe8d1392f38eadb97c78"
+    },
+    {
+      "id": "platinum-8.pressed",
+      "objectSha256": "37381cc15aa8644d432c33b6749921b58512c1943200c9ecc628b7028275b17e",
+      "requestDigest": "9d18a248f2b757fbda8c89b56949a264ed6d6454efff3e3f803dfef5708f71f2"
+    },
+    {
+      "id": "platinum-8.inactive",
+      "objectSha256": "2e942e8f75090e3e1b4876c919977f24770896c844d0754ad96aea32bafd7158",
+      "requestDigest": "62fd8f0d223390e33562ab9285accffb98cb9df82a4559c57b8a298467127bf3"
+    },
+    {
+      "id": "slimes.normal",
+      "objectSha256": "3f48e1edeb273af1ced27875ad2c29cb6d2bd6f9f8d045460f8a83e0882e5096",
+      "requestDigest": "ac7cf5944cac0822f453a48d8a02d1dda91aab7011c631eaa23324a563581ef3"
+    },
+    {
+      "id": "slimes.pressed",
+      "objectSha256": "9907e09b5de28b37718b36bbc47d6a66f23aec88ab0037e615d6e70cc18d0f1b",
+      "requestDigest": "8f5bbb688923b938c676c0fc7eee89b33b8df193788bca68ea89fc88fa814467"
+    },
+    {
+      "id": "slimes.inactive",
+      "objectSha256": "7822cb094cd3ef9c726f88235e9a224b492db522d5a77621bddc756921800068",
+      "requestDigest": "a21282e34d4ffaadd4ee0da08dc983c632eef571f44ea4ca6c52d9037bf051a0"
+    },
+    {
+      "id": "windows-31.normal",
+      "objectSha256": "97c2ea8efe02f107b3b8d79bf0ae25b67a8f11b357d14f81fc2e90405d1fd91c",
+      "requestDigest": "8600baad73754ad9dc17c216f25187fbea5c98482ae943b11243a7523240175f"
+    },
+    {
+      "id": "windows-31.pressed",
+      "objectSha256": "e1bf05626f24adc920a13207204c4311a89c4b807a06ff730ab190b5ec1db138",
+      "requestDigest": "888ddde4bfddb4427bd71caba50bb167fcd07f00144f537d03266fb8f15c24f0"
+    },
+    {
+      "id": "windows-31.inactive",
+      "objectSha256": "9be9c4c6b0fda860a3b30fa2f95b6c0592f7bed74c7aee3814026680ad708f23",
+      "requestDigest": "26699d87b43063781db90981eaa97eb4a0481429ff66007357104b7f4695dc79"
+    }
+  ],
+  "captures": [
+    {
+      "id": "windows-95.normal.v9.draft",
+      "objectSha256": "2371425a7ad8d187d69f9c473feb2bb034cc0459542984b82fea4e0db75e7f3d",
+      "captureDigest": "2371425a7ad8d187d69f9c473feb2bb034cc0459542984b82fea4e0db75e7f3d"
+    },
+    {
+      "id": "system7-nostalgia-silver.normal.v7d.draft",
+      "objectSha256": "bc3ee8a1f3e46a71a37c1f9138bc27e6e9d622f0691820f03178c341a051c2ae",
+      "captureDigest": "bc3ee8a1f3e46a71a37c1f9138bc27e6e9d622f0691820f03178c341a051c2ae"
+    },
+    {
+      "id": "windows-95.pressed.v10w.draft",
+      "objectSha256": "99eec783762099f59d7469523e50e40383552dc8f0a8d79a80452718296d59c5",
+      "captureDigest": "99eec783762099f59d7469523e50e40383552dc8f0a8d79a80452718296d59c5"
+    },
+    {
+      "id": "windows-95.inactive.v10w.draft",
+      "objectSha256": "e7d5665897b00164f728c616e9d5354f71e7043dc8813f6e2a4fdacd03953e23",
+      "captureDigest": "e7d5665897b00164f728c616e9d5354f71e7043dc8813f6e2a4fdacd03953e23"
+    },
+    {
+      "id": "system7-nostalgia-silver.pressed.v10s.draft",
+      "objectSha256": "571404476b72d404ba92cd60cd378dbdd5edb6cd84cedc7ae0036f53463489ed",
+      "captureDigest": "571404476b72d404ba92cd60cd378dbdd5edb6cd84cedc7ae0036f53463489ed"
+    },
+    {
+      "id": "system7-nostalgia-silver.inactive.v10s.draft",
+      "objectSha256": "02dd210323ff821ca2f16c1eb4d0ddb5161f06bd79a83221016c402eddd12ce9",
+      "captureDigest": "02dd210323ff821ca2f16c1eb4d0ddb5161f06bd79a83221016c402eddd12ce9"
+    },
+    {
+      "id": "crayon-os.normal.v14c.draft",
+      "objectSha256": "19a9410ee2615684b10df57b5e6d1262076828ca4444e908e23b6520e675be01",
+      "captureDigest": "19a9410ee2615684b10df57b5e6d1262076828ca4444e908e23b6520e675be01"
+    },
+    {
+      "id": "apple-lisa.normal.v16l",
+      "objectSha256": "72080c09a93c6c54e983e31a6feff7e50f5f06d9ebdec3fff759792c1de4b14f",
+      "captureDigest": "72080c09a93c6c54e983e31a6feff7e50f5f06d9ebdec3fff759792c1de4b14f"
+    },
+    {
+      "id": "crayon-os.pressed.c18h",
+      "objectSha256": "be83b7f61e4d3073758e05357e4da245610935cca8f6265c99a6dfdabf9c0035",
+      "captureDigest": "be83b7f61e4d3073758e05357e4da245610935cca8f6265c99a6dfdabf9c0035"
+    },
+    {
+      "id": "crayon-os.inactive.c18d",
+      "objectSha256": "d4285e1385ee3acb10aef17d3b42debd82cbdf0821ac5117c65f62aa52d6b278",
+      "captureDigest": "d4285e1385ee3acb10aef17d3b42debd82cbdf0821ac5117c65f62aa52d6b278"
+    },
+    {
+      "id": "apple-lisa.pressed.l18h",
+      "objectSha256": "1dd9224c8a18ca75807de0d3056f2674d7e3b210ede686f698f9e18e32bf1579",
+      "captureDigest": "1dd9224c8a18ca75807de0d3056f2674d7e3b210ede686f698f9e18e32bf1579"
+    },
+    {
+      "id": "apple-lisa.inactive.l18d",
+      "objectSha256": "25ec4257d22995fc51196c94fed3b10e3f7b72b7bd5c7d7cab5ee583f5333800",
+      "captureDigest": "25ec4257d22995fc51196c94fed3b10e3f7b72b7bd5c7d7cab5ee583f5333800"
+    },
+    {
+      "id": "animals.normal.a3a",
+      "objectSha256": "9c2256bb4d1cf2d70d67956219f381c620e1c72995a6f1f6ad47b28235df3774",
+      "captureDigest": "9c2256bb4d1cf2d70d67956219f381c620e1c72995a6f1f6ad47b28235df3774"
+    },
+    {
+      "id": "animals.pressed.a3a",
+      "objectSha256": "21462836bc125f6abad0407ba3e7353979f4cefb1a7dbe293864d73507b6edad",
+      "captureDigest": "21462836bc125f6abad0407ba3e7353979f4cefb1a7dbe293864d73507b6edad"
+    },
+    {
+      "id": "animals.inactive.a3a",
+      "objectSha256": "1b771eb0455eebde7f844d21fd306f0aae76577d996dea1807006d0c925075a2",
+      "captureDigest": "1b771eb0455eebde7f844d21fd306f0aae76577d996dea1807006d0c925075a2"
+    }
+  ],
+  "reviews": [
+    {
+      "captureId": "windows-95.normal.v9.draft",
+      "objectSha256": "5bd7f5d3ab63878877c9f33be827079a3c176c0b34d0ee71221972d7e23d7d56"
+    },
+    {
+      "captureId": "system7-nostalgia-silver.normal.v7d.draft",
+      "objectSha256": "9d5c41d8d9cdc36bb4e5abecf21cc5e06399ea2c0e15b1008271680254c6f138"
+    },
+    {
+      "captureId": "windows-95.pressed.v10w.draft",
+      "objectSha256": "4477b705f15476ba9c7f79dc95d49ace5c311ece1200a7b9461830d1de7155a6"
+    },
+    {
+      "captureId": "windows-95.inactive.v10w.draft",
+      "objectSha256": "8089ffd592b6ddd58785ceb5666ede51cf8ab10c41c4c5c130b49bb95b405fa7"
+    },
+    {
+      "captureId": "system7-nostalgia-silver.pressed.v10s.draft",
+      "objectSha256": "ae5c5c51071850b4fbe11f78465c614df185b6c1681b766befc1d885876d63e8"
+    },
+    {
+      "captureId": "system7-nostalgia-silver.inactive.v10s.draft",
+      "objectSha256": "e095ba6964a0658f5091abecb09d89a84cd687fc76953c24b49608a3bb0825d5"
+    },
+    {
+      "captureId": "crayon-os.normal.v14c.draft",
+      "objectSha256": "b2b907c76e5a4d38c37712aa92ddbdf91a399ea6af62ddf2ca1ff481bad48328"
+    },
+    {
+      "captureId": "apple-lisa.normal.v16l",
+      "objectSha256": "fa68be1aaac5d4ac92ac4a3306de8a0b7b80db7efe577f9e0ec0d941ac3c4f35"
+    },
+    {
+      "captureId": "crayon-os.pressed.c18h",
+      "objectSha256": "26390e961be6a6ac1605de16992d845bb96762fe7d70971c99205d332cf0883c"
+    },
+    {
+      "captureId": "crayon-os.inactive.c18d",
+      "objectSha256": "5d6612bd9533817dc1ac447325b023ccfb541129b80f581cd38494b433a87346"
+    },
+    {
+      "captureId": "apple-lisa.pressed.l18h",
+      "objectSha256": "afef74042bc7218c4b28c5f1bfa0c0de5132141e7291e36f66984854185b0182"
+    },
+    {
+      "captureId": "apple-lisa.inactive.l18d",
+      "objectSha256": "eaa836320c762d8a0c65edcd78e6734fee790b0892c4de27505ecffae8056cbe"
+    },
+    {
+      "captureId": "animals.normal.a3a",
+      "objectSha256": "37bcaaa1208c7fb9f579343a041e6b7a29988e1586642c0a651b004b5b1ad5d2"
+    },
+    {
+      "captureId": "animals.pressed.a3a",
+      "objectSha256": "25d35e9299fa044745251779a2448d6fbb19f892bfa4b84cf11bb15b1ce6ae34"
+    },
+    {
+      "captureId": "animals.inactive.a3a",
+      "objectSha256": "08d11256bdec2a01b7df9921590dba516a3ada57056a559eb2cf4b923f209d24"
+    }
+  ]
+}
