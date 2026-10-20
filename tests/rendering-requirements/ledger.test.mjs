@@ -339,7 +339,7 @@ test('Floppies/Evolution extension preserves all prior95 cases and647 assessment
  Object.assign(prior,{inventoryVersion:transition.inventoryVersion,inventorySha256:transition.inventorySha256,scope:transition.scope});
  assert.equal(inventoryDigest(prior),transition.inventorySha256);assert.equal(digest(JSON.stringify(prior)),transition.priorObjectSha256);
  assert.deepEqual(makeReport(prior).requirementStatus.counts,{verified:114,mismatched:0,unsupported:0,unknown:533});
- const added=original.assessments.slice(647);assert.equal(added.length,24);assert(added.every(a=>a.status==='unknown'));
- assert.deepEqual(makeReport(original).requirementStatus.counts,{verified:114,mismatched:0,unsupported:0,unknown:557});
+ const added=original.assessments.slice(647);assert.equal(added.length,24);assert.equal(added.filter(a=>a.status==='verified').length,4);assert(added.every(a=>a.status===(a.requirementId==='output.recorded-composited-face'?'verified':'unknown')));
+ assert.deepEqual(makeReport(original).requirementStatus.counts,{verified:118,mismatched:0,unsupported:0,unknown:553});
  assert(original.cases.slice(95).every(c=>c.inventoryClosure.status==='open'));
 });

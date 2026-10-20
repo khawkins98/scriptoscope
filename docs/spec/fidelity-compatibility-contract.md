@@ -95,8 +95,8 @@ not the historical validity of a fallback policy. A self-golden proves stability
 not original-engine pixels.
 
 The current [ledger 1.17.0](../../tests/rendering-requirements/ledger.json) contains
-99 OPEN cases and 671 declared obligations: 114 narrowly verified, 0 mismatched,
-0 explicitly unsupported and 557 unknown. Forty-one verified obligations concern
+99 OPEN cases and 671 declared obligations: 118 narrowly verified, 0 mismatched,
+0 explicitly unsupported and 553 unknown. Forty-five verified obligations concern
 only complete recorded-condition empty 80×20 faces under explicit finite
 measured profiles. They do not establish original alpha/mask, typography, hidden
 selection, general state/placement, private provider/cache or default-display

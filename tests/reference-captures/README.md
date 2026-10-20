@@ -413,8 +413,9 @@ selects the new Evolution profile only for pressed; no measured rows are pooled.
 The [independent byte review](./floppies-evolution-independent-byte-review.json)
 binds four original full frames, crops, ordinary exports and sanitized conditions.
 The private comparison matched twelve calls and 19,200 pixels, including two
-private Evolution controls. Public registered execution remains pending; the four
-new output obligations remain unknown. Floppies corner10/side10 at height20
+private Evolution controls. The public registered source/built pair passed all45 faces/72,000 pixels per mode
+with zero differences. Independent root review accepted only the four new output
+obligations; all broader claims remain unknown. Floppies corner10/side10 at height20
 produces six nonempty face bands and no body height; Evolution has eight bands.
 All four request absent ppat0, with no invented completed body-fill event.
 

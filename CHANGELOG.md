@@ -7,7 +7,7 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
-- Add four independently reviewed empty-face records for Floppies normal/pressed/inactive and Evolution pressed, genuine separate measured profiles and state-specific bindings. Preserve prior Evolution records and all broader unknowns; public output verification remains pending. Refine the fidelity delivery roadmap without changing its full target or exit criteria.
+- Add four independently reviewed empty-face records for Floppies normal/pressed/inactive and Evolution pressed, genuine separate measured profiles and state-specific bindings. Preserve prior Evolution records and all broader unknowns; independent review accepted only four output obligations after the registered source/built pair matched all45 faces/72,000 pixels per mode. Refine the fidelity delivery roadmap without changing its full target or exit criteria.
 
 - Allow recorded-face comparisons to bind a complete measured profile per state while preserving each theme’s existing default profile and earlier capture bindings.
 

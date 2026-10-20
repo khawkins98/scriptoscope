@@ -214,6 +214,7 @@ These four independent v5 attestations preserve all prior41 records/reviews and
 59 requests exactly. Font0/size12/face0 is observed, with identity and consumption
 unknown. The old Evolution normal/inactive records retain their own conditions
 and profile; new same-run controls remain private. The registered public
-source/built comparison and four output obligations are pending. Shutdown
+source/built pair matched all45 faces/72,000 pixels per mode; independent review
+accepted only the four narrow output obligations. Shutdown
 acknowledgement and pre-export media identity remain explicitly unestablished;
 original mask/phase/provider/cache, typography and whole controls remain unknown.

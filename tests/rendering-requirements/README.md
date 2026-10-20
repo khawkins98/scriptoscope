@@ -435,8 +435,9 @@ or pixel observations remain inspectable without being counted as acceptance.
 ## Four-claim Floppies/Evolution extension
 
 Inventory1.17.0 appends four cases/24 obligations to the exact prior95/647.
-There are99 OPEN cases/671 obligations:114 narrowly verified and557 unknown
-while the four new output assertions await registered execution review.
+There are99 OPEN cases/671 obligations:118 narrowly verified and553 unknown. Only the four new
+output obligations were promoted after independent review of the registered
+source/built pair:45 faces and72,000 pixels per mode, zero differences.
 Floppies has six source-eligible bands at height20; Evolution pressed has eight.
 The generic per-state profile override preserves old Evolution normal/inactive
 bindings. Neither missingppat0 nor zero-height body invents completed body paint.
