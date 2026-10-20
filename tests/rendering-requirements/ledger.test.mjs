@@ -327,6 +327,7 @@ test('Monkey extension preserves all prior 92 cases and 629 assessments', () => 
   Object.assign(prior,{inventoryVersion:transition.inventoryVersion,inventorySha256:transition.inventorySha256,scope:transition.scope});
   assert.equal(inventoryDigest(prior),transition.inventorySha256);assert.equal(digest(JSON.stringify(prior)),transition.priorObjectSha256);
   assert.deepEqual(makeReport(prior).requirementStatus.counts,{verified:111,mismatched:0,unsupported:0,unknown:518});
-  const added=original.assessments.slice(transition.counts.assessments);assert.equal(added.length,18);assert(added.every(a=>a.status==='unknown'));
+  const added=original.assessments.slice(transition.counts.assessments);assert.equal(added.length,18);assert.equal(added.filter(a=>a.status==='verified').length,3);assert(added.every(a=>a.status===(a.requirementId==='output.recorded-composited-face'?'verified':'unknown')));
+  assert.deepEqual(makeReport(original).requirementStatus.counts,{verified:114,mismatched:0,unsupported:0,unknown:533});
   assert(original.cases.slice(92).every(c=>c.inventoryClosure.status==='open'));
 });

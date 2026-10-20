@@ -396,7 +396,8 @@ private provider/cache/phase/mask and whole-control fidelity remain unknown.
 The normal modern comparison requires actual same-owner ppat128 occurrence459,
 its catalog/load/URL and decoded plane, and completed `pattern-fill-union` writes.
 This proves a modern intermediate stage, not original phase or provider. Pressed
-and inactive requests retain missing ppat0 without inventing completion. Public
-registered execution and its output-obligation review remain separate gates.
+and inactive requests retain missing ppat0 without inventing completion. The registered source/built pair passed all 41 faces and 65,600 pixels per mode;
+independent root review accepted only three new output obligations. Scoped intake
+and actual execution remain separate gates.
 The private history retains six trace-rejected observations, four subsequent
 offline validations and two modern normal followups; no native capture was retried.

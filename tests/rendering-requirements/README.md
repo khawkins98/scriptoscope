@@ -411,8 +411,9 @@ ledger and documentation before its final required checks.
 
 Three cases and eighteen obligations append to the exact prior 92 cases and
 629 assessments, retained by `monkey-recorded-transition.json`. All 95 cases
-remain OPEN. Before registered execution review, totals are 111 verified and
-536 unknown across 647 obligations; all three new output obligations are UNKNOWN.
+remain OPEN. After independent root review of actual registered source/built execution, totals
+are 114 verified and 533 unknown across 647 obligations. Only the three new
+recorded-output obligations are promoted; their other fifteen remain unknown.
 
 Independent pins join normal ppat128 occurrence459, exact payload/catalog/load/URL
 and decoded pattern plane to the generic completed body event: 1,216 writes in

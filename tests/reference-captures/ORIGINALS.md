@@ -191,7 +191,9 @@ Execution remains separately bound from acquisition and scoped intake approval.
 Fresh controls share one fixed-order boot and a subsequent 288-key calibration.
 Actual font0/size12 metrics are recorded, identity null; no glyph/query payload
 is included. Scoped intake approval is independent of registered source/built
-execution. Normal requires the actual nonuniform same-owner ppat128 and completed
+execution. The registered pair matched all41 faces/65,600 pixels per mode;
+independent root review recomputed original PNG comparisons and actual dependencies.
+Normal requires the actual nonuniform same-owner ppat128 and completed
 modern body stage; original phase/provider and general body fidelity are unknown.
 Private originals and failure history are retained in asset
 `monkey288-three-state-20261020`, private commit

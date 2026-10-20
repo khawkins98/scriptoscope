@@ -5350,7 +5350,7 @@
         ],
         "typography": {
           "excluded": "No label raster in this exact direct case.",
-          "review": "Independent acquisition and corrected private comparison accepted; original six trace rejections retained. Public scoped attestation and registered execution require separate review. Three output obligations remain UNKNOWN until exact registered execution is accepted; all broader obligations unknown."
+          "review": "Independent automated root v5 scoped attestations and actual registered source/built output review approved on 2026-10-20 at clean execution105ed945. All41 faces/65600pixels per mode matched. Only three Monkey empty composited outputs promoted; actual bands and normal same-owner pattern catalog/load/URL/decoded plane/completed1216writes joined. Modern phase is not original phase truth; typography/provider/mask/whole-control obligations unknown. Original six private trace rejections retained."
         },
         "state": [
           "state.original"
@@ -5360,7 +5360,7 @@
         ],
         "interaction": {
           "excluded": "Direct pixel composition only. DOM focus, names, actions and teardown require separate cases.",
-          "review": "Independent acquisition and corrected private comparison accepted; original six trace rejections retained. Public scoped attestation and registered execution require separate review. Three output obligations remain UNKNOWN until exact registered execution is accepted; all broader obligations unknown."
+          "review": "Independent automated root v5 scoped attestations and actual registered source/built output review approved on 2026-10-20 at clean execution105ed945. All41 faces/65600pixels per mode matched. Only three Monkey empty composited outputs promoted; actual bands and normal same-owner pattern catalog/load/URL/decoded plane/completed1216writes joined. Modern phase is not original phase truth; typography/provider/mask/whole-control obligations unknown. Original six private trace rejections retained."
         }
       },
       "inventoryClosure": {
@@ -5461,7 +5461,7 @@
         ],
         "typography": {
           "excluded": "No label raster in this exact direct case.",
-          "review": "Independent acquisition and corrected private comparison accepted; original six trace rejections retained. Public scoped attestation and registered execution require separate review. Three output obligations remain UNKNOWN until exact registered execution is accepted; all broader obligations unknown."
+          "review": "Independent automated root v5 scoped attestations and actual registered source/built output review approved on 2026-10-20 at clean execution105ed945. All41 faces/65600pixels per mode matched. Only three Monkey empty composited outputs promoted; actual bands and normal same-owner pattern catalog/load/URL/decoded plane/completed1216writes joined. Modern phase is not original phase truth; typography/provider/mask/whole-control obligations unknown. Original six private trace rejections retained."
         },
         "state": [
           "state.original"
@@ -5471,7 +5471,7 @@
         ],
         "interaction": {
           "excluded": "Direct pixel composition only. DOM focus, names, actions and teardown require separate cases.",
-          "review": "Independent acquisition and corrected private comparison accepted; original six trace rejections retained. Public scoped attestation and registered execution require separate review. Three output obligations remain UNKNOWN until exact registered execution is accepted; all broader obligations unknown."
+          "review": "Independent automated root v5 scoped attestations and actual registered source/built output review approved on 2026-10-20 at clean execution105ed945. All41 faces/65600pixels per mode matched. Only three Monkey empty composited outputs promoted; actual bands and normal same-owner pattern catalog/load/URL/decoded plane/completed1216writes joined. Modern phase is not original phase truth; typography/provider/mask/whole-control obligations unknown. Original six private trace rejections retained."
         }
       },
       "inventoryClosure": {
@@ -5572,7 +5572,7 @@
         ],
         "typography": {
           "excluded": "No label raster in this exact direct case.",
-          "review": "Independent acquisition and corrected private comparison accepted; original six trace rejections retained. Public scoped attestation and registered execution require separate review. Three output obligations remain UNKNOWN until exact registered execution is accepted; all broader obligations unknown."
+          "review": "Independent automated root v5 scoped attestations and actual registered source/built output review approved on 2026-10-20 at clean execution105ed945. All41 faces/65600pixels per mode matched. Only three Monkey empty composited outputs promoted; actual bands and normal same-owner pattern catalog/load/URL/decoded plane/completed1216writes joined. Modern phase is not original phase truth; typography/provider/mask/whole-control obligations unknown. Original six private trace rejections retained."
         },
         "state": [
           "state.original"
@@ -5582,7 +5582,7 @@
         ],
         "interaction": {
           "excluded": "Direct pixel composition only. DOM focus, names, actions and teardown require separate cases.",
-          "review": "Independent acquisition and corrected private comparison accepted; original six trace rejections retained. Public scoped attestation and registered execution require separate review. Three output obligations remain UNKNOWN until exact registered execution is accepted; all broader obligations unknown."
+          "review": "Independent automated root v5 scoped attestations and actual registered source/built output review approved on 2026-10-20 at clean execution105ed945. All41 faces/65600pixels per mode matched. Only three Monkey empty composited outputs promoted; actual bands and normal same-owner pattern catalog/load/URL/decoded plane/completed1216writes joined. Modern phase is not original phase truth; typography/provider/mask/whole-control obligations unknown. Original six private trace rejections retained."
         }
       },
       "inventoryClosure": {
@@ -9326,7 +9326,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
-      "review": "Independent acquisition and corrected private comparison accepted; original six trace rejections retained. Public scoped attestation and registered execution require separate review. Three output obligations remain UNKNOWN until exact registered execution is accepted; all broader obligations unknown."
+      "review": "Independent automated root v5 scoped attestations and actual registered source/built output review approved on 2026-10-20 at clean execution105ed945. All41 faces/65600pixels per mode matched. Only three Monkey empty composited outputs promoted; actual bands and normal same-owner pattern catalog/load/URL/decoded plane/completed1216writes joined. Modern phase is not original phase truth; typography/provider/mask/whole-control obligations unknown. Original six private trace rejections retained."
     },
     {
       "caseId": "recorded.monkey-paradise.normal.empty.w80.h20.m288-profile",
@@ -9336,12 +9336,12 @@
       "assertions": [],
       "issues": [],
       "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
-      "review": "Independent acquisition and corrected private comparison accepted; original six trace rejections retained. Public scoped attestation and registered execution require separate review. Three output obligations remain UNKNOWN until exact registered execution is accepted; all broader obligations unknown."
+      "review": "Independent automated root v5 scoped attestations and actual registered source/built output review approved on 2026-10-20 at clean execution105ed945. All41 faces/65600pixels per mode matched. Only three Monkey empty composited outputs promoted; actual bands and normal same-owner pattern catalog/load/URL/decoded plane/completed1216writes joined. Modern phase is not original phase truth; typography/provider/mask/whole-control obligations unknown. Original six private trace rejections retained."
     },
     {
       "caseId": "recorded.monkey-paradise.normal.empty.w80.h20.m288-profile",
       "requirementId": "output.recorded-composited-face",
-      "status": "unknown",
+      "status": "verified",
       "evidence": [
         "recorded.monkey-paradise.normal"
       ],
@@ -9349,8 +9349,8 @@
         "recorded.monkey-three-state"
       ],
       "issues": [],
-      "rationale": "Exact independently reviewed native 80\u00d720 composited face matched actual public source and built execution under the finite measured profile and recorded state/context. Only complete output pixels are verified; actual eight bands and missing ppat0 are joined without claiming a completed interior fill.",
-      "review": "Independent acquisition and corrected private comparison accepted; original six trace rejections retained. Public scoped attestation and registered execution require separate review. Three output obligations remain UNKNOWN until exact registered execution is accepted; all broader obligations unknown."
+      "rationale": "Exact native 80x20 white-composited output matched actual public source/built execution under this finite profile and recorded state/context. Actual bands and normal same-owner ppat128/catalog/load/URL/decoded plane/completed union join the output; original phase/provider/general body fidelity remain unknown. Pressed/inactive retain missing0 without invented completion.",
+      "review": "Independent automated root v5 scoped attestations and actual registered source/built output review approved on 2026-10-20 at clean execution105ed945. All41 faces/65600pixels per mode matched. Only three Monkey empty composited outputs promoted; actual bands and normal same-owner pattern catalog/load/URL/decoded plane/completed1216writes joined. Modern phase is not original phase truth; typography/provider/mask/whole-control obligations unknown. Original six private trace rejections retained."
     },
     {
       "caseId": "recorded.monkey-paradise.normal.empty.w80.h20.m288-profile",
@@ -9360,7 +9360,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
-      "review": "Independent acquisition and corrected private comparison accepted; original six trace rejections retained. Public scoped attestation and registered execution require separate review. Three output obligations remain UNKNOWN until exact registered execution is accepted; all broader obligations unknown."
+      "review": "Independent automated root v5 scoped attestations and actual registered source/built output review approved on 2026-10-20 at clean execution105ed945. All41 faces/65600pixels per mode matched. Only three Monkey empty composited outputs promoted; actual bands and normal same-owner pattern catalog/load/URL/decoded plane/completed1216writes joined. Modern phase is not original phase truth; typography/provider/mask/whole-control obligations unknown. Original six private trace rejections retained."
     },
     {
       "caseId": "recorded.monkey-paradise.normal.empty.w80.h20.m288-profile",
@@ -9370,7 +9370,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
-      "review": "Independent acquisition and corrected private comparison accepted; original six trace rejections retained. Public scoped attestation and registered execution require separate review. Three output obligations remain UNKNOWN until exact registered execution is accepted; all broader obligations unknown."
+      "review": "Independent automated root v5 scoped attestations and actual registered source/built output review approved on 2026-10-20 at clean execution105ed945. All41 faces/65600pixels per mode matched. Only three Monkey empty composited outputs promoted; actual bands and normal same-owner pattern catalog/load/URL/decoded plane/completed1216writes joined. Modern phase is not original phase truth; typography/provider/mask/whole-control obligations unknown. Original six private trace rejections retained."
     },
     {
       "caseId": "recorded.monkey-paradise.normal.empty.w80.h20.m288-profile",
@@ -9380,7 +9380,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
-      "review": "Independent acquisition and corrected private comparison accepted; original six trace rejections retained. Public scoped attestation and registered execution require separate review. Three output obligations remain UNKNOWN until exact registered execution is accepted; all broader obligations unknown."
+      "review": "Independent automated root v5 scoped attestations and actual registered source/built output review approved on 2026-10-20 at clean execution105ed945. All41 faces/65600pixels per mode matched. Only three Monkey empty composited outputs promoted; actual bands and normal same-owner pattern catalog/load/URL/decoded plane/completed1216writes joined. Modern phase is not original phase truth; typography/provider/mask/whole-control obligations unknown. Original six private trace rejections retained."
     },
     {
       "caseId": "recorded.monkey-paradise.pressed.empty.w80.h20.m288-profile",
@@ -9390,7 +9390,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
-      "review": "Independent acquisition and corrected private comparison accepted; original six trace rejections retained. Public scoped attestation and registered execution require separate review. Three output obligations remain UNKNOWN until exact registered execution is accepted; all broader obligations unknown."
+      "review": "Independent automated root v5 scoped attestations and actual registered source/built output review approved on 2026-10-20 at clean execution105ed945. All41 faces/65600pixels per mode matched. Only three Monkey empty composited outputs promoted; actual bands and normal same-owner pattern catalog/load/URL/decoded plane/completed1216writes joined. Modern phase is not original phase truth; typography/provider/mask/whole-control obligations unknown. Original six private trace rejections retained."
     },
     {
       "caseId": "recorded.monkey-paradise.pressed.empty.w80.h20.m288-profile",
@@ -9400,12 +9400,12 @@
       "assertions": [],
       "issues": [],
       "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
-      "review": "Independent acquisition and corrected private comparison accepted; original six trace rejections retained. Public scoped attestation and registered execution require separate review. Three output obligations remain UNKNOWN until exact registered execution is accepted; all broader obligations unknown."
+      "review": "Independent automated root v5 scoped attestations and actual registered source/built output review approved on 2026-10-20 at clean execution105ed945. All41 faces/65600pixels per mode matched. Only three Monkey empty composited outputs promoted; actual bands and normal same-owner pattern catalog/load/URL/decoded plane/completed1216writes joined. Modern phase is not original phase truth; typography/provider/mask/whole-control obligations unknown. Original six private trace rejections retained."
     },
     {
       "caseId": "recorded.monkey-paradise.pressed.empty.w80.h20.m288-profile",
       "requirementId": "output.recorded-composited-face",
-      "status": "unknown",
+      "status": "verified",
       "evidence": [
         "recorded.monkey-paradise.pressed"
       ],
@@ -9413,8 +9413,8 @@
         "recorded.monkey-three-state"
       ],
       "issues": [],
-      "rationale": "Exact independently reviewed native 80\u00d720 composited face matched actual public source and built execution under the finite measured profile and recorded state/context. Only complete output pixels are verified; actual eight bands and missing ppat0 are joined without claiming a completed interior fill.",
-      "review": "Independent acquisition and corrected private comparison accepted; original six trace rejections retained. Public scoped attestation and registered execution require separate review. Three output obligations remain UNKNOWN until exact registered execution is accepted; all broader obligations unknown."
+      "rationale": "Exact native 80x20 white-composited output matched actual public source/built execution under this finite profile and recorded state/context. Actual bands and normal same-owner ppat128/catalog/load/URL/decoded plane/completed union join the output; original phase/provider/general body fidelity remain unknown. Pressed/inactive retain missing0 without invented completion.",
+      "review": "Independent automated root v5 scoped attestations and actual registered source/built output review approved on 2026-10-20 at clean execution105ed945. All41 faces/65600pixels per mode matched. Only three Monkey empty composited outputs promoted; actual bands and normal same-owner pattern catalog/load/URL/decoded plane/completed1216writes joined. Modern phase is not original phase truth; typography/provider/mask/whole-control obligations unknown. Original six private trace rejections retained."
     },
     {
       "caseId": "recorded.monkey-paradise.pressed.empty.w80.h20.m288-profile",
@@ -9424,7 +9424,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
-      "review": "Independent acquisition and corrected private comparison accepted; original six trace rejections retained. Public scoped attestation and registered execution require separate review. Three output obligations remain UNKNOWN until exact registered execution is accepted; all broader obligations unknown."
+      "review": "Independent automated root v5 scoped attestations and actual registered source/built output review approved on 2026-10-20 at clean execution105ed945. All41 faces/65600pixels per mode matched. Only three Monkey empty composited outputs promoted; actual bands and normal same-owner pattern catalog/load/URL/decoded plane/completed1216writes joined. Modern phase is not original phase truth; typography/provider/mask/whole-control obligations unknown. Original six private trace rejections retained."
     },
     {
       "caseId": "recorded.monkey-paradise.pressed.empty.w80.h20.m288-profile",
@@ -9434,7 +9434,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
-      "review": "Independent acquisition and corrected private comparison accepted; original six trace rejections retained. Public scoped attestation and registered execution require separate review. Three output obligations remain UNKNOWN until exact registered execution is accepted; all broader obligations unknown."
+      "review": "Independent automated root v5 scoped attestations and actual registered source/built output review approved on 2026-10-20 at clean execution105ed945. All41 faces/65600pixels per mode matched. Only three Monkey empty composited outputs promoted; actual bands and normal same-owner pattern catalog/load/URL/decoded plane/completed1216writes joined. Modern phase is not original phase truth; typography/provider/mask/whole-control obligations unknown. Original six private trace rejections retained."
     },
     {
       "caseId": "recorded.monkey-paradise.pressed.empty.w80.h20.m288-profile",
@@ -9444,7 +9444,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
-      "review": "Independent acquisition and corrected private comparison accepted; original six trace rejections retained. Public scoped attestation and registered execution require separate review. Three output obligations remain UNKNOWN until exact registered execution is accepted; all broader obligations unknown."
+      "review": "Independent automated root v5 scoped attestations and actual registered source/built output review approved on 2026-10-20 at clean execution105ed945. All41 faces/65600pixels per mode matched. Only three Monkey empty composited outputs promoted; actual bands and normal same-owner pattern catalog/load/URL/decoded plane/completed1216writes joined. Modern phase is not original phase truth; typography/provider/mask/whole-control obligations unknown. Original six private trace rejections retained."
     },
     {
       "caseId": "recorded.monkey-paradise.inactive.empty.w80.h20.m288-profile",
@@ -9454,7 +9454,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
-      "review": "Independent acquisition and corrected private comparison accepted; original six trace rejections retained. Public scoped attestation and registered execution require separate review. Three output obligations remain UNKNOWN until exact registered execution is accepted; all broader obligations unknown."
+      "review": "Independent automated root v5 scoped attestations and actual registered source/built output review approved on 2026-10-20 at clean execution105ed945. All41 faces/65600pixels per mode matched. Only three Monkey empty composited outputs promoted; actual bands and normal same-owner pattern catalog/load/URL/decoded plane/completed1216writes joined. Modern phase is not original phase truth; typography/provider/mask/whole-control obligations unknown. Original six private trace rejections retained."
     },
     {
       "caseId": "recorded.monkey-paradise.inactive.empty.w80.h20.m288-profile",
@@ -9464,12 +9464,12 @@
       "assertions": [],
       "issues": [],
       "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
-      "review": "Independent acquisition and corrected private comparison accepted; original six trace rejections retained. Public scoped attestation and registered execution require separate review. Three output obligations remain UNKNOWN until exact registered execution is accepted; all broader obligations unknown."
+      "review": "Independent automated root v5 scoped attestations and actual registered source/built output review approved on 2026-10-20 at clean execution105ed945. All41 faces/65600pixels per mode matched. Only three Monkey empty composited outputs promoted; actual bands and normal same-owner pattern catalog/load/URL/decoded plane/completed1216writes joined. Modern phase is not original phase truth; typography/provider/mask/whole-control obligations unknown. Original six private trace rejections retained."
     },
     {
       "caseId": "recorded.monkey-paradise.inactive.empty.w80.h20.m288-profile",
       "requirementId": "output.recorded-composited-face",
-      "status": "unknown",
+      "status": "verified",
       "evidence": [
         "recorded.monkey-paradise.inactive"
       ],
@@ -9477,8 +9477,8 @@
         "recorded.monkey-three-state"
       ],
       "issues": [],
-      "rationale": "Exact independently reviewed native 80\u00d720 composited face matched actual public source and built execution under the finite measured profile and recorded state/context. Only complete output pixels are verified; actual eight bands and missing ppat0 are joined without claiming a completed interior fill.",
-      "review": "Independent acquisition and corrected private comparison accepted; original six trace rejections retained. Public scoped attestation and registered execution require separate review. Three output obligations remain UNKNOWN until exact registered execution is accepted; all broader obligations unknown."
+      "rationale": "Exact native 80x20 white-composited output matched actual public source/built execution under this finite profile and recorded state/context. Actual bands and normal same-owner ppat128/catalog/load/URL/decoded plane/completed union join the output; original phase/provider/general body fidelity remain unknown. Pressed/inactive retain missing0 without invented completion.",
+      "review": "Independent automated root v5 scoped attestations and actual registered source/built output review approved on 2026-10-20 at clean execution105ed945. All41 faces/65600pixels per mode matched. Only three Monkey empty composited outputs promoted; actual bands and normal same-owner pattern catalog/load/URL/decoded plane/completed1216writes joined. Modern phase is not original phase truth; typography/provider/mask/whole-control obligations unknown. Original six private trace rejections retained."
     },
     {
       "caseId": "recorded.monkey-paradise.inactive.empty.w80.h20.m288-profile",
@@ -9488,7 +9488,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
-      "review": "Independent acquisition and corrected private comparison accepted; original six trace rejections retained. Public scoped attestation and registered execution require separate review. Three output obligations remain UNKNOWN until exact registered execution is accepted; all broader obligations unknown."
+      "review": "Independent automated root v5 scoped attestations and actual registered source/built output review approved on 2026-10-20 at clean execution105ed945. All41 faces/65600pixels per mode matched. Only three Monkey empty composited outputs promoted; actual bands and normal same-owner pattern catalog/load/URL/decoded plane/completed1216writes joined. Modern phase is not original phase truth; typography/provider/mask/whole-control obligations unknown. Original six private trace rejections retained."
     },
     {
       "caseId": "recorded.monkey-paradise.inactive.empty.w80.h20.m288-profile",
@@ -9498,7 +9498,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
-      "review": "Independent acquisition and corrected private comparison accepted; original six trace rejections retained. Public scoped attestation and registered execution require separate review. Three output obligations remain UNKNOWN until exact registered execution is accepted; all broader obligations unknown."
+      "review": "Independent automated root v5 scoped attestations and actual registered source/built output review approved on 2026-10-20 at clean execution105ed945. All41 faces/65600pixels per mode matched. Only three Monkey empty composited outputs promoted; actual bands and normal same-owner pattern catalog/load/URL/decoded plane/completed1216writes joined. Modern phase is not original phase truth; typography/provider/mask/whole-control obligations unknown. Original six private trace rejections retained."
     },
     {
       "caseId": "recorded.monkey-paradise.inactive.empty.w80.h20.m288-profile",
@@ -9508,8 +9508,8 @@
       "assertions": [],
       "issues": [],
       "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
-      "review": "Independent acquisition and corrected private comparison accepted; original six trace rejections retained. Public scoped attestation and registered execution require separate review. Three output obligations remain UNKNOWN until exact registered execution is accepted; all broader obligations unknown."
+      "review": "Independent automated root v5 scoped attestations and actual registered source/built output review approved on 2026-10-20 at clean execution105ed945. All41 faces/65600pixels per mode matched. Only three Monkey empty composited outputs promoted; actual bands and normal same-owner pattern catalog/load/URL/decoded plane/completed1216writes joined. Modern phase is not original phase truth; typography/provider/mask/whole-control obligations unknown. Original six private trace rejections retained."
     }
   ],
-  "inventorySha256": "17381d908fbea0b1fe1fa9d760a535a904eacf69a6d68a00a1070daa46e60fe1"
+  "inventorySha256": "e4f8ba839422b7b3c44f7e86e6e4e0efbff51acd851d66245186f7e1dc989c3e"
 }
