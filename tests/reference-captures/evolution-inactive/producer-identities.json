@@ -1,0 +1,42 @@
+[
+  {
+    "name": "reference.ts",
+    "bytes": 2257,
+    "sha256": "9f93f1b8bb1133245771359ced5421312eaad9693ad0b6bd907b463297cd7060"
+  },
+  {
+    "name": "vite.config.mjs",
+    "bytes": 2150,
+    "sha256": "24ee79c5b70b46b3a89c1c231862b84dd7384340d72ef1154461d4cc1b5979d6"
+  },
+  {
+    "name": "emulator-worker.ts",
+    "bytes": 38197,
+    "sha256": "36fef450c0c892f57ec88f3229c0d9579a85caa1629b9703b30e17792763969d"
+  },
+  {
+    "name": "emulator-input.ts",
+    "bytes": 14561,
+    "sha256": "b69f0527aabd322e8cf0d0840d6faef769cd53a717a6d3d6e7cf36118a1dc0c5"
+  },
+  {
+    "name": "BasiliskII.js",
+    "bytes": 156114,
+    "sha256": "4fd750e202686a7b7c3bd0055dbe33d21dd6b3ce2639da8da814ef1036d1c66b"
+  },
+  {
+    "name": "BasiliskII.wasm",
+    "bytes": 1713564,
+    "sha256": "0be9b5ba1179b65d9d1bd30b3cc35ee56daf6713ba1353048c03229f641680bb"
+  },
+  {
+    "name": "capture-state-absolute.mjs",
+    "bytes": 6705,
+    "sha256": "0349f7f9a7eb91f2eda9ccc7473406abdc25c5d9f1bedcdd5a80a3ca33401dc8"
+  },
+  {
+    "name": "crop-state.py",
+    "bytes": 1010,
+    "sha256": "36299e64a2072469a9803f7801335f4aabb930fc7d0cd59efb103c8c90a75fa2"
+  }
+]

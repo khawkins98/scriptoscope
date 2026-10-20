@@ -1,0 +1,17 @@
+{
+  "path": "evolution-calibration/prepared-profile.json",
+  "sha256": "646be3846ec055419aebfd87ca38a9f79912ee231c5b0a0863ebff26b84da784",
+  "id": "display-profile:b97272731fe52ce8a45726f7e736b4d03c6bba739879a45d7f88f22623cd3a1d",
+  "status": "MEASURED_FINITE_RGB16_PREPARATION_BOUND_TO_EMPTY_OBSERVATIONS",
+  "sourceArchiveSha256": "9491fd7a68134249988b07971d222527709636438c59ca1d0daf5ade82a26740",
+  "measurement": {
+    "path": "evolution-calibration/measurement.json",
+    "sha256": "789d81b5a7c063e3e593b000a8c8e135c6777345e7d7258674daa2f089bd7535"
+  },
+  "privateProfile": {
+    "sha256": "917df51a43e79c16ba0a349dafe7f6b042831f67cd9adad3e64a5119ab00631d",
+    "id": "display-profile:1b1fb0c472c8c81b61cc5a380e486be825ec1453ef68f712243510705caa8eb0"
+  },
+  "metadataDelta": "Status/evidence descriptions changed only; measured mappings/devicePalette/producer exact to reviewed private profile.",
+  "executionScope": "Empty state0/2 only; private comparison passed, public registered source/built execution checked separately."
+}

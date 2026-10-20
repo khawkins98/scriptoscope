@@ -1,0 +1,297 @@
+{
+  "source": {
+    "slug": "evolution",
+    "path": "themes/evolution/scheme.rsrc",
+    "format": "rsrc",
+    "archiveSha256": "9491fd7a68134249988b07971d222527709636438c59ca1d0daf5ade82a26740",
+    "entryIndex": null,
+    "entryName": null,
+    "forkSha256": "9491fd7a68134249988b07971d222527709636438c59ca1d0daf5ade82a26740",
+    "selectionReviewStatus": "reviewed-contract-input",
+    "selectionReason": "Repository source is an explicit standalone resource fork, with no container selection.",
+    "selectionReviewEvidence": "evolution"
+  },
+  "engineComponent": {
+    "id": "engine.kaleidoscope-2.3.1-kdef0",
+    "kind": "engine",
+    "version": "Kaleidoscope 2.3.1 kDEF 0 68k",
+    "bytes": 107726,
+    "sha256": "2c027276dae2355964a0dde1ace31f60ba845ab2c5fbf0496fd34ab2afe7c342",
+    "extractionReference": "docs/spec/kdef-binary-inventory.md",
+    "redistributed": false
+  },
+  "prebootDisks": [
+    {
+      "path": "system755-run.dsk",
+      "bytes": 25165824,
+      "sha256": "0d75bcfa6ab343dae7db9ed25c2b41e9e469d51185157c6c0d9a10181a7e0af5"
+    },
+    {
+      "path": "oracle64.dsk",
+      "bytes": 67108864,
+      "sha256": "069b8b78608cbbab4d1e269562b20c7d41a05a2f853adaa050948b6b54353b64"
+    }
+  ],
+  "fixtureAndProducerInputs": [
+    {
+      "name": "consumer-bindings.json",
+      "bytes": 1155,
+      "sha256": "bc3d7b081c65f2a8f23e691383887a3954450e2577debe2d73e5f359b1ee3eac"
+    },
+    {
+      "name": "candidate.json",
+      "bytes": 1252,
+      "sha256": "1c6fc8b22bd3248d162a5b77b1af7e908419ec31a8fe40dc8d1d196bb7e24a6b"
+    },
+    {
+      "name": "run.json",
+      "bytes": 2173,
+      "sha256": "4e8930c37c10190fa00f86292e40cf5e9e1932355b0086c4cbeffccbf9a9be75"
+    },
+    {
+      "name": "EvolutionFourStates.c",
+      "bytes": 22805,
+      "sha256": "8eb5801385b83fba56a1dc48551b2500c7a2f216a3d2ebd5b34ffb4fabfeac59"
+    },
+    {
+      "name": "EvolutionFourStates-with-size.bin",
+      "bytes": 72448,
+      "sha256": "7051555c7ec9df94cba810f896601424799132cd0318cbe25cff996795c7b3b4"
+    },
+    {
+      "name": "ColorMapProbe-evolution1971.c",
+      "bytes": 71132,
+      "sha256": "0d67d9673b8a5b96d07db9bf456ac0f4feda19eaae5705b9b0ed821d4804b374"
+    },
+    {
+      "name": "ColorMapProbe-evolution1971-with-size.bin",
+      "bytes": 82816,
+      "sha256": "37e7e079f57fe9e198da1abea1910bcacdc56b78838a925d0bcbf43efd3fc5fb"
+    },
+    {
+      "name": "query-inputs.json",
+      "bytes": 141532,
+      "sha256": "002fc93fc512f3cf239552157367c680260bc22d882933952dc6ed56c4ba4ca8"
+    },
+    {
+      "name": "Evolution.bin",
+      "bytes": 1650432,
+      "sha256": "318cbca646de84f4d97ae12507fd4e7daa0f8476a0146a7624256f2eeb0af2c4"
+    },
+    {
+      "name": "scheme-wrapper.json",
+      "bytes": 762,
+      "sha256": "6ef1f5098e5496d3c617330fb4f9be775b07b6aed56d3d2b3bdefb898449e1ac"
+    },
+    {
+      "name": "system755-before-boot.dsk",
+      "bytes": 25165824,
+      "sha256": "0d75bcfa6ab343dae7db9ed25c2b41e9e469d51185157c6c0d9a10181a7e0af5"
+    },
+    {
+      "name": "oracle-before-boot.dsk",
+      "bytes": 67108864,
+      "sha256": "069b8b78608cbbab4d1e269562b20c7d41a05a2f853adaa050948b6b54353b64"
+    },
+    {
+      "name": "reference.ts",
+      "bytes": 2257,
+      "sha256": "9f93f1b8bb1133245771359ced5421312eaad9693ad0b6bd907b463297cd7060"
+    },
+    {
+      "name": "vite.config.mjs",
+      "bytes": 2150,
+      "sha256": "24ee79c5b70b46b3a89c1c231862b84dd7384340d72ef1154461d4cc1b5979d6"
+    },
+    {
+      "name": "emulator-worker.ts",
+      "bytes": 38197,
+      "sha256": "36fef450c0c892f57ec88f3229c0d9579a85caa1629b9703b30e17792763969d"
+    },
+    {
+      "name": "emulator-input.ts",
+      "bytes": 14561,
+      "sha256": "b69f0527aabd322e8cf0d0840d6faef769cd53a717a6d3d6e7cf36118a1dc0c5"
+    },
+    {
+      "name": "BasiliskII.js",
+      "bytes": 156114,
+      "sha256": "4fd750e202686a7b7c3bd0055dbe33d21dd6b3ce2639da8da814ef1036d1c66b"
+    },
+    {
+      "name": "BasiliskII.wasm",
+      "bytes": 1713564,
+      "sha256": "0be9b5ba1179b65d9d1bd30b3cc35ee56daf6713ba1353048c03229f641680bb"
+    },
+    {
+      "name": "Quadra-650.rom",
+      "bytes": 1048576,
+      "sha256": "05ad753fb594e656cf078023ec189e09e2a7655a780de993b75b8c51ed6b09ca"
+    },
+    {
+      "name": "preboot.json",
+      "bytes": 5680,
+      "sha256": "41b64ee37d01db89cfc4702211e275c7125e7f6fe6bfb79ef69182d6b1febf4a"
+    },
+    {
+      "name": "preboot-review.json",
+      "bytes": 507,
+      "sha256": "f2d7d6f5c8891fb33a7f5edb42eac47b84f83a7f6e25e01c7f87bbd4ab4c96bc"
+    },
+    {
+      "name": "preboot-checkpoint.json",
+      "bytes": 29384,
+      "sha256": "8665bf441adf703e4f1fe9fb7d4f55b416f6fb7611810d36c1264631520b184e"
+    },
+    {
+      "name": "start.py",
+      "bytes": 1939,
+      "sha256": "41fce43e205037251f8be573387aa98c1d69c7eabbc573659db3d6548c9992b9"
+    },
+    {
+      "name": "export.py",
+      "bytes": 7001,
+      "sha256": "663ca4f9bf46cc0040c5f1fdb642e8061c40e7ef2b894ed154823ef31af2c2c7"
+    },
+    {
+      "name": "ack-state.mjs",
+      "bytes": 236,
+      "sha256": "5b6c231b4bf353aeb2e67831194e264aec83a9fee5f6f58fcbac632b0836b96f"
+    },
+    {
+      "name": "capture-calibration.mjs",
+      "bytes": 2631,
+      "sha256": "4d914cd6b4711d0db21cbc75e13c33915682af49981f924fb255c5bcc2f062ab"
+    },
+    {
+      "name": "capture-state-absolute.mjs",
+      "bytes": 6705,
+      "sha256": "0349f7f9a7eb91f2eda9ccc7473406abdc25c5d9f1bedcdd5a80a3ca33401dc8"
+    },
+    {
+      "name": "check-native.py",
+      "bytes": 3909,
+      "sha256": "fb9a546956d84822de36cc472b162293fe53aa78d50584813b13375dd6cb4280"
+    },
+    {
+      "name": "consumer_retention.py",
+      "bytes": 4548,
+      "sha256": "4e6c1f510ae646aafb2b2bf59832b8b971d837e3013db895f3ccf97c38a79e7c"
+    },
+    {
+      "name": "crop-state.py",
+      "bytes": 1010,
+      "sha256": "36299e64a2072469a9803f7801335f4aabb930fc7d0cd59efb103c8c90a75fa2"
+    },
+    {
+      "name": "join-calibration.py",
+      "bytes": 5451,
+      "sha256": "905e88204508f822b5f0031b3cd07eaf8da1dfb6cf4d109f6544031837da744e"
+    },
+    {
+      "name": "physical-calibration-key.mjs",
+      "bytes": 2137,
+      "sha256": "3d1cd5c67dda10c9b1410545f33918ffae9f07a0102546beb5a9217ec136b670"
+    },
+    {
+      "name": "physical-consumer-key.mjs",
+      "bytes": 3374,
+      "sha256": "6ac69faf89b32a418c5c3396aac63ebaadd745f0f7bcd483f0e440a4c946b76f"
+    },
+    {
+      "name": "retain-calibration.py",
+      "bytes": 1131,
+      "sha256": "fae6172c649e72bc7c6a3b2e90322a9de00a3f1be01a058711ca15b733e87294"
+    },
+    {
+      "name": "retain-final-ack.py",
+      "bytes": 53,
+      "sha256": "6fdb33ef3ff8d33dc42227292d48bb2cd4b40eb83432fcde4a1f41b3c8b2c0d5"
+    },
+    {
+      "name": "retain-font-query.py",
+      "bytes": 55,
+      "sha256": "4a822b32382b4e362c5a1903be53e7e0a03c9b744fb05866d86220f1543fc28c"
+    },
+    {
+      "name": "retain-state.py",
+      "bytes": 72,
+      "sha256": "15ea7125923d43a16dfcb4222a3645f36238f35b3aa814617a2bb1cc71e0303c"
+    },
+    {
+      "name": "validate-consumer-logs.py",
+      "bytes": 5990,
+      "sha256": "badae1443680007bd9ee78cb7a8bd1e77aa272f654e8dfd2e3374dc9f97d492f"
+    }
+  ],
+  "osVersionObserved": "7.5.5 (Gestalt 0x755)",
+  "observedControl": {
+    "procedureId": 0,
+    "variant": 0,
+    "hilite": 0,
+    "value": 0,
+    "enabled": true,
+    "windowActive": true,
+    "api": "NewControl",
+    "drawApi": "Draw1Control",
+    "stateApi": "HiliteControl",
+    "defaultApiInvoked": false,
+    "title": "",
+    "controlRect": [
+      20,
+      20,
+      80,
+      20
+    ],
+    "portOrigin": [
+      0,
+      0
+    ],
+    "portBounds": [
+      0,
+      0,
+      160,
+      80
+    ],
+    "effectiveClipRect": [
+      0,
+      0,
+      160,
+      80
+    ],
+    "backgroundRGB": [
+      255,
+      255,
+      255
+    ],
+    "state": "normal",
+    "actualFontRequest": {
+      "number": 0,
+      "size": 0,
+      "face": 0
+    },
+    "actualFontInfo": {
+      "ascent": 12,
+      "descent": 3,
+      "widMax": 14,
+      "leading": 1
+    },
+    "textWidth": 0
+  },
+  "unknown": [
+    "pattern origin",
+    "original selected painter/provider",
+    "cache/search/patch order",
+    "font provider/consumption",
+    "original mask/alpha",
+    "whole-control fidelity"
+  ],
+  "sharedBootIncident": "Before fixture/measurement, Finder self-move modal during scheme-open input; cause UNPROVEN. Authorized ordinary pointer release/Return and File > Open recovery in same boot; Evolution visibly selected before fixture. No measurement retry.",
+  "closure": {
+    "normalShutdownRequested": true,
+    "browserClosed": true,
+    "serverClosed": true,
+    "hfsUnmounted": true,
+    "explicitWorkerPoweroffAcknowledgment": "UNKNOWN"
+  }
+}
