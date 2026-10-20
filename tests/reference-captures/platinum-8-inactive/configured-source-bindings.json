@@ -1,0 +1,38 @@
+{
+  "canonicalSource": {
+    "slug": "platinum-8",
+    "path": "themes/platinum-8/scheme.sit",
+    "format": "sit",
+    "archiveSha256": "1f064eb95c8c7ba5b71bf97b91b79bec08177ed289a44b985b5af9d3ac5683b7",
+    "entryIndex": 2,
+    "entryName": "Platinum 8 Folder/Platinum 8",
+    "forkSha256": "97165ac623a4cdfda072b5f849d90aa0e087b2fbd05bc44966898c2238231f75",
+    "selectionReviewStatus": "reviewed-contract-input",
+    "selectionReason": "Explicit scheme-named Colr entry \"Platinum 8 Folder/Platinum 8\"; readme/icon/font forks excluded by this declared choice, never by size.",
+    "selectionReviewEvidence": "platinum-8"
+  },
+  "actualCopl": [
+    "CoplResourceFile.file.name=Platinum 8 volumeRef=-3 parentDir=2 fileID=18 flags=512 logicalEOF=137280 physicalEOF=138240",
+    "CoplResourceFile.file.name=Platinum 8 volumeRef=-3 parentDir=2 fileID=18 flags=512 logicalEOF=137280 physicalEOF=138240"
+  ],
+  "configuredFCB": {
+    "volumeRef": -3,
+    "parentDir": 2,
+    "fileID": 18
+  },
+  "stoppedConfiguredFile": {
+    "name": "stopped-Platinum 8.bin",
+    "bytes": 137472,
+    "sha256": "b672c22143224a5a0a801d25743c5fc0737597b32ed917adea743f9fb5fe34e0"
+  },
+  "resourceFork": {
+    "bytes": 137280,
+    "sha256": "97165ac623a4cdfda072b5f849d90aa0e087b2fbd05bc44966898c2238231f75"
+  },
+  "installedEngineResourceFork": {
+    "bytes": 1005535,
+    "sha256": "cb903bef4410feb096d65b5a4c9383fa2a3c943e6afef6d3c13463b48267d333"
+  },
+  "actualDefinitionsMatchStoppedKaleidoscope": "Bound independent acquisition review; payload hashes retained in pixel conditions",
+  "limits": "Configured file only; no private selected resource/provider/cache inference."
+}

@@ -5,20 +5,21 @@ import { createHash } from 'node:crypto';
 import { readContract, assessCorpus, reviewDigest, digest } from '../reference-captures/contract.mjs';
 
 export const REQUIREMENT = 'output.recorded-composited-face';
-export const PROFILE = { path: 'tests/decoder-fixtures/measured-display-profile.json', id: 'display-profile:506eb4e615f81385b6143c63a9612f4c899b14e2c93c60b67358b436777f772d', sha256: 'd8c495d980029f857633652c5e1abd3bc4f289fb8705e03fd750bc9bdff96d00' };
+export const RECORDED_CASES = JSON.parse(readFileSync(new URL('../decoder-fixtures/recorded-case-registry.json', import.meta.url)));
+export const PROFILE = RECORDED_CASES['windows-95'].profile;
+export const CRAYON_PROFILE = RECORDED_CASES['crayon-os'].profile;
+export const LISA_PROFILE = RECORDED_CASES['apple-lisa'].profile;
+export const ANIMALS_PROFILE = RECORDED_CASES.animals.profile;
+export const BEOS_PROFILE = RECORDED_CASES['beos-r503'].profile;
 const CRAYON_SOURCE_PINS = JSON.parse(readFileSync(new URL('../decoder-fixtures/crayon-recorded-source-pins.json', import.meta.url)));
-export const CRAYON_PROFILE = { path: 'tests/decoder-fixtures/measured-display-profile-crayon.json', id: 'display-profile:d4e4f9ffb69f1292f2c86b3fb2914561c58f8b38a5aeb53336e6cf914b10a1a0', sha256: 'fbd0eb8abb9e5e153fa4ddb0d825a2fea045a6f4a19baca445d12b449ff47b5a' };
 const LISA_SOURCE_PINS = JSON.parse(readFileSync(new URL('../decoder-fixtures/lisa-recorded-source-pins.json', import.meta.url)));
 export const STATE_SOURCE_PINS = JSON.parse(readFileSync(new URL('../decoder-fixtures/recorded-state-source-pins.json', import.meta.url)));
 export const sourcePinsFor = (slug,state) => STATE_SOURCE_PINS[slug]?.[state] ?? (state === 'normal' ? (slug === 'crayon-os' ? CRAYON_SOURCE_PINS : slug === 'apple-lisa' ? LISA_SOURCE_PINS : undefined) : undefined);
-export const LISA_PROFILE = { path: 'tests/decoder-fixtures/measured-display-profile-lisa.json', id: 'display-profile:9bbdfe3464638676c8c8aac27d1b316a3f6bd21837be19f937e59fa5df4730a2', sha256: 'f48d2807c6b881b0a3fdd851b866a47116e2df2b998201b95c6c5854befdd1d6' };
-export const ANIMALS_PROFILE = { path: 'tests/decoder-fixtures/measured-display-profile-animals.json', id: 'display-profile:287bde96a0ee72c13658b53c2e24643264325f79ded18ae0cd8d96257a9082b7', sha256: '8212d54dc56f28dd4825c55591e09b18ce5d9c317b647995a3d4b0635b99c5d5' };
-export const BEOS_PROFILE = { path: 'tests/decoder-fixtures/measured-display-profile-beos.json', id: 'display-profile:913a5b3ad1d6501ad9059a4cad783c88c930a9647f32b0989993f4af7f2ee538', sha256: 'e70ab19f818d1281488fc0a6d4a2df9a46e816e5e0127b1176be423cb94a2c58' };
-export const profileFor = slug => slug === 'beos-r503' ? BEOS_PROFILE : slug === 'animals' ? ANIMALS_PROFILE : slug === 'apple-lisa' ? LISA_PROFILE : slug === 'crayon-os' ? CRAYON_PROFILE : PROFILE;
+export const profileFor = slug => RECORDED_CASES[slug]?.profile;
 export const CRAYON_CONTEXT = { controlOrigin: [20,20], portOrigin: [0,0], patternOrigin: {status:'unknown'}, clip: {kind:'rect',rect:{x:0,y:0,w:160,h:80}} };
 const check = (ok, message) => { if (!ok) throw Error(`recorded face: ${message}`); };
-export const caseId = (slug, state) => `recorded.${slug}.${state}.empty.w80.h20.${slug === 'beos-r503' ? 'b278-v2' : slug === 'animals' ? 'a209' : slug === 'apple-lisa' ? 'v16l' : slug === 'crayon-os' ? 'v14c' : 'v9'}-profile`;
-export const exactOptions = (state, slug) => ({ label: '', minWidth: 80, height: 20, default: false, pressed: state === 'pressed', disabled: state === 'inactive', ...(['crayon-os','apple-lisa','animals','beos-r503'].includes(slug) ? {compositionContext: structuredClone(CRAYON_CONTEXT)} : {}) });
+export const caseId = (slug, state) => `recorded.${slug}.${state}.empty.w80.h20.${RECORDED_CASES[slug]?.caseSuffix}-profile`;
+export const exactOptions = (state, slug) => ({ label: '', minWidth: 80, height: 20, default: false, pressed: state === 'pressed', disabled: state === 'inactive', ...(RECORDED_CASES[slug]?.explicitContext ? {compositionContext: structuredClone(CRAYON_CONTEXT)} : {}) });
 export const captureBinding = capture => ({ captureId: capture.id, requestId: capture.requestId, requestDigest: capture.requestDigest, captureDigest: reviewDigest(capture), imageSha256: capture.image.sha256, reviewScope: { id: capture.reviewScope.id, version: capture.reviewScope.version, digest: digest(capture.reviewScope) }, faceImageRect: [20, 20, 80, 20], publicFaceRect: [4, 4, 80, 20], background: [255, 255, 255], profile: profileFor(capture.source.slug) });
 
 /** Reuse the intake authority. A matching filename or runtime observation is insufficient. */
@@ -27,7 +28,7 @@ export function readRecordedContext(root) {
   const corpus = JSON.parse(readFileSync(resolve(root, 'tests/reference-captures/captures.json')));
   const reviews = JSON.parse(readFileSync(resolve(root, 'tests/reference-captures/reviews.json')));
   const report = assessCorpus(contract, corpus, reviews, { intakeRoot: resolve(root, 'tests/reference-captures'), known: [] });
-  for (const profile of [PROFILE, CRAYON_PROFILE, LISA_PROFILE, ANIMALS_PROFILE, BEOS_PROFILE]) {
+  for (const profile of Object.values(RECORDED_CASES).map(c => c.profile)) {
     const profileSha = createHash('sha256').update(readFileSync(resolve(root, profile.path))).digest('hex');
     check(profileSha === profile.sha256, 'profile DATA bytes changed');
   }
@@ -40,7 +41,7 @@ export function validateRecordedBinding(c, binding, context) {
   check(assessed?.status === 'reviewed-scoped-observation', 'capture is not currently reviewed scoped evidence');
   check(same(binding, captureBinding(capture)), 'stale or wrong capture/profile/crop binding');
   const slug = capture.source.slug, state = capture.conditions.state;
-  check((['windows-95', 'system7-nostalgia-silver'].includes(slug) && ['normal', 'pressed', 'inactive'].includes(state)) || (['crayon-os','apple-lisa','animals','beos-r503'].includes(slug) && ['normal','pressed','inactive'].includes(state)), 'outside finite recorded cases');
+  check(RECORDED_CASES[slug]?.states.includes(state), 'outside finite recorded cases');
   check(c.mode === 'direct' && c.family === 'push', 'wrong exact mode/family');
   check(c.id === caseId(slug, state) && same(c.options, exactOptions(state, slug)), 'wrong exact case/options');
   check(same(c.inputs, ['theme.' + slug]) && same(c.baseInputs, []), 'wrong exact source/base inputs');
@@ -57,6 +58,19 @@ export function compareRecordedPixels(raw, original) {
     if (original[i + 3] !== 255 || [0, 1, 2].some(c => Math.round((raw[i + c] * a + 255 * (255 - a)) / 255) !== original[i + c])) differentPixels++;
   }
   return differentPixels;
+}
+
+/** Validate the completed modern raster stage from paired metadata, not theme names. */
+export function validateCompletedFacePaint(row, selected, hasPairedCinf) {
+  const paints = hasPairedCinf ? (row.bandPaints ?? []).filter(p => p.role === 'face') : [row.legacyFacePaint];
+  check(paints.length > 0 && paints.every(p => p && same(p.owner, selected.owner) && same(p.resource, selected.resource)), 'missing or wrong completed paint dependency');
+  if (!hasPairedCinf) {
+    check(!row.resources.some(r => r.type === 'cinf' && r.signedId === selected.resource.signedId), 'paired metadata cannot be omitted');
+    const p = row.legacyFacePaint;
+    check(p.basis === 'compatibility-policy' && p.operation === 'legacy-nine-slice-and-sample-fill' && same(p.destinationRect, { x: 0, y: 0, w: 80, h: 20 }), 'wrong legacy paint stage');
+    const raw = Buffer.from(row.facePlane.rgba, 'base64');
+    check(raw.length === 6400 && p.retainedNonzeroAlphaPixels === Array.from(raw).filter((a, i) => i % 4 === 3 && a > 0).length, 'wrong retained paint occupancy');
+  }
 }
 
 /** Actual completed modern paint is required, without attributing the original painter. */
@@ -80,15 +94,34 @@ export function validateRecordedExecution(row, binding, capture) {
   const cinf=row.source.cinfResourceIndex==null?null:row.resources.find(r=>r.resourceIndex===row.source.cinfResourceIndex);
   check(cinf===null ? row.selectedCinfId===null : cinf?.type==='cinf' && cinf.status==='decoded' && cinf.signedId===row.selectedCinfId,'wrong decoded metadata occurrence');
   check(s.resource.sourceCinfId === row.selectedCinfId && row.source.manifestKey === row.selectedKey, 'wrong paired metadata/key');
-  const paints = row.slug === 'system7-nostalgia-silver' ? [row.legacyFacePaint] : row.bandPaints.filter(p => p.role === 'face');
-  check(paints.length > 0 && paints.every(p => p && same(p.owner, s.owner) && same(p.resource, s.resource)), 'missing or wrong completed paint dependency');
+  const paintKind = RECORDED_CASES[row.slug]?.paintKind;
+  check((paintKind === 'cinf-bands' && cinf !== null) || (paintKind === 'legacy-face' && cinf === null), 'wrong registered paint kind');
+  validateCompletedFacePaint(row, s, cinf !== null);
   const sourcePins=sourcePinsFor(row.slug,row.state);
   if (STATE_SOURCE_PINS[row.slug]?.[row.state]) {
+    if (sourcePins.paintKind) {
+      check(sourcePins.paintKind === paintKind && same(row.recordedSourcePins, sourcePins), 'wrong explicit paint/source pins');
+      check(row.completionCount === 1, 'requires exactly one completion');
+      check(same(row.composition?.faceRect, {x:20,y:20,w:80,h:20}) &&
+        same(row.composition?.context, {...CRAYON_CONTEXT,basis:'caller-declared'}) &&
+        row.composition.appliedUnknownPatternOffset === true && row.composition.originalPortState === 'unverified', 'wrong pinned port context');
+      if (paintKind === 'legacy-face') {
+        const p = row.legacyFacePaint;
+        check(same(p.sourceRect, {x:0,y:0,w:sourcePins.sourceSize[0],h:sourcePins.sourceSize[1]}) && same(p.effectiveFaceClip, {x:0,y:0,w:80,h:20}) &&
+          same(p.declaredClip, CRAYON_CONTEXT.clip) && p.coordinateSpace === 'face-local-before-ring' && p.rasterAlpha === 'copy-source-rgba' &&
+          same(p.controlOrigin, [20,20]), 'wrong legacy geometry/context');
+        check((row.bandPaints ?? []).length === 0 && (row.bodyFillSteps ?? []).length === 0 && row.patternAsset === null &&
+          !row.paintSelectionSteps.some(p => p.role === 'body-fill'), 'invented no-cinf body paint');
+      }
+    }
     check(row.selectedKey===sourcePins.emittedKey && row.profileInput===sourcePins.sourceArchiveSha256 && row.profileFork===sourcePins.sourceForkSha256, 'wrong state source/key pins');
     check(same(row.selectedBodyRequest,sourcePins.bodyRequest), 'wrong actual state body request');
-    check(resource?.byteLength===sourcePins.face.bytes && cinf?.byteLength===sourcePins.cinf.bytes, 'wrong state payload lengths');
+    check(resource?.byteLength===sourcePins.face.bytes && (sourcePins.cinf === null ? cinf === null && row.selectedCinfId === null : cinf?.byteLength===sourcePins.cinf.bytes), 'wrong state payload lengths');
+    for (const [actual, pin] of [[resource, sourcePins.face], [cinf, sourcePins.cinf]]) {
+      check(pin === null ? actual === null : actual?.resourceIndex === pin.resourceIndex && actual.signedId === pin.signedId && actual.sha256 === pin.payloadSha256, 'wrong state payload identity');
+    }
   }
-  if (row.slug === 'crayon-os' || (row.slug === 'animals' && sourcePins.pattern)) {
+  if (sourcePins?.pattern) {
     check(same(row.composition?.faceRect, {x:20,y:20,w:80,h:20}), 'wrong port face placement');
     check(same(row.composition?.context, {...CRAYON_CONTEXT,basis:'caller-declared'}) && row.composition.appliedUnknownPatternOffset === true && row.composition.originalPortState === 'unverified', 'wrong actual port context');
     const pins = row.recordedSourcePins;
@@ -115,12 +148,6 @@ export function validateRecordedExecution(row, binding, capture) {
     const missing=row.bodyFillSteps?.filter(p=>p.usage==='paint' && p.action==='missing' && p.requestedResourceType==='ppat' && p.requestedId===0 && p.bodyMode===0);
     check(missing?.length===1 && same(missing[0].owner,s.owner) && missing[0].reason==='same-face-owner-pattern-unavailable' &&
       !row.resources.some(r=>r.type==='ppat'&&r.signedId===0) && !row.paintSelectionSteps.some(p=>p.role==='body-fill') && row.patternAsset===null, 'wrong pinned no-ppat0 observation');
-  }
-  if (row.slug === 'system7-nostalgia-silver') {
-    const p = row.legacyFacePaint;
-    check(p.basis === 'compatibility-policy' && p.operation === 'legacy-nine-slice-and-sample-fill' && same(p.destinationRect, { x: 0, y: 0, w: 80, h: 20 }), 'wrong legacy paint stage');
-    const raw = Buffer.from(row.facePlane.rgba, 'base64');
-    check(p.retainedNonzeroAlphaPixels === Array.from(raw).filter((a, i) => i % 4 === 3 && a > 0).length, 'wrong retained paint occupancy');
   }
   check(row.originalComparison.differentPixels === 0 && row.originalComparison.comparedPixels === 1600, 'pixel mismatch/incomplete comparison');
 }

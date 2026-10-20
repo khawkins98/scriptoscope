@@ -1,0 +1,17 @@
+{
+  "path": "1138-calibration/prepared-profile.json",
+  "sha256": "3686ca8ca86d52830aaf943e1798d771bd8eb3cbaac5e81871e149cf96e55d3d",
+  "id": "display-profile:eab8f272f721e104bd2e204e8a0192f4b3ae1e25283cb06efe99bf0ed567038e",
+  "status": "ACTUAL_PREPARED_PRIVATE_PROFILE_NOT_ADMITTED",
+  "sourceArchiveSha256": "2b14d10e0907e058474b980df57713191a9e1bf1b39c4ed7df8f82ba3ac1fcdb",
+  "sourceForkSha256": "2b14d10e0907e058474b980df57713191a9e1bf1b39c4ed7df8f82ba3ac1fcdb",
+  "preparationReceipt": {
+    "name": "strict-whole-load.json",
+    "sha256": "0699fdc42fb21c0470968f04184d10be4a26efe86c8b89ed4779ad7502594908"
+  },
+  "measurement": {
+    "path": "1138-calibration/measurement.json",
+    "sha256": "bea053f1de8bc595a8ab6f3ece82d4f0e5512eb0d76ef06f15d73274ce9f0062"
+  },
+  "executionApproval": "ABSENT; no source/built result or fidelity claim inferred"
+}

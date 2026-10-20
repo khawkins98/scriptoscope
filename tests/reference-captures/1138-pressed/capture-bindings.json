@@ -1,0 +1,253 @@
+{
+  "finalPrivateAcquisitionResult": {
+    "name": "result-checkpoint.json",
+    "bytes": 20996,
+    "sha256": "4eba543b8e3b97bf4026ec640b2f45e73c3a8c4f37c3acaf9e5cd8202097a8e0"
+  },
+  "originalFrameReceipt": {
+    "name": "state-1-frame.json",
+    "bytes": 5576,
+    "sha256": "c6a916eee87ea1ea7878b70ec559607a463f5a2f9fac4b8daad847bc3dfa9e8b"
+  },
+  "captureTimestamp": "2026-10-20T10:14:49.109Z",
+  "producerObservation": {
+    "at": "2026-10-20T10:14:49.109Z",
+    "canvasSize": [
+      640,
+      480
+    ],
+    "devicePixelRatio": 1,
+    "firstMismatches": [],
+    "rawByteLength": 1228800,
+    "rawCanvasMismatchedBytes": 0,
+    "rawDimensions": [
+      640,
+      480
+    ],
+    "rawMode": [
+      1228800,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rawRepeatedChangedBytes": 0,
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+    "workerEvents": [
+      {
+        "time": "2026-10-20T10:11:51.993Z",
+        "type": "emulator_handles"
+      },
+      {
+        "phase": "prefetching",
+        "time": "2026-10-20T10:11:52.001Z",
+        "type": "emulator_status"
+      },
+      {
+        "phase": "prefetching",
+        "time": "2026-10-20T10:11:52.001Z",
+        "type": "emulator_status"
+      },
+      {
+        "phase": "instantiating",
+        "time": "2026-10-20T10:11:52.001Z",
+        "type": "emulator_status"
+      },
+      {
+        "time": "2026-10-20T10:11:52.013Z",
+        "type": "emulator_ready"
+      },
+      {
+        "time": "2026-10-20T10:11:52.024Z",
+        "type": "emulator_audio_open"
+      },
+      {
+        "time": "2026-10-20T10:11:52.024Z",
+        "type": "emulator_video_open"
+      }
+    ]
+  },
+  "rawProducer": {
+    "bytes": 1228800,
+    "sha256": "75f810831a7c82db3f0c16e4aa3ae7befcf5b299955a01a9b68340c793b46e12"
+  },
+  "rawProducerRedistributed": false,
+  "images": {
+    "full-frame.png": {
+      "name": "full-frame.png",
+      "bytes": 41140,
+      "sha256": "f0e93cc89834c8b428960644733a76a008ffbd3bca92b0cd56ebc60834205854"
+    },
+    "port.png": {
+      "name": "port.png",
+      "bytes": 412,
+      "sha256": "0b3f9f142333686ca8e3c34d70dc07fa9a9f7319d4a669bce909104c0a8cf39f"
+    },
+    "context.png": {
+      "name": "context.png",
+      "bytes": 281,
+      "sha256": "be76352e0d1a723d7dcc75a0dec287de19bb0da6125399d6b9a2084867ac0d7e"
+    },
+    "face.png": {
+      "name": "face.png",
+      "bytes": 221,
+      "sha256": "24fe8749fb7a4fb1aa67ca472178d3af4d138e451fdfde0d4ed17b446588679a"
+    },
+    "durable-status.png": {
+      "name": "durable-status.png",
+      "bytes": 30849,
+      "sha256": "afc48e59353f86fc726d444efd4a3a2b92641e9686cd35861862df456b7261ac"
+    }
+  },
+  "portFrameBoxLTRB": [
+    80,
+    90,
+    240,
+    170
+  ],
+  "contextFrameBoxLTRB": [
+    92,
+    102,
+    188,
+    138
+  ],
+  "faceFrameBoxLTRB": [
+    100,
+    110,
+    180,
+    130
+  ],
+  "nativeFilename": "A3A1-00001a0f-001.txt",
+  "fixtureNonce": "A3A1-84320f7f95",
+  "ordinaryExport": {
+    "name": "telemetry-1.raw",
+    "bytes": 20427,
+    "sha256": "ade84744770158d18969df4670fa3f77cfd0cf7ee889835b8d39dc85c75bddcd"
+  },
+  "exportMethod": "Normal stopped HFS data fork; no carving",
+  "durability": {
+    "basis": "visually read retained native status screenshot; not native log fields",
+    "filename": "A3A1-00001a0f-001.txt",
+    "expected": 20427,
+    "written": 20427,
+    "readbackEOF": 20427,
+    "statuses": {
+      "write": 0,
+      "short": 0,
+      "close": 0,
+      "flush": 0,
+      "reopen": 0,
+      "EOF": 0,
+      "readClose": 0
+    },
+    "ordinal": 1,
+    "hilite": 10,
+    "generation": 2,
+    "hostAckCount": 1,
+    "screenshotSha256": "afc48e59353f86fc726d444efd4a3a2b92641e9686cd35861862df456b7261ac"
+  },
+  "originalFrameExportPendingFieldRetained": true,
+  "laterExportEvidence": "Exact ordinary exported file + final acquisition checkpoint and independent acquisition review; historical frame is unchanged",
+  "helperBindings": [
+    {
+      "name": "run.json",
+      "bytes": 1684,
+      "sha256": "5affb6d22d624b3d1a48d79f0b5caf653ac1ac3a2a238050b4ea2adb5254d6f3"
+    },
+    {
+      "name": "candidate.json",
+      "bytes": 1279,
+      "sha256": "83792d78ec868282bb2a899009d22884da64769aa159c1ee3d8137ee569d90da"
+    },
+    {
+      "name": "PushThreeStates.c",
+      "bytes": 19996,
+      "sha256": "ff3e5f58aadb84265a97d6d348bff5be3881742c6d1509eda557815b7145f2bb"
+    },
+    {
+      "name": "PushThreeStates-with-size.bin",
+      "bytes": 70656,
+      "sha256": "077e9fe7ccf39d11f2af2cbc3dd2a423f20d9f7240c63595033e5b60f1e7eafb"
+    },
+    {
+      "name": "reference.ts",
+      "bytes": 2250,
+      "sha256": "02bb3367f3eb667fe410c033a575cdde17734fd49d3696fe27522ce898cfcb94"
+    },
+    {
+      "name": "vite.config.mjs",
+      "bytes": 2141,
+      "sha256": "b02cf0ff03294586db6a6f21d60478b939e331279eeb74fc3d4e13c1e34ff662"
+    },
+    {
+      "name": "emulator-worker.ts",
+      "bytes": 38183,
+      "sha256": "79121c9c8f370eb1ce4a46c525b669b21b9ab6081656314e3430987ebbb56d35"
+    },
+    {
+      "name": "emulator-input.ts",
+      "bytes": 14561,
+      "sha256": "b69f0527aabd322e8cf0d0840d6faef769cd53a717a6d3d6e7cf36118a1dc0c5"
+    },
+    {
+      "name": "system755-before-boot.dsk",
+      "bytes": 25165824,
+      "sha256": "3427c82654213d660912bc624d85fb4a7cf92eab416af1fb15efcb80ed9be495"
+    },
+    {
+      "name": "oracle-before-boot.dsk",
+      "bytes": 67108864,
+      "sha256": "b42010867772e46c62fcd0aabcd0fc52b4bd34519ac5b4fc7c2af4f9bb838925"
+    },
+    {
+      "name": "BasiliskII.js",
+      "bytes": 156114,
+      "sha256": "4fd750e202686a7b7c3bd0055dbe33d21dd6b3ce2639da8da814ef1036d1c66b"
+    },
+    {
+      "name": "BasiliskII.wasm",
+      "bytes": 1713564,
+      "sha256": "0be9b5ba1179b65d9d1bd30b3cc35ee56daf6713ba1353048c03229f641680bb"
+    },
+    {
+      "name": "Quadra-650.rom",
+      "bytes": 1048576,
+      "sha256": "05ad753fb594e656cf078023ec189e09e2a7655a780de993b75b8c51ed6b09ca"
+    },
+    {
+      "name": "capture-state-absolute.mjs",
+      "bytes": 4564,
+      "sha256": "b1cb6c91ae04e2772462e6cad01aaea7c518d4ba095005a8a0b5d9b64c65e869"
+    },
+    {
+      "name": "crop-state.py",
+      "bytes": 1009,
+      "sha256": "f043522d25ff2a7f53bcf69b4538ecc8361bb03aa06d4593909d2b95bc6dc077"
+    },
+    {
+      "name": "ack-state.mjs",
+      "bytes": 2842,
+      "sha256": "f86c64f0c80cff9214047e92ec1a4af7f11c367388e220687aa9f16392e37d72"
+    },
+    {
+      "name": "retain-state.py",
+      "bytes": 1378,
+      "sha256": "4dceae6411ddc102784679bbc1aa5b26b7b6c8629a591e9ef20f6aeb0df6b6ec"
+    },
+    {
+      "name": "physical-key.mjs",
+      "bytes": 813,
+      "sha256": "b4e10e965e46431b1aff7455c5301115ff2d54ec86798478f006efeff8a41573"
+    },
+    {
+      "name": "preboot.json",
+      "bytes": 1104,
+      "sha256": "1e1e49e3d7d22951be44a26f96a77dec189658b15d20cbaa89964f5b335cbea0"
+    }
+  ]
+}

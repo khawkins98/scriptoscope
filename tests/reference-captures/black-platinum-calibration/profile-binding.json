@@ -1,0 +1,17 @@
+{
+  "path": "black-platinum-calibration/prepared-profile.json",
+  "sha256": "99a845515e35aa8ef808d61f1020f5800a8e250c08f37169509ce9d291085c43",
+  "id": "display-profile:bdff2cf685e40e2937dbcee3e613d2d46524dfdcc7bac90968c206b45bf3ddc0",
+  "status": "ACTUAL_PREPARED_PRIVATE_PROFILE_NOT_ADMITTED",
+  "sourceArchiveSha256": "84b1b90c49909cdf2107759784c0c5aa2da14499dec1cc070e9a67eac77db9fc",
+  "sourceForkSha256": "84b1b90c49909cdf2107759784c0c5aa2da14499dec1cc070e9a67eac77db9fc",
+  "preparationReceipt": {
+    "name": "strict-whole-load.json",
+    "sha256": "f8473815c62f55069bd6d99009106093171fd4c01fdfab8231be12c416fb35aa"
+  },
+  "measurement": {
+    "path": "black-platinum-calibration/measurement.json",
+    "sha256": "04c0fcab808a6097fb15bdab19446b2feba0b4cc8ca18358839f4878cb7b46bd"
+  },
+  "executionApproval": "ABSENT; no source/built result or fidelity claim inferred"
+}

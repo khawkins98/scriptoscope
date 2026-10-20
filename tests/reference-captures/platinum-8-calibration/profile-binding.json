@@ -1,0 +1,17 @@
+{
+  "path": "platinum-8-calibration/prepared-profile.json",
+  "sha256": "d05652c25d7b127616b31461063264d0ebd0f49a41cd75cfb9b5f90bbac00692",
+  "id": "display-profile:9f2383ac622a5a31851b66d00964cf111cbc47575f517d48d8432bed39c0ecb4",
+  "status": "ACTUAL_PREPARED_PRIVATE_PROFILE_NOT_ADMITTED",
+  "sourceArchiveSha256": "1f064eb95c8c7ba5b71bf97b91b79bec08177ed289a44b985b5af9d3ac5683b7",
+  "sourceForkSha256": "97165ac623a4cdfda072b5f849d90aa0e087b2fbd05bc44966898c2238231f75",
+  "preparationReceipt": {
+    "name": "strict-whole-load.json",
+    "sha256": "03633e2a1a47935bfb2925cfc8c29704ae025c93390e72908ee7a8ed8e79d578"
+  },
+  "measurement": {
+    "path": "platinum-8-calibration/measurement.json",
+    "sha256": "c4807eb1479cae68bb53e403b9e4da999e9af1a0f7ec9a4803ee75a83e3671a8"
+  },
+  "executionApproval": "ABSENT; no source/built result or fidelity claim inferred"
+}

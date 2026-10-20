@@ -1,0 +1,38 @@
+{
+  "canonicalSource": {
+    "slug": "black-platinum",
+    "path": "themes/black-platinum/scheme.rsrc",
+    "format": "rsrc",
+    "archiveSha256": "84b1b90c49909cdf2107759784c0c5aa2da14499dec1cc070e9a67eac77db9fc",
+    "entryIndex": null,
+    "entryName": null,
+    "forkSha256": "84b1b90c49909cdf2107759784c0c5aa2da14499dec1cc070e9a67eac77db9fc",
+    "selectionReviewStatus": "reviewed-contract-input",
+    "selectionReason": "Repository source is an explicit standalone resource fork, with no container selection.",
+    "selectionReviewEvidence": "black-platinum"
+  },
+  "actualCopl": [
+    "CoplResourceFile.file.name=Black Platinum volumeRef=-3 parentDir=2 fileID=18 flags=512 logicalEOF=435125 physicalEOF=435200",
+    "CoplResourceFile.file.name=Black Platinum volumeRef=-3 parentDir=2 fileID=18 flags=512 logicalEOF=435125 physicalEOF=435200"
+  ],
+  "configuredFCB": {
+    "volumeRef": -3,
+    "parentDir": 2,
+    "fileID": 18
+  },
+  "stoppedConfiguredFile": {
+    "name": "stopped-Black Platinum.bin",
+    "bytes": 435328,
+    "sha256": "12ba8259cd017ce9dfc1501da64b998b72a6e94bca34fdde095f1c1f034d3ab6"
+  },
+  "resourceFork": {
+    "bytes": 435125,
+    "sha256": "84b1b90c49909cdf2107759784c0c5aa2da14499dec1cc070e9a67eac77db9fc"
+  },
+  "installedEngineResourceFork": {
+    "bytes": 1005535,
+    "sha256": "cb903bef4410feb096d65b5a4c9383fa2a3c943e6afef6d3c13463b48267d333"
+  },
+  "actualDefinitionsMatchStoppedKaleidoscope": "Bound independent acquisition review; payload hashes retained in pixel conditions",
+  "limits": "Configured file only; no private selected resource/provider/cache inference."
+}

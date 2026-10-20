@@ -94,9 +94,9 @@ proves input identity, not decoder correctness. A trace proves actual selection,
 not the historical validity of a fallback policy. A self-golden proves stability,
 not original-engine pixels.
 
-The current [ledger 1.13.0](../../tests/rendering-requirements/ledger.json) contains
-72 OPEN cases and 509 declared obligations: 91 narrowly verified, 0 mismatched,
-0 explicitly unsupported and 418 unknown. Eighteen verified obligations concern
+The current [ledger 1.14.0](../../tests/rendering-requirements/ledger.json) contains
+90 OPEN cases and 617 declared obligations: 109 narrowly verified, 0 mismatched,
+0 explicitly unsupported and 508 unknown. Thirty-six verified obligations concern
 only complete recorded-condition empty 80×20 faces under explicit finite
 measured profiles. They do not establish original alpha/mask, typography, hidden
 selection, general state/placement, private provider/cache or default-display

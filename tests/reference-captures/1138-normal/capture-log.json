@@ -1,0 +1,606 @@
+{
+  "status": "SANITIZED_PRIVATE_STAGING_PENDING_SCOPED_INTAKE",
+  "originalRawLog": {
+    "name": "telemetry-0.raw",
+    "bytes": 20382,
+    "sha256": "1f81eaee366d5f1591e6d40f2a50b84da55605b3dce54437fee933d9965d2fce"
+  },
+  "readableDerivative": {
+    "name": "telemetry-0.txt",
+    "bytes": 20382,
+    "sha256": "bd0f86cbc1d90c63a7bca11eb1f5a2fd9c1ae92c1b964d7f3fbc1131856b2953"
+  },
+  "lineNumberBasis": "1-based CR-to-LF derivative; redaction hashes are LF-joined UTF-8 without trailing LF.",
+  "retainedLines": [
+    {
+      "line": 1,
+      "text": "status=QUARANTINED_PARTIAL fixture=A3A0-84320f7f95 launchDate=3875343230 launchTicks=6671 sequence=1"
+    },
+    {
+      "line": 2,
+      "text": "acquisition.bootNonce=A3A-84320f7f95 fixedOrder=0,10,255 sharedSchemeOSCacheHistory=1 providerCacheOrder=UNKNOWN"
+    },
+    {
+      "line": 3,
+      "text": "acquisition.setup=EraseRect;NewControl-implicit-draw;Draw1Control;HiliteControl;unbracketed-before-observation"
+    },
+    {
+      "line": 4,
+      "text": "telemetryFile.volumeRef=-3 directoryID=2"
+    },
+    {
+      "line": 5,
+      "text": "activePrivateProviderOrder=UNKNOWN;activePatchOrder=UNKNOWN;deviceGammaConfiguration=UNKNOWN"
+    },
+    {
+      "line": 6,
+      "text": "resourceContext.phase=before-condition-queries callerCurResFile=2540 queryHasOSErr=0"
+    },
+    {
+      "line": 7,
+      "text": "callerResourceFile.fileQuery=PBGetFCBInfoSync error=0 ioResult=0"
+    },
+    {
+      "line": 8,
+      "text": "callerResourceFile.file.name=Push Three States A3A volumeRef=-3 parentDir=2 fileID=16 flags=768 logicalEOF=70292 physicalEOF=70656"
+    },
+    {
+      "line": 9,
+      "text": "resourceContext.Copl.status=0 fullResponseHex=00000a4a callerAfterGetter=2540"
+    },
+    {
+      "line": 10,
+      "text": "resourceContext.Copl.signedLow16Ref=2634"
+    },
+    {
+      "line": 11,
+      "text": "CoplResourceFile.fileQuery=PBGetFCBInfoSync error=0 ioResult=0"
+    },
+    {
+      "line": 12,
+      "text": "CoplResourceFile.file.name=1138 volumeRef=-3 parentDir=2 fileID=18 flags=512 logicalEOF=724796 physicalEOF=724992"
+    },
+    {
+      "line": 13,
+      "text": "resourceContext.meaning=public-ref-observation-only;not-selected-cicn-cinf-ownership;private-cache-order-UNKNOWN"
+    },
+    {
+      "line": 14,
+      "text": "phase=before-public-draw ticks=7198"
+    },
+    {
+      "line": 15,
+      "text": "acquisition.stateOrdinal=0 requestedHilite=0 controlGeneration=1 createdTicks=6674 priorDisposedTicks=-1"
+    },
+    {
+      "line": 16,
+      "text": "acquisition.priorAcknowledgedState=-1 hostAckCount=0 lastHostAckTicks=-1 priorFile=NONE"
+    },
+    {
+      "line": 17,
+      "text": "acquisition.faceDrawCount=2 initial=1 update=1 mouse=0 capture=0"
+    },
+    {
+      "line": 18,
+      "text": "systemVersionHex=755 machineGestalt=36"
+    },
+    {
+      "line": 19,
+      "text": "portRect=0,0,160,80"
+    },
+    {
+      "line": 20,
+      "text": "globalOrigin=80,90 portVersion=-16384"
+    },
+    {
+      "line": 21,
+      "text": "controlRect=20,20,100,40"
+    },
+    {
+      "line": 22,
+      "text": "control.hilite=0 visible=255 value=0 min=0 max=1 titleLength=0 active=1 windowKind=8"
+    },
+    {
+      "line": 23,
+      "text": "invocation=shared-NewCWindow(proc0);fresh-NewControl(proc0);Draw1Control;HiliteControl(requestedHilite);no-default-API"
+    },
+    {
+      "line": 24,
+      "text": "requestedControlProc=0 actualControlDefinitionHandle=000dd450 actualWindowDefinitionHandle=000b0edc"
+    },
+    {
+      "line": 25,
+      "text": "control.title.expectedEmpty=1 actualLength=0"
+    },
+    {
+      "line": 26,
+      "text": "control.variant.query=GetControlVariant actual=0 queryHasOSErr=0"
+    },
+    {
+      "line": 27,
+      "text": "actualControlDefinition.resourceInfoError=0 homeRef=1130 homeResourceError=0 typeHex=43444546 id=0 name="
+    },
+    {
+      "line": 28,
+      "text": "actualControlDefinition.fileQuery=PBGetFCBInfoSync error=0 ioResult=0"
+    },
+    {
+      "line": 29,
+      "text": "actualControlDefinition.file.name=Kaleidoscope volumeRef=-1 parentDir=176 fileID=435 flags=768 logicalEOF=1005535 physicalEOF=1005568"
+    },
+    {
+      "line": 30,
+      "text": "actualControlDefinition.bytes=174"
+    },
+    {
+      "line": 34,
+      "text": "actualWindowDefinition.resourceInfoError=0 homeRef=1130 homeResourceError=0 typeHex=57444546 id=0 name="
+    },
+    {
+      "line": 35,
+      "text": "actualWindowDefinition.fileQuery=PBGetFCBInfoSync error=0 ioResult=0"
+    },
+    {
+      "line": 36,
+      "text": "actualWindowDefinition.file.name=Kaleidoscope volumeRef=-1 parentDir=176 fileID=435 flags=768 logicalEOF=1005535 physicalEOF=1005568"
+    },
+    {
+      "line": 37,
+      "text": "actualWindowDefinition.bytes=176"
+    },
+    {
+      "line": 41,
+      "text": "font.number=0 name=Chicago size=12 face=0 mode=1 ascent=12 descent=3 widMax=14 leading=1"
+    },
+    {
+      "line": 42,
+      "text": "clipBounds=-32767,-32767,32767,32767"
+    },
+    {
+      "line": 43,
+      "text": "clipRegion.bytes=10"
+    },
+    {
+      "line": 45,
+      "text": "visibleBounds=0,0,160,80"
+    },
+    {
+      "line": 46,
+      "text": "visibleRegion.bytes=10"
+    },
+    {
+      "line": 48,
+      "text": "portPixMap.bounds=-80,-90,560,390"
+    },
+    {
+      "line": 49,
+      "text": "effectiveClip.method=owned-SectRgn(clip,visible,portRect,portPixMap.bounds);IM-QuickDraw-2-12/Color-QuickDraw"
+    },
+    {
+      "line": 50,
+      "text": "effectiveClipBounds=0,0,160,80"
+    },
+    {
+      "line": 51,
+      "text": "effectiveClipRegion.bytes=10"
+    },
+    {
+      "line": 53,
+      "text": "device.ref=-49 id=0 type=0 flags=47137 mode=131"
+    },
+    {
+      "line": 54,
+      "text": "pixMap.depth=8 rowBytes=33408 pixelType=0"
+    },
+    {
+      "line": 55,
+      "text": "pixMap.bounds=0,0,640,480"
+    },
+    {
+      "line": 56,
+      "text": "colorTable.seed=1023 flags=32768 lastIndex=255"
+    },
+    {
+      "line": 57,
+      "text": "colorTable.bytes=2056"
+    },
+    {
+      "line": 91,
+      "text": "gamma.query=PBStatusSync csCode=8 actualDeviceRef=-49 status=0 ioResult=0 returnedPointer=0000d110"
+    },
+    {
+      "line": 92,
+      "text": "gamma.header.version=0 type=0 formulaBytes=0 channels=1 count=256 bitsPerEntry=8"
+    },
+    {
+      "line": 93,
+      "text": "gammaFixedPrefix.bytes=12"
+    },
+    {
+      "line": 95,
+      "text": "gamma.table=observed-version0-bounded-bytes;not-color-transform-proof"
+    },
+    {
+      "line": 96,
+      "text": "gammaTable.bytes=268"
+    },
+    {
+      "line": 102,
+      "text": "port.backgroundRGB16=ffff,ffff,ffff"
+    },
+    {
+      "line": 103,
+      "text": "port.foregroundRGB16=0000,0000,0000"
+    },
+    {
+      "line": 104,
+      "text": "body.GetCPixel=0000,0000,0000"
+    },
+    {
+      "line": 105,
+      "text": "edge.GetCPixel=0000,0000,0000"
+    },
+    {
+      "line": 106,
+      "text": "sentinel.0.GetCPixel=ffff,0000,0000"
+    },
+    {
+      "line": 107,
+      "text": "sentinel.1.GetCPixel=0000,ffff,0000"
+    },
+    {
+      "line": 108,
+      "text": "sentinel.2.GetCPixel=0000,0000,ffff"
+    },
+    {
+      "line": 109,
+      "text": "sentinel.3.GetCPixel=ffff,ffff,ffff"
+    },
+    {
+      "line": 110,
+      "text": "sentinel.4.GetCPixel=0000,0000,0000"
+    },
+    {
+      "line": 111,
+      "text": "immediateBeforePublicFace.CurResFile=2540"
+    },
+    {
+      "line": 112,
+      "text": "immediateAfterPublicFace.CurResFile=2540"
+    },
+    {
+      "line": 113,
+      "text": "resourceContext.phase=after-public-draw callerCurResFile=2540 queryHasOSErr=0"
+    },
+    {
+      "line": 114,
+      "text": "callerResourceFile.fileQuery=PBGetFCBInfoSync error=0 ioResult=0"
+    },
+    {
+      "line": 115,
+      "text": "callerResourceFile.file.name=Push Three States A3A volumeRef=-3 parentDir=2 fileID=16 flags=768 logicalEOF=70292 physicalEOF=70656"
+    },
+    {
+      "line": 116,
+      "text": "resourceContext.Copl.status=0 fullResponseHex=00000a4a callerAfterGetter=2540"
+    },
+    {
+      "line": 117,
+      "text": "resourceContext.Copl.signedLow16Ref=2634"
+    },
+    {
+      "line": 118,
+      "text": "CoplResourceFile.fileQuery=PBGetFCBInfoSync error=0 ioResult=0"
+    },
+    {
+      "line": 119,
+      "text": "CoplResourceFile.file.name=1138 volumeRef=-3 parentDir=2 fileID=18 flags=512 logicalEOF=724796 physicalEOF=724992"
+    },
+    {
+      "line": 120,
+      "text": "resourceContext.meaning=public-ref-observation-only;not-selected-cicn-cinf-ownership;private-cache-order-UNKNOWN"
+    },
+    {
+      "line": 121,
+      "text": "phase=after-public-draw ticks=7199"
+    },
+    {
+      "line": 122,
+      "text": "acquisition.stateOrdinal=0 requestedHilite=0 controlGeneration=1 createdTicks=6674 priorDisposedTicks=-1"
+    },
+    {
+      "line": 123,
+      "text": "acquisition.priorAcknowledgedState=-1 hostAckCount=0 lastHostAckTicks=-1 priorFile=NONE"
+    },
+    {
+      "line": 124,
+      "text": "acquisition.faceDrawCount=3 initial=1 update=1 mouse=0 capture=1"
+    },
+    {
+      "line": 125,
+      "text": "systemVersionHex=755 machineGestalt=36"
+    },
+    {
+      "line": 126,
+      "text": "portRect=0,0,160,80"
+    },
+    {
+      "line": 127,
+      "text": "globalOrigin=80,90 portVersion=-16384"
+    },
+    {
+      "line": 128,
+      "text": "controlRect=20,20,100,40"
+    },
+    {
+      "line": 129,
+      "text": "control.hilite=0 visible=255 value=0 min=0 max=1 titleLength=0 active=1 windowKind=8"
+    },
+    {
+      "line": 130,
+      "text": "invocation=shared-NewCWindow(proc0);fresh-NewControl(proc0);Draw1Control;HiliteControl(requestedHilite);no-default-API"
+    },
+    {
+      "line": 131,
+      "text": "requestedControlProc=0 actualControlDefinitionHandle=000dd450 actualWindowDefinitionHandle=000b0edc"
+    },
+    {
+      "line": 132,
+      "text": "control.title.expectedEmpty=1 actualLength=0"
+    },
+    {
+      "line": 133,
+      "text": "control.variant.query=GetControlVariant actual=0 queryHasOSErr=0"
+    },
+    {
+      "line": 134,
+      "text": "actualControlDefinition.resourceInfoError=0 homeRef=1130 homeResourceError=0 typeHex=43444546 id=0 name="
+    },
+    {
+      "line": 135,
+      "text": "actualControlDefinition.fileQuery=PBGetFCBInfoSync error=0 ioResult=0"
+    },
+    {
+      "line": 136,
+      "text": "actualControlDefinition.file.name=Kaleidoscope volumeRef=-1 parentDir=176 fileID=435 flags=768 logicalEOF=1005535 physicalEOF=1005568"
+    },
+    {
+      "line": 137,
+      "text": "actualControlDefinition.bytes=174"
+    },
+    {
+      "line": 141,
+      "text": "actualWindowDefinition.resourceInfoError=0 homeRef=1130 homeResourceError=0 typeHex=57444546 id=0 name="
+    },
+    {
+      "line": 142,
+      "text": "actualWindowDefinition.fileQuery=PBGetFCBInfoSync error=0 ioResult=0"
+    },
+    {
+      "line": 143,
+      "text": "actualWindowDefinition.file.name=Kaleidoscope volumeRef=-1 parentDir=176 fileID=435 flags=768 logicalEOF=1005535 physicalEOF=1005568"
+    },
+    {
+      "line": 144,
+      "text": "actualWindowDefinition.bytes=176"
+    },
+    {
+      "line": 148,
+      "text": "font.number=0 name=Chicago size=12 face=0 mode=1 ascent=12 descent=3 widMax=14 leading=1"
+    },
+    {
+      "line": 149,
+      "text": "clipBounds=-32767,-32767,32767,32767"
+    },
+    {
+      "line": 150,
+      "text": "clipRegion.bytes=10"
+    },
+    {
+      "line": 152,
+      "text": "visibleBounds=0,0,160,80"
+    },
+    {
+      "line": 153,
+      "text": "visibleRegion.bytes=10"
+    },
+    {
+      "line": 155,
+      "text": "portPixMap.bounds=-80,-90,560,390"
+    },
+    {
+      "line": 156,
+      "text": "effectiveClip.method=owned-SectRgn(clip,visible,portRect,portPixMap.bounds);IM-QuickDraw-2-12/Color-QuickDraw"
+    },
+    {
+      "line": 157,
+      "text": "effectiveClipBounds=0,0,160,80"
+    },
+    {
+      "line": 158,
+      "text": "effectiveClipRegion.bytes=10"
+    },
+    {
+      "line": 160,
+      "text": "device.ref=-49 id=0 type=0 flags=47137 mode=131"
+    },
+    {
+      "line": 161,
+      "text": "pixMap.depth=8 rowBytes=33408 pixelType=0"
+    },
+    {
+      "line": 162,
+      "text": "pixMap.bounds=0,0,640,480"
+    },
+    {
+      "line": 163,
+      "text": "colorTable.seed=1023 flags=32768 lastIndex=255"
+    },
+    {
+      "line": 164,
+      "text": "colorTable.bytes=2056"
+    },
+    {
+      "line": 198,
+      "text": "gamma.query=PBStatusSync csCode=8 actualDeviceRef=-49 status=0 ioResult=0 returnedPointer=0000d110"
+    },
+    {
+      "line": 199,
+      "text": "gamma.header.version=0 type=0 formulaBytes=0 channels=1 count=256 bitsPerEntry=8"
+    },
+    {
+      "line": 200,
+      "text": "gammaFixedPrefix.bytes=12"
+    },
+    {
+      "line": 202,
+      "text": "gamma.table=observed-version0-bounded-bytes;not-color-transform-proof"
+    },
+    {
+      "line": 203,
+      "text": "gammaTable.bytes=268"
+    },
+    {
+      "line": 209,
+      "text": "port.backgroundRGB16=ffff,ffff,ffff"
+    },
+    {
+      "line": 210,
+      "text": "port.foregroundRGB16=0000,0000,0000"
+    },
+    {
+      "line": 211,
+      "text": "body.GetCPixel=0000,0000,0000"
+    },
+    {
+      "line": 212,
+      "text": "edge.GetCPixel=0000,0000,0000"
+    },
+    {
+      "line": 213,
+      "text": "sentinel.0.GetCPixel=ffff,0000,0000"
+    },
+    {
+      "line": 214,
+      "text": "sentinel.1.GetCPixel=0000,ffff,0000"
+    },
+    {
+      "line": 215,
+      "text": "sentinel.2.GetCPixel=0000,0000,ffff"
+    },
+    {
+      "line": 216,
+      "text": "sentinel.3.GetCPixel=ffff,ffff,ffff"
+    },
+    {
+      "line": 217,
+      "text": "sentinel.4.GetCPixel=0000,0000,0000"
+    },
+    {
+      "line": 218,
+      "text": "observedLabel=EMPTY requestedHilite=0 callerFont=0 callerSize=12 callerFace=0"
+    },
+    {
+      "line": 219,
+      "text": "captureComplete=1"
+    }
+  ],
+  "redactedRanges": [
+    {
+      "firstLine": 31,
+      "lastLine": 33,
+      "sha256": "fdd8bb11a5e05902ca6059626cc056e013847f9005ad20164e1272081fd3fa57",
+      "reason": "Native binary payload withheld; scalar size and raw-export hash retained."
+    },
+    {
+      "firstLine": 38,
+      "lastLine": 40,
+      "sha256": "7ae4bba33b80e4176e17e85b5619cd373219dc10a5b34cf81aa96c36da5079a1",
+      "reason": "Native binary payload withheld; scalar size and raw-export hash retained."
+    },
+    {
+      "firstLine": 44,
+      "lastLine": 44,
+      "sha256": "d88f18ce62fc05ce1a7afede38525defae4c90336ff14debf80d7ca9af0b9d28",
+      "reason": "Native binary payload withheld; scalar size and raw-export hash retained."
+    },
+    {
+      "firstLine": 47,
+      "lastLine": 47,
+      "sha256": "59418cdd1a9d7270821e9e1ac0810bda82f378ceec72dc4b985994f53a17dd35",
+      "reason": "Native binary payload withheld; scalar size and raw-export hash retained."
+    },
+    {
+      "firstLine": 52,
+      "lastLine": 52,
+      "sha256": "4c22d10caafb7cedfebd6b574d3299791b9aa2f9a0d94c212ff5897217fc17c8",
+      "reason": "Native binary payload withheld; scalar size and raw-export hash retained."
+    },
+    {
+      "firstLine": 58,
+      "lastLine": 90,
+      "sha256": "546b2339a25ccaf2a16620208fe03526bce18d92fc115df5229c7462079c7c45",
+      "reason": "Native binary payload withheld; scalar size and raw-export hash retained."
+    },
+    {
+      "firstLine": 94,
+      "lastLine": 94,
+      "sha256": "ed4f34221dc34e3d22ca01743fee97446cfdefd6240e22e94c3e76596ccfca55",
+      "reason": "Native binary payload withheld; scalar size and raw-export hash retained."
+    },
+    {
+      "firstLine": 97,
+      "lastLine": 101,
+      "sha256": "f441220c0096db15fcaec00d75bc8fbe185a482f58e8d4a69f6da30b20700baf",
+      "reason": "Native binary payload withheld; scalar size and raw-export hash retained."
+    },
+    {
+      "firstLine": 138,
+      "lastLine": 140,
+      "sha256": "fdd8bb11a5e05902ca6059626cc056e013847f9005ad20164e1272081fd3fa57",
+      "reason": "Native binary payload withheld; scalar size and raw-export hash retained."
+    },
+    {
+      "firstLine": 145,
+      "lastLine": 147,
+      "sha256": "7ae4bba33b80e4176e17e85b5619cd373219dc10a5b34cf81aa96c36da5079a1",
+      "reason": "Native binary payload withheld; scalar size and raw-export hash retained."
+    },
+    {
+      "firstLine": 151,
+      "lastLine": 151,
+      "sha256": "d88f18ce62fc05ce1a7afede38525defae4c90336ff14debf80d7ca9af0b9d28",
+      "reason": "Native binary payload withheld; scalar size and raw-export hash retained."
+    },
+    {
+      "firstLine": 154,
+      "lastLine": 154,
+      "sha256": "59418cdd1a9d7270821e9e1ac0810bda82f378ceec72dc4b985994f53a17dd35",
+      "reason": "Native binary payload withheld; scalar size and raw-export hash retained."
+    },
+    {
+      "firstLine": 159,
+      "lastLine": 159,
+      "sha256": "4c22d10caafb7cedfebd6b574d3299791b9aa2f9a0d94c212ff5897217fc17c8",
+      "reason": "Native binary payload withheld; scalar size and raw-export hash retained."
+    },
+    {
+      "firstLine": 165,
+      "lastLine": 197,
+      "sha256": "546b2339a25ccaf2a16620208fe03526bce18d92fc115df5229c7462079c7c45",
+      "reason": "Native binary payload withheld; scalar size and raw-export hash retained."
+    },
+    {
+      "firstLine": 201,
+      "lastLine": 201,
+      "sha256": "ed4f34221dc34e3d22ca01743fee97446cfdefd6240e22e94c3e76596ccfca55",
+      "reason": "Native binary payload withheld; scalar size and raw-export hash retained."
+    },
+    {
+      "firstLine": 204,
+      "lastLine": 208,
+      "sha256": "f441220c0096db15fcaec00d75bc8fbe185a482f58e8d4a69f6da30b20700baf",
+      "reason": "Native binary payload withheld; scalar size and raw-export hash retained."
+    }
+  ]
+}

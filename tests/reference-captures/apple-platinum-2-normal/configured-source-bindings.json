@@ -1,0 +1,38 @@
+{
+  "canonicalSource": {
+    "slug": "apple-platinum-2",
+    "path": "themes/apple-platinum-2/scheme.sit",
+    "format": "sit",
+    "archiveSha256": "ab667ce7ee19b2495413b25782013137a5e891adbe12c54143ed8f7ece34e091",
+    "entryIndex": 0,
+    "entryName": "Apple platinum 2/Apple platinum 2",
+    "forkSha256": "4b7bd9b05fc1ef0b98531a1c9580205f40f7e2eaa67842107146b62f414e0369",
+    "selectionReviewStatus": "reviewed-contract-input",
+    "selectionReason": "Explicit scheme-named Colr entry \"Apple platinum 2/Apple platinum 2\"; readme/icon/font forks excluded by this declared choice, never by size.",
+    "selectionReviewEvidence": "apple-platinum-2"
+  },
+  "actualCopl": [
+    "CoplResourceFile.file.name=Apple platinum 2 volumeRef=-3 parentDir=2 fileID=18 flags=512 logicalEOF=196983 physicalEOF=197632",
+    "CoplResourceFile.file.name=Apple platinum 2 volumeRef=-3 parentDir=2 fileID=18 flags=512 logicalEOF=196983 physicalEOF=197632"
+  ],
+  "configuredFCB": {
+    "volumeRef": -3,
+    "parentDir": 2,
+    "fileID": 18
+  },
+  "stoppedConfiguredFile": {
+    "name": "stopped-Apple platinum 2.bin",
+    "bytes": 197120,
+    "sha256": "835ada84292022d6f368d749ddb627f668d1ff11ab4d7b0379c902a515879b1f"
+  },
+  "resourceFork": {
+    "bytes": 196983,
+    "sha256": "4b7bd9b05fc1ef0b98531a1c9580205f40f7e2eaa67842107146b62f414e0369"
+  },
+  "installedEngineResourceFork": {
+    "bytes": 1005535,
+    "sha256": "cb903bef4410feb096d65b5a4c9383fa2a3c943e6afef6d3c13463b48267d333"
+  },
+  "actualDefinitionsMatchStoppedKaleidoscope": "Bound independent acquisition review; payload hashes retained in pixel conditions",
+  "limits": "Configured file only; no private selected resource/provider/cache inference."
+}

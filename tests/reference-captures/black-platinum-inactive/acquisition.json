@@ -1,0 +1,62 @@
+{
+  "retainedNativeFixtureLabel": "A3A2-84320f7f95",
+  "nativeNonceIsFresh": false,
+  "nativeLabelPolicy": "A3A bootNonce/stateNonce/prefix fields are unchanged compiled-fixture labels, NOT fresh per-run native nonces. New host attempt/session/preboot bindings plus actual native launchDate/launchTicks, observed filenames and stopped exports disambiguate this run. No cryptographic native host acknowledgment.",
+  "hostRunNonce": "shared307-black-platinum-20261020",
+  "bootCount": 1,
+  "fixedOrder": [
+    0,
+    10,
+    255
+  ],
+  "ordinal": 2,
+  "controlGeneration": 3,
+  "actualAcquisitionLines": [
+    "acquisition.bootNonce=A3A-84320f7f95 fixedOrder=0,10,255 sharedSchemeOSCacheHistory=1 providerCacheOrder=UNKNOWN",
+    "acquisition.setup=EraseRect;NewControl-implicit-draw;Draw1Control;HiliteControl;unbracketed-before-observation",
+    "acquisition.stateOrdinal=2 requestedHilite=255 controlGeneration=3 createdTicks=20044 priorDisposedTicks=20043",
+    "acquisition.priorAcknowledgedState=1 hostAckCount=2 lastHostAckTicks=20043 priorFile=A3A1-00003db1-001.txt",
+    "acquisition.faceDrawCount=2 initial=1 update=1 mouse=0 capture=0",
+    "acquisition.stateOrdinal=2 requestedHilite=255 controlGeneration=3 createdTicks=20044 priorDisposedTicks=20043",
+    "acquisition.priorAcknowledgedState=1 hostAckCount=2 lastHostAckTicks=20043 priorFile=A3A1-00003db1-001.txt",
+    "acquisition.faceDrawCount=3 initial=1 update=1 mouse=0 capture=1"
+  ],
+  "hostAck": {
+    "bootNonce": "A3A-84320f7f95",
+    "stateOrdinal": 2,
+    "fixtureNonce": "A3A2-84320f7f95",
+    "telemetryFileObserved": "A3A2-00003db1-001.txt",
+    "frameRecordSha256": "015373c1933b5ccc7697dbebd07098a1c78ec84d700f590c5c311387de9c02ab",
+    "cropRecordSha256": "06d249438562f5c1ef9759b099428c4facb0786c5a394a0e26052ae95d09b478",
+    "statusScreenshotSha256": "50bec0270762b586d9ba03c2c86de9a3b47f4462be2aa6cad1c3ba3a6ee64106",
+    "at": "2026-10-20T10:42:57.017Z",
+    "status": "COMMAND_SENT_NATIVE_ACCEPTANCE_PENDING",
+    "limits": "Operator must inspect displayed state, seven zero statuses and exact counts; N is not a cryptographic native acknowledgment. Native acceptance requires next log/UI."
+  },
+  "nativeAcceptance": "Independent review validates next-log priorAcknowledgedState/hostAckCount; final ACK screenshot separately bound",
+  "finalNativeAckObservation": {
+    "basis": "visually read retained native status screenshot; not native log fields",
+    "ack": 3,
+    "stateOrdinal": 2,
+    "screenshotSha256": "226aea6919725321dfb97ed3f419e5733ca45a0a6e029d6f6dab269df3f7c2f8"
+  },
+  "sharedHistory": "Fresh control per state, shared selected scheme/OS/cache history; not cold-cache/order independence.",
+  "acquisitionReview": {
+    "name": "scriptoscope-shared307-black-platinum-independent-review.json",
+    "bytes": 22772,
+    "sha256": "cfa483d180abc17917195184e1cb4c5f75ec3c1436c497dff5f65b2b8d964783"
+  },
+  "reviewDecision": "APPROVED_ACQUISITION_AND_OBSERVED_CONDITION_JOINS_ONLY",
+  "scopedIntakeReview": "PENDING",
+  "comparisonStatus": {
+    "status": "REVIEWED_PRIVATE_FINITE_COMPARISON_ZERO_DIFFERENCES",
+    "review": {
+      "path": "shared307-private-comparison-review.json",
+      "sha256": "ee47195b69cf1f79c249af2488e725dbed83c1f1f26cbee2675f8f6cfbb99953"
+    },
+    "batchCalls": 36,
+    "batchComparedPixels": 57600,
+    "batchDifferentPixels": 0,
+    "scope": "This source/state is one of 18 source/built pairs. Private finite comparison is independently reviewed; scoped intake and registered public execution remain separate. No whole-control or provider claim."
+  }
+}

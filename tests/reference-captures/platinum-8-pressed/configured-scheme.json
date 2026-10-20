@@ -1,0 +1,5 @@
+{
+  "archiveSha256": "1f064eb95c8c7ba5b71bf97b91b79bec08177ed289a44b985b5af9d3ac5683b7",
+  "forkSha256": "97165ac623a4cdfda072b5f849d90aa0e087b2fbd05bc44966898c2238231f75",
+  "evidence": "Same-run Copl/FCB volume-3, parent2, file18; exact stopped configured scheme fork. Configured file only, not private selected resource/provider."
+}

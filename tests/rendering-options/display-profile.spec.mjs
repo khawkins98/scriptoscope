@@ -1,4 +1,4 @@
-import {readRecordedContext,captureBinding,validateRecordedExecution,validateRecordedBinding,compareRecordedPixels} from '../rendering-requirements/recorded-face.mjs';
+import {RECORDED_CASES,sourcePinsFor,exactOptions,readRecordedContext,captureBinding,validateRecordedExecution,validateRecordedBinding,compareRecordedPixels} from '../rendering-requirements/recorded-face.mjs';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {literalCicn,faceInfo} from '../decoder-fixtures/mode5.mjs';
@@ -58,26 +58,27 @@ for(const mode of ['source','built']) {
   info.annotations.push({type:'fidelity-assertion',description:'recorded.crayon-lisa-four-state'});
   info.annotations.push({type:'fidelity-assertion',description:'recorded.animals-three-state'});
   info.annotations.push({type:'fidelity-assertion',description:'recorded.beos-three-state'});
+  info.annotations.push({type:'fidelity-assertion',description:'recorded.shared307-eighteen'});
   const referenceContext=readRecordedContext(fileURLToPath(new URL('../../',import.meta.url)));
   const bindings=referenceContext.captures.map(c=>captureBinding(c));
   const ledger=JSON.parse(readFileSync(new URL('../rendering-requirements/ledger.json',import.meta.url)));
   for(const binding of bindings)validateRecordedBinding(ledger.cases.find(c=>c.recordedComparison?.captureId===binding.captureId),binding,referenceContext);
   await openHarness(page,servers,mode);
-  const result=await page.evaluate(async ({mode,bindings})=>{
+  const subjects=Object.entries(RECORDED_CASES).map(([slug,entry])=>({slug,...entry,cases:entry.states.map(state=>({state,options:exactOptions(state,slug),sourcePins:sourcePinsFor(slug,state)??null}))}));
+  const result=await page.evaluate(async ({mode,bindings,subjects})=>{
    const api=await import(mode==='built'?'/dist/scriptoscope.js':'/src/index.ts');
-   const data=await(await fetch('/tests/decoder-fixtures/measured-display-profile.json')).json(),profile=await api.prepareDisplayProfile(data),rows=[];
+   const rows=[];
    // Eligibility/digests are checked by the reference gate; these independent
    // original PNG bytes supply the pixel oracle for the existing render.
    const {captures}=await(await fetch('/tests/reference-captures/captures.json')).json();
-   for(const slug of ['windows-95','system7-nostalgia-silver','crayon-os','apple-lisa','animals','beos-r503']){
-    const selectedProfile=slug==='beos-r503'?await api.prepareDisplayProfile(await(await fetch('/tests/decoder-fixtures/measured-display-profile-beos.json')).json()):slug==='animals'?await api.prepareDisplayProfile(await(await fetch('/tests/decoder-fixtures/measured-display-profile-animals.json')).json()):slug==='apple-lisa'?await api.prepareDisplayProfile(await(await fetch('/tests/decoder-fixtures/measured-display-profile-lisa.json')).json()):slug==='crayon-os'?await api.prepareDisplayProfile(await(await fetch('/tests/decoder-fixtures/measured-display-profile-crayon.json')).json()):profile;
-    const normalSourcePins=slug==='apple-lisa'?await(await fetch('/tests/decoder-fixtures/lisa-recorded-source-pins.json')).json():slug==='crayon-os'?await(await fetch('/tests/decoder-fixtures/crayon-recorded-source-pins.json')).json():null;
+   for(const subject of subjects){
+    const {slug}=subject;
+    const selectedProfile=await api.prepareDisplayProfile(await(await fetch('/'+subject.profile.path)).json());
+    if(selectedProfile.id!==subject.profile.id)throw Error('Wrong registered profile '+slug);
     const a=await api.loadTheme('/themes/'+slug,{provenance:true}),b=await api.loadTheme('/themes/'+slug,{provenance:true,displayProfile:selectedProfile});
-    const stateSourcePins=['crayon-os','apple-lisa','animals','beos-r503'].includes(slug)?await(await fetch('/tests/decoder-fixtures/recorded-state-source-pins.json')).json():null;
-    for(const state of ['normal','pressed','inactive']){
-    const recordedSourcePins=stateSourcePins?.[slug]?.[state]??(state==='normal'?normalSourcePins:null);
-    let trace;const options={label:'',minWidth:80,height:20,default:false,pressed:state==='pressed',disabled:state==='inactive',...(['crayon-os','apple-lisa','animals','beos-r503'].includes(slug)?{compositionContext:{controlOrigin:[20,20],portOrigin:[0,0],patternOrigin:{status:'unknown'},clip:{kind:'rect',rect:{x:0,y:0,w:160,h:80}}}}:{})};
-    const normal=await api.composeButton(b,{...options,diagnostics:{onComplete:t=>trace=t}}),legacy=await api.composeButton(a,options);
+    for(const {state,options,sourcePins:recordedSourcePins} of subject.cases){
+    let trace,completionCount=0;
+    const normal=await api.composeButton(b,{...options,diagnostics:{onComplete:t=>{completionCount++;trace=t;}}}),legacy=await api.composeButton(a,options);
     const selected=trace.steps.find(s=>s.role==='face'&&s.action==='selected'),el=b.manifest.chromeElements[selected.resource.manifestKey];
     const faceRgba=Uint8Array.from(Array.from({length:20},(_,y)=>Array.from({length:80},(_,x)=>normal.getPixel(x+4,y+4))).flat(2));
     const reference=captures.find(c=>c.requestId===slug+'.'+state);
@@ -91,7 +92,7 @@ for(const mode of ['source','built']) {
      if(original[i+3]!==255||[0,1,2].some(c=>Math.round((faceRgba[i+c]*alpha+255*(255-alpha))/255)!==original[i+c]))differentPixels++;
     }
     const patternStep=trace.steps.find(s=>s.role==='body-fill'&&s.action==='selected'&&s.resource?.type==='ppat');
-    rows.push({slug,state,options,bodyFillSteps:trace.steps.filter(s=>s.role==='body-fill'),composition:trace.composition,recordedSourcePins,patternAsset:patternStep?b.manifest.patterns[patternStep.resource.manifestKey]?.asset:null,loadId:b.byteProvenance.loadId,profileFork:b.byteProvenance.fork.sha256,selectedKey:selected.resource.manifestKey,selectedAsset:el.asset,selectedCinfId:el.sourceCinfId??null,...(stateSourcePins?.[slug]?.[state]?{selectedBodyRequest:el.bodyRequest}:{}),outcome:trace.outcome,requested:trace.requested,profile:b.manifest.displayProfile.id,baseUrl:a.baseUrl,profileBaseUrl:b.baseUrl,input:a.byteProvenance.input.sha256,profileInput:b.byteProvenance.input.sha256,
+    rows.push({slug,state,options,completionCount,bodyFillSteps:trace.steps.filter(s=>s.role==='body-fill'),composition:trace.composition,recordedSourcePins,patternAsset:patternStep?b.manifest.patterns[patternStep.resource.manifestKey]?.asset:null,loadId:b.byteProvenance.loadId,profileFork:b.byteProvenance.fork.sha256,selectedKey:selected.resource.manifestKey,selectedAsset:el.asset,selectedCinfId:el.sourceCinfId??null,...(recordedSourcePins?{selectedBodyRequest:el.bodyRequest??null}:{}),outcome:trace.outcome,requested:trace.requested,profile:b.manifest.displayProfile.id,baseUrl:a.baseUrl,profileBaseUrl:b.baseUrl,input:a.byteProvenance.input.sha256,profileInput:b.byteProvenance.input.sha256,
      originalComparison:{binding:bindings.find(b=>b.captureId===reference.id),comparedPixels:1600,originalRgba:btoa(String.fromCharCode(...original)),captureId:reference.id,requestDigest:reference.requestDigest,imageSha256,imageSize:[canvas.width,canvas.height],sourceArchiveSha256:reference.source.archiveSha256,
       layer:'composited-face-pixels',background:[255,255,255],differentPixels,verifiedRequirementIds:[]},
      source:el.byteProvenance,resources:b.byteProvenance.resources,selected,facePlane:{rect:[4,4,80,20],encoding:'base64-rgba8',rgba:btoa(String.fromCharCode(...faceRgba))},paintSelectionSteps:trace.steps.filter(s=>s.usage==='paint'&&s.action==='selected'),bandPaints:trace.bandPaints??[],legacyFacePaint:trace.legacyFacePaint??null,policy:el.colorSamples?.displayPolicy??el.samplingEquivalence?.displayPolicy,
@@ -100,7 +101,7 @@ for(const mode of ['source','built']) {
     }
     a.dispose();b.dispose();
    }return rows;
-  },{mode,bindings});
+  },{mode,bindings,subjects});
   if(result.some(row=>row.originalComparison.differentPixels!==0))
    await info.attach('recorded-pixel-mismatch.json',{body:JSON.stringify(result,null,2),contentType:'application/json'});
   for(const row of result){
@@ -108,14 +109,14 @@ for(const mode of ['source','built']) {
    validateRecordedExecution(row,captureBinding(capture),capture);
    expect(compareRecordedPixels(Buffer.from(row.facePlane.rgba,'base64'),Buffer.from(row.originalComparison.originalRgba,'base64'))).toBe(0);
   }
-  for(const row of result){expect(row.profileInput).toBe(row.input);expect(row.profileBaseUrl).toBe(row.baseUrl);expect(row.urlsDistinct).toBe(true);if(row.state==='normal'&&!['apple-lisa','animals','beos-r503'].includes(row.slug))expect(row.different).toBe(true);expect(row.policy).toBe(row.profile);expect(row.selected.resource.byteProvenance).toBeTruthy();
+  for(const row of result){expect(row.profileInput).toBe(row.input);expect(row.profileBaseUrl).toBe(row.baseUrl);expect(row.urlsDistinct).toBe(true);if(row.state==='normal'&&RECORDED_CASES[row.slug].expectNormalDefaultDifference)expect(row.different).toBe(true);expect(row.policy).toBe(row.profile);expect(row.selected.resource.byteProvenance).toBeTruthy();
    expect(row.requested).toMatchObject({state:row.state==='normal'?'active':row.state,pressed:row.state==='pressed',disabled:row.state==='inactive',default:false});
    expect(row.originalComparison.imageSize).toEqual([160,80]);expect(row.originalComparison.sourceArchiveSha256).toBe(row.profileInput);expect(row.originalComparison.differentPixels).toBe(0);
-   if(row.slug==='system7-nostalgia-silver')expect(row.legacyFacePaint.resource.byteProvenance).toEqual(row.selected.resource.byteProvenance);
+   if(RECORDED_CASES[row.slug].paintKind==='legacy-face')expect(row.legacyFacePaint.resource.byteProvenance).toEqual(row.selected.resource.byteProvenance);
    else expect(row.bandPaints.some(p=>p.role==='face')).toBe(true);
   }
-  expect(result).toHaveLength(18);
-  expect(result[0].body).toEqual([218,218,218,255]);
+  expect(result).toHaveLength(subjects.reduce((n,s)=>n+s.cases.length,0));
+  expect(result.find(row=>row.slug==='windows-95'&&row.state==='normal').body).toEqual([218,218,218,255]);
   await attachObservations(info,'display-profile',mode,{mode,rows:result,claim:'Exact recorded empty-face composited pixels under the explicit measured profile only; no mask, font, private-painter or whole-requirement verification.'});
  });
  test(`${mode}: joint profile reaches sampled bands and rejects missing maps before URL allocation`,async({page,servers})=>{

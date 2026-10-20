@@ -1,0 +1,55 @@
+{
+  "palette": {
+    "depth": 8,
+    "sha256": "6987f8e5bc61a7da95ed03f229cc3ecbee463bb6245965fdc2eddbd86a31ef9b",
+    "description": "Actual current-device indexed ColorTable,2056 bytes,seed1023,flags32768,lastIndex255; no inferred palette or inverse-map algorithm. GetGDevice equals GetMainDevice was not observed."
+  },
+  "producer": {
+    "name": "Private copied BasiliskII WebAssembly with bound worker/canvas/capture glue",
+    "buildArtifacts": [
+      {
+        "name": "reference.ts",
+        "bytes": 2250,
+        "sha256": "02bb3367f3eb667fe410c033a575cdde17734fd49d3696fe27522ce898cfcb94"
+      },
+      {
+        "name": "vite.config.mjs",
+        "bytes": 2141,
+        "sha256": "b02cf0ff03294586db6a6f21d60478b939e331279eeb74fc3d4e13c1e34ff662"
+      },
+      {
+        "name": "emulator-worker.ts",
+        "bytes": 38183,
+        "sha256": "79121c9c8f370eb1ce4a46c525b669b21b9ab6081656314e3430987ebbb56d35"
+      },
+      {
+        "name": "emulator-input.ts",
+        "bytes": 14561,
+        "sha256": "b69f0527aabd322e8cf0d0840d6faef769cd53a717a6d3d6e7cf36118a1dc0c5"
+      },
+      {
+        "name": "BasiliskII.js",
+        "bytes": 156114,
+        "sha256": "4fd750e202686a7b7c3bd0055dbe33d21dd6b3ce2639da8da814ef1036d1c66b"
+      },
+      {
+        "name": "BasiliskII.wasm",
+        "bytes": 1713564,
+        "sha256": "0be9b5ba1179b65d9d1bd30b3cc35ee56daf6713ba1353048c03229f641680bb"
+      },
+      {
+        "name": "crop-state.py",
+        "bytes": 1009,
+        "sha256": "f043522d25ff2a7f53bcf69b4538ecc8361bb03aa06d4593909d2b95bc6dc077"
+      }
+    ],
+    "tableSha256": "c2eeb81da5ffc2bd502834d80d850f6f085813ab1cec8d9fb89ca36c2474125b",
+    "pixelEncoding": "rgba8",
+    "colorRealization": "Same-run indexed8 current-device palette/gamma and GetCPixel/host samples retained. Later Shared307 queries in the same selected-scheme boot supply this source-specific prepared private RGB16 profile; profile binding is recorded, not execution or intake approval. State portColorTable and calibration widMax absent; original phase/cache/provider remain unknown. No pooling of outputs between schemes.",
+    "timing": "Conditions bracket explicit Draw1Control + HiliteControl. Setup/implicit/update draws and later host capture are not uniquely bracketed. Calibration is later in the same selected-scheme boot.",
+    "version": {
+      "status": "unknown",
+      "reason": "Exact external JS/WASM and glue build hashes recorded; semantic emulator release version not independently established."
+    }
+  }
+}

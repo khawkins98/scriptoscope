@@ -241,5 +241,395 @@
       },
       "missingPatternId": 0
     }
+  },
+  "1138": {
+    "normal": {
+      "sourceArchiveSha256": "2b14d10e0907e058474b980df57713191a9e1bf1b39c4ed7df8f82ba3ac1fcdb",
+      "sourceForkSha256": "2b14d10e0907e058474b980df57713191a9e1bf1b39c4ed7df8f82ba3ac1fcdb",
+      "emittedKey": "cicn--10239",
+      "face": {
+        "resourceIndex": 174,
+        "signedId": -10239,
+        "bytes": 338,
+        "payloadSha256": "710d48afa7f63d4c321843021ccfc8e7dcd0c66d00a98e6ef8f6fcd374bd66f4"
+      },
+      "cinf": {
+        "resourceIndex": 647,
+        "signedId": -10239,
+        "bytes": 18,
+        "payloadSha256": "f4611b5b30634becb7f1a4d6f6ade881886a6faab3a965b3f1fdc9c05c6c0c6d"
+      },
+      "bodyRequest": {
+        "mode": 0,
+        "resourceId": 0
+      },
+      "paintKind": "cinf-bands",
+      "sourceSize": [
+        16,
+        16
+      ],
+      "missingPatternId": 0
+    },
+    "pressed": {
+      "sourceArchiveSha256": "2b14d10e0907e058474b980df57713191a9e1bf1b39c4ed7df8f82ba3ac1fcdb",
+      "sourceForkSha256": "2b14d10e0907e058474b980df57713191a9e1bf1b39c4ed7df8f82ba3ac1fcdb",
+      "emittedKey": "cicn--10238",
+      "face": {
+        "resourceIndex": 175,
+        "signedId": -10238,
+        "bytes": 346,
+        "payloadSha256": "4922d532905b26a494332596b79eab5699eb00e0a3de0a649075763a8b529a51"
+      },
+      "cinf": {
+        "resourceIndex": 648,
+        "signedId": -10238,
+        "bytes": 18,
+        "payloadSha256": "f4611b5b30634becb7f1a4d6f6ade881886a6faab3a965b3f1fdc9c05c6c0c6d"
+      },
+      "bodyRequest": {
+        "mode": 0,
+        "resourceId": 0
+      },
+      "paintKind": "cinf-bands",
+      "sourceSize": [
+        16,
+        16
+      ],
+      "missingPatternId": 0
+    },
+    "inactive": {
+      "sourceArchiveSha256": "2b14d10e0907e058474b980df57713191a9e1bf1b39c4ed7df8f82ba3ac1fcdb",
+      "sourceForkSha256": "2b14d10e0907e058474b980df57713191a9e1bf1b39c4ed7df8f82ba3ac1fcdb",
+      "emittedKey": "cicn--10240",
+      "face": {
+        "resourceIndex": 173,
+        "signedId": -10240,
+        "bytes": 346,
+        "payloadSha256": "4bed760700e9fcc9beaf4cdb86673db8907bdfbb65077c170f0f70c3251104d9"
+      },
+      "cinf": {
+        "resourceIndex": 651,
+        "signedId": -10240,
+        "bytes": 18,
+        "payloadSha256": "f4611b5b30634becb7f1a4d6f6ade881886a6faab3a965b3f1fdc9c05c6c0c6d"
+      },
+      "bodyRequest": {
+        "mode": 0,
+        "resourceId": 0
+      },
+      "paintKind": "cinf-bands",
+      "sourceSize": [
+        16,
+        16
+      ],
+      "missingPatternId": 0
+    }
+  },
+  "apple-platinum-2": {
+    "normal": {
+      "sourceArchiveSha256": "ab667ce7ee19b2495413b25782013137a5e891adbe12c54143ed8f7ece34e091",
+      "sourceForkSha256": "4b7bd9b05fc1ef0b98531a1c9580205f40f7e2eaa67842107146b62f414e0369",
+      "emittedKey": "cicn--10239",
+      "face": {
+        "resourceIndex": 146,
+        "signedId": -10239,
+        "bytes": 250,
+        "payloadSha256": "d6ca764079e7e4a1d85115bf89c5fa1f709e7d791eadeef456de3076252a9b18"
+      },
+      "cinf": null,
+      "bodyRequest": null,
+      "paintKind": "legacy-face",
+      "sourceSize": [
+        16,
+        16
+      ]
+    },
+    "pressed": {
+      "sourceArchiveSha256": "ab667ce7ee19b2495413b25782013137a5e891adbe12c54143ed8f7ece34e091",
+      "sourceForkSha256": "4b7bd9b05fc1ef0b98531a1c9580205f40f7e2eaa67842107146b62f414e0369",
+      "emittedKey": "cicn--10238",
+      "face": {
+        "resourceIndex": 147,
+        "signedId": -10238,
+        "bytes": 250,
+        "payloadSha256": "dbe3bf759d563ecf0c84d3a52f74fdee3fc85f432aaf8c9c0f99cf98270088fb"
+      },
+      "cinf": null,
+      "bodyRequest": null,
+      "paintKind": "legacy-face",
+      "sourceSize": [
+        16,
+        16
+      ]
+    },
+    "inactive": {
+      "sourceArchiveSha256": "ab667ce7ee19b2495413b25782013137a5e891adbe12c54143ed8f7ece34e091",
+      "sourceForkSha256": "4b7bd9b05fc1ef0b98531a1c9580205f40f7e2eaa67842107146b62f414e0369",
+      "emittedKey": "cicn--10240",
+      "face": {
+        "resourceIndex": 145,
+        "signedId": -10240,
+        "bytes": 242,
+        "payloadSha256": "5930fb949e21d3e19ac8d565605d58cbef9d52836ba2cd89d1d02e3ae21120f1"
+      },
+      "cinf": null,
+      "bodyRequest": null,
+      "paintKind": "legacy-face",
+      "sourceSize": [
+        16,
+        16
+      ]
+    }
+  },
+  "black-platinum": {
+    "normal": {
+      "sourceArchiveSha256": "84b1b90c49909cdf2107759784c0c5aa2da14499dec1cc070e9a67eac77db9fc",
+      "sourceForkSha256": "84b1b90c49909cdf2107759784c0c5aa2da14499dec1cc070e9a67eac77db9fc",
+      "emittedKey": "cicn--10239",
+      "face": {
+        "resourceIndex": 138,
+        "signedId": -10239,
+        "bytes": 346,
+        "payloadSha256": "dce2873cf93168eb039642f6ae42ec19e8a7558085b41e5e9ed206ea32fa46e5"
+      },
+      "cinf": null,
+      "bodyRequest": null,
+      "paintKind": "legacy-face",
+      "sourceSize": [
+        16,
+        16
+      ]
+    },
+    "pressed": {
+      "sourceArchiveSha256": "84b1b90c49909cdf2107759784c0c5aa2da14499dec1cc070e9a67eac77db9fc",
+      "sourceForkSha256": "84b1b90c49909cdf2107759784c0c5aa2da14499dec1cc070e9a67eac77db9fc",
+      "emittedKey": "cicn--10238",
+      "face": {
+        "resourceIndex": 155,
+        "signedId": -10238,
+        "bytes": 346,
+        "payloadSha256": "415d43d0bddc7676eee756ba412370bfee03acfc2e265c8820e8ae419916f392"
+      },
+      "cinf": null,
+      "bodyRequest": null,
+      "paintKind": "legacy-face",
+      "sourceSize": [
+        16,
+        16
+      ]
+    },
+    "inactive": {
+      "sourceArchiveSha256": "84b1b90c49909cdf2107759784c0c5aa2da14499dec1cc070e9a67eac77db9fc",
+      "sourceForkSha256": "84b1b90c49909cdf2107759784c0c5aa2da14499dec1cc070e9a67eac77db9fc",
+      "emittedKey": "cicn--10240",
+      "face": {
+        "resourceIndex": 124,
+        "signedId": -10240,
+        "bytes": 242,
+        "payloadSha256": "fabadaa863b953406df00fb509eab60a0d3bd0a67d58fd3af068132e763b3af4"
+      },
+      "cinf": null,
+      "bodyRequest": null,
+      "paintKind": "legacy-face",
+      "sourceSize": [
+        16,
+        16
+      ]
+    }
+  },
+  "platinum-8": {
+    "normal": {
+      "sourceArchiveSha256": "1f064eb95c8c7ba5b71bf97b91b79bec08177ed289a44b985b5af9d3ac5683b7",
+      "sourceForkSha256": "97165ac623a4cdfda072b5f849d90aa0e087b2fbd05bc44966898c2238231f75",
+      "emittedKey": "cicn--10239",
+      "face": {
+        "resourceIndex": 10,
+        "signedId": -10239,
+        "bytes": 506,
+        "payloadSha256": "514a2d16bb1c271b8f127006790f0642bd1a0d2f3b4fb7ba53e4ee2bcae3c052"
+      },
+      "cinf": null,
+      "bodyRequest": null,
+      "paintKind": "legacy-face",
+      "sourceSize": [
+        16,
+        16
+      ]
+    },
+    "pressed": {
+      "sourceArchiveSha256": "1f064eb95c8c7ba5b71bf97b91b79bec08177ed289a44b985b5af9d3ac5683b7",
+      "sourceForkSha256": "97165ac623a4cdfda072b5f849d90aa0e087b2fbd05bc44966898c2238231f75",
+      "emittedKey": "cicn--10238",
+      "face": {
+        "resourceIndex": 11,
+        "signedId": -10238,
+        "bytes": 474,
+        "payloadSha256": "909475bc21a5271d3509531005b4d5cf21cb2605e1da62e3d973b7022b8cfd32"
+      },
+      "cinf": null,
+      "bodyRequest": null,
+      "paintKind": "legacy-face",
+      "sourceSize": [
+        16,
+        16
+      ]
+    },
+    "inactive": {
+      "sourceArchiveSha256": "1f064eb95c8c7ba5b71bf97b91b79bec08177ed289a44b985b5af9d3ac5683b7",
+      "sourceForkSha256": "97165ac623a4cdfda072b5f849d90aa0e087b2fbd05bc44966898c2238231f75",
+      "emittedKey": "cicn--10240",
+      "face": {
+        "resourceIndex": 9,
+        "signedId": -10240,
+        "bytes": 450,
+        "payloadSha256": "5dda145403b204f586d0d329513403e5128aad559c730d5267a7ffd12a7efe11"
+      },
+      "cinf": null,
+      "bodyRequest": null,
+      "paintKind": "legacy-face",
+      "sourceSize": [
+        16,
+        16
+      ]
+    }
+  },
+  "slimes": {
+    "normal": {
+      "sourceArchiveSha256": "4c87df6b3d0ef2852458f6ebaee818db8b20f12edd75afac68a6f077d063372b",
+      "sourceForkSha256": "63e9617379f4d3e42355268c93ec6e1059ce13788ca0af683b0c37235d993529",
+      "emittedKey": "cicn--10239",
+      "face": {
+        "resourceIndex": 154,
+        "signedId": -10239,
+        "bytes": 570,
+        "payloadSha256": "fcd449c7dba34600748cdeacafe7250916971cdc262e34888bd5a29ce6936af1"
+      },
+      "cinf": null,
+      "bodyRequest": null,
+      "paintKind": "legacy-face",
+      "sourceSize": [
+        16,
+        16
+      ]
+    },
+    "pressed": {
+      "sourceArchiveSha256": "4c87df6b3d0ef2852458f6ebaee818db8b20f12edd75afac68a6f077d063372b",
+      "sourceForkSha256": "63e9617379f4d3e42355268c93ec6e1059ce13788ca0af683b0c37235d993529",
+      "emittedKey": "cicn--10238",
+      "face": {
+        "resourceIndex": 177,
+        "signedId": -10238,
+        "bytes": 706,
+        "payloadSha256": "1afa7d73c982df0acf8f3169c6a1780a1640bedf7c3a38ab5353df0a6d124be0"
+      },
+      "cinf": null,
+      "bodyRequest": null,
+      "paintKind": "legacy-face",
+      "sourceSize": [
+        16,
+        16
+      ]
+    },
+    "inactive": {
+      "sourceArchiveSha256": "4c87df6b3d0ef2852458f6ebaee818db8b20f12edd75afac68a6f077d063372b",
+      "sourceForkSha256": "63e9617379f4d3e42355268c93ec6e1059ce13788ca0af683b0c37235d993529",
+      "emittedKey": "cicn--10240",
+      "face": {
+        "resourceIndex": 192,
+        "signedId": -10240,
+        "bytes": 498,
+        "payloadSha256": "13162682cb31747218a82bd416571596c10ba5038347a5265389df75f2f2908a"
+      },
+      "cinf": null,
+      "bodyRequest": null,
+      "paintKind": "legacy-face",
+      "sourceSize": [
+        16,
+        16
+      ]
+    }
+  },
+  "windows-31": {
+    "normal": {
+      "sourceArchiveSha256": "1daeb997cb3a84d96d2ac31680fe2cf099ef962cc80ca2bded3256b2243642e6",
+      "sourceForkSha256": "398958500f22ec988fd60600fac1c24064e1b89dd0b168a57de101edd71da441",
+      "emittedKey": "cicn--10239",
+      "face": {
+        "resourceIndex": 233,
+        "signedId": -10239,
+        "bytes": 202,
+        "payloadSha256": "010d66bd5a721ef4e39c51c36491e5fb5d1781480545a09c416d8dfc1acbc6b8"
+      },
+      "cinf": {
+        "resourceIndex": 915,
+        "signedId": -10239,
+        "bytes": 18,
+        "payloadSha256": "bfdc44d791fddb6fc248acc7becada34941e6403ce38d575c241abfd10c98a1c"
+      },
+      "bodyRequest": {
+        "mode": 0,
+        "resourceId": 0
+      },
+      "paintKind": "cinf-bands",
+      "sourceSize": [
+        9,
+        10
+      ],
+      "missingPatternId": 0
+    },
+    "pressed": {
+      "sourceArchiveSha256": "1daeb997cb3a84d96d2ac31680fe2cf099ef962cc80ca2bded3256b2243642e6",
+      "sourceForkSha256": "398958500f22ec988fd60600fac1c24064e1b89dd0b168a57de101edd71da441",
+      "emittedKey": "cicn--10238",
+      "face": {
+        "resourceIndex": 408,
+        "signedId": -10238,
+        "bytes": 202,
+        "payloadSha256": "90bed9fed7b7d452e424e7a2020b4ba34e353919471e94a72cd17c0c6c5d5999"
+      },
+      "cinf": {
+        "resourceIndex": 1001,
+        "signedId": -10238,
+        "bytes": 18,
+        "payloadSha256": "bfdc44d791fddb6fc248acc7becada34941e6403ce38d575c241abfd10c98a1c"
+      },
+      "bodyRequest": {
+        "mode": 0,
+        "resourceId": 0
+      },
+      "paintKind": "cinf-bands",
+      "sourceSize": [
+        9,
+        10
+      ],
+      "missingPatternId": 0
+    },
+    "inactive": {
+      "sourceArchiveSha256": "1daeb997cb3a84d96d2ac31680fe2cf099ef962cc80ca2bded3256b2243642e6",
+      "sourceForkSha256": "398958500f22ec988fd60600fac1c24064e1b89dd0b168a57de101edd71da441",
+      "emittedKey": "cicn--10240",
+      "face": {
+        "resourceIndex": 294,
+        "signedId": -10240,
+        "bytes": 202,
+        "payloadSha256": "0716e7b6dc3ded0d4194cfd7ec5e2d56800b7c13132718eac182ee7a072ca76f"
+      },
+      "cinf": {
+        "resourceIndex": 947,
+        "signedId": -10240,
+        "bytes": 18,
+        "payloadSha256": "bfdc44d791fddb6fc248acc7becada34941e6403ce38d575c241abfd10c98a1c"
+      },
+      "bodyRequest": {
+        "mode": 0,
+        "resourceId": 0
+      },
+      "paintKind": "cinf-bands",
+      "sourceSize": [
+        9,
+        10
+      ],
+      "missingPatternId": 0
+    }
   }
 }

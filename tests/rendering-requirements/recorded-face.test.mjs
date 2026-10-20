@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {captureBinding,validateRecordedBinding,validateRecordedExecution,compareRecordedPixels,PROFILE,exactOptions} from './recorded-face.mjs';
+import {validateCompletedFacePaint,captureBinding,validateRecordedBinding,validateRecordedExecution,compareRecordedPixels,PROFILE,exactOptions} from './recorded-face.mjs';
 const ledger=JSON.parse(readFileSync(new URL('./ledger.json',import.meta.url)));
 const captures=JSON.parse(readFileSync(new URL('../reference-captures/captures.json',import.meta.url))).captures;
 // Synthetic assessor results exercise the join; these are not review records.
@@ -47,7 +47,7 @@ test('completed modern paint joins reject wrong owners, occurrences, profile and
 test('recorded comparisons remain execution-unverified when the registered source/built marker is absent or stale',async()=>{
  const {makeReport}=await import('./ledger.mjs');
  const report=makeReport(ledger,{executionCommit:'current',workingTreeDirty:false,execution:{executionCommit:'older',workingTreeDirty:false,assertions:[{id:'recorded.empty-face-six',mode:'source',path:'tests/rendering-options/display-profile.spec.mjs',status:'passed'}]}});
- assert.equal(report.recordedConditionComparisons.cases.length,18);
+ assert.equal(report.recordedConditionComparisons.cases.length,36);
  assert(report.recordedConditionComparisons.cases.every(c=>c.status==='unknown'&&c.execution.every(m=>m.status==='not run')));
 });
 
@@ -124,5 +124,51 @@ test('recorded state joins require their own face/cinf/body/pattern pins and com
   else {const r=make();r.resources.push({type:'ppat',signedId:0});assert.throws(()=>validateRecordedExecution(r,binding,capture),/no-ppat0/);
    const selected=make();selected.paintSelectionSteps.push({role:'body-fill',usage:'paint',action:'selected',resource:{type:'ppat',signedId:128}});assert.throws(()=>validateRecordedExecution(selected,binding,capture),/no-ppat0/);
   }
+ }
+});
+
+
+test('completed paint follows paired metadata and rejects fabricated legacy dependencies',()=>{
+ const make=()=>{const r=execution().row; r.resources=r.resources.filter(x=>x.type!=='cinf');
+  r.facePlane.rgba=Buffer.alloc(6400,255).toString('base64');
+  r.legacyFacePaint={...r.bandPaints[0],basis:'compatibility-policy',operation:'legacy-nine-slice-and-sample-fill',destinationRect:{x:0,y:0,w:80,h:20},retainedNonzeroAlphaPixels:1600};return r;};
+ const good=make();validateCompletedFacePaint(good,good.paintSelectionSteps[0],false);
+ for(const change of [r=>delete r.legacyFacePaint,r=>r.legacyFacePaint.owner={baseUrl:'foreign'},r=>r.legacyFacePaint.operation='selected-only',r=>r.legacyFacePaint.retainedNonzeroAlphaPixels=1599,r=>r.facePlane.rgba='',r=>r.resources.push({type:'cinf',signedId:-10239})]){
+  const r=make();change(r);assert.throws(()=>validateCompletedFacePaint(r,r.paintSelectionSteps[0],false));
+ }
+ const paired=make();paired.bandPaints=[];assert.throws(()=>validateCompletedFacePaint(paired,paired.paintSelectionSteps[0],true),/paint dependency/);
+});
+
+test('explicit recorded registry rejects unknown subjects and preserves nullable metadata paint contracts',async()=>{
+ const {RECORDED_CASES,STATE_SOURCE_PINS,profileFor,caseId}=await import('./recorded-face.mjs');
+ assert.equal(profileFor('unregistered'),undefined);
+ const added=Object.entries(RECORDED_CASES).filter(([,v])=>v.caseSuffix==='shared307');
+ assert.equal(added.length,6);
+ for(const [slug,entry] of added)for(const state of entry.states){
+  const pins=STATE_SOURCE_PINS[slug][state];
+  const capture=structuredClone(captures.find(c=>c.requestId==='beos-r503.normal'));
+  capture.source.slug=slug;capture.source.archiveSha256=pins.sourceArchiveSha256;capture.source.forkSha256=pins.sourceForkSha256;capture.conditions.state=state;
+  const binding=captureBinding(capture);
+  const make=()=>{
+   const r=execution().row,options=exactOptions(state,slug);
+   Object.assign(r,{slug,state,options,completionCount:1,profile:entry.profile.id,policy:entry.profile.id,
+    requested:{state:state==='normal'?'active':state,pressed:options.pressed,disabled:options.disabled,default:false},
+    profileInput:pins.sourceArchiveSha256,profileFork:pins.sourceForkSha256,selectedKey:pins.emittedKey,
+    selectedCinfId:pins.cinf?.signedId??null,selectedBodyRequest:structuredClone(pins.bodyRequest),recordedSourcePins:structuredClone(pins),
+    patternAsset:null,bodyFillSteps:[],originalComparison:{binding,differentPixels:0,comparedPixels:1600},
+    composition:{faceRect:{x:20,y:20,w:80,h:20},context:{...options.compositionContext,basis:'caller-declared'},appliedUnknownPatternOffset:true,originalPortState:'unverified'}});
+   Object.assign(r.source,{manifestKey:pins.emittedKey,cicnResourceIndex:pins.face.resourceIndex,cinfResourceIndex:pins.cinf?.resourceIndex??null});
+   Object.assign(r.paintSelectionSteps[0].resource,{signedId:pins.face.signedId,manifestKey:pins.emittedKey,sourceCinfId:pins.cinf?.signedId??null});
+   r.resources=['face',...(pins.cinf?['cinf']:[])].map(k=>({resourceIndex:pins[k].resourceIndex,signedId:pins[k].signedId,sha256:pins[k].payloadSha256,byteLength:pins[k].bytes,status:'decoded',type:k==='face'?'cicn':'cinf'}));
+   r.facePlane.rgba=Buffer.alloc(6400,255).toString('base64');
+   if(pins.cinf)r.bodyFillSteps=[{role:'body-fill',usage:'paint',action:'missing',owner:r.paintSelectionSteps[0].owner,requestedResourceType:'ppat',requestedId:0,bodyMode:0,reason:'same-face-owner-pattern-unavailable'}];
+   else{r.legacyFacePaint={...r.bandPaints[0],basis:'compatibility-policy',operation:'legacy-nine-slice-and-sample-fill',sourceRect:{x:0,y:0,w:pins.sourceSize[0],h:pins.sourceSize[1]},destinationRect:{x:0,y:0,w:80,h:20},effectiveFaceClip:{x:0,y:0,w:80,h:20},controlOrigin:[20,20],declaredClip:options.compositionContext.clip,coordinateSpace:'face-local-before-ring',rasterAlpha:'copy-source-rgba',retainedNonzeroAlphaPixels:1600};r.bandPaints=[];}
+   return r;
+  };
+  assert.match(caseId(slug,state),/shared307-profile$/);validateRecordedExecution(make(),binding,capture);
+  const mutations=[r=>r.completionCount=0,r=>r.completionCount=2,r=>r.profile='other',r=>r.resources[0].sha256='wrong',r=>r.resources[0].resourceIndex++,r=>r.resources[0].byteLength++,r=>r.selectedBodyRequest={mode:0,resourceId:128},r=>r.recordedSourcePins.paintKind='invented',r=>r.composition.context.controlOrigin=[0,0]];
+  if(pins.cinf)mutations.push(r=>r.bandPaints=[],r=>r.bodyFillSteps=[],r=>r.resources.push({type:'ppat',signedId:0}),r=>r.bodyFillSteps[0].usage='inspect');
+  else mutations.push(r=>delete r.legacyFacePaint,r=>r.legacyFacePaint.sourceRect.w++,r=>r.legacyFacePaint.effectiveFaceClip.w=79,r=>r.legacyFacePaint.retainedNonzeroAlphaPixels--,r=>r.bandPaints=[r.legacyFacePaint],r=>r.bodyFillSteps=[{action:'missing'}],r=>r.resources.push({type:'cinf',signedId:pins.face.signedId}),r=>r.paintSelectionSteps.push({role:'body-fill',usage:'paint',action:'selected',resource:{type:'ppat',signedId:128}}));
+  for(const mutate of mutations){const row=make();mutate(row);assert.throws(()=>validateRecordedExecution(row,binding,capture),undefined,slug+'/'+state);}
  }
 });

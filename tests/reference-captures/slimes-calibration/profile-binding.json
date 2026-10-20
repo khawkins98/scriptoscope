@@ -1,0 +1,17 @@
+{
+  "path": "slimes-calibration/prepared-profile.json",
+  "sha256": "cc128c30089d593e97e5a07e7ffa33729a09b73fe5842d4085dfe54864bbb1f5",
+  "id": "display-profile:36dc28105d8bb380b8df9588cee7ac100bd1294ea218fe56bec287f644c25973",
+  "status": "ACTUAL_PREPARED_PRIVATE_PROFILE_NOT_ADMITTED",
+  "sourceArchiveSha256": "4c87df6b3d0ef2852458f6ebaee818db8b20f12edd75afac68a6f077d063372b",
+  "sourceForkSha256": "63e9617379f4d3e42355268c93ec6e1059ce13788ca0af683b0c37235d993529",
+  "preparationReceipt": {
+    "name": "strict-whole-load.json",
+    "sha256": "5e49bc1f2dd2e63d8fe19aa7fa61ee9a3f944747d32391e59b4d9118f6fd3a3f"
+  },
+  "measurement": {
+    "path": "slimes-calibration/measurement.json",
+    "sha256": "15f689e48141603d1fed07e7a15246065fefce83741bd4f156843e8a624923ec"
+  },
+  "executionApproval": "ABSENT; no source/built result or fidelity claim inferred"
+}

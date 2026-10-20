@@ -7,6 +7,8 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+- Add the six-source Shared307 empty-face campaign with separate measured profiles, original state observations and source/built comparisons. Validate completion through paired metadata and actual paint dependencies, replacing theme-name dispatch; retain exact payload identities, explicit absent metadata, acquisition incidents and broader fidelity unknowns (#190, #221).
+
 - Document independently reviewed sparse CIcon preparation and ordinary transfer observations, separating documented foreground/background coloration from the unresolved missing-index lookup rule. Preserve runtime compatibility, strict profile rejection and all fidelity/intake statuses (#221).
 
 - Add three independently reviewed BeOS empty-face state observations with finite measured-profile source/built comparisons and narrow ledger bindings. Preserve prior capture/request records and explicit cross-run, provider, phase, mask and whole-control unknowns (#190, #221).

@@ -1,0 +1,3094 @@
+{
+  "status": "SANITIZED_PRIVATE_STAGING_PENDING_SCOPED_INTAKE",
+  "originalRawLog": {
+    "name": "telemetry-3.raw",
+    "bytes": 89123,
+    "sha256": "a2e1ebb4fb168c8459e49a8c7c98715ecd613c4ef2f05156748833ab638e9481"
+  },
+  "readableDerivative": {
+    "name": "telemetry-3.txt",
+    "bytes": 89123,
+    "sha256": "8536045a6f67dc27f3845183fde8b6536456b631bbbd8558ed4b629e0ffc4096"
+  },
+  "lineNumberBasis": "1-based CR-to-LF derivative; redaction hashes are LF-joined UTF-8 without trailing LF.",
+  "retainedLines": [
+    {
+      "line": 1,
+      "text": "status=QUARANTINED_PARTIAL fixture=S307-20261020-dfddf4c8ff launchDate=3875344994 launchTicks=24185 sequence=1"
+    },
+    {
+      "line": 2,
+      "text": "telemetryFile.volumeRef=-3 directoryID=2"
+    },
+    {
+      "line": 3,
+      "text": "activePrivateProviderOrder=UNKNOWN;activePatchOrder=UNKNOWN;deviceGammaConfiguration=UNKNOWN"
+    },
+    {
+      "line": 4,
+      "text": "resourceContext.phase=before-condition-queries callerCurResFile=2540 queryHasOSErr=0"
+    },
+    {
+      "line": 5,
+      "text": "callerResourceFile.fileQuery=PBGetFCBInfoSync error=0 ioResult=0"
+    },
+    {
+      "line": 6,
+      "text": "callerResourceFile.file.name=Shared307 Calibration volumeRef=-3 parentDir=2 fileID=17 flags=768 logicalEOF=72528 physicalEOF=72704"
+    },
+    {
+      "line": 7,
+      "text": "resourceContext.Copl.status=0 fullResponseHex=00000a4a callerAfterGetter=2540"
+    },
+    {
+      "line": 8,
+      "text": "resourceContext.Copl.signedLow16Ref=2634"
+    },
+    {
+      "line": 9,
+      "text": "CoplResourceFile.fileQuery=PBGetFCBInfoSync error=0 ioResult=0"
+    },
+    {
+      "line": 10,
+      "text": "CoplResourceFile.file.name=Black Platinum volumeRef=-3 parentDir=2 fileID=18 flags=512 logicalEOF=435125 physicalEOF=435200"
+    },
+    {
+      "line": 11,
+      "text": "resourceContext.meaning=public-ref-observation-only;not-selected-cicn-cinf-ownership;private-cache-order-UNKNOWN"
+    },
+    {
+      "line": 12,
+      "text": "immediateBeforePublicFace.CurResFile=2540"
+    },
+    {
+      "line": 13,
+      "text": "immediateAfterPublicFace.CurResFile=2540"
+    },
+    {
+      "line": 14,
+      "text": "resourceContext.phase=after-public-draw callerCurResFile=2540 queryHasOSErr=0"
+    },
+    {
+      "line": 15,
+      "text": "callerResourceFile.fileQuery=PBGetFCBInfoSync error=0 ioResult=0"
+    },
+    {
+      "line": 16,
+      "text": "callerResourceFile.file.name=Shared307 Calibration volumeRef=-3 parentDir=2 fileID=17 flags=768 logicalEOF=72528 physicalEOF=72704"
+    },
+    {
+      "line": 17,
+      "text": "resourceContext.Copl.status=0 fullResponseHex=00000a4a callerAfterGetter=2540"
+    },
+    {
+      "line": 18,
+      "text": "resourceContext.Copl.signedLow16Ref=2634"
+    },
+    {
+      "line": 19,
+      "text": "CoplResourceFile.fileQuery=PBGetFCBInfoSync error=0 ioResult=0"
+    },
+    {
+      "line": 20,
+      "text": "CoplResourceFile.file.name=Black Platinum volumeRef=-3 parentDir=2 fileID=18 flags=512 logicalEOF=435125 physicalEOF=435200"
+    },
+    {
+      "line": 21,
+      "text": "resourceContext.meaning=public-ref-observation-only;not-selected-cicn-cinf-ownership;private-cache-order-UNKNOWN"
+    },
+    {
+      "line": 22,
+      "text": "phase=before-color-mapping ticks=24559"
+    },
+    {
+      "line": 23,
+      "text": "systemVersionHex=755 machineGestalt=36"
+    },
+    {
+      "line": 24,
+      "text": "portRect=0,0,160,80"
+    },
+    {
+      "line": 25,
+      "text": "globalOrigin=80,90 portVersion=-16384"
+    },
+    {
+      "line": 26,
+      "text": "controlRect=20,20,100,40"
+    },
+    {
+      "line": 27,
+      "text": "control.hilite=0 visible=255 value=0 min=0 max=1 titleLength=0 active=1 windowKind=8"
+    },
+    {
+      "line": 28,
+      "text": "invocation=NewCWindow(proc0);NewControl(proc0);Draw1Control;no-default-API"
+    },
+    {
+      "line": 29,
+      "text": "requestedControlProc=0 actualControlDefinitionHandle=000dd448 actualWindowDefinitionHandle=000b0ed4"
+    },
+    {
+      "line": 30,
+      "text": "control.variant.query=GetControlVariant actual=0 queryHasOSErr=0"
+    },
+    {
+      "line": 31,
+      "text": "actualControlDefinition.resourceInfoError=0 homeRef=1130 homeResourceError=0 typeHex=43444546 id=0 name="
+    },
+    {
+      "line": 32,
+      "text": "actualControlDefinition.fileQuery=PBGetFCBInfoSync error=0 ioResult=0"
+    },
+    {
+      "line": 33,
+      "text": "actualControlDefinition.file.name=Kaleidoscope volumeRef=-1 parentDir=176 fileID=435 flags=768 logicalEOF=1005535 physicalEOF=1005568"
+    },
+    {
+      "line": 34,
+      "text": "actualControlDefinition.bytes=174"
+    },
+    {
+      "line": 38,
+      "text": "actualWindowDefinition.resourceInfoError=0 homeRef=1130 homeResourceError=0 typeHex=57444546 id=0 name="
+    },
+    {
+      "line": 39,
+      "text": "actualWindowDefinition.fileQuery=PBGetFCBInfoSync error=0 ioResult=0"
+    },
+    {
+      "line": 40,
+      "text": "actualWindowDefinition.file.name=Kaleidoscope volumeRef=-1 parentDir=176 fileID=435 flags=768 logicalEOF=1005535 physicalEOF=1005568"
+    },
+    {
+      "line": 41,
+      "text": "actualWindowDefinition.bytes=176"
+    },
+    {
+      "line": 45,
+      "text": "font.number=0 name=Chicago size=12 face=0 mode=1 ascent=12 descent=3 leading=1"
+    },
+    {
+      "line": 46,
+      "text": "portPixMap.handle=03e6f5a8 colorTableHandle=0000210c depth=8"
+    },
+    {
+      "line": 47,
+      "text": "portColorTable.seed=1023 flags=32768 lastIndex=255"
+    },
+    {
+      "line": 48,
+      "text": "portColorTable.bytes=2056"
+    },
+    {
+      "line": 82,
+      "text": "clipBounds=-32767,-32767,32767,32767"
+    },
+    {
+      "line": 83,
+      "text": "clipRegion.bytes=10"
+    },
+    {
+      "line": 85,
+      "text": "visibleBounds=0,0,160,80"
+    },
+    {
+      "line": 86,
+      "text": "visibleRegion.bytes=10"
+    },
+    {
+      "line": 88,
+      "text": "portPixMap.bounds=-80,-90,560,390"
+    },
+    {
+      "line": 89,
+      "text": "effectiveClip.method=owned-SectRgn(clip,visible,portRect,portPixMap.bounds);IM-QuickDraw-2-12/Color-QuickDraw"
+    },
+    {
+      "line": 90,
+      "text": "effectiveClipBounds=0,0,160,80"
+    },
+    {
+      "line": 91,
+      "text": "effectiveClipRegion.bytes=10"
+    },
+    {
+      "line": 93,
+      "text": "device.ref=-49 id=0 type=0 flags=47137 mode=131"
+    },
+    {
+      "line": 94,
+      "text": "pixMap.depth=8 rowBytes=33408 pixelType=0"
+    },
+    {
+      "line": 95,
+      "text": "pixMap.bounds=0,0,640,480"
+    },
+    {
+      "line": 96,
+      "text": "colorTable.seed=1023 flags=32768 lastIndex=255"
+    },
+    {
+      "line": 97,
+      "text": "colorTable.bytes=2056"
+    },
+    {
+      "line": 131,
+      "text": "gamma.query=PBStatusSync csCode=8 actualDeviceRef=-49 status=0 ioResult=0 returnedPointer=0000d110"
+    },
+    {
+      "line": 132,
+      "text": "gamma.header.version=0 type=0 formulaBytes=0 channels=1 count=256 bitsPerEntry=8"
+    },
+    {
+      "line": 133,
+      "text": "gammaFixedPrefix.bytes=12"
+    },
+    {
+      "line": 135,
+      "text": "gamma.table=observed-version0-bounded-bytes;not-color-transform-proof"
+    },
+    {
+      "line": 136,
+      "text": "gammaTable.bytes=268"
+    },
+    {
+      "line": 142,
+      "text": "port.backgroundRGB16=ffff,ffff,ffff"
+    },
+    {
+      "line": 143,
+      "text": "port.foregroundRGB16=0000,0000,0000"
+    },
+    {
+      "line": 144,
+      "text": "body.GetCPixel=9999,9999,9999"
+    },
+    {
+      "line": 145,
+      "text": "edge.GetCPixel=6666,6666,6666"
+    },
+    {
+      "line": 146,
+      "text": "sentinel.0.GetCPixel=ffff,0000,0000"
+    },
+    {
+      "line": 147,
+      "text": "sentinel.1.GetCPixel=0000,ffff,0000"
+    },
+    {
+      "line": 148,
+      "text": "sentinel.2.GetCPixel=0000,0000,ffff"
+    },
+    {
+      "line": 149,
+      "text": "sentinel.3.GetCPixel=ffff,ffff,ffff"
+    },
+    {
+      "line": 150,
+      "text": "sentinel.4.GetCPixel=0000,0000,0000"
+    },
+    {
+      "line": 151,
+      "text": "mapping.expectedCount=307 repeats=2 totalRows=614"
+    },
+    {
+      "line": 152,
+      "text": "mapping.method=Color2Index-AA33-then-Index2Color-AA34;queryHasOSErr=0;no-SetGDevice"
+    },
+    {
+      "line": 153,
+      "text": "mapping.currentDevice=00002120 mainDevice=00002120 equal=1"
+    },
+    {
+      "line": 154,
+      "text": "mapping.deviceBounds=0,0,640,480"
+    },
+    {
+      "line": 155,
+      "text": "mapping.targetGlobalBounds=80,90,240,170"
+    },
+    {
+      "line": 156,
+      "text": "mapping.auxiliaryQDError.before=0;not-per-call-OSErr"
+    },
+    {
+      "line": 157,
+      "text": "mapping.batch=1 sample=0 input=0000,0000,0000 index=255 reverseInvoked=1 output=0000,0000,0000"
+    },
+    {
+      "line": 158,
+      "text": "mapping.batch=1 sample=1 input=0000,0000,1111 index=244 reverseInvoked=1 output=0000,0000,1111"
+    },
+    {
+      "line": 159,
+      "text": "mapping.batch=1 sample=2 input=0000,0000,2222 index=243 reverseInvoked=1 output=0000,0000,2222"
+    },
+    {
+      "line": 160,
+      "text": "mapping.batch=1 sample=3 input=0000,0000,3333 index=214 reverseInvoked=1 output=0000,0000,3333"
+    },
+    {
+      "line": 161,
+      "text": "mapping.batch=1 sample=4 input=0000,0000,4444 index=242 reverseInvoked=1 output=0000,0000,4444"
+    },
+    {
+      "line": 162,
+      "text": "mapping.batch=1 sample=5 input=0000,0000,5555 index=241 reverseInvoked=1 output=0000,0000,5555"
+    },
+    {
+      "line": 163,
+      "text": "mapping.batch=1 sample=6 input=0000,0000,6666 index=213 reverseInvoked=1 output=0000,0000,6666"
+    },
+    {
+      "line": 164,
+      "text": "mapping.batch=1 sample=7 input=0000,0000,7777 index=240 reverseInvoked=1 output=0000,0000,7777"
+    },
+    {
+      "line": 165,
+      "text": "mapping.batch=1 sample=8 input=0000,0000,8080 index=239 reverseInvoked=1 output=0000,0000,8888"
+    },
+    {
+      "line": 166,
+      "text": "mapping.batch=1 sample=9 input=0000,0000,8888 index=239 reverseInvoked=1 output=0000,0000,8888"
+    },
+    {
+      "line": 167,
+      "text": "mapping.batch=1 sample=10 input=0000,0000,9999 index=212 reverseInvoked=1 output=0000,0000,9999"
+    },
+    {
+      "line": 168,
+      "text": "mapping.batch=1 sample=11 input=0000,0000,aaaa index=238 reverseInvoked=1 output=0000,0000,aaaa"
+    },
+    {
+      "line": 169,
+      "text": "mapping.batch=1 sample=12 input=0000,0000,bbbb index=237 reverseInvoked=1 output=0000,0000,bbbb"
+    },
+    {
+      "line": 170,
+      "text": "mapping.batch=1 sample=13 input=0000,0000,cccc index=211 reverseInvoked=1 output=0000,0000,cccc"
+    },
+    {
+      "line": 171,
+      "text": "mapping.batch=1 sample=14 input=0000,0000,d3d3 index=236 reverseInvoked=1 output=0000,0000,dddd"
+    },
+    {
+      "line": 172,
+      "text": "mapping.batch=1 sample=15 input=0000,0000,dddd index=236 reverseInvoked=1 output=0000,0000,dddd"
+    },
+    {
+      "line": 173,
+      "text": "mapping.batch=1 sample=16 input=0000,0000,eeee index=235 reverseInvoked=1 output=0000,0000,eeee"
+    },
+    {
+      "line": 174,
+      "text": "mapping.batch=1 sample=17 input=0000,0000,ffff index=210 reverseInvoked=1 output=0000,0000,ffff"
+    },
+    {
+      "line": 175,
+      "text": "mapping.batch=1 sample=18 input=0000,1111,0000 index=234 reverseInvoked=1 output=0000,1111,0000"
+    },
+    {
+      "line": 176,
+      "text": "mapping.batch=1 sample=19 input=0000,2222,0000 index=233 reverseInvoked=1 output=0000,2222,0000"
+    },
+    {
+      "line": 177,
+      "text": "mapping.batch=1 sample=20 input=0000,3333,0000 index=209 reverseInvoked=1 output=0000,3333,0000"
+    },
+    {
+      "line": 178,
+      "text": "mapping.batch=1 sample=21 input=0000,3333,3333 index=208 reverseInvoked=1 output=0000,3333,3333"
+    },
+    {
+      "line": 179,
+      "text": "mapping.batch=1 sample=22 input=0000,3333,6666 index=207 reverseInvoked=1 output=0000,3333,6666"
+    },
+    {
+      "line": 180,
+      "text": "mapping.batch=1 sample=23 input=0000,3333,9999 index=206 reverseInvoked=1 output=0000,3333,9999"
+    },
+    {
+      "line": 181,
+      "text": "mapping.batch=1 sample=24 input=0000,3333,cccc index=205 reverseInvoked=1 output=0000,3333,cccc"
+    },
+    {
+      "line": 182,
+      "text": "mapping.batch=1 sample=25 input=0000,3333,ffff index=204 reverseInvoked=1 output=0000,3333,ffff"
+    },
+    {
+      "line": 183,
+      "text": "mapping.batch=1 sample=26 input=0000,4444,0000 index=232 reverseInvoked=1 output=0000,4444,0000"
+    },
+    {
+      "line": 184,
+      "text": "mapping.batch=1 sample=27 input=0000,5555,0000 index=231 reverseInvoked=1 output=0000,5555,0000"
+    },
+    {
+      "line": 185,
+      "text": "mapping.batch=1 sample=28 input=0000,6464,1212 index=203 reverseInvoked=1 output=0000,6666,0000"
+    },
+    {
+      "line": 186,
+      "text": "mapping.batch=1 sample=29 input=0000,6666,0000 index=203 reverseInvoked=1 output=0000,6666,0000"
+    },
+    {
+      "line": 187,
+      "text": "mapping.batch=1 sample=30 input=0000,6666,3333 index=202 reverseInvoked=1 output=0000,6666,3333"
+    },
+    {
+      "line": 188,
+      "text": "mapping.batch=1 sample=31 input=0000,6666,6666 index=201 reverseInvoked=1 output=0000,6666,6666"
+    },
+    {
+      "line": 189,
+      "text": "mapping.batch=1 sample=32 input=0000,6666,9999 index=200 reverseInvoked=1 output=0000,6666,9999"
+    },
+    {
+      "line": 190,
+      "text": "mapping.batch=1 sample=33 input=0000,6666,cccc index=199 reverseInvoked=1 output=0000,6666,cccc"
+    },
+    {
+      "line": 191,
+      "text": "mapping.batch=1 sample=34 input=0000,6666,ffff index=198 reverseInvoked=1 output=0000,6666,ffff"
+    },
+    {
+      "line": 192,
+      "text": "mapping.batch=1 sample=35 input=0000,7777,0000 index=230 reverseInvoked=1 output=0000,7777,0000"
+    },
+    {
+      "line": 193,
+      "text": "mapping.batch=1 sample=36 input=0000,8080,0000 index=229 reverseInvoked=1 output=0000,8888,0000"
+    },
+    {
+      "line": 194,
+      "text": "mapping.batch=1 sample=37 input=0000,8888,0000 index=229 reverseInvoked=1 output=0000,8888,0000"
+    },
+    {
+      "line": 195,
+      "text": "mapping.batch=1 sample=38 input=0000,9999,0000 index=197 reverseInvoked=1 output=0000,9999,0000"
+    },
+    {
+      "line": 196,
+      "text": "mapping.batch=1 sample=39 input=0000,9999,3333 index=196 reverseInvoked=1 output=0000,9999,3333"
+    },
+    {
+      "line": 197,
+      "text": "mapping.batch=1 sample=40 input=0000,9999,9999 index=194 reverseInvoked=1 output=0000,9999,9999"
+    },
+    {
+      "line": 198,
+      "text": "mapping.batch=1 sample=41 input=0000,9999,cccc index=193 reverseInvoked=1 output=0000,9999,cccc"
+    },
+    {
+      "line": 199,
+      "text": "mapping.batch=1 sample=42 input=0000,9999,ffff index=192 reverseInvoked=1 output=0000,9999,ffff"
+    },
+    {
+      "line": 200,
+      "text": "mapping.batch=1 sample=43 input=0000,aaaa,0000 index=228 reverseInvoked=1 output=0000,aaaa,0000"
+    },
+    {
+      "line": 201,
+      "text": "mapping.batch=1 sample=44 input=0000,bbbb,0000 index=227 reverseInvoked=1 output=0000,bbbb,0000"
+    },
+    {
+      "line": 202,
+      "text": "mapping.batch=1 sample=45 input=0000,cccc,0000 index=191 reverseInvoked=1 output=0000,cccc,0000"
+    },
+    {
+      "line": 203,
+      "text": "mapping.batch=1 sample=46 input=0000,cccc,3333 index=190 reverseInvoked=1 output=0000,cccc,3333"
+    },
+    {
+      "line": 204,
+      "text": "mapping.batch=1 sample=47 input=0000,cccc,9999 index=188 reverseInvoked=1 output=0000,cccc,9999"
+    },
+    {
+      "line": 205,
+      "text": "mapping.batch=1 sample=48 input=0000,cccc,ffff index=186 reverseInvoked=1 output=0000,cccc,ffff"
+    },
+    {
+      "line": 206,
+      "text": "mapping.batch=1 sample=49 input=0000,ffff,0000 index=185 reverseInvoked=1 output=0000,ffff,0000"
+    },
+    {
+      "line": 207,
+      "text": "mapping.batch=1 sample=50 input=0000,ffff,ffff index=180 reverseInvoked=1 output=0000,ffff,ffff"
+    },
+    {
+      "line": 208,
+      "text": "mapping.batch=1 sample=51 input=0202,abab,eaea index=192 reverseInvoked=1 output=0000,9999,ffff"
+    },
+    {
+      "line": 209,
+      "text": "mapping.batch=1 sample=52 input=0a00,0a00,0a00 index=255 reverseInvoked=1 output=0000,0000,0000"
+    },
+    {
+      "line": 210,
+      "text": "mapping.batch=1 sample=53 input=1010,1010,1010 index=254 reverseInvoked=1 output=1111,1111,1111"
+    },
+    {
+      "line": 211,
+      "text": "mapping.batch=1 sample=54 input=1084,1084,1084 index=254 reverseInvoked=1 output=1111,1111,1111"
+    },
+    {
+      "line": 212,
+      "text": "mapping.batch=1 sample=55 input=1111,0000,0000 index=224 reverseInvoked=1 output=1111,0000,0000"
+    },
+    {
+      "line": 213,
+      "text": "mapping.batch=1 sample=56 input=1111,1111,1111 index=254 reverseInvoked=1 output=1111,1111,1111"
+    },
+    {
+      "line": 214,
+      "text": "mapping.batch=1 sample=57 input=1f1f,b7b7,1414 index=227 reverseInvoked=1 output=0000,bbbb,0000"
+    },
+    {
+      "line": 215,
+      "text": "mapping.batch=1 sample=58 input=2108,2108,2108 index=253 reverseInvoked=1 output=2222,2222,2222"
+    },
+    {
+      "line": 216,
+      "text": "mapping.batch=1 sample=59 input=2121,2121,2121 index=253 reverseInvoked=1 output=2222,2222,2222"
+    },
+    {
+      "line": 217,
+      "text": "mapping.batch=1 sample=60 input=2222,0000,0000 index=223 reverseInvoked=1 output=2222,0000,0000"
+    },
+    {
+      "line": 218,
+      "text": "mapping.batch=1 sample=61 input=2222,2222,2222 index=253 reverseInvoked=1 output=2222,2222,2222"
+    },
+    {
+      "line": 219,
+      "text": "mapping.batch=1 sample=62 input=3131,3131,3131 index=172 reverseInvoked=1 output=3333,3333,3333"
+    },
+    {
+      "line": 220,
+      "text": "mapping.batch=1 sample=63 input=318c,318c,318c index=172 reverseInvoked=1 output=3333,3333,3333"
+    },
+    {
+      "line": 221,
+      "text": "mapping.batch=1 sample=64 input=318c,6318,ffff index=162 reverseInvoked=1 output=3333,6666,ffff"
+    },
+    {
+      "line": 222,
+      "text": "mapping.batch=1 sample=65 input=3333,0000,0000 index=179 reverseInvoked=1 output=3333,0000,0000"
+    },
+    {
+      "line": 223,
+      "text": "mapping.batch=1 sample=66 input=3333,0000,3333 index=178 reverseInvoked=1 output=3333,0000,3333"
+    },
+    {
+      "line": 224,
+      "text": "mapping.batch=1 sample=67 input=3333,0000,6666 index=177 reverseInvoked=1 output=3333,0000,6666"
+    },
+    {
+      "line": 225,
+      "text": "mapping.batch=1 sample=68 input=3333,0000,9999 index=176 reverseInvoked=1 output=3333,0000,9999"
+    },
+    {
+      "line": 226,
+      "text": "mapping.batch=1 sample=69 input=3333,0000,cccc index=175 reverseInvoked=1 output=3333,0000,cccc"
+    },
+    {
+      "line": 227,
+      "text": "mapping.batch=1 sample=70 input=3333,0000,ffff index=174 reverseInvoked=1 output=3333,0000,ffff"
+    },
+    {
+      "line": 228,
+      "text": "mapping.batch=1 sample=71 input=3333,3333,0000 index=173 reverseInvoked=1 output=3333,3333,0000"
+    },
+    {
+      "line": 229,
+      "text": "mapping.batch=1 sample=72 input=3333,3333,3333 index=172 reverseInvoked=1 output=3333,3333,3333"
+    },
+    {
+      "line": 230,
+      "text": "mapping.batch=1 sample=73 input=3333,3333,6666 index=171 reverseInvoked=1 output=3333,3333,6666"
+    },
+    {
+      "line": 231,
+      "text": "mapping.batch=1 sample=74 input=3333,3333,9999 index=170 reverseInvoked=1 output=3333,3333,9999"
+    },
+    {
+      "line": 232,
+      "text": "mapping.batch=1 sample=75 input=3333,3333,ffff index=168 reverseInvoked=1 output=3333,3333,ffff"
+    },
+    {
+      "line": 233,
+      "text": "mapping.batch=1 sample=76 input=3333,6666,0000 index=167 reverseInvoked=1 output=3333,6666,0000"
+    },
+    {
+      "line": 234,
+      "text": "mapping.batch=1 sample=77 input=3333,6666,3333 index=166 reverseInvoked=1 output=3333,6666,3333"
+    },
+    {
+      "line": 235,
+      "text": "mapping.batch=1 sample=78 input=3333,6666,6666 index=165 reverseInvoked=1 output=3333,6666,6666"
+    },
+    {
+      "line": 236,
+      "text": "mapping.batch=1 sample=79 input=3333,6666,9999 index=164 reverseInvoked=1 output=3333,6666,9999"
+    },
+    {
+      "line": 237,
+      "text": "mapping.batch=1 sample=80 input=3333,6666,cccc index=163 reverseInvoked=1 output=3333,6666,cccc"
+    },
+    {
+      "line": 238,
+      "text": "mapping.batch=1 sample=81 input=3333,6666,ffff index=162 reverseInvoked=1 output=3333,6666,ffff"
+    },
+    {
+      "line": 239,
+      "text": "mapping.batch=1 sample=82 input=3333,9999,0000 index=161 reverseInvoked=1 output=3333,9999,0000"
+    },
+    {
+      "line": 240,
+      "text": "mapping.batch=1 sample=83 input=3333,9999,3333 index=160 reverseInvoked=1 output=3333,9999,3333"
+    },
+    {
+      "line": 241,
+      "text": "mapping.batch=1 sample=84 input=3333,9999,6666 index=159 reverseInvoked=1 output=3333,9999,6666"
+    },
+    {
+      "line": 242,
+      "text": "mapping.batch=1 sample=85 input=3333,9999,9999 index=158 reverseInvoked=1 output=3333,9999,9999"
+    },
+    {
+      "line": 243,
+      "text": "mapping.batch=1 sample=86 input=3333,9999,cccc index=157 reverseInvoked=1 output=3333,9999,cccc"
+    },
+    {
+      "line": 244,
+      "text": "mapping.batch=1 sample=87 input=3333,9999,ffff index=156 reverseInvoked=1 output=3333,9999,ffff"
+    },
+    {
+      "line": 245,
+      "text": "mapping.batch=1 sample=88 input=3333,cccc,0000 index=155 reverseInvoked=1 output=3333,cccc,0000"
+    },
+    {
+      "line": 246,
+      "text": "mapping.batch=1 sample=89 input=3333,cccc,6666 index=153 reverseInvoked=1 output=3333,cccc,6666"
+    },
+    {
+      "line": 247,
+      "text": "mapping.batch=1 sample=90 input=3333,cccc,ffff index=150 reverseInvoked=1 output=3333,cccc,ffff"
+    },
+    {
+      "line": 248,
+      "text": "mapping.batch=1 sample=91 input=3333,ffff,9999 index=146 reverseInvoked=1 output=3333,ffff,9999"
+    },
+    {
+      "line": 249,
+      "text": "mapping.batch=1 sample=92 input=3939,3939,3939 index=172 reverseInvoked=1 output=3333,3333,3333"
+    },
+    {
+      "line": 250,
+      "text": "mapping.batch=1 sample=93 input=4040,4040,4040 index=252 reverseInvoked=1 output=4444,4444,4444"
+    },
+    {
+      "line": 251,
+      "text": "mapping.batch=1 sample=94 input=4210,4210,4210 index=252 reverseInvoked=1 output=4444,4444,4444"
+    },
+    {
+      "line": 252,
+      "text": "mapping.batch=1 sample=95 input=4242,4242,4242 index=252 reverseInvoked=1 output=4444,4444,4444"
+    },
+    {
+      "line": 253,
+      "text": "mapping.batch=1 sample=96 input=4444,0000,0000 index=222 reverseInvoked=1 output=4444,0000,0000"
+    },
+    {
+      "line": 254,
+      "text": "mapping.batch=1 sample=97 input=4444,4444,4444 index=252 reverseInvoked=1 output=4444,4444,4444"
+    },
+    {
+      "line": 255,
+      "text": "mapping.batch=1 sample=98 input=4747,0000,a5a5 index=176 reverseInvoked=1 output=3333,0000,9999"
+    },
+    {
+      "line": 256,
+      "text": "mapping.batch=1 sample=99 input=50c5,50c5,50c5 index=251 reverseInvoked=1 output=5555,5555,5555"
+    },
+    {
+      "line": 257,
+      "text": "mapping.batch=1 sample=100 input=5252,5252,5252 index=251 reverseInvoked=1 output=5555,5555,5555"
+    },
+    {
+      "line": 258,
+      "text": "mapping.batch=1 sample=101 input=5294,5294,5294 index=251 reverseInvoked=1 output=5555,5555,5555"
+    },
+    {
+      "line": 259,
+      "text": "mapping.batch=1 sample=102 input=5555,0000,0000 index=221 reverseInvoked=1 output=5555,0000,0000"
+    },
+    {
+      "line": 260,
+      "text": "mapping.batch=1 sample=103 input=5555,5555,5555 index=251 reverseInvoked=1 output=5555,5555,5555"
+    },
+    {
+      "line": 261,
+      "text": "mapping.batch=1 sample=104 input=5656,2c2c,0505 index=137 reverseInvoked=1 output=6666,3333,0000"
+    },
+    {
+      "line": 262,
+      "text": "mapping.batch=1 sample=105 input=5a5a,5a5a,5a5a index=251 reverseInvoked=1 output=5555,5555,5555"
+    },
+    {
+      "line": 263,
+      "text": "mapping.batch=1 sample=106 input=60b3,60b3,60b3 index=129 reverseInvoked=1 output=6666,6666,6666"
+    },
+    {
+      "line": 264,
+      "text": "mapping.batch=1 sample=107 input=62c6,62c6,62c6 index=129 reverseInvoked=1 output=6666,6666,6666"
+    },
+    {
+      "line": 265,
+      "text": "mapping.batch=1 sample=108 input=6318,6318,6318 index=129 reverseInvoked=1 output=6666,6666,6666"
+    },
+    {
+      "line": 266,
+      "text": "mapping.batch=1 sample=109 input=6318,ce73,ffff index=114 reverseInvoked=1 output=6666,cccc,ffff"
+    },
+    {
+      "line": 267,
+      "text": "mapping.batch=1 sample=110 input=6363,6363,6363 index=129 reverseInvoked=1 output=6666,6666,6666"
+    },
+    {
+      "line": 268,
+      "text": "mapping.batch=1 sample=111 input=6363,9c9c,0000 index=125 reverseInvoked=1 output=6666,9999,0000"
+    },
+    {
+      "line": 269,
+      "text": "mapping.batch=1 sample=112 input=6666,0000,0000 index=143 reverseInvoked=1 output=6666,0000,0000"
+    },
+    {
+      "line": 270,
+      "text": "mapping.batch=1 sample=113 input=6666,0000,3333 index=142 reverseInvoked=1 output=6666,0000,3333"
+    },
+    {
+      "line": 271,
+      "text": "mapping.batch=1 sample=114 input=6666,0000,6666 index=141 reverseInvoked=1 output=6666,0000,6666"
+    },
+    {
+      "line": 272,
+      "text": "mapping.batch=1 sample=115 input=6666,0000,9999 index=140 reverseInvoked=1 output=6666,0000,9999"
+    },
+    {
+      "line": 273,
+      "text": "mapping.batch=1 sample=116 input=6666,0000,cccc index=139 reverseInvoked=1 output=6666,0000,cccc"
+    },
+    {
+      "line": 274,
+      "text": "mapping.batch=1 sample=117 input=6666,3333,0000 index=137 reverseInvoked=1 output=6666,3333,0000"
+    },
+    {
+      "line": 275,
+      "text": "mapping.batch=1 sample=118 input=6666,3333,3333 index=136 reverseInvoked=1 output=6666,3333,3333"
+    },
+    {
+      "line": 276,
+      "text": "mapping.batch=1 sample=119 input=6666,3333,6666 index=135 reverseInvoked=1 output=6666,3333,6666"
+    },
+    {
+      "line": 277,
+      "text": "mapping.batch=1 sample=120 input=6666,3333,9999 index=134 reverseInvoked=1 output=6666,3333,9999"
+    },
+    {
+      "line": 278,
+      "text": "mapping.batch=1 sample=121 input=6666,3333,cccc index=133 reverseInvoked=1 output=6666,3333,cccc"
+    },
+    {
+      "line": 279,
+      "text": "mapping.batch=1 sample=122 input=6666,6666,0000 index=131 reverseInvoked=1 output=6666,6666,0000"
+    },
+    {
+      "line": 280,
+      "text": "mapping.batch=1 sample=123 input=6666,6666,3333 index=130 reverseInvoked=1 output=6666,6666,3333"
+    },
+    {
+      "line": 281,
+      "text": "mapping.batch=1 sample=124 input=6666,6666,6666 index=129 reverseInvoked=1 output=6666,6666,6666"
+    },
+    {
+      "line": 282,
+      "text": "mapping.batch=1 sample=125 input=6666,6666,9999 index=128 reverseInvoked=1 output=6666,6666,9999"
+    },
+    {
+      "line": 283,
+      "text": "mapping.batch=1 sample=126 input=6666,6666,cccc index=127 reverseInvoked=1 output=6666,6666,cccc"
+    },
+    {
+      "line": 284,
+      "text": "mapping.batch=1 sample=127 input=6666,6666,ffff index=126 reverseInvoked=1 output=6666,6666,ffff"
+    },
+    {
+      "line": 285,
+      "text": "mapping.batch=1 sample=128 input=6666,9999,0000 index=125 reverseInvoked=1 output=6666,9999,0000"
+    },
+    {
+      "line": 286,
+      "text": "mapping.batch=1 sample=129 input=6666,9999,6666 index=123 reverseInvoked=1 output=6666,9999,6666"
+    },
+    {
+      "line": 287,
+      "text": "mapping.batch=1 sample=130 input=6666,9999,9999 index=122 reverseInvoked=1 output=6666,9999,9999"
+    },
+    {
+      "line": 288,
+      "text": "mapping.batch=1 sample=131 input=6666,9999,cccc index=121 reverseInvoked=1 output=6666,9999,cccc"
+    },
+    {
+      "line": 289,
+      "text": "mapping.batch=1 sample=132 input=6666,9999,ffff index=120 reverseInvoked=1 output=6666,9999,ffff"
+    },
+    {
+      "line": 290,
+      "text": "mapping.batch=1 sample=133 input=6666,cccc,0000 index=119 reverseInvoked=1 output=6666,cccc,0000"
+    },
+    {
+      "line": 291,
+      "text": "mapping.batch=1 sample=134 input=6666,cccc,3333 index=118 reverseInvoked=1 output=6666,cccc,3333"
+    },
+    {
+      "line": 292,
+      "text": "mapping.batch=1 sample=135 input=6666,cccc,cccc index=115 reverseInvoked=1 output=6666,cccc,cccc"
+    },
+    {
+      "line": 293,
+      "text": "mapping.batch=1 sample=136 input=6666,cccc,ffff index=114 reverseInvoked=1 output=6666,cccc,ffff"
+    },
+    {
+      "line": 294,
+      "text": "mapping.batch=1 sample=137 input=6666,ffff,0000 index=113 reverseInvoked=1 output=6666,ffff,0000"
+    },
+    {
+      "line": 295,
+      "text": "mapping.batch=1 sample=138 input=6666,ffff,3333 index=112 reverseInvoked=1 output=6666,ffff,3333"
+    },
+    {
+      "line": 296,
+      "text": "mapping.batch=1 sample=139 input=6666,ffff,6666 index=111 reverseInvoked=1 output=6666,ffff,6666"
+    },
+    {
+      "line": 297,
+      "text": "mapping.batch=1 sample=140 input=6666,ffff,9999 index=110 reverseInvoked=1 output=6666,ffff,9999"
+    },
+    {
+      "line": 298,
+      "text": "mapping.batch=1 sample=141 input=6666,ffff,cccc index=109 reverseInvoked=1 output=6666,ffff,cccc"
+    },
+    {
+      "line": 299,
+      "text": "mapping.batch=1 sample=142 input=6666,ffff,ffff index=108 reverseInvoked=1 output=6666,ffff,ffff"
+    },
+    {
+      "line": 300,
+      "text": "mapping.batch=1 sample=143 input=6b6b,6b6b,6b6b index=129 reverseInvoked=1 output=6666,6666,6666"
+    },
+    {
+      "line": 301,
+      "text": "mapping.batch=1 sample=144 input=70a1,70a1,70a1 index=250 reverseInvoked=1 output=7777,7777,7777"
+    },
+    {
+      "line": 302,
+      "text": "mapping.batch=1 sample=145 input=727f,727f,727f index=250 reverseInvoked=1 output=7777,7777,7777"
+    },
+    {
+      "line": 303,
+      "text": "mapping.batch=1 sample=146 input=7373,7373,7373 index=250 reverseInvoked=1 output=7777,7777,7777"
+    },
+    {
+      "line": 304,
+      "text": "mapping.batch=1 sample=147 input=739c,739c,739c index=250 reverseInvoked=1 output=7777,7777,7777"
+    },
+    {
+      "line": 305,
+      "text": "mapping.batch=1 sample=148 input=7777,0000,0000 index=220 reverseInvoked=1 output=7777,0000,0000"
+    },
+    {
+      "line": 306,
+      "text": "mapping.batch=1 sample=149 input=7777,7777,7777 index=250 reverseInvoked=1 output=7777,7777,7777"
+    },
+    {
+      "line": 307,
+      "text": "mapping.batch=1 sample=150 input=7b7b,7b7b,7b7b index=250 reverseInvoked=1 output=7777,7777,7777"
+    },
+    {
+      "line": 308,
+      "text": "mapping.batch=1 sample=151 input=8080,0000,0000 index=219 reverseInvoked=1 output=8888,0000,0000"
+    },
+    {
+      "line": 309,
+      "text": "mapping.batch=1 sample=152 input=8080,8080,8080 index=249 reverseInvoked=1 output=8888,8888,8888"
+    },
+    {
+      "line": 310,
+      "text": "mapping.batch=1 sample=153 input=808f,808f,808f index=249 reverseInvoked=1 output=8888,8888,8888"
+    },
+    {
+      "line": 311,
+      "text": "mapping.batch=1 sample=154 input=8238,8238,8238 index=249 reverseInvoked=1 output=8888,8888,8888"
+    },
+    {
+      "line": 312,
+      "text": "mapping.batch=1 sample=155 input=8484,8484,8484 index=249 reverseInvoked=1 output=8888,8888,8888"
+    },
+    {
+      "line": 313,
+      "text": "mapping.batch=1 sample=156 input=8888,0000,0000 index=219 reverseInvoked=1 output=8888,0000,0000"
+    },
+    {
+      "line": 314,
+      "text": "mapping.batch=1 sample=157 input=8888,8888,8888 index=249 reverseInvoked=1 output=8888,8888,8888"
+    },
+    {
+      "line": 315,
+      "text": "mapping.batch=1 sample=158 input=8c63,8c63,8c63 index=249 reverseInvoked=1 output=8888,8888,8888"
+    },
+    {
+      "line": 316,
+      "text": "mapping.batch=1 sample=159 input=8c8c,8c8c,8c8c index=249 reverseInvoked=1 output=8888,8888,8888"
+    },
+    {
+      "line": 317,
+      "text": "mapping.batch=1 sample=160 input=907d,907d,907d index=86 reverseInvoked=1 output=9999,9999,9999"
+    },
+    {
+      "line": 318,
+      "text": "mapping.batch=1 sample=161 input=9090,7171,3a3a index=94 reverseInvoked=1 output=9999,6666,3333"
+    },
+    {
+      "line": 319,
+      "text": "mapping.batch=1 sample=162 input=9494,9494,9494 index=86 reverseInvoked=1 output=9999,9999,9999"
+    },
+    {
+      "line": 320,
+      "text": "mapping.batch=1 sample=163 input=9999,0000,0000 index=107 reverseInvoked=1 output=9999,0000,0000"
+    },
+    {
+      "line": 321,
+      "text": "mapping.batch=1 sample=164 input=9999,0000,3333 index=106 reverseInvoked=1 output=9999,0000,3333"
+    },
+    {
+      "line": 322,
+      "text": "mapping.batch=1 sample=165 input=9999,0000,6666 index=105 reverseInvoked=1 output=9999,0000,6666"
+    },
+    {
+      "line": 323,
+      "text": "mapping.batch=1 sample=166 input=9999,0000,9999 index=104 reverseInvoked=1 output=9999,0000,9999"
+    },
+    {
+      "line": 324,
+      "text": "mapping.batch=1 sample=167 input=9999,0000,cccc index=103 reverseInvoked=1 output=9999,0000,cccc"
+    },
+    {
+      "line": 325,
+      "text": "mapping.batch=1 sample=168 input=9999,0000,ffff index=102 reverseInvoked=1 output=9999,0000,ffff"
+    },
+    {
+      "line": 326,
+      "text": "mapping.batch=1 sample=169 input=9999,3333,0000 index=101 reverseInvoked=1 output=9999,3333,0000"
+    },
+    {
+      "line": 327,
+      "text": "mapping.batch=1 sample=170 input=9999,3333,3333 index=100 reverseInvoked=1 output=9999,3333,3333"
+    },
+    {
+      "line": 328,
+      "text": "mapping.batch=1 sample=171 input=9999,3333,6666 index=99 reverseInvoked=1 output=9999,3333,6666"
+    },
+    {
+      "line": 329,
+      "text": "mapping.batch=1 sample=172 input=9999,3333,9999 index=98 reverseInvoked=1 output=9999,3333,9999"
+    },
+    {
+      "line": 330,
+      "text": "mapping.batch=1 sample=173 input=9999,3333,cccc index=97 reverseInvoked=1 output=9999,3333,cccc"
+    },
+    {
+      "line": 331,
+      "text": "mapping.batch=1 sample=174 input=9999,3333,ffff index=96 reverseInvoked=1 output=9999,3333,ffff"
+    },
+    {
+      "line": 332,
+      "text": "mapping.batch=1 sample=175 input=9999,6666,0000 index=95 reverseInvoked=1 output=9999,6666,0000"
+    },
+    {
+      "line": 333,
+      "text": "mapping.batch=1 sample=176 input=9999,6666,3333 index=94 reverseInvoked=1 output=9999,6666,3333"
+    },
+    {
+      "line": 334,
+      "text": "mapping.batch=1 sample=177 input=9999,6666,6666 index=93 reverseInvoked=1 output=9999,6666,6666"
+    },
+    {
+      "line": 335,
+      "text": "mapping.batch=1 sample=178 input=9999,6666,9999 index=92 reverseInvoked=1 output=9999,6666,9999"
+    },
+    {
+      "line": 336,
+      "text": "mapping.batch=1 sample=179 input=9999,6666,cccc index=91 reverseInvoked=1 output=9999,6666,cccc"
+    },
+    {
+      "line": 337,
+      "text": "mapping.batch=1 sample=180 input=9999,6666,ffff index=90 reverseInvoked=1 output=9999,6666,ffff"
+    },
+    {
+      "line": 338,
+      "text": "mapping.batch=1 sample=181 input=9999,9999,0000 index=89 reverseInvoked=1 output=9999,9999,0000"
+    },
+    {
+      "line": 339,
+      "text": "mapping.batch=1 sample=182 input=9999,9999,3333 index=88 reverseInvoked=1 output=9999,9999,3333"
+    },
+    {
+      "line": 340,
+      "text": "mapping.batch=1 sample=183 input=9999,9999,6666 index=87 reverseInvoked=1 output=9999,9999,6666"
+    },
+    {
+      "line": 341,
+      "text": "mapping.batch=1 sample=184 input=9999,9999,9999 index=86 reverseInvoked=1 output=9999,9999,9999"
+    },
+    {
+      "line": 342,
+      "text": "mapping.batch=1 sample=185 input=9999,9999,cccc index=85 reverseInvoked=1 output=9999,9999,cccc"
+    },
+    {
+      "line": 343,
+      "text": "mapping.batch=1 sample=186 input=9999,9999,ffff index=84 reverseInvoked=1 output=9999,9999,ffff"
+    },
+    {
+      "line": 344,
+      "text": "mapping.batch=1 sample=187 input=9999,cccc,0000 index=83 reverseInvoked=1 output=9999,cccc,0000"
+    },
+    {
+      "line": 345,
+      "text": "mapping.batch=1 sample=188 input=9999,cccc,6666 index=81 reverseInvoked=1 output=9999,cccc,6666"
+    },
+    {
+      "line": 346,
+      "text": "mapping.batch=1 sample=189 input=9999,cccc,9999 index=80 reverseInvoked=1 output=9999,cccc,9999"
+    },
+    {
+      "line": 347,
+      "text": "mapping.batch=1 sample=190 input=9999,cccc,cccc index=79 reverseInvoked=1 output=9999,cccc,cccc"
+    },
+    {
+      "line": 348,
+      "text": "mapping.batch=1 sample=191 input=9999,cccc,ffff index=78 reverseInvoked=1 output=9999,cccc,ffff"
+    },
+    {
+      "line": 349,
+      "text": "mapping.batch=1 sample=192 input=9999,ffff,0000 index=77 reverseInvoked=1 output=9999,ffff,0000"
+    },
+    {
+      "line": 350,
+      "text": "mapping.batch=1 sample=193 input=9999,ffff,3333 index=76 reverseInvoked=1 output=9999,ffff,3333"
+    },
+    {
+      "line": 351,
+      "text": "mapping.batch=1 sample=194 input=9999,ffff,6666 index=75 reverseInvoked=1 output=9999,ffff,6666"
+    },
+    {
+      "line": 352,
+      "text": "mapping.batch=1 sample=195 input=9999,ffff,9999 index=74 reverseInvoked=1 output=9999,ffff,9999"
+    },
+    {
+      "line": 353,
+      "text": "mapping.batch=1 sample=196 input=9999,ffff,ffff index=72 reverseInvoked=1 output=9999,ffff,ffff"
+    },
+    {
+      "line": 354,
+      "text": "mapping.batch=1 sample=197 input=9c9c,9c9c,9c9c index=86 reverseInvoked=1 output=9999,9999,9999"
+    },
+    {
+      "line": 355,
+      "text": "mapping.batch=1 sample=198 input=9ce7,9ce7,9ce7 index=86 reverseInvoked=1 output=9999,9999,9999"
+    },
+    {
+      "line": 356,
+      "text": "mapping.batch=1 sample=199 input=a06b,a06b,a06b index=248 reverseInvoked=1 output=aaaa,aaaa,aaaa"
+    },
+    {
+      "line": 357,
+      "text": "mapping.batch=1 sample=200 input=a1a9,a1a9,a1a9 index=248 reverseInvoked=1 output=aaaa,aaaa,aaaa"
+    },
+    {
+      "line": 358,
+      "text": "mapping.batch=1 sample=201 input=a5a5,a5a5,a5a5 index=248 reverseInvoked=1 output=aaaa,aaaa,aaaa"
+    },
+    {
+      "line": 359,
+      "text": "mapping.batch=1 sample=202 input=aaaa,0000,0000 index=218 reverseInvoked=1 output=aaaa,0000,0000"
+    },
+    {
+      "line": 360,
+      "text": "mapping.batch=1 sample=203 input=aaaa,aaaa,aaaa index=248 reverseInvoked=1 output=aaaa,aaaa,aaaa"
+    },
+    {
+      "line": 361,
+      "text": "mapping.batch=1 sample=204 input=ad6b,ad6b,ad6b index=248 reverseInvoked=1 output=aaaa,aaaa,aaaa"
+    },
+    {
+      "line": 362,
+      "text": "mapping.batch=1 sample=205 input=adad,adad,adad index=248 reverseInvoked=1 output=aaaa,aaaa,aaaa"
+    },
+    {
+      "line": 363,
+      "text": "mapping.batch=1 sample=206 input=b059,b059,b059 index=247 reverseInvoked=1 output=bbbb,bbbb,bbbb"
+    },
+    {
+      "line": 364,
+      "text": "mapping.batch=1 sample=207 input=b162,b162,b162 index=247 reverseInvoked=1 output=bbbb,bbbb,bbbb"
+    },
+    {
+      "line": 365,
+      "text": "mapping.batch=1 sample=208 input=b5b5,b5b5,b5b5 index=247 reverseInvoked=1 output=bbbb,bbbb,bbbb"
+    },
+    {
+      "line": 366,
+      "text": "mapping.batch=1 sample=209 input=bba5,bba5,bba5 index=247 reverseInvoked=1 output=bbbb,bbbb,bbbb"
+    },
+    {
+      "line": 367,
+      "text": "mapping.batch=1 sample=210 input=bbbb,0000,0000 index=217 reverseInvoked=1 output=bbbb,0000,0000"
+    },
+    {
+      "line": 368,
+      "text": "mapping.batch=1 sample=211 input=bbbb,bbbb,bbbb index=247 reverseInvoked=1 output=bbbb,bbbb,bbbb"
+    },
+    {
+      "line": 369,
+      "text": "mapping.batch=1 sample=212 input=bdbd,bdbd,bdbd index=247 reverseInvoked=1 output=bbbb,bbbb,bbbb"
+    },
+    {
+      "line": 370,
+      "text": "mapping.batch=1 sample=213 input=bdef,bdef,bdef index=247 reverseInvoked=1 output=bbbb,bbbb,bbbb"
+    },
+    {
+      "line": 371,
+      "text": "mapping.batch=1 sample=214 input=c0c0,c0c0,c0c0 index=43 reverseInvoked=1 output=cccc,cccc,cccc"
+    },
+    {
+      "line": 372,
+      "text": "mapping.batch=1 sample=215 input=c6c6,c6c6,c6c6 index=43 reverseInvoked=1 output=cccc,cccc,cccc"
+    },
+    {
+      "line": 373,
+      "text": "mapping.batch=1 sample=216 input=cccc,0000,0000 index=71 reverseInvoked=1 output=cccc,0000,0000"
+    },
+    {
+      "line": 374,
+      "text": "mapping.batch=1 sample=217 input=cccc,0000,3333 index=70 reverseInvoked=1 output=cccc,0000,3333"
+    },
+    {
+      "line": 375,
+      "text": "mapping.batch=1 sample=218 input=cccc,0000,6666 index=69 reverseInvoked=1 output=cccc,0000,6666"
+    },
+    {
+      "line": 376,
+      "text": "mapping.batch=1 sample=219 input=cccc,0000,9999 index=68 reverseInvoked=1 output=cccc,0000,9999"
+    },
+    {
+      "line": 377,
+      "text": "mapping.batch=1 sample=220 input=cccc,0000,cccc index=67 reverseInvoked=1 output=cccc,0000,cccc"
+    },
+    {
+      "line": 378,
+      "text": "mapping.batch=1 sample=221 input=cccc,0000,ffff index=66 reverseInvoked=1 output=cccc,0000,ffff"
+    },
+    {
+      "line": 379,
+      "text": "mapping.batch=1 sample=222 input=cccc,3333,0000 index=65 reverseInvoked=1 output=cccc,3333,0000"
+    },
+    {
+      "line": 380,
+      "text": "mapping.batch=1 sample=223 input=cccc,3333,3333 index=64 reverseInvoked=1 output=cccc,3333,3333"
+    },
+    {
+      "line": 381,
+      "text": "mapping.batch=1 sample=224 input=cccc,3333,6666 index=63 reverseInvoked=1 output=cccc,3333,6666"
+    },
+    {
+      "line": 382,
+      "text": "mapping.batch=1 sample=225 input=cccc,3333,9999 index=62 reverseInvoked=1 output=cccc,3333,9999"
+    },
+    {
+      "line": 383,
+      "text": "mapping.batch=1 sample=226 input=cccc,3333,ffff index=60 reverseInvoked=1 output=cccc,3333,ffff"
+    },
+    {
+      "line": 384,
+      "text": "mapping.batch=1 sample=227 input=cccc,6666,0000 index=59 reverseInvoked=1 output=cccc,6666,0000"
+    },
+    {
+      "line": 385,
+      "text": "mapping.batch=1 sample=228 input=cccc,6666,3333 index=58 reverseInvoked=1 output=cccc,6666,3333"
+    },
+    {
+      "line": 386,
+      "text": "mapping.batch=1 sample=229 input=cccc,6666,6666 index=57 reverseInvoked=1 output=cccc,6666,6666"
+    },
+    {
+      "line": 387,
+      "text": "mapping.batch=1 sample=230 input=cccc,6666,9999 index=56 reverseInvoked=1 output=cccc,6666,9999"
+    },
+    {
+      "line": 388,
+      "text": "mapping.batch=1 sample=231 input=cccc,6666,cccc index=55 reverseInvoked=1 output=cccc,6666,cccc"
+    },
+    {
+      "line": 389,
+      "text": "mapping.batch=1 sample=232 input=cccc,6666,ffff index=54 reverseInvoked=1 output=cccc,6666,ffff"
+    },
+    {
+      "line": 390,
+      "text": "mapping.batch=1 sample=233 input=cccc,9999,0000 index=53 reverseInvoked=1 output=cccc,9999,0000"
+    },
+    {
+      "line": 391,
+      "text": "mapping.batch=1 sample=234 input=cccc,9999,3333 index=52 reverseInvoked=1 output=cccc,9999,3333"
+    },
+    {
+      "line": 392,
+      "text": "mapping.batch=1 sample=235 input=cccc,9999,6666 index=51 reverseInvoked=1 output=cccc,9999,6666"
+    },
+    {
+      "line": 393,
+      "text": "mapping.batch=1 sample=236 input=cccc,9999,9999 index=50 reverseInvoked=1 output=cccc,9999,9999"
+    },
+    {
+      "line": 394,
+      "text": "mapping.batch=1 sample=237 input=cccc,9999,cccc index=49 reverseInvoked=1 output=cccc,9999,cccc"
+    },
+    {
+      "line": 395,
+      "text": "mapping.batch=1 sample=238 input=cccc,9999,ffff index=48 reverseInvoked=1 output=cccc,9999,ffff"
+    },
+    {
+      "line": 396,
+      "text": "mapping.batch=1 sample=239 input=cccc,cccc,0000 index=47 reverseInvoked=1 output=cccc,cccc,0000"
+    },
+    {
+      "line": 397,
+      "text": "mapping.batch=1 sample=240 input=cccc,cccc,6666 index=45 reverseInvoked=1 output=cccc,cccc,6666"
+    },
+    {
+      "line": 398,
+      "text": "mapping.batch=1 sample=241 input=cccc,cccc,9999 index=44 reverseInvoked=1 output=cccc,cccc,9999"
+    },
+    {
+      "line": 399,
+      "text": "mapping.batch=1 sample=242 input=cccc,cccc,cccc index=43 reverseInvoked=1 output=cccc,cccc,cccc"
+    },
+    {
+      "line": 400,
+      "text": "mapping.batch=1 sample=243 input=cccc,cccc,ffff index=42 reverseInvoked=1 output=cccc,cccc,ffff"
+    },
+    {
+      "line": 401,
+      "text": "mapping.batch=1 sample=244 input=cccc,ffff,0000 index=41 reverseInvoked=1 output=cccc,ffff,0000"
+    },
+    {
+      "line": 402,
+      "text": "mapping.batch=1 sample=245 input=cccc,ffff,3333 index=40 reverseInvoked=1 output=cccc,ffff,3333"
+    },
+    {
+      "line": 403,
+      "text": "mapping.batch=1 sample=246 input=cccc,ffff,6666 index=39 reverseInvoked=1 output=cccc,ffff,6666"
+    },
+    {
+      "line": 404,
+      "text": "mapping.batch=1 sample=247 input=cccc,ffff,9999 index=38 reverseInvoked=1 output=cccc,ffff,9999"
+    },
+    {
+      "line": 405,
+      "text": "mapping.batch=1 sample=248 input=cccc,ffff,cccc index=37 reverseInvoked=1 output=cccc,ffff,cccc"
+    },
+    {
+      "line": 406,
+      "text": "mapping.batch=1 sample=249 input=cccc,ffff,ffff index=36 reverseInvoked=1 output=cccc,ffff,ffff"
+    },
+    {
+      "line": 407,
+      "text": "mapping.batch=1 sample=250 input=ce73,9ce7,0000 index=53 reverseInvoked=1 output=cccc,9999,0000"
+    },
+    {
+      "line": 408,
+      "text": "mapping.batch=1 sample=251 input=ce73,ce73,ce73 index=43 reverseInvoked=1 output=cccc,cccc,cccc"
+    },
+    {
+      "line": 409,
+      "text": "mapping.batch=1 sample=252 input=cece,cece,cece index=43 reverseInvoked=1 output=cccc,cccc,cccc"
+    },
+    {
+      "line": 410,
+      "text": "mapping.batch=1 sample=253 input=cece,ffff,6363 index=39 reverseInvoked=1 output=cccc,ffff,6666"
+    },
+    {
+      "line": 411,
+      "text": "mapping.batch=1 sample=254 input=cece,ffff,cece index=37 reverseInvoked=1 output=cccc,ffff,cccc"
+    },
+    {
+      "line": 412,
+      "text": "mapping.batch=1 sample=255 input=d6d6,d6d6,d6d6 index=246 reverseInvoked=1 output=dddd,dddd,dddd"
+    },
+    {
+      "line": 413,
+      "text": "mapping.batch=1 sample=256 input=dddd,0000,0000 index=216 reverseInvoked=1 output=dddd,0000,0000"
+    },
+    {
+      "line": 414,
+      "text": "mapping.batch=1 sample=257 input=dddd,0909,0707 index=216 reverseInvoked=1 output=dddd,0000,0000"
+    },
+    {
+      "line": 415,
+      "text": "mapping.batch=1 sample=258 input=dddd,dddd,dddd index=246 reverseInvoked=1 output=dddd,dddd,dddd"
+    },
+    {
+      "line": 416,
+      "text": "mapping.batch=1 sample=259 input=ddf2,ddf2,ddf2 index=246 reverseInvoked=1 output=dddd,dddd,dddd"
+    },
+    {
+      "line": 417,
+      "text": "mapping.batch=1 sample=260 input=dede,dede,dede index=246 reverseInvoked=1 output=dddd,dddd,dddd"
+    },
+    {
+      "line": 418,
+      "text": "mapping.batch=1 sample=261 input=def7,def7,def7 index=246 reverseInvoked=1 output=dddd,dddd,dddd"
+    },
+    {
+      "line": 419,
+      "text": "mapping.batch=1 sample=262 input=eeee,0000,0000 index=215 reverseInvoked=1 output=eeee,0000,0000"
+    },
+    {
+      "line": 420,
+      "text": "mapping.batch=1 sample=263 input=eeee,eeee,eeee index=245 reverseInvoked=1 output=eeee,eeee,eeee"
+    },
+    {
+      "line": 421,
+      "text": "mapping.batch=1 sample=264 input=ef7b,ef7b,ef7b index=245 reverseInvoked=1 output=eeee,eeee,eeee"
+    },
+    {
+      "line": 422,
+      "text": "mapping.batch=1 sample=265 input=efef,efef,efef index=245 reverseInvoked=1 output=eeee,eeee,eeee"
+    },
+    {
+      "line": 423,
+      "text": "mapping.batch=1 sample=266 input=f011,f011,f011 index=0 reverseInvoked=1 output=ffff,ffff,ffff"
+    },
+    {
+      "line": 424,
+      "text": "mapping.batch=1 sample=267 input=f046,f046,f046 index=0 reverseInvoked=1 output=ffff,ffff,ffff"
+    },
+    {
+      "line": 425,
+      "text": "mapping.batch=1 sample=268 input=f2f2,0808,8484 index=32 reverseInvoked=1 output=ffff,0000,9999"
+    },
+    {
+      "line": 426,
+      "text": "mapping.batch=1 sample=269 input=fcfc,f3f3,0505 index=5 reverseInvoked=1 output=ffff,ffff,0000"
+    },
+    {
+      "line": 427,
+      "text": "mapping.batch=1 sample=270 input=ffff,0000,0000 index=35 reverseInvoked=1 output=ffff,0000,0000"
+    },
+    {
+      "line": 428,
+      "text": "mapping.batch=1 sample=271 input=ffff,0000,3333 index=34 reverseInvoked=1 output=ffff,0000,3333"
+    },
+    {
+      "line": 429,
+      "text": "mapping.batch=1 sample=272 input=ffff,0000,6666 index=33 reverseInvoked=1 output=ffff,0000,6666"
+    },
+    {
+      "line": 430,
+      "text": "mapping.batch=1 sample=273 input=ffff,0000,9999 index=32 reverseInvoked=1 output=ffff,0000,9999"
+    },
+    {
+      "line": 431,
+      "text": "mapping.batch=1 sample=274 input=ffff,0000,ffff index=30 reverseInvoked=1 output=ffff,0000,ffff"
+    },
+    {
+      "line": 432,
+      "text": "mapping.batch=1 sample=275 input=ffff,3333,0000 index=29 reverseInvoked=1 output=ffff,3333,0000"
+    },
+    {
+      "line": 433,
+      "text": "mapping.batch=1 sample=276 input=ffff,3333,3333 index=28 reverseInvoked=1 output=ffff,3333,3333"
+    },
+    {
+      "line": 434,
+      "text": "mapping.batch=1 sample=277 input=ffff,3333,9999 index=26 reverseInvoked=1 output=ffff,3333,9999"
+    },
+    {
+      "line": 435,
+      "text": "mapping.batch=1 sample=278 input=ffff,3333,cccc index=25 reverseInvoked=1 output=ffff,3333,cccc"
+    },
+    {
+      "line": 436,
+      "text": "mapping.batch=1 sample=279 input=ffff,3333,ffff index=24 reverseInvoked=1 output=ffff,3333,ffff"
+    },
+    {
+      "line": 437,
+      "text": "mapping.batch=1 sample=280 input=ffff,6464,0303 index=23 reverseInvoked=1 output=ffff,6666,0000"
+    },
+    {
+      "line": 438,
+      "text": "mapping.batch=1 sample=281 input=ffff,6666,0000 index=23 reverseInvoked=1 output=ffff,6666,0000"
+    },
+    {
+      "line": 439,
+      "text": "mapping.batch=1 sample=282 input=ffff,6666,3333 index=22 reverseInvoked=1 output=ffff,6666,3333"
+    },
+    {
+      "line": 440,
+      "text": "mapping.batch=1 sample=283 input=ffff,6666,6666 index=21 reverseInvoked=1 output=ffff,6666,6666"
+    },
+    {
+      "line": 441,
+      "text": "mapping.batch=1 sample=284 input=ffff,6666,cccc index=19 reverseInvoked=1 output=ffff,6666,cccc"
+    },
+    {
+      "line": 442,
+      "text": "mapping.batch=1 sample=285 input=ffff,6666,ffff index=18 reverseInvoked=1 output=ffff,6666,ffff"
+    },
+    {
+      "line": 443,
+      "text": "mapping.batch=1 sample=286 input=ffff,9999,0000 index=17 reverseInvoked=1 output=ffff,9999,0000"
+    },
+    {
+      "line": 444,
+      "text": "mapping.batch=1 sample=287 input=ffff,9999,3333 index=16 reverseInvoked=1 output=ffff,9999,3333"
+    },
+    {
+      "line": 445,
+      "text": "mapping.batch=1 sample=288 input=ffff,9999,6666 index=15 reverseInvoked=1 output=ffff,9999,6666"
+    },
+    {
+      "line": 446,
+      "text": "mapping.batch=1 sample=289 input=ffff,9999,9999 index=14 reverseInvoked=1 output=ffff,9999,9999"
+    },
+    {
+      "line": 447,
+      "text": "mapping.batch=1 sample=290 input=ffff,9999,cccc index=13 reverseInvoked=1 output=ffff,9999,cccc"
+    },
+    {
+      "line": 448,
+      "text": "mapping.batch=1 sample=291 input=ffff,9999,ffff index=12 reverseInvoked=1 output=ffff,9999,ffff"
+    },
+    {
+      "line": 449,
+      "text": "mapping.batch=1 sample=292 input=ffff,cccc,0000 index=11 reverseInvoked=1 output=ffff,cccc,0000"
+    },
+    {
+      "line": 450,
+      "text": "mapping.batch=1 sample=293 input=ffff,cccc,3333 index=10 reverseInvoked=1 output=ffff,cccc,3333"
+    },
+    {
+      "line": 451,
+      "text": "mapping.batch=1 sample=294 input=ffff,cccc,6666 index=9 reverseInvoked=1 output=ffff,cccc,6666"
+    },
+    {
+      "line": 452,
+      "text": "mapping.batch=1 sample=295 input=ffff,cccc,9999 index=8 reverseInvoked=1 output=ffff,cccc,9999"
+    },
+    {
+      "line": 453,
+      "text": "mapping.batch=1 sample=296 input=ffff,cccc,cccc index=7 reverseInvoked=1 output=ffff,cccc,cccc"
+    },
+    {
+      "line": 454,
+      "text": "mapping.batch=1 sample=297 input=ffff,cccc,ffff index=6 reverseInvoked=1 output=ffff,cccc,ffff"
+    },
+    {
+      "line": 455,
+      "text": "mapping.batch=1 sample=298 input=ffff,ce73,0000 index=11 reverseInvoked=1 output=ffff,cccc,0000"
+    },
+    {
+      "line": 456,
+      "text": "mapping.batch=1 sample=299 input=ffff,ffff,0000 index=5 reverseInvoked=1 output=ffff,ffff,0000"
+    },
+    {
+      "line": 457,
+      "text": "mapping.batch=1 sample=300 input=ffff,ffff,3333 index=4 reverseInvoked=1 output=ffff,ffff,3333"
+    },
+    {
+      "line": 458,
+      "text": "mapping.batch=1 sample=301 input=ffff,ffff,6363 index=3 reverseInvoked=1 output=ffff,ffff,6666"
+    },
+    {
+      "line": 459,
+      "text": "mapping.batch=1 sample=302 input=ffff,ffff,6666 index=3 reverseInvoked=1 output=ffff,ffff,6666"
+    },
+    {
+      "line": 460,
+      "text": "mapping.batch=1 sample=303 input=ffff,ffff,9999 index=2 reverseInvoked=1 output=ffff,ffff,9999"
+    },
+    {
+      "line": 461,
+      "text": "mapping.batch=1 sample=304 input=ffff,ffff,cccc index=1 reverseInvoked=1 output=ffff,ffff,cccc"
+    },
+    {
+      "line": 462,
+      "text": "mapping.batch=1 sample=305 input=ffff,ffff,cece index=1 reverseInvoked=1 output=ffff,ffff,cccc"
+    },
+    {
+      "line": 463,
+      "text": "mapping.batch=1 sample=306 input=ffff,ffff,ffff index=0 reverseInvoked=1 output=ffff,ffff,ffff"
+    },
+    {
+      "line": 464,
+      "text": "mapping.batch=1 deviceUnchanged=1"
+    },
+    {
+      "line": 465,
+      "text": "mapping.batch=2 sample=0 input=0000,0000,0000 index=255 reverseInvoked=1 output=0000,0000,0000"
+    },
+    {
+      "line": 466,
+      "text": "mapping.batch=2 sample=1 input=0000,0000,1111 index=244 reverseInvoked=1 output=0000,0000,1111"
+    },
+    {
+      "line": 467,
+      "text": "mapping.batch=2 sample=2 input=0000,0000,2222 index=243 reverseInvoked=1 output=0000,0000,2222"
+    },
+    {
+      "line": 468,
+      "text": "mapping.batch=2 sample=3 input=0000,0000,3333 index=214 reverseInvoked=1 output=0000,0000,3333"
+    },
+    {
+      "line": 469,
+      "text": "mapping.batch=2 sample=4 input=0000,0000,4444 index=242 reverseInvoked=1 output=0000,0000,4444"
+    },
+    {
+      "line": 470,
+      "text": "mapping.batch=2 sample=5 input=0000,0000,5555 index=241 reverseInvoked=1 output=0000,0000,5555"
+    },
+    {
+      "line": 471,
+      "text": "mapping.batch=2 sample=6 input=0000,0000,6666 index=213 reverseInvoked=1 output=0000,0000,6666"
+    },
+    {
+      "line": 472,
+      "text": "mapping.batch=2 sample=7 input=0000,0000,7777 index=240 reverseInvoked=1 output=0000,0000,7777"
+    },
+    {
+      "line": 473,
+      "text": "mapping.batch=2 sample=8 input=0000,0000,8080 index=239 reverseInvoked=1 output=0000,0000,8888"
+    },
+    {
+      "line": 474,
+      "text": "mapping.batch=2 sample=9 input=0000,0000,8888 index=239 reverseInvoked=1 output=0000,0000,8888"
+    },
+    {
+      "line": 475,
+      "text": "mapping.batch=2 sample=10 input=0000,0000,9999 index=212 reverseInvoked=1 output=0000,0000,9999"
+    },
+    {
+      "line": 476,
+      "text": "mapping.batch=2 sample=11 input=0000,0000,aaaa index=238 reverseInvoked=1 output=0000,0000,aaaa"
+    },
+    {
+      "line": 477,
+      "text": "mapping.batch=2 sample=12 input=0000,0000,bbbb index=237 reverseInvoked=1 output=0000,0000,bbbb"
+    },
+    {
+      "line": 478,
+      "text": "mapping.batch=2 sample=13 input=0000,0000,cccc index=211 reverseInvoked=1 output=0000,0000,cccc"
+    },
+    {
+      "line": 479,
+      "text": "mapping.batch=2 sample=14 input=0000,0000,d3d3 index=236 reverseInvoked=1 output=0000,0000,dddd"
+    },
+    {
+      "line": 480,
+      "text": "mapping.batch=2 sample=15 input=0000,0000,dddd index=236 reverseInvoked=1 output=0000,0000,dddd"
+    },
+    {
+      "line": 481,
+      "text": "mapping.batch=2 sample=16 input=0000,0000,eeee index=235 reverseInvoked=1 output=0000,0000,eeee"
+    },
+    {
+      "line": 482,
+      "text": "mapping.batch=2 sample=17 input=0000,0000,ffff index=210 reverseInvoked=1 output=0000,0000,ffff"
+    },
+    {
+      "line": 483,
+      "text": "mapping.batch=2 sample=18 input=0000,1111,0000 index=234 reverseInvoked=1 output=0000,1111,0000"
+    },
+    {
+      "line": 484,
+      "text": "mapping.batch=2 sample=19 input=0000,2222,0000 index=233 reverseInvoked=1 output=0000,2222,0000"
+    },
+    {
+      "line": 485,
+      "text": "mapping.batch=2 sample=20 input=0000,3333,0000 index=209 reverseInvoked=1 output=0000,3333,0000"
+    },
+    {
+      "line": 486,
+      "text": "mapping.batch=2 sample=21 input=0000,3333,3333 index=208 reverseInvoked=1 output=0000,3333,3333"
+    },
+    {
+      "line": 487,
+      "text": "mapping.batch=2 sample=22 input=0000,3333,6666 index=207 reverseInvoked=1 output=0000,3333,6666"
+    },
+    {
+      "line": 488,
+      "text": "mapping.batch=2 sample=23 input=0000,3333,9999 index=206 reverseInvoked=1 output=0000,3333,9999"
+    },
+    {
+      "line": 489,
+      "text": "mapping.batch=2 sample=24 input=0000,3333,cccc index=205 reverseInvoked=1 output=0000,3333,cccc"
+    },
+    {
+      "line": 490,
+      "text": "mapping.batch=2 sample=25 input=0000,3333,ffff index=204 reverseInvoked=1 output=0000,3333,ffff"
+    },
+    {
+      "line": 491,
+      "text": "mapping.batch=2 sample=26 input=0000,4444,0000 index=232 reverseInvoked=1 output=0000,4444,0000"
+    },
+    {
+      "line": 492,
+      "text": "mapping.batch=2 sample=27 input=0000,5555,0000 index=231 reverseInvoked=1 output=0000,5555,0000"
+    },
+    {
+      "line": 493,
+      "text": "mapping.batch=2 sample=28 input=0000,6464,1212 index=203 reverseInvoked=1 output=0000,6666,0000"
+    },
+    {
+      "line": 494,
+      "text": "mapping.batch=2 sample=29 input=0000,6666,0000 index=203 reverseInvoked=1 output=0000,6666,0000"
+    },
+    {
+      "line": 495,
+      "text": "mapping.batch=2 sample=30 input=0000,6666,3333 index=202 reverseInvoked=1 output=0000,6666,3333"
+    },
+    {
+      "line": 496,
+      "text": "mapping.batch=2 sample=31 input=0000,6666,6666 index=201 reverseInvoked=1 output=0000,6666,6666"
+    },
+    {
+      "line": 497,
+      "text": "mapping.batch=2 sample=32 input=0000,6666,9999 index=200 reverseInvoked=1 output=0000,6666,9999"
+    },
+    {
+      "line": 498,
+      "text": "mapping.batch=2 sample=33 input=0000,6666,cccc index=199 reverseInvoked=1 output=0000,6666,cccc"
+    },
+    {
+      "line": 499,
+      "text": "mapping.batch=2 sample=34 input=0000,6666,ffff index=198 reverseInvoked=1 output=0000,6666,ffff"
+    },
+    {
+      "line": 500,
+      "text": "mapping.batch=2 sample=35 input=0000,7777,0000 index=230 reverseInvoked=1 output=0000,7777,0000"
+    },
+    {
+      "line": 501,
+      "text": "mapping.batch=2 sample=36 input=0000,8080,0000 index=229 reverseInvoked=1 output=0000,8888,0000"
+    },
+    {
+      "line": 502,
+      "text": "mapping.batch=2 sample=37 input=0000,8888,0000 index=229 reverseInvoked=1 output=0000,8888,0000"
+    },
+    {
+      "line": 503,
+      "text": "mapping.batch=2 sample=38 input=0000,9999,0000 index=197 reverseInvoked=1 output=0000,9999,0000"
+    },
+    {
+      "line": 504,
+      "text": "mapping.batch=2 sample=39 input=0000,9999,3333 index=196 reverseInvoked=1 output=0000,9999,3333"
+    },
+    {
+      "line": 505,
+      "text": "mapping.batch=2 sample=40 input=0000,9999,9999 index=194 reverseInvoked=1 output=0000,9999,9999"
+    },
+    {
+      "line": 506,
+      "text": "mapping.batch=2 sample=41 input=0000,9999,cccc index=193 reverseInvoked=1 output=0000,9999,cccc"
+    },
+    {
+      "line": 507,
+      "text": "mapping.batch=2 sample=42 input=0000,9999,ffff index=192 reverseInvoked=1 output=0000,9999,ffff"
+    },
+    {
+      "line": 508,
+      "text": "mapping.batch=2 sample=43 input=0000,aaaa,0000 index=228 reverseInvoked=1 output=0000,aaaa,0000"
+    },
+    {
+      "line": 509,
+      "text": "mapping.batch=2 sample=44 input=0000,bbbb,0000 index=227 reverseInvoked=1 output=0000,bbbb,0000"
+    },
+    {
+      "line": 510,
+      "text": "mapping.batch=2 sample=45 input=0000,cccc,0000 index=191 reverseInvoked=1 output=0000,cccc,0000"
+    },
+    {
+      "line": 511,
+      "text": "mapping.batch=2 sample=46 input=0000,cccc,3333 index=190 reverseInvoked=1 output=0000,cccc,3333"
+    },
+    {
+      "line": 512,
+      "text": "mapping.batch=2 sample=47 input=0000,cccc,9999 index=188 reverseInvoked=1 output=0000,cccc,9999"
+    },
+    {
+      "line": 513,
+      "text": "mapping.batch=2 sample=48 input=0000,cccc,ffff index=186 reverseInvoked=1 output=0000,cccc,ffff"
+    },
+    {
+      "line": 514,
+      "text": "mapping.batch=2 sample=49 input=0000,ffff,0000 index=185 reverseInvoked=1 output=0000,ffff,0000"
+    },
+    {
+      "line": 515,
+      "text": "mapping.batch=2 sample=50 input=0000,ffff,ffff index=180 reverseInvoked=1 output=0000,ffff,ffff"
+    },
+    {
+      "line": 516,
+      "text": "mapping.batch=2 sample=51 input=0202,abab,eaea index=192 reverseInvoked=1 output=0000,9999,ffff"
+    },
+    {
+      "line": 517,
+      "text": "mapping.batch=2 sample=52 input=0a00,0a00,0a00 index=255 reverseInvoked=1 output=0000,0000,0000"
+    },
+    {
+      "line": 518,
+      "text": "mapping.batch=2 sample=53 input=1010,1010,1010 index=254 reverseInvoked=1 output=1111,1111,1111"
+    },
+    {
+      "line": 519,
+      "text": "mapping.batch=2 sample=54 input=1084,1084,1084 index=254 reverseInvoked=1 output=1111,1111,1111"
+    },
+    {
+      "line": 520,
+      "text": "mapping.batch=2 sample=55 input=1111,0000,0000 index=224 reverseInvoked=1 output=1111,0000,0000"
+    },
+    {
+      "line": 521,
+      "text": "mapping.batch=2 sample=56 input=1111,1111,1111 index=254 reverseInvoked=1 output=1111,1111,1111"
+    },
+    {
+      "line": 522,
+      "text": "mapping.batch=2 sample=57 input=1f1f,b7b7,1414 index=227 reverseInvoked=1 output=0000,bbbb,0000"
+    },
+    {
+      "line": 523,
+      "text": "mapping.batch=2 sample=58 input=2108,2108,2108 index=253 reverseInvoked=1 output=2222,2222,2222"
+    },
+    {
+      "line": 524,
+      "text": "mapping.batch=2 sample=59 input=2121,2121,2121 index=253 reverseInvoked=1 output=2222,2222,2222"
+    },
+    {
+      "line": 525,
+      "text": "mapping.batch=2 sample=60 input=2222,0000,0000 index=223 reverseInvoked=1 output=2222,0000,0000"
+    },
+    {
+      "line": 526,
+      "text": "mapping.batch=2 sample=61 input=2222,2222,2222 index=253 reverseInvoked=1 output=2222,2222,2222"
+    },
+    {
+      "line": 527,
+      "text": "mapping.batch=2 sample=62 input=3131,3131,3131 index=172 reverseInvoked=1 output=3333,3333,3333"
+    },
+    {
+      "line": 528,
+      "text": "mapping.batch=2 sample=63 input=318c,318c,318c index=172 reverseInvoked=1 output=3333,3333,3333"
+    },
+    {
+      "line": 529,
+      "text": "mapping.batch=2 sample=64 input=318c,6318,ffff index=162 reverseInvoked=1 output=3333,6666,ffff"
+    },
+    {
+      "line": 530,
+      "text": "mapping.batch=2 sample=65 input=3333,0000,0000 index=179 reverseInvoked=1 output=3333,0000,0000"
+    },
+    {
+      "line": 531,
+      "text": "mapping.batch=2 sample=66 input=3333,0000,3333 index=178 reverseInvoked=1 output=3333,0000,3333"
+    },
+    {
+      "line": 532,
+      "text": "mapping.batch=2 sample=67 input=3333,0000,6666 index=177 reverseInvoked=1 output=3333,0000,6666"
+    },
+    {
+      "line": 533,
+      "text": "mapping.batch=2 sample=68 input=3333,0000,9999 index=176 reverseInvoked=1 output=3333,0000,9999"
+    },
+    {
+      "line": 534,
+      "text": "mapping.batch=2 sample=69 input=3333,0000,cccc index=175 reverseInvoked=1 output=3333,0000,cccc"
+    },
+    {
+      "line": 535,
+      "text": "mapping.batch=2 sample=70 input=3333,0000,ffff index=174 reverseInvoked=1 output=3333,0000,ffff"
+    },
+    {
+      "line": 536,
+      "text": "mapping.batch=2 sample=71 input=3333,3333,0000 index=173 reverseInvoked=1 output=3333,3333,0000"
+    },
+    {
+      "line": 537,
+      "text": "mapping.batch=2 sample=72 input=3333,3333,3333 index=172 reverseInvoked=1 output=3333,3333,3333"
+    },
+    {
+      "line": 538,
+      "text": "mapping.batch=2 sample=73 input=3333,3333,6666 index=171 reverseInvoked=1 output=3333,3333,6666"
+    },
+    {
+      "line": 539,
+      "text": "mapping.batch=2 sample=74 input=3333,3333,9999 index=170 reverseInvoked=1 output=3333,3333,9999"
+    },
+    {
+      "line": 540,
+      "text": "mapping.batch=2 sample=75 input=3333,3333,ffff index=168 reverseInvoked=1 output=3333,3333,ffff"
+    },
+    {
+      "line": 541,
+      "text": "mapping.batch=2 sample=76 input=3333,6666,0000 index=167 reverseInvoked=1 output=3333,6666,0000"
+    },
+    {
+      "line": 542,
+      "text": "mapping.batch=2 sample=77 input=3333,6666,3333 index=166 reverseInvoked=1 output=3333,6666,3333"
+    },
+    {
+      "line": 543,
+      "text": "mapping.batch=2 sample=78 input=3333,6666,6666 index=165 reverseInvoked=1 output=3333,6666,6666"
+    },
+    {
+      "line": 544,
+      "text": "mapping.batch=2 sample=79 input=3333,6666,9999 index=164 reverseInvoked=1 output=3333,6666,9999"
+    },
+    {
+      "line": 545,
+      "text": "mapping.batch=2 sample=80 input=3333,6666,cccc index=163 reverseInvoked=1 output=3333,6666,cccc"
+    },
+    {
+      "line": 546,
+      "text": "mapping.batch=2 sample=81 input=3333,6666,ffff index=162 reverseInvoked=1 output=3333,6666,ffff"
+    },
+    {
+      "line": 547,
+      "text": "mapping.batch=2 sample=82 input=3333,9999,0000 index=161 reverseInvoked=1 output=3333,9999,0000"
+    },
+    {
+      "line": 548,
+      "text": "mapping.batch=2 sample=83 input=3333,9999,3333 index=160 reverseInvoked=1 output=3333,9999,3333"
+    },
+    {
+      "line": 549,
+      "text": "mapping.batch=2 sample=84 input=3333,9999,6666 index=159 reverseInvoked=1 output=3333,9999,6666"
+    },
+    {
+      "line": 550,
+      "text": "mapping.batch=2 sample=85 input=3333,9999,9999 index=158 reverseInvoked=1 output=3333,9999,9999"
+    },
+    {
+      "line": 551,
+      "text": "mapping.batch=2 sample=86 input=3333,9999,cccc index=157 reverseInvoked=1 output=3333,9999,cccc"
+    },
+    {
+      "line": 552,
+      "text": "mapping.batch=2 sample=87 input=3333,9999,ffff index=156 reverseInvoked=1 output=3333,9999,ffff"
+    },
+    {
+      "line": 553,
+      "text": "mapping.batch=2 sample=88 input=3333,cccc,0000 index=155 reverseInvoked=1 output=3333,cccc,0000"
+    },
+    {
+      "line": 554,
+      "text": "mapping.batch=2 sample=89 input=3333,cccc,6666 index=153 reverseInvoked=1 output=3333,cccc,6666"
+    },
+    {
+      "line": 555,
+      "text": "mapping.batch=2 sample=90 input=3333,cccc,ffff index=150 reverseInvoked=1 output=3333,cccc,ffff"
+    },
+    {
+      "line": 556,
+      "text": "mapping.batch=2 sample=91 input=3333,ffff,9999 index=146 reverseInvoked=1 output=3333,ffff,9999"
+    },
+    {
+      "line": 557,
+      "text": "mapping.batch=2 sample=92 input=3939,3939,3939 index=172 reverseInvoked=1 output=3333,3333,3333"
+    },
+    {
+      "line": 558,
+      "text": "mapping.batch=2 sample=93 input=4040,4040,4040 index=252 reverseInvoked=1 output=4444,4444,4444"
+    },
+    {
+      "line": 559,
+      "text": "mapping.batch=2 sample=94 input=4210,4210,4210 index=252 reverseInvoked=1 output=4444,4444,4444"
+    },
+    {
+      "line": 560,
+      "text": "mapping.batch=2 sample=95 input=4242,4242,4242 index=252 reverseInvoked=1 output=4444,4444,4444"
+    },
+    {
+      "line": 561,
+      "text": "mapping.batch=2 sample=96 input=4444,0000,0000 index=222 reverseInvoked=1 output=4444,0000,0000"
+    },
+    {
+      "line": 562,
+      "text": "mapping.batch=2 sample=97 input=4444,4444,4444 index=252 reverseInvoked=1 output=4444,4444,4444"
+    },
+    {
+      "line": 563,
+      "text": "mapping.batch=2 sample=98 input=4747,0000,a5a5 index=176 reverseInvoked=1 output=3333,0000,9999"
+    },
+    {
+      "line": 564,
+      "text": "mapping.batch=2 sample=99 input=50c5,50c5,50c5 index=251 reverseInvoked=1 output=5555,5555,5555"
+    },
+    {
+      "line": 565,
+      "text": "mapping.batch=2 sample=100 input=5252,5252,5252 index=251 reverseInvoked=1 output=5555,5555,5555"
+    },
+    {
+      "line": 566,
+      "text": "mapping.batch=2 sample=101 input=5294,5294,5294 index=251 reverseInvoked=1 output=5555,5555,5555"
+    },
+    {
+      "line": 567,
+      "text": "mapping.batch=2 sample=102 input=5555,0000,0000 index=221 reverseInvoked=1 output=5555,0000,0000"
+    },
+    {
+      "line": 568,
+      "text": "mapping.batch=2 sample=103 input=5555,5555,5555 index=251 reverseInvoked=1 output=5555,5555,5555"
+    },
+    {
+      "line": 569,
+      "text": "mapping.batch=2 sample=104 input=5656,2c2c,0505 index=137 reverseInvoked=1 output=6666,3333,0000"
+    },
+    {
+      "line": 570,
+      "text": "mapping.batch=2 sample=105 input=5a5a,5a5a,5a5a index=251 reverseInvoked=1 output=5555,5555,5555"
+    },
+    {
+      "line": 571,
+      "text": "mapping.batch=2 sample=106 input=60b3,60b3,60b3 index=129 reverseInvoked=1 output=6666,6666,6666"
+    },
+    {
+      "line": 572,
+      "text": "mapping.batch=2 sample=107 input=62c6,62c6,62c6 index=129 reverseInvoked=1 output=6666,6666,6666"
+    },
+    {
+      "line": 573,
+      "text": "mapping.batch=2 sample=108 input=6318,6318,6318 index=129 reverseInvoked=1 output=6666,6666,6666"
+    },
+    {
+      "line": 574,
+      "text": "mapping.batch=2 sample=109 input=6318,ce73,ffff index=114 reverseInvoked=1 output=6666,cccc,ffff"
+    },
+    {
+      "line": 575,
+      "text": "mapping.batch=2 sample=110 input=6363,6363,6363 index=129 reverseInvoked=1 output=6666,6666,6666"
+    },
+    {
+      "line": 576,
+      "text": "mapping.batch=2 sample=111 input=6363,9c9c,0000 index=125 reverseInvoked=1 output=6666,9999,0000"
+    },
+    {
+      "line": 577,
+      "text": "mapping.batch=2 sample=112 input=6666,0000,0000 index=143 reverseInvoked=1 output=6666,0000,0000"
+    },
+    {
+      "line": 578,
+      "text": "mapping.batch=2 sample=113 input=6666,0000,3333 index=142 reverseInvoked=1 output=6666,0000,3333"
+    },
+    {
+      "line": 579,
+      "text": "mapping.batch=2 sample=114 input=6666,0000,6666 index=141 reverseInvoked=1 output=6666,0000,6666"
+    },
+    {
+      "line": 580,
+      "text": "mapping.batch=2 sample=115 input=6666,0000,9999 index=140 reverseInvoked=1 output=6666,0000,9999"
+    },
+    {
+      "line": 581,
+      "text": "mapping.batch=2 sample=116 input=6666,0000,cccc index=139 reverseInvoked=1 output=6666,0000,cccc"
+    },
+    {
+      "line": 582,
+      "text": "mapping.batch=2 sample=117 input=6666,3333,0000 index=137 reverseInvoked=1 output=6666,3333,0000"
+    },
+    {
+      "line": 583,
+      "text": "mapping.batch=2 sample=118 input=6666,3333,3333 index=136 reverseInvoked=1 output=6666,3333,3333"
+    },
+    {
+      "line": 584,
+      "text": "mapping.batch=2 sample=119 input=6666,3333,6666 index=135 reverseInvoked=1 output=6666,3333,6666"
+    },
+    {
+      "line": 585,
+      "text": "mapping.batch=2 sample=120 input=6666,3333,9999 index=134 reverseInvoked=1 output=6666,3333,9999"
+    },
+    {
+      "line": 586,
+      "text": "mapping.batch=2 sample=121 input=6666,3333,cccc index=133 reverseInvoked=1 output=6666,3333,cccc"
+    },
+    {
+      "line": 587,
+      "text": "mapping.batch=2 sample=122 input=6666,6666,0000 index=131 reverseInvoked=1 output=6666,6666,0000"
+    },
+    {
+      "line": 588,
+      "text": "mapping.batch=2 sample=123 input=6666,6666,3333 index=130 reverseInvoked=1 output=6666,6666,3333"
+    },
+    {
+      "line": 589,
+      "text": "mapping.batch=2 sample=124 input=6666,6666,6666 index=129 reverseInvoked=1 output=6666,6666,6666"
+    },
+    {
+      "line": 590,
+      "text": "mapping.batch=2 sample=125 input=6666,6666,9999 index=128 reverseInvoked=1 output=6666,6666,9999"
+    },
+    {
+      "line": 591,
+      "text": "mapping.batch=2 sample=126 input=6666,6666,cccc index=127 reverseInvoked=1 output=6666,6666,cccc"
+    },
+    {
+      "line": 592,
+      "text": "mapping.batch=2 sample=127 input=6666,6666,ffff index=126 reverseInvoked=1 output=6666,6666,ffff"
+    },
+    {
+      "line": 593,
+      "text": "mapping.batch=2 sample=128 input=6666,9999,0000 index=125 reverseInvoked=1 output=6666,9999,0000"
+    },
+    {
+      "line": 594,
+      "text": "mapping.batch=2 sample=129 input=6666,9999,6666 index=123 reverseInvoked=1 output=6666,9999,6666"
+    },
+    {
+      "line": 595,
+      "text": "mapping.batch=2 sample=130 input=6666,9999,9999 index=122 reverseInvoked=1 output=6666,9999,9999"
+    },
+    {
+      "line": 596,
+      "text": "mapping.batch=2 sample=131 input=6666,9999,cccc index=121 reverseInvoked=1 output=6666,9999,cccc"
+    },
+    {
+      "line": 597,
+      "text": "mapping.batch=2 sample=132 input=6666,9999,ffff index=120 reverseInvoked=1 output=6666,9999,ffff"
+    },
+    {
+      "line": 598,
+      "text": "mapping.batch=2 sample=133 input=6666,cccc,0000 index=119 reverseInvoked=1 output=6666,cccc,0000"
+    },
+    {
+      "line": 599,
+      "text": "mapping.batch=2 sample=134 input=6666,cccc,3333 index=118 reverseInvoked=1 output=6666,cccc,3333"
+    },
+    {
+      "line": 600,
+      "text": "mapping.batch=2 sample=135 input=6666,cccc,cccc index=115 reverseInvoked=1 output=6666,cccc,cccc"
+    },
+    {
+      "line": 601,
+      "text": "mapping.batch=2 sample=136 input=6666,cccc,ffff index=114 reverseInvoked=1 output=6666,cccc,ffff"
+    },
+    {
+      "line": 602,
+      "text": "mapping.batch=2 sample=137 input=6666,ffff,0000 index=113 reverseInvoked=1 output=6666,ffff,0000"
+    },
+    {
+      "line": 603,
+      "text": "mapping.batch=2 sample=138 input=6666,ffff,3333 index=112 reverseInvoked=1 output=6666,ffff,3333"
+    },
+    {
+      "line": 604,
+      "text": "mapping.batch=2 sample=139 input=6666,ffff,6666 index=111 reverseInvoked=1 output=6666,ffff,6666"
+    },
+    {
+      "line": 605,
+      "text": "mapping.batch=2 sample=140 input=6666,ffff,9999 index=110 reverseInvoked=1 output=6666,ffff,9999"
+    },
+    {
+      "line": 606,
+      "text": "mapping.batch=2 sample=141 input=6666,ffff,cccc index=109 reverseInvoked=1 output=6666,ffff,cccc"
+    },
+    {
+      "line": 607,
+      "text": "mapping.batch=2 sample=142 input=6666,ffff,ffff index=108 reverseInvoked=1 output=6666,ffff,ffff"
+    },
+    {
+      "line": 608,
+      "text": "mapping.batch=2 sample=143 input=6b6b,6b6b,6b6b index=129 reverseInvoked=1 output=6666,6666,6666"
+    },
+    {
+      "line": 609,
+      "text": "mapping.batch=2 sample=144 input=70a1,70a1,70a1 index=250 reverseInvoked=1 output=7777,7777,7777"
+    },
+    {
+      "line": 610,
+      "text": "mapping.batch=2 sample=145 input=727f,727f,727f index=250 reverseInvoked=1 output=7777,7777,7777"
+    },
+    {
+      "line": 611,
+      "text": "mapping.batch=2 sample=146 input=7373,7373,7373 index=250 reverseInvoked=1 output=7777,7777,7777"
+    },
+    {
+      "line": 612,
+      "text": "mapping.batch=2 sample=147 input=739c,739c,739c index=250 reverseInvoked=1 output=7777,7777,7777"
+    },
+    {
+      "line": 613,
+      "text": "mapping.batch=2 sample=148 input=7777,0000,0000 index=220 reverseInvoked=1 output=7777,0000,0000"
+    },
+    {
+      "line": 614,
+      "text": "mapping.batch=2 sample=149 input=7777,7777,7777 index=250 reverseInvoked=1 output=7777,7777,7777"
+    },
+    {
+      "line": 615,
+      "text": "mapping.batch=2 sample=150 input=7b7b,7b7b,7b7b index=250 reverseInvoked=1 output=7777,7777,7777"
+    },
+    {
+      "line": 616,
+      "text": "mapping.batch=2 sample=151 input=8080,0000,0000 index=219 reverseInvoked=1 output=8888,0000,0000"
+    },
+    {
+      "line": 617,
+      "text": "mapping.batch=2 sample=152 input=8080,8080,8080 index=249 reverseInvoked=1 output=8888,8888,8888"
+    },
+    {
+      "line": 618,
+      "text": "mapping.batch=2 sample=153 input=808f,808f,808f index=249 reverseInvoked=1 output=8888,8888,8888"
+    },
+    {
+      "line": 619,
+      "text": "mapping.batch=2 sample=154 input=8238,8238,8238 index=249 reverseInvoked=1 output=8888,8888,8888"
+    },
+    {
+      "line": 620,
+      "text": "mapping.batch=2 sample=155 input=8484,8484,8484 index=249 reverseInvoked=1 output=8888,8888,8888"
+    },
+    {
+      "line": 621,
+      "text": "mapping.batch=2 sample=156 input=8888,0000,0000 index=219 reverseInvoked=1 output=8888,0000,0000"
+    },
+    {
+      "line": 622,
+      "text": "mapping.batch=2 sample=157 input=8888,8888,8888 index=249 reverseInvoked=1 output=8888,8888,8888"
+    },
+    {
+      "line": 623,
+      "text": "mapping.batch=2 sample=158 input=8c63,8c63,8c63 index=249 reverseInvoked=1 output=8888,8888,8888"
+    },
+    {
+      "line": 624,
+      "text": "mapping.batch=2 sample=159 input=8c8c,8c8c,8c8c index=249 reverseInvoked=1 output=8888,8888,8888"
+    },
+    {
+      "line": 625,
+      "text": "mapping.batch=2 sample=160 input=907d,907d,907d index=86 reverseInvoked=1 output=9999,9999,9999"
+    },
+    {
+      "line": 626,
+      "text": "mapping.batch=2 sample=161 input=9090,7171,3a3a index=94 reverseInvoked=1 output=9999,6666,3333"
+    },
+    {
+      "line": 627,
+      "text": "mapping.batch=2 sample=162 input=9494,9494,9494 index=86 reverseInvoked=1 output=9999,9999,9999"
+    },
+    {
+      "line": 628,
+      "text": "mapping.batch=2 sample=163 input=9999,0000,0000 index=107 reverseInvoked=1 output=9999,0000,0000"
+    },
+    {
+      "line": 629,
+      "text": "mapping.batch=2 sample=164 input=9999,0000,3333 index=106 reverseInvoked=1 output=9999,0000,3333"
+    },
+    {
+      "line": 630,
+      "text": "mapping.batch=2 sample=165 input=9999,0000,6666 index=105 reverseInvoked=1 output=9999,0000,6666"
+    },
+    {
+      "line": 631,
+      "text": "mapping.batch=2 sample=166 input=9999,0000,9999 index=104 reverseInvoked=1 output=9999,0000,9999"
+    },
+    {
+      "line": 632,
+      "text": "mapping.batch=2 sample=167 input=9999,0000,cccc index=103 reverseInvoked=1 output=9999,0000,cccc"
+    },
+    {
+      "line": 633,
+      "text": "mapping.batch=2 sample=168 input=9999,0000,ffff index=102 reverseInvoked=1 output=9999,0000,ffff"
+    },
+    {
+      "line": 634,
+      "text": "mapping.batch=2 sample=169 input=9999,3333,0000 index=101 reverseInvoked=1 output=9999,3333,0000"
+    },
+    {
+      "line": 635,
+      "text": "mapping.batch=2 sample=170 input=9999,3333,3333 index=100 reverseInvoked=1 output=9999,3333,3333"
+    },
+    {
+      "line": 636,
+      "text": "mapping.batch=2 sample=171 input=9999,3333,6666 index=99 reverseInvoked=1 output=9999,3333,6666"
+    },
+    {
+      "line": 637,
+      "text": "mapping.batch=2 sample=172 input=9999,3333,9999 index=98 reverseInvoked=1 output=9999,3333,9999"
+    },
+    {
+      "line": 638,
+      "text": "mapping.batch=2 sample=173 input=9999,3333,cccc index=97 reverseInvoked=1 output=9999,3333,cccc"
+    },
+    {
+      "line": 639,
+      "text": "mapping.batch=2 sample=174 input=9999,3333,ffff index=96 reverseInvoked=1 output=9999,3333,ffff"
+    },
+    {
+      "line": 640,
+      "text": "mapping.batch=2 sample=175 input=9999,6666,0000 index=95 reverseInvoked=1 output=9999,6666,0000"
+    },
+    {
+      "line": 641,
+      "text": "mapping.batch=2 sample=176 input=9999,6666,3333 index=94 reverseInvoked=1 output=9999,6666,3333"
+    },
+    {
+      "line": 642,
+      "text": "mapping.batch=2 sample=177 input=9999,6666,6666 index=93 reverseInvoked=1 output=9999,6666,6666"
+    },
+    {
+      "line": 643,
+      "text": "mapping.batch=2 sample=178 input=9999,6666,9999 index=92 reverseInvoked=1 output=9999,6666,9999"
+    },
+    {
+      "line": 644,
+      "text": "mapping.batch=2 sample=179 input=9999,6666,cccc index=91 reverseInvoked=1 output=9999,6666,cccc"
+    },
+    {
+      "line": 645,
+      "text": "mapping.batch=2 sample=180 input=9999,6666,ffff index=90 reverseInvoked=1 output=9999,6666,ffff"
+    },
+    {
+      "line": 646,
+      "text": "mapping.batch=2 sample=181 input=9999,9999,0000 index=89 reverseInvoked=1 output=9999,9999,0000"
+    },
+    {
+      "line": 647,
+      "text": "mapping.batch=2 sample=182 input=9999,9999,3333 index=88 reverseInvoked=1 output=9999,9999,3333"
+    },
+    {
+      "line": 648,
+      "text": "mapping.batch=2 sample=183 input=9999,9999,6666 index=87 reverseInvoked=1 output=9999,9999,6666"
+    },
+    {
+      "line": 649,
+      "text": "mapping.batch=2 sample=184 input=9999,9999,9999 index=86 reverseInvoked=1 output=9999,9999,9999"
+    },
+    {
+      "line": 650,
+      "text": "mapping.batch=2 sample=185 input=9999,9999,cccc index=85 reverseInvoked=1 output=9999,9999,cccc"
+    },
+    {
+      "line": 651,
+      "text": "mapping.batch=2 sample=186 input=9999,9999,ffff index=84 reverseInvoked=1 output=9999,9999,ffff"
+    },
+    {
+      "line": 652,
+      "text": "mapping.batch=2 sample=187 input=9999,cccc,0000 index=83 reverseInvoked=1 output=9999,cccc,0000"
+    },
+    {
+      "line": 653,
+      "text": "mapping.batch=2 sample=188 input=9999,cccc,6666 index=81 reverseInvoked=1 output=9999,cccc,6666"
+    },
+    {
+      "line": 654,
+      "text": "mapping.batch=2 sample=189 input=9999,cccc,9999 index=80 reverseInvoked=1 output=9999,cccc,9999"
+    },
+    {
+      "line": 655,
+      "text": "mapping.batch=2 sample=190 input=9999,cccc,cccc index=79 reverseInvoked=1 output=9999,cccc,cccc"
+    },
+    {
+      "line": 656,
+      "text": "mapping.batch=2 sample=191 input=9999,cccc,ffff index=78 reverseInvoked=1 output=9999,cccc,ffff"
+    },
+    {
+      "line": 657,
+      "text": "mapping.batch=2 sample=192 input=9999,ffff,0000 index=77 reverseInvoked=1 output=9999,ffff,0000"
+    },
+    {
+      "line": 658,
+      "text": "mapping.batch=2 sample=193 input=9999,ffff,3333 index=76 reverseInvoked=1 output=9999,ffff,3333"
+    },
+    {
+      "line": 659,
+      "text": "mapping.batch=2 sample=194 input=9999,ffff,6666 index=75 reverseInvoked=1 output=9999,ffff,6666"
+    },
+    {
+      "line": 660,
+      "text": "mapping.batch=2 sample=195 input=9999,ffff,9999 index=74 reverseInvoked=1 output=9999,ffff,9999"
+    },
+    {
+      "line": 661,
+      "text": "mapping.batch=2 sample=196 input=9999,ffff,ffff index=72 reverseInvoked=1 output=9999,ffff,ffff"
+    },
+    {
+      "line": 662,
+      "text": "mapping.batch=2 sample=197 input=9c9c,9c9c,9c9c index=86 reverseInvoked=1 output=9999,9999,9999"
+    },
+    {
+      "line": 663,
+      "text": "mapping.batch=2 sample=198 input=9ce7,9ce7,9ce7 index=86 reverseInvoked=1 output=9999,9999,9999"
+    },
+    {
+      "line": 664,
+      "text": "mapping.batch=2 sample=199 input=a06b,a06b,a06b index=248 reverseInvoked=1 output=aaaa,aaaa,aaaa"
+    },
+    {
+      "line": 665,
+      "text": "mapping.batch=2 sample=200 input=a1a9,a1a9,a1a9 index=248 reverseInvoked=1 output=aaaa,aaaa,aaaa"
+    },
+    {
+      "line": 666,
+      "text": "mapping.batch=2 sample=201 input=a5a5,a5a5,a5a5 index=248 reverseInvoked=1 output=aaaa,aaaa,aaaa"
+    },
+    {
+      "line": 667,
+      "text": "mapping.batch=2 sample=202 input=aaaa,0000,0000 index=218 reverseInvoked=1 output=aaaa,0000,0000"
+    },
+    {
+      "line": 668,
+      "text": "mapping.batch=2 sample=203 input=aaaa,aaaa,aaaa index=248 reverseInvoked=1 output=aaaa,aaaa,aaaa"
+    },
+    {
+      "line": 669,
+      "text": "mapping.batch=2 sample=204 input=ad6b,ad6b,ad6b index=248 reverseInvoked=1 output=aaaa,aaaa,aaaa"
+    },
+    {
+      "line": 670,
+      "text": "mapping.batch=2 sample=205 input=adad,adad,adad index=248 reverseInvoked=1 output=aaaa,aaaa,aaaa"
+    },
+    {
+      "line": 671,
+      "text": "mapping.batch=2 sample=206 input=b059,b059,b059 index=247 reverseInvoked=1 output=bbbb,bbbb,bbbb"
+    },
+    {
+      "line": 672,
+      "text": "mapping.batch=2 sample=207 input=b162,b162,b162 index=247 reverseInvoked=1 output=bbbb,bbbb,bbbb"
+    },
+    {
+      "line": 673,
+      "text": "mapping.batch=2 sample=208 input=b5b5,b5b5,b5b5 index=247 reverseInvoked=1 output=bbbb,bbbb,bbbb"
+    },
+    {
+      "line": 674,
+      "text": "mapping.batch=2 sample=209 input=bba5,bba5,bba5 index=247 reverseInvoked=1 output=bbbb,bbbb,bbbb"
+    },
+    {
+      "line": 675,
+      "text": "mapping.batch=2 sample=210 input=bbbb,0000,0000 index=217 reverseInvoked=1 output=bbbb,0000,0000"
+    },
+    {
+      "line": 676,
+      "text": "mapping.batch=2 sample=211 input=bbbb,bbbb,bbbb index=247 reverseInvoked=1 output=bbbb,bbbb,bbbb"
+    },
+    {
+      "line": 677,
+      "text": "mapping.batch=2 sample=212 input=bdbd,bdbd,bdbd index=247 reverseInvoked=1 output=bbbb,bbbb,bbbb"
+    },
+    {
+      "line": 678,
+      "text": "mapping.batch=2 sample=213 input=bdef,bdef,bdef index=247 reverseInvoked=1 output=bbbb,bbbb,bbbb"
+    },
+    {
+      "line": 679,
+      "text": "mapping.batch=2 sample=214 input=c0c0,c0c0,c0c0 index=43 reverseInvoked=1 output=cccc,cccc,cccc"
+    },
+    {
+      "line": 680,
+      "text": "mapping.batch=2 sample=215 input=c6c6,c6c6,c6c6 index=43 reverseInvoked=1 output=cccc,cccc,cccc"
+    },
+    {
+      "line": 681,
+      "text": "mapping.batch=2 sample=216 input=cccc,0000,0000 index=71 reverseInvoked=1 output=cccc,0000,0000"
+    },
+    {
+      "line": 682,
+      "text": "mapping.batch=2 sample=217 input=cccc,0000,3333 index=70 reverseInvoked=1 output=cccc,0000,3333"
+    },
+    {
+      "line": 683,
+      "text": "mapping.batch=2 sample=218 input=cccc,0000,6666 index=69 reverseInvoked=1 output=cccc,0000,6666"
+    },
+    {
+      "line": 684,
+      "text": "mapping.batch=2 sample=219 input=cccc,0000,9999 index=68 reverseInvoked=1 output=cccc,0000,9999"
+    },
+    {
+      "line": 685,
+      "text": "mapping.batch=2 sample=220 input=cccc,0000,cccc index=67 reverseInvoked=1 output=cccc,0000,cccc"
+    },
+    {
+      "line": 686,
+      "text": "mapping.batch=2 sample=221 input=cccc,0000,ffff index=66 reverseInvoked=1 output=cccc,0000,ffff"
+    },
+    {
+      "line": 687,
+      "text": "mapping.batch=2 sample=222 input=cccc,3333,0000 index=65 reverseInvoked=1 output=cccc,3333,0000"
+    },
+    {
+      "line": 688,
+      "text": "mapping.batch=2 sample=223 input=cccc,3333,3333 index=64 reverseInvoked=1 output=cccc,3333,3333"
+    },
+    {
+      "line": 689,
+      "text": "mapping.batch=2 sample=224 input=cccc,3333,6666 index=63 reverseInvoked=1 output=cccc,3333,6666"
+    },
+    {
+      "line": 690,
+      "text": "mapping.batch=2 sample=225 input=cccc,3333,9999 index=62 reverseInvoked=1 output=cccc,3333,9999"
+    },
+    {
+      "line": 691,
+      "text": "mapping.batch=2 sample=226 input=cccc,3333,ffff index=60 reverseInvoked=1 output=cccc,3333,ffff"
+    },
+    {
+      "line": 692,
+      "text": "mapping.batch=2 sample=227 input=cccc,6666,0000 index=59 reverseInvoked=1 output=cccc,6666,0000"
+    },
+    {
+      "line": 693,
+      "text": "mapping.batch=2 sample=228 input=cccc,6666,3333 index=58 reverseInvoked=1 output=cccc,6666,3333"
+    },
+    {
+      "line": 694,
+      "text": "mapping.batch=2 sample=229 input=cccc,6666,6666 index=57 reverseInvoked=1 output=cccc,6666,6666"
+    },
+    {
+      "line": 695,
+      "text": "mapping.batch=2 sample=230 input=cccc,6666,9999 index=56 reverseInvoked=1 output=cccc,6666,9999"
+    },
+    {
+      "line": 696,
+      "text": "mapping.batch=2 sample=231 input=cccc,6666,cccc index=55 reverseInvoked=1 output=cccc,6666,cccc"
+    },
+    {
+      "line": 697,
+      "text": "mapping.batch=2 sample=232 input=cccc,6666,ffff index=54 reverseInvoked=1 output=cccc,6666,ffff"
+    },
+    {
+      "line": 698,
+      "text": "mapping.batch=2 sample=233 input=cccc,9999,0000 index=53 reverseInvoked=1 output=cccc,9999,0000"
+    },
+    {
+      "line": 699,
+      "text": "mapping.batch=2 sample=234 input=cccc,9999,3333 index=52 reverseInvoked=1 output=cccc,9999,3333"
+    },
+    {
+      "line": 700,
+      "text": "mapping.batch=2 sample=235 input=cccc,9999,6666 index=51 reverseInvoked=1 output=cccc,9999,6666"
+    },
+    {
+      "line": 701,
+      "text": "mapping.batch=2 sample=236 input=cccc,9999,9999 index=50 reverseInvoked=1 output=cccc,9999,9999"
+    },
+    {
+      "line": 702,
+      "text": "mapping.batch=2 sample=237 input=cccc,9999,cccc index=49 reverseInvoked=1 output=cccc,9999,cccc"
+    },
+    {
+      "line": 703,
+      "text": "mapping.batch=2 sample=238 input=cccc,9999,ffff index=48 reverseInvoked=1 output=cccc,9999,ffff"
+    },
+    {
+      "line": 704,
+      "text": "mapping.batch=2 sample=239 input=cccc,cccc,0000 index=47 reverseInvoked=1 output=cccc,cccc,0000"
+    },
+    {
+      "line": 705,
+      "text": "mapping.batch=2 sample=240 input=cccc,cccc,6666 index=45 reverseInvoked=1 output=cccc,cccc,6666"
+    },
+    {
+      "line": 706,
+      "text": "mapping.batch=2 sample=241 input=cccc,cccc,9999 index=44 reverseInvoked=1 output=cccc,cccc,9999"
+    },
+    {
+      "line": 707,
+      "text": "mapping.batch=2 sample=242 input=cccc,cccc,cccc index=43 reverseInvoked=1 output=cccc,cccc,cccc"
+    },
+    {
+      "line": 708,
+      "text": "mapping.batch=2 sample=243 input=cccc,cccc,ffff index=42 reverseInvoked=1 output=cccc,cccc,ffff"
+    },
+    {
+      "line": 709,
+      "text": "mapping.batch=2 sample=244 input=cccc,ffff,0000 index=41 reverseInvoked=1 output=cccc,ffff,0000"
+    },
+    {
+      "line": 710,
+      "text": "mapping.batch=2 sample=245 input=cccc,ffff,3333 index=40 reverseInvoked=1 output=cccc,ffff,3333"
+    },
+    {
+      "line": 711,
+      "text": "mapping.batch=2 sample=246 input=cccc,ffff,6666 index=39 reverseInvoked=1 output=cccc,ffff,6666"
+    },
+    {
+      "line": 712,
+      "text": "mapping.batch=2 sample=247 input=cccc,ffff,9999 index=38 reverseInvoked=1 output=cccc,ffff,9999"
+    },
+    {
+      "line": 713,
+      "text": "mapping.batch=2 sample=248 input=cccc,ffff,cccc index=37 reverseInvoked=1 output=cccc,ffff,cccc"
+    },
+    {
+      "line": 714,
+      "text": "mapping.batch=2 sample=249 input=cccc,ffff,ffff index=36 reverseInvoked=1 output=cccc,ffff,ffff"
+    },
+    {
+      "line": 715,
+      "text": "mapping.batch=2 sample=250 input=ce73,9ce7,0000 index=53 reverseInvoked=1 output=cccc,9999,0000"
+    },
+    {
+      "line": 716,
+      "text": "mapping.batch=2 sample=251 input=ce73,ce73,ce73 index=43 reverseInvoked=1 output=cccc,cccc,cccc"
+    },
+    {
+      "line": 717,
+      "text": "mapping.batch=2 sample=252 input=cece,cece,cece index=43 reverseInvoked=1 output=cccc,cccc,cccc"
+    },
+    {
+      "line": 718,
+      "text": "mapping.batch=2 sample=253 input=cece,ffff,6363 index=39 reverseInvoked=1 output=cccc,ffff,6666"
+    },
+    {
+      "line": 719,
+      "text": "mapping.batch=2 sample=254 input=cece,ffff,cece index=37 reverseInvoked=1 output=cccc,ffff,cccc"
+    },
+    {
+      "line": 720,
+      "text": "mapping.batch=2 sample=255 input=d6d6,d6d6,d6d6 index=246 reverseInvoked=1 output=dddd,dddd,dddd"
+    },
+    {
+      "line": 721,
+      "text": "mapping.batch=2 sample=256 input=dddd,0000,0000 index=216 reverseInvoked=1 output=dddd,0000,0000"
+    },
+    {
+      "line": 722,
+      "text": "mapping.batch=2 sample=257 input=dddd,0909,0707 index=216 reverseInvoked=1 output=dddd,0000,0000"
+    },
+    {
+      "line": 723,
+      "text": "mapping.batch=2 sample=258 input=dddd,dddd,dddd index=246 reverseInvoked=1 output=dddd,dddd,dddd"
+    },
+    {
+      "line": 724,
+      "text": "mapping.batch=2 sample=259 input=ddf2,ddf2,ddf2 index=246 reverseInvoked=1 output=dddd,dddd,dddd"
+    },
+    {
+      "line": 725,
+      "text": "mapping.batch=2 sample=260 input=dede,dede,dede index=246 reverseInvoked=1 output=dddd,dddd,dddd"
+    },
+    {
+      "line": 726,
+      "text": "mapping.batch=2 sample=261 input=def7,def7,def7 index=246 reverseInvoked=1 output=dddd,dddd,dddd"
+    },
+    {
+      "line": 727,
+      "text": "mapping.batch=2 sample=262 input=eeee,0000,0000 index=215 reverseInvoked=1 output=eeee,0000,0000"
+    },
+    {
+      "line": 728,
+      "text": "mapping.batch=2 sample=263 input=eeee,eeee,eeee index=245 reverseInvoked=1 output=eeee,eeee,eeee"
+    },
+    {
+      "line": 729,
+      "text": "mapping.batch=2 sample=264 input=ef7b,ef7b,ef7b index=245 reverseInvoked=1 output=eeee,eeee,eeee"
+    },
+    {
+      "line": 730,
+      "text": "mapping.batch=2 sample=265 input=efef,efef,efef index=245 reverseInvoked=1 output=eeee,eeee,eeee"
+    },
+    {
+      "line": 731,
+      "text": "mapping.batch=2 sample=266 input=f011,f011,f011 index=0 reverseInvoked=1 output=ffff,ffff,ffff"
+    },
+    {
+      "line": 732,
+      "text": "mapping.batch=2 sample=267 input=f046,f046,f046 index=0 reverseInvoked=1 output=ffff,ffff,ffff"
+    },
+    {
+      "line": 733,
+      "text": "mapping.batch=2 sample=268 input=f2f2,0808,8484 index=32 reverseInvoked=1 output=ffff,0000,9999"
+    },
+    {
+      "line": 734,
+      "text": "mapping.batch=2 sample=269 input=fcfc,f3f3,0505 index=5 reverseInvoked=1 output=ffff,ffff,0000"
+    },
+    {
+      "line": 735,
+      "text": "mapping.batch=2 sample=270 input=ffff,0000,0000 index=35 reverseInvoked=1 output=ffff,0000,0000"
+    },
+    {
+      "line": 736,
+      "text": "mapping.batch=2 sample=271 input=ffff,0000,3333 index=34 reverseInvoked=1 output=ffff,0000,3333"
+    },
+    {
+      "line": 737,
+      "text": "mapping.batch=2 sample=272 input=ffff,0000,6666 index=33 reverseInvoked=1 output=ffff,0000,6666"
+    },
+    {
+      "line": 738,
+      "text": "mapping.batch=2 sample=273 input=ffff,0000,9999 index=32 reverseInvoked=1 output=ffff,0000,9999"
+    },
+    {
+      "line": 739,
+      "text": "mapping.batch=2 sample=274 input=ffff,0000,ffff index=30 reverseInvoked=1 output=ffff,0000,ffff"
+    },
+    {
+      "line": 740,
+      "text": "mapping.batch=2 sample=275 input=ffff,3333,0000 index=29 reverseInvoked=1 output=ffff,3333,0000"
+    },
+    {
+      "line": 741,
+      "text": "mapping.batch=2 sample=276 input=ffff,3333,3333 index=28 reverseInvoked=1 output=ffff,3333,3333"
+    },
+    {
+      "line": 742,
+      "text": "mapping.batch=2 sample=277 input=ffff,3333,9999 index=26 reverseInvoked=1 output=ffff,3333,9999"
+    },
+    {
+      "line": 743,
+      "text": "mapping.batch=2 sample=278 input=ffff,3333,cccc index=25 reverseInvoked=1 output=ffff,3333,cccc"
+    },
+    {
+      "line": 744,
+      "text": "mapping.batch=2 sample=279 input=ffff,3333,ffff index=24 reverseInvoked=1 output=ffff,3333,ffff"
+    },
+    {
+      "line": 745,
+      "text": "mapping.batch=2 sample=280 input=ffff,6464,0303 index=23 reverseInvoked=1 output=ffff,6666,0000"
+    },
+    {
+      "line": 746,
+      "text": "mapping.batch=2 sample=281 input=ffff,6666,0000 index=23 reverseInvoked=1 output=ffff,6666,0000"
+    },
+    {
+      "line": 747,
+      "text": "mapping.batch=2 sample=282 input=ffff,6666,3333 index=22 reverseInvoked=1 output=ffff,6666,3333"
+    },
+    {
+      "line": 748,
+      "text": "mapping.batch=2 sample=283 input=ffff,6666,6666 index=21 reverseInvoked=1 output=ffff,6666,6666"
+    },
+    {
+      "line": 749,
+      "text": "mapping.batch=2 sample=284 input=ffff,6666,cccc index=19 reverseInvoked=1 output=ffff,6666,cccc"
+    },
+    {
+      "line": 750,
+      "text": "mapping.batch=2 sample=285 input=ffff,6666,ffff index=18 reverseInvoked=1 output=ffff,6666,ffff"
+    },
+    {
+      "line": 751,
+      "text": "mapping.batch=2 sample=286 input=ffff,9999,0000 index=17 reverseInvoked=1 output=ffff,9999,0000"
+    },
+    {
+      "line": 752,
+      "text": "mapping.batch=2 sample=287 input=ffff,9999,3333 index=16 reverseInvoked=1 output=ffff,9999,3333"
+    },
+    {
+      "line": 753,
+      "text": "mapping.batch=2 sample=288 input=ffff,9999,6666 index=15 reverseInvoked=1 output=ffff,9999,6666"
+    },
+    {
+      "line": 754,
+      "text": "mapping.batch=2 sample=289 input=ffff,9999,9999 index=14 reverseInvoked=1 output=ffff,9999,9999"
+    },
+    {
+      "line": 755,
+      "text": "mapping.batch=2 sample=290 input=ffff,9999,cccc index=13 reverseInvoked=1 output=ffff,9999,cccc"
+    },
+    {
+      "line": 756,
+      "text": "mapping.batch=2 sample=291 input=ffff,9999,ffff index=12 reverseInvoked=1 output=ffff,9999,ffff"
+    },
+    {
+      "line": 757,
+      "text": "mapping.batch=2 sample=292 input=ffff,cccc,0000 index=11 reverseInvoked=1 output=ffff,cccc,0000"
+    },
+    {
+      "line": 758,
+      "text": "mapping.batch=2 sample=293 input=ffff,cccc,3333 index=10 reverseInvoked=1 output=ffff,cccc,3333"
+    },
+    {
+      "line": 759,
+      "text": "mapping.batch=2 sample=294 input=ffff,cccc,6666 index=9 reverseInvoked=1 output=ffff,cccc,6666"
+    },
+    {
+      "line": 760,
+      "text": "mapping.batch=2 sample=295 input=ffff,cccc,9999 index=8 reverseInvoked=1 output=ffff,cccc,9999"
+    },
+    {
+      "line": 761,
+      "text": "mapping.batch=2 sample=296 input=ffff,cccc,cccc index=7 reverseInvoked=1 output=ffff,cccc,cccc"
+    },
+    {
+      "line": 762,
+      "text": "mapping.batch=2 sample=297 input=ffff,cccc,ffff index=6 reverseInvoked=1 output=ffff,cccc,ffff"
+    },
+    {
+      "line": 763,
+      "text": "mapping.batch=2 sample=298 input=ffff,ce73,0000 index=11 reverseInvoked=1 output=ffff,cccc,0000"
+    },
+    {
+      "line": 764,
+      "text": "mapping.batch=2 sample=299 input=ffff,ffff,0000 index=5 reverseInvoked=1 output=ffff,ffff,0000"
+    },
+    {
+      "line": 765,
+      "text": "mapping.batch=2 sample=300 input=ffff,ffff,3333 index=4 reverseInvoked=1 output=ffff,ffff,3333"
+    },
+    {
+      "line": 766,
+      "text": "mapping.batch=2 sample=301 input=ffff,ffff,6363 index=3 reverseInvoked=1 output=ffff,ffff,6666"
+    },
+    {
+      "line": 767,
+      "text": "mapping.batch=2 sample=302 input=ffff,ffff,6666 index=3 reverseInvoked=1 output=ffff,ffff,6666"
+    },
+    {
+      "line": 768,
+      "text": "mapping.batch=2 sample=303 input=ffff,ffff,9999 index=2 reverseInvoked=1 output=ffff,ffff,9999"
+    },
+    {
+      "line": 769,
+      "text": "mapping.batch=2 sample=304 input=ffff,ffff,cccc index=1 reverseInvoked=1 output=ffff,ffff,cccc"
+    },
+    {
+      "line": 770,
+      "text": "mapping.batch=2 sample=305 input=ffff,ffff,cece index=1 reverseInvoked=1 output=ffff,ffff,cccc"
+    },
+    {
+      "line": 771,
+      "text": "mapping.batch=2 sample=306 input=ffff,ffff,ffff index=0 reverseInvoked=1 output=ffff,ffff,ffff"
+    },
+    {
+      "line": 772,
+      "text": "mapping.batch=2 deviceUnchanged=1"
+    },
+    {
+      "line": 773,
+      "text": "mapping.auxiliaryQDError.after=0;not-per-call-OSErr"
+    },
+    {
+      "line": 774,
+      "text": "mapping.status=OBSERVED;repeat-and-color-environment-stability-require-host-comparison"
+    },
+    {
+      "line": 775,
+      "text": "phase=after-color-mapping ticks=24567"
+    },
+    {
+      "line": 776,
+      "text": "systemVersionHex=755 machineGestalt=36"
+    },
+    {
+      "line": 777,
+      "text": "portRect=0,0,160,80"
+    },
+    {
+      "line": 778,
+      "text": "globalOrigin=80,90 portVersion=-16384"
+    },
+    {
+      "line": 779,
+      "text": "controlRect=20,20,100,40"
+    },
+    {
+      "line": 780,
+      "text": "control.hilite=0 visible=255 value=0 min=0 max=1 titleLength=0 active=1 windowKind=8"
+    },
+    {
+      "line": 781,
+      "text": "invocation=NewCWindow(proc0);NewControl(proc0);Draw1Control;no-default-API"
+    },
+    {
+      "line": 782,
+      "text": "requestedControlProc=0 actualControlDefinitionHandle=000dd448 actualWindowDefinitionHandle=000b0ed4"
+    },
+    {
+      "line": 783,
+      "text": "control.variant.query=GetControlVariant actual=0 queryHasOSErr=0"
+    },
+    {
+      "line": 784,
+      "text": "actualControlDefinition.resourceInfoError=0 homeRef=1130 homeResourceError=0 typeHex=43444546 id=0 name="
+    },
+    {
+      "line": 785,
+      "text": "actualControlDefinition.fileQuery=PBGetFCBInfoSync error=0 ioResult=0"
+    },
+    {
+      "line": 786,
+      "text": "actualControlDefinition.file.name=Kaleidoscope volumeRef=-1 parentDir=176 fileID=435 flags=768 logicalEOF=1005535 physicalEOF=1005568"
+    },
+    {
+      "line": 787,
+      "text": "actualControlDefinition.bytes=174"
+    },
+    {
+      "line": 791,
+      "text": "actualWindowDefinition.resourceInfoError=0 homeRef=1130 homeResourceError=0 typeHex=57444546 id=0 name="
+    },
+    {
+      "line": 792,
+      "text": "actualWindowDefinition.fileQuery=PBGetFCBInfoSync error=0 ioResult=0"
+    },
+    {
+      "line": 793,
+      "text": "actualWindowDefinition.file.name=Kaleidoscope volumeRef=-1 parentDir=176 fileID=435 flags=768 logicalEOF=1005535 physicalEOF=1005568"
+    },
+    {
+      "line": 794,
+      "text": "actualWindowDefinition.bytes=176"
+    },
+    {
+      "line": 798,
+      "text": "font.number=0 name=Chicago size=12 face=0 mode=1 ascent=12 descent=3 leading=1"
+    },
+    {
+      "line": 799,
+      "text": "portPixMap.handle=03e6f5a8 colorTableHandle=0000210c depth=8"
+    },
+    {
+      "line": 800,
+      "text": "portColorTable.seed=1023 flags=32768 lastIndex=255"
+    },
+    {
+      "line": 801,
+      "text": "portColorTable.bytes=2056"
+    },
+    {
+      "line": 835,
+      "text": "clipBounds=-32767,-32767,32767,32767"
+    },
+    {
+      "line": 836,
+      "text": "clipRegion.bytes=10"
+    },
+    {
+      "line": 838,
+      "text": "visibleBounds=0,0,160,80"
+    },
+    {
+      "line": 839,
+      "text": "visibleRegion.bytes=10"
+    },
+    {
+      "line": 841,
+      "text": "portPixMap.bounds=-80,-90,560,390"
+    },
+    {
+      "line": 842,
+      "text": "effectiveClip.method=owned-SectRgn(clip,visible,portRect,portPixMap.bounds);IM-QuickDraw-2-12/Color-QuickDraw"
+    },
+    {
+      "line": 843,
+      "text": "effectiveClipBounds=0,0,160,80"
+    },
+    {
+      "line": 844,
+      "text": "effectiveClipRegion.bytes=10"
+    },
+    {
+      "line": 846,
+      "text": "device.ref=-49 id=0 type=0 flags=47137 mode=131"
+    },
+    {
+      "line": 847,
+      "text": "pixMap.depth=8 rowBytes=33408 pixelType=0"
+    },
+    {
+      "line": 848,
+      "text": "pixMap.bounds=0,0,640,480"
+    },
+    {
+      "line": 849,
+      "text": "colorTable.seed=1023 flags=32768 lastIndex=255"
+    },
+    {
+      "line": 850,
+      "text": "colorTable.bytes=2056"
+    },
+    {
+      "line": 884,
+      "text": "gamma.query=PBStatusSync csCode=8 actualDeviceRef=-49 status=0 ioResult=0 returnedPointer=0000d110"
+    },
+    {
+      "line": 885,
+      "text": "gamma.header.version=0 type=0 formulaBytes=0 channels=1 count=256 bitsPerEntry=8"
+    },
+    {
+      "line": 886,
+      "text": "gammaFixedPrefix.bytes=12"
+    },
+    {
+      "line": 888,
+      "text": "gamma.table=observed-version0-bounded-bytes;not-color-transform-proof"
+    },
+    {
+      "line": 889,
+      "text": "gammaTable.bytes=268"
+    },
+    {
+      "line": 895,
+      "text": "port.backgroundRGB16=ffff,ffff,ffff"
+    },
+    {
+      "line": 896,
+      "text": "port.foregroundRGB16=0000,0000,0000"
+    },
+    {
+      "line": 897,
+      "text": "body.GetCPixel=9999,9999,9999"
+    },
+    {
+      "line": 898,
+      "text": "edge.GetCPixel=6666,6666,6666"
+    },
+    {
+      "line": 899,
+      "text": "sentinel.0.GetCPixel=ffff,0000,0000"
+    },
+    {
+      "line": 900,
+      "text": "sentinel.1.GetCPixel=0000,ffff,0000"
+    },
+    {
+      "line": 901,
+      "text": "sentinel.2.GetCPixel=0000,0000,ffff"
+    },
+    {
+      "line": 902,
+      "text": "sentinel.3.GetCPixel=ffff,ffff,ffff"
+    },
+    {
+      "line": 903,
+      "text": "sentinel.4.GetCPixel=0000,0000,0000"
+    },
+    {
+      "line": 904,
+      "text": "captureComplete=1"
+    }
+  ],
+  "redactedRanges": [
+    {
+      "firstLine": 35,
+      "lastLine": 37,
+      "sha256": "fdd8bb11a5e05902ca6059626cc056e013847f9005ad20164e1272081fd3fa57",
+      "reason": "Native binary payload withheld; scalar size and raw-export hash retained."
+    },
+    {
+      "firstLine": 42,
+      "lastLine": 44,
+      "sha256": "7ae4bba33b80e4176e17e85b5619cd373219dc10a5b34cf81aa96c36da5079a1",
+      "reason": "Native binary payload withheld; scalar size and raw-export hash retained."
+    },
+    {
+      "firstLine": 49,
+      "lastLine": 81,
+      "sha256": "c5b652ab6e0124429d0412f47a2f5dec16f99043eab97a99b7bfa089e3893e03",
+      "reason": "Native binary payload withheld; scalar size and raw-export hash retained."
+    },
+    {
+      "firstLine": 84,
+      "lastLine": 84,
+      "sha256": "d88f18ce62fc05ce1a7afede38525defae4c90336ff14debf80d7ca9af0b9d28",
+      "reason": "Native binary payload withheld; scalar size and raw-export hash retained."
+    },
+    {
+      "firstLine": 87,
+      "lastLine": 87,
+      "sha256": "59418cdd1a9d7270821e9e1ac0810bda82f378ceec72dc4b985994f53a17dd35",
+      "reason": "Native binary payload withheld; scalar size and raw-export hash retained."
+    },
+    {
+      "firstLine": 92,
+      "lastLine": 92,
+      "sha256": "4c22d10caafb7cedfebd6b574d3299791b9aa2f9a0d94c212ff5897217fc17c8",
+      "reason": "Native binary payload withheld; scalar size and raw-export hash retained."
+    },
+    {
+      "firstLine": 98,
+      "lastLine": 130,
+      "sha256": "546b2339a25ccaf2a16620208fe03526bce18d92fc115df5229c7462079c7c45",
+      "reason": "Native binary payload withheld; scalar size and raw-export hash retained."
+    },
+    {
+      "firstLine": 134,
+      "lastLine": 134,
+      "sha256": "ed4f34221dc34e3d22ca01743fee97446cfdefd6240e22e94c3e76596ccfca55",
+      "reason": "Native binary payload withheld; scalar size and raw-export hash retained."
+    },
+    {
+      "firstLine": 137,
+      "lastLine": 141,
+      "sha256": "f441220c0096db15fcaec00d75bc8fbe185a482f58e8d4a69f6da30b20700baf",
+      "reason": "Native binary payload withheld; scalar size and raw-export hash retained."
+    },
+    {
+      "firstLine": 788,
+      "lastLine": 790,
+      "sha256": "fdd8bb11a5e05902ca6059626cc056e013847f9005ad20164e1272081fd3fa57",
+      "reason": "Native binary payload withheld; scalar size and raw-export hash retained."
+    },
+    {
+      "firstLine": 795,
+      "lastLine": 797,
+      "sha256": "7ae4bba33b80e4176e17e85b5619cd373219dc10a5b34cf81aa96c36da5079a1",
+      "reason": "Native binary payload withheld; scalar size and raw-export hash retained."
+    },
+    {
+      "firstLine": 802,
+      "lastLine": 834,
+      "sha256": "c5b652ab6e0124429d0412f47a2f5dec16f99043eab97a99b7bfa089e3893e03",
+      "reason": "Native binary payload withheld; scalar size and raw-export hash retained."
+    },
+    {
+      "firstLine": 837,
+      "lastLine": 837,
+      "sha256": "d88f18ce62fc05ce1a7afede38525defae4c90336ff14debf80d7ca9af0b9d28",
+      "reason": "Native binary payload withheld; scalar size and raw-export hash retained."
+    },
+    {
+      "firstLine": 840,
+      "lastLine": 840,
+      "sha256": "59418cdd1a9d7270821e9e1ac0810bda82f378ceec72dc4b985994f53a17dd35",
+      "reason": "Native binary payload withheld; scalar size and raw-export hash retained."
+    },
+    {
+      "firstLine": 845,
+      "lastLine": 845,
+      "sha256": "4c22d10caafb7cedfebd6b574d3299791b9aa2f9a0d94c212ff5897217fc17c8",
+      "reason": "Native binary payload withheld; scalar size and raw-export hash retained."
+    },
+    {
+      "firstLine": 851,
+      "lastLine": 883,
+      "sha256": "546b2339a25ccaf2a16620208fe03526bce18d92fc115df5229c7462079c7c45",
+      "reason": "Native binary payload withheld; scalar size and raw-export hash retained."
+    },
+    {
+      "firstLine": 887,
+      "lastLine": 887,
+      "sha256": "ed4f34221dc34e3d22ca01743fee97446cfdefd6240e22e94c3e76596ccfca55",
+      "reason": "Native binary payload withheld; scalar size and raw-export hash retained."
+    },
+    {
+      "firstLine": 890,
+      "lastLine": 894,
+      "sha256": "f441220c0096db15fcaec00d75bc8fbe185a482f58e8d4a69f6da30b20700baf",
+      "reason": "Native binary payload withheld; scalar size and raw-export hash retained."
+    }
+  ]
+}
