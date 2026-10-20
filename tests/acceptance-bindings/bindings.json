@@ -77,7 +77,7 @@
     },
     {
       "path": "tools/theme-loader/convert.js",
-      "sha256": "e884b9e716c7013265d2a75f1c5b8b2d534cefd27ebb846deb9f642d765de49f"
+      "sha256": "0999f8e8aab70cd3a87560b135d033290e183750ceea6e4643826e3db8d96ad2"
     },
     {
       "path": "tools/theme-loader/decoders/cicn.js",
@@ -97,7 +97,7 @@
     },
     {
       "path": "tools/theme-loader/decoders/ppat.js",
-      "sha256": "6f4c600b7c2f8fbed7341ad01998ccc23a56c314036f842f765e4ee285e198e6"
+      "sha256": "2b4dc9158ac63fa776333a63282b8264bf6afab8d11a662e3574b7452bcf1bbb"
     },
     {
       "path": "tools/theme-loader/decoders/shared.js",
@@ -113,7 +113,7 @@
     },
     {
       "path": "tools/theme-loader/display-profile.js",
-      "sha256": "fd182e04e1e055ba2598a718517fe4690747a5233ca43de10dc9d426e976316e"
+      "sha256": "0aa7f3a58eb88b5faa38f5380401ba09ef5d46080f20711466c015dce0f49222"
     },
     {
       "path": "tools/theme-loader/index.js",
