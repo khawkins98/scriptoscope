@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { comparePatternBinding, compareCompletedPatternPaint } from '../resource-provenance/patterns.mjs';
+import { comparePatternBinding, compareCompletedPatternPaint, sameJson } from '../resource-provenance/patterns.mjs';
 const pins = JSON.parse(readFileSync(new URL('../resource-provenance/pattern-pins.json', import.meta.url)));
 import { test, expect, openHarness, attachCase, attachObservations } from './fixtures.mjs';
 
@@ -265,7 +265,10 @@ for (const mode of ['source', 'built']) test(`${mode}: numeric pattern names ret
         const expected={inputSha256:row.inputSha256,forkSha256:row.inputSha256,payloadSha256:row.payloadSha256,byteLength:104,resourceIndex:3,signedId:0,
           chainDepth:0,bodyMode:0,sourceSize:[2,1],unionRects:[{x:0,y:0,w:29,h:9}],paintedPixels:261,phaseOffset:[0,0],context:row.trace.composition.context};
         expect(compareCompletedPatternPaint(row.owner,selected[0],expected)).toEqual({status:'matched',failures:[]});
-        for(const mutate of [s=>s.bodyPaint.phase.offset[0]++,s=>s.bodyPaint.paintedPixels--,s=>s.resource.byteProvenance.ppatResourceIndex=2,s=>s.resource.assetUrl='unloaded:pattern',s=>delete s.bodyPaint]) {
+        const reorder=v=>Array.isArray(v)?v.map(reorder):v&&typeof v==='object'?Object.fromEntries(Object.entries(v).reverse().map(([k,x])=>[k,reorder(x)])):v;
+        expect(compareCompletedPatternPaint(reorder(row.owner),reorder(selected[0]),reorder(expected))).toEqual({status:'matched',failures:[]});
+        expect(sameJson({rects:[{x:1},{x:2}]},{rects:[{x:2},{x:1}]})).toBe(false);
+        for(const mutate of [s=>s.bodyPaint.phase.offset[0]++,s=>s.bodyPaint.paintedPixels--,s=>s.resource.byteProvenance.ppatResourceIndex=2,s=>s.resource.assetUrl='unloaded:pattern',s=>delete s.bodyPaint,s=>delete s.bodyPaint.context.basis,s=>s.bodyPaint.unionRects.reverse().push({x:0,y:0,w:29,h:9})]) {
           const changed=structuredClone(selected[0]);mutate(changed);expect(compareCompletedPatternPaint(row.owner,changed,expected).status).toBe('mismatch');
         }
       }

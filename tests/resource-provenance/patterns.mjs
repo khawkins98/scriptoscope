@@ -36,10 +36,18 @@ export function comparePatternBinding(owner, key, expected) {
   return { status: failures.length ? 'mismatch' : 'matched', failures };
 }
 
+/** JSON object order is immaterial; field presence, array order and primitives are exact. */
+export function sameJson(a, b) {
+  if (a === null || b === null || typeof a !== 'object' || typeof b !== 'object') return Object.is(a, b);
+  if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((v, i) => sameJson(v, b[i]));
+  const ak = Object.keys(a).sort(), bk = Object.keys(b).sort();
+  return ak.length === bk.length && ak.every((k, i) => k === bk[i] && sameJson(a[k], b[k]));
+}
+
 /** Actual completed modern patterned body, separate from native phase/provider claims. */
 export function compareCompletedPatternPaint(owner, step, expected) {
   const failures = [...comparePatternBinding(owner, step?.resource?.manifestKey, expected).failures ?? []];
-  const check = (actual, wanted, label) => { if (JSON.stringify(actual) !== JSON.stringify(wanted)) failures.push(label); };
+  const check = (actual, wanted, label) => { if (!sameJson(actual, wanted)) failures.push(label); };
   if (comparePatternBinding(owner, step?.resource?.manifestKey, expected).status !== 'matched') failures.push('binding');
   const entry=owner.manifest.patterns?.[step?.resource?.manifestKey], paint=step?.bodyPaint;
   for(const [actual,wanted,label] of [
