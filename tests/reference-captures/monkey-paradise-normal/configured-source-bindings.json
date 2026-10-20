@@ -1,0 +1,38 @@
+{
+  "canonicalSource": {
+    "slug": "monkey-paradise",
+    "path": "themes/monkey-paradise/scheme.sit",
+    "format": "sit",
+    "archiveSha256": "2694f0b976eb8928e82a55f1509537865776c5dba932d7a9f8446fe2b4fcab42",
+    "entryIndex": 1,
+    "entryName": "MonkeyParadise/MonkeyParadise",
+    "forkSha256": "6532ba12cbecfb8b820b9f172f43980de4a4927dd50f0ff6b37c41e5a27d4e70",
+    "selectionReviewStatus": "reviewed-contract-input",
+    "selectionReason": "Explicit scheme-named Colr entry \"MonkeyParadise/MonkeyParadise\"; readme/icon/font forks excluded by this declared choice, never by size.",
+    "selectionReviewEvidence": "monkey-paradise"
+  },
+  "actualCopl": [
+    "CoplResourceFile.file.name=MonkeyParadise volumeRef=-3 parentDir=2 fileID=18 flags=512 logicalEOF=493616 physicalEOF=494592",
+    "CoplResourceFile.file.name=MonkeyParadise volumeRef=-3 parentDir=2 fileID=18 flags=512 logicalEOF=493616 physicalEOF=494592"
+  ],
+  "configuredFCB": {
+    "volumeRef": -3,
+    "parentDir": 2,
+    "fileID": 18
+  },
+  "stoppedConfiguredFile": {
+    "name": "stopped-MonkeyParadise.bin",
+    "bytes": 493824,
+    "sha256": "f148e78c50f26dc816c5d36d9c640e95720b60b3903debd1a37a21ced603a9ff"
+  },
+  "resourceFork": {
+    "bytes": 493616,
+    "sha256": "6532ba12cbecfb8b820b9f172f43980de4a4927dd50f0ff6b37c41e5a27d4e70"
+  },
+  "installedEngineResourceFork": {
+    "bytes": 1005535,
+    "sha256": "cb903bef4410feb096d65b5a4c9383fa2a3c943e6afef6d3c13463b48267d333"
+  },
+  "actualDefinitionsMatchStoppedKaleidoscope": "Independent acquisition review; hashes retained in conditions",
+  "limits": "Configured file only, not private selected resource/provider/cache."
+}

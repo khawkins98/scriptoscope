@@ -1,0 +1,213 @@
+{
+  "stableScalarLines": {
+    "systemVersionHex": "755 machineGestalt=36",
+    "portRect": "0,0,160,80",
+    "globalOrigin": "80,90 portVersion=-16384",
+    "controlRect": "20,20,100,40",
+    "control.variant.query": "GetControlVariant actual=0 queryHasOSErr=0",
+    "clipBounds": "-32767,-32767,32767,32767",
+    "visibleBounds": "0,0,160,80",
+    "portPixMap.bounds": "-80,-90,560,390",
+    "effectiveClipBounds": "0,0,160,80",
+    "device.ref": "-49 id=0 type=0 flags=47137 mode=131",
+    "pixMap.depth": "8 rowBytes=33408 pixelType=0",
+    "pixMap.bounds": "0,0,640,480",
+    "colorTable.seed": "1023 flags=32768 lastIndex=255",
+    "gamma.query": "PBStatusSync csCode=8 actualDeviceRef=-49 status=0 ioResult=0 returnedPointer=0000d110",
+    "gamma.header.version": "0 type=0 formulaBytes=0 channels=1 count=256 bitsPerEntry=8",
+    "port.backgroundRGB16": "ffff,ffff,ffff",
+    "port.foregroundRGB16": "0000,0000,0000"
+  },
+  "stableBeforeAfterPayloads": [
+    {
+      "name": "actualControlDefinition",
+      "bytes": 174,
+      "sha256": "aeae16018c5b2b6fc377ba7b7a09eb5ed4a8fec0c5c581f39ce29d113deed28c"
+    },
+    {
+      "name": "actualWindowDefinition",
+      "bytes": 176,
+      "sha256": "4dbd59ae18774bacc80b84521d7fd8e2eddc44614642746e388c6ee2f2bf4006"
+    },
+    {
+      "name": "clipRegion",
+      "bytes": 10,
+      "sha256": "349ac4369aec9010457e1bd0d06e95b7386d73c407ef9446df9fd66f09370fa6"
+    },
+    {
+      "name": "visibleRegion",
+      "bytes": 10,
+      "sha256": "c014620701850ed8caf3b2e500b656ca2fdc63e9e7ac26c2ea2f23f9fd0f93c3"
+    },
+    {
+      "name": "effectiveClipRegion",
+      "bytes": 10,
+      "sha256": "c014620701850ed8caf3b2e500b656ca2fdc63e9e7ac26c2ea2f23f9fd0f93c3"
+    },
+    {
+      "name": "colorTable",
+      "bytes": 2056,
+      "sha256": "6987f8e5bc61a7da95ed03f229cc3ecbee463bb6245965fdc2eddbd86a31ef9b"
+    },
+    {
+      "name": "gammaFixedPrefix",
+      "bytes": 12,
+      "sha256": "b0705e174b70023061519516ca0243bde00bcd4fe44ee43a8b5b2f50a57b4cf1"
+    },
+    {
+      "name": "gammaTable",
+      "bytes": 268,
+      "sha256": "c2eeb81da5ffc2bd502834d80d850f6f085813ab1cec8d9fb89ca36c2474125b"
+    }
+  ],
+  "actualFontLines": [
+    "font.number=0 name=Chicago size=12 face=0 mode=1 ascent=12 descent=3 widMax=14 leading=1",
+    "font.number=0 name=Chicago size=12 face=0 mode=1 ascent=12 descent=3 widMax=14 leading=1"
+  ],
+  "timing": "Conditions bracket explicit Draw1Control + HiliteControl; setup/update and host capture have shared history. Three consumers precede calibration; no font query.",
+  "paletteFile": "indexed-palette.bin",
+  "gammaFile": "producer-table.bin",
+  "patternOriginState": null,
+  "missingObservations": [
+    "consumer current/main device equality",
+    "consumer portColorTable",
+    "private provider/cache order",
+    "original glyph consumption"
+  ],
+  "calibrationMeasurements": "../monkey-paradise-calibration/measurement.json",
+  "producerSamples": [
+    {
+      "name": "body",
+      "globalXY": [
+        140,
+        120
+      ],
+      "actualNativeRGB16": [
+        0,
+        34952,
+        0
+      ],
+      "actualHostRGBA": [
+        0,
+        165,
+        0,
+        255
+      ],
+      "bodySampleIsNotAssumedPureBackground": true
+    },
+    {
+      "name": "edge",
+      "globalXY": [
+        140,
+        128
+      ],
+      "actualNativeRGB16": [
+        0,
+        17476,
+        0
+      ],
+      "actualHostRGBA": [
+        0,
+        102,
+        0,
+        255
+      ],
+      "bodySampleIsNotAssumedPureBackground": true
+    },
+    {
+      "name": "sentinel.0",
+      "globalXY": [
+        470,
+        430
+      ],
+      "actualNativeRGB16": [
+        65535,
+        0,
+        0
+      ],
+      "actualHostRGBA": [
+        255,
+        0,
+        0,
+        255
+      ],
+      "bodySampleIsNotAssumedPureBackground": true
+    },
+    {
+      "name": "sentinel.1",
+      "globalXY": [
+        502,
+        430
+      ],
+      "actualNativeRGB16": [
+        0,
+        65535,
+        0
+      ],
+      "actualHostRGBA": [
+        0,
+        255,
+        0,
+        255
+      ],
+      "bodySampleIsNotAssumedPureBackground": true
+    },
+    {
+      "name": "sentinel.2",
+      "globalXY": [
+        534,
+        430
+      ],
+      "actualNativeRGB16": [
+        0,
+        0,
+        65535
+      ],
+      "actualHostRGBA": [
+        0,
+        0,
+        255,
+        255
+      ],
+      "bodySampleIsNotAssumedPureBackground": true
+    },
+    {
+      "name": "sentinel.3",
+      "globalXY": [
+        566,
+        430
+      ],
+      "actualNativeRGB16": [
+        65535,
+        65535,
+        65535
+      ],
+      "actualHostRGBA": [
+        255,
+        255,
+        255,
+        255
+      ],
+      "bodySampleIsNotAssumedPureBackground": true
+    },
+    {
+      "name": "sentinel.4",
+      "globalXY": [
+        598,
+        430
+      ],
+      "actualNativeRGB16": [
+        0,
+        0,
+        0
+      ],
+      "actualHostRGBA": [
+        0,
+        0,
+        0,
+        255
+      ],
+      "bodySampleIsNotAssumedPureBackground": true
+    }
+  ]
+}

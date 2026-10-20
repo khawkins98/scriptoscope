@@ -1,0 +1,5 @@
+{
+  "archiveSha256": "2694f0b976eb8928e82a55f1509537865776c5dba932d7a9f8446fe2b4fcab42",
+  "forkSha256": "6532ba12cbecfb8b820b9f172f43980de4a4927dd50f0ff6b37c41e5a27d4e70",
+  "evidence": "Same-run Copl/FCB volume-3,parent2,file18; exact stopped canonical MonkeyParadise fork. Configured file only, not private provider attribution."
+}

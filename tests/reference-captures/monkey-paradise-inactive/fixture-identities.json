@@ -1,0 +1,19 @@
+{
+  "source": {
+    "name": "PushThreeStates-reviewed.c",
+    "bytes": 19996,
+    "sha256": "ff3e5f58aadb84265a97d6d348bff5be3881742c6d1509eda557815b7145f2bb"
+  },
+  "compiledPackage": {
+    "name": "PushThreeStates-with-size.bin",
+    "bytes": 70656,
+    "sha256": "077e9fe7ccf39d11f2af2cbc3dd2a423f20d9f7240c63595033e5b60f1e7eafb"
+  },
+  "compiledAndStoppedResourceFork": {
+    "bytes": 70292,
+    "sha256": "0f49927f406474ec3486532ceda4017a00ff811b5b3c2cdeb3b1c8e2774a28a5"
+  },
+  "installedEquality": true,
+  "protocol": "One C per fresh state; durable retention before N; native ACK3. All three empty states packaged; fixed reused A3A labels are not fresh native nonces.",
+  "sourceRedistributed": false
+}

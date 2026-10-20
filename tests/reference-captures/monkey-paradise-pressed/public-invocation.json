@@ -1,0 +1,64 @@
+{
+  "controlDefinition": {
+    "procedureId": 0,
+    "variant": 0,
+    "hilite": 10,
+    "value": 0,
+    "enabled": true,
+    "windowActive": true,
+    "defaultMechanism": "No default API invoked; private default state unknown",
+    "invocation": "NewCWindow(proc0); fresh NewControl(proc0, empty title, visible,value0/min0/max1); Draw1Control; HiliteControl(10); actual ControlRecord/GetControlVariant0. Fixed-order state1, generation2; shared selected MonkeyParadise boot. Not a physical gesture/inactive window."
+  },
+  "invocation": {
+    "api": "NewControl",
+    "drawApi": "Draw1Control",
+    "defaultApiInvoked": false,
+    "controlRect": [
+      20,
+      20,
+      80,
+      20
+    ],
+    "title": "",
+    "state": "pressed",
+    "defaultRing": false,
+    "stateApi": "HiliteControl"
+  },
+  "port": {
+    "origin": [
+      0,
+      0
+    ],
+    "bounds": [
+      0,
+      0,
+      160,
+      80
+    ],
+    "effectiveClipRect": [
+      0,
+      0,
+      160,
+      80
+    ],
+    "backgroundRGB": [
+      255,
+      255,
+      255
+    ],
+    "backgroundOpaque": true,
+    "originMeaning": "Observed local origin0; global origin80,90. Opaque recorded white background, not source-mask proof."
+  },
+  "fullFrame": {
+    "sha256": "6d7745ada272c0933772f9273346fbc94a3069e804d29b1d8ee6e3bcb0691436",
+    "width": 640,
+    "height": 480,
+    "requestImageRect": [
+      80,
+      90,
+      160,
+      80
+    ],
+    "transform": "requestImageXY = fullFrameXY - requestImageRect.xy; no resampling or color conversion"
+  }
+}
