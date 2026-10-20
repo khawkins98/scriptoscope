@@ -24,7 +24,7 @@ for(const mode of ['source','built']) {
      const v=x<35?192:x===35?205:231,o=(y*512+x)*4;
      if(pixels[o]!==v||pixels[o+1]!==v||pixels[o+2]!==v||pixels[o+3]!==255)differentPixels++;
     }
-    let trace;await api.composeButton(theme,{label:'',minWidth:80,height:20,default:false,diagnostics:{onComplete:t=>{completionCount++;trace=t;}}});
+    let trace;await api.composeButton(theme,{label:'',minWidth:80,height:20,default:false,diagnostics:{onComplete:t=>trace=t}});
     const face=trace.steps.find(s=>s.role==='face'&&s.usage==='paint'&&s.action==='selected');
     const incomplete=structuredClone(data);incomplete.directRgb8.mappings=incomplete.directRgb8.mappings.filter(r=>r.rgb8[0]!==170);
     let allocated=0,missingCode;
@@ -116,7 +116,7 @@ for(const mode of ['source','built']) {
    else expect(row.bandPaints.some(p=>p.role==='face')).toBe(true);
   }
   expect(result).toHaveLength(subjects.reduce((n,s)=>n+s.cases.length,0));
-  expect(result[0].body).toEqual([218,218,218,255]);
+  expect(result.find(row=>row.slug==='windows-95'&&row.state==='normal').body).toEqual([218,218,218,255]);
   await attachObservations(info,'display-profile',mode,{mode,rows:result,claim:'Exact recorded empty-face composited pixels under the explicit measured profile only; no mask, font, private-painter or whole-requirement verification.'});
  });
  test(`${mode}: joint profile reaches sampled bands and rejects missing maps before URL allocation`,async({page,servers})=>{
@@ -124,7 +124,7 @@ for(const mode of ['source','built']) {
    const api=await import(mode==='built'?'/dist/scriptoscope.js':'/src/index.ts');const {forkOf}=await import('/tests/resource-provenance/fixtures.mjs');const {sampledBandIcon,sampledBandInfo}=await import('/tests/decoder-fixtures/sampled-bands.mjs');const {syntheticDisplayProfile}=await import('/tests/decoder-fixtures/display-profile.mjs');
    const bytes=forkOf([{type:'cicn',id:-10239,data:sampledBandIcon()},{type:'cinf',id:-10239,data:sampledBandInfo(true)}]);
    const p=await api.prepareDisplayProfile(syntheticDisplayProfile()),loaded=await api.loadKaleidoscopeScheme(bytes,{displayProfile:p});let trace;
-   const out=await api.composeButton(loaded,{label:'',minWidth:29,height:17,diagnostics:{onComplete:t=>{completionCount++;trace=t;}}});
+   const out=await api.composeButton(loaded,{label:'',minWidth:29,height:17,diagnostics:{onComplete:t=>trace=t}});
    const changed=syntheticDisplayProfile();changed.producer.channels[0][90]=91;const other=await api.prepareDisplayProfile(changed),second=await api.loadKaleidoscopeScheme(bytes,{displayProfile:other}),otherOut=await api.composeButton(second,{label:'',minWidth:29,height:17});
    let count=0,code;const incomplete=syntheticDisplayProfile();incomplete.mappings=incomplete.mappings.filter(r=>r.rgb16[0]!==0x2121);
    try{await api.loadKaleidoscopeScheme(bytes,{displayProfile:await api.prepareDisplayProfile(incomplete),assetUrlFactory:()=>{count++;return'bad';}});}catch(e){code=e.code;}
@@ -142,7 +142,7 @@ for(const mode of ['source','built']) {
    const api=await import(mode==='built'?'/dist/scriptoscope.js':'/src/index.ts'),{forkOf}=await import('/tests/resource-provenance/fixtures.mjs'),{syntheticDisplayProfile}=await import('/tests/decoder-fixtures/display-profile.mjs');
    const data=syntheticDisplayProfile();data.producer.channels[0][20]=21;data.producer.channels[0][21]=99;
    const profile=await api.prepareDisplayProfile(data),theme=await api.loadKaleidoscopeScheme(forkOf(records.map(r=>({...r,data:Uint8Array.from(r.data)}))),{displayProfile:profile});let trace;
-   try{const out=await api.composeButton(theme,{label:'',minWidth:24,height:6,diagnostics:{onComplete:t=>{completionCount++;trace=t;}}}),face=Object.values(theme.manifest.chromeElements).find(e=>e.sourceCicnId===-10239);
+   try{const out=await api.composeButton(theme,{label:'',minWidth:24,height:6,diagnostics:{onComplete:t=>trace=t}}),face=Object.values(theme.manifest.chromeElements).find(e=>e.sourceCicnId===-10239);
     return{rgba:[...out.data],policy:face.cicnBody.displayPolicy,profile:profile.id,paint:trace.steps.find(s=>s.bodyPaint)?.bodyPaint};
    }finally{theme.dispose();}
   },{mode,records:records.map(r=>({...r,data:[...r.data]}))});
