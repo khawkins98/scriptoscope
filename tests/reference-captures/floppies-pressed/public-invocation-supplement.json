@@ -1,0 +1,52 @@
+{
+  "procedureId": 0,
+  "variant": 0,
+  "hilite": 10,
+  "value": 0,
+  "enabled": true,
+  "windowActive": true,
+  "api": "NewControl",
+  "drawApi": "Draw1Control",
+  "stateApi": "HiliteControl",
+  "defaultApiInvoked": false,
+  "title": "",
+  "controlRect": [
+    20,
+    20,
+    80,
+    20
+  ],
+  "portOrigin": [
+    0,
+    0
+  ],
+  "portBounds": [
+    0,
+    0,
+    160,
+    80
+  ],
+  "effectiveClipRect": [
+    0,
+    0,
+    160,
+    80
+  ],
+  "backgroundRGB": [
+    255,
+    255,
+    255
+  ],
+  "state": "pressed",
+  "actualFontRequest": {
+    "number": 0,
+    "size": 12,
+    "face": 0
+  },
+  "actualFontInfo": {
+    "ascent": 12,
+    "descent": 3,
+    "widMax": 14,
+    "leading": 1
+  }
+}

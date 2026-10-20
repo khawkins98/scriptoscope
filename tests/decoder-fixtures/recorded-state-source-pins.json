@@ -686,6 +686,43 @@
         15
       ],
       "missingPatternId": 0
+    },
+    "pressed": {
+      "sourceArchiveSha256": "9491fd7a68134249988b07971d222527709636438c59ca1d0daf5ade82a26740",
+      "sourceForkSha256": "9491fd7a68134249988b07971d222527709636438c59ca1d0daf5ade82a26740",
+      "emittedKey": "push-button-pressed",
+      "face": {
+        "resourceIndex": 35,
+        "signedId": -10238,
+        "bytes": 342,
+        "payloadSha256": "ac368391d667cacc2969c15507f99f56686ac9d66d8aa3671a5d038e35be93d3"
+      },
+      "cinf": {
+        "resourceIndex": 271,
+        "signedId": -10238,
+        "bytes": 18,
+        "payloadSha256": "f772cc0ae40b75682e47c51c786a11f3e95e604f953d08070ff997e85b113cdc"
+      },
+      "bodyRequest": {
+        "mode": 0,
+        "resourceId": 0
+      },
+      "paintKind": "cinf-bands",
+      "sourceSize": [
+        15,
+        15
+      ],
+      "missingPatternId": 0,
+      "completedFaceRegions": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ]
     }
   },
   "monkey-paradise": {
@@ -795,6 +832,113 @@
         14
       ],
       "missingPatternId": 0
+    }
+  },
+  "floppies": {
+    "normal": {
+      "sourceArchiveSha256": "45557a8b2eae7419b5175c02f46363b9edb2efe2cdf109ef1bf70806acadf5c9",
+      "sourceForkSha256": "5121774b5594cd660965b77e4e71d5ef9d24e82023fd80b8a11c7cca335bd062",
+      "emittedKey": "push-button-active",
+      "face": {
+        "resourceIndex": 136,
+        "signedId": -10239,
+        "bytes": 2634,
+        "payloadSha256": "21015dd9c99af0cc40d31134d98d0578841edde09f28e7a88dacce96ff012200"
+      },
+      "cinf": {
+        "resourceIndex": 692,
+        "signedId": -10239,
+        "bytes": 18,
+        "payloadSha256": "8665ef70a5ac09b6456580d3f6f897788b1e805c232afdafb41f06cd81dfbd7d"
+      },
+      "bodyRequest": {
+        "mode": 0,
+        "resourceId": 0
+      },
+      "paintKind": "cinf-bands",
+      "sourceSize": [
+        32,
+        32
+      ],
+      "missingPatternId": 0,
+      "completedFaceRegions": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    "pressed": {
+      "sourceArchiveSha256": "45557a8b2eae7419b5175c02f46363b9edb2efe2cdf109ef1bf70806acadf5c9",
+      "sourceForkSha256": "5121774b5594cd660965b77e4e71d5ef9d24e82023fd80b8a11c7cca335bd062",
+      "emittedKey": "push-button-pressed",
+      "face": {
+        "resourceIndex": 135,
+        "signedId": -10238,
+        "bytes": 2506,
+        "payloadSha256": "691704c80b3b929541275a677517560887399d7bf0fb45a6fb96ec9a9b462524"
+      },
+      "cinf": {
+        "resourceIndex": 691,
+        "signedId": -10238,
+        "bytes": 18,
+        "payloadSha256": "8665ef70a5ac09b6456580d3f6f897788b1e805c232afdafb41f06cd81dfbd7d"
+      },
+      "bodyRequest": {
+        "mode": 0,
+        "resourceId": 0
+      },
+      "paintKind": "cinf-bands",
+      "sourceSize": [
+        32,
+        32
+      ],
+      "missingPatternId": 0,
+      "completedFaceRegions": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    "inactive": {
+      "sourceArchiveSha256": "45557a8b2eae7419b5175c02f46363b9edb2efe2cdf109ef1bf70806acadf5c9",
+      "sourceForkSha256": "5121774b5594cd660965b77e4e71d5ef9d24e82023fd80b8a11c7cca335bd062",
+      "emittedKey": "push-button-inactive",
+      "face": {
+        "resourceIndex": 137,
+        "signedId": -10240,
+        "bytes": 2218,
+        "payloadSha256": "1b2beb66c8e0ed877ca6582c132d9edbd91552061558b2de50ed07f25d748c6a"
+      },
+      "cinf": {
+        "resourceIndex": 693,
+        "signedId": -10240,
+        "bytes": 18,
+        "payloadSha256": "8665ef70a5ac09b6456580d3f6f897788b1e805c232afdafb41f06cd81dfbd7d"
+      },
+      "bodyRequest": {
+        "mode": 0,
+        "resourceId": 0
+      },
+      "paintKind": "cinf-bands",
+      "sourceSize": [
+        32,
+        32
+      ],
+      "missingPatternId": 0,
+      "completedFaceRegions": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
     }
   }
 }

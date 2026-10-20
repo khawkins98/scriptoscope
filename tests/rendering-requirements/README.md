@@ -1,7 +1,7 @@
 # Partial rendering requirement ledger
 
 `ledger.json` is reviewed acceptance data, separate from rendering and screenshots.
-Inventory 1.12.0 declares sixty-nine exact direct cases and seven explicit dimensions per
+Inventory 1.17.0 declares ninety-nine exact direct cases and seven explicit dimensions per
 case. **Every case has OPEN inventory closure.** The declared obligation
 count is a finite bookkeeping denominator, not an exhaustive denominator of
 historical control behavior. No whole-control completion percentage is reported.
@@ -431,3 +431,13 @@ Pressed/inactive preserve missing0 and completed face bands. No theme-name
 exception, private-provider claim, new scope or typography closure is introduced.
 The registered pair retains full results before assertions, so rejected trace
 or pixel observations remain inspectable without being counted as acceptance.
+
+## Four-claim Floppies/Evolution extension
+
+Inventory1.17.0 appends four cases/24 obligations to the exact prior95/647.
+There are99 OPEN cases/671 obligations:114 narrowly verified and557 unknown
+while the four new output assertions await registered execution review.
+Floppies has six source-eligible bands at height20; Evolution pressed has eight.
+The generic per-state profile override preserves old Evolution normal/inactive
+bindings. Neither missingppat0 nor zero-height body invents completed body paint.
+All broader requirements and inventory closure remain open.

@@ -1,0 +1,5 @@
+{
+  "archiveSha256": "9491fd7a68134249988b07971d222527709636438c59ca1d0daf5ade82a26740",
+  "forkSha256": "9491fd7a68134249988b07971d222527709636438c59ca1d0daf5ade82a26740",
+  "evidence": "Same-run Copl/FCB volume-3,parent2,file18; exact stopped canonical evolution fork. Configured file only, not private provider attribution."
+}

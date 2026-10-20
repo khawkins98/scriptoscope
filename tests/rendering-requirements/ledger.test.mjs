@@ -37,7 +37,7 @@ function reject(change, pattern, options = {}) {
 test('reviewed inventory validates and all open cases remain uncertified', () => {
   assert.deepEqual(validateLedger(original, { root }).errors, []);
   const report = makeReport(original);
-  assert.equal(report.cases.length, 95);
+  assert.equal(report.cases.length, 99);
   assert.equal(report.requirementStatus.denominator, original.assessments.length);
   assert.equal(report.cases.filter(c => c.status === 'verified').length, 0);
   assert(report.execution.assertions.every(a => a.modes.every(m => m.status === 'not run')));
@@ -159,7 +159,7 @@ test('evidence from a wholly unrelated archive or synthetic input cannot support
 });
 test('engine-wide rules and combined source-art evidence retain their bounded valid uses', () => {
   const result = validateLedger(original, { root });
-  assert.deepEqual(result.errors, []); assert.equal(result.declaredCount, 647);
+  assert.deepEqual(result.errors, []); assert.equal(result.declaredCount, 671);
   assert.deepEqual(original.evidence.find(e => e.id === 'kdef.square-corners').inputs, ['engine.kaleidoscope-2.3.1-kdef0']);
   const shared = original.evidence.find(e => e.id === 'art.tab-crop');
   assert.deepEqual(shared.inputs, ['theme.1138', 'theme.1990']);
@@ -327,7 +327,19 @@ test('Monkey extension preserves all prior 92 cases and 629 assessments', () => 
   Object.assign(prior,{inventoryVersion:transition.inventoryVersion,inventorySha256:transition.inventorySha256,scope:transition.scope});
   assert.equal(inventoryDigest(prior),transition.inventorySha256);assert.equal(digest(JSON.stringify(prior)),transition.priorObjectSha256);
   assert.deepEqual(makeReport(prior).requirementStatus.counts,{verified:111,mismatched:0,unsupported:0,unknown:518});
-  const added=original.assessments.slice(transition.counts.assessments);assert.equal(added.length,18);assert.equal(added.filter(a=>a.status==='verified').length,3);assert(added.every(a=>a.status===(a.requirementId==='output.recorded-composited-face'?'verified':'unknown')));
-  assert.deepEqual(makeReport(original).requirementStatus.counts,{verified:114,mismatched:0,unsupported:0,unknown:533});
+  const added=original.assessments.slice(transition.counts.assessments,647);assert.equal(added.length,18);assert.equal(added.filter(a=>a.status==='verified').length,3);assert(added.every(a=>a.status===(a.requirementId==='output.recorded-composited-face'?'verified':'unknown')));
+  const historical=structuredClone(original),next=JSON.parse(readFileSync(new URL('./floppies-evolution-recorded-transition.json',import.meta.url)));for(const[key,count]of Object.entries(next.counts))historical[key]=historical[key].slice(0,count);
+  assert.deepEqual(makeReport(historical).requirementStatus.counts,{verified:114,mismatched:0,unsupported:0,unknown:533});
   assert(original.cases.slice(92).every(c=>c.inventoryClosure.status==='open'));
+});
+
+test('Floppies/Evolution extension preserves all prior95 cases and647 assessments',()=>{
+ const transition=JSON.parse(readFileSync(new URL('./floppies-evolution-recorded-transition.json',import.meta.url))),prior=structuredClone(original);
+ for(const[key,count]of Object.entries(transition.counts)){prior[key]=prior[key].slice(0,count);assert.equal(digest(JSON.stringify(prior[key])),transition.prefixSha256[key],key+' prefix');}
+ Object.assign(prior,{inventoryVersion:transition.inventoryVersion,inventorySha256:transition.inventorySha256,scope:transition.scope});
+ assert.equal(inventoryDigest(prior),transition.inventorySha256);assert.equal(digest(JSON.stringify(prior)),transition.priorObjectSha256);
+ assert.deepEqual(makeReport(prior).requirementStatus.counts,{verified:114,mismatched:0,unsupported:0,unknown:533});
+ const added=original.assessments.slice(647);assert.equal(added.length,24);assert(added.every(a=>a.status==='unknown'));
+ assert.deepEqual(makeReport(original).requirementStatus.counts,{verified:114,mismatched:0,unsupported:0,unknown:557});
+ assert(original.cases.slice(95).every(c=>c.inventoryClosure.status==='open'));
 });

@@ -1,0 +1,35 @@
+{
+  "inventoryVersion": "1.16.0",
+  "inventorySha256": "e4f8ba839422b7b3c44f7e86e6e4e0efbff51acd851d66245186f7e1dc989c3e",
+  "scope": {
+    "description": "Ninety-five exact direct composition cases: prior ninety-two plus three Monkey Paradise empty recorded-condition faces. All closures OPEN; not a whole-control denominator.",
+    "dimensions": [
+      "resourceSelection",
+      "geometry",
+      "fillMask",
+      "typography",
+      "state",
+      "placement",
+      "interaction"
+    ],
+    "review": "Original eight cases and 51 assessments retained unchanged. Independent automated root/Astra review approved eight additional finite cases and 83 obligations at draft scope digest 659a655e87bbb0642aa200cf108671ec93d9e2cd00f48577bfb97cd4df1b30e3 on 2026-10-18; final digest reflects only replacement of pending review labels. All closures remain OPEN; not human capture attestation. The #289 extension preserves those sixteen cases and 134 assessments. Independent automated root/Astra review approved this exact finite #289 case/status extension on 2026-10-18 at draft scope digest 16a76c6c2c2343d378d626ffc8bf954b11a32cb5a2015718cb2ce7dd917893a0; narrow source/sample claim only, not human original-capture attestation. The #301 extension preserves all eighteen cases and150 assessments, adding four exact synthetic cases and45 obligations. Independent automated root/Astra review approved the exact applied four-case, 45-obligation extension and verifiers at commit d02935846fa816411259524b15e9934cd316becb, scope digest 4e563d0e824e9d809f22a14a735d6f64dca501bb1519ba58fc42ab3390c1e066. Final digest reflects only replacement of these review labels. Synthetic source/literal claims only; no original capture attestation."
+  },
+  "priorFileSha256": "f7f8127caf71c9a1273261e7550dea75f39b08fbc664373eafc5f8eb90b1803c",
+  "priorObjectSha256": "bf3f8ba0792abf4d79acfd7b056fd5a9690dc4b907d8ffd875fbf855c2f661c4",
+  "counts": {
+    "inputs": 60,
+    "evidence": 67,
+    "requirements": 37,
+    "assertions": 27,
+    "cases": 95,
+    "assessments": 647
+  },
+  "prefixSha256": {
+    "inputs": "9bf81dbb81445abbd5e5a1004d3a24175ee4a7d41d363e1e6c0c76d3d29afc9d",
+    "evidence": "81af94d6b032823ecaa0af2cfcb339e74f99cfb66b3ccf2ac62924aa16673b2c",
+    "requirements": "8014d693ab9a6a3c78b5afbdcb7ade5ee3e22b712c3636929d3fce12c3f4896a",
+    "assertions": "9e1f864e474db514be3d6ca3d8a5ec0e784a0051c6f22f7f4bb5dff99bbbebad",
+    "cases": "37fdc5802de38c9dee74c21c03deaec69b32ddf17de114dd79cb410d803203a8",
+    "assessments": "df8e9d5543ca7910d92979495f90f8918a7e1ef0e085867c57f1f0af8e391601"
+  }
+}

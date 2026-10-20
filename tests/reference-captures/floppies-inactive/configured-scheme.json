@@ -1,0 +1,5 @@
+{
+  "archiveSha256": "45557a8b2eae7419b5175c02f46363b9edb2efe2cdf109ef1bf70806acadf5c9",
+  "forkSha256": "5121774b5594cd660965b77e4e71d5ef9d24e82023fd80b8a11c7cca335bd062",
+  "evidence": "Same-run Copl/FCB volume-3,parent2,file18; exact stopped canonical floppies fork. Configured file only, not private provider attribution."
+}

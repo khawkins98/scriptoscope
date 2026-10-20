@@ -1,7 +1,7 @@
 # Fidelity compatibility contract
 
-Contract ID: `scriptoscope.kaleidoscope-2.3.1`. Draft version: **0.1.15**,
-2026-10-19. Inventory closure: **OPEN**. Tracked by
+Contract ID: `scriptoscope.kaleidoscope-2.3.1`. Draft version: **0.1.16**,
+2026-10-20. Inventory closure: **OPEN**. Tracked by
 [epic #221](https://github.com/khawkins98/scriptoscope/issues/221).
 
 This defines the proposed acceptance boundary and the work needed to close it.
@@ -94,9 +94,9 @@ proves input identity, not decoder correctness. A trace proves actual selection,
 not the historical validity of a fallback policy. A self-golden proves stability,
 not original-engine pixels.
 
-The current [ledger 1.16.0](../../tests/rendering-requirements/ledger.json) contains
-95 OPEN cases and 647 declared obligations: 114 narrowly verified, 0 mismatched,
-0 explicitly unsupported and 533 unknown. Forty-one verified obligations concern
+The current [ledger 1.17.0](../../tests/rendering-requirements/ledger.json) contains
+99 OPEN cases and 671 declared obligations: 114 narrowly verified, 0 mismatched,
+0 explicitly unsupported and 557 unknown. Forty-one verified obligations concern
 only complete recorded-condition empty 80×20 faces under explicit finite
 measured profiles. They do not establish original alpha/mask, typography, hidden
 selection, general state/placement, private provider/cache or default-display
@@ -148,6 +148,21 @@ reference, not a tolerance chosen to accommodate current output.
 
 ## Delivery order and closure
 
+Inventory structure closure is separate from fidelity verification. Audit all18
+pinned inputs against the actual public exports, declarative paths and available
+window types, with explicit decoder and distribution obligations. A larger sample
+matrix does not establish that this inventory is exhaustive.
+
+Replace broad remaining obligations incrementally with source-derived parameterized
+rules, preconditions, literal oracles and actual byte/branch assertions. Preserve
+the unresolved remainder; a representative success must not bulk-promote other
+inputs. After the current empty-face campaign, prioritize a real public push/default
+consumer vertical slice, then chrome, checkables, ranges and tabs/headers.
+Historical caller/owner, destination clip, font metrics and transfer/device evidence
+are required for the claims actually made. Missing provider or font truth stays
+unknown and does not block unrelated source-backed fixes. The full acceptance
+target and exit criteria below remain unchanged.
+
 1. Review and freeze acceptance inputs, applicable obligations and exclusions.
    Keep overall closure OPEN while adding bounded independently reviewed cases.
 2. Join actual loaded-byte provenance (#241); verify independent decoder fixtures
@@ -173,7 +188,7 @@ This draft does not choose that threshold or certify the current implementation.
 ## Reference capture intake implementation (#190)
 
 [Capture requests and validation](../../tests/reference-captures/README.md)
-currently track 59 requests and 41 independently reviewed scoped observations.
+currently track 59 requests and 45 independently reviewed scoped observations.
 The observed whole requests remain evidence-incomplete; a scoped pixel match
 is not whole-control certification. Requests reuse the source-choice pins, name
 target requirements, and specify body-only geometry/state/port/crop conditions.

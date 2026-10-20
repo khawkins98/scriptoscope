@@ -7,6 +7,8 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+- Add four independently reviewed empty-face records for Floppies normal/pressed/inactive and Evolution pressed, genuine separate measured profiles and state-specific bindings. Preserve prior Evolution records and all broader unknowns; public output verification remains pending. Refine the fidelity delivery roadmap without changing its full target or exit criteria.
+
 - Allow recorded-face comparisons to bind a complete measured profile per state while preserving each theme’s existing default profile and earlier capture bindings.
 
 - Add three independently reviewed Monkey Paradise empty-state observations and their actual 288-key measured profile. Join normal output to the loaded same-owner pattern and completed body union; verify only the three registered output obligations after independent source/built review, and preserve all prior evidence and broader unknowns.

@@ -61,6 +61,7 @@ for(const mode of ['source','built']) {
   info.annotations.push({type:'fidelity-assertion',description:'recorded.shared307-eighteen'});
   info.annotations.push({type:'fidelity-assertion',description:'recorded.evolution-empty-two'});
   info.annotations.push({type:'fidelity-assertion',description:'recorded.monkey-three-state'});
+  info.annotations.push({type:'fidelity-assertion',description:'recorded.floppies-evolution-four-state'});
   const referenceContext=readRecordedContext(fileURLToPath(new URL('../../',import.meta.url)));
   const bindings=referenceContext.captures.map(c=>captureBinding(c));
   const ledger=JSON.parse(readFileSync(new URL('../rendering-requirements/ledger.json',import.meta.url)));

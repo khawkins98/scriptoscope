@@ -90,9 +90,10 @@ export function compareRecordedPixels(raw, original) {
 }
 
 /** Validate the completed modern raster stage from paired metadata, not theme names. */
-export function validateCompletedFacePaint(row, selected, hasPairedCinf) {
+export function validateCompletedFacePaint(row, selected, hasPairedCinf, expectedRegions) {
   const paints = hasPairedCinf ? (row.bandPaints ?? []).filter(p => p.role === 'face') : [row.legacyFacePaint];
   check(paints.length > 0 && paints.every(p => p && same(p.owner, selected.owner) && same(p.resource, selected.resource)), 'missing or wrong completed paint dependency');
+  if (expectedRegions) check(hasPairedCinf && !row.legacyFacePaint && same(paints.map(p => p.region), expectedRegions), 'wrong source-eligible completed regions');
   if (!hasPairedCinf) {
     check(!row.resources.some(r => r.type === 'cinf' && r.signedId === selected.resource.signedId), 'paired metadata cannot be omitted');
     const p = row.legacyFacePaint;
@@ -146,8 +147,8 @@ export function validateRecordedExecution(row, binding, capture) {
   check(s.resource.sourceCinfId === row.selectedCinfId && row.source.manifestKey === row.selectedKey, 'wrong paired metadata/key');
   const paintKind = RECORDED_CASES[row.slug]?.paintKind;
   check((paintKind === 'cinf-bands' && cinf !== null) || (paintKind === 'legacy-face' && cinf === null), 'wrong registered paint kind');
-  validateCompletedFacePaint(row, s, cinf !== null);
   const sourcePins=sourcePinsFor(row.slug,row.state);
+  validateCompletedFacePaint(row, s, cinf !== null, sourcePins?.completedFaceRegions);
   if (STATE_SOURCE_PINS[row.slug]?.[row.state]) {
     if (sourcePins.paintKind) {
       check(sourcePins.paintKind === paintKind && same(row.recordedSourcePins, sourcePins), 'wrong explicit paint/source pins');

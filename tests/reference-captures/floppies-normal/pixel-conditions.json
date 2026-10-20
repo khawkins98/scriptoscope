@@ -1,0 +1,60 @@
+{
+  "palette": {
+    "depth": 8,
+    "sha256": "6987f8e5bc61a7da95ed03f229cc3ecbee463bb6245965fdc2eddbd86a31ef9b",
+    "description": "Actual current-device indexed ColorTable,2056 bytes,seed1023,flags32768,lastIndex255. No inferred palette/lookup rule or consumer current/main equality."
+  },
+  "producer": {
+    "name": "Private copied BasiliskII WebAssembly with bound worker/canvas/capture glue",
+    "buildArtifacts": [
+      {
+        "name": "reference.ts",
+        "bytes": 2256,
+        "sha256": "7012ea546b999833a396058fd78652cc2d74b5bab296a6e6e864f0e9e6136c63"
+      },
+      {
+        "name": "vite.config.mjs",
+        "bytes": 2151,
+        "sha256": "95a17c7d8f29ad40dceb286c2bde78e6c7b65d25fb3d8f9e64b98fad1746dcc8"
+      },
+      {
+        "name": "emulator-worker.ts",
+        "bytes": 38195,
+        "sha256": "2c85bfcebc0f91a076a528c2bb4d24a4d506a69b05cd64f85aa136fe76dc627f"
+      },
+      {
+        "name": "emulator-input.ts",
+        "bytes": 14561,
+        "sha256": "b69f0527aabd322e8cf0d0840d6faef769cd53a717a6d3d6e7cf36118a1dc0c5"
+      },
+      {
+        "name": "BasiliskII.js",
+        "bytes": 156114,
+        "sha256": "4fd750e202686a7b7c3bd0055dbe33d21dd6b3ce2639da8da814ef1036d1c66b"
+      },
+      {
+        "name": "BasiliskII.wasm",
+        "bytes": 1713564,
+        "sha256": "0be9b5ba1179b65d9d1bd30b3cc35ee56daf6713ba1353048c03229f641680bb"
+      },
+      {
+        "name": "capture-state-absolute.mjs",
+        "bytes": 6481,
+        "sha256": "5395777323100c2e3652e588f57b6705c2dd27e83c7595ff154c879be551064f"
+      },
+      {
+        "name": "crop-state.py",
+        "bytes": 1009,
+        "sha256": "f043522d25ff2a7f53bcf69b4538ecc8361bb03aa06d4593909d2b95bc6dc077"
+      }
+    ],
+    "tableSha256": "c2eeb81da5ffc2bd502834d80d850f6f085813ab1cec8d9fb89ca36c2474125b",
+    "pixelEncoding": "rgba8",
+    "colorRealization": "Actual indexed8 current-device palette/gamma and GetCPixel/host samples. Later same-boot3846×2 Color2Index/Index2Color queries supply finite preparation mappings; no pooling. Consumer and calibration request font0/size12/face0; identity and consumption remain unknown. Consumer current/main/port-table, private phase/cache/provider and font consumption remain unknown. No font query was taken.",
+    "timing": "Conditions bracket explicit Draw1Control + HiliteControl; setup/update and host capture have shared history. Three consumers precede calibration; no font query.",
+    "version": {
+      "status": "unknown",
+      "reason": "Exact external JS/WASM and glue build hashes recorded; semantic emulator release version not independently established."
+    }
+  }
+}

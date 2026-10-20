@@ -1,0 +1,72 @@
+{
+  "bootNonce": "A3A-84320f7f95",
+  "fixtureLabel": "A3A1-84320f7f95",
+  "fixedOrder": [
+    "empty/0",
+    "empty/10",
+    "empty/255"
+  ],
+  "ordinal": 1,
+  "controlGeneration": 2,
+  "actualAcquisitionLines": [
+    "acquisition.bootNonce=A3A-84320f7f95 fixedOrder=0,10,255 sharedSchemeOSCacheHistory=1 providerCacheOrder=UNKNOWN",
+    "acquisition.setup=EraseRect;NewControl-implicit-draw;Draw1Control;HiliteControl;unbracketed-before-observation",
+    "acquisition.stateOrdinal=1 requestedHilite=10 controlGeneration=2 createdTicks=10605 priorDisposedTicks=10605",
+    "acquisition.priorAcknowledgedState=0 hostAckCount=1 lastHostAckTicks=10605 priorFile=A3A0-000020fa-001.txt",
+    "acquisition.faceDrawCount=2 initial=1 update=1 mouse=0 capture=0",
+    "acquisition.stateOrdinal=1 requestedHilite=10 controlGeneration=2 createdTicks=10605 priorDisposedTicks=10605",
+    "acquisition.priorAcknowledgedState=0 hostAckCount=1 lastHostAckTicks=10605 priorFile=A3A0-000020fa-001.txt",
+    "acquisition.faceDrawCount=3 initial=1 update=1 mouse=0 capture=1"
+  ],
+  "hostAck": {
+    "status": "COMMAND_SENT_NATIVE_ACCEPTANCE_PENDING",
+    "bootNonce": "A3A-84320f7f95",
+    "key": "n",
+    "ordinal": 1,
+    "session": "scriptoscope-floppies-empty-batch-20261020",
+    "at": "2026-10-20T16:36:44.148Z",
+    "candidateSha256": "9ca8b322b41df34e8a2056a7e5605601bacb60a1cb488f640e306d45f0e796c0",
+    "runSha256": "3f3b754bf11a5f10324346c922be648fb935394c82e8531bf960d3ac50891fb1",
+    "evidence": [
+      {
+        "path": "captures/state-1-retained.json",
+        "sha256": "3380f1480f408f6e29d0fbaa982c589a1f68df4eacf7a1da0a69ea6cb13bcf3d"
+      }
+    ],
+    "limits": "Delivery is not native acceptance; no automatic retry. Actual state/ACK/closure joins remain required."
+  },
+  "finalNativeAckObservation": {
+    "basis": "visually read retained native status screenshot; not native log fields",
+    "screenshotSha256": "381b174411dff9e66cd8362ddc5232a1d33bcc3c89b3ba1d18ccd420a7943176",
+    "ack": 3,
+    "stateOrdinal": 2,
+    "hilite": 255,
+    "generation": 3
+  },
+  "sharedHistory": "Fresh controls; fixed-order empty0/10/255 in one boot; calibration after ACK3 and consumer Q. No font query. Not cold-cache/order independence; retained A3A labels are not fresh native nonces.",
+  "acquisitionReview": {
+    "name": "scriptoscope-floppies-evolution-acquisition-independent-review-20261020.json",
+    "bytes": 4897,
+    "sha256": "d88f0bdc8af1c36d70e4b01c94113a345ea74a8b2aceb88728b007da19962909"
+  },
+  "scopedIntakeReview": "Independent v5 attestation required separately",
+  "comparisonEvidence": {
+    "privateCheckpoint": {
+      "name": "result.json",
+      "bytes": 47386,
+      "sha256": "ee13f8926d04f97b32e21cfd0c3a81088a91775c240c988c38ddfec0811ed622"
+    },
+    "independentReview": {
+      "name": "scriptoscope-floppies-evolution-comparison-independent-review-20261020.json",
+      "bytes": 2795,
+      "sha256": "d8dfb9a5c788b65b5b4eaa35408a3aa8ab825fe80506943fdc9b28e9e69a89a0"
+    },
+    "emptyStatesCompared": [
+      0,
+      1,
+      2
+    ],
+    "result": "Twelve private source/built calls across six faces,19200pixels zero differences. Four public candidates only; new Evolution normal/inactive are private controls. Same execution/runtime, no native retry. Public registered execution remains separate."
+  },
+  "fontBoundary": "Only empty observations; no font query or glyph candidate was used. Original font identity/consumption remains unknown."
+}
