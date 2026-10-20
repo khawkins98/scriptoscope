@@ -76,9 +76,9 @@ export interface CornerSpriteOptions {
   /** Measured title-text width (px) — reported as the title region for the
    *  centred title, mirroring composeWindowChrome's contract. */
   titleWidthPx?: number | undefined;
-  /** Which widget glyphs sit in the title bar, left→right. `close` anchors at
-   *  the left; `collapse`/`zoom` anchor right (zoom outermost). Defaults to the
-   *  document set [close, collapse, zoom] so the existing render is unchanged.
+  /** Which widget glyphs are present in the title bar. `close` anchors at
+   *  the left; `collapse`/`zoom` anchor right (collapse outermost). Defaults to the
+   *  document set [close, collapse, zoom].
    *  Empty ⇒ no widgets (utility/side palettes). */
   widgets?: ('close' | 'collapse' | 'zoom')[] | undefined;
   /**
@@ -86,7 +86,7 @@ export interface CornerSpriteOptions {
    * supplied it is stamped 1:1 (the glyph carries its own face + bevel) at the
    * widget's anchor INSTEAD of the fabricated beveled square, and the widget's
    * box takes the glyph's size so it renders at native scale. The anchor points
-   * (close left, zoom 4px from right, collapse inboard) are unchanged and the
+   * (close left, collapse 4px from right, zoom inboard) and the
    * recorded placement rect tracks the real drawn box, so interactive.ts's
    * hit-zones line up with the glyph. Roles with no glyph fall back to the
    * procedural square.
@@ -312,10 +312,11 @@ export function composeCornerSpriteChrome(
   // ── Title-bar widget LAYOUT (positions only) ───────────────────────────────
   // Resolved up front so the pinstripe (§1) can be BOUNDED to the gaps between the
   // controls; the glyphs themselves are stamped in §3 from this same layout.
-  // Geometry from the WDEF 125 decode (src/cornerSpriteGeometry.ts), NOT the old
-  // hand-tuned guesses: the real Platinum widgets are a 7×7 FIXED box, close 4px
-  // from the LEFT title end, zoom 4px from the RIGHT, collapse inboard of zoom,
-  // each vertically centred. WBOX sizes the fabricated box for any role a scheme
+  // Keep the existing box/inset dimensions, but use the public document-window
+  // ordering: close at left, collapse outermost at right, zoom inboard. The
+  // synthetic three-widget layout is compatibility policy; the WDEF 125
+  // bottom-right geometry does not establish a titlebar collapse-box position.
+  // WBOX sizes the fabricated box for any role a scheme
   // ships no glyph for; the decode pins it at 7 (was a manual 7..13 ⇒ ~12 at
   // titleH 19, too big). Capped to titleH-2 so a short utility bar still fits.
   const WBOX = Math.min(GEOM.widget.box, Math.max(5, titleH - 2));
@@ -339,7 +340,7 @@ export function composeCornerSpriteChrome(
       widgetLayout.push({ glyph: 'close', x, y: contentTop + Math.max(0, Math.round((contentBot - contentTop - b.h) / 2)), w: b.w, h: b.h });
     }
     let rx = -1; // sentinel: compute from fullW on the first right widget
-    for (const glyph of ['zoom', 'collapse'] as const) {
+    for (const glyph of ['collapse', 'zoom'] as const) {
       if (!widgets.includes(glyph)) continue;
       const b = boxOf(glyph);
       if (rx < 0) rx = fullW - frame.right - GEOM.widget.zoomFromRight - b.w; // decode: title.right − 4
@@ -539,8 +540,8 @@ export function composeCornerSpriteChrome(
   // opts.widgetGlyphs and we stamp them 1:1 at the glyph's native size. A role a
   // scheme doesn't ship falls back to a PROCEDURAL beveled box with the classic
   // mark (close = empty, zoom = nested inner square, collapse = window-shade line)
-  // sized to ~bar-height − margin. Geometry (WDEF 125 §"Box geometry"): close =
-  // title.left+4; zoom 4px from the right end; collapse inboard of zoom; vertically
+  // sized to ~bar-height − margin. Compatibility layout: close =
+  // title.left+4; collapse 4px from the right end; zoom inboard; vertically
   // centred. Widget SET per type (opts.widgets): document = [close,collapse,zoom];
   // movable-modal/alert/titled-utility = [close]; side/no-title = [].
   if (widgetsActive) {
