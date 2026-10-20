@@ -1,0 +1,38 @@
+{
+  "canonicalSource": {
+    "slug": "beos-r503",
+    "path": "themes/beos-r503/scheme.sit",
+    "format": "sit",
+    "archiveSha256": "04b315396840c5f6e53555381d51ab86087169d5687640261d92c3f85510c0c0",
+    "entryIndex": 0,
+    "entryName": "BeOSr503/BeOS R5.0.3",
+    "forkSha256": "f8d70eb86bdda078c07ba509a0e069f525700b7af1a2c7b022265c65decf2bac",
+    "selectionReviewStatus": "reviewed-contract-input",
+    "selectionReason": "Explicit scheme-named Colr entry \"BeOSr503/BeOS R5.0.3\"; readme/icon/font forks excluded by this declared choice, never by size.",
+    "selectionReviewEvidence": "beos-r503"
+  },
+  "actualCopl": [
+    "CoplResourceFile.file.name=BeOS R5.0.3 volumeRef=-2 parentDir=2 fileID=20 flags=512 logicalEOF=518211 physicalEOF=518656",
+    "CoplResourceFile.file.name=BeOS R5.0.3 volumeRef=-2 parentDir=2 fileID=20 flags=512 logicalEOF=518211 physicalEOF=518656"
+  ],
+  "configuredFCB": {
+    "volumeRef": -2,
+    "parentDir": 2,
+    "fileID": 20
+  },
+  "stoppedConfiguredFile": {
+    "name": "stopped-scheme.bin",
+    "bytes": 518400,
+    "sha256": "6f023fe8767c3649f5a6c32cc3b776d6dee361aa3170d2f966452cbd149173e5"
+  },
+  "resourceFork": {
+    "bytes": 518211,
+    "sha256": "f8d70eb86bdda078c07ba509a0e069f525700b7af1a2c7b022265c65decf2bac"
+  },
+  "installedEngineResourceFork": {
+    "bytes": 1005535,
+    "sha256": "cb903bef4410feb096d65b5a4c9383fa2a3c943e6afef6d3c13463b48267d333"
+  },
+  "actualDefinitionsMatchStoppedKaleidoscope": true,
+  "limits": "Configured file only, not actual private cicn/cinf/provider/cache ownership. Transfer is the loaded stopped seed; guest transfer-write persistence is not established."
+}

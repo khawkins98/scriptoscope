@@ -49,9 +49,9 @@ function fixture(t, request = contract.requests.find(r => r.id === 'windows-95.n
 test('actual checked-in originals are scoped observations with every broader requirement unresolved', () => {
   const report = assessCorpus(contract, JSON.parse(readFileSync(new URL('./captures.json', import.meta.url))), JSON.parse(readFileSync(new URL('./reviews.json', import.meta.url))), { intakeRoot: join(repositoryRoot, 'tests/reference-captures'), known: knownImages() });
   assert.equal(report.requests.length, 59);
-  assert.equal(report.requests.filter(r => r.status === 'missing').length, 44);
-  assert.deepEqual(report.requests.filter(r => r.status === 'evidence-incomplete').map(r => r.id), ['windows-95.normal', 'windows-95.pressed', 'windows-95.inactive', 'system7-nostalgia-silver.normal', 'system7-nostalgia-silver.pressed', 'system7-nostalgia-silver.inactive', 'apple-lisa.normal', 'crayon-os.normal', 'animals.normal', 'animals.pressed', 'animals.inactive', 'apple-lisa.pressed', 'apple-lisa.inactive', 'crayon-os.pressed', 'crayon-os.inactive']);
-  assert.equal(report.captures.length, 15);
+  assert.equal(report.requests.filter(r => r.status === 'missing').length, 41);
+  assert.deepEqual(report.requests.filter(r => r.status === 'evidence-incomplete').map(r => r.id), ['windows-95.normal', 'windows-95.pressed', 'windows-95.inactive', 'system7-nostalgia-silver.normal', 'system7-nostalgia-silver.pressed', 'system7-nostalgia-silver.inactive', 'apple-lisa.normal', 'crayon-os.normal', 'animals.normal', 'animals.pressed', 'animals.inactive', 'beos-r503.normal', 'beos-r503.pressed', 'beos-r503.inactive', 'apple-lisa.pressed', 'apple-lisa.inactive', 'crayon-os.pressed', 'crayon-os.inactive']);
+  assert.equal(report.captures.length, 18);
   for (const capture of report.captures) {
     assert.equal(capture.status, 'reviewed-scoped-observation');
     assert.deepEqual(capture.missing, []); assert.deepEqual(capture.rejected, []);
@@ -631,5 +631,46 @@ test('Animals intake retains all prior requests, captures and reviews exactly', 
   }
   for (const [i, row] of retained.reviews.entries()) {
     assert.equal(reviews[i].captureId, row.captureId); assert.equal(digest(reviews[i]), row.objectSha256);
+  }
+});
+
+// The BeOS extension adds observations without changing prior scope authority.
+test('BeOS intake retains all prior requests, captures and reviews exactly', () => {
+  const retained = JSON.parse(readFileSync(new URL('./beos-retention.json', import.meta.url)));
+  const catalog = JSON.parse(readFileSync(new URL('./requests.json', import.meta.url)));
+  const captures = JSON.parse(readFileSync(new URL('./captures.json', import.meta.url))).captures;
+  const reviews = JSON.parse(readFileSync(new URL('./reviews.json', import.meta.url))).reviews;
+  assert.equal(retained.requests.length, 59);
+  assert.equal(retained.captures.length, 15); assert.equal(retained.reviews.length, 15);
+  for (const row of retained.requests) {
+    assert.equal(digest(catalog.requests.find(r => r.id === row.id)), row.objectSha256);
+    assert.equal(contract.requests.find(r => r.id === row.id).requestDigest, row.requestDigest);
+  }
+  for (const [i, row] of retained.captures.entries()) {
+    assert.equal(captures[i].id, row.id); assert.equal(reviewDigest(captures[i]), row.captureDigest);
+    assert.equal(digest(captures[i]), row.objectSha256);
+  }
+  for (const [i, row] of retained.reviews.entries()) {
+    assert.equal(reviews[i].captureId, row.captureId); assert.equal(digest(reviews[i]), row.objectSha256);
+  }
+});
+
+// Missing cross-run telemetry remains a limit, not a substitute observation.
+test('BeOS fixed-state intake preserves missing conditions and rejects state or pixel drift', () => {
+  const captures = JSON.parse(readFileSync(new URL('./captures.json', import.meta.url))).captures;
+  for (const [i, state] of ['normal', 'pressed', 'inactive'].entries()) {
+    const capture = captures.find(c => c.id === `beos-r503.${state}.b3a`);
+    const request = contract.requests.find(r => r.id === capture.requestId);
+    assert.deepEqual(capture.reviewScope, publicFaceScope(request));
+    assert.equal(capture.observed.controlDefinition.hilite, [0, 10, 255][i]);
+    assert.match(capture.observed.unknownConditions.portColorTable, /not captured/);
+    assert.match(capture.observed.unknownConditions.font, /without widMax/);
+    assert.equal(capture.observed.patternOriginState, null);
+    const assess = c => assessCapture(c, request, [], { intakeRoot: join(repositoryRoot, 'tests/reference-captures') });
+    assert.deepEqual(assess(capture).rejected, []);
+    for (const mutate of [c => c.observed.controlDefinition.hilite = 8, c => c.image.sha256 = '0'.repeat(64)]) {
+      const changed = structuredClone(capture); mutate(changed);
+      assert.ok(assess(changed).rejected.length > 0);
+    }
   }
 });

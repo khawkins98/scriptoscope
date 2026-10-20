@@ -1,0 +1,46 @@
+{
+  "retainedNativeFixtureLabel": "A3A-84320f7f95",
+  "nativeNonceIsFresh": false,
+  "nativeLabelPolicy": "A3A bootNonce/stateNonce/prefix fields are unchanged compiled-fixture labels, NOT fresh per-run native nonces. New host attempt/session/preboot bindings plus actual native launchDate/launchTicks, observed filenames and stopped exports disambiguate this run. No cryptographic native host acknowledgment.",
+  "hostRunNonce": "d51bd6363d",
+  "bootCount": 1,
+  "fixedOrder": [
+    0,
+    10,
+    255
+  ],
+  "ordinal": 1,
+  "controlGeneration": 2,
+  "actualBeforeLines": [
+    "acquisition.stateOrdinal=1 requestedHilite=10 controlGeneration=2 createdTicks=13884 priorDisposedTicks=13884",
+    "acquisition.priorAcknowledgedState=0 hostAckCount=1 lastHostAckTicks=13884 priorFile=A3A0-00002f60-001.txt",
+    "acquisition.faceDrawCount=2 initial=1 update=1 mouse=0 capture=0"
+  ],
+  "actualAfterLines": [
+    "acquisition.stateOrdinal=1 requestedHilite=10 controlGeneration=2 createdTicks=13884 priorDisposedTicks=13884",
+    "acquisition.priorAcknowledgedState=0 hostAckCount=1 lastHostAckTicks=13884 priorFile=A3A0-00002f60-001.txt",
+    "acquisition.faceDrawCount=3 initial=1 update=1 mouse=0 capture=1"
+  ],
+  "hostAck": {
+    "bootNonce": "A3A-84320f7f95",
+    "stateOrdinal": 1,
+    "fixtureNonce": "A3A1-84320f7f95",
+    "telemetryFileObserved": "A3A1-00002f60-001.txt",
+    "frameRecordSha256": "a9b38d6d0626381a0ad3379e821d0ad5c127061f48ce8a8594b1011e640ec97f",
+    "cropRecordSha256": "9fc142c304c8f54c2a517646a75f32e8858b50b04d293f3fe617f2aba24cd1cb",
+    "statusScreenshotSha256": "011b7907c16a9ec63ad3150d3ab5a59264f2e004e3249d25c81a1f0ca4c2fa4f",
+    "at": "2026-10-19T16:18:53.650Z",
+    "status": "COMMAND_SENT_NATIVE_ACCEPTANCE_PENDING",
+    "limits": "Operator must inspect displayed state, seven zero statuses and exact counts; N is not a cryptographic native acknowledgment. Native acceptance requires next log/UI."
+  },
+  "nativeAcceptance": "next-state log and ready UI",
+  "finalNativeAckCountObserved": 3,
+  "sharedHistory": "One selected-scheme boot; fresh controls, shared OS/resource/cache history. No cold-cache or order-independence claim.",
+  "acquisitionReview": {
+    "name": "scriptoscope-beos-three-state-acquisition-review.json",
+    "bytes": 3947,
+    "sha256": "026691322638cb4580e14acda939816bc58220158b7a1657383cf34c22e43f87"
+  },
+  "reviewDecision": "APPROVED acquisition quality only",
+  "scopedIntakeReview": "PENDING"
+}

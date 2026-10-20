@@ -5612,6 +5612,1224 @@
           }
         ]
       }
+    },
+    {
+      "reviewScope": {
+        "id": "public-api-empty-face",
+        "version": 5,
+        "comparisonLayer": "composited-face-pixels",
+        "facePortRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "faceImageRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "publicInvocation": {
+          "api": "NewControl",
+          "drawApi": "Draw1Control",
+          "procedureId": 0,
+          "variant": 0,
+          "hilite": 0,
+          "value": 0,
+          "defaultApiInvoked": false,
+          "stateApi": "HiliteControl",
+          "enabled": true,
+          "windowActive": true
+        },
+        "associatedRequirementIds": [
+          "geometry.remaining",
+          "fill.remaining"
+        ],
+        "claim": "Recorded composited pixels of the complete fixed empty face in the requested public state under the observed invocation, environment and white background; original pattern phase remains unknown.",
+        "excludedClaims": [
+          "alpha-or-mask",
+          "font-independence",
+          "automatic-sizing",
+          "other-states",
+          "outside-face-or-margins",
+          "default-ring",
+          "private-resource-or-painter-selection",
+          "provider-cache-or-search-order",
+          "whole-requirements",
+          "whole-request",
+          "physical-mouse-gesture",
+          "inactive-window",
+          "original-pattern-phase",
+          "general-body-paint",
+          "pattern-mask",
+          "private-pattern-provider"
+        ]
+      },
+      "id": "beos-r503.normal.b3a",
+      "kind": "independent-original",
+      "requestId": "beos-r503.normal",
+      "requestDigest": "f1199c3ab0c9cad1a5e9c1fe4df8f2b21cfebdbfc9e02b8985a740b87f0d5c85",
+      "source": {
+        "slug": "beos-r503",
+        "path": "themes/beos-r503/scheme.sit",
+        "format": "sit",
+        "archiveSha256": "04b315396840c5f6e53555381d51ab86087169d5687640261d92c3f85510c0c0",
+        "entryIndex": 0,
+        "entryName": "BeOSr503/BeOS R5.0.3",
+        "forkSha256": "f8d70eb86bdda078c07ba509a0e069f525700b7af1a2c7b022265c65decf2bac",
+        "selectionReviewStatus": "reviewed-contract-input",
+        "selectionReason": "Explicit scheme-named Colr entry \"BeOSr503/BeOS R5.0.3\"; readme/icon/font forks excluded by this declared choice, never by size.",
+        "selectionReviewEvidence": "beos-r503"
+      },
+      "engineComponent": {
+        "id": "engine.kaleidoscope-2.3.1-kdef0",
+        "kind": "engine",
+        "version": "Kaleidoscope 2.3.1 kDEF 0 68k",
+        "bytes": 107726,
+        "sha256": "2c027276dae2355964a0dde1ace31f60ba845ab2c5fbf0496fd34ab2afe7c342",
+        "extractionReference": "docs/spec/kdef-binary-inventory.md",
+        "redistributed": false
+      },
+      "conditions": {
+        "surface": "push-button",
+        "state": "normal",
+        "defaultRing": false,
+        "controlRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "text": "",
+        "portOrigin": [
+          0,
+          0
+        ],
+        "portBounds": [
+          0,
+          0,
+          160,
+          80
+        ],
+        "imageSize": [
+          160,
+          80
+        ],
+        "scale": [
+          1,
+          1
+        ],
+        "cropPortRect": [
+          12,
+          12,
+          96,
+          36
+        ],
+        "cropImageRect": [
+          12,
+          12,
+          96,
+          36
+        ],
+        "coordinateTransform": "imageXY = portXY - portOrigin; no scaling, rotation, resampling or color conversion",
+        "backgroundRGB": [
+          255,
+          255,
+          255
+        ],
+        "enabled": true,
+        "windowActive": true
+      },
+      "observed": {
+        "os": {
+          "name": "Mac OS System",
+          "version": "7.5.5",
+          "sha256": "8ee37f0547e06223978d4619c87f4c593219007d00dc84bb0932c6883c097df4",
+          "identityScope": "Exact preboot copied boot-volume image; version from actual same-run Gestalt sysv=0x755; not an isolated System-file digest"
+        },
+        "engineInstallation": {
+          "name": "Kaleidoscope",
+          "version": "2.3.1",
+          "sha256": "cb903bef4410feb096d65b5a4c9383fa2a3c943e6afef6d3c13463b48267d333",
+          "identityScope": "Installed resource fork; stopped-file equality and actual CDEF/WDEF wrapper handles; not full active patch order"
+        },
+        "patchStack": null,
+        "baseChain": null,
+        "resourceSearchOrder": null,
+        "font": null,
+        "palette": {
+          "depth": 8,
+          "sha256": "6987f8e5bc61a7da95ed03f229cc3ecbee463bb6245965fdc2eddbd86a31ef9b",
+          "description": "Actual indexed main-device ColorTable,2056 bytes,seed1023,flags32768,lastIndex255; no inferred palette or inverse-map algorithm."
+        },
+        "controlDefinition": {
+          "procedureId": 0,
+          "variant": 0,
+          "hilite": 0,
+          "value": 0,
+          "enabled": true,
+          "windowActive": true,
+          "defaultMechanism": "No default API invoked; private default state unknown",
+          "invocation": "NewCWindow(proc0); fresh NewControl(proc0, empty title, visible, value0/min0/max1); Draw1Control; HiliteControl(0); actual GetControlVariant0 and ControlRecord telemetry. Fixed-order state 0 in a shared boot using retained A3A fixture labels, not fresh native nonces; not a physical mouse gesture or inactive-window observation."
+        },
+        "captureMethod": "Private BasiliskII producer RGBA equals unchanged canvas PNG; exact integer crops. Three fresh controls in one fixed-order boot with durable per-state logs and host ACK before advance; shared OS/cache history.",
+        "baseChainReason": null,
+        "patchStackReason": null,
+        "selectedProvider": null,
+        "resourceCache": null,
+        "privateDefaultState": null,
+        "unknownConditions": {
+          "font": "Port font number0/Chicago/size12/style0 and metrics including widMax14 observed with an empty title; glyph/provider realization unknown. Separate calibration uses the retained v16 log format without widMax; no complete cross-run font identity.",
+          "patchStack": "Installed Kaleidoscope components identified, but complete active extension/trap patch ordering unobserved.",
+          "baseChain": "Configured scheme file identified; original private base-resource chain not observed.",
+          "resourceSearchOrder": "Public Copl and caller refs observed, not complete transient original resource search order.",
+          "selectedProvider": "Configured public Copl file is not proof of actual cicn/cinf/private cache owner.",
+          "resourceCache": "Original private resource cache contents and hits not observed.",
+          "privateDefaultState": "No public default API invoked; private default flags not queried or inferred.",
+          "patternOriginState": "No original pattern-origin API/state measured. Port origin0 is observed; it does not establish private/global pattern phase.",
+          "portColorTable": "Original state portColorTable payload was not captured. Same-run main-device table is recorded; cross-run port-table identity is not established."
+        },
+        "publicApiFace": {
+          "configuredScheme": {
+            "archiveSha256": "04b315396840c5f6e53555381d51ab86087169d5687640261d92c3f85510c0c0",
+            "forkSha256": "f8d70eb86bdda078c07ba509a0e069f525700b7af1a2c7b022265c65decf2bac",
+            "evidence": "Same-run Copl/FCB volume-2, parent2, file20; stopped canonical BeOS R5.0.3 fork equality. Configured file, not private selected-paint ownership."
+          },
+          "invocation": {
+            "api": "NewControl",
+            "drawApi": "Draw1Control",
+            "defaultApiInvoked": false,
+            "controlRect": [
+              20,
+              20,
+              80,
+              20
+            ],
+            "title": "",
+            "state": "normal",
+            "defaultRing": false,
+            "stateApi": "HiliteControl"
+          },
+          "port": {
+            "origin": [
+              0,
+              0
+            ],
+            "bounds": [
+              0,
+              0,
+              160,
+              80
+            ],
+            "effectiveClipRect": [
+              0,
+              0,
+              160,
+              80
+            ],
+            "backgroundRGB": [
+              255,
+              255,
+              255
+            ],
+            "backgroundOpaque": true,
+            "originMeaning": "Local port origin, distinct from observed frame globalOrigin80,90; opaque describes recorded white composited background, not source mask."
+          },
+          "producer": {
+            "name": "Private copied BasiliskII WebAssembly with bound worker/canvas/capture glue",
+            "buildArtifacts": [
+              {
+                "name": "reference.ts",
+                "bytes": 2245,
+                "sha256": "d15caeebcdf989bb65cc0ca5a61bb0969fc143ab63447a38f1f37a9ac3dc8601"
+              },
+              {
+                "name": "vite.config.mjs",
+                "bytes": 1813,
+                "sha256": "a7480e0377f1a55a3f823a49366fa1dbc7b31e33f8fe291aa29112ed6cd035fb"
+              },
+              {
+                "name": "emulator-worker.ts",
+                "bytes": 37925,
+                "sha256": "c514467afe561487a83b87ee2440e63914a16e2c79db75ef7f8ba9160b9d3ecc"
+              },
+              {
+                "name": "emulator-input.ts",
+                "bytes": 14561,
+                "sha256": "b69f0527aabd322e8cf0d0840d6faef769cd53a717a6d3d6e7cf36118a1dc0c5"
+              },
+              {
+                "name": "BasiliskII.js",
+                "bytes": 156114,
+                "sha256": "4fd750e202686a7b7c3bd0055dbe33d21dd6b3ce2639da8da814ef1036d1c66b"
+              },
+              {
+                "name": "BasiliskII.wasm",
+                "bytes": 1713564,
+                "sha256": "0be9b5ba1179b65d9d1bd30b3cc35ee56daf6713ba1353048c03229f641680bb"
+              },
+              {
+                "name": "capture-state-absolute.mjs",
+                "bytes": 4502,
+                "sha256": "82cd3a0893256139a716c38f4ee912d297c9ea39fc257710ca495abe120efc59"
+              },
+              {
+                "name": "crop-state.py",
+                "bytes": 1014,
+                "sha256": "269d1da19db5bbde828026362ebcd97c90f0a5c8045ee6437cd4cafdd71b0f10"
+              }
+            ],
+            "tableSha256": "c2eeb81da5ffc2bd502834d80d850f6f085813ab1cec8d9fb89ca36c2474125b",
+            "pixelEncoding": "rgba8",
+            "colorRealization": "Same-run indexed8 ColorTable and status8 gamma payloads, with recorded GetCPixel samples. Separately acquired finite B278 RGB16 mappings and declared D32 preparation mappings use the observed indexed device palette/gamma/producer joins; original state portColorTable was not captured and calibration widMax is absent; no universal conversion/provider or cache-state equivalence claim.",
+            "timing": "Conditions bracket Draw1Control + HiliteControl after control creation/setup. The later host frame is not uniquely bracketed by telemetry; fixed-order states share OS/cache history.",
+            "version": {
+              "status": "unknown",
+              "reason": "Exact external JS/WASM and glue build hashes recorded; semantic emulator release version not independently established."
+            }
+          },
+          "fullFrame": {
+            "sha256": "1ae8d7922b2191b7ccdd543e237ff9b544a0354c8c5acb932c624f58ca6619f4",
+            "width": 640,
+            "height": 480,
+            "requestImageRect": [
+              80,
+              90,
+              160,
+              80
+            ],
+            "transform": "requestImageXY = fullFrameXY - requestImageRect.xy; no resampling or color conversion"
+          }
+        },
+        "patternOriginState": null
+      },
+      "image": {
+        "path": "beos-r503-normal/port.png",
+        "sha256": "9bb952dc28f23c10cb23e4fa294f5b1c7e334cff29212a3305f3a8d254e2664d",
+        "width": 160,
+        "height": 80
+      },
+      "provenance": {
+        "producer": "Automated Codex resource_correctness_fixes agent, isolated copied original environment",
+        "capturedAt": "2026-10-19T16:18:11.249Z",
+        "originalEnvironment": true,
+        "method": "Public Control Manager execution; exact producer/canvas frame and integer crops; complete ordinary stopped HFS export. Fresh controls in fixed 0→10→255 order, host ACK before advance. Acquisition quality independently reviewed; scoped intake and actual modern comparison remain separate.",
+        "artifacts": [
+          {
+            "role": "capture-log",
+            "path": "beos-r503-normal/capture-log.json",
+            "sha256": "67f8eb03cd7561f8e91cc5d1886422eba67d07f53aee5508ee72a612a4996cbc"
+          },
+          {
+            "role": "source-bindings",
+            "path": "beos-r503-normal/configured-source-bindings.json",
+            "sha256": "216099d2b3398bb47b561c2917e57ab9143c8be6aaf01a78c56c192c4421f240"
+          },
+          {
+            "role": "configured-scheme",
+            "path": "beos-r503-normal/configured-scheme.json",
+            "sha256": "54fd889f2cd5ca3f0d788b954f00d5527dc271e81ee9f1b45572c1f302b4ef50"
+          },
+          {
+            "role": "public-invocation",
+            "path": "beos-r503-normal/public-invocation.json",
+            "sha256": "1230eb8ba6180cedfb6cbc7fd10e487cd4d28f16b6ba26dcd448d5bbb1b7380c"
+          },
+          {
+            "role": "public-invocation-supplement",
+            "path": "beos-r503-normal/public-invocation-supplement.json",
+            "sha256": "e806fbe554b76982ea0e955237ff40355f862e4d36d20152366bf41871c07402"
+          },
+          {
+            "role": "producer-identities",
+            "path": "beos-r503-normal/producer-identities.json",
+            "sha256": "4fc27ed02132d1fda5d32ad66285a239103b1715a7e78fc99f55c37457953bb2"
+          },
+          {
+            "role": "pixel-conditions",
+            "path": "beos-r503-normal/pixel-conditions.json",
+            "sha256": "8d6d8909e5e45fb600bb16dc5ccd6bb7c69ddad10830906f76ae8559a5039928"
+          },
+          {
+            "role": "pixel-conditions-supplement",
+            "path": "beos-r503-normal/pixel-conditions-supplement.json",
+            "sha256": "335d70a93f7e26e5d0d8f290275b7fbd23a971b6a54d07c2a215cb69dbf1ed88"
+          },
+          {
+            "role": "indexed-palette",
+            "path": "beos-r503-normal/indexed-palette.bin",
+            "sha256": "6987f8e5bc61a7da95ed03f229cc3ecbee463bb6245965fdc2eddbd86a31ef9b"
+          },
+          {
+            "role": "producer-table",
+            "path": "beos-r503-normal/producer-table.bin",
+            "sha256": "c2eeb81da5ffc2bd502834d80d850f6f085813ab1cec8d9fb89ca36c2474125b"
+          },
+          {
+            "role": "full-frame",
+            "path": "beos-r503-normal/full-frame.png",
+            "sha256": "1ae8d7922b2191b7ccdd543e237ff9b544a0354c8c5acb932c624f58ca6619f4"
+          },
+          {
+            "role": "context-crop",
+            "path": "beos-r503-normal/context.png",
+            "sha256": "7390b10f5be923b356bff1e9aca2c3b2fd5697e996785f95adb11ddd9b13dee1"
+          },
+          {
+            "role": "face-crop",
+            "path": "beos-r503-normal/face.png",
+            "sha256": "1cbaa2a4397520742651ffea84b97abad8899946fccb64f373e5127fd68e8f2e"
+          },
+          {
+            "role": "capture-bindings",
+            "path": "beos-r503-normal/capture-bindings.json",
+            "sha256": "b0f4b7a1cf6010ace347580afdd68729ec75e6e1e672481d659c5eb84160dd0a"
+          },
+          {
+            "role": "environment-manifest",
+            "path": "beos-r503-normal/environment.json",
+            "sha256": "2b77df09a37d20ad37bce1895e3ef46fe6834428f71294650c7e457739b9224c"
+          },
+          {
+            "role": "acquisition-environment",
+            "path": "beos-r503-normal/acquisition-environment.json",
+            "sha256": "5ab6619d75685273eceb501a39516aa2f83352eaff5539dcaecef4f4cb6446bf"
+          },
+          {
+            "role": "durability-status",
+            "path": "beos-r503-normal/durable-status.png",
+            "sha256": "8a860a51d86aade2c2950855dcdbbd23ea521385c0443fc27b42a7991571029a"
+          },
+          {
+            "role": "fixture-identities",
+            "path": "beos-r503-normal/fixture-identities.json",
+            "sha256": "c9dea5778efeaa514f88247ba62b436f09e94b0c33ffa9798ebdd5c4da967f75"
+          },
+          {
+            "role": "shared-boot-acquisition",
+            "path": "beos-r503-normal/acquisition.json",
+            "sha256": "1885c18e5b7d1f1f4428fca6302347cad7eba97a59abe4e59a07f3746327dd44"
+          },
+          {
+            "role": "cross-run-profile-calibration",
+            "path": "beos-calibration/measurement.json",
+            "sha256": "61b6f43e71d7678f7a7fbc6ff2e9a2f3f6fcc5c1841245d5bebc7fe04c104062"
+          }
+        ]
+      }
+    },
+    {
+      "reviewScope": {
+        "id": "public-api-empty-face",
+        "version": 5,
+        "comparisonLayer": "composited-face-pixels",
+        "facePortRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "faceImageRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "publicInvocation": {
+          "api": "NewControl",
+          "drawApi": "Draw1Control",
+          "procedureId": 0,
+          "variant": 0,
+          "hilite": 10,
+          "value": 0,
+          "defaultApiInvoked": false,
+          "stateApi": "HiliteControl",
+          "enabled": true,
+          "windowActive": true
+        },
+        "associatedRequirementIds": [
+          "geometry.remaining",
+          "fill.remaining"
+        ],
+        "claim": "Recorded composited pixels of the complete fixed empty face in the requested public state under the observed invocation, environment and white background; original pattern phase remains unknown.",
+        "excludedClaims": [
+          "alpha-or-mask",
+          "font-independence",
+          "automatic-sizing",
+          "other-states",
+          "outside-face-or-margins",
+          "default-ring",
+          "private-resource-or-painter-selection",
+          "provider-cache-or-search-order",
+          "whole-requirements",
+          "whole-request",
+          "physical-mouse-gesture",
+          "inactive-window",
+          "original-pattern-phase",
+          "general-body-paint",
+          "pattern-mask",
+          "private-pattern-provider"
+        ]
+      },
+      "id": "beos-r503.pressed.b3a",
+      "kind": "independent-original",
+      "requestId": "beos-r503.pressed",
+      "requestDigest": "b555c131e218f615b814d7f16e2c3a816a7c617d266eecc0d5ca12f60d90b4ea",
+      "source": {
+        "slug": "beos-r503",
+        "path": "themes/beos-r503/scheme.sit",
+        "format": "sit",
+        "archiveSha256": "04b315396840c5f6e53555381d51ab86087169d5687640261d92c3f85510c0c0",
+        "entryIndex": 0,
+        "entryName": "BeOSr503/BeOS R5.0.3",
+        "forkSha256": "f8d70eb86bdda078c07ba509a0e069f525700b7af1a2c7b022265c65decf2bac",
+        "selectionReviewStatus": "reviewed-contract-input",
+        "selectionReason": "Explicit scheme-named Colr entry \"BeOSr503/BeOS R5.0.3\"; readme/icon/font forks excluded by this declared choice, never by size.",
+        "selectionReviewEvidence": "beos-r503"
+      },
+      "engineComponent": {
+        "id": "engine.kaleidoscope-2.3.1-kdef0",
+        "kind": "engine",
+        "version": "Kaleidoscope 2.3.1 kDEF 0 68k",
+        "bytes": 107726,
+        "sha256": "2c027276dae2355964a0dde1ace31f60ba845ab2c5fbf0496fd34ab2afe7c342",
+        "extractionReference": "docs/spec/kdef-binary-inventory.md",
+        "redistributed": false
+      },
+      "conditions": {
+        "surface": "push-button",
+        "state": "pressed",
+        "defaultRing": false,
+        "controlRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "text": "",
+        "portOrigin": [
+          0,
+          0
+        ],
+        "portBounds": [
+          0,
+          0,
+          160,
+          80
+        ],
+        "imageSize": [
+          160,
+          80
+        ],
+        "scale": [
+          1,
+          1
+        ],
+        "cropPortRect": [
+          12,
+          12,
+          96,
+          36
+        ],
+        "cropImageRect": [
+          12,
+          12,
+          96,
+          36
+        ],
+        "coordinateTransform": "imageXY = portXY - portOrigin; no scaling, rotation, resampling or color conversion",
+        "backgroundRGB": [
+          255,
+          255,
+          255
+        ],
+        "enabled": true,
+        "windowActive": true
+      },
+      "observed": {
+        "os": {
+          "name": "Mac OS System",
+          "version": "7.5.5",
+          "sha256": "8ee37f0547e06223978d4619c87f4c593219007d00dc84bb0932c6883c097df4",
+          "identityScope": "Exact preboot copied boot-volume image; version from actual same-run Gestalt sysv=0x755; not an isolated System-file digest"
+        },
+        "engineInstallation": {
+          "name": "Kaleidoscope",
+          "version": "2.3.1",
+          "sha256": "cb903bef4410feb096d65b5a4c9383fa2a3c943e6afef6d3c13463b48267d333",
+          "identityScope": "Installed resource fork; stopped-file equality and actual CDEF/WDEF wrapper handles; not full active patch order"
+        },
+        "patchStack": null,
+        "baseChain": null,
+        "resourceSearchOrder": null,
+        "font": null,
+        "palette": {
+          "depth": 8,
+          "sha256": "6987f8e5bc61a7da95ed03f229cc3ecbee463bb6245965fdc2eddbd86a31ef9b",
+          "description": "Actual indexed main-device ColorTable,2056 bytes,seed1023,flags32768,lastIndex255; no inferred palette or inverse-map algorithm."
+        },
+        "controlDefinition": {
+          "procedureId": 0,
+          "variant": 0,
+          "hilite": 10,
+          "value": 0,
+          "enabled": true,
+          "windowActive": true,
+          "defaultMechanism": "No default API invoked; private default state unknown",
+          "invocation": "NewCWindow(proc0); fresh NewControl(proc0, empty title, visible, value0/min0/max1); Draw1Control; HiliteControl(10); actual GetControlVariant0 and ControlRecord telemetry. Fixed-order state 1 in a shared boot using retained A3A fixture labels, not fresh native nonces; not a physical mouse gesture or inactive-window observation."
+        },
+        "captureMethod": "Private BasiliskII producer RGBA equals unchanged canvas PNG; exact integer crops. Three fresh controls in one fixed-order boot with durable per-state logs and host ACK before advance; shared OS/cache history.",
+        "baseChainReason": null,
+        "patchStackReason": null,
+        "selectedProvider": null,
+        "resourceCache": null,
+        "privateDefaultState": null,
+        "unknownConditions": {
+          "font": "Port font number0/Chicago/size12/style0 and metrics including widMax14 observed with an empty title; glyph/provider realization unknown. Separate calibration uses the retained v16 log format without widMax; no complete cross-run font identity.",
+          "patchStack": "Installed Kaleidoscope components identified, but complete active extension/trap patch ordering unobserved.",
+          "baseChain": "Configured scheme file identified; original private base-resource chain not observed.",
+          "resourceSearchOrder": "Public Copl and caller refs observed, not complete transient original resource search order.",
+          "selectedProvider": "Configured public Copl file is not proof of actual cicn/cinf/private cache owner.",
+          "resourceCache": "Original private resource cache contents and hits not observed.",
+          "privateDefaultState": "No public default API invoked; private default flags not queried or inferred.",
+          "patternOriginState": "No original pattern-origin API/state measured. Port origin0 is observed; it does not establish private/global pattern phase.",
+          "portColorTable": "Original state portColorTable payload was not captured. Same-run main-device table is recorded; cross-run port-table identity is not established."
+        },
+        "publicApiFace": {
+          "configuredScheme": {
+            "archiveSha256": "04b315396840c5f6e53555381d51ab86087169d5687640261d92c3f85510c0c0",
+            "forkSha256": "f8d70eb86bdda078c07ba509a0e069f525700b7af1a2c7b022265c65decf2bac",
+            "evidence": "Same-run Copl/FCB volume-2, parent2, file20; stopped canonical BeOS R5.0.3 fork equality. Configured file, not private selected-paint ownership."
+          },
+          "invocation": {
+            "api": "NewControl",
+            "drawApi": "Draw1Control",
+            "defaultApiInvoked": false,
+            "controlRect": [
+              20,
+              20,
+              80,
+              20
+            ],
+            "title": "",
+            "state": "pressed",
+            "defaultRing": false,
+            "stateApi": "HiliteControl"
+          },
+          "port": {
+            "origin": [
+              0,
+              0
+            ],
+            "bounds": [
+              0,
+              0,
+              160,
+              80
+            ],
+            "effectiveClipRect": [
+              0,
+              0,
+              160,
+              80
+            ],
+            "backgroundRGB": [
+              255,
+              255,
+              255
+            ],
+            "backgroundOpaque": true,
+            "originMeaning": "Local port origin, distinct from observed frame globalOrigin80,90; opaque describes recorded white composited background, not source mask."
+          },
+          "producer": {
+            "name": "Private copied BasiliskII WebAssembly with bound worker/canvas/capture glue",
+            "buildArtifacts": [
+              {
+                "name": "reference.ts",
+                "bytes": 2245,
+                "sha256": "d15caeebcdf989bb65cc0ca5a61bb0969fc143ab63447a38f1f37a9ac3dc8601"
+              },
+              {
+                "name": "vite.config.mjs",
+                "bytes": 1813,
+                "sha256": "a7480e0377f1a55a3f823a49366fa1dbc7b31e33f8fe291aa29112ed6cd035fb"
+              },
+              {
+                "name": "emulator-worker.ts",
+                "bytes": 37925,
+                "sha256": "c514467afe561487a83b87ee2440e63914a16e2c79db75ef7f8ba9160b9d3ecc"
+              },
+              {
+                "name": "emulator-input.ts",
+                "bytes": 14561,
+                "sha256": "b69f0527aabd322e8cf0d0840d6faef769cd53a717a6d3d6e7cf36118a1dc0c5"
+              },
+              {
+                "name": "BasiliskII.js",
+                "bytes": 156114,
+                "sha256": "4fd750e202686a7b7c3bd0055dbe33d21dd6b3ce2639da8da814ef1036d1c66b"
+              },
+              {
+                "name": "BasiliskII.wasm",
+                "bytes": 1713564,
+                "sha256": "0be9b5ba1179b65d9d1bd30b3cc35ee56daf6713ba1353048c03229f641680bb"
+              },
+              {
+                "name": "capture-state-absolute.mjs",
+                "bytes": 4502,
+                "sha256": "82cd3a0893256139a716c38f4ee912d297c9ea39fc257710ca495abe120efc59"
+              },
+              {
+                "name": "crop-state.py",
+                "bytes": 1014,
+                "sha256": "269d1da19db5bbde828026362ebcd97c90f0a5c8045ee6437cd4cafdd71b0f10"
+              }
+            ],
+            "tableSha256": "c2eeb81da5ffc2bd502834d80d850f6f085813ab1cec8d9fb89ca36c2474125b",
+            "pixelEncoding": "rgba8",
+            "colorRealization": "Same-run indexed8 ColorTable and status8 gamma payloads, with recorded GetCPixel samples. Separately acquired finite B278 RGB16 mappings and declared D32 preparation mappings use the observed indexed device palette/gamma/producer joins; original state portColorTable was not captured and calibration widMax is absent; no universal conversion/provider or cache-state equivalence claim.",
+            "timing": "Conditions bracket Draw1Control + HiliteControl after control creation/setup. The later host frame is not uniquely bracketed by telemetry; fixed-order states share OS/cache history.",
+            "version": {
+              "status": "unknown",
+              "reason": "Exact external JS/WASM and glue build hashes recorded; semantic emulator release version not independently established."
+            }
+          },
+          "fullFrame": {
+            "sha256": "6fa0ba8f740dc96518376418e8404579a3cc2e1176d45bfe2d44a26b5e3d5e0a",
+            "width": 640,
+            "height": 480,
+            "requestImageRect": [
+              80,
+              90,
+              160,
+              80
+            ],
+            "transform": "requestImageXY = fullFrameXY - requestImageRect.xy; no resampling or color conversion"
+          }
+        },
+        "patternOriginState": null
+      },
+      "image": {
+        "path": "beos-r503-pressed/port.png",
+        "sha256": "2802680b11cd1f1c0d317a45f63bd927b5dbb0ac29d98be65937a9104af773bd",
+        "width": 160,
+        "height": 80
+      },
+      "provenance": {
+        "producer": "Automated Codex resource_correctness_fixes agent, isolated copied original environment",
+        "capturedAt": "2026-10-19T16:18:49.335Z",
+        "originalEnvironment": true,
+        "method": "Public Control Manager execution; exact producer/canvas frame and integer crops; complete ordinary stopped HFS export. Fresh controls in fixed 0→10→255 order, host ACK before advance. Acquisition quality independently reviewed; scoped intake and actual modern comparison remain separate.",
+        "artifacts": [
+          {
+            "role": "capture-log",
+            "path": "beos-r503-pressed/capture-log.json",
+            "sha256": "9ed6fe112668e567e28fec5fa70d12d7a387df3dd4997707b8a89767587befc1"
+          },
+          {
+            "role": "source-bindings",
+            "path": "beos-r503-pressed/configured-source-bindings.json",
+            "sha256": "216099d2b3398bb47b561c2917e57ab9143c8be6aaf01a78c56c192c4421f240"
+          },
+          {
+            "role": "configured-scheme",
+            "path": "beos-r503-pressed/configured-scheme.json",
+            "sha256": "54fd889f2cd5ca3f0d788b954f00d5527dc271e81ee9f1b45572c1f302b4ef50"
+          },
+          {
+            "role": "public-invocation",
+            "path": "beos-r503-pressed/public-invocation.json",
+            "sha256": "9e711cf1b95b49b8d1a6f45a7e013c6a0a2e3585dd720ae95005a68836086fea"
+          },
+          {
+            "role": "public-invocation-supplement",
+            "path": "beos-r503-pressed/public-invocation-supplement.json",
+            "sha256": "4fbd15fedbc93fd89e01ed07b4568c73f0182a17d9dde599e1ed506985780c47"
+          },
+          {
+            "role": "producer-identities",
+            "path": "beos-r503-pressed/producer-identities.json",
+            "sha256": "4fc27ed02132d1fda5d32ad66285a239103b1715a7e78fc99f55c37457953bb2"
+          },
+          {
+            "role": "pixel-conditions",
+            "path": "beos-r503-pressed/pixel-conditions.json",
+            "sha256": "8d6d8909e5e45fb600bb16dc5ccd6bb7c69ddad10830906f76ae8559a5039928"
+          },
+          {
+            "role": "pixel-conditions-supplement",
+            "path": "beos-r503-pressed/pixel-conditions-supplement.json",
+            "sha256": "0807376377410a0c85418c8240a1c2692890fe03908ac04dcdb791b05151577f"
+          },
+          {
+            "role": "indexed-palette",
+            "path": "beos-r503-pressed/indexed-palette.bin",
+            "sha256": "6987f8e5bc61a7da95ed03f229cc3ecbee463bb6245965fdc2eddbd86a31ef9b"
+          },
+          {
+            "role": "producer-table",
+            "path": "beos-r503-pressed/producer-table.bin",
+            "sha256": "c2eeb81da5ffc2bd502834d80d850f6f085813ab1cec8d9fb89ca36c2474125b"
+          },
+          {
+            "role": "full-frame",
+            "path": "beos-r503-pressed/full-frame.png",
+            "sha256": "6fa0ba8f740dc96518376418e8404579a3cc2e1176d45bfe2d44a26b5e3d5e0a"
+          },
+          {
+            "role": "context-crop",
+            "path": "beos-r503-pressed/context.png",
+            "sha256": "5c97eb488fdd2aec45e4aece0168c3d94bb26598cbf51769ee9cdc1ed055bfa9"
+          },
+          {
+            "role": "face-crop",
+            "path": "beos-r503-pressed/face.png",
+            "sha256": "ae9188120074c9988d06ba523a39eadf9e5955782b0046ce5de034a2f5e0d4a5"
+          },
+          {
+            "role": "capture-bindings",
+            "path": "beos-r503-pressed/capture-bindings.json",
+            "sha256": "ce9fea6653c9a05f90a347f3628187d2160c0b93014053c83e48a5f845258e22"
+          },
+          {
+            "role": "environment-manifest",
+            "path": "beos-r503-pressed/environment.json",
+            "sha256": "47f077b6aa6e831e1dc10c9a22f3b9681811d6263ac406a367394826d24b4a29"
+          },
+          {
+            "role": "acquisition-environment",
+            "path": "beos-r503-pressed/acquisition-environment.json",
+            "sha256": "3284fcff3ba94f0d6a09e3a64374373711e4ff935ff2000bc2cf896808e81fca"
+          },
+          {
+            "role": "durability-status",
+            "path": "beos-r503-pressed/durable-status.png",
+            "sha256": "011b7907c16a9ec63ad3150d3ab5a59264f2e004e3249d25c81a1f0ca4c2fa4f"
+          },
+          {
+            "role": "fixture-identities",
+            "path": "beos-r503-pressed/fixture-identities.json",
+            "sha256": "c9dea5778efeaa514f88247ba62b436f09e94b0c33ffa9798ebdd5c4da967f75"
+          },
+          {
+            "role": "shared-boot-acquisition",
+            "path": "beos-r503-pressed/acquisition.json",
+            "sha256": "8a865b686b8b8e46a97d4651b7684083eda12085d6d23d512c85157c521860b4"
+          },
+          {
+            "role": "cross-run-profile-calibration",
+            "path": "beos-calibration/measurement.json",
+            "sha256": "61b6f43e71d7678f7a7fbc6ff2e9a2f3f6fcc5c1841245d5bebc7fe04c104062"
+          }
+        ]
+      }
+    },
+    {
+      "reviewScope": {
+        "id": "public-api-empty-face",
+        "version": 5,
+        "comparisonLayer": "composited-face-pixels",
+        "facePortRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "faceImageRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "publicInvocation": {
+          "api": "NewControl",
+          "drawApi": "Draw1Control",
+          "procedureId": 0,
+          "variant": 0,
+          "hilite": 255,
+          "value": 0,
+          "defaultApiInvoked": false,
+          "stateApi": "HiliteControl",
+          "enabled": false,
+          "windowActive": true
+        },
+        "associatedRequirementIds": [
+          "geometry.remaining",
+          "fill.remaining"
+        ],
+        "claim": "Recorded composited pixels of the complete fixed empty face in the requested public state under the observed invocation, environment and white background; original pattern phase remains unknown.",
+        "excludedClaims": [
+          "alpha-or-mask",
+          "font-independence",
+          "automatic-sizing",
+          "other-states",
+          "outside-face-or-margins",
+          "default-ring",
+          "private-resource-or-painter-selection",
+          "provider-cache-or-search-order",
+          "whole-requirements",
+          "whole-request",
+          "physical-mouse-gesture",
+          "inactive-window",
+          "original-pattern-phase",
+          "general-body-paint",
+          "pattern-mask",
+          "private-pattern-provider"
+        ]
+      },
+      "id": "beos-r503.inactive.b3a",
+      "kind": "independent-original",
+      "requestId": "beos-r503.inactive",
+      "requestDigest": "36e3a58d1be96cfa9237fe89013d02636ebcfe624e8a33dc4919d385f9fb752e",
+      "source": {
+        "slug": "beos-r503",
+        "path": "themes/beos-r503/scheme.sit",
+        "format": "sit",
+        "archiveSha256": "04b315396840c5f6e53555381d51ab86087169d5687640261d92c3f85510c0c0",
+        "entryIndex": 0,
+        "entryName": "BeOSr503/BeOS R5.0.3",
+        "forkSha256": "f8d70eb86bdda078c07ba509a0e069f525700b7af1a2c7b022265c65decf2bac",
+        "selectionReviewStatus": "reviewed-contract-input",
+        "selectionReason": "Explicit scheme-named Colr entry \"BeOSr503/BeOS R5.0.3\"; readme/icon/font forks excluded by this declared choice, never by size.",
+        "selectionReviewEvidence": "beos-r503"
+      },
+      "engineComponent": {
+        "id": "engine.kaleidoscope-2.3.1-kdef0",
+        "kind": "engine",
+        "version": "Kaleidoscope 2.3.1 kDEF 0 68k",
+        "bytes": 107726,
+        "sha256": "2c027276dae2355964a0dde1ace31f60ba845ab2c5fbf0496fd34ab2afe7c342",
+        "extractionReference": "docs/spec/kdef-binary-inventory.md",
+        "redistributed": false
+      },
+      "conditions": {
+        "surface": "push-button",
+        "state": "inactive",
+        "defaultRing": false,
+        "controlRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "text": "",
+        "portOrigin": [
+          0,
+          0
+        ],
+        "portBounds": [
+          0,
+          0,
+          160,
+          80
+        ],
+        "imageSize": [
+          160,
+          80
+        ],
+        "scale": [
+          1,
+          1
+        ],
+        "cropPortRect": [
+          12,
+          12,
+          96,
+          36
+        ],
+        "cropImageRect": [
+          12,
+          12,
+          96,
+          36
+        ],
+        "coordinateTransform": "imageXY = portXY - portOrigin; no scaling, rotation, resampling or color conversion",
+        "backgroundRGB": [
+          255,
+          255,
+          255
+        ],
+        "enabled": false,
+        "windowActive": true
+      },
+      "observed": {
+        "os": {
+          "name": "Mac OS System",
+          "version": "7.5.5",
+          "sha256": "8ee37f0547e06223978d4619c87f4c593219007d00dc84bb0932c6883c097df4",
+          "identityScope": "Exact preboot copied boot-volume image; version from actual same-run Gestalt sysv=0x755; not an isolated System-file digest"
+        },
+        "engineInstallation": {
+          "name": "Kaleidoscope",
+          "version": "2.3.1",
+          "sha256": "cb903bef4410feb096d65b5a4c9383fa2a3c943e6afef6d3c13463b48267d333",
+          "identityScope": "Installed resource fork; stopped-file equality and actual CDEF/WDEF wrapper handles; not full active patch order"
+        },
+        "patchStack": null,
+        "baseChain": null,
+        "resourceSearchOrder": null,
+        "font": null,
+        "palette": {
+          "depth": 8,
+          "sha256": "6987f8e5bc61a7da95ed03f229cc3ecbee463bb6245965fdc2eddbd86a31ef9b",
+          "description": "Actual indexed main-device ColorTable,2056 bytes,seed1023,flags32768,lastIndex255; no inferred palette or inverse-map algorithm."
+        },
+        "controlDefinition": {
+          "procedureId": 0,
+          "variant": 0,
+          "hilite": 255,
+          "value": 0,
+          "enabled": false,
+          "windowActive": true,
+          "defaultMechanism": "No default API invoked; private default state unknown",
+          "invocation": "NewCWindow(proc0); fresh NewControl(proc0, empty title, visible, value0/min0/max1); Draw1Control; HiliteControl(255); actual GetControlVariant0 and ControlRecord telemetry. Fixed-order state 2 in a shared boot using retained A3A fixture labels, not fresh native nonces; not a physical mouse gesture or inactive-window observation."
+        },
+        "captureMethod": "Private BasiliskII producer RGBA equals unchanged canvas PNG; exact integer crops. Three fresh controls in one fixed-order boot with durable per-state logs and host ACK before advance; shared OS/cache history.",
+        "baseChainReason": null,
+        "patchStackReason": null,
+        "selectedProvider": null,
+        "resourceCache": null,
+        "privateDefaultState": null,
+        "unknownConditions": {
+          "font": "Port font number0/Chicago/size12/style0 and metrics including widMax14 observed with an empty title; glyph/provider realization unknown. Separate calibration uses the retained v16 log format without widMax; no complete cross-run font identity.",
+          "patchStack": "Installed Kaleidoscope components identified, but complete active extension/trap patch ordering unobserved.",
+          "baseChain": "Configured scheme file identified; original private base-resource chain not observed.",
+          "resourceSearchOrder": "Public Copl and caller refs observed, not complete transient original resource search order.",
+          "selectedProvider": "Configured public Copl file is not proof of actual cicn/cinf/private cache owner.",
+          "resourceCache": "Original private resource cache contents and hits not observed.",
+          "privateDefaultState": "No public default API invoked; private default flags not queried or inferred.",
+          "patternOriginState": "No original pattern-origin API/state measured. Port origin0 is observed; it does not establish private/global pattern phase.",
+          "portColorTable": "Original state portColorTable payload was not captured. Same-run main-device table is recorded; cross-run port-table identity is not established."
+        },
+        "publicApiFace": {
+          "configuredScheme": {
+            "archiveSha256": "04b315396840c5f6e53555381d51ab86087169d5687640261d92c3f85510c0c0",
+            "forkSha256": "f8d70eb86bdda078c07ba509a0e069f525700b7af1a2c7b022265c65decf2bac",
+            "evidence": "Same-run Copl/FCB volume-2, parent2, file20; stopped canonical BeOS R5.0.3 fork equality. Configured file, not private selected-paint ownership."
+          },
+          "invocation": {
+            "api": "NewControl",
+            "drawApi": "Draw1Control",
+            "defaultApiInvoked": false,
+            "controlRect": [
+              20,
+              20,
+              80,
+              20
+            ],
+            "title": "",
+            "state": "inactive",
+            "defaultRing": false,
+            "stateApi": "HiliteControl"
+          },
+          "port": {
+            "origin": [
+              0,
+              0
+            ],
+            "bounds": [
+              0,
+              0,
+              160,
+              80
+            ],
+            "effectiveClipRect": [
+              0,
+              0,
+              160,
+              80
+            ],
+            "backgroundRGB": [
+              255,
+              255,
+              255
+            ],
+            "backgroundOpaque": true,
+            "originMeaning": "Local port origin, distinct from observed frame globalOrigin80,90; opaque describes recorded white composited background, not source mask."
+          },
+          "producer": {
+            "name": "Private copied BasiliskII WebAssembly with bound worker/canvas/capture glue",
+            "buildArtifacts": [
+              {
+                "name": "reference.ts",
+                "bytes": 2245,
+                "sha256": "d15caeebcdf989bb65cc0ca5a61bb0969fc143ab63447a38f1f37a9ac3dc8601"
+              },
+              {
+                "name": "vite.config.mjs",
+                "bytes": 1813,
+                "sha256": "a7480e0377f1a55a3f823a49366fa1dbc7b31e33f8fe291aa29112ed6cd035fb"
+              },
+              {
+                "name": "emulator-worker.ts",
+                "bytes": 37925,
+                "sha256": "c514467afe561487a83b87ee2440e63914a16e2c79db75ef7f8ba9160b9d3ecc"
+              },
+              {
+                "name": "emulator-input.ts",
+                "bytes": 14561,
+                "sha256": "b69f0527aabd322e8cf0d0840d6faef769cd53a717a6d3d6e7cf36118a1dc0c5"
+              },
+              {
+                "name": "BasiliskII.js",
+                "bytes": 156114,
+                "sha256": "4fd750e202686a7b7c3bd0055dbe33d21dd6b3ce2639da8da814ef1036d1c66b"
+              },
+              {
+                "name": "BasiliskII.wasm",
+                "bytes": 1713564,
+                "sha256": "0be9b5ba1179b65d9d1bd30b3cc35ee56daf6713ba1353048c03229f641680bb"
+              },
+              {
+                "name": "capture-state-absolute.mjs",
+                "bytes": 4502,
+                "sha256": "82cd3a0893256139a716c38f4ee912d297c9ea39fc257710ca495abe120efc59"
+              },
+              {
+                "name": "crop-state.py",
+                "bytes": 1014,
+                "sha256": "269d1da19db5bbde828026362ebcd97c90f0a5c8045ee6437cd4cafdd71b0f10"
+              }
+            ],
+            "tableSha256": "c2eeb81da5ffc2bd502834d80d850f6f085813ab1cec8d9fb89ca36c2474125b",
+            "pixelEncoding": "rgba8",
+            "colorRealization": "Same-run indexed8 ColorTable and status8 gamma payloads, with recorded GetCPixel samples. Separately acquired finite B278 RGB16 mappings and declared D32 preparation mappings use the observed indexed device palette/gamma/producer joins; original state portColorTable was not captured and calibration widMax is absent; no universal conversion/provider or cache-state equivalence claim.",
+            "timing": "Conditions bracket Draw1Control + HiliteControl after control creation/setup. The later host frame is not uniquely bracketed by telemetry; fixed-order states share OS/cache history.",
+            "version": {
+              "status": "unknown",
+              "reason": "Exact external JS/WASM and glue build hashes recorded; semantic emulator release version not independently established."
+            }
+          },
+          "fullFrame": {
+            "sha256": "dabb17765733b5cb247691612c5fabb00c22ab1a14b395a682fc3ab03ef1fe36",
+            "width": 640,
+            "height": 480,
+            "requestImageRect": [
+              80,
+              90,
+              160,
+              80
+            ],
+            "transform": "requestImageXY = fullFrameXY - requestImageRect.xy; no resampling or color conversion"
+          }
+        },
+        "patternOriginState": null
+      },
+      "image": {
+        "path": "beos-r503-inactive/port.png",
+        "sha256": "9bb952dc28f23c10cb23e4fa294f5b1c7e334cff29212a3305f3a8d254e2664d",
+        "width": 160,
+        "height": 80
+      },
+      "provenance": {
+        "producer": "Automated Codex resource_correctness_fixes agent, isolated copied original environment",
+        "capturedAt": "2026-10-19T16:19:17.401Z",
+        "originalEnvironment": true,
+        "method": "Public Control Manager execution; exact producer/canvas frame and integer crops; complete ordinary stopped HFS export. Fresh controls in fixed 0→10→255 order, host ACK before advance. Acquisition quality independently reviewed; scoped intake and actual modern comparison remain separate.",
+        "artifacts": [
+          {
+            "role": "capture-log",
+            "path": "beos-r503-inactive/capture-log.json",
+            "sha256": "24b35530f34500503a0c429aaed44b452ddc80938dc68ee307a7a6fb586918a7"
+          },
+          {
+            "role": "source-bindings",
+            "path": "beos-r503-inactive/configured-source-bindings.json",
+            "sha256": "216099d2b3398bb47b561c2917e57ab9143c8be6aaf01a78c56c192c4421f240"
+          },
+          {
+            "role": "configured-scheme",
+            "path": "beos-r503-inactive/configured-scheme.json",
+            "sha256": "54fd889f2cd5ca3f0d788b954f00d5527dc271e81ee9f1b45572c1f302b4ef50"
+          },
+          {
+            "role": "public-invocation",
+            "path": "beos-r503-inactive/public-invocation.json",
+            "sha256": "bf421b9d5f1a47db7e1d851a4212938e8100f861568fde206d7d304ac494d21f"
+          },
+          {
+            "role": "public-invocation-supplement",
+            "path": "beos-r503-inactive/public-invocation-supplement.json",
+            "sha256": "4bdfc54b8586679b6b70e791df81423ebd65aa50848a373a103f7cb2ea69a204"
+          },
+          {
+            "role": "producer-identities",
+            "path": "beos-r503-inactive/producer-identities.json",
+            "sha256": "4fc27ed02132d1fda5d32ad66285a239103b1715a7e78fc99f55c37457953bb2"
+          },
+          {
+            "role": "pixel-conditions",
+            "path": "beos-r503-inactive/pixel-conditions.json",
+            "sha256": "8d6d8909e5e45fb600bb16dc5ccd6bb7c69ddad10830906f76ae8559a5039928"
+          },
+          {
+            "role": "pixel-conditions-supplement",
+            "path": "beos-r503-inactive/pixel-conditions-supplement.json",
+            "sha256": "80dec747542aaf70624c7a4d8f800d3b89a07b52bf24131d1e214241e45af18d"
+          },
+          {
+            "role": "indexed-palette",
+            "path": "beos-r503-inactive/indexed-palette.bin",
+            "sha256": "6987f8e5bc61a7da95ed03f229cc3ecbee463bb6245965fdc2eddbd86a31ef9b"
+          },
+          {
+            "role": "producer-table",
+            "path": "beos-r503-inactive/producer-table.bin",
+            "sha256": "c2eeb81da5ffc2bd502834d80d850f6f085813ab1cec8d9fb89ca36c2474125b"
+          },
+          {
+            "role": "full-frame",
+            "path": "beos-r503-inactive/full-frame.png",
+            "sha256": "dabb17765733b5cb247691612c5fabb00c22ab1a14b395a682fc3ab03ef1fe36"
+          },
+          {
+            "role": "context-crop",
+            "path": "beos-r503-inactive/context.png",
+            "sha256": "7390b10f5be923b356bff1e9aca2c3b2fd5697e996785f95adb11ddd9b13dee1"
+          },
+          {
+            "role": "face-crop",
+            "path": "beos-r503-inactive/face.png",
+            "sha256": "1cbaa2a4397520742651ffea84b97abad8899946fccb64f373e5127fd68e8f2e"
+          },
+          {
+            "role": "capture-bindings",
+            "path": "beos-r503-inactive/capture-bindings.json",
+            "sha256": "ca352c071c0944c941ad0da8eaad2a01dd255c5f2ec77a4b0a6d770c3d933b1d"
+          },
+          {
+            "role": "environment-manifest",
+            "path": "beos-r503-inactive/environment.json",
+            "sha256": "56abcc72bdfc835de7a4b6d54617bc4640ec9f02743b1969254b2cb9efd10324"
+          },
+          {
+            "role": "acquisition-environment",
+            "path": "beos-r503-inactive/acquisition-environment.json",
+            "sha256": "a8ca205cc5856ec716400ecf2b0c865bb1e33601a73b374832c4411205421f53"
+          },
+          {
+            "role": "durability-status",
+            "path": "beos-r503-inactive/durable-status.png",
+            "sha256": "6f64e9abe90691231541ec05657059826b098121fdfa6fb7f0c3817dbbb8a97e"
+          },
+          {
+            "role": "fixture-identities",
+            "path": "beos-r503-inactive/fixture-identities.json",
+            "sha256": "c9dea5778efeaa514f88247ba62b436f09e94b0c33ffa9798ebdd5c4da967f75"
+          },
+          {
+            "role": "shared-boot-acquisition",
+            "path": "beos-r503-inactive/acquisition.json",
+            "sha256": "ca63374d34e6241d47d7bc5735fa3feff31883145f7abff576d36716b044ebe0"
+          },
+          {
+            "role": "cross-run-profile-calibration",
+            "path": "beos-calibration/measurement.json",
+            "sha256": "61b6f43e71d7678f7a7fbc6ff2e9a2f3f6fcc5c1841245d5bebc7fe04c104062"
+          }
+        ]
+      }
     }
   ]
 }
