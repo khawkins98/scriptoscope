@@ -55,7 +55,7 @@ fetch URL and raw archive/resource provenance remain unchanged.
 
 ## Exact conversion contract
 
-Version 1 data contains conditions, SHA-256 evidence descriptions, indexed device
+Both profile versions contain conditions, SHA-256 evidence descriptions, indexed device
 palette entries, exact joint RGB16 mappings and three 256-byte producer tables.
 Each mapping records the source triple, measured device index and device RGB16;
 the device RGB16 must equal the recorded palette entry at that index. The sole
@@ -79,6 +79,37 @@ new device mapping merges colors. Caller `meta.palette`, procedural renderer
 colors, native controls and consumer CSS are already display-domain inputs and
 are not interpreted as original RGB16. Font/device rendering remains separate.
 
+## Finite direct-RGB8 preparation
+
+Version 2 adds a separate `directRgb8` section to the existing RGB16 mappings.
+It declares `operation: 'GetPixPat-FillCRect-patCopy'`,
+`context: 'declared-context0'`, and `scope: 'preparation-only'`, with its own
+evidence identities and exact `rgb8`, `deviceIndex`, and `deviceRgb16` rows.
+The device index and RGB16 must agree with the same recorded palette; the shared
+producer tables realize the resulting device color. Direct RGB8 inputs never
+pass through RGB16 expansion, interpolation, or an RGB16 fallback. Version 1
+retains its existing identity and behavior and rejects the new section.
+
+The direct path admits only full-color patType1 patterns with a zero-based,
+unpacked RGBDirect PixMap: pmVersion1, pixelSize32, three eight-bit components,
+power-of-two dimensions, and bounded rows. It reads the three RGB bytes, ignores the unused high byte and row padding,
+and produces opaque pixels. Other direct layouts remain unsupported. Missing
+exact mappings reject the entire conversion before asset URLs are allocated.
+
+This is a caller-declared **pixel preparation policy**. The loader cannot observe
+the eventual painter's origin, clip, operation, or native device; the declaration
+does not enforce those conditions at draw time. Reusing prepared assets in other
+contexts does not establish their historical fidelity. Original comparisons must
+separately bind actual paint conditions, source coordinates, and visible pixels.
+
+The reviewed private GetPixPat → FillCRect acquisition supplies finite zero-origin
+evidence for three gray RGB8 inputs. A source-declared phase rule was sealed
+before the offline comparison; 18,102 gray pixels match the same-run uniform
+indices, including 12,288 exact original-pattern pixels. Nonzero-origin phase,
+arbitrary-pattern independence, private provider/cache behavior, and participation
+in any particular captured button remain separate unknowns. These observations
+do not certify every use of a version 2 profile.
+
 ## Failures and support boundaries
 
 `DisplayProfileError` exposes `code`:
@@ -88,7 +119,7 @@ are not interpreted as original RGB16. Font/device rendering remains separate.
 - `MISSING_MAPPING`: an exact required source tuple is absent.
 - `PROFILE_MISMATCH`: a theme/base/resolver policy differs.
 - `UNSUPPORTED_SOURCE_COLOR`: a source cannot provide the required safe RGB16
-  conversion, including the currently unsupported direct-color `ppat` variants.
+  conversion, including direct-color `ppat` variants outside the selected version and strict layout contract.
 
 Conversion completes before the browser encoder allocates asset URLs. Missing
 mappings, including hidden icon RGB, reject the whole load; conversion does not

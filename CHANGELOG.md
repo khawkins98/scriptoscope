@@ -7,6 +7,8 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+- Add an opt-in version 2 finite direct-RGB8 preparation policy for strictly bounded full-color patterns, separate from RGB16 mappings. Preserve version 1/default behavior and whole-load rejection; retain explicit paint-context and original-evidence limits. Add a measured BeOS test profile and source/built whole-load checks without promoting capture intake or ledger claims (#221, #190).
+
 - Document the fidelity workflow: prefer shared-model corrections, retain evidence and limits for interim overrides, and consolidate them when independent references establish the common behavior.
 
 - Select each owner's exact signed push-button resource before author-name aliases, correcting the Animals normal face mismatch without changing recorded pixels or measured profiles. Preserve explicit compatibility fallback when the canonical art is absent.

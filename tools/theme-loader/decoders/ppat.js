@@ -30,8 +30,12 @@ import {
  *   Returns null for unsupported pattern types or palette-relative color tables.
  *   Existing direct-color/type2 handling is outside the indexed-table contract.
  */
-export function decodePpat(bytes, { realizeRgb16 } = {}) {
+export function decodePpat(bytes, { realizeRgb16, realizeDirectRgb8 } = {}) {
   const r = new Reader(bytes);
+  const unsupportedDirect = () => { throw new DisplayProfileError('Unsupported direct-color ppat layout under this preparation policy', 'UNSUPPORTED_SOURCE_COLOR'); };
+  // Reader deliberately retains legacy behavior. Bounds here apply only to the
+  // new explicit policy and use the actual Uint8Array view, not its backing buffer.
+  if (realizeDirectRgb8 && bytes.length < 28) unsupportedDirect();
 
   const patType = r.readUInt16();
   const patMapOffset = r.readUInt32();
@@ -48,8 +52,19 @@ export function decodePpat(bytes, { realizeRgb16 } = {}) {
   if (patType !== 1 && patType !== 2) return null;
 
   // Jump to the PixMap section.
+  if (realizeDirectRgb8 && (patMapOffset < 28 || patMapOffset + 50 > bytes.length)) unsupportedDirect();
   r.seek(patMapOffset);
   const pmap = readPixMap(r);
+  const direct = pmap.pixelSize === 32 || pmap.pixelSize === 16;
+  if (realizeDirectRgb8 && (direct || pmap.pixelType === 16 || patType === 2)) {
+    if (patType !== 1 || !pmap.isPixMap || pmap.pixelType !== 16 || pmap.pixelSize !== 32
+        || pmap.cmpCount !== 3 || pmap.cmpSize !== 8 || pmap.bounds.top !== 0 || pmap.bounds.left !== 0
+        || pmap.width <= 0 || pmap.height <= 0 || (pmap.width & (pmap.width - 1)) !== 0
+        || (pmap.height & (pmap.height - 1)) !== 0 || pmap.pmVersion !== 1
+        || pmap.packType !== 0 || pmap.packSize !== 0 || pmap.planeBytes !== 0
+        || pmap.rowBytes < pmap.width * 4 || pmap.rowBytes % 4 !== 0
+        || patDataOffset < patMapOffset + 50 || patDataOffset + pmap.rowBytes * pmap.height > bytes.length) unsupportedDirect();
+  }
 
   // Pixel data lives at patDataOffset.
   r.seek(patDataOffset);
@@ -62,8 +77,8 @@ export function decodePpat(bytes, { realizeRgb16 } = {}) {
   // color table entirely. Beos's "Alert Backround" (ppat 128) is the corpus
   // example for 32 bpp — previously failed with "Unsupported pixelSize: 32".
   // 16 bpp = 1 padding bit + 5R + 5G + 5B big-endian; 32 bpp = $00 $RR $GG $BB.
-  if (pmap.pixelSize === 32 || pmap.pixelSize === 16) {
-    if (realizeRgb16) throw new DisplayProfileError('Direct-color ppat source precision is outside this profile contract', 'UNSUPPORTED_SOURCE_COLOR');
+  if (direct) {
+    if (realizeRgb16 && !realizeDirectRgb8) throw new DisplayProfileError('Direct-color ppat source precision is outside this profile contract', 'UNSUPPORTED_SOURCE_COLOR');
     for (let y = 0; y < h; y++) {
       for (let x = 0; x < w; x++) {
         const o = (y * w + x) * 4;
@@ -71,6 +86,12 @@ export function decodePpat(bytes, { realizeRgb16 } = {}) {
           // pmap.cmpCount === 3 (no alpha) or 4 (ARGB). When 3, format is
           // pad-R-G-B (one $00 byte per pixel). When 4, alpha is the first byte.
           const p = y * pmap.rowBytes + x * 4;
+          if (realizeDirectRgb8) {
+            // The unused high byte and row padding are not source colors.
+            // No RGB16 expansion, interpolation or legacy gamma fallback.
+            rgba.set([...realizeDirectRgb8([pixelBytes[p + 1], pixelBytes[p + 2], pixelBytes[p + 3]]), 255], o);
+            continue;
+          }
           if (pmap.cmpCount === 4) {
             rgba[o]     = pixelBytes[p + 1];
             rgba[o + 1] = pixelBytes[p + 2];
