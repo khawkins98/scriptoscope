@@ -394,9 +394,10 @@ widMax, main-device equality and full font/provider observations remain unknown.
 The inventory appends two exact empty Evolution normal/inactive cases and twelve
 obligations, preserving all prior 90 cases and 617 assessments through
 `evolution-recorded-transition.json`. All 92 case closures remain OPEN. The two
-recorded-output obligations are candidates until the public source/built pair
-passes and independent review approves the final binding; their other ten
-obligations remain unknown. The existing generic source/metadata/paint verifier
+recorded-output obligations are narrowly verified after the public source/built
+pair passed and independent root review recomputed the native image comparisons;
+their other ten obligations remain unknown. Totals are 111 verified and 518 unknown
+assessments across 629 obligations. The existing generic source/metadata/paint verifier
 binds actual selected CICN/CINF occurrences, eight face bands and the missing
 ppat-0 lookup. No completed body-fill event is inferred.
 

@@ -176,5 +176,6 @@ The output comparison covers the complete face, while actual paint evidence
 contains eight metadata-defined bands and a missing ppat-0 lookup. It does not
 claim a completed interior-fill trace, original masks, typography, private
 provider choice, labeled rendering or whole-control fidelity. Evolution pressed
-remains a missing campaign capture. The public source/built execution is tracked
-separately from acquisition and scoped intake approval.
+remains a missing campaign capture. The public source/built pair matched all 38 registered faces and 60,800
+composited pixels per mode; independent root review recomputed every PNG crop.
+Execution remains separately bound from acquisition and scoped intake approval.

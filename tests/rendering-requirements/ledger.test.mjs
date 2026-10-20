@@ -310,6 +310,8 @@ test('Evolution empty extension preserves all prior 90 cases and 617 assessments
   assert.deepEqual(makeReport(prior).requirementStatus.counts, { verified: 109, mismatched: 0, unsupported: 0, unknown: 508 });
   const added = original.assessments.slice(transition.counts.assessments);
   assert.equal(added.length, 12);
-  assert(added.every(a => a.requirementId === 'output.recorded-composited-face' || a.status === 'unknown'));
+  assert.equal(added.filter(a => a.status === 'verified').length, 2);
+  assert(added.every(a => a.status === (a.requirementId === 'output.recorded-composited-face' ? 'verified' : 'unknown')));
+  assert.deepEqual(makeReport(original).requirementStatus.counts, { verified: 111, mismatched: 0, unsupported: 0, unknown: 518 });
   assert(original.cases.slice(90).every(c => c.inventoryClosure.status === 'open'));
 });
