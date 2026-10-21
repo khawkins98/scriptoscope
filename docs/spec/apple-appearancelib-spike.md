@@ -3,10 +3,11 @@
 *Clean-room. All offsets are into `.scratch/iso-recon/85-System.bin` (git-ignored).
 Recorded for understanding; no Apple listing reproduced.*
 
+*Listing-level narrative (registers, frame offsets, instruction excerpts) for this document lives in [`engine/apple-appearancelib-spike.evidence.md`](engine/apple-appearancelib-spike.evidence.md) — spec writers and verifiers only.*
+
 ## Tooling (solved)
-- No raw-PPC disassembler was installed. Resolved with **capstone 5.0.7** in an
-  isolated venv at `/tmp/ppc-venv` (`CS_ARCH_PPC | CS_MODE_32 | CS_MODE_BIG_ENDIAN`).
-  Reproduce: `/tmp/ppc-venv/bin/python .scratch/iso-recon/pef-locate.py`.
+- A raw-PPC disassembler was set up for this spike; the toolchain and reproduce
+  command are recorded in the evidence appendix (spec writers and verifiers only).
 - PEF container/section/loader/export parsing written + working (`pef-locate.py`).
   Note: PEF loader-string names are **not null-terminated**; lengths come from the
   export key table (`key >> 16`). Naive null-scan reads names run together.
@@ -32,7 +33,7 @@ Recorded for understanding; no Apple listing reproduced.*
   1. Implement PEF **pattern-init decompression** (opcodes: zero / blockCopy /
      repeatedBlock / interleave×2) to materialize the data section.
   2. Read the 8-byte TVector → `codeAddr` (offset into the 261812 B code section).
-  3. Disassemble there (capstone, ready) and trace the push-button path through
+  3. Trace the push-button path from there through
      its helper chain to pin bevel insets / gray slots / gradient.
 - So: feasible and fully mapped, but each routine = decompress + TVector deref +
   PPC RE across a 256 KB lib with helper chains, **per control kind**.
@@ -61,10 +62,11 @@ Rationale, evidence-based:
 PEF pattern-data decompressor implemented (`pef-decompress.py`, 5 opcodes) →
 decompressed AppearanceLib sec 1 (50092 B exact) → DrawThemeButton TVector @ data
 offset 3276 → codeAddr 0x2ee4 (code fileOff 2455796). Disassembled clean PPC:
-- Signature confirmed: `DrawThemeButton(rect, kind, drawInfo, prevInfo, eraseProc, labelProc, userData)` (args r3..r9 saved to r23..r29).
-- Validates: null rect → ret -50 (paramErr); null drawInfo → -50. Reads drawInfo state halfword at `+6`, `andi. &5`.
+- Signature confirmed: `DrawThemeButton(rect, kind, drawInfo, prevInfo, eraseProc, labelProc, userData)` (seven arguments, all retained for the call).
+- Validates: null rect → ret -50 (paramErr); null drawInfo → -50. Reads the drawInfo state halfword at `+6` and tests it against mask 5.
 - **It is a THIN DISPATCHER, not the drawer:** fetches the current theme object
-  (imported glue `bl 0x18618`), then `lwz r12,0(r3); lwz r12,0xCC(r12); bl …` —
+  (through imported glue at `0x18618`), loads that object's vtable and calls the
+  method at offset 0xCC —
   i.e. dispatches to a **vtable method at offset 0xCC** on the theme-provider object.
 - **Architectural validation of FALLBACK:** Apple separates theme DATA from a
   generic DRAWER (OO theme-provider). The concrete Platinum button pixels are one

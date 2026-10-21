@@ -42,7 +42,7 @@ done
 
 Don't write one entry per pick — write one entry showing *why* the chain happened. Example: "Schemes Folder window-type went movable-modal → titled-utility-window → document-window in 24h. Period correctness ceded to runtime-supported behavior because the themed scrollbar only renders on document-window."
 
-The lesson is the chain, not each link.
+The lesson is the chain, not each individual step.
 
 ### 5. For each false-start + revert, ONE LEARNINGS entry on the misread
 

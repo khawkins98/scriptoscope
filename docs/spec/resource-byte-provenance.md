@@ -124,7 +124,7 @@ binding. This extends the existing pre-encoding collision rejection to ppat path
 `ChromeElement.bodyRequest` preserves raw cinf byte3 `mode` (0..255) and signed
 bytes4..5 `resourceId` (-32768..32767), including zero. Null/absent is unknown.
 Mode5's original branch requests cicn; other modes request ppat. The retained
-legacy `bgPattern` link still uses its previous nonzero-ID/same-catalog policy;
+legacy `bgPattern` association still uses its previous nonzero-ID/same-catalog policy;
 it must not be mistaken for this raw request or historical Resource Manager
 ownership. The initial #266 change added metadata without changing that policy or rendering.
 

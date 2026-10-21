@@ -20,7 +20,7 @@ Push drawing passes text/emboss RGB output pointers at `0x756a/0x756e` to
 | --- | --- |
 | `0x10904–0x1091a` | Sample background at signed cinf y/x offsets6/8. |
 | `0x10922–0x10934` | Sample text at offsets10/12. |
-| `0x1093e–0x10954` | Emboss coordinate(0,0) means absent; set red sentinel0x1234. |
+| `0x1093e–0x10954` | Emboss coordinate(0,0) means absent; set red sentinel 0x1234. |
 | `0x1095a–0x1096a` | Otherwise sample emboss at offsets14/16. |
 | `0x10970–0x10990` | Exact equality of all three emboss/background RGB16 words disables emboss. |
 | `0x759a`, `0x75ca–0x75ea`, `0x70a6–0x70ba` | Sentinel suppresses emboss; otherwise draw it first at(+1,+1), then text at the unchanged position. |
@@ -63,7 +63,7 @@ background/text/emboss RGB16 and display triples, plus an explicit emboss
 decision. This shares the entry's actual cicn/cinf byte-provenance binding when
 the load opted into provenance. Sampling happens before PNG transport, preserving
 RGB that canvas premultiplication would erase beneath alpha0. Raw16 equality and
-the red0x1234 sentinel are decided before high-byte truncation or gamma conversion.
+the red 0x1234 sentinel are decided before high-byte truncation or gamma conversion.
 
 Display triples apply the existing high-byte plus 1.8/2.2 project LUT once.
 Manifest validation checks channels and consistency with that declared policy;

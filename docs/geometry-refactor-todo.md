@@ -1,5 +1,7 @@
 # Geometry & Wiring Refactor — Working TODO + Context
 
+*Listing-level narrative (registers, frame offsets, instruction excerpts) for this document lives in [`spec/engine/geometry-refactor-todo.evidence.md`](spec/engine/geometry-refactor-todo.evidence.md) — spec writers and verifiers only.*
+
 **Status:** in progress · **Last updated:** 2026-05-30 · **Branch:** main (HEAD `feb0be2`)
 
 A living doc for the effort to move the System 7/8 (Platinum-family) window/control
@@ -36,7 +38,7 @@ generic composer reads it. No procedural redraw of art that ships as a resource.
 
 1. **Prefer the decode over manual geometry.** Existing geometry was created mostly by
    hand. Where the decompiled code pins a value, use it. Tag every spec value
-   `decode:` (cite the `0xADDR`) vs `tuning:` (calibration — e.g. colors are runtime
+   `decode:` (cite the `0x…` address) vs `tuning:` (calibration — e.g. colors are runtime
    `wctb` data, not in the binary, so bevel amounts can't be decoded).
 2. **Don't redraw what ships as a resource.** Buttons/scrollbars are real `cicn`s
    (graft/slice); checkbox/radio are real `ics4`/`ics8` pictograms stamped 1:1. The
@@ -81,7 +83,7 @@ below — not a one-time pass. The loop, every time:
 2. **Trace** it to the specific geometry value (which field in `cornerSpriteGeometry.ts`
    / `CORNER_SPRITE_WINDOWS` / `window-types.mjs`, or which composer line).
 3. **Reconcile against the source of truth** — the decode (`platinum-wdef125-decode.md`
-   Constants, cited `0xADDR`) first; the real shipped resource second; a measured
+   Constants, cited `0x…` addresses) first; the real shipped resource second; a measured
    reference only as last resort. Prefer the decode; never re-guess.
 4. **Validate** — `diag:render` before/after + `lint:themes` 0/0; eyeball against the
    reference. Behavior-preserving when consolidating; deliberate + noted when correcting.
@@ -118,7 +120,7 @@ it's the runtime's ALGORITHM constants (bevels/insets), a different slice, alrea
 
 **KEY DECODE INSIGHT (the answer to "trust the screenshot or the original geometry?"):**
 the WDEF 125 title-bar height is **FONT-DERIVED** — `titleHeight = ascent + descent + 2`
-(clamped ≥10), frame top = `titleHeight + 1` (decode `0x392` step, `fp@(-356)`). For the
+(clamped ≥10), frame top = `titleHeight + 1` (decode `0x392` step). For the
 Platinum system font that lands on **~19** — the shared value. The generator's old hardcoded
 **20 was a screenshot measurement** (an artifact); utility's 11 falls out of the *small*
 system font. So the resolution was decode-grounded, not screenshot. **Truest future form:**
@@ -228,9 +230,9 @@ platinum-8, system7-nostalgia-silver, black-platinum) + a few window types.
 - `themes/<slug>/resource-roles.json` — id→role wiring; READ it, don't guess roles
   (same id differs per scheme + per cicn/ics4 channel).
 
-**Decode tooling** (git-ignored, `.scratch/iso-recon/`): `m68k-elf-objdump` for 68k
-WDEF/CDEF; capstone in `/tmp/ppc-venv` + `pef-locate.py` / `pef-decompress.py` for the
-PPC AppearanceLib. Clean-room: binaries stay in `.scratch`, docs cite `0xADDR`, never
+**Decode tooling** (git-ignored, `.scratch/iso-recon/`): recorded in the
+[evidence appendix](spec/engine/geometry-refactor-todo.evidence.md) — spec writers
+and verifiers only. Clean-room: binaries stay in `.scratch`, docs cite `0x…`, never
 commit Apple's listing.
 
 **Cadence:** detailed commit bodies, no Co-Authored-By line, commit direct to the

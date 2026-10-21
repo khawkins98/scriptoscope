@@ -47,14 +47,14 @@ Per cell, keyed PURELY on the part code (not pixel content, not width):
 | 8, 11 | **GROW** — a primary share plus rounding remainder. |
 | 13, 14 | **REMAINDER ONLY** — share the leftover pixels after whole-tile truncation; excluded from the primary divisor. |
 | 0 | **COLLAPSE** — zero width. |
-| 10 | **FLAG-GATED** (jump table `0x4a0c` returns the caller's flag): its stretch verdict (width 0) applies when title-fits is set and always on non-title sides (`#1`). We classify it FIXED, a divergence (see note and the faithfulness-ledger `0x4a0c` row). |
+| 10 | **FLAG-GATED** (jump table `0x4a0c` returns the caller's flag): its stretch verdict (width 0) applies when title-fits is set and always on non-title sides (flag 1). We classify it FIXED, a divergence (see note and the faithfulness-ledger `0x4a0c` row). |
 | 15, 16, 17 | collapse to zero iff the corresponding widget is PRESENT; else fixed. |
 | 2, 3, 4 | the close/zoom/shade GAP cells — fixed when widget present; collapse to zero when absent. |
 | 12 | **TILE** — primary share truncated down to a whole multiple of source width (possibly zero); the unused fraction joins the remainder pool. |
 | 18 | **SCALE** — a single scaled CopyBits (drawn once, mapped src→dst). |
 
 **code 10 note (superseded rationale):** under the corrected `0x5178` reading a
-stretch verdict means width 0, and non-title sides pass flag `#1`
+stretch verdict means width 0, and non-title sides pass flag 1
 (`0x4db4`/`0x4dd4`/`0x515e`). The decode therefore collapses code-10 cells on
 untitled sides, and on titled sides whenever the title fits. The earlier "fixed
 ≡ stretch" argument predates that correction. The runtime keeps code 10 FIXED
@@ -148,8 +148,8 @@ tall ornate bars (evolution) where the text well sits well below centre; flat ba
 guarded by the `title` rule in `lint:themes`.
 
 The **title PLATE** (the "pill" behind the text) is the chrome side of the same
-mechanism, decoded at kDEF `0x4a64`: the kDEF measures the title via `StringWidth`
-($A888), gates it (title-fits at `0x4f58`), then sizes the title-
+mechanism, decoded at kDEF `0x4a64`: the kDEF sets the title face (`TextFace`, $A888), measures the
+title via `StringWidth` ($A88C), gates it (title-fits at `0x4f58`), then sizes the title-
 anchor cell's DEST span to that **measured title-text width**, centred (`0x5034`;
 the `/2` at `0x4ff8`/`0x501c`). That anchor cell is **code 5** — flanked by
 code-6 bezels (`0x4f74`/`0x4f90`) — and its src (a 1px pill column in 1138) is

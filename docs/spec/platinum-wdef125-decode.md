@@ -1,18 +1,11 @@
 # Mac OS 8.5 Platinum window proc — `WDEF` 125 decode
 
 *Clean-room decode of the Mac OS 8.5 `System`-file `WDEF` id 125 (the Platinum
-document-window proc). Mirrors the kDEF playbook: cite `0xADDR`, describe the
+document-window proc). Mirrors the kDEF playbook: cite addresses, describe the
 algorithm, **never** dump Apple's listing. Feeds the Phase-B reimplementation in
 `src/platinum.ts`. Companion: [`kdef231-recipe-walk.md`](./kdef231-recipe-walk.md).*
 
-```
-# bin location (NOT committed — Apple system code; git-ignored):
-#   .scratch/iso-recon/code-out/WDEF-125.bin   (5900B, raw 68k)
-# disassemble:
-#   m68k-elf-objdump -D -b binary -m m68k:68030 WDEF-125.bin > WDEF-125.asm
-# hex-peek a region:
-#   m68k-elf-objdump -s -b binary -m m68k WDEF-125.bin | sed -n '<lines>'
-```
+*Listing-level narrative (registers, frame offsets, instruction excerpts) for this document lives in [`engine/platinum-wdef125-decode.evidence.md`](engine/platinum-wdef125-decode.evidence.md) — spec writers and verifiers only. The binary location and disassembly/hex-peek instructions used to produce this decode are recorded there too; the binary is Apple system code and is not committed.*
 
 ## 2026-10-20 correction: grow is not titlebar shade
 
@@ -33,56 +26,55 @@ window widgets instead retain their `wnd#` rectangle-part identities.
 ## Routine map
 | addr | name | role | calls | return |
 |---|---|---|---|---|
-| `0x0000` | `WDEF125_main` | entry: unpack `fp@(8..18)`, set color WMgr port, dispatch on message | `GetPort`/`GetWMgrPort`/`GetCWMgrPort`/`SetPort`; `jsr 0x131c` (colorQD check) | `rtd` |
-| `0x0166` | dispatch | sparse `cmpl`/`beq` chain on `d4` (no jump table); routes msg 0-6 to the stubs below; default/`6` → `0x264` exit | — | — |
-| `0x0264` | common exit | re-apply fore/back color, `SetPort` back, store `d6` result → `fp@(20)` | `RGBForeColor`/`RGBBackColor`/`SetPort` | `jmp %a0@` (rtd-style) |
-| `0x0294` | `wNew` (msg 3) | per-window init / aux-struct alloc (`NewHandleClear` `0xa122`) | `0xa122` | `rts` |
-| `0x0392` | `wDraw` whole frame (msg 0, `param==0`) | **draw the entire Platinum window frame**: title bar, bevels, widgets — the `LineTo`/`RGBForeColor` cluster (Task 3 entry) | many; sub-drawers `0x904`/`0x9dc` | `rts` |
-| `0x0b10` | `wDraw` close-box highlight (`param==4`) | procedural pressed highlight of the **close** box (geom `0x1018`, release-redraw `0x904`) | `LineTo`/`RGBForeColor` | `rts` |
-| `0x0bb6` | `wDraw` zoom-box highlight (`param==5/6`) | procedural pressed highlight of the **zoom** box (geom `0x110e`, release-redraw `0x9dc`) | `LineTo`/`RGBForeColor` | `rts` |
-| `0x0c84` | `wHit` (msg 1) | hit-test: which window part the point is in | — | `rts` |
-| `0x0d92` | `wCalcRgns` (msg 2) | build structure/content regions — `SetRectRgn` cluster | `SetRectRgn`/region traps | `rts` |
-| `0x1244` | `wGrow` (msg 5) | draw the grow outline; `param` Rect copied to `fp@(-60)` by the stub | — | `rts` |
-| `0x130c` | `wDispose` (msg 4) | teardown / free per-window state | — | `rts` |
-| `0x131c` | colorQD check (helper) | `jsr`-ed from the preamble; returns a byte (color QD present) | — | `rts` |
+| `0x0000` | `WDEF125_main` | entry: unpack the message arguments, set color WMgr port, dispatch on message | `GetPort`/`GetWMgrPort`/`GetCWMgrPort`/`SetPort`; calls `0x131c` (colorQD check) | callee-pops return |
+| `0x0166` | dispatch | sparse compare-and-branch chain on the message number (no jump table); routes msg 0-6 to the stubs below; default/`6` → `0x264` exit | — | — |
+| `0x0264` | common exit | re-apply fore/back color, `SetPort` back, store the message result in the function-result slot | `RGBForeColor`/`RGBBackColor`/`SetPort` | callee-pops return |
+| `0x0294` | `wNew` (msg 3) | per-window init / aux-struct alloc (`NewHandleClear` `0xa122`) | `0xa122` | return |
+| `0x0392` | `wDraw` whole frame (msg 0, `param==0`) | **draw the entire Platinum window frame**: title bar, bevels, widgets — the `LineTo`/`RGBForeColor` cluster (Task 3 entry) | many; sub-drawers `0x904`/`0x9dc` | return |
+| `0x0b10` | `wDraw` close-box highlight (`param==4`) | procedural pressed highlight of the **close** box (geom `0x1018`, release-redraw `0x904`) | `LineTo`/`RGBForeColor` | return |
+| `0x0bb6` | `wDraw` zoom-box highlight (`param==5/6`) | procedural pressed highlight of the **zoom** box (geom `0x110e`, release-redraw `0x9dc`) | `LineTo`/`RGBForeColor` | return |
+| `0x0c84` | `wHit` (msg 1) | hit-test: which window part the point is in | — | return |
+| `0x0d92` | `wCalcRgns` (msg 2) | build structure/content regions — `SetRectRgn` cluster | `SetRectRgn`/region traps | return |
+| `0x1244` | `wGrow` (msg 5) | draw the grow outline; the stub copies the `param` Rect into a local first | — | return |
+| `0x130c` | `wDispose` (msg 4) | teardown / free per-window state | — | return |
+| `0x131c` | colorQD check (helper) | called from the preamble; returns a byte (color QD present) | — | return |
 
 ## Message dispatch
 
-The WDEF message (`d4`, loaded from `fp@(12)`) is dispatched **after** the port
-preamble, at `0x166`. Unlike the kDEF CDEF (which uses a `%pc@(0x67b6,%d0:w:2)`
-jump table), this WDEF compiles its switch as a **sparse if/else chain of
-`cmpl`/`beq` tests** — there is no jump table to hex-decode. The sequence:
+The WDEF message is dispatched **after** the port preamble, at `0x166`. Unlike
+the kDEF CDEF (which uses a jump table), this WDEF compiles its switch as a
+**sparse if/else chain of compare-and-branch tests** — there is no jump table to
+hex-decode. The sequence (the message word is sign-extended first, `0x166`–`0x168`):
 
-- `0x166` `movew %d4,%d0` + `0x168` `extl %d0` — sign-extend the message word.
-- `0x16a` `cmpl #3,%d0` → `beq 0x1a0` (message **3 = wNew**).
-- `0x170` `tstl %d0` → `beq 0x1ac` (message **0 = wDraw**).
-- `0x174` `cmpl #1,%d0` → `beq 0x220` (message **1 = wHit**).
-- `0x17c` `cmpl #2,%d0` → `beq 0x234` (message **2 = wCalcRgns**).
-- `0x184` `cmpl #5,%d0` → `beq 0x240` (message **5 = wGrow**).
-- `0x18c` `cmpl #6,%d0` → `beq 0x264` (message **6 = wDrawGIcon** → the common
-  exit; no dedicated handler, i.e. a no-op for this proc).
-- `0x194` `cmpl #4,%d0` → `beq 0x25c` (message **4 = wDispose**).
-- `0x19c` `bra 0x264` — default fall-through to the common exit/restore-port tail.
+- `0x16a`: message **3 = wNew** → `0x1a0`.
+- `0x170`: message **0 = wDraw** → `0x1ac`.
+- `0x174`: message **1 = wHit** → `0x220`.
+- `0x17c`: message **2 = wCalcRgns** → `0x234`.
+- `0x184`: message **5 = wGrow** → `0x240`.
+- `0x18c`: message **6 = wDrawGIcon** → `0x264`, the common
+  exit; no dedicated handler, i.e. a no-op for this proc.
+- `0x194`: message **4 = wDispose** → `0x25c`.
+- `0x19c`: default fall-through to the common exit/restore-port tail `0x264`.
 
-Each case is a short stub that pushes args and `jsr`s the real routine, then
-`bra 0x264`. The common tail `0x264` re-applies fore/back color and `SetPort`s
-back, stashes the `d6` result into `fp@(20)`, and returns via `rtd #12`-style
-`jmp %a0@` (`0x28a`-`0x292`).
+Each case is a short stub that pushes args and calls the real routine, then
+continues to `0x264`. The common tail `0x264` re-applies fore/back color and
+`SetPort`s back, stores the message result in the function-result slot, and
+returns callee-pops (`0x28a`-`0x292`).
 
-| index | message | stub | routine `0xADDR` | notes |
+| index | message | stub | routine address | notes |
 |---|---|---|---|---|
-| 0 | wDraw | `0x1ac` | **`0x392`** (whole frame, `param==0`) | also routes widget highlights by `param` (`d3`): `0→0x392`, `4→0xb10`, `5/6→0xbb6`; guarded by `tstb a2@(110)` |
-| 1 | wHit | `0x220` | `0xc84` | passes `param` (d3), window, varCode |
+| 0 | wDraw | `0x1ac` | **`0x392`** (whole frame, `param==0`) | also routes widget highlights by `param`: `0→0x392`, `4→0xb10`, `5/6→0xbb6`; guarded by a window-record guard byte (listing detail in evidence) |
+| 1 | wHit | `0x220` | `0xc84` | passes `param`, window, varCode |
 | 2 | wCalcRgns | `0x234` | `0xd92` | region build |
 | 3 | wNew | `0x1a0` | `0x294` | per-window init / alloc |
 | 4 | wDispose | `0x25c` | `0x130c` | teardown |
-| 5 | wGrow | `0x240` | `0x1244` | copies the `param` Rect into `fp@(-60)` first |
+| 5 | wGrow | `0x240` | `0x1244` | copies the `param` Rect into a local first |
 | 6 | wDrawGIcon | (`0x264`) | — | unhandled → common exit (no-op) |
 
-**wDraw `param` sub-dispatch (`0x1ac`).** After `tstb a2@(110)` (a guard byte;
-skip to exit if clear), the `param` selector in `d3` is matched: `0` (whole
-frame) → `jsr 0x392`; `4` (the **close box**) → `jsr 0xb10`; `5` and `6` (the
-**zoom box**, top/side-titlebar variants) → `jsr 0xbb6`. So the **whole-frame
+**wDraw `param` sub-dispatch (`0x1ac`).** After testing a guard byte in the
+window record (skip to exit if clear), the `param` selector is matched: `0`
+(whole frame) → `0x392`; `4` (the **close box**) → `0xb10`; `5` and `6` (the
+**zoom box**, top/side-titlebar variants) → `0xbb6`. So the **whole-frame
 drawer is `0x392`** and the two procedural widget-highlight drawers are
 `0xb10` (close pressed) / `0xbb6` (zoom pressed). The widget↔part mapping is
 confirmed by `wHit 0xc84` (see Window widgets): part **3 = grow** (corrected above), part
@@ -109,48 +101,49 @@ step links down to the section that decodes it.
 
 1. **Port + color/pattern setup** (preamble, `0xc6`–`0x158`). Snapshot the WMgr
    port (`GetPort`/`GetWMgrPort`/`GetCWMgrPort`), then install the two strokes
-   patterns from the port-snapshot copy `fp@(-44)`: `PenPat(port[+58])` (`0xd0`)
+   patterns from the local port snapshot: `PenPat(port[+58])` (`0xd0`)
    and `BackPat(port[+32])` (`0xdc`). Fetch the per-window color record:
    `GetAuxWin` (`0xaa42` @ `0x11c`) → `awCTable` (`auxWinRec+8`) → deref + `HLock`
-   to `a3` (`0x12a`), the base pointer every blend reads from; null `a4` if the
-   screen is `<8`-bit (`0x158`). *(See [Color sourcing](#color-sourcing).)*
-2. **Compute the title rect** (`0x3a6`–`0x3ba`). `jsr 0xf38(varCode, window,
-   &rect)` writes the title `Rect` into `fp@(-356)`; its font-derived height
-   (`ascent+descent+2`, clamped `≥10`) feeds `d5` (`titleHeight+1`) and width
-   `d6`. *(See [Title-bar fill](#title-bar-fill--the-pinstripe) /
+   (`0x12a`) — the color-table base every blend reads from; the widget-path
+   color pointer is nulled if the screen is `<8`-bit (`0x158`). *(See [Color sourcing](#color-sourcing).)*
+2. **Compute the title rect** (`0x3a6`–`0x3ba`). The title-rect helper
+   `0xf38(varCode, window, &rect)` writes the title `Rect` into a local; its
+   font-derived height (`ascent+descent+2`, clamped `≥10`) gives the title
+   height (`titleHeight+1`) and width kept for later strokes. *(See [Title-bar fill](#title-bar-fill--the-pinstripe) /
    [Frame & bevel](#frame--bevel-insets).)*
 3. **Outer structure outline + bottom/right shadow** (`0x406`–`0x49a`). Copy the
-   structure-region bbox (`a4@(118)` → `+2`) to `fp@(-364)`, `InsetRect(−1,−1)`
+   structure-region bbox to a local structure box, `InsetRect(−1,−1)`
    outset it 1 px (`0x424`), `PenSize(1,1)` (`0x42e`), set fore `+18`/back `+10`
    (`0x3fa`/`0x404`), `FrameRect` the 1-px outer ring (`0x434`), then a
    `MoveTo`+2×`LineTo` polyline laying the **bottom+right shadow** (varCode-bit-3
    top-vs-side branch). *(See [Frame & bevel](#frame--bevel-insets).)*
 4. **Bake + phase-align the pinstripe tile** (`0x4a4`–`0x536`). `StuffHex`
    (`0xa866` @ `0x4ac`) writes the code-baked 8-byte `Pattern AA00AA00AA00AA00`
-   into `fp@(-316)`; `andl #1`/`andl #8` parity tests + `notb`/`lsr #8` phase-align
+   into a local title tile; title-rect parity tests (bit 0 / bit 3 masks) drive a
+   conditional byte inversion and 8-bit shift that phase-align
    it to the rect's pixel grid. `PenSize(1,1)` (`0x542`). *(See [Title-bar
    fill](#title-bar-fill--the-pinstripe).)*
-5. **Screen-depth gate** (`0x544`–`0x55a`). If color table `a3` is null →
-   `beq 0x55c` flat fallback; else `jsr 0x310` (`GetMaxDevice` depth bucket) and
-   `cmpl #8 / bge 0x570` takes the **deep-color path** only on `≥8`-bit screens
+5. **Screen-depth gate** (`0x544`–`0x55a`). If the color table is null → the
+   flat fallback at `0x55c`; else the `0x310` (`GetMaxDevice` depth bucket) result
+   is compared with 8 and the **deep-color path** (`0x570`) is taken only on `≥8`-bit screens
    with a color table. *(See [Active vs inactive](#active-vs-inactive-title-bar).)*
 6. **Title fill** — two paths. **Deep** (`0x570`–`0x5e6`): `RGBBackColor(blend
    +66/+74 w1)` + `EraseRect` (`0x594`/`0x59a`); `RGBForeColor(blend +50/+58 w8)`
-   + `PenMode(patOr)` then **`FillRect(titleRect, pattern fp@(-316))`** the AA00
+   + `PenMode(patOr)` then **`FillRect(titleRect, title tile)`** the AA00
    stipple (`0x5d0`); `RGBForeColor(+18)` + `PenMode(patCopy)` then `FrameRect`
    the 1-px border (`0x5e6`). **Shallow/flat fallback** (`0x55c`–`0x56c`):
    `FillRect` the same baked pattern + plain `FrameRect` in default port colors,
-   `bra 0x694` (no colors, no bevel). *(See [Title-bar
+   then continue at `0x694` (no colors, no bevel). *(See [Title-bar
    fill](#title-bar-fill--the-pinstripe).)*
 7. **Title-bar raised bevel** (deep path only, `0x60c`–`0x686`). `InsetRect(1,1)`,
    highlight polyline (top+left) in `blend(+74,+98,0)` (`0x60a`), shadow polyline
    (bottom+right) in `blend(+98,+106,4)` (`0x664`), `InsetRect(−1,−1)` restore.
    Skipped on the flat fallback. *(See [Frame & bevel](#frame--bevel-insets).)*
-8. **The three widgets** (frame tail, `0x694`–`0x786`), gated by `fp@(-20)`
-   (title-rect-visible) then per-widget varCode bits. **Close** (`a4@(112)`
+8. **The three widgets** (frame tail, `0x694`–`0x786`), gated by the
+   title-rect-visible flag then per-widget varCode bits. **Close** (window
    goAway byte): rect `0x1018` → draw `0x904` (empty 7×7 beveled square).
-   **Zoom** (`d4&4`): rect `0x110e` → draw `0x9dc` (7×7 + inner-square glyph).
-   **Collapse** (`d4&2`): rect `0x11fc` → inline draw `0x708`–`0x786`. Then the
+   **Zoom** (varCode`&4`): rect `0x110e` → draw `0x9dc` (7×7 + inner-square glyph).
+   **Collapse** (varCode`&2`): rect `0x11fc` → inline draw `0x708`–`0x786`. Then the
    centered title text (`0x788`–`0x8e0`). *(See [Window
    widgets](#window-widgets-close--zoom--collapse).)*
 9. **Pressed-highlight sub-drawers** (separate `param` dispatch, not part of the
@@ -170,86 +163,85 @@ and unconditional branch in that range targets a *higher* address (verified:
 `0x512`, `0x51c`, `0x526`, `0x546`, `0x55a`, `0x56c`, `0x698`, `0x6a0`, `0x6ca`,
 `0x6f4`, `0x706`, `0x730`, `0x790`, `0x79c`, `0x7a0`, `0x7ac`, `0x7b2`, `0x828`,
 `0x838`, `0x8a2`, `0x8c8` are all forward). The single counted loop in the whole
-resource (`dbf %d4` at `0x1702`, top `0x16f4`) lives in the **`wGrow`** handler,
+resource (at `0x1702`, loop top `0x16f4`) lives in the **`wGrow`** handler,
 not the frame drawer. So the fine horizontal pinstripe is produced by a **single
 pattern-tiled `FillRect`** (`0xa8a5` @ `0x5d0`), with the stripe texture carried
-as the explicit 8-byte `Pattern` argument (`fp@(-316)`) — a **code-baked** pattern
+as the explicit 8-byte `Pattern` argument (the local title tile) — a **code-baked** pattern
 built into that local by `StuffHex` (`0xa866` @ `0x4ac`) from the Pascal hex string
 `"AA00AA00AA00AA00"` at file-offset `0x8f2`, **not** a copy of window-struct field
 `+58` — not drawn line by line. (There is **no `PaintRect`
-`0xa8a2` anywhere in the resource**; `grep -c a8a2` → 0.)
+`0xa8a2` anywhere in the resource**; the trap word occurs 0 times.)
 
 ### Where the pinstripe pattern comes from (the title tile is code-baked)
 
 The title-fill tile passed to `FillRect` @ `0x5d0` is **not** any window-struct
-field. It is **baked into the code** and built into the local `fp@(-316)` just
+field. It is **baked into the code** and built into a local title tile just
 before the fill:
 
-- `0x4a4`–`0x4ac`: `pea fp@(-316)` / `pea pc@(0x8f2)` / `StuffHex` (`0xa866` @
-  `0x4ac`) writes the 8 bytes `AA 00 AA 00 AA 00 AA 00` into `fp@(-316)` from the
-  Pascal hex string `"AA00AA00AA00AA00"` at file-offset `0x8f2`.
-- `0x4ae`–`0x536`: title-rect parity (`andl #1` / `andl #8`) drives a conditional
-  `notb` (`0x4e6`) and `lsrl #8` (`0x532`) that **phase-align** `fp@(-316)` so the
-  stipple stays seamless across the rect's screen position.
+- `0x4a4`–`0x4ac`: `StuffHex` (`0xa866` @ `0x4ac`), given the local title tile and
+  the hex string at file-offset `0x8f2`, writes the 8 bytes
+  `AA 00 AA 00 AA 00 AA 00` from the Pascal hex string `"AA00AA00AA00AA00"`.
+- `0x4ae`–`0x536`: title-rect parity (bit-0 / bit-3 mask tests) drives a conditional
+  byte inversion (`0x4e6`) and 8-bit shift (`0x532`) that **phase-align** the tile
+  so the stipple stays seamless across the rect's screen position.
 
 The shared message preamble *also* installs two `Pattern`s once, but these are
 the **pen** and **back** patterns for strokes/erases — **not** the title fill
 tile:
 
-- `0xc6`–`0xd0`: `moveal fp@(-44),a0` / `addal #58,a0` / `movel a0,sp@-` then
-  `PenPat` (`0xa89d` @ `0xd0`) — sets the **pen pattern** (used by stroking ops
-  like `LineTo`/`FrameRect`) from field **`+58`** of the **port-snapshot** copy
-  `fp@(-44)`. This is the *pen* texture, not the `FillRect` tile.
-- `0xd2`–`0xdc`: `moveal fp@(-44),a0` / `addal #32,a0` / `movel a0,sp@-` then
-  `BackPat` (`0xa87c` @ `0xdc`) — sets the **back pattern** from field **`+32`**.
+- `0xc6`–`0xd0`: `PenPat` (`0xa89d` @ `0xd0`) — sets the **pen pattern** (used by
+  stroking ops like `LineTo`/`FrameRect`) from field **`+58`** of the local
+  **port snapshot**. This is the *pen* texture, not the `FillRect` tile.
+- `0xd2`–`0xdc`: `BackPat` (`0xa87c` @ `0xdc`) — sets the **back pattern** from
+  field **`+32`** of the same snapshot.
 
-(Do not conflate the two roles of "field +58": the port-snapshot `fp@(-44)+58`
-above is an 8-byte *pen* `Pattern`, while the color-table `a3@+58` used later
-(`blend(a3@+50, a3@+58, 8)` @ `0x5b4` → `RGBForeColor` @ `0x5c0`) is an
+(Do not conflate the two roles of "field +58": the port-snapshot field `+58`
+above is an 8-byte *pen* `Pattern`, while the color-table field `+58` used later
+(`blend(ct+50, ct+58, 8)` @ `0x5b4` → `RGBForeColor` @ `0x5c0`) is an
 *RGBColor* fed as a fore-blend input. Neither is the title fill tile — that tile
-is the code-baked `AA00AA00AA00AA00` stipple in `fp@(-316)`.)
+is the code-baked `AA00AA00AA00AA00` stipple.)
 
 ### The title-rect fill itself (`0x392`–`0x5e8`)
 
-1. **Title rect derived** at `0x3a6`–`0x3ba`: `jsr 0xf38(varCode, window, &rect)`
-   writes the title-bar `Rect` into the local at **`fp@(-356)`** (`v1,h1,v2,h2`
-   = `fp@(-356),fp@(-354),fp@(-352),fp@(-350)`). Its height feeds `d5`
-   (`0x3be`: `(-352)-(-356)`) and width `d6` (`0x3c8`: `(-350)-(-354)`).
+1. **Title rect derived** at `0x3a6`–`0x3ba`: the title-rect helper
+   `0xf38(varCode, window, &rect)` writes the title-bar `Rect` (top, left,
+   bottom, right) into a local. Its height (bottom − top, `0x3be`) and width
+   (right − left, `0x3c8`) are kept for the later strokes.
 2. **Pen size 1×1** at `0x53a`–`0x542` (`PenSize(1,1)`, `0xa89b` @ `0x542`) — a
    one-pixel pen, consistent with a 1-px pinstripe period.
-3. **Screen-depth split** at `0x544`–`0x55a`: if the color table `a3` is null →
-   flat fallback `0x55c`; else `jsr 0x310` (= `GetMaxDevice` depth probe, see T6),
-   `cmpl #8`, `bge 0x570` takes the **deep-color path (≥8-bit screen + color
+3. **Screen-depth split** at `0x544`–`0x55a`: if the color table is null →
+   flat fallback `0x55c`; else `0x310` (= `GetMaxDevice` depth probe, see T6) is
+   called and a bucket `≥ 8` takes the **deep-color path at `0x570` (≥8-bit screen + color
    table)**. This is **not** an active/inactive test — there is no active/inactive
    branch anywhere in the draw routine `0x392`–`0x8ec`; the Window Manager swaps
    the color-table values per hilite state and re-issues `wDraw`. The **shallow /
    no-color-table flat fallback** (`0x55c`–`0x56c`) does a pattern-tiled `FillRect`
-   (`0xa8a5` @ `0x564`) of the title rect `fp@(-356)` with the `Pattern fp@(-316)`,
-   then a 1-px `FrameRect` (`0xa8a1` @ `0x56a`) of `fp@(-356)`, then `bra 0x694`
+   (`0xa8a5` @ `0x564`) of the title rect with the title tile,
+   then a 1-px `FrameRect` (`0xa8a1` @ `0x56a`) of the title rect, then continues at `0x694`
    (no blended colors, no bevel — it tiles the same baked pattern in the default
    port colors).
 4. **Deep-color fill** at `0x570`–`0x5e6`:
-   - `0x588` `jsr 0x1356` blends two RGBColors (color-table `+66` and `+74`,
-     weight 1) → into the temp at `fp@(-16)`, then `RGBBackColor`
+   - `0x588`: the blend helper `0x1356` blends two RGBColors (color-table `+66` and `+74`,
+     weight 1) into a temp color, then `RGBBackColor`
      (`0xaa15` @ `0x594`) sets it as the **back color**; `EraseRect` (`0xa8a3` @
-     `0x59a`) clears the title rect `fp@(-356)` to that back color.
-   - `0x5b4` `jsr 0x1356` blends struct `+50` with `+58` (weight 8) → fed to
+     `0x59a`) clears the title rect to that back color.
+   - `0x5b4`: `0x1356` blends struct `+50` with `+58` (weight 8) → fed to
      **`RGBForeColor`** (`0xaa14` @ **`0x5c0`**) = **fore-color slot A**, then
      `PenMode(9)` (`patOr`, `0xa89c` @ `0x5c6`).
-   - `0x5d0` **`FillRect(fp@(-356), pattern fp@(-316))`** (`0xa8a5`) — **THE
-     patterned pinstripe fill**: tiles the 8-byte `Pattern fp@(-316)` (the
+   - `0x5d0` **`FillRect(titleRect, title tile)`** (`0xa8a5`) — **THE
+     patterned pinstripe fill**: tiles the 8-byte title-tile `Pattern` (the
      code-baked `AA00AA00AA00AA00` stipple from `StuffHex` @ `0x4ac`) across the
      whole title rect in the current fore/back colors.
    - `0x5da` **`RGBForeColor`** (`0xaa14` @ **`0x5da`**) loads the color at struct
      **`+18`** = **fore-color slot B**, then `PenMode(8)` (`patCopy`, `0xa89c` @
      `0x5e0`).
-   - `0x5e6` **`FrameRect(fp@(-356))`** (`0xa8a1`) — draws the 1-px title-bar
+   - `0x5e6` **`FrameRect(titleRect)`** (`0xa8a1`) — draws the 1-px title-bar
      border outline (1×1 pen), **not** the fill.
 
 ### How the two stripe colors alternate
 
-There is **no parity test on a loop counter** (no `btst #0` / `andiw #1` gating a
-stripe index — the `andl #8`/`andl #1` tests at `0x4ba`/`0x4fe` instead **phase-
+There is **no parity test on a loop counter** (no bit-0 test gating a
+stripe index — the bit-3 / bit-0 mask tests at `0x4ba`/`0x4fe` instead **phase-
 align** the code-baked tile to the title rect's position, not select a stripe
 parity). Instead the alternation is **baked into the `Pattern`**: the two stripe
 colors are the port's **fore vs back color**, and the `Pattern`'s set/clear bits
@@ -271,43 +263,39 @@ fore-color +
 
 ### Pseudocode (my words)
 
-```
-# preamble (once per message), 0xc6..0xe2:
-PenPat (port[+58])              # 0xd0  pen pattern (strokes), from port-snapshot fp@(-44)+58
-BackPat(port[+32])              # 0xdc  back pattern
+Restated as an ordered list (the original pseudocode block is in the evidence
+file):
 
-# whole-frame draw, 0x392..0x5e8:
-titleRect = computeTitleRect(varCode, window)   # jsr 0xf38 -> fp@(-356)
-StuffHex(fp@(-316), "AA00AA00AA00AA00")          # 0x4ac  bake the title tile into fp@(-316)
-phaseAlign(fp@(-316), titleRect parity)          # 0x4ae..0x536  notb/lsr keep stipple seamless
-PenSize(1, 1)                                    # 0x542
-if colorTable == NULL or GetMaxDevice(title) < 8:    # bge 0x570 fails  (shallow / no-CT fallback)
-    FillRect(titleRect, fp@(-316))               # 0x564  <-- patterned fill (baked AA00 tile)
-    FrameRect(titleRect)                         # 0x56a  1-px border  (no bevel)
-else:                                                # deep-color path: >=8-bit screen + color table
-    backCol  = blend(ct[+66], ct[+74], 1)             # 0x588
-    RGBBackColor(backCol)                              # 0x594  -> stripe color B
-    EraseRect(titleRect)                               # 0x59a  clear to backCol
-    foreA    = blend(ct[+50], ct[+58], 8)              # 0x5b4  (ct[+58] is a COLOR, not the tile)
-    RGBForeColor(foreA); PenMode(patOr)                # 0x5c0 / 0x5c6  -> stripe color A
-    FillRect(titleRect, fp@(-316))                     # 0x5d0  <-- THE patterned pinstripe fill (baked AA00 tile)
-    RGBForeColor(ct[+18]); PenMode(patCopy)            # 0x5da / 0x5e0  (recolors pen for border only)
-    FrameRect(titleRect)                               # 0x5e6  1-px title-bar border outline
-```
+1. Preamble, once per message (`0xc6`–`0xe2`): pen pattern ← port-snapshot
+   field `+58` (`0xd0`); back pattern ← port-snapshot field `+32` (`0xdc`).
+2. Whole-frame draw (`0x392`–`0x5e8`): compute the title rect (`0xf38`); bake the
+   title tile from `"AA00AA00AA00AA00"` (`0x4ac`); phase-align it by title-rect
+   parity (`0x4ae`–`0x536`); `PenSize(1,1)` (`0x542`).
+3. If there is no color table, or the depth bucket of the title rect's deepest
+   device is below 8 (shallow / no-CT fallback): `FillRect(titleRect, title tile)`
+   (`0x564`), then `FrameRect(titleRect)` 1-px border, no bevel (`0x56a`).
+4. Otherwise (deep-color path: ≥8-bit screen + color table):
+   back ← `blend(ct+66, ct+74, 1)` (`0x588`), `RGBBackColor` (`0x594`, stripe
+   color B), `EraseRect(titleRect)` (`0x59a`); fore A ← `blend(ct+50, ct+58, 8)`
+   (`0x5b4`; `ct+58` is a COLOR, not the tile), `RGBForeColor` + `PenMode(patOr)`
+   (`0x5c0`/`0x5c6`, stripe color A); `FillRect(titleRect, title tile)` (`0x5d0`,
+   the patterned pinstripe fill); `RGBForeColor(ct+18)` + `PenMode(patCopy)`
+   (`0x5da`/`0x5e0`, recolors the pen for the border only); `FrameRect(titleRect)`
+   (`0x5e6`, 1-px title-bar border outline).
 
 ### Period / span / cross-check
 
 - **Period: now pinned from the baked bytes.** The tile is the **code-baked**
-  8-byte `Pattern` `AA 00 AA 00 AA 00 AA 00` (built into `fp@(-316)` by `StuffHex`
+  8-byte `Pattern` `AA 00 AA 00 AA 00 AA 00` (built into the local title tile by `StuffHex`
   @ `0x4ac`, passed to `FillRect` @ `0x5d0`), not a runtime resource value and not
-  an `addqw #N` loop (there is no loop). The 8 rows are: odd rows = `0xAA`
+  a counted step loop (there is no loop). The 8 rows are: odd rows = `0xAA`
   (`10101010` — fore at even columns), even rows = `0x00` (all back). That is a
   **2-row vertical period** stipple (fore-row / back-row), tiled in the fore/back
   colors and phase-aligned per title-rect parity (`0x4ae`–`0x536`). With
   `PenSize(1,1)` this reads as the classic fine Platinum title pinstripe.
-- **Y span:** the full title-bar height — `titleRect` top→bottom = `fp@(-356)`→
-  `fp@(-352)` (height in `d5`), as produced by `jsr 0xf38`.
-- **X span:** the full title-bar width — `fp@(-354)`→`fp@(-350)` (width in `d6`);
+- **Y span:** the full title-bar height — `titleRect` top→bottom (the title
+  height), as produced by `0xf38`.
+- **X span:** the full title-bar width — `titleRect` left→right (the title width);
   `FillRect` fills the whole rect edge to edge.
 - **Cross-check vs the look:** *consistent.* `PenSize(1,1)` + a tiled `Pattern` +
   a single full-rect `FillRect` is exactly how System 7/8 procs render fine
@@ -325,11 +313,11 @@ shifts of a content rect. It is three strokes layered onto two source rects: a
 `MoveTo`+2×`LineTo` polylines that lay down the bevel highlight/shadow — one
 around the **structure box** (bottom+right shadow only) and one around the
 **title rect** (a full 4-edge raised bevel). All bevel deltas are **inline
-`addqw`/`subqw` on the rect corner words** — the frame/bevel is **not** built by
+small add/subtract adjustments of the rect corner coordinates** — the frame/bevel is **not** built by
 `InsetRect`/`OffsetRect`-shifting a content rect. The only `InsetRect`s in the
 frame+bevel work are the ±1 brackets around the structure outline (`0x424`) and
 the title bevel (`0x618` set / `0x692` restore); every one is the standard
-`_InsetRect` trap `0xA8A9`, **not** `0xA8D5` (`grep a8d5|a8d4` → 0 anywhere; the
+`_InsetRect` trap `0xA8A9`, **not** `0xA8D5` (no `0xA8D5`/`0xA8D4` trap word occurs anywhere; the
 task brief's `0xa8d5/0xa8d4` are misnumbered). The remaining `0xA8A9` sites in
 `0x392`–`0x8ec` (`0x714`–`0x87a`) belong to the **Task-5 widget boxes**, not the
 frame — and confirm those widgets are rect-based (there are **no ovals** in this
@@ -337,22 +325,21 @@ resource).
 
 ### The two source rects
 
-- **`fp@(-364..-358)` = structure box** (`top=-364, left=-362, bottom=-360,
-  right=-358`). Copied fresh from the live **structure region** handle at window
-  `a4@(118)` → `a0@` (region record) `+2` (skip the `rgnSize` word) → the
-  `rgnBBox` (`0x406`–`0x416`: two `movel %a0@+,%a1@+`). Then **outset by 1 px on
-  all sides** via `InsetRect(rect, −1, −1)` (`0x418`–`0x424`).
-- **`fp@(-356..-350)` = title rect** (`top=-356, left=-354, bottom=-352,
-  right=-350`). Computed by `jsr 0xf38(varCode, window, &rect)` (`0x3b6`); see T3.
-  `d5 = title height (=titleH+1)` (`0x3be`: `bottom−top`), `d6 = title width`
-  (`0x3c8`: `right−left`).
+- **Structure box** (a local rect: top, left, bottom, right). Copied fresh from
+  the live **structure region** handle in the window record — the region's
+  `rgnBBox`, which follows the `rgnSize` word (`0x406`–`0x416`). Then **outset by
+  1 px on all sides** via `InsetRect(rect, −1, −1)` (`0x418`–`0x424`).
+- **Title rect** (a local rect: top, left, bottom, right). Computed by
+  `0xf38(varCode, window, &rect)` (`0x3b6`); see T3.
+  Title height (`=titleH+1`) is `bottom−top` (`0x3be`); title width is
+  `right−left` (`0x3c8`).
 
 ### Stroke 1 — outer structure outline (`FrameRect`, `0x434`)
 
-`PenSize(1,1)` (`0x42e`) then **`FrameRect(fp@(-364))`** (`0xa8a1` @ `0x434`):
+`PenSize(1,1)` (`0x42e`) then **`FrameRect(structureBox)`** (`0xa8a1` @ `0x434`):
 a 1-px outline of the structure box *outset by 1*. Color in force is set just
-above at `0x3ee`–`0x404`: if the aux record `a3 != 0`, `RGBForeColor(a3@(+18))`
-(`0xaa14` @ `0x3fa`) and `RGBBackColor(a3@(+10))` (`0xaa15` @ `0x404`). So the
+above at `0x3ee`–`0x404`: if the aux color table is present, `RGBForeColor(ct+18)`
+(`0xaa14` @ `0x3fa`) and `RGBBackColor(ct+10)` (`0xaa15` @ `0x404`). So the
 hard outer frame line uses **fore = aux field `+18`**, back = field `+10`.
 
 ### Stroke 2 — structure bottom+right shadow (LineTo cluster, `0x44a`–`0x49a`)
@@ -361,13 +348,13 @@ Same pen color as stroke 1 (no recolor between `0x404` and here). Branches on
 `varCode & 8` (`0x440`–`0x448`) — bit 3 picks **top-titlebar** vs
 **side-titlebar** geometry:
 
-- **top-titlebar** (`d4&8==0`, `0x44a`–`0x470`):
+- **top-titlebar** (`varCode&8==0`, `0x44a`–`0x470`):
   `MoveTo(structLeft+1, structBottom)` (`0x456`) →
   `LineTo(structRight, structBottom)` (`0x460`, **bottom edge**) →
-  `LineTo(structRight, structTop − d5 + 1)` (`0x470`, **right edge**, run all the
+  `LineTo(structRight, structTop − (titleHeight+1) + 1)` (`0x470`, **right edge**, run all the
   way up to the top of the title bar, `structTop − titleHeight`).
-- **side-titlebar** (`d4&8!=0`, `0x474`–`0x49a`): mirror — subtracts `d6`
-  (titleWidth) from `structLeft` instead, sweeping the bevel along the vertical
+- **side-titlebar** (`varCode&8!=0`, `0x474`–`0x49a`): mirror — subtracts the
+  title width from `structLeft` instead, sweeping the bevel along the vertical
   title channel.
 
 This is the classic Platinum **bottom-right outer shadow** — only two edges (the
@@ -376,20 +363,20 @@ read raised against the desktop.
 
 ### Stroke 3 — title-rect raised bevel (LineTo cluster, `0x60c`–`0x684`)
 
-Runs on the **deep-color path only** (it sits after the `bge 0x570` deep-color
-branch — ≥8-bit screen + color table; the bevel is **skipped** on the shallow /
+Runs on the **deep-color path only** (it sits after the depth-≥8 branch to
+`0x570` — ≥8-bit screen + color table; the bevel is **skipped** on the shallow /
 no-color-table flat fallback, see T3).
 `InsetRect(titleRect, 1, 1)` (`0x60c`) shrinks the title rect 1 px on every side,
 then two 2-segment polylines trace it in **two different colors** — the actual
 bevel:
 
-- **highlight = top + left edges**, color set at `RGBForeColor(fp@(-16))`
-  (`0xaa14` @ **`0x60a`**), where `fp@(-16)` ← `jsr 0x1356` blend of aux fields
+- **highlight = top + left edges**, color set by `RGBForeColor(blendTemp)`
+  (`0xaa14` @ **`0x60a`**), where the temp is the `0x1356` blend of aux fields
   **`+74`** and **`+98`** (weight 0, `0x5ee`–`0x5fe`):
   `MoveTo(left, bottom−1)` (`0x626`) → `LineTo(left, top)` (`0x630`, **left
   edge**, up) → `LineTo(right−1, top)` (`0x63e`, **top edge**, right).
-- **shadow = right + bottom edges**, color set at `RGBForeColor(fp@(-16))`
-  (`0xaa14` @ **`0x664`**), where `fp@(-16)` ← `jsr 0x1356` blend of aux fields
+- **shadow = right + bottom edges**, color set by `RGBForeColor(blendTemp)`
+  (`0xaa14` @ **`0x664`**), where the temp is the `0x1356` blend of aux fields
   **`+106`** and **`+98`** (weight 4, `0x640`–`0x658`):
   `LineTo(right−1, bottom−1)` (`0x676`, **right edge**, down) →
   `LineTo(left, bottom−1)` (`0x684`, **bottom edge**, left).
@@ -416,32 +403,27 @@ this section pins only the slot indices + the geometric light/dark roles.)
 
 ### Pseudocode (my words)
 
-```
-# structure box, 0x406..0x49a
-struct = window.structRgn.rgnBBox          # a4@(118) -> a0@ +2
-InsetRect(struct, -1, -1)                  # 0x424  outset 1px (outer frame ring)
-PenSize(1, 1)                              # 0x42e
-if aux:                                    # 0x3f0
-    RGBForeColor(aux[+18]); RGBBackColor(aux[+10])   # 0x3fa / 0x404
-FrameRect(struct)                          # 0x434  1px outer outline (top/left bright)
-if varCode & 8 == 0:                       # top-titlebar
-    MoveTo(struct.left+1, struct.bottom)             # 0x456
-    LineTo(struct.right,  struct.bottom)             # 0x460  bottom shadow
-    LineTo(struct.right,  struct.top - titleH + 1)   # 0x470  right shadow (up over titlebar)
-else:                                      # side-titlebar: subtract titleW from left
-    ...mirror...                                     # 0x474..0x49a
+Restated as an ordered list (the original pseudocode block is in the evidence
+file):
 
-# title-rect bevel (deep-color path only; skipped on shallow fallback), 0x60c..0x686
-InsetRect(title, 1, 1)                     # 0x60c  shrink 1px
-RGBForeColor(blend(aux[+74],  aux[+98], 0))          # 0x60a  highlight color
-MoveTo(title.left,    title.bottom-1)                # 0x626
-LineTo(title.left,    title.top)                     # 0x630  LEFT  edge (highlight)
-LineTo(title.right-1, title.top)                     # 0x63e  TOP   edge (highlight)
-RGBForeColor(blend(aux[+106], aux[+98], 4))          # 0x664  shadow color
-LineTo(title.right-1, title.bottom-1)                # 0x676  RIGHT edge (shadow)
-LineTo(title.left,    title.bottom-1)                # 0x684  BOTTOM edge (shadow)
-InsetRect(title, -1, -1)                   # 0x686  restore
-```
+1. Structure box (`0x406`–`0x49a`): take the window structure region's
+   `rgnBBox`; `InsetRect(struct, −1, −1)` (`0x424`, outset 1 px — the outer frame
+   ring); `PenSize(1,1)` (`0x42e`); if the aux color table exists (`0x3f0`),
+   `RGBForeColor(ct+18)` / `RGBBackColor(ct+10)` (`0x3fa`/`0x404`);
+   `FrameRect(struct)` (`0x434`, 1-px outer outline, top/left bright).
+2. Top-titlebar (`varCode & 8 == 0`): `MoveTo(struct.left+1, struct.bottom)`
+   (`0x456`) → `LineTo(struct.right, struct.bottom)` (`0x460`, bottom shadow) →
+   `LineTo(struct.right, struct.top − titleH + 1)` (`0x470`, right shadow, up over
+   the titlebar). Side-titlebar: the mirror, subtracting the title width from
+   left (`0x474`–`0x49a`).
+3. Title-rect bevel (deep-color path only; skipped on the shallow fallback,
+   `0x60c`–`0x686`): `InsetRect(title, 1, 1)` (`0x60c`); highlight color
+   `blend(ct+74, ct+98, 0)` (`0x60a`); `MoveTo(title.left, title.bottom−1)`
+   (`0x626`) → `LineTo(title.left, title.top)` (`0x630`, LEFT edge) →
+   `LineTo(title.right−1, title.top)` (`0x63e`, TOP edge); shadow color
+   `blend(ct+106, ct+98, 4)` (`0x664`); `LineTo(title.right−1, title.bottom−1)`
+   (`0x676`, RIGHT edge) → `LineTo(title.left, title.bottom−1)` (`0x684`, BOTTOM
+   edge); `InsetRect(title, −1, −1)` (`0x686`, restore).
 
 ### Structure → content inset reconciliation
 
@@ -450,8 +432,8 @@ the outer `FrameRect` is the structure box outset by 1 and stroked at
 `PenSize(1,1)`, i.e. the visible frame ring is a single pixel; the content rect
 is the structure box itself (the region builder `wCalcRgns 0xd92` partitions
 struct vs content — the body sits directly inside the 1-px outline). The **top
-inset is dominated by the title-bar height** carried in `d5` (= `titleHeight+1`,
-from `jsr 0xf38`), since the title rect is laid out as `[structTop − titleHeight
+inset is dominated by the title-bar height** (= `titleHeight+1`,
+from `0xf38`), since the title rect is laid out as `[structTop − titleHeight
 .. structTop+1]` (`0xf38` @ `0xfee`–`0xffa`: `bottom = top+1; top -= titleHeight`).
 
 So, as coded:
@@ -469,8 +451,8 @@ document window has it) is drawn elsewhere (`wGrow 0x1244`), not folded into the
 frame inset here.
 
 **Could-not-pin / open question.** The exact `structTop` semantics depend on a
-**runtime region** (`a4@(118)` `rgnBBox`), so the disassembly cannot prove the
-absolute title-bar height in pixels — `d5` is `titleHeight+1` where `titleHeight`
+**runtime region** (the window structure region's `rgnBBox`), so the disassembly cannot prove the
+absolute title-bar height in pixels — the title height is `titleHeight+1` where `titleHeight`
 itself comes from `0xf38`'s font-metric math (`0xf7a`–`0xfb6`: `GetFontInfo`-style
 ascent+descent+2, clamped to ≥10). The frame *deltas* (1 px sides; top = title +
 1) are firmly pinned; the literal title-bar pixel height is a runtime/font value
@@ -505,24 +487,24 @@ Geometry is **computed arithmetically** off the title rect ends (no art lookup).
 ### Widget dispatch in the frame-draw tail (`0x694`–`0x6ec`)
 
 The tail of the whole-frame drawer dispatches each widget on a separate gate. The
-master gate is `fp@(-20)` (the byte set at `0x3ea` from `RectInRgn 0xa8e9` @
+master gate is the title-visible flag (set at `0x3ea` from `RectInRgn 0xa8e9` @
 `0x3e6`: "title rect intersects the draw region"); if clear, all widgets skip.
-Then per-widget capability bits of the varCode `d4` select which boxes exist:
+Then per-widget capability bits of the varCode select which boxes exist:
 
-- **close box** (`0x694`–`0x6be`): guard `fp@(-20) != 0` **and** `a4@(112) != 0`
-  (the goAway-present byte in the aux record). Computes its rect via
-  `jsr 0x1018(d4, &titleRect fp@(-356), &boxRect fp@(-348))` (`0x6ac`) then draws
-  it with `jsr 0x904(aux a3, &boxRect fp@(-348))` (`0x6ba`).
-- **zoom box** (`0x6c0`–`0x6ea`): guard `d4 & 4` (`0x6c8`). Rect via
-  `jsr 0x110e(d4, &titleRect, window a4, &boxRect fp@(-340))` (`0x6d8`); drawn
-  with `jsr 0x9dc(aux a3, &boxRect fp@(-340))` (`0x6e6`).
-- **collapse box** (`0x6ec`–`0x786`): guard `d4 & 2` (`0x6f2`). Rect via
-  `jsr 0x11fc(window a4, &boxRect fp@(-332))` (`0x6fe`); drawn **inline** (no
+- **close box** (`0x694`–`0x6be`): guard title-visible **and** the goAway-present
+  byte (listing detail in evidence). Computes its rect via
+  `0x1018(varCode, &titleRect, &closeRect)` (`0x6ac`) then draws
+  it with `0x904(colorTable, &closeRect)` (`0x6ba`).
+- **zoom box** (`0x6c0`–`0x6ea`): guard `varCode & 4` (`0x6c8`). Rect via
+  `0x110e(varCode, &titleRect, window, &zoomRect)` (`0x6d8`); drawn
+  with `0x9dc(colorTable, &zoomRect)` (`0x6e6`).
+- **collapse box** (`0x6ec`–`0x786`): guard `varCode & 2` (`0x6f2`). Rect via
+  `0x11fc(window, &collapseRect)` (`0x6fe`); drawn **inline** (no
   sub-drawer) at `0x708`–`0x786`.
 
 (The block after the collapse box, `0x788`–`0x8e0`, is the **centered title
-text** — `TextFont/Face/Size/Mode` via `jsr 0x1478` @ `0x8dc`, `StringWidth` via
-`jsr 0x156e` @ `0x7fe` for truncation, gated by `d4 & 8` for top-vs-side
+text** — `TextFont/Face/Size/Mode` via `0x1478` @ `0x8dc`, `StringWidth` via
+`0x156e` @ `0x7fe` for truncation, gated by `varCode & 8` for top-vs-side
 titlebar. It is **not** a widget; cross-referenced here so the seven `InsetRect`
 sites are not mis-attributed.)
 
@@ -530,8 +512,8 @@ sites are not mis-attributed.)
 
 All three boxes are **7 px square** (the `SetRect` corners span 7 in both axes),
 vertically centered in the title bar, anchored to the title-rect ends. The
-helpers (top-titlebar branch, `d4 & 8 == 0`) compute, with `title = fp@(-356)`
-(`top@0,left@2,bottom@4,right@6`) and `vCenter = (title.top+title.bottom)/2`:
+helpers (top-titlebar branch, `varCode & 8 == 0`) compute, with `title` = the
+title rect (top, left, bottom, right) and `vCenter = (title.top+title.bottom)/2`:
 
 | box | helper | `SetRect` site | left | right | top | bottom | anchor |
 |---|---|---|---|---|---|---|---|
@@ -543,8 +525,8 @@ helpers (top-titlebar branch, `d4 & 8 == 0`) compute, with `title = fp@(-356)`
   `right = title.left+11`, `top = (title.top+title.bottom−7)/2`,
   `bottom = (title.top+title.bottom+7)/2`. So a 7×7 box, left edge 4 px inside the
   title bar's left end, vertically centered. Side-titlebar mirror at
-  `0x1098`–`0x10e0` swaps to `a2@(6)/a2@(2)` (right/left of a vertical title
-  channel). After `SetRect`, two `jsr 0x168e` clamp tests (`0x1084`, …) may
+  `0x1098`–`0x10e0` swaps to the title rect's right/left coordinates (of a vertical title
+  channel). After `SetRect`, two calls to the `0x168e` clamp test (`0x1084`, …) may
   `OffsetRect` (`0xa8a8` @ `0x1094`) the box back inside if the title bar is too
   short — a safety nudge, not a normal-case shift.
 - **Zoom** (`0x110e`, top path `0x112e`–`0x116e`): `left = title.right−11`,
@@ -552,11 +534,11 @@ helpers (top-titlebar branch, `d4 & 8 == 0`) compute, with `title = fp@(-356)`
   the **right** end. Two `0x168e`/`OffsetRect` (`0x1094`-style `0xa8a8` @ `0x1192`,
   `0x11ba`) clamps keep it (and keep it from overlapping the collapse box).
 - **Collapse** (`0x11fc`, `0x120c`–`0x123a`): copies the **window structRgn**
-  bbox (`window@(118)` handle → `+2` rgnBBox) into the out rect, then sets
+  `rgnBBox` into the out rect, then sets
   `top = bottom−7` and `left = right−7`, then `OffsetRect(rect, 1, 1)`
   (`0xa8a8` @ `0x123a`). i.e. a 7×7 box pinned to the right portion of that bbox
   span, nudged 1 px. **Open question:** `0x11fc` derives the collapse box from the
-  *structure* bbox rather than the title rect `fp@(-356)`; in a normal top-titlebar
+  *structure* bbox rather than the title rect; in a normal top-titlebar
   Platinum window the structRgn top row coincides with the title bar, so this
   lands the collapse box at the title-bar right edge just inboard of the zoom box —
   but the disassembly alone does not prove the two rects coincide for every
@@ -564,10 +546,10 @@ helpers (top-titlebar branch, `d4 & 8 == 0`) compute, with `title = fp@(-356)`
 
 ### Primitive sequence + color slots
 
-**Close box — sub-drawer `0x904`** (args: `a3` = box rect, `a4` = aux/blend
-record pointer):
+**Close box — sub-drawer `0x904`** (args: the box rect, and the aux/blend
+color-record pointer):
 
-- If `a4 == 0` (`0x914`): plain/disabled — `EraseRect(rect)` (`0xa8a3` @ `0x91a`)
+- If the color pointer is null (`0x914`): plain/disabled — `EraseRect(rect)` (`0xa8a3` @ `0x91a`)
   then `FrameRect(rect)` (`0xa8a1` @ `0x91e`); return. No bevel, no color set
   (uses the inherited port colors).
 - Else (the colored path, `0x924`–`0x9d2`):
@@ -581,7 +563,7 @@ record pointer):
   6. `RGBForeColor( blend(aux[+98], aux[+74], weight 0) )` — `0x1356` @ `0x99a`,
      `RGBForeColor 0xaa14` @ `0x9a6`. **Highlight color.**
   7. Top + left highlight polyline: `MoveTo(rect.left, rect.bottom)`
-     (`0xa893` @ `0x9b2`, reading `a3@(2),a3@(4)`) →
+     (`0xa893` @ `0x9b2`) →
      `LineTo(rect.top, rect.left)` (`0xa891` @ `0x9bc`) →
      `LineTo(rect.right, rect.top)` (`0xa891` @ `0x9c6`). (Two segments tracing the
      inner top/left edge = the raised highlight.)
@@ -592,7 +574,7 @@ record pointer):
 **Zoom box — sub-drawer `0x9dc`** (same args): structurally the close-box drawer
 **plus an inner glyph**.
 
-- If `a4 == 0` (`0x9ec`): `EraseRect` (`0xa8a3` @ `0x9f2`) + `FrameRect`
+- If the color pointer is null (`0x9ec`): `EraseRect` (`0xa8a3` @ `0x9f2`) + `FrameRect`
   (`0xa8a1` @ `0x9f6`), **then an inner-square glyph**: `MoveTo(left, top+3)`
   (`0xa893` @ `0xa04`) → `LineTo(left+3, top+3)` (`0xa891` @ `0xa16`) →
   `LineTo(left+3, top+3)`-style second leg (`0xa891` @ `0xa24`) — a small square
@@ -609,7 +591,7 @@ record pointer):
 
 **Collapse box — inline (`0x708`–`0x786`)**: same bevel idiom, drawn directly:
 
-- If aux `a3 == 0` (`0x706`): `InsetRect(rect, 1, 1)` (`0xa8a9` @ `0x714`),
+- If the aux color table is null (`0x706`): `InsetRect(rect, 1, 1)` (`0xa8a9` @ `0x714`),
   `EraseRect(rect)` (`0xa8a3` @ `0x71a`), `InsetRect(rect, −1, −1)`
   (`0xa8a9` @ `0x728`), `FrameRect(rect)` (`0xa8a1` @ `0x72e`) — plain face + frame.
 - Else (`0x732`–`0x786`): `RGBForeColor(aux[+18])` (`0xaa14` @ `0x73a`) then
@@ -626,7 +608,7 @@ record pointer):
 | zoom (`0x9dc`) | blend(`+66`,`+106`, w15) @ `0xa4e` | blend(`+74`,`+66`, w4) @ `0xa84` | blend(`+98`,`+74`, w0) @ `0xada` | inner square (`MoveTo`/`LineTo` @ `0xa96`/`0xaa8`/`0xab6`) |
 | collapse (inline) | `+18` @ `0x73a` | blend(`+98`,`+74`, w0) @ `0x764` | (none in normal pass) | (see open question) |
 
-(All `+NN` are byte offsets into the aux/blend record `a3`/`a4`; the literal RGBs
+(All `+NN` are byte offsets into the aux/blend color record; the literal RGBs
 and the `0x1356` blend-weight semantics are **Task 6**. The blend triples reuse
 the same aux fields as the title bevel: `+66/+74/+98/+106/+18`.)
 
@@ -635,129 +617,112 @@ the same aux fields as the title bevel: `+66/+74/+98/+106/+18`.)
 **Active vs inactive.** The whole-frame drawer has **no** active/inactive branch
 (see the authoritative "Active vs inactive title bar" section): the active-state
 look difference is supplied by the Window Manager swapping the `wctb` color values
-and redrawing. The drawer's only gate here is the **screen-depth** test (`jsr
-0x310` = `GetMaxDevice` + `bge` at `0x544`/`0x55a`, decoded in T3/T4), which
+and redrawing. The drawer's only gate here is the **screen-depth** test (`0x310`
+= `GetMaxDevice` depth bucket, tested at `0x544`/`0x55a`, decoded in T3/T4), which
 selects the deep-color vs flat-fallback *title fill and bevel*; the widget pass
 `0x694`–`0x786` runs on **both** depth paths — the boxes are drawn regardless of
 depth. The active/inactive *look difference* is carried
-entirely in the **color slots**: the colored sub-drawer path (`a4 != 0`) draws the
-beveled, highlighted box; the **`a4 == 0` path draws the flat fallback** (face +
-frame only, no highlight bevel). The `a4`/aux pointer is non-null only when the
-aux color record exists (set in `wNew 0x294`); on a window without it (or color QD
-absent) every box collapses to the plain `EraseRect`+`FrameRect` look. So
+entirely in the **color slots**: the colored sub-drawer path (non-null color
+pointer) draws the beveled, highlighted box; the **null-color-pointer path draws
+the flat fallback** (face + frame only, no highlight bevel). The aux color pointer
+is non-null only when the aux color record exists (set in `wNew 0x294`); on a
+window without it (or color QD absent) every box collapses to the plain
+`EraseRect`+`FrameRect` look. So
 "disabled/inactive" reads as the **un-beveled flat box** via the same code, not a
 separate branch. (Whether the slot colors themselves dim on inactive is Task 6.)
 
 **Pressed / highlighted.** The two procedural highlight drawers from the `param`
 sub-dispatch (T2). The widget↔part map (from `wHit 0xc84`) is the authoritative
-box↔part reference: part **3 = collapse** (`0x11fc` PtInRect → `moveq #3` @
+box↔part reference: part **3 = collapse** (`0x11fc` PtInRect → returns 3 @
 `0xcfc`), part **4 = close** (`0x1018` PtInRect, gated on the goAway byte
-`a0@(112)` → `moveq #4` @ `0xd80`), part **5 = zoom** (`0x110e` PtInRect, gated
-on `d3 & 4` → `moveq #5` @ `0xd42`). The pressed drawers route by those same
+→ returns 4 @ `0xd80`), part **5 = zoom** (`0x110e` PtInRect, gated
+on the `& 4` zoom-capability bit → returns 5 @ `0xd42`). The pressed drawers route by those same
 part codes:
 
 - **`0xb10` (close pressed, `param == 4`)**: recomputes the title rect
-  (`jsr 0xf38` @ `0xb2c` → `fp@(-24)`) and the **close** box rect via the close
-  geometry helper (`jsr 0x1018` @ `0xb3e` → `fp@(-16)`), then:
-  - if aux `a3 == 0` (`0xb46`): **`InvertRect(fp@(-16))`** (`0xa8a4` @ `0xb4e`) —
+  (`0xf38` @ `0xb2c`) and the **close** box rect via the close
+  geometry helper (`0x1018` @ `0xb3e`) into a local box rect, then:
+  - if the aux color table is null (`0xb46`): **`InvertRect(boxRect)`** (`0xa8a4` @ `0xb4e`) —
     a straight QuickDraw invert of the box (the cheap pressed look).
   - else, reads the global pressed-state byte at low-mem `0x0B20` bit 0 (`0xb52`):
     if set, recolor (`RGBBackColor(blend +66/+106 w15)` @ `0xb92`) +
-    `EraseRect(fp@(-16))` (`0xa8a3` @ `0xb98`) + `FrameRect` (`0xa8a1` @ `0xb9e`)
+    `EraseRect(boxRect)` (`0xa8a3` @ `0xb98`) + `FrameRect` (`0xa8a1` @ `0xb9e`)
     — fill the box with the *outline* color (inverted face); if clear, fall to
-    `jsr 0x904(aux, &fp@(-16))` (`0xba8`) to **redraw the box in its normal beveled
+    `0x904(colorTable, &boxRect)` (`0xba8`) to **redraw the box in its normal beveled
     look** (i.e. release back to unpressed) — `0x904` is the **close** normal
     drawer. So pressed = solid-filled (face swapped to the dark outline color);
     release = normal bevel.
-- **`0xbb6` (zoom pressed, `param == 5/6`)**: same shape — `jsr 0xf38` @
-  `0xbd2`, then `jsr 0x110e` @ `0xbe6` (the **zoom** geometry helper) to compute
-  the zoom box into `fp@(-16)`. `param & 8` (`0xbf6`) nudges the rect by ±1
-  (`addqw/subqw` @ `0xbfa`/`0xbfe` and `0xc68`/`0xc6c`) for the side-titlebar
-  variant. Then the same three-way: `a3 == 0` → `InvertRect` (`0xa8a4` @ `0xc0a`);
+- **`0xbb6` (zoom pressed, `param == 5/6`)**: same shape — `0xf38` @
+  `0xbd2`, then `0x110e` @ `0xbe6` (the **zoom** geometry helper) to compute
+  the zoom box into a local box rect. `param & 8` (`0xbf6`) nudges the rect by ±1
+  (at `0xbfa`/`0xbfe` and `0xc68`/`0xc6c`) for the side-titlebar
+  variant. Then the same three-way: null color table → `InvertRect` (`0xa8a4` @ `0xc0a`);
   `0x0B20` bit 0 set → recolor (`RGBBackColor(blend +66/+106 w15)` @ `0xc4e`) +
   `EraseRect` (`0xa8a3` @ `0xc54`) + `FrameRect` (`0xa8a1` @ `0xc5a`)
-  (filled-pressed); else `jsr 0x9dc(aux, &fp@(-16))` (`0xc76`) to redraw normal —
+  (filled-pressed); else `0x9dc(colorTable, &boxRect)` (`0xc76`) to redraw normal —
   `0x9dc` is the **zoom** normal drawer.
 
 The `0x0B20` byte is a **WDEF-private global "box is currently pressed" toggle**:
-the `param==4/5/6` stubs `eorib #1` it (`0x1f2`, `0x20c`) before calling the
-highlight drawer; `param==0` (whole frame) `andib #-2` clears it (`0x1e6`). So a
+the `param==4/5/6` stubs toggle its bit 0 (`0x1f2`, `0x20c`) before calling the
+highlight drawer; `param==0` (whole frame) clears bit 0 (`0x1e6`). So a
 track-and-release of a box flips the toggle so the highlight drawer alternates
 pressed-fill vs normal-bevel on each call — the standard Toolbox `TrackBox`/
 `TrackGoAway` "follow the mouse in/out" flicker, done procedurally.
 
 **The collapse box (part 3) has no pressed sub-drawer** — the `param` sub-dispatch
-`d3` switch at `0x1bc`–`0x1cc` only matches `4` (→ `0xb10`, close) and `5`/`6`
+switch at `0x1bc`–`0x1cc` only matches `4` (→ `0xb10`, close) and `5`/`6`
 (→ `0xbb6`, zoom); the collapse box never appears in it. The close and zoom boxes
 both have a procedural pressed drawer (`0xb10` / `0xbb6` above); the collapse box's
 in/out feedback is not drawn by this WDEF.
 
 ### Pseudocode (my words)
 
-```
-# frame-draw tail, 0x694..0x786 (after the title fill/bevel):
-if not titleVisible(fp@(-20)):           # RectInRgn @ 0x3e6
-    skip all widgets
+Restated as an ordered list (the original pseudocode block is in the evidence
+file):
 
-if titleVisible and aux.goAwayPresent (a4@112):     # 0x694..0x6be
-    closeRect = computeCloseRect(varCode, title)    # jsr 0x1018 -> fp@(-348)
-    drawBox(aux, closeRect, glyph=none)             # jsr 0x904
-
-if varCode & 4:                                      # 0x6c0..0x6ea
-    zoomRect = computeZoomRect(varCode, title, win)  # jsr 0x110e -> fp@(-340)
-    drawBox(aux, zoomRect, glyph=innerSquare)        # jsr 0x9dc
-
-if varCode & 2:                                      # 0x6ec..0x786
-    collapseRect = computeCollapseRect(win)          # jsr 0x11fc -> fp@(-332)
-    drawCollapseBoxInline(aux, collapseRect)         # 0x708..0x786
-
-# computeCloseRect (0x1018, top-titlebar):
-left  = title.left + 4;  right = title.left + 11     # 7px wide
-top   = (title.top + title.bottom - 7) / 2           # vCenter - 3.5
-bottom= (title.top + title.bottom + 7) / 2           # 7px tall
-clampInsideTitle(rect)                               # 0x168e + OffsetRect
-
-# computeZoomRect (0x110e, top): mirror at the right end
-left  = title.right - 11; right = title.right - 4
-top/bottom = same vertical center math
-clampInsideTitle(rect)
-
-# computeCollapseRect (0x11fc):
-rect = window.structRgn.rgnBBox                      # win@118 -> +2
-rect.top  = rect.bottom - 7;  rect.left = rect.right - 7
-OffsetRect(rect, 1, 1)                               # 0x123a
-
-# drawBox (0x904 close / 0x9dc zoom):
-if aux == 0:                                         # plain/disabled
-    EraseRect(rect); FrameRect(rect)
-    if zoom: drawInnerSquareGlyph(rect)              # 0x9dc only
-    return
-RGBForeColor(blend(aux[+66], aux[+106], 15))         # outline
-FrameRect(rect)
-InsetRect(rect, 1, 1)
-if zoom: drawInnerSquareGlyph(rect)                  # 0x9dc, in outline color
-RGBBackColor(blend(aux[+74], aux[+66], 4))           # face
-EraseRect(rect)                                      # fill face
-RGBForeColor(blend(aux[+98], aux[+74], 0))           # highlight
-MoveTo(left, bottom); LineTo(top,left); LineTo(right,top)   # top+left raised edge
-InsetRect(rect, -1, -1)
-
-# pressed highlight (0xb10 close / 0xbb6 zoom), per param sub-dispatch:
-recompute box rect (jsr 0xf38 + 0x1018 [close] / 0x110e [zoom])
-if aux == 0:           InvertRect(boxRect)           # cheap invert
-elif lowmem[0x0B20]&1: RGBBackColor(blend +66/+106 15); EraseRect; FrameRect   # pressed fill
-else:                  drawBox(aux, boxRect)         # release -> normal bevel
-```
+1. Frame-draw tail (`0x694`–`0x786`, after the title fill/bevel): if the title
+   rect is not visible (`RectInRgn` @ `0x3e6`), skip all widgets.
+2. If title-visible and the goAway-present byte is set (`0x694`–`0x6be`): close
+   rect ← `computeCloseRect(varCode, title)` (`0x1018`); draw it with the box
+   drawer, no glyph (`0x904`).
+3. If `varCode & 4` (`0x6c0`–`0x6ea`): zoom rect ← `computeZoomRect(varCode,
+   title, window)` (`0x110e`); draw with the box drawer plus the inner-square
+   glyph (`0x9dc`).
+4. If `varCode & 2` (`0x6ec`–`0x786`): collapse rect ← `computeCollapseRect(window)`
+   (`0x11fc`); draw inline (`0x708`–`0x786`).
+5. `computeCloseRect` (`0x1018`, top-titlebar): `left = title.left + 4`,
+   `right = title.left + 11` (7 px wide); `top = (title.top + title.bottom − 7)/2`
+   (vCenter − 3.5); `bottom = (title.top + title.bottom + 7)/2` (7 px tall); then
+   clamp inside the title (`0x168e` + `OffsetRect`).
+6. `computeZoomRect` (`0x110e`, top): the mirror at the right end —
+   `left = title.right − 11`, `right = title.right − 4`; same vertical center
+   math; same clamp.
+7. `computeCollapseRect` (`0x11fc`): rect ← the window structure region's
+   `rgnBBox`; `rect.top = rect.bottom − 7`; `rect.left = rect.right − 7`;
+   `OffsetRect(rect, 1, 1)` (`0x123a`).
+8. Box drawer (`0x904` close / `0x9dc` zoom): with no aux color record (plain /
+   disabled), `EraseRect` + `FrameRect` (zoom only: then the inner-square glyph)
+   and stop. Otherwise: outline `RGBForeColor(blend(ct+66, ct+106, 15))`,
+   `FrameRect`; `InsetRect(1,1)`; zoom only: the inner-square glyph in the
+   outline color (`0x9dc`); face `RGBBackColor(blend(ct+74, ct+66, 4))`,
+   `EraseRect`; highlight `RGBForeColor(blend(ct+98, ct+74, 0))`, then
+   `MoveTo(left, bottom)`; `LineTo(top, left)`; `LineTo(right, top)` (the top+left
+   raised edge); `InsetRect(−1,−1)`.
+9. Pressed highlight (`0xb10` close / `0xbb6` zoom, per `param` sub-dispatch):
+   recompute the box rect (`0xf38` + `0x1018` [close] / `0x110e` [zoom]). No aux
+   color record → `InvertRect(boxRect)` (cheap invert). Low-mem `0x0B20` bit 0
+   set → `RGBBackColor(blend +66/+106 15)`; `EraseRect`; `FrameRect` (pressed
+   fill). Otherwise → the box drawer (release → normal bevel).
 
 ### Cross-check: placement & the kDEF divergence
 
 - **Inside the title rect:** close `[title.left+4 .. title.left+11]` and zoom
   `[title.right-11 .. title.right-4]` both sit 4 px inboard of the title-bar ends,
   vertically centered on `(title.top+title.bottom)/2` with 7 px height — well
-  inside the title rect `fp@(-356)` (whose height is `d5 = titleHeight+1 ≥ 11` from
+  inside the title rect (whose height is `titleHeight+1 ≥ 11` from
   T4). **Close is at the left, zoom+collapse at the right.** ✔
 - **No overlap with the centered title text:** the title text region
-  (`0x788`–`0x8e0`) is centered and truncated with `StringWidth` (`jsr 0x156e`)
+  (`0x788`–`0x8e0`) is centered and truncated with `StringWidth` (`0x156e`)
   against the *available width between the boxes*; the close box ends at
   `title.left+11` and the right boxes start at `title.right-11`, leaving the
   middle for text. ✔ (The truncation math `0x804`–`0x834` measures the gap.)
@@ -792,11 +757,11 @@ The following collapse-specific hypotheses are superseded by the correction abov
   the asm reaches elsewhere, or (c) simply absent in this proc's normal state.
   Recorded as unresolved; confirm in Phase-B against the reference image.
 - **Collapse-box pressed feedback.** No `param` case targets the collapse box
-  (the `d3` switch at `0x1bc`–`0x1cc` only handles `4`→close `0xb10` and
+  (the `param` switch at `0x1bc`–`0x1cc` only handles `4`→close `0xb10` and
   `5`/`6`→zoom `0xbb6`); the collapse box has no procedural pressed drawer in this
-  WDEF. Stated, not pinned to a `0xADDR` (it is out of scope by design). (The close
+  WDEF. Stated, not pinned to an address (it is out of scope by design). (The close
   and zoom boxes *do* have pressed drawers — `0xb10` / `0xbb6` respectively.)
-- **`0x168e` clamp predicate.** The close/zoom helpers call `jsr 0x168e` (a
+- **`0x168e` clamp predicate.** The close/zoom helpers call `0x168e` (a
   small compare returning a flag) to decide whether to `OffsetRect` the box back
   inside a too-short title bar. The exact threshold inside `0x168e` was not fully
   decoded (it is a guard, not normal-case geometry); the normal-case rects above
@@ -813,42 +778,42 @@ fact that the WDEF only **reads** these fields — it never writes color values.
 
 ### Where the color record comes from (preamble, `0x114`–`0x152`)
 
-The color fields are **not** read from the local port copy `fp@(-44)` (that copy
+The color fields are **not** read from the local port snapshot (that copy
 feeds only the two `Pattern`s — see below). They come from the window's
 **auxiliary window record** and its attached color table:
 
-- `0x116`–`0x11c`: `GetAuxWin(window a2, &fp@(-12))` (`0xaa42`) — fetch the
+- `0x116`–`0x11c`: `GetAuxWin(window, &auxWinHandle)` (`0xaa42`) — fetch the
   `AuxWinHandle` for this window.
 - `0x120`–`0x126`: deref the handle, read **`auxWinRec + 8` = `awCTable`** (the
-  window's color-table handle) into `d0`.
-- `0x12a`–`0x132`: `a3 = *awCTable` (deref to the `ColorTable` body), then
-  `HLock` (`0xa029`) it. **`a3` is the base pointer every color blend reads from**
-  (`a3@(+NN)`). `a4` mirrors it.
+  window's color-table handle).
+- `0x12a`–`0x132`: deref `awCTable` to the `ColorTable` body, then
+  `HLock` (`0xa029`) it. **That body is the base every color blend reads from**
+  (fields `+NN`); a second copy of the pointer is kept for the widget path.
 - `0x14c`–`0x158`: a depth guard — read the `GDevice`/`PixMap` `pixelSize`
-  (`+32`); if `< 8` bits, **null out `a4`** so the deep-color widget path is
+  (`+32`); if `< 8` bits, **null out the widget-path copy** so the deep-color widget path is
   skipped on shallow screens.
 
 So the `+NN` offsets in the table below are **byte offsets into the window color
-table record** (`a3`), i.e. entries of the Appearance/`wctb` color set. Each entry
+table record**, i.e. entries of the Appearance/`wctb` color set. Each entry
 is a 6-byte `RGBColor` (3×`UInt16`), which is why the offsets step by 8 (6-byte
 color + 2-byte index/pad, the classic `ColorSpec` stride).
 
-### The two `Pattern`s come from a *different* record (`fp@(-44)`)
+### The two `Pattern`s come from a *different* record (a routine-local pattern record)
 
 The preamble's **`PenPat`** (`0xa89d` @ `0xd0`, field `+58`) and **`BackPat`**
-(`0xa87c` @ `0xdc`, field `+32`) read the local **port-snapshot** copy `fp@(-44)`
+(`0xa87c` @ `0xdc`, field `+32`) read the local **port-snapshot** copy
 (built at `0x26`/`0x2a` and field-copied around `0x46`–`0xc2`), **not** the
-`awCTable` (`a3`). These are *pattern* slots, not the pinstripe (see the
+`awCTable`. These are *pattern* slots, not the pinstripe (see the
 correction note below).
 
 ### Field → feature color table
 
 All blends call `0x1356` as `blend(A, B, w) → dest`, computing
 `dest = A + (B−A)·w/15` per channel (see next subsection). `w` is the small
-`moveq #w` pushed just before the call. Fields are byte offsets into the color
-table `a3`.
+weight constant pushed just before the call. Fields are byte offsets into the color
+table.
 
-| call `0xADDR` | trap | feature | field(s) → result | weight `w` | blended? |
+| call address | trap | feature | field(s) → result | weight `w` | blended? |
 |---|---|---|---|---|---|
 | `0x3fa` | `RGBForeColor` `aa14` | outer structure `FrameRect` fore | `+18` | — | no (direct) |
 | `0x404` | `RGBBackColor` `aa15` | outer structure `FrameRect` back | `+10` | — | no (direct) |
@@ -882,32 +847,30 @@ of each entry is **runtime data** (see "could-not-pin").
 
 ### The blend helper `0x1356` — the formula
 
-`0x1356` is a **per-channel linear interpolation between two `RGBColor`s**. Stack
-args (caller pushes in reverse): `A = fp@(8)`, `B = fp@(12)`, `w = fp@(16)` (a
-word), `dest = fp@(18)`. It loops the 3 RGB channels (counter `fp@(-16)` starts at
-3, advances each pointer by 2 at `0x1416`–`0x1422`).
+`0x1356` is a **per-channel linear interpolation between two `RGBColor`s**. Its
+arguments are `A` and `B` (the two input colors), the weight `w` (a word), and
+`dest`. It iterates the 3 RGB channels, advancing each color pointer by one
+16-bit channel per pass (`0x1416`–`0x1422`).
 
 Setup at `0x136e`–`0x1374`: `frac = w · 4369` as a 16.16 fixed-point fraction —
 `4369 = round(65536/15)`, so `frac ≈ w/15` of a full unit. Per channel
 (`0x139a`–`0x1414`):
 
-1. `delta = B.chan − A.chan` (sign tracked in the flag `fp@(-14)`; both branches
+1. `delta = B.chan − A.chan` (sign tracked in a local direction flag; both branches
    compute `|B−A|` and remember the direction).
-2. `scaled = (|delta| · frac) >> 16` via the fixed-point multiply `0x1656`
-   (`(d0·d1)>>16`), then `÷ 65535` via `0x167e`/`0x16bc` (a 32/16 unsigned
+2. `scaled = (|delta| · frac) >> 16` via the fixed-point multiply helper `0x1656`
+   (product `>> 16`), then `÷ 65535` via `0x167e`/`0x16bc` (a 32/16 unsigned
    divide). The `·4369 >>16` then `÷65535` pair is the compiler's rounded
    realization of "× w/15" (4369/65536 vs 1/15 differ by ~1.5e-5; the trailing
    ÷65535 trims the bias). Net: `scaled = round(|B−A| · w / 15)`.
 3. `dest.chan = A.chan ± scaled` (`+` if `B≥A`, `−` if `B<A`) — i.e.
    **`dest.chan = A.chan + (B.chan − A.chan) · w/15`**.
 
-So:
+So, for `w` in 0..15 and each channel `chan` in (r, g, b), the helper writes
+into `dest`:
 
 ```
-blend(A, B, w):                  # w in 0..15
-    for chan in (r, g, b):
-        dest.chan = A.chan + (B.chan - A.chan) * w / 15   # rounded
-    return dest                  # written to *fp@(18)
+dest.chan = A.chan + (B.chan - A.chan) * w / 15   # rounded
 ```
 
 Boundary behaviour (matches the weights used): `w=0 → dest = A`;
@@ -926,14 +889,14 @@ faithful formula.
 color table, which is pre-populated by the Window/Appearance Manager.** Evidence:
 
 - `wNew 0x294` allocates only a **16-byte** handle via `NewHandleClear`
-  (`0xa122` @ `0x2a2`) and stores it at `window+130`. It then fills that handle
+  (`0xa122` @ `0x2a2`) and stores it in the window record. It then fills that handle
   with **geometry only** — the port `portRect` bounds (`0x2b8`–`0x2c2`), an
   `OffsetRect` (`0xa8a8` @ `0x2d8`), and a copy of a low-mem rect
   (`0x2dc`–`0x2f0`). **No `RGBColor` is ever written.** This is the window's
   `WStateData` (zoom user/standard-state rects), not a color record.
 - The colors instead come from `GetAuxWin` (`0xaa42` @ `0x11c`) → `awCTable`
-  (`auxWinRec+8`) → the dereferenced color table `a3`. The WDEF only **reads**
-  `a3@(+NN)` and `HLock`s it; it performs no store into those offsets.
+  (`auxWinRec+8`) → the dereferenced color table. The WDEF only **reads**
+  color-table fields `+NN` and `HLock`s the table; it performs no store into those offsets.
 - Therefore the literal Platinum grays are **populated upstream** (the Window
   Manager builds the per-window `wctb` from the Appearance theme) and this proc is
   a pure consumer.
@@ -946,16 +909,16 @@ ISO recon already located a `wctb` plus `ppat`/`PAT` resources in the System fil
 ### Correction to the T3 pinstripe-source claim (cross-check)
 
 While consolidating the pattern path I found that the title-fill `Pattern`
-`fp@(-316)` is **not** a copy of color-table field `+58`. It is a **literal
+(the local title tile) is **not** a copy of color-table field `+58`. It is a **literal
 pattern baked into the code** and stuffed at draw time:
 
-- `0x4a4`–`0x4ac`: `StuffHex(&fp@(-316), pc@(0x8f2))` (`0xa866`). The source bytes
+- `0x4a4`–`0x4ac`: `StuffHex(&titleTile, hexString@0x8f2)` (`0xa866`). The source bytes
   at `0x8f2` are the ASCII string **`"AA00AA00AA00AA00"`** → the 8-byte `Pattern`
   `AA 00 AA 00 AA 00 AA 00` — the classic 1-px alternating-row pinstripe.
 - `0x4ae`–`0x536`: depending on the title rect's left/top **parity** (`& 1`) and
   `varCode & 8` (top-vs-side titlebar), the pattern bytes are conditionally
-  inverted (`notb` @ `0x4e6`) and/or byte-rotated (`lsr #8` @ `0x532`) to
-  **phase-align** the stripes to the pixel grid. (The `andl #1`/`andl #8` tests at
+  inverted (`0x4e6`) and/or shifted by 8 bits (`0x532`) to
+  **phase-align** the stripes to the pixel grid. (The `& 1`/`& 8` mask tests at
   `0x4ba`/`0x4c6`/`0x4fe` are this parity/phase logic — **not** active-state and
   **not** stripe-parity-in-a-loop.)
 
@@ -975,15 +938,15 @@ color table — it is `AA00AA00AA00AA00` in code at `0x8f2`.)
 - **Exact color-table layout** (`ColorSpec` index vs RGB ordering at each offset):
   inferred as 6-byte `RGBColor` entries on an 8-byte stride from the offset
   arithmetic; not proven byte-for-byte against a live table here.
-- **Trap `0xa910`** (preamble `0x2a`, fills the port snapshot `fp@(-44)`): the
+- **Trap `0xa910`** (preamble `0x2a`, fills the local port snapshot): the
   exact trap name is not pinned, but its role is clear — it produces the local
   CGrafPort-shaped snapshot whose `+58`/`+32` feed `PenPat`/`BackPat`. Colors do
   **not** come from it.
 
 ## Active vs inactive title bar
 
-**Key correction to the T3/T4 premise: `jsr 0x310` is NOT an active/inactive
-test — it is a screen bit-depth probe**, and the `bge 0x570` branch it gates is a
+**Key correction to the T3/T4 premise: `0x310` is NOT an active/inactive
+test — it is a screen bit-depth probe**, and the depth-≥8 branch to `0x570` it gates is a
 **deep-color-vs-shallow** switch, not active-vs-inactive.
 
 ### What `0x310` actually returns (decoded `0x310`–`0x390`)
@@ -993,13 +956,14 @@ test — it is a screen bit-depth probe**, and the `bge 0x570` branch it gates i
 `0x352`) to find the deepest `GDevice` intersecting the title bar. It reads that
 device's `PixMap.pixelSize` (`+32`) and returns a **bit-depth bucket**:
 
-- no device → **0** (`moveq #0` @ `0x35c`; behaviorally still the shallow path)
+- no device → **0** (`0x35c`; behaviorally still the shallow path)
 - `pixelSize < 4` (1/2-bit) → **1**
 - `pixelSize < 8` (4-bit) → **4**
 - else (≥ 8-bit) → **8**
 
-At the title fill (`0x544`–`0x55a`): if the color table `a3` is **null** →
-`beq 0x55c` (flat path); else call `0x310` and `cmpl #8 / bge 0x570` — i.e. the
+At the title fill (`0x544`–`0x55a`): if the color table is **null** →
+`0x55c` (flat path); else call `0x310` and branch to `0x570` when the bucket is
+`≥ 8` — i.e. the
 **blended color path runs only on ≥ 8-bit screens with a color table present**.
 The `0x55c` path is the **shallow-depth / no-color-table fallback**, not the
 inactive state.
@@ -1013,14 +977,14 @@ offsets* are identical regardless of active state. The conclusion the evidence
 supports:
 
 - The Window Manager **pre-loads different RGB values into the same color-table
-  entries** (`a3@(+NN)`) depending on whether the window is active, and re-issues
+  entries** (`+NN`) depending on whether the window is active, and re-issues
   the `wDraw` message when the highlight state changes. The WDEF reads the same
   offsets and blends them the same way; the *values* differ. This is consistent
   with the "WDEF is a pure consumer of the `wctb`" finding above.
 - The only state the WDEF itself tracks is the **pressed** (mouse-down) state of
   the close/zoom boxes, via the WDEF-private low-mem toggle at `0x0B20` (decimal
-  2848): the `param==4/5/6` stubs `eorib #1` it (`0x1f2`, `0x20c`); the
-  whole-frame `param==0` `andib #-2` clears it (`0x1e6`). The pressed drawers
+  2848): the `param==4/5/6` stubs toggle its bit 0 (`0x1f2`, `0x20c`); the
+  whole-frame `param==0` clears bit 0 (`0x1e6`). The pressed drawers
   (`0xb10`/`0xbb6`) read it to choose pressed-fill vs normal-bevel.
 
 ### What the *shallow / no-color-table* fallback looks like (the real branch)
@@ -1030,10 +994,10 @@ This is the one true two-way split in the title drawer, and it is depth/aux-driv
 
 | | deep path (`≥8-bit` + color table), `0x570`+ | fallback path (`<8-bit` or no table), `0x55c`–`0x56c` |
 |---|---|---|
-| title fill | `RGBBackColor(blend +66/+74 w1)` → `EraseRect`; `RGBForeColor(blend +50/+58 w8)` + `PenMode(patOr)` → `FillRect(pattern)` | `FillRect(titleRect, pattern fp@(-316))` in the **default port colors** (no `RGB*Color` set) |
+| title fill | `RGBBackColor(blend +66/+74 w1)` → `EraseRect`; `RGBForeColor(blend +50/+58 w8)` + `PenMode(patOr)` → `FillRect(pattern)` | `FillRect(titleRect, title tile)` in the **default port colors** (no `RGB*Color` set) |
 | title border | `RGBForeColor(+18)` + `PenMode(patCopy)` → `FrameRect` | plain `FrameRect(titleRect)` (default colors) |
-| title bevel (3a/3b) | highlight `blend(+74,+98,0)` + shadow `blend(+98,+106,4)` polylines | **skipped** (`bra 0x694` jumps past the bevel) |
-| widgets | colored beveled boxes (`a4 != 0` path in `0x904`/`0x9dc`) | flat `EraseRect`+`FrameRect` boxes (`a4 == 0` path) — `a4` was nulled at `0x158` when depth `< 8` |
+| title bevel (3a/3b) | highlight `blend(+74,+98,0)` + shadow `blend(+98,+106,4)` polylines | **skipped** (continues at `0x694`, past the bevel) |
+| widgets | colored beveled boxes (non-null color-pointer path in `0x904`/`0x9dc`) | flat `EraseRect`+`FrameRect` boxes (null color-pointer path) — the pointer was nulled at `0x158` when depth `< 8` |
 | pinstripe pattern | baked `AA00…`, phase-adjusted (`0x4ac`+) | same baked `AA00…` pattern |
 
 So on a shallow screen (or a window with no color table) the title bar is a single
@@ -1045,7 +1009,7 @@ treatment runs.
 ### Could-not-pin (Active vs inactive)
 
 - **The literal active vs inactive grays**: runtime data — the Window Manager
-  swaps the values behind the same `a3@(+NN)` offsets per highlight state. This
+  swaps the values behind the same color-table `+NN` offsets per highlight state. This
   WDEF contains **no** active/inactive color branch to decode; Phase B sources the
   two value sets from the active/inactive `wctb` (or the Appearance theme's
   active/inactive title-bar colors), same as the rest of the palette.
@@ -1057,9 +1021,9 @@ treatment runs.
 The contract `src/platinum.ts` builds against. Every value below is pinned in a
 section above (cited). Nothing here is new.
 
-| input | value | source / `0xADDR` |
+| input | value | source / address |
 |---|---|---|
-| **Title-bar height** | font-derived `ascent + descent + 2`, clamped `≥10` (then `d5 = titleHeight+1`) | `jsr 0xf38` (font math `0xf7a`–`0xfb6`, layout `0xfee`–`0xffa`) → `fp@(-356)`; height to `d5` @ `0x3be` |
+| **Title-bar height** | font-derived `ascent + descent + 2`, clamped `≥10` (then the kept title height is `titleHeight+1`) | `0xf38` (font math `0xf7a`–`0xfb6`, layout `0xfee`–`0xffa`) → the title rect; height taken @ `0x3be` |
 | **Frame inset — left** | 1 px | structure box stroked at `PenSize(1,1)` (`0x42e`), `FrameRect` @ `0x434` |
 | **Frame inset — right** | 1 px | same (`0x434`) |
 | **Frame inset — bottom** | 1 px | same (`0x434`) |
@@ -1068,35 +1032,35 @@ section above (cited). Nothing here is new.
 | **Bevel — stroke order** | (1) outer `FrameRect` ring, (2) structure bottom+right shadow polyline, (3a) title top+left highlight, (3b) title bottom+right shadow | `0x434` / `0x44a`–`0x49a` / `0x60c`–`0x684` |
 | **Bevel — per-edge light/dark** | **raised**: top/left = light (highlight), bottom/right = dark (shadow) | title bevel 3a `0x60a` (top+left), 3b `0x664` (bottom+right) |
 | **Bevel — inset deltas** | title bevel: `InsetRect(+1,+1)` before (`0x60c`), `InsetRect(−1,−1)` restore (`0x686`); 1-px pen | `0x60c` / `0x686`, `PenSize(1,1)` |
-| **Pinstripe pattern** | code-baked 8-byte `Pattern` **`AA00AA00AA00AA00`** (odd rows `0xAA`, even rows `0x00`) = **2-row vertical period**; phase-aligned by title-rect parity | `StuffHex(fp@(-316), pc@(0x8f2))` (`0xa866` @ `0x4ac`); phase `0x4ae`–`0x536` |
+| **Pinstripe pattern** | code-baked 8-byte `Pattern` **`AA00AA00AA00AA00`** (odd rows `0xAA`, even rows `0x00`) = **2-row vertical period**; phase-aligned by title-rect parity | `StuffHex(titleTile, hexString@0x8f2)` (`0xa866` @ `0x4ac`); phase `0x4ae`–`0x536` |
 | **Pinstripe pen** | `PenSize(1,1)` (1×1) | `0xa89b` @ `0x542` |
-| **Pinstripe fill** | one pattern-tiled `FillRect(titleRect, fp@(-316))` (no scanline loop) | `0xa8a5` @ `0x5d0` (deep), `0x564` (flat) |
+| **Pinstripe fill** | one pattern-tiled `FillRect(titleRect, title tile)` (no scanline loop) | `0xa8a5` @ `0x5d0` (deep), `0x564` (flat) |
 | **Widgets** | 3 boxes, each **7×7 px**, vertically centered, shared box-bevel idiom (`FrameRect` outline + `EraseRect` face + top/left highlight polyline) | geometry helpers `0x1018`/`0x110e`/`0x11fc`; drawers `0x904`/`0x9dc` |
 | **— close box** | `left = title.left+4`, `right = title.left+11` (4 px from LEFT end) | `SetRect` `0xa8a7` @ `0x1074` (helper `0x1018`) |
 | **— zoom box** | `left = title.right−11`, `right = title.right−4` (4 px from RIGHT end) + inner-square glyph | `SetRect` `0xa8a7` @ `0x116e` (helper `0x110e`); glyph `MoveTo`/`LineTo` @ `0xa96`/`0xaa8`/`0xab6` |
 | **— collapse box** | structRgn bbox corner: `top = bottom−7`, `left = right−7`, then `OffsetRect(1,1)` | helper `0x11fc`; `OffsetRect` `0xa8a8` @ `0x123a` |
-| **Color model** | colors are **runtime data** from the window `wctb` via `GetAuxWin` → `awCTable` → `a3`; the WDEF only reads `a3@(+NN)`, never writes RGB | `GetAuxWin` `0xaa42` @ `0x11c`; deref/`HLock` @ `0x12a` |
+| **Color model** | colors are **runtime data** from the window `wctb` via `GetAuxWin` → `awCTable` → the color table; the WDEF only reads color-table fields `+NN`, never writes RGB | `GetAuxWin` `0xaa42` @ `0x11c`; deref/`HLock` @ `0x12a` |
 | **— color slots used** | `+10`, `+18`, `+26` (direct), `+50`, `+58`, `+66`, `+74`, `+98`, `+106` (blend inputs) | per the [Color sourcing field→feature table](#field--feature-color-table) |
-| **— blend helper** | `0x1356`: per-channel `dest = A + (B−A)·w/15` (rounded; `w` in 0..15) | `jsr 0x1356`; formula `0x136e`–`0x1414` |
+| **— blend helper** | `0x1356`: per-channel `dest = A + (B−A)·w/15` (rounded; `w` in 0..15) | calls to `0x1356`; formula `0x136e`–`0x1414` |
 | **— field→feature map** | see the [Color sourcing field→feature table](#field--feature-color-table) (one row per `RGBForeColor`/`RGBBackColor` site) | Color sourcing |
 | **— literal RGB** | **NOT in this resource** — runtime `wctb` / Appearance theme | (see could-NOT-pin) |
-| **Screen-depth gate** | deep path requires `≥8`-bit screen **and** a color table; else shallow flat fallback (no bevel, no colored widgets) | depth probe `jsr 0x310` (`GetMaxDevice` `0xaa27` @ `0x352`); gate `cmpl #8 / bge 0x570` @ `0x544`–`0x55a`; aux nulled `<8`-bit @ `0x158` |
+| **Screen-depth gate** | deep path requires `≥8`-bit screen **and** a color table; else shallow flat fallback (no bevel, no colored widgets) | depth probe `0x310` (`GetMaxDevice` `0xaa27` @ `0x352`); gate bucket `≥ 8` → `0x570` @ `0x544`–`0x55a`; widget color pointer nulled `<8`-bit @ `0x158` |
 
 ## Confirmed (instruction-decoded) vs could-NOT-pin
 
 ### Solidly confirmed (instruction-decoded + reviewed)
 
-- **Message dispatch.** Sparse `cmpl`/`beq` chain at `0x166` (no jump table);
+- **Message dispatch.** Sparse compare-and-branch chain at `0x166` (no jump table);
   msg→routine map (0=wDraw `0x392`, 1=wHit `0xc84`, 2=wCalcRgns `0xd92`, 3=wNew
   `0x294`, 4=wDispose `0x130c`, 5=wGrow `0x1244`, 6=wDrawGIcon no-op); wDraw
   `param` sub-dispatch (`0→0x392`, `4→0xb10`, `5/6→0xbb6`) guarded by
-  `tstb a2@(110)`. Trap-fingerprint cross-check confirms the frame-drawer and
+  a window-record guard byte. Trap-fingerprint cross-check confirms the frame-drawer and
   region-builder labels.
 - **Title fill mechanism.** A single pattern-tiled `FillRect` (`0xa8a5` @ `0x5d0`),
-  **no** scanline `MoveTo`/`LineTo` loop and **no** `PaintRect` (`grep -c a8a2` →
-  0); no backward branch in `0x392`–`0x8ec`.
+  **no** scanline `MoveTo`/`LineTo` loop and **no** `PaintRect` (the `0xa8a2` trap
+  word occurs 0 times); no backward branch in `0x392`–`0x8ec`.
 - **Pinstripe pattern + period.** Code-baked `AA00AA00AA00AA00` via `StuffHex`
-  (`0xa866` @ `0x4ac`) into `fp@(-316)`; 2-row vertical period; `PenSize(1,1)`;
+  (`0xa866` @ `0x4ac`) into the local title tile; 2-row vertical period; `PenSize(1,1)`;
   parity phase-alignment (`0x4ae`–`0x536`) — not a runtime resource value.
 - **Frame & bevel geometry.** Structure bbox copy + `InsetRect(−1,−1)` outset 1 px
   (`0x424`), 1-px `FrameRect` outer ring (`0x434`), bottom+right shadow polyline
@@ -1113,11 +1077,11 @@ section above (cited). Nothing here is new.
 - **Blend formula.** `0x1356` = per-channel `dest = A + (B−A)·w/15` (the `·4369
   >>16` then `÷65535` realization, `0x136e`–`0x1414`); boundary `w=0→A`,
   `w=15→≈B`.
-- **Depth gate.** `jsr 0x310` = `GetMaxDevice` (`0xaa27` @ `0x352`) depth bucket;
-  `cmpl #8 / bge 0x570` selects deep-color vs shallow flat fallback; aux `a4`
-  nulled `<8`-bit (`0x158`). This is a depth split, **not** an active/inactive
+- **Depth gate.** `0x310` = `GetMaxDevice` (`0xaa27` @ `0x352`) depth bucket;
+  bucket `≥ 8` → `0x570` selects deep-color vs shallow flat fallback; the
+  widget color pointer is nulled `<8`-bit (`0x158`). This is a depth split, **not** an active/inactive
   branch.
-- **Color-as-data.** Every drawn color is read from the window color table (`a3`)
+- **Color-as-data.** Every drawn color is read from the window color table
   via `GetAuxWin`→`awCTable` and (mostly) blended; the WDEF authors no RGB.
   `wNew 0x294` allocates a 16-byte handle written with **geometry only**
   (`WStateData`), never colors.
@@ -1129,7 +1093,7 @@ section above (cited). Nothing here is new.
   `wctb`/theme (the ISO recon located a `wctb` + `ppat`/`PAT` in the System file).
   Expected outcome, not a failure.
 - **Superseded: collapse-box source-rect coincidence.** The earlier interpretation that `0x11fc` derives a collapse box from
-  the **structure-region bbox**, not the title rect `fp@(-356)`. For a standard
+  the **structure-region bbox**, not the title rect. For a standard
   top-titlebar window these top rows coincide, landing it inboard of the zoom box,
   but the asm does not prove the two rects coincide for all varCodes. → Verify in
   the Phase-B render.
@@ -1138,20 +1102,20 @@ section above (cited). Nothing here is new.
   bar found there (unlike the zoom inner square). May be face-color, a shared icon
   reached elsewhere, or absent in the normal state. → Confirm in Phase-B against
   the reference image.
-- **`0x168e` clamp predicate.** The close/zoom helpers call `jsr 0x168e` to decide
+- **`0x168e` clamp predicate.** The close/zoom helpers call `0x168e` to decide
   whether to `OffsetRect` a box back inside a too-short title bar; the exact
   threshold inside `0x168e` was not fully decoded (a guard, not normal-case
   geometry). The normal-case rects are firmly pinned.
 - **Color-table byte layout.** Inferred as 6-byte `RGBColor` entries on an 8-byte
   (`ColorSpec`) stride from the offset arithmetic; not proven byte-for-byte against
   a live table here.
-- **Absolute title-bar pixel height.** `d5 = titleHeight+1` where `titleHeight`
+- **Absolute title-bar pixel height.** The kept title height is `titleHeight+1` where `titleHeight`
   comes from `0xf38`'s font-metric math (`ascent+descent+2`, clamped `≥10`); the
   *deltas* are pinned but the literal pixel height is a runtime/font value.
 - **Collapse-box pressed feedback.** No `param` case targets the collapse box
-  (the `d3` switch `0x1bc`–`0x1cc` handles only `4`→close, `5`/`6`→zoom); the
+  (the `param` switch `0x1bc`–`0x1cc` handles only `4`→close, `5`/`6`→zoom); the
   collapse box has no procedural pressed drawer in this WDEF (out of scope by
-  design — stated, not pinned to a `0xADDR`).
+  design — stated, not pinned to an address).
 
 ## Phase-B faithfulness-ledger seed
 
@@ -1162,7 +1126,7 @@ Status is **planned** (Phase A decode only; Phase B implements).
 
 Legend: ✓ planned-faithful · ≈ planned-approximation · ✗ deliberately not ported.
 
-| WDEF routine `0xADDR` | role | planned `src/platinum.ts` impl | status (planned) | divergence / notes |
+| WDEF routine address | role | planned `src/platinum.ts` impl | status (planned) | divergence / notes |
 |---|---|---|---|---|
 | `0x166` (+ `0x1ac` sub-dispatch) | message dispatch + wDraw `param` route | `dispatch(msg, param)` switch | ✓ | Direct port of the sparse switch; `param` 0/4/5/6 → whole-frame / close-pressed / zoom-pressed. |
 | `0xf38` | title-rect + font-derived height (`ascent+descent+2`, `≥10`) | `computeTitleRect` / `titleHeight` | ✓ | Height is a font/runtime value; Phase B supplies font metrics. |

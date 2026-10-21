@@ -58,3 +58,24 @@ anchor cell's DEST span to that **measured title-text width**, centred (`0x5034`
   so verify against the asm when they disagree with a reference render.)
 - `diagnostic-tooling.md` — the in-browser slice inspector + the
 ```
+
+## Further original passages restated in place (moved verbatim during the completeness pass)
+
+### Title TEXT + plate (original, old lines 152–152)
+
+````text
+($A888), gates it (title-fits at `0x4f58`), then sizes the title-
+````
+
+## Fill classification table (code 10 row) (original)
+
+````text
+always on non-title sides (`#1`).
+````
+
+## code 10 note (original)
+
+````text
+non-title sides pass flag `#1`
+
+````

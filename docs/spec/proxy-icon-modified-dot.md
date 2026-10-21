@@ -4,6 +4,8 @@
 
 Date: 2026-05-29.
 
+*Listing-level narrative (registers, frame offsets, instruction excerpts) for this document lives in [`engine/proxy-icon-modified-dot.evidence.md`](engine/proxy-icon-modified-dot.evidence.md) — spec writers and verifiers only.*
+
 ## Apple's documented enum (the answer to "what is the proxy / dirty widget?")
 
 From Universal Interfaces 3.4 `CIncludes/Appearance.h:618-623` (cached locally at `/tmp/Appearance.h`):
@@ -25,24 +27,21 @@ typedef UInt16 ThemeTitleBarWidget;
 
 ## 2.3.1 kDEF call sites (`.scratch/k231-kdef/kDEF/id-1.bin`, PowerPC)
 
-PEF imports verified via `/tmp/pef-imports.py`:
-
-```
-Lib 4: WindowsLib  firstSym=213 count=2
-  Sym 213: GetWindowProxyIcon  (class=0x82 TVect)
-  Sym 214: IsWindowModified    (class=0x82 TVect)
-```
-
-Loader-reloc replay (`/tmp/pef-relocs.py`) places the resolved TVect pointers at:
+The PEF import table lists library 4 as WindowsLib (first symbol 213, count 2):
+symbol 213 `GetWindowProxyIcon` and symbol 214 `IsWindowModified`, both of
+class `0x82` (TVect). Replaying the loader relocations places the resolved TVect
+pointers at:
 
 | Data offset | Import |
 |---|---|
 | `0x354` | `GetWindowProxyIcon` |
 | `0x358` | `IsWindowModified` |
 
-…which the code reaches via the standard CFM glue stubs at `0x26b88` (`lwz r12, 0x354(r2)`) and `0x26c30` (`lwz r12, 0x358(r2)`).
+…which the code reaches via the standard CFM glue stubs at `0x26b88` (loads the
+`0x354` slot) and `0x26c30` (loads the `0x358` slot). The import/relocation
+tooling is recorded in the evidence appendix.
 
-### All call sites (from `bl 0x26b88` / `bl 0x26c30`)
+### All call sites (calls to the `0x26b88` / `0x26c30` stubs)
 
 ```
 GetWindowProxyIcon  callers:  0x14fc, 0x1b80, 0x5648, 0x188ac, 0x18bec,
@@ -55,62 +54,39 @@ The two **paired** sites (proxy + modified back-to-back, feeding the same icon-d
 
 ### Decoded paired site (`0x22be0..0x22c78`)
 
-```asm
-                                          ; (rect math: shrink frame to 16x16 slot
-                                          ;  centred to the left of the title text)
-0x22c00:  addi   r3, r31, 0               ; r3 = window ptr
-0x22c04:  addi   r4, r1, 0x44             ; r4 = &IconRef out-handle
-0x22c08:  bl     GetWindowProxyIcon       ;   → r1+0x44 receives IconRef
-0x22c10:  li     r28, 0                   ; r28 = transform flags (0 = normal)
-0x22c14:  addi   r3, r31, 0
-0x22c18:  bl     IsWindowModified         ;   → r3 = bool
-0x22c20:  clrlwi. r0, r3, 0x18
-0x22c24:  beq    0x22c2c
-0x22c28:  li     r28, 1                   ; modified → transform = kTransformDisabled?
-                                          ;            (likely kTransformOpenFolder=2 or
-                                          ;             a modified-document transform = 1)
-0x22c2c:  lbz    r0, 0x590(r2)            ; global "window inactive" flag
-0x22c30:  cmplwi r0, 0
-0x22c34:  beq    0x22c3c
-0x22c38:  addi   r28, r28, 0x4000         ; inactive → OR kTransformDisabled (0x4000)
-                                          ; (matches IconServicesLib transform bits)
-0x22c3c:  …(build rect at +0x10..+0x10 → 16x16 icon slot)…
-0x22c48:  mr     r5, r28                  ; r5 = transform
-0x22c4c:  addi   r3, r1, 0x38             ; r3 = &iconRect
-0x22c50:  li     r4, 1                    ; r4 = kAlignAbsoluteCenter or kAlignNone (=1)
-0x22c54:  …                                ; r6 = 0 (services)
-0x22c70:  lwz    r7, 0x44(r1)             ; r7 = the IconRef returned earlier
-0x22c78:  bl     PlotIconRef              ; (TOC 0x64 = PlotIconRef, IconServicesLib)
-```
+Behaviour of the paired site:
 
-**Effective C-equivalent:**
+1. Rect math shrinks the frame to a 16x16 slot centred to the left of the title
+   text.
+2. `GetWindowProxyIcon` (call at `0x22c08`) is passed the window and returns
+   the window's IconRef.
+3. The transform starts at 0. If `IsWindowModified` (call at `0x22c18`) returns
+   true, the transform becomes 1 (its IconServices name is not pinned: the
+   listing note suggests a modified-document transform = 1, with
+   kTransformOpenFolder=2 / kTransformDisabled also queried (?)).
+4. If the kDEF's global "window inactive" flag is nonzero (test at `0x22c2c`),
+   `0x4000` (kTransformDisabled, matching the IconServicesLib transform bits) is
+   added to the transform — dim when inactive.
+5. `PlotIconRef` (call at `0x22c78`; TOC `0x64` = PlotIconRef, IconServicesLib)
+   draws the IconRef into the 16x16 rect with alignment value 1
+   (kAlignAbsoluteCenter or kAlignNone (=1)), the transform, and usage flags 0
+   (kIconServicesNormalUsageFlag).
 
-```c
-IconRef ref;
-GetWindowProxyIcon(theWindow, &ref);
-short transform = IsWindowModified(theWindow) ? 1 : 0;
-if (g_windowInactive) transform |= 0x4000;   /* dim when inactive */
-Rect r = /* 16x16 slot, left of title text */;
-PlotIconRef(&r, kAlignAbsoluteCenter, transform, kIconServicesNormalUsageFlag, ref);
-```
+The 16x16 slot is built by offsetting the slot corners by `0x10` in both
+dimensions — i.e. a standard small-icon (`ics`-family) box flush against the
+leading edge of the title text.
 
-The 16x16 slot is built by extending `(r3, r0)` by `0x10` in both dimensions (`addi r7, r7, 0x10`, `addi r0, r8, -0x10`) — i.e. a standard small-icon (`ics`-family) box flush against the leading edge of the title text.
+### Scheme-side gate (`0x23b20`)
 
-### Scheme-side gate (`bl 0x23b20`)
-
-The second paired site (`0x230f4`) is reached only if `0x23b20` returns true. That routine at the top:
-
-```asm
-0x23b28:  lis  r4, 0x7769          ; 'wi'
-0x23b34:  addi r3, r4, 0x6e64      ; 'wind'  →  FourCC 'wind'
-0x23b40:  bl   0x25c70             ; (helper that GetResource's 'wind' by id)
-```
+The second paired site (`0x230f4`) is reached only if `0x23b20` returns true. That
+routine begins (`0x23b28..0x23b40`) by forming the FourCC `'wind'` and calling the
+helper at `0x25c70`, which GetResource's `'wind'` by id.
 
 This is the **opt-in marker**: the kDEF queries the scheme's `wind` resource for the current window kind, and only paints a proxy icon when the scheme has declared support. **Our corpus ships no `wind` resources** (verified via `themes/<slug>/resource-roles.json` and `extraction-manifest.json` — only `wnd#`, `cinf`, `cicn`, `clut`, `actb`, `ics4/8`, `ppat`, `WDEF`, `pWin`). So the gate is closed for every corpus bundle by construction.
 
 ## 1.8.2 cross-check
 
-`grep -c GetWindowProxyIcon` and `grep -c IsWindowModified` against `.scratch/k182-kdef/kDEF/id-1.bin`: **zero matches each.** 1.8.2 does not import either symbol. Proxy-icon support is a strict 2.3.1 addition, riding the AppearanceLib/WindowsLib delta documented in `docs/spec/kdef-binary-inventory.md §6`.
+Neither `GetWindowProxyIcon` nor `IsWindowModified` occurs in the 1.8.2 kDEF (`.scratch/k182-kdef/kDEF/id-1.bin`): **zero matches each.** 1.8.2 does not import either symbol. Proxy-icon support is a strict 2.3.1 addition, riding the AppearanceLib/WindowsLib delta documented in `docs/spec/kdef-binary-inventory.md §6`.
 
 ## Corpus reference-image survey
 
@@ -184,26 +160,11 @@ Until those preconditions are met, **no code, just this doc**.
 
 ## Reproducing the analysis
 
-```sh
-# (1) Confirm 2.3.1 imports the symbols, 1.8.2 doesn't.
-strings .scratch/k231-kdef/kDEF/id-1.bin | grep -E 'GetWindowProxyIcon|IsWindowModified'
-strings .scratch/k182-kdef/kDEF/id-1.bin | grep -E 'GetWindowProxyIcon|IsWindowModified'  # empty
-
-# (2) Locate TOC slots + glue stubs.
-python3 /tmp/pef-imports.py .scratch/k231-kdef/kDEF/id-1.bin
-python3 /tmp/pef-relocs.py  .scratch/k231-kdef/kDEF/id-1.bin
-
-# (3) Enumerate call sites.
-grep -nE 'bl[[:space:]]+0x26b88|bl[[:space:]]+0x26c30' .scratch/k231-kdef/kDEF/k231-kdef1.asm
-
-# (4) Inspect the paired-site flow.
-sed -n '35570,35630p' .scratch/k231-kdef/kDEF/k231-kdef1.asm
-
-# (5) Confirm no corpus 'wind' resources.
-find themes -name resource-roles.json -exec grep -l '"wind"' {} \;   # empty
-```
-
-All five steps yield the results documented above.
+The five reproduction steps (symbol-string check of both kDEFs, PEF import +
+relocation replay, call-site enumeration, paired-site inspection, and the corpus
+`wind` check) are recorded in the
+[evidence appendix](engine/proxy-icon-modified-dot.evidence.md) — spec writers
+and verifiers only. All five steps yield the results documented above.
 
 ## See also
 

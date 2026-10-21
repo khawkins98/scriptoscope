@@ -9,24 +9,15 @@ WINDOW chrome from `wnd#`/`cicn`/`cinf` resources and (b) draws CONTROLS
 exists so the team stops re-reading the binary: every claim below cites an
 address, and where a claim is uncertain it is marked **(?)**.
 
-**Addresses are file offsets** into `kDEF231_0.bin` / `kDEF231_0.asm`
-(`/tmp/kaleido-trace/`), and match the Ghidra `FUN_xxxx` numbering. The asm is
-the **ground truth**; the Ghidra C decompile (`kdef231_decomp.c`) is lossy
-around A-traps (use it for structure only). objdump renders a 32-bit far call as
-`61ff dddddddd` (`bsrl 0xTARGET`) — that is ONE call, not two words. A-traps show
-as `.short 0xaXXX`.
+**Addresses are file offsets** into the 107,726-byte `kDEF 0` resource. The
+instruction listing is the ground truth for every citation; a decompile was
+used for structure only.
 
-**Reusable decode toolchain**
-```
-# bin location (not committed):
-/tmp/kaleido-trace/kDEF231_0.bin           # 107,726 bytes
-/tmp/kaleido-trace/kDEF231_0.asm           # objdump, ~34k lines (this doc's ground truth)
-/tmp/kaleido-trace/kdef231_decomp.c        # Ghidra C (structure only)
-# disassemble:
-m68k-elf-objdump -D -b binary -m m68k:68020 -EB kDEF231_0.bin > kDEF231_0.asm
-# hex-peek a region (e.g. a jump table):
-xxd -s 0xADDR -l N kDEF231_0.bin
-```
+*Listing-level narrative (registers, frame offsets, instruction excerpts) and
+the decode toolchain for this document live in
+[`engine/kdef231-reference.evidence.md`](engine/kdef231-reference.evidence.md)
+— spec writers and verifiers only. The blit primitives (§1.5, §3.6, §5, §5.1)
+are specified behaviourally in [`engine/qd-primitives.md`](engine/qd-primitives.md).*
 
 **This reference CONSOLIDATES and supersedes the scattered decodes.** Where it
 restates an existing doc it links it; it does not re-argue prose already settled
@@ -48,27 +39,26 @@ there:
 
 ## 1. Routine map
 
-Grouped by subsystem. `fp@(n)` = stack-frame arg/local (positive = caller arg,
-negative = local); `a2@(n)` etc = struct field; `a4` = the kDEF globals base
-(the work struct built at init). All addresses verified present in the asm.
+Grouped by subsystem. Arguments and fields are named by meaning; "the work
+struct" = the kDEF globals built at init. All addresses verified present in the
+listing.
 
 ### 1.1 CDEF message dispatch (controls)
 
 The control code is a standard **Appearance-era CDEF**, entered at `0x6688`.
 Pascal signature `long CDEF(short varCode, ControlHandle, short message, long
-param)`; on the frame: `fp@(18)`=varCode (→`d4`), `fp@(14)`=ControlHandle
-(→`a2`), `fp@(12)`=message, `fp@(8)`=param. `rtd #12` pops the 12 arg bytes
-(`0x772a`-style returns).
+param)`; the routine pops its 12 argument bytes on return (`0x772a`-style
+returns).
 
 | addr | name | purpose | key args / fields | callees | returns |
 |---|---|---|---|---|---|
-| `0x6688` | `CDEF_main` | CDEF entry: unpack handle, set state-bytes, dispatch on message | reads varCode `fp@18` (low 3 bits = control kind, bit3 = "active" → `fp@(-14)`), `a2@`→ControlRecord; sets `fp@(-16/-15/-14/-13/-4/-2/-1)` precomputed flags | `0x104` (gestalt-ish init), jump table `0x67b6` | `rtd #12` |
-| `0x997e` | **re-entrant CDEF entry** (service-handler slot 1) | callback-safe entry: `_HGetState`/`_HUnlock` brackets the handle; `bsrl 0x9930` saves `a4` globals to a static at `0x992c` so the kDEF can run from a context that hasn't bound globals (Toolbox action proc / Appearance Manager callback) | `fp@(8)`=param, `fp@(12)`=msg, `fp@(14)`=handle; 14-entry msg dispatch at `0x99d8` via `0x148` indexed-table helper; handlers `0xa2b6`/`0xa506`/`0xa1fe`/`0xa678` use `_PtInRgn`/`_GetGDevice`/`_GetCTSeed` | `0x9930`, `0x9d84` pre-call hook, `0x148`, `0x1c46` (`'SMARTSCROLLI'` literal nearby — interop with SmartScroll INIT) | `rtd #12` |
-| `0x8d36` | **second CDEF main** (service-handler slot 5) | scrollbar / slider family; identical dispatch shape to `0x6688` but allocates 68-byte aux on initCntl (`moveq #68,d0; A122` at `0x8df6`), vs the 32-byte `'Acid'` block | aux fields at +14/+20/+22/+26/+28/+30/+32/+34/+38/+40/+42/+44/+46/+48 (value, min, max, page+/–, action proc) | `0x104`, `0x148`, `0x8c88` msg-0 sub | `rtd #12` |
-| `0x67a2` | dispatch | `cmpiw #34,%d0` / `movew %pc@(0x67b6,%d0:w:2),%d0` / `jmp %pc@(0x67b6,%d0:w)` | message 0..34; >34 → `0x6c16` (no-op return) | — | — |
+| `0x6688` | CDEF main | CDEF entry: unpack handle, set state-bytes, dispatch on message | reads varCode (low 3 bits = control kind, bit3 = "active"), the ControlRecord; precomputes the per-call state flags (§3.1) | `0x104` (gestalt-ish init), jump table `0x67b6` | CDEF result (pops 12 arg bytes) |
+| `0x997e` | **re-entrant CDEF entry** (service-handler slot 1) | callback-safe entry: `_HGetState`/`_HUnlock` brackets the handle; a call to `0x9930` saves the kDEF globals to a static at `0x992c` so the kDEF can run from a context that hasn't bound globals (Toolbox action proc / Appearance Manager callback) | args = param, message, handle; 14-entry msg dispatch at `0x99d8` via `0x148` indexed-table helper; handlers `0xa2b6`/`0xa506`/`0xa1fe`/`0xa678` use `_PtInRgn`/`_GetGDevice`/`_GetCTSeed` | `0x9930`, `0x9d84` pre-call hook, `0x148`, `0x1c46` (`'SMARTSCROLLI'` literal nearby — interop with SmartScroll INIT) | CDEF result (pops 12 arg bytes) |
+| `0x8d36` | **second CDEF main** (service-handler slot 5) | scrollbar / slider family; identical dispatch shape to `0x6688` but allocates a 68-byte aux block on initCntl (`_NewHandle` at `0x8df6`), vs the 32-byte `'Acid'` block | aux fields at +14/+20/+22/+26/+28/+30/+32/+34/+38/+40/+42/+44/+46/+48 (value, min, max, page+/–, action proc) | `0x104`, `0x148`, `0x8c88` msg-0 sub | CDEF result (pops 12 arg bytes) |
+| `0x67a2` | dispatch | bounds-checks the message against 34, then jumps through the `0x67b6` offset table (listing detail in evidence) | message 0..34; >34 → `0x6c16` (no-op return) | — | — |
 | `0x67b6` | jump table | 35 int16 offsets, target = `0x67b6 + entry` | see §4-controls below | — | — |
 | `0x6c16` | default/no-op | return path for unhandled messages | — | — | — |
-| `0x6c28` | (msg-0 sub) | called for drawCntl when `a0@(16)` set | `pea fp@(-26)` (the unpacked-state blob) | — | — |
+| `0x6c28` | (msg-0 sub) | called for drawCntl when the draw-gate byte (+16 of the dereferenced record) is set | arg = the unpacked per-call state blob (§3.1) | — | — |
 
 **Decoded dispatch targets** (`0x67b6` table; verified by hex-decode of the
 table bytes). Standard CDEF message numbers in parens. Apple's canonical
@@ -77,28 +67,28 @@ in `docs/spec/apple-primary-source.md`.
 
 | msg | → target | meaning |
 |---|---|---|
-| 0 (drawCntl) ✓ | `0x67fc` | draw — `a0@(16)` gate → `0x6c28` part drawers (`$A874`/`$A95E`/`$A88B` GetPort/GetControlTitle/GetFontInfo per Traps.h; the role text "GetCIcon/CopyMask/StringWidth chain" was written under wrong names *(re-verify)* — §1.2) |
-| 1 (testCntl) ✓ | `0x6816` | hit-test — `_PtInRect` (`$A8AD`; formerly misnamed PtInRgn, *re-verify* the "face region" wording) on the face; sentinel `a0@(17) == 0xfe` returns `d3=254` (pressed-state hit) |
-| 2 (calcCRgns) ✓ | `0x686a` | calc control region — strips bit-31 sign of `fp@(8)` arg, falls through to `0x6872` |
-| 3 (initCntl) ✓ | `0x6910` | init — `_NewHandle #32` (`$A122`) → ControlRecord+28 = kDEF's 32-byte aux block; writes `'Acid'` magic at +0, clears +6 / +30 (default-button flag) |
+| 0 (drawCntl) ✓ | `0x67fc` | draw — draw-gate byte (+16) → `0x6c28` part drawers (`$A874`/`$A95E`/`$A88B` GetPort/GetControlTitle/GetFontInfo per Traps.h; the role text "GetCIcon/CopyMask/StringWidth chain" was written under wrong names *(re-verify)* — §1.2) |
+| 1 (testCntl) ✓ | `0x6816` | hit-test — `_PtInRect` (`$A8AD`; formerly misnamed PtInRgn, *re-verify* the "face region" wording) on the face; sentinel byte (+17) `== 0xfe` returns 254 (pressed-state hit) |
+| 2 (calcCRgns) ✓ | `0x686a` | calc control region — strips bit-31 sign of the param argument, falls through to `0x6872` |
+| 3 (initCntl) ✓ | `0x6910` | init — `_NewHandle` of 32 bytes (`$A122`) → ControlRecord+28 = kDEF's 32-byte aux block; writes `'Acid'` magic at +0, clears +6 / +30 (default-button flag) |
 | 4 (dispCntl) ✓ | `0x695e` | dispose — `_DisposeHandle` (`$A023`) on the aux block if the `'Acid'` magic checks out |
 | 10,11 (calcCntlRgn/calcThumbRgn) ✓ | `0x6872` | region calc (shared) — `_RectRgn` (`$A8DF`) the face cicn (-10240) rect; if default-button flag set, union in the ring (-10232) rect (insets -4) |
-| 14 (kControlMsgCalcBestRect) ✓ | `0x69b8` | best-fit rect — `$A874` `_GetPort` (formerly misnamed `_GetMHandle`; *re-verify*), read width/height/style from a font/title record, write Rect into `a3@`; routes through `0x65ba` for default-button cases |
-| **19 (kControlMsgGetFeatures)** ✓ | `0x698a` | Appearance feature query — returns bitmask in `d3`. Base = `#0x240` (`kControlSupportsDataAccess \| kControlSupportsCalcBestRect`); `\|= 0x800 (kControlHasRadioBehavior)` if radio; `\|= 0x4000 (kControlSupportsClickActivation)` if click-activated; always `\|= 0x2000 (kControlSupportsContextualMenus)`. (Bit 13/14 mapping is the Appearance 1.0 / pre-Carbon numbering — Carbon shifted these to bits 21/22 post-2001; Kaleidoscope 2.3.1 predates the shift.) |
-| **20 (kControlMsgSetData)** ✓ | `0x6b14` | set custom data on the aux block. Dispatches on a 4-CC tag at `a3@`: `'cncl'` → write byte from caller into `a2@(31)` (cancel-button flag); `'dflt'` → write byte into `a2@(30)` (default-button flag); `'font'` → copy 24-byte `ControlFontStyleRec` into `a2@(6..29)`. Unknown tag → returns `d3=#-30581` (`errMessageNotSupported`). |
-| **21 (kControlMsgGetData)** ✓ | `0x6a86` | mirror of msg 20 — read from aux block into caller's buffer at `a3@(12)`. Same `'cncl'`/`'dflt'`/`'font'` tag set; same -30581 default. Sets `a3@(8) = 24` for the font tag (returned-size field), `=1` for the flag tags. |
-| **27 (kControlMsgTestNewMsgSupport)** ✓ | `0x6980` | returns the magic constant `d3 = #0x206F6B20` (`' ok '`) to confirm Appearance-era CDEF compatibility (a single `movel #' ok ',%d3` then `braw 0x6c16` — see §1.1 confirmation note below). **This is NOT msg 16 `kControlMsgFocus` — Kaleidoscope's kDEF doesn't handle focus.** |
-| **34 (kDEF-private GetControlKind)** ✓ | `0x6b84` | writes a Kaleidoscope-private kind descriptor to `a3@(4..7)` based on aux flags + variation code. Long-write picks family by aux-block flags (`a0@(30)` default-btn → `'dbtp'`; `a0@(31)` cancel-btn → `'cbtp'`; neither → `'btnp'`; with `fp@(-15)` radio hint → `'radp'`; else `'chkp'`). Then `a3@(2)` variation-code (1..4) patches byte+7 with suffix `p/e/x/r` (Plain / Embossed / eXtended / Recessed). varCode 5+ → `clrl %a3@(4)` (no descriptor). **Msg 34 is unassigned in Apple's published `Controls.h` (`kControlMsgGetRegion = 31` and Carbon jumps to 38) — this is Kaleidoscope's private kind-introspection message, used by Kaleidoscope's own CDEF callers to learn which family/variation a control belongs to without re-classifying.** |
-| 5,6,7,8,9,12,13,15,16,17,18,22-26,28-33 | `0x6c16` | unhandled → default (returns whatever was last in `d3`) |
+| 14 (kControlMsgCalcBestRect) ✓ | `0x69b8` | best-fit rect — `$A874` `_GetPort` (formerly misnamed `_GetMHandle`; *re-verify*), read width/height/style from a font/title record, write Rect into the caller's param buffer; routes through `0x65ba` for default-button cases |
+| **19 (kControlMsgGetFeatures)** ✓ | `0x698a` | Appearance feature query — returns a bitmask. Base = `0x240` (`kControlSupportsDataAccess \| kControlSupportsCalcBestRect`); `\|= 0x800 (kControlHasRadioBehavior)` if radio; `\|= 0x4000 (kControlSupportsClickActivation)` if click-activated; always `\|= 0x2000 (kControlSupportsContextualMenus)`. (Bit 13/14 mapping is the Appearance 1.0 / pre-Carbon numbering — Carbon shifted these to bits 21/22 post-2001; Kaleidoscope 2.3.1 predates the shift.) |
+| **20 (kControlMsgSetData)** ✓ | `0x6b14` | set custom data on the aux block. Dispatches on the 4-CC tag at the start of the caller's param record: `'cncl'` → write byte from caller into aux +31 (cancel-button flag); `'dflt'` → write byte into aux +30 (default-button flag); `'font'` → copy 24-byte `ControlFontStyleRec` into aux +6..29. Unknown tag → returns -30581 (`errMessageNotSupported`). |
+| **21 (kControlMsgGetData)** ✓ | `0x6a86` | mirror of msg 20 — read from aux block into caller's buffer (param record +12). Same `'cncl'`/`'dflt'`/`'font'` tag set; same -30581 default. Sets the param record's returned-size field (+8) to 24 for the font tag, 1 for the flag tags. |
+| **27 (kControlMsgTestNewMsgSupport)** ✓ | `0x6980` | returns the magic constant `0x206F6B20` (`' ok '`) to confirm Appearance-era CDEF compatibility (a single load of the constant then the `0x6c16` return — see §1.1 confirmation note below). **This is NOT msg 16 `kControlMsgFocus` — Kaleidoscope's kDEF doesn't handle focus.** |
+| **34 (kDEF-private GetControlKind)** ✓ | `0x6b84` | writes a Kaleidoscope-private kind descriptor to bytes 4..7 of the caller's param record based on aux flags + variation code. Long-write picks family by aux-block flags (aux +30 default-btn → `'dbtp'`; aux +31 cancel-btn → `'cbtp'`; neither → `'btnp'`; with the radio-hint state flag → `'radp'`; else `'chkp'`). Then the param record's variation code (+2, 1..4) patches byte+7 with suffix `p/e/x/r` (Plain / Embossed / eXtended / Recessed). varCode 5+ → the descriptor long is cleared (no descriptor). **Msg 34 is unassigned in Apple's published `Controls.h` (`kControlMsgGetRegion = 31` and Carbon jumps to 38) — this is Kaleidoscope's private kind-introspection message, used by Kaleidoscope's own CDEF callers to learn which family/variation a control belongs to without re-classifying.** |
+| 5,6,7,8,9,12,13,15,16,17,18,22-26,28-33 | `0x6c16` | unhandled → default (returns whatever the pending result value last held) |
 
-> **Return-value mechanism.** At `0x6c1a`, the default-return path writes
-> `%d3` into `%sp@(370)` — the long that `rtd #12` will pop into the caller's
-> result slot. So every handler that wants to return a value loads `d3` and
-> branches to `0x6c16`. (Handlers that don't touch `d3` return whatever was
-> in it from the unpacked-state preamble.)
+> **Return-value mechanism.** At `0x6c1a`, the default-return path stores the
+> pending result value into the caller's function-result slot. So every
+> handler that wants to return a value sets the pending result and branches to
+> `0x6c16`. (Handlers that don't set it return whatever it held from the
+> unpacked-state preamble.)
 >
 > **Confirmations (2026-05-29).** The five "(?)" entries above are now decoded
-> against `kDEF231_0.asm`. The two non-obvious ones:
+> against the listing. The two non-obvious ones:
 >
 > 1. **Msgs 19 and 27 are NOT swapped from Apple's numbering** even though
 >    msg 19's bitmask AND msg 27's `' ok '` constant both look like
@@ -118,9 +108,8 @@ in `docs/spec/apple-primary-source.md`.
 >    decompiling the calling-side Kaleidoscope code module, which isn't in
 >    the kDEF binary.
 >
-> All five entries' raw asm sits in the `0x6980..0x6c10` block; cite line
-> numbers in `kDEF/k231-kdef0.asm` are 8754 (msg 27), 8756 (msg 19), 8829
-> (msg 21), 8875 (msg 20), 8909 (msg 34).
+> All five entries sit in the `0x6980..0x6c10` block (listing line citations
+> in evidence).
 >
 > The LOW entries (0-4, 10, 11, 14) were the "classic CDEF set" called solid
 > previously; they're now spot-checked too — see the per-row ✓ citations
@@ -130,20 +119,20 @@ in `docs/spec/apple-primary-source.md`.
 
 | addr | name | purpose | key args / fields | callees | returns |
 |---|---|---|---|---|---|
-| `0x6cdc` | install-drawers | registers the FACE drawer per GDevice via `0xf112`; pushes `0x7424` (color twin) then `0x70f6` (b/w twin) | `pea 0x7424` / `pea 0x70f6` then `bsrl 0xf112` | `0xf112` | — |
-| `0x7424` | **push-button FACE drawer** (color) | draw the button face cicn into the control rect; pick state cicn; then default-ring | `fp@(8)`→`a2` (state blob: `a2@(8)`=disabled, `a2@(9)`=pressed, `a2@(14..18)`=Rect, `a2@(24)` scratch), `fp@(12)`→`a3`; `fp@(18)`=device depth (DeviceLoop wrapper `0xf112`→`0xf290`; equivalent manual callback arguments at `0xf26c–0xf27c`) | `0xea08`,`0xe978`,`0xf2d6`,`0x10fc0` (body + independent border bands), `0x107a4` (ring), `0x6d22` | `rtd #12` |
+| `0x6cdc` | install-drawers | registers the FACE drawer per GDevice via `0xf112`; passes `0x7424` (color twin) then `0x70f6` (b/w twin) | args = the two drawer entry points, then the call to `0xf112` | `0xf112` | — |
+| `0x7424` | **push-button FACE drawer** (color) | draw the button face cicn into the control rect; pick state cicn; then default-ring | arg 1 = the per-call state blob (§3.1: disabled byte, pressed byte, control Rect, scratch byte); arg 2 = second drawer argument; device-depth argument (DeviceLoop wrapper `0xf112`→`0xf290`; equivalent manual callback arguments at `0xf26c–0xf27c`) | `0xea08`,`0xe978`,`0xf2d6`,`0x10fc0` (body + independent border bands), `0x107a4` (ring), `0x6d22` | pops 12 arg bytes |
 | `0x70f6` | b/w FACE drawer | 1-bit-screen twin of `0x7424` | same blob | `0x10472` (cicn) | — |
-| `0x757c` | **face state-select** | choose face cicn id | `a2@(8)` set → **-10240**; else `a2@(9)` set → **-10238**; else **-10239** | pushes id → `0x10fc0` | — |
-| `0x76a8` | **aux-struct 'Acid' gate** | `cmpil #1097034084,%a0@` (= `0x41636964` = `'Acid'`, the kDEF aux-struct magic), then `tstb %a0@(30)`; both must hold to draw the default ring. Reached via `a2@`→`@`→`@(28)`→`@` handle chain (`0x768c`-`0x76a8`) | aux struct: `+0`='Acid', `+30`=default-button flag | — | — |
-| `0x76c4` | **default-ring blit** | choose ring cicn id by state and 9-slice it | `a2@(8)` set → **-10232** (inactive); else `a2@(9)` → **-10230** (mixed), retry **-10231**; else **-10231** (active) | `0x107a4` | — |
-| `0x788c` | **hand-drawn 3-D frame/bevel** | procedural MoveTo/LineTo bevel when no cicn face | state `d5==254`/`255` (pressed/raised); loads aux cicns via `0x10472` (`0x78b8`/`0x78d0`/`0x78e0`) | `0x10472`, MoveTo/LineTo | `0x7d86` rts |
+| `0x757c` | **face state-select** | choose face cicn id | disabled byte set → **-10240**; else pressed byte set → **-10238**; else **-10239** | passes id → `0x10fc0` | — |
+| `0x76a8` | **aux-struct 'Acid' gate** | compares the aux struct's first long against `0x41636964` (= `'Acid'`, the kDEF aux-struct magic), then tests its default-button byte (+30); both must hold to draw the default ring. The aux struct is reached through the control handle chain ControlHandle → record → +28 → aux (`0x768c`-`0x76a8`) | aux struct: `+0`='Acid', `+30`=default-button flag | — | — |
+| `0x76c4` | **default-ring blit** | choose ring cicn id by state and 9-slice it | disabled byte set → **-10232** (inactive); else pressed byte → **-10230** (mixed), retry **-10231**; else **-10231** (active) | `0x107a4` | — |
+| `0x788c` | **hand-drawn 3-D frame/bevel** | procedural MoveTo/LineTo bevel when no cicn face | state value 254 / 255 (pressed/raised); loads aux cicns via `0x10472` (`0x78b8`/`0x78d0`/`0x78e0`) | `0x10472`, MoveTo/LineTo | returns at `0x7d86` |
 
-> **Correction to the brief's state mapping:** at `0x757c` the asm is
-> `a2@(8)`→**-10240**, `a2@(9)`→**-10238**, else **-10239**. (`controls.ts`
+> **Correction to the brief's state mapping:** at `0x757c` the listing selects
+> disabled byte →**-10240**, pressed byte →**-10238**, else **-10239**. (`controls.ts`
 > `drawButton` uses the same: `disabled→10240, pressed→10238, normal→10239`.)
-> The ring at `0x76c4` is `a2@(8)`→**-10232** (inactive), `a2@(9)`→**-10230**
-> (mixed) then -10231, else **-10231** (active). So `a2@(8)` is the
-> "disabled/inactive" bit and `a2@(9)` is the "pressed/mixed" bit.
+> The ring at `0x76c4` is disabled byte →**-10232** (inactive), pressed byte →**-10230**
+> (mixed) then -10231, else **-10231** (active). So state-blob byte 8 is the
+> "disabled/inactive" bit and byte 9 is the "pressed/mixed" bit.
 
 ### 1.3 Control draw — other parts (drawer entry points; layout not fully traced)
 
@@ -153,7 +142,7 @@ in `docs/spec/apple-primary-source.md`.
 | `0x66b4`-region | scrollbar drawer | `-8278..-8271` v / `-8286..-8271` h | per §2.6 (1.8.2-era); `controls.ts` uses these IDs (verified consumer-side) |
 | `0xdd22` | **GDevice-aware focus / state helper** | — | service-handler slot 2; gates draw on 3 ctSeed magics (`'CHTA'`/`'POrg'`/`'CH3D'`); no aux allocate, consumes slot 0's. Full trace: `docs/spec/kdef-service-handlers.md` |
 | `0x788c`/bevel | bevel/checkbox/radio path | `-10232/-10231` mixed | hand-drawn fallback when cicn absent |
-| popup/tab | (msg-routed via `0x17452`) | `-12320` frame / `-12319` tab | §2.6 (behavioural `[DOC]`); the kDEF gates these to a loaded `'WDEF', -14336` whose code is called directly (`jsr a0@`) with msg-base 1008 — see `docs/spec/kdef-service-handlers.md` slot 8 |
+| popup/tab | (msg-routed via `0x17452`) | `-12320` frame / `-12319` tab | §2.6 (behavioural `[DOC]`); the kDEF gates these to a loaded `'WDEF', -14336` whose code is called directly with msg-base 1008 — see `docs/spec/kdef-service-handlers.md` slot 8 |
 
 ### 1.4 Window chrome — load / layout / draw
 
@@ -169,7 +158,7 @@ slot-by-slot trace: `docs/spec/kdef-service-handlers.md`.
 |---|---|---|---:|---:|
 | slot 3 | `0x118b8` | document windows | `-14336` | per `0x28e0` table (1001..1009) |
 | slot 4 | `0x1525a` | utility windows | `-14304` | varCode + 1984 |
-| slot 8 | `0x17452` | popup / tab / menu | `-12320` | varCode + 1008 (trampolined to a loaded `'WDEF', -14336` via `jsr a0@`) |
+| slot 8 | `0x17452` | popup / tab / menu | `-12320` | varCode + 1008 (trampolined to a loaded `'WDEF', -14336` by a direct call) |
 
 Slot 6 `0x28e0` is the **master compositor dispatcher** — receives msg
 1000 = INIT (called once at table install) + msgs 1001..1009 (per-side
@@ -178,27 +167,27 @@ recipe walk + draw). Its 9-entry dispatch fans out to the routines below
 
 | addr | name | purpose | key args / fields | callees | returns |
 |---|---|---|---|---|---|
-| `0x28e0` | **master compositor dispatcher** (service-handler slot 6) | window-chrome message router; writes args into `a4@(454/458/460/464)`, dispatches msg-1001 via `0x148` indexed table | `fp@(8)`=param, `fp@(12)`=msg (1000 init / 1001..1009 verbs), `fp@(14)`=handle, `fp@(18)`=varCode | `0x2e02` precompute, `0x41ee`, `0x3f2c`, `0x3ac4`, `0x38fe`, `0x3aa8`, `0x3e6c`, `0x436c`, `0x4924` | `rtd` |
-| `0x356c`-`0x367e` | **wnd# loader + 12-step fallback ladder** | `GetResource('wnd#', id)` then progressive low-bit masks (`&-2,-3,-4,-5,-6,-15,-16,-17,-18,-21,-22`) as fallbacks → loads the per-window-type recipe; full decode + landing table in §3.4.1 | `d3`=window variation code | `$A9A0` GetResource | recipe handle in `a2` |
-| `0x3680`-`0x38c8` | recipe install / resize | copy rect-list → `a4@(1938)`, 4 source side-lists → `a4@(2788/2950/3112/3274)` (162 B stride); loop `s=0..3` calling `0x4a64` | rect-list count `a4@(1938)`; stride = `10*count+12` bytes | `0x4a64` | — |
-| `0x487e` | zoom/grow widget predicate | "is there a usable zoom/grow widget" = `a4@(500) && a4@(0x1f9) && !a4@(0x1f0)` | cinf widget flags | — | bool in `d0` |
-| `0x49d6` | **part-code jump table** | classify a part code → stretch(1)/fixed(0); see §4 | `fp@(8)`=partCode, `fp@(10)`=caller flag byte | helper `0x148`; `0x487e` | byte `d0` |
-| `0x4a0c` | code-10 handler | `moveb %fp@(10),%d0` — returns the **caller's flag** unchanged | `fp@(10)` | — | `d0` |
-| `0x4a64` | **layout precompute** (per side) | walk source side list, classify each segment, measure title (`$A88C` StringWidth; `$A888` here is TextFace per Traps.h, *re-verify* the call order), find title anchor `d4`, sum fixed widths, set per-half stretch flags `fp@(-18)`/`fp@(-20)`, call `0x5178` ×2 (one per half); title-fits gate at `0x4f58` clears `fp@(-290)` | side index; source list `a2`/`a3`; `fp@(-2)`=title width; `fp@(-290)`=title-fits | `0x49d6`, `0x5178`, `$A888` TextFace, `$A88C` StringWidth *(names per Traps.h; re-verify)* | fills DEST side list |
-| `0x4f58` | title-fits gate | `cmpiw #2,%d0; bgt`; if title doesn't fit → `clrb fp@(-290)` + `clrw fp@(-2)` (collapse plate) | `fp@(-290)` title-fits, `fp@(-2)` title width | — | — |
-| `0x4ff8`/`0x501c` | title centring | signed `/2`-with-rounding sequences (`lsr/lsr/lsr/lsr; add; asr #1`) on the title region bounds | — | — | center x |
-| `0x5178` | **growth distribution** | fill DEST borders: budget = (half extent − Σ fixed widths); each stretch cell gets `budget/numStretch` EVEN, remainder L→R; explicit `cmp` chains classify fill codes (see §4) | `fp@(20)`=numStretch, `fp@(22)`=reqWidth (fixed sum), `fp@(26)`=flag byte (title-fits on title path, `#1` else) | `0x49d6` (`0x5302`) | DEST `border[i]=border[i-1]+w` |
-| `0x5356` | **placement** | per `(side,segIdx)` build SRC rect from `a4@(2788)` and DST rect from `a4@(2140)`; 4-way `switch(side)` axis remap. **END-based:** segment i = `[border[i-1],border[i])` tagged `part[i]` | `param_5/6`=structure-rect handle (cross-axis); side, segIdx | — | SRC+DST rects |
-| `0x572e` | **main draw loop** | per side, per segment: `0x5356` then blit (code 18 → `0x10320`, else `0x0feae`). Never touches the rect-list `a4@(1938)` | side lists | `0x5356`, `0x10320` (`0x59ba`), `0x0feae` (`0x59e8`) | — |
-| `0x5ddc` | rect-list widget **hit-test** | GetCIcon (`$AA1E`) of widget id `-14330` (`+32` if `a4@(506)`, `+8` more if `a4@(507)`), mask → region (`0xf6e0`), OffsetRgn, `PtInRgn` (`$A8E8`) then `PtInRect` (`$A8AD`) → `d0` = hit. The entry rect is first remapped to placed coordinates by `0x5cb6` (`0x5f72`). Draws nothing (corrected 2026-10-21, §5.1) | `fp@(8)`=point, `fp@(12)`=part, `fp@(14)`=entry rect | `0xf6e0` | hit byte |
-| `0x5ffc` | rect-list **hit iterator** | map part 0/1/3 → entry type 1/2/3; walk `a4@(1938)` (10-byte entries, type at `+2`, rect at `+4`) from the end; return 1 on the first `0x5ddc` hit. Hit-test only, not a draw pass (corrected 2026-10-21) | `fp@(8)`=point, `fp@(12)`=part | `0x5ddc` (`0x6040`) | hit |
-| `0x632e` | rect-list **widget draw iterator** | map window part 4/5/6/9 → entry type 1/2/2/3; walk `a4@(1938)` from the end; call `0x6062` per matching entry. Called from `0x42a6` (dispatch, caller part) and `0x5a3c` (end of `0x572e`, part 5 only, gated by `a4@(502)` and `a4@(508)`) | `fp@(8)`=part, `fp@(10)`=state byte | `0x6062` (`0x637a`) | — |
-| `0x6062` | rect-list **widget draw** | dst = the entry rect remapped by `0x5cb6` on all three paths (`0x6138`, `0x62b0`, `0x6308`), then ONE `0x10320` blit. Source: parts 5/6 with `a4@(502)` → GetCIcon(id`+1`) (`0x60aa..0x6146`); state byte ≠ 0 → GetCIcon(id) in the `-14330` family (`0x6158..0x62e0`); **state 0 → no GetCIcon: the chrome template `a4@(1934)` itself, src = raw entry rect** (`0x62f0..0x6318`) | `fp@(8)`=part, `fp@(10)`=state, `fp@(12)`=entry rect (template coords) | `0x5cb6`, `0x10320` (`0x6146`, `0x62e0`, `0x6318`) | — |
-| `0x5cb6` | rect-list rect **template → placed remap** | for each side, `0x5356` builds the template (src) and placed (dst) cell of each segment. The segment loop starts at index 1 (`moveq #1,d3` at `0x5d26`), so a side's leading `[0,border[0])` cell is never a match target. The first template cell containing the rect's topLeft (`PtInRect` `0x5d52`) offsets topLeft by placed − template (`0x5d60..0x5d74`); likewise botRight−1 (`0x5d82..0x5da0`). If either corner matches no cell, the rect is emptied (`0x5dc6..0x5dd0`). So widget placement depends on the `0x5178` widths | `fp@(8)`=rect (in/out) | `0x5356`, `$A8AD` | rect |
-| `0x5530` | **title draw** (+ text-colour sample) | `GetWTitle` (`$A919`) → title string; `0x6582(idx)` → marker rects; sample TWO ADJACENT chrome-pixmap (`a4@1934`) pixels via `0xfc5c` into `fp@(-28)`=text colour + `fp@(-22)`=shadow colour; at `0x56b2` if the two are EQUAL → one `RGBForeColor`+`DrawString`, else text in colour1 + a ~1px-offset shadow in colour2 (emboss) | `a4@(454)`=title, `a4@(1934)`=chrome pixmap, `a4@(509)` state flag | `$A919`, `0x6582`, `0xfc5c`, `$AA14` RGBForeColor, `$A884` DrawString | — |
-| `0x6582` | rect-list lookup by part | scan rect-list (`a4@1938`, 10-byte entries) for the one whose part field == index arg; else the first | `sp@(4)`=part index | — | rect ptr `a0` |
+| `0x28e0` | **master compositor dispatcher** (service-handler slot 6) | window-chrome message router; stores its arguments in work-struct fields 454/458/460/464 (454 = the window record, §3.3), dispatches msg-1001 via `0x148` indexed table | args = param, message (1000 init / 1001..1009 verbs), window handle, varCode | `0x2e02` precompute, `0x41ee`, `0x3f2c`, `0x3ac4`, `0x38fe`, `0x3aa8`, `0x3e6c`, `0x436c`, `0x4924` | pops its args on return |
+| `0x356c`-`0x367e` | **wnd# loader + 12-step fallback ladder** | `GetResource('wnd#', id)` then progressive low-bit masks (`&-2,-3,-4,-5,-6,-15,-16,-17,-18,-21,-22`) as fallbacks → loads the per-window-type recipe; full decode + landing table in §3.4.1 | arg = the window variation code | `$A9A0` GetResource | returns the recipe handle |
+| `0x3680`-`0x38c8` | recipe install / resize | copy the wnd# rect-list into the work struct's rect-list, and the 4 source side-lists into the SOURCE side-lists (162 B stride); loop `s=0..3` calling `0x4a64` | rect-list count; stride = `10*count+12` bytes | `0x4a64` | — |
+| `0x487e` | zoom/grow widget predicate | "is there a usable zoom/grow widget" = flag 500 set AND flag 505 set AND flag 496 clear (§3.3) | cinf widget flags | — | boolean |
+| `0x49d6` | **part-code jump table** | classify a part code → stretch(1)/fixed(0); see §4 | arg 1 = part code, arg 2 = caller flag byte | helper `0x148`; `0x487e` | byte (1 = stretch) |
+| `0x4a0c` | code-10 handler | returns the **caller's flag** (arg 2) unchanged | caller flag byte | — | the flag |
+| `0x4a64` | **layout precompute** (per side) | walk source side list, classify each segment, set the title face (`$A888` TextFace, `0x4f18`/`0x4f20`) then measure the title (`$A88C` StringWidth, `0x4f28`), find the title anchor, sum fixed widths, set the two per-half stretch flags, call `0x5178` ×2 (one per half); title-fits gate at `0x4f58` clears the title-fits flag | side index; the source side list; title width; title-fits flag | `0x49d6`, `0x5178`, `$A888` TextFace, `$A88C` StringWidth (names per Traps.h) | fills DEST side list |
+| `0x4f58` | title-fits gate | compares the title-room test value against 2; if title doesn't fit → clears the title-fits flag and zeroes the title width (collapse plate) | title-fits flag, title width | — | — |
+| `0x4ff8`/`0x501c` | title centring | signed `/2`-with-rounding sequences on the title region bounds (listing detail in evidence) | — | — | center x |
+| `0x5178` | **growth distribution** | fill DEST borders: budget = (half extent − Σ fixed widths); each stretch cell gets `budget/numStretch` EVEN, remainder L→R; explicit compare chains classify fill codes (see §4) | args = numStretch, reqWidth (fixed sum), flag byte (title-fits on title path, 1 else) | `0x49d6` (`0x5302`) | DEST `border[i]=border[i-1]+w` |
+| `0x5356` | **placement** | per `(side,segIdx)` build SRC rect from the SOURCE side-lists and DST rect from the DEST side-lists; 4-way per-side axis remap. **END-based:** segment i = `[border[i-1],border[i])` tagged `part[i]` | the structure-rect handle (cross-axis); side, segIdx | — | SRC+DST rects |
+| `0x572e` | **main draw loop** | per side, per segment: `0x5356` then blit (code 18 → `0x10320`, else `0x0feae`). Never touches the rect-list | side lists | `0x5356`, `0x10320` (`0x59ba`), `0x0feae` (`0x59e8`) | — |
+| `0x5ddc` | rect-list widget **hit-test** | GetCIcon (`$AA1E`) of widget id `-14330` (`+32` if flag 506, `+8` more if flag 507), mask → region (`0xf6e0`), OffsetRgn, `PtInRgn` (`$A8E8`) then `PtInRect` (`$A8AD`) → hit result. The entry rect is first remapped to placed coordinates by `0x5cb6` (`0x5f72`). Draws nothing (corrected 2026-10-21, §5.1) | args = point, part, entry rect | `0xf6e0` | hit byte |
+| `0x5ffc` | rect-list **hit iterator** | map part 0/1/3 → entry type 1/2/3; walk the rect-list (10-byte entries, type at `+2`, rect at `+4`) from the end; return 1 on the first `0x5ddc` hit. Hit-test only, not a draw pass (corrected 2026-10-21) | args = point, part | `0x5ddc` (`0x6040`) | hit |
+| `0x632e` | rect-list **widget draw iterator** | map window part 4/5/6/9 → entry type 1/2/2/3; walk the rect-list from the end; call `0x6062` per matching entry. Called from `0x42a6` (dispatch, caller part) and `0x5a3c` (end of `0x572e`, part 5 only, gated by flags 502 and 508) | args = part, state byte | `0x6062` (`0x637a`) | — |
+| `0x6062` | rect-list **widget draw** | dst = the entry rect remapped by `0x5cb6` on all three paths (`0x6138`, `0x62b0`, `0x6308`), then ONE `0x10320` blit. Source: parts 5/6 with flag 502 → GetCIcon(id`+1`) (`0x60aa..0x6146`); state byte ≠ 0 → GetCIcon(id) in the `-14330` family (`0x6158..0x62e0`); **state 0 → no GetCIcon: the chrome template itself, src = raw entry rect** (`0x62f0..0x6318`) | args = part, state, entry rect (template coords) | `0x5cb6`, `0x10320` (`0x6146`, `0x62e0`, `0x6318`) | — |
+| `0x5cb6` | rect-list rect **template → placed remap** | for each side, `0x5356` builds the template (src) and placed (dst) cell of each segment. The segment loop starts at index 1 (`0x5d26`), so a side's leading `[0,border[0])` cell is never a match target. The first template cell containing the rect's topLeft (`PtInRect` `0x5d52`) offsets topLeft by placed − template (`0x5d60..0x5d74`); likewise botRight−1 (`0x5d82..0x5da0`). If either corner matches no cell, the rect is emptied (`0x5dc6..0x5dd0`). So widget placement depends on the `0x5178` widths | arg = rect (in/out) | `0x5356`, `$A8AD` | rect |
+| `0x5530` | **title draw** (+ text-colour sample) | `GetWTitle` (`$A919`) → title string; `0x6582(idx)` → marker rects; sample TWO ADJACENT chrome-pixmap pixels via `0xfc5c` into a text colour + a shadow colour; at `0x56b2` if the two are EQUAL → one `RGBForeColor`+`DrawString`, else text in colour1 + a ~1px-offset shadow in colour2 (emboss) | the window record (title source), the chrome pixmap, state flag 509 | `$A919`, `0x6582`, `0xfc5c`, `$AA14` RGBForeColor, `$A884` DrawString | — |
+| `0x6582` | rect-list lookup by part | scan the rect-list (10-byte entries) for the one whose part field == index arg; else the first | arg = part index | — | pointer to the matching rect |
 | `0xfc5c` | **GetPixel** (index→RGB) | sample the chrome pixmap at `(x,y)`: compute bit/byte offset (handles 1/2/4/8-bit depth), extract the colour index, resolve via `0x10702`, write `*outColor` | pixmap, `x`, `y`, `&RGBColor` | `0x10702` (index→clut RGB) | RGBColor |
-| `0x4138`/`0x4176`/`0x41d0` | draw/hit dispatch | window-def message handlers calling `0x5ffc` (e.g. grow-box `a4@(508)`, body `a4@(501)`) | `a4@(508)`,`a4@(501)`,`a4@(500)` widget flags | `0x5ffc` | part code in `d0` |
+| `0x4138`/`0x4176`/`0x41d0` | draw/hit dispatch | window-def message handlers calling `0x5ffc` (e.g. grow-box flag 508, body flag 501) | widget flags 508, 501, 500 | `0x5ffc` | part code |
 | `0x4778` | structure/content rect | compute the window structure rect (FrameRect source) | window record | — | rect |
 
 > **Title text colour is SAMPLED from the cicn, not from a clut.** `0x5530`
@@ -220,24 +209,26 @@ recipe walk + draw). Its 9-entry dispatch fans out to the routines below
 
 | addr | name | purpose | args | callees |
 |---|---|---|---|---|
-| `0x0feae` | **TILE blit** (default) | tile src across dst along ONE axis, chosen by `srcH == dstH` (`0x10146`, `0x10236`); dir byte selects the anchor end (§5.1). 1px-along-run fast paths `0xff3e`, `0xffba` | `fp@(8)`=cicn (→`d4`, `a4@(1934)`), `fp@(12)`=src rect (`a3`), `fp@(16)`=dst rect (`a2`), `fp@(20)`=dir byte (`(pc==11\|\|pc==14)?0:1`, caller `0x59c8`), `fp@(22)`=long from caller `d6` (alternate source pixmap, `0x1005c`) | `$A8EC` CopyBits / `$A817` CopyMask, `0x1027a` (skip if degenerate) |
-| `0x10320` | **single scaled blit** (code 18) | ONE CopyBits (`0x103ea` `$A8EC`) or CopyMask (`0x10402` `$A817`), mapped src→dst (scales if dst grew) | `fp@(8)`=cicn (`a2`), `fp@(12)`=src rect (`d6`), `fp@(16)`=dst rect (`a3`) | `$A8EC`/`$A817`, RGBForeColor `0xf30a` |
-| `0x102d0` | **corner 1:1 copy** | translate src rect by (dst−src) offset, then `0x10320` → places a corner at 1:1 size | `fp@(8)`=cicn, `fp@(12)`=src (`a2`), `fp@(16/18)`=dst origin | `0x10320` |
-| `0x107fe` | **cinf body + border engine** | load cicn + cinf, optionally fill body, then paint square corners and independently thick masked edge bands | `fp@(8)`=id (`d4`), `fp@(10)`=dst rect (`a2`), `fp@(14)`=text RGB output, `fp@(18)`=emboss RGB output, `fp@(22)`=body-fill flag | `0x116f8` (cinf), `0x10472`/`0xed70` (cicn), `0xfc5c` (GetPixel — sample px → RGB; see §1.4), `0xf930`, `0xfdf8` |
-| `0x108a0` | (inside `0x107fe`) | reads cinf corner size and side thickness: `d3`=byte[0] (`a3@`), `d4`=byte[1] (`a3@(1)`); style switch on cinf byte[3] (`a0@(3)`, `cmpib #5` + `subq #1` chain) | cinf `a3@`: `[0]`=square corner size, `[1]`=independent side thickness, `[3]`=pattern anchor/mode | — |
-| `0x10fc0` | face wrapper (controls) | pushes body-fill true, forwards `fp@(8..18)` to `0x107fe` | `fp@(8)`=id, `fp@(10)`=dst rect, `fp@(14/18)`=text/emboss RGB outputs | `0x107fe` |
-| `0x10fe0` | 9-slice wrapper (window regions) | sibling: loads cicn (`0x10472`) + cinf (`0x116f8`) itself, then slices | `fp@(8)`=id (`a3`), `fp@(10)`=rect (`a2`), `fp@(14)`=`d4`, `fp@(18)`=alt flag | `0x10472`, `0x116f8` |
+| `0x0feae` | **TILE blit** (default) | tile src across dst along ONE axis, chosen by `srcH == dstH` (`0x10146`, `0x10236`); dir byte selects the anchor end (§5.1). 1px-along-run fast paths `0xff3e`, `0xffba` | arg 1 = the chrome cicn; arg 2 = src rect; arg 3 = dst rect; arg 4 = direction byte (0 for part codes 11 and 14, 1 otherwise; caller `0x59c8`); arg 5 = a long from the caller (alternate source pixmap, `0x1005c`) | `$A8EC` CopyBits / `$A817` CopyMask, `0x1027a` (skip if degenerate) |
+| `0x10320` | **single scaled blit** (code 18) | ONE CopyBits (`0x103ea` `$A8EC`) or CopyMask (`0x10402` `$A817`), mapped src→dst (scales if dst grew) | arg 1 = cicn, arg 2 = src rect, arg 3 = dst rect | `$A8EC`/`$A817`, RGBForeColor `0xf30a` |
+| `0x102d0` | **corner 1:1 copy** | translate src rect by (dst−src) offset, then `0x10320` → places a corner at 1:1 size | arg 1 = cicn, arg 2 = src rect, args 3/4 = dst origin | `0x10320` |
+| `0x107fe` | **cinf body + border engine** | load cicn + cinf, optionally fill body, then paint square corners and independently thick masked edge bands | arg 1 = id, arg 2 = dst rect, arg 3 = text RGB output, arg 4 = emboss RGB output, arg 5 = body-fill flag | `0x116f8` (cinf), `0x10472`/`0xed70` (cicn), `0xfc5c` (GetPixel — sample px → RGB; see §1.4), `0xf930`, `0xfdf8` |
+| `0x108a0` | (inside `0x107fe`) | reads cinf corner size (byte[0]) and side thickness (byte[1]); style switch on cinf byte[3] (`== 5` test, then a case 1..4 chain) | cinf: `[0]`=square corner size, `[1]`=independent side thickness, `[3]`=pattern anchor/mode | — |
+| `0x10fc0` | face wrapper (controls) | passes body-fill true, forwards its four arguments to `0x107fe` | arg 1 = id, arg 2 = dst rect, args 3/4 = text/emboss RGB outputs | `0x107fe` |
+| `0x10fe0` | 9-slice wrapper (window regions) | sibling: loads cicn (`0x10472`) + cinf (`0x116f8`) itself, then slices | arg 1 = id, arg 2 = rect, arg 3 = a caller value (not decoded), arg 4 = alt flag | `0x10472`, `0x116f8` |
+
+Behavioural spec of these primitives: [`engine/qd-primitives.md`](engine/qd-primitives.md).
 
 ### 1.6 Resource loaders
 
 | addr | name | purpose | resource | notes |
 |---|---|---|---|---|
-| `0x10472` | **cicn loader / cache** | `GetCIcon` (`$AA1E` at `0x10434` / `0x10698`); an inline `0x148` sparse switch (`0x104ba`) caches specific control IDs in `a4`-relative slots; see the corrected [body dispatch](cinf-resize-behavior.md) | `'cicn'` `#1667851118` | the switch enumerates the cached control cicn families (see §2) |
+| `0x10472` | **cicn loader / cache** | `GetCIcon` (`$AA1E` at `0x10434` / `0x10698`); an inline `0x148` sparse switch (`0x104ba`) caches specific control IDs in work-struct cache slots; see the corrected [body dispatch](cinf-resize-behavior.md) | `'cicn'` `1667851118` | the switch enumerates the cached control cicn families (see §2) |
 | `0x10420` | cicn slot fetch | `GetCIcon`-by-id into a cached slot if empty | `'cicn'` | helper for `0x10472` |
 | `0x10440` | plain ppat load | GetPixPat (`$AA0C` at `0x10460`) | `'ppat'` | mode !=5 body path |
-| `0x116f8` | **cinf loader** | `GetResource('cinf', id)` (`#1667853926` at `0x1171a`, trap `$A9A0` at `0x11722`), check size (`#18`/`#56`); cicn→cinf id range check `cmpiw #-12240`/`#-12224`; for in-range ids, also queries Gestalt selector `'pWin'` (`#1884776814`; trap `$A1AD` _Gestalt at `0x11768`, formerly misread as `_Get1NamedResource`; no `'pWin'` resource is loaded) | `'cinf'` `#1667853926` | size>18 ⇒ has extended fields; size==56 ⇒ full record |
-| `0x106e6` | clut loader | loads `'clut'` (`#1668052340` = `0x636c7574`) | `'clut'` | scheme palette |
-| `0x33a8`/`0x3be4` | `'Copl'` tag | `'Copl'` (`#1131376748` = `0x436f706c`) — the kDEF's private GWorld-tagging clut handle, attached to every GWorld it allocates | `'Copl'` | NOT a scheme resource; internal marker |
+| `0x116f8` | **cinf loader** | `GetResource('cinf', id)` (`1667853926` at `0x1171a`, trap `$A9A0` at `0x11722`), check size (18 / 56); cicn→cinf id range check against -12240 / -12224; for in-range ids, also queries Gestalt selector `'pWin'` (`1884776814`; trap `$A1AD` _Gestalt at `0x11768`, formerly misread as `_Get1NamedResource`; no `'pWin'` resource is loaded) | `'cinf'` `1667853926` | size>18 ⇒ has extended fields; size==56 ⇒ full record |
+| `0x106e6` | clut loader | loads `'clut'` (`1668052340` = `0x636c7574`) | `'clut'` | scheme palette |
+| `0x33a8`/`0x3be4` | `'Copl'` tag | `'Copl'` (`1131376748` = `0x436f706c`) — the kDEF's private GWorld-tagging clut handle, attached to every GWorld it allocates | `'Copl'` | NOT a scheme resource; internal marker |
 
 A-trap addresses for these calls are in §6.
 
@@ -245,8 +236,8 @@ A-trap addresses for these calls are in §6.
 
 ## 2. Resource-ID tables
 
-IDs are signed int16 (negative = the system/scheme resource range). "movew #-NNNN"
-immediates were swept from the asm; the cache-switch IDs were hex-decoded from
+IDs are signed int16 (negative = the system/scheme resource range). Word-immediate ids
+were swept from the listing; the cache-switch IDs were hex-decoded from
 `0x104c0`. Cross-checked against `src/controls.ts` `loadById(...)` and the
 `themes/*/extraction-manifest.json` conventions.
 
@@ -298,16 +289,16 @@ Immediates observed (now CORROBORATED against corpus author-supplied NAMED label
 | id | role | source |
 |---|---|---|
 | `-10239` | push-button face — **normal** | `0x758e` / `controls.ts:500` |
-| `-10240` | push-button face — **disabled/inactive** (`a2@(8)`) | `0x757c` |
-| `-10238` | push-button face — **pressed** (`a2@(9)`) | `0x7588` |
-| `-10232` | default-ring — **inactive** (`a2@(8)`) | `0x76c4` |
-| `-10230` | default-ring — **mixed** (`a2@(9)`) | `0x76de` |
+| `-10240` | push-button face — **disabled/inactive** (disabled byte) | `0x757c` |
+| `-10238` | push-button face — **pressed** (pressed byte) | `0x7588` |
+| `-10232` | default-ring — **inactive** (disabled byte) | `0x76c4` |
+| `-10230` | default-ring — **mixed** (pressed byte) | `0x76de` |
 | `-10231` | default-ring — **active** (default) | `0x76f4`/`0x7708` |
 | `-10176` | bevel-button face base **(?)** | one immediate |
 
 ### 2.3 Control cicns CACHED by the `0x10472` switch (`0x104c0`, hex-decoded)
 
-These 18 IDs get dedicated `a4`-relative GWorld cache slots (range lo=-14332,
+These 18 IDs get dedicated work-struct GWorld cache slots (range lo=-14332,
 hi=-8271). They reveal the control families the kDEF expects:
 
 | id | family | id | family |
@@ -323,7 +314,7 @@ hi=-8271). They reveal the control families the kDEF expects:
 |---|---|---|
 | `-10208`..`-10197` | **slider** part table (12 parts) | track + directional thumb variants; `0x4f7e`-era stores 12 ids (1.8.2-era, see §2.6) |
 | `-10205`..`-10208` | slider thumb/track h+v | `controls.ts:166`: thumb -10206 h / -10208 v (pressed -10205/-10207) |
-| `-10197`..`-10204` | **Scroll-arrow ics4 family** — directional ARROW BUTTONS (each a whole 16×16 button: face + arrow + bevel) | `controls.ts composeScrollbar` (keep in sync with that code comment). **RAISED / normal:** right `-10201` · left `-10202` · down `-10203` · up `-10204`. **PRESSED:** right `-10197` · left `-10198` · down `-10199` · up `-10200`. **This split is UNIVERSAL, not per-scheme** — the scheme forks carry no CDEF/control template (only art), so the mapping lives in Kaleidoscope's shared CDEF. Decoded at `kDEF231_0.asm:9f0e-9f38`: the CDEF writes BOTH ids per direction into the control record (offsets left 24/26, up 28/30, right 32/34, down 36/38) and picks by `contrlHilite` at draw time — PRESSED id for the held arrow, RAISED for the rest; a disabled control dims the RAISED art (there is **no separate inactive-arrow bitmap** — the 12-id part table is 8 arrows + 4 thumb `-10205..-10208`). Scheme art APPEARANCE of each quartet varies (s7 raised = beveled 3-D, platinum-8 raised = boxed gray button / its pressed = flat arrow). **(Corrected 2026-05-26 — the two quartets were previously swapped, so resting scrollbars showed depressed arrows. Owner chose to follow the 2.3.1 decode universally; platinum-8 — a 1998/1.x scheme — placed art the other way, so it renders its boxed `-10202` at rest, diverging from its own preview; logged in the faithfulness ledger.)** |
+| `-10197`..`-10204` | **Scroll-arrow ics4 family** — directional ARROW BUTTONS (each a whole 16×16 button: face + arrow + bevel) | `controls.ts composeScrollbar` (keep in sync with that code comment). **RAISED / normal:** right `-10201` · left `-10202` · down `-10203` · up `-10204`. **PRESSED:** right `-10197` · left `-10198` · down `-10199` · up `-10200`. **This split is UNIVERSAL, not per-scheme** — the scheme forks carry no CDEF/control template (only art), so the mapping lives in Kaleidoscope's shared CDEF. Decoded at `0x9f0e..0x9f38`: the CDEF writes BOTH ids per direction into the control record (offsets left 24/26, up 28/30, right 32/34, down 36/38) and picks by `contrlHilite` at draw time — PRESSED id for the held arrow, RAISED for the rest; a disabled control dims the RAISED art (there is **no separate inactive-arrow bitmap** — the 12-id part table is 8 arrows + 4 thumb `-10205..-10208`). Scheme art APPEARANCE of each quartet varies (s7 raised = beveled 3-D, platinum-8 raised = boxed gray button / its pressed = flat arrow). **(Corrected 2026-05-26 — the two quartets were previously swapped, so resting scrollbars showed depressed arrows. Owner chose to follow the 2.3.1 decode universally; platinum-8 — a 1998/1.x scheme — placed art the other way, so it renders its boxed `-10202` at rest, diverging from its own preview; logged in the faithfulness ledger.)** |
 | `-8288`/`-8280` | scrollbar pressed (h/v) | immediates at the drawer |
 | `-8272`/`-8271` | scrollbar thumb ghost | drag preview |
 | `-9504` | checkbox empty inactive | `controls.ts:573` (radio/checkbox -9488..-9504) — **corpus-corroborated as kDEF-canonical** (`docs/spec/corpus-corroborated-ids.md` — 1138 author-labels the family); strike the earlier "computed, not a kDEF immediate" speculation |
@@ -374,7 +365,7 @@ hi=-8271). They reveal the control families the kDEF expects:
 
 | id / range | meaning |
 |---|---|
-| `-12240` .. `-12224` | **cinf id range** (`0x116f8`: `cmpiw #-12240`/`#-12224`). For ids in this range the kDEF queries Gestalt selector `'pWin'` (`0x11768`, `$A1AD` _Gestalt; not a resource load). |
+| `-12240` .. `-12224` | **cinf id range** (`0x116f8` range check against -12240 / -12224). For ids in this range the kDEF queries Gestalt selector `'pWin'` (`0x11768`, `$A1AD` _Gestalt; not a resource load). |
 | `'cinf'` per element | the per-element info record (corner insets + colours). See §3.5. |
 | `'clut'` (`0x106e6`) | scheme colour table. |
 | `'Copl'` | internal GWorld tag, NOT a scheme resource (do not extract). |
@@ -412,46 +403,55 @@ Behavioural `[DOC]` notes that have no 2.3.1 trace yet but constrain the layout:
 
 ## 3. Struct / coordinate offset maps
 
-### 3.1 The CDEF per-call state blob (`fp@(-26)` in `0x6688`, = `a2` in `0x7424`)
+### 3.1 The CDEF per-call state blob (built in `0x6688`; the first argument of `0x7424`)
 
-Built by `0x6688` and passed to the part drawers. Confirmed offsets:
+Built by `0x6688` and passed to the part drawers. Confirmed fields (byte
+offsets in evidence):
 
-| offset | meaning | set/read at |
+| field | meaning | set/read at |
 |---|---|---|
-| `a2@(8)` | **disabled/inactive** state byte | `0x7576`/`0x75a6` (face), `0x76b8` (ring) |
-| `a2@(9)` | **pressed/mixed** state byte | `0x7582` (face), `0x76d2` (ring) |
-| `a2@(14)` / `a2@(18)` | control **Rect** (long pair → top/left, bottom/right) | `0x7434`/`0x743a` (`fp@(-8)`/`fp@(-4)`) |
-| `a2@(24)` | scratch / "drawing in progress" byte | `0x75ca`/`0x75de` |
-| (via `a2@`→`@`→`@(28)`→`@`) | the **'Acid' aux struct** | `0x768c`-`0x76a8` |
+| disabled byte | **disabled/inactive** state byte | `0x7576`/`0x75a6` (face), `0x76b8` (ring) |
+| pressed byte | **pressed/mixed** state byte | `0x7582` (face), `0x76d2` (ring) |
+| control rect | control **Rect** (long pair → top/left, bottom/right), copied into drawer locals | `0x7434`/`0x743a` |
+| scratch byte | scratch / "drawing in progress" byte | `0x75ca`/`0x75de` |
+| (via ControlHandle → record → contrlData handle → aux) | the **'Acid' aux struct** | `0x768c`-`0x76a8` |
 
-The dispatcher (`0x6688`) precomputes these locals from varCode/handle:
-`fp@(-16)`,`fp@(-15)` (kind flags, cleared for varCode∈{1,2,3,4}), `fp@(-14)`
-(active = varCode bit3), `fp@(-13)` (b/w-vs-color), `fp@(-4)` (variant: 1 for
-varCode 6, 2 for varCode 7), `fp@(-2)` (cleared), `fp@(-1)` (set for varCode 3/4).
+The dispatcher (`0x6688`) precomputes these per-call flags from varCode/handle:
+two kind flags (cleared for varCode∈{1,2,3,4}; the second is the radio hint
+used by msg 34), an active flag (= varCode bit3), a b/w-vs-color flag, a
+variant value (1 for varCode 6, 2 for varCode 7), one cleared word, and a flag
+set for varCode 3/4.
 
 ### 3.2 The 'Acid' aux struct
 
-Reached `ControlHandle → @ → @(28) → @`. Magic at `+0` = `0x41636964` `'Acid'`
-(`0x76a8`). Field `+30` = **default-button flag** (`tstb a0@(30)`, `0x76b2`).
-Both gate whether the default ring (`0x76c4`) draws. (`tstb a2@(30)` in the
-brief refers to this same flag once the aux handle is dereferenced.)
+Reached ControlHandle → record → contrlData handle (record +28) → aux. Magic at
+`+0` = `0x41636964` `'Acid'` (`0x76a8`). Field `+30` = **default-button flag**
+(tested at `0x76b2`). Both gate whether the default ring (`0x76c4`) draws. (The
+brief's "+30 of the state blob" refers to this same flag once the aux handle is
+dereferenced.)
 
-### 3.3 Window-chrome `a4`-relative globals (the work struct)
+### 3.3 Window-chrome work struct (the kDEF globals)
 
-| offset | meaning |
+Fields are named by meaning; work-struct offsets are in evidence. The widget
+flags whose meaning is only inferential (§7.6) keep their decimal work-struct
+offset as a **label** (e.g. "flag 500") so cross-references stay unambiguous.
+
+| field | meaning |
 |---|---|
-| `0x792` (1938) | rect-list count + base (named-widget rects) |
-| `0x85c` (2140) | **DEST** side-lists (window-relative borders), 4×162 B |
-| `0xae4` (2788) | **SOURCE** side-lists (cicn-template borders), side 0; sides 1/2/3 at +162/+324/+486 = `0xb86`(2950)/`0xc28`(3112)/`0xcca`(3274) |
-| `0x1c6` (454) | window record / port handle |
-| `0x1f0`/`0x1f9`/`0x1f4`(500)/`0x1f5`(501) | cinf widget-presence flags (close/zoom/shade/body) — feed `0x487e`, `0x49d6`, the draw dispatch (`0x4124` tests `a4@(508)`, `0x4168` tests `a4@(501)`) |
-| `0x1fc` (508) | grow-box present flag |
-| `0x4c4`/`0x4c5`/`0x4c6` (1220/1221/1222) | render-mode flags consulted by the 9-slice/`0x10320` (b/w vs color, mask vs copy) |
-| `0xd6c` (3436) | cicn cache table base (the 18-slot GWorld cache from `0x10472`) |
+| rect-list | rect-list count + base (named-widget rects, 10-byte entries) |
+| DEST side-lists | **DEST** side-lists (window-relative borders), 4×162 B |
+| SOURCE side-lists | **SOURCE** side-lists (cicn-template borders), 4×162 B, one per side 0..3 |
+| window record | window record / port handle (also the title source for `0x5530`) |
+| chrome cicn | the chrome template cicn / pixmap the side cells and state-0 widgets blit from |
+| flags 496 / 505 / 500 / 501 | cinf widget-presence flags (close/zoom/shade/body) — feed `0x487e`, `0x49d6`, the draw dispatch (`0x4124` tests flag 508, `0x4168` tests flag 501) |
+| flag 508 | grow-box present flag |
+| flags 502 / 503 / 506 / 507 / 509 | further widget / state flags; meaning not established (§5.1 "Still open") |
+| render-mode flags (three bytes) | render-mode flags consulted by the 9-slice/`0x10320` (b/w vs color, mask vs copy) |
+| cicn cache table | cicn cache table base (the 18-slot GWorld cache from `0x10472`) |
 
 ### 3.4 The recipe / border list layout
 
-Per side, a 162-byte block: `count` at the block base (`a3@`/`a2@`), then
+Per side, a 162-byte block: `count` at the block base, then
 entries. Each entry = **`{partCode:int16 @ +2, border:int16 @ +4*i+4}`** indexed
 by `4*i`. Walking gives cells **`[border[i-1], border[i])` tagged `part[i]`**
 (END-based — the part code travels with the border that CLOSES the cell;
@@ -462,30 +462,20 @@ coords; DEST borders are window-relative (filled by `0x5178`).
 
 #### 3.4.1 wnd# fallback ladder (`0x356c..0x367e`)
 
-**Decoded 2026-05-29** against `.scratch/k231-kdef/kDEF/k231-kdef0.asm`. The
+**Decoded 2026-05-29** against the listing. The
 kDEF doesn't give up when `GetResource('wnd#', d3)` returns NULL — it walks a
 12-step degraded-id cascade, ANDing `d3` against a fixed mask sequence and
-re-attempting until a handle resolves. The asm pattern repeats per step:
-
-```
-35xx  594f             subqw #4,%sp                ; reserve return-handle slot
-35xx  2f3c 776e 6423   movel #'wnd#',%sp@-         ; push FourCC 0x776e6423
-35xx  3003             movew %d3,%d0               ; copy raw window id
-35xx  0240 ffff        andiw #MASK,%d0             ; strip variant bits
-35xx  3f00             movew %d0,%sp@-             ; push degraded id
-35xx  a9a0             .short 0xa9a0               ; _GetResource
-35xx  245f             moveal %sp@+,%a2            ; pop handle
-35xx  200a             movel %a2,%d0
-35xx  6614             bnes 0x35xx                 ; non-null → SKIP rest of cascade
-```
+re-attempting until a handle resolves. Each step requests `'wnd#'` at
+(raw id AND mask) through `_GetResource` and, on a non-null handle, skips the
+rest of the cascade (per-step listing excerpt in evidence).
 
 Decoded mask sequence (step `i` ends at the `_GetResource` trap on the cited
 addr; "bits cleared" is the bitmask interpretation — what each AND strips from
-the 16-bit unsigned `d3`):
+the 16-bit unsigned window variation code):
 
 | step | addr | mask (hex) | bits cleared | role |
 |---:|---|---|---|---|
-| 0 | `0x3574` | `0xFFFF` | none | raw `d3` (no degradation) |
+| 0 | `0x3574` | `0xFFFF` | none | raw id (no degradation) |
 | 1 | `0x358c` | `0xFFFE` (`& -2`) | bit 0 | strip bit 0 |
 | 2 | `0x35a4` | `0xFFFD` (`& -3`) | bit 1 | strip bit 1 |
 | 3 | `0x35bc` | `0xFFFC` (`& -4`) | bits 0–1 | strip bits 0+1 |
@@ -498,10 +488,9 @@ the 16-bit unsigned `d3`):
 | 10 | `0x3664` | `0xFFEB` (`& -21`) | bits 2+4 | strip bits 2+4 |
 | 11 | `0x367c` | `0xFFEA` (`& -22`) | bits 0+2+4 | strip bits 0+2+4 |
 
-After `0x367e` the code clears 5 work-struct fields
-(`a4@(0xae4/0xb86/0xc28/0xcca/0x792)` = the 4 side-list pointers + count) then
-tests `a2`; still-null at `0x36a0` branches to `0x373e` (the "no recipe"
-failure path).
+After `0x367e` the code clears 5 work-struct fields (the 4 SOURCE side-list
+pointers + the rect-list count) then tests the returned handle; still-null at
+`0x36a0` branches to `0x373e` (the "no recipe" failure path).
 
 **Translated to canonical wnd# slugs** (the kDEF id grid — see §2.1 / Apple
 `MacWindows.h` defProcID conventions):
@@ -527,8 +516,7 @@ The cascade encodes two structural decisions: **document-family ids degrade to
 (`-12320 = 0xCFE0`) is intentionally OUTSIDE the mask grid — none of the strips
 produce another canonical id, so a missing popup is a genuine miss.
 
-**2.3.1-only enhancement.** The 1.8.2 kDEF (`.scratch/k182-kdef/kDEF/`,
-60,732 B) has **zero** `'wnd#'` FourCC literals anywhere in `kDEF 0`
+**2.3.1-only enhancement.** The 1.8.2 kDEF (60,732 B) has **zero** `'wnd#'` FourCC literals anywhere in `kDEF 0`
 (cross-checked by binary grep on both extracted blobs); the cascade — and the
 wnd# resource model itself — were introduced in 2.3.1.
 
@@ -558,10 +546,10 @@ not infer historical provider order or synthesize runtime defaults.
 
 | byte | TMPL 129 field name | kDEF use | evidence |
 |---|---|---|---|
-| `[0]` | **Corner Size** | square corner size (`d3`) | `1610 moveb %a0@,%d3` @ `0x108a8` |
-| `[1]` | **Side Thickness** | independent edge thickness (`d4`) | `1828 0001 moveb %a0@(1),%d4` @ `0x108b0` |
+| `[0]` | **Corner Size** | square corner size (the corner inset) | byte read @ `0x108a8` |
+| `[1]` | **Side Thickness** | independent edge thickness (the side inset) | byte read @ `0x108b0` |
 | `[2]` | **Tile Sides** | (boolean: full-band repeat vs first middle column/row) | TMPL 129 (was "(?)" — now confirmed) |
-| `[3]` | **Pattern Anchor** | body resource/phase selector (NOT a 1..15 enum) | `0x109be cmpib #5,%a0@(3)` selects a cicn body at `=5`; otherwise loads a ppat and `0x10ab2 subq #1`-chain dispatches cases 1..4 → anchor body pattern phase at dst-rect corner TL/TR/BL/BR (reads `a2@(0/2/4/6)`); default (0 or ≥6) → anchor at origin `(0,0)`. Full decode + corpus survey in `docs/spec/cinf-resize-behavior.md`. |
+| `[3]` | **Pattern Anchor** | body resource/phase selector (NOT a 1..15 enum) | the `== 5` test at `0x109be` selects a cicn body at `=5`; otherwise loads a ppat and the case chain at `0x10ab2` dispatches cases 1..4 → anchor body pattern phase at dst-rect corner TL/TR/BL/BR (reads the dst rect's top/left/bottom/right); default (0 or ≥6) → anchor at origin `(0,0)`. Full decode + corpus survey in `docs/spec/cinf-resize-behavior.md`. |
 | `[4..5]` | **Background Pattern ID** (DWRD) | signed resource ID: cicn for mode5, ppat otherwise | TMPL 129 / [body dispatch](cinf-resize-behavior.md) |
 | `[6..7]` | **Background Pixel y** (DWRD) | sample-pixel coordinate | TMPL 129 |
 | `[8..9]` | **Background Pixel x** (DWRD) | sample-pixel coordinate | TMPL 129 |
@@ -576,12 +564,13 @@ The TMPL is **shipped in 16 of 18 corpus bundles** — recoverable any time via 
 ### 3.6 Rect layout
 
 Mac `Rect` = 4× int16 in order **`{top, left, bottom, right}`** at `+0/+2/+4/+6`.
-`0x0feae`/`0x10320` read `rect@(0)`=top, `@(2)`=left, `@(4)`=bottom, `@(6)`=right
-(e.g. `0xfec2` `movew %a2@(6)` = right, compared to `@(2)` = left). Dest rects
-flow in as `fp@(16)` (dst) / `fp@(12)` (src) pointers; the 9-slice computes the
-four corner sub-rects by adding/subtracting `d3`/`d4` (the cinf insets) to the
-outer rect (`0x10a28`-`0x10a34`: `addw d3,@(-14)` left+=X, `addw d4,@(-16)` top+=Y,
-`subw d3,@(-10)` right-=X, `subw d4,@(-12)` bottom-=Y).
+`0x0feae`/`0x10320` read the rect fields in that order (e.g. at `0xfec2` the
+right edge is compared to the left). Dst and src rects are passed by pointer
+(tile/scale blit args 3 and 2); the 9-slice computes the four corner sub-rects
+by adding/subtracting the cinf insets to the outer rect (`0x10a28`-`0x10a34`:
+left += corner size, top += side thickness, right −= corner size, bottom −= side
+thickness). See [`engine/qd-primitives.md`](engine/qd-primitives.md) §2 / §6
+item 6 for the reconciliation note on these insets.
 
 ---
 
@@ -592,21 +581,21 @@ or width). Reconciled with `compositor-spec.md`'s table — they agree.
 
 ### 4.1 `0x49d6` — stretch-vs-fixed flag (jump table via helper `0x148`)
 
-`FUN(partCode, flag) -> byte` (1 = may stretch, 0 = fixed). Verified entries:
+Takes `(partCode, flag)` and returns a byte (1 = may stretch, 0 = fixed). Verified entries:
 
 | partCode | target | behaviour |
 |---|---|---|
-| default (1,5,6,7,8,9,11,12,13,14,18,…) | `0x4a5e` | `moveq #0` → **FIXED** |
+| default (1,5,6,7,8,9,11,12,13,14,18,…) | `0x4a5e` | returns 0 → **FIXED** |
 | 0 | `0x4a12` | **STRETCH** always |
-| 2 | `0x4a16` | stretch iff `a4@(454)→+112 == 0` (widget ABSENT — close gap) |
-| 3 | `0x4a24` | stretch iff `a4@(501) == 0` (zoom gap) |
+| 2 | `0x4a16` | stretch iff the window record's +112 field `== 0` (widget ABSENT — close gap) |
+| 3 | `0x4a24` | stretch iff flag 501 `== 0` (zoom gap) |
 | 4 | `0x4a2e` | stretch iff `0x487e()==0` (shade gap) |
-| 10 | `0x4a0c` | returns the caller's `flag` (`fp@(10)`) — flag-gated |
-| 15 | `0x4a3a` | stretch iff `a4@(454)→+112 != 0` (widget PRESENT — inverse of 2) |
-| 16 | `0x4a48` | stretch iff `a4@(501) != 0` (inverse of 3) |
+| 10 | `0x4a0c` | returns the caller's `flag` (arg 2) — flag-gated |
+| 15 | `0x4a3a` | stretch iff the window record's +112 field `!= 0` (widget PRESENT — inverse of 2) |
+| 16 | `0x4a48` | stretch iff flag 501 `!= 0` (inverse of 3) |
 | 17 | `0x4a52` | stretch iff `0x487e()!=0` (inverse of 4) |
 
-### 4.2 `0x5178` — fill classifier (explicit `cmp` chains, NOT the table)
+### 4.2 `0x5178` — fill classifier (explicit compare chains, NOT the table)
 
 The width-assignment loop (`0x5260`-`0x534a`):
 
@@ -638,31 +627,30 @@ title anchor).
 | primitive | addr | call form | semantics |
 |---|---|---|---|
 | TILE | `0x0feae` | `feae(cicn, srcRect*, dstRect*, dirByte, pixmap)` (`fp@8/12/16/20/22`) | tile along the side's run axis, one src-sized CopyBits/CopyMask per step. `dir` = anchor end, NOT axis: 1 = forward from dst top-left, 0 = reverse from dst bottom-right (`(pc==11\|\|pc==14)?0:1`). See §5.1. **Always tiles; never scales.** |
-| SCALE | `0x10320` | `f10320(cicn, srcRect*, dstRect*)` (`fp@8/12/16`) | ONE CopyBits (`$A8EC`)/CopyMask (`$A817`) src→dst → scales if dst grew. Used for partCode 18 (`0x59ba`) and named-widget rects (`0x6062`). |
+| SCALE | `0x10320` | `(cicn, srcRect*, dstRect*)` | ONE CopyBits (`$A8EC`)/CopyMask (`$A817`) src→dst → scales if dst grew. Used for partCode 18 (`0x59ba`) and named-widget rects (`0x6062`). |
 | CORNER 1:1 | `0x102d0` | `(cicn, srcRect*, dstX, dstY)` | shift src by dst−src, call `0x10320` → 1:1 placement |
 | BODY + BORDER | `0x107fe` | `(id, dstRect*, textRGB*, embossRGB*, bodyFill)` | square corners from byte[0], independent side bands from byte[1], optional body; see [solid face geometry](control-face-geometry.md) |
-| FACE wrap (control) | `0x10fc0` | `(id, …)` pushes bodyFill=true → `0x107fe` | push face (`0x7594`) and bevel (`0x7778`); ring uses false via `0x107de` |
-| 9-SLICE wrap (window) | `0x10fe0` | `(id, rect, d4, altFlag)` | loads cicn+cinf itself, then slices |
+| FACE wrap (control) | `0x10fc0` | `(id, …)` passes bodyFill=true → `0x107fe` | push face (`0x7594`) and bevel (`0x7778`); ring uses false via `0x107de` |
+| 9-SLICE wrap (window) | `0x10fe0` | `(id, rect, callerValue, altFlag)` (third argument not decoded) | loads cicn+cinf itself, then slices |
 | RING blit | `0x107a4` | `(id, dstRect*, flag)` | the default-button ring 9-slice (its own wrapper over the slice engine) |
 
 ---
 
 ### 5.1 `0xfeae` tile blit: argument frame, axis and direction byte (traced 2026-10-21)
 
-Traced from the local `m68k-elf-objdump` listing of kDEF 0
-(`.scratch/k231-kdef/kDEF/k231-kdef0.asm`, sha256 of the resource in
-[kdef-binary-inventory.md](kdef-binary-inventory.md)). Static reading only;
-no original code was executed. Earlier rows in §1.5 and §5 put the direction
-byte at `fp@(8)` and called it a horizontal/vertical selector. Both were wrong.
+Traced statically from the kDEF 0 listing (sha256 of the resource in
+[kdef-binary-inventory.md](kdef-binary-inventory.md); listing provenance in
+evidence). No original code was executed. Earlier rows in §1.5 and §5 put the
+direction byte in the first argument slot and called it a horizontal/vertical
+selector. Both were wrong. Behavioural restatement:
+[`engine/qd-primitives.md`](engine/qd-primitives.md) (tables T1–T7, W1–W3).
 
-**Caller frame (`0x59c6..0x59ee`).** The caller pushes, in order: `d6` (long),
-the direction byte (`moveb` to a word slot), `&fp@(-8)`, `&fp@(-16)` and
-`a4@(1934)`. It pops 18 bytes. So inside `0xfeae`: `fp@(8)` = `a4@(1934)`
-(`d4`, the chrome cicn), `fp@(12)` = src rect (`a3`), `fp@(16)` = dst rect
-(`a2`), `fp@(20)` = direction byte, `fp@(22)` = the `d6` long. The src/dst
-roles match `0x5356`, which writes the src rect through `sp@(32)` from the
-template borders `a4@(2788)` and the dst rect through `sp@(36)` from the
-placed borders `a4@(2140)`. The 18-byte pop matches 4+4+4+2+4.
+**Caller arguments (`0x59c6..0x59ee`).** The window draw loop passes, in call
+order: the chrome cicn, the src rect, the dst rect, the direction byte, and a
+long passed through from the caller (18 bytes of arguments in all). The src/dst
+roles match `0x5356`, which builds the src rect from the template borders (the
+SOURCE side-lists) and the dst rect from the placed borders (the DEST
+side-lists).
 
 **`0x5356` fixes the cross axis.** On sides 0 and 1 (top, bottom) it sets
 dst height = src height (`0x539c..0x53a6`, `0x5404..0x540c`). On sides 2 and 3
@@ -670,7 +658,7 @@ dst height = src height (`0x539c..0x53a6`, `0x5404..0x540c`). On sides 2 and 3
 `0x54da..0x54e6`). The run-axis bounds come from the border lists. A placed
 cell therefore differs from its source only along the run.
 
-**Fast paths (direction-independent).** These run before `fp@(20)` is read:
+**Fast paths (direction-independent).** These run before the direction byte is read:
 
 - `0xff3e..0xffb6`: src width 1 and dst width > 1. For each source row
   (rows map 1:1), sample the pixel (`0xf9f6`), then MoveTo/LineTo across the
@@ -680,8 +668,8 @@ cell therefore differs from its source only along the run.
 
 Because of `0x5356`, these fire only for a source that is 1 px along the run.
 
-**General path.** `d5` = src width and `d3` = src height (`0x10036..0x10042`).
-`tstb fp@(20)` at `0x10074` chooses the branch:
+**General path.** The tile is src width × src height (`0x10036..0x10042`).
+The direction byte, tested at `0x10074`, chooses the branch:
 
 | byte | code | first tile | partial-tile clip | step (`0x10146` / `0x10236`) | loop exit |
 |---|---|---|---|---|---|
@@ -728,7 +716,8 @@ their pixels are identical to the general path's CopyMask is not shown. The
 PR #367 1px-only check could therefore not tell the two readings apart.
 
 **A second consumer of the same byte.** `0x6390` also walks the side lists and
-passes `(pc==11||pc==14)?0:1` to `0x11452` (`0x651c..0x653c`). That routine
+passes the same byte (0 for codes 11 and 14, 1 otherwise) to `0x11452`
+(`0x651c..0x653c`). That routine
 and what it draws are not traced here.
 
 **Corpus scope** (13 wnd# archives, every sliced type, sampled at template
@@ -776,11 +765,11 @@ evidence.
 is `0x632e` → `0x6062`, not `0x5ffc`. `0x5ffc` → `0x5ddc` is a point hit-test
 and draws nothing. `0x6062` is not independent of the side lists:
 
-- Its dst rect is the rect-list (`a4@(1938)`) entry rect in template
+- Its dst rect is the rect-list entry rect in template
   coordinates, remapped by `0x5cb6`. `0x5cb6` walks every side's cells through
   `0x5356` and offsets each corner by its containing cell's placed − template
   delta, so it depends on the `0x5178` widths.
-- In the state-0 path it blits the chrome template `a4@(1934)` itself (src =
+- In the state-0 path it blits the chrome template itself (src =
   raw entry rect), not a widget cicn.
 
 What a code-10 collapse would do to widget placement or art is therefore not
@@ -790,7 +779,7 @@ Still open:
 
 - Which callers of `0x632e` draw close (part 4) and collapse (part 9) on a full
   frame draw. Inside `0x572e`, only part 5 is drawn (`0x5a28..0x5a3c`).
-- The meaning of flags `a4@(502/503/506/507/508)` and of the state byte.
+- The meaning of flags 502/503/506/507/508 (§3.3) and of the state byte.
 - `0x5cb6`'s behaviour when a corner falls in a cell placed at width 0.
 - How the rect-list rects are derived.
 
@@ -893,7 +882,7 @@ while it moves the asm narrative out). Line numbers are as of 2026-10-21:
    interpretation. See the corrected [source table and 18-fork survey](cinf-resize-behavior.md).
    Editor menu encoding, complete phase/mask behavior and caller coverage are
    not established by header labels alone.
-3. **'pWin' Gestalt selector** (`0x1175e`, `#1884776814`; trap `$A1AD` _Gestalt at `0x11768`, formerly read as a
+3. **'pWin' Gestalt selector** (`0x1175e`, `1884776814`; trap `$A1AD` _Gestalt at `0x11768`, formerly read as a
    `_Get1NamedResource` companion-resource load) — queried for cinf-range ids. If the call succeeds, the response
    is used as a pointer to a record: when that record's byte 15 is non-zero, its word at offset 16 is
    copied into cinf byte 18. Which
@@ -903,13 +892,13 @@ while it moves the asm narrative out). Line numbers are as of 2026-10-21:
    track-stretch / thumb-position / barber-pole / tab math was only ever decoded
    against the **1.8.2** binary (folded into §2.6 at `[DOC]` confidence) and was
    never instruction-traced for 2.3.1.
-5. **The `0x788c` hand-drawn bevel path** — entry + state selectors (`d5==254/255`)
+5. **The `0x788c` hand-drawn bevel path** — entry + state selectors (state value 254 / 255)
    identified; the full MoveTo/LineTo coordinate sequence (the procedural
    button/checkbox geometry) is not transcribed.
-6. **cinf widget-presence flags** (`a4@(0x1f0/0x1f4/0x1f5/0x1f9/0x1fc)`) — decoded
+6. **cinf widget-presence flags** (flags 496 / 500 / 501 / 505 / 508, §3.3) — decoded
    as close/zoom/shade/body/grow by *behaviour*, not from a documented struct;
    the exact bit/byte semantics are inferential (§3.3).
-7. **The 18-slot cicn cache** (`0x10472` switch, `a4@(3436)`) — IDs enumerated
+7. **The 18-slot cicn cache** (`0x10472` switch, the work-struct cicn cache table) — IDs enumerated
    (§2.3) but the slot eviction/reuse policy is not traced; `-10224`/`-10223`
    remain unidentified.
 8. **theme.json `part-N` vs runtime partCode for evolution/beos** — the recipe
@@ -984,9 +973,8 @@ ring dispatch uses inactive -10232, pressed -10230 (falling back to -10231),
 and active -10231 (`0x76b8..0x770e`). Its wrapper at `0x107de` disables body
 fill when entering `0x107fe`. No source opaque-bounds crop is involved.
 
-The border is not a rectangular nine-slice. Register d3 (cinf corner size)
-sets both dimensions of each square corner; d4 (side thickness) sets band
-thickness. Order: TL `0x10c54`, TR `0x10cb2`, top `0x10d34`, BL `0x10da6`,
+The border is not a rectangular nine-slice. The cinf corner size sets both
+dimensions of each square corner; the side thickness sets band thickness. Order: TL `0x10c54`, TR `0x10cb2`, top `0x10d34`, BL `0x10da6`,
 BR `0x10e0e`, bottom `0x10e92`, left `0x10f0a`, right `0x10f82`. Bands exclude
 corner size at their longitudinal ends, and may overlap when side > corner.
 Masked samples preserve already-painted pixels underneath.
