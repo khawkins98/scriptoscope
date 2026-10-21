@@ -46,6 +46,8 @@
     },
     "rule": "Unchanged from round 1 (unit = index range; kDEF0 + CDEFs: isData=false, reached, not CW runtime/data; PACH130: 19 DECISIONS-#3 cited ranges; static-unreached excluded). Two mechanical clarifications applied to the new index: (a) a range with no final terminator passes reachability to the range it falls into; (b) CW-runtime status = advisor runtime-lib OR a CW runtime Macsbug name in the range OR falling/straddling (switch table) into such a range.",
     "frozenOn": "2026-10-21",
+    "sha256": "16a41fcdfde0c92855e540b0aaa347494e411095c7e49288c604eceb9bda9efc",
+    "sha256Rule": "sha256 of the sorted (plain string sort) lines '<binary> <start> <end>', one per in-scope range, joined with \\n, no trailing newline. scripts/report-coverage.mjs exits 1 on mismatch; a changed set is recorded in changes and re-pinned.",
     "changes": [
       {
         "to": 537,

@@ -6,10 +6,13 @@
 // fidelity percentage and must never be reported as one.
 //
 // The denominator is the frozen in-scope set (inventory `inScope`, one boolean
-// column per range; rule in `inScope.rule`). Ranges are advisor bounds, not true
-// function counts (~15% of sampled bounds are split/merged/trailing data), so a
-// re-segmentation is recorded as a denominator change (a version bump with a
-// note), never folded in silently. Classes are advisory only and are not used
+// column per range; rule in `inScope.rule`). Ranges are static-index bounds, not
+// true function counts (round 2 sampled 2.5% bound defects, plus ~3.6% of ranges
+// starting at fall-through fragments), so a re-segmentation is recorded as a
+// denominator change (an inScope.changes entry), never folded in silently.
+// The frozen set's identity is pinned: inScope.sha256 is the sha256 of the
+// sorted '<binary> <start> <end>' lines (one per in-scope range, '\n'-joined, no
+// trailing newline). Any swap, added/dropped range or moved bound exits 1. Classes are advisory only and are not used
 // here. reachedFrom must be one of REACH below; an unknown value exits 1. In-scope
 // ranges reached only by fallThrough (running off the end of a reached range)
 // are counted like any other in-scope range and also reported separately, since
@@ -46,10 +49,14 @@
 
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { resolve, dirname, relative, join } from 'node:path';
+import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const inv = JSON.parse(readFileSync(resolve(repoRoot, 'docs/spec/routine-inventory.json'), 'utf8'));
+// --inventory <path> reads another inventory (tests only); citations still come from the repo.
+const invArg = process.argv.indexOf('--inventory');
+const invPath = invArg > 0 ? resolve(process.argv[invArg + 1]) : resolve(repoRoot, 'docs/spec/routine-inventory.json');
+const inv = JSON.parse(readFileSync(invPath, 'utf8'));
 const col = Object.fromEntries(inv.columns.map((c, i) => [c, i]));
 if (col.inScope === undefined) { console.error('routine-inventory.json has no inScope column'); process.exit(2); }
 
@@ -140,6 +147,7 @@ const inRange = (set, s, e) => { if (!set) return false; for (const a of set) if
 const report = { status: inv.status, inScopeFrozen: inv.inScope?.frozen === true, inScopeCount: inv.inScope?.count ?? null, binaries: {} };
 const total = { ranges: 0, inScope: 0, cited: 0, decoded: 0, mirrored: 0, fallThrough: 0 };
 let errors = 0;
+const inScopeLines = [];
 for (const [name, b] of Object.entries(inv.binaries)) {
   const r = { ranges: 0, inScope: 0, cited: 0, decoded: 0, mirrored: 0, fallThrough: 0 };
   for (const row of b.routines) {
@@ -151,6 +159,7 @@ for (const [name, b] of Object.entries(inv.binaries)) {
     if (how === 'fallThrough') r.fallThrough++;
     const s = parseInt(row[col.start], 16), e = parseInt(row[col.end], 16);
     r.inScope++;
+    inScopeLines.push(`${name} ${row[col.start]} ${row[col.end]}`);
     if (inRange(cited.get(name), s, e)) r.cited++;
     if (inRange(decoded.get(name), s, e)) r.decoded++;
     if ((mirrored.get(name) ?? []).some(([ms, me]) => ms < e && me > s)) r.mirrored++;
@@ -162,6 +171,11 @@ for (const [name, b] of Object.entries(inv.binaries)) {
 }
 report.total = total;
 if (report.inScopeFrozen && total.inScope !== report.inScopeCount) { errors++; console.error(`in-scope rows ${total.inScope} != frozen count ${report.inScopeCount}`); }
+report.inScopeSha256 = createHash('sha256').update(inScopeLines.sort().join('\n')).digest('hex');
+if (report.inScopeFrozen && report.inScopeSha256 !== inv.inScope?.sha256) {
+  errors++;
+  console.error(`in-scope set sha256 ${report.inScopeSha256} != frozen inScope.sha256 ${inv.inScope?.sha256}: the frozen set changed (swap, add/drop or moved bound). Record it in inScope.changes and re-pin.`);
+}
 
 if (process.argv.includes('--json')) {
   console.log(JSON.stringify(report, null, 2));

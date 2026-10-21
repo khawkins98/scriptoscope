@@ -136,3 +136,11 @@ the §6 A-trap table's name column was regenerated from Universal Interfaces 3.0
 `Traps.h` (`scripts/gen-trap-table.mjs`). All 27 case inputs, outcomes, payload pins
 and ring dispatch claims are unchanged. The review label is PENDING until an
 independent hash-only review; earlier review history is retained.
+
+Inventory 1.0.10 again refreshes only the full `kdef231-reference.md` document hash
+(`e1e94403` -> `3e55c385`), after the `'pWin'` lookup at `0x11768` was corrected
+from a resource load to a `$A1AD` _Gestalt query (cinf-loader row `0x116f8`, the cinf
+id-range row, the `$A9A0` role and open item 3). No case-cited address line changed.
+All 27 case inputs, outcomes, payload pins and ring dispatch claims are unchanged.
+The 1.0.9 review is archived verbatim; 1.0.10 carries the independent hash-only
+review of PR #388.
