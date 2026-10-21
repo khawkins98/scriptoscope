@@ -3,6 +3,8 @@
 Static investigation and bounded implementation, 2026-10-18. No original code executed or redistributed;
 held `/tmp/scriptoscope-tab-slices` prototype untouched.
 
+*Listing-level narrative (registers, frame offsets, instruction excerpts) for this document lives in [`engine/tab-cdef8-body.evidence.md`](engine/tab-cdef8-body.evidence.md) — spec writers and verifiers only.*
+
 ## Identity
 
 Installer component CDEF 8, 15,902 bytes, SHA256
@@ -12,8 +14,8 @@ matched this payload byte-for-byte with the existing local extraction.
 Same installer/wrapper/raw-fork chain as kDEF/PACH inventory; raw-fork payload
 42778, resource-map reference997278. This is installer-component identity, not
 attribution of a running Appearance provider. All addresses below are payload
-relative. Local disassembly: `/tmp/scriptoscope-cdef8-68020.asm`, generated with
-`m68k-elf-objdump -D -b binary -m m68k:68020`.
+relative. The local disassembly path and toolchain are recorded in the evidence
+appendix (spec writers and verifiers only).
 
 ## Actual caller and selection
 
@@ -90,7 +92,7 @@ The CDEF full-color palette helper2678..26ec has the same positional-match,
 last-value-zero, reverse-search, entry-zero-fallback order as kDEF10702. Existing
 raw background sample metadata can therefore support the solid center under the
 declared display transform. Full tab emboss policy still needs its own rule.
-The caller's font setup is at0xa1c and data/style-controlled, not bh*0.42.
+The caller's font setup is at 0xa1c and data/style-controlled, not bh*0.42.
 Changing font size or arbitrary output height is outside a first body fix.
 
 ## Bounded implementation and acceptance

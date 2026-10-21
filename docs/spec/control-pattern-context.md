@@ -5,6 +5,8 @@ full-color PixPat bodies for push/bevel faces with every raw cinf byte except
 mode5, which requests a separate color-icon body. The [managed button adapter](managed-control-context.md) connects this model
 to current browser window coordinates under an explicit integration policy. List headers and tabs remain separate. The bounded mode5 color-icon body path is documented in [cicn-body-mode5.md](cicn-body-mode5.md).
 
+*Listing-level narrative (registers, frame offsets, instruction excerpts) for this document lives in [`engine/control-pattern-context.evidence.md`](engine/control-pattern-context.evidence.md) — spec writers and verifiers only.*
+
 ## Source and coordinates
 
 The pinned kDEF0 component is SHA-256
@@ -23,7 +25,7 @@ The body phase anchors at10ac8..10af6 use the ORIGINAL control Rect:
 Right/bottom are the exclusive Rect edges, not the final included pixel.
 Mode5 selects the separate cicn path. The equality test at109be and branch
 at109c4 send every other byte to the same cache/GetPixPat path at10a6c..10a92.
-The zero-extended byte at10ab0..10ab2 encounters four SUBQ/BEQ pairs selecting
+The zero-extended byte at10ab0..10ab2 meets four successive equality tests selecting
 only1–4; all other values fall through10ac6 to the zero anchor at10af4/10af6.
 Thus modes0 and6–255 share P=(0,0); their original raw mode remains in the trace.
 This does not declare the separate Resource Manager lookup policy historical.
@@ -97,12 +99,12 @@ controls keep their caller/local context; DOM position is not original-port proo
 The actual selected face owner supplies the pattern catalog. The loader carries
 `ChromeElement.bodyPattern` directly from its last successfully decoded ppat
 occurrence for that signed ID, including raw ID0 and excluding mode5. It preserves
-all catalog keys and the existing nonzero-only `bgPattern` link. Numeric names
+all catalog keys and the existing nonzero-only `bgPattern` association. Numeric names
 such as`2` then`1` demonstrate why object-key enumeration cannot reconstruct source
 order. This binding is emitted with or without opt-in byte observation.
 
 At paint time an exact signed-ID match on the carried binding wins, followed by
-a valid legacy `bgPattern` link. A legacy manifest without either valid link can
+a valid legacy `bgPattern` association. A legacy manifest without either valid association can
 use one uniquely matching raw-ID candidate. Multiple unbound candidates report
 `ambiguous-legacy-pattern-order` and retain the previous face fallback; they do
 not silently pick an enumeration order. Wrong-ID links are rejected visibly.

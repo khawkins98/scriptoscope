@@ -18,7 +18,7 @@ Implementation: [requirement ledger #227](https://github.com/khawkins98/scriptos
 [actual selection #226](https://github.com/khawkins98/scriptoscope/issues/226), and
 [reviewed availability #228](https://github.com/khawkins98/scriptoscope/issues/228).
 
-Maintain one ledger keyed by scheme, surface/family, state and supported option class. Record the source archive/resource identity, requested dimensions, expected availability, evidence link, exact tested configuration, and one status:
+Maintain one ledger keyed by scheme, surface/family, state and supported option class. Record the source archive/resource identity, requested dimensions, expected availability, evidence reference, exact tested configuration, and one status:
 
 - **Verified:** passes a stated independent source-derived or reference-capture requirement. Name the requirement; a passing screenshot baseline alone is insufficient.
 - **Mismatched:** a concrete expected/actual difference exists, linked to an active fix (including tab source cropping in #223). Keep broader unresolved control-body requirements in #218 distinct from its already corrected solid-face geometry.

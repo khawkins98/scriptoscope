@@ -1,5 +1,7 @@
 # Scheme Factory vocabulary — the canonical authoring spec
 
+*Listing-level narrative (registers, frame offsets, instruction excerpts) for this document lives in [`engine/scheme-factory-vocabulary.evidence.md`](engine/scheme-factory-vocabulary.evidence.md) — spec writers and verifiers only.*
+
 > Extracted from **Scheme Factory 1.0pr2** (`kaleidoscope.net`, the OFFICIAL
 > Kaleidoscope scheme editor) recovered from the Wayback Machine:
 > `https://web.archive.org/web/20020312171604/http://kaleidoscope.net/schemefactory/SchemeFactoryPR2.sea.hqx`.
@@ -15,13 +17,8 @@
 > Scheme Factory's strings are the **source authors derived from** — the
 > defaults the corpus paraphrases.
 >
-> Re-extract:
-> ```sh
-> curl -L https://web.archive.org/web/20020312171604/http://kaleidoscope.net/schemefactory/SchemeFactoryPR2.sea.hqx -o sf.sea.hqx
-> unar -o /tmp/scheme-factory sf.sea.hqx
-> xattr -px com.apple.ResourceFork '/tmp/scheme-factory/Scheme Factory 1.0pr2/Scheme Factory 1.0pr2' | xxd -r -p > /tmp/sf-rsrc.bin
-> node /tmp/probe-sf.mjs  # the probe script
-> ```
+> Re-extraction commands (from the archived Scheme Factory 1.0pr2 download) are
+> in the evidence appendix.
 
 ---
 
@@ -266,8 +263,9 @@ let the author assign each cicn to one of these slot kinds.
 
 ### Implications for the widget-presence flag field
 
-Our `docs/spec/kdef231-reference.md` §7.6 calls out the
-`a4@(0x1f0/0x1f4/0x1f5/0x1f9/0x1fc)` mystery — a 16-bit-ish field per
+Our `docs/spec/kdef231-reference.md` §7.6 calls out the per-window-type
+widget-presence field mystery (its kDEF global offsets are recorded in the
+evidence appendix) — a 16-bit-ish field per
 window-type whose bits gate the close/zoom/collapse/grow widgets. Scheme
 Factory's list (#2 Close Box, #3 Zoom Box, #4 Collapse Box, #6 Left Grow Box,
 #7 Right Grow Box) confirms the **set of bits the field encodes** is exactly

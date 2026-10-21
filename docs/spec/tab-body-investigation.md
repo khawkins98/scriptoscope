@@ -1,5 +1,7 @@
 # Tab body investigation: initial PACH lead
 
+*Listing-level narrative (registers, frame offsets, instruction excerpts) for this document lives in [`engine/tab-body-investigation.evidence.md`](engine/tab-body-investigation.evidence.md) — spec writers and verifiers only.*
+
 Tracked by [#223](https://github.com/khawkins98/scriptoscope/issues/223) under
 #221. The full-raster horizontal prototype remains held: it restores missing
 middle strips but also stretches semantic color-sample pixels into visible bars.
@@ -24,7 +26,7 @@ section or into the installer. Inspection is static; original code is not run.
   `0xb99a`; at `0xb9d4` it pushes -9983 and calls the same helper at `0xb9d8`.
 - `0x69a4..0x6a04` calls loader `0x7ea2`, requires a 56-byte returned record,
   then copies six bytes from offset26 or offset44 to its output. The branch
-  tests the byte at `a4+1832`; its complete original meaning remains untraced.
+  tests a kDEF global byte (location in evidence); its complete original meaning remains untraced.
 - At `0x7ec4` the loader pushes FourCC `cinf` and at `0x7ecc` requests the
   passed signed resource ID with trap `0xa9a0` (GetResource). This is a metadata
   request, not evidence that the helper paints a tab body.

@@ -73,7 +73,7 @@ steps. A trace is an observation, not independent historical truth.
 ## Independent checks and limits
 
 The hand-serialized7×7 c3/s1 fixture makes ordinary raster entry0 red while
-engine palette lookup chooses gray0x2121. The six public push/bevel/ring ×
+engine palette lookup chooses gray 0x2121. The six public push/bevel/ring ×
 repeat/nonrepeat cases assert literal gray48 expanded bands and red corners in
 source and built runtimes; all twelve failed before the change. Other cases
 cover repeated multi-pixel sources, one-pixel destination height, clipping,

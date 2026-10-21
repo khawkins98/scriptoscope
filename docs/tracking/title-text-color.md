@@ -1,5 +1,7 @@
 # Title-text colour — sourcing (investigation + fix plan)
 
+*Listing-level narrative (registers, frame offsets, instruction excerpts) for this document lives in [`spec/engine/title-text-color.evidence.md`](../spec/engine/title-text-color.evidence.md) — spec writers and verifiers only.*
+
 ## Symptom
 Rendered window-title text colour doesn't match the period references:
 
@@ -29,10 +31,10 @@ scheme). So index 2 is a frame tint we mis-labelled "Text".
 ## Where it ACTUALLY comes from (traced from the 2.3.1 kDEF asm)
 The title is drawn by the kDEF routine at **`0x5530`** (see kdef231-reference.md §1.4):
 1. `GetWTitle` (`$A919`) — the title string.
-2. `0x6582(idx)` — look up a marker rect from the rect-list (`a4@1938`).
+2. `0x6582(idx)` — look up a marker rect from the rect-list.
 3. `0xfc5c` ×2 — a **GetPixel** (bit/byte offset for 1/2/4/8-bit depth → index →
-   RGB via `0x10702`). Samples **two adjacent pixels** of the chrome pixmap
-   (`a4@1934`): one → text colour (`fp@-28`), the neighbour → shadow (`fp@-22`).
+   RGB via `0x10702`). Samples **two adjacent pixels** of the chrome pixmap:
+   one → text colour, the neighbour → shadow.
 4. `0x56b2`: if the two are equal → one `RGBForeColor`+`DrawString`; else text in
    colour1 + a ~1px-offset shadow in colour2 (emboss).
 
@@ -72,7 +74,7 @@ from the rect `0x6582(0)` returns. But for 1984 the obvious `part-0` body rect
 `[24,27,87,65]` makes that `(28,86)/(27,86)` — **out of bounds** (cicn is 89×82),
 which can't be right. So `0x6582(0)` is NOT the body part-0, or the rect/coord
 convention differs. The decompile is truncated through `0x6582`/`0xfc5c`/`0x4a64`
-(`halt_baddata`), so the next move is to pin it **empirically**: instrument the
+(the decompiler stops with a bad-data marker), so the next move is to pin it **empirically**: instrument the
 renderer to try candidate marker rects/offsets and keep the one coordinate rule
 that reproduces all six references (they're diverse — blue/gold/grey/camo/metal
 bars, black & white text — so a single rule satisfying all six is almost

@@ -5,6 +5,8 @@
 **Status:** First-pass investigation. Closes some of spec B §13's open questions; opens others.
 **Engine note:** the production renderer now follows the 2.3.1 decode (see `kdef231-reference.md`). This doc is preserved as a primary-source companion to the 2.3.1 reference — 1.8.2 and 2.3.1 share the WDEF/CDEF dispatch model + QuickDraw primitives + resource-loading idioms; only the recipe shape changed between the two.
 
+*Listing-level narrative (registers, frame offsets, instruction excerpts) for this document lives in [`engine/kdef182-disassembly-findings.evidence.md`](engine/kdef182-disassembly-findings.evidence.md) — spec writers and verifiers only.*
+
 This document records what was learned from inspecting Kaleidoscope's actual binary, with cross-references back to the K2 Scheme Reference + spec B (raster mapping) for each finding.
 
 ---
@@ -178,12 +180,9 @@ This confirms our model: Kaleidoscope is a TABLE-DRIVEN renderer. The mapping fr
 - Source: `~/Downloads/Kaleidoscope 1.8.2 Installer.app` (a classic-Mac file with FinderInfo type `APPL`, creator `Acid!`, ~520KB data fork containing the StuffIt InstallerMaker payload)
 - Extraction: `unar` → "Kaleidoscope" (cdev, 504KB rsrc fork) + "Kaleidoscope Extension" (APPL, 12KB rsrc fork)
 - Resource parsing: our own `src/themes/loader/resource-fork.js`
-- 68k disassembly: `m68k-elf-objdump -D -b binary -m m68k:68000 -EB`
-- PEF parsing: hand-rolled `parse-pef.py` based on Apple's Mac OS Runtime Architecture spec
-- Strings: `strings -n 4` + `xxd`
-- Resource-load pattern search: byte-pattern grep for `0x2f3c TT TT TT TT 0x3f3c IL IH 0xa9a0` (the canonical "push type, push ID, call GetResource" sequence)
-
-Disassembly artifacts kept under `/tmp/aaron-disasm/` (not committed). Reproducible from the original binary path above.
+- Disassembly, PEF parsing, string extraction and the GetResource call-site search
+  toolchain are recorded in the evidence appendix (spec writers and verifiers only).
+  Artifacts were not committed; reproducible from the original binary path above.
 
 ---
 

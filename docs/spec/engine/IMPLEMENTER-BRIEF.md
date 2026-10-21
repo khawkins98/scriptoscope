@@ -48,28 +48,13 @@ Never open, read, search or have a tool print these:
   `tests/control-availability/SOURCE-EVIDENCE.md`;
 - **these docs, until split** (each still embeds assembly, register or stack
   narrative; L2 removes them from this list as their split merges):
-  - `docs/spec/kdef231-reference.md`
-  - `docs/spec/kdef231-recipe-walk.md`
-  - `docs/spec/kdef-service-handlers.md`
-  - `docs/spec/kdef-faithfulness-ledger.md`
-  - `docs/spec/kdef-binary-inventory.md`
-  - `docs/spec/cinf-extended-decode.md`
-  - `docs/spec/platinum-controls-decode.md`
-  - `docs/spec/platinum-wdef125-decode.md`
-  - `docs/spec/platinum-theme-provider-decode.md`
-  - `docs/spec/apple-cdef-geometry.md`
-  - `docs/spec/apple-cdef-button-geometry.md`
-  - `docs/spec/apple-cdef-button-vs-our-compose.md`
-  - `docs/spec/apple-drawtheme-decode.md`
-  - `docs/spec/codebase-vs-primary-sources-audit.md`
-  - `docs/spec/control-pattern-context.md`
-  - `docs/spec/checkable-icons.md`
-  - `docs/spec/range-controls.md`
-  - `docs/spec/proxy-icon-modified-dot.md`
-  - `docs/spec/scheme-factory-vocabulary.md`
-  - `docs/spec/tab-body-investigation.md`
-  - `docs/geometry-refactor-todo.md`
-  - `docs/tracking/title-text-color.md`
+  - `docs/spec/kdef231-reference.md` (split, except four ledger-pinned
+    evidence excerpts the requirement ledger quotes byte-for-byte and the §6
+    trap table owned by lane L1; stays forbidden until those are repointed)
+  - `docs/spec/kdef-binary-inventory.md` (a map of where the listings and
+    binaries live)
+  - `docs/spec/checkable-icons.md`, `docs/spec/range-controls.md`
+    (ledger-pinned excerpts quote register-relative operands)
   - `tests/rendering-options/range-rules.mjs` and its `.spec`/`.test` files
     (one register-relative comment near the track-record rule; L5 owns the
     scrub)
@@ -101,7 +86,30 @@ one it scans.
   `docs/spec/managed-control-context.md`, `docs/spec/prepared-bitmap-font.md`,
   `docs/spec/fidelity-compatibility-contract.md`,
   `docs/spec/apple-primary-source.md`, `docs/spec/corpus-corroborated-ids.md`,
-  `docs/v2/DECISIONS.md`, `CLAUDE.md`, `CONTRIBUTING.md`.
+  Split by L2 (behaviour, tables and address citations; their listing
+  narrative is in the matching evidence appendix, which stays forbidden):
+  `docs/spec/kdef231-recipe-walk.md`, `docs/spec/kdef-service-handlers.md`,
+  `docs/spec/kdef-faithfulness-ledger.md`, `docs/spec/kdef-architecture.md`,
+  `docs/spec/kdef182-disassembly-findings.md`,
+  `docs/spec/cinf-extended-decode.md`, `docs/spec/platinum-controls-decode.md`,
+  `docs/spec/platinum-controls-faithfulness-ledger.md`,
+  `docs/spec/platinum-wdef125-decode.md`,
+  `docs/spec/platinum-theme-provider-decode.md`,
+  `docs/spec/apple-cdef-geometry.md`,
+  `docs/spec/apple-cdef-button-geometry.md`,
+  `docs/spec/apple-cdef-button-vs-our-compose.md`,
+  `docs/spec/apple-drawtheme-decode.md`,
+  `docs/spec/apple-appearancelib-spike.md`,
+  `docs/spec/codebase-vs-primary-sources-audit.md`,
+  `docs/spec/control-pattern-context.md`,
+  `docs/spec/control-resolution-diagnostics.md`,
+  `docs/spec/fidelity-verification-plan.md`,
+  `docs/spec/resource-byte-provenance.md`,
+  `docs/spec/sampled-control-bands.md`, `docs/spec/proxy-icon-modified-dot.md`,
+  `docs/spec/scheme-factory-vocabulary.md`,
+  `docs/spec/tab-body-investigation.md`, `docs/spec/tab-cdef8-body.md`,
+  `docs/geometry-refactor-todo.md`, `docs/tracking/title-text-color.md`;
+  and `docs/v2/DECISIONS.md`, `CLAUDE.md`, `CONTRIBUTING.md`.
 - Rule tables (the linter's `RULE_TABLES`):
   `tests/rendering-options/window-chrome-rules.mjs`,
   `tests/rendering-options/window-chrome-rules.spec.mjs`,

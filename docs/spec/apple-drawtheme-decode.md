@@ -3,10 +3,11 @@
 *Clean-room. PPC32 BE disassembly of AppearanceLib's code section, reached via
 the PEF pattern-data decompressor implemented during the spike. All `0x…`
 addresses are offsets within AppearanceLib's code section
-(`fileOff = 2443792 + addr` into `.scratch/iso-recon/85-System.bin`). Reproduce
-via `/tmp/ppc-venv/bin/python .scratch/iso-recon/decode-drawtheme.py` and
-`decode-dispatch.py`. .scratch only; understanding-only; no Apple listing
-reproduced verbatim.*
+(`fileOff = 2443792 + addr` into the Mac OS 8.5 System file, `85-System.bin`).
+Understanding-only; no Apple listing reproduced verbatim.*
+
+*Listing-level narrative (PPC instruction excerpts, registers, stack/TOC
+offsets, reproduction toolchain) for this document lives in [`engine/apple-drawtheme-decode.evidence.md`](engine/apple-drawtheme-decode.evidence.md) — spec writers and verifiers only.*
 
 ---
 
@@ -40,47 +41,33 @@ not the API contract, which is exactly what we already model.
 Every routine in section 2 below follows this template (citing
 `DrawThemeButton` @ `0x002ee4` as the canonical example):
 
-```
-0x002ee4  mflr     r0            ; classic PPC prologue
-0x002ee8  stmw     r23, -0x24(r1)
-0x002eec  stw      r0, 8(r1)
-0x002ef0  stwu     r1, -0x60(r1)
-…                                ; r3..r9 -> r23..r29 (param save)
-0x002f10  cmplwi   r23, 0        ; null-rect → return -50 (paramErr)
-…
-0x002f30  lhz      r0, 6(r25)    ; load drawInfo->state half-word
-0x002f34  andi.    r0, r0, 5     ; state & 5 (kThemeStateActive=1 | kThemeStateRollover=4)
-…
-0x002f58  bl       0x18618       ; fetch current theme provider
-0x002f5c  nop
-0x002f60  lwz      r12, 0(r3)    ; vtable = provider[0]
-0x002f64  addi     r4, r23, 0    ; arg1 = rect
-0x002f68  lwz      r12, 0xCC(r12); method = vtable[+0xCC]   ← the per-routine constant
-0x002f6c  addi     r5, r24, 0    ; arg2 = kind
-0x002f70..002f80                 ; r6..r10 = drawInfo, prevInfo, eraseProc, labelProc, userData
-0x002f84  bl       0x3d44c       ; cross-TOC indirect-call trampoline
-```
+1. Standard PPC prologue; the seven parameters are saved (`0x002ee4`…).
+2. **Null-rect guard** (`0x002f10`): a null rect returns `-50` (`paramErr`).
+3. Loads the `drawInfo->state` half-word (`0x002f30`) and masks it with `5`
+   (`0x002f34`; `kThemeStateActive=1 | kThemeStateRollover=4`).
+4. Calls `0x18618` to fetch the current theme provider (`0x002f58`).
+5. Loads the provider's vtable (`provider[0]`, `0x002f60`) and the method at
+   **vtable `+0xCC`** (`0x002f68`) — the per-routine constant.
+6. Passes, in order: rect, kind, drawInfo, prevInfo, eraseProc, labelProc,
+   userData (`0x002f64`…`0x002f80`).
+7. Calls the method through the cross-TOC indirect-call trampoline `0x3d44c`
+   (`0x002f84`).
+
+(Instruction excerpt in evidence.)
 
 Two helpers are common to every routine:
 
-- **`0x018618`** — "get current theme provider":
-  ```
-  0x018618  addi  r3, r2, 0x4578   ; address of a global slot in AppearanceLib's TOC
-  0x01861c  lwz   r3, 0(r3)        ; *(slot) = provider
-  0x018620  blr
-  ```
-  *Period claim:* the active theme provider lives in a **single global slot at
-  `TOC+0x4578`** — i.e. AppearanceLib supports exactly one provider at a time.
+- **`0x018618`** — "get current theme provider": returns the value held in a
+  global slot in AppearanceLib's TOC (`0x018618`–`0x018620`; slot offset in
+  evidence).
+  *Period claim:* the active theme provider lives in a **single global slot** in
+  AppearanceLib's TOC — i.e. AppearanceLib supports exactly one provider at a
+  time.
 
 - **`0x03d44c`** — the standard PPC PEF indirect-call trampoline (re-used by
-  every routine):
-  ```
-  0x03d44c  lwz   r0, 0(r12)       ; entry-point from the TVector r12 was loaded with
-  0x03d450  stw   r2, 0x14(r1)     ; save caller TOC
-  0x03d454  mtctr r0
-  0x03d458  lwz   r2, 4(r12)       ; load callee TOC
-  0x03d45c  bctr
-  ```
+  every routine): takes the entry point and callee TOC from the TVector it is
+  given, saves the caller's TOC, and jumps to the entry
+  (`0x03d44c`–`0x03d45c`).
 
 Most routines call the method **twice** — once with the active provider, and
 once again after `0x18790` (`SwitchTheme`-style helper) if the provider has
@@ -91,7 +78,7 @@ guard, not a per-kind branch.
 
 ## 2. The vtable map (the spike's #1 unknown — answered)
 
-Concrete vtable offsets resolved by tracing each routine's `lwz r12, OFFSET(r12)`:
+Concrete vtable offsets resolved by tracing each routine's vtable-method load:
 
 | Routine | TVector @ data | code addr | vtable +offset | arg count |
 |---|---|---|---|---|
@@ -121,27 +108,28 @@ drawers; the spike's "one more indirection" estimate was accurate.
 **TVector** `0x0F34` (3892) in patternData → **code addr `0x96C0`** (fileOff
 2482384).
 
-**Decoded prologue (instructions 1–28):**
-```
-0x096C0  prologue (mflr/stmw/stwu)
-0x096CC  r25..r31 = mac, rect, style, state, attribs, hasTitle, eraseProc
-0x096EC  null-rect guard:
-0x096F0   if rect->right < rect->left → return -50 (paramErr)
-0x09710   if rect->bottom < rect->top → return -50 (paramErr)
-0x0973C  if hasTitle == 0 (computed via mfcr trick → boolean) → -50
-0x0975C  state range: only state == 0 || state == 1 accepted → else -50
-0x09784  attribs mask:  if (attribs & ~0x3FE) != 0 → -50
-0x097A0  state-canonicalize: r23 = (state == 1) ? 1 : 0
-0x097B4  bl 0x18618                  ; fetch theme provider
-0x097BC  lwz r12, 0(r3)
-0x097C0  lwz r12, 0xBC(r12)          ; vtable[+0xBC] = window-frame drawer
-0x097E0  bl 0x3d44c                  ; indirect call (rect, state, attribs, hasTitle, eraseProc, …)
-```
+**Decoded prologue (instructions 1–28)** — as decisions (instruction excerpt in
+evidence):
+
+| addr | step |
+|---|---|
+| `0x096C0` | standard prologue |
+| `0x096CC` | parameters in order: mac, rect, style, state, attribs, hasTitle, eraseProc |
+| `0x096EC` | null-rect guard: |
+| `0x096F0` | if `rect->right < rect->left` → return `-50` (paramErr) |
+| `0x09710` | if `rect->bottom < rect->top` → return `-50` (paramErr) |
+| `0x0973C` | if `hasTitle == 0` (computed as a boolean from the condition register) → `-50` |
+| `0x0975C` | state range: only `state == 0 \|\| state == 1` accepted → else `-50` |
+| `0x09784` | attribs mask: if `(attribs & ~0x3FE) != 0` → `-50` |
+| `0x097A0` | state-canonicalize: canonical state = 1 when `state == 1`, else 0 |
+| `0x097B4` | fetch theme provider (`0x18618`) |
+| `0x097BC`/`0x097C0` | load vtable, then `vtable[+0xBC]` = window-frame drawer |
+| `0x097E0` | indirect call via `0x3d44c` (rect, state, attribs, hasTitle, eraseProc, …) |
 
 **Concrete period-fidelity claims:**
 
-1. **Apple's `DrawThemeWindowFrame` accepts only 9 attribute bits.** The mask
-   `and. r0, r29, -0x3FE` (sign-extended: `0xFFFFFC02`) at `0x09784` rejects any
+1. **Apple's `DrawThemeWindowFrame` accepts only 9 attribute bits.** The attribs
+   test at `0x09784` ANDs with `-0x3FE` (sign-extended: `0xFFFFFC02`) and rejects any
    bit outside `0x002…0x200`. That is exactly `kThemeWindowHasCloseBox`,
    `…HasZoom`, `…HasCollapse`, `…HasTitleText`, `…HasDirty`, `…HasFullZoom`,
    `…HasMacOS9Treatment`, plus two reserved (`0x40 / 0x80`). Any other adornment
@@ -185,8 +173,8 @@ button-kind switch (push/check/radio/popup/disclosure/triangle) is entirely
 
 **Decoded constants:**
 
-- `state & 5` (`andi. r0, r0, 5` @ `0x2F34`) — extracts active|rollover early.
-- `bl 0x3d02c` @ `0x2F40` — utility "is rect a real Drawing rect?"; returns
+- `state & 5` (@ `0x2F34`) — extracts active|rollover early.
+- call to `0x3d02c` @ `0x2F40` — utility "is rect a real Drawing rect?"; returns
   byte; if 0 the routine returns 0 (noerr) silently. This is the "drawing
   optimised away" fast-path: a degenerate rect skips dispatch entirely.
 
@@ -214,9 +202,10 @@ lives behind `+0xCC` and the trap-selector `DrawThemeFocusRect` (see §3.4).
 1. Same `state ∈ {0, 1}` and `(adornments & ~0x3FE) == 0` gates as
    `DrawThemeWindowFrame` (`0x99..0x991C`). Pressed state again **is not legal**
    at this layer — the per-widget pressed appearance is computed inside the
-   provider's `+0xC0` method from a different parameter (likely `r6` =
-   pre-canonicalized `pressed` flag at `0x9934`: `li r24, 1` if `state == 1`).
-2. The widget kind (`r28` / arg3) is passed through unchanged — no validation
+   provider's `+0xC0` method from a different parameter (likely a
+   pre-canonicalized `pressed` flag, set to 1 at `0x9934` when `state == 1`;
+   register detail in evidence).
+2. The widget kind (arg3) is passed through unchanged — no validation
    here. So `kThemeWidgetCloseBox=0`, `…ZoomBox=1`, `…CollapseBox=2`, and any
    later additions all share the same wrapper; the provider's method is the
    policy.
@@ -239,28 +228,27 @@ currently approximates.
 **TVector** `0x1D24` (7460) for `FocusRect`, `0x1C7C` (7292) for `FocusRegion`.
 
 These are a **different dispatcher shape** from the routines above. Each is a
-short stub (~10 instructions) that:
+short stub (~10 instructions) that (instruction excerpt in evidence):
 
-```
-0x0385F0  addi r6, r3, 0                  ; pack arg1
-0x0385F4  clrlwi r7, r4, 0x18             ; pack arg2 byte
-0x0385F8  lwz r3, 0x17D0(0)               ; "Theme Manager dispatch refnum" global
-0x0385FC  li r4, 0x7B8                    ; arg-size mask  ← per-routine constant
-0x038600  li r5, 0xB                      ; selector code  ← per-routine constant
-0x038604  bl 0x3BF94                      ; cross-TOC import-glue table entry
-```
+1. packs arg1 (`0x0385F0`) and the low byte of arg2 (`0x0385F4`);
+2. loads the "Theme Manager dispatch refnum" global (`0x0385F8`);
+3. loads a per-routine **arg-size mask** (`0x7B8` for `FocusRect`, `0x0385FC`)
+   and a per-routine **selector code** (`0xB`, `0x038600`);
+4. calls the cross-TOC import-glue table entry `0x3BF94` (`0x038604`).
 
 `0x3BF94`+ is a packed table of 6-instruction **PEF cross-TOC trampolines** —
-the standard PPC `lwz r12,-OFF(r2); stw r2,0x14(r1); lwz r0,0(r12); lwz r2,4(r12);
-mtctr r0; bctr` shape. Each entry resolves to an imported symbol; for the focus
+the standard PPC shape (load the symbol slot from the caller's TOC, save the
+caller's TOC, load the callee's entry point and TOC, jump through the count
+register). Each entry resolves to an imported symbol; for the focus
 family that import is **the Appearance Manager Pack trap** (or its modern
-equivalent), with `r4/r5` carrying a `(argLayout, selector)` pair the trap uses
-to look up the actual handler. This is the legacy `_Pack` selector-based ABI
-preserved for compatibility, *not* the OO vtable.
+equivalent), with the arg-size mask and selector carrying an
+`(argLayout, selector)` pair the trap uses to look up the actual handler. This
+is the legacy `_Pack` selector-based ABI preserved for compatibility, *not* the
+OO vtable.
 
 **The selector table for the Focus family** (entries enumerated `0x385E4..0x388FC`):
 
-| addr | arg-mask r4 | selector r5 | inferred routine |
+| addr | arg-mask | selector | inferred routine |
 |---|---|---|---|
 | `0x385E4` | `0x07B8` | `0x0B` | `DrawThemeFocusRect` |
 | `0x38624` | `0x0FB8` | `0x0C` | (focus-related, 4-arg) |
@@ -275,8 +263,8 @@ preserved for compatibility, *not* the OO vtable.
 | `0x38860` | `0x3BB8` | `0x18` | (large-payload) |
 | `0x388A4` | `0x10000–0x1048` | `0x19` | (multi-arg trampoline) |
 
-The `r4` value is the **arg-size descriptor** the trap dispatcher uses to copy
-parameters; the `r5` byte is the **selector** that picks the routine in
+The arg-mask value is the **arg-size descriptor** the trap dispatcher uses to copy
+parameters; the selector byte is the **selector** that picks the routine in
 Appearance's `_Pack` table. The selector codes are dense (0x0B…0x19) and
 contiguous — Apple kept these stable.
 
@@ -295,20 +283,17 @@ provider PEF decode.
 
 Standard OO dispatcher. **Vtable offset: `+0x64`.**
 
-Prologue performs the same `is-real-rect` validation via `bl 0x3D02C`
-(`0x391C`) — if degenerate, returns 0. Then `bl 0x18618` + vtable `+0x64`
-call. The trackInfo struct (`r26`) is passed unmodified; all the `kThemeTrackKind`
+Prologue performs the same `is-real-rect` validation via a call to `0x3D02C`
+(`0x391C`) — if degenerate, returns 0. Then a call to `0x18618` + vtable `+0x64`
+call. The trackInfo struct is passed unmodified; all the `kThemeTrackKind`
 discrimination (scrollBar / slider / progressBar / movableTrack / indeterminate)
 happens inside the provider's `+0x64` method.
 
 **Adjacent dispatcher at `0x39C4`** uses **vtable `+0x68`** — this is almost
 certainly the related **`DrawThemeTrackTickMarks` cousin or
-`HitTestThemeTrack`** path:
-```
-0x039E8  bl 0x18618
-0x039F4  lwz r12, 0(r3)
-0x039FC  lwz r12, 0x68(r12)         ; +0x68 method, neighbour of +0x64
-```
+`HitTestThemeTrack`** path: provider fetch (`0x18618`) @ `0x039E8`, vtable load
+@ `0x039F4`, `+0x68` method load (neighbour of `+0x64`) @ `0x039FC` (instruction
+excerpt in evidence).
 Resolving which exact public export bound to `+0x68` requires another
 exports-table pass.
 
@@ -317,35 +302,31 @@ composeSlider): we composite from cicn-shipped track / thumb art, with the
 artist's bundle deciding the chrome-vs-fill split. Apple's procedural split
 (the spike's bullet #5) is inside the `+0x64` method and would only matter
 for the procedurally-generated Platinum corpus — covered by our
-`platinum-controls-decode.md` from a different angle (the CDEF-n63 decode).
+`platinum-controls-decode.md` from a different angle (the `CDEF` -63 decode).
 
 ### 3.6 `GetThemeTextColor` — the **most concrete** period claim
 
 **TVector** `0x0CE4` (3300) → **code addr `0x2C80`**.
 
-Decoded **completely** (50 instructions):
+Decoded **completely** (50 instructions) — as a decision table (instruction
+excerpt in evidence):
 
-```
-0x2CA0  if outRGB == NULL → -50
-0x2CB4  if kind == -2 (kThemeTextColorWhite) → outRGB = (0xFFFF, 0xFFFF, 0xFFFF); return 0
-0x2CD8  if kind == -1 (kThemeTextColorBlack) → outRGB = (0,0,0); return 0
-0x2CF8  if kind < 1 OR kind > 0x2C → return -30877 (themeNoAppropriateBrushErr)
-        else:
-0x2D18    bl 0x18618              ; provider
-0x2D20    lwz r12, 0(r3)
-0x2D28    lwz r12, 0x30(r12)      ; vtable[+0x30] = "get theme text color"
-0x2D30    addi r5,r4,r6,r7 = kind, depth, isColorDev, outRGB
-0x2D38    bl 0x3D44C
-0x2D44  return -30877 if dispatch never happened
-```
+| addr | condition | result |
+|---|---|---|
+| `0x2CA0` | `outRGB == NULL` | return `-50` |
+| `0x2CB4` | `kind == -2` (`kThemeTextColorWhite`) | `outRGB = (0xFFFF, 0xFFFF, 0xFFFF)`; return 0 |
+| `0x2CD8` | `kind == -1` (`kThemeTextColorBlack`) | `outRGB = (0,0,0)`; return 0 |
+| `0x2CF8` | `kind < 1` OR `kind > 0x2C` | return `-30877` (`themeNoAppropriateBrushErr`) |
+| `0x2D18`–`0x2D38` | otherwise | fetch provider (`0x18618`), call `vtable[+0x30]` = "get theme text color" with (kind, depth, isColorDev, outRGB) through `0x3D44C` |
+| `0x2D44` | dispatch never happened | return `-30877` |
 
 **Concrete period-fidelity claims:**
 
 1. **Apple ships exactly 44 themed text-color slots** (`kThemeTextColor`
    values `1..0x2C`), plus two specials (`-2` white, `-1` black). Any value
    outside that range returns **`themeNoAppropriateBrushErr` = `-30877` =
-   `0xFFFF8763`** — the `li r3, -0x7763` at `0x2D44` is the negated error
-   constant.
+   `0xFFFF8763`** — the immediate `-0x7763` loaded at `0x2D44` is the negated
+   error constant.
 2. **Black and White are short-circuited** without consulting the provider —
    they are universal, not theme-customisable. This explains why the Mac OS 8.5
    `Themes` control panel never had a "Customize text color" affordance for
@@ -371,7 +352,7 @@ Identical shape to `GetThemeTextColor`. Concrete differences:
 1. **47 themed brush slots** (`1..0x2F`) — three more than text colors.
 2. Same `-2`/`-1` short-circuits for `kThemeBrushWhite` / `kThemeBrushBlack`.
 3. Returns the same `themeNoAppropriateBrushErr = -30876` (`0xFFFF8764`,
-   `li r3, -0x7760` at `0x2C68`) for out-of-range — note the **off-by-one** from
+   immediate `-0x7760` loaded at `0x2C68`) for out-of-range — note the **off-by-one** from
    `GetThemeTextColor`'s `-30877`. Apple uses a *different* error constant per
    "what was missing" category (text vs brush).
 4. **Vtable offset `+0x2C`** — directly adjacent to `+0x30` for the text-color
@@ -383,19 +364,12 @@ Identical shape to `GetThemeTextColor`. Concrete differences:
 
 What the spike called "the imported glue" is, in disassembly, a flat table of
 6-instruction PEF cross-TOC trampolines, each resolving one Appearance Manager
-selector. From `0x03BF94` onward:
+selector. From `0x03BF94` onward each entry (`0x03BF94`–`0x03BFA8` for the first)
+loads its symbol slot from the caller's TOC, saves the caller's TOC, loads the
+callee entry and callee TOC, and jumps (instruction excerpt in evidence).
 
-```
-0x03BF94  lwz r12, -0x7B1C(r2)     ; symbol slot in caller TOC
-0x03BF98  stw r2, 0x14(r1)         ; save caller TOC
-0x03BF9C  lwz r0, 0(r12)           ; callee entry
-0x03BFA0  lwz r2, 4(r12)           ; callee TOC
-0x03BFA4  mtctr r0
-0x03BFA8  bctr
-```
-
-The 16-bit displacement (`-0x7B1C`, `-0x7F28`, `-0x7F14`, `-0x7C98`, …)
-selects one of ~30 imported symbols within a single TOC page. These are the
+Each entry's TOC displacement selects one of ~30 imported symbols within a single
+TOC page (the displacement values are in evidence). These are the
 Appearance Manager *Pack* extensions — the legacy selector-trap ABI Apple
 preserved for back-compat with the System 7.6 / Mac OS 8.0 Appearance Extension.
 **It is *not* a per-kind drawer**; it is one more level of "go ask the
@@ -408,20 +382,8 @@ For our purposes: the focus-ring procedural rule is one TOC-import indirection
 
 ## 5. Reproduction
 
-```sh
-# both scripts are in .scratch/iso-recon/
-/tmp/ppc-venv/bin/python .scratch/iso-recon/decode-drawtheme.py    # resolves all 13 targets
-/tmp/ppc-venv/bin/python .scratch/iso-recon/decode-dispatch.py     # follows the dispatcher chain
-```
-
-If `/tmp/ppc-venv` is missing:
-```sh
-python3 -m venv /tmp/ppc-venv && /tmp/ppc-venv/bin/pip install capstone
-```
-
-Both scripts read `85-System.bin` from the same `.scratch/iso-recon/` path as
-the spike's `pef-locate.py` and `pef-decompress.py` — no new artifacts, no
-network.
+The reproduction toolchain (decode scripts, their environment and input paths)
+is recorded in the evidence appendix — spec writers and verifiers only.
 
 ---
 
@@ -429,7 +391,7 @@ network.
 
 For each of the eight vtable offsets in §2, the **theme provider's PEF
 container** must be located in `85-System.bin` and its code section
-decompressed via the same `pef-decompress.py` opcodes. Then:
+decompressed via the same PEF pattern-data decompressor. Then:
 
 - The provider PEF's data section will carry a vtable struct whose entries at
   `+0x2C / +0x30 / +0x64 / +0x68 / +0x94 / +0xBC / +0xC0 / +0xCC` are
