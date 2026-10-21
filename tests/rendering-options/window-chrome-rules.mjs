@@ -88,6 +88,14 @@ export function allocateHalf(cells, extent) {
   });
 }
 
+// 0xfeae direction byte: `(pc==11||pc==14)?0:1` at the caller 0x59c8..0x59da.
+// 0 means reverse (anchored at the dst end).
+export const TILE_REVERSE = new Set([11, 14]);
+/** Along-run source offset for dst index k of a dw-long run tiled from an sw-long source. */
+export function tileSourceOffset(k, sw, dw, reverse) {
+  return reverse ? sw - 1 - ((dw - 1 - k) % sw) : k % sw;
+}
+
 /**
  * Check one composed window against the decoded rules. Returns
  * `{ failures, checked }`; `checked` counts asserted cells/pixels so a vacuous
@@ -95,7 +103,7 @@ export function allocateHalf(cells, extent) {
  * full length (they are composed last); side bars only between them.
  */
 export function checkComposition({ cicn, windowType, composed }) {
-  const failures = [], checked = { cells: 0, halves: 0, sides: 0, pixels: 0, unknownCells: 0 };
+  const failures = [], checked = { cells: 0, halves: 0, sides: 0, pixels: 0, pixels1px: 0, pixelsWhole: 0, pixelsForward: 0, pixelsReverse: 0, unknownCells: 0 };
   const fail = (message) => { if (failures.length < 20) failures.push(message); };
   const { frame, fullWidth: W, fullHeight: H, buffer } = composed;
   for (const edge of ['top', 'bottom', 'left', 'right']) {
@@ -151,34 +159,46 @@ export function checkComposition({ cicn, windowType, composed }) {
       if (JSON.stringify(expected) !== JSON.stringify(widths)) fail(`${edge} half [${lo},${hi}) extent ${extent}: 0x5178 expects ${expected}, drawn ${widths}`);
     }
     checked.sides++;
-    // 0xfeae tiles a non-18 cell, clipping the last tile. Its direction byte
-    // `(pc==11||pc==14)?0:1` (caller 0x59c8..0x59da) is not decoded as
-    // absolute or side-relative, so pixels are asserted only for 1px source
-    // runs, where either step direction yields the same pixels. The cross-axis
-    // origin is taken from the runtime placement (a limit). Only opaque source
-    // pixels: CopyMask vs replace over earlier sides is not decoded.
+    // 0xfeae tiles a non-18 cell along the side, clipping the last tile
+    // (kdef231-reference.md §5.1). The caller's direction byte
+    // `(pc==11||pc==14)?0:1` (0x59c8..0x59da, read at 0x10074) picks the
+    // anchor. Byte 1 starts at the dst start (0x10088) and gives src offset
+    // k % sw. Byte 0 starts flush at the dst end (0x1018a) and gives
+    // sw-1-((dw-1-k) % sw). The axis test srcH==dstH (0x10146/0x10236) and
+    // 0x5356's fixed cross axis keep tiling along the run, with cross offset t
+    // mapped 1:1. Limits: the cross-axis origin comes from the runtime
+    // placement; only opaque source pixels are checked (CopyMask vs opaque
+    // CopyBits when grafProcs is set, and the order over earlier sides, are not
+    // decoded); unknown-class cells (5/6/10/flag-gated), whose widths are not
+    // source-determined, are skipped.
     const [lo, hi] = horizontal ? [0, W] : [frame.top, H - frame.bottom];
-    for (const p of segs) {
-      if (p.code === 18) continue;
+    segs.forEach((p, i) => {
+      if (p.code === 18 || cellClass(p.code, i === 0) === 'unknown') return;
       const [s0, s1, d0, dw] = span(p), sw = s1 - s0;
-      if (dw <= 0 || sw !== 1) continue;
+      if (dw <= 0 || sw <= 0) return;
+      const reverse = TILE_REVERSE.has(p.code);
+      // Buckets keep a vacuous pass visible. 1px runs and single whole copies
+      // (dw == sw, e.g. fixed cells) are direction-independent. Only
+      // pixelsForward/pixelsReverse exercise the anchor.
+      const bucket = sw === 1 ? 'pixels1px' : dw === sw ? 'pixelsWhole' : reverse ? 'pixelsReverse' : 'pixelsForward';
       for (let k = 0; k < dw; k++) {
         const along = d0 + k;
         if (along < lo || along >= hi) continue;
+        const off = tileSourceOffset(k, sw, dw, reverse);
         for (let t = 0; t < thickness; t++) {
-          const srcX = horizontal ? s0 + k % sw : p.src.x + t, srcY = horizontal ? p.src.y + t : s0 + k % sw;
+          const srcX = horizontal ? s0 + off : p.src.x + t, srcY = horizontal ? p.src.y + t : s0 + off;
           const dstX = horizontal ? along : p.rects[0].x + t, dstY = horizontal ? p.rects[0].y + t : along;
           const src = cicn.getPixel(srcX, srcY);
           if (src[3] !== 255) continue;
           const out = buffer.getPixel(dstX, dstY);
-          checked.pixels++;
+          checked.pixels++; checked[bucket]++;
           if (out[0] !== src[0] || out[1] !== src[1] || out[2] !== src[2] || out[3] !== 255) {
-            fail(`${edge} p${p.code} dst(${dstX},${dstY}) = ${out} but 0xfeae tile src(${srcX},${srcY}) = ${src}`);
-            break;
+            fail(`${edge} p${p.code} dst(${dstX},${dstY}) = ${out} but 0xfeae ${reverse ? 'reverse' : 'forward'} tile src(${srcX},${srcY}) = ${src}`);
+            return;
           }
         }
       }
-    }
+    });
   }
   return { failures, checked };
 }
@@ -197,7 +217,7 @@ export const CORNER_SPRITE = ['apple-platinum-2', 'black-platinum', 'platinum-8'
  * injects the runtime under test so source and built bundles share this table.
  */
 export function checkTheme(decoded, { PixelBuffer, composeWindowChrome }) {
-  const totals = { compositions: 0, cells: 0, halves: 0, sides: 0, pixels: 0, unknownCells: 0 }, failures = [];
+  const totals = { compositions: 0, cells: 0, halves: 0, sides: 0, pixels: 0, pixels1px: 0, pixelsWhole: 0, pixelsForward: 0, pixelsReverse: 0, unknownCells: 0 }, failures = [];
   for (const [key, windowType] of Object.entries(decoded.manifest.windowTypes)) {
     if (windowType.model) continue;
     const [l, t, r, b] = windowType.parts['part-0'].rect;

@@ -345,8 +345,27 @@ test('Floppies/Evolution extension preserves all prior95 cases and647 assessment
  assert(original.cases.slice(95).every(c=>c.inventoryClosure.status==='open'));
 });
 
+// 1.21.0 edits one evidence row and 13 assessments in place. Restore them to get
+// the exact 1.20.0 ledger that the older append-only transitions hash.
+const tileDirection=JSON.parse(readFileSync(new URL('./tile-direction-transition.json',import.meta.url)));
+function restore120(ledger){
+ const prior=structuredClone(ledger);
+ for(const row of tileDirection.priorEvidence)prior.evidence[prior.evidence.findIndex(e=>e.id===row.id)]=row;
+ for(const row of tileDirection.priorAssessments)prior.assessments[prior.assessments.findIndex(a=>a.caseId===row.caseId&&a.requirementId===row.requirementId)]=row;
+ return Object.assign(prior,{inventoryVersion:tileDirection.inventoryVersion,inventorySha256:tileDirection.inventorySha256,scope:tileDirection.scope});
+}
+test('tile-direction 1.21.0 restores the exact 1.20.0 ledger and changes only kdef.tile-blit and 13 tile-blit rationales, no statuses',()=>{
+ const prior=restore120(original);
+ assert.equal(digest(JSON.stringify(prior)),tileDirection.priorObjectSha256);assert.equal(inventoryDigest(prior),tileDirection.inventorySha256);
+ assert.deepEqual(prior.requirements,original.requirements);assert.deepEqual(prior.cases,original.cases);
+ const changed=original.assessments.filter((a,i)=>JSON.stringify(a)!==JSON.stringify(prior.assessments[i]));
+ assert.equal(changed.length,13);assert(changed.every((a,i)=>a.requirementId==='window.tile-blit'&&a.status==='unknown'&&a.status===tileDirection.priorAssessments[i].status));
+ assert.deepEqual(original.evidence.filter((e,i)=>JSON.stringify(e)!==JSON.stringify(prior.evidence[i])).map(e=>e.id),['kdef.tile-blit']);
+ assert.deepEqual(makeReport(original).requirementStatus.counts,makeReport(prior).requirementStatus.counts);
+});
+
 test('nine-state extension preserves the prior inventory and marks every 1990/Dolphin row non-discriminating',()=>{
- const transition=JSON.parse(readFileSync(new URL('./nine-state-recorded-transition.json',import.meta.url))),prior=structuredClone(original);
+ const transition=JSON.parse(readFileSync(new URL('./nine-state-recorded-transition.json',import.meta.url))),prior=restore120(original);
  for(const[key,count]of Object.entries(transition.counts)){prior[key]=prior[key].slice(0,count);assert.equal(digest(JSON.stringify(prior[key])),transition.prefixSha256[key],key+' prefix');}
  Object.assign(prior,{inventoryVersion:transition.inventoryVersion,inventorySha256:transition.inventorySha256,scope:transition.scope});
  assert.equal(inventoryDigest(prior),transition.inventorySha256);assert.equal(digest(JSON.stringify(prior)),transition.priorObjectSha256);
@@ -381,7 +400,7 @@ test('window-chrome extension preserves all prior99 cases and671 assessments and
 });
 
 test('checkable source-rule extension preserves all prior 126 cases and 854 assessments and promotes only the 13 CICN-lane selections',()=>{
- const transition=JSON.parse(readFileSync(new URL('./checkable-rules-transition.json',import.meta.url))),prior=structuredClone(original);
+ const transition=JSON.parse(readFileSync(new URL('./checkable-rules-transition.json',import.meta.url))),prior=restore120(original);
  for(const[key,count]of Object.entries(transition.counts)){prior[key]=prior[key].slice(0,count);assert.equal(digest(JSON.stringify(prior[key])),transition.prefixSha256[key],key+' prefix');}
  Object.assign(prior,{inventoryVersion:transition.inventoryVersion,inventorySha256:transition.inventorySha256,scope:transition.scope});
  assert.equal(inventoryDigest(prior),transition.inventorySha256);assert.equal(digest(JSON.stringify(prior)),transition.priorObjectSha256);

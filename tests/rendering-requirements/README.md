@@ -1,7 +1,7 @@
 # Partial rendering requirement ledger
 
 `ledger.json` is reviewed acceptance data, separate from rendering and screenshots.
-Inventory 1.19.0 declares 126 exact direct cases and seven explicit dimensions per
+Inventory 1.21.0 declares 144 exact direct cases and seven explicit dimensions per
 case. **Every case has OPEN inventory closure.** The declared obligation
 count is a finite bookkeeping denominator, not an exhaustive denominator of
 historical control behavior. No whole-control completion percentage is reported.
@@ -544,3 +544,23 @@ are recorded with their decoded limits and no runtime check: the resource
 files (`UseResFile` of a Gestalt `Copl` refnum, `UseResFile(0)` for icons),
 the public state mapping, the pressed tier, value 3, glyph placement, the
 label pen, icon depth (5 icon-only archives) and device colour.
+
+## Tile-direction re-proposal (1.21.0)
+
+Inventory 1.21.0 keeps all 144 cases, every requirement and every status. It
+edits rows in place, unlike the earlier append-only extensions.
+`tile-direction-transition.json` stores the prior `kdef.tile-blit` evidence row
+and the 13 prior `window.tile-blit` rationales. The ledger test restores them
+to rebuild the exact 1.20.0 ledger that the older transitions hash.
+
+[kdef231-reference.md §5.1](../../docs/spec/kdef231-reference.md) decodes the
+`0xfeae` direction byte as the tile anchor, not the axis. Codes 11/14 tile from
+the far end; all other codes tile from the start. The decode was independently
+reviewed (campaign lanes/H/REVIEW.json, ACCEPT-WITH-CHANGES). The evidence row
+now cites that decode. `window.recipe-rules` asserts both offset formulas over
+every non-18 cell whose class is not unknown, and has mutation cases. The 13
+`window.tile-blit` obligations are re-proposed but stay **unknown** until a
+separate review of the promotion. The runtime fix changes five 11/14 cells
+(animals ×4, monkey-paradise ×1, both states). Opaque CopyBits under
+`grafProcs`, transparent pixels and the CopyMask order over earlier sides
+remain unmodelled.

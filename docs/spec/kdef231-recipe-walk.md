@@ -210,13 +210,21 @@ Computed entirely in `FUN_00005178` @ `0x5178`:
 ## Q5. Tile vs stretch
 
 - **`FUN_0000feae` @ `0xfeae`** (the default blit, called from `0x59e8`):
-  ALWAYS TILES. It steps the destination by the source cell's width
-  (`0x10146`–`0x10176`) or height (`0x10236`–`0x10262`), CopyBits/CopyMask-ing
-  one source-sized tile at a time and clamping the final partial tile to the dst
-  bound (`0x100a4`, `0x100d4`). Special fast paths: 1px-tall dst → tile a 1px row
-  (`0xff4a`–`0xffb6`); 1px-wide dst → tile a 1px column (`0xffc2`–`0x10018`).
+  ALWAYS TILES, one source-sized CopyBits/CopyMask tile at a time. Steps are
+  `0x10146`–`0x10176` in the forward branch and `0x10236`–`0x10262` in the
+  reverse branch. Each step moves by the source width or height (axis test
+  `srcH == dstH`). The final partial tile is clamped at `0x100a4`/`0x100d4`
+  (forward, far end) or at `0x101a2`/`0x101d4` (reverse, near end). Special fast paths: a 1px-wide *src* (dst wider) draws each
+  source row as a line across the dst (`0xff3e`–`0xffb6`); a 1px-tall src (dst
+  taller) draws each source column as a line down the dst (`0xffba`–`0x10018`).
   The caller passes a direction byte (`(pc==11||pc==14) ? 0 : 1`, `0x59c8`–
-  `0x59da`) selecting vertical vs horizontal tiling.
+  `0x59da`, read at `fp@(20)` / `0x10074`). **Corrected 2026-10-21:** it
+  selects the anchor end, not the axis. 1 tiles forward from the dst
+  top-left. 0 (codes 11/14) tiles backward from the dst bottom-right, so the
+  partial tile falls at the near end. The axis is `srcH == dstH`
+  (`0x10146`/`0x10236`), which with `0x5356`'s fixed cross axis is always the
+  side's run axis. The 1px fast paths trigger on a 1px *source* along the run.
+  Full trace: [kdef231-reference.md §5.1](kdef231-reference.md).
 - **`FUN_00010320` @ `0x10320`** (the partCode-18 blit, called from `0x59ba`):
   a **single** `CopyBits` (`0x103ea`) or `CopyMask` (`0x10402`) — drawn ONCE,
   mapped src-rect → dst-rect (so it scales if the dst grew).

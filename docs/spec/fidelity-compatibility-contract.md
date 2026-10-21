@@ -94,7 +94,7 @@ proves input identity, not decoder correctness. A trace proves actual selection,
 not the historical validity of a fallback policy. A self-golden proves stability,
 not original-engine pixels.
 
-The current [ledger 1.20.0](../../tests/rendering-requirements/ledger.json) contains
+The current [ledger 1.21.0](../../tests/rendering-requirements/ledger.json) contains
 144 OPEN cases and 1,039 declared obligations: 153 narrowly verified, 0 mismatched,
 0 explicitly unsupported and 886 unknown. Of the 18 window-chrome cases, only
 the 13 `wnd#` ladder-selection obligations are verified. Of the 18 checkable

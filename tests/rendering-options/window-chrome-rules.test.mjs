@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import { loadKaleidoscopeScheme } from '../../tools/theme-loader/loadKaleidoscopeScheme.js';
 import '../helpers/registerTs.mjs';
-import { CANONICAL_WND, CORNER_SPRITE, SLICED, ladderSelection, checkTheme, checkComposition, decodeCells, allocateHalf, stateLabelContradiction } from './window-chrome-rules.mjs';
+import { CANONICAL_WND, CORNER_SPRITE, SLICED, ladderSelection, checkTheme, checkComposition, decodeCells, allocateHalf, stateLabelContradiction, tileSourceOffset } from './window-chrome-rules.mjs';
 const { PixelBuffer } = await import('../../src/pixelBuffer.ts');
 const { composeWindowChrome } = await import('../../src/composeChrome.ts');
 const { resolveWindowType } = await import('../../src/resolveWindowType.ts');
@@ -77,16 +77,23 @@ test('selected frame art never carries an author label naming the opposite state
   assert.ok(shared.every(s => /popup-window$/.test(s)), shared.join());
 });
 
-let tilePixels = 0;
+const tilePixels = { pixels1px: 0, pixelsWhole: 0, pixelsForward: 0, pixelsReverse: 0 };
+const reverseBySlug = {};
 for (const slug of SLICED) {
-  test(`${slug}: END-based cells, 1:1 corner, part-code widths, 0x5178 halves and 1px-run 0xfeae opaque tiles at sampled sizes`, () => {
+  test(`${slug}: END-based cells, 1:1 corner, part-code widths, 0x5178 halves and direction-anchored 0xfeae opaque tiles at sampled sizes`, () => {
     const { totals, failures } = checkTheme(corpus.get(slug), runtime);
     assert.deepEqual(failures, []);
     assert.ok(totals.cells > 0 && totals.halves > 0, JSON.stringify(totals));
-    tilePixels += totals.pixels; // some archives (crayon-os) have no 1px-run cells
+    for (const k of Object.keys(tilePixels)) tilePixels[k] += totals[k];
+    reverseBySlug[slug] = totals.pixelsReverse;
   });
 }
-test('1px-run tile pixel checks are nonvacuous across the corpus', () => assert.ok(tilePixels > 1e6, String(tilePixels)));
+test('0xfeae pixel checks are nonvacuous per class: 1px runs, whole copies, forward and reverse (11/14) >1px tiling', () => {
+  assert.ok(tilePixels.pixels1px > 1e6 && tilePixels.pixelsWhole > 1e6 && tilePixels.pixelsForward > 1e6, JSON.stringify(tilePixels));
+  // Only animals and monkey-paradise ship 11/14 cells with >1px partial runs
+  // (kdef231-reference.md §5.1 corpus scope).
+  assert.deepEqual(Object.keys(reverseBySlug).filter(s => reverseBySlug[s] > 0).sort(), ['animals', 'monkey-paradise']);
+});
 
 // Literal synthetic edges (cells are [code, width]) prove the checker rejects
 // the historically wrong readings rather than passing everything.
@@ -111,6 +118,37 @@ test('rule checker rejects START-based cells, primary shares for 13/14, untrunca
   assert.match(checkComposition(pixels).failures.join(), /0xfeae/);
 });
 
+test('0xfeae offset formula: forward k % sw, reverse flush at the far end; equal when dw is a multiple of sw', () => {
+  assert.deepEqual([...Array(8).keys()].map(k => tileSourceOffset(k, 3, 8, false)), [0, 1, 2, 0, 1, 2, 0, 1]);
+  assert.deepEqual([...Array(8).keys()].map(k => tileSourceOffset(k, 3, 8, true)), [1, 2, 0, 1, 2, 0, 1, 2]);
+  assert.deepEqual([...Array(2).keys()].map(k => tileSourceOffset(k, 6, 2, true)), [4, 5]); // shorter than the source: trailing pixels
+  for (let k = 0; k < 9; k++) assert.equal(tileSourceOffset(k, 3, 9, true), tileSourceOffset(k, 3, 9, false));
+});
+
+// Mutations: repaint one cell of a correct composition with a wrong blit and
+// require the checker to reject it.
+function repaint(fixture, code, sourceOffset) {
+  const { cicn, composed } = fixture, buffer = new PixelBuffer(composed.buffer.width, composed.buffer.height, new Uint8ClampedArray(composed.buffer.data));
+  const p = composed.placement.find(q => q.edge === 'top' && q.code === code);
+  for (let k = 0; k < p.rects[0].w; k++) for (let t = 0; t < p.src.h; t++) {
+    const [r, g, b, a] = cicn.getPixel(p.src.x + sourceOffset(k, p.src.w, p.rects[0].w), p.src.y + t);
+    buffer.setPixel(p.rects[0].x + k, p.rects[0].y + t, r, g, b, a);
+  }
+  return checkComposition({ ...fixture, composed: { ...composed, buffer } }).failures.join();
+}
+test('rule checker rejects forward tiling for 11/14 and scaling for any tile cell', () => {
+  // A 3px tile (12) leaves a truncation remainder for a 4px code-8 grower and
+  // a 3px code-14 remainder cell. At width 33 neither run is a whole multiple.
+  const ok = edge([[1, 2], [12, 3], [8, 4], [14, 3], [1, 2]], 33);
+  assert.deepEqual(ok.composed.placement.filter(p => p.edge === 'top').map(p => p.rects[0].w), [2, 12, 15, 2, 2]);
+  assert.deepEqual(checkComposition(ok).failures, []);
+  assert.match(repaint(ok, 14, (k, sw) => k % sw), /p14 .* reverse tile/);
+  const scaled = (k, sw, dw) => Math.min(sw - 1, Math.floor(k * sw / dw));
+  assert.match(repaint(ok, 14, scaled), /p14 .* reverse tile/);
+  assert.match(repaint(ok, 8, scaled), /p8 .* forward tile/);
+  assert.match(repaint(ok, 8, (k, sw, dw) => tileSourceOffset(k, sw, dw, true)), /p8 .* forward tile/);
+});
+
 test('author-label predicate fires on contradicting labels', () => {
   assert.match(stateLabelContradiction('active', 'Document Window Inactive'), /active frame/);
   assert.match(stateLabelContradiction('inactive', 'Dialog Active'), /inactive frame/);
@@ -133,7 +171,7 @@ test('observation: 1138 document-window top at template size places 107px in a 1
 // A decode disagreement, preserved as a failing case rather than fixed.
 // Remove `todo` only with an independently reviewed kDEF interpretation.
 test('code 10 on an untitled side collapses: 0x4a0c returns the caller flag #1 (0x4db4/0x515e), 0x5306 leaves width 0', {
-  todo: 'runtime classifies 10 as FIXED (faithfulness ledger 0x4a0c ✗, deliberate); collapsing needs the unimplemented 0x5ffc widget pass for baked widgets',
+  todo: 'runtime classifies 10 as FIXED (faithfulness ledger 0x4a0c ✗, deliberate); collapsing needs the unimplemented 0x632e/0x6062 widget pass, whose placement depends on side-list widths via 0x5cb6 (kdef231-reference.md §5.1)',
 }, () => {
   const c = edge([[8, 1], [10, 4], [1, 2]], 20);
   assert.deepEqual(c.composed.placement.filter(p => p.edge === 'top').map(p => p.rects[0].w), [18, 0, 2]);
