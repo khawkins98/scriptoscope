@@ -14,25 +14,26 @@
 // on both binaries. 1.8.2 used a different resource model; 2.3.1 introduced
 // the wnd# slice-list + this cascade as its degradation strategy.
 //
-// Decoded asm walk (every step `pea 'wnd#'; push (d3 ANDed); _GetResource; …`):
+// Decoded request sequence (each step is one `GetResource('wnd#', id & mask)`;
+// the address is the step's call site, the mask is applied to the requested id):
 //
-//   0x356a  raw          push d3
-//   0x357c  AND -2       push d3 & 0xFFFE  (strip bit 0)
-//   0x3594  AND -3       push d3 & 0xFFFD  (strip bit 1)
-//   0x35ac  AND -4       push d3 & 0xFFFC  (strip bits 0-1)
-//   0x35c4  AND -5       push d3 & 0xFFFB  (strip bit 2)
-//   0x35dc  AND -6       push d3 & 0xFFFA  (strip bits 0+2)
-//   0x35f4  AND -15      push d3 & 0xFFF1  (strip bits 1-3)
-//   0x360c  AND -16      push d3 & 0xFFF0  (strip bits 0-3)
-//   0x3624  AND -17      push d3 & 0xFFEF  (strip bit 4)
-//   0x363c  AND -18      push d3 & 0xFFEE  (strip bits 0+4)
-//   0x3654  AND -21      push d3 & 0xFFEB  (strip bits 2+4)
-//   0x366c  AND -22      push d3 & 0xFFEA  (strip bits 0+2+4)
+//   0x356a  raw          id
+//   0x357c  AND -2       id & 0xFFFE  (strip bit 0)
+//   0x3594  AND -3       id & 0xFFFD  (strip bit 1)
+//   0x35ac  AND -4       id & 0xFFFC  (strip bits 0-1)
+//   0x35c4  AND -5       id & 0xFFFB  (strip bit 2)
+//   0x35dc  AND -6       id & 0xFFFA  (strip bits 0+2)
+//   0x35f4  AND -15      id & 0xFFF1  (strip bits 1-3)
+//   0x360c  AND -16      id & 0xFFF0  (strip bits 0-3)
+//   0x3624  AND -17      id & 0xFFEF  (strip bit 4)
+//   0x363c  AND -18      id & 0xFFEE  (strip bits 0+4)
+//   0x3654  AND -21      id & 0xFFEB  (strip bits 2+4)
+//   0x366c  AND -22      id & 0xFFEA  (strip bits 0+2+4)
 //
-// After each attempt the kDEF tests the returned Handle (`a2`); a non-null
-// handle short-circuits (`bnes`) past the remaining attempts to the join at
-// `0x3680`. Verified 2026-05-29 against `.scratch/k231-kdef/kDEF/k231-kdef0.asm`
-// (`'wnd#'` = FourCC 0x776e6423 = decimal 2003723299; `_GetResource` = 0xA9A0).
+// The first non-NULL handle ends the sequence; the remaining attempts are
+// skipped and control joins at `0x3680`. Address trace and verification
+// record: docs/spec/engine/code-comments.evidence.md (wndCascade.ts).
+// (`'wnd#'` = FourCC 0x776e6423 = decimal 2003723299; `_GetResource` = 0xA9A0.)
 //
 // HOW IT MAPS ONTO THE CANONICAL ID GRID (`-14336..-14284, -12320`):
 //

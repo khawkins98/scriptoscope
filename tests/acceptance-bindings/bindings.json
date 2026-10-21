@@ -25,7 +25,7 @@
     },
     {
       "path": "src/wndCascade.ts",
-      "sha256": "44d42167d89bfa7358262faa250ac70b8b1c77fa9498cc3e5ed9af7ce53e36e3"
+      "sha256": "0fb7cc6fd4fcd0c00e6f287df6df2baacce140d6976f23b4dadd575fa81b63a2"
     },
     {
       "path": "tests/acceptance-bindings/generate.mjs",
@@ -157,7 +157,7 @@
     },
     {
       "path": "tools/theme-loader/window-recipes.mjs",
-      "sha256": "f4de8472908587dee3b0bfbb378b865fb4badbf87338c5ea9598766f4d47aadd"
+      "sha256": "8047a05892e4ef189f12c533f15794c1703d8de566665544c8c1e1716a8018d3"
     },
     {
       "path": "tools/theme-loader/window-type-identities.js",

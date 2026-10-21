@@ -46,7 +46,7 @@ Let `c` be header byte 0 (corner), `s` byte 1 (side), `tile` byte 2,
 | Body enabled, `mode == 5` | Compare at `0x109be`; equality falls through `0x109c8..0x109d0` | Pass `backgroundId` to `0x10472`, whose uncached lookup uses GetCIcon at `0x10698`. This is a **cicn** request. |
 | Mode 5 icon found | `0x109da..0x10a1a` | Source Rect comes from the icon's bitmap bounds at offsets70/74; destination is inset by `s` on all four sides. Call `0xfdf8`, then DisposeCIcon at `0x10a14`. This is not a ppat fill or the inset-cross union. |
 | Mode 5 icon absent | `0x109d8 → 0x10a1e..0x10a66` | Erase the two inset rectangles described below using the sampled background. |
-| Body enabled, `mode != 5` | `0x109c4 → 0x10a6c` | Pass the **same** `backgroundId` to cached `0xeeea` or uncached `0x10440`, selected by `a4+1220`. Both use GetPixPat (`0xef24`, `0x10460`). This is a **ppat** request. |
+| Body enabled, `mode != 5` | `0x109c4 → 0x10a6c` | Pass the **same** `backgroundId` to cached `0xeeea` or uncached `0x10440`, selected by a kDEF global flag (its storage location is recorded in [the evidence appendix](engine/cinf-resize-behavior.evidence.md)). Both use GetPixPat (`0xef24`, `0x10460`). This is a **ppat** request. |
 | Pixel pattern found | `0x10a96..0x10b5a` | Select phase from `mode`, then fill the two inset rectangles through `0xf930`. |
 | Pixel pattern absent | `0x10a9a → 0x10b72..0x10bb8` | Erase the two inset rectangles using the sampled background. |
 
@@ -77,7 +77,7 @@ Only the non-5, successfully loaded ppat path reaches this switch:
 rectangle follows at `0x10b48..0x10b56`. That helper adjusts port origin and
 rectangle coordinates before `0xf7cc`, then restores them. `0xf7cc` has a
 FillCRect path at `0xf85e` and a separate FillRect path at `0xf848` selected by
-`a4+1222`. The phase arguments are established; translating all port-origin,
+a second kDEF global flag (also recorded in the evidence appendix). The phase arguments are established; translating all port-origin,
 clip-region, color-depth and alternate-path behavior into canvas pixel indices
 still needs its own hand-derived requirements. No full pattern implementation is
 certified by this table.
