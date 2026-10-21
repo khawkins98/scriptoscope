@@ -54,3 +54,29 @@ test('editing the pinned hash fails', () => {
   inv.inScope.sha256 = '0'.repeat(64);
   assert.equal(run(inv).status, 1);
 });
+
+test('a FROZEN status keeps the pin: frozen:false or a missing pin field fails', () => {
+  const inv = inventory();
+  assert.match(inv.status, /FROZEN/);
+  const flipped = inventory();
+  flipped.inScope.frozen = false;
+  flipped.binaries.kDEF0.routines.find((r) => r[4] === true)[4] = false; // would pass silently if frozen:false skipped the checks
+  let r = run(flipped);
+  assert.equal(r.status, 1);
+  assert.match(r.stderr, /status says FROZEN but inScope\.frozen is false/);
+  assert.match(r.stderr, /in-scope set sha256/);
+  for (const field of ['count', 'sha256', 'perBinary']) {
+    const missing = inventory();
+    delete missing.inScope[field];
+    r = run(missing);
+    assert.equal(r.status, 1, field);
+    assert.match(r.stderr, new RegExp(`status says FROZEN but inScope\\.${field}`), field);
+  }
+  const oneBinary = inventory();
+  delete oneBinary.inScope.perBinary.CDEF8;
+  assert.match(run(oneBinary).stderr, /inScope\.perBinary\.CDEF8 is missing/);
+  const notFrozen = inventory();
+  notFrozen.status = 'NOT FROZEN (provisional)';
+  notFrozen.inScope.frozen = false;
+  assert.equal(run(notFrozen).status, 0, 'an explicitly unfrozen inventory skips the pin');
+});

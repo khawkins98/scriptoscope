@@ -60,11 +60,13 @@
 //                         not exist.
 //   brief-scope    -      every path the implementer brief allows (its
 //                         "Allowed paths" section) is inside this linter's scope,
-//                         so the brief can never allow an unlinted file.
+//                         so the brief can never allow an unlinted file. Paths
+//                         count backticked or not, as link targets, and as bare
+//                         top-level directory names (`tests`).
 //
 // Scope: every code file under `src/` and `tools/`, every behavioural spec under
-// `docs/spec/engine/` (excluding `*.evidence.md`), the docs in ALLOWED_DOCS and
-// the rule tables in RULE_TABLES. Lists only grow.
+// `docs/spec/engine/` (excluding `*.evidence.md`), the docs in ALLOWED_DOCS, the
+// rule tables in RULE_TABLES and the files in ALLOWED_FILES. Lists only grow.
 //
 // Usage:
 //   node scripts/check-cleanroom.mjs            # lint the repo; exit 1 on any hit
@@ -73,7 +75,7 @@
 //   node scripts/check-cleanroom.mjs --files A.md B.ts  # lint just these files
 
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
-import { join, relative, sep } from 'node:path';
+import { join, relative, sep, posix as posixPath } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 /**
@@ -155,6 +157,12 @@ export const RULE_TABLES = [
 
 /** Code trees implementers read and write; linted (comments with the prose rules). */
 export const CODE_DIRS = ['src', 'tools'];
+
+/** Single files outside the code trees that the brief allows (linted as data). */
+export const ALLOWED_FILES = ['package.json'];
+
+/** Paths the brief names as the enforcer, not as reading material; brief-scope ignores them. */
+const BRIEF_REFERENCES = ['scripts/check-cleanroom.mjs'];
 
 /** The brief names the listing paths it forbids, so it is exempt from listing-path. */
 const BRIEF = 'docs/spec/engine/IMPLEMENTER-BRIEF.md';
@@ -327,11 +335,20 @@ export function census(root) {
 export function targets(root) {
   const files = CODE_DIRS.flatMap(d => walk(join(root, d))).filter(f => SCANNED_EXT.test(f) && !/[\\/]node_modules[\\/]|[\\/]dist[\\/]/.test(f));
   for (const f of walk(join(root, 'docs/spec/engine'))) if (f.endsWith('.md') && !f.endsWith('.evidence.md')) files.push(f);
-  for (const d of [...ALLOWED_DOCS, ...RULE_TABLES]) if (existsSync(join(root, d))) files.push(join(root, d));
+  for (const d of [...ALLOWED_DOCS, ...RULE_TABLES, ...ALLOWED_FILES]) if (existsSync(join(root, d))) files.push(join(root, d));
   return files;
 }
 
-/** Backticked repo paths in the brief's "Allowed paths" section that this linter does not scan. */
+/**
+ * Repo paths named in the brief's "Allowed paths" section that this linter does not scan.
+ * A path counts whether or not it is backticked: backticked tokens, Markdown link targets
+ * and bare path-shaped words (`a/b`, `dir/`, `name.md|mjs|js|ts|json`). A backticked
+ * single word that is a top-level directory of the repo (`tests`) counts too. Each is
+ * resolved against the repo root, then the brief's directory, then `docs/spec/`; tokens
+ * that resolve to nothing on disk (Apple header names such as `Traps.h`) are ignored.
+ * A directory is in scope only if it is a linted code tree or every scannable file in it
+ * is scanned; a glob only if every repo file it matches is scanned.
+ */
 export function briefScope(root, scanned) {
   const brief = join(root, BRIEF);
   if (!existsSync(brief)) return [];
@@ -342,24 +359,55 @@ export function briefScope(root, scanned) {
   const section = text.slice(start, end < 0 ? undefined : end);
   const base = text.slice(0, start).split('\n').length;
   const set = new Set(scanned.map(f => posix(relative(root, f))));
+  const briefDir = posix(relative(root, join(root, BRIEF, '..')));
+  let cache;
+  const all = () => (cache ??= repoFiles(root));
+  const isDir = p => { try { return statSync(join(root, p)).isDirectory(); } catch { return false; } };
+  const resolveRel = p => {
+    for (const cand of [p, `${briefDir}/${p}`, `docs/spec/${p}`].map(c => posixPath.normalize(c))) {
+      if (cand.startsWith('..')) continue;
+      if (cand.includes('*') ? all().some(f => globRe(cand).test(f)) : existsSync(join(root, cand))) return cand;
+    }
+    return null;
+  };
   const hits = [];
   section.split('\n').forEach((line, i) => {
-    for (const m of line.matchAll(/`([\w./*-]+)`/g)) {
-      const p = m[1].replace(/\/$/, '');
-      if (p.startsWith('*') || !/[/.]/.test(p) || !/^(src|tools|tests|docs)\b|\.md$/.test(p)) continue;
-      const rel = /^(docs|src|tools|tests)\b/.test(p) || existsSync(join(root, p)) ? p : `docs/spec/${p}`;
-      if (rel === 'docs/spec/engine/*.md' || CODE_DIRS.includes(rel)) continue;
-      if (rel.includes('*')) {
-        const re = new RegExp('^' + rel.replace(/[.]/g, '\\.').replace(/\*/g, '[^/]*') + '$');
-        const any = [...set].some(f => re.test(f));
-        if (!any) hits.push({ file: BRIEF, rule: 'brief-scope', line: base + i, text: rel });
-        continue;
-      }
-      if (existsSync(join(root, rel)) && !set.has(rel)) hits.push({ file: BRIEF, rule: 'brief-scope', line: base + i, text: rel });
+    const tokens = [];
+    for (const m of line.matchAll(/`([^`\s]+)`/g)) tokens.push({ p: m[1], ticked: true });
+    for (const m of line.matchAll(/\]\(([^)\s#]+)(?:#[^)]*)?\)/g)) tokens.push({ p: m[1], ticked: true });
+    const bare = line.replace(/`[^`]*`/g, ' ').replace(/\]\([^)]*\)/g, ']');
+    for (const m of bare.matchAll(/(?<![\w./*-])((?:[\w.-]+\/)+(?:[\w.*-]+)?|[\w-]+(?:\.[\w-]+)*\.(?:md|mjs|cjs|js|ts|json))(?![\w/-])/g)) tokens.push({ p: m[1], ticked: false });
+    for (const { p: raw, ticked } of tokens) {
+      const p = raw.replace(/^\.\//, '').replace(/[.,;:]+$/, '').replace(/\/$/, '');
+      if (!p || p.startsWith('*') || /^[a-z]+:/.test(p)) continue;
+      if (!/[/.*]/.test(p) && !(ticked && !p.includes('/') && isDir(p))) continue;
+      const rel = resolveRel(p);
+      if (rel === null || rel === 'docs/spec/engine/*.md' || CODE_DIRS.includes(rel) || BRIEF_REFERENCES.includes(rel)) continue;
+      let ok;
+      if (rel.includes('*')) ok = all().filter(f => globRe(rel).test(f)).every(f => set.has(f));
+      else if (isDir(rel)) ok = all().filter(f => f.startsWith(rel + '/') && SCANNED_EXT.test(f)).every(f => set.has(f));
+      else ok = set.has(rel);
+      if (!ok) hits.push({ file: BRIEF, rule: 'brief-scope', line: base + i, text: rel });
     }
   });
-  return hits;
+  return [...new Map(hits.map(h => [`${h.line}:${h.text}`, h])).values()];
 }
+
+/** Every file under root (posix, relative), skipping VCS, dependency, build and baked-theme trees. */
+function repoFiles(root) {
+  const out = [];
+  const visit = dir => {
+    for (const name of readdirSync(dir)) {
+      if (['.git', 'node_modules', 'dist', 'themes', 'test-results', 'playwright-report'].includes(name)) continue;
+      const p = join(dir, name);
+      if (statSync(p).isDirectory()) visit(p); else out.push(posix(relative(root, p)));
+    }
+  };
+  visit(root);
+  return out;
+}
+
+const globRe = g => new RegExp('^' + g.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '[^/]*') + '$');
 
 /** Run every rule over root; returns {hits, censusSkipped}. */
 export function checkCleanroom(root) {

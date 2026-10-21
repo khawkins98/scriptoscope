@@ -12,7 +12,10 @@
 // denominator change (an inScope.changes entry), never folded in silently.
 // The frozen set's identity is pinned: inScope.sha256 is the sha256 of the
 // sorted '<binary> <start> <end>' lines (one per in-scope range, '\n'-joined, no
-// trailing newline). Any swap, added/dropped range or moved bound exits 1. Classes are advisory only and are not used
+// trailing newline). Any swap, added/dropped range or moved bound exits 1. When the
+// inventory `status` says FROZEN, the pin is mandatory: `inScope.frozen` must be
+// true and count, sha256 and every perBinary count must be present, so flipping
+// frozen to false cannot switch the checks off. Classes are advisory only and are not used
 // here. reachedFrom must be one of REACH below; an unknown value exits 1. In-scope
 // ranges reached only by fallThrough (running off the end of a reached range)
 // are counted like any other in-scope range and also reported separately, since
@@ -144,9 +147,21 @@ if (existsSync(covPath)) {
 }
 
 const inRange = (set, s, e) => { if (!set) return false; for (const a of set) if (a >= s && a < e) return true; return false; };
-const report = { status: inv.status, inScopeFrozen: inv.inScope?.frozen === true, inScopeCount: inv.inScope?.count ?? null, binaries: {} };
-const total = { ranges: 0, inScope: 0, cited: 0, decoded: 0, mirrored: 0, fallThrough: 0 };
 let errors = 0;
+// A status that says FROZEN (and not "NOT FROZEN"/"UNFROZEN") demands the full pin: an
+// inScope.frozen:false or a missing count/sha256/perBinary must not quietly skip the checks below.
+const statusFrozen = /(?<!NOT |UN)\bFROZEN\b/.test(String(inv.status ?? ''));
+const inScopeFrozen = inv.inScope?.frozen === true || statusFrozen;
+if (statusFrozen) {
+  const pin = inv.inScope ?? {};
+  if (pin.frozen !== true) { errors++; console.error(`inventory status says FROZEN but inScope.frozen is ${JSON.stringify(pin.frozen)}; a frozen denominator must keep its pin`); }
+  if (!Number.isInteger(pin.count)) { errors++; console.error('inventory status says FROZEN but inScope.count is not an integer'); }
+  if (!/^[0-9a-f]{64}$/.test(pin.sha256 ?? '')) { errors++; console.error('inventory status says FROZEN but inScope.sha256 is not a sha256'); }
+  if (!pin.perBinary || typeof pin.perBinary !== 'object') { errors++; console.error('inventory status says FROZEN but inScope.perBinary is missing'); }
+  else for (const name of Object.keys(inv.binaries)) if (!Number.isInteger(pin.perBinary[name])) { errors++; console.error(`inventory status says FROZEN but inScope.perBinary.${name} is missing`); }
+}
+const report = { status: inv.status, inScopeFrozen, inScopeCount: inv.inScope?.count ?? null, binaries: {} };
+const total = { ranges: 0, inScope: 0, cited: 0, decoded: 0, mirrored: 0, fallThrough: 0 };
 const inScopeLines = [];
 for (const [name, b] of Object.entries(inv.binaries)) {
   const r = { ranges: 0, inScope: 0, cited: 0, decoded: 0, mirrored: 0, fallThrough: 0 };

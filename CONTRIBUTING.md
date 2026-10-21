@@ -245,6 +245,23 @@ feat(api)!: rename ScriptoscopeWindow constructor option `theme` to `themeId`
 - **Work in durable lanes.** Parallel lanes each own a worktree and output directory
   outside `/tmp` (temporary directories have been lost mid-campaign), plus a single
   deliverable. Only one lane at a time owns the emulator and HFS media.
+- **Pass `lane:ready` before asking for review.** Run `npm run lane:ready` on the
+  exact head you want reviewed (`-- --skip-tests` for docs-only diffs; it needs the
+  private `Traps.h` via `SCRIPTOSCOPE_TRAPS_H`). It requires a clean worktree and a
+  pushed head equal to the tested head, rejects leftover `PENDING` / "Awaiting
+  independent review" / "PROPOSED verified" labels, and runs the clean-room linter,
+  `gen-trap-table --check`, `report-coverage`, `build-ledger.mjs --check`, the
+  ledger history guard, typecheck and `npm test`. Paste its summary block, with the
+  commit and each exit code, into the PR body. A PR without a passing summary goes
+  back unreviewed.
+- **Review by tier.** Tier 0, PM mechanical check with no agent review: hash-only
+  bumps, inserting reviewer labels, doc wording and typos, citation-only corrections
+  with no change in meaning, a regenerated `ledger.json`. Tier 1, one review round:
+  specs, tooling and tests with no status change, after `lane:ready` passes; the
+  reviewer re-traces the claims and runs mutation probes, and only blocking findings
+  trigger a second round. Tier 2, full adversarial review: runtime and `src/engine`
+  changes, golden candidates, ledger status promotions or mismatches, changes to the
+  clean-room boundary (brief, linter, allowed paths) and the denominator.
 - **Bound finite adapters.** Name the exact supported inputs/operation and the consumer
   claim or preparation dependency they serve. Stop on an unmatched context, missing
   mapping or unexplained difference. A finite result is not a general source rule:

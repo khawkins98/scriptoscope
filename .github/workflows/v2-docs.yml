@@ -1,0 +1,84 @@
+name: v2 docs + ledger
+
+# Lightweight checks for every PR into v2, including docs-only PRs. ci.yml keeps
+# its paths-ignore (docs/** and *.md skip the browser job), so without this
+# workflow a spec or ledger-prose PR would merge with no check at all. Pure Node,
+# no npm install, no browser: the clean-room linter, the trap table, the routine
+# coverage pins, the generated ledger and the append-only ledger history.
+on:
+  pull_request:
+    branches: [v2]
+  push:
+    branches: [v2]
+
+concurrency:
+  group: v2-docs-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  docs:
+    name: Docs, clean-room and ledger (no browser)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          # The ledger history guard reads the family files at the merge-base.
+          fetch-depth: 0
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+
+      - name: Clean-room linter (lint:cleanroom)
+        run: node scripts/check-cleanroom.mjs
+
+      # Traps.h is Apple-copyrighted and never committed. With the optional
+      # SCRIPTOSCOPE_TRAPS_H_B64 secret (base64 of the pinned UI 3.0.1 copy) the
+      # full name check runs; without it only the table's structure is checked and
+      # a warning says so. `npm run lane:ready` always runs the full check locally.
+      - name: Trap table (gen-trap-table --check)
+        env:
+          TRAPS_H_B64: ${{ secrets.SCRIPTOSCOPE_TRAPS_H_B64 }}
+        run: |
+          if [ -n "$TRAPS_H_B64" ]; then
+            printf '%s' "$TRAPS_H_B64" | base64 -d > "$RUNNER_TEMP/Traps.h"
+            node scripts/gen-trap-table.mjs --traps-h "$RUNNER_TEMP/Traps.h" --check
+          else
+            echo "::warning title=Trap names not checked in CI::SCRIPTOSCOPE_TRAPS_H_B64 is not set, so only the trap table's structure is checked. lane:ready runs the full --check against Traps.h."
+            node scripts/gen-trap-table.mjs --structure-only
+          fi
+
+      - name: Routine coverage (report-coverage)
+        run: node scripts/report-coverage.mjs
+
+      # ledger.json is generated from families/*.json. When two PRs touch families,
+      # the second one goes stale after the first merges; the fix is mechanical and
+      # is never committed by CI.
+      - name: Generated ledger is current (build-ledger --check)
+        run: |
+          if ! node tests/rendering-requirements/build-ledger.mjs --check; then
+            echo "::error title=ledger.json out of date::Merge the latest v2 into this branch, then run: npm run ledger:sync && git add tests/rendering-requirements/ledger.json && git commit -m 'test(ledger): regenerate ledger.json after merging v2'. Never hand-edit or hand-merge ledger.json."
+            exit 1
+          fi
+
+      # Merged family transitions are append-only: the history at the base must be
+      # an unchanged prefix of the head's (scripts/check-ledger-history.mjs).
+      - name: Ledger history is append-only
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE_REF: ${{ github.base_ref }}
+          BEFORE: ${{ github.event.before }}
+        run: |
+          if [ "$EVENT" = "pull_request" ]; then
+            base="$(git merge-base HEAD "origin/$BASE_REF")"
+          elif [ -n "$BEFORE" ] && [ "$BEFORE" != "0000000000000000000000000000000000000000" ]; then
+            base="$BEFORE"
+          else
+            echo "no prior v2 head to compare against"; exit 0
+          fi
+          node scripts/check-ledger-history.mjs --base-commit "$base"

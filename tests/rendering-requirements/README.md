@@ -680,7 +680,34 @@ Never hand-merge that conflict: take either side, run `--write`, commit. No
 version, digest or transition changes. To make local merges skip the conflict
 step, run `git config merge.scriptoscope-ledger.driver true` once.
 `.gitattributes` maps `ledger.json` to that driver, so git keeps one side and
-`--check` then requires the regeneration. Lane-specific assertions about a
+`--check` then requires the regeneration.
+
+**Second PR to merge.** When two open PRs both touch `families/`, the one that
+merges second goes stale: its `ledger.json` no longer matches the generator. The
+second PR's author fixes it, never CI and never the PM:
+
+```sh
+git fetch origin && git merge origin/v2          # family files merge cleanly
+npm run ledger:sync                              # build-ledger --write, then --check
+git add tests/rendering-requirements/ledger.json
+git commit -m "test(ledger): regenerate ledger.json after merging v2"
+```
+
+`ledger:sync` only regenerates the derived file. If it fails, a family's own
+check failed (for example both PRs recorded a transition on the same family),
+and that is a real conflict to resolve by recording a fresh transition, not by
+editing `ledger.json`. The `v2 docs + ledger` workflow fails a stale
+`ledger.json` with this exact command in the error, and it never commits.
+Regenerating `ledger.json` after a merge is a Tier 0 change (PM mechanical
+check, no agent review).
+
+**History is append-only.** `scripts/check-ledger-history.mjs`
+(`npm run lint:ledger-history`, also part of `lane:ready` and the v2 docs
+workflow) compares every family file at the merge-base with the head. The
+merged `transitions` array must be an unchanged prefix of the head's: a
+transition that was edited, removed or reordered fails, and so does a removed
+family file or any edit of `_base.json`. This catches a rewrite that re-derives
+every digest so the generator's own chain checks still pass. Lane-specific assertions about a
 transition go in a new `<family>-*.test.mjs` file, not in this shared test.
 
 ### Porting a main-branch ledger change into `families/`

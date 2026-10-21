@@ -11,6 +11,11 @@
 // Usage:
 //   node scripts/gen-trap-table.mjs --traps-h <path> --check   # exit 1 on any drift
 //   node scripts/gen-trap-table.mjs --traps-h <path> --write   # rewrite the name column
+//   node scripts/gen-trap-table.mjs --structure-only            # no Traps.h: markers and row shape only
+//
+// --structure-only is for CI runners without the private Traps.h. It fails on
+// missing markers, unparseable rows and empty names, but it cannot check a name
+// against Traps.h, so it never replaces the full --check before review.
 //
 // Lookup rules: a toolbox trap ($A800–$AFFF) is matched as-is, then with the
 // auto-pop bit ($0400) cleared. An OS trap ($A000–$A7FF) is matched as-is, then
@@ -34,15 +39,16 @@ const SEPARATOR = '|---|---|---|---|';
 const args = process.argv.slice(2);
 const flag = (n) => args.includes(n);
 const opt = (n) => { const i = args.indexOf(n); return i >= 0 ? args[i + 1] : undefined; };
+const structureOnly = flag('--structure-only');
 const trapsPath = opt('--traps-h') ?? process.env.SCRIPTOSCOPE_TRAPS_H;
-if (!trapsPath || (!flag('--check') && !flag('--write'))) {
-  console.error('usage: gen-trap-table.mjs --traps-h <Traps.h> (--check | --write)');
+if (!structureOnly && (!trapsPath || (!flag('--check') && !flag('--write')))) {
+  console.error('usage: gen-trap-table.mjs --traps-h <Traps.h> (--check | --write)  |  gen-trap-table.mjs --structure-only');
   process.exit(2);
 }
 
-const raw = readFileSync(trapsPath);
+const raw = structureOnly ? Buffer.alloc(0) : readFileSync(trapsPath);
 const sha = createHash('sha256').update(raw).digest('hex');
-if (sha !== EXPECTED_SHA256) {
+if (!structureOnly && sha !== EXPECTED_SHA256) {
   console.error(`Traps.h sha256 ${sha} does not match the pinned UI 3.0.1 copy ${EXPECTED_SHA256}`);
   process.exit(1);
 }
@@ -87,6 +93,10 @@ const lines = doc.slice(a + BEGIN.length, b).split('\n').map((line) => {
     }
     return line;
   }
+  if (structureOnly) {
+    if (!m[2].trim()) { drift++; console.error(`$${m[1]}: empty name`); }
+    return line;
+  }
   const name = trapName(parseInt(m[1], 16)) ?? MISSING;
   if (m[2] !== name) {
     drift++;
@@ -95,7 +105,10 @@ const lines = doc.slice(a + BEGIN.length, b).split('\n').map((line) => {
   return `| \`$${m[1]}\` | ${name} |${m[3]}`;
 });
 
-if (flag('--write')) {
+if (structureOnly) {
+  if (drift) { console.error(`${drift} trap-table row(s) do not parse`); process.exit(1); }
+  console.log('trap table structure ok (names NOT checked: no Traps.h; run --traps-h <path> --check before review)');
+} else if (flag('--write')) {
   writeFileSync(DOC, doc.slice(0, a + BEGIN.length) + lines.join('\n') + doc.slice(b));
   console.log(`trap table regenerated (${drift} row(s) changed or unparseable)`);
   if (lines.some((l) => l.trim().startsWith('|') && l !== HEADER && l !== SEPARATOR && !/^\| `\$A[0-9A-F]{3}` \| /.test(l))) process.exit(1);
