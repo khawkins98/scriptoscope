@@ -65,7 +65,19 @@ On 2026-10-21 an independently reviewed trial (accepted with limits) found that 
 
 **This trial is not admitted evidence.** No ledger row, golden or display-policy change follows from it.
 
-Treat this as its own named condition. Record depth/pixelType/rowBytes and exact RGBWK sentinels around every draw, and erase between states so masked holes cannot retain earlier pixels. Selecting Animals after the post-boot depth switch reproducibly hangs the guest (the splash draws, then the display and disk writes stop); the host stayed stable in two diagnostic boots, though an earlier browser loss is unexplained. A boot that starts at 32 bpp is not available, so 32 bpp itself and the post-boot change cannot yet be separated. The cause is under bounded diagnosis, so do not assume every scheme tolerates the condition.
+Treat this as its own named condition. Record depth/pixelType/rowBytes and exact RGBWK sentinels around every draw, and erase between states so masked holes cannot retain earlier pixels.
+
+### Later 32 bpp boots (2026-10-21, reviewed with limits)
+
+Private receipts are in asset `lane-c-direct32-campaign-20261021` (store commit `6b964dd`, archive `b41cfce7…`), with the independent review in `lanes/C/REVIEW-batches2-4.json`. None of this is admitted evidence.
+
+- **Floppies, depth switch then scheme (1 boot).** 18 empty push faces were drawn in one window: 80×20, 57×31, 101×45, 24×7, 24×9 and 9×9, each at hilite 0/10/255. 25,128 of 25,131 pixels equal the frozen, source-independent prediction, covering partial final tiles, corner clamping and draw order. The other 3 pixels are explained post hoc by the fixture's own draw sequence. Body fill, rounding versus truncation and pattern alignment were **not** exercised: the Floppies body colour equals the erase colour, and its colours are byte-doubled. Against main, the default output equals the display-gamma table applied to the native bytes. An analysis-only identity-gamma alias equals the native bytes on the 15 sizes main can compose.
+- **Animals** hung after the 8 → 32 switch in 3 of 3 boots (sound on, one at 128 MB RAM). **Crayon OS** hung in 2 of 2: one with sound on, one with sound off, and the two final frames are byte-identical. Emulator audio is therefore not needed for that hang.
+- **Selecting Crayon OS at 8 bpp and then switching** brought up a guest system error in 1 boot. The error was already showing at the first capture after the helper launched, so the depth call itself is not shown to be the cause.
+- **Every scheme shows an about box (`DLOG`/`DITL -14320` picture) on selection,** Floppies included. The two schemes that hung use a 32-bit about-box picture; Floppies uses an 8-bit one. This is an association across two schemes against one, not a demonstrated cause. A static survey (`lanes/C/survey/SPLASH-SURVEY.md`) found 32-bit about-box pictures in eight schemes (1138, 1984, 1990, Animals, Crayon OS, Dolphin, Evolution, Monkey Paradise). Ten schemes use an 8-bit picture or none; all are untested except Floppies.
+- **Host page stalls.** With sound on, opening the Kaleidoscope control panel at 8 bpp was followed by host loss in 2 of 2 boots. With `nosound true` (the wasm build reads it), the same step completed in 1 boot. That is consistent with an audio-message cause, but message rates were never measured with sound on. Four host losses have occurred in total and their trigger is not established; one followed the guest system error with no audio messages. Prefer `nosound true` for native work.
+- **The Kaleidoscope 2.3.1 control panel has no splash toggle.** Never strip about-box resources from a scheme: that changes the original archive bytes.
+
 
 ## Preserve the assets
 
