@@ -518,3 +518,20 @@ rationales (which now carry the `State-non-discriminating` marker), and the thre
 so the version stays 1.19.0 and every status is the same. The ledger test requires
 the marker on every 1990/Dolphin row, case substitution list and evidence
 locator/limit, and forbids it on the 1984 rows.
+
+## Checkable source-rule extension (1.20.0)
+
+Eighteen `checkable` cases and 185 obligations append to the exact prior 126
+cases and 854 assessments, retained by `checkable-rules-transition.json`.
+There are 144 OPEN cases and 1,039 obligations: 140 narrowly verified and 899
+unknown. Every new assessment is unknown pending independent review.
+
+Each archive gets one case over the 12 public empty-label rows (checkbox/radio
+× off/on/mixed × normal/disabled). Seven primary-decode locators in
+`docs/spec/checkable-icons.md` back one registered source/built assertion,
+`checkable.selection-rules`, in `checkable-rules.spec.mjs`. Lane selection and
+raster retention carry that assertion but stay unknown. The other obligations
+are recorded with their decoded limits and no runtime check: the resource
+files (`UseResFile` of a Gestalt `Copl` refnum, `UseResFile(0)` for icons),
+the public state mapping, the pressed tier, value 3, glyph placement, the
+label pen, icon depth (5 icon-only archives) and device colour.

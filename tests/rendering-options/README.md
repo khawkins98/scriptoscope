@@ -238,3 +238,46 @@ archives. A failing `todo` records the code-10 decode disagreement (flag 1 shoul
 collapse it). An observation test records an undecoded overrun, with no expected
 value: the 1138 document-window title bar at its template size places 107px in
 103px. No image or golden is added.
+
+### Checkable source rules
+
+`checkable-rules.mjs` transcribes the 2.3.1 checkbox/radio lanes from
+[checkable-icons.md](../../docs/spec/checkable-icons.md), with an address on
+every rule. It covers the state bytes (`0x66e8–0x6770`), the CICN lane
+`-9504 + 12*kind + 3*value + tier` with the value-2 same-tier retry
+(`0x71ec–0x728a`), the CICN-miss branch into the icon lane (`0x728c–0x7314`),
+and the pinned `0x18b88` icon table with the missing-`ics#` retry
+(`0x7314–0x73fa`). The checker parses each archive's resource map itself and
+imports nothing from `src/`. `checkable-rules.test.mjs` (Node) checks the
+table hash, cross-checks that census against the loader, and predicts the 216
+public rows: 18 archives × checkbox/radio × off/on/mixed × normal/disabled,
+empty label. That gives 13 CICN-lane archives and 5 icon-only ones. Floppies
+ships both lanes and draws the CICN. Only Animals radio mixed reaches the
+value-2 retry.
+
+Five wrong readings each change corpus predictions: swapped tiers, no retry,
+retry to unchecked, icon lane first, kind ignored. `checkRow` rejects each of
+them. A sixth, the runtime normal-tier retry, changes no corpus row (below). `checkable-rules.spec.mjs` runs the public `composeCheckable` in source
+and built modes. Each output must equal the archive raster of the predicted
+resource: alpha everywhere, RGB where opaque. At freeze, 178 of the 216 rows
+discriminated. The other 38 rows also equal another archive raster, for
+example where an archive's disabled and pressed art are identical. They are
+counted, not hidden. Five temporary runtime mutations each failed the source
+spec: mixed-first removed, disabled tier swapped, icon lane first, icon
+disabled row ignored, and mixed retry to unchecked.
+
+These rows are conditional. The public-to-native mapping is modern policy:
+mixed before checked, disabled as hilite 255, no pressed option. The checks
+also assume the Gestalt(`Acid`) byte +20 is clear and that the resource chain
+is the archive fork alone. The original CICN lane fetches after
+`UseResFile` of a Gestalt(`Copl`) refnum, and the icon lane after
+`UseResFile(0)`. The rows do not establish which file owns the art, what an
+install supplies for missing art, the ics8/ics4 depth choice (the runtime
+draws ics8), pressed or value-3 art, glyph placement in a control Rect, or
+the label pen (`left + 18`) relative to the runtime's `glyph width + 5` raster.
+The runtime retries the normal-tier CICN after a same-tier miss; the decode
+has no such retry. No shipped archive reaches that branch, and the Node test
+records the disagreement on a minimal fork. It is left as the compatibility
+policy pinned by `mixed-checkable.spec.mjs`. Popup buttons (`-8194..-8208`)
+are not covered: the kDEF routes them to a loaded `WDEF -14336` that is not
+decoded. No image or golden is added.

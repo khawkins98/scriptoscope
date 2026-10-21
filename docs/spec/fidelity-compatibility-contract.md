@@ -94,10 +94,11 @@ proves input identity, not decoder correctness. A trace proves actual selection,
 not the historical validity of a fallback policy. A self-golden proves stability,
 not original-engine pixels.
 
-The current [ledger 1.19.0](../../tests/rendering-requirements/ledger.json) contains
-126 OPEN cases and 854 declared obligations: 140 narrowly verified, 0 mismatched,
-0 explicitly unsupported and 714 unknown. Of the 18 window-chrome cases, only
-the 13 `wnd#` ladder-selection obligations are verified. Fifty-four verified obligations concern
+The current [ledger 1.20.0](../../tests/rendering-requirements/ledger.json) contains
+144 OPEN cases and 1,039 declared obligations: 140 narrowly verified, 0 mismatched,
+0 explicitly unsupported and 899 unknown. Of the 18 window-chrome cases, only
+the 13 `wnd#` ladder-selection obligations are verified; all 185 checkable
+source-rule obligations are unknown. Fifty-four verified obligations concern
 only complete recorded-condition empty 80×20 faces under explicit finite
 measured profiles (nine of them also bind whole-load finite CIcon transfer data;
 the six 1990/Dolphin faces do not discriminate state selection). They do not establish original alpha/mask, typography, hidden
