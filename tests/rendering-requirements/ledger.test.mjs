@@ -8,8 +8,15 @@ import { gitIdentity } from './execution.mjs';
 import { collectObservations } from './observations.mjs';
 import { fileURLToPath } from 'node:url';
 import { validateLedger, inventoryDigest, makeReport, loadIssueStates, digest } from './ledger.mjs';
+import { buildLedger, readFamilies, assemble, formatFamily, familyDigest, recordTransition, priorFamily, baseFamily, ARRAYS, LEDGER_PATH } from './build-ledger.mjs';
 const root = fileURLToPath(new URL('../../', import.meta.url));
-const original = JSON.parse(readFileSync(new URL('./ledger.json', import.meta.url)));
+// ledger.json is generated from families/*.json (build-ledger.mjs). `live` is the
+// committed file; `original` is the exact 1.22.0 single-file ledger rebuilt from
+// the family sources with every post-split family transition undone. The
+// historical transition tests below run against `original`, so they keep
+// reconstructing their prior versions byte-for-byte however families grow.
+const live = JSON.parse(readFileSync(new URL('./ledger.json', import.meta.url)));
+const original = buildLedger({ mode: 'base' }).ledger;
 const transition = JSON.parse(readFileSync(new URL('./header-sampling-transition.json', import.meta.url)));
 // Reconstruct the unchanged pre-mixed inventory before testing its older header transition.
 const mixedTransition = JSON.parse(readFileSync(new URL('./mixed-selection-transition.json', import.meta.url)));
@@ -463,4 +470,136 @@ test('range-control extension preserves all prior 144 cases and 1,039 assessment
  assert.deepEqual(added.filter(a=>a.requirementId==='scrollbar.track-pattern').map(slug),['apple-lisa','crayon-os','slimes','system7-nostalgia-silver','windows-95']);
  assert(!JSON.stringify(original).includes('Awaiting independent review'));
  assert.deepEqual(makeReport(original).requirementStatus.counts,{verified:173,mismatched:18,unsupported:0,unknown:1213});
+});
+
+// ---- Per-family sources (v2 lane L3). ledger.json is generated; these tests are the CI check.
+const SPLIT_SHA256 = '0b8698706ef14440e2c7faf9a644ab84dae2bf1cd133e53910315f0163be4985'; // committed 1.22.0 ledger.json at the split (origin/v2 1183816e)
+const sources = readFamilies();
+// Mechanism probes run on the split-time state of every family (all later transitions
+// undone), so they stay valid however the live families grow.
+const split = sources.families.map(baseFamily);
+const family = name => structuredClone(split.find(f => f.family === name));
+const others = name => split.filter(f => f.family !== name);
+const withFamily = (f, rest = others(f.family)) => assemble(sources.base, [...rest, f].sort((a, b) => a.family.localeCompare(b.family)));
+const rebuilt = text => digest(text);
+// A minimal well-formed appended case for a family (dimensions as in its first case, all unknown).
+function addCase(f, id) {
+  const c = structuredClone(f.cases[0]); c.id = id; f.cases.push(c);
+  for (const [dimension, ids] of Object.entries(c.dimensions)) if (Array.isArray(ids)) for (const requirementId of ids)
+    f.assessments.push({ caseId: id, requirementId, status: 'unknown', evidence: [], assertions: [], issues: [], rationale: `Demo ${dimension} obligation.`, review: 'Demo only.' });
+  return f;
+}
+
+test('committed ledger.json is byte-identical to the generator output (run build-ledger.mjs --write)', () => {
+  assert.equal(readFileSync(LEDGER_PATH, 'utf8'), buildLedger().text);
+  assert.deepEqual(validateLedger(live, { root }).errors, []);
+});
+
+test('the family sources rebuild the exact 1.22.0 single-file ledger at the split', () => {
+  const { text } = buildLedger({ mode: 'base' });
+  assert.equal(rebuilt(text), SPLIT_SHA256); assert.equal(sources.base.ledgerSha256, SPLIT_SHA256);
+  assert.equal(original.inventoryVersion, '1.22.0'); assert.equal(inventoryDigest(original), original.inventorySha256);
+  // Every row is owned by exactly one family file and every family file is canonical (one row per line).
+  for (const f of sources.families) { assert.equal(f.text, formatFamily(f), `${f.family}.json is not canonical`); assert.equal(f.inventorySha256, familyDigest(f), f.family); }
+  for (const a of ARRAYS) assert.equal(sources.families.reduce((n, f) => n + baseFamily(f)[a].length, 0), original[a].length, a);
+});
+
+const T = (f, prior, version, extra = {}) => recordTransition(f, prior, { version, summary: 's', review: 'r', scope: `Demo ${f.family} scope at ${version}.`, ...extra });
+
+test('family sources fail closed: lost, inserted, foreign or unversioned rows', () => {
+  const throws = (change, pattern, name = 'scrollbar') => { const f = family(name); change(f); assert.throws(() => withFamily(f), pattern); };
+  throws(f => f.assessments.pop(), /family inventory digest changed/);
+  throws(f => { f.assessments.pop(); f.inventorySha256 = familyDigest(f); }, /missing rows present at the split/);
+  throws(f => { f.cases.push({ ...f.cases[0], id: 'x' }); }, /family inventory digest changed/);
+  throws(f => { f.evidence.push({ ...f.evidence[0], id: 'kdef.unversioned' }); }, /family inventory digest changed/);
+  throws(f => { f.evidence.push({ ...f.evidence[0], id: 'kdef.unversioned' }); f.inventorySha256 = familyDigest(f); }, /appended after the split without a family transition/);
+  throws(f => { f.cases[0].family = 'tab'; f.inventorySha256 = familyDigest(f); }, /not one of scrollbar/);
+  throws(f => { f.assessments.push({ ...family('tab').assessments[0] }); }, /must live in the file that owns its case/);
+  throws(f => { f.assertions.push({ ...family('tab').assertions[0], id: 'demo.foreign-assertion' }); f.inventorySha256 = familyDigest(f); }, /must live with its cases/);
+  throws(f => { f.requirements.push({ ...family('tab').requirements[0] }); f.inventorySha256 = familyDigest(f); }, /appended after the split without a family transition/);
+  throws(f => { f.version = '1.1.0'; f.inventorySha256 = familyDigest(f); }, /without transitions is at its 1.0.0/);
+  // In-place edits of split-time rows change the family digest and, if it is refreshed by hand, the rebuilt 1.22.0 bytes.
+  throws(f => { f.assessments[0].review += ' edited'; }, /family inventory digest changed/, 'window');
+  const f = family('window'); f.assessments[0].review += ' edited'; f.inventorySha256 = familyDigest(f); assert.notEqual(rebuilt(assemble(sources.base, [...others('window'), f], { mode: 'base' }).text), SPLIT_SHA256);
+  const g = family('scrollbar'); g.cases[0].options.state = 'pressed'; g.inventorySha256 = familyDigest(g); assert.notEqual(rebuilt(assemble(sources.base, [...others('scrollbar'), g], { mode: 'base' }).text), SPLIT_SHA256);
+  // A row id claimed by two families is rejected.
+  const h = family('tab'); h.evidence.push(family('window').evidence[0]); assert.throws(() => assemble(sources.base, [...others('tab'), T(h, family('tab'), '1.1.0')]), /duplicate evidence row/);
+});
+
+test('a recorded family transition appends, restores in-place edits exactly and computes the aggregate', () => {
+  const prior = family('scrollbar'), f = addCase(family('scrollbar'), 'demo.scrollbar.case');
+  const edited = f.assessments.findIndex(a => a.status === 'mismatched'); f.assessments[edited] = { ...f.assessments[edited], rationale: 'Demo edit in place.' };
+  const next = recordTransition(f, prior, { version: '1.1.0', summary: 'Demo: one case appended, one row edited.', review: 'Demo only.', scope: 'Demo scrollbar scope at 1.1.0.' });
+  assert.deepEqual(next.transitions[0].replaced.assessments.map(r => r.index), [edited]);
+  const back = priorFamily(next); for (const key of ['version', 'scope', 'inventorySha256', ...ARRAYS]) assert.deepEqual(back[key], prior[key], key);
+  const { ledger, text } = withFamily(next);
+  assert.equal(ledger.inventoryVersion, '1.22.0+scrollbar@1.1.0'); assert.equal(ledger.inventorySha256, inventoryDigest(ledger));
+  assert.equal(ledger.cases.at(-1).id, 'demo.scrollbar.case'); assert.equal(text.split('\n').filter(l => l.includes('"demo.scrollbar.case"')).length, 1 + next.assessments.length - prior.assessments.length);
+  // The aggregate scope states the live totals, relabels the 1.22.0 text as split-time, and carries the transition review.
+  assert.match(ledger.scope.description, new RegExp(`^${ledger.cases.length} exact direct composition cases and ${ledger.assessments.length} assessments`));
+  assert.match(ledger.scope.description, /At the 1\.22\.0 split: 198 exact/); assert.match(ledger.scope.review, /^At the 1\.22\.0 split: /);
+  assert.deepEqual(ledger.scope.families.scrollbar, { version: '1.1.0', scope: 'Demo scrollbar scope at 1.1.0.', transitions: [{ version: '1.1.0', summary: 'Demo: one case appended, one row edited.', review: 'Demo only.' }] });
+  // History is untouched: the base reconstruction still yields the exact 1.22.0 bytes.
+  assert.equal(rebuilt(assemble(sources.base, [...others('scrollbar'), next], { mode: 'base' }).text), SPLIT_SHA256);
+  // Tampering with a recorded prior row or count fails closed.
+  const bad = structuredClone(next); bad.transitions[0].replaced.assessments[0].row.rationale = 'forged'; bad.inventorySha256 = familyDigest(bad); assert.throws(() => withFamily(bad), /prior prefix digest mismatch/);
+  const short = structuredClone(next); short.transitions[0].counts.cases = 99; short.inventorySha256 = familyDigest(short); assert.throws(() => withFamily(short), /lost rows/);
+  assert.throws(() => T(f, prior, '1.0.0'), /bump the family version/);
+  assert.throws(() => T(f, prior, '0.9.0'), /bump the family version/);
+  assert.throws(() => T(f, prior, 'v2'), /must be x\.y\.z/);
+  assert.throws(() => recordTransition(f, prior, { version: '1.1.0', summary: 's', review: 'r' }), /describe the new family scope/);
+  const dropped = structuredClone(f); dropped.evidence.shift(); assert.throws(() => T(dropped, prior, '1.1.0'), /changed identity|cannot disappear/);
+  // A second transition chains onto the first and both undo exactly.
+  const third = T(addCase(structuredClone(next), 'demo.scrollbar.case2'), structuredClone(next), '1.2.0');
+  assert.equal(withFamily(third).ledger.inventoryVersion, '1.22.0+scrollbar@1.2.0'); assert.equal(baseFamily(third).inventorySha256, prior.inventorySha256);
+  const regress = structuredClone(third); regress.transitions[1].version = regress.version = '1.0.5'; regress.inventorySha256 = familyDigest(regress); assert.throws(() => withFamily(regress), /does not increase/);
+});
+
+test('after a transition, rows and review text cannot change without a new transition (incl. silent promotion)', () => {
+  // A legitimate transition appends a case (all unknown), an assertion for it and an evidence row.
+  const prior = family('scrollbar'), f = family('scrollbar');
+  const v = f.assessments.find(a => a.status === 'verified'), vc = f.cases.find(c => c.id === v.caseId);
+  const c = structuredClone(vc); c.id = 'demo.sb'; f.cases.push(c);
+  for (const ids of Object.values(c.dimensions)) if (Array.isArray(ids)) for (const requirementId of ids) f.assessments.push({ caseId: c.id, requirementId, status: 'unknown', evidence: [], assertions: [], issues: [], rationale: 'demo', review: 'demo' });
+  f.assertions.push({ ...f.assertions.find(a => a.id === v.assertions[0]), id: 'demo.as', caseIds: ['demo.sb'] });
+  f.evidence.push({ ...f.evidence[0], id: 'demo.ev' });
+  const legit = T(f, prior, '1.1.0'), before = withFamily(legit);
+  assert.deepEqual(validateLedger(before.ledger, { root }).errors, []);
+  const plants = {
+    'append evidence': x => x.evidence.push({ ...x.evidence[0], id: 'planted.ev' }),
+    'append assertion': x => x.assertions.push({ ...x.assertions.at(-1), id: 'planted.as' }),
+    'append assessment': x => x.assessments.push({ ...x.assessments.at(-1), requirementId: 'planted.req' }),
+    'edit appended assessment rationale': x => { x.assessments.find(a => a.caseId === 'demo.sb').rationale = 'forged'; },
+    'edit appended evidence': x => { x.evidence.find(e => e.id === 'demo.ev').claim = 'forged'; },
+    'edit appended assertion': x => { x.assertions.find(a => a.id === 'demo.as').caseIds.push(vc.id); },
+    'delete appended evidence': x => { x.evidence = x.evidence.filter(e => e.id !== 'demo.ev'); },
+    'delete appended assertion': x => { x.assertions = x.assertions.filter(a => a.id !== 'demo.as'); },
+    'edit split-time row': x => { x.assessments[0].review += ' x'; },
+    'rewrite transition review': x => { x.transitions[0].review = 'forged reviewer'; },
+    'rewrite transition summary': x => { x.transitions[0].summary = 'forged summary'; },
+    'silent unknown->verified promotion': x => Object.assign(x.assessments.find(a => a.caseId === 'demo.sb' && a.requirementId === v.requirementId), { status: 'verified', evidence: v.evidence, assertions: ['demo.as'], rationale: 'silently promoted' }),
+  };
+  for (const [name, plant] of Object.entries(plants)) {
+    const x = structuredClone(legit); plant(x);
+    assert.throws(() => withFamily(x), /family inventory digest changed/, name);
+    // Refreshing the family digest by hand is not enough: rows must equal the latest transition's recorded result.
+    if (!name.startsWith('rewrite')) { x.inventorySha256 = familyDigest(x); assert.throws(() => withFamily(x), /rows differ from the state recorded by transition 1\.1\.0/, `${name} (digest refreshed)`); }
+  }
+  // The same promotion recorded as its own reviewed transition is accepted and visible.
+  const promoted = structuredClone(legit); plants['silent unknown->verified promotion'](promoted);
+  const recorded = withFamily(T(promoted, legit, '1.2.0', { summary: 'promote', review: 'independent review' })).ledger;
+  assert.deepEqual(makeReport(recorded).requirementStatus.counts.verified - makeReport(before.ledger).requirementStatus.counts.verified, 1);
+  assert.equal(recorded.inventoryVersion, '1.22.0+scrollbar@1.2.0'); assert.notEqual(recorded.inventorySha256, before.ledger.inventorySha256);
+  assert.deepEqual(recorded.scope.families.scrollbar.transitions.map(t => t.review), ['r', 'independent review']);
+});
+
+test('independent additions to two families compose without a re-bump, in either merge order', () => {
+  const mk = (name, id, v) => T(addCase(family(name), id), family(name), v, { summary: `Demo ${id}`, review: 'Demo only.' });
+  const a = mk('checkable', 'demo.checkable.case', '1.1.0'), b = mk('slider', 'demo.slider.case', '1.1.0');
+  const rest = split.filter(f => !['checkable', 'slider'].includes(f.family));
+  const one = assemble(sources.base, [...rest, a, b]), two = assemble(sources.base, [b, ...rest, a].sort((x, y) => x.family.localeCompare(y.family)));
+  assert.equal(one.text, two.text);
+  assert.equal(one.ledger.inventoryVersion, '1.22.0+checkable@1.1.0,slider@1.1.0');
+  assert.deepEqual(validateLedger(one.ledger, { root }).errors, []);
+  assert.equal(rebuilt(assemble(sources.base, [...rest, a, b], { mode: 'base' }).text), SPLIT_SHA256);
 });
