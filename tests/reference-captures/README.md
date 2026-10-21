@@ -2,14 +2,14 @@
 
 This is a finite request and review contract for [#190](https://github.com/khawkins98/scriptoscope/issues/190),
 under the [draft compatibility target](../../docs/spec/fidelity-compatibility-contract.md).
-**Forty-five original observations have independent AI review under the narrow
+**Fifty-four original observations have independent AI review under the narrow
 `public-api-empty-face` scopes v1–v5.** They satisfy no whole request and verify
 no intake target. The fixed empty-push campaign now plans all 18 canonical
 sources × normal/logically highlighted/disabled states: 54 requests, including
 those eight existing observations. Five earlier default/shift experiments remain
-separate, for 59 requests total. The Animals, BeOS, six-source Shared307, three Evolution, three Monkey Paradise and three Floppies observations bring the stored corpus to forty-five
-reviewed scoped records; 14 requests have no capture (9 campaign states and
-five older experiments). All forty-five scoped requests remain evidence-incomplete.
+separate, for 59 requests total. The Animals, BeOS, six-source Shared307, three Evolution, three Monkey Paradise, three Floppies and nine 1984/1990/Dolphin observations bring the stored corpus to fifty-four
+reviewed scoped records; every campaign request now has a capture and only the five older
+experiments have none. All fifty-four scoped requests remain evidence-incomplete.
 
 Scope v5 applies only to the 46 newly appended campaign IDs. It requires the
 same fixed port, face, background and full-image evidence, actual public
@@ -472,3 +472,23 @@ copy. Keep raw measurement dumps, logs and full frames that no test reads in the
 private asset store and reference them by sha256.
 Only add `compacted` entries when migrating bytes that are already bound. Never
 re-encode a file without registering its original identity.
+
+## 1984, 1990 and Dolphin empty states (compact batch)
+
+Nine v5 records (`<slug>.<state>.j1223`) come from three separately booted
+environments, each running the A3A consumer (fresh controls, HiliteControl
+0/10/255), CIcon Rank Probe and Joint1223 calibration once. They are the first
+batch stored in the compact format: committed per record are only the request
+port image, full frame, sanitized capture log and the small JSON manifests the
+validator binds; palette and producer table are one copy per environment, and
+the profile artifact is an alias of the single `tests/decoder-fixtures` copy.
+Crops, status screenshots, raw logs and calibration rows stay private, listed by
+sha256 in [`nine-state-evidence.json`](./nine-state-evidence.json). Face crops
+derive from the logged global origin and control rect, not a literal.
+
+The 1990 and Dolphin state faces are pixel-identical (their state cicns differ
+only in the unused title-colour pixel), so they do not discriminate state
+selection and count as one face art under two environments. The finite transfer
+data bound to each load concerns a slider tick or checkbox, not the face. Native
+shutdown acknowledgement, provider/cache/patch order, mask/phase/font, whole-port
+equivalence, consumer port table/widMax and cold-cache independence stay unknown.

@@ -1,0 +1,20 @@
+{
+  "inventoryVersion": "1.18.0",
+  "inventorySha256": "960005659fb3f77da87c0c14f0a521503268ccb2633db13402e56bd1ebb424cf",
+  "scope": {
+    "description": "One hundred seventeen exact direct composition cases: prior ninety-nine plus eighteen window-chrome source-rule cases (13 wnd#-recipe archives, 5 corner-sprite archives). All closures OPEN; not a whole-control or whole-window denominator.",
+    "dimensions": ["resourceSelection","geometry","fillMask","typography","state","placement","interaction"],
+    "review": "Original eight cases and 51 assessments retained unchanged. Independent automated root/Astra review approved eight additional finite cases and 83 obligations at draft scope digest 659a655e87bbb0642aa200cf108671ec93d9e2cd00f48577bfb97cd4df1b30e3 on 2026-10-18; final digest reflects only replacement of pending review labels. All closures remain OPEN; not human capture attestation. The #289 extension preserves those sixteen cases and 134 assessments. Independent automated root/Astra review approved this exact finite #289 case/status extension on 2026-10-18 at draft scope digest 16a76c6c2c2343d378d626ffc8bf954b11a32cb5a2015718cb2ce7dd917893a0; narrow source/sample claim only, not human original-capture attestation. The #301 extension preserves all eighteen cases and150 assessments, adding four exact synthetic cases and45 obligations. Independent automated root/Astra review approved the exact applied four-case, 45-obligation extension and verifiers at commit d02935846fa816411259524b15e9934cd316becb, scope digest 4e563d0e824e9d809f22a14a735d6f64dca501bb1519ba58fc42ab3390c1e066. Final digest reflects only replacement of these review labels. Synthetic source/literal claims only; no original capture attestation."
+  },
+  "priorFileSha256": "8414ca740b7bb3c32504869428340c8f7f81f81dabef58b483f596ce864f4b63",
+  "priorObjectSha256": "dffb6aa301fbba3e1888245459aeb80443ee94d51dfa3b8b50b5f1dd71efeb39",
+  "counts": {"inputs":63,"evidence":75,"requirements":45,"assertions":30,"cases":117,"assessments":800},
+  "prefixSha256": {
+    "inputs": "aab27625d0842b1ea43335d00bd28faeef84bd0eedd8f72cdf1ed6e1d567c486",
+    "evidence": "d19ef45a14f00070e74994bfd38aba2c19240ff5376fd4c2f8505f6c4d16a59b",
+    "requirements": "d532ed16b99711668b5fad7f729d4654a34b50275d0796e47fa6f67c919bd0b2",
+    "assertions": "fe1ce4d8b574e725755c902803e98f10e673fa0ba71502db5f0ff08c8b0a7c6f",
+    "cases": "73863cd9409f1ebbd314e9ef8dc5f0afa722ab66810bb4268a138bb86b77e4b5",
+    "assessments": "7737e3664f39529094664cdad9a62482e7dcf8ce02314c12e77ed55f37e48166"
+  }
+}

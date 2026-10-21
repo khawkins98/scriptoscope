@@ -1,5 +1,6 @@
 import {RECORDED_CASES,recordedSubjects,readRecordedContext,captureBinding,validateRecordedExecution,validateRecordedBinding,compareRecordedPixels} from '../rendering-requirements/recorded-face.mjs';
 import {readFileSync} from 'node:fs';
+import {readOriginal} from '../helpers/compact-json.mjs';
 import {fileURLToPath} from 'node:url';
 import {literalCicn,faceInfo} from '../decoder-fixtures/mode5.mjs';
 import {test,expect,openHarness,attachObservations} from './fixtures.mjs';
@@ -62,13 +63,16 @@ for(const mode of ['source','built']) {
   info.annotations.push({type:'fidelity-assertion',description:'recorded.evolution-empty-two'});
   info.annotations.push({type:'fidelity-assertion',description:'recorded.monkey-three-state'});
   info.annotations.push({type:'fidelity-assertion',description:'recorded.floppies-evolution-four-state'});
+  info.annotations.push({type:'fidelity-assertion',description:'recorded.nine-state-j1223'});
   const referenceContext=readRecordedContext(fileURLToPath(new URL('../../',import.meta.url)));
   const bindings=referenceContext.captures.map(c=>captureBinding(c));
   const ledger=JSON.parse(readFileSync(new URL('../rendering-requirements/ledger.json',import.meta.url)));
   for(const binding of bindings)validateRecordedBinding(ledger.cases.find(c=>c.recordedComparison?.captureId===binding.captureId),binding,referenceContext);
   await openHarness(page,servers,mode);
   const subjects=recordedSubjects();
-  const result=await page.evaluate(async ({mode,bindings,subjects})=>{
+  // Browser preparation receives the bound original DATA bytes recovered from compact storage.
+  const transferBytes=Object.fromEntries(subjects.flatMap(s=>s.cases).filter(c=>c.cicnTransfer).map(c=>[c.cicnTransfer.path,readOriginal(c.cicnTransfer.path).toString('base64')]));
+  const result=await page.evaluate(async ({mode,bindings,subjects,transferBytes})=>{
    const api=await import(mode==='built'?'/dist/scriptoscope.js':'/src/index.ts');
    const {prepareRecordedTransfer,recordedLoadKey,retainRecordedTransfers}=await import('/tests/rendering-requirements/recorded-transfer.mjs');
    const rows=[];
@@ -86,7 +90,7 @@ for(const mode of ['source','built']) {
     if(!b){
      const selectedProfile=await api.prepareDisplayProfile(await(await fetch('/'+profile.path)).json());
      if(selectedProfile.id!==profile.id)throw Error('Wrong registered profile '+slug+'/'+state);
-     const transfer=await prepareRecordedTransfer(cicnTransfer,api);
+     const transfer=await prepareRecordedTransfer(cicnTransfer,api,async path=>Uint8Array.from(atob(transferBytes[path]),c=>c.charCodeAt(0)));
      b=await api.loadTheme('/themes/'+slug,{provenance:true,displayProfile:selectedProfile,...(transfer?{cicnTransfer:transfer}:{})});
      profileThemes.set(profileKey,b);
     }
@@ -125,7 +129,7 @@ for(const mode of ['source','built']) {
     }
     } finally { a?.dispose();for(const theme of profileThemes.values())theme.dispose(); }
    }return rows;
-  },{mode,bindings,subjects});
+  },{mode,bindings,subjects,transferBytes});
   await info.attach('recorded-before-validation.json',{body:JSON.stringify(result,null,2),contentType:'application/json'});
   for(const row of result){
    const capture=referenceContext.captures.find(c=>c.id===row.originalComparison.captureId);

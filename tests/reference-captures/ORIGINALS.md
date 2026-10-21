@@ -1,6 +1,6 @@
 # Reviewed original face observations
 
-The corpus contains forty-five `reviewed-scoped-observation` records under
+The corpus contains fifty-four `reviewed-scoped-observation` records under
 [`public-api-empty-face` versions 1–5](../../docs/spec/scoped-reference-observations.md).
 An independent Astra AI agent reviewed the eight earlier observations. A separate independent automated root reviewer approved the four
 new records under v5. Its [byte review](./four-state-independent-byte-review.json)
@@ -218,3 +218,21 @@ source/built pair matched all45 faces/72,000 pixels per mode; independent review
 accepted only the four narrow output obligations. Shutdown
 acknowledgement and pre-export media identity remain explicitly unestablished;
 original mask/phase/provider/cache, typography and whole controls remain unknown.
+
+## 1984, 1990 and Dolphin empty states
+
+| Request | Original port image | Profile |
+| --- | --- | --- |
+| 1984 normal / pressed / inactive | [normal](./1984-normal/port.png), [pressed](./1984-pressed/port.png), [inactive](./1984-inactive/port.png) | [1,223-key profile](../decoder-fixtures/measured-display-profile-1984.json) |
+| 1990 normal / pressed / inactive | [normal](./1990-normal/port.png), [pressed](./1990-pressed/port.png), [inactive](./1990-inactive/port.png) | [1,223-key profile](../decoder-fixtures/measured-display-profile-1990.json) |
+| Dolphin normal / pressed / inactive | [normal](./dolphin-som-normal/port.png), [pressed](./dolphin-som-pressed/port.png), [inactive](./dolphin-som-inactive/port.png) | [1,223-key profile](../decoder-fixtures/measured-display-profile-dolphin-som.json) |
+
+Nine independent v5 attestations preserve all prior 45 records/reviews and 59
+requests exactly. Each record keeps its full native frame, port image and
+sanitized log; crops, status screenshots and raw logs are private and listed by
+sha256 in [`nine-state-evidence.json`](./nine-state-evidence.json) (asset
+`nine-state-finite-acquisition-20261020`, private commit
+`64e4eb6a160953a8bb98833172ed0f0c409db856`). The 1990 and Dolphin faces are
+identical across states and schemes, so they do not test state selection.
+Font identity, title colour, provider/cache, mask/phase and shutdown
+acknowledgement remain unknown.

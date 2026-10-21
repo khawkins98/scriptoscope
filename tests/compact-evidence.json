@@ -263,6 +263,54 @@
       "originalSha256": "97abe59b52b735b16eda72c42da2286b4e6ef6e5347ea6ceb3d83eddf5c77ddf",
       "storedBytes": 73508,
       "storedSha256": "c8e15f84010d615f26c72a3e1ed3168e303f8878f2567a95e32640925745801b"
+    },
+    {
+      "path": "tests/decoder-fixtures/measured-display-profile-1984.json",
+      "encoding": "json-indent2-ascii-lf",
+      "originalBytes": 259290,
+      "originalSha256": "b685a0db6bd09c8564b059e76ca42ab81cc5af7a58176d23ddf4e4bb609b1ce8",
+      "storedBytes": 119500,
+      "storedSha256": "78e004292cd9dbee69dded8f641fdaa1d66007b69041be4d6ce1ce8e1e79c947"
+    },
+    {
+      "path": "tests/decoder-fixtures/measured-cicn-transfer-1984.json",
+      "encoding": "json-indent2-lf",
+      "originalBytes": 47192,
+      "originalSha256": "d23f3ac0b7964da5344a66d51f18bfbf460cbfda47500674641d4f6c1fa8086b",
+      "storedBytes": 18774,
+      "storedSha256": "2bbedf2a6ae4923fbabff5f86829eac00a711954156edd6fcef5fbd1d590e816"
+    },
+    {
+      "path": "tests/decoder-fixtures/measured-display-profile-1990.json",
+      "encoding": "json-indent2-ascii-lf",
+      "originalBytes": 259290,
+      "originalSha256": "5295c6556eced40c119e21122709eb2868913b6ec4254b3a3d7e435568b137ab",
+      "storedBytes": 119500,
+      "storedSha256": "7e4ad15214e0ff76d51bf78520a26c7f8c180854c489ac80a8fb49c21a7d8423"
+    },
+    {
+      "path": "tests/decoder-fixtures/measured-cicn-transfer-1990.json",
+      "encoding": "json-indent2-lf",
+      "originalBytes": 47192,
+      "originalSha256": "63f750dd9697b96eb78196867064f51c7445db20503e03123945f8cea2e720ae",
+      "storedBytes": 18774,
+      "storedSha256": "6b4c0a91dfcb91c96bdfe517552d45fa252db6545d9c37eaf1f78cda93da262a"
+    },
+    {
+      "path": "tests/decoder-fixtures/measured-display-profile-dolphin-som.json",
+      "encoding": "json-indent2-ascii-lf",
+      "originalBytes": 259297,
+      "originalSha256": "5ebbafdb48ac4294f5c53460c3293784c90d0ecb16f0ea2a26c356981ded70e2",
+      "storedBytes": 119507,
+      "storedSha256": "8cc325349a53dba055602c6891790f20368eb1f49e66cfe468194d59d91cdf57"
+    },
+    {
+      "path": "tests/decoder-fixtures/measured-cicn-transfer-dolphin-som.json",
+      "encoding": "json-indent2-lf",
+      "originalBytes": 47206,
+      "originalSha256": "5fa2dd45311d909ba09c00405725b7f01e20de4d4469cb9449f6aace3b2dd440",
+      "storedBytes": 18788,
+      "storedSha256": "710b4e80c3b0d8fa2b13e99071160725de0ceaf64836452336bafaffa3469ebf"
     }
   ],
   "aliases": [
@@ -331,6 +379,24 @@
       "target": "tests/decoder-fixtures/measured-display-profile-windows-31.json",
       "sha256": "1413c9daf5d691dd63af377cf8da1c8dcdba0eb14c045f0c1922f617a4961682",
       "bytes": 94187
+    },
+    {
+      "path": "tests/reference-captures/1984-calibration/prepared-profile.json",
+      "target": "tests/decoder-fixtures/measured-display-profile-1984.json",
+      "sha256": "b685a0db6bd09c8564b059e76ca42ab81cc5af7a58176d23ddf4e4bb609b1ce8",
+      "bytes": 259290
+    },
+    {
+      "path": "tests/reference-captures/1990-calibration/prepared-profile.json",
+      "target": "tests/decoder-fixtures/measured-display-profile-1990.json",
+      "sha256": "5295c6556eced40c119e21122709eb2868913b6ec4254b3a3d7e435568b137ab",
+      "bytes": 259290
+    },
+    {
+      "path": "tests/reference-captures/dolphin-som-calibration/prepared-profile.json",
+      "target": "tests/decoder-fixtures/measured-display-profile-dolphin-som.json",
+      "sha256": "5ebbafdb48ac4294f5c53460c3293784c90d0ecb16f0ea2a26c356981ded70e2",
+      "bytes": 259297
     }
   ],
   "external": [

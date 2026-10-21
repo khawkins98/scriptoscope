@@ -245,5 +245,74 @@
       "pressed",
       "inactive"
     ]
+  },
+  "1984": {
+    "profile": {
+      "path": "tests/decoder-fixtures/measured-display-profile-1984.json",
+      "id": "display-profile:f5827fb1677201101ffa391f0db238c03474ab465888a079591edd9015440b0d",
+      "sha256": "b685a0db6bd09c8564b059e76ca42ab81cc5af7a58176d23ddf4e4bb609b1ce8"
+    },
+    "caseSuffix": "j1223",
+    "explicitContext": true,
+    "paintKind": "cinf-bands",
+    "expectNormalDefaultDifference": false,
+    "states": [
+      "normal",
+      "pressed",
+      "inactive"
+    ],
+    "cicnTransfer": {
+      "path": "tests/decoder-fixtures/measured-cicn-transfer-1984.json",
+      "sha256": "d23f3ac0b7964da5344a66d51f18bfbf460cbfda47500674641d4f6c1fa8086b",
+      "id": "cicn-transfer-results:9d49015aa1e47fe6f2c6e21203ad92fa62953b13b9b636f6d83e439fd7d04cbe",
+      "contractId": "cicn-transfer-context:5f981fbfd709d98c803b24c0db8bd1cc5f78b008d18a89139f6f42e5d7f858b2",
+      "maskPolicy": "source-mask-alpha"
+    }
+  },
+  "1990": {
+    "profile": {
+      "path": "tests/decoder-fixtures/measured-display-profile-1990.json",
+      "id": "display-profile:8e825c7201ecc893e56d802eb8f141b767a299b432d078de99712e733d7e14ed",
+      "sha256": "5295c6556eced40c119e21122709eb2868913b6ec4254b3a3d7e435568b137ab"
+    },
+    "caseSuffix": "j1223",
+    "explicitContext": true,
+    "paintKind": "cinf-bands",
+    "expectNormalDefaultDifference": false,
+    "states": [
+      "normal",
+      "pressed",
+      "inactive"
+    ],
+    "cicnTransfer": {
+      "path": "tests/decoder-fixtures/measured-cicn-transfer-1990.json",
+      "sha256": "63f750dd9697b96eb78196867064f51c7445db20503e03123945f8cea2e720ae",
+      "id": "cicn-transfer-results:92e22e75fbfb6dd6e7583e01891d6509fe5c6a92c1c2615bb8a087900d7efbcd",
+      "contractId": "cicn-transfer-context:159403f8ba2ec236bc71b739cc90ae525764d5f4f2ad9c74f8430ccba6a09869",
+      "maskPolicy": "source-mask-alpha"
+    }
+  },
+  "dolphin-som": {
+    "profile": {
+      "path": "tests/decoder-fixtures/measured-display-profile-dolphin-som.json",
+      "id": "display-profile:b37c050f1f25e6e793024c8b2b6c2095918188d2ce906fda57f12d9c882d0fb5",
+      "sha256": "5ebbafdb48ac4294f5c53460c3293784c90d0ecb16f0ea2a26c356981ded70e2"
+    },
+    "caseSuffix": "j1223",
+    "explicitContext": true,
+    "paintKind": "cinf-bands",
+    "expectNormalDefaultDifference": false,
+    "states": [
+      "normal",
+      "pressed",
+      "inactive"
+    ],
+    "cicnTransfer": {
+      "path": "tests/decoder-fixtures/measured-cicn-transfer-dolphin-som.json",
+      "sha256": "5fa2dd45311d909ba09c00405725b7f01e20de4d4469cb9449f6aace3b2dd440",
+      "id": "cicn-transfer-results:5e35e22fa6b24dc6cec04387ff1ffd6fca1b0fed2403b074acc6f0e353a05f19",
+      "contractId": "cicn-transfer-context:47d1239af70294c9fef293c63561c49803d84b54521ac8f06c0f473f7258be3f",
+      "maskPolicy": "source-mask-alpha"
+    }
   }
 }

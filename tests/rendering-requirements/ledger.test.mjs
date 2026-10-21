@@ -37,7 +37,7 @@ function reject(change, pattern, options = {}) {
 test('reviewed inventory validates and all open cases remain uncertified', () => {
   assert.deepEqual(validateLedger(original, { root }).errors, []);
   const report = makeReport(original);
-  assert.equal(report.cases.length, 117);
+  assert.equal(report.cases.length, 126);
   assert.equal(report.requirementStatus.denominator, original.assessments.length);
   assert.equal(report.cases.filter(c => c.status === 'verified').length, 0);
   assert(report.execution.assertions.every(a => a.modes.every(m => m.status === 'not run')));
@@ -159,7 +159,7 @@ test('evidence from a wholly unrelated archive or synthetic input cannot support
 });
 test('engine-wide rules and combined source-art evidence retain their bounded valid uses', () => {
   const result = validateLedger(original, { root });
-  assert.deepEqual(result.errors, []); assert.equal(result.declaredCount, 800);
+  assert.deepEqual(result.errors, []); assert.equal(result.declaredCount, 854);
   assert.deepEqual(original.evidence.find(e => e.id === 'kdef.square-corners').inputs, ['engine.kaleidoscope-2.3.1-kdef0']);
   const shared = original.evidence.find(e => e.id === 'art.tab-crop');
   assert.deepEqual(shared.inputs, ['theme.1138', 'theme.1990']);
@@ -345,13 +345,29 @@ test('Floppies/Evolution extension preserves all prior95 cases and647 assessment
  assert(original.cases.slice(95).every(c=>c.inventoryClosure.status==='open'));
 });
 
+test('nine-state extension preserves the prior inventory and marks 1990/Dolphin state rows non-discriminating',()=>{
+ const transition=JSON.parse(readFileSync(new URL('./nine-state-recorded-transition.json',import.meta.url))),prior=structuredClone(original);
+ for(const[key,count]of Object.entries(transition.counts)){prior[key]=prior[key].slice(0,count);assert.equal(digest(JSON.stringify(prior[key])),transition.prefixSha256[key],key+' prefix');}
+ Object.assign(prior,{inventoryVersion:transition.inventoryVersion,inventorySha256:transition.inventorySha256,scope:transition.scope});
+ assert.equal(inventoryDigest(prior),transition.inventorySha256);assert.equal(digest(JSON.stringify(prior)),transition.priorObjectSha256);
+ const cases=original.cases.slice(transition.counts.cases),added=original.assessments.slice(transition.counts.assessments);
+ assert.equal(cases.length,9);assert.equal(added.length,54);assert(cases.every(c=>c.inventoryClosure.status==='open'&&c.id.endsWith('.j1223-profile')));
+ assert(added.every(a=>a.status===(a.requirementId==='output.recorded-composited-face'?'verified':'unknown')));
+ const before=makeReport(prior).requirementStatus.counts,after=makeReport(original).requirementStatus.counts;
+ assert.deepEqual({verified:after.verified-before.verified,unknown:after.unknown-before.unknown},{verified:9,unknown:45});
+ for(const a of added.filter(a=>/^recorded\.(1990|dolphin-som)\./.test(a.caseId)&&['output.recorded-composited-face','selection.original','state.original'].includes(a.requirementId)))
+  assert.match(a.rationale,/State-non-discriminating/,a.caseId+'/'+a.requirementId);
+ assert(!added.some(a=>a.caseId.startsWith('recorded.1984.')&&/State-non-discriminating/.test(a.rationale)));
+});
+
 test('window-chrome extension preserves all prior99 cases and671 assessments and promotes only wnd-ladder',()=>{
  const transition=JSON.parse(readFileSync(new URL('./window-chrome-transition.json',import.meta.url))),prior=structuredClone(original);
  for(const[key,count]of Object.entries(transition.counts)){prior[key]=prior[key].slice(0,count);assert.equal(digest(JSON.stringify(prior[key])),transition.prefixSha256[key],key+' prefix');}
  Object.assign(prior,{inventoryVersion:transition.inventoryVersion,inventorySha256:transition.inventorySha256,scope:transition.scope});
  assert.equal(inventoryDigest(prior),transition.inventorySha256);assert.equal(digest(JSON.stringify(prior)),transition.priorObjectSha256);
- const added=original.assessments.slice(671);assert.equal(added.length,129);
+ const added=original.assessments.slice(671,800);assert.equal(added.length,129);
  assert(added.every(a=>a.status===(a.requirementId==='window.wnd-ladder'&&a.caseId.endsWith('.window.sliced-recipes.sampled')?'verified':'unknown')));assert.equal(added.filter(a=>a.status==='verified').length,13);
- assert.deepEqual(makeReport(original).requirementStatus.counts,{verified:131,mismatched:0,unsupported:0,unknown:669});
- const cases=original.cases.slice(99);assert.equal(cases.length,18);assert(cases.every(c=>c.family==='window-chrome'&&c.inventoryClosure.status==='open'));
+ const beforeNine=structuredClone(original);for(const[key,count]of Object.entries(JSON.parse(readFileSync(new URL('./nine-state-recorded-transition.json',import.meta.url))).counts))beforeNine[key]=beforeNine[key].slice(0,count);
+ assert.deepEqual(makeReport(beforeNine).requirementStatus.counts,{verified:131,mismatched:0,unsupported:0,unknown:669});
+ const cases=original.cases.slice(99,117);assert.equal(cases.length,18);assert(cases.every(c=>c.family==='window-chrome'&&c.inventoryClosure.status==='open'));
 });

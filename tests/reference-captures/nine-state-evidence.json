@@ -1,0 +1,303 @@
+{
+  "schemaVersion": 1,
+  "id": "scriptoscope.nine-state-j1223-evidence",
+  "memberFormat": "[FILES.json member path, bytes, sha256]",
+  "purpose": "Hash locators for unread raw native evidence behind the nine 1984/1990/Dolphin empty-face records. Bytes stay in the private maintainer asset store; public CI never reads them.",
+  "privateStore": {
+    "repository": "https://git-home.allaboutken.com/khawkins98/scriptoscope-assets",
+    "asset": "nine-state-finite-acquisition-20261020",
+    "commit": "64e4eb6a160953a8bb98833172ed0f0c409db856",
+    "archiveSha256": "9a551bf15293dd25f06287c0aa3a0fe5a22cdb5eb52e3a57a177c52cffe14e87",
+    "memberManifest": "FILES.json (931 regular files, 5 symlinks; restored and rehashed 2026-10-21)"
+  },
+  "acquisitionReview": {
+    "member": "reviews/scriptoscope-nine-state-acquisition-independent-review-20261020.json",
+    "sha256": "366c5c8d93fdb47da317cf5fb2a5befc578a888eabf4aa9fb43dab2ddcf20f2f"
+  },
+  "privateComparison": {
+    "manifestSha256": "24753cfc2b630aa5bb18ccdbd2ad891f37efae0262271f2c070be5bfb98f0226",
+    "independentReviewSha256": "ff38d419712f2bfa42be62b587e6cbf8c3831aae7742048969b990db267bbfb0",
+    "verdict": "ADMIT-WITH-LIMITS",
+    "location": "Maintainer durable store campaign-20261021/lanes/A (MANIFEST.json, REVIEW.json, preparation/, results/); not yet in the Forgejo asset store",
+    "result": "18 face calls (9 faces x source/built), 28,800 pixels, 0 differences; whole-load raw asset parity and finite transfer planes exact; runtime 6bf48d52 / dist 4b02f1c4."
+  },
+  "limits": ["1990 and Dolphin state cicns -10239/-10238/-10240 are byte-identical across both schemes and differ only in the centre title-colour pixel: their six faces (and their pressed/inactive rows) do not discriminate hilite->cicn selection. They are one shared face art under two separately measured environments. Only 1984 demonstrates hilite->cicn selection.","Title colour is untested in all nine faces (empty labels).","The finite transfer element of each load is not the face: 1984 -10139 (horizontal slider tick, 5x7), 1990/Dolphin -9504 (empty inactive checkbox, 12x12). Faces are profile-mapped only.","Dolphin uses the fresh complete environment with the reviewed post-measurement in-port CRP status mirror; the earlier separate Dolphin attempt (stopped after consumer ACK3, CRP never sent) is preserved privately and not used.","Shutdown acknowledgement, private provider/cache/patch order, original mask/phase/font, whole-port equivalence, consumer portColorTable/current-main equality and calibration widMax, and cold-cache/order independence remain UNKNOWN."],
+  "schemes": {
+    "1984": {
+      "environment": "nine-state-first-attempts/1984",
+      "acquisitionResultSha256": "5209cbf1b0f56acb5784cb45d95a33bbc45fc8628d56366f3ec6e4ba4c794721",
+      "closure": {
+        "status": "SHUTDOWN_REQUEST_SENT_ACCEPTANCE_UNKNOWN",
+        "observed": "Finder Special > Shut Down selected once; retained screen still Finder, no observed worker poweroff acknowledgement",
+        "nativeRetries": 0,
+        "preCaptureHistory": ["paced mouse input used after initial fast clicks opened no menu","Kaleidoscope instruction window closed after CRP launch and before CRP C"]
+      },
+      "private": {
+        "calibrationLog": ["nine-state-first-attempts/1984/logs/telemetry.raw",266950,"2acc0dd427d3dbdee0151a0fb7f4fbdf3865a252ce89bd4710f2828f24b7071b"],
+        "crpLog": ["nine-state-first-attempts/1984/crp/logs/telemetry.raw",244100,"ae5429ab37cb5b5b0f259d127ff3ed0b0eaca09be81e29904200fce548e790dd"],
+        "stoppedScheme": ["nine-state-first-attempts/1984/logs/stopped-1984.bin",1165696,"da26ffd7239a7f11a61c8061062f1baafc6a9436e4878bce75bd9a72d7d5b09c"],
+        "stoppedKaleidoscope": ["nine-state-first-attempts/1984/logs/stopped-Kaleidoscope.bin",1005696,"0ce88e07fcd32462fcb594eabc46163aa2262d2d357fd2b0f77e7af5b4734091"],
+        "preboot": ["nine-state-first-attempts/1984/logs/preboot.json",6038,"b40b39e530fc02794e2e649905a162bebbc766764de06d2dd4634f247541f175"],
+        "crossContext": ["nine-state-first-attempts/1984/logs/cross-context-check.json",27888,"cdaafd5a82d9a0e15837b0439bdf6f4bb47582c80726f1abacfd507b617b75ed"],
+        "crpCalibrationJoins": ["nine-state-first-attempts/1984/logs/crp-calibration-joins.json",1092,"7393a212e974677467f52efb74274efe99a254626fe82d552dc5e9744965d751"],
+        "operatorClosure": ["nine-state-first-attempts/1984/logs/operator-closure.json",667,"d2af5ba43c2916ef0c85e83a3aea76349b99ce402662abda45263c19cc508915"],
+        "result": ["nine-state-first-attempts/1984/logs/result.json",2214,"5209cbf1b0f56acb5784cb45d95a33bbc45fc8628d56366f3ec6e4ba4c794721"]
+      },
+      "states": {
+        "normal": {
+          "geometry": {
+            "portRect": [0,0,160,80],
+            "globalOrigin": [80,90],
+            "controlRect": [20,20,100,40],
+            "effectiveClip": [0,0,160,80],
+            "derivedFaceFrameLTRB": [100,110,180,130],
+            "derivedPortFrameLTRB": [80,90,240,170],
+            "validated": "Derived from state-log globalOrigin+controlRect/portRect; equals crops.json sourceLTRB and recrops full frame/raw producer to the retained port/face bytes."
+          },
+          "private": {
+            "stateLog": ["nine-state-first-attempts/1984/logs/state-0.raw",20391,"8fbf6e28ef96e47c3e1fd60d4063351ba284fbe36be3dbdb2ac38842d6e1d315"],
+            "framePng": ["nine-state-first-attempts/1984/captures/state-0-frame.png",37503,"9139fa58cb4550cafc361f8922132b150f96d72bcd79ee8423fd17d9b0390ec2"],
+            "producerRgba": ["nine-state-first-attempts/1984/captures/state-0-producer.rgba",1228800,"84ca0214171b7d71a32ca7c07d7d34eccb3c5a1b8dc776dd339cc8b6fa9dbd0a"],
+            "portPng": ["nine-state-first-attempts/1984/captures/state-0-port.png",402,"de74f3e8ab87e3e67cdd414836f376296a0e31f512dddad2512f282577fc97b1"],
+            "contextPng": ["nine-state-first-attempts/1984/captures/state-0-context.png",267,"0d5976a17dde383f107df06869531d2f278d2b6dfdc2158ba76145402c81fa66"],
+            "facePng": ["nine-state-first-attempts/1984/captures/state-0-face.png",200,"3e699bb5016df7ce838cd572ff0f02441ff33bdba5b266aea1145b45566fba98"],
+            "statusPng": ["nine-state-first-attempts/1984/captures/state-0-status.png",28664,"85862170366e2063d7a7c4e112ff2bce4877e4afdf458564d9d4bc0ec2fec7f1"],
+            "frameReceipt": ["nine-state-first-attempts/1984/captures/state-0-frame.json",8879,"9873bcbe2304d23777f994f93edada7b0b941ac1274846af7b5f4138c50c7dd1"],
+            "crops": ["nine-state-first-attempts/1984/captures/state-0-crops.json",1037,"53473cc6444332a04f4f7090c2c503f22a17763ec677d92dcbb59fe047b52622"],
+            "observation": ["nine-state-first-attempts/1984/captures/state-0-observation.json",510,"c3422fe24093a3683b607706c11b89c3acb6f51c780b7138538856353a78db48"]
+          }
+        },
+        "pressed": {
+          "geometry": {
+            "portRect": [0,0,160,80],
+            "globalOrigin": [80,90],
+            "controlRect": [20,20,100,40],
+            "effectiveClip": [0,0,160,80],
+            "derivedFaceFrameLTRB": [100,110,180,130],
+            "derivedPortFrameLTRB": [80,90,240,170],
+            "validated": "Derived from state-log globalOrigin+controlRect/portRect; equals crops.json sourceLTRB and recrops full frame/raw producer to the retained port/face bytes."
+          },
+          "private": {
+            "stateLog": ["nine-state-first-attempts/1984/logs/state-1.raw",20440,"eac983ff37afb8b087d88ca1ab195817367f0db311e6b096c148e85f6326fbe9"],
+            "framePng": ["nine-state-first-attempts/1984/captures/state-1-frame.png",37948,"5e950fe09fafb414f84cbc8de8d5cb6d18f46798e56f95b7e9d9e7569bcdec28"],
+            "producerRgba": ["nine-state-first-attempts/1984/captures/state-1-producer.rgba",1228800,"6664f339b6d44c009be594edef7a610442ea5a0cbe69e76a8dd091a855fe1635"],
+            "portPng": ["nine-state-first-attempts/1984/captures/state-1-port.png",401,"7f2bbed73f3d8e7b8b14b3ae972bb1cd19cc383d85863648ab1b80916f52a946"],
+            "contextPng": ["nine-state-first-attempts/1984/captures/state-1-context.png",266,"67ef139196bb5beb41f317365f199b2b1a866f2ffff1112421e708f656257035"],
+            "facePng": ["nine-state-first-attempts/1984/captures/state-1-face.png",204,"2349f0214ed1d2fa4fdf1545e7d944f5cc81189ec3e30135b988f844c0428061"],
+            "statusPng": ["nine-state-first-attempts/1984/captures/state-1-status.png",29093,"01047e78c3559bdab3748c3acc629e0971e3360fe3e45e493646c64fe573d0b2"],
+            "frameReceipt": ["nine-state-first-attempts/1984/captures/state-1-frame.json",8880,"1c0625893b3d8b74b44e1b6c205d69017ce6574cf9eb88a3b530baea967d5ff5"],
+            "crops": ["nine-state-first-attempts/1984/captures/state-1-crops.json",1037,"c4dc9748af61092c5b4179722bc179ec08eb814cf66380d19b5e25fd27d16731"],
+            "observation": ["nine-state-first-attempts/1984/captures/state-1-observation.json",511,"ef554e3fc1292737455a73ddf46a09068563e27926c6b80b795cd82a126af0ea"]
+          }
+        },
+        "inactive": {
+          "geometry": {
+            "portRect": [0,0,160,80],
+            "globalOrigin": [80,90],
+            "controlRect": [20,20,100,40],
+            "effectiveClip": [0,0,160,80],
+            "derivedFaceFrameLTRB": [100,110,180,130],
+            "derivedPortFrameLTRB": [80,90,240,170],
+            "validated": "Derived from state-log globalOrigin+controlRect/portRect; equals crops.json sourceLTRB and recrops full frame/raw producer to the retained port/face bytes."
+          },
+          "private": {
+            "stateLog": ["nine-state-first-attempts/1984/logs/state-2.raw",20445,"a191690bb078236fd7d95b78fa434b1c885e7082fa4360b13d164b49915e0602"],
+            "framePng": ["nine-state-first-attempts/1984/captures/state-2-frame.png",38340,"9c6579893a133a0758383ac7619317e78bc4b85e2edff1002923b108e8e57cba"],
+            "producerRgba": ["nine-state-first-attempts/1984/captures/state-2-producer.rgba",1228800,"e7188897cad7b6f16663d97c89d80207d4bdb8fe2d0e64a5ad7fb2b5c16a44cb"],
+            "portPng": ["nine-state-first-attempts/1984/captures/state-2-port.png",361,"f448165f8a2140a5160feea5768d39fad194b3150ed9d7052079bb4c2a1eabea"],
+            "contextPng": ["nine-state-first-attempts/1984/captures/state-2-context.png",236,"b891b65758b062a0a5d1d8acc3f11de8b7f4b0f8b1e51446972e4f0a93a49dcd"],
+            "facePng": ["nine-state-first-attempts/1984/captures/state-2-face.png",176,"7fc7db7484308763f7d219f0af3878b855cae038cf0595fd2c28ace281d3261b"],
+            "statusPng": ["nine-state-first-attempts/1984/captures/state-2-status.png",29290,"435ab1dce3274f18772b3fed522198209cdd4ef71d81df53640f66cfde168d0a"],
+            "frameReceipt": ["nine-state-first-attempts/1984/captures/state-2-frame.json",8881,"8f27f6aa44ca03569b3acc00788b54c153a562ea8823ce31adeb0f93506ea9cd"],
+            "crops": ["nine-state-first-attempts/1984/captures/state-2-crops.json",1037,"37534544ffa4019f3fd33daaecab06c7e4996eb7a54f5209f7ccd3d5525f033c"],
+            "observation": ["nine-state-first-attempts/1984/captures/state-2-observation.json",512,"5756ddb6197e728c3a91c1761c4bbda3216604b7e12497b2cc5e84da23a073d8"]
+          }
+        }
+      }
+    },
+    "1990": {
+      "environment": "nine-state-first-attempts/1990",
+      "acquisitionResultSha256": "7f50dda1fb74242ab25c98a2b9690d0a9a5117bb6184afcd2eb7174505467333",
+      "closure": {
+        "status": "SHUTDOWN_REQUEST_SENT_ACCEPTANCE_UNKNOWN",
+        "observed": "Finder Special > Shut Down selected once; retained screen still Finder, no observed worker poweroff acknowledgement",
+        "nativeRetries": 0,
+        "preCaptureHistory": ["Kaleidoscope instruction window closed before scheme selection and fixture launch"]
+      },
+      "private": {
+        "calibrationLog": ["nine-state-first-attempts/1990/logs/telemetry.raw",266946,"66588bed0683a3cabf446fab8aa8cb485c3e12cbe876503bce952213a4b9fea4"],
+        "crpLog": ["nine-state-first-attempts/1990/crp/logs/telemetry.raw",244096,"7845b30ee17a35efaa57188ffee38c9c6e7795f77e14b8019ad4dd7191e38bab"],
+        "stoppedScheme": ["nine-state-first-attempts/1990/logs/stopped-1990.bin",584320,"83ab5f2874484caf36181699044523787713b7a1cc7849680d9c81a8c544e385"],
+        "stoppedKaleidoscope": ["nine-state-first-attempts/1990/logs/stopped-Kaleidoscope.bin",1005696,"0ce88e07fcd32462fcb594eabc46163aa2262d2d357fd2b0f77e7af5b4734091"],
+        "preboot": ["nine-state-first-attempts/1990/logs/preboot.json",5808,"5978c13383744c2bac2867e8e8ff74bc14883cb8d1e97688d03359040f7ad814"],
+        "crossContext": ["nine-state-first-attempts/1990/logs/cross-context-check.json",27880,"68b1acc6a5fab9d844374cfb08ec00f042a143529cfdbfb2d40564d2dffb07b5"],
+        "crpCalibrationJoins": ["nine-state-first-attempts/1990/logs/crp-calibration-joins.json",1092,"80fbecf26a61d891277dba78309d96a8b7fcf65b07f68bdc7d658403cbf54bf8"],
+        "operatorClosure": ["nine-state-first-attempts/1990/logs/operator-closure.json",605,"cacb464d3c1ff2ccf6c75ba411c4200151d5074f178d60519ff6bd1c4bbacfb6"],
+        "result": ["nine-state-first-attempts/1990/logs/result.json",1965,"7f50dda1fb74242ab25c98a2b9690d0a9a5117bb6184afcd2eb7174505467333"]
+      },
+      "states": {
+        "normal": {
+          "geometry": {
+            "portRect": [0,0,160,80],
+            "globalOrigin": [80,90],
+            "controlRect": [20,20,100,40],
+            "effectiveClip": [0,0,160,80],
+            "derivedFaceFrameLTRB": [100,110,180,130],
+            "derivedPortFrameLTRB": [80,90,240,170],
+            "validated": "Derived from state-log globalOrigin+controlRect/portRect; equals crops.json sourceLTRB and recrops full frame/raw producer to the retained port/face bytes."
+          },
+          "private": {
+            "stateLog": ["nine-state-first-attempts/1990/logs/state-0.raw",20382,"4e2b4e15c3e9559943c160a29be00b500c8c04c006cfb040dbc6a592072984b7"],
+            "framePng": ["nine-state-first-attempts/1990/captures/state-0-frame.png",47043,"f812160c4186ef370e062ce44b5677c088dcfa5b6388a55109970cc3c297ddb5"],
+            "producerRgba": ["nine-state-first-attempts/1990/captures/state-0-producer.rgba",1228800,"2b48f8042978fb52a21aa4639b6effabfee519dd31c8862c99a9b70ccde765ab"],
+            "portPng": ["nine-state-first-attempts/1990/captures/state-0-port.png",383,"bd3e089a86f597b5061a5ea6bfb5b8e8bfd23c535ce32604680e85fd3d610daf"],
+            "contextPng": ["nine-state-first-attempts/1990/captures/state-0-context.png",253,"a94525d1f28bda7d60553f153effa181eb9962140b4d883c99566bb53bf17a3c"],
+            "facePng": ["nine-state-first-attempts/1990/captures/state-0-face.png",196,"4e17049afb5d006cf63b026e13d94bfae6b2d29fa11a1626018c9d3a0d2cc8b8"],
+            "statusPng": ["nine-state-first-attempts/1990/captures/state-0-status.png",37481,"61b64ced1ecac514924fdda4ea59a52bcba18aadc3d5d0ddc5f426d42bcd8815"],
+            "frameReceipt": ["nine-state-first-attempts/1990/captures/state-0-frame.json",8878,"9f5b7a391bdaa234d16d5ed79b05ba42f792072835c8e423cb8232294021df0b"],
+            "crops": ["nine-state-first-attempts/1990/captures/state-0-crops.json",1037,"96e299c884d0ea1e7ecff55f92c3293ca69975c694484afc5c5ae49d301c862b"],
+            "observation": ["nine-state-first-attempts/1990/captures/state-0-observation.json",510,"10ce0807934ccb69eb933e623b759cfe3b14371a7d99ab670beecaf6e7546b77"]
+          }
+        },
+        "pressed": {
+          "geometry": {
+            "portRect": [0,0,160,80],
+            "globalOrigin": [80,90],
+            "controlRect": [20,20,100,40],
+            "effectiveClip": [0,0,160,80],
+            "derivedFaceFrameLTRB": [100,110,180,130],
+            "derivedPortFrameLTRB": [80,90,240,170],
+            "validated": "Derived from state-log globalOrigin+controlRect/portRect; equals crops.json sourceLTRB and recrops full frame/raw producer to the retained port/face bytes."
+          },
+          "private": {
+            "stateLog": ["nine-state-first-attempts/1990/logs/state-1.raw",20427,"675e9236f70447f46ca025bf418db8ff7d37154cfa0934adc51e1fab305ee7dc"],
+            "framePng": ["nine-state-first-attempts/1990/captures/state-1-frame.png",46991,"3a00162fc15c8b0066d08fa5f3ceefea25ac7f54f09a3641611c5295f51331d8"],
+            "producerRgba": ["nine-state-first-attempts/1990/captures/state-1-producer.rgba",1228800,"357a35966ce880060527351d4453a6cc0bc4bbd8d31a392088f31412ae338342"],
+            "portPng": ["nine-state-first-attempts/1990/captures/state-1-port.png",383,"bd3e089a86f597b5061a5ea6bfb5b8e8bfd23c535ce32604680e85fd3d610daf"],
+            "contextPng": ["nine-state-first-attempts/1990/captures/state-1-context.png",253,"a94525d1f28bda7d60553f153effa181eb9962140b4d883c99566bb53bf17a3c"],
+            "facePng": ["nine-state-first-attempts/1990/captures/state-1-face.png",196,"4e17049afb5d006cf63b026e13d94bfae6b2d29fa11a1626018c9d3a0d2cc8b8"],
+            "statusPng": ["nine-state-first-attempts/1990/captures/state-1-status.png",37503,"464d4c9025901566a9fbbf4b5fff34083bced8ce3dd4b171cda91160929cb033"],
+            "frameReceipt": ["nine-state-first-attempts/1990/captures/state-1-frame.json",8879,"425044fa1b7199656bc76450a754991c4d3d499e325258622a1d2cf349945855"],
+            "crops": ["nine-state-first-attempts/1990/captures/state-1-crops.json",1037,"9d2a05c2ba23cba401946e36d55490767acd8443f245640f8f6d15ad3116d078"],
+            "observation": ["nine-state-first-attempts/1990/captures/state-1-observation.json",511,"b21c0cec900d54fa0732a6e18f5d236150a122cb9d7b94cee06b30a7ce7bfb48"]
+          }
+        },
+        "inactive": {
+          "geometry": {
+            "portRect": [0,0,160,80],
+            "globalOrigin": [80,90],
+            "controlRect": [20,20,100,40],
+            "effectiveClip": [0,0,160,80],
+            "derivedFaceFrameLTRB": [100,110,180,130],
+            "derivedPortFrameLTRB": [80,90,240,170],
+            "validated": "Derived from state-log globalOrigin+controlRect/portRect; equals crops.json sourceLTRB and recrops full frame/raw producer to the retained port/face bytes."
+          },
+          "private": {
+            "stateLog": ["nine-state-first-attempts/1990/logs/state-2.raw",20432,"9466fa0308296140bcfc3a04743721c4055ccb32ea9b550b5008f0c221668a86"],
+            "framePng": ["nine-state-first-attempts/1990/captures/state-2-frame.png",47277,"d90c93e11ba44f718b26d4421a53ba7a88205e76cf5c827ea7bc8e6e565f758a"],
+            "producerRgba": ["nine-state-first-attempts/1990/captures/state-2-producer.rgba",1228800,"6ddca9e86db84abc05d8034f3c78a37459a371308c488840ba5a5b5f06807eda"],
+            "portPng": ["nine-state-first-attempts/1990/captures/state-2-port.png",383,"bd3e089a86f597b5061a5ea6bfb5b8e8bfd23c535ce32604680e85fd3d610daf"],
+            "contextPng": ["nine-state-first-attempts/1990/captures/state-2-context.png",253,"a94525d1f28bda7d60553f153effa181eb9962140b4d883c99566bb53bf17a3c"],
+            "facePng": ["nine-state-first-attempts/1990/captures/state-2-face.png",196,"4e17049afb5d006cf63b026e13d94bfae6b2d29fa11a1626018c9d3a0d2cc8b8"],
+            "statusPng": ["nine-state-first-attempts/1990/captures/state-2-status.png",37590,"07717356ded7875532908709aa36b7084b61b54e7b91986e3e585d2e63631c97"],
+            "frameReceipt": ["nine-state-first-attempts/1990/captures/state-2-frame.json",8880,"90c0910d2e65f0c5577c865fbba20f3771e8d6f25dcc0b27fd2981e24f9ba672"],
+            "crops": ["nine-state-first-attempts/1990/captures/state-2-crops.json",1037,"1f5b6058123171a6cd8a7cf35a581d19d1be9e0ca8232661997be854c03f193a"],
+            "observation": ["nine-state-first-attempts/1990/captures/state-2-observation.json",512,"b8196134bd80483d94457e0ff1ecae4b02a58cd709615fd58ac878e1cf7b735c"]
+          }
+        }
+      }
+    },
+    "dolphin-som": {
+      "environment": "fresh-dolphin-complete/dolphin-som",
+      "acquisitionResultSha256": "d90b9087137aa859a11fe1aaeaa1224c38b0c5179d3be837e48891a9df0df735",
+      "closure": {
+        "status": "SHUTDOWN_REQUEST_SENT_ACCEPTANCE_UNKNOWN",
+        "observed": "ordinary Finder Special > Shut Down once; UNKNOWN: Finder remained visible in retained post-request screenshot",
+        "nativeAcquisitions": "one boot; A3A C once for each of3states, ACK3, Q; CRP one C and Q; Joint1223 one C and Q",
+        "statusMirror": "Read actual post-C target-port mirror without reveal/repaint/retry"
+      },
+      "private": {
+        "calibrationLog": ["fresh-dolphin-complete/dolphin-som/logs/telemetry.raw",266946,"2d21be78871fce8572312eba2b9ab636c4e9d608403f62898e6b0abcde389ddb"],
+        "crpLog": ["fresh-dolphin-complete/dolphin-som/crp/logs/telemetry.raw",244102,"1686f866b89b64551545440b7b09d19ca65ef93b7f42f5528935fc6f8ab0a1f8"],
+        "stoppedScheme": ["fresh-dolphin-complete/dolphin-som/logs/stopped-dsom.bin",788224,"0d18903d7c71c525abaed53b0ff51202a8aba90f08e9f19172d90922587ea63b"],
+        "stoppedKaleidoscope": ["fresh-dolphin-complete/dolphin-som/logs/stopped-Kaleidoscope.bin",1005696,"0ce88e07fcd32462fcb594eabc46163aa2262d2d357fd2b0f77e7af5b4734091"],
+        "preboot": ["fresh-dolphin-complete/dolphin-som/logs/preboot.json",6167,"f5dd3f0afeb22e5f6e79b4af083cbe91b52e1c43372c99cc36294f4f508df881"],
+        "crossContext": ["fresh-dolphin-complete/dolphin-som/logs/cross-context-check.json",27889,"9088f13088e77e945f041d08f93068912181f24cbc61224e11060471c49f757b"],
+        "crpCalibrationJoins": ["fresh-dolphin-complete/dolphin-som/logs/crp-calibration-joins.json",1092,"c3af7647f76e8b8fdc4848b31e4d267257ee3dddae31814fc925f34d4ba55c01"],
+        "operatorClosure": ["fresh-dolphin-complete/dolphin-som/logs/operator-closure.json",611,"e0fbded5ed694fc63c45dd5cc4971eab51aa8ec922cf9da357b5aa886fc04e8b"],
+        "result": ["fresh-dolphin-complete/dolphin-som/logs/result.json",4976,"d90b9087137aa859a11fe1aaeaa1224c38b0c5179d3be837e48891a9df0df735"]
+      },
+      "states": {
+        "normal": {
+          "geometry": {
+            "portRect": [0,0,160,80],
+            "globalOrigin": [80,90],
+            "controlRect": [20,20,100,40],
+            "effectiveClip": [0,0,160,80],
+            "derivedFaceFrameLTRB": [100,110,180,130],
+            "derivedPortFrameLTRB": [80,90,240,170],
+            "validated": "Derived from state-log globalOrigin+controlRect/portRect; equals crops.json sourceLTRB and recrops full frame/raw producer to the retained port/face bytes."
+          },
+          "private": {
+            "stateLog": ["fresh-dolphin-complete/dolphin-som/logs/state-0.raw",20382,"c494bfbe93769720a6b600d1e125dbfba0ff74cfc2f24bdb7bede25a5950be6b"],
+            "framePng": ["fresh-dolphin-complete/dolphin-som/captures/state-0-frame.png",60362,"6fb3bb2bef406ff2b7ad38f6d24c51173afaa3bfafa9a4644b909da4faf20e97"],
+            "producerRgba": ["fresh-dolphin-complete/dolphin-som/captures/state-0-producer.rgba",1228800,"60bdce74a4d012ce41afdf9c7564b0d95cc9f0baacc6e156f8dd9bba21690555"],
+            "portPng": ["fresh-dolphin-complete/dolphin-som/captures/state-0-port.png",383,"bd3e089a86f597b5061a5ea6bfb5b8e8bfd23c535ce32604680e85fd3d610daf"],
+            "contextPng": ["fresh-dolphin-complete/dolphin-som/captures/state-0-context.png",253,"a94525d1f28bda7d60553f153effa181eb9962140b4d883c99566bb53bf17a3c"],
+            "facePng": ["fresh-dolphin-complete/dolphin-som/captures/state-0-face.png",196,"4e17049afb5d006cf63b026e13d94bfae6b2d29fa11a1626018c9d3a0d2cc8b8"],
+            "statusPng": ["fresh-dolphin-complete/dolphin-som/captures/state-0-status.png",40825,"56306fbbdf858c50c8591b02e752620b35773a656b09ea1b43c3047e6c537038"],
+            "frameReceipt": ["fresh-dolphin-complete/dolphin-som/captures/state-0-frame.json",8877,"20e19dc211c2c2b833d07061b73e9c0cc0eb567f439263af7dd278e49a03fbfe"],
+            "crops": ["fresh-dolphin-complete/dolphin-som/captures/state-0-crops.json",1037,"c309e211b75debb87382cb34d8a5d862f52e08e04a9dfa6471e16eca7ca4948f"],
+            "observation": ["fresh-dolphin-complete/dolphin-som/captures/state-0-observation.json",510,"f5afb9c11c2741761ba83750209a2600b3eddbeb72fde133290a51b2d6579db8"]
+          }
+        },
+        "pressed": {
+          "geometry": {
+            "portRect": [0,0,160,80],
+            "globalOrigin": [80,90],
+            "controlRect": [20,20,100,40],
+            "effectiveClip": [0,0,160,80],
+            "derivedFaceFrameLTRB": [100,110,180,130],
+            "derivedPortFrameLTRB": [80,90,240,170],
+            "validated": "Derived from state-log globalOrigin+controlRect/portRect; equals crops.json sourceLTRB and recrops full frame/raw producer to the retained port/face bytes."
+          },
+          "private": {
+            "stateLog": ["fresh-dolphin-complete/dolphin-som/logs/state-1.raw",20435,"88f36e82337d965cf9ad7917e1f07705314600b0b5ea2d9a8425b061428103b1"],
+            "framePng": ["fresh-dolphin-complete/dolphin-som/captures/state-1-frame.png",61097,"a755e8235a5d3da0cfca2b7af7c223040353f5a1f532891c48821492369b1cb5"],
+            "producerRgba": ["fresh-dolphin-complete/dolphin-som/captures/state-1-producer.rgba",1228800,"8ece397c457c1744de234c025a5bbce40a624b33866f63b1f0498c2403b069af"],
+            "portPng": ["fresh-dolphin-complete/dolphin-som/captures/state-1-port.png",383,"bd3e089a86f597b5061a5ea6bfb5b8e8bfd23c535ce32604680e85fd3d610daf"],
+            "contextPng": ["fresh-dolphin-complete/dolphin-som/captures/state-1-context.png",253,"a94525d1f28bda7d60553f153effa181eb9962140b4d883c99566bb53bf17a3c"],
+            "facePng": ["fresh-dolphin-complete/dolphin-som/captures/state-1-face.png",196,"4e17049afb5d006cf63b026e13d94bfae6b2d29fa11a1626018c9d3a0d2cc8b8"],
+            "statusPng": ["fresh-dolphin-complete/dolphin-som/captures/state-1-status.png",40861,"baf50f40be43a933481819ed5877bcf13f54683ceeb10149c182c02cab261f50"],
+            "frameReceipt": ["fresh-dolphin-complete/dolphin-som/captures/state-1-frame.json",8878,"c401d05211e5dc65cd5a7037dffb344486ff805dcdec312380efbc47ad4fab17"],
+            "crops": ["fresh-dolphin-complete/dolphin-som/captures/state-1-crops.json",1037,"efff7dd756e6abb929287518d971cd20015363f07d8aa37b3c0c4a4e32e479e5"],
+            "observation": ["fresh-dolphin-complete/dolphin-som/captures/state-1-observation.json",511,"93497cd09b6c97d0f4703ba77f52ff8cca49726ea00e0d2d7637a7a1664e7d4f"]
+          }
+        },
+        "inactive": {
+          "geometry": {
+            "portRect": [0,0,160,80],
+            "globalOrigin": [80,90],
+            "controlRect": [20,20,100,40],
+            "effectiveClip": [0,0,160,80],
+            "derivedFaceFrameLTRB": [100,110,180,130],
+            "derivedPortFrameLTRB": [80,90,240,170],
+            "validated": "Derived from state-log globalOrigin+controlRect/portRect; equals crops.json sourceLTRB and recrops full frame/raw producer to the retained port/face bytes."
+          },
+          "private": {
+            "stateLog": ["fresh-dolphin-complete/dolphin-som/logs/state-2.raw",20440,"0f422364ffbbe349d27cfe77d9961092b09ac12c41ae8c015e84c1e63b5652d8"],
+            "framePng": ["fresh-dolphin-complete/dolphin-som/captures/state-2-frame.png",60966,"f4121de9d01b552431fcfb5df0d0acc40f2e77b7599ef3cce4c8418e79e89439"],
+            "producerRgba": ["fresh-dolphin-complete/dolphin-som/captures/state-2-producer.rgba",1228800,"923f8e05acc60084d25dd8c15d80044761019f77f7df234bade74d2e79914642"],
+            "portPng": ["fresh-dolphin-complete/dolphin-som/captures/state-2-port.png",383,"bd3e089a86f597b5061a5ea6bfb5b8e8bfd23c535ce32604680e85fd3d610daf"],
+            "contextPng": ["fresh-dolphin-complete/dolphin-som/captures/state-2-context.png",253,"a94525d1f28bda7d60553f153effa181eb9962140b4d883c99566bb53bf17a3c"],
+            "facePng": ["fresh-dolphin-complete/dolphin-som/captures/state-2-face.png",196,"4e17049afb5d006cf63b026e13d94bfae6b2d29fa11a1626018c9d3a0d2cc8b8"],
+            "statusPng": ["fresh-dolphin-complete/dolphin-som/captures/state-2-status.png",40907,"4d4ec423f4f36a289d10dc796f429f6ea83858f66937ee3c5f75254661a3c7c0"],
+            "frameReceipt": ["fresh-dolphin-complete/dolphin-som/captures/state-2-frame.json",8879,"8ce9abbb6acb77d25b094604d2fd00c8f6f53126622eda76483c052abc98898f"],
+            "crops": ["fresh-dolphin-complete/dolphin-som/captures/state-2-crops.json",1037,"8c550a1ff9b9d5949a1f385b62c6d638028679e10c7d4e72ee86b88f9f2d58dd"],
+            "observation": ["fresh-dolphin-complete/dolphin-som/captures/state-2-observation.json",512,"2b29aea7803bf147e7d1917d93a71ab87703409d414521bb6dd58925db248eca"]
+          }
+        }
+      }
+    }
+  }
+}
