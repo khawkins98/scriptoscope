@@ -2083,7 +2083,7 @@
   "review": {
     "date": "2026-10-21",
     "reviewers": [
-      "PENDING reviewer confirmation of the final hash: proposed label from campaign-20261021 v2-lanes/L1/REVIEW.json reviewerLabelToSupply (reviewed head caf409ea), adapted to the post-fix hash e1e94403 \u2014 independent automated hash-only review of PR #379: 1.0.8 -> 1.0.9 changes only the nine kdef231-reference.md documentSha256 values (92ef6164 -> e1e94403) after the \u00a76 trap-name regeneration from Traps.h 3.0.1 and trap-name corrections outside \u00a76; no case-cited address line (0x758e, 0x76c4, 0x76d2, 0x76fe) changed; not original provider or pixel-fidelity approval. The reviewer has not yet seen e1e94403; do not merge on this label until confirmed"
+      "independent automated hash-only review of PR #379 (campaign-20261021 v2-lanes/L1/REVIEW.json round1 head caf409ea, round2 head 683b2509): 1.0.8 -> 1.0.9 changes only the nine kdef231-reference.md documentSha256 values (92ef6164 -> e1e94403) after the §6 trap-name regeneration from Traps.h 3.0.1 and trap-name corrections outside §6 (rows 0x67fc, 0x6816, 0x69b8, 0x4a64) plus the L2 handoff note; no case-cited address line (0x758e, 0x76c4, 0x76d2, 0x76fe) changed; archived 1.0.8 label restored verbatim; not original provider or pixel-fidelity approval"
     ],
     "inventoryVersion": "1.0.9",
     "inventorySha256": "14aa4189fdf3d8b1214f05c22aa46feba5e7de35aa9ad327acc2bbe2c1897583",
