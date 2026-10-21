@@ -98,11 +98,11 @@ At `0x1c7c`, 9 internal-service function pointers: `0x6688, 0x997e, 0xdd22, 0x11
 | slot | addr | role |
 |---:|---:|---|
 | 0 | `0x6688` | CDEF main (push-button family, 32 B `'Acid'` aux) |
-| 1 | `0x997e` | re-entrant CDEF entry (callback-safe, saves the kDEF globals pointer via `0x9930`) |
+| 1 | `0x997e` | scroll-bar CDEF (saves the kDEF globals pointer via `0x9930`; per-message state `0x9d84`; `docs/spec/engine/scrollbar.md`) — corrected 2026-10-21, was "re-entrant CDEF entry" |
 | 2 | `0xdd22` | GDevice-aware focus / state helper *(re-verify: rests on the former GetCTSeed trap name)* |
 | 3 | `0x118b8` | wnd# gate (document windows, id `-14336`) → slot 6 on hit; system `'WDEF'` fallback on miss |
 | 4 | `0x1525a` | wnd# gate (utility windows, id `-14304`) → slot 6 with msg-base `+1984` |
-| 5 | `0x8d36` | second CDEF main (scrollbar / slider, 68 B aux) |
+| 5 | `0x8d36` | separate CDEF, undecoded (68 B aux, hit test returns part 10, `bevp` tags; likely bevel button) — **not** the scroll bar; corrected 2026-10-21 |
 | 6 | `0x28e0` | master compositor dispatcher (msg 1000 = INIT, 1001..1009 verbs) |
 | 7 | `0x1d3e` | WDEF main (35-entry msg table at `0x1d68`, see §1) |
 | 8 | `0x17452` | wnd# gate (popup / tab, id `-12320`) → trampolines to a loaded `'WDEF', -14336` via a call through the loaded handle |
@@ -128,7 +128,7 @@ Per-resource markers in 2.3.1 kDEF 0:
 - **Window**: `wnd#`, `cinf`, `cicn`, `clut`, `actb`, `WDEF`; `pWin` is a Gestalt selector (`$A1AD` at `0x11768`), not a resource type
 - **System probes**: `ATIr` (ATI Rage check), `qd `, `sysv`, `AOCE`, `HFS `
 - **Theme creators**: `Acid` (Kaleidoscope), `Aarn`/`Aarp`/`Aaru` (Mac OS Aaron extension interop), `Copl` (Copland)
-- **Control palette markers (NEW)**: `btnp`, `dbtp`, `cbtp`, `chkp`, `radp` (button / default-button / cmd-button / checkbox / radio palettes), `sbap`, `sbae`, `sbar`, `sbax`, `sbgh`, `sbth`, `sbtp` (scrollbar parts), `bevp` (bevel)
+- **Control palette markers (NEW)**: `btnp`, `dbtp`, `cbtp`, `chkp`, `radp` (button / default-button / cmd-button / checkbox / radio palettes), `sbap`, `sbae`, `sbar`, `sbax`, `sbgh`, `sbth`, `sbtp` (scrollbar parts; answered by slot 1's message 34 at `0x9b42`), `bevp` (bevel; answered by slot 5's message 34 at `0x98ca`)
 - **Appearance/Finder**: `appr` (8 sites — Appearance Manager hooks), `apvr`, `WdrB`, `ics#`/`ics8`/`SICN`/`icm#`, `proc`
 
 The control-palette FourCCs suggest the kDEF's controls system uses **palette/tag-based resource lookup keyed by these FourCCs**, not by hardcoded cicn ids. We currently look up by raw id; the FourCC tags may provide a higher-level naming.

@@ -308,7 +308,7 @@ decoded. No image or golden is added.
 
 ### Scroll-bar source rules
 
-`range-rules.mjs` transcribes the 2.3.1 scroll-bar CDEF (`0x8d36`) selection
+`range-rules.mjs` transcribes the 2.3.1 scroll-bar CDEF (`0x997e`, service slot 1) selection
 from [range-controls.md](../../docs/spec/range-controls.md), with an address on
 every rule: the state bytes (`0x9f7a–0x9fd6`, `0xada2`), the track
 `(-8288 | -8280) + tier` with no cross-tier retry (`0xa032–0xa10e`), the
@@ -339,8 +339,28 @@ arrows swapped, and a partial R2 fix (which drops 22 rows from the list).
 
 The rows are conditional on modern policy (disabled = hilite 255, inactive =
 254, min < max, thickness 16), clear Gestalt(`Acid`) preference bytes, a
-non-empty `0xbbf4` thumb rect and an archive-only resource chain. The track
+non-empty track rect (`0xbbf4`) and thumb rect (`0xab68` length, `0xa97c` position; non-empty at length 120) and an archive-only resource chain. Arrow colour art is `ics8` only, else the 1-bit `ics#`; `ics4` is never used. The track
 ppats of apple-lisa, crayon-os, slimes, system7-nostalgia-silver and windows-95
 are fetched by the CDEF but never drawn by the runtime; their draw path is not
 decoded. Sliders and progress bars have no selection decode and are recorded
 as explicit unknowns. No image or golden is added.
+
+### Scroll-bar geometry rules
+
+`scrollbar-geometry-rules.mjs` transcribes the geometry, hit-test, slicing and
+fill rows of [engine/scrollbar.md](../../docs/spec/engine/scrollbar.md) (§4.5–§4.8,
+§5) under the declared defaults; it imports nothing from `src/`.
+`scrollbar-geometry-rules.test.mjs` pins sixteen rows (G1–G16) to the spec's own
+numbers: the 1138 worked example (boxes `[0,15)`/`[105,120)`, `T = [15,105)`,
+thumb `[52,69)`, segments `[15,53)`/`[68,105)`, halves for the track), the
+platinum-8 icon-lane boxes, the thickness-11 thumb slice on 1990, dolphin-som and
+evolution (caps of 3: `[0,3)←[0,3)`, `[3,9)←[6,12)`, `[9,11)←[14,16)`), the
+TR7 ≤ 11 quirk archives, the pressed-part arrow-box map (20/21/22/23/129), the
+part codes, the crayon-os pattern underlay with the control at (13, 5), the
+ATIr offscreen rule, draw order, the composite flag and `ics8`-only icon art.
+A mutation table names the rows each of 25 wrong readings fails; every row is
+failed by at least one. One reading (page split at the thumb edge instead of
+its centre) changes no reachable part code; that is recorded as a finding.
+Eight rows that need the runtime's future `pressedPart` option or an engine
+trace are todo tests ("awaits scrollbar driver") whose expected values are
+pinned to the model now.

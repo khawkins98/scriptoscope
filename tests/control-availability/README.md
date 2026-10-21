@@ -153,3 +153,11 @@ ring state bytes instead of register operands; addresses, ids and outcomes, all 
 case inputs, payload pins and detailed source evidence are unchanged. The 1.0.10
 review is archived verbatim; the 1.0.11 label is PENDING an independent hash-only
 review.
+
+Inventory 1.0.12 (v2 scroll-bar citation correction) refreshes only the full
+`kdef231-reference.md` document hash (`8b289cf8` -> `90efe521`) after §1.1, §1.3
+and §2.4 were corrected: `0x997e` (slot 1) is the scroll-bar CDEF, `0x8d36`
+(slot 5) a separate undecoded CDEF, and the scroll arrows are `ics#`/`ics8`,
+never `ics4` or `cicn`. No case-cited address line changed; all 27 case inputs,
+outcomes, payload pins and ring dispatch claims are unchanged. The 1.0.11 review
+is archived verbatim; the 1.0.12 label is PENDING an independent hash-only review.
