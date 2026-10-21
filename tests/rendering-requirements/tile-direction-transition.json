@@ -1,0 +1,225 @@
+{
+  "inventoryVersion": "1.20.0",
+  "inventorySha256": "44e36d16d02deecaa7d9f8841d114a4f1cc6dc9a099a281a6b8195f9078812ef",
+  "scope": {
+    "description": "144 exact direct composition cases: the prior 126 plus eighteen checkable source-rule cases (public checkbox/radio rows of every archive; 13 CICN-lane, 5 icon-only). All closures OPEN; not a whole-control or whole-window denominator.",
+    "dimensions": [
+      "resourceSelection",
+      "geometry",
+      "fillMask",
+      "typography",
+      "state",
+      "placement",
+      "interaction"
+    ],
+    "review": "Original eight cases and 51 assessments retained unchanged. Independent automated root/Astra review approved eight additional finite cases and 83 obligations at draft scope digest 659a655e87bbb0642aa200cf108671ec93d9e2cd00f48577bfb97cd4df1b30e3 on 2026-10-18; final digest reflects only replacement of pending review labels. All closures remain OPEN; not human capture attestation. The #289 extension preserves those sixteen cases and 134 assessments. Independent automated root/Astra review approved this exact finite #289 case/status extension on 2026-10-18 at draft scope digest 16a76c6c2c2343d378d626ffc8bf954b11a32cb5a2015718cb2ce7dd917893a0; narrow source/sample claim only, not human original-capture attestation. The #301 extension preserves all eighteen cases and150 assessments, adding four exact synthetic cases and45 obligations. Independent automated root/Astra review approved the exact applied four-case, 45-obligation extension and verifiers at commit d02935846fa816411259524b15e9934cd316becb, scope digest 4e563d0e824e9d809f22a14a735d6f64dca501bb1519ba58fc42ab3390c1e066. Final digest reflects only replacement of these review labels. Synthetic source/literal claims only; no original capture attestation."
+  },
+  "priorFileSha256": "e0ff094f183a3906693bb3b2c84baee64accdbd4dd10d5daa5f85d231ac90970",
+  "priorObjectSha256": "fe60d51b931391b4dcdb6dbf505215db342f29d5b60cb923b2f0856bc590be79",
+  "description": "In-place 1.20.0 -> 1.21.0 change: kdef.tile-blit evidence locator/claim/limits and the 13 wnd# window.tile-blit rationales. Statuses, cases and requirements unchanged.",
+  "priorEvidence": [
+    {
+      "id": "kdef.tile-blit",
+      "kind": "primary-decode",
+      "inputs": [
+        "engine.kaleidoscope-2.3.1-kdef0"
+      ],
+      "document": "docs/spec/kdef231-reference.md",
+      "locator": "| TILE | `0x0feae` | `feae(dirByte, srcRect*, dstRect*)` (`fp@8/12/16`) | step dst by src cell size, CopyBits/CopyMask one tile, clamp last partial. `dir` = horizontal vs vertical run (`(pc==11\\|\\|pc==14)?0:1`). 1px-tall and 1px-wide fast paths. **Always tiles; never scales.** |",
+      "excerptSha256": "3a8487abfb880b67f8d792665ea1c9edb9bb10616766025c10c88af638854fcd",
+      "addresses": [
+        "0x0feae",
+        "0x59e8"
+      ],
+      "claim": "Non-18 cells tile the source cell across the destination, clipping the final tile.",
+      "limits": "The direction byte (pc==11||pc==14)?0:1 is recorded but its absolute/side-relative meaning and 1-D vs 2-D stepping are not decoded. CopyMask interaction with earlier sides, device colour and code-18 scaling are not established.",
+      "requirementIds": [
+        "window.tile-blit"
+      ]
+    }
+  ],
+  "priorAssessments": [
+    {
+      "caseId": "1138.window.sliced-recipes.sampled",
+      "requirementId": "window.tile-blit",
+      "status": "unknown",
+      "evidence": [
+        "kdef.tile-blit"
+      ],
+      "assertions": [
+        "window.recipe-rules"
+      ],
+      "issues": [],
+      "rationale": "Rejected at review: the 0xfeae direction byte is not decoded. Assertion is narrowed to 1px source runs (direction-independent) with runtime cross-axis placement; still not sufficient for the full claim.",
+      "review": "Independent automated review (campaign-20261021 lanes/D/REVIEW.json, reviewed head 4ccd2f57370edb1a2b8ee2fe6517e6d8b1b5a5bc): only window.wnd-ladder approved for the 13 wnd# cases; all other new obligations unknown; closures OPEN."
+    },
+    {
+      "caseId": "1984.window.sliced-recipes.sampled",
+      "requirementId": "window.tile-blit",
+      "status": "unknown",
+      "evidence": [
+        "kdef.tile-blit"
+      ],
+      "assertions": [
+        "window.recipe-rules"
+      ],
+      "issues": [],
+      "rationale": "Rejected at review: the 0xfeae direction byte is not decoded. Assertion is narrowed to 1px source runs (direction-independent) with runtime cross-axis placement; still not sufficient for the full claim.",
+      "review": "Independent automated review (campaign-20261021 lanes/D/REVIEW.json, reviewed head 4ccd2f57370edb1a2b8ee2fe6517e6d8b1b5a5bc): only window.wnd-ladder approved for the 13 wnd# cases; all other new obligations unknown; closures OPEN."
+    },
+    {
+      "caseId": "1990.window.sliced-recipes.sampled",
+      "requirementId": "window.tile-blit",
+      "status": "unknown",
+      "evidence": [
+        "kdef.tile-blit"
+      ],
+      "assertions": [
+        "window.recipe-rules"
+      ],
+      "issues": [],
+      "rationale": "Rejected at review: the 0xfeae direction byte is not decoded. Assertion is narrowed to 1px source runs (direction-independent) with runtime cross-axis placement; still not sufficient for the full claim.",
+      "review": "Independent automated review (campaign-20261021 lanes/D/REVIEW.json, reviewed head 4ccd2f57370edb1a2b8ee2fe6517e6d8b1b5a5bc): only window.wnd-ladder approved for the 13 wnd# cases; all other new obligations unknown; closures OPEN."
+    },
+    {
+      "caseId": "animals.window.sliced-recipes.sampled",
+      "requirementId": "window.tile-blit",
+      "status": "unknown",
+      "evidence": [
+        "kdef.tile-blit"
+      ],
+      "assertions": [
+        "window.recipe-rules"
+      ],
+      "issues": [],
+      "rationale": "Rejected at review: the 0xfeae direction byte is not decoded. Assertion is narrowed to 1px source runs (direction-independent) with runtime cross-axis placement; still not sufficient for the full claim.",
+      "review": "Independent automated review (campaign-20261021 lanes/D/REVIEW.json, reviewed head 4ccd2f57370edb1a2b8ee2fe6517e6d8b1b5a5bc): only window.wnd-ladder approved for the 13 wnd# cases; all other new obligations unknown; closures OPEN."
+    },
+    {
+      "caseId": "apple-lisa.window.sliced-recipes.sampled",
+      "requirementId": "window.tile-blit",
+      "status": "unknown",
+      "evidence": [
+        "kdef.tile-blit"
+      ],
+      "assertions": [
+        "window.recipe-rules"
+      ],
+      "issues": [],
+      "rationale": "Rejected at review: the 0xfeae direction byte is not decoded. Assertion is narrowed to 1px source runs (direction-independent) with runtime cross-axis placement; still not sufficient for the full claim.",
+      "review": "Independent automated review (campaign-20261021 lanes/D/REVIEW.json, reviewed head 4ccd2f57370edb1a2b8ee2fe6517e6d8b1b5a5bc): only window.wnd-ladder approved for the 13 wnd# cases; all other new obligations unknown; closures OPEN."
+    },
+    {
+      "caseId": "beos-r503.window.sliced-recipes.sampled",
+      "requirementId": "window.tile-blit",
+      "status": "unknown",
+      "evidence": [
+        "kdef.tile-blit"
+      ],
+      "assertions": [
+        "window.recipe-rules"
+      ],
+      "issues": [],
+      "rationale": "Rejected at review: the 0xfeae direction byte is not decoded. Assertion is narrowed to 1px source runs (direction-independent) with runtime cross-axis placement; still not sufficient for the full claim.",
+      "review": "Independent automated review (campaign-20261021 lanes/D/REVIEW.json, reviewed head 4ccd2f57370edb1a2b8ee2fe6517e6d8b1b5a5bc): only window.wnd-ladder approved for the 13 wnd# cases; all other new obligations unknown; closures OPEN."
+    },
+    {
+      "caseId": "crayon-os.window.sliced-recipes.sampled",
+      "requirementId": "window.tile-blit",
+      "status": "unknown",
+      "evidence": [
+        "kdef.tile-blit"
+      ],
+      "assertions": [
+        "window.recipe-rules"
+      ],
+      "issues": [],
+      "rationale": "Rejected at review: the 0xfeae direction byte is not decoded. Assertion is narrowed to 1px source runs (direction-independent) with runtime cross-axis placement; still not sufficient for the full claim.",
+      "review": "Independent automated review (campaign-20261021 lanes/D/REVIEW.json, reviewed head 4ccd2f57370edb1a2b8ee2fe6517e6d8b1b5a5bc): only window.wnd-ladder approved for the 13 wnd# cases; all other new obligations unknown; closures OPEN."
+    },
+    {
+      "caseId": "dolphin-som.window.sliced-recipes.sampled",
+      "requirementId": "window.tile-blit",
+      "status": "unknown",
+      "evidence": [
+        "kdef.tile-blit"
+      ],
+      "assertions": [
+        "window.recipe-rules"
+      ],
+      "issues": [],
+      "rationale": "Rejected at review: the 0xfeae direction byte is not decoded. Assertion is narrowed to 1px source runs (direction-independent) with runtime cross-axis placement; still not sufficient for the full claim.",
+      "review": "Independent automated review (campaign-20261021 lanes/D/REVIEW.json, reviewed head 4ccd2f57370edb1a2b8ee2fe6517e6d8b1b5a5bc): only window.wnd-ladder approved for the 13 wnd# cases; all other new obligations unknown; closures OPEN."
+    },
+    {
+      "caseId": "evolution.window.sliced-recipes.sampled",
+      "requirementId": "window.tile-blit",
+      "status": "unknown",
+      "evidence": [
+        "kdef.tile-blit"
+      ],
+      "assertions": [
+        "window.recipe-rules"
+      ],
+      "issues": [],
+      "rationale": "Rejected at review: the 0xfeae direction byte is not decoded. Assertion is narrowed to 1px source runs (direction-independent) with runtime cross-axis placement; still not sufficient for the full claim.",
+      "review": "Independent automated review (campaign-20261021 lanes/D/REVIEW.json, reviewed head 4ccd2f57370edb1a2b8ee2fe6517e6d8b1b5a5bc): only window.wnd-ladder approved for the 13 wnd# cases; all other new obligations unknown; closures OPEN."
+    },
+    {
+      "caseId": "floppies.window.sliced-recipes.sampled",
+      "requirementId": "window.tile-blit",
+      "status": "unknown",
+      "evidence": [
+        "kdef.tile-blit"
+      ],
+      "assertions": [
+        "window.recipe-rules"
+      ],
+      "issues": [],
+      "rationale": "Rejected at review: the 0xfeae direction byte is not decoded. Assertion is narrowed to 1px source runs (direction-independent) with runtime cross-axis placement; still not sufficient for the full claim.",
+      "review": "Independent automated review (campaign-20261021 lanes/D/REVIEW.json, reviewed head 4ccd2f57370edb1a2b8ee2fe6517e6d8b1b5a5bc): only window.wnd-ladder approved for the 13 wnd# cases; all other new obligations unknown; closures OPEN."
+    },
+    {
+      "caseId": "monkey-paradise.window.sliced-recipes.sampled",
+      "requirementId": "window.tile-blit",
+      "status": "unknown",
+      "evidence": [
+        "kdef.tile-blit"
+      ],
+      "assertions": [
+        "window.recipe-rules"
+      ],
+      "issues": [],
+      "rationale": "Rejected at review: the 0xfeae direction byte is not decoded. Assertion is narrowed to 1px source runs (direction-independent) with runtime cross-axis placement; still not sufficient for the full claim.",
+      "review": "Independent automated review (campaign-20261021 lanes/D/REVIEW.json, reviewed head 4ccd2f57370edb1a2b8ee2fe6517e6d8b1b5a5bc): only window.wnd-ladder approved for the 13 wnd# cases; all other new obligations unknown; closures OPEN."
+    },
+    {
+      "caseId": "windows-31.window.sliced-recipes.sampled",
+      "requirementId": "window.tile-blit",
+      "status": "unknown",
+      "evidence": [
+        "kdef.tile-blit"
+      ],
+      "assertions": [
+        "window.recipe-rules"
+      ],
+      "issues": [],
+      "rationale": "Rejected at review: the 0xfeae direction byte is not decoded. Assertion is narrowed to 1px source runs (direction-independent) with runtime cross-axis placement; still not sufficient for the full claim.",
+      "review": "Independent automated review (campaign-20261021 lanes/D/REVIEW.json, reviewed head 4ccd2f57370edb1a2b8ee2fe6517e6d8b1b5a5bc): only window.wnd-ladder approved for the 13 wnd# cases; all other new obligations unknown; closures OPEN."
+    },
+    {
+      "caseId": "windows-95.window.sliced-recipes.sampled",
+      "requirementId": "window.tile-blit",
+      "status": "unknown",
+      "evidence": [
+        "kdef.tile-blit"
+      ],
+      "assertions": [
+        "window.recipe-rules"
+      ],
+      "issues": [],
+      "rationale": "Rejected at review: the 0xfeae direction byte is not decoded. Assertion is narrowed to 1px source runs (direction-independent) with runtime cross-axis placement; still not sufficient for the full claim.",
+      "review": "Independent automated review (campaign-20261021 lanes/D/REVIEW.json, reviewed head 4ccd2f57370edb1a2b8ee2fe6517e6d8b1b5a5bc): only window.wnd-ladder approved for the 13 wnd# cases; all other new obligations unknown; closures OPEN."
+    }
+  ]
+}

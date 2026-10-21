@@ -59,13 +59,20 @@ stretch verdict means width 0, and non-title sides pass flag `#1`
 untitled sides, and on titled sides whenever the title fits. The earlier "fixed
 ≡ stretch" argument predates that correction. The runtime keeps code 10 FIXED
 because its band carries BAKED close/zoom art that only the unimplemented
-rect-list widget pass (`0x5ffc`/`0x5ddc`) would redraw. This is a divergence
+rect-list widget pass (`0x632e` → `0x6062`) would redraw. That pass places
+widgets through `0x5cb6`, which remaps their rects by the placed side-list
+widths. What a collapse does to widget placement is not established
+([reference §5.1](kdef231-reference.md)). This is a divergence
 (see the faithfulness-ledger `0x4a0c` row) with a failing `todo` in
 `tests/rendering-options/window-chrome-rules.test.mjs`.
 
 **Widget draw:** the kDEF draws the named widgets in a SEPARATE pass over the
-rect-list (`0x5ffc` → `0x5ddc`, called from the draw dispatch), NOT in the recipe
-walk (`0x572e` never touches the rect-list `a4@1938`). We don't replicate that
+rect-list (`0x632e` → `0x6062`), NOT in the recipe walk. `0x572e`'s side loop
+never touches the rect-list `a4@1938`; after it, `0x5a3c` calls `0x632e` for the
+zoom part only. `0x5ffc` → `0x5ddc` is the hit-test, not a draw pass
+(corrected 2026-10-21). `0x6062`'s dst rect is the template-coordinate entry
+rect remapped by `0x5cb6` through the placed cells. In state 0 it blits the
+chrome template itself, not a widget cicn. We don't replicate that
 pass; instead the widgets ride the FIXED recipe cells they sit in (empirically
 all corpus widgets land in code 1/2/3/4 fixed/gap cells or the fixed leading
 corner), drawn 1:1 by the edge walk. This is why the carving/stamp pass could be
@@ -109,6 +116,10 @@ retired — it holds as long as no widget lands in a growing cell.
   cell across the dst (`kdef231-recipe-walk.md` Q5) — there is no scaled CopyBits
   for ordinary fills, and `cinf.tileSides` does NOT gate it. Only code 18
   (`0x10320`) is a single scaled blit. A 1px src band ⇒ a uniform fill.
+  Tiling runs along the side. The caller's direction byte
+  `(pc==11||pc==14)?0:1` sets the anchor: codes 11/14 tile from the far end
+  (right/bottom), so their partial tile sits at the near end. Every other code
+  tiles from the start ([reference §5.1](kdef231-reference.md)).
   (Correction: an earlier draft of this spec said tileSides selects tile-vs-
   stretch; the 2.3.1 decode shows the blit is unconditional tiling.)
 - **Widgets ride the FIXED cells (no carving):** the close/zoom/shade widgets are

@@ -542,18 +542,30 @@ function composeEdge(
     }
   };
   // tile: step the dst by the src cell size, copying one src-sized tile at a
-  // time, clamping the final partial tile (kDEF 0xfeae).
-  const drawTile = (sx0: number, sLen: number, dPos: number, dLen: number): void => {
+  // time, clamping the final partial tile (kDEF 0xfeae). The caller's
+  // direction byte `(pc==11||pc==14)?0:1` (0x59c8) picks the anchor, not the
+  // axis (kdef231-reference.md §5.1). Forward tiling starts at the dst start
+  // and clips the far end, keeping the leading src pixels. Reverse tiling
+  // (codes 11/14) starts flush at the dst end and clips the near end, keeping
+  // the trailing src pixels.
+  const drawTile = (sx0: number, sLen: number, dPos: number, dLen: number, reverse: boolean): void => {
     if (sLen <= 0 || dLen <= 0) return;
-    for (let off = 0; off < dLen; off += sLen) {
-      const seg = Math.min(sLen, dLen - off);
+    const blit = (srcOff: number, dOff: number, seg: number): void => {
       if (geo.horizontal) {
-        out.copyBits(cicn, { x: sx0, y: geo.crossSrc, w: seg, h: geo.crossLen },
-          { x: dPos + off, y: geo.crossDst, w: seg, h: geo.crossLen });
+        out.copyBits(cicn, { x: sx0 + srcOff, y: geo.crossSrc, w: seg, h: geo.crossLen },
+          { x: dPos + dOff, y: geo.crossDst, w: seg, h: geo.crossLen });
       } else {
-        out.copyBits(cicn, { x: geo.crossSrc, y: sx0, w: geo.crossLen, h: seg },
-          { x: geo.crossDst, y: dPos + off, w: geo.crossLen, h: seg });
+        out.copyBits(cicn, { x: geo.crossSrc, y: sx0 + srcOff, w: geo.crossLen, h: seg },
+          { x: geo.crossDst, y: dPos + dOff, w: geo.crossLen, h: seg });
       }
+    };
+    if (reverse) {
+      for (let end = dLen; end > 0; end -= sLen) {
+        const seg = Math.min(sLen, end);
+        blit(sLen - seg, end - seg, seg);
+      }
+    } else {
+      for (let off = 0; off < dLen; off += sLen) blit(0, off, Math.min(sLen, dLen - off));
     }
   };
   // Fill a dst band from a src band. The 2.3.1 kDEF default blit (`0xfeae`,
@@ -562,10 +574,10 @@ function composeEdge(
   // ordinary fills (only part code 18 / `0x10320` scales, handled separately).
   // A 1px src band ⇒ a uniform fill; structured fills (camo / pipes) keep their
   // texture. cinf.tileSides does NOT gate this — `0xfeae` tiles regardless.
-  const drawFill = (s0: number, s1: number, dPos: number, dLen: number): void => {
+  const drawFill = (s0: number, s1: number, dPos: number, dLen: number, code: number): void => {
     const sLen = s1 - s0;
     if (sLen <= 0 || dLen <= 0) return;
-    drawTile(s0, sLen, dPos, dLen);
+    drawTile(s0, sLen, dPos, dLen, code === 11 || code === 14);
   };
 
   // ── walk the cells ────────────────────────────────────────────────────────
@@ -593,7 +605,7 @@ function composeEdge(
       // growing fill cell (8/11/12/13/14) AND the title plate (collapse code 5,
       // grown to the measured title width): tile the src band across the dst.
       // For an unexpanded collapse cell dstLen == srcLen, so this is a 1:1 copy.
-      drawFill(c.x0, c.x1, outPos, dstLen);
+      drawFill(c.x0, c.x1, outPos, dstLen, c.code);
     }
 
     placed.push({ x0: c.x0, x1: c.x1, out0: outPos, out1: outPos + dstLen, code: c.code, cls: c.cls });
