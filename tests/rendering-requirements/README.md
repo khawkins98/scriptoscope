@@ -501,10 +501,20 @@ its own 1,223-key profile and finite transfer DATA (1984 −10139 slider tick;
 The 1990 and Dolphin state cicns are byte-identical across both schemes and
 differ only in the centre title-colour pixel, which an empty label never uses.
 Their six rows are marked state-non-discriminating: they verify one shared face
-art under two separately measured environments, not hilite→cicn selection. Only
-the three 1984 faces discriminate state selection. Title colour is untested in
-all nine. The caller-declared `RECORDED_FIXTURE_PORT_CONTEXT` (formerly named
+art under two separately measured environments, not hilite→cicn selection. The
+three 1984 face comparisons are state-discriminating (a wrong state face would
+fail); the original selection remains unknown for all nine. Title colour is
+untested in all nine. The caller-declared `RECORDED_FIXTURE_PORT_CONTEXT` (formerly named
 after Crayon) is the native fixtures' logged geometry: 160×80 port, local origin
 0, control (20,20,100,40), full-port clip, unknown pattern phase. Shutdown
 acknowledgement, provider/cache/patch order, mask/phase/font, whole-port
 equivalence, consumer port table/widMax and cold-cache independence stay unknown.
+
+A follow-up wording pass changed only unhashed ledger prose. It updated the
+assertion claim, the 1990/Dolphin evidence limits and geometry/fill/placement
+rationales (which now carry the `State-non-discriminating` marker), and the three
+1984 evidence locators, with their `EVIDENCE.md` excerpts and `excerptSha256`.
+`inventorySha256` covers scope, requirements and cases, and none of those changed,
+so the version stays 1.19.0 and every status is the same. The ledger test requires
+the marker on every 1990/Dolphin row, case substitution list and evidence
+locator/limit, and forbids it on the 1984 rows.

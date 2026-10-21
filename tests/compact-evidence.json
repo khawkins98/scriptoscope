@@ -397,6 +397,42 @@
       "target": "tests/decoder-fixtures/measured-display-profile-dolphin-som.json",
       "sha256": "5ebbafdb48ac4294f5c53460c3293784c90d0ecb16f0ea2a26c356981ded70e2",
       "bytes": 259297
+    },
+    {
+      "path": "tests/reference-captures/1984-calibration/indexed-palette.bin",
+      "target": "tests/reference-captures/1138-calibration/indexed-palette.bin",
+      "sha256": "6987f8e5bc61a7da95ed03f229cc3ecbee463bb6245965fdc2eddbd86a31ef9b",
+      "bytes": 2056
+    },
+    {
+      "path": "tests/reference-captures/1984-calibration/producer-table.bin",
+      "target": "tests/reference-captures/1138-calibration/producer-table.bin",
+      "sha256": "c2eeb81da5ffc2bd502834d80d850f6f085813ab1cec8d9fb89ca36c2474125b",
+      "bytes": 268
+    },
+    {
+      "path": "tests/reference-captures/1990-calibration/indexed-palette.bin",
+      "target": "tests/reference-captures/1138-calibration/indexed-palette.bin",
+      "sha256": "6987f8e5bc61a7da95ed03f229cc3ecbee463bb6245965fdc2eddbd86a31ef9b",
+      "bytes": 2056
+    },
+    {
+      "path": "tests/reference-captures/1990-calibration/producer-table.bin",
+      "target": "tests/reference-captures/1138-calibration/producer-table.bin",
+      "sha256": "c2eeb81da5ffc2bd502834d80d850f6f085813ab1cec8d9fb89ca36c2474125b",
+      "bytes": 268
+    },
+    {
+      "path": "tests/reference-captures/dolphin-som-calibration/indexed-palette.bin",
+      "target": "tests/reference-captures/1138-calibration/indexed-palette.bin",
+      "sha256": "6987f8e5bc61a7da95ed03f229cc3ecbee463bb6245965fdc2eddbd86a31ef9b",
+      "bytes": 2056
+    },
+    {
+      "path": "tests/reference-captures/dolphin-som-calibration/producer-table.bin",
+      "target": "tests/reference-captures/1138-calibration/producer-table.bin",
+      "sha256": "c2eeb81da5ffc2bd502834d80d850f6f085813ab1cec8d9fb89ca36c2474125b",
+      "bytes": 268
     }
   ],
   "external": [

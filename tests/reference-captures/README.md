@@ -480,8 +480,11 @@ environments, each running the A3A consumer (fresh controls, HiliteControl
 0/10/255), CIcon Rank Probe and Joint1223 calibration once. They are the first
 batch stored in the compact format: committed per record are only the request
 port image, full frame, sanitized capture log and the small JSON manifests the
-validator binds; palette and producer table are one copy per environment, and
-the profile artifact is an alias of the single `tests/decoder-fixtures` copy.
+validator binds. Each environment's palette and producer table are byte-identical
+to the earlier calibration copies, so their per-slug paths are aliases of the
+`1138-calibration` files (same bytes and sha256; the record bindings are
+unchanged). The profile artifact is an alias of the single `tests/decoder-fixtures`
+copy.
 Crops, status screenshots, raw logs and calibration rows stay private, listed by
 sha256 in [`nine-state-evidence.json`](./nine-state-evidence.json). Face crops
 derive from the logged global origin and control rect, not a literal.
@@ -492,3 +495,20 @@ selection and count as one face art under two environments. The finite transfer
 data bound to each load concerns a slider tick or checkbox, not the face. Native
 shutdown acknowledgement, provider/cache/patch order, mask/phase/font, whole-port
 equivalence, consumer port table/widMax and cold-cache independence stay unknown.
+
+The 1984 face comparisons are state-discriminating: a wrong state face would fail.
+Original hilite→cicn selection remains unknown for all nine. The sealed
+`nine-state-evidence.json` limit still reads "Only 1984 demonstrates hilite->cicn
+selection". It is left unchanged because its sha256 is bound in the nine reviewed
+capture records; this paragraph and the ledger give the narrower reading.
+
+The records' `captureMethod` says "No modal/retry". It means zero *native* retries
+and no modal dialog. Two disclosed details fall outside that wording. In 1984,
+initial fast clicks opened no menu and paced mouse input was used before capture,
+and a non-modal Kaleidoscope instruction window is visible in the consumer frames,
+outside the port (visRgn stays rectangular and the target is `FrontWindow()`). For Dolphin, the field also
+omits the post-measurement CRP status mirror inside the port. Both are recorded in
+`nine-state-evidence.json` (`schemes.1984.closure.preCaptureHistory`,
+`schemes.dolphin-som.closure.statusMirror` and `limits`). The digested
+records are not rewritten; changing the field would alter each captureDigest and
+need a new review.

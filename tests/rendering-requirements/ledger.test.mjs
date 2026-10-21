@@ -345,7 +345,7 @@ test('Floppies/Evolution extension preserves all prior95 cases and647 assessment
  assert(original.cases.slice(95).every(c=>c.inventoryClosure.status==='open'));
 });
 
-test('nine-state extension preserves the prior inventory and marks 1990/Dolphin state rows non-discriminating',()=>{
+test('nine-state extension preserves the prior inventory and marks every 1990/Dolphin row non-discriminating',()=>{
  const transition=JSON.parse(readFileSync(new URL('./nine-state-recorded-transition.json',import.meta.url))),prior=structuredClone(original);
  for(const[key,count]of Object.entries(transition.counts)){prior[key]=prior[key].slice(0,count);assert.equal(digest(JSON.stringify(prior[key])),transition.prefixSha256[key],key+' prefix');}
  Object.assign(prior,{inventoryVersion:transition.inventoryVersion,inventorySha256:transition.inventorySha256,scope:transition.scope});
@@ -355,9 +355,16 @@ test('nine-state extension preserves the prior inventory and marks 1990/Dolphin 
  assert(added.every(a=>a.status===(a.requirementId==='output.recorded-composited-face'?'verified':'unknown')));
  const before=makeReport(prior).requirementStatus.counts,after=makeReport(original).requirementStatus.counts;
  assert.deepEqual({verified:after.verified-before.verified,unknown:after.unknown-before.unknown},{verified:9,unknown:45});
- for(const a of added.filter(a=>/^recorded\.(1990|dolphin-som)\./.test(a.caseId)&&['output.recorded-composited-face','selection.original','state.original'].includes(a.requirementId)))
-  assert.match(a.rationale,/State-non-discriminating/,a.caseId+'/'+a.requirementId);
- assert(!added.some(a=>a.caseId.startsWith('recorded.1984.')&&/State-non-discriminating/.test(a.rationale)));
+ // Every 1990/Dolphin row, case substitution list and evidence locator/limit carries the literal marker; no 1984 one does.
+ const marker=/State-non-discriminating/,shared=id=>/^recorded\.(1990|dolphin-som)\./.test(id);
+ for(const a of added)assert.equal(marker.test(a.rationale),shared(a.caseId),a.caseId+'/'+a.requirementId);
+ for(const c of cases)assert.equal(c.substitutions.some(s=>marker.test(s)),shared(c.id),c.id+' substitutions');
+ const evidence=original.evidence.filter(e=>e.reference?.captureId?.endsWith('.j1223'));assert.equal(evidence.length,9);
+ for(const e of evidence)for(const field of ['locator','limits'])assert.equal(marker.test(e[field]),shared(e.id),e.id+'.'+field);
+ // 1984 comparisons are state-discriminating, but no row claims the original selection.
+ const claim=original.assertions.find(a=>a.id==='recorded.nine-state-j1223').claim;
+ assert.match(claim,/original hilite->cicn selection remains unknown for all nine/);assert.doesNotMatch(claim,/Only 1984/);
+ assert(!evidence.some(e=>/discriminates? hilite->cicn selection for/.test(e.locator)));
 });
 
 test('window-chrome extension preserves all prior99 cases and671 assessments and promotes only wnd-ladder',()=>{

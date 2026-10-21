@@ -23,7 +23,9 @@ const inside = (root, path) => {
   check(text(path) && !isAbsolute(path), 'file path must be relative to intake directory');
   const lexical = resolve(root, path);
   if (!existsSync(lexical) && existsSync(root) && realpathSync(root) === realpathSync(corpusRoot)) {
-    const alias = aliasFor(relative(repositoryRoot, lexical));
+    // Key the alias on real paths: the corpus may be reached through a symlinked path
+    // (e.g. macOS /tmp -> /private/tmp) while the module URL is already a realpath.
+    const alias = aliasFor(relative(realpathSync(repositoryRoot), resolve(realpathSync(root), path)));
     if (alias) return readOriginal(alias.path);
   }
   const file = realpathSync(lexical), rel = relative(realpathSync(root), file);

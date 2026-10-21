@@ -7,6 +7,7 @@ import { deflateSync } from 'node:zlib';
 import { readContract, knownImages, captureTemplate, reviewTemplate, assessCapture, assessCorpus, sha256, digest, reviewDigest, repositoryRoot, publicFaceScope } from './contract.mjs';
 
 import { inspectPNG } from './png.mjs';
+import { compactStore, readOriginal } from '../helpers/compact-json.mjs';
 
 const contract = readContract();
 const request = contract.requests.find(r => r.id === 'windows-95.normal');
@@ -752,6 +753,22 @@ test('an external intake directory cannot resolve a repository duplicate alias',
   const { rejected } = assessCapture(capture, req, [], { intakeRoot: root });
   assert.equal(rejected.length, 1);
   assert.match(rejected[0], /^artifact prepared-private-display-profile: .*ENOENT/);
+});
+
+test('the corpus resolves its duplicate aliases when the repository is reached through a symlinked path', t => {
+  const link = join(mkdtempSync(join(tmpdir(), 'reference-symlink-root-test-')), 'repo');
+  t.after(() => rmSync(dirname(link), { recursive: true, force: true }));
+  symlinkSync(repositoryRoot, link, 'dir');
+  const captures = JSON.parse(readFileSync(new URL('./captures.json', import.meta.url))).captures;
+  const aliasPaths = new Set(compactStore().aliases.map(a => a.path));
+  const aliased = captures.filter(c => c.provenance.artifacts.some(a => aliasPaths.has('tests/reference-captures/' + a.path)));
+  assert.ok(aliased.length >= 9, 'fixture captures bind aliased duplicates');
+  for (const capture of aliased) {
+    const req = contract.requests.find(r => r.id === capture.requestId);
+    assert.deepEqual(assessCapture(capture, req, [], { intakeRoot: join(link, 'tests/reference-captures') }).rejected, [], capture.id);
+  }
+  const alias = compactStore().aliases[0];
+  assert.equal(sha256(readOriginal(join(link, alias.path))), alias.sha256);
 });
 
 // Aggregate identities of the 45 prior captures/reviews and 59 requests (no retained copy file).
