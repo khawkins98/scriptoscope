@@ -104,7 +104,7 @@ The corpus (18 bundles): `1138`, `1984`, `1990`, `animals`, `apple-lisa`, `apple
 ## Working norms (project-specific — these override common reflexes)
 
 - **Faithful to the decode, never hack the compositor.** When a render is wrong, fix the kDEF interpretation against the 2.3.1 decompile — don't add a per-theme branch. If the model needs per-theme special cases, it has the model wrong.
-- **Clean-room only.** Never re-ship or execute the original 68k code. The compositor mimics the binary's behaviour; it does not contain it.
+- **Clean-room only.** Never ship the original 68k code, and never run it as Scriptoscope's runtime. Running it inside the private reference emulator for research and native captures is allowed (see `docs/maintainer-reference-environment.md`). The compositor mimics the binary's behaviour; it does not contain it.
 - **Detect divergence statically, not by eyeballing.** `npm run lint:themes` + the `kdef-faithfulness-ledger` are the proactive nets. Reach for `diag:render` to confirm a hypothesis, not as the first move.
 - **Reference image first.** When the user surfaces a "glitchy" render, check the reference image in `themes/<slug>/` *before* iterating — structural rewrites beat reactive fixes.
 - **Discriminator first.** Before wiring any control, grep the bundle's `chromeElements` to know whether it's themed (cicn-rendered) or plain (CSS-drawn).
