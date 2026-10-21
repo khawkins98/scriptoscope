@@ -52,6 +52,21 @@ Keep seeds immutable and run only fresh copies. Serialize HFS mounts and emulato
 
 Plan the shared work and consolidated preboot review using the [fidelity batch workflow](../CONTRIBUTING.md#fidelity-acquisition-and-implementation-batches). Follow the [reference intake contract](../tests/reference-captures/README.md) for exact source/scheme bytes, public invocation, geometry/state, actual Copl/FCB and stopped-fork identity, device/palette/producer conditions, durable export counts, raw pixels/crops and independent review. Preserve failed attempts. Capture completion alone does not admit evidence or authorize a golden update. Display calibration and decoder coverage must independently support any comparison; unknown provider/cache, mask, phase, font and whole-control obligations stay visible.
 
+## Direct 32 bpp condition
+
+The reference boots at 8 bpp, where every comparison needs a per-scheme finite palette calibration (thousands of Color2Index/Index2Color rows). A 32 bpp condition can avoid that for plain-cicn work. Setting `displaycolordepth 32` had no effect in this Basilisk II JS/WASM build: the whole first-attempt frame stayed on the 8-bit palette. An unreviewed disassembly suggests the preference is never read. Instead, a small guest helper, `SetDepth32`, calls `SetDepth(mainDevice, 32, 0, 0)` guarded by `HasDepth`. Its source makes no palette, gamma, file or preference calls; SetDepth's own system side effects (Display Manager, PRAM/`scrn`) were not inspected. Run it from fresh media, select the scheme through the ordinary UI, then launch the fixture. The depth does not persist across a Finder Restart. Pins: source `0002d5b71f2ccd433bf1f03fbcd1493d6fb14c33fa7406e760f7069419f9a7b9`; SIZE-packaged binary `SetDepth32-with-size.bin` `0de056c18059c06dbaa81bd51e695545091e96bb755134a85809f9cc8a4fd936`, built with the preserved wasm-cc1 and not independently reviewed. The helper and receipts are in the durable local mirror under `campaign-20261021/lanes/C/` and have not yet been uploaded to the private store.
+
+On 2026-10-21 an independently reviewed trial (accepted with limits) found that the Floppies empty push faces in all three states were exactly the cicn RGB16 high bytes laid out by the same-ID cinf rule: 1,600/1,600 pixels per state, with no calibration. Scriptoscope differed only by its default 1.8 → 2.2 display gamma. Limits:
+
+- One boot, one scheme, one 80×20 geometry with exact tiling: no partial tiles, side bands, body pattern, overlap, label, default ring or window chrome.
+- The device gamma table is not applied to these framebuffer bytes, so what a historical display showed remains unknown.
+- Truncation versus rounding is unsettled because those colours are byte-doubled.
+- Kaleidoscope initialised at 8 bpp; whether its cached state is fully refreshed by a later depth change is unknown.
+
+**This trial is not admitted evidence.** No ledger row, golden or display-policy change follows from it.
+
+Treat this as its own named condition. Record depth/pixelType/rowBytes and exact RGBWK sentinels around every draw, and erase between states so masked holes cannot retain earlier pixels. Selecting Animals after the post-boot depth switch reproducibly hangs the guest (the splash draws, then the display and disk writes stop); the host stayed stable in two diagnostic boots, though an earlier browser loss is unexplained. A boot that starts at 32 bpp is not available, so 32 bpp itself and the post-boot change cannot yet be separated. The cause is under bounded diagnosis, so do not assume every scheme tolerates the condition.
+
 ## Preserve the assets
 
 The store follows Newsheep's hash-verified, at-most-90-MiB LFS parts to fit the Cloudflare-proxied HTTPS upload limit. Keep instructions/manifests in ordinary Git and binary parts in LFS. Use `assets.py store --help` and record each asset's origin, purpose and restoration limits before pushing.

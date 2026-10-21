@@ -215,6 +215,36 @@ feat(api)!: rename ScriptoscopeWindow constructor option `theme` to `themeId`
   require it. Keep bounded research separate from delivery: state its question,
   evidence needed and stop criteria, and bring it into the batch only when it
   supports the named claim or a demonstrated shared correction.
+- **Rules first; captures sample them.** Prefer a source-addressed rule asserted
+  across every applicable theme (the push/default tables and window-chrome rule
+  tables are the model: a few hundred lines, no images) over one native capture per
+  theme × state. Use native captures to confirm a rule's boundary classes (sizes,
+  partial tiles, overlaps, colour classes, states), not to enumerate cells. A rule
+  table checks the runtime against the decode, not against original output:
+  unsampled cells and themes stay unknown in the ledger, and a predictor that shares
+  the decode with the runtime is not native evidence.
+- **One capture, many observations.** A native fixture should draw many controls,
+  sizes and states per boot. Freeze a plan before boot that names, for every
+  observation, its rect, the public Scriptoscope call it will be compared against
+  and the decoded rule that predicts it. Predictions written after capture are not
+  independent.
+- **Prove each comparison can fail.** Review must perturb inputs (wrong state
+  resource, wrong scheme, one mapping, one pixel, a mutated runtime rule) and show
+  the check fails. Record what a passing row *cannot* discriminate: for example, two
+  state cicns that differ only in a pixel an empty face never shows do not test
+  state selection, and identical art in two schemes is one observation, not two.
+- **Name the capture condition.** The 8-bit calibrated condition and the 32 bpp
+  direct condition (see the [reference environment](./docs/maintainer-reference-environment.md#direct-32-bpp-condition))
+  are separate evidence; never pool them. Direct-condition logs must show depth,
+  pixel type and row bytes around every draw, with exact colour sentinels, or the
+  observation is rejected. State which modern plane is compared: the default Mac 1.8 → sRGB
+  2.2 display policy, or an analysis-only pre-gamma plane (not a public runtime mode).
+- **Budget native attempts.** Stop after two consecutive failed native attempts.
+  Resume only under an explicit, bounded diagnostic that names the single variable
+  under test. Never reveal or rearrange windows, retry or refit to obtain a pass.
+- **Work in durable lanes.** Parallel lanes each own a worktree and output directory
+  outside `/tmp` (temporary directories have been lost mid-campaign), plus a single
+  deliverable. Only one lane at a time owns the emulator and HFS media.
 - **Bound finite adapters.** Name the exact supported inputs/operation and the consumer
   claim or preparation dependency they serve. Stop on an unmatched context, missing
   mapping or unexplained difference. A finite result is not a general source rule:

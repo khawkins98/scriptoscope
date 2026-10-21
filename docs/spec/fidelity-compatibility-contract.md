@@ -129,6 +129,13 @@ cross-platform image identity or verification of every declared browser floor.
 Capture conditions and any justified tolerance belong to each independent
 reference, not a tolerance chosen to accommodate current output.
 
+Native colour depth is part of the capture condition. The 8-bit calibrated
+condition and the 32 bpp direct condition ([reference environment](../maintainer-reference-environment.md#direct-32-bpp-condition))
+are separate evidence and are never pooled. A comparison states which modern plane
+it uses: the default display-gamma policy or an analysis-only pre-gamma plane
+(not a public runtime mode; a supplied measured display profile replaces the default). Framebuffer
+agreement at either depth does not establish what a historical display showed.
+
 ## Deliberate boundaries and substitutions
 
 - Browser-native open select menus and ordinary text fields retain native visuals.
