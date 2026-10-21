@@ -2083,7 +2083,7 @@
   "review": {
     "date": "2026-10-21",
     "reviewers": [
-      "independent automated hash-only review of PR #377 (campaign-20261021 lanes/K/PR-REVIEW.json, head 5b2211b7) confirmed 1.0.8 -> 1.0.9 changes only the nine kdef231-reference.md documentSha256 values (92ef6164 -> ece64aa1); no 0x75xx/0x76xx line touched; all 27 cases, outcomes, payload pins and ring dispatch claims unchanged; not original provider or pixel-fidelity approval; after that review the PR #377 changes round edited one more reference.md line (the \u00a72.x popup/tab row: 'msg-base 1008' -> 'varCode (var & 15) + 1008 (procID family 63)', no 0x75xx/0x76xx address), so the nine hashes were re-hashed to 775f4f0b by the author; that delta is pending reviewer confirmation"
+      "independent automated hash-only review of PR #377 (campaign-20261021 lanes/K/PR-REVIEW.json round1 head 5b2211b7, round2 head f8ea5ea0) confirmed 1.0.8 -> 1.0.9 changes only the nine kdef231-reference.md documentSha256 values (92ef6164 -> 775f4f0b), including the round-2 popup/tab row correction ('msg-base 1008' -> varCode '(var & 15) + 1008', per 0x17462/0x174a0/0x174a4); no 0x75xx/0x76xx line touched; all 27 cases, outcomes, payload pins and ring dispatch claims unchanged; not original provider or pixel-fidelity approval"
     ],
     "inventoryVersion": "1.0.9",
     "inventorySha256": "d4dfcf3ce061e3c9fc96c8a16d1d35e55e1029f932bda3a458542f24465aeece",

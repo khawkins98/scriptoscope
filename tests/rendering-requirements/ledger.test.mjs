@@ -45,6 +45,7 @@ for (const [field, prior] of [['assessments', transition.priorAssessment], ['ass
 // corrections, so it checks the same 1.22.0 slice of the actual file (digest recomputed).
 const validatable = structuredClone(file);
 for (const [key, count] of Object.entries(tabHeader.counts)) validatable[key] = validatable[key].slice(0, count);
+validatable.evidence.push(...file.evidence.slice(code10.counts.evidence)); // kdef.too-short-step, cited by the edited rows
 Object.assign(validatable, { inventoryVersion: tabHeader.inventoryVersion, scope: tabHeader.scope });
 validatable.inventorySha256 = inventoryDigest(validatable);
 const copy = () => structuredClone(validatable);
@@ -492,7 +493,7 @@ test('range-control extension preserves all prior 144 cases and 1,039 assessment
 test('tab/header source-rule extension preserves the exact 1.22.0 ledger and verifies exactly the 43 reviewed obligations',()=>{
  for(const[key,count]of Object.entries(tabHeader.counts))assert.equal(digest(JSON.stringify(current[key].slice(0,count))),tabHeader.prefixSha256[key],key+' prefix');
  assert.equal(digest(JSON.stringify(original)),tabHeader.priorObjectSha256);assert.equal(inventoryDigest(original),tabHeader.inventorySha256);
- assert.deepEqual(validateLedger(current,{root}).errors,[]);
+ assert.deepEqual(validateLedger(file,{root}).errors,[]);
  const cases=current.cases.slice(tabHeader.counts.cases),added=current.assessments.slice(tabHeader.counts.assessments);
  assert.equal(cases.length,36);assert.equal(added.length,324);
  assert.deepEqual([...new Set(cases.map(c=>c.family))],['tab','header-surface']);
