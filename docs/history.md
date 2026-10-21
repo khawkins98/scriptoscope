@@ -197,10 +197,10 @@ piece, blocked on ground truth.
   code, or an emulator, as the thing that renders for users). We keep a clean-room
   mimic; the binary is for *understanding*, not shipping. This dead end does **not**
   cover research-only oracle use: booting the original engine privately (the
-  maintainer reference environment, the v2 differential harness, a sentinel scheme)
-  to confirm or arbitrate decoded rules is in scope. Its outputs are evidence that
-  stays in the private store; they are never shipped and never stand in for a decode
-  (see `docs/v2/PLAN.md` §6).
+  maintainer reference environment, a sentinel scheme) to confirm or arbitrate
+  decoded rules is in scope. Its outputs are evidence that stays in the private
+  store; they are never shipped and never stand in for a decode (see
+  `docs/v2/PLAN.md` §4, L1 row, for the scope and §6 for the sentinel scheme).
 
 ## Map of the docs
 - `spec/kdef-architecture.md` — **start here for "how does it work?"** The runtime architecture tour: subsystems, the compose pipeline, and how a `wnd#` recipe maps to a drawn window.

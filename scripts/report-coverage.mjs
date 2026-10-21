@@ -18,7 +18,9 @@
 // mentions PACH, a CDEF number or an Apple/1.8.2 source is attributed to that
 // namespace. Otherwise the file decides: pach/header-surface paths count as
 // PACH 130, cdef8/tab- paths as CDEF 8, and everything else as kDEF 0. This is
-// the advisor's heuristic, so expect some misattribution.
+// the advisor's heuristic, so expect some misattribution. Zero-padded hex and
+// values below 0x200 are skipped. Other non-address hex (e.g. a 0x755 constant
+// in a JSON fixture) can still count, so never freeze a denominator on 'cited'.
 //
 // While the inventory status is PROVISIONAL, the in-scope count isn't frozen.
 // The report shows the heuristic render-relevant count as a provisional
@@ -69,6 +71,9 @@ function citations(files) {
     for (const line of readFileSync(f, 'utf8').split('\n')) {
       const ns = NS_HINT.find(([, rx]) => rx.test(line))?.[0] ?? fdefault;
       for (const m of line.matchAll(ADDR)) {
+        // Cheap false-positive cuts: 00-padded values (0x0080; 0x0feae still counts) and anything below
+        // 0x200 (the shared CodeWarrior stub region, and small constants like 0x100).
+        if (m[1].startsWith('00') || parseInt(m[1], 16) < 0x200) continue;
         if (!out.has(ns)) out.set(ns, new Set());
         out.get(ns).add(parseInt(m[1], 16));
       }

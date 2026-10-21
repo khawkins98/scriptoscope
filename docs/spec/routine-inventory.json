@@ -25,7 +25,8 @@
       "PACH 130 routine list for the DECISIONS #3 scope (list-header draw/sort; EraseRect/FillRect/PaintRect helpers behind progress and body backgrounds)"
     ]
   },
-  "unreachedHypothesis": "The advisor's reachability walk followed only pc-relative calls and references. Every one of these code resources starts with the CodeWarrior relocation stub and carries a relocation list of absolute pointers (kDEF 0: 144 entries; PACH 130: 239). Some of those pointers target code; for example 0x7424 is referenced only by an absolute pea at 0x6cdc. Hypothesis: most of the 45 unreached kDEF routines are entered through relocated absolute pointers rather than being dead code. Not yet verified per routine.",
+  "unreachedHypothesis": "The advisor's reachability walk followed only pc-relative calls and references. Every one of these code resources starts with the CodeWarrior relocation stub and carries a relocation list of absolute pointers (kDEF 0: 144 entries; PACH 130: 239). Some of those pointers target code; for example 0x7424 is referenced only by an absolute pea at 0x6cdc. Hypothesis: some of the 45 unreached kDEF routines are entered through relocated absolute pointers rather than being dead code. 8 of the 45 have a relocated pointer at their start address. Transitive reach through those pointers is not computed, so the rest are unresolved.",
+  "reachedFromNote": "reachedFrom was computed for kDEF0 only (from its entry and service roots). For PACH130 and every CDEF it is [] on every row, meaning NOT COMPUTED, not unreached.",
   "columns": [
     "start",
     "end",

@@ -28,6 +28,8 @@ const DOC = resolve(repoRoot, 'docs/spec/kdef231-reference.md');
 const BEGIN = '<!-- trap-table:begin -->';
 const END = '<!-- trap-table:end -->';
 const MISSING = '*(not in Traps.h 3.0.1)*';
+const HEADER = '| trap | name | role in kDEF | example addr(s) |';
+const SEPARATOR = '|---|---|---|---|';
 
 const args = process.argv.slice(2);
 const flag = (n) => args.includes(n);
@@ -74,8 +76,17 @@ if (a < 0 || b < a) { console.error('trap-table markers not found in ' + DOC); p
 
 let drift = 0;
 const lines = doc.slice(a + BEGIN.length, b).split('\n').map((line) => {
-  const m = line.match(/^\| `\$([0-9A-F]{4})` \| ([^|]*?) \|(.*)$/);
-  if (!m) return line;
+  const m = line.match(/^\| `\$(A[0-9A-F]{3})` \| ([^|]*?) \|(.*)$/);
+  if (!m) {
+    // Fail closed: inside the markers, every table row except the header and
+    // separator must be one canonical uppercase single-trap row.
+    const isTableRow = line.trim().startsWith('|');
+    if (isTableRow && line !== HEADER && line !== SEPARATOR) {
+      drift++;
+      console.error(`unparseable trap-table row (one uppercase \`$Axxx\` per row): ${line}`);
+    }
+    return line;
+  }
   const name = trapName(parseInt(m[1], 16)) ?? MISSING;
   if (m[2] !== name) {
     drift++;
@@ -86,9 +97,10 @@ const lines = doc.slice(a + BEGIN.length, b).split('\n').map((line) => {
 
 if (flag('--write')) {
   writeFileSync(DOC, doc.slice(0, a + BEGIN.length) + lines.join('\n') + doc.slice(b));
-  console.log(`trap table regenerated (${drift} name(s) changed)`);
+  console.log(`trap table regenerated (${drift} row(s) changed or unparseable)`);
+  if (lines.some((l) => l.trim().startsWith('|') && l !== HEADER && l !== SEPARATOR && !/^\| `\$A[0-9A-F]{3}` \| /.test(l))) process.exit(1);
 } else if (drift) {
-  console.error(`${drift} trap name(s) drift from Traps.h`);
+  console.error(`${drift} trap-table row(s) drift from Traps.h or do not parse`);
   process.exit(1);
 } else {
   console.log('trap table matches Traps.h');

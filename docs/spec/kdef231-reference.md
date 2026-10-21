@@ -77,13 +77,13 @@ in `docs/spec/apple-primary-source.md`.
 
 | msg | → target | meaning |
 |---|---|---|
-| 0 (drawCntl) ✓ | `0x67fc` | draw — `a0@(16)` gate → `0x6c28` part drawers (`$A874`/`$A95E`/`$A88B` GetCIcon/CopyMask/StringWidth chain — §1.2) |
-| 1 (testCntl) ✓ | `0x6816` | hit-test — `_PtInRgn` (`$A8AD`) on the face region; sentinel `a0@(17) == 0xfe` returns `d3=254` (pressed-state hit) |
+| 0 (drawCntl) ✓ | `0x67fc` | draw — `a0@(16)` gate → `0x6c28` part drawers (`$A874`/`$A95E`/`$A88B` GetPort/GetControlTitle/GetFontInfo per Traps.h; the role text "GetCIcon/CopyMask/StringWidth chain" was written under wrong names *(re-verify)* — §1.2) |
+| 1 (testCntl) ✓ | `0x6816` | hit-test — `_PtInRect` (`$A8AD`; formerly misnamed PtInRgn, *re-verify* the "face region" wording) on the face; sentinel `a0@(17) == 0xfe` returns `d3=254` (pressed-state hit) |
 | 2 (calcCRgns) ✓ | `0x686a` | calc control region — strips bit-31 sign of `fp@(8)` arg, falls through to `0x6872` |
 | 3 (initCntl) ✓ | `0x6910` | init — `_NewHandle #32` (`$A122`) → ControlRecord+28 = kDEF's 32-byte aux block; writes `'Acid'` magic at +0, clears +6 / +30 (default-button flag) |
 | 4 (dispCntl) ✓ | `0x695e` | dispose — `_DisposeHandle` (`$A023`) on the aux block if the `'Acid'` magic checks out |
 | 10,11 (calcCntlRgn/calcThumbRgn) ✓ | `0x6872` | region calc (shared) — `_RectRgn` (`$A8DF`) the face cicn (-10240) rect; if default-button flag set, union in the ring (-10232) rect (insets -4) |
-| 14 (kControlMsgCalcBestRect) ✓ | `0x69b8` | best-fit rect — `$A874` `_GetMHandle`, read width/height/style from a font/title record, write Rect into `a3@`; routes through `0x65ba` for default-button cases |
+| 14 (kControlMsgCalcBestRect) ✓ | `0x69b8` | best-fit rect — `$A874` `_GetPort` (formerly misnamed `_GetMHandle`; *re-verify*), read width/height/style from a font/title record, write Rect into `a3@`; routes through `0x65ba` for default-button cases |
 | **19 (kControlMsgGetFeatures)** ✓ | `0x698a` | Appearance feature query — returns bitmask in `d3`. Base = `#0x240` (`kControlSupportsDataAccess \| kControlSupportsCalcBestRect`); `\|= 0x800 (kControlHasRadioBehavior)` if radio; `\|= 0x4000 (kControlSupportsClickActivation)` if click-activated; always `\|= 0x2000 (kControlSupportsContextualMenus)`. (Bit 13/14 mapping is the Appearance 1.0 / pre-Carbon numbering — Carbon shifted these to bits 21/22 post-2001; Kaleidoscope 2.3.1 predates the shift.) |
 | **20 (kControlMsgSetData)** ✓ | `0x6b14` | set custom data on the aux block. Dispatches on a 4-CC tag at `a3@`: `'cncl'` → write byte from caller into `a2@(31)` (cancel-button flag); `'dflt'` → write byte into `a2@(30)` (default-button flag); `'font'` → copy 24-byte `ControlFontStyleRec` into `a2@(6..29)`. Unknown tag → returns `d3=#-30581` (`errMessageNotSupported`). |
 | **21 (kControlMsgGetData)** ✓ | `0x6a86` | mirror of msg 20 — read from aux block into caller's buffer at `a3@(12)`. Same `'cncl'`/`'dflt'`/`'font'` tag set; same -30581 default. Sets `a3@(8) = 24` for the font tag (returned-size field), `=1` for the flag tags. |
@@ -184,7 +184,7 @@ recipe walk + draw). Its 9-entry dispatch fans out to the routines below
 | `0x487e` | zoom/grow widget predicate | "is there a usable zoom/grow widget" = `a4@(500) && a4@(0x1f9) && !a4@(0x1f0)` | cinf widget flags | — | bool in `d0` |
 | `0x49d6` | **part-code jump table** | classify a part code → stretch(1)/fixed(0); see §4 | `fp@(8)`=partCode, `fp@(10)`=caller flag byte | helper `0x148`; `0x487e` | byte `d0` |
 | `0x4a0c` | code-10 handler | `moveb %fp@(10),%d0` — returns the **caller's flag** unchanged | `fp@(10)` | — | `d0` |
-| `0x4a64` | **layout precompute** (per side) | walk source side list, classify each segment, measure title (`StringWidth $A888`), find title anchor `d4`, sum fixed widths, set per-half stretch flags `fp@(-18)`/`fp@(-20)`, call `0x5178` ×2 (one per half); title-fits gate at `0x4f58` clears `fp@(-290)` | side index; source list `a2`/`a3`; `fp@(-2)`=title width; `fp@(-290)`=title-fits | `0x49d6`, `0x5178`, `$A888` StringWidth, `$A88C` GetFontInfo | fills DEST side list |
+| `0x4a64` | **layout precompute** (per side) | walk source side list, classify each segment, measure title (`$A88C` StringWidth; `$A888` here is TextFace per Traps.h, *re-verify* the call order), find title anchor `d4`, sum fixed widths, set per-half stretch flags `fp@(-18)`/`fp@(-20)`, call `0x5178` ×2 (one per half); title-fits gate at `0x4f58` clears `fp@(-290)` | side index; source list `a2`/`a3`; `fp@(-2)`=title width; `fp@(-290)`=title-fits | `0x49d6`, `0x5178`, `$A888` TextFace, `$A88C` StringWidth *(names per Traps.h; re-verify)* | fills DEST side list |
 | `0x4f58` | title-fits gate | `cmpiw #2,%d0; bgt`; if title doesn't fit → `clrb fp@(-290)` + `clrw fp@(-2)` (collapse plate) | `fp@(-290)` title-fits, `fp@(-2)` title width | — | — |
 | `0x4ff8`/`0x501c` | title centring | signed `/2`-with-rounding sequences (`lsr/lsr/lsr/lsr; add; asr #1`) on the title region bounds | — | — | center x |
 | `0x5178` | **growth distribution** | fill DEST borders: budget = (half extent − Σ fixed widths); each stretch cell gets `budget/numStretch` EVEN, remainder L→R; explicit `cmp` chains classify fill codes (see §4) | `fp@(20)`=numStretch, `fp@(22)`=reqWidth (fixed sum), `fp@(26)`=flag byte (title-fits on title path, `#1` else) | `0x49d6` (`0x5302`) | DEST `border[i]=border[i-1]+w` |
@@ -844,8 +844,8 @@ example address below was checked to hold the trap word (2026-10-21, v2 lane L1)
 | `$A8B2` | EraseRoundRect | solid inset-union body; both oval dimensions pushed as zero | `0x10a3e`, `0x10a66` |
 | `$AA25` | DisposeCIcon | release mode5 background icon | `0x10a14` |
 | `$AA42` | GetAuxWin | *(re-verify; was "Appearance/Icon-services utility (?)")* | scattered |
-| `$AA55` | *(not in Traps.h 3.0.1)* | unknown | scattered |
-| `$AA73` | *(not in Traps.h 3.0.1)* | unknown | scattered |
+| `$AA55` | *(not in Traps.h 3.0.1)* | none: data words only (`0x18a22`–`0x18bc6`, inside the data block), no call site | — |
+| `$AA73` | *(not in Traps.h 3.0.1)* | unknown; a selector-in-`d0` call site (`0x1f28`) suggests an Appearance-era dispatcher newer than UI 3.0.1 | `0x1f28` |
 | `$A8D8` | NewRgn | region allocation *(re-verify; was "SectRect")* | `0x103c4` |
 | `$A8D9` | DisposeRgn | region release *(re-verify; was "UnionRect")* | `0x15c92` |
 | `$A8DC` | CopyRgn | region geometry *(re-verify; was "rect family")* | throughout |
@@ -864,11 +864,17 @@ example address below was checked to hold the trap word (2026-10-21, v2 lane L1)
 | `$A122` | NewHandle | handle allocation (OS flag bits set) | — |
 <!-- trap-table:end -->
 
-Three more misnamed traps sit outside this table, in
-[`kdef-service-handlers.md`](kdef-service-handlers.md) (lines 93–109 at the time of
-writing): `$A8AD` is PtInRect (not PtInRgn), `$A88F` is OSDispatch (not GetCTSeed)
-and `$A99B` is SetResLoad (not SetPort). v2 lane L2 owns that file while it moves
-the asm narrative out, so the fix is left to L2.
+Misnamed traps in other spec docs, left to v2 lane L2 (which owns those files
+while it moves the asm narrative out). Line numbers are as of 2026-10-21:
+
+- [`kdef-service-handlers.md`](kdef-service-handlers.md):93–94, 105–109 and 202:
+  `$A8AD` is PtInRect (not PtInRgn, also at 202), `$A874` is GetPort (not
+  GetGDevice), `$A88F` is OSDispatch (not GetCTSeed) and `$A99B` is SetResLoad
+  (not SetPort).
+- [`kdef231-recipe-walk.md`](kdef231-recipe-walk.md):190: "`StringWidth` (`$a888` …)".
+  `$A888` is TextFace; StringWidth is `$A88C`.
+- [`compositor-spec.md`](compositor-spec.md):150–151: "`StringWidth` ($A888 → …)",
+  same error.
 
 ---
 
