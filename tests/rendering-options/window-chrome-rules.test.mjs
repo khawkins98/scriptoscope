@@ -133,7 +133,7 @@ test('observation: 1138 document-window top at template size places 107px in a 1
 // A decode disagreement, preserved as a failing case rather than fixed.
 // Remove `todo` only with an independently reviewed kDEF interpretation.
 test('code 10 on an untitled side collapses: 0x4a0c returns the caller flag #1 (0x4db4/0x515e), 0x5306 leaves width 0', {
-  todo: 'runtime classifies 10 as FIXED (faithfulness ledger 0x4a0c ≈); collapsing needs the unimplemented 0x5ffc widget pass for baked widgets',
+  todo: 'runtime classifies 10 as FIXED (faithfulness ledger 0x4a0c ✗, deliberate); collapsing needs the unimplemented 0x5ffc widget pass for baked widgets',
 }, () => {
   const c = edge([[8, 1], [10, 4], [1, 2]], 20);
   assert.deepEqual(c.composed.placement.filter(p => p.edge === 'top').map(p => p.rects[0].w), [18, 0, 2]);
