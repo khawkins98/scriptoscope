@@ -78,7 +78,6 @@ Private receipts are in asset `lane-c-direct32-campaign-20261021` (store commit 
 - **Host page stalls.** With sound on, opening the Kaleidoscope control panel at 8 bpp was followed by host loss in 2 of 2 boots. With `nosound true` (the wasm build reads it), the same step completed in 1 boot. That is consistent with an audio-message cause, but message rates were never measured with sound on. Four host losses have occurred in total and their trigger is not established; one followed the guest system error with no audio messages. Prefer `nosound true` for native work.
 - **The Kaleidoscope 2.3.1 control panel has no splash toggle.** Never strip about-box resources from a scheme: that changes the original archive bytes.
 
-
 ## Preserve the assets
 
 The store follows Newsheep's hash-verified, at-most-90-MiB LFS parts to fit the Cloudflare-proxied HTTPS upload limit. Keep instructions/manifests in ordinary Git and binary parts in LFS. Use `assets.py store --help` and record each asset's origin, purpose and restoration limits before pushing.
