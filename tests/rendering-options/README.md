@@ -305,3 +305,40 @@ records the disagreement on a minimal fork. It is left as the compatibility
 policy pinned by `mixed-checkable.spec.mjs`. Popup buttons (`-8194..-8208`)
 are not covered: the kDEF routes them to a loaded `WDEF -14336` that is not
 decoded. No image or golden is added.
+
+### Scroll-bar source rules
+
+`range-rules.mjs` transcribes the 2.3.1 scroll-bar CDEF (`0x8d36`) selection
+from [range-controls.md](../../docs/spec/range-controls.md), with an address on
+every rule: the state bytes (`0x9f7a–0x9fd6`, `0xada2`), the track
+`(-8288 | -8280) + tier` with no cross-tier retry (`0xa032–0xa10e`), the
+bounds-over-16 composite flag (`0xa14e–0xa184`), the arrow lanes (`0xc338`;
+record ids `0x9f0e–0x9f38`, disabled ids `0xc7ba–0xc7fa`) and the thumb
+(`0xaed6`, none while disabled). It imports nothing from `src/` and reuses
+`checkable-rules.mjs`'s resource-map parse. `range-rules.test.mjs` (Node)
+cross-checks that census, each id's bytes and its bounds against the loader,
+pins the per-archive composite/icon-lane partition, and predicts the 144 public
+rows: 18 archives × horizontal/vertical × normal/pressed/disabled/inactive at
+length 120, value 0.5. Public `pressed` names no part, so a pressed row may
+match any of hilite 20, 21, 22, 23 or 129. A per-archive mutation table names
+which archives each of ten wrong readings changes; the runtime's normal-tier
+retry changes none (shown on a minimal fork).
+
+`range-rules.spec.mjs` runs the public `composeScrollbar` in source and built
+modes after replacing every candidate cicn and arrow icon of the loaded theme
+with a same-size solid sentinel, so each row reports exactly which resources
+reached the output. It checks selection only, not art or geometry. The 32
+normal rows of 16 archives match. The other 112 rows disagree with the decode
+and are pinned per class (R1 pressed/inactive track tier, R2 thumb drawn while
+disabled, R3 icon-lane arrows, R4 procedural arrows, R5 non-hit arrow boxes);
+a runtime fix must shrink those lists. Four temporary runtime mutations each
+failed the source spec: normal track -8285, thumb orientation swapped, raised
+arrows swapped, and a partial R2 fix (which drops 22 rows from the list).
+
+The rows are conditional on modern policy (disabled = hilite 255, inactive =
+254, min < max, thickness 16), clear Gestalt(`Acid`) preference bytes, a
+non-empty `0xbbf4` thumb rect and an archive-only resource chain. The track
+ppats of apple-lisa, crayon-os, slimes, system7-nostalgia-silver and windows-95
+are fetched by the CDEF but never drawn by the runtime; their draw path is not
+decoded. Sliders and progress bars have no selection decode and are recorded
+as explicit unknowns. No image or golden is added.

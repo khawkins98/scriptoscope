@@ -37,7 +37,7 @@ function reject(change, pattern, options = {}) {
 test('reviewed inventory validates and all open cases remain uncertified', () => {
   assert.deepEqual(validateLedger(original, { root }).errors, []);
   const report = makeReport(original);
-  assert.equal(report.cases.length, 144);
+  assert.equal(report.cases.length, 198);
   assert.equal(report.requirementStatus.denominator, original.assessments.length);
   assert.equal(report.cases.filter(c => c.status === 'verified').length, 0);
   assert(report.execution.assertions.every(a => a.modes.every(m => m.status === 'not run')));
@@ -159,7 +159,7 @@ test('evidence from a wholly unrelated archive or synthetic input cannot support
 });
 test('engine-wide rules and combined source-art evidence retain their bounded valid uses', () => {
   const result = validateLedger(original, { root });
-  assert.deepEqual(result.errors, []); assert.equal(result.declaredCount, 1039);
+  assert.deepEqual(result.errors, []); assert.equal(result.declaredCount, 1404);
   assert.deepEqual(original.evidence.find(e => e.id === 'kdef.square-corners').inputs, ['engine.kaleidoscope-2.3.1-kdef0']);
   const shared = original.evidence.find(e => e.id === 'art.tab-crop');
   assert.deepEqual(shared.inputs, ['theme.1138', 'theme.1990']);
@@ -348,8 +348,14 @@ test('Floppies/Evolution extension preserves all prior95 cases and647 assessment
 // 1.21.0 edits one evidence row and 13 assessments in place. Restore them to get
 // the exact 1.20.0 ledger that the older append-only transitions hash.
 const tileDirection=JSON.parse(readFileSync(new URL('./tile-direction-transition.json',import.meta.url)));
+// 1.22.0 appends the range-control cases; truncate them to get the exact 1.21.0 ledger.
+const rangeTransition=JSON.parse(readFileSync(new URL('./range-rules-transition.json',import.meta.url)));
+function at121(ledger){
+ const prior=structuredClone(ledger);for(const[key,count]of Object.entries(rangeTransition.counts))prior[key]=prior[key].slice(0,count);
+ return Object.assign(prior,{inventoryVersion:rangeTransition.inventoryVersion,inventorySha256:rangeTransition.inventorySha256,scope:rangeTransition.scope});
+}
 function restore120(ledger){
- const prior=structuredClone(ledger);
+ const prior=at121(ledger);
  for(const row of tileDirection.priorEvidence)prior.evidence[prior.evidence.findIndex(e=>e.id===row.id)]=row;
  for(const row of tileDirection.priorAssessments)prior.assessments[prior.assessments.findIndex(a=>a.caseId===row.caseId&&a.requirementId===row.requirementId)]=row;
  return Object.assign(prior,{inventoryVersion:tileDirection.inventoryVersion,inventorySha256:tileDirection.inventorySha256,scope:tileDirection.scope});
@@ -357,10 +363,10 @@ function restore120(ledger){
 // Historical extension tests read the 1.20.0 statuses; 1.21.0 later promotes seven tile-blit rows.
 const at120=restore120(original);
 test('tile-direction 1.21.0 restores the exact 1.20.0 ledger; changes kdef.tile-blit, 13 tile-blit rows, and promotes exactly the seven discriminating archives',()=>{
- const prior=restore120(original);
+ const prior=restore120(original),current=at121(original);
  assert.equal(digest(JSON.stringify(prior)),tileDirection.priorObjectSha256);assert.equal(inventoryDigest(prior),tileDirection.inventorySha256);
- assert.deepEqual(prior.requirements,original.requirements);assert.deepEqual(prior.cases,original.cases);
- const changed=original.assessments.filter((a,i)=>JSON.stringify(a)!==JSON.stringify(prior.assessments[i]));
+ assert.deepEqual(prior.requirements,current.requirements);assert.deepEqual(prior.cases,current.cases);
+ const changed=current.assessments.filter((a,i)=>JSON.stringify(a)!==JSON.stringify(prior.assessments[i]));
  assert.equal(changed.length,13);assert(changed.every((a,i)=>a.requirementId==='window.tile-blit'&&tileDirection.priorAssessments[i].status==='unknown'));
  // PR #373 round-2 review (lanes/H/PR-REVIEW.json round2, head 28921fd7): only archives whose check fails under inverted/scaled blits.
  const seven=['1990','animals','crayon-os','dolphin-som','evolution','floppies','monkey-paradise'],slug=a=>a.caseId.replace('.window.sliced-recipes.sampled','');
@@ -372,9 +378,9 @@ test('tile-direction 1.21.0 restores the exact 1.20.0 ledger; changes kdef.tile-
   assert.match(a.rationale,['animals','monkey-paradise'].includes(slug(a))?/11\/14 reverse anchor is discriminated/:/11\/14 reverse anchor is direction-neutral here and not discriminated/,a.caseId);
   assert.match(a.review,/round2.*28921fd7/,a.caseId);
  }
- assert.deepEqual(original.evidence.filter((e,i)=>JSON.stringify(e)!==JSON.stringify(prior.evidence[i])).map(e=>e.id),['kdef.tile-blit']);
+ assert.deepEqual(current.evidence.filter((e,i)=>JSON.stringify(e)!==JSON.stringify(prior.evidence[i])).map(e=>e.id),['kdef.tile-blit']);
  assert.deepEqual(makeReport(prior).requirementStatus.counts,{verified:153,mismatched:0,unsupported:0,unknown:886});
- assert.deepEqual(makeReport(original).requirementStatus.counts,{verified:160,mismatched:0,unsupported:0,unknown:879});
+ assert.deepEqual(makeReport(current).requirementStatus.counts,{verified:160,mismatched:0,unsupported:0,unknown:879});
 });
 
 test('nine-state extension preserves the prior inventory and marks every 1990/Dolphin row non-discriminating',()=>{
@@ -418,7 +424,7 @@ test('checkable source-rule extension preserves all prior 126 cases and 854 asse
  Object.assign(prior,{inventoryVersion:transition.inventoryVersion,inventorySha256:transition.inventorySha256,scope:transition.scope});
  assert.equal(inventoryDigest(prior),transition.inventorySha256);assert.equal(digest(JSON.stringify(prior)),transition.priorObjectSha256);
  assert.deepEqual(makeReport(prior).requirementStatus.counts,{verified:140,mismatched:0,unsupported:0,unknown:714});
- const cases=original.cases.slice(126),added=original.assessments.slice(854);
+ const cases=original.cases.slice(126,144),added=original.assessments.slice(854,1039);
  assert.equal(cases.length,18);assert.equal(added.length,185);
  assert(cases.every(c=>c.family==='checkable'&&c.inventoryClosure.status==='open'&&c.options.label===''));
  const cicnLane=['1138','1984','1990','animals','apple-lisa','beos-r503','crayon-os','dolphin-som','evolution','floppies','monkey-paradise','windows-31','windows-95'];
@@ -429,4 +435,21 @@ test('checkable source-rule extension preserves all prior 126 cases and 854 asse
  assert.match(added.find(a=>promoted(a)&&a.caseId.startsWith('animals.')).rationale,/no other file in the chain supplies -9485\/-9486/);
  assert(!JSON.stringify(original).includes('PENDING'));
  assert.deepEqual(makeReport(restore120(original)).requirementStatus.counts,{verified:153,mismatched:0,unsupported:0,unknown:886});
+});
+
+test('range-control extension preserves all prior 144 cases and 1,039 assessments and adds only unknown obligations',()=>{
+ const prior=at121(original);
+ for(const[key,count]of Object.entries(rangeTransition.counts))assert.equal(digest(JSON.stringify(prior[key])),rangeTransition.prefixSha256[key],key+' prefix');
+ assert.equal(inventoryDigest(prior),rangeTransition.inventorySha256);assert.equal(digest(JSON.stringify(prior)),rangeTransition.priorObjectSha256);
+ const cases=original.cases.slice(144),added=original.assessments.slice(1039);
+ assert.equal(cases.length,54);assert.equal(added.length,365);
+ assert.deepEqual(Object.fromEntries(['scrollbar','slider','progress'].map(f=>[f,cases.filter(c=>c.family===f).length])),{scrollbar:18,slider:18,progress:18});
+ assert(cases.every(c=>c.inventoryClosure.status==='open'&&c.id.endsWith('.public-rows.sampled')));
+ assert(added.every(a=>a.status==='unknown'));
+ // Only the five ppat-backed archives carry scrollbar.track-pattern.
+ assert.deepEqual(added.filter(a=>a.requirementId==='scrollbar.track-pattern').map(a=>a.caseId.split('.')[0]),['apple-lisa','crayon-os','slimes','system7-nostalgia-silver','windows-95']);
+ // Normal-row agreement is conditional; every state row records its disagreement classes.
+ for(const a of added.filter(a=>a.requirementId==='scrollbar.normal-selection'&&!/^(crayon-os|windows-95)\./.test(a.caseId)))assert.match(a.rationale,/draw exactly the predicted set.*archive-fork-only resource chain; original file provenance is unknown/,a.caseId);
+ for(const a of added.filter(a=>a.requirementId==='scrollbar.state-selection'))assert.match(a.rationale,/R1 .*R2 /,a.caseId);
+ assert.deepEqual(makeReport(original).requirementStatus.counts,{verified:160,mismatched:0,unsupported:0,unknown:1244});
 });
