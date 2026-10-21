@@ -344,3 +344,46 @@ ppats of apple-lisa, crayon-os, slimes, system7-nostalgia-silver and windows-95
 are fetched by the CDEF but never drawn by the runtime; their draw path is not
 decoded. Sliders and progress bars have no selection decode and are recorded
 as explicit unknowns. No image or golden is added.
+
+### Tab and header source rules
+
+`tab-header-rules.mjs` restates the CDEF 8 tab selection and 0x16e body painter
+([tab-cdef8-body.md](../../docs/spec/tab-cdef8-body.md#corpus-rule-table-2026-10-21)),
+and the PACH 130 header selection, regions, body and pattern anchor
+([header-surface.md](../../docs/spec/header-surface.md#corpus-rule-table-2026-10-21)).
+It imports nothing from `src/`. `tab-header-corpus.mjs` parses each archive's
+resource map itself: ids, raw cinf bytes and the ppat census. It takes rasters,
+patterns and raw background samples from the shared decoder, after checking the
+decoder's bytes for each id against its own parse. `tab-header-rules.test.mjs`
+(Node) pins three things:
+
+- the corpus partition: 14 archives with tab art, 13 with header art, no fallback
+  or pressed-front ids, animals -9984 without a cinf, and apple-platinum-2's
+  panes without a cinf;
+- the decoded branches that the public API does not reach;
+- literal rows for both models, where each wrong reading must change pixels.
+
+`tab-header-rules.spec.mjs` runs `composeTab` (two rows, using the runtime's
+width) and `composeHeaderSurface` (24 rows) in source and built modes for all
+18 archives. Every rule-fixed pixel must match. It pins four things:
+
+- the rows that match another candidate id, which cannot discriminate selection;
+- the per-archive tables of which wrong reading each archive fails;
+- the 1,664 unasserted crayon-os tab centre pixels (ppat 17, legacy path);
+- the runtime's small-to-large retry. The decode probes `-9960+state`; only the
+  four archives without tab art reach this retry. Under the declared archive-only
+  chain nothing is drawn there. The 2.3.1 control-panel fork ships the
+  clut-recoloured fallback ids, though, so the original probably draws a tab where
+  the runtime returns null (a probable divergence).
+
+Seven temporary runtime mutations each failed the source spec:
+
+- tab selected ignored, large variant first, band always repeats and centre
+  skipped;
+- header polarity swapped, list-view extension removed and pattern mode
+  ignored.
+
+An eighth mutation, the tab background sample read with x and y swapped, changed
+no corpus row. Width, panes, disabled/pressed tabs, the original pattern offset
+`R`, resource files and `composeListHeader` are not covered. No image or golden
+is added.

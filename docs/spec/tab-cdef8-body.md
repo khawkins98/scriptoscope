@@ -170,3 +170,44 @@ mask only excludes the separate text layer; it does not synthesize body pixels
 or establish the historical font. Whole-body empty-label and literal diagnostic
 fixtures cover the area under that excluded text layer separately. The resulting
 requirement is middle-strip/source-coordinate retention, not whole-tab fidelity.
+
+## Corpus rule table (2026-10-21)
+
+`tests/rendering-options/tab-header-rules.mjs` restates the selection and body rules
+above as a pure table. Its Node test and source/built spec check every archive's
+public `composeTab` rows (`selected` false/true, empty label) against them. The
+expectations come from each archive's own resource map: ids, raw cinf bytes, and the
+shared decoder's rasters and raw background samples. This checks the runtime against
+the decode, not against original output. These additions were re-read in the
+pinned listing (CDEF 8 sha256 `4c9fecff…`):
+
+- Selection (0x7de, 0x8d2–0x956, 0xcc2–0xce0): state 0 for hilite 254/255 or a zero per-tab enabled byte (0xdb4–0xdc4), else 1; tracking toggles 1 and 2 (0x117a–0x11a8); +3 when the tab index equals the control value; the small variant draws -9976+state and the large variant -9984+state.
+- Fallback (0x16e, 0x914, 0x950): the painter returns false only when its icon is NULL (0x18c–0x194), and only then does the caller probe -9960+state (small) or -9968+state (large); a found icon without same-id cinf returns true and draws nothing (0x38e to 0x622).
+- Body (0x16e, 0x394–0x61e): c = cinf[0] is horizontal and s = cinf[1] vertical. Full-height c-column ends are drawn first (0x430–0x47e). Then come the top and bottom s-row bands over destination x [c, W−c), tiled forward from source x [c, w−c), or from the single column c when cinf[2] is zero (0x484–0x552). Last, the centre [c, W−c)×[s, H−s) is erased in the raw background sample when cinf+4 is zero (0x558–0x600). The output height is the source height (0x614–0x61e).
+- Fallback colours (0x1ba–0x376): helper 0x263a is GetResource('clut'). States 0–4 of both fallback ladders (-9968..-9964, -9960..-9956; -9963..-9961 and -9955 are not recoloured) get icon colour-table entries from clut -14336 (ids -9964/-9967/-9956/-9959) or clut -14335 (-9965/-9968/-9957/-9960). The pressed ids -9966/-9958 also sample two colours from cicn -10238 at cinf -10238 (or cinf 0) points through 0x1bce. Before GetCIcon, 0x16e makes the Gestalt('Copl') file current (0x198–0x1b8). The 2.3.1 control-panel fork (installer-component identity, same chain as CDEF 8) ships cicn and cinf for exactly those ten ids plus clut -14336/-14335; all 18 archives also ship both cluts. Which file and which clut copy answer at draw time is not established.
+- Centre fill (0x5fa–0x600) is trap A8B2, EraseRoundRect with zero oval size, painting the sampled RGBBackColor; earlier sections call it EraseRect, which is the same rectangle.
+
+The public API maps to small variant, hilite 0, enabled, not tracking. That is modern
+policy, so the rows reach only state 1 (-9975) and state 4 (-9972). States 0, 2, 3 and
+5, the large variant and the -9960/-9968 fallback stay unexercised. Findings:
+
+- All 14 archives with tab art draw the predicted id with every rule-fixed pixel equal
+  to the 0x16e model at the runtime's width. Crayon-os requests ppat 17 for its
+  centre (cinf+4); the phase is not decoded, so 1,664 centre pixels are unasserted,
+  and the runtime keeps its legacy path there. The other 13 take the source-band path.
+- The runtime retries the large id after a small miss (-9975 then -9983). The decode
+  probes -9959. Only the four archives without tab art (black-platinum, platinum-8,
+  slimes, system7-nostalgia-silver) reach a second probe. Under the declared
+  archive-fork-only chain both sides find nothing, and the runtime returns null.
+  Under a chain that includes the Gestalt('Copl') file, the decode would find the
+  control-panel fallback (-9959/-9956) and draw a recoloured tab. So the runtime's
+  null there is a probable divergence from the original, not agreement.
+- Width-one bands use the sampled-line path (0x1f10–0x1f86). `composeTabBody` copies
+  raster colours without consulting `samplingEquivalence`. Every corpus tab face has
+  status `equivalent`, so no row is affected; a face with `different` would be.
+- animals ships cicn -9984 without a cinf. The decode would draw nothing for it; the
+  runtime's legacy path would draw. No public row reaches it.
+- Rows that cannot discriminate (identical state art) are pinned in the spec: 1990,
+  apple-lisa, windows-31 and windows-95 in both rows, the apple-platinum-2 rear and the
+  beos-r503 front. Width (StringWidth+24, 0x856–0x8a8) and tab panes (-9977/-9969,
+  -9978/-9970, which the runtime does not draw) are not covered.

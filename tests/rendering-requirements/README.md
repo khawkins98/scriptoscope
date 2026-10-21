@@ -1,7 +1,7 @@
 # Partial rendering requirement ledger
 
 `ledger.json` is reviewed acceptance data, separate from rendering and screenshots.
-Inventory 1.22.0 declares 198 exact direct cases and seven explicit dimensions per
+Inventory 1.23.0 declares 234 exact direct cases and seven explicit dimensions per
 case. **Every case has OPEN inventory closure.** The declared obligation
 count is a finite bookkeeping denominator, not an exhaustive denominator of
 historical control behavior. No whole-control completion percentage is reported.
@@ -593,3 +593,54 @@ before the issue closes. The other 334 new obligations are unknown and every
 closure is OPEN. The classes R1-R5 are described in
 [range-controls.md](../../docs/spec/range-controls.md). The ledger has 173
 verified, 18 mismatched and 1,213 unknown obligations across 1,404.
+
+## Tab and header source rules (1.23.0)
+
+Inventory 1.23.0 appends 36 OPEN cases, one tab and one header-surface case per
+archive, with 324 obligations. The ledger test reads the earlier tests' 1.22.0
+view through `tab-header-rules-transition.json` (counts, prefix hashes, prior scope
+and digest), so a later append-only extension only adds its own transition.
+
+`tab-header.source-rules` (`tests/rendering-options/tab-header-rules.spec.mjs`,
+source and built) compares two kinds of row with a model built from each
+archive's own resource map:
+
+- the two public `composeTab` rows, against the CDEF 8 selection and the 0x16e
+  body painter;
+- 24 `composeHeaderSurface` rows, against the PACH 130 selection, region and
+  body model.
+
+See [tab-cdef8-body.md](../../docs/spec/tab-cdef8-body.md#corpus-rule-table-2026-10-21)
+and [header-surface.md](../../docs/spec/header-surface.md#corpus-rule-table-2026-10-21).
+All rows pass. The spec pins three things: the rows that cannot discriminate
+selection, the per-archive tables of which wrong reading each archive fails, and
+the unasserted pixels (the crayon-os tab centre, which requests ppat 17).
+
+Independent review (campaign lanes/J/REVIEW.json, head eb949514) approved
+**43** obligations. Each holds only with the wording limits in its rationale, and
+only under the declared archive-only resource chain:
+
+- **`tab.state-selection` (10):** 1138, 1984, animals, crayon-os, dolphin-som,
+  evolution, floppies and monkey-paradise. Also apple-platinum-2 (front row only)
+  and beos-r503 (rear row only), with output-equivalence wording. Public states 1
+  and 4 only.
+- **`tab.body-bands` (11):** the single-column branch at the runtime's
+  empty-label widths. Five of the archives discriminate only the c/s orientation.
+- **`state.header-raw-dispatch` (7):** raw states 0, 1 and 0xffffffff.
+- **`geometry.header-whole-surface` (12):** all archives with header art except
+  evolution. The discriminated readings are listed per archive.
+- **`header.body-fill` (3):** 1990, animals and monkey-paradise, pattern branch
+  only. 1990 shows the vertical phase only. R = (0,0) is declared, and the ppat is
+  byte-joined.
+
+Totals: 216 verified, 18 mismatched and 1,494 unknown of 1,728.
+
+The four archives without tab art return null. That agrees with the decode only
+under the archive-only chain. The 2.3.1 control-panel fork ships clut-recoloured
+fallback tabs (-9968..-9964, -9960..-9956), and 0x16e makes that file current
+before GetCIcon. So the original probably draws a fallback tab there; this is
+recorded as a probable divergence, and the rows stay unknown.
+
+The resource files, tab width, panes, unexposed tab states, centre fill (its
+expected colour comes from the decoder metadata the runtime also reads), original
+pattern offset and device colour remain unknown.

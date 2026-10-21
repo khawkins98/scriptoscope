@@ -9,7 +9,13 @@ import { collectObservations } from './observations.mjs';
 import { fileURLToPath } from 'node:url';
 import { validateLedger, inventoryDigest, makeReport, loadIssueStates, digest } from './ledger.mjs';
 const root = fileURLToPath(new URL('../../', import.meta.url));
-const original = JSON.parse(readFileSync(new URL('./ledger.json', import.meta.url)));
+const current = JSON.parse(readFileSync(new URL('./ledger.json', import.meta.url)));
+// Later append-only extensions are cut off here, so the tests below keep reading the
+// exact 1.22.0 inventory they pin; each extension tests its own suffix at the end.
+const tabHeader = JSON.parse(readFileSync(new URL('./tab-header-rules-transition.json', import.meta.url)));
+const original = structuredClone(current);
+for (const [key, count] of Object.entries(tabHeader.counts)) original[key] = original[key].slice(0, count);
+Object.assign(original, { inventoryVersion: tabHeader.inventoryVersion, inventorySha256: tabHeader.inventorySha256, scope: tabHeader.scope });
 const transition = JSON.parse(readFileSync(new URL('./header-sampling-transition.json', import.meta.url)));
 // Reconstruct the unchanged pre-mixed inventory before testing its older header transition.
 const mixedTransition = JSON.parse(readFileSync(new URL('./mixed-selection-transition.json', import.meta.url)));
@@ -463,4 +469,32 @@ test('range-control extension preserves all prior 144 cases and 1,039 assessment
  assert.deepEqual(added.filter(a=>a.requirementId==='scrollbar.track-pattern').map(slug),['apple-lisa','crayon-os','slimes','system7-nostalgia-silver','windows-95']);
  assert(!JSON.stringify(original).includes('Awaiting independent review'));
  assert.deepEqual(makeReport(original).requirementStatus.counts,{verified:173,mismatched:18,unsupported:0,unknown:1213});
+});
+test('tab/header source-rule extension preserves the exact 1.22.0 ledger and verifies exactly the 43 reviewed obligations',()=>{
+ for(const[key,count]of Object.entries(tabHeader.counts))assert.equal(digest(JSON.stringify(current[key].slice(0,count))),tabHeader.prefixSha256[key],key+' prefix');
+ assert.equal(digest(JSON.stringify(original)),tabHeader.priorObjectSha256);assert.equal(inventoryDigest(original),tabHeader.inventorySha256);
+ assert.deepEqual(validateLedger(current,{root}).errors,[]);
+ const cases=current.cases.slice(tabHeader.counts.cases),added=current.assessments.slice(tabHeader.counts.assessments);
+ assert.equal(cases.length,36);assert.equal(added.length,324);
+ assert.deepEqual([...new Set(cases.map(c=>c.family))],['tab','header-surface']);
+ assert(cases.every(c=>c.inventoryClosure.status==='open'&&c.mode==='direct'&&c.inputs.length===1));
+ const approved={'tab.state-selection':['1138','1984','animals','crayon-os','dolphin-som','evolution','floppies','monkey-paradise','apple-platinum-2','beos-r503'].map(s=>s+'.tab.public-rows.sampled'),
+  'tab.body-bands':['1138','1984','1990','animals','apple-lisa','apple-platinum-2','beos-r503','dolphin-som','evolution','floppies','monkey-paradise'].map(s=>s+'.tab.public-rows.sampled'),
+  'state.header-raw-dispatch':['1138','animals','beos-r503','crayon-os','dolphin-som','floppies','monkey-paradise'].map(s=>s+'.header-surface.sampled'),
+  'geometry.header-whole-surface':['1138','1984','1990','animals','apple-lisa','beos-r503','crayon-os','dolphin-som','floppies','monkey-paradise','windows-31','windows-95'].map(s=>s+'.header-surface.sampled'),
+  'header.body-fill':['1990','animals','monkey-paradise'].map(s=>s+'.header-surface.sampled')};
+ assert(added.every(a=>a.status===(approved[a.requirementId]?.includes(a.caseId)?'verified':'unknown')),'status set');
+ assert.equal(added.filter(a=>a.status==='verified').length,43);
+ assert(added.every(a=>/lanes\/J\/REVIEW\.json.*eb949514/.test(a.review)));assert(!JSON.stringify(current.cases.slice(tabHeader.counts.cases)).includes('Pending'));assert(!JSON.stringify(added).includes('Pending'));
+ const row=(slug,req)=>added.find(a=>a.caseId.startsWith(slug+'.')&&a.requirementId===req).rationale;
+ for(const slug of ['black-platinum','platinum-8','slimes','system7-nostalgia-silver'])for(const req of ['tab.state-selection','tab.variant-fallback'])assert.match(row(slug,req),/Probable divergence.*archive-fork-only/);
+ assert.match(row('apple-platinum-2','tab.state-selection'),/rear row is pixel-identical to -9974/);assert.match(row('beos-r503','tab.state-selection'),/front row is identical to -9973/);
+ assert.match(row('1990','header.body-fill'),/uniform in x/);assert.match(row('animals','tab.body-bands'),/only c\/s orientation/);
+ assert(!JSON.stringify(current.evidence.slice(tabHeader.counts.evidence)).includes('window cicns'));
+ assert.deepEqual(current.assertions.slice(tabHeader.counts.assertions).map(a=>[a.id,a.caseIds.length]),[['tab-header.source-rules',36]]);
+ // Selection-non-discriminating archives say so wherever their selection row cites the assertion.
+ for(const slug of ['1984','1990','apple-lisa','evolution','windows-31','windows-95'])assert.match(added.find(a=>a.caseId===`${slug}.header-surface.sampled`&&a.requirementId==='state.header-raw-dispatch').rationale,/Selection-non-discriminating/);
+ for(const slug of ['1990','apple-lisa','windows-31','windows-95'])assert.match(added.find(a=>a.caseId===`${slug}.tab.public-rows.sampled`&&a.requirementId==='tab.state-selection').rationale,/selection-non-discriminating/);
+ assert.deepEqual(makeReport(current).requirementStatus.counts,{verified:216,mismatched:18,unsupported:0,unknown:1494});
+ assert.equal(makeReport(current).cases.length,234);
 });
