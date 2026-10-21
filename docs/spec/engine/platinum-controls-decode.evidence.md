@@ -186,3 +186,9 @@ the graft. Remaining:
    specific control's bevel can't be matched — the method + container + decompressor
    are all documented (`.scratch/iso-recon/pef-decompress.py`).
 ````
+
+## Message dispatch (jump table) (original)
+
+````text
+Range check + jump table; **table base `0xf8`**, jmp base `0xf6`: from
+````

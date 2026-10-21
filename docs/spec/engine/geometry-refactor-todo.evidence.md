@@ -35,3 +35,17 @@ commit Apple's listing.
 ````text
    Constants, cited `0xADDR`) first; the real shipped resource second; a measured
 ````
+
+## Toolchain pointer (original)
+
+````text
+  (Decompile via the `.scratch/iso-recon` toolchain; house style in `docs/spec/kdef231-reference.md`.)
+````
+
+## Decode tooling (original)
+
+````text
+**Decode tooling** (git-ignored, `.scratch/iso-recon/`): recorded in the
+[evidence appendix](spec/engine/geometry-refactor-todo.evidence.md) — spec writers
+and verifiers only. Clean-room: binaries stay in `.scratch`, docs cite `0x…`, never
+````

@@ -99,7 +99,7 @@ At `0x1c7c`, 9 internal-service function pointers: `0x6688, 0x997e, 0xdd22, 0x11
 |---:|---:|---|
 | 0 | `0x6688` | CDEF main (push-button family, 32 B `'Acid'` aux) |
 | 1 | `0x997e` | re-entrant CDEF entry (callback-safe, saves the kDEF globals pointer via `0x9930`) |
-| 2 | `0xdd22` | GDevice-aware focus / state helper |
+| 2 | `0xdd22` | GDevice-aware focus / state helper *(re-verify: rests on the former GetCTSeed trap name)* |
 | 3 | `0x118b8` | wnd# gate (document windows, id `-14336`) → slot 6 on hit; system `'WDEF'` fallback on miss |
 | 4 | `0x1525a` | wnd# gate (utility windows, id `-14304`) → slot 6 with msg-base `+1984` |
 | 5 | `0x8d36` | second CDEF main (scrollbar / slider, 68 B aux) |
@@ -111,7 +111,7 @@ The cinf consumer is `0x116f8` (see §3), **NOT** slot 3 `0x118b8` — slot 3 lo
 
 ### 3. cinf load site (2.3.1)
 
-At `0x1171a`: `GetResource('cinf', id)`, with the id passed in by the caller. Inside the routine at `0x116f8`. New-format-vs-old-format discriminator: `GetHandleSize > 18` at `0x11740`. The corpus ships 1032/1033 cinfs at exactly 18 bytes (old format); the binary's 20-byte and 56-byte paths are populated at load via a `pWin` back-patch (byte 18) and `0xfc5c` pixel-sample cache (bytes 20..55) respectively, never read from disk. Full trace + decision: `docs/spec/cinf-extended-decode.md`.
+At `0x1171a`: `GetResource('cinf', id)`, with the id passed in by the caller. Inside the routine at `0x116f8`. New-format-vs-old-format discriminator: `GetHandleSize > 18` at `0x11740`. The corpus ships 1032/1033 cinfs at exactly 18 bytes (old format); the binary's 20-byte and 56-byte paths are populated at load via a back-patch of byte 18 from the `'pWin'` Gestalt query (`_Gestalt`, `$A1AD` at `0x11768`; runs only when the cinf is ≤ 18 bytes; not a resource fetch) and `0xfc5c` pixel-sample cache (bytes 20..55) respectively, never read from disk. Full trace + decision: `docs/spec/cinf-extended-decode.md`.
 
 ### 4. `wnd#` fallback ladder — **DECODED 2026-05-29**
 
@@ -125,7 +125,7 @@ At `0x356c..0x367e` — 12-step degraded-id fallback. Tries the requested id, th
 
 Per-resource markers in 2.3.1 kDEF 0:
 
-- **Window**: `wnd#`, `cinf`, `cicn`, `clut`, `actb`, `WDEF`, `pWin`
+- **Window**: `wnd#`, `cinf`, `cicn`, `clut`, `actb`, `WDEF`; `pWin` is a Gestalt selector (`$A1AD` at `0x11768`), not a resource type
 - **System probes**: `ATIr` (ATI Rage check), `qd `, `sysv`, `AOCE`, `HFS `
 - **Theme creators**: `Acid` (Kaleidoscope), `Aarn`/`Aarp`/`Aaru` (Mac OS Aaron extension interop), `Copl` (Copland)
 - **Control palette markers (NEW)**: `btnp`, `dbtp`, `cbtp`, `chkp`, `radp` (button / default-button / cmd-button / checkbox / radio palettes), `sbap`, `sbae`, `sbar`, `sbax`, `sbgh`, `sbth`, `sbtp` (scrollbar parts), `bevp` (bevel)

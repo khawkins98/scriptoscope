@@ -1,6 +1,6 @@
 # AppearanceLib spike findings (Task 4 — the gate)
 
-*Clean-room. All offsets are into `.scratch/iso-recon/85-System.bin` (git-ignored).
+*Clean-room. All offsets are into the Mac OS 8.5 System file (its local path is in the evidence appendix).
 Recorded for understanding; no Apple listing reproduced.*
 
 *Listing-level narrative (registers, frame offsets, instruction excerpts) for this document lives in [`engine/apple-appearancelib-spike.evidence.md`](engine/apple-appearancelib-spike.evidence.md) — spec writers and verifiers only.*

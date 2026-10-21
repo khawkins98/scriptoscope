@@ -30,3 +30,9 @@
   (imported glue `bl 0x18618`), then `lwz r12,0(r3); lwz r12,0xCC(r12); bl …` —
   i.e. dispatches to a **vtable method at offset 0xCC** on the theme-provider object.
 ````
+
+## Header (binary path) (original)
+
+````text
+*Clean-room. All offsets are into `.scratch/iso-recon/85-System.bin` (git-ignored).
+````

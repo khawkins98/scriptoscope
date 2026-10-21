@@ -11,15 +11,15 @@ The cinf loader is the routine at **`0x116f8`**. The annotation in `docs/spec/kd
 Load sequence (`0x116f8..0x11744`; listing detail in evidence):
 
 1. `_GetResource` (`$A9A0`) on `'cinf'` with the caller-passed id (`0x1171a`); a null handle exits the routine (`0x11892`).
-2. `_DetachResource` (`$A9A2`), then `_HLock` (`$A04A`) on the handle.
-3. `_GetHandleSize` (via the wrapper at `0x3a0`); the result is compared against 18 at `0x1173e`. Size > 18 skips the "grow to 20" patch and goes to § 2's check at `0x11782`.
+2. `_LoadResource` (`$A9A2`), then `_HNoPurge` (`$A04A`) on the handle (names per Traps.h; formerly misread as `_DetachResource` / `_HLock`, *re-verify* any claim that rested on detaching or locking).
+3. `_GetHandleSize` (via the wrapper at `0x3a0`); the result is compared against 18 at `0x11740`–`0x11744`. Size > 18 skips the "grow to 20" patch and goes to § 2's check at `0x11782`.
 
 When `size ≤ 18` (the OLD format the corpus actually ships), the binary runs the patch block at `0x11746..0x11780`:
 
 1. `_SetHandleSize` (`$A024`) grows the handle to 20 bytes and the new word at byte 18 is zeroed.
-2. If the cinf id is in `-12240..-12225` (i.e. ≥ `-12240` and < `-12224`), the kDEF fetches a paired `'pWin'` resource (`0x11768`, `_Get1NamedResource` "(or similar)"). If that fetch succeeds and the `pWin` byte at offset 15 is non-zero, the `pWin` word at offset 16 is copied into cinf byte 18 (`0x1177c`). Otherwise byte 18 stays zero.
+2. If the cinf id is in `-12240..-12225` (i.e. ≥ `-12240` and < `-12224`), the kDEF calls `_Gestalt` (`$A1AD` at `0x11768`, per Traps.h) with selector `'pWin'`. If Gestalt returns no error and byte 15 of the record its response points to is non-zero, the word at offset 16 of that record is copied into cinf byte 18 (`0x1177c`). Otherwise byte 18 stays zero. *(Corrected 2026-10-21: this was previously read as a paired `'pWin'` resource fetch via `_Get1NamedResource`, which is `$A820`. What the `'pWin'` Gestalt record is, and which component registers it, is not decoded — re-verify.)*
 
-This is a **legacy compatibility patch** for cinf ids in `-12240..-12225` (system window range, per § 2.5 of `kdef231-reference.md`): the kDEF copies a 16-bit field from a paired `'pWin'` resource into the freshly-cleared word at cinf+18. **There is no Translucency or Opacity in this path.** Byte 18 is a back-filled `pWin`-derived word.
+This is a **legacy compatibility patch** for cinf ids in `-12240..-12225` (system window range, per § 2.5 of `kdef231-reference.md`): the kDEF copies a 16-bit field from the `'pWin'` Gestalt response record into the freshly-cleared word at cinf+18. **There is no Translucency or Opacity in this path.** Byte 18 is a back-filled word from that record.
 
 ## 2. The 56-byte cache populator
 
@@ -35,7 +35,7 @@ If a second-stage flag is set (tested at `0x11782`), the binary considers extend
 5. At `0x1181e` the active/inactive flag is set to 1 (INACTIVE pass), and slots 4–6 (cinf+38 bg, cinf+44 text, cinf+50 emboss) are sampled the same way (`0x11824`, `0x1183a`, `0x11850`).
 6. At `0x11886` the active/inactive flag is restored.
 
-The dst offsets `20, 26, 32, 38, 44, 50` are **6 bytes apart** — each slot is one `RGBColor` (`{red:WORD, green:WORD, blue:WORD}` = 6 bytes). Six slots × 6 bytes = 36 bytes of cache, appended at byte 20..55 (the byte-18 word stays the patched `pWin` value from § 1).
+The dst offsets `20, 26, 32, 38, 44, 50` are **6 bytes apart** — each slot is one `RGBColor` (`{red:WORD, green:WORD, blue:WORD}` = 6 bytes). Six slots × 6 bytes = 36 bytes of cache, appended at byte 20..55 (the byte-18 word stays the value back-filled from the `'pWin'` Gestalt record in § 1).
 
 The two passes are gated by the **active/inactive global flag** — `0xfc5c` (the per-pixel sampler) consults this flag at `0xfcc8` and picks the active vs inactive `Colr`-mapped channel. So the 6 slots decompose as:
 
@@ -86,7 +86,7 @@ For our runtime, the explanation doesn't matter: **the 2.3.1 kDEF is our authori
 
 ## 5. Corpus survey
 
-Script: `.scratch/cinf-size-survey.mjs` (kept for future re-runs). It parses every bundle's `scheme.rsrc` (or decodes its `scheme.sit` via `tools/sit-wasm`), enumerates `cinf` resources, and tallies raw byte sizes.
+A local survey script (location in the evidence appendix) parses every bundle's `scheme.rsrc` (or decodes its `scheme.sit` via `tools/sit-wasm`), enumerates `cinf` resources, and tallies raw byte sizes.
 
 | Bundle | cinf count | sizes |
 |---|---:|---|
@@ -155,4 +155,4 @@ Future re-investigation triggers:
 - Confused inventory note: `docs/spec/kdef-binary-inventory.md` § 2 ("0x118b8 is the cinf consumer") — actually the wnd# dispatcher; the cinf consumer is `0x116f8`. Recommend folding the correction into a later inventory pass.
 - Scheme Factory STR# 135: `docs/spec/scheme-factory-vocabulary.md` § 7.
 - Existing decoder: `tools/theme-loader/decoders/cinf.js` (unchanged by this investigation).
-- Survey reproducer: `.scratch/cinf-size-survey.mjs`.
+- Survey reproducer: a local survey script (location in the evidence appendix).

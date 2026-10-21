@@ -185,7 +185,7 @@ reproduce. Two fixes, below.
   controls/states a scheme draws from its own `cicn`/ics vs hands to the OS default. That
   tells us when a scheme glyph is REAL vs a fallback we shouldn't trust; for fallbacks,
   draw our procedural Platinum baseline (closer to OS-native) instead of the odd glyph.
-  (Decompile via the `.scratch/iso-recon` toolchain; house style in `docs/spec/kdef231-reference.md`.)
+  (Decode toolchain in the evidence appendix; house style in `docs/spec/kdef231-reference.md`.)
 - **Fix the title-bar-top crop** (catalog row above) — a layout-layer fix in renderWindow /
   the demo CSS, found via a live DOM inspect. The geometry buffer is already correct.
 - **Analyze the `Mac OS 8.5b6 Beta Themes`** (`~/Downloads/Mac OS 8.5b6 Beta Themes/` +
@@ -230,9 +230,9 @@ platinum-8, system7-nostalgia-silver, black-platinum) + a few window types.
 - `themes/<slug>/resource-roles.json` — id→role wiring; READ it, don't guess roles
   (same id differs per scheme + per cicn/ics4 channel).
 
-**Decode tooling** (git-ignored, `.scratch/iso-recon/`): recorded in the
+**Decode tooling**: recorded in the
 [evidence appendix](spec/engine/geometry-refactor-todo.evidence.md) — spec writers
-and verifiers only. Clean-room: binaries stay in `.scratch`, docs cite `0x…`, never
+and verifiers only. Clean-room: binaries stay out of the repository, docs cite `0x…`, never
 commit Apple's listing.
 
 **Cadence:** detailed commit bodies, no Co-Authored-By line, commit direct to the

@@ -73,7 +73,7 @@ All hex addresses are file offsets into the `CDEF` -63 resource.
 
 ## Message dispatch (`CDEF -63`)
 
-Range check + jump table; **table base `0xf8`**, jmp base `0xf6`: from `0xe0`, a
+Range check + jump table; **table base `0xf8`**, jump base `0xf6`: from `0xe0`, a
 negative message or one greater than 11 goes to the common exit `0x17c`;
 otherwise the int16 table entry at `0xf8 + 2·msg` is added to `0xf6` and jumped to
 (instruction excerpt in evidence).

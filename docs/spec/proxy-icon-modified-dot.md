@@ -25,7 +25,7 @@ typedef UInt16 ThemeTitleBarWidget;
 1. **`kThemeWidgetDirtyCloseBox = 6`** is real. It is the "close-box-with-dot" variant that signals an unsaved document. Values 3, 4, 5 do not exist. (`docs/spec/apple-primary-source.md`'s ThemeWidget table previously listed phantom entries for 3/4/5 — corrected in the same pass that produced this doc.)
 2. **There is NO `kThemeWidgetProxyIcon`.** The document proxy icon is _not_ a `ThemeTitleBarWidget`. It is drawn by the WDEF itself, by reading the icon handle attached to the window via `WindowsLib::GetWindowProxyIcon` and plotting it with `IconServicesLib::PlotIconRef`. This matches what we see in the 2.3.1 binary (below): the kDEF calls those two imports directly, never `DrawThemeTitleBarWidget(…, kThemeWidget*)`.
 
-## 2.3.1 kDEF call sites (`.scratch/k231-kdef/kDEF/id-1.bin`, PowerPC)
+## 2.3.1 kDEF call sites (kDEF id 1, PowerPC)
 
 The PEF import table lists library 4 as WindowsLib (first symbol 213, count 2):
 symbol 213 `GetWindowProxyIcon` and symbol 214 `IsWindowModified`, both of
@@ -86,7 +86,7 @@ This is the **opt-in marker**: the kDEF queries the scheme's `wind` resource for
 
 ## 1.8.2 cross-check
 
-Neither `GetWindowProxyIcon` nor `IsWindowModified` occurs in the 1.8.2 kDEF (`.scratch/k182-kdef/kDEF/id-1.bin`): **zero matches each.** 1.8.2 does not import either symbol. Proxy-icon support is a strict 2.3.1 addition, riding the AppearanceLib/WindowsLib delta documented in `docs/spec/kdef-binary-inventory.md §6`.
+Neither `GetWindowProxyIcon` nor `IsWindowModified` occurs in the 1.8.2 kDEF (kDEF id 1): **zero matches each.** 1.8.2 does not import either symbol. Proxy-icon support is a strict 2.3.1 addition, riding the AppearanceLib/WindowsLib delta documented in `docs/spec/kdef-binary-inventory.md §6`.
 
 ## Corpus reference-image survey
 

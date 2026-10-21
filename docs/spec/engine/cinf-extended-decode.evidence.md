@@ -151,3 +151,27 @@ Entries 1–7 map bijectively onto `cinf.js` bytes 0..17. Entries 8 and 9 (Trans
 - Cinf loader routine: `0x116f8..0x118a0` (`.scratch/k231-kdef/kDEF/k231-kdef0.asm:23192-23332`).
 - Pixel sampler `0xfc5c`: per-call writes 6 bytes of RGBColor from a `cicn` host indexed by `(srcY, srcX)` markers + the active/inactive flag at `%a4@(1222)`.
 ````
+
+## Survey reproducer path (original)
+
+````text
+- Survey reproducer: `.scratch/cinf-size-survey.mjs`.
+````
+
+## Survey script path (original)
+
+````text
+Script: `.scratch/cinf-size-survey.mjs` (kept for future re-runs). It parses
+````
+
+## Corrections (2026-10-21 review round; the passages above stay verbatim)
+
+- `0x11768` `.short 0xa1ad` is **`_Gestalt`** per Universal Interfaces `Traps.h`
+  (`_Get1NamedResource` is `$A820`). The surrounding sequence (selector `'pWin'`
+  in the selector register, the response stored through a frame local, the
+  returned error tested before the response is dereferenced) is Gestalt glue.
+  `'pWin'` is therefore a Gestalt selector whose response is used as a pointer to
+  a record (byte 15 tested, word 16 copied to cinf byte 18), not a resource.
+- `0x1172e` `$A9A2` is **`_LoadResource`** (not `_DetachResource`, which is
+  `$A992`); `0x11732` `$A04A` is **`_HNoPurge`** (not `_HLock`, which is `$A029`).
+- The size compare is `0x11740`–`0x11744` (`0x1173e` pops the size result).

@@ -67,8 +67,8 @@ in `docs/spec/apple-primary-source.md`.
 
 | msg | → target | meaning |
 |---|---|---|
-| 0 (drawCntl) ✓ | `0x67fc` | draw — draw-gate byte (+16) → `0x6c28` part drawers (`$A874`/`$A95E`/`$A88B` GetPort/GetControlTitle/GetFontInfo per Traps.h; the role text "GetCIcon/CopyMask/StringWidth chain" was written under wrong names *(re-verify)* — §1.2) |
-| 1 (testCntl) ✓ | `0x6816` | hit-test — `_PtInRect` (`$A8AD`; formerly misnamed PtInRgn, *re-verify* the "face region" wording) on the face; sentinel byte (+17) `== 0xfe` returns 254 (pressed-state hit) |
+| 0 (drawCntl) ✓ | `0x67fc` | draw — `contrlVis` gate (ControlRecord +16) → `0x6c28` part drawers (`$A874`/`$A95E`/`$A88B` GetPort/GetControlTitle/GetFontInfo per Traps.h; the role text "GetCIcon/CopyMask/StringWidth chain" was written under wrong names *(re-verify)* — §1.2) |
+| 1 (testCntl) ✓ | `0x6816` | hit-test — `_PtInRect` (`$A8AD`; formerly misnamed PtInRgn, *re-verify* the "face region" wording) on the face; sentinel `contrlHilite` (+17) `== 0xfe` returns 254 (pressed-state hit) |
 | 2 (calcCRgns) ✓ | `0x686a` | calc control region — strips bit-31 sign of the param argument, falls through to `0x6872` |
 | 3 (initCntl) ✓ | `0x6910` | init — `_NewHandle` of 32 bytes (`$A122`) → ControlRecord+28 = kDEF's 32-byte aux block; writes `'Acid'` magic at +0, clears +6 / +30 (default-button flag) |
 | 4 (dispCntl) ✓ | `0x695e` | dispose — `_DisposeHandle` (`$A023`) on the aux block if the `'Acid'` magic checks out |
@@ -140,7 +140,7 @@ in `docs/spec/apple-primary-source.md`.
 |---|---|---|---|
 | `0x8d36` | **scrollbar / slider CDEF main** (second CDEF) | `-8278..-8271` etc | service-handler slot 5; 35-entry msg dispatch (matching CDEF protocol), allocates 68-byte aux block on initCntl (vs slot 0's 32). Full trace: `docs/spec/kdef-service-handlers.md` |
 | `0x66b4`-region | scrollbar drawer | `-8278..-8271` v / `-8286..-8271` h | per §2.6 (1.8.2-era); `controls.ts` uses these IDs (verified consumer-side) |
-| `0xdd22` | **GDevice-aware focus / state helper** | — | service-handler slot 2; gates draw on 3 ctSeed magics (`'CHTA'`/`'POrg'`/`'CH3D'`); no aux allocate, consumes slot 0's. Full trace: `docs/spec/kdef-service-handlers.md` |
+| `0xdd22` | **GDevice-aware focus / state helper** *(re-verify: name and the ctSeed reading rest on the former GetCTSeed trap name; `$A88F` is OSDispatch)* | — | service-handler slot 2; gates draw on 3 four-character magics (`'CHTA'`/`'POrg'`/`'CH3D'`); no aux allocate, consumes slot 0's. Full trace: `docs/spec/kdef-service-handlers.md` |
 | `0x788c`/bevel | bevel/checkbox/radio path | `-10232/-10231` mixed | hand-drawn fallback when cicn absent |
 | popup/tab | (msg-routed via `0x17452`) | `-12320` frame / `-12319` tab | §2.6 (behavioural `[DOC]`); the kDEF gates these to a loaded `'WDEF', -14336` whose code is called directly with msg-base 1008 — see `docs/spec/kdef-service-handlers.md` slot 8 |
 
@@ -852,18 +852,6 @@ example address below was checked to hold the trap word (2026-10-21, v2 lane L1)
 | `$A023` | DisposeHandle | handle release | — |
 | `$A122` | NewHandle | handle allocation (OS flag bits set) | — |
 <!-- trap-table:end -->
-
-Misnamed traps in other spec docs, left to v2 lane L2 (which owns those files
-while it moves the asm narrative out). Line numbers are as of 2026-10-21:
-
-- [`kdef-service-handlers.md`](kdef-service-handlers.md):93–94, 105–109 and 202:
-  `$A8AD` is PtInRect (not PtInRgn, also at 202), `$A874` is GetPort (not
-  GetGDevice), `$A88F` is OSDispatch (not GetCTSeed) and `$A99B` is SetResLoad
-  (not SetPort).
-- [`kdef231-recipe-walk.md`](kdef231-recipe-walk.md):190: "`StringWidth` (`$a888` …)".
-  `$A888` is TextFace; StringWidth is `$A88C`.
-- [`compositor-spec.md`](compositor-spec.md):150–151: "`StringWidth` ($A888 → …)",
-  same error.
 
 ---
 

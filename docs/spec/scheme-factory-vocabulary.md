@@ -17,13 +17,8 @@
 > Scheme Factory's strings are the **source authors derived from** — the
 > defaults the corpus paraphrases.
 >
-> Re-extract:
-> ```sh
-> curl -L https://web.archive.org/web/20020312171604/http://kaleidoscope.net/schemefactory/SchemeFactoryPR2.sea.hqx -o sf.sea.hqx
-> unar -o /tmp/scheme-factory sf.sea.hqx
-> xattr -px com.apple.ResourceFork '/tmp/scheme-factory/Scheme Factory 1.0pr2/Scheme Factory 1.0pr2' | xxd -r -p > /tmp/sf-rsrc.bin
-> node /tmp/probe-sf.mjs  # the probe script
-> ```
+> Re-extraction commands (from the archived Scheme Factory 1.0pr2 download) are
+> in the evidence appendix.
 
 ---
 

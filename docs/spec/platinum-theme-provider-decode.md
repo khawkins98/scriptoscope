@@ -47,7 +47,7 @@ the vtable resolved (§2), the cost collapses to short per-method walks.
 
 ---
 
-## 1. TOC convention — `r2 → patternData + 0x8000`
+## 1. TOC convention — the TOC base is `patternData + 0x8000`
 
 Histogram of every TOC-relative immediate in the code section:
 

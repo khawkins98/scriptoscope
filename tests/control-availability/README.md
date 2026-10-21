@@ -144,3 +144,12 @@ id-range row, the `$A9A0` role and open item 3). No case-cited address line chan
 All 27 case inputs, outcomes, payload pins and ring dispatch claims are unchanged.
 The 1.0.9 review is archived verbatim; 1.0.10 carries the independent hash-only
 review of PR #388.
+
+Inventory 1.0.11 (v2 lane L2 doc split, PR #386) refreshes only the full
+`kdef231-reference.md` document hash (`3e55c385` -> `8b289cf8`) after its assembly,
+register and stack narrative moved verbatim to
+`docs/spec/engine/kdef231-reference.evidence.md`. The `0x76c4`/`0x76d2` lines name the
+ring state bytes instead of register operands; addresses, ids and outcomes, all 27
+case inputs, payload pins and detailed source evidence are unchanged. The 1.0.10
+review is archived verbatim; the 1.0.11 label is PENDING an independent hash-only
+review.

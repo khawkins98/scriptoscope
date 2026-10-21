@@ -116,7 +116,7 @@ contrlData (the aux block) at `0xde2a..0xde4c`. (Listing detail in evidence.)
 
 **Diagnosis.** This handler is a **secondary control draw / state-update
 helper** — GDevice-aware (checks 3 specific ctSeed magics tied to ATI / 3D
-acceleration), reads the host WindowPort fields directly. The 32-byte
+acceleration) *(re-verify: "GDevice-aware" and the "ctSeed magics" rest on the former GetCTSeed/GetGDevice trap names; the traps are OSDispatch/GetPort)*, reads the host WindowPort fields directly. The 32-byte
 `'Acid'` aux block is NOT allocated here; instead it consumes one that
 slot 0 already built. This is the **embedded / Appearance-focus helper**
 for slot 0's CDEF family — likely the per-control "draw focus ring" /
@@ -279,7 +279,7 @@ The following rows are now eligible for `kdef231-reference.md §1`:
   CDEF main, 68-byte aux).
 - **§1.3 (control draw — other parts)** — add `0x8d36` as the scrollbar
   family's CDEF entry (currently only the drawer addresses `-8278..-8271`
-  are listed); add `0xdd22` as the GDevice-aware focus / state helper.
+  are listed); add `0xdd22` as the GDevice-aware focus / state helper *(re-verify: "GDevice-aware" and the "ctSeed magics" rest on the former GetCTSeed/GetGDevice trap names; the traps are OSDispatch/GetPort)*.
 - **§1.4 (window chrome)** — add a sub-section "the three wnd# gates"
   documenting that slots 3 / 4 / 8 are three parallel `GetResource('wnd#',
   -id)` routers (document / utility / popup-tab families) that hand off to
@@ -301,7 +301,7 @@ gaps surfaced by this trace:
    handle + save globals + call back from an extension" path. Period-
    faithful, but Scriptoscope ships static — likely **N/A** unless we ever
    model the Appearance-Manager callback surface.
-2. **Slot 2 (`0xdd22`) GDevice-aware focus / state helper**. The runtime
+2. **Slot 2 (`0xdd22`) GDevice-aware focus / state helper** *(re-verify: "GDevice-aware" and the "ctSeed magics" rest on the former GetCTSeed/GetGDevice trap names; the traps are OSDispatch/GetPort)*. The runtime
    doesn't render Appearance focus rings (the keyboard-focus halo around
    the active button). If we want a "focused button" demo state, this is
    the period reference — gates draw via the 3 ctSeed magics, suggesting

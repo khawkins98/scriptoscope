@@ -395,3 +395,9 @@ byte of new period-fidelity information. The decode hits diminishing
 returns past the Platinum palette pin (§4), which is the most durable
 single artefact of this pass.
 ````
+
+## 1. TOC convention heading (original)
+
+````text
+## 1. TOC convention — `r2 → patternData + 0x8000`
+````

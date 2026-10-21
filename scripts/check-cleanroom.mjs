@@ -78,7 +78,8 @@ import { fileURLToPath } from 'node:url';
 
 /**
  * Docs implementers may read (IMPLEMENTER-BRIEF "Allowed paths"); each is
- * listing-free and linted. Split docs join as their asm narrative moves to
+ * listing-free and linted. Split docs (from `docs/spec/compositor-spec.md` and
+ * the second block below) joined as their asm narrative moved to
  * docs/spec/engine/*.evidence.md.
  */
 export const ALLOWED_DOCS = [
@@ -110,6 +111,33 @@ export const ALLOWED_DOCS = [
   'docs/spec/fidelity-compatibility-contract.md',
   'docs/spec/apple-primary-source.md',
   'docs/spec/corpus-corroborated-ids.md',
+  'docs/spec/kdef231-recipe-walk.md',
+  'docs/spec/kdef-service-handlers.md',
+  'docs/spec/kdef-faithfulness-ledger.md',
+  'docs/spec/kdef-architecture.md',
+  'docs/spec/kdef182-disassembly-findings.md',
+  'docs/spec/cinf-extended-decode.md',
+  'docs/spec/platinum-controls-decode.md',
+  'docs/spec/platinum-controls-faithfulness-ledger.md',
+  'docs/spec/platinum-wdef125-decode.md',
+  'docs/spec/platinum-theme-provider-decode.md',
+  'docs/spec/apple-cdef-geometry.md',
+  'docs/spec/apple-cdef-button-geometry.md',
+  'docs/spec/apple-cdef-button-vs-our-compose.md',
+  'docs/spec/apple-drawtheme-decode.md',
+  'docs/spec/apple-appearancelib-spike.md',
+  'docs/spec/codebase-vs-primary-sources-audit.md',
+  'docs/spec/control-pattern-context.md',
+  'docs/spec/control-resolution-diagnostics.md',
+  'docs/spec/fidelity-verification-plan.md',
+  'docs/spec/resource-byte-provenance.md',
+  'docs/spec/sampled-control-bands.md',
+  'docs/spec/proxy-icon-modified-dot.md',
+  'docs/spec/scheme-factory-vocabulary.md',
+  'docs/spec/tab-body-investigation.md',
+  'docs/spec/tab-cdef8-body.md',
+  'docs/geometry-refactor-todo.md',
+  'docs/tracking/title-text-color.md',
   'docs/v2/DECISIONS.md',
   'CLAUDE.md',
   'CONTRIBUTING.md',

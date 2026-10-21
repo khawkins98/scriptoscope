@@ -929,3 +929,12 @@ init — `_NewHandle #32` (`$A122`)
    copied into cinf byte 18. Which
    component registers `'pWin'` and what the word means are not decoded.
 ````
+
+## Rows as merged by #379 (v2 `20fd70ab`; register operands restated in place, trap names kept)
+
+````text
+| 0 (drawCntl) ✓ | `0x67fc` | draw — `a0@(16)` gate → `0x6c28` part drawers (`$A874`/`$A95E`/`$A88B` GetPort/GetControlTitle/GetFontInfo per Traps.h; the role text "GetCIcon/CopyMask/StringWidth chain" was written under wrong names *(re-verify)* — §1.2) |
+| 1 (testCntl) ✓ | `0x6816` | hit-test — `_PtInRect` (`$A8AD`; formerly misnamed PtInRgn, *re-verify* the "face region" wording) on the face; sentinel `a0@(17) == 0xfe` returns `d3=254` (pressed-state hit) |
+| 14 (kControlMsgCalcBestRect) ✓ | `0x69b8` | best-fit rect — `$A874` `_GetPort` (formerly misnamed `_GetMHandle`; *re-verify*), read width/height/style from a font/title record, write Rect into `a3@`; routes through `0x65ba` for default-button cases |
+| `0x4a64` | **layout precompute** (per side) | walk source side list, classify each segment, measure title (`$A88C` StringWidth; `$A888` here is TextFace per Traps.h, *re-verify* the call order), find title anchor `d4`, sum fixed widths, set per-half stretch flags `fp@(-18)`/`fp@(-20)`, call `0x5178` ×2 (one per half); title-fits gate at `0x4f58` clears `fp@(-290)` | side index; source list `a2`/`a3`; `fp@(-2)`=title width; `fp@(-290)`=title-fits | `0x49d6`, `0x5178`, `$A888` TextFace, `$A88C` StringWidth *(names per Traps.h; re-verify)* | fills DEST side list |
+````

@@ -123,6 +123,8 @@ no-stretch fallback passes 0 (`0x5148`). So **codes 5/6 (the bezel beside
 the title) are FIXED when the title fits, and collapse to width 0 when the title
 does not fit** — they never grow. This is the precise gate, not "always fixed".
 
+The final write is `dstBorder[i] = dstBorder[i-1] + dstWidth` (`0x532e`–`0x533c`).
+
 **This is the answer to "is it a switch or a width test": it is a switch on the
 part code (jump table `0x49d6` + explicit comparison chains in `0x5178`), NOT a
 width/threshold test and NOT a per-rect flag.** Geometry/span only matters
@@ -186,7 +188,9 @@ Computed entirely in the distribution routine @ `0x5178`:
 
 - **Title text:** `0x4a64` sets the title face with `TextFace` (`$A888` @ `0x4f18`/
   `0x4f20`; one of two face values chosen at `0x4f12`), measures it with `StringWidth`
-  (`$A88C` @ `0x4f28`) and font ascent/descent, computes the title region center as
+  (`$A88C` @ `0x4f28`) and font ascent/descent *(re-verify: the ascent/descent
+  source was the former "`$A88C` GetFontInfo" reading; no `$A88B` GetFontInfo call is
+  cited inside `0x4a64`)*, computes the title region center as
   `((leftBound + rightBound)/2)` (the halving at `0x4ff8`/
   `0x501c` is a signed `/2` with rounding), then reserves the title's measured
   width centered there, pinning the two `0x5178` halves to its left/right edges

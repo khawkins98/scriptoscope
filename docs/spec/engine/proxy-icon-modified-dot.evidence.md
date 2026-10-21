@@ -119,3 +119,15 @@ find themes -name resource-roles.json -exec grep -l '"wind"' {} \;   # empty
 
 All five steps yield the results documented above.
 ````
+
+## 2.3.1 kDEF call sites heading (original)
+
+````text
+## 2.3.1 kDEF call sites (`.scratch/k231-kdef/kDEF/id-1.bin`, PowerPC)
+````
+
+## 1.8.2 absence (original)
+
+````text
+occurs in the 1.8.2 kDEF (`.scratch/k182-kdef/kDEF/id-1.bin`): **zero
+````

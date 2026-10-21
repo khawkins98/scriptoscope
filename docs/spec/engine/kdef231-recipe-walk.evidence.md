@@ -352,3 +352,10 @@ named-widget hit/draw rects, via `FUN_00005356`'s param plumbing). The 1px
 - Code **18 is a STRETCH cell** in `0x5178` (it is in `{8,11,18}`), so each p18
   link's *dst width grows* (my sim: 4px src → ~23–50px dst as the window
 ````
+
+## Title face choice at `0x4f12` (added 2026-10-21 review round)
+
+The rewritten Q4 bullet cites `0x4f12`. Verified against the raw listing: `0x4f12`
+branches between pushing face 33 (`0x4f14`, TextFace trap word at `0x4f18`) and
+face 32 (`0x4f1c`, TextFace at `0x4f20`); StringWidth (`$A88C`) follows at `0x4f28`.
+This is the only address added by the split beyond the trap-name corrections.
