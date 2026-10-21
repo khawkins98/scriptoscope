@@ -321,7 +321,8 @@ pins the per-archive composite/icon-lane partition, and predicts the 144 public
 rows: 18 archives × horizontal/vertical × normal/pressed/disabled/inactive at
 length 120, value 0.5. Public `pressed` names no part, so a pressed row may
 match any of hilite 20, 21, 22, 23 or 129. A per-archive mutation table names
-which archives each of ten wrong readings changes; the runtime's normal-tier
+which archives each of thirteen wrong readings changes, with a separate table for
+the normal rows; the runtime's normal-tier
 retry changes none (shown on a minimal fork).
 
 `range-rules.spec.mjs` runs the public `composeScrollbar` in source and built
@@ -331,7 +332,8 @@ reached the output. It checks selection only, not art or geometry. The 32
 normal rows of 16 archives match. The other 112 rows disagree with the decode
 and are pinned per class (R1 pressed/inactive track tier, R2 thumb drawn while
 disabled, R3 icon-lane arrows, R4 procedural arrows, R5 non-hit arrow boxes);
-a runtime fix must shrink those lists. Four temporary runtime mutations each
+a runtime fix must shrink those lists. The ledger records them as mismatched
+under issue #374, and the normal rows of 13 archives as verified. Four temporary runtime mutations each
 failed the source spec: normal track -8285, thumb orientation swapped, raised
 arrows swapped, and a partial R2 fix (which drops 22 rows from the list).
 

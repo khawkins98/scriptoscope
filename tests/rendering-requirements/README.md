@@ -581,9 +581,15 @@ Inventory 1.22.0 appends 54 range-control cases and changes no prior row
 for the five archives that ship scroll-bar ppats), bound to the
 `scrollbar.selection-rules` assertion where it applies. The 18 slider and 18
 progress cases carry five explicit-unknown obligations each: no 2.3.1 routine
-that selects their resources has been traced. All 365 new obligations are
-**unknown** and every closure is OPEN. The normal-row agreement and the
-recorded disagreements (R1-R5) are described in
-[range-controls.md](../../docs/spec/range-controls.md); promotions are proposed
-for independent review only. The ledger has 160 verified and 1,244 unknown
-obligations across 1,404.
+that selects their resources has been traced. After independent review
+(campaign lane I), exactly 13 `scrollbar.normal-selection` obligations are
+**verified** (1138, 1984, 1990, animals, apple-platinum-2, beos-r503,
+black-platinum, dolphin-som, evolution, floppies, monkey-paradise, platinum-8,
+windows-31); apple-lisa, crayon-os, slimes, system7-nostalgia-silver and
+windows-95 stay unknown (track ppats with an undecoded draw path; crayon-os and
+windows-95 also R4). All 18 `scrollbar.state-selection` obligations are
+**mismatched**, tracked by OPEN issue #374; a runtime fix must update them
+before the issue closes. The other 334 new obligations are unknown and every
+closure is OPEN. The classes R1-R5 are described in
+[range-controls.md](../../docs/spec/range-controls.md). The ledger has 173
+verified, 18 mismatched and 1,213 unknown obligations across 1,404.

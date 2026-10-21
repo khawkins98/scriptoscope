@@ -23,11 +23,17 @@ value +18, min +20, max +22.
 
 The record words written at 0x9f0e–0x9f38 are: +24 -10202 / +26 -10198 (left
 raised / hit), +28 -10204 / +30 -10200 (up), +32 -10201 / +34 -10197 (right),
-+36 -10203 / +38 -10199 (down). The corpus author labels agree with the tier
-reading wherever they exist (for example 1138 -8285 "Pressed Horizontal Scroll
-Bar Track/Arrows", -8287 "Horzontal Nothing To Scroll Track", -8288 "Inactive
-Horizontal Scroll Bar Track"; system7-nostalgia-silver -8286 "Normal Horizontal
-Scrollbar"), but the labels are corroboration, not the source of the rule.
++36 -10203 / +38 -10199 (down). The archives' own resource names (read from each fork;
+`docs/spec/corpus-corroborated-ids.md` carries none of the track-tier labels)
+agree with the tier reading wherever they exist: all 16 archives that name
+-8285 call it Pressed (1984 "Horizontal Scrollbar Pressed•", 1138 "Pressed
+Horizontal Scroll Bar Track/Arrows"); -8286 is Active/Normal; -8287 is Empty or
+"Nothing To Scroll" (1138 "Horzontal Nothing To Scroll Track"); -8288 is
+"Inactive" in 7 archives and "Disabled" in 9, never pressed. The double tracks
+fit the +4 variant (1138 -8281 "Pressed Horizontal Doubled Headed Scroll Bar").
+corpus-corroborated-ids.md does list cicn -10208..-10205 as "Scroll Thumbs
+Vertical/Horizontal Active/Pressed" (n=6). The labels are corroboration, not the
+source of the rule.
 
 Not decoded: the thumb rect (0xbbf4) and every other layout value, how the
 track is filled between the arrow boxes, the ppat draw path, 0xf2d6, what sets
@@ -41,7 +47,9 @@ The rule table declares, as modern policy rather than an original observation:
 `inactive` = hilite 254, min < max, the track cicn's 16px cross size as the
 control thickness (so the small path at 11px or less is never taken), the
 Gestalt('Acid') response bytes +27, +31..+34 and +36 and blob byte77 clear
-(so no double-arrow or id - 1 track variant), and a resource chain holding only the archive's own fork. Public
+(so no double-arrow or id - 1 track variant; 0xba3e–0xba6c: Acid +32 / +36
+make the 0xba0e track fill use id - 1; 0xf2d6 only sets the icon depth flag
+and fetches no resource), and a resource chain holding only the archive's own fork. Public
 `pressed` names no part, so a pressed row passes if any of hilite 20, 21, 22,
 23 or 129 predicts exactly what was drawn. The spec replaces every candidate
 cicn (-8288..-8249, -10208..-10197) and arrow icon (-10208..-10197) of the
@@ -53,11 +61,14 @@ which resources reached the output; it does not compare art.
 The runtime agrees with the decode for the normal rows of 16 archives. It
 disagrees in 112 of the 144 sampled rows (every pressed, disabled and inactive
 row, plus the crayon-os and windows-95 normal rows). `range-rules.spec.mjs` pins each
-class per archive; a runtime change must shrink these lists.
+class per archive; a runtime change must shrink these lists. The ledger records
+`scrollbar.state-selection` as mismatched for all 18 archives (issue #374).
 
 - **R1 track tier** (pressed and inactive rows, all 18 archives). The runtime
   draws pressed as -8288/-8280 and inactive as the normal -8286/-8278 (its
-  comment cites a 1.8.2-era drawer). The decode gives pressed -8285/-8277 and
+  comment attributes this map to the 1.8.2 drawer FUN_000066b4, but 1.8.2
+  0x66e2–0x6732 selects the same tiers as 2.3.1: -8288 only for part 254, -8287
+  disabled, -8285 pressed, -8286 otherwise). The decode gives pressed -8285/-8277 and
   inactive -8288/-8280.
 - **R2 thumb while disabled** (disabled and inactive rows, all 18). The runtime
   stamps the normal thumb; 0xaf08–0xaf20 draws none.
@@ -87,8 +98,8 @@ Two older statements conflict with this decode and are left for a reviewed
 follow-up (kdef231-reference.md is hash-pinned by control-availability
 evidence): §2.3 labels -8286/-8285 "inactive/active" and calls
 -10208..-10205 a slider family, and §2.4 says there is no separate
-disabled-arrow art. The `composeScrollbar` comment repeats the 1.8.2-era
-tier map. The decode above gives -8286 normal, -8285 pressed, the cicns
+disabled-arrow art. The `composeScrollbar` comment repeats a misreading of
+the 1.8.2 drawer (as do kdef231-reference §1.3's 0x66b4 row and LEARNINGS.md). The decode above gives -8286 normal, -8285 pressed, the cicns
 -10208..-10205 as scroll thumbs and the icons -10208..-10205 as disabled arrows.
 
 ## Sliders and progress bars: explicit unknowns

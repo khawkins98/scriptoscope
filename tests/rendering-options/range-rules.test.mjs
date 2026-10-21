@@ -98,12 +98,15 @@ test('decode predictions over the 144 sampled public rows', () => {
 // Plausible wrong readings. Each changes predictions in the named archives;
 // an archive absent from a list cannot discriminate that reading.
 const variants = {
-  'normal = -8285/-8277 (the 1.8.2-era "active" label)': { tier: b => (b.inactive ? 0 : b.disabled ? 1 : 3) },
+  'normal = -8285/-8277 (the runtime comment\'s "active" label)': { tier: b => (b.inactive ? 0 : b.disabled ? 1 : 3) },
   'tier map of the prior runtime (pressed -8288/-8280, inactive = normal)': { tier: b => (b.pressed && !b.disabled ? 0 : b.disabled && !b.inactive ? 1 : 2) },
   'orientation from height > width': { horizontal: ([w, h]) => h > w },
   'thumb drawn for disabled/inactive': { thumbWhenDisabled: true },
   'composite iff along-axis length >= 2 x thickness': { composite: runtimeComposite },
   'arrow icons whatever the track size': { composite: () => false },
+  'always composite': { composite: () => true },
+  'hit arrow icons at rest': { hitIconsAtRest: true },
+  'pressed thumb at rest': { pressedThumbAtRest: true },
   'disabled arrows use the raised ids': { disabledArrowIds: false },
   'inactive control draws arrows': { arrowsWhenInactive: true },
   'pressed presses every arrow and the thumb': { hitArrowOnly: false },
@@ -117,12 +120,15 @@ test('each wrong reading changes predictions per archive (mutation table), or is
   const table = Object.fromEntries(Object.entries(variants).map(([name, reading]) => [name,
     SLUGS.filter(slug => rows.some(r => r.slug === slug && sig(predict(slug, r.row, { reading })) !== sig(r.predictions)))]));
   assert.deepEqual(table, {
-    'normal = -8285/-8277 (the 1.8.2-era "active" label)': ALL,
+    'normal = -8285/-8277 (the runtime comment\'s "active" label)': ALL,
     'tier map of the prior runtime (pressed -8288/-8280, inactive = normal)': ALL,
     'orientation from height > width': ALL,
     'thumb drawn for disabled/inactive': ALL,
     'composite iff along-axis length >= 2 x thickness': ['crayon-os', 'windows-95'],
     'arrow icons whatever the track size': COMPOSITE,
+    'always composite': ICON,
+    'hit arrow icons at rest': ICON,
+    'pressed thumb at rest': ALL,
     'disabled arrows use the raised ids': ICON,
     'inactive control draws arrows': ICON,
     'pressed presses every arrow and the thumb': ALL,
@@ -133,8 +139,8 @@ test('each wrong reading changes predictions per archive (mutation table), or is
   const normal = Object.fromEntries(Object.entries(variants).map(([name, reading]) => [name,
     SLUGS.filter(slug => rows.some(r => r.slug === slug && r.row.state === 'normal' && sig(predict(slug, r.row, { reading })) !== sig(r.predictions)))]).filter(([, v]) => v.length));
   assert.deepEqual(normal, {
-    'normal = -8285/-8277 (the 1.8.2-era "active" label)': ALL, 'orientation from height > width': ALL,
-    'arrow icons whatever the track size': ['floppies'],
+    'normal = -8285/-8277 (the runtime comment\'s "active" label)': ALL, 'orientation from height > width': ALL,
+    'arrow icons whatever the track size': ['floppies'], 'always composite': ICON, 'hit arrow icons at rest': ICON, 'pressed thumb at rest': ALL,
   });
   // The along-axis discriminator changes only pressed predictions (crayon-os and
   // windows-95 ship no arrow icons); their normal-row disagreement is observed as

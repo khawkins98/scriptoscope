@@ -72,16 +72,18 @@ test('source archive, excerpt and frozen obligation digests fail closed on drift
   const changed = copy(); changed.cases[0].options.height++;
   assert.match(validateLedger(changed, { root }).errors.join('\n'), /inventory digest changed/);
 });
-test('mismatched requires a live issue even when the reviewed inventory has no mismatches', () => {
+test('mismatched requires a live issue for every tracked mismatch', () => {
   const mismatch = ledger => {
     const row = ledger.assessments.find(a => a.caseId === '1138.tab.unselected.auto.agjpqy' && a.requirementId === 'tab.full-raster-coordinates');
     row.status = 'mismatched'; row.issues = [223];
     return row;
   };
   reject(l => { mismatch(l).issues = []; }, /missing list/);
-  reject(l => { mismatch(l); }, /not OPEN/, { issueStates: new Map([[223, 'CLOSED']]) });
+  reject(l => { mismatch(l); }, /not OPEN/, { issueStates: new Map([[223, 'CLOSED'], [374, 'OPEN']]) });
+  // The 18 recorded scroll-bar state mismatches (1.22.0) fail closed if #374 closes.
+  assert.match(validateLedger(original, { root, issueStates: new Map([[374, 'CLOSED']]) }).errors.join('\n'), /scrollbar\.state-selection: tracking issue #374 is not OPEN/);
   const fixture = copy(); mismatch(fixture);
-  assert.deepEqual(validateLedger(fixture, { root, issueStates: new Map([[223, 'OPEN']]) }).errors, []);
+  assert.deepEqual(validateLedger(fixture, { root, issueStates: new Map([[223, 'OPEN'], [374, 'OPEN']]) }).errors, []);
 });
 test('issue API failure, wrong identity and pull requests never count as live issues', async () => {
   await assert.rejects(loadIssueStates([223], { fetcher: async () => ({ ok: false, status: 503 }) }), /HTTP 503/);
@@ -437,7 +439,7 @@ test('checkable source-rule extension preserves all prior 126 cases and 854 asse
  assert.deepEqual(makeReport(restore120(original)).requirementStatus.counts,{verified:153,mismatched:0,unsupported:0,unknown:886});
 });
 
-test('range-control extension preserves all prior 144 cases and 1,039 assessments and adds only unknown obligations',()=>{
+test('range-control extension preserves all prior 144 cases and 1,039 assessments; promotes 13 normal selections and records 18 state mismatches',()=>{
  const prior=at121(original);
  for(const[key,count]of Object.entries(rangeTransition.counts))assert.equal(digest(JSON.stringify(prior[key])),rangeTransition.prefixSha256[key],key+' prefix');
  assert.equal(inventoryDigest(prior),rangeTransition.inventorySha256);assert.equal(digest(JSON.stringify(prior)),rangeTransition.priorObjectSha256);
@@ -445,11 +447,20 @@ test('range-control extension preserves all prior 144 cases and 1,039 assessment
  assert.equal(cases.length,54);assert.equal(added.length,365);
  assert.deepEqual(Object.fromEntries(['scrollbar','slider','progress'].map(f=>[f,cases.filter(c=>c.family===f).length])),{scrollbar:18,slider:18,progress:18});
  assert(cases.every(c=>c.inventoryClosure.status==='open'&&c.id.endsWith('.public-rows.sampled')));
- assert(added.every(a=>a.status==='unknown'));
+ // lanes/I/REVIEW.json (head 5e10c6ab): normal-selection verified for exactly 13 archives; state-selection mismatched for all 18 under #374.
+ const thirteen=['1138','1984','1990','animals','apple-platinum-2','beos-r503','black-platinum','dolphin-som','evolution','floppies','monkey-paradise','platinum-8','windows-31'],slug=a=>a.caseId.split('.')[0];
+ const normal=a=>a.requirementId==='scrollbar.normal-selection',state=a=>a.requirementId==='scrollbar.state-selection';
+ assert.deepEqual(added.filter(a=>a.status==='verified').map(slug),thirteen);assert(added.filter(a=>a.status==='verified').every(normal));
+ assert.equal(added.filter(a=>a.status==='mismatched').length,18);assert(added.filter(a=>a.status==='mismatched').every(a=>state(a)&&JSON.stringify(a.issues)==='[374]'));
+ assert(added.every(a=>a.status!=='unknown'||(!normal(a)||!thirteen.includes(slug(a)))&&!state(a)));
+ for(const a of added.filter(a=>a.status==='verified')){
+  assert.match(a.rationale,/^Assertion scrollbar\.selection-rules: both normal rows .*Discriminated here: orientation, normal tier and normal thumb id.*archive-fork-only resource chain; original file provenance unknown\. Selection only: not art, depth, geometry or the ppat path; no native capture\. Independent review lanes\/I\/REVIEW\.json \(head 5e10c6ab/,a.caseId);
+  assert.equal(/always composite/.test(a.rationale),['apple-platinum-2','black-platinum','platinum-8'].includes(slug(a)),a.caseId);
+ }
+ for(const a of added.filter(state))assert.match(a.rationale,/^Mismatched \(issue #374\): .*R1: .*R2: .*every native reading/,a.caseId);
+ for(const s of ['crayon-os','windows-95'])assert.match(added.find(a=>normal(a)&&slug(a)===s).rationale,/R4.*ppats with the track ids/);
  // Only the five ppat-backed archives carry scrollbar.track-pattern.
- assert.deepEqual(added.filter(a=>a.requirementId==='scrollbar.track-pattern').map(a=>a.caseId.split('.')[0]),['apple-lisa','crayon-os','slimes','system7-nostalgia-silver','windows-95']);
- // Normal-row agreement is conditional; every state row records its disagreement classes.
- for(const a of added.filter(a=>a.requirementId==='scrollbar.normal-selection'&&!/^(crayon-os|windows-95)\./.test(a.caseId)))assert.match(a.rationale,/draw exactly the predicted set.*archive-fork-only resource chain; original file provenance is unknown/,a.caseId);
- for(const a of added.filter(a=>a.requirementId==='scrollbar.state-selection'))assert.match(a.rationale,/R1 .*R2 /,a.caseId);
- assert.deepEqual(makeReport(original).requirementStatus.counts,{verified:160,mismatched:0,unsupported:0,unknown:1244});
+ assert.deepEqual(added.filter(a=>a.requirementId==='scrollbar.track-pattern').map(slug),['apple-lisa','crayon-os','slimes','system7-nostalgia-silver','windows-95']);
+ assert(!JSON.stringify(original).includes('Awaiting independent review'));
+ assert.deepEqual(makeReport(original).requirementStatus.counts,{verified:173,mismatched:18,unsupported:0,unknown:1213});
 });

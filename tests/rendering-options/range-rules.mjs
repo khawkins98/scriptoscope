@@ -50,6 +50,8 @@ export const DECODE = {
   hitArrowOnly: true,                                  // 0xc764–0xc790 (20 low, 21 high)
   nonHitBoxFromNormalTier: true,                       // 0xc3cc–0xc3fe
   crossTierRetry: false,                               // 0xa06c–0xa10e
+  hitIconsAtRest: false,                               // 0xc764–0xc790: hit only for hilite 20/21
+  pressedThumbAtRest: false,                           // 0xaf24–0xaf54: pressed only for hilite 129
 };
 
 /**
@@ -84,7 +86,7 @@ export function selectScrollbar(native, census, { doubleArrows = false, reading 
   if (census.ppat?.has(recordId) || census.ppat?.has(base + tier)) unknown.push(`ppat ${recordId} present: its draw path is undecoded`);
   // Arrows, 0xc338: none at all for an inactive (byte47) control (0xc34a).
   const icons = [];
-  const arrowHit = r.hitArrowOnly ? { low: hilite === 20, high: hilite === 21 } : { low: b.pressed, high: b.pressed };
+  const arrowHit = r.hitIconsAtRest && hilite === 0 ? { low: true, high: true } : r.hitArrowOnly ? { low: hilite === 20, high: hilite === 21 } : { low: b.pressed, high: b.pressed };
   if (!b.inactive || r.arrowsWhenInactive) {
     if (composite) {
       // 0xc3cc–0xc3fe: a pressed control draws non-hit arrow boxes from id - 1
@@ -108,7 +110,7 @@ export function selectScrollbar(native, census, { doubleArrows = false, reading 
   // is undecoded and assumed non-empty at the sampled length.
   let thumb = null;
   if (!b.disabled || r.thumbWhenDisabled) {
-    const id = THUMB[orientation][hilite === 129 || (!r.hitArrowOnly && b.pressed) ? 'pressed' : 'normal'];
+    const id = THUMB[orientation][hilite === 129 || (r.pressedThumbAtRest && hilite === 0) || (!r.hitArrowOnly && b.pressed) ? 'pressed' : 'normal'];
     if (thickness <= 11 && census.cicn.has(id + SMALL_THUMB_OFFSET)) thumb = id + SMALL_THUMB_OFFSET;
     else if (census.cicn.has(id)) thumb = id;
   }
