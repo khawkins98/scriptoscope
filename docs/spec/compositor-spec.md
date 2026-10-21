@@ -47,24 +47,26 @@ Per cell, keyed PURELY on the part code (not pixel content, not width):
 | 8, 11 | **GROW** — a primary share plus rounding remainder. |
 | 13, 14 | **REMAINDER ONLY** — share the leftover pixels after whole-tile truncation; excluded from the primary divisor. |
 | 0 | **COLLAPSE** — zero width. |
-| 10 | **FLAG-GATED** (jump table `0x4a0c` returns the caller's flag): its stretch verdict (width 0) applies when title-fits is set and always on non-title sides (`#1`). We classify it FIXED, a divergence (see note and the faithfulness-ledger `0x4a0c` row). |
+| 10 | **FIXED, dropped when too short.** `0x4a0c` returns the `0x49d6` flag, which `0x5178` reads from `fp@(24)` (`0x52fc`): `0x4a64`'s too-short byte `fp@(-3)`, set only at `0x4e0e` when the side's placed extent is below its fixed-cell sum. Then the cell gets width 0. Implemented (`negotiateSides`); see note. |
 | 15, 16, 17 | collapse to zero iff the corresponding widget is PRESENT; else fixed. |
 | 2, 3, 4 | the close/zoom/shade GAP cells — fixed when widget present; collapse to zero when absent. |
 | 12 | **TILE** — primary share truncated down to a whole multiple of source width (possibly zero); the unused fraction joins the remainder pool. |
 | 18 | **SCALE** — a single scaled CopyBits (drawn once, mapped src→dst). |
 
-**code 10 note (superseded rationale):** under the corrected `0x5178` reading a
-stretch verdict means width 0, and non-title sides pass flag `#1`
-(`0x4db4`/`0x4dd4`/`0x515e`). The decode therefore collapses code-10 cells on
-untitled sides, and on titled sides whenever the title fits. The earlier "fixed
-≡ stretch" argument predates that correction. The runtime keeps code 10 FIXED
-because its band carries BAKED close/zoom art that only the unimplemented
-rect-list widget pass (`0x632e` → `0x6062`) would redraw. That pass places
-widgets through `0x5cb6`, which remaps their rects by the placed side-list
-widths. What a collapse does to widget placement is not established
-([reference §5.1](kdef231-reference.md)). This is a divergence
-(see the faithfulness-ledger `0x4a0c` row) with a failing `todo` in
-`tests/rendering-options/window-chrome-rules.test.mjs`.
+**code 10 note (2026-10-21, [kdef231-code10-widgets.md](kdef231-code10-widgets.md)):**
+`0x5178` takes two flag bytes. `fp@(24)` goes to `0x49d6` (`0x52fc`) and is
+always `0x4a64`'s too-short byte `fp@(-3)`. `fp@(26)` (the `#1` at
+`0x4db4`/`0x4dd4`, the title string length byte at `0x5100`/`0x5120`, or `0`
+at `0x5148`) only gates 5/6 (`0x530c`). The earlier "untitled sides pass `#1`"
+reading conflated the two. Per side, in the kDEF's side order (top, bottom,
+left, right): if the placed extent (template extent + content delta) is below
+`fixed0` (Σ segments 1..N that are fixed under flag 0, code 10 included), the
+side drops its code-10 cells and its title (5/6 width 0). If it is still too
+short and a shade gap is present, it also clears the shade/collapse widget for
+the remaining layout (`0x4e24..0x4e42`). Popup-family titled sides skip this
+(`0x4c64`). At or above the template size nothing changes. A dropped cell draws
+nothing, as in the kDEF (`0x5990`), so its baked collapse-box art disappears,
+but the widget's hit rect follows the cell through `0x5cb6` (below).
 
 **Widget draw:** the kDEF draws the named widgets in a SEPARATE pass over the
 rect-list (`0x632e` → `0x6062`), NOT in the recipe walk. `0x572e`'s side loop
@@ -72,11 +74,19 @@ never touches the rect-list `a4@1938`; after it, `0x5a3c` calls `0x632e` for the
 zoom part only. `0x5ffc` → `0x5ddc` is the hit-test, not a draw pass
 (corrected 2026-10-21). `0x6062`'s dst rect is the template-coordinate entry
 rect remapped by `0x5cb6` through the placed cells. In state 0 it blits the
-chrome template itself, not a widget cicn. We don't replicate that
-pass; instead the widgets ride the FIXED recipe cells they sit in (empirically
+chrome template itself, not a widget cicn. In the full draw (`0x572e`) the
+only `0x632e` call is the partial-zoom part 5 (`a4@(502) && a4@(508)`), so
+types 1-3 (close/zoom/collapse) are drawn only by the side cells there. Under
+`a4@(509)` (family 63) `0x5b7a..0x5c92` also blits rect-list types 5/6 and a
+15px corner from the template at raw rects, without `0x5cb6`. We don't
+replicate either; instead the widgets ride the FIXED recipe cells they sit in (empirically
 all corpus widgets land in code 1/2/3/4 fixed/gap cells or the fixed leading
 corner), drawn 1:1 by the edge walk. This is why the carving/stamp pass could be
-retired — it holds as long as no widget lands in a growing cell.
+retired — it holds as long as no widget lands in a growing cell. Widget HIT and
+press rects do follow `0x5cb6` (`resolveTitleWidgetRects`): on all four sides,
+segments from index 1, topLeft and botRight−1 matched separately against
+template cells (half-open), each translated by its cell's placed − template
+offset, and emptied when either corner misses.
 
 ## Draw + distribution
 

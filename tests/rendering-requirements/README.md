@@ -1,7 +1,7 @@
 # Partial rendering requirement ledger
 
 `ledger.json` is reviewed acceptance data, separate from rendering and screenshots.
-Inventory 1.23.0 declares 234 exact direct cases and seven explicit dimensions per
+Inventory 1.24.0 declares 234 exact direct cases and seven explicit dimensions per
 case. **Every case has OPEN inventory closure.** The declared obligation
 count is a finite bookkeeping denominator, not an exhaustive denominator of
 historical control behavior. No whole-control completion percentage is reported.
@@ -644,3 +644,24 @@ recorded as a probable divergence, and the rows stay unknown.
 The resource files, tab width, panes, unexposed tab states, centre fill (its
 expected colour comes from the decoder metadata the runtime also reads), original
 pattern offset and device colour remain unknown.
+
+## Code-10 too-short step (1.24.0)
+
+Inventory 1.24.0 keeps all 234 cases, every requirement and every status
+(216 verified, 18 mismatched, 1,494 unknown). It edits rows in place and appends one evidence
+row. `code10-transition.json` stores the prior `kdef.width-allocation` evidence,
+the prior `window.recipe-rules` assertion, the 13 prior `wnd#` window cases and
+their 13 prior `window.flag-gated-parts` assessments; the ledger test restores
+them (and drops the appended row) to rebuild the exact 1.23.0 ledger.
+
+[kdef231-code10-widgets.md](../../docs/spec/kdef231-code10-widgets.md) shows that
+`0x5178` hands `0x49d6` its `fp@(24)` byte, which is always `0x4a64`'s too-short
+byte (set only at `0x4e0e` when the placed extent is below the fixed-cell sum),
+not the `#1`/title byte at `fp@(26)`. The decode was independently reviewed
+(campaign lanes/K/REVIEW.json, ACCEPT-WITH-CHANGES). New evidence
+`kdef.too-short-step` cites it. The window cases gain a −12 width and height
+sample, and `window.recipe-rules` asserts code 10 fixed or dropped wherever the
+verdict is determined. The 13 `window.flag-gated-parts` rows now cite that
+evidence and assertion but stay **unknown**: codes 5/6 and the widget-gated
+codes are still not established. No promotion is applied; a narrower
+code-10-only claim may be proposed for review.

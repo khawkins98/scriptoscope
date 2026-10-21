@@ -56,7 +56,7 @@ slot 6 below.
 | 5 | `0x8d36` | **Second CDEF main** — scrollbar / slider family. Same dispatch shape as `0x6688` but allocates 68-byte aux (`moveq #68,d0; A122` at 8df6) and inits fields at +20/+22/+28/+32/+34/+38/+42/+46 (control value, min, max, page, action). Consumes the `sbap/sbae/sbar/sbax/sbgh/sbth/sbtp` FourCC family from `kdef-binary-inventory.md §5` | 68 B | 11724 | new — adds row to §1.1 / §1.3 |
 | 6 | `0x28e0` | **Master compositor dispatcher** — receives `(param, msg, handle, varCode)`, writes them to `a4@(454/458/460/464)`, dispatches on `msg - 1001` via the `0x148` indexed-table helper. msg 1000 = INIT (hit at boot); messages 1001..1009 are the per-side recipe-walk + draw entry points calling into `0x356c`/`0x3680`/`0x3f2c` etc. **This is what the inventory labelled "wnd# dispatcher"** — but the wnd# load happens in slot 3; slot 6 walks the recipe AFTER it's loaded | — | 3633 | covers §1.4 `0x3680..0x4138` block from above |
 | 7 | `0x1d3e` | **WDEF main** — 35-entry msg dispatcher at `0x1d68` (already documented in `kdef-binary-inventory.md §1`). Handles standard WDEF msgs 0..34 (wDraw, wHit, wCalcRgns, wNew, wDispose, wGrowIcon + Appearance/Carbon msgs 19/20/21/27/29/34) | — | 2627 | `kdef-binary-inventory.md §1`; row already in `kdef231-reference.md §1.4` implicitly via `0x4138/0x4176/0x41d0` |
-| 8 | `0x17452` | **wnd# → WDEF gate (popup / tab / menu family)** — `GetResource('wnd#', -12320)`; on hit loads `'WDEF', -14336`, locks the handle, calls `a3@→a0; jsr a0@` with `msg + 1008` — **period-faithful: it calls the real WDEF resource's code, not the kDEF's own renderer**. Used for the `-12320` popup-frame + `-12319` tab family from `kdef231-reference.md §2.6`. On miss → 9-entry private dispatch (`0x174e8`) | — | 30845 | new — adds row to §1.4 |
+| 8 | `0x17452` | **wnd# → WDEF gate (popup / tab / menu family)** — `GetResource('wnd#', -12320)`; on hit loads `'WDEF', -14336`, locks the handle, calls `a3@→a0; jsr a0@` with varCode `(var & 15) + 1008` (procID family 63; corrected 2026-10-21) — **period-faithful: it calls the real WDEF resource's code, not the kDEF's own renderer**. Used for the `-12320` popup-frame + `-12319` tab family from `kdef231-reference.md §2.6`. On miss → 9-entry private dispatch (`0x174e8`) | — | 30845 | new — adds row to §1.4 |
 
 ## Per-slot traces (first ~50 instructions)
 
@@ -287,7 +287,7 @@ into slot 6 (master compositor) for the themed paths and to `0x28d2`
 17482: movew #-14336,sp@-    ; load doc-window WDEF as the carrier
 17486: A9A0; moveal sp@+,a3
 1748e: tstl a3@; 17490..1749a: A069 / A029 lock/unlock
-1749e: movew d5,d0; addiw #1008,d0    ; MESSAGE BASE = 1008
+1749e: movew d5,d0; addiw #1008,d0    ; varCode = (fp@(18) & 15) + 1008 (family 63)
 174a4..174b6: pea params → movel a3@,d0; A055 — _HLock; jsr a0@
                             ↑ CALLS THE LOADED WDEF RESOURCE'S OWN CODE
 174bc: A06A                  ; _HUnlock
@@ -296,7 +296,12 @@ into slot 6 (master compositor) for the themed paths and to `0x28d2`
 
 **Diagnosis.** **Period-faithful trick**: for popup/tab windows, the kDEF
 loads a `'WDEF'` resource and then *jumps to it directly* (`jsr a0@` on
-the dereferenced handle), passing message-base 1008. This is how
+the dereferenced handle), passing varCode `(var & 15) + 1008` — not a message base: the push order
+(`0x174a4` varCode, `0x174a6` window, `0x174a8` message, `0x174ac` param) makes
+it the WDEF variation code, so the kDEF sees procID family 63 and sets
+`a4@(509)` (`0x3210`; corrected 2026-10-21, lane K PR #377 review). That WDEF
+-14336 forwards the varCode unchanged into `0x28e0` is inferred, not shown in
+this listing. This is how
 Kaleidoscope's popup/tab theming defers to a "trampoline" WDEF that knows
 the popup geometry while inheriting the cicn art from the scheme. The
 `-12320` popup-frame / `-12319` tab cicn ids in `kdef231-reference.md §2.6`

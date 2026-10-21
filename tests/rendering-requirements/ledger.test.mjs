@@ -9,7 +9,20 @@ import { collectObservations } from './observations.mjs';
 import { fileURLToPath } from 'node:url';
 import { validateLedger, inventoryDigest, makeReport, loadIssueStates, digest } from './ledger.mjs';
 const root = fileURLToPath(new URL('../../', import.meta.url));
-const current = JSON.parse(readFileSync(new URL('./ledger.json', import.meta.url)));
+const file = JSON.parse(readFileSync(new URL('./ledger.json', import.meta.url)));
+// 1.24.0 (code 10) edits one evidence row, one assertion, 13 window cases and 13
+// assessments in place and appends one evidence row. Restore them to get the exact
+// 1.23.0 ledger that every older transition below reads.
+const code10 = JSON.parse(readFileSync(new URL('./code10-transition.json', import.meta.url)));
+function restore123(ledger) {
+  const prior = structuredClone(ledger); prior.evidence = prior.evidence.slice(0, code10.counts.evidence);
+  for (const row of code10.priorEvidence) prior.evidence[prior.evidence.findIndex(e => e.id === row.id)] = row;
+  for (const row of code10.priorAssertions) prior.assertions[prior.assertions.findIndex(a => a.id === row.id)] = row;
+  for (const row of code10.priorCases) prior.cases[prior.cases.findIndex(c => c.id === row.id)] = row;
+  for (const row of code10.priorAssessments) prior.assessments[prior.assessments.findIndex(a => a.caseId === row.caseId && a.requirementId === row.requirementId)] = row;
+  return Object.assign(prior, { inventoryVersion: code10.inventoryVersion, inventorySha256: code10.inventorySha256, scope: code10.scope });
+}
+const current = restore123(file);
 // Later append-only extensions are cut off here, so the tests below keep reading the
 // exact 1.22.0 inventory they pin; each extension tests its own suffix at the end.
 const tabHeader = JSON.parse(readFileSync(new URL('./tab-header-rules-transition.json', import.meta.url)));
@@ -28,7 +41,14 @@ for (const [field, prior] of [['assessments', transition.priorAssessment], ['ass
   const index = historicalHeaderLedger[field].findIndex(row => prior.id ? row.id === prior.id : row.caseId === prior.caseId && row.requirementId === prior.requirementId);
   historicalHeaderLedger[field][index] = prior;
 }
-const copy = () => structuredClone(original);
+// Validation reads the repository documents, which now carry the 1.24.0 decode
+// corrections, so it checks the same 1.22.0 slice of the actual file (digest recomputed).
+const validatable = structuredClone(file);
+for (const [key, count] of Object.entries(tabHeader.counts)) validatable[key] = validatable[key].slice(0, count);
+validatable.evidence.push(...file.evidence.slice(code10.counts.evidence)); // kdef.too-short-step, cited by the edited rows
+Object.assign(validatable, { inventoryVersion: tabHeader.inventoryVersion, scope: tabHeader.scope });
+validatable.inventorySha256 = inventoryDigest(validatable);
+const copy = () => structuredClone(validatable);
 test('sampled-header transition preserves the complete prior ledger and changes one assessment only', () => {
   assert.equal(digest(JSON.stringify(historicalHeaderLedger, null, 2) + '\n'), transition.priorLedgerSha256);
   const changed = priorMixedLedger.assessments.filter((row, i) => JSON.stringify(row) !== JSON.stringify(historicalHeaderLedger.assessments[i]));
@@ -41,7 +61,7 @@ function reject(change, pattern, options = {}) {
   assert.match(validateLedger(ledger, { root, ...options }).errors.join('\n'), pattern);
 }
 test('reviewed inventory validates and all open cases remain uncertified', () => {
-  assert.deepEqual(validateLedger(original, { root }).errors, []);
+  assert.deepEqual(validateLedger(validatable, { root }).errors, []);
   const report = makeReport(original);
   assert.equal(report.cases.length, 198);
   assert.equal(report.requirementStatus.denominator, original.assessments.length);
@@ -87,7 +107,7 @@ test('mismatched requires a live issue for every tracked mismatch', () => {
   reject(l => { mismatch(l).issues = []; }, /missing list/);
   reject(l => { mismatch(l); }, /not OPEN/, { issueStates: new Map([[223, 'CLOSED'], [374, 'OPEN']]) });
   // The 18 recorded scroll-bar state mismatches (1.22.0) fail closed if #374 closes.
-  assert.match(validateLedger(original, { root, issueStates: new Map([[374, 'CLOSED']]) }).errors.join('\n'), /scrollbar\.state-selection: tracking issue #374 is not OPEN/);
+  assert.match(validateLedger(validatable, { root, issueStates: new Map([[374, 'CLOSED']]) }).errors.join('\n'), /scrollbar\.state-selection: tracking issue #374 is not OPEN/);
   const fixture = copy(); mismatch(fixture);
   assert.deepEqual(validateLedger(fixture, { root, issueStates: new Map([[223, 'OPEN'], [374, 'OPEN']]) }).errors, []);
 });
@@ -166,7 +186,7 @@ test('evidence from a wholly unrelated archive or synthetic input cannot support
   }
 });
 test('engine-wide rules and combined source-art evidence retain their bounded valid uses', () => {
-  const result = validateLedger(original, { root });
+  const result = validateLedger(validatable, { root });
   assert.deepEqual(result.errors, []); assert.equal(result.declaredCount, 1404);
   assert.deepEqual(original.evidence.find(e => e.id === 'kdef.square-corners').inputs, ['engine.kaleidoscope-2.3.1-kdef0']);
   const shared = original.evidence.find(e => e.id === 'art.tab-crop');
@@ -203,7 +223,7 @@ test('new text and pattern claims fail if executable annotations or exact case s
   for (const id of ids) {
     const assertion = original.assertions.find(a => a.id === id);
     assert(assertion);
-    const errors = validateLedger(original, { root, read: path => {
+    const errors = validateLedger(validatable, { root, read: path => {
       const bytes = readFileSync(path);
       return path.endsWith(assertion.path) ? Buffer.from(bytes.toString().replaceAll(assertion.marker, 'removed annotation')) : bytes;
     } }).errors;
@@ -240,7 +260,7 @@ test('1.3.0 preserves all eighteen cases and150 assessments and keeps new scope 
 test('registered header/band declarations cannot lose exact executable scope or borrow unrelated art', () => {
   for(const id of ['header.whole-surface-literal','header.sampling-admission-policy','band.sampled-line-color-literal']){
     const a=original.assertions.find(a=>a.id===id);assert(a);
-    const errors=validateLedger(original,{root,read:path=>{const b=readFileSync(path);return path.endsWith(a.path)?Buffer.from(b.toString().replaceAll(a.marker,'removed')):b;}}).errors;
+    const errors=validateLedger(validatable,{root,read:path=>{const b=readFileSync(path);return path.endsWith(a.path)?Buffer.from(b.toString().replaceAll(a.marker,'removed')):b;}}).errors;
     assert.match(errors.join('\n'),/executable assertion marker missing/);
     if(id!=='header.sampling-admission-policy')reject(l=>{l.assertions.find(a=>a.id===id).caseIds=[l.cases[0].id];},/assertion does not cover exact case/);
   }
@@ -473,7 +493,7 @@ test('range-control extension preserves all prior 144 cases and 1,039 assessment
 test('tab/header source-rule extension preserves the exact 1.22.0 ledger and verifies exactly the 43 reviewed obligations',()=>{
  for(const[key,count]of Object.entries(tabHeader.counts))assert.equal(digest(JSON.stringify(current[key].slice(0,count))),tabHeader.prefixSha256[key],key+' prefix');
  assert.equal(digest(JSON.stringify(original)),tabHeader.priorObjectSha256);assert.equal(inventoryDigest(original),tabHeader.inventorySha256);
- assert.deepEqual(validateLedger(current,{root}).errors,[]);
+ assert.deepEqual(validateLedger(file,{root}).errors,[]);
  const cases=current.cases.slice(tabHeader.counts.cases),added=current.assessments.slice(tabHeader.counts.assessments);
  assert.equal(cases.length,36);assert.equal(added.length,324);
  assert.deepEqual([...new Set(cases.map(c=>c.family))],['tab','header-surface']);
@@ -497,4 +517,20 @@ test('tab/header source-rule extension preserves the exact 1.22.0 ledger and ver
  for(const slug of ['1990','apple-lisa','windows-31','windows-95'])assert.match(added.find(a=>a.caseId===`${slug}.tab.public-rows.sampled`&&a.requirementId==='tab.state-selection').rationale,/selection-non-discriminating/);
  assert.deepEqual(makeReport(current).requirementStatus.counts,{verified:216,mismatched:18,unsupported:0,unknown:1494});
  assert.equal(makeReport(current).cases.length,234);
+});
+
+test('code-10 1.24.0 restores the exact 1.23.0 ledger and changes no status', () => {
+  assert.equal(digest(JSON.stringify(current)), code10.priorObjectSha256); assert.equal(inventoryDigest(current), code10.inventorySha256);
+  assert.deepEqual(validateLedger(file, { root }).errors, []);
+  assert.deepEqual(current.requirements, file.requirements);
+  assert.deepEqual(file.evidence.filter((e, i) => JSON.stringify(e) !== JSON.stringify(current.evidence[i])).map(e => e.id), ['kdef.width-allocation', 'kdef.too-short-step']);
+  assert.deepEqual(file.assertions.filter((a, i) => JSON.stringify(a) !== JSON.stringify(current.assertions[i])).map(a => a.id), ['window.recipe-rules']);
+  const changed = file.assessments.filter((a, i) => JSON.stringify(a) !== JSON.stringify(current.assessments[i]));
+  assert.equal(changed.length, 13);
+  assert(changed.every((a, i) => a.requirementId === 'window.flag-gated-parts' && a.status === 'unknown' && code10.priorAssessments[i].status === 'unknown'));
+  assert(changed.every(a => a.evidence.join() === 'kdef.too-short-step' && a.assertions.join() === 'window.recipe-rules'));
+  const cases = file.cases.filter((c, i) => JSON.stringify(c) !== JSON.stringify(current.cases[i]));
+  assert.equal(cases.length, 13); assert(cases.every(c => c.family === 'window-chrome' && c.options.widthOffsets[0] === -12 && c.options.heightOffsets[0] === -12));
+  assert.deepEqual(makeReport(file).requirementStatus.counts, makeReport(current).requirementStatus.counts);
+  assert.deepEqual(makeReport(file).requirementStatus.counts, { verified: 216, mismatched: 18, unsupported: 0, unknown: 1494 });
 });
