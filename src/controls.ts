@@ -17,7 +17,7 @@ import { planHeaderSurface, headerMetadataRejection, headerBackground, paintHead
 import { withControlDiagnostics, type ControlDiagnostics, type ControlTraceCollector, type ControlResolutionStep, type LegacyFacePaint } from './controlDiagnostics.js';
 
 /** 9-slice corner inset for a control cicn — matches the kDEF's ~6px for
- *  a 15px button face (FUN_30a8): floor((min(w,h)-3)/2). */
+ *  a 15px button face (kDEF routine `0x30a8`): floor((min(w,h)-3)/2). */
 function sliceInset(w: number, h: number): number {
   return Math.max(2, Math.floor((Math.min(w, h) - 3) / 2));
 }
@@ -449,7 +449,7 @@ export async function composeScrollbar(
   const horiz = orientation === 'horizontal';
 
   // Track cicn by RESOURCE ID. The state→id mapping is taken from the kDEF
-  // scrollbar drawer (decompiled FUN_000066b4), which is authoritative — the
+  // scrollbar drawer (1.8.2 routine `0x66b4`), which is authoritative — the
   // bundle slugs mislabel these (e.g. -8287 "empty" is the kDEF's disabled,
   // -8288 "disabled" is actually pressed):
   //   horizontal: active -8285 / inactive -8286 / disabled -8287 / pressed -8288
@@ -470,7 +470,7 @@ export async function composeScrollbar(
   //
   // The normal/pressed id split is UNIVERSAL — it is NOT stored per scheme (the
   // scheme resource forks carry no CDEF/control template, only art). It is hardcoded
-  // in Kaleidoscope's shared CDEF, decoded at kDEF231_0.asm:9f0e-9f38, which writes
+  // in Kaleidoscope's shared CDEF, decoded at kDEF 2.3.1 `0x9f0e-0x9f38`, which writes
   // BOTH ids per direction into the control record and selects at draw time by
   // contrlHilite — the PRESSED id for the one arrow under the mouse, the RAISED id
   // for the rest; a disabled control draws the RAISED art dimmed (there is no
@@ -1613,7 +1613,7 @@ async function composeControlBorder(resolved: ResolvedControlFace, width: number
 
 /**
  * Compose a THEMED push button (docs/spec/kdef231-reference.md §1.2 / §2.2,
- * FUN_30a8 — Platinum fallback: docs/kaleidoscope-asset-catalog.md §6.1): compose the
+ * kDEF `0x30a8` — Platinum fallback: docs/kaleidoscope-asset-catalog.md §6.1): compose the
  * push-button face (-10239 active / -10238 pressed / -10240 inactive) into the
  * button rect; for the default button wrap the shipped ring (-10231/-10232) around
  * it. Returns null if the scheme ships no push-button cicn (→ baselineButton).

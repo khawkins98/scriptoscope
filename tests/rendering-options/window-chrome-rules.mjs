@@ -9,9 +9,9 @@
 
 const int16 = v => ((v & 0xffff) << 16) >> 16;
 
-// docs/spec/kdef231-reference.md §3.4.1: `GetResource('wnd#', d3 & MASK)` at
+// docs/spec/kdef231-reference.md §3.4.1: `GetResource('wnd#', id & MASK)` at
 // 0x3574, 0x358c, 0x35a4, 0x35bc, 0x35d4, 0x35ec, 0x3604, 0x361c, 0x3634,
-// 0x364c, 0x3664, 0x367c; the first non-null handle wins (`bnes` skips the rest).
+// 0x364c, 0x3664, 0x367c; the first non-null handle wins (the rest are skipped).
 export const WND_LADDER = [0xffff, 0xfffe, 0xfffd, 0xfffc, 0xfffb, 0xfffa, 0xfff1, 0xfff0, 0xffef, 0xffee, 0xffeb, 0xffea];
 // The canonical id grid of the same section's landing table.
 export const CANONICAL_WND = {
@@ -29,8 +29,8 @@ export function ladderSelection(id, present) {
 
 // Width class of a recipe cell under the caller flag = 1 (title fits, or a
 // side without a title anchor: `#1` at 0x4db4/0x4dd4/0x515e).
-//   fixed     0x49d6 default → 0x4a5e `moveq #0`; 0x531e..0x532a dst = src
-//   zero      0x49d6 code 0 → 0x4a12 `moveq #1`; 0x5306 leaves width 0
+//   fixed     0x49d6 default → verdict 0 (0x4a5e); 0x531e..0x532a dst = src
+//   zero      0x49d6 code 0 → verdict 1 (0x4a12); 0x5306 leaves width 0
 //   primary   0x529e..0x52d6 (8/11/18) share + remainder
 //   tile      0x5266..0x5292 (12) whole source widths
 //   remainder 0x52da..0x52f8 (13/14) remainder only
@@ -131,7 +131,7 @@ export function checkComposition({ cicn, windowType, composed }) {
     });
     // Halves: split at the run of codes 5/6. This is the RUNTIME's
     // partitioning (distributeSide tLo/tHi), not the decode's code-5 anchor
-    // d4 split; the 5/6 cells themselves are never asserted. A side without
+    // split; the 5/6 cells themselves are never asserted. A side without
     // one is a single half of the full output extent.
     const titled = cells.map((c, i) => [5, 6].includes(c.code) && i > 0 ? i : -1).filter(i => i >= 0);
     const halves = titled.length ? [[0, titled[0]], [titled.at(-1) + 1, cells.length]] : [[0, cells.length]];

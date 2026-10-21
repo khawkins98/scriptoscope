@@ -800,7 +800,7 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
   if (loadingEl && wantsAffordance) {
     loadingEl.setAttribute(SCRIPTOSCOPE_LOADING_ATTR, '');
     // Silent-fail defense (a11y reviewer 2026-05-30): if the consumer
-    // opted into the affordance but didn't link scriptoscope.css, the
+    // opted into the affordance but didn't load scriptoscope.css, the
     // attribute does nothing and the visible effect is invisible to
     // everyone — most insidiously to the developer who set the option,
     // because the page LOOKS the same as before. Probe a custom property

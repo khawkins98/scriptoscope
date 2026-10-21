@@ -3,8 +3,8 @@
 *The implemented chrome model (the spec). For the "how does it work" tour, see [`kdef-architecture.md`](./kdef-architecture.md); for binary lookups, [`kdef231-reference.md`](./kdef231-reference.md).*
 
 This is the canonical artifact for (re)building `src/composeChrome.ts`. It
-consolidates the Kaleidoscope **2.3.1** kDEF decode (`kdef231-recipe-walk.md`,
-decoded from `kDEF231_0.asm`) PLUS the gaps we found while implementing it. The
+consolidates the Kaleidoscope **2.3.1** kDEF decode (`kdef231-recipe-walk.md`)
+PLUS the gaps we found while implementing it. The
 schemes are **K2 / 2.x format** (they ship `wnd#` recipes + `cinf`); the 2.3.1
 kDEF is the engine that draws them. Earlier 1.8.2 material is historical.
 
@@ -68,7 +68,7 @@ widths. What a collapse does to widget placement is not established
 
 **Widget draw:** the kDEF draws the named widgets in a SEPARATE pass over the
 rect-list (`0x632e` → `0x6062`), NOT in the recipe walk. `0x572e`'s side loop
-never touches the rect-list `a4@1938`; after it, `0x5a3c` calls `0x632e` for the
+never reads the wnd# rect-list; after it, `0x5a3c` calls `0x632e` for the
 zoom part only. `0x5ffc` → `0x5ddc` is the hit-test, not a draw pass
 (corrected 2026-10-21). `0x6062`'s dst rect is the template-coordinate entry
 rect remapped by `0x5cb6` through the placed cells. In state 0 it blits the
@@ -116,10 +116,11 @@ retired — it holds as long as no widget lands in a growing cell.
   cell across the dst (`kdef231-recipe-walk.md` Q5) — there is no scaled CopyBits
   for ordinary fills, and `cinf.tileSides` does NOT gate it. Only code 18
   (`0x10320`) is a single scaled blit. A 1px src band ⇒ a uniform fill.
-  Tiling runs along the side. The caller's direction byte
-  `(pc==11||pc==14)?0:1` sets the anchor: codes 11/14 tile from the far end
-  (right/bottom), so their partial tile sits at the near end. Every other code
-  tiles from the start ([reference §5.1](kdef231-reference.md)).
+  Tiling runs along the side. The caller passes a direction byte that sets
+  the anchor: 0 for codes 11 and 14, 1 for every other code. Codes 11/14 tile
+  from the far end (right/bottom), so their partial tile sits at the near end.
+  Every other code tiles from the start (behaviour and formula:
+  [`engine/qd-primitives.md`](engine/qd-primitives.md) §4 tile blit).
   (Correction: an earlier draft of this spec said tileSides selects tile-vs-
   stretch; the 2.3.1 decode shows the blit is unconditional tiling.)
 - **Widgets ride the FIXED cells (no carving):** the close/zoom/shade widgets are
@@ -148,7 +149,7 @@ guarded by the `title` rule in `lint:themes`.
 
 The **title PLATE** (the "pill" behind the text) is the chrome side of the same
 mechanism, decoded at kDEF `0x4a64`: the kDEF measures the title via `StringWidth`
-($A888 → `fp@(-2)`), gates it (title-fits at `0x4f58`), then sizes the title-
+($A888), gates it (title-fits at `0x4f58`), then sizes the title-
 anchor cell's DEST span to that **measured title-text width**, centred (`0x5034`;
 the `/2` at `0x4ff8`/`0x501c`). That anchor cell is **code 5** — flanked by
 code-6 bezels (`0x4f74`/`0x4f90`) — and its src (a 1px pill column in 1138) is
@@ -210,9 +211,12 @@ Open:
 ## References
 - `kdef231-recipe-walk.md` — the full part-code / draw decode, from the
   Kaleidoscope **2.3.1** kDEF (the engine our K2 schemes use). The source of
-  truth behind this spec. (The decompiled asm itself — `/tmp/kaleido-trace/
-  kDEF231_0.asm` — is the ground truth; this doc + the recipe-walk are summaries,
-  so verify against the asm when they disagree with a reference render.)
+  truth behind this spec. This doc and the recipe-walk summarise the listing.
+  When they disagree with a reference render, a spec writer or verifier
+  re-checks the listing and corrects this spec; implementers file a spec
+  question instead ([implementer brief](engine/IMPLEMENTER-BRIEF.md)). Listing
+  provenance: [`engine/compositor-spec.evidence.md`](engine/compositor-spec.evidence.md)
+  (spec writers and verifiers only).
 - `diagnostic-tooling.md` — the in-browser slice inspector + the
   `diag:render` / `diag:audit` CLIs for validating against the reference images.
 

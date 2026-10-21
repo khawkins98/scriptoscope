@@ -40,7 +40,7 @@ export const RESIZE_BEHAVIOR_LABELS = /** @type {const} */ ([
  */
 export function resizeBehavior(tileSides, patternAnchor) {
   // Normalize only the compatibility label; retain raw bytes in decodeCinf.
-  const ts = tileSides ? 1 : 0;                       // byte[2] is a boolean per `tstb` at 0x10bc6 et al.
+  const ts = tileSides ? 1 : 0;                       // byte[2] is a boolean (byte test at 0x10bc6 et al.)
   if (patternAnchor === 5) return /** @type {const} */ ('bg-pattern');
   // Default branch (case 0 or ≥6): origin anchor.
   const pa = (patternAnchor >= 0 && patternAnchor <= 4) ? patternAnchor : 0;

@@ -239,7 +239,7 @@ export interface ChromeElement {
    * null means no catalog binding was selected. This is compatibility policy,
    * separate from the actual paint trace and original Resource Manager lookup. */
   bodyPattern?: string | null;
-  /** Legacy same-manifest pattern-catalog link derived from nonzero cinf ID.
+  /** Legacy same-manifest pattern-catalog reference derived from nonzero cinf ID.
    * It does not encode the original mode-dependent resource type or lookup scope.
    * See bodyRequest for the raw request, including zero. */
   bgPattern?: string | null;
