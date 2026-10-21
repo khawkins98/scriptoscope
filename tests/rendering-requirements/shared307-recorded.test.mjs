@@ -1,11 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
+import {readOriginal} from '../helpers/compact-json.mjs';
 import {createHash} from 'node:crypto';
 import {prepareDisplayProfile} from '../../tools/theme-loader/display-profile.js';
 import {RECORDED_CASES,STATE_SOURCE_PINS} from './recorded-face.mjs';
 import {inventoryDigest,makeReport} from './ledger.mjs';
-const read=path=>readFileSync(new URL('../../'+path,import.meta.url));
+// Original bound bytes: compact files decode exactly; removed duplicates follow their declared alias.
+const read=path=>readOriginal(path);
 const json=path=>JSON.parse(read(path));
 const hash=data=>createHash('sha256').update(data).digest('hex');
 const registry=Object.entries(RECORDED_CASES).filter(([,e])=>e.caseSuffix==='shared307');

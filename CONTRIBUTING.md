@@ -184,6 +184,9 @@ feat(api)!: rename ScriptoscopeWindow constructor option `theme` to `themeId`
   across compatible themes and states, with explicit per-case inputs and conditions.
   Prepare independent source, fixture and comparison work in parallel where useful;
   serialize access to shared media, native runs and other locked resources.
+- **Commit evidence compactly.** Commit only what checks read, in one copy, using
+  the [compact evidence format](./tests/reference-captures/README.md#compact-evidence-format-compact-json-v1).
+  Keep unread raw native evidence in the private asset store, referenced by sha256.
 - **Consolidate the preboot gate.** Review the frozen source, compiled packages,
   copied media and host protocol together before execution. Carry approved inputs
   forward; reopen the affected review for material changes or unresolved findings,
