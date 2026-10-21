@@ -2,7 +2,7 @@
 // See tests/reference-captures/README.md "Compact evidence format".
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, realpathSync } from 'node:fs';
-import { isAbsolute, relative, resolve } from 'node:path';
+import { basename, dirname, isAbsolute, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export const REPOSITORY_ROOT = fileURLToPath(new URL('../../', import.meta.url));
@@ -75,6 +75,15 @@ export function originalBytes(bytes, store = compactStore()) {
 /** A removed duplicate: path → single retained repository copy with the same original identity. */
 export function aliasFor(repoPath, store = compactStore()) { return store.byAlias.get(repoPath); }
 
+// Resolve symlinks in the deepest existing ancestor of a (possibly removed) path, so a
+// repository reached through a symlinked path still maps onto its declared aliases.
+function realLexical(path) {
+  const missing = [];
+  let existing = path;
+  while (!existsSync(existing)) { missing.unshift(basename(existing)); const up = dirname(existing); if (up === existing) return path; existing = up; }
+  return resolve(realpathSync(existing), ...missing);
+}
+
 /**
  * Read the original bytes of a repository file, following a declared alias when
  * the duplicate path was removed. Paths outside the repository are read as-is.
@@ -82,7 +91,7 @@ export function aliasFor(repoPath, store = compactStore()) { return store.byAlia
 export function readOriginal(file, { root = REPOSITORY_ROOT } = {}) {
   const absolute = resolve(root, file);
   if (existsSync(absolute)) return originalBytes(readFileSync(absolute));
-  const rel = relative(realpathSync(REPOSITORY_ROOT), absolute);
+  const rel = relative(realpathSync(REPOSITORY_ROOT), realLexical(absolute));
   const alias = !rel.startsWith('..') && !isAbsolute(rel) ? aliasFor(rel) : undefined;
   if (!alias) return readFileSync(absolute); // preserve the ordinary ENOENT failure
   const bytes = originalBytes(readFileSync(resolve(REPOSITORY_ROOT, alias.target)));
