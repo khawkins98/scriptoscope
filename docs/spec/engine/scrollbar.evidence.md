@@ -25,7 +25,7 @@ maskBMap at +50. "blkNN" = byte/word at blk+NN.
 | `0x997e..0x99c8` | `linkw #-78`; builds blk (handle, `*h`, msg, param) at fp-78; `bsrl 0x9d84` (state) at `0x99bc`; `bsrl 0x148` dispatch at `0x99c8` | |
 | `0x99ce..0x9a12` | switch table: default `0x0214`→`0x9be2`, range 0..0x80, 15 entries: 0→`0x9a12`(`0xa2b6`), 1→`0x9a26`(`0xa506`, then `0x1c46`), 2→`0x9a4c`(`0xa1fe`), 3→`0x9a60`(`0xa1ce`), 4→`0x9a70`(`0xa1e8`), 5→`0x9a80`(`0x1c16`,`0xa678`), 6→`0x9ab0`(`0xa808`), 10→`0x9ac4`(`0xa248`), 11→`0x9ad8`(`0xa26e`), 13→`0x9b1a`(`0xbf5c`), 19→`0x9af6`, 26→`0x9b2e`(`0x9c06`), 27→`0x9aec` (`movel #0x206f6b20` = `' ok '`), 34→`0x9b42`, 128→`0x9a9c`(`0xbcf0`). Offsets are relative to each offset word (helper `0x148`: `addaw %a0@,%a0; jmp`) | |
 | `0x9af6..0x9b16` | getFeatures: `btst #1,%fp@(19)` → 0x400; `oriw #1`; `oril #0x2000` | |
-| `0x9b42..0x9be0` | msg 34: switch on part word (20,21,22,23,129): 20/21 by sub-index → `sbap`/`sbae`/`sbax`/`sbar` (`0x9b80..0x9ba4`); 22/23 → `sbtp` (`0x9bb2`); 129 → `sbth` if varCode bit 1 else `sbgh` (`0x9bc6..0x9bda`) | |
+| `0x9b42..0x9be0` | msg 34: switch on part word (20,21,22,23,129): 20/21 by sub-index 1..4 → `sbap`/`sbae`/`sbax`/`sbar` (`0x9b80..0x9ba4`); 22/23 → `sbtp` only for sub-index 1 (`0x9ba8..0x9bb2`); 129 → `sbth` if varCode bit 1 else `sbgh`, only for sub-index 5 (`0x9bbc..0x9bda`) | |
 | `0x9be2..0x9be6` | every message ends with `bsrl 0xa196` (dispose blk58 region, blk62 cicn `$AA25`, blk68 ppat `$AA08`) | |
 | `0x9d84` callers | only `0x99bc` (grep `0x9d84`) | |
 | `0x8d36..0x991e` | slot 5 body: msg-1 handler `0x8da4..0x8dda` returns 254 or `moveq #10` (part 10); msg 34 `0x98ca..0x990a` writes `'bevp'` (0x62657670) and patches its last byte to `e`/`x`/`r`. No call to `0x9d84`, `0xa2b6`, `0xaed6`, `0xc338` from this range (grep of `bsrl`/`jsr` targets) | |
@@ -74,7 +74,7 @@ Helpers:
 | `0xadfe..0xae1c` | `(right−left) > (bottom−top)` `sgt` | |
 | `0xbc92..0xbcc4` | blk21 ? bottom−top : right−left of contrlRect | |
 | `0xada2..0xadfc` | hilite `cmpib #-2` `bcss` else 1; blk76 → `0x996c` (reads +20) vs `0x995a` (reads +22), equal → 1; else `cmpw` +20/+22 equal → 1; else 0 | |
-| `0x9938`, `0x995a`, `0x996c` | `moveaw` of ControlRecord +18 / +22 / +20 (sign-extended 16-bit) | |
+| `0x9938`, `0x995a`, `0x996c` | `moveaw` of ControlRecord +18 / +22 / +20 (sign-extended 16-bit). Without blk76 the proportional path `0xac8e..0xaca4` forms max−min with `subw` (16-bit, wraps above 32767) before `extl` | |
 | `0xbcc6..0xbcee` | CurResFile; UseResFile(blk40) unless -1; returns old | |
 
 ## E2. Draw `0xa2b6..0xa502`
@@ -177,7 +177,7 @@ Start = contrlRect. blk47 → unchanged. d3 = blk18 ? 2·blk22 − 2 : blk22 −
 | `0xba1e..0xba30` | rect empty → exit | TF5 | |
 | `0xba34..0xba3a` | d7 = 0; d3 = blk62 cicn; d4 = blk68 ppat | | |
 | `0xba3e..0xba6c` | blk74, or (blk75 and !arg flag `fp@(16)`): d7 = 1; d3 = GetCIcon(blk66 − 1); d4 = GetPixPat(blk66 − 1) — replaces both, no fallback | TF3 | |
-| `0xba6e..0xba8a` | GetPort; `a4@(3440)` (set at `0x1c90..0x1ca4` = Gestalt `'ATIr'` exists) → offscreen only if d4 and port picSave (+92) | | |
+| `0xba6e..0xba8a` | GetPort; `a4@(3440)` (set at `0x1c90..0x1ca4` = Gestalt `'ATIr'` exists). Clear → `beqs 0xba8c`: offscreen always attempted. Set → offscreen only if d4 (ppat) non-nil and port picSave (+92) non-nil, else skip to `0xbb16` drawing into the port | | |
 | `0xba8c..0xbb12` | `$AA32` device; NewGWorld (`$AB1D` 0x00160000) depth = device pixmap pixelSize, bounds = rect, flags 6; GetGWorldPixMap (0x00040017), LockPixels (0x00040001); ok → GetGWorld (0x00080005), SetGWorld (0x00080006); else DisposeGWorld (0x00040004) | offscreen; contents never initialised | |
 | `0xbb16..0xbb26` | d3 nil and d4 nil → RGBForeColor(white `a4@(186)`), PaintRect `$A8A2` | TF6 | |
 | `0xbb28..0xbb44` | d4 → `0xf930`(rect, ppat, contrlRect.left, contrlRect.top) | TF7 | |
@@ -234,7 +234,7 @@ src = cicn bounds; blk47 → done; !blk72 → done; h: d3 = (bottom − top) −
 | `0xc7fe..0xc820` | TheZone = SysZone (`0x2a6`); `0xf4ba`(box, id); restore | AI4 | |
 | `0xc822..0xc848` | clip arg and half → DiffRgn(clip, RectRgn(box), clip) | TF9 | |
 
-`0xf4ba..0xf684`: GetResource `$A9A0` `'ics#'` (0x69637323); nil → exit; mask (+32..+63) all ones → no mask; colour port → flag `a4@(1222)`, else 1-bit; colour and !flag → HomeResFile `$A9A4` → UseResFile → Get1Resource `$A81F` `'ics8'` (0x69637338); ics8 and backbuffer `a4@(1216)` → CopyBits/CopyMask from the ics8 data through the backbuffer pixmap; else 1-bit CopyBits/CopyMask of the ics# image (no mask when all-ones mask, picSave or grafProcs set). No `'ics4'` (0x69637334) immediate anywhere in the listing (grep count 0). **Verifier:** |
+`0xf4ba..0xf684`: GetResource `$A9A0` `'ics#'` (0x69637323); nil → exit; mask (+32..+63) all ones → no mask; colour port → flag `a4@(1222)`, else 1-bit; colour and !flag → HomeResFile `$A9A4` → UseResFile → Get1Resource `$A81F` `'ics8'` (0x69637338); ics8 and the icon PixMap `a4@(1216)` (allocated by NewPixMap at kDEF load, `0xf3aa`) → CopyBits/CopyMask from the ics8 data through that pixmap; else 1-bit CopyBits/CopyMask of the ics# image (no mask when all-ones mask or picSave set; the grafProcs test is only in the 1-bit branch). No `'ics4'` (0x69637334) immediate anywhere in the listing (grep count 0). **Verifier:** |
 
 ## E13. Hit test `0xa506..0xa676`
 

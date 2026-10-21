@@ -53,7 +53,7 @@ Before every message the CDEF rebuilds its per-message state (§4.1, `0x9d84`, c
 | `rect` | the control rect `R`, in port coordinates | `top, left, bottom, right` |
 | `visible` | the control is visible | bool |
 | `hilite` | the control's highlight value | 0, 1..253, 254, 255 |
-| `value`, `min`, `max` | the control's 16-bit value fields. With Appearance 1.1 or later (Gestalt(`apvr`) ≥ `0x0110`, `0x9d90..0x9db4`) they are read through accessor glue (`0x9938`, `0x995a`, `0x996c`) that reads the same 16-bit fields, so the version has no observable effect | integers, `min ≤ value ≤ max` assumed (Control Manager pins value) |
+| `value`, `min`, `max` | the control's 16-bit value fields. With Appearance 1.1 or later (Gestalt(`apvr`) ≥ `0x0110`, `0x9d90..0x9db4`) they are read through accessor glue (`0x9938`, `0x995a`, `0x996c`) that reads the same 16-bit fields. One difference: without Appearance 1.1 the proportional thumb length (§5.6) forms `max − min` as a 16-bit difference, which wraps for ranges above 32767 (`0xac8e..0xaca4`); unreachable under the declared defaults | integers, `min ≤ value ≤ max` assumed (Control Manager pins value) |
 | `parentInactive` | there is an embedding parent and it is inactive | bool; only read when hilite is 255 and Appearance is present |
 
 ### Environment inputs
@@ -65,6 +65,7 @@ Before every message the CDEF rebuilds its per-message state (§4.1, `0x9d84`, c
 | `option27` .. `option36` | bytes 27, 31, 32, 33, 34 and 36 of the Gestalt(`Acid`) response block; all clear when the selector is absent (`0x9db8..0x9e1e`). What sets them is not decoded (§6) | bytes |
 | `finderWindow` | the current process's signature is `MACS` (GetProcessInformation, `$A88F` selector 58) **and** the owner window's windowKind is 20 | `0x9ebc..0x9f0a` |
 | `smartScroll` | the SmartScroll extension is installed (Gestalt(`MMBS`) with its `MMBS` tags, `0x1b1a`) | `0x1b1a..0x1b9e` |
+| `atiPresent` | Gestalt(`ATIr`) exists (an ATI accelerator) | `0x1c90..0x1ca4`, read at `0xba78` |
 | `lowDepth` | the device being drawn has pixel depth < 4, or depth 4 with gdFlags bit 0 set; clear above 4 | `0xf2d6`, `0xf488..0xf4b8` |
 
 ### Derived state (rebuilt for every message, `0x9d84..0xa194`)
@@ -99,7 +100,7 @@ and are omitted here.
 | `state: 'disabled'` | hilite 255 with no inactive parent |
 
 Declared defaults (modern policy, not original observations): every `option*`
-clear, `finderWindow` false, `smartScroll` absent, `lowDepth` clear (≥ 8-bit
+clear, `finderWindow` false, `smartScroll` absent, `atiPresent` absent, `lowDepth` clear (≥ 8-bit
 output), and a resource chain of the archive's own fork, then its base chain.
 The Kaleidoscope control-panel fork that `resourceStart` would also reach is not
 shipped (DECISIONS #5), a recorded divergence.
@@ -112,11 +113,11 @@ shipped (DECISIONS #5), a recorded divergence.
    retried at another tier.
 2. Track pattern (§4.3, GetPixPat `$AA0C`), up to three probes.
 3. Thumb length (§5.6, before the draw loop, `0xa3b8`): the thumb cicn through
-   the cached loader `0x10472`, one or two probes.
+   the cached loader `0x10472`, one or two probes. Not when `disabled` (`0xa988`).
 4. Draw: for each drawn arrow (§4.5): composite → for a pressed, non-hit arrow
    one cicn probe and one ppat probe at `trackId − 1`; icon lane → `ics#`
    then `ics8` at one id (`0xf4ba`). Then the thumb cicn again (§4.6), one or
-   two probes. Then per track segment, when the id − 1 variant applies (§4.7),
+   two probes, not when `disabled` (TH2). Then per track segment, when the id − 1 variant applies (§4.7),
    one cicn and one ppat probe at `trackId − 1`.
 
 The CDEF never requests `ics4`, and never requests cicns -10204..-10197.
@@ -228,7 +229,7 @@ is left/up, a "high" arrow right/down.
 | AI1 | icon lane, not `disabled`, not hit | icon id: low h -10202, low v -10204, high h -10201, high v -10203 | `0x9f0e..0x9f38`, `0xc792..0xc7b6` |
 | AI2 | icon lane, not `disabled`, hit | icon id: low h -10198, low v -10200, high h -10197, high v -10199 | same |
 | AI3 | icon lane, `disabled` | icon id: low h -10206, low v -10208, high h -10205, high v -10207 (no hit form) | `0xc7ba..0xc7fa` |
-| AI4 | icon lane | draw `ics#` at the id (loaded into the system heap); no `ics#` → nothing; colour port and not `lowDepth` → `ics8` from the **same file** as the `ics#` (Get1Resource) if present, else the 1-bit `ics#` image; the `ics#` mask is applied unless it is all set, a picture is being recorded or the port has custom bottlenecks | `0xc7fe..0xc81e`, `0xf4ba..0xf684` |
+| AI4 | icon lane | draw `ics#` at the id (loaded into the system heap); no `ics#` → nothing; colour port and not `lowDepth` → `ics8` from the **same file** as the `ics#` (Get1Resource) if present and the kDEF's icon pixmap exists (allocated when the kDEF loads, `0xf3aa`; assume present), else the 1-bit `ics#` image; the `ics#` mask is applied unless it is all set or a picture is being recorded, and in the 1-bit branch also unless the port has custom bottlenecks | `0xc7fe..0xc81e`, `0xf4ba..0xf684` |
 
 ### 4.6 Thumb
 
@@ -256,8 +257,12 @@ is left/up, a "high" arrow right/down.
 | TF8 | cicn present (after TF7) | slice the track source rect (§5.5) into the segment, mode "halves" (§5.9) | `0xbb48..0xbb74`, `0xc2d2` |
 | TF9 | `wholeTrack`, `pressedHalves`, hilite 20 or 21 | before the fill, redraw the hit arrow(s) (20: arrow 0, and arrow 2 if `double`; 21: arrow 3, and arrow 1 if `double`); arrows drawn in half mode (§5.4) are removed from the fill clip | `0xb080..0xb0fe`, `0xc822..0xc848` |
 
-Each segment is drawn into a temporary offscreen GWorld of the segment rect and
-copied with `srcCopy` (`0xba74..0xbbea`); see §6 for pixels that neither the
+When `atiPresent` is absent, every segment is drawn into a temporary offscreen
+GWorld of the segment rect and copied to the port with `srcCopy`. When
+`atiPresent` is set, the offscreen is used only if the segment has a pattern
+**and** a picture is being recorded; otherwise the segment draws straight into
+the port (`0xba74..0xbbea`). If the offscreen cannot be created or locked, the
+segment draws straight into the port. See §6 for pixels that neither the
 pattern nor the cicn covers.
 
 ### 4.8 Hit test (part codes, `0xa506..0xa676`)
@@ -421,9 +426,10 @@ Open questions. Implementers stop here and file a spec question.
    changes is not decoded. Treat it as GetCIcon from `resourceStart`.
 4. Track segment pixels covered by neither the pattern nor an opaque cicn
    pixel: they come from a fresh offscreen whose contents the listing never
-   sets; when Gestalt(`ATIr`) exists and no pattern applies, no offscreen is
-   used and the port's pixels remain (`0xba74..0xbb12`). Undefined; see the
-   corpus row below.
+   sets (the default, `atiPresent` absent). When `atiPresent` is set and the
+   segment has no pattern or no picture is being recorded, no offscreen is
+   used and the port's existing pixels remain (`0xba74..0xbb12`). Undefined;
+   see the corpus row below.
 5. The blit primitives' exact pixel rules (mask handling of `0x10320`, the
    sampler `0xf9f6`, `0xfdf8`): owned by `qd.blit`.
 6. SmartScroll's thumb rect (`0x1bbe`): an external extension; absent by
@@ -471,12 +477,19 @@ geometry rows need the engine trace (rects per draw step).
 | §5.2, §5.3 | box and `T` rects for 1138 and platinum-8 at 120 × 16 (`[0,15)`/`[105,120)`, `T = [15,105)`; icon lane `[0,16)`/`[104,120)`, same `T`) | `c = t` instead of `t − 1`; icon boxes `c` long |
 | §5.4, §5.5 | 1138 -8286: cells `[0,15)` and `[18,33)`, track source `[15,18)` | cell length `h` instead of `h − 1` |
 | TH2–TH5, §5.6, §5.7 | worked example `Th = [52,69)`; thumb length = thumb cicn width (not proportional); disabled/inactive draw no thumb | proportional length by default; `+0.5` rounding dropped (`pos` 36); thumb drawn when disabled; pressed thumb id at rest |
-| §5.8, TF2 | segments `[15,53)` and `[68,105)` in the worked example; drawn after the thumb and clipped by it | segments not overlapping the thumb by one pixel; track drawn before the thumb |
-| §5.9 | halves for the track (`a = m >> 1`), caps of 3 for the thumb at default `option27` | cap 3 used for the track; halves for the thumb |
-| TF6–TF8 | pattern archives draw the pattern under the track cicn, anchored at `R`'s top-left | pattern drawn over the cicn; phase anchored at the port origin |
+| §5.8, TF2 | segments `[15,53)` and `[68,105)` in the worked example; drawn after the thumb and clipped by it | segments not overlapping the thumb by one pixel; track drawn before the thumb (assert on the engine trace order: with a mask-honouring blit the pixels cannot show it) |
+| §5.9 track | halves for the track (`a = m >> 1`) | cap 3 used for the track |
+| §5.9 thumb, TH5, §5.6 | at `t = 16` every archive's thumb is copied 1:1 (cicn `N × 16`, `len = N`), so the thumb slice mode cannot fail there. Use `t = 11` on an archive without small thumbs (1990, dolphin-som or evolution): horizontal thumb -10206 is 16 × 16, `minLen = 16 − 5 = 11`, `Th` is 11 × 11, caps of 3: dst `[0,3)` ← src `[0,3)`, dst `[3,9)` ← src `[6,12)` (centre trim `q1 = 3`, `q2 = 2`), dst `[9,11)` ← src `[14,16)`, cross scaled 16 → 11 (offsets relative to `Th.left`) | halves for the thumb (dst `[0,5)` ← `[0,5)`, `[5,11)` ← `[10,16)`); no `−5`; cap 2 |
+| TF6–TF8 | crayon-os or windows-95 (a pattern for every tier and 16 mask-clear pixels per track cicn), with `R` placed at an offset that is not a multiple of 8: the pattern shows in the clear pixels under the track cicn, phase anchored at `R`'s top-left | pattern drawn over the cicn; phase anchored at the port origin |
 | HT1–HT8 | part codes for points in each box, the thumb and both sides | 22 and 23 swapped; thumb tested before arrows |
 
 A row that no mutation can fail is a finding; report it rather than drop it.
+
+Note for the test author: the current `range-rules.mjs` icon census treats
+`ics4` or `ics8` as the colour icon. The CDEF uses only `ics8` (from the
+`ics#`'s file) and otherwise draws the 1-bit `ics#` image (AI4). No corpus
+outcome changes (all five icon-lane archives ship `ics8` for every id), but a
+fork with `ics4` and no `ics8` would be mispredicted.
 
 ## 8. Relation to earlier documents
 
@@ -492,5 +505,7 @@ A row that no mutation can fail is a finding; report it rather than drop it.
 - range-controls.md's draw order says arrow 0 is skipped when double arrows
   are on. It is drawn whenever `double` is set (AD1); only the unreachable
   together flag skips it.
+- range-controls.md says a disabled control redraws the track in the thumb
+  rect. It fills the whole track rect `T` (TH2).
 - range-controls.md leaves icon depth open: the CDEF draws `ics8` or `ics#`,
   never `ics4` (AI4).
