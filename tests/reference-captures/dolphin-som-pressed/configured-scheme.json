@@ -1,0 +1,5 @@
+{
+  "archiveSha256": "fc48448f8c322dda0a8704380d3f3b9823afbb3524b48f2db54423f60b4e3c15",
+  "forkSha256": "3cbe736723e4b8f4b56ad2232b85427ba3e84c8985d7e6b339c0b29bfb35ad85",
+  "evidence": "Same-run CoplResourceFile.file.name=dsom volumeRef=-3 parentDir=2 fileID=18; exact stopped canonical dolphin-som fork. Configured file only, not private provider attribution."
+}

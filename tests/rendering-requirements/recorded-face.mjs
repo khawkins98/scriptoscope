@@ -3,6 +3,7 @@ import { resolve } from 'node:path';
 import { isDeepStrictEqual as same } from 'node:util';
 import { createHash } from 'node:crypto';
 import { readContract, assessCorpus, reviewDigest, digest } from '../reference-captures/contract.mjs';
+import { transferFor, validateTransferBinding } from './recorded-transfer.mjs';
 import { compareCompletedPatternPaint } from '../resource-provenance/patterns.mjs';
 import { readOriginal } from '../helpers/compact-json.mjs';
 
@@ -32,12 +33,15 @@ export function profileFor(slug, state, registry = RECORDED_CASES) {
 /** The browser consumes this same per-state selection as captureBinding. */
 export const recordedSubjects = (registry = RECORDED_CASES) => Object.entries(registry).map(([slug, entry]) => ({
   slug, cases: entry.states.map(state => ({state, profile: profileFor(slug, state, registry),
+    ...(transferFor(slug, registry) ? {cicnTransfer: transferFor(slug, registry)} : {}),
     options: exactOptions(state, slug), sourcePins: sourcePinsFor(slug, state) ?? null})),
 }));
 
 export function validateRecordedProfiles(root, registry = RECORDED_CASES) {
   const verified = new Set();
   for (const [slug, entry] of Object.entries(registry)) {
+    const transfer = transferFor(slug, registry);
+    if (transfer) readTransferData(transfer, root);
     for (const state of Object.keys(entry.profilesByState ?? {}))
       check(entry.states.includes(state), 'profile override outside registered states');
     for (const profile of [profileFor(slug, undefined, registry), ...entry.states.map(state => profileFor(slug, state, registry))]) {
@@ -49,11 +53,13 @@ export function validateRecordedProfiles(root, registry = RECORDED_CASES) {
     }
   }
 }
-export const CRAYON_CONTEXT = { controlOrigin: [20,20], portOrigin: [0,0], patternOrigin: {status:'unknown'}, clip: {kind:'rect',rect:{x:0,y:0,w:160,h:80}} };
+/** Caller-declared context matching the native recorded fixtures' logged geometry: 160×80 port at local origin (0,0), control
+ *  Rect (20,20,100,40), full-port clip. Original pattern phase was never observed, so it stays explicitly unknown. */
+export const RECORDED_FIXTURE_PORT_CONTEXT = { controlOrigin: [20,20], portOrigin: [0,0], patternOrigin: {status:'unknown'}, clip: {kind:'rect',rect:{x:0,y:0,w:160,h:80}} };
 const check = (ok, message) => { if (!ok) throw Error(`recorded face: ${message}`); };
 export const caseId = (slug, state) => `recorded.${slug}.${state}.empty.w80.h20.${RECORDED_CASES[slug]?.caseSuffix}-profile`;
-export const exactOptions = (state, slug) => ({ label: '', minWidth: 80, height: 20, default: false, pressed: state === 'pressed', disabled: state === 'inactive', ...(RECORDED_CASES[slug]?.explicitContext ? {compositionContext: structuredClone(CRAYON_CONTEXT)} : {}) });
-export const captureBinding = (capture, registry = RECORDED_CASES) => ({ captureId: capture.id, requestId: capture.requestId, requestDigest: capture.requestDigest, captureDigest: reviewDigest(capture), imageSha256: capture.image.sha256, reviewScope: { id: capture.reviewScope.id, version: capture.reviewScope.version, digest: digest(capture.reviewScope) }, faceImageRect: [20, 20, 80, 20], publicFaceRect: [4, 4, 80, 20], background: [255, 255, 255], profile: profileFor(capture.source.slug, capture.conditions.state, registry) });
+export const exactOptions = (state, slug) => ({ label: '', minWidth: 80, height: 20, default: false, pressed: state === 'pressed', disabled: state === 'inactive', ...(RECORDED_CASES[slug]?.explicitContext ? {compositionContext: structuredClone(RECORDED_FIXTURE_PORT_CONTEXT)} : {}) });
+export const captureBinding = (capture, registry = RECORDED_CASES) => ({ captureId: capture.id, requestId: capture.requestId, requestDigest: capture.requestDigest, captureDigest: reviewDigest(capture), imageSha256: capture.image.sha256, reviewScope: { id: capture.reviewScope.id, version: capture.reviewScope.version, digest: digest(capture.reviewScope) }, faceImageRect: [20, 20, 80, 20], publicFaceRect: [4, 4, 80, 20], background: [255, 255, 255], profile: profileFor(capture.source.slug, capture.conditions.state, registry), ...(transferFor(capture.source.slug, registry) ? {cicnTransfer: transferFor(capture.source.slug, registry)} : {}) });
 
 /** Reuse the intake authority. A matching filename or runtime observation is insufficient. */
 export function readRecordedContext(root) {
@@ -117,7 +123,7 @@ export function validateRecordedPatternPaint(row, step, pins) {
     payloadSha256: pattern.payloadSha256, byteLength: pattern.bytes, resourceIndex: pattern.resourceIndex,
     signedId: pattern.signedId, chainDepth: 0, bodyMode: pins.bodyRequest.mode,
     sourceSize: expected.sourceSize, unionRects: expected.unionRects, paintedPixels: expected.paintedPixels,
-    phaseOffset: expected.phaseOffset, context: {...CRAYON_CONTEXT, basis: 'caller-declared'},
+    phaseOffset: expected.phaseOffset, context: {...RECORDED_FIXTURE_PORT_CONTEXT, basis: 'caller-declared'},
   });
   check(result.status === 'matched', 'wrong completed pattern paint: ' + result.failures.join(','));
   const plane = row.patternPlane, raw = Buffer.from(plane?.rgba ?? '', 'base64');
@@ -125,8 +131,51 @@ export function validateRecordedPatternPaint(row, step, pins) {
     createHash('sha256').update(raw).digest('hex') === expected.decodedRgbaSha256, 'wrong decoded pattern plane');
 }
 
+function readTransferData(binding, root = new URL('../../', import.meta.url).pathname) {
+  validateTransferBinding(binding);
+  // Compact committed copies decode to the bound original identity (tests/compact-evidence.json).
+  const bytes = readOriginal(resolve(root, binding.path));
+  check(createHash('sha256').update(bytes).digest('hex') === binding.sha256, 'transfer DATA bytes changed');
+  return JSON.parse(bytes);
+}
+/** Join each finite preparation element to its actual load; consumer context is separate. */
+export function validateRecordedTransfers(row, binding, root) {
+  if (!binding.cicnTransfer) {
+    check(row.cicnTransfer === undefined && row.selectedCicnTransfer === undefined, 'unregistered finite transfer');
+    return;
+  }
+  const b = binding.cicnTransfer, data = readTransferData(b, root), retained = row.cicnTransfer;
+  check(same(retained?.binding, b), 'wrong transfer execution binding');
+  check(retained.load?.loadId === row.loadId && retained.load.input.sha256 === row.profileInput &&
+    retained.load.fork.sha256 === row.profileFork && same(retained.load.resources, row.resources), 'wrong transfer retained load');
+  const matched = row.resources.filter(r => r.type === 'cicn' && data.records.some(p => p.source.payloadSha256 === r.sha256));
+  check(matched.length > 0 && retained.elements?.length === matched.length, 'missing or extra finite transfer elements');
+  const seen = new Set();
+  for (const element of retained.elements) {
+    const p = element.transfer, source = element.byteProvenance;
+    check(source?.loadId === row.loadId && source.manifestKey === element.manifestKey &&
+      typeof element.asset === 'string' && element.asset.length > 0, 'wrong transfer element load/key/URL');
+    const actual = matched.find(r => r.resourceIndex === source.cicnResourceIndex);
+    check(actual?.status === 'decoded' && !seen.has(actual.resourceIndex), 'wrong or duplicate transfer occurrence');
+    seen.add(actual.resourceIndex);
+    check(retained.catalog?.filter(e => e.id === actual.signedId && e.url === element.asset).length === 1, 'wrong transfer catalog URL');
+    const expected = data.records.find(r => r.source.payloadSha256 === actual.sha256);
+    check(actual.byteLength === expected.source.byteLength, 'wrong transfer payload length');
+    check(p?.model === 'finite-cicn-transfer-v1' && p.scope === 'finite-raster-preparation' &&
+      p.resultsId === b.id && p.contractId === b.contractId && p.maskPolicy === b.maskPolicy &&
+      p.forkSha256 === row.profileFork && same(p.resource, {type:'cicn',signedId:actual.signedId,resourceIndex:actual.resourceIndex}) &&
+      same(p.source, expected.source) && same(p.operation, expected.operation) &&
+      p.preparationEvidenceSha256 === expected.preparationEvidenceSha256 && same(p.evidence, expected.evidence) &&
+      p.destinationPlaneSha256 === createHash('sha256').update(Uint8Array.from(expected.destinationIndices)).digest('hex'), 'wrong finite transfer provenance/context/plane');
+  }
+  const selected = retained.elements.find(e => e.manifestKey === row.selectedKey);
+  check(selected ? same(row.selectedCicnTransfer, selected.transfer) && selected.asset === row.selectedAsset && same(selected.byteProvenance, row.source) : row.selectedCicnTransfer === undefined,
+    'wrong selected face transfer provenance');
+}
+
 /** Actual completed modern paint is required, without attributing the original painter. */
 export function validateRecordedExecution(row, binding, capture) {
+  validateRecordedTransfers(row, binding);
   check(same(row.outcome,{status:'themed',width:88,height:28}), 'composition did not complete');
   check(row.slug === capture.source.slug && row.state === capture.conditions.state, 'wrong execution case');
   check(row.profile === binding.profile.id && row.policy === binding.profile.id, 'wrong prepared profile');
@@ -155,12 +204,12 @@ export function validateRecordedExecution(row, binding, capture) {
       check(sourcePins.paintKind === paintKind && same(row.recordedSourcePins, sourcePins), 'wrong explicit paint/source pins');
       check(row.completionCount === 1, 'requires exactly one completion');
       check(same(row.composition?.faceRect, {x:20,y:20,w:80,h:20}) &&
-        same(row.composition?.context, {...CRAYON_CONTEXT,basis:'caller-declared'}) &&
+        same(row.composition?.context, {...RECORDED_FIXTURE_PORT_CONTEXT,basis:'caller-declared'}) &&
         row.composition.appliedUnknownPatternOffset === true && row.composition.originalPortState === 'unverified', 'wrong pinned port context');
       if (paintKind === 'legacy-face') {
         const p = row.legacyFacePaint;
         check(same(p.sourceRect, {x:0,y:0,w:sourcePins.sourceSize[0],h:sourcePins.sourceSize[1]}) && same(p.effectiveFaceClip, {x:0,y:0,w:80,h:20}) &&
-          same(p.declaredClip, CRAYON_CONTEXT.clip) && p.coordinateSpace === 'face-local-before-ring' && p.rasterAlpha === 'copy-source-rgba' &&
+          same(p.declaredClip, RECORDED_FIXTURE_PORT_CONTEXT.clip) && p.coordinateSpace === 'face-local-before-ring' && p.rasterAlpha === 'copy-source-rgba' &&
           same(p.controlOrigin, [20,20]), 'wrong legacy geometry/context');
         check((row.bandPaints ?? []).length === 0 && (row.bodyFillSteps ?? []).length === 0 && row.patternAsset === null &&
           !row.paintSelectionSteps.some(p => p.role === 'body-fill'), 'invented no-cinf body paint');
@@ -175,7 +224,7 @@ export function validateRecordedExecution(row, binding, capture) {
   }
   if (sourcePins?.pattern) {
     check(same(row.composition?.faceRect, {x:20,y:20,w:80,h:20}), 'wrong port face placement');
-    check(same(row.composition?.context, {...CRAYON_CONTEXT,basis:'caller-declared'}) && row.composition.appliedUnknownPatternOffset === true && row.composition.originalPortState === 'unverified', 'wrong actual port context');
+    check(same(row.composition?.context, {...RECORDED_FIXTURE_PORT_CONTEXT,basis:'caller-declared'}) && row.composition.appliedUnknownPatternOffset === true && row.composition.originalPortState === 'unverified', 'wrong actual port context');
     const pins = row.recordedSourcePins;
     check(same(pins, sourcePins), 'wrong independently pinned payloads');
     for (const [actual, pin] of [[resource,pins.face],[cinf,pins.cinf]])
@@ -193,7 +242,7 @@ export function validateRecordedExecution(row, binding, capture) {
   }
   if (row.slug === 'apple-lisa' || sourcePins?.missingPatternId===0) {
     check(same(row.composition?.faceRect, {x:20,y:20,w:80,h:20}) &&
-      same(row.composition?.context, {...CRAYON_CONTEXT,basis:'caller-declared'}) &&
+      same(row.composition?.context, {...RECORDED_FIXTURE_PORT_CONTEXT,basis:'caller-declared'}) &&
       row.composition.appliedUnknownPatternOffset === true && row.composition.originalPortState === 'unverified', 'wrong pinned port context');
     check(same(row.recordedSourcePins,sourcePins), 'wrong pinned source pins');
     for(const [actual,pin] of [[resource,sourcePins.face],[cinf,sourcePins.cinf]])

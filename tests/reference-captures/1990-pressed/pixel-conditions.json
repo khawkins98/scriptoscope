@@ -1,0 +1,32 @@
+{
+  "palette": {
+    "depth": 8,
+    "sha256": "6987f8e5bc61a7da95ed03f229cc3ecbee463bb6245965fdc2eddbd86a31ef9b",
+    "description": "Actual current-device indexed ColorTable,2056 bytes,seed1023,flags32768,lastIndex255; byte-equal in all three state logs and the same-boot calibration. No inferred palette/lookup rule or consumer current/main equality."
+  },
+  "producer": {
+    "name": "Private copied BasiliskII WebAssembly with bound worker/canvas/capture glue",
+    "buildArtifacts": [
+      {"name":"reference.ts","bytes":2253,"sha256":"50bba6ab12ff9be4f38ed4754d5387eead0b3c64121ab4837960775c27ae7bd3"},
+      {"name":"vite.config.mjs","bytes":2148,"sha256":"5fd6502e02a3c4e32a6765149dde8c7b2ea9b3fd959e0846c4cdb81f5f265f39"},
+      {"name":"emulator-worker.ts","bytes":38187,"sha256":"6d312f9e28ad4e70dc1f9932b214636ab186eb8266c484e3d45f809ad8bd6ee5"},
+      {"name":"emulator-input.ts","bytes":14561,"sha256":"b69f0527aabd322e8cf0d0840d6faef769cd53a717a6d3d6e7cf36118a1dc0c5"},
+      {"name":"BasiliskII.js","bytes":156114,"sha256":"4fd750e202686a7b7c3bd0055dbe33d21dd6b3ce2639da8da814ef1036d1c66b"},
+      {"name":"BasiliskII.wasm","bytes":1713564,"sha256":"0be9b5ba1179b65d9d1bd30b3cc35ee56daf6713ba1353048c03229f641680bb"},
+      {
+        "name": "capture-state-absolute.mjs",
+        "bytes": 6476,
+        "sha256": "670c8c37e98ce5f9c383088e20d822f10a60b76d79d9448c94b1bd59c3fa481d"
+      },
+      {"name":"crop-state.py","bytes":1009,"sha256":"f043522d25ff2a7f53bcf69b4538ecc8361bb03aa06d4593909d2b95bc6dc077"}
+    ],
+    "tableSha256": "c2eeb81da5ffc2bd502834d80d850f6f085813ab1cec8d9fb89ca36c2474125b",
+    "pixelEncoding": "rgba8",
+    "colorRealization": "Actual indexed8 current-device palette/gamma and GetCPixel/host samples. Later same-boot 1223x2 Color2Index/Index2Color queries supply finite preparation mappings; no pooling. Consumer current/main/port-table, private phase/cache/provider and font consumption remain unknown. No font query was taken.",
+    "timing": "Conditions bracket explicit Draw1Control + HiliteControl; setup/update and host capture have shared history. Three consumers precede CRP and calibration; no font query.",
+    "version": {
+      "status": "unknown",
+      "reason": "Exact external JS/WASM and glue build hashes recorded; semantic emulator release version not independently established."
+    }
+  }
+}

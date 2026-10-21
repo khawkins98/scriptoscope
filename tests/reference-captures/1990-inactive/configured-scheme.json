@@ -1,0 +1,5 @@
+{
+  "archiveSha256": "767bd46d55b98c55ac891ad3e917993681571a4485880e7105f01abd7224768a",
+  "forkSha256": "767bd46d55b98c55ac891ad3e917993681571a4485880e7105f01abd7224768a",
+  "evidence": "Same-run CoplResourceFile.file.name=1990 volumeRef=-3 parentDir=2 fileID=18; exact stopped canonical 1990 fork. Configured file only, not private provider attribution."
+}

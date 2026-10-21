@@ -1,0 +1,37 @@
+{
+  "controlDefinition": {
+    "procedureId": 0,
+    "variant": 0,
+    "hilite": 255,
+    "value": 0,
+    "enabled": false,
+    "windowActive": true,
+    "defaultMechanism": "No default API invoked; private default state unknown",
+    "invocation": "NewCWindow(proc0); fresh NewControl(proc0, empty title, visible,value0/min0/max1); Draw1Control; HiliteControl(255); actual ControlRecord/GetControlVariant0. Fixed-order state2, generation3; shared selected 1990 boot. Not a physical gesture/inactive window."
+  },
+  "invocation": {
+    "api": "NewControl",
+    "drawApi": "Draw1Control",
+    "defaultApiInvoked": false,
+    "controlRect": [20,20,80,20],
+    "title": "",
+    "state": "inactive",
+    "defaultRing": false,
+    "stateApi": "HiliteControl"
+  },
+  "port": {
+    "origin": [0,0],
+    "bounds": [0,0,160,80],
+    "effectiveClipRect": [0,0,160,80],
+    "backgroundRGB": [255,255,255],
+    "backgroundOpaque": true,
+    "originMeaning": "Observed local origin0; global origin80,90. Opaque recorded white background, not source-mask proof."
+  },
+  "fullFrame": {
+    "sha256": "d90c93e11ba44f718b26d4421a53ba7a88205e76cf5c827ea7bc8e6e565f758a",
+    "width": 640,
+    "height": 480,
+    "requestImageRect": [80,90,160,80],
+    "transform": "requestImageXY = fullFrameXY - requestImageRect.xy; no resampling or color conversion"
+  }
+}

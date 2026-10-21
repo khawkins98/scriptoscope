@@ -940,5 +940,344 @@
         5
       ]
     }
+  },
+  "1984": {
+    "normal": {
+      "sourceArchiveSha256": "1fbf62f376ad4f7277ea8cd87cf379c7ea71382e84d83f88e96d5c6502022c21",
+      "sourceForkSha256": "f086875e048980d1a7523b949000bc37daf3e22848c97230c107c4b426eba873",
+      "emittedKey": "push-button-active",
+      "face": {
+        "resourceIndex": 62,
+        "signedId": -10239,
+        "bytes": 730,
+        "payloadSha256": "7f52b7694ed78e5d2a476860cb41227c08957ab18a3170ab4c30ec814bcdc83b"
+      },
+      "cinf": {
+        "resourceIndex": 279,
+        "signedId": -10239,
+        "bytes": 18,
+        "payloadSha256": "228337cb53d1ccb01bb1de0c2a021b7b049147d1d89526e48fa7ee932540c9c5"
+      },
+      "bodyRequest": {
+        "mode": 0,
+        "resourceId": 0
+      },
+      "paintKind": "cinf-bands",
+      "sourceSize": [
+        16,
+        16
+      ],
+      "missingPatternId": 0,
+      "completedFaceRegions": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ]
+    },
+    "pressed": {
+      "sourceArchiveSha256": "1fbf62f376ad4f7277ea8cd87cf379c7ea71382e84d83f88e96d5c6502022c21",
+      "sourceForkSha256": "f086875e048980d1a7523b949000bc37daf3e22848c97230c107c4b426eba873",
+      "emittedKey": "push-button-pressed",
+      "face": {
+        "resourceIndex": 21,
+        "signedId": -10238,
+        "bytes": 658,
+        "payloadSha256": "ede3af1fd1f12ec3902d27b1f2f025466b9d5ff6620dd0142d1f29bc0349aa55"
+      },
+      "cinf": {
+        "resourceIndex": 280,
+        "signedId": -10238,
+        "bytes": 18,
+        "payloadSha256": "228337cb53d1ccb01bb1de0c2a021b7b049147d1d89526e48fa7ee932540c9c5"
+      },
+      "bodyRequest": {
+        "mode": 0,
+        "resourceId": 0
+      },
+      "paintKind": "cinf-bands",
+      "sourceSize": [
+        16,
+        16
+      ],
+      "missingPatternId": 0,
+      "completedFaceRegions": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ]
+    },
+    "inactive": {
+      "sourceArchiveSha256": "1fbf62f376ad4f7277ea8cd87cf379c7ea71382e84d83f88e96d5c6502022c21",
+      "sourceForkSha256": "f086875e048980d1a7523b949000bc37daf3e22848c97230c107c4b426eba873",
+      "emittedKey": "push-button-inactive",
+      "face": {
+        "resourceIndex": 61,
+        "signedId": -10240,
+        "bytes": 602,
+        "payloadSha256": "a73b939a4a1a7fdee28649a938345c83ec181f4d4847014c9ac1b77b2e238f03"
+      },
+      "cinf": {
+        "resourceIndex": 278,
+        "signedId": -10240,
+        "bytes": 18,
+        "payloadSha256": "228337cb53d1ccb01bb1de0c2a021b7b049147d1d89526e48fa7ee932540c9c5"
+      },
+      "bodyRequest": {
+        "mode": 0,
+        "resourceId": 0
+      },
+      "paintKind": "cinf-bands",
+      "sourceSize": [
+        16,
+        16
+      ],
+      "missingPatternId": 0,
+      "completedFaceRegions": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ]
+    }
+  },
+  "1990": {
+    "normal": {
+      "sourceArchiveSha256": "767bd46d55b98c55ac891ad3e917993681571a4485880e7105f01abd7224768a",
+      "sourceForkSha256": "767bd46d55b98c55ac891ad3e917993681571a4485880e7105f01abd7224768a",
+      "emittedKey": "push-button-active",
+      "face": {
+        "resourceIndex": 55,
+        "signedId": -10239,
+        "bytes": 318,
+        "payloadSha256": "d939149c3a9d3d70261d6b6eab867b6a4eef31998fa3a6aa2342c5901508a531"
+      },
+      "cinf": {
+        "resourceIndex": 270,
+        "signedId": -10239,
+        "bytes": 18,
+        "payloadSha256": "f772cc0ae40b75682e47c51c786a11f3e95e604f953d08070ff997e85b113cdc"
+      },
+      "bodyRequest": {
+        "mode": 0,
+        "resourceId": 0
+      },
+      "paintKind": "cinf-bands",
+      "sourceSize": [
+        15,
+        15
+      ],
+      "missingPatternId": 0,
+      "completedFaceRegions": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ]
+    },
+    "pressed": {
+      "sourceArchiveSha256": "767bd46d55b98c55ac891ad3e917993681571a4485880e7105f01abd7224768a",
+      "sourceForkSha256": "767bd46d55b98c55ac891ad3e917993681571a4485880e7105f01abd7224768a",
+      "emittedKey": "push-button-pressed",
+      "face": {
+        "resourceIndex": 56,
+        "signedId": -10238,
+        "bytes": 318,
+        "payloadSha256": "406a1a167473342a790c1ba734cce9064c6cea60a03b9c22335579dc8537ad11"
+      },
+      "cinf": {
+        "resourceIndex": 271,
+        "signedId": -10238,
+        "bytes": 18,
+        "payloadSha256": "f772cc0ae40b75682e47c51c786a11f3e95e604f953d08070ff997e85b113cdc"
+      },
+      "bodyRequest": {
+        "mode": 0,
+        "resourceId": 0
+      },
+      "paintKind": "cinf-bands",
+      "sourceSize": [
+        15,
+        15
+      ],
+      "missingPatternId": 0,
+      "completedFaceRegions": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ]
+    },
+    "inactive": {
+      "sourceArchiveSha256": "767bd46d55b98c55ac891ad3e917993681571a4485880e7105f01abd7224768a",
+      "sourceForkSha256": "767bd46d55b98c55ac891ad3e917993681571a4485880e7105f01abd7224768a",
+      "emittedKey": "push-button-inactive",
+      "face": {
+        "resourceIndex": 54,
+        "signedId": -10240,
+        "bytes": 310,
+        "payloadSha256": "43e62aad201281dac0aa8bc63a1e6dece3b938e91abdd82822a5fa7d1c2baa7d"
+      },
+      "cinf": {
+        "resourceIndex": 280,
+        "signedId": -10240,
+        "bytes": 18,
+        "payloadSha256": "f772cc0ae40b75682e47c51c786a11f3e95e604f953d08070ff997e85b113cdc"
+      },
+      "bodyRequest": {
+        "mode": 0,
+        "resourceId": 0
+      },
+      "paintKind": "cinf-bands",
+      "sourceSize": [
+        15,
+        15
+      ],
+      "missingPatternId": 0,
+      "completedFaceRegions": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ]
+    }
+  },
+  "dolphin-som": {
+    "normal": {
+      "sourceArchiveSha256": "fc48448f8c322dda0a8704380d3f3b9823afbb3524b48f2db54423f60b4e3c15",
+      "sourceForkSha256": "3cbe736723e4b8f4b56ad2232b85427ba3e84c8985d7e6b339c0b29bfb35ad85",
+      "emittedKey": "push-button-active",
+      "face": {
+        "resourceIndex": 59,
+        "signedId": -10239,
+        "bytes": 318,
+        "payloadSha256": "d939149c3a9d3d70261d6b6eab867b6a4eef31998fa3a6aa2342c5901508a531"
+      },
+      "cinf": {
+        "resourceIndex": 270,
+        "signedId": -10239,
+        "bytes": 18,
+        "payloadSha256": "f772cc0ae40b75682e47c51c786a11f3e95e604f953d08070ff997e85b113cdc"
+      },
+      "bodyRequest": {
+        "mode": 0,
+        "resourceId": 0
+      },
+      "paintKind": "cinf-bands",
+      "sourceSize": [
+        15,
+        15
+      ],
+      "missingPatternId": 0,
+      "completedFaceRegions": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ]
+    },
+    "pressed": {
+      "sourceArchiveSha256": "fc48448f8c322dda0a8704380d3f3b9823afbb3524b48f2db54423f60b4e3c15",
+      "sourceForkSha256": "3cbe736723e4b8f4b56ad2232b85427ba3e84c8985d7e6b339c0b29bfb35ad85",
+      "emittedKey": "push-button-pressed",
+      "face": {
+        "resourceIndex": 60,
+        "signedId": -10238,
+        "bytes": 318,
+        "payloadSha256": "406a1a167473342a790c1ba734cce9064c6cea60a03b9c22335579dc8537ad11"
+      },
+      "cinf": {
+        "resourceIndex": 271,
+        "signedId": -10238,
+        "bytes": 18,
+        "payloadSha256": "f772cc0ae40b75682e47c51c786a11f3e95e604f953d08070ff997e85b113cdc"
+      },
+      "bodyRequest": {
+        "mode": 0,
+        "resourceId": 0
+      },
+      "paintKind": "cinf-bands",
+      "sourceSize": [
+        15,
+        15
+      ],
+      "missingPatternId": 0,
+      "completedFaceRegions": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ]
+    },
+    "inactive": {
+      "sourceArchiveSha256": "fc48448f8c322dda0a8704380d3f3b9823afbb3524b48f2db54423f60b4e3c15",
+      "sourceForkSha256": "3cbe736723e4b8f4b56ad2232b85427ba3e84c8985d7e6b339c0b29bfb35ad85",
+      "emittedKey": "push-button-inactive",
+      "face": {
+        "resourceIndex": 58,
+        "signedId": -10240,
+        "bytes": 310,
+        "payloadSha256": "43e62aad201281dac0aa8bc63a1e6dece3b938e91abdd82822a5fa7d1c2baa7d"
+      },
+      "cinf": {
+        "resourceIndex": 281,
+        "signedId": -10240,
+        "bytes": 18,
+        "payloadSha256": "f772cc0ae40b75682e47c51c786a11f3e95e604f953d08070ff997e85b113cdc"
+      },
+      "bodyRequest": {
+        "mode": 0,
+        "resourceId": 0
+      },
+      "paintKind": "cinf-bands",
+      "sourceSize": [
+        15,
+        15
+      ],
+      "missingPatternId": 0,
+      "completedFaceRegions": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ]
+    }
   }
 }

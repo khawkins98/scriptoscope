@@ -3330,6 +3330,681 @@
         "scopeAndLimits": true
       },
       "notes": "Accepted only existing public-api-empty-face v5: fixed empty80x20 face over recorded white with actual HiliteControl0/10/255 and activewindow. Root independently viewed all4 full native candidate frames, checked88publicartifact hashes,20image byte/mtime joins, exact4full/raw/port/context/face crop chains, allsanitizedlog line/payload-redaction/Copl/fork joins, exact measured3846/1971mapping/palette/producer arrays and raw-row proof. Prior41captures/reviews,59requests and95/647ledger remain exact. Private independent12call comparison d8dfb9a5 verified19200pixels with zero differences, actual source/built fullbuffers/allassets and84eligible completedbands; Floppies has6, Evolution8. Missing same-owner ppat0 is an observed lookup, not an invented completed fill/nativepainter proof. Font0/size12/face0 observed but fontidentity remainsnull. Consumer port table/current-main, provider/cache/patch/search-order, alpha/masks, originalphase, wholecontrol and otherinputs remainunknown. Fixed sharedorder and reusedA3A labels explicit. Native shutdownacceptanceUNKNOWN; EvolutionFinder remained; no separatepre-exportstoppedcopy, only afterexportmedia. Before-Cseq0 screenshots independentlyviewed; reviewer initialmisattribution corrected, no actualchronologydiscrepancy. Registered publicexecution and outputpromotion stillpending; no fitting or native recapture."
+    },
+    {
+      "reviewScope": {
+        "id": "public-api-empty-face",
+        "version": 5,
+        "comparisonLayer": "composited-face-pixels",
+        "facePortRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "faceImageRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "publicInvocation": {
+          "api": "NewControl",
+          "drawApi": "Draw1Control",
+          "procedureId": 0,
+          "variant": 0,
+          "hilite": 0,
+          "value": 0,
+          "defaultApiInvoked": false,
+          "stateApi": "HiliteControl",
+          "enabled": true,
+          "windowActive": true
+        },
+        "associatedRequirementIds": [
+          "geometry.remaining",
+          "fill.remaining"
+        ],
+        "claim": "Recorded composited pixels of the complete fixed empty face in the requested public state under the observed invocation, environment and white background; original pattern phase remains unknown.",
+        "excludedClaims": [
+          "alpha-or-mask",
+          "font-independence",
+          "automatic-sizing",
+          "other-states",
+          "outside-face-or-margins",
+          "default-ring",
+          "private-resource-or-painter-selection",
+          "provider-cache-or-search-order",
+          "whole-requirements",
+          "whole-request",
+          "physical-mouse-gesture",
+          "inactive-window",
+          "original-pattern-phase",
+          "general-body-paint",
+          "pattern-mask",
+          "private-pattern-provider"
+        ]
+      },
+      "captureId": "1984.normal.j1223",
+      "verdict": "accepted",
+      "reviewer": "Independent Claude scoped-intake reviewer (Lane A-intake-review; automated independent review, not human or maintainer attestation)",
+      "reviewedAt": "2026-10-21T08:07:25.308Z",
+      "captureDigest": "d98edb5313f8ea5b455854b020e708285087f38d0ec9531f216841e9d2b49fe4",
+      "requestDigest": "3dcb46cd93376b0182927c780f2f3870b94062f24122429f7f7c205df2e85f29",
+      "targetRequirementIds": [
+        "geometry.remaining",
+        "fill.remaining"
+      ],
+      "checks": {
+        "originalEnvironment": true,
+        "installationAndConfiguredSource": true,
+        "publicInvocation": true,
+        "recordedPixelConditions": true,
+        "conditionsAndTransform": true,
+        "imageAndArtifacts": true,
+        "independentOfScriptoscope": true,
+        "scopeAndLimits": true
+      },
+      "notes": "Accepted only existing public-api-empty-face v5: fixed empty 80x20 face at port (20,20) over recorded opaque white, public NewControl(proc0)/Draw1Control/HiliteControl(0) in the frontmost (active) window; composited pixels only. Independently recomputed against acquisition FILES.json (every member rehashed, symlinks refused; environment nine-state-first-attempts/1984; dolphin-partial-stopped-export not read): committed port.png/full-frame.png byte-equal private state-0-port/frame; PIL decode of full frame == raw producer.rgba (640x480, opaque); port == frame crop at state-log globalOrigin 80,90; face == port(20,20,80,20) == private face crop; context == port(12,12,96,36); crops.json LTRB face [100,110,180,130] / port [80,90,240,170]. State log (sha equals acquisition review): portRect 0,0,160,80; effectiveClipBounds 0,0,160,80; controlRect 20,20,100,40; control.hilite=0 before and after draw with titleLength0 and active=1 (FrontWindow()==target per fixture source); requestedHilite 0; GetControlVariant 0; empty title; observedLabel EMPTY; systemVersionHex 755; font line 0 name=Chicago size=12 face=0 mode=1 ascent=12 descent=3 widMax=14 leading=1. capture-log.json: all 123 retained lines equal the MacRoman CR->LF raw lines; 16 redacted ranges cover exactly the remaining hex-payload lines and every hash recomputes; full coverage, no overlap, no hex payload published. Installation/config: OS sha = preboot system755-run.dsk = frame-receipt system755-before-boot.dsk binding; Kaleidoscope sha = stopped-Kaleidoscope.bin resource fork (len 1005535 = CDEF/WDEF owner FCB logicalEOF; vers 2.3.1; kDEF0 107726 B sha 2c027276; CDEF0/WDEF0 174/176 B = logged actual definition sizes); configured scheme fork = stopped scheme fork = source choice (len = Copl FCB logicalEOF; Copl name 1984 fileID18). Palette/producer-table bytes equal colorTable/gammaTable payloads in all three state logs and the same-boot Joint1223 calibration (seed1023 flags32768 lastIndex255). Producer build artifacts = state frame.json bindings; capturedAt = frame.json capture.at. Committed JSON artifacts equal the record subtrees. Prepared-profile alias resolves to the compact copy whose parsed value equals the private lane-A profile.json bytes (sha in record/alias). 1984 state cicns differ (144/223 px vs normal) and the three 1984 native faces are distinct; only 1984 discriminates hilite->cicn at the face layer, and even here which cicn the original selected is not natively observed. Unknowns kept explicit: shutdown acknowledgement (request sent, Finder remained), private provider/cache/patch/search order, base chain, original mask/alpha and pattern phase, font identity/consumption, title colour (empty labels), consumer portColorTable (absent from state logs) and current/main equality (not logged), calibration widMax (not logged), whole-port equivalence with CRP, same-boot fixed consumer->CRP->Joint1223 order (no cold cache). Finite transfer element is a whole-load element unrelated to the face (-10139). Nits: captureMethod \"No modal/retry\" refers to native retries (0); 1984 pre-capture paced-mouse UI retries and a non-modal Kaleidoscope instruction window (outside the port, rectangular visRgn) are disclosed in nine-state-evidence.json closure. Private comparison (lanes/A MANIFEST/REVIEW ADMIT-WITH-LIMITS) is referenced, not re-run; this review does not verify renderer output, original decoder, whole requirements or overall fidelity. Reviewed commit 879f578d (records byte-identical at e17836f5)."
+    },
+    {
+      "reviewScope": {
+        "id": "public-api-empty-face",
+        "version": 5,
+        "comparisonLayer": "composited-face-pixels",
+        "facePortRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "faceImageRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "publicInvocation": {
+          "api": "NewControl",
+          "drawApi": "Draw1Control",
+          "procedureId": 0,
+          "variant": 0,
+          "hilite": 10,
+          "value": 0,
+          "defaultApiInvoked": false,
+          "stateApi": "HiliteControl",
+          "enabled": true,
+          "windowActive": true
+        },
+        "associatedRequirementIds": [
+          "geometry.remaining",
+          "fill.remaining"
+        ],
+        "claim": "Recorded composited pixels of the complete fixed empty face in the requested public state under the observed invocation, environment and white background; original pattern phase remains unknown.",
+        "excludedClaims": [
+          "alpha-or-mask",
+          "font-independence",
+          "automatic-sizing",
+          "other-states",
+          "outside-face-or-margins",
+          "default-ring",
+          "private-resource-or-painter-selection",
+          "provider-cache-or-search-order",
+          "whole-requirements",
+          "whole-request",
+          "physical-mouse-gesture",
+          "inactive-window",
+          "original-pattern-phase",
+          "general-body-paint",
+          "pattern-mask",
+          "private-pattern-provider"
+        ]
+      },
+      "captureId": "1984.pressed.j1223",
+      "verdict": "accepted",
+      "reviewer": "Independent Claude scoped-intake reviewer (Lane A-intake-review; automated independent review, not human or maintainer attestation)",
+      "reviewedAt": "2026-10-21T08:07:25.308Z",
+      "captureDigest": "f66bf292d77c5c84d1cf876a6d0ed0f6c1bb60cb85453990f57b26b02cc21780",
+      "requestDigest": "e81c72e3588e1c822ba3d92ea8c69a33c6aabb2d58b641e0544659867808d8c7",
+      "targetRequirementIds": [
+        "geometry.remaining",
+        "fill.remaining"
+      ],
+      "checks": {
+        "originalEnvironment": true,
+        "installationAndConfiguredSource": true,
+        "publicInvocation": true,
+        "recordedPixelConditions": true,
+        "conditionsAndTransform": true,
+        "imageAndArtifacts": true,
+        "independentOfScriptoscope": true,
+        "scopeAndLimits": true
+      },
+      "notes": "Accepted only existing public-api-empty-face v5: fixed empty 80x20 face at port (20,20) over recorded opaque white, public NewControl(proc0)/Draw1Control/HiliteControl(10) in the frontmost (active) window; composited pixels only. Independently recomputed against acquisition FILES.json (every member rehashed, symlinks refused; environment nine-state-first-attempts/1984; dolphin-partial-stopped-export not read): committed port.png/full-frame.png byte-equal private state-1-port/frame; PIL decode of full frame == raw producer.rgba (640x480, opaque); port == frame crop at state-log globalOrigin 80,90; face == port(20,20,80,20) == private face crop; context == port(12,12,96,36); crops.json LTRB face [100,110,180,130] / port [80,90,240,170]. State log (sha equals acquisition review): portRect 0,0,160,80; effectiveClipBounds 0,0,160,80; controlRect 20,20,100,40; control.hilite=10 before and after draw with titleLength0 and active=1 (FrontWindow()==target per fixture source); requestedHilite 10; GetControlVariant 0; empty title; observedLabel EMPTY; systemVersionHex 755; font line 0 name=Chicago size=12 face=0 mode=1 ascent=12 descent=3 widMax=14 leading=1. capture-log.json: all 123 retained lines equal the MacRoman CR->LF raw lines; 16 redacted ranges cover exactly the remaining hex-payload lines and every hash recomputes; full coverage, no overlap, no hex payload published. Installation/config: OS sha = preboot system755-run.dsk = frame-receipt system755-before-boot.dsk binding; Kaleidoscope sha = stopped-Kaleidoscope.bin resource fork (len 1005535 = CDEF/WDEF owner FCB logicalEOF; vers 2.3.1; kDEF0 107726 B sha 2c027276; CDEF0/WDEF0 174/176 B = logged actual definition sizes); configured scheme fork = stopped scheme fork = source choice (len = Copl FCB logicalEOF; Copl name 1984 fileID18). Palette/producer-table bytes equal colorTable/gammaTable payloads in all three state logs and the same-boot Joint1223 calibration (seed1023 flags32768 lastIndex255). Producer build artifacts = state frame.json bindings; capturedAt = frame.json capture.at. Committed JSON artifacts equal the record subtrees. Prepared-profile alias resolves to the compact copy whose parsed value equals the private lane-A profile.json bytes (sha in record/alias). 1984 state cicns differ (144/223 px vs normal) and the three 1984 native faces are distinct; only 1984 discriminates hilite->cicn at the face layer, and even here which cicn the original selected is not natively observed. Unknowns kept explicit: shutdown acknowledgement (request sent, Finder remained), private provider/cache/patch/search order, base chain, original mask/alpha and pattern phase, font identity/consumption, title colour (empty labels), consumer portColorTable (absent from state logs) and current/main equality (not logged), calibration widMax (not logged), whole-port equivalence with CRP, same-boot fixed consumer->CRP->Joint1223 order (no cold cache). Finite transfer element is a whole-load element unrelated to the face (-10139). Nits: captureMethod \"No modal/retry\" refers to native retries (0); 1984 pre-capture paced-mouse UI retries and a non-modal Kaleidoscope instruction window (outside the port, rectangular visRgn) are disclosed in nine-state-evidence.json closure. Private comparison (lanes/A MANIFEST/REVIEW ADMIT-WITH-LIMITS) is referenced, not re-run; this review does not verify renderer output, original decoder, whole requirements or overall fidelity. Reviewed commit 879f578d (records byte-identical at e17836f5)."
+    },
+    {
+      "reviewScope": {
+        "id": "public-api-empty-face",
+        "version": 5,
+        "comparisonLayer": "composited-face-pixels",
+        "facePortRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "faceImageRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "publicInvocation": {
+          "api": "NewControl",
+          "drawApi": "Draw1Control",
+          "procedureId": 0,
+          "variant": 0,
+          "hilite": 255,
+          "value": 0,
+          "defaultApiInvoked": false,
+          "stateApi": "HiliteControl",
+          "enabled": false,
+          "windowActive": true
+        },
+        "associatedRequirementIds": [
+          "geometry.remaining",
+          "fill.remaining"
+        ],
+        "claim": "Recorded composited pixels of the complete fixed empty face in the requested public state under the observed invocation, environment and white background; original pattern phase remains unknown.",
+        "excludedClaims": [
+          "alpha-or-mask",
+          "font-independence",
+          "automatic-sizing",
+          "other-states",
+          "outside-face-or-margins",
+          "default-ring",
+          "private-resource-or-painter-selection",
+          "provider-cache-or-search-order",
+          "whole-requirements",
+          "whole-request",
+          "physical-mouse-gesture",
+          "inactive-window",
+          "original-pattern-phase",
+          "general-body-paint",
+          "pattern-mask",
+          "private-pattern-provider"
+        ]
+      },
+      "captureId": "1984.inactive.j1223",
+      "verdict": "accepted",
+      "reviewer": "Independent Claude scoped-intake reviewer (Lane A-intake-review; automated independent review, not human or maintainer attestation)",
+      "reviewedAt": "2026-10-21T08:07:25.308Z",
+      "captureDigest": "ded5a54fb01a5f4a97904311cc93ad7b4ddbcb0bba1cbe7528235c9941455b9b",
+      "requestDigest": "1af1849f524543efa9c6962a55e04de64e20837c6815cf5213de882c40babf43",
+      "targetRequirementIds": [
+        "geometry.remaining",
+        "fill.remaining"
+      ],
+      "checks": {
+        "originalEnvironment": true,
+        "installationAndConfiguredSource": true,
+        "publicInvocation": true,
+        "recordedPixelConditions": true,
+        "conditionsAndTransform": true,
+        "imageAndArtifacts": true,
+        "independentOfScriptoscope": true,
+        "scopeAndLimits": true
+      },
+      "notes": "Accepted only existing public-api-empty-face v5: fixed empty 80x20 face at port (20,20) over recorded opaque white, public NewControl(proc0)/Draw1Control/HiliteControl(255) in the frontmost (active) window; composited pixels only. Independently recomputed against acquisition FILES.json (every member rehashed, symlinks refused; environment nine-state-first-attempts/1984; dolphin-partial-stopped-export not read): committed port.png/full-frame.png byte-equal private state-2-port/frame; PIL decode of full frame == raw producer.rgba (640x480, opaque); port == frame crop at state-log globalOrigin 80,90; face == port(20,20,80,20) == private face crop; context == port(12,12,96,36); crops.json LTRB face [100,110,180,130] / port [80,90,240,170]. State log (sha equals acquisition review): portRect 0,0,160,80; effectiveClipBounds 0,0,160,80; controlRect 20,20,100,40; control.hilite=255 before and after draw with titleLength0 and active=1 (FrontWindow()==target per fixture source); requestedHilite 255; GetControlVariant 0; empty title; observedLabel EMPTY; systemVersionHex 755; font line 0 name=Chicago size=12 face=0 mode=1 ascent=12 descent=3 widMax=14 leading=1. capture-log.json: all 123 retained lines equal the MacRoman CR->LF raw lines; 16 redacted ranges cover exactly the remaining hex-payload lines and every hash recomputes; full coverage, no overlap, no hex payload published. Installation/config: OS sha = preboot system755-run.dsk = frame-receipt system755-before-boot.dsk binding; Kaleidoscope sha = stopped-Kaleidoscope.bin resource fork (len 1005535 = CDEF/WDEF owner FCB logicalEOF; vers 2.3.1; kDEF0 107726 B sha 2c027276; CDEF0/WDEF0 174/176 B = logged actual definition sizes); configured scheme fork = stopped scheme fork = source choice (len = Copl FCB logicalEOF; Copl name 1984 fileID18). Palette/producer-table bytes equal colorTable/gammaTable payloads in all three state logs and the same-boot Joint1223 calibration (seed1023 flags32768 lastIndex255). Producer build artifacts = state frame.json bindings; capturedAt = frame.json capture.at. Committed JSON artifacts equal the record subtrees. Prepared-profile alias resolves to the compact copy whose parsed value equals the private lane-A profile.json bytes (sha in record/alias). 1984 state cicns differ (144/223 px vs normal) and the three 1984 native faces are distinct; only 1984 discriminates hilite->cicn at the face layer, and even here which cicn the original selected is not natively observed. Unknowns kept explicit: shutdown acknowledgement (request sent, Finder remained), private provider/cache/patch/search order, base chain, original mask/alpha and pattern phase, font identity/consumption, title colour (empty labels), consumer portColorTable (absent from state logs) and current/main equality (not logged), calibration widMax (not logged), whole-port equivalence with CRP, same-boot fixed consumer->CRP->Joint1223 order (no cold cache). Finite transfer element is a whole-load element unrelated to the face (-10139). Nits: captureMethod \"No modal/retry\" refers to native retries (0); 1984 pre-capture paced-mouse UI retries and a non-modal Kaleidoscope instruction window (outside the port, rectangular visRgn) are disclosed in nine-state-evidence.json closure. Private comparison (lanes/A MANIFEST/REVIEW ADMIT-WITH-LIMITS) is referenced, not re-run; this review does not verify renderer output, original decoder, whole requirements or overall fidelity. Reviewed commit 879f578d (records byte-identical at e17836f5)."
+    },
+    {
+      "reviewScope": {
+        "id": "public-api-empty-face",
+        "version": 5,
+        "comparisonLayer": "composited-face-pixels",
+        "facePortRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "faceImageRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "publicInvocation": {
+          "api": "NewControl",
+          "drawApi": "Draw1Control",
+          "procedureId": 0,
+          "variant": 0,
+          "hilite": 0,
+          "value": 0,
+          "defaultApiInvoked": false,
+          "stateApi": "HiliteControl",
+          "enabled": true,
+          "windowActive": true
+        },
+        "associatedRequirementIds": [
+          "geometry.remaining",
+          "fill.remaining"
+        ],
+        "claim": "Recorded composited pixels of the complete fixed empty face in the requested public state under the observed invocation, environment and white background; original pattern phase remains unknown.",
+        "excludedClaims": [
+          "alpha-or-mask",
+          "font-independence",
+          "automatic-sizing",
+          "other-states",
+          "outside-face-or-margins",
+          "default-ring",
+          "private-resource-or-painter-selection",
+          "provider-cache-or-search-order",
+          "whole-requirements",
+          "whole-request",
+          "physical-mouse-gesture",
+          "inactive-window",
+          "original-pattern-phase",
+          "general-body-paint",
+          "pattern-mask",
+          "private-pattern-provider"
+        ]
+      },
+      "captureId": "1990.normal.j1223",
+      "verdict": "accepted",
+      "reviewer": "Independent Claude scoped-intake reviewer (Lane A-intake-review; automated independent review, not human or maintainer attestation)",
+      "reviewedAt": "2026-10-21T08:07:25.308Z",
+      "captureDigest": "43b0d55975baf45bc6834c0841a082771691b45f26344f5b4407319247470a33",
+      "requestDigest": "7d5b8cb13bf7e896bdb722acc77f1f0340ffc3edd64d8a465fb2b9d3ca2d60a8",
+      "targetRequirementIds": [
+        "geometry.remaining",
+        "fill.remaining"
+      ],
+      "checks": {
+        "originalEnvironment": true,
+        "installationAndConfiguredSource": true,
+        "publicInvocation": true,
+        "recordedPixelConditions": true,
+        "conditionsAndTransform": true,
+        "imageAndArtifacts": true,
+        "independentOfScriptoscope": true,
+        "scopeAndLimits": true
+      },
+      "notes": "Accepted only existing public-api-empty-face v5: fixed empty 80x20 face at port (20,20) over recorded opaque white, public NewControl(proc0)/Draw1Control/HiliteControl(0) in the frontmost (active) window; composited pixels only. Independently recomputed against acquisition FILES.json (every member rehashed, symlinks refused; environment nine-state-first-attempts/1990; dolphin-partial-stopped-export not read): committed port.png/full-frame.png byte-equal private state-0-port/frame; PIL decode of full frame == raw producer.rgba (640x480, opaque); port == frame crop at state-log globalOrigin 80,90; face == port(20,20,80,20) == private face crop; context == port(12,12,96,36); crops.json LTRB face [100,110,180,130] / port [80,90,240,170]. State log (sha equals acquisition review): portRect 0,0,160,80; effectiveClipBounds 0,0,160,80; controlRect 20,20,100,40; control.hilite=0 before and after draw with titleLength0 and active=1 (FrontWindow()==target per fixture source); requestedHilite 0; GetControlVariant 0; empty title; observedLabel EMPTY; systemVersionHex 755; font line 0 name=Chicago size=12 face=0 mode=1 ascent=12 descent=3 widMax=14 leading=1. capture-log.json: all 123 retained lines equal the MacRoman CR->LF raw lines; 16 redacted ranges cover exactly the remaining hex-payload lines and every hash recomputes; full coverage, no overlap, no hex payload published. Installation/config: OS sha = preboot system755-run.dsk = frame-receipt system755-before-boot.dsk binding; Kaleidoscope sha = stopped-Kaleidoscope.bin resource fork (len 1005535 = CDEF/WDEF owner FCB logicalEOF; vers 2.3.1; kDEF0 107726 B sha 2c027276; CDEF0/WDEF0 174/176 B = logged actual definition sizes); configured scheme fork = stopped scheme fork = source choice (len = Copl FCB logicalEOF; Copl name 1990 fileID18). Palette/producer-table bytes equal colorTable/gammaTable payloads in all three state logs and the same-boot Joint1223 calibration (seed1023 flags32768 lastIndex255). Producer build artifacts = state frame.json bindings; capturedAt = frame.json capture.at. Committed JSON artifacts equal the record subtrees. Prepared-profile alias resolves to the compact copy whose parsed value equals the private lane-A profile.json bytes (sha in record/alias). LIMIT (state non-discriminating): independent cicn decode shows 1990 and Dolphin -10239/-10238/-10240 are byte-identical across the two schemes, 15x15 4-bit, masks identical, and the three states differ only at centre pixel (7,7) (7777/ffff/2222, the title-colour sample). The native 1990 and Dolphin faces are byte-identical across all three states and across both schemes (one shared face art under two separately measured environments); whole 160x80 ports are identical across states (frames differ only outside the port). This record therefore does NOT evidence hilite->cicn selection or state-dependent rendering; it is one face art observation, not independent of its sibling Dolphin face art. Unknowns kept explicit: shutdown acknowledgement (request sent, Finder remained), private provider/cache/patch/search order, base chain, original mask/alpha and pattern phase, font identity/consumption, title colour (empty labels), consumer portColorTable (absent from state logs) and current/main equality (not logged), calibration widMax (not logged), whole-port equivalence with CRP, same-boot fixed consumer->CRP->Joint1223 order (no cold cache). Finite transfer element is a whole-load element unrelated to the face (-9504). Nits: captureMethod \"No modal/retry\" refers to native retries (0). Private comparison (lanes/A MANIFEST/REVIEW ADMIT-WITH-LIMITS) is referenced, not re-run; this review does not verify renderer output, original decoder, whole requirements or overall fidelity. Reviewed commit 879f578d (records byte-identical at e17836f5)."
+    },
+    {
+      "reviewScope": {
+        "id": "public-api-empty-face",
+        "version": 5,
+        "comparisonLayer": "composited-face-pixels",
+        "facePortRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "faceImageRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "publicInvocation": {
+          "api": "NewControl",
+          "drawApi": "Draw1Control",
+          "procedureId": 0,
+          "variant": 0,
+          "hilite": 10,
+          "value": 0,
+          "defaultApiInvoked": false,
+          "stateApi": "HiliteControl",
+          "enabled": true,
+          "windowActive": true
+        },
+        "associatedRequirementIds": [
+          "geometry.remaining",
+          "fill.remaining"
+        ],
+        "claim": "Recorded composited pixels of the complete fixed empty face in the requested public state under the observed invocation, environment and white background; original pattern phase remains unknown.",
+        "excludedClaims": [
+          "alpha-or-mask",
+          "font-independence",
+          "automatic-sizing",
+          "other-states",
+          "outside-face-or-margins",
+          "default-ring",
+          "private-resource-or-painter-selection",
+          "provider-cache-or-search-order",
+          "whole-requirements",
+          "whole-request",
+          "physical-mouse-gesture",
+          "inactive-window",
+          "original-pattern-phase",
+          "general-body-paint",
+          "pattern-mask",
+          "private-pattern-provider"
+        ]
+      },
+      "captureId": "1990.pressed.j1223",
+      "verdict": "accepted",
+      "reviewer": "Independent Claude scoped-intake reviewer (Lane A-intake-review; automated independent review, not human or maintainer attestation)",
+      "reviewedAt": "2026-10-21T08:07:25.308Z",
+      "captureDigest": "850bb52105c9fe3639c491bf55829d574cf6b893b108b7fafb32f44c1d8d7191",
+      "requestDigest": "256bc4be5fce1727e558a21f7062e53f32f14c9db234335a34828d93dda11336",
+      "targetRequirementIds": [
+        "geometry.remaining",
+        "fill.remaining"
+      ],
+      "checks": {
+        "originalEnvironment": true,
+        "installationAndConfiguredSource": true,
+        "publicInvocation": true,
+        "recordedPixelConditions": true,
+        "conditionsAndTransform": true,
+        "imageAndArtifacts": true,
+        "independentOfScriptoscope": true,
+        "scopeAndLimits": true
+      },
+      "notes": "Accepted only existing public-api-empty-face v5: fixed empty 80x20 face at port (20,20) over recorded opaque white, public NewControl(proc0)/Draw1Control/HiliteControl(10) in the frontmost (active) window; composited pixels only. Independently recomputed against acquisition FILES.json (every member rehashed, symlinks refused; environment nine-state-first-attempts/1990; dolphin-partial-stopped-export not read): committed port.png/full-frame.png byte-equal private state-1-port/frame; PIL decode of full frame == raw producer.rgba (640x480, opaque); port == frame crop at state-log globalOrigin 80,90; face == port(20,20,80,20) == private face crop; context == port(12,12,96,36); crops.json LTRB face [100,110,180,130] / port [80,90,240,170]. State log (sha equals acquisition review): portRect 0,0,160,80; effectiveClipBounds 0,0,160,80; controlRect 20,20,100,40; control.hilite=10 before and after draw with titleLength0 and active=1 (FrontWindow()==target per fixture source); requestedHilite 10; GetControlVariant 0; empty title; observedLabel EMPTY; systemVersionHex 755; font line 0 name=Chicago size=12 face=0 mode=1 ascent=12 descent=3 widMax=14 leading=1. capture-log.json: all 123 retained lines equal the MacRoman CR->LF raw lines; 16 redacted ranges cover exactly the remaining hex-payload lines and every hash recomputes; full coverage, no overlap, no hex payload published. Installation/config: OS sha = preboot system755-run.dsk = frame-receipt system755-before-boot.dsk binding; Kaleidoscope sha = stopped-Kaleidoscope.bin resource fork (len 1005535 = CDEF/WDEF owner FCB logicalEOF; vers 2.3.1; kDEF0 107726 B sha 2c027276; CDEF0/WDEF0 174/176 B = logged actual definition sizes); configured scheme fork = stopped scheme fork = source choice (len = Copl FCB logicalEOF; Copl name 1990 fileID18). Palette/producer-table bytes equal colorTable/gammaTable payloads in all three state logs and the same-boot Joint1223 calibration (seed1023 flags32768 lastIndex255). Producer build artifacts = state frame.json bindings; capturedAt = frame.json capture.at. Committed JSON artifacts equal the record subtrees. Prepared-profile alias resolves to the compact copy whose parsed value equals the private lane-A profile.json bytes (sha in record/alias). LIMIT (state non-discriminating): independent cicn decode shows 1990 and Dolphin -10239/-10238/-10240 are byte-identical across the two schemes, 15x15 4-bit, masks identical, and the three states differ only at centre pixel (7,7) (7777/ffff/2222, the title-colour sample). The native 1990 and Dolphin faces are byte-identical across all three states and across both schemes (one shared face art under two separately measured environments); whole 160x80 ports are identical across states (frames differ only outside the port). This record therefore does NOT evidence hilite->cicn selection or state-dependent rendering; it is one face art observation, not independent of its sibling Dolphin face art. Unknowns kept explicit: shutdown acknowledgement (request sent, Finder remained), private provider/cache/patch/search order, base chain, original mask/alpha and pattern phase, font identity/consumption, title colour (empty labels), consumer portColorTable (absent from state logs) and current/main equality (not logged), calibration widMax (not logged), whole-port equivalence with CRP, same-boot fixed consumer->CRP->Joint1223 order (no cold cache). Finite transfer element is a whole-load element unrelated to the face (-9504). Nits: captureMethod \"No modal/retry\" refers to native retries (0). Private comparison (lanes/A MANIFEST/REVIEW ADMIT-WITH-LIMITS) is referenced, not re-run; this review does not verify renderer output, original decoder, whole requirements or overall fidelity. Reviewed commit 879f578d (records byte-identical at e17836f5)."
+    },
+    {
+      "reviewScope": {
+        "id": "public-api-empty-face",
+        "version": 5,
+        "comparisonLayer": "composited-face-pixels",
+        "facePortRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "faceImageRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "publicInvocation": {
+          "api": "NewControl",
+          "drawApi": "Draw1Control",
+          "procedureId": 0,
+          "variant": 0,
+          "hilite": 255,
+          "value": 0,
+          "defaultApiInvoked": false,
+          "stateApi": "HiliteControl",
+          "enabled": false,
+          "windowActive": true
+        },
+        "associatedRequirementIds": [
+          "geometry.remaining",
+          "fill.remaining"
+        ],
+        "claim": "Recorded composited pixels of the complete fixed empty face in the requested public state under the observed invocation, environment and white background; original pattern phase remains unknown.",
+        "excludedClaims": [
+          "alpha-or-mask",
+          "font-independence",
+          "automatic-sizing",
+          "other-states",
+          "outside-face-or-margins",
+          "default-ring",
+          "private-resource-or-painter-selection",
+          "provider-cache-or-search-order",
+          "whole-requirements",
+          "whole-request",
+          "physical-mouse-gesture",
+          "inactive-window",
+          "original-pattern-phase",
+          "general-body-paint",
+          "pattern-mask",
+          "private-pattern-provider"
+        ]
+      },
+      "captureId": "1990.inactive.j1223",
+      "verdict": "accepted",
+      "reviewer": "Independent Claude scoped-intake reviewer (Lane A-intake-review; automated independent review, not human or maintainer attestation)",
+      "reviewedAt": "2026-10-21T08:07:25.308Z",
+      "captureDigest": "5282b028746b200e10168640afbc6cc2b896781e2453c0b879cf1373f37d7a7c",
+      "requestDigest": "3558c1df2505968cdbd923df0dc850a2523461e24f37a071c78d2017f0d9c2ad",
+      "targetRequirementIds": [
+        "geometry.remaining",
+        "fill.remaining"
+      ],
+      "checks": {
+        "originalEnvironment": true,
+        "installationAndConfiguredSource": true,
+        "publicInvocation": true,
+        "recordedPixelConditions": true,
+        "conditionsAndTransform": true,
+        "imageAndArtifacts": true,
+        "independentOfScriptoscope": true,
+        "scopeAndLimits": true
+      },
+      "notes": "Accepted only existing public-api-empty-face v5: fixed empty 80x20 face at port (20,20) over recorded opaque white, public NewControl(proc0)/Draw1Control/HiliteControl(255) in the frontmost (active) window; composited pixels only. Independently recomputed against acquisition FILES.json (every member rehashed, symlinks refused; environment nine-state-first-attempts/1990; dolphin-partial-stopped-export not read): committed port.png/full-frame.png byte-equal private state-2-port/frame; PIL decode of full frame == raw producer.rgba (640x480, opaque); port == frame crop at state-log globalOrigin 80,90; face == port(20,20,80,20) == private face crop; context == port(12,12,96,36); crops.json LTRB face [100,110,180,130] / port [80,90,240,170]. State log (sha equals acquisition review): portRect 0,0,160,80; effectiveClipBounds 0,0,160,80; controlRect 20,20,100,40; control.hilite=255 before and after draw with titleLength0 and active=1 (FrontWindow()==target per fixture source); requestedHilite 255; GetControlVariant 0; empty title; observedLabel EMPTY; systemVersionHex 755; font line 0 name=Chicago size=12 face=0 mode=1 ascent=12 descent=3 widMax=14 leading=1. capture-log.json: all 123 retained lines equal the MacRoman CR->LF raw lines; 16 redacted ranges cover exactly the remaining hex-payload lines and every hash recomputes; full coverage, no overlap, no hex payload published. Installation/config: OS sha = preboot system755-run.dsk = frame-receipt system755-before-boot.dsk binding; Kaleidoscope sha = stopped-Kaleidoscope.bin resource fork (len 1005535 = CDEF/WDEF owner FCB logicalEOF; vers 2.3.1; kDEF0 107726 B sha 2c027276; CDEF0/WDEF0 174/176 B = logged actual definition sizes); configured scheme fork = stopped scheme fork = source choice (len = Copl FCB logicalEOF; Copl name 1990 fileID18). Palette/producer-table bytes equal colorTable/gammaTable payloads in all three state logs and the same-boot Joint1223 calibration (seed1023 flags32768 lastIndex255). Producer build artifacts = state frame.json bindings; capturedAt = frame.json capture.at. Committed JSON artifacts equal the record subtrees. Prepared-profile alias resolves to the compact copy whose parsed value equals the private lane-A profile.json bytes (sha in record/alias). LIMIT (state non-discriminating): independent cicn decode shows 1990 and Dolphin -10239/-10238/-10240 are byte-identical across the two schemes, 15x15 4-bit, masks identical, and the three states differ only at centre pixel (7,7) (7777/ffff/2222, the title-colour sample). The native 1990 and Dolphin faces are byte-identical across all three states and across both schemes (one shared face art under two separately measured environments); whole 160x80 ports are identical across states (frames differ only outside the port). This record therefore does NOT evidence hilite->cicn selection or state-dependent rendering; it is one face art observation, not independent of its sibling Dolphin face art. Unknowns kept explicit: shutdown acknowledgement (request sent, Finder remained), private provider/cache/patch/search order, base chain, original mask/alpha and pattern phase, font identity/consumption, title colour (empty labels), consumer portColorTable (absent from state logs) and current/main equality (not logged), calibration widMax (not logged), whole-port equivalence with CRP, same-boot fixed consumer->CRP->Joint1223 order (no cold cache). Finite transfer element is a whole-load element unrelated to the face (-9504). Nits: captureMethod \"No modal/retry\" refers to native retries (0). Private comparison (lanes/A MANIFEST/REVIEW ADMIT-WITH-LIMITS) is referenced, not re-run; this review does not verify renderer output, original decoder, whole requirements or overall fidelity. Reviewed commit 879f578d (records byte-identical at e17836f5)."
+    },
+    {
+      "reviewScope": {
+        "id": "public-api-empty-face",
+        "version": 5,
+        "comparisonLayer": "composited-face-pixels",
+        "facePortRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "faceImageRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "publicInvocation": {
+          "api": "NewControl",
+          "drawApi": "Draw1Control",
+          "procedureId": 0,
+          "variant": 0,
+          "hilite": 0,
+          "value": 0,
+          "defaultApiInvoked": false,
+          "stateApi": "HiliteControl",
+          "enabled": true,
+          "windowActive": true
+        },
+        "associatedRequirementIds": [
+          "geometry.remaining",
+          "fill.remaining"
+        ],
+        "claim": "Recorded composited pixels of the complete fixed empty face in the requested public state under the observed invocation, environment and white background; original pattern phase remains unknown.",
+        "excludedClaims": [
+          "alpha-or-mask",
+          "font-independence",
+          "automatic-sizing",
+          "other-states",
+          "outside-face-or-margins",
+          "default-ring",
+          "private-resource-or-painter-selection",
+          "provider-cache-or-search-order",
+          "whole-requirements",
+          "whole-request",
+          "physical-mouse-gesture",
+          "inactive-window",
+          "original-pattern-phase",
+          "general-body-paint",
+          "pattern-mask",
+          "private-pattern-provider"
+        ]
+      },
+      "captureId": "dolphin-som.normal.j1223",
+      "verdict": "accepted",
+      "reviewer": "Independent Claude scoped-intake reviewer (Lane A-intake-review; automated independent review, not human or maintainer attestation)",
+      "reviewedAt": "2026-10-21T08:07:25.308Z",
+      "captureDigest": "3efa97217203204fd08ec13611dcde5cd52fb770669f9c1551bdd196a109d2ed",
+      "requestDigest": "e39247c8024da0a4a99aa01e2c66739e0a3d3d259f4b893f4bb8123bb2d6b9dc",
+      "targetRequirementIds": [
+        "geometry.remaining",
+        "fill.remaining"
+      ],
+      "checks": {
+        "originalEnvironment": true,
+        "installationAndConfiguredSource": true,
+        "publicInvocation": true,
+        "recordedPixelConditions": true,
+        "conditionsAndTransform": true,
+        "imageAndArtifacts": true,
+        "independentOfScriptoscope": true,
+        "scopeAndLimits": true
+      },
+      "notes": "Accepted only existing public-api-empty-face v5: fixed empty 80x20 face at port (20,20) over recorded opaque white, public NewControl(proc0)/Draw1Control/HiliteControl(0) in the frontmost (active) window; composited pixels only. Independently recomputed against acquisition FILES.json (every member rehashed, symlinks refused; environment fresh-dolphin-complete/dolphin-som; dolphin-partial-stopped-export not read): committed port.png/full-frame.png byte-equal private state-0-port/frame; PIL decode of full frame == raw producer.rgba (640x480, opaque); port == frame crop at state-log globalOrigin 80,90; face == port(20,20,80,20) == private face crop; context == port(12,12,96,36); crops.json LTRB face [100,110,180,130] / port [80,90,240,170]. State log (sha equals acquisition review): portRect 0,0,160,80; effectiveClipBounds 0,0,160,80; controlRect 20,20,100,40; control.hilite=0 before and after draw with titleLength0 and active=1 (FrontWindow()==target per fixture source); requestedHilite 0; GetControlVariant 0; empty title; observedLabel EMPTY; systemVersionHex 755; font line 0 name=Chicago size=12 face=0 mode=1 ascent=12 descent=3 widMax=14 leading=1. capture-log.json: all 123 retained lines equal the MacRoman CR->LF raw lines; 16 redacted ranges cover exactly the remaining hex-payload lines and every hash recomputes; full coverage, no overlap, no hex payload published. Installation/config: OS sha = preboot system755-run.dsk = frame-receipt system755-before-boot.dsk binding; Kaleidoscope sha = stopped-Kaleidoscope.bin resource fork (len 1005535 = CDEF/WDEF owner FCB logicalEOF; vers 2.3.1; kDEF0 107726 B sha 2c027276; CDEF0/WDEF0 174/176 B = logged actual definition sizes); configured scheme fork = stopped scheme fork = source choice (len = Copl FCB logicalEOF; Copl name dsom fileID18). Palette/producer-table bytes equal colorTable/gammaTable payloads in all three state logs and the same-boot Joint1223 calibration (seed1023 flags32768 lastIndex255). Producer build artifacts = state frame.json bindings; capturedAt = frame.json capture.at. Committed JSON artifacts equal the record subtrees. Prepared-profile alias resolves to the compact copy whose parsed value equals the private lane-A profile.json bytes (sha in record/alias). LIMIT (state non-discriminating): independent cicn decode shows 1990 and Dolphin -10239/-10238/-10240 are byte-identical across the two schemes, 15x15 4-bit, masks identical, and the three states differ only at centre pixel (7,7) (7777/ffff/2222, the title-colour sample). The native 1990 and Dolphin faces are byte-identical across all three states and across both schemes (one shared face art under two separately measured environments); whole 160x80 ports are identical across states (frames differ only outside the port). This record therefore does NOT evidence hilite->cicn selection or state-dependent rendering; it is one face art observation, not independent of its sibling 1990 face art. Unknowns kept explicit: shutdown acknowledgement (request sent, Finder remained), private provider/cache/patch/search order, base chain, original mask/alpha and pattern phase, font identity/consumption, title colour (empty labels), consumer portColorTable (absent from state logs) and current/main equality (not logged), calibration widMax (not logged), whole-port equivalence with CRP, same-boot fixed consumer->CRP->Joint1223 order (no cold cache). Finite transfer element is a whole-load element unrelated to the face (-9504). Nits: captureMethod \"No modal/retry\" refers to native retries (0). Private comparison (lanes/A MANIFEST/REVIEW ADMIT-WITH-LIMITS) is referenced, not re-run; this review does not verify renderer output, original decoder, whole requirements or overall fidelity. Reviewed commit 879f578d (records byte-identical at e17836f5)."
+    },
+    {
+      "reviewScope": {
+        "id": "public-api-empty-face",
+        "version": 5,
+        "comparisonLayer": "composited-face-pixels",
+        "facePortRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "faceImageRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "publicInvocation": {
+          "api": "NewControl",
+          "drawApi": "Draw1Control",
+          "procedureId": 0,
+          "variant": 0,
+          "hilite": 10,
+          "value": 0,
+          "defaultApiInvoked": false,
+          "stateApi": "HiliteControl",
+          "enabled": true,
+          "windowActive": true
+        },
+        "associatedRequirementIds": [
+          "geometry.remaining",
+          "fill.remaining"
+        ],
+        "claim": "Recorded composited pixels of the complete fixed empty face in the requested public state under the observed invocation, environment and white background; original pattern phase remains unknown.",
+        "excludedClaims": [
+          "alpha-or-mask",
+          "font-independence",
+          "automatic-sizing",
+          "other-states",
+          "outside-face-or-margins",
+          "default-ring",
+          "private-resource-or-painter-selection",
+          "provider-cache-or-search-order",
+          "whole-requirements",
+          "whole-request",
+          "physical-mouse-gesture",
+          "inactive-window",
+          "original-pattern-phase",
+          "general-body-paint",
+          "pattern-mask",
+          "private-pattern-provider"
+        ]
+      },
+      "captureId": "dolphin-som.pressed.j1223",
+      "verdict": "accepted",
+      "reviewer": "Independent Claude scoped-intake reviewer (Lane A-intake-review; automated independent review, not human or maintainer attestation)",
+      "reviewedAt": "2026-10-21T08:07:25.308Z",
+      "captureDigest": "ed0434b1f70f25e011441948eca2c713b57022985de547239559e2167ca07132",
+      "requestDigest": "c9fec73c9a664fa8d63b13e2e32ca1bb662e271138345d07fc65158c71c1654c",
+      "targetRequirementIds": [
+        "geometry.remaining",
+        "fill.remaining"
+      ],
+      "checks": {
+        "originalEnvironment": true,
+        "installationAndConfiguredSource": true,
+        "publicInvocation": true,
+        "recordedPixelConditions": true,
+        "conditionsAndTransform": true,
+        "imageAndArtifacts": true,
+        "independentOfScriptoscope": true,
+        "scopeAndLimits": true
+      },
+      "notes": "Accepted only existing public-api-empty-face v5: fixed empty 80x20 face at port (20,20) over recorded opaque white, public NewControl(proc0)/Draw1Control/HiliteControl(10) in the frontmost (active) window; composited pixels only. Independently recomputed against acquisition FILES.json (every member rehashed, symlinks refused; environment fresh-dolphin-complete/dolphin-som; dolphin-partial-stopped-export not read): committed port.png/full-frame.png byte-equal private state-1-port/frame; PIL decode of full frame == raw producer.rgba (640x480, opaque); port == frame crop at state-log globalOrigin 80,90; face == port(20,20,80,20) == private face crop; context == port(12,12,96,36); crops.json LTRB face [100,110,180,130] / port [80,90,240,170]. State log (sha equals acquisition review): portRect 0,0,160,80; effectiveClipBounds 0,0,160,80; controlRect 20,20,100,40; control.hilite=10 before and after draw with titleLength0 and active=1 (FrontWindow()==target per fixture source); requestedHilite 10; GetControlVariant 0; empty title; observedLabel EMPTY; systemVersionHex 755; font line 0 name=Chicago size=12 face=0 mode=1 ascent=12 descent=3 widMax=14 leading=1. capture-log.json: all 123 retained lines equal the MacRoman CR->LF raw lines; 16 redacted ranges cover exactly the remaining hex-payload lines and every hash recomputes; full coverage, no overlap, no hex payload published. Installation/config: OS sha = preboot system755-run.dsk = frame-receipt system755-before-boot.dsk binding; Kaleidoscope sha = stopped-Kaleidoscope.bin resource fork (len 1005535 = CDEF/WDEF owner FCB logicalEOF; vers 2.3.1; kDEF0 107726 B sha 2c027276; CDEF0/WDEF0 174/176 B = logged actual definition sizes); configured scheme fork = stopped scheme fork = source choice (len = Copl FCB logicalEOF; Copl name dsom fileID18). Palette/producer-table bytes equal colorTable/gammaTable payloads in all three state logs and the same-boot Joint1223 calibration (seed1023 flags32768 lastIndex255). Producer build artifacts = state frame.json bindings; capturedAt = frame.json capture.at. Committed JSON artifacts equal the record subtrees. Prepared-profile alias resolves to the compact copy whose parsed value equals the private lane-A profile.json bytes (sha in record/alias). LIMIT (state non-discriminating): independent cicn decode shows 1990 and Dolphin -10239/-10238/-10240 are byte-identical across the two schemes, 15x15 4-bit, masks identical, and the three states differ only at centre pixel (7,7) (7777/ffff/2222, the title-colour sample). The native 1990 and Dolphin faces are byte-identical across all three states and across both schemes (one shared face art under two separately measured environments); whole 160x80 ports are identical across states (frames differ only outside the port). This record therefore does NOT evidence hilite->cicn selection or state-dependent rendering; it is one face art observation, not independent of its sibling 1990 face art. Unknowns kept explicit: shutdown acknowledgement (request sent, Finder remained), private provider/cache/patch/search order, base chain, original mask/alpha and pattern phase, font identity/consumption, title colour (empty labels), consumer portColorTable (absent from state logs) and current/main equality (not logged), calibration widMax (not logged), whole-port equivalence with CRP, same-boot fixed consumer->CRP->Joint1223 order (no cold cache). Finite transfer element is a whole-load element unrelated to the face (-9504). Nits: captureMethod \"No modal/retry\" refers to native retries (0). Private comparison (lanes/A MANIFEST/REVIEW ADMIT-WITH-LIMITS) is referenced, not re-run; this review does not verify renderer output, original decoder, whole requirements or overall fidelity. Reviewed commit 879f578d (records byte-identical at e17836f5)."
+    },
+    {
+      "reviewScope": {
+        "id": "public-api-empty-face",
+        "version": 5,
+        "comparisonLayer": "composited-face-pixels",
+        "facePortRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "faceImageRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "publicInvocation": {
+          "api": "NewControl",
+          "drawApi": "Draw1Control",
+          "procedureId": 0,
+          "variant": 0,
+          "hilite": 255,
+          "value": 0,
+          "defaultApiInvoked": false,
+          "stateApi": "HiliteControl",
+          "enabled": false,
+          "windowActive": true
+        },
+        "associatedRequirementIds": [
+          "geometry.remaining",
+          "fill.remaining"
+        ],
+        "claim": "Recorded composited pixels of the complete fixed empty face in the requested public state under the observed invocation, environment and white background; original pattern phase remains unknown.",
+        "excludedClaims": [
+          "alpha-or-mask",
+          "font-independence",
+          "automatic-sizing",
+          "other-states",
+          "outside-face-or-margins",
+          "default-ring",
+          "private-resource-or-painter-selection",
+          "provider-cache-or-search-order",
+          "whole-requirements",
+          "whole-request",
+          "physical-mouse-gesture",
+          "inactive-window",
+          "original-pattern-phase",
+          "general-body-paint",
+          "pattern-mask",
+          "private-pattern-provider"
+        ]
+      },
+      "captureId": "dolphin-som.inactive.j1223",
+      "verdict": "accepted",
+      "reviewer": "Independent Claude scoped-intake reviewer (Lane A-intake-review; automated independent review, not human or maintainer attestation)",
+      "reviewedAt": "2026-10-21T08:07:25.308Z",
+      "captureDigest": "becf7ed6091d2b8df981e978f79586b55506e96f0047ac7eb14ca99ca61fc0e4",
+      "requestDigest": "9ac5d0c395d453d6f2a132070f3c3bd72088e74481a1cc66674918cea4d42882",
+      "targetRequirementIds": [
+        "geometry.remaining",
+        "fill.remaining"
+      ],
+      "checks": {
+        "originalEnvironment": true,
+        "installationAndConfiguredSource": true,
+        "publicInvocation": true,
+        "recordedPixelConditions": true,
+        "conditionsAndTransform": true,
+        "imageAndArtifacts": true,
+        "independentOfScriptoscope": true,
+        "scopeAndLimits": true
+      },
+      "notes": "Accepted only existing public-api-empty-face v5: fixed empty 80x20 face at port (20,20) over recorded opaque white, public NewControl(proc0)/Draw1Control/HiliteControl(255) in the frontmost (active) window; composited pixels only. Independently recomputed against acquisition FILES.json (every member rehashed, symlinks refused; environment fresh-dolphin-complete/dolphin-som; dolphin-partial-stopped-export not read): committed port.png/full-frame.png byte-equal private state-2-port/frame; PIL decode of full frame == raw producer.rgba (640x480, opaque); port == frame crop at state-log globalOrigin 80,90; face == port(20,20,80,20) == private face crop; context == port(12,12,96,36); crops.json LTRB face [100,110,180,130] / port [80,90,240,170]. State log (sha equals acquisition review): portRect 0,0,160,80; effectiveClipBounds 0,0,160,80; controlRect 20,20,100,40; control.hilite=255 before and after draw with titleLength0 and active=1 (FrontWindow()==target per fixture source); requestedHilite 255; GetControlVariant 0; empty title; observedLabel EMPTY; systemVersionHex 755; font line 0 name=Chicago size=12 face=0 mode=1 ascent=12 descent=3 widMax=14 leading=1. capture-log.json: all 123 retained lines equal the MacRoman CR->LF raw lines; 16 redacted ranges cover exactly the remaining hex-payload lines and every hash recomputes; full coverage, no overlap, no hex payload published. Installation/config: OS sha = preboot system755-run.dsk = frame-receipt system755-before-boot.dsk binding; Kaleidoscope sha = stopped-Kaleidoscope.bin resource fork (len 1005535 = CDEF/WDEF owner FCB logicalEOF; vers 2.3.1; kDEF0 107726 B sha 2c027276; CDEF0/WDEF0 174/176 B = logged actual definition sizes); configured scheme fork = stopped scheme fork = source choice (len = Copl FCB logicalEOF; Copl name dsom fileID18). Palette/producer-table bytes equal colorTable/gammaTable payloads in all three state logs and the same-boot Joint1223 calibration (seed1023 flags32768 lastIndex255). Producer build artifacts = state frame.json bindings; capturedAt = frame.json capture.at. Committed JSON artifacts equal the record subtrees. Prepared-profile alias resolves to the compact copy whose parsed value equals the private lane-A profile.json bytes (sha in record/alias). LIMIT (state non-discriminating): independent cicn decode shows 1990 and Dolphin -10239/-10238/-10240 are byte-identical across the two schemes, 15x15 4-bit, masks identical, and the three states differ only at centre pixel (7,7) (7777/ffff/2222, the title-colour sample). The native 1990 and Dolphin faces are byte-identical across all three states and across both schemes (one shared face art under two separately measured environments); whole 160x80 ports are identical across states (frames differ only outside the port). This record therefore does NOT evidence hilite->cicn selection or state-dependent rendering; it is one face art observation, not independent of its sibling 1990 face art. Unknowns kept explicit: shutdown acknowledgement (request sent, Finder remained), private provider/cache/patch/search order, base chain, original mask/alpha and pattern phase, font identity/consumption, title colour (empty labels), consumer portColorTable (absent from state logs) and current/main equality (not logged), calibration widMax (not logged), whole-port equivalence with CRP, same-boot fixed consumer->CRP->Joint1223 order (no cold cache). Finite transfer element is a whole-load element unrelated to the face (-9504). Nits: captureMethod \"No modal/retry\" refers to native retries (0). Private comparison (lanes/A MANIFEST/REVIEW ADMIT-WITH-LIMITS) is referenced, not re-run; this review does not verify renderer output, original decoder, whole requirements or overall fidelity. Reviewed commit 879f578d (records byte-identical at e17836f5)."
     }
   ]
 }

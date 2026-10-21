@@ -1,7 +1,7 @@
 # Partial rendering requirement ledger
 
 `ledger.json` is reviewed acceptance data, separate from rendering and screenshots.
-Inventory 1.18.0 declares 117 exact direct cases and seven explicit dimensions per
+Inventory 1.19.0 declares 126 exact direct cases and seven explicit dimensions per
 case. **Every case has OPEN inventory closure.** The declared obligation
 count is a finite bookkeeping denominator, not an exhaustive denominator of
 historical control behavior. No whole-control completion percentage is reported.
@@ -463,3 +463,48 @@ for 1px source runs, because the 0xfeae direction byte is not decoded. Half exte
 flag-gated codes, masked composition, transparent/scaled pixels and the state
 pairing stay unknown, with their reasons. The five archives without `wnd#`
 (corner-sprite) get all-unknown cases: no original drawing path is decoded.
+
+
+### Optional finite CIcon preparation binding (held data extension)
+
+A subject may explicitly declare `cicnTransfer: {path, sha256, id, contractId,
+maskPolicy: 'source-mask-alpha'}` alongside its profile bindings. The closed
+binding is included in capture identity and the load-cache key; malformed,
+missing or altered data and mismatched prepared result/context IDs reject before
+loading. Existing subjects without this field retain their exact bindings and
+per-state profile selection.
+
+The ordinary public factory and loader prepare the results. Recorded execution
+retains each actual finite element, its inspector URL, typed occurrence, load/fork,
+source representation, operation context and destination-plane hash. This is a
+whole-load preparation dependency: the selected push face may use ordinary
+source decoding (in the nine registered subjects below it is a slider tick or checkbox, never the face). Original consumer geometry and the finite preparation operation
+remain separate. Source-mask alpha is explicit modern preparation; sampler,
+original mask/provider and generalized missing-color claims remain unverified.
+
+Opted-in subjects report the unprofiled output/URL comparison as null; the owned
+fixture separately requires strict mapped-default decoding to reject its missing
+source color before URL allocation. Committed transfer DATA is stored compactly and
+recovered to its bound original bytes (`readOriginal` in Node; the spec passes those
+bytes to the browser).
+
+## Nine-face 1984/1990/Dolphin extension (j1223)
+
+Inventory 1.19.0 appends nine cases/54 obligations to the exact prior 117/800:
+126 OPEN cases/854 obligations, 140 narrowly verified and 714 unknown. Only the
+nine `output.recorded-composited-face` obligations are promoted, after the
+independently reviewed private source/built comparison (18 calls, 28,800 pixels,
+zero differences) and nine v5 scoped intake attestations. Each environment has
+its own 1,223-key profile and finite transfer DATA (1984 −10139 slider tick;
+1990/Dolphin −9504 checkbox), bound to the whole load and unrelated to the face.
+
+The 1990 and Dolphin state cicns are byte-identical across both schemes and
+differ only in the centre title-colour pixel, which an empty label never uses.
+Their six rows are marked state-non-discriminating: they verify one shared face
+art under two separately measured environments, not hilite→cicn selection. Only
+the three 1984 faces discriminate state selection. Title colour is untested in
+all nine. The caller-declared `RECORDED_FIXTURE_PORT_CONTEXT` (formerly named
+after Crayon) is the native fixtures' logged geometry: 160×80 port, local origin
+0, control (20,20,100,40), full-port clip, unknown pattern phase. Shutdown
+acknowledgement, provider/cache/patch order, mask/phase/font, whole-port
+equivalence, consumer port table/widMax and cold-cache independence stay unknown.

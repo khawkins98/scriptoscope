@@ -49,9 +49,9 @@ function fixture(t, request = contract.requests.find(r => r.id === 'windows-95.n
 test('actual checked-in originals are scoped observations with every broader requirement unresolved', () => {
   const report = assessCorpus(contract, JSON.parse(readFileSync(new URL('./captures.json', import.meta.url))), JSON.parse(readFileSync(new URL('./reviews.json', import.meta.url))), { intakeRoot: join(repositoryRoot, 'tests/reference-captures'), known: knownImages() });
   assert.equal(report.requests.length, 59);
-  assert.equal(report.requests.filter(r => r.status === 'missing').length, 14);
-  assert.deepEqual(report.requests.filter(r => r.status === 'evidence-incomplete').map(r => r.id).sort(), ['windows-95.normal', 'windows-95.pressed', 'windows-95.inactive', 'system7-nostalgia-silver.normal', 'system7-nostalgia-silver.pressed', 'system7-nostalgia-silver.inactive', 'apple-lisa.normal', 'crayon-os.normal', 'animals.normal', 'animals.pressed', 'animals.inactive', 'apple-lisa.pressed', 'apple-lisa.inactive', 'beos-r503.normal', 'beos-r503.pressed', 'beos-r503.inactive', 'crayon-os.pressed', 'crayon-os.inactive'].concat(["1138.normal", "1138.pressed", "1138.inactive", "apple-platinum-2.normal", "apple-platinum-2.pressed", "apple-platinum-2.inactive", "black-platinum.normal", "black-platinum.pressed", "black-platinum.inactive", "platinum-8.normal", "platinum-8.pressed", "platinum-8.inactive", "slimes.normal", "slimes.pressed", "slimes.inactive", "windows-31.normal", "windows-31.pressed", "windows-31.inactive", "evolution.normal", "evolution.inactive", "monkey-paradise.normal", "monkey-paradise.pressed", "monkey-paradise.inactive", "floppies.normal", "floppies.pressed", "floppies.inactive", "evolution.pressed"]).sort());
-  assert.equal(report.captures.length, 45);
+  assert.equal(report.requests.filter(r => r.status === 'missing').length, 5);
+  assert.deepEqual(report.requests.filter(r => r.status === 'evidence-incomplete').map(r => r.id).sort(), ['windows-95.normal', 'windows-95.pressed', 'windows-95.inactive', 'system7-nostalgia-silver.normal', 'system7-nostalgia-silver.pressed', 'system7-nostalgia-silver.inactive', 'apple-lisa.normal', 'crayon-os.normal', 'animals.normal', 'animals.pressed', 'animals.inactive', 'apple-lisa.pressed', 'apple-lisa.inactive', 'beos-r503.normal', 'beos-r503.pressed', 'beos-r503.inactive', 'crayon-os.pressed', 'crayon-os.inactive'].concat(["1138.normal", "1138.pressed", "1138.inactive", "apple-platinum-2.normal", "apple-platinum-2.pressed", "apple-platinum-2.inactive", "black-platinum.normal", "black-platinum.pressed", "black-platinum.inactive", "platinum-8.normal", "platinum-8.pressed", "platinum-8.inactive", "slimes.normal", "slimes.pressed", "slimes.inactive", "windows-31.normal", "windows-31.pressed", "windows-31.inactive", "evolution.normal", "evolution.inactive", "monkey-paradise.normal", "monkey-paradise.pressed", "monkey-paradise.inactive", "floppies.normal", "floppies.pressed", "floppies.inactive", "evolution.pressed", "1984.normal", "1984.pressed", "1984.inactive", "1990.normal", "1990.pressed", "1990.inactive", "dolphin-som.normal", "dolphin-som.pressed", "dolphin-som.inactive"]).sort());
+  assert.equal(report.captures.length, 54);
   for (const capture of report.captures) {
     assert.equal(capture.status, 'reviewed-scoped-observation');
     assert.deepEqual(capture.missing, []); assert.deepEqual(capture.rejected, []);
@@ -752,4 +752,22 @@ test('an external intake directory cannot resolve a repository duplicate alias',
   const { rejected } = assessCapture(capture, req, [], { intakeRoot: root });
   assert.equal(rejected.length, 1);
   assert.match(rejected[0], /^artifact prepared-private-display-profile: .*ENOENT/);
+});
+
+// Aggregate identities of the 45 prior captures/reviews and 59 requests (no retained copy file).
+test('nine-state intake appends nine records and retains all prior requests, captures and reviews exactly', () => {
+  const catalog = JSON.parse(readFileSync(new URL('./requests.json', import.meta.url))).requests;
+  const captures = JSON.parse(readFileSync(new URL('./captures.json', import.meta.url))).captures;
+  const reviews = JSON.parse(readFileSync(new URL('./reviews.json', import.meta.url))).reviews;
+  assert.equal(digest(JSON.stringify(captures.slice(0, 45).map(c => [c.id, reviewDigest(c), digest(c)]))), '47d214dc7b5dc1958a496bb3ede0150efb0c1afe91421800ea4f4b7b44431c25');
+  assert.equal(digest(JSON.stringify(reviews.slice(0, 45).map(r => [r.captureId, digest(r)]))), '33e4f3e3c63450ee6995042be61243b6e0160c7a6149c04c999f7b357e176e55');
+  assert.equal(digest(JSON.stringify(catalog.map(r => [r.id, digest(r), contract.requests.find(x => x.id === r.id).requestDigest]))), '0f315214b2e1ce58eee2e6793e53b14930f9aac03a4684e65374e674752fc8e6');
+  const added = captures.slice(45).map(c => c.id);
+  assert.deepEqual(added, ['1984', '1990', 'dolphin-som'].flatMap(s => ['normal', 'pressed', 'inactive'].map(t => `${s}.${t}.j1223`)));
+  assert.deepEqual(reviews.slice(45).map(r => r.captureId), added);
+  for (const c of captures.slice(45)) {
+    // Compact batch: unread raw evidence stays private by sha256; one shared palette/producer table per environment.
+    assert.deepEqual(c.provenance.artifacts.map(a => a.role), ['capture-log', 'configured-scheme', 'public-invocation', 'producer-identities', 'pixel-conditions', 'indexed-palette', 'producer-table', 'full-frame', 'environment-manifest', 'private-evidence-index', 'prepared-display-profile']);
+    assert.equal(c.provenance.artifacts.find(a => a.role === 'indexed-palette').path, `${c.source.slug}-calibration/indexed-palette.bin`);
+  }
 });
