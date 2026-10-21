@@ -7,6 +7,8 @@ the supporting Carbon APIs were, and several open-source classic Mac
 re-implementations (`ctm/executor`, Tk's macosx port, `elliotnunn/
 UniversalInterfaces`) ship copies that survive.
 
+*Listing-level narrative (registers, frame offsets, instruction excerpts) for this document lives in [`engine/apple-primary-source.evidence.md`](engine/apple-primary-source.evidence.md) — spec writers and verifiers only.*
+
 This file pins the **role-peg constants** so the next time someone asks "what
 role does Kaleidoscope's `-14336` play?", the answer maps to an Apple-
 documented `kThemeWidget*` / `kThemeBrush*` / `kThemeTextColor*` enum value
@@ -179,7 +181,7 @@ Three companion docs in `docs/spec/` cover the Apple-side reverse-engineering al
 - **`apple-cdef-geometry.md`** — Apple Mac OS 8.5 CDEF -63 (track family) decoded geometry.
 - **`apple-cdef-button-geometry.md`** — Apple Mac OS 8.5 CDEF -1 (button family) decoded geometry.
 
-These are the **on-disk Apple-side decompile artifacts** from prior reverse-engineering sessions (May 2026). The raw binaries live in `.scratch/iso-recon/` (gitignored): `code-out/CDEF-n1.asm`, `code-out/WDEF-125.asm`, `wdef125_decomp.c`, `pef-decompress.py` (the PEF data-section decompressor), `85-System.bin` extracted via `macbin-resfork.mjs`.
+These are the **Apple-side decodes** from prior reverse-engineering sessions (May 2026). Where the raw binaries and listings live is recorded in the evidence appendix (spec writers and verifiers only).
 
 ## Citation sources
 

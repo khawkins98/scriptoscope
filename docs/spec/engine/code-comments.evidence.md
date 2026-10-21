@@ -59,3 +59,81 @@ they were reworded ("reference", "load"). No listing content was involved.
 ```text
 // (WDEF 125 @ 0x392, `fp@(-356)`) computes `titleHeight = ascent + descent + 2`
 ```
+
+## src/composeChrome.ts (comment, original; removed 2026-10-21 review round)
+
+```text
+//   Verify against the 2.3.1 binary at /tmp/kaleido-trace/kdef231_decomp.c
+//   when changing the part-code classifier or the cell-walk logic.
+```
+
+## src/composeCornerSprite.ts (comment, original; removed 2026-10-21 review round)
+
+```text
+// Faithful to docs/spec/platinum-wdef125-decode.md (the WDEF 125 decode) and
+// /tmp/kaleido-trace/kdef231_decomp.c. The Platinum frame
+```
+
+## src/controls.ts (comment, original; removed 2026-10-21 review round)
+
+```text
+ *  a 15px button face (FUN_30a8): floor((min(w,h)-3)/2). */
+```
+
+## src/controls.ts (comment, original; removed 2026-10-21 review round)
+
+```text
+  // scrollbar drawer (decompiled FUN_000066b4), which is authoritative
+```
+
+## src/controls.ts (comment, original; removed 2026-10-21 review round)
+
+```text
+  // in Kaleidoscope's shared CDEF, decoded at kDEF231_0.asm:9f0e-9f38, which writes
+```
+
+## src/controls.ts (comment, original; removed 2026-10-21 review round)
+
+```text
+ * FUN_30a8 — Platinum fallback:
+```
+
+## src/wndCascade.ts (comment, original; removed 2026-10-21 review round)
+
+```text
+// This is a 2.3.1-only enhancement — the 1.8.2 kDEF (`/scratch/k182-kdef/…`)
+
+```
+
+## src/wndCascade.ts (comment, original; removed 2026-10-21 review round)
+
+```text
+//   .scratch/k231-kdef/kDEF/k231-kdef0.asm 0x356c..0x367e  (the ground truth)
+
+```
+
+## src/wndCascade.ts (comment, original; removed 2026-10-21 review round)
+
+```text
+ *  raw id (no bit stripped). Subsequent entries are the `andiw` immediates from
+ *  the disassembly at `0x3586/0x359e/…/0x3676`. */
+```
+
+## src/wndCascade.test.mjs (comment, original; removed 2026-10-21 review round)
+
+```text
+// Verifies the 12-step cascade landings against the 2.3.1 kDEF decode at
+// `.scratch/k231-kdef/kDEF/k231-kdef0.asm` 0x356c..0x367e. Cited landings
+```
+
+## tools/theme-loader/decoders/cinf.js (comment, original; removed 2026-10-21 review round)
+
+```text
+// byte[2] is a boolean per `tstb` at 0x10bc6 et al.
+```
+
+## tests/rendering-options/checkable-rules.mjs (comment, original; removed 2026-10-21 review round)
+
+```text
+// 0x724c / 0x7278: `addiw #-9504`.
+```

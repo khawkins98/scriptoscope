@@ -1,7 +1,7 @@
 # Implementer brief (v2 clean-room)
 
 *For every sandboxed implementer lane (PLAN §4: L4, L6 and later family
-drivers). Source: [v2 PLAN §5](../../v2/PLAN.md). Maintained by lane L2; the
+drivers). Source: v2 PLAN §5, quoted below. Maintained by lane L2; the
 forbidden-document list shrinks as the doc split lands.*
 
 ## The rule (verbatim from PLAN §5)
@@ -16,10 +16,10 @@ forbidden-document list shrinks as the doc split lands.*
 
 Work in a fresh git worktree under
 `/Users/khawkins/Documents/git/scriptoscope-lanes/<lane>`. A fresh worktree has
-no `.scratch/`. Never `cd` into, list or search the root checkout
-(`/Users/khawkins/Documents/git/aaron-ui`) or the maintainer store. Searches
-(`grep -r`, `rg`, `find`) must exclude `docs/spec/engine/*.evidence.md` and the
-forbidden documents below; prefer naming the files you search.
+no `.scratch/`. Never `cd` into, list or search any other checkout of the
+repository or the maintainer store. Read only the files in **Allowed paths**
+below; when you search, name those files or directories explicitly rather than
+searching the whole tree.
 
 ## Forbidden paths
 
@@ -29,8 +29,23 @@ Never open, read, search or have a tool print these:
 - `docs/spec/engine/*.evidence.md`;
 - anything under `.scratch/`, `/tmp/kaleido-trace/`, `lanes/`,
   `v2-lanes/*/evidence`;
-- the maintainer store: `/Users/khawkins/Documents/Scriptoscope-maintainer-assets/**`
-  and the Forgejo `scriptoscope-assets` repository;
+- the maintainer store (`Scriptoscope-maintainer-assets`) and the Forgejo
+  `scriptoscope-assets` repository, except that you write, and may read back,
+  your own lane notes in `v2-lanes/<lane>/`;
+- **git history** of docs, specs, rule tables and `src/`: no `git log -p`,
+  `git show <rev>:<path>`, `git blame`, `git diff <rev>` or checkout of an
+  earlier revision. Earlier revisions of the split docs hold the narrative that
+  was moved out. `git status`, `git diff` of your own uncommitted work and
+  `git log --oneline` are fine;
+- `docs/archive/**` (the pre-split Platinum decodes and other retired notes);
+- `LEARNINGS.md` (asm lines and directions to listings in historical entries),
+  `docs/history.md`, `docs/spec/README.md` (the spec index names listing
+  paths) and `docs/v2/PLAN.md` (it names where the listings are; the rule you
+  need is quoted above, and the PM restates your lane row in your assignment);
+- `tests/rendering-requirements/**` (the ledger, its family sources and
+  `*-transition.json` files quote register operands in pinned evidence
+  locators; `EVIDENCE.md` is address-level evidence) and
+  `tests/control-availability/SOURCE-EVIDENCE.md`;
 - **these docs, until split** (each still embeds assembly, register or stack
   narrative; L2 removes them from this list as their split merges):
   - `docs/spec/kdef231-reference.md`
@@ -55,51 +70,73 @@ Never open, read, search or have a tool print these:
   - `docs/spec/tab-body-investigation.md`
   - `docs/geometry-refactor-todo.md`
   - `docs/tracking/title-text-color.md`
-  - `tests/rendering-options/range-rules.mjs` (one register-relative comment
-    near the track-record rule; L5 owns the scrub)
-  - `tests/rendering-requirements/EVIDENCE.md`,
-    `tests/control-availability/SOURCE-EVIDENCE.md` (address-level evidence
-    excerpts)
+  - `tests/rendering-options/range-rules.mjs` and its `.spec`/`.test` files
+    (one register-relative comment near the track-record rule; L5 owns the
+    scrub)
+- anything not listed under **Allowed paths**. The list is exhaustive.
 
 ## Allowed paths
+
+This list is exhaustive and matches the scope of `scripts/check-cleanroom.mjs`
+by construction: the linter fails (`brief-scope`) if a path named here is not
+one it scans.
 
 - `docs/spec/engine/*.md` except `*.evidence.md`. Start with
   [`qd-primitives.md`](qd-primitives.md) (tile / scale / corner / cinf body +
   border) and [TEMPLATE.md](TEMPLATE.md) for the shape every family spec takes.
-- Split and listing-free behavioural docs in `docs/spec/`:
-  [`compositor-spec.md`](../compositor-spec.md) (window chrome model),
-  `cinf-resize-behavior.md`, `cinf-lookup-contract.md`,
-  `control-face-geometry.md`, `control-border-boundaries.md`,
-  `control-solid-background.md`, `control-text-colors.md`,
-  `push-button-selection.md`, `default-button-caller-boundaries.md`,
-  `progress-caller-boundary.md`, `slider-layout-cinf.md`,
-  `slider-interaction.md`, `slider-selected-metadata.md`,
-  `header-surface.md`, `header-sampled-lines.md`, `finite-cicn-transfer.md`,
-  `cicn-decoding.md`, `cicn-sparse-transfer.md`, `cicn-body-mode5.md`,
-  `ppat-decoding.md`, `wnd-decoding.md`, `display-profile.md`,
-  `indexed-sampling-equivalence.md`, `managed-control-context.md`,
-  `prepared-bitmap-font.md`, `fidelity-compatibility-contract.md`,
-  `apple-primary-source.md`, `corpus-corroborated-ids.md`, `README.md`.
-  Any `docs/spec/*.md` not in the forbidden list above may be read; if one
-  turns out to contain assembly or register narrative, stop reading, record the
-  path in your lane notes and tell L2.
+- Listing-free behavioural docs (the linter's `ALLOWED_DOCS`):
+  `docs/spec/compositor-spec.md` (window chrome model),
+  `docs/spec/cinf-resize-behavior.md`, `docs/spec/cinf-lookup-contract.md`,
+  `docs/spec/control-face-geometry.md`, `docs/spec/control-border-boundaries.md`,
+  `docs/spec/control-solid-background.md`, `docs/spec/control-text-colors.md`,
+  `docs/spec/push-button-selection.md`,
+  `docs/spec/default-button-caller-boundaries.md`,
+  `docs/spec/progress-caller-boundary.md`, `docs/spec/slider-layout-cinf.md`,
+  `docs/spec/slider-interaction.md`, `docs/spec/slider-selected-metadata.md`,
+  `docs/spec/header-surface.md`, `docs/spec/header-sampled-lines.md`,
+  `docs/spec/finite-cicn-transfer.md`, `docs/spec/cicn-decoding.md`,
+  `docs/spec/cicn-sparse-transfer.md`, `docs/spec/cicn-body-mode5.md`,
+  `docs/spec/ppat-decoding.md`, `docs/spec/wnd-decoding.md`,
+  `docs/spec/display-profile.md`, `docs/spec/indexed-sampling-equivalence.md`,
+  `docs/spec/managed-control-context.md`, `docs/spec/prepared-bitmap-font.md`,
+  `docs/spec/fidelity-compatibility-contract.md`,
+  `docs/spec/apple-primary-source.md`, `docs/spec/corpus-corroborated-ids.md`,
+  `docs/v2/DECISIONS.md`, `CLAUDE.md`, `CONTRIBUTING.md`.
+- Rule tables (the linter's `RULE_TABLES`):
+  `tests/rendering-options/window-chrome-rules.mjs`,
+  `tests/rendering-options/window-chrome-rules.spec.mjs`,
+  `tests/rendering-options/window-chrome-rules.test.mjs`,
+  `tests/rendering-options/checkable-rules.mjs`,
+  `tests/rendering-options/checkable-rules.spec.mjs`,
+  `tests/rendering-options/checkable-rules.test.mjs`.
+- Code: `src/` and `tools/` (both linted, comments included), plus
+  `package.json` and the test harness files you are told to touch.
 - Apple Inside Macintosh and Universal Interfaces 3.4.1 headers
   (`Traps.h`, `Quickdraw.h`, `Controls.h`, `MacWindows.h`, `Appearance.h`).
-- `tests/rendering-options/*-rules.mjs` and their tests; `src/`, `tools/`,
-  `tests/` generally (minus the evidence files above).
-- `docs/v2/PLAN.md`, `docs/v2/DECISIONS.md`, the repository `CLAUDE.md`,
-  `CONTRIBUTING.md`, `LEARNINGS.md`, `docs/history.md`.
+
+If an allowed file turns out to contain assembly, register narrative or a
+pointer to a listing, stop reading it, record the path in your lane notes and
+tell L2. A sentence saying "(listing detail in evidence)" is a stop sign: if
+you need that detail, file a spec question.
 
 ## What your code must pass
 
-`node scripts/check-cleanroom.mjs` (reviewer contamination check, part 2). It
-fails on any of these in `src/`:
+`node scripts/check-cleanroom.mjs` (reviewer contamination check, part 2; it
+also runs in `npm run gates`). Over `src/`, `tools/`, the allowed docs and the
+rule tables it fails on:
 
-- 68k register names in any syntax (percent-prefixed, frame/stack-pointer and
-  register-indirect forms, and bare data/address register names as words);
-- 68k mnemonics as words (the PLAN §5 list; exact patterns are in the header
-  of `scripts/check-cleanroom.mjs`);
-- an identifier containing `0x<hex>` (no address-named functions or
+- 68k register names: percent-prefixed, frame/stack-pointer and
+  register-indirect (MIT `@`) forms and Motorola parenthesised operands
+  anywhere; bare data/address register names as words, lower or upper case, in
+  docs and in code **comments** (in code proper, short names such as a
+  destination offset or an alpha value stay ordinary variable names);
+- 68k mnemonics as words, including the size-suffixed family and the dotted
+  sized forms; mnemonics that are also English words only when followed by an
+  operand (exact patterns are in the header of `scripts/check-cleanroom.mjs`);
+- decompiler-generated names (function, variable and parameter names) and
+  pointers to listings (listing directories, assembly files, disassembler
+  commands);
+- in code, an identifier containing `0x<hex>` (no address-named functions or
   variables; addresses go only in table `source` strings, a driver's doc
   comment and `coverage.json`, per DECISIONS #2);
 - in `src/engine/`, any numeric constant outside `src/engine/tables/` that does
@@ -112,7 +149,7 @@ decision-table row or a spec sentence (PLAN §5 part 3).
 
 ## When the spec is not enough
 
-Write the question in your lane notes (`v2-lanes/<lane>/SPEC-QUESTIONS.md`):
+Write the question in your lane notes (`v2-lanes/<lane>/SPEC-QUESTIONS.md`, the one store path you may write):
 the spec file and section, what is ambiguous, and what you would need to
 know. Then stop on that item or implement only what the spec states and mark
 the rest unimplemented. Do not infer from the runtime's legacy code where it

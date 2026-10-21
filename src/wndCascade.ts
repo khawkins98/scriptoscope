@@ -9,7 +9,7 @@
 // terminates at the canonical document-window id (`-14336`) for the document
 // family and at the titled-utility id (`-14304`) for the utility family.
 //
-// This is a 2.3.1-only enhancement — the 1.8.2 kDEF (`/scratch/k182-kdef/…`)
+// This is a 2.3.1-only enhancement — the 1.8.2 kDEF
 // has NO `'wnd#'` FourCC anywhere in `kDEF 0`; cross-checked by `grep -c 'wnd#'`
 // on both binaries. 1.8.2 used a different resource model; 2.3.1 introduced
 // the wnd# slice-list + this cascade as its degradation strategy.
@@ -60,7 +60,7 @@
 // CITATIONS:
 //   docs/spec/kdef-binary-inventory.md §4              (the finding)
 //   docs/spec/kdef231-reference.md §3.4                (the cascade table)
-//   .scratch/k231-kdef/kDEF/k231-kdef0.asm 0x356c..0x367e  (the ground truth)
+//   kDEF 2.3.1 0x356c..0x367e                           (the ground truth)
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { WINDOW_TYPE_IDENTITIES } from '../tools/theme-loader/window-type-identities.js';
@@ -90,8 +90,8 @@ export function collapsedWindowTypeSlug(key: string): string | undefined {
 }
 
 /** The 12 AND masks the kDEF tries in order. First entry (`-1` ≡ 0xFFFF) is the
- *  raw id (no bit stripped). Subsequent entries are the `andiw` immediates from
- *  the disassembly at `0x3586/0x359e/…/0x3676`. */
+ *  raw id (no bit stripped). Subsequent entries are the AND masks applied at
+ *  `0x3586/0x359e/…/0x3676`. */
 const CASCADE_MASKS: ReadonlyArray<number> = [-1, -2, -3, -4, -5, -6, -15, -16, -17, -18, -21, -22];
 
 /** Sign-extend a 16-bit unsigned value to a signed int (so AND results that go

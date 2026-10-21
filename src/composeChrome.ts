@@ -85,8 +85,8 @@ import type { WindowType, WindowCinf, Rect, EdgeStep } from './types.js';
 //
 // IMPLEMENTATION DISCIPLINE:
 //   No per-theme branches (the kDEF didn't have any; we shouldn't either).
-//   Verify against the 2.3.1 binary at /tmp/kaleido-trace/kdef231_decomp.c
-//   when changing the part-code classifier or the cell-walk logic.
+//   Verify against docs/spec/compositor-spec.md (spec writers: its evidence
+//   appendix) when changing the part-code classifier or the cell-walk logic.
 // ─────────────────────────────────────────────────────────────────────────────
 
 /** Extract the integer part code from a `part-N` slug (−1 if malformed). */

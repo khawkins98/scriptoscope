@@ -16,7 +16,7 @@ import {
 // window from their OWN sprites instead.
 //
 // Faithful to docs/spec/platinum-wdef125-decode.md (the WDEF 125 decode) and
-// /tmp/kaleido-trace/kdef231_decomp.c. The Platinum frame is PROCEDURAL, not
+// the 2.3.1 kDEF decode. The Platinum frame is PROCEDURAL, not
 // sliced from a corner bitmap:
 //
 //   • Title bar  = a per-type racing-stripe cicn (e.g. -14331 document, -14321
