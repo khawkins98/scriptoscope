@@ -1,7 +1,7 @@
 # Partial rendering requirement ledger
 
 `ledger.json` is reviewed acceptance data, separate from rendering and screenshots.
-Inventory 1.21.0 declares 144 exact direct cases and seven explicit dimensions per
+Inventory 1.22.0 declares 198 exact direct cases and seven explicit dimensions per
 case. **Every case has OPEN inventory closure.** The declared obligation
 count is a finite bookkeeping denominator, not an exhaustive denominator of
 historical control behavior. No whole-control completion percentage is reported.
@@ -574,3 +574,22 @@ reconstruction still restores the prior rows exactly. The runtime fix changes fi
 (animals ×4, monkey-paradise ×1, both states). Opaque CopyBits under
 `grafProcs`, transparent pixels and the CopyMask order over earlier sides
 remain unmodelled.
+
+Inventory 1.22.0 appends 54 range-control cases and changes no prior row
+(`range-rules-transition.json` pins the 1.21.0 prefix). The 18
+`<slug>.scrollbar.public-rows.sampled` cases carry ten obligations each (eleven
+for the five archives that ship scroll-bar ppats), bound to the
+`scrollbar.selection-rules` assertion where it applies. The 18 slider and 18
+progress cases carry five explicit-unknown obligations each: no 2.3.1 routine
+that selects their resources has been traced. After independent review
+(campaign lane I), exactly 13 `scrollbar.normal-selection` obligations are
+**verified** (1138, 1984, 1990, animals, apple-platinum-2, beos-r503,
+black-platinum, dolphin-som, evolution, floppies, monkey-paradise, platinum-8,
+windows-31); apple-lisa, crayon-os, slimes, system7-nostalgia-silver and
+windows-95 stay unknown (track ppats with an undecoded draw path; crayon-os and
+windows-95 also R4). All 18 `scrollbar.state-selection` obligations are
+**mismatched**, tracked by OPEN issue #374; a runtime fix must update them
+before the issue closes. The other 334 new obligations are unknown and every
+closure is OPEN. The classes R1-R5 are described in
+[range-controls.md](../../docs/spec/range-controls.md). The ledger has 173
+verified, 18 mismatched and 1,213 unknown obligations across 1,404.

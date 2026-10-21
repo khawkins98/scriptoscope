@@ -94,9 +94,16 @@ proves input identity, not decoder correctness. A trace proves actual selection,
 not the historical validity of a fallback policy. A self-golden proves stability,
 not original-engine pixels.
 
-The current [ledger 1.21.0](../../tests/rendering-requirements/ledger.json) contains
-144 OPEN cases and 1,039 declared obligations: 160 narrowly verified, 0 mismatched,
-0 explicitly unsupported and 879 unknown. Of the 18 window-chrome cases, the 13
+The current [ledger 1.22.0](../../tests/rendering-requirements/ledger.json) contains
+198 OPEN cases and 1,404 declared obligations: 173 narrowly verified, 18 mismatched,
+0 explicitly unsupported and 1,213 unknown. Of the 54 range-control cases added
+in 1.22.0 (18 scroll-bar source-rule cases, 18 slider and 18 progress explicit
+unknowns), 13 `scrollbar.normal-selection` obligations are verified: the normal
+rows draw exactly the resources the decoded scroll-bar CDEF selects, under a
+declared mapping and an archive-only chain, for selection only. All 18
+`scrollbar.state-selection` obligations are mismatched (issue #374): the runtime
+disagrees with the decoded selection in every pressed, disabled and inactive row
+([range-controls.md](range-controls.md)). Of the 18 window-chrome cases, the 13
 `wnd#` ladder-selection obligations are verified. Seven `window.tile-blit`
 obligations are also verified: 1990, animals, crayon-os, dolphin-som,
 evolution, floppies and monkey-paradise agree with the decoded `0xfeae`
