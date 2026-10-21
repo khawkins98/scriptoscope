@@ -1,5 +1,29 @@
 # Learnings
 
+## 2026-10-21 — Evidence volume, not test time, was the fidelity bottleneck
+
+The empty-face campaign was effective but expensive. One batch committed 349k
+lines across 110 files for four 80×20 faces: about 99% was pretty-printed
+calibration JSON, and one 52,932-line profile was committed twice. CI took about
+10–14 minutes, so the cost was in per-cell acquisition, data volume and repeated
+review handoffs. Compact evidence (#366) removed about 660k net lines without
+changing any reviewed identity. Source-addressed rule tables (push/default
+rules; window-chrome rules) cover all applicable themes in a few hundred lines.
+At 32 bpp, a reviewed Floppies trial matched cicn high bytes with no
+calibration. That condition is separate from the 8-bit evidence and still has
+open limits.
+
+Independent review keeps paying for itself when it tests discrimination. The
+1990/Dolphin state cicns differ only in the centre title-colour pixel, so their
+empty faces cannot distinguish states, and the two schemes share identical art.
+A window tile check restricted to 1px runs can no longer tell tiling from
+scaling. Record what a passing row cannot prove.
+
+Temporary `/tmp` comparison directories were lost mid-campaign, leaving a PASS
+report with no reviewable artifacts. It had to be reconstructed from the
+retained native inputs and rerun. Lane work and results now live in durable
+directories.
+
 ## 2026-10-20 — Retain evidence before validation and compare semantic JSON
 
 Monkey Paradise's first six private comparisons had exact native pixels but were
