@@ -1,0 +1,35 @@
+{
+  "inventoryVersion": "1.19.0",
+  "inventorySha256": "cb473deed987c825bbff4e12e214837f47c7f99face04e540b67914ebb7242b3",
+  "scope": {
+    "description": "126 exact direct composition cases: the prior 117 plus nine 1984/1990/Dolphin normal/pressed/inactive empty recorded-condition faces (the six 1990/Dolphin faces are state-non-discriminating). All closures OPEN; not a whole-control or whole-window denominator.",
+    "dimensions": [
+      "resourceSelection",
+      "geometry",
+      "fillMask",
+      "typography",
+      "state",
+      "placement",
+      "interaction"
+    ],
+    "review": "Original eight cases and 51 assessments retained unchanged. Independent automated root/Astra review approved eight additional finite cases and 83 obligations at draft scope digest 659a655e87bbb0642aa200cf108671ec93d9e2cd00f48577bfb97cd4df1b30e3 on 2026-10-18; final digest reflects only replacement of pending review labels. All closures remain OPEN; not human capture attestation. The #289 extension preserves those sixteen cases and 134 assessments. Independent automated root/Astra review approved this exact finite #289 case/status extension on 2026-10-18 at draft scope digest 16a76c6c2c2343d378d626ffc8bf954b11a32cb5a2015718cb2ce7dd917893a0; narrow source/sample claim only, not human original-capture attestation. The #301 extension preserves all eighteen cases and150 assessments, adding four exact synthetic cases and45 obligations. Independent automated root/Astra review approved the exact applied four-case, 45-obligation extension and verifiers at commit d02935846fa816411259524b15e9934cd316becb, scope digest 4e563d0e824e9d809f22a14a735d6f64dca501bb1519ba58fc42ab3390c1e066. Final digest reflects only replacement of these review labels. Synthetic source/literal claims only; no original capture attestation."
+  },
+  "priorFileSha256": "7eebd84f3fd614abde328e0f5afc72ec806a5f0966938f5ffe0bc8074ba1b466",
+  "priorObjectSha256": "aee7d83f68dad786b3f2f236b63f56e6725df8466d5fdbcf6dd7cfd96a9d2854",
+  "counts": {
+    "inputs": 63,
+    "evidence": 84,
+    "requirements": 45,
+    "assertions": 31,
+    "cases": 126,
+    "assessments": 854
+  },
+  "prefixSha256": {
+    "inputs": "aab27625d0842b1ea43335d00bd28faeef84bd0eedd8f72cdf1ed6e1d567c486",
+    "evidence": "f4c5b12e975016df28e7350a17a7ab39b47fbd8b68c5c043f2a965251cd77b66",
+    "requirements": "d532ed16b99711668b5fad7f729d4654a34b50275d0796e47fa6f67c919bd0b2",
+    "assertions": "cc7d1bbc340ca18819171c413399af58b72537bb078269c92461a027f0e3b967",
+    "cases": "fea48ea6c7e10fbed75b7e7eedb86a08445267107cb1c0f7b07621c8608f5425",
+    "assessments": "82d2d4fd6c10e6bad869d6e4b2ffceb89f55e36dcc6abea441cc6dae8ddb28de"
+  }
+}

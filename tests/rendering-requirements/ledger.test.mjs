@@ -37,7 +37,7 @@ function reject(change, pattern, options = {}) {
 test('reviewed inventory validates and all open cases remain uncertified', () => {
   assert.deepEqual(validateLedger(original, { root }).errors, []);
   const report = makeReport(original);
-  assert.equal(report.cases.length, 126);
+  assert.equal(report.cases.length, 144);
   assert.equal(report.requirementStatus.denominator, original.assessments.length);
   assert.equal(report.cases.filter(c => c.status === 'verified').length, 0);
   assert(report.execution.assertions.every(a => a.modes.every(m => m.status === 'not run')));
@@ -159,7 +159,7 @@ test('evidence from a wholly unrelated archive or synthetic input cannot support
 });
 test('engine-wide rules and combined source-art evidence retain their bounded valid uses', () => {
   const result = validateLedger(original, { root });
-  assert.deepEqual(result.errors, []); assert.equal(result.declaredCount, 854);
+  assert.deepEqual(result.errors, []); assert.equal(result.declaredCount, 1039);
   assert.deepEqual(original.evidence.find(e => e.id === 'kdef.square-corners').inputs, ['engine.kaleidoscope-2.3.1-kdef0']);
   const shared = original.evidence.find(e => e.id === 'art.tab-crop');
   assert.deepEqual(shared.inputs, ['theme.1138', 'theme.1990']);
@@ -350,10 +350,11 @@ test('nine-state extension preserves the prior inventory and marks every 1990/Do
  for(const[key,count]of Object.entries(transition.counts)){prior[key]=prior[key].slice(0,count);assert.equal(digest(JSON.stringify(prior[key])),transition.prefixSha256[key],key+' prefix');}
  Object.assign(prior,{inventoryVersion:transition.inventoryVersion,inventorySha256:transition.inventorySha256,scope:transition.scope});
  assert.equal(inventoryDigest(prior),transition.inventorySha256);assert.equal(digest(JSON.stringify(prior)),transition.priorObjectSha256);
- const cases=original.cases.slice(transition.counts.cases),added=original.assessments.slice(transition.counts.assessments);
+ const cases=original.cases.slice(transition.counts.cases,126),added=original.assessments.slice(transition.counts.assessments,854);
  assert.equal(cases.length,9);assert.equal(added.length,54);assert(cases.every(c=>c.inventoryClosure.status==='open'&&c.id.endsWith('.j1223-profile')));
  assert(added.every(a=>a.status===(a.requirementId==='output.recorded-composited-face'?'verified':'unknown')));
- const before=makeReport(prior).requirementStatus.counts,after=makeReport(original).requirementStatus.counts;
+ const at126=structuredClone(original);for(const[key,count]of Object.entries(JSON.parse(readFileSync(new URL('./checkable-rules-transition.json',import.meta.url))).counts))at126[key]=at126[key].slice(0,count);
+ const before=makeReport(prior).requirementStatus.counts,after=makeReport(at126).requirementStatus.counts;
  assert.deepEqual({verified:after.verified-before.verified,unknown:after.unknown-before.unknown},{verified:9,unknown:45});
  // Every 1990/Dolphin row, case substitution list and evidence locator/limit carries the literal marker; no 1984 one does.
  const marker=/State-non-discriminating/,shared=id=>/^recorded\.(1990|dolphin-som)\./.test(id);
@@ -377,4 +378,23 @@ test('window-chrome extension preserves all prior99 cases and671 assessments and
  const beforeNine=structuredClone(original);for(const[key,count]of Object.entries(JSON.parse(readFileSync(new URL('./nine-state-recorded-transition.json',import.meta.url))).counts))beforeNine[key]=beforeNine[key].slice(0,count);
  assert.deepEqual(makeReport(beforeNine).requirementStatus.counts,{verified:131,mismatched:0,unsupported:0,unknown:669});
  const cases=original.cases.slice(99,117);assert.equal(cases.length,18);assert(cases.every(c=>c.family==='window-chrome'&&c.inventoryClosure.status==='open'));
+});
+
+test('checkable source-rule extension preserves all prior 126 cases and 854 assessments and promotes only the 13 CICN-lane selections',()=>{
+ const transition=JSON.parse(readFileSync(new URL('./checkable-rules-transition.json',import.meta.url))),prior=structuredClone(original);
+ for(const[key,count]of Object.entries(transition.counts)){prior[key]=prior[key].slice(0,count);assert.equal(digest(JSON.stringify(prior[key])),transition.prefixSha256[key],key+' prefix');}
+ Object.assign(prior,{inventoryVersion:transition.inventoryVersion,inventorySha256:transition.inventorySha256,scope:transition.scope});
+ assert.equal(inventoryDigest(prior),transition.inventorySha256);assert.equal(digest(JSON.stringify(prior)),transition.priorObjectSha256);
+ assert.deepEqual(makeReport(prior).requirementStatus.counts,{verified:140,mismatched:0,unsupported:0,unknown:714});
+ const cases=original.cases.slice(126),added=original.assessments.slice(854);
+ assert.equal(cases.length,18);assert.equal(added.length,185);
+ assert(cases.every(c=>c.family==='checkable'&&c.inventoryClosure.status==='open'&&c.options.label===''));
+ const cicnLane=['1138','1984','1990','animals','apple-lisa','beos-r503','crayon-os','dolphin-som','evolution','floppies','monkey-paradise','windows-31','windows-95'];
+ const promoted=a=>a.requirementId==='checkable.lane-selection'&&cicnLane.some(s=>a.caseId===`${s}.checkable.public-rows.sampled`);
+ assert(added.every(a=>a.status===(promoted(a)?'verified':'unknown')));assert.equal(added.filter(a=>a.status==='verified').length,13);
+ for(const a of added.filter(promoted))assert.match(a.rationale,/archive-fork-only resource chain.*original file provenance is unknown/,a.caseId);
+ assert.match(added.find(a=>promoted(a)&&a.caseId.startsWith('apple-lisa.')).rationale,/non-discriminating for tier/);
+ assert.match(added.find(a=>promoted(a)&&a.caseId.startsWith('animals.')).rationale,/no other file in the chain supplies -9485\/-9486/);
+ assert(!JSON.stringify(original).includes('PENDING'));
+ assert.deepEqual(makeReport(original).requirementStatus.counts,{verified:153,mismatched:0,unsupported:0,unknown:886});
 });
