@@ -94,7 +94,7 @@ proves input identity, not decoder correctness. A trace proves actual selection,
 not the historical validity of a fallback policy. A self-golden proves stability,
 not original-engine pixels.
 
-The current [ledger 1.23.0](../../tests/rendering-requirements/ledger.json) contains
+The current [ledger 1.24.0](../../tests/rendering-requirements/ledger.json) contains
 234 OPEN cases and 1,728 declared obligations: 216 narrowly verified, 18 mismatched,
 0 explicitly unsupported and 1,494 unknown. Of the 36 tab/header source-rule cases
 added in 1.23.0, review verified 43 obligations, each as agreement with the CDEF 8 /

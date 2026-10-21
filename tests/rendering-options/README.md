@@ -218,7 +218,7 @@ separate scope.
 reference section on every row. `window-chrome-rules.test.mjs` (Node, part of
 `npm test`) and `window-chrome-rules.spec.mjs` (source/built) run it over the
 actual archives. The 13 `wnd#` archives cover every sliced window type, both
-states and content sizes of template + {0,1,2,7,97} × {0,1,33}. The checks are
+states and content sizes of template + {−12,0,1,2,7,97} × {−12,0,1,33}. The checks are
 END-based cells (`0x5356`), the 1:1 `[0,border[0])` corner (`0x4a64`),
 flag-independent part-code widths (`0x49d6`/`0x5178`), the two-pass per-half
 allocation (`0x5178`, nonnegative budgets, given the observed half extent) and
@@ -253,14 +253,24 @@ shares for 13/14, untruncated tiles and changed pixels. Mutation cases confirm
 it rejects forward-tiled 11/14 cells, reverse-tiled forward cells and scaled
 tile cells.
 
-These checks do not cover codes 5/10/2/3/4/15/16/17 (flag-gated), title-anchor
-half extents, below-minimum windows, side draw order, CopyMask transparency,
-code-18 scaled pixels, trailing side regions, the `0x632e`/`0x6062` widget pass, ladder
-misses (where the runtime heuristic substitutes) or the five corner-sprite
-archives. A failing `todo` records the code-10 decode disagreement (flag 1 should
-collapse it). An observation test records an undecoded overrun, with no expected
-value: the 1138 document-window title bar at its template size places 107px in
-103px. No image or golden is added.
+Code 10 is asserted from the too-short step (`0x4dfe..0x4e0e`;
+[kdef231-code10-widgets.md](../../docs/spec/kdef231-code10-widgets.md)): fixed
+when the side's placed extent reaches its fixed-cell sum, width 0 below it.
+`sideTooShort` computes the verdict from the recipe and the content delta,
+bounding widget-gated codes, and leaves code 10 unknown when the bound
+straddles the extent. The −12 samples reach the step; sourced hand traces
+(`[14,4,2]` at width 20, `[3,0,2]` at width 5) and checker mutations (code 10
+kept below the template, dropped above it) are in the Node test. Widget hit and
+press rects (`0x5cb6`) are checked in `src/titleWidgets.test.mjs` and, through
+WindowManager overlays, in `window-widget-remap.spec.mjs` (source/built).
+
+These checks do not cover codes 5/2/3/4/15/16/17 (flag-gated), title-anchor
+half extents, the second too-short step (shade-widget clear), side draw order,
+CopyMask transparency, code-18 scaled pixels, trailing side regions, the
+`0x632e`/`0x6062` widget draw pass, ladder misses (where the runtime heuristic
+substitutes) or the five corner-sprite archives. An observation test records an
+undecoded overrun, with no expected value: the 1138 document-window title bar at
+its template size places 107px in 103px. No image or golden is added.
 
 ### Checkable source rules
 
