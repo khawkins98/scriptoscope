@@ -798,49 +798,77 @@ Still open:
 
 ## 6. A-trap inventory
 
-The toolbox calls the kDEF uses, with representative invocation addresses (full
-counts via `grep '.short 0xaXXX'`). Body-related rows were corrected against Apple Universal Interfaces 3.4.1;
-see [source identity and body dispatch](cinf-resize-behavior.md). Other tentative
-rows below are not promoted to verified by that bounded correction.
+The toolbox calls the kDEF makes, with representative call-site addresses (the
+address of the trap word itself). **The `name` column is generated from Apple
+Universal Interfaces 3.0.1 `Traps.h`** by `scripts/gen-trap-table.mjs`; never
+hand-edit it. Run `node scripts/gen-trap-table.mjs --traps-h <path> --check` to
+verify, or `--write` to regenerate. `Traps.h` is Apple-copyrighted and is not
+committed; the maintainer copy lives in the private store
+(sha256 `b2d54498b8f790f6ca959bdfe5cfb2ef84bec8e0a565bd65c1a09dc7c3d34c7b`).
+Toolbox traps are looked up with the auto-pop bit (`$0400`) cleared; OS traps are
+looked up with their flag bits.
 
+Body-related rows were corrected against Universal Interfaces 3.4.1 earlier; see
+[source identity and body dispatch](cinf-resize-behavior.md). The `role` column is
+hand-written. A role marked *(re-verify)* was written when the trap carried a
+different (wrong) name, so treat it as unverified until someone re-traces it. Every
+example address below was checked to hold the trap word (2026-10-21, v2 lane L1).
+
+<!-- trap-table:begin -->
 | trap | name | role in kDEF | example addr(s) |
 |---|---|---|---|
-| `$A8EC` | **CopyBits** | the core scaled/1:1 blit | `0x103ea`, `0x750c`, `0x7654` |
-| `$A817` | **CopyMask** | masked blit (cicn alpha) | `0x10402`, `0x7676` |
-| `$A874` | GetPort | save current port | `0xfeee`, `0x10336`, `0x108cc` |
-| `$A873`/`$A879` | SetPort/SetPortBits (?) | port plumbing | `0x...` |
-| `$A8A9` | **InsetRect** | rect geometry; default ring expands the control rect by 4px | `0x76a2` |
-| `$AA19` | **GetForeColor** | save foreground RGB | `0xfe2c`, `0xf82a` |
-| `$AA1A` | **GetBackColor** | save background RGB | `0xfe32`, `0xf830` |
-| `$AA1E` | **GetCIcon** | request color icon | `0x10434`, `0x10698` |
-| `$AA0C` | **GetPixPat** | request pixel pattern | `0x10460`, `0xef24` |
-| `$AA14` | **RGBForeColor** | set foreground RGB | `0xfe9c`, `0xf836` |
-| `$AA15` | **RGBBackColor** | set background RGB | `0x10998`, `0x109b6` |
-| `$A9A0` | **GetResource** | wnd#, cicn, cinf, clut, pWin | `0x3574`, `0x10490`, `0x11722` |
-| `$A9A2` | **ReleaseResource** | free recipe handle | `0x36a6`, `0x1172e` |
-| `$A024` | **SetHandleSize** | resize loaded handle | `0x1174a`, `0x117b6` |
-| `$A01B` | **SetZone** | switch heap zone around resource loads | `0x10458`, `0x1048e` |
-| `$A994` | **CurResFile** | save current resource file | `0x10816`, `0x10494` |
-| `$A998` | **UseResFile** | restore resource file | `0x10830`, `0x104ae` |
-| `$A888` | **StringWidth** | measure title text (title-fits gate) | `0x4f18`, `0x4f20`, `0x4f36` |
-| `$A88C` | **GetFontInfo** | ascent/descent for title region | `0x4aa4`, `0x4f0a`, `0x4f28` |
-| `$A887` | **TextFont** | set title font | `0x7540` |
-| `$A88A` | **TextSize** | set title size | `0x754a` |
-| `$A889` | **TextFace/DrawChar-area** | set title face / draw | `0x7558`, `0x75bc`, `0x75c4` |
-| `$A8B2` | **EraseRoundRect** | solid inset-union body; both oval dimensions pushed as zero | `0x10a3e`, `0x10a66` |
-| `$AA25` | **DisposeCIcon** | release mode5 background icon | `0x10a14` |
-| `$AA42`/`$AA55`/`$AA73` | Appearance/Icon-services utilities (?) | control-state / icon queries | scattered |
-| `$A8D8`/`$A8D9` | **SectRect / UnionRect** | rect math in tiling/slicing | `0x103c4`, `0x15c92` |
-| `$A8DC`/`$A8DF`/`$A8E0`/`$A8E4`/`$A8E5`/`$A8E6` | EqualRect / OffsetRect / InsetRect / PtInRect family | geometry | throughout |
-| `$AB1D` | **`_CopyDeepMask` / `_GetMaskTable`-area QuickDraw selector** (?) | the control-draw path's main toolbox bracket (`0x7484` pushes selector `#1441792` etc.) | `0x747e`, `0x749c`, `0x74b6` |
-| `$ABCA`/`$ABC9` | **PlotCIconHandle / PlotIcon** (?) | icon plot | `0x15cd0` |
-| `$A06A`/`$A069`/`$A029`/`$A023`/`$A122` | memory mgr (HLock/HUnlock/NewHandle/DisposeHandle) | handle juggling | `0x108f2`, `0x10aa0` |
+| `$A8EC` | CopyBits | the core scaled/1:1 blit | `0x103ea`, `0x750c`, `0x7654` |
+| `$A817` | CopyMask | masked blit (cicn alpha) | `0x10402` |
+| `$A874` | GetPort | save current port | `0xfeee`, `0x10338`, `0x108d0` |
+| `$A873` | SetPort | port plumbing *(re-verify)* | — |
+| `$A879` | SetClip | clip plumbing *(re-verify; was "SetPortBits (?)")* | — |
+| `$A8A9` | InsetRect | rect geometry; default ring expands the control rect by 4px | `0x76a2` |
+| `$AA19` | GetForeColor | save foreground RGB | `0xfe2c`, `0xf82a` |
+| `$AA1A` | GetBackColor | save background RGB | `0xfe32`, `0xf830` |
+| `$AA1E` | GetCIcon | request color icon | `0x10434`, `0x10698` |
+| `$AA0C` | GetPixPat | request pixel pattern | `0x10460`, `0xef24` |
+| `$AA14` | RGBForeColor | set foreground RGB | `0xfe9c`, `0xf836` |
+| `$AA15` | RGBBackColor | set background RGB | `0x10998`, `0x109b6` |
+| `$A9A0` | GetResource | wnd#, cicn, cinf, clut, pWin | `0x3574`, `0x11722` |
+| `$A9A2` | LoadResource | *(re-verify; was "ReleaseResource / free recipe handle")* | `0x36a6`, `0x1172e` |
+| `$A024` | SetHandleSize | resize loaded handle | `0x1174a`, `0x117b6` |
+| `$A01B` | SetZone | switch heap zone around resource loads | `0x10458`, `0x10490` |
+| `$A994` | CurResFile | save current resource file | `0x10816`, `0x10494` |
+| `$A998` | UseResFile | restore resource file | `0x10830`, `0x104ae` |
+| `$A888` | TextFace | set title text face *(re-verify; was "StringWidth / title-fits gate")* | `0x4f18`, `0x4f20`, `0x4f36`, `0x7558` |
+| `$A88C` | StringWidth | measure title text *(re-verify; was "GetFontInfo")* | `0x4aa4`, `0x4f0a`, `0x4f28` |
+| `$A88B` | GetFontInfo | ascent/descent *(re-verify; no call site cited)* | — |
+| `$A887` | TextFont | set title font | `0x7540` |
+| `$A88A` | TextSize | set title size | `0x754a` |
+| `$A889` | TextMode | *(re-verify; was "TextFace/DrawChar-area")* | `0x75bc`, `0x75c4` |
+| `$A8B2` | EraseRoundRect | solid inset-union body; both oval dimensions pushed as zero | `0x10a3e`, `0x10a66` |
+| `$AA25` | DisposeCIcon | release mode5 background icon | `0x10a14` |
+| `$AA42` | GetAuxWin | *(re-verify; was "Appearance/Icon-services utility (?)")* | scattered |
+| `$AA55` | *(not in Traps.h 3.0.1)* | unknown | scattered |
+| `$AA73` | *(not in Traps.h 3.0.1)* | unknown | scattered |
+| `$A8D8` | NewRgn | region allocation *(re-verify; was "SectRect")* | `0x103c4` |
+| `$A8D9` | DisposeRgn | region release *(re-verify; was "UnionRect")* | `0x15c92` |
+| `$A8DC` | CopyRgn | region geometry *(re-verify; was "rect family")* | throughout |
+| `$A8DF` | RectRgn | region geometry *(re-verify)* | throughout |
+| `$A8E0` | OffsetRgn | region geometry *(re-verify)* | throughout |
+| `$A8E4` | SectRgn | region geometry *(re-verify)* | throughout |
+| `$A8E5` | UnionRgn | region geometry *(re-verify)* | throughout |
+| `$A8E6` | DiffRgn | region geometry *(re-verify)* | throughout |
+| `$AB1D` | QDExtensions | selector-dispatched QuickDraw extensions (GWorld family; the control-draw bracket pushes a selector before it). Selector names are not in `Traps.h` | `0x7484`, `0x74a2`, `0x74bc` |
+| `$ABCA` | DeviceLoop | *(re-verify; was "PlotCIconHandle (?)")* | `0x15cd0` |
+| `$ABC9` | IconDispatch | selector-dispatched Icon Utilities *(re-verify; was "PlotIcon (?)")* | — |
+| `$A06A` | HSetState | handle state restore | — |
+| `$A069` | HGetState | handle state save | `0x108f2` |
+| `$A029` | HLock | handle lock | — |
+| `$A023` | DisposeHandle | handle release | — |
+| `$A122` | NewHandle | handle allocation (OS flag bits set) | — |
+<!-- trap-table:end -->
 
-> Several trap names are marked **(?)** where the trap number is ambiguous
-> between the classic and Appearance dispatch tables; the CopyBits/CopyMask,
-> GetResource/ReleaseResource, NewGWorld/SetGWorld, StringWidth/GetFontInfo, and
-> the text traps are unambiguous and load-bearing. Resolve the rest against a
-> Mac trap-number table if a behaviour question turns on one.
+Three more misnamed traps sit outside this table, in
+[`kdef-service-handlers.md`](kdef-service-handlers.md) (lines 93–109 at the time of
+writing): `$A8AD` is PtInRect (not PtInRgn), `$A88F` is OSDispatch (not GetCTSeed)
+and `$A99B` is SetResLoad (not SetPort). v2 lane L2 owns that file while it moves
+the asm narrative out, so the fix is left to L2.
 
 ---
 

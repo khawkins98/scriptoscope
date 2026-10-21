@@ -130,3 +130,9 @@ A9A0 to GetResource and documenting conditional cinf fallback. The ring dispatch
 claims, detailed source evidence, all 27 case inputs/outcomes and payload pins
 remain unchanged. The complete 1.0.4 review history is retained; this adds no
 provider-order or pixel-fidelity claim.
+
+Inventory 1.0.9 refreshes only the full `kdef231-reference.md` document hash after
+the §6 A-trap table's name column was regenerated from Universal Interfaces 3.0.1
+`Traps.h` (`scripts/gen-trap-table.mjs`). All 27 case inputs, outcomes, payload pins
+and ring dispatch claims are unchanged. The review label is PENDING until an
+independent hash-only review; earlier review history is retained.
