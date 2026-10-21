@@ -5,7 +5,7 @@ import { createHash } from 'node:crypto';
 import { loadKaleidoscopeScheme } from '../../tools/theme-loader/loadKaleidoscopeScheme.js';
 import { detectContainer, unwrapToResourceFork } from '../../tools/theme-loader/containers.js';
 import { stuffItResourceForkWithSelection } from '../../tools/sit-wasm/index.mjs';
-import { CICN_LANE, ICON_ONLY, ICON_TABLE, ICON_TABLE_SHA256, PUBLIC_ROWS, checkRow, cicnId, censusFromFork, iconTableBytes, nativeFor, selectCheckable } from './checkable-rules.mjs';
+import { CICN_LANE, ICON_ONLY, ICON_TABLE, ICON_TABLE_SHA256, PUBLIC_ROWS, checkRow, cicnId, censusFromFork, iconTableBytes, parseResourceMap, nativeFor, selectCheckable } from './checkable-rules.mjs';
 
 // Archive bytes -> raw fork (input identity shared with the loader); the
 // census itself comes from this module's own resource-map parse.
@@ -13,7 +13,7 @@ const corpus = new Map();
 for (const slug of [...CICN_LANE, ...ICON_ONLY]) {
   const bytes = readFileSync(['scheme.sit', 'scheme.rsrc'].map(f => new URL(`../../themes/${slug}/${f}`, import.meta.url)).find(existsSync));
   const fork = detectContainer(bytes) === 'stuffit' ? (await stuffItResourceForkWithSelection(bytes)).bytes : unwrapToResourceFork(bytes);
-  corpus.set(slug, { census: censusFromFork(fork), loaded: await loadKaleidoscopeScheme(bytes, { encodeAssets: false, provenance: true }) });
+  corpus.set(slug, { census: censusFromFork(fork), map: parseResourceMap(fork), loaded: await loadKaleidoscopeScheme(bytes, { encodeAssets: false, provenance: true }) });
 }
 const inLane = id => id >= -9504 && id <= -9481, inIcons = id => id >= -10240 && id <= -10214;
 const predict = (slug, row, select = selectCheckable) => select(nativeFor(row.kind, row.options), corpus.get(slug).census);
@@ -27,11 +27,16 @@ test('icon table literal matches the pinned 0x18b88 table hash and the doc', () 
 });
 
 test('own resource-map census agrees with the loader over all 18 archives (input identity, both directions)', () => {
-  for (const [slug, { census, loaded }] of corpus) {
+  for (const [slug, { census, map, loaded }] of corpus) {
     const cicns = new Set(loaded.byteProvenance.resources.filter(r => r.type === 'cicn' && r.status === 'decoded' && inLane(r.signedId)).map(r => r.signedId));
     assert.deepEqual([...census.cicn].filter(inLane).sort(), [...cicns].sort(), `${slug} cicn`);
     assert.deepEqual([...census.mask].filter(inIcons).sort(), loaded.iconMaskResources.map(m => m.id).filter(inIcons).sort(), `${slug} ics#`);
     assert.deepEqual([...census.color].filter(inIcons).sort(), [...new Set(loaded.iconIndex.filter(e => inIcons(e.id) && /^ics[48]$/.test(e.type)).map(e => e.id))].sort(), `${slug} colour icons`);
+    // Each lane id's bytes, from this parse, equal the loader's provenance record for that id.
+    const sha = b => createHash('sha256').update(b).digest('hex');
+    const own = map.filter(r => r.type === 'cicn' && inLane(r.id)).map(r => [r.id, r.data.length, sha(r.data)]).sort((a, b) => a[0] - b[0]);
+    const prov = loaded.byteProvenance.resources.filter(r => r.type === 'cicn' && inLane(r.signedId)).map(r => [r.signedId, r.byteLength, r.sha256]).sort((a, b) => a[0] - b[0]);
+    assert.deepEqual(own, prov, `${slug} cicn id->bytes binding`);
     // abs-id aliasing in the runtime's element lookup has nothing to alias here.
     assert.equal([...census.cicn].filter(id => inLane(-id)).length, 0, `${slug}: positive cicn ids in the lane`);
   }

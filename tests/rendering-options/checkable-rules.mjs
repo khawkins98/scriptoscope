@@ -92,18 +92,23 @@ export const PUBLIC_ROWS = ['checkbox', 'radio'].flatMap(kind => [false, true].f
  * Inside Macintosh: More Macintosh Toolbox 1-121..1-123 resource fork layout:
  * header (data offset, map offset); map +24 type-list offset, +26 name-list
  * offset; type list = count-1, then {type, count-1, ref-list offset}; each ref
- * = {id, name offset, attrs+data offset (4), handle (4)}. Returns [{type, id}].
+ * = {id, name offset, attrs (1) + 24-bit data offset, handle (4)}; data =
+ * 4-byte length then bytes at header data offset + ref offset.
+ * Returns [{type, id, data}].
  */
 export function parseResourceMap(fork) {
   const u16 = at => (fork[at] << 8) | fork[at + 1], s16 = at => (u16(at) << 16) >> 16;
   const u32 = at => ((fork[at] << 24) >>> 0) + (fork[at + 1] << 16) + (fork[at + 2] << 8) + fork[at + 3];
-  const map = u32(4), types = map + u16(map + 24), out = [];
+  const base = u32(0), map = u32(4), types = map + u16(map + 24), out = [];
   const typeCount = s16(types) + 1;
   for (let i = 0; i < typeCount; i++) {
     const at = types + 2 + i * 8;
     const type = String.fromCharCode(fork[at], fork[at + 1], fork[at + 2], fork[at + 3]);
     const count = s16(at + 4) + 1, refs = types + u16(at + 6);
-    for (let j = 0; j < count; j++) out.push({ type, id: s16(refs + j * 12) });
+    for (let j = 0; j < count; j++) {
+      const ref = refs + j * 12, at = base + (u32(ref + 4) & 0xffffff);
+      out.push({ type, id: s16(ref), data: fork.subarray(at + 4, at + 4 + u32(at)) });
+    }
   }
   return out;
 }

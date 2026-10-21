@@ -18,6 +18,28 @@ for (const slug of SLUGS) {
   expected[slug] = PUBLIC_ROWS.map(row => selectCheckable(nativeFor(row.kind, row.options), census));
 }
 
+// Corpus property, pinned: rows whose output also equals another archive raster
+// (identical state art), so they cannot discriminate that distinction.
+//   1138, windows-95: disabled art == pressed art; apple-lisa: normal == disabled
+//   (all 12); 1990, dolphin-som: checkbox normal mixed == pressed mixed and radio
+//   normal off == disabled on; evolution: radio normal off == disabled on;
+//   beos-r503: checked == value-3 art, radio off identical in all three tiers;
+//   windows-31: radio mixed normal == disabled.
+const rowsOf = (slug, spec) => spec.map(s => `${slug}/${s}`);
+const BOTH = ['checkbox/normal/off', 'checkbox/normal/on', 'checkbox/normal/mixed', 'checkbox/disabled/off', 'checkbox/disabled/on', 'checkbox/disabled/mixed',
+  'radio/normal/off', 'radio/normal/on', 'radio/normal/mixed', 'radio/disabled/off', 'radio/disabled/on', 'radio/disabled/mixed'];
+const DISABLED = BOTH.filter(r => r.includes('/disabled/'));
+const SHARED_ROWS = [
+  ...rowsOf('1138', DISABLED),
+  ...rowsOf('1990', ['checkbox/normal/mixed', 'radio/normal/off', 'radio/disabled/on']),
+  ...rowsOf('apple-lisa', BOTH),
+  ...rowsOf('beos-r503', ['checkbox/normal/on', 'checkbox/disabled/on', 'radio/normal/off', 'radio/disabled/off']),
+  ...rowsOf('dolphin-som', ['checkbox/normal/mixed', 'radio/normal/off', 'radio/disabled/on']),
+  ...rowsOf('evolution', ['radio/normal/off', 'radio/disabled/on']),
+  ...rowsOf('windows-31', ['radio/normal/mixed', 'radio/disabled/mixed']),
+  ...rowsOf('windows-95', DISABLED),
+];
+
 for (const mode of ['source', 'built']) {
   test(`${mode}: public composeCheckable draws the art the 2.3.1 CICN/icon lanes select, for every archive`, async ({ page, servers }, info) => {
     info.annotations.push({ type: 'fidelity-assertion', description: 'checkable.selection-rules' });
@@ -64,6 +86,6 @@ for (const mode of ['source', 'built']) {
     // raster cannot tell those resources apart, so they are counted, not hidden.
     const shared = results.filter(r => !r.discriminating).map(r => `${r.slug}/${r.row.kind}/${r.row.options.disabled ? 'disabled' : 'normal'}/${r.row.options.mixed ? 'mixed' : r.row.options.checked ? 'on' : 'off'}`);
     await attachObservations(info, 'checkable-rules', `${mode}-shared`, { shared });
-    expect(results.length - shared.length).toBeGreaterThan(150);
+    expect(shared).toEqual(SHARED_ROWS);
   });
 }

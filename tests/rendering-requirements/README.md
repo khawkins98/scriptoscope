@@ -523,14 +523,23 @@ locator/limit, and forbids it on the 1984 rows.
 
 Eighteen `checkable` cases and 185 obligations append to the exact prior 126
 cases and 854 assessments, retained by `checkable-rules-transition.json`.
-There are 144 OPEN cases and 1,039 obligations: 140 narrowly verified and 899
-unknown. Every new assessment is unknown pending independent review.
+There are 144 OPEN cases and 1,039 obligations: 153 narrowly verified and 886
+unknown. Independent review (campaign lanes/G/REVIEW.json, head 52d07faf)
+promoted only `checkable.lane-selection` for the 13 CICN-lane archives.
 
 Each archive gets one case over the 12 public empty-label rows (checkbox/radio
 × off/on/mixed × normal/disabled). Seven primary-decode locators in
 `docs/spec/checkable-icons.md` back one registered source/built assertion,
-`checkable.selection-rules`, in `checkable-rules.spec.mjs`. Lane selection and
-raster retention carry that assertion but stay unknown. The other obligations
+`checkable.selection-rules`, in `checkable-rules.spec.mjs`. The 13 verified
+lane-selection rows certify agreement with the decode under three declared
+conditions: the public-to-native mapping, a clear Gestalt(`Acid`) byte and an
+archive-only resource chain. They do not establish which file supplied the
+art. Each rationale names the distinctions its shared-pixel rows cannot
+discriminate. For example, Apple Lisa's normal and disabled art are identical,
+so its tier is not evidenced. The Animals retry rows also assume no other file
+supplies −9485/−9486. Icon-only lane selection stays unknown, because the
+icon lane fetches from the System file. Raster retention also stays unknown,
+because the decoder is shared. The other obligations
 are recorded with their decoded limits and no runtime check: the resource
 files (`UseResFile` of a Gestalt `Copl` refnum, `UseResFile(0)` for icons),
 the public state mapping, the pressed tier, value 3, glyph placement, the

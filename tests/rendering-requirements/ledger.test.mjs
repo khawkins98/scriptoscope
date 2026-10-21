@@ -380,7 +380,7 @@ test('window-chrome extension preserves all prior99 cases and671 assessments and
  const cases=original.cases.slice(99,117);assert.equal(cases.length,18);assert(cases.every(c=>c.family==='window-chrome'&&c.inventoryClosure.status==='open'));
 });
 
-test('checkable source-rule extension preserves all prior 126 cases and 854 assessments and promotes nothing',()=>{
+test('checkable source-rule extension preserves all prior 126 cases and 854 assessments and promotes only the 13 CICN-lane selections',()=>{
  const transition=JSON.parse(readFileSync(new URL('./checkable-rules-transition.json',import.meta.url))),prior=structuredClone(original);
  for(const[key,count]of Object.entries(transition.counts)){prior[key]=prior[key].slice(0,count);assert.equal(digest(JSON.stringify(prior[key])),transition.prefixSha256[key],key+' prefix');}
  Object.assign(prior,{inventoryVersion:transition.inventoryVersion,inventorySha256:transition.inventorySha256,scope:transition.scope});
@@ -389,6 +389,12 @@ test('checkable source-rule extension preserves all prior 126 cases and 854 asse
  const cases=original.cases.slice(126),added=original.assessments.slice(854);
  assert.equal(cases.length,18);assert.equal(added.length,185);
  assert(cases.every(c=>c.family==='checkable'&&c.inventoryClosure.status==='open'&&c.options.label===''));
- assert(added.every(a=>a.status==='unknown'));
- assert.deepEqual(makeReport(original).requirementStatus.counts,{verified:140,mismatched:0,unsupported:0,unknown:899});
+ const cicnLane=['1138','1984','1990','animals','apple-lisa','beos-r503','crayon-os','dolphin-som','evolution','floppies','monkey-paradise','windows-31','windows-95'];
+ const promoted=a=>a.requirementId==='checkable.lane-selection'&&cicnLane.some(s=>a.caseId===`${s}.checkable.public-rows.sampled`);
+ assert(added.every(a=>a.status===(promoted(a)?'verified':'unknown')));assert.equal(added.filter(a=>a.status==='verified').length,13);
+ for(const a of added.filter(promoted))assert.match(a.rationale,/archive-fork-only resource chain.*original file provenance is unknown/,a.caseId);
+ assert.match(added.find(a=>promoted(a)&&a.caseId.startsWith('apple-lisa.')).rationale,/non-discriminating for tier/);
+ assert.match(added.find(a=>promoted(a)&&a.caseId.startsWith('animals.')).rationale,/no other file in the chain supplies -9485\/-9486/);
+ assert(!JSON.stringify(original).includes('PENDING'));
+ assert.deepEqual(makeReport(original).requirementStatus.counts,{verified:153,mismatched:0,unsupported:0,unknown:886});
 });

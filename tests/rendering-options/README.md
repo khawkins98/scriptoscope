@@ -259,10 +259,11 @@ Five wrong readings each change corpus predictions: swapped tiers, no retry,
 retry to unchecked, icon lane first, kind ignored. `checkRow` rejects each of
 them. A sixth, the runtime normal-tier retry, changes no corpus row (below). `checkable-rules.spec.mjs` runs the public `composeCheckable` in source
 and built modes. Each output must equal the archive raster of the predicted
-resource: alpha everywhere, RGB where opaque. At freeze, 178 of the 216 rows
-discriminated. The other 38 rows also equal another archive raster, for
-example where an archive's disabled and pressed art are identical. They are
-counted, not hidden. Five temporary runtime mutations each failed the source
+resource: alpha everywhere, RGB where opaque. 178 of the 216 rows
+discriminate. The spec pins the other 38 rows, which also equal another
+archive raster, for example where an archive's disabled and pressed art are
+identical. The Node test also checks each lane id's bytes against the loader's
+provenance hash. Five temporary runtime mutations each failed the source
 spec: mixed-first removed, disabled tier swapped, icon lane first, icon
 disabled row ignored, and mixed retry to unchecked.
 
