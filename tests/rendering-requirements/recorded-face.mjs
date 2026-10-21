@@ -4,6 +4,7 @@ import { isDeepStrictEqual as same } from 'node:util';
 import { createHash } from 'node:crypto';
 import { readContract, assessCorpus, reviewDigest, digest } from '../reference-captures/contract.mjs';
 import { compareCompletedPatternPaint } from '../resource-provenance/patterns.mjs';
+import { readOriginal } from '../helpers/compact-json.mjs';
 
 export const REQUIREMENT = 'output.recorded-composited-face';
 export const RECORDED_CASES = JSON.parse(readFileSync(new URL('../decoder-fixtures/recorded-case-registry.json', import.meta.url)));
@@ -42,7 +43,7 @@ export function validateRecordedProfiles(root, registry = RECORDED_CASES) {
     for (const profile of [profileFor(slug, undefined, registry), ...entry.states.map(state => profileFor(slug, state, registry))]) {
       const identity = JSON.stringify(profile);
       if (verified.has(identity)) continue;
-      const profileSha = createHash('sha256').update(readFileSync(resolve(root, profile.path))).digest('hex');
+      const profileSha = createHash('sha256').update(readOriginal(resolve(root, profile.path))).digest('hex');
       check(profileSha === profile.sha256, 'profile DATA bytes changed');
       verified.add(identity);
     }

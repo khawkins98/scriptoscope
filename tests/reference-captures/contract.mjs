@@ -1,9 +1,10 @@
 import { createHash } from 'node:crypto';
-import { readFileSync, readdirSync, realpathSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, realpathSync, statSync } from 'node:fs';
 import { isAbsolute, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { isDeepStrictEqual } from 'node:util';
 import { inspectPNG } from './png.mjs';
+import { aliasFor, originalBytes, readOriginal } from '../helpers/compact-json.mjs';
 
 export const repositoryRoot = fileURLToPath(new URL('../../', import.meta.url));
 export const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
@@ -14,12 +15,21 @@ const readJSON = path => JSON.parse(readFileSync(path));
 const text = value => typeof value === 'string' && value.trim().length > 0;
 const hash = value => typeof value === 'string' && /^[a-f0-9]{64}$/.test(value);
 const check = (ok, message) => { if (!ok) throw new Error(message); };
+// Returns the exact original bytes bound by artifact identities (tests/compact-evidence.json).
+// Compact repository files decode losslessly; a removed duplicate resolves only through its
+// declared alias, and only inside the repository corpus, never for an external intake.
+const corpusRoot = resolve(repositoryRoot, 'tests/reference-captures');
 const inside = (root, path) => {
   check(text(path) && !isAbsolute(path), 'file path must be relative to intake directory');
-  const file = realpathSync(resolve(root, path)), rel = relative(realpathSync(root), file);
+  const lexical = resolve(root, path);
+  if (!existsSync(lexical) && existsSync(root) && realpathSync(root) === realpathSync(corpusRoot)) {
+    const alias = aliasFor(relative(repositoryRoot, lexical));
+    if (alias) return readOriginal(alias.path);
+  }
+  const file = realpathSync(lexical), rel = relative(realpathSync(root), file);
   check(rel !== '..' && !rel.startsWith('../') && !isAbsolute(rel), 'file escapes intake directory');
   check(statSync(file).size <= 40 * 1024 * 1024, 'file exceeds 40 MiB intake limit');
-  return readFileSync(file);
+  return originalBytes(readFileSync(file));
 };
 
 // A finite observation scope, not an alternative set of verified requirements.

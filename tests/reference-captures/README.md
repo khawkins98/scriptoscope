@@ -430,3 +430,45 @@ in the maintainer asset store, commit `5b78f6be5c8d757744c49738264b5c3f90507827`
 The archive SHA-256 is `a401622fa96b43eacd9ca13bae2cc5e8fab9a2d140b7743744584b79a090c402`;
 a fresh selective LFS restore verified all 550 regular files and two symlinks.
 This locator supplies private recovery, not additional public admission.
+
+## Compact evidence format (compact-json-v1)
+
+Committed evidence holds only what tests read, once, compactly. The registry
+[`tests/compact-evidence.json`](../compact-evidence.json) and helper
+[`tests/helpers/compact-json.mjs`](../helpers/compact-json.mjs) define three
+mechanisms. None changes a recorded sha256, capture/review digest or assertion:
+
+- **Layout.** `compact-json-v1` is valid JSON with LF, 2-space indentation and raw
+  UTF-8. Arrays of primitives stay on one line. Any other array/object is inline
+  when its minified form is ≤120 characters, otherwise one member per line. As a
+  result each profile mapping, palette entry or measured row takes one line.
+  `formatCompactJSON(value)` is the canonical writer.
+- **Migrated identities.** Files that were already bound by byte sha256 (captures,
+  ledger, recorded-case registry, profile bindings) are stored compactly and
+  registered under `compacted` with their exact original encoding, bytes and
+  sha256. Byte checks read through `readOriginal`/`originalBytes`, which re-encode
+  the parsed value and require it to reproduce the registered original identity.
+  The lookup is content-addressed, so any semantic edit yields unregistered bytes
+  and fails every existing check. JSON readers parse the compact file unchanged.
+- **One copy.** A byte-identical duplicate is removed and listed under `aliases`
+  with its single retained copy (measured profiles live in `tests/decoder-fixtures/`).
+  The intake validator follows an alias only for the repository corpus, never for
+  an external intake directory.
+- **Private raw evidence.** Unread raw evidence (calibration full frames, durable
+  status screenshots) is listed under `external` with sha256, bytes and its
+  Forgejo asset/commit/archive/member locator. Files that any check reads, such as
+  capture artifacts the intake validator hashes or inspects, stay committed.
+
+Write newly derived files (prepared profiles, capture manifests, bindings) in
+`compact-json-v1` (`node tests/helpers/compact-json.mjs --write <file>…`) **before**
+their first sha256 is recorded, so no registry entry is needed. Some files' sha256
+is already sealed in a private `FILES.json` or review, for example members of the
+nine-state acquisition. Keep those private and reference them by sha256. If a
+committed copy is needed, either commit the exact bytes or register it under
+`compacted`. Never rewrite one unregistered. Commit one profile per
+measured run, in `tests/decoder-fixtures/measured-display-profile-<x>.json`. A
+capture artifact naming the prepared profile should use an alias instead of a second
+copy. Keep raw measurement dumps, logs and full frames that no test reads in the
+private asset store and reference them by sha256.
+Only add `compacted` entries when migrating bytes that are already bound. Never
+re-encode a file without registering its original identity.

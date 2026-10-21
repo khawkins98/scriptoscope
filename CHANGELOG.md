@@ -7,6 +7,8 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+- Store committed fidelity evidence compactly without weakening any check. Measured profiles, calibration measurements and calibration logs use one-row-per-line `compact-json-v1`, and byte checks recover the exact originally bound bytes through `tests/compact-evidence.json`. Byte-identical duplicate profiles and the duplicate BeOS calibration are replaced by declared aliases. Twelve unread Shared307 calibration screenshots now live in the private asset store under sha256-bound locators. All capture/review digests, ledger and registry identities are unchanged. New intakes should follow the documented format (#221).
+
 - Add four independently reviewed empty-face records for Floppies normal/pressed/inactive and Evolution pressed, genuine separate measured profiles and state-specific bindings. Preserve prior Evolution records and all broader unknowns; independent review accepted only four output obligations after the registered source/built pair matched all45 faces/72,000 pixels per mode. Refine the fidelity delivery roadmap without changing its full target or exit criteria.
 
 - Allow recorded-face comparisons to bind a complete measured profile per state while preserving each theme’s existing default profile and earlier capture bindings.

@@ -5,6 +5,7 @@ import {bitmapCaseIds,validateBitmapCase,verifyBitmapFixtures} from './bitmap-ca
 import {readRecordedContext,validateRecordedBinding,REQUIREMENT} from './recorded-face.mjs';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
+import { readOriginal } from '../helpers/compact-json.mjs';
 import { resolve, relative } from 'node:path';
 export const DIMENSIONS = ['resourceSelection', 'geometry', 'fillMask', 'typography', 'state', 'placement', 'interaction'];
 export const STATUSES = ['verified', 'mismatched', 'unsupported', 'unknown'];
@@ -15,7 +16,7 @@ const populated = value => typeof value === 'string' && value.trim().length > 0;
 const hash = value => /^[a-f0-9]{64}$/.test(value ?? '');
 
 /** Structural integrity and provenance checks; never infer assessments from rendering. */
-export function validateLedger(ledger, { root, read = path => readFileSync(path), issueStates } = {}) {
+export function validateLedger(ledger, { root, read = path => readOriginal(path), issueStates } = {}) {
   const errors = [];
   const check = (ok, message) => { if (!ok) errors.push(message); };
   const text = (value, name) => check(populated(value), `${name}: missing text`);

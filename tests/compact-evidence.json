@@ -1,0 +1,470 @@
+{
+  "schemaVersion": 1,
+  "id": "scriptoscope.compact-evidence",
+  "layout": "compact-json-v1",
+  "purpose": "Committed evidence stays byte-identity-equivalent while stored compactly. Compacted files decode exactly to the original bytes bound by existing sha256 identities; aliases name the single retained copy of a removed byte-identical duplicate; external entries are unread raw evidence preserved in the private asset store.",
+  "encodings": {
+    "json-indent2-lf": "JavaScript JSON.stringify(value, null, 2) + LF",
+    "json-indent2-ascii-lf": "JSON.stringify(value, null, 2) with each UTF-16 code unit >= U+0080 escaped as lowercase \\uXXXX, + LF; equals Python json.dumps(indent=2) output only without U+007F, non-integral float formatting, NaN/Infinity or integer-like keys"
+  },
+  "compacted": [
+    {
+      "path": "tests/decoder-fixtures/measured-display-profile-1138.json",
+      "encoding": "json-indent2-lf",
+      "originalBytes": 93326,
+      "originalSha256": "3686ca8ca86d52830aaf943e1798d771bd8eb3cbaac5e81871e149cf96e55d3d",
+      "storedBytes": 42266,
+      "storedSha256": "9b1f14ea69fb62b95c6682673501e9facdca1710e12f297fb54719d80c73eb48"
+    },
+    {
+      "path": "tests/decoder-fixtures/measured-display-profile-animals.json",
+      "encoding": "json-indent2-lf",
+      "originalBytes": 76226,
+      "originalSha256": "8212d54dc56f28dd4825c55591e09b18ce5d9c317b647995a3d4b0635b99c5d5",
+      "storedBytes": 34664,
+      "storedSha256": "245ec0f9fe3656a31e42e97ff74868a4f7303f6ba123c7027ae0e0d3b69eba06"
+    },
+    {
+      "path": "tests/decoder-fixtures/measured-display-profile-apple-platinum-2.json",
+      "encoding": "json-indent2-lf",
+      "originalBytes": 94231,
+      "originalSha256": "98b28f82fd5dcbb3a1770647e5deb4bd9c9b1e9576d512ecbfb0c9cd07e47c22",
+      "storedBytes": 43259,
+      "storedSha256": "49018c56b6177d63da3f2c82aa01f218cdd1435aae6d3c2a6da42412a7721fec"
+    },
+    {
+      "path": "tests/decoder-fixtures/measured-display-profile-beos.json",
+      "encoding": "json-indent2-lf",
+      "originalBytes": 89615,
+      "originalSha256": "e70ab19f818d1281488fc0a6d4a2df9a46e816e5e0127b1176be423cb94a2c58",
+      "storedBytes": 40985,
+      "storedSha256": "fba1741f608c24aa4226657db17e0a9464bf17b67df950b02e29d3a4b57ba26a"
+    },
+    {
+      "path": "tests/decoder-fixtures/measured-display-profile-black-platinum.json",
+      "encoding": "json-indent2-lf",
+      "originalBytes": 94586,
+      "originalSha256": "99a845515e35aa8ef808d61f1020f5800a8e250c08f37169509ce9d291085c43",
+      "storedBytes": 43614,
+      "storedSha256": "62174ee94c0b9b91ff97f40976fce221eeff667716fec7f5e713d901f209c40a"
+    },
+    {
+      "path": "tests/decoder-fixtures/measured-display-profile-crayon.json",
+      "encoding": "json-indent2-lf",
+      "originalBytes": 448402,
+      "originalSha256": "fbd0eb8abb9e5e153fa4ddb0d825a2fea045a6f4a19baca445d12b449ff47b5a",
+      "storedBytes": 207588,
+      "storedSha256": "9b5b05c645941783d98307f6fd40d1b2a1d1796d5ad0d13be4dbba2ef02c35bf"
+    },
+    {
+      "path": "tests/decoder-fixtures/measured-display-profile-evolution-pressed.json",
+      "encoding": "json-indent2-lf",
+      "originalBytes": 395303,
+      "originalSha256": "97f360d2b994da12cdc05cc28c5b020bbd95b5d98c1463ae695231f6c8a57c8a",
+      "storedBytes": 182835,
+      "storedSha256": "b511f194d23febdc4bd6464120be54058343ebc10f45e0a538b728ba413aad50"
+    },
+    {
+      "path": "tests/decoder-fixtures/measured-display-profile-evolution.json",
+      "encoding": "json-indent2-lf",
+      "originalBytes": 393243,
+      "originalSha256": "646be3846ec055419aebfd87ca38a9f79912ee231c5b0a0863ebff26b84da784",
+      "storedBytes": 180996,
+      "storedSha256": "987e58b93e43a4caf40dffc757f1c25ad4f9c58e0d087db1bf623285360f5b7f"
+    },
+    {
+      "path": "tests/decoder-fixtures/measured-display-profile-floppies.json",
+      "encoding": "json-indent2-lf",
+      "originalBytes": 742159,
+      "originalSha256": "92035413a445011ce539566f69ed899bfe0ee4b12ded1555ed26f1c8eb926cd9",
+      "storedBytes": 347816,
+      "storedSha256": "5f748f406a98972ec726e5b0bf30f3a7688112487a44bfbb682a4d5703521ca4"
+    },
+    {
+      "path": "tests/decoder-fixtures/measured-display-profile-lisa.json",
+      "encoding": "json-indent2-lf",
+      "originalBytes": 41740,
+      "originalSha256": "f48d2807c6b881b0a3fdd851b866a47116e2df2b998201b95c6c5854befdd1d6",
+      "storedBytes": 18331,
+      "storedSha256": "a93825a705d31c372c3ffd67e12f03521003b4edcb0ed1bad8caac3571edd25a"
+    },
+    {
+      "path": "tests/decoder-fixtures/measured-display-profile-monkey-paradise.json",
+      "encoding": "json-indent2-lf",
+      "originalBytes": 91339,
+      "originalSha256": "a22a2812126867eef6797b01f0aca2a1a024a5e6960a77426ba27c907e8da16c",
+      "storedBytes": 42156,
+      "storedSha256": "e673593b405416ebecb392cf6769d8d4c66f78824bb5d7cbcc7eef81474a9564"
+    },
+    {
+      "path": "tests/decoder-fixtures/measured-display-profile-platinum-8.json",
+      "encoding": "json-indent2-lf",
+      "originalBytes": 94197,
+      "originalSha256": "d05652c25d7b127616b31461063264d0ebd0f49a41cd75cfb9b5f90bbac00692",
+      "storedBytes": 43225,
+      "storedSha256": "ff00b5c120b0cd8a49cf91acee29524bfa3f26b13ff792422469c0c232f7f731"
+    },
+    {
+      "path": "tests/decoder-fixtures/measured-display-profile-slimes.json",
+      "encoding": "json-indent2-lf",
+      "originalBytes": 94808,
+      "originalSha256": "cc128c30089d593e97e5a07e7ffa33729a09b73fe5842d4085dfe54864bbb1f5",
+      "storedBytes": 43794,
+      "storedSha256": "b7a915c507c2fb01f90fb3072b2606fdf57f80512c08997d54efe8bbe778b38e"
+    },
+    {
+      "path": "tests/decoder-fixtures/measured-display-profile-windows-31.json",
+      "encoding": "json-indent2-lf",
+      "originalBytes": 94187,
+      "originalSha256": "1413c9daf5d691dd63af377cf8da1c8dcdba0eb14c045f0c1922f617a4961682",
+      "storedBytes": 43215,
+      "storedSha256": "a74d4c71e363bdb649cd3ab13c652ec7723d962bcaeb5b4ba28aa3a23d9bc9fc"
+    },
+    {
+      "path": "tests/decoder-fixtures/measured-display-profile.json",
+      "encoding": "json-indent2-lf",
+      "originalBytes": 72448,
+      "originalSha256": "d8c495d980029f857633652c5e1abd3bc4f289fb8705e03fd750bc9bdff96d00",
+      "storedBytes": 32301,
+      "storedSha256": "eba09731caeef107bd2796f006c434922783e134afe4a128c0bee4eef4557140"
+    },
+    {
+      "path": "tests/reference-captures/1138-calibration/capture-log.json",
+      "encoding": "json-indent2-lf",
+      "originalBytes": 106640,
+      "originalSha256": "1d6f1ae5b139991992ff14ed0981e62d546ad1ec8c177c44583b7db72c7bce88",
+      "storedBytes": 91394,
+      "storedSha256": "6c2b39de2b89c5dacde9938111d1bcf2a009fe5521cd7a88eb1c2eff14c29bbf"
+    },
+    {
+      "path": "tests/reference-captures/1138-calibration/measurement.json",
+      "encoding": "json-indent2-lf",
+      "originalBytes": 144274,
+      "originalSha256": "bea053f1de8bc595a8ab6f3ece82d4f0e5512eb0d76ef06f15d73274ce9f0062",
+      "storedBytes": 73386,
+      "storedSha256": "0e0d81b73672782b7f73ccbb9047e366636c66c7e95facb1d917126d4dd715e4"
+    },
+    {
+      "path": "tests/reference-captures/animals-calibration/measurement.json",
+      "encoding": "json-indent2-lf",
+      "originalBytes": 179005,
+      "originalSha256": "8ac86b9c3a92272a6a5fbd961d8df8856c797bd1dd9b2777306677a2d1312940",
+      "storedBytes": 128064,
+      "storedSha256": "2474688fff5d6199a104bcb07d12d4b3f85fb42b1d9485ed07720383b367b81f"
+    },
+    {
+      "path": "tests/reference-captures/apple-platinum-2-calibration/capture-log.json",
+      "encoding": "json-indent2-lf",
+      "originalBytes": 106664,
+      "originalSha256": "60e8d67f29b58c2aa74c363f03405057643af2c788d69f1d89a69237146617da",
+      "storedBytes": 91418,
+      "storedSha256": "970c27784719da5d1893cbdd3bf3998ca4dc2c2910f8f5a6c3423f589cf321c0"
+    },
+    {
+      "path": "tests/reference-captures/apple-platinum-2-calibration/measurement.json",
+      "encoding": "json-indent2-lf",
+      "originalBytes": 144440,
+      "originalSha256": "f0bbe9d3073e208d3b53b4ae3750f3702c0766cf281d2be7818591caaceda7e6",
+      "storedBytes": 73552,
+      "storedSha256": "939139eceb9d29c3e3406c11540a1cc4afe61f29d880dd872cf9ab2b8e2c22c7"
+    },
+    {
+      "path": "tests/reference-captures/black-platinum-calibration/capture-log.json",
+      "encoding": "json-indent2-lf",
+      "originalBytes": 106660,
+      "originalSha256": "0aab92bf2bba03b6b1e6a85df3579e3b23d41c58f6662b43878e5c1daa56fb7c",
+      "storedBytes": 91414,
+      "storedSha256": "938f69b97296e7532a277118f00b4786e8236f58b439168e44675617dac955ef"
+    },
+    {
+      "path": "tests/reference-captures/black-platinum-calibration/measurement.json",
+      "encoding": "json-indent2-lf",
+      "originalBytes": 144577,
+      "originalSha256": "04c0fcab808a6097fb15bdab19446b2feba0b4cc8ca18358839f4878cb7b46bd",
+      "storedBytes": 73684,
+      "storedSha256": "dd424525fe01615ae6da85bb86ded395a2cce84cba106cf9e72223d358ecbaac"
+    },
+    {
+      "path": "tests/reference-captures/evolution-calibration/measurement.json",
+      "encoding": "json-indent2-lf",
+      "originalBytes": 894114,
+      "originalSha256": "789d81b5a7c063e3e593b000a8c8e135c6777345e7d7258674daa2f089bd7535",
+      "storedBytes": 447498,
+      "storedSha256": "4df161b968caec11094cc9394e032108b2b9c054a810d64ed13f637cdf80cf10"
+    },
+    {
+      "path": "tests/reference-captures/evolution-pressed-calibration/measurement.json",
+      "encoding": "json-indent2-lf",
+      "originalBytes": 894185,
+      "originalSha256": "86b48ac261be1cdd7e0108df7031b48ebafc48950fb0b71ea70f2157e50f1fb6",
+      "storedBytes": 447584,
+      "storedSha256": "1e88d8b8562b0fa878757984f4141cf77a3e85d11f9710d3bfb095cfd80ead45"
+    },
+    {
+      "path": "tests/reference-captures/floppies-calibration/measurement.json",
+      "encoding": "json-indent2-ascii-lf",
+      "originalBytes": 1761029,
+      "originalSha256": "4399f913365ddcb11c85cee6309eb801e827fc14b439389554dc946c80d840a1",
+      "storedBytes": 890672,
+      "storedSha256": "b8eccff95a50318f0f1489b7914c35a02a3cb51bc009c7112e8580f4a4c87c6c"
+    },
+    {
+      "path": "tests/reference-captures/monkey-paradise-calibration/measurement.json",
+      "encoding": "json-indent2-lf",
+      "originalBytes": 135120,
+      "originalSha256": "4eb7e15b6c4dac3d8c1633f38554c8b04d16af8d3bc998ffc50989a27b2058a6",
+      "storedBytes": 68877,
+      "storedSha256": "942960ae77c23d5a25a6e02c561eecc397bbc0de332db12b34ecca9483206f4e"
+    },
+    {
+      "path": "tests/reference-captures/platinum-8-calibration/capture-log.json",
+      "encoding": "json-indent2-lf",
+      "originalBytes": 106649,
+      "originalSha256": "defa1102ba66edfb6b3cc71d8c0fb5a68d061d6bac18774e2dd7950db5ff4c4f",
+      "storedBytes": 91403,
+      "storedSha256": "66f14a46843d547aa18558eb9d252e5f21744652ac37048a237e2f27be345726"
+    },
+    {
+      "path": "tests/reference-captures/platinum-8-calibration/measurement.json",
+      "encoding": "json-indent2-lf",
+      "originalBytes": 144406,
+      "originalSha256": "c4807eb1479cae68bb53e403b9e4da999e9af1a0f7ec9a4803ee75a83e3671a8",
+      "storedBytes": 73518,
+      "storedSha256": "5991016eca0c5e1b3a94bef7b9ff540e290214ae6a9ebe4df6ff891aa683dc27"
+    },
+    {
+      "path": "tests/reference-captures/slimes-calibration/capture-log.json",
+      "encoding": "json-indent2-lf",
+      "originalBytes": 106650,
+      "originalSha256": "086492ffbdf5dfdb0a0f5b1aad063bb7271f3f110b085940fabba1eac264cd77",
+      "storedBytes": 91404,
+      "storedSha256": "45b1f0b10755b513abc82496f4d7479c6472016c4835964abff5c4c470e32cb5"
+    },
+    {
+      "path": "tests/reference-captures/slimes-calibration/measurement.json",
+      "encoding": "json-indent2-lf",
+      "originalBytes": 144686,
+      "originalSha256": "15f689e48141603d1fed07e7a15246065fefce83741bd4f156843e8a624923ec",
+      "storedBytes": 73793,
+      "storedSha256": "38465ac201bd16c29d591e66c0cfbdd333ac350f0de701bbdd36563b6d185288"
+    },
+    {
+      "path": "tests/reference-captures/windows-31-calibration/capture-log.json",
+      "encoding": "json-indent2-lf",
+      "originalBytes": 106654,
+      "originalSha256": "9228c867340b5b9933e69631e5ad38fa54aa796957adc22e9d5c6953d04fad56",
+      "storedBytes": 91408,
+      "storedSha256": "3179fb42ec1eb2711d4bfeb940e2f89b36d2e848672a349e0f52262ec26d3d27"
+    },
+    {
+      "path": "tests/reference-captures/windows-31-calibration/measurement.json",
+      "encoding": "json-indent2-lf",
+      "originalBytes": 144396,
+      "originalSha256": "97abe59b52b735b16eda72c42da2286b4e6ef6e5347ea6ceb3d83eddf5c77ddf",
+      "storedBytes": 73508,
+      "storedSha256": "c8e15f84010d615f26c72a3e1ed3168e303f8878f2567a95e32640925745801b"
+    }
+  ],
+  "aliases": [
+    {
+      "path": "tests/reference-captures/1138-calibration/prepared-profile.json",
+      "target": "tests/decoder-fixtures/measured-display-profile-1138.json",
+      "sha256": "3686ca8ca86d52830aaf943e1798d771bd8eb3cbaac5e81871e149cf96e55d3d",
+      "bytes": 93326
+    },
+    {
+      "path": "tests/reference-captures/apple-platinum-2-calibration/prepared-profile.json",
+      "target": "tests/decoder-fixtures/measured-display-profile-apple-platinum-2.json",
+      "sha256": "98b28f82fd5dcbb3a1770647e5deb4bd9c9b1e9576d512ecbfb0c9cd07e47c22",
+      "bytes": 94231
+    },
+    {
+      "path": "tests/reference-captures/beos-calibration/measurement.json",
+      "target": "tests/decoder-fixtures/beos-display-calibration.json",
+      "sha256": "61b6f43e71d7678f7a7fbc6ff2e9a2f3f6fcc5c1841245d5bebc7fe04c104062",
+      "bytes": 205984
+    },
+    {
+      "path": "tests/reference-captures/black-platinum-calibration/prepared-profile.json",
+      "target": "tests/decoder-fixtures/measured-display-profile-black-platinum.json",
+      "sha256": "99a845515e35aa8ef808d61f1020f5800a8e250c08f37169509ce9d291085c43",
+      "bytes": 94586
+    },
+    {
+      "path": "tests/reference-captures/evolution-calibration/prepared-profile.json",
+      "target": "tests/decoder-fixtures/measured-display-profile-evolution.json",
+      "sha256": "646be3846ec055419aebfd87ca38a9f79912ee231c5b0a0863ebff26b84da784",
+      "bytes": 393243
+    },
+    {
+      "path": "tests/reference-captures/evolution-pressed-calibration/prepared-profile.json",
+      "target": "tests/decoder-fixtures/measured-display-profile-evolution-pressed.json",
+      "sha256": "97f360d2b994da12cdc05cc28c5b020bbd95b5d98c1463ae695231f6c8a57c8a",
+      "bytes": 395303
+    },
+    {
+      "path": "tests/reference-captures/floppies-calibration/prepared-profile.json",
+      "target": "tests/decoder-fixtures/measured-display-profile-floppies.json",
+      "sha256": "92035413a445011ce539566f69ed899bfe0ee4b12ded1555ed26f1c8eb926cd9",
+      "bytes": 742159
+    },
+    {
+      "path": "tests/reference-captures/monkey-paradise-calibration/prepared-profile.json",
+      "target": "tests/decoder-fixtures/measured-display-profile-monkey-paradise.json",
+      "sha256": "a22a2812126867eef6797b01f0aca2a1a024a5e6960a77426ba27c907e8da16c",
+      "bytes": 91339
+    },
+    {
+      "path": "tests/reference-captures/platinum-8-calibration/prepared-profile.json",
+      "target": "tests/decoder-fixtures/measured-display-profile-platinum-8.json",
+      "sha256": "d05652c25d7b127616b31461063264d0ebd0f49a41cd75cfb9b5f90bbac00692",
+      "bytes": 94197
+    },
+    {
+      "path": "tests/reference-captures/slimes-calibration/prepared-profile.json",
+      "target": "tests/decoder-fixtures/measured-display-profile-slimes.json",
+      "sha256": "cc128c30089d593e97e5a07e7ffa33729a09b73fe5842d4085dfe54864bbb1f5",
+      "bytes": 94808
+    },
+    {
+      "path": "tests/reference-captures/windows-31-calibration/prepared-profile.json",
+      "target": "tests/decoder-fixtures/measured-display-profile-windows-31.json",
+      "sha256": "1413c9daf5d691dd63af377cf8da1c8dcdba0eb14c045f0c1922f617a4961682",
+      "bytes": 94187
+    }
+  ],
+  "external": [
+    {
+      "path": "tests/reference-captures/1138-calibration/durable-status.png",
+      "sha256": "0a1ab0d5407804441f27608195ce56c336275bf87b60b91abd515812e9152e95",
+      "bytes": 31318,
+      "role": "calibration-durable-status",
+      "privateRepository": "https://git-home.allaboutken.com/khawkins98/scriptoscope-assets",
+      "privateCommit": "ec7a29e1c8f559d07e71757d2afd5884ec3fa46f",
+      "privateAsset": "shared307-six-source-acquisition-20261020",
+      "privateArchiveSha256": "de985b22e9a08d5707e3b810708214eb912454b82c4ce799eeab25a78b911c35",
+      "privateMember": "campaign/1138/captures/calibration-status.png"
+    },
+    {
+      "path": "tests/reference-captures/1138-calibration/full-frame.png",
+      "sha256": "7b4b6f201e746f166a0a67afd42ef39f353c0b92e08d2ad19d00aa8c52097976",
+      "bytes": 42414,
+      "role": "calibration-full-frame",
+      "privateRepository": "https://git-home.allaboutken.com/khawkins98/scriptoscope-assets",
+      "privateCommit": "ec7a29e1c8f559d07e71757d2afd5884ec3fa46f",
+      "privateAsset": "shared307-six-source-acquisition-20261020",
+      "privateArchiveSha256": "de985b22e9a08d5707e3b810708214eb912454b82c4ce799eeab25a78b911c35",
+      "privateMember": "campaign/1138/captures/calibration-frame.png"
+    },
+    {
+      "path": "tests/reference-captures/apple-platinum-2-calibration/durable-status.png",
+      "sha256": "81f71c985a298d925c9895f2927f9704d2ca2d6bd19f1135e1d4a1565722b48c",
+      "bytes": 28989,
+      "role": "calibration-durable-status",
+      "privateRepository": "https://git-home.allaboutken.com/khawkins98/scriptoscope-assets",
+      "privateCommit": "ec7a29e1c8f559d07e71757d2afd5884ec3fa46f",
+      "privateAsset": "shared307-six-source-acquisition-20261020",
+      "privateArchiveSha256": "de985b22e9a08d5707e3b810708214eb912454b82c4ce799eeab25a78b911c35",
+      "privateMember": "campaign/apple-platinum-2/captures/calibration-status.png"
+    },
+    {
+      "path": "tests/reference-captures/apple-platinum-2-calibration/full-frame.png",
+      "sha256": "3d85514d2b823110bf55cd4d943b7adf11dd3312a955e7cd2c4b177e64e9fc05",
+      "bytes": 38487,
+      "role": "calibration-full-frame",
+      "privateRepository": "https://git-home.allaboutken.com/khawkins98/scriptoscope-assets",
+      "privateCommit": "ec7a29e1c8f559d07e71757d2afd5884ec3fa46f",
+      "privateAsset": "shared307-six-source-acquisition-20261020",
+      "privateArchiveSha256": "de985b22e9a08d5707e3b810708214eb912454b82c4ce799eeab25a78b911c35",
+      "privateMember": "campaign/apple-platinum-2/captures/calibration-frame.png"
+    },
+    {
+      "path": "tests/reference-captures/black-platinum-calibration/durable-status.png",
+      "sha256": "5f7f24a1073c196d15ef341f36520741d5510f00b65f685dd3eb7726c7927566",
+      "bytes": 29220,
+      "role": "calibration-durable-status",
+      "privateRepository": "https://git-home.allaboutken.com/khawkins98/scriptoscope-assets",
+      "privateCommit": "ec7a29e1c8f559d07e71757d2afd5884ec3fa46f",
+      "privateAsset": "shared307-six-source-acquisition-20261020",
+      "privateArchiveSha256": "de985b22e9a08d5707e3b810708214eb912454b82c4ce799eeab25a78b911c35",
+      "privateMember": "campaign/black-platinum/captures/calibration-status.png"
+    },
+    {
+      "path": "tests/reference-captures/black-platinum-calibration/full-frame.png",
+      "sha256": "915520b086b6345332b13590d8e92b630984abdaaeebfa596c07ca4873591ef3",
+      "bytes": 38220,
+      "role": "calibration-full-frame",
+      "privateRepository": "https://git-home.allaboutken.com/khawkins98/scriptoscope-assets",
+      "privateCommit": "ec7a29e1c8f559d07e71757d2afd5884ec3fa46f",
+      "privateAsset": "shared307-six-source-acquisition-20261020",
+      "privateArchiveSha256": "de985b22e9a08d5707e3b810708214eb912454b82c4ce799eeab25a78b911c35",
+      "privateMember": "campaign/black-platinum/captures/calibration-frame.png"
+    },
+    {
+      "path": "tests/reference-captures/platinum-8-calibration/durable-status.png",
+      "sha256": "6c74db7fbf696c7e6691f7f5713428b471b247e67ff66a018aa533d29f381b8c",
+      "bytes": 28927,
+      "role": "calibration-durable-status",
+      "privateRepository": "https://git-home.allaboutken.com/khawkins98/scriptoscope-assets",
+      "privateCommit": "ec7a29e1c8f559d07e71757d2afd5884ec3fa46f",
+      "privateAsset": "shared307-six-source-acquisition-20261020",
+      "privateArchiveSha256": "de985b22e9a08d5707e3b810708214eb912454b82c4ce799eeab25a78b911c35",
+      "privateMember": "campaign/platinum-8/captures/calibration-status.png"
+    },
+    {
+      "path": "tests/reference-captures/platinum-8-calibration/full-frame.png",
+      "sha256": "31146a672042962d43000fbff6debd0cf6809f96d3088b14dbb8f0d2eacc9dba",
+      "bytes": 37436,
+      "role": "calibration-full-frame",
+      "privateRepository": "https://git-home.allaboutken.com/khawkins98/scriptoscope-assets",
+      "privateCommit": "ec7a29e1c8f559d07e71757d2afd5884ec3fa46f",
+      "privateAsset": "shared307-six-source-acquisition-20261020",
+      "privateArchiveSha256": "de985b22e9a08d5707e3b810708214eb912454b82c4ce799eeab25a78b911c35",
+      "privateMember": "campaign/platinum-8/captures/calibration-frame.png"
+    },
+    {
+      "path": "tests/reference-captures/slimes-calibration/durable-status.png",
+      "sha256": "41fbeac886eb0e9967d9bfcd9d33c6933bd99e74d677ce2c2500bf465197de55",
+      "bytes": 30469,
+      "role": "calibration-durable-status",
+      "privateRepository": "https://git-home.allaboutken.com/khawkins98/scriptoscope-assets",
+      "privateCommit": "ec7a29e1c8f559d07e71757d2afd5884ec3fa46f",
+      "privateAsset": "shared307-six-source-acquisition-20261020",
+      "privateArchiveSha256": "de985b22e9a08d5707e3b810708214eb912454b82c4ce799eeab25a78b911c35",
+      "privateMember": "campaign/slimes/captures/calibration-status.png"
+    },
+    {
+      "path": "tests/reference-captures/slimes-calibration/full-frame.png",
+      "sha256": "720d190ef25ad468982d0320937dd6f5e6a73e8aea980d26269fa23f406dba59",
+      "bytes": 38749,
+      "role": "calibration-full-frame",
+      "privateRepository": "https://git-home.allaboutken.com/khawkins98/scriptoscope-assets",
+      "privateCommit": "ec7a29e1c8f559d07e71757d2afd5884ec3fa46f",
+      "privateAsset": "shared307-six-source-acquisition-20261020",
+      "privateArchiveSha256": "de985b22e9a08d5707e3b810708214eb912454b82c4ce799eeab25a78b911c35",
+      "privateMember": "campaign/slimes/captures/calibration-frame.png"
+    },
+    {
+      "path": "tests/reference-captures/windows-31-calibration/durable-status.png",
+      "sha256": "416432cde918ec6143d7290c319666a0588a9a1817dee421a189a48188566e70",
+      "bytes": 57713,
+      "role": "calibration-durable-status",
+      "privateRepository": "https://git-home.allaboutken.com/khawkins98/scriptoscope-assets",
+      "privateCommit": "ec7a29e1c8f559d07e71757d2afd5884ec3fa46f",
+      "privateAsset": "shared307-six-source-acquisition-20261020",
+      "privateArchiveSha256": "de985b22e9a08d5707e3b810708214eb912454b82c4ce799eeab25a78b911c35",
+      "privateMember": "campaign/windows-31/captures/calibration-status.png"
+    },
+    {
+      "path": "tests/reference-captures/windows-31-calibration/full-frame.png",
+      "sha256": "d7027331bd9b27662fdef89828de87e7a7a099a4f6dcc68236726fd959eb5cf2",
+      "bytes": 74604,
+      "role": "calibration-full-frame",
+      "privateRepository": "https://git-home.allaboutken.com/khawkins98/scriptoscope-assets",
+      "privateCommit": "ec7a29e1c8f559d07e71757d2afd5884ec3fa46f",
+      "privateAsset": "shared307-six-source-acquisition-20261020",
+      "privateArchiveSha256": "de985b22e9a08d5707e3b810708214eb912454b82c4ce799eeab25a78b911c35",
+      "privateMember": "campaign/windows-31/captures/calibration-frame.png"
+    }
+  ]
+}
