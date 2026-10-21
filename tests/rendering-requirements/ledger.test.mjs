@@ -37,7 +37,7 @@ function reject(change, pattern, options = {}) {
 test('reviewed inventory validates and all open cases remain uncertified', () => {
   assert.deepEqual(validateLedger(original, { root }).errors, []);
   const report = makeReport(original);
-  assert.equal(report.cases.length, 99);
+  assert.equal(report.cases.length, 117);
   assert.equal(report.requirementStatus.denominator, original.assessments.length);
   assert.equal(report.cases.filter(c => c.status === 'verified').length, 0);
   assert(report.execution.assertions.every(a => a.modes.every(m => m.status === 'not run')));
@@ -159,7 +159,7 @@ test('evidence from a wholly unrelated archive or synthetic input cannot support
 });
 test('engine-wide rules and combined source-art evidence retain their bounded valid uses', () => {
   const result = validateLedger(original, { root });
-  assert.deepEqual(result.errors, []); assert.equal(result.declaredCount, 671);
+  assert.deepEqual(result.errors, []); assert.equal(result.declaredCount, 800);
   assert.deepEqual(original.evidence.find(e => e.id === 'kdef.square-corners').inputs, ['engine.kaleidoscope-2.3.1-kdef0']);
   const shared = original.evidence.find(e => e.id === 'art.tab-crop');
   assert.deepEqual(shared.inputs, ['theme.1138', 'theme.1990']);
@@ -339,7 +339,18 @@ test('Floppies/Evolution extension preserves all prior95 cases and647 assessment
  Object.assign(prior,{inventoryVersion:transition.inventoryVersion,inventorySha256:transition.inventorySha256,scope:transition.scope});
  assert.equal(inventoryDigest(prior),transition.inventorySha256);assert.equal(digest(JSON.stringify(prior)),transition.priorObjectSha256);
  assert.deepEqual(makeReport(prior).requirementStatus.counts,{verified:114,mismatched:0,unsupported:0,unknown:533});
- const added=original.assessments.slice(647);assert.equal(added.length,24);assert.equal(added.filter(a=>a.status==='verified').length,4);assert(added.every(a=>a.status===(a.requirementId==='output.recorded-composited-face'?'verified':'unknown')));
- assert.deepEqual(makeReport(original).requirementStatus.counts,{verified:118,mismatched:0,unsupported:0,unknown:553});
+ const added=original.assessments.slice(647,671);assert.equal(added.length,24);assert.equal(added.filter(a=>a.status==='verified').length,4);assert(added.every(a=>a.status===(a.requirementId==='output.recorded-composited-face'?'verified':'unknown')));
+ const at117=structuredClone(original);for(const[key,count]of Object.entries(JSON.parse(readFileSync(new URL('./window-chrome-transition.json',import.meta.url))).counts))at117[key]=at117[key].slice(0,count);
+ assert.deepEqual(makeReport(at117).requirementStatus.counts,{verified:118,mismatched:0,unsupported:0,unknown:553});
  assert(original.cases.slice(95).every(c=>c.inventoryClosure.status==='open'));
+});
+
+test('window-chrome extension preserves all prior99 cases and671 assessments and promotes nothing',()=>{
+ const transition=JSON.parse(readFileSync(new URL('./window-chrome-transition.json',import.meta.url))),prior=structuredClone(original);
+ for(const[key,count]of Object.entries(transition.counts)){prior[key]=prior[key].slice(0,count);assert.equal(digest(JSON.stringify(prior[key])),transition.prefixSha256[key],key+' prefix');}
+ Object.assign(prior,{inventoryVersion:transition.inventoryVersion,inventorySha256:transition.inventorySha256,scope:transition.scope});
+ assert.equal(inventoryDigest(prior),transition.inventorySha256);assert.equal(digest(JSON.stringify(prior)),transition.priorObjectSha256);
+ const added=original.assessments.slice(671);assert.equal(added.length,129);assert(added.every(a=>a.status==='unknown'));
+ assert.deepEqual(makeReport(original).requirementStatus.counts,{verified:118,mismatched:0,unsupported:0,unknown:682});
+ const cases=original.cases.slice(99);assert.equal(cases.length,18);assert(cases.every(c=>c.family==='window-chrome'&&c.inventoryClosure.status==='open'));
 });

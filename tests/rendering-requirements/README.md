@@ -1,7 +1,7 @@
 # Partial rendering requirement ledger
 
 `ledger.json` is reviewed acceptance data, separate from rendering and screenshots.
-Inventory 1.17.0 declares ninety-nine exact direct cases and seven explicit dimensions per
+Inventory 1.18.0 declares 117 exact direct cases and seven explicit dimensions per
 case. **Every case has OPEN inventory closure.** The declared obligation
 count is a finite bookkeeping denominator, not an exhaustive denominator of
 historical control behavior. No whole-control completion percentage is reported.
@@ -442,3 +442,21 @@ Floppies has six source-eligible bands at height20; Evolution pressed has eight.
 The generic per-state profile override preserves old Evolution normal/inactive
 bindings. Neither missingppat0 nor zero-height body invents completed body paint.
 All broader requirements and inventory closure remain open.
+
+## Window-chrome source-rule extension (1.18.0)
+
+Eighteen `window-chrome` cases and 129 obligations append to the exact prior
+99 cases and 671 assessments, retained by `window-chrome-transition.json`.
+There are 117 OPEN cases and 800 obligations: 118 narrowly verified and 682
+unknown. **No window obligation is promoted by this extension.**
+
+The 13 archives that ship `wnd#` recipes each get one case over every manifest
+window type, both states and 15 sampled content sizes. Four primary-decode
+locators in `docs/spec/kdef231-reference.md` (the 0x356c ladder, END-based
+cells, the 0x5178 allocation table and the 0xfeae tile blit) back two
+registered source/built assertions in `window-chrome-rules.spec.mjs`. Their
+`wnd-ladder`, `recipe-cells` and `tile-blit` assessments carry that evidence
+and are proposed for independent review, but remain unknown. Half extents,
+flag-gated codes, masked composition, transparent/scaled pixels and the state
+pairing stay unknown, with their reasons. The five archives without `wnd#`
+(corner-sprite) get all-unknown cases: no original drawing path is decoded.
