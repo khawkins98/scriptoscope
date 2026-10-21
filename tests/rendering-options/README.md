@@ -211,3 +211,30 @@ modern layout policy. The broader selection/geometry/default-caller obligations
 remain open; this test adds no capture or ledger promotion. Existing translated
 clip checks in `pattern-body.spec.mjs` and lifecycle/package checks retain their
 separate scope.
+
+### Window-chrome source rules
+
+`window-chrome-rules.mjs` is a literal rule table with a kDEF address or
+reference section on every row. `window-chrome-rules.test.mjs` (Node, part of
+`npm test`) and `window-chrome-rules.spec.mjs` (source/built) run it over the
+actual archives. The 13 `wnd#` archives cover every sliced window type, both
+states and content sizes of template + {0,1,2,7,97} × {0,1,33}. The checks are
+END-based cells (`0x5356`), the 1:1 `[0,border[0])` corner (`0x4a64`),
+flag-independent part-code widths (`0x49d6`/`0x5178`), the two-pass per-half
+allocation (`0x5178`, nonnegative budgets, given the observed half extent) and
+opaque-pixel tiling (`0xfeae`). Tiling is checked for 1px source runs only: the
+`0xfeae` direction byte is not decoded, and the cross-axis origin comes from
+runtime placement. Selection follows the twelve-mask `wnd#` ladder (`0x356c..0x367e`)
+for all 13 canonical requests. The Node test adds 1,794 one-type-removed
+variants. Author labels on all 18 archives must not contradict the selected
+state. Negative cases confirm the checker rejects START-based cells, primary
+shares for 13/14, untruncated tiles and changed pixels.
+
+These checks do not cover codes 5/10/2/3/4/15/16/17 (flag-gated), title-anchor
+half extents, below-minimum windows, side draw order, CopyMask transparency,
+code-18 scaled pixels, trailing side regions, the `0x5ffc` widget pass, ladder
+misses (where the runtime heuristic substitutes) or the five corner-sprite
+archives. A failing `todo` records the code-10 decode disagreement (flag 1 should
+collapse it). An observation test records an undecoded overrun, with no expected
+value: the 1138 document-window title bar at its template size places 107px in
+103px. No image or golden is added.
