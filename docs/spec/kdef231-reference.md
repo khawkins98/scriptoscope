@@ -235,7 +235,7 @@ recipe walk + draw). Its 9-entry dispatch fans out to the routines below
 | `0x10472` | **cicn loader / cache** | `GetCIcon` (`$AA1E` at `0x10434` / `0x10698`); an inline `0x148` sparse switch (`0x104ba`) caches specific control IDs in `a4`-relative slots; see the corrected [body dispatch](cinf-resize-behavior.md) | `'cicn'` `#1667851118` | the switch enumerates the cached control cicn families (see §2) |
 | `0x10420` | cicn slot fetch | `GetCIcon`-by-id into a cached slot if empty | `'cicn'` | helper for `0x10472` |
 | `0x10440` | plain ppat load | GetPixPat (`$AA0C` at `0x10460`) | `'ppat'` | mode !=5 body path |
-| `0x116f8` | **cinf loader** | `GetResource('cinf', id)` (`#1667853926` at `0x1171a`, trap `$A9A0` at `0x11722`), check size (`#18`/`#56`); cicn→cinf id range check `cmpiw #-12240`/`#-12224`; also loads paired `'pWin'` (`#1884776814`) resource for in-range ids | `'cinf'` `#1667853926` | size>18 ⇒ has extended fields; size==56 ⇒ full record |
+| `0x116f8` | **cinf loader** | `GetResource('cinf', id)` (`#1667853926` at `0x1171a`, trap `$A9A0` at `0x11722`), check size (`#18`/`#56`); cicn→cinf id range check `cmpiw #-12240`/`#-12224`; for in-range ids, also queries Gestalt selector `'pWin'` (`#1884776814`; trap `$A1AD` _Gestalt at `0x11768`, formerly misread as `_Get1NamedResource`; no `'pWin'` resource is loaded) | `'cinf'` `#1667853926` | size>18 ⇒ has extended fields; size==56 ⇒ full record |
 | `0x106e6` | clut loader | loads `'clut'` (`#1668052340` = `0x636c7574`) | `'clut'` | scheme palette |
 | `0x33a8`/`0x3be4` | `'Copl'` tag | `'Copl'` (`#1131376748` = `0x436f706c`) — the kDEF's private GWorld-tagging clut handle, attached to every GWorld it allocates | `'Copl'` | NOT a scheme resource; internal marker |
 
@@ -374,7 +374,7 @@ hi=-8271). They reveal the control families the kDEF expects:
 
 | id / range | meaning |
 |---|---|
-| `-12240` .. `-12224` | **cinf id range** (`0x116f8`: `cmpiw #-12240`/`#-12224`). cicns whose id falls here have an associated `'pWin'` companion loaded. |
+| `-12240` .. `-12224` | **cinf id range** (`0x116f8`: `cmpiw #-12240`/`#-12224`). For ids in this range the kDEF queries Gestalt selector `'pWin'` (`0x11768`, `$A1AD` _Gestalt; not a resource load). |
 | `'cinf'` per element | the per-element info record (corner insets + colours). See §3.5. |
 | `'clut'` (`0x106e6`) | scheme colour table. |
 | `'Copl'` | internal GWorld tag, NOT a scheme resource (do not extract). |
@@ -829,7 +829,7 @@ example address below was checked to hold the trap word (2026-10-21, v2 lane L1)
 | `$AA0C` | GetPixPat | request pixel pattern | `0x10460`, `0xef24` |
 | `$AA14` | RGBForeColor | set foreground RGB | `0xfe9c`, `0xf836` |
 | `$AA15` | RGBBackColor | set background RGB | `0x10998`, `0x109b6` |
-| `$A9A0` | GetResource | wnd#, cicn, cinf, clut, pWin | `0x3574`, `0x11722` |
+| `$A9A0` | GetResource | wnd#, cicn, cinf, clut (`'pWin'` is a Gestalt selector at `0x11768`, `$A1AD`, not a resource) | `0x3574`, `0x11722` |
 | `$A9A2` | LoadResource | *(re-verify; was "ReleaseResource / free recipe handle")* | `0x36a6`, `0x1172e` |
 | `$A024` | SetHandleSize | resize loaded handle | `0x1174a`, `0x117b6` |
 | `$A01B` | SetZone | switch heap zone around resource loads | `0x10458`, `0x10490` |
@@ -893,8 +893,11 @@ while it moves the asm narrative out). Line numbers are as of 2026-10-21:
    interpretation. See the corrected [source table and 18-fork survey](cinf-resize-behavior.md).
    Editor menu encoding, complete phase/mask behavior and caller coverage are
    not established by header labels alone.
-3. **'pWin' companion resource** (`0x1175e`, `#1884776814`) — loaded for cinf-
-   range ids; its layout/use is not decoded.
+3. **'pWin' Gestalt selector** (`0x1175e`, `#1884776814`; trap `$A1AD` _Gestalt at `0x11768`, formerly read as a
+   `_Get1NamedResource` companion-resource load) — queried for cinf-range ids. If the call succeeds, the response
+   is used as a pointer to a record: when that record's byte 15 is non-zero, its word at offset 16 is
+   copied into cinf byte 18. Which
+   component registers `'pWin'` and what the word means are not decoded.
 4. **Scrollbar/slider/popup/progress/menu/disclosure LAYOUT arithmetic** — drawer
    entry points and cicn families are known (§1.3, §2.3–§2.6), but the
    track-stretch / thumb-position / barber-pole / tab math was only ever decoded
