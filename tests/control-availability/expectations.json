@@ -2083,7 +2083,7 @@
   "review": {
     "date": "2026-10-21",
     "reviewers": [
-      "independent automated hash-only review of PR #373 (campaign-20261021 lanes/H/PR-REVIEW.json, reviewed head 70e3ff92e1ecf35255fa4b15a8eca119729402f2): confirmed 1.0.7 -> 1.0.8 changes only the nine kdef231-reference.md documentSha256 values (b0fda725 -> f182da46); the label-round re-hash below adds only the 0x5cb6 row clause and \u00a75.1 checker prose (no 0x75xx/0x76xx line) and awaits delta confirmation; not original provider or pixel-fidelity approval"
+      "independent automated hash-only review of PR #373: round 1 (campaign-20261021 lanes/H/PR-REVIEW.json, head 70e3ff92) confirmed 1.0.7 -> 1.0.8 changes only the nine kdef231-reference.md documentSha256 values (b0fda725 -> f182da46); round 2 (PR-REVIEW.json round2, head 28921fd7) confirmed the label-round re-hash to 92ef616497eddd9413431571389016637ce5c85f7fe297bca95f83fbc0aa6155 (0x5cb6 index-1 clause and \u00a75.1 checker prose only; no 0x75xx/0x76xx line); not original provider or pixel-fidelity approval"
     ],
     "inventoryVersion": "1.0.8",
     "inventorySha256": "98b1de3859048ec9c651e6f4592751982fc3c1b9e53f2771ec3538d946715f6e",

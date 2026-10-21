@@ -354,49 +354,62 @@ function restore120(ledger){
  for(const row of tileDirection.priorAssessments)prior.assessments[prior.assessments.findIndex(a=>a.caseId===row.caseId&&a.requirementId===row.requirementId)]=row;
  return Object.assign(prior,{inventoryVersion:tileDirection.inventoryVersion,inventorySha256:tileDirection.inventorySha256,scope:tileDirection.scope});
 }
-test('tile-direction 1.21.0 restores the exact 1.20.0 ledger and changes only kdef.tile-blit and 13 tile-blit rationales, no statuses',()=>{
+// Historical extension tests read the 1.20.0 statuses; 1.21.0 later promotes seven tile-blit rows.
+const at120=restore120(original);
+test('tile-direction 1.21.0 restores the exact 1.20.0 ledger; changes kdef.tile-blit, 13 tile-blit rows, and promotes exactly the seven discriminating archives',()=>{
  const prior=restore120(original);
  assert.equal(digest(JSON.stringify(prior)),tileDirection.priorObjectSha256);assert.equal(inventoryDigest(prior),tileDirection.inventorySha256);
  assert.deepEqual(prior.requirements,original.requirements);assert.deepEqual(prior.cases,original.cases);
  const changed=original.assessments.filter((a,i)=>JSON.stringify(a)!==JSON.stringify(prior.assessments[i]));
- assert.equal(changed.length,13);assert(changed.every((a,i)=>a.requirementId==='window.tile-blit'&&a.status==='unknown'&&a.status===tileDirection.priorAssessments[i].status));
+ assert.equal(changed.length,13);assert(changed.every((a,i)=>a.requirementId==='window.tile-blit'&&tileDirection.priorAssessments[i].status==='unknown'));
+ // PR #373 round-2 review (lanes/H/PR-REVIEW.json round2, head 28921fd7): only archives whose check fails under inverted/scaled blits.
+ const seven=['1990','animals','crayon-os','dolphin-som','evolution','floppies','monkey-paradise'],slug=a=>a.caseId.replace('.window.sliced-recipes.sampled','');
+ assert.deepEqual(changed.filter(a=>a.status==='verified').map(slug),seven);
+ assert(changed.filter(a=>!seven.includes(slug(a))).every(a=>a.status==='unknown'));
+ for(const a of changed.filter(a=>a.status==='verified')){
+  assert.match(a.rationale,/fails for this archive under inverted-anchor and scaled blits/,a.caseId);
+  assert.match(a.rationale,/no native capture.*grafProcs.*CopyMask order.*runtime.*Sampled sizes only.*0x6390 -> 0x11452/,a.caseId);
+  assert.match(a.rationale,['animals','monkey-paradise'].includes(slug(a))?/11\/14 reverse anchor is discriminated/:/11\/14 reverse anchor is direction-neutral here and not discriminated/,a.caseId);
+  assert.match(a.review,/round2.*28921fd7/,a.caseId);
+ }
  assert.deepEqual(original.evidence.filter((e,i)=>JSON.stringify(e)!==JSON.stringify(prior.evidence[i])).map(e=>e.id),['kdef.tile-blit']);
- assert.deepEqual(makeReport(original).requirementStatus.counts,makeReport(prior).requirementStatus.counts);
+ assert.deepEqual(makeReport(prior).requirementStatus.counts,{verified:153,mismatched:0,unsupported:0,unknown:886});
+ assert.deepEqual(makeReport(original).requirementStatus.counts,{verified:160,mismatched:0,unsupported:0,unknown:879});
 });
 
 test('nine-state extension preserves the prior inventory and marks every 1990/Dolphin row non-discriminating',()=>{
- const transition=JSON.parse(readFileSync(new URL('./nine-state-recorded-transition.json',import.meta.url))),prior=restore120(original);
+ const transition=JSON.parse(readFileSync(new URL('./nine-state-recorded-transition.json',import.meta.url))),prior=structuredClone(at120);
  for(const[key,count]of Object.entries(transition.counts)){prior[key]=prior[key].slice(0,count);assert.equal(digest(JSON.stringify(prior[key])),transition.prefixSha256[key],key+' prefix');}
  Object.assign(prior,{inventoryVersion:transition.inventoryVersion,inventorySha256:transition.inventorySha256,scope:transition.scope});
  assert.equal(inventoryDigest(prior),transition.inventorySha256);assert.equal(digest(JSON.stringify(prior)),transition.priorObjectSha256);
- const cases=original.cases.slice(transition.counts.cases,126),added=original.assessments.slice(transition.counts.assessments,854);
+ const cases=at120.cases.slice(transition.counts.cases,126),added=at120.assessments.slice(transition.counts.assessments,854);
  assert.equal(cases.length,9);assert.equal(added.length,54);assert(cases.every(c=>c.inventoryClosure.status==='open'&&c.id.endsWith('.j1223-profile')));
  assert(added.every(a=>a.status===(a.requirementId==='output.recorded-composited-face'?'verified':'unknown')));
- const at126=structuredClone(original);for(const[key,count]of Object.entries(JSON.parse(readFileSync(new URL('./checkable-rules-transition.json',import.meta.url))).counts))at126[key]=at126[key].slice(0,count);
+ const at126=structuredClone(at120);for(const[key,count]of Object.entries(JSON.parse(readFileSync(new URL('./checkable-rules-transition.json',import.meta.url))).counts))at126[key]=at126[key].slice(0,count);
  const before=makeReport(prior).requirementStatus.counts,after=makeReport(at126).requirementStatus.counts;
  assert.deepEqual({verified:after.verified-before.verified,unknown:after.unknown-before.unknown},{verified:9,unknown:45});
  // Every 1990/Dolphin row, case substitution list and evidence locator/limit carries the literal marker; no 1984 one does.
  const marker=/State-non-discriminating/,shared=id=>/^recorded\.(1990|dolphin-som)\./.test(id);
  for(const a of added)assert.equal(marker.test(a.rationale),shared(a.caseId),a.caseId+'/'+a.requirementId);
  for(const c of cases)assert.equal(c.substitutions.some(s=>marker.test(s)),shared(c.id),c.id+' substitutions');
- const evidence=original.evidence.filter(e=>e.reference?.captureId?.endsWith('.j1223'));assert.equal(evidence.length,9);
+ const evidence=at120.evidence.filter(e=>e.reference?.captureId?.endsWith('.j1223'));assert.equal(evidence.length,9);
  for(const e of evidence)for(const field of ['locator','limits'])assert.equal(marker.test(e[field]),shared(e.id),e.id+'.'+field);
  // 1984 comparisons are state-discriminating, but no row claims the original selection.
- const claim=original.assertions.find(a=>a.id==='recorded.nine-state-j1223').claim;
+ const claim=at120.assertions.find(a=>a.id==='recorded.nine-state-j1223').claim;
  assert.match(claim,/original hilite->cicn selection remains unknown for all nine/);assert.doesNotMatch(claim,/Only 1984/);
  assert(!evidence.some(e=>/discriminates? hilite->cicn selection for/.test(e.locator)));
 });
 
 test('window-chrome extension preserves all prior99 cases and671 assessments and promotes only wnd-ladder',()=>{
- const transition=JSON.parse(readFileSync(new URL('./window-chrome-transition.json',import.meta.url))),prior=structuredClone(original);
+ const transition=JSON.parse(readFileSync(new URL('./window-chrome-transition.json',import.meta.url))),prior=structuredClone(at120);
  for(const[key,count]of Object.entries(transition.counts)){prior[key]=prior[key].slice(0,count);assert.equal(digest(JSON.stringify(prior[key])),transition.prefixSha256[key],key+' prefix');}
  Object.assign(prior,{inventoryVersion:transition.inventoryVersion,inventorySha256:transition.inventorySha256,scope:transition.scope});
  assert.equal(inventoryDigest(prior),transition.inventorySha256);assert.equal(digest(JSON.stringify(prior)),transition.priorObjectSha256);
- const added=original.assessments.slice(671,800);assert.equal(added.length,129);
+ const added=at120.assessments.slice(671,800);assert.equal(added.length,129);
  assert(added.every(a=>a.status===(a.requirementId==='window.wnd-ladder'&&a.caseId.endsWith('.window.sliced-recipes.sampled')?'verified':'unknown')));assert.equal(added.filter(a=>a.status==='verified').length,13);
- const beforeNine=structuredClone(original);for(const[key,count]of Object.entries(JSON.parse(readFileSync(new URL('./nine-state-recorded-transition.json',import.meta.url))).counts))beforeNine[key]=beforeNine[key].slice(0,count);
+ const beforeNine=structuredClone(at120);for(const[key,count]of Object.entries(JSON.parse(readFileSync(new URL('./nine-state-recorded-transition.json',import.meta.url))).counts))beforeNine[key]=beforeNine[key].slice(0,count);
  assert.deepEqual(makeReport(beforeNine).requirementStatus.counts,{verified:131,mismatched:0,unsupported:0,unknown:669});
- const cases=original.cases.slice(99,117);assert.equal(cases.length,18);assert(cases.every(c=>c.family==='window-chrome'&&c.inventoryClosure.status==='open'));
+ const cases=at120.cases.slice(99,117);assert.equal(cases.length,18);assert(cases.every(c=>c.family==='window-chrome'&&c.inventoryClosure.status==='open'));
 });
 
 test('checkable source-rule extension preserves all prior 126 cases and 854 assessments and promotes only the 13 CICN-lane selections',()=>{
@@ -415,5 +428,5 @@ test('checkable source-rule extension preserves all prior 126 cases and 854 asse
  assert.match(added.find(a=>promoted(a)&&a.caseId.startsWith('apple-lisa.')).rationale,/non-discriminating for tier/);
  assert.match(added.find(a=>promoted(a)&&a.caseId.startsWith('animals.')).rationale,/no other file in the chain supplies -9485\/-9486/);
  assert(!JSON.stringify(original).includes('PENDING'));
- assert.deepEqual(makeReport(original).requirementStatus.counts,{verified:153,mismatched:0,unsupported:0,unknown:886});
+ assert.deepEqual(makeReport(restore120(original)).requirementStatus.counts,{verified:153,mismatched:0,unsupported:0,unknown:886});
 });

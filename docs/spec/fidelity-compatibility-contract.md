@@ -95,9 +95,14 @@ not the historical validity of a fallback policy. A self-golden proves stability
 not original-engine pixels.
 
 The current [ledger 1.21.0](../../tests/rendering-requirements/ledger.json) contains
-144 OPEN cases and 1,039 declared obligations: 153 narrowly verified, 0 mismatched,
-0 explicitly unsupported and 886 unknown. Of the 18 window-chrome cases, only
-the 13 `wnd#` ladder-selection obligations are verified. Of the 18 checkable
+144 OPEN cases and 1,039 declared obligations: 160 narrowly verified, 0 mismatched,
+0 explicitly unsupported and 879 unknown. Of the 18 window-chrome cases, the 13
+`wnd#` ladder-selection obligations are verified. Seven `window.tile-blit`
+obligations are also verified: 1990, animals, crayon-os, dolphin-som,
+evolution, floppies and monkey-paradise agree with the decoded `0xfeae`
+tiling at sampled sizes, for opaque pixels, and their checks fail under
+inverted or scaled tiles. Only animals and monkey-paradise exercise the 11/14
+reverse direction. No native capture backs these. Of the 18 checkable
 cases, only the 13 CICN-lane `checkable.lane-selection` obligations are
 verified: agreement with the decode under a declared public-to-native mapping,
 a clear Gestalt(`Acid`) byte and an archive-only resource chain, not original

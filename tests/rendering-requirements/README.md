@@ -547,7 +547,7 @@ label pen, icon depth (5 icon-only archives) and device colour.
 
 ## Tile-direction re-proposal (1.21.0)
 
-Inventory 1.21.0 keeps all 144 cases, every requirement and every status. It
+Inventory 1.21.0 keeps all 144 cases and every requirement. It
 edits rows in place, unlike the earlier append-only extensions.
 `tile-direction-transition.json` stores the prior `kdef.tile-blit` evidence row
 and the 13 prior `window.tile-blit` rationales. The ledger test restores them
@@ -560,11 +560,17 @@ reviewed (campaign lanes/H/REVIEW.json, ACCEPT-WITH-CHANGES). The evidence row
 now cites that decode. `window.recipe-rules` asserts both offset formulas over
 every non-18 cell, unknown-class cells included, and records per-archive
 mutation discrimination (`tests/rendering-options/README.md`). The PR #373
-review (lanes/H/PR-REVIEW.json, head 70e3ff92) **rejected** promoting the 13
-`window.tile-blit` obligations, so they stay **unknown**. A narrower
-promotion for the seven discriminating archives (1990, animals, crayon-os,
-dolphin-som, evolution, floppies, monkey-paradise) is proposed for a separate
-review and not applied. The runtime fix changes five 11/14 cells
+review (lanes/H/PR-REVIEW.json, head 70e3ff92) **rejected** promoting all 13
+`window.tile-blit` obligations. Its round 2 (head 28921fd7) **approved** a
+narrow promotion. Exactly seven become **verified**: 1990, animals,
+crayon-os, dolphin-som, evolution, floppies and monkey-paradise. That covers
+agreement with the decoded rule at sampled sizes, for opaque pixels, with each
+archive's check failing under inverted or scaled tiles. Only animals and
+monkey-paradise exercise the 11/14 reverse direction. The other five state
+that direction is unexercised. 1138, 1984, apple-lisa, beos-r503, windows-31
+and windows-95 cannot discriminate, so they stay **unknown**. The ledger now
+has 160 verified and 879 unknown obligations across 1,039. The 1.20.0
+reconstruction still restores the prior rows exactly. The runtime fix changes five 11/14 cells
 (animals ×4, monkey-paradise ×1, both states). Opaque CopyBits under
 `grafProcs`, transparent pixels and the CopyMask order over earlier sides
 remain unmodelled.
