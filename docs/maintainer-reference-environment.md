@@ -65,7 +65,15 @@ On 2026-10-21 an independently reviewed trial (accepted with limits) found that 
 
 **This trial is not admitted evidence.** No ledger row, golden or display-policy change follows from it.
 
-Treat this as its own named condition. Record depth/pixelType/rowBytes and exact RGBWK sentinels around every draw, and erase between states so masked holes cannot retain earlier pixels. Selecting Animals after the post-boot depth switch reproducibly hangs the guest (the splash draws, then the display and disk writes stop); the host stayed stable in two diagnostic boots, though an earlier browser loss is unexplained. A boot that starts at 32 bpp is not available, so 32 bpp itself and the post-boot change cannot yet be separated. The cause is under bounded diagnosis, so do not assume every scheme tolerates the condition.
+Treat this as its own named condition. Record depth/pixelType/rowBytes and exact RGBWK sentinels around every draw, and erase between states so masked holes cannot retain earlier pixels.
+
+Observed so far (2026-10-21, private receipts under `campaign-20261021/lanes/C/`):
+
+- **Depth-32-then-scheme works for Floppies.** One boot produced 18 observations across six sizes × three states. Partial tiles, side bands, a solid body and small overlapping sizes all matched an independent decode-based prediction. Floppies colours are byte-doubled, so rounding versus truncation is still open.
+- **Splash-showing schemes hang in that order.** Animals (three boots, including one at 128 MB RAM) and Crayon OS hang reproducibly after a post-boot depth switch: the scheme's splash PICT draws, then the display and disk writes stop. Extra RAM did not help. The depth does not persist across a Finder Restart, so a boot that starts at 32 bpp is not available, and 32 bpp itself cannot yet be separated from the post-boot change.
+- **Opening the Kaleidoscope control panel stalls the host page.** Even at 8 bpp, the emulator page's main thread stops responding within seconds and Chrome later crashes; this explains both earlier browser losses. The leading, unverified hypothesis is an unthrottled audio-message flood into an unbounded page log. A host-side mitigation (sound off, or drop and cap messages in the page) is being tested before a scheme-at-8-then-depth-32 sequence is tried.
+
+Until a reusable sequence is shown for splash-showing schemes, the 32 bpp condition is usable only for schemes that apply without a splash. Do not strip splash resources from schemes to work around this: that changes the original archive bytes.
 
 ## Preserve the assets
 
