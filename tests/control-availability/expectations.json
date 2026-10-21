@@ -2083,7 +2083,7 @@
   "review": {
     "date": "2026-10-21",
     "reviewers": [
-      "PENDING: independent automated hash-only review of the v2 lane L2 doc-split PR #386 required before merge; must confirm 1.0.10 -> 1.0.11 changes only the nine kdef231-reference.md documentSha256 values, that the 1.0.10 review is archived verbatim as previousReview, and that the 0x758e/0x76c4/0x76d2/0x76fe lines keep their addresses, ids and outcomes; not original provider or pixel-fidelity approval"
+      "independent automated hash-only review of PR #386 (campaign-20261021 v2-lanes/L2/REVIEW.json round2, head 1f0e7b93): 1.0.10 -> 1.0.11 changes only the nine kdef231-reference.md documentSha256 values (3e55c385 -> 8b289cf8) after the L2 doc split (register operands restated as named state bytes and ControlRecord fields; §6 trap table and every ledger-pinned excerpt byte-identical); no case-cited address line (0x758e, 0x76c4, 0x76d2, 0x76fe) changed in address, id or outcome; archived 1.0.10 review verbatim; not original provider or pixel-fidelity approval"
     ],
     "inventoryVersion": "1.0.11",
     "inventorySha256": "d2cd6445252612ff547bf522832f31ef1f08106ad51be5d66840e315006b22a2",
