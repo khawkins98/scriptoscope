@@ -219,7 +219,10 @@ feat(api)!: rename ScriptoscopeWindow constructor option `theme` to `themeId`
   across every applicable theme (the push/default tables and window-chrome rule
   tables are the model: a few hundred lines, no images) over one native capture per
   theme × state. Use native captures to confirm a rule's boundary classes (sizes,
-  partial tiles, overlaps, colour classes, states), not to enumerate cells.
+  partial tiles, overlaps, colour classes, states), not to enumerate cells. A rule
+  table checks the runtime against the decode, not against original output:
+  unsampled cells and themes stay unknown in the ledger, and a predictor that shares
+  the decode with the runtime is not native evidence.
 - **One capture, many observations.** A native fixture should draw many controls,
   sizes and states per boot. Freeze a plan before boot that names, for every
   observation, its rect, the public Scriptoscope call it will be compared against
@@ -234,8 +237,8 @@ feat(api)!: rename ScriptoscopeWindow constructor option `theme` to `themeId`
   direct condition (see the [reference environment](./docs/maintainer-reference-environment.md#direct-32-bpp-condition))
   are separate evidence; never pool them. Direct-condition logs must show depth,
   pixel type and row bytes around every draw, with exact colour sentinels, or the
-  observation is rejected. State which modern plane is compared: pre-gamma
-  composition or the default Mac 1.8 → sRGB 2.2 display policy.
+  observation is rejected. State which modern plane is compared: the default Mac 1.8 → sRGB
+  2.2 display policy, or an analysis-only pre-gamma plane (not a public runtime mode).
 - **Budget native attempts.** Stop after two consecutive failed native attempts.
   Resume only under an explicit, bounded diagnostic that names the single variable
   under test. Never reveal or rearrange windows, retry or refit to obtain a pass.
