@@ -187,6 +187,8 @@ feat(api)!: rename ScriptoscopeWindow constructor option `theme` to `themeId`
 - **Commit evidence compactly.** Commit only what checks read, in one copy, using
   the [compact evidence format](./tests/reference-captures/README.md#compact-evidence-format-compact-json-v1).
   Keep unread raw native evidence in the private asset store, referenced by sha256.
+  Write newly derived files compact before their first hash. A copy of an already
+  sealed private member stays private (by sha256) or gets a `compacted` registry entry.
 - **Consolidate the preboot gate.** Review the frozen source, compiled packages,
   copied media and host protocol together before execution. Carry approved inputs
   forward; reopen the affected review for material changes or unresolved findings,

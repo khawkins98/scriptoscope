@@ -35,10 +35,13 @@ export function formatCompactJSON(value) {
 export const ORIGINAL_ENCODINGS = {
   // JavaScript JSON.stringify(value, null, 2) followed by one LF.
   'json-indent2-lf': value => JSON.stringify(value, null, 2) + '\n',
-  // Same, with every UTF-16 code unit >= U+0080 escaped as lowercase \uXXXX
-  // (the byte form written by Python json.dumps(value, indent=2) + LF).
+  // JSON.stringify(value, null, 2) with every UTF-16 code unit >= U+0080 escaped as
+  // lowercase \uXXXX, then one LF. This matches Python json.dumps(indent=2) output only
+  // for files without U+007F (Python escapes it), non-integral float formatting
+  // (Python 1.0 / 1e-07), NaN/Infinity, or integer-like object keys (which JS reorders).
+  // A divergence is never hidden: originalBytes throws unless the original sha256 is reproduced.
   'json-indent2-ascii-lf': value => JSON.stringify(value, null, 2)
-    .replace(/[\u0080-￿]/g, c => '\\u' + c.charCodeAt(0).toString(16).padStart(4, '0')) + '\n',
+    .replace(/[\u0080-\uffff]/g, c => '\\u' + c.charCodeAt(0).toString(16).padStart(4, '0')) + '\n',
 };
 
 let cached;

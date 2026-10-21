@@ -5,7 +5,7 @@
   "purpose": "Committed evidence stays byte-identity-equivalent while stored compactly. Compacted files decode exactly to the original bytes bound by existing sha256 identities; aliases name the single retained copy of a removed byte-identical duplicate; external entries are unread raw evidence preserved in the private asset store.",
   "encodings": {
     "json-indent2-lf": "JavaScript JSON.stringify(value, null, 2) + LF",
-    "json-indent2-ascii-lf": "JSON.stringify(value, null, 2) with each UTF-16 code unit >= U+0080 escaped as lowercase \\uXXXX, + LF (Python json.dumps(indent=2) form)"
+    "json-indent2-ascii-lf": "JSON.stringify(value, null, 2) with each UTF-16 code unit >= U+0080 escaped as lowercase \\uXXXX, + LF; equals Python json.dumps(indent=2) output only without U+007F, non-integral float formatting, NaN/Infinity or integer-like keys"
   },
   "compacted": [
     {

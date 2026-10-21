@@ -459,9 +459,13 @@ mechanisms. None changes a recorded sha256, capture/review digest or assertion:
   Forgejo asset/commit/archive/member locator. Files that any check reads, such as
   capture artifacts the intake validator hashes or inspects, stay committed.
 
-For new intakes (for example the nine-state batch), write new JSON directly in
+Write newly derived files (prepared profiles, capture manifests, bindings) in
 `compact-json-v1` (`node tests/helpers/compact-json.mjs --write <file>…`) **before**
-recording its sha256, so no registry entry is needed. Commit one profile per
+their first sha256 is recorded, so no registry entry is needed. Some files' sha256
+is already sealed in a private `FILES.json` or review, for example members of the
+nine-state acquisition. Keep those private and reference them by sha256. If a
+committed copy is needed, either commit the exact bytes or register it under
+`compacted`. Never rewrite one unregistered. Commit one profile per
 measured run, in `tests/decoder-fixtures/measured-display-profile-<x>.json`. A
 capture artifact naming the prepared profile should use an alias instead of a second
 copy. Keep raw measurement dumps, logs and full frames that no test reads in the

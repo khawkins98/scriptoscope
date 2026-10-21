@@ -734,3 +734,22 @@ test('Floppies/Evolution intake retains all prior requests, captures and reviews
     assert.equal(reviews[i].captureId, row.captureId); assert.equal(digest(reviews[i]), row.objectSha256);
   }
 });
+
+test('an external intake directory cannot resolve a repository duplicate alias', t => {
+  const corpus = join(repositoryRoot, 'tests/reference-captures');
+  const capture = JSON.parse(readFileSync(new URL('./captures.json', import.meta.url))).captures.find(c => c.id === '1138.normal.shared307');
+  const aliased = capture.provenance.artifacts.find(a => a.path === '1138-calibration/prepared-profile.json');
+  assert.ok(aliased, 'fixture capture binds the aliased prepared profile');
+  const req = contract.requests.find(r => r.id === capture.requestId);
+  assert.deepEqual(assessCapture(capture, req, [], { intakeRoot: corpus }).rejected, []);
+  // Same bytes for every committed artifact; only the removed duplicate is absent.
+  const root = mkdtempSync(join(tmpdir(), 'reference-external-alias-test-'));
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  for (const path of [capture.image.path, ...capture.provenance.artifacts.map(a => a.path)].filter(p => p !== aliased.path)) {
+    mkdirSync(dirname(join(root, path)), { recursive: true });
+    writeFileSync(join(root, path), readFileSync(join(corpus, path)));
+  }
+  const { rejected } = assessCapture(capture, req, [], { intakeRoot: root });
+  assert.equal(rejected.length, 1);
+  assert.match(rejected[0], /^artifact prepared-private-display-profile: .*ENOENT/);
+});
