@@ -4,16 +4,7 @@
 
 Listing: `/Users/khawkins/Documents/git/aaron-ui/.scratch/k231-kdef/kDEF/k231-kdef0.asm` (objdump m68k:68030 of `id-0-680x0_DefProcs.bin`, sha256 `2c027276…7c342`). Listing addresses equal file offsets.
 
-L1's annotated listings were not present yet (`campaign-20261021/v2-lanes/L1/annotated/` was empty), so this pass re-annotated the raw listing.
-
-Lane tooling lives in `campaign-20261021/v2-lanes/L7/scripts/`:
-
-- `annotate.py`: names A-line words from Universal Interfaces 3.0.1 `Traps.h` (`lanes/RE-advisory/work/traps/Traps.h`); the auto-pop/flag bits are masked.
-- `jt.py`: dense pc-relative word jump tables.
-- `sw.py`: the `0x148` sparse switch.
-- `dis.sh`: re-disassembles a range, for spots where objdump fell out of alignment after inline tables.
-
-Annotated region copies are in `v2-lanes/L7/work/` (`gate-118b8.asm`, `doc-11ee2.asm`, `util-1525a.asm`).
+**Tooling notice (revision 2).** The first revision was produced with agent-written annotation, jump-table and re-disassembly helpers. Under the updated V2-BRIEF rule, those helpers are withdrawn and must not be rerun. Every table value cited below can be checked by hand from the raw listing. Each dense jump table entry is a signed word added to the table's address. The `0x148` sparse switch layout is default offset, low, high, count − 1, then (value, offset) pairs, with each offset relative to its own word. Trap names come from a by-hand lookup in Universal Interfaces 3.0.1 `Traps.h`. The independent verifier (v2-lanes/L7/REVIEW.json) re-derived the results that way. The maintainer's annotated listings in `v2-lanes/L1/annotated/` are the reference index.
 
 ## E0. Conventions used to read immediates
 
@@ -37,15 +28,15 @@ Annotated region copies are in `v2-lanes/L7/work/` (`gate-118b8.asm`, `doc-11ee2
 11c80 bsrl 0x11ee2 (setup) ; 11c8a cmpiw #8 ; table @0x11c9a
 ```
 
-`jt.py 11c9a 9` gives 0→0x11cac, 1→0x11cb6, 2→0x11cc8, 3→0x11cd2, 4→0x11cdc, 5→0x11ce6, 6→0x11cf0, 7→0x11cfa, 8→0x11d7e. The callees are 0x12b88, 0x1295e, 0x12486, 0x122c6, 0x123f0, 0x1280a, 0x14286, (inline), and `bsrl 0x148` with the table at 0x11d8c.
+The word table at 0x11c9a gives 0→0x11cac, 1→0x11cb6, 2→0x11cc8, 3→0x11cd2, 4→0x11cdc, 5→0x11ce6, 6→0x11cf0, 7→0x11cfa, 8→0x11d7e. The callees are 0x12b88, 0x1295e, 0x12486, 0x122c6, 0x123f0, 0x1280a, 0x14286, (inline), and `bsrl 0x148` with the table at 0x11d8c.
 
-`sw.py 11d8c` gives default 0x11ec2; cases 0→11db4 (0x1469a), 1→11dcc (0x14784 + InsetRect `#0xFFFF0000` = dv −1), 2→11df0 (0x148a2), 3→11e08 (0x1496c), 6→11eae (0x1499a), 7→11e20 (0x14904), 32→11e38, 33→11e8e.
+The sparse switch at 0x11d8c gives default 0x11ec2; cases 0→11db4 (0x1469a), 1→11dcc (0x14784 + InsetRect `#0xFFFF0000` = dv −1), 2→11df0 (0x148a2), 3→11e08 (0x1496c), 6→11eae (0x1499a), 7→11e20 (0x14904), 32→11e38, 33→11e8e.
 
 The features word is built at 11cfa–11d60: `a4@103?2`, `104?1`, `171?4`, `118?64`, `168?8`, `|16`, `|0xF80`. These match the Appearance feature constants (zoom/grow/collapse/title-bar/modal/get-region), which is how the flag meanings in spec §3.1 were pinned.
 
-Utility gate: 1525a…152a2 (`wnd#` -14304, msg + 1984 → 0x28e0); 152be…152f8; `jt.py 152fc 9` gives 1530e…1538a. Get-region switch: `sw.py 15396`.
+Utility gate: 1525a…152a2 (`wnd#` -14304 only, msg + 1984 → 0x28e0; there is no `WDEF` lookup, unlike slot 3); 152be…152f8; the word table at 0x152fc gives 1530e…1538a. Get-region switch: the sparse switch at 0x15396.
 
-Reachability: a caller-map script over the listing shows every routine in 0x11ee2–0x1525a and 0x1547e–0x17452 is reached. The inventory's empty `reachedFrom` entries (0x12dc0, 0x1302a, …) are jump-table targets that objdump disassembled out of alignment. Example: 0x12da2 table (`jt.py 12da2 6`: 0/4→0x12dae, others→0x12db6); `dis.sh 12dae 12dbc` shows `bsrl 0x12dc0`.
+Reachability: every routine the spec cites was reached by manual trace from the gate. Whole-region reachability is per the maintainer index (`v2-lanes/L1/annotated/index.json`). That index lists 64 routines in 0x11ee2–0x1525a (62 pc-relative, 1 relocated, 1 unreached) and 40 in 0x1525a–0x17452 (38 pc-relative, 1 entry, 1 relocated). Its one "unreached" routine is 0x12dc0, which is reached through a jump table the listing misaligns. The raw listing line `12da2: 000c` starts a word table 000c 0014 0014 0014 000c 0014 for kinds 0–5. Kinds 0 and 4 go to 0x12da2 + 0x0c = 0x12dae, whose bytes `61ff 0000 0010` (inside the misaligned `12dac: 0014 61ff` / `12db0: 0000 0010` lines) are a bsr.l to 0x12db0 + 0x10 = 0x12dc0.
 
 ## E2. Setup 0x11ee2 (spec §3.1, §3.2)
 
@@ -67,7 +58,7 @@ Reachability: a caller-map script over the listing shows every routine in 0x11ee
 
 - **0x14620:** msg 5 → param rect. Otherwise portRect offset by −bounds.topLeft (pixmap bounds if rowBytes < 0, else portBits.bounds) → global content.
 - **0x125e0:**
-  - `pea 0xffffffff; InsetRect` (outset 1). Switch `jt.py 12618 6` (0/4→12624, 1→126c0, 2→1268c, 3→12696, 5→12650).
+  - `pea 0xffffffff; InsetRect` (outset 1). Switch: the word table at 0x12618 (0/4→12624, 1→126c0, 2→1268c, 3→12696, 5→12650).
   - 12624: InsetRect `#0xFFFBFFFB` (−5, −5); top −= H − 6; RectRgn; `0x127b6`.
   - 12650: !166 → `#0xFFFDFFFD`; `#0xFFFEFFFE`; top −= H − 1; 0x127b6.
   - 12696: RectRgn, rect +2 all, RectRgn, UnionRgn.
@@ -117,7 +108,7 @@ Here L = struc.left, R = struc.right − 1, B = struc.bottom − 1 (bbox includi
 
 - 1382c–138dc: NewGWorld (`QDExtensions` with `#0x00160000` + pea 6), LockPixels/GetGWorld/SetGWorld, text state copied.
 - 138e0–1394e: d5 (box mode).
-  - Kind 0/4: collapsed → (WdrB fails → 1; height equal → 1; else 0); not collapsed → 0.
+  - Kind 0/4: collapsed → (WdrB fails → 1 at 1390c; WdrB ok and content.top − structure.top == H → 1 at 1392e; else 0); not collapsed → 0 (138fa). The first revision's spec prose inverted the WdrB case; this line was already correct.
   - Other kinds: 1.
 - 13938–13986: art id (−14332/−14336; kind 5: 0x14c64 ? −14322/−14326 hilited, −14324/−14328 not).
 - 1399a: 0xfc5c(F, `#0x00060003`, a4@154); 139ac `#0x00070003` → 148; 139be `#0x00090003` → 160.
@@ -186,7 +177,8 @@ Here L = struc.left, R = struc.right − 1, B = struc.bottom − 1 (bbox includi
   - `_GetResource('ics#')` (`#1768125219`) required.
   - Mask all-ones test f52e–f550.
   - Mono/non-colour → 1-bit; else HomeResFile + `_Get1Resource('ics8')` (`#1768125240`).
-  - picSave (port + 92) / grafProcs (port + 104) non-nil or mask all ones → CopyBits, else CopyMask.
+  - 1-bit path (f5dc–f5f0): mask all ones, picSave (port + 92) non-nil, or grafProcs (port + 104) non-nil → CopyBits; else CopyMask.
+  - ics8 path (f630–f63c): mask all ones or picSave non-nil → CopyBits; else CopyMask. grafProcs is not tested.
   - No `ics4` type code appears in the routine.
 - **0x141fc:** IconDispatch `#1549` = 0x060D with ids −14336 / −14334 / −14335.
 - **0x144f2:** 102 → 0x13124. Hilited → 0x10472(−14330) else (−14334). `0x102d0(cicn, &bounds, g.left, g.top)`.
@@ -205,7 +197,7 @@ Here L = struc.left, R = struc.right − 1, B = struc.bottom − 1 (bbox includi
   - 0x14020: Gestalt `Aaru`, record[26] suite, transform 0x4000 / 1 + label << 8, title "Now " check, IconDispatch `#1539` = 0x0603.
   - 0x123f0: IconDispatch `#770` = 0x0302 on record[26].
   - IconDispatch selector names are not checked against a local `Icons.h` (none was found). The behaviour claims in the spec do not depend on them.
-- **Hit 0x1295e:** see spec §6.3. The exact-pixel tests are at 12a5c–12a72 and 12aa8–12abe. The drag region is 12af8–12b66: struc bbox right/bottom −1, InsetRgn `#0x00060006`, DiffRgn, ∪ title bar with bottom + 1.
+- **Hit 0x1295e:** see spec §6.3. The exact-pixel tests use the title rect that 12a1e fills from 0x1469a: (T.l + 16, T.t + 12) at 12a5c–12a72 for close and (T.r − 16, T.t + 12) at 12aa8–12abe for zoom. The first revision wrongly made them relative to the close and zoom rects. The drag region is 12af8–12b66: struc bbox right/bottom −1, InsetRgn `#0x00060006`, DiffRgn, ∪ title bar with bottom + 1.
 
 ## E8. Utility family (spec §9)
 

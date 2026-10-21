@@ -23,7 +23,7 @@ Evidence appendix: [`procedural-frame.evidence.md`](./procedural-frame.evidence.
 | `wnd#` absent, `WDEF` -14330 present with a non-empty handle | that code resource is called with the original arguments; this unit is not used | `0x11916`–`0x11c54` |
 | both absent | this unit: per-call setup (§3), then dispatch on the WDEF message (§2) | `0x11c58`–`0x11ec2` |
 
-The utility family uses the same gate with `wnd#` -14304 and falls into its own nine-message table (`0x152be`–`0x152fc`).
+The utility gate is shorter. It checks only `wnd#` -14304: if present, the compositor runs with message base 1984. If absent, it goes straight to its own nine-message table (`0x152be`–`0x152fc`). There is no `WDEF` step (`0x1525a`–`0x152a0`).
 
 **Corpus.** Exactly five bundles ship no `wnd#` and no `WDEF`: `apple-platinum-2`, `black-platinum`, `platinum-8`, `slimes` and `system7-nostalgia-silver`. All 18 bundles were checked. Each of the five ships every resource family this unit reads (§8). No other bundle reaches this unit.
 
@@ -114,7 +114,7 @@ All rectangles are QuickDraw rectangles (left, top, right, bottom), with right a
 |---|---|---|
 | title bar *T*, kinds 0/4 | (*C*.l − 6, *C*.t − *H*, *C*.r + 6, *C*.t) | `0x146f8`–`0x1470e` |
 | title bar *T*, kind 5 | (*C*.l − 6, *C*.t − 5 − *H*, *C*.r + 6, *C*.t − 5); with *thin*: (*C*.l − 3, *C*.t − 2 − *H*, *C*.r + 3, *C*.t − 2) | `0x146d4`–`0x146f6` |
-| title bar *T*, collapsed with `WdrB` | structure bounding box, height *H*, right − 1 | `0x14712`–`0x14730` |
+| title bar *T*, when the structure region is non-empty and Gestalt `WdrB` answers | structure bounding box, height *H*, right − 1. For an uncollapsed window this equals the rows above | `0x146ae`–`0x146c4`, `0x14712`–`0x14730` |
 | widget top *wy* | *T*.t + trunc((*H* + 1 − 13) / 2) − 1, which is *T*.t + 4 when *H* = 22 | `0x148a2`–`0x148ce` |
 | close | 16 × 16 at (*T*.l + 4, *wy*) | `0x148a2` |
 | collapse | 16 × 16 at (*T*.r − 17, *wy*) | `0x14904` |
@@ -191,13 +191,23 @@ Let F be the document cicn (16 × 16). Let *L* = *C*.l − 6, *R* = *C*.r + 6 an
 | 6 | drop shadow | row *B* from column *L*+2 to *R*; column *R* from row *C*.t−*H*+2 to *B* | P(0, 0) | `0x12fb6`–`0x12fe6` |
 | 7 | grow box, if it belongs to the frame (§6.4) | grow rect | §6.4 | `0x13002`–`0x1301a` |
 
-When collapsed, rows 1–5 are skipped and only the shadow is drawn, unless Gestalt `WdrB` answers and the structure is not title-only (`0x12e28`–`0x12e58`). While row 3 is drawn, the port's text font holds the sentinel −12345 (`0x12ee8`). Its effect is outside this binary (§10).
+When collapsed, rows 1–5 are skipped and only the shadow is drawn, with one exception: Gestalt `WdrB` answers and content.top − structure.top ≠ *H*. In that case the rows are drawn, starting at structure.top + *H* (`0x12e28`–`0x12e64`). While row 3 is drawn, the port's text font holds the sentinel −12345 (`0x12ee8`). Its effect is outside this binary (§10).
 
 The corner copy is opaque (CopyBits srcCopy) for cicns deeper than 1 bit, so the mask is ignored. A 1-bit cicn is copied with its mask (`0xfdf8`–`0xfe90`).
 
 ## 5. Title bar (titled kinds): drawing
 
-Let F be the frame cicn from §3.5. In a dialog-kind title, F is the dialog cicn. *T* is the title bar from §3.3. "Box" mode is used for collapsed document windows and for kind 5. A document window that is not collapsed uses "joined" mode. Collapsed windows with Gestalt `WdrB` use box mode unless the structure is title-only (`0x138e0`–`0x1394e`).
+Let F be the frame cicn from §3.5. In a dialog-kind title, F is the dialog cicn. *T* is the title bar from §3.3. The mode is chosen as follows (`0x138e0`–`0x1394e`):
+
+| window | mode |
+|---|---|
+| kind 5 | box |
+| kinds 0/4, not collapsed | joined |
+| kinds 0/4, collapsed, Gestalt `WdrB` does not answer | box |
+| kinds 0/4, collapsed, `WdrB` answers, content.top − structure.top = *H* | box |
+| kinds 0/4, collapsed, `WdrB` answers, content.top − structure.top ≠ *H* | joined |
+
+This is the same test that §4 uses for skipping the frame edges: box mode coincides with the frame edges being skipped.
 
 The title is drawn off-screen into a GWorld, then copied to the screen (`0x1382c`–`0x138dc`, `0x13cf4`–`0x13d8e`). This changes no pixels.
 
@@ -284,7 +294,8 @@ The widget's 16 × 16 rect is drawn in black foreground on white background.
 |---|---|---|
 | required | `ics#` *id*. If it is absent, nothing is drawn | `0xf50c`–`0xf51e` |
 | colour image | `ics8` *id* from the same file as the `ics#`. If it is absent, the `ics#` 1-bit image is used | `0xf57c`–`0xf59c` |
-| copy | masked by the `ics#` mask. The copy is opaque when the mask is all ones, or the port is recording a picture, or the port has custom bottlenecks | `0xf52c`–`0xf66a` |
+| copy, 1-bit image | masked by the `ics#` mask. Opaque instead when the mask is all ones, the port is recording a picture, or the port has custom bottlenecks | `0xf5dc`–`0xf61a` |
+| copy, `ics8` image | masked by the `ics#` mask. Opaque instead when the mask is all ones or the port is recording a picture. Custom bottlenecks are not tested on this path | `0xf630`–`0xf66a` |
 
 ### 6.2 Widget hit (`0x141fc`)
 
@@ -300,8 +311,8 @@ Rows are tested in order; the first match wins.
 | *grow*, not collapsed, and the point is in (grow.l, grow.t, structure.r, structure.b) | 3 if hilited, else 1 | `0x129a8`–`0x129f2` |
 | in content | 1 | `0x129f6`–`0x12a0c` |
 | untitled | 1 | `0x12a10` |
-| hilited, in the title bar, on the close icon (or exactly at close.l + 16, close.t + 12) | 4 | `0x12a3a`–`0x12a76` |
-| hilited, on the zoom icon (or exactly at zoom.l, zoom.t + 12) | 5 if the window is at its stored zoom rect within 7 px, else 6 | `0x12a7a`–`0x12ad0`, `0x14568` |
+| hilited, in the title bar, on the close icon (or exactly at *T*.l + 16, *T*.t + 12) | 4 | `0x12a3a`–`0x12a76` |
+| hilited, on the zoom icon (or exactly at *T*.r − 16, *T*.t + 12) | 5 if the window is at its stored zoom rect within 7 px, else 6 | `0x12a7a`–`0x12ad0`, `0x14568` |
 | hilited, on the collapse icon | 9 | `0x12ad4`–`0x12af2` |
 | in the 6-px frame band (structure without the shadow, minus its 6-px inset) or in the title bar (+1 row) | 2 | `0x12af8`–`0x12b66` |
 | otherwise | 1 | `0x12b6a` |
@@ -355,7 +366,7 @@ Resources each bundle ships that this unit reads. Counts are from `extraction-ma
 | slimes | 16×16 both | all four | **`ppat`** -14331/-14325/-14321; cicn -14325/-14321 at 32×16; no cicn -14331 | yes | 17×17 | yes | absent |
 | system7-nostalgia-silver | 16×16 both | all four | cicn | yes | 17×17 | yes | absent |
 
-The sampled points agree with this reading in all five bundles. In baked sRGB, the frame cicns' row 6, columns 0–5, read outline / highlight / face / face / shadow / outline. P(6, 3) is the bar fill. P(7, 3) is a contrasting text colour, white on #424242 for black-platinum's active frame. P(9, 3) differs from P(7, 3) in platinum-8 inactive (an embossed white shadow) and in slimes active. This is a consistency check on baked PNGs, not native evidence.
+The sampled points agree with this reading in all five bundles. In baked sRGB, the frame cicns' row 6, columns 0–5, usually read outline / highlight / face / face / shadow / outline. There are exceptions: platinum-8 -14336 is flat #c6c6c6; black-platinum -14336 has face in column 4; slimes -14332 has a column-5 outline (#787878) different from column 0 (#004400). The decode does not depend on the pattern. It only says these pixels are sampled. P(6, 3) is the bar fill. P(7, 3) is a contrasting text colour, white on #424242 for black-platinum's active frame. P(9, 3) differs from P(7, 3) in platinum-8 inactive (an embossed white shadow) and in slimes active. This is a consistency check on baked PNGs, not native evidence.
 
 ## 9. Utility family (`0x152be`–`0x17452`): what is decoded
 
@@ -405,10 +416,10 @@ Each item is a decode finding; none has been fixed. Line numbers are against v2 
 | widget box 7 × 7, close at left + 4, right inset 4, gap 2 | 16 × 16 icon slots: close *T*.l + 4, collapse *T*.r − 17, zoom *T*.r − 33 / − 17, top *T*.t + 4 | close x **confirmed**; the rest **replaced** |
 | widget id map close = base, zoom = base + 1, collapse = base + 2, pressed + 3 (`renderWindow.ts:300`–`302`) | zoom -14334 / -14331, collapse -14335 / -14332; utility zoom -14318 / -14315, collapse -14319 / -14316 | **wrong for zoom and collapse** (close is right) |
 | widgets drawn on inactive windows | widgets and stripes are drawn only when hilited | **replaced** |
-| `ics4` glyph source; `inkBounds` trimming | `ics#` (required) + `ics8`, plotted at a fixed 16 × 16 slot; `ics4` unused (black-platinum ships none) | **replaced** |
+| glyph source: the loader keeps the deepest of `ics4`/`ics8` per id (`tools/theme-loader/loadKaleidoscopeScheme.js:233`–`243`), so `ics8` already wins; `inkBounds` trimming | `ics#` (required) + `ics8`, plotted at a fixed 16 × 16 slot, masked by `ics#`; `ics4` never read | source **confirmed** (black-platinum loses nothing); the missing-`ics#` rule, the `ics#` mask and the fixed slot are **replaced** (no ink trimming) |
 | grow box -14330 at the inner frame corner | -14330 hilited / -14334 not, 17 × 17 at (*C*.r − 15, *C*.b − 15), overlapping the frame by 2 | position **replaced**, id **confirmed** for active |
 | `cicnOrPpatRecord` (cicn preferred, `ppat` fallback) | `ppat` first, then cicn over it; both when both exist | **replaced** |
-| the CLAUDE.md "4 corner-sprite schemes" | the unit serves 5 schemes (adds `slimes`) | doc correction |
+| the scheme list in the `renderWindow.ts:276`–`278` comment (three schemes) | the unit serves 5 schemes. v2 CLAUDE.md already lists five, but its statement that "no original drawing path is decoded" goes stale once this unit lands (the PM owns that edit) | doc correction |
 
 ## 12. Test hooks
 
