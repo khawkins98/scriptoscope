@@ -65,7 +65,7 @@ On 2026-10-21 an independently reviewed trial (accepted with limits) found that 
 
 **This trial is not admitted evidence.** No ledger row, golden or display-policy change follows from it.
 
-Treat this as its own named condition. Record depth/pixelType/rowBytes and exact RGBWK sentinels around every draw, and erase between states so masked holes cannot retain earlier pixels. Selecting Animals after the post-boot depth switch reproducibly hangs the guest (the splash draws, then the display and disk writes stop); the host stayed stable. The cause is under bounded diagnosis, so do not assume every scheme tolerates the condition.
+Treat this as its own named condition. Record depth/pixelType/rowBytes and exact RGBWK sentinels around every draw, and erase between states so masked holes cannot retain earlier pixels. Selecting Animals after the post-boot depth switch reproducibly hangs the guest (the splash draws, then the display and disk writes stop); the host stayed stable in two diagnostic boots, though an earlier browser loss is unexplained. A boot that starts at 32 bpp is not available, so 32 bpp itself and the post-boot change cannot yet be separated. The cause is under bounded diagnosis, so do not assume every scheme tolerates the condition.
 
 ## Preserve the assets
 
