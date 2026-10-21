@@ -34,9 +34,10 @@ export function ladderSelection(id, present) {
 //   primary   0x529e..0x52d6 (8/11/18) share + remainder
 //   tile      0x5266..0x5292 (12) whole source widths
 //   remainder 0x52da..0x52f8 (13/14) remainder only
-//   unknown   not asserted: 5 (title plate DEST span from StringWidth,
-//             0x5034), 10 (flag-gated 0x4a0c; ledger divergence),
-//             2/3/4/15/16/17 (undecoded cinf widget flags, reference §7.6)
+//   unknown   not asserted: 5/6 (0x5312..0x531c collapse them when the
+//             title-fits flag is 0; plate DEST span from StringWidth, 0x5034),
+//             10 (flag-gated 0x4a0c; ledger divergence), 2/3/4/15/16/17
+//             (undecoded cinf widget flags, reference §7.6)
 export function cellClass(code, leading) {
   // 0x4a64's segment loop starts at index 1: [0, border[0]) is the 1:1 corner.
   if (leading) return 'fixed';
@@ -44,8 +45,8 @@ export function cellClass(code, leading) {
   if (code === 8 || code === 11 || code === 18) return 'primary';
   if (code === 12) return 'tile';
   if (code === 13 || code === 14) return 'remainder';
-  if (code === 5 || code === 10 || [2, 3, 4, 15, 16, 17].includes(code)) return 'unknown';
-  return 'fixed'; // 1, 6 (bezel, fixed while the title fits), 7, 9 and other defaults
+  if (code === 5 || code === 6 || code === 10 || [2, 3, 4, 15, 16, 17].includes(code)) return 'unknown';
+  return 'fixed'; // 1, 7, 9 and other defaults
 }
 
 const code = slug => Number(/^part-(-?\d+)$/.exec(slug)?.[1] ?? NaN);
@@ -120,8 +121,10 @@ export function checkComposition({ cicn, windowType, composed }) {
       if (d0 !== cursor) fail(`${edge}[${i}]: dst starts ${d0}, expected contiguous ${cursor}`);
       cursor += span(p)[3];
     });
-    // Halves: split at the title anchor run (codes 5/6) as 0x4a64 does; a
-    // side without one is a single half of the full output extent.
+    // Halves: split at the run of codes 5/6. This is the RUNTIME's
+    // partitioning (distributeSide tLo/tHi), not the decode's code-5 anchor
+    // d4 split; the 5/6 cells themselves are never asserted. A side without
+    // one is a single half of the full output extent.
     const titled = cells.map((c, i) => [5, 6].includes(c.code) && i > 0 ? i : -1).filter(i => i >= 0);
     const halves = titled.length ? [[0, titled[0]], [titled.at(-1) + 1, cells.length]] : [[0, cells.length]];
     for (const [lo, hi] of halves) {
@@ -148,14 +151,17 @@ export function checkComposition({ cicn, windowType, composed }) {
       if (JSON.stringify(expected) !== JSON.stringify(widths)) fail(`${edge} half [${lo},${hi}) extent ${extent}: 0x5178 expects ${expected}, drawn ${widths}`);
     }
     checked.sides++;
-    // 0xfeae tiles every non-18 cell from its own source origin, clipping the
-    // last tile. Only opaque source pixels are asserted: the masked CopyMask
-    // vs replace interaction with previously drawn sides is not decoded.
+    // 0xfeae tiles a non-18 cell, clipping the last tile. Its direction byte
+    // `(pc==11||pc==14)?0:1` (caller 0x59c8..0x59da) is not decoded as
+    // absolute or side-relative, so pixels are asserted only for 1px source
+    // runs, where either step direction yields the same pixels. The cross-axis
+    // origin is taken from the runtime placement (a limit). Only opaque source
+    // pixels: CopyMask vs replace over earlier sides is not decoded.
     const [lo, hi] = horizontal ? [0, W] : [frame.top, H - frame.bottom];
     for (const p of segs) {
       if (p.code === 18) continue;
       const [s0, s1, d0, dw] = span(p), sw = s1 - s0;
-      if (dw <= 0 || sw <= 0) continue;
+      if (dw <= 0 || sw !== 1) continue;
       for (let k = 0; k < dw; k++) {
         const along = d0 + k;
         if (along < lo || along >= hi) continue;

@@ -345,12 +345,13 @@ test('Floppies/Evolution extension preserves all prior95 cases and647 assessment
  assert(original.cases.slice(95).every(c=>c.inventoryClosure.status==='open'));
 });
 
-test('window-chrome extension preserves all prior99 cases and671 assessments and promotes nothing',()=>{
+test('window-chrome extension preserves all prior99 cases and671 assessments and promotes only wnd-ladder',()=>{
  const transition=JSON.parse(readFileSync(new URL('./window-chrome-transition.json',import.meta.url))),prior=structuredClone(original);
  for(const[key,count]of Object.entries(transition.counts)){prior[key]=prior[key].slice(0,count);assert.equal(digest(JSON.stringify(prior[key])),transition.prefixSha256[key],key+' prefix');}
  Object.assign(prior,{inventoryVersion:transition.inventoryVersion,inventorySha256:transition.inventorySha256,scope:transition.scope});
  assert.equal(inventoryDigest(prior),transition.inventorySha256);assert.equal(digest(JSON.stringify(prior)),transition.priorObjectSha256);
- const added=original.assessments.slice(671);assert.equal(added.length,129);assert(added.every(a=>a.status==='unknown'));
- assert.deepEqual(makeReport(original).requirementStatus.counts,{verified:118,mismatched:0,unsupported:0,unknown:682});
+ const added=original.assessments.slice(671);assert.equal(added.length,129);
+ assert(added.every(a=>a.status===(a.requirementId==='window.wnd-ladder'&&a.caseId.endsWith('.window.sliced-recipes.sampled')?'verified':'unknown')));assert.equal(added.filter(a=>a.status==='verified').length,13);
+ assert.deepEqual(makeReport(original).requirementStatus.counts,{verified:131,mismatched:0,unsupported:0,unknown:669});
  const cases=original.cases.slice(99);assert.equal(cases.length,18);assert(cases.every(c=>c.family==='window-chrome'&&c.inventoryClosure.status==='open'));
 });

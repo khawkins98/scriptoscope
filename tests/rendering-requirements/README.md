@@ -447,16 +447,19 @@ All broader requirements and inventory closure remain open.
 
 Eighteen `window-chrome` cases and 129 obligations append to the exact prior
 99 cases and 671 assessments, retained by `window-chrome-transition.json`.
-There are 117 OPEN cases and 800 obligations: 118 narrowly verified and 682
-unknown. **No window obligation is promoted by this extension.**
+There are 117 OPEN cases and 800 obligations: 131 narrowly verified and 669
+unknown. Independent review (campaign lanes/D/REVIEW.json, head 4ccd2f57)
+promoted only `window.wnd-ladder` for the 13 `wnd#` cases.
 
 The 13 archives that ship `wnd#` recipes each get one case over every manifest
 window type, both states and 15 sampled content sizes. Four primary-decode
 locators in `docs/spec/kdef231-reference.md` (the 0x356c ladder, END-based
 cells, the 0x5178 allocation table and the 0xfeae tile blit) back two
 registered source/built assertions in `window-chrome-rules.spec.mjs`. Their
-`wnd-ladder`, `recipe-cells` and `tile-blit` assessments carry that evidence
-and are proposed for independent review, but remain unknown. Half extents,
+`recipe-cells` and `tile-blit` carry evidence but stay unknown. The recipe-cells
+claim is narrowed (no code 6, nonnegative budgets, observed titled-half
+extent, runtime 5/6 split) and may be re-proposed. Tile pixels are asserted only
+for 1px source runs, because the 0xfeae direction byte is not decoded. Half extents,
 flag-gated codes, masked composition, transparent/scaled pixels and the state
 pairing stay unknown, with their reasons. The five archives without `wnd#`
 (corner-sprite) get all-unknown cases: no original drawing path is decoded.

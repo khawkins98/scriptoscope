@@ -47,18 +47,21 @@ Per cell, keyed PURELY on the part code (not pixel content, not width):
 | 8, 11 | **GROW** — a primary share plus rounding remainder. |
 | 13, 14 | **REMAINDER ONLY** — share the leftover pixels after whole-tile truncation; excluded from the primary divisor. |
 | 0 | **COLLAPSE** — zero width. |
-| 10 | **FLAG-GATED** (jump table `0x4a0c` returns the caller's flag): stretches when title-fits is set (`#1` on non-title sides). We classify it FIXED — render-correct for the corpus (see note). |
+| 10 | **FLAG-GATED** (jump table `0x4a0c` returns the caller's flag): its stretch verdict (width 0) applies when title-fits is set and always on non-title sides (`#1`). We classify it FIXED, a divergence (see note and the faithfulness-ledger `0x4a0c` row). |
 | 15, 16, 17 | collapse to zero iff the corresponding widget is PRESENT; else fixed. |
 | 2, 3, 4 | the close/zoom/shade GAP cells — fixed when widget present; collapse to zero when absent. |
 | 12 | **TILE** — primary share truncated down to a whole multiple of source width (possibly zero); the unused fraction joins the remainder pool. |
 | 18 | **SCALE** — a single scaled CopyBits (drawn once, mapped src→dst). |
 
-**code 10 note:** the corpus's code-10 cells resolve to fixed: the 1138 utility
-windows are label-less (title-fits false → fixed) and their code-10 band has the
-close/zoom widget BAKED in (a grown cell would tile-smear it); 1984's doc-window
-code-10 is on a non-title edge over a UNIFORM bar (fixed ≡ stretch). Fully gating
-it would need the per-edge title-fits flag + the kDEF's separate rect-list
-widget-draw pass (`0x5ffc`/`0x5ddc`), with no visible change.
+**code 10 note (superseded rationale):** under the corrected `0x5178` reading a
+stretch verdict means width 0, and non-title sides pass flag `#1`
+(`0x4db4`/`0x4dd4`/`0x515e`). The decode therefore collapses code-10 cells on
+untitled sides, and on titled sides whenever the title fits. The earlier "fixed
+≡ stretch" argument predates that correction. The runtime keeps code 10 FIXED
+because its band carries BAKED close/zoom art that only the unimplemented
+rect-list widget pass (`0x5ffc`/`0x5ddc`) would redraw. This is a divergence
+(see the faithfulness-ledger `0x4a0c` row) with a failing `todo` in
+`tests/rendering-options/window-chrome-rules.test.mjs`.
 
 **Widget draw:** the kDEF draws the named widgets in a SEPARATE pass over the
 rect-list (`0x5ffc` → `0x5ddc`, called from the draw dispatch), NOT in the recipe

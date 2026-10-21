@@ -25,8 +25,9 @@ for (const mode of ['source', 'built']) {
     expect(Object.keys(result)).toEqual(SLICED);
     for (const [slug, r] of Object.entries(result)) {
       expect(r.failures, slug).toEqual([]);
-      expect(r.totals.cells * r.totals.halves * r.totals.pixels, slug).toBeGreaterThan(0);
+      expect(r.totals.cells * r.totals.halves, slug).toBeGreaterThan(0);
     }
+    expect(Object.values(result).reduce((s, r) => s + r.totals.pixels, 0)).toBeGreaterThan(1e6);
   });
 
   test(`${mode}: public renderWindow selects the first wnd# the 0x356c ladder loads`, async ({ page, servers }, info) => {
