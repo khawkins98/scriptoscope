@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import { loadKaleidoscopeScheme } from '../../tools/theme-loader/loadKaleidoscopeScheme.js';
 import '../helpers/registerTs.mjs';
-import { CANONICAL_WND, CORNER_SPRITE, SLICED, ladderSelection, checkTheme, checkComposition, decodeCells, allocateHalf, stateLabelContradiction, tileSourceOffset } from './window-chrome-rules.mjs';
+import { CANONICAL_WND, CORNER_SPRITE, SLICED, ladderSelection, checkTheme, checkComposition, decodeCells, allocateHalf, stateLabelContradiction, tileSourceOffset, TILE_REVERSE } from './window-chrome-rules.mjs';
 const { PixelBuffer } = await import('../../src/pixelBuffer.ts');
 const { composeWindowChrome } = await import('../../src/composeChrome.ts');
 const { resolveWindowType } = await import('../../src/resolveWindowType.ts');
@@ -88,6 +88,59 @@ for (const slug of SLICED) {
     reverseBySlug[slug] = totals.pixelsReverse;
   });
 }
+// Per-archive discrimination: rerun the corpus check against runtimes whose
+// tile cells are repainted with a wrong blit, CopyMask-style (opaque source
+// pixels only), inside the same side-bar windows the checker reads.
+// - flip11/14: the pre-fix runtime, with 11/14 tiled forward
+// - inverted: every cell gets the opposite anchor
+// - scaled: every cell is stretched instead of tiled
+// An archive discriminates a mutation only if the check FAILS under it. Bucket
+// counts alone do not show this: apple-lisa and windows-95 have forward >1px
+// pixels yet pass every mutation, because their sources are uniform along the run.
+const MUTATIONS = {
+  'flip11/14': (k, sw, dw, code) => TILE_REVERSE.has(code) ? k % sw : tileSourceOffset(k, sw, dw, false),
+  inverted: (k, sw, dw, code) => tileSourceOffset(k, sw, dw, !TILE_REVERSE.has(code)),
+  scaled: (k, sw, dw) => Math.min(sw - 1, Math.floor(k * sw / dw)),
+};
+function mutatedRuntime(offset) {
+  return { PixelBuffer, composeWindowChrome: (cicn, windowType, width, height, ...rest) => {
+    const composed = composeWindowChrome(cicn, windowType, width, height, ...rest);
+    const { frame, fullWidth: W, fullHeight: H, buffer } = composed;
+    for (const edge of ['top', 'bottom', 'left', 'right']) {
+      const recipe = windowType.edges?.[edge] ?? [], thickness = frame[edge];
+      if (!recipe.length || thickness <= 0) continue;
+      const horizontal = edge === 'top' || edge === 'bottom', [lo, hi] = horizontal ? [0, W] : [frame.top, H - frame.bottom];
+      for (const p of composed.placement.filter(q => q.edge === edge).slice(0, decodeCells(recipe).length)) {
+        if (p.code === 18) continue;
+        const s0 = horizontal ? p.src.x : p.src.y, sw = horizontal ? p.src.w : p.src.h, d0 = horizontal ? p.rects[0].x : p.rects[0].y, dw = horizontal ? p.rects[0].w : p.rects[0].h;
+        if (dw <= 0 || sw <= 0) continue;
+        for (let k = 0; k < dw; k++) {
+          if (d0 + k < lo || d0 + k >= hi) continue;
+          const off = offset(k, sw, dw, p.code);
+          for (let t = 0; t < thickness; t++) {
+            const [r, g, b, a] = horizontal ? cicn.getPixel(s0 + off, p.src.y + t) : cicn.getPixel(p.src.x + t, s0 + off);
+            if (a === 255) buffer.setPixel(horizontal ? d0 + k : p.rects[0].x + t, horizontal ? p.rects[0].y + t : d0 + k, r, g, b, a);
+          }
+        }
+      }
+    }
+    return composed;
+  } };
+}
+// Expected discriminating archives (reviewed in campaign-20261021 lanes/H/PR-REVIEW.json).
+const DISCRIMINATING = ['1990', 'animals', 'crayon-os', 'dolphin-som', 'evolution', 'floppies', 'monkey-paradise'];
+test('per-archive discrimination: flip11/14 fails only animals and monkey-paradise; inverted and scaled fail exactly seven archives', t => {
+  const table = {};
+  for (const [name, offset] of Object.entries(MUTATIONS)) {
+    const runtimeUnderTest = mutatedRuntime(offset);
+    table[name] = SLICED.filter(slug => checkTheme(corpus.get(slug), runtimeUnderTest).failures.length > 0);
+  }
+  for (const slug of SLICED) t.diagnostic(`${slug}: ${Object.keys(MUTATIONS).map(m => `${m}=${table[m].includes(slug) ? 'FAILS' : 'passes'}`).join(' ')}`);
+  assert.deepEqual(table['flip11/14'], ['animals', 'monkey-paradise']);
+  assert.deepEqual(table.inverted, DISCRIMINATING);
+  assert.deepEqual(table.scaled, DISCRIMINATING);
+});
+
 test('0xfeae pixel checks are nonvacuous per class: 1px runs, whole copies, forward and reverse (11/14) >1px tiling', () => {
   assert.ok(tilePixels.pixels1px > 1e6 && tilePixels.pixelsWhole > 1e6 && tilePixels.pixelsForward > 1e6, JSON.stringify(tilePixels));
   // Only animals and monkey-paradise ship 11/14 cells with >1px partial runs

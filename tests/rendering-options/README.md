@@ -225,9 +225,25 @@ allocation (`0x5178`, nonnegative budgets, given the observed half extent) and
 opaque-pixel tiling (`0xfeae`). The tiling check follows the decoded direction
 byte (`(pc==11||pc==14)?0:1`, [reference §5.1](../../docs/spec/kdef231-reference.md)).
 Codes 11/14 tile from the far end, so dst index `k` reads
-`sw-1-((dw-1-k) % sw)`. Every other non-18 cell reads `k % sw`. Pixels are
-counted separately for 1px runs, whole copies, forward and reverse >1px runs.
-Only animals and monkey-paradise have reverse runs. Opaque CopyBits under
+`sw-1-((dw-1-k) % sw)`. Every other non-18 cell reads `k % sw`. That includes
+the unknown-class cells (5/6/10/flag-gated), which are checked over their
+runtime-placed width. Pixels are counted separately for 1px runs, whole
+copies, forward and reverse >1px runs. Only animals and monkey-paradise have
+reverse runs. Nonzero counts bound discrimination but do not prove it: a
+source that is uniform along the run passes under any anchor. The Node test
+therefore re-runs the corpus check under three repainted wrong blits and
+asserts which archives fail:
+
+| archive | flip 11/14 (pre-fix runtime) | inverted anchor | scaled |
+|---|---|---|---|
+| 1990, crayon-os, dolphin-som, evolution, floppies | passes | FAILS | FAILS |
+| animals, monkey-paradise | FAILS | FAILS | FAILS |
+| 1138, 1984, apple-lisa, beos-r503, windows-31, windows-95 | passes | passes | passes |
+
+The six archives in the last row cannot tell the anchor or tiling from
+scaling at the sampled sizes. 1138, 1984, beos-r503 and windows-31 have only
+1px and whole-copy pixels. apple-lisa and windows-95 have uniform >1px
+sources. Opaque CopyBits under
 `grafProcs` and transparent pixels are not modelled. The cross-axis origin
 comes from runtime placement. Selection follows the twelve-mask `wnd#` ladder (`0x356c..0x367e`)
 for all 13 canonical requests. The Node test adds 1,794 one-type-removed

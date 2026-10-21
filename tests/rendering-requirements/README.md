@@ -558,9 +558,13 @@ to rebuild the exact 1.20.0 ledger that the older transitions hash.
 the far end; all other codes tile from the start. The decode was independently
 reviewed (campaign lanes/H/REVIEW.json, ACCEPT-WITH-CHANGES). The evidence row
 now cites that decode. `window.recipe-rules` asserts both offset formulas over
-every non-18 cell whose class is not unknown, and has mutation cases. The 13
-`window.tile-blit` obligations are re-proposed but stay **unknown** until a
-separate review of the promotion. The runtime fix changes five 11/14 cells
+every non-18 cell, unknown-class cells included, and records per-archive
+mutation discrimination (`tests/rendering-options/README.md`). The PR #373
+review (lanes/H/PR-REVIEW.json, head 70e3ff92) **rejected** promoting the 13
+`window.tile-blit` obligations, so they stay **unknown**. A narrower
+promotion for the seven discriminating archives (1990, animals, crayon-os,
+dolphin-som, evolution, floppies, monkey-paradise) is proposed for a separate
+review and not applied. The runtime fix changes five 11/14 cells
 (animals ×4, monkey-paradise ×1, both states). Opaque CopyBits under
 `grafProcs`, transparent pixels and the CopyMask order over earlier sides
 remain unmodelled.

@@ -163,11 +163,15 @@ Independent automated frontend and PM review inspected all 62 unique before/afte
 Native `wnd#` rectangle parts 1/2/3 supply close/zoom/shade identity independently of position; separate source/built interaction tests check authored right-grouped and vertical layouts, pressed pixels, shade/restore, zoom/restore, keyboard close and restored resize controls. Corner-sprite placement and opt-in shell shadows remain modern compatibility policy. These are regression baselines, not original-engine pixel, provider, font or whole-window fidelity certification; no recorded-reference or ledger status changes.
 
 
-## CANDIDATE, NOT REVIEWED: 11/14 tile-direction delta (2026-10-21)
+## Reviewed 11/14 tile-direction delta — 2026-10-21
 
-**Status: unreviewed candidate.** These four sheets are proposed for independent
-frontend/PM review. They are not approved by this section, and the PR must not
-merge until a reviewer replaces this heading.
+**Approved as reviewed regression goldens** by the independent review of PR #373
+(campaign-20261021 lanes/H/PR-REVIEW.json, reviewed head
+`70e3ff92e1ecf35255fa4b15a8eca119729402f2`). The reviewer reproduced the four
+sheets in the pinned container (36/36 verify) and confirmed that the changes
+are confined to the five decoded 11/14 cells. The approval covers regression
+stability only. No native capture exists for these cells, and no
+original-engine fidelity or ledger promotion is implied.
 
 Recorded locally with `npm run test:rendering:container -- record` in the
 pinned Linux/amd64 image at runtime commit `614726da2b7a4a81ce318ad893b84234afbbe609`. The run used a git worktree,
@@ -175,7 +179,8 @@ so the container could not read git and the manifest's `gitCommit` is
 `null`. The bundle SHA-256 `89c2117134402f13b80d6f31a4bb8dfb8ca2de531c7e113eba3addd9b4eb66be`
 identifies the runtime. A CI "Record rendering golden candidates" run can
 reproduce the bytes with full provenance. Two separate records gave
-byte-identical PNGs. The environment, fonts, archives and case inventory in
+byte-identical PNGs. The reviewer confirmed that `gitCommit: null` is acceptable, because
+provenance is not gated (CI.md). The environment, fonts, archives and case inventory in
 the manifest are unchanged. Manifest SHA-256: `e17918e68246da5a0421f8a81d75b6c29d6816397984522470ab9f4d93cbfcc7`.
 
 Exactly four sheets change, totalling 2,924 pixels:

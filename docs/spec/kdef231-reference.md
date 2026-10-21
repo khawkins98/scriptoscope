@@ -194,7 +194,7 @@ recipe walk + draw). Its 9-entry dispatch fans out to the routines below
 | `0x5ffc` | rect-list **hit iterator** | map part 0/1/3 → entry type 1/2/3; walk `a4@(1938)` (10-byte entries, type at `+2`, rect at `+4`) from the end; return 1 on the first `0x5ddc` hit. Hit-test only, not a draw pass (corrected 2026-10-21) | `fp@(8)`=point, `fp@(12)`=part | `0x5ddc` (`0x6040`) | hit |
 | `0x632e` | rect-list **widget draw iterator** | map window part 4/5/6/9 → entry type 1/2/2/3; walk `a4@(1938)` from the end; call `0x6062` per matching entry. Called from `0x42a6` (dispatch, caller part) and `0x5a3c` (end of `0x572e`, part 5 only, gated by `a4@(502)` and `a4@(508)`) | `fp@(8)`=part, `fp@(10)`=state byte | `0x6062` (`0x637a`) | — |
 | `0x6062` | rect-list **widget draw** | dst = the entry rect remapped by `0x5cb6` on all three paths (`0x6138`, `0x62b0`, `0x6308`), then ONE `0x10320` blit. Source: parts 5/6 with `a4@(502)` → GetCIcon(id`+1`) (`0x60aa..0x6146`); state byte ≠ 0 → GetCIcon(id) in the `-14330` family (`0x6158..0x62e0`); **state 0 → no GetCIcon: the chrome template `a4@(1934)` itself, src = raw entry rect** (`0x62f0..0x6318`) | `fp@(8)`=part, `fp@(10)`=state, `fp@(12)`=entry rect (template coords) | `0x5cb6`, `0x10320` (`0x6146`, `0x62e0`, `0x6318`) | — |
-| `0x5cb6` | rect-list rect **template → placed remap** | for each side and segment, `0x5356` builds the template (src) and placed (dst) cell. The first template cell containing the rect's topLeft (`PtInRect` `0x5d52`) offsets topLeft by placed − template (`0x5d60..0x5d74`); likewise botRight−1 (`0x5d82..0x5da0`). If either corner matches no cell, the rect is emptied (`0x5dc6..0x5dd0`). So widget placement depends on the `0x5178` widths | `fp@(8)`=rect (in/out) | `0x5356`, `$A8AD` | rect |
+| `0x5cb6` | rect-list rect **template → placed remap** | for each side, `0x5356` builds the template (src) and placed (dst) cell of each segment. The segment loop starts at index 1 (`moveq #1,d3` at `0x5d26`), so a side's leading `[0,border[0])` cell is never a match target. The first template cell containing the rect's topLeft (`PtInRect` `0x5d52`) offsets topLeft by placed − template (`0x5d60..0x5d74`); likewise botRight−1 (`0x5d82..0x5da0`). If either corner matches no cell, the rect is emptied (`0x5dc6..0x5dd0`). So widget placement depends on the `0x5178` widths | `fp@(8)`=rect (in/out) | `0x5356`, `$A8AD` | rect |
 | `0x5530` | **title draw** (+ text-colour sample) | `GetWTitle` (`$A919`) → title string; `0x6582(idx)` → marker rects; sample TWO ADJACENT chrome-pixmap (`a4@1934`) pixels via `0xfc5c` into `fp@(-28)`=text colour + `fp@(-22)`=shadow colour; at `0x56b2` if the two are EQUAL → one `RGBForeColor`+`DrawString`, else text in colour1 + a ~1px-offset shadow in colour2 (emboss) | `a4@(454)`=title, `a4@(1934)`=chrome pixmap, `a4@(509)` state flag | `$A919`, `0x6582`, `0xfc5c`, `$AA14` RGBForeColor, `$A884` DrawString | — |
 | `0x6582` | rect-list lookup by part | scan rect-list (`a4@1938`, 10-byte entries) for the one whose part field == index arg; else the first | `sp@(4)`=part index | — | rect ptr `a0` |
 | `0xfc5c` | **GetPixel** (index→RGB) | sample the chrome pixmap at `(x,y)`: compute bit/byte offset (handles 1/2/4/8-bit depth), extract the colour index, resolve via `0x10702`, write `*outColor` | pixmap, `x`, `y`, `&RGBColor` | `0x10702` (index→clut RGB) | RGBColor |
@@ -754,12 +754,23 @@ So five cells (× 2 states) are where the byte is visible.
 now takes the anchor from the part code: 11/14 tile from the far end, and
 every other tile cell from the start. There is no per-theme branch.
 `tests/rendering-options/window-chrome-rules.mjs` asserts the formula above
-for every non-18, non-unknown cell. It counts 1 px, forward >1 px and reverse
->1 px pixels separately, and checks opaque source pixels only. Opaque
-CopyBits and the CopyMask-over-earlier-sides order are not modelled. A
-mutation test fails the checker when 11/14 are tiled forward or when cells
-are scaled. This is a source-rule check against the runtime, not native
-capture evidence.
+for every non-18 cell, unknown-class cells included, over the runtime-placed
+width. It counts 1 px, whole-copy, forward >1 px and reverse >1 px pixels
+separately, and checks opaque source pixels only. Opaque CopyBits and the
+CopyMask-over-earlier-sides order are not modelled. Nonzero forward/reverse
+counts do not show that an archive exercises the anchor, because a uniform
+source passes under any anchor. A per-archive mutation table makes it
+explicit:
+
+- The flip 11/14 mutation (the pre-fix runtime) fails only animals and
+  monkey-paradise.
+- Inverted-anchor and scaled blits fail 1990, animals, crayon-os,
+  dolphin-som, evolution, floppies and monkey-paradise.
+- 1138, 1984, apple-lisa, beos-r503, windows-31 and windows-95 pass all three
+  mutations, so they do not discriminate.
+
+This is a source-rule check against the runtime, not native capture
+evidence.
 
 **Code-10 corollary (Q2, partial, corrected after review).** The widget draw
 is `0x632e` → `0x6062`, not `0x5ffc`. `0x5ffc` → `0x5ddc` is a point hit-test

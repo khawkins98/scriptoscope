@@ -169,17 +169,21 @@ export function checkComposition({ cicn, windowType, composed }) {
     // mapped 1:1. Limits: the cross-axis origin comes from the runtime
     // placement; only opaque source pixels are checked (CopyMask vs opaque
     // CopyBits when grafProcs is set, and the order over earlier sides, are not
-    // decoded); unknown-class cells (5/6/10/flag-gated), whose widths are not
-    // source-determined, are skipped.
+    // decoded). Unknown-class cells (5/6/10/flag-gated) are included: their
+    // widths are not source-determined, so the tile rule is checked over the
+    // runtime's placed width dw, the same as for every other cell.
     const [lo, hi] = horizontal ? [0, W] : [frame.top, H - frame.bottom];
     segs.forEach((p, i) => {
-      if (p.code === 18 || cellClass(p.code, i === 0) === 'unknown') return;
+      if (p.code === 18) return;
       const [s0, s1, d0, dw] = span(p), sw = s1 - s0;
       if (dw <= 0 || sw <= 0) return;
       const reverse = TILE_REVERSE.has(p.code);
       // Buckets keep a vacuous pass visible. 1px runs and single whole copies
-      // (dw == sw, e.g. fixed cells) are direction-independent. Only
-      // pixelsForward/pixelsReverse exercise the anchor.
+      // (dw == sw, e.g. fixed cells) are direction-independent. Nonzero
+      // pixelsForward/pixelsReverse counts only bound discrimination; they do
+      // not prove it. A source that is uniform along the run passes under any
+      // anchor or scaling. Per-archive discrimination is recorded by the
+      // mutation table in window-chrome-rules.test.mjs.
       const bucket = sw === 1 ? 'pixels1px' : dw === sw ? 'pixelsWhole' : reverse ? 'pixelsReverse' : 'pixelsForward';
       for (let k = 0; k < dw; k++) {
         const along = d0 + k;
