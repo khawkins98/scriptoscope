@@ -428,6 +428,11 @@ export function drawScrollbar(port: Pixmap, chain: ResourceChain, input: Scrollb
   return { geometry: g, drawn: true };
 }
 
+/** cicn ids the composite arrows may draw with the icon blit (AC5), both orientations (SCROLLBAR_TRACK_IDS). */
+export function scrollbarIconBlitCicnIds(): number[] {
+  return [...new Set([...expandIdGrid(SCROLLBAR_TRACK_IDS.horizontal), ...expandIdGrid(SCROLLBAR_TRACK_IDS.vertical)])];
+}
+
 /**
  * Every (type, id) the scroll-bar tables can request for one orientation, so
  * an asynchronous adapter can preload a synchronous ResourceChain. Derived from
