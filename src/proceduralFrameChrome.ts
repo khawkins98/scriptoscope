@@ -1,0 +1,124 @@
+// Facade: the built-in window frame (v2 engine family `proceduralFrame`,
+// docs/spec/engine/procedural-frame.md) as the ComposedChrome renderWindow and
+// WindowManager consume. Serves the schemes with no `wnd#` recipe (the loader
+// marks their window types `model: 'corner-sprite'`).
+//
+// Runtime policy here (not spec rows): the public window-type slug selects a
+// declared window record (PF_WINDOW_SLUGS); the title is set in the runtime's
+// Charcoal faces in place of the system font; the grow box is returned as an
+// overlay because the content region excludes it (§3.3) while the runtime's
+// content is DOM stacked over the chrome canvas.
+import type { LoadedTheme, WindowState } from './types.js';
+import type { ComposedChrome, PlacementSlice } from './composeChrome.js';
+import { PixelBuffer } from './pixelBuffer.js';
+import { rasterizeTitle } from './titleFont.js';
+import { themeResourceChain } from './engine/resources/theme.js';
+import {
+  drawProceduralFrame, proceduralFrameGeometry, proceduralFrameResourceIds, proceduralFrameSlug,
+  type ProceduralFrameInput, type PfTextPass, type PfWidget,
+} from './engine/families/proceduralFrame.js';
+import { PF_DRAW_PARTS, PF_WINDOW_SLUGS } from './engine/tables/proceduralFrame.js';
+import { createTrace, type EngineTrace } from './engine/trace.js';
+import { rect } from './engine/qd/rect.js';
+import type { Pixmap } from './engine/qd/types.js';
+
+/** Runtime title size: the system font is 12 pt (procedural-frame §3.2); Charcoal 12 is pinned to its own grid by rasterizeTitle. */
+const TITLE_PX = 12;
+
+export interface ProceduralFrameChromeOptions {
+  /** Visible title text ('' for none). */
+  title?: string;
+  /** Draw one widget in its pressed state (message 0 part 4 / 5 / 9). */
+  pressedWidget?: PfWidget;
+  /** Record an engine trace on the result (diagnostics). */
+  trace?: boolean;
+}
+
+const hex = (c: { r: number; g: number; b: number }): string => `#${[c.r, c.g, c.b].map(v => v.toString(16).padStart(2, '0')).join('')}`;
+
+/** The declared window record for a resolved window-type key (canonical slug), document window when unknown. */
+export function proceduralFrameRecord(key: string): (typeof PF_WINDOW_SLUGS)[number] {
+  return proceduralFrameSlug(key) ?? proceduralFrameSlug('document-window')!;
+}
+
+/**
+ * Compose a built-in frame window at native resolution. `key` is the resolved
+ * window-type key; `contentW`/`contentH` the content rect C.
+ */
+export async function composeProceduralFrameChrome(owner: LoadedTheme, key: string, state: WindowState, contentW: number, contentH: number,
+  opts: ProceduralFrameChromeOptions = {}): Promise<ComposedChrome & { trace?: EngineTrace }> {
+  const row = proceduralFrameRecord(key);
+  const hilited = !/inactive/.test(state);
+  const collapsed = row.collapsed || /^collapsed/.test(state);
+  const chain = await themeResourceChain(owner, proceduralFrameResourceIds());
+  const title = opts.title ?? '';
+  if (title && typeof document !== 'undefined' && document.fonts?.load) {
+    try { await document.fonts.load(`16px "Charcoal 12"`); } catch { /* ignore */ }
+    try { await document.fonts.load(`${TITLE_PX}px Charcoal`); } catch { /* ignore */ }
+  }
+  const measured = title ? rasterizeTitle(title, TITLE_PX, '#000000') : null;
+  const base: Omit<ProceduralFrameInput, 'content'> = {
+    variation: row.variation, family: row.family, hilited, goAway: row.goAway, shadeOn: row.shadeOn, collapsed,
+    colorTable: row.colorTable, titleWidth: measured?.advance ?? 0,
+    ...(row.utilityWidgets ? { utilityWidgets: row.utilityWidgets } : {}), ...(row.utilityTitled ? { utilityTitled: true } : {}),
+  };
+  const h = collapsed ? 0 : contentH;
+  // Geometry with C at the origin gives the structure's extent; then C moves so the structure starts at (0, 0).
+  const probe = proceduralFrameGeometry(chain, { ...base, content: rect(0, 0, h, contentW) });
+  const dx = -probe.bounds.left, dy = -probe.bounds.top;
+  const input: ProceduralFrameInput = { ...base, content: rect(dy, dx, dy + h, dx + contentW) };
+  const W = probe.bounds.right - probe.bounds.left, Hh = probe.bounds.bottom - probe.bounds.top;
+  const buffer = PixelBuffer.alloc(W, Hh);
+  const trace = opts.trace ? createTrace('proceduralFrame', { key, state, contentW, contentH, title }) : undefined;
+  const colored = new Map<string, ReturnType<typeof rasterizeTitle>>();
+  const renderTitle = (port: Pixmap, pass: PfTextPass): void => {
+    const k = hex(pass.rgb);
+    if (!colored.has(k)) colored.set(k, rasterizeTitle(title, TITLE_PX, k));
+    const g = colored.get(k);
+    if (!g) return;
+    const ox = pass.x, oy = pass.y - g.ascent;
+    const pb = port as PixelBuffer;
+    for (let y = 0; y < g.buffer.height; y++) for (let x = 0; x < g.buffer.width; x++) {
+      const px = ox + x, py = oy + y;
+      if (px < pass.clip.left || px >= pass.clip.right || py < pass.clip.top || py >= pass.clip.bottom) continue;
+      const [r, gg, b, a] = g.buffer.getPixel(x, y);
+      if (a === 0) continue;
+      const [dr, dg, db, da] = pb.getPixel(px, py);
+      const sa = a / 255;
+      pb.setPixel(px, py, Math.round(r * sa + dr * (1 - sa)), Math.round(gg * sa + dg * (1 - sa)), Math.round(b * sa + db * (1 - sa)), Math.max(a, da));
+    }
+  };
+  const { geometry: g } = drawProceduralFrame(buffer, chain, input, { renderTitle }, trace);
+  if (opts.pressedWidget && g.shown[opts.pressedWidget]) {
+    const part = PF_DRAW_PARTS.find(r => r.action === opts.pressedWidget)!.parts[0]!;
+    drawProceduralFrame(buffer, chain, input, { part }, trace);
+  }
+  const C = g.C;
+  const placement: PlacementSlice[] = [];
+  const order: PfWidget[] = (['close', 'zoom', 'collapse'] as PfWidget[]).filter(w => g.shown[w])
+    .sort((a, b) => g.widgets[a].left - g.widgets[b].left);
+  const xywh = (r: { top: number; left: number; bottom: number; right: number }) => ({ x: r.left, y: r.top, w: r.right - r.left, h: r.bottom - r.top });
+  if (order.length) placement.push({ edge: 'widget', code: 4, role: order.join('/'), mode: 'stamp', src: { x: 0, y: 0, w: 16, h: 16 }, rects: order.map(w => xywh(g.widgets[w])) });
+  let growBox: ComposedChrome['growBox'];
+  if (g.growBelongs && !collapsed) {
+    const r = xywh(g.grow);
+    const gb = PixelBuffer.alloc(r.w, r.h);
+    for (let y = 0; y < r.h; y++) for (let x = 0; x < r.w; x++) {
+      const [pr, pg, pbb, pa] = buffer.getPixel(r.x + x, r.y + y);
+      gb.setPixel(x, y, pr, pg, pbb, pa);
+    }
+    growBox = { buffer: gb, x: r.x, y: r.y, w: r.w, h: r.h };
+    placement.push({ edge: 'widget', code: 10, role: 'grow box', mode: 'stamp', src: { x: 0, y: 0, w: r.w, h: r.h }, rects: [r] });
+  }
+  return {
+    buffer,
+    frame: { left: C.left, top: C.top, right: W - C.right, bottom: Hh - C.bottom },
+    fullWidth: W,
+    fullHeight: Hh,
+    titleRegion: g.T ? { x: g.T.left, w: g.T.right - g.T.left } : { x: 0, w: W },
+    titleFillSrcX: -1,
+    placement,
+    growBox,
+    ...(trace ? { trace } : {}),
+  };
+}

@@ -26,12 +26,12 @@ const MIN_W = 80, MIN_H = 40;
 const pendingPromotions = new WeakMap<HTMLElement, object>();
 
 
-// findPositionedAncestor moved to ../positioning.ts so the runtime layer
+// findPositionedAncestor lives in ../positioning.ts so the runtime layer
 // (WindowManager's drag handlers in interactive.ts) can use the same walker
-// without crossing into the declarative layer. Re-exported here for back-
-// compat with any external imports. FE-reviewer follow-up 2026-05-31.
+// without crossing into the declarative layer. The old re-export from this
+// module was never part of the public entry (src/declarative/index.ts) and had
+// no importers, so it was removed.
 import { findPositionedAncestor } from '../positioning.js';
-export { findPositionedAncestor };
 
 export class ScriptoscopeWindow {
   /** The positioned WindowManager host element (lives in the document). */

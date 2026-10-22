@@ -57,7 +57,7 @@ export function readLayout(persistKey: string): PersistedLayout | null {
 }
 
 /** Write a layout to storage. Silently no-ops on quota / SecurityError. */
-export function writeLayout(persistKey: string, layout: PersistedLayout): void {
+function writeLayout(persistKey: string, layout: PersistedLayout): void {
   try { localStorage.setItem(STORAGE_PREFIX + persistKey, JSON.stringify(layout)); }
   catch (err) {
     // Quota or SecurityError — log once and degrade. Don't crash the consumer.

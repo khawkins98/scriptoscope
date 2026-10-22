@@ -5,7 +5,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 const {
   ResourceChain, mapProvider, createTrace, rect,
-  drawScrollbar, scrollbarGeometry, scrollbarPartAt, icsImagePixmap, scrollbarResourceIds, engineIconBlitCicnIds,
+  drawScrollbar, scrollbarGeometry, scrollbarPartAt, icsImagePixmap, scrollbarResourceIds, scrollbarIconBlitCicnIds, engineIconBlitCicnIds,
 } = await import('../index.ts');
 
 const pm = (w, h, rgba = [10, 20, 30, 255]) => {
@@ -210,7 +210,8 @@ test('§5.4 narrow source: 1138 min = max pressed, non-hit high cell [-10, 5) of
 test('resource ids are table-derived: the AC5 icon-blit set equals both orientations\' track ladders', () => {
   const track = (h) => scrollbarResourceIds(h).filter(r => r.type === 'ppat').map(r => r.id); // only the track ladder requests ppats
   const both = new Set([...track(true), ...track(false)]);
-  const blit = new Set(engineIconBlitCicnIds());
+  const blit = new Set(scrollbarIconBlitCicnIds());
   assert.deepEqual([...blit].sort((a, b) => a - b), [...both].sort((a, b) => a - b));
+  for (const id of blit) assert.ok(engineIconBlitCicnIds().includes(id), 'the engine-wide loader set includes the scroll-bar set');
   assert.ok(blit.has(-8286) && blit.has(-8286 + 18) && blit.has(-8285 - 1) && blit.has(-8288 + 22 - 4));
 });

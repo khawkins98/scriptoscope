@@ -1479,7 +1479,7 @@ export async function composeBevelButton(theme: LoadedTheme, opts: BevelButtonOp
 }
 
 /** Internal adapter seam; bevel faces have no reserved ring offset. */
-export async function composeBevelButtonWithLayout(theme: LoadedTheme, opts: BevelButtonOptions = {}): Promise<ButtonComposition | null> {
+async function composeBevelButtonWithLayout(theme: LoadedTheme, opts: BevelButtonOptions = {}): Promise<ButtonComposition | null> {
   let result: ButtonComposition | null = null;
   const state = opts.pressed ? 'pressed' : opts.disabled ? 'inactive' : 'active';
   await withControlDiagnostics(opts.diagnostics, 'bevel-button', {

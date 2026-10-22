@@ -99,10 +99,6 @@ export {
   type SliceMode,
   type PixRectXY,
 } from './composeChrome.js';
-export {
-  composeCornerSpriteChrome,
-  type CornerSpriteOptions,
-} from './composeCornerSprite.js';
 
 // ── Declarative front door (data-scriptoscope-*) ──────────────────────────────────
 // Additive re-exports of the declarative layer so consumers can `import { mountDeclarative } from

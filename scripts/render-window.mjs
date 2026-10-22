@@ -13,7 +13,7 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { composeWindowChrome, composeCornerSpriteChrome } from '../dist/scriptoscope.js';
+import { composeWindowChrome } from '../dist/scriptoscope.js';
 import { encodePng, loadCicn, resolveWindow } from './diag-lib.mjs';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -47,34 +47,16 @@ const cicn = loadCicn(themeDir, wt.chrome.active);
 const titleWidthPx = opts.plate > 0
   ? opts.plate
   : (opts.title ? opts.title.length * 6 + 12 : 0);
-// Corner-sprite windows (look-only Platinum schemes) render procedurally from
-// their own sprite cicns, not the kDEF cicn 9-walk — route them to the
-// corner-sprite compositor, loading the pinstripe + grow-box sprites.
-let composed;
+// Corner-sprite window types (schemes with no wnd# recipe) draw through the v2
+// engine family proceduralFrame, which loads its art by resource id from a
+// decoded theme; this file-based tool walks only wnd# recipes. Use
+// `node tests/engine-diff/run.mjs --dump proceduralFrame/<slug>/<cell key>`
+// for a trace, or the browser renderer for pixels.
 if (wt.model === 'corner-sprite') {
-  const pinstripe = wt.sprites?.pinstripe ? loadCicn(themeDir, wt.sprites.pinstripe) : null;
-  const growBox = wt.sprites?.growBox ? loadCicn(themeDir, wt.sprites.growBox) : null;
-  const hc = manifest.headerColors?.active ?? {};
-  // The scheme's OWN title-bar widget glyphs (ics4 NORMAL state): close -14336,
-  // zoom -14335, collapse -14334. Resolved from icons/index.json (keyed by the
-  // negative resource id) → icons/ics4-<file>; absent → procedural square.
-  const iconsIndexPath = resolve(themeDir, 'icons', 'index.json');
-  const glyphFile = (id) => {
-    if (!existsSync(iconsIndexPath)) return null;
-    const idx = JSON.parse(readFileSync(iconsIndexPath, 'utf8'));
-    const e = idx.find((x) => x.type === 'ics4' && x.id === id);
-    return e ? `icons/${e.file}` : null;
-  };
-  const loadGlyph = (id) => { const f = glyphFile(id); return f ? loadCicn(themeDir, f) : null; };
-  const widgetGlyphs = {
-    close: loadGlyph(-14336), zoom: loadGlyph(-14335), collapse: loadGlyph(-14334),
-  };
-  composed = composeCornerSpriteChrome(wt, opts.w, opts.h, {
-    pinstripe, growBox, frameColor: hc.frame, fillColor: hc.fill, titleWidthPx, widgets: wt.widgets, widgetGlyphs,
-  });
-} else {
-  composed = composeWindowChrome(cicn, wt, opts.w, opts.h, { cinf: wt.cinf ?? null, titleWidthPx });
+  console.error(`"${wtKey}" is a built-in-frame window (no wnd# recipe); render it in the browser or dump an engine-diff proceduralFrame cell.`);
+  process.exit(1);
 }
+const composed = composeWindowChrome(cicn, wt, opts.w, opts.h, { cinf: wt.cinf ?? null, titleWidthPx });
 
 const diagDir = resolve(themeDir, 'diag');
 if (!existsSync(diagDir)) mkdirSync(diagDir, { recursive: true });

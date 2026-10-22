@@ -95,7 +95,7 @@ export async function loadKaleidoscopeScheme(input, options = {}) {
     if (evidence) await evidence.settle();
     throw error;
   }
-  const { theme, assets, iconIndex, iconMaskResources, iconMaskPlanes } = converted;
+  const { theme, assets, iconIndex, iconMaskResources, iconMaskPlanes, colorTables } = converted;
   // Complete or reject all hashing before any encoder can allocate asset URLs.
   const byteProvenance = evidence ? await evidence.finish() : undefined;
   // convertScheme already validated the theme (convertChrome → validateTheme).
@@ -111,7 +111,7 @@ export async function loadKaleidoscopeScheme(input, options = {}) {
     finalizeCinfTheme(theme);
     finalizeSliderLayoutTheme(theme);
     // Raw mode: hand back the contract + the un-encoded RGBA assets.
-    return { manifest: theme, assets, iconIndex, iconMaskResources, ...(byteProvenance ? { byteProvenance } : {}) };
+    return { manifest: theme, assets, iconIndex, iconMaskResources, iconMaskPlanes, colorTables, ...(byteProvenance ? { byteProvenance } : {}) };
   }
 
   const urlFor = options.assetUrlFactory ?? defaultAssetUrlFactory;
@@ -155,6 +155,7 @@ export async function loadKaleidoscopeScheme(input, options = {}) {
   const inspector = buildInspector(theme, assets, iconIndex, urlByPath, options.meta?.name);
   inspector.iconMaskResources = iconMaskResources;
   inspector.iconMaskPlanes = iconMaskPlanes;
+  inspector.colorTables = colorTables;
 
   // dispose() revokes every blob: URL this decode minted (~500 per scheme). Without
   // it, an app that switches themes 50× across a session leaks 25k blob URLs — each

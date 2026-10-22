@@ -1,6 +1,6 @@
 # Engine unit: built-in window frame (schemes with no `wnd#`)
 
-Lane L7, 2026-10-21. Spec writer: L7. Verified in #383 (revision 2).
+Lane L7, 2026-10-21. Spec writer: L7. Revision 2 verified in #383 round 2 (MERGE-READY at 98739fd6, v2-lanes/L7/REVIEW.json).
 Revision 3, 2026-10-22: answers to the family-2 spec questions. It adds the utility family (§9) and rule ids TG, WP, CT, SH, TX, HT, GB, GL, M6L and U*. Revision 3 verified in #415 (Tier 1, 2026-10-22; v2-lanes/family2/REVIEW-415.json): all 94 utility rows and the #412-affecting rows re-traced.
 Evidence appendix: [`procedural-frame.evidence.md`](./procedural-frame.evidence.md). Implementers must not read it.
 
