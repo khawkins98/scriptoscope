@@ -256,6 +256,13 @@ feat(api)!: rename ScriptoscopeWindow constructor option `theme` to `themeId`
   replaces it after the Tier 0 check. Paste its summary block, with the commit and
   each exit code, into the PR body. A PR without a passing summary goes back
   unreviewed.
+- **Declare engine changes.** The engine diff gate (`npm run engine-diff`,
+  `tests/engine-diff/`) traces the window-chrome and scroll-bar matrix over every
+  archive in Node and compares each cell with the committed baseline. A PR that
+  changes any cell lists it in `tests/engine-diff/expected/<family>.json` as
+  `{ key, rule, sha256, why }` (`rule` is a decision-table row id of the family spec),
+  re-seeds with `npm run engine-diff:write`, and declares the family with a PR body
+  line `engine-diff: <family>`. Every other PR changes no cell.
 - **Review by tier.** Tier 0, PM mechanical check with no agent review: hash-only
   bumps, inserting reviewer labels, doc wording and typos, citation-only corrections
   with no change in meaning, a regenerated `ledger.json`. Tier 1, one review round:
