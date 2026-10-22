@@ -13,8 +13,8 @@
 //   ppat  patterns[*].sourcePpatId;
 //   ics#  inspector.iconMaskResources (a census entry holding the full 16 × 16
 //         image + mask, tables/scrollbar.ts SCROLLBAR_ICON_DRAW);
-//   ics8  inspector.iconIndex entries of type `ics8` (decoded with the ics#
-//         mask applied by the loader).
+//   ics8  the glyph map's raster for the id, when inspector.iconIndex lists an
+//         `ics8` at that id (decoded with the ics# mask applied by the loader).
 import type { LoadedTheme } from '../../types.js';
 import type { Pixmap } from '../qd/types.js';
 import type { IconSource } from '../qd/region.js';
@@ -35,8 +35,12 @@ async function themeProvider(theme: LoadedTheme, tier: 'archive' | 'base', name:
     if (type === 'cicn') {
       const el = elements.find(e => e.sourceCicnId === id && e.asset);
       if (!el) return null;
-      const [pixmap, unmasked] = await Promise.all([load(el.asset),
+      const [pixmap, companion] = await Promise.all([load(el.asset),
         el.iconBlit?.unmaskedAsset ? load(el.iconBlit.unmaskedAsset) : Promise.resolve(null)]);
+      // The opaque companion must be the same occurrence as the element's asset:
+      // equal size and equal colour wherever the mask is set. Otherwise (e.g. a
+      // consumer replaced `asset`) it is dropped and the I3 copy is unavailable.
+      const unmasked = companion && sameOccurrence(pixmap, companion) ? companion : null;
       const value: IconSource = { pixmap, pixelSize: el.iconBlit?.pixelSize ?? null, unmasked };
       return [key, value];
     }
@@ -48,8 +52,10 @@ async function themeProvider(theme: LoadedTheme, tier: 'archive' | 'base', name:
       return masks.some(m => m.id === id && m.byteLength >= SCROLLBAR_ICON_DRAW.maskRecordBytes) ? [key, { id }] : null;
     }
     if (type === 'ics8') {
-      const icon = icons.find(i => i.id === id && i.type === 'ics8' && i.url);
-      return icon ? [key, await loadCicnBuffer(icon.url!)] : null;
+      // The glyph map holds each id's deepest colour icon; it is the ics8 only
+      // when this fork ships an ics8 at the id (never fall back to ics4, AI4).
+      const url = icons.some(i => i.id === id && i.type === 'ics8') ? theme.glyphs?.[String(id)] : undefined;
+      return url ? [key, await load(url)] : null;
     }
     return null;
   }));
@@ -67,4 +73,15 @@ export async function themeResourceChain(theme: LoadedTheme, wanted: readonly { 
     providers.push(await themeProvider(t, depth === 0 ? 'archive' : 'base', depth === 0 ? name : `${name}#base${depth}`, wanted));
   }
   return new ResourceChain(providers);
+}
+
+/** Same size, and identical RGB at every mask-set pixel of `masked`. */
+function sameOccurrence(masked: Pixmap, unmasked: Pixmap): boolean {
+  if (masked.width !== unmasked.width || masked.height !== unmasked.height) return false;
+  const a = masked.data, b = unmasked.data;
+  for (let i = 0; i < a.length; i += 4) {
+    if (a[i + 3] === 0) continue;
+    if (a[i] !== b[i] || a[i + 1] !== b[i + 1] || a[i + 2] !== b[i + 2]) return false;
+  }
+  return true;
 }
