@@ -233,8 +233,12 @@ export async function renderWindow(
   if (builtInFrame) {
     const key = Object.entries(owner.manifest.windowTypes ?? {}).find(([, v]) => v === wt)?.[0] ?? slug;
     const { composeProceduralFrameChrome } = await import('./proceduralFrameChrome.js');
+    // The built-in utility frame derives its bar height from the title (procedural-frame §9.1
+    // UI10), and collapsing does not change the window record, so the collapsed titled utility
+    // keeps its title. Scoped to the built-in frame; wnd# schemes keep the showTitle gate.
+    const builtInTitled = !!title && /^(collapsed-)?titled-utility/.test(canonicalWindowTypeSlug(key));
     composed = await composeProceduralFrameChrome(owner, canonicalWindowTypeSlug(key), state, contentW, contentH, {
-      title: showTitle ? title : '',
+      title: showTitle || builtInTitled ? title : '',
       ...(opts.pressedWidget ? { pressedWidget: opts.pressedWidget } : {}),
     });
   } else {

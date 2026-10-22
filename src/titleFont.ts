@@ -11,6 +11,9 @@ export interface TitleRaster {
   ascent: number;
   /** Pen advance in px (the StringWidth the frame measures). */
   advance: number;
+  /** The font's ascent and descent (not the ink box): the metrics a frame's baseline rule uses. */
+  fontAscent: number;
+  fontDescent: number;
 }
 
 /**
@@ -25,7 +28,7 @@ export function rasterizeTitleFont(text: string, px: number, hex: string): Pixel
 }
 
 /** As {@link rasterizeTitleFont}, also returning the baseline row and advance. */
-export function rasterizeTitle(text: string, px: number, hex: string): TitleRaster | null {
+export function rasterizeTitle(text: string, px: number, hex: string, opts: { exactPx?: boolean } = {}): TitleRaster | null {
   if (typeof document === 'undefined' || !text) return null;
   // Charcoal 12 (Jeremy Sachs, CC BY-SA — a bitmap clone of Mac OS 8/9 Charcoal) is
   // crisp ONLY at its grid-native 16px: the finest design step (125 of 2000 em
@@ -34,7 +37,8 @@ export function rasterizeTitle(text: string, px: number, hex: string): TitleRast
   // re-introduce anti-aliasing) and an integer baseline — the native buffer then
   // upscales pixelated, keeping it blocky-crisp. Otherwise fall back to the
   // Charcoal stack (Virtue) at the requested px with a hair of tracking for air.
-  const c12 = !!document.fonts?.check?.('16px "Charcoal 12"');
+  // `exactPx` (the utility frame's 10-pt title) skips the 16px Charcoal 12 pin.
+  const c12 = !opts.exactPx && !!document.fonts?.check?.('16px "Charcoal 12"');
   const size = c12 ? 16 : px;
   const font = c12
     ? `16px "Charcoal 12", Charcoal, "Helvetica Neue", Arial, sans-serif`
@@ -67,6 +71,8 @@ export function rasterizeTitle(text: string, px: number, hex: string): TitleRast
   const img = ctx.getImageData(0, 0, w, h);
   const buf = PixelBuffer.alloc(w, h);
   buf.data.set(img.data);
-  return { buffer: buf, ascent: asc, advance: Math.ceil(tm.width) };
+  const fontAscent = Math.ceil(tm.fontBoundingBoxAscent || asc);
+  const fontDescent = Math.ceil(tm.fontBoundingBoxDescent || desc);
+  return { buffer: buf, ascent: asc, advance: Math.ceil(tm.width), fontAscent, fontDescent };
 }
 

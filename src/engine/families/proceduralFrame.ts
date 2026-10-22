@@ -4,26 +4,25 @@
 // message 0 draw (`0x12b88`), 1 hit (`0x1295e`), 6 grow icon (`0x14286`),
 // 7 features (`0x11cfa`), 8 get region (`0x11d7e`); per-call setup
 // `0x11ee2..0x1215a`, geometry `0x124d0..0x14b5e`. Utility family
-// `0x152be..0x17452`: geometry, widgets and grow box only (§9).
+// `0x152be..0x17452` (§9): draw `0x15ca2`, hit `0x15ae4`, grow icon `0x16d60`.
 //
 // Every literal comes from tables/proceduralFrame.ts; every branch names its
 // spec row in the trace. Not implemented, by declaration or pending spec
-// answers (v2-lanes/family2/SPEC-QUESTIONS.md):
-//   - the utility frame, stripes and title text (§9 "Not decoded");
-//   - the kind-5 procedural grow box (polygon erase and grip lines, §10.4);
-//   - message 6's two scroll-bar lines (their extent is not stated);
+// answers (v2-lanes/family2/SPEC-QUESTIONS.md, ROUND2-NOTES.md):
+//   - the kind-5 procedural grow box GB4–GB6 / GL1–GL4 (region rasterisation is
+//     QuickDraw's, §10.4; reached only with thin and grow, which no slug sets);
 //   - Gestalt `WdrB` (§10.2), the proxy icon (§6.5) and Finder windows (declared absent);
 //   - `lowDepth` / black-and-white ports (§2, declared clear);
-//   - messages 2–5 beyond the regions they report.
+//   - messages 2–5 beyond the regions they report; utility messages 7 and 8 (§9.10).
 import type { Pixmap, QdPoint, QdRect, Rgba } from '../qd/types.js';
 import type { EngineTrace } from '../trace.js';
 import type { ResourceChain, ResourceHit } from '../resources/chain.js';
 import type { IconSource } from '../qd/region.js';
-import { emptyRect, rect, rectHeight, rectWidth } from '../qd/rect.js';
+import { emptyRect, insetRect, rect, rectHeight, rectWidth } from '../qd/rect.js';
 import { getPixel, setPixel } from '../qd/pixel.js';
 import { transferBits } from '../qd/transfer.js';
 import { fillPattern } from '../qd/pattern.js';
-import { iconBlit } from '../qd/region.js';
+import { iconBlit, newRegion, regionAddRect, regionSubtractRect, type Region } from '../qd/region.js';
 import { newPen, moveTo, lineTo } from '../qd/pen.js';
 import { drawSlices } from '../qd/slice.js';
 import { pixmapBounds } from '../qd/axis.js';
@@ -31,20 +30,23 @@ import { icsImagePixmap } from './scrollbar.js';
 import { ENGINE_LOADER_NEEDS } from '../tables/loaderNeeds.js';
 import { expandIdGrid } from '../resources/ids.js';
 import {
-  PF_ALERT, PF_ALERT_TABLE, PF_ART, PF_DECLARED, PF_DIALOG, PF_DIALOG_SETUP, PF_DOC_FRAME, PF_DRAW_PARTS, PF_DRAW_PART_NONE,
-  PF_FEATURES, PF_GAP, PF_GROW, PF_GROW_RECT, PF_HIT, PF_HIT_CONSTANTS, PF_KIND, PF_KINDS, PF_PROXY, PF_REGIONS, PF_RING, PF_SHADOW,
-  PF_STRIPES, PF_STRUCTURE, PF_STRUCTURE_COLLAPSED, PF_TITLE_BAR, PF_TITLE_DRAW, PF_TITLE_HEIGHT, PF_TITLE_LIMITS, PF_TITLE_TEXT,
-  PF_UTILITY_ART, PF_UTILITY_GEOMETRY, PF_UTILITY_GROW, PF_UTILITY_TITLE, PF_UTILITY_UNDECODED, PF_UTILITY_VARIATION,
-  PF_UTILITY_WIDGETS, PF_UTILITY_WIDGET_IDS, PF_VARIATION, PF_WIDGET_GLYPH, PF_WIDGET_IDS, PF_WIDGET_PRESENCE, PF_WIDGET_RECTS,
-  PF_WINDOW_SLUGS, PF_MESSAGES,
-  type PfFamily, type PfRegionName, type PfWidgetIdRow, type PfWindowSlugRow,
+  PF_ALERT, PF_ALERT_TABLE, PF_ART, PF_COLOR_LOOKUP, PF_COPY, PF_DECLARED, PF_DIALOG, PF_DIALOG_SETUP, PF_DOC_FRAME, PF_DRAW_PARTS,
+  PF_DRAW_PART_NONE, PF_FEATURES, PF_GAP, PF_GROW, PF_GROW_RECT, PF_HIT, PF_HIT_CONSTANTS, PF_KIND, PF_KINDS, PF_MESSAGE6, PF_PROXY,
+  PF_REGIONS, PF_RING, PF_SHADOW, PF_STRIPES, PF_STRUCTURE, PF_STRUCTURE_COLLAPSED, PF_TITLE_BAR, PF_TITLE_DRAW, PF_TITLE_HEIGHT,
+  PF_TITLE_LIMITS, PF_TITLE_TEXT, PF_TOGGLE, PF_UTILITY_ART, PF_UTILITY_DRAW_PARTS, PF_UTILITY_FRAME_COLLAPSED,
+  PF_UTILITY_FRAME_HORIZONTAL, PF_UTILITY_FRAME_SIDE, PF_UTILITY_FRAME_TAIL, PF_UTILITY_GEOMETRY, PF_UTILITY_GLYPH, PF_UTILITY_GROW,
+  PF_UTILITY_HIT, PF_UTILITY_HIT_CONSTANTS, PF_UTILITY_INPUTS, PF_UTILITY_MESSAGE6, PF_UTILITY_PAINT, PF_UTILITY_PRESENCE,
+  PF_UTILITY_STRIPES, PF_UTILITY_TITLE_TEXT, PF_UTILITY_TOGGLE, PF_UTILITY_WIDGET_IDS, PF_VARIATION, PF_WIDGET_DROPS,
+  PF_WIDGET_GLYPH, PF_WIDGET_IDS, PF_WIDGET_PRESENCE, PF_WIDGET_RECTS, PF_WINDOW_SLUGS, PF_MESSAGES,
+  type PfAt, type PfColorTableEntry, type PfDrawPartRow, type PfFamily, type PfRegionName, type PfUtilityFrameShape,
+  type PfWidgetIdRow, type PfWindowSlugRow,
 } from '../tables/proceduralFrame.js';
 
 export type PfWidget = 'close' | 'zoom' | 'collapse';
 
-/** A colour table resource (`actb`, `clut`) as the adapter supplies it: entries in index order. */
+/** A colour table resource (`actb`, `clut`) as the adapter supplies it: entries in position order. */
 export interface PfColorTable {
-  readonly entries: readonly { readonly value: number; readonly rgb16: readonly [number, number, number]; readonly rgb: readonly [number, number, number] }[];
+  readonly entries: readonly PfColorTableEntry[];
 }
 
 /** An `ics#` resource value: its raw planes (image then mask). */
@@ -62,6 +64,9 @@ export interface PfTextPass {
   background: Rgba | null;
   clip: QdRect;
   pass: 'shadow' | 'main';
+  /** Utility (UT3): the face became bold + condensed, and the title is truncated at its end to this width (TruncString truncEnd). */
+  condensed?: boolean;
+  truncateTo?: number;
 }
 
 export interface ProceduralFrameInput {
@@ -80,15 +85,17 @@ export interface ProceduralFrameInput {
   visible?: boolean;
   /** The window's colour table: the alert colour table (`actb` −14336) or the default. */
   colorTable?: 'actb' | 'default';
-  /** StringWidth(title) in the system font; 0 or absent for an empty title. */
+  /** StringWidth(title): document in the system font, utility in the UI9 font (bold); 0 or absent for an empty title. */
   titleWidth?: number;
-  /** System font metrics (§3.2); default the declared Chicago 12. */
+  /** Utility UT1: StringWidth(title) in bold + condensed. Absent: the bold width stands (traced). */
+  titleWidthCondensed?: number;
+  /**
+   * Font metrics: document, the system font (§3.2; default the declared Chicago 12);
+   * utility, the UI9 font (no default: without them the title passes are traced, not drawn).
+   */
   font?: { ascent: number; descent: number };
   /** §6.4 record flag; default: set for grow windows (the application has called DrawGrowIcon). */
   growFlag?: boolean;
-  /** Utility only (§9): shown widgets and the titled bar height. */
-  utilityWidgets?: readonly PfWidget[];
-  utilityTitled?: boolean;
 }
 
 export interface ProceduralFrameState {
@@ -108,7 +115,7 @@ export interface ProceduralFrameState {
   collapsed: boolean;
   shadeOn: boolean;
   visible: boolean;
-  /** Utility: drawn in the active state (§9 bit 0 clear, or hilited). */
+  /** Utility UI6: drawn in the active state (UI1 alwaysActive, or hilited). Document: hilited. */
   drawnActive: boolean;
   side: boolean;
   smallGrow: boolean;
@@ -139,6 +146,8 @@ export interface ProceduralFrameGeometry {
   alert: boolean;
   alertRow: string;
   rows: string[];
+  /** Utility only (§9.2, §9.3): bar thickness t, flags after UP1–UP4, and whether UT1 re-measured condensed. */
+  utility?: { t: number; zoom: boolean; shadeOn: boolean; condensed: boolean; boldWidth: number };
 }
 
 const bit = (v: number, n: number): boolean => ((v >> n) & 1) === 1;
@@ -167,12 +176,16 @@ export function proceduralFrameState(input: ProceduralFrameInput): ProceduralFra
   const collapsed = input.collapsed === true;
   const visible = input.visible ?? true;
   if (family === 'utility') {
-    const U = PF_UTILITY_VARIATION;
+    // §9.1 UI1–UI8, UI11. "Titled" has no meaning here beyond H (UI10); canCollapse is the
+    // collapse box's shown-when flag before the drops (§9.3).
+    const U = PF_UTILITY_INPUTS;
+    const alwaysActive = !bit(v, U.alwaysActive.bit);
     return {
-      family, kind: -1, kindRow: '§9.flags', zoom: bit(v, U.zoomBit), thin: false, alertBit: false, grow: bit(v, U.growBit),
-      titled: true, movable: false, modal: false, canCollapse: (input.utilityWidgets ?? []).includes('collapse'), hilited: input.hilited, goAway: input.goAway,
+      family, kind: -1, kindRow: `${U.alwaysActive.id},${U.grow.id},${U.zoom.id},${U.side.id},${U.smallGrow.id},${U.active.id},${U.goAway.id},${U.shadeOn.id},${U.collapsed.id}`,
+      zoom: bit(v, U.zoom.bit), thin: false, alertBit: false, grow: bit(v, U.grow.bit),
+      titled: true, movable: false, modal: false, canCollapse: input.shadeOn, hilited: input.hilited, goAway: input.goAway,
       collapsed, shadeOn: input.shadeOn, visible,
-      drawnActive: !bit(v, U.activeBit) || input.hilited, side: bit(v, U.sideBit), smallGrow: bit(v, U.smallGrowBit),
+      drawnActive: alwaysActive || input.hilited, side: bit(v, U.side.bit), smallGrow: bit(v, U.smallGrow.bit),
     };
   }
   const V = PF_VARIATION;
@@ -200,6 +213,15 @@ export function proceduralFrameTitleHeight(font: { ascent: number; descent: numb
   return { H, ascent, descent: font.descent };
 }
 
+/** §3.5 CT1–CT3: "entry n" of a colour table, found by value. Null when the position does not exist. */
+export function colorTableEntry(t: PfColorTable, n: number): { entry: PfColorTableEntry | null; row: string } {
+  const L = PF_COLOR_LOOKUP, e = t.entries, last = e.length - 1;
+  if (n <= last && e[n]?.value === n) return { entry: e[n]!, row: L.byPosition.id };
+  if (last >= 0 && e[last]!.value === 0) return { entry: e[n] ?? null, row: L.lastZero.id };
+  for (let i = last; i >= 0; i--) if (e[i]!.value === n) return { entry: e[i]!, row: L.search.id };
+  return { entry: e[0] ?? null, row: L.search.id };
+}
+
 /** §3.5 alert colouring (document family), first matching row. */
 function alertColouring(st: ProceduralFrameState, chain: ResourceChain, colorTable: 'actb' | 'default', trace?: EngineTrace):
   { alert: boolean; row: string; actb: PfColorTable | null } {
@@ -216,10 +238,11 @@ function alertColouring(st: ProceduralFrameState, chain: ResourceChain, colorTab
       }
       case 'colorTable': {
         // The window's colour table is either actb itself or the default table (entry 0 declared white).
-        const theirs = actb!.entries[PF_ALERT_TABLE.entry];
-        const mine = colorTable === 'actb' ? theirs?.rgb16 : PF_DECLARED.defaultContent.rgb16;
-        const equal = !!theirs && !!mine && theirs.rgb16.every((c, i) => c === mine[i]);
-        return { alert: equal, row: r.id, actb };
+        // "Entry 0" is found by value (CT1–CT3); the comparison is the stored 16-bit channels (CT4).
+        const theirs = colorTableEntry(actb!, PF_ALERT_TABLE.entry);
+        const mine = colorTable === 'actb' ? theirs.entry?.rgb16 : PF_DECLARED.defaultContent.rgb16;
+        const equal = !!theirs.entry && !!mine && theirs.entry.rgb16.every((c, i) => c === mine[i]);
+        return { alert: equal, row: `${r.id},${theirs.row},${PF_COLOR_LOOKUP.stored.id}`, actb };
       }
     }
   }
@@ -269,13 +292,25 @@ function documentGeometry(input: ProceduralFrameInput, st: ProceduralFrameState,
   const close = at(t.left + W.closeFromLeft);
   const collapse = at(t.right - W.collapseFromRight);
   const zoomAt = (withCollapse: boolean): QdRect => at(t.right - (withCollapse ? W.zoomFromRightWithCollapse : W.zoomFromRight));
+  // Shown-when (§3.3), then the narrow-window drops WP1–WP4, always against the computed close rect.
   let collapseShown = st.titled && st.shadeOn && !st.movable;
-  if (collapseShown && (st.zoom ? intersects(zoomAt(true), close) : intersects(collapse, close))) {
-    collapseShown = false;
-    rows.push(`${PF_WIDGET_PRESENCE[2]!.id}:dropped`);
-  }
+  let zoomShown = st.titled && st.zoom;
+  const D = PF_WIDGET_DROPS;
+  if (st.goAway && st.zoom) {
+    rows.push(D.goAwayZoom.id);
+    if (intersects(zoomAt(collapseShown), close)) {
+      collapseShown = false;
+      if (intersects(zoomAt(false), close)) zoomShown = false;
+      rows.push(`${D.goAwayZoom.id}:dropped`);
+    }
+  } else if (st.goAway) {
+    rows.push(D.goAwayOnly.id);
+    if (collapseShown && intersects(collapse, close)) { collapseShown = false; rows.push(`${D.goAwayOnly.id}:dropped`); }
+  } else if (st.zoom && st.shadeOn) {
+    rows.push(D.zoomShade.id);
+    if (collapseShown && intersects(collapse, close)) { collapseShown = false; rows.push(`${D.zoomShade.id}:dropped`); }
+  } else rows.push(D.none.id);
   const zoom = zoomAt(collapseShown);
-  const zoomShown = st.titled && st.zoom && !intersects(zoom, close);
   const closeShown = st.titled && st.goAway;
   // §3.3 grow rect, §6.4 ownership.
   const G = PF_GROW_RECT;
@@ -307,38 +342,86 @@ function documentGeometry(input: ProceduralFrameInput, st: ProceduralFrameState,
 
 function utilityGeometry(input: ProceduralFrameInput, st: ProceduralFrameState): ProceduralFrameGeometry {
   const C = input.content;
-  const U = PF_UTILITY_GEOMETRY;
-  const H = input.utilityTitled && !st.side ? PF_UTILITY_TITLE.titled : PF_UTILITY_TITLE.untitled;
+  const I = PF_UTILITY_INPUTS, U = PF_UTILITY_GEOMETRY, P = PF_UTILITY_PRESENCE;
+  const rows: string[] = [st.kindRow];
+  // UI10 bar height; UG1 title bar, thickness t = H + 1.
+  const titleWidth = input.titleWidth ?? 0;
+  const H = st.side ? I.barHeight.side : titleWidth > 0 ? I.barHeight.titled : I.barHeight.untitled;
+  rows.push(I.barHeight.id, U.bar.id);
+  const o = U.bar.outset;
   const T = st.side
-    ? rect(C.top - U.outset, C.left - H - U.barExtra, C.bottom + U.outset, C.left)
-    : rect(C.top - H - U.barExtra, C.left - U.outset, C.top, C.right + U.outset);
-  const box = union(outset(C, U.outset), T);
+    ? rect(C.top - o, C.left - H - U.bar.extra, C.bottom + o, C.left)
+    : rect(C.top - H - U.bar.extra, C.left - o, C.top, C.right + o);
+  const t = H + U.bar.extra;
+  // UG2 / UG3 structure, then the shadow.
+  let box: QdRect;
+  if (st.collapsed) { box = T; rows.push(U.collapsed.id); } else {
+    const b = outset(C, U.structure.outset), more = H - U.structure.raiseLess;
+    box = st.side ? rect(b.top, b.left - more, b.bottom, b.right) : rect(b.top - more, b.left, b.bottom, b.right);
+    rows.push(U.structure.id);
+  }
   const structure = [box, rect(box.top + PF_SHADOW.shift, box.left + PF_SHADOW.shift,
     box.bottom + PF_SHADOW.shift - PF_SHADOW.shorten, box.right + PF_SHADOW.shift - PF_SHADOW.shorten)];
   const bounds = structure.reduce(union);
-  // §9 widgets: boxes centred across the bar, placed along it.
-  const Wd = PF_UTILITY_WIDGETS;
-  const shownSet = new Set(input.utilityWidgets ?? []);
-  const crossStart = st.side ? T.left : T.top, crossLen = st.side ? rectWidth(T) : rectHeight(T);
-  const c0 = crossStart + Math.trunc((crossLen - Wd.box) / 2);
-  const alongStart = st.side ? T.top : T.left, alongEnd = st.side ? T.bottom : T.right;
-  const boxAt = (a: number): QdRect => st.side ? rect(a, c0, a + Wd.box, c0 + Wd.box) : rect(c0, a, c0 + Wd.box, a + Wd.box);
-  const collapseShown = shownSet.has('collapse');
-  const collapseAt = alongEnd - Wd.collapseFromEnd;
-  const widgets = {
-    close: boxAt(alongStart + Wd.closeFromStart),
-    collapse: boxAt(collapseAt),
-    zoom: boxAt(collapseShown ? collapseAt - Wd.zoomFurther : collapseAt),
-  };
-  const G = PF_UTILITY_GROW;
-  const size = st.smallGrow ? G.smallSize : G.size;
-  const grow = rect(C.bottom - G.inside, C.right - G.inside, C.bottom - G.inside + size, C.right - G.inside + size);
+  // UG5–UG7 widget boxes: across the bar centred, along it from its start / end.
+  const n = U.close.box;
+  const cross = (st.side ? T.left : T.top) + Math.trunc((t + U.close.centreExtra - n) / 2);
+  const start = st.side ? T.top : T.left, end = st.side ? T.bottom : T.right;
+  const boxAt = (a: number): QdRect => st.side ? rect(a, cross, a + n, cross + n) : rect(cross, a, cross + n, a + n);
+  const close = boxAt(start + U.close.fromStart);
+  const collapse = boxAt(end - U.collapse.fromEnd);
+  const zoomAt = (shade: boolean): QdRect => boxAt(end - U.collapse.fromEnd - (shade ? U.zoom.shift : 0));
+  rows.push(U.close.id, U.collapse.id, U.zoom.id);
+  // §9.3 UP1–UP4: the drops test rects outset by 7 (the recomputed zoom box in UP1 is not outset).
+  let shadeOn = st.shadeOn, zoom = st.zoom;
+  const out = (r: QdRect): QdRect => outset(r, P.outset);
+  const closeOut = out(close);
+  if (st.goAway && zoom) {
+    rows.push(P.goAwayZoom.id);
+    if (intersects(out(zoomAt(shadeOn)), closeOut)) {
+      shadeOn = false;
+      if (intersects(zoomAt(false), closeOut)) zoom = false;
+      rows.push(`${P.goAwayZoom.id}:dropped`);
+    }
+  } else if (st.goAway) {
+    rows.push(P.goAwayOnly.id);
+    if (shadeOn && intersects(out(collapse), closeOut)) { shadeOn = false; rows.push(`${P.goAwayOnly.id}:dropped`); }
+  } else if (zoom && shadeOn) {
+    rows.push(P.zoomShadeOnly.id);
+    if (intersects(out(collapse), closeOut)) { shadeOn = false; rows.push(`${P.zoomShadeOnly.id}:dropped`); }
+  } else rows.push(P.none.id);
+  const zoomBox = zoomAt(shadeOn);
+  // UG8 / UG9 title limits.
+  const lead = (r: QdRect): number => (st.side ? r.top : r.left);
+  const trail = (r: QdRect): number => (st.side ? r.bottom : r.right);
+  const Lu = st.goAway ? trail(close) + U.leftLimit.gap : start + U.leftLimit.inset;
+  const Ru = zoom ? lead(zoomBox) - U.rightLimit.gap : shadeOn ? lead(collapse) - U.rightLimit.gap : end - U.rightLimit.inset;
+  rows.push(U.leftLimit.id, U.rightLimit.id);
+  // UG10 grow rect; UG4 content.
+  const inside = st.smallGrow ? U.grow.smallInside : U.grow.inside;
+  const grow = rect(C.bottom - inside, C.right - inside, C.bottom + U.grow.outside, C.right + U.grow.outside);
+  rows.push(U.grow.id, U.content.id);
+  const content = st.collapsed ? (st.side ? rect(C.top, C.left, C.bottom, C.left) : rect(C.top, C.left, C.top, C.right)) : C;
+  // UT1 title text rect (empty when side or the width is ≤ 0).
+  const X = PF_UTILITY_TITLE_TEXT;
+  let titleText = EMPTY, condensed = false;
+  if (!st.side && titleWidth > 0) {
+    let w = titleWidth;
+    let left = T.left + Math.trunc((rectWidth(T) - w) / 2);
+    if (left < Lu || left + w > Ru) {
+      condensed = true;
+      w = input.titleWidthCondensed ?? titleWidth;
+      left = Math.max(T.left + Math.trunc((rectWidth(T) - w) / 2), Lu);
+    }
+    titleText = rect(T.top + X.rect.insetV, left, T.bottom - X.rect.insetV, left + w);
+    rows.push(X.rect.id);
+  }
   return {
-    state: st, H, ascent: 0, descent: 0, C, structureBox: box, structure, bounds,
-    content: st.collapsed ? EMPTY : C, contentMinus: st.grow ? grow : null,
-    T, widgets, shown: { close: shownSet.has('close'), zoom: shownSet.has('zoom') && st.zoom, collapse: collapseShown },
-    grow, growBelongs: st.grow, L: T.left, R: T.right, titleText: EMPTY, alert: false, alertRow: PF_UTILITY_UNDECODED.id,
-    rows: [st.kindRow, '§9.title'],
+    state: st, H, ascent: input.font?.ascent ?? 0, descent: input.font?.descent ?? 0, C, structureBox: box, structure, bounds,
+    content, contentMinus: !st.collapsed && st.smallGrow && st.grow ? grow : null,
+    T, widgets: { close, zoom: zoomBox, collapse }, shown: { close: st.goAway, zoom, collapse: shadeOn },
+    grow, growBelongs: st.grow, L: Lu, R: Ru, titleText, alert: false, alertRow: '', rows,
+    utility: { t, zoom, shadeOn, condensed, boldWidth: titleWidth },
   };
 }
 
@@ -355,9 +438,10 @@ export function proceduralFrameGeometry(chain: ResourceChain | null, input: Proc
   return g;
 }
 
-/** §3.1 message 7: the feature bits. */
-export function proceduralFrameFeatures(input: ProceduralFrameInput): number {
+/** §3.1 message 7: the feature bits. Utility message 7 is not described (§9.10): traced `unimplemented`, #412's shape returned. */
+export function proceduralFrameFeatures(input: ProceduralFrameInput, trace?: EngineTrace): number {
   const st = proceduralFrameState(input);
+  if (st.family === 'utility') trace?.drawOps.push({ op: 'features', row: '§9.10', unimplemented: 'utility message 7 (0x1535c) is not described; document-family bit shape returned' });
   const F = PF_FEATURES;
   let f = F.always.reduce((x, y) => x | y, 0);
   if (st.grow) f |= F.grow;
@@ -395,9 +479,44 @@ function ptInIcon(chain: ResourceChain, id: number, r: QdRect, p: QdPoint, trace
   return (((mask.value.planes[P.maskOffset + y * P.rowBytes + (x >> 3)] ?? 0) >> (7 - (x & 7))) & 1) === 1;
 }
 
-/** §6.3 message 1 hit test (document family): the part code at port point `p`. */
+/** §9.9 message 1 hit test (utility family), UH1–UH8. Widget hits are the box inset 1, no mask. */
+function utilityPartAt(g: ProceduralFrameGeometry, p: QdPoint): { part: number; row: string } {
+  const st = g.state, K = PF_UTILITY_HIT_CONSTANTS, T = g.T!;
+  const inStructure = g.structure.some(r => inRect(r, p));
+  const inBar = inRect(T, p) && st.drawnActive;
+  const onBox = (w: PfWidget): boolean => inRect(insetRect(g.widgets[w], K.boxInset, K.boxInset), p);
+  for (const row of PF_UTILITY_HIT) {
+    switch (row.test) {
+      case 'outside': if (!st.visible || !inStructure) return { part: row.part, row: row.id }; break;
+      case 'grow':
+        if (st.drawnActive && st.grow && !st.collapsed && inRect(rect(g.grow.top, g.grow.left, g.bounds.bottom, g.bounds.right), p))
+          return { part: row.part, row: row.id };
+        break;
+      case 'content':
+        if (inRect(g.content, p) && !(g.contentMinus && inRect(g.contentMinus, p))) return { part: row.part, row: row.id };
+        break;
+      case 'close': if (inBar && g.shown.close && onBox('close')) return { part: row.part, row: row.id }; break;
+      case 'zoom':
+        if (inBar && g.shown.zoom && onBox('zoom')) return { part: PF_DECLARED.utilityAtZoomState ? K.zoomAtStored : row.part, row: row.id };
+        break;
+      case 'collapse': if (inBar && g.shown.collapse && onBox('collapse')) return { part: row.part, row: row.id }; break;
+      case 'drag': {
+        const b = rect(g.bounds.top, g.bounds.left, g.bounds.bottom - 1, g.bounds.right - 1);
+        const i = insetRect(b, K.frameBand, K.frameBand);
+        const bar = rect(T.top, T.left, T.bottom + K.titleExtraRows, T.right);
+        if ((inRect(b, p) && !inRect(i, p)) || inRect(bar, p)) return { part: row.part, row: row.id };
+        break;
+      }
+      case 'otherwise': return { part: row.part, row: row.id };
+    }
+  }
+  return { part: PF_UTILITY_HIT[0]!.part, row: PF_UTILITY_HIT[0]!.id };
+}
+
+/** Message 1 hit test: the part code at port point `p` (§6.3 HT1–HT9 document, §9.9 UH1–UH8 utility). */
 export function proceduralFramePartAt(g: ProceduralFrameGeometry, chain: ResourceChain, p: QdPoint, trace?: EngineTrace): { part: number; row: string } {
   const st = g.state;
+  if (st.family === 'utility') return utilityPartAt(g, p);
   const K = PF_HIT_CONSTANTS;
   const inStructure = g.structure.some(r => inRect(r, p));
   const ids = (w: PfWidget): PfWidgetIdRow => PF_WIDGET_IDS.find(r => r.widget === w)!;
@@ -418,12 +537,12 @@ export function proceduralFramePartAt(g: ProceduralFrameGeometry, chain: Resourc
           || (p.x === T!.left + K.exactX && p.y === T!.top + K.exactY))) return { part: row.part, row: row.id };
         break;
       case 'zoom':
-        if (st.hilited && g.shown.zoom && (ptInIcon(chain, ids('zoom').normal, g.widgets.zoom, p, trace, row.id)
+        if (st.hilited && g.shown.zoom && inRect(T!, p) && (ptInIcon(chain, ids('zoom').normal, g.widgets.zoom, p, trace, row.id)
           || (p.x === T!.right - K.exactX && p.y === T!.top + K.exactY)))
           return { part: PF_DECLARED.atZoomRect ? K.zoomAtStored : row.part, row: row.id };
         break;
       case 'collapse':
-        if (st.hilited && g.shown.collapse && ptInIcon(chain, ids('collapse').normal, g.widgets.collapse, p, trace, row.id))
+        if (st.hilited && g.shown.collapse && inRect(T!, p) && ptInIcon(chain, ids('collapse').normal, g.widgets.collapse, p, trace, row.id))
           return { part: row.part, row: row.id };
         break;
       case 'drag': {
@@ -466,6 +585,22 @@ function copy1to1(port: Pixmap, icon: IconSource, src: { top: number; left: numb
   const s = rect(src.top, src.left, src.bottom, src.right);
   iconBlit(port, icon, s, rect(y, x, y + rectHeight(s), x + rectWidth(s)), trace, row);
 }
+
+/**
+ * GB3 masked copy: the cicn's pixel image through its mask (CopyMask), 1:1 at (x, y). Masked-off
+ * pixels keep what is underneath.
+ */
+function copyMasked(port: Pixmap, icon: IconSource, src: QdRect, x: number, y: number, trace: EngineTrace | undefined, row: string): void {
+  const dst = rect(y, x, y + rectHeight(src), x + rectWidth(src));
+  if (emptyRect(src)) return;
+  trace?.drawOps.push({ op: 'copyMask', row: `${row},${PF_COPY.masked.id}`, src, dst });
+  transferBits(port, icon.pixmap, src, dst, 'copyMask');
+}
+
+const sect = (a: QdRect, b: QdRect): QdRect => {
+  const r = rect(Math.max(a.top, b.top), Math.max(a.left, b.left), Math.min(a.bottom, b.bottom), Math.min(a.right, b.right));
+  return emptyRect(r) ? EMPTY : r;
+};
 
 function getCicn(chain: ResourceChain, id: number, trace: EngineTrace | undefined, row: string): IconSource | null {
   return chain.getResource<IconSource>('cicn', id, req(trace, row))?.value ?? null;
@@ -602,14 +737,15 @@ function drawShadow(port: Pixmap, g: ProceduralFrameGeometry, c: Rgba | null, tr
   line(port, c, b.right, b.top + inset, b.right, b.bottom, trace, row);
 }
 
+/** §6.4 GB1 / GB2: the grow cicn whole, natural size, top-left at the grow rect, through its mask (GB3). */
 function drawGrowBox(port: Pixmap, chain: ResourceChain, g: ProceduralFrameGeometry, trace?: EngineTrace): void {
   const kind5 = g.state.kind === PF_KIND.movable;
   const A = kind5 ? PF_ART.growMovable : PF_ART.growDocument;
   const icon = getCicn(chain, g.state.hilited ? A.hilited : A.normal, trace, A.id);
-  if (icon) { copy1to1(port, icon, pixmapBounds(icon.pixmap), g.grow.left, g.grow.top, trace, kind5 ? PF_GROW.movable.id : PF_GROW.document.id); return; }
+  if (icon) { copyMasked(port, icon, pixmapBounds(icon.pixmap), g.grow.left, g.grow.top, trace, kind5 ? PF_GROW.movable.id : PF_GROW.document.id); return; }
   if (kind5) {
-    trace?.drawOps.push({ op: 'growBox', row: PF_GROW.movable.id, dst: g.grow,
-      unimplemented: 'procedural kind-5 grow box: polygon pixel coverage is not specified and the grip lines are only partly read (§10.4)' });
+    trace?.drawOps.push({ op: 'growBox', row: `${PF_GROW.movable.id},${PF_GROW.procedural.id}`, dst: g.grow,
+      unimplemented: 'procedural kind-5 grow box GB4–GB6 / GL1–GL4: the erased region is QuickDraw region rasterisation (§10.4)' });
     return;
   }
   trace?.drawOps.push({ op: 'growBox', row: PF_GROW.document.id, dst: g.grow, drawn: false });
@@ -688,30 +824,177 @@ function drawRing(port: Pixmap, Dc: IconSource, o: QdRect, trace?: EngineTrace):
   for (let i = 0; i < k; i++) line(port, sample(Dc, Rg.bottom.sampleX, Rg.bottom.sampleYFrom - i), o.left + k, o.bottom - 1 - i, o.right - e, o.bottom - 1 - i, trace, Rg.bottom.id);
 }
 
-// ── §9 utility family (decoded part) ─────────────────────────────────────────
+// ── §9 utility family ────────────────────────────────────────────────────────
 
-function drawUtility(port: Pixmap, chain: ResourceChain, g: ProceduralFrameGeometry, trace?: EngineTrace): void {
-  const st = g.state;
-  const art = st.side ? PF_UTILITY_ART.frameSide : PF_UTILITY_ART.frame;
-  trace?.drawOps.push({ op: 'utilityFrame', row: PF_UTILITY_UNDECODED.id, id: st.drawnActive ? art.active : art.inactive,
-    stripes: st.side ? PF_UTILITY_ART.stripesSide : PF_UTILITY_ART.stripes, unimplemented: PF_UTILITY_UNDECODED.what });
+/** Fl/Ft/Fr/Fb (§9.4: the structure bounding box, r − 1 and b − 1) and C's edges, by anchor name. */
+function anchors(g: ProceduralFrameGeometry): Record<PfAt[0], number> {
+  const b = g.bounds, C = g.C;
+  return { Fl: b.left, Ft: b.top, Fr: b.right - 1, Fb: b.bottom - 1, Cl: C.left, Ct: C.top, Cr: C.right, Cb: C.bottom };
+}
+
+/** §9.4 frame rows of one shape (UFC / UFH / UFS): corner and join pieces (GB3), then the line groups. Returns the UW1 interior rect. */
+function drawUtilityShape(port: Pixmap, Q: IconSource, g: ProceduralFrameGeometry, shape: PfUtilityFrameShape, trace?: EngineTrace): QdRect {
+  const A = anchors(g);
+  const at = (a: PfAt): number => A[a[0]] + a[1];
+  for (const pc of shape.pieces) copyMasked(port, Q, rect(pc.src.top, pc.src.left, pc.src.bottom, pc.src.right), at(pc.x), at(pc.y), trace, pc.id);
+  for (const grp of shape.groups) {
+    for (let i = 0; i < grp.count; i++) {
+      for (const ln of grp.lines) {
+        const fixed = at(ln.at) + ln.step * i;
+        const from = at(Array.isArray(ln.from[0]) ? (ln.from as readonly PfAt[])[i]! : (ln.from as PfAt)), to = at(ln.to);
+        const c = sample(Q, ln.sample[0] + ln.sample[1] * i, ln.sample[2] + ln.sample[3] * i);
+        if (ln.row) line(port, c, from, fixed, to, fixed, trace, ln.id);
+        else line(port, c, fixed, from, fixed, to, trace, ln.id);
+      }
+    }
+  }
+  const I = shape.interior;
+  return rect(at(I.t), at(I.l), at(I.b), at(I.r));
+}
+
+/** §9.7 UGB1 / UGB2: the utility grow box, masked copy (GB3) at the grow rect's top-left. */
+function drawUtilityGrow(port: Pixmap, chain: ResourceChain, g: ProceduralFrameGeometry, trace?: EngineTrace): void {
+  const st = g.state, G = PF_UTILITY_GROW;
+  if (st.smallGrow) {
+    const small = getCicn(chain, st.drawnActive ? G.small.active : G.small.inactive, trace, G.small.id);
+    if (small) { copyMasked(port, small, pixmapBounds(small.pixmap), g.grow.left, g.grow.top, trace, G.small.id); return; }
+  }
+  const icon = getCicn(chain, st.drawnActive ? G.normal.active : G.normal.inactive, trace, G.normal.id);
+  if (!icon) { trace?.drawOps.push({ op: 'growBox', row: G.normal.id, dst: g.grow, drawn: false }); return; }
+  const [num, den] = G.normal.crop;
+  const src = st.smallGrow
+    ? rect(0, 0, Math.trunc((icon.pixmap.height * num!) / den!), Math.trunc((icon.pixmap.width * num!) / den!))
+    : pixmapBounds(icon.pixmap);
+  copyMasked(port, icon, src, g.grow.left, g.grow.top, trace, G.normal.id);
+}
+
+/** Opaque 1:1 copy (GB3a, the icon blit) of `src` to (x, y), trimmed to `clip`. */
+function blitClipped(port: Pixmap, icon: IconSource, src: QdRect, x: number, y: number, clip: QdRect, trace: EngineTrace | undefined, row: string): void {
+  const dst = sect(rect(y, x, y + rectHeight(src), x + rectWidth(src)), clip);
+  if (emptyRect(dst)) return;
+  const s = rect(src.top + dst.top - y, src.left + dst.left - x, src.top + dst.bottom - y, src.left + dst.right - x);
+  iconBlit(port, icon, s, dst, trace, `${row},${PF_COPY.opaque.id}`);
+}
+
+/** §9.5 stripes US1–US6 into the interior region. */
+function drawUtilityStripes(port: Pixmap, chain: ResourceChain, g: ProceduralFrameGeometry, interior: Region, interiorRect: QdRect,
+  fill: Rgba | null, trace?: EngineTrace): void {
+  const st = g.state, T = g.T!, S = PF_UTILITY_STRIPES, u = g.utility!;
+  const c0 = (st.side ? T.left : T.top) + Math.trunc((u.t - S.band.crossLess) / 2);
+  const band = st.side ? rect(g.L, c0, g.R, c0 + S.band.rows) : rect(c0, g.L, c0 + S.band.rows, g.R);
+  const clip = sect(interiorRect, band);
+  let cicn: IconSource | null = null;
+  for (const id of st.side ? S.art.side : S.art.horizontal) { cicn = getCicn(chain, id, trace, S.art.id); if (cicn) break; }
+  if (!cicn) trace?.drawOps.push({ op: 'stripes', row: S.art.id, dst: band, drawn: false });
+  else if ((st.side ? rectHeight(band) : rectWidth(band)) < S.narrow.minAlong) {
+    if (fill) paintRect(port, clip, fill, trace, `${S.narrow.id},${S.clip.id}`);
+    else trace?.drawOps.push({ op: 'paintRect', row: `${S.narrow.id},${PF_UTILITY_ART.absent.id}`, dst: clip, unspecified: 'fill colour never sampled; not painted' });
+  } else {
+    const pm = cicn.pixmap;
+    trace?.drawOps.push({ op: 'stripes', row: `${S.band.id},${S.clip.id},${S.tile.id}`, dst: band, clip });
+    if (st.side) {
+      const src = rect(0, 0, pm.height, S.tile.extent);
+      for (let y = band.top; pm.height > 0 && y < band.bottom; y += pm.height) blitClipped(port, cicn, src, band.left, y, clip, trace, S.tile.id);
+    } else {
+      const src = rect(0, 0, S.tile.extent, pm.width);
+      for (let x = band.left; pm.width > 0 && x < band.right; x += pm.width) blitClipped(port, cicn, src, x, band.top, clip, trace, S.tile.id);
+    }
+  }
+  regionSubtractRect(interior, band);
+  trace?.drawOps.push({ op: 'regionSubtract', row: S.remove.id, dst: band });
+}
+
+/** §9.6.1 title text UT2–UT8 (horizontal bars only, UW3). */
+function drawUtilityTitle(port: Pixmap, g: ProceduralFrameGeometry, input: ProceduralFrameInput, interior: Region, colours: { fill: Rgba | null; text: Rgba | null; shadow: Rgba | null },
+  opts: ProceduralFrameDrawOptions, trace?: EngineTrace): void {
+  const X = PF_UTILITY_TITLE_TEXT, tt = g.titleText;
+  const r = rect(tt.top, tt.left, tt.bottom + X.bottomExtra, tt.right);
+  if (emptyRect(tt) || r.left + X.skip.minLeft > g.R) { trace?.drawOps.push({ op: 'skip', row: X.skip.id, reason: 'empty title, or r.l + 2 > Ru' }); return; }
+  // UT3: StringWidth in bold wider than r → condensed for the rest of the call, truncated to Ru − r.l.
+  const u = g.utility!;
+  const fitRow = u.boldWidth > rectWidth(r) ? X.fit.id : '';
+  if (u.condensed && input.titleWidthCondensed === undefined)
+    trace?.drawOps.push({ op: 'note', row: X.rect.id, unspecified: 'condensed width not supplied; the bold width stands' });
+  const clip = rect(r.top, g.L, r.bottom, g.R);
+  const { fill, text, shadow } = colours;
+  const e = rect(r.top, r.left - X.erase.widen, r.bottom, r.right + X.erase.widen);
+  if (fill) {
+    trace?.drawOps.push({ op: 'erase', row: `${X.erase.id},${X.clip.id}`, dst: sect(e, clip), rgb: { r: fill.r, g: fill.g, b: fill.b } });
+    paintRect(port, sect(e, clip), fill, undefined, X.erase.id);
+  } else trace?.drawOps.push({ op: 'erase', row: `${X.erase.id},${PF_UTILITY_ART.absent.id}`, dst: sect(e, clip), unspecified: 'fill colour never sampled; not erased' });
+  regionSubtractRect(interior, sect(e, clip));
+  if (!input.font) { trace?.drawOps.push({ op: 'text', row: `${PF_UTILITY_INPUTS.font.id},${X.pen.id}`, unspecified: 'UI9 font metrics not supplied; title passes not drawn' }); return; }
+  const x = r.left;
+  const y = r.top + Math.trunc((rectHeight(r) - 1 - (g.ascent + g.descent)) / 2) + g.ascent;
+  const face = fitRow ? { condensed: true, truncateTo: g.R - r.left } : {};
+  if (!text || !fill || !shadow) { trace?.drawOps.push({ op: 'text', row: `${X.mainPass.id},${PF_UTILITY_ART.absent.id}`, unspecified: 'text colours never sampled; title not drawn' }); return; }
+  const same = shadow.r === fill.r && shadow.g === fill.g && shadow.b === fill.b;
+  if (!same) {
+    const pass: PfTextPass = { x: x + X.shadowPass.dx, y: y + X.shadowPass.dy, rgb: shadow, background: null, clip, pass: 'shadow', ...face };
+    trace?.drawOps.push({ op: 'text', row: [X.clip.id, X.pen.id, X.shadowPass.id, fitRow].filter(Boolean).join(','), ...pass });
+    opts.renderTitle?.(port, pass);
+  }
+  const pass: PfTextPass = { x, y, rgb: text, background: fill, clip, pass: 'main', ...face };
+  trace?.drawOps.push({ op: 'text', row: [X.clip.id, X.pen.id, X.mainPass.id, fitRow].filter(Boolean).join(','), ...pass });
+  opts.renderTitle?.(port, pass);
+}
+
+/** Message 0 part 0 (UM1): the frame (§9.4), then stripes, title, widgets and the interior fill (§9.6). */
+function drawUtility(port: Pixmap, chain: ResourceChain, g: ProceduralFrameGeometry, input: ProceduralFrameInput, opts: ProceduralFrameDrawOptions,
+  trace?: EngineTrace): void {
+  const st = g.state, W = PF_UTILITY_PAINT, A = st.side ? PF_UTILITY_ART.frameSide : PF_UTILITY_ART.frame;
+  // UFA1 / UFA2.
+  let Q = getCicn(chain, st.drawnActive ? A.active : A.inactive, trace, A.id);
+  if (!Q && !st.drawnActive) Q = getCicn(chain, A.active, trace, PF_UTILITY_ART.inactiveFallback.id);
+  const interior = newRegion(port);
+  let interiorRect: QdRect;
+  const colours: { fill: Rgba | null; text: Rgba | null; shadow: Rgba | null } = { fill: null, text: null, shadow: null };
+  if (!Q) {
+    // UFA3: nothing in §9.4; the fill would cover the whole structure in leftover colours (no defined colour).
+    trace?.drawOps.push({ op: 'skip', row: PF_UTILITY_ART.absent.id, reason: 'utility frame cicn absent: frame not drawn, no colours sampled' });
+    interiorRect = g.structureBox;
+  } else {
+    const shape = st.collapsed ? PF_UTILITY_FRAME_COLLAPSED : st.side ? PF_UTILITY_FRAME_SIDE : PF_UTILITY_FRAME_HORIZONTAL;
+    interiorRect = drawUtilityShape(port, Q, g, shape, trace);
+    const Tl = PF_UTILITY_FRAME_TAIL, sp = st.side ? Tl.samples.side : Tl.samples.horizontal;
+    colours.fill = sample(Q, sp.fill.x, sp.fill.y);
+    colours.text = sample(Q, sp.text.x, sp.text.y);
+    colours.shadow = sample(Q, sp.shadow.x, sp.shadow.y);
+    trace?.drawOps.push({ op: 'sample', row: Tl.samples.id, ...colours });
+    if (st.smallGrow && st.grow && !(st.collapsed && PF_DECLARED.utilityCollapsedSkipsSmallGrow)) drawUtilityGrow(port, chain, g, trace);
+    else if (st.smallGrow && st.grow) trace?.drawOps.push({ op: 'skip', row: `${Tl.smallGrow.id},declared`, reason: 'collapsed: the grow rect is outside the structure (declared policy utilityCollapsedSkipsSmallGrow)' });
+    const Aa = anchors(g), c = sample(Q, Tl.shadow.sample.x, Tl.shadow.sample.y);
+    line(port, c, Aa.Fl + Tl.shadow.inset, Aa.Fb, Aa.Fr, Aa.Fb, trace, Tl.shadow.id);
+    line(port, c, Aa.Fr, Aa.Fb, Aa.Fr, Aa.Ft + Tl.shadow.inset, trace, Tl.shadow.id);
+  }
+  regionAddRect(interior, interiorRect);
+  trace?.drawOps.push({ op: 'interior', row: W.interior.id, dst: interiorRect });
+  // UW2 stripes, UW3 title, UW4 widgets.
+  if (st.drawnActive) drawUtilityStripes(port, chain, g, interior, interiorRect, colours.fill, trace);
+  else trace?.drawOps.push({ op: 'skip', row: W.stripes.id, reason: 'not active: no stripes' });
+  if (!st.side) drawUtilityTitle(port, g, input, interior, colours, opts, trace);
   if (st.drawnActive) {
-    const Wd = PF_UTILITY_WIDGETS;
+    const portRect = rect(0, 0, port.height, port.width);
     for (const r of PF_UTILITY_WIDGET_IDS) {
       if (!g.shown[r.widget]) continue;
       const b = g.widgets[r.widget];
-      drawWidgetGlyph(port, chain, r.normal, rect(b.top, b.left, b.top + Wd.plot, b.left + Wd.plot), trace, r.id);
+      if (PF_DECLARED.utilityClipIsPort && !intersects(b, portRect)) continue;
+      drawWidgetGlyph(port, chain, r.normal, rect(b.top, b.left, b.top + PF_UTILITY_GLYPH.plot, b.left + PF_UTILITY_GLYPH.plot), trace, `${W.widgets.id},${r.id}`);
+      regionSubtractRect(interior, b);
     }
+  } else trace?.drawOps.push({ op: 'skip', row: W.widgets.id, reason: 'not active: no widgets' });
+  // UW5 fill: PaintRgn of what is left.
+  if (colours.fill) paintRegion(port, interior, colours.fill, trace, W.fill.id);
+  else trace?.drawOps.push({ op: 'paintRgn', row: `${W.fill.id},${PF_UTILITY_ART.absent.id}`, unspecified: 'fill colour never sampled (quirk with no defined colour); not painted' });
+}
+
+function paintRegion(port: Pixmap, rgn: Region, c: Rgba, trace: EngineTrace | undefined, row: string): void {
+  let n = 0;
+  for (let y = 0; y < rgn.height; y++) for (let x = 0; x < rgn.width; x++) {
+    if (rgn.bits[y * rgn.width + x] !== 1) continue;
+    setPixel(port, x, y, c.r, c.g, c.b, 255); n++;
   }
-  if (st.grow && !st.collapsed) {
-    const G = PF_UTILITY_GROW;
-    if (st.smallGrow) {
-      trace?.drawOps.push({ op: 'growBox', row: '§9.grow', dst: g.grow, unimplemented: 'small utility grow box (the 11/15 scaled fallback is not specified further)' });
-      return;
-    }
-    const icon = getCicn(chain, st.drawnActive ? G.normal.active : G.normal.inactive, trace, '§9.grow');
-    if (icon) copy1to1(port, icon, pixmapBounds(icon.pixmap), g.grow.left, g.grow.top, trace, '§9.grow');
-  }
+  trace?.drawOps.push({ op: 'paintRgn', row, pixels: n, rgb: { r: c.r, g: c.g, b: c.b } });
 }
 
 // ── message 0 ────────────────────────────────────────────────────────────────
@@ -723,50 +1006,113 @@ export interface ProceduralFrameDrawResult {
   toggle: boolean;
 }
 
-/** Message 0: draw `part` of the frame into `port` (§2, §4, §5, §5A, §6). */
+/** §2 TG1: a part below 4 (signed) clears the shared toggle bit before the draw. */
+function toggleBefore(part: number, toggle: boolean, trace?: EngineTrace): boolean {
+  if (part < PF_TOGGLE.clear.clearBelow) {
+    trace?.drawOps.push({ op: 'toggle', row: PF_TOGGLE.clear.id, part, before: toggle, after: false });
+    return false;
+  }
+  return toggle;
+}
+
+/** TG2 / UM1: one widget alone in the toggled state (pressed when the bit is clear). TG3 / UM2: flip after a listed part. */
+function drawToggledWidget(port: Pixmap, chain: ResourceChain, g: ProceduralFrameGeometry, row: PfDrawPartRow, idRows: readonly PfWidgetIdRow[],
+  toggle: boolean, plot: (r: QdRect) => QdRect, flipRow: string, presence: (w: PfWidget) => string, trace?: EngineTrace): boolean {
+  if (row.action !== 'none') {
+    const w = row.action as PfWidget;
+    const ids = idRows.find(r => r.widget === w)!;
+    const pressed = !toggle;
+    if (g.shown[w]) drawWidgetGlyph(port, chain, pressed ? ids.pressed : ids.normal, plot(g.widgets[w]), trace, `${row.id},${PF_TOGGLE.pressed.id},${ids.id}`);
+    else trace?.drawOps.push({ op: 'widget', row: `${row.id},${presence(w)}`, drawn: false });
+  }
+  if (!row.toggles) return toggle;
+  trace?.drawOps.push({ op: 'toggle', row: flipRow, part: row.parts[0], before: toggle, after: !toggle });
+  return !toggle;
+}
+
+/** Message 0: draw `part` of the frame into `port` (§2, §4, §5, §5A, §6; utility §9.8). */
 export function drawProceduralFrame(port: Pixmap, chain: ResourceChain, input: ProceduralFrameInput, opts: ProceduralFrameDrawOptions = {},
   trace?: EngineTrace): ProceduralFrameDrawResult {
   const g = proceduralFrameGeometry(chain, input, trace);
   const st = g.state;
   const part = opts.part ?? 0;
-  const toggle = opts.toggle ?? !PF_DECLARED.toggleStartsClear;
+  let toggle = opts.toggle ?? !PF_DECLARED.toggleStartsClear;
   if (!st.visible) { trace?.drawOps.push({ op: 'skip', row: 'draw-guard', reason: 'invisible window' }); return { geometry: g, drawn: false, toggle }; }
+  toggle = toggleBefore(part, toggle, trace);
   if (st.family === 'utility') {
-    if (part !== 0) { trace?.drawOps.push({ op: 'skip', row: PF_UTILITY_UNDECODED.id, unimplemented: 'utility widget-part draws' }); return { geometry: g, drawn: false, toggle }; }
-    drawUtility(port, chain, g, trace);
+    // UM1 / UM2: parts 0, 4, 5/6, 9; 258 and the rest draw nothing and do not flip the bit.
+    const urow = PF_UTILITY_DRAW_PARTS.find(r => r.parts.includes(part));
+    if (!urow) { trace?.drawOps.push({ op: 'skip', row: `${PF_UTILITY_DRAW_PARTS[0]!.id},${PF_UTILITY_TOGGLE.id}`, part }); return { geometry: g, drawn: false, toggle }; }
+    if (urow.action === 'frame') { drawUtility(port, chain, g, input, opts, trace); return { geometry: g, drawn: true, toggle }; }
+    const P = PF_UTILITY_GLYPH.plot;
+    toggle = drawToggledWidget(port, chain, g, urow, PF_UTILITY_WIDGET_IDS, toggle, b => rect(b.top, b.left, b.top + P, b.left + P), PF_UTILITY_TOGGLE.id,
+      w => PF_UTILITY_PRESENCE[w].id, trace);
     return { geometry: g, drawn: true, toggle };
   }
   const row = PF_DRAW_PARTS.find(r => r.parts.includes(part));
   if (!row) { trace?.drawOps.push({ op: 'skip', row: PF_DRAW_PART_NONE.id, part }); return { geometry: g, drawn: false, toggle }; }
   if (row.action === 'frame') {
     if (st.titled) drawTitleBar(port, chain, g, opts, trace);
-    // §5A gap colour: entry 0 of the window colour table (actb, or the declared default).
-    const actb = input.colorTable === 'actb'
-      ? chain.getResource<PfColorTable>(PF_ALERT_TABLE.type, PF_ALERT_TABLE.id, req(trace, PF_GAP.id))?.value.entries[PF_GAP.entry] ?? null : null;
+    // §5A gap colour: entry 0 of the window colour table (actb, or the declared default), found by value (CT1–CT3).
+    let gap: Rgba | null = null;
+    if (input.colorTable === 'actb') {
+      const t = chain.getResource<PfColorTable>(PF_ALERT_TABLE.type, PF_ALERT_TABLE.id, req(trace, PF_GAP.id))?.value ?? null;
+      const e = t ? colorTableEntry(t, PF_GAP.entry) : null;
+      if (e?.entry) gap = { r: e.entry.rgb[0], g: e.entry.rgb[1], b: e.entry.rgb[2], a: 255 };
+    }
     if (st.kind === PF_KIND.document || st.kind === PF_KIND.noGrowDocument) drawDocumentFrame(port, chain, g, trace);
-    else drawDialogFrame(port, chain, g, actb ? { r: actb.rgb[0], g: actb.rgb[1], b: actb.rgb[2], a: 255 } : null, trace);
+    else drawDialogFrame(port, chain, g, gap, trace);
     return { geometry: g, drawn: true, toggle };
   }
-  // Parts 4, 5/6, 9: one widget in the toggled pressed state.
-  const w = row.action as PfWidget;
-  const ids = PF_WIDGET_IDS.find(r => r.widget === w)!;
-  const pressed = !toggle;
-  if (g.shown[w]) drawWidgetGlyph(port, chain, pressed ? ids.pressed : ids.normal, g.widgets[w], trace, `${row.id},${ids.id}`);
-  else trace?.drawOps.push({ op: 'widget', row: `${row.id},${PF_WIDGET_PRESENCE.find(p => p.widget === w)!.id}`, drawn: false });
-  return { geometry: g, drawn: true, toggle: row.toggles ? !toggle : toggle };
+  // Parts 4, 5/6, 9 (one widget in the toggled state) and 258 (TG3: nothing drawn, the bit flips).
+  toggle = drawToggledWidget(port, chain, g, row, PF_WIDGET_IDS, toggle, b => b, PF_TOGGLE.flip.id,
+    w => PF_WIDGET_PRESENCE.find(p => p.widget === w)!.id, trace);
+  return { geometry: g, drawn: row.action !== 'none', toggle };
 }
 
-/** Message 6: draw the grow icon (§6.4). Sets the record flag; returns the flag after the call. */
+/**
+ * Message 6: draw the grow icon. Document family (§6.4 M6L1–M6L6): the two
+ * scroll-bar lines in the window's port (portRect = the content rect C), then
+ * the grow box; sets the record flag. Utility family (UM4): the grow box only.
+ */
 export function drawProceduralFrameGrowIcon(port: Pixmap, chain: ResourceChain, input: ProceduralFrameInput, trace?: EngineTrace): { geometry: ProceduralFrameGeometry; growFlag: boolean } {
-  const g = proceduralFrameGeometry(chain, { ...input, growFlag: true }, trace);
-  const st = g.state;
-  if (!st.visible || !st.titled || st.collapsed) {
-    trace?.drawOps.push({ op: 'skip', row: PF_GROW.message6.id, reason: 'not visible, untitled or collapsed' });
-    return { geometry: g, growFlag: true };
+  if ((input.family ?? 'document') === 'utility') {
+    const g = proceduralFrameGeometry(chain, input, trace);
+    const st = g.state;
+    if (!st.visible || !st.grow || st.collapsed) trace?.drawOps.push({ op: 'skip', row: PF_UTILITY_MESSAGE6.id, reason: 'not visible, no grow box or collapsed' });
+    else drawUtilityGrow(port, chain, g, trace);
+    return { geometry: g, growFlag: input.growFlag ?? false };
   }
-  if (st.kind !== PF_KIND.movable) trace?.drawOps.push({ op: 'line', row: PF_GROW.message6.id,
-    unimplemented: `lines on row portRect.b − ${PF_GROW.message6.lineInset} and column portRect.r − ${PF_GROW.message6.lineInset}: extent not stated` });
+  const M = PF_MESSAGE6;
+  const before = proceduralFrameState(input);
+  const g0 = proceduralFrameGeometry(chain, input);
+  if (!before.visible || !before.titled || before.collapsed) {
+    trace?.drawOps.push({ op: 'skip', row: M.guard.id, reason: 'not visible, untitled or collapsed' });
+    return { geometry: proceduralFrameGeometry(chain, input, trace), growFlag: g0.growBelongs };
+  }
+  if (before.kind === PF_KIND.movable) {
+    const g = proceduralFrameGeometry(chain, input, trace);
+    trace?.drawOps.push({ op: 'note', row: M.movable.id, reason: 'kind 5: grow box only, no lines' });
+    if (g.growBelongs) drawGrowBox(port, chain, g, trace);
+    return { geometry: g, growFlag: input.growFlag ?? false };
+  }
+  // M6L1–M6L4: pen reset, colour P(0, 0) of the document frame cicn, lines clipped to the port rectangle.
+  const C = input.content;
+  const A = PF_ART.document;
+  const F = getCicn(chain, before.hilited ? A.hilited : A.normal, trace, `${M.colour.id},${A.id}`);
+  trace?.drawOps.push({ op: 'note', row: M.pen.id, reason: 'PenNormal; clip and visible region left as they are' });
+  if (F) {
+    const c = sample(F, M.colour.sample.x, M.colour.sample.y);
+    const yH = C.bottom - M.horizontal.inset, xV = C.right - M.vertical.inset;
+    // The end pixel at column portRect.r lies outside the port rectangle (clipped).
+    line(port, c, C.left, yH, C.right - 1, yH, trace, M.horizontal.id);
+    line(port, c, xV, C.top, xV, yH, trace, M.vertical.id);
+  } else trace?.drawOps.push({ op: 'line', row: `${M.colour.id},${M.horizontal.id},${M.vertical.id}`, unspecified: 'frame cicn absent: the pen-reset foreground is not stated; lines not drawn' });
+  // M6L5: the record flag is set (titled, non-movable), which can make the grow box belong to the frame.
+  const g = proceduralFrameGeometry(chain, { ...input, growFlag: true }, trace);
+  trace?.drawOps.push({ op: 'note', row: M.recordFlag.id, growFlag: true, contentMinus: g.contentMinus });
   if (g.growBelongs) drawGrowBox(port, chain, g, trace);
+  trace?.drawOps.push({ op: 'note', row: M.growBox.id, reason: 'Window Manager port, ClipAbove; off-screen skip not modelled (one port)' });
   return { geometry: g, growFlag: true };
 }
 
@@ -780,6 +1126,7 @@ export function proceduralFrameResourceIds(): { type: string; id: number }[] {
   const out: { type: string; id: number }[] = proceduralFrameIconBlitCicnIds().map(id => ({ type: 'cicn', id }));
   const A = PF_ART;
   for (const id of [A.stripesDocument.stripes, A.stripesMovable.alert, A.stripesMovable.normal]) out.push({ type: 'cicn', id }, { type: 'ppat', id });
+  for (const id of [...PF_UTILITY_STRIPES.art.side, PF_UTILITY_GROW.small.active, PF_UTILITY_GROW.small.inactive]) out.push({ type: 'cicn', id });
   for (const r of [...PF_WIDGET_IDS, ...PF_UTILITY_WIDGET_IDS]) for (const id of [r.normal, r.pressed])
     out.push({ type: PF_WIDGET_GLYPH.maskType, id }, { type: PF_WIDGET_GLYPH.colorType, id });
   out.push({ type: PF_ALERT_TABLE.type, id: PF_ALERT_TABLE.id });
