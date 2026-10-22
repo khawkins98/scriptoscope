@@ -119,6 +119,34 @@ test('label matching is case-insensitive on new lines and catches PENDING_REVIEW
   } finally { t.done(); }
 });
 
+test('recorded history is skipped: transition replaced rows and the frozen 1.22.0 scope.review', () => {
+  const t = lane();
+  try {
+    const frozen = 'final digest reflects only replacement of pending review labels';
+    const transition = row => JSON.stringify({ version: '1.0.1', priorVersion: '1.0.0', resultSha256: {}, replaced: { assessments: [{ index: 0, row }] }, summary: 'reword stale labels', review: 'reviewed' });
+    const family = (tline, extra = '') => `{\n  "family": "tab",\n  "transitions": [\n    ${tline}\n  ],\n  "rows": [\n    {"row":"reworded"}${extra}\n  ]\n}\n`;
+    t.write('tests/rendering-requirements/families/_base.json', JSON.stringify({ scope: { review: frozen } }, null, 2) + '\n');
+    t.write('tests/rendering-requirements/families/tab.json', family(transition({ note: 'PENDING: independent review; integration review pending.' })));
+    t.write('tests/rendering-requirements/ledger.json', JSON.stringify({ scope: { review: `At the 1.22.0 split: ${frozen} Post-split changes carry their own review.` } }, null, 2) + '\n');
+    t.commitPush('history');
+    let r = t.run();
+    assert.equal(r.ok, true, r.summary);
+    t.write('tests/rendering-requirements/families/tab.json', family(JSON.stringify({ version: '1.0.1', priorVersion: '1.0.0', resultSha256: {}, replaced: {}, summary: 'review pending' })));
+    t.commitPush('label in a transition summary');
+    r = t.run();
+    assert.equal(r.ok, false, 'only replaced is skipped, not the summary');
+    t.write('tests/rendering-requirements/families/tab.json', family(transition({ note: 'old' }), ',\n    {"row":"PENDING"}'));
+    t.commitPush('live row');
+    assert.equal(t.run().ok, false, 'a live row is still scanned');
+    t.write('tests/rendering-requirements/families/tab.json', family(transition({ note: 'old' })));
+    t.write('tests/rendering-requirements/ledger.json', JSON.stringify({ scope: { review: `At the 1.22.0 split: ${frozen} Then: review pending.` } }, null, 2) + '\n');
+    t.commitPush('ledger label outside the frozen text');
+    r = t.run();
+    assert.equal(r.ok, false);
+    assert.match(rowOf(r, 'review labels').note, /ledger\.json/);
+  } finally { t.done(); }
+});
+
 test('one PENDING reviewer label on a hash-only expectations bump passes with a WARN; anything more fails', () => {
   const pending = ['PENDING: independent hash-only review of 1.0.1 required before merge'];
   const t = lane();

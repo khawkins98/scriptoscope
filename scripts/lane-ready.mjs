@@ -149,12 +149,13 @@ function walk(dir, out = []) {
 }
 
 /** Label hits in text: exact-case ones always, any-case ones only on lines absent from the base. */
-function labelHits(text, baseText) {
+function labelHits(text, baseText, scannable = line => line) {
   const baseLines = baseText == null ? null : new Set(baseText.split('\n'));
-  return text.split('\n').flatMap((line, i) => {
+  return text.split('\n').flatMap((raw, i) => {
+    const line = scannable(raw);
     const strict = [...line.matchAll(LABEL)].map(m => ({ line: i + 1, label: m[0], strict: true }));
     if (strict.length) return strict;
-    if (baseLines?.has(line)) return [];
+    if (baseLines?.has(raw)) return [];
     return [...line.matchAll(LOOSE_LABEL)].map(m => ({ line: i + 1, label: m[0], strict: false }));
   });
 }
@@ -163,10 +164,39 @@ function labelHits(text, baseText) {
  * Review-placeholder scan. `baseFile(rel)` returns that file's text at the merge-base, or
  * null (no base: every any-case variant counts). Returns { errors, warnings }.
  */
+/**
+ * Recorded history is not a placeholder: a family transition's `replaced` rows are undo
+ * copies of the prior rows (they may legitimately hold the label the transition removed),
+ * and ledger.json re-emits the frozen 1.22.0 `scope.review` text from families/_base.json
+ * (which carries it too; the history guard keeps _base.json byte-identical). Both are blanked before the label scan. Everything else on those lines is still scanned.
+ */
+export function historyFilter(root, rel) {
+  if (rel.startsWith(`${FAMILIES}/`) && rel !== `${FAMILIES}/_base.json`) {
+    return line => {
+      const body = line.trim().replace(/,$/, '');
+      if (!body.startsWith('{') || !body.includes('"replaced"')) return line;
+      try {
+        const t = JSON.parse(body);
+        if (!t || typeof t !== 'object' || !('priorVersion' in t) || !('resultSha256' in t)) return line;
+        const { replaced: _, ...rest } = t;
+        return JSON.stringify(rest);
+      } catch { return line; }
+    };
+  }
+  if (rel === LEDGER || rel === `${FAMILIES}/_base.json`) {
+    let frozen = null;
+    try { frozen = JSON.parse(readFileSync(join(root, FAMILIES, '_base.json'), 'utf8')).scope?.review ?? null; } catch {}
+    if (typeof frozen !== 'string' || !frozen) return line => line;
+    const forms = [frozen, JSON.stringify(frozen).slice(1, -1)];
+    return line => forms.reduce((l, f) => l.split(f).join(''), line);
+  }
+  return line => line;
+}
+
 export function scanLabels(root, baseFile = () => null) {
   const errors = [], warnings = [];
   const strict = [...walk(join(root, FAMILIES)).map(f => posix(relative(root, f))), LEDGER].filter(f => existsSync(join(root, f)));
-  for (const f of strict) for (const h of labelHits(readFileSync(join(root, f), 'utf8'), baseFile(f))) errors.push(`${f}:${h.line}: leftover review label "${h.label}"${h.strict ? '' : ' (new line; any case counts)'}`);
+  for (const f of strict) for (const h of labelHits(readFileSync(join(root, f), 'utf8'), baseFile(f), historyFilter(root, f))) errors.push(`${f}:${h.line}: leftover review label "${h.label}"${h.strict ? '' : ' (new line; any case counts)'}`);
   if (existsSync(join(root, EXPECTATIONS))) {
     const text = readFileSync(join(root, EXPECTATIONS), 'utf8');
     const baseText = baseFile(EXPECTATIONS);
