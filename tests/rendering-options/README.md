@@ -434,6 +434,15 @@ metrics, the hit message, text passes, the grow op and the dialog ring. They are
 todo tests marked "awaits procedural-frame driver". Their spec values are pinned
 against the model now.
 
+`procedural-frame.spec.mjs` (source/built, assertion `window.procedural-frame`)
+binds D4 and D6 to public `renderWindow`. For an active and an inactive
+200 × 140 document window of each of the five archives, it checks the structure
+size, every D4 port probe against that archive's own -14332 / -14336 cicn, and
+the D6 widget slots against each glyph's `ics8` pixels where its `ics#` mask is
+set. It caught a swapped frame state, swapped zoom/collapse ids, a dropped
+hilite gate and a 1-px collapse-slot shift. The frame-state probes cannot fail on
+apple-platinum-2 (see above).
+
 ### Tab and header source rules
 
 `tab-header-rules.mjs` restates the CDEF 8 tab selection and 0x16e body painter

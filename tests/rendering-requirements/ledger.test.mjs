@@ -663,12 +663,13 @@ test('tab/header source-rule port (main 1.23.0) preserves the exact 1.22.0 ledge
   // scroll-bar, push-button and slider transitions undone, and window at its main-ported 1.1.0. Live,
   // the scroll-bar closure of #374 moves the 18 mismatched state-selection rows to 13 verified and 5
   // unknown (scrollbar@1.3.0), slider@1.1.0 adds 54 obligations and records 33 slider mismatches
-  // against #407, and window@1.2.0 adds 25 unknown procedural-frame obligations.
+  // against #407, window@1.2.0 adds 25 unknown procedural-frame obligations, and window@1.3.0 (#412)
+  // promotes 14 corner-sprite rows to verified and adds five utility cases with 25 unknown rows.
   const mainLineage = assemble(sources.base, sources.families.map(f => ['scrollbar', 'push-button', 'slider'].includes(f.family) ? baseFamily(f) : f.family === 'window' ? atVersion(f, '1.1.0') : f)).ledger;
   assert.deepEqual(makeReport(mainLineage).requirementStatus.counts, { verified: 216, mismatched: 18, unsupported: 0, unknown: 1494 });
   assert.equal(makeReport(mainLineage).cases.length, 234);
-  assert.deepEqual(makeReport(live).requirementStatus.counts, { verified: 229, mismatched: 33, unsupported: 0, unknown: 1545 });
-  assert.equal(makeReport(live).cases.length, 234);
+  assert.deepEqual(makeReport(live).requirementStatus.counts, { verified: 243, mismatched: 33, unsupported: 0, unknown: 1556 });
+  assert.equal(makeReport(live).cases.length, 239);
 });
 
 test('code-10 port (main 1.24.0) edits exactly the recorded window rows and changes no status', () => {
@@ -692,7 +693,7 @@ test('code-10 port (main 1.24.0) edits exactly the recorded window rows and chan
 });
 
 test('window 1.2.0 appends the procedural-frame obligations to the five corner-sprite cases and changes no status', () => {
-  const w = liveFamily('window'), t = w.transitions.find(x => x.version === '1.2.0'), prior = atVersion(w, '1.1.0');
+  const w = atVersion(liveFamily('window'), '1.2.0'), t = w.transitions.find(x => x.version === '1.2.0'), prior = atVersion(w, '1.1.0');
   const slugs = ['apple-platinum-2', 'black-platinum', 'platinum-8', 'slimes', 'system7-nostalgia-silver'];
   const reqs = ['window.procedural-art-selection', 'window.procedural-geometry', 'window.procedural-sampled-colours', 'window.procedural-hilite-gating', 'window.procedural-title-mode'];
   assert.deepEqual(w.requirements.slice(t.counts.requirements).map(r => r.id), reqs);
@@ -709,4 +710,37 @@ test('window 1.2.0 appends the procedural-frame obligations to the five corner-s
   assert.deepEqual(Object.keys(t.replaced).sort(), ['assessments', 'cases']);
   const count = f => f.assessments.reduce((m, a) => (m[a.status] = (m[a.status] ?? 0) + 1, m), {});
   assert.deepEqual(count(w), { ...count(prior), unknown: count(prior).unknown + 25 });
+});
+
+test('window 1.3.0 (#412) narrows the corner-sprite cases, promotes exactly 14 rows and adds five unknown utility cases', () => {
+  const w = liveFamily('window'), t = w.transitions.find(x => x.version === '1.3.0'), prior = atVersion(w, '1.2.0');
+  const slugs = ['apple-platinum-2', 'black-platinum', 'platinum-8', 'slimes', 'system7-nostalgia-silver'];
+  assert.equal(w.version, '1.3.0'); assert.equal(priorFamily(w).version, '1.2.0');
+  assert.deepEqual(w.requirements, prior.requirements);
+  // Appended: one assertion, five utility cases, 25 unknown utility rows tied to #414.
+  assert.deepEqual(w.assertions.slice(t.counts.assertions).map(a => [a.id, a.path, a.caseIds]),
+    [['window.procedural-frame', 'tests/rendering-options/procedural-frame.spec.mjs', slugs.map(s => `${s}.window.corner-sprite`)]]);
+  const cases = w.cases.slice(t.counts.cases);
+  assert.deepEqual(cases.map(c => c.id), slugs.map(s => `${s}.window.procedural-frame-utility`));
+  assert(cases.every(c => c.inventoryClosure.status === 'open' && /#414/.test(c.inventoryClosure.reason) && /#415/.test(c.inventoryClosure.reason) && /^procedural-frame utility family/.test(c.options.windowTypes)));
+  const added = w.assessments.slice(t.counts.assessments);
+  assert.equal(added.length, 25);
+  assert(added.every(a => a.status === 'unknown' && a.assertions.length === 0 && a.issues.join() === '414' && /#414/.test(a.rationale) && /#415/.test(a.rationale)));
+  // In place: the five corner-sprite cases (document family), three evidence rows, and their assessments.
+  assert.deepEqual(t.replaced.cases.map(r => w.cases[r.index].id), slugs.map(s => `${s}.window.corner-sprite`));
+  assert(t.replaced.cases.every(r => /^procedural-frame document family/.test(w.cases[r.index].options.windowTypes) && r.row.options.windowTypes === 'synthesized corner-sprite table'));
+  assert.deepEqual(t.replaced.evidence.map(r => w.evidence[r.index].id), ['kdef.procedural-frame-gate', 'kdef.procedural-frame-geometry', 'kdef.procedural-frame-frame-lines']);
+  assert(t.replaced.evidence.every(r => JSON.stringify({ ...w.evidence[r.index], requirementIds: null }) === JSON.stringify({ ...r.row, requirementIds: null })), 'evidence: only requirementIds change');
+  const changed = t.replaced.assessments.map(r => ({ now: w.assessments[r.index], was: r.row }));
+  const promoted = changed.filter(c => c.was.status !== c.now.status);
+  assert(promoted.every(c => c.was.status === 'unknown' && c.now.status === 'verified' && c.now.assertions.join() === 'window.procedural-frame' && /IMPL-REVIEW\.json/.test(c.now.review)));
+  assert.deepEqual(promoted.map(c => `${c.now.caseId.split('.')[0]}/${c.now.requirementId}`).sort(), [
+    ...slugs.flatMap(s => [`${s}/window.wnd-ladder`, `${s}/window.corner-sprite-frame`]),
+    ...slugs.filter(s => s !== 'apple-platinum-2').map(s => `${s}/window.state-frame`)].sort());
+  const ap2 = w.assessments.find(a => a.caseId === 'apple-platinum-2.window.corner-sprite' && a.requirementId === 'window.state-frame');
+  assert.equal(ap2.status, 'unknown'); assert.match(ap2.rationale, /pixel-identical/);
+  assert(changed.filter(c => c.was.status === c.now.status).every(c => c.now.status === 'unknown'));
+  assert(w.assessments.filter(a => a.caseId.endsWith('.window.corner-sprite') && a.requirementId.startsWith('window.procedural-')).every(a => a.status === 'unknown' && !/no driver implements/.test(a.rationale)));
+  const count = f => f.assessments.reduce((m, a) => (m[a.status] = (m[a.status] ?? 0) + 1, m), {});
+  assert.deepEqual(count(w), { verified: count(prior).verified + 14, unknown: count(prior).unknown - 14 + 25 });
 });
