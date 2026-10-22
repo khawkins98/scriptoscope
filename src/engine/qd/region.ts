@@ -64,6 +64,9 @@ export interface IconSource {
   readonly pixelSize: number | null;
   /** Every stored pixel opaque (alpha 255): the I3 CopyBits source. Null when unavailable. */
   readonly unmasked: Pixmap | null;
+  /** Set when the resource adapter rejected an opaque companion (DECISIONS #7): why the
+   *  I3 copy is the masked copy of `pixmap`. Recorded on the draw op. */
+  readonly fallback?: string;
 }
 
 /**
@@ -72,7 +75,9 @@ export interface IconSource {
  * output). I2: a 1-bit pixel map → CopyMask with the icon's mask. I3: deeper →
  * CopyBits srcCopy, opaque, mask ignored. Without the unmasked pixels (or the
  * depth) the opaque copy cannot be made; that case is traced `unimplemented`
- * and drawn masked.
+ * and drawn masked. When the adapter rejected a mismatched opaque companion
+ * (`icon.fallback`, DECISIONS #7) the masked copy is the recorded policy, traced
+ * `fallback`.
  */
 export function iconBlit(port: Pixmap, icon: IconSource, srcRect: QdRect, dstRect: QdRect, trace?: EngineTrace, row?: string): void {
   if (emptyRect(srcRect) || emptyRect(dstRect)) return;
@@ -88,7 +93,9 @@ export function iconBlit(port: Pixmap, icon: IconSource, srcRect: QdRect, dstRec
     return;
   }
   trace?.drawOps.push({ op: 'iconBlit', row: `${row ? `${row},` : ''}I3`, src: srcRect, dst: dstRect, transfer: 'copyMask',
-    unimplemented: 'pixel depth or unmasked pixels unavailable; drawn masked' });
+    ...(icon.fallback ? { fallback: icon.fallback } : {}),
+    // A rejected companion with a known depth is the recorded policy, not a gap.
+    ...(icon.fallback && icon.pixelSize !== null ? {} : { unimplemented: 'pixel depth or unmasked pixels unavailable; drawn masked' }) });
   transferBits(port, icon.pixmap, srcRect, dstRect, 'copyMask');
 }
 
