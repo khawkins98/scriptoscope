@@ -657,7 +657,8 @@ the prior `window.recipe-rules` assertion, the 13 prior `wnd#` window cases and
 their 13 prior `window.flag-gated-parts` assessments; the ledger test restores
 them (and drops the appended row) to rebuild the exact 1.23.0 ledger.
 
-[kdef231-code10-widgets.md](../../docs/spec/kdef231-code10-widgets.md) shows that
+[kdef231-code10-widgets.md](../../docs/spec/kdef231-code10-widgets.md) (spec writers and verifiers only
+until its L2 split) shows that
 `0x5178` hands `0x49d6` its `fp@(24)` byte, which is always `0x4a64`'s too-short
 byte (set only at `0x4e0e` when the placed extent is below the fixed-cell sum),
 not the `#1`/title byte at `fp@(26)`. The decode was independently reviewed

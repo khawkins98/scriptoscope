@@ -38,6 +38,8 @@ test("rule ids also include the family's own ledger evidence ids, and only its o
   assert.ok(!w.has('fixture.band-collision-literal'), 'shared.json evidence is not a family rule');
   assert.equal(ledgerEvidenceIds('nosuchfamily').size, 0);
   assert.equal(ledgerEvidenceIds('../families/window').size, 0, 'family names are not paths');
+  assert.equal(ledgerEvidenceIds('shared').size, 0, 'shared.json is not a family');
+  assert.equal(ledgerEvidenceIds('_base').size, 0);
   const base = { a: '1' }, head = { a: '2' };
   assert.deepEqual(compare({ family: 'window', base, head, rules: w, expected: [{ key: 'a', rule: 'kdef.too-short-step', sha256: '2', why: 'too-short step' }] }).errors, []);
   assert.match(compare({ family: 'scrollbar', base, head, rules: sb, expected: [{ key: 'a', rule: 'kdef.too-short-step', sha256: '2', why: 'x' }] }).errors.join('\n'), /names rule "kdef\.too-short-step", not a decision-table row of the family spec or an evidence id/);
@@ -54,6 +56,12 @@ test('compareBaseHarness: a change the base harness sees must be listed by key a
   assert.deepEqual(compareBaseHarness({ family: 'window', base, head, expected }).errors, []);
   assert.match(compareBaseHarness({ family: 'window', base, head, expected, declared: false }).errors.join('\n'), /does not declare "engine-diff: window"/);
   assert.deepEqual(compareBaseHarness({ family: 'window', base, head: base }).errors, [], 'no change, nothing to list');
+  // #411 review B2: an inert entry (sha256 equal to the base digest) covers nothing.
+  r = compareBaseHarness({ family: 'window', base: { k: 'A' }, head: { k: 'B' }, expected: [{ key: 'k', rule: 'W2', sha256: 'A', why: 'earlier PR' }] });
+  assert.equal(r.errors.length, 1, 'an inert entry does not cover a base-harness diff');
+  assert.match(r.errors[0], /sees k change/);
+  r = compareBaseHarness({ family: 'window', base: { k: 'A' }, head: { k: 'B' }, expected: [{ key: 'k', rule: 'W2', sha256: null, why: 'x' }] });
+  assert.deepEqual(r.errors, [], 'an entry blessing a change (here removal) from the base covers the key');
 });
 
 test('compare: unlisted, mis-blessed, undeclared, bad rule and stale entries fail; blessed and inert pass', () => {
@@ -222,6 +230,21 @@ test('CLI: a cases.mjs edit cannot hide a runtime regression; the base copy of t
   assert.match(r.stdout, /engine-diff: window: 1\d{3} cells, 0 changed/, 'the edited head harness hides the change');
   assert.match(r.stderr, /window: the base copy of cases\.mjs sees \S+ change .* the head harness may be hiding a runtime change/);
   assert.deepEqual(readdirSync(join(wt, 'tests/engine-diff')).filter(n => n.startsWith('.cases-base-')), [], 'the temporary base harness is removed');
+
+  // #411 review B1: a module-level patch in the head cases.mjs that restores a runtime
+  // table object must not leak into the base pass (it runs in its own process).
+  g(wt, 'checkout', '-q', '--', '.');
+  const sbTables = join(wt, 'src/engine/tables/scrollbar.ts');
+  const TRACK = 'export const SCROLLBAR_TRACK_BASE = { horizontal: -8288,';
+  assert.ok(read(sbTables, 'utf8').includes(TRACK));
+  write(sbTables, read(sbTables, 'utf8').replace(TRACK, 'export const SCROLLBAR_TRACK_BASE = { horizontal: -8287,'));
+  const control = run();
+  assert.equal(control.status, 1, 'control: the runtime change alone fails');
+  write(cases, "(await import('../../src/engine/tables/scrollbar.ts')).SCROLLBAR_TRACK_BASE.horizontal = -8288;\n" + read(cases, 'utf8'));
+  r = run();
+  assert.equal(r.status, 1, r.stdout + r.stderr);
+  assert.match(r.stdout, /engine-diff: scrollbar: 2\d{3} cells, 0 changed/, 'the patched head harness hides the change');
+  assert.match(r.stderr, /scrollbar: the base copy of cases\.mjs sees \S+ change/);
 
   // A runtime API rename that the head harness follows but the base copy cannot run fails closed.
   g(wt, 'checkout', '-q', '--', '.');
