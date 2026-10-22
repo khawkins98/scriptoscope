@@ -238,6 +238,7 @@ test('code 10 is fixed at and above the template and dropped below it (0x4dfe..0
   assert.equal(sideTooShort(wide.windowType.edges.top, 20 - 7), false);
   // Boundary: extent == fixed0 is not too short (0x4e0c, signed greater-or-equal branch).
   assert.deepEqual(widths(edge([[8, 1], [10, 4], [1, 2]], 6)), [0, 4, 2]);
+  assert.equal(sideTooShort(edge([[8, 1], [10, 4], [1, 2]], 6).windowType.edges.top, 6 - 7), false);
   // Widget-gated codes bound fixed0, so the verdict can be undetermined.
   assert.equal(sideTooShort([{ at: 0, part: 'part-0' }, { at: 4, part: 'part-10' }, { at: 8, part: 'part-2' }], -2), null);
   // Popup family with a code-5 anchor takes 0x4c64 and is never too short.
