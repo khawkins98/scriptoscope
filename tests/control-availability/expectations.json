@@ -2083,7 +2083,7 @@
   "review": {
     "date": "2026-10-22",
     "reviewers": [
-      "PENDING independent hash-only review (Tier 0) of the scrollbar #374 ledger PR: 1.0.13 -> 1.0.14 changes only the nine kdef231-reference.md documentSha256 values (5ca8cee0 -> 40366d19) after the section 2.4 rows for -8288/-8280 (now tier 0 inactive, not pressed) and -10205..-10208 (scroll-bar thumbs; stale controls.ts:166 pointer removed) were corrected; no case-cited address line (0x758e, 0x76c4, 0x76d2, 0x76fe) changed; 1.0.13 review archived verbatim; not original provider or pixel-fidelity approval"
+      "PM Tier-0 mechanical check of PR #399 (head 07149b8e, 2026-10-22): 1.0.13 -> 1.0.14 changes only the nine kdef231-reference.md documentSha256 values (5ca8cee0 -> 40366d19) after the section 2.4 scroll-bar id corrections (-8288/-8280 inactive tier-0 track; -10205..-10208 scroll-bar thumbs; spec/engine-table pointers); 1.0.13 review archived verbatim; all 27 case inputs, outcomes and cited addresses unchanged; not original provider or pixel-fidelity approval"
     ],
     "inventoryVersion": "1.0.14",
     "inventorySha256": "a46605cae8896cf1a07c3d7db822457d9fe15d9013c970230da8d5689f0a918b",
