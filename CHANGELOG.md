@@ -7,6 +7,21 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+## [0.2.0] — 2026-10-22
+
+First release from the v2 engine-model branch (#378). This is an incremental cutover: further control families ship in later minor releases, and "every family on the engine" is the 1.0 milestone. The previous version label was 0.0.1; there was no 0.1.x release.
+
+- **v2 engine core.** QuickDraw-style primitives, a ResourceChain, state normalisation and a per-call trace in `src/engine/`. Window chrome now draws through it with no pixel change.
+- **Scroll bar on the decoded 2.3.1 CDEF** (fixes #374). Adds the `pressedPart` option. `proportional` and `thumbExtent` are now ignored; see "Migration from 0.1 (scroll bar)" below.
+- **Window too-short step and widget hit-rect remap**, carried over from main (#377).
+- **Fidelity tooling:**
+  - the `lane:ready` pre-review gate and a docs CI job;
+  - a per-family requirement ledger with a history guard;
+  - the engine trace-diff gate;
+  - a clean-room linter and implementer brief;
+  - a frozen routine denominator of 552 in-scope ranges.
+- **Decoded specs** (docs only, no runtime change yet): the procedural window frame, the slider (CDEF 3) and answers to the QuickDraw primitive questions.
+
 - Add the v2 engine diff gate (PLAN §6). `tests/engine-diff/run.mjs` renders a fixed matrix in Node for every archive. For window chrome that is every sliced window type, both states, three sizes and two title widths (1,656 cells). For the scroll bar it is both orientations, every public state with each pressed part, three lengths and three values (2,592 cells). Each call is reduced to a trace digest: resolved resource ids, named rects, ordered draw steps and the output pixels. The window trace comes from the public placement map, because `composeWindowChrome` passes no engine trace, so the pixel digest is what makes a tile-direction change visible. Each cell is compared with the baseline at the PR's merge-base. A changed, added or removed cell must be blessed in `tests/engine-diff/expected/<family>.json` with its new digest, a decision-table row id from the family spec and a reason. The family must be declared with an `engine-diff: <family>` PR body line, and the committed baseline must be the head's output. Every family with a baseline at the base is judged even if the head's `cases.mjs` drops it, so a deleted or renamed family fails, a baseline belonging to no family fails, and a seed may not reproduce an existing family's digests. Baselines for both families are seeded from current v2. The gate runs in the main CI job (Node only, a few seconds), in the v2 docs workflow (so a docs-only PR cannot delete a spec row an expected entry cites) and in `lane:ready`. Proof: flipping table W's code 11/14 tile direction in `src/engine/tables/windowBlit.ts` changes 28 animals and monkey-paradise window cells, and making TR3 pick tier 2 for pressed in `src/engine/tables/scrollbar.ts` changes 1,620 scroll-bar cells. The gate fails on both. `lane:ready` now checks the pushed head at the branch's upstream (`@{u}`) and fails when that upstream is the base branch itself (#378).
 
 - **v2 engine: the scroll bar now draws through the decoded 2.3.1 scroll-bar CDEF** (#395, fixes the selection mismatches in #374). Track tier, the disabled and inactive thumb, the icon-lane arrows, the composite-art test (bounds > 16) and pressed non-hit arrow boxes now follow `docs/spec/engine/scrollbar.md`. All 144 sampled selection rows agree in source and built modes. Reviewed scroll-bar goldens are re-recorded; only scroll-bar cells change. The legacy scroll-bar drawing code is removed.
