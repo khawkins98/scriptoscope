@@ -29,6 +29,8 @@ Reviewed: #378, #221 exit criteria, RE-ADVISORY.md + re-routine-inventory.json, 
 
 ## 2. Branch and integration strategy
 
+> **Amended 2026-10-22 (DECISIONS #8):** cutover is incremental. v2 merges into main through per-family minor releases (0.2.0 first), and the "v2 → main release criteria" below now define **1.0** rather than the first release. The `main` freeze applies between releases; the Monday main → v2 sync still holds.
+
 **Long-lived `v2` integration branch**, not trunk-with-flag. Reasons: the public type changes (manifest roles, trace shape, `pressedPart`) cannot be flagged; a shipped flag doubles the bundle; and `main` must keep deploying GH Pages from reviewed goldens while v2 goldens churn.
 
 - `main` is **frozen to hotfixes, docs, rule tables and evidence** for the duration. Runtime fixes that are themselves a family migration (#374 scroll bars, #377 code-10/widget remap) land on `v2` as part of that family's driver, with the issue noted on main's CHANGELOG as "fixed in v2". Only a user-visible regression gets a runtime hotfix on main, and that commit is cherry-picked to v2 the same day.
