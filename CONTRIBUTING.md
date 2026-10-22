@@ -251,7 +251,25 @@ feat(api)!: rename ScriptoscopeWindow constructor option `theme` to `themeId`
   pushed head equal to the tested head, rejects leftover `PENDING` / "Awaiting
   independent review" / "PROPOSED verified" labels, and runs the clean-room linter,
   `gen-trap-table --check`, `report-coverage`, `build-ledger.mjs --check`, the
-  ledger history guard, `validate-source`, typecheck and `npm test`. One `PENDING`
+  ledger history guard, `validate-source`, typecheck and `npm test`. It also fails
+  a silent revert: a branch built on an old tree but given a new parent, so its diff
+  undoes base commits that landed in between (#440 undid #434, #435 and #438 that
+  way). The window is the last 50 first-parent base commits before the merge-base
+  (about a day of v2), filtered to those that changed a file the branch changes. A
+  commit counts as undone when the branch's copy of a file equals the copy before that
+  commit, or when the branch's diff reverses every hunk the commit made, as those hunks
+  stand at the merge-base (its new lines removed and its old lines restored, not
+  rewritten into something else). Removal alone (a deleted file, or exactly deleting lines a commit only
+  added) counts only when the same commit is also undone with its old content restored,
+  or is removed that way from two or more files. The row names the file and the base
+  commit; rebase onto the base to fix it. A deliberate revert passes when a branch
+  commit carries git's `This reverts commit <sha>` line,
+  or with `-- --allow-revert <sha>` (7+ hex characters). Known limits: commits older
+  than the window (a lane started from a stale local tree more than a day old), a
+  revert of only some of a commit's hunks, and removal-only reverts with no such
+  corroboration, such as deleting files a commit added or a CHANGELOG conflict resolved
+  to "ours". Typecheck, tests, goldens and the ledger history guard are the backstop
+  there. One `PENDING`
   reviewer label on a hash-only expectations bump passes with a WARN, so the PM
   replaces it after the Tier 0 check. Paste its summary block, with the commit and
   each exit code, into the PR body. A PR without a passing summary goes back

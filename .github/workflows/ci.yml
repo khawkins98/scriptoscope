@@ -32,7 +32,7 @@ jobs:
     container:
       image: mcr.microsoft.com/playwright:v1.64.0-noble@sha256:06a9939e57531807f8d5fd76ce44b53165ffb7d7501d87ab10e285c20b1e971f
       options: --ipc=host
-    timeout-minutes: 20
+    timeout-minutes: 30
 
     steps:
       - uses: actions/checkout@v6
@@ -97,6 +97,12 @@ jobs:
       # have a stale `dist/` from prior dev. Order matters on a clean tree.
       - name: Library build
         run: npm run build
+
+      # The Pages demo and the public /theme-loader/ wrapper build (no deploy, no upload).
+      # Without this the Pages deploy is the first place a broken demo or loader build
+      # shows up. build:demo re-runs the library build first; that is a few seconds.
+      - name: Demo and loader build (Pages bundle, not deployed)
+        run: npm run build:demo
 
       # The maintainer-defined pre-push umbrella — typecheck + test +
       # lint:themes --strict + audit:scenes --check. All four are pure
