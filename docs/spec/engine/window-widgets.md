@@ -1,0 +1,401 @@
+# `window.layout` + `window.widgets` — Kaleidoscope 2.3.1 window recipe: part-code widths, the too-short step, the title side, and the rect-list widget remap, draw and hit
+
+Behavioural spec, v2 lane L2 (2026-10-22). Template:
+[TEMPLATE.md](TEMPLATE.md). It replaces the 2026-10-21 decode note
+`docs/spec/kdef231-code10-widgets.md` (now a stub; implementers do not open
+it). The instruction-level reasoning is in `window-widgets.evidence.md`;
+implementers do not open that either. Implementers read this file,
+[`qd-primitives.md`](qd-primitives.md) (tile and scale blits),
+[`../compositor-spec.md`](../compositor-spec.md) ("Distribution", for the
+grower arithmetic this file cites), Apple Inside Macintosh / Universal
+Interfaces, and the rule tables the [implementer brief](IMPLEMENTER-BRIEF.md)
+allows.
+
+Every row cites the 2.3.1 `kDEF 0` listing by file offset. Rect intervals are
+half-open `[start, end)`. All arithmetic is signed 16-bit unless a row says
+otherwise, and every division truncates toward zero (QuickDraw-era `DIVS`
+semantics: the remainder takes the sign of the dividend).
+
+This re-trace (2026-10-22) **corrects three claims of the 2026-10-21 note**.
+They are listed in §8, and the runtime findings they cause are in §7.2.
+
+## 1. Unit id and scope
+
+| field | value |
+|---|---|
+| unit id | `window.layout` (per-side layout, too-short step, title side, width allocation verdicts) and `window.widgets` (rect-list widget remap, draw, hit) |
+| family | window (sliced `wnd#` recipes, the 13 archives that ship them) |
+| message | every WDEF message except the custom messages 1000 and 1001 runs the layout (`0x2910..0x291e`). The widget draw answers `wDraw` (0) with draw parameter 0, 4, 5, 6 or 9. The widget hit answers `wHit` (1) |
+| binary | Kaleidoscope 2.3.1 `kDEF 0`, 107,726 B, SHA-256 `2c027276dae2355964a0dde1ace31f60ba845ab2c5fbf0496fd34ab2afe7c342` |
+| cited range | `0x2e02..0x38c8` (per-message flags, layout cache, per-side layout loop), `0x4778` (content rect), `0x487e` (collapse-box test), `0x49d6..0x4a62` (part-code verdict), `0x4a64..0x5176` (per-side layout), `0x5178..0x5354` (allocation walk), `0x5356..0x552e` (cell rects), `0x5cb6..0x5dda` (remap), `0x5ddc..0x6060` (widget hit), `0x6062..0x638e` (widget draw), `0x4124..0x41e6` (hit dispatch), `0x41ee..0x42d6` (draw dispatch), `0x572e` (full draw: `0x58b8..0x58d8`, `0x5990..0x59c4`, `0x5a28..0x5a42`) |
+| out of scope | the grower arithmetic itself (two-pass shares, tiles and remainder: [compositor-spec "Distribution"](../compositor-spec.md), restated only where this unit changes it); the tile and scale blits ([`qd-primitives.md`](qd-primitives.md)); the popup-family placement (`0x4c6a..0x4dfa`, §6 Q1); the title text draw (`0x5530`, §6 Q4); the built-in procedural frame of the five recipe-less schemes ([`procedural-frame.md`](procedural-frame.md)) |
+
+## 2. Inputs
+
+### 2.1 Recipe and rects
+
+| input | meaning | values / domain |
+|---|---|---|
+| `side` | which frame side a list describes | 0 top, 1 bottom, 2 left, 3 right. The layout runs them in this order (`0x3826..0x38c0`) |
+| `horizontal(side)` | the side runs along x | true for sides 0 and 1, false for 2 and 3 (`0x3848..0x3888`) |
+| template list `S` | the side's `wnd#` side list as authored: a count `N` and entries `0..N`, each a part code and a border. `S[i]` is entry *i*'s border, `code(i)` its part code | `N = −1` means the side has no recipe: the layout returns at once (`0x4a8a..0x4a90`) and the side has no segments anywhere below |
+| placed list `P` | the output: same count and codes as `S` (`0x4a88`, `0x4b14`), borders in global coordinates | written by this unit |
+| segment *i* | the cell `[border[i−1], border[i])` tagged `code(i)`, for *i* = 1..N. Entry 0's code is never read by the layout or the remap; `[0, S[0])` is not a segment | END-based ([compositor-spec](../compositor-spec.md) "Draw + distribution") |
+| `w(i)` | template width of segment *i*: `S[i] − S[i−1]`, taken in list order (the lists are not sorted) | may be 0 |
+| `C` | content rect: the window's port rect converted to global coordinates (`0x4778..0x47e6`). For `wGrow` (5) it is the rect passed with the message (`0x4782..0x4796`). When `collapsed`, its bottom is set to its top, or its right to its left under `sideTitle` (`0x47ea..0x4802`) | Rect |
+| rect-list lookup by type | the **last** rect-list entry of the requested type; if no entry has that type, the first entry's rect (`0x6582..0x65b8`). `A`, `T4` and the widths in WD9 and HT7 use it | Rect |
+| `A` | template body rect: the rect-list lookup (`0x6582`) for type 0 | Rect, template coordinates |
+| `B` | template bounds: the chrome template cicn's bounds | Rect |
+| `T4` | the title text rect: the rect-list lookup for type 4 (`0x4a74..0x4a82`) | Rect, template coordinates |
+| widget entries | rect-list entries of type 1 (close), 2 (zoom), 3 (collapse). Several entries may share a type; every walk below visits entries **last to first** (`0x6020..0x6056`, `0x635c..0x6386`) | Rects, template coordinates |
+| `title` | the window title, read with `$A919` GetWTitle (`0x4a94..0x4a9c`); `titleLen` is its length byte; `SW` = `$A88C` StringWidth(title) in the port's current face (`0x4a9e..0x4aa6`) | Str255 |
+
+### 2.2 Window flags (rebuilt for every message, `0x2e0a..0x2e62` then the per-procID table at `0x2e6c`)
+
+| flag | meaning | source |
+|---|---|---|
+| `hasClose` | the window's `goAwayFlag` | read at `0x4a1a`, `0x4a3e`, `0x412c` |
+| `hasZoom` | zoom box present (set by the per-procID table) | read at `0x4a24`, `0x4a48`, `0x4168` |
+| `collapseRequested` | collapse box requested by the per-procID table; the too-short step can clear it (TS3) | cleared `0x2e26`, set `0x2ee6..0x31c0`, cleared `0x4e3a` |
+| `widgetFrame` | per-procID flag that gates every widget hit (`0x411c`) and the collapse box (`0x487e`). Meaning beyond that is not decoded | `0x4886`, `0x411c` |
+| `noWidgets` | per-procID flag: when set at window creation the `goAwayFlag` is cleared (`0x3958..0x395e`), and it vetoes the collapse box | `0x488c` |
+| `collapseBox` | `collapseRequested ∧ widgetFrame ∧ ¬noWidgets` | `0x487e..0x489a` |
+| `drawActive` | the window's `hilited` (classic `WindowRecord` layout; an inference from the layout, see §6 Q7), forced on for some procID families | `0x2e52`, `0x315e`, `0x31d4` |
+| `collapsed` | the window is collapsed: the result of a helper that asks the Appearance Manager (`$AA74` selector 16, identity not in the pinned Traps.h) or else an auxiliary-window flag bit (`0xf078`). Cleared for the popup family | `0x2e62`, `0x3216` |
+| `partialZoom`, `partialZoomColumn` | the vertical/horizontal-zoom document variants (procIDs 1026–1029; the column flag for 1026/1027) and families 66/67 with some variations | `0x2fba..0x3038`, `0x3194`, `0x31a8` |
+| `altWidgets` | alternate widget cicn set (+32) and bold title face | `0x3132`, `0x31ba`, read `0x4f0e`, `0x607e` |
+| `sideTitle` | side-titled variant: widget id +8 with a −8 fallback; collapsed content zeroes width not height | `0x3150`, `0x31fe` |
+| `popupFamily` | procID family 63 | `0x3210` |
+| `outlineDraw` | draw parameter 0 draws the outline instead of the frame | `0x428c..0x4292` |
+| `cacheable` | the window's private data carries the layout-cache tag, written at window creation only when `hasZoom` was set (`0x397c`, `0x39d2`) | `0x3746..0x376a` |
+
+### 2.3 Scriptoscope mapping and declared defaults
+
+The runtime has no procID. Declared defaults (modern policy, not original
+observations): `popupFamily` from the `popup-window` request (service slot 8),
+`partialZoom`, `partialZoomColumn`, `altWidgets`, `sideTitle`, `collapsed`,
+`outlineDraw` and `noWidgets` clear, `widgetFrame` set, `drawActive` from the
+window's active state. `hasClose`, `hasZoom` and `collapseRequested` are
+currently one runtime flag (finding F7).
+
+## 3. Outputs
+
+- **Placed lists** `P` for the four sides (LS, TS, AP, TT, AW rows), and a
+  possibly cleared `collapseRequested` (TS3), which later sides of the same
+  message and every later reader of `collapseBox` see.
+- **Widget rects**: the remapped rect of each widget entry (RM rows), in
+  global coordinates; `(0,0,0,0)` when it cannot be placed.
+- **Draw order** of the full frame: sides in order, each side's segments 1..N
+  (WD4), then the partial-zoom widget (WD5), then the popup-family raw blits
+  (WD6). Resource requests (widget cicns): WD8–WD11; a NULL widget cicn is
+  retried only at the `sideTitle` fallback id, then the stage is skipped.
+
+## 4. Decision tables
+
+### 4.1 Part-code verdict `V(code, drop)` (`0x49d6`, table at `0x49e4`)
+
+`V` answers "does this code collapse to width 0?". `drop` is the side's drop
+flag (TS1).
+
+| # | code | `V` is "zero" when | otherwise | source |
+|---|---|---|---|---|
+| PV1 | 0 | always | — | `0x4a12` |
+| PV2 | 2 (close gap) | `¬hasClose` | keep | `0x4a16..0x4a22` |
+| PV3 | 3 (zoom gap) | `¬hasZoom` | keep | `0x4a24..0x4a2c` |
+| PV4 | 4 (collapse gap) | `¬collapseBox` | keep | `0x4a2e..0x4a38` |
+| PV5 | 10 | `drop` | keep | `0x4a0c` |
+| PV6 | 15 (close cell) | `hasClose` | keep | `0x4a3a..0x4a46` |
+| PV7 | 16 (zoom cell) | `hasZoom` | keep | `0x4a48..0x4a50` |
+| PV8 | 17 (collapse cell) | `collapseBox` | keep | `0x4a52..0x4a5c` |
+| PV9 | any other code | never | keep | default `0x4a5e` |
+
+### 4.2 Layout sums and placed ends (`0x4a64`, first pass `0x4af8..0x4be0`, ends `0x4be4..0x4c60`)
+
+The first pass visits segments 1..N with `drop = 0`.
+
+| # | quantity | definition | source |
+|---|---|---|---|
+| LS1 | `F` (required fixed width) | Σ `w(i)` over segments with `V(code, 0)` = keep and code ∉ {5, 6, 8, 11, 12, 13, 14, 18}. Code 10 counts | `0x4b64..0x4ba4` |
+| LS2 | `D` (droppable width) | Σ `w(i)` over code-10 segments | `0x4ba8..0x4bae` |
+| LS3 | `G` (collapse gap) | Σ `w(i)` of code 4 minus Σ `w(i)` of code 17, each term only while `collapseBox` | `0x4bb2..0x4bd2` |
+| LS4 | `anchor` | index of the **last** code-5 segment, 0 when none | `0x4b1a..0x4b20` |
+| LS5 | `growersBefore`, `growersAfter` | count of segments with code 8, 11, 12 or 18; a segment counts as "after" once any code-5 segment has been seen, else "before" | `0x4b3e..0x4b60` |
+| LS6 | `W` (title width) | `SW`, then for every code-5 segment *i*: `W −= (T4.right − S[i]) + (S[i−1] − T4.left)`, which is `SW` plus the cell's margins around `T4` | `0x4b20..0x4b3a` |
+| LS7 | placed ends | horizontal: `P[0] = S[0] + C.left − A.left`, `P[N] = S[N] + C.right − A.right`; vertical: the same with top and bottom | `0x4be4..0x4c60` |
+| LS8 | `E` (placed extent) | `P[N] − P[0]` = template extent + (content size − template body size) on the side's axis | `0x4dfe..0x4e04` |
+
+### 4.3 Too-short step (`0x4dfe..0x4e42`)
+
+Runs once per side, unless AP1 applies. `drop` starts at 0 (`0x4aac`).
+
+| # | condition | effect | source |
+|---|---|---|---|
+| TS1 | `E < F` | `drop = 1`; `F −= D`; `W = 0`; `titleLen = 0` (the layout's own copy of the title) | `0x4e08..0x4e20` |
+| TS2 | TS1 did not fire (`E ≥ F`) | nothing; `drop` stays 0, and code 10 keeps its template width at every size from the template up | `0x4e0c` |
+| TS3 | TS1 fired, then still `E < F`, and `G > 0` | clear `collapseRequested` for the rest of this message (window-wide, so the sides laid out later see codes 4 → zero and 17 → keep, and so does this side's allocation); `F −= G` | `0x4e24..0x4e42` |
+| TS4 | TS1 fired, and `E ≥ F` after dropping `D`, or `G ≤ 0` | the collapse box is left alone | `0x4e2e..0x4e38` |
+
+Whether the side carries a title does not enter TS1–TS4.
+
+### 4.4 Allocation path per side (`0x4c64`, `0x4e46..0x4e50`, `0x5148..0x516c`)
+
+| # | condition | path | source |
+|---|---|---|---|
+| AP1 | `anchor ≠ 0` and `popupFamily` | popup placement (§6 Q1) with `drop = 0` and the title gate set to 1. **The too-short step does not run**; code 10 always keeps its width | `0x4c64..0x4dfa` |
+| AP2 | otherwise, after TS: `anchor ≠ 0` and `horizontal(side)` | titled side (§4.6) | `0x4e46..0x4e50` |
+| AP3 | otherwise | one allocation over segments 1..N: required `F`, primary count `growersBefore + growersAfter`, the side's `drop`, title gate 0 | `0x5148..0x5166` |
+
+Under AP3 the title gate is 0, so every code-5 or code-6 segment gets width 0
+(AW5). No corpus side has a 5/6 segment off an AP2 side (§6.2).
+
+### 4.5 Per-cell width in an allocation (`0x5178..0x5354`)
+
+An allocation is called with a segment range `first..last`, a required width,
+a primary count, the side's `drop`, and a title gate.
+
+| # | code | width | source |
+|---|---|---|---|
+| AW1 | 12 | whole tiles of the primary share ([compositor-spec](../compositor-spec.md) "Distribution") | `0x5266..0x529a` |
+| AW2 | 8, 11, 18 | primary share + remainder share | `0x529e..0x52d8` |
+| AW3 | 13, 14 | remainder share only | `0x52da..0x52fa` |
+| AW4 | any other, `V(code, drop)` = zero | 0 | `0x52fc..0x530a` |
+| AW5 | 5 or 6, title gate 0 | 0 | `0x530c..0x531c` |
+| AW6 | any other | its template width `w(i)` | `0x531e..0x532a` |
+| AW7 | (walk) | `P[i] = P[i−1] + width(i)` for *i* = first..last, in order | `0x532e..0x534a` |
+| AW8 | (budget) | `budget = P[last] − P[first−1] − required`. **It is not clamped.** A negative budget yields negative primary shares, so growers get negative widths and the later borders move back; a placed cell with right ≤ left (bottom ≤ top) is not drawn (WD4) | `0x5180..0x519c`, `0x51b4..0x51c6` |
+| AW9 | (no primary grower, or budget 0) | the first pass is skipped; every 8/11/12/13/14/18 cell gets 0 | `0x51a4..0x51b0`, `0x52b0..0x52b8`, `0x52e6` |
+
+So code 10 is "fixed, but dropped first when the side is too short" (PV5 +
+TS1 + AW4/AW6), and codes 5/6 never grow inside an allocation.
+
+### 4.6 Titled side (AP2, `0x4e54..0x5146`)
+
+`Fb` and `Fa` are recomputed after TS, with the side's current `drop`.
+
+| # | condition | effect | source |
+|---|---|---|---|
+| TT1 | always | `Fb` (`Fa`) = Σ `w(i)` over segments *i* < `anchor` (> `anchor`) with `V(code, drop)` = keep and code ∉ {8, 11, 12, 13, 14, 18}. Codes 5/6 count here; code 10 does not once `drop = 1` | `0x4e54..0x4eec` |
+| TT2 | `R = E − Fb − Fa < W` | `W −= SW − SWc`, where `SWc` is StringWidth(title) measured with `$A888` TextFace condense (32), or bold + condense (33) under `altWidgets`; the face is then set back to plain (0), or bold (1) under `altWidgets` | `0x4eee..0x4f42` |
+| TT3 | `R ≤ 2` | `titleLen = 0`, `W = 0` | `0x4f46..0x4f62` |
+| TT4 | `titleLen = 0` (by TS1 or TT3) | if segment `anchor+1` is code 6, `Fa −=` its width; if segment `anchor−1` is code 6, `Fb −=` its width | `0x4f66..0x4fa4` |
+| TT5 | always | `P[anchor−1] = P[0] + Fb`; `P[anchor] = P[N] − Fa` | `0x4fa8..0x4fcc` |
+| TT6 | `growersBefore > 0`, `growersAfter > 0` and `Fb > Fa` | `L = mid − (W + (T4.left − S[anchor−1]) + (T4.right − S[anchor])) / 2`; if `L > P[anchor−1]`, `P[anchor−1] = L`. Then if `P[anchor−1] + W < P[anchor]`, `P[anchor] = P[anchor−1] + W` | `0x4fd0..0x5046` |
+| TT7 | otherwise | if `growersAfter > 0`: `R' = mid + (W + (S[anchor] − T4.right) + (S[anchor−1] − T4.left)) / 2` when `growersBefore > 0`, else `R' = P[anchor−1] + W`; if `R' < P[anchor]`, `P[anchor] = R'`. Then, if `growersBefore > 0`: if `P[anchor] − W > P[anchor−1]`, `P[anchor−1] = P[anchor] − W` | `0x5048..0x50ba` |
+| TT8 | `W < 0` | `P[anchor−1] −= S[anchor−1] − T4.left`, `Fb −=` the same; `P[anchor] −= S[anchor] − T4.right`, `Fa +=` the same; then the working template borders `S[anchor−1]`, `S[anchor]` become `T4.left`, `T4.right` for the rest of this message | `0x50be..0x50fa` |
+| TT9 | always | two allocations: segments `1..anchor−1` (required `Fb`, primary count `growersBefore`) and `anchor+1..N` (required `Fa`, `growersAfter`), both with the side's `drop` and the title gate `titleLen` | `0x5100..0x513c` |
+
+`mid = (C.left + C.right) / 2` (`0x4fe6..0x5002`, `0x5054..0x5070`). The
+anchor (code-5) cell is not part of either allocation. Its span is
+`[P[anchor−1], P[anchor])`, where the first allocation's walk (AW7) rewrites
+`P[anchor−1]` and TT5–TT8 set `P[anchor]`.
+
+After a title drop (`W = 0`), TT6/TT7 leave the anchor cell at width ≤ 0
+whenever either half has a primary grower. With no grower in either half, the
+anchor cell spans the whole room `E − Fb − Fa`, which can be positive (§6 Q2).
+
+### 4.7 Layout cache (`0x3746..0x38a8`)
+
+| # | condition | effect | source |
+|---|---|---|---|
+| LC1 | `cacheable`, message ≠ `wCalcRgns` (2), and `C` equals the cached content rect (`$A8A6` EqualRect) | the four placed lists are copied from the cache and **no layout runs**: no LS, TS, AP, TT or AW row for this message | `0x376c..0x3810` |
+| LC2 | otherwise | the layout runs; when `cacheable` the rect and each placed list are stored | `0x3814..0x38a8` |
+| LC3 | every message | `collapseRequested` is first re-derived from the per-procID table (`0x2e26`, table), so after LC1 it holds its table value even when the cached geometry was laid out with it cleared | `0x2e26`, `0x4e3a` |
+
+### 4.8 Cell rects (`0x5356`)
+
+For side *s* and segment *i*, the template cell `t` and placed cell `p`. Along
+the side: `t` spans `[S[i−1], S[i])`, `p` spans `[P[i−1], P[i])`.
+
+| # | side | across the side (template `t`, placed `p`) | source |
+|---|---|---|---|
+| CR1 | 0 top | `t`: `[0, A.top)`; `p`: `[C.top − A.top, C.top)` | `0x538e..0x53ec` |
+| CR2 | 1 bottom | `t`: `[A.bottom, B.bottom)`; `p`: `[C.bottom, C.bottom + B.bottom − A.bottom)` | `0x53f0..0x5454` |
+| CR3 | 2 left | `t`: `[B.left, A.left)`; `p`: `[C.left − A.left + B.left, C.left)` | `0x5458..0x54c0` |
+| CR4 | 3 right | `t`: `[A.right, B.right)`; `p`: `[C.right, C.right + B.right − A.right)` | `0x54c2..0x5528` |
+
+### 4.9 Widget rect remap (`0x5cb6`)
+
+Input: a widget entry rect `r` in template coordinates. Output: `r` placed.
+
+| # | condition | effect | source |
+|---|---|---|---|
+| RM1 | no chrome template loaded | `r` is returned unchanged | `0x5cd0..0x5cd4` |
+| RM2 | always | two corners are looked up: `tl = (r.left, r.top)` and `br = (r.right − 1, r.bottom − 1)` | `0x5cc2..0x5cc6`, `0x5d04..0x5d08` |
+| RM3 | always | candidate cells in order: sides 0, 1, 2, 3, and in each side segments 1..N of `S` (CR rows). `[0, S[0])` is never a candidate | `0x5d0c..0x5dc2` |
+| RM4 | a corner lies in a cell's **template** rect `t` (`$A8AD` PtInRect, half-open) and that corner is not yet matched | it is matched to that cell. Each corner takes the first cell that contains it, independently of the other | `0x5d4a..0x5d5e`, `0x5d78..0x5d8a` |
+| RM5 | `tl` matched to a cell | `r.left += p.left − t.left`; `r.top += p.top − t.top` | `0x5d60..0x5d76` |
+| RM6 | `br` matched to a cell | `r.right += p.right − t.right`; `r.bottom += p.bottom − t.bottom` (the cell's **far** edges) | `0x5d8c..0x5da4` |
+| RM7 | both corners matched | stop | `0x5da6..0x5dac` |
+| RM8 | after all candidates, either corner unmatched | `r = (0, 0, 0, 0)` | `0x5dc6..0x5dd0` |
+
+### 4.10 Widget draw (`0x41ee`, `0x4216`, `0x632e`, `0x6062`, `0x572e`)
+
+| # | condition | effect | source |
+|---|---|---|---|
+| WD1 | `wDraw`, window visible | the frame is drawn through `$ABCA` DeviceLoop; nothing when invisible | `0x41f4..0x420e` |
+| WD2 | draw parameter 0 | `outlineDraw` ? outline : full frame draw (WD4–WD6) | `0x428c..0x429e` |
+| WD3 | draw parameter 4, 5, 6 or 9 | widget draw (WD7) of that part with `state` = 1 (pressed) when the press-toggle bit is clear, 0 (normal) when it is set | `0x4256..0x4264`, `0x42a2..0x42ac` |
+| WD3a | draw parameter < 4 | the press-toggle bit is cleared before drawing | `0x4242..0x4254` |
+| WD3b | after a parameter 4, 5, 6 or 9 draw | the press-toggle bit flips. Parameters 1, 2, 3, 7, 8 and above 9 draw nothing and do not flip it (1–3 have already cleared it, WD3a) | `0x42ae..0x42c8` |
+| WD4 | full draw | sides 0..3 (when `collapsed`: sides 0..1, or 2..3 under `sideTitle`), segments 1..N; a placed cell `p` with right ≤ left or bottom ≤ top is skipped; code 18 is one scale blit, other codes tile ([`qd-primitives.md`](qd-primitives.md) table W) | `0x58b8..0x58d8`, `0x5990..0x59c4` |
+| WD5 | full draw, after the sides, `partialZoom ∧ drawActive` | widget draw of part 5, state 0. **This is the only widget draw in the full draw**: close (4) and collapse (9) art at rest is whatever template pixels the side cells copy | `0x5a28..0x5a42` |
+| WD6 | full draw, `popupFamily` | three blits from the chrome template at rect-list rects, not through the remap: entry types 5 and 6 (source the raw entry rect; destination the entry rect translated by the offset from `A`'s top-left to the top-left of a rect the full draw holds, which is not traced), and a 15×15 corner at `A`'s bottom-right | `0x5b7a..0x5c92` |
+| WD7 | widget draw of part *k* | part 4 → entry type 1, 5 or 6 → type 2, 9 → type 3; every entry of that type, last to first, is drawn by WD8–WD10 | `0x632e..0x6386` |
+| WD8 | part 5 or 6, `partialZoom`, and cicn `base+1` exists (or `base−7` under `sideTitle`) | source: the entry rect moved to the origin, `+height` down when `state ≠ 0`, `+width` right under `partialZoomColumn`; one scale-blit (`0x10320`) to the remapped entry rect | `0x60aa..0x6154` |
+| WD9 | otherwise, `state ≠ 0` and cicn `base` exists (or `base−8` under `sideTitle`) | pressed strip, laid out across: close at x = 0, zoom at x = width(type 1 entry), collapse at width(type 1) + width(type 2); one row down when `collapsed` and the cicn is at least twice the source bottom tall. Blit to the remapped entry rect. A missing cicn draws nothing | `0x6158..0x62ee` |
+| WD10 | otherwise, `state = 0` | source: the **chrome template itself** at the raw entry rect; blit to the remapped entry rect | `0x62f0..0x631e` |
+| WD11 | ids | `base = −14330`, `+32` under `altWidgets`, and a further `+8` when `sideTitle` is also set | `0x607a..0x608e` |
+| WD12 | resource context | the widget cicns are read with the file named by Gestalt(`Copl`) current; the previous file is restored after | `0x6090..0x60a8`, `0x6322` |
+
+### 4.11 Widget hit (`0x4124..0x41e6`, `0x5ffc`, `0x5ddc`)
+
+| # | condition | result | source |
+|---|---|---|---|
+| HT1 | in the widget branch of `wHit`, `widgetFrame` clear | 1 (`wInContent`) | `0x411c..0x4120` |
+| HT2 | `drawActive` clear | 2 (`wInDrag`): no widget is hit-testable in an inactive window | `0x4124..0x4128` |
+| HT3 | `hasClose` and the close widget is hit (HT6) | 4 (`wInGoAway`) | `0x412c..0x4146` |
+| HT4 | else `hasZoom` and the zoom widget is hit | 5 or 6 by the window's zoom state (`0x466e`, not traced here) | `0x4168..0x4192` |
+| HT5 | else `collapseBox` and the collapse widget is hit | 9 (collapse box) | `0x41be..0x41dc` |
+| HT5a | else | 2 (`wInDrag`) | `0x41e0` |
+| HT6 | "widget of type *k* is hit" | some entry of type *k* (last to first) passes HT7 | `0x5ffc..0x6058` |
+| HT7 | one entry | false when no chrome template is loaded (`0x5de8..0x5df0`), or when the widget cicn `base` is missing and (under `sideTitle`) so is the retry `base−8`. Otherwise the source sub-rect is the entry rect moved to the origin (close), `+width(type 1)` (zoom), or `+width(type 1) + width(type 2)` (collapse), one row down under the WD9 `collapsed` rule; `p` = the remapped entry rect. Hit ⇔ the point is in the cicn's region (`0xf6e0`, §6 Q5) offset so the source sub-rect lands on `p` (`$A8E8` PtInRgn) **and** in `p` (`$A8AD` PtInRect) | `0x5ddc..0x5ff2` |
+
+Two fallbacks that return 4 or 5/6 when the point equals one exact offset of
+a frame rect (`0x414a..0x4164`, `0x4194..0x41bc`) are not decoded (§6 Q6).
+
+## 5. Geometry
+
+- **Placed extent.** `E = (S[N] − S[0]) + (C.right − C.left) − (A.right − A.left)`
+  on horizontal sides; top and bottom on vertical ones (LS7–LS8).
+- **Too-short threshold.** With `TS` evaluated on template-derived sums, a side
+  drops its code-10 cells when the content is smaller than the template body
+  by more than `shrink = (S[N] − S[0]) − F` on that axis (§6.2 lists the
+  corpus values).
+- **Remap, by cell kind.** For a widget whose corners both lie in one cell of
+  template length `n` and placed length `m` (RM5, RM6, CR rows):
+  `left' = left + (P[i−1] − S[i−1])`, `right' = right + (P[i] − S[i])`, so
+  the width changes by `m − n`. A fixed cell (`m = n`) translates the widget. A
+  grown cell stretches it. A **dropped** cell (`m = 0`) shrinks it by `n`;
+  a widget wholly inside the cell (length ≤ `n`) becomes an empty rect, so it is
+  neither drawn (WD8–WD10 blit to an empty rect) nor hit (HT7 needs the point
+  in `p`). The cross axis always translates (CR rows keep the template band's
+  thickness).
+- **Titled side.** `mid = trunc((C.left + C.right) / 2)`; the halving in TT6
+  and TT7 truncates toward zero (32-bit in TT6, 16-bit in TT7; equal for
+  in-range values).
+
+## 6. Not decoded / unknown; corpus impact
+
+### 6.1 Open questions (implementers stop here)
+
+- **Q1** Popup-family placement (`0x4c6a..0x4dfa`): it places the anchor
+  relative to `C.left` and a value read from the window's private data, and
+  calls two allocations with `drop = 0` and title gate 1. Not specified here.
+- **Q2** Anchor-cell width after a title drop when neither half has a primary
+  grower (TT5 leaves it at `E − Fb − Fa`). Whether that value can be positive
+  on a too-short side, and what the tile blit then draws, is not established.
+  No corpus window has been checked for this case.
+- **Q3** The trailing region `[S[N], extent)` and the leading region
+  `[0, S[0])`: neither is a segment, so the layout, the full draw and the remap
+  all skip them. What paints them, if anything, is not traced.
+- **Q4** The title text (`0x5530`) re-reads the title with GetWTitle itself
+  (`0x5548`), so the layout's `titleLen = 0` does not reach it. Whether the text
+  is drawn after a drop, and where, is not traced.
+- **Q5** `0xf6e0` builds the hit region from the widget cicn; that it is the
+  cicn's mask is an assumption.
+- **Q6** The exact-point hit fallbacks (§4.11) and the zoom state `0x466e`.
+- **Q7** The meanings of `widgetFrame`, `noWidgets` and `outlineDraw`,
+  `drawActive` = `hilited` (struct-layout inference), and `collapsed` (the
+  Appearance selector is not in the pinned Traps.h).
+- **Q8** `0x5b5a..0x5b78` (when not `collapsed`, a helper test `0x489c` gates
+  two calls `0x480a`, `0x45b2` in the full draw) is untraced.
+- **Q9** No native capture of any below-template window exists. Every row
+  here is a static reading.
+
+### 6.2 Corpus impact (re-derived 2026-10-22 from the 13 `wnd#` archives' recipes)
+
+20 code-10 segments, in 5 archives. *Shrink* assumes every widget present
+(codes 2/3/4 keep, 15/16/17 zero): the content may lose that many pixels on the
+side's axis before TS1 fires. A segment marked "collapse box" contains a
+rect-list type 3 widget wholly inside it. Rect tuples are (left, top, right, bottom) in template coordinates.
+
+| archive | window type(s) | side | template span | shrink | widget inside |
+|---|---|---|---|---:|---|
+| 1138 | titled-utility, collapsed-titled-utility | top | [38,48) | 10 | collapse box [39,5,47,13] |
+| 1138 | no-title-utility, collapsed-no-title-utility | top | [30,40) | 3 | collapse box [31,4,39,12] |
+| 1138 | side-floating-utility, collapsed-side-utility | left | [29,39) | 3 | collapse box [4,30,12,38] |
+| 1984 | document, collapsed-document | bottom | [41,75) | 1 | — |
+| 1984 | document | right | [28,64) | 1 | — |
+| 1984 | titled-utility | top / bottom | [19,35) / [7,54) | 6 / 1 | — |
+| 1984 | side-floating-utility / no-title-utility | right / bottom | [7,34) | 1 | — |
+| animals | document, collapsed-document | bottom | [31,44) | 35 | — |
+| animals | titled-utility | top | [209,220) | 164 | collapse box [209,55,220,66] |
+| apple-lisa | titled-utility | top | [30,42) | 5 | collapse box [32,3,41,12] |
+| apple-lisa | no-title-utility / side-floating-utility | top / left | [27,38) | 5 | collapse box [29,1,38,10] / [1,29,10,38] |
+| windows-95 | side-floating-utility | left | [29,40) | 2 | collapse box [5,29,15,40] |
+
+- Of 211 manifest widget rects across the 13 archives (one per type per window type), every corner of every rect
+  lies in a segment of code 1, 2, 3, 4 or 10. The 11 entries whose corners lie
+  in a code-10 segment are all collapse boxes (above). So the far-edge rule
+  (RM6) changes a widget rect only for those 11, and only below their shrink
+  threshold.
+- No side has a code-5 or code-6 segment outside an AP2 side (AW5 under AP3
+  is unexercised).
+- Every side list is in ascending border order.
+- Rows no archive exercises: AP1 (no popup-family window renders a `wnd#`
+  titled side in the runtime), TT8, WD5, WD6, WD8, LC1 (the runtime has no
+  message stream).
+
+## 7. Test hooks
+
+### 7.1 Rule rows and mutations
+
+| spec rows | rule row | mutation that must fail |
+|---|---|---|
+| PV5, LS1, LS2, LS8, TS1, TS2 | `tests/rendering-options/window-chrome-rules.mjs` `sideTooShort` + `cellClass` code 10 (the below-template sample −12, sourced traces, and the `E = F` boundary assertion in `window-chrome-rules.test.mjs`) | keep code 10 below the threshold; drop it at or above; count code 10 out of `F` |
+| PV1–PV4, PV6–PV9 | `window-chrome-rules.mjs` `cellClass` (widget-gated codes are "unknown" while presence is not decoded) | swap the 2/15 polarity |
+| AW1–AW3, AW6, AW7, AW9 | `allocateHalf` (nonnegative budgets only) | give 13/14 a primary share |
+| AW8 | none: `allocateHalf` returns null on a negative budget | **a row no mutation can fail (finding)** |
+| TS3, TS4 | none | **no rule row (finding)** |
+| AP1–AP3, TT1–TT9 | none | **no rule row (finding)** |
+| RM1–RM8, CR1–CR4 | `src/titleWidgets.test.mjs`, `tests/rendering-options/window-widget-remap.spec.mjs` (runtime tests; not implementer paths) exercise the runtime remap, not these rows. They assert the near-edge delta for `br`, which RM6 refutes for dropped cells (F1) | — |
+| WD, HT, LC | none | — |
+
+### 7.2 Runtime cross-check (current `src/composeChrome.ts`, `src/renderWindow.ts`)
+
+| runtime behaviour | spec row | verdict |
+|---|---|---|
+| `classifyPart` code 10: zero when too short, else fixed | PV5, AW4, AW6 | covered |
+| `negotiateSides`: `fixed0` over segments ≥ 1 of the cells classed fixed; `extent` = recipe span + content delta; side order top, bottom, left, right | LS1, LS8, TS1, §2.1 | covered. The runtime sorts each recipe by border; the decode uses list order (equal on the corpus, §6.2) |
+| too short → `fixed0 −= Σ10`, title dropped | TS1 | covered |
+| still short and shade gap > 0 → shade absent for this and later sides | TS3 | covered |
+| popup family with a code-5 segment skips the step | AP1 | covered (the runtime does not draw the popup placement, Q1) |
+| `distributeHalf` clamps the budget to 0 | AW8 | **finding F2**: the decode does not clamp. Below the threshold the fixed cells after a negative grower move back. Already recorded in compositor-spec as a runtime limit |
+| `distributeSide`, `dropTitle`: every 5/6 cell of the run gets 0 | AW5 via TT9 for the non-anchor cells; TT6/TT7 for the anchor | covered when a half has a primary grower; **finding F3** otherwise (Q2) |
+| `distributeSide` half split (even split, or a grower-less half keeps its width) and the code-5 plate `max(src, titleWidthPx)` capped at `plateCap` | TT1–TT9 | **finding F4**: the decode places the plate on the content-rect centre with `W = SW + margins` (it can be narrower than the template cell), condenses before dropping, and drops at ≤ 2 px of room. The runtime split is not the decoded one |
+| no widget stamp; a zero-width cell draws nothing | WD4, WD5 | covered. The partial-zoom pass (WD5) is not modelled; no procID 1026–1029 input exists |
+| `resolveTitleWidgetRects`: sides in order, segments ≥ 1, half-open template match, corners independent, empty on a miss | RM2–RM5, RM7, RM8 | covered |
+| `resolveTitleWidgetRects`: `br` translated by the cell's **near**-edge delta | RM6 | **finding F1**: the decode uses the far edge. In a dropped code-10 cell the collapse box becomes empty (not drawn, not hit). The runtime keeps a full-size hit and press rect at the collapse point |
+| `resolveTitleWidgetRects`: no collapse rect when `shadeCleared` | TS3 + HT5, LC1–LC3 | covered for a message that ran the layout. **Finding F5**: under LC1 the decode re-derives `collapseRequested` from the procID table, so the HT5 gate passes again on a cached message. The collapse box is hit only where its remapped rect (from the cached placed lists) is non-empty. On the corpus it never is: the one side where TS3 can fire (1984 titled-utility, top) has its collapse box wholly inside the code-4 cell that layout zeroed, and the other below-threshold collapse boxes lie in dropped code-10 cells, so RM6 empties them all. No corpus-observable divergence; the runtime has no message stream (LC1 unexercised, §6.2) |
+| template band for bottom/right cells uses the drawable extent (`drawH`, `drawW`) | CR2, CR4 | **finding F6**: the decode uses the template cicn bounds. They differ only where the cicn has slack past its art (beos active document); no corpus widget lies in that slack |
+| hit and press areas are the remapped rect | HT7 | **finding F8**: the decode also requires the widget cicn to exist and the point to be in its region, and it gates every widget hit on `drawActive`, `widgetFrame` and the per-widget flags (HT1–HT5) |
+| one `widgetPresent` flag for close, zoom and collapse | PV2–PV4, PV6–PV8 | **finding F7** (approximation already recorded in the faithfulness ledger) |
+
+## 8. Corrections to the 2026-10-21 decode note
+
+1. **Remap far edge (RM6).** The note said each corner is translated by "its
+   own cell's delta", and that a widget in a dropped code-10 cell keeps its
+   template size "at the collapse point … still hit-testable". In fact the
+   bottom-right corner moves by the cell's far-edge delta. A widget inside a
+   dropped cell is emptied, so it is neither redrawn nor hittable. The PM policy
+   "an invisible collapse box stays hit-testable" (note §9.4) followed the
+   refuted reading.
+2. **The collapse-box clear is not recomputed on every message.** The note
+   (§11, "resolved by the PR #377 review") missed the layout cache (LC1–LC3):
+   for a `cacheable` window, every message except `wCalcRgns` with an unchanged
+   content rect skips the layout, and `collapseRequested` comes back from the
+   table.
+3. **The widget hit is not rect-only** (HT7). It needs the widget cicn and its
+   region. The note described the hit as "the same `0x5cb6` remap".
+
+Everything else in the note re-traced as stated (evidence §R).

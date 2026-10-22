@@ -53,21 +53,21 @@ Per cell, keyed PURELY on the part code (not pixel content, not width):
 | 12 | **TILE** — primary share truncated down to a whole multiple of source width (possibly zero); the unused fraction joins the remainder pool. |
 | 18 | **SCALE** — a single scaled CopyBits (drawn once, mapped src→dst). |
 
-**code 10 note (2026-10-21, [kdef231-code10-widgets.md](kdef231-code10-widgets.md) — spec writers and verifiers only until its L2 split moves the listing narrative to an evidence file):**
-`0x5178` takes two flag bytes. The first goes to `0x49d6` (`0x52fc`) and is
-always `0x4a64`'s too-short byte. The second (a constant 1 at
-`0x4db4`/`0x4dd4`, the title string's length byte at `0x5100`/`0x5120`, or 0
-at `0x5148`) only gates 5/6 (`0x530c`). The earlier "untitled sides pass 1"
-reading conflated the two. Per side, in the kDEF's side order (top, bottom,
-left, right): if the placed extent (template extent + content delta) is below
-`fixed0` (Σ segments 1..N that are fixed under flag 0, code 10 included), the
-side drops its code-10 cells and its title (5/6 width 0). If it is still too
-short and a shade gap is present, it also clears the shade/collapse widget for
-the remaining layout (`0x4e24..0x4e42`). Popup-family titled sides skip this
-(`0x4c64`). At or above the template size nothing changes. A dropped cell draws
-nothing, as in the kDEF (`0x5990`), so its baked collapse-box art disappears,
-but the widget's hit rect follows the cell through `0x5cb6` (below).
-(Argument and frame-byte detail in evidence.)
+**code 10 note (2026-10-21, restated 2026-10-22; rule ids in [engine/window-widgets.md](engine/window-widgets.md)):**
+Code 10 takes the side's drop flag (PV5). Every allocation receives that flag,
+and a separate title gate decides codes 5/6: the gate is 1 on the popup path,
+the title length on the titled path and 0 otherwise (AP1–AP3, TT9). Per side,
+in the kDEF's side order (top, bottom, left, right): if the placed extent
+(template extent + content delta) is below the required fixed width (Σ
+segments 1..N that are fixed with the drop flag clear, code 10 included), the
+side drops its code-10 cells and its title (TS1). The 5/6 cells inside the two
+allocations then get width 0; the title plate's own width follows TT6/TT7 and
+can stay nonzero when neither half has a grower (window-widgets Q2). If the
+side is still too short and a collapse gap is present, it also clears the
+collapse box for the rest of the layout (TS3). Popup-family titled sides skip
+this (AP1). At or above the template size nothing changes. A dropped cell
+draws nothing (WD4), and a widget wholly inside it gets an empty remapped rect
+(RM6), so it is neither drawn nor hit.
 
 **Widget draw:** the kDEF draws the named widgets in a SEPARATE pass over the
 rect-list (`0x632e` → `0x6062`), NOT in the recipe walk. `0x572e`'s side loop
@@ -81,14 +81,17 @@ bytes, detail in evidence), so
 types 1-3 (close/zoom/collapse) are drawn only by the side cells there. When the
 family-63 (popup) byte is set, `0x5b7a..0x5c92` also blits rect-list types 5/6 and a
 15px corner from the template at raw rects, without `0x5cb6`. We don't
-replicate either; instead the widgets ride the FIXED recipe cells they sit in (empirically
-all corpus widgets land in code 1/2/3/4 fixed/gap cells or the fixed leading
-corner), drawn 1:1 by the edge walk. This is why the carving/stamp pass could be
+replicate either; instead the widgets ride the FIXED recipe cells they sit in (every corpus
+widget corner lies in a code 1/2/3/4 or 10 segment, [window-widgets.md](engine/window-widgets.md) §6.2;
+the code-10 ones are fixed at and above the template), drawn 1:1 by the edge walk. This is why the carving/stamp pass could be
 retired — it holds as long as no widget lands in a growing cell. Widget HIT and
 press rects do follow `0x5cb6` (`resolveTitleWidgetRects`): on all four sides,
 segments from index 1, topLeft and botRight−1 matched separately against
 template cells (half-open), each translated by its cell's placed − template
-offset, and emptied when either corner misses.
+offset, and emptied when either corner misses. *(Corrected 2026-10-22,
+[window-widgets.md](engine/window-widgets.md) RM5/RM6: top-left moves with
+the cell's near edge, bottom-right with its far edge; the runtime still uses
+the near edge for both, finding F1.)*
 
 ## Draw + distribution
 

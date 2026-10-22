@@ -68,7 +68,8 @@ export type TitleWidgetRole = 'close' | 'zoom' | 'collapse';
  * Preserve those IDs even when a scheme puts close on the right or stacks its
  * widgets vertically. Geometry follows the actual compositor placements through the
  * kDEF's 0x5cb6 remap (below), so e.g. 1990's widgets left of a grown title plate
- * shift with their own cells (docs/spec/kdef231-code10-widgets.md §4).
+ * shift with their own cells (docs/spec/engine/window-widgets.md RM1–RM8; finding F1 there: the
+ * bottom-right corner should follow the cell's far edge).
  */
 export function resolveTitleWidgetRects(
   wt: WindowType,
@@ -98,6 +99,11 @@ export function resolveTitleWidgetRects(
   // the collapse point (still hit-testable, as 0x5ddc uses the same remap at
   // 0x5f72). The leading [0, border[0]) region and the runtime's far-edge cap
   // are not segments and never match.
+  // Divergence (docs/spec/engine/window-widgets.md RM6, finding F1): the decode
+  // moves bottom/right by the containing cell's FAR edge (placed − template
+  // right/bottom), so a widget in a cell dropped to width 0 becomes empty, and
+  // is neither drawn nor hit. This code still uses the near-edge delta for both
+  // corners and keeps the full-size rect described above.
   const order = ['top', 'bottom', 'left', 'right'] as const;
   const segs = order.flatMap((edge) => composed.placement.filter((s) => s.edge === edge && (s.segment ?? 1) >= 1 && s.rects.length > 0));
   if (!segs.length || !wt.parts) return [];

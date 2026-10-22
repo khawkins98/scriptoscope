@@ -88,7 +88,7 @@ non-title sides pass flag `#1`
 
 | 10 | **FIXED, dropped when too short.** `0x4a0c` returns the `0x49d6` flag, which `0x5178` reads from `fp@(24)` (`0x52fc`): `0x4a64`'s too-short byte `fp@(-3)`, set only at `0x4e0e` when the side's placed extent is below its fixed-cell sum. Then the cell gets width 0. Implemented (`negotiateSides`); see note. |
 
-**code 10 note (2026-10-21, [kdef231-code10-widgets.md](kdef231-code10-widgets.md)):**
+**code 10 note (2026-10-21, [window-widgets.evidence.md](window-widgets.evidence.md); spec [window-widgets.md](window-widgets.md)):**
 `0x5178` takes two flag bytes. `fp@(24)` goes to `0x49d6` (`0x52fc`) and is
 always `0x4a64`'s too-short byte `fp@(-3)`. `fp@(26)` (the `#1` at
 `0x4db4`/`0x4dd4`, the title string length byte at `0x5100`/`0x5120`, or `0`
@@ -109,3 +109,27 @@ types 1-3 (close/zoom/collapse) are drawn only by the side cells there. Under
 `a4@(509)` (family 63) `0x5b7a..0x5c92` also blits rect-list types 5/6 and a
 15px corner from the template at raw rects, without `0x5cb6`. We don't
 …
+
+
+## Moved 2026-10-22: the compositor-spec code 10 note as it stood after the L2 split
+
+Replaced in compositor-spec.md by a behavioural restatement (review of #420, N4). Text as it stood:
+
+**code 10 note (2026-10-21; behavioural spec with rule ids: [engine/window-widgets.md](engine/window-widgets.md)):**
+`0x5178` takes two flag bytes. The first goes to `0x49d6` (`0x52fc`) and is
+always `0x4a64`'s too-short byte. The second (a constant 1 at
+`0x4db4`/`0x4dd4`, the title string's length byte at `0x5100`/`0x5120`, or 0
+at `0x5148`) only gates 5/6 (`0x530c`). The earlier "untitled sides pass 1"
+reading conflated the two. Per side, in the kDEF's side order (top, bottom,
+left, right): if the placed extent (template extent + content delta) is below
+`fixed0` (Σ segments 1..N that are fixed under flag 0, code 10 included), the
+side drops its code-10 cells and its title (5/6 width 0). If it is still too
+short and a shade gap is present, it also clears the shade/collapse widget for
+the remaining layout (`0x4e24..0x4e42`). Popup-family titled sides skip this
+(`0x4c64`). At or above the template size nothing changes. A dropped cell draws
+nothing, as in the kDEF (`0x5990`), so its baked collapse-box art disappears,
+but the widget's hit rect follows the cell through `0x5cb6` (below).
+*(Superseded 2026-10-22, [window-widgets.md](engine/window-widgets.md) RM6:
+the bottom-right corner follows the cell's far edge, so a widget inside a
+dropped cell becomes empty and is neither drawn nor hit.)*
+(Argument and frame-byte detail in evidence.)
