@@ -155,8 +155,10 @@ export async function renderWindow(
   } else {
     // popup-window requests are service slot 8 (procID 1008 + varCode, family 63: window-widgets AP1).
     // The pressed strip (WD11) gates every widget hit and draws the pressed widget (WD9, HT7).
-    // `active` is not passed: WindowManager keeps widget buttons on inactive windows so they stay
-    // keyboard-reachable (runtime accessibility policy; the decode's HT2 makes them inert).
+    // Accessibility divergence (DECISIONS #12): `active` is deliberately not passed. The decode
+    // makes an inactive window's widgets inert (window-widgets HT2); we keep focusable, operable
+    // buttons so keyboard and assistive-technology users can act on background windows. Widget
+    // art still follows the decode.
     const ids = widgetCicnIds();
     const strip = (await themeResourceChain(owner, ids.map((id) => ({ type: 'cicn', id })))).probe<IconSource>('cicn', ids);
     composed = composeWindowChrome(cicn!, wt, contentW, contentH, {
