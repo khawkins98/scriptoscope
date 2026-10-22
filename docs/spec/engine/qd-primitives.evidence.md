@@ -17,12 +17,41 @@
 
 ## Verifier marks
 
-| spec row(s) | addresses | mark | verifier, date, listing |
+Independent Tier-1 verifier, 2026-10-22, PR #392 head `43a7d24c` (listing:
+root checkout raw `k231-kdef0.asm`, read only; Traps.h pinned; IWQD page
+footers checked). The non-blocking precisions in the notes column were applied
+in the follow-up commit.
+
+| spec row(s) | addresses re-traced | mark | note |
 |---|---|---|---|
-| T0–T8, X1–X4, L1–L3, W1–W4 | see spec §4 and the 2026-10-22 trace below | PENDING | — |
-| SC1–SC4, I1–I3, S1–S6, R1–R2 | see spec §4 and the trace below | PENDING | — |
-| B0–B6, P1–P5, F1–F4, E1–E6, §5 border rects | see spec §4–§5 and the trace below | PENDING | — |
-| first split §6 item 6 (inset reconciliation) | `0x109ea..0x10a00`, `0x10a1e..0x10a34` | RESOLVED by the writer (trace T-B); needs verifier confirmation | — |
+| T0, T1, T2, T3–T7 | `0xfec2..0xff2a`, `0xff3e..0x10018`, `0x10036..0x10262` | CONFIRMED | T1 loop also stops at `srcRect.bottom` (implicit in the row) |
+| T8 | `0x100a0..0x100f6`, `0x1019e..0x101fa`, `0x10146` | CONFIRMED | |
+| X1, X2 | `0x1010e..0x10144`, `0x101fe..0x10234` | CONFIRMED | `thePort+92` is `picSave` in both port layouts; `grafProcs` is +104. First-split "custom bottlenecks" was a misread |
+| X3, X4 | `0x10046..0x1006a` | CONFIRMED | |
+| L1, L2 | `0xff6c..0xff96`, `0xffd4..0xfffa`, `0xfa8a..0xfae8` | CONFIRMED | "nonzero" = mask bit `7 − (h & 7)` of mask row `v` |
+| L3 | `0x108ee`; IWQD p. 3-18 | CONFIRMED (Apple-documented label correct) | |
+| Q3 equivalence paragraph | as above + `0xf9f6`, `0x10702` | CONFIRMED with precision | holds when the cross extents are equal (every decoded caller); add that condition |
+| W1–W3 | `0x59a8..0x59e8` | CONFIRMED | |
+| W4 | `0x5938..0x59f8` | CONFIRMED with precision | loop also calls the title-text routine `0x5530` after the title side (`0x59fc..0x5a02`): text, not a chrome cell |
+| SC1–SC4 | `0x10350..0x10414` | CONFIRMED | both branches masked |
+| scaling = modern policy | IWQD pp. 3-113, 3-114, 3-119 | CONFIRMED (label correct) | |
+| corner forms | `0x10282..0x102ce`, `0x102d0..0x1031e` | CONFIRMED | |
+| I1–I3 (and scrollbar AC5) | `0xfe44..0xfe90`; caller `0xc736..0xc746` | CONFIRMED | `cmpiw #1, pixelSize (+32)` → CopyMask(srcRect as maskRect); else CopyBits srcCopy, NIL mask. I1 opaque even for a 1-bit pixmap |
+| colour setup §3 | `0xf378`, `0xf30a`, save/restore sites | CONFIRMED | IWQD p. 3-117 |
+| S1–S6 | `0xfa8a..0xfc5a`, `0xfc5c..0xfdf6`, `0x10702..0x10766` | CONFIRMED | no bounds compare anywhere; "table size" in S2 = ctSize (entries − 1) |
+| R1, R2 | `0xf68c..0xf718`; caller `0xc6e4..0xc730` | CONFIRMED | no MapRgn: 1:1 |
+| F1 | `0xf930..0xf9ec`, `0xf87e..0xf926` | CONFIRMED | |
+| F2–F4 | `0xf7cc..0xf87c`, `0xf71a..` | CONFIRMED | |
+| Q7 phase sign | F1 + IWQD p. 3-6 | CONFIRMED (Apple-documented label correct) | p. 2-32 paraphrase omits Apple's "upper-left corner of the port rectangle" wording; 3-6 is the controlling text |
+| P1–P5 | `0x10aae..0x10af6`, push order `0x10b14..0x10b22` | CONFIRMED | |
+| B0–B6, body inset rects | `0x108fc..0x10bbe` | CONFIRMED | |
+| §3 cinf requests (Q8), sampled colours | `0x10814..0x1089c`, `0x116f8..0x11722`, `0x108fc..0x10998` | CONFIRMED | in cache mode the cicn is not disposed on the cinf-NULL path (`0x10fa8`) |
+| E1, E3–E6 | `0x10bc0..0x10f82` | CONFIRMED | |
+| E2 "overlap … the corners"; §5 "`s > c`" consequence | `0x10cc4..0x10d34`, `0x10e9a..0x10f82` | **REFUTED** at `43a7d24c`; corrected in the follow-up commit (spec E2 and §5 `s > c` bullet reworded as the note says; re-check pending) | bands never overlap the corners: band along-range `[c, extent − c)` with uncut `c` ≥ `cw`/`ch`. With `s > c` the top/bottom bands overlap the left/right bands (squares `[c, s)`), which are drawn last |
+| §5 border rect table | `0x10c0c..0x10f82` | CONFIRMED | |
+| T-B inset reconciliation | `0x109ea..0x10a00` vs `0x10a28..0x10a34` | CONFIRMED | |
+| lowDepth §2 | `0xf2d6..0xf308`, `0xf488..0xf4b8` | CONFIRMED | |
+| census figures §6 | `cinf-geometry-census.out.txt` | CONFIRMED (counts match output) | |
 
 ## From `kdef231-reference.md`: 1.5 Blit primitives
 

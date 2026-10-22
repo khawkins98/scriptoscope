@@ -158,7 +158,7 @@ Resource requests, in order:
 2. **cinf `id`** (GetResource `$A9A0` inside `0x116f8`, so the whole resource
    chain is searched). On NULL, **one** retry: cinf 0 when `bodyFill`, cinf 1
    when not (`0x10880..0x10898`). On a second NULL the body + border stage is
-   skipped (`0x1089a → 0x10fa8`); the cicn is still released. No synthesised
+   skipped (`0x1089a → 0x10fa8`); the cicn is released then only when the cache mode is off (`0x10fa8..0x10fb4`). No synthesised
    default.
 3. the body resource, only when `bodyFill` (table B): a **cicn** when
    `mode == 5`, otherwise a **ppat**, at `backgroundId` in both cases. A zero
@@ -189,7 +189,7 @@ left, right (`0x10c00..0x10f82`), with the rects of table E.
 | # | condition | behaviour | source |
 |---|---|---|---|
 | T0 | `dstRect` or `srcRect` empty; or `dstRect.bottom ≤ clip-bbox top`; or `clip-bbox bottom ≤ dstRect.top` | draw nothing. Only the vertical extent of the clip bounding box is tested | `0xfec2..0xfee6`, `0xff06..0xff2a` |
-| T1 | source width 1, dst width > 1 | line fast path, before `direction` is read: for source row `r` from `srcRect.top` while the dst row `dstRect.top + (r − srcRect.top)` is below `dstRect.bottom`: line-sample `(srcRect.left, r)` with `testMask` true; when it returns true, draw a line across `[dstRect.left, dstRect.right)` on that dst row in that colour (L1–L3) | `0xff3e..0xffb6`; sampler `0xf9f6` |
+| T1 | source width 1, dst width > 1 | line fast path, before `direction` is read: for source row `r` from `srcRect.top` while `r < srcRect.bottom` and the dst row `dstRect.top + (r − srcRect.top)` is below `dstRect.bottom`: line-sample `(srcRect.left, r)` with `testMask` true; when it returns true, draw a line across `[dstRect.left, dstRect.right)` on that dst row in that colour (L1–L3) | `0xff3e..0xffb6`; sampler `0xf9f6` |
 | T2 | source height 1, dst height > 1, T1 not taken | the same with axes swapped: source column `k` paints dst column `dstRect.left + (k − srcRect.left)` down `[dstRect.top, dstRect.bottom)` | `0xffba..0x10018` |
 | T3 | otherwise | general path; tile size = source width × source height | `0x10036..0x10042` |
 | T4 | general path, step axis | `srcH ≠ dstH` → step vertically by `srcH`; else step horizontally by `srcW`. The direction byte never selects the axis | `0x10146..0x1015e`, `0x10236..0x1024e` |
@@ -232,14 +232,15 @@ defining points", IWQD p. 3-18). The cinf engine and the scroll-bar draw set Pen
 **Equivalence with the general path (answer to Q3).** Where L2 draws, the
 general path (X2) would copy the same source pixel to the same dst pixels; where
 L1 skips, X2's mask leaves the dst unchanged. So with a normal pen, no picture
-being recorded and a direct-colour device, the fast path's pixels equal the
+being recorded, a direct-colour device and equal cross-axis extents of source
+and destination (true for every decoded caller, which fixes the cross axis), the fast path's pixels equal the
 general path's: both write the pixel's colour-table colour, unchanged by the
 black/white colour setup (Apple-documented colour mapping, IWQD p. 3-117;
 not binary-decoded). Differences that remain: (a) when
 `recordingPicture`, the fast path still tests the mask, while X1 would be
 opaque; (b) the fast path's colour comes from the kDEF's own lookup S2, which
 can differ from QuickDraw's for an icon whose colour table lacks the pixel's
-value (S2 rows d and e). A one-pixel-long run (dst length 1) never takes the
+value (S2 rows b–d). A one-pixel-long run (dst length 1) never takes the
 fast path.
 
 ### Window caller: which blit
@@ -249,7 +250,7 @@ fast path.
 | W1 | 18 | scale | — | `0x59ba` |
 | W2 | 11, 14 | tile | 0 (reverse) | `0x59c8..0x59da`, `0x59e8` |
 | W3 | every other drawn code | tile | 1 (forward) | same |
-| W4 | — | per side, the loop draws cells `1..count` of the side's border list, cell `i` = `[border[i−1], border[i])` with part `part[i]`; nothing before `border[0]` or after `border[count]` is drawn by this loop. Sides run top, bottom, left, right (a kDEF flag can restrict the loop to one pair) | `0x58b8..0x58da`, `0x5938..0x59f8`; lists copied verbatim from the `wnd#` at `0x36ce..0x373c` |
+| W4 | — | per side, the loop draws cells `1..count` of the side's border list, cell `i` = `[border[i−1], border[i])` with part `part[i]`; nothing before `border[0]` or after `border[count]` is drawn by this loop. Inside the loop, after the title side, the title-text routine `0x5530` is called (text, not a chrome cell; `0x59fc..0x5a02`). Sides run top, bottom, left, right (a kDEF flag can restrict the loop to one pair) | `0x58b8..0x58da`, `0x5938..0x59f8`; lists copied verbatim from the `wnd#` at `0x36ce..0x373c` |
 
 ### Scale blit
 
@@ -286,7 +287,7 @@ Scaling as for the scale blit. No picture or bottleneck test.
 | # | condition | behaviour | source |
 |---|---|---|---|
 | S1 | every sample | the point `(h, v)` is read as an offset from the icon's first stored pixel (row `v`, column `h`), **with no range check**. For every corpus cicn the bounds start at `(0, 0)`, so the offset equals the bounds coordinate (census, §6) | `0xfc5c..0xfcc4`, `0xfa8a..0xfae4` |
-| S2 | not `lowDepth` | colour = the stored pixel value (1, 2, 4 or 8 bit; leftmost pixel in the high bits) looked up in the icon's colour table, in this order: (a) value ≤ table size and that entry's value equals it → that entry; (b) else, if the **last** entry's value is 0 → the entry at that position (beyond the table when the value exceeds the table size: undefined); (c) else the highest-indexed entry whose value equals it; (d) none → entry 0 | `0xfd34..0xfde8`, `0x10702..0x10766` |
+| S2 | not `lowDepth` | colour = the stored pixel value (1, 2, 4 or 8 bit; leftmost pixel in the high bits) looked up in the icon's colour table, in this order: (a) value ≤ the table's last index (`ctSize`, i.e. entries − 1) and that entry's value equals it → that entry; (b) else, if the **last** entry's value is 0 → the entry at that position (beyond the table when the value exceeds the last index: undefined); (c) else the highest-indexed entry whose value equals it; (d) none → entry 0 | `0xfd34..0xfde8`, `0x10702..0x10766` |
 | S3 | `lowDepth` | colour = the icon's 1-bit image bit: set → black, clear → white | `0xfcc8..0xfd30` |
 | S4 | the returned mask bit | the line path tests it (L1); the cinf colour samples ignore it | `0xfcb8..0xfcc4`, `0x1091a`, `0x10934`, `0x1096a` |
 | S5 | point outside the icon's bounds | if it still falls inside the stored row bytes (row padding), the stored padding bits are read; otherwise memory outside the icon's data is read and the result is **undefined**. Not a defined colour in the original: an implementation records it as `unspecified` rather than invent one | `0xfc5c..0xfde8` (no bounds test) |
@@ -329,10 +330,13 @@ the default white pattern (not established for every caller).
 | F3 | `lowDepth` | FillRect `$A8A5` / FillRgn `$A8D6` with the pattern's 1-bit form, black foreground on white background, colours restored afterwards | `0xf820..0xf856`, `0xf76e..0xf7a4` |
 | F4 | `colorPort` | the port's fill pixel pattern field is cleared for the duration and restored; no pixel effect established | `0xf812..0xf81c`, `0xf860..0xf868` |
 
-**Phase sign (answer to Q7).** Apple documents that "all patterns are always
-drawn relative to the origin of the graphics port" (IWQD p. 3-6) and that a
-pattern's upper-left corner is aligned with the port's coordinate system
-(p. 2-32). With F1, local `(0, 0)` is the phase point, so **port pixel
+**Phase sign (answer to Q7).** The controlling Apple text is "all patterns are
+always drawn relative to the origin of the graphics port" (IWQD p. 3-6).
+p. 2-32 says patterns are "always aligned with the port's coordinate system"
+and that "the upper-left corner of the pattern is aligned with the upper-left
+corner of the port rectangle"; read literally, that second clause would make
+F1 a no-op, so it is taken as describing the usual case where the port
+rectangle starts at local `(0, 0)`. With F1, local `(0, 0)` is the phase point, so **port pixel
 `(X, Y)` shows pattern pixel `((X − x) mod pw, (Y − y) mod ph)`**, with `mod`
 the non-negative remainder and `(X, Y)`, `(x, y)` in the caller's local
 coordinates. The origin move and the compensating offsets are binary-decoded;
@@ -357,7 +361,7 @@ the cell's mask-clear pixels.
 | # | condition | behaviour | source |
 |---|---|---|---|
 | E1 | every corner | a `c × c` source block at the icon's corner, cut to the icon's bounds, copied **1:1 and masked** (corner form → scale blit) at the face's matching corner | `0x10c00..0x10cb6`, `0x10d3c..0x10e12` |
-| E2 | every edge band | thickness `s` (independent of `c`) cut to the icon; along the run `[c, extent − c)` with the *uncut* `c`; tile blit with `direction = 1`. Bands may overlap each other and the corners; with the masked transfer (X2) a transparent edge pixel shows what was drawn before it (body or corner) | `0x10cba..0x10d38`, `0x10e16..0x10f82` |
+| E2 | every edge band | thickness `s` (independent of `c`) cut to the icon; along the run `[c, extent − c)` with the *uncut* `c`; tile blit with `direction = 1`. Bands never overlap the corners (a corner reaches at most `cw`/`ch` ≤ `c`). When `s > c`, a top/bottom band and a left/right band overlap in the square `[c, s) × [c, s)` next to each corner (relative to that corner); left and right are drawn last, so their opaque pixels win there and, with the masked transfer (X2), their transparent pixels show the top/bottom band or the body beneath | `0x10cba..0x10d38`, `0x10e16..0x10f82` |
 | E3 | `tile == 0` | the band's source is the **one** middle column (top/bottom) or row (left/right) at offset `c`; with a dst run longer than 1 this is the line fast path (T1/T2), so each source row/column is painted across the band where its mask bit is set | `0x10cee..0x10cfc`, `0x10e4c..0x10e5a`, `0x10ec4..0x10ed2`, `0x10f3c..0x10f4a` |
 | E4 | `tile != 0` | the band's source is the whole middle strip `[c, extent − c)`, repeated forward from the band's start (T5); empty when `2c ≥` the icon extent, and then nothing is drawn (T0) | same branches → `0xfeae` |
 | E5 | top pieces (TL, TR, top band) | skipped when `D.top + c ≤ clip-bbox top` (corners) or `D.top + s ≤ clip-bbox top` (band); bottom pieces skipped when `D.bottom − c ≥ clip-bbox bottom` or `D.bottom − s ≥ clip-bbox bottom`. Pixel-neutral culls, as T7 | `0x10c00..0x10c08`, `0x10cba..0x10cc2`, `0x10d3c..0x10d4c`, `0x10e16..0x10e20` |
@@ -400,8 +404,12 @@ Consequences, all from the formulas:
 - `2c ≥ W_D` (or `H_D`): the destination band is empty (nothing drawn); the
   destination corners overlap and the later corner wins where its mask is set
   (order TL, TR, BL, BR).
-- `s > c`: bands are thicker than the corners and overlap them; drawn after
-  the corners on the same side, so a band's opaque pixels cover the corner.
+- `s > c`: bands are thicker than the corners are long, but still start at
+  `c`, so they never cover a corner. The top/bottom bands overlap the
+  left/right bands in an `(s − c) × (s − c)` square next to each corner
+  (e.g. `[D.left + c, D.left + s) × [D.top + c, D.top + s)`); left/right are
+  drawn last and win there where their mask is set. All four corner blocks
+  survive (agrees with `face-bands.spec.mjs`).
 - `s` larger than the icon: the band thickness is cut to the icon (`sw`, `sh`).
 
 **Body inset rects** (relative to `D`'s top-left, as `(x, y, w, h)`):
@@ -507,7 +515,7 @@ output in the private store, `v2-lanes/spec-qd/`):
   cinf whose background point is mask-clear still yields its colour; F1 sign:
   a 2 × 2 pattern filled at phase `(1, 0)` puts pattern pixel `(0, 0)` at port
   pixel `(1, 0)` (the mutation "phase negated" must fail); R1 not scaled;
-  table E rects for `2c > W`, `s > c` and `s > H`; B0–B6 and P1–P5 each with a
+  table E rects for `2c > W`, `s > c` (all four corner blocks intact; the band–band overlap squares next to each corner show the left/right band where its mask is set — the mutation "bands cover the corners" must fail) and `s > H`; B0–B6 and P1–P5 each with a
   failing mutation; cicn NULL → nothing drawn and no cinf request; cinf NULL →
   single retry → skip.
 
@@ -515,11 +523,11 @@ output in the private store, `v2-lanes/spec-qd/`):
 
 | Q | question (short) | answer | rows |
 |---|---|---|---|
-| Q1 | cinf corner / band rects; `2c > W`, `s > c`, `s` beyond the icon | The engine's reading is right for corners and bands, with three precisions: corner sources are cut to the icon (`cw`, `ch`) and the destination corner takes the cut size; band thickness is cut to the icon (`sw`, `sh`) and the band's dst thickness equals it; the along range uses the uncut `c`. Edge cases follow from the formulas | §5 cinf border rects, E1–E5 |
+| Q1 | cinf corner / band rects; `2c > W`, `s > c`, `s` beyond the icon | The engine's reading is right for corners and bands, with three precisions: corner sources are cut to the icon (`cw`, `ch`) and the destination corner takes the cut size; band thickness is cut to the icon (`sw`, `sh`) and the band's dst thickness equals it; the along range uses the uncut `c`, so bands never cover corners; with `s > c` bands overlap each other next to the corners and left/right win. Edge cases follow from the formulas | §5 cinf border rects, E1–E5 |
 | Q2 | E4 tile direction | `1` (forward) for all four bands; the source is the whole middle strip; with the cache mode on, `altSource` is a pixel-neutral border cache | E4, E6, §2 tile inputs |
-| Q3 | "nonzero" in T1/T2; equal to CopyMask? | The icon's mask bit at the sample point (the fast path asks the sampler to test the mask). Colour = S2 (or S3 at `lowDepth`). Pixels equal CopyMask's under a normal pen, no picture recording and a direct-colour device; the residual differences are listed | T1, T2, L1–L3, S2–S4 |
+| Q3 | "nonzero" in T1/T2; equal to CopyMask? | The icon's mask bit at the sample point (the fast path asks the sampler to test the mask). Colour = S2 (or S3 at `lowDepth`). Pixels equal CopyMask's under a normal pen, no picture recording, a direct-colour device and equal cross-axis extents; the residual differences are listed | T1, T2, L1–L3, S2–S4 |
 | Q4 | CopyBits scaling rule; scale-blit selection | Selection decoded: CopyMask on screen; CopyBits through the scaled mask region when recording a picture or with custom bottlenecks. The 0xf30a "RGBForeColor" claim was wrong: colours are black/white (`0xf378`). The pixel mapping of scaling is not specified by Apple and not in these binaries: keep `floor(k · sw / dw)` as a recorded **modern policy** | SC1–SC4, §3 colour setup, §6 item 2 |
-| Q5 | window chrome transfer | **CopyMask** for every on-screen chrome tile and for code 18; opaque CopyBits only while a picture is being recorded (not when bottlenecks are custom: that was a misread field). The runtime's opaque CopyBits for every cell is a divergence from the decode; changing it (192 digests) is a family decision, not this unit's. The faithfulness-ledger row `0xfeae` still names `drawTile`; its owner should update it | X1–X4, W1–W4 |
+| Q5 | window chrome transfer | **CopyMask** for every on-screen chrome tile, and for code 18 unless the port has custom bottlenecks (then CopyBits through the mapped mask region, still masked: SC4); opaque CopyBits only while a picture is being recorded (not when bottlenecks are custom: that was a misread field). The runtime's opaque CopyBits for every cell is a divergence from the decode; changing it (192 digests) is a family decision, not this unit's. The faithfulness-ledger row `0xfeae` still names `drawTile`; its owner should update it | X1–X4, W1–W4 |
 | Q6 | vertical step with unequal cross widths | One column of source width at the anchor edge, cut if wider, the rest left undrawn if narrower. No decoded caller reaches it | T8 |
 | Q7 | pattern phase sign; FillCRect vs FillRect | Positive: port pixel `(X, Y)` shows pattern `((X − x) mod pw, (Y − y) mod ph)` (origin move decoded, alignment Apple-documented). FillCRect normally; FillRect with the 1-bit pattern in black on white at `lowDepth` | F1–F4, P1–P5 |
 | Q8 | when the cinf engine requests its own cicn | Always, **first**, before the cinf (from the `'Copl'` Gestalt file when available, through the kDEF's cicn loader). NULL → return immediately: nothing drawn, no cinf request, no colour sampled | §3 cinf requests step 1 |
