@@ -1,10 +1,17 @@
 # `scrollbar.draw` — Kaleidoscope 2.3.1 scroll-bar CDEF: state, resources, geometry, draw order
 
 Behavioural spec, v2 lane L5 (2026-10-21). Skeleton: [v2 PLAN §5](../../v2/PLAN.md);
-template `docs/spec/engine/TEMPLATE.md` (L2). Implementers read this file, Apple
-Inside Macintosh / Universal Interfaces, and `tests/rendering-options/range-rules.mjs`.
-The address-by-address trace is in `scrollbar.evidence.md`; implementers do not
-open it.
+template `docs/spec/engine/TEMPLATE.md` (L2). Implementers read this file,
+[`qd-primitives.md`](qd-primitives.md) (blit, sampler and pattern-fill rules),
+Apple Inside Macintosh / Universal Interfaces, and only the rule tables the
+[implementer brief](IMPLEMENTER-BRIEF.md) allows. Every value an implementer
+needs is stated in this file (§4–§5, with worked examples in §7).
+`tests/rendering-options/range-rules.mjs` is a test-author file and is **not**
+an implementer input (the brief forbids it). The geometry rule rows derived
+from §7 are `tests/rendering-options/scrollbar-geometry-rules.mjs` (PR #390);
+they repeat this file's numbers and become implementer input only once the
+brief lists them. The address-by-address trace is in `scrollbar.evidence.md`;
+implementers do not open it.
 
 Every row cites the 2.3.1 listing by file offset. Rect intervals are half-open
 `[start, end)`. "Along" means the axis the bar runs on (x for a horizontal bar,
@@ -224,12 +231,14 @@ is left/up, a "high" arrow right/down.
 | AC1 | `composite` | the arrow box (§5.3) is drawn from a cell of the track cicn (§5.4) | `0xc37e..0xc402` |
 | AC2 | `composite`, `pressed`, arrow not hit | cell source is cicn `trackId − 1`, falling back to the track cicn; pattern is ppat `trackId − 1`, falling back to the track pattern | `0xc3cc..0xc3fe` |
 | AC3 | `composite`, otherwise | cell source is the track cicn and the track pattern | `0xc37e..0xc382` |
-| AC4 | `composite`, a pattern is present | blit the cell into the box, then fill the box pixels where the cell's mask is clear with the pattern, anchored at `R`'s top-left | `0xc6e4..0xc730`, `0xf68c`, `0xf87e` |
-| AC5 | `composite`, no pattern | blit the cell into the box through its mask | `0xc736..0xc746`, `0xfdf8` |
+| AC4 | `composite`, a pattern is present | blit the cell into the box with the scale blit (masked; qd-primitives SC1–SC4), then region-fill the cell's mask-clear pixels with the pattern, anchored at `R`'s top-left (qd-primitives R1, F1–F3; the region is placed 1:1 at the box's top-left, not scaled) | `0xc6e4..0xc730`, `0xf68c`, `0xf87e` |
+| AC5 | `composite`, no pattern | blit the cell into the box with the icon blit (qd-primitives I1–I3): masked (I2) only in a colour port, not `lowDepth`, with a 1-bit cell pixel map; a deeper cicn (I3) is copied **opaque**, its mask ignored, and at `lowDepth` or in a non-colour port (I1) the 1-bit image is copied opaque even for a 1-bit cicn (corrected 2026-10-22; earlier wording said "through its mask") | `0xc736..0xc746`, `0xfdf8` |
 | AI1 | icon lane, not `disabled`, not hit | icon id: low h -10202, low v -10204, high h -10201, high v -10203 | `0x9f0e..0x9f38`, `0xc792..0xc7b6` |
 | AI2 | icon lane, not `disabled`, hit | icon id: low h -10198, low v -10200, high h -10197, high v -10199 | same |
 | AI3 | icon lane, `disabled` | icon id: low h -10206, low v -10208, high h -10205, high v -10207 (no hit form) | `0xc7ba..0xc7fa` |
-| AI4 | icon lane | draw `ics#` at the id (loaded into the system heap); no `ics#` → nothing; colour port and not `lowDepth` → `ics8` from the **same file** as the `ics#` (Get1Resource) if present and the kDEF's icon pixmap exists (allocated when the kDEF loads, `0xf3aa`; assume present), else the 1-bit `ics#` image; the `ics#` mask is applied unless it is all set or a picture is being recorded, and in the 1-bit branch also unless the port has custom bottlenecks | `0xc7fe..0xc81e`, `0xf4ba..0xf684` |
+| AI4 | icon lane | draw `ics#` at the id (loaded into the system heap); no `ics#` → nothing; colour port and not `lowDepth` → `ics8` from the **same file** as the `ics#` (Get1Resource) if present and the kDEF's icon pixmap exists (allocated when the kDEF loads, `0xf3aa`; assume present), else the 1-bit `ics#` image (AI5); the `ics#` mask is applied unless it is all set or a picture is being recorded, and in the 1-bit branch also unless the port has custom bottlenecks | `0xc7fe..0xc81e`, `0xf4ba..0xf684` |
+| AI5 | icon lane, the 1-bit branch of AI4 | the `ics#` image plane (the first 32 bytes, 16 × 16 at 2 bytes per row) is copied in `srcCopy` with black foreground and white background (`0xf4fa`), through the `ics#` mask plane (the second 32 bytes) under the AI4 mask conditions: set bits black, clear bits white, mask-clear pixels left untouched. No corpus archive reaches it (all icon-lane archives ship `ics8` for every id) | `0xf4fa`, `0xf5c6..0xf61c` |
+| AI6 | icon lane, destination | the icon's 16 × 16 frame (an inference: the source rect is a kDEF global with no writer in the listing, `0xf4c6..0xf4cc`; 16 × 16 is the only frame consistent with the 2-byte icon rows and the kDEF's 16 × 16 icon pixmap, `0xf3aa`) is copied into the arrow box of §5.3 (`t × t`; 1:1 at `t = 16`, scaled by CopyBits/CopyMask otherwise) | `0xc810..0xc816`, `0xf4c6..0xf4cc`, `0xf5f2..0xf61a` |
 
 ### 4.6 Thumb
 
@@ -317,7 +326,26 @@ box's inner column wherever the track art is opaque.
 
 ### 5.4 Composite arrow cells (`0xc402..0xc6e0`)
 
-Track cicn bounds `[l, r)` along, cross size `h`; `d = h − 1`. `half` = `pressedHalves`.
+`[l, r)` and `h` are the bounds (along) and cross size of the **cicn that
+supplies the cell**, i.e. the cicn chosen by AC2/AC3: `trackId − 1` for a
+pressed non-hit arrow when that cicn exists, else the track cicn
+(`0xc402..0xc420`, read after the AC2 selection at `0xc3cc..0xc3fe`). They are
+recomputed for every arrow; nothing is carried over from the track cicn except
+the `composite`, `doubleArt` and `half` flags. `d = h − 1`. `half` = `pressedHalves`.
+
+Example (animals and monkey-paradise, horizontal, pressed with hit 20): the
+track cicn is -8285 (61 × 16) but the non-hit high arrow draws from -8286
+(43 × 16), so its cell is `[28, 43)` of -8286, not `[46, 61)`.
+
+Cells are computed from the source's own bounds, but a source shorter along
+than `d` still gives a cell that extends past it. Reachable case: 1138 with
+`min = max` and a pressed hilite (ST4: tier 1 track -8287, 33 × 16,
+composite) draws a non-hit arrow from -8288 (5 × 16), whose high cell is
+`[−10, 5)`. The part of a cell outside its source's bounds is not defined by
+the kDEF or by Apple for CopyBits/CopyMask (the scale blit SC3/SC4 and icon
+blit I3 rows of `qd-primitives.md` apply no bounds test; samples outside an
+icon are undefined per its S5 row). Record those pixels as `unspecified`;
+do not invent them.
 
 | arrow | cell (not `half`) | cell (`half`) |
 |---|---|---|
@@ -333,8 +361,12 @@ size the blit scales.
 
 ### 5.5 Track source rect (`0xc2d2..0xc336`)
 
-The track cicn bounds, inset along at both ends by `k = (h − 1) · (doubleArt ? 2 : 1)`
-when `composite` and not `inactive`; otherwise the whole bounds.
+The bounds of the **cicn the segment draws** (the track cicn, or the
+`trackId − 1` cicn under TF3), inset along at both ends by
+`k = (h − 1) · (doubleArt ? 2 : 1)`, `h` being that cicn's cross size, when
+`composite` and not `inactive`; otherwise its whole bounds (`0xbb4c..0xbb54`
+passes the drawn cicn to `0xc2d2`). The `composite` and `doubleArt` flags stay
+those of the track cicn (§4.4, TR6/TR8).
 
 ### 5.6 Thumb length `len` (`0xab68..0xad60`)
 
@@ -344,7 +376,10 @@ thumb cicn chosen as in TH3–TH5, or `t + 1` when there is none; minus 5 when
 
 - `proportional`: `len = trunc(trackLen · alongR / (max − min + alongR))`,
   clamped to `[minLen, trackLen]` (upper clamp first, then the lower), where
-  `alongR` is the along length of `R` (`0xac20..0xacc4`).
+  `alongR` is the along length of `R` (`0xac20..0xacc4`). The "`len = 0` if
+  `len > trackLen`" rule below does **not** apply to this branch (it returns
+  directly, `0xacc4`), so when `minLen > trackLen` the result is `minLen`,
+  longer than the track.
 - otherwise, SmartScroll present: its thumb rect's along length (minus
   `2t − 2` when `double` and that exceeds `trackLen`), at least `minLen`;
   SmartScroll absent: `len = minLen`. Then `len = 0` if `len > trackLen`
@@ -429,13 +464,21 @@ Open questions. Implementers stop here and file a spec question.
    sets (the default, `atiPresent` absent). When `atiPresent` is set and the
    segment has no pattern or no picture is being recorded, no offscreen is
    used and the port's existing pixels remain (`0xba74..0xbb12`). Undefined;
-   see the corpus row below.
-5. The blit primitives' exact pixel rules (mask handling of `0x10320`, the
-   sampler `0xf9f6`, `0xfdf8`): owned by `qd.blit`.
+   see the corpus row below. Engine policy (not an original observation):
+   leave those port pixels unchanged and mark them unspecified in the trace;
+   do not synthesise content.
+5. The blit primitives' pixel rules are specified in
+   [`qd-primitives.md`](qd-primitives.md): scale blit SC1–SC4 (masked), line
+   sampler L1–L3 and S1–S6, icon blit I1–I3 (`0xfdf8`, opaque above 1 bit),
+   pattern fills F1–F4 and the mask-clear region R1–R2. What stays open there
+   (scaled-pixel mapping, pen state) is listed in its §6.
 6. SmartScroll's thumb rect (`0x1bbe`): an external extension; absent by
    declaration.
 7. Messages 5, 6, 13, 26 and 128 (tracking, ghost, value from position).
-8. `lowDepth` semantics beyond TF7 and AI4 (e.g. 4-bit gray vs colour).
+8. `lowDepth` beyond TF7 and AI4: resolved in
+   [`qd-primitives.md`](qd-primitives.md) §2 (a 4-bit colour device sets it, a
+   4-bit grey device does not) and rows X3, SC1, I1, S3, F3 (1-bit art in
+   black on white).
 
 ### Corpus impact (own forks; scratch census in the private store, v2-lanes/L5)
 
@@ -460,8 +503,11 @@ TR10 and TH6 are reached by no archive.
 
 ## 7. Test hooks
 
-For the test-author agent. Assertions go in `tests/rendering-options/range-rules.mjs`
-(or a sibling geometry table), derived from this spec, never importing `src/`.
+For the test-author agent (implementers do not need these files: every value
+is in this spec). Selection assertions go in
+`tests/rendering-options/range-rules.mjs`, geometry rows in
+`tests/rendering-options/scrollbar-geometry-rules.mjs` (PR #390), derived from
+this spec, never importing `src/`.
 Selection rows can keep the sentinel-substitution method of range-rules;
 geometry rows need the engine trace (rects per draw step).
 

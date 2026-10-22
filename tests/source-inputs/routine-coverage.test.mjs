@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, writeFileSync, mkdtempSync, rmSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
+import { createHash } from 'node:crypto';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -53,4 +54,110 @@ test('editing the pinned hash fails', () => {
   const inv = inventory();
   inv.inScope.sha256 = '0'.repeat(64);
   assert.equal(run(inv).status, 1);
+});
+
+function runWithBase(inv, base) {
+  const dir = mkdtempSync(join(tmpdir(), 'routine-cov-'));
+  try {
+    writeFileSync(join(dir, 'inv.json'), JSON.stringify(inv));
+    writeFileSync(join(dir, 'base.json'), JSON.stringify(base));
+    return spawnSync(process.execPath, [script, '--json', '--inventory', join(dir, 'inv.json'), '--base-inventory', join(dir, 'base.json')], { encoding: 'utf8' });
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+}
+const swapOne = (inv) => { inv.binaries.kDEF0.routines.find((r) => r[4] === true)[4] = false; return inv; };
+
+test('a frozen inventory keeps its pin: frozen:false, a reworded status or a missing pin field fails', () => {
+  assert.match(inventory().status, /FROZEN/);
+  const flipped = swapOne(inventory());
+  flipped.inScope.frozen = false;
+  let r = run(flipped);
+  assert.equal(r.status, 1);
+  assert.match(r.stderr, /inventory is frozen but inScope\.frozen is false/);
+  assert.match(r.stderr, /in-scope set sha256/);
+  for (const status of ['frozen 2026-10-21', 'PROVISIONAL', 'denominator draft']) {
+    const reworded = swapOne(inventory());
+    reworded.status = status; reworded.inScope.frozen = false;
+    r = run(reworded);
+    assert.equal(r.status, 1, `status ${status}: the remaining pin fields still freeze it`);
+    assert.match(r.stderr, /in-scope set sha256/, status);
+  }
+  for (const field of ['count', 'sha256', 'perBinary']) {
+    const missing = inventory();
+    delete missing.inScope[field];
+    r = run(missing);
+    assert.equal(r.status, 1, field);
+    assert.match(r.stderr, new RegExp(`frozen but inScope\\.${field}`), field);
+  }
+  const oneBinary = inventory();
+  delete oneBinary.inScope.perBinary.CDEF8;
+  assert.match(run(oneBinary).stderr, /inScope\.perBinary\.CDEF8 is missing/);
+  for (const field of ['count', 'sha256', 'frozenOn', 'perBinary', 'changes']) {
+    const only = swapOne(inventory());
+    only.status = 'provisional';
+    only.inScope = { column: only.inScope.column, [field]: inventory().inScope[field] ?? [{ what: 'x' }] };
+    assert.equal(run(only).status, 1, `${field} alone marks the inventory frozen`);
+  }
+  const lowerOnly = inventory();
+  lowerOnly.status = 'frozen (lower case)';
+  lowerOnly.inScope = { column: lowerOnly.inScope.column };
+  r = run(lowerOnly);
+  assert.equal(r.status, 1, 'a lower-case frozen status alone requires the pin');
+  assert.match(r.stderr, /inventory is frozen but inScope\.frozen is undefined/);
+  const neverFrozen = inventory();
+  neverFrozen.status = 'provisional';
+  neverFrozen.inScope = { column: 'inScope' };
+  assert.equal(run(neverFrozen).status, 0, 'an inventory with no pin and no frozen status is not checked');
+});
+
+test('deleting the whole pin and rewording the status fails against a frozen base', () => {
+  const stripped = swapOne(inventory());
+  stripped.status = 'provisional';
+  stripped.inScope = { column: 'inScope' };
+  assert.equal(run(stripped).status, 0, 'without a base, nothing marks it frozen');
+  const r = runWithBase(stripped, inventory());
+  assert.equal(r.status, 1);
+  assert.match(r.stderr, /the base inventory is frozen but inScope\.frozen is undefined/);
+  assert.match(r.stderr, /the base inventory is frozen but inScope\.sha256 is not a sha256/);
+  assert.equal(runWithBase(inventory(), inventory()).status, 0);
+});
+
+test('an unreadable --base-commit exits 2', () => {
+  const r = spawnSync(process.execPath, [script, '--base-commit', 'deadbeef'.repeat(5)], { encoding: 'utf8' });
+  assert.equal(r.status, 2);
+  assert.match(r.stderr, /base commit .* is not readable/);
+});
+
+test('a consistent but unrecorded re-pin fails against a frozen base (reviewer R2-2)', () => {
+  // Exactly the attack: drop one in-scope kDEF0 range, recompute count, perBinary.kDEF0 and
+  // inScope.sha256 so every self-check agrees, and add no inScope.changes entry.
+  const repin = () => {
+    const inv = inventory();
+    const rows = inv.binaries.kDEF0.routines;
+    rows.find((r) => r[4] === true)[4] = false;
+    inv.inScope.count -= 1;
+    inv.inScope.perBinary.kDEF0 -= 1;
+    const lines = [];
+    for (const [name, b] of Object.entries(inv.binaries)) for (const r of b.routines) if (r[4] === true) lines.push(`${name} ${r[0]} ${r[1]}`);
+    inv.inScope.sha256 = createHash('sha256').update(lines.sort().join('\n')).digest('hex');
+    return inv;
+  };
+  const silent = repin();
+  assert.equal(run(silent).status, 0, 'self-consistent: the pin alone cannot see it');
+  let r = runWithBase(silent, inventory());
+  assert.equal(r.status, 1);
+  assert.match(r.stderr, /re-pinned \(count 552 -> 551.*without a new inScope\.changes entry/);
+  const recorded = repin();
+  recorded.inScope.changes.push({ from: 552, to: 551, date: '2026-10-22', what: 'drop one range (test)' });
+  r = runWithBase(recorded, inventory());
+  assert.equal(r.status, 0, r.stderr);
+  const wrongCount = repin();
+  wrongCount.inScope.changes.push({ from: 552, to: 550, what: 'mislabelled' });
+  assert.match(runWithBase(wrongCount, inventory()).stderr, /must record from: 552, to: 551/);
+  const rewritten = repin();
+  rewritten.inScope.changes[0].what = 'history rewritten';
+  rewritten.inScope.changes.push({ from: 552, to: 551, what: 'drop one range (test)' });
+  assert.match(runWithBase(rewritten, inventory()).stderr, /append-only/);
+  const editedOnly = inventory();
+  editedOnly.inScope.changes[1].what = 'edited without a re-pin';
+  assert.equal(runWithBase(editedOnly, inventory()).status, 1, 'changes stay append-only even without a re-pin');
 });

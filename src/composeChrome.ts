@@ -1,5 +1,10 @@
 import { PixelBuffer } from './pixelBuffer.js';
+import { rectXYWH, scaleBlit, tileBlit, type QdRect, type Transfer } from './engine/qd/index.js';
+import { windowBlitRow } from './engine/tables/windowBlit.js';
 import type { WindowType, WindowCinf, Rect, EdgeStep } from './types.js';
+
+/** The chrome walk's transfer trap; see composeEdge's drawCell note. */
+const CHROME_TRANSFER: Transfer = 'copyBits';
 
 // ───────────────────────────────────────────────────────────────────────────
 // Window-chrome compositor — the Kaleidoscope 2.3.1 kDEF window-frame model.
@@ -529,55 +534,27 @@ function composeEdge(
   let titleStart = -1, titleEnd = -1;
   let outPos = srcStart;
 
-  // ── helpers: blit a SRC band → DST band on this edge ──────────────────────
-  // stretch: nearest-neighbour scale the whole src band to the dst band.
-  const drawStretch = (sx0: number, sLen: number, dPos: number, dLen: number): void => {
+  // ── blit a SRC band → DST band on this edge, through src/engine/qd ─────────
+  // The window caller's blit choice is table W (docs/spec/engine/qd-primitives.md
+  // §4 "Window caller: which blit"): code 18 → one scale blit (W1); codes 11/14
+  // → tile blit, direction 0 (W2); every other drawn code → tile blit,
+  // direction 1 (W3). A fixed cell is placed at its source length, so its tile
+  // (or scale) is exactly one 1:1 copy.
+  //
+  // Transfer: CopyBits srcCopy (opaque). This is the runtime's existing
+  // transfer, kept so the engine re-point changes no pixel. The spec's rule is
+  // CopyMask for a port without custom bottlenecks; how that interacts with
+  // sides drawn earlier is qd-primitives §6 Q5, open, and switching would
+  // change corner pixels where a later edge's transparent pixels overlap.
+  const bandRects = (s0: number, sLen: number, dPos: number, dLen: number): [QdRect, QdRect] => geo.horizontal
+    ? [rectXYWH(s0, geo.crossSrc, sLen, geo.crossLen), rectXYWH(dPos, geo.crossDst, dLen, geo.crossLen)]
+    : [rectXYWH(geo.crossSrc, s0, geo.crossLen, sLen), rectXYWH(geo.crossDst, dPos, geo.crossLen, dLen)];
+  const drawCell = (s0: number, sLen: number, dPos: number, dLen: number, code: number): void => {
     if (sLen <= 0 || dLen <= 0) return;
-    if (geo.horizontal) {
-      out.copyBits(cicn, { x: sx0, y: geo.crossSrc, w: sLen, h: geo.crossLen },
-        { x: dPos, y: geo.crossDst, w: dLen, h: geo.crossLen });
-    } else {
-      out.copyBits(cicn, { x: geo.crossSrc, y: sx0, w: geo.crossLen, h: sLen },
-        { x: geo.crossDst, y: dPos, w: geo.crossLen, h: dLen });
-    }
-  };
-  // tile: step the dst by the src cell size, copying one src-sized tile at a
-  // time, clamping the final partial tile (kDEF 0xfeae). The caller's
-  // direction byte `(pc==11||pc==14)?0:1` (0x59c8) picks the anchor, not the
-  // axis (kdef231-reference.md §5.1). Forward tiling starts at the dst start
-  // and clips the far end, keeping the leading src pixels. Reverse tiling
-  // (codes 11/14) starts flush at the dst end and clips the near end, keeping
-  // the trailing src pixels.
-  const drawTile = (sx0: number, sLen: number, dPos: number, dLen: number, reverse: boolean): void => {
-    if (sLen <= 0 || dLen <= 0) return;
-    const blit = (srcOff: number, dOff: number, seg: number): void => {
-      if (geo.horizontal) {
-        out.copyBits(cicn, { x: sx0 + srcOff, y: geo.crossSrc, w: seg, h: geo.crossLen },
-          { x: dPos + dOff, y: geo.crossDst, w: seg, h: geo.crossLen });
-      } else {
-        out.copyBits(cicn, { x: geo.crossSrc, y: sx0 + srcOff, w: geo.crossLen, h: seg },
-          { x: geo.crossDst, y: dPos + dOff, w: geo.crossLen, h: seg });
-      }
-    };
-    if (reverse) {
-      for (let end = dLen; end > 0; end -= sLen) {
-        const seg = Math.min(sLen, end);
-        blit(sLen - seg, end - seg, seg);
-      }
-    } else {
-      for (let off = 0; off < dLen; off += sLen) blit(0, off, Math.min(sLen, dLen - off));
-    }
-  };
-  // Fill a dst band from a src band. The 2.3.1 kDEF default blit (`0xfeae`,
-  // kdef231-recipe-walk.md Q5) ALWAYS TILES: it repeats the src cell at native
-  // size, clipping the final partial tile. There is no scaled CopyBits for
-  // ordinary fills (only part code 18 / `0x10320` scales, handled separately).
-  // A 1px src band ⇒ a uniform fill; structured fills (camo / pipes) keep their
-  // texture. cinf.tileSides does NOT gate this — `0xfeae` tiles regardless.
-  const drawFill = (s0: number, s1: number, dPos: number, dLen: number, code: number): void => {
-    const sLen = s1 - s0;
-    if (sLen <= 0 || dLen <= 0) return;
-    drawTile(s0, sLen, dPos, dLen, code === 11 || code === 14);
+    const [src, dst] = bandRects(s0, sLen, dPos, dLen);
+    const row = windowBlitRow(code);
+    if (row.blit === 'scale') scaleBlit(out, cicn, src, dst, CHROME_TRANSFER);
+    else tileBlit(out, cicn, src, dst, row.direction!, CHROME_TRANSFER);
   };
 
   // ── walk the cells ────────────────────────────────────────────────────────
@@ -594,18 +571,14 @@ function composeEdge(
     if (c.cls === 'zero') {
       // collapsed (0x49d6 stretch-verdict): width 0, draws nothing. The span is
       // owned by the separately-drawn widget / absorbed by the growers.
-    } else if (c.cls === 'scale') {
-      // code 18: a single scaled CopyBits — drawn ONCE, src band → dst band.
-      drawStretch(c.x0, srcLen, outPos, dstLen);
-    } else if (c.cls === 'fixed') {
-      // 1:1 copy, anchored (corners, bezels, and the widgets — close/zoom/shade
-      // ride the FIXED title-bar regions, so they're drawn here at native size).
-      drawStretch(c.x0, srcLen, outPos, srcLen); // dstLen == srcLen here
     } else {
-      // growing fill cell (8/11/12/13/14) AND the title plate (collapse code 5,
-      // grown to the measured title width): tile the src band across the dst.
-      // For an unexpanded collapse cell dstLen == srcLen, so this is a 1:1 copy.
-      drawFill(c.x0, c.x1, outPos, dstLen, c.code);
+      // Every other cell draws through table W: code 18 scales once (W1);
+      // growing fills (8/11/12/13/14) and the title plate (collapse code 5,
+      // grown to the measured title width) tile the src band across the dst
+      // (W2/W3). Fixed cells (corners, bezels and the close/zoom/shade widgets
+      // that ride the FIXED title-bar regions) have dstLen == srcLen, so they
+      // land as one 1:1 copy, anchored.
+      drawCell(c.x0, srcLen, outPos, c.cls === 'fixed' ? srcLen : dstLen, c.code);
     }
 
     placed.push({ x0: c.x0, x1: c.x1, out0: outPos, out1: outPos + dstLen, code: c.code, cls: c.cls });
@@ -622,7 +595,9 @@ function composeEdge(
         if (cicn.getPixel(cx, cy)[3] > 16) { capOpaque = true; break; }
     if (capLen > 0 && capOpaque && outPos < geo.outExtent) {
       const cap = Math.min(capLen, geo.outExtent - outPos);
-      drawStretch(lastAt, capLen, outPos, cap);
+      // Runtime cap policy, not a table-W row: one scale blit of the cap band.
+      const [capSrc, capDst] = bandRects(lastAt, capLen, outPos, cap);
+      scaleBlit(out, cicn, capSrc, capDst, CHROME_TRANSFER);
       placed.push({ x0: lastAt, x1: geo.srcExtent, out0: outPos, out1: outPos + cap, code: 0, cls: 'fixed' });
       outPos += cap;
     }

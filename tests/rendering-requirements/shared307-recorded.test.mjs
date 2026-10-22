@@ -5,6 +5,7 @@ import {createHash} from 'node:crypto';
 import {prepareDisplayProfile} from '../../tools/theme-loader/display-profile.js';
 import {RECORDED_CASES,STATE_SOURCE_PINS} from './recorded-face.mjs';
 import {inventoryDigest,makeReport} from './ledger.mjs';
+import {buildLedger} from './build-ledger.mjs';
 // Original bound bytes: compact files decode exactly; removed duplicates follow their declared alias.
 const read=path=>readOriginal(path);
 const json=path=>JSON.parse(read(path));
@@ -12,7 +13,8 @@ const hash=data=>createHash('sha256').update(data).digest('hex');
 const registry=Object.entries(RECORDED_CASES).filter(([,e])=>e.caseSuffix==='shared307');
 
 test('Shared307 retains the complete prior 72-case/509-obligation ledger and old source pins',()=>{
- const ledger=json('tests/rendering-requirements/ledger.json'),transition=json('tests/rendering-requirements/shared307-recorded-transition.json'),prior=structuredClone(ledger);
+ // Historical prefixes are pinned to the 1.22.0 split state (every post-split family transition undone), as in ledger.test.mjs.
+ const ledger=buildLedger({mode:'base'}).ledger,transition=json('tests/rendering-requirements/shared307-recorded-transition.json'),prior=structuredClone(ledger);
  for(const [key,count] of Object.entries(transition.counts)){
   prior[key]=prior[key].slice(0,count);assert.equal(hash(JSON.stringify(prior[key])),transition.prefixSha256[key],key);
  }
