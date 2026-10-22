@@ -202,3 +202,17 @@ test('AI5/AI6: without ics8 the ics# image draws black on white through its mask
   assert.ok(trace.drawOps.some(o => o.op === 'arrowIcon' && /AI5,AI6/.test(o.row)));
   assert.deepEqual(Array.from(out.data.slice(0, 4)), [0, 0, 0, 255]);
 });
+
+test('§5.4 narrow source: 1138 min = max pressed, non-hit high cell [-10, 5) of -8288 is unspecified, not clamped', () => {
+  const e = fork1138().filter(([k]) => k !== 'cicn:-8288');
+  e.push(['cicn:-8288', cicn(5, 16, { pixmap: pm(5, 16, [50, 60, 70, 0]), unmasked: pm(5, 16, [50, 60, 70, 255]) })]);
+  const out = port(120, 16);
+  out.data.fill(99);
+  const trace = createTrace('scrollbar');
+  drawScrollbar(out, chainOf(e), { rect: H120, hilite: 20, min: 5, max: 5, value: 5 }, trace);
+  assert.deepEqual(iv(trace.rects.cell3), [-10, 5]);
+  assert.ok(trace.drawOps.some(o => o.arrow === 3 && o.unspecified));
+  // Box 3 is [105,120): its first 10 columns map outside the source and keep the prior pixel.
+  assert.deepEqual(Array.from(out.data.slice((8 * 120 + 106) * 4, (8 * 120 + 106) * 4 + 4)), [99, 99, 99, 99]);
+  assert.deepEqual(Array.from(out.data.slice((8 * 120 + 118) * 4, (8 * 120 + 118) * 4 + 4)), [50, 60, 70, 255]);
+});

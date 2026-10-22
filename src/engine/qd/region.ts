@@ -83,12 +83,18 @@ export function iconBlit(port: Pixmap, icon: IconSource, srcRect: QdRect, dstRec
   }
   if (icon.pixelSize !== null && icon.unmasked) {
     trace?.drawOps.push({ op: 'iconBlit', row: `${row ? `${row},` : ''}I3`, src: srcRect, dst: dstRect, transfer: 'copyBits' });
-    transferBits(port, icon.unmasked, srcRect, dstRect, 'copyBits');
+    // Pixels mapped from outside the icon are undefined (S5): left untouched.
+    transferBits(port, icon.unmasked, srcRect, dstRect, 'copyBits', 'untouched');
     return;
   }
   trace?.drawOps.push({ op: 'iconBlit', row: `${row ? `${row},` : ''}I3`, src: srcRect, dst: dstRect, transfer: 'copyMask',
     unimplemented: 'pixel depth or unmasked pixels unavailable; drawn masked' });
   transferBits(port, icon.pixmap, srcRect, dstRect, 'copyMask');
+}
+
+/** True when `r` lies wholly inside `pm`'s bounds (top-left at (0, 0)). */
+export function insideBounds(pm: Pixmap, r: QdRect): boolean {
+  return r.left >= 0 && r.top >= 0 && r.right <= pm.width && r.bottom <= pm.height;
 }
 
 /**

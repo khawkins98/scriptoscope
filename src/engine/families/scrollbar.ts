@@ -21,7 +21,7 @@ import { transferBits } from '../qd/transfer.js';
 import { fillPattern } from '../qd/pattern.js';
 import { newPen, moveTo, lineTo } from '../qd/pen.js';
 import {
-  copyClipped, fillMaskClearRegion, iconBlit, newRegion, regionAddMappedMask, regionAddRect, regionHas,
+  copyClipped, fillMaskClearRegion, iconBlit, insideBounds, newRegion, regionAddMappedMask, regionAddRect, regionHas,
   type IconSource, type Region,
 } from '../qd/region.js';
 import {
@@ -402,6 +402,10 @@ export function drawScrollbar(port: Pixmap, chain: ResourceChain, input: Scrollb
       const { cell, box: dst, half } = cellFor(index, box, src);
       const row = `${step},${hitRow},AC1,${srcRow}`;
       trace?.rects && (trace.rects[`cell${index}`] = cell);
+      // §5.4: a cell can extend past a source shorter than d; those pixels are
+      // undefined (qd-primitives S5). Not clamped: the blits leave them untouched.
+      if (!insideBounds(src.pixmap, cell)) trace?.drawOps.push({ op: 'arrow', row: `${row},5.4`, arrow: index, src: cell,
+        unspecified: 'cell extends outside its source cicn; those destination pixels are left untouched' });
       if (pat) {
         trace?.drawOps.push({ op: 'arrow', row: `${row},AC4`, arrow: index, src: cell, dst, half });
         scaleBlit(port, src.pixmap, cell, dst, 'copyMask');
