@@ -29,6 +29,7 @@ export async function runtime() {
   engine ??= {
     E: await import('../../src/engine/index.ts'),
     tables: await import('../../src/engine/tables/scrollbar.ts'),
+    sliderTables: await import('../../src/engine/tables/slider.ts'),
     PixelBuffer: (await import('../../src/pixelBuffer.ts')).PixelBuffer,
     composeWindowChrome: (await import('../../src/composeChrome.ts')).composeWindowChrome,
   };
@@ -44,7 +45,7 @@ export async function decode(slug) {
   if (!decodedCache.has(slug)) {
     const { E } = await runtime();
     const path = ['scheme.sit', 'scheme.rsrc'].map(f => new URL(`${slug}/${f}`, THEMES_DIR)).find(existsSync);
-    decodedCache.set(slug, await loadKaleidoscopeScheme(readFileSync(path), { encodeAssets: false, iconBlitCicnIds: E.engineIconBlitCicnIds() }));
+    decodedCache.set(slug, await loadKaleidoscopeScheme(readFileSync(path), { encodeAssets: false, iconBlitCicnIds: E.engineIconBlitCicnIds(), engineCinfIds: E.engineCinfIds() }));
   }
   return decodedCache.get(slug);
 }
@@ -223,6 +224,73 @@ async function* proceduralFrameCells({ slug, decoded, mutate = x => x }) {
   }
 }
 
+// ── slider (CDEF 3 driver on the v2 engine) ──────────────────────────────────
+// Every archive, both orientations, the three variant groups (directional ones
+// with 5 tick marks on a 32 px rect, as the composeSlider facade defaults), every
+// public state (pressed per part), at lengths 32 and 120 and values 0, 0.25 and
+// 1, through the inputs the facade builds: message 3 (init) then message 0. The
+// chain mirrors src/engine/resources/theme.ts over the loader's raw assets (cicn
+// pixels, manifest.engineCinfs bytes). A handed-off control (G2) is one cell.
+const SLIDER_STATES = [
+  { state: 'normal' }, { state: 'disabled' }, { state: 'inactive' },
+  ...['thumb', 'pageUp', 'pageDown'].map(pressedPart => ({ state: 'pressed', pressedPart })),
+];
+const SLIDER_VARIANTS = [['nonDirectional', 8, 0], ['pointsDownOrRight', 2, 5], ['pointsUpOrLeft', 6, 5]];
+const SLIDER_LENGTHS = [32, 120];
+const SLIDER_VALUES = [0, 0.25, 1];
+
+function sliderChain(E, slug, decoded, horizontal, mutate) {
+  const asset = path => { const a = decoded.assets.find(x => x.path === path || x.path.endsWith(`/${path}`)); return a && { width: a.width, height: a.height, data: new Uint8ClampedArray(a.rgba) }; };
+  const elements = Object.values(decoded.manifest.chromeElements ?? {});
+  const entries = [];
+  for (const { type, id } of E.sliderResourceIds(horizontal)) {
+    if (type === 'cicn') {
+      const el = elements.find(e => e.sourceCicnId === id && e.asset);
+      const status = el?.samplingEquivalence?.status ?? null;
+      if (el) entries.push([`cicn:${id}`, { pixmap: asset(el.asset), pixelSize: el.iconBlit?.pixelSize ?? null, unmasked: null,
+        origin: el.boundsOrigin ?? null, sampling: status,
+        sampled: status === 'different' && el.sampledBandAsset ? asset(el.sampledBandAsset.asset) : null }]);
+    } else if (type === 'cinf') {
+      const bytes = decoded.manifest.engineCinfs?.[String(id)];
+      if (bytes) entries.push([`cinf:${id}`, { bytes }]);
+    }
+  }
+  return new E.ResourceChain([E.mapProvider(slug, 'archive', mutate(entries, { family: 'slider', horizontal }))]);
+}
+
+async function* sliderCells({ slug, decoded, mutate = x => x }) {
+  const { E, sliderTables: T } = await runtime();
+  const range = T.SLIDER_FACADE_RANGE, bg = T.SLIDER_FACADE_BACKGROUND;
+  for (const orientation of ['horizontal', 'vertical']) {
+    const horizontal = orientation === 'horizontal';
+    const chain = sliderChain(E, slug, decoded, horizontal, mutate);
+    for (const [variant, variation, ticks] of SLIDER_VARIANTS) {
+      const cross = ticks ? T.SLIDER_FACADE_THICKNESS.withTicks : T.SLIDER_FACADE_THICKNESS.plain;
+      // G2 depends only on the archive, the orientation and the variation: one cell.
+      const gate = E.createTrace('slider', { variation });
+      const R0 = horizontal ? E.rect(0, 0, cross, 120) : E.rect(0, 0, 120, cross);
+      if (E.sliderGate(chain, { rect: R0, hilite: 0, min: range.min, max: range.max, value: range.min, variation }, gate) === 'G2') {
+        yield { key: `${orientation}/${variant}/handoff`, trace: gate };
+        continue;
+      }
+      for (const st of SLIDER_STATES) for (const length of SLIDER_LENGTHS) for (const value of SLIDER_VALUES) {
+        const { hilite } = E.normalizeControlState(st, E.SLIDER_PRESSED_PARTS);
+        const R = horizontal ? E.rect(0, 0, cross, length) : E.rect(0, 0, length, cross);
+        const input = { rect: R, hilite, min: range.min, max: range.max, value: range.min + Math.round(value * (range.max - range.min)), variation };
+        const trace = E.createTrace('slider', { ...input, ticks });
+        const key = `${orientation}/${variant}/${st.pressedPart ? `pressed-${st.pressedPart}` : st.state}/${length}/v${value}`;
+        const port = { width: R.right, height: R.bottom, data: new Uint8ClampedArray(R.right * R.bottom * 4) };
+        try {
+          const init = E.sliderInit(chain, { ...input, value: range.min }, ticks, trace);
+          if (!init) throw new Error('handed off after a G1 gate');
+          E.drawSlider(port, chain, init.record, input, { background: { r: bg.r, g: bg.g, b: bg.b, a: bg.a } }, trace);
+        } catch (e) { yield { key, trace: { family: 'slider', inputs: trace.inputs, error: String(e.message) } }; continue; }
+        yield { key, trace: { ...trace, pixels: sha(port.data) } };
+      }
+    }
+  }
+}
+
 /** @internal probe hook: the proceduralFrame chain over one decoded archive. */
 export const __frameChain = (E, slug, decoded) => frameChain(E, slug, decoded, x => x);
 
@@ -230,4 +298,5 @@ export const FAMILIES = {
   window: { rules: ['docs/spec/engine/qd-primitives.md'], cells: windowCells },
   scrollbar: { rules: ['docs/spec/engine/scrollbar.md', 'docs/spec/engine/qd-primitives.md'], cells: scrollbarCells },
   proceduralFrame: { rules: ['docs/spec/engine/procedural-frame.md', 'docs/spec/engine/qd-primitives.md'], cells: proceduralFrameCells },
+  slider: { rules: ['docs/spec/engine/slider.md', 'docs/spec/engine/qd-primitives.md'], cells: sliderCells },
 };

@@ -88,6 +88,7 @@ export async function loadKaleidoscopeScheme(input, options = {}) {
     converted = convertScheme(fork, {
       meta: options.meta, source: options.source ?? 'resource-fork', displayProfile, cinfBinding, sliderLayoutBinding, cicnTransferBinding,
       ...(options.iconBlitCicnIds ? { iconBlitCicnIds: options.iconBlitCicnIds } : {}),
+      ...(options.engineCinfIds ? { engineCinfIds: options.engineCinfIds } : {}),
       ...(evidence ? { resourceObserver: evidence.observer } : {}),
     });
   } catch (error) {

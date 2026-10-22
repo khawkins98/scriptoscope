@@ -217,6 +217,12 @@ export interface ChromeElement {
    */
   iconBlit?: { pixelSize: number; unmaskedAsset?: string };
   /**
+   * The cicn's pixel-map bounds origin, present only for cicn ids an engine
+   * family asks the loader for (`engineCinfIds`, slider BL11). Engine pixmaps
+   * drop the origin; a non-zero origin is traced by the driver.
+   */
+  boundsOrigin?: { top: number; left: number };
+  /**
    * Peer of `sourceCicnId`: the cinf RESOURCE ID this element's slice / anchor /
    * bgPattern metadata decoded from. Lets the runtime jump from a chromeElement to
    * its sibling cinf for spec lookups without re-scanning the manifest. Decoded by
@@ -290,6 +296,12 @@ export interface ThemeManifest {
   readonly cinfEnvironment?: CinfBindingSummary;
   /** Explicit standalone slider role; independent of push/bevel body lookup. */
   readonly sliderLayoutEnvironment?: SliderLayoutBindingSummary;
+  /**
+   * Raw bytes of the first cinf at each id the engine families read (loader
+   * option `engineCinfIds`; src/engine/tables/loaderNeeds.ts), keyed by the
+   * signed id as a string. Present only for loads that asked for it.
+   */
+  readonly engineCinfs?: Readonly<Record<string, readonly number[]>>;
   /** Prepared immutable display profile; absent preserves the legacy display policy. */
   readonly displayProfile?: DisplayProfile;
   name: string;

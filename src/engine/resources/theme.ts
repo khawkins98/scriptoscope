@@ -11,6 +11,8 @@
 // Lookup is by the structured signed resource id (never an asset path):
 //   cicn  chromeElements[*].sourceCicnId; pixels, plus `iconBlit` depth and
 //         opaque companion when the loader produced them (qd-primitives I1–I3);
+//   cinf  manifest.engineCinfs[id] raw bytes (loader option engineCinfIds, on by
+//         default through loadTheme and the public loadKaleidoscopeScheme);
 //   ppat  patterns[*].sourcePpatId;
 //   ics#  its raw planes, inspector.iconMaskPlanes (present only for a full
 //         16 × 16 image + mask record);
@@ -22,27 +24,48 @@ import type { Pixmap } from '../qd/types.js';
 import { ResourceChain, mapProvider, type ResourceProvider } from './chain.js';
 import { loadCicnBuffer } from '../../cicnImage.js';
 import { assetUrl } from '../../loadTheme.js';
+import { onAssetUrlReleased } from '../../../tools/theme-loader/assetLifecycle.js';
+import { engineLineSampledCicnIds } from './ids.js';
+
+/** Only line-sampled cicns load their sampler companion (loaderNeeds `lineSampledCicns`). */
+const LINE_SAMPLED = new Set(engineLineSampledCicnIds());
 import { cicnIconSource } from './iconSource.js';
 
 async function themeProvider(theme: LoadedTheme, tier: 'archive' | 'base', name: string,
-  wanted: readonly { type: string; id: number }[]): Promise<ResourceProvider> {
+  wanted: readonly { type: string; id: number }[], life?: ChainLife): Promise<ResourceProvider> {
   const elements = Object.values(theme.manifest.chromeElements ?? {});
   const patterns = Object.values(theme.manifest.patterns ?? {});
   const icons = theme.inspector?.iconIndex ?? [];
-  const load = (asset: string): Promise<Pixmap> => loadCicnBuffer(assetUrl(theme, asset));
-  const entries = await Promise.all(wanted.map(async ({ type, id }): Promise<[string, unknown] | null> => {
+  // With a caller lifetime, no decode starts once it has ended (its signal
+  // aborted, or the owner released one of this chain's asset URLs).
+  const load = (asset: string): Promise<Pixmap> => {
+    if (life?.ended()) return Promise.reject(abortError());
+    return loadCicnBuffer(assetUrl(theme, asset));
+  };
+  const entry = async ({ type, id }: { type: string; id: number }): Promise<[string, unknown] | null> => {
     const key = `${type}:${id}`;
     if (type === 'cicn') {
       const el = elements.find(e => e.sourceCicnId === id && e.asset);
       if (!el) return null;
-      const [pixmap, companion] = await Promise.all([load(el.asset),
-        el.iconBlit?.unmaskedAsset ? load(el.iconBlit.unmaskedAsset) : Promise.resolve(null)]);
+      const status = el.samplingEquivalence?.status ?? null;
+      const [pixmap, companion, sampled] = await Promise.all([load(el.asset),
+        el.iconBlit?.unmaskedAsset ? load(el.iconBlit.unmaskedAsset) : Promise.resolve(null),
+        status === 'different' && el.sampledBandAsset && LINE_SAMPLED.has(id) ? load(el.sampledBandAsset.asset) : Promise.resolve(null)]);
       // Adapter policy, not a spec row (docs/v2/DECISIONS.md #7): the opaque
       // companion is used only when it is the same occurrence as the element's
       // asset (equal size, equal colour wherever the mask is set). Otherwise (e.g.
       // a consumer replaced `asset`) the icon falls back to the masked copy of the
       // current asset, and the fallback is recorded in the trace (iconSource.ts).
-      return [key, cicnIconSource(pixmap, el.iconBlit?.pixelSize ?? null, companion)];
+      // Line-colour inputs (slider BL8/BL12) and the bounds origin (BL11) ride along.
+      return [key, { ...cicnIconSource(pixmap, el.iconBlit?.pixelSize ?? null, companion),
+        origin: el.boundsOrigin ?? null, sampling: status, sampled }];
+    }
+    if (type === 'cinf') {
+      // Raw cinf bytes the loader kept for the engine's cinf ids (manifest.engineCinfs;
+      // loadTheme and the public loadKaleidoscopeScheme ask for them by default). A
+      // load without them has no engine cinfs: every cinf request is absent.
+      const bytes = theme.manifest.engineCinfs?.[String(id)];
+      return bytes ? [key, { bytes }] : null;
     }
     if (type === 'ppat') {
       const p = patterns.find(e => e.sourcePpatId === id && e.asset);
@@ -64,19 +87,58 @@ async function themeProvider(theme: LoadedTheme, tier: 'archive' | 'base', name:
       return table ? [key, table] : null;
     }
     return null;
-  }));
+  };
+  const entries = await Promise.all(wanted.map(entry));
   return mapProvider(name, tier, entries.filter((e): e is [string, unknown] => e !== null));
 }
 
-/** Build the archive → base ResourceChain for `theme`, preloading `wanted`. */
-export async function themeResourceChain(theme: LoadedTheme, wanted: readonly { type: string; id: number }[]): Promise<ResourceChain> {
+interface ChainLife { ended(): boolean; close(): void }
+
+const abortError = (): Error => new DOMException('slider composition ended', 'AbortError');
+
+/**
+ * A caller lifetime for one chain build: it ends when `signal` aborts or when the
+ * owner releases any asset URL of `theme` or its bases (a disposed theme revokes
+ * them all at once). Adapter policy, no spec row.
+ */
+function chainLife(theme: LoadedTheme, signal: AbortSignal): ChainLife {
+  const urls = new Set<string>();
+  const seen = new Set<LoadedTheme>();
+  for (let t: LoadedTheme | undefined = theme; t && !seen.has(t); t = t.base) {
+    seen.add(t);
+    for (const e of Object.values(t.manifest.chromeElements ?? {})) {
+      for (const a of [e.asset, e.iconBlit?.unmaskedAsset, e.sampledBandAsset?.asset]) if (a) urls.add(assetUrl(t, a));
+    }
+    for (const p of Object.values(t.manifest.patterns ?? {})) if (p.asset) urls.add(assetUrl(t, p.asset));
+    for (const g of Object.values(t.glyphs ?? {})) if (g) urls.add(g);
+  }
+  let released = false;
+  const stop = onAssetUrlReleased(url => { if (urls.has(url)) released = true; });
+  return { ended: () => signal.aborted || released, close: stop };
+}
+
+/**
+ * Build the archive → base ResourceChain for `theme`, preloading `wanted`. With
+ * `signal`, the build is bound to the caller's lifetime: once the signal aborts
+ * or the theme's asset URLs are released, no further decode starts and the call
+ * rejects with an `AbortError`. Without it (scroll bar, built-in frame) nothing
+ * changes.
+ */
+export async function themeResourceChain(theme: LoadedTheme, wanted: readonly { type: string; id: number }[],
+  opts: { signal?: AbortSignal } = {}): Promise<ResourceChain> {
   const providers: ResourceProvider[] = [];
   const seen = new Set<LoadedTheme>();
+  const life = opts.signal ? chainLife(theme, opts.signal) : undefined;
   let depth = 0;
+  try {
   for (let t: LoadedTheme | undefined = theme; t && !seen.has(t); t = t.base, depth++) {
+    // A caller lifetime that ended stops before the next tier starts decoding.
+    if (life?.ended()) throw abortError();
     seen.add(t);
     const name = t.manifest.name ? String(t.manifest.name) : `theme-${depth}`;
-    providers.push(await themeProvider(t, depth === 0 ? 'archive' : 'base', depth === 0 ? name : `${name}#base${depth}`, wanted));
+    providers.push(await themeProvider(t, depth === 0 ? 'archive' : 'base', depth === 0 ? name : `${name}#base${depth}`, wanted, life));
   }
+  if (life?.ended()) throw abortError();
+  } finally { life?.close(); }
   return new ResourceChain(providers);
 }
