@@ -32,11 +32,14 @@ for (const [field, prior] of [['assessments', transition.priorAssessment], ['ass
 // Validation reads the repository documents, which now carry main 1.24.0's decode
 // corrections (#377, window@1.1.0), so it checks the 1.22.0 rows with the window
 // family's in-place edits and its appended kdef.too-short-step evidence: every
-// family at its split state except window, which is live (digest recomputed).
+// family at its split state except window, which is at 1.1.0 (digest recomputed).
+// Later window transitions (1.2.0 procedural-frame rows) are validated live by
+// the byte-identity test below.
 const code10 = JSON.parse(readFileSync(new URL('./code10-transition.json', import.meta.url)));
+const atVersion = (f, version) => { let x = f; while (x.version !== version) x = priorFamily(x); return x; };
 const validatable = (() => {
   const { base, families } = readFamilies();
-  const ledger = assemble(base, families.map(f => f.family === 'window' ? f : baseFamily(f))).ledger;
+  const ledger = assemble(base, families.map(f => f.family === 'window' ? atVersion(f, '1.1.0') : baseFamily(f))).ledger;
   for (const key of ARRAYS) assert.equal(ledger[key].length, original[key].length + (key === 'evidence' ? 1 : 0), key);
   Object.assign(ledger, { inventoryVersion: original.inventoryVersion, scope: original.scope });
   ledger.inventorySha256 = inventoryDigest(ledger);
@@ -657,17 +660,19 @@ test('tab/header source-rule port (main 1.23.0) preserves the exact 1.22.0 ledge
   for (const slug of ['1984','1990','apple-lisa','evolution','windows-31','windows-95']) assert.match(added.find(a => a.caseId === `${slug}.header-surface.sampled` && a.requirementId === 'state.header-raw-dispatch').rationale, /Selection-non-discriminating/);
   for (const slug of ['1990','apple-lisa','windows-31','windows-95']) assert.match(added.find(a => a.caseId === `${slug}.tab.public-rows.sampled` && a.requirementId === 'tab.state-selection').rationale, /selection-non-discriminating/);
   // main's totals (216/18/1494 of 1,728) hold for the main lineage: the live families with the v2-only
-  // scroll-bar and push-button transitions undone. Live, the scroll-bar closure of #374 moves the 18
-  // mismatched state-selection rows to 13 verified and 5 unknown (scrollbar@1.3.0).
-  const mainLineage = assemble(sources.base, sources.families.map(f => ['scrollbar', 'push-button'].includes(f.family) ? baseFamily(f) : f)).ledger;
+  // scroll-bar, push-button and slider transitions undone, and window at its main-ported 1.1.0. Live,
+  // the scroll-bar closure of #374 moves the 18 mismatched state-selection rows to 13 verified and 5
+  // unknown (scrollbar@1.3.0), slider@1.1.0 adds 54 obligations and records 33 slider mismatches
+  // against #407, and window@1.2.0 adds 25 unknown procedural-frame obligations.
+  const mainLineage = assemble(sources.base, sources.families.map(f => ['scrollbar', 'push-button', 'slider'].includes(f.family) ? baseFamily(f) : f.family === 'window' ? atVersion(f, '1.1.0') : f)).ledger;
   assert.deepEqual(makeReport(mainLineage).requirementStatus.counts, { verified: 216, mismatched: 18, unsupported: 0, unknown: 1494 });
   assert.equal(makeReport(mainLineage).cases.length, 234);
-  assert.deepEqual(makeReport(live).requirementStatus.counts, { verified: 229, mismatched: 0, unsupported: 0, unknown: 1499 });
+  assert.deepEqual(makeReport(live).requirementStatus.counts, { verified: 229, mismatched: 33, unsupported: 0, unknown: 1545 });
   assert.equal(makeReport(live).cases.length, 234);
 });
 
 test('code-10 port (main 1.24.0) edits exactly the recorded window rows and changes no status', () => {
-  const w = liveFamily('window'), t = portTransition('window', '1.1.0'), prior = priorFamily(w);
+  const w = atVersion(liveFamily('window'), '1.1.0'), t = portTransition('window', '1.1.0'), prior = priorFamily(w);
   assert.equal(prior.version, '1.0.0'); assert.deepEqual(prior.requirements, w.requirements);
   // In-place edits are exactly main's: the replaced rows are code10-transition.json's 1.23.0 rows.
   assert.deepEqual(t.replaced.evidence.map(r => r.row), code10.priorEvidence); assert.deepEqual(t.replaced.assertions.map(r => r.row), code10.priorAssertions);
@@ -684,4 +689,24 @@ test('code-10 port (main 1.24.0) edits exactly the recorded window rows and chan
   assert.equal(cases.length, 13); assert(cases.every(c => c.family === 'window-chrome' && c.options.widthOffsets[0] === -12 && c.options.heightOffsets[0] === -12));
   const count = f => f.assessments.reduce((m, a) => (m[a.status] = (m[a.status] ?? 0) + 1, m), {});
   assert.deepEqual(count(w), count(prior));
+});
+
+test('window 1.2.0 appends the procedural-frame obligations to the five corner-sprite cases and changes no status', () => {
+  const w = liveFamily('window'), t = w.transitions.find(x => x.version === '1.2.0'), prior = atVersion(w, '1.1.0');
+  const slugs = ['apple-platinum-2', 'black-platinum', 'platinum-8', 'slimes', 'system7-nostalgia-silver'];
+  const reqs = ['window.procedural-art-selection', 'window.procedural-geometry', 'window.procedural-sampled-colours', 'window.procedural-hilite-gating', 'window.procedural-title-mode'];
+  assert.deepEqual(w.requirements.slice(t.counts.requirements).map(r => r.id), reqs);
+  assert.deepEqual(w.evidence.slice(t.counts.evidence).map(e => [e.id, e.document]), ['gate', 'art', 'geometry', 'frame-lines', 'title-samples', 'text-shadow', 'title-mode'].map(k => [`kdef.procedural-frame-${k}`, 'docs/spec/engine/procedural-frame.md']));
+  assert.equal(w.cases.length, prior.cases.length);
+  const added = w.assessments.slice(t.counts.assessments);
+  assert.deepEqual(added.map(a => `${a.caseId}/${a.requirementId}`), slugs.flatMap(s => reqs.map(r => `${s}.window.corner-sprite/${r}`)));
+  assert(added.every(a => a.status === 'unknown' && a.assertions.length === 0 && a.issues.length === 0 && !/pending/i.test(a.review)));
+  // In place: only the five corner-sprite cases and their corner-sprite-frame / state-frame rationales.
+  assert.deepEqual(t.replaced.cases.map(r => w.cases[r.index].id), slugs.map(s => `${s}.window.corner-sprite`));
+  assert.deepEqual(t.replaced.assessments.map(r => `${w.assessments[r.index].caseId}/${w.assessments[r.index].requirementId}`),
+    slugs.flatMap(s => ['window.corner-sprite-frame', 'window.state-frame'].map(r => `${s}.window.corner-sprite/${r}`)).sort((a, b) => w.assessments.findIndex(x => `${x.caseId}/${x.requirementId}` === a) - w.assessments.findIndex(x => `${x.caseId}/${x.requirementId}` === b)));
+  assert(t.replaced.assessments.every(r => w.assessments[r.index].status === r.row.status));
+  assert.deepEqual(Object.keys(t.replaced).sort(), ['assessments', 'cases']);
+  const count = f => f.assessments.reduce((m, a) => (m[a.status] = (m[a.status] ?? 0) + 1, m), {});
+  assert.deepEqual(count(w), { ...count(prior), unknown: count(prior).unknown + 25 });
 });
