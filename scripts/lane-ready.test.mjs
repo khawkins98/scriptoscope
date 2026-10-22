@@ -12,10 +12,14 @@ const repo = join(dirname(fileURLToPath(import.meta.url)), '..');
 const node = process.execPath;
 const OK = [{ name: 'noop', cmd: node, args: ['-e', ''] }];
 
+const H = c => c.repeat(64);
+const BASE_REVIEW = { reviewers: ['independent review of 1.0.0'], inventoryVersion: '1.0.0', inventorySha256: H('1') };
 const expectations = (over = {}) => JSON.stringify({
-  schemaVersion: 1, inventoryVersion: '1.0.0', cases: [{ id: 'a', documentSha256: 'aa' }], inventorySha256: '11',
-  review: { reviewers: ['independent review of 1.0.0'] }, ...over,
+  schemaVersion: 1, inventoryVersion: '1.0.0', cases: [{ id: 'a', documentSha256: H('a') }], inventorySha256: H('1'),
+  review: BASE_REVIEW, ...over,
 }, null, 2) + '\n';
+/** A genuine hash-only bump to 1.0.1: new document hash, new digest, prior review archived verbatim. */
+const bump = (reviewers, over = {}) => expectations({ inventoryVersion: '1.0.1', cases: [{ id: 'a', documentSha256: H('b') }], inventorySha256: H('2'), review: { reviewers, inventoryVersion: '1.0.1', inventorySha256: H('2'), previousReview: BASE_REVIEW }, ...over });
 
 /** A lane worktree with a bare origin carrying `v2` and the lane branch, both at the same commit. */
 function lane() {
@@ -29,7 +33,7 @@ function lane() {
   g('remote', 'add', 'origin', join(dir, 'origin.git'));
   const write = (path, body) => { mkdirSync(dirname(join(root, path)), { recursive: true }); writeFileSync(join(root, path), body); };
   write('tests/control-availability/expectations.json', expectations());
-  write('tests/rendering-requirements/families/tab.json', '{"family":"tab","review":"reviewed"}\n');
+  write('tests/rendering-requirements/families/tab.json', '{"family":"tab","review":"reviewed"}\n{"row":"independent integration review pending."}\n');
   write('tests/rendering-requirements/ledger.json', '{"scope":{"review":"reviewed"}}\n');
   write('docs/a.md', 'doc\n');
   g('add', '.'); g('commit', '-qm', 'base');
@@ -101,24 +105,38 @@ test('leftover review labels in families, ledger.json or expectations.json fail'
   }
 });
 
+test('label matching is case-insensitive on new lines and catches PENDING_REVIEW; carried prose passes', () => {
+  const t = lane();
+  try {
+    assert.equal(t.run().ok, true, 'the base already carries "review pending" prose');
+    for (const row of ['{"row":"pending independent review"}', '{"row":"PENDING_REVIEW"}', '{"row":"Awaiting Independent Review"}', '{"row":"proposed verified"}']) {
+      t.write('tests/rendering-requirements/families/tab.json', `{"family":"tab","review":"reviewed"}\n{"row":"independent integration review pending."}\n${row}\n`);
+      t.commitPush(row);
+      const r = t.run();
+      assert.equal(r.ok, false, row);
+      assert.match(rowOf(r, 'review labels').note, /families\/tab\.json:3/, row);
+    }
+  } finally { t.done(); }
+});
+
 test('one PENDING reviewer label on a hash-only expectations bump passes with a WARN; anything more fails', () => {
   const pending = ['PENDING: independent hash-only review of 1.0.1 required before merge'];
   const t = lane();
   try {
-    t.write('tests/control-availability/expectations.json', expectations({ inventoryVersion: '1.0.1', cases: [{ id: 'a', documentSha256: 'bb' }], inventorySha256: '22', review: { reviewers: pending, previousReview: { reviewers: ['independent review of 1.0.0'] } } }));
+    t.write('tests/control-availability/expectations.json', bump(pending));
     t.commitPush('hash bump');
     let r = t.run();
     assert.equal(r.ok, true, r.summary);
     assert.equal(r.warnings.length, 1);
     assert.match(r.summary, /> WARN: .*expectations\.json:\d+: one PENDING reviewer label on a hash-only bump\. PM:/);
 
-    t.write('tests/control-availability/expectations.json', expectations({ inventoryVersion: '1.0.1', cases: [{ id: 'a', documentSha256: 'bb', outcome: 'changed' }], inventorySha256: '22', review: { reviewers: pending } }));
+    t.write('tests/control-availability/expectations.json', bump(pending, { cases: [{ id: 'a', documentSha256: H('b'), outcome: 'changed' }] }));
     t.commitPush('not hash-only');
     r = t.run();
     assert.equal(r.ok, false);
     assert.match(rowOf(r, 'review labels').note, /not hash-only/);
 
-    t.write('tests/control-availability/expectations.json', expectations({ inventoryVersion: '1.0.1', inventorySha256: '22', review: { reviewers: [...pending, 'PENDING second'] } }));
+    t.write('tests/control-availability/expectations.json', bump([...pending, 'PENDING second']));
     t.commitPush('two labels');
     r = t.run();
     assert.equal(r.ok, false);
@@ -128,9 +146,16 @@ test('one PENDING reviewer label on a hash-only expectations bump passes with a 
 
 test('isHashOnlyBump ignores only sha256 values, inventoryVersion and the review block', () => {
   const base = expectations();
-  assert.equal(isHashOnlyBump(base, expectations({ inventorySha256: 'x', cases: [{ id: 'a', documentSha256: 'y' }], review: { reviewers: ['other'] }, inventoryVersion: '9' })), true);
-  assert.equal(isHashOnlyBump(base, expectations({ cases: [{ id: 'b', documentSha256: 'aa' }] })), false);
+  assert.equal(isHashOnlyBump(base, bump(['x'])), true);
+  assert.equal(isHashOnlyBump(base, expectations({ review: { ...BASE_REVIEW, reviewers: ['relabelled'] } })), true, 'same-version relabel');
+  assert.equal(isHashOnlyBump(base, expectations({ cases: [{ id: 'b', documentSha256: H('a') }] })), false);
   assert.equal(isHashOnlyBump(base, expectations({ schemaVersion: 2 })), false);
+  assert.equal(isHashOnlyBump(base, bump(['x'], { cases: [{ id: 'a', documentSha256: 'not-a-hash' }] })), false, 'a sha256 value must be 64 hex');
+  assert.equal(isHashOnlyBump(base, bump(['x'], { cases: [{ id: 'a', documentSha256: H('b'), payloadSha256: { evil: true } }] })), false, 'a new sha256 key is not hash-only');
+  assert.equal(isHashOnlyBump(base, bump(['x'], { cases: [{ id: 'a', documentSha256: H('b'), payloadSha256: H('c') }] })), false, 'an added hash key changes the key set');
+  assert.equal(isHashOnlyBump(base, bump(['x'], { review: { reviewers: ['x'], approves: 'everything', previousReview: BASE_REVIEW } })), false, 'unknown review keys');
+  assert.equal(isHashOnlyBump(base, bump(['x'], { review: { reviewers: ['x'], inventoryVersion: '1.0.1', inventorySha256: H('2') } })), false, 'the prior review must be archived');
+  assert.equal(isHashOnlyBump(base, bump(['x'], { review: { reviewers: ['x'], inventoryVersion: '1.0.9', inventorySha256: H('2'), previousReview: BASE_REVIEW } })), false, 'review version must match');
   assert.equal(isHashOnlyBump(null, base), false, 'a new file is never a hash-only bump');
 });
 
@@ -150,12 +175,15 @@ test('a failing check fails the run and records its own exit code; a check that 
 test('--skip-tests skips typecheck and npm test only for docs-only diffs', () => {
   const t = lane();
   try {
-    const cmds = [...OK, { name: 'typecheck', cmd: node, args: ['-e', 'process.exit(9)'], tests: true }, { name: 'npm test', cmd: node, args: ['-e', 'process.exit(9)'], tests: true }];
+    const cmds = [...OK, { name: 'docs-pinned tests', cmd: node, args: ['-e', 'process.exit(0)'], docsOnly: true }, { name: 'typecheck', cmd: node, args: ['-e', 'process.exit(9)'], tests: true }, { name: 'npm test', cmd: node, args: ['-e', 'process.exit(9)'], tests: true }];
     t.write('docs/b.md', 'more\n'); t.write('README.md', 'x\n'); t.commitPush('docs');
     let r = t.run({ commands: cmds, skipTests: true });
     assert.equal(r.ok, true, r.summary);
     assert.match(r.summary, /\| typecheck \| SKIP: --skip-tests \(docs-only diff\) \| skipped \|/);
     assert.match(r.summary, /\| npm test \| SKIP/);
+    assert.match(r.summary, /\| docs-pinned tests \| pass \| 0 \|/, 'doc-hash pins still run under --skip-tests');
+    assert.equal(t.run({ commands: cmds.map(c => (c.docsOnly ? { ...c, args: ['-e', 'process.exit(4)'] } : c)), skipTests: true }).ok, false, 'a failing doc pin fails a docs-only run');
+    assert.doesNotMatch(t.run({ commands: cmds }).summary, /docs-pinned tests/, 'full runs cover them through npm test');
     assert.equal(t.run({ commands: cmds }).ok, false, 'without --skip-tests the failing tests run');
     t.write('scripts/x.mjs', 'export {};\n'); t.commitPush('code');
     r = t.run({ commands: cmds, skipTests: true });
@@ -166,7 +194,9 @@ test('--skip-tests skips typecheck and npm test only for docs-only diffs', () =>
 
 test('the default checks are the required set; a missing Traps.h fails instead of skipping', () => {
   const names = defaultCommands({ trapsH: '/x/Traps.h', baseCommit: 'abc' }).map(c => c.name);
-  assert.deepEqual(names, ['lint:cleanroom', 'gen-trap-table --check', 'report-coverage', 'build-ledger --check', 'ledger history', 'typecheck', 'npm test']);
+  assert.deepEqual(names, ['lint:cleanroom', 'gen-trap-table --check', 'report-coverage', 'build-ledger --check', 'ledger history', 'validate-source', 'docs-pinned tests', 'typecheck', 'npm test']);
+  const pinned = defaultCommands({ trapsH: null, baseCommit: 'abc', root: repo }).find(c => c.name === 'docs-pinned tests').args;
+  for (const f of ['tests/control-availability/validate-source.test.mjs', 'tests/source-inputs/routine-coverage.test.mjs', 'tests/reference-captures/contract.test.mjs', 'tests/rendering-options/checkable-rules.test.mjs']) assert.ok(pinned.includes(f), f);
   const t = lane();
   try {
     const trap = defaultCommands({ trapsH: null, baseCommit: 'abc' }).filter(c => c.name.startsWith('gen-trap'));
@@ -188,8 +218,9 @@ test('the v2 docs workflow runs on every v2 PR (no paths filter) with the no-bro
   const wf = readFileSync(join(repo, '.github/workflows/v2-docs.yml'), 'utf8');
   assert.doesNotMatch(wf, /paths(-ignore)?:/);
   assert.match(wf, /pull_request:\n\s+branches: \[v2\]/);
-  for (const cmd of ['node scripts/check-cleanroom.mjs', 'node scripts/gen-trap-table.mjs', 'node scripts/report-coverage.mjs', 'node tests/rendering-requirements/build-ledger.mjs --check', 'node scripts/check-ledger-history.mjs --base-commit', 'npm run ledger:sync'])
+  for (const cmd of ['node scripts/check-cleanroom.mjs', 'node scripts/gen-trap-table.mjs', 'node scripts/report-coverage.mjs', 'node tests/rendering-requirements/build-ledger.mjs --check', 'node scripts/check-ledger-history.mjs --base-commit', 'npm run ledger:sync', 'node tests/control-availability/validate-source.mjs', 'npm test', '--root "$GITHUB_WORKSPACE"', 'git fetch --no-tags origin "$BEFORE"', '0000000000000000000000000000000000000000'])
     assert.ok(wf.includes(cmd), cmd);
   assert.match(wf, /permissions:\n\s+contents: read/, 'read-only token: CI never commits the regenerated ledger');
   assert.doesNotMatch(wf, /git push|contents: write/);
+  assert.doesNotMatch(wf, /secrets\./, 'no Traps.h secret (maintainer decision): CI checks the trap table structure only');
 });

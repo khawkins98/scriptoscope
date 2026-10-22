@@ -12,10 +12,11 @@
 // denominator change (an inScope.changes entry), never folded in silently.
 // The frozen set's identity is pinned: inScope.sha256 is the sha256 of the
 // sorted '<binary> <start> <end>' lines (one per in-scope range, '\n'-joined, no
-// trailing newline). Any swap, added/dropped range or moved bound exits 1. When the
-// inventory `status` says FROZEN, the pin is mandatory: `inScope.frozen` must be
-// true and count, sha256 and every perBinary count must be present, so flipping
-// frozen to false cannot switch the checks off. Classes are advisory only and are not used
+// trailing newline). Any swap, added/dropped range or moved bound exits 1. Once the
+// inventory is frozen (status mentions "frozen" in any case, any pin field exists,
+// or the base inventory was frozen), the pin is mandatory: `inScope.frozen` must be
+// true and count, sha256 and every perBinary count must be present, so neither
+// frozen:false, a reworded status nor a deleted pin switches the checks off. Classes are advisory only and are not used
 // here. reachedFrom must be one of REACH below; an unknown value exits 1. In-scope
 // ranges reached only by fallThrough (running off the end of a reached range)
 // are counted like any other in-scope range and also reported separately, since
@@ -49,13 +50,20 @@
 // Usage:
 //   node scripts/report-coverage.mjs           # table on stdout
 //   node scripts/report-coverage.mjs --json    # machine-readable
+//   --root <dir>             report on another checkout (CI runs the base's copy of this script on the head)
+//   --base-commit <sha>      also require the pin if the inventory at <sha> was frozen (exit 2 if unreadable)
+//   --base-inventory <path>  the same, from a file (tests)
+// Without --base-*, and without --inventory, the base is merge-base(HEAD, origin/v2) when
+// that resolves; otherwise the base comparison is skipped with a note.
 
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { resolve, dirname, relative, join } from 'node:path';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
-const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const argOf = (n) => { const i = process.argv.indexOf(n); return i > 0 ? process.argv[i + 1] : undefined; };
+const repoRoot = argOf('--root') ? resolve(argOf('--root')) : resolve(dirname(fileURLToPath(import.meta.url)), '..');
 // --inventory <path> reads another inventory (tests only); citations still come from the repo.
 const invArg = process.argv.indexOf('--inventory');
 const invPath = invArg > 0 ? resolve(process.argv[invArg + 1]) : resolve(repoRoot, 'docs/spec/routine-inventory.json');
@@ -148,17 +156,37 @@ if (existsSync(covPath)) {
 
 const inRange = (set, s, e) => { if (!set) return false; for (const a of set) if (a >= s && a < e) return true; return false; };
 let errors = 0;
-// A status that says FROZEN (and not "NOT FROZEN"/"UNFROZEN") demands the full pin: an
-// inScope.frozen:false or a missing count/sha256/perBinary must not quietly skip the checks below.
-const statusFrozen = /(?<!NOT |UN)\bFROZEN\b/.test(String(inv.status ?? ''));
-const inScopeFrozen = inv.inScope?.frozen === true || statusFrozen;
-if (statusFrozen) {
+// The pin is mandatory once the inventory is frozen. Frozen means the status mentions
+// "frozen" in any case, or any pin field exists (frozen:true, count, sha256, frozenOn,
+// perBinary, a non-empty changes list), or the base inventory was frozen. So flipping
+// frozen to false, rewording the status or deleting pin fields cannot switch the checks
+// off; an unfreeze is a denominator change that must change this rule.
+const isFrozen = (x) => {
+  const pin = x?.inScope ?? {};
+  return /frozen/i.test(String(x?.status ?? '')) || pin.frozen === true || ['count', 'sha256', 'frozenOn', 'perBinary'].some((k) => pin[k] !== undefined) || (Array.isArray(pin.changes) && pin.changes.length > 0);
+};
+let baseInv = null, baseNote = null;
+const INV_REL = 'docs/spec/routine-inventory.json';
+const gitOut = (args) => execFileSync('git', args, { cwd: repoRoot, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], maxBuffer: 1 << 28 });
+if (argOf('--base-inventory')) baseInv = JSON.parse(readFileSync(resolve(argOf('--base-inventory')), 'utf8'));
+else if (argOf('--base-commit')) {
+  const sha = argOf('--base-commit');
+  try { gitOut(['cat-file', '-e', `${sha}^{commit}`]); } catch { console.error(`report-coverage: base commit ${sha} is not readable; fetch it first`); process.exit(2); }
+  try { baseInv = JSON.parse(gitOut(['show', `${sha}:${INV_REL}`])); } catch { baseNote = `no ${INV_REL} at base ${sha.slice(0, 12)}`; }
+} else if (invArg < 0) {
+  try { const mb = gitOut(['merge-base', 'HEAD', 'origin/v2']).trim(); baseInv = JSON.parse(gitOut(['show', `${mb}:${INV_REL}`])); }
+  catch { baseNote = 'base comparison skipped (no origin/v2 merge-base or no inventory there)'; }
+}
+const baseFrozen = baseInv !== null && isFrozen(baseInv);
+const inScopeFrozen = isFrozen(inv) || baseFrozen;
+if (inScopeFrozen) {
   const pin = inv.inScope ?? {};
-  if (pin.frozen !== true) { errors++; console.error(`inventory status says FROZEN but inScope.frozen is ${JSON.stringify(pin.frozen)}; a frozen denominator must keep its pin`); }
-  if (!Number.isInteger(pin.count)) { errors++; console.error('inventory status says FROZEN but inScope.count is not an integer'); }
-  if (!/^[0-9a-f]{64}$/.test(pin.sha256 ?? '')) { errors++; console.error('inventory status says FROZEN but inScope.sha256 is not a sha256'); }
-  if (!pin.perBinary || typeof pin.perBinary !== 'object') { errors++; console.error('inventory status says FROZEN but inScope.perBinary is missing'); }
-  else for (const name of Object.keys(inv.binaries)) if (!Number.isInteger(pin.perBinary[name])) { errors++; console.error(`inventory status says FROZEN but inScope.perBinary.${name} is missing`); }
+  const why = baseFrozen && !isFrozen(inv) ? 'the base inventory is frozen' : 'the inventory is frozen';
+  if (pin.frozen !== true) { errors++; console.error(`${why} but inScope.frozen is ${JSON.stringify(pin.frozen)}; a frozen denominator must keep its pin`); }
+  if (!Number.isInteger(pin.count)) { errors++; console.error(`${why} but inScope.count is not an integer`); }
+  if (!/^[0-9a-f]{64}$/.test(pin.sha256 ?? '')) { errors++; console.error(`${why} but inScope.sha256 is not a sha256`); }
+  if (!pin.perBinary || typeof pin.perBinary !== 'object') { errors++; console.error(`${why} but inScope.perBinary is missing`); }
+  else for (const name of Object.keys(inv.binaries)) if (!Number.isInteger(pin.perBinary[name])) { errors++; console.error(`${why} but inScope.perBinary.${name} is missing`); }
 }
 const report = { status: inv.status, inScopeFrozen, inScopeCount: inv.inScope?.count ?? null, binaries: {} };
 const total = { ranges: 0, inScope: 0, cited: 0, decoded: 0, mirrored: 0, fallThrough: 0 };
@@ -203,5 +231,6 @@ if (process.argv.includes('--json')) {
     console.log(`${n.padEnd(9)} ${pad(r.ranges, 8)} ${pad(r.inScope, 9)} ${pad(r.cited, 7)} ${pad(r.decoded, 8)} ${pad(r.mirrored, 9)} ${pad(r.fallThrough, 12)}`);
   }
   for (const pnd of inv.inScope?.pending ?? []) console.log(`pending denominator change -> ${pnd.to}: ${pnd.what}`);
+  if (baseNote) console.log(baseNote);
 }
 if (errors) process.exit(1);

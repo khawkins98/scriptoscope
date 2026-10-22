@@ -14,6 +14,11 @@
 //   node scripts/check-ledger-history.mjs                  # base = merge-base(HEAD, origin/v2)
 //   node scripts/check-ledger-history.mjs --base <ref>     # base = merge-base(HEAD, <ref>)
 //   node scripts/check-ledger-history.mjs --base-commit <sha>  # compare against exactly <sha>
+//   --root <dir>   check another checkout (CI runs the base's copy of this script on the head)
+//
+// A base commit that cannot be read is an error (exit 2), never "nothing to guard":
+// after a force-push the previous head is exactly the case this guard exists for.
+// Only a readable base with no families directory passes as having nothing to guard.
 //
 // The head side is the working tree, so a local run checks what you are about
 // to commit; CI runs it on a clean checkout of the PR.
@@ -84,12 +89,23 @@ export function familiesInTree(root) {
   return { families: out, baseText };
 }
 
+export class BaseError extends Error {}
+export class HeadError extends Error {}
+
 export function checkLedgerHistory(root, { base = 'origin/v2', baseCommit = null } = {}) {
-  const commit = baseCommit ?? git(root, ['merge-base', 'HEAD', base]).trim();
-  let atBase;
-  try { atBase = familiesAt(root, commit); }
+  let commit = baseCommit;
+  if (!commit) {
+    try { commit = git(root, ['merge-base', 'HEAD', base]).trim(); }
+    catch { throw new BaseError(`cannot compute merge-base(HEAD, ${base}); fetch ${base} or pass --base-commit`); }
+  }
+  try { git(root, ['cat-file', '-e', `${commit}^{commit}`]); }
+  catch { throw new BaseError(`base commit ${commit} is not readable here; fetch it first (git fetch origin ${commit})`); }
+  try { git(root, ['cat-file', '-e', `${commit}:${FAMILIES}`]); }
   catch { return { commit, errors: [], note: `no ${FAMILIES} at ${commit.slice(0, 12)}; nothing to guard` }; }
-  const head = familiesInTree(root);
+  const atBase = familiesAt(root, commit);
+  let head;
+  try { head = familiesInTree(root); }
+  catch (error) { throw new HeadError(`cannot read the head's family files: ${error.message}`); }
   const errors = compareHistories(atBase.families, head.families, { baseText: atBase.baseText, headText: head.baseText });
   return { commit, errors, families: Object.keys(atBase.families).length };
 }
@@ -97,10 +113,14 @@ export function checkLedgerHistory(root, { base = 'origin/v2', baseCommit = null
 if (process.argv[1] && realpathSync(fileURLToPath(import.meta.url)) === realpathSync(process.argv[1])) {
   const args = process.argv.slice(2);
   const opt = n => { const i = args.indexOf(n); return i < 0 ? undefined : args[i + 1]; };
-  const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+  const root = opt('--root') ? resolve(opt('--root')) : resolve(dirname(fileURLToPath(import.meta.url)), '..');
   let r;
   try { r = checkLedgerHistory(root, { base: opt('--base') ?? 'origin/v2', baseCommit: opt('--base-commit') ?? null }); }
-  catch (error) { console.error(`check-ledger-history: cannot resolve the base (${error.message.split('\n')[0]}); fetch the base branch or pass --base-commit`); process.exit(2); }
+  catch (error) {
+    if (error instanceof HeadError) { console.error(`check-ledger-history: ${error.message}`); process.exit(1); }
+    console.error(`check-ledger-history: ${error instanceof BaseError ? error.message : `cannot read the base: ${error.message.split('\n')[0]}`}`);
+    process.exit(2);
+  }
   if (r.note) { console.log(`check-ledger-history: ${r.note}`); process.exit(0); }
   for (const e of r.errors) console.error(`ledger history: ${e}`);
   if (r.errors.length) {

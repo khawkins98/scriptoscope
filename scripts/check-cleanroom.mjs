@@ -62,7 +62,12 @@
 //                         "Allowed paths" section) is inside this linter's scope,
 //                         so the brief can never allow an unlinted file. Paths
 //                         count backticked or not, as link targets, and as bare
-//                         top-level directory names (`tests`).
+//                         top-level directory names (`tests`). Forbidden
+//                         locations (.scratch, listings, *.evidence.md, lanes/,
+//                         the maintainer store, absolute and ~ paths) fail there
+//                         even when they do not exist on disk, a link to the
+//                         repo root fails, and the brief's listing-path
+//                         exemption does not cover that section.
 //
 // Scope: every code file under `src/` and `tools/`, every behavioural spec under
 // `docs/spec/engine/` (excluding `*.evidence.md`), the docs in ALLOWED_DOCS, the
@@ -352,19 +357,17 @@ export function targets(root) {
 export function briefScope(root, scanned) {
   const brief = join(root, BRIEF);
   if (!existsSync(brief)) return [];
-  const text = readFileSync(brief, 'utf8');
-  const start = text.indexOf('## Allowed paths');
-  if (start < 0) return [{ file: BRIEF, rule: 'brief-scope', line: 1, text: 'no "## Allowed paths" section' }];
-  const end = text.indexOf('\n## ', start + 1);
-  const section = text.slice(start, end < 0 ? undefined : end);
-  const base = text.slice(0, start).split('\n').length;
+  const allowed = allowedSection(readFileSync(brief, 'utf8'));
+  if (!allowed) return [{ file: BRIEF, rule: 'brief-scope', line: 1, text: 'no "## Allowed paths" section' }];
+  const { section, base } = allowed;
   const set = new Set(scanned.map(f => posix(relative(root, f))));
   const briefDir = posix(relative(root, join(root, BRIEF, '..')));
   let cache;
   const all = () => (cache ??= repoFiles(root));
   const isDir = p => { try { return statSync(join(root, p)).isDirectory(); } catch { return false; } };
+  const candidates = p => [p, `${briefDir}/${p}`, `docs/spec/${p}`].map(c => posixPath.normalize(c));
   const resolveRel = p => {
-    for (const cand of [p, `${briefDir}/${p}`, `docs/spec/${p}`].map(c => posixPath.normalize(c))) {
+    for (const cand of candidates(p)) {
       if (cand.startsWith('..')) continue;
       if (cand.includes('*') ? all().some(f => globRe(cand).test(f)) : existsSync(join(root, cand))) return cand;
     }
@@ -372,25 +375,48 @@ export function briefScope(root, scanned) {
   };
   const hits = [];
   section.split('\n').forEach((line, i) => {
+    const hit = text => hits.push({ file: BRIEF, rule: 'brief-scope', line: base + i, text });
     const tokens = [];
-    for (const m of line.matchAll(/`([^`\s]+)`/g)) tokens.push({ p: m[1], ticked: true });
-    for (const m of line.matchAll(/\]\(([^)\s#]+)(?:#[^)]*)?\)/g)) tokens.push({ p: m[1], ticked: true });
-    const bare = line.replace(/`[^`]*`/g, ' ').replace(/\]\([^)]*\)/g, ']');
-    for (const m of bare.matchAll(/(?<![\w./*-])((?:[\w.-]+\/)+(?:[\w.*-]+)?|[\w-]+(?:\.[\w-]+)*\.(?:md|mjs|cjs|js|ts|json))(?![\w/-])/g)) tokens.push({ p: m[1], ticked: false });
-    for (const { p: raw, ticked } of tokens) {
-      const p = raw.replace(/^\.\//, '').replace(/[.,;:]+$/, '').replace(/\/$/, '');
-      if (!p || p.startsWith('*') || /^[a-z]+:/.test(p)) continue;
-      if (!/[/.*]/.test(p) && !(ticked && !p.includes('/') && isDir(p))) continue;
+    for (const m of line.matchAll(/`([^`\s]+)`/g)) tokens.push({ p: m[1], at: m.index, ticked: true });
+    for (const m of line.matchAll(/\]\(([^)\s#]+)(?:#[^)]*)?\)/g)) tokens.push({ p: m[1], at: m.index, ticked: true });
+    const bare = line.replace(/`[^`]*`/g, m => ' '.repeat(m.length)).replace(/\]\([^)]*\)/g, m => ']' + ' '.repeat(m.length - 1));
+    // Path-shaped words: a/b, dir/, /abs/path, ~/path, name.ext. Absolute and ~ paths are
+    // matched whole so they can be rejected below.
+    for (const m of bare.matchAll(/(?<![\w./*~-])((?:~\/|\/)?(?:[\w.-]+\/)+(?:[\w.*-]+)?|~?\/[\w.-]+|[\w-]+(?:\.[\w-]+)*\.(?:md|mjs|cjs|js|ts|json|asm|bin))(?![\w/-])/g)) tokens.push({ p: m[1], at: m.index, ticked: false });
+    for (const { p: raw, at, ticked } of tokens) {
+      let p = raw.replace(/^\.\//, '').replace(/[.,;:]+$/, '');
+      if (!p || /^[a-z][\w+.-]*:/i.test(p)) continue; // URLs
+      // `*.evidence.md` after "except" narrows the preceding glob; it allows nothing.
+      if (p.startsWith('*') && /\bexcept\b/i.test(line.slice(0, at))) continue;
+      // Forbidden locations fail whether or not they exist here (CI has no .scratch or store).
+      if (p.startsWith('/') || p.startsWith('~') || FORBIDDEN_TOKEN.test(p)) { hit(p); continue; }
+      const shaped = /[/.*]/.test(p);
+      p = p.replace(/\/+$/, '');
+      if (!p) { hit('.'); continue; }
+      if (!shaped && !(ticked && !p.includes('/') && isDir(p))) continue;
+      if (candidates(p).every(c => c.startsWith('..'))) { hit(p); continue; } // outside the repo
       const rel = resolveRel(p);
+      if (rel === '.' || rel === '') { hit('. (the whole repository)'); continue; }
       if (rel === null || rel === 'docs/spec/engine/*.md' || CODE_DIRS.includes(rel) || BRIEF_REFERENCES.includes(rel)) continue;
       let ok;
       if (rel.includes('*')) ok = all().filter(f => globRe(rel).test(f)).every(f => set.has(f));
       else if (isDir(rel)) ok = all().filter(f => f.startsWith(rel + '/') && SCANNED_EXT.test(f)).every(f => set.has(f));
       else ok = set.has(rel);
-      if (!ok) hits.push({ file: BRIEF, rule: 'brief-scope', line: base + i, text: rel });
+      if (!ok) hit(rel);
     }
   });
   return [...new Map(hits.map(h => [`${h.line}:${h.text}`, h])).values()];
+}
+
+/** Locations implementers must never be pointed at (V2-BRIEF clean-room roles). */
+const FORBIDDEN_TOKEN = /(?:^|\/)\.scratch(?:\/|$)|\.(?:asm|bin)$|\.evidence\.md$|(?:^|\/)(?:v2-)?lanes(?:\/|$)|maintainer-assets|k(?:231|182)-kdef|objdump|(?:^|\/)tmp\//i;
+
+/** The brief's "## Allowed paths" section and its first line number, or null. */
+function allowedSection(text) {
+  const start = text.indexOf('## Allowed paths');
+  if (start < 0) return null;
+  const end = text.indexOf('\n## ', start + 1);
+  return { section: text.slice(start, end < 0 ? undefined : end), base: text.slice(0, start).split('\n').length };
 }
 
 /** Every file under root (posix, relative), skipping VCS, dependency, build and baked-theme trees. */
@@ -415,7 +441,11 @@ export function checkCleanroom(root) {
   const files = targets(root);
   for (const f of files) {
     const rel = posix(relative(root, f));
-    for (const h of scanText(readFileSync(f, 'utf8'), { kind: kindOf(f), exempt: rel === BRIEF ? ['listing-path'] : [] })) hits.push({ file: rel, ...h });
+    const text = readFileSync(f, 'utf8');
+    for (const h of scanText(text, { kind: kindOf(f), exempt: rel === BRIEF ? ['listing-path'] : [] })) hits.push({ file: rel, ...h });
+    // The brief may name forbidden listing paths, but never inside its Allowed paths section.
+    const allowed = rel === BRIEF ? allowedSection(text) : null;
+    if (allowed) for (const h of scanText(allowed.section, { kind: 'docs' })) if (h.rule === 'listing-path') hits.push({ file: rel, ...h, line: allowed.base + h.line - 1 });
   }
   hits.push(...briefScope(root, files));
   const c = census(root);

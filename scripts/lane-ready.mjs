@@ -9,14 +9,19 @@
 //   - a review placeholder is left in a reviewed inventory: `PENDING`,
 //     `Awaiting independent review` or `PROPOSED verified` anywhere in
 //     tests/rendering-requirements/families/**, tests/rendering-requirements/ledger.json
-//     or tests/control-availability/expectations.json. One exception: a single
-//     `PENDING` reviewer label in expectations.json passes with a WARN when the
-//     file's diff against the base is a hash-only bump (only sha256 values, the
-//     inventory version and the review block change). That label is the PM's to
+//     or tests/control-availability/expectations.json (exact case anywhere; any
+//     case, e.g. `pending` or `Pending_review`, on lines new since the merge-base,
+//     because older reviewed rows already say "review pending" in prose). One
+//     exception: a single `PENDING` reviewer label in expectations.json passes
+//     with a WARN when the file's diff against the base is a hash-only bump (see
+//     isHashOnlyBump: 64-hex sha256 values with the same keys, the inventory
+//     version, and a review block that archives the prior review). That label is the PM's to
 //     replace after the Tier 0 check, so the WARN is a reminder, not a pass of the review;
 //   - any of the checks below exits non-zero:
-//       lint:cleanroom, gen-trap-table --check, report-coverage,
-//       build-ledger --check, the ledger history guard, typecheck, npm test;
+//       lint:cleanroom, gen-trap-table --check, report-coverage (with the
+//       merge-base, so a frozen base keeps its pin), build-ledger --check, the
+//       ledger history guard, validate-source (documentSha256 pins), typecheck,
+//       npm test;
 //   - HEAD moved or the worktree became dirty while the checks ran.
 //
 // gen-trap-table needs the private Traps.h: pass --traps-h <path> or set
@@ -25,6 +30,9 @@
 // Options:
 //   --skip-tests      skip typecheck and `npm test` (docs-only lanes). Refused unless
 //                     every file changed since the merge-base is under docs/ or *.md.
+//                     validate-source still runs, plus the docs-pinned tests (every
+//                     control-availability test and every test file naming docs/ or a
+//                     .md file), since a docs-only edit can break a document hash pin.
 //   --base <ref>      base branch ref (default origin/v2; fetched first, best effort)
 //   --remote <name>   remote the branch is pushed to (default origin)
 //   --traps-h <path>  Traps.h for gen-trap-table
@@ -34,7 +42,14 @@ import { existsSync, readFileSync, readdirSync, statSync, realpathSync } from 'n
 import { join, resolve, dirname, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-export const LABEL = /\bPENDING\b|Awaiting independent review|PROPOSED verified/g;
+/** Exact-case review placeholders: always fail (one PENDING exception, below). */
+export const LABEL = /(?<![A-Za-z])PENDING(?![A-Za-z])|Awaiting independent review|PROPOSED verified/g;
+/**
+ * Any-case variants (`pending`, `Pending_review`, `awaiting independent review`). Older
+ * reviewed rows already carry prose such as "independent integration review pending", so a
+ * variant fails only on a line that is new or edited relative to the merge-base.
+ */
+export const LOOSE_LABEL = /(?<![A-Za-z])pending(?![A-Za-z])|awaiting\s+independent\s+review|proposed\s+verified/gi;
 const EXPECTATIONS = 'tests/control-availability/expectations.json';
 const LEDGER = 'tests/rendering-requirements/ledger.json';
 const FAMILIES = 'tests/rendering-requirements/families';
@@ -45,40 +60,82 @@ const git = (root, args) => execFileSync('git', args, { cwd: root, encoding: 'ut
 const status = root => execFileSync('git', ['status', '--porcelain', '--untracked-files=all'], { cwd: root, encoding: 'utf8' }).split('\n').filter(Boolean);
 const tryGit = (root, args) => { try { return git(root, args); } catch { return null; } };
 
-/** The checks lane:ready runs, in order. `tests: true` rows are dropped by --skip-tests. */
-export function defaultCommands({ trapsH, baseCommit }) {
+/** Globs of the npm test script, expanded (only `dir/*.test.mjs` forms are used there). */
+function npmTestFiles(root) {
+  const script = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')).scripts?.test ?? '';
+  return script.split(/\s+/).filter(t => t.endsWith('.test.mjs')).flatMap(t => {
+    if (!t.includes('*')) return existsSync(join(root, t)) ? [t] : [];
+    const dir = dirname(t), re = new RegExp('^' + t.slice(dir.length + 1).replace(/[.]/g, '\\.').replace(/\*/g, '[^/]*') + '$');
+    return existsSync(join(root, dir)) ? readdirSync(join(root, dir)).filter(n => re.test(n)).map(n => `${dir}/${n}`) : [];
+  });
+}
+
+/**
+ * Tests a docs-only diff can still break: documentSha256 pins and other doc readers. They
+ * run under --skip-tests: every control-availability test, plus every npm test file that
+ * names a docs/ path or a .md file.
+ */
+export function docsPinnedTests(root) {
+  return npmTestFiles(root).filter(f => f.startsWith('tests/control-availability/') || /docs\/|\.md['"`]/.test(readFileSync(join(root, f), 'utf8')));
+}
+
+/**
+ * The checks lane:ready runs, in order. `tests: true` rows are dropped by --skip-tests;
+ * `docsOnly: true` rows run only under --skip-tests (npm test already covers them).
+ */
+export function defaultCommands({ trapsH, baseCommit, root = null }) {
   return [
     { name: 'lint:cleanroom', cmd: process.execPath, args: ['scripts/check-cleanroom.mjs'] },
     trapsH
       ? { name: 'gen-trap-table --check', cmd: process.execPath, args: ['scripts/gen-trap-table.mjs', '--traps-h', trapsH, '--check'] }
       : { name: 'gen-trap-table --check', missing: 'no Traps.h: pass --traps-h <path> or set SCRIPTOSCOPE_TRAPS_H' },
-    { name: 'report-coverage', cmd: process.execPath, args: ['scripts/report-coverage.mjs'] },
+    { name: 'report-coverage', cmd: process.execPath, args: ['scripts/report-coverage.mjs', '--base-commit', baseCommit] },
     { name: 'build-ledger --check', cmd: process.execPath, args: ['tests/rendering-requirements/build-ledger.mjs', '--check'], hint: 'run `npm run ledger:sync` and commit ledger.json' },
     { name: 'ledger history', cmd: process.execPath, args: ['scripts/check-ledger-history.mjs', '--base-commit', baseCommit] },
+    { name: 'validate-source', cmd: process.execPath, args: ['tests/control-availability/validate-source.mjs'], hint: 'a documentSha256 pin changed: a hash-only expectations bump (Tier 0) is needed' },
+    { name: 'docs-pinned tests', cmd: process.execPath, args: ['--experimental-strip-types', '--test', ...(root ? docsPinnedTests(root) : [])], docsOnly: true },
     { name: 'typecheck', cmd: 'npm', args: ['run', '--silent', 'typecheck'], tests: true },
     { name: 'npm test', cmd: 'npm', args: ['test', '--silent'], tests: true },
   ];
 }
 
-/** Drop sha256-named values everywhere and the version/review bookkeeping at the top. */
-function hashFree(value, top = true) {
-  if (Array.isArray(value)) return value.map(v => hashFree(v, false));
+const SHA = /^[0-9a-f]{64}$/;
+const isShaKey = k => /sha256$/i.test(k);
+/** Mask sha256-keyed values (keys kept, so an added or dropped hash key still differs); drop top-level bookkeeping. */
+function masked(value, top = true) {
+  if (Array.isArray(value)) return value.map(v => masked(v, false));
   if (!value || typeof value !== 'object') return value;
   const out = {};
   for (const [k, v] of Object.entries(value)) {
-    if (/sha256$/i.test(k)) continue;
     if (top && ['inventoryVersion', 'review'].includes(k)) continue;
-    out[k] = hashFree(v, false);
+    out[k] = isShaKey(k) ? '<sha256>' : masked(v, false);
   }
   return out;
 }
+const shaValuesHex = value => Array.isArray(value) ? value.every(shaValuesHex)
+  : value && typeof value === 'object' ? Object.entries(value).every(([k, v]) => (isShaKey(k) ? typeof v === 'string' && SHA.test(v) : shaValuesHex(v))) : true;
+const REVIEW_KEYS = new Set(['date', 'reviewers', 'inventoryVersion', 'inventorySha256', 'transition', 'previousReview']);
 
-/** True when head differs from base only in sha256 values, inventoryVersion and the review block. */
+/**
+ * True when head differs from base only in sha256 values (each a 64-hex string, same keys),
+ * inventoryVersion and the review block. The review block may only carry date, reviewers,
+ * inventoryVersion/inventorySha256 (matching the top level), a transition note and a
+ * previousReview that is the base's review archived verbatim (or the base's own
+ * previousReview, unchanged, when the version did not move).
+ */
 export function isHashOnlyBump(baseText, headText) {
   if (baseText == null) return false;
   let b, h;
   try { b = JSON.parse(baseText); h = JSON.parse(headText); } catch { return false; }
-  return JSON.stringify(hashFree(b)) === JSON.stringify(hashFree(h));
+  if (!shaValuesHex(h)) return false;
+  if (JSON.stringify(masked(b)) !== JSON.stringify(masked(h))) return false;
+  const hr = h.review ?? {}, br = b.review ?? {};
+  if (Object.keys(hr).some(k => !REVIEW_KEYS.has(k))) return false;
+  if ('inventoryVersion' in hr && hr.inventoryVersion !== h.inventoryVersion) return false;
+  if ('inventorySha256' in hr && hr.inventorySha256 !== h.inventorySha256) return false;
+  const archived = JSON.stringify(hr.previousReview) === JSON.stringify(br);
+  const unchanged = h.inventoryVersion === b.inventoryVersion && JSON.stringify(hr.previousReview) === JSON.stringify(br.previousReview);
+  return archived || unchanged;
 }
 
 function walk(dir, out = []) {
@@ -87,22 +144,35 @@ function walk(dir, out = []) {
   return out;
 }
 
-const labelHits = (text) => text.split('\n').flatMap((line, i) => [...line.matchAll(LABEL)].map(m => ({ line: i + 1, label: m[0] })));
+/** Label hits in text: exact-case ones always, any-case ones only on lines absent from the base. */
+function labelHits(text, baseText) {
+  const baseLines = baseText == null ? null : new Set(baseText.split('\n'));
+  return text.split('\n').flatMap((line, i) => {
+    const strict = [...line.matchAll(LABEL)].map(m => ({ line: i + 1, label: m[0], strict: true }));
+    if (strict.length) return strict;
+    if (baseLines?.has(line)) return [];
+    return [...line.matchAll(LOOSE_LABEL)].map(m => ({ line: i + 1, label: m[0], strict: false }));
+  });
+}
 
-/** Review-placeholder scan. Returns { errors, warnings }. `baseExpectations` is the base's file text (or null). */
-export function scanLabels(root, baseExpectations) {
+/**
+ * Review-placeholder scan. `baseFile(rel)` returns that file's text at the merge-base, or
+ * null (no base: every any-case variant counts). Returns { errors, warnings }.
+ */
+export function scanLabels(root, baseFile = () => null) {
   const errors = [], warnings = [];
   const strict = [...walk(join(root, FAMILIES)).map(f => posix(relative(root, f))), LEDGER].filter(f => existsSync(join(root, f)));
-  for (const f of strict) for (const h of labelHits(readFileSync(join(root, f), 'utf8'))) errors.push(`${f}:${h.line}: leftover review label "${h.label}"`);
+  for (const f of strict) for (const h of labelHits(readFileSync(join(root, f), 'utf8'), baseFile(f))) errors.push(`${f}:${h.line}: leftover review label "${h.label}"${h.strict ? '' : ' (new line; any case counts)'}`);
   if (existsSync(join(root, EXPECTATIONS))) {
     const text = readFileSync(join(root, EXPECTATIONS), 'utf8');
-    const hits = labelHits(text);
+    const baseText = baseFile(EXPECTATIONS);
+    const hits = labelHits(text, baseText);
     if (hits.length) {
       let inReviewers = false;
       const one = new RegExp(LABEL.source);
       try { inReviewers = (JSON.parse(text).review?.reviewers ?? []).filter(r => typeof r === 'string' && one.test(r)).length === 1; } catch {}
-      const single = hits.length === 1 && hits[0].label === 'PENDING' && inReviewers;
-      if (single && isHashOnlyBump(baseExpectations, text)) {
+      const single = hits.length === 1 && hits[0].strict && hits[0].label === 'PENDING' && inReviewers;
+      if (single && isHashOnlyBump(baseText, text)) {
         warnings.push(`${EXPECTATIONS}:${hits[0].line}: one PENDING reviewer label on a hash-only bump. PM: run the Tier 0 check and replace the label before merge.`);
       } else {
         const why = !single ? 'only a single PENDING reviewer label is tolerated' : 'the diff against the base is not hash-only';
@@ -153,13 +223,13 @@ export function laneReady({ root, remote = 'origin', base = 'origin/v2', skipTes
   const mergeBase = tryGit(root, ['merge-base', 'HEAD', base]);
   if (!mergeBase) row(`merge-base with ${base}`, false, '–', `cannot resolve ${base}`);
 
-  const baseExpectations = mergeBase ? tryGit(root, ['show', `${mergeBase}:${EXPECTATIONS}`]) : null;
-  const labels = scanLabels(root, baseExpectations);
+  const baseFile = rel => (mergeBase ? tryGit(root, ['show', `${mergeBase}:${rel}`]) : null);
+  const labels = scanLabels(root, baseFile);
   warnings.push(...labels.warnings);
   row('review labels', labels.errors.length === 0, '–', labels.errors.length ? `${labels.errors.length} leftover label(s); first: ${labels.errors[0]}` : labels.warnings.length ? `${labels.warnings.length} WARN` : '');
   for (const e of labels.errors.slice(1)) log(`  ${e}`);
 
-  let list = commands ?? defaultCommands({ trapsH, baseCommit: mergeBase ?? base });
+  let list = (commands ?? defaultCommands({ trapsH, baseCommit: mergeBase ?? base, root })).filter(c => skipTests || !c.docsOnly);
   if (skipTests) {
     const changed = mergeBase ? git(root, ['diff', '--name-only', mergeBase, 'HEAD']).split('\n').filter(Boolean) : null;
     const code = changed === null ? ['(no merge-base)'] : changed.filter(f => !f.startsWith('docs/') && !f.endsWith('.md'));

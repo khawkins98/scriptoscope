@@ -2,9 +2,15 @@ name: v2 docs + ledger
 
 # Lightweight checks for every PR into v2, including docs-only PRs. ci.yml keeps
 # its paths-ignore (docs/** and *.md skip the browser job), so without this
-# workflow a spec or ledger-prose PR would merge with no check at all. Pure Node,
-# no npm install, no browser: the clean-room linter, the trap table, the routine
-# coverage pins, the generated ledger and the append-only ledger history.
+# workflow a spec or ledger-prose PR would merge with no check at all. No browser:
+# the clean-room linter, the trap table's structure, the routine coverage pins,
+# the generated ledger, the append-only ledger history, the documentSha256 pins
+# (validate-source) and the pure-Node unit tests (npm test), which read docs too.
+#
+# The judges (linter, coverage pin, history guard) also run from the BASE
+# commit's copy of the scripts against the head tree, so a PR cannot weaken the
+# check it is judged by. A PR that changes a judge must pass both copies; a
+# deliberate relaxation is a Tier 2 change the maintainer merges by hand.
 on:
   pull_request:
     branches: [v2]
@@ -22,39 +28,81 @@ jobs:
   docs:
     name: Docs, clean-room and ledger (no browser)
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
         with:
-          # The ledger history guard reads the family files at the merge-base.
           fetch-depth: 0
 
       - name: Set up Node
         uses: actions/setup-node@v6
         with:
           node-version: '24'
+          cache: 'npm'
 
-      - name: Clean-room linter (lint:cleanroom)
-        run: node scripts/check-cleanroom.mjs
-
-      # Traps.h is Apple-copyrighted and never committed. With the optional
-      # SCRIPTOSCOPE_TRAPS_H_B64 secret (base64 of the pinned UI 3.0.1 copy) the
-      # full name check runs; without it only the table's structure is checked and
-      # a warning says so. `npm run lane:ready` always runs the full check locally.
-      - name: Trap table (gen-trap-table --check)
+      # PR: the merge-base with the target branch, fetched explicitly.
+      # Push: the previous v2 head (github.event.before), fetched explicitly; an
+      # all-zero `before` means the branch was just created and there is no prior
+      # history. A base that cannot be fetched fails the job: after a force-push the
+      # previous head is exactly what the history guard must see.
+      - name: Resolve and fetch the base commit
+        id: base
         env:
-          TRAPS_H_B64: ${{ secrets.SCRIPTOSCOPE_TRAPS_H_B64 }}
+          EVENT: ${{ github.event_name }}
+          BASE_REF: ${{ github.base_ref }}
+          BEFORE: ${{ github.event.before }}
         run: |
-          if [ -n "$TRAPS_H_B64" ]; then
-            printf '%s' "$TRAPS_H_B64" | base64 -d > "$RUNNER_TEMP/Traps.h"
-            node scripts/gen-trap-table.mjs --traps-h "$RUNNER_TEMP/Traps.h" --check
+          set -euo pipefail
+          if [ "$EVENT" = "pull_request" ]; then
+            git fetch --no-tags origin "+refs/heads/$BASE_REF:refs/remotes/origin/$BASE_REF"
+            base="$(git merge-base HEAD "origin/$BASE_REF")"
+          elif [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
+            echo "::notice title=No prior v2 head::push created the branch; base-relative checks are skipped"
+            echo "sha=" >> "$GITHUB_OUTPUT"; exit 0
           else
-            echo "::warning title=Trap names not checked in CI::SCRIPTOSCOPE_TRAPS_H_B64 is not set, so only the trap table's structure is checked. lane:ready runs the full --check against Traps.h."
-            node scripts/gen-trap-table.mjs --structure-only
+            if ! git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
+              git fetch --no-tags origin "$BEFORE" || { echo "::error title=Previous v2 head unreadable::cannot fetch $BEFORE (force-push?); the ledger history guard cannot run"; exit 1; }
+            fi
+            base="$BEFORE"
+          fi
+          git cat-file -e "$base^{commit}"
+          echo "sha=$base" >> "$GITHUB_OUTPUT"
+          git worktree add --detach "$RUNNER_TEMP/base" "$base"
+          echo "Base $base checked out at $RUNNER_TEMP/base"
+
+      - name: Install dependencies (no browsers)
+        run: npm ci
+
+      - name: Clean-room linter (lint:cleanroom), head and base copies
+        env:
+          BASE_SHA: ${{ steps.base.outputs.sha }}
+        run: |
+          node scripts/check-cleanroom.mjs
+          if [ -n "$BASE_SHA" ] && [ -f "$RUNNER_TEMP/base/scripts/check-cleanroom.mjs" ]; then
+            echo "-- base copy of the linter on the head tree"
+            node "$RUNNER_TEMP/base/scripts/check-cleanroom.mjs" --root "$GITHUB_WORKSPACE"
           fi
 
-      - name: Routine coverage (report-coverage)
-        run: node scripts/report-coverage.mjs
+      # Traps.h is Apple-copyrighted and never committed, and by maintainer
+      # decision it is not stored as a CI secret either. CI checks only the
+      # table's structure; `npm run lane:ready` runs the full --check locally.
+      - name: Trap table (structure only)
+        run: |
+          echo "::warning title=Trap names not checked in CI::Traps.h is not available in CI, so only the trap table's structure is checked. lane:ready runs the full gen-trap-table --check against Traps.h."
+          node scripts/gen-trap-table.mjs --structure-only
+
+      - name: Routine coverage (report-coverage), head and base copies
+        env:
+          BASE_SHA: ${{ steps.base.outputs.sha }}
+        run: |
+          if [ -n "$BASE_SHA" ]; then node scripts/report-coverage.mjs --base-commit "$BASE_SHA"; else node scripts/report-coverage.mjs; fi
+          judge="$RUNNER_TEMP/base/scripts/report-coverage.mjs"
+          if [ -n "$BASE_SHA" ] && [ -f "$judge" ] && grep -q "'--root'" "$judge"; then
+            echo "-- base copy of report-coverage on the head tree"
+            node "$judge" --root "$GITHUB_WORKSPACE" --base-commit "$BASE_SHA"
+          elif [ -n "$BASE_SHA" ]; then
+            echo "::notice::the base's report-coverage has no --root; only the head copy ran"
+          fi
 
       # ledger.json is generated from families/*.json. When two PRs touch families,
       # the second one goes stale after the first merges; the fix is mechanical and
@@ -67,18 +115,26 @@ jobs:
           fi
 
       # Merged family transitions are append-only: the history at the base must be
-      # an unchanged prefix of the head's (scripts/check-ledger-history.mjs).
-      - name: Ledger history is append-only
+      # an unchanged prefix of the head's. The base's copy of the guard judges when
+      # it exists; the head's copy always runs too.
+      - name: Ledger history is append-only, head and base copies
         env:
-          EVENT: ${{ github.event_name }}
-          BASE_REF: ${{ github.base_ref }}
-          BEFORE: ${{ github.event.before }}
+          BASE_SHA: ${{ steps.base.outputs.sha }}
         run: |
-          if [ "$EVENT" = "pull_request" ]; then
-            base="$(git merge-base HEAD "origin/$BASE_REF")"
-          elif [ -n "$BEFORE" ] && [ "$BEFORE" != "0000000000000000000000000000000000000000" ]; then
-            base="$BEFORE"
+          if [ -z "$BASE_SHA" ]; then echo "no base commit (branch creation); nothing to compare"; exit 0; fi
+          node scripts/check-ledger-history.mjs --base-commit "$BASE_SHA"
+          judge="$RUNNER_TEMP/base/scripts/check-ledger-history.mjs"
+          if [ -f "$judge" ] && grep -q "'--root'" "$judge"; then
+            echo "-- base copy of the history guard on the head tree"
+            node "$judge" --root "$GITHUB_WORKSPACE" --base-commit "$BASE_SHA"
           else
-            echo "no prior v2 head to compare against"; exit 0
+            echo "::notice::the base has no history guard with --root yet; only the head copy ran"
           fi
-          node scripts/check-ledger-history.mjs --base-commit "$base"
+
+      # A docs-only edit can break a documentSha256 pin (a Tier 0 hash-only bump is
+      # then required); ci.yml would not run for it.
+      - name: Document hash pins (validate-source)
+        run: node tests/control-availability/validate-source.mjs
+
+      - name: Unit tests (npm test, pure Node)
+        run: npm test

@@ -129,6 +129,17 @@ test('brief-scope catches bare directories, unbackticked paths and link targets'
     assert.deepEqual(hits(ok + '\n- see [the notes](notes.md)'), ['docs/spec/notes.md'], 'link target resolved via docs/spec');
     assert.deepEqual(hits(ok + '\n- `docs/spec/engine/*.md`, including `docs/spec/engine/`'), ['docs/spec/engine'], 'a directory holding evidence is not in scope');
     assert.deepEqual(hits(ok + '\n- `docs/spec/*.md`'), ['docs/spec/*.md'], 'a glob matching an unscanned file');
+    assert.deepEqual(hits(ok + '\n- anything under tests/ or scripts/'), ['tests'], 'unbackticked directory with a trailing slash (scripts/ does not exist yet, so it opens nothing)');
+    mkdirSync(join(root, 'scripts'), { recursive: true }); writeFileSync(join(root, 'scripts/x.mjs'), 'export {};\n');
+    assert.deepEqual(hits(ok + '\n- anything under tests/ or scripts/'), ['tests', 'scripts']);
+    assert.deepEqual(hits(ok + '\n- the [repo](../../../) itself'), ['. (the whole repository)'], 'a link to the repo root');
+    assert.deepEqual(hits(ok + '\n- [up](../../../../elsewhere.md)'), ['../../../../elsewhere.md'], 'a path outside the repo');
+    for (const forbidden of ['`.scratch/k231-kdef/kDEF/k231-kdef0.asm`', '.scratch/k231-kdef/', '`/Users/me/Documents/Scriptoscope-maintainer-assets/`', '~/Documents/Scriptoscope-maintainer-assets/x', '`docs/spec/*.evidence.md`', '`docs/spec/engine/missing.evidence.md`', '`*.asm`', '`campaign/v2-lanes/L2/`', '`/Users/me/notes/x.md`', '~/notes/y', '/opt/thing/z']) {
+      const found = hits(`${ok}\n- also ${forbidden}`);
+      assert.equal(found.length, 1, `${forbidden}: ${JSON.stringify(found)}`);
+    }
+    writeFileSync(join(root, 'docs/spec/engine/IMPLEMENTER-BRIEF.md'), briefOf(`${ok}\n- the listing .scratch/notes`) + '\nOutside the section, naming .scratch and *.asm as forbidden is fine.\n');
+    assert.deepEqual(checkCleanroom(root).hits.map(h => [h.rule, h.line]).filter(([r]) => r === 'listing-path'), [['listing-path', 9]], 'listing-path applies inside Allowed paths only');
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
 

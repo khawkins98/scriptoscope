@@ -86,5 +86,30 @@ test('CLI: compares the working tree against a git base commit', () => {
     assert.equal(r.status, 1, r.stdout + r.stderr);
     assert.match(r.stderr, /tab: transition 0 \(1\.1\.0\) was edited after merge \(summary differ\)/);
     assert.match(r.stderr, /append-only/);
+    const at = (...extra) => spawnSync(process.execPath, [join(root, 'scripts/check-ledger-history.mjs'), ...extra], { cwd: root, encoding: 'utf8' });
+    for (const bad of ['deadbeef'.repeat(5), 'not-a-ref']) {
+      r = at('--base-commit', bad);
+      assert.equal(r.status, 2, `${bad} must fail closed, not pass as "nothing to guard"`);
+      assert.match(r.stderr, /is not readable here; fetch it first/);
+    }
+    r = at('--base', 'origin/nowhere');
+    assert.equal(r.status, 2);
+    assert.match(r.stderr, /cannot compute merge-base/);
+    writeFileSync(join(famDir, 'tab.json'), '{ not json');
+    r = at('--base-commit', sha);
+    assert.equal(r.status, 1);
+    assert.match(r.stderr, /cannot read the head's family files/);
+    // --root: a copy of the script elsewhere (CI runs the base's copy) judges this tree.
+    rmSync(join(famDir, 'tab.json'));
+    r = spawnSync(process.execPath, [script, '--root', root, '--base-commit', sha], { encoding: 'utf8' });
+    assert.equal(r.status, 1);
+    assert.match(r.stderr, /tab: family file present at the base was removed/);
+    // A readable base without a families directory has nothing to guard.
+    g('checkout', '-q', '--orphan', 'empty'); g('rm', '-rqf', '.'); writeFileSync(join(root, 'x'), 'x'); g('add', 'x');
+    g('-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-qm', 'empty');
+    const empty = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
+    r = spawnSync(process.execPath, [script, '--root', root, '--base-commit', empty], { encoding: 'utf8' });
+    assert.equal(r.status, 0, r.stderr);
+    assert.match(r.stdout, /nothing to guard/);
   } finally { rmSync(root, { recursive: true, force: true }); }
 });

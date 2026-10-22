@@ -251,9 +251,11 @@ feat(api)!: rename ScriptoscopeWindow constructor option `theme` to `themeId`
   pushed head equal to the tested head, rejects leftover `PENDING` / "Awaiting
   independent review" / "PROPOSED verified" labels, and runs the clean-room linter,
   `gen-trap-table --check`, `report-coverage`, `build-ledger.mjs --check`, the
-  ledger history guard, typecheck and `npm test`. Paste its summary block, with the
-  commit and each exit code, into the PR body. A PR without a passing summary goes
-  back unreviewed.
+  ledger history guard, `validate-source`, typecheck and `npm test`. One `PENDING`
+  reviewer label on a hash-only expectations bump passes with a WARN, so the PM
+  replaces it after the Tier 0 check. Paste its summary block, with the commit and
+  each exit code, into the PR body. A PR without a passing summary goes back
+  unreviewed.
 - **Review by tier.** Tier 0, PM mechanical check with no agent review: hash-only
   bumps, inserting reviewer labels, doc wording and typos, citation-only corrections
   with no change in meaning, a regenerated `ledger.json`. Tier 1, one review round:
