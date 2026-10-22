@@ -733,7 +733,11 @@ excluded because the loader does not expose it (#423). These rows become
 `window.state-frame` for four of them. `window.state-frame` stays **unknown**
 for apple-platinum-2, whose utility frames are pixel-identical.
 `fill.remaining` and `window.masked-composition` stay unknown. All 25 rows now
-cite #423 instead of the closed #414. The rule rows for spec rev 3 are in
+cite #423 instead of the closed #414. They carry the label of the Tier-2
+review of #424 itself (REVIEW-424.json), because IMPL-REVIEW-421 never saw the
+assertion. Per that review's N4, the five utility `window.wnd-ladder` rows also
+cite `window.procedural-frame`, for its raw-fork `wnd#` gate. That assertion's
+`caseIds` gain the five utility cases. The rule rows for spec rev 3 are in
 `tests/rendering-options/procedural-frame-rules.test.mjs`. The live totals become
 257 verified, 33 mismatched and 1,542 unknown of 1,832, over 239 cases.
 

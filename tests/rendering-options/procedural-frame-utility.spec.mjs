@@ -71,8 +71,12 @@ for (const mode of ['source', 'built']) {
                 const tileLine = tile ? Array.from({ length: 9 }, (_, i) => key(type.side ? px(tile, r, i) : px(tile, i, r))).sort() : null;
                 return { k, line, tileLine, fill: key(fill) };
               });
+              // §9.6 UW3 / UW5 (#424 review N3): an inactive window that draws no title (no-title, side) has
+              // no stripes, no widgets and no title, so its whole frame interior is the fill.
+              const [il, it, ir, ib] = plan.interior; let interiorOff = 0;
+              if (state === 'inactive' && !type.titled) for (let y = it; y < ib; y++) for (let x = il; x < ir; x++) if (key(at(x, y)) !== key(fill)) interiorOff++;
               let hash = 0; for (let i = 0; i < image.data.length; i++) hash = (Math.imul(hash, 31) + image.data[i]) | 0;
-              renders.push({ windowType, size: [image.width, image.height], frame: f ? [f.left, f.top, f.right, f.bottom] : null, probes, untouched, widgets, stripes, hash });
+              renders.push({ windowType, size: [image.width, image.height], frame: f ? [f.left, f.top, f.right, f.bottom] : null, probes, untouched, widgets, stripes, interiorOff, hash });
             }
             rows.push({ slug, type: type.slug, state, frameFound: !!Q.active && !!Q.inactive, stripeId: stripeId ?? null, renders });
           }
@@ -102,6 +106,7 @@ for (const mode of ['source', 'built']) {
         if (r.state === 'inactive') {
           expect(flat, where).toEqual([]);
           expect(x.widgets.filter(w => w.discriminating === 0 || w.hits > 0), where).toEqual([]);
+          if (!type.titled) expect(x.interiorOff, `${where} interior`).toBe(0);
         } else {
           expect(r.stripeId, where).not.toBeNull();
           expect(x.stripes.filter(s => JSON.stringify(s.line) !== JSON.stringify(s.tileLine)), where).toEqual([]);

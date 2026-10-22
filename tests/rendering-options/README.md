@@ -493,6 +493,8 @@ each archive's own -14316/-14320 (side -14315/-14319) frame cicns, -14314
 - **Inactive windows.** One 9-px period of the stripes band holds each tile
   row when active and only the fill when inactive. No widget box shows a
   discriminating glyph pixel when inactive, and at least one does when active.
+  An inactive type that draws no title (no-title, side) shows only the fill
+  across its whole frame interior (#424 review N3).
 
 Eleven runtime mutations were run in a scratch worktree, source and built. Ten
 failed it: #421 B1 reverted to a direct slug lookup, B2's title gate reverted,
@@ -500,8 +502,11 @@ UFA1 horizontal and side states swapped, UFH9 transposed, the UW4 and UW2
 hilite gates dropped, UG2 raised by *H* − 2, US1's band moved one row, and UI10
 titled *H* 14. One survived: UFH7 sampling P(6, i) instead of P(4, i). That
 reading is invisible on this corpus, because P(6, i) = P(4, i) for rows 0–2 of
-every frame cicn. The fill outside the band, the title raster and the masked
-corners are not checked.
+every frame cicn. A twelfth, added for review N3, draws the title on
+no-title-utility-window while keeping *H* at 13. It fails only the
+interior check, in source and built mode. The fill outside the band (except
+on untitled inactive windows), the title raster and the masked corners are
+not checked.
 
 ### Tab and header source rules
 

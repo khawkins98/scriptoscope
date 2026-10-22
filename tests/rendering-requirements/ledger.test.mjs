@@ -759,8 +759,9 @@ test('window 1.4.0 (#421) binds the utility cases to window.procedural-frame-uti
     ['kdef.procedural-frame-utility-art', 'docs/spec/engine/procedural-frame.md', ['window.state-frame']],
     ['kdef.procedural-frame-utility-geometry', 'docs/spec/engine/procedural-frame.md', ['window.corner-sprite-frame']],
     ['kdef.procedural-frame-utility-frame-lines', 'docs/spec/engine/procedural-frame.md', ['window.corner-sprite-frame']]]);
-  // In place: only the five utility cases and their 25 assessments (window rows only).
-  assert.deepEqual(Object.keys(t.replaced).sort(), ['assessments', 'cases']);
+  // In place: the five utility cases, their 25 assessments, and window.procedural-frame gaining the utility cases (its raw-fork wnd# gate, REVIEW-424 N4).
+  assert.deepEqual(Object.keys(t.replaced).sort(), ['assertions', 'assessments', 'cases']);
+  assert.deepEqual(t.replaced.assertions.map(r => [w.assertions[r.index].id, w.assertions[r.index].caseIds.slice(r.row.caseIds.length)]), [['window.procedural-frame', cases]]);
   assert.deepEqual(t.replaced.cases.map(r => w.cases[r.index].id), cases);
   for (const r of t.replaced.cases) {
     const c = w.cases[r.index];
@@ -770,9 +771,9 @@ test('window 1.4.0 (#421) binds the utility cases to window.procedural-frame-uti
   }
   const changed = t.replaced.assessments.map(r => ({ now: w.assessments[r.index], was: r.row }));
   assert.equal(changed.length, 25);
-  assert(changed.every(c => cases.includes(c.now.caseId) && c.was.status === 'unknown' && c.now.issues.join() === '423' && c.now.review === changed[0].now.review && /IMPL-REVIEW-421\.json/.test(c.now.review)));
+  assert(changed.every(c => cases.includes(c.now.caseId) && c.was.status === 'unknown' && c.now.issues.join() === '423' && c.now.review === changed[0].now.review && /REVIEW-424\.json/.test(c.now.review)));
   const promoted = changed.filter(c => c.now.status === 'verified');
-  assert(promoted.every(c => c.now.assertions.join() === 'window.procedural-frame-utility' && c.now.evidence.some(id => id.startsWith('kdef.procedural-frame-utility-'))));
+  assert(promoted.every(c => c.now.assertions.join() === (c.now.requirementId === 'window.wnd-ladder' ? 'window.procedural-frame-utility,window.procedural-frame' : 'window.procedural-frame-utility') && c.now.evidence.some(id => id.startsWith('kdef.procedural-frame-utility-'))));
   assert.deepEqual(promoted.map(c => `${c.now.caseId.split('.')[0]}/${c.now.requirementId}`).sort(), [
     ...slugs.flatMap(s => [`${s}/window.wnd-ladder`, `${s}/window.corner-sprite-frame`]),
     ...slugs.filter(s => s !== 'apple-platinum-2').map(s => `${s}/window.state-frame`)].sort());

@@ -603,8 +603,8 @@ export function utilityHit(geo, w, [x, y], { reading = {}, atZoom = false } = {}
 // Public window types of the utility family (WINDOW_TYPE_IDENTITIES -14304..-14288), canonical slug
 // first, then the legacy alias that names the same type. Declared defaults (spec §10.3; the public
 // type -> variation mapping is not decoded): side = the side-floating types; collapsed = the
-// collapsed types; a title is passed for the titled types only, so UI10 gives H 15 there and 13
-// elsewhere. collapsed-no-title-utility-window is excluded: the loader does not expose it for
+// collapsed types; renderWindow forwards the title to the titled types only (runtime policy), so
+// UI10 gives H 15 there and 13 elsewhere. collapsed-no-title-utility-window is excluded: the loader does not expose it for
 // these five schemes, so the public path cannot reach its record (#423).
 export const UTILITY_TYPES = [
   { slug: 'titled-utility-window', side: false, collapsed: false, titled: true },
