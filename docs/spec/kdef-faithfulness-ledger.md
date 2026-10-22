@@ -87,7 +87,7 @@ Each entry below tags its divergence direction explicitly:
   - **The decode:** `engine/window-widgets.md` HT2 says the original window definition does not hit-test widgets on an inactive window. A click on a background window's close, zoom or collapse box only activates the window.
   - **What we do:** the engine implements HT2 as decoded, and the trace records it. But `renderWindow` and the declarative layer keep each widget a real, focusable button on inactive windows too. It can be clicked, and reached and activated from the keyboard.
   - **Why:** on the web a window is a region of the page, not the frontmost app window. Making a background window's controls inert would take them out of the tab order and away from screen readers, for no visual gain. Keyboard and assistive-technology users would have to activate a window before they could close it.
-  - **Scope:** this only covers whether the widget responds. What the widgets look like still follows the decode: at rest, close and collapse art is part of the window template's own pixels, and only the partial-zoom widget's art depends on the active state (WD rows). Any visual or behavioural change beyond keeping the button operable needs its own entry here.
+  - **Scope:** this only covers whether the widget responds. What the widgets look like still follows the decode: at rest, close and collapse art is part of the window's own (active or inactive) template pixels; the only widget draw gated on the active state is the partial-zoom widget (WD5) (WD rows). Any visual or behavioural change beyond keeping the button operable needs its own entry here.
 
 ### decode→reference
 
