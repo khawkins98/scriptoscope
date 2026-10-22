@@ -5,7 +5,7 @@ look anything up. For a routine address /
 resource id / struct offset, go to the [reference](./kdef231-reference.md)
 instead; for the implemented chrome model, the [compositor
 spec](./compositor-spec.md). This doc names mechanisms and links *down* to those
-by their `0xADDR` routine address.*
+by their `0x…` routine address.*
 
 ---
 

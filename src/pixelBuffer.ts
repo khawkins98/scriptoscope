@@ -9,6 +9,9 @@
 // code 18 (0x10320) does a single scaled CopyBits. `copyBits` below is the
 // primitive both build on (nearest-neighbour sample-and-hold scaling).
 
+import { copyBits } from './engine/qd/transfer.js';
+import { rectXYWH } from './engine/qd/rect.js';
+
 /** A rectangle in pixel coordinates: top-left origin, width/height. */
 export interface PixRect {
   x: number;
@@ -63,18 +66,9 @@ export class PixelBuffer {
    * up to an N-px dstRect (kDEF-findings §13.2).
    */
   copyBits(src: PixelBuffer, srcRect: PixRect, dstRect: PixRect): void {
-    const { x: sx, y: sy, w: sw, h: sh } = srcRect;
-    const { x: dx, y: dy, w: dw, h: dh } = dstRect;
-    if (sw <= 0 || sh <= 0 || dw <= 0 || dh <= 0) return;
-    for (let row = 0; row < dh; row++) {
-      // sample-and-hold: floor-map dst row → src row
-      const ssy = sy + Math.floor((row * sh) / dh);
-      for (let col = 0; col < dw; col++) {
-        const ssx = sx + Math.floor((col * sw) / dw);
-        const [r, g, b, a] = src.getPixel(ssx, ssy);
-        this.setPixel(dx + col, dy + row, r, g, b, a);
-      }
-    }
+    // The engine's CopyBits (src/engine/qd/transfer.ts) owns the transfer and
+    // its sample-and-hold mapping: dst offset k reads src offset floor(k·s/d).
+    copyBits(this, src, rectXYWH(srcRect.x, srcRect.y, srcRect.w, srcRect.h), rectXYWH(dstRect.x, dstRect.y, dstRect.w, dstRect.h));
   }
 
   /**

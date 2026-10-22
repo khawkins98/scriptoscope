@@ -2,19 +2,18 @@
 
 *Clean-room decode of the Platinum standard controls. Geometry from the 68k
 `CDEF`s; drawing model from the PowerPC `AppearanceLib` `DrawTheme*` suite.
-Mirrors the kDEF/WDEF playbook: cite `0xADDR`/offset, describe the algorithm,
+Mirrors the kDEF/WDEF playbook: cite hex address/offset, describe the algorithm,
 **never** dump Apple's listing. Feeds the Phase-B control generator. Companion:
 [`platinum-wdef125-decode.md`](./platinum-wdef125-decode.md),
 [`platinum-controls-faithfulness-ledger.md`](./platinum-controls-faithfulness-ledger.md).*
 
-```
-# bins (NOT committed — Apple system code; git-ignored in .scratch/iso-recon):
-#   code-out/CDEF-n63.bin   (5426B, 68k)   — track family (decoded here)
-#   code-out/CDEF-n1.bin    (3172B, 68k)   — button family (TODO, not yet decoded)
-#   85-System.bin           (PowerPC PEF host of AppearanceLib + ControlsLib)
-# disassemble the CDEF:  m68k-elf-objdump -D -b binary -m m68k:68030 CDEF-n63.bin > CDEF-n63.asm
-# PPC PEF:  capstone (CS_ARCH_PPC | CS_MODE_32 | CS_MODE_BIG_ENDIAN); see the spike section.
-```
+Binaries (NOT committed — Apple system code):
+- `CDEF` -63 (5426B, 68k) — track family (decoded here)
+- `CDEF` -1 (3172B, 68k) — listed as "button family (TODO, not yet decoded)"
+- `85-System.bin` (PowerPC PEF host of AppearanceLib + ControlsLib)
+
+*Listing-level narrative (registers, frame offsets, instruction excerpts, listing
+paths, disassembly toolchain) for this document lives in [`engine/platinum-controls-decode.evidence.md`](engine/platinum-controls-decode.evidence.md) — spec writers and verifiers only.*
 
 ## Headline
 
@@ -51,12 +50,12 @@ is documented below as an *optional surgical* fidelity-tightening step.
 
 ## Routine map (`CDEF -63`, track family)
 
-All `0xADDR` are file offsets into `CDEF-n63.bin`. Entry points are `linkw %fp,#…`.
+All hex addresses are file offsets into the `CDEF` -63 resource.
 
 | addr | role |
 |---|---|
-| `0x0e`/`0x14` | **CDEF entry** — unpack args, snapshot port (`0x1224`/`0x128e`), dispatch on message, restore (`0x1262`/`0x12f2`), return in `%d6`→`fp@(20)`. |
-| `0x1e2` | **initCntl** (msg 3) — alloc the **58-byte** private struct (`moveq #58; 0xa322` @ `0x1f4`) into `contrlData` (`a3@(28)`); copy value/min/max; call thumb-calc `0xa6c`. |
+| `0x0e`/`0x14` | **CDEF entry** — unpack args, snapshot port (`0x1224`/`0x128e`), dispatch on message, restore (`0x1262`/`0x12f2`), return the result to the caller's function-result slot. |
+| `0x1e2` | **initCntl** (msg 3) — alloc the **58-byte** private struct (trap `0xa322`, size 58, @ `0x1f4`) into `contrlData`; copy value/min/max; call thumb-calc `0xa6c`. |
 | `0x386` | **drawCntl** (msg 0) — build offscreen GWorld (`0xeba`), recompute thumb (`0xa6c`), erase/frame track, draw groove, optional label `0xd76`, blit + teardown. |
 | `0x6e8` | **testCntl** (msg 1) — `PtInRect`(thumb) (`0xa8ad` @ `0x71a`), gated by active state. |
 | `0x746` | **dispCntl** (msg 4) — dispose struct, clear `contrlData`. |
@@ -67,51 +66,56 @@ All `0xADDR` are file offsets into `CDEF-n63.bin`. Entry points are `linkw %fp,#
 | `0xd76` | label/title text (local QD; trunc selector `0x8208FFE0`). |
 | `0xeba` | offscreen color-port setup (`OpenCPort` `0xaa00` @ `0xef0`). |
 | `0xf5a` | color-pair fetch (RGB by index, `0xaa64`; `RGBForeColor/Back` `0xaa14/15`). |
-| `0x1030` | **part-draw DELEGATION** — validate chained proc handle, `jsr %a0@` @ `0x10b0` with (partCode, rect, bounds). |
+| `0x1030` | **part-draw DELEGATION** — validate chained proc handle, indirect call @ `0x10b0` with (partCode, rect, bounds). |
 | `0x10da`–`0x11fa` | rect helpers (channel / track-minus-arrows / arrow box / inset frame). |
 | `0x1224`–`0x1336` | port save/restore + hilite-lowmem poke (`0xba6`/`0xba8`/`0x988`/`0x984`). |
 | `0x14f4` | `'PAT#'` resource fetch (`GetResource` `0xa9a0`, type `0x50415423`). |
 
 ## Message dispatch (`CDEF -63`)
 
-Range check + jump table; **table base `0xf8`**, jmp base `0xf6`:
-`0xe0 movew %d5,%d0` (msg) · `bmiw 0x17c` · `cmpiw #11` · `bgtw 0x17c` ·
-`addw %d0,%d0` · `movew %pc@(0xf8,%d0:w),%d0` · `jmp %pc@(0xf6,%d0:w)`.
+Range check + jump table; **table base `0xf8`**, jump base `0xf6`: from `0xe0`, a
+negative message or one greater than 11 goes to the common exit `0x17c`;
+otherwise the int16 table entry at `0xf8 + 2·msg` is added to `0xf6` and jumped to
+(instruction excerpt in evidence).
 
 | idx | target | message | reached |
 |---|---|---|---|
-| 0 | `0x110` | drawCntl | `jsr 0x386` |
-| 1 | `0x132` | testCntl | `jsr 0x6e8` |
-| 2,10,11 | `0x142` | calcCRgns/calcCntlRgn/calcThumbRgn | `jsr 0x78c` (part by `param`) |
-| 3 | `0x156` | initCntl | `jsr 0x1e2` |
-| 4 | `0x164` | dispCntl | `jsr 0x746` |
+| 0 | `0x110` | drawCntl | calls `0x386` |
+| 1 | `0x132` | testCntl | calls `0x6e8` |
+| 2,10,11 | `0x142` | calcCRgns/calcCntlRgn/calcThumbRgn | calls `0x78c` (part by `param`) |
+| 3 | `0x156` | initCntl | calls `0x1e2` |
+| 4 | `0x164` | dispCntl | calls `0x746` |
 | 5,6,7,9 | `0x17c` | posCntl/thumbCntl/dragCntl/unused | → common exit (system default) |
-| 8 | `0x16e` | autoTrack | `jsr 0x7c0` |
+| 8 | `0x16e` | autoTrack | calls `0x7c0` |
 
 posCntl/thumbCntl/dragCntl fall through to the Control-Manager default.
 
 ## Per-kind geometry — the track family (`CDEF -63`)
 
-**Private struct** (`contrlData`, `%a4`), 58 bytes; key offsets pinned from init/calc:
-`+4` value · `+10..+17` **thumb rect** · `+26/+28` track-extent clamp pair
-(`+28 = contrlRect.bottom−top`, the control height @ `0x2e8`) · `+34` max · `+42`
-range cache · `+48` **orientation/direction** (−1 ⇒ grow from far end) · `+50/+52`
-system thumb-metric snapshots (global `0xbac` @ `0xa90`) · `+54` **arrow/cap
-thickness** (used as `+3` in the arrow-box helper `0x11b6`).
+**Private struct** (`contrlData`), 58 bytes; key fields pinned from init/calc
+(field names as in [`apple-cdef-geometry.md`](./apple-cdef-geometry.md) §(d); byte
+offsets in evidence): `value` · `partRect` **thumb rect** ·
+`trackExtentCache`/`controlHeight` track-extent clamp pair
+(`controlHeight = contrlRect.bottom−top`, the control height @ `0x2e8`) · `max` ·
+`rangeCache` range cache · `direction` **orientation/direction** (−1 ⇒ grow from
+far end) · `metricA`/`metricB` system thumb-metric snapshots (global `0xbac` @
+`0xa90`) · `capThickness` **arrow/cap thickness** (used as `+3` in the arrow-box
+helper `0x11b6`).
 
-**Thumb/track (`0xa6c`):** usable length `%d7 = (end−start) − (+50 + +52 + +56) − 3`
+**Thumb/track (`0xa6c`):** usable length `L = (end−start) − (metricA + metricB + derivedSpan) − 3`
 (`0xb20`–`0xb36`); degenerate range ⇒ fixed-length thumb centered; proportional case
-maps `value` across `(+16 − +12)` via half-span midpoint math (`0xbfa`–`0xc16`);
-direction flips on `+48 == −1` (`0xc1c`); thumb clamped to `[+26, +28]`
-(`0xbd8`/`0xbe2`). **Thumb glyph (`0xc5c`):** size `= (+54 >> 2)`, parity-adjusted,
+maps `value` across `(partRect.right − partRect.left)` via half-span midpoint math
+(`0xbfa`–`0xc16`); direction flips on `direction == −1` (`0xc1c`); thumb clamped to
+`[trackExtentCache, controlHeight]` (`0xbd8`/`0xbe2`). **Thumb glyph (`0xc5c`):**
+size `= (capThickness >> 2)`, parity-adjusted,
 clamped **4..6** (`0xcb6`/`0xcc2`), centered, cross-stroked.
 
 **Hit test (`0x6e8`):** `PtInRect(pt, thumbRect)` only when active (`contrlHilite
-!= 255`) and bounds-region non-empty. **States:** branch only on `contrlHilite`
-(`a3@(17)`): `255` = inactive/dimmed (`0x3bc`), `1` = pressed part (`0x51a`).
+!= 255`) and bounds-region non-empty. **States:** branch only on `contrlHilite`:
+`255` = inactive/dimmed (`0x3bc`), `1` = pressed part (`0x51a`).
 **Part codes:** `129` indicator/thumb, `26`/`27` decrement/increment ends, `49`
 sub-glyph. **Delegation:** the actual part pixels come from a runtime-installed proc
-handle in `contrlData` (`jsr %a0@` @ `0x10b0`, frame pass selector 5 + fill pass
+handle in `contrlData` (indirect call @ `0x10b0`, frame pass selector 5 + fill pass
 selector 4) and Appearance metric trap `0xa8b5` (selectors `0x84020008`,
 `0x8404000C`, `0x82020006`, `0x8208FFE0`).
 
@@ -132,9 +136,10 @@ Located by parsing every PEF (`Joy!peff`/`pwpc`) container in `85-System.bin`:
 
 **Decoded behavior (`DrawThemeButton` @ code `0x2ee4`, PPC32 BE):** signature
 `DrawThemeButton(rect, kind, drawInfo, prevInfo, eraseProc, labelProc, userData)`
-(args r3..r9 → r23..r29); validates `rect`/`drawInfo` (null → `-50` paramErr);
-reads `drawInfo` state halfword at `+6` (`andi. &5`); fetches the current theme
-object via imported glue; then `lwz r12,0(r3); lwz r12,0xCC(r12); bl …` — **dispatches
+(the seven arguments are saved on entry); validates `rect`/`drawInfo` (null → `-50`
+paramErr); reads the `drawInfo` `state` halfword and masks it with `5`; fetches the
+current theme object via imported glue; then loads the object's vtable and the
+method at offset `0xCC` and calls it (instruction excerpt in evidence) — **dispatches
 to the theme object's vtable method at offset `0xCC`**. So `DrawThemeButton` is a
 validating *dispatcher*; the concrete Platinum button drawer is that vtable method
 (one indirection deeper, not decoded — the gate declined the open-ended chase).
@@ -166,10 +171,10 @@ Authoritative artifact: **`themes/apple-platinum-replica/sources/platinum-palett
 | constant | value | source |
 |---|---|---|
 | track private-struct size | 58 bytes | `CDEF -63` `0x1f4` |
-| control height field | `contrlRect.bottom−top` → struct `+28` | `0x2e8` |
-| thumb length reserve | `+50 + +52 + +56`, then `−3` | `0xb20`–`0xb36` |
-| thumb glyph size | `(+54 >> 2)`, parity-adj, clamp **4..6** | `0xcb6`/`0xcc2` |
-| arrow/cap box length | `+54 + 3` | `0x11b6` |
+| control height field | `contrlRect.bottom−top` → struct `controlHeight` | `0x2e8` |
+| thumb length reserve | `metricA + metricB + derivedSpan`, then `−3` | `0xb20`–`0xb36` |
+| thumb glyph size | `(capThickness >> 2)`, parity-adj, clamp **4..6** | `0xcb6`/`0xcc2` |
+| arrow/cap box length | `capThickness + 3` | `0x11b6` |
 | inset-frame | `+3,+3` / `+1,+1` | `0x11fa` |
 | draw passes | frame (sel 5) then fill (sel 4) via delegated proc | `0x1030` |
 | `DrawThemeButton` sig | `(rect,kind,drawInfo,prevInfo,eraseProc,labelProc,userData)` | AppearanceLib `0x2ee4` |
@@ -190,7 +195,7 @@ or clut-backed).
 2. Several A-traps not in the project trap table (`0xa322` struct allocator;
    `0xa8b5` Appearance metric selectors; `0xaa64` color-pair getter; the part/pen
    utility traps) — roles inferred from behavior, exact verbs un-named.
-3. The runtime-installed chained draw proc (`jsr %a0@`) — supplied by the system, so
+3. The runtime-installed chained draw proc (indirect call @ `0x10b0`) — supplied by the system, so
    its pixels aren't in `CDEF -63`.
 4. The concrete Platinum button drawer — the `DrawThemeButton` vtable method at
    `+0xCC` (one PPC indirection deeper; not decoded by gate decision).
@@ -219,4 +224,4 @@ the graft. Remaining:
    the could-NOT-pin items (esp. accent application) against reference renders.
 4. *Optional surgical:* decode the `DrawThemeButton` `+0xCC` vtable method only if a
    specific control's bevel can't be matched — the method + container + decompressor
-   are all documented (`.scratch/iso-recon/pef-decompress.py`).
+   are all documented (decompressor script path in evidence).

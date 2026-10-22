@@ -3,6 +3,10 @@ import { assertCinfEnvironment, CinfEnvironmentError, type PreparedCinfEnvironme
 import { displayRealizer, assertDisplayProfileChain, type DisplayProfile } from '../tools/theme-loader/display-profile.js';
 import type { LoadedTheme, ChromeElement } from './types.js';
 import { loadKaleidoscopeScheme } from '../tools/theme-loader/loadKaleidoscopeScheme.js';
+import { engineIconBlitCicnIds } from './engine/resources/ids.js';
+
+/** cicns any engine family draws with the icon blit (registered in src/engine/tables/loaderNeeds.ts). */
+const ICON_BLIT_CICN_IDS = engineIconBlitCicnIds();
 
 /**
  * The shape of `themes/<slug>/meta.json` — author + provenance metadata
@@ -94,6 +98,7 @@ export async function loadTheme(
     ...(opts.provenance ? { provenance: true } : {}),
     ...(displayProfile ? { displayProfile } : {}),
     ...(cicnTransfer ? { cicnTransfer } : {}),
+    iconBlitCicnIds: ICON_BLIT_CICN_IDS,
   });
 
   try { assertDisplayProfileChain(base, displayProfile); } catch (error) { loaded.dispose?.(); throw error; }

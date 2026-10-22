@@ -173,7 +173,7 @@ export function resolveTitleWidgetRects(
   const out: { role: TitleWidgetRole; rect: { x: number; y: number; w: number; h: number } }[] = [];
   const roles = { 'part-1': 'close', 'part-2': 'zoom', 'part-3': 'collapse' } as const;
   for (const [part, role] of Object.entries(roles)) {
-    // 0x41be: no collapse hit when 0x487e is false (a4@(500) cleared at 0x4e3a).
+    // 0x41be: no collapse hit when 0x487e is false (shade flag cleared at 0x4e3a).
     if (role === 'collapse' && composed.shadeCleared) continue;
     const rect = wt.parts[part]?.rect;
     if (!rect) continue;
@@ -326,7 +326,7 @@ export async function renderWindow(
       titleWidthPx, widgets: wt.widgets, widgetGlyphs, frameCicn,
     });
   } else {
-    // popup-window requests are service slot 8 (procID 1008 + varCode, family 63 → a4@(509), 0x3210).
+    // popup-window requests are service slot 8 (procID 1008 + varCode, family 63 → the family-63 flag, 0x3210).
     composed = composeWindowChrome(cicn, wt, contentW, contentH, { cinf: wt.cinf ?? null, titleWidthPx, popupFamily: slug === 'popup-window' });
     // Native-recipe widgets are baked into the title cicn (no pressed art), so synthesize the
     // press by darkening the held widget's rect (corner-sprite schemes used the pressed glyph above).

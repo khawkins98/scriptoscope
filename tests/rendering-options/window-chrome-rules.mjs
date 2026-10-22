@@ -9,9 +9,9 @@
 
 const int16 = v => ((v & 0xffff) << 16) >> 16;
 
-// docs/spec/kdef231-reference.md §3.4.1: `GetResource('wnd#', d3 & MASK)` at
+// docs/spec/kdef231-reference.md §3.4.1: `GetResource('wnd#', id & MASK)` at
 // 0x3574, 0x358c, 0x35a4, 0x35bc, 0x35d4, 0x35ec, 0x3604, 0x361c, 0x3634,
-// 0x364c, 0x3664, 0x367c; the first non-null handle wins (`bnes` skips the rest).
+// 0x364c, 0x3664, 0x367c; the first non-null handle wins (the rest are skipped).
 export const WND_LADDER = [0xffff, 0xfffe, 0xfffd, 0xfffc, 0xfffb, 0xfffa, 0xfff1, 0xfff0, 0xffef, 0xffee, 0xffeb, 0xffea];
 // The canonical id grid of the same section's landing table.
 export const CANONICAL_WND = {
@@ -27,16 +27,16 @@ export function ladderSelection(id, present) {
   return null;
 }
 
-// Width class of a recipe cell. 0x5178 hands 0x49d6 the byte at fp@(24)
-// (0x52fc), which every caller fills from 0x4a64's too-short byte fp@(-3);
-// fp@(26) (title string length, or #1/0) only gates 5/6 (0x530c)
-// (docs/spec/kdef231-code10-widgets.md §1).
-//   fixed     0x49d6 default → 0x4a5e `moveq #0`; 0x531e..0x532a dst = src
-//   zero      0x49d6 code 0 → 0x4a12 `moveq #1`; 0x5306 leaves width 0
+// Width class of a recipe cell. 0x5178 hands 0x49d6 its first flag argument
+// (0x52fc), which every caller fills from 0x4a64's too-short byte; the second
+// flag argument (title string length, or 1/0) only gates 5/6 (0x530c)
+// (docs/spec/compositor-spec.md, code 10 note).
+//   fixed     0x49d6 default → verdict 0 (0x4a5e); 0x531e..0x532a dst = src
+//   zero      0x49d6 code 0 → verdict 1 (0x4a12); 0x5306 leaves width 0
 //   primary   0x529e..0x52d6 (8/11/18) share + remainder
 //   tile      0x5266..0x5292 (12) whole source widths
 //   remainder 0x52da..0x52f8 (13/14) remainder only
-//   10        0x4a0c returns fp@(-3): fixed when the side is not too short,
+//   10        0x4a0c returns the too-short byte: fixed when the side is not too short,
 //             zero when it is (0x4dfe..0x4e0e, see sideTooShort); unknown when
 //             the too-short verdict itself depends on widget flags
 //   unknown   not asserted: 5/6 (plate DEST span from StringWidth, 0x5034;
@@ -63,7 +63,7 @@ const NOT_FIXED0 = new Set([0, 5, 6, 8, 11, 12, 13, 14, 18]);
  * placed extent is the template extent plus the content-size delta
  * (0x4be4..0x4c60). Codes 2/3/4/15/16/17 are fixed or not by widget flags,
  * so they bound fixed0: true/false only when the verdict holds either way,
- * else null. The popup-family title path (d4 && a4@(509), 0x4c64..0x4dfa)
+ * else null. The popup-family title path (title anchor and family-63 flag, 0x4c64..0x4dfa)
  * never reaches this step.
  */
 export function sideTooShort(recipe, delta, popupFamily = false) {
@@ -168,7 +168,7 @@ export function checkComposition({ cicn, windowType, composed, popupFamily = fal
     });
     // Halves: split at the run of codes 5/6. This is the RUNTIME's
     // partitioning (distributeSide tLo/tHi), not the decode's code-5 anchor
-    // d4 split; the 5/6 cells themselves are never asserted. A side without
+    // split; the 5/6 cells themselves are never asserted. A side without
     // one is a single half of the full output extent.
     const titled = cells.map((c, i) => [5, 6].includes(c.code) && i > 0 ? i : -1).filter(i => i >= 0);
     const halves = titled.length ? [[0, titled[0]], [titled.at(-1) + 1, cells.length]] : [[0, cells.length]];
@@ -267,7 +267,7 @@ export function checkTheme(decoded, { PixelBuffer, composeWindowChrome }) {
       const asset = decoded.assets.find(a => a.path === windowType.chrome[state]);
       const cicn = new PixelBuffer(asset.width, asset.height, new Uint8ClampedArray(asset.rgba));
       for (const dw of SIZE_OFFSETS.width) for (const dh of SIZE_OFFSETS.height) {
-        const popupFamily = key === 'popup-window'; // service slot 8, procID family 63 (a4@(509), 0x3210)
+        const popupFamily = key === 'popup-window'; // service slot 8, procID family 63 (family-63 flag, 0x3210)
         const composed = composeWindowChrome(cicn, windowType, Math.max(0, Math.max(0, r - l) + dw), Math.max(0, Math.max(0, b - t) + dh), { popupFamily });
         const result = checkComposition({ cicn, windowType, composed, popupFamily });
         totals.compositions++;

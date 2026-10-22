@@ -2,16 +2,11 @@
 
 The Kaleidoscope kDEF code resources for **both** versions extracted locally on 2026-05-29. Sizes match the prior-pass 1.8.2 disassembly findings doc exactly — verification signal passed. **Not committed** (binaries are gitignored under `.scratch/`); reproducible via `.scratch/dump-kaleido-cdev.mjs`.
 
+*Listing-level narrative (registers, frame offsets, instruction excerpts) and the toolchain/listing paths for this document live in [`engine/kdef-binary-inventory.evidence.md`](engine/kdef-binary-inventory.evidence.md) — spec writers and verifiers only.*
+
 ## Extraction method (verified working)
 
-```sh
-unar -o /tmp/k182 ~/Downloads/kaleidoscope182US.sit
-unar -o /tmp/k231 ~/Downloads/Kaleidoscope231US.bin
-# The installer's DATA FORK is itself a StuffIt 5 archive (STi4 / ST65 magic at offset 0).
-unar -forks visible -o /tmp/k231-inner "/tmp/k231/Kaleidoscope 2.3.1 Installer"
-# Yields: Kaleidoscope.rsrc (the control panel) + Kaleidoscope Extension.rsrc
-node .scratch/dump-kaleido-cdev.mjs  # parses AppleDouble + dumps every code resource
-```
+Both installers are unpacked with `unar`; the 2.3.1 installer's DATA FORK is itself a StuffIt 5 archive (STi4 / ST65 magic at offset 0), which yields `Kaleidoscope.rsrc` (the control panel) + `Kaleidoscope Extension.rsrc`. `.scratch/dump-kaleido-cdev.mjs` then parses AppleDouble and dumps every code resource. Exact commands are in the evidence file.
 
 ## Files extracted to `.scratch/`
 
@@ -19,11 +14,11 @@ node .scratch/dump-kaleido-cdev.mjs  # parses AppleDouble + dumps every code res
 
 | File | Size | Header | Notes |
 |---|---:|---|---|
-| `id-0-680x0_DefProcs.bin` | 107,726 | `600a 0000 kDEF` | **2.3.1 68k m68k — never before extracted** |
+| `id-0-680x0_DefProcs.bin` | 107,726 | code-resource header with `kDEF` tag | **2.3.1 68k m68k — never before extracted** |
 | `id-1.bin` | 175,572 | CFM-68k shim + `Joy!peff pwpc` @ 0x20 | **2.3.1 PowerPC PEF — never before extracted** |
-| `k231-kdef0.asm` | — | 33,999 lines | `m68k-elf-objdump` |
-| `k231-kdef1.asm` | — | 39,980 instructions | capstone PPC |
 | `k231-kdef1-code.bin` | 163,304 | — | raw PPC code section |
+
+The 68k and PPC disassembly listings for 2.3.1 are listed in the evidence file.
 
 ### `.scratch/k182-kdef/kDEF/`
 
@@ -31,7 +26,8 @@ node .scratch/dump-kaleido-cdev.mjs  # parses AppleDouble + dumps every code res
 |---|---:|---|
 | `id-0-680x0_DefProcs.bin` | 60,732 | 1.8.2 68k — matches `kdef182-disassembly-findings.md` |
 | `id-1.bin` | 99,960 | 1.8.2 PEF PPC |
-| `k182-kdef0.asm` | — | 19,561 lines |
+
+The 1.8.2 68k disassembly listing is listed in the evidence file.
 
 Plus per-installer dumps of every WDEF / CDEF / MDEF / LDEF / cdev / PACH / Zoom / INIT resource. Full index at `.scratch/k{182,231}-kdef/_index.json` (547 resources in 2.3.1, 404 in 1.8.2).
 
@@ -62,12 +58,8 @@ to the start of the named resource payload, with resource offset zero as base.
 
 The installed unar binary SHA-256 was
 `088e447a9fa8ab818768e7e9f48d6a7666f6a2f32c2ecc508f9904b4654adcd0`.
-The extraction can be reproduced in a fresh directory:
-
-```sh
-unar -q -forks visible -o /tmp/pach-review ~/Downloads/Kaleidoscope231US.bin
-unar -q -forks visible -o /tmp/pach-review/payload "/tmp/pach-review/Kaleidoscope 2.3.1 Installer"
-```
+The extraction can be reproduced in a fresh directory with two `unar -q -forks visible`
+passes (installer, then its payload); the commands are in the evidence file.
 
 Read `payload/Kaleidoscope 2.3.1 Installer/Kaleidoscope.rsrc` as AppleDouble,
 select entry 2, and then read its resource map. Independently reading those
@@ -106,24 +98,24 @@ At `0x1c7c`, 9 internal-service function pointers: `0x6688, 0x997e, 0xdd22, 0x11
 | slot | addr | role |
 |---:|---:|---|
 | 0 | `0x6688` | CDEF main (push-button family, 32 B `'Acid'` aux) |
-| 1 | `0x997e` | re-entrant CDEF entry (callback-safe, saves `a4` via `0x9930`) |
-| 2 | `0xdd22` | GDevice-aware focus / state helper |
+| 1 | `0x997e` | scroll-bar CDEF (saves the kDEF globals pointer via `0x9930`; per-message state `0x9d84`; `docs/spec/engine/scrollbar.md`) — corrected 2026-10-21, was "re-entrant CDEF entry" |
+| 2 | `0xdd22` | GDevice-aware focus / state helper *(re-verify: rests on the former GetCTSeed trap name)* |
 | 3 | `0x118b8` | wnd# gate (document windows, id `-14336`) → slot 6 on hit; system `'WDEF'` fallback on miss |
 | 4 | `0x1525a` | wnd# gate (utility windows, id `-14304`) → slot 6 with msg-base `+1984` |
-| 5 | `0x8d36` | second CDEF main (scrollbar / slider, 68 B aux) |
+| 5 | `0x8d36` | separate CDEF, undecoded (68 B aux, hit test returns part 10, `bevp` tags; likely bevel button) — **not** the scroll bar; corrected 2026-10-21 |
 | 6 | `0x28e0` | master compositor dispatcher (msg 1000 = INIT, 1001..1009 verbs) |
 | 7 | `0x1d3e` | WDEF main (35-entry msg table at `0x1d68`, see §1) |
-| 8 | `0x17452` | wnd# gate (popup / tab, id `-12320`) → trampolines to a loaded `'WDEF', -14336` via `jsr a0@` |
+| 8 | `0x17452` | wnd# gate (popup / tab, id `-12320`) → trampolines to a loaded `'WDEF', -14336` via a call through the loaded handle |
 
 The cinf consumer is `0x116f8` (see §3), **NOT** slot 3 `0x118b8` — slot 3 loads `'wnd#'`, not `'cinf'`. (Slots 3, 4, 8 are three parallel wnd#-loading family gates.)
 
 ### 3. cinf load site (2.3.1)
 
-At `0x1171a`: `pea 'cinf', movw d7,-(sp), GetResource` (id from d7). Inside the routine at `0x116f8`. New-format-vs-old-format discriminator: `GetHandleSize > 18` at `0x11740`. The corpus ships 1032/1033 cinfs at exactly 18 bytes (old format); the binary's 20-byte and 56-byte paths are populated at load via a `pWin` back-patch (byte 18) and `0xfc5c` pixel-sample cache (bytes 20..55) respectively, never read from disk. Full trace + decision: `docs/spec/cinf-extended-decode.md`.
+At `0x1171a`: `GetResource('cinf', id)`, with the id passed in by the caller. Inside the routine at `0x116f8`. New-format-vs-old-format discriminator: `GetHandleSize > 18` at `0x11740`. The corpus ships 1032/1033 cinfs at exactly 18 bytes (old format); the binary's 20-byte and 56-byte paths are populated at load via a back-patch of byte 18 from the `'pWin'` Gestalt query (`_Gestalt`, `$A1AD` at `0x11768`; runs only when the cinf is ≤ 18 bytes; not a resource fetch) and `0xfc5c` pixel-sample cache (bytes 20..55) respectively, never read from disk. Full trace + decision: `docs/spec/cinf-extended-decode.md`.
 
 ### 4. `wnd#` fallback ladder — **DECODED 2026-05-29**
 
-At `0x356c..0x367e` — 12-step degraded-id fallback. Tries the requested id, then ANDs with `-2, -3, -4, -5, -6, -15, -16, -17, -18, -21, -22` in sequence until one resolves. Each step pushes `'wnd#'` (FourCC `0x776e6423`) then the masked id, traps `_GetResource` (`0xA9A0`), and `bnes` past the rest of the cascade once a non-null handle returns.
+At `0x356c..0x367e` — 12-step degraded-id fallback. Tries the requested id, then ANDs with `-2, -3, -4, -5, -6, -15, -16, -17, -18, -21, -22` in sequence until one resolves. Each step calls `_GetResource` (`0xA9A0`) with `'wnd#'` (FourCC `0x776e6423`) and the masked id, and skips the rest of the cascade once a non-null handle returns.
 
 **Per-step asm pattern + the full landing table** (which canonical slugs degrade into which) live in `docs/spec/kdef231-reference.md §3.4.1`. **Runtime mirror**: `src/wndCascade.ts` (clean-room) + integration at `src/renderWindow.ts:resolveWindowType`. Corpus impact: 16 of 18 bundles ship at least one canonical slug the cascade resolves; three baselines (`crayon-os`, `windows-31`, `windows-95`) drifted into period-faithful resolutions when the helper landed.
 
@@ -133,10 +125,10 @@ At `0x356c..0x367e` — 12-step degraded-id fallback. Tries the requested id, th
 
 Per-resource markers in 2.3.1 kDEF 0:
 
-- **Window**: `wnd#`, `cinf`, `cicn`, `clut`, `actb`, `WDEF`, `pWin`
+- **Window**: `wnd#`, `cinf`, `cicn`, `clut`, `actb`, `WDEF`; `pWin` is a Gestalt selector (`$A1AD` at `0x11768`), not a resource type
 - **System probes**: `ATIr` (ATI Rage check), `qd `, `sysv`, `AOCE`, `HFS `
 - **Theme creators**: `Acid` (Kaleidoscope), `Aarn`/`Aarp`/`Aaru` (Mac OS Aaron extension interop), `Copl` (Copland)
-- **Control palette markers (NEW)**: `btnp`, `dbtp`, `cbtp`, `chkp`, `radp` (button / default-button / cmd-button / checkbox / radio palettes), `sbap`, `sbae`, `sbar`, `sbax`, `sbgh`, `sbth`, `sbtp` (scrollbar parts), `bevp` (bevel)
+- **Control palette markers (NEW)**: `btnp`, `dbtp`, `cbtp`, `chkp`, `radp` (button / default-button / cmd-button / checkbox / radio palettes), `sbap`, `sbae`, `sbar`, `sbax`, `sbgh`, `sbth`, `sbtp` (scrollbar parts; answered by slot 1's message 34 at `0x9b42`), `bevp` (bevel; answered by slot 5's message 34 at `0x98ca`)
 - **Appearance/Finder**: `appr` (8 sites — Appearance Manager hooks), `apvr`, `WdrB`, `ics#`/`ics8`/`SICN`/`icm#`, `proc`
 
 The control-palette FourCCs suggest the kDEF's controls system uses **palette/tag-based resource lookup keyed by these FourCCs**, not by hardcoded cicn ids. We currently look up by raw id; the FourCC tags may provide a higher-level naming.

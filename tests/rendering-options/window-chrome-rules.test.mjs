@@ -221,8 +221,8 @@ test('observation: 1138 document-window top at template size places 107px in a 1
   assert.deepEqual([c.placement.filter(p => p.edge === 'top').reduce((s, p) => s + p.rects[0].w, 0), c.fullWidth], [107, 103]);
 });
 
-// Code 10 (docs/spec/kdef231-code10-widgets.md): 0x5178 hands 0x49d6 the
-// fp@(24) byte (0x52fc), filled from 0x4a64's too-short byte fp@(-3), which
+// Code 10 (docs/spec/compositor-spec.md, code 10 note): 0x5178 hands 0x49d6 its
+// first flag argument (0x52fc), filled from 0x4a64's too-short byte, which
 // only 0x4e0e sets, when the placed extent is below the fixed-cell sum.
 // Hand trace for [8:1, 10:4, 1:2] on the non-title path (0x5148): fixed0 = 6.
 // Width 20: not too short, budget 14 → [14, 4, 2]. Width 5: 5 < 6 → code 10
@@ -236,7 +236,7 @@ test('code 10 is fixed at and above the template and dropped below it (0x4dfe..0
   assert.deepEqual(checkComposition(short).failures, []);
   assert.equal(sideTooShort(short.windowType.edges.top, 5 - 7), true);
   assert.equal(sideTooShort(wide.windowType.edges.top, 20 - 7), false);
-  // Boundary: extent == fixed0 is not too short (0x4e0c bges).
+  // Boundary: extent == fixed0 is not too short (0x4e0c, signed greater-or-equal branch).
   assert.deepEqual(widths(edge([[8, 1], [10, 4], [1, 2]], 6)), [0, 4, 2]);
   // Widget-gated codes bound fixed0, so the verdict can be undetermined.
   assert.equal(sideTooShort([{ at: 0, part: 'part-0' }, { at: 4, part: 'part-10' }, { at: 8, part: 'part-2' }], -2), null);

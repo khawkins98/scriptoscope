@@ -44,8 +44,11 @@ and unsupported requirements remain visible at case level.
    `mismatched` requires a live issue. A runtime-fix PR must update linked mismatch
    assessments and evidence **before the issue closes**, or the live CI gate fails.
    If only part of an issue is fixed, retain the remaining mismatch/unknown scope.
-5. Bump `inventoryVersion` for reviewed obligation/scope changes and recompute
-   `inventorySha256` using exported `inventoryDigest`. Changing a count to improve
+5. Edit only `families/<family>.json`, never `ledger.json` (see
+   [Per-family sources](#per-family-sources-v2)). Record each reviewed
+   obligation/scope change as a family transition, which bumps that family's
+   version and recomputes its digest; the generator derives the aggregate
+   `inventoryVersion` and `inventorySha256`. Changing a count to improve
    a completion metric is not a valid review. Review closure separately from
    individual assertions; the initial inventory is intentionally open.
 
@@ -665,3 +668,159 @@ verdict is determined. The 13 `window.flag-gated-parts` rows now cite that
 evidence and assertion but stay **unknown**: codes 5/6 and the widget-gated
 codes are still not established. No promotion is applied; a narrower
 code-10-only claim may be proposed for review.
+
+On v2 both sections were ported into `families/` at the 2026-10-22 main→v2
+sync (see [Porting](#porting-a-main-branch-ledger-change-into-families)):
+1.23.0 as `tab@1.1.0`, `header@1.1.0` and `shared@1.1.0` (the
+`tab-header.source-rules` assertion spans both families), 1.24.0 as
+`window@1.1.0`. Every ported row is byte-identical to main's. `ledger.test.mjs`
+re-expresses main's two tests against those transitions; main's 216/18/1,494
+totals hold for the main lineage (the v2-only scroll-bar and push-button
+transitions undone), and the live v2 totals are 229 verified, 0 mismatched and
+1,499 unknown of 1,728 after scrollbar@1.3.0 closed #374. Document validation
+uses the split-time rows with the live window family, because the merged
+`kdef231-reference.md` carries 1.24.0's corrected §4.2 excerpt.
+
+## Per-family sources (v2)
+
+From the v2 split onward `ledger.json` is **generated**. The hand-edited sources
+are `families/<family>.json`: `push-button`, `checkable`, `slider`, `progress`,
+`scrollbar`, `tab`, `header`, `window`, plus `shared` (engine and theme-archive
+inputs, and requirements/evidence referenced by more than one family).
+`families/_base.json` is the frozen row order and per-row byte format of the
+single-file ledger at the split. Never edit it.
+
+```sh
+node tests/rendering-requirements/build-ledger.mjs --write   # regenerate ledger.json
+node tests/rendering-requirements/build-ledger.mjs --check   # exit 1 if stale (ledger.test.mjs enforces this in CI)
+```
+
+**Byte identity.** With no family transitions, the generator reproduces the
+committed 1.22.0 file exactly (sha256 `0b8698706ef14440e2c7faf9a644ab84dae2bf1cd133e53910315f0163be4985`).
+`ledger.test.mjs` rebuilds that file from the families with every later
+transition undone and pins it to that hash. The historic transition tests
+(`*-transition.json`) run against the rebuilt 1.22.0 ledger, so each one still
+reconstructs its prior version byte for byte.
+
+**Ownership.** Each row lives in exactly one file. A case lives in the file whose
+`caseFamilies` lists its `family`. Its assessments live in the same file, and an
+assertion lives with its cases (enforced: an assertion outside `shared` may only
+name cases in its own file, and a `shared` assertion must span several families). Other rows live with the one family that uses
+them, or in `shared` if several do. You may reference rows in any file. Editing
+another family's row, or a `shared` row, is a cross-family change: coordinate
+it with the PM.
+
+**Versioning.** Each family has its own `version` (plain `x.y.z`, strictly
+increasing), `scope` and `inventorySha256`. The family digest covers every other
+field of the file: `family`, `version`, `caseFamilies`, `scope`, the full
+`transitions` history (including summary and review text) and all six row
+arrays. A family changes only through a transition:
+
+```sh
+# 1. edit families/<family>.json: append rows, or edit rows in place
+# 2. record the transition against the committed file (default --from HEAD)
+node tests/rendering-requirements/build-ledger.mjs --transition scrollbar --version 1.1.0 \
+  --summary "what changed" --review "independent review reference" \
+  --scope "what this family's rows now cover, at 1.1.0"
+```
+
+The transition stores the prior version, scope and digest, the prior row
+counts, a sha256 for each prior array (`prefixSha256`), a sha256 for each array
+after the change (`resultSha256`), and every row edited in place (`replaced`).
+A transition must give a new family scope (the old one describes the prior
+version). Rows may not disappear or change identity. On every run the generator
+checks three things and fails closed on any mismatch:
+
+- the family digest matches the file;
+- every array equals the latest transition's `resultSha256`;
+- each chain undoes exactly to the split state, and each `prefixSha256` equals
+  the previous transition's `resultSha256`.
+
+So any row appended, edited or deleted after the latest transition is rejected,
+and so is any rewrite of a transition's text. That holds even if someone
+refreshes `inventorySha256` by hand. The only way to change rows is a new
+transition with a higher version. Defeating this would mean hand-forging the
+recorded digests, which is a visible edit of the transition record.
+
+**Aggregate.** Rows present at the split keep their 1.22.0 order and bytes. Rows
+added later follow, grouped by family file name, one compact row per line. If
+no family has a transition, the header is the 1.22.0 header. Otherwise
+`inventoryVersion` is `1.22.0+<family>@<version>,...` (changed families in name
+order) and `scope.families` carries each changed family's version, scope and
+transition summaries and reviews, so they reach the report digest. The 1.22.0
+`scope.description` and `scope.review` are then prefixed "At the 1.22.0 split:".
+The description is led by the live case and assessment totals and the status
+counts, so the header never claims the 198-case split scope for a larger
+inventory.
+`inventorySha256` is always computed with `inventoryDigest`. **Nobody bumps the
+aggregate by hand**, so two lanes that change different families never re-bump
+or rebase each other's transitions. Assemble order does not depend on merge
+order (`ledger.test.mjs` checks both orders).
+
+**Merging.** Family files from different lanes merge without conflicts.
+`ledger.json` is a derived file, so when two PRs both regenerate it, git can
+still report a textual conflict in it (the aggregate header and the row tail).
+Never hand-merge that conflict: take either side, run `--write`, commit. No
+version, digest or transition changes. To make local merges skip the conflict
+step, run `git config merge.scriptoscope-ledger.driver true` once.
+`.gitattributes` maps `ledger.json` to that driver, so git keeps one side and
+`--check` then requires the regeneration.
+
+**Second PR to merge.** When two open PRs both touch `families/`, the one that
+merges second goes stale: its `ledger.json` no longer matches the generator. The
+second PR's author fixes it, never CI and never the PM:
+
+```sh
+git fetch origin && git merge origin/v2          # family files merge cleanly
+npm run ledger:sync                              # build-ledger --write, then --check
+git add tests/rendering-requirements/ledger.json
+git commit -m "test(ledger): regenerate ledger.json after merging v2"
+```
+
+`ledger:sync` only regenerates the derived file. If it fails, a family's own
+check failed (for example both PRs recorded a transition on the same family),
+and that is a real conflict to resolve by recording a fresh transition, not by
+editing `ledger.json`. The `v2 docs + ledger` workflow fails a stale
+`ledger.json` with this exact command in the error, and it never commits.
+Regenerating `ledger.json` after a merge is a Tier 0 change (PM mechanical
+check, no agent review).
+
+**History is append-only.** `scripts/check-ledger-history.mjs`
+(`npm run lint:ledger-history`, also part of `lane:ready` and the v2 docs
+workflow) compares every family file at the merge-base with the head. The
+merged `transitions` array must be an unchanged prefix of the head's: a
+transition that was edited, removed or reordered fails, and so does a removed
+family file or any edit of `_base.json`. This catches a rewrite that re-derives
+every digest so the generator's own chain checks still pass. Lane-specific assertions about a
+transition go in a new `<family>-*.test.mjs` file, not in this shared test.
+
+### Porting a main-branch ledger change into `families/`
+
+main keeps the single-file ledger (1.23.0 is #376, 1.24.0 is #377). Merging main
+into v2 brings in a new `ledger.json`, a `*-transition.json` and a
+`ledger.test.mjs` hunk. To port them:
+
+1. Save main's ledger and its predecessor, e.g.
+   `git show main:tests/rendering-requirements/ledger.json > next.json` and the
+   same for the previous main commit to get `prior.json`. Port 1.22.0→1.23.0
+   first, then 1.23.0→1.24.0. `--prior` defaults to the rebuilt 1.22.0 ledger.
+2. Restore v2's generated `ledger.json` (`git checkout --ours`), then run
+   `build-ledger.mjs --port next.json --prior prior.json`. Added rows are
+   appended to their owning family and edited rows are replaced where they
+   live. It refuses deletions and rows edited on both sides, and it lists the
+   families it touched. A new case family must first be added to some file's
+   `caseFamilies`.
+3. Run `--transition <family> --version <next> --summary ... --review ...
+   --scope ...` for each touched family. `--summary` carries main's
+   `scope.description` for that version and its PR number. `--review` carries
+   main's `scope.review`, which is its independent review record. `--scope` restates the
+   part of main's description that covers this family's rows. Do not leave the
+   split-time "as of the single-file ledger 1.22.0" scope in place. Then run
+   `--write` and read the generated header to confirm its totals match main's.
+4. Keep main's `*-transition.json` unchanged. Its counts and prefix digests
+   describe single-file prefixes of the 1.22.0 lineage, which the rebuilt base
+   still satisfies. Re-express main's new `ledger.test.mjs` assertions against
+   the family rows (e.g. `family('tab').cases.slice(n)`) or against the live
+   generated ledger, and keep every count and status assertion. Rows from
+   several families can come out in a different order than on main, so do not
+   assert main's aggregate file sha or `slice` offsets past 1.22.0.

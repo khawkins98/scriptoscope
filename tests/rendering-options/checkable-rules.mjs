@@ -6,7 +6,7 @@
 // "Lane order, state bytes, resource files and placement") or the pinned
 // 0x18b88 icon table, not from runtime output.
 
-// 0x724c / 0x7278: `addiw #-9504`.
+// 0x724c / 0x7278: base id -9504 added to the index.
 export const CICN_BASE = -9504;
 // 0x18b88 table copied at 0x710e–0x712c, indexed kind*24 + tier*8 + value*2.
 // Rows are icon tiers 0 normal, 1 pressed, 2 disabled; columns are value 0..3.

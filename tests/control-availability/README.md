@@ -130,3 +130,49 @@ A9A0 to GetResource and documenting conditional cinf fallback. The ring dispatch
 claims, detailed source evidence, all 27 case inputs/outcomes and payload pins
 remain unchanged. The complete 1.0.4 review history is retained; this adds no
 provider-order or pixel-fidelity claim.
+
+Inventory 1.0.9 refreshes only the full `kdef231-reference.md` document hash after
+the §6 A-trap table's name column was regenerated from Universal Interfaces 3.0.1
+`Traps.h` (`scripts/gen-trap-table.mjs`). All 27 case inputs, outcomes, payload pins
+and ring dispatch claims are unchanged. The review label is PENDING until an
+independent hash-only review; earlier review history is retained.
+
+Inventory 1.0.10 again refreshes only the full `kdef231-reference.md` document hash
+(`e1e94403` -> `3e55c385`), after the `'pWin'` lookup at `0x11768` was corrected
+from a resource load to a `$A1AD` _Gestalt query (cinf-loader row `0x116f8`, the cinf
+id-range row, the `$A9A0` role and open item 3). No case-cited address line changed.
+All 27 case inputs, outcomes, payload pins and ring dispatch claims are unchanged.
+The 1.0.9 review is archived verbatim; 1.0.10 carries the independent hash-only
+review of PR #388.
+
+Inventory 1.0.11 (v2 lane L2 doc split, PR #386) refreshes only the full
+`kdef231-reference.md` document hash (`3e55c385` -> `8b289cf8`) after its assembly,
+register and stack narrative moved verbatim to
+`docs/spec/engine/kdef231-reference.evidence.md`. The `0x76c4`/`0x76d2` lines name the
+ring state bytes instead of register operands; addresses, ids and outcomes, all 27
+case inputs, payload pins and detailed source evidence are unchanged. The 1.0.10
+review is archived verbatim; the 1.0.11 label is PENDING an independent hash-only
+review.
+
+Inventory 1.0.12 (v2 scroll-bar citation correction) refreshes only the full
+`kdef231-reference.md` document hash (`8b289cf8` -> `90efe521`) after §1.1, §1.3
+and §2.4 were corrected: `0x997e` (slot 1) is the scroll-bar CDEF, `0x8d36`
+(slot 5) a separate undecoded CDEF, and the scroll arrows are `ics#`/`ics8`,
+never `ics4` or `cicn`. No case-cited address line changed; all 27 case inputs,
+outcomes, payload pins and ring dispatch claims are unchanged. The 1.0.11 review
+is archived verbatim; 1.0.12 carries the independent hash-only review of PR #390.
+
+Inventory 1.0.13 (scrollbar 1.2.0 citation pass) refreshes only the full
+`kdef231-reference.md` document hash (`90efe521` -> `5ca8cee0`) after the §1.1 `0x8d36`
+row's aux-field gloss was marked undecoded (it rested on the retired slot-5
+scroll-bar attribution). No case-cited address line changed; all 27 case inputs,
+outcomes, payload pins and ring dispatch claims are unchanged. The 1.0.12 review
+is archived verbatim; 1.0.13 carries the PM Tier 0 check of PR #398.
+
+Inventory 1.0.14 (issue #374 ledger closure) refreshes only the full
+`kdef231-reference.md` document hash (`5ca8cee0` -> `40366d19`) after §2.4 was
+corrected: -8288/-8280 are the scroll-bar track tier 0 (inactive), not pressed, and
+-10205..-10208 are the scroll-bar thumb cicns (the stale `controls.ts:166` pointer is
+gone). No case-cited address line changed; all 27 case inputs, outcomes, payload pins
+and ring dispatch claims are unchanged. The 1.0.13 review is archived verbatim; the
+1.0.14 label is PENDING an independent hash-only review.

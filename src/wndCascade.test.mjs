@@ -1,6 +1,6 @@
 // Node test for the wnd# fallback-ladder helper (pure id-math, DOM-free).
 // Verifies the 12-step cascade landings against the 2.3.1 kDEF decode at
-// `.scratch/k231-kdef/kDEF/k231-kdef0.asm` 0x356c..0x367e. Cited landings
+// 0x356c..0x367e (docs/spec/kdef231-reference.md §3.4.1). Cited landings
 // match the table in src/wndCascade.ts header comment.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';

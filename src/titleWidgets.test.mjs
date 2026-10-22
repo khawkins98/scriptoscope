@@ -53,7 +53,7 @@ test('0x5cb6 remap: side order, half-open cells, independent corners, empty on a
   // A corner in no segment empties the rect (no hit, no press area).
   const lead = { parts: { ...wt.parts, 'part-1': { rect: [26, 2, 60, 6] } } };
   assert.deepEqual(resolveTitleWidgetRects(lead, { frame: { top: 10 }, placement }).map(r => r.role), ['zoom', 'collapse']);
-  // 0x4e3a cleared a4@(500): no collapse hit (0x41be → 0x487e false).
+  // 0x4e3a cleared the shade flag: no collapse hit (0x41be → 0x487e false).
   assert.deepEqual(resolveTitleWidgetRects(wt, { frame: { top: 10 }, placement, shadeCleared: true }).map(r => r.role), ['close', 'zoom']);
   // Cell ends are exclusive: x=20 belongs to seg 2, not seg 1 (the old inclusive top-edge lookup took seg 1).
   assert.equal(rects.zoom.x, 30);

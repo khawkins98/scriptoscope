@@ -88,7 +88,8 @@ import { ManagedContentPort, type ManagedControlPort } from './managedContentPor
 import { resolveWindowSelection, resolveCollapsedWindowTypeSlug } from './resolveWindowType.js';
 import { listenUntilAborted } from './listenUntilAborted.js';
 import {
-  composeCheckable, composeDisclosure, composeSliderWithLayout, composeScrollbar,
+  composeCheckable, composeDisclosure, composeSliderWithLayout, composeScrollbar, composeScrollbarFrame,
+  type ScrollbarFrame, type ScrollbarOptions,
   baselineButton, baselineCheckable, bufferToCanvas,
   type ButtonOptions, type ControlState,
 } from './controls.js';
@@ -661,9 +662,27 @@ export async function interactiveScrollbar(theme: LoadedTheme, opts: Interactive
   const { orientation = 'vertical', length = 120, value = 0.3, thumbExtent = 0.3, scale = 1, onChange } = opts;
   const el = document.createElement('span');
   el.className = 'scriptoscope-scrollbar';
+  // The pressed part is the part under the pointer at press time (scrollbar
+  // §4.8 hit test on the painted geometry; DECISIONS #4). A capture listener
+  // runs before the drag wiring's own pointerdown repaint reads it.
+  let painted: ScrollbarFrame | null = null;
+  let pressedPart: ScrollbarOptions['pressedPart'];
+  el.addEventListener('pointerdown', (e) => {
+    const canvas = el.querySelector('canvas');
+    if (!painted || !canvas) { pressedPart = undefined; return; }
+    const r = canvas.getBoundingClientRect();
+    if (!(r.width > 0 && r.height > 0)) { pressedPart = undefined; return; }
+    const x = Math.floor((e.clientX - r.left) * painted.buffer.width / r.width);
+    const y = Math.floor((e.clientY - r.top) * painted.buffer.height / r.height);
+    pressedPart = painted.partAt(x, y) ?? undefined;
+  }, { capture: true });
   await buildDraggable(el, orientation, value, scale,
-    async (v, state) => (await composeScrollbar(theme, { orientation, length, value: v, thumbExtent, state }))
-      ?? platinumScrollbar({ orientation, length, value: v, thumbExtent }),
+    async (v, state) => {
+      const frame = await composeScrollbarFrame(theme, { orientation, length, value: v, state,
+        ...(state === 'pressed' && pressedPart ? { pressedPart } : {}) });
+      if (frame && state !== 'pressed') painted = frame;
+      return frame?.buffer ?? platinumScrollbar({ orientation, length, value: v, thumbExtent });
+    },
     onChange);
   return el;
 }
@@ -1414,8 +1433,10 @@ export class WindowManager {
 
     let raf = 0;
     const repaint = async (): Promise<void> => {
-      const opts = { orientation: axis, length: Math.round(barLenCss / scale), value, thumbExtent };
-      const buf = (await composeScrollbar(entry.theme, opts)) ?? platinumScrollbar(opts);
+      const opts = { orientation: axis, length: Math.round(barLenCss / scale), value };
+      // thumbExtent only shapes the procedural Platinum fallback; the engine sizes
+      // the thumb from its cicn (scrollbar §5.6) and ignores it.
+      const buf = (await composeScrollbar(entry.theme, opts)) ?? platinumScrollbar({ ...opts, thumbExtent });
       // Staleness check (see LEARNINGS 2026-05-28 — shadowRoot.firstChild not host.firstChild).
       if (buf && (entry.host.shadowRoot?.firstChild ?? entry.host.firstChild) === win) bar.replaceChildren(bufferToCanvas(buf, scale));
       bar.setAttribute('aria-valuenow', String(Math.round(value * 100)));

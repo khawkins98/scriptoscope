@@ -9,7 +9,7 @@ before they are rendered. Divergence is detected against this ledger +
 
 **Status legend:** `confirmed` (instruction-decoded) · `data` (extracted clut/cctb
 value) · `model-reuse` (reuses the verified WDEF-125 bevel model) ·
-`could-NOT-pin` (ambiguous — gates Phase-B). Sources: `CDEF -63 0xADDR` (track) ·
+`could-NOT-pin` (ambiguous — gates Phase-B). Sources: `CDEF -63 0x…` (track) ·
 `CDEF -1` (button family, TODO) · `AppearanceLib off` (PPC) · `cctb`/clut (data) ·
 `platinum-palette.json`.
 

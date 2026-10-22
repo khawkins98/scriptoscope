@@ -5,3 +5,8 @@
 
 # JSON theme bundle output: keep LF only, no auto-CRLF on Windows checkouts.
 themes/**/*.json text eol=lf
+
+# Generated from tests/rendering-requirements/families/*.json by build-ledger.mjs; never hand-merge.
+# Optional local driver: git config merge.scriptoscope-ledger.driver true (keeps one side; then run --write).
+tests/rendering-requirements/ledger.json linguist-generated=true merge=scriptoscope-ledger
+tests/rendering-requirements/families/*.json text eol=lf

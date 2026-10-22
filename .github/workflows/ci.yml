@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, v2]
     paths-ignore:
       - '**/*.md'
       - 'docs/**'
@@ -11,7 +11,7 @@ on:
       - '.github/ISSUE_TEMPLATE/**'
       - '.github/PULL_REQUEST_TEMPLATE/**'
   pull_request:
-    branches: [main]
+    branches: [main, v2]
     paths-ignore:
       - '**/*.md'
       - 'docs/**'
@@ -36,6 +36,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
+        with:
+          # The engine diff gate compares against the baselines at the PR merge-base.
+          fetch-depth: 0
 
       - name: Set up Node
         uses: actions/setup-node@v6
@@ -45,6 +48,34 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      # v2 PLAN §6 diff gate: renders the tests/engine-diff matrix (window chrome and
+      # scroll bar, every archive, sampled states and sizes) in Node and compares each
+      # cell's trace digest with the baselines at the base. A changed cell must be
+      # blessed in tests/engine-diff/expected/<family>.json with a spec rule id, and
+      # its family declared by an `engine-diff: <family>` line in the PR body (pushes
+      # count families whose expected/baselines files changed). Node only; seconds.
+      - name: Engine diff gate (Node trace diff)
+        # The Playwright container's default shell is sh, which has no pipefail.
+        shell: bash
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE_REF: ${{ github.base_ref }}
+          BEFORE: ${{ github.event.before }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          set -euo pipefail
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          if [ "$EVENT" = "pull_request" ] && [ "$BASE_REF" = "v2" ]; then
+            git fetch --no-tags origin "+refs/heads/$BASE_REF:refs/remotes/origin/$BASE_REF"
+            base="$(git merge-base HEAD "origin/$BASE_REF")"
+            ENGINE_DIFF_PR_BODY="$PR_BODY" node tests/engine-diff/run.mjs --check --base-commit "$base"
+          elif [ "$EVENT" = "push" ] && [ -n "$BEFORE" ] && [ "$BEFORE" != "0000000000000000000000000000000000000000" ]; then
+            git cat-file -e "$BEFORE^{commit}" 2>/dev/null || git fetch --no-tags origin "$BEFORE"
+            node tests/engine-diff/run.mjs --check --base-commit "$BEFORE" --declared-from-diff
+          else
+            node tests/engine-diff/run.mjs --check
+          fi
 
       # Bake the gitignored per-theme derivatives (theme.json + cicns/ +
       # ppats/ + icons/ + resource-roles.json + extraction-manifest.json).

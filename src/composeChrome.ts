@@ -1,5 +1,10 @@
 import { PixelBuffer } from './pixelBuffer.js';
+import { rectXYWH, scaleBlit, tileBlit, type QdRect, type Transfer } from './engine/qd/index.js';
+import { windowBlitRow } from './engine/tables/windowBlit.js';
 import type { WindowType, WindowCinf, Rect, EdgeStep } from './types.js';
+
+/** The chrome walk's transfer trap; see composeEdge's drawCell note. */
+const CHROME_TRANSFER: Transfer = 'copyBits';
 
 // ───────────────────────────────────────────────────────────────────────────
 // Window-chrome compositor — the Kaleidoscope 2.3.1 kDEF window-frame model.
@@ -85,8 +90,8 @@ import type { WindowType, WindowCinf, Rect, EdgeStep } from './types.js';
 //
 // IMPLEMENTATION DISCIPLINE:
 //   No per-theme branches (the kDEF didn't have any; we shouldn't either).
-//   Verify against the 2.3.1 binary at /tmp/kaleido-trace/kdef231_decomp.c
-//   when changing the part-code classifier or the cell-walk logic.
+//   Verify against docs/spec/compositor-spec.md (spec writers: its evidence
+//   appendix) when changing the part-code classifier or the cell-walk logic.
 // ─────────────────────────────────────────────────────────────────────────────
 
 /** Extract the integer part code from a `part-N` slug (−1 if malformed). */
@@ -136,16 +141,16 @@ type CellClass = 'fixed' | 'grow' | 'tile' | 'scale' | 'remainder' | 'collapse' 
  *   is what fills the widened bar. (Was compositor-spec open issue #3.)
  *
  * CODE 10 is the side's "drop first when too short" cell. `0x4a0c` returns the
- * `0x49d6` flag byte, which `0x5178` reads from `fp@(24)` (`0x52fc`) — the
- * caller's too-short byte `fp@(-3)`, set only at `0x4e0e` when the side's
+ * `0x49d6` flag byte, which `0x5178` reads from its first flag argument
+ * (`0x52fc`) — the caller's too-short byte, set only at `0x4e0e` when the side's
  * placed extent is below the sum of its fixed cells (see `negotiateSides`).
  * So code 10 is FIXED at every size from the template minimum up, and width 0
  * (draws nothing, like any empty cell at `0x5990`) only below it
- * (docs/spec/kdef231-code10-widgets.md).
+ * (docs/spec/compositor-spec.md, code 10 note).
  *
  * `widgetPresent` is the cinf widget-state gate (we treat all named widgets as
  * present — the bundled corpus always ships the close/zoom/shade boxes).
- * `shadePresent` is `0x487e` (`a4@(500)`), which the too-short step can clear
+ * `shadePresent` is `0x487e` (the kDEF's shade-present flag), which the too-short step can clear
  * (`0x4e3a`); it gates codes 4/17.
  */
 function classifyPart(code: number, widgetPresent: boolean, shadePresent = widgetPresent, tooShort = false): CellClass {
@@ -331,7 +336,7 @@ interface RawCell {
 
 /** Per-side outcome of the `0x4a64` too-short step (`0x4dfe..0x4e42`). */
 interface SideNegotiation {
-  /** `fp@(-3)` = 1: code 10 → width 0, title width and title length zeroed. */
+  /** The too-short byte is set: code 10 → width 0, title width and title length zeroed. */
   tooShort: boolean;
   /** `0x487e` as seen by this side's distribution (after any `0x4e3a` clear). */
   shadePresent: boolean;
@@ -340,7 +345,7 @@ interface SideNegotiation {
 /**
  * The kDEF's per-side too-short negotiation, run in its side order (top,
  * bottom, left, right — `0x3826..0x38c2`, `0x5356` side 0..3), because the
- * shade-widget clear at `0x4e3a` is global (`a4@(500)`) and so affects the
+ * shade-widget clear at `0x4e3a` is global (a window-wide flag) and so affects the
  * sides laid out after it.
  *
  *   fixed0  = Σ src widths of segments 1..N whose `0x49d6(code, 0)` verdict is
@@ -349,11 +354,11 @@ interface SideNegotiation {
  *   extent  = placed border[N] − border[0] = template extent + (content −
  *             template content) on that axis (`0x4be4..0x4c60`).
  *   extent < fixed0 → too short (`0x4e0e`): drop code 10 (`fixed0 −= Σ10`) and
- *             the title (`fp@(-2)`, `fp@(-290)` zeroed).
+ *             the title (its width and its string length byte zeroed).
  *   still extent < fixed0 and shadeGap = Σcode4 − Σcode17 > 0 (only while
  *             `0x487e`) → clear the shade/collapse widget (`0x4e24..0x4e42`).
  *
- * The popup-family title path (`d4 && a4@(509)`, `0x4c64..0x4dfa`) returns
+ * The popup-family title path (a title anchor and the family-63 flag, `0x4c64..0x4dfa`) returns
  * before this step, so a family-63 side with a code-5 anchor is never too
  * short.
  */
@@ -519,7 +524,7 @@ function distributeSide(cells: RawCell[], outExtent: number, srcStart: number, t
   for (let i = tLo; i < tHi; i++) {
     const c = cells[i]!;
     const src = c.x1 - c.x0;
-    // Too short (0x4e0e): the title string length fp@(-290) and width fp@(-2)
+    // Too short (0x4e0e): the title string length byte and the title width
     // are zeroed, so 0x530c..0x531c leaves every 5/6 cell at width 0.
     const w = dropTitle ? 0 : c.code === 5 ? Math.min(Math.max(src, titleWidthPx), plateCap) : src;
     widths[i] = w;
@@ -612,55 +617,27 @@ function composeEdge(
   let titleStart = -1, titleEnd = -1;
   let outPos = srcStart;
 
-  // ── helpers: blit a SRC band → DST band on this edge ──────────────────────
-  // stretch: nearest-neighbour scale the whole src band to the dst band.
-  const drawStretch = (sx0: number, sLen: number, dPos: number, dLen: number): void => {
+  // ── blit a SRC band → DST band on this edge, through src/engine/qd ─────────
+  // The window caller's blit choice is table W (docs/spec/engine/qd-primitives.md
+  // §4 "Window caller: which blit"): code 18 → one scale blit (W1); codes 11/14
+  // → tile blit, direction 0 (W2); every other drawn code → tile blit,
+  // direction 1 (W3). A fixed cell is placed at its source length, so its tile
+  // (or scale) is exactly one 1:1 copy.
+  //
+  // Transfer: CopyBits srcCopy (opaque). This is the runtime's existing
+  // transfer, kept so the engine re-point changes no pixel. The spec's rule is
+  // CopyMask for a port without custom bottlenecks; how that interacts with
+  // sides drawn earlier is qd-primitives §6 Q5, open, and switching would
+  // change corner pixels where a later edge's transparent pixels overlap.
+  const bandRects = (s0: number, sLen: number, dPos: number, dLen: number): [QdRect, QdRect] => geo.horizontal
+    ? [rectXYWH(s0, geo.crossSrc, sLen, geo.crossLen), rectXYWH(dPos, geo.crossDst, dLen, geo.crossLen)]
+    : [rectXYWH(geo.crossSrc, s0, geo.crossLen, sLen), rectXYWH(geo.crossDst, dPos, geo.crossLen, dLen)];
+  const drawCell = (s0: number, sLen: number, dPos: number, dLen: number, code: number): void => {
     if (sLen <= 0 || dLen <= 0) return;
-    if (geo.horizontal) {
-      out.copyBits(cicn, { x: sx0, y: geo.crossSrc, w: sLen, h: geo.crossLen },
-        { x: dPos, y: geo.crossDst, w: dLen, h: geo.crossLen });
-    } else {
-      out.copyBits(cicn, { x: geo.crossSrc, y: sx0, w: geo.crossLen, h: sLen },
-        { x: geo.crossDst, y: dPos, w: geo.crossLen, h: dLen });
-    }
-  };
-  // tile: step the dst by the src cell size, copying one src-sized tile at a
-  // time, clamping the final partial tile (kDEF 0xfeae). The caller's
-  // direction byte `(pc==11||pc==14)?0:1` (0x59c8) picks the anchor, not the
-  // axis (kdef231-reference.md §5.1). Forward tiling starts at the dst start
-  // and clips the far end, keeping the leading src pixels. Reverse tiling
-  // (codes 11/14) starts flush at the dst end and clips the near end, keeping
-  // the trailing src pixels.
-  const drawTile = (sx0: number, sLen: number, dPos: number, dLen: number, reverse: boolean): void => {
-    if (sLen <= 0 || dLen <= 0) return;
-    const blit = (srcOff: number, dOff: number, seg: number): void => {
-      if (geo.horizontal) {
-        out.copyBits(cicn, { x: sx0 + srcOff, y: geo.crossSrc, w: seg, h: geo.crossLen },
-          { x: dPos + dOff, y: geo.crossDst, w: seg, h: geo.crossLen });
-      } else {
-        out.copyBits(cicn, { x: geo.crossSrc, y: sx0 + srcOff, w: geo.crossLen, h: seg },
-          { x: geo.crossDst, y: dPos + dOff, w: geo.crossLen, h: seg });
-      }
-    };
-    if (reverse) {
-      for (let end = dLen; end > 0; end -= sLen) {
-        const seg = Math.min(sLen, end);
-        blit(sLen - seg, end - seg, seg);
-      }
-    } else {
-      for (let off = 0; off < dLen; off += sLen) blit(0, off, Math.min(sLen, dLen - off));
-    }
-  };
-  // Fill a dst band from a src band. The 2.3.1 kDEF default blit (`0xfeae`,
-  // kdef231-recipe-walk.md Q5) ALWAYS TILES: it repeats the src cell at native
-  // size, clipping the final partial tile. There is no scaled CopyBits for
-  // ordinary fills (only part code 18 / `0x10320` scales, handled separately).
-  // A 1px src band ⇒ a uniform fill; structured fills (camo / pipes) keep their
-  // texture. cinf.tileSides does NOT gate this — `0xfeae` tiles regardless.
-  const drawFill = (s0: number, s1: number, dPos: number, dLen: number, code: number): void => {
-    const sLen = s1 - s0;
-    if (sLen <= 0 || dLen <= 0) return;
-    drawTile(s0, sLen, dPos, dLen, code === 11 || code === 14);
+    const [src, dst] = bandRects(s0, sLen, dPos, dLen);
+    const row = windowBlitRow(code);
+    if (row.blit === 'scale') scaleBlit(out, cicn, src, dst, CHROME_TRANSFER);
+    else tileBlit(out, cicn, src, dst, row.direction!, CHROME_TRANSFER);
   };
 
   // ── walk the cells ────────────────────────────────────────────────────────
@@ -677,18 +654,14 @@ function composeEdge(
     if (c.cls === 'zero') {
       // collapsed (0x49d6 stretch-verdict): width 0, draws nothing. The span is
       // owned by the separately-drawn widget / absorbed by the growers.
-    } else if (c.cls === 'scale') {
-      // code 18: a single scaled CopyBits — drawn ONCE, src band → dst band.
-      drawStretch(c.x0, srcLen, outPos, dstLen);
-    } else if (c.cls === 'fixed') {
-      // 1:1 copy, anchored (corners, bezels, and the widgets — close/zoom/shade
-      // ride the FIXED title-bar regions, so they're drawn here at native size).
-      drawStretch(c.x0, srcLen, outPos, srcLen); // dstLen == srcLen here
     } else {
-      // growing fill cell (8/11/12/13/14) AND the title plate (collapse code 5,
-      // grown to the measured title width): tile the src band across the dst.
-      // For an unexpanded collapse cell dstLen == srcLen, so this is a 1:1 copy.
-      drawFill(c.x0, c.x1, outPos, dstLen, c.code);
+      // Every other cell draws through table W: code 18 scales once (W1);
+      // growing fills (8/11/12/13/14) and the title plate (collapse code 5,
+      // grown to the measured title width) tile the src band across the dst
+      // (W2/W3). Fixed cells (corners, bezels and the close/zoom/shade widgets
+      // that ride the FIXED title-bar regions) have dstLen == srcLen, so they
+      // land as one 1:1 copy, anchored.
+      drawCell(c.x0, srcLen, outPos, c.cls === 'fixed' ? srcLen : dstLen, c.code);
     }
 
     placed.push({ x0: c.x0, x1: c.x1, out0: outPos, out1: outPos + dstLen, code: c.code, cls: c.cls, seg: c.seg });
@@ -705,7 +678,9 @@ function composeEdge(
         if (cicn.getPixel(cx, cy)[3] > 16) { capOpaque = true; break; }
     if (capLen > 0 && capOpaque && outPos < geo.outExtent) {
       const cap = Math.min(capLen, geo.outExtent - outPos);
-      drawStretch(lastAt, capLen, outPos, cap);
+      // Runtime cap policy, not a table-W row: one scale blit of the cap band.
+      const [capSrc, capDst] = bandRects(lastAt, capLen, outPos, cap);
+      scaleBlit(out, cicn, capSrc, capDst, CHROME_TRANSFER);
       placed.push({ x0: lastAt, x1: geo.srcExtent, out0: outPos, out1: outPos + cap, code: 0, cls: 'fixed', seg: -1 });
       outPos += cap;
     }
@@ -744,8 +719,8 @@ export interface ComposedChrome {
   /** Slice-by-slice placement map for the diagnostic inspector. */
   placement: PlacementSlice[];
   /**
-   * The too-short step cleared the shade/collapse widget (`a4@(500)` at
-   * `0x4e3a`): `0x487e` is then false, so the collapse widget is neither drawn
+   * The too-short step cleared the shade/collapse widget (the shade-present
+   * flag, at `0x4e3a`): `0x487e` is then false, so the collapse widget is neither drawn
    * by its gap cells nor hit-tested (`0x41be`).
    */
   shadeCleared?: boolean;
@@ -777,7 +752,7 @@ export function composeWindowChrome(
     cinf?: WindowCinf | null;
     titleWidthPx?: number;
     /**
-     * procID family 63 (`a4@(509)`, set at `0x3210`): the popup window family
+     * procID family 63 (the family-63 flag, set at `0x3210`): the popup window family
      * reached through service slot 8 (varCode + 1008). Its titled sides take
      * the `0x4c64` path, which skips the too-short step.
      */
@@ -885,7 +860,7 @@ export function composeWindowChrome(
   // No separate widget pass: the close/zoom/shade widgets fall inside the FIXED
   // title-bar cells and are drawn 1:1 by the edge walk above. That matches the
   // kDEF full draw for rect-list types 1-3: 0x572e calls 0x632e only for the
-  // partial-zoom variants (part 5, a4@(502) && a4@(508), 0x5a28..0x5a3c), which
+  // partial-zoom variants (part 5, two window-state flags, 0x5a28..0x5a3c), which
   // this runtime does not model. A cell collapsed by the too-short step draws
   // nothing, and neither does the kDEF (0x5990..0x59a6).
 

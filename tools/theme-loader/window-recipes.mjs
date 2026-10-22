@@ -26,7 +26,7 @@
 /** @typedef {{ titleH: number, widgets: ('close'|'collapse'|'zoom')[], collapsed: boolean }} WindowRecipe */
 
 // titleH is FONT-DERIVED in the original WDEF, not a magic constant: the decode
-// (WDEF 125 @ 0x392, `fp@(-356)`) computes `titleHeight = ascent + descent + 2`
+// (WDEF 125 @ 0x392) computes `titleHeight = ascent + descent + 2`
 // (GetFontInfo of the title font, clamped ≥10), and the bar adds a 1px under-line ⇒
 //   barH = ascent + descent + 3.
 // Encoding that formula here ties each height to its FONT CLASS instead of a bare

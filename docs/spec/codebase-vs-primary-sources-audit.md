@@ -11,6 +11,8 @@ cinf-resize-behavior, apple-cdef-button-vs-our-compose, kaleidoscope-author-docs
 and `scripts/scene-coverage-audit.mjs`. For each heuristic / inference / friendly-
 key lookup, ask: does a primary source now offer a structured-field replacement?
 
+*Listing-level narrative (registers, frame offsets, instruction excerpts) for this document lives in [`engine/codebase-vs-primary-sources-audit.evidence.md`](engine/codebase-vs-primary-sources-audit.evidence.md) — spec writers and verifiers only.*
+
 **Outcome.** 12 findings, ordered by leverage. Three classes dominate:
 (1) primary-source citations not yet captured in code comments (cheap
 documentation fixes); (2) `authorLabel` as a tighter answer than `friendly key`
@@ -228,7 +230,7 @@ byte[3]=5; `src/composeChrome.ts` has no branch.
 cinf hits byte[3]=5, so this is dormant. The decoder LABELS it correctly;
 no runtime reaches the code path.
 **Primary-source says:** `cinf-resize-behavior.md` §"kDEF dispatch in detail"
-documents the dispatch at `0x109be: cmpib #5,%a0@(3)` → `bnew 0x10a6c` — the
+documents the dispatch at `0x109be` (cinf byte[3] compared with 5) → branch to `0x10a6c` when it differs — the
 runtime would SetBackPixPat + FillRect using `cinf.bgPatternId` (byte[4..5]).
 A scheme that ships byte[3]=5 today would render with stretch-whole (the
 collapse default in `resizeBehavior()` at line 88).
@@ -243,7 +245,7 @@ degradation; the lint warning when a future bundle hits this would be helpful.
 
 **File:** `src/controls.ts:344–360`
 **Current:** Comment block claims the normal/pressed id split is decoded from
-`kDEF231_0.asm:9f0e-9f38` (the CDEF's contrlHilite swap). The mapping is:
+kDEF231 component 0 at `9f0e-9f38` (the CDEF's contrlHilite swap). The mapping is:
 RAISED `-10201..-10204` / PRESSED `-10197..-10200`.
 **Primary-source says:** `corpus-corroborated-ids.md` cicn section confirms
 8 author labels in the `-10205..-10208` range as the slider THUMB family
@@ -273,7 +275,7 @@ kThemeWidgetCollapseBox = 2
 So `+0/+1/+2` mirrors Apple's enum values exactly. The Kaleidoscope id base
 (`-14336` doc, `-14320` utility) is Kaleidoscope-private but the per-role offset
 IS Apple's enum.
-**Replacement:** Add a code comment citing `kThemeWidget*` values and link to
+**Replacement:** Add a code comment citing `kThemeWidget*` values and a reference to
 `apple-primary-source.md`. The `corpus-corroborated-ids.md` cicn entry
 "-14334 inactive grow box (n=10)" confirms `-14334 = active+(-2)` and is
 *not* a widget — it's the inactive grow box (n=10 bundles agree). So our

@@ -44,7 +44,7 @@ policy is `unique-same-face-owner`:
 - Present but undecodable, unsupported layout/palette or missing source facts:
   `unsupported`.
 - One supported actual occurrence: `ready`, carrying its manifest key, depth,
-  zero-origin source Rect, copy mode and asset link.
+  zero-origin source Rect, copy mode and asset reference.
 
 This policy does not assert original Resource Manager ordering, cache conversion
 or same-provider image/metadata behavior. Legacy missing metadata is unknown;

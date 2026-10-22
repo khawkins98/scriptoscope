@@ -3,8 +3,8 @@
 *The implemented chrome model (the spec). For the "how does it work" tour, see [`kdef-architecture.md`](./kdef-architecture.md); for binary lookups, [`kdef231-reference.md`](./kdef231-reference.md).*
 
 This is the canonical artifact for (re)building `src/composeChrome.ts`. It
-consolidates the Kaleidoscope **2.3.1** kDEF decode (`kdef231-recipe-walk.md`,
-decoded from `kDEF231_0.asm`) PLUS the gaps we found while implementing it. The
+consolidates the Kaleidoscope **2.3.1** kDEF decode (`kdef231-recipe-walk.md`)
+PLUS the gaps we found while implementing it. The
 schemes are **K2 / 2.x format** (they ship `wnd#` recipes + `cinf`); the 2.3.1
 kDEF is the engine that draws them. Earlier 1.8.2 material is historical.
 
@@ -47,17 +47,17 @@ Per cell, keyed PURELY on the part code (not pixel content, not width):
 | 8, 11 | **GROW** — a primary share plus rounding remainder. |
 | 13, 14 | **REMAINDER ONLY** — share the leftover pixels after whole-tile truncation; excluded from the primary divisor. |
 | 0 | **COLLAPSE** — zero width. |
-| 10 | **FIXED, dropped when too short.** `0x4a0c` returns the `0x49d6` flag, which `0x5178` reads from `fp@(24)` (`0x52fc`): `0x4a64`'s too-short byte `fp@(-3)`, set only at `0x4e0e` when the side's placed extent is below its fixed-cell sum. Then the cell gets width 0. Implemented (`negotiateSides`); see note. |
+| 10 | **FIXED, dropped when too short.** `0x4a0c` returns the `0x49d6` flag, which `0x5178` reads from its first flag argument (`0x52fc`): `0x4a64`'s too-short byte, set only at `0x4e0e` when the side's placed extent is below its fixed-cell sum. Then the cell gets width 0. Implemented; see note. |
 | 15, 16, 17 | collapse to zero iff the corresponding widget is PRESENT; else fixed. |
 | 2, 3, 4 | the close/zoom/shade GAP cells — fixed when widget present; collapse to zero when absent. |
 | 12 | **TILE** — primary share truncated down to a whole multiple of source width (possibly zero); the unused fraction joins the remainder pool. |
 | 18 | **SCALE** — a single scaled CopyBits (drawn once, mapped src→dst). |
 
 **code 10 note (2026-10-21, [kdef231-code10-widgets.md](kdef231-code10-widgets.md)):**
-`0x5178` takes two flag bytes. `fp@(24)` goes to `0x49d6` (`0x52fc`) and is
-always `0x4a64`'s too-short byte `fp@(-3)`. `fp@(26)` (the `#1` at
-`0x4db4`/`0x4dd4`, the title string length byte at `0x5100`/`0x5120`, or `0`
-at `0x5148`) only gates 5/6 (`0x530c`). The earlier "untitled sides pass `#1`"
+`0x5178` takes two flag bytes. The first goes to `0x49d6` (`0x52fc`) and is
+always `0x4a64`'s too-short byte. The second (a constant 1 at
+`0x4db4`/`0x4dd4`, the title string's length byte at `0x5100`/`0x5120`, or 0
+at `0x5148`) only gates 5/6 (`0x530c`). The earlier "untitled sides pass 1"
 reading conflated the two. Per side, in the kDEF's side order (top, bottom,
 left, right): if the placed extent (template extent + content delta) is below
 `fixed0` (Σ segments 1..N that are fixed under flag 0, code 10 included), the
@@ -67,17 +67,19 @@ the remaining layout (`0x4e24..0x4e42`). Popup-family titled sides skip this
 (`0x4c64`). At or above the template size nothing changes. A dropped cell draws
 nothing, as in the kDEF (`0x5990`), so its baked collapse-box art disappears,
 but the widget's hit rect follows the cell through `0x5cb6` (below).
+(Argument and frame-byte detail in evidence.)
 
 **Widget draw:** the kDEF draws the named widgets in a SEPARATE pass over the
 rect-list (`0x632e` → `0x6062`), NOT in the recipe walk. `0x572e`'s side loop
-never touches the rect-list `a4@1938`; after it, `0x5a3c` calls `0x632e` for the
+never reads the wnd# rect-list; after it, `0x5a3c` calls `0x632e` for the
 zoom part only. `0x5ffc` → `0x5ddc` is the hit-test, not a draw pass
 (corrected 2026-10-21). `0x6062`'s dst rect is the template-coordinate entry
 rect remapped by `0x5cb6` through the placed cells. In state 0 it blits the
 chrome template itself, not a widget cicn. In the full draw (`0x572e`) the
-only `0x632e` call is the partial-zoom part 5 (`a4@(502) && a4@(508)`), so
-types 1-3 (close/zoom/collapse) are drawn only by the side cells there. Under
-`a4@(509)` (family 63) `0x5b7a..0x5c92` also blits rect-list types 5/6 and a
+only `0x632e` call is the partial-zoom part 5 (gated on two window-state
+bytes, detail in evidence), so
+types 1-3 (close/zoom/collapse) are drawn only by the side cells there. When the
+family-63 (popup) byte is set, `0x5b7a..0x5c92` also blits rect-list types 5/6 and a
 15px corner from the template at raw rects, without `0x5cb6`. We don't
 replicate either; instead the widgets ride the FIXED recipe cells they sit in (empirically
 all corpus widgets land in code 1/2/3/4 fixed/gap cells or the fixed leading
@@ -126,10 +128,11 @@ offset, and emptied when either corner misses.
   cell across the dst (`kdef231-recipe-walk.md` Q5) — there is no scaled CopyBits
   for ordinary fills, and `cinf.tileSides` does NOT gate it. Only code 18
   (`0x10320`) is a single scaled blit. A 1px src band ⇒ a uniform fill.
-  Tiling runs along the side. The caller's direction byte
-  `(pc==11||pc==14)?0:1` sets the anchor: codes 11/14 tile from the far end
-  (right/bottom), so their partial tile sits at the near end. Every other code
-  tiles from the start ([reference §5.1](kdef231-reference.md)).
+  Tiling runs along the side. The caller passes a direction byte that sets
+  the anchor: 0 for codes 11 and 14, 1 for every other code. Codes 11/14 tile
+  from the far end (right/bottom), so their partial tile sits at the near end.
+  Every other code tiles from the start (behaviour and formula:
+  [`engine/qd-primitives.md`](engine/qd-primitives.md) §4 tile blit).
   (Correction: an earlier draft of this spec said tileSides selects tile-vs-
   stretch; the 2.3.1 decode shows the blit is unconditional tiling.)
 - **Widgets ride the FIXED cells (no carving):** the close/zoom/shade widgets are
@@ -157,8 +160,8 @@ tall ornate bars (evolution) where the text well sits well below centre; flat ba
 guarded by the `title` rule in `lint:themes`.
 
 The **title PLATE** (the "pill" behind the text) is the chrome side of the same
-mechanism, decoded at kDEF `0x4a64`: the kDEF measures the title via `StringWidth`
-($A888 → `fp@(-2)`), gates it (title-fits at `0x4f58`), then sizes the title-
+mechanism, decoded at kDEF `0x4a64`: the kDEF sets the title face (`TextFace`, $A888), measures the
+title via `StringWidth` ($A88C), gates it (title-fits at `0x4f58`), then sizes the title-
 anchor cell's DEST span to that **measured title-text width**, centred (`0x5034`;
 the `/2` at `0x4ff8`/`0x501c`). That anchor cell is **code 5** — flanked by
 code-6 bezels (`0x4f74`/`0x4f90`) — and its src (a 1px pill column in 1138) is
@@ -220,9 +223,12 @@ Open:
 ## References
 - `kdef231-recipe-walk.md` — the full part-code / draw decode, from the
   Kaleidoscope **2.3.1** kDEF (the engine our K2 schemes use). The source of
-  truth behind this spec. (The decompiled asm itself — `/tmp/kaleido-trace/
-  kDEF231_0.asm` — is the ground truth; this doc + the recipe-walk are summaries,
-  so verify against the asm when they disagree with a reference render.)
+  truth behind this spec. This doc and the recipe-walk summarise the listing.
+  When they disagree with a reference render, a spec writer or verifier
+  re-checks the listing and corrects this spec; implementers file a spec
+  question instead ([implementer brief](engine/IMPLEMENTER-BRIEF.md)). Listing
+  provenance: [`engine/compositor-spec.evidence.md`](engine/compositor-spec.evidence.md)
+  (spec writers and verifiers only).
 - `diagnostic-tooling.md` — the in-browser slice inspector + the
   `diag:render` / `diag:audit` CLIs for validating against the reference images.
 

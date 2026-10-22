@@ -4,6 +4,7 @@ import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {sliderPins,sliderCaseIds,verifySliderFixtures,validateSliderCase,verifySliderRows,sliderLiteralPlane} from './slider-cases.mjs';
 import {makeReport,digest,inventoryDigest} from './ledger.mjs';
+import {buildLedger} from './build-ledger.mjs';
 const root=fileURLToPath(new URL('../../',import.meta.url)),ledger=JSON.parse(readFileSync(new URL('./ledger.json',import.meta.url)));
 // Owned records exercise verifier rejection, not a claim of browser execution.
 function fixture(){
@@ -45,8 +46,9 @@ test('slider assertion cannot use stale, dirty, wrong-path or missing-mode execu
   const r=makeReport(ledger,{executionCommit:'current',workingTreeDirty:false,execution});assert(r.execution.assertions.find(a=>a.id===marker.id).modes.every(m=>m.status==='not run'));
  }
 });
+// Historical prefixes are pinned to the 1.22.0 split state (every post-split family transition undone), as in ledger.test.mjs.
 test('complete prior inventory and all historical registry prefixes are unchanged',()=>{
- const transition=JSON.parse(readFileSync(new URL('./conditional-controls-transition.json',import.meta.url))),prior=structuredClone(ledger);
+ const transition=JSON.parse(readFileSync(new URL('./conditional-controls-transition.json',import.meta.url))),prior=structuredClone(buildLedger({mode:'base'}).ledger);
  for(const [key,count] of Object.entries(transition.counts)){
   prior[key]=prior[key].slice(0,count);assert.equal(digest(JSON.stringify(prior[key])),transition.prefixSha256[key],`${key} prefix`);
  }
