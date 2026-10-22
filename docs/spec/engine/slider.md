@@ -6,6 +6,12 @@ Macintosh / Universal Interfaces (HISlider.h variant names), and only the rule
 tables the [implementer brief](IMPLEMENTER-BRIEF.md) allows. The
 address-by-address trace is in `slider.evidence.md`; implementers do not open it.
 
+*Amended 2026-10-22 (lane `v2-family3-spec-answers`) with the answers to the
+family-3 implementer's spec questions: erase background (§4.10 BG1–BG6),
+facade record lifetime (ID10), bounds origin and line colour (BL11, BL12),
+short `cinf` payloads (§4.11 CF1–CF3), tracking roles (§4.12 TRK1–TRK4) and a
+reachable example D (§5.9).*
+
 **Every address in this file is a file offset into Kaleidoscope 2.3.1 `CDEF 3`**
 (not the kDEF). To keep the routine-coverage counter honest, every line that
 carries an address also names CDEF 3. Rect intervals are half-open
@@ -86,7 +92,7 @@ CDEF 3 `0x658..0x666` (26), `0x668..0x6a0` (34); default target `0x6a8`.
 |---|---|
 | `available resources` | `cinf` and `cicn` resources by id, through the resource chain (§6 item 2) |
 | `systemSlider` | the System file's own CDEF 3 (Appearance slider) that the gate hands off to |
-| `background` | what the erase step fills `R` with (§3.3 O2–O4; §6 item 1) |
+| `background` | the drawing port's background, as it stands after the Control Manager's background set-up: the colour or pattern the erase step fills `R` with (§4.10 BG1–BG6). A declared input; the CDEF never derives it from art |
 | `devices` | the devices the control's region crosses, each with a pixel depth and a colour/grey flag |
 | `lowDepth` | per device: depth < 4, or depth 4 on a colour device; clear above 4 (CDEF 3 `0x1b70..0x1ba4`, `0x1a34..0x1a62`) |
 | `portState` | colour port or not; picture/region recording; pen hidden; visRgn and clipRgn |
@@ -126,7 +132,8 @@ suppresses ticks (TK2).
 Declared defaults (modern policy, not original observations): one device at
 depth ≥ 8 (`lowDepth` clear), colour port, not recording, pen visible, a
 resource chain of the archive's own fork then its base chain (as the scroll
-bar), and `background` supplied by the host (§6 item 1).
+bar), and `background` supplied by the host, solid white when the host
+supplies none (BG6).
 
 ## 3. Outputs
 
@@ -163,7 +170,7 @@ Each run (CDEF 3 `0xdce..0x1474`):
 |---|---|---|
 | O1 | create an offscreen GWorld (`$AB1D` NewGWorld) at the device's depth covering `R`, lock it and make it current. On failure nothing is drawn for this device; the port keeps its pixels | CDEF 3 `0xdea..0xe5c` |
 | O2 | in the offscreen: when the port is a colour port, copy its foreground and background colours and its background pattern (a pixel pattern, or a plain pattern drawn in those colours) | CDEF 3 `0xe5e..0xeb4` |
-| O3 | Appearance Control Manager trap `$AA73` selector 29 with the control, the depth and true (identity §6 item 1) | CDEF 3 `0xeb6..0xec8` |
+| O3 | Control Manager `$AA73` selector 29, SetUpControlBackground (control, the device's depth, colour device = true); its result is ignored (BG3) | CDEF 3 `0xeb6..0xec8` |
 | O4 | EraseRect `$A8A3` `R` | CDEF 3 `0xeca..0xed0` |
 | O5 | track (§4.4, §5.5) | CDEF 3 `0xef8..0x1038` |
 | O6 | message 13 only: ghost cell (TH5) into `G` | CDEF 3 `0x1080..0x10c0` |
@@ -174,7 +181,7 @@ Each run (CDEF 3 `0xdce..0x1474`):
 Two non-default paths: on a monochrome on-screen port without custom bottlenecks, the drawer first switches to the Window Manager port in global coordinates and then runs DeviceLoop (CDEF 3 `0x174e..0x17f8`); and O2 copies the background pattern only when the port's pattern handle is a pixel-pattern-sized (28-byte) handle (CDEF 3 `0xe8c..0xe9c`). Neither applies under the declared defaults.
 
 So `R` is always repainted opaque: pixels no art covers show the O4
-background, never what was in the port before.
+background (§4.10), never what was in the port before.
 
 ## 4. Decision tables
 
@@ -206,13 +213,17 @@ consulted by the gate.
 | ID7 | a thumb cicn was found | `tA` and `T` are recomputed **before** ID6 runs, so `T` uses the `c` stored by the previous message | CDEF 3 `0x3a2..0x43a` |
 | ID8 | neither corner cinf found | `c` keeps its previous value (undefined on a new record) | CDEF 3 `0x472..0x474` |
 | ID9 | always | `range`, `offset` recomputed | CDEF 3 `0x484..0x4a8` |
+| ID10 | facade (declared, modern policy): each compose creates a fresh record and sends message 3, then message 0 | message 3 computes `T` from an undefined `c` (ID7, ID8) but reads no `T`; it only sets `n` and, for tick sliders, the value (ID4, ID5). Message 0 then recomputes `T` with the `c` message 3 stored, which equals the `c` ID6 finds again. So every facade draw is the steady state. For a tick-mark slider the facade passes the tick count as `initialValue` to message 3 and sets the requested value after it, as an application does after NewControl returns (Apple: the initial value of a tick-mark slider is the tick count) | CDEF 3 `0x3a2..0x43a`, `0x59c..0x5c6` |
 
 The gate (G1) recomputes `horizontal` from the current `R` on every message, but the drawing uses the value fixed when the record was created (ID3). If a control's rect changes shape after creation, the gate and the draw can use different `base` values (CDEF 3 `0x144..0x17a`, `0x34a..0x35c`).
 
 ID7 has no effect in the steady state: message 3 runs first and sets `c`, and
 `c` does not change for a given control and scheme. The record outlives a
 scheme change, so the first message after one uses the old `c` for `T` (ticks,
-§5.6–§5.8) but the new `c` for `Th` (§5.2).
+§5.6–§5.8) but the new `c` for `Th` (§5.2). That case needs a record that
+lives across a scheme change; the facade never has one (ID10), so it is
+reachable only through the driver API with a caller-held record. No corpus
+row or facade rule exercises it; a driver-level rule row can (§7).
 
 ### 4.3 Track candidates and art
 
@@ -283,6 +294,8 @@ after (CDEF 3 `0x24fa..0x25f2`, `0x205e..0x2442`).
 | BL8 | BL4/BL5 colour | the pixel's colour-table entry: the entry whose value equals the pixel, tried at that index first, then searched from the last entry down, entry 0 if none; a table whose last entry has value 0 is indexed by position. At `lowDepth` the 1-bit icon bit gives black or white | CDEF 3 `0x1c1c..0x1de6`, `0x28ea..0x2944` |
 | BL9 | any helper | skipped when the destination misses the clip region's bounding box vertically, or (tiler) either rect is empty | CDEF 3 `0x253c..0x254e`, `0x2072..0x20da` |
 | BL10 | BL4, BL5, BL8 | the mask and pixel are read at the column and row counted from the cicn's first stored row and column (equal to source coordinates when the bounds start at 0,0, as in every corpus cicn) | CDEF 3 `0x1c3a..0x1c74`, `0x1d0c..0x1d20` |
+| BL11 | engine domain (declared) | the engine may represent a cicn with its bounds origin dropped (origin (0, 0)) only because every corpus cicn in −10144..−10111 has origin (0, 0) (§6 corpus table). BL10, the §5.3 source rects and the §5.4 centring term are then evaluated at origin 0. A cicn whose bounds origin is not (0, 0) is outside the declared domain: an engine without an origin field must not draw it as if the origin were 0 without tracing that (natively, §5.4 puts each tick about `t.left` (vertical: `t.top`) pixels further toward the start than the origin-0 evaluation does). Not a decode change | CDEF 3 `0x1250..0x1260`, `0x1c3a..0x1c74` |
+| BL12 | BL4/BL5 colour, engine shortcut (declared) | using the colour the theme loader decoded for the source pixel instead of the BL8 search gives the same colour whenever the two agree for every pixel value the track cicn uses. They agree for every slider cicn of the 11 G1 archives and floppies except one value in 1984 tick cicn −10139, which lies under a clear mask bit and is drawn by CopyMask (BL1), not BL8, so it never shows. The rules differ in general when the table has a duplicate value, a last entry of value 0, its device flag set, or lacks a used value (BL8 gives entry 0, the loader black). An engine that takes the shortcut must apply BL8 itself, or trace, for such a table. Census: evidence E13 | CDEF 3 `0x1c1c..0x1de6`, `0x28ea..0x2944` |
 
 ### 4.8 Offscreen and background
 
@@ -307,6 +320,45 @@ The hit area is the 16-pixel band `B`, not `R`: tick marks and the rest of `R`
 answer 0. hilite is not consulted (the Control Manager's own handling of
 inactive controls applies). With no thumb cicn, `Th` is empty at (0, 0), so a
 point in `B` is 23 unless a coordinate is negative.
+
+### 4.10 Erase background (what O4 fills `R` with)
+
+The colour is not fixed by CDEF 3. The CDEF builds the offscreen's background
+from the drawing port (BG1, BG2), lets the Control Manager adjust it (BG3,
+BG4), then erases (BG5). The result depends on the port, the control's
+embedding and its window, none of which is in the archive, so the engine takes
+it as the declared input `background` (BG6).
+
+| # | condition | output | source |
+|---|---|---|---|
+| BG1 | the drawing port is a colour port | the offscreen takes the port's foreground and background colours. When the port's background pattern handle exists and has a pixel pattern's size, it also takes the pattern: a pixel pattern (pattern type ≠ 0) becomes the offscreen's background pixel pattern; a plain pattern (type 0) installs that pixel pattern's 8 × 8 one-bit pattern, drawn in the copied colours | CDEF 3 `0xe5e..0xeb4` |
+| BG2 | not a colour port; or (for the pattern only) no background pattern handle, or one of another size | nothing is copied for that part: the offscreen keeps its own fresh state, a white background colour, black foreground and a solid background pattern (Apple: a new GWorld's port is initialised as a new colour graphics port, Inside Macintosh: Imaging With QuickDraw ch. 6) | CDEF 3 `0xe62..0xe6c`, `0xe82..0xe9c` |
+| BG3 | always, once per device pass, after BG1/BG2 and before the erase | SetUpControlBackground (`$AA73` selector 29; identity from Apple's interface, §6 item 1) with the control, the device's depth and "colour device" = true. The flag is true even on a grey device. The error result is ignored. No Appearance-presence check precedes the call | CDEF 3 `0xeb6..0xec8` |
+| BG4 | BG3, Control Manager side (Apple-documented, not in this binary) | the Control Manager sets the current port's (the offscreen's) background for the control: through the control's colour procedure if one is installed; otherwise by asking the nearest embedding ancestor that has a special background (`kControlHasSpecialBackground`, message `kControlMsgSetUpBackground`); otherwise from the theme brush associated with the owning window (SetThemeWindowBackground). With none of these the BG1/BG2 background stands. CDEF 3 never reports a special background itself (message 19 returns ghosting, bit 13 and live feedback only, §1.2) (Apple's Control Manager documentation for SetUpControlBackground and SetControlColorProc; not pinned here; the order is not engine-relevant because BG6 makes the result an input) | CDEF 3 `0xeb6..0xec8` (call site) |
+| BG5 | always | EraseRect `R` in the offscreen: every pixel of `R` takes the resulting background (a solid colour, or the background pattern under QuickDraw's pattern rules) before any art is drawn; then O5–O9 | CDEF 3 `0xeca..0xed0` |
+| BG6 | engine input (declared) | `background` is the outcome of BG1–BG4 for this control, supplied by the host as a solid RGB colour or a pattern. **Declared default: solid white**, which is QuickDraw's default port background, BG2's result, and BG1's result for a port with default colours where BG4 changes nothing (no colour procedure, no special-background parent, no window brush). Modern policy, not an original observation. A themed dialog or window behind the control would supply its theme brush instead (BG4); mapping brushes to scheme patterns is outside CDEF 3 ([apple-primary-source](../apple-primary-source.md)) | CDEF 3 `0xeb6..0xed0` |
+
+Under the declared defaults every pixel of `R` that no masked art covers is
+the `background` input, fully opaque (O9 copies `R` with no mask). The art never
+mixes with it: masked copies (BL1) leave it alone where the mask is clear and
+replace it where the mask is set.
+
+### 4.11 `cinf` payload length
+
+| # | condition | output | source |
+|---|---|---|---|
+| CF1 | any `cinf` request (gate G1, corner ID6, track TR4) | the resource counts as found when a handle comes back; its length is never checked. The one path that checks a length is never taken from CDEF 3 (§9) | CDEF 3 `0x17e..0x18c`, `0x2b96..0x2bd2` |
+| CF2 | a found `cinf` | bytes read: byte 0 for the corner (ID6); bytes 0, 2 and 3 for a track (§4.4). Byte 1 and every byte after 3 are never read | CDEF 3 `0x472..0x480`, `0x29b0..0x29b4`, `0x2b14..0x2b1e`, `0x2b3e..0x2b44`, `0x14ca..0x14ce`, `0x1636..0x1640`, `0x1660..0x1666` |
+| CF3 | a found `cinf` too short for a byte CF2 reads (its length is at most that byte's index: 0, 2 or 3) | the CDEF reads past the resource's data: **undefined, not decoded**. A zero-length `cinf` still passes the gate (CF1). Declared engine policy: trace the read as unspecified and treat the corner as not found (ID8) or the track candidate as failed (TR4). That is a modern choice, not the native outcome. No corpus case: every slider `cinf` of the 11 G1 archives is 18 bytes | CDEF 3 `0x472..0x480`, `0x29b0..0x29b4`, `0x2b14..0x2b1e`, `0x2b3e..0x2b44`, `0x14ca..0x14ce`, `0x1636..0x1640`, `0x1660..0x1666` |
+
+### 4.12 Tracking roles (who changes the value)
+
+| # | condition | output | source |
+|---|---|---|---|
+| TRK1 | a press in `B` (HT2–HT4) | CDEF 3 only reports the part. No message pages: nothing in the message map changes the value for parts 22 or 23. What a page press does is up to the application's action procedure (Control Manager behaviour) | CDEF 3 `0x4ac..0x6a6`, `0xb90..0xbf6` |
+| TRK2 | thumb press (129), live feedback off (variation bit 0 clear) | Apple-documented Control Manager sequence: message 6 sets the drag limits (§5.8), the outline is drawn with message 13 (O6, TH5), and on release message 5 applies the drag offset (§5.7) | CDEF 3 `0x95e..0xa34`, `0x7ee..0x836`, `0xc22..0xd2e` |
+| TRK3 | thumb press, live feedback on (bit 0; message 19 reports 1024) | message 26 during the drag: the value comes from the dragged region (§5.6), written without pinning, and the control is redrawn with the thumb at `G` | CDEF 3 `0x632..0x646`, `0x6d6..0x7a6` |
+| TRK4 | Scriptoscope pointer adapters (declared, modern policy) | the native-form adapter and the imperative pointer map are modern policy (`docs/spec/slider-interaction.md`). They must agree with §5.2 on direction (vertical minimum at the bottom). Their hit surface, track-click centring and exact-value thumb grabs are not CDEF 3 behaviour and are not claimed as native | CDEF 3 `0xa82..0xb5a` |
 
 ## 5. Geometry
 
@@ -428,18 +480,33 @@ rows `[84, 87)`, `[48, 51)`, `[13, 16)`.
 (byte 2 = 0), rows 6..9 each a line over `[2, 98)` in the colour of source
 pixel (2, row) (BL4).
 
-**D. Halves (1984 or animals, `c = 10`), horizontal, `R` along 15.** `L = 15 ≤ 20`:
-`[0, 8)` ← `[0, 8)`, `[8, 15)` ← `[S.right − 7, S.right)`.
+**D. Halves, 1984, horizontal, group 0, `R` = (0, 0, 14, 15), normal.**
+`R` is 15 wide and 14 high, so it is horizontal (15 > 14). `B` is still 16
+rows, `[0, 16)` (§5.1), and reaches 2 rows below `R`; those rows are never
+drawn. Track −10143 (49 × 16, cinf 10, 16, 0, 0): `D` rows
+`[trunc((0 + 16 − 16) / 2), 16) = [0, 16)`, `L = 15 ≤ 2k = 20`, so halves:
+columns `[0, 8)` ← source `[0, 8)` and `[8, 15)` ← source `[42, 49)`, each over
+source rows `[0, 16)`; only rows `[0, 14)` land in `R`. The thumb (15 wide)
+gives `T = 15 − 15 − 20 = −20`; this example asserts the track only.
+Vertical twin: `R` = (0, 0, 15, 14) with track −10127 (16 × 49): rows `[0, 8)` ←
+`[0, 8)` and `[8, 15)` ← `[42, 49)`, columns `[0, 16)` of which `[0, 14)` land in `R`.
 
 ## 6. Not decoded / unknown; corpus impact
 
 Implementers stop at these and file a spec question.
 
-1. **Background.** `$AA73` is not in Universal Interfaces 3.0.1 `Traps.h`. The
-   call (control, depth, true) right before the erase matches the shape of the
-   Appearance `SetUpControlBackground`, but the selector-29 identity and what it
-   sets for a control with no embedding parent are not established here. The
-   engine takes `background` as an input; it must not be synthesised from art.
+1. **Background.** Decoded in §4.10: CDEF 3's part is BG1–BG3 and BG5.
+   `$AA73` is the Control Manager dispatch trap; it is not in Universal
+   Interfaces 3.0.1 `Traps.h`, which predates the Appearance Control Manager.
+   Selector 29 is identified as SetUpControlBackground from Apple's later
+   Controls.h interface and corroborated by placement: the call immediately precedes the erase. The
+   call's shape alone does not single it out (another set-up call has the same
+   signature), and the scroll bar's selectors 5 and 21 rest on the same
+   unpinned header. No
+   pinned copy of that header is in the private store. What the Control Manager
+   then does (BG4) is Apple's documented behaviour, not decoded from any binary
+   here, and depends on the host's embedding and window. So the engine takes
+   `background` as an input (BG6) and must not synthesise it from art.
 2. **Resource chain.** The gate, corner and track `cinf`s and the thumb and tick
    cicns are requested through the current resource chain; track cicns from the
    file named by Gestalt(`Copl`) when it exists (CDEF 3 `0x2664..0x288c`). Which
@@ -469,6 +536,8 @@ Implementers stop at these and file a spec question.
     set to −12345 and restored (CDEF 3 `0x2108..0x2110`, `0x215c..0x2160`). No
     drawing effect is established; it may be a marker for Kaleidoscope's own
     trap patches.
+12. **Short `cinf` payloads** (CF3): reads beyond the data are undefined; the
+    engine's handling is declared policy. No corpus case.
 
 ### Corpus impact (own forks)
 
@@ -490,7 +559,9 @@ The census behind this table is verifier-only (private store); implementers do n
 | mask-clear track pixels (background shows) | all G1 archives except windows-31, windows-95 and crayon-os group 2 |
 | mask-clear thumb pixels | all G1 archives except windows-31 (all cells) and crayon-os / windows-95 group 2 |
 | thumb `tA` (h group 0 / 1 / 2) | 1138 15/15/15, 1984 15/15/15, 1990 19/19/16, animals 19/19/17, apple-lisa 15, beos-r503 17, crayon-os 15, dolphin-som and evolution as 1990, windows-31 16, windows-95 11 |
-| BL10 / §5.4 non-zero bounds origin | none (every cicn in range has bounds at 0, 0) |
+| BL10 / §5.4 non-zero bounds origin | none (every cicn in range has bounds at 0, 0); BL11 |
+| BL12 loader colour ≠ BL8 colour for a used pixel value | none visible (one value in 1984 tick −10139, under a clear mask bit, drawn by BL1) |
+| CF3 short `cinf` | none (every slider `cinf` is 18 bytes) |
 
 ## 7. Test hooks
 
@@ -508,8 +579,14 @@ source rects per draw step). Rows go in `tests/rendering-options/slider-rules.mj
 | §5.1 | group 0 / 1 / 2 band at top / bottom / centre for `R` 32 high; group-2 centre of rows (−10, 5) (sum −5) is `[−10, 6)` | floor instead of trunc (gives `[−11, 5)`; a non-negative or even sum cannot tell them apart); band = `R` |
 | §5.2 | examples A–C `Th`; `range = 0` → `Th.left = R.left` | rounding instead of trunc; vertical minimum at the top; `c` inset at `range = 0` |
 | SL1–SL6 | example A middle tiles (`[83,115)` ← `[5,37)`); example C one-column lines; example D halves | stretching the middle; cap clamp at 6; tiling from the end when byte 3 = 0; halves rule omitted |
-| TK1–TK5, §5.4 | examples A and B tick rects; range 0..10 with `n = 4` gives `v = 0, 3, 7, 10`; `n = 1` and `range = 0` draw none; `R` cross 23 draws none | `v_i` without rounding (gives `0, 3, 6, 10`; examples A and B cannot catch it); tick band inside `B`; `tw` instead of `t.right + t.left` (needs a synthetic cicn with bounds.left ≠ 0) |
+| TK1–TK5, §5.4 | examples A and B tick rects; range 0..10 with `n = 4` gives `v = 0, 3, 7, 10`; `n = 1` and `range = 0` draw none; `R` cross 23 draws none | `v_i` without rounding (gives `0, 3, 6, 10`; examples A and B cannot catch it); tick band inside `B`; `tw` instead of `t.right + t.left` (needs a synthetic cicn with bounds.left ≠ 0; an engine with BL11's origin-0 domain cannot represent one, so this mutation cannot fail through the engine: a recorded finding, not a dropped row) |
 | BL1, BL6 | mask-clear thumb/track pixels show the O4 background, not the port's old pixels | unmasked copy; transparent `R` |
+| BG1–BG6 (the #407 S4 class) | pass a sentinel `background` colour: every pixel of `R` that no art covers equals the sentinel, alpha opaque; with no `background` supplied those pixels are solid white | transparent `R`; background taken from the art or from the track's first pixel; erase after the track; a default other than white |
+| BL12 | synthetic track cicns drawn by BL4, each colour entry a distinct colour: (a) values (0, 2, 2) with middle pixel value 2: BL8 gives entry 2, a first-match lookup entry 1; (b) values (1, 2, 0) with pixel value 1: BL8 indexes by position (entry 1), a by-value lookup entry 0. Line colours follow BL8 (or the engine traces the shortcut) | first-match / by-value lookup without the BL12 guard (a duplicate at its own index, e.g. values (0, 1, 1) with pixel 1, cannot tell them apart) |
+| CF1–CF3 | a synthetic fork with a zero-length `cinf` at `base` passes the gate (Kaleidoscope handles the message) and the short read is traced unspecified | checking the `cinf` length in the gate (the fork would hand off) |
+| ID10 | driver level: a record created under one scheme, then drawn under a scheme with a different `c`: the ticks use the old `c` through `T`, `Th` the new `c`; the facade (fresh record, 3 then 0) always matches the steady state | recomputing `T` after ID6; reusing a facade record across composes |
+| TRK1–TRK3 | page press (22/23): no CDEF message changes the value; message 26 writes `min + …` without pinning (§5.6) | paging inside the driver; pinning the message 26 value |
+| example D | the horizontal (0, 0, 14, 15) and vertical (0, 0, 15, 14) halves, asserted on the trace's source rects (1984's track art is symmetric, so pixels at this R cannot tell halves from caps) | halves rule omitted (caps of 10 would overlap) |
 | OS4, OS5, O-order | trace order: erase, track, ghost, thumb, ticks, composite | thumb before track; no erase |
 | HT1–HT4 | example A hit points; a point in the tick band → 0 | testing against `R`; 22/23 swapped |
 | §5.6–§5.8 | value from `G.left = 52` in example A → 49 (`trunc(4747 / 95)`; the mapping does not invert §5.2), from `G.left = 53` → 51; vertical posCntl sign | dropping `+ trunc(T/2)` (gives 49 and 50); value from `Th` inverting to 50; vertical sign not flipped |
@@ -537,10 +614,10 @@ Each item is a decode finding; none has been fixed.
 | declared-group2 layout: `inset + trunc(travel · value)`, vertical minimum at the bottom, cross 16 (`slider-layout-cinf.md`) | §5.2 | **confirmed**, including `c` from `cinf` −10132/−10144 (h) and −10116/−10128 (v) |
 | default (non-declared) layout: `round`, inset 0, value 0 at the top for vertical | trunc, inset `c`, minimum at the bottom; `range = 0` → no inset | **replaced** |
 | thumb copied with `srcCopy` (the comment says the mask path is untraced) | CopyMask through the cicn mask (BL1) | **replaced** |
-| transparent output outside the art | `R` erased to the background and copied opaque (OS4, OS5) | **replaced** (needs the `background` input) |
+| transparent output outside the art | `R` erased to the background and copied opaque (OS4, OS5, BG1–BG6) | **replaced**; `background` is a host input, solid white by default (BG6) |
 | no tick marks | TK1–TK5, §5.4 | **missing** |
 | output cross = 16 or the art's natural size | `R` may be taller; band placement by group | **missing** for groups 0/1 |
-| pointer mapping (`slider-interaction.md`) | hit area `B` only (HT1); value from position rounds to nearest (§5.6) | to reconcile; `slider-interaction.md` is a modern consistency contract and does not claim native geometry |
+| pointer mapping (`slider-interaction.md`) | hit area `B` only (HT1); value from position rounds to nearest (§5.6); no paging (TRK1) | reconciled (TRK4): direction must follow §5.2; hit surface, track-click centring and exact-value grabs stay modern policy, stated as such in `slider-interaction.md` |
 
 ## 9. Routine coverage (CDEF 3, 45 in-scope ranges)
 
