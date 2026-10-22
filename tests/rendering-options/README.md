@@ -218,7 +218,7 @@ separate scope.
 reference section on every row. `window-chrome-rules.test.mjs` (Node, part of
 `npm test`) and `window-chrome-rules.spec.mjs` (source/built) run it over the
 actual archives. The 13 `wnd#` archives cover every sliced window type, both
-states and content sizes of template + {0,1,2,7,97} × {0,1,33}. The checks are
+states and content sizes of template + {−12,0,1,2,7,97} × {−12,0,1,33}. The checks are
 END-based cells (`0x5356`), the 1:1 `[0,border[0])` corner (`0x4a64`),
 flag-independent part-code widths (`0x49d6`/`0x5178`), the two-pass per-half
 allocation (`0x5178`, nonnegative budgets, given the observed half extent) and
@@ -253,14 +253,24 @@ shares for 13/14, untruncated tiles and changed pixels. Mutation cases confirm
 it rejects forward-tiled 11/14 cells, reverse-tiled forward cells and scaled
 tile cells.
 
-These checks do not cover codes 5/10/2/3/4/15/16/17 (flag-gated), title-anchor
-half extents, below-minimum windows, side draw order, CopyMask transparency,
-code-18 scaled pixels, trailing side regions, the `0x632e`/`0x6062` widget pass, ladder
-misses (where the runtime heuristic substitutes) or the five corner-sprite
-archives. A failing `todo` records the code-10 decode disagreement (flag 1 should
-collapse it). An observation test records an undecoded overrun, with no expected
-value: the 1138 document-window title bar at its template size places 107px in
-103px. No image or golden is added.
+Code 10 is asserted from the too-short step (`0x4dfe..0x4e0e`;
+[kdef231-code10-widgets.md](../../docs/spec/kdef231-code10-widgets.md)): fixed
+when the side's placed extent reaches its fixed-cell sum, width 0 below it.
+`sideTooShort` computes the verdict from the recipe and the content delta,
+bounding widget-gated codes, and leaves code 10 unknown when the bound
+straddles the extent. The −12 samples reach the step; sourced hand traces
+(`[14,4,2]` at width 20, `[3,0,2]` at width 5) and checker mutations (code 10
+kept below the template, dropped above it) are in the Node test. Widget hit and
+press rects (`0x5cb6`) are checked in `src/titleWidgets.test.mjs` and, through
+WindowManager overlays, in `window-widget-remap.spec.mjs` (source/built).
+
+These checks do not cover codes 5/2/3/4/15/16/17 (flag-gated), title-anchor
+half extents, the second too-short step (shade-widget clear), side draw order,
+CopyMask transparency, code-18 scaled pixels, trailing side regions, the
+`0x632e`/`0x6062` widget draw pass, ladder misses (where the runtime heuristic
+substitutes) or the five corner-sprite archives. An observation test records an
+undecoded overrun, with no expected value: the 1138 document-window title bar at
+its template size places 107px in 103px. No image or golden is added.
 
 ### Checkable source rules
 
@@ -375,3 +385,46 @@ has no offscreen flag), and `range-rules.spec.mjs` binds D1 through the public
 `pressedPart`, source and built. With the engine driver every one of the 144
 public rows matches the rule table, so the recorded disagreement lists are
 empty.
+
+### Tab and header source rules
+
+`tab-header-rules.mjs` restates the CDEF 8 tab selection and 0x16e body painter
+([tab-cdef8-body.md](../../docs/spec/tab-cdef8-body.md#corpus-rule-table-2026-10-21)),
+and the PACH 130 header selection, regions, body and pattern anchor
+([header-surface.md](../../docs/spec/header-surface.md#corpus-rule-table-2026-10-21)).
+It imports nothing from `src/`. `tab-header-corpus.mjs` parses each archive's
+resource map itself: ids, raw cinf bytes and the ppat census. It takes rasters,
+patterns and raw background samples from the shared decoder, after checking the
+decoder's bytes for each id against its own parse. `tab-header-rules.test.mjs`
+(Node) pins three things:
+
+- the corpus partition: 14 archives with tab art, 13 with header art, no fallback
+  or pressed-front ids, animals -9984 without a cinf, and apple-platinum-2's
+  panes without a cinf;
+- the decoded branches that the public API does not reach;
+- literal rows for both models, where each wrong reading must change pixels.
+
+`tab-header-rules.spec.mjs` runs `composeTab` (two rows, using the runtime's
+width) and `composeHeaderSurface` (24 rows) in source and built modes for all
+18 archives. Every rule-fixed pixel must match. It pins four things:
+
+- the rows that match another candidate id, which cannot discriminate selection;
+- the per-archive tables of which wrong reading each archive fails;
+- the 1,664 unasserted crayon-os tab centre pixels (ppat 17, legacy path);
+- the runtime's small-to-large retry. The decode probes `-9960+state`; only the
+  four archives without tab art reach this retry. Under the declared archive-only
+  chain nothing is drawn there. The 2.3.1 control-panel fork ships the
+  clut-recoloured fallback ids, though, so the original probably draws a tab where
+  the runtime returns null (a probable divergence).
+
+Seven temporary runtime mutations each failed the source spec:
+
+- tab selected ignored, large variant first, band always repeats and centre
+  skipped;
+- header polarity swapped, list-view extension removed and pattern mode
+  ignored.
+
+An eighth mutation, the tab background sample read with x and y swapped, changed
+no corpus row. Width, panes, disabled/pressed tabs, the original pattern offset
+`R`, resource files and `composeListHeader` are not covered. No image or golden
+is added.

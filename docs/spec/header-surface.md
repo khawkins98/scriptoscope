@@ -183,3 +183,27 @@ The hand-encoded4×2 PixPat in `tests/decoder-fixtures/header-pattern.mjs` has l
 rows for all four corner anchors, negative D, translated O, a nonzero R, masked
 border overlap and clipped list-view extension. These are finite synthetic
 current-display expectations, not original captures or new ledger assessments.
+
+## Corpus rule table (2026-10-21)
+
+`tests/rendering-options/tab-header-rules.mjs` restates the selection and paint
+rules above as a pure table, independent of `src/`. Its source/built spec runs
+`composeHeaderSurface` for every archive: both kinds, raw states 0/1/0xffffffff,
+sizes 61×17 and 7×5, control origins (0,0) and (5,3), a declared known pattern
+offset R=(0,0) and an unbounded clip. Re-read in the pinned PACH 130 listing:
+
+- Selection (0xc1e8–0xc1f8): zero raw state selects -9568, any nonzero state -9567.
+- Regions (0x72a8–0x762a): corners c×c are clamped to the source bounds. The top/bottom bands are s rows over destination x [c, W−c), the left/right bands s columns over [c, H−c). When cinf[2] is zero the band source is one column/row (0x7396–0x73a4, 0x756c–0x757a).
+- Body (0x71a2–0x7202): inset (c horizontal, s vertical), then the transposed inset when c≠s, both sharing P. The pattern is used iff the archive ships the cinf+4 ppat; otherwise the body is solid from the raw sample.
+- Pattern anchor (0x7156–0x719e): P is the paint Rect's TL/TR/BL/BR for modes 1–4, else the absolute point (0,0), so mode 0 and mode 1 differ only away from origin (0,0).
+
+All 13 archives with header art match on every pixel (432 rows). Pattern bodies:
+1990 (both states), animals (active), crayon-os and evolution (both) and
+monkey-paradise (active). Dolphin-som's active header requests ppat -9567, which it
+does not ship, so its body is solid. In 1984, 1990, apple-lisa, evolution,
+windows-31 and windows-95, -9567 and -9568 give identical output in every row, so
+selection is not discriminated there. No archive discriminates the c/s swap,
+single-inset, repeat-flag or body-order readings. Synthetic specs cover them:
+`header-band-requirements.spec.mjs` catches c/s swap, single inset and body order,
+and only `header-surface.spec.mjs` catches the repeat flag. The 18 archives' original pattern offset R, file ownership and
+`composeListHeader` (a compatibility column helper) are not covered.

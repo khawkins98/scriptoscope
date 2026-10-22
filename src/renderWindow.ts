@@ -131,7 +131,9 @@ export type TitleWidgetRole = 'close' | 'zoom' | 'collapse';
  * separate side-list recipe codes. kDEF 0x5ffc maps selectors 0/1/3 to these
  * parts; hit dispatch 0x4138/0x4176/0x41d0 returns close/zoom/collapse.
  * Preserve those IDs even when a scheme puts close on the right or stacks its
- * widgets vertically. Geometry still follows the actual compositor placements.
+ * widgets vertically. Geometry follows the actual compositor placements through the
+ * kDEF's 0x5cb6 remap (below), so e.g. 1990's widgets left of a grown title plate
+ * shift with their own cells (docs/spec/kdef231-code10-widgets.md §4).
  */
 export function resolveTitleWidgetRects(
   wt: WindowType,
@@ -149,31 +151,39 @@ export function resolveTitleWidgetRects(
     });
     return out;
   }
-  // Native wnd# model: widget rects are wnd# parts mapped onto the stretched title bar.
-  // EVERY widget's source x must be mapped through the placement's shift at that cell,
-  // not just right-side widgets. Schemes like 1990 stack widgets to the LEFT of the
-  // title plate; after the plate grows to fit the title, the widgets shift right in the
-  // output by exactly the title-plate growth. Computing leftEnd off the SOURCE x left
-  // `maxTitleW` negative and the title got dropped (1990's "Hello!" never drew).
-  const top = composed.placement.filter((s) => s.edge === 'top');
-  if (!top.length || !wt.parts) return [];
-  const shiftOf = (s: (typeof top)[number]): number => (s.rects[0]?.x ?? s.src.x) - s.src.x;
-  const rightShift = top.reduce((m, s) => Math.max(m, shiftOf(s)), 0);
-  /** Source x → output x, looked up in the placement at the cell containing `sx`.
-   *  The growth per cell isn't uniform (the title plate grows; widgets stay 1:1), so
-   *  pick the placement whose src band covers `sx` and shift by (rects[0].x - src.x). */
-  const mapX = (sx: number): number => {
-    const hit = top.find((s) => sx >= s.src.x && sx <= s.src.x + s.src.w);
-    return hit ? sx + shiftOf(hit) : sx + rightShift;
+  // Native wnd# model: the kDEF's 0x5cb6 template → placed remap. Each drawn
+  // side segment (sides in 0x5356 order top, bottom, left, right; segments from
+  // index 1, 0x5d26) is a template cell `src` with a placed cell `rects[0]`.
+  // The rect's topLeft is translated by the (placed − template) offset of the
+  // first template cell containing it (PtInRect is half-open, 0x5d4a..0x5d76);
+  // botRight − 1 is matched separately and translates bottom/right by its own
+  // cell (0x5d78..0x5da4). If either corner matches no cell the rect is emptied
+  // (0x5dc6..0x5dd0), so the widget has no hit or press area. A cell collapsed
+  // to width 0 keeps its template rect, so its widget lands, at full size, at
+  // the collapse point (still hit-testable, as 0x5ddc uses the same remap at
+  // 0x5f72). The leading [0, border[0]) region and the runtime's far-edge cap
+  // are not segments and never match.
+  const order = ['top', 'bottom', 'left', 'right'] as const;
+  const segs = order.flatMap((edge) => composed.placement.filter((s) => s.edge === edge && (s.segment ?? 1) >= 1 && s.rects.length > 0));
+  if (!segs.length || !wt.parts) return [];
+  const delta = (x: number, y: number): { dx: number; dy: number } | null => {
+    const hit = segs.find((s) => x >= s.src.x && x < s.src.x + s.src.w && y >= s.src.y && y < s.src.y + s.src.h);
+    return hit ? { dx: hit.rects[0]!.x - hit.src.x, dy: hit.rects[0]!.y - hit.src.y } : null;
   };
   const out: { role: TitleWidgetRole; rect: { x: number; y: number; w: number; h: number } }[] = [];
   const roles = { 'part-1': 'close', 'part-2': 'zoom', 'part-3': 'collapse' } as const;
   for (const [part, role] of Object.entries(roles)) {
+    // 0x41be: no collapse hit when 0x487e is false (shade flag cleared at 0x4e3a).
+    if (role === 'collapse' && composed.shadeCleared) continue;
     const rect = wt.parts[part]?.rect;
     if (!rect) continue;
     const [l, t, r, b] = rect;
     if (r <= l || b <= t) continue;
-    out.push({ role, rect: { x: mapX(l), y: t, w: r - l, h: b - t } });
+    const tl = delta(l, t), br = delta(r - 1, b - 1);
+    if (!tl || !br) continue;
+    const x = l + tl.dx, y = t + tl.dy, w = r + br.dx - x, h = b + br.dy - y;
+    if (w <= 0 || h <= 0) continue;
+    out.push({ role, rect: { x, y, w, h } });
   }
   return out;
 }
@@ -316,7 +326,8 @@ export async function renderWindow(
       titleWidthPx, widgets: wt.widgets, widgetGlyphs, frameCicn,
     });
   } else {
-    composed = composeWindowChrome(cicn, wt, contentW, contentH, { cinf: wt.cinf ?? null, titleWidthPx });
+    // popup-window requests are service slot 8 (procID 1008 + varCode, family 63 → the family-63 flag, 0x3210).
+    composed = composeWindowChrome(cicn, wt, contentW, contentH, { cinf: wt.cinf ?? null, titleWidthPx, popupFamily: slug === 'popup-window' });
     // Native-recipe widgets are baked into the title cicn (no pressed art), so synthesize the
     // press by darkening the held widget's rect (corner-sprite schemes used the pressed glyph above).
     if (opts.pressedWidget && wt) {
