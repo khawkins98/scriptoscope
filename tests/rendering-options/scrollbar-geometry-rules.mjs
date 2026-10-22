@@ -36,6 +36,9 @@ export const GEOMETRY = {
   patternOverCicn: false,                           // TF7 before TF8; AC4 fills only mask-clear pixels
   offscreen: ({ atiPresent, pattern, picSave }) => !atiPresent || (pattern && picSave), // §4.7 0xba74–0xbbea
   drawOrder: ['arrow0', 'arrow3', 'thumb', 'track'], // §3 draw order (double clear)
+  arrowsWhenInactive: false,                        // AD4 0xc34a: the arrow drawer draws nothing when inactive
+  inactiveTrackIsR: true,                           // §5.2 0xbbf4: inactive T = R (no arrow-box inset)
+  inactiveWholeSource: true,                        // §5.5 0xc2d2: inactive track source = the whole cicn bounds
 };
 
 const span = ([a, b]) => b - a;
@@ -99,13 +102,15 @@ export function layout(native, census, { reading = {} } = {}) {
   const composite = art !== null && g.composite(census.cicn.get(trackCicn));
   const c = g.arrowLen(t), e = composite ? 0 : g.iconBoxExtra;
   // §5.2 track rect T (0xbbf4–0xbc90).
-  const T = b.inactive ? [L, Rr] : [L + c, Rr - c];
+  const T = b.inactive && g.inactiveTrackIsR ? [L, Rr] : [L + c, Rr - c];
   // §5.3 arrow boxes (0xa8c6–0xa97a), double clear: arrows 0 and 3.
   const boxes = { 0: [L, L + c + e], 3: [Rr - c - e, Rr] };
   // §5.4 composite cells and §5.5 track source (bounds-relative).
   const d = art && g.cellLen(art.cross);
   const cells = composite ? { 0: [0, d], 3: [art.along - d, art.along] } : null;
-  const trackSource = art && (composite && !b.inactive ? [g.cellLen(art.cross), art.along - g.cellLen(art.cross)] : [0, art.along]);
+  const trackSource = art && (composite && !(b.inactive && g.inactiveWholeSource) ? [g.cellLen(art.cross), art.along - g.cellLen(art.cross)] : [0, art.along]);
+  // AD1/AD3/AD4: which arrow boxes actually receive pixels (double clear).
+  const arrowsDrawn = b.inactive && !g.arrowsWhenInactive ? [] : [0, 3];
   // AH1–AH3 / AC2 / AC3: which cicn each composite arrow box is cut from.
   let boxSource = null;
   if (composite && !b.inactive) {
@@ -150,7 +155,7 @@ export function layout(native, census, { reading = {} } = {}) {
   const order = g.drawOrder.flatMap(step => step === 'track' ? (span(T) > 0 ? segments.map(sg => `track-${sg.name}`) : [])
     : step === 'thumb' ? (span(T) > 0 && !b.disabled && thumbCicn !== null ? ['thumb'] : []) : [step]);
   return { orientation, t, c, e, tier, trackId, trackCicn, pattern, composite, T, boxes, cells, trackSource, boxSource, boxCells,
-    thumbCicn, minLen, len, pos, Th, segments, trackPieces, thumbPieces, order, disabled: b.disabled, cross, rect: R, horizontal };
+    thumbCicn, minLen, len, pos, Th, segments, trackPieces, thumbPieces, order, arrowsDrawn, disabled: b.disabled, cross, rect: R, horizontal };
 }
 
 /** §4.8 hit test (0xa506–0xa676): part code for port point { x, y }. */
@@ -240,5 +245,11 @@ export const DRIVER_ROWS = {
   D10: { title: 'narrow-source cell extends past its cicn (1138, min = max, hilite 20)', needs: 'engine trace cell rects + port pixels',
     expected: { 0: { id: -8287, cell: [0, 15] }, 3: { id: -8288, cell: [-10, 5], outOfSource: [[105, 115]] } } },
 };
+// D11/D12 (PR #395 review findings M5, M10): inactive controls, 1138 and platinum-8, 120 × 16.
+DRIVER_ROWS.D11 = { title: 'inactive control draws no arrows (AD4; 1138 composite, platinum-8 icon lane)', needs: 'engine trace (arrow blits)',
+  expected: { '1138': [], 'platinum-8': [] } };
+DRIVER_ROWS.D12 = { title: 'inactive track rect T = R and whole-bounds track source (§5.2, §5.5; 1984 -8288 43 × 16, composite)', needs: 'engine trace rects and slice pieces',
+  expected: { T: [0, 120], source: [0, 43], segments: [[0, 120]], pieces: [[[0, 21], [0, 21]], [[21, 98], [21, 22]], [[98, 120], [21, 43]]] } };
+
 /** D8's probe points, in order (the last code is a disabled control at (60, 8)). */
 export const D8_POINTS = [[-1, 8], [0, 8], [14, 8], [15, 8], [51, 8], [52, 8], [60, 8], [68, 8], [69, 8], [104, 8], [105, 8], [119, 8], [120, 8], [60, 16]];

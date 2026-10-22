@@ -1663,6 +1663,8 @@ Scrollbars/sliders/progress rendered only for 7 Le; every other scheme showed bl
 
 **resolve-by-RESOURCE-ID, not by slug** is the load-bearing pattern for everything (scrollbar -8286/-8278, button -10239, checkbox -9500, etc.) — bundle slugs are inconsistent/absent across schemes and even mislabel state (the scrollbar pressed/disabled slugs disagree with the decompiled kDEF `FUN_000066b4`; trust the id table from the code).
 
+> ⚠️ Superseded (2026-10-22, issue #374): the scroll-bar state mapping implied here (the runtime's reading of `FUN_000066b4`: pressed -8288/-8280, inactive = normal) was itself a misreading. The 2.3.1 scroll-bar CDEF (service slot 1, `0x997e`) selects `(-8288 | -8280) + tier` with tier 0 inactive, 1 disabled, 2 normal, 3 pressed, so pressed is -8285/-8277 and -8288/-8280 is inactive (`docs/spec/engine/scrollbar.md` §4.2; 1.8.2 `0x66e2–0x6732` selects the same tiers). The engine driver (#395) follows it. The resolve-by-resource-id rule above still holds.
+
 ## 2026-05-21 — Per-edge tile-vs-stretch, single-cell Platinum scrollbars, scheme icons
 
 > ⚠️ Partly superseded by the v3 part-code compositor (2026-05-22). See docs/history.md → "Dead ends". Per-edge tile-vs-stretch is decided by the part code (the default blit always tiles), not a per-edge `tileMotif` flag or a uniformity sample; the title-plate "clean column via luminance-variance + saturation" pick is a uniformity heuristic the part-code model retired. (The resolve-by-resource-id and scheme-icon `icl4` findings still hold.)
