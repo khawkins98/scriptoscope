@@ -2083,7 +2083,7 @@
   "review": {
     "date": "2026-10-21",
     "reviewers": [
-      "PENDING independent hash-only review (Tier 0/1) of the v2-scrollbar-tests PR: 1.0.11 -> 1.0.12 changes only the nine kdef231-reference.md documentSha256 values (8b289cf8 -> 90efe521) after the scroll-bar CDEF citation correction decided by the v2 L5 verifier (campaign-20261021 v2-lanes/L5/REVIEW.json downstreamCorrections); no case-cited address line (0x758e, 0x76c4, 0x76d2, 0x76fe) changed; archived 1.0.11 review verbatim; not original provider or pixel-fidelity approval"
+      "independent automated hash-only review of PR #390 (campaign-20261021 v2-lanes/scrollbar-tests/REVIEW.json, head bf1033e7): 1.0.11 -> 1.0.12 changes only the nine kdef231-reference.md documentSha256 values (8b289cf8 -> 90efe521) after the scroll-bar CDEF citation correction decided by the v2 L5 verifier (v2-lanes/L5/REVIEW.json downstreamCorrections); no case-cited address line (0x758e, 0x76c4, 0x76d2, 0x76fe) changed; 1.0.11 review archived verbatim; not original provider or pixel-fidelity approval"
     ],
     "inventoryVersion": "1.0.12",
     "inventorySha256": "1d65f5d4c445c027cf61f5ac5b779eb89c575c6b078c491f9c342cf516e92f03",

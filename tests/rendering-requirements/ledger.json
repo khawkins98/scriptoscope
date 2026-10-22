@@ -21,7 +21,7 @@
           {
             "version": "1.1.0",
             "summary": "Citation correction (v2 L5 verifier, campaign-20261021 v2-lanes/L5/REVIEW.json downstream corrections): the scroll-bar CDEF is service slot 1 0x997e, not slot 5 0x8d36; 0xbbf4 is the track rect, the thumb rect is 0xab68 length + 0xa97c position; blob byte77 is cleared on every message (0x9e1e) and never set; arrow icons are ics# then ics8 from the same file, never ics4; a disabled control fills the whole track rect. docs/spec/range-controls.md bullets for track, arrows, thumb and draw order were reworded, so evidence rows kdef.scroll-track, kdef.scroll-arrows, kdef.scroll-thumb and kdef.scroll-draw-order are re-pinned (locator and excerptSha256); kdef.scroll-thumb limits and kdef.scroll-draw-order claim follow the corrected text; requirement scrollbar.layout cites 0xbbf4 as the track rect and 0xab68/0xa97c as the thumb. No case, assessment, status, assertion or input row changes; the 144 selection-rule predictions are identical before and after.",
-            "review": "PENDING: Tier 1 review of the v2-scrollbar-tests PR (citation-only, no status change). Corrections were decided by the independent v2 L5 verifier (campaign-20261021 v2-lanes/L5/REVIEW.json, round 1 head 4383949d, round 2 head 73c99e73, downstreamCorrections) and applied as listed."
+            "review": "Tier 1 independent review of PR #390 (campaign-20261021 v2-lanes/scrollbar-tests/REVIEW.json, head bf1033e7): citation-only; corrections match the v2 L5 verifier's downstreamCorrections (v2-lanes/L5/REVIEW.json, heads 4383949d / 73c99e73); four kdef.scroll-* excerpts and scrollbar.layout re-pinned; no case, assessment, status, assertion or input change; 8,640 selection predictions identical."
           }
         ]
       }
@@ -10456,5 +10456,5 @@
     {"caseId":"windows-95.progress.public-rows.sampled","requirementId":"progress.public-state-mapping","status":"unknown","evidence":[],"assertions":[],"issues":[],"rationale":"Unknown: the original control state for each public option is not established.","review":"Independent review lanes/I/REVIEW.json (head 5e10c6ab925ea40dbb5167a5323a344795068f70): not promoted; stays unknown; every closure OPEN."},
     {"caseId":"windows-95.progress.public-rows.sampled","requirementId":"placement.original","status":"unknown","evidence":[],"assertions":[],"issues":[],"rationale":"Port, clip and control placement are not asserted.","review":"Independent review lanes/I/REVIEW.json (head 5e10c6ab925ea40dbb5167a5323a344795068f70): not promoted; stays unknown; every closure OPEN."}
   ],
-  "inventorySha256": "90ee11f1bfbc9af10cca57e2965e5757987b2dceeedac828f059ace31d9fcb1d"
+  "inventorySha256": "145596e2225e011bebfed3365d650f7eb6f95c0b020d3d332dad962328dfc920"
 }
