@@ -24,7 +24,7 @@ questions the window-recipe migration raised. Three open items are now
 decoded: the popup-family placement (§4.6a, was Q1), the title text draw
 (§4.12, was Q4) and the widget hit region (HT8, was Q5). The leading and
 trailing regions (Q3) are narrowed. New rows: LS9, AW1a, TT2a, TT4a, TT10,
-PP1–PP7, WD13, HT8, TX1–TX9. §7.2 adds finding F9 (sides end at `P[N]`) and
+PP1–PP7, WD13, HT8, TX1–TX9. §7.2 adds finding F9 (sides are budgeted to end at `P[N]`) and
 F10 (title text), and corrects F6's scope.
 
 ## 1. Unit id and scope
@@ -133,7 +133,7 @@ The first pass visits segments 1..N with `drop = 0`.
 | LS6 | `W` (title width) | `SW`, then for every code-5 segment *i*: `W −= (T4.right − S[i]) + (S[i−1] − T4.left)`, which is `SW` plus the cell's margins around `T4` | `0x4b20..0x4b3a` |
 | LS7 | placed ends | horizontal: `P[0] = S[0] + C.left − A.left`, `P[N] = S[N] + C.right − A.right`; vertical: the same with top and bottom | `0x4be4..0x4c60` |
 | LS8 | `E` (placed extent) | `P[N] − P[0]` = template extent + (content size − template body size) on the side's axis | `0x4dfe..0x4e04` |
-| LS9 | side span | the side's segments start at `P[0]` and end at `P[N]`. Every allocation path spans exactly `[P[0], P[N]]`: AP3 budgets `P[N] − P[0] − F` (AW8), AP2 and AP1 split the same span at the anchor (TT5, PP4). Nothing in the layout, the remap or the full draw places a cell before `P[0]` or past `P[N]`. So a side whose last border `S[N]` stops short of the template's drawn extent also stops short of the window's extent, by the same amount at every size, and a side whose `S[N]` lies past it extends past by that amount | `0x4be4..0x4c60`, `0x5180..0x519c`, `0x4fa8..0x4fcc`, `0x5938..0x59f8` |
+| LS9 | side span | the side's segments start at `P[0]`. Every allocation is budgeted to end at `P[N]`: AP3 budgets `P[N] − P[0] − F` (AW8), and AP2 and AP1 split the same span at the anchor (TT5, PP4). The walk (AW7) rewrites each border it visits, `P[last]` included, so the side ends where the widths sum. That is exactly `P[N]` when the budget is 0, or when the range has a code 8, 11, 13, 14 or 18 cell and no code-12 cell of width 0. Otherwise the side ends between `P[N]` and `P[0] + F`: at `P[0] + F` with no primary grower (AW9), and short of `P[N]` (past it below the template size) by the tile fractions no cell receives when code 12 is the only grower, and by one primary share for each code-12 cell of width 0 (AW1a). Nothing in the layout, the remap or the full draw places a cell before `P[0]`. On the corpus, two AP3 sides have no remainder recipient: floppies collapsed-document-window right (no grower) and animals collapsed-no-title-utility right (code 12 only, tile width 2). The titled halves with no grower are exact, because TT5 leaves their budget at 0 | `0x4be4..0x4c60`, `0x5180..0x519c`, `0x532e..0x534a`, `0x4fa8..0x4fcc`, `0x5938..0x59f8` |
 
 ### 4.3 Too-short step (`0x4dfe..0x4e42`)
 
@@ -197,7 +197,7 @@ TS1 + AW4/AW6), and codes 5/6 never grow inside an allocation.
 | TT7 | otherwise | if `growersAfter > 0`: `R' = mid + (W + (S[anchor] − T4.right) + (S[anchor−1] − T4.left)) / 2` when `growersBefore > 0`, else `R' = P[anchor−1] + W`; if `R' < P[anchor]`, `P[anchor] = R'`. Then, if `growersBefore > 0`: if `P[anchor] − W > P[anchor−1]`, `P[anchor−1] = P[anchor] − W` | `0x5048..0x50ba` |
 | TT8 | `W < 0` | `P[anchor−1] −= S[anchor−1] − T4.left`, `Fb −=` the same; `P[anchor] −= S[anchor] − T4.right`, `Fa +=` the same; then the working template borders `S[anchor−1]`, `S[anchor]` become `T4.left`, `T4.right` for the rest of this message | `0x50be..0x50fa` |
 | TT9 | always | two allocations: segments `1..anchor−1` (required `Fb`, primary count `growersBefore`) and `anchor+1..N` (required `Fa`, `growersAfter`), both with the side's `drop` and the title gate `titleLen` | `0x5100..0x513c` |
-| TT10 | untitled window (`titleLen = 0`, `SW = 0`, no drop) | the same rows as after a drop, except `W`: TT4 removes the code-6 neighbours from `Fb`/`Fa`, and TT9's gate 0 gives every 5/6 segment inside the two allocations width 0 (AW5), so the **bezels are not drawn**. The anchor (plate) cell is **not** forced to 0: `W = (T4.left − S[anchor−1]) + (S[anchor] − T4.right)` (LS6 with `SW = 0`), and TT6/TT7 cap the cell at that width when either half has a primary grower. It is 0 where `T4` fills the cell, positive where `T4` is narrower, and negative where `T4` overhangs it, which runs TT8 | `0x4a94..0x4aa6`, `0x4b20..0x4b3a`, `0x4f66`, `0x530c` |
+| TT10 | untitled window (`titleLen = 0`, `SW = 0`, no drop) | the same rows as after a drop, except `W`: TT4 removes the code-6 neighbours from `Fb`/`Fa`, and TT9's gate 0 gives every 5/6 segment inside the two allocations width 0 (AW5), so the **bezels are not drawn**. The anchor (plate) cell is **not** forced to 0: `W = (T4.left − S[anchor−1]) + (S[anchor] − T4.right)` (LS6 with `SW = 0`), and TT6/TT7 cap the cell at that width when either half has a primary grower. It is 0 where the two margins sum to 0 (`T4` fills the cell, or is shifted inside it as on monkey-paradise movable-modal), positive where `T4` is narrower, and negative where `T4` overhangs it, which runs TT8 | `0x4a94..0x4aa6`, `0x4b20..0x4b3a`, `0x4f66`, `0x530c` |
 
 `mid = (C.left + C.right) / 2` (`0x4fe6..0x5002`, `0x5054..0x5070`). The
 anchor (code-5) cell is not part of either allocation. Its span is
@@ -221,7 +221,7 @@ title. `SW`, `W` and `titleLen` are not read on this path.
 | PP4 | always | `P[anchor−1] = C.left + X + 10 + S[anchor−1] − T4.left`; `P[anchor] = C.left + X + pdLen − 10 + S[anchor] − T4.right`. `C.left` is used on either axis | `0x4d5e..0x4db0` |
 | PP5 | always | two allocations: segments `1..anchor−1` (required `Fb`, primary count `growersBefore`) and `anchor+1..N` (required `Fa`, `growersAfter`), both with `drop = 0` and title gate 1, so codes 5 and 6 keep their template widths | `0x4db4..0x4df6` |
 | PP6 | window creation (`wNew`, family 63) | the popup data is a new 28-byte block: offsets 0–11 zero, the 32-bit value 10312 at 12, 0 at 16, 33 at 20, 0 at 24 and 26. So `pdMode = 0`, `X = pdX = 0`, `pdLen = 33`. Family-63 windows get no layout-cache block | `0x390a..0x3954` |
-| PP7 | (runtime values) | **declared default**: the creation values of PP6. Who changes the popup data after creation is **not decoded** (§6 Q10); the runtime has no such writer | — |
+| PP7 | (runtime values) | **declared default**: the creation values of PP6. Who changes the popup data after creation is **not decoded** (§6 Q10); the runtime has no such writer. Visible consequence: every popup title gets 15 px of room (TX5), so a longer title is condensed and truncated. The writer is plausibly the application; a runtime that fits the plate to the title departs from this default and records it | — |
 
 With the creation values and a `T4` that fills its cell, the anchor cell is
 `[C.left + 10, C.left + 23)`: a 13-pixel plate 10 pixels in from the content's
@@ -274,7 +274,7 @@ Input: a widget entry rect `r` in template coordinates. Output: `r` placed.
 | WD3b | after a parameter 4, 5, 6 or 9 draw | the press-toggle bit flips. Parameters 1, 2, 3, 7, 8 and above 9 draw nothing and do not flip it (1–3 have already cleared it, WD3a) | `0x42ae..0x42c8` |
 | WD4 | full draw | sides 0..3 (when `collapsed`: sides 0..1, or 2..3 under `sideTitle`), segments 1..N; a placed cell `p` with right ≤ left or bottom ≤ top is skipped; code 18 is one scale blit, other codes tile ([`qd-primitives.md`](qd-primitives.md) table W) | `0x58b8..0x58d8`, `0x5990..0x59c4` |
 | WD5 | full draw, after the sides, `partialZoom ∧ drawActive` | widget draw of part 5, state 0. **This is the only widget draw in the full draw**: close (4) and collapse (9) art at rest is whatever template pixels the side cells copy | `0x5a28..0x5a42` |
-| WD6 | full draw, `popupFamily` | three blits from the chrome template at rect-list rects, not through the remap: entry types 5 and 6 (source the raw entry rect; destination the entry rect translated by the offset from `A`'s top-left to the top-left of a rect the full draw holds, which is not traced), and a 15×15 corner at `A`'s bottom-right | `0x5b7a..0x5c92` |
+| WD6 | full draw, `popupFamily` | three blits from the chrome template at rect-list rects, not through the remap (source the raw rect): type 5 translated by `(C.left − A.left, C.top − A.top)`, type 6 by `(C.right − A.right, C.top − A.top)`, and the 15×15 rect at `A`'s bottom-right corner by `(C.right − A.right, C.bottom − A.bottom)`. *Corrected 2026-10-22*: the rect the full draw holds is the content rect `C` | `0x5786`, `0x5b7a..0x5c92` |
 | WD7 | widget draw of part *k* | part 4 → entry type 1, 5 or 6 → type 2, 9 → type 3; every entry of that type, last to first, is drawn by WD8–WD10 | `0x632e..0x6386` |
 | WD8 | part 5 or 6, `partialZoom`, and cicn `base+1` exists (or `base−7` under `sideTitle`) | source: the entry rect moved to the origin, `+height` down when `state ≠ 0`, `+width` right under `partialZoomColumn`; one scale-blit (`0x10320`) to the remapped entry rect | `0x60aa..0x6154` |
 | WD9 | otherwise, `state ≠ 0` and cicn `base` exists (or `base−8` under `sideTitle`) | pressed strip, laid out across: close at x = 0, zoom at x = width(type 1 entry), collapse at width(type 1) + width(type 2); one row down when `collapsed` and the cicn is at least twice the source bottom tall. Blit to the remapped entry rect. A missing cicn draws nothing | `0x6158..0x62ee` |
@@ -306,7 +306,7 @@ a frame rect (`0x414a..0x4164`, `0x4194..0x41bc`) are not decoded (§6 Q6).
 |---|---|---|---|
 | TX1 | when | once per full draw, right after the side that holds `T4` has drawn its segments: side 0 when `T4.bottom ≤ A.top`, else 1 when `T4.top ≥ A.bottom`, else 2 when `T4.right ≤ A.left`, else 3 when `T4.left ≥ A.right`, else 0 | `0x58ee..0x5936`, `0x59fc..0x5a02` |
 | TX2 | no chrome template; or the title (re-read with GetWTitle, so the layout's `titleLen = 0` does not reach it) is empty and a per-window flag is clear | nothing is drawn. The flag's meaning is not decoded (§6 Q11); declared default clear, so an untitled window draws no text | `0x5538..0x5554` |
-| TX3 | always | `t4p` = `T4` remapped (RM rows). If `t4p.right = t4p.left` or `t4p.bottom = t4p.top`, nothing is drawn | `0x556a..0x55ba` |
+| TX3 | always | `t4p` = `T4` remapped (RM rows). If `t4p.right = t4p.left` or `t4p.bottom = t4p.top`, nothing is drawn. The test is equality only: a `t4p` with right < left or bottom < top is drawn, into a clip (TX4) at most 1 px wide | `0x556a..0x55ba` |
 | TX4 | always | the text is clipped to the old clip ∩ `t4p` widened by 2 on the right | `0x55be..0x55e4` |
 | TX5 | `StringWidth(title) > room`, `room = t4p.right + 2 − t4p.left` | TextFace condense (32; 33 under `altWidgets`), then `$A8B5` TruncString(room, title, truncate at end). The condensed face stays on for the draw | `0x55ec..0x5636` |
 | TX6 | always | TextMode 1 (`srcOr`) | `0x5638..0x563c` |
@@ -346,9 +346,7 @@ a frame rect (`0x414a..0x4164`, `0x4194..0x41bc`) are not decoded (§6 Q6).
   truncates.
 - **Popup plate.** `P[anchor] − P[anchor−1] = pdLen − 20 + w(anchor) − (T4.right − T4.left)`;
   `t4p` is `pdLen − 20` wide, from `C.left + X + 10`.
-- **Side span.** A side covers `[P[0], P[N])` = `[S[0], S[N])` moved by the
-  content delta at its two ends (LS7, LS9). It is not stretched to the window's
-  outer edge.
+- **Side span.** A side starts at `P[0]`, which is `S[0]` moved by the content delta (LS7). It ends at `P[N]`, `S[N]` moved by the content delta, when its allocation hands out the whole budget, and otherwise between `P[N]` and `P[0] + F` (LS9). It is not stretched to the window's outer edge.
 
 ## 6. Not decoded / unknown; corpus impact
 
@@ -364,15 +362,15 @@ a frame rect (`0x414a..0x4164`, `0x4194..0x41bc`) are not decoded (§6 Q6).
   leading region `[0, S[0])` are not segments. The whole full draw (`0x572e`)
   was walked: its only frame paints are the WD4 segment blits, the WD5 and WD6
   blits and the title text. So **no routine of the full draw paints either
-  region**; a pixel there is painted only where a crossing side's segment
-  covers it. What the screen shows at an unpainted structure pixel is not
+  region**; a pixel there is painted only where a crossing side's segment,
+  a WD5/WD6 blit, the title text or the untraced Q8 pair covers it. What the screen shows at an unpainted structure pixel is not
   decoded: the full draw composes into an offscreen buffer that is not erased
   in the traced code, and the structure region (`wCalcRgns`) is not traced.
   Painting these regions is a runtime policy, recorded as a divergence (§7.2
   F9).
 - **Q4** *Resolved 2026-10-22*: the title text is §4.12 (TX1–TX9). It
   re-reads the title, so a layout drop does not suppress it; it is suppressed
-  when the remapped `T4` has zero width or height (TX3), which is what a drop
+  when the remapped `T4` has exactly zero width or height (TX3), which is what a drop
   produces when `T4` fills the anchor cell.
 - **Q5** *Resolved 2026-10-22*: the hit region is the widget cicn's mask (HT8).
 - **Q6** The exact-point hit fallbacks (§4.11) and the zoom state `0x466e`.
@@ -433,11 +431,7 @@ chrome cicns, lane store `v2-lanes/window-widgets-answers/`):
 
 - **Anchors.** 83 sides carry a code-5 segment, all of them top sides, each
   with exactly one. None has its anchor at segment 1 or `N`.
-- **Untitled plates (TT10).** With `SW = 0` the plate width
-  `(T4.left − S[anchor−1]) + (S[anchor] − T4.right)` is 0 on 63 of the 83,
-  positive on 10 (animals 7 types, 1–8 px; monkey-paradise 3 types, 3–6 px) and
-  negative on 10 (1138 popup, titled-utility and collapsed-titled-utility,
-  −2; floppies 7 types, −1 or −2), where TT8 runs.
+- **Untitled plates (TT10).** Of the 83 anchored sides, the 13 `popup-window` top sides take AP1 (the PP rows), not TT10. On the other 70, with `SW = 0` the plate width `(T4.left − S[anchor−1]) + (S[anchor] − T4.right)` is 0 on 52, positive on 9 (animals 6 types, 1–5 px; monkey-paradise 3 types, 3–6 px), and negative on 9 (1138 titled-utility and collapsed-titled-utility, −2; floppies 7 types, −1 or −2), where TT8 runs.
 - **Side spans (LS9).** Of 502 sides with at least one segment, 150 (in 68
   window types, 11 archives) have `S[N]` different from the chrome cicn's drawn
   extent on the side's axis (the last column or row with alpha > 16, + 1): 88
@@ -453,8 +447,8 @@ chrome cicns, lane store `v2-lanes/window-widgets-answers/`):
   popup-window, no-title-utility, dialog, alert, movable-alert). The excess
   columns and rows are transparent (alpha ≤ 16), and no widget rect of type 1–3
   reaches into them.
-- **Rect lists.** Of 138 `wnd#` resources, every rect list starts with a
-  type-0 entry. Type 4 repeats in 8 (1990, dolphin-som, evolution and
+- **Rect lists.** Of 138 `wnd#` resources, 137 rect lists start with a type-0 entry;
+  crayon-os −14332 runs types 4, 1, 2, 3, 0, each once. Type 4 repeats in 8 (1990, dolphin-som, evolution and
   monkey-paradise, ids −14324 and −14322, four type-4 entries each); types 1–3
   never repeat. 32 have no type-4 entry, so their `T4` is the first entry's
   rect, `A`. A loader that keeps one rect per type, the last, therefore gives
@@ -480,7 +474,7 @@ mutation it must fail, so a hook that cannot fail it does not count.
 
 | spec rows | hook to add | mutation that must fail |
 |---|---|---|
-| LS9 | engine-diff window cells at template size for a side with `S[N]` short of the drawn extent (1138 document top) and one past it (1138 document left) | end the side at the window's full extent instead of `P[N]` |
+| LS9 | engine-diff window cells at template size for a side with `S[N]` short of the drawn extent (1138 document top) and one past it (1138 document left) | end the side at the window's full extent instead of `P[N]`; pin the last border to `P[N]` on floppies collapsed-document-window right |
 | AW1a | a synthetic allocation with a width-0 code-12 segment and a code-8 grower | divide by the zero width, or give the code-12 cell a nonzero width |
 | TT2a | a titled side with `R` between `W − titleLen` and `W` | `SWc = SW` (the plate stays at `W`) |
 | TT4a | a synthetic side with its anchor at segment 1 and entry 0 coded 6 | subtract entry 0's width from `Fb` |
@@ -506,9 +500,9 @@ mutation it must fail, so a hook that cannot fail it does not count.
 | `resolveTitleWidgetRects`: sides in order, segments ≥ 1, half-open template match, corners independent, empty on a miss | RM2–RM5, RM7, RM8 | covered |
 | `resolveTitleWidgetRects`: `br` translated by the cell's **near**-edge delta | RM6 | **finding F1**: the decode uses the far edge. In a dropped code-10 cell the collapse box becomes empty (not drawn, not hit). The runtime keeps a full-size hit and press rect at the collapse point |
 | `resolveTitleWidgetRects`: no collapse rect when `shadeCleared` | TS3 + HT5, LC1–LC3 | covered for a message that ran the layout. **Finding F5**: under LC1 the decode re-derives `collapseRequested` from the procID table, so the HT5 gate passes again on a cached message. The collapse box is hit only where its remapped rect (from the cached placed lists) is non-empty. On the corpus it never is: the one side where TS3 can fire (1984 titled-utility, top) has its collapse box wholly inside the code-4 cell that layout zeroed, and the other below-threshold collapse boxes lie in dropped code-10 cells, so RM6 empties them all. No corpus-observable divergence; the runtime has no message stream (LC1 unexercised, §6.2) |
-| `distributeSide` grows each side over the full window extent (the drawn extent + the content delta, from `S[0]`), and stamps a far-edge cap past the last border on horizontal sides | LS7, LS9, AW8 | **finding F9** (2026-10-22): the decode ends every side at `P[N] = S[N] + content delta`, and the growers share `P[N] − P[0] − F`. The two differ on the 150 corpus sides whose `S[N]` is not the drawn extent (§6.2): the runtime stretches growers into the region past `P[N]`, or short of it, and the cap is a runtime policy for a region the decode does not paint (Q3) |
+| `distributeSide` grows each side over the full window extent (the drawn extent + the content delta, from `S[0]`), and stamps a far-edge cap past the last border on horizontal sides | LS7, LS9, AW8 | **finding F9** (2026-10-22): the decode budgets every side to end at `P[N] = S[N] + content delta`, and the growers share `P[N] − P[0] − F`. The side ends there whenever the allocation hands out the whole budget, which is every corpus side except the two in LS9. The decode and the runtime differ on the 150 corpus sides whose `S[N]` is not the drawn extent (§6.2): there the runtime stretches growers into the region past `P[N]`, or short of it. The runtime's far-edge cap is a runtime policy for a region the decode does not paint (Q3) |
 | template band for bottom/right cells uses the drawable extent (`drawH`, `drawW`) | CR2, CR4 | **finding F6** (scope corrected 2026-10-22): the decode uses the template cicn bounds. They differ on the axis of a bottom or right side in 19 window types across animals, beos-r503, crayon-os, evolution and monkey-paradise (§6.2), not only beos's active document window. The excess is transparent and holds no widget, so under CopyMask the pixels drawn are the same; the cell rects, the remap's `t`/`p` for those sides and the window's outer size differ |
-| `renderWindow` centres the title text on the code-5 plate and ellipsizes it to the plate's width | TX1–TX9, §5 "Title rect" | **finding F10** (2026-10-22): the decode draws the string left-aligned in the remapped `T4` (baseline 4 above its bottom), clipped to that rect + 2 px, truncated with TruncString in the condensed face only when it does not fit, and draws nothing for an empty title or an empty remapped `T4`. The string is centred on the content rect's centre, so it matches plate-centring only where the margins around `T4` are equal |
+| `renderWindow` centres the title text on the code-5 plate and ellipsizes it to the plate's width | TX1–TX9, §5 "Title rect" | **finding F10** (2026-10-22): the decode draws the string left-aligned in the remapped `T4` (baseline 4 above its bottom), clipped to that rect + 2 px, truncated with TruncString in the condensed face only when it does not fit, and draws nothing for an empty title or a remapped `T4` of zero width or height (TX3 tests equality only; a negative-width rect is drawn into a clip of at most 1 px). The string is centred on the content rect's centre, so it matches plate-centring only where the margins around `T4` are equal |
 | hit and press areas are the remapped rect | HT7 | **finding F8**: the decode also requires the widget cicn to exist and the point to be in its region, and it gates every widget hit on `drawActive`, `widgetFrame` and the per-widget flags (HT1–HT5) |
 | one `widgetPresent` flag for close, zoom and collapse | PV2–PV4, PV6–PV8 | **finding F7** (approximation already recorded in the faithfulness ledger) |
 
@@ -538,15 +532,15 @@ Evidence: Part C of the evidence appendix.
 
 | # | question | answer | rows |
 |---|---|---|---|
-| 1 | Does a side end at `P[N]`, not the full window extent? | Yes, decoded. Added as F9 | LS7, LS9, AW8 |
+| 1 | Does a side end at `P[N]`, not the full window extent? | Yes, decoded, wherever the allocation hands out the whole budget (LS9; two corpus AP3 sides end short). Added as F9 | LS7, LS9, AW7–AW9 |
 | 2 | F6 scope | 19 window types in 5 archives, not only beos; pixels unchanged under CopyMask | CR2, CR4, §6.2, F6 |
-| 3 | Untitled windows drop bezels and plate? | Bezels yes. The plate takes width `W` = its margins around `T4`: 0 on 63 of 83 sides, positive on 10, negative (TT8) on 10 | TT4, TT10, AW5, TT6–TT8 |
+| 3 | Untitled windows drop bezels and plate? | Bezels yes. The plate takes width `W` = its margins around `T4`: on the 70 non-popup anchored sides, 0 on 52, positive on 9, negative (TT8) on 9. `popup-window` sides take the PP rows instead | TT4, TT10, AW5, TT6–TT8, AP1 |
 | 4 | Condensed StringWidth? | Decoded as a Font Manager measurement; runtime value declared | TT2, TT2a |
 | 5 | Popup placement | Decoded from the popup data, not the TT rows | AP1, PP1–PP7 |
 | 6 | Widget blit, transfer, hit region | Scale blit, CopyMask with the source cicn's mask; hit region = the cicn's mask, offset not scaled | WD13, HT7, HT8 |
 | 7 | TT4 at anchor 1 or `N` | Slots the layout does not write; not decoded; declared default no subtraction; no corpus case | TT4a |
 | 8 | Code 12 of width 0 | Width 0, no remainder contribution, decoded | AW1a |
-| 9 | One rect per type in the loader | Equivalent on the corpus (types 1–3 never repeat; every list starts with type 0) | §2.1, §6.2 |
+| 9 | One rect per type in the loader | Equivalent on the corpus (types 1–3 never repeat; 137 of 138 lists start with type 0 and the other has each type once) | §2.1, §6.2 |
 | 10 | Leading and trailing regions | No routine of the full draw paints them; the runtime's painting is a policy | Q3, LS9 |
 | 11 | Draw order | Decoded order is sides 0..3 with CopyMask; the runtime's order with opaque copies is a recorded divergence | WD4, qd-primitives Q5 |
 | 12 | Title text | Decoded | TX1–TX9, F10 |

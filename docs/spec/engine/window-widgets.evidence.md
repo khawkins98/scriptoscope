@@ -680,3 +680,29 @@ one segment. 19 types have a bottom (height differs) or right (width differs)
 side; no type-1–3 rect reaches past the drawn extent. The implementer's list of
 seven is a subset, except beos collapsed-no-title-utility, whose only side is
 the top, where CR1 does not read `B`.
+
+## C13. Corrections after the #437 review (2026-10-22)
+
+The Tier-1 verifier's REVIEW-437 refuted two Part C claims. The spec now
+carries the verifier's replacement text.
+
+- **C1 overclaim (B1).** "No other code reaches past dest[`N`]" holds, but the
+  walk `0x532e..0x534a` rewrites dest[last] = dest[`N`] with the running sum.
+  So the side ends at `P[N]` only when the allocation hands out its whole
+  budget. That needs a code 8/11/13/14/18 recipient and no code-12 cell of
+  width 0 (`0x5202`), or a zero budget. With no primary grower (`0x52b0`,
+  `0x52e6`) the side ends at `P[0] + F`, and code-12-only growers leave the
+  remainder `d4` undistributed. Two corpus AP3 sides are inexact: floppies
+  collapsed-document-window right and animals collapsed-no-title-utility right
+  (the verifier's `span-fill.out`). LS9, §5, F9 and §9 row 1 are corrected.
+- **C2 counts (B2).** The 83 anchored sides include 13 `popup-window` top
+  sides, which take AP1 at `0x4c64`/`0x4c6a` and return at `0x4dfa` before
+  TT4–TT10. On the other 70: 52 zero, 9 positive, 9 negative. The 1138
+  popup-window side is not a TT8 case.
+- **C8.** `dups.out` itself shows crayon-os −14332 starting with type 4
+  (order 4, 1, 2, 3, 0, each once). 137 of 138 lists start with type 0, and the
+  equivalence conclusion stands.
+- **C9.** Two items were missing from the call list, and neither paints:
+  `0xecb6` at `0x5a22` (handle unlock and purge) and the `0x489c` gate before
+  the Q8 pair. WD6's held rect is the content rect from `0x4778` (`0x5786`);
+  the WD6 row is corrected.
