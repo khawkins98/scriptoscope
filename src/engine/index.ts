@@ -8,6 +8,7 @@
 //   families/   per message × family drivers (scrollbar.ts: messages 0 and 1)
 export * from './qd/index.js';
 export * from './resources/chain.js';
+export * from './resources/ids.js';
 export * from './state/control.js';
 export * from './state/window.js';
 export * from './tables/index.js';

@@ -19,6 +19,8 @@ import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { loadKaleidoscopeScheme } from '../../tools/theme-loader/loadKaleidoscopeScheme.js';
 
+const ICS_FULL_RECORD_BYTES = 64;
+
 export const THEMES_DIR = new URL('../../themes/', import.meta.url);
 
 let engine;
@@ -119,7 +121,9 @@ function scrollbarChain(E, tables, slug, decoded, horizontal, mutate) {
       const p = patterns.find(e => e.sourcePpatId === id && e.asset);
       if (p) entries.push([`ppat:${id}`, asset(p.asset)]);
     } else if (type === 'ics#') {
-      if (decoded.iconMaskResources?.some(m => m.id === id && m.byteLength >= tables.SCROLLBAR_ICON_DRAW.maskRecordBytes)) entries.push([`ics#:${id}`, { id }]);
+      // A full ics# record (32-byte image + 32-byte mask plane): the same presence
+      // rule the loader applies when it fills inspector.iconMaskPlanes (convert.js).
+      if (decoded.iconMaskResources?.some(m => m.id === id && m.byteLength >= ICS_FULL_RECORD_BYTES)) entries.push([`ics#:${id}`, { id }]);
     } else if (type === 'ics8') {
       const icon = decoded.iconIndex?.find(i => i.id === id && i.type === 'ics8');
       if (icon) entries.push([`ics8:${id}`, asset(icon.file)]);

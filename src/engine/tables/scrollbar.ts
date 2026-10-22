@@ -5,6 +5,7 @@
 // by data and holds no literals of its own.
 //
 // AC5 follows the 2026-10-22 wording of PR #392 (icon blit, opaque above 1 bit).
+import type { IdGrid } from './loaderNeeds.js';
 
 /** §2 "Derived state": hilite values and ranges read by the state rows. */
 export const SCROLLBAR_HILITE = {
@@ -169,8 +170,6 @@ export const SCROLLBAR_ICONS: readonly ScrollbarIconRow[] = [
 /** §4.5 AI4: `ics#` then `ics8` from the same file. */
 export const SCROLLBAR_ICON_DRAW = {
   id: 'AI4', maskType: 'ics#', colorType: 'ics8',
-  /** A 16 × 16 `ics#` holds a 32-byte image and a 32-byte mask (Inside Macintosh: More Macintosh Toolbox, "Icon Families"). */
-  maskRecordBytes: 64,
   source: '0xc7fe..0xc81e, 0xf4ba..0xf684',
 } as const;
 
@@ -267,3 +266,21 @@ export const SCROLLBAR_FACADE_RANGE = { min: 0, max: 32767, source: 'modern poli
  * public API has no thickness option; the native control rect sets `t`.
  */
 export const SCROLLBAR_FACADE_THICKNESS = { thickness: 16, source: 'Inside Macintosh: Macintosh Toolbox Essentials, scroll bars 16 px (modern policy for the facade)' } as const;
+
+/**
+ * Every track-ladder id one orientation can request: `base + tier + offset +
+ * delta` over TR1–TR4 tiers, the TR6–TR9 offsets (TR7 + TR8 together reach
+ * +22 as well), and the AC2/TF3 (−1) and TP2 (−4) deltas. Used to preload the
+ * chain and, via tables/loaderNeeds.ts, as the AC5 icon-blit cicns.
+ */
+const TRACK_TERMS: readonly (readonly number[])[] = [
+  SCROLLBAR_TIER.map(r => r.tier),
+  [SCROLLBAR_TRACK_PROBE.TR9.offset, SCROLLBAR_TRACK_PROBE.TR8.offset, SCROLLBAR_TRACK_PROBE.TR7.offset,
+    SCROLLBAR_TRACK_PROBE.TR6.offset, SCROLLBAR_TRACK_PROBE.TR7.offset + SCROLLBAR_TRACK_PROBE.TR8.offset],
+  [0, SCROLLBAR_COMPOSITE_ARROW.AC2.offset, SCROLLBAR_PATTERN_PROBE.TP2.offset],
+];
+export const SCROLLBAR_TRACK_IDS: { readonly horizontal: IdGrid; readonly vertical: IdGrid; readonly source: string } = {
+  horizontal: { bases: [SCROLLBAR_TRACK_BASE.horizontal], terms: TRACK_TERMS },
+  vertical: { bases: [SCROLLBAR_TRACK_BASE.vertical], terms: TRACK_TERMS },
+  source: 'TR1–TR9, TP2, AC2, TF3',
+};

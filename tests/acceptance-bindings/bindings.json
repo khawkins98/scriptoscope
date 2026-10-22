@@ -17,7 +17,7 @@
     },
     {
       "path": "src/loadTheme.ts",
-      "sha256": "b9883b22451e8a7eb95d46ad02eb435e152c00cf764dd3e39e9a325ebc578182"
+      "sha256": "4731259f9ee40fc3a452e86dbbce1eeef1427e8d3a568b7a8b21e174eba619d4"
     },
     {
       "path": "src/resolveWindowType.ts",

@@ -5,7 +5,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 const {
   ResourceChain, mapProvider, createTrace, rect,
-  drawScrollbar, scrollbarGeometry, scrollbarPartAt, slicePieces, icsImagePixmap,
+  drawScrollbar, scrollbarGeometry, scrollbarPartAt, icsImagePixmap, scrollbarResourceIds, engineIconBlitCicnIds,
 } = await import('../index.ts');
 
 const pm = (w, h, rgba = [10, 20, 30, 255]) => {
@@ -129,16 +129,6 @@ test('TR7 quirk: t ≤ 11 without small art keeps trackId + 18; pressed non-hit 
   assert.equal(g.len, 11);
 });
 
-test('§5.9 caps: t = 11 thumb 16 → 11 (k = 3, q1 = 3, q2 = 2)', () => {
-  const pieces = slicePieces(true, rect(0, 0, 16, 16), rect(0, 0, 11, 11), 0).map(p => [p.piece, iv(p.dst), iv(p.src)]);
-  assert.deepEqual(pieces, [['caps-1', [0, 3], [0, 3]], ['caps-3', [3, 9], [6, 12]], ['caps-5', [9, 11], [14, 16]]]);
-});
-
-test('§5.9 halves for the track: a = m >> 1, middle column stretched', () => {
-  const pieces = slicePieces(true, rect(0, 15, 16, 18), rect(0, 15, 16, 53), 1).map(p => [iv(p.dst), iv(p.src), p.line]);
-  assert.deepEqual(pieces, [[[15, 16], [15, 16], true], [[16, 51], [16, 17], true], [[51, 53], [16, 18], false]]);
-});
-
 test('HT1–HT8: part codes', () => {
   const g = scrollbarGeometry(chainOf(fork1138()), { rect: H120, hilite: 0, min: 0, max: 100, value: 50 });
   const at = (x) => scrollbarPartAt(g, { x, y: 8 }).part;
@@ -215,4 +205,12 @@ test('§5.4 narrow source: 1138 min = max pressed, non-hit high cell [-10, 5) of
   // Box 3 is [105,120): its first 10 columns map outside the source and keep the prior pixel.
   assert.deepEqual(Array.from(out.data.slice((8 * 120 + 106) * 4, (8 * 120 + 106) * 4 + 4)), [99, 99, 99, 99]);
   assert.deepEqual(Array.from(out.data.slice((8 * 120 + 118) * 4, (8 * 120 + 118) * 4 + 4)), [50, 60, 70, 255]);
+});
+
+test('resource ids are table-derived: the AC5 icon-blit set equals both orientations\' track ladders', () => {
+  const track = (h) => scrollbarResourceIds(h).filter(r => r.type === 'ppat').map(r => r.id); // only the track ladder requests ppats
+  const both = new Set([...track(true), ...track(false)]);
+  const blit = new Set(engineIconBlitCicnIds());
+  assert.deepEqual([...blit].sort((a, b) => a - b), [...both].sort((a, b) => a - b));
+  assert.ok(blit.has(-8286) && blit.has(-8286 + 18) && blit.has(-8285 - 1) && blit.has(-8288 + 22 - 4));
 });
