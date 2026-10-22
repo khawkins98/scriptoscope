@@ -1902,7 +1902,8 @@ export class WindowManager {
       // HT7: inside the rect, only the pressed strip's mask hits; elsewhere the event passes to the window.
       const onWidget = (e: MouseEvent): boolean => !composed.hitWidget
         || composed.hitWidget(Math.floor((hit.rect.x + e.offsetX) / scale), Math.floor((hit.rect.y + e.offsetY) / scale)) === hit.role;
-      btn.addEventListener('click', (e) => { if (!onWidget(e)) return; e.stopPropagation(); if (currentChrome()) handler(); });
+      // A keyboard or assistive-technology click (detail 0) has no pointer position: it always acts (DECISIONS #12).
+      btn.addEventListener('click', (e) => { if (e.detail !== 0 && !onWidget(e)) return; e.stopPropagation(); if (currentChrome()) handler(); });
       if (chrome && cctx) {
         let pressedCanvas: HTMLCanvasElement | null | undefined;
         let cacheEpoch = -1, pressEpoch = -1, pressGeneration = 0;

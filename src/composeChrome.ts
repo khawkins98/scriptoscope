@@ -6,7 +6,7 @@
 // hit areas renderWindow and WindowManager use. It touches no DOM. The five
 // recipe-less schemes draw through proceduralFrameChrome.ts instead.
 //
-// Runtime policy here (not spec rows; lane notes v2-lanes/window-migration):
+// Runtime policy here (not spec rows):
 //   - the structure is sized to the template's drawable extent (compositor-spec
 //     "Draw + distribution") and the content rect C starts at the body's inset;
 //   - the leading region `[0, S[0])` and the trailing region past `S[N]` are not

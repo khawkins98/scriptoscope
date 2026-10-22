@@ -6,8 +6,7 @@
 // compositor-spec "Distribution"; the blits are qd-primitives.
 //
 // Every literal comes from tables/window.ts. Not modelled, by the §2.3
-// declared defaults or because the spec leaves it open (lane notes,
-// v2-lanes/window-migration/NOTES.md):
+// declared defaults or because the spec leaves it open (window-widgets §6):
 //   - the layout cache (LC1): the runtime has no message stream, so every call lays out (LC2);
 //   - who writes the popup data after creation (§6 Q10): PP7 declares the creation values;
 //   - the partial-zoom widget (WD5, WD8), the outline draw and the exact-point
@@ -150,8 +149,8 @@ function layoutSide(side: number, horizontal: boolean, list: readonly WindowReci
     let rem = skip ? 0 : budget - share * primary, recipients = 0;
     for (let i = first; i <= last && !skip; i++) {
       const c = codes[i]!;
-      // A code-12 cell of template width 0 has no whole-tile count (division undefined); it takes 0.
-      if (inCodes(CELL_WIDTH[0]!.codes, c) && w(i) > 0) rem += share - trunc(share / w(i)) * w(i);
+      // AW1a: a code-12 cell of template width 0 adds nothing (its fraction is skipped, not divided).
+      if (inCodes(CELL_WIDTH[0]!.codes, c) && w(i) !== 0) rem += share - trunc(share / w(i)) * w(i);
       if (ALLOCATION.remainderRecipients.includes(c as never)) recipients++;
     }
     rows.push(skip ? ALLOCATION.AW9.id : budget < 0 ? ALLOCATION.AW8.id : ALLOCATION.AW7.id);
@@ -160,7 +159,7 @@ function layoutSide(side: number, horizontal: boolean, list: readonly WindowReci
       const row = CELL_WIDTH.find(r => inCodes(r.codes, c)
         && (r.kind !== 'verdictZero' || verdictZero(c, flags, drop)) && (r.kind !== 'titleGate' || gate === 0))!;
       let width = 0;
-      if (row.kind === 'tiles') width = skip || w(i) <= 0 ? 0 : trunc(share / w(i)) * w(i);
+      if (row.kind === 'tiles') width = skip || w(i) === 0 ? 0 : trunc(share / w(i)) * w(i); // AW1, AW1a
       else if (row.kind === 'primaryRemainder' || row.kind === 'remainder') {
         const extra = skip || recipients <= 0 ? 0 : trunc(rem / recipients);
         rem -= extra; recipients--;
@@ -301,7 +300,8 @@ export function popupRawBlits(layout: WindowLayout): { src: QdRect; dst: QdRect 
   if (!layout.flags.popupFamily) return [];
   const { A, C } = layout, d = WIDGET_DRAW.WD6, k = d.corner;
   const move = (r: QdRect, dx: number, dy: number) => rect(r.top + dy, r.left + dx, r.bottom + dy, r.right + dx);
-  const [t5, t6] = d.types.map(t => layout.rects.find(e => e.type === t)?.rect ?? null);
+  // §2.1: the last entry of each type (no fallback: a missing type is not blitted).
+  const [t5, t6] = d.types.map(t => [...layout.rects].reverse().find(e => e.type === t)?.rect ?? null);
   const out: { src: QdRect; dst: QdRect }[] = [];
   if (t5) out.push({ src: t5, dst: move(t5, C.left - A.left, C.top - A.top) });
   if (t6) out.push({ src: t6, dst: move(t6, C.right - A.right, C.top - A.top) });
