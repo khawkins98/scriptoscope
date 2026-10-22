@@ -2,9 +2,11 @@
 // [data-scriptoscope-theme-switcher] <select> + the mountDeclarative handle.
 //
 // Layer separation: this lives in demo/ on purpose. The runtime ships attachThemeDropZone (UX
-// glue, no decoder dep) and handle.registerTheme (resolver-cache seed). The decoder
-// (`loadKaleidoscopeScheme`) lives in tools/theme-loader/ and is imported here at the demo
-// layer. Same pattern the diagnostic page (demo/diagnostic.html #byo-drop) already uses.
+// glue, no decoder dep) and handle.registerTheme (resolver-cache seed). The decoder is the
+// public src wrapper (`src/loadKaleidoscopeScheme.ts`), not the conversion core in
+// tools/theme-loader/: the wrapper passes the engine cinf ids by default, so a dropped archive
+// answers the engine slider's cinf requests instead of handing every slider to the Platinum
+// fallback. Same import the diagnostic page (demo/diagnostic.html #byo-drop) uses.
 //
 // Usage:
 //
@@ -18,7 +20,7 @@
 //   });
 
 import { attachThemeDropZone } from '../src/declarative/index.ts';
-import { loadKaleidoscopeScheme } from '../tools/theme-loader/loadKaleidoscopeScheme.js';
+import { loadKaleidoscopeScheme } from '../src/loadKaleidoscopeScheme.ts';
 
 const REF_PREFIX = 'dropped:';
 
