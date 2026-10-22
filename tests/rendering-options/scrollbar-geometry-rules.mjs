@@ -31,6 +31,7 @@ export const GEOMETRY = {
   hitHilite: { low: 20, high: 21 },                 // AH1/AH2 0xc3a0–0xc3c0
   nonHitBoxFromIdMinus1: true,                      // AC2 0xc3cc–0xc3fe
   cellsFromDrawnCicn: true,                         // §5.4 (#396): cells from the bounds of the cicn that supplies the cell
+  clampCellsToSource: false,                        // §5.4 (#396): a cell may extend past a narrow source; not clamped
   patternAnchor: 'rect',                            // TF7/AC4 0xf930, 0xf87e: phase at R's top-left
   patternOverCicn: false,                           // TF7 before TF8; AC4 fills only mask-clear pixels
   offscreen: ({ atiPresent, pattern, picSave }) => !atiPresent || (pattern && picSave), // §4.7 0xba74–0xbbea
@@ -115,7 +116,11 @@ export function layout(native, census, { reading = {} } = {}) {
   // §5.4 as answered in #396: each box's cell from its own source cicn's bounds.
   const boxCells = boxSource && Object.fromEntries([0, 3].map(i => {
     const sd = dims(g.cellsFromDrawnCicn ? boxSource[i] : trackCicn), dd = g.cellLen(sd.cross);
-    return [i, { id: boxSource[i], cell: i === 0 ? [0, dd] : [sd.along - dd, sd.along] }];
+    let cell = i === 0 ? [0, dd] : [sd.along - dd, sd.along];
+    if (g.clampCellsToSource) cell = [Math.max(0, cell[0]), Math.min(sd.along, cell[1])];
+    // Port columns of the box whose cell pixel lies outside the source (unspecified; §5.4).
+    const box = boxes[i], outside = [cell[0] < 0 ? [box[0], box[0] - cell[0]] : null, cell[1] > sd.along ? [box[1] - (cell[1] - sd.along), box[1]] : null].filter(Boolean);
+    return [i, { id: boxSource[i], cell, ...(outside.length ? { outOfSource: outside } : {}) }];
   }));
   // TH2–TH5 thumb id; §5.6 length (0xab68–0xad60).
   const thumbId = THUMB[orientation][hilite === 129 ? 'pressed' : 'normal'];
@@ -229,6 +234,11 @@ export const DRIVER_ROWS = {
   // the non-hit high arrow draws from -8286 (43 × 16), so its cell is [28, 43) of -8286, not [46, 61).
   D9: { title: 'non-hit pressed arrow cell from its own cicn (animals, monkey-paradise h, hilite 20)', needs: 'engine trace cell rects',
     expected: { animals: { 0: { id: -8285, cell: [0, 15] }, 3: { id: -8286, cell: [28, 43] } }, 'monkey-paradise': { 0: { id: -8285, cell: [0, 15] }, 3: { id: -8286, cell: [28, 43] } } } },
+  // §5.4 narrow source (#396): 1138, min = max (ST4, tier 1 track -8287 33 × 16), hilite 20. The non-hit high
+  // arrow draws from -8288 (5 × 16): cell [−10, 5); box [105, 120) columns [105, 115) map outside the source,
+  // so those port pixels are unspecified (engine policy: left untouched, traced unspecified).
+  D10: { title: 'narrow-source cell extends past its cicn (1138, min = max, hilite 20)', needs: 'engine trace cell rects + port pixels',
+    expected: { 0: { id: -8287, cell: [0, 15] }, 3: { id: -8288, cell: [-10, 5], outOfSource: [[105, 115]] } } },
 };
 /** D8's probe points, in order (the last code is a disabled control at (60, 8)). */
 export const D8_POINTS = [[-1, 8], [0, 8], [14, 8], [15, 8], [51, 8], [52, 8], [60, 8], [68, 8], [69, 8], [104, 8], [105, 8], [119, 8], [120, 8], [60, 16]];

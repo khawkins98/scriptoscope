@@ -61,7 +61,8 @@ async function draw(slug, { rect = H(0, 0, 120, 16), hilite = 0, min = 0, max = 
 function boxSources(trace, geometry) {
   const ac2 = trace.resolved.filter(r => r.type === 'cicn' && r.row === 'AC2');
   let k = 0;
-  return Object.fromEntries(trace.drawOps.filter(o => o.op === 'arrow' && (o.arrow === 0 || o.arrow === 3)).map(o => {
+  const first = trace.drawOps.filter((o, i, all) => o.op === 'arrow' && (o.arrow === 0 || o.arrow === 3) && all.findIndex(p => p.op === 'arrow' && p.arrow === o.arrow) === i);
+  return Object.fromEntries(first.map(o => {
     if (!/AC2/.test(o.row)) return [o.arrow, geometry.trackId];
     const r = ac2[k++];
     return [o.arrow, r.found ? r.id : geometry.trackId];
@@ -108,6 +109,23 @@ const BIND = {
     const g = (await draw('1138')).geometry, d = (await draw('1138', { hilite: 255 })).geometry;
     return D8_POINTS.map(([x, y]) => E.scrollbarPartAt(g, { x, y }).part).concat(E.scrollbarPartAt(d, { x: 60, y: 8 }).part);
   },
+  D10: async () => {
+    // Port pre-filled with a sentinel so untouched pixels are visible; the trace must mark the cell unspecified.
+    const rect = H(0, 0, 120, 16), chain = await chainFor('1138', true), trace = E.createTrace('scrollbar');
+    const p = port(124, 20); for (let i = 0; i < p.data.length; i += 4) p.data.set([1, 2, 3, 255], i);
+    E.drawScrollbar(p, chain, { rect, hilite: 20, min: 0, max: 0, value: 0 }, trace);
+    const g = E.scrollbarGeometry(chain, { rect, hilite: 20, min: 0, max: 0, value: 0 }), src = boxSources(trace, g);
+    return Object.fromEntries([0, 3].map(i => {
+      const ops = trace.drawOps.filter(o => o.op === 'arrow' && o.arrow === i), cell = along(ops[0].src);
+      const out = { id: src[i], cell };
+      if (ops.some(o => o.unspecified)) {
+        // Columns of the box left exactly as they were (every row still the sentinel).
+        const cols = []; for (let x = g.boxes[i].left; x < g.boxes[i].right; x++) if ([...Array(16).keys()].every(y => rgb(p, x, y).join() === '1,2,3')) cols.push(x);
+        out.outOfSource = cols.length ? [[cols[0], cols[cols.length - 1] + 1]] : [];
+      }
+      return [i, out];
+    }));
+  },
   D9: async () => {
     const out = {};
     for (const slug of ['animals', 'monkey-paradise']) {
@@ -125,9 +143,8 @@ const PENDING = {
   D7: 'the driver has no atiPresent input and its trace records no offscreen flag: every segment goes through a temporary pixmap by construction, but nothing in the trace can show it, so the row cannot fail here',
 };
 // Rows where the driver disagrees with the spec value (recorded, not expected): row -> note.
-const DISAGREE = {
-  D9: 'driver cuts the non-hit cell from the track cicn bounds ([46, 61) of -8285) and draws it from -8286 (43 wide), the pre-#396 reading; #396 (merged after this driver) says [28, 43) of -8286',
-};
+// (D9 was recorded here against #395's first head; it agrees since 08d224b5 adopted #396.)
+const DISAGREE = {};
 
 assert.deepEqual(Object.keys(DRIVER_ROWS).sort(), [...Object.keys(BIND), ...ELSEWHERE, ...Object.keys(PENDING)].sort());
 for (const [id, bind] of Object.entries(BIND)) {

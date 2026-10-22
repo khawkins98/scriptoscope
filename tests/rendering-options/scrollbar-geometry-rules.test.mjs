@@ -70,6 +70,7 @@ const ROWS = {
   'G14 §3 draw order (1138 normal, disabled)': r => [0, 255].map(h => at('1138', { hilite: h }, r).order),
   'G15 CF1/CF2 composite flag (crayon-os, windows-95, platinum-8 normal tracks)': r => ['crayon-os', 'windows-95', 'platinum-8'].map(slug => at(slug, {}, r).composite),
   'G17 §5.4 (#396) pressed non-hit cell from its own cicn (animals, monkey-paradise)': r => Object.fromEntries(['animals', 'monkey-paradise'].map(slug => [slug, at(slug, { hilite: 20 }, r).boxCells])),
+  'G18 §5.4 (#396) narrow-source cell (1138, min = max, hilite 20)': r => at('1138', { hilite: 20, min: 0, max: 0, value: 0 }, r).boxCells,
   'G16 AI4 icon art: ics8 or the 1-bit ics#, never ics4': r => {
     const synthetic = { cicn: new Map([[-8286, [16, 16]], [-10206, [17, 16]]]), ppat: new Set(), mask: new Set([-10202, -10201]), color: new Set([-10201]), ics4: new Set([-10202, -10201]) };
     return selectScrollbar({ hilite: 0, orientation: 'horizontal' }, synthetic, { reading: r }).iconArt;
@@ -97,6 +98,7 @@ const EXPECTED = {
   'G14 §3 draw order (1138 normal, disabled)': [['arrow0', 'arrow3', 'thumb', 'track-low', 'track-high'], ['arrow0', 'arrow3', 'track-whole']],
   'G15 CF1/CF2 composite flag (crayon-os, windows-95, platinum-8 normal tracks)': [true, true, false],
   'G16 AI4 icon art: ics8 or the 1-bit ics#, never ics4': { '-10202': 'ics#', '-10201': 'ics8' },
+  'G18 §5.4 (#396) narrow-source cell (1138, min = max, hilite 20)': { 0: { id: -8287, cell: [0, 15] }, 3: { id: -8288, cell: [-10, 5], outOfSource: [[105, 115]] } },
   'G17 §5.4 (#396) pressed non-hit cell from its own cicn (animals, monkey-paradise)': Object.fromEntries(['animals', 'monkey-paradise'].map(slug => [slug, { 0: { id: -8285, cell: [0, 15] }, 3: { id: -8286, cell: [28, 43] } }])),
 };
 
@@ -130,6 +132,7 @@ const MUTATIONS = {
   'composite iff along length ≥ 2t (prior runtime)': { composite: ([w, h]) => Math.max(w, h) >= 2 * Math.min(w, h) },
   'ics4 accepted as colour art': { iconColour: 'ics4-or-ics8' },
   'cells from the track cicn bounds (pre-#396 reading)': { cellsFromDrawnCicn: false },
+  'cells clamped to the source bounds': { clampCellsToSource: true },
 };
 
 test('geometry rows equal the spec values under the decode', () => {
@@ -168,9 +171,9 @@ test('mutation table: each wrong reading fails the named rows', () => {
   const table = Object.fromEntries(Object.entries(MUTATIONS).map(([name, reading]) => [name,
     Object.keys(ROWS).filter(id => JSON.stringify(ROWS[id](reading)) !== JSON.stringify(EXPECTED[id])).map(id => id.split(' ')[0])]));
   assert.deepEqual(table, {
-    'c = t instead of t − 1': ['G1', 'G2', 'G4', 'G5', 'G6', 'G10', 'G11', 'G12'],   // G4: pos 36 though Th stays [52, 69); G7 unchanged at t = 11
+    'c = t instead of t − 1': ['G1', 'G2', 'G4', 'G5', 'G6', 'G10', 'G11', 'G12', 'G18'],   // G4: pos 36 though Th stays [52, 69); G7 unchanged at t = 11
     'icon-lane boxes c long (e = 0)': ['G2', 'G11'],
-    'cell length h instead of h − 1': ['G3', 'G6', 'G12', 'G17'],
+    'cell length h instead of h − 1': ['G3', 'G6', 'G12', 'G17', 'G18'],
     'proportional thumb by default': ['G4', 'G5', 'G6', 'G7', 'G10', 'G11'],         // 1138 Th [36, 85)
     '+0.5 rounding dropped': ['G4', 'G5', 'G6', 'G7', 'G10'],                         // 1138 Th [51, 68)
     'round half to even': ['G4', 'G5', 'G6', 'G7', 'G10'],                            // 36.5 -> 36; 1990 t = 11: 44.5 -> 44
@@ -180,8 +183,8 @@ test('mutation table: each wrong reading fails the named rows', () => {
     'no −5 after a small-thumb miss': ['G7'],
     'cap 2': ['G7'],
     'trackId reset after a small-art miss': ['G8'],
-    'non-hit box from the pressed tier': ['G9', 'G17'],
-    'arrow hit tested on parts 22/23': ['G9', 'G17'],
+    'non-hit box from the pressed tier': ['G9', 'G17', 'G18'],
+    'arrow hit tested on parts 22/23': ['G9', 'G17', 'G18'],
     '22 and 23 swapped': ['G10'],
     'thumb tested before the arrows': ['G11'],
     'page split at the thumb edge, not its centre': [],                               // finding, see below
@@ -193,7 +196,8 @@ test('mutation table: each wrong reading fails the named rows', () => {
     'composite at ≥ 16 instead of > 16': ['G2', 'G8', 'G11', 'G15', 'G16'],
     'composite iff along length ≥ 2t (prior runtime)': ['G8', 'G12', 'G15'],
     'ics4 accepted as colour art': ['G16'],
-    'cells from the track cicn bounds (pre-#396 reading)': ['G17'],                  // [46, 61) of a 43-wide cicn
+    'cells from the track cicn bounds (pre-#396 reading)': ['G17', 'G18'],           // [46, 61) of a 43-wide cicn; [18, 33) for 1138
+    'cells clamped to the source bounds': ['G18'],                                    // [0, 5) instead of [−10, 5)
   });
   // Every row is failed by at least one mutation.
   const failed = new Set(Object.values(table).flat());
@@ -235,6 +239,7 @@ const MODEL = {
   D7: () => at('1138', {}).segments.map(() => segmentOffscreen({ atiPresent: false, pattern: false, picSave: false })),
   D8: () => ROWS['G10 HT1–HT8 part codes (1138 worked example)']({}),
   D9: () => ROWS['G17 §5.4 (#396) pressed non-hit cell from its own cicn (animals, monkey-paradise)']({}),
+  D10: () => ROWS['G18 §5.4 (#396) narrow-source cell (1138, min = max, hilite 20)']({}),
 };
 
 test('driver rows: DRIVER_ROWS expected values are the spec model values', () => {
@@ -244,5 +249,6 @@ test('driver rows: DRIVER_ROWS expected values are the spec model values', () =>
   assert.deepEqual(DRIVER_ROWS.D2.expected, EXPECTED['G9 AH1–AH3/AC2/AC3 composite arrow-box sources by hilite (1138)']);
   assert.deepEqual(DRIVER_ROWS.D6.expected, EXPECTED['G12 TF7/TF8/AC4 pattern underlay anchored at R (crayon-os, R at 13,5)']);
   assert.deepEqual(DRIVER_ROWS.D8.expected, EXPECTED['G10 HT1–HT8 part codes (1138 worked example)']);
+  assert.deepEqual(DRIVER_ROWS.D10.expected, EXPECTED['G18 §5.4 (#396) narrow-source cell (1138, min = max, hilite 20)']);
   assert.deepEqual(DRIVER_ROWS.D9.expected, EXPECTED['G17 §5.4 (#396) pressed non-hit cell from its own cicn (animals, monkey-paradise)']);
 });

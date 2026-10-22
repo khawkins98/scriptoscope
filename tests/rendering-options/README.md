@@ -362,12 +362,14 @@ ATIr offscreen rule, draw order, the composite flag and `ics8`-only icon art.
 A mutation table names the rows each of 25 wrong readings fails; every row is
 failed by at least one. One reading (page split at the thumb edge instead of
 its centre) changes no reachable part code; that is recorded as a finding.
-Nine rows that need the runtime's `pressedPart` option or the engine trace
-(D1–D9, `DRIVER_ROWS`) keep their spec values as data, pinned against the model.
+Ten rows that need the runtime's `pressedPart` option or the engine trace
+(D1–D10, `DRIVER_ROWS`) keep their spec values as data, pinned against the model.
 `scrollbar-driver-binding.test.mjs` compares the v2 engine driver with them
-through its trace on each archive's own fork (D2–D6, D8 agree; D9, the #396
-cell-bounds answer, is a recorded disagreement; D7 stays pending because the
-trace has no offscreen flag), and `range-rules.spec.mjs` binds D1 through the
-public `pressedPart`, source and built. With the engine driver every one of the
-144 public rows matches the rule table, so the recorded disagreement lists are
+through its trace on each archive's own fork (D2–D6 and D8–D10 agree, including
+the #396 answers: a pressed non-hit cell cut from its own cicn's bounds, and a
+narrow-source cell that extends past its cicn, whose out-of-source port pixels
+stay untouched and are traced unspecified; D7 stays pending because the trace
+has no offscreen flag), and `range-rules.spec.mjs` binds D1 through the public
+`pressedPart`, source and built. With the engine driver every one of the 144
+public rows matches the rule table, so the recorded disagreement lists are
 empty.
