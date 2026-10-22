@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, writeFileSync, mkdtempSync, rmSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
+import { createHash } from 'node:crypto';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -124,4 +125,39 @@ test('an unreadable --base-commit exits 2', () => {
   const r = spawnSync(process.execPath, [script, '--base-commit', 'deadbeef'.repeat(5)], { encoding: 'utf8' });
   assert.equal(r.status, 2);
   assert.match(r.stderr, /base commit .* is not readable/);
+});
+
+test('a consistent but unrecorded re-pin fails against a frozen base (reviewer R2-2)', () => {
+  // Exactly the attack: drop one in-scope kDEF0 range, recompute count, perBinary.kDEF0 and
+  // inScope.sha256 so every self-check agrees, and add no inScope.changes entry.
+  const repin = () => {
+    const inv = inventory();
+    const rows = inv.binaries.kDEF0.routines;
+    rows.find((r) => r[4] === true)[4] = false;
+    inv.inScope.count -= 1;
+    inv.inScope.perBinary.kDEF0 -= 1;
+    const lines = [];
+    for (const [name, b] of Object.entries(inv.binaries)) for (const r of b.routines) if (r[4] === true) lines.push(`${name} ${r[0]} ${r[1]}`);
+    inv.inScope.sha256 = createHash('sha256').update(lines.sort().join('\n')).digest('hex');
+    return inv;
+  };
+  const silent = repin();
+  assert.equal(run(silent).status, 0, 'self-consistent: the pin alone cannot see it');
+  let r = runWithBase(silent, inventory());
+  assert.equal(r.status, 1);
+  assert.match(r.stderr, /re-pinned \(count 552 -> 551.*without a new inScope\.changes entry/);
+  const recorded = repin();
+  recorded.inScope.changes.push({ from: 552, to: 551, date: '2026-10-22', what: 'drop one range (test)' });
+  r = runWithBase(recorded, inventory());
+  assert.equal(r.status, 0, r.stderr);
+  const wrongCount = repin();
+  wrongCount.inScope.changes.push({ from: 552, to: 550, what: 'mislabelled' });
+  assert.match(runWithBase(wrongCount, inventory()).stderr, /must record from: 552, to: 551/);
+  const rewritten = repin();
+  rewritten.inScope.changes[0].what = 'history rewritten';
+  rewritten.inScope.changes.push({ from: 552, to: 551, what: 'drop one range (test)' });
+  assert.match(runWithBase(rewritten, inventory()).stderr, /append-only/);
+  const editedOnly = inventory();
+  editedOnly.inScope.changes[1].what = 'edited without a re-pin';
+  assert.equal(runWithBase(editedOnly, inventory()).status, 1, 'changes stay append-only even without a re-pin');
 });

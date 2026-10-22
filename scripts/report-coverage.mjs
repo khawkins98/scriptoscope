@@ -16,7 +16,9 @@
 // inventory is frozen (status mentions "frozen" in any case, any pin field exists,
 // or the base inventory was frozen), the pin is mandatory: `inScope.frozen` must be
 // true and count, sha256 and every perBinary count must be present, so neither
-// frozen:false, a reworded status nor a deleted pin switches the checks off. Classes are advisory only and are not used
+// frozen:false, a reworded status nor a deleted pin switches the checks off. Against
+// a frozen base, inScope.changes is append-only and a re-pin needs a new entry naming
+// the new count (from/to/what). Classes are advisory only and are not used
 // here. reachedFrom must be one of REACH below; an unknown value exits 1. In-scope
 // ranges reached only by fallThrough (running off the end of a reached range)
 // are counted like any other in-scope range and also reported separately, since
@@ -187,6 +189,24 @@ if (inScopeFrozen) {
   if (!/^[0-9a-f]{64}$/.test(pin.sha256 ?? '')) { errors++; console.error(`${why} but inScope.sha256 is not a sha256`); }
   if (!pin.perBinary || typeof pin.perBinary !== 'object') { errors++; console.error(`${why} but inScope.perBinary is missing`); }
   else for (const name of Object.keys(inv.binaries)) if (!Number.isInteger(pin.perBinary[name])) { errors++; console.error(`${why} but inScope.perBinary.${name} is missing`); }
+}
+// Against a frozen base, inScope.changes is append-only, and any re-pin (a different
+// sha256 or count) must be recorded by new entries, the last naming the new count. A
+// consistent but unrecorded re-pin (drop a range, recompute count/perBinary/sha256) fails.
+if (baseFrozen) {
+  const bc = Array.isArray(baseInv.inScope?.changes) ? baseInv.inScope.changes : [];
+  const hc = Array.isArray(inv.inScope?.changes) ? inv.inScope.changes : [];
+  const prefixOk = hc.length >= bc.length && bc.every((e, i) => JSON.stringify(e) === JSON.stringify(hc[i]));
+  if (!prefixOk) { errors++; console.error(`inScope.changes must keep the base's ${bc.length} entries unchanged and in order (append-only)`); }
+  const repinned = baseInv.inScope?.sha256 !== inv.inScope?.sha256 || baseInv.inScope?.count !== inv.inScope?.count;
+  if (repinned) {
+    const last = hc.at(-1);
+    if (!prefixOk || hc.length === bc.length) {
+      errors++; console.error(`the frozen in-scope set was re-pinned (count ${baseInv.inScope?.count} -> ${inv.inScope?.count}, sha256 ${String(baseInv.inScope?.sha256).slice(0, 12)} -> ${String(inv.inScope?.sha256).slice(0, 12)}) without a new inScope.changes entry`);
+    } else if (!last || last.to !== inv.inScope?.count || last.from !== baseInv.inScope?.count || typeof last.what !== 'string' || !last.what.trim()) {
+      errors++; console.error(`the new inScope.changes entry must record from: ${baseInv.inScope?.count}, to: ${inv.inScope?.count} and a non-empty what`);
+    }
+  }
 }
 const report = { status: inv.status, inScopeFrozen, inScopeCount: inv.inScope?.count ?? null, binaries: {} };
 const total = { ranges: 0, inScope: 0, cited: 0, decoded: 0, mirrored: 0, fallThrough: 0 };

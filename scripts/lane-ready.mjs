@@ -48,6 +48,10 @@ export const LABEL = /(?<![A-Za-z])PENDING(?![A-Za-z])|Awaiting independent revi
  * Any-case variants (`pending`, `Pending_review`, `awaiting independent review`). Older
  * reviewed rows already carry prose such as "independent integration review pending", so a
  * variant fails only on a line that is new or edited relative to the merge-base.
+ * TODO(push-button cleanup lane): temporary. Once that lane replaces the stale
+ * "independent integration review pending." rows in families/push-button.json (and the
+ * regenerated ledger.json) through a recorded family transition, drop the base-line
+ * exemption in labelHits so any-case labels fail everywhere.
  */
 export const LOOSE_LABEL = /(?<![A-Za-z])pending(?![A-Za-z])|awaiting\s+independent\s+review|proposed\s+verified/gi;
 const EXPECTATIONS = 'tests/control-availability/expectations.json';

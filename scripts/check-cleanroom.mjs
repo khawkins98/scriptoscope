@@ -67,7 +67,8 @@
 //                         the maintainer store, absolute and ~ paths) fail there
 //                         even when they do not exist on disk, a link to the
 //                         repo root fails, and the brief's listing-path
-//                         exemption does not cover that section.
+//                         exemption does not cover that section. Any
+//                         scheme:// URL in that section fails too.
 //
 // Scope: every code file under `src/` and `tools/`, every behavioural spec under
 // `docs/spec/engine/` (excluding `*.evidence.md`), the docs in ALLOWED_DOCS, the
@@ -376,6 +377,9 @@ export function briefScope(root, scanned) {
   const hits = [];
   section.split('\n').forEach((line, i) => {
     const hit = text => hits.push({ file: BRIEF, rule: 'brief-scope', line: base + i, text });
+    // Any URL in the Allowed section fails: the private asset store is a URL, and the
+    // brief allows repo paths and named Apple documents only.
+    for (const m of line.matchAll(/\b[a-z][\w+.-]*:\/\/[^\s)`>\]"']+/gi)) hit(m[0]);
     const tokens = [];
     for (const m of line.matchAll(/`([^`\s]+)`/g)) tokens.push({ p: m[1], at: m.index, ticked: true });
     for (const m of line.matchAll(/\]\(([^)\s#]+)(?:#[^)]*)?\)/g)) tokens.push({ p: m[1], at: m.index, ticked: true });
@@ -385,7 +389,7 @@ export function briefScope(root, scanned) {
     for (const m of bare.matchAll(/(?<![\w./*~-])((?:~\/|\/)?(?:[\w.-]+\/)+(?:[\w.*-]+)?|~?\/[\w.-]+|[\w-]+(?:\.[\w-]+)*\.(?:md|mjs|cjs|js|ts|json|asm|bin))(?![\w/-])/g)) tokens.push({ p: m[1], at: m.index, ticked: false });
     for (const { p: raw, at, ticked } of tokens) {
       let p = raw.replace(/^\.\//, '').replace(/[.,;:]+$/, '');
-      if (!p || /^[a-z][\w+.-]*:/i.test(p)) continue; // URLs
+      if (!p || /^[a-z][\w+.-]*:/i.test(p)) continue; // URLs (scheme:// ones were flagged above)
       // `*.evidence.md` after "except" narrows the preceding glob; it allows nothing.
       if (p.startsWith('*') && /\bexcept\b/i.test(line.slice(0, at))) continue;
       // Forbidden locations fail whether or not they exist here (CI has no .scratch or store).

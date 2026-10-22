@@ -134,7 +134,7 @@ test('brief-scope catches bare directories, unbackticked paths and link targets'
     assert.deepEqual(hits(ok + '\n- anything under tests/ or scripts/'), ['tests', 'scripts']);
     assert.deepEqual(hits(ok + '\n- the [repo](../../../) itself'), ['. (the whole repository)'], 'a link to the repo root');
     assert.deepEqual(hits(ok + '\n- [up](../../../../elsewhere.md)'), ['../../../../elsewhere.md'], 'a path outside the repo');
-    for (const forbidden of ['`.scratch/k231-kdef/kDEF/k231-kdef0.asm`', '.scratch/k231-kdef/', '`/Users/me/Documents/Scriptoscope-maintainer-assets/`', '~/Documents/Scriptoscope-maintainer-assets/x', '`docs/spec/*.evidence.md`', '`docs/spec/engine/missing.evidence.md`', '`*.asm`', '`campaign/v2-lanes/L2/`', '`/Users/me/notes/x.md`', '~/notes/y', '/opt/thing/z']) {
+    for (const forbidden of ['`.scratch/k231-kdef/kDEF/k231-kdef0.asm`', '.scratch/k231-kdef/', '`/Users/me/Documents/Scriptoscope-maintainer-assets/`', '~/Documents/Scriptoscope-maintainer-assets/x', '`docs/spec/*.evidence.md`', '`docs/spec/engine/missing.evidence.md`', '`*.asm`', '`campaign/v2-lanes/L2/`', '`/Users/me/notes/x.md`', '~/notes/y', '/opt/thing/z', '[listing](https://git-home.allaboutken.com/khawkins98/scriptoscope-assets)', '`ssh://git@example.org/store.git`', 'https://example.org/apple-docs']) {
       const found = hits(`${ok}\n- also ${forbidden}`);
       assert.equal(found.length, 1, `${forbidden}: ${JSON.stringify(found)}`);
     }
