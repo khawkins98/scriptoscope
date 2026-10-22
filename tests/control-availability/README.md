@@ -160,4 +160,11 @@ and §2.4 were corrected: `0x997e` (slot 1) is the scroll-bar CDEF, `0x8d36`
 (slot 5) a separate undecoded CDEF, and the scroll arrows are `ics#`/`ics8`,
 never `ics4` or `cicn`. No case-cited address line changed; all 27 case inputs,
 outcomes, payload pins and ring dispatch claims are unchanged. The 1.0.11 review
-is archived verbatim; the 1.0.12 label is PENDING an independent hash-only review.
+is archived verbatim; 1.0.12 carries the independent hash-only review of PR #390.
+
+Inventory 1.0.13 (scrollbar 1.2.0 citation pass) refreshes only the full
+`kdef231-reference.md` document hash (`90efe521` -> `5ca8cee0`) after the §1.1 `0x8d36`
+row's aux-field gloss was marked undecoded (it rested on the retired slot-5
+scroll-bar attribution). No case-cited address line changed; all 27 case inputs,
+outcomes, payload pins and ring dispatch claims are unchanged. The 1.0.12 review
+is archived verbatim; the 1.0.13 label is PENDING an independent hash-only review.

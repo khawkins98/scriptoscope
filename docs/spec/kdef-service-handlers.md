@@ -181,7 +181,7 @@ compositor multiplexes per-window-type recipes through a single core.
 
 ### Slot 5 — `0x8d36` (separate CDEF, undecoded; not the scroll bar)
 
-Entry has a very large local frame (scrollbar geometry), takes the
+Entry has a very large local frame (contents undecoded; an earlier revision read it as scroll-bar geometry), takes the
 ControlHandle argument, runs the common init `0x104`, and dispatches on the
 message through `0x148` (table at `0x8d5c..0x8d94`, msg 0..0x22 = 34, like
 the CDEF set). Notable branches:
@@ -190,7 +190,7 @@ the CDEF set). Notable branches:
 |---|---|---|
 | 0 | `0x8d98..0x8da0` | calls `0x8c88` with the handle, returns via `0x990e` |
 | 1 (hit-test) | `0x8da4..0x8df2` | `_PtInRect` (`$A8AD`, formerly misnamed PtInRgn) at `0x8dbc`; sentinel -1/-2 in contrlHilite; `_RectRgn` at `0x8df0` |
-| init | `0x8df6..0x8e64` | `_NewHandle(68)` (`A122`) allocates the 68-BYTE aux block, stored as contrlData; `0x8e02..0x8e64` initialise its fields (control value, min, max, page-up, page-down, increment, decrement, etc.) |
+| init | `0x8df6..0x8e64` | `_NewHandle(68)` (`A122`) allocates the 68-BYTE aux block, stored as contrlData; `0x8e02..0x8e64` initialise its fields (meanings undecoded; an earlier revision read them as scroll-bar value, min, max, page-up, page-down, increment and decrement, a reading that rested on the retired slot-5 scroll-bar attribution) |
 
 (Table entry words and aux field offsets in evidence.)
 
