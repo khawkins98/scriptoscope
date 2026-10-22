@@ -76,7 +76,7 @@ function asBytes(fork) {
  * @returns {{ theme: object, assets: {path:string,rgba:Uint8Array,width:number,height:number}[],
  *             manifest: { source:string, counts:object, assets:object[] } }}
  */
-export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourceObserver, displayProfile, cinfBinding, sliderLayoutBinding, cicnTransferBinding } = {}) {
+export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourceObserver, displayProfile, cinfBinding, sliderLayoutBinding, cicnTransferBinding, iconBlitCicnIds } = {}) {
   const realizeRgb16 = displayRealizer(displayProfile);
   const realizeDirectRgb8 = directRgb8Realizer(displayProfile);
   const policy = displayPolicy(displayProfile);
@@ -193,6 +193,34 @@ export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourc
     assets.push({ path: binding.derivedPath, rgba, width: original.width, height: original.height });
     resourceObserver?.bindAsset(record.byteReference, binding.derivedPath);
     bodyPaths.add(binding.derivedPath);
+  }
+
+  // Icon-blit inputs (docs/spec/engine/qd-primitives.md I1–I3), only for the cicn
+  // ids a caller names: the pixel map's depth, and for a map deeper than 1 bit an
+  // opaque companion (every stored pixel, mask ignored) for the I3 CopyBits copy.
+  // Ordinary RGBA retains the stored RGB under a clear mask (see above), so alpha
+  // promotion is enough. Off by default: lint and local bakes are unchanged.
+  if (iconBlitCicnIds?.length) {
+    const wanted = new Set(iconBlitCicnIds), done = new Set();
+    for (const element of Object.values(theme.chromeElements ?? {})) {
+      if (!wanted.has(element.sourceCicnId)) continue;
+      const record = recordByPath.get(element.asset), original = originalByPath.get(element.asset);
+      const pixelSize = record?.debug?.pixelSize;
+      if (!record || !original || !Number.isInteger(pixelSize)) continue;
+      const iconBlit = { pixelSize };
+      if (pixelSize > 1) {
+        const derivedPath = `cicn-unmasked/${record.file.slice(record.file.lastIndexOf('/') + 1)}`;
+        if (!done.has(derivedPath)) {
+          const rgba = original.rgba.slice();
+          for (let i = 3; i < rgba.length; i += 4) rgba[i] = 255;
+          assets.push({ path: derivedPath, rgba, width: original.width, height: original.height });
+          resourceObserver?.bindAsset(record.byteReference, derivedPath);
+          done.add(derivedPath);
+        }
+        iconBlit.unmaskedAsset = derivedPath;
+      }
+      element.iconBlit = iconBlit;
+    }
   }
 
   // Header colours from the window cluts (-14336 active / -14335 inactive), gamma'd
@@ -376,9 +404,9 @@ export function convertIcons(fork, { ids, displayProfile } = {}) {
  * @returns {{ theme: object, assets: {path,rgba,width,height}[], iconIndex: object[],
  *             manifest: object }}
  */
-export function convertScheme(fork, { meta = {}, source = 'scheme.rsrc', resourceObserver, displayProfile, cinfBinding, sliderLayoutBinding, cicnTransferBinding } = {}) {
+export function convertScheme(fork, { meta = {}, source = 'scheme.rsrc', resourceObserver, displayProfile, cinfBinding, sliderLayoutBinding, cicnTransferBinding, iconBlitCicnIds } = {}) {
   const bytes = asBytes(fork); // parse once conceptually; chrome+icons each re-parse (cheap, KB)
-  const chrome = convertChrome(bytes, { meta, source, resourceObserver, displayProfile, cinfBinding, sliderLayoutBinding, cicnTransferBinding });
+  const chrome = convertChrome(bytes, { meta, source, resourceObserver, displayProfile, cinfBinding, sliderLayoutBinding, cicnTransferBinding, iconBlitCicnIds });
   const icons = convertIcons(bytes, { displayProfile });
   return {
     theme: chrome.theme,

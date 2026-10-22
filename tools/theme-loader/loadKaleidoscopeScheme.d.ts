@@ -12,6 +12,9 @@ export interface LoadKaleidoscopeSchemeOptions {
   /** Explicit standalone push/bevel body cinf lookup; absent preserves compatibility. */
   cinfEnvironment?: import('./cinf-environment.js').PreparedCinfEnvironment;
   cicnTransfer?: import('./cicn-transfer-results.js').CicnTransferOption;
+  /** cicn ids an engine caller draws with the icon blit (qd-primitives I1–I3):
+   * their elements gain `iconBlit` (pixel depth and, above 1 bit, an opaque companion). */
+  iconBlitCicnIds?: readonly number[];
   displayProfile?: import('./display-profile.js').DisplayProfile;
   /** Opt-in actual input/fork/cicn/cinf byte evidence; requires Web Crypto. */
   provenance?: boolean;

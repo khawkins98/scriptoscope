@@ -14,6 +14,13 @@ import { controlTextColors } from './controlTextColors.js';
 import { composeTabBody } from './composeTabBody.js';
 import { planHeaderSurface, headerMetadataRejection, headerBackground, paintHeaderSurface,
   type HeaderSurfaceOptions, type HeaderSurfaceResult, type HeaderSurfaceTrace } from './headerSurface.js';
+import { createTrace, type EngineTrace } from './engine/trace.js';
+import { rect } from './engine/qd/rect.js';
+import { normalizeControlState } from './engine/state/control.js';
+import { SCROLLBAR_PRESSED_PARTS } from './engine/tables/controlState.js';
+import { SCROLLBAR_FACADE_RANGE, SCROLLBAR_FACADE_THICKNESS } from './engine/tables/scrollbar.js';
+import { drawScrollbar, scrollbarPartAt, scrollbarResourceIds, type ScrollbarInput } from './engine/families/scrollbar.js';
+import { themeResourceChain } from './engine/resources/theme.js';
 import { withControlDiagnostics, type ControlDiagnostics, type ControlTraceCollector, type ControlResolutionStep, type LegacyFacePaint } from './controlDiagnostics.js';
 
 /** 9-slice corner inset for a control cicn — matches the kDEF's ~6px for
@@ -184,24 +191,6 @@ async function loadById(theme: LoadedTheme, id: number): Promise<PixelBuffer | n
   return (await loadFaceById(theme, id))?.buffer ?? null;
 }
 
-/**
- * Load an `ics4` GLYPH (a scheme's own pictogram) by its Kaleidoscope
- * RESOURCE ID and return it as a PixelBuffer. Mirrors {@link loadById}, but
- * resolves through the `glyphs` map {@link loadTheme} built from the bundle's
- * `icons/index.json` (id-string → `icons/ics4-<id>.png`) rather than the
- * chrome-cicn catalogue. Walks the base chain so a lightly-skinned scheme can
- * inherit a base scheme's glyphs. Returns null when no scheme in the chain
- * ships that glyph (→ the caller's procedural fallback). The id is passed as a
- * NEGATIVE resource id (e.g. -10198), matching how icons/index.json keys them.
- */
-async function loadGlyphById(theme: LoadedTheme, id: number): Promise<PixelBuffer | null> {
-  const hit = resolveInChain(theme, (t) => {
-    const asset = t.glyphs?.[String(id)];
-    return asset ? { theme: t, asset } : null; // first theme in the chain that ships it
-  });
-  return hit ? loadCicnBuffer(assetUrl(hit.theme, hit.asset)) : null;
-}
-
 /** Self-only art lookup for checkables; base-theme borrowing is not part of
  * this compatibility path. CICN state IDs are source-derived at kDEF
  * 0x7234–0x7282; the icon fallback remains a separate resource channel. */
@@ -347,336 +336,87 @@ function elementEntryById(theme: LoadedTheme, id: number): [string, ChromeElemen
   return undefined;
 }
 
-/**
- * Draw a solid triangular scroll-arrow glyph centered in the size×size box
- * at (bx,by), pointing in `dir`. Platinum schemes (e.g. apple-platinum-2)
- * ship the arrow-button FACE as a cicn but leave the glyph itself to the
- * CDEF — so we stamp the face, then draw this glyph on top.
- */
-function drawArrowGlyph(
-  buf: PixelBuffer,
-  bx: number,
-  by: number,
-  size: number,
-  dir: 'l' | 'r' | 'u' | 'd',
-  [r, g, b]: [number, number, number],
-): void {
-  const depth = Math.max(2, Math.floor((size - 6) / 2)); // ~3 for a 16px button
-  const cx = bx + (size >> 1);
-  const cy = by + (size >> 1);
-  const off = Math.ceil(depth / 2);
-  for (let d = 0; d <= depth; d++) {
-    const halfH = depth - d; // full base at d=0, single-px tip at d=depth
-    for (let t = -halfH; t <= halfH; t++) {
-      let px: number, py: number;
-      if (dir === 'r') { px = cx - off + d; py = cy + t; }
-      else if (dir === 'l') { px = cx + off - d; py = cy + t; }
-      else if (dir === 'd') { px = cx + t; py = cy - off + d; }
-      else { px = cx + t; py = cy + off - d; }
-      buf.setPixel(px, py, r, g, b, 255);
-    }
-  }
-}
-
 export type Orientation = 'horizontal' | 'vertical';
 export type ControlState = 'normal' | 'pressed' | 'disabled' | 'inactive';
 
 export interface ScrollbarOptions {
   orientation?: Orientation;
-  /** Length along the scroll axis, in px (thickness is fixed by the cicn). */
+  /** Length along the scroll axis, in px. The bar is 16 px thick (Apple's standard scroll bar). */
   length?: number;
   /** Thumb position, 0..1. */
   value?: number;
-  /** Thumb size as a fraction of the track, 0..1 (used when `proportional`). */
-  thumbExtent?: number;
   /**
-   * Thumb LENGTH model. `true` (default) = OS 8 Appearance proportional thumb
-   * (length scales with `thumbExtent` / the content ratio); `false` = the classic
-   * System 7 fixed-size thumb (the cicn's native length). Era preference — exposed so
-   * a host can wire it to a user setting (System-7 vs Platinum scrolling).
+   * Accepted for compatibility; no effect. The 2.3.1 CDEF sizes the thumb from
+   * its cicn unless a Kaleidoscope option byte and a Finder window both say
+   * otherwise, and the engine runs with those declared off
+   * (docs/spec/engine/scrollbar.md §2, §5.6).
    */
+  thumbExtent?: number;
+  /** Accepted for compatibility; no effect (see `thumbExtent`). */
   proportional?: boolean;
   state?: ControlState;
+  /**
+   * The part being pressed when `state` is `'pressed'` (DECISIONS #4): native
+   * part 20 `up`, 21 `down`, 22 `pageUp`, 23 `pageDown`, 129 `thumb`. Pressed
+   * without a part means `thumb`. Ignored for other states.
+   */
+  pressedPart?: 'up' | 'down' | 'pageUp' | 'pageDown' | 'thumb';
+}
+
+/** @internal A composed scroll bar plus its part test (scrollbar §4.8). */
+export interface ScrollbarFrame {
+  buffer: PixelBuffer;
+  /** Public part name at buffer pixel (x, y), or null for part 0 (outside / disabled). */
+  partAt(x: number, y: number): NonNullable<ScrollbarOptions['pressedPart']> | null;
+  trace?: EngineTrace;
 }
 
 /**
- * Locate the centred grip motif of a capsule thumb cicn along its long axis. The kDEF thumb is a
- * capsule — rounded end caps + a small grip in the CENTRE — that grows by stretching ONLY the
- * uniform body between cap and grip; the caps and grip stay 1:1 (verified on the corpus art:
- * `#oooooooXXXXXXXoooooo#` — flat edge, beveled body, a busy centre grip). The body is near-uniform
- * along the long axis, so the grip is the central run of lines that differ from a body reference
- * line. Returns the grip's native start+length, or null when there's no distinct centre motif.
- */
-function thumbGrip(thumb: PixelBuffer, horiz: boolean): { start: number; len: number } | null {
-  const len = horiz ? thumb.width : thumb.height;
-  const cross = horiz ? thumb.height : thumb.width;
-  if (len < 8) return null;
-  const at = (i: number, j: number) => (horiz ? thumb.getPixel(i, j) : thumb.getPixel(j, i));
-  const ref = Math.floor(len * 0.25); // a body line: inside the cap, outside the centre grip
-  const diff = (i: number) => {
-    let d = 0;
-    for (let j = 0; j < cross; j++) {
-      const p = at(i, j), r = at(ref, j);
-      d += Math.abs(p[0] - r[0]) + Math.abs(p[1] - r[1]) + Math.abs(p[2] - r[2]) + Math.abs(p[3] - r[3]);
-    }
-    return d / cross; // avg per-cross-pixel RGBA delta from the body reference
-  };
-  const THRESH = 28;
-  let gs = -1, ge = -1;
-  for (let i = Math.floor(len * 0.2); i < Math.ceil(len * 0.8); i++) {
-    if (diff(i) > THRESH) { if (gs < 0) gs = i; ge = i; }
-  }
-  return gs >= 0 ? { start: gs, len: ge - gs + 1 } : null;
-}
-
-/**
- * Compose a scrollbar into a pixel buffer (docs/spec/kdef231-reference.md §1.3 / §2.6):
- * stretch the track cicn along the axis, stamp the thumb at the
- * value-proportional position. 7 Le ships an empty (white) track + a
- * blue striped thumb; arrows are OS-baseline (not in the bundle).
+ * Compose a scroll bar on the v2 engine: the Kaleidoscope 2.3.1 scroll-bar CDEF
+ * (docs/spec/engine/scrollbar.md; driver src/engine/families/scrollbar.ts)
+ * drawing into a port whose control rect is the whole buffer.
  *
- * Returns null if the scheme ships no scrollbar cicns (baseline path).
+ * Returns null when the theme chain has no track cicn at the selected tier
+ * (TR10): the facade then leaves the bar to the caller's procedural fallback,
+ * a compatibility policy for art-less themes.
  */
 export async function composeScrollbar(
   theme: LoadedTheme,
   opts: ScrollbarOptions = {},
 ): Promise<PixelBuffer | null> {
-  const orientation = opts.orientation ?? 'vertical';
+  return (await composeScrollbarFrame(theme, opts))?.buffer ?? null;
+}
+
+/** @internal Shared draw path for the interactive scroll bar's hit test. */
+export async function composeScrollbarFrame(
+  theme: LoadedTheme,
+  opts: ScrollbarOptions & { trace?: boolean } = {},
+): Promise<ScrollbarFrame | null> {
+  const horizontal = (opts.orientation ?? 'vertical') === 'horizontal';
   const length = Math.max(16, opts.length ?? 120);
   const value = Math.min(1, Math.max(0, opts.value ?? 0));
-  const state = opts.state ?? 'normal';
-
-  const horiz = orientation === 'horizontal';
-
-  // Track cicn by RESOURCE ID. The state→id mapping is taken from the kDEF
-  // scrollbar drawer (1.8.2 routine `0x66b4`), which is authoritative — the
-  // bundle slugs mislabel these (e.g. -8287 "empty" is the kDEF's disabled,
-  // -8288 "disabled" is actually pressed):
-  //   horizontal: active -8285 / inactive -8286 / disabled -8287 / pressed -8288
-  //   vertical:   active -8277 / inactive -8278 / disabled -8279 / pressed -8280
-  const idInactive = horiz ? 8286 : 8278;
-  const idDisabled = horiz ? 8287 : 8279;
-  const idPressed = horiz ? 8288 : 8280;
-  const wantId = state === 'pressed' ? idPressed : state === 'disabled' ? idDisabled : idInactive;
-  const track = (await loadById(theme, wantId)) ?? (await loadById(theme, idInactive));
-  if (!track) return null; // baseline path
-
-  // Thumb by resource id: -10206 h / -10208 v (pressed -10205 / -10207).
-  const thumb = await loadById(theme, horiz ? (state === 'pressed' ? 10205 : 10206) : state === 'pressed' ? 10207 : 10208);
-
-  // Arrow-BUTTON glyphs — the scheme's OWN ics4 pictograms for the end buttons.
-  // The directional arrow family is -10197..-10204 (a 16×16 button: face + arrow +
-  // bevel), NOT -10205..-10208 (those are the slider THUMB, h/v × normal/pressed).
-  //
-  // The normal/pressed id split is UNIVERSAL — it is NOT stored per scheme (the
-  // scheme resource forks carry no CDEF/control template, only art). It is hardcoded
-  // in Kaleidoscope's shared CDEF, decoded at kDEF 2.3.1 `0x9f0e-0x9f38`, which writes
-  // BOTH ids per direction into the control record and selects at draw time by
-  // contrlHilite — the PRESSED id for the one arrow under the mouse, the RAISED id
-  // for the rest; a disabled control draws the RAISED art dimmed (there is no
-  // separate inactive-arrow bitmap). Canonical table mirrored in
-  // docs/spec/kdef231-reference.md §"Scroll-arrow ics4 family" — keep all three in sync.
-  //   RAISED / normal: right -10201 · left -10202 · down -10203 · up -10204
-  //   PRESSED:         right -10197 · left -10198 · down -10199 · up -10200
-  // NB the scheme art APPEARANCE of each quartet varies (s7-nostalgia-silver's raised
-  // set is a beveled 3-D arrow, platinum-8's is a boxed gray button whose pressed
-  // quartet is a flat arrow), but the id→state mapping above is the engine's and we
-  // apply it universally. CONSEQUENCE: platinum-8 (a 1998/Kaleidoscope-1.x scheme that
-  // placed art the other way) renders its boxed -10202 at rest rather than the flat
-  // -10198 its own preview shows — an accepted divergence (owner: follow the 2.3.1
-  // decode universally, see kdef-faithfulness-ledger). Earlier these were swapped, so
-  // every resting scrollbar drew the depressed arrows.
-  // For a horizontal bar the LOW end is the left button, the HIGH end the right;
-  // for vertical, low = up (top), high = down (bottom). These glyphs are the WHOLE
-  // button (they carry their own face), so we stamp them in place of the
-  // procedural face+triangle when the scheme ships them; otherwise fall back to
-  // drawArrowGlyph so the sliced schemes + cicn-less schemes render unchanged.
-  const pressed = state === 'pressed';
-  const lowArrowId = horiz ? (pressed ? 10198 : 10202) : (pressed ? 10200 : 10204); // left / up
-  const highArrowId = horiz ? (pressed ? 10197 : 10201) : (pressed ? 10199 : 10203); // right / down
-  const lowArrow = await loadGlyphById(theme, -lowArrowId);
-  const highArrow = await loadGlyphById(theme, -highArrowId);
-
-  const thickness = horiz ? track.height : track.width;
-  const longSrc = horiz ? track.width : track.height;
-  const out = horiz ? PixelBuffer.alloc(length, thickness) : PixelBuffer.alloc(thickness, length);
-
-  // Two cicn FORMATS (empirically, by aspect ratio):
-  //  • wide composite (48×16, 43×16, 33×16 …) — the arrow boxes are baked
-  //    into the two ends and the track sits between them. Render as a
-  //    3-slice along the long axis: copy each end 1:1, stretch the middle.
-  //    Arrows are part of the bitmap; we never stamp them separately.
-  //  • single track cell (7 Le, 16×16) — square, no baked arrows (those
-  //    are left to the OS). Stretch one interior slice for a clean track.
-  const composite = longSrc >= thickness * 2;
-  let trackStart = 0;
-  let trackLen = length;
-
-  if (composite) {
-    // Read the artist's authored answer from the cinf when present (slice.corner
-    // for the end-cap thickness, slice.tile for middle-band repeat vs stretch).
-    // Mirrors composeFaceButton / composeProgress / composeTab — same shape, same
-    // failure mode: stretching a pixel-rate tile pattern smears it at long lengths.
-    const trackEl = elementById(theme, wantId);
-    const end = trackEl?.slice?.corner ?? Math.min(thickness, Math.floor((longSrc - 1) / 2));
-    const tileMid = !!trackEl?.slice?.tile;
-    const mid = longSrc - end * 2;
-    const dmid = length - end * 2;
-    const drawMid = (sx: number, sy: number, sw: number, sh: number, dx: number, dy: number, dw: number, dh: number): void => {
-      if (sw <= 0 || sh <= 0 || dw <= 0 || dh <= 0) return;
-      if (!tileMid) { out.copyBits(track, { x: sx, y: sy, w: sw, h: sh }, { x: dx, y: dy, w: dw, h: dh }); return; }
-      // Tile mode: repeat the source slab across the destination axis at 1:1.
-      const axisLen = horiz ? dw : dh;
-      const slab = horiz ? sw : sh;
-      for (let t = 0; t < axisLen; t += slab) {
-        const r = Math.min(slab, axisLen - t);
-        if (horiz) out.copyBits(track, { x: sx, y: sy, w: r, h: sh }, { x: dx + t, y: dy, w: r, h: sh });
-        else        out.copyBits(track, { x: sx, y: sy, w: sw, h: r }, { x: dx, y: dy + t, w: sw, h: r });
-      }
-    };
-    if (horiz) {
-      out.copyBits(track, { x: 0, y: 0, w: end, h: thickness }, { x: 0, y: 0, w: end, h: thickness });
-      out.copyBits(track, { x: longSrc - end, y: 0, w: end, h: thickness }, { x: length - end, y: 0, w: end, h: thickness });
-      drawMid(end, 0, mid, thickness, end, 0, dmid, thickness);
-    } else {
-      out.copyBits(track, { x: 0, y: 0, w: thickness, h: end }, { x: 0, y: 0, w: thickness, h: end });
-      out.copyBits(track, { x: 0, y: longSrc - end, w: thickness, h: end }, { x: 0, y: length - end, w: thickness, h: end });
-      drawMid(0, end, thickness, mid, 0, end, thickness, dmid);
-    }
-    trackStart = end;
-    trackLen = Math.max(0, length - end * 2);
-  } else if (length >= thickness * 3) {
-    // Single square cell = a Platinum arrow-BUTTON face with no baked glyph
-    // (apple-platinum-2's 16×16 bevelled square). Stamp the face at both
-    // ends as the two arrow buttons, stretch its interior for the track
-    // between, then draw the arrow glyph procedurally (the CDEF's job).
-    const btn = thickness;
-    const arrowDark: [number, number, number] = state === 'disabled' ? [165, 165, 165] : [72, 72, 72];
-    // Stamp an end button: prefer the scheme's OWN ics4 arrow-button glyph
-    // (a complete face+arrow, centered in the button box); otherwise lay the
-    // track-square face + the procedural triangle, exactly as before.
-    const stampButton = (
-      bx: number,
-      by: number,
-      glyph: PixelBuffer | null,
-      dir: 'l' | 'r' | 'u' | 'd',
-    ): void => {
-      out.copyBits(track, { x: 0, y: 0, w: track.width, h: track.height }, { x: bx, y: by, w: btn, h: thickness });
-      if (glyph) {
-        out.drawOver(glyph, bx + Math.round((btn - glyph.width) / 2), by + Math.round((thickness - glyph.height) / 2));
-      } else {
-        drawArrowGlyph(out, bx, by, btn, dir, arrowDark);
-      }
-    };
-    if (horiz) {
-      const sx = Math.max(1, Math.min(track.width - 2, track.width >> 1));
-      out.copyBits(track, { x: sx, y: 0, w: 1, h: track.height }, { x: btn, y: 0, w: length - btn * 2, h: thickness });
-      stampButton(0, 0, lowArrow, 'l');
-      stampButton(length - btn, 0, highArrow, 'r');
-    } else {
-      const sy = Math.max(1, Math.min(track.height - 2, track.height >> 1));
-      out.copyBits(track, { x: 0, y: sy, w: track.width, h: 1 }, { x: 0, y: btn, w: thickness, h: length - btn * 2 });
-      stampButton(0, 0, lowArrow, 'u');
-      stampButton(0, length - btn, highArrow, 'd');
-    }
-    trackStart = btn;
-    trackLen = Math.max(0, length - btn * 2);
-  } else if (horiz) {
-    const sx = Math.max(1, Math.min(track.width - 2, track.width >> 1));
-    out.copyBits(track, { x: sx, y: 0, w: 1, h: track.height }, { x: 0, y: 0, w: length, h: thickness });
-  } else {
-    const sy = Math.max(1, Math.min(track.height - 2, track.height >> 1));
-    out.copyBits(track, { x: 0, y: sy, w: track.width, h: 1 }, { x: 0, y: 0, w: thickness, h: length });
-  }
-
-  // ── thumb: positioned by value within the track region (between arrows) ──
-  if (thumb) {
-    const native = horiz ? thumb.width : thumb.height;
-    const cross = horiz ? thumb.height : thumb.width;
-    const offC = Math.round((thickness - cross) / 2);
-    // PROPORTIONAL (OS 8) thumb length scales with the track; FIXED (System 7) keeps
-    // the cicn's native length. Default proportional (the bundled themes are Platinum
-    // -era); ScrollbarOptions.proportional flips it. Never shorter than the cicn.
-    const proportional = opts.proportional ?? true;
-    const thumbLen = proportional
-      ? Math.max(native, Math.round(trackLen * Math.min(1, Math.max(0.08, opts.thumbExtent ?? 0.4))))
-      : native;
-    const pos = trackStart + Math.round(value * Math.max(0, trackLen - thumbLen));
-    if (thumbLen <= native) {
-      // fixed (or proportional collapsed to native) — stamp 1:1
-      if (horiz) out.copyBits(thumb, { x: 0, y: 0, w: thumb.width, h: thumb.height }, { x: pos, y: offC, w: thumb.width, h: thumb.height });
-      else out.copyBits(thumb, { x: 0, y: 0, w: thumb.width, h: thumb.height }, { x: offC, y: pos, w: thumb.width, h: thumb.height });
-    } else {
-      // Capsule multi-slice: the rounded end caps AND the centre grip stay 1:1 (never stretched);
-      // only the uniform body fill between them grows. The grip is re-CENTRED in the grown thumb.
-      // (The body is uniform along the long axis, so stretching a 1px body slice is seamless.)
-      const grip = thumbGrip(thumb, horiz);
-      let cap = Math.max(2, Math.min(Math.floor((native - 1) / 2), Math.round(cross / 2)));
-      if (grip) cap = Math.max(1, Math.min(cap, grip.start, native - (grip.start + grip.len)));
-      const gw = grip ? grip.len : 0;
-      const gctr = pos + Math.round((thumbLen - gw) / 2); // grip centred in the grown thumb
-      const refIdx = grip ? Math.max(0, Math.min(cap, grip.start - 1)) : cap; // a uniform body line
-      const W = thumb.width, Hh = thumb.height;
-      if (horiz) {
-        const fill = (x0: number, x1: number) => { if (x1 > x0) out.copyBits(thumb, { x: refIdx, y: 0, w: 1, h: Hh }, { x: x0, y: offC, w: x1 - x0, h: Hh }); };
-        out.copyBits(thumb, { x: 0, y: 0, w: cap, h: Hh }, { x: pos, y: offC, w: cap, h: Hh });
-        out.copyBits(thumb, { x: native - cap, y: 0, w: cap, h: Hh }, { x: pos + thumbLen - cap, y: offC, w: cap, h: Hh });
-        if (grip) {
-          fill(pos + cap, gctr);
-          out.copyBits(thumb, { x: grip.start, y: 0, w: gw, h: Hh }, { x: gctr, y: offC, w: gw, h: Hh });
-          fill(gctr + gw, pos + thumbLen - cap);
-        } else fill(pos + cap, pos + thumbLen - cap);
-      } else {
-        const fill = (y0: number, y1: number) => { if (y1 > y0) out.copyBits(thumb, { x: 0, y: refIdx, w: W, h: 1 }, { x: offC, y: y0, w: W, h: y1 - y0 }); };
-        out.copyBits(thumb, { x: 0, y: 0, w: W, h: cap }, { x: offC, y: pos, w: W, h: cap });
-        out.copyBits(thumb, { x: 0, y: native - cap, w: W, h: cap }, { x: offC, y: pos + thumbLen - cap, w: W, h: cap });
-        if (grip) {
-          fill(pos + cap, gctr);
-          out.copyBits(thumb, { x: 0, y: grip.start, w: W, h: gw }, { x: offC, y: gctr, w: W, h: gw });
-          fill(gctr + gw, pos + thumbLen - cap);
-        } else fill(pos + cap, pos + thumbLen - cap);
-      }
-    }
-  }
-
-  // ── CDEF scrollbar frame: mirror a one-sided long-edge border ──────────────
-  // The classic Control Manager strokes a 1px outline around the whole bar; some
-  // scheme TRACK cicns bake it onto only ONE long edge. platinum-8's -8286 carries
-  // the content-facing line but no frame-facing line, so its resting scrollbar reads
-  // as missing the hairline against the window's bottom/right frame. If one long edge
-  // is a continuous dark border and the opposite edge is opaque fill WITHOUT one,
-  // copy the border across — restoring the bar's outline. Transparent tracks (e.g.
-  // system7-nostalgia-silver, whose frame shows through the window chrome) have no
-  // border to mirror, so this is a no-op for them; schemes already framed both sides
-  // see the source edge re-painted onto itself (unchanged).
-  {
-    const lum = (p: readonly [number, number, number, number]): number => 0.299 * p[0] + 0.587 * p[1] + 0.114 * p[2];
-    const N = length;
-    const cross = thickness - 1;
-    const at = (i: number, c: number): readonly [number, number, number, number] =>
-      horiz ? out.getPixel(i, c) : out.getPixel(c, i);
-    const paint = (c: number, col: [number, number, number]): void => {
-      for (let i = 0; i < N; i += 1) {
-        if (horiz) out.setPixel(i, c, col[0], col[1], col[2], 255);
-        else out.setPixel(c, i, col[0], col[1], col[2], 255);
-      }
-    };
-    let darkA = 0, darkB = 0, opaqA = 0, opaqB = 0;
-    const colA = new Map<number, number>(), colB = new Map<number, number>();
-    for (let i = 0; i < N; i += 1) {
-      const a = at(i, 0), b = at(i, cross);
-      if (a[3] > 200) { opaqA += 1; if (lum(a) < 110) { darkA += 1; const k = (a[0] << 16) | (a[1] << 8) | a[2]; colA.set(k, (colA.get(k) ?? 0) + 1); } }
-      if (b[3] > 200) { opaqB += 1; if (lum(b) < 110) { darkB += 1; const k = (b[0] << 16) | (b[1] << 8) | b[2]; colB.set(k, (colB.get(k) ?? 0) + 1); } }
-    }
-    const dom = (m: Map<number, number>): [number, number, number] => {
-      let bk = -1, bc = 0; for (const [k, c] of m) if (c > bc) { bc = c; bk = k; }
-      return bk < 0 ? [0, 0, 0] : [(bk >> 16) & 255, (bk >> 8) & 255, bk & 255];
-    };
-    if (darkA / N > 0.6 && darkB / N < 0.5 && opaqB > N * 0.6) paint(cross, dom(colA));
-    else if (darkB / N > 0.6 && darkA / N < 0.5 && opaqA > N * 0.6) paint(0, dom(colB));
-  }
-
-  return out;
+  const { hilite } = normalizeControlState({ state: opts.state ?? 'normal', ...(opts.pressedPart ? { pressedPart: opts.pressedPart } : {}) },
+    SCROLLBAR_PRESSED_PARTS);
+  const t = SCROLLBAR_FACADE_THICKNESS.thickness;
+  const range = SCROLLBAR_FACADE_RANGE;
+  const input: ScrollbarInput = {
+    rect: horizontal ? rect(0, 0, t, length) : rect(0, 0, length, t),
+    hilite, min: range.min, max: range.max, value: range.min + Math.round(value * (range.max - range.min)),
+  };
+  const chain = await themeResourceChain(theme, scrollbarResourceIds(horizontal));
+  const trace = opts.trace ? createTrace('scrollbar', { ...input }) : undefined;
+  const out = PixelBuffer.alloc(input.rect.right, input.rect.bottom);
+  const { geometry } = drawScrollbar(out, chain, input, trace);
+  if (!geometry.trackCicn) return null;
+  const names = Object.entries(SCROLLBAR_PRESSED_PARTS.parts);
+  return {
+    buffer: out,
+    partAt: (x, y) => {
+      const { part } = scrollbarPartAt(geometry, { x, y });
+      return (names.find(([, code]) => code === part)?.[0] ?? null) as NonNullable<ScrollbarOptions['pressedPart']> | null;
+    },
+    ...(trace ? { trace } : {}),
+  };
 }
 
 export interface SliderOptions {

@@ -214,6 +214,13 @@ export interface ChromeElement {
    */
   sourceCicnId?: number;
   /**
+   * Icon-blit inputs (docs/spec/engine/qd-primitives.md I1–I3), present only for
+   * cicn ids the runtime asks the loader for (`iconBlitCicnIds`): the pixel
+   * map's depth and, deeper than 1 bit, an opaque companion raster with every
+   * stored pixel (mask ignored) for the I3 copy.
+   */
+  iconBlit?: { pixelSize: number; unmaskedAsset?: string };
+  /**
    * Peer of `sourceCicnId`: the cinf RESOURCE ID this element's slice / anchor /
    * bgPattern metadata decoded from. Lets the runtime jump from a chromeElement to
    * its sibling cinf for spec lookups without re-scanning the manifest. Decoded by
