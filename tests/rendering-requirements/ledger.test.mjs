@@ -667,10 +667,12 @@ test('tab/header source-rule port (main 1.23.0) preserves the exact 1.22.0 ledge
   // promotes 14 corner-sprite rows to verified and adds five utility cases with 25 unknown rows, which
   // window@1.4.0 (#421) promotes 14 of to verified. slider@1.2.0 (#416 engine) verifies the 33 slider
   // mismatches and moves the 6 declared-group2 endpoint rows from verified to unsupported.
-  const mainLineage = assemble(sources.base, sources.families.map(f => ['scrollbar', 'push-button', 'slider'].includes(f.family) ? baseFamily(f) : f.family === 'window' ? atVersion(f, '1.1.0') : f)).ledger;
+  // progress@1.1.0 (#440 engine, progress.rules) verifies selection, layout and state mapping for
+  // the 10 GATE4 archives (30 rows) and keeps the other 60 progress rows unknown.
+  const mainLineage = assemble(sources.base, sources.families.map(f => ['scrollbar', 'push-button', 'slider', 'progress'].includes(f.family) ? baseFamily(f) : f.family === 'window' ? atVersion(f, '1.1.0') : f)).ledger;
   assert.deepEqual(makeReport(mainLineage).requirementStatus.counts, { verified: 216, mismatched: 18, unsupported: 0, unknown: 1494 });
   assert.equal(makeReport(mainLineage).cases.length, 234);
-  assert.deepEqual(makeReport(live).requirementStatus.counts, { verified: 284, mismatched: 0, unsupported: 6, unknown: 1542 });
+  assert.deepEqual(makeReport(live).requirementStatus.counts, { verified: 314, mismatched: 0, unsupported: 6, unknown: 1512 });
   assert.equal(makeReport(live).cases.length, 239);
 });
 
@@ -783,4 +785,27 @@ test('window 1.4.0 (#421) binds the utility cases to window.procedural-frame-uti
   assert(changed.filter(c => c.now.status === 'unknown').every(c => ['fill.remaining', 'window.masked-composition', 'window.state-frame'].includes(c.now.requirementId)));
   const count = f => f.assessments.reduce((m, a) => (m[a.status] = (m[a.status] ?? 0) + 1, m), {});
   assert.deepEqual(count(w), { verified: count(prior).verified + 14, unknown: count(prior).unknown - 14 });
+});
+
+test('progress 1.1.0 (#440 engine) verifies exactly the 30 GATE4 selection/layout/state rows and keeps the other 60 unknown', () => {
+  const p = liveFamily('progress'), t = p.transitions.find(x => x.version === '1.1.0'), prior = priorFamily(atVersion(p, '1.1.0'));
+  assert.equal(prior.version, '1.0.0'); assert.equal(t.priorVersion, '1.0.0');
+  const gate4 = ['1138', '1984', '1990', 'apple-lisa', 'crayon-os', 'dolphin-som', 'evolution', 'floppies', 'windows-31', 'windows-95'];
+  const promoted = ['progress.selection', 'progress.layout', 'progress.public-state-mapping'];
+  // Appended: the CDEF 5 engine input, nine primary-decode rows and the progress.rules assertion; no new case or assessment.
+  assert.deepEqual(p.inputs.slice(t.counts.inputs).map(i => [i.id, i.kind, i.redistributed]), [['engine.kaleidoscope-2.3.1-cdef5', 'engine', false]]);
+  assert.deepEqual(p.evidence.slice(t.counts.evidence).map(e => [e.kind, e.document]), Array(9).fill(['primary-decode', 'docs/spec/engine/progress.md']));
+  assert.deepEqual(p.assertions.slice(t.counts.assertions).map(a => [a.id, a.path, a.caseIds.length]), [['progress.rules', 'tests/rendering-options/progress-rules.spec.mjs', 18]]);
+  for (const key of ['requirements', 'cases', 'assessments']) assert.equal(p[key].length, t.counts[key], key);
+  // In place: all 18 cases and all 90 assessments (rationales refreshed); closures stay open.
+  assert.equal(t.replaced.cases.length, 18); assert.equal(t.replaced.assessments.length, 90);
+  assert(p.cases.every(c => c.inventoryClosure.status === 'open'));
+  assert(p.assessments.every(a => !/no 2\.3\.1 routine/.test(a.rationale)));
+  const status = a => (gate4.includes(a.caseId.split('.')[0]) && promoted.includes(a.requirementId) ? 'verified' : 'unknown');
+  assert(p.assessments.every(a => a.status === status(a)), 'status set');
+  assert.equal(p.assessments.filter(a => a.status === 'verified').length, 30);
+  assert(p.assessments.filter(a => a.status === 'verified').every(a => a.assertions.join() === 'progress.rules' && a.evidence.every(id => id.startsWith('cdef5.progress-'))));
+  for (const slug of ['animals', 'monkey-paradise', 'platinum-8']) assert.match(p.assessments.find(a => a.caseId === `${slug}.progress.public-rows.sampled` && a.requirementId === 'progress.selection').rationale, /PACH 130/);
+  const count = f => f.assessments.reduce((m, a) => (m[a.status] = (m[a.status] ?? 0) + 1, m), {});
+  assert.deepEqual(count(prior), { unknown: 90 }); assert.deepEqual(count(p), { verified: 30, unknown: 60 });
 });
