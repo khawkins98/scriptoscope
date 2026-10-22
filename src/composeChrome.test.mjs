@@ -1,20 +1,14 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
-import ts from 'typescript';
+import '../tests/helpers/registerTs.mjs';
 import { loadKaleidoscopeScheme } from '../tools/theme-loader/loadKaleidoscopeScheme.js';
 
 // Exercise the public compositor directly, without browser image decoding or
-// generated bundles. Keep the same source-module loading convention as the
-// declarative tests; no private allocator export is needed.
-const moduleUrl = (source) => 'data:text/javascript;base64,' + Buffer.from(
-  ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext } }).outputText,
-).toString('base64');
-const pixelUrl = moduleUrl(readFileSync(new URL('./pixelBuffer.ts', import.meta.url), 'utf8'));
-const { PixelBuffer } = await import(pixelUrl);
-const { composeWindowChrome } = await import(moduleUrl(
-  readFileSync(new URL('./composeChrome.ts', import.meta.url), 'utf8').replace('./pixelBuffer.js', pixelUrl),
-));
+// generated bundles. registerTs loads the runtime TypeScript with its
+// production .js specifiers, including the src/engine modules it imports.
+const { PixelBuffer } = await import('./pixelBuffer.ts');
+const { composeWindowChrome } = await import('./composeChrome.ts');
 
 function edgeAllocation(cells, width, titleWidthPx = 0) {
   let end = 0;
