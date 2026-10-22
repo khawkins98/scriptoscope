@@ -127,7 +127,7 @@ for (const mode of ['source', 'built']) {
       return { key, diffs: diffs.length, first: diffs.slice(0, 4), unknown: obs.flat().filter(v => v && v.unknown).length };
     }));
     await attachObservations(info, 'progress-rules', mode, { mode, results: results.map(({ key, diffs, first }) => ({ key, diffs, first })) });
-    expect(results).toHaveLength(SLUGS.length * PUBLIC_ROWS.length);   // 18 × 20 = 360
+    expect(results).toHaveLength(SLUGS.length * PUBLIC_ROWS.length);   // 18 × 21 = 378
     // Every drawn pixel is named: a sentinel source pixel, a COL3 colour, the black FrameRect or transparent.
     expect(results.filter(r => r.unknown).map(r => r.key)).toEqual([]);
     expect(Object.fromEntries(results.filter(r => r.diffs).map(r => [r.key, r.first]))).toEqual(DISAGREEMENTS);

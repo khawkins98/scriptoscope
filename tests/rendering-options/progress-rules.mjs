@@ -42,6 +42,7 @@ export const DECODE = {
   sliceNeedsCinf: true,                           // SLICE1
   artRows: 'centre',                              // SLICE2 ('stretch' | 'clip' | 'top')
   halves: true,                                   // SLICE3
+  secondHalf: L => Math.trunc(L / 2),             // §5.4 halves: piece 2 is trunc(L / 2) wide
   invertedCopies: false,                          // DET4: an empty or inverted T copies nothing
   capClamp: null,                                 // SLICE4: cap = cinf byte 0, no clamp (old runtime: 4)
   capByte: 0,                                     // CINF2: fill/track cap from byte 0
@@ -209,7 +210,7 @@ export function slicePieces(S, bytes, T, { reading = {} } = {}) {
   const copy = (sx, dx) => ({ kind: stretchRows ? 'stretch' : 'copy', src: sr(sx[0], sx[1]), dst: at(dx[0], dx[1]) });
   const out = [];
   if (r.halves && L <= 2 * a) {                                                                     // SLICE3
-    const p = Math.trunc((L + 1) / 2), q = Math.trunc(L / 2);
+    const p = Math.trunc((L + 1) / 2), q = r.secondHalf(L);
     if (p > 0) out.push(copy([S.left, S.left + p], [T.left, T.left + p]));
     if (q > 0) out.push(copy([S.right - q, S.right], [T.right - q, T.right]));
     return out;
@@ -426,6 +427,7 @@ export function nativeFor(row, { stateHilite = STATE_HILITE, normalize = v => Ma
 export const PUBLIC_ROWS = [
   { key: 'normal/100/50of100', length: 100, range: { value: 50, min: 0, max: 100 } },
   { key: 'normal/40/3of10', length: 40, range: { value: 3, min: 0, max: 10 } },              // example B: trunc 12, round 13
+  { key: 'normal/40/1of4', length: 40, range: { value: 1, min: 0, max: 4 } },               // x = 11, fill L = 9: odd-length halves (§5.4, 1984 [2,7)<-[0,5), [7,11)<-[14,18))
   { key: 'normal/100/29of96', length: 100, range: { value: 29, min: 0, max: 96 } },           // fill L = 29 (SLICE7 hook)
   { key: 'normal/100/-10of100', length: 100, range: { value: -10, min: 0, max: 100 } },       // DET3 under: x = -7
   { key: 'normal/100/150of100', length: 100, range: { value: 150, min: 0, max: 100 } },       // DET3 over: x = 146
