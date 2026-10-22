@@ -5,7 +5,7 @@
 // A region is a per-pixel membership mask over a port (QuickDraw regions are
 // sets of pixels; Inside Macintosh: Imaging With QuickDraw, "Regions"). Only
 // the operations the scroll-bar draw needs exist: union a mapped icon mask,
-// difference, and test.
+// difference (a mapped mask or a rect), and test.
 //
 // Engine pixmaps are decoded RGBA with the cicn mask in alpha (types.ts), so a
 // mask region is "alpha > 0".
@@ -33,6 +33,12 @@ export function regionHas(rgn: Region, x: number, y: number): boolean {
 export function regionAddRect(rgn: Region, r: QdRect): void {
   for (let y = Math.max(0, r.top); y < Math.min(rgn.height, r.bottom); y++)
     for (let x = Math.max(0, r.left); x < Math.min(rgn.width, r.right); x++) rgn.bits[y * rgn.width + x] = 1;
+}
+
+/** Remove every pixel of `r` (DiffRgn with a rect region). */
+export function regionSubtractRect(rgn: Region, r: QdRect): void {
+  for (let y = Math.max(0, r.top); y < Math.min(rgn.height, r.bottom); y++)
+    for (let x = Math.max(0, r.left); x < Math.min(rgn.width, r.right); x++) rgn.bits[y * rgn.width + x] = 0;
 }
 
 /**

@@ -200,8 +200,7 @@ async function* proceduralFrameCells({ slug, decoded, mutate = x => x }) {
       const H = 80;
       const content = E.rect(H, H, H + (row.collapsed ? 0 : h), H + w);
       const input = { content, variation: row.variation, family: row.family, hilited: state === 'active', goAway: row.goAway, shadeOn: row.shadeOn,
-        collapsed: row.collapsed, colorTable: row.colorTable, titleWidth, ...(row.utilityWidgets ? { utilityWidgets: row.utilityWidgets } : {}),
-        ...(row.utilityTitled ? { utilityTitled: true } : {}) };
+        collapsed: row.collapsed, colorTable: row.colorTable, titleWidth };
       const key = `${row.slug}/${state}/${w}x${h}/t${titleWidth}${name ? `/pressed-${name}` : ''}`;
       const trace = E.createTrace('proceduralFrame', { ...input, part });
       const size = { w: w + 2 * H, h: h + 2 * H };
@@ -212,6 +211,11 @@ async function* proceduralFrameCells({ slug, decoded, mutate = x => x }) {
           trace.rects.features = { top: E.proceduralFrameFeatures(input), left: 0, bottom: 0, right: 0 };
           const probe = [g.widgets.close, g.widgets.zoom, g.widgets.collapse, g.grow].map(r => ({ x: r.left + 8, y: r.top + 8 }));
           trace.hits = probe.map(p => E.proceduralFramePartAt(g, chain, p));
+        } else {
+          // Utility (§9.9): box centres, box corners (inset-1 edge), the grow rect; message 6 draws the grow box (UM4).
+          const probe = [g.widgets.close, g.widgets.zoom, g.widgets.collapse, g.grow].flatMap(r => [{ x: r.left + 4, y: r.top + 4 }, { x: r.left, y: r.top }]);
+          trace.hits = probe.map(p => E.proceduralFramePartAt(g, chain, p));
+          if (part === 0) E.drawProceduralFrameGrowIcon(port, chain, input, trace);
         }
       } catch (e) { yield { key, trace: { family: 'proceduralFrame', inputs: trace.inputs, error: String(e.message) } }; continue; }
       yield { key, trace: { ...trace, pixels: sha(port.data) } };
