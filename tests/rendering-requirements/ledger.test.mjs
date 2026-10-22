@@ -657,12 +657,13 @@ test('tab/header source-rule port (main 1.23.0) preserves the exact 1.22.0 ledge
   for (const slug of ['1984','1990','apple-lisa','evolution','windows-31','windows-95']) assert.match(added.find(a => a.caseId === `${slug}.header-surface.sampled` && a.requirementId === 'state.header-raw-dispatch').rationale, /Selection-non-discriminating/);
   for (const slug of ['1990','apple-lisa','windows-31','windows-95']) assert.match(added.find(a => a.caseId === `${slug}.tab.public-rows.sampled` && a.requirementId === 'tab.state-selection').rationale, /selection-non-discriminating/);
   // main's totals (216/18/1494 of 1,728) hold for the main lineage: the live families with the v2-only
-  // scroll-bar and push-button transitions undone. Live, the scroll-bar closure of #374 moves the 18
-  // mismatched state-selection rows to 13 verified and 5 unknown (scrollbar@1.3.0).
-  const mainLineage = assemble(sources.base, sources.families.map(f => ['scrollbar', 'push-button'].includes(f.family) ? baseFamily(f) : f)).ledger;
+  // scroll-bar, push-button and slider transitions undone. Live, the scroll-bar closure of #374 moves the 18
+  // mismatched state-selection rows to 13 verified and 5 unknown (scrollbar@1.3.0), and slider@1.1.0 adds
+  // 54 obligations and records 33 slider mismatches against #407.
+  const mainLineage = assemble(sources.base, sources.families.map(f => ['scrollbar', 'push-button', 'slider'].includes(f.family) ? baseFamily(f) : f)).ledger;
   assert.deepEqual(makeReport(mainLineage).requirementStatus.counts, { verified: 216, mismatched: 18, unsupported: 0, unknown: 1494 });
   assert.equal(makeReport(mainLineage).cases.length, 234);
-  assert.deepEqual(makeReport(live).requirementStatus.counts, { verified: 229, mismatched: 0, unsupported: 0, unknown: 1499 });
+  assert.deepEqual(makeReport(live).requirementStatus.counts, { verified: 229, mismatched: 33, unsupported: 0, unknown: 1520 });
   assert.equal(makeReport(live).cases.length, 234);
 });
 
