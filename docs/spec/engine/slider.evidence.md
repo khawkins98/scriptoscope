@@ -353,6 +353,7 @@ empty until the Tier-1 review.
 | CDEF 3 `0xeca..0xed0` | `$A8A3` EraseRect(contrlRect) | |
 | listing grep | `$A1AD` Gestalt appears only at `0x18cc` (in `0x18b2` HasColorQD, 'qd  ') and `0x2694` (in `0x2664`, 'Copl'): no Appearance ('appr') check guards `$AA73` in CDEF 3 | |
 | listing grep | `$AA73` appears once in CDEF 3 (`0xec6`) | |
+| kDEF 0 `0x7196..0x71aa` | after the same selector-29 call, GetBackColor and GetForeColor read back and compared: consistent with a background set-up | |
 | cross-check | same selector and argument layout (handle, depth word, `moveb #1`, `movew #29,d0`, `$AA73`) in CDEF 4 `0x468..0x476` (depth literal 8), CDEF 7 `0x2ba..0x2c8` (depth literal 16) and kDEF 0 `0x7184..0x7192` (depth `fp@(18)`); selector loaded as a plain word, as for the scroll bar's selectors 5 and 21 (kDEF 0 `0x9fb6`, `0x9fcc`) | |
 
 Identity: `$AA73` = Control Manager dispatch (`_ControlDispatch`), absent from
@@ -413,5 +414,5 @@ the unique entry with the value.
 
 | addr | fact | verifier |
 |---|---|---|
-| CDEF 3 `0x4b6..0x4fd` | message switch (E4): the only value writers are message 3 (`0x5b8`), message 26 (`0x750..0x776`) and message 5 (`0xd20..0xd2e` SetCtlValue); none tests part 22/23 | |
+| CDEF 3 `0x4b6..0x4fd` | message switch (E4): the only value writers are message 3 (`0x5b8`), message 26 (`0x750..0x77a`) and message 5 (`0xd20..0xd2e` SetCtlValue); none tests part 22/23 | |
 | CDEF 3 `0x668..0x6a0` | parts 22/23 appear only in message 34's sound-tag selection | |
