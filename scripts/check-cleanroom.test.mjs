@@ -102,6 +102,47 @@ test('the brief may only allow paths the linter scans', () => {
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
 
+test('brief-scope catches bare directories, unbackticked paths and link targets', () => {
+  const briefOf = list => `# Brief\n\n## Allowed paths\n\n${list}\n\n## What your code must pass\n`;
+  const root = tree({
+    'src/index.ts': 'export {};\n',
+    'package.json': '{}\n',
+    'LEARNINGS.md': 'notes\n',
+    'tests/a.test.mjs': 'export {};\n',
+    'docs/spec/engine/tile.md': 'ok\n',
+    'docs/spec/engine/tile.evidence.md': 'evidence\n',
+    'docs/spec/notes.md': 'notes\n',
+    'docs/spec/engine/IMPLEMENTER-BRIEF.md': '',
+  });
+  const hits = list => {
+    writeFileSync(join(root, 'docs/spec/engine/IMPLEMENTER-BRIEF.md'), briefOf(list));
+    return checkCleanroom(root).hits.filter(h => h.rule === 'brief-scope').map(h => h.text);
+  };
+  try {
+    const ok = '- `docs/spec/engine/*.md` except `*.evidence.md`; start with [tile.md](tile.md).\n- Code: `src/` and `package.json`.\n- Apple headers (`Traps.h`, `Quickdraw.h`), Inside Macintosh, and/or prose.\n- Enforced by `scripts/check-cleanroom.mjs`.';
+    assert.deepEqual(hits(ok), []);
+    assert.deepEqual(hits(ok + '\n- `tests`'), ['tests'], 'bare top-level directory, backticked');
+    assert.deepEqual(hits(ok + '\n- the harness under `tests/`'), ['tests'], 'directory with a trailing slash');
+    assert.deepEqual(hits(ok + '\n- also tests/a.test.mjs when asked'), ['tests/a.test.mjs'], 'unbackticked path');
+    assert.deepEqual(hits(ok + '\n- read LEARNINGS.md first'), ['LEARNINGS.md'], 'unbackticked top-level file');
+    assert.deepEqual(hits(ok + '\n- see [the notes](../notes.md)'), ['docs/spec/notes.md'], 'link target relative to the brief');
+    assert.deepEqual(hits(ok + '\n- see [the notes](notes.md)'), ['docs/spec/notes.md'], 'link target resolved via docs/spec');
+    assert.deepEqual(hits(ok + '\n- `docs/spec/engine/*.md`, including `docs/spec/engine/`'), ['docs/spec/engine'], 'a directory holding evidence is not in scope');
+    assert.deepEqual(hits(ok + '\n- `docs/spec/*.md`'), ['docs/spec/*.md'], 'a glob matching an unscanned file');
+    assert.deepEqual(hits(ok + '\n- anything under tests/ or scripts/'), ['tests'], 'unbackticked directory with a trailing slash (scripts/ does not exist yet, so it opens nothing)');
+    mkdirSync(join(root, 'scripts'), { recursive: true }); writeFileSync(join(root, 'scripts/x.mjs'), 'export {};\n');
+    assert.deepEqual(hits(ok + '\n- anything under tests/ or scripts/'), ['tests', 'scripts']);
+    assert.deepEqual(hits(ok + '\n- the [repo](../../../) itself'), ['. (the whole repository)'], 'a link to the repo root');
+    assert.deepEqual(hits(ok + '\n- [up](../../../../elsewhere.md)'), ['../../../../elsewhere.md'], 'a path outside the repo');
+    for (const forbidden of ['`.scratch/k231-kdef/kDEF/k231-kdef0.asm`', '.scratch/k231-kdef/', '`/Users/me/Documents/Scriptoscope-maintainer-assets/`', '~/Documents/Scriptoscope-maintainer-assets/x', '`docs/spec/*.evidence.md`', '`docs/spec/engine/missing.evidence.md`', '`*.asm`', '`campaign/v2-lanes/L2/`', '`/Users/me/notes/x.md`', '~/notes/y', '/opt/thing/z', '[listing](https://git-home.allaboutken.com/khawkins98/scriptoscope-assets)', '`ssh://git@example.org/store.git`', 'https://example.org/apple-docs']) {
+      const found = hits(`${ok}\n- also ${forbidden}`);
+      assert.equal(found.length, 1, `${forbidden}: ${JSON.stringify(found)}`);
+    }
+    writeFileSync(join(root, 'docs/spec/engine/IMPLEMENTER-BRIEF.md'), briefOf(`${ok}\n- the listing .scratch/notes`) + '\nOutside the section, naming .scratch and *.asm as forbidden is fine.\n');
+    assert.deepEqual(checkCleanroom(root).hits.map(h => [h.rule, h.line]).filter(([r]) => r === 'listing-path'), [['listing-path', 9]], 'listing-path applies inside Allowed paths only');
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
 test('engine specs are linted, evidence appendices are not', () => {
   const root = tree({
     'src/index.ts': 'export {};\n',
