@@ -16,6 +16,7 @@
 //         16 × 16 image + mask record);
 //   ics8  the glyph map's raster for the id, when inspector.iconIndex lists an
 //         `ics8` at that id (decoded with the ics# mask applied by the loader).
+//   actb / clut  inspector.colorTables[`type:id`] (entries in index order).
 import type { LoadedTheme } from '../../types.js';
 import type { Pixmap } from '../qd/types.js';
 import type { IconSource } from '../qd/region.js';
@@ -58,6 +59,10 @@ async function themeProvider(theme: LoadedTheme, tier: 'archive' | 'base', name:
       // when this fork ships an ics8 at the id (never fall back to ics4, AI4).
       const url = icons.some(i => i.id === id && i.type === 'ics8') ? theme.glyphs?.[String(id)] : undefined;
       return url ? [key, await load(url)] : null;
+    }
+    if (type === 'actb' || type === 'clut') {
+      const table = theme.inspector?.colorTables?.[`${type}:${id}`];
+      return table ? [key, table] : null;
     }
     return null;
   }));

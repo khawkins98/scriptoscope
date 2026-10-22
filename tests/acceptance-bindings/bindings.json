@@ -81,7 +81,7 @@
     },
     {
       "path": "tools/theme-loader/convert.js",
-      "sha256": "b5eb0f585ea8f41d45a447ab9d29265c588aa648bc51ad9dfb4d00de805e2233"
+      "sha256": "82aa8e655d3e95cffa58f4cd88c0e022c58b55871d2ce38c23ec58affdff15a5"
     },
     {
       "path": "tools/theme-loader/decoders/cicn.js",
@@ -133,7 +133,7 @@
     },
     {
       "path": "tools/theme-loader/loadKaleidoscopeScheme.js",
-      "sha256": "f4d6a420a1495de2a830ee91a6aa3ba2cedae54a242a8b296bca972821b39cc8"
+      "sha256": "9ef0c518b44d57e587ffdff34efbed3a61112024ba2c04231c4f32c1b14e3cb9"
     },
     {
       "path": "tools/theme-loader/loadProvenance.js",

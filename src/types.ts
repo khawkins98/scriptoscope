@@ -83,29 +83,25 @@ export interface WindowType {
   /**
    * Which compositor renders this window type. ABSENT (the default) selects
    * the SLICED path — the kDEF cicn 9-walk in composeChrome.ts, driven by the
-   * `edges` recipe. `'corner-sprite'` selects the procedural Platinum
-   * corner-sprite model (composeCornerSprite.ts): a code-baked 1px frame ring,
-   * a pinstripe-cicn-tiled title bar, beveled-square widgets, and a grow-box
-   * sprite — used for look-only schemes that ship the document corner cicns but
-   * no wnd#/cinf (apple-platinum-2, platinum-8, system7-nostalgia-silver). See
-   * docs/spec/platinum-wdef125-decode.md.
+   * `edges` recipe. `'corner-sprite'` (the loader's name for schemes with no
+   * wnd# recipe: apple-platinum-2, black-platinum, platinum-8, slimes,
+   * system7-nostalgia-silver) selects Kaleidoscope's built-in window frame, the
+   * v2 engine family proceduralFrame (docs/spec/engine/procedural-frame.md),
+   * which reads its art by resource id and ignores `parts`, `sprites` and
+   * `widgets` below.
    */
   model?: 'sliced' | 'corner-sprite';
   /**
-   * Sprite cicns the corner-sprite model tiles/stamps (bundle-relative PNG
-   * paths). `pinstripe` is the title-bar fill cicn (e.g. -14331
-   * `document-racing-stripes`, -14321 alert, -14325 dialog, -14314 utility) —
-   * ABSENT for title-LESS frames (alert/dialog/no-title utility), which draw
-   * only the frame ring. `growBox` is the bottom-right size box (-14330
-   * `active-grow-box`, or -14313 for utility). Only read when
-   * `model === 'corner-sprite'`.
+   * Loader-synthesised sprite paths for corner-sprite window types (the
+   * pinstripe and grow-box cicns). Kept in the theme schema for compatibility;
+   * the runtime no longer reads them (the built-in frame selects its stripes
+   * and grow box by id, procedural-frame §3.5).
    */
   sprites?: { pinstripe?: string; growBox?: string };
   /**
-   * Title-bar widget glyphs for the corner-sprite model, left→right (`close`
-   * anchors left, `collapse`/`zoom` anchor right). Absent ⇒ the document set
-   * [close, collapse, zoom]. Empty ⇒ no widgets (side/no-title utility).
-   * Only read when `model === 'corner-sprite'`.
+   * Loader-synthesised widget list for corner-sprite window types. Kept for
+   * compatibility; the runtime's widget set comes from the declared window
+   * record (src/engine/tables/proceduralFrame.ts PF_WINDOW_SLUGS).
    */
   widgets?: ('close' | 'collapse' | 'zoom')[];
 }
@@ -376,6 +372,10 @@ export interface ThemeInspector {
   /** First-occurrence 16 × 16 ics# planes by id string: 64 raw bytes, the
    * 32-byte 1-bit image then the 32-byte mask (rows of 2 bytes, MSB first). */
   iconMaskPlanes?: Record<string, number[]>;
+  /** Colour-table resources (`actb`, `clut`) keyed `type:id`, entries in index
+   * order: stored 16-bit channels plus the display colour under the load's
+   * display policy. Read by engine families (procedural-frame §3.5, §5A). */
+  colorTables?: Record<string, { entries: Array<{ value: number; rgb16: [number, number, number]; rgb: [number, number, number] }> }>;
   iconIndex: Array<{
     id: number;
     type: 'icl4' | 'ics4' | 'icl8' | 'ics8';

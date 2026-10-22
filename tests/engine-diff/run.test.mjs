@@ -81,6 +81,17 @@ test('injected change, scrollbar: a missing pressed-tier track is caught in the 
   assert.ok(r.errors.some(e => /not listed in expected\/scrollbar\.json/.test(e)));
 });
 
+test('injected change, proceduralFrame: a missing zoom icon is caught in the hilited zoom-bearing cells only', async () => {
+  const drop = entries => entries.filter(([k]) => k !== 'ics#:-14334');
+  const head = await computeFamily('proceduralFrame', { slugs: ['apple-platinum-2'], mutate: drop });
+  const base = subset(committed('proceduralFrame'), 'apple-platinum-2');
+  const r = compare({ family: 'proceduralFrame', base, head, rules: ruleIds(FAMILIES.proceduralFrame.rules) });
+  assert.ok(r.diffs.length > 0, 'the gate sees the change');
+  // Only the zoom-variation document windows draw (or hit-test) the zoom icon, and only when hilited (§5 row 12).
+  assert.ok(r.diffs.every(d => /^apple-platinum-2\/(collapsed-)?document-window\/active\//.test(d.key)), r.diffs.map(d => d.key).join(', '));
+  assert.ok(r.errors.some(e => /not listed in expected\/proceduralFrame\.json/.test(e)));
+});
+
 test('declaredFromBody reads engine-diff lines from a PR body', () => {
   assert.deepEqual([...declaredFromBody('Fixes x.\n\nengine-diff: scrollbar, window\n')], ['scrollbar', 'window']);
   assert.deepEqual([...declaredFromBody('engine-diff: none')], []);
