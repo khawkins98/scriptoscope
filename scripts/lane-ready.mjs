@@ -25,13 +25,18 @@
 //       whose expected/ or baselines/ file changed count as declared),
 //       validate-source (documentSha256 pins), typecheck,
 //       npm test;
-//   - the branch silently reverts a base commit (see findReverts): a file the PR changes
-//     was also changed by one of the last 50 first-parent base commits before the
-//     merge-base, and the PR's diff undoes every hunk that commit made to it (its added
-//     lines removed, its removed lines restored), or restores the file's pre-commit
-//     blob. This is a branch built on an old tree and given a new parent (#440 undid
-//     #434, #435 and #438 that way). A deliberate revert passes when a branch commit
-//     says `This reverts commit <sha>` or with --allow-revert <sha>;
+//   - the branch silently reverts a base commit (see findReverts). The window is the last
+//     50 first-parent base commits before the merge-base overall (about a day of v2),
+//     filtered to those that changed a file the PR changes. A commit counts when the PR's
+//     diff undoes every hunk it made, as those hunks stand at the merge-base (its added
+//     lines removed, its removed lines restored), or restores the file's pre-commit blob.
+//     This is a branch built on an old tree and given a new parent (#440 undid #434, #435
+//     and #438 that way). A deliberate revert passes when a branch commit says
+//     `This reverts commit <sha>` or with --allow-revert <sha> (7+ hex characters).
+//     Known limits: commits older than the window, a revert of only some of a commit's
+//     hunks, and removal-only reverts (deleted files, or lines a commit only added that
+//     are deleted or replaced in place, e.g. a CHANGELOG conflict resolved to "ours")
+//     unless the same commit is also undone with old content restored;
 //   - HEAD moved or the worktree became dirty while the checks ran.
 //
 // gen-trap-table needs the private Traps.h: pass --traps-h <path> or set
@@ -234,7 +239,7 @@ export function parseHunks(text) {
   const hunks = [];
   let h = null;
   for (const line of text.split('\n')) {
-    if (line.startsWith('@@')) { h = { removed: [], added: [] }; hunks.push(h); continue; }
+    if (line.startsWith('@@')) { const m = /^@@ -(\d+)(?:,(\d+))? /.exec(line); h = { removed: [], added: [], oldStart: m ? +m[1] : 0, oldLen: m ? +(m[2] ?? 1) : 0 }; hunks.push(h); continue; }
     if (!h) continue;
     if (line.startsWith('-')) h.removed.push(line.slice(1));
     else if (line.startsWith('+')) h.added.push(line.slice(1));
@@ -267,19 +272,27 @@ function hunksByFile(text) {
 }
 
 /**
- * Silent reverts: base commits (the last `window` first-parent commits up to the merge-base)
- * whose changes the branch's diff (mergeBase..head) undoes. For each file the branch
- * changes, the base commits that changed it (newest first, c1..cn) count as reverted when
+ * Silent reverts: base commits whose changes the branch's diff (mergeBase..head) undoes.
+ * The window is the last `window` first-parent commits up to the merge-base overall (one
+ * log call), filtered per file to those that changed it. For each file the branch changes,
+ * those commits (newest first, c1..cn) count as reverted when
  *   - blob: the head blob differs from the merge-base's and equals the file as it was
  *     before some ck (ck^1); then c1..ck are all undone (a stale copy of the file), or
- *   - hunks: every significant hunk of ck^1..ck that is still intact at the merge-base is
- *     undone by one hunk of mergeBase..head, which removes all of ck's added lines (as a
- *     run), adds back all of ck's removed lines (as a run), and otherwise adds exactly as
- *     many lines as it removes (neighbouring line edits merged into the hunk). Removing
- *     the base's lines inside a larger deletion or rewrite is an edit, not a revert.
+ *   - hunks: ck's changes as they stand at the merge-base (the hunks of ck^1..mergeBase that
+ *     overlap ck's own hunks, so a later base commit rewording ck's lines is folded in)
+ *     are, for every significant one, undone by one hunk of mergeBase..head. That hunk
+ *     removes all of the added lines (as a run) and adds back all of the removed lines (as
+ *     a run). When old lines come back it may add extra lines (a lane line next to the
+ *     restored block); for a pure addition it must add exactly as many other lines as it
+ *     removes, since extra lines there are indistinguishable from a rewrite. Removing the
+ *     base's lines inside a larger deletion or rewrite is an edit, not a revert.
  * Removal-only evidence (a deleted file, or hunks the base only added that the branch
  * deletes exactly) counts only when the same commit is also undone with old content
- * restored: a blob match on a kept file, or a hunk whose removed lines come back.
+ * restored (a blob match on a kept file, or a hunk whose removed lines come back), or is
+ * undone hunk-wise in two or more kept files.
+ * Not detected: commits older than the window, a revert of only some of a commit's hunks,
+ * and removal-only reverts without that corroboration (deleting files a commit added, or a
+ * pure addition replaced in place, e.g. a CHANGELOG conflict resolved to "ours").
  * A rebased branch carries the base's lines through, so its diff never removes them; an
  * edit to a line the base added replaces it with new text, not the pre-change text.
  * Commits named by `allow` (sha prefixes) or by a branch commit's `This reverts commit
@@ -309,7 +322,7 @@ export function findReverts(root, mergeBase, head = 'HEAD', { window = 50, allow
   const pr = files.filter(f => touchedBy.has(f));
   if (!pr.length) return [];
   const messages = git(root, ['log', '--format=%B', `${mergeBase}..${head}`]);
-  const allowed = sha => allow.some(a => a && sha.startsWith(a)) || messages.includes(`This reverts commit ${sha}`);
+  const allowed = sha => allow.some(a => /^[0-9a-f]{7,40}$/.test(a) && sha.startsWith(a)) || messages.includes(`This reverts commit ${sha}`);
   const tree = rev => new Map(git(root, ['ls-tree', '-r', '--full-tree', rev]).split('\n').filter(Boolean).map(l => { const [meta, path] = l.split('\t'); return [path, meta.split(' ')[2]]; }));
   const headTree = tree(head), baseTree = tree(mergeBase);
   const diffArgs = ['diff', '-U0', '--no-color', '--no-ext-diff', '--no-renames', '--src-prefix=a/', '--dst-prefix=b/'];
@@ -319,6 +332,14 @@ export function findReverts(root, mergeBase, head = 'HEAD', { window = 50, allow
     if (!commitHunks.has(c)) commitHunks.set(c, hunksByFile(git(root, [...diffArgs, parent.get(c), c, '--', ...pr.filter(f => touchedBy.get(f).some(t => t.commit === c))])));
     return commitHunks.get(c).get(file) ?? [];
   };
+  const cumHunks = new Map();
+  const cumOf = (c, file) => {
+    if (!cumHunks.has(c)) cumHunks.set(c, hunksByFile(git(root, [...diffArgs, parent.get(c), mergeBase, '--', ...pr.filter(f => touchedBy.get(f).some(t => t.commit === c))])));
+    return cumHunks.get(c).get(file) ?? [];
+  };
+  // Old-side span of a -U0 hunk; a pure insertion after line n sits at n + 0.5.
+  const span = h => (h.oldLen ? [h.oldStart, h.oldStart + h.oldLen - 1] : [h.oldStart + 0.5, h.oldStart + 0.5]);
+  const overlaps = (a, b) => { const [a0, a1] = span(a), [b0, b1] = span(b); return a0 <= b1 && b0 <= a1; };
   const found = [];
   for (const file of pr) {
     const headBlob = headTree.get(file) ?? null, baseBlob = baseTree.get(file) ?? null;
@@ -328,25 +349,32 @@ export function findReverts(root, mergeBase, head = 'HEAD', { window = 50, allow
     const k = touching.findIndex(t => t.before === headBlob && t.after !== headBlob);
     if (k >= 0) for (const t of touching.slice(0, k + 1)) flagged.set(t.commit, headBlob ? { how: `restores the version before ${touching[k].commit.slice(0, 12)}`, strong: true } : { how: `deletes the file added by ${touching[k].commit.slice(0, 12)}`, strong: false });
     const p = prHunks.get(file) ?? [];
-    let baseLines = null;
     for (const { commit } of touching) {
       if (flagged.has(commit) || !p.length) continue;
-      baseLines ??= baseBlob ? git(root, ['cat-file', 'blob', baseBlob]).split('\n') : [];
-      const live = hunksOf(commit, file).filter(h => significant(h.added.length ? h.added : h.removed) && containsRun(baseLines, h.added));
+      // ck's hunks as they stand at the merge-base: the cumulative diff ck^1..mergeBase,
+      // restricted to the hunks that overlap ck's own (later base commits that reworded
+      // ck's lines are folded in; regions a later base commit put back drop out).
+      const own = hunksOf(commit, file);
+      const live = cumOf(commit, file).filter(d => significant(d.added.length ? d.added : d.removed) && own.some(h => overlaps(h, d)));
       // q is h reversed, give or take line-for-line edits of neighbouring lines that git
       // merged into the same hunk (as many other lines added as removed). Deleting the
       // base's lines along with other code, or rewriting them, is an edit, not a revert.
-      const undone = h => p.some(q => containsRun(q.removed, h.added) && containsRun(q.added, h.removed) && q.added.length - h.removed.length === q.removed.length - h.added.length);
+      const undone = h => p.some(q => containsRun(q.removed, h.added) && containsRun(q.added, h.removed) && (h.removed.length ? q.removed.length - h.added.length <= q.added.length - h.removed.length : q.added.length - h.removed.length === q.removed.length - h.added.length));
       if (live.length && live.every(undone)) flagged.set(commit, { how: `undoes its ${live.length} hunk(s)`, strong: live.some(h => h.removed.length) });
     }
-    for (const [commit, { how, strong }] of flagged) if (!allowed(commit)) found.push({ file, commit, subject: subject.get(commit) ?? '', how, strong });
+    for (const [commit, { how, strong }] of flagged) if (!allowed(commit)) found.push({ file, commit, subject: subject.get(commit) ?? '', how, strong, hunk: how.startsWith('undoes') });
   }
   // Removal alone is weak evidence: deleting a recently added file, or deleting exactly
   // the lines a base commit only added, is often a deliberate removal. A weak flag counts
   // only when the same base commit is also undone strongly (a file restored to its old
   // blob, or old lines put back) somewhere in the branch.
   const corroborated = new Set(found.filter(f => f.strong).map(f => f.commit));
-  return found.filter(f => corroborated.has(f.commit)).map(({ strong: _, ...f }) => f);
+  // Exact removal of one base commit's added lines from two or more kept files is the
+  // stale-tree shape too (#435 added doc entries to DECISIONS.md and the ledger).
+  const hunkFiles = new Map();
+  for (const f of found) if (f.hunk) hunkFiles.set(f.commit, (hunkFiles.get(f.commit) ?? 0) + 1);
+  for (const [c, n] of hunkFiles) if (n >= 2) corroborated.add(c);
+  return found.filter(f => corroborated.has(f.commit)).map(({ strong: _, hunk: __, ...f }) => f);
 }
 
 function runCommand(root, c, verbose) {
@@ -462,6 +490,8 @@ if (process.argv[1] && realpathSync(fileURLToPath(import.meta.url)) === realpath
   const known = new Set(['--skip-tests', '--verbose', ...valued]);
   const unknown = args.filter((a, i) => a.startsWith('--') && !known.has(a) && !valued.includes(args[i - 1]));
   const allowRevert = args.flatMap((a, i) => (a === '--allow-revert' && args[i + 1] ? [args[i + 1]] : []));
+  const badAllow = allowRevert.filter(a => !/^[0-9a-f]{7,40}$/.test(a));
+  if (badAllow.length) { console.error(`lane:ready: --allow-revert needs a commit sha of 7 to 40 hex characters: ${badAllow.join(' ')}`); process.exit(2); }
   if (unknown.length) { console.error(`lane:ready: unknown option(s) ${unknown.join(' ')}`); process.exit(2); }
   const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
   const trapsH = opt('--traps-h') ?? process.env.SCRIPTOSCOPE_TRAPS_H ?? null;

@@ -271,6 +271,39 @@ test('a branch whose diff undoes a base commit fails and names the file and the 
   } finally { t.done(); }
 });
 
+test('stacked base commits on the same line are measured at the merge-base (the #435 then #438 shape)', () => {
+  const t = lane();
+  try {
+    const { src, advance, reparent } = withBase(t);
+    const file = ['alpha', 'bravo', 'charlie', 'delta', 'echo', 'foxtrot'];
+    t.write('src/x.mjs', src(file)); t.commitPush('add x'); t.g('push', '-q', 'origin', 'HEAD:refs/heads/v2');
+    const c1 = advance('src/x.mjs', src(['alpha', 'bravoFirstWording', 'charlie', 'delta', 'echo', 'foxtrot']), 'docs: first wording (#935)');
+    advance('src/x.mjs', src(['alpha', 'bravoSecondWording', 'charlie', 'delta', 'echo', 'foxtrot']), 'docs: reword (#938)');
+    // The lane carries the pre-c1 file plus an unrelated edit, so no blob matches.
+    t.write('src/x.mjs', src(['alpha', 'bravo', 'charlie', 'delta', 'echo', 'foxtrotLane'])); t.commitPush('lane edit');
+    reparent();
+    const r = t.run();
+    assert.equal(rowOf(r, 'no silent reverts').ok, false, r.summary);
+    const found = findReverts(t.root, t.g('merge-base', 'HEAD', 'origin/v2'));
+    assert.ok(found.some(f => f.file === 'src/x.mjs' && f.commit === c1 && /undoes its 1 hunk/.test(f.how)), JSON.stringify(found));
+  } finally { t.done(); }
+});
+
+test('a lane line next to a restored hunk still counts as a revert', () => {
+  const t = lane();
+  try {
+    const { src, advance, reparent } = withBase(t);
+    t.write('src/x.mjs', src(['alpha', 'bravo', 'charlie', 'delta', 'echo'])); t.commitPush('add x'); t.g('push', '-q', 'origin', 'HEAD:refs/heads/v2');
+    const c = advance('src/x.mjs', src(['alpha', 'bravo', 'charlieV2', 'delta', 'echo']), 'fix: base rewords charlie');
+    // Stale charlie plus a new lane line right after it: git merges both into one hunk.
+    t.write('src/x.mjs', src(['alpha', 'bravo', 'charlie', 'laneLine', 'delta', 'echo'])); t.commitPush('lane adds a line');
+    reparent();
+    const r = t.run();
+    assert.equal(rowOf(r, 'no silent reverts').ok, false, r.summary);
+    assert.match(rowOf(r, 'no silent reverts').note, new RegExp(`src/x\\.mjs undoes its 1 hunk\\(s\\) ${c.slice(0, 12)}`));
+  } finally { t.done(); }
+});
+
 test('a normal branch rebased on the base passes the revert check', () => {
   const t = lane();
   try {
