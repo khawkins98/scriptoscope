@@ -219,7 +219,7 @@ and `tile` = cinf byte 2. The body is **not** filled and no colour is sampled.
 
 These are the same piece rules as the kDEF cinf border ([qd-primitives](qd-primitives.md)
 table E and "cinf border rects", with `D = R`), decoded separately here from
-CDEF 5's own copy.
+CDEF 5's own copy (except that CDEF 5's tile blit does not cut the mask rect with the source, BLIT5).
 
 ### 4.5 Inner rect
 
@@ -320,7 +320,7 @@ draw, and restore the colours (CDEF 5 `0x194c..0x1a4a`, `0x154a..0x18f4`).
 | BLIT2 | BLIT1 or BLIT5, `lowDepth` or a non-colour port | the source is the cicn's 1-bit icon image instead of its pixel map | CDEF 5 `0x19ba..0x19d0`, `0x16ea..0x170a` |
 | BLIT3 | tiler, one-column source, destination wider than 1 | per source row from the top while inside the destination: when the cicn's mask bit at (column, row) is set, a one-pixel line (MoveTo `$A893` / LineTo `$A891`) across the destination in that pixel's colour (COL1); clear rows are left alone | CDEF 5 `0x15de..0x1654` |
 | BLIT4 | tiler, one-row source, destination taller than 1 (BLIT3 not taken) | per source column, the same with vertical lines | CDEF 5 `0x1658..0x16b8` |
-| BLIT5 | tiler otherwise | 1:1 tiles of the source; the last tile is cut short; masked as BLIT1 | CDEF 5 `0x16bc..0x18c4` |
+| BLIT5 | tiler otherwise | 1:1 tiles of the source; the last tile is cut short; masked through the cicn mask, but with the mask rect the **uncut** tile source rect, so a cut tile's mask rect is larger than its source rect (Apple requires them to be the same size): how the cut tile is masked is **not decoded** (§6 item 6). No corpus effect: every corpus tiled source that is cut is fully mask-set | CDEF 5 `0x16bc..0x18c4` |
 | BLIT6 | BLIT5 direction and axis | forward: first tile at the top-left, a cut tile keeps the source's leading columns/rows; reverse: first tile at the bottom-right, a cut tile keeps the trailing ones. Tiles advance along x when the destination's height equals the source's, otherwise along y | CDEF 5 `0x1714..0x1800`, `0x1800..0x18c2` |
 | BLIT7 | BLIT1 or BLIT5 while a picture is being recorded (BLIT1 also with custom bottlenecks) | BLIT1: CopyBits `$A8EC` `srcCopy` with a mask region made from the cicn mask (BitMapToRegion `$A8D7`, MapRgn `$A8FB`); BLIT5: CopyBits `srcCopy` **unmasked** | CDEF 5 `0x19da..0x1a1c`, `0x1790..0x17ac`, `0x185c..0x1878` |
 | BLIT8 | any helper | skipped when the destination misses the clip region's bounding box vertically, or (tiler) either rect is empty. Pixel-neutral | CDEF 5 `0x1562..0x15ca`, `0x198e..0x19a0` |
@@ -341,10 +341,10 @@ pixel is replaced; where it is clear the pixel is left alone.
 
 | # | condition | output | source |
 |---|---|---|---|
-| COL1 | a cicn pixel colour (BLIT3/BLIT4 lines, FB1–FB3), not `lowDepth` | the stored pixel value (1, 2, 4 or 8 bit; the leftmost pixel in the high bits) looked up in the cicn's colour table: the entry at that index when the index is within the table and the entry's value equals the pixel; else, when the table's last entry has value 0, the entry at that index (by position); else the entry whose value equals the pixel, searched from the last entry down; entry 0 if none | CDEF 5 `0x129c..0x1460`, `0x10c4..0x129a`, `0x1d08..0x1d7c` |
+| COL1 | a cicn pixel colour (BLIT3/BLIT4 lines, FB1–FB3), not `lowDepth` | the stored pixel value (1, 2, 4 or 8 bit; the leftmost pixel in the high bits) looked up in the cicn's colour table: the entry at that index when the index is within the table and the entry's value equals the pixel; else, when the table's last entry has value 0, the entry at that index (by position, with no range check: a value past the end of the table reads past it, **undefined, not decoded**; no corpus case); else the entry whose value equals the pixel, searched from the last entry down; entry 0 if none | CDEF 5 `0x129c..0x1460`, `0x10c4..0x129a`, `0x1d08..0x1d7c` |
 | COL1a | COL1 at `lowDepth` | the cicn's 1-bit icon image bit: set → black, clear → white | CDEF 5 `0x12f2..0x137a`, `0x112c..0x11b4` |
 | COL1b | COL1 coordinates | the point is read as column and row counted from the cicn's first stored pixel, with no range check (every corpus cicn in this family has bounds at (0, 0)) | CDEF 5 `0x12b4..0x12f0`, `0x137e..0x1392` |
-| COL1c | COL1 on a 16- or 32-bit pixel map | not handled: **not decoded** (no corpus case) | CDEF 5 `0x1394..0x13ac`, `0x11ce..0x11e6` |
+| COL1c | COL1 on a 16- or 32-bit pixel map | not handled: no pixel value is read, so the colour is undefined: **not decoded** (no corpus case) | CDEF 5 `0x1394..0x13ac`, `0x11ce..0x11e6` |
 | COL2 | FB1–FB3 samples | the mask bit is ignored: a sample on a mask-clear pixel still gives that pixel's colour | CDEF 5 `0x108a..0x10c2` |
 | COL3 | fixed colours (16-bit QuickDraw RGB) | dark grey `(0x4445, 0x4444, 0x4444)` (FB7 filled part); lavender `(0xCCCC, 0xCCCC, 0xFFFF)` (FB7 empty part, FB9); black `(0, 0, 0)` and white `(0xFFFF, 0xFFFF, 0xFFFF)` (O2 and the blit helpers) | CDEF 5 `0x7b0..0x7d2`, `0x722..0x726`, `0xe04..0xe34`, `0xc6a..0xcf4` |
 | COL4 | COL3 display (declared) | the engine converts COL3 triples through the same display policy as decoded resource colours (the conversion-time Mac gamma, `tools/theme-loader/mac-gamma.js`). Modern policy; CDEF 5 only hands the triples to QuickDraw | CDEF 5 `0x7b0..0x7d2` |
@@ -355,7 +355,7 @@ pixel is replaced; where it is clear the pixel is left alone.
 |---|---|---|---|
 | CHAIN1 | every cicn request (frame, fill, track, −10224) | made with the current resource file switched to the file named by the `'Copl'` Gestalt response when that call succeeds; the caller's file is restored after | CDEF 5 `0x1aa8..0x1ae8`, `0x1cdc..0x1cde`, `0x1fec..0x200a`, `0x203c..0x203e` |
 | CHAIN2 | every `cinf` and `ppat` request | through the current resource chain (GetResource `$A9A0`, GetPixPat `$AA0C`), no file switch | CDEF 5 `0x2e84..0x2ff0`, `0x43c..0x4fa`, `0x712..0x718` |
-| CHAIN3 | engine (declared) | the chain is the archive's own fork, then its base chain. The Kaleidoscope 2.3.1 control-panel file, which holds `cicn −10224`, `cicn −10223` and `ppat −10064`, is **not** shipped (DECISIONS #5): a recorded deliberate divergence. It matters only for the procedural bar (FB1, FB8/FB9) | CDEF 5 `0x1aa8..0x1ae8` |
+| CHAIN3 | engine (declared) | the chain is the archive's own fork, then its base chain. The Kaleidoscope 2.3.1 control-panel file, which holds `cicn −10224`, `cicn −10223` and `ppat −10064`, is **not** shipped, per DECISIONS #5 (extended to `ppat −10064`): a recorded deliberate divergence. It matters only for the procedural bar (FB1, FB8/FB9) | CDEF 5 `0x1aa8..0x1ae8` |
 | CINF1 | any `cinf` request | found when a handle comes back; the length is never checked (the one length check is on a path no CDEF 5 caller takes) | CDEF 5 `0x2e84..0x2ec8` |
 | CINF2 | bytes read | frame: bytes 0 and 1 (inset, §4.5) and 0, 1, 2 (border, §4.4); fill and track: bytes 0, 2 and 3 (§4.8). No other byte is read | CDEF 5 `0x3fc..0x42e`, `0x207c..0x2086`, `0x2290`, `0x1dc2..0x1dc6`, `0x1f14`, `0x1f3e` |
 | CINF3 | a `cinf` too short for a byte CINF2 reads | reads past the data: **undefined, not decoded**. Declared engine policy: trace the read as unspecified and treat that `cinf` as missing. No corpus case (every progress `cinf` is 18 bytes) | CDEF 5 `0x2e84..0x2ec8` |
@@ -404,7 +404,7 @@ With RECT1, `I` is `14 − 2s` rows tall.
 `w = I.right − I.left`, `range = max − min` (1 when 0), `offset = value − min`,
 each computed from the sign-extended 16-bit values, so neither difference
 wraps. `x = I.left + trunc(w · offset / range)`, stored as 16 bits. The fallback
-uses the same formula on `I_f`.
+uses the same formula on `I_f`. The product `w · offset` is a signed 32-bit multiply and wraps when its magnitude reaches 2^31 (possible only when `w` > 32768).
 
 ### 5.4 Fill and track art (CDEF 5 `0x1d7e..0x1f6a`)
 
@@ -512,8 +512,13 @@ Implementers stop at these and file a spec question.
 3. **`$AA73` identity.** `$AA73` is the Control Manager dispatch trap; it is
    not in Universal Interfaces 3.0.1 `Traps.h`. Selector 6 is IsControlVisible
    in Apple's later Controls.h (not pinned), corroborated by placement (it gates
-   every draw) and by the scroll bar's selector 5, IsControlActive. No
-   Appearance-presence check precedes it.
+   both draw sites) and by the call's shape (the control in, a Boolean out).
+   Within CDEF 5 the gate cannot mean "is active": the drawer has its own
+   inactive branch for hilite 255 (GATE1), which such a gate would make
+   unreachable. The scroll bar's selectors 5 and 21 rest on the same unpinned
+   header, so they are not independent support. Nothing the engine computes
+   depends on the identity: `visible` is an input (§2) with the declared
+   default true. No Appearance-presence check precedes it.
 4. **What the Control Manager does** around message 0 (erasing, clipping to
    `R`) is not in this binary. CDEF 5 sets no clip to `R` on a colour port, so
    DET3 overflow (`value > max`) or art taller than `R` can draw outside `R`.
@@ -524,8 +529,8 @@ Implementers stop at these and file a spec question.
    one pass.
 6. **Degenerate slices.** A cap `a` larger than half the art (SLICE4 reads
    outside or across the art), `2c` larger than the frame art, a frame cicn
-   whose band column `c` lies outside it, or byte 2 ≠ 0 with an empty middle.
-   No corpus case.
+   whose band column `c` lies outside it, or byte 2 ≠ 0 with an empty middle,
+   and a cut tile whose source has mask-clear pixels (BLIT5). No corpus case.
 7. **Short or exotic payloads.** CINF3, COL1c, DATA4. No corpus case.
 8. **The tiler's text font.** Around the one-column line loop (BLIT3, not
    BLIT4) the port's text font is set to −12345 and restored
@@ -534,6 +539,13 @@ Implementers stop at these and file a spec question.
    the data-access record) are Apple's.
 10. **Native confirmation.** No capture of a Kaleidoscope progress bar has been
     compared against this spec.
+11. **Which file `'Copl'` names.** CHAIN1 switches to the file the Gestalt
+    `'Copl'` response names. Which file that is at run time (the scheme file or
+    the control panel), and where the scheme file sits in the chain relative to
+    it, is not decoded. For the eight procedural archives it decides whether
+    their own `cicn −10224` or the control panel's is found, and for
+    monkey-paradise whether the control panel's `ppat −10064` (CHAIN2) is found,
+    so that FB8 replaces FB9. CHAIN3 is the declared engine chain.
 
 ### Corpus impact (own forks)
 
@@ -571,21 +583,21 @@ actually separates; a row no mutation can fail is a finding.
 | rows | assertion | mutations that must fail |
 |---|---|---|
 | RECT1 | `R` = (0, 0, 20, 100) is drawn as (0, 0, 14, 100): nothing at rows ≥ 14, `I` rows `[2, 12)` | using the caller's height (`I` would be rows `[2, 18)`) |
-| GATE1, GATE1a | 1984 inactive draws frame −10077, fill −10076, track −10075; apple-lisa inactive draws −10080/−10079/−10078 | per-part inactive→active fallback (the current runtime's): a synthetic fork with `cinf`/`cicn −10077` but no `cicn −10076` must draw **no** fill, not −10079 |
-| GATE2, GATE3 | the eight procedural archives never request a frame cicn; a synthetic fork with `cicn −10080` but no `cinf −10080` draws the procedural bar | gating on the frame cicn (that fork would draw the frame) |
+| GATE1, GATE1a | 1984 inactive draws frame −10077, fill −10076, track −10075; apple-lisa inactive draws −10080/−10079/−10078 | per-part inactive→active fallback (the current runtime's): a synthetic fork with `cinf`/`cicn −10077` and `cinf`/`cicn −10079` but no `cicn −10076` must draw **no** fill, not −10079 |
+| GATE2, GATE3 | the eight procedural archives never request a frame cicn; a synthetic fork with `cicn −10080` but no `cinf −10080` draws the procedural bar; a synthetic fork with `cinf −10077`, `cinf`/`cicn −10080` and no `cicn −10077`, hilite 254, draws the procedural bar | gating on the frame cicn (that fork would draw the frame); retrying `cicn −10080` after a missing `cicn −10077` (that fork would draw the active frame) |
 | GATE4 | a synthetic fork with `cinf`/`cicn −10080` and no fill/track/pattern draws the frame and nothing else (no procedural bar) | falling back to the procedural bar when the fill is missing |
 | INSET1, INSET2 | synthetic `cinf −10080` = (3, 2, 0, 0) → `I.left = 3`; (1, 2, 0, 0) → `I.left = 2` (the corpus has `k = 2` only, which cannot tell the rows apart) | inset by `k` always (k = 1 gives 1); inset by 2 always (k = 3 gives 2); inset by `s` horizontally (both cases give 2) |
 | DET1, §5.3 | example B split `x = 12` | rounding (gives 13; example A cannot tell); a normalized-then-rounded split |
-| DET2, DET3 | `min = max = 5`, value 5 → `x = I.left`; value −10 of 0..100 in example A geometry → track rect starts at `2 + trunc(96 · −10 / 100) = −7` | clamping value to `[min, max]` (track would start at 2); range 0 treated as "full" |
+| DET2, DET3 | `min = max = 5`, value 5 → `x = I.left`; value −10 of 0..100 in example A geometry → track rect starts at `2 + trunc(96 · −10 / 100) = −7` | clamping value to `[min, max]` (track would start at 2); range 0 treated as "full"; flooring instead of truncating (gives −8) |
 | SLICE1 | a synthetic fork with fill cicn but no fill `cinf` draws no fill | dropping the `cinf` requirement |
 | SLICE3–SLICE6 | example B fill halves `[2,7)` ← `[0,5)`, `[7,12)` ← `[13,18)` and track middle column 9; example A middle column 3 | halves omitted (caps of 8 overlap); stretching the middle; a cap clamp at 4 (the current runtime's) |
-| SLICE7 | 1990 fill (byte 3 = 4) at `L` not a multiple of the middle length: tiles placed from the end | tiling from the start when byte 3 ≠ 0 (1138's byte 3 = 0 cannot catch it) |
-| SLICE2 | windows-31 fill (14 rows) in `I` rows `[2, 12)` covers rows `[0, 14)` | stretching the art to `I`'s height (the current runtime's); clipping it to `I` |
-| FRAME3–FRAME6 | example A frame piece rects and band sources | 9-slice stretching of the bands; using the whole middle when `tile = 0` |
+| SLICE7 | 1990 fill (byte 3 = 4) at `L` = 29: tiles placed from the end, asserted on the trace's tile rects (and pixels) | tiling from the start when byte 3 ≠ 0 (1138's byte 3 = 0 cannot catch it; at even `L` the 1990 fill's two alternating middle columns make both directions pixel-identical) |
+| SLICE2 | windows-31 fill (14 rows) in `I` rows `[2, 12)`: the trace's destination rows are `[0, 14)` | stretching the art to `I`'s height (the current runtime's; visible in pixels); clipping it to `I` (trace: the windows-31 fill's outer rows match the frame band, so pixels may not tell) |
+| FRAME3–FRAME6 | example A frame piece rects; 1984 frame (16 × 14, `tile` = 0): the top band's source rect is `[2, 3) × [0, 2)`, drawn as lines over `[2, 98)` (asserted on the trace); crayon-os frame (70 × 14, `tile` = 1): top band source `[2, 68) × [0, 2)` tiled forward, tiles `[2, 68)` and `[68, 98)`, the second from source `[2, 32)` (trace and pixels) | 9-slice stretching of the bands (crayon-os pixels differ: its 66 band columns are all distinct); using the whole middle when `tile = 0` (1984 trace source rect `[2, 14)`). Example A alone cannot fail either mutation: the 1138 frame is 5 wide, so its middle is the single column 2, and every corpus `tile = 0` band is uniform along its run |
 | IND2, IND3 | 1138 phase 4 → `ppat −10080` and phase written back to 0; phase 9 → `ppat −10080` | modulo the frame count without writing back; treating phase 8–255 as valid frames |
 | IND5 | crayon-os phase 3 → phase point (14, 2); apple-lisa phase 1 → (6, 2) | shifting by `phase` instead of `4·phase`; resetting phase in shift mode |
-| IND1 | probe id is `F_p + 1`: a synthetic fork with `ppat −10080` and −10078 but no −10079 is in shift mode | probing `F_p` or `F_p + phase` |
-| IND6, ERASE2, ERASE3 | 1990 indeterminate: every pixel of `I` is transparent; mask-clear frame pixels (1990 frame −10080 has 48) are transparent | painting `I` with a colour; erasing `R` first; unmasked frame copy |
+| IND1 | probe id is `F_p + 1`: a synthetic fork with `ppat −10080` and −10078 but no −10079 is in shift mode: at phase 2 it fills `I` with `ppat −10080` at phase point (10, 2), not `ppat −10078` at (2, 2) | probing `F_p` or `F_p + phase` |
+| IND6, ERASE2, ERASE3 | 1990 indeterminate: every pixel of `I` is transparent; a synthetic frame `cicn −10080` (with `cinf −10080` = (2, 2, 0, 0)) whose top band source column 2 is mask-clear at row 0: destination row 0 stays transparent over `[2, 98)` | painting `I` with a colour; erasing `R` first; unmasked frame copy (synthetic fork only: no corpus frame, fill or track has a mask-clear pixel in a drawn piece, and the 48 mask-clear pixels of the 1990 frame lie in its interior, which is never drawn) |
 | ERASE4 | example C crayon-os: every pixel of `I` is opaque | masking the pattern |
 | FB1–FB6 | example E: pixel colours on the four bevel lines, the black FrameRect ring, and (0, 13), (99, 0) transparent | a bevel over the whole outer ring (would draw (0, 13) and (99, 0)); sampling (0, 0) for the bottom/right lines (grey instead of white on row 13) |
 | FB7, COL3 | example E (CDEF 5 colours) split at 26, dark grey `(0x4445, 0x4444, 0x4444)` and lavender `(0xCCCC, 0xCCCC, 0xFFFF)` before display conversion | the current runtime's lavender cicn model (−10223 fill / −10224 track) |
@@ -611,15 +623,16 @@ Each item is a decode finding about the current runtime; none has been fixed.
 | `state: 'disabled'` draws as active | hilite 255 draws as inactive | **wrong** |
 | returns `null` (caller fallback) with no frame and no track | CDEF 5 always draws: the procedural bar (§4.9) | **missing** |
 | output height = the frame (or track) cicn height | `R` is forced to 14 rows (RECT1) | **confirmed** for the corpus (every frame is 14 rows), rule **missing** |
-| value normalized, clamped to [0, 1], default 0.5; fill width `round(value · iw)` | integer value/min/max, no clamp, `trunc` (§5.3, DET3) | rounding **replaced**; clamp is modern policy (needs the §2 mapping decision) |
+| value normalized, clamped to [0, 1], default 0.5; fill width `round(value · iw)` | integer value/min/max, no clamp, `trunc` (§5.3, DET3) | rounding **replaced**; the clamp is **wrong** against DET3 for integer inputs and survives only as the declared facade policy of the normalized mapping (§2), pending that decision |
 | interior inset `slice.corner` (else a pixel scan of the frame) × `slice.side` | `k` when `k > 2`, else 2, × `s` (§5.2) | **confirmed** for the corpus (`k = 2`); pixel scan **replaced**; the `k ≤ 2 → 2` rule **missing** |
 | order: track stretched over the whole interior, then the frame 9-slice, then the fill | frame, then fill `[I.left, x)`, then track `[x, I.right)` only (§3.3, DET1) | **replaced** |
+| the frame 9-slice also copies the frame cicn's centre cell over the interior, after the track: the track is replaced by the frame's interior art (opaque where its mask is set, transparent where clear) in every GATE4 archive | the frame has no body (FRAME8); inside `I` only the fill and the track are drawn | **replaced** |
 | frame 9-slice, stretched bands unless `slice.tile` | cinf border: `tile = 0` → one column painted as lines, `tile ≠ 0` → middle tiled (FRAME5, FRAME6) | **replaced** for `tile = 0` (1138, 1984, apple-lisa, windows-31, windows-95) |
 | track stretched (scaled) into the interior; fill 1:1-scaled when narrow, else cap `min(4, …)` + stretched middle; both scaled to the interior height | `cinf` cap `a`, halves when `L ≤ 2a`, one-column lines or tiles, start or end anchored; art keeps its height, centred (§4.8, §5.4) | **replaced** |
 | `copyBits` overwrites with alpha (srcCopy) | CopyMask: mask-clear pixels leave what is under them (BLIT1, BLIT5) | **replaced** |
 | transparent output where nothing is drawn | no erase; uncovered pixels keep the host's pixels (ERASE1–ERASE3) | **confirmed** as the engine representation |
 | no indeterminate mode, no idle, no phase | `'inde'` flag, frame or shift mode, phase advance every 3 ticks (§4.7, §4.10) | **missing** |
-| length at least 16, default 160 | any width (`R.right − R.left`) | modern policy |
+| length at least 16, default 160 | any width (`R.right − R.left`) | declared facade default (modern policy; CDEF 5 has no minimum) |
 
 ## 9. Routine coverage (CDEF 5, 56 in-scope ranges)
 
@@ -629,7 +642,7 @@ CDEF 5 `0x13c` (main), `0x30e` (draw entry), `0x7f4` (device loop), `0x9c2`, `0x
 CDEF 5 `0x5d2` (device pass and procedural bar), `0x35a` (Kaleidoscope art), `0xaa2`, `0xad0`, `0xb02`, `0xbbe`, `0xcfc`, `0xd22`, `0x3000` (port state save and restore),
 CDEF 5 `0xc6a` (port normalise), `0xd60`, `0xe36` (`lowDepth`), `0xe04` (black and white), `0xd96`, `0xde8` (icon prepare and release),
 CDEF 5 `0xf56`, `0xea6` (pattern fill), `0x104a`, `0x108a`, `0x10c4`, `0x129c`, `0x1d08` (pixel colour), `0x1516`, `0x154a` (tiler), `0x18f6`, `0x194c` (rect blit),
-CDEF 5 `0x1d7e` (fill and track slicing), `0x1f72`, `0x1fd2` (frame), `0x1aa8`, `0x1a4c`, `0x1cea` (cicn get and release), `0x2e84`, `0x2ff2` (`cinf` get, handle size).
+CDEF 5 `0x1d7e` (fill and track slicing), `0x1f72`, `0x1fd2` (frame), `0x1aa8`, `0x1cea` (cicn get and release), `0x2e84`, `0x2ff2` (`cinf` get, handle size).
 Reached but inert in CDEF 5: `0x1a4c` and the switch in `0x1aa8` (an icon cache whose table pointer is never set),
 CDEF 5 `0x3288`, `0x3340`, `0x3358`, `0x302c`, `0x3262` (cache paths behind two flags that are never set),
 CDEF 5 `0x275a`, `0x2bf2`, `0xe68` (the frame's region form, which the progress bar never requests),
