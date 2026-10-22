@@ -2,6 +2,7 @@ import test from 'node:test';import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';import {fileURLToPath} from 'node:url';
 import {mixedPins,verifyMixedFixtures,validateMixedCase,verifyMixedRows} from './mixed-cases.mjs';
 import {makeReport,digest} from './ledger.mjs';
+import {buildLedger} from './build-ledger.mjs';
 const ledger=JSON.parse(readFileSync(new URL('./ledger.json',import.meta.url)));
 // Verifier negatives use declared synthetic records, never pretend to execute rendering.
 const rows=()=>mixedPins.cases.map(p=>{
@@ -30,7 +31,9 @@ test('mixed assertion remains unexecuted for stale, dirty or wrong-path evidence
  const r=makeReport(ledger,{executionCommit:'current',workingTreeDirty:false,execution});assert(r.execution.assertions.find(a=>a.id===marker.id).modes.every(m=>m.status==='not run'));
  }
 });
+// Historical prefixes are pinned to the 1.22.0 split state (every post-split family transition undone), as in ledger.test.mjs.
 test('all prior registry objects and evidence history remain exact',()=>{
+ const ledger=buildLedger({mode:'base'}).ledger;
  assert.equal(digest(JSON.stringify(ledger.inputs.slice(0,25))), '98168629efae7ddd699548a564c3c5376e9542665f448b3f1c74ee4a89a6b9a3');
  assert.equal(digest(JSON.stringify(ledger.evidence.slice(0,31))), '6813324ccdb6f43ae413dff8e05382895b2ad28090defdd8377e7abe93e4736b');
  assert.equal(digest(JSON.stringify(ledger.requirements.slice(0,34))), '03c223e30ebd76d44acbd794a4a307322bcb98b79fd8528c0dfa9df1e69cc8c4');
