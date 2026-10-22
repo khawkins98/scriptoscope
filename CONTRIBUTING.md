@@ -276,9 +276,11 @@ feat(api)!: rename ScriptoscopeWindow constructor option `theme` to `themeId`
   - **Delete what you replace.** A PR that moves a family onto the engine deletes the
     legacy path it replaces in the same PR. If something legacy must stay, the PR
     names it and the issue that will remove it.
-  - **Report the size.** Paste the output of `npm run loc:src -- HEAD --base origin/v2`
-    into the PR body. It counts non-test `.ts` lines under `src/` in two parts: engine
-    tables (cited data rows) and logic (everything else).
+  - **Report the size.** A PR that changes `src/` pastes the output of
+    `npm run loc:src -- HEAD --base origin/v2` into its body. It counts non-test `.ts`
+    lines under `src/` in two parts: engine tables (cited data rows) and logic
+    (everything else). The base is measured at the merge-base, so commits that landed
+    on v2 after the branch forked don't count as the PR's own change.
   - **Reviewers flag growth.** The reviewer flags any increase in logic lines that the
     PR does not justify. Tables may grow with the decode; logic should not.
   - **Every release reports the trend.** Each release's CHANGELOG section ends with the
