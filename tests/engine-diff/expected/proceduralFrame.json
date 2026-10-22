@@ -218,6 +218,114 @@
       "why": "Trace only, pixels unchanged: the part-0 draw records the TG1 toggle clear, hit rows are cited as HT1-HT9, the grow box (if any) is traced as a GB3 masked copy that changes no pixel here, and narrow-window drops are cited WP1-WP4."
     },
     {
+      "key": "apple-platinum-2/collapsed-no-title-utility/active/200x100/t0",
+      "rule": "UFC1",
+      "sha256": "aedd1b8b0ffeeb65",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "apple-platinum-2/collapsed-no-title-utility/active/200x100/t250",
+      "rule": "UFC1",
+      "sha256": "c3a2f426a32b70e5",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "apple-platinum-2/collapsed-no-title-utility/active/200x100/t60",
+      "rule": "UFC1",
+      "sha256": "af83c914c71735ab",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "apple-platinum-2/collapsed-no-title-utility/active/320x160/t0",
+      "rule": "UFC1",
+      "sha256": "71e1824d726a348c",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "apple-platinum-2/collapsed-no-title-utility/active/320x160/t250",
+      "rule": "UFC1",
+      "sha256": "915e1a3614bcd3fa",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "apple-platinum-2/collapsed-no-title-utility/active/320x160/t60",
+      "rule": "UFC1",
+      "sha256": "d754d97fef573c42",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "apple-platinum-2/collapsed-no-title-utility/active/97x53/t0",
+      "rule": "UFC1",
+      "sha256": "076a9e58b769f4c8",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "apple-platinum-2/collapsed-no-title-utility/active/97x53/t250",
+      "rule": "UFC1",
+      "sha256": "7567587353285d17",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "apple-platinum-2/collapsed-no-title-utility/active/97x53/t60",
+      "rule": "UFC1",
+      "sha256": "f623707931e87f19",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "apple-platinum-2/collapsed-no-title-utility/inactive/200x100/t0",
+      "rule": "UFC1",
+      "sha256": "11187a7f191161df",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "apple-platinum-2/collapsed-no-title-utility/inactive/200x100/t250",
+      "rule": "UFC1",
+      "sha256": "5dbd801d6a3cec73",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "apple-platinum-2/collapsed-no-title-utility/inactive/200x100/t60",
+      "rule": "UFC1",
+      "sha256": "a585bf808ccda2b1",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "apple-platinum-2/collapsed-no-title-utility/inactive/320x160/t0",
+      "rule": "UFC1",
+      "sha256": "2a513c6784f18724",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "apple-platinum-2/collapsed-no-title-utility/inactive/320x160/t250",
+      "rule": "UFC1",
+      "sha256": "beb2f4facdf5c308",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "apple-platinum-2/collapsed-no-title-utility/inactive/320x160/t60",
+      "rule": "UFC1",
+      "sha256": "132974acf46fee6f",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "apple-platinum-2/collapsed-no-title-utility/inactive/97x53/t0",
+      "rule": "UFC1",
+      "sha256": "4afd75d220c2ef9f",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "apple-platinum-2/collapsed-no-title-utility/inactive/97x53/t250",
+      "rule": "UFC1",
+      "sha256": "5ad2e0fdced95c92",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "apple-platinum-2/collapsed-no-title-utility/inactive/97x53/t60",
+      "rule": "UFC1",
+      "sha256": "9c79a7e7b00555e8",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
       "key": "apple-platinum-2/collapsed-side-utility/active/200x100/t0",
       "rule": "UFC1",
       "sha256": "42090faefb19184d",
@@ -1422,6 +1530,114 @@
       "rule": "TG1",
       "sha256": "493d00d6ce316fc0",
       "why": "Trace only, pixels unchanged: the part-0 draw records the TG1 toggle clear, hit rows are cited as HT1-HT9, the grow box (if any) is traced as a GB3 masked copy that changes no pixel here, and narrow-window drops are cited WP1-WP4."
+    },
+    {
+      "key": "black-platinum/collapsed-no-title-utility/active/200x100/t0",
+      "rule": "UFC1",
+      "sha256": "88cbc43797ac84b8",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "black-platinum/collapsed-no-title-utility/active/200x100/t250",
+      "rule": "UFC1",
+      "sha256": "ae74da74687f4c3f",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "black-platinum/collapsed-no-title-utility/active/200x100/t60",
+      "rule": "UFC1",
+      "sha256": "8a4091aced661095",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "black-platinum/collapsed-no-title-utility/active/320x160/t0",
+      "rule": "UFC1",
+      "sha256": "761f3bfe3ded99d5",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "black-platinum/collapsed-no-title-utility/active/320x160/t250",
+      "rule": "UFC1",
+      "sha256": "6b0f5375abfe3154",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "black-platinum/collapsed-no-title-utility/active/320x160/t60",
+      "rule": "UFC1",
+      "sha256": "40bc014f626df25c",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "black-platinum/collapsed-no-title-utility/active/97x53/t0",
+      "rule": "UFC1",
+      "sha256": "79d4497969522d0d",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "black-platinum/collapsed-no-title-utility/active/97x53/t250",
+      "rule": "UFC1",
+      "sha256": "32be421adcc24918",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "black-platinum/collapsed-no-title-utility/active/97x53/t60",
+      "rule": "UFC1",
+      "sha256": "801844d4b8509398",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "black-platinum/collapsed-no-title-utility/inactive/200x100/t0",
+      "rule": "UFC1",
+      "sha256": "b2cc4c4a3b5d7973",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "black-platinum/collapsed-no-title-utility/inactive/200x100/t250",
+      "rule": "UFC1",
+      "sha256": "529937a87da33ea7",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "black-platinum/collapsed-no-title-utility/inactive/200x100/t60",
+      "rule": "UFC1",
+      "sha256": "a7ba71a953acdd5a",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "black-platinum/collapsed-no-title-utility/inactive/320x160/t0",
+      "rule": "UFC1",
+      "sha256": "35a59e3c29aa045d",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "black-platinum/collapsed-no-title-utility/inactive/320x160/t250",
+      "rule": "UFC1",
+      "sha256": "8a12061ba47d7f17",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "black-platinum/collapsed-no-title-utility/inactive/320x160/t60",
+      "rule": "UFC1",
+      "sha256": "49295f7ef09470fd",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "black-platinum/collapsed-no-title-utility/inactive/97x53/t0",
+      "rule": "UFC1",
+      "sha256": "41842227af209a7b",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "black-platinum/collapsed-no-title-utility/inactive/97x53/t250",
+      "rule": "UFC1",
+      "sha256": "e1cf0b6bcdd1506c",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "black-platinum/collapsed-no-title-utility/inactive/97x53/t60",
+      "rule": "UFC1",
+      "sha256": "f559ca1eeb643e9e",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
     },
     {
       "key": "black-platinum/collapsed-side-utility/active/200x100/t0",
@@ -2630,6 +2846,114 @@
       "why": "Trace only, pixels unchanged: the part-0 draw records the TG1 toggle clear, hit rows are cited as HT1-HT9, the grow box (if any) is traced as a GB3 masked copy that changes no pixel here, and narrow-window drops are cited WP1-WP4."
     },
     {
+      "key": "platinum-8/collapsed-no-title-utility/active/200x100/t0",
+      "rule": "UFC1",
+      "sha256": "1d1b62ae4fd41a7e",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "platinum-8/collapsed-no-title-utility/active/200x100/t250",
+      "rule": "UFC1",
+      "sha256": "92d889b8094016fd",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "platinum-8/collapsed-no-title-utility/active/200x100/t60",
+      "rule": "UFC1",
+      "sha256": "1fd1faac54ab161d",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "platinum-8/collapsed-no-title-utility/active/320x160/t0",
+      "rule": "UFC1",
+      "sha256": "45644db14a6b1b5e",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "platinum-8/collapsed-no-title-utility/active/320x160/t250",
+      "rule": "UFC1",
+      "sha256": "359c72c98c9d24f7",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "platinum-8/collapsed-no-title-utility/active/320x160/t60",
+      "rule": "UFC1",
+      "sha256": "d54a02339880d7cd",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "platinum-8/collapsed-no-title-utility/active/97x53/t0",
+      "rule": "UFC1",
+      "sha256": "bf9e45d206ff5c70",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "platinum-8/collapsed-no-title-utility/active/97x53/t250",
+      "rule": "UFC1",
+      "sha256": "82f56035b1c1f3ab",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "platinum-8/collapsed-no-title-utility/active/97x53/t60",
+      "rule": "UFC1",
+      "sha256": "d30a8c4926289e77",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "platinum-8/collapsed-no-title-utility/inactive/200x100/t0",
+      "rule": "UFC1",
+      "sha256": "b34707c56b49f827",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "platinum-8/collapsed-no-title-utility/inactive/200x100/t250",
+      "rule": "UFC1",
+      "sha256": "08a7d70a734fe4a4",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "platinum-8/collapsed-no-title-utility/inactive/200x100/t60",
+      "rule": "UFC1",
+      "sha256": "f688d3e242d8a5c4",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "platinum-8/collapsed-no-title-utility/inactive/320x160/t0",
+      "rule": "UFC1",
+      "sha256": "4c79133de26e2675",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "platinum-8/collapsed-no-title-utility/inactive/320x160/t250",
+      "rule": "UFC1",
+      "sha256": "799809ab40883dfa",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "platinum-8/collapsed-no-title-utility/inactive/320x160/t60",
+      "rule": "UFC1",
+      "sha256": "790576e388a9b231",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "platinum-8/collapsed-no-title-utility/inactive/97x53/t0",
+      "rule": "UFC1",
+      "sha256": "9c75ba72690c60d1",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "platinum-8/collapsed-no-title-utility/inactive/97x53/t250",
+      "rule": "UFC1",
+      "sha256": "76be90f1a94da440",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "platinum-8/collapsed-no-title-utility/inactive/97x53/t60",
+      "rule": "UFC1",
+      "sha256": "4006500e04e3fcf9",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
       "key": "platinum-8/collapsed-side-utility/active/200x100/t0",
       "rule": "UFC1",
       "sha256": "cdae2a450966a8c9",
@@ -3836,6 +4160,114 @@
       "why": "Trace only, pixels unchanged: the part-0 draw records the TG1 toggle clear, hit rows are cited as HT1-HT9, the grow box (if any) is traced as a GB3 masked copy that changes no pixel here, and narrow-window drops are cited WP1-WP4."
     },
     {
+      "key": "slimes/collapsed-no-title-utility/active/200x100/t0",
+      "rule": "UFC1",
+      "sha256": "d2b07907fbb338ff",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "slimes/collapsed-no-title-utility/active/200x100/t250",
+      "rule": "UFC1",
+      "sha256": "3b8a2d5d76186b32",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "slimes/collapsed-no-title-utility/active/200x100/t60",
+      "rule": "UFC1",
+      "sha256": "89083d154a4dd2a7",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "slimes/collapsed-no-title-utility/active/320x160/t0",
+      "rule": "UFC1",
+      "sha256": "280f89cab97734e5",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "slimes/collapsed-no-title-utility/active/320x160/t250",
+      "rule": "UFC1",
+      "sha256": "b82fa3efa8af5045",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "slimes/collapsed-no-title-utility/active/320x160/t60",
+      "rule": "UFC1",
+      "sha256": "75d246a9cd3b7774",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "slimes/collapsed-no-title-utility/active/97x53/t0",
+      "rule": "UFC1",
+      "sha256": "fa68510afc864fab",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "slimes/collapsed-no-title-utility/active/97x53/t250",
+      "rule": "UFC1",
+      "sha256": "9f7747a1523e1b1a",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "slimes/collapsed-no-title-utility/active/97x53/t60",
+      "rule": "UFC1",
+      "sha256": "bb7aa37715356763",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "slimes/collapsed-no-title-utility/inactive/200x100/t0",
+      "rule": "UFC1",
+      "sha256": "94935493daaf1fec",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "slimes/collapsed-no-title-utility/inactive/200x100/t250",
+      "rule": "UFC1",
+      "sha256": "8b2638518fd20c68",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "slimes/collapsed-no-title-utility/inactive/200x100/t60",
+      "rule": "UFC1",
+      "sha256": "60b0a1a4d992ac72",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "slimes/collapsed-no-title-utility/inactive/320x160/t0",
+      "rule": "UFC1",
+      "sha256": "2cd8b3e499257a74",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "slimes/collapsed-no-title-utility/inactive/320x160/t250",
+      "rule": "UFC1",
+      "sha256": "4527ea0fc42ba3d6",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "slimes/collapsed-no-title-utility/inactive/320x160/t60",
+      "rule": "UFC1",
+      "sha256": "088a6a729a093bd1",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "slimes/collapsed-no-title-utility/inactive/97x53/t0",
+      "rule": "UFC1",
+      "sha256": "7d2feba6bc9c3b25",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "slimes/collapsed-no-title-utility/inactive/97x53/t250",
+      "rule": "UFC1",
+      "sha256": "ad12bb6ac3628a43",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "slimes/collapsed-no-title-utility/inactive/97x53/t60",
+      "rule": "UFC1",
+      "sha256": "3f96bec9970bd4de",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
       "key": "slimes/collapsed-side-utility/active/200x100/t0",
       "rule": "UFC1",
       "sha256": "390b40d7d8511dec",
@@ -5040,6 +5472,114 @@
       "rule": "TG1",
       "sha256": "9cf56b0af3643653",
       "why": "Trace only, pixels unchanged: the part-0 draw records the TG1 toggle clear, hit rows are cited as HT1-HT9, the grow box (if any) is traced as a GB3 masked copy that changes no pixel here, and narrow-window drops are cited WP1-WP4."
+    },
+    {
+      "key": "system7-nostalgia-silver/collapsed-no-title-utility/active/200x100/t0",
+      "rule": "UFC1",
+      "sha256": "d1f02143e3a1c78e",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "system7-nostalgia-silver/collapsed-no-title-utility/active/200x100/t250",
+      "rule": "UFC1",
+      "sha256": "32f0ec49ec7e9cdb",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "system7-nostalgia-silver/collapsed-no-title-utility/active/200x100/t60",
+      "rule": "UFC1",
+      "sha256": "6a9e0d220e3cda11",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "system7-nostalgia-silver/collapsed-no-title-utility/active/320x160/t0",
+      "rule": "UFC1",
+      "sha256": "19a7f254f011b0a8",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "system7-nostalgia-silver/collapsed-no-title-utility/active/320x160/t250",
+      "rule": "UFC1",
+      "sha256": "270eb94bba9805b3",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "system7-nostalgia-silver/collapsed-no-title-utility/active/320x160/t60",
+      "rule": "UFC1",
+      "sha256": "b72c7fafd993adae",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "system7-nostalgia-silver/collapsed-no-title-utility/active/97x53/t0",
+      "rule": "UFC1",
+      "sha256": "d8fcf55b174e18f8",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "system7-nostalgia-silver/collapsed-no-title-utility/active/97x53/t250",
+      "rule": "UFC1",
+      "sha256": "3426af662897744a",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "system7-nostalgia-silver/collapsed-no-title-utility/active/97x53/t60",
+      "rule": "UFC1",
+      "sha256": "dae21f053d58bc42",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "system7-nostalgia-silver/collapsed-no-title-utility/inactive/200x100/t0",
+      "rule": "UFC1",
+      "sha256": "5ff6183fb13506ce",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "system7-nostalgia-silver/collapsed-no-title-utility/inactive/200x100/t250",
+      "rule": "UFC1",
+      "sha256": "d0087654575ec5e9",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "system7-nostalgia-silver/collapsed-no-title-utility/inactive/200x100/t60",
+      "rule": "UFC1",
+      "sha256": "c2cc8da13ae0445e",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "system7-nostalgia-silver/collapsed-no-title-utility/inactive/320x160/t0",
+      "rule": "UFC1",
+      "sha256": "e9bcb4715f1f8595",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "system7-nostalgia-silver/collapsed-no-title-utility/inactive/320x160/t250",
+      "rule": "UFC1",
+      "sha256": "7d4ae78d55774a1b",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "system7-nostalgia-silver/collapsed-no-title-utility/inactive/320x160/t60",
+      "rule": "UFC1",
+      "sha256": "68b4c4947c4d288c",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "system7-nostalgia-silver/collapsed-no-title-utility/inactive/97x53/t0",
+      "rule": "UFC1",
+      "sha256": "548278ec0350a201",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "system7-nostalgia-silver/collapsed-no-title-utility/inactive/97x53/t250",
+      "rule": "UFC1",
+      "sha256": "44adf183791a5c78",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
+    },
+    {
+      "key": "system7-nostalgia-silver/collapsed-no-title-utility/inactive/97x53/t60",
+      "rule": "UFC1",
+      "sha256": "7605ced314d1c083",
+      "why": "Added cell (#421 review B1): new declared window record for the collapsed no-title utility type (identity -14284), which had no row and fell back to a document window; it draws the collapsed 2-px utility box UFC1-UFC6 with tail UFT1/UFT3 and hits UH1-UH8."
     },
     {
       "key": "system7-nostalgia-silver/collapsed-side-utility/active/200x100/t0",

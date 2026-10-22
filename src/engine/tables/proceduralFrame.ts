@@ -731,6 +731,12 @@ export const PF_DECLARED = {
   growFlagAfterDrawGrowIcon: true,
   /** §9.6 UW4 (RectInRgn): the port's clip region is the whole port. */
   utilityClipIsPort: true,
+  /**
+   * §9.4 UFT2 on a collapsed window: not drawn. The grow rect lies outside the
+   * collapsed structure, so the Window Manager clip would hide it; the engine has
+   * no structure clip, so it skips the draw instead (modern policy, not decoded).
+   */
+  utilityCollapsedSkipsSmallGrow: true,
   /** §9.9 UH5: the utility window is not at its stored zoom state (zoom hit answers 6). */
   utilityAtZoomState: false,
   source: 'procedural-frame §3.2, §3.5, §5A, §6.3, §6.4, §6.5, §10.2, §10.3 (declared, modern policy)',
@@ -772,4 +778,5 @@ export const PF_WINDOW_SLUGS: readonly PfWindowSlugRow[] = [
   { slug: 'side-floating-utility-window', family: 'utility', variation: 9, goAway: false, shadeOn: true, collapsed: false, colorTable: 'default' },
   { slug: 'collapsed-side-utility', family: 'utility', variation: 9, goAway: false, shadeOn: true, collapsed: true, colorTable: 'default' },
   { slug: 'no-title-utility-window', family: 'utility', variation: 1, goAway: true, shadeOn: true, collapsed: false, colorTable: 'default' },
+  { slug: 'collapsed-no-title-utility', family: 'utility', variation: 1, goAway: true, shadeOn: true, collapsed: true, colorTable: 'default' },
 ];

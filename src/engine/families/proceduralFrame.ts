@@ -438,9 +438,10 @@ export function proceduralFrameGeometry(chain: ResourceChain | null, input: Proc
   return g;
 }
 
-/** §3.1 message 7: the feature bits. */
-export function proceduralFrameFeatures(input: ProceduralFrameInput): number {
+/** §3.1 message 7: the feature bits. Utility message 7 is not described (§9.10): traced `unimplemented`, #412's shape returned. */
+export function proceduralFrameFeatures(input: ProceduralFrameInput, trace?: EngineTrace): number {
   const st = proceduralFrameState(input);
+  if (st.family === 'utility') trace?.drawOps.push({ op: 'features', row: '§9.10', unimplemented: 'utility message 7 (0x1535c) is not described; document-family bit shape returned' });
   const F = PF_FEATURES;
   let f = F.always.reduce((x, y) => x | y, 0);
   if (st.grow) f |= F.grow;
@@ -960,8 +961,8 @@ function drawUtility(port: Pixmap, chain: ResourceChain, g: ProceduralFrameGeome
     colours.text = sample(Q, sp.text.x, sp.text.y);
     colours.shadow = sample(Q, sp.shadow.x, sp.shadow.y);
     trace?.drawOps.push({ op: 'sample', row: Tl.samples.id, ...colours });
-    if (st.smallGrow && st.grow && !st.collapsed) drawUtilityGrow(port, chain, g, trace);
-    else if (st.smallGrow && st.grow) trace?.drawOps.push({ op: 'skip', row: Tl.smallGrow.id, reason: 'collapsed: no grow rect' });
+    if (st.smallGrow && st.grow && !(st.collapsed && PF_DECLARED.utilityCollapsedSkipsSmallGrow)) drawUtilityGrow(port, chain, g, trace);
+    else if (st.smallGrow && st.grow) trace?.drawOps.push({ op: 'skip', row: `${Tl.smallGrow.id},declared`, reason: 'collapsed: the grow rect is outside the structure (declared policy utilityCollapsedSkipsSmallGrow)' });
     const Aa = anchors(g), c = sample(Q, Tl.shadow.sample.x, Tl.shadow.sample.y);
     line(port, c, Aa.Fl + Tl.shadow.inset, Aa.Fb, Aa.Fr, Aa.Fb, trace, Tl.shadow.id);
     line(port, c, Aa.Fr, Aa.Fb, Aa.Fr, Aa.Ft + Tl.shadow.inset, trace, Tl.shadow.id);

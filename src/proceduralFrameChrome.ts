@@ -22,6 +22,7 @@ import {
 } from './engine/families/proceduralFrame.js';
 import { PF_DRAW_PARTS, PF_UTILITY_INPUTS, PF_WINDOW_SLUGS } from './engine/tables/proceduralFrame.js';
 import { createTrace, type EngineTrace } from './engine/trace.js';
+import { equivalentWindowTypeKeys } from './wndCascade.js';
 import { rect } from './engine/qd/rect.js';
 import type { Pixmap } from './engine/qd/types.js';
 
@@ -39,9 +40,28 @@ export interface ProceduralFrameChromeOptions {
 
 const hex = (c: { r: number; g: number; b: number }): string => `#${[c.r, c.g, c.b].map(v => v.toString(16).padStart(2, '0')).join('')}`;
 
-/** The declared window record for a resolved window-type key (canonical slug), document window when unknown. */
+/**
+ * The declared window record for a window-type key. The key is resolved through
+ * its canonical / legacy / raw-id equivalents (wndCascade) first. An unknown key
+ * falls back to the document window, reported as `fallback` (and warned once),
+ * never silently.
+ */
+export function proceduralFrameRecordFor(key: string): { row: (typeof PF_WINDOW_SLUGS)[number]; resolvedFrom: string | null; fallback: boolean } {
+  for (const k of equivalentWindowTypeKeys(key)) {
+    const row = proceduralFrameSlug(k);
+    if (row) return { row, resolvedFrom: k, fallback: false };
+  }
+  if (!warnedKeys.has(key)) {
+    warnedKeys.add(key);
+    console.warn(`[scriptoscope] built-in frame: no window record for window type "${key}"; drawing a document window`);
+  }
+  return { row: proceduralFrameSlug('document-window')!, resolvedFrom: null, fallback: true };
+}
+const warnedKeys = new Set<string>();
+
+/** The record only (see proceduralFrameRecordFor). */
 export function proceduralFrameRecord(key: string): (typeof PF_WINDOW_SLUGS)[number] {
-  return proceduralFrameSlug(key) ?? proceduralFrameSlug('document-window')!;
+  return proceduralFrameRecordFor(key).row;
 }
 
 /**
@@ -50,7 +70,8 @@ export function proceduralFrameRecord(key: string): (typeof PF_WINDOW_SLUGS)[num
  */
 export async function composeProceduralFrameChrome(owner: LoadedTheme, key: string, state: WindowState, contentW: number, contentH: number,
   opts: ProceduralFrameChromeOptions = {}): Promise<ComposedChrome & { trace?: EngineTrace }> {
-  const row = proceduralFrameRecord(key);
+  const record = proceduralFrameRecordFor(key);
+  const row = record.row;
   const hilited = !/inactive/.test(state);
   const collapsed = row.collapsed || /^collapsed/.test(state);
   const chain = await themeResourceChain(owner, proceduralFrameResourceIds());
@@ -79,6 +100,7 @@ export async function composeProceduralFrameChrome(owner: LoadedTheme, key: stri
   const W = probe.bounds.right - probe.bounds.left, Hh = probe.bounds.bottom - probe.bounds.top;
   const buffer = PixelBuffer.alloc(W, Hh);
   const trace = opts.trace ? createTrace('proceduralFrame', { key, state, contentW, contentH, title }) : undefined;
+  if (record.fallback) trace?.drawOps.push({ op: 'note', row: 'facade.record', unspecified: `no window record for "${key}"; document-window record used` });
   const colored = new Map<string, ReturnType<typeof rasterizeTitle>>();
   // UT3 truncEnd (TruncString): drop characters until the text plus an ellipsis fits.
   const truncated = (limit: number | undefined): string => {
