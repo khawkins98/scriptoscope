@@ -381,6 +381,7 @@ That's the full BYO path. `loadKaleidoscopeScheme` accepts every container the [
 | `https://khawkins98.github.io/scriptoscope/scriptoscope.css` | Optional outer-shell stylesheet |
 | `https://khawkins98.github.io/scriptoscope/themes/<slug>/scheme.sit` (or `scheme.rsrc`) | The bundle's source archive — fetched + decoded client-side by `loadTheme()` |
 | `https://khawkins98.github.io/scriptoscope/themes-manifest.json` | Catalog of every bundled slug (label, author, source filename, ref screenshot) |
+| `https://khawkins98.github.io/scriptoscope/theme-loader/loadKaleidoscopeScheme.js` | Standalone decoder ESM: the public `loadKaleidoscopeScheme` wrapper (engine `cinf` ids on by default, so themed sliders draw; pass `engineCinfIds: []` to opt out) bundled with the conversion core. Same function `scriptoscope.js` exports; use it when you want the decoder without the runtime. `theme-loader/index.js` re-exports it. Lazily imports `../sit-wasm/index.mjs` for `.sit` input |
 | `https://khawkins98.github.io/scriptoscope/sit-wasm/dist/munbox.wasm` | Standalone decoder WASM; the bundled runtime embeds its WASM in the lazy JavaScript chunk |
 
 > **Heads-up:** the CDN URL points at a single-account GitHub Pages deploy tracking `main` — there's no versioned URL, no integrity hash, and no SLA. Fine for prototyping, hobby projects, and demos. If you're shipping to a real-traffic site, **vendor the files** (see below) at a commit you choose.
@@ -389,7 +390,7 @@ That's the full BYO path. `loadKaleidoscopeScheme` accepts every container the [
 
 There's no npm package. If you'd rather not pin your site to this repo's GitHub Pages, vendor the files into your own build:
 
-1. Build a chosen commit with `npm run build:demo`. Copy every top-level `dist/*.js` file, `dist/scriptoscope.css`, and `dist/demo/themes/`. Keep the JavaScript files beside each other so relative lazy imports resolve. If importing the standalone decoder modules for a drop zone, also copy `dist/demo/theme-loader/` and `dist/demo/sit-wasm/` beside them.
+1. Build a chosen commit with `npm run build:demo`. Copy every top-level `dist/*.js` file, `dist/scriptoscope.css`, and `dist/demo/themes/`. Keep the JavaScript files beside each other so relative lazy imports resolve. If importing the standalone decoder for a drop zone, also copy `dist/demo/theme-loader/` and `dist/demo/sit-wasm/` beside them; `dist/demo/theme-loader/loadKaleidoscopeScheme.js` there is the built public wrapper (engine `cinf` ids on by default), not the raw `tools/theme-loader/` file, which leaves them off and hands every slider to the Platinum fallback.
 2. Host them alongside your site.
 3. Point `themeBaseUrl` at wherever you put `themes/`.
 

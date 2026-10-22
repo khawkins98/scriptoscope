@@ -128,7 +128,8 @@ for (const { name } of libFiles) {
 // Lets a consumer wire their own drop-zone using `attachThemeDropZone` +
 // `loadKaleidoscopeScheme`, served from the same CDN as the runtime.
 //
-// theme-loader: the whole directory minus tests (browser doesn't need them).
+// theme-loader: the whole directory (tests included; nothing imports them),
+//          with loadKaleidoscopeScheme.js replaced by the built wrapper below.
 // sit-wasm: index.mjs (the JS wrapper) + dist/munbox.{mjs,wasm} (the WASM).
 //          loadKaleidoscopeScheme imports '../sit-wasm/index.mjs', which then
 //          imports './dist/munbox.mjs' — so we need both paths populated.
@@ -140,6 +141,17 @@ for (const [src, dst] of decoderDirs) {
     await copy(resolve(root, src), resolve(root, dst));
   }
 }
+// #431: the published theme-loader/loadKaleidoscopeScheme.js is the public
+// wrapper (src/loadKaleidoscopeScheme.ts, engine cinf ids on by default), not
+// the raw core, which leaves engineCinfIds off and so hands every slider to the
+// Platinum fallback. vite.loader.config.js bundles the wrapper with the core
+// into one module; overwrite the copied core with it so the existing URL (and
+// theme-loader/index.js, which re-exports it) gives engine cinfs by default.
+const pagesLoader = resolve(root, 'dist/pages-loader/loadKaleidoscopeScheme.js');
+if (!(await exists(pagesLoader))) {
+  throw new Error('dist/pages-loader/loadKaleidoscopeScheme.js not found — run `vite build --config vite.loader.config.js` first');
+}
+await copy(pagesLoader, resolve(root, 'dist/demo/theme-loader/loadKaleidoscopeScheme.js'));
 // sit-wasm — copy the JS wrapper + the dist/ artefacts (the WASM blob).
 // We DON'T copy the munbox/ source directory (C code, MIT/PATCHES.md) — those
 // are repo-only, not needed at runtime.
