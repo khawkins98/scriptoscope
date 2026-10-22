@@ -106,6 +106,11 @@ test('the pushed-head check uses the upstream (@{u}), and an upstream equal to t
     assert.match(rowOf(t.run(), 'pushed head').note, /differs from HEAD/);
     t.g('push', '-q', 'origin', 'HEAD:refs/heads/v2-L9-test');
     assert.equal(rowOf(t.run(), 'pushed head').ok, true);
+    // Tracking a local branch ('.' remote) falls back to origin/<branch> with a WARN.
+    t.g('branch', 'local-base'); t.g('branch', '--set-upstream-to', 'local-base');
+    r = t.run();
+    assert.ok(r.warnings.some(w => /tracks a local branch \(refs\/heads\/local-base\)/.test(w)), r.summary);
+    assert.match(rowOf(r, 'pushed head').name, /origin\/local-name, no upstream/);
     // A worktree made with `-b x origin/v2` tracks v2 itself: that is not the lane branch.
     t.g('fetch', '-q', 'origin'); t.g('branch', '--set-upstream-to', 'origin/v2');
     r = t.run();
@@ -273,7 +278,7 @@ test('the v2 docs workflow runs on every v2 PR (no paths filter) with the no-bro
   const wf = readFileSync(join(repo, '.github/workflows/v2-docs.yml'), 'utf8');
   assert.doesNotMatch(wf, /paths(-ignore)?:/);
   assert.match(wf, /pull_request:\n\s+branches: \[v2\]/);
-  for (const cmd of ['node scripts/check-cleanroom.mjs', 'node scripts/gen-trap-table.mjs', 'node scripts/report-coverage.mjs', 'node tests/rendering-requirements/build-ledger.mjs --check', 'node scripts/check-ledger-history.mjs --base-commit', 'npm run ledger:sync', 'node tests/control-availability/validate-source.mjs', 'npm test', '--root "$GITHUB_WORKSPACE"', 'git fetch --no-tags origin "$BEFORE"', '0000000000000000000000000000000000000000'])
+  for (const cmd of ['node scripts/check-cleanroom.mjs', 'node scripts/gen-trap-table.mjs', 'node scripts/report-coverage.mjs', 'node tests/rendering-requirements/build-ledger.mjs --check', 'node scripts/check-ledger-history.mjs --base-commit', 'npm run ledger:sync', 'node tests/engine-diff/run.mjs --check --base-commit "$BASE_SHA"', 'node tests/control-availability/validate-source.mjs', 'npm test', 'node tests/engine-diff/run.mjs --check --base-commit "$BASE_SHA"', '--root "$GITHUB_WORKSPACE"', 'git fetch --no-tags origin "$BEFORE"', '0000000000000000000000000000000000000000'])
     assert.ok(wf.includes(cmd), cmd);
   assert.match(wf, /permissions:\n\s+contents: read/, 'read-only token: CI never commits the regenerated ledger');
   assert.doesNotMatch(wf, /git push|contents: write/);

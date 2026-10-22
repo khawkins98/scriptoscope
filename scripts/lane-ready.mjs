@@ -255,9 +255,10 @@ export function laneReady({ root, remote = 'origin', base = 'origin/v2', skipTes
     const upMerge = tryGit(root, ['config', `branch.${branch}.merge`]);
     const baseBranch = base.includes('/') ? base.slice(base.indexOf('/') + 1) : base;
     const [r, ref] = upRemote && upMerge && upRemote !== '.' ? [upRemote, upMerge] : [remote, `refs/heads/${branch}`];
-    const label = `pushed head = HEAD (${r}/${ref.replace(/^refs\/heads\//, '')}${upMerge ? '' : ', no upstream'})`;
-    if (!upMerge) warnings.push(`branch ${branch} has no upstream; checked ${remote}/${branch}. Set one with: git push -u ${remote} HEAD:${branch}`);
-    if (upMerge && upMerge === `refs/heads/${baseBranch}`) {
+    const label = `pushed head = HEAD (${r}/${ref.replace(/^refs\/heads\//, '')}${upMerge && upRemote !== '.' ? '' : ', no upstream'})`;
+    if (upRemote === '.') warnings.push(`branch ${branch} tracks a local branch (${upMerge}); checked ${remote}/${branch} instead. Set the real upstream with: git push -u ${remote} HEAD:${branch}`);
+    else if (!upMerge) warnings.push(`branch ${branch} has no upstream; checked ${remote}/${branch}. Set one with: git push -u ${remote} HEAD:${branch}`);
+    if (upMerge && upRemote !== '.' && upMerge === `refs/heads/${baseBranch}`) {
       row(label, false, '–', `the upstream is the base branch ${baseBranch} (a worktree created from ${base}); push the lane branch with: git push -u ${remote} HEAD:${branch}`);
     } else {
       const ls = tryGit(root, ['ls-remote', r, ref]);

@@ -131,6 +131,19 @@ jobs:
             echo "::notice::the base has no history guard with --root yet; only the head copy ran"
           fi
 
+      # The engine diff gate also runs here: a docs-only PR can delete or renumber a
+      # spec decision-table row that an expected/<family>.json entry cites as its rule,
+      # and ci.yml (paths-ignore docs/**) would not see it.
+      - name: Engine diff gate (rule ids and baselines)
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE_SHA: ${{ steps.base.outputs.sha }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          if [ -z "$BASE_SHA" ]; then node tests/engine-diff/run.mjs --check
+          elif [ "$EVENT" = "pull_request" ]; then ENGINE_DIFF_PR_BODY="$PR_BODY" node tests/engine-diff/run.mjs --check --base-commit "$BASE_SHA"
+          else node tests/engine-diff/run.mjs --check --base-commit "$BASE_SHA" --declared-from-diff; fi
+
       # A docs-only edit can break a documentSha256 pin (a Tier 0 hash-only bump is
       # then required); ci.yml would not run for it.
       - name: Document hash pins (validate-source)

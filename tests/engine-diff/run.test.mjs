@@ -100,3 +100,61 @@ test('CLI: passes against the committed baselines, fails closed on an unreadable
   assert.equal(r.status, 1);
   assert.match(r.stderr, /declared family nosuchfamily is unknown/);
 });
+
+test('CLI: a family judged at the base cannot be deleted, renamed or taken over by a seed (#401 review P9-P11)', async t => {
+  const { spawnSync, execFileSync } = await import('node:child_process');
+  const { mkdtempSync, rmSync, writeFileSync: write, readFileSync: read, renameSync, symlinkSync, existsSync } = await import('node:fs');
+  const { tmpdir } = await import('node:os');
+  const { join } = await import('node:path');
+  const repo = new URL('../../', import.meta.url).pathname;
+  const g = (cwd, ...a) => execFileSync('git', a, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
+  // Base: HEAD with this tree's engine-diff files committed on top, so the base has the baselines.
+  const dir = mkdtempSync(join(tmpdir(), 'engine-diff-cli-'));
+  const wt = join(dir, 'wt');
+  g(repo, 'worktree', 'add', '-q', '--detach', wt, 'HEAD');
+  t.after(() => { try { g(repo, 'worktree', 'remove', '--force', wt); } catch {} rmSync(dir, { recursive: true, force: true }); });
+  for (const f of ['tests/engine-diff/cases.mjs', 'tests/engine-diff/run.mjs', 'tests/engine-diff/baselines/window.json', 'tests/engine-diff/baselines/scrollbar.json', 'tests/engine-diff/expected/window.json', 'tests/engine-diff/expected/scrollbar.json']) write(join(wt, f), read(join(repo, f)));
+  symlinkSync(join(repo, 'node_modules'), join(wt, 'node_modules'));
+  g(wt, '-c', 'user.email=t@t', '-c', 'user.name=t', '-c', 'commit.gpgsign=false', 'commit', '-qam', 'base', '--allow-empty');
+  const base = g(wt, 'rev-parse', 'HEAD');
+  const cases = join(wt, 'tests/engine-diff/cases.mjs'), original = read(cases, 'utf8');
+  const WINDOW = "  window: { rules: ['docs/spec/engine/qd-primitives.md'], cells: windowCells },\n";
+  assert.ok(original.includes(WINDOW));
+  const run = body => spawnSync(process.execPath, [join(wt, 'tests/engine-diff/run.mjs'), '--check', '--base-commit', base], { cwd: wt, encoding: 'utf8', env: { ...process.env, ENGINE_DIFF_PR_BODY: body } });
+  const reset = () => { g(wt, 'checkout', '-q', '--', '.'); g(wt, 'clean', '-qfd', 'tests/engine-diff'); };
+
+  let r = run('engine-diff: none');
+  assert.equal(r.status, 0, r.stdout + r.stderr);
+
+  // P9: delete `window` from FAMILIES.
+  write(cases, original.replace(WINDOW, ''));
+  r = run('engine-diff: none');
+  assert.equal(r.status, 1, 'P9 deleting a family fails');
+  assert.match(r.stderr, /window: has a baseline at base .* but is not a family in cases\.mjs/);
+  reset();
+
+  // P10: rename window -> win, move its baseline and expected files, declare win.
+  write(cases, original.replace(WINDOW, WINDOW.replace('window:', 'win:')));
+  renameSync(join(wt, 'tests/engine-diff/baselines/window.json'), join(wt, 'tests/engine-diff/baselines/win.json'));
+  renameSync(join(wt, 'tests/engine-diff/expected/window.json'), join(wt, 'tests/engine-diff/expected/win.json'));
+  r = run('engine-diff: win');
+  assert.equal(r.status, 1, 'P10 renaming a family fails');
+  assert.match(r.stderr, /window: has a baseline at base .* but is not a family in cases\.mjs/);
+  assert.match(r.stderr, /win: the seed reproduces cells of base family window/);
+  reset();
+
+  // P11: rename to win but keep baselines/window.json.
+  write(cases, original.replace(WINDOW, WINDOW.replace('window:', 'win:')));
+  r = run('engine-diff: win');
+  assert.equal(r.status, 1, 'P11 rename keeping the old baseline fails');
+  assert.match(r.stderr, /baselines\/window\.json belongs to no family/);
+  reset();
+
+  // Seed takeover: a new family that re-runs window's cells, window kept.
+  write(cases, original.replace(WINDOW, WINDOW + WINDOW.replace('window:', 'win2:')));
+  r = run('engine-diff: win2');
+  assert.equal(r.status, 1, 'a seed reproducing an existing family fails');
+  assert.match(r.stderr, /win2: the seed reproduces cells of base family window/);
+  reset();
+  assert.ok(!existsSync(join(wt, 'tests/engine-diff/baselines/win.json')));
+});

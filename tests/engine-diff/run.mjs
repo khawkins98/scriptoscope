@@ -16,14 +16,17 @@
 // family's spec (cases.mjs `rules`), `why` one sentence. The family must also be
 // declared for the PR: the PR body line `engine-diff: <family>[, <family>]` in
 // CI, or, with --declared-from-diff, a family whose expected/ or baselines/ file
-// changed since the base. A family with no baseline at the base is being seeded:
+// changed since the base. Every family with a baseline at the base must still be
+// in cases.mjs (a deleted or renamed family fails), every committed baseline must
+// belong to a family, and a seed may not reproduce a base family's digests.
+// A family with no baseline at the base is being seeded:
 // it must be declared, and its cells need no blessing. And the committed baseline must equal the head's
 // output, so the merged baseline is current. Expected entries whose digest the
 // base already has are inert (from an earlier PR) and only reported.
 //
 // Run time: the full matrix (about 4,200 cells over 18 archives) takes a few
 // seconds; most of it is archive decoding.
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync, realpathSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
@@ -106,6 +109,7 @@ export function compare({ family, base, head, expected = [], declared = true, ru
 }
 
 const git = args => execFileSync('git', args, { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], maxBuffer: 1 << 28 });
+const tryGit = args => { try { return git(args); } catch { return null; } };
 const readJson = (p, fallback) => (existsSync(p) ? JSON.parse(readFileSync(p, 'utf8')) : fallback);
 
 /** Families declared in a PR body: lines `engine-diff: a, b` (or `none`). */
@@ -144,6 +148,24 @@ async function main(argv) {
   for (const f of declared ?? []) if (!FAMILIES[f]) { console.error(`engine-diff: declared family ${f} is unknown (known: ${Object.keys(FAMILIES).join(', ')})`); return 1; }
 
   let failed = 0;
+  // Families are judged from the base, not only from the head's cases.mjs: a family
+  // with a baseline at the base must still exist (deleting or renaming one would
+  // otherwise skip its cells, or re-seed them under a new name with no blessing).
+  // Every committed baseline must belong to a known family, and a seed may not
+  // reproduce any base family's digests.
+  const baseFamilies = baseCommit ? (tryGit(['ls-tree', '--name-only', `${baseCommit}:tests/engine-diff/baselines`]) ?? '').split('\n').filter(n => n.endsWith('.json')).map(n => n.replace(/\.json$/, '')) : [];
+  const baseDigests = new Map();
+  for (const f of baseFamilies) {
+    if (!FAMILIES[f]) {
+      console.error(`engine-diff: ${f}: has a baseline at base ${baseCommit.slice(0, 12)} but is not a family in cases.mjs. Removing or renaming a family is not allowed by this gate; restore it (a deliberate removal is a maintainer change to the gate).`);
+      failed++;
+    }
+    for (const d of Object.values(JSON.parse(git(['show', `${baseCommit}:${REL.baseline(f)}`])).cells ?? {})) baseDigests.set(d, f);
+  }
+  for (const n of existsSync(join(HERE, 'baselines')) ? readdirSync(join(HERE, 'baselines')).filter(x => x.endsWith('.json')) : []) {
+    const f = n.replace(/\.json$/, '');
+    if (!FAMILIES[f]) { console.error(`engine-diff: baselines/${n} belongs to no family in cases.mjs`); failed++; }
+  }
   for (const family of families) {
     const head = await computeFamily(family);
     const committed = readJson(baselinePath(family), null);
@@ -160,6 +182,8 @@ async function main(argv) {
     // regress against, so no per-cell blessing, but the seed must be declared.
     if (seed) {
       console.log(`engine-diff: ${family}: no baseline at base ${baseCommit.slice(0, 12)}; seeding ${Object.keys(head).length} cells`);
+      const taken = [...new Set(Object.values(head).map(d => baseDigests.get(d)).filter(Boolean))];
+      if (taken.length) r.errors.push(`${family}: the seed reproduces cells of base famil${taken.length === 1 ? 'y' : 'ies'} ${taken.join(', ')}; a new family cannot take over existing cells`);
       if (!isDeclared) r.errors.push(`${family}: seeding a new baseline requires declaring the family ("engine-diff: ${family}" in the PR body)`);
     }
     if (!committed) r.errors.push(`${family}: no committed baseline; run node tests/engine-diff/run.mjs --write --family ${family}`);
@@ -178,4 +202,4 @@ async function main(argv) {
   return failed ? 1 : 0;
 }
 
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) process.exit(await main(process.argv.slice(2)));
+if (process.argv[1] && realpathSync(resolve(process.argv[1])) === realpathSync(fileURLToPath(import.meta.url))) process.exit(await main(process.argv.slice(2)));
