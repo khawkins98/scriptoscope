@@ -257,8 +257,9 @@ feat(api)!: rename ScriptoscopeWindow constructor option `theme` to `themeId`
   way). For each file the branch changes, it looks at the last 50 base commits that
   changed it. A commit counts as undone when the branch's copy of the file equals the
   copy before that commit, or when the branch's diff reverses every hunk the commit
-  made (its new lines removed, its old lines restored, with no other rewriting). A
-  deleted file counts only when the same commit is undone in a kept file. The row
+  made (its new lines removed, its old lines restored, with no other rewriting).
+  Removal alone (a deleted file, or exactly deleting lines a commit only added) counts
+  only when the same commit is also undone with its old content restored. The row
   names the file and the base commit; rebase onto the base to fix it. A deliberate
   revert passes when a branch commit carries git's `This reverts commit <sha>` line,
   or with `-- --allow-revert <sha>`. One `PENDING`

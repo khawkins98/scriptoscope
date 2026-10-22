@@ -277,7 +277,9 @@ function hunksByFile(text) {
  *     run), adds back all of ck's removed lines (as a run), and otherwise adds exactly as
  *     many lines as it removes (neighbouring line edits merged into the hunk). Removing
  *     the base's lines inside a larger deletion or rewrite is an edit, not a revert.
- * A file the branch deletes counts only when the same commit is undone in a kept file.
+ * Removal-only evidence (a deleted file, or hunks the base only added that the branch
+ * deletes exactly) counts only when the same commit is also undone with old content
+ * restored: a blob match on a kept file, or a hunk whose removed lines come back.
  * A rebased branch carries the base's lines through, so its diff never removes them; an
  * edit to a line the base added replaces it with new text, not the pre-change text.
  * Commits named by `allow` (sha prefixes) or by a branch commit's `This reverts commit
@@ -324,7 +326,7 @@ export function findReverts(root, mergeBase, head = 'HEAD', { window = 50, allow
     const touching = touchedBy.get(file);
     const flagged = new Map();
     const k = touching.findIndex(t => t.before === headBlob && t.after !== headBlob);
-    if (k >= 0) for (const t of touching.slice(0, k + 1)) flagged.set(t.commit, headBlob ? `restores the version before ${touching[k].commit.slice(0, 12)}` : `deletes the file added by ${touching[k].commit.slice(0, 12)}`);
+    if (k >= 0) for (const t of touching.slice(0, k + 1)) flagged.set(t.commit, headBlob ? { how: `restores the version before ${touching[k].commit.slice(0, 12)}`, strong: true } : { how: `deletes the file added by ${touching[k].commit.slice(0, 12)}`, strong: false });
     const p = prHunks.get(file) ?? [];
     let baseLines = null;
     for (const { commit } of touching) {
@@ -335,14 +337,16 @@ export function findReverts(root, mergeBase, head = 'HEAD', { window = 50, allow
       // merged into the same hunk (as many other lines added as removed). Deleting the
       // base's lines along with other code, or rewriting them, is an edit, not a revert.
       const undone = h => p.some(q => containsRun(q.removed, h.added) && containsRun(q.added, h.removed) && q.added.length - h.removed.length === q.removed.length - h.added.length);
-      if (live.length && live.every(undone)) flagged.set(commit, `undoes its ${live.length} hunk(s)`);
+      if (live.length && live.every(undone)) flagged.set(commit, { how: `undoes its ${live.length} hunk(s)`, strong: live.some(h => h.removed.length) });
     }
-    for (const [commit, how] of flagged) if (!allowed(commit)) found.push({ file, commit, subject: subject.get(commit) ?? '', how, deletion: !headBlob });
+    for (const [commit, { how, strong }] of flagged) if (!allowed(commit)) found.push({ file, commit, subject: subject.get(commit) ?? '', how, strong });
   }
-  // Deleting a recently added file is often deliberate: it counts only when the same base
-  // commit is also undone in a file the branch kept.
-  const corroborated = new Set(found.filter(f => !f.deletion).map(f => f.commit));
-  return found.filter(f => corroborated.has(f.commit)).map(({ deletion: _, ...f }) => f);
+  // Removal alone is weak evidence: deleting a recently added file, or deleting exactly
+  // the lines a base commit only added, is often a deliberate removal. A weak flag counts
+  // only when the same base commit is also undone strongly (a file restored to its old
+  // blob, or old lines put back) somewhere in the branch.
+  const corroborated = new Set(found.filter(f => f.strong).map(f => f.commit));
+  return found.filter(f => corroborated.has(f.commit)).map(({ strong: _, ...f }) => f);
 }
 
 function runCommand(root, c, verbose) {

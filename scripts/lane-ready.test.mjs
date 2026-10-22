@@ -247,7 +247,7 @@ test('a branch whose diff undoes a base commit fails and names the file and the 
     t.g('push', '-q', 'origin', 'HEAD:refs/heads/v2');
     // Lane work on its own file; meanwhile the base adds lines to src/x.mjs and a new file.
     t.write('src/lane.mjs', src(['lane'])); t.commitPush('lane work');
-    const added = advance('src/x.mjs', src(['alpha', 'bravo', 'baseOnlyFeature', 'charlie', 'delta']), 'feat: base adds a line (#900)');
+    const added = advance('src/x.mjs', src(['alpha', 'bravo', 'baseOnlyFeature', 'charlieV2', 'delta']), 'feat: base adds a line and renames one (#900)');
     t.write('src/new.mjs', src(['brandNew']));
     const newFile = advance('docs/a.md', 'doc\nthe base documents its new file here\n', 'feat: base adds a file (#901)');
     reparent();
@@ -260,7 +260,7 @@ test('a branch whose diff undoes a base commit fails and names the file and the 
     assert.deepEqual(found.map(f => [f.file, f.commit]).sort(), [['docs/a.md', newFile], ['src/new.mjs', newFile], ['src/x.mjs', added]]);
     assert.ok(found.every(f => /\(#90[01]\)/.test(f.subject)));
     // Hunk form: the stale file also carries the lane's own edit, so its blob matches nothing.
-    t.write('src/x.mjs', src(['alpha', 'bravoEdited', 'charlie', 'delta'])); t.commitPush('edit a stale copy');
+    t.write('src/x.mjs', src(['alphaEdited', 'bravo', 'charlie', 'delta'])); t.commitPush('edit a stale copy');
     r = t.run();
     assert.equal(rowOf(r, 'no silent reverts').ok, false);
     const hunk = findReverts(t.root, t.g('merge-base', 'HEAD', 'origin/v2')).find(f => f.file === 'src/x.mjs');
@@ -304,6 +304,13 @@ test('editing a file the base also changed, without restoring its old lines, pas
     assert.equal(rowOf(t.run(), 'no silent reverts').ok, true, 'only part of the base hunk is undone');
     t.write('src/x.mjs', src(['alphaLane', 'bravo', 'charlie', 'delta', 'echo'])); t.commitPush('undo both');
     assert.equal(rowOf(t.run(), 'no silent reverts').ok, false, 'every base hunk undone');
+    // Deleting exactly the lines a base commit only added is removal, not a restore: weak alone.
+    advance('src/z.mjs', src(['one', 'two', 'three', 'four']), 'feat: base adds z');
+    const addOnly = advance('src/z.mjs', src(['one', 'two', 'baseAddedBlock', 'baseAddedBlockToo', 'three', 'four']), 'feat: base adds a block');
+    rebase();
+    t.write('src/z.mjs', src(['one', 'two', 'three', 'fourEdited'])); t.commitPush('remove the block on purpose');
+    const why = findReverts(t.root, t.g('merge-base', 'HEAD', 'origin/v2'));
+    assert.ok(!why.some(f => f.commit === addOnly), 'pure deletion of added lines is not flagged alone');
   } finally { t.done(); }
 });
 
