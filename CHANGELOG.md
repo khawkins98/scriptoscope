@@ -7,6 +7,31 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+## [0.3.0] — 2026-10-22
+
+Second incremental release from the v2 engine branch (#378). The five schemes with no `wnd#` recipe (apple-platinum-2, black-platinum, platinum-8, slimes, system7-nostalgia-silver) now draw Kaleidoscope's own decoded built-in window frame instead of the old corner-sprite approximation.
+
+- **Built-in window frame on the v2 engine** (fixes #387, #414). Document, dialog, alert, movable-modal and utility windows, including their collapsed forms, draw through the decoded kDEF built-in window definition. The window footprint changes; see the migration notes below. The old `composeCornerSpriteChrome` export is removed.
+- **Known gap:** collapsed no-title utility windows still render expanded on these schemes (#423).
+- **Slider:** the engine slider (#407) is reviewed but ships in 0.4.0.
+- **Fidelity ledger:** 257 verified obligations, up from 229 on v2 at 0.2.0 (window families 1.2.0–1.4.0; #409, #418, #424).
+
+### Also in this release
+
+- **Icon companions:** a mismatched opaque icon-blit companion now falls back to the masked asset and is traced (DECISIONS #7, #413). No pixel changes on the corpus.
+- **Dead-code cleanup** (#410): unused internal exports are dropped, the resource-role rubric is de-duplicated, and the manual visual-baseline browser suites get an `npm run test:visual-baselines` script.
+- **Engine-diff gate hardening** (#411):
+  - it runs the base copy of the harness in its own process;
+  - it accepts ledger evidence ids;
+  - it compares against the merge-base for PRs into main.
+  Release PRs must declare every changed family (`tests/engine-diff/README.md`).
+- **Specs:**
+  - procedural-frame revision 3 decodes the utility frame (#415);
+  - the slider spec answers (#417);
+  - the window-widget spec is split into an implementer-safe unit and an evidence file (#420). The split corrects three earlier readings and lists eight runtime divergences for the window-recipe migration.
+
+### Changes
+
 - Add `npm run loc:src` (`scripts/src-loc.mjs`). It reports non-test `src/` line counts, split into engine tables and logic, with an optional `--base <ref>` delta measured from the merge-base. CONTRIBUTING now asks every PR that changes `src/` to paste this table, every family migration to delete the legacy path it replaces, and every release to report the trend against the previous tag.
 
 - **v2 engine: utility windows of the five built-in-frame schemes now draw Kaleidoscope's decoded utility frame** (procedural-frame §9, revision 3; fixes #414). This covers titled, side-floating, no-title and the collapsed variants. Before this change these windows had no frame. Horizontal bars draw UFH1–UFH12 and vertical (side) bars UFS1–UFS12. Collapsed windows draw a 2-px box (UFC1–UFC6). Every frame shape gets the drop shadow (UFT3). The art is cicn -14316 / -14320 for horizontal bars and -14315 / -14319 for side bars. Line colours are sampled from that cicn: fill P(4, 3), text P(5, 3), shadow P(7, 3), with transposed points on side bars. Stripes are cicn -14314 (side: -14318 first), tiled 1:1 in a 9-row band between the title limits. The title is erased into the band, then drawn with a shadow pass that is skipped when the shadow colour equals the fill. Too-long titles are condensed and truncated. Widgets are 10 × 10 boxes that plot 16 × 16 glyphs (-14320 / -14318 / -14319). The interior fill is painted last, around the stripes, the title and the widget boxes. Widget presence and the bar height are now derived from the window record: H is 15 with a title and 13 without, or on a side bar, and narrow windows drop widgets against a 7-px outset (UP1–UP4). The declared per-slug `utilityWidgets` / `utilityTitled` defaults are removed. The normal 16 × 16 grow box (-14313 / -14317) is drawn by message 6. The small one (variation bit 4) is part of the frame and crops the cicn's top-left 11/15, unscaled (UGB2). Utility hit testing is UH1–UH8: widget hits are the box inset by 1. Corrections to #412's document family: grow boxes are copied through their mask (GB1/GB3). A draw with a part below 4 clears the shared toggle bit; part 258 flips it in the document family only (TG1–TG4, UM2). The narrow-window drops follow WP1–WP4: without a close box the zoom box is never dropped. Colour-table "entry n" is found by value (CT1–CT4). Message 6 draws its two scroll-bar lines (M6L1–M6L6). Hit rows are cited HT1–HT9. Engine-diff: all 1,005 `proceduralFrame` cells change. The 450 utility cells draw the frame. The 555 document cells change in the trace only: every corpus grow cicn is fully opaque under its mask, so the masked copy changes no pixel. The `window` and `scrollbar` cells are unchanged. Not implemented: the procedural kind-5 grow box (GB4–GB6 / GL1–GL4, reached only with *thin* + *grow*, which no slug sets) and utility messages 7 and 8 (§9.10). No native capture backs this (§10 item 9).
@@ -31,6 +56,16 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 - Long titles are clipped to the space between the widgets, as the original does; they are no longer truncated with an ellipsis.
 - The public export `composeCornerSpriteChrome` (and the `CornerSpriteOptions` type) is removed. Render these windows with `renderWindow`. `scripts/render-window.mjs` now refuses corner-sprite types and points to the engine-diff `--dump`.
 - `WindowType.sprites` and `WindowType.widgets` stay in the schema but the runtime no longer reads them.
+
+### Runtime size (`npm run loc:src -- HEAD --base v0.2.0`)
+
+| src/ lines (non-test .ts) | v0.2.0 | 0.3.0 | delta |
+|---|---:|---:|---:|
+| logic (all src except engine tables) | 14776 | 15399 | +623 |
+| engine tables (cited data) | 461 | 1258 | +797 |
+| total | 15237 | 16657 | +1420 |
+
+The growth is the decoded frame family and its cited tables. The legacy corner-sprite compositor (about 700 lines) is deleted. The large legacy files (`controls.ts`, `interactive.ts`, `composeChrome.ts`) shrink when their families migrate.
 
 ## [0.2.0] — 2026-10-22
 
