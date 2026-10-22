@@ -435,13 +435,18 @@ todo tests marked "awaits procedural-frame driver". Their spec values are pinned
 against the model now.
 
 `procedural-frame.spec.mjs` (source/built, assertion `window.procedural-frame`)
-binds D4 and D6 to public `renderWindow`. For an active and an inactive
-200 × 140 document window of each of the five archives, it checks the structure
-size, every D4 port probe against that archive's own -14332 / -14336 cicn, and
-the D6 widget slots against each glyph's `ics8` pixels where its `ics#` mask is
-set. It caught a swapped frame state, swapped zoom/collapse ids, a dropped
-hilite gate and a 1-px collapse-slot shift. The frame-state probes cannot fail on
-apple-platinum-2 (see above).
+binds D4 and D6 to public `renderWindow`. It reads each archive's raw resource
+fork in the page (sit-wasm + `parseResourceFork`) for the §1.1 gate: no `wnd#`,
+no WDEF -14330. 1138's fork is the negative control for `wnd#`. No corpus
+archive ships a WDEF, so that clause is only a guard. For an active and an
+inactive 200 × 140 document window of each of the five archives, it checks the
+structure size, every D4 port probe against that archive's own -14332 / -14336
+cicn, and the D6 widget slots against each glyph's `ics8` pixels where its `ics#`
+mask is set. When inactive, no glyph pixel that differs from the title fill may
+show in any of the three slots. It caught a swapped frame state, swapped
+zoom/collapse ids, a dropped hilite gate, a 1-px collapse-slot shift, and zoom
+and collapse drawn on an inactive window. Mask-clear pixels are not checked. The
+frame-state probes cannot fail on apple-platinum-2 (see above).
 
 ### Tab and header source rules
 
