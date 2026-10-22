@@ -75,8 +75,8 @@ that start their own isolated Vite server. Each is described below.
 Status on `v2` at 2026-10-22 (Chromium from the locked Playwright, macOS): passing
 `boot-affordance`, `window-promotion`, `mobile-layout`; **failing**
 `control-background-sample` (base resource metadata), `control-ring` (1138
-automatic label ink overlapped by the ring), `control-template-size` (showcase
-select timeout), `window-shell-style` (window shadow computed as `none`). These
+automatic label ink overlapped by the ring), `control-template-size` (timeout
+waiting for the "Copy install snippet" button canvas), `window-shell-style` (window shadow computed as `none`). These
 failures are preserved, not relaxed; they need diagnosis as either a runtime
 regression or a stale assertion.
 

@@ -13,7 +13,9 @@
 // baseline (and every added or removed cell) must be listed in
 // expected/<family>.json as { key, rule, sha256, why }: `sha256` is the cell's new
 // digest (null for a removed cell), `rule` a decision-table row id from the
-// family's spec (cases.mjs `rules`), `why` one sentence. The family must also be
+// family's spec (cases.mjs `rules`) or an evidence id of the family's own ledger
+// file (tests/rendering-requirements/families/<family>.json `evidence[].id`, e.g.
+// kdef.too-short-step for window), `why` one sentence. The family must also be
 // declared for the PR: the PR body line `engine-diff: <family>[, <family>]` in
 // CI, or, with --declared-from-diff, a family whose expected/ or baselines/ file
 // changed since the base. Every family with a baseline at the base must still be
@@ -24,13 +26,36 @@
 // output, so the merged baseline is current. Expected entries whose digest the
 // base already has are inert (from an earlier PR) and only reported.
 //
+// The base copy of the harness also runs. With --base-commit, when the PR changed
+// tests/engine-diff/cases.mjs, the base's cases.mjs is written next to this file
+// (so its relative imports load the HEAD runtime) and rendered in a separate child
+// process (`--cells-from`), started before this process imports the head
+// cases.mjs, so no load-time side effect of the head harness (for example patching
+// a runtime table object) can reach it. Its cells are compared with the base
+// baselines: every cell it sees change must be covered in the head's
+// expected/<family>.json by an entry that blesses a change from the base (an
+// entry whose sha256 equals the base digest is inert and covers nothing), and its
+// family declared. So a cases.mjs edit cannot hide a
+// runtime regression, e.g. by compensating for it before the digest. Digests are
+// not compared there (an intended harness change legitimately gives the head's
+// trace a different shape), and families the base harness does not know are
+// judged by the head run alone. A base harness that cannot run on the head runtime
+// fails the gate; only cases.mjs is taken from the base, its helpers are the head's.
+//
+// Known limits (not closed here): run.mjs itself, the rule spec list
+// (cases.mjs FAMILIES[f].rules) and the ledger evidence ids are read from the
+// head tree, so a PR can loosen the judge or widen the accepted rules; reviewers
+// check those diffs (check-ledger-history limits ledger evidence edits).
+// tests/engine-diff/README.md lists what a v2 -> main release PR must declare.
+//
 // Run time: the full matrix (about 4,200 cells over 18 archives) takes a few
 // seconds; most of it is archive decoding.
-import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync, realpathSync } from 'node:fs';
-import { execFileSync } from 'node:child_process';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync, realpathSync, unlinkSync, mkdtempSync, rmSync } from 'node:fs';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join, resolve } from 'node:path';
+import { tmpdir } from 'node:os';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, '../..');
@@ -56,9 +81,22 @@ export function ruleIds(files, root = ROOT) {
   return ids;
 }
 
-/** Compute { "<slug>/<cell key>": digest } for one family (optionally a slug subset or input mutation). */
-export async function computeFamily(family, { slugs = null, mutate } = {}) {
-  const { FAMILIES, themeSlugs, decode } = await import('./cases.mjs');
+/** Evidence ids of the family's ledger file; valid `rule` ids alongside the spec rows.
+ *  Only the family's own file counts, so one family cannot bless with another's evidence. */
+export function ledgerEvidenceIds(family, root = ROOT) {
+  const p = join(root, 'tests/rendering-requirements/families', `${family}.json`);
+  // shared.json and _base.json are not families; their ids never bless a family's cells.
+  if (!/^[\w-]+$/.test(family) || family === 'shared' || family === '_base' || !existsSync(p)) return new Set();
+  return new Set((JSON.parse(readFileSync(p, 'utf8')).evidence ?? []).map(e => e?.id).filter(id => typeof id === 'string' && id));
+}
+
+/** Valid `rule` ids for a family: spec decision-table rows plus its ledger evidence ids. */
+export const familyRules = (family, specFiles, root = ROOT) => new Set([...ruleIds(specFiles, root), ...ledgerEvidenceIds(family, root)]);
+
+/** Compute { "<slug>/<cell key>": digest } for one family (optionally a slug subset or input
+ *  mutation; `cases` is the harness module, default ./cases.mjs). */
+export async function computeFamily(family, { slugs = null, mutate, cases } = {}) {
+  const { FAMILIES, themeSlugs, decode } = cases ?? await import('./cases.mjs');
   const fam = FAMILIES[family];
   if (!fam) throw new Error(`unknown family ${family} (known: ${Object.keys(FAMILIES).join(', ')})`);
   const cells = {};
@@ -91,7 +129,7 @@ export function compare({ family, base, head, expected = [], declared = true, ru
     if (!e || typeof e.key !== 'string') { errors.push(`${family}: expected entry without a key`); continue; }
     if (byKey.has(e.key)) errors.push(`${family}: expected lists ${e.key} twice`);
     byKey.set(e.key, e);
-    if (!rules.has(e.rule)) errors.push(`${family}: expected ${e.key} names rule ${JSON.stringify(e.rule)}, not a decision-table row of the family spec`);
+    if (!rules.has(e.rule)) errors.push(`${family}: expected ${e.key} names rule ${JSON.stringify(e.rule)}, not a decision-table row of the family spec or an evidence id of its ledger family`);
     if (typeof e.why !== 'string' || !e.why.trim()) errors.push(`${family}: expected ${e.key} needs a one-sentence why`);
   }
   for (const d of diffs) {
@@ -108,6 +146,23 @@ export function compare({ family, base, head, expected = [], declared = true, ru
   return { diffs, errors, inert };
 }
 
+/**
+ * The base-harness check (pure). base: the base baseline cells; head: the BASE copy of
+ * cases.mjs rendered on the head runtime. Every changed cell must be covered by a head
+ * expected entry that blesses a change from the base, and the family declared. Returns { diffs, errors }.
+ */
+export function compareBaseHarness({ family, base, head, expected = [], declared = true }) {
+  // Only an entry that blesses a change from the base covers a cell: an inert entry
+  // (sha256 equal to the base digest, e.g. from an earlier PR) covers nothing.
+  const listed = new Set(expected.filter(e => e && typeof e.key === 'string' && (e.sha256 ?? null) !== (base[e.key] ?? null)).map(e => e.key));
+  const diffs = [...new Set([...Object.keys(base), ...Object.keys(head)])].sort()
+    .filter(k => base[k] !== head[k]).map(k => ({ key: k, from: base[k] ?? null, to: head[k] ?? null }));
+  const errors = diffs.filter(d => !listed.has(d.key))
+    .map(d => `${family}: the base copy of cases.mjs sees ${d.key} change (${d.from ?? 'absent'} -> ${d.to ?? 'removed'}) on the head runtime, and expected/${family}.json does not list it; the head harness may be hiding a runtime change`);
+  if (diffs.length && !declared) errors.push(`${family}: the base copy of cases.mjs sees ${diffs.length} cell(s) change but the PR does not declare "engine-diff: ${family}"`);
+  return { diffs, errors };
+}
+
 const git = args => execFileSync('git', args, { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], maxBuffer: 1 << 28 });
 const tryGit = args => { try { return git(args); } catch { return null; } };
 const readJson = (p, fallback) => (existsSync(p) ? JSON.parse(readFileSync(p, 'utf8')) : fallback);
@@ -121,6 +176,17 @@ export function declaredFromBody(body) {
 
 async function main(argv) {
   const opt = n => { const i = argv.indexOf(n); return i < 0 ? undefined : argv[i + 1]; };
+  // Child mode for the base-harness pass: import ONLY the given harness, write its cells.
+  if (argv.includes('--cells-from')) {
+    const cases = await import(pathToFileURL(resolve(opt('--cells-from'))).href);
+    const out = {};
+    for (const f of Object.keys(cases.FAMILIES ?? {})) out[f] = await computeFamily(f, { cases });
+    writeFileSync(opt('--cells-out'), JSON.stringify(out));
+    return 0;
+  }
+  // The base copy of the harness runs before the head cases.mjs is imported here.
+  const baseCommitEarly = opt('--base-commit');
+  const baseRun = baseCommitEarly && argv.includes('--check') && tryGit(['cat-file', '-e', `${baseCommitEarly}^{commit}`]) !== null ? baseHarnessCells(baseCommitEarly) : null;
   const { FAMILIES } = await import('./cases.mjs');
   const families = opt('--family') ? [opt('--family')] : Object.keys(FAMILIES);
   if (argv.includes('--dump')) {
@@ -175,7 +241,7 @@ async function main(argv) {
       try { base = JSON.parse(git(['show', `${baseCommit}:${REL.baseline(family)}`])).cells; }
       catch { base = head; seed = true; }
     } else base = committed?.cells ?? {};
-    const rules = ruleIds(FAMILIES[family].rules);
+    const rules = familyRules(family, FAMILIES[family].rules);
     const isDeclared = declared === null || declared.has(family);
     const r = compare({ family, base, head, expected, declared: isDeclared, rules });
     // A family with no baseline at the base is being seeded: there is nothing to
@@ -198,8 +264,51 @@ async function main(argv) {
     if (r.errors.length > 30) console.error(`engine-diff: ... ${r.errors.length - 30} more problem(s) in ${family}`);
     if (r.errors.length) failed++;
   }
+  if (baseRun) failed += judgeBaseHarness({ baseCommit, baseRun, families, declared });
   console.log(`engine-diff: ${failed ? `FAIL (${failed} famil${failed === 1 ? 'y' : 'ies'})` : 'pass'} in ${((Date.now() - t0) / 1000).toFixed(1)} s`);
   return failed ? 1 : 0;
+}
+
+/**
+ * Render the base's cases.mjs on the head runtime in a fresh child process (see the
+ * header). Returns { skipped } | { error } | { cells: { family: cells } }.
+ */
+function baseHarnessCells(baseCommit) {
+  const baseCases = tryGit(['show', `${baseCommit}:tests/engine-diff/cases.mjs`]);
+  if (baseCases === null) return { skipped: `no cases.mjs at base ${baseCommit.slice(0, 12)}; base harness skipped` };
+  if (baseCases === readFileSync(join(HERE, 'cases.mjs'), 'utf8')) return { skipped: 'cases.mjs unchanged since the base; the base harness is the head harness' };
+  const tmp = join(HERE, `.cases-base-${process.pid}.mjs`);
+  const outDir = mkdtempSync(join(tmpdir(), 'engine-diff-base-'));
+  const out = join(outDir, 'cells.json');
+  try {
+    writeFileSync(tmp, baseCases);
+    const r = spawnSync(process.execPath, [fileURLToPath(import.meta.url), '--cells-from', tmp, '--cells-out', out], { cwd: ROOT, encoding: 'utf8', maxBuffer: 1 << 28 });
+    if (r.status !== 0 || !existsSync(out)) return { error: (r.stderr || r.error?.message || `exit ${r.status}`).trim().split('\n').slice(-3).join(' | ') };
+    return { cells: JSON.parse(readFileSync(out, 'utf8')) };
+  } finally { try { unlinkSync(tmp); } catch {} rmSync(outDir, { recursive: true, force: true }); }
+}
+
+/** Judge the base-harness cells against the base baselines. Returns the failed-family count. */
+function judgeBaseHarness({ baseCommit, baseRun, families, declared }) {
+  if (baseRun.skipped) { console.log(`engine-diff: ${baseRun.skipped}`); return 0; }
+  if (baseRun.error) {
+    console.error(`engine-diff: the base copy of cases.mjs (${baseCommit.slice(0, 12)}) failed on the head runtime: ${baseRun.error}. A harness change that the base copy cannot run is a maintainer change to the gate.`);
+    return 1;
+  }
+  let failed = 0;
+  for (const family of families) {
+    const head = baseRun.cells[family];
+    if (!head) continue;
+    let base;
+    try { base = JSON.parse(git(['show', `${baseCommit}:${REL.baseline(family)}`])).cells; } catch { continue; }
+    const expected = readJson(expectedPath(family), { entries: [] }).entries ?? [];
+    const r = compareBaseHarness({ family, base, head, expected, declared: declared === null || declared.has(family) });
+    console.log(`engine-diff: ${family}: base copy of cases.mjs on the head runtime: ${r.diffs.length} changed vs base ${baseCommit.slice(0, 12)}`);
+    for (const e of r.errors.slice(0, 30)) console.error(`engine-diff: ${e}`);
+    if (r.errors.length > 30) console.error(`engine-diff: ... ${r.errors.length - 30} more problem(s) in ${family} (base harness)`);
+    if (r.errors.length) failed++;
+  }
+  return failed;
 }
 
 if (process.argv[1] && realpathSync(resolve(process.argv[1])) === realpathSync(fileURLToPath(import.meta.url))) process.exit(await main(process.argv.slice(2)));

@@ -1,7 +1,8 @@
 import { test, expect, openHarness, attachObservations } from './fixtures.mjs';
 
 // WindowManager hit overlays come from the 0x5cb6 template → placed remap
-// (docs/spec/kdef231-code10-widgets.md §4): a widget's rect moves by the
+// (docs/spec/kdef231-code10-widgets.md §4; spec writers and verifiers only until
+// its L2 split): a widget's rect moves by the
 // (placed − template) offset of the side segment that contains it, on every
 // side. The side-floating utility windows below keep their collapse widget in
 // the LEFT side's code-10 cell, after a code-8 grower, so it moves with height.

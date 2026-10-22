@@ -72,3 +72,4 @@ themes/*/ics8/
 
 # verify-scenes scratch directory
 .tmp/
+tests/engine-diff/.cases-base-*.mjs
