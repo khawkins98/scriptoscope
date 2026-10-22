@@ -167,4 +167,12 @@ Inventory 1.0.13 (scrollbar 1.2.0 citation pass) refreshes only the full
 row's aux-field gloss was marked undecoded (it rested on the retired slot-5
 scroll-bar attribution). No case-cited address line changed; all 27 case inputs,
 outcomes, payload pins and ring dispatch claims are unchanged. The 1.0.12 review
-is archived verbatim; the 1.0.13 label is PENDING an independent hash-only review.
+is archived verbatim; 1.0.13 carries the PM Tier 0 check of PR #398.
+
+Inventory 1.0.14 (issue #374 ledger closure) refreshes only the full
+`kdef231-reference.md` document hash (`5ca8cee0` -> `40366d19`) after §2.4 was
+corrected: -8288/-8280 are the scroll-bar track tier 0 (inactive), not pressed, and
+-10205..-10208 are the scroll-bar thumb cicns (the stale `controls.ts:166` pointer is
+gone). No case-cited address line changed; all 27 case inputs, outcomes, payload pins
+and ring dispatch claims are unchanged. The 1.0.13 review is archived verbatim; the
+1.0.14 label is PENDING an independent hash-only review.

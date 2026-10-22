@@ -126,6 +126,24 @@ const BIND = {
       return [i, out];
     }));
   },
+  D11: async () => {
+    // Arrow indices that received a blit: composite arrows (AC4/AC5 ops carry dst) or icon-lane arrowIcon ops with dst.
+    const out = {};
+    for (const slug of ['1138', 'platinum-8']) {
+      const { trace } = await draw(slug, { hilite: 254 });
+      out[slug] = [...new Set(trace.drawOps.filter(o => (o.op === 'arrow' || o.op === 'arrowIcon') && o.dst).map(o => o.arrow))].sort();
+    }
+    return out;
+  },
+  D12: async () => {
+    const { trace } = await draw('1984', { hilite: 254 });
+    const segs = trace.drawOps.filter(o => o.op === 'segment' && o.row !== 'offscreen');
+    // Track slices are drawn into the segment's offscreen, so their dst is segment-local; the one segment starts at T.left.
+    const T = along(trace.rects.T), off = along(segs[0].dst)[0];
+    return { T, source: [...new Set(trace.drawOps.filter(o => (o.op === 'slice' || o.op === 'sliceLines') && /TF8/.test(o.row)).map(o => o.src))].reduce((acc, r) => [Math.min(acc[0], r.left), Math.max(acc[1], r.right)], [Infinity, -Infinity]),
+      segments: segs.map(o => along(o.dst)),
+      pieces: trace.drawOps.filter(o => (o.op === 'slice' || o.op === 'sliceLines') && /TF8/.test(o.row)).map(o => [[o.dst.left + off, o.dst.right + off], along(o.src)]) };
+  },
   D9: async () => {
     const out = {};
     for (const slug of ['animals', 'monkey-paradise']) {

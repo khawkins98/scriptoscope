@@ -71,6 +71,9 @@ const ROWS = {
   'G15 CF1/CF2 composite flag (crayon-os, windows-95, platinum-8 normal tracks)': r => ['crayon-os', 'windows-95', 'platinum-8'].map(slug => at(slug, {}, r).composite),
   'G17 §5.4 (#396) pressed non-hit cell from its own cicn (animals, monkey-paradise)': r => Object.fromEntries(['animals', 'monkey-paradise'].map(slug => [slug, at(slug, { hilite: 20 }, r).boxCells])),
   'G18 §5.4 (#396) narrow-source cell (1138, min = max, hilite 20)': r => at('1138', { hilite: 20, min: 0, max: 0, value: 0 }, r).boxCells,
+  'G19 AD4 inactive draws no arrows (1138, platinum-8)': r => Object.fromEntries(['1138', 'platinum-8'].map(slug => [slug, at(slug, { hilite: 254 }, r).arrowsDrawn])),
+  'G20 §5.2/§5.5 inactive T = R, whole-bounds source (1984)': r => { const l = at('1984', { hilite: 254 }, r);
+    return { T: l.T, source: l.trackSource, segments: l.segments.map(sg => sg.rect), pieces: l.trackPieces[0].pieces.map(p => [p.dst, p.src]) }; },
   'G16 AI4 icon art: ics8 or the 1-bit ics#, never ics4': r => {
     const synthetic = { cicn: new Map([[-8286, [16, 16]], [-10206, [17, 16]]]), ppat: new Set(), mask: new Set([-10202, -10201]), color: new Set([-10201]), ics4: new Set([-10202, -10201]) };
     return selectScrollbar({ hilite: 0, orientation: 'horizontal' }, synthetic, { reading: r }).iconArt;
@@ -98,6 +101,9 @@ const EXPECTED = {
   'G14 §3 draw order (1138 normal, disabled)': [['arrow0', 'arrow3', 'thumb', 'track-low', 'track-high'], ['arrow0', 'arrow3', 'track-whole']],
   'G15 CF1/CF2 composite flag (crayon-os, windows-95, platinum-8 normal tracks)': [true, true, false],
   'G16 AI4 icon art: ics8 or the 1-bit ics#, never ics4': { '-10202': 'ics#', '-10201': 'ics8' },
+  'G19 AD4 inactive draws no arrows (1138, platinum-8)': { '1138': [], 'platinum-8': [] },
+  // 1984 -8288 is 43 × 16 (composite); inactive keeps its whole bounds. Halves, s = 43, w = 120: m = 43, a = 21.
+  'G20 §5.2/§5.5 inactive T = R, whole-bounds source (1984)': { T: [0, 120], source: [0, 43], segments: [[0, 120]], pieces: [[[0, 21], [0, 21]], [[21, 98], [21, 22]], [[98, 120], [21, 43]]] },
   'G18 §5.4 (#396) narrow-source cell (1138, min = max, hilite 20)': { 0: { id: -8287, cell: [0, 15] }, 3: { id: -8288, cell: [-10, 5], outOfSource: [[105, 115]] } },
   'G17 §5.4 (#396) pressed non-hit cell from its own cicn (animals, monkey-paradise)': Object.fromEntries(['animals', 'monkey-paradise'].map(slug => [slug, { 0: { id: -8285, cell: [0, 15] }, 3: { id: -8286, cell: [28, 43] } }])),
 };
@@ -133,6 +139,9 @@ const MUTATIONS = {
   'ics4 accepted as colour art': { iconColour: 'ics4-or-ics8' },
   'cells from the track cicn bounds (pre-#396 reading)': { cellsFromDrawnCicn: false },
   'cells clamped to the source bounds': { clampCellsToSource: true },
+  'arrows drawn when inactive': { arrowsWhenInactive: true },
+  'inactive T inset by the arrow boxes': { inactiveTrackIsR: false },
+  'inactive track source inset like the active one': { inactiveWholeSource: false },
 };
 
 test('geometry rows equal the spec values under the decode', () => {
@@ -178,7 +187,7 @@ test('mutation table: each wrong reading fails the named rows', () => {
     '+0.5 rounding dropped': ['G4', 'G5', 'G6', 'G7', 'G10'],                         // 1138 Th [51, 68)
     'round half to even': ['G4', 'G5', 'G6', 'G7', 'G10'],                            // 36.5 -> 36; 1990 t = 11: 44.5 -> 44
     'segments do not overlap the thumb': ['G5', 'G6'],                                // [15, 52) / [69, 105)
-    'cap 3 for the track': ['G6', 'G12'],
+    'cap 3 for the track': ['G6', 'G12', 'G20'],
     'halves for the thumb': ['G7'],
     'no −5 after a small-thumb miss': ['G7'],
     'cap 2': ['G7'],
@@ -198,6 +207,9 @@ test('mutation table: each wrong reading fails the named rows', () => {
     'ics4 accepted as colour art': ['G16'],
     'cells from the track cicn bounds (pre-#396 reading)': ['G17', 'G18'],           // [46, 61) of a 43-wide cicn; [18, 33) for 1138
     'cells clamped to the source bounds': ['G18'],                                    // [0, 5) instead of [−10, 5)
+    'arrows drawn when inactive': ['G19'],                                            // AD4 (#395 review M5)
+    'inactive T inset by the arrow boxes': ['G20'],                                   // §5.2 (#395 review M10)
+    'inactive track source inset like the active one': ['G20'],                       // §5.5: [15, 28) instead of [0, 43)
   });
   // Every row is failed by at least one mutation.
   const failed = new Set(Object.values(table).flat());
@@ -240,6 +252,8 @@ const MODEL = {
   D8: () => ROWS['G10 HT1–HT8 part codes (1138 worked example)']({}),
   D9: () => ROWS['G17 §5.4 (#396) pressed non-hit cell from its own cicn (animals, monkey-paradise)']({}),
   D10: () => ROWS['G18 §5.4 (#396) narrow-source cell (1138, min = max, hilite 20)']({}),
+  D11: () => ROWS['G19 AD4 inactive draws no arrows (1138, platinum-8)']({}),
+  D12: () => ROWS['G20 §5.2/§5.5 inactive T = R, whole-bounds source (1984)']({}),
 };
 
 test('driver rows: DRIVER_ROWS expected values are the spec model values', () => {
@@ -250,5 +264,7 @@ test('driver rows: DRIVER_ROWS expected values are the spec model values', () =>
   assert.deepEqual(DRIVER_ROWS.D6.expected, EXPECTED['G12 TF7/TF8/AC4 pattern underlay anchored at R (crayon-os, R at 13,5)']);
   assert.deepEqual(DRIVER_ROWS.D8.expected, EXPECTED['G10 HT1–HT8 part codes (1138 worked example)']);
   assert.deepEqual(DRIVER_ROWS.D10.expected, EXPECTED['G18 §5.4 (#396) narrow-source cell (1138, min = max, hilite 20)']);
+  assert.deepEqual(DRIVER_ROWS.D11.expected, EXPECTED['G19 AD4 inactive draws no arrows (1138, platinum-8)']);
+  assert.deepEqual(DRIVER_ROWS.D12.expected, EXPECTED['G20 §5.2/§5.5 inactive T = R, whole-bounds source (1984)']);
   assert.deepEqual(DRIVER_ROWS.D9.expected, EXPECTED['G17 §5.4 (#396) pressed non-hit cell from its own cicn (animals, monkey-paradise)']);
 });
