@@ -147,14 +147,15 @@ for (const mode of ['source', 'built']) {
     try {
       const failures = []; page.on('pageerror', error => failures.push(String(error)));
       await page.locator('#themed').evaluate(el => { el.min = '-1e308'; el.max = '1e308'; el.step = 'any'; el.value = '0'; el.dispatchEvent(new Event('input')); });
-      // Known Windows95 source: 11px thumb on a 120px backing axis. Fourfold
-      // CSS scaling makes the 75%-travel center an integer client coordinate,
-      // including Firefox, without deriving expectations from runtime layout.
+      // Known Windows95 source: 11px thumb (tA) and corner c = 2 (cinf -10132 byte 0, slider.md §6 corpus table)
+      // on a 120px backing axis, so travel T = 120 - 11 - 2c = 105 starting at c (§5.2, ID7). Fourfold CSS
+      // scaling makes the 75%-travel centre (2 + 5.5 + 78.75 = 86.25) an integer client coordinate, including
+      // Firefox, without deriving expectations from runtime layout.
       await page.addStyleTag({ content: '#themed + .scriptoscope-slider canvas { width:480px!important; }' });
       const rect = await page.evaluate(() => { const r = document.querySelector('.scriptoscope-slider canvas').getBoundingClientRect(); return { x: r.x, y: r.y, width: r.width, height: r.height }; });
       await page.mouse.click(rect.x + rect.width / 2, rect.y + rect.height / 2);
       await expect(page.locator('#themed')).toHaveValue('0');
-      await page.mouse.click(rect.x + (11 / 2 + 0.75 * (120 - 11)) * 4, rect.y + rect.height / 2);
+      await page.mouse.click(rect.x + (2 + 11 / 2 + 0.75 * (120 - 11 - 2 * 2)) * 4, rect.y + rect.height / 2);
       expect(await page.locator('#themed').evaluate(el => el.valueAsNumber / 1e308)).toBeCloseTo(0.5, 8);
       expect(failures).toEqual([]);
       // Reset follows the current native form, including a changed form= link.

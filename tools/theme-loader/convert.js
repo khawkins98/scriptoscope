@@ -76,7 +76,7 @@ function asBytes(fork) {
  * @returns {{ theme: object, assets: {path:string,rgba:Uint8Array,width:number,height:number}[],
  *             manifest: { source:string, counts:object, assets:object[] } }}
  */
-export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourceObserver, displayProfile, cinfBinding, sliderLayoutBinding, cicnTransferBinding, iconBlitCicnIds } = {}) {
+export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourceObserver, displayProfile, cinfBinding, sliderLayoutBinding, cicnTransferBinding, iconBlitCicnIds, engineCinfIds } = {}) {
   const realizeRgb16 = displayRealizer(displayProfile);
   const realizeDirectRgb8 = directRgb8Realizer(displayProfile);
   const policy = displayPolicy(displayProfile);
@@ -220,6 +220,32 @@ export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourc
         iconBlit.unmaskedAsset = derivedPath;
       }
       element.iconBlit = iconBlit;
+    }
+  }
+
+  // Engine cinf inputs (docs/spec/engine/slider.md G1, ID6, TR6, CF1–CF3): the raw bytes of
+  // the first cinf at each id a caller names, so an engine ResourceChain can answer
+  // a cinf request whether or not a same-id cicn exists (the slider gate tests
+  // cinf only). Off by default: lint and local bakes are unchanged.
+  if (engineCinfIds?.length) {
+    const wanted = new Set(engineCinfIds), engineCinfs = {};
+    for (const e of entries) {
+      if (e.type === 'cinf' && wanted.has(e.id) && !(String(e.id) in engineCinfs)) engineCinfs[String(e.id)] = Array.from(e.data);
+    }
+    theme.engineCinfs = engineCinfs;
+    // The same ids' cicn bounds origins (slider BL11): engine pixmaps drop the
+    // origin, so the engine traces any cicn whose origin is not (0, 0).
+    // The pixel map's bounds rect follows its 4-byte base address and 2-byte
+    // rowBytes (Inside Macintosh: Imaging With QuickDraw, PixMap), top then left.
+    const origins = new Map();
+    for (const e of entries) {
+      if (e.type !== 'cicn' || !wanted.has(e.id) || origins.has(e.id) || e.data.length < 10) continue;
+      const view = new DataView(e.data.buffer, e.data.byteOffset, e.data.byteLength);
+      origins.set(e.id, { top: view.getInt16(6), left: view.getInt16(8) });
+    }
+    for (const element of Object.values(theme.chromeElements ?? {})) {
+      const origin = origins.get(element.sourceCicnId);
+      if (origin) element.boundsOrigin = origin;
     }
   }
 
@@ -442,9 +468,9 @@ export function convertIcons(fork, { ids, displayProfile } = {}) {
  * @returns {{ theme: object, assets: {path,rgba,width,height}[], iconIndex: object[],
  *             manifest: object }}
  */
-export function convertScheme(fork, { meta = {}, source = 'scheme.rsrc', resourceObserver, displayProfile, cinfBinding, sliderLayoutBinding, cicnTransferBinding, iconBlitCicnIds } = {}) {
+export function convertScheme(fork, { meta = {}, source = 'scheme.rsrc', resourceObserver, displayProfile, cinfBinding, sliderLayoutBinding, cicnTransferBinding, iconBlitCicnIds, engineCinfIds } = {}) {
   const bytes = asBytes(fork); // parse once conceptually; chrome+icons each re-parse (cheap, KB)
-  const chrome = convertChrome(bytes, { meta, source, resourceObserver, displayProfile, cinfBinding, sliderLayoutBinding, cicnTransferBinding, iconBlitCicnIds });
+  const chrome = convertChrome(bytes, { meta, source, resourceObserver, displayProfile, cinfBinding, sliderLayoutBinding, cicnTransferBinding, iconBlitCicnIds, engineCinfIds });
   const icons = convertIcons(bytes, { displayProfile });
   return {
     theme: chrome.theme,

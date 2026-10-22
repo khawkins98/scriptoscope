@@ -73,6 +73,16 @@ export interface IconSource {
   /** Set when the resource adapter rejected an opaque companion (DECISIONS #7): why the
    *  I3 copy is the masked copy of `pixmap`. Recorded on the draw op. */
   readonly fallback?: string;
+  /** The cicn's bounds origin (absent: unknown). Pixmaps are stored with the origin dropped (slider BL11). */
+  readonly origin?: { readonly top: number; readonly left: number } | null;
+  /**
+   * Whether the decoded colours equal the colour-table search the line samplers
+   * use (qd-primitives S2, slider BL8) at every opaque pixel: the loader's
+   * `samplingEquivalence.status` (absent: unknown).
+   */
+  readonly sampling?: 'equivalent' | 'different' | 'unknown' | null;
+  /** The sampler's colours at every opaque pixel, when the loader made that companion (slider BL12). */
+  readonly sampled?: Pixmap | null;
 }
 
 /**

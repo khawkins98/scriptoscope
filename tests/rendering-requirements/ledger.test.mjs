@@ -665,11 +665,12 @@ test('tab/header source-rule port (main 1.23.0) preserves the exact 1.22.0 ledge
   // unknown (scrollbar@1.3.0), slider@1.1.0 adds 54 obligations and records 33 slider mismatches
   // against #407, window@1.2.0 adds 25 unknown procedural-frame obligations, and window@1.3.0 (#412)
   // promotes 14 corner-sprite rows to verified and adds five utility cases with 25 unknown rows, which
-  // window@1.4.0 (#421) promotes 14 of to verified.
+  // window@1.4.0 (#421) promotes 14 of to verified. slider@1.2.0 (#416 engine) verifies the 33 slider
+  // mismatches and moves the 6 declared-group2 endpoint rows from verified to unsupported.
   const mainLineage = assemble(sources.base, sources.families.map(f => ['scrollbar', 'push-button', 'slider'].includes(f.family) ? baseFamily(f) : f.family === 'window' ? atVersion(f, '1.1.0') : f)).ledger;
   assert.deepEqual(makeReport(mainLineage).requirementStatus.counts, { verified: 216, mismatched: 18, unsupported: 0, unknown: 1494 });
   assert.equal(makeReport(mainLineage).cases.length, 234);
-  assert.deepEqual(makeReport(live).requirementStatus.counts, { verified: 257, mismatched: 33, unsupported: 0, unknown: 1542 });
+  assert.deepEqual(makeReport(live).requirementStatus.counts, { verified: 284, mismatched: 0, unsupported: 6, unknown: 1542 });
   assert.equal(makeReport(live).cases.length, 239);
 });
 
