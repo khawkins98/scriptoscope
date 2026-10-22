@@ -48,9 +48,11 @@ The normalized public API uses that conditional direction and inset rule.
 Vertical minimum is at the bottom. Group2 cross-axis layout is 16 pixels,
 centered with signed truncation (`0x0866–0x0932`); four state cells retain that
 cross-axis size (`0x10cc–0x10ee`). This opt-in requires an exact 16-pixel
-thumb cross-cell, nonnegative axial travel and a groove no wider than that cross
-span. The groove admission is bounded modern policy, not native transverse
-painting or transfer proof. The committed slider layout carries its value
+thumb cross-cell, nonnegative axial travel and a declared corner equal to the
+corner the resource chain resolves. Track art of any cross size is admitted:
+engine/slider.md §5.5 SL1 centres it in the 16-pixel band `B` with signed
+truncation, and §5.1 never draws outside the control rect, so no groove-width
+admission applies. The committed slider layout carries its value
 direction to pointer consumers. Default geometry and scrollbar behavior remain
 compatibility paths.
 
