@@ -1,6 +1,6 @@
 {
   "name": "scriptoscope",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": false,
   "description": "A Kaleidoscope-compatible window manager and theme engine for the web. Renders classic Mac OS schemes from their original binary resources (cicn/wnd#/cinf/ppat/Colr).",
   "license": "MIT",
@@ -68,6 +68,7 @@
     "lint:themes": "node scripts/lint-themes.mjs",
     "baseline:scenes": "node scripts/capture-visual-baselines.mjs",
     "verify:scenes": "node scripts/verify-visual-baselines.mjs",
+    "test:visual-baselines": "node --test --experimental-strip-types tests/visual-baselines/boot-affordance.spec.mjs tests/visual-baselines/window-promotion.spec.mjs tests/visual-baselines/mobile-layout.spec.mjs tests/visual-baselines/control-template-size.spec.mjs tests/visual-baselines/control-background-sample.spec.mjs tests/visual-baselines/window-shell-style.spec.mjs tests/visual-baselines/control-ring.spec.mjs",
     "audit:scenes": "node scripts/scene-coverage-audit.mjs",
     "test": "node --experimental-strip-types --test tools/theme-loader/*.test.mjs tools/sit-wasm/*.test.mjs src/declarative/*.test.mjs src/*.test.mjs src/engine/*.test.mjs src/engine/*/*.test.mjs tests/rendering-requirements/*.test.mjs tests/control-availability/*.test.mjs tests/reference-captures/*.test.mjs tests/source-inputs/*.test.mjs tests/research-observations/*.test.mjs tests/rendering-options/*.test.mjs tests/acceptance-bindings/*.test.mjs tests/engine-diff/*.test.mjs scripts/*.test.mjs",
     "import": "node scripts/import-scheme.mjs",
@@ -88,7 +89,8 @@
     "test:package": "npm run build && node tests/package-consumer/run.mjs",
     "test:references": "node tests/reference-captures/run.mjs",
     "test:source-inputs": "node tests/source-inputs/validate.mjs",
-    "test:acceptance:bindings": "node --experimental-strip-types tests/acceptance-bindings/generate.mjs"
+    "test:acceptance:bindings": "node --experimental-strip-types tests/acceptance-bindings/generate.mjs",
+    "loc:src": "node scripts/src-loc.mjs"
   },
   "engines": {
     "node": ">=20"

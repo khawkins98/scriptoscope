@@ -5,7 +5,7 @@
 // A region is a per-pixel membership mask over a port (QuickDraw regions are
 // sets of pixels; Inside Macintosh: Imaging With QuickDraw, "Regions"). Only
 // the operations the scroll-bar draw needs exist: union a mapped icon mask,
-// difference, and test.
+// difference (a mapped mask or a rect), and test.
 //
 // Engine pixmaps are decoded RGBA with the cicn mask in alpha (types.ts), so a
 // mask region is "alpha > 0".
@@ -33,6 +33,12 @@ export function regionHas(rgn: Region, x: number, y: number): boolean {
 export function regionAddRect(rgn: Region, r: QdRect): void {
   for (let y = Math.max(0, r.top); y < Math.min(rgn.height, r.bottom); y++)
     for (let x = Math.max(0, r.left); x < Math.min(rgn.width, r.right); x++) rgn.bits[y * rgn.width + x] = 1;
+}
+
+/** Remove every pixel of `r` (DiffRgn with a rect region). */
+export function regionSubtractRect(rgn: Region, r: QdRect): void {
+  for (let y = Math.max(0, r.top); y < Math.min(rgn.height, r.bottom); y++)
+    for (let x = Math.max(0, r.left); x < Math.min(rgn.width, r.right); x++) rgn.bits[y * rgn.width + x] = 0;
 }
 
 /**
@@ -64,6 +70,9 @@ export interface IconSource {
   readonly pixelSize: number | null;
   /** Every stored pixel opaque (alpha 255): the I3 CopyBits source. Null when unavailable. */
   readonly unmasked: Pixmap | null;
+  /** Set when the resource adapter rejected an opaque companion (DECISIONS #7): why the
+   *  I3 copy is the masked copy of `pixmap`. Recorded on the draw op. */
+  readonly fallback?: string;
 }
 
 /**
@@ -72,7 +81,9 @@ export interface IconSource {
  * output). I2: a 1-bit pixel map → CopyMask with the icon's mask. I3: deeper →
  * CopyBits srcCopy, opaque, mask ignored. Without the unmasked pixels (or the
  * depth) the opaque copy cannot be made; that case is traced `unimplemented`
- * and drawn masked.
+ * and drawn masked. When the adapter rejected a mismatched opaque companion
+ * (`icon.fallback`, DECISIONS #7) the masked copy is the recorded policy, traced
+ * `fallback`.
  */
 export function iconBlit(port: Pixmap, icon: IconSource, srcRect: QdRect, dstRect: QdRect, trace?: EngineTrace, row?: string): void {
   if (emptyRect(srcRect) || emptyRect(dstRect)) return;
@@ -88,7 +99,9 @@ export function iconBlit(port: Pixmap, icon: IconSource, srcRect: QdRect, dstRec
     return;
   }
   trace?.drawOps.push({ op: 'iconBlit', row: `${row ? `${row},` : ''}I3`, src: srcRect, dst: dstRect, transfer: 'copyMask',
-    unimplemented: 'pixel depth or unmasked pixels unavailable; drawn masked' });
+    ...(icon.fallback ? { fallback: icon.fallback } : {}),
+    // A rejected companion with a known depth is the recorded policy, not a gap.
+    ...(icon.fallback && icon.pixelSize !== null ? {} : { unimplemented: 'pixel depth or unmasked pixels unavailable; drawn masked' }) });
   transferBits(port, icon.pixmap, srcRect, dstRect, 'copyMask');
 }
 

@@ -14,7 +14,7 @@ export type { ControlCompositionContext, ControlCompositionSnapshot, ControlPoin
 
 // Pre-1.0 — release version is tracked in package.json. Keep this constant aligned
 // with the package.json `version` field.
-export const VERSION = '0.2.0';
+export const VERSION = '0.3.0';
 
 export { setDebug, isDebug, debug, type DebugOpts } from './debug.js';
 
@@ -99,10 +99,6 @@ export {
   type SliceMode,
   type PixRectXY,
 } from './composeChrome.js';
-export {
-  composeCornerSpriteChrome,
-  type CornerSpriteOptions,
-} from './composeCornerSprite.js';
 
 // ── Declarative front door (data-scriptoscope-*) ──────────────────────────────────
 // Additive re-exports of the declarative layer so consumers can `import { mountDeclarative } from

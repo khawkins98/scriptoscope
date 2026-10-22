@@ -13,7 +13,7 @@ adapter does not resolve resources again or infer thumb bounds from pixels.
 Public `composeSlider` and `platinumSlider` retain their existing PixelBuffer
 return types and pixel output. The native form adapter alone consumes the paired
 layout. Public imperative sliders and scrollbars retain their existing pointer
-mapping and callback contract.
+mapping and callback contract, except the vertical slider direction (see the table below).
 
 The adapter commits a canvas and its layout under the same asynchronous
 `paintVersion` check. A stale or disposed composition commits neither. Pointer
@@ -35,3 +35,18 @@ behavior and cancellation. The source/built `range-pointer.spec.mjs` contracts
 use independently specified authored/engineered extents and real pointer events,
 including held/reordered pressed decodes, rather than treating shared layout
 metadata as an independent oracle.
+
+## Relationship to the CDEF 3 decode
+
+The slider decode ([engine/slider.md](engine/slider.md)) defines the original
+control's part codes and value arithmetic. This contract stays modern policy;
+the table says which parts of it follow the decode and which do not (slider.md
+TRK1–TRK4).
+
+| topic | original CDEF 3 (slider.md) | this contract |
+|---|---|---|
+| direction | vertical minimum at the bottom (§5.2) | required (slider.md TRK4): drawing and pointer mapping must both put the vertical minimum at the bottom. The family-3 slider driver (PR #416) makes this change, including in the public imperative pointer map; until it lands, v2's imperative map and default composition still put the vertical minimum at the top |
+| hit surface | only the 16-pixel band `B` answers a part (HT1–HT4); ticks and the rest of `R` answer 0 | modern policy: the adapter's surface is the drawn canvas. The engine reports the HT part, which selects the pressed art |
+| track press (parts 22/23) | the CDEF changes no value; paging belongs to the application's action procedure (TRK1) | modern policy: track-click centring, as in the integration policy. Not claimed as native |
+| thumb drag | message 6 limits, message 5 offset with `T`-based rounding, or message 26 under live feedback (§5.6–§5.8, TRK2, TRK3) | modern policy: exact-value grabs that keep the starting value and geometry. Not claimed as native |
+| pressed art | hilite = the pressed part: 129 thumb, 22/23 track (§2) | the adapter selects the pressed art from the hit part; part 0 paints normal |

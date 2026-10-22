@@ -64,6 +64,27 @@ of screenshot height from layout/clipping rounding. All remain 1024 pixels wide.
 The combined PNG size changed from 545,675 to 544,743 bytes. The side-by-side panel
 retains the same intended live scene and reference content.
 
+## Manual browser suites (`npm run test:visual-baselines`)
+
+The `*.spec.mjs` files in this directory are `node:test` suites driven by
+Playwright's library API, not Playwright Test specs, so neither
+`tests/rendering-options/playwright.config.mjs` nor CI runs them. They are
+manual, maintainer-run checks; `npm run test:visual-baselines` runs the seven
+that start their own isolated Vite server. Each is described below.
+
+Status on `v2` at 2026-10-22 (Chromium from the locked Playwright, macOS): passing
+`boot-affordance`, `window-promotion`, `mobile-layout`; **failing**
+`control-background-sample` (base resource metadata), `control-ring` (1138
+automatic label ink overlapped by the ring), `control-template-size` (timeout
+waiting for the "Copy install snippet" button canvas), `window-shell-style` (window shadow computed as `none`). These
+failures are preserved, not relaxed; they need diagnosis as either a runtime
+regression or a stale assertion.
+
+`posture-b.spec.mjs` is excluded from the script: it spawns `npx vite --port
+5188` and never closes it, so `node --test` hangs; several of its assertions
+also fail today. Convert it to the isolated-server pattern used by
+`boot-affordance.spec.mjs` before wiring it in.
+
 ## Boot-affordance smoke test
 
 Install the locked development dependencies and Chromium:

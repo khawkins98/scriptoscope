@@ -2,80 +2,14 @@ import type { LoadedTheme, WindowState, WindowType } from './types.js';
 import { assetUrl, findChromeElement } from './loadTheme.js';
 import { loadCicnBuffer } from './cicnImage.js';
 import { composeWindowChrome, type ComposedChrome } from './composeChrome.js';
-// composeCornerSpriteChrome is dynamically imported below — see the
-// `wt.model === 'corner-sprite'` branch. Code-splitting the corner-sprite
-// compositor keeps ~12KB (post-minify) out of the first paint for the 14
-// themes that don't use it, at the cost of one extra round-trip when a
-// corner-sprite theme renders. The branch is already async (it awaits
-// widget-glyph loads), so the extra await is free.
+// The built-in frame (the `wt.model === 'corner-sprite'` branch: schemes with no
+// wnd# recipe) draws through the v2 engine family proceduralFrame, dynamically
+// imported so the 13 wnd# themes don't load it on first paint.
 import { rasterizeText } from './textRaster.js';
+import { rasterizeTitleFont } from './titleFont.js';
 import { PixelBuffer } from './pixelBuffer.js';
 import { resolveWindowSelection } from './resolveWindowType.js';
 import { canonicalWindowTypeSlug } from './wndCascade.js';
-
-/**
- * Rasterize the window title in a real FONT (the CSS "Charcoal" stack — a local
- * Charcoal if installed, else the bundled stand-in) via an offscreen canvas, so
- * the title reads as period anti-aliased type rather than the bitmap rasterizer.
- * Browser-only: returns null in a non-DOM context so the caller falls back to
- * rasterizeText (the crisp pixel path, used by node tooling).
- */
-function rasterizeTitleFont(text: string, px: number, hex: string): PixelBuffer | null {
-  if (typeof document === 'undefined' || !text) return null;
-  // Charcoal 12 (Jeremy Sachs, CC BY-SA — a bitmap clone of Mac OS 8/9 Charcoal) is
-  // crisp ONLY at its grid-native 16px: the finest design step (125 of 2000 em
-  // units) maps to exactly 1px there, so every brick edge lands on a pixel. When
-  // it's loaded we pin to 16px with ZERO tracking (off-grid advances would
-  // re-introduce anti-aliasing) and an integer baseline — the native buffer then
-  // upscales pixelated, keeping it blocky-crisp. Otherwise fall back to the
-  // Charcoal stack (Virtue) at the requested px with a hair of tracking for air.
-  const c12 = !!document.fonts?.check?.('16px "Charcoal 12"');
-  const size = c12 ? 16 : px;
-  const font = c12
-    ? `16px "Charcoal 12", Charcoal, "Helvetica Neue", Arial, sans-serif`
-    : `${px}px Charcoal, "Helvetica Neue", Arial, sans-serif`;
-  const LS = c12 ? '0px' : '0.5px';
-  const setLS = (c2d: CanvasRenderingContext2D): void => {
-    try { (c2d as unknown as { letterSpacing: string }).letterSpacing = LS; } catch { /* unsupported */ }
-  };
-  const probe = document.createElement('canvas').getContext('2d');
-  if (!probe) return null;
-  probe.font = font;
-  setLS(probe);
-  const tm = probe.measureText(text);
-  const w = Math.max(1, Math.ceil(tm.width) + 1);
-  // Buffer sized tight to the text's ink box; the compositor centres this buffer in
-  // the title bar (sgy, ~L220 below), so an ink-tight buffer lands the title without
-  // any line-height fudge. Baseline at the ink ascent.
-  const asc = Math.max(1, Math.ceil(tm.actualBoundingBoxAscent || size * 0.72));
-  const desc = Math.max(0, Math.ceil(tm.actualBoundingBoxDescent || 0));
-  const h = Math.max(1, asc + desc);
-  const c = document.createElement('canvas');
-  c.width = w; c.height = h;
-  const ctx = c.getContext('2d');
-  if (!ctx) return null;
-  ctx.font = font;
-  setLS(ctx);
-  ctx.fillStyle = hex;
-  ctx.textBaseline = 'alphabetic';
-  ctx.fillText(text, 0, asc);
-  const img = ctx.getImageData(0, 0, w, h);
-  const buf = PixelBuffer.alloc(w, h);
-  buf.data.set(img.data);
-  return buf;
-}
-
-/**
- * Load a scheme's OWN title-bar widget GLYPH by its negative Kaleidoscope id from
- * the theme's `glyphs` map (icons/index.json — all 16px families, ics4 OR ics8).
- * These are the WIDGET channel (-14336..-14331 = close/zoom/collapse, active +
- * inactive), distinct from the same-id cicn (a window-type proxy). Returns null
- * when the scheme ships no such glyph (→ the compositor's procedural box).
- */
-async function loadWidgetGlyph(owner: LoadedTheme, id: number): Promise<PixelBuffer | null> {
-  const asset = owner.glyphs?.[String(id)];
-  return asset ? loadCicnBuffer(assetUrl(owner, asset)) : null;
-}
 
 /** Pixels reserved between the title plate's edge and the nearest title-bar widget.
  *  Used by BOTH the plate sizing (so the plate grows wide enough that a widget
@@ -106,8 +40,9 @@ export interface RenderWindowOptions {
   /** Integer display scale (crisp upscaling via CSS). Default 1. */
   scale?: number;
   /** Render one title-bar widget in its PRESSED state (mouse held down on it).
-   *  Corner-sprite schemes swap to the widget's pressed glyph (-14333/-14332/-14331);
-   *  native-recipe schemes (widget baked into the title cicn) darken its rect. */
+   *  Built-in-frame schemes (no wnd#) draw the widget's pressed icon (procedural-frame
+   *  §2 parts 4/5/9: close -14333, zoom -14331, collapse -14332); native-recipe schemes
+   *  (widget baked into the title cicn) darken its rect. */
   pressedWidget?: TitleWidgetRole;
   /** Optional canvas element to REUSE for the chrome painting (saves a per-render
    *  allocation). Width and height are reset to the new chrome size, which clears
@@ -133,14 +68,15 @@ export type TitleWidgetRole = 'close' | 'zoom' | 'collapse';
  * Preserve those IDs even when a scheme puts close on the right or stacks its
  * widgets vertically. Geometry follows the actual compositor placements through the
  * kDEF's 0x5cb6 remap (below), so e.g. 1990's widgets left of a grown title plate
- * shift with their own cells (docs/spec/kdef231-code10-widgets.md §4).
+ * shift with their own cells (docs/spec/engine/window-widgets.md RM1–RM8; finding F1 there: the
+ * bottom-right corner should follow the cell's far edge).
  */
 export function resolveTitleWidgetRects(
   wt: WindowType,
   composed: ComposedChrome,
 ): { role: TitleWidgetRole; rect: { x: number; y: number; w: number; h: number } }[] {
-  // Corner-sprite model (composeCornerSprite): ONE `edge:'widget'` placement whose `rects` are the
-  // widgets in order and whose `role` joins their glyph names (e.g. "close/collapse/zoom").
+  // Built-in frame (proceduralFrameChrome): ONE `edge:'widget'` placement whose `rects` are the
+  // widgets left to right and whose `role` joins their names (e.g. "close/zoom/collapse").
   const ws = composed.placement.find((s) => s.edge === 'widget');
   if (ws && ws.rects.length) {
     const roles = ws.role.split('/');
@@ -163,6 +99,11 @@ export function resolveTitleWidgetRects(
   // the collapse point (still hit-testable, as 0x5ddc uses the same remap at
   // 0x5f72). The leading [0, border[0]) region and the runtime's far-edge cap
   // are not segments and never match.
+  // Divergence (docs/spec/engine/window-widgets.md RM6, finding F1): the decode
+  // moves bottom/right by the containing cell's FAR edge (placed − template
+  // right/bottom), so a widget in a cell dropped to width 0 becomes empty, and
+  // is neither drawn nor hit. This code still uses the near-edge delta for both
+  // corners and keeps the full-size rect described above.
   const order = ['top', 'bottom', 'left', 'right'] as const;
   const segs = order.flatMap((edge) => composed.placement.filter((s) => s.edge === edge && (s.segment ?? 1) >= 1 && s.rects.length > 0));
   if (!segs.length || !wt.parts) return [];
@@ -235,7 +176,8 @@ export async function renderWindow(
   // (chromeElement lookup kept for validation / future metadata use)
   findChromeElement(owner, cicnPath);
 
-  const cicn = await loadCicnBuffer(assetUrl(owner, cicnPath));
+  // The sliced path walks the chrome cicn; the built-in frame loads its own art by id.
+  const cicn = wt.model === 'corner-sprite' ? null : await loadCicnBuffer(assetUrl(owner, cicnPath));
 
   // Utility / mini / floating / palette windows usually carry NO visible title — the label is
   // screen-reader-only via aria-label. EXCEPT `titled-utility-window` (literally named for having
@@ -257,9 +199,10 @@ export async function renderWindow(
   // tiling the plate src across it (the "pill" behind the title). Without that
   // the plate stays its tiny src width and the text spills onto the bezel. ──
   const frameTop = wt.parts['part-0']?.rect[1] ?? 0;
+  const builtInFrame = wt.model === 'corner-sprite';
   let glyphs: PixelBuffer | null = null;
   let textH = 0;
-  if (showTitle && frameTop > 6) {
+  if (showTitle && frameTop > 6 && !builtInFrame) {
     textH = Math.max(8, Math.min(13, frameTop - 6)); // ~Chicago 12px, never frame-scaled
     // Canvas text only uses a font that's ALREADY loaded — so ensure the
     // "Charcoal" @font-face is ready before we rasterize, else ctx.font silently
@@ -283,51 +226,24 @@ export async function renderWindow(
   // space too — same idea, smaller constant.
   const titleWidthPx = glyphs ? glyphs.width + TITLE_PLATE_VISUAL_PAD_PX + TITLE_WIDGET_CLEARANCE_PX * 2 : 0;
 
-  // Corner-sprite windows (look-only Platinum schemes: apple-platinum-2,
-  // platinum-8, system7-nostalgia-silver) ship the document corner cicns + the
-  // pinstripe / grow-box sprites but no wnd# recipe — composeWindowChrome can't
-  // walk them. They render procedurally (the classic Platinum WDEF model) from
-  // their own sprites. Isolated, self-contained branch; the sliced path below
-  // is unchanged.
+  // Built-in frame windows (no wnd# recipe: apple-platinum-2, black-platinum,
+  // platinum-8, slimes, system7-nostalgia-silver) draw through the v2 engine
+  // (docs/spec/engine/procedural-frame.md), title text and pressed widget included.
   let composed;
-  if (wt.model === 'corner-sprite') {
-    const pinstripe = wt.sprites?.pinstripe
-      ? await loadCicnBuffer(assetUrl(owner, wt.sprites.pinstripe))
-      : null;
-    const growBox = wt.sprites?.growBox
-      ? await loadCicnBuffer(assetUrl(owner, wt.sprites.growBox))
-      : null;
-    const hc = (state === 'inactive' ? owner.manifest.headerColors?.inactive : owner.manifest.headerColors?.active) ?? {};
-    // Title-bar widget glyphs — the scheme's OWN close/zoom/shade art (the ics4/
-    // ics8 WIDGET channel; the same-id cicn is a window-type proxy). The base
-    // differs by window FAMILY: document / dialog / movable use the -14336.. set;
-    // UTILITY / mini / floating windows use their OWN -14320.. set. Within a set:
-    // close = base, zoom = base+1, collapse = base+2 (ACTIVE/normal); the +3 trio is the
-    // PRESSED variant (per resource-roles: close/zoom/collapse × active/pressed — NOT inactive;
-    // classic Mac inactive windows don't draw pressed-looking widgets). So inactive uses the
-    // normal glyphs (greyed via the inactive header colours), and only the held widget loads its
-    // pressed glyph. The compositor stamps the ones in opts.widgets (procedural box otherwise).
-    const wBase = isUtility ? -14320 : -14336;
-    const wIdx = { close: 0, zoom: 1, collapse: 2 } as const;
-    const gid = (role: keyof typeof wIdx): number => wBase + wIdx[role] + (opts.pressedWidget === role ? 3 : 0);
-    const widgetGlyphs = {
-      close: await loadWidgetGlyph(owner, gid('close')),
-      zoom: await loadWidgetGlyph(owner, gid('zoom')),
-      collapse: await loadWidgetGlyph(owner, gid('collapse')),
-    };
-    // The window-frame proxy cicn (chrome.active -14332 / chrome.inactive -14336) —
-    // frame-extracted by the compositor into the scheme's own beveled frame + corners.
-    const frameAsset = state === 'inactive' ? (wt.chrome?.inactive ?? wt.chrome?.active) : wt.chrome?.active;
-    const frameCicn = frameAsset ? await loadCicnBuffer(assetUrl(owner, frameAsset)) : null;
-    const { composeCornerSpriteChrome } = await import('./composeCornerSprite.js');
-    composed = composeCornerSpriteChrome(wt, contentW, contentH, {
-      pinstripe, growBox, frameColor: hc.frame, fillColor: hc.fill,
-      lightBevel: hc.lightBevel, darkBevel: hc.darkBevel,
-      titleWidthPx, widgets: wt.widgets, widgetGlyphs, frameCicn,
+  if (builtInFrame) {
+    const key = Object.entries(owner.manifest.windowTypes ?? {}).find(([, v]) => v === wt)?.[0] ?? slug;
+    const { composeProceduralFrameChrome } = await import('./proceduralFrameChrome.js');
+    // The built-in utility frame derives its bar height from the title (procedural-frame §9.1
+    // UI10), and collapsing does not change the window record, so the collapsed titled utility
+    // keeps its title. Scoped to the built-in frame; wnd# schemes keep the showTitle gate.
+    const builtInTitled = !!title && /^(collapsed-)?titled-utility/.test(canonicalWindowTypeSlug(key));
+    composed = await composeProceduralFrameChrome(owner, canonicalWindowTypeSlug(key), state, contentW, contentH, {
+      title: showTitle || builtInTitled ? title : '',
+      ...(opts.pressedWidget ? { pressedWidget: opts.pressedWidget } : {}),
     });
   } else {
     // popup-window requests are service slot 8 (procID 1008 + varCode, family 63 → the family-63 flag, 0x3210).
-    composed = composeWindowChrome(cicn, wt, contentW, contentH, { cinf: wt.cinf ?? null, titleWidthPx, popupFamily: slug === 'popup-window' });
+    composed = composeWindowChrome(cicn!, wt, contentW, contentH, { cinf: wt.cinf ?? null, titleWidthPx, popupFamily: slug === 'popup-window' });
     // Native-recipe widgets are baked into the title cicn (no pressed art), so synthesize the
     // press by darkening the held widget's rect (corner-sprite schemes used the pressed glyph above).
     if (opts.pressedWidget && wt) {
@@ -523,7 +439,7 @@ export async function renderWindow(
   // ── grow box overlay: stacked ABOVE the content so the resize control sits
   //    just inside the bottom-right frame corner, over the body — the chrome
   //    canvas is behind the content, so a grow box drawn into it (at the inner
-  //    corner) would be hidden. composeCornerSprite returns it as its own sprite
+  //    corner) would be hidden. The built-in frame returns it as its own sprite
   //    (with any procedural handle baked in) precisely so it can stack on top. ──
   if (composed.growBox) {
     const gb = composed.growBox;

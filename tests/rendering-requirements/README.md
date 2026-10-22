@@ -657,7 +657,7 @@ the prior `window.recipe-rules` assertion, the 13 prior `wnd#` window cases and
 their 13 prior `window.flag-gated-parts` assessments; the ledger test restores
 them (and drops the appended row) to rebuild the exact 1.23.0 ledger.
 
-[kdef231-code10-widgets.md](../../docs/spec/kdef231-code10-widgets.md) shows that
+[engine/window-widgets.md](../../docs/spec/engine/window-widgets.md) (rows PV5, AW4, TS1; listing trace in its evidence appendix) shows that
 `0x5178` hands `0x49d6` its `fp@(24)` byte, which is always `0x4a64`'s too-short
 byte (set only at `0x4e0e` when the placed extent is below the fixed-cell sum),
 not the `#1`/title byte at `fp@(26)`. The decode was independently reviewed
@@ -676,10 +676,70 @@ sync (see [Porting](#porting-a-main-branch-ledger-change-into-families)):
 `window@1.1.0`. Every ported row is byte-identical to main's. `ledger.test.mjs`
 re-expresses main's two tests against those transitions; main's 216/18/1,494
 totals hold for the main lineage (the v2-only scroll-bar and push-button
-transitions undone), and the live v2 totals are 229 verified, 0 mismatched and
-1,499 unknown of 1,728 after scrollbar@1.3.0 closed #374. Document validation
-uses the split-time rows with the live window family, because the merged
-`kdef231-reference.md` carries 1.24.0's corrected §4.2 excerpt.
+transitions undone, window at 1.1.0). After scrollbar@1.3.0 closed #374, the
+live v2 totals were 229 verified, 0 mismatched and 1,499 unknown of 1,728.
+Document validation uses the split-time rows with the window family at 1.1.0,
+because the merged `kdef231-reference.md` carries 1.24.0's corrected §4.2
+excerpt.
+
+`window@1.2.0` (v2 only) extends the five corner-sprite cases with the
+built-in window definition decoded in
+[engine/procedural-frame.md](../../docs/spec/engine/procedural-frame.md). It adds
+five requirements (`window.procedural-art-selection`, `-geometry`,
+`-sampled-colours`, `-hilite-gating` and `-title-mode`) and seven
+`kdef.procedural-frame-*` evidence rows. It also adds 25 assessments, all
+**unknown**: the spec was independently verified at #383, but no driver
+implements it and no native capture has been compared. The case closure reasons and the
+`window.corner-sprite-frame` / `window.state-frame` rationales are reworded in
+place to say the path is decoded. Their statuses do not change. The rule rows
+are `tests/rendering-options/procedural-frame-rules.test.mjs`. The live totals
+become 229 verified, 0 mismatched and 1,524 unknown of 1,753.
+
+`window@1.3.0` (v2 only) records the ledger change the Tier-2 review of #412
+proposed (campaign-20261021 v2-lanes/family2/IMPL-REVIEW.json, reviewed head
+ce3c428c). #412 replaced the corner-sprite compositor with the `proceduralFrame`
+engine driver. The five `<slug>.window.corner-sprite` cases are narrowed in place
+to the document family (document, collapsed document, dialog, alert, movable
+modal, movable alert). A new browser assertion, `window.procedural-frame`
+(`tests/rendering-options/procedural-frame.spec.mjs`, source and built), checks
+public `renderWindow` against the rule file's `DRIVER_ROWS` D4 port probes and
+D6 widget slots. These rows become **verified** at engine level, under the
+declared environment: `window.wnd-ladder` and `window.corner-sprite-frame` for
+all five archives, and `window.state-frame` for four of them. The evidence is
+the driver tests, engine-diff family `proceduralFrame`, container verify 36/36,
+and the new assertion. `window.state-frame` stays **unknown** for
+apple-platinum-2, because its -14332 and -14336 are pixel-identical, so no
+public render can tell them apart. `fill.remaining` and
+`window.masked-composition` stay unknown with updated rationales. The 25
+`window.procedural-*` rows keep their status, with the stale "no driver yet"
+sentence replaced. Five new `<slug>.window.procedural-frame-utility` cases add 25
+unknown rows linked to #414. The utility frame is not implemented, and spec rev 3
+in PR #415 decodes it. The live totals become 243 verified, 33 mismatched and
+1,556 unknown of 1,832, over 239 cases.
+
+`window@1.4.0` (v2 only) records the utility-frame ledger change that the Tier-2
+review of #421 proposed (campaign-20261021 v2-lanes/family2/IMPL-REVIEW-421.json,
+round-2 `ledgerProposal`, head 9a28dd48). #421 is merged into v2 as 296f7284 and
+fixes #414. The change adds a browser assertion,
+`window.procedural-frame-utility`
+(`tests/rendering-options/procedural-frame-utility.spec.mjs`, source and built).
+It also adds four utility evidence rows: `kdef.procedural-frame-utility-gate`,
+`-art`, `-geometry` and `-frame-lines`. The five
+`<slug>.window.procedural-frame-utility` cases now list the five reachable
+utility types by canonical slug. `collapsed-no-title-utility-window` is
+excluded because the loader does not expose it (#423). These rows become
+**verified** at engine level, under the declared environment:
+`window.wnd-ladder` and `window.corner-sprite-frame` for all five archives, and
+`window.state-frame` for four of them. `window.state-frame` stays **unknown**
+for apple-platinum-2, whose utility frames are pixel-identical.
+`fill.remaining` and `window.masked-composition` stay unknown. All 25 rows now
+cite #423 instead of the closed #414. They carry the label of the Tier-2
+review of #424 itself (REVIEW-424.json), because IMPL-REVIEW-421 never saw the
+assertion. Per that review's N4, the five utility `window.wnd-ladder` rows also
+cite `window.procedural-frame`, for its raw-fork `wnd#` gate. That assertion's
+`caseIds` gain the five utility cases. The rule rows for spec rev 3 are in
+`tests/rendering-options/procedural-frame-rules.test.mjs`. The live totals become
+257 verified, 33 mismatched and 1,542 unknown of 1,832, over 239 cases.
 
 ## Per-family sources (v2)
 

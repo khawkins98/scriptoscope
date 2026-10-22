@@ -44,7 +44,7 @@ export async function decode(slug) {
   if (!decodedCache.has(slug)) {
     const { E } = await runtime();
     const path = ['scheme.sit', 'scheme.rsrc'].map(f => new URL(`${slug}/${f}`, THEMES_DIR)).find(existsSync);
-    decodedCache.set(slug, await loadKaleidoscopeScheme(readFileSync(path), { encodeAssets: false, iconBlitCicnIds: E.scrollbarIconBlitCicnIds() }));
+    decodedCache.set(slug, await loadKaleidoscopeScheme(readFileSync(path), { encodeAssets: false, iconBlitCicnIds: E.engineIconBlitCicnIds() }));
   }
   return decodedCache.get(slug);
 }
@@ -154,7 +154,80 @@ async function* scrollbarCells({ slug, decoded, mutate = x => x }) {
   }
 }
 
+// ── built-in window frame (procedural-frame.md, the five no-wnd# archives) ─────
+// Every archive the loader marks corner-sprite (no wnd# window types), every
+// public window-type slug the family declares (PF_WINDOW_SLUGS), both hilite
+// states, three content sizes and three title widths (none, 60 px, and 250 px,
+// wider than the small windows' title limits), plus the
+// three widget-part draws (§2 parts 4, 5, 9) on the active document window.
+// The chain mirrors src/engine/resources/theme.ts over the loader's raw assets.
+// Titles are traced, not rasterised (the text renderer is the runtime's).
+const FRAME_SIZES = [[97, 53], [200, 100], [320, 160]];
+const FRAME_TITLES = [0, 60, 250];
+const FRAME_STATES = ['active', 'inactive'];
+const FRAME_PRESSED = [[4, 'close'], [5, 'zoom'], [9, 'collapse']];
+
+function frameChain(E, slug, decoded, mutate) {
+  const asset = path => { const a = decoded.assets.find(x => x.path === path || x.path.endsWith(`/${path}`)); return a && { width: a.width, height: a.height, data: new Uint8ClampedArray(a.rgba) }; };
+  const elements = Object.values(decoded.manifest.chromeElements ?? {}), patterns = Object.values(decoded.manifest.patterns ?? {});
+  const entries = [];
+  for (const { type, id } of E.proceduralFrameResourceIds()) {
+    if (type === 'cicn') {
+      const el = elements.find(e => e.sourceCicnId === id && e.asset);
+      if (el) entries.push([`cicn:${id}`, { pixmap: asset(el.asset), pixelSize: el.iconBlit?.pixelSize ?? null, unmasked: el.iconBlit?.unmaskedAsset ? asset(el.iconBlit.unmaskedAsset) : null }]);
+    } else if (type === 'ppat') {
+      const p = patterns.find(e => e.sourcePpatId === id && e.asset);
+      if (p) entries.push([`ppat:${id}`, asset(p.asset)]);
+    } else if (type === 'ics#') {
+      const planes = decoded.iconMaskPlanes?.[String(id)];
+      if (planes) entries.push([`ics#:${id}`, { planes }]);
+    } else if (type === 'ics8') {
+      const icon = decoded.iconIndex?.find(i => i.id === id && i.type === 'ics8');
+      if (icon) entries.push([`ics8:${id}`, asset(icon.file)]);
+    } else if (decoded.colorTables?.[`${type}:${id}`]) entries.push([`${type}:${id}`, decoded.colorTables[`${type}:${id}`]]);
+  }
+  return new E.ResourceChain([E.mapProvider(slug, 'archive', mutate(entries, { family: 'proceduralFrame' }))]);
+}
+
+async function* proceduralFrameCells({ slug, decoded, mutate = x => x }) {
+  const { E } = await runtime();
+  const types = Object.values(decoded.manifest.windowTypes ?? {});
+  if (!types.length || !types.every(w => w.model === 'corner-sprite')) return;
+  const chain = frameChain(E, slug, decoded, mutate);
+  for (const row of E.PF_WINDOW_SLUGS) for (const state of FRAME_STATES) for (const [w, h] of FRAME_SIZES) for (const titleWidth of FRAME_TITLES) {
+    const pressed = row.slug === 'document-window' && state === 'active' && w === FRAME_SIZES[0][0] && titleWidth === 0 ? [[0, null], ...FRAME_PRESSED] : [[0, null]];
+    for (const [part, name] of pressed) {
+      const H = 80;
+      const content = E.rect(H, H, H + (row.collapsed ? 0 : h), H + w);
+      const input = { content, variation: row.variation, family: row.family, hilited: state === 'active', goAway: row.goAway, shadeOn: row.shadeOn,
+        collapsed: row.collapsed, colorTable: row.colorTable, titleWidth };
+      const key = `${row.slug}/${state}/${w}x${h}/t${titleWidth}${name ? `/pressed-${name}` : ''}`;
+      const trace = E.createTrace('proceduralFrame', { ...input, part });
+      const size = { w: w + 2 * H, h: h + 2 * H };
+      const port = { width: size.w, height: size.h, data: new Uint8ClampedArray(size.w * size.h * 4) };
+      try {
+        const { geometry: g } = E.drawProceduralFrame(port, chain, input, { part }, trace);
+        if (row.family === 'document') {
+          trace.rects.features = { top: E.proceduralFrameFeatures(input), left: 0, bottom: 0, right: 0 };
+          const probe = [g.widgets.close, g.widgets.zoom, g.widgets.collapse, g.grow].map(r => ({ x: r.left + 8, y: r.top + 8 }));
+          trace.hits = probe.map(p => E.proceduralFramePartAt(g, chain, p));
+        } else {
+          // Utility (§9.9): box centres, box corners (inset-1 edge), the grow rect; message 6 draws the grow box (UM4).
+          const probe = [g.widgets.close, g.widgets.zoom, g.widgets.collapse, g.grow].flatMap(r => [{ x: r.left + 4, y: r.top + 4 }, { x: r.left, y: r.top }]);
+          trace.hits = probe.map(p => E.proceduralFramePartAt(g, chain, p));
+          if (part === 0) E.drawProceduralFrameGrowIcon(port, chain, input, trace);
+        }
+      } catch (e) { yield { key, trace: { family: 'proceduralFrame', inputs: trace.inputs, error: String(e.message) } }; continue; }
+      yield { key, trace: { ...trace, pixels: sha(port.data) } };
+    }
+  }
+}
+
+/** @internal probe hook: the proceduralFrame chain over one decoded archive. */
+export const __frameChain = (E, slug, decoded) => frameChain(E, slug, decoded, x => x);
+
 export const FAMILIES = {
   window: { rules: ['docs/spec/engine/qd-primitives.md'], cells: windowCells },
   scrollbar: { rules: ['docs/spec/engine/scrollbar.md', 'docs/spec/engine/qd-primitives.md'], cells: scrollbarCells },
+  proceduralFrame: { rules: ['docs/spec/engine/procedural-frame.md', 'docs/spec/engine/qd-primitives.md'], cells: proceduralFrameCells },
 };

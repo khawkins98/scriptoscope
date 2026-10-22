@@ -254,7 +254,7 @@ it rejects forward-tiled 11/14 cells, reverse-tiled forward cells and scaled
 tile cells.
 
 Code 10 is asserted from the too-short step (`0x4dfe..0x4e0e`;
-[kdef231-code10-widgets.md](../../docs/spec/kdef231-code10-widgets.md)): fixed
+[engine/window-widgets.md](../../docs/spec/engine/window-widgets.md) rows PV5, TS1, TS2): fixed
 when the side's placed extent reaches its fixed-cell sum, width 0 below it.
 `sideTooShort` computes the verdict from the recipe and the content delta,
 bounding widget-gated codes, and leaves code 10 unknown when the bound
@@ -385,6 +385,128 @@ has no offscreen flag), and `range-rules.spec.mjs` binds D1 through the public
 `pressedPart`, source and built. With the engine driver every one of the 144
 public rows matches the rule table, so the recorded disagreement lists are
 empty.
+
+### Built-in window frame rules (schemes without `wnd#`)
+
+`procedural-frame-rules.mjs` transcribes
+[engine/procedural-frame.md](../../docs/spec/engine/procedural-frame.md) (§3–§6):
+the frame kDEF 0 draws for the five schemes that ship neither a `wnd#` nor a
+`WDEF` -14330 (`apple-platinum-2`, `black-platinum`, `platinum-8`, `slimes`,
+`system7-nostalgia-silver`). It imports nothing. The model names sample points
+only. `procedural-frame-rules.test.mjs` resolves them against each archive's own
+cicn colour table, as raw RGB16 before the bake-time gamma policy. It also checks
+that a value-match lookup and the kDEF serialized-palette sampler agree on every
+frame and dialog pixel, so the lookup choice cannot matter.
+
+The test pins 31 rows to the spec's own numbers:
+
+- **Selection.** Frame cicn -14332/-14336, dialog cicns, widget ids (close
+  -14336, zoom -14334, collapse -14335, `ics#` + `ics8`, never `ics4`), stripe
+  layers (`ppat` first, then the scheme's own cicn; slimes is the only `ppat`
+  scheme), and grow art.
+- **Geometry.** *H* = ascent + descent + 6, made odd, minimum 22. Structure by kind
+  (6-px sides and bottom plus the 1-px shadow; dialog outset 6, or 3 when thin).
+  Widget slots at *T*.l + 4, *T*.r − 17 and *T*.r − 33, and their drop rules.
+  The 17 × 17 grow box at (*C*.r − 15, *C*.b − 15). Title limits, stripe
+  segments, message-8 regions, get-features, the §4 / §5 / §5A draw lists and the
+  baseline.
+- **Colours.** Fill (6, 3), text (7, 3), shadow (9, 3) as a +1/+1 pass only when
+  it differs from the text, the drop shadow (0, 0), band and ring colours.
+- **State.** Widgets and stripes are drawn only when hilited.
+- **Hit codes.** The probe points (*T*.l + 16, *T*.t + 12) and
+  (*T*.r − 16, *T*.t + 12), the `ics#` mask test and the title-bar +1 row.
+- **Title mode.** The `WdrB` box/joined table.
+
+A mutation table records, for each of 47 wrong readings, which rows fail and in
+which scheme × state cells. Every row and every cell fails under at least one
+reading. The cells a reading misses are named as findings, for example:
+
+- every corpus shadow sample differs from its text sample, so only a synthetic row
+  can fail "always draw the shadow pass";
+- apple-platinum-2's two frame cicns sample identically;
+- the spec's own "sample row 4" mutation is blind on three inactive frames;
+- black-platinum has no `ics4`.
+
+Eleven rows need the engine driver (D1–D11, `DRIVER_ROWS`): requests, regions,
+draw order, composed-port pixel probes, slimes pattern fill, glyph plots, font
+metrics, the hit message, text passes, the grow op and the dialog ring. They are
+todo tests marked "awaits procedural-frame driver". Their spec values are pinned
+against the model now.
+
+`procedural-frame.spec.mjs` (source/built, assertion `window.procedural-frame`)
+binds D4 and D6 to public `renderWindow`. It reads each archive's raw resource
+fork in the page (sit-wasm + `parseResourceFork`) for the §1.1 gate: no `wnd#`,
+no WDEF -14330. 1138's fork is the negative control for `wnd#`. No corpus
+archive ships a WDEF, so that clause is only a guard. For an active and an
+inactive 200 × 140 document window of each of the five archives, it checks the
+structure size, every D4 port probe against that archive's own -14332 / -14336
+cicn, and the D6 widget slots against each glyph's `ics8` pixels where its `ics#`
+mask is set. When inactive, no glyph pixel that differs from the title fill may
+show in any of the three slots. It caught a swapped frame state, swapped
+zoom/collapse ids, a dropped hilite gate, a 1-px collapse-slot shift, and zoom
+and collapse drawn on an inactive window. Mask-clear pixels are not checked. The
+frame-state probes cannot fail on apple-platinum-2 (see above).
+
+**Revision 3 (#415): utility family and shared rows.** The same two files bind
+spec §9 and the rev-3 shared rows. The model adds `toggleRun` (TG1–TG3, UM1–UM2),
+`ctEntry`/`ctEqual` (CT1–CT4), `copyPixel` and `kind5GrowOps` (GB1–GB6, GL1–GL4),
+and the utility functions `utilityGeometry` (UI, UG, UP), `utilityFrameOps`
+(UFC, UFH, UFS, UFT), `utilityFrameArt` (UFA), `utilityStripes` (US),
+`utilityTitleRect`/`utilityTitleOps` (UT), `utilityDrawOrder`/`utilityWidgets`
+(UW, UM3), `utilityGrowArt` (UGB) and `utilityHit` (UH). `geometry` now applies
+WP1–WP4 as rev 3 states them: the drops depend on *goAway*, and WP3 never drops
+the zoom box. Utility readings live under `reading.utility`, so a utility
+mutation never touches the document rows. The test pins 42 rows (one or more
+per group) to hand-derived spec values and archive facts. 62 named mutations
+are pinned in a table. Every row and every per-scheme cell fails under at least
+one of them, and every group named above has a failing row. Findings the
+corpus cannot discriminate are asserted, not dropped:
+
+- UG5's "+ 1" is invisible for both bar thicknesses that occur.
+- UH7's 6-px drag band is covered by the content and *T*.
+- apple-platinum-2's utility frames are pixel-identical by state.
+- Every corpus colour table has value = position, so CT1–CT3 are synthetic-only.
+- Every utility frame and grow cicn mask is all ones, so GB3 = GB3a on the corpus.
+- Every utility shadow sample equals its fill, so UT7 never draws the shadow pass.
+
+The rows also cover the #421 review's N5 (UT6 with an even ascent + descent)
+and N6 (the 4-px US4 boundary).
+
+`procedural-frame-utility.spec.mjs` (source/built, assertion
+`window.procedural-frame-utility`) drives public `renderWindow` for the five
+reachable utility types on all five archives, active and inactive, 160 × 90
+content titled "Inspector". The legacy aliases `collapsed-titled-utility` and
+`collapsed-side-utility` are driven too. `collapsed-no-title-utility-window` is
+excluded: the loader does not expose it (#423). Expectations come from
+`utilityPlan`, the rule model placed at the structure origin, resolved against
+each archive's own -14316/-14320 (side -14315/-14319) frame cicns, -14314
+(side -14318, else -14314) stripes and -14320/-14318/-14319 glyphs. It checks:
+
+- **Routing.** Every slug, canonical or legacy, draws the utility family. A
+  legacy alias draws the same pixels as its canonical slug.
+- **Geometry.** Structure size and `ComposedChrome.frame` insets per type
+  (UG1–UG3, UI10). The collapsed titled bar equals the expanded one (#421 B2).
+- **Frame selection.** Probes on the UFC/UFH/UFS rows and columns and the UFT3
+  shadow equal the drawn state's cicn sample points. Probes where a widget
+  glyph could land are checked only when inactive. Frame state discriminates on
+  every archive but apple-platinum-2.
+- **Inactive windows.** One 9-px period of the stripes band holds each tile
+  row when active and only the fill when inactive. No widget box shows a
+  discriminating glyph pixel when inactive, and at least one does when active.
+  An inactive type that draws no title (no-title, side) shows only the fill
+  across its whole frame interior (#424 review N3).
+
+Eleven runtime mutations were run in a scratch worktree, source and built. Ten
+failed it: #421 B1 reverted to a direct slug lookup, B2's title gate reverted,
+UFA1 horizontal and side states swapped, UFH9 transposed, the UW4 and UW2
+hilite gates dropped, UG2 raised by *H* − 2, US1's band moved one row, and UI10
+titled *H* 14. One survived: UFH7 sampling P(6, i) instead of P(4, i). That
+reading is invisible on this corpus, because P(6, i) = P(4, i) for rows 0–2 of
+every frame cicn. A twelfth, added for review N3, draws the title on
+no-title-utility-window while keeping *H* at 13. It fails only the
+interior check, in source and built mode. The fill outside the band (except
+on untitled inactive windows), the title raster and the masked corners are
+not checked.
 
 ### Tab and header source rules
 

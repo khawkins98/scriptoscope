@@ -1,7 +1,8 @@
 import { test, expect, openHarness, attachObservations } from './fixtures.mjs';
 
 // WindowManager hit overlays come from the 0x5cb6 template → placed remap
-// (docs/spec/kdef231-code10-widgets.md §4): a widget's rect moves by the
+// (docs/spec/engine/window-widgets.md RM1–RM8; the runtime uses the near-edge
+// delta for both corners, spec §7.2 finding F1): a widget's rect moves by the
 // (placed − template) offset of the side segment that contains it, on every
 // side. The side-floating utility windows below keep their collapse widget in
 // the LEFT side's code-10 cell, after a code-8 grower, so it moves with height.
@@ -52,7 +53,8 @@ for (const mode of ['source', 'built']) {
     for (const slug of ['1138', 'apple-lisa']) {
       const at = g => rows.find(r => r.slug === slug && r.grow === g);
       expect(at(50).overlay[1] - at(0).overlay[1], slug).toBe(50);
-      // Below the template the code-10 cell is dropped (0x4e0e) but the widget stays hit-testable (§5).
+      // Below the template the code-10 cell is dropped (0x4e0e) but the widget stays hit-testable (runtime
+      // policy; refuted by docs/spec/engine/window-widgets.md RM6, finding F1).
       expect(at(-12).tenH, slug).toBe(0);
     }
   });

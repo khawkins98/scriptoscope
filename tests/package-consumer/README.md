@@ -19,15 +19,23 @@ Vite builds the fixture with an explicit isolated configuration and no aliases.
 Every filesystem module must belong to that consumer; tool-generated virtual
 modules are separate. The installed consumer is removed before the browser starts.
 An independent static-only server then serves the completed production files
-under `/consumer/`. Only the original Windows95 archive and its metadata are
-copied as external theme input; repository derivatives are not served.
+under `/consumer/`. Only the original Windows95 and Platinum 8 archives and their
+metadata are copied as external theme input; repository derivatives are not served.
 
 The browser checks actual lazy archive decoding, stylesheet application, a
 promoted window and checkbox/range/select controls, real pointer/keyboard input,
-and disconnect preserving the same native nodes/current values. Failed resources,
+and disconnect preserving the same native nodes/current values. It also renders
+one Platinum 8 document window via `loadTheme` + `renderWindow`: Platinum 8 has
+no `wnd#` recipe, so its frame comes from the lazily imported built-in-frame
+compositor chunk. The runner requires that canvas to be framed (larger than the
+content) with opaque pixels, and its archive fetched with 200. Every dynamic
+import in the consumer bundle must be fetched; without this window that chunk
+would never load. Failed resources,
 cross-origin requests and browser errors fail the smoke. It also repacks candidates
 omitting CSS and the actual lazy decoder chunk: these must fail at export-file
-resolution and bundling respectively, naming the omitted file. The normal
+resolution and bundling respectively, naming the omitted file. The decoder chunk
+is found by following `dist/scriptoscope.js`'s static imports, because the entry
+can be a re-export facade over shared chunks. The normal
 consumer keeps the decoder live by loading a StuffIt archive.
 A third candidate points the packed declaration at an existing repository type
 file. It must fail the type-file boundary even though those types compile,

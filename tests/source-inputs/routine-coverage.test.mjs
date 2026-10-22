@@ -2,7 +2,7 @@
 // enforced by scripts/report-coverage.mjs: identity (inScope.sha256), not just counts.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, writeFileSync, mkdtempSync, rmSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdtempSync, rmSync, mkdirSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { createHash } from 'node:crypto';
@@ -160,4 +160,49 @@ test('a consistent but unrecorded re-pin fails against a frozen base (reviewer R
   const editedOnly = inventory();
   editedOnly.inScope.changes[1].what = 'edited without a re-pin';
   assert.equal(runWithBase(editedOnly, inventory()).status, 1, 'changes stay append-only even without a re-pin');
+});
+
+// Citation heuristics, on a throwaway --root tree (the frozen pin is not involved).
+function runRoot(files) {
+  const dir = mkdtempSync(join(tmpdir(), 'routine-cov-root-'));
+  try {
+    for (const [rel, text] of Object.entries(files)) {
+      mkdirSync(dirname(join(dir, rel)), { recursive: true });
+      writeFileSync(join(dir, rel), text);
+    }
+    return spawnSync(process.execPath, [script, '--json', '--root', dir], { encoding: 'utf8' });
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+}
+const fixtureInventory = JSON.stringify({
+  status: 'fixture', columns: ['start', 'end', 'class', 'reachedFrom', 'inScope'], inScope: { rule: 'fixture' },
+  binaries: {
+    kDEF0: { routines: [['0xc', '0x28', 'g', 'entry', true], ['0x28', '0x38', 'g', 'entry', true], ['0x1000', '0x1100', 'g', 'entry', true]] },
+    PACH130: { routines: [['0x1000', '0x1100', 'g', 'entry', true]] },
+  },
+});
+
+test("'dispatch' is not a PACH hint; a word starting with 'patch' still is", () => {
+  const r = runRoot({
+    'docs/spec/routine-inventory.json': fixtureInventory,
+    'docs/spec/engine/fixture.md': 'The part dispatch table at 0x1050 selects the handler.\n',
+    'docs/spec/notes.md': 'The patch installed at 0x1080 replaces the trap.\n',
+  });
+  assert.equal(r.status, 0, r.stderr);
+  const b = JSON.parse(r.stdout).binaries;
+  assert.equal(b.kDEF0.decoded, 1, 'the dispatch line belongs to the file default, kDEF0');
+  assert.equal(b.PACH130.decoded, 0, 'the dispatch line is not a PACH 130 citation');
+  assert.equal(b.PACH130.cited, 1, 'the patch line is a PACH 130 citation');
+});
+
+test('one- and two-digit addresses (0xc, 0x28) are cited; struct offsets and zero-padding still are not', () => {
+  const files = { 'docs/spec/routine-inventory.json': fixtureInventory };
+  const cited = text => JSON.parse(runRoot({ ...files, 'docs/spec/engine/fixture.md': text }).stdout).binaries.kDEF0.decoded;
+  assert.equal(cited('Toolbox glue starts at 0xc.\n'), 1);
+  assert.equal(cited('The second stub is 0x28.\n'), 1);
+  assert.equal(cited('Reads the field at a4@(0x28).\n'), 0, 'an @( ) operand is a struct offset');
+  assert.equal(cited('Adds base + 0xc.\n'), 0, "a value after '+' is an offset");
+  assert.equal(cited('Zero-padded 0x000c.\n'), 0);
+  // Low values in src/ comments never count (explicit files only).
+  const r = runRoot({ ...files, 'src/x.ts': '// see 0xc\n' });
+  assert.equal(JSON.parse(r.stdout).binaries.kDEF0.cited, 0);
 });

@@ -53,6 +53,10 @@ Never open, read, search or have a tool print these:
     trap table owned by lane L1; stays forbidden until those are repointed)
   - `docs/spec/kdef-binary-inventory.md` (a map of where the listings and
     binaries live)
+  - `docs/spec/kdef231-code10-widgets.md` (split into
+    [`window-widgets.md`](window-widgets.md); the stub keeps the ledger-pinned
+    `kdef.too-short-step` excerpt, which quotes register operands, and stays
+    forbidden until that row is repointed)
   - `docs/spec/checkable-icons.md`, `docs/spec/range-controls.md`
     (ledger-pinned excerpts quote register-relative operands)
   - `tests/rendering-options/range-rules.mjs` and its `.spec`/`.test` files
