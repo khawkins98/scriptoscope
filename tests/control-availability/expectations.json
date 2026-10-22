@@ -2083,7 +2083,7 @@
   "review": {
     "date": "2026-10-22",
     "reviewers": [
-      "PENDING independent hash-only review (Tier 0) of the scrollbar 1.2.0 citation PR: 1.0.12 -> 1.0.13 changes only the nine kdef231-reference.md documentSha256 values (90efe521 -> 5ca8cee0) after the section 1.1 0x8d36 row's aux-field meanings were marked undecoded (they rested on the retired slot-5 scroll-bar attribution); no case-cited address line (0x758e, 0x76c4, 0x76d2, 0x76fe) changed; 1.0.12 review archived verbatim; not original provider or pixel-fidelity approval"
+      "PM Tier-0 mechanical check of PR #398 (head d64298c1, 2026-10-22): 1.0.12 -> 1.0.13 changes only the nine kdef231-reference.md documentSha256 values (90efe521 -> 5ca8cee0) after the slot-5 (0x8d36) aux-field gloss was marked undecoded; 1.0.12 review archived verbatim; all 27 case inputs, outcomes and cited addresses unchanged; lane:ready hash-only check passed; not original provider or pixel-fidelity approval"
     ],
     "inventoryVersion": "1.0.13",
     "inventorySha256": "dbf9d88b57a28be6a17736aa6f35e8c3305b8a221924e0d6676a41e898ef15d1",
