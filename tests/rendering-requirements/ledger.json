@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "inventoryVersion": "1.22.0",
+  "inventoryVersion": "1.22.0+push-button@1.0.1",
   "scope": {
-    "description": "198 exact direct composition cases: the prior 144 plus 18 scroll-bar source-rule cases and 36 slider/progress explicit-unknown cases (every archive). All closures OPEN; not a whole-control or whole-window denominator.",
+    "description": "198 exact direct composition cases and 1404 assessments (18 mismatched, 1213 unknown, 173 verified) after post-split family transitions push-button@1.0.1; each changed family's reviewed scope is in scope.families. At the 1.22.0 split: 198 exact direct composition cases: the prior 144 plus 18 scroll-bar source-rule cases and 36 slider/progress explicit-unknown cases (every archive). All closures OPEN; not a whole-control or whole-window denominator.",
     "dimensions": [
       "resourceSelection",
       "geometry",
@@ -12,7 +12,20 @@
       "placement",
       "interaction"
     ],
-    "review": "Original eight cases and 51 assessments retained unchanged. Independent automated root/Astra review approved eight additional finite cases and 83 obligations at draft scope digest 659a655e87bbb0642aa200cf108671ec93d9e2cd00f48577bfb97cd4df1b30e3 on 2026-10-18; final digest reflects only replacement of pending review labels. All closures remain OPEN; not human capture attestation. The #289 extension preserves those sixteen cases and 134 assessments. Independent automated root/Astra review approved this exact finite #289 case/status extension on 2026-10-18 at draft scope digest 16a76c6c2c2343d378d626ffc8bf954b11a32cb5a2015718cb2ce7dd917893a0; narrow source/sample claim only, not human original-capture attestation. The #301 extension preserves all eighteen cases and150 assessments, adding four exact synthetic cases and45 obligations. Independent automated root/Astra review approved the exact applied four-case, 45-obligation extension and verifiers at commit d02935846fa816411259524b15e9934cd316becb, scope digest 4e563d0e824e9d809f22a14a735d6f64dca501bb1519ba58fc42ab3390c1e066. Final digest reflects only replacement of these review labels. Synthetic source/literal claims only; no original capture attestation."
+    "review": "At the 1.22.0 split: Original eight cases and 51 assessments retained unchanged. Independent automated root/Astra review approved eight additional finite cases and 83 obligations at draft scope digest 659a655e87bbb0642aa200cf108671ec93d9e2cd00f48577bfb97cd4df1b30e3 on 2026-10-18; final digest reflects only replacement of pending review labels. All closures remain OPEN; not human capture attestation. The #289 extension preserves those sixteen cases and 134 assessments. Independent automated root/Astra review approved this exact finite #289 case/status extension on 2026-10-18 at draft scope digest 16a76c6c2c2343d378d626ffc8bf954b11a32cb5a2015718cb2ce7dd917893a0; narrow source/sample claim only, not human original-capture attestation. The #301 extension preserves all eighteen cases and150 assessments, adding four exact synthetic cases and45 obligations. Independent automated root/Astra review approved the exact applied four-case, 45-obligation extension and verifiers at commit d02935846fa816411259524b15e9934cd316becb, scope digest 4e563d0e824e9d809f22a14a735d6f64dca501bb1519ba58fc42ab3390c1e066. Final digest reflects only replacement of these review labels. Synthetic source/literal claims only; no original capture attestation. Post-split changes carry their own summary and review per family transition in scope.families.",
+    "families": {
+      "push-button": {
+        "version": "1.0.1",
+        "scope": "Ledger rows owned by the push-button family (case families: push, default, bevel): the single-file ledger 1.22.0 rows, with the 52 stale review labels on the recorded-condition Windows 95, System 7, Crayon and Lisa cases replaced by their recorded provenance at 1.0.1. Every case closure remains as recorded at 1.22.0.",
+        "transitions": [
+          {
+            "version": "1.0.1",
+            "summary": "Text-only: replaced 52 stale review labels (36 assessment reviews on the six PR #312 recorded-condition cases, 16 empty-label exclusion reviews on those six cases plus the Crayon and Lisa recorded cases) with their recorded provenance. No status, evidence, assertion, case, requirement or input change; counts unchanged.",
+            "review": "Text-only change, Tier 0 (doc wording, no change in meaning). Provenance traced from git history (6356ab35/PR #312, 86bca073/PR #318, 4af92a6a/PR #319) and tests/reference-captures/reviews.json; the six verified output.recorded-composited-face rows have no retained integration review record, raised as a status question for the PM (maintainer store campaign-20261021/v2-lanes/pb-cleanup/STATUS-QUESTION.md). Status unchanged by this transition."
+          }
+        ]
+      }
+    }
   },
   "inputs": [
     {
@@ -4267,7 +4280,7 @@
         ],
         "typography": {
           "excluded": "No label raster in this exact direct case.",
-          "review": "Proposed bounded empty-label/direct-composition exclusion; independent integration review pending."
+          "review": "Bounded empty-label/direct-composition exclusion, declared with this case in PR #312 (squash 6356ab35, single-file ledger 1.4.0, 2026-10-19), whose body states \"Independent Astra review approved 34fd346f\"; no copy of that review is retained in the repository or the maintainer store, and the reviewed tree already carried the unreplaced label this text supersedes."
         },
         "state": [
           "state.original"
@@ -4277,7 +4290,7 @@
         ],
         "interaction": {
           "excluded": "Direct pixel composition only. DOM focus, names, actions and teardown require separate cases.",
-          "review": "Proposed bounded empty-label/direct-composition exclusion; independent integration review pending."
+          "review": "Bounded empty-label/direct-composition exclusion, declared with this case in PR #312 (squash 6356ab35, single-file ledger 1.4.0, 2026-10-19), whose body states \"Independent Astra review approved 34fd346f\"; no copy of that review is retained in the repository or the maintainer store, and the reviewed tree already carried the unreplaced label this text supersedes."
         }
       },
       "inventoryClosure": {
@@ -4352,7 +4365,7 @@
         ],
         "typography": {
           "excluded": "No label raster in this exact direct case.",
-          "review": "Proposed bounded empty-label/direct-composition exclusion; independent integration review pending."
+          "review": "Bounded empty-label/direct-composition exclusion, declared with this case in PR #312 (squash 6356ab35, single-file ledger 1.4.0, 2026-10-19), whose body states \"Independent Astra review approved 34fd346f\"; no copy of that review is retained in the repository or the maintainer store, and the reviewed tree already carried the unreplaced label this text supersedes."
         },
         "state": [
           "state.original"
@@ -4362,7 +4375,7 @@
         ],
         "interaction": {
           "excluded": "Direct pixel composition only. DOM focus, names, actions and teardown require separate cases.",
-          "review": "Proposed bounded empty-label/direct-composition exclusion; independent integration review pending."
+          "review": "Bounded empty-label/direct-composition exclusion, declared with this case in PR #312 (squash 6356ab35, single-file ledger 1.4.0, 2026-10-19), whose body states \"Independent Astra review approved 34fd346f\"; no copy of that review is retained in the repository or the maintainer store, and the reviewed tree already carried the unreplaced label this text supersedes."
         }
       },
       "inventoryClosure": {
@@ -4437,7 +4450,7 @@
         ],
         "typography": {
           "excluded": "No label raster in this exact direct case.",
-          "review": "Proposed bounded empty-label/direct-composition exclusion; independent integration review pending."
+          "review": "Bounded empty-label/direct-composition exclusion, declared with this case in PR #312 (squash 6356ab35, single-file ledger 1.4.0, 2026-10-19), whose body states \"Independent Astra review approved 34fd346f\"; no copy of that review is retained in the repository or the maintainer store, and the reviewed tree already carried the unreplaced label this text supersedes."
         },
         "state": [
           "state.original"
@@ -4447,7 +4460,7 @@
         ],
         "interaction": {
           "excluded": "Direct pixel composition only. DOM focus, names, actions and teardown require separate cases.",
-          "review": "Proposed bounded empty-label/direct-composition exclusion; independent integration review pending."
+          "review": "Bounded empty-label/direct-composition exclusion, declared with this case in PR #312 (squash 6356ab35, single-file ledger 1.4.0, 2026-10-19), whose body states \"Independent Astra review approved 34fd346f\"; no copy of that review is retained in the repository or the maintainer store, and the reviewed tree already carried the unreplaced label this text supersedes."
         }
       },
       "inventoryClosure": {
@@ -4522,7 +4535,7 @@
         ],
         "typography": {
           "excluded": "No label raster in this exact direct case.",
-          "review": "Proposed bounded empty-label/direct-composition exclusion; independent integration review pending."
+          "review": "Bounded empty-label/direct-composition exclusion, declared with this case in PR #312 (squash 6356ab35, single-file ledger 1.4.0, 2026-10-19), whose body states \"Independent Astra review approved 34fd346f\"; no copy of that review is retained in the repository or the maintainer store, and the reviewed tree already carried the unreplaced label this text supersedes."
         },
         "state": [
           "state.original"
@@ -4532,7 +4545,7 @@
         ],
         "interaction": {
           "excluded": "Direct pixel composition only. DOM focus, names, actions and teardown require separate cases.",
-          "review": "Proposed bounded empty-label/direct-composition exclusion; independent integration review pending."
+          "review": "Bounded empty-label/direct-composition exclusion, declared with this case in PR #312 (squash 6356ab35, single-file ledger 1.4.0, 2026-10-19), whose body states \"Independent Astra review approved 34fd346f\"; no copy of that review is retained in the repository or the maintainer store, and the reviewed tree already carried the unreplaced label this text supersedes."
         }
       },
       "inventoryClosure": {
@@ -4607,7 +4620,7 @@
         ],
         "typography": {
           "excluded": "No label raster in this exact direct case.",
-          "review": "Proposed bounded empty-label/direct-composition exclusion; independent integration review pending."
+          "review": "Bounded empty-label/direct-composition exclusion, declared with this case in PR #312 (squash 6356ab35, single-file ledger 1.4.0, 2026-10-19), whose body states \"Independent Astra review approved 34fd346f\"; no copy of that review is retained in the repository or the maintainer store, and the reviewed tree already carried the unreplaced label this text supersedes."
         },
         "state": [
           "state.original"
@@ -4617,7 +4630,7 @@
         ],
         "interaction": {
           "excluded": "Direct pixel composition only. DOM focus, names, actions and teardown require separate cases.",
-          "review": "Proposed bounded empty-label/direct-composition exclusion; independent integration review pending."
+          "review": "Bounded empty-label/direct-composition exclusion, declared with this case in PR #312 (squash 6356ab35, single-file ledger 1.4.0, 2026-10-19), whose body states \"Independent Astra review approved 34fd346f\"; no copy of that review is retained in the repository or the maintainer store, and the reviewed tree already carried the unreplaced label this text supersedes."
         }
       },
       "inventoryClosure": {
@@ -4692,7 +4705,7 @@
         ],
         "typography": {
           "excluded": "No label raster in this exact direct case.",
-          "review": "Proposed bounded empty-label/direct-composition exclusion; independent integration review pending."
+          "review": "Bounded empty-label/direct-composition exclusion, declared with this case in PR #312 (squash 6356ab35, single-file ledger 1.4.0, 2026-10-19), whose body states \"Independent Astra review approved 34fd346f\"; no copy of that review is retained in the repository or the maintainer store, and the reviewed tree already carried the unreplaced label this text supersedes."
         },
         "state": [
           "state.original"
@@ -4702,7 +4715,7 @@
         ],
         "interaction": {
           "excluded": "Direct pixel composition only. DOM focus, names, actions and teardown require separate cases.",
-          "review": "Proposed bounded empty-label/direct-composition exclusion; independent integration review pending."
+          "review": "Bounded empty-label/direct-composition exclusion, declared with this case in PR #312 (squash 6356ab35, single-file ledger 1.4.0, 2026-10-19), whose body states \"Independent Astra review approved 34fd346f\"; no copy of that review is retained in the repository or the maintainer store, and the reviewed tree already carried the unreplaced label this text supersedes."
         }
       },
       "inventoryClosure": {
@@ -4926,7 +4939,7 @@
         ],
         "typography": {
           "excluded": "No label raster in this exact direct case.",
-          "review": "Proposed bounded empty-label/direct-composition exclusion; independent integration review pending."
+          "review": "Bounded empty-label/direct-composition exclusion, declared with this case in PR #318 (squash 86bca073). That PR reports Astra approval of 0ff88d3d for the case; no review record names this exclusion separately."
         },
         "state": [
           "state.original"
@@ -4936,7 +4949,7 @@
         ],
         "interaction": {
           "excluded": "Direct pixel composition only. DOM focus, names, actions and teardown require separate cases.",
-          "review": "Proposed bounded empty-label/direct-composition exclusion; independent integration review pending."
+          "review": "Bounded empty-label/direct-composition exclusion, declared with this case in PR #318 (squash 86bca073). That PR reports Astra approval of 0ff88d3d for the case; no review record names this exclusion separately."
         }
       },
       "inventoryClosure": {
@@ -5034,7 +5047,7 @@
         ],
         "typography": {
           "excluded": "No label raster in this exact direct case.",
-          "review": "Proposed bounded empty-label/direct-composition exclusion; independent integration review pending."
+          "review": "Bounded empty-label/direct-composition exclusion, declared with this case in PR #319 (squash 4af92a6a). That PR reports an Astra scope/data/integration review at e944ca43 for the case; no review record names this exclusion separately."
         },
         "state": [
           "state.original"
@@ -5044,7 +5057,7 @@
         ],
         "interaction": {
           "excluded": "Direct pixel composition only. DOM focus, names, actions and teardown require separate cases.",
-          "review": "Proposed bounded empty-label/direct-composition exclusion; independent integration review pending."
+          "review": "Bounded empty-label/direct-composition exclusion, declared with this case in PR #319 (squash 4af92a6a). That PR reports an Astra scope/data/integration review at e944ca43 for the case; no review record names this exclusion separately."
         }
       },
       "inventoryClosure": {
@@ -8225,7 +8238,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
-      "review": "Proposed bounded assessment; independent integration review pending."
+      "review": "Unknown; not proposed for promotion. Declared with this recorded-condition case in PR #312 (squash 6356ab35, single-file ledger 1.4.0, 2026-10-19), whose body states \"Independent Astra review approved 34fd346f\"; no copy of that review is retained in the repository or the maintainer store, and the reviewed tree already carried the unreplaced label this text supersedes. The recorded composited face does not establish this obligation."
     },
     {
       "caseId": "recorded.windows-95.normal.empty.w80.h20.v9-profile",
@@ -8235,7 +8248,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
-      "review": "Proposed bounded assessment; independent integration review pending."
+      "review": "Unknown; not proposed for promotion. Declared with this recorded-condition case in PR #312 (squash 6356ab35, single-file ledger 1.4.0, 2026-10-19), whose body states \"Independent Astra review approved 34fd346f\"; no copy of that review is retained in the repository or the maintainer store, and the reviewed tree already carried the unreplaced label this text supersedes. The recorded composited face does not establish this obligation."
     },
     {
       "caseId": "recorded.windows-95.normal.empty.w80.h20.v9-profile",
@@ -8249,7 +8262,7 @@
       ],
       "issues": [],
       "rationale": "Exact observed composited pixels only, using independently reviewed original observations and explicit profile. Execution remains separately required.",
-      "review": "Proposed bounded assessment; independent integration review pending."
+      "review": "Verified since PR #312 (squash 6356ab35, single-file ledger 1.4.0, 2026-10-19), whose body states \"Independent Astra review approved 34fd346f\"; no copy of that review is retained in the repository or the maintainer store, and the reviewed tree already carried the unreplaced label this text supersedes. Original intake review: tests/reference-captures/reviews.json captureId windows-95.normal.v9.draft. Integration review record not located; status question open (maintainer store campaign-20261021/v2-lanes/pb-cleanup/STATUS-QUESTION.md)."
     },
     {
       "caseId": "recorded.windows-95.normal.empty.w80.h20.v9-profile",
@@ -8259,7 +8272,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
-      "review": "Proposed bounded assessment; independent integration review pending."
+      "review": "Unknown; not proposed for promotion. Declared with this recorded-condition case in PR #312 (squash 6356ab35, single-file ledger 1.4.0, 2026-10-19), whose body states \"Independent Astra review approved 34fd346f\"; no copy of that review is retained in the repository or the maintainer store, and the reviewed tree already carried the unreplaced label this text supersedes. The recorded composited face does not establish this obligation."
     },
     {
       "caseId": "recorded.windows-95.normal.empty.w80.h20.v9-profile",
@@ -8269,7 +8282,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
-      "review": "Proposed bounded assessment; independent integration review pending."
+      "review": "Unknown; not proposed for promotion. Declared with this recorded-condition case in PR #312 (squash 6356ab35, single-file ledger 1.4.0, 2026-10-19), whose body states \"Independent Astra review approved 34fd346f\"; no copy of that review is retained in the repository or the maintainer store, and the reviewed tree already carried the unreplaced label this text supersedes. The recorded composited face does not establish this obligation."
     },
     {
       "caseId": "recorded.windows-95.normal.empty.w80.h20.v9-profile",
@@ -8279,7 +8292,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
-      "review": "Proposed bounded assessment; independent integration review pending."
+      "review": "Unknown; not proposed for promotion. Declared with this recorded-condition case in PR #312 (squash 6356ab35, single-file ledger 1.4.0, 2026-10-19), whose body states \"Independent Astra review approved 34fd346f\"; no copy of that review is retained in the repository or the maintainer store, and the reviewed tree already carried the unreplaced label this text supersedes. The recorded composited face does not establish this obligation."
     },
     {
       "caseId": "recorded.windows-95.pressed.empty.w80.h20.v9-profile",
@@ -8289,7 +8302,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
-      "review": "Proposed bounded assessment; independent integration review pending."
+      "review": "Unknown; not proposed for promotion. Declared with this recorded-condition case in PR #312 (squash 6356ab35, single-file ledger 1.4.0, 2026-10-19), whose body states \"Independent Astra review approved 34fd346f\"; no copy of that review is retained in the repository or the maintainer store, and the reviewed tree already carried the unreplaced label this text supersedes. The recorded composited face does not establish this obligation."
     },
     {
       "caseId": "recorded.windows-95.pressed.empty.w80.h20.v9-profile",
@@ -8299,7 +8312,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
-      "review": "Proposed bounded assessment; independent integration review pending."
+      "review": "Unknown; not proposed for promotion. Declared with this recorded-condition case in PR #312 (squash 6356ab35, single-file ledger 1.4.0, 2026-10-19), whose body states \"Independent Astra review approved 34fd346f\"; no copy of that review is retained in the repository or the maintainer store, and the reviewed tree already carried the unreplaced label this text supersedes. The recorded composited face does not establish this obligation."
     },
     {
       "caseId": "recorded.windows-95.pressed.empty.w80.h20.v9-profile",
@@ -8313,7 +8326,7 @@
       ],
       "issues": [],
       "rationale": "Exact observed composited pixels only, using independently reviewed original observations and explicit profile. Execution remains separately required.",
-      "review": "Proposed bounded assessment; independent integration review pending."
+      "review": "Verified since PR #312 (squash 6356ab35, single-file ledger 1.4.0, 2026-10-19), whose body states \"Independent Astra review approved 34fd346f\"; no copy of that review is retained in the repository or the maintainer store, and the reviewed tree already carried the unreplaced label this text supersedes. Original intake review: tests/reference-captures/reviews.json captureId windows-95.pressed.v10w.draft. Integration review record not located; status question open (maintainer store campaign-20261021/v2-lanes/pb-cleanup/STATUS-QUESTION.md)."
     },
     {
       "caseId": "recorded.windows-95.pressed.empty.w80.h20.v9-profile",
@@ -8323,7 +8336,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
-      "review": "Proposed bounded assessment; independent integration review pending."
+      "review": "Unknown; not proposed for promotion. Declared with this recorded-condition case in PR #312 (squash 6356ab35, single-file ledger 1.4.0, 2026-10-19), whose body states \"Independent Astra review approved 34fd346f\"; no copy of that review is retained in the repository or the maintainer store, and the reviewed tree already carried the unreplaced label this text supersedes. The recorded composited face does not establish this obligation."
     },
     {
       "caseId": "recorded.windows-95.pressed.empty.w80.h20.v9-profile",
@@ -8333,7 +8346,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
-      "review": "Proposed bounded assessment; independent integration review pending."
+      "review": "Unknown; not proposed for promotion. Declared with this recorded-condition case in PR #312 (squash 6356ab35, single-file ledger 1.4.0, 2026-10-19), whose body states \"Independent Astra review approved 34fd346f\"; no copy of that review is retained in the repository or the maintainer store, and the reviewed tree already carried the unreplaced label this text supersedes. The recorded composited face does not establish this obligation."
     },
     {
       "caseId": "recorded.windows-95.pressed.empty.w80.h20.v9-profile",
@@ -8343,7 +8356,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
-      "review": "Proposed bounded assessment; independent integration review pending."
+      "review": "Unknown; not proposed for promotion. Declared with this recorded-condition case in PR #312 (squash 6356ab35, single-file ledger 1.4.0, 2026-10-19), whose body states \"Independent Astra review approved 34fd346f\"; no copy of that review is retained in the repository or the maintainer store, and the reviewed tree already carried the unreplaced label this text supersedes. The recorded composited face does not establish this obligation."
     },
     {
       "caseId": "recorded.windows-95.inactive.empty.w80.h20.v9-profile",
@@ -8353,7 +8366,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
-      "review": "Proposed bounded assessment; independent integration review pending."
+      "review": "Unknown; not proposed for promotion. Declared with this recorded-condition case in PR #312 (squash 6356ab35, single-file ledger 1.4.0, 2026-10-19), whose body states \"Independent Astra review approved 34fd346f\"; no copy of that review is retained in the repository or the maintainer store, and the reviewed tree already carried the unreplaced label this text supersedes. The recorded composited face does not establish this obligation."
     },
     {
       "caseId": "recorded.windows-95.inactive.empty.w80.h20.v9-profile",
@@ -8363,7 +8376,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
-      "review": "Proposed bounded assessment; independent integration review pending."
+      "review": "Unknown; not proposed for promotion. Declared with this recorded-condition case in PR #312 (squash 6356ab35, single-file ledger 1.4.0, 2026-10-19), whose body states \"Independent Astra review approved 34fd346f\"; no copy of that review is retained in the repository or the maintainer store, and the reviewed tree already carried the unreplaced label this text supersedes. The recorded composited face does not establish this obligation."
     },
     {
       "caseId": "recorded.windows-95.inactive.empty.w80.h20.v9-profile",
@@ -8377,7 +8390,7 @@
       ],
       "issues": [],
       "rationale": "Exact observed composited pixels only, using independently reviewed original observations and explicit profile. Execution remains separately required.",
-      "review": "Proposed bounded assessment; independent integration review pending."
+      "review": "Verified since PR #312 (squash 6356ab35, single-file ledger 1.4.0, 2026-10-19), whose body states \"Independent Astra review approved 34fd346f\"; no copy of that review is retained in the repository or the maintainer store, and the reviewed tree already carried the unreplaced label this text supersedes. Original intake review: tests/reference-captures/reviews.json captureId windows-95.inactive.v10w.draft. Integration review record not located; status question open (maintainer store campaign-20261021/v2-lanes/pb-cleanup/STATUS-QUESTION.md)."
     },
     {
       "caseId": "recorded.windows-95.inactive.empty.w80.h20.v9-profile",
@@ -8387,7 +8400,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
-      "review": "Proposed bounded assessment; independent integration review pending."
+      "review": "Unknown; not proposed for promotion. Declared with this recorded-condition case in PR #312 (squash 6356ab35, single-file ledger 1.4.0, 2026-10-19), whose body states \"Independent Astra review approved 34fd346f\"; no copy of that review is retained in the repository or the maintainer store, and the reviewed tree already carried the unreplaced label this text supersedes. The recorded composited face does not establish this obligation."
     },
     {
       "caseId": "recorded.windows-95.inactive.empty.w80.h20.v9-profile",
@@ -8397,7 +8410,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
-      "review": "Proposed bounded assessment; independent integration review pending."
+      "review": "Unknown; not proposed for promotion. Declared with this recorded-condition case in PR #312 (squash 6356ab35, single-file ledger 1.4.0, 2026-10-19), whose body states \"Independent Astra review approved 34fd346f\"; no copy of that review is retained in the repository or the maintainer store, and the reviewed tree already carried the unreplaced label this text supersedes. The recorded composited face does not establish this obligation."
     },
     {
       "caseId": "recorded.windows-95.inactive.empty.w80.h20.v9-profile",
@@ -8407,7 +8420,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
-      "review": "Proposed bounded assessment; independent integration review pending."
+      "review": "Unknown; not proposed for promotion. Declared with this recorded-condition case in PR #312 (squash 6356ab35, single-file ledger 1.4.0, 2026-10-19), whose body states \"Independent Astra review approved 34fd346f\"; no copy of that review is retained in the repository or the maintainer store, and the reviewed tree already carried the unreplaced label this text supersedes. The recorded composited face does not establish this obligation."
     },
     {
       "caseId": "recorded.system7-nostalgia-silver.normal.empty.w80.h20.v9-profile",
@@ -8417,7 +8430,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
-      "review": "Proposed bounded assessment; independent integration review pending."
+      "review": "Unknown; not proposed for promotion. Declared with this recorded-condition case in PR #312 (squash 6356ab35, single-file ledger 1.4.0, 2026-10-19), whose body states \"Independent Astra review approved 34fd346f\"; no copy of that review is retained in the repository or the maintainer store, and the reviewed tree already carried the unreplaced label this text supersedes. The recorded composited face does not establish this obligation."
     },
     {
       "caseId": "recorded.system7-nostalgia-silver.normal.empty.w80.h20.v9-profile",
@@ -8427,7 +8440,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
-      "review": "Proposed bounded assessment; independent integration review pending."
+      "review": "Unknown; not proposed for promotion. Declared with this recorded-condition case in PR #312 (squash 6356ab35, single-file ledger 1.4.0, 2026-10-19), whose body states \"Independent Astra review approved 34fd346f\"; no copy of that review is retained in the repository or the maintainer store, and the reviewed tree already carried the unreplaced label this text supersedes. The recorded composited face does not establish this obligation."
     },
     {
       "caseId": "recorded.system7-nostalgia-silver.normal.empty.w80.h20.v9-profile",
@@ -8441,7 +8454,7 @@
       ],
       "issues": [],
       "rationale": "Exact observed composited pixels only, using independently reviewed original observations and explicit profile. Execution remains separately required.",
-      "review": "Proposed bounded assessment; independent integration review pending."
+      "review": "Verified since PR #312 (squash 6356ab35, single-file ledger 1.4.0, 2026-10-19), whose body states \"Independent Astra review approved 34fd346f\"; no copy of that review is retained in the repository or the maintainer store, and the reviewed tree already carried the unreplaced label this text supersedes. Original intake review: tests/reference-captures/reviews.json captureId system7-nostalgia-silver.normal.v7d.draft. Integration review record not located; status question open (maintainer store campaign-20261021/v2-lanes/pb-cleanup/STATUS-QUESTION.md)."
     },
     {
       "caseId": "recorded.system7-nostalgia-silver.normal.empty.w80.h20.v9-profile",
@@ -8451,7 +8464,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
-      "review": "Proposed bounded assessment; independent integration review pending."
+      "review": "Unknown; not proposed for promotion. Declared with this recorded-condition case in PR #312 (squash 6356ab35, single-file ledger 1.4.0, 2026-10-19), whose body states \"Independent Astra review approved 34fd346f\"; no copy of that review is retained in the repository or the maintainer store, and the reviewed tree already carried the unreplaced label this text supersedes. The recorded composited face does not establish this obligation."
     },
     {
       "caseId": "recorded.system7-nostalgia-silver.normal.empty.w80.h20.v9-profile",
@@ -8461,7 +8474,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
-      "review": "Proposed bounded assessment; independent integration review pending."
+      "review": "Unknown; not proposed for promotion. Declared with this recorded-condition case in PR #312 (squash 6356ab35, single-file ledger 1.4.0, 2026-10-19), whose body states \"Independent Astra review approved 34fd346f\"; no copy of that review is retained in the repository or the maintainer store, and the reviewed tree already carried the unreplaced label this text supersedes. The recorded composited face does not establish this obligation."
     },
     {
       "caseId": "recorded.system7-nostalgia-silver.normal.empty.w80.h20.v9-profile",
@@ -8471,7 +8484,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
-      "review": "Proposed bounded assessment; independent integration review pending."
+      "review": "Unknown; not proposed for promotion. Declared with this recorded-condition case in PR #312 (squash 6356ab35, single-file ledger 1.4.0, 2026-10-19), whose body states \"Independent Astra review approved 34fd346f\"; no copy of that review is retained in the repository or the maintainer store, and the reviewed tree already carried the unreplaced label this text supersedes. The recorded composited face does not establish this obligation."
     },
     {
       "caseId": "recorded.system7-nostalgia-silver.pressed.empty.w80.h20.v9-profile",
@@ -8481,7 +8494,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
-      "review": "Proposed bounded assessment; independent integration review pending."
+      "review": "Unknown; not proposed for promotion. Declared with this recorded-condition case in PR #312 (squash 6356ab35, single-file ledger 1.4.0, 2026-10-19), whose body states \"Independent Astra review approved 34fd346f\"; no copy of that review is retained in the repository or the maintainer store, and the reviewed tree already carried the unreplaced label this text supersedes. The recorded composited face does not establish this obligation."
     },
     {
       "caseId": "recorded.system7-nostalgia-silver.pressed.empty.w80.h20.v9-profile",
@@ -8491,7 +8504,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
-      "review": "Proposed bounded assessment; independent integration review pending."
+      "review": "Unknown; not proposed for promotion. Declared with this recorded-condition case in PR #312 (squash 6356ab35, single-file ledger 1.4.0, 2026-10-19), whose body states \"Independent Astra review approved 34fd346f\"; no copy of that review is retained in the repository or the maintainer store, and the reviewed tree already carried the unreplaced label this text supersedes. The recorded composited face does not establish this obligation."
     },
     {
       "caseId": "recorded.system7-nostalgia-silver.pressed.empty.w80.h20.v9-profile",
@@ -8505,7 +8518,7 @@
       ],
       "issues": [],
       "rationale": "Exact observed composited pixels only, using independently reviewed original observations and explicit profile. Execution remains separately required.",
-      "review": "Proposed bounded assessment; independent integration review pending."
+      "review": "Verified since PR #312 (squash 6356ab35, single-file ledger 1.4.0, 2026-10-19), whose body states \"Independent Astra review approved 34fd346f\"; no copy of that review is retained in the repository or the maintainer store, and the reviewed tree already carried the unreplaced label this text supersedes. Original intake review: tests/reference-captures/reviews.json captureId system7-nostalgia-silver.pressed.v10s.draft. Integration review record not located; status question open (maintainer store campaign-20261021/v2-lanes/pb-cleanup/STATUS-QUESTION.md)."
     },
     {
       "caseId": "recorded.system7-nostalgia-silver.pressed.empty.w80.h20.v9-profile",
@@ -8515,7 +8528,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
-      "review": "Proposed bounded assessment; independent integration review pending."
+      "review": "Unknown; not proposed for promotion. Declared with this recorded-condition case in PR #312 (squash 6356ab35, single-file ledger 1.4.0, 2026-10-19), whose body states \"Independent Astra review approved 34fd346f\"; no copy of that review is retained in the repository or the maintainer store, and the reviewed tree already carried the unreplaced label this text supersedes. The recorded composited face does not establish this obligation."
     },
     {
       "caseId": "recorded.system7-nostalgia-silver.pressed.empty.w80.h20.v9-profile",
@@ -8525,7 +8538,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
-      "review": "Proposed bounded assessment; independent integration review pending."
+      "review": "Unknown; not proposed for promotion. Declared with this recorded-condition case in PR #312 (squash 6356ab35, single-file ledger 1.4.0, 2026-10-19), whose body states \"Independent Astra review approved 34fd346f\"; no copy of that review is retained in the repository or the maintainer store, and the reviewed tree already carried the unreplaced label this text supersedes. The recorded composited face does not establish this obligation."
     },
     {
       "caseId": "recorded.system7-nostalgia-silver.pressed.empty.w80.h20.v9-profile",
@@ -8535,7 +8548,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
-      "review": "Proposed bounded assessment; independent integration review pending."
+      "review": "Unknown; not proposed for promotion. Declared with this recorded-condition case in PR #312 (squash 6356ab35, single-file ledger 1.4.0, 2026-10-19), whose body states \"Independent Astra review approved 34fd346f\"; no copy of that review is retained in the repository or the maintainer store, and the reviewed tree already carried the unreplaced label this text supersedes. The recorded composited face does not establish this obligation."
     },
     {
       "caseId": "recorded.system7-nostalgia-silver.inactive.empty.w80.h20.v9-profile",
@@ -8545,7 +8558,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
-      "review": "Proposed bounded assessment; independent integration review pending."
+      "review": "Unknown; not proposed for promotion. Declared with this recorded-condition case in PR #312 (squash 6356ab35, single-file ledger 1.4.0, 2026-10-19), whose body states \"Independent Astra review approved 34fd346f\"; no copy of that review is retained in the repository or the maintainer store, and the reviewed tree already carried the unreplaced label this text supersedes. The recorded composited face does not establish this obligation."
     },
     {
       "caseId": "recorded.system7-nostalgia-silver.inactive.empty.w80.h20.v9-profile",
@@ -8555,7 +8568,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
-      "review": "Proposed bounded assessment; independent integration review pending."
+      "review": "Unknown; not proposed for promotion. Declared with this recorded-condition case in PR #312 (squash 6356ab35, single-file ledger 1.4.0, 2026-10-19), whose body states \"Independent Astra review approved 34fd346f\"; no copy of that review is retained in the repository or the maintainer store, and the reviewed tree already carried the unreplaced label this text supersedes. The recorded composited face does not establish this obligation."
     },
     {
       "caseId": "recorded.system7-nostalgia-silver.inactive.empty.w80.h20.v9-profile",
@@ -8569,7 +8582,7 @@
       ],
       "issues": [],
       "rationale": "Exact observed composited pixels only, using independently reviewed original observations and explicit profile. Execution remains separately required.",
-      "review": "Proposed bounded assessment; independent integration review pending."
+      "review": "Verified since PR #312 (squash 6356ab35, single-file ledger 1.4.0, 2026-10-19), whose body states \"Independent Astra review approved 34fd346f\"; no copy of that review is retained in the repository or the maintainer store, and the reviewed tree already carried the unreplaced label this text supersedes. Original intake review: tests/reference-captures/reviews.json captureId system7-nostalgia-silver.inactive.v10s.draft. Integration review record not located; status question open (maintainer store campaign-20261021/v2-lanes/pb-cleanup/STATUS-QUESTION.md)."
     },
     {
       "caseId": "recorded.system7-nostalgia-silver.inactive.empty.w80.h20.v9-profile",
@@ -8579,7 +8592,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
-      "review": "Proposed bounded assessment; independent integration review pending."
+      "review": "Unknown; not proposed for promotion. Declared with this recorded-condition case in PR #312 (squash 6356ab35, single-file ledger 1.4.0, 2026-10-19), whose body states \"Independent Astra review approved 34fd346f\"; no copy of that review is retained in the repository or the maintainer store, and the reviewed tree already carried the unreplaced label this text supersedes. The recorded composited face does not establish this obligation."
     },
     {
       "caseId": "recorded.system7-nostalgia-silver.inactive.empty.w80.h20.v9-profile",
@@ -8589,7 +8602,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
-      "review": "Proposed bounded assessment; independent integration review pending."
+      "review": "Unknown; not proposed for promotion. Declared with this recorded-condition case in PR #312 (squash 6356ab35, single-file ledger 1.4.0, 2026-10-19), whose body states \"Independent Astra review approved 34fd346f\"; no copy of that review is retained in the repository or the maintainer store, and the reviewed tree already carried the unreplaced label this text supersedes. The recorded composited face does not establish this obligation."
     },
     {
       "caseId": "recorded.system7-nostalgia-silver.inactive.empty.w80.h20.v9-profile",
@@ -8599,7 +8612,7 @@
       "assertions": [],
       "issues": [],
       "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
-      "review": "Proposed bounded assessment; independent integration review pending."
+      "review": "Unknown; not proposed for promotion. Declared with this recorded-condition case in PR #312 (squash 6356ab35, single-file ledger 1.4.0, 2026-10-19), whose body states \"Independent Astra review approved 34fd346f\"; no copy of that review is retained in the repository or the maintainer store, and the reviewed tree already carried the unreplaced label this text supersedes. The recorded composited face does not establish this obligation."
     },
     {
       "caseId": "synthetic.bitmap.push.X-space-X.auto",
@@ -10443,5 +10456,5 @@
     {"caseId":"windows-95.progress.public-rows.sampled","requirementId":"progress.public-state-mapping","status":"unknown","evidence":[],"assertions":[],"issues":[],"rationale":"Unknown: the original control state for each public option is not established.","review":"Independent review lanes/I/REVIEW.json (head 5e10c6ab925ea40dbb5167a5323a344795068f70): not promoted; stays unknown; every closure OPEN."},
     {"caseId":"windows-95.progress.public-rows.sampled","requirementId":"placement.original","status":"unknown","evidence":[],"assertions":[],"issues":[],"rationale":"Port, clip and control placement are not asserted.","review":"Independent review lanes/I/REVIEW.json (head 5e10c6ab925ea40dbb5167a5323a344795068f70): not promoted; stays unknown; every closure OPEN."}
   ],
-  "inventorySha256": "ce08cb3815a644c92d92f105b5483f33003b13c633eef7a03a217aa51c5b7407"
+  "inventorySha256": "7fdf670254d4ef424a07b802f58aa79795fa447eb44bb24b58b8d4cc2d6e4460"
 }
