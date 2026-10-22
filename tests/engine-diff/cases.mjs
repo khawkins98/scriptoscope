@@ -367,7 +367,7 @@ async function* progressCells({ slug, decoded, mutate = x => x }) {
 export const __frameChain = (E, slug, decoded) => frameChain(E, slug, decoded, x => x);
 
 export const FAMILIES = {
-  window: { rules: ['docs/spec/engine/qd-primitives.md'], cells: windowCells },
+  window: { rules: ['docs/spec/engine/window-widgets.md', 'docs/spec/engine/qd-primitives.md'], cells: windowCells },
   scrollbar: { rules: ['docs/spec/engine/scrollbar.md', 'docs/spec/engine/qd-primitives.md'], cells: scrollbarCells },
   proceduralFrame: { rules: ['docs/spec/engine/procedural-frame.md', 'docs/spec/engine/qd-primitives.md'], cells: proceduralFrameCells },
   slider: { rules: ['docs/spec/engine/slider.md', 'docs/spec/engine/qd-primitives.md'], cells: sliderCells },
