@@ -102,7 +102,7 @@ independent Tier-1 verifier fills it.
 | CDEF 5 `0x610..0x626` | `0xcfc(fp-80)` (save object: `0xaa2` init, `0xb02` capture); `0xc6a` normalise; `0xd60(gdh)` lowDepth | |
 | CDEF 5 `0x62c..0x64a` | `0x35a(control)`; non-zero → `0xd22(fp-80, −1)` restore, return | |
 | CDEF 5 `0x64e..0x65e` | `0x1aa8(−10224)` (cicn get); nil → `0x6ec` | |
-| CDEF 5 `0x662..0x692` | `0x108a(cicn, 11, 11)` (`#720909` = 0x000B000B) → RGBForeColor(pixel colour); MoveTo(left+1, bottom−1); LineTo(right−1, bottom−1); LineTo(right−1, top+1) (FB1) | |
+| CDEF 5 `0x662..0x692` | `0x108a(cicn, 11, 13)` (`#720909` = 0x000B000D: high word 11 is the column at `fp@(12)`, low word 13 the row at `fp@(14)`; corrected 2026-10-22 per REVIEW-440 B2, earlier text misread it as (11, 11)) → RGBForeColor(pixel colour); MoveTo(left+1, bottom−1); LineTo(right−1, bottom−1); LineTo(right−1, top+1) (FB1) | |
 | CDEF 5 `0x6a6..0x6d4` | `0x108a(cicn, 0, 0)`; MoveTo(left, bottom−2); LineTo(left, top); LineTo(right−2, top) (FB2) | |
 | CDEF 5 `0x6d6..0x6e6` | `0x108a(cicn, 1, 1)` (`#65537`); `$AA25` DisposeCIcon (FB3) | |
 | CDEF 5 `0x6ec..0x708` | InsetRect(fp-8, 1, 1); `$A8A1` FrameRect; InsetRect(1, 1) (FB5, FB6) | |
@@ -254,7 +254,7 @@ output `census.json` (SHA-256 `14ef8e04…`): own forks of the 18 archives throu
   evolution, floppies.
 - Fill / track `cinf` and cicn sizes as in the spec's corpus table.
 - `ppat`: listed per archive in `census.json`; every one is pattern type 1.
-- `cicn −10224` colour tables and the (11,11) / (0,0) / (1,1) samples (looked up
+- `cicn −10224` colour tables and the (11,13) / (0,0) / (1,1) samples (census re-run with (11,13): the same value and colour as (11,11) in all 8 archives; script sha256 `18fe9706…`, output `13e3260f…`) (looked up
   with COL1): see the spec table. apple-platinum-2, black-platinum and
   system7-nostalgia-silver hold value 15 at (1, 1) in a 6-entry table whose last
   entry has value 15 (found by the search: black).

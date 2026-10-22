@@ -281,7 +281,7 @@ The colours are fixed RGB triples (COL3) or samples of `cicn −10224` (COL2).
 
 | # | condition | output | source |
 |---|---|---|---|
-| FB1 | `cicn −10224` found | foreground := colour of its pixel (11, 11); MoveTo / LineTo lines along the bottom row `R.bottom − 1` over columns `[R.left + 1, R.right − 1]` and the right column `R.right − 1` over rows `[R.top + 1, R.bottom − 1]` (inclusive) | CDEF 5 `0x64e..0x692` |
+| FB1 | `cicn −10224` found | foreground := colour of its pixel at column 11, row 13 (the bottom-right pixel of a 12 × 14 icon); MoveTo / LineTo lines along the bottom row `R.bottom − 1` over columns `[R.left + 1, R.right − 1]` and the right column `R.right − 1` over rows `[R.top + 1, R.bottom − 1]` (inclusive) | CDEF 5 `0x64e..0x692` |
 | FB2 | FB1 | foreground := colour of its pixel (0, 0); lines along the left column `R.left` over rows `[R.top, R.bottom − 2]` and the top row `R.top` over columns `[R.left, R.right − 2]` | CDEF 5 `0x6a6..0x6d4` |
 | FB3 | FB1 | foreground := colour of its pixel (1, 1); the cicn is released | CDEF 5 `0x6d6..0x6e6` |
 | FB4 | `cicn −10224` missing | no lines; the foreground stays black (O2) | CDEF 5 `0x65e` |
@@ -487,7 +487,7 @@ bar is drawn exactly as the active one (frame −10080, fill −10079, track
 −10078, shift-mode `ppat −10080`).
 
 **E. Procedural bar, platinum-8, determinate, max 100, value 25.** No
-`cinf −10080` (GATE2). `cicn −10224` (12 × 14, 8-bit): pixel (11, 11) is
+`cinf −10080` (GATE2). `cicn −10224` (12 × 14, 8-bit): pixel (11, 13) is
 white, (0, 0) is grey `(0x8888, 0x8888, 0x8888)` (CDEF 5 colour, not an address),
 (1, 1) is black. White lines on
 row 13 over columns 1–99 and column 99 over rows 1–13; grey lines on column 0
@@ -568,7 +568,7 @@ every progress `cinf` is 18 bytes.
 | IND shift mode | crayon-os (`ppat −10080` 64 × 16, inactive −10072); apple-lisa (`ppat −10080` 8 × 8) |
 | IND6 no pattern | 1990, dolphin-som, evolution |
 | FB8 `ppat −10064` | all procedural archives except monkey-paradise (FB9) |
-| `cicn −10224` samples (11,11) / (0,0) / (1,1), CDEF 5 colour values | apple-platinum-2, black-platinum, platinum-8, slimes, system7-nostalgia-silver: white / `0x8888` grey / black; animals, monkey-paradise: `0xDDDD` / `0x7777` / `0xAAAA` greys; beos-r503: `0xF333` / `0xA8F6` / `0x51EC` greys |
+| `cicn −10224` samples (11,13) / (0,0) / (1,1), CDEF 5 colour values | apple-platinum-2, black-platinum, platinum-8, slimes, system7-nostalgia-silver: white / `0x8888` grey / black; animals, monkey-paradise: `0xDDDD` / `0x7777` / `0xAAAA` greys; beos-r503: `0xF333` / `0xA8F6` / `0x51EC` greys |
 | shipped but never requested by CDEF 5 | `cicn −10223` (8 archives); `cicn −10080..−10071` and `ppat −10080..−10071` in apple-platinum-2, black-platinum, system7-nostalgia-silver; `cicn` and `ppat −10078` in platinum-8 (no `cinf`, so GATE2) |
 
 ## 7. Test hooks
@@ -599,7 +599,7 @@ actually separates; a row no mutation can fail is a finding.
 | IND1 | probe id is `F_p + 1`: a synthetic fork with `ppat −10080` and −10078 but no −10079 is in shift mode: at phase 2 it fills `I` with `ppat −10080` at phase point (10, 2), not `ppat −10078` at (2, 2) | probing `F_p` or `F_p + phase` |
 | IND6, ERASE2, ERASE3 | 1990 indeterminate: every pixel of `I` is transparent; a synthetic frame `cicn −10080` (with `cinf −10080` = (2, 2, 0, 0)) whose top band source column 2 is mask-clear at row 0: destination row 0 stays transparent over `[2, 98)` | painting `I` with a colour; erasing `R` first; unmasked frame copy (synthetic fork only: no corpus frame, fill or track has a mask-clear pixel in a drawn piece, and the 48 mask-clear pixels of the 1990 frame lie in its interior, which is never drawn) |
 | ERASE4 | example C crayon-os: every pixel of `I` is opaque | masking the pattern |
-| FB1–FB6 | example E: pixel colours on the four bevel lines, the black FrameRect ring, and (0, 13), (99, 0) transparent | a bevel over the whole outer ring (would draw (0, 13) and (99, 0)); sampling (0, 0) for the bottom/right lines (grey instead of white on row 13) |
+| FB1–FB6 | example E: pixel colours on the four bevel lines, the black FrameRect ring, and (0, 13), (99, 0) transparent | a bevel over the whole outer ring (would draw (0, 13) and (99, 0)); sampling (0, 0) for the bottom/right lines (grey instead of white on row 13); sampling (11, 11) instead of (11, 13) for them (trace sample point only: every corpus `cicn −10224` has the same colour at both, so pixels need a synthetic cicn whose (11, 11) and (11, 13) differ) |
 | FB7, COL3 | example E (CDEF 5 colours) split at 26, dark grey `(0x4445, 0x4444, 0x4444)` and lavender `(0xCCCC, 0xCCCC, 0xFFFF)` before display conversion | the current runtime's lavender cicn model (−10223 fill / −10224 track) |
 | FB9 | monkey-paradise indeterminate: `I_f` drawn nothing, trace marks the step unspecified | painting `I_f` lavender (an invented rect) |
 | FB10 | platinum-8 inactive equals platinum-8 active, pixel for pixel | any state-dependent fallback |
