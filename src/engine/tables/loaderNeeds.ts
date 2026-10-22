@@ -7,6 +7,7 @@
 import { SCROLLBAR_TRACK_IDS } from './scrollbar.js';
 import { PF_ART, PF_UTILITY_ART, PF_UTILITY_GROW, PF_UTILITY_STRIPES } from './proceduralFrame.js';
 import { SLIDER_IDS } from './slider.js';
+import { PROGRESS_FALLBACK, PROGRESS_IDS } from './progress.js';
 
 export interface IdGrid {
   readonly bases: readonly number[];
@@ -40,4 +41,7 @@ export const ENGINE_LOADER_NEEDS: readonly FamilyLoaderNeeds[] = [
   },
   { family: 'slider', iconBlitCicns: [], cinfs: [SLIDER_IDS.horizontal, SLIDER_IDS.vertical],
     lineSampledCicns: [SLIDER_IDS.horizontal, SLIDER_IDS.vertical], source: 'slider G1, ID6, TR3–TR6 (cinf bytes 0, 2, 3); BL4/BL5 line colours (BL8, BL12)' },
+  { family: 'progress', iconBlitCicns: [], cinfs: [PROGRESS_IDS.art],
+    lineSampledCicns: [PROGRESS_IDS.art, { bases: [PROGRESS_FALLBACK.cicn], terms: [] }],
+    source: 'progress GATE1–GATE4, CINF2 (frame bytes 0–2, fill/track bytes 0, 2, 3); BLIT3/BLIT4 line colours and FB1–FB3 samples (COL1)' },
 ];

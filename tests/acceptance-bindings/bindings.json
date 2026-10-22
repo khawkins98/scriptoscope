@@ -73,7 +73,7 @@
     },
     {
       "path": "tools/theme-loader/classifyResources.js",
-      "sha256": "e9952f75be215edc5e26b6bd5de2e76e4d0c9539dc5befc5cc5bf547f9109f7f"
+      "sha256": "009e7c731dbeeab93727dddae6ea2b9bc6ecade4c8f5a51365dccd5ce67e649f"
     },
     {
       "path": "tools/theme-loader/containers.js",
