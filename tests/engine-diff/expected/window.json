@@ -1,4 +1,53 @@
 {
   "family": "window",
-  "entries": []
+  "entries": [
+    {
+      "key": "animals/collapsed-document-window/active/97x53/t0",
+      "rule": "W2",
+      "sha256": "38d36054d9191dac",
+      "why": "Main #377 sync: below the 143-wide template the bottom side is too short, so the compositor-spec code-10 too-short step (0x4dfe..0x4e0e) drops the code-10 cell 13 -> 0 px and width allocation (0x5260..0x532e) gives the remainder to the code-14 cell (0 -> 2 px), which tiles in reverse under W2; no at/above-template cell changes."
+    },
+    {
+      "key": "animals/collapsed-document-window/active/97x53/t60",
+      "rule": "W2",
+      "sha256": "45521d6a9a370947",
+      "why": "Main #377 sync: below the 143-wide template the bottom side is too short, so the compositor-spec code-10 too-short step (0x4dfe..0x4e0e) drops the code-10 cell 13 -> 0 px and width allocation (0x5260..0x532e) gives the remainder to the code-14 cell (0 -> 2 px), which tiles in reverse under W2; no at/above-template cell changes."
+    },
+    {
+      "key": "animals/collapsed-document-window/inactive/97x53/t0",
+      "rule": "W2",
+      "sha256": "71881669ce4c0383",
+      "why": "Main #377 sync: below the 143-wide template the bottom side is too short, so the compositor-spec code-10 too-short step (0x4dfe..0x4e0e) drops the code-10 cell 13 -> 0 px and width allocation (0x5260..0x532e) gives the remainder to the code-14 cell (0 -> 2 px), which tiles in reverse under W2; no at/above-template cell changes."
+    },
+    {
+      "key": "animals/collapsed-document-window/inactive/97x53/t60",
+      "rule": "W2",
+      "sha256": "c8c80bfd5f74c57b",
+      "why": "Main #377 sync: below the 143-wide template the bottom side is too short, so the compositor-spec code-10 too-short step (0x4dfe..0x4e0e) drops the code-10 cell 13 -> 0 px and width allocation (0x5260..0x532e) gives the remainder to the code-14 cell (0 -> 2 px), which tiles in reverse under W2; no at/above-template cell changes."
+    },
+    {
+      "key": "animals/document-window/active/97x53/t0",
+      "rule": "W2",
+      "sha256": "c75d475d31f826da",
+      "why": "Main #377 sync: below the 143-wide template the bottom side is too short, so the compositor-spec code-10 too-short step (0x4dfe..0x4e0e) drops the code-10 cell 13 -> 0 px and width allocation (0x5260..0x532e) gives the remainder to the code-14 cell (0 -> 2 px), which tiles in reverse under W2; no at/above-template cell changes."
+    },
+    {
+      "key": "animals/document-window/active/97x53/t60",
+      "rule": "W2",
+      "sha256": "9e1064c1d57ca0ef",
+      "why": "Main #377 sync: below the 143-wide template the bottom side is too short, so the compositor-spec code-10 too-short step (0x4dfe..0x4e0e) drops the code-10 cell 13 -> 0 px and width allocation (0x5260..0x532e) gives the remainder to the code-14 cell (0 -> 2 px), which tiles in reverse under W2; no at/above-template cell changes."
+    },
+    {
+      "key": "animals/document-window/inactive/97x53/t0",
+      "rule": "W2",
+      "sha256": "cb47a7ecc836b2bf",
+      "why": "Main #377 sync: below the 143-wide template the bottom side is too short, so the compositor-spec code-10 too-short step (0x4dfe..0x4e0e) drops the code-10 cell 13 -> 0 px and width allocation (0x5260..0x532e) gives the remainder to the code-14 cell (0 -> 2 px), which tiles in reverse under W2; no at/above-template cell changes."
+    },
+    {
+      "key": "animals/document-window/inactive/97x53/t60",
+      "rule": "W2",
+      "sha256": "78ae38f58c7b656d",
+      "why": "Main #377 sync: below the 143-wide template the bottom side is too short, so the compositor-spec code-10 too-short step (0x4dfe..0x4e0e) drops the code-10 cell 13 -> 0 px and width allocation (0x5260..0x532e) gives the remainder to the code-14 cell (0 -> 2 px), which tiles in reverse under W2; no at/above-template cell changes."
+    }
+  ]
 }
