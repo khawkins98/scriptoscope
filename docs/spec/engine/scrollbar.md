@@ -238,7 +238,7 @@ is left/up, a "high" arrow right/down.
 | AI3 | icon lane, `disabled` | icon id: low h -10206, low v -10208, high h -10205, high v -10207 (no hit form) | `0xc7ba..0xc7fa` |
 | AI4 | icon lane | draw `ics#` at the id (loaded into the system heap); no `ics#` → nothing; colour port and not `lowDepth` → `ics8` from the **same file** as the `ics#` (Get1Resource) if present and the kDEF's icon pixmap exists (allocated when the kDEF loads, `0xf3aa`; assume present), else the 1-bit `ics#` image (AI5); the `ics#` mask is applied unless it is all set or a picture is being recorded, and in the 1-bit branch also unless the port has custom bottlenecks | `0xc7fe..0xc81e`, `0xf4ba..0xf684` |
 | AI5 | icon lane, the 1-bit branch of AI4 | the `ics#` image plane (the first 32 bytes, 16 × 16 at 2 bytes per row) is copied in `srcCopy` with black foreground and white background (`0xf4fa`), through the `ics#` mask plane (the second 32 bytes) under the AI4 mask conditions: set bits black, clear bits white, mask-clear pixels left untouched. No corpus archive reaches it (all icon-lane archives ship `ics8` for every id) | `0xf4fa`, `0xf5c6..0xf61c` |
-| AI6 | icon lane, destination | the icon's 16 × 16 frame is copied into the arrow box of §5.3 (`t × t`; 1:1 at `t = 16`, scaled by CopyBits/CopyMask otherwise) | `0xc810..0xc816`, `0xf4c6..0xf4cc`, `0xf5f2..0xf61a` |
+| AI6 | icon lane, destination | the icon's 16 × 16 frame (an inference: the source rect is a kDEF global with no writer in the listing, `0xf4c6..0xf4cc`; 16 × 16 is the only frame consistent with the 2-byte icon rows and the kDEF's 16 × 16 icon pixmap, `0xf3aa`) is copied into the arrow box of §5.3 (`t × t`; 1:1 at `t = 16`, scaled by CopyBits/CopyMask otherwise) | `0xc810..0xc816`, `0xf4c6..0xf4cc`, `0xf5f2..0xf61a` |
 
 ### 4.6 Thumb
 
@@ -335,8 +335,17 @@ the `composite`, `doubleArt` and `half` flags. `d = h − 1`. `half` = `pressedH
 
 Example (animals and monkey-paradise, horizontal, pressed with hit 20): the
 track cicn is -8285 (61 × 16) but the non-hit high arrow draws from -8286
-(43 × 16), so its cell is `[28, 43)` of -8286, not `[46, 61)`. A cell never
-lies outside its own source cicn.
+(43 × 16), so its cell is `[28, 43)` of -8286, not `[46, 61)`.
+
+Cells are computed from the source's own bounds, but a source shorter along
+than `d` still gives a cell that extends past it. Reachable case: 1138 with
+`min = max` and a pressed hilite (ST4: tier 1 track -8287, 33 × 16,
+composite) draws a non-hit arrow from -8288 (5 × 16), whose high cell is
+`[−10, 5)`. The part of a cell outside its source's bounds is not defined by
+the kDEF or by Apple for CopyBits/CopyMask (the scale blit SC3/SC4 and icon
+blit I3 rows of `qd-primitives.md` apply no bounds test; samples outside an
+icon are undefined per its S5 row). Record those pixels as `unspecified`;
+do not invent them.
 
 | arrow | cell (not `half`) | cell (`half`) |
 |---|---|---|

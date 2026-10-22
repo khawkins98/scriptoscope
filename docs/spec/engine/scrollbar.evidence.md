@@ -265,7 +265,7 @@ pixels per cicn. Outputs in `v2-lanes/L5/`. **Verifier:** |
 
 | q | trace | verifier |
 |---|---|---|
-| Q1 | `0xc3cc..0xc402`: the swap to GetCIcon(blk66 − 1) happens before `0xc402` reads `*a3`+6..+13, so cell bounds come from the cell-source cicn. TF3 likewise: `0xba3e..0xba6c` replaces d3, `0xbb4c` passes d3 to `0xc2d2` | |
+| Q1 | (cells may still extend past a narrow source: 1138 ST4 pressed, -8288 5 × 16, high cell `[−10, 5)`; no bounds test before `0xc6f8`/`0xc740`) `0xc3cc..0xc402`: the swap to GetCIcon(blk66 − 1) happens before `0xc402` reads `*a3`+6..+13, so cell bounds come from the cell-source cicn. TF3 likewise: `0xba3e..0xba6c` replaces d3, `0xbb4c` passes d3 to `0xc2d2` | |
 | Q2 | `0xacc2..0xacc4`: proportional result → `braw 0xad5a`, bypassing the `cmpw %fp@(10),%d3` zero rule at `0xad50` | |
 | Q3 | `0xc810..0xc816`: `0xf4ba`(id, &box fp-16) where box = `0xa8c6` output; `0xf4ba` dst = its rect arg (d6), src bounds = global `a4@(178..185)` (`0xf4c6..0xf4cc`; no static writer found in the listing; 16 × 16 is the only frame consistent with rowBytes 2 at `0xf562`/`0xf5ca` and the 16 × 16 icon PixMap built at `0xf3aa..0xf412`) | |
 | Q5 | `0xf4fa` `jsr 0xf378` (fore black `a4@(192)`=0, back white `a4@(186)`=-1); 1-bit path `0xf5c6..0xf61c`: bitmap fp-26 baseAddr = ics# data, rowBytes 2; CopyBits mode 0 (`0xf5fe clrw`) when mask all-ones/picSave/grafProcs, else CopyMask with mask bitmap fp-40 (data +32) | |
