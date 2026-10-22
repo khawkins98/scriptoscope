@@ -171,6 +171,8 @@ Each run (CDEF 3 `0xdce..0x1474`):
 | O8 | ticks (§4.6) | CDEF 3 `0x112e..0x13b8` |
 | O9 | restore the port; with black foreground and white background, CopyBits `$A8EC` the offscreen `R` onto the port's `R` in `srcCopy` with no mask region; restore the colours; dispose the offscreen | CDEF 3 `0x13ba..0x146c` |
 
+Two non-default paths: on a monochrome on-screen port without custom bottlenecks, the drawer first switches to the Window Manager port in global coordinates and then runs DeviceLoop (CDEF 3 `0x174e..0x17f8`); and O2 copies the background pattern only when the port's pattern handle is a pixel-pattern-sized (28-byte) handle (CDEF 3 `0xe8c..0xe9c`). Neither applies under the declared defaults.
+
 So `R` is always repainted opaque: pixels no art covers show the O4
 background, never what was in the port before.
 
@@ -204,6 +206,8 @@ consulted by the gate.
 | ID7 | a thumb cicn was found | `tA` and `T` are recomputed **before** ID6 runs, so `T` uses the `c` stored by the previous message | CDEF 3 `0x3a2..0x43a` |
 | ID8 | neither corner cinf found | `c` keeps its previous value (undefined on a new record) | CDEF 3 `0x472..0x474` |
 | ID9 | always | `range`, `offset` recomputed | CDEF 3 `0x484..0x4a8` |
+
+The gate (G1) recomputes `horizontal` from the current `R` on every message, but the drawing uses the value fixed when the record was created (ID3). If a control's rect changes shape after creation, the gate and the draw can use different `base` values (CDEF 3 `0x144..0x17a`, `0x34a..0x35c`).
 
 ID7 has no effect in the steady state: message 3 runs first and sets `c`, and
 `c` does not change for a given control and scheme. The record outlives a
@@ -259,7 +263,7 @@ ghost**. Nothing reads a cell beyond 3.
 | TK4 | otherwise | tick cicn `gb + 4 + tickState`, else `base + 4 + tickState`; none → no ticks | CDEF 3 `0x113e..0x1176` |
 | TK5 | ticks drawn | `n` copies of the whole tick cicn, 1:1, masked, at §5.4 | CDEF 3 `0x11f6..0x12a0`, `0x1306..0x13b2` |
 
-Group 2 never has ticks (ID4).
+Group 2 never has ticks (ID4). For horizontal group 2 the tick ids `gb + 4` / `gb + 5` would be −10128 / −10127, which are the vertical `base` ids (the vertical track and its `cinf`), not tick art; they are never requested as ticks because `n = 0`.
 
 ### 4.7 Blits (transfer modes)
 
@@ -440,7 +444,7 @@ Implementers stop at these and file a spec question.
    cicns are requested through the current resource chain; track cicns from the
    file named by Gestalt(`Copl`) when it exists (CDEF 3 `0x2664..0x288c`). Which
    file that is at run time is not decoded. The Kaleidoscope 2.3.1 control-panel
-   file holds no `cinf` or `cicn` in −10144..−10111 (evidence E9), so shipping it
+   file holds no `cinf` or `cicn` in −10144..−10111 (evidence E12), so shipping it
    would not change any outcome. Whether the base chain participates is policy:
    the scroll bar declares archive-then-base; `composeSlider` is self-only.
 3. **The handed-off System slider** (G2) is Apple's, not Kaleidoscope's. The
@@ -466,7 +470,9 @@ Implementers stop at these and file a spec question.
     drawing effect is established; it may be a marker for Kaleidoscope's own
     trap patches.
 
-### Corpus impact (own forks; census in the private store, `v2-lanes/spec-slider`)
+### Corpus impact (own forks)
+
+The census behind this table is verifier-only (private store); implementers do not open it. Every value they need is in the table.
 
 | rows | archives |
 |---|---|
@@ -495,14 +501,14 @@ source rects per draw step). Rows go in `tests/rendering-options/slider-rules.mj
 
 | rows | assertion | mutations that must fail |
 |---|---|---|
-| G1–G3 | floppies and the six resource-less archives never emit Kaleidoscope slider ops; the 11 G1 archives do | gating on the track cicn (floppies would draw); gating on `cinf gb` only |
+| G1–G3 | floppies and the six resource-less archives never emit Kaleidoscope slider ops; the 11 G1 archives do. Synthetic forks: only `cinf` −10144 with variation bit 2 → Kaleidoscope draws (passes on `base`); only `cinf` −10132 with bit 3 → draws, with bit 2 alone → handed off | gating on the track cicn (floppies would draw); gating on `cinf gb` only (the first synthetic fork would hand off; the corpus alone cannot catch it, since every G1 archive ships `cinf` at `base` and every `gb`) |
 | ST (`trackTier`, `thumbCell`) | per hilite 0 / 22 / 129 / 254 / 255: track tier 1/2/2/0/0, thumb cell 1/1/2/0/0 | thumb cell 2 for hilite 22; disabled → cell 3 (the current runtime map); inactive → tier 1 |
 | TR3, TR4 | apple-lisa pressed draws −10143/−10131 (normal); a synthetic fork with a pressed cicn but no pressed `cinf` also falls back | dropping the `cinf` requirement; skipping `gb + 1` |
 | TH3, TH5 | cell rows `[0,16)` inactive, `[16,32)` normal, `[32,48)` pressed, `[48,64)` ghost (message 13 only) | the 1/2/3 map; ghost cell drawn outside message 13 |
-| §5.1 | group 0 / 1 / 2 band at top / bottom / centre for `R` 32 high; centre of (−5, 10) rows is `[−6, 10)` | floor instead of trunc for negative sums; band = `R` |
+| §5.1 | group 0 / 1 / 2 band at top / bottom / centre for `R` 32 high; group-2 centre of rows (−10, 5) (sum −5) is `[−10, 6)` | floor instead of trunc (gives `[−11, 5)`; a non-negative or even sum cannot tell them apart); band = `R` |
 | §5.2 | examples A–C `Th`; `range = 0` → `Th.left = R.left` | rounding instead of trunc; vertical minimum at the top; `c` inset at `range = 0` |
 | SL1–SL6 | example A middle tiles (`[83,115)` ← `[5,37)`); example C one-column lines; example D halves | stretching the middle; cap clamp at 6; tiling from the end when byte 3 = 0; halves rule omitted |
-| TK1–TK5, §5.4 | examples A and B tick rects; `n = 1` and `range = 0` draw none; `R` cross 23 draws none | `v_i` without rounding; tick band inside `B`; `tw` instead of `t.right + t.left` (needs a synthetic cicn with bounds.left ≠ 0) |
+| TK1–TK5, §5.4 | examples A and B tick rects; range 0..10 with `n = 4` gives `v = 0, 3, 7, 10`; `n = 1` and `range = 0` draw none; `R` cross 23 draws none | `v_i` without rounding (gives `0, 3, 6, 10`; examples A and B cannot catch it); tick band inside `B`; `tw` instead of `t.right + t.left` (needs a synthetic cicn with bounds.left ≠ 0) |
 | BL1, BL6 | mask-clear thumb/track pixels show the O4 background, not the port's old pixels | unmasked copy; transparent `R` |
 | OS4, OS5, O-order | trace order: erase, track, ghost, thumb, ticks, composite | thumb before track; no erase |
 | HT1–HT4 | example A hit points; a point in the tick band → 0 | testing against `R`; 22/23 swapped |
