@@ -330,3 +330,88 @@ record +4 read only at `0x5e2..0x5ea` (dispose). (CDEF 3)
 | thumb cells | no cell 0 is all mask-clear in any archive (per-cell clear counts in `census-cells.json`) | CONFIRMED (cell 0 partly clear in every masked thumb, never all clear; windows-31 and crayon-os/windows-95 group 2 have no clear pixels) |
 | bounds | every cicn in range has bounds top-left (0, 0) | CONFIRMED (no cicn in range has a non-zero bounds origin) |
 
+
+## E13. Family-3 spec answers (lane `v2-family3-spec-answers`, 2026-10-22)
+
+Writer: spec-answers lane (not the slider implementer, not the PR #400 writer
+or verifier). Same L1 listing (`cdef3.annotated.txt`, sha256 `9891a1ff…`),
+read with grep/sed range prints only. No disassembly or annotation tool was
+written or run. Questions: `campaign-20261021/v2-lanes/family3/SPEC-QUESTIONS.md`;
+answers table: `…/family3/SPEC-ANSWERS.md` (private store). Verifier column
+empty until the Tier-1 review.
+
+### E13.1 Erase background (BG1–BG6, Q1)
+
+| addr | fact | verifier |
+|---|---|---|
+| CDEF 3 `0xe5e..0xe6c` | `bsrl 0x1956`(saved port `fp@(-28)`) IsColorGrafPort; false → `beqs 0xeb6`: no colour or pattern copied (BG2) | |
+| CDEF 3 `0xe6e..0xe80` | `$AA14` RGBForeColor(port+36), `$AA15` RGBBackColor(port+42) | |
+| CDEF 3 `0xe82..0xe9c` | d3 = bkPixPat (port+32); nil → `0xeb6`; `bsrl 0x2d16` GetHandleSize ≠ 28 → `0xeb6` | |
+| CDEF 3 `0xe9e..0xeb4` | `tstw *h` (patType) ≠ 0 → `$AA0B` BackPixPat(h); else `$A87C` BackPat(`*h`+20, pat1Data) | |
+| CDEF 3 `0xeb6..0xec6` | `subqw #2,sp` (OSErr slot); push control handle (a3), `fp@(18)` (device depth, DeviceLoop callback arg), `moveb #1` (Boolean true); `movew #29,d0`; `$AA73` | |
+| CDEF 3 `0xec8` | `movew sp@+,d0`: result popped and never tested; d0 is next written at `0xf16` (track id arithmetic) | |
+| CDEF 3 `0xeca..0xed0` | `$A8A3` EraseRect(contrlRect) | |
+| listing grep | `$A1AD` Gestalt appears only at `0x18cc` (in `0x18b2` HasColorQD, 'qd  ') and `0x2694` (in `0x2664`, 'Copl'): no Appearance ('appr') check guards `$AA73` in CDEF 3 | |
+| listing grep | `$AA73` appears once in CDEF 3 (`0xec6`) | |
+| cross-check | same selector and argument layout (handle, depth word, `moveb #1`, `movew #29,d0`, `$AA73`) in CDEF 4 `0x468..0x476` (depth literal 8), CDEF 7 `0x2ba..0x2c8` (depth literal 16) and kDEF 0 `0x7184..0x7192` (depth `fp@(18)`); selector loaded as a plain word, as for the scroll bar's selectors 5 and 21 (kDEF 0 `0x9fb6`, `0x9fcc`) | |
+
+Identity: `$AA73` = Control Manager dispatch (`_ControlDispatch`), absent from
+the pinned Universal Interfaces 3.0.1 `Traps.h` (sha256 `b2d54498…`; predates
+Appearance). Selector 29 = SetUpControlBackground(ControlHandle, SInt16 depth,
+Boolean isColorDevice) → OSErr, from Apple's later Controls.h interface (not a
+pinned local copy; the macOS SDK Carbon headers searched on 2026-10-22 no
+longer declare it). Corroboration: argument shape and OSErr slot match;
+`docs/spec/kdef182-disassembly-findings.md` §2.2 records the Kaleidoscope 1.8.2 `kDEF 1`
+importing `SetUpControlBackground` by name from AppearanceLib. BG4's
+precedence (colour proc → special-background ancestor via
+`kControlMsgSetUpBackground` → window theme brush) is Apple's documented
+behaviour for that call, not decoded from any binary here.
+
+BG2's fresh-port state (white background, black foreground, solid background
+pattern): Apple, Inside Macintosh: Imaging With QuickDraw ch. 6 (NewGWorld
+creates and initialises a colour graphics port). Not a binary fact.
+
+### E13.2 Facade record lifetime (ID10, Q7)
+
+| addr | fact | verifier |
+|---|---|---|
+| CDEF 3 `0x3a2..0x43a` | T (+44) computed from record +28 before `0x480` writes +28 (E3) | |
+| CDEF 3 `0x59c..0x5be` | message 3 writes +0 (tick count) from value and value from min (`movew a0@(20),a1@(18)`), `braw 0x6a8`; no read of +44 | |
+| CDEF 3 `0x5c2..0x5c6` | else `clrw` +0, `braw 0x6a8` | |
+
+### E13.3 `cinf` length (CF1–CF3, Q5)
+
+| addr | fact | verifier |
+|---|---|---|
+| CDEF 3 `0x2b96..0x2bce` | SetZone(SysZone); `$A9A0` GetResource('cinf', id); nil → `0x2cf0`; `$A9A2` LoadResource; `$A04A` HNoPurge; `tstb fp@(10)` (extend flag) | |
+| CDEF 3 `0x2bce..0x2bd2` | flag false → return handle; no GetHandleSize on this path (the size-54 test is on the flag-true path, unreachable, E10) | |
+| CDEF 3 `0x17e..0x18c` | gate: handle non-nil → found | |
+| CDEF 3 `0x472..0x480` | corner: `tstl d4` handle; `moveb a0@` byte 0 of `*h` | |
+| CDEF 3 `0x29b0..0x29b4`, `0x14ca..0x14ce` | track k = `moveb a0@` byte 0 | |
+| CDEF 3 `0x2b14..0x2b1e`, `0x1636..0x1640` | `tstb a0@(2)` byte 2 | |
+| CDEF 3 `0x2b3e..0x2b44`, `0x1660..0x1666` | `moveb a0@(3)` byte 3; `seq; negb` | |
+| census | every slider `cinf` (−10144..−10111) of the 11 G1 archives has length 18 (`spec-slider/census.json` sha256 `2942ae48…29cbc`, field `len`) | |
+
+### E13.4 Line colour shortcut (BL12, Q4)
+
+Census `campaign-20261021/v2-lanes/family3/scripts/ctab-census.mjs` (sha256
+`9d9e0108…6dd1`) over the 12 archives with slider cicns (11 G1 + floppies),
+own forks through `tools/theme-loader` (`resource-fork.js`, `containers.js`,
+`decoders/cicn.js readCicnIndexed`) and `tools/sit-wasm`; reads theme
+resources only, no Kaleidoscope code. For every cicn in −10144..−10111 and
+every pixel value it uses, it compares the colour BL8 selects with the
+loader's (`flags & 0x8000` → position, else first entry with that value,
+missing → black). Output `family3/scripts/ctab-census.json` sha256
+`634f7097…adea`: 393 cicns; all agree except 1984 −10139 (tick, 5 × 7), pixel
+value 9, absent from its 7-entry table (values 0..6): BL8 → entry 0, loader →
+black. `family3/scripts/tick9.mjs`: the single pixel of value 9 lies under a
+clear mask bit (0 set, 1 clear). Many tables are sparse (e.g. 1138 −10143
+values 0, 1, 2, 3, 15); the rules still agree there because the search finds
+the unique entry with the value.
+
+### E13.5 No paging in CDEF 3 (TRK1, Q6)
+
+| addr | fact | verifier |
+|---|---|---|
+| CDEF 3 `0x4b6..0x4fd` | message switch (E4): the only value writers are message 3 (`0x5b8`), message 26 (`0x750..0x776`) and message 5 (`0xd20..0xd2e` SetCtlValue); none tests part 22/23 | |
+| CDEF 3 `0x668..0x6a0` | parts 22/23 appear only in message 34's sound-tag selection | |
