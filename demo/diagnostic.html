@@ -265,7 +265,9 @@
     import THEMES from './themes-manifest.json'; // auto-generated gallery list (gen-themes-manifest.mjs)
     // The BROWSER conversion shell over the portable core: a dropped resource fork →
     // a render-ready in-memory LoadedTheme (blob-URL assets + glyphs), no build step.
-    import { loadKaleidoscopeScheme } from '../tools/theme-loader/loadKaleidoscopeScheme.js';
+    // The public src wrapper, not the tools/theme-loader core: it passes the engine cinf
+    // ids by default, so dropped archives draw engine sliders rather than Platinum.
+    import { loadKaleidoscopeScheme } from '../src/loadKaleidoscopeScheme.ts';
     document.getElementById('ver').textContent = `v${VERSION}`;
     const rows = document.getElementById('rows');
 
