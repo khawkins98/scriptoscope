@@ -9,14 +9,9 @@
 // Runtime policy here (not spec rows; lane notes v2-lanes/window-migration):
 //   - the structure is sized to the template's drawable extent (compositor-spec
 //     "Draw + distribution") and the content rect C starts at the body's inset;
-//   - DIVERGENCE (draw order, transfer): the decode draws sides top, bottom, left,
-//     right (WD4) with CopyMask (qd-primitives Q5). We draw left, right, top,
-//     bottom with opaque CopyBits, so the horizontal bars own the corners. The
-//     decode's order and transfer were measured: they change 216 of 1656
-//     engine-diff cells (26,174 visible pixels), so they are not adopted here;
-//   - DIVERGENCE (leading and trailing regions): no routine of the full draw
-//     paints `[0, S[0])` or the art past `S[N]` (window-widgets §6 Q3, LS9). We
-//     paint both (see the two sites below);
+//   - the leading region `[0, S[0])` and the trailing region past `S[N]` are not
+//     segments and are left unpainted, as in the original (window-widgets §6 Q3,
+//     LS9): the content behind the window shows through there;
 //   - the title text is drawn by renderWindow in `titleRect` (TX rows).
 import { PixelBuffer } from './pixelBuffer.js';
 import { rect, rectXYWH, scaleBlit, tileBlit, type Pixmap, type QdRect, type Transfer } from './engine/qd/index.js';
@@ -28,7 +23,8 @@ import {
 import type { EngineTrace } from './engine/trace.js';
 import type { WindowType, WindowCinf, Rect } from './types.js';
 
-const CHROME_TRANSFER: Transfer = 'copyBits';
+/** WD4 / qd-primitives Q5: every on-screen chrome blit is masked (CopyMask). */
+const CHROME_TRANSFER: Transfer = 'copyMask';
 
 /** Frame thicknesses, derived from the body part rect (part-0). */
 export interface Frame { top: number; right: number; bottom: number; left: number }
@@ -67,7 +63,7 @@ export interface PlacementSlice {
   mode: SliceMode;
   src: PixRectXY;
   rects: PixRectXY[];
-  /** Side-list segment index: 0 is the leading `[0, S[0])` region and -1 the trailing art; neither is a segment. */
+  /** Side-list segment index (1..N). */
   segment?: number;
 }
 
@@ -178,22 +174,14 @@ export function composeWindowChrome(cicn: PixelBuffer, windowType: WindowType, c
     if (!row || row.blit === 'scale') scaleBlit(out, cicn, t, p, CHROME_TRANSFER);
     else tileBlit(out, cicn, t, p, row.direction!, CHROME_TRANSFER);
   };
-  for (const sd of [WINDOW_SIDES[2], WINDOW_SIDES[3], WINDOW_SIDES[0], WINDOW_SIDES[1]]) {
+  for (const sd of WINDOW_SIDES) { // WD4: sides 0..3, top, bottom, left, right
     const s = layout.sides[sd.side];
     if (!s) continue;
     const slices = bySide[sd.side]!;
     const N = s.S.length - 1;
-    const along = (c: QdRect, a0: number, a1: number): QdRect => s.horizontal ? rect(c.top, a0, c.bottom, a1) : rect(a0, c.left, a1, c.right);
     const band = (i: number) => windowCell(layout, sd.side, i);
     const push = (code: number, mode: SliceMode, t: QdRect, p: QdRect, segment: number) =>
       slices.push({ edge: sd.edge, code, role: partRole(code), mode, src: xywh(t), rects: [xywh(p)], segment });
-    // DIVERGENCE (§6 Q3): the decode paints no leading region; we copy `[0, S[0])` 1:1 at its template position.
-    if (s.S[0]! > 0) {
-      const c = band(1), lead = s.P[0]! - s.S[0]!;
-      const t = along(c.t, 0, s.S[0]!), p = along(c.p, lead, s.P[0]!);
-      blit(t, p, null);
-      push(s.codes[0]!, 'fixed', t, p, 0);
-    }
     for (let i = 1; i <= N; i++) {
       const { t, p } = band(i), code = s.codes[i]!;
       if (s.S[i]! <= s.S[i - 1]!) continue; // no template pixels: nothing to draw or report
@@ -202,18 +190,6 @@ export function composeWindowChrome(cicn: PixelBuffer, windowType: WindowType, c
       const mode: SliceMode = code === 18 ? 'scale' : row && growerRows.includes(row as never) ? 'tile'
         : row === 'AW4' || row === 'AW5' || inList(titleCodes, code) ? 'collapse' : 'fixed';
       push(code, mode, t, p, i);
-    }
-    // DIVERGENCE (§6 Q3, LS9): the decode paints nothing past P[N]; we scale a horizontal side's opaque art past S[N] onto it.
-    // The walked end: AW7 rewrites P[N], which falls short of the LS7 end when the allocation hands out
-    // less than its budget (AW9, tile-only growers, AW1a).
-    const end = s.P[N]!, sN = s.S[N]!;
-    if (s.horizontal && sN < drawW && end < fullW) {
-      const c = band(N), t = along(c.t, sN, drawW);
-      if (hasOpaque(cicn, t)) {
-        const p = along(c.p, end, end + Math.min(drawW - sN, fullW - end));
-        blit(t, p, null);
-        push(0, 'fixed', t, p, -1);
-      }
     }
   }
   const placement = bySide.flat();
@@ -256,8 +232,3 @@ export function composeWindowChrome(cicn: PixelBuffer, windowType: WindowType, c
 
 const inList = (codes: readonly number[] | '*', c: number): boolean => codes !== '*' && codes.includes(c);
 
-function hasOpaque(cicn: PixelBuffer, r: QdRect): boolean {
-  for (let y = Math.max(0, r.top); y < Math.min(cicn.height, r.bottom); y++)
-    for (let x = Math.max(0, r.left); x < Math.min(cicn.width, r.right); x++) if (cicn.getPixel(x, y)[3] > 16) return true;
-  return false;
-}
