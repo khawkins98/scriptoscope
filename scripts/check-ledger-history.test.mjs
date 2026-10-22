@@ -7,19 +7,22 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync, execFileSync } from 'node:child_process';
 import { compareHistories } from './check-ledger-history.mjs';
-import { readFamilies, recordTransition, assemble, formatFamily } from '../tests/rendering-requirements/build-ledger.mjs';
+import { readFamilies, recordTransition, assemble, formatFamily, baseFamily } from '../tests/rendering-requirements/build-ledger.mjs';
 
 const repo = join(dirname(fileURLToPath(import.meta.url)), '..');
 const script = join(repo, 'scripts/check-ledger-history.mjs');
 const strip = ({ text: _, ...f }) => structuredClone(f);
 
-/** A family with two genuine transitions (no row changes, new scope each time). */
+/** A family with two genuine transitions (no row changes, new scope each time). The
+ * synthetic chain starts from tab's split state (1.0.0, no transitions), so it holds
+ * however many real transitions the live tab family has (tab@1.1.0 is main 1.23.0). */
 function history() {
-  const { base, families } = readFamilies();
-  const f0 = strip(families.find(f => f.family === 'tab'));
+  const { base, families: live } = readFamilies();
+  const f0 = baseFamily(strip(live.find(f => f.family === 'tab')));
+  const families = live.map(f => (f.family === 'tab' ? f0 : f));
   const f1 = recordTransition(structuredClone(f0), f0, { version: '1.1.0', summary: 'first', review: 'review A', scope: 'tab scope at 1.1.0' });
   const f2 = recordTransition(structuredClone(f1), f1, { version: '1.2.0', summary: 'second', review: 'review B', scope: 'tab scope at 1.2.0' });
-  return { base, families: families.map(strip), f1, f2 };
+  return { base, families: families.map(f => (f === f0 ? f0 : strip(f))), f1, f2 };
 }
 
 test('appending transitions passes; the committed families pass against themselves', () => {

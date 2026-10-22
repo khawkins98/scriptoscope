@@ -142,7 +142,7 @@ in `docs/spec/apple-primary-source.md`.
 | `0x66b4`-region | scrollbar drawer | `-8278..-8271` v / `-8286..-8271` h | per §2.6 (1.8.2-era); `controls.ts` uses these IDs (verified consumer-side) |
 | `0xdd22` | **GDevice-aware focus / state helper** *(re-verify: name and the ctSeed reading rest on the former GetCTSeed trap name; `$A88F` is OSDispatch)* | — | service-handler slot 2; gates draw on 3 four-character magics (`'CHTA'`/`'POrg'`/`'CH3D'`); no aux allocate, consumes slot 0's. Full trace: `docs/spec/kdef-service-handlers.md` |
 | `0x788c`/bevel | bevel/checkbox/radio path | `-10232/-10231` mixed | hand-drawn fallback when cicn absent |
-| popup/tab | (msg-routed via `0x17452`) | `-12320` frame / `-12319` tab | §2.6 (behavioural `[DOC]`); the kDEF gates these to a loaded `'WDEF', -14336` whose code is called directly with msg-base 1008 — see `docs/spec/kdef-service-handlers.md` slot 8 |
+| popup/tab | (msg-routed via `0x17452`) | `-12320` frame / `-12319` tab | §2.6 (behavioural `[DOC]`); the kDEF gates these to a loaded `'WDEF', -14336` whose code is called directly with varCode `(var & 15) + 1008` (procID family 63) — see `docs/spec/kdef-service-handlers.md` slot 8 |
 
 ### 1.4 Window chrome — load / layout / draw
 
@@ -173,12 +173,12 @@ recipe walk + draw). Its 9-entry dispatch fans out to the routines below
 | `0x487e` | zoom/grow widget predicate | "is there a usable zoom/grow widget" = flag 500 set AND flag 505 set AND flag 496 clear (§3.3) | cinf widget flags | — | boolean |
 | `0x49d6` | **part-code jump table** | classify a part code → stretch(1)/fixed(0); see §4 | arg 1 = part code, arg 2 = caller flag byte | helper `0x148`; `0x487e` | byte (1 = stretch) |
 | `0x4a0c` | code-10 handler | returns the **caller's flag** (arg 2) unchanged | caller flag byte | — | the flag |
-| `0x4a64` | **layout precompute** (per side) | walk source side list, classify each segment, set the title face (`$A888` TextFace, `0x4f18`/`0x4f20`) then measure the title (`$A88C` StringWidth, `0x4f28`), find the title anchor, sum fixed widths, set the two per-half stretch flags, call `0x5178` ×2 (one per half); title-fits gate at `0x4f58` clears the title-fits flag | side index; the source side list; title width; title-fits flag | `0x49d6`, `0x5178`, `$A888` TextFace, `$A88C` StringWidth (names per Traps.h) | fills DEST side list |
-| `0x4f58` | title-fits gate | compares the title-room test value against 2; if title doesn't fit → clears the title-fits flag and zeroes the title width (collapse plate) | title-fits flag, title width | — | — |
+| `0x4a64` | **layout precompute** (per side) | walk source side list, classify each segment, set the title face (`$A888` TextFace, `0x4f18`/`0x4f20`) then measure the title (`$A88C` StringWidth, `0x4f28`), find the title anchor, sum fixed widths, set the two per-half stretch flags, call `0x5178` ×2 (one per half); too-short step `0x4dfe..0x4e42` sets the side's too-short byte (drops code 10 and the title, may clear flag 500); title gate at `0x4f58` zeroes the title string's length byte | args = source side list, dest side list, template body `0x6582(0)`, the `0x4778` rect, axis (1 for sides 0/1); title width; the GetWTitle Str255 (its length byte is the title flag) | `0x49d6`, `0x5178`, `$A888` TextFace, `$A88C` StringWidth (names per Traps.h) | fills DEST side list |
+| `0x4f58` | title gate | compares the title-room test value against 2; if ≤2px of title room is left → zeroes the title string's length byte (`0x4f5e`) and the title width (collapse plate) | title length byte, title width | — | — |
 | `0x4ff8`/`0x501c` | title centring | signed `/2`-with-rounding sequences on the title region bounds (listing detail in evidence) | — | — | center x |
-| `0x5178` | **growth distribution** | fill DEST borders: budget = (half extent − Σ fixed widths); each stretch cell gets `budget/numStretch` EVEN, remainder L→R; explicit compare chains classify fill codes (see §4) | args = numStretch, reqWidth (fixed sum), flag byte (title-fits on title path, 1 else) | `0x49d6` (`0x5302`) | DEST `border[i]=border[i-1]+w` |
+| `0x5178` | **growth distribution** | fill DEST borders: budget = (half extent − Σ fixed widths); each stretch cell gets `budget/numStretch` EVEN, remainder L→R; explicit compare chains classify fill codes (see §4) | args = numStretch, reqWidth (fixed sum), the **`0x49d6` flag** (always `0x4a64`'s too-short byte, read at `0x52fc`), the 5/6 gate (1 at `0x4db4`/`0x4dd4`, the title string's length byte at `0x5100`/`0x5120`, 0 at `0x5148`; read at `0x530c`) — corrected 2026-10-21, [kdef231-code10-widgets.md](kdef231-code10-widgets.md) | `0x49d6` (`0x5302`) | DEST `border[i]=border[i-1]+w` |
 | `0x5356` | **placement** | per `(side,segIdx)` build SRC rect from the SOURCE side-lists and DST rect from the DEST side-lists; 4-way per-side axis remap. **END-based:** segment i = `[border[i-1],border[i])` tagged `part[i]` | the structure-rect handle (cross-axis); side, segIdx | — | SRC+DST rects |
-| `0x572e` | **main draw loop** | per side, per segment: `0x5356` then blit (code 18 → `0x10320`, else `0x0feae`). Never touches the rect-list | side lists | `0x5356`, `0x10320` (`0x59ba`), `0x0feae` (`0x59e8`) | — |
+| `0x572e` | **main draw loop** | per side, per segment: `0x5356` then blit (code 18 → `0x10320`, else `0x0feae`); empty cells skipped (`0x5990..0x59a6`). The side loop never touches the rect-list. After it: `0x632e(5,0)` only when flags 502 and 508 are set (`0x5a28..0x5a3c`, the only widget call for types 1–3); when flag 509 (family 63) is set, `0x5b7a..0x5c92` blits rect-list types 5/6 and a 15×15 corner at the bottom-right of `0x6582(0)` from the template at raw rects (no `0x5cb6`); `0x5b5a..0x5b78` (flag 510 clear and `0x489c` → `0x480a`/`0x45b2`) is untraced | side lists | `0x5356`, `0x10320` (`0x59ba`), `0x0feae` (`0x59e8`) | — |
 | `0x5ddc` | rect-list widget **hit-test** | GetCIcon (`$AA1E`) of widget id `-14330` (`+32` if flag 506, `+8` more if flag 507), mask → region (`0xf6e0`), OffsetRgn, `PtInRgn` (`$A8E8`) then `PtInRect` (`$A8AD`) → hit result. The entry rect is first remapped to placed coordinates by `0x5cb6` (`0x5f72`). Draws nothing (corrected 2026-10-21, §5.1) | args = point, part, entry rect | `0xf6e0` | hit byte |
 | `0x5ffc` | rect-list **hit iterator** | map part 0/1/3 → entry type 1/2/3; walk the rect-list (10-byte entries, type at `+2`, rect at `+4`) from the end; return 1 on the first `0x5ddc` hit. Hit-test only, not a draw pass (corrected 2026-10-21) | args = point, part | `0x5ddc` (`0x6040`) | hit |
 | `0x632e` | rect-list **widget draw iterator** | map window part 4/5/6/9 → entry type 1/2/2/3; walk the rect-list from the end; call `0x6062` per matching entry. Called from `0x42a6` (dispatch, caller part) and `0x5a3c` (end of `0x572e`, part 5 only, gated by flags 502 and 508) | args = part, state byte | `0x6062` (`0x637a`) | — |
@@ -446,7 +446,7 @@ offset as a **label** (e.g. "flag 500") so cross-references stay unambiguous.
 | window record | window record / port handle (also the title source for `0x5530`) |
 | chrome cicn | the chrome template cicn / pixmap the side cells and state-0 widgets blit from |
 | flags 496 / 505 / 500 / 501 | cinf widget-presence flags (close/zoom/shade/body) — feed `0x487e`, `0x49d6`, the draw dispatch (`0x4124` tests flag 508, `0x4168` tests flag 501) |
-| flag 508 | grow-box present flag |
+| flag 508 | **draw-active** flag (corrected 2026-10-21; was "grow-box present"): assigned from `WindowRecord+111` at `0x2e52` — `hilited` in the classic `WindowRecord` layout (inference from the struct layout; +110 visible, +112 goAwayFlag) — and forced for families 66/67/124 when variation bit 0 is clear (`0x315e`, `0x31d4`). Readers include `0x4124`, `0x5a30`, `0x334a`, `0x3386`, `0x3db0`, `0x3fa6`, `0x45be` (list may be partial). See [kdef231-code10-widgets.md](kdef231-code10-widgets.md) §6 |
 | flags 502 / 503 / 506 / 507 / 509 | further widget / state flags; meaning not established (§5.1 "Still open") |
 | render-mode flags (three bytes) | render-mode flags consulted by the 9-slice/`0x10320` (b/w vs color, mask vs copy) |
 | cicn cache table | cicn cache table base (the 18-slot GWorld cache from `0x10472`) |
@@ -606,10 +606,12 @@ The width-assignment loop (`0x5260`-`0x534a`):
 | 12 | **TILE** — `dstW = floor(slack/numStretch / srcW) * srcW` (whole tiles) | `0x5266`-`0x5292` |
 | 8, 11, 18 | **STRETCH (grow)** — `share = sVar5/sVar6 + slack/numStretch` | `0x529e`-`0x52d6` |
 | 13, 14 | **STRETCH** smaller share (`sVar5/sVar6`, no slack term) | `0x52da`-`0x52f8` |
-| else | call `0x49d6(pc,flag)`: nonzero → leave width 0 (budget participant); else FIXED `dstW=srcW`; **except** pc∈{5,6} AND flag==0 → width 0 (collapse) | `0x52fc`-`0x532a` |
+| else | call `0x49d6(pc, fp@(24))` (the too-short byte): nonzero → leave width 0 (budget participant); else FIXED `dstW=srcW`; **except** pc∈{5,6} AND `fp@(26)`==0 → width 0 (collapse) | `0x52fc`-`0x532a` |
 
-So **codes 5/6** (title bezel) are FIXED when the title fits (`flag`=`fp@(-290)`
-title-fits, pushed at `0x5100`/`0x5120`) and **collapse to 0** when it doesn't —
+So **codes 5/6** (title bezel) are FIXED when the `fp@(26)` byte is nonzero
+(on the title path the GetWTitle length byte `fp@(-290)`, pushed at
+`0x5100`/`0x5120`; zeroed at `0x4e20` when too short and `0x4f5e` when ≤2px of
+title room is left) and **collapse to 0** when it is zero —
 they never grow. Budget = `slack = (srcBorder[end]−srcBorder[start-1]) − reqWidth`
 (`0x518a`); the primary divisor counts only 8/11/12/18 (`0x4b3e`), while 8/11/13/14/18
 share the division and whole-tile remainder. Each remainder share is truncated

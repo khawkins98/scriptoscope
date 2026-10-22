@@ -272,3 +272,23 @@ are exactly this family.
   saves `a4` via `0x9930`) and row for slot 5 `0x8d36` (scrollbar/slider
   CDEF main, 68-byte aux).
 ````
+
+
+## Moved at the main→v2 sync of 2026-10-22 (main #377, `3d846c8e`)
+
+> Verbatim from `docs/spec/kdef-service-handlers.md` on main at `3d846c8e`. The behavioural replacement text
+> lives in [`kdef-service-handlers.md`](../kdef-service-handlers.md). Nothing here was re-decoded during the move.
+
+| 8 | `0x17452` | **wnd# → WDEF gate (popup / tab / menu family)** — `GetResource('wnd#', -12320)`; on hit loads `'WDEF', -14336`, locks the handle, calls `a3@→a0; jsr a0@` with varCode `(var & 15) + 1008` (procID family 63; corrected 2026-10-21) — **period-faithful: it calls the real WDEF resource's code, not the kDEF's own renderer**. Used for the `-12320` popup-frame + `-12319` tab family from `kdef231-reference.md §2.6`. On miss → 9-entry private dispatch (`0x174e8`) | — | 30845 | new — adds row to §1.4 |
+
+```
+1749e: movew d5,d0; addiw #1008,d0    ; varCode = (fp@(18) & 15) + 1008 (family 63)
+```
+
+the dereferenced handle), passing varCode `(var & 15) + 1008` — not a message base: the push order
+(`0x174a4` varCode, `0x174a6` window, `0x174a8` message, `0x174ac` param) makes
+it the WDEF variation code, so the kDEF sees procID family 63 and sets
+`a4@(509)` (`0x3210`; corrected 2026-10-21, lane K PR #377 review). That WDEF
+-14336 forwards the varCode unchanged into `0x28e0` is inferred, not shown in
+this listing. This is how
+…

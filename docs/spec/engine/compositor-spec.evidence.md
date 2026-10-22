@@ -79,3 +79,33 @@ always on non-title sides (`#1`).
 non-title sides pass flag `#1`
 
 ````
+
+
+## Moved at the main→v2 sync of 2026-10-22 (main #377, `3d846c8e`)
+
+> Verbatim from `docs/spec/compositor-spec.md` on main at `3d846c8e`. The behavioural replacement text
+> lives in [`compositor-spec.md`](../compositor-spec.md). Nothing here was re-decoded during the move.
+
+| 10 | **FIXED, dropped when too short.** `0x4a0c` returns the `0x49d6` flag, which `0x5178` reads from `fp@(24)` (`0x52fc`): `0x4a64`'s too-short byte `fp@(-3)`, set only at `0x4e0e` when the side's placed extent is below its fixed-cell sum. Then the cell gets width 0. Implemented (`negotiateSides`); see note. |
+
+**code 10 note (2026-10-21, [kdef231-code10-widgets.md](kdef231-code10-widgets.md)):**
+`0x5178` takes two flag bytes. `fp@(24)` goes to `0x49d6` (`0x52fc`) and is
+always `0x4a64`'s too-short byte `fp@(-3)`. `fp@(26)` (the `#1` at
+`0x4db4`/`0x4dd4`, the title string length byte at `0x5100`/`0x5120`, or `0`
+at `0x5148`) only gates 5/6 (`0x530c`). The earlier "untitled sides pass `#1`"
+reading conflated the two. Per side, in the kDEF's side order (top, bottom,
+left, right): if the placed extent (template extent + content delta) is below
+`fixed0` (Σ segments 1..N that are fixed under flag 0, code 10 included), the
+side drops its code-10 cells and its title (5/6 width 0). If it is still too
+short and a shade gap is present, it also clears the shade/collapse widget for
+the remaining layout (`0x4e24..0x4e42`). Popup-family titled sides skip this
+(`0x4c64`). At or above the template size nothing changes. A dropped cell draws
+nothing, as in the kDEF (`0x5990`), so its baked collapse-box art disappears,
+but the widget's hit rect follows the cell through `0x5cb6` (below).
+
+chrome template itself, not a widget cicn. In the full draw (`0x572e`) the
+only `0x632e` call is the partial-zoom part 5 (`a4@(502) && a4@(508)`), so
+types 1-3 (close/zoom/collapse) are drawn only by the side cells there. Under
+`a4@(509)` (family 63) `0x5b7a..0x5c92` also blits rect-list types 5/6 and a
+15px corner from the template at raw rects, without `0x5cb6`. We don't
+…

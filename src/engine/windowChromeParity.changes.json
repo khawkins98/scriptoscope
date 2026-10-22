@@ -1,0 +1,97 @@
+{
+ "description": "Recorded, reviewed-for-cause changes to windowChromeParity.baseline.json. Each entry is a key whose digest changed, the exact subcases that changed (all below the template; every at/above-template subcase of every key is byte-identical), the changed cells and the spec rows that cause them. Comparison basis: origin/v2 f35a8eaa composeWindowChrome vs the merged one, per subcase, placement segment field excluded; 2,208 subcases, 8 changed.",
+ "changes": [
+  {
+   "key": "animals/collapsed-document-window/active",
+   "from": "59068541b11729ef8741192a04a9ce775afde966142cf187f878ac773d7c864f",
+   "to": "260d9beccc08a7e11e6c103d61776e47bcf0a6aa7ac50626ffc6e4ab6d84cac5",
+   "template": "143x1",
+   "subcases": [
+    {
+     "size": "97x53",
+     "titleWidthPx": 0
+    },
+    {
+     "size": "97x53",
+     "titleWidthPx": 60
+    }
+   ],
+   "cells": "bottom edge: the code-10 cell (13 px at the template) drops to 0 px; the freed width goes to the code-14 cell (0 -> 2 px) and the cells after it shift. No other edge changes.",
+   "rules": [
+    "compositor-spec.md, part-code classification row 10 and code 10 note: the too-short step (0x4dfe..0x4e0e) drops code 10 when the placed extent is below the fixed-cell sum (0x4a0c returns the too-short byte, read at 0x52fc); ledger evidence kdef.too-short-step",
+    "compositor-spec.md, Draw + distribution: the remainder is shared by 8/11/13/14/18 (0x5260..0x532e); ledger evidence kdef.width-allocation",
+    "qd-primitives.md W2: code 14 tiles in reverse (direction 0)"
+   ],
+   "source": "main #377 (3d846c8e), merged into v2 at the 2026-10-22 sync"
+  },
+  {
+   "key": "animals/collapsed-document-window/inactive",
+   "from": "675f3a30112244eabfdf8e413587b590b32605aa89280eb1eb086d9a879781db",
+   "to": "f732b943d6b19c05f566c549c4b5fe60d963b7213f343249c7b68f378168cbc3",
+   "template": "143x1",
+   "subcases": [
+    {
+     "size": "97x53",
+     "titleWidthPx": 0
+    },
+    {
+     "size": "97x53",
+     "titleWidthPx": 60
+    }
+   ],
+   "cells": "bottom edge: the code-10 cell (13 px at the template) drops to 0 px; the freed width goes to the code-14 cell (0 -> 2 px) and the cells after it shift. No other edge changes.",
+   "rules": [
+    "compositor-spec.md, part-code classification row 10 and code 10 note: the too-short step (0x4dfe..0x4e0e) drops code 10 when the placed extent is below the fixed-cell sum (0x4a0c returns the too-short byte, read at 0x52fc); ledger evidence kdef.too-short-step",
+    "compositor-spec.md, Draw + distribution: the remainder is shared by 8/11/13/14/18 (0x5260..0x532e); ledger evidence kdef.width-allocation",
+    "qd-primitives.md W2: code 14 tiles in reverse (direction 0)"
+   ],
+   "source": "main #377 (3d846c8e), merged into v2 at the 2026-10-22 sync"
+  },
+  {
+   "key": "animals/document-window/active",
+   "from": "6fab07fe2873525209ecfe00cb12f06dd2bec3bc839a85c11936a7f00712adb1",
+   "to": "789fbbac93d716b446513c3a8aa7da2a45abf2e06417e344b8d03b02d8ead900",
+   "template": "143x68",
+   "subcases": [
+    {
+     "size": "97x53",
+     "titleWidthPx": 0
+    },
+    {
+     "size": "97x53",
+     "titleWidthPx": 60
+    }
+   ],
+   "cells": "bottom edge: the code-10 cell (13 px at the template) drops to 0 px; the freed width goes to the code-14 cell (0 -> 2 px) and the cells after it shift. No other edge changes.",
+   "rules": [
+    "compositor-spec.md, part-code classification row 10 and code 10 note: the too-short step (0x4dfe..0x4e0e) drops code 10 when the placed extent is below the fixed-cell sum (0x4a0c returns the too-short byte, read at 0x52fc); ledger evidence kdef.too-short-step",
+    "compositor-spec.md, Draw + distribution: the remainder is shared by 8/11/13/14/18 (0x5260..0x532e); ledger evidence kdef.width-allocation",
+    "qd-primitives.md W2: code 14 tiles in reverse (direction 0)"
+   ],
+   "source": "main #377 (3d846c8e), merged into v2 at the 2026-10-22 sync"
+  },
+  {
+   "key": "animals/document-window/inactive",
+   "from": "c72d49f2b2b43215ca7ea8222e86b4d4e65a2fa15a8d4da761350a336a53a8eb",
+   "to": "91726a7a47acd4487d21958759451a3d07780e89b43f4eb333477a6da9c7efd3",
+   "template": "143x68",
+   "subcases": [
+    {
+     "size": "97x53",
+     "titleWidthPx": 0
+    },
+    {
+     "size": "97x53",
+     "titleWidthPx": 60
+    }
+   ],
+   "cells": "bottom edge: the code-10 cell (13 px at the template) drops to 0 px; the freed width goes to the code-14 cell (0 -> 2 px) and the cells after it shift. No other edge changes.",
+   "rules": [
+    "compositor-spec.md, part-code classification row 10 and code 10 note: the too-short step (0x4dfe..0x4e0e) drops code 10 when the placed extent is below the fixed-cell sum (0x4a0c returns the too-short byte, read at 0x52fc); ledger evidence kdef.too-short-step",
+    "compositor-spec.md, Draw + distribution: the remainder is shared by 8/11/13/14/18 (0x5260..0x532e); ledger evidence kdef.width-allocation",
+    "qd-primitives.md W2: code 14 tiles in reverse (direction 0)"
+   ],
+   "source": "main #377 (3d846c8e), merged into v2 at the 2026-10-22 sync"
+  }
+ ]
+}

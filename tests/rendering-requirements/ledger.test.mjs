@@ -29,7 +29,20 @@ for (const [field, prior] of [['assessments', transition.priorAssessment], ['ass
   const index = historicalHeaderLedger[field].findIndex(row => prior.id ? row.id === prior.id : row.caseId === prior.caseId && row.requirementId === prior.requirementId);
   historicalHeaderLedger[field][index] = prior;
 }
-const copy = () => structuredClone(original);
+// Validation reads the repository documents, which now carry main 1.24.0's decode
+// corrections (#377, window@1.1.0), so it checks the 1.22.0 rows with the window
+// family's in-place edits and its appended kdef.too-short-step evidence: every
+// family at its split state except window, which is live (digest recomputed).
+const code10 = JSON.parse(readFileSync(new URL('./code10-transition.json', import.meta.url)));
+const validatable = (() => {
+  const { base, families } = readFamilies();
+  const ledger = assemble(base, families.map(f => f.family === 'window' ? f : baseFamily(f))).ledger;
+  for (const key of ARRAYS) assert.equal(ledger[key].length, original[key].length + (key === 'evidence' ? 1 : 0), key);
+  Object.assign(ledger, { inventoryVersion: original.inventoryVersion, scope: original.scope });
+  ledger.inventorySha256 = inventoryDigest(ledger);
+  return ledger;
+})();
+const copy = () => structuredClone(validatable);
 test('sampled-header transition preserves the complete prior ledger and changes one assessment only', () => {
   assert.equal(digest(JSON.stringify(historicalHeaderLedger, null, 2) + '\n'), transition.priorLedgerSha256);
   const changed = priorMixedLedger.assessments.filter((row, i) => JSON.stringify(row) !== JSON.stringify(historicalHeaderLedger.assessments[i]));
@@ -42,7 +55,7 @@ function reject(change, pattern, options = {}) {
   assert.match(validateLedger(ledger, { root, ...options }).errors.join('\n'), pattern);
 }
 test('reviewed inventory validates and all open cases remain uncertified', () => {
-  assert.deepEqual(validateLedger(original, { root }).errors, []);
+  assert.deepEqual(validateLedger(validatable, { root }).errors, []);
   const report = makeReport(original);
   assert.equal(report.cases.length, 198);
   assert.equal(report.requirementStatus.denominator, original.assessments.length);
@@ -88,7 +101,7 @@ test('mismatched requires a live issue for every tracked mismatch', () => {
   reject(l => { mismatch(l).issues = []; }, /missing list/);
   reject(l => { mismatch(l); }, /not OPEN/, { issueStates: new Map([[223, 'CLOSED'], [374, 'OPEN']]) });
   // The 18 recorded scroll-bar state mismatches (1.22.0) fail closed if #374 closes.
-  assert.match(validateLedger(original, { root, issueStates: new Map([[374, 'CLOSED']]) }).errors.join('\n'), /scrollbar\.state-selection: tracking issue #374 is not OPEN/);
+  assert.match(validateLedger(validatable, { root, issueStates: new Map([[374, 'CLOSED']]) }).errors.join('\n'), /scrollbar\.state-selection: tracking issue #374 is not OPEN/);
   const fixture = copy(); mismatch(fixture);
   assert.deepEqual(validateLedger(fixture, { root, issueStates: new Map([[223, 'OPEN'], [374, 'OPEN']]) }).errors, []);
 });
@@ -167,7 +180,7 @@ test('evidence from a wholly unrelated archive or synthetic input cannot support
   }
 });
 test('engine-wide rules and combined source-art evidence retain their bounded valid uses', () => {
-  const result = validateLedger(original, { root });
+  const result = validateLedger(validatable, { root });
   assert.deepEqual(result.errors, []); assert.equal(result.declaredCount, 1404);
   assert.deepEqual(original.evidence.find(e => e.id === 'kdef.square-corners').inputs, ['engine.kaleidoscope-2.3.1-kdef0']);
   const shared = original.evidence.find(e => e.id === 'art.tab-crop');
@@ -204,7 +217,7 @@ test('new text and pattern claims fail if executable annotations or exact case s
   for (const id of ids) {
     const assertion = original.assertions.find(a => a.id === id);
     assert(assertion);
-    const errors = validateLedger(original, { root, read: path => {
+    const errors = validateLedger(validatable, { root, read: path => {
       const bytes = readFileSync(path);
       return path.endsWith(assertion.path) ? Buffer.from(bytes.toString().replaceAll(assertion.marker, 'removed annotation')) : bytes;
     } }).errors;
@@ -241,7 +254,7 @@ test('1.3.0 preserves all eighteen cases and150 assessments and keeps new scope 
 test('registered header/band declarations cannot lose exact executable scope or borrow unrelated art', () => {
   for(const id of ['header.whole-surface-literal','header.sampling-admission-policy','band.sampled-line-color-literal']){
     const a=original.assertions.find(a=>a.id===id);assert(a);
-    const errors=validateLedger(original,{root,read:path=>{const b=readFileSync(path);return path.endsWith(a.path)?Buffer.from(b.toString().replaceAll(a.marker,'removed')):b;}}).errors;
+    const errors=validateLedger(validatable,{root,read:path=>{const b=readFileSync(path);return path.endsWith(a.path)?Buffer.from(b.toString().replaceAll(a.marker,'removed')):b;}}).errors;
     assert.match(errors.join('\n'),/executable assertion marker missing/);
     if(id!=='header.sampling-admission-policy')reject(l=>{l.assertions.find(a=>a.id===id).caseIds=[l.cases[0].id];},/assertion does not cover exact case/);
   }
@@ -478,6 +491,9 @@ const sources = readFamilies();
 // Mechanism probes run on the split-time state of every family (all later transitions
 // undone), so they stay valid however the live families grow.
 const split = sources.families.map(baseFamily);
+// Document validation needs the live window family: the repository docs carry main
+// 1.24.0's corrected pinned excerpts (#377), which the split-time window rows predate.
+const docSplit = split.map(f => f.family === 'window' ? sources.families.find(x => x.family === 'window') : f);
 const family = name => structuredClone(split.find(f => f.family === name));
 const others = name => split.filter(f => f.family !== name);
 const withFamily = (f, rest = others(f.family)) => assemble(sources.base, [...rest, f].sort((a, b) => a.family.localeCompare(b.family)));
@@ -564,7 +580,7 @@ test('after a transition, rows and review text cannot change without a new trans
   f.assertions.push({ ...f.assertions.find(a => a.id === v.assertions[0]), id: 'demo.as', caseIds: ['demo.sb'] });
   f.evidence.push({ ...f.evidence[0], id: 'demo.ev' });
   const legit = T(f, prior, '1.1.0'), before = withFamily(legit);
-  assert.deepEqual(validateLedger(before.ledger, { root }).errors, []);
+  assert.deepEqual(validateLedger(withFamily(legit, docSplit.filter(x => x.family !== 'scrollbar')).ledger, { root }).errors, []);
   const plants = {
     'append evidence': x => x.evidence.push({ ...x.evidence[0], id: 'planted.ev' }),
     'append assertion': x => x.assertions.push({ ...x.assertions.at(-1), id: 'planted.as' }),
@@ -600,6 +616,72 @@ test('independent additions to two families compose without a re-bump, in either
   const one = assemble(sources.base, [...rest, a, b]), two = assemble(sources.base, [b, ...rest, a].sort((x, y) => x.family.localeCompare(y.family)));
   assert.equal(one.text, two.text);
   assert.equal(one.ledger.inventoryVersion, '1.22.0+checkable@1.1.0,slider@1.1.0');
-  assert.deepEqual(validateLedger(one.ledger, { root }).errors, []);
+  assert.deepEqual(validateLedger(assemble(sources.base, [...docSplit.filter(f => !['checkable', 'slider'].includes(f.family)), a, b].sort((x, y) => x.family.localeCompare(y.family))).ledger, { root }).errors, []);
   assert.equal(rebuilt(assemble(sources.base, [...rest, a, b], { mode: 'base' }).text), SPLIT_SHA256);
+});
+
+// ---- main 1.23.0 (#376) and 1.24.0 (#377), ported into families/ at the 2026-10-22 sync.
+// main's single-file tests are re-expressed against the family transitions that carry them
+// (tab@1.1.0, header@1.1.0, shared@1.1.0, window@1.1.0) and against the live ledger.
+const tabHeader = JSON.parse(readFileSync(new URL('./tab-header-rules-transition.json', import.meta.url)));
+const liveFamily = name => sources.families.find(f => f.family === name);
+const portTransition = (name, version) => { const t = liveFamily(name).transitions.find(x => x.version === version); assert(t, `${name}@${version}`); return t; };
+
+test('tab/header source-rule port (main 1.23.0) preserves the exact 1.22.0 ledger and verifies exactly the 43 reviewed obligations', () => {
+  // main's 1.22.0 prefix record is satisfied by the rebuilt base.
+  for (const [key, count] of Object.entries(tabHeader.counts)) { assert.equal(original[key].length, count, key); assert.equal(digest(JSON.stringify(original[key])), tabHeader.prefixSha256[key], key + ' prefix'); }
+  assert.equal(digest(JSON.stringify(original)), tabHeader.priorObjectSha256); assert.equal(inventoryDigest(original), tabHeader.inventorySha256);
+  assert.deepEqual(validateLedger(live, { root }).errors, []);
+  const tab = liveFamily('tab'), header = liveFamily('header'), tT = portTransition('tab', '1.1.0'), hT = portTransition('header', '1.1.0');
+  const cases = [...tab.cases.slice(tT.counts.cases), ...header.cases.slice(hT.counts.cases)];
+  const added = [...tab.assessments.slice(tT.counts.assessments), ...header.assessments.slice(hT.counts.assessments)];
+  assert.equal(cases.length, 36); assert.equal(added.length, 324);
+  assert.deepEqual([...new Set(cases.map(c => c.family))], ['tab', 'header-surface']);
+  assert(cases.every(c => c.inventoryClosure.status === 'open' && c.mode === 'direct' && c.inputs.length === 1));
+  const approved = {'tab.state-selection':['1138','1984','animals','crayon-os','dolphin-som','evolution','floppies','monkey-paradise','apple-platinum-2','beos-r503'].map(s=>s+'.tab.public-rows.sampled'),
+   'tab.body-bands':['1138','1984','1990','animals','apple-lisa','apple-platinum-2','beos-r503','dolphin-som','evolution','floppies','monkey-paradise'].map(s=>s+'.tab.public-rows.sampled'),
+   'state.header-raw-dispatch':['1138','animals','beos-r503','crayon-os','dolphin-som','floppies','monkey-paradise'].map(s=>s+'.header-surface.sampled'),
+   'geometry.header-whole-surface':['1138','1984','1990','animals','apple-lisa','beos-r503','crayon-os','dolphin-som','floppies','monkey-paradise','windows-31','windows-95'].map(s=>s+'.header-surface.sampled'),
+   'header.body-fill':['1990','animals','monkey-paradise'].map(s=>s+'.header-surface.sampled')};
+  assert(added.every(a => a.status === (approved[a.requirementId]?.includes(a.caseId) ? 'verified' : 'unknown')), 'status set');
+  assert.equal(added.filter(a => a.status === 'verified').length, 43);
+  assert(added.every(a => /lanes\/J\/REVIEW\.json.*eb949514/.test(a.review))); assert(!JSON.stringify(cases).includes('Pending')); assert(!JSON.stringify(added).includes('Pending'));
+  const row = (slug, req) => added.find(a => a.caseId.startsWith(slug + '.') && a.requirementId === req).rationale;
+  for (const slug of ['black-platinum','platinum-8','slimes','system7-nostalgia-silver']) for (const req of ['tab.state-selection','tab.variant-fallback']) assert.match(row(slug, req), /Probable divergence.*archive-fork-only/);
+  assert.match(row('apple-platinum-2','tab.state-selection'), /rear row is pixel-identical to -9974/); assert.match(row('beos-r503','tab.state-selection'), /front row is identical to -9973/);
+  assert.match(row('1990','header.body-fill'), /uniform in x/); assert.match(row('animals','tab.body-bands'), /only c\/s orientation/);
+  assert(!JSON.stringify([...tab.evidence.slice(tT.counts.evidence), ...header.evidence.slice(hT.counts.evidence)]).includes('window cicns'));
+  const sT = portTransition('shared', '1.1.0'), shared = liveFamily('shared');
+  assert.deepEqual(shared.assertions.slice(sT.counts.assertions).map(a => [a.id, a.caseIds.length]), [['tab-header.source-rules', 36]]);
+  for (const key of ARRAYS) if (key !== 'assertions') assert.equal(shared[key].length, sT.counts[key], `shared ${key} unchanged by the port`);
+  for (const slug of ['1984','1990','apple-lisa','evolution','windows-31','windows-95']) assert.match(added.find(a => a.caseId === `${slug}.header-surface.sampled` && a.requirementId === 'state.header-raw-dispatch').rationale, /Selection-non-discriminating/);
+  for (const slug of ['1990','apple-lisa','windows-31','windows-95']) assert.match(added.find(a => a.caseId === `${slug}.tab.public-rows.sampled` && a.requirementId === 'tab.state-selection').rationale, /selection-non-discriminating/);
+  // main's totals (216/18/1494 of 1,728) hold for the main lineage: the live families with the v2-only
+  // scroll-bar and push-button transitions undone. Live, the scroll-bar closure of #374 moves the 18
+  // mismatched state-selection rows to 13 verified and 5 unknown (scrollbar@1.3.0).
+  const mainLineage = assemble(sources.base, sources.families.map(f => ['scrollbar', 'push-button'].includes(f.family) ? baseFamily(f) : f)).ledger;
+  assert.deepEqual(makeReport(mainLineage).requirementStatus.counts, { verified: 216, mismatched: 18, unsupported: 0, unknown: 1494 });
+  assert.equal(makeReport(mainLineage).cases.length, 234);
+  assert.deepEqual(makeReport(live).requirementStatus.counts, { verified: 229, mismatched: 0, unsupported: 0, unknown: 1499 });
+  assert.equal(makeReport(live).cases.length, 234);
+});
+
+test('code-10 port (main 1.24.0) edits exactly the recorded window rows and changes no status', () => {
+  const w = liveFamily('window'), t = portTransition('window', '1.1.0'), prior = priorFamily(w);
+  assert.equal(prior.version, '1.0.0'); assert.deepEqual(prior.requirements, w.requirements);
+  // In-place edits are exactly main's: the replaced rows are code10-transition.json's 1.23.0 rows.
+  assert.deepEqual(t.replaced.evidence.map(r => r.row), code10.priorEvidence); assert.deepEqual(t.replaced.assertions.map(r => r.row), code10.priorAssertions);
+  assert.deepEqual(t.replaced.cases.map(r => r.row), code10.priorCases); assert.deepEqual(t.replaced.assessments.map(r => r.row), code10.priorAssessments);
+  assert.deepEqual(t.replaced.evidence.map(r => w.evidence[r.index].id), ['kdef.width-allocation']);
+  assert.deepEqual(w.evidence.slice(t.counts.evidence).map(e => e.id), ['kdef.too-short-step']);
+  for (const key of ['inputs', 'requirements', 'assertions', 'cases', 'assessments']) assert.equal(w[key].length, t.counts[key], key);
+  assert.deepEqual(t.replaced.assertions.map(r => w.assertions[r.index].id), ['window.recipe-rules']);
+  const changed = t.replaced.assessments.map(r => w.assessments[r.index]);
+  assert.equal(changed.length, 13);
+  assert(changed.every((a, i) => a.requirementId === 'window.flag-gated-parts' && a.status === 'unknown' && code10.priorAssessments[i].status === 'unknown'));
+  assert(changed.every(a => a.evidence.join() === 'kdef.too-short-step' && a.assertions.join() === 'window.recipe-rules'));
+  const cases = t.replaced.cases.map(r => w.cases[r.index]);
+  assert.equal(cases.length, 13); assert(cases.every(c => c.family === 'window-chrome' && c.options.widthOffsets[0] === -12 && c.options.heightOffsets[0] === -12));
+  const count = f => f.assessments.reduce((m, a) => (m[a.status] = (m[a.status] ?? 0) + 1, m), {});
+  assert.deepEqual(count(w), count(prior));
 });

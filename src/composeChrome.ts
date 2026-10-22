@@ -140,18 +140,20 @@ type CellClass = 'fixed' | 'grow' | 'tile' | 'scale' | 'remainder' | 'collapse' 
  *   "stretch") produced a row of arches; growing the genuine flat fill (code 8)
  *   is what fills the widened bar. (Was compositor-spec open issue #3.)
  *
- * CODE 10 is FLAG-GATED in the kDEF (`0x4a0c` returns the caller's flag byte):
- * it stretches when the title-fits flag is set. We classify it FIXED, which is
- * render-correct for this corpus: code-10 cells are either on a title-LESS
- * window's title edge (no label → title-fits false → fixed, and their code-10
- * band has the widget BAKED in, which a collapsing/growing cell would drop), or
- * on a non-title edge over a uniform bar (1984 doc-window bottom/right) where
- * fixed and grow render identically.
+ * CODE 10 is the side's "drop first when too short" cell. `0x4a0c` returns the
+ * `0x49d6` flag byte, which `0x5178` reads from its first flag argument
+ * (`0x52fc`) — the caller's too-short byte, set only at `0x4e0e` when the side's
+ * placed extent is below the sum of its fixed cells (see `negotiateSides`).
+ * So code 10 is FIXED at every size from the template minimum up, and width 0
+ * (draws nothing, like any empty cell at `0x5990`) only below it
+ * (docs/spec/compositor-spec.md, code 10 note).
  *
  * `widgetPresent` is the cinf widget-state gate (we treat all named widgets as
  * present — the bundled corpus always ships the close/zoom/shade boxes).
+ * `shadePresent` is `0x487e` (the kDEF's shade-present flag), which the too-short step can clear
+ * (`0x4e3a`); it gates codes 4/17.
  */
-function classifyPart(code: number, widgetPresent: boolean): CellClass {
+function classifyPart(code: number, widgetPresent: boolean, shadePresent = widgetPresent, tooShort = false): CellClass {
   switch (code) {
     case 8:
     case 11:
@@ -168,21 +170,25 @@ function classifyPart(code: number, widgetPresent: boolean): CellClass {
       return 'collapse'; // title bezel: src-width-or-collapse, never grows
     case 0:
       return 'zero'; // 0x49d6 stretch-always → collapses (growers fill the edge)
+    case 10:
+      return tooShort ? 'zero' : 'fixed'; // 0x4a0c → the too-short byte
     case 2:
     case 3:
-    case 4:
-      // close/zoom/shade GAP: holds the widget when present (fixed), else
+      // close/zoom GAP: holds the widget when present (fixed), else
       // collapses (the 0x49d6 "stretch when absent" verdict = width 0)
       return widgetPresent ? 'fixed' : 'zero';
+    case 4:
+      return shadePresent ? 'fixed' : 'zero'; // 0x4a2e: 0x487e
     case 15:
     case 16:
-    case 17:
-      // close/zoom/shade CELL: collapses when the widget is present (0x49d6
+      // close/zoom CELL: collapses when the widget is present (0x49d6
       // stretch-verdict → width 0 — the widget owns that span), else holds its
       // src width as plain background.
       return widgetPresent ? 'zero' : 'fixed';
+    case 17:
+      return shadePresent ? 'zero' : 'fixed'; // 0x4a52: 0x487e
     default:
-      return 'fixed'; // 1, 7, 9, 10 (flag-gated → fixed here), and unknown codes
+      return 'fixed'; // 1, 7, 9 and unknown codes
   }
 }
 
@@ -261,6 +267,13 @@ export interface PlacementSlice {
   mode: SliceMode;
   src: PixRectXY;
   rects: PixRectXY[];
+  /**
+   * Side-list segment index (sorted walk order). 0 is the leading
+   * `[0, border[0])` region and -1 the runtime's far-edge cap; neither is a
+   * `0x5cb6` remap target (its segment loop starts at 1, `0x5d26`). Absent on
+   * non-recipe placements.
+   */
+  segment?: number;
 }
 
 /** Human label for a part code, for the diagnostic. */
@@ -317,6 +330,71 @@ interface RawCell {
   x1: number;
   code: number;
   cls: CellClass;
+  /** sorted side-list index; 0 = the leading `[0, border[0])` region */
+  seg: number;
+}
+
+/** Per-side outcome of the `0x4a64` too-short step (`0x4dfe..0x4e42`). */
+interface SideNegotiation {
+  /** The too-short byte is set: code 10 → width 0, title width and title length zeroed. */
+  tooShort: boolean;
+  /** `0x487e` as seen by this side's distribution (after any `0x4e3a` clear). */
+  shadePresent: boolean;
+}
+
+/**
+ * The kDEF's per-side too-short negotiation, run in its side order (top,
+ * bottom, left, right — `0x3826..0x38c2`, `0x5356` side 0..3), because the
+ * shade-widget clear at `0x4e3a` is global (a window-wide flag) and so affects the
+ * sides laid out after it.
+ *
+ *   fixed0  = Σ src widths of segments 1..N whose `0x49d6(code, 0)` verdict is
+ *             fixed and whose code is not a grower or 5/6 (`0x4b64..0x4ba4`);
+ *             code 10 counts here.
+ *   extent  = placed border[N] − border[0] = template extent + (content −
+ *             template content) on that axis (`0x4be4..0x4c60`).
+ *   extent < fixed0 → too short (`0x4e0e`): drop code 10 (`fixed0 −= Σ10`) and
+ *             the title (its width and its string length byte zeroed).
+ *   still extent < fixed0 and shadeGap = Σcode4 − Σcode17 > 0 (only while
+ *             `0x487e`) → clear the shade/collapse widget (`0x4e24..0x4e42`).
+ *
+ * The popup-family title path (a title anchor and the family-63 flag, `0x4c64..0x4dfa`) returns
+ * before this step, so a family-63 side with a code-5 anchor is never too
+ * short.
+ */
+function negotiateSides(
+  recipes: Partial<Record<'top' | 'bottom' | 'left' | 'right', EdgeStep[]>>,
+  delta: { horizontal: number; vertical: number },
+  widgetPresent: boolean,
+  popupFamily: boolean,
+): { sides: Record<'top' | 'bottom' | 'left' | 'right', SideNegotiation>; shadeCleared: boolean } {
+  let shadePresent = widgetPresent;
+  const sides = {} as Record<'top' | 'bottom' | 'left' | 'right', SideNegotiation>;
+  for (const edge of ['top', 'bottom', 'left', 'right'] as const) {
+    const recipe = recipes[edge] ?? [];
+    const cells = recipe.length ? recipeCells(recipe, 0, widgetPresent, shadePresent) : [];
+    const sorted = [...recipe].sort((a, b) => a.at - b.at);
+    let tooShort = false;
+    const hasAnchor = cells.some(c => c.seg > 0 && c.code === 5);
+    if (cells.length && !(popupFamily && hasAnchor)) {
+      const w = (c: RawCell): number => c.x1 - c.x0;
+      const segs = cells.filter(c => c.seg > 0);
+      let fixed0 = segs.filter(c => c.cls === 'fixed').reduce((s, c) => s + w(c), 0);
+      const sum10 = segs.filter(c => c.code === 10).reduce((s, c) => s + w(c), 0);
+      const shadeGap = shadePresent
+        ? segs.reduce((s, c) => s + (c.code === 4 ? w(c) : c.code === 17 ? -w(c) : 0), 0)
+        : 0;
+      const extent = (sorted.at(-1)!.at - sorted[0]!.at)
+        + (edge === 'top' || edge === 'bottom' ? delta.horizontal : delta.vertical);
+      if (extent < fixed0) {
+        tooShort = true;
+        fixed0 -= sum10;
+        if (extent < fixed0 && shadeGap > 0) shadePresent = false;
+      }
+    }
+    sides[edge] = { tooShort, shadePresent };
+  }
+  return { sides, shadeCleared: widgetPresent && !shadePresent };
 }
 
 /**
@@ -338,7 +416,7 @@ interface RawCell {
  * `border[-1]` is 0 (the edge origin); entries whose border equals the previous
  * one (the `border 0` origin marker, coincident borders) collapse to zero width.
  */
-function recipeCells(recipe: EdgeStep[], _axisMax: number, widgetPresent: boolean): RawCell[] {
+function recipeCells(recipe: EdgeStep[], _axisMax: number, widgetPresent: boolean, shadePresent = widgetPresent, tooShort = false): RawCell[] {
   const sorted = [...recipe].sort((a, b) => a.at - b.at);
   const cells: RawCell[] = [];
   let prev = 0;
@@ -350,8 +428,8 @@ function recipeCells(recipe: EdgeStep[], _axisMax: number, widgetPresent: boolea
     const code = partCode(sorted[i]!.part);
     // i===0 only emits when border[0] > 0 — that cell is the leading
     // `[0, border[0])` region → the fixed corner, drawn 1:1 (never grows).
-    const cls: CellClass = i === 0 ? 'fixed' : classifyPart(code, widgetPresent);
-    cells.push({ x0, x1, code, cls });
+    const cls: CellClass = i === 0 ? 'fixed' : classifyPart(code, widgetPresent, shadePresent, tooShort);
+    cells.push({ x0, x1, code, cls, seg: i });
   }
   return cells;
 }
@@ -417,7 +495,7 @@ function distributeHalf(cells: RawCell[], lo: number, hi: number, dstExtent: num
  * half distributes its own slack independently so the centred title stays
  * centred. When there is no title region, the whole side is one half.
  */
-function distributeSide(cells: RawCell[], outExtent: number, srcStart: number, titleWidthPx = 0): number[] {
+function distributeSide(cells: RawCell[], outExtent: number, srcStart: number, titleWidthPx = 0, dropTitle = false): number[] {
   // The title-region cells are the collapse run (codes 5/6).
   let tLo = -1, tHi = -1;
   for (let i = 0; i < cells.length; i++) {
@@ -446,7 +524,9 @@ function distributeSide(cells: RawCell[], outExtent: number, srcStart: number, t
   for (let i = tLo; i < tHi; i++) {
     const c = cells[i]!;
     const src = c.x1 - c.x0;
-    const w = c.code === 5 ? Math.min(Math.max(src, titleWidthPx), plateCap) : src;
+    // Too short (0x4e0e): the title string length byte and the title width
+    // are zeroed, so 0x530c..0x531c leaves every 5/6 cell at width 0.
+    const w = dropTitle ? 0 : c.code === 5 ? Math.min(Math.max(src, titleWidthPx), plateCap) : src;
     widths[i] = w;
     titleW += w;
   }
@@ -499,6 +579,8 @@ interface PlacedCell {
   out0: number; out1: number;
   code: number;
   cls: CellClass;
+  /** sorted side-list index (0 = leading region, -1 = far-edge cap). */
+  seg: number;
 }
 
 /**
@@ -513,12 +595,13 @@ function composeEdge(
   geo: EdgeGeometry,
   widgetPresent: boolean,
   titleWidthPx = 0,
+  side: SideNegotiation = { tooShort: false, shadePresent: widgetPresent },
 ): { placed: PlacedCell[]; titleStart: number; titleEnd: number } | null {
   // The recipe's last `at` closes the final cell; it is the src extent the
   // recipe describes (often == cicn extent, sometimes short — we cap fill at
   // the cicn extent and let the far corner sit at the end).
   const lastAt = recipe.reduce((m, s) => Math.max(m, s.at), 0);
-  const cells = recipeCells(recipe, lastAt, widgetPresent);
+  const cells = recipeCells(recipe, lastAt, widgetPresent, side.shadePresent, side.tooShort);
   if (cells.length === 0) return null;
 
   // Corners are intrinsic to the walk: the LEADING corner is `recipeCells`'
@@ -528,7 +611,7 @@ function composeEdge(
   // The first cell's x0 is the recipe's start offset; the region before it
   // maps 1:1, so output starts there too.
   const srcStart = cells[0]!.x0;
-  const dstWidths = distributeSide(cells, geo.outExtent, srcStart, titleWidthPx);
+  const dstWidths = distributeSide(cells, geo.outExtent, srcStart, titleWidthPx, side.tooShort);
 
   const placed: PlacedCell[] = [];
   let titleStart = -1, titleEnd = -1;
@@ -581,7 +664,7 @@ function composeEdge(
       drawCell(c.x0, srcLen, outPos, c.cls === 'fixed' ? srcLen : dstLen, c.code);
     }
 
-    placed.push({ x0: c.x0, x1: c.x1, out0: outPos, out1: outPos + dstLen, code: c.code, cls: c.cls });
+    placed.push({ x0: c.x0, x1: c.x1, out0: outPos, out1: outPos + dstLen, code: c.code, cls: c.cls, seg: c.seg });
     outPos += dstLen;
   }
 
@@ -598,7 +681,7 @@ function composeEdge(
       // Runtime cap policy, not a table-W row: one scale blit of the cap band.
       const [capSrc, capDst] = bandRects(lastAt, capLen, outPos, cap);
       scaleBlit(out, cicn, capSrc, capDst, CHROME_TRANSFER);
-      placed.push({ x0: lastAt, x1: geo.srcExtent, out0: outPos, out1: outPos + cap, code: 0, cls: 'fixed' });
+      placed.push({ x0: lastAt, x1: geo.srcExtent, out0: outPos, out1: outPos + cap, code: 0, cls: 'fixed', seg: -1 });
       outPos += cap;
     }
   }
@@ -636,6 +719,12 @@ export interface ComposedChrome {
   /** Slice-by-slice placement map for the diagnostic inspector. */
   placement: PlacementSlice[];
   /**
+   * The too-short step cleared the shade/collapse widget (the shade-present
+   * flag, at `0x4e3a`): `0x487e` is then false, so the collapse widget is neither drawn
+   * by its gap cells nor hit-tested (`0x41be`).
+   */
+  shadeCleared?: boolean;
+  /**
    * The grow box (resize control), as a SEPARATE sprite to be stacked ABOVE the
    * content layer — it sits just inside the bottom-right frame corner, over the
    * content, so the frame's bottom/right edge strips stay clean (the chrome
@@ -659,7 +748,16 @@ export function composeWindowChrome(
   windowType: WindowType,
   contentW: number,
   contentH: number,
-  opts: { cinf?: WindowCinf | null; titleWidthPx?: number } = {},
+  opts: {
+    cinf?: WindowCinf | null;
+    titleWidthPx?: number;
+    /**
+     * procID family 63 (the family-63 flag, set at `0x3210`): the popup window family
+     * reached through service slot 8 (varCode + 1008). Its titled sides take
+     * the `0x4c64` path, which skips the too-short step.
+     */
+    popupFamily?: boolean;
+  } = {},
 ): ComposedChrome {
   const body = windowType.parts['part-0'];
   if (!body) throw new Error('composeWindowChrome: windowType has no part-0 body rect');
@@ -717,6 +815,11 @@ export function composeWindowChrome(
   // The horizontal bars own the corners, so they are drawn AFTER the sides —
   // otherwise a side edge overdraws the corner with its own 1:1 cicn-corner
   // block, which (e.g. 1984) re-introduces art the top edge had collapsed away.
+  // The too-short negotiation (0x4dfe..0x4e42) runs per side BEFORE any
+  // distribution, in the kDEF's side order. The content-size delta against the
+  // template is the same on every side of an axis (0x4be4..0x4c60).
+  const negotiated = negotiateSides(edges ?? {}, { horizontal: fullW - drawW, vertical: fullH - drawH },
+    widgetPresent, opts.popupFamily ?? false);
   let topRes: ReturnType<typeof composeEdge> = null;
   let leftRes: ReturnType<typeof composeEdge> = null;
   let rightRes: ReturnType<typeof composeEdge> = null;
@@ -727,7 +830,7 @@ export function composeWindowChrome(
     leftRes = composeEdge(out, cicn, edges.left, {
       edge: 'left', horizontal: false, crossSrc: 0, crossLen: frame.left, crossDst: 0,
       outExtent: fullH, srcExtent: drawH,
-    }, widgetPresent);
+    }, widgetPresent, 0, negotiated.sides.left);
   }
 
   // ── right edge ──────────────────────────────────────────────────────────
@@ -735,7 +838,7 @@ export function composeWindowChrome(
     rightRes = composeEdge(out, cicn, edges.right, {
       edge: 'right', horizontal: false, crossSrc: drawW - frame.right, crossLen: frame.right,
       crossDst: fullW - frame.right, outExtent: fullH, srcExtent: drawH,
-    }, widgetPresent);
+    }, widgetPresent, 0, negotiated.sides.right);
   }
 
   // ── top edge (drawn AFTER the sides so the title bar owns the top corners) ─
@@ -743,7 +846,7 @@ export function composeWindowChrome(
     topRes = composeEdge(out, cicn, edges.top, {
       edge: 'top', horizontal: true, crossSrc: 0, crossLen: frame.top, crossDst: 0,
       outExtent: fullW, srcExtent: drawW,
-    }, widgetPresent, opts.titleWidthPx ?? 0);
+    }, widgetPresent, opts.titleWidthPx ?? 0, negotiated.sides.top);
   }
 
   // ── bottom edge (drawn AFTER the sides so it owns the bottom corners) ──────
@@ -751,11 +854,15 @@ export function composeWindowChrome(
     botRes = composeEdge(out, cicn, edges.bottom, {
       edge: 'bottom', horizontal: true, crossSrc: drawH - frame.bottom, crossLen: frame.bottom,
       crossDst: fullH - frame.bottom, outExtent: fullW, srcExtent: drawW,
-    }, widgetPresent);
+    }, widgetPresent, 0, negotiated.sides.bottom);
   }
 
   // No separate widget pass: the close/zoom/shade widgets fall inside the FIXED
-  // title-bar cells and are drawn 1:1 by the edge walk above.
+  // title-bar cells and are drawn 1:1 by the edge walk above. That matches the
+  // kDEF full draw for rect-list types 1-3: 0x572e calls 0x632e only for the
+  // partial-zoom variants (part 5, two window-state flags, 0x5a28..0x5a3c), which
+  // this runtime does not model. A cell collapsed by the too-short step draws
+  // nothing, and neither does the kDEF (0x5990..0x59a6).
 
   // ── aggregate the slice placement map (for the diagnostic) ────────────────
   const placement: PlacementSlice[] = [];
@@ -771,7 +878,7 @@ export function composeWindowChrome(
     if (!res) return;
     for (const p of res.placed) {
       placement.push({
-        edge, code: p.code, role: partRole(p.code), mode: modeOf(p.cls),
+        edge, code: p.code, role: partRole(p.code), mode: modeOf(p.cls), segment: p.seg,
         src: edge === 'top' || edge === 'bottom'
           ? { x: p.x0, y: edge === 'top' ? 0 : drawH - frame.bottom, w: p.x1 - p.x0, h: edge === 'top' ? frame.top : frame.bottom }
           : { x: edge === 'left' ? 0 : drawW - frame.right, y: p.x0, w: edge === 'left' ? frame.left : frame.right, h: p.x1 - p.x0 },
@@ -811,5 +918,8 @@ export function composeWindowChrome(
     const [r, g, b, a] = cicn.getPixel(titleFillSrcX, sy);
     if (a > 0) titleFillRgb = { r, g, b, a };
   }
-  return { buffer: out, frame, fullWidth: fullW, fullHeight: fullH, titleRegion, titleFillSrcX, titleFillRgb, placement };
+  return {
+    buffer: out, frame, fullWidth: fullW, fullHeight: fullH, titleRegion, titleFillSrcX, titleFillRgb, placement,
+    ...(negotiated.shadeCleared ? { shadeCleared: true } : {}),
+  };
 }

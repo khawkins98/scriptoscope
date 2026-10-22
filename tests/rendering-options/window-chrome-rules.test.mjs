@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import { loadKaleidoscopeScheme } from '../../tools/theme-loader/loadKaleidoscopeScheme.js';
 import '../helpers/registerTs.mjs';
-import { CANONICAL_WND, CORNER_SPRITE, SLICED, ladderSelection, checkTheme, checkComposition, decodeCells, allocateHalf, stateLabelContradiction, tileSourceOffset, TILE_REVERSE } from './window-chrome-rules.mjs';
+import { CANONICAL_WND, CORNER_SPRITE, SLICED, ladderSelection, checkTheme, checkComposition, decodeCells, allocateHalf, sideTooShort, stateLabelContradiction, tileSourceOffset, TILE_REVERSE } from './window-chrome-rules.mjs';
 const { PixelBuffer } = await import('../../src/pixelBuffer.ts');
 const { composeWindowChrome } = await import('../../src/composeChrome.ts');
 const { resolveWindowType } = await import('../../src/resolveWindowType.ts');
@@ -221,11 +221,36 @@ test('observation: 1138 document-window top at template size places 107px in a 1
   assert.deepEqual([c.placement.filter(p => p.edge === 'top').reduce((s, p) => s + p.rects[0].w, 0), c.fullWidth], [107, 103]);
 });
 
-// A decode disagreement, preserved as a failing case rather than fixed.
-// Remove `todo` only with an independently reviewed kDEF interpretation.
-test('code 10 on an untitled side collapses: 0x4a0c returns the caller flag #1 (0x4db4/0x515e), 0x5306 leaves width 0', {
-  todo: 'runtime classifies 10 as FIXED (faithfulness ledger 0x4a0c ✗, deliberate); collapsing needs the unimplemented 0x632e/0x6062 widget pass, whose placement depends on side-list widths via 0x5cb6 (kdef231-reference.md §5.1)',
-}, () => {
-  const c = edge([[8, 1], [10, 4], [1, 2]], 20);
-  assert.deepEqual(c.composed.placement.filter(p => p.edge === 'top').map(p => p.rects[0].w), [18, 0, 2]);
+// Code 10 (docs/spec/compositor-spec.md, code 10 note): 0x5178 hands 0x49d6 its
+// first flag argument (0x52fc), filled from 0x4a64's too-short byte, which
+// only 0x4e0e sets, when the placed extent is below the fixed-cell sum.
+// Hand trace for [8:1, 10:4, 1:2] on the non-title path (0x5148): fixed0 = 6.
+// Width 20: not too short, budget 14 → [14, 4, 2]. Width 5: 5 < 6 → code 10
+// dropped (fixed0 = 2), budget 3 → [3, 0, 2].
+test('code 10 is fixed at and above the template and dropped below it (0x4dfe..0x4e0e, 0x52fc → 0x4a0c)', () => {
+  const widths = c => c.composed.placement.filter(p => p.edge === 'top').map(p => p.rects[0].w);
+  const wide = edge([[8, 1], [10, 4], [1, 2]], 20), short = edge([[8, 1], [10, 4], [1, 2]], 5);
+  assert.deepEqual(widths(wide), [14, 4, 2]);
+  assert.deepEqual(widths(short), [3, 0, 2]);
+  assert.deepEqual(checkComposition(wide).failures, []);
+  assert.deepEqual(checkComposition(short).failures, []);
+  assert.equal(sideTooShort(short.windowType.edges.top, 5 - 7), true);
+  assert.equal(sideTooShort(wide.windowType.edges.top, 20 - 7), false);
+  // Boundary: extent == fixed0 is not too short (0x4e0c, signed greater-or-equal branch).
+  assert.deepEqual(widths(edge([[8, 1], [10, 4], [1, 2]], 6)), [0, 4, 2]);
+  // Widget-gated codes bound fixed0, so the verdict can be undetermined.
+  assert.equal(sideTooShort([{ at: 0, part: 'part-0' }, { at: 4, part: 'part-10' }, { at: 8, part: 'part-2' }], -2), null);
+  // Popup family with a code-5 anchor takes 0x4c64 and is never too short.
+  assert.equal(sideTooShort([{ at: 0, part: 'part-0' }, { at: 4, part: 'part-10' }, { at: 5, part: 'part-5' }], -3, true), false);
+});
+test('rule checker rejects a code-10 cell kept (below template) or dropped (above template)', () => {
+  const mutate = (fixture, f) => { const c = structuredClone({ placement: fixture.composed.placement }); f(c.placement.filter(p => p.edge === 'top')); return checkComposition({ ...fixture, composed: { ...fixture.composed, placement: c.placement } }).failures.join(); };
+  // The pre-fix runtime kept 10 fixed below the minimum: [0, 4, 2] in 5px.
+  assert.match(mutate(edge([[8, 1], [10, 4], [1, 2]], 5), p => { p[0].rects[0].w = 0; p[1].rects[0].x = 0; p[1].rects[0].w = 4; p[2].rects[0].x = 4; }), /p10: expected collapse/);
+  assert.match(mutate(edge([[8, 1], [10, 4], [1, 2]], 20), p => { p[0].rects[0].w = 18; p[1].rects[0].x = 18; p[1].rects[0].w = 0; p[2].rects[0].x = 18; }), /p10: fixed 4px drawn 0px/);
+});
+test('corpus below-template sample reaches the too-short step and drops code-10 cells', () => {
+  let tooShortSides = 0, code10 = 0, code10Zero = 0;
+  for (const slug of SLICED) { const t = checkTheme(corpus.get(slug), runtime).totals; tooShortSides += t.tooShortSides; code10 += t.code10; code10Zero += t.code10Zero; }
+  assert.ok(tooShortSides > 100 && code10Zero > 20 && code10 > code10Zero, JSON.stringify({ tooShortSides, code10, code10Zero }));
 });

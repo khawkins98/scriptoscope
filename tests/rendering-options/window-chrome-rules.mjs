@@ -27,34 +27,66 @@ export function ladderSelection(id, present) {
   return null;
 }
 
-// Width class of a recipe cell under the caller flag = 1 (title fits, or a
-// side without a title anchor: `#1` at 0x4db4/0x4dd4/0x515e).
+// Width class of a recipe cell. 0x5178 hands 0x49d6 its first flag argument
+// (0x52fc), which every caller fills from 0x4a64's too-short byte; the second
+// flag argument (title string length, or 1/0) only gates 5/6 (0x530c)
+// (docs/spec/compositor-spec.md, code 10 note).
 //   fixed     0x49d6 default → verdict 0 (0x4a5e); 0x531e..0x532a dst = src
 //   zero      0x49d6 code 0 → verdict 1 (0x4a12); 0x5306 leaves width 0
 //   primary   0x529e..0x52d6 (8/11/18) share + remainder
 //   tile      0x5266..0x5292 (12) whole source widths
 //   remainder 0x52da..0x52f8 (13/14) remainder only
-//   unknown   not asserted: 5/6 (0x5312..0x531c collapse them when the
-//             title-fits flag is 0; plate DEST span from StringWidth, 0x5034),
-//             10 (flag-gated 0x4a0c; ledger divergence), 2/3/4/15/16/17
-//             (undecoded cinf widget flags, reference §7.6)
-export function cellClass(code, leading) {
+//   10        0x4a0c returns the too-short byte: fixed when the side is not too short,
+//             zero when it is (0x4dfe..0x4e0e, see sideTooShort); unknown when
+//             the too-short verdict itself depends on widget flags
+//   unknown   not asserted: 5/6 (plate DEST span from StringWidth, 0x5034;
+//             the title split 0x4fa8..0x50fa), 2/3/4/15/16/17 (cinf widget
+//             flags, reference §7.6)
+export function cellClass(code, leading, tooShort = false) {
   // 0x4a64's segment loop starts at index 1: [0, border[0]) is the 1:1 corner.
   if (leading) return 'fixed';
   if (code === 0) return 'zero';
   if (code === 8 || code === 11 || code === 18) return 'primary';
   if (code === 12) return 'tile';
   if (code === 13 || code === 14) return 'remainder';
-  if (code === 5 || code === 6 || code === 10 || [2, 3, 4, 15, 16, 17].includes(code)) return 'unknown';
+  if (code === 10) return tooShort == null ? 'unknown' : tooShort ? 'zero' : 'fixed';
+  if (code === 5 || code === 6 || WIDGET_GATED.has(code)) return 'unknown';
   return 'fixed'; // 1, 7, 9 and other defaults
+}
+const WIDGET_GATED = new Set([2, 3, 4, 15, 16, 17]);
+const NOT_FIXED0 = new Set([0, 5, 6, 8, 11, 12, 13, 14, 18]);
+
+/**
+ * The 0x4a64 too-short verdict for one side (0x4dfe..0x4e0e). fixed0 sums the
+ * source widths of segments 1..N whose 0x49d6(code, 0) verdict is fixed and
+ * whose code is not a grower or 5/6 (0x4b64..0x4ba4; code 10 included). The
+ * placed extent is the template extent plus the content-size delta
+ * (0x4be4..0x4c60). Codes 2/3/4/15/16/17 are fixed or not by widget flags,
+ * so they bound fixed0: true/false only when the verdict holds either way,
+ * else null. The popup-family title path (title anchor and family-63 flag, 0x4c64..0x4dfa)
+ * never reaches this step.
+ */
+export function sideTooShort(recipe, delta, popupFamily = false) {
+  if (!recipe.length) return false;
+  let prev = 0, min = 0, gated = 0, anchor = false;
+  for (const [i, step] of recipe.entries()) {
+    const w = step.at - prev, c = code(step.part);
+    prev = Math.max(prev, step.at);
+    if (i === 0 || w <= 0) continue;
+    if (c === 5) anchor = true;
+    if (WIDGET_GATED.has(c)) gated += w; else if (!NOT_FIXED0.has(c)) min += w;
+  }
+  if (popupFamily && anchor) return false;
+  const extent = prev - recipe[0].at + delta;
+  return extent < min ? true : extent >= min + gated ? false : null;
 }
 
 const code = slug => Number(/^part-(-?\d+)$/.exec(slug)?.[1] ?? NaN);
 /** END-based cells (0x5356): segment i = [border[i-1], border[i]) tagged part[i]. */
-export function decodeCells(recipe) {
+export function decodeCells(recipe, tooShort = false) {
   const cells = []; let prev = 0;
   for (const [i, step] of recipe.entries()) {
-    if (step.at > prev) cells.push({ x0: prev, x1: step.at, code: code(step.part), cls: cellClass(code(step.part), i === 0) });
+    if (step.at > prev) cells.push({ x0: prev, x1: step.at, code: code(step.part), cls: cellClass(code(step.part), i === 0, tooShort) });
     prev = Math.max(prev, step.at);
   }
   return cells;
@@ -102,8 +134,8 @@ export function tileSourceOffset(k, sw, dw, reverse) {
  * pass is visible. Only the top and bottom bars are pixel-checked across their
  * full length (they are composed last); side bars only between them.
  */
-export function checkComposition({ cicn, windowType, composed }) {
-  const failures = [], checked = { cells: 0, halves: 0, sides: 0, pixels: 0, pixels1px: 0, pixelsWhole: 0, pixelsForward: 0, pixelsReverse: 0, unknownCells: 0 };
+export function checkComposition({ cicn, windowType, composed, popupFamily = false }) {
+  const failures = [], checked = { cells: 0, halves: 0, sides: 0, tooShortSides: 0, code10: 0, code10Zero: 0, pixels: 0, pixels1px: 0, pixelsWhole: 0, pixelsForward: 0, pixelsReverse: 0, unknownCells: 0 };
   const fail = (message) => { if (failures.length < 20) failures.push(message); };
   const { frame, fullWidth: W, fullHeight: H, buffer } = composed;
   for (const edge of ['top', 'bottom', 'left', 'right']) {
@@ -116,7 +148,12 @@ export function checkComposition({ cicn, windowType, composed }) {
       continue;
     }
     const horizontal = edge === 'top' || edge === 'bottom';
-    const cells = decodeCells(recipe);
+    // Content-size delta against the template body rect, per axis (0x4be4..0x4c60).
+    const [bl, bt, br, bb] = windowType.parts['part-0'].rect;
+    const delta = horizontal ? (W - frame.left - frame.right) - (br - bl) : (H - frame.top - frame.bottom) - (bb - bt);
+    const tooShort = sideTooShort(recipe, delta, popupFamily);
+    if (tooShort) checked.tooShortSides++;
+    const cells = decodeCells(recipe, tooShort);
     // The recipe's segments come first, in walk order; a far-edge cap is runtime-only.
     const segs = placed.slice(0, cells.length);
     const span = p => horizontal ? [p.src.x, p.src.x + p.src.w, p.rects[0].x, p.rects[0].w] : [p.src.y, p.src.y + p.src.h, p.rects[0].y, p.rects[0].h];
@@ -148,7 +185,8 @@ export function checkComposition({ cicn, windowType, composed }) {
       for (const [j, c] of half.entries()) {
         // Per-class invariants hold regardless of the half's extent.
         if (c.cls === 'fixed' && widths[j] !== c.x1 - c.x0) fail(`${edge}[${lo + j}] p${c.code}: fixed ${c.x1 - c.x0}px drawn ${widths[j]}px`);
-        if (c.cls === 'zero' && widths[j] !== 0) fail(`${edge}[${lo + j}] p0: expected collapse, drawn ${widths[j]}px`);
+        if (c.cls === 'zero' && widths[j] !== 0) fail(`${edge}[${lo + j}] p${c.code}: expected collapse, drawn ${widths[j]}px`);
+        if (c.code === 10 && c.cls !== 'unknown') { checked.code10++; if (c.cls === 'zero') checked.code10Zero++; }
         if (c.cls === 'tile' && widths[j] % (c.x1 - c.x0)) fail(`${edge}[${lo + j}] p12: ${widths[j]}px is not whole ${c.x1 - c.x0}px tiles`);
         if (c.cls !== 'unknown') checked.cells++;
       }
@@ -207,8 +245,8 @@ export function checkComposition({ cicn, windowType, composed }) {
   return { failures, checked };
 }
 
-/** Sampled content sizes: the template minimum plus odd/even and tile-remainder offsets. */
-export const SIZE_OFFSETS = { width: [0, 1, 2, 7, 97], height: [0, 1, 33] };
+/** Sampled content sizes: one below-template sample (the 0x4e0e too-short step), the template minimum plus odd/even and tile-remainder offsets. */
+export const SIZE_OFFSETS = { width: [-12, 0, 1, 2, 7, 97], height: [-12, 0, 1, 33] };
 
 // Archives that ship wnd# recipes vs none. The five without wnd# use the
 // runtime's synthesized corner-sprite table; no kDEF path for drawing them is
@@ -221,7 +259,7 @@ export const CORNER_SPRITE = ['apple-platinum-2', 'black-platinum', 'platinum-8'
  * injects the runtime under test so source and built bundles share this table.
  */
 export function checkTheme(decoded, { PixelBuffer, composeWindowChrome }) {
-  const totals = { compositions: 0, cells: 0, halves: 0, sides: 0, pixels: 0, pixels1px: 0, pixelsWhole: 0, pixelsForward: 0, pixelsReverse: 0, unknownCells: 0 }, failures = [];
+  const totals = { compositions: 0, cells: 0, halves: 0, sides: 0, tooShortSides: 0, code10: 0, code10Zero: 0, pixels: 0, pixels1px: 0, pixelsWhole: 0, pixelsForward: 0, pixelsReverse: 0, unknownCells: 0 }, failures = [];
   for (const [key, windowType] of Object.entries(decoded.manifest.windowTypes)) {
     if (windowType.model) continue;
     const [l, t, r, b] = windowType.parts['part-0'].rect;
@@ -229,8 +267,9 @@ export function checkTheme(decoded, { PixelBuffer, composeWindowChrome }) {
       const asset = decoded.assets.find(a => a.path === windowType.chrome[state]);
       const cicn = new PixelBuffer(asset.width, asset.height, new Uint8ClampedArray(asset.rgba));
       for (const dw of SIZE_OFFSETS.width) for (const dh of SIZE_OFFSETS.height) {
-        const composed = composeWindowChrome(cicn, windowType, Math.max(0, r - l) + dw, Math.max(0, b - t) + dh);
-        const result = checkComposition({ cicn, windowType, composed });
+        const popupFamily = key === 'popup-window'; // service slot 8, procID family 63 (family-63 flag, 0x3210)
+        const composed = composeWindowChrome(cicn, windowType, Math.max(0, Math.max(0, r - l) + dw), Math.max(0, Math.max(0, b - t) + dh), { popupFamily });
+        const result = checkComposition({ cicn, windowType, composed, popupFamily });
         totals.compositions++;
         for (const [k, v] of Object.entries(result.checked)) totals[k] += v;
         for (const f of result.failures) failures.push(`${key}/${state} +${dw}x+${dh}: ${f}`);
