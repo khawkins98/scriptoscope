@@ -25,6 +25,13 @@
 //       whose expected/ or baselines/ file changed count as declared),
 //       validate-source (documentSha256 pins), typecheck,
 //       npm test;
+//   - the branch silently reverts a base commit (see findReverts): a file the PR changes
+//     was also changed by one of the last 50 first-parent base commits before the
+//     merge-base, and the PR's diff undoes every hunk that commit made to it (its added
+//     lines removed, its removed lines restored), or restores the file's pre-commit
+//     blob. This is a branch built on an old tree and given a new parent (#440 undid
+//     #434, #435 and #438 that way). A deliberate revert passes when a branch commit
+//     says `This reverts commit <sha>` or with --allow-revert <sha>;
 //   - HEAD moved or the worktree became dirty while the checks ran.
 //
 // gen-trap-table needs the private Traps.h: pass --traps-h <path> or set
@@ -39,6 +46,7 @@
 //   --base <ref>      base branch ref (default origin/v2; fetched first, best effort)
 //   --remote <name>   remote the branch is pushed to (default origin)
 //   --traps-h <path>  Traps.h for gen-trap-table
+//   --allow-revert <sha>  a base commit the branch reverts on purpose (repeatable)
 //   --verbose         stream each command's output instead of only the tail on failure
 import { spawnSync, execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, readdirSync, statSync, realpathSync } from 'node:fs';
@@ -221,6 +229,122 @@ export function scanLabels(root, baseFile = () => null) {
   return { errors, warnings };
 }
 
+/** -U0 diff text → hunks of { removed, added } line arrays. */
+export function parseHunks(text) {
+  const hunks = [];
+  let h = null;
+  for (const line of text.split('\n')) {
+    if (line.startsWith('@@')) { h = { removed: [], added: [] }; hunks.push(h); continue; }
+    if (!h) continue;
+    if (line.startsWith('-')) h.removed.push(line.slice(1));
+    else if (line.startsWith('+')) h.added.push(line.slice(1));
+  }
+  return hunks;
+}
+const containsRun = (hay, needle) => {
+  if (!needle.length) return true;
+  outer: for (let i = 0; i + needle.length <= hay.length; i++) {
+    for (let j = 0; j < needle.length; j++) if (hay[i + j] !== needle[j]) continue outer;
+    return true;
+  }
+  return false;
+};
+/** A hunk too trivial to identify a revert (blank lines, lone braces, short tokens). */
+const significant = lines => lines.join('').replace(/\s+/g, '').length >= 12 && lines.some(l => /[A-Za-z]{3,}/.test(l));
+
+/** `git diff -U0` output over many files → Map(path → hunks). */
+function hunksByFile(text) {
+  const out = new Map();
+  let file = null, minus = null;
+  for (const line of text.split('\n')) {
+    if (line.startsWith('diff --git ')) { file = null; minus = null; continue; }
+    if (file === null && line.startsWith('--- ')) { minus = line === '--- /dev/null' ? null : line.slice(6); continue; }
+    if (file === null && line.startsWith('+++ ')) { file = line === '+++ /dev/null' ? minus : line.slice(6); out.set(file, []); continue; }
+    if (file !== null) out.get(file).push(line);
+  }
+  for (const [f, lines] of out) out.set(f, parseHunks(lines.join('\n')));
+  return out;
+}
+
+/**
+ * Silent reverts: base commits (the last `window` first-parent commits up to the merge-base)
+ * whose changes the branch's diff (mergeBase..head) undoes. For each file the branch
+ * changes, the base commits that changed it (newest first, c1..cn) count as reverted when
+ *   - blob: the head blob differs from the merge-base's and equals the file as it was
+ *     before some ck (ck^1); then c1..ck are all undone (a stale copy of the file), or
+ *   - hunks: every significant hunk of ck^1..ck that is still intact at the merge-base is
+ *     undone by one hunk of mergeBase..head, which removes all of ck's added lines (as a
+ *     run), adds back all of ck's removed lines (as a run), and otherwise adds exactly as
+ *     many lines as it removes (neighbouring line edits merged into the hunk). Removing
+ *     the base's lines inside a larger deletion or rewrite is an edit, not a revert.
+ * A file the branch deletes counts only when the same commit is undone in a kept file.
+ * A rebased branch carries the base's lines through, so its diff never removes them; an
+ * edit to a line the base added replaces it with new text, not the pre-change text.
+ * Commits named by `allow` (sha prefixes) or by a branch commit's `This reverts commit
+ * <sha>` line are skipped. Returns [{ file, commit, subject, how }].
+ */
+export function findReverts(root, mergeBase, head = 'HEAD', { window = 50, allow = [] } = {}) {
+  const NULL = /^0+$/, EMPTY_TREE = '4b825dc642cb6eb9a060e54bf8d69288fbee4904';
+  const files = git(root, ['diff', '--name-only', '--no-renames', mergeBase, head]).split('\n').filter(Boolean);
+  if (!files.length) return [];
+  // One log call: each recent first-parent base commit, its subject and the blobs of every
+  // file it changed (before = first parent, after = the commit).
+  const touchedBy = new Map(), subject = new Map(), parent = new Map();
+  let cur = null;
+  for (const line of git(root, ['log', '--first-parent', '-m', '--no-renames', '--raw', '--no-abbrev', '--format=@%H %P%x09%s', `-n${window}`, mergeBase]).split('\n')) {
+    if (line.startsWith('@')) {
+      const [ids, ...rest] = line.slice(1).split('\t');
+      const [c, first] = ids.split(' ');
+      cur = c; subject.set(c, rest.join('\t')); parent.set(c, first || EMPTY_TREE);
+      continue;
+    }
+    const m = /^:\d+ \d+ ([0-9a-f]+) ([0-9a-f]+) \w+\t(.*)$/.exec(line);
+    if (!m || !cur) continue;
+    if (!touchedBy.has(m[3])) touchedBy.set(m[3], []);
+    const list = touchedBy.get(m[3]);
+    if (list.at(-1)?.commit !== cur) list.push({ commit: cur, before: NULL.test(m[1]) ? null : m[1], after: NULL.test(m[2]) ? null : m[2] });
+  }
+  const pr = files.filter(f => touchedBy.has(f));
+  if (!pr.length) return [];
+  const messages = git(root, ['log', '--format=%B', `${mergeBase}..${head}`]);
+  const allowed = sha => allow.some(a => a && sha.startsWith(a)) || messages.includes(`This reverts commit ${sha}`);
+  const tree = rev => new Map(git(root, ['ls-tree', '-r', '--full-tree', rev]).split('\n').filter(Boolean).map(l => { const [meta, path] = l.split('\t'); return [path, meta.split(' ')[2]]; }));
+  const headTree = tree(head), baseTree = tree(mergeBase);
+  const diffArgs = ['diff', '-U0', '--no-color', '--no-ext-diff', '--no-renames', '--src-prefix=a/', '--dst-prefix=b/'];
+  const prHunks = hunksByFile(git(root, [...diffArgs, mergeBase, head, '--', ...pr]));
+  const commitHunks = new Map();
+  const hunksOf = (c, file) => {
+    if (!commitHunks.has(c)) commitHunks.set(c, hunksByFile(git(root, [...diffArgs, parent.get(c), c, '--', ...pr.filter(f => touchedBy.get(f).some(t => t.commit === c))])));
+    return commitHunks.get(c).get(file) ?? [];
+  };
+  const found = [];
+  for (const file of pr) {
+    const headBlob = headTree.get(file) ?? null, baseBlob = baseTree.get(file) ?? null;
+    if (headBlob === baseBlob) continue;
+    const touching = touchedBy.get(file);
+    const flagged = new Map();
+    const k = touching.findIndex(t => t.before === headBlob && t.after !== headBlob);
+    if (k >= 0) for (const t of touching.slice(0, k + 1)) flagged.set(t.commit, headBlob ? `restores the version before ${touching[k].commit.slice(0, 12)}` : `deletes the file added by ${touching[k].commit.slice(0, 12)}`);
+    const p = prHunks.get(file) ?? [];
+    let baseLines = null;
+    for (const { commit } of touching) {
+      if (flagged.has(commit) || !p.length) continue;
+      baseLines ??= baseBlob ? git(root, ['cat-file', 'blob', baseBlob]).split('\n') : [];
+      const live = hunksOf(commit, file).filter(h => significant(h.added.length ? h.added : h.removed) && containsRun(baseLines, h.added));
+      // q is h reversed, give or take line-for-line edits of neighbouring lines that git
+      // merged into the same hunk (as many other lines added as removed). Deleting the
+      // base's lines along with other code, or rewriting them, is an edit, not a revert.
+      const undone = h => p.some(q => containsRun(q.removed, h.added) && containsRun(q.added, h.removed) && q.added.length - h.removed.length === q.removed.length - h.added.length);
+      if (live.length && live.every(undone)) flagged.set(commit, `undoes its ${live.length} hunk(s)`);
+    }
+    for (const [commit, how] of flagged) if (!allowed(commit)) found.push({ file, commit, subject: subject.get(commit) ?? '', how, deletion: !headBlob });
+  }
+  // Deleting a recently added file is often deliberate: it counts only when the same base
+  // commit is also undone in a file the branch kept.
+  const corroborated = new Set(found.filter(f => !f.deletion).map(f => f.commit));
+  return found.filter(f => corroborated.has(f.commit)).map(({ deletion: _, ...f }) => f);
+}
+
 function runCommand(root, c, verbose) {
   if (c.missing) return { exit: null, detail: c.missing };
   const r = spawnSync(c.cmd, c.args, { cwd: root, encoding: 'utf8', stdio: verbose ? 'inherit' : 'pipe', maxBuffer: 1 << 30, env: process.env });
@@ -237,7 +361,7 @@ function runCommand(root, c, verbose) {
  * Run every check. `commands` overrides the default list (tests). Returns
  * { ok, rows, warnings, failures, summary, head }.
  */
-export function laneReady({ root, remote = 'origin', base = 'origin/v2', skipTests = false, trapsH = null, verbose = false, fetch = true, commands = null, log = () => {} }) {
+export function laneReady({ root, remote = 'origin', base = 'origin/v2', skipTests = false, trapsH = null, verbose = false, fetch = true, commands = null, allowRevert = [], log = () => {} }) {
   const rows = [], warnings = [], failures = [];
   const row = (name, ok, exit = '–', note = '') => { rows.push({ name, ok, exit, note }); if (!ok) failures.push(note ? `${name}: ${note}` : name); };
   const head = git(root, ['rev-parse', 'HEAD']);
@@ -274,6 +398,15 @@ export function laneReady({ root, remote = 'origin', base = 'origin/v2', skipTes
   }
   const mergeBase = tryGit(root, ['merge-base', 'HEAD', base]);
   if (!mergeBase) row(`merge-base with ${base}`, false, '–', `cannot resolve ${base}`);
+
+  if (mergeBase) {
+    const reverts = findReverts(root, mergeBase, head, { allow: allowRevert });
+    const first = reverts[0];
+    row('no silent reverts of base commits', !reverts.length, '–', first
+      ? `${reverts.length} revert(s); first: ${first.file} ${first.how} ${first.commit.slice(0, 12)} "${first.subject}". Rebuild the branch on ${base} (git rebase), or mark a deliberate revert with --allow-revert <sha>`
+      : '');
+    for (const r of reverts.slice(1)) log(`  ${r.file} ${r.how} ${r.commit.slice(0, 12)} "${r.subject}"`);
+  }
 
   const baseFile = rel => (mergeBase ? tryGit(root, ['show', `${mergeBase}:${rel}`]) : null);
   const labels = scanLabels(root, baseFile);
@@ -321,14 +454,16 @@ export function laneReady({ root, remote = 'origin', base = 'origin/v2', skipTes
 if (process.argv[1] && realpathSync(fileURLToPath(import.meta.url)) === realpathSync(process.argv[1])) {
   const args = process.argv.slice(2);
   const opt = n => { const i = args.indexOf(n); return i < 0 ? undefined : args[i + 1]; };
-  const known = new Set(['--skip-tests', '--verbose', '--base', '--remote', '--traps-h']);
-  const unknown = args.filter((a, i) => a.startsWith('--') && !known.has(a) && !['--base', '--remote', '--traps-h'].includes(args[i - 1]));
+  const valued = ['--base', '--remote', '--traps-h', '--allow-revert'];
+  const known = new Set(['--skip-tests', '--verbose', ...valued]);
+  const unknown = args.filter((a, i) => a.startsWith('--') && !known.has(a) && !valued.includes(args[i - 1]));
+  const allowRevert = args.flatMap((a, i) => (a === '--allow-revert' && args[i + 1] ? [args[i + 1]] : []));
   if (unknown.length) { console.error(`lane:ready: unknown option(s) ${unknown.join(' ')}`); process.exit(2); }
   const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
   const trapsH = opt('--traps-h') ?? process.env.SCRIPTOSCOPE_TRAPS_H ?? null;
   const r = laneReady({
     root, remote: opt('--remote') ?? 'origin', base: opt('--base') ?? 'origin/v2', skipTests: args.includes('--skip-tests'),
-    trapsH: trapsH ? resolve(trapsH) : null, verbose: args.includes('--verbose'), log: m => console.error(m),
+    trapsH: trapsH ? resolve(trapsH) : null, verbose: args.includes('--verbose'), allowRevert, log: m => console.error(m),
   });
   console.log('\n<!-- lane:ready summary: paste into the PR body -->');
   console.log(r.summary);

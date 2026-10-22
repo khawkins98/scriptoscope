@@ -251,7 +251,17 @@ feat(api)!: rename ScriptoscopeWindow constructor option `theme` to `themeId`
   pushed head equal to the tested head, rejects leftover `PENDING` / "Awaiting
   independent review" / "PROPOSED verified" labels, and runs the clean-room linter,
   `gen-trap-table --check`, `report-coverage`, `build-ledger.mjs --check`, the
-  ledger history guard, `validate-source`, typecheck and `npm test`. One `PENDING`
+  ledger history guard, `validate-source`, typecheck and `npm test`. It also fails
+  a silent revert: a branch built on an old tree but given a new parent, so its diff
+  undoes base commits that landed in between (#440 undid #434, #435 and #438 that
+  way). For each file the branch changes, it looks at the last 50 base commits that
+  changed it. A commit counts as undone when the branch's copy of the file equals the
+  copy before that commit, or when the branch's diff reverses every hunk the commit
+  made (its new lines removed, its old lines restored, with no other rewriting). A
+  deleted file counts only when the same commit is undone in a kept file. The row
+  names the file and the base commit; rebase onto the base to fix it. A deliberate
+  revert passes when a branch commit carries git's `This reverts commit <sha>` line,
+  or with `-- --allow-revert <sha>`. One `PENDING`
   reviewer label on a hash-only expectations bump passes with a WARN, so the PM
   replaces it after the Tier 0 check. Paste its summary block, with the commit and
   each exit code, into the PR body. A PR without a passing summary goes back

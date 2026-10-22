@@ -98,6 +98,12 @@ jobs:
       - name: Library build
         run: npm run build
 
+      # The Pages demo and the public /theme-loader/ wrapper build (no deploy, no upload).
+      # Without this the Pages deploy is the first place a broken demo or loader build
+      # shows up. build:demo re-runs the library build first; that is a few seconds.
+      - name: Demo and loader build (Pages bundle, not deployed)
+        run: npm run build:demo
+
       # The maintainer-defined pre-push umbrella — typecheck + test +
       # lint:themes --strict + audit:scenes --check. All four are pure
       # Node (no browser / canvas / Puppeteer), so they're CI-safe as-is

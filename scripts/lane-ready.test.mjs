@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
-import { laneReady, defaultCommands, isHashOnlyBump } from './lane-ready.mjs';
+import { laneReady, defaultCommands, isHashOnlyBump, findReverts } from './lane-ready.mjs';
 
 const repo = join(dirname(fileURLToPath(import.meta.url)), '..');
 const node = process.execPath;
@@ -219,6 +219,113 @@ test('isHashOnlyBump ignores only sha256 values, inventoryVersion and the review
   assert.equal(isHashOnlyBump(null, base), false, 'a new file is never a hash-only bump');
 });
 
+/** Lane fixture helpers for the silent-revert check: advance origin/v2, rebuild the lane. */
+function withBase(t) {
+  const src = lines => lines.map(l => `export const ${l} = '${l} value';\n`).join('');
+  const advance = (path, body, msg) => {
+    t.g('fetch', '-q', 'origin'); t.g('checkout', '-q', '--detach', 'origin/v2');
+    t.write(path, body); t.g('add', '-A'); t.g('commit', '-qm', msg); t.g('push', '-q', 'origin', 'HEAD:refs/heads/v2');
+    const sha = t.g('rev-parse', 'HEAD');
+    t.g('checkout', '-q', 'v2-L9-test');
+    return sha;
+  };
+  /** Re-parent the lane head's tree onto origin/v2 (the #440 shape: old tree, new parent). */
+  const reparent = (msg = 'stale tree, new parent') => {
+    t.g('fetch', '-q', 'origin');
+    const c = t.g('commit-tree', t.g('rev-parse', 'HEAD^{tree}'), '-p', 'origin/v2', '-m', msg);
+    t.g('reset', '-q', '--hard', c); t.g('push', '-q', '-f', 'origin', 'HEAD:refs/heads/v2-L9-test');
+  };
+  const rebase = () => { t.g('fetch', '-q', 'origin'); t.g('rebase', '-q', 'origin/v2'); t.g('push', '-q', '-f', 'origin', 'HEAD:refs/heads/v2-L9-test'); };
+  return { src, advance, reparent, rebase };
+}
+
+test('a branch whose diff undoes a base commit fails and names the file and the commit', () => {
+  const t = lane();
+  try {
+    const { src, advance, reparent } = withBase(t);
+    t.write('src/x.mjs', src(['alpha', 'bravo', 'charlie', 'delta'])); t.commitPush('add x');
+    t.g('push', '-q', 'origin', 'HEAD:refs/heads/v2');
+    // Lane work on its own file; meanwhile the base adds lines to src/x.mjs and a new file.
+    t.write('src/lane.mjs', src(['lane'])); t.commitPush('lane work');
+    const added = advance('src/x.mjs', src(['alpha', 'bravo', 'baseOnlyFeature', 'charlie', 'delta']), 'feat: base adds a line (#900)');
+    t.write('src/new.mjs', src(['brandNew']));
+    const newFile = advance('docs/a.md', 'doc\nthe base documents its new file here\n', 'feat: base adds a file (#901)');
+    reparent();
+    let r = t.run();
+    assert.equal(r.ok, false, r.summary);
+    const row = rowOf(r, 'no silent reverts');
+    assert.equal(row.ok, false);
+    assert.match(row.note, /^3 revert\(s\); first: /);
+    const found = findReverts(t.root, t.g('merge-base', 'HEAD', 'origin/v2'));
+    assert.deepEqual(found.map(f => [f.file, f.commit]).sort(), [['docs/a.md', newFile], ['src/new.mjs', newFile], ['src/x.mjs', added]]);
+    assert.ok(found.every(f => /\(#90[01]\)/.test(f.subject)));
+    // Hunk form: the stale file also carries the lane's own edit, so its blob matches nothing.
+    t.write('src/x.mjs', src(['alpha', 'bravoEdited', 'charlie', 'delta'])); t.commitPush('edit a stale copy');
+    r = t.run();
+    assert.equal(rowOf(r, 'no silent reverts').ok, false);
+    const hunk = findReverts(t.root, t.g('merge-base', 'HEAD', 'origin/v2')).find(f => f.file === 'src/x.mjs');
+    assert.equal(hunk?.commit, added);
+    assert.equal(hunk.how, 'undoes its 1 hunk(s)');
+    // A deliberate revert passes when named.
+    assert.equal(rowOf(t.run({ allowRevert: [added.slice(0, 10), newFile] }), 'no silent reverts').ok, true);
+  } finally { t.done(); }
+});
+
+test('a normal branch rebased on the base passes the revert check', () => {
+  const t = lane();
+  try {
+    const { src, advance, rebase } = withBase(t);
+    t.write('src/x.mjs', src(['alpha', 'bravo', 'charlie'])); t.commitPush('add x'); t.g('push', '-q', 'origin', 'HEAD:refs/heads/v2');
+    t.write('src/lane.mjs', src(['lane'])); t.write('src/x.mjs', src(['alpha', 'bravo', 'charlie', 'laneAddition'])); t.commitPush('lane work');
+    advance('src/x.mjs', src(['alpha', 'baseOnlyFeature', 'bravo', 'charlie']), 'feat: base adds a line');
+    advance('docs/a.md', 'doc\nmore base docs\n', 'docs: base');
+    const before = t.run();
+    assert.equal(rowOf(before, 'no silent reverts').ok, true, 'an unrebased branch does not undo commits after its merge-base');
+    rebase();
+    const r = t.run();
+    assert.equal(r.ok, true, r.summary);
+    assert.equal(rowOf(r, 'no silent reverts').ok, true);
+  } finally { t.done(); }
+});
+
+test('editing a file the base also changed, without restoring its old lines, passes', () => {
+  const t = lane();
+  try {
+    const { src, advance, rebase } = withBase(t);
+    t.write('src/x.mjs', src(['alpha', 'bravo', 'charlie', 'delta'])); t.commitPush('add x'); t.g('push', '-q', 'origin', 'HEAD:refs/heads/v2');
+    advance('src/x.mjs', src(['alpha', 'bravoRenamed', 'charlie', 'baseOnlyFeature', 'delta']), 'refactor: base renames and adds');
+    rebase();
+    // Rewrites a line the base replaced (new text, not the pre-change text) and edits others.
+    t.write('src/x.mjs', src(['alphaLane', 'bravoRenamedAgain', 'charlie', 'baseOnlyFeature', 'delta', 'echo'])); t.commitPush('lane edits x');
+    const r = t.run();
+    assert.equal(r.ok, true, r.summary);
+    // But putting the base's pre-change line back is a revert, even mixed with other edits.
+    t.write('src/x.mjs', src(['alphaLane', 'bravo', 'charlie', 'baseOnlyFeature', 'delta', 'echo'])); t.commitPush('restore bravo');
+    assert.equal(rowOf(t.run(), 'no silent reverts').ok, true, 'only part of the base hunk is undone');
+    t.write('src/x.mjs', src(['alphaLane', 'bravo', 'charlie', 'delta', 'echo'])); t.commitPush('undo both');
+    assert.equal(rowOf(t.run(), 'no silent reverts').ok, false, 'every base hunk undone');
+  } finally { t.done(); }
+});
+
+test('a branch commit saying "This reverts commit <sha>" makes that revert deliberate', () => {
+  const t = lane();
+  try {
+    const { src, advance, rebase } = withBase(t);
+    t.write('src/y.mjs', src(['oops', 'mistake']));
+    const c = advance('docs/a.md', 'doc\nwiring for the mistaken module\n', 'feat: a mistake');
+    rebase();
+    t.g('revert', '--no-edit', c); t.g('push', '-q', 'origin', 'HEAD:refs/heads/v2-L9-test');
+    assert.equal(rowOf(t.run(), 'no silent reverts').ok, true, t.run().summary);
+    t.g('commit', '-q', '--amend', '-m', 'drop y');
+    t.g('push', '-q', '-f', 'origin', 'HEAD:refs/heads/v2-L9-test');
+    assert.equal(rowOf(t.run(), 'no silent reverts').ok, false, 'an unmarked revert fails');
+    // A deleted file alone is not evidence (removing a recent file is often deliberate).
+    t.write('docs/a.md', 'doc\nwiring for the mistaken module\n'); t.g('commit', '-q', '--amend', '-am', 'drop y only');
+    t.g('push', '-q', '-f', 'origin', 'HEAD:refs/heads/v2-L9-test');
+    assert.equal(rowOf(t.run(), 'no silent reverts').ok, true, 'an uncorroborated deletion passes');
+  } finally { t.done(); }
+});
+
 test('a failing check fails the run and records its own exit code; a check that dirties the tree fails', () => {
   const t = lane();
   try {
@@ -283,4 +390,11 @@ test('the v2 docs workflow runs on every v2 PR (no paths filter) with the no-bro
   assert.match(wf, /permissions:\n\s+contents: read/, 'read-only token: CI never commits the regenerated ledger');
   assert.doesNotMatch(wf, /git push|contents: write/);
   assert.doesNotMatch(wf, /secrets\./, 'no Traps.h secret (maintainer decision): CI checks the trap table structure only');
+});
+
+test('CI builds the Pages demo and loader after the library build, without deploying', () => {
+  const wf = readFileSync(join(repo, '.github/workflows/ci.yml'), 'utf8');
+  const lib = wf.indexOf('run: npm run build\n'), demo = wf.indexOf('run: npm run build:demo');
+  assert.ok(lib > 0 && demo > lib, 'build:demo runs after the library build');
+  assert.doesNotMatch(wf, /deploy-pages|upload-pages-artifact/);
 });
