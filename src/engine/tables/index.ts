@@ -14,6 +14,7 @@
 //   scrollbar.ts     scrollbar.md §2–§5 (state, track/pattern ladders, arrows, thumb, fill, hit test)
 //   proceduralFrame.ts procedural-frame.md §2–§9 (built-in window frame, no wnd#)
 //   slider.ts        slider.md §2–§5 (gate, record, track ladder, slicing, thumb, ticks, hit test, tracking)
+//   progress.ts      progress.md §1–§5 (CDEF 5: gate, frame, inset, split, slicing, indeterminate, procedural bar, idle, data)
 //   loaderNeeds.ts   per-family loader inputs (icon-blit cicns), read by src/loadTheme.ts
 export * from './windowBlit.js';
 export * from './cinfFrame.js';
@@ -21,4 +22,5 @@ export * from './controlState.js';
 export * from './scrollbar.js';
 export * from './proceduralFrame.js';
 export * from './slider.js';
+export * from './progress.js';
 export * from './loaderNeeds.js';

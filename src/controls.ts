@@ -1,7 +1,7 @@
 import { CinfEnvironmentError, snapshotBodyCinfFace, snapshotSliderLayoutCinf, type CinfLookupView } from '../tools/theme-loader/cinf-environment.js';
 import { prepareBitmapGlyphRun, type PreparedBitmapFont, type BitmapGlyphRun } from './preparedBitmapFont.js';
 import { paintBitmapText } from './paintBitmapText.js';
-import { ownerDisplayPolicyMatches } from '../tools/theme-loader/display-profile.js';
+import { ownerDisplayPolicyMatches, realizeRgb16 } from '../tools/theme-loader/display-profile.js';
 import { snapshotControlComposition, bodyPatternPhase, controlPointVisible, type ControlCompositionContext, type ControlCompositionSnapshot, type ButtonComposition } from './controlComposition.js';
 import type { SliderComposition } from './sliderLayout.js';
 import type { LoadedTheme, ChromeElement } from './types.js';
@@ -22,6 +22,9 @@ import { SCROLLBAR_FACADE_RANGE, SCROLLBAR_FACADE_THICKNESS } from './engine/tab
 import { drawScrollbar, scrollbarPartAt, scrollbarResourceIds, type ScrollbarInput } from './engine/families/scrollbar.js';
 import { SLIDER_FACADE_BACKGROUND, SLIDER_FACADE_RANGE, SLIDER_FACADE_THICKNESS, SLIDER_THUMB, SLIDER_VARIATION } from './engine/tables/slider.js';
 import { drawSlider, sliderInit, sliderPartAt, sliderResourceIds, type SliderInput } from './engine/families/slider.js';
+import { PROGRESS_DATA, PROGRESS_FACADE_LENGTH, PROGRESS_FACADE_RANGE, PROGRESS_FACADE_VALUE, PROGRESS_IDLE, PROGRESS_RECT, PROGRESS_STATE,
+  PROGRESS_VALUE_DOMAIN } from './engine/tables/progress.js';
+import { drawProgress, newProgressRecord, progressResourceIds, progressSetData, type ProgressInput } from './engine/families/progress.js';
 import { themeResourceChain } from './engine/resources/theme.js';
 import { withControlDiagnostics, type ControlDiagnostics, type ControlTraceCollector, type ControlResolutionStep, type LegacyFacePaint } from './controlDiagnostics.js';
 
@@ -31,13 +34,6 @@ function sliceInset(w: number, h: number): number {
   return Math.max(2, Math.floor((Math.min(w, h) - 3) / 2));
 }
 
-/**
- * Measure a border-ring cicn's border thickness: scan in from the middle
- * row/column until alpha drops out (the transparent interior begins). Used
- * to inset a progress track inside its frame and to size the frame's
- * 9-slice corners. Falls back to a small inset if the cicn has no
- * transparent interior.
- */
 /** Bounding box of the buffer's non-transparent pixels (alpha > 0). */
 function opaqueBounds(buf: PixelBuffer): { x0: number; y0: number; x1: number; y1: number } {
   let x0 = buf.width, y0 = buf.height, x1 = -1, y1 = -1;
@@ -50,17 +46,6 @@ function opaqueBounds(buf: PixelBuffer): { x0: number; y0: number; x1: number; y
         if (y > y1) y1 = y;
       }
   return { x0, y0, x1, y1 };
-}
-
-function frameBorder(buf: PixelBuffer): number {
-  const my = buf.height >> 1;
-  let l = 0;
-  while (l < buf.width && buf.getPixel(l, my)[3] >= 40) l++;
-  const mx = buf.width >> 1;
-  let t = 0;
-  while (t < buf.height && buf.getPixel(mx, t)[3] >= 40) t++;
-  if (l >= buf.width >> 1 || t >= buf.height >> 1) return Math.max(1, Math.min(2, (Math.min(buf.width, buf.height) - 1) >> 1));
-  return Math.max(1, Math.min(l, t));
 }
 
 /**
@@ -661,7 +646,7 @@ async function composeTabWithTrace(theme: LoadedTheme, opts: TabOptions, trace?:
   const glyphs = label ? rasterizeText(label, Math.max(8, Math.round(bh * 0.42)), fg) : null;
   // Prefer cinf-declared slice.corner for the end-cap thickness; fall back to the
   // historical clamp when no cinf was shipped. Same shape as composeFaceButton /
-  // composeProgress — read the artist's authored answer rather than the heuristic.
+  // the cinf-driven controls — read the artist's authored answer rather than the heuristic.
   const tabEl = face.element;
   const cap = tabEl?.slice?.corner ?? Math.max(2, Math.min(12, Math.floor((bw - 1) / 2)));
   const labelWidth = (glyphs ? glyphs.width : 0) + cap * 2 + 6;
@@ -717,130 +702,80 @@ export async function composeGrowBox(
 }
 
 export interface ProgressOptions {
+  /** Bar width in px (facade policy: at least 16, default 160). The bar is always 14 px tall (progress RECT1). */
   length?: number;
+  /**
+   * Normalized fill, 0..1 (compatibility facade, DECISIONS #10): clamped, then
+   * mapped to native `min = 0`, `max = 10000`, `value = trunc(v × 10000)`.
+   * Default 0.5. Passing both `value` and `range` throws a `TypeError` (DECISIONS #10).
+   */
   value?: number;
+  /**
+   * Native control values (DECISIONS #10): 16-bit signed integers, unclamped, as
+   * CDEF 5 reads them (progress §5.3, DET2, DET3). A value outside `[min, max]`
+   * moves the split past the track, and the trace records the overflow.
+   */
+  range?: { value: number; min: number; max: number };
+  /** `'pressed'` draws as `'normal'` (no pressed art); `'disabled'` draws as `'inactive'` (hilite 255 / 254). */
   state?: ControlState;
+  /** Indeterminate mode (DECISIONS #11; the `'inde'` flag, progress §4.7). */
+  indeterminate?: boolean;
+  /** The stored phase byte at draw time, integer 0..255 (DECISIONS #11). Default 0. */
+  phase?: number;
+}
+
+/** A composed progress bar plus the phase byte after the draw (frame mode resets it, IND2/IND3). */
+export interface ProgressFrame {
+  buffer: PixelBuffer;
+  phase: number;
+  /** `kaleidoscope` (the scheme's art, GATE4) or `procedural` (CDEF 5's own bar, §4.9). */
+  path: 'kaleidoscope' | 'procedural';
+  trace?: EngineTrace;
 }
 
 /**
- * Compose a determinate progress bar (docs/spec/kdef231-reference.md §2.6): stretch
- * the unfilled track across the bar, overlay the fill cicn across the
- * 0..value portion (inset to the interior), cap with the frame ends.
+ * Compose a progress bar on the v2 engine: the Kaleidoscope 2.3.1 progress bar
+ * CDEF 5 (docs/spec/engine/progress.md; driver src/engine/families/progress.ts)
+ * drawing into a transparent 14-row port whose control rect is the whole buffer.
+ * CDEF 5 always draws: the scheme's art when it ships `cinf`/`cicn −10080`, else
+ * its own procedural bar. Pixels no step covers stay transparent (ERASE3).
  */
-export async function composeProgress(
-  theme: LoadedTheme,
-  opts: ProgressOptions = {},
-): Promise<PixelBuffer | null> {
-  const length = Math.max(16, opts.length ?? 160);
-  const value = Math.min(1, Math.max(0, opts.value ?? 0.5));
-  const active = (opts.state ?? 'normal') !== 'inactive';
+export async function composeProgress(theme: LoadedTheme, opts: ProgressOptions = {}): Promise<PixelBuffer> {
+  return (await composeProgressFrame(theme, opts)).buffer;
+}
 
-  // PROGRESS-BAR RESOURCE MODEL — TWO FAMILIES (enumerate the FULL id set before
-  // assuming roles from slug names; that was the recurring trap here):
-  //  • LAVENDER 2-PART (apple-platinum-2 / system7-nostalgia-silver / black-platinum /
-  //    platinum-8 / beos-r503): a dedicated FILL `-10223` ("lavender", the canonical
-  //    DEFAULT — owner-chosen) + an empty TRACK `-10224`. These schemes ALSO ship
-  //    `-10071..-10080` + `-10220..-10222` — but those are ALTERNATE HUE fills
-  //    (teal/rose/…/copper/aquamarine; picker deferred), NOT frame/track/fill roles,
-  //    and they carry NO progress frame. (I repeatedly mis-modelled these by reading
-  //    only the -1007x hue slugs and missing that -10223/-10224 also ship here.)
-  //  • ROLE 3-PART (1138 / 1984 / 1990 / evolution; replica = 2-part): the
-  //    deconstructed layers — frame `-10080`/`-10077`, fill `-10079`/`-10076`, track
-  //    `-10078`/`-10075` (active/inactive). Used only by schemes WITHOUT `-10223`.
-  // See kdef231-reference §2.4 + the per-theme resource-role manifest.
-  const lavender = await loadById(theme, 10223);
-  if (lavender) {
-    const trk = await loadById(theme, 10224);
-    const ph = (trk ?? lavender).height;
-    const out = PixelBuffer.alloc(length, ph);
-    // 3-slice a tile into `dst` across its full width: rounded end caps 1:1, middle
-    // stretched. `dst` width sets the run (so the fill goes in its own buffer, below).
-    const slice3 = (dst: PixelBuffer, src: PixelBuffer): void => {
-      const w = dst.width;
-      if (w <= 0) return;
-      if (w <= src.width) { dst.copyBits(src, { x: 0, y: 0, w: src.width, h: src.height }, { x: 0, y: 0, w, h: ph }); return; }
-      const cap = Math.min(4, Math.max(1, (src.width - 2) >> 1));
-      dst.copyBits(src, { x: 0, y: 0, w: cap, h: src.height }, { x: 0, y: 0, w: cap, h: ph });
-      dst.copyBits(src, { x: src.width - cap, y: 0, w: cap, h: src.height }, { x: w - cap, y: 0, w: cap, h: ph });
-      dst.copyBits(src, { x: cap, y: 0, w: src.width - cap * 2, h: src.height }, { x: cap, y: 0, w: w - cap * 2, h: ph });
-    };
-    // Empty track across the full bar, then the FILL tile 3-sliced to value over it.
-    // The fill keeps its OWN tile (bevel + highlight + leading edge) — 3-slicing (caps
-    // 1:1, middle stretched) preserves that, where stretching only the interior colour
-    // came out flat/awkward. drawOver (alpha-respecting) composites the fill so its
-    // rounded corners don't erase the track at the leading edge (a 1px seam otherwise).
-    if (trk) slice3(out, trk);
-    if (value > 0) {
-      const fb = PixelBuffer.alloc(Math.max(1, Math.round(value * length)), ph);
-      slice3(fb, lavender);
-      out.drawOver(fb, 0, 0);
-    }
-    return out;
+const int16 = (name: string, v: number): number => {
+  const D = PROGRESS_VALUE_DOMAIN;
+  if (!Number.isInteger(v) || v < D.min || v > D.max) throw new RangeError(`composeProgress: range.${name} must be a 16-bit signed integer`);
+  return v;
+};
+
+/** Compose one progress frame (DECISIONS #11): draws once and reports the phase after the draw. */
+export async function composeProgressFrame(theme: LoadedTheme, opts: ProgressOptions & { trace?: boolean } = {}): Promise<ProgressFrame> {
+  const length = Math.max(PROGRESS_FACADE_LENGTH.min, Math.trunc(opts.length ?? PROGRESS_FACADE_LENGTH.default));
+  const phase = opts.phase ?? 0;
+  if (!Number.isInteger(phase) || phase < 0 || phase >= PROGRESS_IDLE.phaseModulo) throw new RangeError('composeProgress: phase must be an integer 0..255');
+  let native: { value: number; min: number; max: number };
+  if (opts.range && opts.value !== undefined) throw new TypeError('composeProgress: pass either value or range, not both (DECISIONS #10)');
+  if (opts.range) native = { value: int16('value', opts.range.value), min: int16('min', opts.range.min), max: int16('max', opts.range.max) };
+  else {
+    const F = PROGRESS_FACADE_RANGE, v = Math.min(1, Math.max(0, opts.value ?? PROGRESS_FACADE_VALUE.default));
+    native = { value: F.min + Math.trunc(v * (F.max - F.min)), min: F.min, max: F.max };
   }
-
-  // ROLE 3-part (schemes WITHOUT -10223): the id is the stable selector (slugs differ:
-  // "progress-bar-frame-active" vs "progress-indicator-frame"). Inactive uses -1007{7,6,5}.
-  const frame = await loadById(theme, active ? 10080 : 10077);
-  const track = (await loadById(theme, active ? 10078 : 10075)) ?? (await loadById(theme, 10078));
-  const fill = (await loadById(theme, active ? 10079 : 10076)) ?? (await loadById(theme, 10079));
-  if (!frame && !track) return null;
-
-  const h = frame ? frame.height : track!.height;
-  const out = PixelBuffer.alloc(length, h);
-
-  // The frame is a border ring with a transparent interior; its border thickness
-  // (the inset where alpha drops out) sets where the track/fill live. Prefer the
-  // cinf-decoded `slice.corner` when present (the artist's authored answer); fall
-  // back to the pixel-scan only when no cinf was shipped. Same shape as the just-
-  // landed `composeFaceButton` / `composeButton` ring fix — the cinf is the
-  // source of truth, the pixel scan is a heuristic that drifts from artist intent.
-  const frameEl = elementById(theme, active ? 10080 : 10077);
-  const border = frameEl?.slice?.corner ?? (frame ? frameBorder(frame) : 1);
-  const borderV = frameEl?.slice?.side ?? border;
-  // Track + fill placement use the SAME pair of insets the frame's 9-slice does
-  // — horizontal corner width for x, vertical side thickness for y. Mixing
-  // border for y (the prior code) misaligned the interior against the frame
-  // when corner ≠ side, leaving the track/fill drawn outside the visible
-  // frame bands. Latent today (all corpus -10080 ship symmetric), exposed the
-  // moment a future scheme imports an asymmetric authoring.
-  const ix = border;
-  const iw = Math.max(0, length - border * 2);
-  const iy = borderV;
-  const ih = Math.max(0, h - borderV * 2);
-
-  // 1) unfilled track stretched across the interior (the empty look for
-  //    schemes whose frame has a transparent interior, e.g. 1990).
-  if (track && iw > 0 && ih > 0) {
-    out.copyBits(track, { x: 0, y: 0, w: track.width, h: track.height }, { x: ix, y: iy, w: iw, h: ih });
-  }
-
-  // 2) frame border: 9-slice so corners stay crisp. Some schemes' frames
-  //    have a transparent interior (track shows through), others an opaque
-  //    one (1984 is solid white) — either way the fill goes on TOP next.
-  if (frame) {
-    // Honour the cinf-declared slice.tile (same as composeFaceButton / composeButton ring).
-    const frameMode = frameEl?.slice?.tile ? 'tile' : 'stretch';
-    out.nineSlice(frame, { x: 0, y: 0, w: frame.width, h: frame.height }, { l: border, t: borderV, r: border, b: borderV }, { x: 0, y: 0, w: length, h }, frameMode);
-  }
-
-  // 3) fill across 0..value of the interior, ON TOP of the frame — 3-slice
-  //    along the bar: keep the section's rounded end caps 1:1, stretch the
-  //    middle (NOT tiled — tiling repeats the section into visible chevrons).
-  if (fill && value > 0 && iw > 0 && ih > 0) {
-    const fw = Math.round(value * iw);
-    if (fw > 0 && fw <= fill.width) {
-      out.copyBits(fill, { x: 0, y: 0, w: fill.width, h: fill.height }, { x: ix, y: iy, w: fw, h: ih });
-    } else if (fw > 0) {
-      // cap = the rounded-corner width (~a few px); keep it small so a
-      // non-empty middle remains even for narrow (12px) fill sections.
-      const cap = Math.min(4, Math.max(1, (fill.width - 2) >> 1));
-      const fmid = fill.width - cap * 2;
-      out.copyBits(fill, { x: 0, y: 0, w: cap, h: fill.height }, { x: ix, y: iy, w: cap, h: ih });
-      out.copyBits(fill, { x: fill.width - cap, y: 0, w: cap, h: fill.height }, { x: ix + fw - cap, y: iy, w: cap, h: ih });
-      out.copyBits(fill, { x: cap, y: 0, w: fmid, h: fill.height }, { x: ix + cap, y: iy, w: fw - cap * 2, h: ih });
-    }
-  }
-  return out;
+  const state = opts.state ?? 'normal';
+  const row = PROGRESS_STATE.find(r => r.state === state);
+  if (!row) throw new TypeError(`composeProgress: unknown state ${String(state)}`);
+  const input: ProgressInput = { rect: rect(0, 0, PROGRESS_RECT.RECT1.height, length), hilite: row.hilite, ...native };
+  const chain = await themeResourceChain(theme, progressResourceIds());
+  const trace = opts.trace ? createTrace('progress', { ...input, indeterminate: !!opts.indeterminate, phase }) : undefined;
+  const record = newProgressRecord(trace);
+  progressSetData(record, PROGRESS_DATA.tag, [opts.indeterminate ? 1 : 0]);
+  record.phase = phase;
+  const out = PixelBuffer.alloc(length, PROGRESS_RECT.RECT1.height);
+  const profile = theme.manifest.displayProfile;
+  const realize = (rgb: readonly number[]) => { const [r, g, b] = realizeRgb16(rgb, profile); return { r: r!, g: g!, b: b!, a: 255 }; };
+  const res = drawProgress(out, chain, record, input, { realize }, trace);
+  return { buffer: out, phase: res.phase, path: res.path ?? 'procedural', ...(trace ? { trace } : {}) };
 }
 
 export interface ButtonOptions {

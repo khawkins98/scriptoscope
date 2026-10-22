@@ -30,6 +30,8 @@ export async function runtime() {
     E: await import('../../src/engine/index.ts'),
     tables: await import('../../src/engine/tables/scrollbar.ts'),
     sliderTables: await import('../../src/engine/tables/slider.ts'),
+    progressTables: await import('../../src/engine/tables/progress.ts'),
+    realizeRgb16: (await import('../../tools/theme-loader/display-profile.js')).realizeRgb16,
     PixelBuffer: (await import('../../src/pixelBuffer.ts')).PixelBuffer,
     composeWindowChrome: (await import('../../src/composeChrome.ts')).composeWindowChrome,
   };
@@ -239,20 +241,32 @@ const SLIDER_VARIANTS = [['nonDirectional', 8, 0], ['pointsDownOrRight', 2, 5], 
 const SLIDER_LENGTHS = [32, 120];
 const SLIDER_VALUES = [0, 0.25, 1];
 
+// The slider and progress adapters share their cicn and cinf entries (src/engine/resources/theme.ts):
+// cicn pixels with depth, bounds origin and the sampler companion; raw engine cinf bytes.
+function lineSampledCicnEntry(elements, id, asset) {
+  const el = elements.find(e => e.sourceCicnId === id && e.asset);
+  if (!el) return null;
+  const status = el.samplingEquivalence?.status ?? null;
+  return [`cicn:${id}`, { pixmap: asset(el.asset), pixelSize: el.iconBlit?.pixelSize ?? null, unmasked: null,
+    origin: el.boundsOrigin ?? null, sampling: status,
+    sampled: status === 'different' && el.sampledBandAsset ? asset(el.sampledBandAsset.asset) : null }];
+}
+function cinfEntry(decoded, id) {
+  const bytes = decoded.manifest.engineCinfs?.[String(id)];
+  return bytes ? [`cinf:${id}`, { bytes }] : null;
+}
+
 function sliderChain(E, slug, decoded, horizontal, mutate) {
   const asset = path => { const a = decoded.assets.find(x => x.path === path || x.path.endsWith(`/${path}`)); return a && { width: a.width, height: a.height, data: new Uint8ClampedArray(a.rgba) }; };
   const elements = Object.values(decoded.manifest.chromeElements ?? {});
   const entries = [];
   for (const { type, id } of E.sliderResourceIds(horizontal)) {
     if (type === 'cicn') {
-      const el = elements.find(e => e.sourceCicnId === id && e.asset);
-      const status = el?.samplingEquivalence?.status ?? null;
-      if (el) entries.push([`cicn:${id}`, { pixmap: asset(el.asset), pixelSize: el.iconBlit?.pixelSize ?? null, unmasked: null,
-        origin: el.boundsOrigin ?? null, sampling: status,
-        sampled: status === 'different' && el.sampledBandAsset ? asset(el.sampledBandAsset.asset) : null }]);
+      const entry = lineSampledCicnEntry(elements, id, asset);
+      if (entry) entries.push(entry);
     } else if (type === 'cinf') {
-      const bytes = decoded.manifest.engineCinfs?.[String(id)];
-      if (bytes) entries.push([`cinf:${id}`, { bytes }]);
+      const entry = cinfEntry(decoded, id);
+      if (entry) entries.push(entry);
     }
   }
   return new E.ResourceChain([E.mapProvider(slug, 'archive', mutate(entries, { family: 'slider', horizontal }))]);
@@ -291,6 +305,64 @@ async function* sliderCells({ slug, decoded, mutate = x => x }) {
   }
 }
 
+// ── progress bar (CDEF 5 driver on the v2 engine) ────────────────────────────
+// Every archive, the three public states that draw differently (pressed draws as
+// normal), lengths 40, 100 (the spec examples) and 160, determinate values 0, 0.25 and 1 through the
+// facade's 0..10000 mapping, two unclamped native cells (DET3 below min and past
+// max), and indeterminate phases 0, 2, 4 and 9. The chain mirrors
+// src/engine/resources/theme.ts over the loader's raw assets (cicn pixels and
+// sampler companions, manifest.engineCinfs bytes, ppat pixels).
+const PROGRESS_STATES = ['normal', 'inactive', 'disabled'];
+const PROGRESS_LENGTHS = [40, 100, 160];
+const PROGRESS_VALUES = [0, 0.25, 1];
+const PROGRESS_NATIVE = [[-10, 0, 100], [150, 0, 100]];
+const PROGRESS_PHASES = [0, 2, 4, 9];
+
+function progressChain(E, slug, decoded, mutate) {
+  const asset = path => { const a = decoded.assets.find(x => x.path === path || x.path.endsWith(`/${path}`)); return a && { width: a.width, height: a.height, data: new Uint8ClampedArray(a.rgba) }; };
+  const elements = Object.values(decoded.manifest.chromeElements ?? {}), patterns = Object.values(decoded.manifest.patterns ?? {});
+  const entries = [];
+  for (const { type, id } of E.progressResourceIds()) {
+    if (type === 'cicn') {
+      const entry = lineSampledCicnEntry(elements, id, asset);
+      if (entry) entries.push(entry);
+    } else if (type === 'cinf') {
+      const entry = cinfEntry(decoded, id);
+      if (entry) entries.push(entry);
+    } else if (type === 'ppat') {
+      const p = patterns.find(e => e.sourcePpatId === id && e.asset);
+      if (p) entries.push([`ppat:${id}`, asset(p.asset)]);
+    }
+  }
+  return new E.ResourceChain([E.mapProvider(slug, 'archive', mutate(entries, { family: 'progress' }))]);
+}
+
+async function* progressCells({ slug, decoded, mutate = x => x }) {
+  const { E, progressTables: T, realizeRgb16 } = await runtime();
+  const chain = progressChain(E, slug, decoded, mutate);
+  const realize = rgb => { const [r, g, b] = realizeRgb16(rgb, decoded.manifest.displayProfile); return { r, g, b, a: 255 }; };
+  const F = T.PROGRESS_FACADE_RANGE;
+  const variants = [
+    ...PROGRESS_VALUES.map(v => [`v${v}`, { value: F.min + Math.trunc(v * (F.max - F.min)), min: F.min, max: F.max }, 0, 0]),
+    ...PROGRESS_NATIVE.map(([value, min, max]) => [`native${value}`, { value, min, max }, 0, 0]),
+    ...PROGRESS_PHASES.map(phase => [`indeterminate/p${phase}`, { value: F.min, min: F.min, max: F.max }, 1, phase]),
+  ];
+  for (const state of PROGRESS_STATES) for (const length of PROGRESS_LENGTHS) for (const [name, native, inde, phase] of variants) {
+    const hilite = T.PROGRESS_STATE.find(r => r.state === state).hilite;
+    const input = { rect: E.rect(0, 0, T.PROGRESS_RECT.RECT1.height, length), hilite, ...native };
+    const trace = E.createTrace('progress', { ...input, indeterminate: inde, phase });
+    const key = `${state}/${length}/${name}`;
+    const port = { width: length, height: input.rect.bottom, data: new Uint8ClampedArray(length * input.rect.bottom * 4) };
+    try {
+      const record = E.newProgressRecord(trace);
+      record.indeterminate = inde; record.phase = phase;
+      const res = E.drawProgress(port, chain, record, input, { realize }, trace);
+      trace.phaseAfter = res.phase;
+    } catch (e) { yield { key, trace: { family: 'progress', inputs: trace.inputs, error: String(e.message) } }; continue; }
+    yield { key, trace: { ...trace, pixels: sha(port.data) } };
+  }
+}
+
 /** @internal probe hook: the proceduralFrame chain over one decoded archive. */
 export const __frameChain = (E, slug, decoded) => frameChain(E, slug, decoded, x => x);
 
@@ -299,4 +371,5 @@ export const FAMILIES = {
   scrollbar: { rules: ['docs/spec/engine/scrollbar.md', 'docs/spec/engine/qd-primitives.md'], cells: scrollbarCells },
   proceduralFrame: { rules: ['docs/spec/engine/procedural-frame.md', 'docs/spec/engine/qd-primitives.md'], cells: proceduralFrameCells },
   slider: { rules: ['docs/spec/engine/slider.md', 'docs/spec/engine/qd-primitives.md'], cells: sliderCells },
+  progress: { rules: ['docs/spec/engine/progress.md'], cells: progressCells },
 };

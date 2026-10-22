@@ -24,10 +24,10 @@ import type { IconSource } from '../qd/region.js';
 import { emptyRect, insetRect, offsetRect, rect } from '../qd/rect.js';
 import { transferBits } from '../qd/transfer.js';
 import { tileBlit } from '../qd/tile.js';
-import { getPixel } from '../qd/pixel.js';
-import { newPen, moveTo, lineTo } from '../qd/pen.js';
 import { axis, alongLength, pixmapBounds, type Axis } from '../qd/axis.js';
 import { expandIdGrid } from '../resources/ids.js';
+import { lineColourSource } from '../resources/iconSource.js';
+import { sourceLines } from '../qd/lines.js';
 import {
   SLIDER_BAND, SLIDER_BASE, SLIDER_BLIT, SLIDER_CORNER, SLIDER_DECLARED_DEFAULTS, SLIDER_DRAW_GUARD, SLIDER_DRAW_ORDER,
   SLIDER_FEATURES, SLIDER_GATE, SLIDER_GROUP, SLIDER_GROUP_STRIDE, SLIDER_HILITE, SLIDER_HIT_TEST, SLIDER_IDS,
@@ -408,11 +408,8 @@ function drawTrack(chain: ResourceChain, st: SliderState, ax: Axis, off: Pixmap,
  * colours; with neither, the decoded colour is drawn and the shortcut traced.
  */
 function lineColours(icon: IconSource): { pm: Pixmap; row: string; unspecified?: string } {
-  const B = SLIDER_BLIT;
-  if (icon.sampling === 'equivalent') return { pm: icon.pixmap, row: `${B.BL8.id},${B.BL12.id}` };
-  if (icon.sampled) return { pm: icon.sampled, row: B.BL8.id };
-  return { pm: icon.pixmap, row: `${B.BL8.id},${B.BL12.id}`,
-    unspecified: `decoded colour used for BL8 without an equivalence record (sampling ${icon.sampling ?? 'unknown'})` };
+  const B = SLIDER_BLIT, c = lineColourSource(icon, B.BL8.id);
+  return { pm: c.pm, row: c.shortcut ? `${B.BL8.id},${B.BL12.id}` : B.BL8.id, ...(c.unspecified ? { unspecified: c.unspecified } : {}) };
 }
 
 /** BL11: trace a cicn whose bounds origin is not (0, 0); it is drawn at origin 0. */
@@ -433,16 +430,7 @@ function tiler(icon: IconSource, s: QdRect, d: QdRect, startAnchored: boolean, o
     const colours = lineColours(icon);
     trace?.drawOps.push({ op: 'tileLines', row: `${row},${columnSource ? SLIDER_BLIT.BL4.id : SLIDER_BLIT.BL5.id},${colours.row}`, src: s, dst: d,
       ...(colours.unspecified ? { unspecified: colours.unspecified } : {}) });
-    const n = columnSource ? sh : sw;
-    for (let j = 0; j < n; j++) {
-      if (columnSource ? L.top + j >= L.bottom : L.left + j >= L.right) break; // while inside the destination
-      const sx = columnSource ? s.left : s.left + j, sy = columnSource ? s.top + j : s.top;
-      const mask = getPixel(pm, sx, sy);
-      if (!mask || mask.a === 0) continue; // mask bit clear: left alone
-      const pen = newPen(getPixel(colours.pm, sx, sy) ?? mask);
-      if (columnSource) { moveTo(pen, L.left, L.top + j); lineTo(off, pen, L.right - 1, L.top + j); }
-      else { moveTo(pen, L.left + j, L.top); lineTo(off, pen, L.left + j, L.bottom - 1); }
-    }
+    sourceLines(off, pm, colours.pm, s, L, columnSource);
     return;
   }
   trace?.drawOps.push({ op: 'tile', row: `${row},${SLIDER_BLIT.BL6.id},${SLIDER_BLIT.BL7.id}`, src: s, dst: d, anchor: startAnchored ? 'start' : 'end',

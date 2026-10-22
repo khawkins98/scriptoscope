@@ -4,6 +4,7 @@ export * from './rect.js';
 export * from './pixel.js';
 export * from './transfer.js';
 export * from './tile.js';
+export * from './lines.js';
 export * from './scale.js';
 export * from './pattern.js';
 export * from './pen.js';

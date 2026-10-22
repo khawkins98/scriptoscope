@@ -91,8 +91,10 @@ import {
   composeCheckable, composeDisclosure, composeSliderWithLayout, composeScrollbar, composeScrollbarFrame, type SliderFrame, type SliderOptions,
   type ScrollbarFrame, type ScrollbarOptions,
   baselineButton, baselineCheckable, bufferToCanvas,
-  type ButtonOptions, type ControlState,
+  type ButtonOptions, type ControlState, composeProgressFrame, type ProgressOptions,
 } from './controls.js';
+import { newProgressRecord, progressIdleAdvance, progressSetData, type ProgressRecord } from './engine/families/progress.js';
+import { PROGRESS_DATA, PROGRESS_FACADE_TICKS } from './engine/tables/progress.js';
 import { platinumSliderWithLayout, platinumScrollbar } from './platinum.js';
 import { findPositionedAncestor } from './positioning.js';
 import { debug } from './debug.js';
@@ -729,6 +731,47 @@ export async function interactiveScrollbar(theme: LoadedTheme, opts: Interactive
     },
     onChange);
   return el;
+}
+
+// ── Progress bar idle (DECISIONS #11) ─────────────────────────────────────────
+/** The Mac TickCount stand-in the idle helper uses: whole ticks since page load. */
+export function progressTickCount(): number {
+  return Math.floor((performance.now() * PROGRESS_FACADE_TICKS.perSecond) / 1000);
+}
+
+/**
+ * The progress bar's idle advance (DECISIONS #11; docs/spec/engine/progress.md
+ * IDLE1–IDLE4): keeps the private record's phase byte and idle time across
+ * frames, advances the phase once at least 3 ticks have passed (indeterminate
+ * bars only), and writes back the phase each draw reports (frame mode resets it).
+ * Call `idle()` from the host's timer; redraw with `compose()` when it returns true.
+ */
+export class ProgressIdle {
+  private readonly record: ProgressRecord = newProgressRecord();
+
+  constructor(opts: { indeterminate?: boolean; phase?: number } = {}) {
+    this.indeterminate = !!opts.indeterminate;
+    this.record.phase = opts.phase ?? 0;
+  }
+
+  get phase(): number { return this.record.phase; }
+
+  get indeterminate(): boolean { return this.record.indeterminate !== 0; }
+
+  /** Message 20 (IDLE4): changes the flag only; the phase is kept. */
+  set indeterminate(on: boolean) { progressSetData(this.record, PROGRESS_DATA.tag, [on ? 1 : 0]); }
+
+  /** Message 18's advance (IDLE2): true when the phase advanced. */
+  idle(ticks: number = progressTickCount()): boolean {
+    return progressIdleAdvance(this.record, ticks);
+  }
+
+  /** Draw the current phase (one frame) and keep the phase the draw reports. */
+  async compose(theme: LoadedTheme, opts: Omit<ProgressOptions, 'indeterminate' | 'phase'> = {}): Promise<PixelBuffer> {
+    const frame = await composeProgressFrame(theme, { ...opts, indeterminate: this.indeterminate, phase: this.record.phase });
+    this.record.phase = frame.phase;
+    return frame.buffer;
+  }
 }
 
 // ── Title-bar widget hit-testing ──────────────────────────────────────────────

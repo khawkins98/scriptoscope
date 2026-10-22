@@ -48,7 +48,7 @@ export type { HeaderSurfaceOptions, HeaderSurfaceResult, HeaderSurfaceUnsupporte
 
 export {
   interactiveButton, interactiveCheckbox, radioGroup, interactiveDisclosure,
-  interactiveSlider, interactiveScrollbar, WindowManager, titleWidgetHits,
+  interactiveSlider, interactiveScrollbar, WindowManager, titleWidgetHits, ProgressIdle, progressTickCount,
   type InteractiveButtonOptions, type InteractiveCheckableOptions,
   type RadioGroupOptions, type InteractiveDisclosureOptions,
   type InteractiveSliderOptions, type InteractiveScrollbarOptions,
@@ -70,6 +70,7 @@ export {
   composeSlider,
   composeDisclosure,
   composeProgress,
+  composeProgressFrame,
   composeTab,
   composeButton,
   composeBevelButton,
@@ -87,6 +88,7 @@ export {
   type SliderOptions,
   type DisclosureOptions,
   type ProgressOptions,
+  type ProgressFrame,
   type Orientation,
   type ControlState,
 } from './controls.js';
