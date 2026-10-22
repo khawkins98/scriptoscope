@@ -271,6 +271,19 @@ feat(api)!: rename ScriptoscopeWindow constructor option `theme` to `themeId`
   trigger a second round. Tier 2, full adversarial review: runtime and `src/engine`
   changes, golden candidates, ledger status promotions or mismatches, changes to the
   clean-room boundary (brief, linter, allowed paths) and the denominator.
+- **Measure and shrink the runtime** (maintainer rule, 2026-10-22). The v2 engine
+  should replace code, not sit beside it.
+  - **Delete what you replace.** A PR that moves a family onto the engine deletes the
+    legacy path it replaces in the same PR. If something legacy must stay, the PR
+    names it and the issue that will remove it.
+  - **Report the size.** Paste the output of `npm run loc:src -- HEAD --base origin/v2`
+    into the PR body. It counts non-test `.ts` lines under `src/` in two parts: engine
+    tables (cited data rows) and logic (everything else).
+  - **Reviewers flag growth.** The reviewer flags any increase in logic lines that the
+    PR does not justify. Tables may grow with the decode; logic should not.
+  - **Every release reports the trend.** Each release's CHANGELOG section ends with the
+    same table measured against the previous release tag, e.g.
+    `npm run loc:src -- HEAD --base v0.2.0`.
 - **Bound finite adapters.** Name the exact supported inputs/operation and the consumer
   claim or preparation dependency they serve. Stop on an unmatched context, missing
   mapping or unexplained difference. A finite result is not a general source rule:
