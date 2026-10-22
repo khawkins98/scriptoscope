@@ -388,7 +388,15 @@ export function convertIcons(fork, { ids, displayProfile } = {}) {
   // Complete same-fork input census, including masks without supported color art.
   const iconMaskResources = entries.flatMap((e, resourceIndex) => e.type === 'ics#'
     ? [{ id: e.id, resourceIndex, byteLength: e.data.length }] : []);
-  return { assets, index, census, iconMaskResources };
+  // The 16 × 16 ics# planes (32-byte image, then 32-byte mask; Inside Macintosh
+  // "Icon Families"), first occurrence per id, for callers that draw the 1-bit
+  // image itself (scroll-bar AI5). Raw bits: no gamma, no colour.
+  const iconMaskPlanes = {};
+  for (const e of entries) {
+    if (e.type !== 'ics#' || e.data.length < 64 || String(e.id) in iconMaskPlanes) continue;
+    iconMaskPlanes[String(e.id)] = Array.from(e.data.subarray(0, 64));
+  }
+  return { assets, index, census, iconMaskResources, iconMaskPlanes };
 }
 
 /**
@@ -413,6 +421,7 @@ export function convertScheme(fork, { meta = {}, source = 'scheme.rsrc', resourc
     assets: [...chrome.assets, ...icons.assets],
     iconIndex: icons.index,
     iconMaskResources: icons.iconMaskResources,
+    iconMaskPlanes: icons.iconMaskPlanes,
     manifest: chrome.manifest,
   };
 }

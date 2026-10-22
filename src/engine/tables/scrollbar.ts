@@ -182,6 +182,13 @@ export interface ScrollbarThumbIdRow {
   readonly vertical: number;
   readonly source: string;
 }
+/** AI5: the 16 × 16 `ics#` planes (image, then mask; 2 bytes per row), drawn black on white. */
+export const SCROLLBAR_ICS_PLANES = {
+  id: 'AI5', size: 16, rowBytes: 2, imageOffset: 0, maskOffset: 32,
+  black: 0, white: 255, opaque: 255,
+  source: '0xf4fa, 0xf5c6..0xf61c',
+} as const;
+
 /** §4.6 TH3/TH4 thumb ids. */
 export const SCROLLBAR_THUMB_ID: readonly ScrollbarThumbIdRow[] = [
   { id: 'TH3', hilite: 129, horizontal: -10205, vertical: -10207, source: '0xaf24..0xaf42' },

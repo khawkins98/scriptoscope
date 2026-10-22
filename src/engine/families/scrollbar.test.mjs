@@ -5,7 +5,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 const {
   ResourceChain, mapProvider, createTrace, rect,
-  drawScrollbar, scrollbarGeometry, scrollbarPartAt, slicePieces,
+  drawScrollbar, scrollbarGeometry, scrollbarPartAt, slicePieces, icsImagePixmap,
 } = await import('../index.ts');
 
 const pm = (w, h, rgba = [10, 20, 30, 255]) => {
@@ -170,4 +170,35 @@ test('AC4 / R1: with a pattern, mask-clear cell pixels show the pattern anchored
     { rect: rect(1, 3, 17, 123), hilite: 0, min: 0, max: 100, value: 0 });
   // Box 0's top-left pixel (3, 1) is mask-clear: pattern pixel ((3−3) mod 8, (1−1) mod 8) = (0, 0).
   assert.deepEqual(Array.from(out.data.slice((1 * 130 + 3) * 4, (1 * 130 + 3) * 4 + 4)), [9, 9, 9, 255]);
+});
+
+test('§5.4 (#396): a pressed non-hit cell uses its own cicn bounds (animals: [28,43) of -8286)', () => {
+  const e = [['cicn:-8285', cicn(61, 16)], ['cicn:-8286', cicn(43, 16)], ['cicn:-10205', cicn(23, 16)], ['cicn:-10206', cicn(23, 16)]];
+  const trace = createTrace('scrollbar');
+  drawScrollbar(port(120, 16), chainOf(e), { rect: H120, hilite: 20, min: 0, max: 100, value: 0 }, trace);
+  assert.deepEqual(iv(trace.rects.cell0), [0, 15], 'hit low arrow: track -8285');
+  assert.deepEqual(iv(trace.rects.cell3), [28, 43], 'non-hit high arrow: -8286');
+});
+
+test('§5.5 (#396): a TF3 segment slices the drawn cicn\'s own bounds', () => {
+  const e = [['cicn:-8285', cicn(61, 16)], ['cicn:-8286', cicn(43, 16)]];
+  const trace = createTrace('scrollbar');
+  drawScrollbar(port(120, 16), chainOf(e), { rect: H120, hilite: 22, min: 0, max: 100, value: 0, options: { pressedSideOnly: 1 } }, trace);
+  const tf8 = trace.drawOps.filter(o => o.row?.startsWith('TF8')).map(o => iv(o.src));
+  assert.deepEqual(tf8.at(-1)[1], 28, 'high segment (TF3, -8286): source ends at 43 − 15');
+});
+
+test('AI5/AI6: without ics8 the ics# image draws black on white through its mask', () => {
+  const planes = new Array(64).fill(0);
+  planes[0] = 0b11000000; // image row 0: x 0, 1 set
+  planes[32] = 0b11100000; // mask row 0: x 0..2 set
+  const img = icsImagePixmap(planes);
+  const px = (x, y) => Array.from(img.data.slice((y * 16 + x) * 4, (y * 16 + x) * 4 + 4));
+  assert.deepEqual([px(0, 0), px(2, 0), px(3, 0)], [[0, 0, 0, 255], [255, 255, 255, 255], [255, 255, 255, 0]]);
+  const e = [['cicn:-8286', cicn(16, 16)], ['ics#:-10202', { planes }], ['ics#:-10201', { planes }]];
+  const out = port(120, 16);
+  const trace = createTrace('scrollbar');
+  drawScrollbar(out, chainOf(e), { rect: H120, hilite: 0, min: 0, max: 100, value: 0 }, trace);
+  assert.ok(trace.drawOps.some(o => o.op === 'arrowIcon' && /AI5,AI6/.test(o.row)));
+  assert.deepEqual(Array.from(out.data.slice(0, 4)), [0, 0, 0, 255]);
 });

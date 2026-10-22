@@ -12,7 +12,8 @@
 //         opaque companion when the loader produced them (qd-primitives I1–I3);
 //   ppat  patterns[*].sourcePpatId;
 //   ics#  inspector.iconMaskResources (a census entry holding the full 16 × 16
-//         image + mask, tables/scrollbar.ts SCROLLBAR_ICON_DRAW);
+//         image + mask, tables/scrollbar.ts SCROLLBAR_ICON_DRAW) with its raw
+//         planes from inspector.iconMaskPlanes (AI5);
 //   ics8  the glyph map's raster for the id, when inspector.iconIndex lists an
 //         `ics8` at that id (decoded with the ics# mask applied by the loader).
 import type { LoadedTheme } from '../../types.js';
@@ -49,7 +50,9 @@ async function themeProvider(theme: LoadedTheme, tier: 'archive' | 'base', name:
       return p ? [key, await load(p.asset)] : null;
     }
     if (type === 'ics#') {
-      return masks.some(m => m.id === id && m.byteLength >= SCROLLBAR_ICON_DRAW.maskRecordBytes) ? [key, { id }] : null;
+      if (!masks.some(m => m.id === id && m.byteLength >= SCROLLBAR_ICON_DRAW.maskRecordBytes)) return null;
+      const planes = theme.inspector?.iconMaskPlanes?.[String(id)];
+      return planes ? [key, { planes }] : null;
     }
     if (type === 'ics8') {
       // The glyph map holds each id's deepest colour icon; it is the ics8 only

@@ -373,6 +373,9 @@ export interface ThemeInspector {
    * fewer than 64 bytes are unsupported by the checkable icon path, not NULL.
    * Occurrence indices refer to parsed resource order in this loaded fork. */
   iconMaskResources?: Array<{ id: number; resourceIndex: number; byteLength: number }>;
+  /** First-occurrence 16 × 16 ics# planes by id string: 64 raw bytes, the
+   * 32-byte 1-bit image then the 32-byte mask (rows of 2 bytes, MSB first). */
+  iconMaskPlanes?: Record<string, number[]>;
   iconIndex: Array<{
     id: number;
     type: 'icl4' | 'ics4' | 'icl8' | 'ics8';

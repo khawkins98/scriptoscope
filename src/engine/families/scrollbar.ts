@@ -9,9 +9,8 @@
 // (v2-lanes/L6/SPEC-QUESTIONS.md):
 //   - SmartScroll's thumb rect (§6 item 6; absent by declaration);
 //   - `lowDepth` / black-and-white ports (declared clear; I1, SC1, F3, X3);
-//   - AI4's 1-bit `ics#` image branch (no `ics8` in the file): traced, not drawn;
-//   - offscreen pixels nothing draws (§6 item 4): left unwritten, traced
-//     `unspecified`.
+// Engine policy (scrollbar §6 item 4): offscreen pixels nothing draws are left
+// unwritten in the port and traced `unspecified`.
 import type { Pixmap, QdPoint, QdRect } from '../qd/types.js';
 import type { EngineTrace } from '../trace.js';
 import type { ResourceChain, ResourceHit } from '../resources/chain.js';
@@ -29,7 +28,7 @@ import {
   SCROLLBAR_AD4, SCROLLBAR_ARROWS, SCROLLBAR_COMPOSITE, SCROLLBAR_COMPOSITE_ARROW, SCROLLBAR_DECLARED_DEFAULTS,
   SCROLLBAR_DOUBLE_MIN_THICKNESSES, SCROLLBAR_DRAW_ORDER, SCROLLBAR_GEOMETRY, SCROLLBAR_HILITE, SCROLLBAR_HIT_ARROWS,
   SCROLLBAR_HIT_TEST, SCROLLBAR_ICON_DRAW, SCROLLBAR_ICONS, SCROLLBAR_PATTERN_PROBE, SCROLLBAR_STATE, SCROLLBAR_THUMB,
-  SCROLLBAR_THUMB_ID, SCROLLBAR_TIER, SCROLLBAR_TRACK_BASE, SCROLLBAR_TRACK_FILL, SCROLLBAR_TRACK_PROBE,
+  SCROLLBAR_ICS_PLANES, SCROLLBAR_THUMB_ID, SCROLLBAR_TIER, SCROLLBAR_TRACK_BASE, SCROLLBAR_TRACK_FILL, SCROLLBAR_TRACK_PROBE,
   type ScrollbarStateRow,
 } from '../tables/scrollbar.js';
 
@@ -60,6 +59,32 @@ export interface ScrollbarInput {
 
 /** A cicn resource value as the adapter supplies it. */
 export type ScrollbarCicn = IconSource;
+
+/** An `ics#` resource value: its raw planes (image then mask, SCROLLBAR_ICS_PLANES). */
+export interface ScrollbarIconMask {
+  readonly planes: readonly number[];
+}
+
+/**
+ * AI5: the `ics#` image plane in srcCopy, black foreground on white background,
+ * through the `ics#` mask plane: set bits black, clear bits white, mask-clear
+ * pixels transparent (left untouched by the masked copy).
+ */
+export function icsImagePixmap(planes: readonly number[]): Pixmap {
+  const P = SCROLLBAR_ICS_PLANES;
+  const data = new Uint8ClampedArray(P.size * P.size * 4);
+  const bit = (offset: number, x: number, y: number): boolean =>
+    (((planes[offset + y * P.rowBytes + (x >> 3)] ?? 0) >> (7 - (x & 7))) & 1) === 1;
+  for (let y = 0; y < P.size; y++) {
+    for (let x = 0; x < P.size; x++) {
+      const i = (y * P.size + x) * 4;
+      const v = bit(P.imageOffset, x, y) ? P.black : P.white;
+      data[i] = v; data[i + 1] = v; data[i + 2] = v;
+      data[i + 3] = bit(P.maskOffset, x, y) ? P.opaque : 0;
+    }
+  }
+  return { width: P.size, height: P.size, data };
+}
 
 export interface ScrollbarState {
   row: ScrollbarStateRow['id'];
@@ -336,11 +361,11 @@ export function drawScrollbar(port: Pixmap, chain: ResourceChain, input: Scrollb
   const phase: QdPoint = { x: R.left, y: R.top };
   const hitArrows = SCROLLBAR_HIT_ARROWS.find(r => r.hilite === input.hilite);
   const halfClip = newRegion(port);
-  const trackBoundsCicn = g.trackCicn;
 
-  // §5.4 cells from the track cicn's bounds.
-  const cellFor = (index: number, box: QdRect): { cell: QdRect; box: QdRect; half: boolean } => {
-    const tb = bounds(trackBoundsCicn!.pixmap);
+  // §5.4 cells from the bounds of the cicn that supplies the cell (AC2/AC3
+  // choice), recomputed per arrow; only composite/doubleArt/half are the track's.
+  const cellFor = (index: number, box: QdRect, source: ScrollbarCicn): { cell: QdRect; box: QdRect; half: boolean } => {
+    const tb = bounds(source.pixmap);
     const l = ax.a0(tb), r = ax.a1(tb), h = ax.c1(tb) - ax.c0(tb), d = h - 1;
     const cc0 = ax.c0(tb), cc1 = ax.c1(tb);
     const half = st.pressedHalves;
@@ -374,7 +399,7 @@ export function drawScrollbar(port: Pixmap, chain: ResourceChain, input: Scrollb
         src = c2?.value ?? g.trackCicn!;
         pat = p2?.value ?? g.trackPattern;
       }
-      const { cell, box: dst, half } = cellFor(index, box);
+      const { cell, box: dst, half } = cellFor(index, box, src);
       const row = `${step},${hitRow},AC1,${srcRow}`;
       trace?.rects && (trace.rects[`cell${index}`] = cell);
       if (pat) {
@@ -393,22 +418,21 @@ export function drawScrollbar(port: Pixmap, chain: ResourceChain, input: Scrollb
       || (r.when === 'hit' && !st.disabled && isHit) || r.when === 'raised')!;
     const id = iconRow.ids[which][st.horizontal ? 'horizontal' : 'vertical'];
     const row = `${step},${hitRow},${iconRow.id},${SCROLLBAR_ICON_DRAW.id}`;
-    const mask = chain.getResource<unknown>(SCROLLBAR_ICON_DRAW.maskType, id, req(trace, row));
+    const mask = chain.getResource<ScrollbarIconMask>(SCROLLBAR_ICON_DRAW.maskType, id, req(trace, row));
     if (!mask) { trace?.drawOps.push({ op: 'arrowIcon', row, arrow: index, id, drawn: false }); return null; }
     const color = SCROLLBAR_DECLARED_DEFAULTS.colorPort && !SCROLLBAR_DECLARED_DEFAULTS.lowDepth
       ? chain.get1Resource<Pixmap>(SCROLLBAR_ICON_DRAW.colorType, id, mask.provider, req(trace, row)) : null;
-    if (!color) {
-      trace?.drawOps.push({ op: 'arrowIcon', row, arrow: index, id, dst: box, unimplemented: '1-bit ics# image branch' });
-      return null;
-    }
-    trace?.drawOps.push({ op: 'arrowIcon', row, arrow: index, id, src: bounds(color.value), dst: box, transfer: 'copyMask' });
-    transferBits(port, color.value, bounds(color.value), box, 'copyMask');
+    // AI6: the icon's 16 × 16 frame into the arrow box (scaled when t ≠ 16).
+    const icon = color ? color.value : icsImagePixmap(mask.value.planes);
+    const drawRow = color ? `${row},AI6` : `${row},AI5,AI6`;
+    trace?.drawOps.push({ op: 'arrowIcon', row: drawRow, arrow: index, id, src: bounds(icon), dst: box, transfer: 'copyMask' });
+    transferBits(port, icon, bounds(icon), box, 'copyMask');
     return null;
   };
 
-  // §5.5 track source rect.
+  // §5.5 track source rect: the bounds of the cicn the segment draws.
   const trackSource = (cicn: ScrollbarCicn): QdRect => {
-    const tb = bounds(trackBoundsCicn?.pixmap ?? cicn.pixmap);
+    const tb = bounds(cicn.pixmap);
     if (!g.composite || st.inactive) return tb;
     const k = (ax.c1(tb) - ax.c0(tb) - 1) * (g.doubleArt ? 2 : 1);
     return ax.mk(ax.a0(tb) + k, ax.a1(tb) - k, ax.c0(tb), ax.c1(tb));
