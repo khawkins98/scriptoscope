@@ -664,11 +664,12 @@ test('tab/header source-rule port (main 1.23.0) preserves the exact 1.22.0 ledge
   // the scroll-bar closure of #374 moves the 18 mismatched state-selection rows to 13 verified and 5
   // unknown (scrollbar@1.3.0), slider@1.1.0 adds 54 obligations and records 33 slider mismatches
   // against #407, window@1.2.0 adds 25 unknown procedural-frame obligations, and window@1.3.0 (#412)
-  // promotes 14 corner-sprite rows to verified and adds five utility cases with 25 unknown rows.
+  // promotes 14 corner-sprite rows to verified and adds five utility cases with 25 unknown rows, which
+  // window@1.4.0 (#421) promotes 14 of to verified.
   const mainLineage = assemble(sources.base, sources.families.map(f => ['scrollbar', 'push-button', 'slider'].includes(f.family) ? baseFamily(f) : f.family === 'window' ? atVersion(f, '1.1.0') : f)).ledger;
   assert.deepEqual(makeReport(mainLineage).requirementStatus.counts, { verified: 216, mismatched: 18, unsupported: 0, unknown: 1494 });
   assert.equal(makeReport(mainLineage).cases.length, 234);
-  assert.deepEqual(makeReport(live).requirementStatus.counts, { verified: 243, mismatched: 33, unsupported: 0, unknown: 1556 });
+  assert.deepEqual(makeReport(live).requirementStatus.counts, { verified: 257, mismatched: 33, unsupported: 0, unknown: 1542 });
   assert.equal(makeReport(live).cases.length, 239);
 });
 
@@ -713,7 +714,7 @@ test('window 1.2.0 appends the procedural-frame obligations to the five corner-s
 });
 
 test('window 1.3.0 (#412) narrows the corner-sprite cases, promotes exactly 14 rows and adds five unknown utility cases', () => {
-  const w = liveFamily('window'), t = w.transitions.find(x => x.version === '1.3.0'), prior = atVersion(w, '1.2.0');
+  const w = atVersion(liveFamily('window'), '1.3.0'), t = w.transitions.find(x => x.version === '1.3.0'), prior = atVersion(w, '1.2.0');
   const slugs = ['apple-platinum-2', 'black-platinum', 'platinum-8', 'slimes', 'system7-nostalgia-silver'];
   assert.equal(w.version, '1.3.0'); assert.equal(priorFamily(w).version, '1.2.0');
   assert.deepEqual(w.requirements, prior.requirements);
@@ -743,4 +744,42 @@ test('window 1.3.0 (#412) narrows the corner-sprite cases, promotes exactly 14 r
   assert(w.assessments.filter(a => a.caseId.endsWith('.window.corner-sprite') && a.requirementId.startsWith('window.procedural-')).every(a => a.status === 'unknown' && !/no driver implements/.test(a.rationale)));
   const count = f => f.assessments.reduce((m, a) => (m[a.status] = (m[a.status] ?? 0) + 1, m), {});
   assert.deepEqual(count(w), { verified: count(prior).verified + 14, unknown: count(prior).unknown - 14 + 25 });
+});
+
+test('window 1.4.0 (#421) binds the utility cases to window.procedural-frame-utility and promotes exactly 14 rows', () => {
+  const w = liveFamily('window'), t = w.transitions.find(x => x.version === '1.4.0'), prior = atVersion(w, '1.3.0');
+  const slugs = ['apple-platinum-2', 'black-platinum', 'platinum-8', 'slimes', 'system7-nostalgia-silver'], cases = slugs.map(s => `${s}.window.procedural-frame-utility`);
+  assert.equal(w.version, '1.4.0'); assert.equal(priorFamily(w).version, '1.3.0');
+  assert.deepEqual(w.requirements, prior.requirements); assert.equal(w.cases.length, prior.cases.length); assert.equal(w.assessments.length, prior.assessments.length);
+  // Appended: one assertion over exactly the five utility cases, four utility evidence rows from the spec.
+  assert.deepEqual(w.assertions.slice(t.counts.assertions).map(a => [a.id, a.path, a.caseIds]),
+    [['window.procedural-frame-utility', 'tests/rendering-options/procedural-frame-utility.spec.mjs', cases]]);
+  assert.deepEqual(w.evidence.slice(t.counts.evidence).map(e => [e.id, e.document, e.requirementIds]), [
+    ['kdef.procedural-frame-utility-gate', 'docs/spec/engine/procedural-frame.md', ['window.wnd-ladder']],
+    ['kdef.procedural-frame-utility-art', 'docs/spec/engine/procedural-frame.md', ['window.state-frame']],
+    ['kdef.procedural-frame-utility-geometry', 'docs/spec/engine/procedural-frame.md', ['window.corner-sprite-frame']],
+    ['kdef.procedural-frame-utility-frame-lines', 'docs/spec/engine/procedural-frame.md', ['window.corner-sprite-frame']]]);
+  // In place: the five utility cases, their 25 assessments, and window.procedural-frame gaining the utility cases (its raw-fork wnd# gate, REVIEW-424 N4).
+  assert.deepEqual(Object.keys(t.replaced).sort(), ['assertions', 'assessments', 'cases']);
+  assert.deepEqual(t.replaced.assertions.map(r => [w.assertions[r.index].id, w.assertions[r.index].caseIds.slice(r.row.caseIds.length)]), [['window.procedural-frame', cases]]);
+  assert.deepEqual(t.replaced.cases.map(r => w.cases[r.index].id), cases);
+  for (const r of t.replaced.cases) {
+    const c = w.cases[r.index];
+    assert.match(c.options.windowTypes, /^procedural-frame utility family: titled-utility-window, collapsed-titled-utility-window, side-floating-utility-window, collapsed-side-floating-utility-window, no-title-utility-window /);
+    assert.match(c.options.windowTypes, /collapsed-no-title-utility-window excluded .*#423/);
+    assert(c.inventoryClosure.status === 'open' && /#423/.test(c.inventoryClosure.reason));
+  }
+  const changed = t.replaced.assessments.map(r => ({ now: w.assessments[r.index], was: r.row }));
+  assert.equal(changed.length, 25);
+  assert(changed.every(c => cases.includes(c.now.caseId) && c.was.status === 'unknown' && c.now.issues.join() === '423' && c.now.review === changed[0].now.review && /REVIEW-424\.json/.test(c.now.review)));
+  const promoted = changed.filter(c => c.now.status === 'verified');
+  assert(promoted.every(c => c.now.assertions.join() === (c.now.requirementId === 'window.wnd-ladder' ? 'window.procedural-frame-utility,window.procedural-frame' : 'window.procedural-frame-utility') && c.now.evidence.some(id => id.startsWith('kdef.procedural-frame-utility-'))));
+  assert.deepEqual(promoted.map(c => `${c.now.caseId.split('.')[0]}/${c.now.requirementId}`).sort(), [
+    ...slugs.flatMap(s => [`${s}/window.wnd-ladder`, `${s}/window.corner-sprite-frame`]),
+    ...slugs.filter(s => s !== 'apple-platinum-2').map(s => `${s}/window.state-frame`)].sort());
+  const ap2 = w.assessments.find(a => a.caseId === 'apple-platinum-2.window.procedural-frame-utility' && a.requirementId === 'window.state-frame');
+  assert.equal(ap2.status, 'unknown'); assert.match(ap2.rationale, /pixel-identical/);
+  assert(changed.filter(c => c.now.status === 'unknown').every(c => ['fill.remaining', 'window.masked-composition', 'window.state-frame'].includes(c.now.requirementId)));
+  const count = f => f.assessments.reduce((m, a) => (m[a.status] = (m[a.status] ?? 0) + 1, m), {});
+  assert.deepEqual(count(w), { verified: count(prior).verified + 14, unknown: count(prior).unknown - 14 });
 });

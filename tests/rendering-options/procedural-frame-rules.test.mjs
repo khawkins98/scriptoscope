@@ -9,6 +9,9 @@ import { parseResourceMap } from './checkable-rules.mjs';
 import {
   SCHEMES, DECODE, STANDARD, PIXEL_PROBES, DRIVER_ROWS, HIT_POINTS, decodeVariation, titleHeight, alertColouring, growOwned, geometry, regions,
   selectArt, titleMode, documentFrameOps, titleOps, dialogRingOps, textPasses, titleBaseline, hitTest,
+  toggleRun, ctEntry, ctEqual, copyPixel, kind5GrowOps, UDECODE, utilityInputs, utilityGeometry, utilityFrameOps, utilityFrameArt,
+  utilityStripes, utilityTitleRect, utilityTitleOps, utilityDrawOrder, utilityWidgets, utilityGrowArt, utilityMessage6, utilityHit,
+  UTILITY_TYPES, UTILITY_EXCLUDED, utilityPlan,
 } from './procedural-frame-rules.mjs';
 
 // Rule rows of docs/spec/engine/procedural-frame.md (§3–§6, test hooks §12).
@@ -528,3 +531,487 @@ test('driver rows: DRIVER_ROWS expected values are the spec model values', () =>
 });
 
 for (const [id, row] of Object.entries(DRIVER_ROWS)) test(`${id} ${row.title} (${row.needs})`, { todo: 'awaits procedural-frame driver' });
+
+// ===========================================================================
+// Revision 3 (#415): the shared rows TG / WP / CT / GB and the utility family §9
+// (UI / UG / UP / UFA / UFC / UFH / UFS / UFT / US / UW / UT / UGB / UM / UH).
+// Same discipline as above: each expected literal is the spec's number, a hand
+// derivation (written next to it) or an archive fact read from the fork.
+// Utility windows (C = (100, 60, 260, 150), 160 × 90 content):
+//   titled horizontal, H 15 (t 16): T = (96, 44, 264, 60); structure (96, 44, 264, 154) ∪ (98, 46, 265, 155);
+//     F = (96, 44, 264, 154); boxes top 44 + trunc(7 / 2) = 47: close (98, 47, 108, 57), collapse (252, …, 262),
+//     zoom shifted (241, …, 251); Lu = 108 + 2 = 110; Ru = 252 − 2 = 250 (no zoom) or 241 − 2 = 239 (zoom).
+//   untitled horizontal, H 13 (t 14): T = (96, 46, 264, 60); boxes top 46 + trunc(5 / 2) = 48.
+//   side, H 13: T = (86, 56, 100, 154); structure (86, 56, 264, 154) ∪ (88, 58, 265, 155); boxes left 88:
+//     close (88, 58, 98, 68), collapse (88, 142, 98, 152), zoom shifted (88, 131, 98, 141).
+//   collapsed: structure = T ∪ T shifted (+2, +2) with right/bottom − 1; content degenerate at C's top (side: left) edge.
+const UC = [100, 60, 260, 150];
+const uw = over => ({ variation: 3, C: UC, hilited: true, goAway: true, shadeOn: true, collapsed: false, title: 'x', ...over });
+const UT = { variation: 3 }, UN = { variation: 1, title: '' }, US_ = { variation: 9, goAway: false, title: '' };
+const UCOL = { variation: 1, collapsed: true }, UCOLS = { variation: 9, collapsed: true, goAway: false, title: '' };
+const ug = (over, r) => utilityGeometry(uw(over), { reading: r });
+const uhas = slug => (type, id) => has(slug)(type, id);
+const usize = slug => id => [cicn(slug, id).pmap.width, cicn(slug, id).pmap.height];
+const TEXT = { title: 'x', width: 40, condensedWidth: 36, ascent: 10, descent: 2, colours: { fill: 'f', text: 't', shadow: 's' } };
+// A colour table as [{ value, rgb }] in position order, from a clut / actb resource (ctSeed 4, ctFlags 2, ctSize 2, then 8 bytes each).
+const ctab = d => Array.from({ length: ((d[6] << 8) | d[7]) + 1 }, (_, i) => { const o = 8 + i * 8, w = k => (d[o + k] << 8) | d[o + k + 1]; return { value: w(0), rgb: [w(2), w(4), w(6)] }; });
+const A = [1, 1, 1], B = [2, 2, 2], Cc = [3, 3, 3];
+const NARROW = (cw, r) => utilityGeometry(uw({ goAway: false, shadeOn: false, C: [100, 60, 100 + cw, 150] }), { reading: r });
+const U_ROWS = {
+  // ---- shared rows (§2, §3.3, §3.5, §6.4)
+  'TG1 §2 a part-0 draw clears the bit; then two part-4 calls draw pressed, then normal': r => [true, false].map(hilited => toggleRun('document', [0, 4, 4], 1, { reading: r, hilited })),
+  'TG2 §2 parts 4, 5/6, 9 by the bit; 258 flips, 258 and 1 draw nothing (document)': r => toggleRun('document', [5, 6, 9, 258, 4, 1], 1, { reading: r }),
+  'TG3 §2 signed part compare: 0xFFFF (−1) clears the bit': r => toggleRun('document', [0xffff, 4], 1, { reading: r }),
+  'WP1 §3.3 goAway + zoom + collapse box: zoom ∩ close drops collapse, then zoom (document, Tw 36 / 40)': r => [24, 28].map(cw => { const g = geo({ C: [100, 60, 100 + cw, 200] }, r); return [g.T[2] - g.T[0], g.shown, g.R - g.T[0]]; }),
+  'WP3 §3.3 no goAway, zoom + collapse box: only collapse ∩ close, zoom never dropped (Tw 36 / 40)': r => [24, 28].map(cw => { const g = geo({ goAway: false, C: [100, 60, 100 + cw, 200] }, r); return [g.T[2] - g.T[0], g.shown, g.R - g.T[0]]; }),
+  'WP4 §3.3 no goAway, no zoom: nothing dropped (Tw 30)': r => { const g = geo({ goAway: false, variation: 0, C: [100, 60, 118, 200] }, r); return [g.T[2] - g.T[0], g.shown]; },
+  'CT1 §3.5 entry n at position n when its value is n (also when a later entry repeats n)': r => [ctEntry([{ value: 0, rgb: A }, { value: 1, rgb: B }, { value: 2, rgb: Cc }], 1, { reading: r }).rgb,
+    ctEntry([{ value: 0, rgb: A }, { value: 1, rgb: B }, { value: 1, rgb: Cc }], 1, { reading: r }).rgb],
+  'CT2 §3.5 last value 0: position n': r => [ctEntry([{ value: 3, rgb: A }, { value: 2, rgb: B }, { value: 0, rgb: Cc }], 1, { reading: r }).rgb],
+  'CT3 §3.5 search from the last entry down; none → position 0 (value-0 entry at position 1 read there)': r => [
+    ctEntry([{ value: 5, rgb: A }, { value: 0, rgb: B }, { value: 7, rgb: Cc }], 0, { reading: r }).rgb,
+    ctEntry([{ value: 1, rgb: A }, { value: 9, rgb: B }, { value: 1, rgb: Cc }], 1, { reading: r }).rgb,
+    ctEntry([{ value: 4, rgb: A }, { value: 5, rgb: B }], 1, { reading: r }).rgb],
+  'CT4 §3.5 stored RGB16 compared exactly (one unit in one channel differs)': r => [ctEqual([0xffff, 0xffff, 0xffff], [0xffff, 0xffff, 0xffff], { reading: r }), ctEqual([0xffff, 0xffff, 0xffff], [0xffff, 0xffff, 0xfffe], { reading: r }), ctEqual([0x1234, 0, 0], [0x12ff, 0, 0], { reading: r })],
+  'CT5 §3.5 corpus: the positions CT1–CT3 read in actb -14336 (entry 0) and clut -14336/-14335 (entries 1, 5, 6)': r => perScheme(slug => {
+    const pos = (type, id, n) => { const t = ctab(res(slug, type, id).data); return t.indexOf(ctEntry(t, n, { reading: r })); };
+    return [pos('actb', -14336, 0), ...[1, 5, 6].map(n => pos('clut', -14336, n)), ...[1, 5, 6].map(n => pos('clut', -14335, n))]; }),
+  'GB1 §6.4/GB3/GB3a which copies use the mask (8-bit source, mask clear)': r => Object.fromEntries(Object.keys(DECODE.copyModes).map(use => [use, copyPixel(use, { depth: 8, under: 'u', src: 's', mask: false }, { reading: r })])),
+  'GB2 §6.4 GB3a: a 1-bit cicn always goes through its mask': r => ['documentCorners', 'utilityStripes', 'documentGrow'].map(use => [copyPixel(use, { depth: 1, under: 'u', src: 's', mask: false }, { reading: r }), copyPixel(use, { depth: 1, under: 'u', src: 's', mask: true }, { reading: r })]),
+  'GB4 §6.4 GB4–GL4 procedural kind-5 grow box (grow (288, 188, 305, 205)), by state and clut presence': r => [
+    kind5GrowOps([288, 188, 305, 205], true, () => true, { reading: r }), kind5GrowOps([288, 188, 305, 205], false, () => true, { reading: r }), kind5GrowOps([288, 188, 305, 205], true, () => false, { reading: r })],
+  // ---- utility: inputs, geometry, drops (§9.1–§9.3)
+  'UI1 §9.1 UI1–UI6 flags (hilited false; then variation 1 hilited)': r => [[0, false], [1, false], [3, false], [5, false], [9, false], [17, false], [31, false], [1, true]].map(([variation, hilited]) => {
+    const f = utilityInputs({ variation, hilited }, { reading: r }); return [variation, hilited, ['alwaysActive', 'grow', 'zoom', 'side', 'smallGrow', 'active'].filter(k => f[k]).join(' ')]; }),
+  'UI10 §9.1 H: 13 side, else 15 titled, 13 untitled': r => [[1, 'x'], [1, ''], [9, 'x'], [9, '']].map(([variation, title]) => utilityInputs({ variation, title }, { reading: r }).H),
+  'UG1 §9.2 UG1–UG3 T, structure, content (titled, untitled, side, collapsed, collapsed side)': r => [UT, UN, US_, UCOL, UCOLS].map(o => { const g = ug(o, r); return { T: g.T, structure: g.structure, content: g.content }; }),
+  'UG2 §9.2 public-type frame insets [l, t, r, b] and structure size, 160 × 90 content': r => UTILITY_TYPES.map(t => { const p = utilityPlan(t, undefined, { reading: r }); return [t.slug, p.insets, p.size]; }),
+  'UG3 §9.2 UG4/UG10 grow rect and content minus grow (grow; smallGrow + grow; smallGrow only)': r => [3, 19, 17].map(variation => { const g = ug({ variation }, r); return [g.grow, g.contentMinusGrow]; }),
+  'UG4 §9.2 UG5–UG9 boxes and limits': r => [UT, { variation: 7 }, UN, US_, { goAway: false, shadeOn: false }].map(o => { const g = ug(o, r); return { close: g.close, zoom: g.zoom, collapse: g.collapse, shown: g.shown, Lu: g.Lu, Ru: g.Ru }; }),
+  'UP1 §9.3 goAway + zoom: 7-px outsets; recomputed zoom not outset (Tw 49, 48, 31, 30; then shadeOn off at Tw 37)': r => [[41, true], [40, true], [23, true], [22, true], [29, false]].map(([cw, shadeOn]) => {
+    const g = ug({ variation: 7, shadeOn, C: [100, 60, 100 + cw, 150] }, r); return [cw + 8, g.shown, g.zoom[0] - g.T[0]]; }),
+  'UP2 §9.3 goAway, no zoom: k⁺ ∩ c⁺ clears shadeOn (Tw 38, 37)': r => [30, 29].map(cw => [cw + 8, ug({ C: [100, 60, 100 + cw, 150] }, r).shown]),
+  'UP3 §9.3 no goAway, zoom + shadeOn: k⁺ ∩ c⁺ clears shadeOn, zoom kept (Tw 38, 37); UP4 nothing (Tw 20)': r => [[30, 7], [29, 7], [12, 3]].map(([cw, variation]) => [cw + 8, ug({ variation, goAway: false, C: [100, 60, 100 + cw, 150] }, r).shown]),
+  // ---- utility frame (§9.4)
+  'UFA1 §9.4 UFA1 frame cicn by orientation and state (corpus)': r => perScheme(slug => perState(hl => [1, 9].map(variation => utilityFrameArt({ variation, hilited: hl }, uhas(slug), { reading: r })))),
+  'UFA2 §9.4 UFA2/UFA3 absent cicns (synthetic presence)': r => [['-14316'], ['-14320'], [], ['-14315', '-14320']].map(ids => {
+    const h = (type, id) => type === 'cicn' && ids.includes(String(id)); return [[1, true], [1, false], [9, false]].map(([variation, hilited]) => utilityFrameArt({ variation, hilited }, h, { reading: r })); }),
+  'UFC1 §9.4 UFC1–UFC6 collapsed frame ops (horizontal titled, side)': r => [UCOL, UCOLS].map(o => utilityFrameOps(ug(o, r), { reading: r })),
+  'UFH1 §9.4 UFH1–UFH12 horizontal frame ops (titled)': r => utilityFrameOps(ug(UT, r), { reading: r }),
+  'UFS1 §9.4 UFS1–UFS12 side frame ops': r => utilityFrameOps(ug(US_, r), { reading: r }),
+  'UFT1 §9.4 UFT1 sample points; UFT2 small grow in the tail (expanded and collapsed); UFT3 shadow (untitled)': r => [
+    ug(UT, r), ug(US_, r)].map(g => utilityFrameOps(g, { reading: r }).find(o => o[0] === 'sample')[1]).concat([
+    utilityFrameOps(ug({ variation: 19 }, r), { reading: r }).filter(o => o[0] === 'smallGrow'), utilityFrameOps(ug({ variation: 19, collapsed: true }, r), { reading: r }).filter(o => o[0] === 'smallGrow'),
+    utilityFrameOps(ug(UN, r), { reading: r }).slice(-2)]),
+  'UFT2 §9.4 UFT1 corpus colours and §9.6.1 UT7 passes (fill / text / shadow, shadow pass)': r => perScheme(slug => perState(hl => [1, 9].map(variation => {
+    const id = utilityFrameArt({ variation, hilited: hl }, uhas(slug), { reading: r }), g = ug({ variation, hilited: hl, title: 'x' }, r);
+    const s = utilityFrameOps(g, { reading: r }).find(o => o[0] === 'sample')[1], c = { fill: P(slug, id, s.fill), text: P(slug, id, s.text), shadow: P(slug, id, s.shadow) };
+    return `${c.fill}/${c.text}/${c.shadow} ${utilityTitleOps(ug({ variation: 1, hilited: hl }, r), { ...TEXT, colours: c }, { reading: r }).filter(o => o[0] === 'text').length}`; }))),
+  // ---- stripes, title, interior, grow, widgets, hits (§9.5–§9.9)
+  'US1 §9.5 US1–US6 band, art, tiles (horizontal titled, side; inactive)': r => perScheme(slug => [UT, US_, { hilited: false }].map(o => {
+    const s = utilityStripes(ug(o, r), uhas(slug), usize(slug), { reading: r }); return s && { band: s.band, art: s.art, tiles: s.ops.length, first: s.ops[0], last: s.ops.at(-1) }; })),
+  'US2 §9.5 US4 narrow band painted with the fill (length 3), tiled at 4': r => [5, 6].map(cw => utilityStripes(NARROW(cw, r), (t, id) => t === 'cicn' && id === -14314, () => [9, 9], { reading: r }).ops.map(o => o.slice(0, 2))),
+  'UT1 §9.6.1 UT1 title rect (fits; condensed; condensed at Lu; side; width 0)': r => [[40, 36, UT], [150, 140, UT], [150, 120, UT], [160, 158, UT], [40, 36, US_], [0, 0, UT]].map(([width, condensedWidth, o]) => utilityTitleRect(ug(o, r), { width, condensedWidth }, { reading: r })),
+  'UT2 §9.6.1 UT2–UT8 title ops (fits; condensed + truncated; UT2 skip; empty title)': r => [
+    utilityTitleOps(ug(UT, r), TEXT, { reading: r }), utilityTitleOps(ug(UT, r), { ...TEXT, width: 150, condensedWidth: 140 }, { reading: r }),
+    utilityTitleOps(utilityGeometry(uw({ shadeOn: false, C: [100, 60, 112, 150] }), { reading: r }), { ...TEXT, width: 10, condensedWidth: 8 }, { reading: r }),
+    utilityTitleOps(ug(UT, r), { ...TEXT, title: '' }, { reading: r })],
+  'UT3 §9.6.1 UT7 shadow pass compares shadow with the fill (shadow = fill; shadow = text)': r => [{ fill: 'f', text: 't', shadow: 'f' }, { fill: 'f', text: 't', shadow: 't' }].map(colours => utilityTitleOps(ug(UT, r), { ...TEXT, colours }, { reading: r }).filter(o => o[0] === 'text').map(o => o[2])),
+  'UW1 §9.6 UW1–UW5 step order and fill region (active, inactive, side)': r => [UT, { hilited: false }, US_].map(o => utilityDrawOrder(ug(o, r), uhas('black-platinum'), usize('black-platinum'), TEXT, { reading: r })),
+  'UGB1 §9.7 UGB1–UGB2 grow art (corpus, by state; normal and small)': r => perScheme(slug => perState(hl => [3, 19].map(variation => utilityGrowArt(ug({ variation, hilited: hl }, r), uhas(slug), usize(slug), { reading: r })))),
+  'UGB2 §9.7 UGB1 small grow cicn when present (synthetic -14285 12 × 12)': r => utilityGrowArt(ug({ variation: 19 }, r), (t, id) => t === 'cicn' && (id === -14285 || id === -14313), id => (id === -14285 ? [12, 12] : [16, 16]), { reading: r }),
+  'UM1 §9.8 UM1–UM2 utility parts and the shared bit (258 does not flip)': r => [true, false].map(hilited => toggleRun('utility', [0, 4, 4, 5, 9, 258, 4], 1, { reading: r, hilited })),
+  'UM2 §9.6 UW4 / §9.8 UM3 widget plots of a full draw (titled, zoom, side; inactive)': r => [UT, { variation: 7 }, US_, { hilited: false }].map(o => utilityWidgets(ug(o, r), { reading: r })),
+  'UM3 §9.8 UM4 message 6 (grow; collapsed; no grow; invisible)': r => [[{}, {}], [{ collapsed: true }, {}], [{ variation: 1 }, {}], [{}, { visible: false }]].map(([o, w]) => utilityMessage6(ug(o, r), w)),
+  'UH1 §9.9 UH1–UH8 hit codes (variation 7, active; inactive; atZoom)': r => [true, false].map(hilited => { const g = ug({ variation: 7, hilited }, r);
+    return U_HIT_POINTS.map(p => utilityHit(g, { hilited }, p, { reading: r })); }).concat([[utilityHit(ug({ variation: 7 }, r), {}, [246, 52], { reading: r, atZoom: true })]]),
+};
+// variation 7 (grow + zoom), titled: zoom (241, 47, 251, 57), grow (246, 136, 262, 152), box (96, 44, 264, 154), inner (102, 50, 258, 148).
+const U_HIT_POINTS = [
+  [95, 100],   // outside → 0
+  [264, 44],   // bounding-box corner, in neither rect → 0
+  [264, 100],  // shadow column: not grow (y < 136), not content, not T, not the drag box (x = box.r) → 1
+  [150, 100],  // content → 1
+  [250, 140],  // grow ∩ content → 3 / 1 (inactive: UH2 needs active)
+  [263, 153],  // grow extended into the frame → 3 / 2 (band)
+  [97, 100],   // left band → 2
+  [150, 47],   // bar between the boxes → 2
+  [99, 48],    // close box inset 1 → 4 / 2
+  [98, 47],    // close box corner, outside the inset → 2 (spec §12 UH4 hook)
+  [246, 52],   // zoom box inset → 6 / 2
+  [257, 52],   // collapse box inset → 9 / 2
+];
+const fiveU = v => Object.fromEntries(SCHEMES.map(s => [s, v]));
+const ln = (pts, P) => ['line', pts, P];
+const U_EXPECTED = {
+  // TG1: part 0 clears (TG1) and draws the frame; the bit is clear → pressed -14333, flip → 1 → normal -14336, flip → 0. Hilite does not gate (TG2).
+  'TG1 §2 a part-0 draw clears the bit; then two part-4 calls draw pressed, then normal': [{ drawn: ['frame', -14333, -14336], bit: 0 }, { drawn: ['frame', -14333, -14336], bit: 0 }],
+  // bit 1: 5 normal -14334 → 0; 6 pressed -14331 → 1; 9 normal -14335 → 0; 258 nothing, flips → 1; 4 normal -14336 → 0; 1 clears, nothing.
+  'TG2 §2 parts 4, 5/6, 9 by the bit; 258 flips, 258 and 1 draw nothing (document)': { drawn: [-14334, -14331, -14335, null, -14336, null], bit: 0 },
+  'TG3 §2 signed part compare: 0xFFFF (−1) clears the bit': { drawn: [null, -14333], bit: 1 },
+  // Document T width = content + 12. Close (T.l + 4 .. + 20). Shifted zoom at T.r − 33 meets close when Tw < 53; at T.r − 17 when Tw < 37.
+  // Tw 36: collapse dropped, zoom dropped; R = (T.r − 17) − 4 = Tw − 21 = 15 (bit 3 still set). Tw 40: collapse dropped, zoom kept; R = 19.
+  'WP1 §3.3 goAway + zoom + collapse box: zoom ∩ close drops collapse, then zoom (document, Tw 36 / 40)': [[36, { close: true, zoom: false, collapse: false }, 15], [40, { close: true, zoom: true, collapse: false }, 19]],
+  // Collapse (T.r − 17) meets close when Tw < 37. Tw 36: collapse dropped, zoom kept at T.r − 17 → R = 15. Tw 40: nothing dropped; zoom at T.r − 33 → R = 3.
+  'WP3 §3.3 no goAway, zoom + collapse box: only collapse ∩ close, zoom never dropped (Tw 36 / 40)': [[36, { close: false, zoom: true, collapse: false }, 15], [40, { close: false, zoom: true, collapse: true }, 3]],
+  'WP4 §3.3 no goAway, no zoom: nothing dropped (Tw 30)': [30, { close: false, zoom: false, collapse: true }],
+  'CT1 §3.5 entry n at position n when its value is n (also when a later entry repeats n)': [B, B],
+  'CT2 §3.5 last value 0: position n': [B],
+  // value 0 sits at position 1 (7 ≠ 0 last, so CT3 searches down: 7, then 0 at position 1); duplicates: the last match; none: position 0.
+  'CT3 §3.5 search from the last entry down; none → position 0 (value-0 entry at position 1 read there)': [B, Cc, A],
+  'CT4 §3.5 stored RGB16 compared exactly (one unit in one channel differs)': [true, false, false],
+  // Archive facts: every corpus actb/clut has value = position, so CT1 reads position n.
+  'CT5 §3.5 corpus: the positions CT1–CT3 read in actb -14336 (entry 0) and clut -14336/-14335 (entries 1, 5, 6)': fiveU([0, 1, 5, 6, 1, 5, 6]),
+  'GB1 §6.4/GB3/GB3a which copies use the mask (8-bit source, mask clear)': { documentGrow: 'u', kind5Grow: 'u', utilityCorners: 'u', utilityGrow: 'u', documentCorners: 's', titleCorners: 's', ringCorners: 's', utilityStripes: 's' },
+  'GB2 §6.4 GB3a: a 1-bit cicn always goes through its mask': [['u', 's'], ['u', 's'], ['u', 's']],
+  // l 288, t 188, r 305, b 205. GL2 k = 3, 7, 11: (r − 4, t + k) → (l + k, b − 4) → (l + k − 1, b − 4); GL3 k = 2, 6, 10: (r − 4, t + k) → (r − 5, t + k) → (l + k, b − 5).
+  'GB4 §6.4 GB4–GL4 procedural kind-5 grow box (grow (288, 188, 305, 205)), by state and clut presence': [
+    [['region', [[303, 188], [301, 188], [288, 201], [288, 203], [303, 203], [303, 188]]], ['clut', -14336], ['erase', 1],
+      ['line', 6, [[301, 191], [291, 201], [290, 201]]], ['line', 6, [[301, 195], [295, 201], [294, 201]]], ['line', 6, [[301, 199], [299, 201], [298, 201]]],
+      ['line', 5, [[301, 190], [300, 190], [290, 200]]], ['line', 5, [[301, 194], [300, 194], [294, 200]]], ['line', 5, [[301, 198], [300, 198], [298, 200]]]],
+    [['region', [[303, 188], [301, 188], [288, 201], [288, 203], [303, 203], [303, 188]]], ['clut', -14335], ['erase', 1]],
+    [['region', [[303, 188], [301, 188], [288, 201], [288, 203], [303, 203], [303, 188]]]]],
+  'UI1 §9.1 UI1–UI6 flags (hilited false; then variation 1 hilited)': [[0, false, 'alwaysActive active'], [1, false, ''], [3, false, 'grow'], [5, false, 'zoom'], [9, false, 'side'], [17, false, 'smallGrow'],
+    [31, false, 'grow zoom side smallGrow'], [1, true, 'active']],
+  'UI10 §9.1 H: 13 side, else 15 titled, 13 untitled': [15, 13, 13, 13],
+  'UG1 §9.2 UG1–UG3 T, structure, content (titled, untitled, side, collapsed, collapsed side)': [
+    { T: [96, 44, 264, 60], structure: [[96, 44, 264, 154], [98, 46, 265, 155]], content: UC },
+    { T: [96, 46, 264, 60], structure: [[96, 46, 264, 154], [98, 48, 265, 155]], content: UC },
+    { T: [86, 56, 100, 154], structure: [[86, 56, 264, 154], [88, 58, 265, 155]], content: UC },
+    { T: [96, 44, 264, 60], structure: [[96, 44, 264, 60], [98, 46, 265, 61]], content: [100, 60, 260, 60] },
+    { T: [86, 56, 100, 154], structure: [[86, 56, 100, 154], [88, 58, 101, 155]], content: [100, 60, 100, 150] }],
+  // Insets = content edge − structure bounding box: horizontal 4 / H + 1 / 4 + 1 / 4 + 1; side H + 1 / 4 / 5 / 5;
+  // collapsed: the 1-px shadow beyond T on the far edge. These equal the round-2 measured insets of IMPL-REVIEW-421.
+  'UG2 §9.2 public-type frame insets [l, t, r, b] and structure size, 160 × 90 content': [
+    ['titled-utility-window', [4, 16, 5, 5], [169, 111]], ['collapsed-titled-utility-window', [4, 16, 5, 1], [169, 17]],
+    ['side-floating-utility-window', [14, 4, 5, 5], [179, 99]], ['collapsed-side-floating-utility-window', [14, 4, 1, 5], [15, 99]],
+    ['no-title-utility-window', [4, 14, 5, 5], [169, 109]]],
+  // 16 × 16 at (C.r − 14, C.b − 14); small 12 × 12 at (C.r − 10, C.b − 10); content minus grow only with smallGrow and grow.
+  'UG3 §9.2 UG4/UG10 grow rect and content minus grow (grow; smallGrow + grow; smallGrow only)': [[[246, 136, 262, 152], null], [[250, 140, 262, 152], [250, 140, 262, 152]], [[250, 140, 262, 152], null]],
+  'UG4 §9.2 UG5–UG9 boxes and limits': [
+    { close: [98, 47, 108, 57], zoom: [241, 47, 251, 57], collapse: [252, 47, 262, 57], shown: { close: true, zoom: false, collapse: true }, Lu: 110, Ru: 250 },
+    { close: [98, 47, 108, 57], zoom: [241, 47, 251, 57], collapse: [252, 47, 262, 57], shown: { close: true, zoom: true, collapse: true }, Lu: 110, Ru: 239 },
+    { close: [98, 48, 108, 58], zoom: [241, 48, 251, 58], collapse: [252, 48, 262, 58], shown: { close: true, zoom: false, collapse: true }, Lu: 110, Ru: 250 },
+    // side: no goAway → Lu = T.t + 5 = 61; Ru = collapse.t − 2 = 140.
+    { close: [88, 58, 98, 68], zoom: [88, 131, 98, 141], collapse: [88, 142, 98, 152], shown: { close: false, zoom: false, collapse: true }, Lu: 61, Ru: 140 },
+    // no goAway, no shadeOn: zoom box unshifted; Lu = T.l + 5 = 101, Ru = T.r − 5 = 259.
+    { close: [98, 47, 108, 57], zoom: [252, 47, 262, 57], collapse: [252, 47, 262, 57], shown: { close: false, zoom: false, collapse: false }, Lu: 101, Ru: 259 }],
+  // c⁺ = (T.l − 5 .. T.l + 19). Shifted z⁺ = (T.r − 30 .. T.r − 6) meets it when Tw < 49; the recomputed zoom (T.r − 12 .. T.r − 2), not
+  // outset, when Tw < 31. Without shadeOn the zoom starts unshifted: z⁺ (T.r − 19 ..) meets c⁺ when Tw < 38 (Tw 37: zoom kept).
+  'UP1 §9.3 goAway + zoom: 7-px outsets; recomputed zoom not outset (Tw 49, 48, 31, 30; then shadeOn off at Tw 37)': [
+    [49, { close: true, zoom: true, collapse: true }, 26], [48, { close: true, zoom: true, collapse: false }, 36], [31, { close: true, zoom: true, collapse: false }, 19],
+    [30, { close: true, zoom: false, collapse: false }, 18], [37, { close: true, zoom: true, collapse: false }, 25]],
+  // k⁺ = (T.r − 19 .. T.r + 5) meets c⁺ when Tw < 38.
+  'UP2 §9.3 goAway, no zoom: k⁺ ∩ c⁺ clears shadeOn (Tw 38, 37)': [[38, { close: true, zoom: false, collapse: true }], [37, { close: true, zoom: false, collapse: false }]],
+  'UP3 §9.3 no goAway, zoom + shadeOn: k⁺ ∩ c⁺ clears shadeOn, zoom kept (Tw 38, 37); UP4 nothing (Tw 20)': [[38, { close: false, zoom: true, collapse: true }], [37, { close: false, zoom: true, collapse: false }],
+    [20, { close: false, zoom: false, collapse: true }]],
+  'UFA1 §9.4 UFA1 frame cicn by orientation and state (corpus)': fiveU({ active: [-14316, -14315], inactive: [-14320, -14319] }),
+  // Present: only active horizontal → inactive falls back (UFA2), side absent (UFA3 null); only inactive → active absent → null; none → null.
+  'UFA2 §9.4 UFA2/UFA3 absent cicns (synthetic presence)': [[-14316, -14316, null], [null, -14320, null], [null, null, null], [null, -14320, -14315]],
+  // Collapsed horizontal F = (96, 44, 264, 60); side F = (86, 56, 100, 154).
+  'UFC1 §9.4 UFC1–UFC6 collapsed frame ops (horizontal titled, side)': [
+    [['copy', [96, 44, 98, 46], [0, 0, 2, 2]], ['copy', [262, 44, 264, 46], [10, 0, 12, 2]], ['copy', [96, 58, 98, 60], [0, 10, 2, 12]], ['copy', [262, 58, 264, 60], [10, 10, 12, 12]],
+      ...[0, 1].flatMap(i => [ln([96 + i, 46, 96 + i, 57], [i, 6]), ln([263 - i, 46, 263 - i, 57], [11 - i, 6]), ln([98, 44 + i, 261, 44 + i], [6, i]), ln([98, 59 - i, 261, 59 - i], [6, 11 - i])]),
+      ['interior', [98, 46, 262, 58]], ['sample', { fill: [4, 3], text: [5, 3], shadow: [7, 3] }], ln([98, 60, 264, 60], [0, 0]), ln([264, 60, 264, 46], [0, 0])],
+    [['copy', [86, 56, 88, 58], [0, 0, 2, 2]], ['copy', [98, 56, 100, 58], [10, 0, 12, 2]], ['copy', [86, 152, 88, 154], [0, 10, 2, 12]], ['copy', [98, 152, 100, 154], [10, 10, 12, 12]],
+      ...[0, 1].flatMap(i => [ln([86 + i, 58, 86 + i, 151], [i, 6]), ln([99 - i, 58, 99 - i, 151], [11 - i, 6]), ln([88, 56 + i, 97, 56 + i], [6, i]), ln([88, 153 - i, 97, 153 - i], [6, 11 - i])]),
+      ['interior', [88, 58, 98, 152]], ['sample', { fill: [3, 4], text: [3, 5], shadow: [3, 7] }], ln([88, 154, 100, 154], [0, 0]), ln([100, 154, 100, 58], [0, 0])]],
+  // F = (96, 44, 264, 154), C = (100, 60, 260, 150): Fr − 4 = 260, Fl + 4 = 100, Fr − 5 = 259, Fb − 5 = 149.
+  'UFH1 §9.4 UFH1–UFH12 horizontal frame ops (titled)': [
+    ['copy', [96, 44, 99, 47], [0, 0, 3, 3]], ['copy', [261, 44, 264, 47], [9, 0, 12, 3]], ['copy', [96, 150, 100, 154], [0, 8, 4, 12]], ['copy', [260, 150, 264, 154], [8, 8, 12, 12]],
+    ['copy', [98, 57, 100, 60], [2, 3, 4, 6]], ['copy', [260, 57, 262, 60], [8, 3, 10, 6]],
+    ...[0, 1, 2].map(i => ln([98, 44 + i, 260, 44 + i], [4, i])), ...[0, 1, 2, 3].map(i => ln([100, 153 - i, 259, 153 - i], [4, 11 - i])),
+    ...[0, 1, 2, 3].flatMap(i => [ln([96 + i, i < 2 ? 46 : 60, 96 + i, 149], [i, 6]), ln([263 - i, i < 2 ? 46 : 60, 263 - i, 149], [11 - i, 6])]),
+    ...[0, 1, 2].map(i => ln([100, 59 - i, 259, 59 - i], [4, 5 - i])),
+    ['interior', [98, 47, 262, 57]], ['sample', { fill: [4, 3], text: [5, 3], shadow: [7, 3] }], ln([98, 154, 264, 154], [0, 0]), ln([264, 154, 264, 46], [0, 0])],
+  // F = (86, 56, 264, 154), C = (100, 60, 260, 150): Fb − 4 = 150, Ft + 4 = 60, Fb − 5 = 149, Fr − 5 = 259.
+  'UFS1 §9.4 UFS1–UFS12 side frame ops': [
+    ['copy', [86, 56, 89, 59], [0, 0, 3, 3]], ['copy', [86, 151, 89, 154], [0, 9, 3, 12]], ['copy', [260, 56, 264, 60], [8, 0, 12, 4]], ['copy', [260, 150, 264, 154], [8, 8, 12, 12]],
+    ['copy', [97, 58, 100, 60], [3, 2, 6, 4]], ['copy', [97, 150, 100, 152], [3, 8, 6, 10]],
+    ...[0, 1, 2].map(i => ln([86 + i, 58, 86 + i, 150], [i, 4])), ...[0, 1, 2, 3].map(i => ln([263 - i, 60, 263 - i, 149], [11 - i, 4])),
+    ...[0, 1, 2, 3].flatMap(i => [ln([i < 2 ? 88 : 100, 56 + i, 259, 56 + i], [6, i]), ln([i < 2 ? 88 : 100, 153 - i, 259, 153 - i], [6, 11 - i])]),
+    ...[0, 1, 2].map(i => ln([99 - i, 60, 99 - i, 149], [5 - i, 4])),
+    ['interior', [89, 58, 97, 152]], ['sample', { fill: [3, 4], text: [3, 5], shadow: [3, 7] }], ln([88, 154, 264, 154], [0, 0]), ln([264, 154, 264, 58], [0, 0])],
+  // UFT2 has no collapsed condition in the spec (the runtime's skip is declared policy). Untitled F = (96, 46, 264, 154): shadow column to Ft + 2 = 48.
+  'UFT1 §9.4 UFT1 sample points; UFT2 small grow in the tail (expanded and collapsed); UFT3 shadow (untitled)': [
+    { fill: [4, 3], text: [5, 3], shadow: [7, 3] }, { fill: [3, 4], text: [3, 5], shadow: [3, 7] },
+    [['smallGrow', [250, 140, 262, 152]]], [['smallGrow', [250, 140, 262, 152]]], [ln([98, 154, 264, 154], [0, 0]), ln([264, 154, 264, 48], [0, 0])]],
+  // Archive facts: raw RGB16 of Q at the UFT1 points, [horizontal, side]; then the number of text passes. Every corpus
+  // utility shadow sample equals its fill, so UT7 never draws the shadow pass (under the document rule, shadow ≠ text, it would).
+  'UFT2 §9.4 UFT1 corpus colours and §9.6.1 UT7 passes (fill / text / shadow, shadow pass)': (() => {
+    const c = (fill, text) => `${fill}/${text}/${fill} 1`, both = (fill, text) => [c(fill, text), c(fill, text)];
+    return {
+      'apple-platinum-2': a(both(K.c, K.a), both(K.c, K.a)),
+      'black-platinum': a(both('318c318c318c', K.w), both('529452945294', '212121212121')),
+      'platinum-8': a([c(K.c, '444444444444'), c(K.c, K.a)], both(K.d, K.f7)),
+      slimes: a(both('6666cccc0000', '222222222222'), both('ccccffff6666', K.f7)),
+      'system7-nostalgia-silver': a(both(K.e, K.a), both(K.e, K.f7)),
+    }; })(),
+  // Band: titled rows T.t + trunc((16 − 8) / 2) = 48 .. 57, columns Lu 110 .. Ru 250: 9-px tiles at 110 + 9k, k = 0..15.
+  // Side: columns T.l + trunc((14 − 8) / 2) = 89 .. 98, rows Lu 61 .. Ru 140: tiles at 61 + 9k, k = 0..8. Inactive: none.
+  'US1 §9.5 US1–US6 band, art, tiles (horizontal titled, side; inactive)': perScheme(slug => {
+    const side = slug === 'apple-platinum-2' ? -14314 : -14318;   // US3: apple-platinum-2 ships no cicn -14318
+    return [{ band: [110, 48, 250, 57], art: -14314, tiles: 16, first: ['tile', -14314, [110, 48, 119, 57], [0, 0, 9, 9]], last: ['tile', -14314, [245, 48, 254, 57], [0, 0, 9, 9]] },
+      { band: [89, 61, 98, 140], art: side, tiles: 9, first: ['tile', side, [89, 61, 98, 70], [0, 0, 9, 9]], last: ['tile', side, [89, 133, 98, 142], [0, 0, 9, 9]] }, null]; }),
+  // No goAway, no shadeOn: Lu = T.l + 5, Ru = T.r − 5, length = content + 8 − 10: 3 → paint; 4 → one tile.
+  'US2 §9.5 US4 narrow band painted with the fill (length 3), tiled at 4': [[['paint', [101, 48, 104, 57]]], [['tile', -14314]]],
+  // T.w 168. w 40: left 96 + 64 = 160. w 150: 96 + 9 = 105 < Lu → condensed 140: 96 + 14 = 110; 120: 120; 158: 101 → Lu 110.
+  'UT1 §9.6.1 UT1 title rect (fits; condensed; condensed at Lu; side; width 0)': [[160, 47, 200, 57], [110, 47, 250, 57], [120, 47, 240, 57], [110, 47, 268, 57], null, null],
+  // r = rect with bottom + 1 = (160, 47, 200, 58), h 11. y = 47 + trunc((11 − 1 − 12) / 2) + 10 = 56. Erase widened by 2; clip (Lu, r.t, Ru, r.b).
+  // Condensed: r.w 140 < bold 150 → TruncString to Ru − r.l = 140. Skip: T (96 .. 116), Lu 110, Ru 111, rect left 110: 112 > 111.
+  'UT2 §9.6.1 UT2–UT8 title ops (fits; condensed + truncated; UT2 skip; empty title)': [
+    [['clip', [110, 47, 250, 58]], ['erase', [158, 47, 202, 58], 'fill'], ['remove', [158, 47, 202, 58]], ['text', [161, 57], 'shadow'], ['text', [160, 56], 'text']],
+    [['condense', 140], ['clip', [110, 47, 250, 58]], ['erase', [108, 47, 252, 58], 'fill'], ['remove', [110, 47, 250, 58]], ['text', [111, 57], 'shadow'], ['text', [110, 56], 'text']],
+    [], []],
+  'UT3 §9.6.1 UT7 shadow pass compares shadow with the fill (shadow = fill; shadow = text)': [['text'], ['shadow', 'text']],
+  'UW1 §9.6 UW1–UW5 step order and fill region (active, inactive, side)': [
+    { steps: ['frame', 'stripes', 'title', 'close', 'collapse', 'fill'], fill: { interior: [98, 47, 262, 57], minus: [[110, 48, 250, 57], [158, 47, 202, 58], [98, 47, 108, 57], [252, 47, 262, 57]] } },
+    { steps: ['frame', 'title', 'fill'], fill: { interior: [98, 47, 262, 57], minus: [[158, 47, 202, 58]] } },
+    { steps: ['frame', 'stripes', 'collapse', 'fill'], fill: { interior: [89, 58, 97, 152], minus: [[89, 61, 98, 140], [88, 142, 98, 152]] } }],
+  // Archive facts: -14313/-14317 are 16 × 16 except system7 (17 × 17); no -14285/-14286. Small: trunc(16 · 11 / 15) = 11, trunc(17 · 11 / 15) = 12.
+  'UGB1 §9.7 UGB1–UGB2 grow art (corpus, by state; normal and small)': perScheme(slug => { const n = slug === 'system7-nostalgia-silver' ? 17 : 16, s = slug === 'system7-nostalgia-silver' ? 12 : 11;
+    return perState(hl => [[hl ? -14313 : -14317, [n, n], [246, 136]], [hl ? -14313 : -14317, [s, s], [250, 140]]]); }),
+  'UGB2 §9.7 UGB1 small grow cicn when present (synthetic -14285 12 × 12)': [-14285, [12, 12], [250, 140]],
+  // bit 1: 0 clears, frame; 4 pressed -14317 → 1; 4 normal -14320 → 0; 5 pressed -14315 → 1; 9 normal -14319 → 0; 258 nothing, no flip; 4 pressed → 1.
+  'UM1 §9.8 UM1–UM2 utility parts and the shared bit (258 does not flip)': [{ drawn: ['frame', -14317, -14320, -14315, -14319, null, -14317], bit: 1 }, { drawn: ['frame', -14317, -14320, -14315, -14319, null, -14317], bit: 1 }],
+  'UM2 §9.6 UW4 / §9.8 UM3 widget plots of a full draw (titled, zoom, side; inactive)': [
+    [['close', -14320, [98, 47, 114, 63]], ['collapse', -14319, [252, 47, 268, 63]]],
+    [['close', -14320, [98, 47, 114, 63]], ['zoom', -14318, [241, 47, 257, 63]], ['collapse', -14319, [252, 47, 268, 63]]],
+    [['collapse', -14319, [88, 142, 104, 158]]], []],
+  'UM3 §9.8 UM4 message 6 (grow; collapsed; no grow; invisible)': [true, false, false, false],
+  'UH1 §9.9 UH1–UH8 hit codes (variation 7, active; inactive; atZoom)': [[0, 0, 1, 1, 3, 3, 2, 2, 4, 2, 6, 9], [0, 0, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2], [5]],
+};
+
+test('rev 3: every utility and shared rule row equals the spec value under the decode', () => {
+  assert.deepEqual(Object.keys(U_ROWS).sort(), Object.keys(U_EXPECTED).sort());
+  for (const [id, row] of Object.entries(U_ROWS)) assert.deepEqual(row({}), U_EXPECTED[id], id);
+});
+
+test('rev 3 corpus: the utility resources each archive ships (§8, §9.4–§9.8)', () => {
+  for (const slug of SCHEMES) {
+    const h = has(slug);
+    for (const id of [-14316, -14320, -14315, -14319]) assert.deepEqual(usize(slug)(id), [12, 12], `${slug} cicn ${id} 12 × 12`);
+    assert.deepEqual(usize(slug)(-14314), [9, 9], `${slug} -14314`);
+    assert.equal(h('cicn', -14318), slug !== 'apple-platinum-2', `${slug} -14318`);
+    for (const id of [-14313, -14317]) assert.deepEqual(usize(slug)(id), slug === 'system7-nostalgia-silver' ? [17, 17] : [16, 16], `${slug} ${id}`);
+    for (const id of [-14285, -14286]) assert.ok(!h('cicn', id), `${slug} cicn ${id} absent`);
+    for (const id of [-14320, -14319, -14318]) assert.ok(h('ics#', id) && h('ics8', id), `${slug} normal glyph ${id}`);
+    // Pressed glyphs: slimes ships none (UM3 parts 4/5/6/9 draw nothing there, §6.1 'required').
+    for (const id of [-14317, -14316, -14315]) assert.equal(h('ics#', id), slug !== 'slimes', `${slug} pressed ics# ${id}`);
+    // Every utility frame, utility grow and document grow cicn mask is all ones (GB3 masked = opaque on this corpus).
+    for (const id of [-14316, -14320, -14315, -14319, -14313, -14317, -14330, -14334]) assert.ok(cicn(slug, id).maskAlpha.every(v => v === 255), `${slug} ${id} mask all ones`);
+  }
+  // apple-platinum-2: the active and inactive utility frames are pixel-identical (state non-discriminating).
+  const same12 = (slug, x, y) => Array.from({ length: 144 }, (_, i) => [i % 12, Math.trunc(i / 12)]).every(p => P(slug, x, p) === P(slug, y, p));
+  assert.ok(same12('apple-platinum-2', -14316, -14320) && same12('apple-platinum-2', -14315, -14319));
+  for (const slug of SCHEMES.filter(s => s !== 'apple-platinum-2')) assert.ok(!same12(slug, -14316, -14320) && !same12(slug, -14315, -14319), slug);
+  // The excluded type is a real public type (#423) and the binding drives the other five.
+  assert.equal(UTILITY_EXCLUDED.issue, 423);
+  assert.deepEqual(UTILITY_TYPES.map(t => t.slug), ['titled-utility-window', 'collapsed-titled-utility-window', 'side-floating-utility-window', 'collapsed-side-floating-utility-window', 'no-title-utility-window']);
+});
+
+test('rev 3 binding plan: every browser probe lies on the frame op the spec names, outside the interior', () => {
+  for (const t of UTILITY_TYPES) {
+    const plan = utilityPlan(t);
+    for (const p of plan.probes) {
+      assert.ok(p.src, `${t.slug} ${p.name}: on a frame line`);
+      assert.equal(p.inInterior, false, `${t.slug} ${p.name}: outside the interior`);
+      const [group] = p.name.split(' '), i = Number(p.name.at(-1));
+      // The probe's sample point is the one its rule names (P(4, i), P(i, 6), …; UFT3 P(0, 0)).
+      const want = { UFH7: [4, i], UFH8: [4, 11 - i], UFH9: [i, 6], UFH10: [11 - i, 6], UFH11: [4, 5 - i], UFS7: [i, 4], UFS8: [11 - i, 4], UFS9: [6, i], UFS10: [6, 11 - i],
+        UFS11: [5 - i, 4], UFC2: [i, 6], UFC3: [11 - i, 6], UFC4: [6, i], UFC5: [6, 11 - i], UFT3: [0, 0] }[group];
+      assert.deepEqual(p.src, want, `${t.slug} ${p.name}`);
+    }
+    assert.ok(plan.probes.filter(p => p.activeSafe).length >= 7, t.slug);
+    // Every stripes-window pixel lies in the interior (US2 clip) …
+    for (const k of plan.stripes.across) for (const x of plan.stripes.along) assert.ok(t.side ? k >= plan.interior[0] && k < plan.interior[2] && x >= plan.interior[1] && x < plan.interior[3]
+      : x >= plan.interior[0] && x < plan.interior[2] && k >= plan.interior[1] && k < plan.interior[3], `${t.slug} stripes (${k}, ${x})`);
+    // … and inside [Lu, Ru) for every goAway / zoom / shadeOn combination.
+    for (const variation of [1, 5].map(v => v | (t.side ? 8 : 0))) for (const goAway of [true, false]) for (const shadeOn of [true, false]) {
+      const g = utilityGeometry({ variation, C: plan.C, hilited: true, goAway, shadeOn, collapsed: t.collapsed, title: t.titled ? 'x' : '' });
+      assert.ok(plan.stripes.along[0] >= g.Lu && plan.stripes.along.at(-1) < g.Ru, `${t.slug} ${variation}/${goAway}/${shadeOn}`);
+    }
+  }
+});
+
+// Plausible wrong readings of rev 3, each a model override (utility readings under `utility`).
+const u = utility => ({ utility });
+const U_MUTATIONS = {
+  'TG1 no clear for part 0': { toggle: { ...DECODE.toggle, clearBelow: 0 } },
+  'TG1 unsigned part compare': { toggle: { ...DECODE.toggle, signed: false } },
+  'TG2 pressed when the bit is set': { toggle: { ...DECODE.toggle, pressedWhenClear: false } },
+  'TG2 widget parts gated on hilited': { toggle: { ...DECODE.toggle, gatedOnHilite: true } },
+  'TG3 part 258 does not flip (document)': { toggle: { ...DECODE.toggle, flipParts: [4, 5, 6, 9] } },
+  'WP1/WP2 applied without goAway (the #412 reading)': { dropsIgnoreGoAway: true },
+  'WP1 drops zoom without re-testing it at T.r − 17': { wp1Recheck: false },
+  'CT1–CT3 entry n read by position': { ctLookup: (e, n) => e[n] },
+  'CT1–CT3 one-based positions': { ctLookup: (e, n) => e[n + 1] ?? e[0] },
+  'CT1 skipped (search only)': { ctLookup: (e, n) => { const last = e.length - 1; if (e[last].value === 0) return e[n]; for (let i = last; i >= 0; i--) if (e[i].value === n) return e[i]; return e[0]; } },
+  'CT2 skipped': { ctLookup: (e, n) => { const last = e.length - 1; if (n <= last && e[n].value === n) return e[n]; for (let i = last; i >= 0; i--) if (e[i].value === n) return e[i]; return e[0]; } },
+  'CT3 search from position 0 up': { ctLookup: (e, n) => { const last = e.length - 1; if (n <= last && e[n].value === n) return e[n]; if (e[last].value === 0) return e[n]; return e.find(x => x.value === n) ?? e[0]; } },
+  'CT4 high bytes only': { ctEqual: (x, y) => x.every((c, i) => c >> 8 === y[i] >> 8) },
+  'GB1 grow cicn copied opaque': { copyModes: { ...DECODE.copyModes, documentGrow: 'opaque', utilityGrow: 'opaque' } },
+  'GB3a stripes copied through the mask at every depth': { copyModes: { ...DECODE.copyModes, utilityStripes: 'masked' } },
+  'GB3a 1-bit cicn copied opaque': { oneBitMasked: false },
+  'GB5 kind-5 clut states swapped': { kind5Clut: { true: -14335, false: -14336 } },
+  'GL2 light lines in entry 5': { gripLight: 5 },
+  'UI1 alwaysActive when bit 0 set': u({ bits: { ...UDECODE.bits, alwaysActiveClear: 0 } }),
+  'UI2/UI3 grow and zoom bits swapped': u({ bits: { ...UDECODE.bits, grow: 4, zoom: 2 } }),
+  'UI6 active = hilited only': u({ activeRule: hl => hl }),
+  'UI10 H always 15 when not side': u({ barHeight: ({ side }) => (side ? 13 : 15) }),
+  'UI10 side H 15 when titled': u({ barHeight: ({ titled }) => (titled ? 15 : 13) }),
+  'UG2 structure raised by H − 2': u({ raise: H => H - 2 }),
+  'UG2 outset 5': u({ outset: 5 }),
+  'UG5 box offset without + 1 (trunc((t − 10) / 2))': u({ boxOffset: t => Math.trunc((t - 10) / 2) }),
+  'UG5 box top T.t + 3 for every bar': u({ boxOffset: () => 3 }),
+  'UG6 collapse at T.r − 11': u({ collapseInset: 11 }),
+  'UG7 zoom shift 10': u({ zoomShift: 10 }),
+  'UG8/UG9 limit gap 3': u({ limitGap: 3 }),
+  'UG10 normal grow 15 × 15 inside': u({ grow: { ...UDECODE.grow, normal: 15 } }),
+  'UP no 7-px outset': u({ dropOutset: 0 }),
+  'UP1 recomputed zoom also outset': u({ recomputedZoomOutset: 7 }),
+  'UP3 drops zoom too': u({ up3DropsZoom: true }),
+  'UFA1 states swapped': u({ frameCicn: { horizontal: { true: -14320, false: -14316 }, side: { true: -14319, false: -14315 } } }),
+  'UFA1 side uses the horizontal ids': u({ frameCicn: { horizontal: UDECODE.frameCicn.horizontal, side: UDECODE.frameCicn.horizontal } }),
+  'UFA2 no inactive fallback': u({ inactiveFallback: false }),
+  'UFT1 document sample points (6, 3) / (7, 3) / (9, 3)': u({ samples: { ...UDECODE.samples, horizontal: { fill: [6, 3], text: [7, 3], shadow: [9, 3] } } }),
+  'UFT1 side samples untransposed': u({ samples: { ...UDECODE.samples, side: UDECODE.samples.horizontal } }),
+  'UFT2 skipped when collapsed (runtime declared policy)': u({ collapsedSkipsSmallGrow: true }),
+  'UFT3 drop shadow from P(11, 11)': u({ drop: [11, 11] }),
+  'US1 band offset trunc((t − 6) / 2)': u({ bandOffset: t => Math.trunc((t - 6) / 2) }),
+  'US1 band 8 rows': u({ stripeExtent: 8 }),
+  'US3 side stripes from -14314 only': u({ stripeIds: { ...UDECODE.stripeIds, side: [-14314] } }),
+  'US4 narrow threshold 5': u({ stripeNarrow: 5 }),
+  'UW2 stripes when inactive': u({ stripesWhenInactive: true }),
+  'UW4 widgets when inactive': u({ widgetsWhenInactive: true }),
+  'UW3 title on side windows': u({ titleOnSide: true }),
+  'UT1 vertical inset 2': u({ titleInset: 2 }),
+  'UT5 erase widened by 3': u({ eraseWiden: 3 }),
+  'UT6 baseline without − 1': u({ baseline: (r, asc, d) => r[1] + Math.trunc((r[3] - r[1] - (asc + d)) / 2) + asc }),
+  'UT6 document pen x + 3': u({ penDx: 3 }),
+  'UT7 shadow pass when shadow ≠ text (document rule)': u({ shadowPass: (shadow, text) => JSON.stringify(shadow) !== JSON.stringify(text) }),
+  'UT2 skip pad 1': u({ titleSkip: 1 }),
+  'UGB1 small grow cicn never tried': u({ smallGrowCicn: false }),
+  'UGB2 ids swapped by state': u({ growCicn: { ...UDECODE.growCicn, normal: { true: -14317, false: -14313 } } }),
+  'UGB2 small crop scaled 12/16': u({ smallCrop: n => Math.trunc((n * 12) / 16) }),
+  'UM2 part 258 flips (utility)': u({ flipParts: [4, 5, 6, 9, 258] }),
+  'UM3 zoom and collapse ids swapped': u({ widgetIds: { close: [-14320, -14317], zoom: [-14319, -14316], collapse: [-14318, -14315] } }),
+  'UH4 widget hit on the full 10 × 10 box': u({ hitInset: 0 }),
+  'UH4–UH6 widget hits when inactive': u({ hitGateActive: false }),
+  'UH7 drag band 4': u({ dragBand: 4 }),
+};
+const U_PER_SCHEME = id => /^(CT5|UFA1|UFT2|US1|UGB1) /.test(id);
+const uCells = (id, value) => !U_PER_SCHEME(id) ? [['all', value]]
+  : SCHEMES.flatMap(s => (value[s] && 'active' in value[s] ? Object.keys(STATES).map(st => [`${s}/${st}`, value[s][st]]) : [[s, value[s]]]));
+const U_VALUES = Object.fromEntries(Object.keys(U_ROWS).map(id => [id, uCells(id, U_EXPECTED[id])]));
+function uMutationTable() {
+  return Object.fromEntries(Object.entries(U_MUTATIONS).map(([name, reading]) => {
+    const fails = {};
+    for (const [id, row] of Object.entries(U_ROWS)) {
+      let value; try { value = row(reading); } catch { fails[id.split(' ')[0]] = 'throws'; continue; }
+      const got = uCells(id, value), want = U_VALUES[id];
+      const bad = want.filter(([k, v], i) => !sameJson(got[i]?.[1], v) || got[i][0] !== k).map(([k]) => k);
+      if (bad.length) fails[id.split(' ')[0]] = bad.length === want.length ? 'all' : bad;
+    }
+    return [name, fails];
+  }));
+}
+
+test('rev 3 mutation table: each wrong reading fails the named rows; every row and cell can fail', () => {
+  const table = Object.fromEntries(Object.entries(uMutationTable()).map(([m, f]) => [m, Object.fromEntries(Object.entries(f).map(([k, v]) => [k, short(v)]))]));
+  // A list names the cells that see the mutation; the cells it omits cannot discriminate it (findings below).
+  assert.deepEqual(table, {
+    "TG1 no clear for part 0": {"TG1": "all", "UM1": "all"},
+    "TG1 unsigned part compare": {"TG3": "all"},
+    "TG2 pressed when the bit is set": {"TG1": "all", "TG2": "all", "TG3": "all", "UM1": "all"},
+    "TG2 widget parts gated on hilited": {"TG1": "all", "UM1": "all"},
+    "TG3 part 258 does not flip (document)": {"TG2": "all"},
+    "WP1/WP2 applied without goAway (the #412 reading)": {"WP3": "all", "WP4": "all"},
+    "WP1 drops zoom without re-testing it at T.r − 17": {"WP1": "all"},
+    "CT1–CT3 entry n read by position": {"CT3": "all"},
+    "CT1–CT3 one-based positions": {"CT1": "all", "CT2": "all", "CT5": "all"},
+    "CT1 skipped (search only)": {"CT1": "all"},
+    "CT2 skipped": {"CT2": "all"},
+    "CT3 search from position 0 up": {"CT3": "all"},
+    "CT4 high bytes only": {"CT4": "all"},
+    "GB1 grow cicn copied opaque": {"GB1": "all"},
+    "GB3a stripes copied through the mask at every depth": {"GB1": "all"},
+    "GB3a 1-bit cicn copied opaque": {"GB2": "all"},
+    "GB5 kind-5 clut states swapped": {"GB4": "all"},
+    "GL2 light lines in entry 5": {"GB4": "all"},
+    "UI1 alwaysActive when bit 0 set": {"UI1": "all", "UFA1": ["ap2/inactive", "bp/inactive", "p8/inactive", "slimes/inactive", "s7/inactive"], "UFA2": "all", "UFT2": ["bp/inactive", "p8/inactive", "slimes/inactive", "s7/inactive"], "US1": "all", "UW1": "all", "UGB1": ["ap2/inactive", "bp/inactive", "p8/inactive", "slimes/inactive", "s7/inactive"], "UM2": "all", "UH1": "all"},
+    "UI2/UI3 grow and zoom bits swapped": {"UI1": "all", "UG3": "all", "UG4": "all", "UP2": "all", "UP3": "all", "UFT1": "all", "US1": "all", "US2": "all", "UT2": "all", "UW1": "all", "UM2": "all", "UM3": "all"},
+    "UI6 active = hilited only": {"UI1": "all"},
+    "UI10 H always 15 when not side": {"UI10": "all", "UG1": "all", "UG2": "all", "UG4": "all", "UFT1": "all"},
+    "UI10 side H 15 when titled": {"UI10": "all"},
+    "UG2 structure raised by H − 2": {"UG1": "all", "UG2": "all", "UFH1": "all", "UFS1": "all", "UFT1": "all", "UW1": "all"},
+    "UG2 outset 5": {"UG1": "all", "UG2": "all", "UG4": "all", "UP1": "all", "UP2": "all", "UP3": "all", "UFC1": "all", "UFH1": "all", "UFS1": "all", "UFT1": "all", "US1": "all", "US2": "all", "UT1": "all", "UT2": "all", "UW1": "all", "UM2": "all", "UH1": "all"},
+    "UG5 box offset without + 1 (trunc((t − 10) / 2))": {},
+    "UG5 box top T.t + 3 for every bar": {"UG4": "all", "UW1": "all", "UM2": "all"},
+    "UG6 collapse at T.r − 11": {"UG4": "all", "UP1": "all", "UP2": "all", "UP3": "all", "US1": "all", "UT2": "all", "UW1": "all", "UM2": "all"},
+    "UG7 zoom shift 10": {"UG4": "all", "UP1": "all", "UM2": "all"},
+    "UG8/UG9 limit gap 3": {"UG4": "all", "US1": "all", "UT1": "all", "UT2": "all", "UW1": "all"},
+    "UG10 normal grow 15 × 15 inside": {"UG3": "all", "UGB1": "all"},
+    "UP no 7-px outset": {"UP1": "all", "UP2": "all", "UP3": "all"},
+    "UP1 recomputed zoom also outset": {"UP1": "all"},
+    "UP3 drops zoom too": {"UP3": "all"},
+    "UFA1 states swapped": {"UFA1": "all", "UFA2": "all", "UFT2": ["bp", "p8", "slimes", "s7"]},
+    "UFA1 side uses the horizontal ids": {"UFA1": "all", "UFA2": "all", "UFT2": "all"},
+    "UFA2 no inactive fallback": {"UFA2": "all"},
+    "UFT1 document sample points (6, 3) / (7, 3) / (9, 3)": {"UFC1": "all", "UFH1": "all", "UFT1": "all", "UFT2": "all"},
+    "UFT1 side samples untransposed": {"UFC1": "all", "UFS1": "all", "UFT1": "all", "UFT2": "all"},
+    "UFT2 skipped when collapsed (runtime declared policy)": {"UFT1": "all"},
+    "UFT3 drop shadow from P(11, 11)": {"UFC1": "all", "UFH1": "all", "UFS1": "all", "UFT1": "all"},
+    "US1 band offset trunc((t − 6) / 2)": {"US1": "all", "US2": "all", "UW1": "all"},
+    "US1 band 8 rows": {"US1": "all", "US2": "all", "UW1": "all"},
+    "US3 side stripes from -14314 only": {"US1": ["bp", "p8", "slimes", "s7"]},
+    "US4 narrow threshold 5": {"US2": "all"},
+    "UW2 stripes when inactive": {"US1": "all", "UW1": "all"},
+    "UW4 widgets when inactive": {"UW1": "all", "UM2": "all"},
+    "UW3 title on side windows": {"UT1": "all", "UW1": "all"},
+    "UT1 vertical inset 2": {"UT1": "all", "UT2": "all", "UW1": "all"},
+    "UT5 erase widened by 3": {"UT2": "all", "UW1": "all"},
+    "UT6 baseline without − 1": {"UT2": "all"},
+    "UT6 document pen x + 3": {"UT2": "all"},
+    "UT7 shadow pass when shadow ≠ text (document rule)": {"UFT2": "all", "UT3": "all"},
+    "UT2 skip pad 1": {"UT2": "all"},
+    "UGB1 small grow cicn never tried": {"UGB2": "all"},
+    "UGB2 ids swapped by state": {"UGB1": "all"},
+    "UGB2 small crop scaled 12/16": {"UGB1": ["ap2", "bp", "p8", "slimes"]},
+    "UM2 part 258 flips (utility)": {"UM1": "all"},
+    "UM3 zoom and collapse ids swapped": {"UM1": "all", "UM2": "all"},
+    "UH4 widget hit on the full 10 × 10 box": {"UH1": "all"},
+    "UH4–UH6 widget hits when inactive": {"UH1": "all"},
+    "UH7 drag band 4": {},
+  });
+  const raw = uMutationTable(), blind = [];
+  for (const id of Object.keys(U_ROWS)) {
+    const key = id.split(' ')[0], seen = new Set();
+    for (const f of Object.values(raw)) { const v = f[key]; if (v === 'all' || v === 'throws') U_VALUES[id].forEach(([c]) => seen.add(c)); else v?.forEach(c => seen.add(c)); }
+    for (const [c] of U_VALUES[id]) if (!seen.has(c)) blind.push(`${key} ${c}`);
+  }
+  assert.deepEqual(blind, []);
+  // Every rule group named by the task (spec rev 3) has a row that a mutation fails.
+  const groups = ['TG', 'WP', 'CT', 'GB', 'UI', 'UG', 'UP', 'UFA', 'UFC', 'UFH', 'UFS', 'UFT', 'US', 'UW', 'UT', 'UGB', 'UM', 'UH'];
+  const failing = new Set(Object.values(raw).flatMap(Object.keys));
+  assert.deepEqual(groups.filter(g => ![...failing].some(k => k.replace(/[0-9]+$/, '') === g)), []);
+});
+
+test('rev 3 findings: readings the decode and corpus cannot tell apart (named, not dropped)', () => {
+  const t = uMutationTable();
+  // 1. UG5's "+ 1": trunc((t + 1 − 10) / 2) = trunc((t − 10) / 2) for both bar thicknesses that occur (t 16 and 14).
+  assert.deepEqual(t['UG5 box offset without + 1 (trunc((t − 10) / 2))'], {});
+  // 2. UH7's band width: the content (UH3) and T (+1 row) cover every point between a 4-px and a 6-px band.
+  assert.deepEqual(t['UH7 drag band 4'], {});
+  // 3. apple-platinum-2's active and inactive utility frames are pixel-identical: a state swap shows only as the id (UFA1).
+  assert.ok(!t['UFA1 states swapped'].UFT2.includes('apple-platinum-2'));
+  // 4. apple-platinum-2 ships no cicn -14318, so its side stripes already come from -14314 (US3).
+  assert.ok(!t['US3 side stripes from -14314 only'].US1.includes('apple-platinum-2'));
+  // 5. system7's 17 × 17 grow cicn crops to 12 × 12 under both 11/15 and 12/16.
+  assert.ok(!t['UGB2 small crop scaled 12/16'].UGB1.includes('system7-nostalgia-silver'));
+  // 6. Every corpus colour table has value = position, so CT1–CT3 cannot be told apart on the corpus (CT5);
+  //    only the synthetic CT rows fail. Every corpus mask is all ones (corpus test), so GB3 = GB3a there.
+  for (const m of ['CT1–CT3 entry n read by position', 'CT3 search from position 0 up', 'CT2 skipped']) assert.ok(!('CT5' in t[m]), m);
+  // 7. Every corpus utility shadow sample equals its fill: UT7 never draws a shadow pass, and the document rule always would.
+  assert.equal(t['UT7 shadow pass when shadow ≠ text (document rule)'].UFT2, 'all');
+});
