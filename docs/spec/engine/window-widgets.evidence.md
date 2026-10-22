@@ -706,3 +706,37 @@ carries the verifier's replacement text.
   `0xecb6` at `0x5a22` (handle unlock and purge) and the `0x489c` gate before
   the Q8 pair. WD6's held rect is the content rect from `0x4778` (`0x5786`);
   the WD6 row is corrected.
+
+## C14. F5 reach and WD6 reach (2026-10-22, after the #444 test author's note)
+
+`ts3.mjs` / `ts3.out` (lane store; theme-loader recipes and rect lists only)
+applies TS1–TS3 to every `wnd#` side with every widget present. Codes 15, 16
+and 17 are zero, and so is code 0. `F` excludes {5, 6, 8, 11, 12, 13, 14, 18}.
+`G` = Σ code 4 − Σ code 17. TS3 can fire when `G > 0` and the smallest
+placed extent (content 0) is below `F − D`. The scan finds 42 types in 10
+archives, and 12 sides at content delta −12. For each such type it finds the
+collapse rect's two corner cells by first match in side then segment order
+(RM3/RM4), using the template cross bands of CR1–CR4. A corner in a code-4
+cell on the first firing side or a later one, or in a dropped code-10 cell,
+counts as emptying (RM6). That test is a corner-cell reading, not a full
+layout, so three cases were checked by hand from `sf.out`:
+
+- 1990 side-floating-utility: top-left in top segment `[0,14)` code 1,
+  bottom-right in left segment `[9,14)` code 4. With that cell at width 0 the
+  rect's top and bottom both land at `9 + Δ`, so it is empty.
+- monkey-paradise side-floating-utility: bottom-right in right segment
+  `[0,22)` code 4. The height comes out at −2, so it is empty.
+- dolphin-som side-floating-utility `[2,2,8,8]` and no-title-utility
+  `[57,7,61,11]`: both corners lie in one top cell, code 1 (segment `[0,14)`)
+  and code 3 (segment `[57,63)`) respectively. Neither cell is zeroed by TS3,
+  so the rect is not emptied.
+
+The LC1 path itself is as R3: `collapseRequested` comes back from the table
+at `0x2e26`, the cached placed lists are reused, and HT5 then reads
+`collapseBox` at `0x41be`. Whether a dolphin-som utility window is
+`cacheable` depends on `hasZoom` at creation, which is per-procID and not
+known to the runtime.
+
+`wd6.mjs` / `wd6.out`: all 13 `popup-window` types have type-5 and type-6
+rect-list entries. WD6 runs under `popupFamily` in the full draw
+(`0x5b7a`), so it is exercised wherever AP1 is.
