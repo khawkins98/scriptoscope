@@ -181,7 +181,7 @@ Start = contrlRect. blk47 → unchanged. d3 = blk18 ? 2·blk22 − 2 : blk22 −
 | `0xba8c..0xbb12` | `$AA32` device; NewGWorld (`$AB1D` 0x00160000) depth = device pixmap pixelSize, bounds = rect, flags 6; GetGWorldPixMap (0x00040017), LockPixels (0x00040001); ok → GetGWorld (0x00080005), SetGWorld (0x00080006); else DisposeGWorld (0x00040004) | offscreen; contents never initialised | |
 | `0xbb16..0xbb26` | d3 nil and d4 nil → RGBForeColor(white `a4@(186)`), PaintRect `$A8A2` | TF6 | |
 | `0xbb28..0xbb44` | d4 → `0xf930`(rect, ppat, contrlRect.left, contrlRect.top) | TF7 | |
-| `0xbb48..0xbb74` | d3 → `0xc2d2`(blk, &src, cicn); `0xb44c`(cicn, src, rect, blk21, 0, 1, 1) | TF8, mode 1 | |
+| `0xbb48..0xbb74` | d3 (the drawn cicn, possibly the `0xba3e` id − 1 replacement) → `0xc2d2`(blk, &src, d3), which reads bounds from its cicn argument (`sp@(24)` at `0xc2de`) and flags blk47/72/73; `0xb44c`(cicn, src, rect, blk21, 0, 1, 1) | TF8, mode 1 | |
 | `0xbb78..0xbb8a` | d7 → DisposeCIcon / DisposePixPat | | |
 | `0xbb8c..0xbbea` | offscreen → SetGWorld back; RGBFore black / RGBBack white; CopyBits `$A8EC`(gworld+2, port+2, rect, rect, 0, nil); UnlockPixels (0x00040002 at `0xbbd8`), DisposeGWorld | | |
 
@@ -219,7 +219,7 @@ src = cicn bounds; blk47 → done; !blk72 → done; h: d3 = (bottom − top) −
 | `0xc37e..0xc39c` | a3 = blk62, d6 = blk68; fp-33 = hilite in 1..253 | | |
 | `0xc3a0..0xc3c8` | hit = (idx 0 or 2 and hilite 20) or (idx 1 or 3 and hilite 21) | AH1–AH3 | |
 | `0xc3cc..0xc3fe` | pressed and !hit: a3 = GetCIcon(blk66 − 1) else blk62; d6 = GetPixPat(blk66 − 1) else blk68 | AC2 | |
-| `0xc402..0xc40a` | src = a3 bounds | | |
+| `0xc402..0xc40a` | src = a3 bounds — a3 is the cell-source cicn **after** the AC2 swap at `0xc3cc..0xc3ea` (GetCIcon(blk66 − 1), else blk62), so `l, r` and `d` (`0xc418..0xc420`, from the same rect) are those of the drawn cicn. Answers L6-Q1 | | |
 | `0xc418..0xc420` | h: d3 = (bottom − top) − 1 | d | |
 | `0xc43a..0xc474` | idx0: blk74 and !blk18 → src.right = (l+r)/2, box.right = box.left + src w, half; else src.right = l + d | | |
 | `0xc478..0xc4d6` | idx1: blk73 → (blk74: src.right = (l+r)/2, src.left = l + d, box.right adj, half; else src.left = l + d, src.right = l + 2d); !blk73 → src.left = r − d − 1, src.right = r − 1 | | |
@@ -260,3 +260,12 @@ pixels per cicn. Outputs in `v2-lanes/L5/`. **Verifier:** |
 | R-3 | range-controls.md + lanes/I/REVIEW.json drawOrder: "arrow 0 (low) unless byte18 or byte77" | REFUTED: drawn iff byte18 or !byte77; byte77 is never set (E1 `0x9e1e`, E2 `0xa47c`) |
 | R-4 | range-controls.md declared condition "blob byte77 clear" | redundant: byte77 is always clear |
 | R-5 | range-controls.md arrows/thumb/state/track rows | CONFIRMED (E1, E7, E12) |
+
+## E17. L6 spec questions (2026-10-22)
+
+| q | trace | verifier |
+|---|---|---|
+| Q1 | `0xc3cc..0xc402`: the swap to GetCIcon(blk66 − 1) happens before `0xc402` reads `*a3`+6..+13, so cell bounds come from the cell-source cicn. TF3 likewise: `0xba3e..0xba6c` replaces d3, `0xbb4c` passes d3 to `0xc2d2` | |
+| Q2 | `0xacc2..0xacc4`: proportional result → `braw 0xad5a`, bypassing the `cmpw %fp@(10),%d3` zero rule at `0xad50` | |
+| Q3 | `0xc810..0xc816`: `0xf4ba`(id, &box fp-16) where box = `0xa8c6` output; `0xf4ba` dst = its rect arg (d6), src bounds = global `a4@(178..185)` (`0xf4c6..0xf4cc`; no static writer found in the listing; 16 × 16 is the only frame consistent with rowBytes 2 at `0xf562`/`0xf5ca` and the 16 × 16 icon PixMap built at `0xf3aa..0xf412`) | |
+| Q5 | `0xf4fa` `jsr 0xf378` (fore black `a4@(192)`=0, back white `a4@(186)`=-1); 1-bit path `0xf5c6..0xf61c`: bitmap fp-26 baseAddr = ics# data, rowBytes 2; CopyBits mode 0 (`0xf5fe clrw`) when mask all-ones/picSave/grafProcs, else CopyMask with mask bitmap fp-40 (data +32) | |

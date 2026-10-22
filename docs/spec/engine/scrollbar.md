@@ -236,7 +236,9 @@ is left/up, a "high" arrow right/down.
 | AI1 | icon lane, not `disabled`, not hit | icon id: low h -10202, low v -10204, high h -10201, high v -10203 | `0x9f0e..0x9f38`, `0xc792..0xc7b6` |
 | AI2 | icon lane, not `disabled`, hit | icon id: low h -10198, low v -10200, high h -10197, high v -10199 | same |
 | AI3 | icon lane, `disabled` | icon id: low h -10206, low v -10208, high h -10205, high v -10207 (no hit form) | `0xc7ba..0xc7fa` |
-| AI4 | icon lane | draw `ics#` at the id (loaded into the system heap); no `ics#` → nothing; colour port and not `lowDepth` → `ics8` from the **same file** as the `ics#` (Get1Resource) if present and the kDEF's icon pixmap exists (allocated when the kDEF loads, `0xf3aa`; assume present), else the 1-bit `ics#` image; the `ics#` mask is applied unless it is all set or a picture is being recorded, and in the 1-bit branch also unless the port has custom bottlenecks | `0xc7fe..0xc81e`, `0xf4ba..0xf684` |
+| AI4 | icon lane | draw `ics#` at the id (loaded into the system heap); no `ics#` → nothing; colour port and not `lowDepth` → `ics8` from the **same file** as the `ics#` (Get1Resource) if present and the kDEF's icon pixmap exists (allocated when the kDEF loads, `0xf3aa`; assume present), else the 1-bit `ics#` image (AI5); the `ics#` mask is applied unless it is all set or a picture is being recorded, and in the 1-bit branch also unless the port has custom bottlenecks | `0xc7fe..0xc81e`, `0xf4ba..0xf684` |
+| AI5 | icon lane, the 1-bit branch of AI4 | the `ics#` image plane (the first 32 bytes, 16 × 16 at 2 bytes per row) is copied in `srcCopy` with black foreground and white background (`0xf4fa`), through the `ics#` mask plane (the second 32 bytes) under the AI4 mask conditions: set bits black, clear bits white, mask-clear pixels left untouched. No corpus archive reaches it (all icon-lane archives ship `ics8` for every id) | `0xf4fa`, `0xf5c6..0xf61c` |
+| AI6 | icon lane, destination | the icon's 16 × 16 frame is copied into the arrow box of §5.3 (`t × t`; 1:1 at `t = 16`, scaled by CopyBits/CopyMask otherwise) | `0xc810..0xc816`, `0xf4c6..0xf4cc`, `0xf5f2..0xf61a` |
 
 ### 4.6 Thumb
 
@@ -324,7 +326,17 @@ box's inner column wherever the track art is opaque.
 
 ### 5.4 Composite arrow cells (`0xc402..0xc6e0`)
 
-Track cicn bounds `[l, r)` along, cross size `h`; `d = h − 1`. `half` = `pressedHalves`.
+`[l, r)` and `h` are the bounds (along) and cross size of the **cicn that
+supplies the cell**, i.e. the cicn chosen by AC2/AC3: `trackId − 1` for a
+pressed non-hit arrow when that cicn exists, else the track cicn
+(`0xc402..0xc420`, read after the AC2 selection at `0xc3cc..0xc3fe`). They are
+recomputed for every arrow; nothing is carried over from the track cicn except
+the `composite`, `doubleArt` and `half` flags. `d = h − 1`. `half` = `pressedHalves`.
+
+Example (animals and monkey-paradise, horizontal, pressed with hit 20): the
+track cicn is -8285 (61 × 16) but the non-hit high arrow draws from -8286
+(43 × 16), so its cell is `[28, 43)` of -8286, not `[46, 61)`. A cell never
+lies outside its own source cicn.
 
 | arrow | cell (not `half`) | cell (`half`) |
 |---|---|---|
@@ -340,8 +352,12 @@ size the blit scales.
 
 ### 5.5 Track source rect (`0xc2d2..0xc336`)
 
-The track cicn bounds, inset along at both ends by `k = (h − 1) · (doubleArt ? 2 : 1)`
-when `composite` and not `inactive`; otherwise the whole bounds.
+The bounds of the **cicn the segment draws** (the track cicn, or the
+`trackId − 1` cicn under TF3), inset along at both ends by
+`k = (h − 1) · (doubleArt ? 2 : 1)`, `h` being that cicn's cross size, when
+`composite` and not `inactive`; otherwise its whole bounds (`0xbb4c..0xbb54`
+passes the drawn cicn to `0xc2d2`). The `composite` and `doubleArt` flags stay
+those of the track cicn (§4.4, TR6/TR8).
 
 ### 5.6 Thumb length `len` (`0xab68..0xad60`)
 
@@ -351,7 +367,10 @@ thumb cicn chosen as in TH3–TH5, or `t + 1` when there is none; minus 5 when
 
 - `proportional`: `len = trunc(trackLen · alongR / (max − min + alongR))`,
   clamped to `[minLen, trackLen]` (upper clamp first, then the lower), where
-  `alongR` is the along length of `R` (`0xac20..0xacc4`).
+  `alongR` is the along length of `R` (`0xac20..0xacc4`). The "`len = 0` if
+  `len > trackLen`" rule below does **not** apply to this branch (it returns
+  directly, `0xacc4`), so when `minLen > trackLen` the result is `minLen`,
+  longer than the track.
 - otherwise, SmartScroll present: its thumb rect's along length (minus
   `2t − 2` when `double` and that exceeds `trackLen`), at least `minLen`;
   SmartScroll absent: `len = minLen`. Then `len = 0` if `len > trackLen`
@@ -436,7 +455,9 @@ Open questions. Implementers stop here and file a spec question.
    sets (the default, `atiPresent` absent). When `atiPresent` is set and the
    segment has no pattern or no picture is being recorded, no offscreen is
    used and the port's existing pixels remain (`0xba74..0xbb12`). Undefined;
-   see the corpus row below.
+   see the corpus row below. Engine policy (not an original observation):
+   leave those port pixels unchanged and mark them unspecified in the trace;
+   do not synthesise content.
 5. The blit primitives' pixel rules are specified in
    [`qd-primitives.md`](qd-primitives.md): scale blit SC1–SC4 (masked), line
    sampler L1–L3 and S1–S6, icon blit I1–I3 (`0xfdf8`, opaque above 1 bit),
