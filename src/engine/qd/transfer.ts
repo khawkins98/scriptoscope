@@ -14,8 +14,17 @@ import type { Pixmap, QdRect, Transfer } from './types.js';
 import { pixelIndex } from './pixel.js';
 import { emptyRect } from './rect.js';
 
+/**
+ * How a destination pixel that maps outside the source's bounds is treated:
+ * `transparent` (default, the behaviour above) or `untouched`, for callers
+ * whose spec calls such pixels undefined (qd-primitives S5; scrollbar §5.4):
+ * the destination keeps its pixel and the caller traces it `unspecified`.
+ */
+export type OutsideSource = 'transparent' | 'untouched';
+
 /** Copy `srcRect` of `src` into `dstRect` of `dst` with the given transfer. */
-export function transferBits(dst: Pixmap, src: Pixmap, srcRect: QdRect, dstRect: QdRect, transfer: Transfer): void {
+export function transferBits(dst: Pixmap, src: Pixmap, srcRect: QdRect, dstRect: QdRect, transfer: Transfer,
+  outside: OutsideSource = 'transparent'): void {
   if (emptyRect(srcRect) || emptyRect(dstRect)) return;
   const sw = srcRect.right - srcRect.left;
   const sh = srcRect.bottom - srcRect.top;
@@ -32,7 +41,7 @@ export function transferBits(dst: Pixmap, src: Pixmap, srcRect: QdRect, dstRect:
       const si = pixelIndex(src, srcRect.left + Math.floor((col * sw) / dw), sy);
       if (si < 0) {
         // Outside the source: transparent black. CopyMask treats it as masked.
-        if (!masked) { d[di] = 0; d[di + 1] = 0; d[di + 2] = 0; d[di + 3] = 0; }
+        if (!masked && outside === 'transparent') { d[di] = 0; d[di + 1] = 0; d[di + 2] = 0; d[di + 3] = 0; }
         continue;
       }
       const a = s[si + 3]!;

@@ -11,6 +11,8 @@
 //   windowBlit.ts    qd-primitives "Window caller: which blit" (W1–W3)
 //   cinfFrame.ts     qd-primitives cinf body + border (requests, B0–B6, P1–P5, E1–E4)
 //   controlState.ts  DECISIONS #4 / scrollbar §2 public state → native hilite
+//   scrollbar.ts     scrollbar.md §2–§5 (state, track/pattern ladders, arrows, thumb, fill, hit test)
 export * from './windowBlit.js';
 export * from './cinfFrame.js';
 export * from './controlState.js';
+export * from './scrollbar.js';

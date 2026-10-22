@@ -7,16 +7,15 @@ import { readCicnIndexed } from '../../tools/theme-loader/decoders/cicn.js';
 import { decodePpat } from '../../tools/theme-loader/decoders/ppat.js';
 import { parseResourceMap } from './checkable-rules.mjs';
 import { SLUGS, expectedSet, scrollCensus, selectScrollbar } from './range-rules.mjs';
-import { layout, hitTest, pixelSource, segmentOffscreen, slice } from './scrollbar-geometry-rules.mjs';
+import { DRIVER_ROWS, layout, hitTest, pixelSource, segmentOffscreen, slice } from './scrollbar-geometry-rules.mjs';
 
 // Geometry rows of docs/spec/engine/scrollbar.md §7 ("Test hooks"). Every
 // expected literal below is the spec's own number (worked example §5.7, §7
 // table) or an archive fact read from the archive's own resource map; the model
 // in scrollbar-geometry-rules.mjs transcribes the spec formulas. Nothing here
-// reads runtime output. Rows that need the runtime's future `pressedPart`
-// option or the engine trace are listed in DRIVER_PENDING as todo tests
-// ("awaits scrollbar driver"), with their expected values pinned against the
-// model now.
+// reads runtime output. Rows that need the runtime's `pressedPart` option or
+// the engine trace (D1–D8) keep their expected values in DRIVER_ROWS, pinned
+// against the model here and bound to the runtime elsewhere.
 
 const corpus = new Map();
 for (const slug of SLUGS) {
@@ -70,6 +69,8 @@ const ROWS = {
   'G13 §4.7 offscreen rule (atiPresent × pattern × picSave)': r => [false, true].flatMap(atiPresent => [false, true].flatMap(pattern => [false, true].map(picSave => segmentOffscreen({ atiPresent, pattern, picSave }, { reading: r })))),
   'G14 §3 draw order (1138 normal, disabled)': r => [0, 255].map(h => at('1138', { hilite: h }, r).order),
   'G15 CF1/CF2 composite flag (crayon-os, windows-95, platinum-8 normal tracks)': r => ['crayon-os', 'windows-95', 'platinum-8'].map(slug => at(slug, {}, r).composite),
+  'G17 §5.4 (#396) pressed non-hit cell from its own cicn (animals, monkey-paradise)': r => Object.fromEntries(['animals', 'monkey-paradise'].map(slug => [slug, at(slug, { hilite: 20 }, r).boxCells])),
+  'G18 §5.4 (#396) narrow-source cell (1138, min = max, hilite 20)': r => at('1138', { hilite: 20, min: 0, max: 0, value: 0 }, r).boxCells,
   'G16 AI4 icon art: ics8 or the 1-bit ics#, never ics4': r => {
     const synthetic = { cicn: new Map([[-8286, [16, 16]], [-10206, [17, 16]]]), ppat: new Set(), mask: new Set([-10202, -10201]), color: new Set([-10201]), ics4: new Set([-10202, -10201]) };
     return selectScrollbar({ hilite: 0, orientation: 'horizontal' }, synthetic, { reading: r }).iconArt;
@@ -97,6 +98,8 @@ const EXPECTED = {
   'G14 §3 draw order (1138 normal, disabled)': [['arrow0', 'arrow3', 'thumb', 'track-low', 'track-high'], ['arrow0', 'arrow3', 'track-whole']],
   'G15 CF1/CF2 composite flag (crayon-os, windows-95, platinum-8 normal tracks)': [true, true, false],
   'G16 AI4 icon art: ics8 or the 1-bit ics#, never ics4': { '-10202': 'ics#', '-10201': 'ics8' },
+  'G18 §5.4 (#396) narrow-source cell (1138, min = max, hilite 20)': { 0: { id: -8287, cell: [0, 15] }, 3: { id: -8288, cell: [-10, 5], outOfSource: [[105, 115]] } },
+  'G17 §5.4 (#396) pressed non-hit cell from its own cicn (animals, monkey-paradise)': Object.fromEntries(['animals', 'monkey-paradise'].map(slug => [slug, { 0: { id: -8285, cell: [0, 15] }, 3: { id: -8286, cell: [28, 43] } }])),
 };
 
 // Plausible wrong readings (spec §7 "mutations that must fail"), each a model override.
@@ -128,6 +131,8 @@ const MUTATIONS = {
   'composite at ≥ 16 instead of > 16': { composite: ([w, h]) => w >= 16 || h >= 16 },
   'composite iff along length ≥ 2t (prior runtime)': { composite: ([w, h]) => Math.max(w, h) >= 2 * Math.min(w, h) },
   'ics4 accepted as colour art': { iconColour: 'ics4-or-ics8' },
+  'cells from the track cicn bounds (pre-#396 reading)': { cellsFromDrawnCicn: false },
+  'cells clamped to the source bounds': { clampCellsToSource: true },
 };
 
 test('geometry rows equal the spec values under the decode', () => {
@@ -166,9 +171,9 @@ test('mutation table: each wrong reading fails the named rows', () => {
   const table = Object.fromEntries(Object.entries(MUTATIONS).map(([name, reading]) => [name,
     Object.keys(ROWS).filter(id => JSON.stringify(ROWS[id](reading)) !== JSON.stringify(EXPECTED[id])).map(id => id.split(' ')[0])]));
   assert.deepEqual(table, {
-    'c = t instead of t − 1': ['G1', 'G2', 'G4', 'G5', 'G6', 'G10', 'G11', 'G12'],   // G4: pos 36 though Th stays [52, 69); G7 unchanged at t = 11
+    'c = t instead of t − 1': ['G1', 'G2', 'G4', 'G5', 'G6', 'G10', 'G11', 'G12', 'G18'],   // G4: pos 36 though Th stays [52, 69); G7 unchanged at t = 11
     'icon-lane boxes c long (e = 0)': ['G2', 'G11'],
-    'cell length h instead of h − 1': ['G3', 'G6', 'G12'],
+    'cell length h instead of h − 1': ['G3', 'G6', 'G12', 'G17', 'G18'],
     'proportional thumb by default': ['G4', 'G5', 'G6', 'G7', 'G10', 'G11'],         // 1138 Th [36, 85)
     '+0.5 rounding dropped': ['G4', 'G5', 'G6', 'G7', 'G10'],                         // 1138 Th [51, 68)
     'round half to even': ['G4', 'G5', 'G6', 'G7', 'G10'],                            // 36.5 -> 36; 1990 t = 11: 44.5 -> 44
@@ -178,8 +183,8 @@ test('mutation table: each wrong reading fails the named rows', () => {
     'no −5 after a small-thumb miss': ['G7'],
     'cap 2': ['G7'],
     'trackId reset after a small-art miss': ['G8'],
-    'non-hit box from the pressed tier': ['G9'],
-    'arrow hit tested on parts 22/23': ['G9'],
+    'non-hit box from the pressed tier': ['G9', 'G17', 'G18'],
+    'arrow hit tested on parts 22/23': ['G9', 'G17', 'G18'],
     '22 and 23 swapped': ['G10'],
     'thumb tested before the arrows': ['G11'],
     'page split at the thumb edge, not its centre': [],                               // finding, see below
@@ -191,6 +196,8 @@ test('mutation table: each wrong reading fails the named rows', () => {
     'composite at ≥ 16 instead of > 16': ['G2', 'G8', 'G11', 'G15', 'G16'],
     'composite iff along length ≥ 2t (prior runtime)': ['G8', 'G12', 'G15'],
     'ics4 accepted as colour art': ['G16'],
+    'cells from the track cicn bounds (pre-#396 reading)': ['G17', 'G18'],           // [46, 61) of a 43-wide cicn; [18, 33) for 1138
+    'cells clamped to the source bounds': ['G18'],                                    // [0, 5) instead of [−10, 5)
   });
   // Every row is failed by at least one mutation.
   const failed = new Set(Object.values(table).flat());
@@ -216,31 +223,32 @@ test('declared default: every track segment of every archive draws through the o
   }
 });
 
-// Rows the runtime cannot be checked against yet: they need the public
-// `pressedPart` option (DECISIONS #4) or an engine trace (rects and draw steps
-// in order). Expected values come from the spec and are pinned to the model
-// here; the binding test is a todo until the scroll-bar driver exists.
-const DRIVER_PENDING = {
-  'D1 pressedPart selection (1138 h, platinum-8 h)': {
-    needs: 'public pressedPart option',
-    expected: {
-      '1138': { up: ['cicn -10206', 'cicn -8285', 'cicn -8286'], down: ['cicn -10206', 'cicn -8285', 'cicn -8286'], pageUp: ['cicn -10206', 'cicn -8285', 'cicn -8286'], pageDown: ['cicn -10206', 'cicn -8285', 'cicn -8286'], thumb: ['cicn -10205', 'cicn -8285', 'cicn -8286'] },
-      'platinum-8': { up: ['cicn -10206', 'cicn -8285', 'icon -10198', 'icon -10201'], down: ['cicn -10206', 'cicn -8285', 'icon -10197', 'icon -10202'], pageUp: ['cicn -10206', 'cicn -8285', 'icon -10201', 'icon -10202'], pageDown: ['cicn -10206', 'cicn -8285', 'icon -10201', 'icon -10202'], thumb: ['cicn -10205', 'cicn -8285', 'icon -10201', 'icon -10202'] },
-    },
-    model: () => Object.fromEntries(['1138', 'platinum-8'].map(slug => [slug, Object.fromEntries(Object.entries({ up: 20, down: 21, pageUp: 22, pageDown: 23, thumb: 129 })
-      .map(([part, hilite]) => [part, expectedSet(selectScrollbar({ hilite, orientation: 'horizontal' }, census(slug)))]))])),
-  },
-  'D2 pressedPart arrow-box sources (1138 h)': { needs: 'public pressedPart option + engine trace', expected: EXPECTED['G9 AH1–AH3/AC2/AC3 composite arrow-box sources by hilite (1138)'], model: () => ROWS['G9 AH1–AH3/AC2/AC3 composite arrow-box sources by hilite (1138)']({}) },
-  'D3 draw-step order (1138 normal, disabled)': { needs: 'engine trace order (pixels cannot show track-after-thumb with a mask-honouring blit)', expected: EXPECTED['G14 §3 draw order (1138 normal, disabled)'], model: () => ROWS['G14 §3 draw order (1138 normal, disabled)']({}) },
-  'D4 traced rects (1138 worked example)': { needs: 'engine trace rects', expected: { boxes: { 0: [0, 15], 3: [105, 120] }, T: [15, 105], Th: [52, 69], segments: [[15, 53], [68, 105]] },
-    model: () => { const l = at('1138', {}); return { boxes: l.boxes, T: l.T, Th: l.Th, segments: l.segments.map(s => s.rect) }; } },
-  'D5 traced thumb slice at t = 11 (1990)': { needs: 'engine trace (slice pieces) at a non-16 thickness', expected: EXPECTED['G7 §5.9 thumb caps at t = 11 (1990, dolphin-som, evolution)'][0], model: () => ROWS['G7 §5.9 thumb caps at t = 11 (1990, dolphin-som, evolution)']({})[0] },
-  'D6 pattern underlay pixels (crayon-os, R at 13,5)': { needs: 'driver drawing at a port offset', expected: EXPECTED['G12 TF7/TF8/AC4 pattern underlay anchored at R (crayon-os, R at 13,5)'], model: () => ROWS['G12 TF7/TF8/AC4 pattern underlay anchored at R (crayon-os, R at 13,5)']({}) },
-  'D7 offscreen per segment under the declared default (ATIr absent)': { needs: 'engine trace (offscreen per segment)', expected: [true, true], model: () => at('1138', {}).segments.map(() => segmentOffscreen({ atiPresent: false, pattern: false, picSave: false })) },
-  'D8 testCntl part codes (1138 worked example)': { needs: 'driver hit test', expected: EXPECTED['G10 HT1–HT8 part codes (1138 worked example)'], model: () => ROWS['G10 HT1–HT8 part codes (1138 worked example)']({}) },
+// D1–D8 (spec §7 rows needing the runtime's pressedPart option or the engine
+// trace). Their expected values are data in scrollbar-geometry-rules.mjs
+// (DRIVER_ROWS); here each is pinned to the spec model. The runtime binding is
+// scrollbar-driver-binding.test.mjs (Node, engine trace) and
+// range-rules.spec.mjs (public pressedPart, source and built).
+const MODEL = {
+  D1: () => Object.fromEntries(['1138', 'platinum-8'].map(slug => [slug, Object.fromEntries(Object.entries({ up: 20, down: 21, pageUp: 22, pageDown: 23, thumb: 129 })
+    .map(([part, hilite]) => [part, expectedSet(selectScrollbar({ hilite, orientation: 'horizontal' }, census(slug)))]))])),
+  D2: () => ROWS['G9 AH1–AH3/AC2/AC3 composite arrow-box sources by hilite (1138)']({}),
+  D3: () => ROWS['G14 §3 draw order (1138 normal, disabled)']({}),
+  D4: () => { const l = at('1138', {}); return { boxes: l.boxes, T: l.T, Th: l.Th, segments: l.segments.map(s => s.rect) }; },
+  D5: () => ROWS['G7 §5.9 thumb caps at t = 11 (1990, dolphin-som, evolution)']({})[0],
+  D6: () => ROWS['G12 TF7/TF8/AC4 pattern underlay anchored at R (crayon-os, R at 13,5)']({}),
+  D7: () => at('1138', {}).segments.map(() => segmentOffscreen({ atiPresent: false, pattern: false, picSave: false })),
+  D8: () => ROWS['G10 HT1–HT8 part codes (1138 worked example)']({}),
+  D9: () => ROWS['G17 §5.4 (#396) pressed non-hit cell from its own cicn (animals, monkey-paradise)']({}),
+  D10: () => ROWS['G18 §5.4 (#396) narrow-source cell (1138, min = max, hilite 20)']({}),
 };
 
-test('driver-pending rows: expected values are the spec model values', () => {
-  for (const [id, row] of Object.entries(DRIVER_PENDING)) assert.deepEqual(row.model(), row.expected, id);
+test('driver rows: DRIVER_ROWS expected values are the spec model values', () => {
+  assert.deepEqual(Object.keys(DRIVER_ROWS), Object.keys(MODEL));
+  for (const [id, row] of Object.entries(DRIVER_ROWS)) assert.deepEqual(MODEL[id](), row.expected, `${id} ${row.title}`);
+  // The shared rows are literally the G rows' expected values.
+  assert.deepEqual(DRIVER_ROWS.D2.expected, EXPECTED['G9 AH1–AH3/AC2/AC3 composite arrow-box sources by hilite (1138)']);
+  assert.deepEqual(DRIVER_ROWS.D6.expected, EXPECTED['G12 TF7/TF8/AC4 pattern underlay anchored at R (crayon-os, R at 13,5)']);
+  assert.deepEqual(DRIVER_ROWS.D8.expected, EXPECTED['G10 HT1–HT8 part codes (1138 worked example)']);
+  assert.deepEqual(DRIVER_ROWS.D10.expected, EXPECTED['G18 §5.4 (#396) narrow-source cell (1138, min = max, hilite 20)']);
+  assert.deepEqual(DRIVER_ROWS.D9.expected, EXPECTED['G17 §5.4 (#396) pressed non-hit cell from its own cicn (animals, monkey-paradise)']);
 });
-for (const [id, row] of Object.entries(DRIVER_PENDING)) test(`${id} — awaits scrollbar driver (${row.needs})`, { todo: 'awaits scrollbar driver' });

@@ -30,6 +30,8 @@ export const GEOMETRY = {
   pageSplit: (p, th) => (p < ((th[0] + th[1]) >> 1) ? 22 : 23), // HT7/HT8 thumb-centre split
   hitHilite: { low: 20, high: 21 },                 // AH1/AH2 0xc3a0–0xc3c0
   nonHitBoxFromIdMinus1: true,                      // AC2 0xc3cc–0xc3fe
+  cellsFromDrawnCicn: true,                         // §5.4 (#396): cells from the bounds of the cicn that supplies the cell
+  clampCellsToSource: false,                        // §5.4 (#396): a cell may extend past a narrow source; not clamped
   patternAnchor: 'rect',                            // TF7/AC4 0xf930, 0xf87e: phase at R's top-left
   patternOverCicn: false,                           // TF7 before TF8; AC4 fills only mask-clear pixels
   offscreen: ({ atiPresent, pattern, picSave }) => !atiPresent || (pattern && picSave), // §4.7 0xba74–0xbbea
@@ -111,6 +113,15 @@ export function layout(native, census, { reading = {} } = {}) {
     const minus1 = census.cicn.has(trackId - 1) ? trackId - 1 : trackCicn;
     boxSource = Object.fromEntries([0, 3].map(i => [i, b.pressed && !hit[i] && g.nonHitBoxFromIdMinus1 ? minus1 : trackCicn]));
   }
+  // §5.4 as answered in #396: each box's cell from its own source cicn's bounds.
+  const boxCells = boxSource && Object.fromEntries([0, 3].map(i => {
+    const sd = dims(g.cellsFromDrawnCicn ? boxSource[i] : trackCicn), dd = g.cellLen(sd.cross);
+    let cell = i === 0 ? [0, dd] : [sd.along - dd, sd.along];
+    if (g.clampCellsToSource) cell = [Math.max(0, cell[0]), Math.min(sd.along, cell[1])];
+    // Port columns of the box whose cell pixel lies outside the source (unspecified; §5.4).
+    const box = boxes[i], outside = [cell[0] < 0 ? [box[0], box[0] - cell[0]] : null, cell[1] > sd.along ? [box[1] - (cell[1] - sd.along), box[1]] : null].filter(Boolean);
+    return [i, { id: boxSource[i], cell, ...(outside.length ? { outOfSource: outside } : {}) }];
+  }));
   // TH2–TH5 thumb id; §5.6 length (0xab68–0xad60).
   const thumbId = THUMB[orientation][hilite === 129 ? 'pressed' : 'normal'];
   const small = t <= 11 && census.cicn.has(thumbId + SMALL_THUMB_OFFSET);
@@ -138,7 +149,7 @@ export function layout(native, census, { reading = {} } = {}) {
   // §3 draw order (TH1: empty T draws neither thumb nor track).
   const order = g.drawOrder.flatMap(step => step === 'track' ? (span(T) > 0 ? segments.map(sg => `track-${sg.name}`) : [])
     : step === 'thumb' ? (span(T) > 0 && !b.disabled && thumbCicn !== null ? ['thumb'] : []) : [step]);
-  return { orientation, t, c, e, tier, trackId, trackCicn, pattern, composite, T, boxes, cells, trackSource, boxSource,
+  return { orientation, t, c, e, tier, trackId, trackCicn, pattern, composite, T, boxes, cells, trackSource, boxSource, boxCells,
     thumbCicn, minLen, len, pos, Th, segments, trackPieces, thumbPieces, order, disabled: b.disabled, cross, rect: R, horizontal };
 }
 
@@ -193,3 +204,41 @@ export function pixelSource(l, x, y, art, { reading = {} } = {}) {
 
 /** §4.7 offscreen rule (0xba74–0xbbea): does a track segment draw through a temporary GWorld? */
 export const segmentOffscreen = (env, { reading = {} } = {}) => ({ ...GEOMETRY, ...reading }).offscreen(env);
+
+// D1–D8: spec §7 rows that need the runtime's pressedPart option or an engine
+// trace. Expected values are spec values (pinned against this model by
+// scrollbar-geometry-rules.test.mjs); scrollbar-driver-binding.test.mjs and
+// range-rules.spec.mjs compare the runtime with them. Horizontal, R = (0, 0)
+// 120 × 16, value 50 of 0..100 unless stated.
+const C3 = ['cicn -10206', 'cicn -8285', 'cicn -8286'];
+export const DRIVER_ROWS = {
+  D1: { title: 'pressedPart selection (1138 h, platinum-8 h)', needs: 'public pressedPart option', expected: {
+    '1138': { up: C3, down: C3, pageUp: C3, pageDown: C3, thumb: ['cicn -10205', 'cicn -8285', 'cicn -8286'] },
+    'platinum-8': { up: ['cicn -10206', 'cicn -8285', 'icon -10198', 'icon -10201'], down: ['cicn -10206', 'cicn -8285', 'icon -10197', 'icon -10202'],
+      pageUp: ['cicn -10206', 'cicn -8285', 'icon -10201', 'icon -10202'], pageDown: ['cicn -10206', 'cicn -8285', 'icon -10201', 'icon -10202'],
+      thumb: ['cicn -10205', 'cicn -8285', 'icon -10201', 'icon -10202'] } } },
+  D2: { title: 'arrow-box source cicn by hilite (1138 h)', needs: 'engine trace', expected: {
+    0: { 0: -8286, 3: -8286 }, 20: { 0: -8285, 3: -8286 }, 21: { 0: -8286, 3: -8285 }, 22: { 0: -8286, 3: -8286 }, 23: { 0: -8286, 3: -8286 }, 129: { 0: -8286, 3: -8286 } } },
+  D3: { title: 'draw-step order (1138 normal, disabled)', needs: 'engine trace order (pixels cannot show track-after-thumb with a mask-honouring blit)',
+    expected: [['arrow0', 'arrow3', 'thumb', 'track-low', 'track-high'], ['arrow0', 'arrow3', 'track-whole']] },
+  D4: { title: 'traced rects (1138 worked example)', needs: 'engine trace rects',
+    expected: { boxes: { 0: [0, 15], 3: [105, 120] }, T: [15, 105], Th: [52, 69], segments: [[15, 53], [68, 105]] } },
+  D5: { title: 'traced thumb slice at t = 11 (1990, R 120 × 11)', needs: 'engine trace slice pieces',
+    expected: { thumb: -10206, minLen: 11, Th: [55, 66], cross: 11, pieces: [[[0, 3], [0, 3]], [[3, 9], [6, 12]], [[9, 11], [14, 16]]] } },
+  D6: { title: 'pattern underlay pixels (crayon-os, R at 13,5; port pixels (40,9) track, (14,9) arrow)', needs: 'driver drawing at a port offset',
+    expected: { pattern: -8286, track: { from: 'ppat', id: -8286, u: 27, v: 4 }, arrow: { from: 'cicn', id: -8286, x: 1, y: 4 } } },
+  D7: { title: 'every track segment draws through the offscreen (ATIr absent)', needs: 'engine trace (offscreen per segment)', expected: [true, true] },
+  D8: { title: 'testCntl part codes (1138 worked example)', needs: 'driver hit test',
+    expected: [0, 20, 20, 22, 22, 129, 129, 129, 23, 23, 21, 21, 0, 0, 0] },
+  // §5.4 as answered in #396 (spec Q1): animals/monkey-paradise h, hilite 20; track -8285 is 61 × 16,
+  // the non-hit high arrow draws from -8286 (43 × 16), so its cell is [28, 43) of -8286, not [46, 61).
+  D9: { title: 'non-hit pressed arrow cell from its own cicn (animals, monkey-paradise h, hilite 20)', needs: 'engine trace cell rects',
+    expected: { animals: { 0: { id: -8285, cell: [0, 15] }, 3: { id: -8286, cell: [28, 43] } }, 'monkey-paradise': { 0: { id: -8285, cell: [0, 15] }, 3: { id: -8286, cell: [28, 43] } } } },
+  // §5.4 narrow source (#396): 1138, min = max (ST4, tier 1 track -8287 33 × 16), hilite 20. The non-hit high
+  // arrow draws from -8288 (5 × 16): cell [−10, 5); box [105, 120) columns [105, 115) map outside the source,
+  // so those port pixels are unspecified (engine policy: left untouched, traced unspecified).
+  D10: { title: 'narrow-source cell extends past its cicn (1138, min = max, hilite 20)', needs: 'engine trace cell rects + port pixels',
+    expected: { 0: { id: -8287, cell: [0, 15] }, 3: { id: -8288, cell: [-10, 5], outOfSource: [[105, 115]] } } },
+};
+/** D8's probe points, in order (the last code is a disabled control at (60, 8)). */
+export const D8_POINTS = [[-1, 8], [0, 8], [14, 8], [15, 8], [51, 8], [52, 8], [60, 8], [68, 8], [69, 8], [104, 8], [105, 8], [119, 8], [120, 8], [60, 16]];

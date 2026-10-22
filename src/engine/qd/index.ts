@@ -8,3 +8,4 @@ export * from './scale.js';
 export * from './pattern.js';
 export * from './pen.js';
 export * from './cinfFrame.js';
+export * from './region.js';

@@ -87,6 +87,7 @@ export async function loadKaleidoscopeScheme(input, options = {}) {
   try {
     converted = convertScheme(fork, {
       meta: options.meta, source: options.source ?? 'resource-fork', displayProfile, cinfBinding, sliderLayoutBinding, cicnTransferBinding,
+      ...(options.iconBlitCicnIds ? { iconBlitCicnIds: options.iconBlitCicnIds } : {}),
       ...(evidence ? { resourceObserver: evidence.observer } : {}),
     });
   } catch (error) {
@@ -94,7 +95,7 @@ export async function loadKaleidoscopeScheme(input, options = {}) {
     if (evidence) await evidence.settle();
     throw error;
   }
-  const { theme, assets, iconIndex, iconMaskResources } = converted;
+  const { theme, assets, iconIndex, iconMaskResources, iconMaskPlanes } = converted;
   // Complete or reject all hashing before any encoder can allocate asset URLs.
   const byteProvenance = evidence ? await evidence.finish() : undefined;
   // convertScheme already validated the theme (convertChrome → validateTheme).
@@ -153,6 +154,7 @@ export async function loadKaleidoscopeScheme(input, options = {}) {
   // can swap fetch() → theme.inspector.* with no other change.
   const inspector = buildInspector(theme, assets, iconIndex, urlByPath, options.meta?.name);
   inspector.iconMaskResources = iconMaskResources;
+  inspector.iconMaskPlanes = iconMaskPlanes;
 
   // dispose() revokes every blob: URL this decode minted (~500 per scheme). Without
   // it, an app that switches themes 50× across a session leaks 25k blob URLs — each

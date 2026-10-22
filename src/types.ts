@@ -214,6 +214,13 @@ export interface ChromeElement {
    */
   sourceCicnId?: number;
   /**
+   * Icon-blit inputs (docs/spec/engine/qd-primitives.md I1–I3), present only for
+   * cicn ids the runtime asks the loader for (`iconBlitCicnIds`): the pixel
+   * map's depth and, deeper than 1 bit, an opaque companion raster with every
+   * stored pixel (mask ignored) for the I3 copy.
+   */
+  iconBlit?: { pixelSize: number; unmaskedAsset?: string };
+  /**
    * Peer of `sourceCicnId`: the cinf RESOURCE ID this element's slice / anchor /
    * bgPattern metadata decoded from. Lets the runtime jump from a chromeElement to
    * its sibling cinf for spec lookups without re-scanning the manifest. Decoded by
@@ -366,6 +373,9 @@ export interface ThemeInspector {
    * fewer than 64 bytes are unsupported by the checkable icon path, not NULL.
    * Occurrence indices refer to parsed resource order in this loaded fork. */
   iconMaskResources?: Array<{ id: number; resourceIndex: number; byteLength: number }>;
+  /** First-occurrence 16 × 16 ics# planes by id string: 64 raw bytes, the
+   * 32-byte 1-bit image then the 32-byte mask (rows of 2 bytes, MSB first). */
+  iconMaskPlanes?: Record<string, number[]>;
   iconIndex: Array<{
     id: number;
     type: 'icl4' | 'ics4' | 'icl8' | 'ics8';

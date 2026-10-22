@@ -5,9 +5,11 @@
 //   state/      public control/window state → native inputs
 //   tables/     every decision literal, one row per spec row
 //   trace.ts    the per-call trace the diff gate compares
+//   families/   per message × family drivers (scrollbar.ts: messages 0 and 1)
 export * from './qd/index.js';
 export * from './resources/chain.js';
 export * from './state/control.js';
 export * from './state/window.js';
 export * from './tables/index.js';
 export * from './trace.js';
+export * from './families/scrollbar.js';
