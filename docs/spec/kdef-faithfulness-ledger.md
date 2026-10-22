@@ -80,6 +80,15 @@ Each entry below tags its divergence direction explicitly:
 - **decode→reference** means "the kDEF / decode says X; the per-scheme reference image disagrees; we follow the decode."
 - **manifest→decode** means "the kDEF would have produced a broken render; we override the kDEF by reading the bundle's structured manifest role."
 
+### accessibility→decode
+
+- **The `accessibility→decode` direction:** the decode says X, and we deliberately do Y so the page stays usable with a keyboard and assistive technology. Each entry names the rule, what we do instead, and why.
+- **Title-bar widgets on inactive windows stay operable** (maintainer decision 2026-10-22, [DECISIONS #12](../v2/DECISIONS.md)).
+  - **The decode:** `engine/window-widgets.md` HT2 says the original window definition does not hit-test widgets on an inactive window. A click on a background window's close, zoom or collapse box only activates the window.
+  - **What we do:** the engine implements HT2 as decoded, and the trace records it. But `renderWindow` and the declarative layer keep each widget a real, focusable button on inactive windows too. It can be clicked, and reached and activated from the keyboard.
+  - **Why:** on the web a window is a region of the page, not the frontmost app window. Making a background window's controls inert would take them out of the tab order and away from screen readers, for no visual gain. Keyboard and assistive-technology users would have to activate a window before they could close it.
+  - **Scope:** this only covers whether the widget responds. What the widgets look like still follows the decode: inactive windows draw no widget art (WD rows). Any visual or behavioural change beyond keeping the button operable needs its own entry here.
+
 ### decode→reference
 
 - **Scroll-arrow id→state mapping is the 2.3.1 CDEF's, applied universally.** The
