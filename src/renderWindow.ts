@@ -9,7 +9,8 @@ import type { IconSource } from './engine/qd/region.js';
 // wnd# recipe) draws through the v2 engine family proceduralFrame, dynamically
 // imported so the 13 wnd# themes don't load it on first paint.
 import { rasterizeText } from './textRaster.js';
-import { rasterizeTitleFont } from './titleFont.js';
+import { rasterizeTitle } from './titleFont.js';
+import { TITLE_TEXT } from './engine/tables/window.js';
 import { PixelBuffer } from './pixelBuffer.js';
 import { resolveWindowSelection } from './resolveWindowType.js';
 import { canonicalWindowTypeSlug } from './wndCascade.js';
@@ -122,8 +123,15 @@ export async function renderWindow(
   // `SW` (window-widgets LS6, TT rows), which sizes the code-5 plate. ──
   const frameTop = wt.parts['part-0']?.rect[1] ?? 0;
   const builtInFrame = wt.model === 'corner-sprite';
-  let glyphs: PixelBuffer | null = null;
   let textH = 0;
+  // Pen advance (StringWidth) and baseline row; the pixel rasterizer (non-DOM) has neither, so its box stands in.
+  const raster = (text: string, hex: string): { buffer: PixelBuffer; ascent: number; advance: number } => {
+    const r = rasterizeTitle(text, textH, hex);
+    if (r) return r;
+    const b = rasterizeText(text, textH, hex);
+    return { buffer: b, ascent: b.height, advance: b.width };
+  };
+  let measured: ReturnType<typeof raster> | null = null;
   if (showTitle && frameTop > 6 && !builtInFrame) {
     textH = Math.max(8, Math.min(13, frameTop - 6)); // ~Chicago 12px, never frame-scaled
     // Canvas text only uses a font that's ALREADY loaded — so ensure the
@@ -135,7 +143,7 @@ export async function renderWindow(
     }
     // Title in the "Charcoal" font (period anti-aliased type); pixel rasterizer
     // is the fallback (non-DOM contexts). Width pass; recoloured below.
-    glyphs = rasterizeTitleFont(title, textH, '#000000') ?? rasterizeText(title, textH, '#000000');
+    measured = raster(title, '#000000');
   }
   // Built-in frame windows (no wnd# recipe: apple-platinum-2, black-platinum,
   // platinum-8, slimes, system7-nostalgia-silver) draw through the v2 engine
@@ -162,44 +170,41 @@ export async function renderWindow(
     const ids = widgetCicnIds();
     const strip = (await themeResourceChain(owner, ids.map((id) => ({ type: 'cicn', id })))).probe<IconSource>('cicn', ids);
     composed = composeWindowChrome(cicn!, wt, contentW, contentH, {
-      cinf: wt.cinf ?? null, titleWidthPx: glyphs?.width ?? 0, titleLength: glyphs ? title.length : 0,
+      cinf: wt.cinf ?? null, titleWidthPx: measured?.advance ?? 0, titleLength: measured ? title.length : 0,
       popupFamily: slug === 'popup-window', widgetCicn: strip?.value.pixmap ?? null,
       ...(opts.pressedWidget ? { pressedWidget: opts.pressedWidget } : {}),
     });
   }
   const { frame, fullWidth, fullHeight } = composed;
 
-  if (glyphs && frame.top > 6) {
-    const tr = composed.titleRegion;
-    const cx = tr.x + tr.w / 2;
-    // Vertical anchor: the centre of the scheme's title-text marker band (tr.midY — the cicn
-    // colour-sample line), faithful for tall ornate bars (evolution); else the bar's geometric centre.
-    const titleMidY = tr.midY ?? frame.top / 2;
-
-    // The title fits the code-5 plate the layout placed (TT5–TT9); when the plate is narrower
-    // (a short side, TT2/TT3) the text is cut with an ellipsis, and an empty plate draws none.
-    // How the original draws the text is not traced (window-widgets §6 Q4): runtime policy.
-    const maxTitleW = Math.max(0, tr.w);
+  // Title text (window-widgets §4.12): in `t4p`, the remapped title rect (TX3); nothing for an
+  // empty title (TX2) or an empty `t4p`. Left-aligned, baseline 4 above its bottom (TX8),
+  // clipped to `t4p` widened by 2 on the right (TX4). The layout centres `t4p` on the content
+  // (TT6/TT7). DIVERGENCES (runtime): TX5 condenses before TruncString, but the runtime has
+  // no condensed face, so it only truncates (plain face, ellipsis); TX7's shadow string and
+  // sampled colours are not drawn (the colour rule below is the runtime's); the text is drawn
+  // after every side, not right after the side holding T4 (TX1).
+  const t4p = composed.titleRect;
+  if (measured && t4p && t4p.w > 0 && t4p.h > 0) {
+    const room = t4p.w + TITLE_TEXT.TX4.widenRight;
     let dispTitle = title;
-    if (glyphs.width > maxTitleW && title.length > 1) {
-      dispTitle = '…';
+    if (measured.advance > room) { // TX5
+      dispTitle = '';
       for (let n = title.length - 1; n >= 1; n--) {
         const cand = `${title.slice(0, n)}…`;
-        const cg = rasterizeTitleFont(cand, textH, '#000000') ?? rasterizeText(cand, textH, '#000000');
-        if (cg && cg.width <= maxTitleW) { dispTitle = cand; break; }
+        if (raster(cand, '#000000').advance <= room) { dispTitle = cand; break; }
       }
     }
-    const baseGlyphs = dispTitle === title ? glyphs : (rasterizeTitleFont(dispTitle, textH, '#000000') ?? rasterizeText(dispTitle, textH, '#000000'));
-    if (baseGlyphs && baseGlyphs.width <= maxTitleW) {
-      // Title colour CONTRASTS with the bar the text sits on: sample the composed buffer over the
-      // text's OWN footprint (the title plate / pinstripe), not the dark frame — a dark bar (Black
-      // Platinum) gets WHITE text; light bars keep BLACK. NOT headerColors.text (a frame tint).
-      const sgx = Math.max(1, Math.min(fullWidth - baseGlyphs.width - 1, Math.round(cx - baseGlyphs.width / 2)));
-      const sgy = Math.max(1, Math.round(titleMidY - baseGlyphs.height / 2));
+    const base = dispTitle === title ? measured : dispTitle ? raster(dispTitle, '#000000') : null;
+    if (base) {
+      const x0 = t4p.x, y0 = t4p.y + t4p.h - TITLE_TEXT.TX8.baselineAbove - base.ascent;
+      const clip = { l: Math.max(0, t4p.x), t: Math.max(0, t4p.y), r: Math.min(fullWidth, t4p.x + room), b: Math.min(fullHeight, t4p.y + t4p.h) };
+      const inClip = (x: number, y: number): boolean => x >= clip.l && x < clip.r && y >= clip.t && y < clip.b;
+      // Title colour CONTRASTS with the bar under the text's own footprint (runtime rule, not TX7).
       let lumSum = 0, lumN = 0;
-      const sx1 = Math.min(fullWidth, sgx + baseGlyphs.width), sy1 = Math.min(frame.top - 1, sgy + baseGlyphs.height);
-      for (let sy = sgy; sy < sy1; sy++) for (let sx = sgx; sx < sx1; sx++) {
-        const [pr, pg, pb, pa] = composed.buffer.getPixel(sx, sy);
+      for (let y = 0; y < base.buffer.height; y++) for (let x = 0; x < base.buffer.width; x++) {
+        if (!inClip(x0 + x, y0 + y)) continue;
+        const [pr, pg, pb, pa] = composed.buffer.getPixel(x0 + x, y0 + y);
         if (pa < 8) continue;
         lumSum += 0.299 * pr + 0.587 * pg + 0.114 * pb; lumN++;
       }
@@ -239,10 +244,16 @@ export async function renderWindow(
           ? (state === 'inactive' ? '#bcbcbc' : '#ffffff')
           : (state === 'inactive' ? '#808080' : '#000000');
       }
-      const g = fgHex === '#000000' ? baseGlyphs : (rasterizeTitleFont(dispTitle, textH, fgHex) ?? rasterizeText(dispTitle, textH, fgHex));
-      const gx = Math.max(1, Math.min(fullWidth - g.width - 1, Math.round(cx - g.width / 2)));
-      const gy = Math.max(1, Math.min(frame.top - g.height - 1, Math.round(titleMidY - g.height / 2)));
-      composed.buffer.drawOver(g, gx, gy);
+      const g = fgHex === '#000000' ? base : raster(dispTitle, fgHex);
+      for (let y = 0; y < g.buffer.height; y++) for (let x = 0; x < g.buffer.width; x++) {
+        const px = x0 + x, py = y0 + y;
+        if (!inClip(px, py)) continue;
+        const [r, gg, b, a] = g.buffer.getPixel(x, y);
+        if (a === 0) continue;
+        const [dr, dg, db, da] = composed.buffer.getPixel(px, py);
+        const sa = a / 255;
+        composed.buffer.setPixel(px, py, Math.round(r * sa + dr * (1 - sa)), Math.round(gg * sa + dg * (1 - sa)), Math.round(b * sa + db * (1 - sa)), Math.max(a, da));
+      }
     }
   }
 

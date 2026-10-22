@@ -9,19 +9,21 @@
 // Runtime policy here (not spec rows; lane notes v2-lanes/window-migration):
 //   - the structure is sized to the template's drawable extent (compositor-spec
 //     "Draw + distribution") and the content rect C starts at the body's inset;
-//   - transfer: opaque CopyBits for every chrome cell (qd-primitives §6 Q5 open);
-//   - draw order left, right, top, bottom, so the horizontal bars own the
-//     corners under that opaque transfer (the decode's order is WD4's 0..3);
-//   - the leading region `[0, S[0])` is drawn 1:1 at its template position, and
-//     a horizontal side's opaque trailing art past S[N] is scaled onto the end
-//     of the side (window-widgets §6 Q3: what paints them is not traced);
-//   - the title text is drawn by renderWindow on the code-5 plate (§6 Q4).
+//   - DIVERGENCE (draw order, transfer): the decode draws sides top, bottom, left,
+//     right (WD4) with CopyMask (qd-primitives Q5). We draw left, right, top,
+//     bottom with opaque CopyBits, so the horizontal bars own the corners. The
+//     decode's order and transfer were measured: they change 216 of 1656
+//     engine-diff cells (26,174 visible pixels), so they are not adopted here;
+//   - DIVERGENCE (leading and trailing regions): no routine of the full draw
+//     paints `[0, S[0])` or the art past `S[N]` (window-widgets §6 Q3, LS9). We
+//     paint both (see the two sites below);
+//   - the title text is drawn by renderWindow in `titleRect` (TX rows).
 import { PixelBuffer } from './pixelBuffer.js';
 import { rect, rectXYWH, scaleBlit, tileBlit, type Pixmap, type QdRect, type Transfer } from './engine/qd/index.js';
 import { windowBlitRow } from './engine/tables/windowBlit.js';
 import { CELL_WIDTH, WINDOW_SIDES } from './engine/tables/window.js';
 import {
-  drawPressedWidget, layoutWindow, widgetHit, widgetHittable, windowCell, windowWidgets, type WindowLayout,
+  drawPressedWidget, layoutWindow, remapWidget, widgetHit, widgetHittable, windowCell, windowWidgets, type WindowLayout,
 } from './engine/families/window.js';
 import type { EngineTrace } from './engine/trace.js';
 import type { WindowType, WindowCinf, Rect } from './types.js';
@@ -102,6 +104,8 @@ export interface ComposedChrome {
   fullHeight: number;
   /** The title plate: the top side's code-5 cell (TT5–TT9), else the full width. `midY` is the title marker band's centre. */
   titleRegion: { x: number; w: number; midY?: number };
+  /** `t4p`, the remapped title rect (TX3) the title text is drawn in (wnd# windows); empty when it cannot be drawn. */
+  titleRect?: PixRectXY;
   /** cicn column of the title-text colour marker (cinf textPixel, else the marker rect), or −1. */
   titleFillSrcX: number;
   /** The template's colour at the marker, or null. */
@@ -122,7 +126,7 @@ export interface ComposeWindowOptions {
   cinf?: WindowCinf | null;
   /** `SW`: the title's measured width in the title face; 0 for no title. */
   titleWidthPx?: number;
-  /** `SWc`: the title's width in the condensed face (TT2). Default `SW`. */
+  /** `SWc`: the title's width in the condensed face (TT2). Default TT2a, `SW − titleLength`. */
   titleWidthCondensedPx?: number;
   /** `titleLen`: the title's length (only its zero-ness is read: TT4, AW5). Default 1 when `SW > 0`, else 0. */
   titleLength?: number;
@@ -159,7 +163,8 @@ export function composeWindowChrome(cicn: PixelBuffer, windowType: WindowType, c
   const layout = layoutWindow({
     sides: WINDOW_SIDES.map(s => windowType.edges?.[s.edge]?.map(e => ({ code: partCode(e.part), border: e.at }))),
     rects, B: rect(0, 0, cicn.height, cicn.width), C: rectXYWH(frame.left, frame.top, contentW, contentH),
-    titleWidth: SW, titleWidthCondensed: opts.titleWidthCondensedPx ?? SW, titleLength: opts.titleLength ?? (SW > 0 ? 1 : 0),
+    titleWidth: SW, ...(opts.titleWidthCondensedPx !== undefined ? { titleWidthCondensed: opts.titleWidthCondensedPx } : {}),
+    titleLength: opts.titleLength ?? (SW > 0 ? 1 : 0),
     flags: { popupFamily: opts.popupFamily ?? false, drawActive: opts.active ?? true },
   }, opts.trace);
 
@@ -182,7 +187,7 @@ export function composeWindowChrome(cicn: PixelBuffer, windowType: WindowType, c
     const band = (i: number) => windowCell(layout, sd.side, i);
     const push = (code: number, mode: SliceMode, t: QdRect, p: QdRect, segment: number) =>
       slices.push({ edge: sd.edge, code, role: partRole(code), mode, src: xywh(t), rects: [xywh(p)], segment });
-    // Leading region (Q3, runtime policy): 1:1 at its template position.
+    // DIVERGENCE (§6 Q3): the decode paints no leading region; we copy `[0, S[0])` 1:1 at its template position.
     if (s.S[0]! > 0) {
       const c = band(1), lead = s.P[0]! - s.S[0]!;
       const t = along(c.t, 0, s.S[0]!), p = along(c.p, lead, s.P[0]!);
@@ -198,7 +203,7 @@ export function composeWindowChrome(cicn: PixelBuffer, windowType: WindowType, c
         : row === 'AW4' || row === 'AW5' || inList(titleCodes, code) ? 'collapse' : 'fixed';
       push(code, mode, t, p, i);
     }
-    // Trailing art (Q3, runtime policy): a horizontal side's opaque template past S[N], at the end of the side.
+    // DIVERGENCE (§6 Q3, LS9): the decode paints nothing past P[N]; we scale a horizontal side's opaque art past S[N] onto it.
     const end = s.P[N]!, sN = s.S[N]!;
     if (s.horizontal && sN < drawW && end < fullW) {
       const c = band(N), t = along(c.t, sN, drawW);
@@ -241,6 +246,7 @@ export function composeWindowChrome(cicn: PixelBuffer, windowType: WindowType, c
   }
   return {
     buffer: out, frame, fullWidth: fullW, fullHeight: fullH, titleRegion, titleFillSrcX, titleFillRgb, placement, layout,
+    titleRect: xywh(remapWidget(layout, layout.T4)),
     widgets: hittable.map(w => ({ role: w.row.role, rect: xywh(w.rect) })),
     hitWidget: (x, y) => widgetHit(layout, widgets, strip, x, y).role,
   };

@@ -9,17 +9,16 @@
 // declared defaults or because the spec leaves it open (lane notes,
 // v2-lanes/window-migration/NOTES.md):
 //   - the layout cache (LC1): the runtime has no message stream, so every call lays out (LC2);
-//   - the popup-family placement (AP1, §6 Q1): a popup titled side takes the
-//     titled-side rows with `drop = 0` and title gate 1, traced `AP1-substitute`;
+//   - who writes the popup data after creation (§6 Q10): PP7 declares the creation values;
 //   - the partial-zoom widget (WD5, WD8), the popup raw blits (WD6), the
 //     outline draw and the exact-point hit fallbacks (§6 Q6);
-//   - TT2 condensing needs a condensed StringWidth; without one it changes nothing (`SWc = SW`).
+//   - TT2 needs a condensed StringWidth; the declared default is TT2a.
 import type { Pixmap, QdRect } from '../qd/types.js';
 import type { EngineTrace } from '../trace.js';
 import { emptyRect, rect } from '../qd/rect.js';
 import { scaleBlit } from '../qd/scale.js';
 import {
-  ALLOCATION, ALLOCATION_PATH, CELL_RECT, CELL_WIDTH, LAYOUT_SUMS, PART_VERDICT, TITLED_SIDE, TOO_SHORT,
+  ALLOCATION, ALLOCATION_PATH, CELL_RECT, CELL_WIDTH, LAYOUT_SUMS, PART_VERDICT, POPUP_PLACEMENT, TITLED_SIDE, TOO_SHORT,
   WIDGET_DRAW, WIDGET_HIT, WIDGET_PARTS, WINDOW_DECLARED_DEFAULTS, WINDOW_RECT_TYPE, WINDOW_SIDES,
   type VerdictFlag, type WidgetPartRow,
 } from '../tables/window.js';
@@ -43,8 +42,10 @@ export interface WindowLayoutInput {
   C: QdRect;
   /** `SW`, StringWidth(title). */
   titleWidth: number;
-  /** `SWc`, StringWidth(title) in the condensed face (TT2); default `SW`. */
+  /** `SWc`, StringWidth(title) in the condensed face (TT2); default TT2a `SW − titleLen`. */
   titleWidthCondensed?: number;
+  /** Popup data (family 63, §2.1); default the creation values (PP6, PP7). */
+  popup?: { pdMode: number; pdX: number; pdLen: number; pdCentre: number };
   /** `titleLen`, the title's length byte. */
   titleLength: number;
   flags?: Partial<WindowFlags>;
@@ -170,8 +171,8 @@ function layoutSide(side: number, horizontal: boolean, list: readonly WindowReci
     }
   };
 
-  // §4.6 titled side (AP2; also the AP1 substitute with drop = 0 and gate 1).
-  const titled = (gate: number | null): void => {
+  // §4.6 titled side (AP2).
+  const titled = (): void => {
     let Fb = 0, Fa = 0;
     for (let i = 1; i <= N; i++) {
       if (i === anchor || verdictZero(codes[i]!, flags, drop) || TITLED_SIDE.TT1.excluded.includes(codes[i]! as never)) continue;
@@ -179,7 +180,11 @@ function layoutSide(side: number, horizontal: boolean, list: readonly WindowReci
     }
     rows.push(TITLED_SIDE.TT1.id);
     const R = E - Fb - Fa;
-    if (R < W) { W -= input.titleWidth - (input.titleWidthCondensed ?? input.titleWidth); rows.push(TITLED_SIDE.TT2.id); }
+    if (R < W) {
+      const SWc = input.titleWidthCondensed ?? input.titleWidth - TITLED_SIDE.TT2a.perCharacter * input.titleLength;
+      W -= input.titleWidth - SWc;
+      rows.push(input.titleWidthCondensed === undefined ? `${TITLED_SIDE.TT2.id},${TITLED_SIDE.TT2a.id}` : TITLED_SIDE.TT2.id);
+    }
     if (R <= TITLED_SIDE.TT3.minRoom) { titleLen = 0; W = 0; rows.push(TITLED_SIDE.TT3.id); }
     if (titleLen === 0) {
       // Only segments 1..N exist; anchor − 1 = 0 is not a segment.
@@ -209,22 +214,32 @@ function layoutSide(side: number, horizontal: boolean, list: readonly WindowReci
       S[a - 1] = T4.left; S[a] = T4.right;
       rows.push(TITLED_SIDE.TT8.id);
     }
-    const g = gate ?? titleLen;
     rows.push(TITLED_SIDE.TT9.id);
-    allocate(1, a - 1, Fb, gb, g);
-    allocate(a + 1, N, Fa, ga, g);
+    allocate(1, a - 1, Fb, gb, titleLen);
+    allocate(a + 1, N, Fa, ga, titleLen);
   };
 
-  if (anchor && flags.popupFamily) { // AP1: the too-short step does not run
-    rows.push(`${ALLOCATION_PATH.AP1.id}-substitute`);
-    titled(ALLOCATION_PATH.AP1.titleGate);
+  if (anchor && flags.popupFamily) { // AP1 (§4.6a): no too-short step, no TT rows
+    const PP = POPUP_PLACEMENT, d = input.popup ?? PP.PP6, a = anchor;
+    const X = d.pdMode === PP.PP1.mode ? d.pdCentre - input.C.left + PP.PP1.nudge - trunc(d.pdLen / 2) : d.pdX;
+    let Fb = 0, Fa = 0;
+    for (let i = 1; i <= N; i++) {
+      if (i === a || verdictZero(codes[i]!, flags, false) || PP.PP3.excluded.includes(codes[i]! as never)) continue;
+      if (i < a) Fb += w(i); else Fa += w(i);
+    }
+    P[a - 1] = input.C.left + X + PP.PP4.inset + S[a - 1]! - T4.left;
+    P[a] = input.C.left + X + d.pdLen - PP.PP4.inset + S[a]! - T4.right;
+    rows.push(ALLOCATION_PATH.AP1.id, d.pdMode === PP.PP1.mode ? PP.PP1.id : PP.PP2.id, PP.PP3.id, PP.PP4.id, PP.PP5.id,
+      ...(input.popup ? [] : [PP.PP7.id]));
+    allocate(1, a - 1, Fb, gb, PP.PP5.titleGate);
+    allocate(a + 1, N, Fa, ga, PP.PP5.titleGate);
     return out;
   }
   if (E < F) {
     drop = true; F -= D; W = 0; titleLen = 0; rows.push(TOO_SHORT.TS1.id);
     if (E < F && G > 0) { flags.collapseRequested = false; F -= G; rows.push(TOO_SHORT.TS3.id); } else rows.push(TOO_SHORT.TS4.id);
   } else rows.push(TOO_SHORT.TS2.id);
-  if (anchor && horizontal) { rows.push(ALLOCATION_PATH.AP2.id); titled(null); }
+  if (anchor && horizontal) { rows.push(ALLOCATION_PATH.AP2.id, ...(input.titleLength === 0 ? [TITLED_SIDE.TT10.id] : [])); titled(); }
   else { rows.push(ALLOCATION_PATH.AP3.id); allocate(1, N, F, gb + ga, ALLOCATION_PATH.AP3.titleGate); }
   return out;
 }

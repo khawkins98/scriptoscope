@@ -99,6 +99,8 @@ export const TITLED_SIDE = {
   TT1: { id: 'TT1', excluded: [8, 11, 12, 13, 14, 18], source: '0x4e54..0x4eec' },
   /** TT2 TextFace values: condense (32) or bold + condense (33) under altWidgets, then plain (0) or bold (1). */
   TT2: { id: 'TT2', condense: 32, boldCondense: 33, plain: 0, bold: 1, source: '0x4eee..0x4f42' },
+  /** TT2a declared default (modern policy): `SWc = SW − titleLen`, Apple's synthetic condense of 1 px per character. */
+  TT2a: { id: 'TT2a', perCharacter: 1, source: 'Inside Macintosh: Text (Font Manager style extra)' },
   TT3: { id: 'TT3', minRoom: 2, source: '0x4f46..0x4f62' },
   TT4: { id: 'TT4', bezel: 6, source: '0x4f66..0x4fa4' },
   TT5: { id: 'TT5', source: '0x4fa8..0x4fcc' },
@@ -106,7 +108,32 @@ export const TITLED_SIDE = {
   TT7: { id: 'TT7', source: '0x5048..0x50ba' },
   TT8: { id: 'TT8', source: '0x50be..0x50fa' },
   TT9: { id: 'TT9', source: '0x5100..0x513c' },
+  TT10: { id: 'TT10', source: '0x4a94..0x4aa6, 0x4b20..0x4b3a, 0x4f66, 0x530c' },
   mid: { source: '0x4fe6..0x5002, 0x5054..0x5070' },
+} as const;
+
+/** §4.6a popup placement (AP1). */
+export const POPUP_PLACEMENT = {
+  PP1: { id: 'PP1', mode: -2, nudge: 4, source: '0x4c92..0x4cbc' },
+  PP2: { id: 'PP2', source: '0x4cbe' },
+  PP3: { id: 'PP3', excluded: [8, 11, 12, 13, 14, 18], source: '0x4cc6..0x4d5c' },
+  /** PP4: the plate starts `inset` in from `X` and ends `inset` before `X + pdLen`. */
+  PP4: { id: 'PP4', inset: 10, source: '0x4d5e..0x4db0' },
+  PP5: { id: 'PP5', titleGate: 1, source: '0x4db4..0x4df6' },
+  /** PP6 popup data at window creation; PP7 declares these as the runtime values. */
+  PP6: { id: 'PP6', pdMode: 0, pdX: 0, pdLen: 33, pdCentre: 0, source: '0x390a..0x3954' },
+  PP7: { id: 'PP7', source: 'window-widgets PP7 declared default (creation values)' },
+} as const;
+
+/** §4.12 title text (drawn by renderWindow in the remapped title rect `t4p`). */
+export const TITLE_TEXT = {
+  TX2: { id: 'TX2', source: '0x5538..0x5554' },
+  TX3: { id: 'TX3', source: '0x556a..0x55ba' },
+  /** TX4 / TX5: the clip and the truncation room are `t4p` widened by 2 on the right. */
+  TX4: { id: 'TX4', widenRight: 2, source: '0x55be..0x55e4' },
+  TX5: { id: 'TX5', source: '0x55ec..0x5636' },
+  /** TX8: left-aligned, baseline 4 above `t4p.bottom`. */
+  TX8: { id: 'TX8', baselineAbove: 4, source: '0x56ee..0x5706' },
 } as const;
 
 /** §4.7 layout cache (the runtime has no message stream: LC1 is never taken). */
