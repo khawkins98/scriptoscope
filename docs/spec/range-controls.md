@@ -8,18 +8,19 @@ geometry, colour or native-pixel claim.
 ## Scroll-bar selection (2.3.1 decode)
 
 kDEF 0, SHA-256 `2c027276dae2355964a0dde1ace31f60ba845ab2c5fbf0496fd34ab2afe7c342`,
-second CDEF main `0x8d36` (service-handler slot 5). File offsets. The rows are
+scroll-bar CDEF `0x997e` (service-handler slot 1; an earlier revision of this
+file said slot 5 `0x8d36`, which is a separate, undecoded CDEF). File offsets. The rows are
 read from the local disassembly and cited by address; they are not executed or
 shipped. ControlRecord offsets are Inside Macintosh's: contrlRect +8, hilite +17,
 value +18, min +20, max +22.
 
 - Scroll state bytes (0x9f7a–0x9fd6, 0xada2, 0xa01c–0xa030): blob byte47 (inactive) is set for hilite 254, and for hilite 255 when Gestalt('appr') succeeds and GetSuperControl's parent is not active; byte20 (disabled) is set for hilite >= 254 or min == max (0xada2; read through the local helpers 0x996c/0x995a when Gestalt('apvr') is at least 0x110, else directly); a hilite of 1..253 is pressed.
-- Scroll track (0xa032–0xa10e, 0xbcc6): byte21 (0xadfe: width > height) selects base -8288, else -8280; tier is 0 when byte47, else 1 when byte20, else 3 when pressed, else 2; the track cicn is base + tier fetched with _GetCIcon after UseResFile(Gestalt 'Copl' low word, 0x9f3e–0x9f58); when the thickness (0xbc92) is at most 11 the id + 18 is probed first; when Acid byte +33 (byte18) or byte77 is set the id + 4 is probed first; a NULL result is not retried at another tier.
+- Scroll track (0xa032–0xa10e, 0xbcc6): byte21 (0xadfe: width > height) selects base -8288, else -8280; tier is 0 when byte47, else 1 when byte20, else 3 when pressed, else 2; the track cicn is base + tier fetched with _GetCIcon after UseResFile(Gestalt 'Copl' low word, 0x9f3e–0x9f58); when the thickness (0xbc92) is at most 11 the id + 18 is probed first; when Acid byte +33 (byte18) is set and the along length is at least 8 × thickness the id + 4 is probed first; a NULL result is not retried at another tier.
 - Scroll composite flag (0xa14e–0xa184): byte72 is set when the selected track cicn's bounds exceed 16 in width or height.
 - Scroll track pattern (0xa112–0xa14a): a ppat with the record id a2@(66) is fetched (on a miss: id - 4 when the +4 track variant was taken, then base + tier); 0xba0e and 0xc6e4 draw with it when present, by a path not decoded here.
-- Scroll arrows (0x9f0e–0x9f38, 0xc338–0xc84a): an inactive control (byte47) draws no arrow (0xc34a); with byte72 the arrow boxes come from the track cicn, and for a pressed control each arrow that is not the hit one uses cicn a2@(66) - 1 (0xc3cc–0xc3fe); without byte72 the icon id is the blob word at +24 + 8*high + 4*vertical + 2*hit (0xc79e–0xc7b6), hit meaning hilite 20 for the low arrow and 21 for the high one, and a disabled control (byte20) instead uses -10206/-10205 horizontal or -10208/-10207 vertical (0xc7ba–0xc7fa); icons are drawn through 0xf4ba, which requires the ics# mask (0xf50c–0xf51e).
-- Scroll thumb (0xaed6–0xaf84): nothing is drawn if 0xbbf4 yields an empty thumb rect; a disabled control (byte20) redraws the track in the thumb rect (0xaf08–0xaf20) and draws no thumb; hilite 129 selects -10205 horizontal or -10207 vertical, otherwise -10206 or -10208; at thickness 11 or less the id + 1956 is probed first; both go through 0x10472.
-- Scroll draw order (0xa44c–0xa4e2): arrow 0 (low) unless byte18 or byte77, arrow 2 when either is set, arrow 3 (high) always, arrow 1 when byte18, then the thumb.
+- Scroll arrows (0x9f0e–0x9f38, 0xc338–0xc84a): an inactive control (byte47) draws no arrow (0xc34a); with byte72 the arrow boxes come from the track cicn, and for a pressed control each arrow that is not the hit one uses cicn a2@(66) - 1 (0xc3cc–0xc3fe); without byte72 the icon id is the blob word at +24 + 8*high + 4*vertical + 2*hit (0xc79e–0xc7b6), hit meaning hilite 20 for the low arrow and 21 for the high one, and a disabled control (byte20) instead uses -10206/-10205 horizontal or -10208/-10207 vertical (0xc7ba–0xc7fa); icons are drawn through 0xf4ba, which requires the ics# (0xf50c–0xf51e) and draws the ics8 from the ics#'s own file, or the 1-bit ics# image when there is none; ics4 is never requested.
+- Scroll thumb (0xaed6–0xaf84): nothing is drawn if 0xbbf4 yields an empty track rect; a disabled control (byte20) fills the whole track rect (0xaf08–0xaf20) and draws no thumb; hilite 129 selects -10205 horizontal or -10207 vertical, otherwise -10206 or -10208; at thickness 11 or less the id + 1956 is probed first; both go through 0x10472.
+- Scroll draw order (0xa44c–0xa4e2): arrow 0 (low) always, arrow 2 when byte18, arrow 3 (high) always, arrow 1 when byte18, then the thumb, then the track.
 
 The record words written at 0x9f0e–0x9f38 are: +24 -10202 / +26 -10198 (left
 raised / hit), +28 -10204 / +30 -10200 (up), +32 -10201 / +34 -10197 (right),
@@ -35,9 +36,31 @@ corpus-corroborated-ids.md does list cicn -10208..-10205 as "Scroll Thumbs
 Vertical/Horizontal Active/Pressed" (n=6). The labels are corroboration, not the
 source of the rule.
 
-Not decoded: the thumb rect (0xbbf4) and every other layout value, how the
-track is filled between the arrow boxes, the ppat draw path, 0xf2d6, what sets
-the Gestalt('Acid') bytes, and which open file owns a found resource.
+Geometry is decoded in [`engine/scrollbar.md`](engine/scrollbar.md): the track
+rect (0xbbf4), arrow boxes, thumb length (0xab68) and position (0xa97c), the
+track fill between the arrow boxes and the ppat draw path; its rules are in
+`tests/rendering-options/scrollbar-geometry-rules.mjs`. Still not decoded: what
+sets the Gestalt('Acid') bytes and which open file owns a found resource.
+
+Corrections (2026-10-21, v2 lane L5 verifier): the CDEF is slot 1 `0x997e`, not
+slot 5 `0x8d36`; 0xbbf4 is the track rect, not the thumb rect; a disabled
+control fills the whole track rect, not the thumb rect; blob byte77 (the
+"together arrows" flag) is cleared on every message (0x9e1e) and never set, so
+the conditions above that named it are dropped and arrow 0 is always drawn; the
+arrow icons are ics# then ics8, never ics4. No rule outcome changes.
+
+### Superseded wording (ledger 1.22.0 pins)
+
+The four bullets below are the pre-correction wording, kept verbatim because
+the rebuilt 1.22.0 ledger (`build-ledger.mjs` base mode) still pins them as
+evidence excerpts. They are **wrong** where the corrections above say so (slot,
+`0xbbf4`, byte77, thumb-rect fill) and are not a source for any rule; the
+bullets in "Scroll-bar selection" above and `engine/scrollbar.md` supersede them.
+
+- Scroll track (0xa032–0xa10e, 0xbcc6): byte21 (0xadfe: width > height) selects base -8288, else -8280; tier is 0 when byte47, else 1 when byte20, else 3 when pressed, else 2; the track cicn is base + tier fetched with _GetCIcon after UseResFile(Gestalt 'Copl' low word, 0x9f3e–0x9f58); when the thickness (0xbc92) is at most 11 the id + 18 is probed first; when Acid byte +33 (byte18) or byte77 is set the id + 4 is probed first; a NULL result is not retried at another tier.
+- Scroll arrows (0x9f0e–0x9f38, 0xc338–0xc84a): an inactive control (byte47) draws no arrow (0xc34a); with byte72 the arrow boxes come from the track cicn, and for a pressed control each arrow that is not the hit one uses cicn a2@(66) - 1 (0xc3cc–0xc3fe); without byte72 the icon id is the blob word at +24 + 8*high + 4*vertical + 2*hit (0xc79e–0xc7b6), hit meaning hilite 20 for the low arrow and 21 for the high one, and a disabled control (byte20) instead uses -10206/-10205 horizontal or -10208/-10207 vertical (0xc7ba–0xc7fa); icons are drawn through 0xf4ba, which requires the ics# mask (0xf50c–0xf51e).
+- Scroll thumb (0xaed6–0xaf84): nothing is drawn if 0xbbf4 yields an empty thumb rect; a disabled control (byte20) redraws the track in the thumb rect (0xaf08–0xaf20) and draws no thumb; hilite 129 selects -10205 horizontal or -10207 vertical, otherwise -10206 or -10208; at thickness 11 or less the id + 1956 is probed first; both go through 0x10472.
+- Scroll draw order (0xa44c–0xa4e2): arrow 0 (low) unless byte18 or byte77, arrow 2 when either is set, arrow 3 (high) always, arrow 1 when byte18, then the thumb.
 
 ## What the rule table declares
 
@@ -46,13 +69,14 @@ The rule table declares, as modern policy rather than an original observation:
 `normal` = hilite 0, `disabled` = hilite 255 with no inactive embedding parent,
 `inactive` = hilite 254, min < max, the track cicn's 16px cross size as the
 control thickness (so the small path at 11px or less is never taken), the
-Gestalt('Acid') response bytes +27, +31..+34 and +36 and blob byte77 clear
+Gestalt('Acid') response bytes +27, +31..+34 and +36 clear
 (so no double-arrow or id - 1 track variant; 0xba3e–0xba6c: Acid +32 / +36
 make the 0xba0e track fill use id - 1; 0xf2d6 only sets the icon depth flag
 and fetches no resource), and a resource chain holding only the archive's own fork. Public
 `pressed` names no part, so a pressed row passes if any of hilite 20, 21, 22,
 23 or 129 predicts exactly what was drawn. The spec replaces every candidate
-cicn (-8288..-8249, -10208..-10197) and arrow icon (-10208..-10197) of the
+cicn (-8288..-8249, -10208..-10197; the CDEF never loads -10204..-10197 as cicn,
+they stay in the range only as a detector) and arrow icon (-10208..-10197) of the
 loaded theme with a solid sentinel raster of the same size, so a row reports
 which resources reached the output; it does not compare art.
 
@@ -98,7 +122,8 @@ Two older statements conflict with this decode and are left for a reviewed
 follow-up (kdef231-reference.md is hash-pinned by control-availability
 evidence): §2.3 labels -8286/-8285 "inactive/active" and calls
 -10208..-10205 a slider family, and §2.4 says there is no separate
-disabled-arrow art. The `composeScrollbar` comment repeats a misreading of
+disabled-arrow art (§2.4 now carries a 2026-10-21 superseded note for that
+and for its ics4 arrow reading). The `composeScrollbar` comment repeats a misreading of
 the 1.8.2 drawer (as do kdef231-reference §1.3's 0x66b4 row and LEARNINGS.md). The decode above gives -8286 normal, -8285 pressed, the cicns
 -10208..-10205 as scroll thumbs and the icons -10208..-10205 as disabled arrows.
 

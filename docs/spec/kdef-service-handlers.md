@@ -41,21 +41,24 @@ opcode — see slot 6 below. (Listing excerpt and line range in evidence.)
 > are wrong in a structurally informative way. There is no single "resource
 > loader" or "recipe walker" slot — the resource loaders (`0x10472` cicn,
 > `0x116f8` cinf) are NOT in this table at all; they're internal callees.
-> The table's structure is: **two CDEF dispatchers (slots 0, 5) + one
-> tracking proc (slot 1) + one helper CDEF (slot 2) + three family-routed
-> WDEF dispatchers (slots 3, 4, 8) + one master compositor (slot 6) + one
-> WDEF main (slot 7)**. The full slot-by-slot decode is below.
+> The table's structure is: **three CDEF dispatchers (slot 0 push-button
+> family, slot 1 scroll bar, slot 5 an undecoded CDEF answering `bevp` tags) +
+> one helper CDEF (slot 2) + three family-routed WDEF dispatchers (slots 3, 4,
+> 8) + one master compositor (slot 6) + one WDEF main (slot 7)**. The full
+> slot-by-slot decode is below. *(Corrected 2026-10-21, v2 lane L5 verifier:
+> an earlier revision called slot 1 a tracking proc / re-entrant entry and
+> slot 5 the scroll-bar CDEF; the roles are the other way round.)*
 
 ## Confirmed roles
 
 | Slot | Addr | Role | Aux block | Cross-reference |
 |---:|---:|---|---:|---|
 | 0 | `0x6688` | **CDEF main** — push-button family (default-button / cancel / radio / checkbox) | 32 B (`'Acid'`) | `kdef231-reference.md §1.1`, `§3.1`, `§3.2` |
-| 1 | `0x997e` | **CDEF re-entrant entry** — handle-locked dispatcher, saves/restores the kDEF globals pointer (`0x9930`) so the kDEF can be called from a context that hasn't bound globals; bridges to the same drawer family as slot 0 via a smaller msg table | (caller's) | new — adds row to §1.1 |
+| 1 | `0x997e` | **Scroll-bar CDEF** — handle-locked dispatcher that saves the kDEF globals pointer (`0x9930`), rebuilds its per-message scroll-bar state (`0x9d84`) and dispatches through a 15-entry message table at `0x99ce`; its message 34 answers the `sbap/sbae/sbar/sbax/sbgh/sbth/sbtp` FourCCs (`0x9b42`). Behavioural spec: `docs/spec/engine/scrollbar.md` | (caller's) | `kdef231-reference.md §1.1`; corrected 2026-10-21 (was "re-entrant CDEF entry") |
 | 2 | `0xdd22` | **Auxiliary CDEF** — second control-record dispatcher, lighter (no 32-byte `'Acid'` allocate, sentinels `0xff/0xfe` in the control record's contrlHilite byte only). Likely Appearance-era **embedded / focus-ring helper** | none | new — adds row to §1.3 |
 | 3 | `0x118b8` | **wnd# → WDEF gate (document-window family)** — `GetResource('wnd#', -14336)`; on hit → calls `0x28e0` (slot 6); on miss → loads system `'WDEF', -14330` and forwards. This is **NOT the cinf consumer** (that's `0x116f8`, see `kdef231-reference.md §1.6`) | — | corrects `kdef-binary-inventory.md §2` |
 | 4 | `0x1525a` | **wnd# → WDEF gate (utility-window family)** — same shape, id `-14304`, message base `+1984` (added at `0x15274`). On miss, falls into a 9-entry private dispatch (`0x152fc`) | — | new — adds row to §1.4; aligns with §2.1 `-14304..-14295` utility band |
-| 5 | `0x8d36` | **Second CDEF main** — scrollbar / slider family. Same dispatch shape as `0x6688` but allocates a 68-byte aux block (`_NewHandle`, trap `A122`, at `0x8df6`) and initialises its fields (control value, min, max, page, action). Consumes the `sbap/sbae/sbar/sbax/sbgh/sbth/sbtp` FourCC family from `kdef-binary-inventory.md §5` | 68 B | new — adds row to §1.1 / §1.3 |
+| 5 | `0x8d36` | **Separate CDEF, undecoded (likely bevel button)** — same dispatch shape as `0x6688`, allocates a 68-byte aux block (`_NewHandle`, trap `A122`, at `0x8df6`); its hit test returns part 10 and its message 34 (`0x98ca`) answers `bevp`-family tags. **Not** the scroll bar: nothing in `0x8d36..0x991e` reaches `0x9d84` or the scroll-bar drawers | 68 B | corrected 2026-10-21 (was "second CDEF main — scrollbar / slider") |
 | 6 | `0x28e0` | **Master compositor dispatcher** — receives `(param, msg, handle, varCode)`, stores them in the compositor's work struct, dispatches on `msg - 1001` via the `0x148` indexed-table helper. msg 1000 = INIT (hit at boot); messages 1001..1009 are the per-side recipe-walk + draw entry points calling into `0x356c`/`0x3680`/`0x3f2c` etc. **This is what the inventory labelled "wnd# dispatcher"** — but the wnd# load happens in slot 3; slot 6 walks the recipe AFTER it's loaded | — | covers §1.4 `0x3680..0x4138` block from above |
 | 7 | `0x1d3e` | **WDEF main** — 35-entry msg dispatcher at `0x1d68` (already documented in `kdef-binary-inventory.md §1`). Handles standard WDEF msgs 0..34 (wDraw, wHit, wCalcRgns, wNew, wDispose, wGrowIcon + Appearance/Carbon msgs 19/20/21/27/29/34) | — | `kdef-binary-inventory.md §1`; row already in `kdef231-reference.md §1.4` implicitly via `0x4138/0x4176/0x41d0` |
 | 8 | `0x17452` | **wnd# → WDEF gate (popup / tab / menu family)** — `GetResource('wnd#', -12320)`; on hit loads `'WDEF', -14336`, locks the handle, and calls into the loaded resource's code with `msg + 1008` — **period-faithful: it calls the real WDEF resource's code, not the kDEF's own renderer**. Used for the `-12320` popup-frame + `-12319` tab family from `kdef231-reference.md §2.6`. On miss → 9-entry private dispatch (`0x174e8`) | — | new — adds row to §1.4 |
@@ -68,16 +71,21 @@ opcode — see slot 6 below. (Listing excerpt and line range in evidence.)
 
 Fully documented in `kdef231-reference.md §1.1`. Not re-traced here.
 
-### Slot 1 — `0x997e` (re-entrant CDEF entry)
+### Slot 1 — `0x997e` (scroll-bar CDEF)
 
 Entry sets up a large local state copy, runs the common init `0x104` (the
 same init slot 0 uses), then calls `0x9930`, which saves the kDEF globals
 pointer into a static at `0x992c`. It brackets the handle with `_HGetState`
 (`A069`) / `_HUnlock` (`A029`, as labelled in the trace), builds a call
 struct (handle, master pointer, message, param), runs the pre-call hook
-`0x9d84`, then dispatches on the message through the indexed-table helper
-`0x148` into a 14-entry int16 table at `0x99ce..0x9a0c` (msg → handler
-offset). (Listing detail in evidence.)
+`0x9d84` (the scroll-bar per-message state), then dispatches on the message
+through the indexed-table helper `0x148` into a 15-entry int16 table at
+`0x99ce..0x9a0c` (msg → handler offset). (Listing detail in evidence.)
+This is the scroll-bar CDEF: its draw (`0xa2b6`), hit test (`0xa506`) and
+region handlers are specified in `docs/spec/engine/scrollbar.md`, and its
+message 34 (`0x9b42`) answers the `sb*` theme-sound FourCCs. *(Corrected
+2026-10-21, v2 lane L5 verifier: an earlier revision called this a re-entrant
+tracking entry and attributed the scroll bar to slot 5.)*
 
 **Diagnosis.** The `0x9930` "save globals pointer" + `_HGetState`/`_HUnlock` bracket means
 this entry is **re-entrant from a context that hasn't bound the kDEF
@@ -171,7 +179,7 @@ message-base offset distinguishes it: when slot 6 sees msg in [1984, 1992]
 it knows "utility family", not "document family". This is how the
 compositor multiplexes per-window-type recipes through a single core.
 
-### Slot 5 — `0x8d36` (second CDEF main — scrollbar / slider)
+### Slot 5 — `0x8d36` (separate CDEF, undecoded; not the scroll bar)
 
 Entry has a very large local frame (scrollbar geometry), takes the
 ControlHandle argument, runs the common init `0x104`, and dispatches on the
@@ -187,13 +195,14 @@ the CDEF set). Notable branches:
 (Table entry words and aux field offsets in evidence.)
 
 
-**Diagnosis.** **Second CDEF, scrollbar/slider family.** Symmetric to slot 0
-but with a 68-byte aux block instead of 32 (rich tracking state: value /
-min / max / page increment / step / thumb position vs slot 0's flag bytes
-only). The 35-entry msg dispatch matches the standard CDEF protocol. This
-is where Kaleidoscope's `sbap/sbae/sbar/sbax/sbgh/sbth/sbtp` scrollbar
-FourCCs (inventory §5) are consumed and where `kdef231-reference.md §2.4`'s
-slider/scrollbar IDs (`-8278..-8271` v, `-8286..-8271` h) are drawn from.
+**Diagnosis (corrected 2026-10-21, v2 lane L5 verifier).** A separate CDEF,
+symmetric to slot 0 but with a 68-byte aux block instead of 32. It is **not**
+the scroll bar: its hit test returns part 10, its message 34 (`0x98ca`)
+answers `bevp`-family tags, and nothing in `0x8d36..0x991e` calls `0x9d84` or
+the scroll-bar drawers (`0xa2b6`, `0xaed6`, `0xc338`). Likely the bevel
+button; undecoded. The `sb*` FourCCs and the scroll-bar ids are slot 1's
+(`0x997e`, `docs/spec/engine/scrollbar.md`). An earlier revision of this
+section attributed the scroll bar to this slot.
 
 ### Slot 6 — `0x28e0` (master compositor dispatcher)
 
@@ -274,12 +283,11 @@ are exactly this family.
 
 The following rows are now eligible for `kdef231-reference.md §1`:
 
-- **§1.1 (CDEF dispatch)** — add row for slot 1 `0x997e` (re-entrant entry,
-  saves the kDEF globals pointer via `0x9930`) and row for slot 5 `0x8d36` (scrollbar/slider
-  CDEF main, 68-byte aux).
-- **§1.3 (control draw — other parts)** — add `0x8d36` as the scrollbar
-  family's CDEF entry (currently only the drawer addresses `-8278..-8271`
-  are listed); add `0xdd22` as the GDevice-aware focus / state helper *(re-verify: "GDevice-aware" and the "ctSeed magics" rest on the former GetCTSeed/GetGDevice trap names; the traps are OSDispatch/GetPort)*.
+- **§1.1 (CDEF dispatch)** — add row for slot 1 `0x997e` (scroll-bar CDEF,
+  saves the kDEF globals pointer via `0x9930`) and row for slot 5 `0x8d36`
+  (separate CDEF, 68-byte aux, `bevp` tags, undecoded). *(Corrected 2026-10-21.)*
+- **§1.3 (control draw — other parts)** — add `0x997e` as the scroll-bar
+  family's CDEF entry (corrected 2026-10-21; this item formerly named `0x8d36`); add `0xdd22` as the GDevice-aware focus / state helper *(re-verify: "GDevice-aware" and the "ctSeed magics" rest on the former GetCTSeed/GetGDevice trap names; the traps are OSDispatch/GetPort)*.
 - **§1.4 (window chrome)** — add a sub-section "the three wnd# gates"
   documenting that slots 3 / 4 / 8 are three parallel `GetResource('wnd#',
   -id)` routers (document / utility / popup-tab families) that hand off to
@@ -296,11 +304,11 @@ wnd#-cascade resolution, recipe walk + draw, WDEF message routing). The
 following slots are **not yet modelled in the runtime** and are candidate
 gaps surfaced by this trace:
 
-1. **Slot 1 (`0x997e`) re-entrant CDEF entry**. The runtime's controls are
-   drawn synchronously per render; there's no equivalent of the "lock the
-   handle + save globals + call back from an extension" path. Period-
-   faithful, but Scriptoscope ships static — likely **N/A** unless we ever
-   model the Appearance-Manager callback surface.
+1. **Slot 1 (`0x997e`) scroll-bar CDEF** *(corrected 2026-10-21; formerly
+   read as a re-entrant entry)*. The runtime's scroll bars are drawn by
+   `controls.ts`; the v2 scroll-bar family replays this CDEF from
+   `docs/spec/engine/scrollbar.md`. The "lock the handle + save globals" bracket
+   itself has no runtime counterpart (Scriptoscope draws synchronously).
 2. **Slot 2 (`0xdd22`) GDevice-aware focus / state helper** *(re-verify: "GDevice-aware" and the "ctSeed magics" rest on the former GetCTSeed/GetGDevice trap names; the traps are OSDispatch/GetPort)*. The runtime
    doesn't render Appearance focus rings (the keyboard-focus halo around
    the active button). If we want a "focused button" demo state, this is
@@ -312,11 +320,9 @@ gaps surfaced by this trace:
    pick a different recipe variant for the utility-window band (`-14304..
    -14295`). The runtime's `resolveWindowType` is document-only. **Candidate
    runtime addition: utility-window variant in `wndCascade.ts`**.
-4. **Slot 5 (`0x8d36`) scrollbar CDEF main, 68-byte aux**. The runtime's
-   scrollbars are drawn via `controls.ts` (cicn families `-8278..-8271`)
-   and `interactive.ts` tracks state in JS. The 68-byte aux layout is the
-   period-faithful state record — useful as a reference when we wire
-   keyboard / accessibility behaviour or want to round-trip scheme settings.
+4. **Slot 5 (`0x8d36`) separate CDEF, 68-byte aux, `bevp` tags** *(corrected
+   2026-10-21; formerly read as the scroll bar)*. Undecoded; likely the bevel
+   button. Not a scroll-bar reference.
 5. **Slot 8 (`0x17452`) popup-tab trampoline WDEF**. The runtime doesn't
    render popups/tabs as window-shaped chrome. If we ever add popup-menu
    theming or the `-12319` tab family, the period-faithful path is "load
