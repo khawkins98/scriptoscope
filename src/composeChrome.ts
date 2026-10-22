@@ -204,6 +204,8 @@ export function composeWindowChrome(cicn: PixelBuffer, windowType: WindowType, c
       push(code, mode, t, p, i);
     }
     // DIVERGENCE (§6 Q3, LS9): the decode paints nothing past P[N]; we scale a horizontal side's opaque art past S[N] onto it.
+    // The walked end: AW7 rewrites P[N], which falls short of the LS7 end when the allocation hands out
+    // less than its budget (AW9, tile-only growers, AW1a).
     const end = s.P[N]!, sN = s.S[N]!;
     if (s.horizontal && sN < drawW && end < fullW) {
       const c = band(N), t = along(c.t, sN, drawW);
