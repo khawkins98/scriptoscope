@@ -31,7 +31,8 @@ test('native widget IDs survive arbitrary order, stacked positions and title mar
   assert.deepEqual(resolveTitleWidgetRects(wt, composed).map(r => r.role), ['close', 'collapse']);
 });
 
-// 0x5cb6 template → placed remap (docs/spec/kdef231-code10-widgets.md §4).
+// 0x5cb6 template → placed remap (docs/spec/kdef231-code10-widgets.md §4; spec
+// writers and verifiers only until its L2 split).
 const cell = (edge, segment, src, dst) => ({ edge, segment, src, rects: [dst] });
 test('0x5cb6 remap: side order, half-open cells, independent corners, empty on a miss', () => {
   const wt = { parts: { 'part-0': { rect: [10, 10, 50, 50] }, 'part-1': { rect: [4, 2, 8, 6] }, 'part-2': { rect: [20, 2, 26, 6] }, 'part-3': { rect: [2, 30, 8, 36] } } };

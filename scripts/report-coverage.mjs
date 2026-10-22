@@ -44,7 +44,7 @@
 // plain tables can still slip through; this cutoff is heuristic, like 'cited'.
 //
 // Addresses are attributed to a binary by a namespace heuristic. A line that
-// mentions PACH, a CDEF number or an Apple/1.8.2 source is attributed to that
+// mentions PACH (or a word starting with 'patch'; 'dispatch' does not count), a CDEF number or an Apple/1.8.2 source is attributed to that
 // namespace. Otherwise the file decides: pach/header-surface paths count as
 // PACH 130, cdef8/tab- paths as CDEF 8, and everything else as kDEF 0. Expect
 // some misattribution: 'cited' is a heuristic count, never a denominator.
@@ -84,13 +84,16 @@ function walk(dir, out = []) {
 }
 
 const NS_HINT = [
-  ['PACH130', /PACH|pach130|patch/i],
+  // `patch` only as a word start, so 'dispatch' no longer reads as a PACH hint.
+  ['PACH130', /PACH|pach130|\bpatch/i],
   ['CDEF8', /CDEF ?8|cdef8|tab-cdef8/i],
   ['CDEF3', /CDEF ?3\b/], ['CDEF4', /CDEF ?4\b/], ['CDEF5', /CDEF ?5\b/],
   ['CDEF6', /CDEF ?6\b/], ['CDEF7', /CDEF ?7\b/], ['CDEF1019', /CDEF ?1019\b/],
   ['apple', /Apple|AppearanceLib|WDEF ?125|CDEF ?-|Platinum Engine|PPC|PowerPC|capstone|1\.8\.2|k182/i],
 ];
-const ADDR = /0x([0-9a-fA-F]{3,6})\b/g;
+// One to six hex digits: ranges start as low as 0xc and 0x28 (kDEF0 toolbox glue).
+// Values below LOW still count only from the explicit files, outside struct offsets.
+const ADDR = /0x([0-9a-fA-F]{1,6})\b/g;
 const LOW = 0x200;
 const REACH = new Set(['entry', 'pcRelative', 'relocated', 'jumpTable', 'fallThrough', 'unreached']);
 const COMMENT = /^\s*(\/\/|\/?\*)/;

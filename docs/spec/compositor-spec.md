@@ -53,7 +53,7 @@ Per cell, keyed PURELY on the part code (not pixel content, not width):
 | 12 | **TILE** — primary share truncated down to a whole multiple of source width (possibly zero); the unused fraction joins the remainder pool. |
 | 18 | **SCALE** — a single scaled CopyBits (drawn once, mapped src→dst). |
 
-**code 10 note (2026-10-21, [kdef231-code10-widgets.md](kdef231-code10-widgets.md)):**
+**code 10 note (2026-10-21, [kdef231-code10-widgets.md](kdef231-code10-widgets.md) — spec writers and verifiers only until its L2 split moves the listing narrative to an evidence file):**
 `0x5178` takes two flag bytes. The first goes to `0x49d6` (`0x52fc`) and is
 always `0x4a64`'s too-short byte. The second (a constant 1 at
 `0x4db4`/`0x4dd4`, the title string's length byte at `0x5100`/`0x5120`, or 0
