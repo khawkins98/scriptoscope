@@ -216,7 +216,7 @@ Let F be the document cicn (16 × 16). Let *L* = *C*.l − 6, *R* = *C*.r + 6 an
 | 3 | bottom band, row *C*.b+5−i (i = 0..5) | columns *C*.l .. *C*.r−1 | P(6, 15−i) | `0x12ef0`–`0x12f3c` |
 | 4 | left band, column *L*+i (i = 0..5) | rows *C*.t .. *C*.b−1 | P(i, 6) | `0x12f48`–`0x12f7e` |
 | 5 | right band, column *C*.r+5−i (i = 0..5) | rows *C*.t .. *C*.b−1 | P(15−i, 6) | `0x12f80`–`0x12fb4` |
-| 6 | drop shadow (SH1) | row *B* from column *L*+2 to *R*; column *R* from row *C*.t−*H*+2 to *B* | P(0, 0) | `0x12fb6`–`0x12fe6` |
+| 6 | drop shadow | row *B* from column *L*+2 to *R*; column *R* from row *C*.t−*H*+2 to *B* | P(0, 0) | `0x12fb6`–`0x12fe6` |
 | 7 | grow box, if it belongs to the frame (§6.4) | grow rect | §6.4 | `0x13002`–`0x1301a` |
 
 *L*, *R* and *B* come from the bounding box of the structure region as calculated (§3.3), not from *C*: *L* = box.l, *R* = box.r − 1, *B* = box.b − 1, and the shadow's top end is box.t + 2 (`0x12dc8`–`0x12df8`). For an uncollapsed window these equal *C*.l − 6, *C*.r + 6, *C*.b + 6 and *C*.t − *H* + 2.
