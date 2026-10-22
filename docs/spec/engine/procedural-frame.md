@@ -1,7 +1,7 @@
 # Engine unit: built-in window frame (schemes with no `wnd#`)
 
 Lane L7, 2026-10-21. Spec writer: L7. Verified in #383 (revision 2).
-Revision 3, 2026-10-22: answers to the family-2 spec questions. It adds the utility family (§9) and rule ids TG, WP, CT, SH, TX, HT, GB, GL, M6L and U*. The revision 3 rows are not yet independently verified.
+Revision 3, 2026-10-22: answers to the family-2 spec questions. It adds the utility family (§9) and rule ids TG, WP, CT, SH, TX, HT, GB, GL, M6L and U*. Revision 3 verified in #415 (Tier 1, 2026-10-22; v2-lanes/family2/REVIEW-415.json): all 94 utility rows and the #412-affecting rows re-traced.
 Evidence appendix: [`procedural-frame.evidence.md`](./procedural-frame.evidence.md). Implementers must not read it.
 
 ## 1. Unit id and scope
@@ -57,7 +57,7 @@ The widget parts draw pressed or released according to a toggle bit. The bit is 
 
 | id | rule | source |
 |---|---|---|
-| TG1 | a draw call with part 0, 1, 2 or 3 clears the bit before it draws. Every full-frame draw therefore leaves it clear | `0x12bea`–`0x12c02` |
+| TG1 | a draw call with a part below 4 (0, 1, 2 or 3; the comparison is signed) clears the bit before it draws. Every full-frame draw therefore leaves it clear | `0x12bea`–`0x12c02` |
 | TG2 | parts 4, 5/6 and 9 draw the pressed glyph when the bit is clear and the normal glyph when it is set. They are not gated on *hilited* | `0x12c04`–`0x12c12`, `0x12d0a`–`0x12d34` |
 | TG3 | after a part-4, 5, 6, 9 or 258 call the bit flips. Other parts leave it as they found it (so after TG1 it stays clear) | `0x12d36`–`0x12d4e`, `0x12d5e` |
 | TG4 | the bit's value before the first call of a session is the byte's power-on content, which is not decoded. After any full-frame draw the first widget call draws pressed, the next one normal, and so on | TG1–TG3 |
@@ -180,7 +180,7 @@ The drops change only the widget flags: the zoom flag used by the hit test (§6.
 | id | rule | source |
 |---|---|---|
 | CT1 | if *n* ≤ the table's last index and the entry at position *n* has value *n*, that entry is used | `0x1070e`–`0x1071c` |
-| CT2 | otherwise, if the last entry's value is 0, the entry at position *n* is used | `0x1071e`–`0x10728` |
+| CT2 | otherwise (including n > the last index), if the last entry's value is 0, the entry at position *n* is used | `0x1071e`–`0x10728` |
 | CT3 | otherwise the table is searched from the last entry down to position 0 for value *n*; the first match is used, else position 0 | `0x1072c`–`0x10748` |
 | CT4 | the colour is the entry's stored 16-bit red, green and blue. The alert comparison is exact equality of all three stored channels. No gamma or display transform comes first | `0x1074a`–`0x1075c`, `0x14cf2`–`0x14d12` |
 
@@ -364,7 +364,7 @@ Once the grow box belongs to the frame, it is also cut out of the content region
 | id | kind | art | source |
 |---|---|---|---|
 | GB1 | 0, 4 | cicn -14330 (hilited) or -14334, its whole image at natural size with its top-left at the grow rect's top-left, **through its mask** (GB3) | `0x144f2`–`0x14556` |
-| GB2 | 5 | cicn -14309 / -14310 the same way (GB3). If absent: the procedural box (GB4, GL1–GL6) | `0x13124`–`0x13188` |
+| GB2 | 5 | cicn -14309 / -14310 the same way (GB3). If absent: the procedural box (GB4–GB6, GL1–GL4) | `0x13124`–`0x13188` |
 
 **Copy modes for cicn art.** This unit uses two cicn copies, and they treat the mask differently.
 
@@ -583,7 +583,7 @@ Drawn only when *active* (`0x16736`).
 | US5 | otherwise the cicn is tiled 1:1 with the opaque copy (GB3a). Horizontal: the source is the cicn's top 9 rows at full width w. Copies go at (band.l + k·w, band.t) for k = 0, 1, … while the copy's left edge is left of band.r. *side*: the source is the cicn's left 9 columns at full height h, tiled downward from (band.l, band.t + k·h). The clip (US2) trims the last tile | `0x16a2c`–`0x16a7e`, `0x169b4`–`0x16a08` |
 | US6 | the band rect is removed from the interior region | `0x168fe`–`0x1690c` |
 
-There is no gap around the title: the title erase (UT4) covers the stripes under the title. The source rect's 9-row (or 9-column) extent comes from a constant rect in the module's initial data (0, 0, 9, 9), whose other dimension is replaced by the cicn's size (`0x16934`–`0x16946`). Every stripes cicn in the corpus is 9 × 9.
+There is no gap around the title: the title erase (UT5) covers the stripes under the title. The source rect's 9-row (or 9-column) extent comes from a constant rect in the module's initial data (0, 0, 9, 9), whose other dimension is replaced by the cicn's size (`0x16934`–`0x16946`). Every stripes cicn in the corpus is 9 × 9.
 
 ### 9.6 Title text, widgets and interior paint (`0x1670c`, `0x16aac`, `0x166f8`)
 
