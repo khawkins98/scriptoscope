@@ -1,6 +1,6 @@
 # Engine unit: built-in window frame (schemes with no `wnd#`)
 
-Lane L7, 2026-10-21. Spec writer: L7. Verifier: not yet assigned.
+Lane L7, 2026-10-21. Spec writer: L7. Verifier: independent reviewer, verified in #383 round 2 (MERGE-READY at 98739fd6, v2-lanes/L7/REVIEW.json).
 Evidence appendix: [`procedural-frame.evidence.md`](./procedural-frame.evidence.md). Implementers must not read it.
 
 ## 1. Unit id and scope

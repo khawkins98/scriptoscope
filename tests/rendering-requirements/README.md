@@ -676,10 +676,24 @@ sync (see [Porting](#porting-a-main-branch-ledger-change-into-families)):
 `window@1.1.0`. Every ported row is byte-identical to main's. `ledger.test.mjs`
 re-expresses main's two tests against those transitions; main's 216/18/1,494
 totals hold for the main lineage (the v2-only scroll-bar and push-button
-transitions undone), and the live v2 totals are 229 verified, 0 mismatched and
-1,499 unknown of 1,728 after scrollbar@1.3.0 closed #374. Document validation
-uses the split-time rows with the live window family, because the merged
-`kdef231-reference.md` carries 1.24.0's corrected §4.2 excerpt.
+transitions undone, window at 1.1.0). After scrollbar@1.3.0 closed #374, the
+live v2 totals were 229 verified, 0 mismatched and 1,499 unknown of 1,728.
+Document validation uses the split-time rows with the window family at 1.1.0,
+because the merged `kdef231-reference.md` carries 1.24.0's corrected §4.2
+excerpt.
+
+`window@1.2.0` (v2 only) extends the five corner-sprite cases with the
+built-in window definition decoded in
+[engine/procedural-frame.md](../../docs/spec/engine/procedural-frame.md). It adds
+five requirements (`window.procedural-art-selection`, `-geometry`,
+`-sampled-colours`, `-hilite-gating` and `-title-mode`) and seven
+`kdef.procedural-frame-*` evidence rows. It also adds 25 assessments, all
+**unknown**: the spec was independently verified at #383, but no driver
+implements it and no native capture has been compared. The case closure reasons and the
+`window.corner-sprite-frame` / `window.state-frame` rationales are reworded in
+place to say the path is decoded. Their statuses do not change. The rule rows
+are `tests/rendering-options/procedural-frame-rules.test.mjs`. The live totals
+become 229 verified, 0 mismatched and 1,524 unknown of 1,753.
 
 ## Per-family sources (v2)
 

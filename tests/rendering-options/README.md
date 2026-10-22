@@ -386,6 +386,53 @@ has no offscreen flag), and `range-rules.spec.mjs` binds D1 through the public
 public rows matches the rule table, so the recorded disagreement lists are
 empty.
 
+### Built-in window frame rules (schemes without `wnd#`)
+
+`procedural-frame-rules.mjs` transcribes
+[engine/procedural-frame.md](../../docs/spec/engine/procedural-frame.md) (§3–§6):
+the frame kDEF 0 draws for the five schemes that ship neither a `wnd#` nor a
+`WDEF` -14330 (`apple-platinum-2`, `black-platinum`, `platinum-8`, `slimes`,
+`system7-nostalgia-silver`). It imports nothing. The model names sample points
+only. `procedural-frame-rules.test.mjs` resolves them against each archive's own
+cicn colour table, as raw RGB16 before the bake-time gamma policy. It also checks
+that a value-match lookup and the kDEF serialized-palette sampler agree on every
+frame and dialog pixel, so the lookup choice cannot matter.
+
+The test pins 31 rows to the spec's own numbers:
+
+- **Selection.** Frame cicn -14332/-14336, dialog cicns, widget ids (close
+  -14336, zoom -14334, collapse -14335, `ics#` + `ics8`, never `ics4`), stripe
+  layers (`ppat` first, then the scheme's own cicn; slimes is the only `ppat`
+  scheme), and grow art.
+- **Geometry.** *H* = ascent + descent + 6, made odd, minimum 22. Structure by kind
+  (6-px sides and bottom plus the 1-px shadow; dialog outset 6, or 3 when thin).
+  Widget slots at *T*.l + 4, *T*.r − 17 and *T*.r − 33, and their drop rules.
+  The 17 × 17 grow box at (*C*.r − 15, *C*.b − 15). Title limits, stripe
+  segments, message-8 regions, get-features, the §4 / §5 / §5A draw lists and the
+  baseline.
+- **Colours.** Fill (6, 3), text (7, 3), shadow (9, 3) as a +1/+1 pass only when
+  it differs from the text, the drop shadow (0, 0), band and ring colours.
+- **State.** Widgets and stripes are drawn only when hilited.
+- **Hit codes.** The probe points (*T*.l + 16, *T*.t + 12) and
+  (*T*.r − 16, *T*.t + 12), the `ics#` mask test and the title-bar +1 row.
+- **Title mode.** The `WdrB` box/joined table.
+
+A mutation table records, for each of 47 wrong readings, which rows fail and in
+which scheme × state cells. Every row and every cell fails under at least one
+reading. The cells a reading misses are named as findings, for example:
+
+- every corpus shadow sample differs from its text sample, so only a synthetic row
+  can fail "always draw the shadow pass";
+- apple-platinum-2's two frame cicns sample identically;
+- the spec's own "sample row 4" mutation is blind on three inactive frames;
+- black-platinum has no `ics4`.
+
+Eleven rows need the engine driver (D1–D11, `DRIVER_ROWS`): requests, regions,
+draw order, composed-port pixel probes, slimes pattern fill, glyph plots, font
+metrics, the hit message, text passes, the grow op and the dialog ring. They are
+todo tests marked "awaits procedural-frame driver". Their spec values are pinned
+against the model now.
+
 ### Tab and header source rules
 
 `tab-header-rules.mjs` restates the CDEF 8 tab selection and 0x16e body painter
