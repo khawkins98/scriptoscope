@@ -688,8 +688,8 @@ built-in window definition decoded in
 five requirements (`window.procedural-art-selection`, `-geometry`,
 `-sampled-colours`, `-hilite-gating` and `-title-mode`) and seven
 `kdef.procedural-frame-*` evidence rows. It also adds 25 assessments, all
-**unknown**: the decode has no independent verifier yet, no driver implements
-it, and no native capture has been compared. The case closure reasons and the
+**unknown**: the spec was independently verified at #383, but no driver
+implements it and no native capture has been compared. The case closure reasons and the
 `window.corner-sprite-frame` / `window.state-frame` rationales are reworded in
 place to say the path is decoded. Their statuses do not change. The rule rows
 are `tests/rendering-options/procedural-frame-rules.test.mjs`. The live totals
