@@ -303,8 +303,8 @@ after (CDEF 3 `0x24fa..0x25f2`, `0x205e..0x2442`).
 |---|---|---|---|
 | OS1 | per device | a fresh offscreen at that device's depth covering `R` | CDEF 3 `0xdf8..0xe1c` |
 | OS2 | offscreen creation fails, or no device | nothing drawn for this device | CDEF 3 `0xe1a..0xe24` |
-| OS3 | the port is a colour port | the offscreen takes the port's foreground, background and background pattern before O3 (BG1, BG2) | CDEF 3 `0xe5e..0xeb4` |
-| OS4 | always | O3 then EraseRect of `R`: every pixel of `R` starts as the background (BG3–BG5) | CDEF 3 `0xeb6..0xed0` |
+| OS3 | the port is a colour port | the offscreen takes the port's foreground, background and background pattern before O3 | CDEF 3 `0xe5e..0xeb4` |
+| OS4 | always | O3 then EraseRect of `R`: every pixel of `R` starts as the background | CDEF 3 `0xeb6..0xed0` |
 | OS5 | always | the finished offscreen replaces `R` in the port (`srcCopy`, unmasked, clipped by the port) | CDEF 3 `0x13ba..0x1454` |
 
 ### 4.9 Hit test (message 1, CDEF 3 `0xb90..0xbf6`)
