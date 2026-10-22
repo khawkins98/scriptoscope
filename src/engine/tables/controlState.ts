@@ -33,3 +33,10 @@ export const SCROLLBAR_PRESSED_PARTS: PressedPartTable = {
   defaultPart: 'thumb',
   source: 'DECISIONS #4; scrollbar §2 mapping, §4.8 HT2–HT8',
 };
+
+export const SLIDER_PRESSED_PARTS: PressedPartTable = {
+  family: 'slider',
+  parts: { thumb: 129, pageUp: 22, pageDown: 23 },
+  defaultPart: 'thumb',
+  source: 'DECISIONS #9; slider §2 mapping, §4.9 HT2–HT4',
+};

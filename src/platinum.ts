@@ -159,10 +159,11 @@ export function platinumSliderWithLayout(opts: PlatinumSliderOptions = {}): Slid
   const travel = length - thumbCross;
   const thumb = horiz
     ? { x: Math.round(value * travel), y: Math.round((thickness - thumbAlong) / 2), w: thumbCross, h: thumbAlong }
-    : { x: Math.round((thickness - thumbAlong) / 2), y: Math.round(value * travel), w: thumbAlong, h: thumbCross };
+    // Vertical minimum at the bottom, as the themed slider (slider §5.2, TRK4).
+    : { x: Math.round((thickness - thumbAlong) / 2), y: Math.round((1 - value) * travel), w: thumbAlong, h: thumbCross };
   drawThumb(thumb.x, thumb.y, thumb.w, thumb.h);
   return { buffer: out, layout: { orientation: horiz ? 'horizontal' : 'vertical', axisLength: length,
-    thumb, travelStart: 0, travelEnd: travel, value } };
+    thumb, travelStart: 0, travelEnd: travel, value, valueDirection: horiz ? 1 : -1 } };
 }
 
 /** Raised gray face (white→#cdcdcd vertical gradient) in [x,y,w,h]. */
