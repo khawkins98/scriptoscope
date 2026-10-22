@@ -263,7 +263,37 @@ export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourc
   }
 
   validateTheme(theme); // throws on a malformed bundle; callers report/abort
-  return { theme, assets, manifest: { source, counts, assets: flatAssets } };
+  return { theme, assets, colorTables: colorTablesOf(entries, realizeRgb16), manifest: { source, counts, assets: flatAssets } };
+}
+
+/**
+ * Colour-table resources (`actb`, `clut`; Inside Macintosh: Imaging With
+ * QuickDraw, "Color Manager" ColorTable layout) as plain entries in index
+ * order, for engine families that read a table entry (procedural-frame §3.5
+ * alert colouring, §5A gap colour). Keyed `type:id`, first occurrence wins.
+ * Each entry keeps the stored 16-bit channels (for equality tests) and the
+ * display colour under the same policy as the rasters (the measured profile
+ * when supplied, else the Mac → sRGB high-byte gamma). Additive inspector
+ * data: theme.json and the lint fingerprints are unchanged.
+ */
+function colorTablesOf(entries, realizeRgb16) {
+  const out = {};
+  for (const e of entries) {
+    if ((e.type !== 'actb' && e.type !== 'clut') || `${e.type}:${e.id}` in out) continue;
+    try {
+      const d = e.data, view = new DataView(d.buffer, d.byteOffset, d.byteLength);
+      const last = view.getInt16(6, false);
+      const list = [];
+      for (let i = 0; i <= last && 8 + i * 8 + 8 <= d.byteLength; i++) {
+        const o = 8 + i * 8;
+        const rgb16 = [view.getUint16(o + 2, false), view.getUint16(o + 4, false), view.getUint16(o + 6, false)];
+        const rgb = realizeRgb16 ? realizeRgb16(rgb16) : macRgbToSrgb(rgb16.map(v => v >> 8));
+        list.push({ value: view.getInt16(o, false), rgb16, rgb: Array.from(rgb) });
+      }
+      out[`${e.type}:${e.id}`] = { entries: list };
+    } catch { /* malformed table: absent */ }
+  }
+  return out;
 }
 
 // ── Icon decode (moved verbatim from extract-icons.mjs) ─────────────────────
@@ -422,6 +452,7 @@ export function convertScheme(fork, { meta = {}, source = 'scheme.rsrc', resourc
     iconIndex: icons.index,
     iconMaskResources: icons.iconMaskResources,
     iconMaskPlanes: icons.iconMaskPlanes,
+    colorTables: chrome.colorTables,
     manifest: chrome.manifest,
   };
 }

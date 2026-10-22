@@ -136,6 +136,12 @@ try {
   await mkdir(themeDir, { recursive: true });
   for (const file of ['scheme.sit', 'meta.json']) await copyFile(join(root, 'themes/windows-95', file), join(themeDir, file));
   record.archiveSha256 = sha(await readFile(join(themeDir, 'scheme.sit')));
+  // A no-wnd# (built-in frame) scheme: its window chrome comes from a lazily
+  // imported compositor chunk that the windows-95 path never requests.
+  const builtInDir = join(publicRoot, 'themes/platinum-8');
+  await mkdir(builtInDir, { recursive: true });
+  for (const file of ['scheme.sit', 'meta.json']) await copyFile(join(root, 'themes/platinum-8', file), join(builtInDir, file));
+  record.builtInFrame = { slug: 'platinum-8', archiveSha256: sha(await readFile(join(builtInDir, 'scheme.sit'))) };
   record.siteFiles = await siteFiles(publicRoot);
   // Remove installed inputs before the browser starts. The static server has
   // access only to the completed production site and copied original input.
@@ -180,6 +186,17 @@ try {
     assert.equal(await page.evaluate(() => window.packedConsumer.headerSurfaceExport), 'function');
     assert.deepEqual(await page.evaluate(() => window.packedConsumer.directProfilePixels),
       [18, 86, 154, 255, 18, 86, 154, 255, 18, 86, 154, 255, 18, 86, 154, 255]);
+    const builtInFrame = await page.evaluate(() => {
+      const canvas = window.packedConsumer.builtInFrame?.querySelector('canvas');
+      if (!canvas || !document.querySelector('#consumer-builtin-frame')?.contains(canvas)) return null;
+      const pixels = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data;
+      let opaque = 0;
+      for (let i = 3; i < pixels.length; i += 4) if (pixels[i]) opaque++;
+      return { width: canvas.width, height: canvas.height, opaquePixels: opaque };
+    });
+    assert(builtInFrame && builtInFrame.width > 160 && builtInFrame.height > 60, 'Built-in frame window did not render a framed canvas');
+    assert(builtInFrame.opaquePixels > 0, 'Built-in frame window canvas is fully transparent');
+    record.builtInFrame.render = builtInFrame;
     assert.equal(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--scriptoscope-focus-width').trim()), '2px');
     await page.getByRole('checkbox', { name: 'Themed', exact: true }).click();
     const slider = page.getByRole('slider', { name: 'Volume', exact: true });
@@ -215,6 +232,7 @@ try {
     record.interaction = { keyboard: '50→51, 0→1', stationaryThumb: { value: '0', events: [] }, teardown };
     for (const path of record.bundle.dynamicImports) assert(network.some(item => item.path === `/consumer/${path}` && item.status === 200), `Lazy chunk not loaded: ${path}`);
     assert(network.some(item => item.path === '/consumer/themes/windows-95/scheme.sit' && item.status === 200));
+    assert(network.some(item => item.path === '/consumer/themes/platinum-8/scheme.sit' && item.status === 200), 'Built-in frame archive not fetched');
     assert(network.every(item => item.status >= 200 && item.status < 300), 'A consumer resource failed');
     assert.deepEqual(errors, []);
   } catch (error) { await page.screenshot({ path: join(output, 'failure.png') }).catch(() => {}); throw error; }
@@ -222,9 +240,21 @@ try {
   await new Promise(resolve => server.close(resolve)); server = null;
 
   await negativeTarball(tarball, 'dist/scriptoscope.css', 'exports', 'missing-css');
-  const main = await readFile(join(root, 'dist/scriptoscope.js'), 'utf8');
-  const lazy = [...main.matchAll(/import\(["'](\.\/[^"']+\.js)["']\)/g)].map(match => match[1])[0];
+  // The entry may be a re-export facade over shared chunks, so follow its static
+  // import graph and take the first dynamic import found (the archive decoder).
+  const lazyImports = [], seen = new Set(), pending = ['scriptoscope.js'];
+  while (pending.length) {
+    const file = pending.shift();
+    if (seen.has(file)) continue;
+    seen.add(file);
+    const code = await readFile(join(root, 'dist', file), 'utf8');
+    const target = spec => relative(join(root, 'dist'), resolve(join(root, 'dist'), dirname(file), spec));
+    for (const [, spec] of code.matchAll(/import\(["'](\.\.?\/[^"']+\.js)["']\)/g)) lazyImports.push(target(spec));
+    for (const [, spec] of code.matchAll(/(?:^|[\s;}])(?:import|export)\s*(?:[^'"();]*?\sfrom\s*)?["'](\.\.?\/[^"']+\.js)["']/g)) pending.push(target(spec));
+  }
+  const lazy = lazyImports[0];
   assert(lazy, 'No actual lazy loader dependency found for the negative fixture');
+  record.negativeLazyChunk = lazy;
   await negativeTarball(tarball, join('dist', lazy), 'bundle', 'missing-decoder');
   await negativeTarball(tarball, 'dist/tools/theme-loader/loadKaleidoscopeScheme.d.ts', 'types', 'escaped-types', declaration => {
     const target = "from '../../types/types.js'";

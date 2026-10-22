@@ -72,10 +72,9 @@ const CHROME_TRANSFER: Transfer = 'copyBits';
 //                              → blitCell for each of {top, right, bottom, left}.
 //
 // CROSS-FILE RELATIONSHIPS:
-//   composeCornerSprite.ts     The ALTERNATIVE compositor for "look-only"
-//                              schemes that ship corner cicns + sprites but no
-//                              wnd# recipe (apple-platinum-2, platinum-8,
-//                              system7-nostalgia-silver, black-platinum).
+//   proceduralFrameChrome.ts   The built-in frame for the five schemes with no
+//                              wnd# recipe (v2 engine family proceduralFrame,
+//                              docs/spec/engine/procedural-frame.md).
 //                              renderWindow.ts picks one based on windowType.model.
 //   renderWindow.ts            Wraps composeWindowChrome's output in DOM
 //                              (.scriptoscope-window > canvas + .scriptoscope-content + grow box).

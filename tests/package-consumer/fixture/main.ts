@@ -1,5 +1,5 @@
 import { verifyFiniteTransfer } from './finite-transfer.js';
-import { VERSION, prepareCinfEnvironment, type CinfEnvironmentInput, type PreparedCinfEnvironment, prepareBitmapFont, type BitmapFontData, type PreparedBitmapFont, type BitmapTextPaint, prepareDisplayProfile, DisplayProfileError, type DisplayProfileData, loadKaleidoscopeScheme, composeTab, composeHeaderSurface,
+import { VERSION, prepareCinfEnvironment, type CinfEnvironmentInput, type PreparedCinfEnvironment, prepareBitmapFont, type BitmapFontData, type PreparedBitmapFont, type BitmapTextPaint, prepareDisplayProfile, DisplayProfileError, type DisplayProfileData, loadKaleidoscopeScheme, loadTheme, renderWindow, composeTab, composeHeaderSurface,
   type ThemeInspector, type WindowByteProvenance, type ButtonOptions, type BevelButtonOptions, type ControlDiagnostics, type TabBodyTrace, type CicnSamplingEquivalence, type CicnSampledBandAsset, type CicnBodyBinding, type HeaderSurfaceOptions, type HeaderSurfaceResult, type HeaderSurfaceTrace } from 'scriptoscope';
 import { mountDeclarative, type MountHandle } from 'scriptoscope/declarative';
 import 'scriptoscope/scriptoscope.css';
@@ -53,6 +53,7 @@ const consumer = {
   decoderExport: typeof loadKaleidoscopeScheme,
   headerSurfaceExport: typeof composeHeaderSurface,
   directProfilePixels: [] as number[],
+  builtInFrame: null as HTMLElement | null,
   root, article, inputs, events,
   handle: null as MountHandle | null,
   ready: Promise.resolve(),
@@ -113,6 +114,11 @@ consumer.ready = (async () => {
   if (sliderLoaded.manifest.sliderLayoutEnvironment?.scope !== 'standalone-group2-slider-layout'
     || sliderThumb?.sliderLayoutCinf?.orientation !== 'horizontal'
     || !['ready', 'unsupported'].includes(sliderThumb.sliderLayoutCinf.status)) throw new Error('Packed slider layout role failed');
+  // A no-wnd# scheme renders through the lazily imported built-in-frame
+  // compositor chunk; windows-95 alone would never request that chunk.
+  const builtInTheme = await loadTheme(`${import.meta.env.BASE_URL}themes/platinum-8`, { source: 'scheme.sit' });
+  consumer.builtInFrame = await renderWindow(builtInTheme, { title: 'Built-in frame', width: 160, height: 60 });
+  document.querySelector('#consumer-builtin-frame')!.append(consumer.builtInFrame);
   consumer.handle = await mountDeclarative({
     root, pageThemeDefault: 'windows-95',
     themeBaseUrl: `${import.meta.env.BASE_URL}themes`,

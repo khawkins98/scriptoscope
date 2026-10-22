@@ -889,8 +889,8 @@
         // Contrast-pick the label colour against the resolved info-bar bg. When the
         // bar resolves to a dark headerColors.active.fill (slimes' #d6ff76 is light,
         // but black-platinum / windows-31 / monkey-paradise's headerFill is dark
-        // enough to make black text unreadable), pick white. Same trick the
-        // composeCornerSpriteChrome path uses for the title bar. The pattern case
+        // enough to make black text unreadable), pick white. (The built-in-frame
+        // windows sample their title colour from the frame cicn instead.) The pattern case
         // is harder — patterns vary in luminance across pixels — so we leave the
         // textured info-bar at black until a per-element textColor field exists.
         const _infoTextColor = _infoBar.textColor;
@@ -1017,10 +1017,10 @@
       hd.textContent = 'window geometry — top-edge recipe (part roles)';
       wrap.appendChild(hd);
       if (!wt || !wt.edges || !wt.edges.top || !wt.edges.top.length) {
-        // No wnd# recipe → a corner-sprite PROCEDURAL scheme (apple-platinum-2,
-        // system7-nostalgia-silver, platinum-8, black-platinum). These have no
-        // x-segmented recipe in the manifest, but composeCornerSprite returns a
-        // `placement` (racing-stripe title fill, widgets, frame) at render time —
+        // No wnd# recipe → a built-in-frame scheme (apple-platinum-2, black-platinum,
+        // platinum-8, slimes, system7-nostalgia-silver). These have no x-segmented
+        // recipe in the manifest, but the proceduralFrame facade returns a
+        // `placement` (widgets, grow box) at render time —
         // so render the window and build the strip by projecting those top-edge
         // regions onto X. Now these schemes show their region geometry like 1138.
         let cwin = null;
