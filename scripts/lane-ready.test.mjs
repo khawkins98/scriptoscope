@@ -37,7 +37,8 @@ function lane() {
   write('tests/rendering-requirements/ledger.json', '{"scope":{"review":"reviewed"}}\n');
   write('docs/a.md', 'doc\n');
   g('add', '.'); g('commit', '-qm', 'base');
-  g('push', '-q', 'origin', 'HEAD:refs/heads/v2', 'HEAD:refs/heads/v2-L9-test');
+  g('push', '-q', 'origin', 'HEAD:refs/heads/v2');
+  g('push', '-q', '-u', 'origin', 'HEAD:refs/heads/v2-L9-test');
   const commitPush = (msg = 'change') => { g('add', '-A'); g('commit', '-qm', msg); g('push', '-q', 'origin', 'HEAD:refs/heads/v2-L9-test'); };
   const run = (opts = {}) => laneReady({ root, commands: OK, ...opts });
   return { root, g, write, commitPush, run, done: () => rmSync(dir, { recursive: true, force: true }) };
@@ -84,6 +85,32 @@ test('an unpushed HEAD fails, and so does a pushed head that differs from HEAD',
     r = t.run();
     assert.equal(r.ok, false);
     assert.match(rowOf(r, 'pushed head').note, /HEAD is not pushed: origin has no branch never-pushed/);
+  } finally { t.done(); }
+});
+
+test('the pushed-head check uses the upstream (@{u}), and an upstream equal to the base fails', () => {
+  const t = lane();
+  try {
+    t.g('branch', '--unset-upstream');
+    let r = t.run();
+    assert.equal(rowOf(r, 'pushed head').ok, true, 'falls back to origin/<branch>');
+    assert.match(rowOf(r, 'pushed head').name, /no upstream/);
+    assert.ok(r.warnings.some(w => /has no upstream/.test(w)));
+    // Local branch name differs from the remote branch it tracks.
+    t.g('branch', '-m', 'local-name');
+    t.g('branch', '--set-upstream-to', 'origin/v2-L9-test');
+    r = t.run();
+    assert.equal(rowOf(r, 'pushed head').ok, true, r.summary);
+    assert.match(rowOf(r, 'pushed head').name, /origin\/v2-L9-test\)/);
+    t.write('docs/a.md', 'ahead\n'); t.g('commit', '-qam', 'ahead');
+    assert.match(rowOf(t.run(), 'pushed head').note, /differs from HEAD/);
+    t.g('push', '-q', 'origin', 'HEAD:refs/heads/v2-L9-test');
+    assert.equal(rowOf(t.run(), 'pushed head').ok, true);
+    // A worktree made with `-b x origin/v2` tracks v2 itself: that is not the lane branch.
+    t.g('fetch', '-q', 'origin'); t.g('branch', '--set-upstream-to', 'origin/v2');
+    r = t.run();
+    assert.equal(rowOf(r, 'pushed head').ok, false);
+    assert.match(rowOf(r, 'pushed head').note, /the upstream is the base branch v2/);
   } finally { t.done(); }
 });
 
@@ -222,7 +249,7 @@ test('--skip-tests skips typecheck and npm test only for docs-only diffs', () =>
 
 test('the default checks are the required set; a missing Traps.h fails instead of skipping', () => {
   const names = defaultCommands({ trapsH: '/x/Traps.h', baseCommit: 'abc' }).map(c => c.name);
-  assert.deepEqual(names, ['lint:cleanroom', 'gen-trap-table --check', 'report-coverage', 'build-ledger --check', 'ledger history', 'validate-source', 'docs-pinned tests', 'typecheck', 'npm test']);
+  assert.deepEqual(names, ['lint:cleanroom', 'gen-trap-table --check', 'report-coverage', 'build-ledger --check', 'ledger history', 'engine-diff', 'validate-source', 'docs-pinned tests', 'typecheck', 'npm test']);
   const pinned = defaultCommands({ trapsH: null, baseCommit: 'abc', root: repo }).find(c => c.name === 'docs-pinned tests').args;
   for (const f of ['tests/control-availability/validate-source.test.mjs', 'tests/source-inputs/routine-coverage.test.mjs', 'tests/reference-captures/contract.test.mjs', 'tests/rendering-options/checkable-rules.test.mjs']) assert.ok(pinned.includes(f), f);
   const t = lane();
