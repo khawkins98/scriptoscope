@@ -47,7 +47,7 @@ in the follow-up commit.
 | B0–B6, body inset rects | `0x108fc..0x10bbe` | CONFIRMED | |
 | §3 cinf requests (Q8), sampled colours | `0x10814..0x1089c`, `0x116f8..0x11722`, `0x108fc..0x10998` | CONFIRMED | in cache mode the cicn is not disposed on the cinf-NULL path (`0x10fa8`) |
 | E1, E3–E6 | `0x10bc0..0x10f82` | CONFIRMED | |
-| E2 "overlap … the corners"; §5 "`s > c`" consequence | `0x10cc4..0x10d34`, `0x10e9a..0x10f82` | **REFUTED** at `43a7d24c`; corrected in the follow-up commit (spec E2 and §5 `s > c` bullet reworded as the note says; re-check pending) | bands never overlap the corners: band along-range `[c, extent − c)` with uncut `c` ≥ `cw`/`ch`. With `s > c` the top/bottom bands overlap the left/right bands (squares `[c, s)`), which are drawn last |
+| E2 "overlap … the corners"; §5 "`s > c`" consequence | `0x10cc4..0x10d34`, `0x10e9a..0x10f82` | **REFUTED** at `43a7d24c`; corrected at `61a42452` and **CONFIRMED** in verifier round 2 (bands never cover corners; `(s − c) × (s − c)` overlap squares next to each corner, left/right win) |
 | §5 border rect table | `0x10c0c..0x10f82` | CONFIRMED | |
 | T-B inset reconciliation | `0x109ea..0x10a00` vs `0x10a28..0x10a34` | CONFIRMED | |
 | lowDepth §2 | `0xf2d6..0xf308`, `0xf488..0xf4b8` | CONFIRMED | |
