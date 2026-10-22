@@ -201,6 +201,8 @@ export const WIDGET_PARTS: readonly WidgetPartRow[] = [
 export const WIDGET_DRAW = {
   WD4: { id: 'WD4', source: '0x58b8..0x58d8, 0x5990..0x59c4' },
   WD5: { id: 'WD5', source: '0x5a28..0x5a42' },
+  /** WD6 popup raw blits: rect-list types 5 and 6, and the `corner` × `corner` rect ending at A's bottom-right. */
+  WD6: { id: 'WD6', types: [5, 6], corner: 15, source: '0x5786, 0x5b7a..0x5c92' },
   WD7: { id: 'WD7', source: '0x632e..0x6386' },
   /** WD8: partial-zoom cicn `base + 1` (`base − 7` under sideTitle). */
   WD8: { id: 'WD8', offset: 1, sideTitleOffset: -7, source: '0x60aa..0x6154' },

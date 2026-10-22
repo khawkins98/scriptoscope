@@ -10,8 +10,8 @@
 // v2-lanes/window-migration/NOTES.md):
 //   - the layout cache (LC1): the runtime has no message stream, so every call lays out (LC2);
 //   - who writes the popup data after creation (§6 Q10): PP7 declares the creation values;
-//   - the partial-zoom widget (WD5, WD8), the popup raw blits (WD6), the
-//     outline draw and the exact-point hit fallbacks (§6 Q6);
+//   - the partial-zoom widget (WD5, WD8), the outline draw and the exact-point
+//     hit fallbacks (§6 Q6);
 //   - TT2 needs a condensed StringWidth; the declared default is TT2a.
 import type { Pixmap, QdRect } from '../qd/types.js';
 import type { EngineTrace } from '../trace.js';
@@ -290,6 +290,24 @@ export function windowWidgets(layout: WindowLayout): WindowWidget[] {
     }
   }
   return out;
+}
+
+/**
+ * WD6: the popup family's three raw blits from the chrome template, not through the remap.
+ * Type 5 moves with C's top-left, type 6 with its top-right, and the corner rect ending at
+ * A's bottom-right with C's bottom-right (each `C − A` on the named edges).
+ */
+export function popupRawBlits(layout: WindowLayout): { src: QdRect; dst: QdRect }[] {
+  if (!layout.flags.popupFamily) return [];
+  const { A, C } = layout, d = WIDGET_DRAW.WD6, k = d.corner;
+  const move = (r: QdRect, dx: number, dy: number) => rect(r.top + dy, r.left + dx, r.bottom + dy, r.right + dx);
+  const [t5, t6] = d.types.map(t => layout.rects.find(e => e.type === t)?.rect ?? null);
+  const out: { src: QdRect; dst: QdRect }[] = [];
+  if (t5) out.push({ src: t5, dst: move(t5, C.left - A.left, C.top - A.top) });
+  if (t6) out.push({ src: t6, dst: move(t6, C.right - A.right, C.top - A.top) });
+  const corner = rect(A.bottom - k, A.right - k, A.bottom, A.right);
+  out.push({ src: corner, dst: move(corner, C.right - A.right, C.bottom - A.bottom) });
+  return out.filter(b => !emptyRect(b.src));
 }
 
 /** WD11 / WD9: the pressed-strip cicn ids to request, in order (the `sideTitle` retry second). */

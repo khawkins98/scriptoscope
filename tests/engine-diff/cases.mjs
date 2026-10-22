@@ -57,7 +57,9 @@ const xywh = r => r && { x: r.x, y: r.y, w: r.w, h: r.h };
 
 // ── window chrome (wnd# 9-slice re-point onto src/engine/qd) ─────────────────
 // Every sliced window type of every wnd# archive, both states, at the template's
-// native content size, 97x53 and 320x160, each with no title and a 60 px title.
+// native content size, 97x53 and 320x160, each with no title and a 60 px title. The
+// popup-window type is traced again as the popup family (`/popup` keys), the way
+// renderWindow draws it (window-widgets AP1/PP rows, WD6).
 // composeWindowChrome carries no EngineTrace, so the cell trace is built from its
 // public result: the template cicn resolved, the frame/title rects, and the
 // placement map in draw order (edge, part code, mode, source band, destination rects).
@@ -75,13 +77,14 @@ async function* windowCells({ decoded, mutate = x => x }) {
       if (!asset?.rgba) continue;
       const cicnId = elements.find(e => e.asset === wt.chrome[state])?.sourceCicnId ?? null;
       const [l, t, r, b] = wt.parts['part-0'].rect;
+      for (const popupFamily of type === 'popup-window' ? [false, true] : [false])
       for (const size of WINDOW_SIZES) for (const titleWidthPx of WINDOW_TITLES) {
         const [w, h] = size ?? [Math.max(0, r - l), Math.max(0, b - t)];
-        const key = `${type}/${state}/${size ? `${w}x${h}` : 'native'}/t${titleWidthPx}`;
-        const inputs = { type, state, w, h, titleWidthPx, recipeSha256: sha(JSON.stringify(wt.edges)) };
+        const key = `${type}/${state}/${size ? `${w}x${h}` : 'native'}/t${titleWidthPx}${popupFamily ? '/popup' : ''}`;
+        const inputs = { type, state, w, h, titleWidthPx, ...(popupFamily ? { popupFamily } : {}), recipeSha256: sha(JSON.stringify(wt.edges)) };
         const source = new PixelBuffer(asset.width, asset.height, new Uint8ClampedArray(asset.rgba));
         let c;
-        try { c = composeWindowChrome(source, wt, w, h, { titleWidthPx }); }
+        try { c = composeWindowChrome(source, wt, w, h, { titleWidthPx, popupFamily }); }
         catch (e) { yield { key, trace: { family: 'window', inputs, error: String(e.message) } }; continue; }
         yield {
           key,

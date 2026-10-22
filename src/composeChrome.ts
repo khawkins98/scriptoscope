@@ -18,7 +18,7 @@ import { rect, rectXYWH, scaleBlit, tileBlit, type Pixmap, type QdRect, type Tra
 import { windowBlitRow } from './engine/tables/windowBlit.js';
 import { CELL_WIDTH, WINDOW_SIDES } from './engine/tables/window.js';
 import {
-  drawPressedWidget, layoutWindow, remapWidget, widgetHit, widgetHittable, windowCell, windowWidgets, type WindowLayout,
+  drawPressedWidget, layoutWindow, popupRawBlits, remapWidget, widgetHit, widgetHittable, windowCell, windowWidgets, type WindowLayout,
 } from './engine/families/window.js';
 import type { EngineTrace } from './engine/trace.js';
 import type { WindowType, WindowCinf, Rect } from './types.js';
@@ -57,7 +57,8 @@ export type SliceMode = 'fixed' | 'stretch' | 'tile' | 'scale' | 'collapse' | 's
 
 /** One slice in the diagnostic placement map. */
 export interface PlacementSlice {
-  edge: 'top' | 'bottom' | 'left' | 'right' | 'widget';
+  /** `popup`: a WD6 raw blit of the popup family. */
+  edge: 'top' | 'bottom' | 'left' | 'right' | 'widget' | 'popup';
   code: number;
   role: string;
   mode: SliceMode;
@@ -192,7 +193,10 @@ export function composeWindowChrome(cicn: PixelBuffer, windowType: WindowType, c
       push(code, mode, t, p, i);
     }
   }
-  const placement = bySide.flat();
+  // WD6: the popup family's raw template blits, after the sides (1:1, masked).
+  const popup = popupRawBlits(layout);
+  for (const b of popup) scaleBlit(out, cicn, b.src, b.dst, CHROME_TRANSFER, opts.trace);
+  const placement = [...bySide.flat(), ...popup.map(b => ({ edge: 'popup' as const, code: 0, role: 'popup raw blit (WD6)', mode: 'stamp' as const, src: xywh(b.src), rects: [xywh(b.dst)] }))];
 
   // ── widgets: remap (RM), pressed draw (WD9), hit (HT) ──────────────────────
   const strip = opts.widgetCicn ?? null;

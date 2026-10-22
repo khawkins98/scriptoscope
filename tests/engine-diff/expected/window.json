@@ -584,10 +584,22 @@
       "why": "Above the template size: the plate width W = SW + margins is negative, so the anchor borders move onto the title rect T4 (TT8); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "1138/popup-window/active/320x160/t0/popup",
+      "rule": "WD6",
+      "sha256": "ef14181ea73f7008",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "1138/popup-window/active/320x160/t60",
       "rule": "LS9",
       "sha256": "f857a132149a2fdd",
       "why": "Above the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "1138/popup-window/active/320x160/t60/popup",
+      "rule": "WD6",
+      "sha256": "c612a45c1d05abf6",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "1138/popup-window/active/97x53/t0",
@@ -596,10 +608,22 @@
       "why": "Below the template size: the plate width W = SW + margins is negative, so the anchor borders move onto the title rect T4 (TT8); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "1138/popup-window/active/97x53/t0/popup",
+      "rule": "WD6",
+      "sha256": "a186199e13c8c205",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "1138/popup-window/active/97x53/t60",
       "rule": "LS9",
       "sha256": "c6d4bb9c18fb70be",
       "why": "Below the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "1138/popup-window/active/97x53/t60/popup",
+      "rule": "WD6",
+      "sha256": "a0c128c76f600acb",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "1138/popup-window/active/native/t0",
@@ -608,10 +632,22 @@
       "why": "At the template size: the plate width W = SW + margins is negative, so the anchor borders move onto the title rect T4 (TT8); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "1138/popup-window/active/native/t0/popup",
+      "rule": "WD6",
+      "sha256": "435b523c3a6fd230",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "1138/popup-window/active/native/t60",
       "rule": "LS9",
       "sha256": "3a51806db5a4f5d3",
       "why": "At the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "1138/popup-window/active/native/t60/popup",
+      "rule": "WD6",
+      "sha256": "2f356927a87711de",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "1138/popup-window/inactive/320x160/t0",
@@ -620,10 +656,22 @@
       "why": "Above the template size: the plate width W = SW + margins is negative, so the anchor borders move onto the title rect T4 (TT8); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "1138/popup-window/inactive/320x160/t0/popup",
+      "rule": "WD6",
+      "sha256": "146cb0ded0a62dde",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "1138/popup-window/inactive/320x160/t60",
       "rule": "LS9",
       "sha256": "f77dec421d1b1236",
       "why": "Above the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "1138/popup-window/inactive/320x160/t60/popup",
+      "rule": "WD6",
+      "sha256": "c5b62fd10597d6ec",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "1138/popup-window/inactive/97x53/t0",
@@ -632,10 +680,22 @@
       "why": "Below the template size: the plate width W = SW + margins is negative, so the anchor borders move onto the title rect T4 (TT8); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "1138/popup-window/inactive/97x53/t0/popup",
+      "rule": "WD6",
+      "sha256": "4cb90007b10a3e3b",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "1138/popup-window/inactive/97x53/t60",
       "rule": "LS9",
       "sha256": "2d52fcfdf84a4f23",
       "why": "Below the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "1138/popup-window/inactive/97x53/t60/popup",
+      "rule": "WD6",
+      "sha256": "623d647fdfc31cae",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "1138/popup-window/inactive/native/t0",
@@ -644,10 +704,22 @@
       "why": "At the template size: the plate width W = SW + margins is negative, so the anchor borders move onto the title rect T4 (TT8); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "1138/popup-window/inactive/native/t0/popup",
+      "rule": "WD6",
+      "sha256": "bbde62a453f8aac7",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "1138/popup-window/inactive/native/t60",
       "rule": "LS9",
       "sha256": "3a63cf8537225124",
       "why": "At the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "1138/popup-window/inactive/native/t60/popup",
+      "rule": "WD6",
+      "sha256": "a5d4af07ce7735ab",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "1138/side-floating-utility-window/active/320x160/t0",
@@ -1304,10 +1376,22 @@
       "why": "Above the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "1984/popup-window/active/320x160/t0/popup",
+      "rule": "WD6",
+      "sha256": "17895f0fd48c14e1",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "1984/popup-window/active/320x160/t60",
       "rule": "LS9",
       "sha256": "178d723f0aff1d36",
       "why": "Above the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "1984/popup-window/active/320x160/t60/popup",
+      "rule": "WD6",
+      "sha256": "25939f9434ac3ef7",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "1984/popup-window/active/97x53/t0",
@@ -1316,10 +1400,22 @@
       "why": "Below the template size: below the template a side is too short (E < F), so its code-10 cells and title drop to width 0 and the unclamped allocation places the rest (TS1, AW4, AW8); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "1984/popup-window/active/97x53/t0/popup",
+      "rule": "WD6",
+      "sha256": "12bce4d95d26b7d7",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "1984/popup-window/active/97x53/t60",
       "rule": "WD4",
       "sha256": "64c844a099cfdb1a",
       "why": "Below the template size: below the template a side is too short (E < F), so its code-10 cells and title drop to width 0 and the unclamped allocation places the rest (TS1, AW4, AW8); the sides are also drawn in the decoded order (top, bottom, left, right) with CopyMask, and the leading and trailing regions, which no full-draw routine paints, are left unpainted (WD4, §6 Q3, LS9)."
+    },
+    {
+      "key": "1984/popup-window/active/97x53/t60/popup",
+      "rule": "WD6",
+      "sha256": "77e277b8321068a3",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "1984/popup-window/active/native/t0",
@@ -1328,10 +1424,22 @@
       "why": "At the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "1984/popup-window/active/native/t0/popup",
+      "rule": "WD6",
+      "sha256": "7ddec33f5ee307c7",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "1984/popup-window/active/native/t60",
       "rule": "WD4",
       "sha256": "afebe20b390ea2b6",
       "why": "At the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the sides are also drawn in the decoded order (top, bottom, left, right) with CopyMask, and the leading and trailing regions, which no full-draw routine paints, are left unpainted (WD4, §6 Q3, LS9)."
+    },
+    {
+      "key": "1984/popup-window/active/native/t60/popup",
+      "rule": "WD6",
+      "sha256": "54d02d83bac244af",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "1984/popup-window/inactive/320x160/t0",
@@ -1340,10 +1448,22 @@
       "why": "Above the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "1984/popup-window/inactive/320x160/t0/popup",
+      "rule": "WD6",
+      "sha256": "0995b92862839223",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "1984/popup-window/inactive/320x160/t60",
       "rule": "LS9",
       "sha256": "81c5d0e6f8e1c427",
       "why": "Above the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "1984/popup-window/inactive/320x160/t60/popup",
+      "rule": "WD6",
+      "sha256": "5417ab2fc477711b",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "1984/popup-window/inactive/97x53/t0",
@@ -1352,10 +1472,22 @@
       "why": "Below the template size: below the template a side is too short (E < F), so its code-10 cells and title drop to width 0 and the unclamped allocation places the rest (TS1, AW4, AW8); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "1984/popup-window/inactive/97x53/t0/popup",
+      "rule": "WD6",
+      "sha256": "c1ddfb5655885b65",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "1984/popup-window/inactive/97x53/t60",
       "rule": "WD4",
       "sha256": "2202e455e560c1ab",
       "why": "Below the template size: below the template a side is too short (E < F), so its code-10 cells and title drop to width 0 and the unclamped allocation places the rest (TS1, AW4, AW8); the sides are also drawn in the decoded order (top, bottom, left, right) with CopyMask, and the leading and trailing regions, which no full-draw routine paints, are left unpainted (WD4, §6 Q3, LS9)."
+    },
+    {
+      "key": "1984/popup-window/inactive/97x53/t60/popup",
+      "rule": "WD6",
+      "sha256": "086fa7c7f749d3b7",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "1984/popup-window/inactive/native/t0",
@@ -1364,10 +1496,22 @@
       "why": "At the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "1984/popup-window/inactive/native/t0/popup",
+      "rule": "WD6",
+      "sha256": "b429de93cd83b172",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "1984/popup-window/inactive/native/t60",
       "rule": "WD4",
       "sha256": "dec8cd95171f14fc",
       "why": "At the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the sides are also drawn in the decoded order (top, bottom, left, right) with CopyMask, and the leading and trailing regions, which no full-draw routine paints, are left unpainted (WD4, §6 Q3, LS9)."
+    },
+    {
+      "key": "1984/popup-window/inactive/native/t60/popup",
+      "rule": "WD6",
+      "sha256": "7302d31e46a46bc7",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "1984/side-floating-utility-window/active/320x160/t0",
@@ -2024,10 +2168,22 @@
       "why": "Above the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "1990/popup-window/active/320x160/t0/popup",
+      "rule": "WD6",
+      "sha256": "83768c0529789e58",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "1990/popup-window/active/320x160/t60",
       "rule": "LS9",
       "sha256": "86db3349b85d4179",
       "why": "Above the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "1990/popup-window/active/320x160/t60/popup",
+      "rule": "WD6",
+      "sha256": "b6f748d3d8521b53",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "1990/popup-window/active/97x53/t0",
@@ -2036,10 +2192,22 @@
       "why": "Below the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "1990/popup-window/active/97x53/t0/popup",
+      "rule": "WD6",
+      "sha256": "36ec97cda06220dc",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "1990/popup-window/active/97x53/t60",
       "rule": "LS9",
       "sha256": "8fb179ab3d9b2025",
       "why": "Below the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "1990/popup-window/active/97x53/t60/popup",
+      "rule": "WD6",
+      "sha256": "37580c3c850b9561",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "1990/popup-window/active/native/t0",
@@ -2048,10 +2216,22 @@
       "why": "At the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "1990/popup-window/active/native/t0/popup",
+      "rule": "WD6",
+      "sha256": "b03882d6b1334021",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "1990/popup-window/active/native/t60",
       "rule": "LS9",
       "sha256": "dc6cd2c69689144d",
       "why": "At the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "1990/popup-window/active/native/t60/popup",
+      "rule": "WD6",
+      "sha256": "90f5e2d153b0509a",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "1990/popup-window/inactive/320x160/t0",
@@ -2060,10 +2240,22 @@
       "why": "Above the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "1990/popup-window/inactive/320x160/t0/popup",
+      "rule": "WD6",
+      "sha256": "35546d752ab2dee9",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "1990/popup-window/inactive/320x160/t60",
       "rule": "LS9",
       "sha256": "e5365895443676f9",
       "why": "Above the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "1990/popup-window/inactive/320x160/t60/popup",
+      "rule": "WD6",
+      "sha256": "19eac61d71db19bb",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "1990/popup-window/inactive/97x53/t0",
@@ -2072,10 +2264,22 @@
       "why": "Below the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "1990/popup-window/inactive/97x53/t0/popup",
+      "rule": "WD6",
+      "sha256": "41f279c776460f6e",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "1990/popup-window/inactive/97x53/t60",
       "rule": "LS9",
       "sha256": "2207a54b2e8e8bf3",
       "why": "Below the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "1990/popup-window/inactive/97x53/t60/popup",
+      "rule": "WD6",
+      "sha256": "af0faa06939c8880",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "1990/popup-window/inactive/native/t0",
@@ -2084,10 +2288,22 @@
       "why": "At the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "1990/popup-window/inactive/native/t0/popup",
+      "rule": "WD6",
+      "sha256": "2149d690489d26bf",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "1990/popup-window/inactive/native/t60",
       "rule": "LS9",
       "sha256": "ebb29d2d2151e536",
       "why": "At the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "1990/popup-window/inactive/native/t60/popup",
+      "rule": "WD6",
+      "sha256": "7cdae8011912c204",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "1990/side-floating-utility-window/active/320x160/t0",
@@ -2888,10 +3104,22 @@
       "why": "Above the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "animals/popup-window/active/320x160/t0/popup",
+      "rule": "WD6",
+      "sha256": "5c488b765abddc5e",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "animals/popup-window/active/320x160/t60",
       "rule": "LS9",
       "sha256": "6c511bc747436fe2",
       "why": "Above the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "animals/popup-window/active/320x160/t60/popup",
+      "rule": "WD6",
+      "sha256": "db5c2c0a24ad6d4d",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "animals/popup-window/active/97x53/t0",
@@ -2900,10 +3128,22 @@
       "why": "Below the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "animals/popup-window/active/97x53/t0/popup",
+      "rule": "WD6",
+      "sha256": "ac87b60cfb343397",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "animals/popup-window/active/97x53/t60",
       "rule": "LS9",
       "sha256": "15bd2d72eaa60876",
       "why": "Below the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "animals/popup-window/active/97x53/t60/popup",
+      "rule": "WD6",
+      "sha256": "300b48fa46b2f6c3",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "animals/popup-window/active/native/t0",
@@ -2912,10 +3152,22 @@
       "why": "At the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "animals/popup-window/active/native/t0/popup",
+      "rule": "WD6",
+      "sha256": "c60db689d5a5e10e",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "animals/popup-window/active/native/t60",
       "rule": "LS9",
       "sha256": "d57f53217417b07c",
       "why": "At the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "animals/popup-window/active/native/t60/popup",
+      "rule": "WD6",
+      "sha256": "4a3110c6d4c957d9",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "animals/popup-window/inactive/320x160/t0",
@@ -2924,10 +3176,22 @@
       "why": "Above the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "animals/popup-window/inactive/320x160/t0/popup",
+      "rule": "WD6",
+      "sha256": "131e3eec643c4907",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "animals/popup-window/inactive/320x160/t60",
       "rule": "LS9",
       "sha256": "58c1009e0e553619",
       "why": "Above the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "animals/popup-window/inactive/320x160/t60/popup",
+      "rule": "WD6",
+      "sha256": "ad30b52d31f1c35e",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "animals/popup-window/inactive/97x53/t0",
@@ -2936,10 +3200,22 @@
       "why": "Below the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "animals/popup-window/inactive/97x53/t0/popup",
+      "rule": "WD6",
+      "sha256": "c633f017a3f82b69",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "animals/popup-window/inactive/97x53/t60",
       "rule": "LS9",
       "sha256": "8ece07d17a349653",
       "why": "Below the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "animals/popup-window/inactive/97x53/t60/popup",
+      "rule": "WD6",
+      "sha256": "135f061593144fc8",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "animals/popup-window/inactive/native/t0",
@@ -2948,10 +3224,22 @@
       "why": "At the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "animals/popup-window/inactive/native/t0/popup",
+      "rule": "WD6",
+      "sha256": "03757c7317c65306",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "animals/popup-window/inactive/native/t60",
       "rule": "LS9",
       "sha256": "269a4e510f21f21c",
       "why": "At the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "animals/popup-window/inactive/native/t60/popup",
+      "rule": "WD6",
+      "sha256": "e91377d5794437e8",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "animals/side-floating-utility-window/active/320x160/t0",
@@ -3380,10 +3668,22 @@
       "why": "Above the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "apple-lisa/popup-window/active/320x160/t0/popup",
+      "rule": "WD6",
+      "sha256": "00e84539c0459779",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "apple-lisa/popup-window/active/320x160/t60",
       "rule": "LS9",
       "sha256": "12a6dee1fb950002",
       "why": "Above the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "apple-lisa/popup-window/active/320x160/t60/popup",
+      "rule": "WD6",
+      "sha256": "4f85abee37a46599",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "apple-lisa/popup-window/active/97x53/t0",
@@ -3392,10 +3692,22 @@
       "why": "Below the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "apple-lisa/popup-window/active/97x53/t0/popup",
+      "rule": "WD6",
+      "sha256": "8545dd80b4179336",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "apple-lisa/popup-window/active/97x53/t60",
       "rule": "LS9",
       "sha256": "6cc7e52d46c73ce4",
       "why": "Below the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "apple-lisa/popup-window/active/97x53/t60/popup",
+      "rule": "WD6",
+      "sha256": "7cbcf6656fb07734",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "apple-lisa/popup-window/active/native/t0",
@@ -3404,10 +3716,22 @@
       "why": "At the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "apple-lisa/popup-window/active/native/t0/popup",
+      "rule": "WD6",
+      "sha256": "abb82bcbdeb64abc",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "apple-lisa/popup-window/active/native/t60",
       "rule": "LS9",
       "sha256": "6701d176b71990d3",
       "why": "At the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "apple-lisa/popup-window/active/native/t60/popup",
+      "rule": "WD6",
+      "sha256": "17f46a08ed4d842e",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "apple-lisa/popup-window/inactive/320x160/t0",
@@ -3416,10 +3740,22 @@
       "why": "Above the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "apple-lisa/popup-window/inactive/320x160/t0/popup",
+      "rule": "WD6",
+      "sha256": "865e010e939fb202",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "apple-lisa/popup-window/inactive/320x160/t60",
       "rule": "LS9",
       "sha256": "a37b3eaea2b5b24a",
       "why": "Above the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "apple-lisa/popup-window/inactive/320x160/t60/popup",
+      "rule": "WD6",
+      "sha256": "6b6ddf76d5521570",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "apple-lisa/popup-window/inactive/97x53/t0",
@@ -3428,10 +3764,22 @@
       "why": "Below the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "apple-lisa/popup-window/inactive/97x53/t0/popup",
+      "rule": "WD6",
+      "sha256": "7a9256d39e6d0999",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "apple-lisa/popup-window/inactive/97x53/t60",
       "rule": "LS9",
       "sha256": "3cc24a8ade5a9283",
       "why": "Below the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "apple-lisa/popup-window/inactive/97x53/t60/popup",
+      "rule": "WD6",
+      "sha256": "aa60a24b9f50fdde",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "apple-lisa/popup-window/inactive/native/t0",
@@ -3440,10 +3788,22 @@
       "why": "At the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "apple-lisa/popup-window/inactive/native/t0/popup",
+      "rule": "WD6",
+      "sha256": "4064b5434709da9c",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "apple-lisa/popup-window/inactive/native/t60",
       "rule": "LS9",
       "sha256": "e248ba114019c1e3",
       "why": "At the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "apple-lisa/popup-window/inactive/native/t60/popup",
+      "rule": "WD6",
+      "sha256": "81cdd087ebf9f3a7",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "apple-lisa/titled-utility-window/active/320x160/t0",
@@ -4172,10 +4532,22 @@
       "why": "Above the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "beos-r503/popup-window/active/320x160/t0/popup",
+      "rule": "WD6",
+      "sha256": "b8e313ffd3b4e837",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "beos-r503/popup-window/active/320x160/t60",
       "rule": "LS9",
       "sha256": "d1c5e0bd0f298933",
       "why": "Above the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "beos-r503/popup-window/active/320x160/t60/popup",
+      "rule": "WD6",
+      "sha256": "f2bf179790ad1b31",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "beos-r503/popup-window/active/97x53/t0",
@@ -4184,10 +4556,22 @@
       "why": "Below the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "beos-r503/popup-window/active/97x53/t0/popup",
+      "rule": "WD6",
+      "sha256": "858d280c5edaa700",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "beos-r503/popup-window/active/97x53/t60",
       "rule": "LS9",
       "sha256": "ec234df7d1a044e8",
       "why": "Below the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "beos-r503/popup-window/active/97x53/t60/popup",
+      "rule": "WD6",
+      "sha256": "6c02cfa1268ae2c2",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "beos-r503/popup-window/active/native/t0",
@@ -4196,10 +4580,22 @@
       "why": "At the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "beos-r503/popup-window/active/native/t0/popup",
+      "rule": "WD6",
+      "sha256": "60ab60fce45d289c",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "beos-r503/popup-window/active/native/t60",
       "rule": "LS9",
       "sha256": "2e348f5e06b4a208",
       "why": "At the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "beos-r503/popup-window/active/native/t60/popup",
+      "rule": "WD6",
+      "sha256": "e817ba724f31925b",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "beos-r503/popup-window/inactive/320x160/t0",
@@ -4208,10 +4604,22 @@
       "why": "Above the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "beos-r503/popup-window/inactive/320x160/t0/popup",
+      "rule": "WD6",
+      "sha256": "913f72fc7a17e8e2",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "beos-r503/popup-window/inactive/320x160/t60",
       "rule": "LS9",
       "sha256": "a979d81624d809f5",
       "why": "Above the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "beos-r503/popup-window/inactive/320x160/t60/popup",
+      "rule": "WD6",
+      "sha256": "c343f2af01688ce8",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "beos-r503/popup-window/inactive/97x53/t0",
@@ -4220,10 +4628,22 @@
       "why": "Below the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "beos-r503/popup-window/inactive/97x53/t0/popup",
+      "rule": "WD6",
+      "sha256": "35da53e3a76c06c8",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "beos-r503/popup-window/inactive/97x53/t60",
       "rule": "LS9",
       "sha256": "9a9a49d08faedf68",
       "why": "Below the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "beos-r503/popup-window/inactive/97x53/t60/popup",
+      "rule": "WD6",
+      "sha256": "b902a6c74298d7c9",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "beos-r503/popup-window/inactive/native/t0",
@@ -4232,10 +4652,22 @@
       "why": "At the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "beos-r503/popup-window/inactive/native/t0/popup",
+      "rule": "WD6",
+      "sha256": "5479ce6e8012eb7b",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "beos-r503/popup-window/inactive/native/t60",
       "rule": "LS9",
       "sha256": "7ca3e84cb2092bc5",
       "why": "At the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "beos-r503/popup-window/inactive/native/t60/popup",
+      "rule": "WD6",
+      "sha256": "4c99050caa8c3e6e",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "beos-r503/titled-utility-window/active/320x160/t0",
@@ -4820,10 +5252,22 @@
       "why": "Above the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "crayon-os/popup-window/active/320x160/t0/popup",
+      "rule": "WD6",
+      "sha256": "cd2f7f86e63a071c",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "crayon-os/popup-window/active/320x160/t60",
       "rule": "LS9",
       "sha256": "f48e821380631b08",
       "why": "Above the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "crayon-os/popup-window/active/320x160/t60/popup",
+      "rule": "WD6",
+      "sha256": "23241696cc6aab82",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "crayon-os/popup-window/active/97x53/t0",
@@ -4832,10 +5276,22 @@
       "why": "Below the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "crayon-os/popup-window/active/97x53/t0/popup",
+      "rule": "WD6",
+      "sha256": "66191aafbfde4b9b",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "crayon-os/popup-window/active/97x53/t60",
       "rule": "LS9",
       "sha256": "7db0b51b33f3c82a",
       "why": "Below the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "crayon-os/popup-window/active/97x53/t60/popup",
+      "rule": "WD6",
+      "sha256": "f560dd7304f2107d",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "crayon-os/popup-window/active/native/t0",
@@ -4844,10 +5300,22 @@
       "why": "At the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "crayon-os/popup-window/active/native/t0/popup",
+      "rule": "WD6",
+      "sha256": "bc011b9bee689ab2",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "crayon-os/popup-window/active/native/t60",
       "rule": "LS9",
       "sha256": "c0651d4303062079",
       "why": "At the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "crayon-os/popup-window/active/native/t60/popup",
+      "rule": "WD6",
+      "sha256": "35fbb4d12871a4b7",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "crayon-os/popup-window/inactive/320x160/t0",
@@ -4856,10 +5324,22 @@
       "why": "Above the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "crayon-os/popup-window/inactive/320x160/t0/popup",
+      "rule": "WD6",
+      "sha256": "31a6b9597e051f9a",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "crayon-os/popup-window/inactive/320x160/t60",
       "rule": "LS9",
       "sha256": "0edb11674211e9e5",
       "why": "Above the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "crayon-os/popup-window/inactive/320x160/t60/popup",
+      "rule": "WD6",
+      "sha256": "b08a686bcc32b6ec",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "crayon-os/popup-window/inactive/97x53/t0",
@@ -4868,10 +5348,22 @@
       "why": "Below the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "crayon-os/popup-window/inactive/97x53/t0/popup",
+      "rule": "WD6",
+      "sha256": "cd0dd02aed2af50c",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "crayon-os/popup-window/inactive/97x53/t60",
       "rule": "LS9",
       "sha256": "ed5bffdea8c267da",
       "why": "Below the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "crayon-os/popup-window/inactive/97x53/t60/popup",
+      "rule": "WD6",
+      "sha256": "824e440bec922ab3",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "crayon-os/popup-window/inactive/native/t0",
@@ -4880,10 +5372,22 @@
       "why": "At the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "crayon-os/popup-window/inactive/native/t0/popup",
+      "rule": "WD6",
+      "sha256": "0d69f49c504bff3c",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "crayon-os/popup-window/inactive/native/t60",
       "rule": "LS9",
       "sha256": "790596b013acc432",
       "why": "At the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "crayon-os/popup-window/inactive/native/t60/popup",
+      "rule": "WD6",
+      "sha256": "b5392297e4623d1b",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "crayon-os/side-floating-utility-window/active/320x160/t0",
@@ -5540,10 +6044,22 @@
       "why": "Above the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "dolphin-som/popup-window/active/320x160/t0/popup",
+      "rule": "WD6",
+      "sha256": "acdce7404b4c1230",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "dolphin-som/popup-window/active/320x160/t60",
       "rule": "LS9",
       "sha256": "78d286c5fdda4bb7",
       "why": "Above the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "dolphin-som/popup-window/active/320x160/t60/popup",
+      "rule": "WD6",
+      "sha256": "028b44d80398cb43",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "dolphin-som/popup-window/active/97x53/t0",
@@ -5552,10 +6068,22 @@
       "why": "Below the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "dolphin-som/popup-window/active/97x53/t0/popup",
+      "rule": "WD6",
+      "sha256": "40133fae85df7d6b",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "dolphin-som/popup-window/active/97x53/t60",
       "rule": "LS9",
       "sha256": "df047503c0c15ebe",
       "why": "Below the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "dolphin-som/popup-window/active/97x53/t60/popup",
+      "rule": "WD6",
+      "sha256": "9663c9987eadefd5",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "dolphin-som/popup-window/active/native/t0",
@@ -5564,10 +6092,22 @@
       "why": "At the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "dolphin-som/popup-window/active/native/t0/popup",
+      "rule": "WD6",
+      "sha256": "1a68657090cdb8bd",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "dolphin-som/popup-window/active/native/t60",
       "rule": "LS9",
       "sha256": "5dc37972a658f10d",
       "why": "At the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "dolphin-som/popup-window/active/native/t60/popup",
+      "rule": "WD6",
+      "sha256": "f0c46a29d251ddc8",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "dolphin-som/popup-window/inactive/320x160/t0",
@@ -5576,10 +6116,22 @@
       "why": "Above the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "dolphin-som/popup-window/inactive/320x160/t0/popup",
+      "rule": "WD6",
+      "sha256": "272494d6de99a847",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "dolphin-som/popup-window/inactive/320x160/t60",
       "rule": "LS9",
       "sha256": "296ba112ddb5cd87",
       "why": "Above the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "dolphin-som/popup-window/inactive/320x160/t60/popup",
+      "rule": "WD6",
+      "sha256": "eb2a17a1935bfb58",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "dolphin-som/popup-window/inactive/97x53/t0",
@@ -5588,10 +6140,22 @@
       "why": "Below the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "dolphin-som/popup-window/inactive/97x53/t0/popup",
+      "rule": "WD6",
+      "sha256": "9ecfa79a289e33e9",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "dolphin-som/popup-window/inactive/97x53/t60",
       "rule": "LS9",
       "sha256": "f445d9cfa2fa4000",
       "why": "Below the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "dolphin-som/popup-window/inactive/97x53/t60/popup",
+      "rule": "WD6",
+      "sha256": "826720ecbff61024",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "dolphin-som/popup-window/inactive/native/t0",
@@ -5600,10 +6164,22 @@
       "why": "At the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "dolphin-som/popup-window/inactive/native/t0/popup",
+      "rule": "WD6",
+      "sha256": "4348a3a51b89a199",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "dolphin-som/popup-window/inactive/native/t60",
       "rule": "LS9",
       "sha256": "f1fb3b9d6d35a3b7",
       "why": "At the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "dolphin-som/popup-window/inactive/native/t60/popup",
+      "rule": "WD6",
+      "sha256": "2bc76e27bf19dabc",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "dolphin-som/side-floating-utility-window/active/320x160/t0",
@@ -6260,10 +6836,22 @@
       "why": "Above the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "evolution/popup-window/active/320x160/t0/popup",
+      "rule": "WD6",
+      "sha256": "046faff7cccbfb24",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "evolution/popup-window/active/320x160/t60",
       "rule": "LS9",
       "sha256": "2ba35f8d6a623e2d",
       "why": "Above the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "evolution/popup-window/active/320x160/t60/popup",
+      "rule": "WD6",
+      "sha256": "f1eb3f7cabf403b0",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "evolution/popup-window/active/97x53/t0",
@@ -6272,10 +6860,22 @@
       "why": "Below the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "evolution/popup-window/active/97x53/t0/popup",
+      "rule": "WD6",
+      "sha256": "b033bbeac50d581b",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "evolution/popup-window/active/97x53/t60",
       "rule": "LS9",
       "sha256": "5ce1e9bc34e759ee",
       "why": "Below the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "evolution/popup-window/active/97x53/t60/popup",
+      "rule": "WD6",
+      "sha256": "11e029cf5bf2187e",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "evolution/popup-window/active/native/t0",
@@ -6284,10 +6884,22 @@
       "why": "At the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "evolution/popup-window/active/native/t0/popup",
+      "rule": "WD6",
+      "sha256": "1f16bf5ba6240b3c",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "evolution/popup-window/active/native/t60",
       "rule": "LS9",
       "sha256": "452aa4f799a9cc55",
       "why": "At the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "evolution/popup-window/active/native/t60/popup",
+      "rule": "WD6",
+      "sha256": "201562b1e3f6fa59",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "evolution/popup-window/inactive/320x160/t0",
@@ -6296,10 +6908,22 @@
       "why": "Above the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "evolution/popup-window/inactive/320x160/t0/popup",
+      "rule": "WD6",
+      "sha256": "c1ad9e0741f0004a",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "evolution/popup-window/inactive/320x160/t60",
       "rule": "LS9",
       "sha256": "d8d13a16e4a9db30",
       "why": "Above the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "evolution/popup-window/inactive/320x160/t60/popup",
+      "rule": "WD6",
+      "sha256": "3f5482ad62a308f8",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "evolution/popup-window/inactive/97x53/t0",
@@ -6308,10 +6932,22 @@
       "why": "Below the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "evolution/popup-window/inactive/97x53/t0/popup",
+      "rule": "WD6",
+      "sha256": "5a98ad91dd205c1f",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "evolution/popup-window/inactive/97x53/t60",
       "rule": "LS9",
       "sha256": "7810b710017df5e3",
       "why": "Below the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "evolution/popup-window/inactive/97x53/t60/popup",
+      "rule": "WD6",
+      "sha256": "72766777cb7f588a",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "evolution/popup-window/inactive/native/t0",
@@ -6320,10 +6956,22 @@
       "why": "At the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "evolution/popup-window/inactive/native/t0/popup",
+      "rule": "WD6",
+      "sha256": "3059a8f4492e9ae8",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "evolution/popup-window/inactive/native/t60",
       "rule": "LS9",
       "sha256": "cacbb7649ae6ad2d",
       "why": "At the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "evolution/popup-window/inactive/native/t60/popup",
+      "rule": "WD6",
+      "sha256": "69a81ead80f50235",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "evolution/side-floating-utility-window/active/320x160/t0",
@@ -7124,10 +7772,22 @@
       "why": "Above the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "floppies/popup-window/active/320x160/t0/popup",
+      "rule": "WD6",
+      "sha256": "b3e682e5d30d2b82",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "floppies/popup-window/active/320x160/t60",
       "rule": "LS9",
       "sha256": "925ea107bbea377e",
       "why": "Above the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "floppies/popup-window/active/320x160/t60/popup",
+      "rule": "WD6",
+      "sha256": "ff0b9b8bcac4de44",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "floppies/popup-window/active/97x53/t0",
@@ -7136,10 +7796,22 @@
       "why": "Below the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "floppies/popup-window/active/97x53/t0/popup",
+      "rule": "WD6",
+      "sha256": "aad2e84b6b66a7eb",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "floppies/popup-window/active/97x53/t60",
       "rule": "LS9",
       "sha256": "b4e6f174ef25db17",
       "why": "Below the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "floppies/popup-window/active/97x53/t60/popup",
+      "rule": "WD6",
+      "sha256": "97dca9005863f4ab",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "floppies/popup-window/active/native/t0",
@@ -7148,10 +7820,22 @@
       "why": "At the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "floppies/popup-window/active/native/t0/popup",
+      "rule": "WD6",
+      "sha256": "1227d67b9cf58a20",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "floppies/popup-window/active/native/t60",
       "rule": "LS9",
       "sha256": "d919486e42c680cf",
       "why": "At the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "floppies/popup-window/active/native/t60/popup",
+      "rule": "WD6",
+      "sha256": "c3d9ddbe6c3b6743",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "floppies/popup-window/inactive/320x160/t0",
@@ -7160,10 +7844,22 @@
       "why": "Above the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "floppies/popup-window/inactive/320x160/t0/popup",
+      "rule": "WD6",
+      "sha256": "cbf3a7dfa4d6acf0",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "floppies/popup-window/inactive/320x160/t60",
       "rule": "LS9",
       "sha256": "12fed8bfc40292eb",
       "why": "Above the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "floppies/popup-window/inactive/320x160/t60/popup",
+      "rule": "WD6",
+      "sha256": "9d27b48698acda78",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "floppies/popup-window/inactive/97x53/t0",
@@ -7172,10 +7868,22 @@
       "why": "Below the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "floppies/popup-window/inactive/97x53/t0/popup",
+      "rule": "WD6",
+      "sha256": "67586376767f7a23",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "floppies/popup-window/inactive/97x53/t60",
       "rule": "LS9",
       "sha256": "c0c5be05454810a3",
       "why": "Below the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "floppies/popup-window/inactive/97x53/t60/popup",
+      "rule": "WD6",
+      "sha256": "9baff7ca6ba28ad0",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "floppies/popup-window/inactive/native/t0",
@@ -7184,10 +7892,22 @@
       "why": "At the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "floppies/popup-window/inactive/native/t0/popup",
+      "rule": "WD6",
+      "sha256": "99e2ed647583bcba",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "floppies/popup-window/inactive/native/t60",
       "rule": "LS9",
       "sha256": "13937be12667f48d",
       "why": "At the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "floppies/popup-window/inactive/native/t60/popup",
+      "rule": "WD6",
+      "sha256": "54c39b3f2f7dfd72",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "floppies/side-floating-utility-window/active/320x160/t0",
@@ -7772,10 +8492,22 @@
       "why": "Above the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "monkey-paradise/popup-window/active/320x160/t0/popup",
+      "rule": "WD6",
+      "sha256": "fa77d6129b6263b5",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "monkey-paradise/popup-window/active/320x160/t60",
       "rule": "LS9",
       "sha256": "b5bae8703e5ff576",
       "why": "Above the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT6) instead of the runtime even half split, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "monkey-paradise/popup-window/active/320x160/t60/popup",
+      "rule": "WD6",
+      "sha256": "c085ac8ab040ada2",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "monkey-paradise/popup-window/active/97x53/t0",
@@ -7784,10 +8516,22 @@
       "why": "Below the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "monkey-paradise/popup-window/active/97x53/t0/popup",
+      "rule": "WD6",
+      "sha256": "2961e313fd2c712e",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "monkey-paradise/popup-window/active/97x53/t60",
       "rule": "LS9",
       "sha256": "b35766aa02854b20",
       "why": "Below the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT6) instead of the runtime even half split, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "monkey-paradise/popup-window/active/97x53/t60/popup",
+      "rule": "WD6",
+      "sha256": "f6802a44dfc65d25",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "monkey-paradise/popup-window/active/native/t0",
@@ -7796,10 +8540,22 @@
       "why": "At the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "monkey-paradise/popup-window/active/native/t0/popup",
+      "rule": "WD6",
+      "sha256": "abdcc8bd2c94fcee",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "monkey-paradise/popup-window/active/native/t60",
       "rule": "LS9",
       "sha256": "f585c3594f4bb4d6",
       "why": "At the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT6) instead of the runtime even half split, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "monkey-paradise/popup-window/active/native/t60/popup",
+      "rule": "WD6",
+      "sha256": "0823f0b6b562d16a",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "monkey-paradise/popup-window/inactive/320x160/t0",
@@ -7808,10 +8564,22 @@
       "why": "Above the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "monkey-paradise/popup-window/inactive/320x160/t0/popup",
+      "rule": "WD6",
+      "sha256": "670641009dc16f38",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "monkey-paradise/popup-window/inactive/320x160/t60",
       "rule": "LS9",
       "sha256": "f187a7424838c11e",
       "why": "Above the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT6) instead of the runtime even half split, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "monkey-paradise/popup-window/inactive/320x160/t60/popup",
+      "rule": "WD6",
+      "sha256": "fdd8502b5f716e3d",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "monkey-paradise/popup-window/inactive/97x53/t0",
@@ -7820,10 +8588,22 @@
       "why": "Below the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "monkey-paradise/popup-window/inactive/97x53/t0/popup",
+      "rule": "WD6",
+      "sha256": "dc32936ac38a24cd",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "monkey-paradise/popup-window/inactive/97x53/t60",
       "rule": "LS9",
       "sha256": "69ec4ae9aa1264f0",
       "why": "Below the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT6) instead of the runtime even half split, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "monkey-paradise/popup-window/inactive/97x53/t60/popup",
+      "rule": "WD6",
+      "sha256": "d5107891c36ab7f9",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "monkey-paradise/popup-window/inactive/native/t0",
@@ -7832,10 +8612,22 @@
       "why": "At the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "monkey-paradise/popup-window/inactive/native/t0/popup",
+      "rule": "WD6",
+      "sha256": "e231ab99a920889e",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "monkey-paradise/popup-window/inactive/native/t60",
       "rule": "LS9",
       "sha256": "83aaff60f102bf41",
       "why": "At the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT6) instead of the runtime even half split, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "monkey-paradise/popup-window/inactive/native/t60/popup",
+      "rule": "WD6",
+      "sha256": "ee0d174ca897440c",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "monkey-paradise/side-floating-utility-window/active/320x160/t0",
@@ -8420,10 +9212,22 @@
       "why": "Above the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "windows-31/popup-window/active/320x160/t0/popup",
+      "rule": "WD6",
+      "sha256": "d52d1374e8338217",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "windows-31/popup-window/active/320x160/t60",
       "rule": "LS9",
       "sha256": "4833b1b32cce143c",
       "why": "Above the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "windows-31/popup-window/active/320x160/t60/popup",
+      "rule": "WD6",
+      "sha256": "a2353a9a70d29268",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "windows-31/popup-window/active/97x53/t0",
@@ -8432,10 +9236,22 @@
       "why": "Below the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "windows-31/popup-window/active/97x53/t0/popup",
+      "rule": "WD6",
+      "sha256": "921b5bee00d39762",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "windows-31/popup-window/active/97x53/t60",
       "rule": "LS9",
       "sha256": "022ccbcd203e626c",
       "why": "Below the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "windows-31/popup-window/active/97x53/t60/popup",
+      "rule": "WD6",
+      "sha256": "be82ddfef9f229ed",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "windows-31/popup-window/active/native/t0",
@@ -8444,10 +9260,22 @@
       "why": "At the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "windows-31/popup-window/active/native/t0/popup",
+      "rule": "WD6",
+      "sha256": "b65c96ab60fe29f7",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "windows-31/popup-window/active/native/t60",
       "rule": "LS9",
       "sha256": "11affbc5b6965699",
       "why": "At the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "windows-31/popup-window/active/native/t60/popup",
+      "rule": "WD6",
+      "sha256": "6f22667df9c5dc6a",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "windows-31/popup-window/inactive/320x160/t0",
@@ -8456,10 +9284,22 @@
       "why": "Above the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "windows-31/popup-window/inactive/320x160/t0/popup",
+      "rule": "WD6",
+      "sha256": "6443c158f0fc1c07",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "windows-31/popup-window/inactive/320x160/t60",
       "rule": "LS9",
       "sha256": "3553312a82a392bd",
       "why": "Above the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "windows-31/popup-window/inactive/320x160/t60/popup",
+      "rule": "WD6",
+      "sha256": "19cd0207c6953b1e",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "windows-31/popup-window/inactive/97x53/t0",
@@ -8468,10 +9308,22 @@
       "why": "Below the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "windows-31/popup-window/inactive/97x53/t0/popup",
+      "rule": "WD6",
+      "sha256": "92ac4f0435ff22f0",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "windows-31/popup-window/inactive/97x53/t60",
       "rule": "LS9",
       "sha256": "b4d0f651d4b512bf",
       "why": "Below the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "windows-31/popup-window/inactive/97x53/t60/popup",
+      "rule": "WD6",
+      "sha256": "aea783800b45e371",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "windows-31/popup-window/inactive/native/t0",
@@ -8480,10 +9332,22 @@
       "why": "At the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "windows-31/popup-window/inactive/native/t0/popup",
+      "rule": "WD6",
+      "sha256": "5f15d63d78414171",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "windows-31/popup-window/inactive/native/t60",
       "rule": "LS9",
       "sha256": "2e2ce06cbbb2ddfe",
       "why": "At the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "windows-31/popup-window/inactive/native/t60/popup",
+      "rule": "WD6",
+      "sha256": "314b951c6e8bf3df",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "windows-31/side-floating-utility-window/active/320x160/t0",
@@ -9056,10 +9920,22 @@
       "why": "Above the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "windows-95/popup-window/active/320x160/t0/popup",
+      "rule": "WD6",
+      "sha256": "7ede3b876627dc31",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "windows-95/popup-window/active/320x160/t60",
       "rule": "LS9",
       "sha256": "6e63ef5bd470ee0c",
       "why": "Above the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "windows-95/popup-window/active/320x160/t60/popup",
+      "rule": "WD6",
+      "sha256": "e09ec0946a86e5a1",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "windows-95/popup-window/active/97x53/t0",
@@ -9068,10 +9944,22 @@
       "why": "Below the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "windows-95/popup-window/active/97x53/t0/popup",
+      "rule": "WD6",
+      "sha256": "e9bb49a4fe9bdbe4",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "windows-95/popup-window/active/97x53/t60",
       "rule": "LS9",
       "sha256": "026a1b4ff1f94bf3",
       "why": "Below the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "windows-95/popup-window/active/97x53/t60/popup",
+      "rule": "WD6",
+      "sha256": "30f1cfc98fa1b10a",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "windows-95/popup-window/active/native/t0",
@@ -9080,10 +9968,22 @@
       "why": "At the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "windows-95/popup-window/active/native/t0/popup",
+      "rule": "WD6",
+      "sha256": "98f27395c76f3828",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "windows-95/popup-window/active/native/t60",
       "rule": "LS9",
       "sha256": "2567dce117783eb9",
       "why": "At the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "windows-95/popup-window/active/native/t60/popup",
+      "rule": "WD6",
+      "sha256": "134ecbb7c2120f33",
+      "why": "New popup-family cell (active): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "windows-95/popup-window/inactive/320x160/t0",
@@ -9092,10 +9992,22 @@
       "why": "Above the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "windows-95/popup-window/inactive/320x160/t0/popup",
+      "rule": "WD6",
+      "sha256": "020a29400c4dbafc",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "windows-95/popup-window/inactive/320x160/t60",
       "rule": "LS9",
       "sha256": "a596e9c5c9a9bc9d",
       "why": "Above the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "windows-95/popup-window/inactive/320x160/t60/popup",
+      "rule": "WD6",
+      "sha256": "518aba92fa3033e6",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "windows-95/popup-window/inactive/97x53/t0",
@@ -9104,10 +10016,22 @@
       "why": "Below the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "windows-95/popup-window/inactive/97x53/t0/popup",
+      "rule": "WD6",
+      "sha256": "a17f3077bc3d97e3",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "windows-95/popup-window/inactive/97x53/t60",
       "rule": "LS9",
       "sha256": "d2a056c859128875",
       "why": "Below the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "windows-95/popup-window/inactive/97x53/t60/popup",
+      "rule": "WD6",
+      "sha256": "bf8df8722ea85103",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "windows-95/popup-window/inactive/native/t0",
@@ -9116,10 +10040,22 @@
       "why": "At the template size: with no title (titleLen 0) the code-6 bezels beside the anchor leave the required widths and get width 0 in both halves, so the growers fill the bar (TT4, TT9, AW5); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
     },
     {
+      "key": "windows-95/popup-window/inactive/native/t0/popup",
+      "rule": "WD6",
+      "sha256": "f50b2ca581707075",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
+    },
+    {
       "key": "windows-95/popup-window/inactive/native/t60",
       "rule": "LS9",
       "sha256": "ec90bb75be05127b",
       "why": "At the template size: the title plate is placed on the content centre with W = SW + margins (TT5, TT7) instead of the runtime even half split and padded plate, and each half allocates its own budget (TT9); the leading and trailing regions are no longer painted or reported, as in the original (LS9, WD4 draws segments 1..N only, §6 Q3), which changes the placement record but no visible pixel."
+    },
+    {
+      "key": "windows-95/popup-window/inactive/native/t60/popup",
+      "rule": "WD6",
+      "sha256": "5c5bb7a1c84862ad",
+      "why": "New popup-family cell (inactive): the popup-window type laid out as the popup family (AP1, PP1-PP7 with the PP6 creation values) and drawn with the three WD6 raw template blits (types 5 and 6 at C's top corners, the 15x15 corner ending at A's bottom-right at C's bottom-right)."
     },
     {
       "key": "windows-95/titled-utility-window/active/320x160/t0",
