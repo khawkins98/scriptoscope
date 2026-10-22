@@ -717,6 +717,26 @@ unknown rows linked to #414. The utility frame is not implemented, and spec rev 
 in PR #415 decodes it. The live totals become 243 verified, 33 mismatched and
 1,556 unknown of 1,832, over 239 cases.
 
+`window@1.4.0` (v2 only) records the utility-frame ledger change that the Tier-2
+review of #421 proposed (campaign-20261021 v2-lanes/family2/IMPL-REVIEW-421.json,
+round-2 `ledgerProposal`, head 9a28dd48). #421 is merged into v2 as 296f7284 and
+fixes #414. The change adds a browser assertion,
+`window.procedural-frame-utility`
+(`tests/rendering-options/procedural-frame-utility.spec.mjs`, source and built).
+It also adds four utility evidence rows: `kdef.procedural-frame-utility-gate`,
+`-art`, `-geometry` and `-frame-lines`. The five
+`<slug>.window.procedural-frame-utility` cases now list the five reachable
+utility types by canonical slug. `collapsed-no-title-utility-window` is
+excluded because the loader does not expose it (#423). These rows become
+**verified** at engine level, under the declared environment:
+`window.wnd-ladder` and `window.corner-sprite-frame` for all five archives, and
+`window.state-frame` for four of them. `window.state-frame` stays **unknown**
+for apple-platinum-2, whose utility frames are pixel-identical.
+`fill.remaining` and `window.masked-composition` stay unknown. All 25 rows now
+cite #423 instead of the closed #414. The rule rows for spec rev 3 are in
+`tests/rendering-options/procedural-frame-rules.test.mjs`. The live totals become
+257 verified, 33 mismatched and 1,542 unknown of 1,832, over 239 cases.
+
 ## Per-family sources (v2)
 
 From the v2 split onward `ledger.json` is **generated**. The hand-edited sources

@@ -447,6 +447,62 @@ zoom/collapse ids, a dropped hilite gate, a 1-px collapse-slot shift, and zoom
 and collapse drawn on an inactive window. Mask-clear pixels are not checked. The
 frame-state probes cannot fail on apple-platinum-2 (see above).
 
+**Revision 3 (#415): utility family and shared rows.** The same two files bind
+spec §9 and the rev-3 shared rows. The model adds `toggleRun` (TG1–TG3, UM1–UM2),
+`ctEntry`/`ctEqual` (CT1–CT4), `copyPixel` and `kind5GrowOps` (GB1–GB6, GL1–GL4),
+and the utility functions `utilityGeometry` (UI, UG, UP), `utilityFrameOps`
+(UFC, UFH, UFS, UFT), `utilityFrameArt` (UFA), `utilityStripes` (US),
+`utilityTitleRect`/`utilityTitleOps` (UT), `utilityDrawOrder`/`utilityWidgets`
+(UW, UM3), `utilityGrowArt` (UGB) and `utilityHit` (UH). `geometry` now applies
+WP1–WP4 as rev 3 states them: the drops depend on *goAway*, and WP3 never drops
+the zoom box. Utility readings live under `reading.utility`, so a utility
+mutation never touches the document rows. The test pins 42 rows (one or more
+per group) to hand-derived spec values and archive facts. 62 named mutations
+are pinned in a table. Every row and every per-scheme cell fails under at least
+one of them, and every group named above has a failing row. Findings the
+corpus cannot discriminate are asserted, not dropped:
+
+- UG5's "+ 1" is invisible for both bar thicknesses that occur.
+- UH7's 6-px drag band is covered by the content and *T*.
+- apple-platinum-2's utility frames are pixel-identical by state.
+- Every corpus colour table has value = position, so CT1–CT3 are synthetic-only.
+- Every utility frame and grow cicn mask is all ones, so GB3 = GB3a on the corpus.
+- Every utility shadow sample equals its fill, so UT7 never draws the shadow pass.
+
+The rows also cover the #421 review's N5 (UT6 with an even ascent + descent)
+and N6 (the 4-px US4 boundary).
+
+`procedural-frame-utility.spec.mjs` (source/built, assertion
+`window.procedural-frame-utility`) drives public `renderWindow` for the five
+reachable utility types on all five archives, active and inactive, 160 × 90
+content titled "Inspector". The legacy aliases `collapsed-titled-utility` and
+`collapsed-side-utility` are driven too. `collapsed-no-title-utility-window` is
+excluded: the loader does not expose it (#423). Expectations come from
+`utilityPlan`, the rule model placed at the structure origin, resolved against
+each archive's own -14316/-14320 (side -14315/-14319) frame cicns, -14314
+(side -14318, else -14314) stripes and -14320/-14318/-14319 glyphs. It checks:
+
+- **Routing.** Every slug, canonical or legacy, draws the utility family. A
+  legacy alias draws the same pixels as its canonical slug.
+- **Geometry.** Structure size and `ComposedChrome.frame` insets per type
+  (UG1–UG3, UI10). The collapsed titled bar equals the expanded one (#421 B2).
+- **Frame selection.** Probes on the UFC/UFH/UFS rows and columns and the UFT3
+  shadow equal the drawn state's cicn sample points. Probes where a widget
+  glyph could land are checked only when inactive. Frame state discriminates on
+  every archive but apple-platinum-2.
+- **Inactive windows.** One 9-px period of the stripes band holds each tile
+  row when active and only the fill when inactive. No widget box shows a
+  discriminating glyph pixel when inactive, and at least one does when active.
+
+Eleven runtime mutations were run in a scratch worktree, source and built. Ten
+failed it: #421 B1 reverted to a direct slug lookup, B2's title gate reverted,
+UFA1 horizontal and side states swapped, UFH9 transposed, the UW4 and UW2
+hilite gates dropped, UG2 raised by *H* − 2, US1's band moved one row, and UI10
+titled *H* 14. One survived: UFH7 sampling P(6, i) instead of P(4, i). That
+reading is invisible on this corpus, because P(6, i) = P(4, i) for rows 0–2 of
+every frame cicn. The fill outside the band, the title raster and the masked
+corners are not checked.
+
 ### Tab and header source rules
 
 `tab-header-rules.mjs` restates the CDEF 8 tab selection and 0x16e body painter
