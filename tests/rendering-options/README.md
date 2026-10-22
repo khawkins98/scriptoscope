@@ -254,8 +254,7 @@ it rejects forward-tiled 11/14 cells, reverse-tiled forward cells and scaled
 tile cells.
 
 Code 10 is asserted from the too-short step (`0x4dfe..0x4e0e`;
-[kdef231-code10-widgets.md](../../docs/spec/kdef231-code10-widgets.md), spec writers and verifiers
-only until its L2 split): fixed
+[engine/window-widgets.md](../../docs/spec/engine/window-widgets.md) rows PV5, TS1, TS2): fixed
 when the side's placed extent reaches its fixed-cell sum, width 0 below it.
 `sideTooShort` computes the verdict from the recipe and the content delta,
 bounding widget-gated codes, and leaves code 10 unknown when the bound

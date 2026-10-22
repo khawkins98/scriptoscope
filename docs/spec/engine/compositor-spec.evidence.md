@@ -88,7 +88,7 @@ non-title sides pass flag `#1`
 
 | 10 | **FIXED, dropped when too short.** `0x4a0c` returns the `0x49d6` flag, which `0x5178` reads from `fp@(24)` (`0x52fc`): `0x4a64`'s too-short byte `fp@(-3)`, set only at `0x4e0e` when the side's placed extent is below its fixed-cell sum. Then the cell gets width 0. Implemented (`negotiateSides`); see note. |
 
-**code 10 note (2026-10-21, [kdef231-code10-widgets.md](kdef231-code10-widgets.md)):**
+**code 10 note (2026-10-21, [window-widgets.evidence.md](window-widgets.evidence.md); spec [window-widgets.md](window-widgets.md)):**
 `0x5178` takes two flag bytes. `fp@(24)` goes to `0x49d6` (`0x52fc`) and is
 always `0x4a64`'s too-short byte `fp@(-3)`. `fp@(26)` (the `#1` at
 `0x4db4`/`0x4dd4`, the title string length byte at `0x5100`/`0x5120`, or `0`

@@ -53,7 +53,8 @@ kdef-binary-inventory.md     (1.8.2 + 2.3.1 extraction recipe)
 | `kdef182-disassembly-findings.md` | May 2026 1.8.2 binary archaeology pass. Structural facts (QuickDraw + CopyBits, kDEF themes surroundings + Appearance Mgr draws controls, 4 hardcoded `_GetResource` calls). | Same |
 | `kdef-architecture.md` | The "how does it work?" tour for new contributors. | Synthesis |
 | `kdef231-recipe-walk.md` | The decoded recipe walk — the TRUTH source for part-code edges. | Same as kdef231-reference.md |
-| `kdef231-code10-widgets.md` | Code 10 (too-small drop cells), the `0x5178` two-byte flag frame, and the rect-list widget draw/remap (`0x4216`, `0x5cb6`, `0x6062`). Proposed runtime spec, not implemented. | Same as kdef231-reference.md |
+| `kdef231-code10-widgets.md` | Stub (split 2026-10-22). Keeps only the ledger-pinned `kdef.too-short-step` excerpt; the behaviour is in `engine/window-widgets.md`, the trace in `engine/window-widgets.evidence.md`. | Same as kdef231-reference.md |
+| `engine/window-widgets.md` | Implementer spec for the window recipe: part-code verdicts, the too-short step, the titled side, the layout cache, and the rect-list widget remap, draw and hit. Evidence: `engine/window-widgets.evidence.md`. | Same as kdef231-reference.md |
 | `kdef-faithfulness-ledger.md` | Every deliberate divergence from the binary, with owner-approved intent. The accountability mechanism. | Manual |
 
 ## Per-concern decodes (deep dives)
