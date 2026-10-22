@@ -696,6 +696,28 @@ place to say the path is decoded. Their statuses do not change. The rule rows
 are `tests/rendering-options/procedural-frame-rules.test.mjs`. The live totals
 become 229 verified, 0 mismatched and 1,524 unknown of 1,753.
 
+`window@1.3.0` (v2 only) records the ledger change the Tier-2 review of #412
+proposed (campaign-20261021 v2-lanes/family2/IMPL-REVIEW.json, reviewed head
+ce3c428c). #412 replaced the corner-sprite compositor with the `proceduralFrame`
+engine driver. The five `<slug>.window.corner-sprite` cases are narrowed in place
+to the document family (document, collapsed document, dialog, alert, movable
+modal, movable alert). A new browser assertion, `window.procedural-frame`
+(`tests/rendering-options/procedural-frame.spec.mjs`, source and built), checks
+public `renderWindow` against the rule file's `DRIVER_ROWS` D4 port probes and
+D6 widget slots. These rows become **verified** at engine level, under the
+declared environment: `window.wnd-ladder` and `window.corner-sprite-frame` for
+all five archives, and `window.state-frame` for four of them. The evidence is
+the driver tests, engine-diff family `proceduralFrame`, container verify 36/36,
+and the new assertion. `window.state-frame` stays **unknown** for
+apple-platinum-2, because its -14332 and -14336 are pixel-identical, so no
+public render can tell them apart. `fill.remaining` and
+`window.masked-composition` stay unknown with updated rationales. The 25
+`window.procedural-*` rows keep their status, with the stale "no driver yet"
+sentence replaced. Five new `<slug>.window.procedural-frame-utility` cases add 25
+unknown rows linked to #414. The utility frame is not implemented, and spec rev 3
+in PR #415 decodes it. The live totals become 243 verified, 33 mismatched and
+1,556 unknown of 1,832, over 239 cases.
+
 ## Per-family sources (v2)
 
 From the v2 split onward `ledger.json` is **generated**. The hand-edited sources
