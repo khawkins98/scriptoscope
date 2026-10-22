@@ -9,3 +9,5 @@ export * from './pattern.js';
 export * from './pen.js';
 export * from './cinfFrame.js';
 export * from './region.js';
+export * from './axis.js';
+export * from './slice.js';

@@ -3,10 +3,10 @@ import { assertCinfEnvironment, CinfEnvironmentError, type PreparedCinfEnvironme
 import { displayRealizer, assertDisplayProfileChain, type DisplayProfile } from '../tools/theme-loader/display-profile.js';
 import type { LoadedTheme, ChromeElement } from './types.js';
 import { loadKaleidoscopeScheme } from '../tools/theme-loader/loadKaleidoscopeScheme.js';
-import { scrollbarIconBlitCicnIds } from './engine/families/scrollbar.js';
+import { engineIconBlitCicnIds } from './engine/resources/ids.js';
 
-/** cicns the engine draws with the icon blit (scroll-bar composite arrows, AC5). */
-const ICON_BLIT_CICN_IDS = scrollbarIconBlitCicnIds();
+/** cicns any engine family draws with the icon blit (registered in src/engine/tables/loaderNeeds.ts). */
+const ICON_BLIT_CICN_IDS = engineIconBlitCicnIds();
 
 /**
  * The shape of `themes/<slug>/meta.json` — author + provenance metadata

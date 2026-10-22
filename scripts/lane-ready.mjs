@@ -5,7 +5,8 @@
 // summary block it prints into the PR body. It fails when:
 //
 //   - the worktree is dirty (tracked changes or untracked files);
-//   - HEAD is not pushed, or the pushed branch head differs from HEAD;
+//   - HEAD is not pushed, or the pushed branch head differs from HEAD (checked at
+//     the branch's upstream, @{u}; an upstream that is the base branch itself fails);
 //   - a review placeholder is left in a reviewed inventory: `PENDING`,
 //     `Awaiting independent review` or `PROPOSED verified` anywhere in
 //     tests/rendering-requirements/families/**, tests/rendering-requirements/ledger.json
@@ -20,7 +21,9 @@
 //   - any of the checks below exits non-zero:
 //       lint:cleanroom, gen-trap-table --check, report-coverage (with the
 //       merge-base, so a frozen base keeps its pin), build-ledger --check, the
-//       ledger history guard, validate-source (documentSha256 pins), typecheck,
+//       ledger history guard, the engine diff gate (tests/engine-diff; families
+//       whose expected/ or baselines/ file changed count as declared),
+//       validate-source (documentSha256 pins), typecheck,
 //       npm test;
 //   - HEAD moved or the worktree became dirty while the checks ran.
 //
@@ -96,6 +99,7 @@ export function defaultCommands({ trapsH, baseCommit, root = null }) {
     { name: 'report-coverage', cmd: process.execPath, args: ['scripts/report-coverage.mjs', '--base-commit', baseCommit] },
     { name: 'build-ledger --check', cmd: process.execPath, args: ['tests/rendering-requirements/build-ledger.mjs', '--check'], hint: 'run `npm run ledger:sync` and commit ledger.json' },
     { name: 'ledger history', cmd: process.execPath, args: ['scripts/check-ledger-history.mjs', '--base-commit', baseCommit] },
+    { name: 'engine-diff', cmd: process.execPath, args: ['tests/engine-diff/run.mjs', '--check', '--base-commit', baseCommit, '--declared-from-diff'], tests: true, hint: 'bless each changed cell in tests/engine-diff/expected/<family>.json, then npm run engine-diff:write' },
     { name: 'validate-source', cmd: process.execPath, args: ['tests/control-availability/validate-source.mjs'], hint: 'a documentSha256 pin changed: a hash-only expectations bump (Tier 0) is needed' },
     { name: 'docs-pinned tests', cmd: process.execPath, args: ['--experimental-strip-types', '--test', ...(root ? docsPinnedTests(root) : [])], docsOnly: true },
     { name: 'typecheck', cmd: 'npm', args: ['run', '--silent', 'typecheck'], tests: true },
@@ -244,11 +248,25 @@ export function laneReady({ root, remote = 'origin', base = 'origin/v2', skipTes
 
   if (branch === 'HEAD') row(`pushed head = HEAD`, false, '–', 'detached HEAD; check out the lane branch');
   else {
-    const ls = tryGit(root, ['ls-remote', remote, `refs/heads/${branch}`]);
-    const pushed = ls ? ls.split(/\s+/)[0] : '';
-    if (ls === null) row(`pushed head = HEAD (${remote}/${branch})`, false, '–', `cannot reach remote ${remote}`);
-    else if (!pushed) row(`pushed head = HEAD (${remote}/${branch})`, false, '–', `HEAD is not pushed: ${remote} has no branch ${branch}`);
-    else row(`pushed head = HEAD (${remote}/${branch})`, pushed === head, '–', pushed === head ? '' : `pushed head ${pushed.slice(0, 12)} differs from HEAD ${head.slice(0, 12)}; push (or pull) first`);
+    // The branch's upstream (@{u}: branch.<b>.remote + branch.<b>.merge), so a lane
+    // branch pushed under another name is checked where it actually lives. Without an
+    // upstream, fall back to <remote>/<local branch name> and say so.
+    const upRemote = tryGit(root, ['config', `branch.${branch}.remote`]);
+    const upMerge = tryGit(root, ['config', `branch.${branch}.merge`]);
+    const baseBranch = base.includes('/') ? base.slice(base.indexOf('/') + 1) : base;
+    const [r, ref] = upRemote && upMerge && upRemote !== '.' ? [upRemote, upMerge] : [remote, `refs/heads/${branch}`];
+    const label = `pushed head = HEAD (${r}/${ref.replace(/^refs\/heads\//, '')}${upMerge && upRemote !== '.' ? '' : ', no upstream'})`;
+    if (upRemote === '.') warnings.push(`branch ${branch} tracks a local branch (${upMerge}); checked ${remote}/${branch} instead. Set the real upstream with: git push -u ${remote} HEAD:${branch}`);
+    else if (!upMerge) warnings.push(`branch ${branch} has no upstream; checked ${remote}/${branch}. Set one with: git push -u ${remote} HEAD:${branch}`);
+    if (upMerge && upRemote !== '.' && upMerge === `refs/heads/${baseBranch}`) {
+      row(label, false, '–', `the upstream is the base branch ${baseBranch} (a worktree created from ${base}); push the lane branch with: git push -u ${remote} HEAD:${branch}`);
+    } else {
+      const ls = tryGit(root, ['ls-remote', r, ref]);
+      const pushed = ls ? ls.split(/\s+/)[0] : '';
+      if (ls === null) row(label, false, '–', `cannot reach remote ${r}`);
+      else if (!pushed) row(label, false, '–', `HEAD is not pushed: ${r} has no branch ${ref.replace(/^refs\/heads\//, '')}`);
+      else row(label, pushed === head, '–', pushed === head ? '' : `pushed head ${pushed.slice(0, 12)} differs from HEAD ${head.slice(0, 12)}; push (or pull) first`);
+    }
   }
 
   if (fetch && base.startsWith(`${remote}/`)) {

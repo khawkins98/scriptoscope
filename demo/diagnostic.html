@@ -279,11 +279,6 @@
       document.fonts.load('11px Charcoal'),
     ]); } catch { /* face optional — falls back to the system stack */ }
 
-    // Scrollbar thumb sizing: proportional (OS 8 Appearance, default) vs fixed
-    // (System 7). Toggle hook for an eventual user preference — for now `?fixedthumbs`
-    // in the URL flips it, threaded into every scrollbar's `proportional` option.
-    const SCROLL_PROPORTIONAL = !/fixed-?thumbs?/i.test(location.search);
-
     // Theme bundles live under the deploy base: `/` in dev (vite middleware
     // serves repo-root themes/ at /themes/) but `/scriptoscope/` on GitHub Pages.
     // BASE_URL carries that prefix (and a trailing slash) in both, so theme
@@ -922,9 +917,9 @@
         ctlRow.append(await chk('radio', {}), await chk('radio', { checked: true }), await chk('checkbox', { checked: true }), await chk('checkbox', {}));
         content.appendChild(ctlRow);
         // edge scrollbars + grow box (Finder window furniture)
-        const vsb = await composeScrollbar(theme, { orientation: 'vertical', length: winH - 15, value: 0.25, proportional: SCROLL_PROPORTIONAL });
+        const vsb = await composeScrollbar(theme, { orientation: 'vertical', length: winH - 15, value: 0.25 });
         const vc = place(vsb, { right: '0', top: '0' }); if (vc) content.appendChild(vc);
-        const hsb = await composeScrollbar(theme, { orientation: 'horizontal', length: winW - 15, value: 0.25, proportional: SCROLL_PROPORTIONAL });
+        const hsb = await composeScrollbar(theme, { orientation: 'horizontal', length: winW - 15, value: 0.25 });
         const hc = place(hsb, { left: '0', bottom: '0' }); if (hc) content.appendChild(hc);
         // grow box: the scheme's actual bottom-right resize cicn where shipped,
         // else a plain Platinum-gray corner.
@@ -1466,8 +1461,8 @@
               const g = (await composeCheckable(theme, k, o)) ?? platinumCheckable(k, o);
               at(g, rx, 28); rx += (g.width || 14) + 6;
             }
-            if (ch >= 60) at(await composeScrollbar(theme, { orientation: 'vertical', length: ch - 16, value: 0.3, proportional: SCROLL_PROPORTIONAL }), cw - 16, 0);
-            if (cw >= 60) at(await composeScrollbar(theme, { orientation: 'horizontal', length: cw - 16, value: 0.3, proportional: SCROLL_PROPORTIONAL }), 0, ch - 16);
+            if (ch >= 60) at(await composeScrollbar(theme, { orientation: 'vertical', length: ch - 16, value: 0.3 }), cw - 16, 0);
+            if (cw >= 60) at(await composeScrollbar(theme, { orientation: 'horizontal', length: cw - 16, value: 0.3 }), 0, ch - 16);
             at(await composeGrowBox(theme, { state: stateSel.value }), cw - 16, ch - 16);
           } catch { /* a control a scheme can't compose — skip it */ }
         }
@@ -1654,8 +1649,8 @@
           const stack = document.createElement('div'); stack.className = 'ctl-stack';
           const r1 = document.createElement('div'); r1.className = 'ctl-row';
           const r2 = document.createElement('div'); r2.className = 'ctl-row';
-          add(r1, await composeScrollbar(theme, { orientation: 'horizontal', length: 140, value: 0.35, proportional: SCROLL_PROPORTIONAL }));
-          add(r1, await composeScrollbar(theme, { orientation: 'vertical', length: 90, value: 0.5, proportional: SCROLL_PROPORTIONAL }));
+          add(r1, await composeScrollbar(theme, { orientation: 'horizontal', length: 140, value: 0.35 }));
+          add(r1, await composeScrollbar(theme, { orientation: 'vertical', length: 90, value: 0.5 }));
           r2.appendChild(await sliderEl(theme, { orientation: 'horizontal', length: 120, value: 0.4 }));
           add(r2, await composeProgress(theme, { length: 110, value: 0.6 }));
           add(r2, await composeDisclosure(theme, { direction: 'right' }));
