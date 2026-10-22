@@ -15,20 +15,21 @@ import type { Pixmap, QdPoint, QdRect } from '../qd/types.js';
 import type { EngineTrace } from '../trace.js';
 import type { ResourceChain, ResourceHit } from '../resources/chain.js';
 import { emptyRect, rect } from '../qd/rect.js';
-import { getPixel } from '../qd/pixel.js';
 import { scaleBlit } from '../qd/scale.js';
 import { transferBits } from '../qd/transfer.js';
 import { fillPattern } from '../qd/pattern.js';
-import { newPen, moveTo, lineTo } from '../qd/pen.js';
 import {
-  copyClipped, fillMaskClearRegion, iconBlit, insideBounds, newRegion, regionAddMappedMask, regionAddRect, regionHas,
-  type IconSource, type Region,
+  copyClipped, fillMaskClearRegion, iconBlit, insideBounds, newRegion, regionAddRect, regionHas,
+  type IconSource,
 } from '../qd/region.js';
+import { axis, alongLength, pixmapBounds } from '../qd/axis.js';
+import { drawSlices } from '../qd/slice.js';
+import { expandIdGrid } from '../resources/ids.js';
 import {
   SCROLLBAR_AD4, SCROLLBAR_ARROWS, SCROLLBAR_COMPOSITE, SCROLLBAR_COMPOSITE_ARROW, SCROLLBAR_DECLARED_DEFAULTS,
   SCROLLBAR_DOUBLE_MIN_THICKNESSES, SCROLLBAR_DRAW_ORDER, SCROLLBAR_GEOMETRY, SCROLLBAR_HILITE, SCROLLBAR_HIT_ARROWS,
   SCROLLBAR_HIT_TEST, SCROLLBAR_ICON_DRAW, SCROLLBAR_ICONS, SCROLLBAR_PATTERN_PROBE, SCROLLBAR_STATE, SCROLLBAR_THUMB,
-  SCROLLBAR_ICS_PLANES, SCROLLBAR_THUMB_ID, SCROLLBAR_TIER, SCROLLBAR_TRACK_BASE, SCROLLBAR_TRACK_FILL, SCROLLBAR_TRACK_PROBE,
+  SCROLLBAR_ICS_PLANES, SCROLLBAR_THUMB_ID, SCROLLBAR_TIER, SCROLLBAR_TRACK_BASE, SCROLLBAR_TRACK_FILL, SCROLLBAR_TRACK_IDS, SCROLLBAR_TRACK_PROBE,
   type ScrollbarStateRow,
 } from '../tables/scrollbar.js';
 
@@ -120,23 +121,6 @@ export interface ScrollbarGeometry {
 
 const toSigned8 = (b: number): number => ((b & 255) ^ 128) - 128;
 const has = (b: number | undefined): boolean => (b ?? 0) !== 0;
-
-// ── Axis helpers (§5: formulas are horizontal; vertical swaps x/y) ──────────
-interface Axis {
-  readonly h: boolean;
-  a0(r: QdRect): number;
-  a1(r: QdRect): number;
-  c0(r: QdRect): number;
-  c1(r: QdRect): number;
-  mk(a0: number, a1: number, c0: number, c1: number): QdRect;
-}
-function axis(h: boolean): Axis {
-  return h
-    ? { h, a0: r => r.left, a1: r => r.right, c0: r => r.top, c1: r => r.bottom, mk: (a0, a1, c0, c1) => rect(c0, a0, c1, a1) }
-    : { h, a0: r => r.top, a1: r => r.bottom, c0: r => r.left, c1: r => r.right, mk: (a0, a1, c0, c1) => rect(a0, c0, a1, c1) };
-}
-const along = (ax: Axis, r: QdRect): number => ax.a1(r) - ax.a0(r);
-const bounds = (pm: Pixmap): QdRect => rect(0, 0, pm.height, pm.width);
 
 /** §4.1 state rows and §2 derived state. */
 export function scrollbarState(input: ScrollbarInput): ScrollbarState {
@@ -247,9 +231,9 @@ export function scrollbarGeometry(chain: ResourceChain, input: ScrollbarInput, t
     const L5 = SCROLLBAR_THUMB.length;
     let minLen = hit ? (st.horizontal ? hit.value.pixmap.width : hit.value.pixmap.height) : st.t + L5.noThumbExtra;
     if (smallMissing) minLen -= L5.smallMissingTrim;
-    const trackLen = along(ax, T);
+    const trackLen = alongLength(ax, T);
     if (st.proportional) {
-      const alongR = along(ax, R);
+      const alongR = alongLength(ax, R);
       len = Math.trunc((trackLen * alongR) / (input.max - input.min + alongR));
       len = Math.max(minLen, Math.min(trackLen, len));
     } else {
@@ -286,64 +270,6 @@ export function scrollbarPartAt(g: ScrollbarGeometry, P: QdPoint): { part: numbe
   return { part: 0, row: 'HT1' };
 }
 
-// ── §5.9 slicing ────────────────────────────────────────────────────────────
-interface Piece { src: QdRect; dst: QdRect; line: boolean; piece: string }
-
-export function slicePieces(h: boolean, S: QdRect, D: QdRect, mode: number): Piece[] {
-  const ax = axis(h);
-  const sw = S.right - S.left, sh = S.bottom - S.top, dw = D.right - D.left, dh = D.bottom - D.top;
-  if (sw === dw && sh === dh) return [{ src: S, dst: D, line: false, piece: '1:1' }];
-  const s = along(ax, S), w = along(ax, D), m = Math.min(s, w), a = m >> 1;
-  const sc0 = ax.c0(S), sc1 = ax.c1(S), dc0 = ax.c0(D), dc1 = ax.c1(D);
-  const crossMatch = sc1 - sc0 === dc1 - dc0;
-  const Ss = ax.a0(S), Se = ax.a1(S), Ds = ax.a0(D), De = ax.a1(D);
-  const p = (piece: string, d0: number, d1: number, s0: number, s1: number): Piece =>
-    ({ piece, dst: ax.mk(d0, d1, dc0, dc1), src: ax.mk(s0, s1, sc0, sc1), line: s1 - s0 === 1 && crossMatch });
-  const out: Piece[] = [];
-  if (mode > 0) {
-    out.push(p('halves-1', Ds, Ds + a, Ss, Ss + a));
-    if (s < w) out.push(p('halves-2', Ds + a, De - (m - a), Ss + a, Ss + a + 1));
-    out.push(p('halves-3', De - (m - a), De, Se - (m - a), Se));
-    return out;
-  }
-  const k = mode === 0 ? SCROLLBAR_GEOMETRY.caps.modeZeroCap : -mode;
-  const mid = (Ds + De) >> 1;
-  const q1 = s > w ? Math.trunc((s - w + 1) / 2) : 0, q2 = s > w ? Math.trunc((s - w) / 2) : 0;
-  out.push(p('caps-1', Ds, Ds + k, Ss, Ss + k));
-  if (s < w) out.push(p('caps-2', Ds + k, mid - a + k, Ss + k - 1, Ss + k));
-  out.push(p('caps-3', mid - a + k, mid + (m - a) - k + 1, Ss + k + q1, Se - k + 1 - q2));
-  if (s < w) out.push(p('caps-4', mid + (m - a) - k + 1, De - k + 1, Se - k, Se - k + 1));
-  out.push(p('caps-5', De - k + 1, De, Se - k + 1, Se));
-  return out;
-}
-
-/** Draw §5.9 pieces of `src` into `port`; union each piece's mapped mask into `region` when given. */
-function drawSlices(port: Pixmap, h: boolean, src: Pixmap, S: QdRect, D: QdRect, mode: number, row: string,
-  region?: Region, trace?: EngineTrace): void {
-  const ax = axis(h);
-  for (const pc of slicePieces(h, S, D, mode)) {
-    if (emptyRect(pc.dst) || emptyRect(pc.src)) continue;
-    if (region) regionAddMappedMask(region, src, pc.src, pc.dst);
-    if (!pc.line) {
-      trace?.drawOps.push({ op: 'slice', row, piece: pc.piece, src: pc.src, dst: pc.dst, transfer: 'copyMask' });
-      scaleBlit(port, src, pc.src, pc.dst, 'copyMask');
-      continue;
-    }
-    // One-column piece, cross sizes equal: one line per cross row in that pixel's colour (L1–L3).
-    trace?.drawOps.push({ op: 'sliceLines', row: `${row},L1,L2`, piece: pc.piece, src: pc.src, dst: pc.dst });
-    const n = ax.c1(pc.src) - ax.c0(pc.src);
-    for (let j = 0; j < n; j++) {
-      const sx = h ? pc.src.left : pc.src.left + j, sy = h ? pc.src.top + j : pc.src.top;
-      const px = getPixel(src, sx, sy);
-      if (!px || px.a === 0) continue; // L1
-      const pen = newPen(px);
-      const cy = ax.c0(pc.dst) + j;
-      if (h) { moveTo(pen, pc.dst.left, cy); lineTo(port, pen, pc.dst.right - 1, cy); }
-      else { moveTo(pen, cy, pc.dst.top); lineTo(port, pen, cy, pc.dst.bottom - 1); }
-    }
-  }
-}
-
 export interface ScrollbarDrawResult {
   geometry: ScrollbarGeometry;
   drawn: boolean;
@@ -365,7 +291,7 @@ export function drawScrollbar(port: Pixmap, chain: ResourceChain, input: Scrollb
   // §5.4 cells from the bounds of the cicn that supplies the cell (AC2/AC3
   // choice), recomputed per arrow; only composite/doubleArt/half are the track's.
   const cellFor = (index: number, box: QdRect, source: ScrollbarCicn): { cell: QdRect; box: QdRect; half: boolean } => {
-    const tb = bounds(source.pixmap);
+    const tb = pixmapBounds(source.pixmap);
     const l = ax.a0(tb), r = ax.a1(tb), h = ax.c1(tb) - ax.c0(tb), d = h - 1;
     const cc0 = ax.c0(tb), cc1 = ax.c1(tb);
     const half = st.pressedHalves;
@@ -429,14 +355,14 @@ export function drawScrollbar(port: Pixmap, chain: ResourceChain, input: Scrollb
     // AI6: the icon's 16 × 16 frame into the arrow box (scaled when t ≠ 16).
     const icon = color ? color.value : icsImagePixmap(mask.value.planes);
     const drawRow = color ? `${row},AI6` : `${row},AI5,AI6`;
-    trace?.drawOps.push({ op: 'arrowIcon', row: drawRow, arrow: index, id, src: bounds(icon), dst: box, transfer: 'copyMask' });
-    transferBits(port, icon, bounds(icon), box, 'copyMask');
+    trace?.drawOps.push({ op: 'arrowIcon', row: drawRow, arrow: index, id, src: pixmapBounds(icon), dst: box, transfer: 'copyMask' });
+    transferBits(port, icon, pixmapBounds(icon), box, 'copyMask');
     return null;
   };
 
   // §5.5 track source rect: the bounds of the cicn the segment draws.
   const trackSource = (cicn: ScrollbarCicn): QdRect => {
-    const tb = bounds(cicn.pixmap);
+    const tb = pixmapBounds(cicn.pixmap);
     if (!g.composite || st.inactive) return tb;
     const k = (ax.c1(tb) - ax.c0(tb) - 1) * (g.doubleArt ? 2 : 1);
     return ax.mk(ax.a0(tb) + k, ax.a1(tb) - k, ax.c0(tb), ax.c1(tb));
@@ -461,7 +387,8 @@ export function drawScrollbar(port: Pixmap, chain: ResourceChain, input: Scrollb
       off.data.fill(255);
     }
     if (pat) fillPattern(off, local, pat, { x: phase.x - G.left, y: phase.y - G.top }, trace, 'TF7');
-    if (cicn) drawSlices(off, st.horizontal, cicn.pixmap, trackSource(cicn), local, F.TF8.sliceMode, 'TF8', undefined, trace);
+    if (cicn) drawSlices(off, st.horizontal, cicn.pixmap, trackSource(cicn), local, F.TF8.sliceMode,
+      { modeZeroCap: SCROLLBAR_GEOMETRY.caps.modeZeroCap, row: 'TF8', ...(trace ? { trace } : {}) });
     const undef = new Uint8Array(w * hgt);
     let undefCount = 0;
     for (let i = 0; i < w * hgt; i++) if (off.data[i * 4 + 3] === 0) { undef[i] = 1; undefCount++; }
@@ -478,7 +405,8 @@ export function drawScrollbar(port: Pixmap, chain: ResourceChain, input: Scrollb
       if (st.disabled) { trace?.drawOps.push({ op: 'thumb', row: 'TH2' }); continue; }
       const { hit, idRow } = probeThumb(chain, st, input.hilite, trace);
       if (!hit) { trace?.drawOps.push({ op: 'thumb', row: `${idRow},TH6` }); continue; }
-      drawSlices(port, st.horizontal, hit.value.pixmap, bounds(hit.value.pixmap), g.Th, st.thumbSlice, `${idRow},TH7`, thumbRegion, trace);
+      drawSlices(port, st.horizontal, hit.value.pixmap, pixmapBounds(hit.value.pixmap), g.Th, st.thumbSlice,
+        { modeZeroCap: SCROLLBAR_GEOMETRY.caps.modeZeroCap, row: `${idRow},TH7`, region: thumbRegion, ...(trace ? { trace } : {}) });
       continue;
     }
     // Track (TF).
@@ -505,25 +433,9 @@ export function drawScrollbar(port: Pixmap, chain: ResourceChain, input: Scrollb
  * an asynchronous adapter can preload a synchronous ResourceChain. Derived from
  * the table rows only.
  */
-/** Every track-ladder id (TR5–TR9, with the TP2 and AC2/TF3 offsets) for one orientation. */
-function trackIds(horizontal: boolean): Set<number> {
-  const base = horizontal ? SCROLLBAR_TRACK_BASE.horizontal : SCROLLBAR_TRACK_BASE.vertical;
-  const P = SCROLLBAR_TRACK_PROBE;
-  const offsets = [P.TR9.offset, P.TR8.offset, P.TR7.offset, P.TR6.offset, P.TR7.offset + P.TR8.offset];
-  const deltas = [0, SCROLLBAR_COMPOSITE_ARROW.AC2.offset, SCROLLBAR_PATTERN_PROBE.TP2.offset];
-  const ids = new Set<number>();
-  for (const r of SCROLLBAR_TIER) for (const o of offsets) for (const d of deltas) ids.add(base + r.tier + o + d);
-  return ids;
-}
-
-/** cicn ids the composite arrows may draw with the icon blit (AC5), both orientations. */
-export function scrollbarIconBlitCicnIds(): number[] {
-  return [...trackIds(true), ...trackIds(false)];
-}
-
 export function scrollbarResourceIds(horizontal: boolean): { type: string; id: number }[] {
   const out: { type: string; id: number }[] = [];
-  for (const id of trackIds(horizontal)) out.push({ type: 'cicn', id }, { type: 'ppat', id });
+  for (const id of expandIdGrid(horizontal ? SCROLLBAR_TRACK_IDS.horizontal : SCROLLBAR_TRACK_IDS.vertical)) out.push({ type: 'cicn', id }, { type: 'ppat', id });
   for (const r of SCROLLBAR_THUMB_ID) {
     const id = horizontal ? r.horizontal : r.vertical;
     out.push({ type: 'cicn', id }, { type: 'cicn', id: id + SCROLLBAR_THUMB.TH5.smallOffset });
