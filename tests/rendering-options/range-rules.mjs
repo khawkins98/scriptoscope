@@ -1,10 +1,13 @@
 // Source-addressed scroll-bar resource-selection rules (Kaleidoscope 2.3.1 kDEF 0,
-// second CDEF 0x8d36). Pure ESM, nothing from src/. The Node test and the
-// source/built spec share this table; the runtime is the thing under test.
+// scroll-bar CDEF 0x997e, service slot 1; not slot 5 0x8d36). Pure ESM, nothing
+// from src/. The Node test and the source/built spec share this table; the
+// runtime is the thing under test.
 //
 // Every literal is transcribed from docs/spec/range-controls.md ("Scroll-bar
-// selection (2.3.1 decode)"), not from runtime output. Sliders and progress bars
-// have no selection decode in either kDEF listing; they are explicit unknowns.
+// selection (2.3.1 decode)") and docs/spec/engine/scrollbar.md, not from runtime
+// output. Geometry rows live in scrollbar-geometry-rules.mjs. Sliders and
+// progress bars have no selection decode in either kDEF listing; they are
+// explicit unknowns.
 
 // 0xa032–0xa040: horizontal (byte21, 0xadfe: width > height) -8288, else -8280.
 export const TRACK_BASE = { horizontal: -8288, vertical: -8280 };
@@ -52,24 +55,26 @@ export const DECODE = {
   crossTierRetry: false,                               // 0xa06c–0xa10e
   hitIconsAtRest: false,                               // 0xc764–0xc790: hit only for hilite 20/21
   pressedThumbAtRest: false,                           // 0xaf24–0xaf54: pressed only for hilite 129
+  keepSmallTrackId: true,                              // 0xa0c2: trackId keeps +18 after a small-art miss (engine/scrollbar.md TR7)
+  iconColour: 'ics8',                                  // 0xf4ba: ics8 from the ics#'s file, else the 1-bit ics# (AI4); never ics4
 };
 
 /**
  * Predict the resources one scroll bar draw uses. `native` = { hilite, orientation,
  * thickness, min, max, parentInactive }. `census` = { cicn: Map<id, [w, h]>,
- * ppat: Set<id>, mask: Set<id>, color: Set<id> } for the resource chain the
- * caller declares (the corpus table declares the archive's own fork).
- * `doubleArrows` stands for the undecoded Gestalt('Acid') byte +33 (byte18) and
- * byte77, declared clear. Returns { tracks: [id], thumb: id|null, icons: [id],
- * unknown: [reason], composite } or { unknown } when the selection leaves the
- * decoded rows.
+ * ppat: Set<id>, mask: Set<id> (ics#), color: Set<id> (ics8), ics4?: Set<id> }
+ * for the resource chain the caller declares (the corpus table declares the
+ * archive's own fork). `doubleArrows` stands for the undecoded Gestalt('Acid')
+ * byte +33 (byte18), declared clear. Returns { tracks: [id], thumb: id|null,
+ * icons: [id], iconArt: { id: 'ics8' | 'ics#' }, unknown: [reason], composite }
+ * or { unknown } when the selection leaves the decoded rows.
  */
 export function selectScrollbar(native, census, { doubleArrows = false, reading = {} } = {}) {
   const r = { ...DECODE, ...reading };
   const { hilite, thickness = 16 } = native;
   const orientation = r.horizontal(native.orientation === 'horizontal' ? [120, thickness] : [thickness, 120]) ? 'horizontal' : 'vertical';
   const unknown = [];
-  if (doubleArrows) return { unknown: ['Acid +33 / byte77 double-arrow layout (0xa47c–0xa4e2, +4 track ids) is not modelled'] };
+  if (doubleArrows) return { unknown: ['Acid +33 double-arrow layout (0xa47c–0xa4e2, +4 track ids) is not modelled'] };
   const b = scrollBytes(native), tier = r.tier(b), base = TRACK_BASE[orientation];
   // Track, 0xa06c–0xa10e: no retry at another tier.
   let trackId = null;
@@ -79,13 +84,15 @@ export function selectScrollbar(native, census, { doubleArrows = false, reading 
   if (trackId === null) return { unknown: [`no track cicn ${base + tier}: the draw path without a track handle is not decoded`] };
   // a2@(66) keeps base + 18 + tier on the small path even when only the standard
   // cicn was found (0xa0c2); 0xc3da and 0xa114 read it.
-  const recordId = thickness <= 11 ? base + SMALL_TRACK_OFFSET + tier : base + tier;
+  const recordId = thickness <= 11 && r.keepSmallTrackId ? base + SMALL_TRACK_OFFSET + tier : base + tier;
   const tracks = [trackId];
   const composite = r.composite(census.cicn.get(trackId), orientation);
-  // 0xa112–0xa14a fetch a ppat with the record id; how 0xba0e/0xc6e4 draw it is undecoded.
+  // 0xa112–0xa14a fetch a ppat with the record id. Its draw path is decoded in
+  // engine/scrollbar.md (TF7, AC4) but the sentinel method here cannot observe
+  // it, so a present ppat stays an unknown of this selection table.
   if (census.ppat?.has(recordId) || census.ppat?.has(base + tier)) unknown.push(`ppat ${recordId} present: its draw path is undecoded`);
   // Arrows, 0xc338: none at all for an inactive (byte47) control (0xc34a).
-  const icons = [];
+  const icons = [], iconArt = {};
   const arrowHit = r.hitIconsAtRest && hilite === 0 ? { low: true, high: true } : r.hitArrowOnly ? { low: hilite === 20, high: hilite === 21 } : { low: b.pressed, high: b.pressed };
   if (!b.inactive || r.arrowsWhenInactive) {
     if (composite) {
@@ -97,24 +104,27 @@ export function selectScrollbar(native, census, { doubleArrows = false, reading 
     } else {
       for (const end of ['low', 'high']) {
         const id = b.disabled && r.disabledArrowIds ? DISABLED_ARROW[orientation][end] : ARROW[orientation][end][arrowHit[end] ? 'hit' : 'raised'];
-        // 0xf4ba requires the ics# mask (0xf50c–0xf51e); colour without a decoded
-        // ics4/ics8 is a provider question this table does not answer.
+        // 0xf4ba requires the ics# (0xf50c–0xf51e); at >= 8-bit depth it draws the
+        // ics8 Get1Resource'd from the ics#'s own file, otherwise the 1-bit ics#
+        // image. ics4 is never requested (engine/scrollbar.md AI4).
         if (!census.mask.has(id)) continue;
-        if (!census.color.has(id)) { unknown.push(`ics# ${id} without colour art`); continue; }
         icons.push(id);
+        iconArt[id] = census.color.has(id) ? 'ics8' : r.iconColour === 'ics4-or-ics8' && census.ics4?.has(id) ? 'ics4' : 'ics#';
       }
     }
   }
-  // Thumb, 0xaed6: none when byte20 (0xaf08–0xaf20 redraws the track in its rect).
-  // Otherwise drawn only if 0xbbf4 yields a non-empty thumb rect; that geometry
-  // is undecoded and assumed non-empty at the sampled length.
+  // Thumb, 0xaed6: none when byte20 (0xaf08–0xaf20 fill the whole track rect T
+  // instead). 0xbbf4 is the track rect T, not the thumb rect: an empty T draws
+  // neither thumb nor track. The thumb rect is 0xab68 (length) + 0xa97c
+  // (position), engine/scrollbar.md §5.6–§5.7; at the sampled length 120 it is
+  // non-empty (scrollbar-geometry-rules.mjs).
   let thumb = null;
   if (!b.disabled || r.thumbWhenDisabled) {
     const id = THUMB[orientation][hilite === 129 || (r.pressedThumbAtRest && hilite === 0) || (!r.hitArrowOnly && b.pressed) ? 'pressed' : 'normal'];
     if (thickness <= 11 && census.cicn.has(id + SMALL_THUMB_OFFSET)) thumb = id + SMALL_THUMB_OFFSET;
     else if (census.cicn.has(id)) thumb = id;
   }
-  return { tracks: [...new Set(tracks)].sort((a, c) => a - c), thumb, icons: icons.sort((a, c) => a - c), unknown, composite };
+  return { tracks: [...new Set(tracks)].sort((a, c) => a - c), thumb, icons: icons.sort((a, c) => a - c), iconArt, unknown, composite };
 }
 
 /**
@@ -147,7 +157,8 @@ export function scrollCensus(map) {
   }
   const ids = type => new Set(map.filter(r => r.type === type && inIconRange(r.id)).map(r => r.id));
   const ppat = new Set(map.filter(r => r.type === 'ppat' && inCicnRange(r.id)).map(r => r.id));
-  return { cicn, ppat, mask: ids('ics#'), color: new Set([...ids('ics4'), ...ids('ics8')]) };
+  // Colour art is ics8 only (0xf4ba); ics4 is kept apart so a mutation can use it.
+  return { cicn, ppat, mask: ids('ics#'), color: ids('ics8'), ics4: ids('ics4') };
 }
 
 /** The resource set the page reports for a prediction. */

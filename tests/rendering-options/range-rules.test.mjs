@@ -37,7 +37,8 @@ test('own resource-map census agrees with the loader over all 18 archives (input
     for (const e of elements) assert.deepEqual(census.cicn.get(e.sourceCicnId), [e.width, e.height], `${slug} ${e.sourceCicnId} bounds`);
     assert.deepEqual([...new Set(elements.map(e => e.sourceCicnId))].sort((a, b) => a - b), [...census.cicn.keys()].sort((a, b) => a - b), `${slug}: every candidate cicn is a chromeElement`);
     assert.deepEqual([...census.mask].sort(), loaded.iconMaskResources.map(m => m.id).filter(inIconRange).sort(), `${slug} ics#`);
-    assert.deepEqual([...census.color].sort(), [...new Set(loaded.iconIndex.filter(e => inIconRange(e.id) && /^ics[48]$/.test(e.type)).map(e => e.id))].sort(), `${slug} colour icons`);
+    // Colour art is ics8 only (0xf4ba, engine/scrollbar.md AI4); ics4 is censused apart.
+    for (const type of ['ics8', 'ics4']) assert.deepEqual([...census[type === 'ics8' ? 'color' : 'ics4']].sort(), [...new Set(loaded.iconIndex.filter(e => inIconRange(e.id) && e.type === type).map(e => e.id))].sort(), `${slug} ${type}`);
     // The runtime's element lookup matches |id|; no positive alias exists in these ranges.
     assert.equal(map.filter(r => r.type === 'cicn' && inCicnRange(-r.id)).length, 0, `${slug}: positive cicn ids alias the ranges`);
   }
@@ -57,6 +58,14 @@ test('decoded state bytes and tiers (0x9f7a–0x9fd6, 0xada2, 0xa01c–0xa05e)',
   // No cross-tier retry: a missing pressed track leaves the decoded rows.
   assert.ok(!selectScrollbar({ hilite: 129, orientation: 'horizontal' }, c).tracks);
   assert.ok(!selectScrollbar({ hilite: 0, orientation: 'horizontal' }, c, { doubleArrows: true }).tracks);
+  // AI4 (0xf4ba): colour art is the ics8 only; an id with ics# + ics4 and no ics8
+  // draws the 1-bit ics# (no corpus archive ships that case, so it is synthetic).
+  const fork = [{ type: 'cicn', id: -8286, data: Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 16, 0, 16]) }, // iconPMap bounds 0,0,16,16
+    { type: 'ics#', id: -10202 }, { type: 'ics4', id: -10202 }, { type: 'ics#', id: -10201 }, { type: 'ics8', id: -10201 }];
+  const synthetic = scrollCensus(fork);
+  assert.deepEqual(synthetic.cicn.get(-8286), [16, 16]);
+  assert.deepEqual([[...synthetic.color], [...synthetic.ics4]], [[-10201], [-10202]]);
+  assert.deepEqual(selectScrollbar({ hilite: 0, orientation: 'horizontal' }, synthetic).iconArt, { '-10202': 'ics#', '-10201': 'ics8' });
 });
 
 test('corpus partition: composite vs icon-lane tracks per tier, ppat-backed tracks, unreachable small path', () => {
