@@ -56,6 +56,8 @@ jobs:
       # its family declared by an `engine-diff: <family>` line in the PR body (pushes
       # count families whose expected/baselines files changed). Node only; seconds.
       - name: Engine diff gate (Node trace diff)
+        # The Playwright container's default shell is sh, which has no pipefail.
+        shell: bash
         env:
           EVENT: ${{ github.event_name }}
           BASE_REF: ${{ github.base_ref }}
