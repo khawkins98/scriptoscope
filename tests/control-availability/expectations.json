@@ -2083,7 +2083,7 @@
   "review": {
     "date": "2026-10-22",
     "reviewers": [
-      "PENDING: PM Tier-0 mechanical check of the main->v2 sync PR: 1.0.14 -> 1.0.15 changes only the nine kdef231-reference.md documentSha256 values (40366d19 -> ce33a576) after merging main #377 (code-10 too-short step and widget remap rows, ported register-free into v2's split reference); 1.0.14 review archived verbatim; all 27 case inputs, outcomes and cited addresses unchanged; not original provider or pixel-fidelity approval"
+      "independent Tier-2 review of PR #403 (main->v2 sync, head d8325f60, 2026-10-22; campaign-20261021 v2-lanes/sync-main/REVIEW.json): 1.0.14 -> 1.0.15 changes only the nine kdef231-reference.md documentSha256 values (40366d19 -> ce33a576), each equal to the sha256 of the merged file; the 1.0.14 review is archived verbatim (deep-equal to v2 b7d05d0e's review object); every other field byte-identical; §6 trap table unchanged; all 27 case inputs, outcomes and cited addresses unchanged; not original provider or pixel-fidelity approval"
     ],
     "inventoryVersion": "1.0.15",
     "inventorySha256": "6b4a5819f0b0c0d925c7e3e175fe8565e5ca6c564882742d7977633d2b142fe4",
