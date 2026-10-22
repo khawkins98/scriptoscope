@@ -1,10 +1,17 @@
 # `scrollbar.draw` — Kaleidoscope 2.3.1 scroll-bar CDEF: state, resources, geometry, draw order
 
 Behavioural spec, v2 lane L5 (2026-10-21). Skeleton: [v2 PLAN §5](../../v2/PLAN.md);
-template `docs/spec/engine/TEMPLATE.md` (L2). Implementers read this file, Apple
-Inside Macintosh / Universal Interfaces, and `tests/rendering-options/range-rules.mjs`.
-The address-by-address trace is in `scrollbar.evidence.md`; implementers do not
-open it.
+template `docs/spec/engine/TEMPLATE.md` (L2). Implementers read this file,
+[`qd-primitives.md`](qd-primitives.md) (blit, sampler and pattern-fill rules),
+Apple Inside Macintosh / Universal Interfaces, and only the rule tables the
+[implementer brief](IMPLEMENTER-BRIEF.md) allows. Every value an implementer
+needs is stated in this file (§4–§5, with worked examples in §7).
+`tests/rendering-options/range-rules.mjs` is a test-author file and is **not**
+an implementer input (the brief forbids it). The geometry rule rows derived
+from §7 are `tests/rendering-options/scrollbar-geometry-rules.mjs` (PR #390);
+they repeat this file's numbers and become implementer input only once the
+brief lists them. The address-by-address trace is in `scrollbar.evidence.md`;
+implementers do not open it.
 
 Every row cites the 2.3.1 listing by file offset. Rect intervals are half-open
 `[start, end)`. "Along" means the axis the bar runs on (x for a horizontal bar,
@@ -224,8 +231,8 @@ is left/up, a "high" arrow right/down.
 | AC1 | `composite` | the arrow box (§5.3) is drawn from a cell of the track cicn (§5.4) | `0xc37e..0xc402` |
 | AC2 | `composite`, `pressed`, arrow not hit | cell source is cicn `trackId − 1`, falling back to the track cicn; pattern is ppat `trackId − 1`, falling back to the track pattern | `0xc3cc..0xc3fe` |
 | AC3 | `composite`, otherwise | cell source is the track cicn and the track pattern | `0xc37e..0xc382` |
-| AC4 | `composite`, a pattern is present | blit the cell into the box, then fill the box pixels where the cell's mask is clear with the pattern, anchored at `R`'s top-left | `0xc6e4..0xc730`, `0xf68c`, `0xf87e` |
-| AC5 | `composite`, no pattern | blit the cell into the box through its mask | `0xc736..0xc746`, `0xfdf8` |
+| AC4 | `composite`, a pattern is present | blit the cell into the box with the scale blit (masked; qd-primitives SC1–SC4), then region-fill the cell's mask-clear pixels with the pattern, anchored at `R`'s top-left (qd-primitives R1, F1–F3; the region is placed 1:1 at the box's top-left, not scaled) | `0xc6e4..0xc730`, `0xf68c`, `0xf87e` |
+| AC5 | `composite`, no pattern | blit the cell into the box with the icon blit (qd-primitives I1–I3): masked only when the cell cicn's pixel map is 1 bit deep; a deeper cicn is copied **opaque**, its mask ignored (corrected 2026-10-22; earlier wording said "through its mask") | `0xc736..0xc746`, `0xfdf8` |
 | AI1 | icon lane, not `disabled`, not hit | icon id: low h -10202, low v -10204, high h -10201, high v -10203 | `0x9f0e..0x9f38`, `0xc792..0xc7b6` |
 | AI2 | icon lane, not `disabled`, hit | icon id: low h -10198, low v -10200, high h -10197, high v -10199 | same |
 | AI3 | icon lane, `disabled` | icon id: low h -10206, low v -10208, high h -10205, high v -10207 (no hit form) | `0xc7ba..0xc7fa` |
@@ -430,12 +437,18 @@ Open questions. Implementers stop here and file a spec question.
    segment has no pattern or no picture is being recorded, no offscreen is
    used and the port's existing pixels remain (`0xba74..0xbb12`). Undefined;
    see the corpus row below.
-5. The blit primitives' exact pixel rules (mask handling of `0x10320`, the
-   sampler `0xf9f6`, `0xfdf8`): owned by `qd.blit`.
+5. The blit primitives' pixel rules are specified in
+   [`qd-primitives.md`](qd-primitives.md): scale blit SC1–SC4 (masked), line
+   sampler L1–L3 and S1–S6, icon blit I1–I3 (`0xfdf8`, opaque above 1 bit),
+   pattern fills F1–F4 and the mask-clear region R1–R2. What stays open there
+   (scaled-pixel mapping, pen state) is listed in its §6.
 6. SmartScroll's thumb rect (`0x1bbe`): an external extension; absent by
    declaration.
 7. Messages 5, 6, 13, 26 and 128 (tracking, ghost, value from position).
-8. `lowDepth` semantics beyond TF7 and AI4 (e.g. 4-bit gray vs colour).
+8. `lowDepth` beyond TF7 and AI4: resolved in
+   [`qd-primitives.md`](qd-primitives.md) §2 (a 4-bit colour device sets it, a
+   4-bit grey device does not) and rows X3, SC1, I1, S3, F3 (1-bit art in
+   black on white).
 
 ### Corpus impact (own forks; scratch census in the private store, v2-lanes/L5)
 
@@ -460,8 +473,11 @@ TR10 and TH6 are reached by no archive.
 
 ## 7. Test hooks
 
-For the test-author agent. Assertions go in `tests/rendering-options/range-rules.mjs`
-(or a sibling geometry table), derived from this spec, never importing `src/`.
+For the test-author agent (implementers do not need these files: every value
+is in this spec). Selection assertions go in
+`tests/rendering-options/range-rules.mjs`, geometry rows in
+`tests/rendering-options/scrollbar-geometry-rules.mjs` (PR #390), derived from
+this spec, never importing `src/`.
 Selection rows can keep the sentinel-substitution method of range-rules;
 geometry rows need the engine trace (rects per draw step).
 
