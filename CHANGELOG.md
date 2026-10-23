@@ -7,6 +7,9 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+- **Breaking inspector cleanup** (#436, #459): remove the deprecated `ThemeProgressModel` type, `ThemeInspector.resourceRoles.progress` and `progressSummary`. Progress rendering remains selected by the engine's `cinf` gate; inspector artwork roles no longer predict the drawing path. Consumers must stop reading the removed metadata.
+- **Diagnostic theme links** (#459): honor valid URL hash themes and playground settings on initial load and hash changes, including rapid switching. The manual visual-baseline command includes independent diagnostic hash checks.
+
 - **Window ledger housekeeping** (#459): the 39 retained-unknown flag, mask and remaining-fill obligations now cite their completed independent review. No status, evidence claim or case closure changes. The routine map points to the current window engine and drawing facade, replacing references to deleted compositor functions.
 
 ## [0.4.0] — 2026-10-23
