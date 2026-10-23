@@ -6,7 +6,7 @@ import { PixelBuffer } from './pixelBuffer.js';
 import { assetUrl } from './loadTheme.js';
 import { loadCicnBuffer } from './cicnImage.js';
 import { resolveInChain } from './baseChain.js';
-import { snapshotControlComposition, controlPointVisible, type ButtonComposition, type ControlCompositionSnapshot } from './controlComposition.js';
+import { snapshotControlComposition, controlPointVisible, recordButtonFaceStage, type ButtonComposition, type ControlCompositionSnapshot } from './controlComposition.js';
 import { prepareBitmapGlyphRun, type BitmapGlyphRun } from './preparedBitmapFont.js';
 import { paintBitmapText } from './paintBitmapText.js';
 import { withControlDiagnostics, type ControlTraceCollector } from './controlDiagnostics.js';
@@ -253,6 +253,7 @@ export async function composeEnginePush(theme: LoadedTheme, opts: ButtonOptions 
         if (!controlPointVisible(composition, x - outset, y - outset)) out.setPixel(x, y, 0, 0, 0, 0);
       alive(signal);
       result = { buffer: out, layout: { faceRect: { x: outset, y: outset, w: width, h: height } } };
+      recordButtonFaceStage(result, drawn.face?.drawn === true);
       return out;
     } finally { publishEngineTrace(trace, diagnostics, result !== null); }
   });

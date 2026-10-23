@@ -30,6 +30,16 @@ export interface ButtonComposition {
   readonly layout: { readonly faceRect: ControlRect };
 }
 
+// Consumer presentation policy stays separate from engine art admission and
+// from the public result shape. Clipping and transparent art do not affect it.
+const buttonFaceStages = new WeakMap<ButtonComposition, boolean>();
+export function recordButtonFaceStage(composition: ButtonComposition, admitted: boolean): void {
+  buttonFaceStages.set(composition, admitted);
+}
+export function buttonFaceStageUnavailable(composition: ButtonComposition): boolean {
+  return buttonFaceStages.get(composition) === false;
+}
+
 const coordinate = (value: number, name: string): number => {
   if (!Number.isInteger(value) || value < -32768 || value > 32767) throw new RangeError(`${name} must be a signed 16-bit integer`);
   return value;

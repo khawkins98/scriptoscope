@@ -1,5 +1,5 @@
 import { composeButtonWithLayout, bufferToCanvas, type ButtonOptions } from './controls.js';
-import { snapshotControlComposition, type ButtonComposition, type ControlCompositionContext, type ControlCompositionSnapshot } from './controlComposition.js';
+import { snapshotControlComposition, buttonFaceStageUnavailable, type ButtonComposition, type ControlCompositionContext, type ControlCompositionSnapshot } from './controlComposition.js';
 import type { LoadedTheme } from './types.js';
 import type { ManagedControlPort, ManagedPortMeasurement } from './managedContentPort.js';
 
@@ -30,9 +30,10 @@ export async function prepareButtonPainter(theme: LoadedTheme, options: ButtonOp
     alive(lifetime);
     const normal = await composeButtonWithLayout(theme, { ...options, pressed: false }, lifetime, context);
     alive(lifetime);
-    if (!normal) return null;
+    if (!normal || buttonFaceStageUnavailable(normal)) return null;
     const pressed = options.disabled ? null : await composeButtonWithLayout(theme, { ...options, pressed: true }, lifetime, context);
     alive(lifetime);
+    if (!options.disabled && (!pressed || buttonFaceStageUnavailable(pressed))) return null;
     return { normal, pressed: pressed ?? normal };
   };
   const pair = await prepare(initial, signal);
