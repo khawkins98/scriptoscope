@@ -25,7 +25,7 @@ import type { ResourceSelection } from '../trace.js';
 import { ResourceChain, mapProvider, type ResourceProvider } from './chain.js';
 import { loadCicnBuffer } from '../../cicnImage.js';
 import { ownerDisplayPolicyMatches, realizeRgb16 } from '../../../tools/theme-loader/display-profile.js';
-import { decodeCinfHeader } from '../qd/cinfFrame.js';
+import { decodeCinfHeader, type CinfIconSource } from '../qd/cinfFrame.js';
 import { CINF_SAMPLE } from '../tables/cinfFrame.js';
 import type { QdPoint, QdRect } from '../qd/types.js';
 import { assetUrl } from '../../loadTheme.js';
@@ -38,7 +38,7 @@ import { cicnIconSource } from './iconSource.js';
 
 async function themeProvider(theme: LoadedTheme, tier: 'archive' | 'base', name: string,
   wanted: readonly { type: string; id: number }[], chainDepth: number, life?: ChainLife, checkables = false, traceProvenance = false, declaredCinfs = false,
-  clippedBodyId?: number): Promise<ResourceProvider> {
+  clippedBodyId?: number, lazySamples = false): Promise<ResourceProvider> {
   const selections = new Map<string, ResourceSelection>();
   const unmaskedSources = traceProvenance ? new Map<string, { assetUrl: string; derivedPath?: string }>() : undefined;
   const owner = { baseUrl: theme.baseUrl, chainDepth };
@@ -103,12 +103,37 @@ async function themeProvider(theme: LoadedTheme, tier: 'archive' | 'base', name:
       const companionTransport = unmaskedSources && companionAsset
         ? { assetUrl: assetUrl(theme, companionAsset),
           ...(/^(?:blob:|https?:|data:)/.test(companionAsset) ? {} : { derivedPath: companionAsset }) } : undefined;
-      const sampledSource = traceProvenance && status === 'different' && el.sampledBandAsset && LINE_SAMPLED.has(id)
-        ? { path: el.sampledBandAsset.derivedPath, assetUrl: assetUrl(theme, el.sampledBandAsset.asset),
-          model: el.sampledBandAsset.model, displayPolicy: el.sampledBandAsset.displayPolicy } : undefined;
-      const [pixmap, companion, sampled] = await Promise.all([load(el.asset),
+      // Public push snapshots finite descriptors and URLs before ordinary decode.
+      // Generic engine clients retain their existing eager sampling defaults.
+      const proof = el.samplingEquivalence && { ...el.samplingEquivalence };
+      const descriptor = el.sampledBandAsset && { ...el.sampledBandAsset };
+      const profile = theme.manifest.displayProfile;
+      const matches = (a: typeof proof | typeof descriptor, pixmap: Pixmap) =>
+        a?.model === 'kaleidoscope-2.3.1-opaque-sampling-v1' && a.comparison === 'opaque-current-display-rgb'
+        && ownerDisplayPolicyMatches(profile ? { displayProfile: profile } : {}, a.displayPolicy)
+        && a.width === pixmap.width && a.height === pixmap.height;
+      const sampledUrl = descriptor ? assetUrl(theme, descriptor.asset) : undefined;
+      const sampledSource = traceProvenance && (lazySamples || status === 'different' && LINE_SAMPLED.has(id)) && descriptor
+        ? { path: descriptor.derivedPath, assetUrl: sampledUrl!, model: descriptor.model, displayPolicy: descriptor.displayPolicy } : undefined;
+      const [pixmap, companion, eagerSampled] = await Promise.all([load(sampleAsset),
         companionAsset ? load(companionAsset) : Promise.resolve(null),
-        status === 'different' && el.sampledBandAsset && LINE_SAMPLED.has(id) ? load(el.sampledBandAsset.asset) : Promise.resolve(null)]);
+        !lazySamples && status === 'different' && descriptor && LINE_SAMPLED.has(id) ? load(descriptor.asset) : Promise.resolve(null)]);
+      let sampled = eagerSampled;
+      const equivalent = matches(proof, pixmap) && proof?.status === 'equivalent' && proof.reason === 'all-opaque-display-rgb-equal';
+      const eligible = matches(descriptor, pixmap) && descriptor && typeof descriptor.asset === 'string'
+        && /^cicn-sampled\/[^/]+\.png$/.test(descriptor.derivedPath);
+      let accepted = !lazySamples && !!sampled;
+      let pending: Promise<void> | undefined;
+      const prepareSampled = (): Promise<void> => pending ??= (async () => {
+        if (equivalent || !eligible) return;
+        if (life?.ended()) throw abortError();
+        const decoded = await loadCicnBuffer(sampledUrl!);
+        if (life?.ended()) throw abortError();
+        if (decoded.width !== pixmap.width || decoded.height !== pixmap.height || decoded.data.length !== pixmap.data.length) return;
+        for (let i = 3; i < pixmap.data.length; i += 4) if (decoded.data[i] !== pixmap.data[i]) return;
+        sampled = decoded;
+        accepted = true;
+      })();
       // Adapter policy, not a spec row (docs/v2/DECISIONS.md #7): the opaque
       // companion is used only when it is the same occurrence as the element's
       // asset (equal size, equal colour wherever the mask is set). Otherwise (e.g.
@@ -117,12 +142,14 @@ async function themeProvider(theme: LoadedTheme, tier: 'archive' | 'base', name:
       // Line-colour inputs (slider BL8/BL12) and the bounds origin (BL11) ride along.
       const source = cicnIconSource(pixmap, el.iconBlit?.pixelSize ?? null, companion);
       if (source.unmasked && companionTransport) unmaskedSources!.set(key, companionTransport);
-      return [key, { ...source,
-        ...(sampled && sampledSource && { sampledSource }),
+      const icon: CinfIconSource = { ...source,
+        ...(lazySamples ? { prepareSampled } : {}),
+        get sampledSource() { return accepted ? sampledSource : undefined; },
         origin: selectedSource ? (boundOccurrence() && bounds
           && bounds.right - bounds.left === pixmap.width && bounds.bottom - bounds.top === pixmap.height
           ? { top: bounds.top, left: bounds.left } : null) : el.boundsOrigin ?? null,
-        sampling: status, sampled,
+        sampling: lazySamples ? equivalent ? 'equivalent' : 'unknown' : status,
+        get sampled() { return sampled; },
         realizeRgb16: (rgb: readonly [number, number, number]) => {
           const [r, g, b] = realizeRgb16(rgb, theme.manifest.displayProfile);
           return { r: r!, g: g!, b: b!, a: CINF_SAMPLE.opaque };
@@ -133,7 +160,8 @@ async function themeProvider(theme: LoadedTheme, tier: 'archive' | 'base', name:
             || samples.width !== pixmap.width || samples.height !== pixmap.height
             || !ownerDisplayPolicyMatches(theme.manifest, samples.displayPolicy)) return null;
           return samples.points[`${point.x},${point.y}`]?.rgb16 ?? null;
-        } }];
+        } };
+      return [key, icon];
     }
     if (type === 'cinf') {
       if (declaredCinfs) return null;
@@ -211,7 +239,7 @@ const abortError = (): Error => new DOMException('slider composition ended', 'Ab
  * owner releases any asset URL of `theme` or its bases (a disposed theme revokes
  * them all at once). Adapter policy, no spec row.
  */
-function chainLife(theme: LoadedTheme, signal: AbortSignal): ChainLife {
+function chainLife(theme: LoadedTheme, signal?: AbortSignal): ChainLife {
   const urls = new Set<string>();
   const seen = new Set<LoadedTheme>();
   for (let t: LoadedTheme | undefined = theme; t && !seen.has(t); t = t.base) {
@@ -225,7 +253,7 @@ function chainLife(theme: LoadedTheme, signal: AbortSignal): ChainLife {
   }
   let released = false;
   const stop = onAssetUrlReleased(url => { if (urls.has(url)) released = true; });
-  return { ended: () => signal.aborted || released, close: stop };
+  return { ended: () => !!signal?.aborted || released, close: stop };
 }
 
 /**
@@ -237,6 +265,8 @@ function chainLife(theme: LoadedTheme, signal: AbortSignal): ChainLife {
  */
 export async function themeResourceChain(theme: LoadedTheme, wanted: readonly { type: string; id: number }[],
   opts: { signal?: AbortSignal; cinfProviders?: readonly ResourceProvider[]; cinfBodies?: readonly number[]; checkables?: boolean; traceProvenance?: boolean;
+    /** Public push dependency planning; generic adapters retain eager defaults. */
+    prepareSamples?: (chain: ResourceChain) => Promise<void>;
     bodyEnvironment?: { owner: LoadedTheme; width: number; height: number; clip?: QdRect;
       requests?: readonly { type: string; id: number }[] } } = {}): Promise<ResourceChain> {
   const providers: ResourceProvider[] = [];
@@ -269,7 +299,7 @@ export async function themeResourceChain(theme: LoadedTheme, wanted: readonly { 
     wanted = [...dependencies.values()];
   }
   const seen = new Set<LoadedTheme>();
-  const life = opts.signal ? chainLife(theme, opts.signal) : undefined;
+  const life = opts.signal || opts.prepareSamples ? chainLife(theme, opts.signal) : undefined;
   let depth = 0;
   try {
   for (let t: LoadedTheme | undefined = theme; t && !seen.has(t); t = t.base, depth++) {
@@ -281,12 +311,16 @@ export async function themeResourceChain(theme: LoadedTheme, wanted: readonly { 
     const requests = ownsBody ? [...new Map([...wanted, ...bodyRequests!.values()].map(r => [`${r.type}:${r.id}`, r])).values()] : wanted;
     const provider = await themeProvider(t, depth === 0 ? 'archive' : 'base', depth === 0 ? name : `${name}#base${depth}`,
       requests, depth, life, opts.checkables, opts.traceProvenance, opts.cinfProviders !== undefined,
-      ownsBody && !wanted.some(r => r.type === 'cicn' && r.id === clippedBodyId) ? clippedBodyId : undefined);
+      ownsBody && !wanted.some(r => r.type === 'cicn' && r.id === clippedBodyId) ? clippedBodyId : undefined, !!opts.prepareSamples);
     providers.push(provider);
     if (ownsBody) bodyProvider = provider;
   }
   if (life?.ended()) throw abortError();
   if (opts.bodyEnvironment && !bodyProvider) throw new Error('Selected push face owner unavailable');
+  if (opts.prepareSamples) {
+    await opts.prepareSamples(new ResourceChain(providers, bodyProvider));
+    if (life?.ended()) throw abortError();
+  }
   } finally { life?.close(); }
   // A declared cinf-only tier is authoritative: archive/base cinfs were
   // suppressed above, while all non-cinf resources retain their normal chain.
