@@ -7,6 +7,8 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+- **Contributor orientation** (#459): distinguish the current incremental v2 engine from historical renderer resets, route runtime implementers through the safe brief before any source-reference catalogue, and preserve role-specific evidence boundaries.
+
 - **Window titles** (#459): load raw title color samples and draw TX7's shadow before the foreground, preserving the declared substitute-font sizing, clip and alpha-over policies. When no glyph plus ellipsis fits, retain the ellipsis alone. The corpus-wide `window.title-fit` assertion checks that fitting titles stay whole; it does not claim original-font pixel equivalence.
 - **Collapsed utility windows** (#423, #459): route the exact collapsed no-title utility type through the built-in frame engine on all five built-in schemes.
 - **Progress follow-ups** (#459): preserve the `progressSetData` flag byte, validate `ProgressIdle` phase inputs and enforce the public draw-path invariant. Correct the FB9 corpus count to 36.
