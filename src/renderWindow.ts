@@ -186,7 +186,11 @@ export async function renderWindow(
   // after every side, not right after the side holding T4 (TX1).
   const t4p = composed.titleRect;
   if (measured && t4p && t4p.w > 0 && t4p.h > 0) {
-    const room = t4p.w + TITLE_TEXT.TX4.widenRight;
+    // DECISIONS #13: the plate fits the text as drawn. TX5's truncation room is the title rect
+    // + 2, but where the rect ends flush with the plate (dolphin-som, evolution) that put ink
+    // 1 px past the plate, so for the runtime font the room stops at the plate's right edge.
+    const plateRight = composed.titleRegion.x + composed.titleRegion.w;
+    const room = Math.min(t4p.w + TITLE_TEXT.TX4.widenRight, plateRight - t4p.x);
     let dispTitle = title;
     if (measured.advance > room) { // TX5
       dispTitle = '';
@@ -202,7 +206,7 @@ export async function renderWindow(
       // rect, the baseline moves down by exactly that overflow, so every glyph stays inside.
       const baseline = Math.max(t4p.y + t4p.h - TITLE_TEXT.TX8.baselineAbove, t4p.y + base.ascent);
       const x0 = t4p.x, y0 = baseline - base.ascent;
-      const clip = { l: Math.max(0, t4p.x), t: Math.max(0, t4p.y), r: Math.min(fullWidth, t4p.x + room), b: Math.min(fullHeight, t4p.y + t4p.h) };
+      const clip = { l: Math.max(0, t4p.x), t: Math.max(0, t4p.y), r: Math.min(fullWidth, t4p.x + t4p.w + TITLE_TEXT.TX4.widenRight), b: Math.min(fullHeight, t4p.y + t4p.h) };
       const inClip = (x: number, y: number): boolean => x >= clip.l && x < clip.r && y >= clip.t && y < clip.b;
       // Title colour CONTRASTS with the bar under the text's own footprint (runtime rule, not TX7).
       let lumSum = 0, lumN = 0;
