@@ -146,10 +146,10 @@ export function drawCinfFrame(port: Pixmap, chain: ResourceChain, input: CinfFra
     if (!colorsAvailable) trace?.drawOps.push({ op: 'cinfSamples', row: 'S1,S2,S4,S5', unspecified: 'raw colour output unavailable' });
     const body = CINF_BODY.find(r => r.mode === '*' || r.mode === cinf.patternAnchor)!;
     const res = chain.getResource<Pixmap | IconSource>(body.type, cinf.bgPatternId, { row: body.id, ...(trace ? { trace } : {}) });
+    if (res && 'status' in res.value && res.value.status === 'unknown')
+      return unsupported('reason' in res.value && typeof res.value.reason === 'string' && res.value.reason
+        ? res.value.reason : 'cinf body resource unknown');
     if (res && body.found === 'B2') {
-      if ('status' in res.value && res.value.status === 'unknown')
-        return unsupported('reason' in res.value && typeof res.value.reason === 'string' && res.value.reason
-          ? res.value.reason : 'cinf body cicn resource unknown');
       const icon = 'pixmap' in res.value ? res.value : { pixmap: res.value, pixelSize: null, unmasked: null };
       iconBlit(port, icon, rect(0, 0, icon.pixmap.height, icon.pixmap.width), insetRect(D, s, s), trace, 'B2');
     } else if (res) {
