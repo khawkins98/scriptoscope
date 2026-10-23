@@ -206,3 +206,34 @@ end. `window-chrome-rules.mjs` checks it per direction in Node and in the
 source/built browser modes. These remain regression baselines: no native
 capture confirms the pixels, and there is no original-engine or ledger
 promotion.
+
+
+## Reviewed window title-shadow delta — #459 / PR464
+
+The 16 changed PNGs and their exact old/new hashes are listed in
+[CANDIDATES.md](./CANDIDATES.md). Independent Tier-2 and visual review at
+`56aef53df2334828774b66d861409f1c5f6a45af` inspected every changed sheet and
+accepted the title-shadow/ellipsis changes: 113,968 changed pixels, +25,320
+compressed bytes, unchanged dimensions and 70-case inventory. The other20 PNGs
+are byte-identical. No unexplained pixel delta was found.
+
+The original whole-batch review required a public collapsed-body repair. A
+separate author fixed that DOM-only defect (`21f89d66`, integrated as
+`a3636622`), and the PM independently accepted its unchanged reviewer-authored
+source/built DOM regression, red-old/green-new proof and production-demo
+collapse/restore. That repair changes no frame/title/progress pixels or PNGs;
+the original16-sheet visual acceptance carries forward. These PNG hashes are
+approved as regression baselines. Exact-head readiness/CI remain merge gates.
+
+The original local pinned Linux record and serial36/36 verification receipts
+and manifest capture identity remain unchanged. The recording used uncommitted
+test/metadata changes, so gitCommit is null; this review does not relabel it a
+clean execution or replace capture provenance with the later review commit.
+Review reports are retained in the PM campaign's459-followup-review/REPORT.md
+and459-pm/DOM-DELTA-REVIEW.md.
+
+Raw RGB16 selection/paint order/ellipsis assertions supply separate correctness
+evidence. These snapshots certify regression stability only: substitute glyphs
+and alpha-over policy do not establish original typography or native srcOr,
+provider/cache/device/transfer fidelity, ledger status or whole-window closure.
+No utility-window golden was added; #423 DOM geometry/focus coverage is separate.

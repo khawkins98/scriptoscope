@@ -1,9 +1,10 @@
-# #459 unapproved Linux golden candidates
+# #459 reviewed Linux golden delta
 
-These changed PNGs are regression candidates requiring separate Tier-2 visual
-review. Recording and byte-identical verification do not approve them or establish
-original-engine typography fidelity. `REVIEW.md` describes the prior reviewed set;
-it does not approve the new hashes listed here.
+These changed PNG hashes have separate Tier-2 visual acceptance, carried through
+the independently reviewed DOM repair; see the #459 section in `REVIEW.md`.
+Recording and byte-identical verification alone do not approve images or establish
+original-engine typography fidelity. The historical candidate receipts below are
+retained without rewriting capture provenance.
 
 Recorded with `npm run test:rendering:container -- record` in the pinned Linux/amd64
 Playwright 1.64.0 Noble image (digest in manifest.json), Docker 29.4.0, Chromium
