@@ -13,7 +13,7 @@ const BITES = [
   ['pinLast', 'animals', 'collapsed-no-title-utility'], ['nearEdge', '1138', 'titled-utility-window'],
   ['keepBezels', 'animals', 'document-window'], ['dropPlate', 'animals', 'document-window'], ['skipTT8', 'floppies', 'document-window'],
   ['reverseOrder', 'floppies', 'document-window'], ['opaque', '1138', 'document-window'], ['paintTrailing', '1138', 'document-window'],
-  ['rectHit', 'animals', 'document-window'], ['noWD6', '1138', 'popup-window'], ['tt2aInert', 'animals', 'movable-alert'],
+  ['rectHit', 'animals', 'document-window'], ['noWD6', '1138', 'popup-window'], ['tt2aCondense', 'animals', 'movable-alert'],
 ];
 for (const mode of ['source', 'built']) {
   test(`${mode}: wnd# window-widgets rules (layout, cells, title rect, WD4 pixels, HT hits) hold for every sliced corpus window at sampled sizes`, async ({ page, servers }, info) => {

@@ -812,7 +812,7 @@ test('progress 1.1.0 (#440 engine) verifies exactly the 30 GATE4 selection/layou
 });
 
 test('window 1.5.0 (#432) re-judges the 13 wnd# cases against window-widgets.md and promotes exactly recipe-cells and half-extent', () => {
-  const live = liveFamily('window'), t = live.transitions.find(x => x.version === '1.5.0'), prior = atVersion(live, '1.4.0');
+  const live = atVersion(liveFamily('window'), '1.5.0'), t = live.transitions.find(x => x.version === '1.5.0'), prior = atVersion(live, '1.4.0');
   assert.equal(live.version, '1.5.0'); assert.equal(priorFamily(live).version, '1.4.0');
   const slugs = ['1138','1984','1990','animals','apple-lisa','beos-r503','crayon-os','dolphin-som','evolution','floppies','monkey-paradise','windows-31','windows-95'];
   const cases = slugs.map(s => `${s}.window.sliced-recipes.sampled`);
@@ -836,4 +836,20 @@ test('window 1.5.0 (#432) re-judges the 13 wnd# cases against window-widgets.md 
   assert(changed.filter(c => c.now.requirementId === 'window.flag-gated-parts').every(c => c.now.status === 'unknown' && /F7/.test(c.now.rationale)));
   const count = f => f.assessments.reduce((m, a) => (m[a.status] = (m[a.status] ?? 0) + 1, m), {});
   assert.deepEqual(count(live), { verified: count(prior).verified + 26, unknown: count(prior).unknown - 26 });
+});
+
+test('window 1.5.1 (#452, DECISIONS #13) rewords the stated TT2a default to SWc = SW and changes no status', () => {
+  const live = liveFamily('window'), t = live.transitions.find(x => x.version === '1.5.1'), prior = atVersion(live, '1.5.0');
+  assert.equal(live.version, '1.5.1'); assert.equal(priorFamily(live).version, '1.5.0');
+  for (const key of ARRAYS) assert.equal(live[key].length, prior[key].length, key);
+  assert.deepEqual(Object.keys(t.replaced).sort(), ['assessments', 'cases', 'evidence']);
+  assert.deepEqual(t.replaced.evidence.map(r => live.evidence[r.index].id), ['kdef.window-titled-side']);
+  assert.equal(live.evidence.find(e => e.id === 'kdef.window-titled-side').locator, prior.evidence.find(e => e.id === 'kdef.window-titled-side').locator, 'the quoted TT2a row stays verbatim');
+  assert.equal(t.replaced.cases.length, 13);
+  assert(t.replaced.cases.every(r => /SWc omitted, the runtime default SWc = SW/.test(live.cases[r.index].options.titles)));
+  assert.equal(t.replaced.assessments.length, 26);
+  assert(t.replaced.assessments.every(r => r.row.status === live.assessments[r.index].status && r.row.review === live.assessments[r.index].review));
+  assert(live.assessments.every(a => !/SWc = SW on the TT2a default/.test(a.rationale)));
+  const count = f => f.assessments.reduce((m, a) => (m[a.status] = (m[a.status] ?? 0) + 1, m), {});
+  assert.deepEqual(count(live), count(prior));
 });
