@@ -508,7 +508,9 @@ Implementers stop at these and file a spec question.
    outside this unit; this spec gives CDEF 5's own calls only. Native output
    for the eight procedural-bar archives is therefore not established.
 2. **FB9's rect.** With no `ppat −10064`, the procedural indeterminate bar
-   paints lavender into a rect the routine never sets. Undefined.
+   paints lavender into a rect the routine never sets. Undefined. The #440
+   review counted 36 affected matrix cells (3 states × 3 lengths × 4 phases),
+   not 24; this is a matrix count, not 36 independent native observations.
 3. **`$AA73` identity.** `$AA73` is the Control Manager dispatch trap; it is
    not in Universal Interfaces 3.0.1 `Traps.h`. Selector 6 is IsControlVisible
    in Apple's later Controls.h (not pinned), corroborated by placement (it gates
