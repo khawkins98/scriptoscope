@@ -1,4 +1,4 @@
-// Independent public contract: issues #436 and #459, not a drawing oracle.
+// Independent public contract: issues #436, #459; no drawing oracle.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { registerHooks } from 'node:module';
