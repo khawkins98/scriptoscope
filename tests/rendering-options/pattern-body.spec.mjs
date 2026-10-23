@@ -201,7 +201,7 @@ for (const mode of ['source', 'built']) test(`${mode}: missing or unsupported bo
 });
 
 
-for (const mode of ['source', 'built']) test(`${mode}: numeric pattern names retain actual decoder order with and without byte observation`, async ({ page, servers }, info) => {
+for (const mode of ['source', 'built']) test(`${mode}: numeric pattern names retain carried occurrence and reject unbound raw ambiguity`, async ({ page, servers }, info) => {
   await openHarness(page, servers, mode);
   let result;
   try {
@@ -230,10 +230,9 @@ for (const mode of ['source', 'built']) test(`${mode}: numeric pattern names ret
           delete face.bodyPattern;
           for (const linked of [false, true]) {
             if (linked) face.bgPattern = '1';
-            let legacyTrace;
-            const legacy = await api.composeButton(theme, { label: '', minWidth: 29, height: 9,
-              diagnostics: { onComplete: value => { legacyTrace = value; } } });
-            row.legacy.push({ linked, pixel: [...legacy.getPixel(0, 0)], trace: legacyTrace });
+            let legacyTrace,legacy,error;
+            try{legacy=await api.composeButton(theme,{label:'',minWidth:29,height:9,diagnostics:{onComplete:value=>{legacyTrace=value;}}});}catch(e){error={name:e.name,message:e.message};}
+            row.legacy.push({linked,pixel:legacy?[...legacy.getPixel(0,0)]:null,trace:legacyTrace,error});
           }
           rows.push(row);
         } finally { theme.dispose(); }
@@ -263,11 +262,13 @@ for (const mode of ['source', 'built']) test(`${mode}: numeric pattern names ret
       else expect(selected[0].resource.byteProvenance).toBeUndefined();
       expect(selected[0].reason).toBe('resource-id');
       const [unlinked,linked]=row.legacy;
-      for(const carried of [unlinked,linked]){
-        expect(carried.pixel).toEqual([0,0,0,255]);
-        const actual=carried.trace.steps.find(step=>step.role==='body-fill'&&step.action==='selected'&&step.usage==='paint');
-        expect(actual.resource).toMatchObject({type:'ppat',signedId:0,manifestKey:'1'});
-      }
+      expect(unlinked.error,'raw duplicate body without either exact binding must reject explicitly').toBeDefined();
+      expect(unlinked.error.name).not.toBe('TypeError');
+      expect(unlinked.error.message).toMatch(/ambiguous|unknown|unbound|unavailable/i);
+      expect(unlinked.pixel).toBeNull();expect(unlinked.trace.outcome.status).toBe('error');expect(unlinked.trace.steps.some(s=>s.bodyPaint)).toBe(false);
+      expect(linked.error).toBeUndefined();expect(linked.pixel).toEqual([0,0,0,255]);
+      const actual=linked.trace.steps.find(step=>step.role==='body-fill'&&step.action==='selected'&&step.usage==='paint');
+      expect(actual.resource).toMatchObject({type:'ppat',signedId:0,manifestKey:'1'});
     }
     await attachObservations(info, 'pattern-paint', `${mode}-numeric-order`, { mode, result });
   } catch (error) { await attachCase(page, info, { mode, result }, error); throw error; }

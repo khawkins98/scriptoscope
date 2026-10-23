@@ -113,6 +113,16 @@ original Resource Manager search order. Missing patterns and unsupported modes
 are recorded and retain the prior face fallback. Decode failures still reject.
 Legacy manifests without raw body requests retain prior behavior.
 
+For migrated push/default, the current modern same-owner binding policy retains
+valid exact `bodyPattern`, then valid exact `bgPattern`, then a unique matching
+raw-ID occurrence. A link must identify the requested signed ppat ID and the
+selected face owner's actual occurrence; it cannot borrow another owner's art.
+Only absence of a matching raw occurrence is NULL. Present undecoded or unbound multiple occurrences
+are UNKNOWN and reject explicitly; they cannot become absence or an arbitrary
+first candidate. The earlier legacy ambiguity/fallback behavior remains an
+unmigrated bevel compatibility path. These are public compatibility obligations,
+not claims about original provider precedence or native resource uniqueness.
+
 A `body-fill` trace step records raw requested mode/ID and the actual selected
 ppat ID/key/owner/base depth/asset, plus occurrence-carried byte provenance when
 collected. The ppat/cicn resource union distinguishes their provenance types.
