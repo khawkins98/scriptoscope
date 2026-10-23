@@ -9,7 +9,7 @@ import type { IconSource } from './engine/qd/region.js';
 // wnd# recipe) draws through the v2 engine family proceduralFrame, dynamically
 // imported so the 13 wnd# themes don't load it on first paint.
 import { rasterizeText } from './textRaster.js';
-import { rasterizeTitle } from './titleFont.js';
+import { rasterizeTitle, truncateTitle } from './titleFont.js';
 import { TITLE_TEXT } from './engine/tables/window.js';
 import { PixelBuffer } from './pixelBuffer.js';
 import { resolveWindowSelection } from './resolveWindowType.js';
@@ -181,8 +181,7 @@ export async function renderWindow(
   // empty title (TX2) or an empty `t4p`. Left-aligned, baseline 4 above its bottom (TX8),
   // clipped to `t4p` widened by 2 on the right (TX4). The layout centres `t4p` on the content
   // (TT6/TT7). DIVERGENCES (runtime): TX5 condenses before TruncString, but the runtime has
-  // no condensed face, so it only truncates (plain face, ellipsis); TX7's shadow string and
-  // sampled colours are not drawn (the colour rule below is the runtime's); the text is drawn
+  // no condensed face, so it only truncates (plain face, ellipsis); the text is drawn
   // after every side, not right after the side holding T4 (TX1).
   const t4p = composed.titleRect;
   if (measured && t4p && t4p.w > 0 && t4p.h > 0) {
@@ -192,14 +191,7 @@ export async function renderWindow(
     // width (floppies and 1138's titled utility have plates 1-2 px narrower than the rect).
     const plateRight = composed.titleRegion.x + composed.titleRegion.w;
     const room = Math.min(t4p.w + TITLE_TEXT.TX4.widenRight, Math.max(plateRight - t4p.x, t4p.w));
-    let dispTitle = title;
-    if (measured.advance > room) { // TX5
-      dispTitle = '';
-      for (let n = title.length - 1; n >= 1; n--) {
-        const cand = `${title.slice(0, n)}…`;
-        if (raster(cand, '#000000').advance <= room) { dispTitle = cand; break; }
-      }
-    }
+    const dispTitle = truncateTitle(title, room, text => text === title ? measured.advance : raster(text, '#000000').advance);
     const base = dispTitle === title ? measured : dispTitle ? raster(dispTitle, '#000000') : null;
     if (base) {
       // DECISIONS #13 (2): the decoded baseline (TX8) and clip (TX4) are kept, except that our
@@ -209,60 +201,31 @@ export async function renderWindow(
       const x0 = t4p.x, y0 = baseline - base.ascent;
       const clip = { l: Math.max(0, t4p.x), t: Math.max(0, t4p.y), r: Math.min(fullWidth, t4p.x + t4p.w + TITLE_TEXT.TX4.widenRight), b: Math.min(fullHeight, t4p.y + t4p.h) };
       const inClip = (x: number, y: number): boolean => x >= clip.l && x < clip.r && y >= clip.t && y < clip.b;
-      // Title colour CONTRASTS with the bar under the text's own footprint (runtime rule, not TX7).
-      let lumSum = 0, lumN = 0;
-      for (let y = 0; y < base.buffer.height; y++) for (let x = 0; x < base.buffer.width; x++) {
-        if (!inClip(x0 + x, y0 + y)) continue;
-        const [pr, pg, pb, pa] = composed.buffer.getPixel(x0 + x, y0 + y);
-        if (pa < 8) continue;
-        lumSum += 0.299 * pr + 0.587 * pg + 0.114 * pb; lumN++;
-      }
-      // Title colour priority:
-      //   1. The AUTHORED colour from the kDEF title-text marker (`0x5530`) — IF
-      //      it contrasts with the bar's average luminance. The marker is a 1-pixel
-      //      hint the artist drew INTO the title cicn; sometimes it's filled with
-      //      the title-text color (the faithful "draw white-on-blue" hint), sometimes
-      //      it's filled with the bar's BG color (the artist used it only as a
-      //      position marker, not a color hint — windows-31's marker pixel is on
-      //      the dark blue title bar, so sampling it gives dark blue → invisible
-      //      title text). Reject the sample when |marker - bar avg| is small.
-      //   2. Luminance-contrast B/W on the composed bar's pixels (the fallback
-      //      path; what every current corpus render uses).
-      // Active windows take the authored colour at full saturation; inactive ones
-      // dim it toward grey to match the classic Mac convention.
-      const authored = composed.titleFillRgb;
-      let useAuthored = false;
-      if (authored && lumN > 0) {
-        const markerLum = 0.299 * authored.r + 0.587 * authored.g + 0.114 * authored.b;
-        const barLum = lumSum / lumN;
-        // 40 ≈ minimum perceptual contrast for legible text on a coloured bg.
-        useAuthored = Math.abs(markerLum - barLum) > 40;
-      }
-      let fgHex: string;
-      if (useAuthored && authored) {
-        const hex = (n: number) => Math.max(0, Math.min(255, Math.round(n))).toString(16).padStart(2, '0');
-        if (state === 'inactive') {
-          const r = (authored.r + 128) / 2, g = (authored.g + 128) / 2, b = (authored.b + 128) / 2;
-          fgHex = `#${hex(r)}${hex(g)}${hex(b)}`;
-        } else {
-          fgHex = `#${hex(authored.r)}${hex(authored.g)}${hex(authored.b)}`;
+      // TC1–TC5: samples belong to the selected template, before remapping or PNG
+      // transport. Compare full RGB16, even when display conversion merges colours.
+      const sampleState = wt.chrome[state] ? state : 'active';
+      const samples = wt.titleSamples?.[sampleState];
+      const paint = (sample: NonNullable<typeof samples>['text'], dx: number, dy: number): void => {
+        if (!sample) return; // unspecified input: never invent a swatch colour
+        const hex = `#${sample.displayRgb.map(v => v.toString(16).padStart(2, '0')).join('')}`;
+        const glyph = raster(dispTitle, hex);
+        // Substitute-font policy: transparent coverage, alpha-over (control-text-colors
+        // Runtime painting). Native TX6 TextMode srcOr is not a bitwise RGB operation here.
+        for (let y = 0; y < glyph.buffer.height; y++) for (let x = 0; x < glyph.buffer.width; x++) {
+          const px = x0 + x + dx, py = y0 + y + dy;
+          if (!inClip(px, py)) continue;
+          const [r, g, b, a] = glyph.buffer.getPixel(x, y);
+          if (a === 0) continue;
+          const [dr, dg, db, da] = composed.buffer.getPixel(px, py);
+          const coverage = a / 255;
+          composed.buffer.setPixel(px, py, Math.round(r * coverage + dr * (1 - coverage)),
+            Math.round(g * coverage + dg * (1 - coverage)), Math.round(b * coverage + db * (1 - coverage)), Math.max(a, da));
         }
-      } else {
-        const darkBar = lumN > 0 && lumSum / lumN < 112;
-        fgHex = darkBar
-          ? (state === 'inactive' ? '#bcbcbc' : '#ffffff')
-          : (state === 'inactive' ? '#808080' : '#000000');
+      };
+      if (samples?.text && samples.shadow && samples.text.rgb16.some((v, i) => v !== samples.shadow!.rgb16[i])) {
+        paint(samples.shadow, TITLE_TEXT.TX7.offsetX, TITLE_TEXT.TX7.offsetY);
       }
-      const g = fgHex === '#000000' ? base : raster(dispTitle, fgHex);
-      for (let y = 0; y < g.buffer.height; y++) for (let x = 0; x < g.buffer.width; x++) {
-        const px = x0 + x, py = y0 + y;
-        if (!inClip(px, py)) continue;
-        const [r, gg, b, a] = g.buffer.getPixel(x, y);
-        if (a === 0) continue;
-        const [dr, dg, db, da] = composed.buffer.getPixel(px, py);
-        const sa = a / 255;
-        composed.buffer.setPixel(px, py, Math.round(r * sa + dr * (1 - sa)), Math.round(gg * sa + dg * (1 - sa)), Math.round(b * sa + db * (1 - sa)), Math.max(a, da));
-      }
+      paint(samples?.text ?? null, 0, 0);
     }
   }
 

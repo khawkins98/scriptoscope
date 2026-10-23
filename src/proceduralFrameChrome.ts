@@ -159,7 +159,6 @@ export async function composeProceduralFrameChrome(owner: LoadedTheme, key: stri
     fullWidth: W,
     fullHeight: Hh,
     titleRegion: g.T ? { x: g.T.left, w: g.T.right - g.T.left } : { x: 0, w: W },
-    titleFillSrcX: -1,
     placement,
     growBox,
     ...(trace ? { trace } : {}),

@@ -103,7 +103,7 @@ export function newProgressRecord(trace?: EngineTrace): ProgressRecord {
 /** Message 20 (setData, DATA1/DATA3/IDLE4): `'inde'` sets the flag to the first data byte; no redraw. */
 export function progressSetData(record: ProgressRecord, tag: string, data: readonly number[]): { result: number; row: string } {
   if (tag !== PROGRESS_DATA.tag) return { result: PROGRESS_DATA.errDataNotSupported, row: PROGRESS_DATA.DATA3.id };
-  record.indeterminate = data[0] ?? record.indeterminate;
+  record.indeterminate = (data[0] ?? record.indeterminate) & PROGRESS_IDLE.byteMask;
   return { result: 0, row: `${PROGRESS_DATA.DATA1.id},${PROGRESS_IDLE.IDLE4.id}` };
 }
 

@@ -775,7 +775,8 @@ export async function composeProgressFrame(theme: LoadedTheme, opts: ProgressOpt
   const profile = theme.manifest.displayProfile;
   const realize = (rgb: readonly number[]) => { const [r, g, b] = realizeRgb16(rgb, profile); return { r: r!, g: g!, b: b!, a: 255 }; };
   const res = drawProgress(out, chain, record, input, { realize }, trace);
-  return { buffer: out, phase: res.phase, path: res.path ?? 'procedural', ...(trace ? { trace } : {}) };
+  if (res.path === null) throw new Error('composeProgress: engine skipped a visible, nonempty progress bar');
+  return { buffer: out, phase: res.phase, path: res.path, ...(trace ? { trace } : {}) };
 }
 
 export interface ButtonOptions {
