@@ -39,7 +39,9 @@ export async function collectSampledAdmission(api,kinds=sampledKinds) {
   finally{HTMLImageElement.prototype.decode=decode;owner.dispose();}
   rows.push({kind,observed,original,ordinary,opaque,descriptor:descriptorSnapshot,proof:e.samplingEquivalence,owner:owner.baseUrl,
    calls,count,coercions,error,band:p?[...p.getPixel(4,0)]:null,hole:p?[...p.getPixel(4,3)]:null,corner:p?[...p.getPixel(0,0)]:null,
-   size:p?[p.width,p.height]:null,trace,provenance:owner.byteProvenance});
+   size:p?[p.width,p.height]:null,
+   rgba:p?Array.from({length:p.width*p.height},(_,i)=>[...p.getPixel(i%p.width,Math.floor(i/p.width))]).flat():null,
+   trace,provenance:owner.byteProvenance});
  }
  return rows;
 }
