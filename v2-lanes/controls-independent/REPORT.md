@@ -4,6 +4,19 @@ This is independent test-author material for PM and a DIFFERENT Tier-2 reviewer.
 Do not forward it, its rule tables, assertions or mutation harness to runtime authors.
 Only the safe input / expected / actual behavior findings have been sent to PM.
 The initial author freeze is `8e304e49839b93d0d5f8f66e85950b88e10eb72a`.
+
+Current delivery integrates only PM-frozen, separately authored runtime repairs
+through `e51b40534da1167f69c18afcef2691bfa72282b7`. All43 PB/DR/CB rows and six
+icon rows have independent rule coverage; current targeted acceptance is87 focused
+checks,38 existing source/built availability/border checks and16 independent public
+source/built checks, all passing. Thirteen meaningful runtime/oracle mutations
+have valid positive controls; harness failures are retained separately. Installed
+package, engine-diff without re-seeding, loader parity and structural asset recovery
+pass. The two availability corrections have DIFFERENT bounded reviewer receipts;
+whole-controls Tier2, combined captures and production visual review are separate.
+Final exact-head readiness is recorded outside this checkout in
+`/Users/khawkins/orca/worker-receipts/v2-lanes/459-controls-independent/final-lane-ready.json`
+and `.log`, so it can attest the committed report without modifying the tested head.
 No runtime, loader, spec, evidence appendix, CHANGELOG or ledger-status edits are owned here.
 Native glyph, device, transfer and historical provider equivalence remain UNKNOWN.
 
@@ -519,3 +532,42 @@ latest accepted v2 and fresh serial Linux record/verify of that coherent tree,
 followed by different full Tier2 and actual production demo visual review. No extra
 old-branch full browser or golden rerun is requested; focused acceptance, package
 and ordinary final exact-head readiness remain this delivery's responsibility.
+
+## Final focused acceptance and delivery boundary
+
+PM authorized combined `e51b4053`, merged at `7573d348`. The ordinal and exact
+prepared lookup/owner regressions pass UNCHANGED first. The existing source/built
+availability/border suite then passes38/38: all27 availability cases per mode and
+all18 archive boundary tests per mode, including preserved explicit foreign-cinf0
+reruns and source/payload/asset/owner joins. Additional independent public controls,
+no-cinf admission, bitmap and exact prepared identity coverage passes16/16. The
+focused engine/resource/primitive/correction/mutation suite passes87/87. It includes
+13 meaningful isolated runtime/oracle mutants plus setup-failure rejection; the
+new ordinal mutant alters only TR's recorded identity, and its literal painting/
+metadata control plus unmutated ordinal assertion pass before the targeted kill.
+
+The actual installed npm consumer passes with all three defective-package negatives.
+Source/built/standalone loader parity passes, including both bound-origin signs,
+exact occurrence/source reference identity, opaque/masked planes and [] opt-outs.
+Engine-diff remains unchanged after every repair; no baseline re-seed followed the
+initial two new-family seeds. The final expanded binding export/audit again recovers
+the entire prior catalog/manifest/source/envelope structure after stripping ONLY
+the documented additive metadata, retaining every prior asset plane and separately
+enumerating422 added opaque companions. No hash or golden was blindly blessed.
+
+Final command receipts use the `final-diagnostics-*` and `final-head-binding-*`
+prefixes in the external receipt root. Failed history, including primitive3,
+resource occurrence2, package timeout/plane/identity failures, partial Linux capture,
+public UNKNOWN, trace identity, body diagnostics, ordinal/projection and invalid
+mutation setups, is retained under its original command names and own exit codes.
+`command-receipts-index.json` enumerates them. Successful later receipts do not
+retroactively change an earlier result or count harness errors as mutant kills.
+
+This branch's36 PNGs remain UNAPPROVED CANDIDATES with record11883/verify5f lineage
+and old/new/diff evidence. They are not final combined captures: PM must integrate
+latest accepted v2 window/title changes while preserving both runtime behaviors,
+resolve source/binding conflicts explicitly, then record and verify coherent Linux
+PNGs serially. Do not choose one conflicting PNG side or relabel old provenance.
+Different full Tier2 and actual production demo visual review remain mandatory
+before any final visual/fidelity/release claim. All native/provider/device/glyph
+and malformed-resource unknowns remain unknown; no ledger-status promotion occurs.

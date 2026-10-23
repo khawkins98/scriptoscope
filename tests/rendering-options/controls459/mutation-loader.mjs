@@ -2,6 +2,7 @@
 import '../../helpers/registerTs.mjs';
 import { registerHooks } from 'node:module';
 const variants={
+ 'band-ordinal':['/qd/cinfFrame.ts','TR: 1','TR: 2'],
  'public-unsupported':['/pushButtonFacade.ts','if (drawn.unsupported)','if (false)'],
  'unknown-guard':['/qd/cinfFrame.ts',"if (icon?.status === 'unknown' || !cicn) {",'if (false) {'],
  'push-state':['/tables/pushButton.ts',"resource: -10240", "resource: -10239"],
