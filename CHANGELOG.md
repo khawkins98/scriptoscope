@@ -93,11 +93,11 @@ Third incremental release from the v2 engine branch (#378). Three more families 
 
 | src/ lines (non-test .ts) | v0.3.0 | 0.4.0 | delta |
 |---|---:|---:|---:|
-| logic (all src except engine tables) | 15399 | 16101 | +702 |
+| logic (all src except engine tables) | 15399 | 16111 | +712 |
 | engine tables (cited data) | 1258 | 2145 | +887 |
-| total | 16657 | 18246 | +1589 |
+| total | 16657 | 18256 | +1599 |
 
-By family: the window recipe removes 405 logic lines and `composeChrome.ts` drops from 924 to 255 lines. The slider (+648) and the progress bar (+456) grow because they add behaviour the legacy drawers never had (procedural bar, indeterminate mode, page parts, tick marks). The legacy slider and progress drawers are deleted.
+By family: the window recipe removes 405 logic lines (the title fit adds 10 back) and `composeChrome.ts` drops from 924 to 255 lines. The slider (+648) and the progress bar (+456) grow because they add behaviour the legacy drawers never had (procedural bar, indeterminate mode, page parts, tick marks). The legacy slider and progress drawers are deleted.
 
 ## [0.3.0] — 2026-10-22
 
