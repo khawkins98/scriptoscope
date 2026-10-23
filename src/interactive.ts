@@ -751,7 +751,9 @@ export class ProgressIdle {
 
   constructor(opts: { indeterminate?: boolean; phase?: number } = {}) {
     this.indeterminate = !!opts.indeterminate;
-    this.record.phase = opts.phase ?? 0;
+    const phase = opts.phase ?? 0;
+    if (!Number.isInteger(phase) || phase < 0 || phase > 255) throw new RangeError('ProgressIdle: phase must be an integer 0..255');
+    this.record.phase = phase;
   }
 
   get phase(): number { return this.record.phase; }

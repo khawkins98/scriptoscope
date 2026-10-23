@@ -47,7 +47,7 @@ The behavioral reference is [window-widgets.md](engine/window-widgets.md).
 | `0x4a0c`, `0x4dfe..0x4e42` | Code-10 and too-short negotiation, PV5 / TS1–TS4 | `layoutSide`, `TOO_SHORT` | Negative budgets and dropped titles follow the decoded rows. `negotiateSides` is deleted. Flag-gated obligations remain unknown. |
 | `0x4a64` | Layout sums, LS | `layoutSide`, `LAYOUT_SUMS` | Fixed sums, title margins and growers come from the spec. |
 | `0x4f58` | Title fit, TT2–TT4 | `layoutSide`, `TITLED_SIDE`; public width defaults in `composeWindowChrome` | DECISIONS #13 supplies SWc = SW because the runtime has no condensed face. The former `plateCap` approximation is deleted. |
-| `0x4ff8` / `0x501c` / `0x5034` | Title-side placement, TT5–TT10 | `layoutSide`; `remapWidget` supplies the title rect; `renderWindow.ts` draws the text | Centered plate and remapped title rect replace the old `titleRegion` text centering. Typography follows TX and DECISIONS #13, with title shadow still a follow-up. |
+| `0x4ff8` / `0x501c` / `0x5034` | Title-side placement, TT5–TT10 | `layoutSide`; `remapWidget` supplies the title rect; `renderWindow.ts` draws the text | Centered plate and remapped title rect replace the old `titleRegion` text centering. Typography follows TX and DECISIONS #13; TC1–TC5/TX7 use raw title samples and the declared substitute-glyph painter. |
 | `0x5178` | Allocation, AW1–AW9 | `layoutSide`, `CELL_WIDTH` / `ALLOCATION` | Unclamped signed budgets; code-12 whole tiles and both remainder passes. `distributeSide` / `distributeHalf` are deleted. |
 | `0x5356` | Template and placed cell rects, CR1–CR4 | `windowCell`, `CELL_RECT` | Leading and trailing areas outside placed segments stay unpainted (LS9/Q3); the earlier forced leading-corner cell is gone. |
 | `0x572e` | Side draw, WD4 | `composeWindowChrome` walks `WINDOW_SIDES`, uses `windowCell` and the engine blit tables | Top, bottom, left, right order with CopyMask. Code 18 uses `scaleBlit`; the other cells use `tileBlit`. `composeEdge` is deleted. |
@@ -79,7 +79,7 @@ to a bug class we hit reactively before the linter existed:
   structured-fill joints at extreme widths (M5) and the 1984 title-bar arch (V1b)
   live here.
 - Original device output beyond the sampled and decoded rule claims, the
-  unexercised partial-zoom full-draw branch (WD5), and title-shadow follow-ups.
+  unexercised partial-zoom full-draw branch (WD5), and original-font title pixels.
   Title fitting, widget remapping, pressed-strip drawing and masked hit testing
   are now explicit engine paths checked by the window rule suite.
 

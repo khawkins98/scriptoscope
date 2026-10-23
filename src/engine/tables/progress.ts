@@ -202,6 +202,7 @@ export const PROGRESS_FALLBACK = {
 export const PROGRESS_IDLE = {
   ticks: 3,
   phaseModulo: 256,
+  byteMask: 255,
   IDLE1: { id: 'IDLE1', source: 'CDEF 5 0x25e..0x27e' },
   IDLE2: { id: 'IDLE2', source: 'CDEF 5 0x1d8..0x224' },
   IDLE3: { id: 'IDLE3', source: 'CDEF 5 0x1e2, 0x1fa, 0x226..0x240' },

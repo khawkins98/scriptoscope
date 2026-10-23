@@ -12,6 +12,7 @@ import { bindCicnBodies } from './cicn-body.js';
 import { WINDOW_RECIPES, isDefaultWidgets } from './window-recipes.mjs';
 import { samplingEquivalenceRecord } from './sampling-equivalence.js';
 import { controlColorSamples } from './kdef-color-samples.js';
+import { realizeRgb16 } from './display-profile.js';
 import { WINDOW_TYPE_IDENTITIES } from './window-type-identities.js';
 
 /**
@@ -209,6 +210,8 @@ export function buildThemeJson(manifest, options = {}) {
 
     windowTypes[slug] = {
       chrome,
+      titleSamples: Object.fromEntries(Object.entries(chromeRecords).map(([state, record]) =>
+        [state, windowTitleSamples(cicnPathCounts.get(record.file) === 1 ? record.sampleKdefRgb16 : null, parts, slug === 'popup-window', options.displayProfile)])),
       parts,
       edges: {
         top:    convertEdgeRecipe(wnd.data.topSide),
@@ -546,9 +549,7 @@ function uniquePatternSlug(existing, slug) {
 //   • no-title-utility is a tool-palette DRAG BAR (dotted -14314 + close/collapse) —
 //     its titleH/widgets live in WINDOW_RECIPES (the references show the dotted bar).
 //   • NOT wired here (fall back to procedural Platinum in src/platinum.ts):
-//     popup-window (-12320/-12319 are popup-MENU art, not a window corner) and
-//     the title-LESS collapsed-no-title-utility (an empty 1px frame — nothing to
-//     draw).
+//     popup-window (-12320/-12319 are popup-MENU art, not a window corner).
 const CORNER_SPRITE_WINDOWS = [
   { slug: 'document-window',              active: -14332, inactive: -14336, pinstripe: -14331, growBox: -14330 },
   { slug: 'collapsed-document-window',    active: -14332, inactive: -14336, pinstripe: -14331, growBox: null   },
@@ -561,7 +562,25 @@ const CORNER_SPRITE_WINDOWS = [
   { slug: 'side-floating-utility-window', active: -14315, inactive: -14319, pinstripe: -14314, growBox: null   },
   { slug: 'collapsed-side-utility',       active: -14315, inactive: -14319, pinstripe: -14314, growBox: null   },
   { slug: 'no-title-utility-window',      active: -14316, inactive: -14320, pinstripe: -14314, growBox: null   },
+  { slug: 'collapsed-no-title-utility',   active: -14316, inactive: -14320, pinstripe: null,    growBox: null   },
 ];
+
+/** window-widgets TC1–TC5: original template coordinates, ignoring the mask. */
+function windowTitleSamples(sample, parts, popupFamily, profile) {
+  const body = parts['part-0']?.rect;
+  const title = parts['part-4']?.rect;
+  const read = (x, y) => {
+    const rgb16 = sample?.(x, y);
+    return rgb16 ? Object.freeze({ rgb16: Object.freeze([...rgb16]),
+      displayRgb: Object.freeze(realizeRgb16(rgb16, profile)) }) : null;
+  };
+  const y = body ? (popupFamily ? body[3] - 1 : body[1]) : null;
+  return Object.freeze({
+    background: title ? read(title[0], title[3] - 4) : null,
+    text: body ? read(body[0], y) : null,
+    shadow: body ? read(body[0] + 1, y) : null,
+  });
+}
 
 const CANONICAL_WNDTYPE_SLUGS = Object.fromEntries(WINDOW_TYPE_IDENTITIES.flatMap(identity =>
   [identity.id, ...(identity.alternateIds ?? [])].map(id => [id, identity.preferredManifestSlug])));

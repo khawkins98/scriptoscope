@@ -26,6 +26,7 @@ for (const mode of ['source', 'built']) {
       for (const [slug, file] of Object.entries(archives)) {
         const d = await api.loadKaleidoscopeScheme(new Uint8Array(await (await fetch(`/themes/${slug}/${file}`)).arrayBuffer()), { encodeAssets: false });
         const theme = await api.loadTheme(`/themes/${slug}`);
+        R.isolateGlyphs(theme);
         for (const key of ['document-window', 'titled-utility-window']) {
           const wt = d.manifest.windowTypes[key];
           if (!wt) continue;
@@ -34,11 +35,15 @@ for (const mode of ['source', 'built']) {
             const a = d.assets.find(x => x.path === wt.chrome[state]), cicn = new api.PixelBuffer(a.width, a.height, new Uint8ClampedArray(a.rgba));
             const widths = PLATE.includes(slug) ? [r - l, r - l + 40, 240] : [240];
             for (const width of widths) for (const title of TITLES) {
+              const calls = [], fillText = CanvasRenderingContext2D.prototype.fillText;
+              CanvasRenderingContext2D.prototype.fillText = function (text, ...args) { calls.push(text); return fillText.call(this, text, ...args); };
               const win = await api.renderWindow(theme, { title, width, height: 120, windowType: key, state });
+              CanvasRenderingContext2D.prototype.fillText = fillText;
+              const displayed = calls.at(-1);
               const c = win._scriptoscopeComposed;
               const tf = R.textFreeChrome(api.composeWindowChrome, cicn, wt, c, { titleLength: title.length });
               const ink = tf ? R.inkPixels(c.buffer, tf.buffer) : null;
-              out.push({ slug, key, state, width, title, matched: !!tf, t4p: c.titleRect, plate: R.plateOf(c), n: ink?.length ?? 0, box: ink && R.bbox(ink),
+              out.push({ slug, key, state, width, title, displayed, matched: !!tf, t4p: c.titleRect, plate: R.plateOf(c), n: ink?.length ?? 0, box: ink && R.bbox(ink),
                 outsideClip: ink && c.titleRect ? R.inside(ink, R.decodedClip(c.titleRect)).length : null,
                 // DECISIONS #13 (1): the plate fits the text as drawn, so no ink lands past the
                 // code-5 cell (the decoded TX4 clip is 2 px wider than t4p; it must not carry the
@@ -65,7 +70,8 @@ for (const mode of ['source', 'built']) {
     // A: the plate fits the drawn text.
     const plateRows = rows.filter(r => PLATE.includes(r.slug));
     expect(plateRows.length).toBe(PLATE.length * 2 * 2 * 3 * TITLES.length);
-    for (const row of plateRows) expect.soft(row.outsidePlate, `${row.slug} ${row.key} ${row.state} ${row.width} "${row.title}": ink outside the plate ${JSON.stringify(row.plate)} vs ${JSON.stringify(row.box)}`).toBe(0);
+    // Ellipsis-only obeys TX4 even when the marker exceeds room; TF1 does not widen the clip.
+    for (const row of plateRows.filter(r => r.displayed !== '…')) expect.soft(row.outsidePlate, `${row.slug} ${row.key} ${row.state} ${row.width} "${row.title}": ink outside the plate ${JSON.stringify(row.plate)} vs ${JSON.stringify(row.box)}`).toBe(0);
     // B: every glyph row is drawn on the short titled-utility bars. The reference is the same
     // title in the same theme's document window, whose title rect is taller than the glyphs
     // (the runtime's title raster does not depend on the window type).
@@ -88,11 +94,11 @@ for (const mode of ['source', 'built']) {
 // plate-only cap turns into a room below SW. The whole title's ink width comes from a window
 // that cannot truncate it: 1984's document window, whose plate ends at or past t4p (the
 // runtime's title raster does not depend on the theme or the window type).
-const WHOLE = [['floppies', 'document-window'], ['floppies', 'titled-utility-window'], ['1138', 'titled-utility-window']];
+const WHOLE = SLICED.flatMap(slug => ['document-window', 'titled-utility-window'].map(key => [slug, key]));
 const SHORT = ['Controls', 'Document', 'Tools'];
 const REFERENCE = ['1984', 'document-window'];
 for (const mode of ['source', 'built']) {
-  test(`${mode}: short titles that fit their title rect are drawn whole on floppies and 1138 titled-utility`, async ({ page, servers }, info) => {
+  test(`${mode}: titles that fit their title rect remain whole across all 13 sliced archives`, async ({ page, servers }, info) => {
     info.annotations.push({ type: 'fidelity-assertion', description: 'window.title-fit' });
     await openHarness(page, servers, mode);
     const rows = await page.evaluate(async ({ mode, archives, cases, titles }) => {
@@ -102,14 +108,19 @@ for (const mode of ['source', 'built']) {
       for (const [slug, key] of cases) {
         decoded[slug] ??= await api.loadKaleidoscopeScheme(new Uint8Array(await (await fetch(`/themes/${slug}/${archives[slug]}`)).arrayBuffer()), { encodeAssets: false });
         themes[slug] ??= await api.loadTheme(`/themes/${slug}`);
+        R.isolateGlyphs(themes[slug]);
         const wt = decoded[slug].manifest.windowTypes[key];
         for (const state of ['active', 'inactive']) {
           const a = decoded[slug].assets.find(x => x.path === wt.chrome[state]), cicn = new api.PixelBuffer(a.width, a.height, new Uint8ClampedArray(a.rgba));
           for (const title of titles) {
-            const c = (await api.renderWindow(themes[slug], { title, width: 240, height: 120, windowType: key, state }))._scriptoscopeComposed;
+            const calls = [], fillText = CanvasRenderingContext2D.prototype.fillText;
+            CanvasRenderingContext2D.prototype.fillText = function (text, ...args) { calls.push(text); return fillText.call(this, text, ...args); };
+            let c;
+            try { c = (await api.renderWindow(themes[slug], { title, width: 240, height: 120, windowType: key, state }))._scriptoscopeComposed; }
+            finally { CanvasRenderingContext2D.prototype.fillText = fillText; }
             const tf = R.textFreeChrome(api.composeWindowChrome, cicn, wt, c, { titleLength: title.length });
             const ink = tf ? R.inkPixels(c.buffer, tf.buffer) : [];
-            out.push({ slug, key, state, title, SW: tf?.SW ?? null, t4p: c.titleRect, plate: R.plateOf(c), box: R.bbox(ink),
+            out.push({ slug, key, state, title, displayed: calls.at(-1), SW: tf?.SW ?? null, t4p: c.titleRect, plate: R.plateOf(c), box: R.bbox(ink),
               outsideClip: c.titleRect ? R.inside(ink, R.decodedClip(c.titleRect)).length : null });
           }
         }
@@ -128,6 +139,7 @@ for (const mode of ['source', 'built']) {
       for (const [slug, key] of WHOLE) {
         const row = rows.find(r => r.slug === slug && r.key === key && r.state === state && r.title === title);
         const label = `${slug} ${key} ${state} "${title}"`;
+        expect.soft(row.displayed, `${label}: fitting title remains whole`).toBe(title);
         expect.soft(row.t4p.w, `${label}: t4p is SW wide (§5)`).toBe(row.SW);
         expect.soft(row.SW, `${label}: same measured width as the reference`).toBe(ref.SW);
         expect.soft(width(row), `${label}: drawn whole (ink ${JSON.stringify(row.box)}, plate ${JSON.stringify(row.plate)}, t4p ${JSON.stringify(row.t4p)})`).toBe(width(ref));

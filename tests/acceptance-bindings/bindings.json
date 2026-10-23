@@ -57,7 +57,7 @@
     },
     {
       "path": "tools/theme-loader/buildThemeJson.js",
-      "sha256": "f2256e76ab0a510b286f91f3cbc23d53c3b479e637e794801232718ccbd1bf3c"
+      "sha256": "b24bf5bd3d761d721ee60bb69a59093a48f7861ce6ab38c1bf3073c6f9bafaaf"
     },
     {
       "path": "tools/theme-loader/cicn-body.js",
@@ -223,7 +223,7 @@
         "forkSha256": "2b14d10e0907e058474b980df57713191a9e1bf1b39c4ed7df8f82ba3ac1fcdb",
         "agreement": "agrees",
         "status": "converted",
-        "manifestSha256": "7161e9c1af58628e48f5c8deb9ebed0fd21f8df13639f20317eed4062d20f806",
+        "manifestSha256": "e22c6a49e397d485c771b2acaf3f02df5e0b0a4fe49a7df990ecd3a8babb97d4",
         "assetPlaneParity": true
       },
       "canonical": {
@@ -1662,7 +1662,7 @@
             "canonicalIdentity": "document-window",
             "equivalentKeys": ["document-window","wnd--14336","wnd--14335"],
             "model": "sliced",
-            "valueSha256": "97f4c0be4414ada84cf3a9c18efae7fcd0b4a9ed93e70ef6fc25e3866f8c26ac",
+            "valueSha256": "e35eaaea003c9e00b9a46d9c48356d3be91eb06973730df0fc400210bf583063",
             "constructionBinding": {
               "manifestKey": "document-window",
               "recipe": {
@@ -1694,7 +1694,7 @@
             "canonicalIdentity": "movable-modal",
             "equivalentKeys": ["movable-modal","wnd--14324"],
             "model": "sliced",
-            "valueSha256": "32e031bd86d3bb5abc896c721a211603946a492532c902f5e1d34174865c3987",
+            "valueSha256": "fface5c4583c0cfa8add1e50d6be140b828372650c3674fac80cb0eb1374d7e6",
             "constructionBinding": {
               "manifestKey": "movable-modal",
               "recipe": {
@@ -1726,7 +1726,7 @@
             "canonicalIdentity": "dialog",
             "equivalentKeys": ["dialog","wnd--14328"],
             "model": "sliced",
-            "valueSha256": "5bef8adb672e11e24ffe21feeb9a0f2010e7fba2411cdf6b57b62fda60105244",
+            "valueSha256": "9dd4de87ba6f38e7718b058a07733028525e716917b2425cd65add2cf4486a1b",
             "constructionBinding": {
               "manifestKey": "dialog",
               "recipe": {
@@ -1758,7 +1758,7 @@
             "canonicalIdentity": "popup-window",
             "equivalentKeys": ["popup-window","wnd--12320"],
             "model": "sliced",
-            "valueSha256": "88858736f8aea53a153de63022ed99f9e851ba0f9f1c9a62b43da2275a06f2e9",
+            "valueSha256": "bc95331faba8d585b8afe175b90e95a1e6affc1244e2433725f1c081c598608c",
             "constructionBinding": {
               "manifestKey": "popup-window",
               "recipe": {
@@ -1790,7 +1790,7 @@
             "canonicalIdentity": "titled-utility-window",
             "equivalentKeys": ["titled-utility-window","wnd--14304"],
             "model": "sliced",
-            "valueSha256": "9daf2a6cafc358761c72dae76c06858ba3c2ce86bdad02892739cb4897a710d6",
+            "valueSha256": "7165c7bbcc1dfe398e7adf63d412ad610bf6b69f9503111b4656bae99806536a",
             "constructionBinding": {
               "manifestKey": "titled-utility-window",
               "recipe": {
@@ -1822,7 +1822,7 @@
             "canonicalIdentity": "side-floating-utility-window",
             "equivalentKeys": ["side-floating-utility-window","wnd--14296"],
             "model": "sliced",
-            "valueSha256": "47454c36947743e4d1f27c4193a749dc4538fa1c5cea221b0f3f333de9313caf",
+            "valueSha256": "669e16feb83c56b5dc3794e74c020d861d95bbef5a137d73d9cf121d3c0d9002",
             "constructionBinding": {
               "manifestKey": "side-floating-utility-window",
               "recipe": {
@@ -1854,7 +1854,7 @@
             "canonicalIdentity": "no-title-utility-window",
             "equivalentKeys": ["no-title-utility-window","wnd--14288"],
             "model": "sliced",
-            "valueSha256": "7e0278eb0b506c480ba89531164011bfee19ba55ff7f8ea6f82b50566b0139d4",
+            "valueSha256": "9689519e054983a243ad9bdbf29f8b19bbd82fc2063fb83e4e0103a78f02fba9",
             "constructionBinding": {
               "manifestKey": "no-title-utility-window",
               "recipe": {
@@ -1886,7 +1886,7 @@
             "canonicalIdentity": "alert",
             "equivalentKeys": ["alert","wnd--14326"],
             "model": "sliced",
-            "valueSha256": "2334144ddee0e63cc31c9f2c8539d6d7fe073cc8026f626f16ac53233c43d25e",
+            "valueSha256": "b7b993125dc8cf4fe9f22060a89fa992bec77e9f10f88898af23c114a4767453",
             "constructionBinding": {
               "manifestKey": "alert",
               "recipe": {
@@ -1918,7 +1918,7 @@
             "canonicalIdentity": "movable-alert",
             "equivalentKeys": ["movable-alert","wnd--14322"],
             "model": "sliced",
-            "valueSha256": "aed0ab1936f64969c73db26362bd2cc4b581dc68d48ea84eeec1492e1f11b134",
+            "valueSha256": "78397b603e0f794602eb855a4106436612b3928f04f44ff1dd222deb905eb7cb",
             "constructionBinding": {
               "manifestKey": "movable-alert",
               "recipe": {
@@ -1950,7 +1950,7 @@
             "canonicalIdentity": "collapsed-titled-utility-window",
             "equivalentKeys": ["collapsed-titled-utility","collapsed-titled-utility-window","wnd--14300"],
             "model": "sliced",
-            "valueSha256": "d82f5757023d6d8c890a122c7f3adf5eac1f511c8a78197a035aa713fec848c4",
+            "valueSha256": "f0f73144b3fc106e88b167762351afdb0112334953c68ce849a0e1f4643534af",
             "constructionBinding": {
               "manifestKey": "collapsed-titled-utility",
               "recipe": {
@@ -1982,7 +1982,7 @@
             "canonicalIdentity": "collapsed-side-floating-utility-window",
             "equivalentKeys": ["collapsed-side-utility","collapsed-side-floating-utility-window","wnd--14292"],
             "model": "sliced",
-            "valueSha256": "13906a232224ca34e0c3b8ca6e9a3e2feea5e2bea107629dcd6bba6c4b3bea36",
+            "valueSha256": "78afa7be92edb5175db3f88850d6ba4c5b71ca0d3cd4429c48cd3c951c9afa44",
             "constructionBinding": {
               "manifestKey": "collapsed-side-utility",
               "recipe": {
@@ -2014,7 +2014,7 @@
             "canonicalIdentity": "collapsed-no-title-utility-window",
             "equivalentKeys": ["collapsed-no-title-utility","collapsed-no-title-utility-window","wnd--14284"],
             "model": "sliced",
-            "valueSha256": "f1eeb1f91d1c4dd550e74ff925af16e9b55617c1065d9849e35ec58e90cc4d67",
+            "valueSha256": "37a89dd5e1ea53233fd101e10bbdd6569a584119f6f6c760448fac76419bc83c",
             "constructionBinding": {
               "manifestKey": "collapsed-no-title-utility",
               "recipe": {
@@ -2046,7 +2046,7 @@
             "canonicalIdentity": "collapsed-document-window",
             "equivalentKeys": ["collapsed-document-window","wnd--14332"],
             "model": "sliced",
-            "valueSha256": "ca44c7e01505396139454efd88329720782f0e29b506bb364fd1e551a74c6b09",
+            "valueSha256": "ce30e1465f9a6c6feb7ed7a75b8608f4c16672f57908aec8446fde19cd8016f2",
             "constructionBinding": {
               "manifestKey": "collapsed-document-window",
               "recipe": {
@@ -2196,7 +2196,7 @@
           ["wnd--12320","collapsed-active","popup-window","cicns/cicn-n12320-popup-window.png","self"],
           ["wnd--12320","collapsed-inactive","popup-window","cicns/cicn-n12320-popup-window.png","self"]
         ],
-        "manifestSha256": "7161e9c1af58628e48f5c8deb9ebed0fd21f8df13639f20317eed4062d20f806",
+        "manifestSha256": "e22c6a49e397d485c771b2acaf3f02df5e0b0a4fe49a7df990ecd3a8babb97d4",
         "assetCount": 542,
         "assetPlanesSha256": "9601bcfa1631a7a2af31d742517a6be393a1a43d20c7657e6c264020f2e80829"
       },
@@ -2235,7 +2235,7 @@
         "forkSha256": "f086875e048980d1a7523b949000bc37daf3e22848c97230c107c4b426eba873",
         "agreement": "agrees",
         "status": "converted",
-        "manifestSha256": "26787d5a32adc6dc9d6f4b3e1add9212337058a5870ac3a9135564b67d06e0f1",
+        "manifestSha256": "cc04a1b88134358ca00f9cde18580b9dffe4cb51a42dedab0fafd3aead6663b8",
         "assetPlaneParity": true
       },
       "canonical": {
@@ -3574,7 +3574,7 @@
             "canonicalIdentity": "dialog",
             "equivalentKeys": ["dialog","wnd--14328"],
             "model": "sliced",
-            "valueSha256": "4b3ba1b8aff3b9001e79cae47e4e2c16f7d0f8c4f82f6e35ad70225e88ffdb1e",
+            "valueSha256": "761fd47f0ca67a09ff2ac9c203b88d87296cc17324238ca148da13aa64cb7067",
             "constructionBinding": {
               "manifestKey": "dialog",
               "recipe": {
@@ -3606,7 +3606,7 @@
             "canonicalIdentity": "alert",
             "equivalentKeys": ["alert","wnd--14326"],
             "model": "sliced",
-            "valueSha256": "4982d9e171a395050888824c07ec6c7fc06fb2d6c41c82c9e14cbec8077f8b45",
+            "valueSha256": "9a16fd14beaab084a1ccb348dedd844e43e56e10899765d93a6bb12b6dd268ae",
             "constructionBinding": {
               "manifestKey": "alert",
               "recipe": {
@@ -3638,7 +3638,7 @@
             "canonicalIdentity": "side-floating-utility-window",
             "equivalentKeys": ["side-floating-utility-window","wnd--14296"],
             "model": "sliced",
-            "valueSha256": "e58957038837818399c5b59330237e1e114e0230e4c72192aaca1951923d1a1e",
+            "valueSha256": "937f0fac724db66d1d96d5b6216acfb7e9265b3be066389e864adf0470672ca7",
             "constructionBinding": {
               "manifestKey": "side-floating-utility-window",
               "recipe": {
@@ -3670,7 +3670,7 @@
             "canonicalIdentity": "no-title-utility-window",
             "equivalentKeys": ["no-title-utility-window","wnd--14288"],
             "model": "sliced",
-            "valueSha256": "398f666a0a87204e0c52aae079908ed72dce4e0ca03f4a61606079df12f1b7a9",
+            "valueSha256": "22658b8ff0995093c9ac711e79655bf5c019a77d4e5ccad7c7cf18a18e0c4e66",
             "constructionBinding": {
               "manifestKey": "no-title-utility-window",
               "recipe": {
@@ -3702,7 +3702,7 @@
             "canonicalIdentity": "collapsed-document-window",
             "equivalentKeys": ["collapsed-document-window","wnd--14332"],
             "model": "sliced",
-            "valueSha256": "c68405f6c5c1dfbc7954f6f9c906e5dec19c112b8c9d3dd53382f4d3870231f4",
+            "valueSha256": "e0f4c9f4013a2980c06ec56cc00c2fd4019c98128a16aaab9df1fe5bc9cf0f47",
             "constructionBinding": {
               "manifestKey": "collapsed-document-window",
               "recipe": {
@@ -3734,7 +3734,7 @@
             "canonicalIdentity": "document-window",
             "equivalentKeys": ["document-window","wnd--14336","wnd--14335"],
             "model": "sliced",
-            "valueSha256": "9206e269cd4b538d60cc20e36ff5750789d4f9d48ce9a69b814404bcd55bcb2d",
+            "valueSha256": "966281d30838b0c556620d7bfc6c4947633027ef5c00250d5209a93f8d1ac268",
             "constructionBinding": {
               "manifestKey": "document-window",
               "recipe": {
@@ -3766,7 +3766,7 @@
             "canonicalIdentity": "movable-alert",
             "equivalentKeys": ["movable-alert","wnd--14322"],
             "model": "sliced",
-            "valueSha256": "5d605cca73e0fb56f2efdf79134289034269e73e171d166de9203b69c38dc68d",
+            "valueSha256": "bc692e790d8e915f6bd97d1f806c79104ddba84050de5b0910f3cca3a6940e71",
             "constructionBinding": {
               "manifestKey": "movable-alert",
               "recipe": {
@@ -3798,7 +3798,7 @@
             "canonicalIdentity": "movable-modal",
             "equivalentKeys": ["movable-modal","wnd--14324"],
             "model": "sliced",
-            "valueSha256": "5d34d2cbfb583498875044d620d0330f881d359c97fccab7178cc77df4f29731",
+            "valueSha256": "0573e1cc9e70be6adf3118a8a886fd278ce72f627226d3d281e129099077da6d",
             "constructionBinding": {
               "manifestKey": "movable-modal",
               "recipe": {
@@ -3830,7 +3830,7 @@
             "canonicalIdentity": "popup-window",
             "equivalentKeys": ["popup-window","wnd--12320"],
             "model": "sliced",
-            "valueSha256": "4766397740b2d23ec77a50951b76573c65b75d81efacb62fe75bb1e30ea9de3b",
+            "valueSha256": "7ce4602616b748c37198c8ca48a340a7270a0eb02bc18166935e78f27153d9e9",
             "constructionBinding": {
               "manifestKey": "popup-window",
               "recipe": {
@@ -3862,7 +3862,7 @@
             "canonicalIdentity": "titled-utility-window",
             "equivalentKeys": ["titled-utility-window","wnd--14304"],
             "model": "sliced",
-            "valueSha256": "7d3e1d6d4be6d09b7950b0fa86e86c2f80b495b2028ce1c427312b570d39f1ed",
+            "valueSha256": "6477a7f162f9addb2b9b6d81f7d1eca6264bdb65eef2a8ba437912e467091893",
             "constructionBinding": {
               "manifestKey": "titled-utility-window",
               "recipe": {
@@ -4012,7 +4012,7 @@
           ["wnd--12320","collapsed-active","popup-window","cicns/cicn-n12320-popup-window-active.png","self"],
           ["wnd--12320","collapsed-inactive","popup-window","cicns/cicn-n12320-popup-window-active.png","self"]
         ],
-        "manifestSha256": "26787d5a32adc6dc9d6f4b3e1add9212337058a5870ac3a9135564b67d06e0f1",
+        "manifestSha256": "cc04a1b88134358ca00f9cde18580b9dffe4cb51a42dedab0fafd3aead6663b8",
         "assetCount": 480,
         "assetPlanesSha256": "54df28321b510e2241e2121b4f2d2f80a3477195a7b87371567ecd8c9d14ea2a"
       },
@@ -4051,7 +4051,7 @@
         "forkSha256": "767bd46d55b98c55ac891ad3e917993681571a4485880e7105f01abd7224768a",
         "agreement": "agrees",
         "status": "converted",
-        "manifestSha256": "3305fa4339f2b7846dafad77af26309952f7d6acaa081513a4803389982d4c02",
+        "manifestSha256": "67310a5e05c803160757aea1ad8721272cb874f5217a259beba3eb339aefa2e2",
         "assetPlaneParity": true
       },
       "canonical": {
@@ -5101,7 +5101,7 @@
             "canonicalIdentity": "dialog",
             "equivalentKeys": ["dialog","wnd--14328"],
             "model": "sliced",
-            "valueSha256": "f9875d1210aeb15590b75e6c216a6f4a91c7dd411dd431c25eddc382d1152465",
+            "valueSha256": "76284a1648194f31025ddd68d0575e61c3ccdd645b242fab9d6af096dc6d5db5",
             "constructionBinding": {
               "manifestKey": "dialog",
               "recipe": {
@@ -5133,7 +5133,7 @@
             "canonicalIdentity": "alert",
             "equivalentKeys": ["alert","wnd--14326"],
             "model": "sliced",
-            "valueSha256": "a2fa25e64552e439ddd366679893f5530c7da0bffb96a1792d3d8f0157cdd78c",
+            "valueSha256": "67bdd289fb767642492b2af135916bc511727dc39c1883608a27224cb815ad24",
             "constructionBinding": {
               "manifestKey": "alert",
               "recipe": {
@@ -5165,7 +5165,7 @@
             "canonicalIdentity": "document-window",
             "equivalentKeys": ["document-window","wnd--14336","wnd--14335"],
             "model": "sliced",
-            "valueSha256": "d95e2a1d8f0a9741146ce43a904fd4d605a8e78de38e0d4a61d87850f2867a47",
+            "valueSha256": "63e559553892d00da14c02267363091ae4d4acccc7844ff1e628f84c6b338b1e",
             "constructionBinding": {
               "manifestKey": "document-window",
               "recipe": {
@@ -5197,7 +5197,7 @@
             "canonicalIdentity": "collapsed-document-window",
             "equivalentKeys": ["collapsed-document-window","wnd--14332"],
             "model": "sliced",
-            "valueSha256": "eebd00b6e53dca5ca6b875d28292e78bd17d147cf167f113891ac40ceed80929",
+            "valueSha256": "124b66e1ee2778988f2fd5f494b22e90551ef0f5e2285b275abe3db86d177e9c",
             "constructionBinding": {
               "manifestKey": "collapsed-document-window",
               "recipe": {
@@ -5229,7 +5229,7 @@
             "canonicalIdentity": "side-floating-utility-window",
             "equivalentKeys": ["side-floating-utility-window","wnd--14296"],
             "model": "sliced",
-            "valueSha256": "e0db75e8fd8a5cceabd5919cfcac5a70592ebcb8dcb49b0c0de9011235143924",
+            "valueSha256": "b611d247590342a6cb348bdc71e718e9abc3cc135f9907d3a6e98586d3299b69",
             "constructionBinding": {
               "manifestKey": "side-floating-utility-window",
               "recipe": {
@@ -5261,7 +5261,7 @@
             "canonicalIdentity": "no-title-utility-window",
             "equivalentKeys": ["no-title-utility-window","wnd--14288"],
             "model": "sliced",
-            "valueSha256": "3eadf77552be47e2e1150b0fa8276ccad4aacf74ea412e2c7f5540d0ce342ee1",
+            "valueSha256": "586253e1b4ddec0e8deeef386737276a2376d6329d7e8c3889679ceec6ea4ec7",
             "constructionBinding": {
               "manifestKey": "no-title-utility-window",
               "recipe": {
@@ -5293,7 +5293,7 @@
             "canonicalIdentity": "movable-modal",
             "equivalentKeys": ["movable-modal","wnd--14324"],
             "model": "sliced",
-            "valueSha256": "b9e29ebb76f02fde7ad6df2cf9032d7acec23bd623ad7cfcba2d2abe7e464698",
+            "valueSha256": "fdbba3656934207cae553a633ab89fbdcd5330bf4a8305dcf035c8544a030301",
             "constructionBinding": {
               "manifestKey": "movable-modal",
               "recipe": {
@@ -5325,7 +5325,7 @@
             "canonicalIdentity": "movable-alert",
             "equivalentKeys": ["movable-alert","wnd--14322"],
             "model": "sliced",
-            "valueSha256": "cf8161db0f35049559770df0e7d90497baeff89abd35aeec6e55126d108fbb64",
+            "valueSha256": "83a6485137562c8f844a31e392903e262a054194bf1087e57758f446b516cc32",
             "constructionBinding": {
               "manifestKey": "movable-alert",
               "recipe": {
@@ -5357,7 +5357,7 @@
             "canonicalIdentity": "titled-utility-window",
             "equivalentKeys": ["titled-utility-window","wnd--14304"],
             "model": "sliced",
-            "valueSha256": "698cbba5c7d5c4267915531b9a71caccf004618598633e648d9fa8c0c312ff28",
+            "valueSha256": "78a27e4d950c9d97e3b5a5afa6f834545d45b2ff4e03598e136e70c8b01e6b79",
             "constructionBinding": {
               "manifestKey": "titled-utility-window",
               "recipe": {
@@ -5389,7 +5389,7 @@
             "canonicalIdentity": "popup-window",
             "equivalentKeys": ["popup-window","wnd--12320"],
             "model": "sliced",
-            "valueSha256": "3af95caaa5ee1fcdc501e5ca275fdc9b4ae8050007da3e14e918c23d9672273f",
+            "valueSha256": "6e94ac74aef468b246f2500a30864094ddc8e92497d3b21b65eb6f4c2171b16f",
             "constructionBinding": {
               "manifestKey": "popup-window",
               "recipe": {
@@ -5539,7 +5539,7 @@
           ["wnd--12320","collapsed-active","popup-window","cicns/cicn-n12320-popup-window-active.png","self"],
           ["wnd--12320","collapsed-inactive","popup-window","cicns/cicn-n12320-popup-window-active.png","self"]
         ],
-        "manifestSha256": "3305fa4339f2b7846dafad77af26309952f7d6acaa081513a4803389982d4c02",
+        "manifestSha256": "67310a5e05c803160757aea1ad8721272cb874f5217a259beba3eb339aefa2e2",
         "assetCount": 368,
         "assetPlanesSha256": "bbcad2e1aebbf87dafe9d20561647d45bad29ecdf2ea4939b0b9850b172d80f7"
       },
@@ -5578,7 +5578,7 @@
         "forkSha256": "247e134606b1ab6210a7cdef0ab141cf90378e2c29b3fadbd30741123faef0f5",
         "agreement": "agrees",
         "status": "converted",
-        "manifestSha256": "ef56cfbb807d10d7fa3a38e771d00c9ccf53b87121545ef317ac37a9ec38f996",
+        "manifestSha256": "ec761df8ba5a51698ee99139549c3a8f6189419ec318215d19d97bb3287adcb7",
         "assetPlaneParity": true
       },
       "canonical": {
@@ -6921,7 +6921,7 @@
             "canonicalIdentity": "popup-window",
             "equivalentKeys": ["popup-window","wnd--12320"],
             "model": "sliced",
-            "valueSha256": "c647c69bc74cf72e35b2a8fa69c999dae960eba54f1e36fb62de970176a678c1",
+            "valueSha256": "f9a0b94872da8e1bac76d37ecc3e326524c902428f43d2a6d835fc4c5bbc160d",
             "constructionBinding": {
               "manifestKey": "popup-window",
               "recipe": {
@@ -6953,7 +6953,7 @@
             "canonicalIdentity": "movable-alert",
             "equivalentKeys": ["movable-alert","wnd--14322"],
             "model": "sliced",
-            "valueSha256": "8d2f29afabcba5a8999ae7977034a019a406a72af9299045424c2ebd1d9e88dc",
+            "valueSha256": "59a5f39dfed414ae4055fe6e3b56b988f29112fe32823e6387262af9659b9526",
             "constructionBinding": {
               "manifestKey": "movable-alert",
               "recipe": {
@@ -6985,7 +6985,7 @@
             "canonicalIdentity": "side-floating-utility-window",
             "equivalentKeys": ["side-floating-utility-window","wnd--14296"],
             "model": "sliced",
-            "valueSha256": "1bbc3fa8967b324b3723191fd2196d670ef78f0f7204ff2380fc75814fc4eea9",
+            "valueSha256": "dbd5fe8c92db77e0269f26915eadacea5060b8ab9be7beff7464a3d7ff6a865f",
             "constructionBinding": {
               "manifestKey": "side-floating-utility-window",
               "recipe": {
@@ -7017,7 +7017,7 @@
             "canonicalIdentity": "movable-modal",
             "equivalentKeys": ["movable-modal","wnd--14324"],
             "model": "sliced",
-            "valueSha256": "9952ae88da4a45d8abe26518a1cac5fdd6ef713afc033c1cae4a1a26c036aee1",
+            "valueSha256": "573ff9bd2bc83959c4b96888b479e34e2cc25ef4256518d6c09d800263f828cd",
             "constructionBinding": {
               "manifestKey": "movable-modal",
               "recipe": {
@@ -7049,7 +7049,7 @@
             "canonicalIdentity": "collapsed-no-title-utility-window",
             "equivalentKeys": ["collapsed-no-title-utility","collapsed-no-title-utility-window","wnd--14284"],
             "model": "sliced",
-            "valueSha256": "c2fe5536c306b41793f0ade0016ad9b38a3789e1186557b21cb8063a542c0658",
+            "valueSha256": "2f33ec55b6c67fdad95c9223ec90d2bb843c38994a7864a281ee6d0986fbc8ea",
             "constructionBinding": {
               "manifestKey": "collapsed-no-title-utility",
               "recipe": {
@@ -7081,7 +7081,7 @@
             "canonicalIdentity": "collapsed-titled-utility-window",
             "equivalentKeys": ["collapsed-titled-utility","collapsed-titled-utility-window","wnd--14300"],
             "model": "sliced",
-            "valueSha256": "345739931f931caa72976bd58647b8256b2cbc6f48a6df7aeed56f41aeafcc74",
+            "valueSha256": "28af6c75c12ef1ea3f6f8cb52c0d798fa988e250a08cb706ecd914051193079a",
             "constructionBinding": {
               "manifestKey": "collapsed-titled-utility",
               "recipe": {
@@ -7113,7 +7113,7 @@
             "canonicalIdentity": "dialog",
             "equivalentKeys": ["dialog","wnd--14328"],
             "model": "sliced",
-            "valueSha256": "e0674b17201bed914f983b68acd3719e4d26f210221b25ed8ce3131cc889d8f0",
+            "valueSha256": "988e13bea2ebb7288c4833bc51f3cb9c65af3deb9af74cb8197dfd9939c179f7",
             "constructionBinding": {
               "manifestKey": "dialog",
               "recipe": {
@@ -7145,7 +7145,7 @@
             "canonicalIdentity": "document-window",
             "equivalentKeys": ["document-window","wnd--14336","wnd--14335"],
             "model": "sliced",
-            "valueSha256": "be0d771523c82d8fcd9642338f6208d4f45c11653c9dc2f96ab74e1e2644d2d1",
+            "valueSha256": "7ca537dbe535305f62e3e9c8f209ae6a9a2762f56ade84ced9580cc05b513180",
             "constructionBinding": {
               "manifestKey": "document-window",
               "recipe": {
@@ -7177,7 +7177,7 @@
             "canonicalIdentity": "collapsed-document-window",
             "equivalentKeys": ["collapsed-document-window","wnd--14332"],
             "model": "sliced",
-            "valueSha256": "38d627b2ee085ce20f03b6373afce357e4170ca06094554eb6a5f908cc125483",
+            "valueSha256": "c40855c375e45a8bc6f2727ec0467e77ba21624945a2319b05b90bbe05ca7007",
             "constructionBinding": {
               "manifestKey": "collapsed-document-window",
               "recipe": {
@@ -7209,7 +7209,7 @@
             "canonicalIdentity": "alert",
             "equivalentKeys": ["alert","wnd--14326"],
             "model": "sliced",
-            "valueSha256": "b8632ae04740fc29c7947f4cc656ebd7d0ba9f2c2a4187042c23c536199fea21",
+            "valueSha256": "9a26df7277c55cd91d60f6b40b7836adff9b28d2eec2317875ff77e4b6429d89",
             "constructionBinding": {
               "manifestKey": "alert",
               "recipe": {
@@ -7241,7 +7241,7 @@
             "canonicalIdentity": "titled-utility-window",
             "equivalentKeys": ["titled-utility-window","wnd--14304"],
             "model": "sliced",
-            "valueSha256": "6bff83d8bb09083ed2b1bbf9138cbd60e0e643514a18d940285875fd37d19d62",
+            "valueSha256": "4d99c3d0fcee54e7043558fb5ec04b07ef14f61ae96b82fc13103f9b0ea8087b",
             "constructionBinding": {
               "manifestKey": "titled-utility-window",
               "recipe": {
@@ -7273,7 +7273,7 @@
             "canonicalIdentity": "no-title-utility-window",
             "equivalentKeys": ["no-title-utility-window","wnd--14288"],
             "model": "sliced",
-            "valueSha256": "25879cb51a3d59c1a8981b4bb336ac8df2e50e7cc9a50e922708faa23e1324ba",
+            "valueSha256": "ddd75a650a6ee5173b324d4f407395cf6b1bbe712fb539c6fd717e5ab04e58a2",
             "constructionBinding": {
               "manifestKey": "no-title-utility-window",
               "recipe": {
@@ -7423,7 +7423,7 @@
           ["wnd--12320","collapsed-active","popup-window","cicns/cicn-n12320-popup-window.png","self"],
           ["wnd--12320","collapsed-inactive","popup-window","cicns/cicn-n12320-popup-window.png","self"]
         ],
-        "manifestSha256": "ef56cfbb807d10d7fa3a38e771d00c9ccf53b87121545ef317ac37a9ec38f996",
+        "manifestSha256": "ec761df8ba5a51698ee99139549c3a8f6189419ec318215d19d97bb3287adcb7",
         "assetCount": 514,
         "assetPlanesSha256": "142dce4c47c8b339dd7a097ffc290b13ffce00ab2f5a3ebfc00e8c6d0e84d6d2"
       },
@@ -7462,7 +7462,7 @@
         "forkSha256": "8eee0776811b5b5b1fa251507e70e8c4a4fd6228eb702e0e583bc40b9f06a2bb",
         "agreement": "agrees",
         "status": "converted",
-        "manifestSha256": "db465999fdca2fcf0b5554ad1aa4d9475cdbaee47800d0c93f983cb818fe4e09",
+        "manifestSha256": "7ff5a722904b25eef2e093babab7eea02dc1b031f0753e378fee5443838c6783",
         "assetPlaneParity": true
       },
       "canonical": {
@@ -9237,7 +9237,7 @@
             "canonicalIdentity": "dialog",
             "equivalentKeys": ["dialog","wnd--14328"],
             "model": "sliced",
-            "valueSha256": "0990423255676c9247d2022754e5cce48b50909ba702207ef4db26c45bb542f3",
+            "valueSha256": "f0a02760bf3cd4b651f5abdf85d4ae16cfc0f75046133ef532d3b2250170bcee",
             "constructionBinding": {
               "manifestKey": "dialog",
               "recipe": {
@@ -9269,7 +9269,7 @@
             "canonicalIdentity": "alert",
             "equivalentKeys": ["alert","wnd--14326"],
             "model": "sliced",
-            "valueSha256": "ca9099d224507f8e59ccbca9d8edfa22a39974a88959ef409cb08833979f32d1",
+            "valueSha256": "e3497d7ed14ac1b5678ca865fe6bda2fae4442972208e2d1822b74b40caa133c",
             "constructionBinding": {
               "manifestKey": "alert",
               "recipe": {
@@ -9301,7 +9301,7 @@
             "canonicalIdentity": "movable-modal",
             "equivalentKeys": ["movable-modal","wnd--14324"],
             "model": "sliced",
-            "valueSha256": "bc1d384763fa198a7e5682d627da18ad304a14e17cedf053d9722101c6f065dc",
+            "valueSha256": "ca630d198bc17b48a4bd0139a5e4c52d4c69a35fbe675aade54ad516dcb55b5f",
             "constructionBinding": {
               "manifestKey": "movable-modal",
               "recipe": {
@@ -9333,7 +9333,7 @@
             "canonicalIdentity": "movable-alert",
             "equivalentKeys": ["movable-alert","wnd--14322"],
             "model": "sliced",
-            "valueSha256": "3b8a620614072cc5ad6ac637108b397a953f18b8ad6b525897fb4e51acb15dab",
+            "valueSha256": "771333f1a013c7a10eb2dd76a1f601c292984524429de655701465aa3d666477",
             "constructionBinding": {
               "manifestKey": "movable-alert",
               "recipe": {
@@ -9365,7 +9365,7 @@
             "canonicalIdentity": "titled-utility-window",
             "equivalentKeys": ["titled-utility-window","wnd--14304"],
             "model": "sliced",
-            "valueSha256": "ef8f17f613a3527dd967ae8142de62f4a0b77f60dba613c4b9c706e00752dacc",
+            "valueSha256": "cefad426a1b551249b5849f5fb7f454e6053e7088d9314ca31b5d89ed1dc91b7",
             "constructionBinding": {
               "manifestKey": "titled-utility-window",
               "recipe": {
@@ -9397,7 +9397,7 @@
             "canonicalIdentity": "side-floating-utility-window",
             "equivalentKeys": ["side-floating-utility-window","wnd--14296"],
             "model": "sliced",
-            "valueSha256": "9956e87d429c1f88f0708ac39fc93cd29112a6d2d6ef0b226265612eda921ad1",
+            "valueSha256": "b08a750b4ab64acc427cba46284f8dcb7647040930d4e3ba948ce8c4a11c3483",
             "constructionBinding": {
               "manifestKey": "side-floating-utility-window",
               "recipe": {
@@ -9429,7 +9429,7 @@
             "canonicalIdentity": "no-title-utility-window",
             "equivalentKeys": ["no-title-utility-window","wnd--14288"],
             "model": "sliced",
-            "valueSha256": "ba6db351e145921be3a31ec5861c571dc7540ca284a01f4e31e7424c4b287082",
+            "valueSha256": "3a6d05dfffe139fec80df95bdae4e4af107ef5fe9f44f690d42cc7d895f00950",
             "constructionBinding": {
               "manifestKey": "no-title-utility-window",
               "recipe": {
@@ -9461,7 +9461,7 @@
             "canonicalIdentity": "collapsed-document-window",
             "equivalentKeys": ["collapsed-document-window","wnd--14332"],
             "model": "sliced",
-            "valueSha256": "d9c03a668d2e30cda2cc66249d654394d65c0c89b5901136073def838071a135",
+            "valueSha256": "4c6ea167dd74562f803d6047489b5b3164ed3b3dfe896c2cf96751d383eb6600",
             "constructionBinding": {
               "manifestKey": "collapsed-document-window",
               "recipe": {
@@ -9493,7 +9493,7 @@
             "canonicalIdentity": "document-window",
             "equivalentKeys": ["document-window","wnd--14336","wnd--14335"],
             "model": "sliced",
-            "valueSha256": "671e94293b579bbe8d12190951316c456b287a91baac58f01ac0b2169b27b73a",
+            "valueSha256": "cd373dddb004ea0952833ebe4701414ed4dd35fdac7788f8d5ac6e75fa82cd6c",
             "constructionBinding": {
               "manifestKey": "document-window",
               "recipe": {
@@ -9525,7 +9525,7 @@
             "canonicalIdentity": "popup-window",
             "equivalentKeys": ["popup-window","wnd--12320"],
             "model": "sliced",
-            "valueSha256": "cb712193a456fd45dc7c51a1fb165cbc08869b949743a5acbfc34eef349fe56d",
+            "valueSha256": "05c69e7493fc0dea750fdc940d3242907e5a5df2ce73717098b8d8011e1d6d00",
             "constructionBinding": {
               "manifestKey": "popup-window",
               "recipe": {
@@ -9675,7 +9675,7 @@
           ["wnd--12320","collapsed-active","popup-window","cicns/cicn-n12320-pop-up-window.png","self"],
           ["wnd--12320","collapsed-inactive","popup-window","cicns/cicn-n12320-pop-up-window.png","self"]
         ],
-        "manifestSha256": "db465999fdca2fcf0b5554ad1aa4d9475cdbaee47800d0c93f983cb818fe4e09",
+        "manifestSha256": "7ff5a722904b25eef2e093babab7eea02dc1b031f0753e378fee5443838c6783",
         "assetCount": 671,
         "assetPlanesSha256": "b471faf23a17ceba1bd96400878cb2df0a8697b4d39eb449424e726d907b5f94"
       },
@@ -9714,7 +9714,7 @@
         "forkSha256": "4b7bd9b05fc1ef0b98531a1c9580205f40f7e2eaa67842107146b62f414e0369",
         "agreement": "agrees",
         "status": "converted",
-        "manifestSha256": "adb43a5f4885f398c41b96282fdd73a294d1b16901f81f7dabb42b0b55f8d254",
+        "manifestSha256": "0a9b0fec552d8af59519f415c63bc219cd6f752100513a56642b4edc514c5936",
         "assetPlaneParity": true
       },
       "canonical": {
@@ -9895,8 +9895,8 @@
           ["cicn",-14332,"active document",96,338,"1373794b64c8c37016d198b7b0eec4a758b0876084576d769e595d93ff3bb9be","ok",null,null,["chromeElements/active-document","windowTypes/document-window","windowTypes/collapsed-document-window"]],
           ["cicn",-14312,"Inactive Finder Header",96,274,"5b6bd2441fc66da9b73736e31c9ca4ed23b3fe86001e2ccb4666f53f6e02b663","ok",null,null,["chromeElements/inactive-finder-header"]],
           ["cicn",-14311,"Inactive Finder Header",96,274,"30dfeb7af6937ba2ef00eb6a188dc839fdea0bb8b3a93ba9fda5bbffb40e341c","ok",null,null,["chromeElements/inactive-finder-header-2"]],
-          ["cicn",-14320,"Inactive Utility Window",96,274,"f1fb1e5d70e26df334271602a512734c6d81d4e80eb7e6ffbe9567d6c9448dbb","ok",null,null,["chromeElements/inactive-utility-window","windowTypes/titled-utility-window","windowTypes/collapsed-titled-utility","windowTypes/no-title-utility-window"]],
-          ["cicn",-14316,"Active Utility Window",96,274,"ed47dcd6c2766d4c80e438bff20332f9b4de288193b12f58ea13beeade4fbd99","ok",null,null,["chromeElements/active-utility-window","windowTypes/titled-utility-window","windowTypes/collapsed-titled-utility","windowTypes/no-title-utility-window"]],
+          ["cicn",-14320,"Inactive Utility Window",96,274,"f1fb1e5d70e26df334271602a512734c6d81d4e80eb7e6ffbe9567d6c9448dbb","ok",null,null,["chromeElements/inactive-utility-window","windowTypes/titled-utility-window","windowTypes/collapsed-titled-utility","windowTypes/no-title-utility-window","windowTypes/collapsed-no-title-utility"]],
+          ["cicn",-14316,"Active Utility Window",96,274,"ed47dcd6c2766d4c80e438bff20332f9b4de288193b12f58ea13beeade4fbd99","ok",null,null,["chromeElements/active-utility-window","windowTypes/titled-utility-window","windowTypes/collapsed-titled-utility","windowTypes/no-title-utility-window","windowTypes/collapsed-no-title-utility"]],
           ["cicn",-14313,"Active Utility Window Grow Box",96,338,"f1952cc645203be4f3050e435290b929e583b61062ae92e7cd3b6c8298f1d7c0","ok",null,null,["chromeElements/active-utility-window-grow-box","windowTypes/titled-utility-window"]],
           ["cicn",-14317,"Inactive Utility Window Grow Box",96,322,"ae7a920a73c60d826476be7e217c5d72a8319e4479799300dfcb708cbf03fe82","ok",null,null,["chromeElements/inactive-utility-window-grow-box"]],
           ["cicn",-14319,"Inactive Side Utility Window",96,274,"679f2cf2c8c9323246c84034a1b90f73864f8966c35bc449275f67ced37218fa","ok",null,null,["chromeElements/inactive-side-utility-window","windowTypes/side-floating-utility-window","windowTypes/collapsed-side-utility"]],
@@ -10980,6 +10980,39 @@
                 "candidateOccurrences": [181]
               }
             ]
+          },
+          {
+            "key": "collapsed-no-title-utility",
+            "canonicalIdentity": "collapsed-no-title-utility-window",
+            "equivalentKeys": ["collapsed-no-title-utility","collapsed-no-title-utility-window","wnd--14284"],
+            "model": "corner-sprite",
+            "valueSha256": "e91c825ec6d015c7751317a99812d544e6e87019a4596ac6908b29f512799a6e",
+            "constructionBinding": {
+              "manifestKey": "collapsed-no-title-utility",
+              "recipe": {
+                "kind": "corner-sprite-table",
+                "key": "collapsed-no-title-utility",
+                "trigger": "no-emitted-wnd-window-types"
+              },
+              "chrome": {
+                "active": 176,
+                "inactive": 175
+              },
+              "cinfResourceIndex": null,
+              "sprites": {}
+            },
+            "assets": [
+              {
+                "field": "chrome.active",
+                "path": "cicns/cicn-n14316-active-utility-window.png",
+                "candidateOccurrences": [176]
+              },
+              {
+                "field": "chrome.inactive",
+                "path": "cicns/cicn-n14320-inactive-utility-window.png",
+                "candidateOccurrences": [175]
+              }
+            ]
           }
         ],
         "windowSelections": [
@@ -11027,6 +11060,10 @@
           ["no-title-utility-window","inactive","no-title-utility-window","cicns/cicn-n14320-inactive-utility-window.png","self"],
           ["no-title-utility-window","collapsed-active","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
           ["no-title-utility-window","collapsed-inactive","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
+          ["collapsed-no-title-utility","active","collapsed-no-title-utility","cicns/cicn-n14316-active-utility-window.png","self"],
+          ["collapsed-no-title-utility","inactive","collapsed-no-title-utility","cicns/cicn-n14320-inactive-utility-window.png","self"],
+          ["collapsed-no-title-utility","collapsed-active","collapsed-no-title-utility","cicns/cicn-n14316-active-utility-window.png","self"],
+          ["collapsed-no-title-utility","collapsed-inactive","collapsed-no-title-utility","cicns/cicn-n14316-active-utility-window.png","self"],
           ["wnd--14336","active","document-window","cicns/cicn-n14332-active-document.png","self"],
           ["wnd--14336","inactive","document-window","cicns/cicn-n14336-inactive-document.png","self"],
           ["wnd--14336","collapsed-active","document-window","cicns/cicn-n14332-active-document.png","self"],
@@ -11083,18 +11120,14 @@
           ["wnd--14288","inactive","no-title-utility-window","cicns/cicn-n14320-inactive-utility-window.png","self"],
           ["wnd--14288","collapsed-active","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
           ["wnd--14288","collapsed-inactive","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
-          ["collapsed-no-title-utility-window","active","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
-          ["collapsed-no-title-utility-window","inactive","no-title-utility-window","cicns/cicn-n14320-inactive-utility-window.png","self"],
-          ["collapsed-no-title-utility-window","collapsed-active","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
-          ["collapsed-no-title-utility-window","collapsed-inactive","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
-          ["collapsed-no-title-utility","active","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
-          ["collapsed-no-title-utility","inactive","no-title-utility-window","cicns/cicn-n14320-inactive-utility-window.png","self"],
-          ["collapsed-no-title-utility","collapsed-active","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
-          ["collapsed-no-title-utility","collapsed-inactive","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
-          ["wnd--14284","active","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
-          ["wnd--14284","inactive","no-title-utility-window","cicns/cicn-n14320-inactive-utility-window.png","self"],
-          ["wnd--14284","collapsed-active","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
-          ["wnd--14284","collapsed-inactive","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
+          ["collapsed-no-title-utility-window","active","collapsed-no-title-utility","cicns/cicn-n14316-active-utility-window.png","self"],
+          ["collapsed-no-title-utility-window","inactive","collapsed-no-title-utility","cicns/cicn-n14320-inactive-utility-window.png","self"],
+          ["collapsed-no-title-utility-window","collapsed-active","collapsed-no-title-utility","cicns/cicn-n14316-active-utility-window.png","self"],
+          ["collapsed-no-title-utility-window","collapsed-inactive","collapsed-no-title-utility","cicns/cicn-n14316-active-utility-window.png","self"],
+          ["wnd--14284","active","collapsed-no-title-utility","cicns/cicn-n14316-active-utility-window.png","self"],
+          ["wnd--14284","inactive","collapsed-no-title-utility","cicns/cicn-n14320-inactive-utility-window.png","self"],
+          ["wnd--14284","collapsed-active","collapsed-no-title-utility","cicns/cicn-n14316-active-utility-window.png","self"],
+          ["wnd--14284","collapsed-inactive","collapsed-no-title-utility","cicns/cicn-n14316-active-utility-window.png","self"],
           ["popup-window","active","document-window","cicns/cicn-n14332-active-document.png","self"],
           ["popup-window","inactive","document-window","cicns/cicn-n14336-inactive-document.png","self"],
           ["popup-window","collapsed-active","document-window","cicns/cicn-n14332-active-document.png","self"],
@@ -11104,7 +11137,7 @@
           ["wnd--12320","collapsed-active","document-window","cicns/cicn-n14332-active-document.png","self"],
           ["wnd--12320","collapsed-inactive","document-window","cicns/cicn-n14332-active-document.png","self"]
         ],
-        "manifestSha256": "adb43a5f4885f398c41b96282fdd73a294d1b16901f81f7dabb42b0b55f8d254",
+        "manifestSha256": "0a9b0fec552d8af59519f415c63bc219cd6f752100513a56642b4edc514c5936",
         "assetCount": 343,
         "assetPlanesSha256": "3bc3bf84ab271b360fa76164920a757bf59e65d2dea4839506df11f1ea40cc11"
       },
@@ -11143,7 +11176,7 @@
         "forkSha256": "f8d70eb86bdda078c07ba509a0e069f525700b7af1a2c7b022265c65decf2bac",
         "agreement": "agrees",
         "status": "converted",
-        "manifestSha256": "01e3082a2cf1e1be80c29278bff38baee903b17f53f14902d1c118d6586053c7",
+        "manifestSha256": "469776204ad1dc5950d0984d7e3825f0d3382fa206af32fad14fb0e3b878d53c",
         "assetPlaneParity": true
       },
       "canonical": {
@@ -13170,7 +13203,7 @@
             "canonicalIdentity": "document-window",
             "equivalentKeys": ["document-window","wnd--14336","wnd--14335"],
             "model": "sliced",
-            "valueSha256": "78876171f8364eda1a60f3199d4f7dcbcc7ba30c692e763935c05fd53425ad1f",
+            "valueSha256": "a1523f0c06c12bcd6b265fc08f7fdb8dbb4f46c3821ae6e16c1d3d8bfa9dae1a",
             "constructionBinding": {
               "manifestKey": "document-window",
               "recipe": {
@@ -13202,7 +13235,7 @@
             "canonicalIdentity": "collapsed-document-window",
             "equivalentKeys": ["collapsed-document-window","wnd--14332"],
             "model": "sliced",
-            "valueSha256": "e7ac685c7c5301445d8d206bbb650133691cf80decaa69fdb7c13663baebea8e",
+            "valueSha256": "06af46ecff24013ff47b09330971d55239e0e880ce58e82ff4ccd5bee7ea3329",
             "constructionBinding": {
               "manifestKey": "collapsed-document-window",
               "recipe": {
@@ -13234,7 +13267,7 @@
             "canonicalIdentity": "dialog",
             "equivalentKeys": ["dialog","wnd--14328"],
             "model": "sliced",
-            "valueSha256": "b60e812f367d3f36532a6b995df039a25e7c6e7870d710d3bd03845b0b1f8a5b",
+            "valueSha256": "61ea9f19a5d50784197cecede13053532de9d50d9973e2f010aa82fc5c3f81e2",
             "constructionBinding": {
               "manifestKey": "dialog",
               "recipe": {
@@ -13266,7 +13299,7 @@
             "canonicalIdentity": "alert",
             "equivalentKeys": ["alert","wnd--14326"],
             "model": "sliced",
-            "valueSha256": "6618fc4adea2f1370bf9636cd487aef1a2b9ea61f2ef7b541d1d7d33fc2b8be1",
+            "valueSha256": "70d0e4fec9b11cd2e335b1469201305d7ef46990b4bc837069f337d9f94d6d90",
             "constructionBinding": {
               "manifestKey": "alert",
               "recipe": {
@@ -13298,7 +13331,7 @@
             "canonicalIdentity": "movable-modal",
             "equivalentKeys": ["movable-modal","wnd--14324"],
             "model": "sliced",
-            "valueSha256": "62f438d1872ce2bb6485c508426e19fea2e26908d32edecc00d0f093ea1c5d82",
+            "valueSha256": "0edd9113da2a32b4e838a69b9ebc102b0acaad306b9a695f4ee9838460da507d",
             "constructionBinding": {
               "manifestKey": "movable-modal",
               "recipe": {
@@ -13330,7 +13363,7 @@
             "canonicalIdentity": "movable-alert",
             "equivalentKeys": ["movable-alert","wnd--14322"],
             "model": "sliced",
-            "valueSha256": "eddd76c3587734e2a0c73ed18d7911d260c1dd52437c8e9cfa9ac287132b6b04",
+            "valueSha256": "c614a1beb0685bbcfe65903616a154b2119e734a989a35ad2c60026d55acd258",
             "constructionBinding": {
               "manifestKey": "movable-alert",
               "recipe": {
@@ -13362,7 +13395,7 @@
             "canonicalIdentity": "titled-utility-window",
             "equivalentKeys": ["titled-utility-window","wnd--14304"],
             "model": "sliced",
-            "valueSha256": "35db3f67a9b264c22234a9d7b6b90eb3f52ac6be76a3ca24ce9e5c282f610efd",
+            "valueSha256": "8c06a1ec1fb696b364159088af56b86b8bd2393e3cf4d67bec8d5587cab9ff1e",
             "constructionBinding": {
               "manifestKey": "titled-utility-window",
               "recipe": {
@@ -13394,7 +13427,7 @@
             "canonicalIdentity": "collapsed-titled-utility-window",
             "equivalentKeys": ["collapsed-titled-utility","collapsed-titled-utility-window","wnd--14300"],
             "model": "sliced",
-            "valueSha256": "e8b9b35e6cb11ee16a7dd9253334d69b31e1c9b399531025bec85be80ecd4c1f",
+            "valueSha256": "4c9eabbfac1045aebccd11b69e7adbee6ea3419ed8e23896dcd99fd0ac4456c2",
             "constructionBinding": {
               "manifestKey": "collapsed-titled-utility",
               "recipe": {
@@ -13426,7 +13459,7 @@
             "canonicalIdentity": "side-floating-utility-window",
             "equivalentKeys": ["side-floating-utility-window","wnd--14296"],
             "model": "sliced",
-            "valueSha256": "8f9fe1bd1ac276168450da3f27c1684ce81158e3d46d1a0d27db99ff640c2320",
+            "valueSha256": "9cdfa8218015cbd01d9429deb8b0c9f87e6e89470e5eb73c6a6727f221c5be7e",
             "constructionBinding": {
               "manifestKey": "side-floating-utility-window",
               "recipe": {
@@ -13458,7 +13491,7 @@
             "canonicalIdentity": "collapsed-side-floating-utility-window",
             "equivalentKeys": ["collapsed-side-utility","collapsed-side-floating-utility-window","wnd--14292"],
             "model": "sliced",
-            "valueSha256": "2f4a662906a9adb79726cf7f1cc43075be53f17a4e2f992e1b8924c91ac20fad",
+            "valueSha256": "52d4b85d42713ee446099deefd87e25f6cb4b32908851b1026ffccd1fc26f5de",
             "constructionBinding": {
               "manifestKey": "collapsed-side-utility",
               "recipe": {
@@ -13490,7 +13523,7 @@
             "canonicalIdentity": "no-title-utility-window",
             "equivalentKeys": ["no-title-utility-window","wnd--14288"],
             "model": "sliced",
-            "valueSha256": "622df4a09b86ecd36717d678e11a1906526381df41834b8e31beb546b324bb3d",
+            "valueSha256": "72524d47b794c5f9e62dab22fe4838d3fa9c7cbf763ec380f0b1fe293190009e",
             "constructionBinding": {
               "manifestKey": "no-title-utility-window",
               "recipe": {
@@ -13522,7 +13555,7 @@
             "canonicalIdentity": "collapsed-no-title-utility-window",
             "equivalentKeys": ["collapsed-no-title-utility","collapsed-no-title-utility-window","wnd--14284"],
             "model": "sliced",
-            "valueSha256": "c37b78852cdd3c4fc7ec604ee30bd534cad4acedf82d6e342ffe2587a75ab6f6",
+            "valueSha256": "4999ad594a0cbc9094b5a63e096c9362b1213d5523edbd116948a3211eed8f64",
             "constructionBinding": {
               "manifestKey": "collapsed-no-title-utility",
               "recipe": {
@@ -13554,7 +13587,7 @@
             "canonicalIdentity": "popup-window",
             "equivalentKeys": ["popup-window","wnd--12320"],
             "model": "sliced",
-            "valueSha256": "d64583e5a5dfc48abd1395939539d087b0dfbb99e40a68c3fb0aacded4ebd30c",
+            "valueSha256": "0236d07bd95ac4acedb2085cf822b6ee3c893da504568baeaa21dec4946dcfa5",
             "constructionBinding": {
               "manifestKey": "popup-window",
               "recipe": {
@@ -13704,7 +13737,7 @@
           ["wnd--12320","collapsed-active","popup-window","cicns/cicn-n12320-unnamed.png","self"],
           ["wnd--12320","collapsed-inactive","popup-window","cicns/cicn-n12320-unnamed.png","self"]
         ],
-        "manifestSha256": "01e3082a2cf1e1be80c29278bff38baee903b17f53f14902d1c118d6586053c7",
+        "manifestSha256": "469776204ad1dc5950d0984d7e3825f0d3382fa206af32fad14fb0e3b878d53c",
         "assetCount": 807,
         "assetPlanesSha256": "a61241da6724cb77c90748d5a1bbe15645eb5029b6da4a832a0f4d5289b44226"
       },
@@ -13743,7 +13776,7 @@
         "forkSha256": "84b1b90c49909cdf2107759784c0c5aa2da14499dec1cc070e9a67eac77db9fc",
         "agreement": "agrees",
         "status": "converted",
-        "manifestSha256": "e68635954b9c21e5d4835d6ebdec80fd2dd61ccb1d631b5baf4b7c2dee7894ad",
+        "manifestSha256": "c18384b099441d5012e450737c97ff8b03198cb5917fe6b5d86514dd673c7cf5",
         "assetPlaneParity": true
       },
       "canonical": {
@@ -13905,11 +13938,11 @@
           ["cicn",-14321,"alert racing stripes",96,218,"af79b0c7ae118f6886394fd81bf12e93d7ece62cbdabd618d99606065fc58e49","ok",null,null,["chromeElements/alert-racing-stripes","windowTypes/movable-alert"]],
           ["cicn",-12320,"",96,1658,"e400957c6aa8c042828debc8eabaa727635b0c3404b4e9985b5abff239d32f04","ok",null,null,["chromeElements/cicn--12320"]],
           ["cicn",-10238,"",96,346,"415d43d0bddc7676eee756ba412370bfee03acfc2e265c8820e8ae419916f392","ok",null,null,["chromeElements/cicn--10238"]],
-          ["cicn",-14316,"Active Utility Window",96,258,"c59755468d6c42a61f28effdae09a124b3e66d485be6643cbf5071a3dd3af101","ok",null,null,["chromeElements/active-utility-window","windowTypes/titled-utility-window","windowTypes/collapsed-titled-utility","windowTypes/no-title-utility-window"]],
+          ["cicn",-14316,"Active Utility Window",96,258,"c59755468d6c42a61f28effdae09a124b3e66d485be6643cbf5071a3dd3af101","ok",null,null,["chromeElements/active-utility-window","windowTypes/titled-utility-window","windowTypes/collapsed-titled-utility","windowTypes/no-title-utility-window","windowTypes/collapsed-no-title-utility"]],
           ["cicn",-14315,"Active Side Utility Window",96,258,"4cbd7310fb8ea43e483976dcc49ce775153f24bb6676eb934f7f2954ae1871bb","ok",null,null,["chromeElements/active-side-utility-window","windowTypes/side-floating-utility-window","windowTypes/collapsed-side-utility"]],
           ["cicn",-14332,"active document",96,354,"fdbf861d2d553c3a6e7dde8f6c43c5fab72b94cdade4af25b46ca2d7fbcd8406","ok",null,null,["chromeElements/active-document","windowTypes/document-window","windowTypes/collapsed-document-window"]],
           ["cicn",-14336,"inactive document",96,346,"721822abb02ae28cc5e1aa24bbec671b5397a798c005a1b504d23dcc1228e294","ok",null,null,["chromeElements/inactive-document","windowTypes/document-window","windowTypes/collapsed-document-window"]],
-          ["cicn",-14320,"Inactive Utility Window",96,266,"a7911a48cd1acb510837f1928cd90071516513aa750114bcdbe7eec48a5f6c04","ok",null,null,["chromeElements/inactive-utility-window","windowTypes/titled-utility-window","windowTypes/collapsed-titled-utility","windowTypes/no-title-utility-window"]],
+          ["cicn",-14320,"Inactive Utility Window",96,266,"a7911a48cd1acb510837f1928cd90071516513aa750114bcdbe7eec48a5f6c04","ok",null,null,["chromeElements/inactive-utility-window","windowTypes/titled-utility-window","windowTypes/collapsed-titled-utility","windowTypes/no-title-utility-window","windowTypes/collapsed-no-title-utility"]],
           ["cicn",-14317,"Inactive Utility Window Grow Box",96,202,"169cef5a839749652c14b04fea058718e1a6ae02831ab2cc53dd0874089b4919","ok",null,null,["chromeElements/inactive-utility-window-grow-box"]],
           ["cicn",-14319,"Inactive Side Utility Window",96,266,"332873deddf5b2a83a1905e20feba1cdecc1a11c21416ff8e8bac9fb90e53a13","ok",null,null,["chromeElements/inactive-side-utility-window","windowTypes/side-floating-utility-window","windowTypes/collapsed-side-utility"]],
           ["cicn",-10163,"Beveled Button - Normal On Normal",96,354,"25f93accbd78e0193892746178b2116389352bc5b14c271f79792facb086a619","ok",null,null,["chromeElements/beveled-button-normal-on-normal"]],
@@ -15109,6 +15142,39 @@
                 "candidateOccurrences": [148]
               }
             ]
+          },
+          {
+            "key": "collapsed-no-title-utility",
+            "canonicalIdentity": "collapsed-no-title-utility-window",
+            "equivalentKeys": ["collapsed-no-title-utility","collapsed-no-title-utility-window","wnd--14284"],
+            "model": "corner-sprite",
+            "valueSha256": "e91c825ec6d015c7751317a99812d544e6e87019a4596ac6908b29f512799a6e",
+            "constructionBinding": {
+              "manifestKey": "collapsed-no-title-utility",
+              "recipe": {
+                "kind": "corner-sprite-table",
+                "key": "collapsed-no-title-utility",
+                "trigger": "no-emitted-wnd-window-types"
+              },
+              "chrome": {
+                "active": 156,
+                "inactive": 160
+              },
+              "cinfResourceIndex": null,
+              "sprites": {}
+            },
+            "assets": [
+              {
+                "field": "chrome.active",
+                "path": "cicns/cicn-n14316-active-utility-window.png",
+                "candidateOccurrences": [156]
+              },
+              {
+                "field": "chrome.inactive",
+                "path": "cicns/cicn-n14320-inactive-utility-window.png",
+                "candidateOccurrences": [160]
+              }
+            ]
           }
         ],
         "windowSelections": [
@@ -15156,6 +15222,10 @@
           ["no-title-utility-window","inactive","no-title-utility-window","cicns/cicn-n14320-inactive-utility-window.png","self"],
           ["no-title-utility-window","collapsed-active","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
           ["no-title-utility-window","collapsed-inactive","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
+          ["collapsed-no-title-utility","active","collapsed-no-title-utility","cicns/cicn-n14316-active-utility-window.png","self"],
+          ["collapsed-no-title-utility","inactive","collapsed-no-title-utility","cicns/cicn-n14320-inactive-utility-window.png","self"],
+          ["collapsed-no-title-utility","collapsed-active","collapsed-no-title-utility","cicns/cicn-n14316-active-utility-window.png","self"],
+          ["collapsed-no-title-utility","collapsed-inactive","collapsed-no-title-utility","cicns/cicn-n14316-active-utility-window.png","self"],
           ["wnd--14336","active","document-window","cicns/cicn-n14332-active-document.png","self"],
           ["wnd--14336","inactive","document-window","cicns/cicn-n14336-inactive-document.png","self"],
           ["wnd--14336","collapsed-active","document-window","cicns/cicn-n14332-active-document.png","self"],
@@ -15212,18 +15282,14 @@
           ["wnd--14288","inactive","no-title-utility-window","cicns/cicn-n14320-inactive-utility-window.png","self"],
           ["wnd--14288","collapsed-active","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
           ["wnd--14288","collapsed-inactive","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
-          ["collapsed-no-title-utility-window","active","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
-          ["collapsed-no-title-utility-window","inactive","no-title-utility-window","cicns/cicn-n14320-inactive-utility-window.png","self"],
-          ["collapsed-no-title-utility-window","collapsed-active","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
-          ["collapsed-no-title-utility-window","collapsed-inactive","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
-          ["collapsed-no-title-utility","active","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
-          ["collapsed-no-title-utility","inactive","no-title-utility-window","cicns/cicn-n14320-inactive-utility-window.png","self"],
-          ["collapsed-no-title-utility","collapsed-active","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
-          ["collapsed-no-title-utility","collapsed-inactive","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
-          ["wnd--14284","active","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
-          ["wnd--14284","inactive","no-title-utility-window","cicns/cicn-n14320-inactive-utility-window.png","self"],
-          ["wnd--14284","collapsed-active","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
-          ["wnd--14284","collapsed-inactive","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
+          ["collapsed-no-title-utility-window","active","collapsed-no-title-utility","cicns/cicn-n14316-active-utility-window.png","self"],
+          ["collapsed-no-title-utility-window","inactive","collapsed-no-title-utility","cicns/cicn-n14320-inactive-utility-window.png","self"],
+          ["collapsed-no-title-utility-window","collapsed-active","collapsed-no-title-utility","cicns/cicn-n14316-active-utility-window.png","self"],
+          ["collapsed-no-title-utility-window","collapsed-inactive","collapsed-no-title-utility","cicns/cicn-n14316-active-utility-window.png","self"],
+          ["wnd--14284","active","collapsed-no-title-utility","cicns/cicn-n14316-active-utility-window.png","self"],
+          ["wnd--14284","inactive","collapsed-no-title-utility","cicns/cicn-n14320-inactive-utility-window.png","self"],
+          ["wnd--14284","collapsed-active","collapsed-no-title-utility","cicns/cicn-n14316-active-utility-window.png","self"],
+          ["wnd--14284","collapsed-inactive","collapsed-no-title-utility","cicns/cicn-n14316-active-utility-window.png","self"],
           ["popup-window","active","document-window","cicns/cicn-n14332-active-document.png","self"],
           ["popup-window","inactive","document-window","cicns/cicn-n14336-inactive-document.png","self"],
           ["popup-window","collapsed-active","document-window","cicns/cicn-n14332-active-document.png","self"],
@@ -15233,7 +15299,7 @@
           ["wnd--12320","collapsed-active","document-window","cicns/cicn-n14332-active-document.png","self"],
           ["wnd--12320","collapsed-inactive","document-window","cicns/cicn-n14332-active-document.png","self"]
         ],
-        "manifestSha256": "e68635954b9c21e5d4835d6ebdec80fd2dd61ccb1d631b5baf4b7c2dee7894ad",
+        "manifestSha256": "c18384b099441d5012e450737c97ff8b03198cb5917fe6b5d86514dd673c7cf5",
         "assetCount": 337,
         "assetPlanesSha256": "73b0621803d15e778133181670c7282a950273d9129c8695ec043affb65846e3"
       },
@@ -15272,7 +15338,7 @@
         "forkSha256": "79de4e29aebf5e6dd2d5b70554469cb8dfb5897f16aa4b5f8cb232523571f1de",
         "agreement": "agrees",
         "status": "converted",
-        "manifestSha256": "074aa56bb4cca4cf6d2f564f605ab939cd1bb0e3062a5ee551b719d5d04358e0",
+        "manifestSha256": "774b68cf5a096254b6f8e71a2ccd373706fa02919a9df3c5c7afad5d4495059e",
         "assetPlaneParity": true
       },
       "canonical": {
@@ -16311,7 +16377,7 @@
             "canonicalIdentity": "alert",
             "equivalentKeys": ["alert","wnd--14326"],
             "model": "sliced",
-            "valueSha256": "f631f8a46d2f1b8cb75dc60c28c0c441908792fda8c8e5e5d56a3449fbefd618",
+            "valueSha256": "400505632316a419d27a0d6a575d50fe8d78d123fac71fa19bdcc2d82fd4fea3",
             "constructionBinding": {
               "manifestKey": "alert",
               "recipe": {
@@ -16343,7 +16409,7 @@
             "canonicalIdentity": "collapsed-document-window",
             "equivalentKeys": ["collapsed-document-window","wnd--14332"],
             "model": "sliced",
-            "valueSha256": "6d8933b16c761c7f0370a45ad794a01f560e038abd7a30a431c488048ac072a3",
+            "valueSha256": "4d5b27cd2886ce818ea3d895d8eaaac70dbe1271687db41c9c14e5e287b09a84",
             "constructionBinding": {
               "manifestKey": "collapsed-document-window",
               "recipe": {
@@ -16375,7 +16441,7 @@
             "canonicalIdentity": "dialog",
             "equivalentKeys": ["dialog","wnd--14328"],
             "model": "sliced",
-            "valueSha256": "fca7c67eb4c9285007f0419dc2654bf36e20f8cd1f8de9abd875182f046fcce0",
+            "valueSha256": "f334d718d29df7202c9f8d414e62ecc48f6952bafd715f66717a1e3b59784570",
             "constructionBinding": {
               "manifestKey": "dialog",
               "recipe": {
@@ -16407,7 +16473,7 @@
             "canonicalIdentity": "movable-alert",
             "equivalentKeys": ["movable-alert","wnd--14322"],
             "model": "sliced",
-            "valueSha256": "0bb485a9375ec7d1707d0cf616606bb8db81ea502f3bf83b8f9164ebafc477bc",
+            "valueSha256": "a7b08cbf7823135fece8ac57c80c02b5b96164493d29210996996c82d76e5cf6",
             "constructionBinding": {
               "manifestKey": "movable-alert",
               "recipe": {
@@ -16439,7 +16505,7 @@
             "canonicalIdentity": "movable-modal",
             "equivalentKeys": ["movable-modal","wnd--14324"],
             "model": "sliced",
-            "valueSha256": "0e4d5569ba50d9483c672e50b34c76e2a97ee5750c321b146ebbcfd20a12221c",
+            "valueSha256": "912a4b38879239a80265f577bb0459b8b6eb85d4cafb36942c1d63815fd662ff",
             "constructionBinding": {
               "manifestKey": "movable-modal",
               "recipe": {
@@ -16471,7 +16537,7 @@
             "canonicalIdentity": "collapsed-titled-utility-window",
             "equivalentKeys": ["collapsed-titled-utility","collapsed-titled-utility-window","wnd--14300"],
             "model": "sliced",
-            "valueSha256": "f2189f7a9847470415606fc3b47e1a546eb1b105a083e6f0f08b13e2cb8a3f6f",
+            "valueSha256": "3fb6aff67dc1815fa7c276a00c6810eb0101df1d8c1c370f9ed560dca9b45c56",
             "constructionBinding": {
               "manifestKey": "collapsed-titled-utility",
               "recipe": {
@@ -16503,7 +16569,7 @@
             "canonicalIdentity": "titled-utility-window",
             "equivalentKeys": ["titled-utility-window","wnd--14304"],
             "model": "sliced",
-            "valueSha256": "f0bc662309518acc2429d3c84676a4662e203c3151268f1ba52d0facd389807a",
+            "valueSha256": "eb7ced01401c6aec188a2b913074d1d5774396c439311d19ce9aebf0550dfaa8",
             "constructionBinding": {
               "manifestKey": "titled-utility-window",
               "recipe": {
@@ -16535,7 +16601,7 @@
             "canonicalIdentity": "collapsed-side-floating-utility-window",
             "equivalentKeys": ["collapsed-side-utility","collapsed-side-floating-utility-window","wnd--14292"],
             "model": "sliced",
-            "valueSha256": "3876325625f7d47e82f6e90b80d1699be9ecfdbc872a8601bf4282331a1afbed",
+            "valueSha256": "cef5755b7418af4cea99084fd726bcf375d80c012e1dbd65336e0c1d1a576194",
             "constructionBinding": {
               "manifestKey": "collapsed-side-utility",
               "recipe": {
@@ -16567,7 +16633,7 @@
             "canonicalIdentity": "side-floating-utility-window",
             "equivalentKeys": ["side-floating-utility-window","wnd--14296"],
             "model": "sliced",
-            "valueSha256": "2d78e39f69cc476d1fd90c002144ac91a2f1cef46e11cdebaf365ff1ed375c9e",
+            "valueSha256": "c95817f3730e3440ba8391fa2087b58d1bd3eedd64fed61147644b28234c60ac",
             "constructionBinding": {
               "manifestKey": "side-floating-utility-window",
               "recipe": {
@@ -16599,7 +16665,7 @@
             "canonicalIdentity": "document-window",
             "equivalentKeys": ["document-window","wnd--14336","wnd--14335"],
             "model": "sliced",
-            "valueSha256": "0cfcf23dc3b37d212ed60617e15889b92cf136063e005d7695e32139a9401741",
+            "valueSha256": "8ae1c48cf5d140dc3657cd2f7f8fd4db1591bab9a7fff87f2f2ed9e43549d577",
             "constructionBinding": {
               "manifestKey": "document-window",
               "recipe": {
@@ -16631,7 +16697,7 @@
             "canonicalIdentity": "popup-window",
             "equivalentKeys": ["popup-window","wnd--12320"],
             "model": "sliced",
-            "valueSha256": "39c5664e56d72d75afc722aa07f8b1ae05d06508636ccea0e7387a22b5f79f38",
+            "valueSha256": "7decf9fe929e35bd9cfb0439d3c0a6129e3a70c8aebc623057b54f8e41f97fd1",
             "constructionBinding": {
               "manifestKey": "popup-window",
               "recipe": {
@@ -16781,7 +16847,7 @@
           ["wnd--12320","collapsed-active","popup-window","cicns/cicn-n12320-popup-window-active.png","self"],
           ["wnd--12320","collapsed-inactive","popup-window","cicns/cicn-n12320-popup-window-active.png","self"]
         ],
-        "manifestSha256": "074aa56bb4cca4cf6d2f564f605ab939cd1bb0e3062a5ee551b719d5d04358e0",
+        "manifestSha256": "774b68cf5a096254b6f8e71a2ccd373706fa02919a9df3c5c7afad5d4495059e",
         "assetCount": 347,
         "assetPlanesSha256": "c52c4d9567745bbea971105d9038b33463bd0343fcfb0baee66d931871553be6"
       },
@@ -16820,7 +16886,7 @@
         "forkSha256": "3cbe736723e4b8f4b56ad2232b85427ba3e84c8985d7e6b339c0b29bfb35ad85",
         "agreement": "agrees",
         "status": "converted",
-        "manifestSha256": "ce326296f2042b7bc7517b8d1febca974265eec9f483c4b7f4131629e04b35f1",
+        "manifestSha256": "4c62ae3f97b4ed00d59e1d0a1ca6ecffe037977c74755a0898e94c65ad65e746",
         "assetPlaneParity": true
       },
       "canonical": {
@@ -17860,7 +17926,7 @@
             "canonicalIdentity": "dialog",
             "equivalentKeys": ["dialog","wnd--14328"],
             "model": "sliced",
-            "valueSha256": "f9875d1210aeb15590b75e6c216a6f4a91c7dd411dd431c25eddc382d1152465",
+            "valueSha256": "76284a1648194f31025ddd68d0575e61c3ccdd645b242fab9d6af096dc6d5db5",
             "constructionBinding": {
               "manifestKey": "dialog",
               "recipe": {
@@ -17892,7 +17958,7 @@
             "canonicalIdentity": "alert",
             "equivalentKeys": ["alert","wnd--14326"],
             "model": "sliced",
-            "valueSha256": "a2fa25e64552e439ddd366679893f5530c7da0bffb96a1792d3d8f0157cdd78c",
+            "valueSha256": "67bdd289fb767642492b2af135916bc511727dc39c1883608a27224cb815ad24",
             "constructionBinding": {
               "manifestKey": "alert",
               "recipe": {
@@ -17924,7 +17990,7 @@
             "canonicalIdentity": "document-window",
             "equivalentKeys": ["document-window","wnd--14336","wnd--14335"],
             "model": "sliced",
-            "valueSha256": "0637ba71e068a0629a0f5cebb9fb1e9fe030753e1a78e3b598d5780e2108690e",
+            "valueSha256": "e53e8a84b77ae87be0b0f8c20b1270edc31c43d5f712cce37bdadb6ca9004d9d",
             "constructionBinding": {
               "manifestKey": "document-window",
               "recipe": {
@@ -17956,7 +18022,7 @@
             "canonicalIdentity": "collapsed-document-window",
             "equivalentKeys": ["collapsed-document-window","wnd--14332"],
             "model": "sliced",
-            "valueSha256": "cbf56b4743e77eace7401c6acf5825b530fe9404bb07137b6ac42978b7ed2d51",
+            "valueSha256": "a81e6e5b28a3958882878a47ee8eb1644684188167f64d2f7e10cfef314446be",
             "constructionBinding": {
               "manifestKey": "collapsed-document-window",
               "recipe": {
@@ -17988,7 +18054,7 @@
             "canonicalIdentity": "movable-modal",
             "equivalentKeys": ["movable-modal","wnd--14324"],
             "model": "sliced",
-            "valueSha256": "0cfda409e775c31d4d67806794ff1ed3a674dde1eeb345c611b9407eb8a70d92",
+            "valueSha256": "81deade979b7660f9bfa1c2d171b6faa49a03f9a557259161745b81a6fcd221a",
             "constructionBinding": {
               "manifestKey": "movable-modal",
               "recipe": {
@@ -18020,7 +18086,7 @@
             "canonicalIdentity": "movable-alert",
             "equivalentKeys": ["movable-alert","wnd--14322"],
             "model": "sliced",
-            "valueSha256": "a97fc1c248f070fa5f569f5fe6c69df7e6408c864c9b326fe5fcf5f91a4a1ff5",
+            "valueSha256": "5891ff74a505bb592921ebfc81c4222a87ecc29b5fffbe3ce047dc9476273875",
             "constructionBinding": {
               "manifestKey": "movable-alert",
               "recipe": {
@@ -18052,7 +18118,7 @@
             "canonicalIdentity": "titled-utility-window",
             "equivalentKeys": ["titled-utility-window","wnd--14304"],
             "model": "sliced",
-            "valueSha256": "32c32cb4ee7b2be12d0d6d7a4c1f53f3b8cea0444788d24a4ec0d08e4c4c3384",
+            "valueSha256": "eecd285d085a92374415998303fbb10ed379c3c845f31260895b231c7d46744b",
             "constructionBinding": {
               "manifestKey": "titled-utility-window",
               "recipe": {
@@ -18084,7 +18150,7 @@
             "canonicalIdentity": "side-floating-utility-window",
             "equivalentKeys": ["side-floating-utility-window","wnd--14296"],
             "model": "sliced",
-            "valueSha256": "c054f1207c8131fec1b6c7b3de5bff779a04b2935225d7ad89db30cb0bdb17d0",
+            "valueSha256": "b12e11ec40902684f36108a7e66c387ba27551b11efe7754ba28729390069118",
             "constructionBinding": {
               "manifestKey": "side-floating-utility-window",
               "recipe": {
@@ -18116,7 +18182,7 @@
             "canonicalIdentity": "no-title-utility-window",
             "equivalentKeys": ["no-title-utility-window","wnd--14288"],
             "model": "sliced",
-            "valueSha256": "ca8bb13059ab96d7bf6f1f8d99393084e27c1d5133f3827ee0240dcb37d4a455",
+            "valueSha256": "3c01cf2a82825f8e59783049a9e5a5ca172471dc0c8397e7dcffc50135b22b42",
             "constructionBinding": {
               "manifestKey": "no-title-utility-window",
               "recipe": {
@@ -18148,7 +18214,7 @@
             "canonicalIdentity": "popup-window",
             "equivalentKeys": ["popup-window","wnd--12320"],
             "model": "sliced",
-            "valueSha256": "0132c591bb5ad317df3f597b68e68735e0a8dcf1b3d3a5c5f0c6fec3158c6ee0",
+            "valueSha256": "588dd3297a39345aecc542f5f53479984309e26d6f8f5e12c8e4b16ab77bc52e",
             "constructionBinding": {
               "manifestKey": "popup-window",
               "recipe": {
@@ -18298,7 +18364,7 @@
           ["wnd--12320","collapsed-active","popup-window","cicns/cicn-n12320-popup-window-active.png","self"],
           ["wnd--12320","collapsed-inactive","popup-window","cicns/cicn-n12320-popup-window-active.png","self"]
         ],
-        "manifestSha256": "ce326296f2042b7bc7517b8d1febca974265eec9f483c4b7f4131629e04b35f1",
+        "manifestSha256": "4c62ae3f97b4ed00d59e1d0a1ca6ecffe037977c74755a0898e94c65ad65e746",
         "assetCount": 363,
         "assetPlanesSha256": "05f71379b3007d3b4b699a946320af50e256dd380790f9c3a6ee3337ac0f8c40"
       },
@@ -18337,7 +18403,7 @@
         "forkSha256": "9491fd7a68134249988b07971d222527709636438c59ca1d0daf5ade82a26740",
         "agreement": "agrees",
         "status": "converted",
-        "manifestSha256": "edcd9636d8ea867eb5a20efb68aaabde76cc5692f38e10ad7cb8842292aeb8a1",
+        "manifestSha256": "50766f2c6345e823e95b3f3f611c474f487cd571296879e251f77c13021f96c9",
         "assetPlaneParity": true
       },
       "canonical": {
@@ -19803,7 +19869,7 @@
             "canonicalIdentity": "document-window",
             "equivalentKeys": ["document-window","wnd--14336","wnd--14335"],
             "model": "sliced",
-            "valueSha256": "abeeda0aa04c9b4568d9f7dffc186175b1016e9a7c2de813d8fbc210b958d7f2",
+            "valueSha256": "089841b0277ad0627f5c8c7f428eac7a5fa0bbfcbb71d802187db898682b107b",
             "constructionBinding": {
               "manifestKey": "document-window",
               "recipe": {
@@ -19835,7 +19901,7 @@
             "canonicalIdentity": "collapsed-document-window",
             "equivalentKeys": ["collapsed-document-window","wnd--14332"],
             "model": "sliced",
-            "valueSha256": "03156d29f48c98088ba71ca688b174689a6cef0a8b62dacf6d20d9878615166c",
+            "valueSha256": "9a85f2bf6497af0b5509c943b54af215fb2ae2437b83d166e4175ebcd7db3c1f",
             "constructionBinding": {
               "manifestKey": "collapsed-document-window",
               "recipe": {
@@ -19867,7 +19933,7 @@
             "canonicalIdentity": "side-floating-utility-window",
             "equivalentKeys": ["side-floating-utility-window","wnd--14296"],
             "model": "sliced",
-            "valueSha256": "8f94a4eadf7447a388830167030050bfb939560428accd8a926eed4c2e9de48f",
+            "valueSha256": "4f8bdd12c48dfec12e65a0c6e1931ff0451b4bfd1d5ae39daba1fe9d21c63a78",
             "constructionBinding": {
               "manifestKey": "side-floating-utility-window",
               "recipe": {
@@ -19899,7 +19965,7 @@
             "canonicalIdentity": "alert",
             "equivalentKeys": ["alert","wnd--14326"],
             "model": "sliced",
-            "valueSha256": "a5e9aa98ff44a11d269c929c73b32cad80b66fa416448de6ca2186ad58102e39",
+            "valueSha256": "67619dcedb4b586322dd1a2bcedd3f3be028e17a349cb1c4ca2e5f5205c5eddd",
             "constructionBinding": {
               "manifestKey": "alert",
               "recipe": {
@@ -19931,7 +19997,7 @@
             "canonicalIdentity": "dialog",
             "equivalentKeys": ["dialog","wnd--14328"],
             "model": "sliced",
-            "valueSha256": "a3eafef3d29804540b85b8348cc5138d5e054083c0705cd40c9fcd67ed0b08f7",
+            "valueSha256": "2b2aff021007487ebc541a8aa545495845ec4dde95f82ed35c8a73dc3b344e28",
             "constructionBinding": {
               "manifestKey": "dialog",
               "recipe": {
@@ -19963,7 +20029,7 @@
             "canonicalIdentity": "no-title-utility-window",
             "equivalentKeys": ["no-title-utility-window","wnd--14288"],
             "model": "sliced",
-            "valueSha256": "a8c39de5c81b0fb53b8c2a3c6211d42c1399198206dfeb9bc34cac157734c2e5",
+            "valueSha256": "fb164b4bb2c95c2119638b7900f07e40bc79fd7670eacb7dfa2596d1143f805f",
             "constructionBinding": {
               "manifestKey": "no-title-utility-window",
               "recipe": {
@@ -19995,7 +20061,7 @@
             "canonicalIdentity": "movable-modal",
             "equivalentKeys": ["movable-modal","wnd--14324"],
             "model": "sliced",
-            "valueSha256": "76a563e7e333bcbbd5dd532e84629380753ae0a6c77bdd84374a6945fd36cc8f",
+            "valueSha256": "2b6c1d5ca1c1ab1e0913f0e942224494d1f366a9f2d2726be1902cea4b1feedd",
             "constructionBinding": {
               "manifestKey": "movable-modal",
               "recipe": {
@@ -20027,7 +20093,7 @@
             "canonicalIdentity": "movable-alert",
             "equivalentKeys": ["movable-alert","wnd--14322"],
             "model": "sliced",
-            "valueSha256": "47faa8a4a39f72b369a27cfbe586aae105ad7a67ee679dcc4c16c9467648d403",
+            "valueSha256": "61cfc7f85973f43fd5604a3f43a7e50db24a0815986b470143928bb45367d508",
             "constructionBinding": {
               "manifestKey": "movable-alert",
               "recipe": {
@@ -20059,7 +20125,7 @@
             "canonicalIdentity": "titled-utility-window",
             "equivalentKeys": ["titled-utility-window","wnd--14304"],
             "model": "sliced",
-            "valueSha256": "38216ef46254b7f9085556745a6c5101fc026099562096802f667f55c6454f92",
+            "valueSha256": "3dcc2e32b2d74961daabfdb9c9e9e20ab8367af12916564206a8e3393f374bc5",
             "constructionBinding": {
               "manifestKey": "titled-utility-window",
               "recipe": {
@@ -20091,7 +20157,7 @@
             "canonicalIdentity": "popup-window",
             "equivalentKeys": ["popup-window","wnd--12320"],
             "model": "sliced",
-            "valueSha256": "f2672cd62e542dff41168aebd925d4c0e894814f5f7825634603c95875d91ae2",
+            "valueSha256": "6e340bd76469ad3e76aa18b78ade23e5790d2c6a79b15fd1efc377f141701187",
             "constructionBinding": {
               "manifestKey": "popup-window",
               "recipe": {
@@ -20241,7 +20307,7 @@
           ["wnd--12320","collapsed-active","popup-window","cicns/cicn-n12320-popup-window-active.png","self"],
           ["wnd--12320","collapsed-inactive","popup-window","cicns/cicn-n12320-popup-window-active.png","self"]
         ],
-        "manifestSha256": "edcd9636d8ea867eb5a20efb68aaabde76cc5692f38e10ad7cb8842292aeb8a1",
+        "manifestSha256": "50766f2c6345e823e95b3f3f611c474f487cd571296879e251f77c13021f96c9",
         "assetCount": 534,
         "assetPlanesSha256": "6de8cc68ecdb0de7c6afa48c13f4d4b9b9e67d5ed066e02e297a3b46a2d74a72"
       },
@@ -20280,7 +20346,7 @@
         "forkSha256": "5121774b5594cd660965b77e4e71d5ef9d24e82023fd80b8a11c7cca335bd062",
         "agreement": "agrees",
         "status": "converted",
-        "manifestSha256": "10decf8b32fdaf59cbb05af7a9cdb05651b2d9d7c64174a997c1571f20b7118a",
+        "manifestSha256": "f62ca4a292c667f619c3921b6db7c7075f841ba83bceea45ff71fb23146c7ba2",
         "assetPlaneParity": true
       },
       "canonical": {
@@ -22173,7 +22239,7 @@
             "canonicalIdentity": "document-window",
             "equivalentKeys": ["document-window","wnd--14336","wnd--14335"],
             "model": "sliced",
-            "valueSha256": "1ee018b357a1afd89f28ce8999590637ed1139fe2193c7137b7d1d9afc024d24",
+            "valueSha256": "30f98103f2e2716b32323b67787a3405647185bca36eabd41775a48673b5ce53",
             "constructionBinding": {
               "manifestKey": "document-window",
               "recipe": {
@@ -22205,7 +22271,7 @@
             "canonicalIdentity": "collapsed-document-window",
             "equivalentKeys": ["collapsed-document-window","wnd--14332"],
             "model": "sliced",
-            "valueSha256": "cf5803f324a5c258c3dfe49ced344e0bef7dbce6c6beb9c1da32562d1229d45b",
+            "valueSha256": "70ae6c7deccf2006ac84abb98162b26e272c80dbffd21abad0663527c24ca2c4",
             "constructionBinding": {
               "manifestKey": "collapsed-document-window",
               "recipe": {
@@ -22237,7 +22303,7 @@
             "canonicalIdentity": "dialog",
             "equivalentKeys": ["dialog","wnd--14328"],
             "model": "sliced",
-            "valueSha256": "49fd7b65b0aead868760f385b997a85a463bf580f74bfc19681457f2a33c9bb6",
+            "valueSha256": "699829fd09107c138b59cfd6630519de8d2874483b92c37366b1d28da315e996",
             "constructionBinding": {
               "manifestKey": "dialog",
               "recipe": {
@@ -22269,7 +22335,7 @@
             "canonicalIdentity": "movable-modal",
             "equivalentKeys": ["movable-modal","wnd--14324"],
             "model": "sliced",
-            "valueSha256": "264c3e5a8d6f892d1030c3d4a3c32c15779856d5e5b88616d2287cdd8c705619",
+            "valueSha256": "453b68fceedbfab7adef03ab87dd7b49f954a46062dde8bb2ab485dce3cf3e8c",
             "constructionBinding": {
               "manifestKey": "movable-modal",
               "recipe": {
@@ -22301,7 +22367,7 @@
             "canonicalIdentity": "movable-alert",
             "equivalentKeys": ["movable-alert","wnd--14322"],
             "model": "sliced",
-            "valueSha256": "818028b5d988851ecd372f4ecb91fd8842f3e34f7f2e6dd1a42724a867c0438b",
+            "valueSha256": "8620e527f4483331711df44f33769178b20fe2e0de8fda97927bd2fd607d697d",
             "constructionBinding": {
               "manifestKey": "movable-alert",
               "recipe": {
@@ -22333,7 +22399,7 @@
             "canonicalIdentity": "alert",
             "equivalentKeys": ["alert","wnd--14326"],
             "model": "sliced",
-            "valueSha256": "af3d49f0522234feaadd60e8c614d38be5fd7e6081c75ebe879203c13b381faa",
+            "valueSha256": "f1edc360d2411769d8fdb5d3a417878049fc3223dc4855dfe3d5a17a176377f7",
             "constructionBinding": {
               "manifestKey": "alert",
               "recipe": {
@@ -22365,7 +22431,7 @@
             "canonicalIdentity": "titled-utility-window",
             "equivalentKeys": ["titled-utility-window","wnd--14304"],
             "model": "sliced",
-            "valueSha256": "d8730ee1d81f0163f58057b00cc8c471b04f86fa5b01b07695e4ce693e4d075b",
+            "valueSha256": "cd114ace83ae9e043eb2fb0f90a9c15d1a250c4fa67fbb83e034fe1ef93caa90",
             "constructionBinding": {
               "manifestKey": "titled-utility-window",
               "recipe": {
@@ -22397,7 +22463,7 @@
             "canonicalIdentity": "collapsed-titled-utility-window",
             "equivalentKeys": ["collapsed-titled-utility","collapsed-titled-utility-window","wnd--14300"],
             "model": "sliced",
-            "valueSha256": "d35e832782897780f324641be825ab04bf718ba2352bfdde775f4fa36ffa63fe",
+            "valueSha256": "45d7ab429bddfa617427d776161d95a3aabd1ee00454b31e33df6880f1fe2ac6",
             "constructionBinding": {
               "manifestKey": "collapsed-titled-utility",
               "recipe": {
@@ -22429,7 +22495,7 @@
             "canonicalIdentity": "side-floating-utility-window",
             "equivalentKeys": ["side-floating-utility-window","wnd--14296"],
             "model": "sliced",
-            "valueSha256": "534db883ff4502cf57cc4452eaf703d57ff124dadf2f278729929e3fa2676978",
+            "valueSha256": "8f4fd0af981beb642a5360b5ee2ae23e0f6e5d7682907d32282bd495296ce193",
             "constructionBinding": {
               "manifestKey": "side-floating-utility-window",
               "recipe": {
@@ -22461,7 +22527,7 @@
             "canonicalIdentity": "no-title-utility-window",
             "equivalentKeys": ["no-title-utility-window","wnd--14288"],
             "model": "sliced",
-            "valueSha256": "31f00dcb06def2359dc21437dc7da723d19939ca67756bb84c24293de1c87780",
+            "valueSha256": "215c65b8aa1f068f9237a238cea784e74c4e3342fcb258985409b9aa2cd0771a",
             "constructionBinding": {
               "manifestKey": "no-title-utility-window",
               "recipe": {
@@ -22493,7 +22559,7 @@
             "canonicalIdentity": "collapsed-no-title-utility-window",
             "equivalentKeys": ["collapsed-no-title-utility","collapsed-no-title-utility-window","wnd--14284"],
             "model": "sliced",
-            "valueSha256": "f7d025d58a60ebc471c7176f369c6441b68fd085a582bc903481d461ac3eaf90",
+            "valueSha256": "04fdb325904ed557ca116b9460097882ecc379ed0f2aa172851ab3720fc51802",
             "constructionBinding": {
               "manifestKey": "collapsed-no-title-utility",
               "recipe": {
@@ -22525,7 +22591,7 @@
             "canonicalIdentity": "popup-window",
             "equivalentKeys": ["popup-window","wnd--12320"],
             "model": "sliced",
-            "valueSha256": "b50652059052cfb4ed0b1cfd80513fd83ab134da50f37ced7134153d7928f61d",
+            "valueSha256": "e18c588f03fa3bfee035b7969e7012db85d8a3f0a28abdc1482c52d4d06929af",
             "constructionBinding": {
               "manifestKey": "popup-window",
               "recipe": {
@@ -22675,7 +22741,7 @@
           ["wnd--12320","collapsed-active","popup-window","cicns/cicn-n12320-popup-window-active.png","self"],
           ["wnd--12320","collapsed-inactive","popup-window","cicns/cicn-n12320-popup-window-active.png","self"]
         ],
-        "manifestSha256": "10decf8b32fdaf59cbb05af7a9cdb05651b2d9d7c64174a997c1571f20b7118a",
+        "manifestSha256": "f62ca4a292c667f619c3921b6db7c7075f841ba83bceea45ff71fb23146c7ba2",
         "assetCount": 713,
         "assetPlanesSha256": "4dab67a3b020c1e7fae134f2090e47d021efe3077a9c1c422e2876640613a190"
       },
@@ -22714,7 +22780,7 @@
         "forkSha256": "6532ba12cbecfb8b820b9f172f43980de4a4927dd50f0ff6b37c41e5a27d4e70",
         "agreement": "agrees",
         "status": "converted",
-        "manifestSha256": "e62e561c2994a7f5f23dc5f7c944a20bf5d9fcef9d4085ce716f23b1119e9150",
+        "manifestSha256": "c82f0cc0ec70cf18e5e1600df0c61c1ed8516bfc6eaa9195d12f1888432807ab",
         "assetPlaneParity": true
       },
       "canonical": {
@@ -23656,7 +23722,7 @@
             "canonicalIdentity": "titled-utility-window",
             "equivalentKeys": ["titled-utility-window","wnd--14304"],
             "model": "sliced",
-            "valueSha256": "a666206eaf4b646dfdd38a26ad6494bdc2bba062a954f72a81ae50dbc01e25b4",
+            "valueSha256": "2e606f6069c8cc0a728c4921683b3fd8b4d8113655d83d0706379dd4a015ce27",
             "constructionBinding": {
               "manifestKey": "titled-utility-window",
               "recipe": {
@@ -23688,7 +23754,7 @@
             "canonicalIdentity": "popup-window",
             "equivalentKeys": ["popup-window","wnd--12320"],
             "model": "sliced",
-            "valueSha256": "f3415ae5e3560fa76e472b65b17c0c3f6a5ab63e75eaaf43485125e73204996f",
+            "valueSha256": "f6d0ef2370c646bd6a1a4b6c2e34fc895165633e5b56a26987c5dbbc41a5a0f3",
             "constructionBinding": {
               "manifestKey": "popup-window",
               "recipe": {
@@ -23720,7 +23786,7 @@
             "canonicalIdentity": "side-floating-utility-window",
             "equivalentKeys": ["side-floating-utility-window","wnd--14296"],
             "model": "sliced",
-            "valueSha256": "7c15828c3f4bd7e6f673bd2bedf2bc2af5394f1e5869c8e7eadb3acd0fa79273",
+            "valueSha256": "14d076446e804dbc0cec8a142afc219993c7d4606e7a4282954292d6d462955f",
             "constructionBinding": {
               "manifestKey": "side-floating-utility-window",
               "recipe": {
@@ -23752,7 +23818,7 @@
             "canonicalIdentity": "no-title-utility-window",
             "equivalentKeys": ["no-title-utility-window","wnd--14288"],
             "model": "sliced",
-            "valueSha256": "534c02b9e67ed40a18a56e0b3758c183fc5edeb9b2158387daffe3827e860d25",
+            "valueSha256": "f38b92fe000823ddf51ab455ca7da3cdf6b3f0ab855cfbaf786dff217332ddf0",
             "constructionBinding": {
               "manifestKey": "no-title-utility-window",
               "recipe": {
@@ -23784,7 +23850,7 @@
             "canonicalIdentity": "document-window",
             "equivalentKeys": ["document-window","wnd--14336","wnd--14335"],
             "model": "sliced",
-            "valueSha256": "096c5f1f2e7ab8dd25a6377871cdc455b7bc956cc8ef42b263ffa353e81c042b",
+            "valueSha256": "e0c61e153ab945bf770342fc6e0dc32ae42b680c600095fbbef3249a870d9c4f",
             "constructionBinding": {
               "manifestKey": "document-window",
               "recipe": {
@@ -23816,7 +23882,7 @@
             "canonicalIdentity": "dialog",
             "equivalentKeys": ["dialog","wnd--14328"],
             "model": "sliced",
-            "valueSha256": "54e66172a3a4544d465c9bad673504848597864dd07d5de8168766484aba2ca9",
+            "valueSha256": "fa605e8580245f8fda4084d5bf5d5c0ae815d9b07b717861d2a4f97a142fb75e",
             "constructionBinding": {
               "manifestKey": "dialog",
               "recipe": {
@@ -23848,7 +23914,7 @@
             "canonicalIdentity": "alert",
             "equivalentKeys": ["alert","wnd--14326"],
             "model": "sliced",
-            "valueSha256": "2e749706648592dfd03660fb4d23fb87ae95317c9fafde98d0a73fb4032241f1",
+            "valueSha256": "976b4ee2138d5f84bf3b009dc3ff15f98ef0cb709a6ea38d91500348d9987650",
             "constructionBinding": {
               "manifestKey": "alert",
               "recipe": {
@@ -23880,7 +23946,7 @@
             "canonicalIdentity": "movable-modal",
             "equivalentKeys": ["movable-modal","wnd--14324"],
             "model": "sliced",
-            "valueSha256": "85a1f8a36e113ceef8779b3e2c13ad1b22f607036018a6f46ca6db87e8f74a3d",
+            "valueSha256": "6a8f1a8e9c1d8c27434eab2c95f3e0ed6f6b4c0a8a38fab0160698010fa32337",
             "constructionBinding": {
               "manifestKey": "movable-modal",
               "recipe": {
@@ -23912,7 +23978,7 @@
             "canonicalIdentity": "movable-alert",
             "equivalentKeys": ["movable-alert","wnd--14322"],
             "model": "sliced",
-            "valueSha256": "a222292714eeab5fe335854b7634d63c0cc9c1035708ff7fe158bbf6757ab668",
+            "valueSha256": "b5fdc0d89708ec4d79f8b541a7c22d624cdc513cb7e972605c118293517f2a22",
             "constructionBinding": {
               "manifestKey": "movable-alert",
               "recipe": {
@@ -24062,7 +24128,7 @@
           ["wnd--12320","collapsed-active","popup-window","cicns/cicn-n12320-popup-window.png","self"],
           ["wnd--12320","collapsed-inactive","popup-window","cicns/cicn-n12320-popup-window.png","self"]
         ],
-        "manifestSha256": "e62e561c2994a7f5f23dc5f7c944a20bf5d9fcef9d4085ce716f23b1119e9150",
+        "manifestSha256": "c82f0cc0ec70cf18e5e1600df0c61c1ed8516bfc6eaa9195d12f1888432807ab",
         "assetCount": 351,
         "assetPlanesSha256": "ac72cc2d1d9c1de5f64d6aeceb1e1b4857263e52220153696a4499d002615c9d"
       },
@@ -24101,7 +24167,7 @@
         "forkSha256": "97165ac623a4cdfda072b5f849d90aa0e087b2fbd05bc44966898c2238231f75",
         "agreement": "agrees",
         "status": "converted",
-        "manifestSha256": "b1cca4ea71f5909c2e1960ad3d545eb70974d2c4d928c2242dbed25316a2beda",
+        "manifestSha256": "33d01637d46e5adc299568e749bb4605d2ef06d7da4a27b101b3468a69bfcaf4",
         "assetPlaneParity": true
       },
       "canonical": {
@@ -24151,8 +24217,8 @@
           ["cicn",-14332,"active document",96,482,"6ca658dcd2c8f35742b6a07f9eaa64baf3c437ab8965212dce2e0f314c58dba0","ok",null,null,["chromeElements/active-document","windowTypes/document-window","windowTypes/collapsed-document-window"]],
           ["cicn",-14312,"Inactive Finder Header",96,338,"2b393d4feff9348ea4e76251f8405f2b19e6415d5b54d85e2df746ec1bbf5fec","ok",null,null,["chromeElements/inactive-finder-header"]],
           ["cicn",-14311,"Inactive Finder Header",96,386,"656725cb1141be06d7238276d692a6f0b2cc85ab85e4e2104dfbbc52522261d9","ok",null,null,["chromeElements/inactive-finder-header-2"]],
-          ["cicn",-14320,"Inactive Utility Window",96,314,"78bb6048edcef4ecd5a4208a2a6ffa6be44f5cd9eb13fb03b17ad2071876415d","ok",null,null,["chromeElements/inactive-utility-window","windowTypes/titled-utility-window","windowTypes/collapsed-titled-utility","windowTypes/no-title-utility-window"]],
-          ["cicn",-14316,"Active Utility Window",96,330,"ffd416b492b6c7e0de1ea36dacaeb3edf6707ad6af845af12dfc128b7779693c","ok",null,null,["chromeElements/active-utility-window","windowTypes/titled-utility-window","windowTypes/collapsed-titled-utility","windowTypes/no-title-utility-window"]],
+          ["cicn",-14320,"Inactive Utility Window",96,314,"78bb6048edcef4ecd5a4208a2a6ffa6be44f5cd9eb13fb03b17ad2071876415d","ok",null,null,["chromeElements/inactive-utility-window","windowTypes/titled-utility-window","windowTypes/collapsed-titled-utility","windowTypes/no-title-utility-window","windowTypes/collapsed-no-title-utility"]],
+          ["cicn",-14316,"Active Utility Window",96,330,"ffd416b492b6c7e0de1ea36dacaeb3edf6707ad6af845af12dfc128b7779693c","ok",null,null,["chromeElements/active-utility-window","windowTypes/titled-utility-window","windowTypes/collapsed-titled-utility","windowTypes/no-title-utility-window","windowTypes/collapsed-no-title-utility"]],
           ["cicn",-14313,"Active Utility Window Grow Box",96,466,"0550dfdff971d3900d2ef6ff3a19683234254a71afc43684bbd549d7e9a20ec8","ok",null,null,["chromeElements/active-utility-window-grow-box","windowTypes/titled-utility-window"]],
           ["cicn",-14317,"Inactive Utility Window Grow Box",96,434,"0c79d0b7721c81cd61be9361b1d65e665acb422c888074044c37131e29f26842","ok",null,null,["chromeElements/inactive-utility-window-grow-box"]],
           ["cicn",-14319,"Inactive Side Utility Window",96,314,"4de84a23411252f41fbf51c13211aad91e2c0e67318f5fadfa903f58b8c73fd4","ok",null,null,["chromeElements/inactive-side-utility-window","windowTypes/side-floating-utility-window","windowTypes/collapsed-side-utility"]],
@@ -25131,6 +25197,39 @@
                 "candidateOccurrences": [1]
               }
             ]
+          },
+          {
+            "key": "collapsed-no-title-utility",
+            "canonicalIdentity": "collapsed-no-title-utility-window",
+            "equivalentKeys": ["collapsed-no-title-utility","collapsed-no-title-utility-window","wnd--14284"],
+            "model": "corner-sprite",
+            "valueSha256": "e91c825ec6d015c7751317a99812d544e6e87019a4596ac6908b29f512799a6e",
+            "constructionBinding": {
+              "manifestKey": "collapsed-no-title-utility",
+              "recipe": {
+                "kind": "corner-sprite-table",
+                "key": "collapsed-no-title-utility",
+                "trigger": "no-emitted-wnd-window-types"
+              },
+              "chrome": {
+                "active": 45,
+                "inactive": 44
+              },
+              "cinfResourceIndex": null,
+              "sprites": {}
+            },
+            "assets": [
+              {
+                "field": "chrome.active",
+                "path": "cicns/cicn-n14316-active-utility-window.png",
+                "candidateOccurrences": [45]
+              },
+              {
+                "field": "chrome.inactive",
+                "path": "cicns/cicn-n14320-inactive-utility-window.png",
+                "candidateOccurrences": [44]
+              }
+            ]
           }
         ],
         "windowSelections": [
@@ -25178,6 +25277,10 @@
           ["no-title-utility-window","inactive","no-title-utility-window","cicns/cicn-n14320-inactive-utility-window.png","self"],
           ["no-title-utility-window","collapsed-active","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
           ["no-title-utility-window","collapsed-inactive","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
+          ["collapsed-no-title-utility","active","collapsed-no-title-utility","cicns/cicn-n14316-active-utility-window.png","self"],
+          ["collapsed-no-title-utility","inactive","collapsed-no-title-utility","cicns/cicn-n14320-inactive-utility-window.png","self"],
+          ["collapsed-no-title-utility","collapsed-active","collapsed-no-title-utility","cicns/cicn-n14316-active-utility-window.png","self"],
+          ["collapsed-no-title-utility","collapsed-inactive","collapsed-no-title-utility","cicns/cicn-n14316-active-utility-window.png","self"],
           ["wnd--14336","active","document-window","cicns/cicn-n14332-active-document.png","self"],
           ["wnd--14336","inactive","document-window","cicns/cicn-n14336-inactive-document.png","self"],
           ["wnd--14336","collapsed-active","document-window","cicns/cicn-n14332-active-document.png","self"],
@@ -25234,18 +25337,14 @@
           ["wnd--14288","inactive","no-title-utility-window","cicns/cicn-n14320-inactive-utility-window.png","self"],
           ["wnd--14288","collapsed-active","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
           ["wnd--14288","collapsed-inactive","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
-          ["collapsed-no-title-utility-window","active","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
-          ["collapsed-no-title-utility-window","inactive","no-title-utility-window","cicns/cicn-n14320-inactive-utility-window.png","self"],
-          ["collapsed-no-title-utility-window","collapsed-active","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
-          ["collapsed-no-title-utility-window","collapsed-inactive","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
-          ["collapsed-no-title-utility","active","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
-          ["collapsed-no-title-utility","inactive","no-title-utility-window","cicns/cicn-n14320-inactive-utility-window.png","self"],
-          ["collapsed-no-title-utility","collapsed-active","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
-          ["collapsed-no-title-utility","collapsed-inactive","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
-          ["wnd--14284","active","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
-          ["wnd--14284","inactive","no-title-utility-window","cicns/cicn-n14320-inactive-utility-window.png","self"],
-          ["wnd--14284","collapsed-active","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
-          ["wnd--14284","collapsed-inactive","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
+          ["collapsed-no-title-utility-window","active","collapsed-no-title-utility","cicns/cicn-n14316-active-utility-window.png","self"],
+          ["collapsed-no-title-utility-window","inactive","collapsed-no-title-utility","cicns/cicn-n14320-inactive-utility-window.png","self"],
+          ["collapsed-no-title-utility-window","collapsed-active","collapsed-no-title-utility","cicns/cicn-n14316-active-utility-window.png","self"],
+          ["collapsed-no-title-utility-window","collapsed-inactive","collapsed-no-title-utility","cicns/cicn-n14316-active-utility-window.png","self"],
+          ["wnd--14284","active","collapsed-no-title-utility","cicns/cicn-n14316-active-utility-window.png","self"],
+          ["wnd--14284","inactive","collapsed-no-title-utility","cicns/cicn-n14320-inactive-utility-window.png","self"],
+          ["wnd--14284","collapsed-active","collapsed-no-title-utility","cicns/cicn-n14316-active-utility-window.png","self"],
+          ["wnd--14284","collapsed-inactive","collapsed-no-title-utility","cicns/cicn-n14316-active-utility-window.png","self"],
           ["popup-window","active","document-window","cicns/cicn-n14332-active-document.png","self"],
           ["popup-window","inactive","document-window","cicns/cicn-n14336-inactive-document.png","self"],
           ["popup-window","collapsed-active","document-window","cicns/cicn-n14332-active-document.png","self"],
@@ -25255,7 +25354,7 @@
           ["wnd--12320","collapsed-active","document-window","cicns/cicn-n14332-active-document.png","self"],
           ["wnd--12320","collapsed-inactive","document-window","cicns/cicn-n14332-active-document.png","self"]
         ],
-        "manifestSha256": "b1cca4ea71f5909c2e1960ad3d545eb70974d2c4d928c2242dbed25316a2beda",
+        "manifestSha256": "33d01637d46e5adc299568e749bb4605d2ef06d7da4a27b101b3468a69bfcaf4",
         "assetCount": 239,
         "assetPlanesSha256": "47172245f29f9693b61c31e9e58dedbb91fe7f5a196c35e52eeda636c6589321"
       },
@@ -25294,7 +25393,7 @@
         "forkSha256": "63e9617379f4d3e42355268c93ec6e1059ce13788ca0af683b0c37235d993529",
         "agreement": "agrees",
         "status": "converted",
-        "manifestSha256": "c0325f5add700a9efdff5477e9b13e047095ee896844180d257aa8532eb1926b",
+        "manifestSha256": "8706007479ae0bd8ce8f1ffb6a32498ae7072f63fcc6df8413562627744b05f5",
         "assetPlaneParity": true
       },
       "canonical": {
@@ -25459,11 +25558,11 @@
           ["cicn",-8223,"Normal",96,820,"85cf2e2efa5766efae5f25c28585526d4a5d46eaf871440729f93305a2af76e8","ok",null,null,["chromeElements/normal"]],
           ["cicn",-8215,"Normal",96,668,"0f77b7f9dc869f38d416d3725ede46bcecf9220e84956d4b6b89953d432f82af","ok",null,null,["chromeElements/normal-2"]],
           ["cicn",-14318,"Utility Racing Stripes (Side)",96,279,"f330b098a42403874771eaaa159f41f1ec9343fe1d002472640d49cd4e40336c","ok",null,null,["chromeElements/utility-racing-stripes-side"]],
-          ["cicn",-14316,"Active Utility Window",96,386,"bdfa5d187636ef46a9670555f24668a1eb3ede9654efa77c066cd689cd306c44","ok",null,null,["chromeElements/active-utility-window","windowTypes/titled-utility-window","windowTypes/collapsed-titled-utility","windowTypes/no-title-utility-window"]],
+          ["cicn",-14316,"Active Utility Window",96,386,"bdfa5d187636ef46a9670555f24668a1eb3ede9654efa77c066cd689cd306c44","ok",null,null,["chromeElements/active-utility-window","windowTypes/titled-utility-window","windowTypes/collapsed-titled-utility","windowTypes/no-title-utility-window","windowTypes/collapsed-no-title-utility"]],
           ["cicn",-14315,"Active Side Utility Window",96,394,"d2302a6d3eb2cdbff13209edc40767f90ae1b9b8797d658fbbd3729c67ea73ab","ok",null,null,["chromeElements/active-side-utility-window","windowTypes/side-floating-utility-window","windowTypes/collapsed-side-utility"]],
           ["cicn",-14314,"Utility Racing Stripes",96,287,"59d30d8eb2c0bf72d380e16d8e8704490ea509eba3ea3976315a37b5c851e0f6","ok",null,null,["chromeElements/utility-racing-stripes","windowTypes/titled-utility-window","windowTypes/collapsed-titled-utility","windowTypes/side-floating-utility-window","windowTypes/collapsed-side-utility","windowTypes/no-title-utility-window"]],
           ["cicn",-14313,"Active Utility Window Grow Box",96,562,"afb0a6b7a8996d9014b19f464ccb989054e598d90e52f5fbd65f02bbf50aef7e","ok",null,null,["chromeElements/active-utility-window-grow-box","windowTypes/titled-utility-window"]],
-          ["cicn",-14320,"Inactive Utility Window",96,330,"93464094ccd3651e7bc20c56627972132874aa96686e0dcf4764178d51aaebe1","ok",null,null,["chromeElements/inactive-utility-window","windowTypes/titled-utility-window","windowTypes/collapsed-titled-utility","windowTypes/no-title-utility-window"]],
+          ["cicn",-14320,"Inactive Utility Window",96,330,"93464094ccd3651e7bc20c56627972132874aa96686e0dcf4764178d51aaebe1","ok",null,null,["chromeElements/inactive-utility-window","windowTypes/titled-utility-window","windowTypes/collapsed-titled-utility","windowTypes/no-title-utility-window","windowTypes/collapsed-no-title-utility"]],
           ["cicn",-14319,"Inactive Side Utility Window",96,322,"45e61a0a7743845d67406c64ca92de2daeea1a33b829866a1107c10bd7cc5ca3","ok",null,null,["chromeElements/inactive-side-utility-window","windowTypes/side-floating-utility-window","windowTypes/collapsed-side-utility"]],
           ["cicn",-14317,"Inactive Utility Window Grow Box",96,442,"d26e17fbc0c1e7b8d0916e12e61f867c197b22c66188206dbba37d01b4524dee","ok",null,null,["chromeElements/inactive-utility-window-grow-box"]],
           ["cicn",-14336,"inactive document",96,498,"9459fc51341ec57b05e284d7f54004ba66a4dc37260b6a0faced5e6bcbcaa266","ok",null,null,["chromeElements/inactive-document","windowTypes/document-window","windowTypes/collapsed-document-window"]],
@@ -26233,6 +26332,39 @@
                 "candidateOccurrences": [161]
               }
             ]
+          },
+          {
+            "key": "collapsed-no-title-utility",
+            "canonicalIdentity": "collapsed-no-title-utility-window",
+            "equivalentKeys": ["collapsed-no-title-utility","collapsed-no-title-utility-window","wnd--14284"],
+            "model": "corner-sprite",
+            "valueSha256": "e91c825ec6d015c7751317a99812d544e6e87019a4596ac6908b29f512799a6e",
+            "constructionBinding": {
+              "manifestKey": "collapsed-no-title-utility",
+              "recipe": {
+                "kind": "corner-sprite-table",
+                "key": "collapsed-no-title-utility",
+                "trigger": "no-emitted-wnd-window-types"
+              },
+              "chrome": {
+                "active": 159,
+                "inactive": 163
+              },
+              "cinfResourceIndex": null,
+              "sprites": {}
+            },
+            "assets": [
+              {
+                "field": "chrome.active",
+                "path": "cicns/cicn-n14316-active-utility-window.png",
+                "candidateOccurrences": [159]
+              },
+              {
+                "field": "chrome.inactive",
+                "path": "cicns/cicn-n14320-inactive-utility-window.png",
+                "candidateOccurrences": [163]
+              }
+            ]
           }
         ],
         "windowSelections": [
@@ -26280,6 +26412,10 @@
           ["no-title-utility-window","inactive","no-title-utility-window","cicns/cicn-n14320-inactive-utility-window.png","self"],
           ["no-title-utility-window","collapsed-active","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
           ["no-title-utility-window","collapsed-inactive","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
+          ["collapsed-no-title-utility","active","collapsed-no-title-utility","cicns/cicn-n14316-active-utility-window.png","self"],
+          ["collapsed-no-title-utility","inactive","collapsed-no-title-utility","cicns/cicn-n14320-inactive-utility-window.png","self"],
+          ["collapsed-no-title-utility","collapsed-active","collapsed-no-title-utility","cicns/cicn-n14316-active-utility-window.png","self"],
+          ["collapsed-no-title-utility","collapsed-inactive","collapsed-no-title-utility","cicns/cicn-n14316-active-utility-window.png","self"],
           ["wnd--14336","active","document-window","cicns/cicn-n14332-active-document.png","self"],
           ["wnd--14336","inactive","document-window","cicns/cicn-n14336-inactive-document.png","self"],
           ["wnd--14336","collapsed-active","document-window","cicns/cicn-n14332-active-document.png","self"],
@@ -26336,18 +26472,14 @@
           ["wnd--14288","inactive","no-title-utility-window","cicns/cicn-n14320-inactive-utility-window.png","self"],
           ["wnd--14288","collapsed-active","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
           ["wnd--14288","collapsed-inactive","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
-          ["collapsed-no-title-utility-window","active","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
-          ["collapsed-no-title-utility-window","inactive","no-title-utility-window","cicns/cicn-n14320-inactive-utility-window.png","self"],
-          ["collapsed-no-title-utility-window","collapsed-active","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
-          ["collapsed-no-title-utility-window","collapsed-inactive","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
-          ["collapsed-no-title-utility","active","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
-          ["collapsed-no-title-utility","inactive","no-title-utility-window","cicns/cicn-n14320-inactive-utility-window.png","self"],
-          ["collapsed-no-title-utility","collapsed-active","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
-          ["collapsed-no-title-utility","collapsed-inactive","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
-          ["wnd--14284","active","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
-          ["wnd--14284","inactive","no-title-utility-window","cicns/cicn-n14320-inactive-utility-window.png","self"],
-          ["wnd--14284","collapsed-active","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
-          ["wnd--14284","collapsed-inactive","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
+          ["collapsed-no-title-utility-window","active","collapsed-no-title-utility","cicns/cicn-n14316-active-utility-window.png","self"],
+          ["collapsed-no-title-utility-window","inactive","collapsed-no-title-utility","cicns/cicn-n14320-inactive-utility-window.png","self"],
+          ["collapsed-no-title-utility-window","collapsed-active","collapsed-no-title-utility","cicns/cicn-n14316-active-utility-window.png","self"],
+          ["collapsed-no-title-utility-window","collapsed-inactive","collapsed-no-title-utility","cicns/cicn-n14316-active-utility-window.png","self"],
+          ["wnd--14284","active","collapsed-no-title-utility","cicns/cicn-n14316-active-utility-window.png","self"],
+          ["wnd--14284","inactive","collapsed-no-title-utility","cicns/cicn-n14320-inactive-utility-window.png","self"],
+          ["wnd--14284","collapsed-active","collapsed-no-title-utility","cicns/cicn-n14316-active-utility-window.png","self"],
+          ["wnd--14284","collapsed-inactive","collapsed-no-title-utility","cicns/cicn-n14316-active-utility-window.png","self"],
           ["popup-window","active","document-window","cicns/cicn-n14332-active-document.png","self"],
           ["popup-window","inactive","document-window","cicns/cicn-n14336-inactive-document.png","self"],
           ["popup-window","collapsed-active","document-window","cicns/cicn-n14332-active-document.png","self"],
@@ -26357,7 +26489,7 @@
           ["wnd--12320","collapsed-active","document-window","cicns/cicn-n14332-active-document.png","self"],
           ["wnd--12320","collapsed-inactive","document-window","cicns/cicn-n14332-active-document.png","self"]
         ],
-        "manifestSha256": "c0325f5add700a9efdff5477e9b13e047095ee896844180d257aa8532eb1926b",
+        "manifestSha256": "8706007479ae0bd8ce8f1ffb6a32498ae7072f63fcc6df8413562627744b05f5",
         "assetCount": 189,
         "assetPlanesSha256": "490bfc97523e08c2e021d94c8cd1b1adb02ddd2810e34bc55280d83794274e0d"
       },
@@ -26396,7 +26528,7 @@
         "forkSha256": "693915a19b9f3111abd73fe4af9025403e4ad9eab107b72953e3731b624c9beb",
         "agreement": "agrees",
         "status": "converted",
-        "manifestSha256": "70996e2a437b19a0e398e6fe09cfdfffb748a6a180cfbc571a282107cb6b5163",
+        "manifestSha256": "0ee7bddadce7d3107e054883ce5f71900729af1d019a43623f29698db0715e94",
         "assetPlaneParity": true
       },
       "canonical": {
@@ -26433,7 +26565,7 @@
           ["cicn",2,"",96,922,"a1785921bf66e9465a79280c4151278433676298e1f1fbb55dde8ad47e01d4b1","ok",null,null,["chromeElements/cicn-2"]],
           ["cicn",-14321,"alert racing stripes",96,184,"f14f35f39bb449941732d9d9c554ede7b83a45b88cbbb325ddd66e7e9b0e92dd","ok",null,null,["chromeElements/alert-racing-stripes","windowTypes/movable-alert"]],
           ["cicn",-14332,"active document",96,322,"0ec8986b2300a92901a778472bcb1f7dcee63cf11981775a7d94a17e8c27a057","ok",null,null,["chromeElements/active-document","windowTypes/document-window","windowTypes/collapsed-document-window"]],
-          ["cicn",-14316,"active utility window",96,250,"3f1db8cc626c20adb5b4999ae614995e7c7cbc29a1c3574dcecfd2e6df2661a3","ok",null,null,["chromeElements/active-utility-window","windowTypes/titled-utility-window","windowTypes/collapsed-titled-utility","windowTypes/no-title-utility-window"]],
+          ["cicn",-14316,"active utility window",96,250,"3f1db8cc626c20adb5b4999ae614995e7c7cbc29a1c3574dcecfd2e6df2661a3","ok",null,null,["chromeElements/active-utility-window","windowTypes/titled-utility-window","windowTypes/collapsed-titled-utility","windowTypes/no-title-utility-window","windowTypes/collapsed-no-title-utility"]],
           ["cicn",-14315,"active side utility window",96,250,"65af03705903e69673cf233448f064867d25c3ba45e484762c3fd88bf6c77ff0","ok",null,null,["chromeElements/active-side-utility-window","windowTypes/side-floating-utility-window","windowTypes/collapsed-side-utility"]],
           ["cicn",-14313,"active utility window grow box",96,444,"289e6b1cb836405ec494c0075088f088efec27aceb10b48f2bb6bd1667bb60d0","ok",null,null,["chromeElements/active-utility-window-grow-box","windowTypes/titled-utility-window"]],
           ["cicn",-14305,"control panel list icon",64,2458,"45204f135fb286e492ddffecb2dbec3643bb461906e222091f98c8e8f1a8b2ca","ok",null,null,["chromeElements/control-panel-list-icon"]],
@@ -26569,7 +26701,7 @@
           ["cicn",-14334,"inactive grow box",96,352,"397fed0dbc134af1ff741973b1836bbd873e4215ffd607663658418d9d58a2be","ok",null,null,["chromeElements/inactive-grow-box"]],
           ["cicn",-14328,"inactive dialog",96,242,"583916e891a3711d7e25f9c66124365c264262213dd815f7d47d2ac23acd9763","ok",null,null,["chromeElements/inactive-dialog","windowTypes/dialog","windowTypes/movable-modal"]],
           ["cicn",-14324,"inactive alert",96,250,"305c7e3f1926e2851a22719bee8c10761f3253183e08dc5744153f25918f2003","ok",null,null,["chromeElements/inactive-alert","windowTypes/alert","windowTypes/movable-alert"]],
-          ["cicn",-14320,"inactive utility window",96,250,"23a4631f1c6f0698d3fff2c78fd7723c9d68df6b8fdba040aaeb294284163c12","ok",null,null,["chromeElements/inactive-utility-window","windowTypes/titled-utility-window","windowTypes/collapsed-titled-utility","windowTypes/no-title-utility-window"]],
+          ["cicn",-14320,"inactive utility window",96,250,"23a4631f1c6f0698d3fff2c78fd7723c9d68df6b8fdba040aaeb294284163c12","ok",null,null,["chromeElements/inactive-utility-window","windowTypes/titled-utility-window","windowTypes/collapsed-titled-utility","windowTypes/no-title-utility-window","windowTypes/collapsed-no-title-utility"]],
           ["cicn",-14319,"inactive side utility window",96,250,"ff8e8a407f0d0170ac8decedc5341c2e86dc27b60c66637e0afb376b0d367222","ok",null,null,["chromeElements/inactive-side-utility-window","windowTypes/side-floating-utility-window","windowTypes/collapsed-side-utility"]],
           ["cicn",-14317,"inactive utility window grow box",96,310,"f2cad8a98ec69388b42c4b6b6e61c92c54f6fb1a5324cb419c178a0a63ff5530","ok",null,null,["chromeElements/inactive-utility-window-grow-box"]],
           ["cicn",-14312,"inactive finder header",96,178,"c92745ad3541cd1cc238197f2a7edf314b5ec798127c961e33a80c766b5254c5","ok",null,null,["chromeElements/inactive-finder-header"]],
@@ -27539,6 +27671,39 @@
                 "candidateOccurrences": [90]
               }
             ]
+          },
+          {
+            "key": "collapsed-no-title-utility",
+            "canonicalIdentity": "collapsed-no-title-utility-window",
+            "equivalentKeys": ["collapsed-no-title-utility","collapsed-no-title-utility-window","wnd--14284"],
+            "model": "corner-sprite",
+            "valueSha256": "e91c825ec6d015c7751317a99812d544e6e87019a4596ac6908b29f512799a6e",
+            "constructionBinding": {
+              "manifestKey": "collapsed-no-title-utility",
+              "recipe": {
+                "kind": "corner-sprite-table",
+                "key": "collapsed-no-title-utility",
+                "trigger": "no-emitted-wnd-window-types"
+              },
+              "chrome": {
+                "active": 31,
+                "inactive": 167
+              },
+              "cinfResourceIndex": null,
+              "sprites": {}
+            },
+            "assets": [
+              {
+                "field": "chrome.active",
+                "path": "cicns/cicn-n14316-active-utility-window.png",
+                "candidateOccurrences": [31]
+              },
+              {
+                "field": "chrome.inactive",
+                "path": "cicns/cicn-n14320-inactive-utility-window.png",
+                "candidateOccurrences": [167]
+              }
+            ]
           }
         ],
         "windowSelections": [
@@ -27586,6 +27751,10 @@
           ["no-title-utility-window","inactive","no-title-utility-window","cicns/cicn-n14320-inactive-utility-window.png","self"],
           ["no-title-utility-window","collapsed-active","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
           ["no-title-utility-window","collapsed-inactive","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
+          ["collapsed-no-title-utility","active","collapsed-no-title-utility","cicns/cicn-n14316-active-utility-window.png","self"],
+          ["collapsed-no-title-utility","inactive","collapsed-no-title-utility","cicns/cicn-n14320-inactive-utility-window.png","self"],
+          ["collapsed-no-title-utility","collapsed-active","collapsed-no-title-utility","cicns/cicn-n14316-active-utility-window.png","self"],
+          ["collapsed-no-title-utility","collapsed-inactive","collapsed-no-title-utility","cicns/cicn-n14316-active-utility-window.png","self"],
           ["wnd--14336","active","document-window","cicns/cicn-n14332-active-document.png","self"],
           ["wnd--14336","inactive","document-window","cicns/cicn-n14336-inactive-document.png","self"],
           ["wnd--14336","collapsed-active","document-window","cicns/cicn-n14332-active-document.png","self"],
@@ -27642,18 +27811,14 @@
           ["wnd--14288","inactive","no-title-utility-window","cicns/cicn-n14320-inactive-utility-window.png","self"],
           ["wnd--14288","collapsed-active","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
           ["wnd--14288","collapsed-inactive","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
-          ["collapsed-no-title-utility-window","active","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
-          ["collapsed-no-title-utility-window","inactive","no-title-utility-window","cicns/cicn-n14320-inactive-utility-window.png","self"],
-          ["collapsed-no-title-utility-window","collapsed-active","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
-          ["collapsed-no-title-utility-window","collapsed-inactive","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
-          ["collapsed-no-title-utility","active","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
-          ["collapsed-no-title-utility","inactive","no-title-utility-window","cicns/cicn-n14320-inactive-utility-window.png","self"],
-          ["collapsed-no-title-utility","collapsed-active","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
-          ["collapsed-no-title-utility","collapsed-inactive","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
-          ["wnd--14284","active","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
-          ["wnd--14284","inactive","no-title-utility-window","cicns/cicn-n14320-inactive-utility-window.png","self"],
-          ["wnd--14284","collapsed-active","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
-          ["wnd--14284","collapsed-inactive","no-title-utility-window","cicns/cicn-n14316-active-utility-window.png","self"],
+          ["collapsed-no-title-utility-window","active","collapsed-no-title-utility","cicns/cicn-n14316-active-utility-window.png","self"],
+          ["collapsed-no-title-utility-window","inactive","collapsed-no-title-utility","cicns/cicn-n14320-inactive-utility-window.png","self"],
+          ["collapsed-no-title-utility-window","collapsed-active","collapsed-no-title-utility","cicns/cicn-n14316-active-utility-window.png","self"],
+          ["collapsed-no-title-utility-window","collapsed-inactive","collapsed-no-title-utility","cicns/cicn-n14316-active-utility-window.png","self"],
+          ["wnd--14284","active","collapsed-no-title-utility","cicns/cicn-n14316-active-utility-window.png","self"],
+          ["wnd--14284","inactive","collapsed-no-title-utility","cicns/cicn-n14320-inactive-utility-window.png","self"],
+          ["wnd--14284","collapsed-active","collapsed-no-title-utility","cicns/cicn-n14316-active-utility-window.png","self"],
+          ["wnd--14284","collapsed-inactive","collapsed-no-title-utility","cicns/cicn-n14316-active-utility-window.png","self"],
           ["popup-window","active","document-window","cicns/cicn-n14332-active-document.png","self"],
           ["popup-window","inactive","document-window","cicns/cicn-n14336-inactive-document.png","self"],
           ["popup-window","collapsed-active","document-window","cicns/cicn-n14332-active-document.png","self"],
@@ -27663,7 +27828,7 @@
           ["wnd--12320","collapsed-active","document-window","cicns/cicn-n14332-active-document.png","self"],
           ["wnd--12320","collapsed-inactive","document-window","cicns/cicn-n14332-active-document.png","self"]
         ],
-        "manifestSha256": "70996e2a437b19a0e398e6fe09cfdfffb748a6a180cfbc571a282107cb6b5163",
+        "manifestSha256": "0ee7bddadce7d3107e054883ce5f71900729af1d019a43623f29698db0715e94",
         "assetCount": 287,
         "assetPlanesSha256": "0b339f119badc0a214ce504a3a24359b0c300ecd56fb4a22f2b0e5ebb23b79bb"
       },
@@ -27702,7 +27867,7 @@
         "forkSha256": "398958500f22ec988fd60600fac1c24064e1b89dd0b168a57de101edd71da441",
         "agreement": "agrees",
         "status": "converted",
-        "manifestSha256": "61b36e91b7722a20670b190ef71d33734f1f0c22dda4a2942528729ea7ad377f",
+        "manifestSha256": "1456fb44fb8cb6bd9e7db980fe7406332f41fd5205603d5f46006b97757d488a",
         "assetPlaneParity": true
       },
       "canonical": {
@@ -29488,7 +29653,7 @@
             "canonicalIdentity": "titled-utility-window",
             "equivalentKeys": ["titled-utility-window","wnd--14304"],
             "model": "sliced",
-            "valueSha256": "22b548aaca46fa2a1754f1ffd0ac245c814b98977450e4073a6226219af00ebe",
+            "valueSha256": "3b38f8865507f710faad47b2f50d42d2afb6fb0ada18335e730cdb67a7e6418e",
             "constructionBinding": {
               "manifestKey": "titled-utility-window",
               "recipe": {
@@ -29520,7 +29685,7 @@
             "canonicalIdentity": "side-floating-utility-window",
             "equivalentKeys": ["side-floating-utility-window","wnd--14296"],
             "model": "sliced",
-            "valueSha256": "3a53c0f0281e8f26a3f266395c73ed5782d486044c3c632f2122b171c1ff559c",
+            "valueSha256": "9bae9a360cd8c8eae143165549acbe46d3f569a1031f17b644343fee28ffdd87",
             "constructionBinding": {
               "manifestKey": "side-floating-utility-window",
               "recipe": {
@@ -29552,7 +29717,7 @@
             "canonicalIdentity": "document-window",
             "equivalentKeys": ["document-window","wnd--14336","wnd--14335"],
             "model": "sliced",
-            "valueSha256": "b6513f532aa6d6e4a0614a2af6577680dd6c988e64a95b1909055eaf6634b0ad",
+            "valueSha256": "7b967593c8209a97833280d87c1eea3adc1db734325a6fd7b86cdca9be08dbdb",
             "constructionBinding": {
               "manifestKey": "document-window",
               "recipe": {
@@ -29584,7 +29749,7 @@
             "canonicalIdentity": "dialog",
             "equivalentKeys": ["dialog","wnd--14328"],
             "model": "sliced",
-            "valueSha256": "b63b950ac00179ba7b3847b6b1b067d4ae227336275b71bf5131209dbe674ae4",
+            "valueSha256": "91e7996b588d7d33e322ae95c3d9aa67dd3243ac17396c882b7c5d739b1e0919",
             "constructionBinding": {
               "manifestKey": "dialog",
               "recipe": {
@@ -29616,7 +29781,7 @@
             "canonicalIdentity": "popup-window",
             "equivalentKeys": ["popup-window","wnd--12320"],
             "model": "sliced",
-            "valueSha256": "075449e63f7df1d4e091826dec691f42f4acdc08fc6d7111c83c428055e56c22",
+            "valueSha256": "a9d1914b961ca29d77d2349c512bf02f241ac55b824b46c89f32872dcdaefbfc",
             "constructionBinding": {
               "manifestKey": "popup-window",
               "recipe": {
@@ -29648,7 +29813,7 @@
             "canonicalIdentity": "movable-modal",
             "equivalentKeys": ["movable-modal","wnd--14324"],
             "model": "sliced",
-            "valueSha256": "2edfc578e47a56a43e331ce1a833276c72c2181bf5bb4d2454140879ad8bba4c",
+            "valueSha256": "af19d86a581a0031b42dd652b65cfb328e8a27c0abf4b037177c0aac1f3fb28f",
             "constructionBinding": {
               "manifestKey": "movable-modal",
               "recipe": {
@@ -29680,7 +29845,7 @@
             "canonicalIdentity": "collapsed-document-window",
             "equivalentKeys": ["collapsed-document-window","wnd--14332"],
             "model": "sliced",
-            "valueSha256": "d163b5fadc936fdc6a19a2952666243ad2b033e34700127341dc5feb9cc54ad2",
+            "valueSha256": "3ce3d5064270ff1cffbce7ec0b577001c5fdcb0800fbd2e3056b78cdbcae50c0",
             "constructionBinding": {
               "manifestKey": "collapsed-document-window",
               "recipe": {
@@ -29712,7 +29877,7 @@
             "canonicalIdentity": "alert",
             "equivalentKeys": ["alert","wnd--14326"],
             "model": "sliced",
-            "valueSha256": "6a4eb776d87de83d88fdcb59facc58c70acb6f464020967b7e951dc98851baca",
+            "valueSha256": "bbe9b576a52eb897f9ccc3f8c6d1d1dfadf151b984f84e703c664a7bd61ac3e2",
             "constructionBinding": {
               "manifestKey": "alert",
               "recipe": {
@@ -29744,7 +29909,7 @@
             "canonicalIdentity": "movable-alert",
             "equivalentKeys": ["movable-alert","wnd--14322"],
             "model": "sliced",
-            "valueSha256": "a066688b120ee6e4359cfad9bcd615172557d2faf69a1cb8cf261c7660b7ffdb",
+            "valueSha256": "aef9e1c80ae7b06af1b971993b632e52ba0a9db338cca6bd5be9b4b9a3382e4b",
             "constructionBinding": {
               "manifestKey": "movable-alert",
               "recipe": {
@@ -29894,7 +30059,7 @@
           ["wnd--12320","collapsed-active","popup-window","cicns/cicn-n12320-unnamed.png","self"],
           ["wnd--12320","collapsed-inactive","popup-window","cicns/cicn-n12320-unnamed.png","self"]
         ],
-        "manifestSha256": "61b36e91b7722a20670b190ef71d33734f1f0c22dda4a2942528729ea7ad377f",
+        "manifestSha256": "1456fb44fb8cb6bd9e7db980fe7406332f41fd5205603d5f46006b97757d488a",
         "assetCount": 678,
         "assetPlanesSha256": "62ca6ad5eddad6f1a08112bfeb110e7ce45f274b5893ad07a0f68b5d6d5d064b"
       },
@@ -29933,7 +30098,7 @@
         "forkSha256": "07d544814769dcfb935873c96a5fcf6f07d8716d2590a97b8322aa2e144f6999",
         "agreement": "agrees",
         "status": "converted",
-        "manifestSha256": "6a849c161a27fdae175b79e3f6b9e4c2ff2e2f5604ce13aadb86e0590cbf5733",
+        "manifestSha256": "f82bb7d07c571616c2a06c540037755a1380b04e623bdaf42a36663eec8bbb9b",
         "assetPlaneParity": true
       },
       "canonical": {
@@ -31810,7 +31975,7 @@
             "canonicalIdentity": "titled-utility-window",
             "equivalentKeys": ["titled-utility-window","wnd--14304"],
             "model": "sliced",
-            "valueSha256": "3e810c5f5c45929f894d2cd727c7e46d83855fa5301456d53e6112fa27686b41",
+            "valueSha256": "24f906eb3dbc6bbaf6b938c7648b6232f3b597d334e87a7f871d98c74ea1be22",
             "constructionBinding": {
               "manifestKey": "titled-utility-window",
               "recipe": {
@@ -31842,7 +32007,7 @@
             "canonicalIdentity": "side-floating-utility-window",
             "equivalentKeys": ["side-floating-utility-window","wnd--14296"],
             "model": "sliced",
-            "valueSha256": "67521f53816377ffc5f9dcf461a95388a3f14d3eba8db7d870327a4551c398bb",
+            "valueSha256": "a9a2c9701f8b6b8dcadaa36226baab55158f5675c51b28f4bb07bfd3e2c98a60",
             "constructionBinding": {
               "manifestKey": "side-floating-utility-window",
               "recipe": {
@@ -31874,7 +32039,7 @@
             "canonicalIdentity": "document-window",
             "equivalentKeys": ["document-window","wnd--14336","wnd--14335"],
             "model": "sliced",
-            "valueSha256": "46c7e1eb05259273bf0e65024f5568d173577efe876263a8af2ceb7471edc762",
+            "valueSha256": "8753a3dd106f774ecc0d30aa779840d50ee3c02f8a32d24241f4a9636cd5a151",
             "constructionBinding": {
               "manifestKey": "document-window",
               "recipe": {
@@ -31906,7 +32071,7 @@
             "canonicalIdentity": "popup-window",
             "equivalentKeys": ["popup-window","wnd--12320"],
             "model": "sliced",
-            "valueSha256": "1773855d5cc8ea1533f0af058a2cca83eed384c96c2244ae122ad1f70d6cd908",
+            "valueSha256": "32fefda2bb20c1443e9f7417145c2174f1da50070ff0850757af5a8fa736f16e",
             "constructionBinding": {
               "manifestKey": "popup-window",
               "recipe": {
@@ -31938,7 +32103,7 @@
             "canonicalIdentity": "collapsed-document-window",
             "equivalentKeys": ["collapsed-document-window","wnd--14332"],
             "model": "sliced",
-            "valueSha256": "abc6f465aae89d681089c38e16a950ab88ec5cf6aef7a9545d262844f6d206bc",
+            "valueSha256": "da95d4030f137c74b10eb738de98f6ba7a026b7198ff45c6e1dc7d15ac1a2e53",
             "constructionBinding": {
               "manifestKey": "collapsed-document-window",
               "recipe": {
@@ -31970,7 +32135,7 @@
             "canonicalIdentity": "dialog",
             "equivalentKeys": ["dialog","wnd--14328"],
             "model": "sliced",
-            "valueSha256": "d23903ab79e89e9b24b7551c96fff994b9b7d5ead724f26ec615c9946493f7eb",
+            "valueSha256": "985d7a249cbaa5a5265f2cd48edde3954ed90be3cba7c0aa69c2420e41846bd3",
             "constructionBinding": {
               "manifestKey": "dialog",
               "recipe": {
@@ -32002,7 +32167,7 @@
             "canonicalIdentity": "alert",
             "equivalentKeys": ["alert","wnd--14326"],
             "model": "sliced",
-            "valueSha256": "c933f00c1af7294b89fc8b0bae96d23446c316f9a0ec4bb015b35b2bf9bb84b4",
+            "valueSha256": "3110b77d167614710ccb2fa6c647ea89dfa6aa20d5b36cf49313f069cd12f3f2",
             "constructionBinding": {
               "manifestKey": "alert",
               "recipe": {
@@ -32034,7 +32199,7 @@
             "canonicalIdentity": "movable-modal",
             "equivalentKeys": ["movable-modal","wnd--14324"],
             "model": "sliced",
-            "valueSha256": "a94fae19e8d76b3201e89007fc54134a37c409873b0da4901ba4f377d0593f29",
+            "valueSha256": "ffdeeeb0ad1bc455b3d1730511efe8dcf0e4d4b8e33771faea81300c93d56aed",
             "constructionBinding": {
               "manifestKey": "movable-modal",
               "recipe": {
@@ -32066,7 +32231,7 @@
             "canonicalIdentity": "movable-alert",
             "equivalentKeys": ["movable-alert","wnd--14322"],
             "model": "sliced",
-            "valueSha256": "82e9d834c8ded70be565c1637129966f4a97cccd724c48f20d5e6e602432c5be",
+            "valueSha256": "ed7e2655befcb627243c84e7b741071a18011f2aad902600c9e324ae022b66f7",
             "constructionBinding": {
               "manifestKey": "movable-alert",
               "recipe": {
@@ -32216,7 +32381,7 @@
           ["wnd--12320","collapsed-active","popup-window","cicns/cicn-n12320-unnamed.png","self"],
           ["wnd--12320","collapsed-inactive","popup-window","cicns/cicn-n12320-unnamed.png","self"]
         ],
-        "manifestSha256": "6a849c161a27fdae175b79e3f6b9e4c2ff2e2f5604ce13aadb86e0590cbf5733",
+        "manifestSha256": "f82bb7d07c571616c2a06c540037755a1380b04e623bdaf42a36663eec8bbb9b",
         "assetCount": 717,
         "assetPlanesSha256": "cd3603c86d13844b26ecaaaedec016e65f8df10f9fc1e45ba01f36a1abfa71be"
       },
