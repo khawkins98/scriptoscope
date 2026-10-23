@@ -1,3 +1,4 @@
+import { composeEngineCheckable, type CheckableOptions } from './checkableFacade.js';
 import { composeEnginePush, loadEnginePushFace } from './pushButtonFacade.js';
 import { CinfEnvironmentError, snapshotBodyCinfFace, snapshotSliderLayoutCinf, type CinfLookupView } from '../tools/theme-loader/cinf-environment.js';
 import type { PreparedBitmapFont, BitmapGlyphRun } from './preparedBitmapFont.js';
@@ -179,9 +180,7 @@ async function loadById(theme: LoadedTheme, id: number): Promise<PixelBuffer | n
   return (await loadFaceById(theme, id))?.buffer ?? null;
 }
 
-/** Self-only art lookup for checkables; base-theme borrowing is not part of
- * this compatibility path. CICN state IDs are source-derived at kDEF
- * 0x7234–0x7282; the icon fallback remains a separate resource channel. */
+/** Self-only art lookup retained by the disclosure compatibility path. */
 async function loadByIdSelf(theme: LoadedTheme, id: number): Promise<PixelBuffer | null> {
   const el = elementById(theme, id);
   return el ? loadCicnBuffer(assetUrl(theme, el.asset)) : null;
@@ -1362,75 +1361,10 @@ export async function composeListHeader(theme: LoadedTheme, opts: ListHeaderOpti
   return out;
 }
 
-/** Source table at 0x18b88, copied at 0x710e–0x712c. No pressed public option.
- * Modern same-owner selection does not establish original Resource Manager order. */
-async function loadCheckableIcon(
-  theme: LoadedTheme, kind: 'checkbox' | 'radio',
-  opts: { mixed?: boolean; checked?: boolean; disabled?: boolean },
-): Promise<PixelBuffer | null> {
-  const value = opts.mixed ? 2 : opts.checked ? 1 : 0;
-  const normal: readonly [number, number, number] = kind === 'checkbox' ? [-10236, -10235, -10234] : [-10220, -10219, -10218];
-  const disabled: readonly [number, number, number] = kind === 'checkbox' ? [-10240, -10239, -10238] : [-10224, -10223, -10222];
-  const row = opts.disabled ? disabled : normal;
-  // Hand-built themes without an inspector retain unobserved color-art fallback.
-  // A present but incomplete/contradictory inspector never takes this path.
-  if (!theme.inspector) {
-    return (await loadGlyphByIdSelf(theme, row[value])) ?? (await loadGlyphByIdSelf(theme, normal[value]));
-  }
-  const masks = theme.inspector.iconMaskResources;
-  if (!masks) return null;
-  const maskState = (id: number) => {
-    const found = masks.filter(r => r.id === id);
-    const first = found[0];
-    if (!first) return 'missing';
-    return found.length === 1 && Number.isInteger(first.resourceIndex) && first.resourceIndex >= 0
-      && Number.isInteger(first.byteLength) && first.byteLength >= 64 ? 'decoded' : 'invalid';
-  };
-  let id = row[value];
-  // 0x73ae–0x73d8 retries checked ONLY for a missing mixed mask, not missing color art.
-  if (value === 2 && maskState(id) === 'missing') id = row[1];
-  // f50c–f51e also requires the selected mask. Short/duplicate masks are unsupported.
-  if (maskState(id) !== 'decoded') return null;
-  const asset = theme.glyphs?.[String(id)];
-  if (!asset) return null;
-  const url = assetUrl(theme, asset);
-  const entries = theme.inspector.iconIndex.filter(e => e.id === id && e.url === url);
-  if (entries.length !== 1) return null;
-  const entry = entries[0];
-  if (!entry || entry.size !== 16 || !entry.masked || !Number.isInteger(entry.resourceIndex) || (entry.resourceIndex ?? -1) < 0
-    || !((entry.type === 'ics4' && entry.depth === 4) || (entry.type === 'ics8' && entry.depth === 8))) return null;
-  return loadCicnBuffer(url);
-}
-
-/** Compose self-owned checkable art. CICN selection and the icon table are
- * separate source paths; icon color depth remains the loader's modern policy. */
-export async function composeCheckable(
-  theme: LoadedTheme,
-  kind: 'checkbox' | 'radio',
-  opts: { label?: string; checked?: boolean; mixed?: boolean; disabled?: boolean; fg?: string } = {},
-): Promise<PixelBuffer | null> {
-  // kDEF 0x7234–0x7282: -9504 + 12*kind + 3*value + tier.
-  // Public mixed maps to value2 ahead of checked/value1; this API has no pressed
-  // tier. A missing mixed CICN retries checked at the SAME tier (0x7264).
-  const checked = !!(opts.mixed || opts.checked);
-  const activeId = kind === 'radio' ? (checked ? 9488 : 9491) : (checked ? 9500 : 9503);
-  const wantId = activeId + Number(!!opts.disabled);
-  const mixedId = (kind === 'radio' ? 9485 : 9497) + Number(!!opts.disabled);
-  const glyph =
-    (opts.mixed ? await loadByIdSelf(theme, mixedId) : null) ??
-    (await loadByIdSelf(theme, wantId)) ??
-    (await loadByIdSelf(theme, activeId)) ??
-    (await loadCheckableIcon(theme, kind, opts));
-  if (!glyph) return null;
-  const label = opts.label ?? '';
-  const glyphs = label ? rasterizeText(label, 9, opts.fg ?? '#000000') : null;
-  const gap = 5;
-  const w = glyph.width + (glyphs ? gap + glyphs.width : 0);
-  const h = Math.max(glyph.height, glyphs ? glyphs.height : 0);
-  const out = PixelBuffer.alloc(w, h);
-  out.copyBits(glyph, { x: 0, y: 0, w: glyph.width, h: glyph.height }, { x: 0, y: Math.round((h - glyph.height) / 2), w: glyph.width, h: glyph.height });
-  if (glyphs) out.drawOver(glyphs, glyph.width + gap, Math.round((h - glyphs.height) / 2));
-  return out;
+/** Checkable Boolean mapping, browser fonts and archive/base environment are
+ * declared public policies. The engine owns typed state selection and paint order. */
+export async function composeCheckable(theme: LoadedTheme, kind: 'checkbox' | 'radio', opts: CheckableOptions = {}): Promise<PixelBuffer | null> {
+  return composeEngineCheckable(theme, kind, opts);
 }
 
 // ─── Baseline (procedural Platinum) controls ───────────────────────────

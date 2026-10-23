@@ -385,6 +385,12 @@ export interface LoadedTheme {
  *  off `theme.inspector` without re-fetching the bundle. URLs are pre-baked (blob: in a
  *  browser; pass-through in Node when an `assetUrlFactory` was set). */
 export interface ThemeInspector {
+  /** Complete same-fork cicn occurrence census. Present-but-undecoded and
+   * duplicate inputs stay unresolved; absence of this field is an older declared environment. */
+  cicnResources?: Array<{ id: number; resourceIndex: number; byteLength: number }>;
+  /** Complete same-owner colour-icon census. Missing is unknown; [] proves absence.
+   * Signed type/id and occurrence bind decoded art; duplicate/short inputs are unresolved. */
+  iconColorResources?: Array<{ type: 'icl4' | 'ics4' | 'icl8' | 'ics8'; id: number; resourceIndex: number; byteLength: number }>;
   /** Complete same-fork ics# input census, including masks without color art.
    * Absent means unknown; [] means no such raw resources. Duplicate IDs and
    * fewer than 64 bytes are unsupported by the checkable icon path, not NULL.
@@ -406,6 +412,9 @@ export interface ThemeInspector {
     name?: string | null;
     /** Asset URL (blob: in a browser; pass-through in Node when assetUrlFactory was set). */
     url?: string;
+    /** Opaque pixels from this exact decoded occurrence, before Canvas mask loss.
+     * Prepared only for requested identities; older manifests leave this unknown. */
+    unmaskedUrl?: string;
     /** Raw color-resource occurrence in this loaded fork, when decoded by the loader. */
     resourceIndex?: number;
     /** True iff the first matching mask supplied a complete decoded mask plane. */

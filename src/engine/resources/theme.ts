@@ -36,10 +36,12 @@ const LINE_SAMPLED = new Set(engineLineSampledCicnIds());
 import { cicnIconSource } from './iconSource.js';
 
 async function themeProvider(theme: LoadedTheme, tier: 'archive' | 'base', name: string,
-  wanted: readonly { type: string; id: number }[], life?: ChainLife): Promise<ResourceProvider> {
+  wanted: readonly { type: string; id: number }[], life?: ChainLife, checkables = false): Promise<ResourceProvider> {
   const elements = Object.values(theme.manifest.chromeElements ?? {});
   const patterns = Object.values(theme.manifest.patterns ?? {});
   const icons = theme.inspector?.iconIndex ?? [];
+  const validOccurrence = (r: { resourceIndex: number; byteLength: number }) => Number.isInteger(r.resourceIndex)
+    && r.resourceIndex >= 0 && Number.isInteger(r.byteLength) && r.byteLength >= 0;
   // With a caller lifetime, no decode starts once it has ended (its signal
   // aborted, or the owner released one of this chain's asset URLs).
   const load = (asset: string): Promise<Pixmap> => {
@@ -49,8 +51,19 @@ async function themeProvider(theme: LoadedTheme, tier: 'archive' | 'base', name:
   const entry = async ({ type, id }: { type: string; id: number }): Promise<[string, unknown] | null> => {
     const key = `${type}:${id}`;
     if (type === 'cicn') {
+      if (checkables && theme.inspector?.cicnResources) {
+        const raw = theme.inspector.cicnResources.filter(r => r.id === id);
+        const decoded = elements.filter(e => e.sourceCicnId === id && e.asset);
+        if (raw.length > 1 || raw.length === 1 && (!validOccurrence(raw[0]!) || decoded.length !== 1))
+          return [key, { status: 'unknown', reason: 'ambiguous or undecoded raw cicn occurrence' }];
+        if (raw.length === 0 && decoded.length) return [key, { status: 'unknown', reason: 'cicn decoded asset contradicts raw census' }];
+      }
+      if (checkables && elements.filter(e => e.sourceCicnId === id).length > 1) return [key, { status: 'unknown', reason: 'ambiguous cicn occurrence' }];
       const el = elements.find(e => e.sourceCicnId === id && e.asset);
-      if (!el) return null;
+      if (!el) {
+        if (checkables && elements.some(e => e.sourceCicnId === id)) return [key, { status: 'unknown', reason: 'cicn occurrence has no decoded asset' }];
+        return null;
+      }
       const status = el.samplingEquivalence?.status ?? null;
       const sampleAsset = el.asset;
       const finiteSamples = el.engineColorSamples ? structuredClone(el.engineColorSamples) : undefined;
@@ -88,6 +101,27 @@ async function themeProvider(theme: LoadedTheme, tier: 'archive' | 'base', name:
       const p = patterns.find(e => e.sourcePpatId === id && e.asset);
       return p ? [key, await load(p.asset)] : null;
     }
+    if (checkables && type === 'ics#') {
+      const census = theme.inspector?.iconMaskResources;
+      if (!census) return [key, { status: 'unknown', reason: 'ics# census unavailable' }];
+      const matches = census.filter(r => r.id === id);
+      if (!matches.length) return null;
+      const planes = theme.inspector?.iconMaskPlanes?.[String(id)];
+      if (matches.length !== 1 || !validOccurrence(matches[0]!) || matches[0]!.byteLength < 64 || !planes || planes.length !== 64)
+        return [key, { status: 'unknown', reason: 'ambiguous, malformed or undecoded ics#' }];
+      return [key, { planes: [...planes] }];
+    }
+    if (checkables && type === 'ics8') {
+      const census = theme.inspector?.iconColorResources;
+      if (!census) return [key, { status: 'unknown', reason: 'ics8 census unavailable' }];
+      const matches = census.filter(r => r.type === type && r.id === id);
+      if (!matches.length) return null;
+      const candidates = icons.filter(r => r.id === id && r.type === type && r.resourceIndex === matches[0]!.resourceIndex);
+      const icon = candidates[0];
+      if (matches.length !== 1 || !validOccurrence(matches[0]!) || matches[0]!.byteLength < 256 || candidates.length !== 1 || !icon?.unmaskedUrl)
+        return [key, { status: 'unknown', reason: 'ambiguous, malformed or undecoded ics8 occurrence' }];
+      return [key, await load(icon.unmaskedUrl)];
+    }
     if (type === 'ics#') {
       // The loader keeps planes only for a complete 16 × 16 record (image + mask).
       const planes = theme.inspector?.iconMaskPlanes?.[String(id)];
@@ -105,7 +139,13 @@ async function themeProvider(theme: LoadedTheme, tier: 'archive' | 'base', name:
     }
     return null;
   };
-  const entries = await Promise.all(wanted.map(entry));
+  const entries = await Promise.all(wanted.map(async request => {
+    try { return await entry(request); }
+    catch (error) {
+      if (!checkables || life?.ended()) throw error;
+      return [`${request.type}:${request.id}`, { status: 'unknown', reason: `resource decode failed: ${String(error)}` }] as [string, unknown];
+    }
+  }));
   return mapProvider(name, tier, entries.filter((e): e is [string, unknown] => e !== null));
 }
 
@@ -128,6 +168,7 @@ function chainLife(theme: LoadedTheme, signal: AbortSignal): ChainLife {
     }
     for (const p of Object.values(t.manifest.patterns ?? {})) if (p.asset) urls.add(assetUrl(t, p.asset));
     for (const g of Object.values(t.glyphs ?? {})) if (g) urls.add(g);
+    for (const icon of t.inspector?.iconIndex ?? []) if (icon.unmaskedUrl) urls.add(assetUrl(t, icon.unmaskedUrl));
   }
   let released = false;
   const stop = onAssetUrlReleased(url => { if (urls.has(url)) released = true; });
@@ -142,7 +183,7 @@ function chainLife(theme: LoadedTheme, signal: AbortSignal): ChainLife {
  * changes.
  */
 export async function themeResourceChain(theme: LoadedTheme, wanted: readonly { type: string; id: number }[],
-  opts: { signal?: AbortSignal; cinfBodies?: readonly number[] } = {}): Promise<ResourceChain> {
+  opts: { signal?: AbortSignal; cinfBodies?: readonly number[]; checkables?: boolean } = {}): Promise<ResourceChain> {
   const providers: ResourceProvider[] = [];
   // Preload typed body dependencies without issuing engine requests. Resource
   // order/NULL semantics remain owned by the synchronous painter at draw time.
@@ -173,7 +214,7 @@ export async function themeResourceChain(theme: LoadedTheme, wanted: readonly { 
     if (life?.ended()) throw abortError();
     seen.add(t);
     const name = t.manifest.name ? String(t.manifest.name) : `theme-${depth}`;
-    providers.push(await themeProvider(t, depth === 0 ? 'archive' : 'base', depth === 0 ? name : `${name}#base${depth}`, wanted, life));
+    providers.push(await themeProvider(t, depth === 0 ? 'archive' : 'base', depth === 0 ? name : `${name}#base${depth}`, wanted, life, opts.checkables));
   }
   if (life?.ended()) throw abortError();
   } finally { life?.close(); }

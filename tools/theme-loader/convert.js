@@ -315,7 +315,9 @@ export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourc
   }
 
   validateTheme(theme); // throws on a malformed bundle; callers report/abort
-  return { theme, assets, colorTables: colorTablesOf(entries, realizeRgb16), manifest: { source, counts, assets: flatAssets } };
+  const cicnResources = entries.flatMap((e, resourceIndex) => e.type === 'cicn'
+    ? [{ id: e.id, resourceIndex, byteLength: e.data.length }] : []);
+  return { theme, assets, cicnResources, colorTables: colorTablesOf(entries, realizeRgb16), manifest: { source, counts, assets: flatAssets } };
 }
 
 /**
@@ -424,7 +426,7 @@ const ICON_TYPES = {
  * @param {{ ids?: number[] }} [options] Restrict decoding to these resource ids.
  * @returns {{ assets: {path,rgba,width,height}[], index: object[], census: object }}
  */
-export function convertIcons(fork, { ids, displayProfile } = {}) {
+export function convertIcons(fork, { ids, displayProfile, unmaskedIconIds = [] } = {}) {
   const realizeRgb16 = displayRealizer(displayProfile);
   const entries = parseResourceFork(asBytes(fork));
   const requested = ids ? new Set(ids) : null;
@@ -461,8 +463,17 @@ export function convertIcons(fork, { ids, displayProfile } = {}) {
       for (let i = 0; i < cfg.size * cfg.size; i++) if (rgba[i * 4 + 3] > 127) opaque++;
       const coverage = +(opaque / (cfg.size * cfg.size)).toFixed(3);
       const fname = `${type}-${idStr(e.id)}.png`;
+      // Preserve this actual decoded occurrence's RGB before Canvas drops
+      // mask-clear colours. Display realization above has already run once.
+      let unmaskedFile;
+      if (type === 'ics8' && unmaskedIconIds.includes(e.id)) {
+        unmaskedFile = `opaque-${fname}`;
+        const opaqueRgba = rgba.slice();
+        for (let i = 3; i < opaqueRgba.length; i += 4) opaqueRgba[i] = 255;
+        assets.push({ path: `icons/${unmaskedFile}`, rgba: opaqueRgba, width: cfg.size, height: cfg.size });
+      }
       assets.push({ path: `icons/${fname}`, rgba, width: cfg.size, height: cfg.size });
-      index.push({ id: e.id, type, size: cfg.size, depth: cfg.depth, file: fname, name: e.name || null, masked: !!mask, coverage, resourceIndex: entries.indexOf(e) });
+      index.push({ id: e.id, type, size: cfg.size, depth: cfg.depth, file: fname, name: e.name || null, masked: !!mask, coverage, ...(unmaskedFile ? { unmaskedFile } : {}), resourceIndex: entries.indexOf(e) });
       done.add(key);
     }
   }
@@ -478,7 +489,9 @@ export function convertIcons(fork, { ids, displayProfile } = {}) {
     if (e.type !== 'ics#' || e.data.length < 64 || String(e.id) in iconMaskPlanes) continue;
     iconMaskPlanes[String(e.id)] = Array.from(e.data.subarray(0, 64));
   }
-  return { assets, index, census, iconMaskResources, iconMaskPlanes };
+  const iconColorResources = entries.flatMap((e, resourceIndex) => e.type in ICON_TYPES
+    ? [{ type: e.type, id: e.id, resourceIndex, byteLength: e.data.length }] : []);
+  return { assets, index, census, iconMaskResources, iconMaskPlanes, iconColorResources };
 }
 
 /**
@@ -494,16 +507,18 @@ export function convertIcons(fork, { ids, displayProfile } = {}) {
  * @returns {{ theme: object, assets: {path,rgba,width,height}[], iconIndex: object[],
  *             manifest: object }}
  */
-export function convertScheme(fork, { meta = {}, source = 'scheme.rsrc', resourceObserver, displayProfile, cinfBinding, sliderLayoutBinding, cicnTransferBinding, iconBlitCicnIds, engineCinfIds } = {}) {
+export function convertScheme(fork, { meta = {}, source = 'scheme.rsrc', resourceObserver, displayProfile, cinfBinding, sliderLayoutBinding, cicnTransferBinding, iconBlitCicnIds, engineCinfIds, unmaskedIconIds } = {}) {
   const bytes = asBytes(fork); // parse once conceptually; chrome+icons each re-parse (cheap, KB)
   const chrome = convertChrome(bytes, { meta, source, resourceObserver, displayProfile, cinfBinding, sliderLayoutBinding, cicnTransferBinding, iconBlitCicnIds, engineCinfIds });
-  const icons = convertIcons(bytes, { displayProfile });
+  const icons = convertIcons(bytes, { displayProfile, unmaskedIconIds });
   return {
     theme: chrome.theme,
     assets: [...chrome.assets, ...icons.assets],
     iconIndex: icons.index,
     iconMaskResources: icons.iconMaskResources,
     iconMaskPlanes: icons.iconMaskPlanes,
+    iconColorResources: icons.iconColorResources,
+    cicnResources: chrome.cicnResources,
     colorTables: chrome.colorTables,
     manifest: chrome.manifest,
   };
