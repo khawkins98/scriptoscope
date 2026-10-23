@@ -143,6 +143,12 @@ for (const { slug } of catalog) test(`${slug}: option contracts and source/built
     const groupSizes = new Map();
     for (const c of cases) {
       current = c;
+      // Fresh declarative documents preserve the original neutral screenshot
+      // condition. Both transports' input/focus checks run after that capture.
+      if(c.mode==='declarative')for(const m of ['source','built']){
+        await pages[m].evaluate(()=>window.controlMatrix?.dispose());await pages[m].close();
+        pages[m]=await context.newPage();await openHarness(pages[m],servers,m);
+      }
       const versions = {};
       const resolutionTraces = {};
       const presentationStates = {};
@@ -154,6 +160,19 @@ for (const { slug } of catalog) test(`${slug}: option contracts and source/built
         if(c.mode==='direct'&&['push','default'].includes(c.family)&&['apple-platinum-2','black-platinum','platinum-8','slimes','system7-nostalgia-silver'].includes(slug)&&!checkedDirectNegative){
           const missing=structuredClone(result);missing.canvases=[];expect(()=>assertOutput(missing,c,slug),'missing direct canvas cannot pass PB9 admission').toThrow();
           const unavailable=structuredClone(result);unavailable.status='unavailable';expect(()=>assertOutput(unavailable,c,slug),'unavailable cannot pass reached metadata NULL').toThrow();checkedDirectNegative=true;
+        }
+        if (c.mode === 'declarative' && c.family === 'tab') await assertTabLayout(activePage, result);
+        // Full exact PNG parity is captured in fresh neutral state before input.
+        versions[mode]={status:result.status,pixels:await pixels(activePage,result.canvases)};
+        if(c.mode==='direct'&&(!c.options.fg||!c.options.label)&&['push','default'].includes(c.family)&&['apple-platinum-2','black-platinum','platinum-8','slimes','system7-nostalgia-silver'].includes(slug)){
+          expect(versions[mode].pixels).toEqual(result.canvases.map(canvas=>({width:canvas.width,height:canvas.height,sha256:createHash('sha256').update(new Uint8Array(canvas.width*canvas.height*4)).digest('hex')})));
+        }
+        if (c.mode === 'declarative' && result.canvases.length === 0) {
+          presentationStates[mode]=await activePage.evaluate(({root,controls})=>{
+            const inspect=selector=>{const el=document.querySelector(selector),r=el.getBoundingClientRect(),s=getComputedStyle(el);return{rect:{x:r.x,y:r.y,width:r.width,height:r.height},active:document.activeElement===el,focusVisible:el.matches(':focus-visible'),hover:el.matches(':hover'),disabled:el.matches(':disabled'),style:Object.fromEntries(['appearance','backgroundColor','border','borderRadius','boxShadow','outline','outlineOffset','opacity','font','transform','zoom'].map(k=>[k,s[k]]))};};
+            return{scroll:[scrollX,scrollY],devicePixelRatio,fonts:document.fonts.status,root:inspect(root),controls:controls.map(inspect)};
+          },{root:result.outputSelector,controls:result.controls.map(c=>c.selector)});
+          versions[mode].domPng = (await activePage.locator(result.outputSelector).screenshot({ animations: 'disabled', caret: 'hide' })).toString('base64');
         }
         if(c.mode==='declarative'&&['push','default'].includes(c.family)&&['apple-platinum-2','black-platinum','platinum-8','slimes','system7-nostalgia-silver'].includes(slug)){
           await assertNativeReplacement(activePage,result,c);
@@ -170,20 +189,7 @@ for (const { slug } of catalog) test(`${slug}: option contracts and source/built
             checkedNativeNegatives=true;
           }
         }
-        if (c.mode === 'declarative' && c.family === 'tab') await assertTabLayout(activePage, result);
-        // Compare both entries in the same keyboard-focused presentation.
-        if (c.mode === 'declarative') await assertKeyboardFocus(activePage, result);
-        versions[mode]={status:result.status,pixels:await pixels(activePage,result.canvases)};
-        if(c.mode==='direct'&&(!c.options.fg||!c.options.label)&&['push','default'].includes(c.family)&&['apple-platinum-2','black-platinum','platinum-8','slimes','system7-nostalgia-silver'].includes(slug)){
-          expect(versions[mode].pixels).toEqual(result.canvases.map(canvas=>({width:canvas.width,height:canvas.height,sha256:createHash('sha256').update(new Uint8Array(canvas.width*canvas.height*4)).digest('hex')})));
-        }
-        if (c.mode === 'declarative' && result.canvases.length === 0) {
-          presentationStates[mode]=await activePage.evaluate(({root,controls})=>{
-            const inspect=selector=>{const el=document.querySelector(selector),r=el.getBoundingClientRect(),s=getComputedStyle(el);return{rect:{x:r.x,y:r.y,width:r.width,height:r.height},active:document.activeElement===el,focusVisible:el.matches(':focus-visible'),hover:el.matches(':hover'),disabled:el.matches(':disabled'),style:Object.fromEntries(['appearance','backgroundColor','border','borderRadius','boxShadow','outline','outlineOffset','opacity','font','transform','zoom'].map(k=>[k,s[k]]))};};
-            return{scroll:[scrollX,scrollY],devicePixelRatio,fonts:document.fonts.status,root:inspect(root),controls:controls.map(inspect)};
-          },{root:result.outputSelector,controls:result.controls.map(c=>c.selector)});
-          versions[mode].domPng = (await activePage.locator(result.outputSelector).screenshot({ animations: 'disabled', caret: 'hide' })).toString('base64');
-        }
+        if(c.mode==='declarative')await assertKeyboardFocus(activePage,result);
         if (['push', 'default', 'bevel'].includes(c.family) && c.labelKind !== 'empty' && result.status === 'rendered') {
           const key = `${mode}/${c.group}`;
           const geometry = result.canvases.map(({ width, height }) => ({ width, height }));
@@ -194,7 +200,7 @@ for (const { slug } of catalog) test(`${slug}: option contracts and source/built
       if(versions.source.domPng!==versions.built.domPng)await testInfo.attach('dom-parity-presentation.json',{body:JSON.stringify({slug,case:c,presentationStates},null,2),contentType:'application/json'});
       expect(versions.built, `${c.id}: actual published entry preserves source pixels`).toEqual(versions.source);
       const { domPng, ...record } = versions.built;
-      summary.push({ id: c.id, ...record, resolutionTraces, nativeScreenshotCompared: !!domPng });
+      summary.push({ id: c.id, ...record, resolutionTraces, nativeScreenshotCompared: !!domPng,nativeScreenshotCondition:domPng?'fresh-neutral-before-input':null });
     }
     // Keep a compact executed-case inventory even on success. It distinguishes
     // absent source art from an asserted fallback and exposes actual coverage.
