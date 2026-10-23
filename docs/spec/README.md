@@ -18,8 +18,7 @@ verifier reports or original listings. Keep independent test authorship separate
 
 **Current orientation (2026-10-23):** October’s incremental decode-first `v2`
 integration branch is distinct from May’s v2/v3 resets. `main` has released 0.4.0;
-not every family has migrated. PR #464’s window follow-up is merged into `v2`;
-PR #465 and further controls work remain in flight. See
+not every family has migrated. Follow-up work and review state are tracked in [issue #459](https://github.com/khawkins98/scriptoscope/issues/459). See
 [DECISIONS #8](../v2/DECISIONS.md) and, for integration owners/spec writers,
 the [amended PLAN](../v2/PLAN.md). The current implementation surface is
 `src/engine/qd/`, `resources/`, `state/`, `tables/`, `families/` and `trace.ts`
