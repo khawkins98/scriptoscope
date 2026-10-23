@@ -7,6 +7,8 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+- **Contributor orientation** (#459): distinguish the current incremental v2 engine from historical renderer resets, route runtime implementers through the safe brief before any source-reference catalogue, and preserve role-specific evidence boundaries.
+
 - **Declared slider resource chain** (#427, #459): the opt-in ordered `cinf` tier now supplies gate, corner and groove metadata together. Every declared provider must be complete before admission; missing declared metadata cannot borrow archive metadata. Ordinary resource resolution remains unchanged.
 - **Slider pointer geometry** (#427): imperative sliders use the engine's committed thumb travel, direction, exact-value grab and track-click centering for both ordinary and declared layouts.
 - **Breaking slider metadata cleanup** (#427): remove `ChromeElement.sliderLayoutCinf`, `SliderLayout.endpointPolicy`, the decoded slider summary fields and retired slider admission helper exports. Keep the preparation/binding option and generic IDs/data/body views; `sliderLayoutEnvironment` is now only the opaque frozen `{ environmentId, bindingId }` marker. Use engine traces for selected provider provenance.

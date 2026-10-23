@@ -40,7 +40,7 @@ Want more? Two community archives where Scriptoscope's drop-zone can read scheme
 
 Both let you grab a `.sit` and drop it on the demo to see it render live without a build step.
 
-> **Status (pre-1.0, 2026-05-29):** prototype mode. Two public surfaces are in: the **imperative runtime** (`loadTheme()` / `renderWindow()` in [`src/index.ts`](./src/index.ts)) and the **declarative front door** (`mountDeclarative()` + `data-scriptoscope-*` in [`src/declarative/index.ts`](./src/declarative/index.ts)) — both exercised by the demo pages below. The chrome renderer is rebuilt around Kaleidoscope's own part-code model and validated against the decompiled 2.3.1 kDEF. See [`docs/history.md`](./docs/history.md) for the project arc (and the "Dead ends — don't relitigate these" list — read it first), [`docs/superpowers/specs/2026-05-27-declarative-windows-design.md`](./docs/superpowers/specs/2026-05-27-declarative-windows-design.md) for the declarative layer's design, and [`LEARNINGS.md`](./LEARNINGS.md) for the Aaron UI → Scriptoscope rebrand (2026-05-28) + the full `data-scriptoscope-*` sweep (2026-05-29 — the Lodash-kept-`_` argument didn't survive the first integration guide). Live demo: <https://khawkins98.github.io/scriptoscope/>.
+> **Status (pre-1.0, 2026-10-23):** `main` has released **0.4.0**. The current **incremental decode-first v2** milestone moves families onto `src/engine/` through the long-lived `v2` integration branch and per-family releases ([decision #8](./docs/v2/DECISIONS.md)). Scroll bars, sliders, progress, procedural frames and window recipe/widgets have engine drivers; follow-up work and review state are tracked in [issue #459](https://github.com/khawkins98/scriptoscope/issues/459). This is not an all-family cutover. `src/composeChrome.ts` is now a facade over `src/engine/families/window.ts`; the engine holds the decoded layout/widget rules. The May “v2 clean-break” and “v3 reset” names describe earlier architecture generations, not this branch or package versions. Runtime contributors start with the [implementer brief](./docs/spec/engine/IMPLEMENTER-BRIEF.md) and assigned safe family spec; unresolved rules become spec questions. Consumers can use the imperative and declarative examples below.
 
 ## If you build a scheme
 
@@ -337,9 +337,9 @@ Two ways to wire it. The simpler one is a button or any element that doubles as 
 <script type="module">
   // mountDeclarative + attachThemeDropZone + loadKaleidoscopeScheme are all
   // exported from the same module entry. The GH Pages URL below is the install
-  // path (no npm package — see the Install section above). The Kaleidoscope
-  // decoder is bundled into the main module; StuffIt WASM lazy-loads only when
-  // a .sit is decoded.
+  // path (no npm package — see the Install section above). The public decoder
+  // wrapper enables engine loader inputs by default. StuffIt WASM loads lazily
+  // when a .sit is decoded.
   import {
     mountDeclarative, attachThemeDropZone, loadKaleidoscopeScheme,
   } from 'https://khawkins98.github.io/scriptoscope/scriptoscope.js';
@@ -445,6 +445,14 @@ If your catalog already includes that complete sidecar, pass it as `ThemeEntry.m
 (or `loadTheme`’s `meta` option) to avoid the metadata request.
 
 The `LoadedTheme` returned carries optional `dispose()` to revoke its blob URLs and evict its raster-cache entries; call it after its last consumer permanently unmounts.
+
+The released control facades include `composeScrollbar` / `composeSlider` with
+optional `pressedPart` (a pressed state without a part means the thumb).
+`composeProgress` accepts normalized `value` or signed 16-bit native `range`,
+never both, plus `indeterminate` and a phase byte. `composeProgressFrame` returns
+the phase after drawing; `ProgressIdle` handles idle advancement in the interactive
+layer. These are public exports; `src/engine/` remains internal. The option types
+in [`src/controls.ts`](./src/controls.ts) describe the released wrapper contract.
 
 See [`demo/diagnostic.html`](./demo/diagnostic.html) for the full integration, [`docs/spec/compositor-spec.md`](./docs/spec/compositor-spec.md) for the chrome model, and [`docs/scene-slot-spec.md`](./docs/scene-slot-spec.md) + [`docs/scene-codex.md`](./docs/scene-codex.md) for the per-theme tier resolution of every Scene visual slot.
 
@@ -581,16 +589,15 @@ Beyond the bundled corpus, the demo has a **drop-zone**: drag a Kaleidoscope the
 ## Documents
 
 - **[`llms.txt`](./llms.txt)** ([live](https://khawkins98.github.io/scriptoscope/llms.txt)) — discovery file for LLM agents helping a consumer integrate. Curates pointers to README + integration docs + recipes + API surface so an agent has one canonical entry point. Follows the [llmstxt.org](https://llmstxt.org/) standard. Drop the live URL into your AI assistant's context if you're integrating Scriptoscope and want better answers.
-- **[`docs/maintainer-reference-environment.md`](./docs/maintainer-reference-environment.md)** — private Forgejo reference assets, verified fetch instructions and native acquisition/restore limits; optional for maintainers, never a public CI dependency.
-- **[`docs/history.md`](./docs/history.md)** — the full project arc (v1 → v2 clean-break → v3 part-code reset) and the "Dead ends — don't relitigate these" list. Start here.
-- **[`docs/spec/README.md`](./docs/spec/README.md)** — the **index** of every primary-source decode under `docs/spec/` (the citation chain: corpus → Scheme Factory → Apple → kDEF 2.3.1 → kDEF 1.8.2). First stop when chasing "what does id/field/address X mean?". The spec tree has grown to 30+ docs and this index is kept current.
-- **[`docs/spec/kdef-architecture.md`](./docs/spec/kdef-architecture.md)** — the runtime architecture tour: the subsystems, the compose pipeline, and how a `wnd#` recipe maps to a drawn window. Read this for **"how does it work?"**
-- **[`docs/spec/compositor-spec.md`](./docs/spec/compositor-spec.md)** — the current window-chrome model (the implemented spec).
-- **[`docs/spec/kdef231-reference.md`](./docs/spec/kdef231-reference.md)** — the standing Kaleidoscope **2.3.1** kDEF reference: a lookup rubric of every routine address, resource id, struct offset, and coordinate mapping. The first stop for **"where is X?"**; it indexes the architecture tour, the compositor spec, the recipe-walk, and the faithfulness ledger.
+- **Runtime implementers: [`docs/spec/engine/IMPLEMENTER-BRIEF.md`](./docs/spec/engine/IMPLEMENTER-BRIEF.md) first**, then the assigned safe family spec under [`docs/spec/engine/`](./docs/spec/engine/). Ask spec questions rather than inspecting original evidence, independent test sources or verifier material. The brief's exhaustive read scope overrides general reading suggestions here.
+- **[`docs/v2/DECISIONS.md`](./docs/v2/DECISIONS.md)** — current October integration and compatibility decisions. Integration owners/spec writers also use the amended [`PLAN.md`](./docs/v2/PLAN.md); implementers use their brief and lane assignment.
+- **[`docs/history.md`](./docs/history.md)** and **[`LEARNINGS.md`](./LEARNINGS.md)** — historical project arc and dated decisions, for readers outside the implementer sandbox. May v2/v3 names are historical; current architecture is in the engine family specs and code.
+- **[`docs/maintainer-reference-environment.md`](./docs/maintainer-reference-environment.md)** — private Forgejo reference assets, verified fetch instructions and native acquisition/restore limits; for spec writers/verifiers acquiring original evidence, optional for maintainers, never a public CI dependency.
+- **[`docs/spec/README.md`](./docs/spec/README.md)** — source-reference index for spec writers and independent verifiers. Original binary references, including `kdef231-reference.md`, are for those roles; this index is not an implementer entry point.
+- **[`docs/spec/compositor-spec.md`](./docs/spec/compositor-spec.md)** — listing-free window model alongside the current [`window/widgets family spec`](./docs/spec/engine/window-widgets.md).
 - **[`docs/superpowers/specs/2026-05-27-declarative-windows-design.md`](./docs/superpowers/specs/2026-05-27-declarative-windows-design.md)** — design + multi-night build log for the declarative (`data-scriptoscope-*`) front door: the attribute contract, the feature-rich pass (window-shade, zoom, themed scrollbars, runtime theme-switch, themed controls), the OS 8.6 desktop redesign, the review-driven hardening, and the known follow-ups. Read this when extending the declarative layer.
 - **[`PRD.md`](./PRD.md)** — the original product charter (vision still largely valid; implementation has since moved on — see `docs/history.md`).
 - **[`CONTRIBUTING.md`](./CONTRIBUTING.md)** — how to land changes and port a scheme.
-- **[`LEARNINGS.md`](./LEARNINGS.md)** — running log of gotchas and decisions, populated as we build.
 
 ## North Star
 

@@ -2,9 +2,23 @@
 
 A Mac OS Appearance-style window manager + theme engine for the web.
 
-*This is the original product charter (~2026-05-16). The **vision** below — a framework-agnostic, declarative, clean-room Kaleidoscope-compatibility runtime — still holds. The **implementation** has since gone through a v2 clean-break and a v3 part-code-compositor reset, so the phased-delivery sketch, architecture sketches, and some file paths below are historical. For where the code actually is today, read [`docs/history.md`](./docs/history.md) and [`docs/spec/compositor-spec.md`](./docs/spec/compositor-spec.md).*
+*This is the original product charter (~2026-05-16). Its framework-agnostic, declarative Kaleidoscope-compatibility vision remains; its CSS theme model, API sketches, phases and May v2/v3 reset names are historical. They are not the October `v2` integration branch or package release numbers. The current orientation below supersedes those implementation and delivery pointers without rewriting the charter.*
 
-> **Reconciliation note (updated 2026-10-18).** The shipped implementation uses DOM content with canvas chrome, not this charter's original CSS theme model. Bundles ship their original `scheme.sit` or `scheme.rsrc` plus provenance; decoded `theme.json` and PNGs are local diagnostic derivatives. The declarative `data-scriptoscope-*` front door, Shadow DOM chrome encapsulation, window management and persistence have shipped. The CSS `border-image` emitter and representability classifier were retired after fidelity spikes. Read [`docs/adr/0001-consumption-architecture.md`](./docs/adr/0001-consumption-architecture.md), [`README.md`](./README.md) and the current specs before acting on the historical API examples or phased-delivery sketches below. The landing page lives at `demo/index.html`, the interactive consumer showcase at `demo/showcase.html`, and developer diagnostics at `demo/diagnostic.html`.
+> **Current milestone (2026-10-23): incremental decode-first v2.** `main` has released **0.4.0**. The long-lived `v2` integration branch delivers per-family releases; “every family on the engine, no legacy drawer” is the **1.0** milestone, not a claim about 0.4.0 ([DECISIONS #8](./docs/v2/DECISIONS.md)). Follow-up work and review state are tracked in [issue #459](https://github.com/khawkins98/scriptoscope/issues/459). Runtime implementers read the [implementer brief](./docs/spec/engine/IMPLEMENTER-BRIEF.md) **first**, then only assigned safe family specs and allowed files; ambiguities become spec questions. Spec writers/verifiers and integration owners use the [amended PLAN](./docs/v2/PLAN.md) and [DECISIONS](./docs/v2/DECISIONS.md).
+
+The current implementation uses DOM content with canvas chrome. `src/engine/`
+holds `qd/` primitives, resource chains/adapters, state, decision tables, family
+drivers and traces. `src/composeChrome.ts` wraps the window layout/widget driver;
+`src/proceduralFrameChrome.ts` wraps procedural frames. `src/controls.ts` wraps
+migrated scroll-bar, slider and progress drivers and still contains other families
+awaiting migration. `renderWindow` and `declarative/` provide the public DOM layer;
+`src/engine/` is internal. Bundles ship original `scheme.sit` or `scheme.rsrc` plus
+metadata/provenance; decoded `theme.json` and PNGs are local diagnostic derivatives.
+The declarative front door, Shadow DOM chrome, window management and persistence
+have shipped. The CSS emitter and representability classifier were retired.
+Consumer examples live in [README](./README.md); the landing page is
+`demo/index.html`, interactive showcase `demo/showcase.html`, and developer
+diagnostics `demo/diagnostic.html`.
 
 Rendering acceptance uses the [control matrix](./tests/rendering-options/README.md)
 alongside existing window and Scene diagnostics. It checks source/built parity,
@@ -171,7 +185,7 @@ The North Star (above) is principles 1-3. The remaining four:
 
 ## Theme system (the key architectural primitive)
 
-> **Superseded by the v3 reset.** The `chrome.css`/`controls.css`/sounds/fonts sketch below was the v0.x guess. The **actual** bundle format is a decoded-Kaleidoscope manifest + raster assets: `theme.json` (window types, part rects, edge recipes, chrome-element + cinf geometry, palette) plus `cicns/` PNGs and optional `patterns/`. Canonical layout: [`docs/theme-bundle-layout.md`](./docs/theme-bundle-layout.md); compositor model: [`docs/spec/compositor-spec.md`](./docs/spec/compositor-spec.md). Sounds/fonts/desktop are out (Kaleidoscope schemes don't carry them — see "What it is"). The sketch is retained for historical intent.
+> **Superseded by the May v3 reset; bundle note corrected 2026-10-23.** The `chrome.css`/`controls.css`/sounds/fonts sketch below was the v0.x guess. Shipped bundles contain the original archive plus metadata/provenance; `theme.json`, `cicns/` PNGs and patterns are local diagnostic derivatives, decoded in memory at runtime. Canonical layout: [`docs/theme-bundle-layout.md`](./docs/theme-bundle-layout.md); compositor model: [`docs/spec/compositor-spec.md`](./docs/spec/compositor-spec.md). Sounds/fonts/desktop are out (Kaleidoscope schemes don't carry them — see "What it is"). The sketch is retained for historical intent.
 
 Themes are loadable bundles. ~~The exact format is for v0.x design to settle, but the shape is roughly:~~ *(historical sketch — see the note above for the real format)*
 
@@ -225,7 +239,7 @@ Themes are **switchable at runtime**. The headline marketing artifact is a demo 
 
 ## Phased delivery
 
-> **Current cut lives in the ADR.** The phases below (and the tracker issues #22–#31) predate the v3 canvas reset and the consumption-layer analysis. The up-to-date phase map — P0 reconcile/spike → PA front door → PB window-manager behaviors → PC CSS emitter → PD ingestion → PE control decoration, plus cross-cutting — is in **[`docs/adr/0001-consumption-architecture.md`](./docs/adr/0001-consumption-architecture.md) §Phase map**. New epic issues are cut from there *after* the gating spike resolves. The list below is retained for history.
+> **Superseded delivery map (2026-10-23).** The phases below and the ADR’s P0/PA–PE map record earlier plans, not the current incremental-v2 milestone. Current integration follows [DECISIONS #8](./docs/v2/DECISIONS.md) and the [PLAN §2 amendment](./docs/v2/PLAN.md#2-branch-and-integration-strategy): 0.2.0 began with core/scroll bars; `main` is now released at 0.4.0; remaining family migrations continue on `v2`. The all-family/no-legacy bar is 1.0. Original phase and tracker entries below are retained as history, not a current completion checklist.
 
 Sketch, not commitment. Maintainer may re-split. Each phase has a GitHub milestone + a tracker epic issue with full acceptance criteria.
 
@@ -257,7 +271,7 @@ Items that don't map cleanly to a single phase:
 
 ## Architecture sketches
 
-These were suggestions when written. *The v2/v3 resets reorganised the code substantially — the WM-centric layout (`src/window-manager/`) and the old `runtime-rendering-architecture.md` spec no longer exist. For the actual implementation, see [`src/`](./src/) (the runtime lives in `composeChrome.ts` / `renderWindow.ts` / `loadTheme.ts`) and [`docs/spec/compositor-spec.md`](./docs/spec/compositor-spec.md) for the current chrome model.* The sketches below are retained as historical intent.
+These were suggestions when written. **Superseded orientation (2026-10-23):** the May v2/v3 resets and October incremental-v2 milestone reorganised the code. The old `src/window-manager/` and `runtime-rendering-architecture.md` layout is retired. Current decoded rules live in `src/engine/families/` and `src/engine/tables/`, with QuickDraw/resource/state support; `composeChrome.ts` is a facade, not the former monolithic renderer. See the current orientation above and the safe [engine specs](./docs/spec/engine/), starting with the [brief](./docs/spec/engine/IMPLEMENTER-BRIEF.md). The sketches below remain historical intent.
 
 - **Two integration surfaces, declarative-first per the North Star:**
   - **Primary:** declarative scanner — on `DOMContentLoaded` and via `MutationObserver`, the library scans for `[data-aaron-window]` / `[data-aaron-button]` / etc. and promotes them into Scriptoscope controls. CSS class selectors (`.aaron-window`, …) accepted as a fallback.
@@ -316,7 +330,7 @@ Alternatives considered (preserved for posterity): Aaron alone (unsearchable), A
 
 ## References
 
-- **Canonical architecture spec:** [`docs/spec/compositor-spec.md`](./docs/spec/compositor-spec.md) — the current window-chrome model — plus [`docs/history.md`](./docs/history.md) for how it got there. (The original `docs/kaleidoscope-geometry-spec.md` this charter cited was retired in the v3 reset.) Resource layout (`cicn`, `ppat`, `cinf`, `wnd#`, `Colr`) and bundle schema are documented in [`docs/kaleidoscope-asset-catalog.md`](./docs/kaleidoscope-asset-catalog.md) and [`docs/theme-bundle-layout.md`](./docs/theme-bundle-layout.md).
+- **Current implementation route:** [`IMPLEMENTER-BRIEF.md`](./docs/spec/engine/IMPLEMENTER-BRIEF.md) first, then the assigned engine family spec; [`compositor-spec.md`](./docs/spec/compositor-spec.md) is the listing-free window model. Historical readers outside the implementer sandbox can use [`docs/history.md`](./docs/history.md) for the May arc. (The original `docs/kaleidoscope-geometry-spec.md` this charter cited was retired in the v3 reset.) Resource layout (`cicn`, `ppat`, `cinf`, `wnd#`, `Colr`) and bundle schema are documented in [`docs/kaleidoscope-asset-catalog.md`](./docs/kaleidoscope-asset-catalog.md) and [`docs/theme-bundle-layout.md`](./docs/theme-bundle-layout.md).
 - **Background reference (no longer a spec target):** [Mac OS 8 HIG, Appearance chapter](https://dev.os9.ca/techpubs/mac/HIGOS8Guide/thig-82.html) — useful for understanding the period design vocabulary; **not** what Scriptoscope implements against. The runtime renders whatever scheme is loaded.
 - **Upstream extraction ticket:** [classic-vibe-mac #246](https://github.com/khawkins98/classic-vibe-mac/issues/246)
 - **Historical / cv-mac-side Platinum accuracy spec (not an Scriptoscope deliverable):** [classic-vibe-mac #229](https://github.com/khawkins98/classic-vibe-mac/issues/229) — tracks cv-mac's WinBox-era CSS work; retained as reference, not as Scriptoscope acceptance criteria.

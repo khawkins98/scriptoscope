@@ -2,7 +2,15 @@
 
 Thanks for your interest in contributing to Scriptoscope.
 
-> **Status:** the project is on the **v3 part-code-compositor reset** ("v3" = an architecture generation, not a release version — the package is pre-1.0) — the chrome renderer (`src/composeChrome.ts`) is rebuilt around Kaleidoscope's own part-code model and validated against the decompiled 2.3.1 kDEF. It's in prototype mode: the maintainer commits directly to the working branch, and the focus is rendering fidelity, not API stability. Read [`docs/history.md`](./docs/history.md) first (especially its "Dead ends — don't relitigate these" list), then [`docs/spec/compositor-spec.md`](./docs/spec/compositor-spec.md) for the current model. For any binary-level question — a routine address, a resource id, a struct offset, a coordinate mapping — the standing lookup reference is [`docs/spec/kdef231-reference.md`](./docs/spec/kdef231-reference.md).
+> **Status (2026-10-23):** the current milestone is **incremental decode-first v2**, integrated on the long-lived `v2` branch and released to `main` per family. `main` has released **0.4.0**; follow-up work and review state are tracked in [issue #459](https://github.com/khawkins98/scriptoscope/issues/459). Not every family has migrated. The May “v2 clean-break” and “v3 part-code reset” are historical architecture names, distinct from this October `v2` branch and from package versions.
+
+## Start with your role
+
+- **Runtime implementers:** read [`docs/spec/engine/IMPLEMENTER-BRIEF.md`](./docs/spec/engine/IMPLEMENTER-BRIEF.md) **first**, then the assigned listing-free [`engine/<family>.md`](./docs/spec/engine/) spec and only the brief's allowed paths. Its exhaustive read scope, isolation, independent-test and review-material restrictions govern every instruction below. Run assigned independent checks without opening their source or oracle data. If a spec is ambiguous or disagrees with legacy code, record a spec question in your own lane notes and stop on that item; do not resolve it from evidence. The brief forbids history, LEARNINGS and the general spec index as implementer reading.
+- **Spec writers and independent verifiers:** use the role-gated [`spec index`](./docs/spec/README.md) and original source evidence to establish or verify behavioural rules. Send implementers only listing-free spec clarifications through the spec author; never hand them verifier reports or oracle data. Spec, independent tests and implementation retain separate ownership.
+- **Consumers:** start with the [`README`](./README.md) integration examples. For code orientation, `src/composeChrome.ts` is a facade over `src/engine/families/window.ts`; `src/controls.ts` delegates the migrated scroll-bar, slider and progress paths to engine drivers. The engine's `qd/`, `resources/`, `state/`, `tables/` and `trace.ts` support those drivers; remaining families still need incremental migration.
+
+For integration policy, use [`docs/v2/DECISIONS.md`](./docs/v2/DECISIONS.md), especially decision #8. Spec writers/verifiers and integration owners may consult [`PLAN.md`](./docs/v2/PLAN.md), reading its 2026-10-22 amendment before the original single-release proposal. Implementers use the brief and their assigned lane instead.
 
 ## Your first code contribution
 
@@ -28,9 +36,10 @@ toolchain requirement.
    ```
 
 3. **Reproduce, fix, and validate.** Start with a targeted reproducer and an
-   acceptance case for the behavior being changed. For fidelity fixes, derive
-   expected values independently from source evidence or a reviewed original
-   reference with matching inputs; renderer output alone is not an oracle.
+   acceptance case for the behavior being changed. Independent test authors and
+   verifiers derive fidelity expectations from source evidence or reviewed original
+   references with matching inputs; implementers follow the brief and assigned
+   behavioural specs. Renderer output alone is not an oracle.
    Prefer correcting the shared drawing or resource model over adding another
    theme-specific exception. First check whether a mismatch reveals an incorrect
    selection rule, typed resource identity, coordinate model, or paint operation.
@@ -66,7 +75,7 @@ toolchain requirement.
    current output alone does not establish fidelity to Kaleidoscope. Keep
    unsupported cases visible and distinguish regression coverage from original
    engine evidence.
-   For original captures, reuse the [private maintainer reference environment](./docs/maintainer-reference-environment.md); it is optional and is not a public CI dependency.
+   Spec writers/verifiers acquiring original captures may reuse the [private maintainer reference environment](./docs/maintainer-reference-environment.md); it is optional and is not a public CI dependency.
 
    Run the required change-appropriate checks on the finished implementation.
    `gates` already includes typechecking, unit tests and strict theme lint;
@@ -75,7 +84,7 @@ toolchain requirement.
    broaden coverage when those findings justify it. Retain existing CI requirements;
    do not repeat a successful full suite just for an unchanged implementation.
 
-4. **Make a change.** Browse the [epic tracker issues](https://github.com/khawkins98/scriptoscope/issues?q=is%3Aissue+is%3Aopen+label%3Atype-epic) and [`docs/spec/glitch-punchlist.md`](./docs/spec/glitch-punchlist.md) for context. Safe first-time targets:
+4. **Make a change.** Implementers start from their assigned family spec and lane; the following general suggestions do not expand the brief’s read scope. Other contributors can browse the [epic tracker issues](https://github.com/khawkins98/scriptoscope/issues?q=is%3Aissue+is%3Aopen+label%3Atype-epic) and [`docs/spec/glitch-punchlist.md`](./docs/spec/glitch-punchlist.md) for context. Safe first-time targets:
    - Pick a render glitch off the punch-list and tighten the compositor against the recipe.
    - Improve a JSDoc comment that confused you the first time you read it.
    - Port an additional freeware scheme into the corpus (see "Adding a theme" below).
@@ -88,16 +97,16 @@ toolchain requirement.
    git push -u origin feat/my-first-change
    ```
 
-6. **Open a PR** from your fork's branch to `khawkins98/scriptoscope:main`, with a typecheck-clean diff. (The maintainer commits directly to the working branch in prototype mode; PRs are the path for external contributions.)
+6. **Open a focused PR** against the assigned integration target (`v2` for engine-family work; `main` for release work, docs and hotfixes), with the required checks and independent review. Do not self-approve.
 
 ## Branching
 
-- Branch from `main` for each piece of work.
+- Branch from the assigned target: `v2` for engine migrations; `main` for docs, release work and hotfixes. Follow DECISIONS #1 and #8 for integration and release sequencing.
 - Use short, descriptive branch names. Conventional prefixes:
   `feat/<thing>`, `fix/<thing>`, `docs/<thing>`, `chore/<thing>`,
   `refactor/<thing>`, `test/<thing>`, `spike/<thing>` (research,
   do-not-merge).
-- External contributions come via PR against `main`; the maintainer commits directly to the working branch in prototype mode (see the Status note above).
+- Contributions come via focused PRs to that target with an independent review.
 
 ## Commit messages — Conventional Commits
 
@@ -150,7 +159,7 @@ feat(api)!: rename ScriptoscopeWindow constructor option `theme` to `themeId`
 
 ## Pull requests
 
-- Open a PR against `main` for any non-trivial change.
+- Open a PR against the assigned target for any non-trivial change (see Branching).
 - Keep PRs focused — one logical change per PR when practical.
 - Include a brief description of *why*, not just *what*.
 - Link related issues.
@@ -162,7 +171,7 @@ feat(api)!: rename ScriptoscopeWindow constructor option `theme` to `themeId`
 
 - **Squash and merge** is the default for larger PRs or any branch with noisy work-in-progress commits. The squash commit message must itself follow Conventional Commits — this keeps `main`'s history clean and changelog-friendly.
 - For small PRs that already consist of a single well-formed Conventional Commit, a regular merge is fine.
-- Avoid merge commits from `main` into feature branches; rebase instead.
+- Avoid merge commits from `main` into private feature branches; rebase instead. The shared `v2` integration branch is the exception: main → v2 syncs use merge commits, never a shared-branch rebase (DECISIONS #1).
 
 ## Before opening a PR
 
@@ -172,6 +181,10 @@ feat(api)!: rename ScriptoscopeWindow constructor option `theme` to `themeId`
 - Don't commit build artifacts (`dist/`, `node_modules/`, theme working files, etc.).
 
 ## Fidelity acquisition and implementation batches
+
+Evidence acquisition and original-source inspection below belong to spec writers
+and verifiers. Runtime implementers remain within the brief; a general workflow
+in this section never grants access to evidence, independent tests or reviews.
 
 - **Check the claim and dependencies before acquisition.** Name the public consumer,
   source inputs, operation, required color mappings and conditions, and independent

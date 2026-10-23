@@ -1,6 +1,8 @@
 # Scriptoscope (formerly Aaron UI) — project history
 
-*Project arc + dead-ends. This records how the runtime got here and what NOT to relitigate — it is **not** the authority on how the runtime works today. For that, see [`spec/kdef-architecture.md`](./spec/kdef-architecture.md) (design) and the code + [`spec/compositor-spec.md`](./spec/compositor-spec.md) (model).*
+*Project arc + dead ends. This records the May architecture generations, not the authority on today's runtime.*
+
+> **Current orientation / supersession (2026-10-23):** the October **incremental decode-first v2** milestone is distinct from the May “v2 clean break” and “v3 reset” below. `main` has released 0.4.0; the long-lived `v2` branch integrates family migrations and per-family releases ([DECISIONS #8](./v2/DECISIONS.md)). Follow-up work and review state are tracked in [issue #459](https://github.com/khawkins98/scriptoscope/issues/459). Not all families have migrated. `src/composeChrome.ts` is now a facade over `src/engine/families/window.ts`, with rules in engine tables and shared QuickDraw/resource/state support. Runtime implementers must start with the [implementer brief](./spec/engine/IMPLEMENTER-BRIEF.md), not this historical file, and use only its allowed specs and files. Spec writers/verifiers can use the [amended PLAN](./v2/PLAN.md). The May narrative and dead ends below remain dated history.
 
 > **2026-05-28 pivot logged: project renamed Aaron UI → Scriptoscope** for the first npm publish (the `aaron-ui` package name was already taken on npm by an unrelated Vue avatar component, which became the forcing function for the rename two prior decisions had explicitly deferred). The narrative below uses "Aaron UI" because that's what the project was called when each event happened — preserved as the historical record. The original decision kept the internal API surface stable on the Lodash-kept-`_` model; **superseded 2026-05-29** by the full `data-scriptoscope-*` / `.scriptoscope-*` / `ScriptoscopeWindow` sweep (see the corresponding LEARNINGS entry). Full rationale: `LEARNINGS.md` 2026-05-28 "Scriptoscope pivot" entry. The original 2026-05-16 "Aaron UI" naming entry there is marked superseded.
 
@@ -146,7 +148,9 @@ API-compatible mimic**), we added two nets:
 A third net — a golden render-vs-reference diff — is deferred because our reference
 images aren't a trustworthy oracle (tracked in [#190](https://github.com/khawkins98/aaron-ui/issues/190); design context at `docs/archive/golden-reference-todo.md`).
 
-## The architecture we landed on
+## The architecture we landed on (May snapshot)
+
+> **Superseded as current code orientation, 2026-10-23.** The pipeline and helper names below describe the May renderer. The window facade now delegates layout, remap, pressed-widget drawing and hit tests to `src/engine/families/window.ts`; decoded decisions live in engine tables. The old widget-pass divergence and missing-golden summary below are historical statements, not current acceptance claims. Use the current engine specs and tests for those claims.
 
 **Inputs (used together).** Per window type: a `cicn` (the minimum-window template
 bitmap), a `wnd#` (a rect-list of named widget/body rects + four side recipes, each
