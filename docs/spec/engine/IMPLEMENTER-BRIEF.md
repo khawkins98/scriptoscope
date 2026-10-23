@@ -7,17 +7,20 @@ forbidden-document list shrinks as the doc split lands.*
 ## The rule (verbatim from PLAN §5)
 
 > You implement from `docs/spec/engine/<family>.md`, Apple Inside
-> Macintosh/Universal Interfaces, and `tests/rendering-options/*-rules.mjs`. Do
-> not open any `*.asm`, `*.bin`, `*.evidence.md`, anything under `.scratch/`,
+> Macintosh/Universal Interfaces, and other files explicitly allowed below.
+> You may run independent test-author specs and rule tests, but never open,
+> read, search or edit their source or oracle data. Verifier review files must
+> never be handed to implementers. Do not open any `*.asm`, `*.bin`,
+> `*.evidence.md`, anything under `.scratch/`,
 > `lanes/`, or the maintainer store, or these docs: [list below, from L2 until
 > split]. If a spec is ambiguous, stop and file a spec question in your lane
 > notes; do not resolve it by reading evidence. Your tool log will be reviewed
 > for paths.
 
-Work in a fresh git worktree under
-`/Users/khawkins/Documents/git/scriptoscope-lanes/<lane>`. A fresh worktree has
-no `.scratch/`. Never `cd` into, list or search any other checkout of the
-repository or the maintainer store. Read only the files in **Allowed paths**
+Work in a fresh isolated git worktree (including an Orca-managed worktree),
+with no private `.scratch/` material, evidence mounts or links to another
+checkout or the maintainer store. Never `cd` into, list or search any other
+checkout of the repository or the maintainer store. Read only the files in **Allowed paths**
 below; when you search, name those files or directories explicitly rather than
 searching the whole tree.
 
@@ -27,6 +30,13 @@ Never open, read, search or have a tool print these:
 
 - any `*.asm`, `*.bin`, `*.c` decompile, objdump or hex dump of a binary;
 - `docs/spec/engine/*.evidence.md`;
+- independent test-author specs, rule tables, rule tests and oracle data,
+  including all of `tests/rendering-options/*-rules.mjs` and their
+  `.spec.mjs` / `.test.mjs` companions, wherever stored;
+- verifier review files, reports, annotations and review JSON, wherever stored
+  (including `*.review.*`, `*-review.*` and review directories). The PM must
+  never hand these files or their contents to an implementer; send only a
+  listing-free spec clarification through the spec author;
 - anything under `.scratch/`, `/tmp/kaleido-trace/`, `lanes/`,
   `v2-lanes/*/evidence`;
 - the maintainer store (`Scriptoscope-maintainer-assets`) and the Forgejo
@@ -59,18 +69,17 @@ Never open, read, search or have a tool print these:
     forbidden until that row is repointed)
   - `docs/spec/checkable-icons.md`, `docs/spec/range-controls.md`
     (ledger-pinned excerpts quote register-relative operands)
-  - `tests/rendering-options/range-rules.mjs` and its `.spec`/`.test` files
-    (one register-relative comment near the track-record rule; L5 owns the
-    scrub)
 - anything not listed under **Allowed paths**. The list is exhaustive.
 
 ## Allowed paths
 
-This list is exhaustive and matches the scope of `scripts/check-cleanroom.mjs`
-by construction: the linter fails (`brief-scope`) if a path named here is not
-one it scans.
+This read/write list is exhaustive. The linter fails (`brief-scope`) if a
+path named here is unscanned or independently forbidden. Linting a file does
+not grant permission to read it; the checker also scans independent rule tables.
 
-- `docs/spec/engine/*.md` except `*.evidence.md`. Start with
+- `docs/spec/engine/*.md` except `*.evidence.md`, `*.review.md` and `*-review.md`.
+  Only behavioural specs, the template and this brief qualify;
+  verifier material is forbidden regardless of filename. Start with
   [`qd-primitives.md`](qd-primitives.md) (tile / scale / corner / cinf body +
   border) and [TEMPLATE.md](TEMPLATE.md) for the shape every family spec takes.
 - Listing-free behavioural docs (the linter's `ALLOWED_DOCS`):
@@ -114,15 +123,13 @@ one it scans.
   `docs/spec/tab-body-investigation.md`, `docs/spec/tab-cdef8-body.md`,
   `docs/geometry-refactor-todo.md`, `docs/tracking/title-text-color.md`;
   and `docs/v2/DECISIONS.md`, `CLAUDE.md`, `CONTRIBUTING.md`.
-- Rule tables (the linter's `RULE_TABLES`):
-  `tests/rendering-options/window-chrome-rules.mjs`,
-  `tests/rendering-options/window-chrome-rules.spec.mjs`,
-  `tests/rendering-options/window-chrome-rules.test.mjs`,
-  `tests/rendering-options/checkable-rules.mjs`,
-  `tests/rendering-options/checkable-rules.spec.mjs`,
-  `tests/rendering-options/checkable-rules.test.mjs`.
 - Code: `src/` and `tools/` (both linted, comments included), plus
-  `package.json` and the test harness files you are told to touch.
+  `package.json`. Implementation-owned unit tests in these code trees may be
+  read and edited when assigned; they test implementation details derived from
+  the allowed spec and are not independent acceptance oracles. Independent
+  test-author material remains forbidden even inside these trees. A task
+  assignment cannot override the forbidden list or authorize an unlisted test
+  harness.
 - Apple Inside Macintosh and Universal Interfaces 3.4.1 headers
   (`Traps.h`, `Quickdraw.h`, `Controls.h`, `MacWindows.h`, `Appearance.h`).
 
@@ -130,6 +137,21 @@ If an allowed file turns out to contain assembly, register narrative or a
 pointer to a listing, stop reading it, record the path in your lane notes and
 tell L2. A sentence saying "(listing detail in evidence)" is a stop sign: if
 you need that detail, file a spec question.
+
+## Running independent checks
+
+You may execute the PM's assigned test commands, including independent
+specs and rule tests, without opening their source, fixtures or expected data.
+Use normal pass/fail and assertion diagnostics; do not ask tools to print
+source, inspect snapshots, dump oracle data or expose verifier review contents.
+Do not import independent rules as implementation inputs or copy expected
+values into runtime code. Report ambiguity or a failing independent check to
+the PM for a listing-free spec clarification; never change the oracle to pass.
+
+The linter enforces file content and the brief's declared read scope, not
+filesystem access or authorship. Isolation, PM handoff filtering and the
+reviewer's tool-log audit enforce the remaining boundary. Do not treat a
+passing linter or a test command's ability to read a file as read permission.
 
 ## What your code must pass
 

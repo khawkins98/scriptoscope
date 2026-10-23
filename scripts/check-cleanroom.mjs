@@ -55,12 +55,14 @@
 //   census         code   every numeric constant in `src/engine/` (outside
 //                         `tables/` and tests) must appear in a behavioural spec
 //                         `docs/spec/engine/*.md` (never `*.evidence.md`) or in
-//                         `src/engine/tables/`. 0, 1, 2 and -1 are exempt as
+//                         implementation files in `src/engine/tables/` (never
+//                         independent oracles or reviews). 0, 1, 2 and -1 are exempt as
 //                         structural. Passes vacuously while `src/engine/` does
 //                         not exist.
 //   brief-scope    -      every path the implementer brief allows (its
 //                         "Allowed paths" section) is inside this linter's scope,
-//                         so the brief can never allow an unlinted file. Paths
+//                         so the brief can never allow an unlinted file or independent oracle/review
+//                         material merely because it is scanned. Paths
 //                         count backticked or not, as link targets, and as bare
 //                         top-level directory names (`tests`). Forbidden
 //                         locations (.scratch, listings, *.evidence.md, lanes/,
@@ -72,7 +74,8 @@
 //
 // Scope: every code file under `src/` and `tools/`, every behavioural spec under
 // `docs/spec/engine/` (excluding `*.evidence.md`), the docs in ALLOWED_DOCS, the
-// rule tables in RULE_TABLES and the files in ALLOWED_FILES. Lists only grow.
+// independent rule tables in RULE_TABLES and the files in ALLOWED_FILES.
+// Scanning independent oracles does not grant implementers read access.
 //
 // Usage:
 //   node scripts/check-cleanroom.mjs            # lint the repo; exit 1 on any hit
@@ -151,7 +154,7 @@ export const ALLOWED_DOCS = [
   'CONTRIBUTING.md',
 ];
 
-/** Rule tables implementers read (PLAN §5); scrubbed of listing narrative. */
+/** Independent rule/oracle files: linted for contamination, never implementer reading material. */
 export const RULE_TABLES = [
   'tests/rendering-options/window-chrome-rules.mjs',
   'tests/rendering-options/window-chrome-rules.spec.mjs',
@@ -172,6 +175,13 @@ const BRIEF_REFERENCES = ['scripts/check-cleanroom.mjs'];
 
 /** The brief names the listing paths it forbids, so it is exempt from listing-path. */
 const BRIEF = 'docs/spec/engine/IMPLEMENTER-BRIEF.md';
+
+// Classify project-relative paths only: checkout names are not review material.
+// Review material never anchors constants, even beside family specs or tables.
+const REVIEW_PATH = /(?:^|\/)(?:reviews?|verifier)(?:\/|$)|(?:^|[.\/-])(?:review|verifier)(?:[.\/-]|$)/i;
+const independentPath = p => /(?:^|\/)tests\/.*\.spec\.[mc]?[jt]s$|(?:^|\/)[^/]*-rules(?:\.(?:spec|test))?\.[mc]?[jt]s$/.test(p) || RULE_TABLES.includes(p);
+const forbiddenRead = p => REVIEW_PATH.test(p) || independentPath(p);
+const engineSpec = p => p.endsWith('.md') && !p.endsWith('.evidence.md') && !REVIEW_PATH.test(p);
 
 const SCANNED_EXT = /\.(ts|mts|cts|js|mjs|cjs|css|html|json|md)$/;
 const COMMENTED_CODE = /\.(ts|mts|cts|js|mjs|cjs)$/;
@@ -322,8 +332,8 @@ export function census(root) {
   const tablesDir = join(engine, 'tables');
   const specDir = join(root, 'docs/spec/engine');
   const anchored = new Set([0, 1, 2, -1]);
-  for (const f of walk(specDir)) if (f.endsWith('.md') && !f.endsWith('.evidence.md')) for (const v of numbersIn(readFileSync(f, 'utf8'))) anchored.add(v);
-  for (const f of walk(tablesDir)) if (!/\.test\./.test(f)) for (const v of numbersIn(stripComments(readFileSync(f, 'utf8')))) anchored.add(v);
+  for (const f of walk(specDir)) if (engineSpec(posix(relative(root, f)))) for (const v of numbersIn(readFileSync(f, 'utf8'))) anchored.add(v);
+  for (const f of walk(tablesDir)) if (!/\.test\./.test(f) && !forbiddenRead(posix(relative(root, f)))) for (const v of numbersIn(stripComments(readFileSync(f, 'utf8')))) anchored.add(v);
   const hits = [];
   for (const f of walk(engine)) {
     if (f.startsWith(tablesDir + sep) || /\.test\.|\.json$/.test(f) || !/\.(ts|mts|js|mjs)$/.test(f)) continue;
@@ -340,7 +350,7 @@ export function census(root) {
 /** Files the pattern rules apply to, absolute. */
 export function targets(root) {
   const files = CODE_DIRS.flatMap(d => walk(join(root, d))).filter(f => SCANNED_EXT.test(f) && !/[\\/]node_modules[\\/]|[\\/]dist[\\/]/.test(f));
-  for (const f of walk(join(root, 'docs/spec/engine'))) if (f.endsWith('.md') && !f.endsWith('.evidence.md')) files.push(f);
+  for (const f of walk(join(root, 'docs/spec/engine'))) if (engineSpec(posix(relative(root, f)))) files.push(f);
   for (const d of [...ALLOWED_DOCS, ...RULE_TABLES, ...ALLOWED_FILES]) if (existsSync(join(root, d))) files.push(join(root, d));
   return files;
 }
@@ -393,18 +403,19 @@ export function briefScope(root, scanned) {
       // `*.evidence.md` after "except" narrows the preceding glob; it allows nothing.
       if (p.startsWith('*') && /\bexcept\b/i.test(line.slice(0, at))) continue;
       // Forbidden locations fail whether or not they exist here (CI has no .scratch or store).
-      if (p.startsWith('/') || p.startsWith('~') || FORBIDDEN_TOKEN.test(p)) { hit(p); continue; }
+      if (p.startsWith('/') || p.startsWith('~') || FORBIDDEN_TOKEN.test(p) || forbiddenRead(p)) { hit(p); continue; }
       const shaped = /[/.*]/.test(p);
       p = p.replace(/\/+$/, '');
       if (!p) { hit('.'); continue; }
       if (!shaped && !(ticked && !p.includes('/') && isDir(p))) continue;
       if (candidates(p).every(c => c.startsWith('..'))) { hit(p); continue; } // outside the repo
       const rel = resolveRel(p);
+      if (rel && forbiddenRead(rel)) { hit(rel); continue; }
       if (rel === '.' || rel === '') { hit('. (the whole repository)'); continue; }
       if (rel === null || rel === 'docs/spec/engine/*.md' || CODE_DIRS.includes(rel) || BRIEF_REFERENCES.includes(rel)) continue;
       let ok;
-      if (rel.includes('*')) ok = all().filter(f => globRe(rel).test(f)).every(f => set.has(f));
-      else if (isDir(rel)) ok = all().filter(f => f.startsWith(rel + '/') && SCANNED_EXT.test(f)).every(f => set.has(f));
+      if (rel.includes('*')) ok = all().filter(f => globRe(rel).test(f)).every(f => set.has(f) && !forbiddenRead(f));
+      else if (isDir(rel)) ok = all().filter(f => f.startsWith(rel + '/') && SCANNED_EXT.test(f)).every(f => set.has(f) && !forbiddenRead(f));
       else ok = set.has(rel);
       if (!ok) hit(rel);
     }
