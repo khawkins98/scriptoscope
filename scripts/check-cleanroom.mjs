@@ -175,7 +175,8 @@ const BRIEF_REFERENCES = ['scripts/check-cleanroom.mjs'];
 /** The brief names the listing paths it forbids, so it is exempt from listing-path. */
 const BRIEF = 'docs/spec/engine/IMPLEMENTER-BRIEF.md';
 
-// Review material is never an implementation spec, even beside family specs.
+// Classify project-relative paths only: checkout names are not review material.
+// Review material never anchors constants, even beside family specs or tables.
 const REVIEW_PATH = /(?:^|\/)(?:reviews?|verifier)(?:\/|$)|(?:^|[.\/-])(?:review|verifier)(?:[.\/-]|$)/i;
 const independentPath = p => /(?:^|\/)tests\/.*\.spec\.[mc]?[jt]s$|(?:^|\/)[^/]*-rules(?:\.(?:spec|test))?\.[mc]?[jt]s$/.test(p) || RULE_TABLES.includes(p);
 const forbiddenRead = p => REVIEW_PATH.test(p) || independentPath(p);
@@ -330,8 +331,8 @@ export function census(root) {
   const tablesDir = join(engine, 'tables');
   const specDir = join(root, 'docs/spec/engine');
   const anchored = new Set([0, 1, 2, -1]);
-  for (const f of walk(specDir)) if (engineSpec(f)) for (const v of numbersIn(readFileSync(f, 'utf8'))) anchored.add(v);
-  for (const f of walk(tablesDir)) if (!/\.test\./.test(f)) for (const v of numbersIn(stripComments(readFileSync(f, 'utf8')))) anchored.add(v);
+  for (const f of walk(specDir)) if (engineSpec(posix(relative(root, f)))) for (const v of numbersIn(readFileSync(f, 'utf8'))) anchored.add(v);
+  for (const f of walk(tablesDir)) if (!/\.test\./.test(f) && !REVIEW_PATH.test(posix(relative(root, f)))) for (const v of numbersIn(stripComments(readFileSync(f, 'utf8')))) anchored.add(v);
   const hits = [];
   for (const f of walk(engine)) {
     if (f.startsWith(tablesDir + sep) || /\.test\.|\.json$/.test(f) || !/\.(ts|mts|js|mjs)$/.test(f)) continue;
@@ -348,7 +349,7 @@ export function census(root) {
 /** Files the pattern rules apply to, absolute. */
 export function targets(root) {
   const files = CODE_DIRS.flatMap(d => walk(join(root, d))).filter(f => SCANNED_EXT.test(f) && !/[\\/]node_modules[\\/]|[\\/]dist[\\/]/.test(f));
-  for (const f of walk(join(root, 'docs/spec/engine'))) if (engineSpec(f)) files.push(f);
+  for (const f of walk(join(root, 'docs/spec/engine'))) if (engineSpec(posix(relative(root, f)))) files.push(f);
   for (const d of [...ALLOWED_DOCS, ...RULE_TABLES, ...ALLOWED_FILES]) if (existsSync(join(root, d))) files.push(join(root, d));
   return files;
 }
