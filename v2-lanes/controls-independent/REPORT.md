@@ -415,3 +415,39 @@ assertions remain unchanged; its synthetic expectation now reads the exact archi
 before declaration so it continues to prove that signed null cannot be replaced by
 a canonical request ID. It makes no current public availability claim. The failed
 setup receipt is retained; corrected inventory/comparison/correction13 checks pass.
+
+## Inactive no-cinf admission proposal (separate review required)
+
+PM's explicit disposition preserves a themed PixelBuffer for known selected art
+plus proven absent cinf; that modern API return kind does not certify painted
+pixels or native success. The separate candidate
+`tests/control-availability/corrections/459-no-cinf-admission.json` archives nine
+exact current rows and the full prior review. Draft 1.0.17 moves their unchanged
+owner/resource identities from painted dependencies to a separately checked art
+admission, requires exact cinf/cinf0 NULL attempts, and forbids completed paint.
+It leaves proposed public outcome themed, draft effective availability unknown,
+all fixture/source inputs unchanged, and every unrelated row/join intact. No
+UNKNOWN/malformed metadata may count as known NULL. Nothing is activated.
+
+The same candidate contains exact before/after text and inactive patches for the
+comparator and border probes. The comparator adds an optional independent admission
+check; it removes no existing owner/resource/paint check. The border proposal may
+use admission ONLY for undeclared push inputs independently bound to missing local
+cinf; it retains full source/fork/asset/payload/owner joins and omitted-size checks,
+explicitly proves both metadata misses and no completed painting, and retains all
+pixels as unknown. Valid-cinf and bevel paths still require actual paint. The
+entire later border model/pixel/band assertions and explicit owned-cinf0 reruns are
+byte-identical. Before archives and code hashes remain auditable; patches apply
+cleanly under --check and both proposed modules pass syntax checking.
+
+A separately executable pure admission guard has one literal positive and 17
+specific negative counterexamples, each with a positive control. Wrong owner,
+depth, key, signed state, cinf identity, missing/duplicate admissions, metadata hit,
+UNKNOWN-as-NULL, missing/reordered retries, fabricated band/label/paint and art-NULL
+conflation all fail their named check. The proposal guard checks exact nine-row
+scope, unchanged inputs, current 1.0.16 archive and all inactive code identities.
+Both guards pass. Source/built candidate browser checks pass the nine admissions
+and all five missing-local-push-cinf archives (three states, explicit and omitted
+sizes): all ten source/built archive scopes retain raw payload/fork/asset ownership
+and unassessed pixels. These executions test the candidate; they do not activate
+it, approve native pixels, or claim the full old border suite passes.
