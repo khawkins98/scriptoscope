@@ -105,7 +105,8 @@ export function drawCinfFrame(port: Pixmap, chain: ResourceChain, input: CinfFra
   if ('bytes' in value) {
     const bytes = value.bytes;
     if (!(Array.isArray(bytes) || bytes instanceof Uint8Array)
-      || !bytes.every(b => Number.isInteger(b) && b >= 0 && b <= CINF_SAMPLE.opaque))
+      || !Array.from(bytes).every((b, i) => Object.hasOwn(bytes, i)
+        && Number.isInteger(b) && b >= 0 && b <= CINF_SAMPLE.opaque))
       return unsupported('malformed cinf bytes');
     if (bytes.length < CINF_SAMPLE.headerLength) return unsupported('short cinf header');
     cinf = decodeCinfHeader(Array.from(bytes))!;
