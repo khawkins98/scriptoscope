@@ -7,6 +7,34 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+## [0.4.0] — 2026-10-23
+
+Third incremental release from the v2 engine branch (#378). Three more families move onto the decoded Kaleidoscope 2.3.1 engine: the window recipe for the 13 schemes with a `wnd#` recipe, the slider and the progress bar.
+
+- **Window recipe on the v2 engine** (#432, #444). Layout, title, widget remap, draw and hit test follow the decoded kDEF window widgets (`docs/spec/engine/window-widgets.md`), fixing runtime divergences F1–F10. Most `wnd#` windows change slightly; see the migration notes.
+  - **Accessibility divergence (DECISIONS #12):** title-bar widgets on inactive windows stay focusable and keyboard-operable, although the original makes them inert.
+- **Slider on the v2 engine** (CDEF 3; #419, fixes #407). It adds `pressedPart`, `variant`, `tickMarks`, `thickness` and `background`. Vertical sliders now put 0 at the bottom.
+- **Progress bar on the v2 engine** (CDEF 5; #440, #446). It adds integer `range` and `indeterminate`/`phase` (DECISIONS #10, #11). The 8 schemes without progress art now draw the original's own procedural bar, and `composeProgress` never returns `null`.
+- **Loader:** the public `loadKaleidoscopeScheme` (npm export and the Pages `theme-loader/` module) passes the engine's `cinf` and icon-blit ids by default (#428, #434, #439; fixes #431). Dropped archives get the same output as bundled themes.
+- **Fidelity ledger:** 340 verified obligations and 0 mismatched, up from 257 verified and 33 mismatched in 0.3.0.
+
+### Also in this release
+
+- **Specs:**
+  - the progress CDEF 5 decode (#430, #443);
+  - window-widgets answers and corrections (#437, #445);
+  - DECISIONS #10–#12 (#433, #435, #438, #441, #442).
+- **Tooling:**
+  - `npm run loc:src` and the runtime size rule (#422);
+  - `lane:ready` now rejects silent reverts of base commits, and CI builds the demo (#447).
+- **Known gaps:**
+  - collapsed no-title utility windows on the five built-in-frame schemes render expanded (#423);
+  - title text has no condensed face, so it truncates in the plain face;
+  - the title shadow (TX7) is not yet drawn.
+
+### Changes
+
+
 - **v2 engine: `wnd#` windows now lay out and hit-test through the decoded 2.3.1 window recipe** (engine family `window`, `docs/spec/engine/window-widgets.md`). A new driver (`src/engine/families/window.ts`, tables in `src/engine/tables/window.ts`) follows the spec rows: part-code verdicts (PV), layout sums and placed ends (LS), the too-short step (TS), the allocation path (AP), per-cell widths with the unclamped budget (AW), the titled side (TT), cell rects (CR), the widget remap (RM), the pressed-widget draw (WD9) and the widget hit (HT). `composeChrome.ts` is now a facade over it; the legacy classifier, too-short negotiation, half split and placement-based widget remap are deleted. It fixes the window-widgets §7.2 findings F1–F8: a collapse box inside a dropped code-10 cell is now empty (not drawn, not hit, RM6); below the minimum the budget goes negative instead of clamping (AW8); the title plate is placed on the content centre with `W = SW + margins` and drops at ≤ 2 px of room (TT2–TT9); close, zoom and collapse are separate flags (F7); the collapse gate is re-read on every layout (F5, LC3); widget hits need the pressed-strip cicn and its mask (HT3–HT7, F8; inactive windows keep keyboard-reachable buttons, a runtime policy where HT2 would make them inert); the cell bands use the template cicn bounds (CR2/CR4, F6).
 
 ### Migration notes (window recipe)
@@ -53,6 +81,16 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 - `value` 0..1 maps onto native 0..100 (rounded), a documented modern policy row.
 - New loader option `engineCinfIds`: loads that pass it gain `manifest.engineCinfs` (raw `cinf` bytes by id). `loadTheme` and the public `loadKaleidoscopeScheme` export pass the engine's ids by default (pass `engineCinfIds: []` to opt out); the conversion module under `tools/theme-loader/` stays off by default, so lint and decoded fingerprints are unchanged. A theme loaded without engine cinfs hands every slider to the Platinum fallback.
 - With a declared `sliderLayoutEnvironment`, `composeSlider` raises `UNSUPPORTED_CINF_ENVIRONMENT` when the declared corner differs from the corner the resource chain resolves, or when the thumb's cross cell is not 16 px.
+
+### Runtime size (`npm run loc:src -- HEAD --base v0.3.0`)
+
+| src/ lines (non-test .ts) | v0.3.0 | 0.4.0 | delta |
+|---|---:|---:|---:|
+| logic (all src except engine tables) | 15399 | 16101 | +702 |
+| engine tables (cited data) | 1258 | 2145 | +887 |
+| total | 16657 | 18246 | +1589 |
+
+By family: the window recipe removes 405 logic lines and `composeChrome.ts` drops from 924 to 255 lines. The slider (+648) and the progress bar (+456) grow because they add behaviour the legacy drawers never had (procedural bar, indeterminate mode, page parts, tick marks). The legacy slider and progress drawers are deleted.
 
 ## [0.3.0] — 2026-10-22
 
