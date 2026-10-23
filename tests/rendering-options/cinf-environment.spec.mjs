@@ -37,7 +37,7 @@ for (const runtime of ['source','built']) test(`${runtime}: explicit cinf enviro
           ['duplicate-rejected',f.themeFork(),f.declaration([f.external('duplicates',f.forkOf([{type:'cinf',id:-10239,data:new Uint8Array(18)},{type:'cinf',id:-10239,data:new Uint8Array(18)}]))]),{}],
           ['invalid-rejected',f.themeFork(),f.declaration([f.external('short',f.forkOf([{type:'cinf',id:-10239,data:new Uint8Array(1)}]))]),{}],
           ['mode5-rejected',f.themeFork(),f.declaration([f.external('mode5',f.providerFork(-10239,[3,3],5))]),{}],
-          ['alias-rejected',f.themeFork({id:10239}),f.declaration([f.external('default',f.providerFork(0))]),{}],
+          ['positive-alias-absent',f.themeFork({id:10239}),f.declaration([f.external('default',f.providerFork(0))]),{}],
           ['text-sample-rejected',f.themeFork(),f.declaration([f.external('bad-text',(()=>{const data=new Uint8Array([3,1,0,0,0,0,0,3,0,3,0,100,0,100,0,0,0,0]);return f.forkOf([{type:'cinf',id:-10239,data}]);})())]),{label:'X'}],
           ['empty-label-text-unavailable',f.themeFork(),f.declaration([f.external('bad-text',(()=>{const data=new Uint8Array([3,1,0,0,0,0,0,3,0,3,0,100,0,100,0,0,0,0]);return f.forkOf([{type:'cinf',id:-10239,data}]);})())]),{}],
         ]) {
@@ -45,16 +45,25 @@ for (const runtime of ['source','built']) test(`${runtime}: explicit cinf enviro
           try {records.push({kind,...await draw(owner,extra,family),view:owner.manifest.chromeElements.face.bodyCinf});}finally{owner.dispose();}
         }
         // Real same-ID views must not be interchangeable, including across the decode await.
-        const twins = await api.loadKaleidoscopeScheme(f.twinFaceFork(),{provenance:true,cinfEnvironment:env});
-        const a=twins.manifest.chromeElements.face,b=twins.manifest.chromeElements.other, original=a.bodyCinf;
+        const ambiguous=await api.loadKaleidoscopeScheme(f.twinFaceFork(),{provenance:true,cinfEnvironment:env});
+        try {records.push({kind:'duplicate-art-unsupported',...await draw(ambiguous)});} finally {ambiguous.dispose();}
+        // Each real face has one raw occurrence. Same signed ID across independent
+        // loads tests role-view ownership without an invalid duplicate-art premise.
+        const other=f.faceBytes();for(const offset of [99,101,103])new DataView(other.buffer).setUint16(offset,0x4242);
+        const twins=await api.loadKaleidoscopeScheme(f.themeFork(),{provenance:true,cinfEnvironment:env});
+        const foreign=await api.loadKaleidoscopeScheme(f.forkOf([{type:'cicn',id:-10239,name:'other',data:other}]),{provenance:true,cinfEnvironment:env});
+        const a=twins.manifest.chromeElements.face,b=foreign.manifest.chromeElements.other, original=a.bodyCinf;
         const decode=HTMLImageElement.prototype.decode;let release;
         try {
           a.bodyCinf=b.bodyCinf;records.push({kind:'transplanted-view-rejected',...await draw(twins)});a.bodyCinf=original;
           const barrier=new Promise(r=>{release=r;});let entered;const started=new Promise(r=>{entered=r;});
           HTMLImageElement.prototype.decode=async function(){if(this.src===a.asset){entered();await barrier;}return decode.call(this);};
-          const pending=draw(twins);await started;a.bodyCinf=b.bodyCinf;release();
+          const pending=draw(twins);
+          const reached=await Promise.race([started.then(()=>true),pending.then(()=>false)]);
+          if(!reached)throw Error('held identity fixture settled before its decode barrier');
+          a.bodyCinf=b.bodyCinf;release();
           records.push({kind:'held-decode-original-view',...await pending,original,substitute:b.bodyCinf});
-        } finally {release?.();HTMLImageElement.prototype.decode=decode;twins.dispose();}
+        } finally {release?.();HTMLImageElement.prototype.decode=decode;twins.dispose();foreign.dispose();}
         return {records,malformedSections,provenance:theme.byteProvenance,environment:env.id,commonUnchanged:common===JSON.stringify(theme.manifest.chromeElements.face)};
       } finally {theme.dispose();}
     },runtime);
@@ -75,10 +84,14 @@ for (const runtime of ['source','built']) test(`${runtime}: explicit cinf enviro
     expect(rows[0].view.selected.forkSha256).not.toBe(result.provenance.fork.sha256);
     const order=rows.find(r=>r.kind==='ordered-theme');expect(order.view.selected.providerKind).toBe('theme-fork');
     expect(order.pixels).toEqual(expected.map((v,i)=>expected[i-i%4]===48?[0,0,255,255][i%4]:v));
+    const duplicate=rows.find(r=>r.kind==='duplicate-art-unsupported');
+    expect(duplicate.error).toMatchObject({name:'Error',message:expect.stringContaining('ambiguous or undecoded raw cicn occurrence')});
+    expect(duplicate.trace.outcome.status).toBe('error');expect(duplicate.trace.bandPaints??[]).toEqual([]);
     const held=rows.find(r=>r.kind==='held-decode-original-view');expect(held.error).toBeUndefined();expect(held.pixels).toEqual(expected);
     expect(held.original.metadata.colorSamples.background).not.toEqual(held.substitute.metadata.colorSamples.background);
     expect(held.trace.steps.find(s=>s.cinfLookup?.status==='ready').cinfLookup.selected).toEqual(held.original.selected);
     expect(held.trace.bandPaints.every(p=>p.resource.manifestKey==='face' && p.resource.byteProvenance.cicnResourceIndex===0)).toBe(true);
+    const alias=rows.find(r=>r.kind==='positive-alias-absent');expect(alias.error).toBeUndefined();expect(alias.pixels).toBeNull();expect(alias.trace.outcome.status).toBe('unavailable');expect(alias.trace.bandPaints??[]).toEqual([]);
     const empty=rows.find(r=>r.kind==='two-null');expect(empty.pixels).toEqual(Array(29*9*4).fill(0));
     expect(empty.trace.bandPaints??[]).toEqual([]);expect(empty.trace.legacyFacePaint).toBeUndefined();
     expect(empty.view.attempts.map(a=>[a.id,a.outcome])).toEqual([[-10239,'missing'],[0,'missing']]);

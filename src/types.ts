@@ -409,6 +409,9 @@ export interface LoadedTheme {
  *  off `theme.inspector` without re-fetching the bundle. URLs are pre-baked (blob: in a
  *  browser; pass-through in Node when an `assetUrlFactory` was set). */
 export interface ThemeInspector {
+  /** Complete same-fork raw ppat census, including undecoded occurrences.
+   * Absent retains declared-catalog policy; [] records raw absence. */
+  ppatResources?: Array<{ id: number; resourceIndex: number; byteLength: number }>;
   /** Complete same-fork cicn occurrence census. Present-but-undecoded and
    * duplicate inputs stay unresolved; absence of this field is an older declared environment. */
   cicnResources?: CicnSourceIdentity[];

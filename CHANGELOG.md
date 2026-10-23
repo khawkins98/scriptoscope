@@ -7,6 +7,13 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+- **Legacy fixture migration:** push/default diagnostics distinguish typed art and
+  metadata admission from completed paint; retired push alias/state fallbacks and
+  no-cinf nine-slice assumptions no longer describe the migrated engine. Bevel and
+  tab retain their independently supported compatibility behavior. Canonical
+  checkable CICNs may resolve in the declared base chain, while icon colour stays
+  with its mask provider; this does not certify native provider order.
+
 - **Push-button and checkable engine migration** (#459): route push/default-ring,
   checkbox and radio composition through separately authored engine drivers. Keep
   signed resource selection, explicit NULL versus unknown results, exact prepared

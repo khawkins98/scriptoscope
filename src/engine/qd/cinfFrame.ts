@@ -29,12 +29,40 @@ export function decodeCinfHeader(bytes: readonly number[]): CinfRecord | null {
     textPixel: { x: v.getInt16(h.textX), y: v.getInt16(h.textY) },
     embossPixel: { x: v.getInt16(h.embossX), y: v.getInt16(h.embossY) } };
 }
+/** Shared metadata admission for preparation and the synchronous painter. */
+function admitCinf(value: unknown): CinfRecord | string {
+  if (!value || typeof value !== 'object') return 'malformed cinf metadata';
+  if ('status' in value && value.status === 'unknown')
+    return ('reason' in value && typeof value.reason === 'string' && value.reason
+      ? value.reason : 'cinf metadata unknown');
+  let cinf: CinfRecord;
+  if ('bytes' in value) {
+    const bytes = value.bytes;
+    if (!(Array.isArray(bytes) || bytes instanceof Uint8Array)
+      || !Array.from(bytes).every((b, i) => Object.hasOwn(bytes, i)
+        && Number.isInteger(b) && b >= 0 && b <= CINF_SAMPLE.opaque))
+      return 'malformed cinf bytes';
+    if (bytes.length < CINF_SAMPLE.headerLength) return 'short cinf header';
+    cinf = decodeCinfHeader(Array.from(bytes))!;
+  } else {
+    const record = value as Partial<CinfRecord>;
+    const point = (p: QdPoint | undefined): boolean => !!p && Number.isInteger(p.x) && Number.isInteger(p.y);
+    if (![record.cornerSize, record.sideThickness, record.tileSides, record.patternAnchor, record.bgPatternId].every(Number.isInteger)
+      || !point(record.bgPixel) || !point(record.textPixel) || !point(record.embossPixel))
+      return 'malformed cinf metadata';
+    cinf = record as CinfRecord;
+  }
+  return cinf;
+}
+
 export type CinfRgb16 = readonly [number, number, number];
 /** Raw samples are inputs; display pixels cannot recover serialized palette values. */
 export interface CinfIconSource extends IconSource {
   readonly status?: never;
   /** Opt-in identity of the prepared line-colour companion actually loaded. */
   readonly sampledSource?: ControlBandPaint['derived'];
+  /** Public facade dependency; absent on ordinary synchronous engine inputs. */
+  readonly prepareSampled?: () => Promise<void>;
   readonly sampleRgb16?: (point: QdPoint) => CinfRgb16 | null;
   readonly realizeRgb16?: (rgb: CinfRgb16) => Rgba;
 }
@@ -93,6 +121,63 @@ function bodyWriteCount(port: Pixmap, boxes: readonly QdRect[], clip?: QdRect,
   return count;
 }
 
+/** One border plan is shared by preparation and paint; clipping never changes its phase. */
+function cinfBorderPlan(cicn: Pixmap, cinf: CinfRecord, D: QdRect) {
+  const c = cinf.cornerSize, s = cinf.sideThickness;
+  const W = cicn.width, H = cicn.height, cw = Math.min(c, W), ch = Math.min(c, H), sw = Math.min(s, W), sh = Math.min(s, H);
+  const bw = cinf.tileSides ? W - 2 * c : 1, bh = cinf.tileSides ? H - 2 * c : 1;
+  const band = (piece: 'top' | 'bottom' | 'left' | 'right'): [QdRect, QdRect] => {
+    switch (piece) {
+      case 'top': return [rect(0, c, sh, c + bw), rect(D.top, D.left + c, D.top + sh, D.right - c)];
+      case 'bottom': return [rect(H - sh, c, H, c + bw), rect(D.bottom - sh, D.left + c, D.bottom, D.right - c)];
+      case 'left': return [rect(c, 0, c + bh, sw), rect(D.top + c, D.left, D.bottom - c, D.left + sw)];
+      case 'right': return [rect(c, W - sw, c + bh, W), rect(D.top + c, D.right - sw, D.bottom - c, D.right)];
+    }
+  };
+  return CINF_BORDER_ORDER.pieces.map(piece => {
+    if (piece === 'TL' || piece === 'TR' || piece === 'BL' || piece === 'BR') {
+      const right = piece === 'TR' || piece === 'BR', bottom = piece === 'BL' || piece === 'BR';
+      const x = right ? W - cw : 0, y = bottom ? H - ch : 0;
+      const dx = right ? D.right - cw : D.left, dy = bottom ? D.bottom - ch : D.top;
+      return { piece, src: rect(y, x, y + ch, x + cw), dst: rect(dy, dx, dy + ch, dx + cw), fast: null };
+    }
+    const [src, dst] = band(piece);
+    return { piece, src, dst, fast: tileFastPathRow(src, dst) };
+  });
+}
+
+function bandVisible(port: Pick<Pixmap, 'width' | 'height'>, cicn: Pixmap, src: QdRect, dst: QdRect,
+  branch: ControlBandPaint['branch'], clip?: QdRect): boolean {
+  if (emptyRect(src) || emptyRect(dst) || !insideBounds(cicn, src)) return false;
+  for (let y = Math.max(0, dst.top, clip?.top ?? 0); y < Math.min(port.height, dst.bottom, clip?.bottom ?? port.height); y++) {
+    for (let x = Math.max(0, dst.left, clip?.left ?? 0); x < Math.min(port.width, dst.right, clip?.right ?? port.width); x++) {
+      if (branch === 'horizontal-lines' && y - dst.top >= src.bottom - src.top
+        || branch === 'vertical-lines' && x - dst.left >= src.right - src.left) continue;
+      const sx = src.left + (branch === 'horizontal-lines' ? 0 : (x - dst.left) % (src.right - src.left));
+      const sy = src.top + (branch === 'vertical-lines' ? 0 : (y - dst.top) % (src.bottom - src.top));
+      if (getPixel(cicn, sx, sy)?.a) return true;
+    }
+  }
+  return false;
+}
+
+/** Public preparation policy only: resolve actual art/metadata without publishing requests. */
+export async function prepareCinfFrameSamples(chain: ResourceChain, id: number, bodyFill: boolean, dst: QdRect,
+  port: Pick<Pixmap, 'width' | 'height'>, clip?: QdRect, declared?: CinfRecord | null): Promise<void> {
+  const icon = chain.getResource<CinfIconSource | CinfUnknownIconSource>('cicn', id)?.value;
+  if (!icon || icon.status === 'unknown' || !icon.prepareSampled) return;
+  const retry = CINF_RETRY.find(r => r.bodyFill === bodyFill)!;
+  const value = declared !== undefined ? declared : chain.probe<unknown>(CINF_REQUEST.type, [id, retry.retryId])?.value;
+  const cinf = admitCinf(value);
+  if (typeof cinf === 'string') return;
+  for (const { src, dst: destination, fast } of cinfBorderPlan(icon.pixmap, cinf, dst)) {
+    if (fast && bandVisible(port, icon.pixmap, src, destination, fast === 'T1' ? 'horizontal-lines' : 'vertical-lines', clip)) {
+      await icon.prepareSampled();
+      return;
+    }
+  }
+}
+
 export function drawCinfFrame(port: Pixmap, chain: ResourceChain, input: CinfFrameInput, trace?: EngineTrace): CinfFrameResult {
   const { id, cicn, dstRect: D, bodyFill } = input;
   const icon = input.icon;
@@ -115,28 +200,9 @@ export function drawCinfFrame(port: Pixmap, chain: ResourceChain, input: CinfFra
       provider: hit.provider.name, unsupported: reason });
     return { ...none(), cinfId: hit.id, unsupported: reason };
   };
-  const value = hit.value;
-  if (!value || typeof value !== 'object') return unsupported('malformed cinf metadata');
-  if ('status' in value && value.status === 'unknown')
-    return unsupported('reason' in value && typeof value.reason === 'string' && value.reason
-      ? value.reason : 'cinf metadata unknown');
-  let cinf: CinfRecord;
-  if ('bytes' in value) {
-    const bytes = value.bytes;
-    if (!(Array.isArray(bytes) || bytes instanceof Uint8Array)
-      || !Array.from(bytes).every((b, i) => Object.hasOwn(bytes, i)
-        && Number.isInteger(b) && b >= 0 && b <= CINF_SAMPLE.opaque))
-      return unsupported('malformed cinf bytes');
-    if (bytes.length < CINF_SAMPLE.headerLength) return unsupported('short cinf header');
-    cinf = decodeCinfHeader(Array.from(bytes))!;
-  } else {
-    const record = value as Partial<CinfRecord>;
-    const point = (p: QdPoint | undefined): boolean => !!p && Number.isInteger(p.x) && Number.isInteger(p.y);
-    if (![record.cornerSize, record.sideThickness, record.tileSides, record.patternAnchor, record.bgPatternId].every(Number.isInteger)
-      || !point(record.bgPixel) || !point(record.textPixel) || !point(record.embossPixel))
-      return unsupported('malformed cinf metadata');
-    cinf = record as CinfRecord;
-  }
+  const admitted = admitCinf(hit.value);
+  if (typeof admitted === 'string') return unsupported(admitted);
+  const cinf = admitted;
   const consumedCinf = trace?.controlPaint ? hit.provider.selection?.('cinf', hit.id)?.cinfLookup : undefined;
   const artResource = art?.resource && { ...art.resource, ...(consumedCinf ? { consumedCinf } : {}) };
   const c = cinf.cornerSize, s = cinf.sideThickness;
@@ -251,61 +317,38 @@ export function drawCinfFrame(port: Pixmap, chain: ResourceChain, input: CinfFra
     }
   } else trace?.drawOps.push({ op: 'cinfBody', row: CINF_BODY_SKIP.id, dst: D });
 
-  const W = cicn.width, H = cicn.height, cw = Math.min(c, W), ch = Math.min(c, H), sw = Math.min(s, W), sh = Math.min(s, H);
   const edge = CINF_EDGE.find(r => r.tile === (cinf.tileSides ? 'nonzero' : 'zero'))!;
-  const bw = cinf.tileSides ? W - 2 * c : 1, bh = cinf.tileSides ? H - 2 * c : 1;
-  const band = (piece: 'top' | 'bottom' | 'left' | 'right'): [QdRect, QdRect] => {
-    switch (piece) {
-      case 'top': return [rect(0, c, sh, c + bw), rect(D.top, D.left + c, D.top + sh, D.right - c)];
-      case 'bottom': return [rect(H - sh, c, H, c + bw), rect(D.bottom - sh, D.left + c, D.bottom, D.right - c)];
-      case 'left': return [rect(c, 0, c + bh, sw), rect(D.top + c, D.left, D.bottom - c, D.left + sw)];
-      case 'right': return [rect(c, W - sw, c + bh, W), rect(D.top + c, D.right - sw, D.bottom - c, D.right)];
-    }
-  };
   // Observe only supported, completed operations with an opaque destination
   // inside the allocation and the facade's declared clip. This never paints.
   const completedBand = (piece: string, src: QdRect, dst: QdRect,
     branch: ControlBandPaint['branch'], policy: ControlBandPaint['policy']): void => {
     const detail = trace?.controlPaint;
     if (!detail || !art?.owner || !artResource || emptyRect(src) || emptyRect(dst) || !insideBounds(cicn, src)) return;
-    const clip = detail.clip;
-    let visible = false;
-    for (let y = Math.max(0, dst.top, clip?.top ?? 0); y < Math.min(port.height, dst.bottom, clip?.bottom ?? port.height) && !visible; y++) {
-      for (let x = Math.max(0, dst.left, clip?.left ?? 0); x < Math.min(port.width, dst.right, clip?.right ?? port.width); x++) {
-        const sx = src.left + (branch === 'horizontal-lines' ? 0 : (x - dst.left) % (src.right - src.left));
-        const sy = src.top + (branch === 'vertical-lines' ? 0 : (y - dst.top) % (src.bottom - src.top));
-        if (getPixel(cicn, sx, sy)?.a) { visible = true; break; }
-      }
-    }
-    if (!visible) return;
+    if (!bandVisible(port, cicn, src, dst, branch, detail.clip)) return;
     const box = (r: QdRect) => ({ x: r.left, y: r.top, w: r.right - r.left, h: r.bottom - r.top });
     const regions: Record<string, number> = { TL: 0, TR: 1, top: 2, BL: 3, BR: 4, bottom: 5, left: 6, right: 7 };
     detail.bands.push({ role: bodyFill ? 'face' : 'default-ring', region: regions[piece]!, branch, policy,
       owner: art.owner, resource: artResource, sourceRect: box(src), destinationRect: box(dst),
       ...(policy === 'sampled-companion' && icon?.sampledSource ? { derived: icon.sampledSource } : {}) });
   };
-  for (const piece of CINF_BORDER_ORDER.pieces) {
+  for (const { piece, src, dst, fast } of cinfBorderPlan(cicn, cinf, D)) {
     if (piece === 'TL' || piece === 'TR' || piece === 'BL' || piece === 'BR') {
-      const right = piece === 'TR' || piece === 'BR', bottom = piece === 'BL' || piece === 'BR';
-      const x = right ? W - cw : 0, y = bottom ? H - ch : 0;
-      const dx = right ? D.right - cw : D.left, dy = bottom ? D.bottom - ch : D.top;
-      const src = rect(y, x, y + ch, x + cw), dst = rect(dy, dx, dy + ch, dx + cw);
       trace?.drawOps.push({ op: 'cinfCorner', row: 'E1', piece, src, dst, transfer: 'copyMask' });
       transferBits(port, cicn, src, dst, 'copyMask');
       completedBand(piece, src, dst, 'copy', 'ordinary-raster');
     } else {
-      const [src, dst] = band(piece);
       if (emptyRect(src) || emptyRect(dst)) continue;
       trace?.drawOps.push({ op: 'cinfEdge', row: `E2,${edge.id}`, piece, src, dst, transfer: 'copyMask' });
-      const fast = tileFastPathRow(src, dst);
       if (!insideBounds(cicn, src)) trace?.drawOps.push({ op: 'cinfEdgeSample', row: 'S5', src,
         unspecified: 'source sample outside icon bounds; stored padding unavailable' });
       if (fast) {
         const colours = lineColourSource(icon ?? { pixmap: cicn, pixelSize: null, unmasked: null }, 'cinf E3/E4');
-        if (colours.unspecified) trace?.drawOps.push({ op: 'cinfLine', row: `${fast},S2`, unspecified: colours.unspecified });
+        if (colours.unspecified && (!icon?.prepareSampled
+          || bandVisible(port, cicn, src, dst, fast === 'T1' ? 'horizontal-lines' : 'vertical-lines', trace?.controlPaint?.clip)))
+          trace?.drawOps.push({ op: 'cinfLine', row: `${fast},S2`, unspecified: colours.unspecified });
         sourceLines(port, cicn, colours.pm, src, dst, fast === 'T1');
-        if (!colours.unspecified) completedBand(piece, src, dst, fast === 'T1' ? 'horizontal-lines' : 'vertical-lines',
-          colours.shortcut ? 'equivalent-raster' : 'sampled-companion');
+        if (!colours.unspecified || icon?.prepareSampled) completedBand(piece, src, dst, fast === 'T1' ? 'horizontal-lines' : 'vertical-lines',
+          colours.unspecified ? 'compatibility-raster' : colours.shortcut ? 'equivalent-raster' : 'sampled-companion');
       } else {
         tileBlit(port, cicn, src, dst, 1, 'copyMask', trace);
         if (src.bottom - src.top === dst.bottom - dst.top || src.right - src.left === dst.right - dst.left)

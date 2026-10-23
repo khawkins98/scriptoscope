@@ -16,7 +16,7 @@ import { createTrace, type EngineTrace } from './engine/trace.js';
 import { ResourceChain } from './engine/resources/chain.js';
 import { themeResourceChain } from './engine/resources/theme.js';
 import { rect } from './engine/qd/rect.js';
-import type { CinfIconSource, CinfRecord } from './engine/qd/cinfFrame.js';
+import { prepareCinfFrameSamples, type CinfIconSource, type CinfRecord } from './engine/qd/cinfFrame.js';
 import type { Rgba } from './engine/qd/types.js';
 import { normalizeControlState } from './engine/state/control.js';
 import { drawPushButton, type PushLabelPass } from './engine/families/pushButton.js';
@@ -170,15 +170,27 @@ export async function composeEnginePush(theme: LoadedTheme, opts: ButtonOptions 
     const outset = reserve ? P.DR5.outset : 0;
     const out = PixelBuffer.alloc(width + outset * 2, height + outset * 2);
     const requests: { type: string; id: number }[] = [{ type: 'cicn', id }, { type: 'cinf', id }, { type: 'cinf', id: P.PB9.fallback }];
+    let ringId: number | null = null;
     if (opts.default) {
       const first = opts.disabled ? P.DR2.resource : opts.pressed ? P.DR3.resource : P.DR4.resource;
       requests.push({ type: 'cicn', id: first });
       const selected = faceEntry(theme, first) ? first : opts.pressed && !opts.disabled ? P.DR4.resource : null;
+      ringId = selected;
       if (selected !== null) requests.push({ type: 'cicn', id: selected }, { type: 'cinf', id: selected }, { type: 'cinf', id: P.DR5.fallback });
     }
+    const D = rect(outset, outset, outset + height, outset + width);
+    const clip = composition.clip.kind === 'rect' ? rect(composition.clip.rect.y - composition.controlOrigin[1] + outset,
+      composition.clip.rect.x - composition.controlOrigin[0] + outset,
+      composition.clip.rect.y + composition.clip.rect.h - composition.controlOrigin[1] + outset,
+      composition.clip.rect.x + composition.clip.rect.w - composition.controlOrigin[0] + outset) : undefined;
     let chain = await themeResourceChain(theme, requests, { ...(signal ? { signal } : {}),
+      prepareSamples: async prepared => {
+        await prepareCinfFrameSamples(prepared, id, true, D, out, clip, declared?.record);
+        if (ringId !== null) await prepareCinfFrameSamples(prepared, ringId, false,
+          rect(0, 0, out.height, out.width), out, clip);
+      },
       traceProvenance: !!diagnostics, cinfBodies: declared ? [] : [id, P.PB9.fallback],
-      bodyEnvironment: { owner: entry.theme, width, height,
+      bodyEnvironment: { owner: entry.theme, face: entry.element, width, height,
         ...(composition.clip.kind === 'rect' ? { clip: rect(composition.clip.rect.y - composition.controlOrigin[1],
           composition.clip.rect.x - composition.controlOrigin[0], composition.clip.rect.y + composition.clip.rect.h - composition.controlOrigin[1],
           composition.clip.rect.x + composition.clip.rect.w - composition.controlOrigin[0]) } : {}),
@@ -209,7 +221,6 @@ export async function composeEnginePush(theme: LoadedTheme, opts: ButtonOptions 
           clip.rect.y + clip.rect.h - composition.controlOrigin[1] + outset, clip.rect.x + clip.rect.w - composition.controlOrigin[0] + outset),
       } : {}) };
     }
-    const D = rect(outset, outset, outset + height, outset + width);
     const [ox, oy] = composition.controlOrigin;
     diagnostics?.composition({ context: composition, originalPortState: 'unverified', faceRect: { x: ox, y: oy, w: width, h: height }, appliedUnknownPatternOffset: composition.patternOrigin.status === 'unknown' });
     let labelOverride: Rgba | undefined;

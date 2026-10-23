@@ -137,12 +137,27 @@ for (const mode of ['source', 'built']) test(`${mode}: unobserved duplicate imag
     ]);
     const theme = await api.loadKaleidoscopeScheme(bytes);
     try {
-      let trace; const output = await api.composeButton(theme, { label: 'H', minWidth: 80, height: 20, diagnostics: { onComplete: value => { trace = value; } } });
-      return { trace, corner: [...output.getPixel(0, 0)], entries: Object.values(theme.manifest.chromeElements).map(e => ({ colors: e.colorSamples, reason: e.colorSamplesUnavailableReason })) };
+      let trace,error,completions=0;
+      try {await api.composeButton(theme,{label:'H',minWidth:80,height:20,diagnostics:{onComplete:value=>{trace=value;completions++;}}});}
+      catch(e){error={name:e.name,message:e.message};}
+      const unique=await api.loadKaleidoscopeScheme(forkOf([
+        {type:'cicn',id:-10239,name:'unique-red',data:colorIcon({origin:0,entries:[[0,0xffff,0,0]],pixels:Array(8).fill(0),mask:[0xf0,0xf0]})},
+        {type:'cinf',id:-10239,data:colorInfo()},
+      ]),{provenance:true});
+      try {
+        let positiveTrace;const output=await api.composeButton(unique,{label:'H',minWidth:80,height:20,diagnostics:{onComplete:t=>{positiveTrace=t;}}});
+        return {trace,error,completions,entries:Object.values(theme.manifest.chromeElements).map(e=>({colors:e.colorSamples,reason:e.colorSamplesUnavailableReason})),
+          positive:{trace:positiveTrace,corner:[...output.getPixel(0,0)],sample:unique.manifest.chromeElements['unique-red'].colorSamples,loadId:unique.byteProvenance.loadId}};
+      }finally{unique.dispose();}
     } finally { theme.dispose(); }
   }, mode);
-  expect(result.corner).toEqual([0, 0, 255, 255]); // unchanged last-encoded image policy
+  expect(result.error).toMatchObject({name:'Error',message:expect.stringContaining('ambiguous or undecoded raw cicn occurrence')});
+  expect(result.completions).toBe(1);expect(result.trace.outcome.status).toBe('error');expect(result.trace.bandPaints??[]).toEqual([]);
+  expect(result.positive.corner).toEqual([255,0,0,255]);
+  expect(result.positive.sample.text).toMatchObject({rgb16:[65535,0,0],displayRgb:[255,0,0]});
+  const selected=result.positive.trace.steps.find(s=>s.role==='face'&&s.usage==='paint'&&s.resource?.type==='cicn');
+  expect(selected.resource).toMatchObject({signedId:-10239,manifestKey:'unique-red',byteProvenance:{loadId:result.positive.loadId,cicnResourceIndex:0}});
   expect(result.entries).toEqual(Array(2).fill({ colors: null, reason: 'ambiguous-asset-path' }));
-  expect(result.trace.textColors).toMatchObject({ policy: 'contrast-fallback', sampleFallbackReason: 'ambiguous-asset-path', embossDecision: 'unavailable' });
+  expect(result.positive.trace.textColors).toMatchObject({policy:'source-samples',foreground:'rgb(255, 0, 0)'});
   await attachObservations(info, 'control-text-colors', `${mode}-ambiguous`, { mode, result });
 });
