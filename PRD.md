@@ -4,7 +4,7 @@ A Mac OS Appearance-style window manager + theme engine for the web.
 
 *This is the original product charter (~2026-05-16). Its framework-agnostic, declarative Kaleidoscope-compatibility vision remains; its CSS theme model, API sketches, phases and May v2/v3 reset names are historical. They are not the October `v2` integration branch or package release numbers. The current orientation below supersedes those implementation and delivery pointers without rewriting the charter.*
 
-> **Current milestone (2026-10-23): incremental decode-first v2.** `main` has released **0.4.0**. The long-lived `v2` integration branch delivers per-family releases; “every family on the engine, no legacy drawer” is the **1.0** milestone, not a claim about 0.4.0 ([DECISIONS #8](./docs/v2/DECISIONS.md)). Follow-up work and review state are tracked in [issue #459](https://github.com/khawkins98/scriptoscope/issues/459). Runtime implementers read the [implementer brief](./docs/spec/engine/IMPLEMENTER-BRIEF.md) **first**, then only assigned safe family specs and allowed files; ambiguities become spec questions. Spec writers/verifiers and integration owners use the [amended PLAN](./docs/v2/PLAN.md) and [DECISIONS](./docs/v2/DECISIONS.md).
+> **Current milestone (2026-10-23): incremental decode-first v2.** The package version is **0.5.0**. The long-lived `v2` integration branch delivers per-family releases; “every family on the engine, no legacy drawer” is the **1.0** milestone, not a claim about 0.5.0 ([DECISIONS #8](./docs/v2/DECISIONS.md)). Follow-up work and review state are tracked in [issue #459](https://github.com/khawkins98/scriptoscope/issues/459). Runtime implementers read the [implementer brief](./docs/spec/engine/IMPLEMENTER-BRIEF.md) **first**, then only assigned safe family specs and allowed files; ambiguities become spec questions. Spec writers/verifiers and integration owners use the [amended PLAN](./docs/v2/PLAN.md) and [DECISIONS](./docs/v2/DECISIONS.md).
 
 The current implementation uses DOM content with canvas chrome. `src/engine/`
 holds `qd/` primitives, resource chains/adapters, state, decision tables, family
@@ -239,7 +239,7 @@ Themes are **switchable at runtime**. The headline marketing artifact is a demo 
 
 ## Phased delivery
 
-> **Superseded delivery map (2026-10-23).** The phases below and the ADR’s P0/PA–PE map record earlier plans, not the current incremental-v2 milestone. Current integration follows [DECISIONS #8](./docs/v2/DECISIONS.md) and the [PLAN §2 amendment](./docs/v2/PLAN.md#2-branch-and-integration-strategy): 0.2.0 began with core/scroll bars; `main` is now released at 0.4.0; remaining family migrations continue on `v2`. The all-family/no-legacy bar is 1.0. Original phase and tracker entries below are retained as history, not a current completion checklist.
+> **Superseded delivery map (2026-10-23).** The phases below and the ADR’s P0/PA–PE map record earlier plans, not the current incremental-v2 milestone. Current integration follows [DECISIONS #8](./docs/v2/DECISIONS.md) and the [PLAN §2 amendment](./docs/v2/PLAN.md#2-branch-and-integration-strategy): 0.2.0 began with core/scroll bars; the package version is 0.5.0; remaining family migrations continue on `v2`. The all-family/no-legacy bar is 1.0. Original phase and tracker entries below are retained as history, not a current completion checklist.
 
 Sketch, not commitment. Maintainer may re-split. Each phase has a GitHub milestone + a tracker epic issue with full acceptance criteria.
 

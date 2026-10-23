@@ -9,10 +9,9 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [0.5.0] — 2026-10-23
 
-Fourth incremental release candidate from the `v2` integration branch (#459,
+Fourth incremental release from the `v2` integration branch (#459,
 #460–#466): follow-ups to the existing window, progress and slider paths,
-process boundaries, diagnostic links and contributor documentation. Package version
-0.5.0 here does not assert publication to `main`, a release tag or npm. `v2`
+process boundaries, diagnostic links and contributor documentation. `v2`
 remains the integration branch between releases (DECISIONS #8). Push buttons and
 checkables remain future engine migration work; their specs do not ship those
 migrations in this release.
@@ -76,7 +75,7 @@ an 86-line typed declared-slider provider adapter accepted in independent #465
 review: it routes complete declared metadata through the engine resource chain.
 Legacy slider metadata/admission branches and title sampling branches are deleted;
 the title, pointer and progress follow-ups account for the remaining changes.
-This release candidate changes no runtime behavior beyond those accepted fixes.
+The release metadata update preserves the accepted runtime behavior.
 
 ## [0.4.0] — 2026-10-23
 
