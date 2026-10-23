@@ -34,8 +34,9 @@ the R1/R2 union. Adapter nearest-neighbor scaling remains modern policy.
 raw-but-undecoded cicn/color inputs, exact occurrence mismatch, legacy declared
 input behavior for other families, finite sample snapshots and replacement assets,
 URL ownership/release, pre-abort and pending disposal, plus explicit cinfBodies=[]
-opt-out versus a selected typed body preload. It retains the two confirmed failing
-occurrence regressions; it does not convert them to skip/todo or edit runtime.
+opt-out versus a selected typed body preload. It retains the two originally failing
+occurrence regressions, which pass after the separately authored preparation repair;
+neither assertion was converted to skip/todo and runtime was not self-edited.
 
 `controls459.spec.mjs` drives the real public source and built entry points over
 all 18 archives (360 composition rows per mode), checking signed selection and
@@ -230,8 +231,23 @@ Portable private regression:
 `/Users/khawkins/orca/worker-receipts/v2-lanes/459-controls-independent/push-unknown-regression.test.mjs`.
 Run it with Node --test from any candidate checkout root. It pins valid decoded
 art + same-ID cinf as a passing positive, proven NULL + same-ID cinf as a second
-passing positive, and a named explicit UNKNOWN/unsupported propagation assertion
-as the failing negative. `residual-unknown-regression.json` records exit1; the
+passing positive, and two named explicit UNKNOWN/unsupported propagation assertions
+for the face and pressed ring as failing negatives. `residual-unknown-regression.json` records exit1; the
 negative fails an ERR_ASSERTION caused by the TypeError, with both positives
 passing. Its test/oracle material must not be sent to runtime authors; only safe
 behavior facts were sent to PM. A green ordinary lane does not resolve this defect.
+
+The portable v2 regression and hash are retained separately. Independent v3
+adjudication accepts `unsupported` alongside `unspecified` and `unimplemented`
+as explicit diagnostic fields: the field spelling is not the source oracle. Both
+negative cases now require an explicit `unknown` trace status and their exact
+original ambiguity reason, as well as that same reason in the unsupported
+result. No generic exception or absent-trace pass is accepted. The two positive
+controls still pass on `5f5ea033`; both negative assertions still fail on the
+original TypeError (`residual-unknown-regression-v3`, exit1). V3 SHA256 is
+`3de51c46cfef03eeb9935694291b3129f664aefd5d7b02ea38497b27e5fcb420`.
+
+The PNG comparison parser now counts only successful capture lines, excluding
+failed-test summaries. Recomputed initial evidence identifies only 10 captured
+pages and 26 retained old pages; final evidence identifies all 36 captures.
+This corrects evidence attribution without changing any PNG or pixel diff.

@@ -6,7 +6,7 @@ root=Path('/Users/khawkins/orca/worker-receipts/v2-lanes/459-controls-independen
 tag=sys.argv[3] if len(sys.argv)>3 else 'png-comparison'
 old=root/'goldens-old';new=root/(sys.argv[1] if len(sys.argv)>1 else 'goldens-recorded');diff=root/(tag+'-diff');diff.mkdir(exist_ok=True)
 sha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
-recorded={f'{slug}-page-{page}.png' for slug,page in re.findall(r'› ([a-z0-9-]+): reviewed Linux Chromium contact sheet page([12]) ',(root/(sys.argv[2] if len(sys.argv)>2 else 'linux-record.log')).read_text())}
+recorded={f'{slug}-page-{page}.png' for slug,page in re.findall(r'✓[^\n]*?› ([a-z0-9-]+): reviewed Linux Chromium contact sheet page([12]) ',(root/(sys.argv[2] if len(sys.argv)>2 else 'linux-record.log')).read_text())}
 rows=[]
 for a in sorted(old.glob('*.png')):
  b=new/a.name
