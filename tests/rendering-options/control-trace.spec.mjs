@@ -28,6 +28,7 @@ for (const mode of ['source', 'built']) {
       // 6x6 face versus 12x12 ring; magenta overlaps the face's top-left,
       // green exists only in the ring source's body and must never be painted.
       const elements = {};
+      const {loadOwnedControlFixture}=await import('/tests/rendering-options/owned-control-fixture.mjs');
       for (const id of [-10239, -10238, -10240, -10231, -10230, -10232]) {
         const ring = id >= -10232, n = ring ? 12 : 6;
         const b = api.PixelBuffer.alloc(n, n);
@@ -36,11 +37,9 @@ for (const mode of ['source', 'built']) {
           b.fillRect({ x: 4, y: 4, w: 1, h: 1 }, 255, 0, 255, 255);
           b.fillRect({ x: 5, y: 5, w: 2, h: 2 }, 0, 255, 0, 255);
         } else b.fillRect({ x: 0, y: 0, w: n, h: n }, ...colors[id]);
-        elements[`slot${id}`] = { asset: api.bufferToCanvas(b).toDataURL(), width: n, height: n,
-          sourceCicnId: id, sourceCinfId: id, slice: { corner: ring ? 5 : 1, side: ring ? 5 : 1, tile: false }, bgAnchor: [2, 2] };
+        elements[`slot${id}`]={id,name:`slot${id}`,pixels:Array.from({length:n},(_,y)=>Array.from({length:n},(_,x)=>[...b.getPixel(x,y)])),cinf:{corner:ring?5:1,side:ring?5:1,background:[2,2]}};
       }
-      const theme = omit => ({ baseUrl: `${location.origin}/owned-push-rules`, manifest: { chromeElements:
-        Object.fromEntries(Object.entries(elements).filter(([, e]) => !omit.includes(e.sourceCicnId))) } });
+      const owned=[];const theme=async omit=>{const t=await loadOwnedControlFixture(api,{faces:Object.values(elements).filter(e=>!omit.includes(e.id))});owned.push(t);return t;};
       const sample = b => {
         const pixel = (x, y) => Array.from(b.data.slice((y * b.width + x) * 4, (y * b.width + x) * 4 + 4));
         return { size: [b.width, b.height], margin: pixel(0, 0), ring: pixel(1, 1), overlap: pixel(4, 4),
@@ -50,7 +49,7 @@ for (const mode of ['source', 'built']) {
       const direct = [];
       for (const c of cases) {
         let trace;
-        const b = await api.composeButton(theme(c.omit), { label: '', height: 6, minWidth: 24, default: true, ...c.options,
+        const b = await api.composeButton(await theme(c.omit), { label: '', height: 6, minWidth: 24, default: true, ...c.options,
           diagnostics: { onComplete: value => { trace = value; } } });
         direct.push({ name: c.name, pixels: sample(b), trace });
       }
@@ -59,7 +58,7 @@ for (const mode of ['source', 'built']) {
         const host = document.createElement('div'), native = document.createElement('button');
         native.type = 'button'; native.dataset.scriptoscopeButton = ''; native.dataset.scriptoscopeDefault = 'true'; native.disabled = disabled;
         host.append(native); document.body.append(host);
-        const face = await api.promoteButton(native, theme(omit));
+        const face = await api.promoteButton(native, await theme(omit));
         const read = () => { const canvas = face.querySelector('canvas'); return sample({ width: canvas.width, height: canvas.height,
           data: canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data }); };
         const normal = read();
@@ -69,7 +68,7 @@ for (const mode of ['source', 'built']) {
         promoted.push({ omit, disabled, normal, down, released: read() });
         host.remove();
       }
-      return { direct, promoted };
+      owned.forEach(t=>t.dispose());return { direct, promoted };
     }, { mode, cases });
     // Keep actual traces/pixels even if a later literal assertion fails.
     await attachObservations(testInfo, 'push-default-rules', mode, { mode, cases, ...result });
@@ -78,8 +77,8 @@ for (const mode of ['source', 'built']) {
     const transparent = [0, 0, 0, 0], magenta = [255, 0, 255, 255];
     for (const [i, row] of result.direct.entries()) {
       const c = cases[i], reserved = c.name !== 'no-rings';
-      expect(row.trace.steps.find(s => s.role === 'face' && s.action === 'selected').resource.signedId, c.name).toBe(c.face);
-      expect(row.trace.steps.filter(s => s.reason === 'ring-paint').map(s => s.resource.signedId), c.name).toEqual(c.ring === null ? [] : [c.ring]);
+      expect(row.trace.steps.find(s => s.role === 'face' && s.action === 'selected' && s.usage === 'paint' && s.resource?.type === 'cicn').resource.signedId, c.name).toBe(c.face);
+      expect(row.trace.steps.filter(s => s.role==='default-ring'&&s.usage==='paint'&&s.action==='selected'&&s.resource?.type==='cicn').map(s => s.resource.signedId), c.name).toEqual(c.ring === null ? [] : [c.ring]);
       expect(row.pixels, c.name).toEqual({ size: reserved ? [32, 14] : [24, 6], margin: reserved ? transparent : colors[c.face],
         ring: reserved ? (c.ring === null ? transparent : colors[c.ring]) : colors[c.face],
         overlap: c.ring === null ? colors[c.face] : magenta, center: colors[c.face], greenPixels: 0 });
@@ -106,27 +105,28 @@ for (const mode of ['source', 'built']) {
     await openHarness(page, servers, mode);
     const result = await page.evaluate(async mode => {
       const api = await import(mode === 'built' ? '/dist/scriptoscope.js' : '/src/index.ts');
-      const buffer = api.PixelBuffer.alloc(9, 9); buffer.fillRect({ x: 0, y: 0, w: 9, h: 9 }, 100, 120, 140, 255);
-      const asset = api.bufferToCanvas(buffer).toDataURL();
-      const element = (id, extra = {}) => ({ asset, width: 9, height: 9, sourceCicnId: id, sourceCinfId: id,
-        slice: { corner: 2, side: 1, tile: false }, bgAnchor: [4, 4], ...extra });
-      const theme = (name, entries, base) => ({ baseUrl: `${location.origin}/synthetic/${name}`, manifest: { chromeElements: entries }, base });
-      const base = theme('base', { 'push-button-active': element(-10239), fallbackBevel: element(-10163) });
-      const cases = {
-        child: [theme('child', { slot: element(10239) }, base), {}],
-        inherited: [theme('inherited', {}, base), {}],
-        rejected: [theme('rejected', { menu: element(-10239, { authorLabel: 'Solo Menu Background' }) }, base), {}],
-        rejectedKey: [theme('rejected-key', { 'menu-wallpaper': element(-10239) }, base), {}],
-        rawEscape: [theme('raw', { menu: element(-10239, { authorLabel: 'Solo Menu Background' }) }), {}],
-        canonicalNamed: [theme('canonical-named', { 'push-button-active': element(-123), menu: element(-10239, {authorLabel:'Solo Menu Background'}) }), {}],
-        positiveRejected: [theme('positive-rejected', { menu: element(10239, {authorLabel:'Solo Menu Background'}) }, base), {}],
-        activeMissing: [theme('active-missing', { 'pressed-push-button': element(-10238) }), {}],
-        unknown: [theme('unknown', { 'push-button-active': element(undefined) }), {}],
-        bevel: [theme('bevel', {}, base), { small: true, disabled: true }],
-        plain: [theme('plain', { slot: element(-10239), ring: element(-10231, { asset: 'invalid:must-not-decode' }) }), {}],
-        pressedDefault: [theme('default', { slot: element(-10238), ring: element(-10231) }), { default: true, pressed: true }],
-        noRing: [theme('no-ring', { slot: element(-10239) }), { default: true }],
-        missing: [theme('missing', {}), {}],
+      const {loadOwnedControlFixture,plane}=await import('/tests/rendering-options/owned-control-fixture.mjs');
+      const owned=[];
+      const theme=async(name,entries,base)=>{
+        const t=await loadOwnedControlFixture(api,{paletteColors:[[100,120,140]],faces:entries.map(([id,key])=>({id,name:key,pixels:plane(9,9,[100,120,140,255]),cinf:{corner:2,side:1,background:[4,4]}}))});
+        t.baseUrl=`${location.origin}/synthetic/${name}`;if(base)t.base=base;owned.push(t);return t;
+      };
+      const base=await theme('base',[[-10239,'push-button-active'],[-10163,'fallback-bevel']]);
+      const cases={
+        child:[await theme('child',[[10239,'slot']],base),{}],
+        inherited:[await theme('inherited',[],base),{}],
+        rejected:[await theme('rejected',[[-10239,'solo-menu-background']],base),{}],
+        rejectedKey:[await theme('rejected-key',[[-10239,'menu-wallpaper']],base),{}],
+        rawEscape:[await theme('raw',[[-10239,'menu']]),{}],
+        canonicalNamed:[await theme('canonical-named',[[-123,'push-button-active'],[-10239,'menu']]),{}],
+        positiveRejected:[await theme('positive-rejected',[[10239,'solo-menu-background']],base),{}],
+        activeMissing:[await theme('active-missing',[[-10238,'pressed-push-button']]),{}],
+        unknown:[await theme('unknown',[]),{}],
+        bevel:[await theme('bevel',[],base),{small:true,disabled:true}],
+        plain:[await theme('plain',[[-10239,'slot'],[-10231,'ring']]),{}],
+        pressedDefault:[await theme('default',[[-10238,'slot'],[-10231,'ring']]),{default:true,pressed:true}],
+        noRing:[await theme('no-ring',[[-10239,'slot']]),{default:true}],
+        missing:[await theme('missing',[]),{}],
       };
       const traces = {}, pixelsEqual = {}, frozen = {};
       for (const [name, [t, options]] of Object.entries(cases)) {
@@ -140,32 +140,28 @@ for (const mode of ['source', 'built']) {
       }
       const c = window.controlMatrix.listCases().find(c => c.mode === 'direct' && c.family === 'push');
       const metadata = await window.controlMatrix.runCase(c, { slug: 'windows-95', includeReferences: false });
-      return { traces, pixelsEqual, frozen, attached: metadata.resolutionTrace };
+      owned.forEach(t=>t.dispose());return { traces, pixelsEqual, frozen, attached: metadata.resolutionTrace };
     }, mode);
-    const selected = trace => trace.steps.find(s => s.role === 'face' && s.action === 'selected');
-    const t = result.traces;
-    expect(selected(t.child)).toMatchObject({ owner: { chainDepth: 0 }, resource: { signedId: 10239, sourceCinfId: 10239, manifestKey: 'slot' }, basis: 'compatibility-policy', reason: 'positive-id-alias' });
-    expect(selected(t.inherited)).toMatchObject({ owner: { chainDepth: 1 }, resource: { signedId: -10239, manifestKey: 'push-button-active' } });
+    const selected=trace=>trace.steps.find(s=>s.role==='face'&&s.action==='selected'&&s.usage==='paint'&&s.resource?.type==='cicn');
+    const t=result.traces;
+    for(const name of ['child','inherited','positiveRejected'])expect(selected(t[name])).toMatchObject({owner:{chainDepth:1},resource:{signedId:-10239,manifestKey:'push-button-active'}});
     expect(selected(t.inherited).owner.baseUrl).toMatch(/\/synthetic\/base$/);
-    expect(t.inherited.steps.some(s => s.reason === 'base-inheritance')).toBe(true);
-    for (const name of ['rejected','rejectedKey','rawEscape','canonicalNamed']) {
+    for(const name of ['rejected','rejectedKey','rawEscape','canonicalNamed']){
       expect(selected(t[name])).toMatchObject({owner:{chainDepth:0},resource:{signedId:-10239},basis:'source-dispatch',reason:'resource-id'});
-      expect(t[name].steps.some(s=>s.action==='rejected'||s.reason==='active-to-pressed'||s.reason==='raw-id-escape')).toBe(false);
+      expect(t[name].steps.some(s=>['anti-role-label','anti-role-key','active-to-pressed','raw-id-escape'].includes(s.reason))).toBe(false);
     }
     expect(selected(t.canonicalNamed).resource.manifestKey).toBe('menu');
-    expect(t.positiveRejected.steps[0]).toMatchObject({action:'rejected',reason:'anti-role-label',basis:'compatibility-policy',resource:{signedId:10239}});
-    expect(selected(t.positiveRejected).owner.chainDepth).toBe(1);
-    expect(t.activeMissing.steps.some(s=>s.reason==='active-to-pressed')).toBe(true);
-    expect(selected(t.activeMissing).resource.signedId).toBe(-10238);
-    expect(selected(t.unknown).resource).toMatchObject({ signedId: null, sourceCinfId: null, manifestKey: 'push-button-active' });
-    expect(selected(t.bevel)).toMatchObject({ requestedId: -10163, owner: { chainDepth: 1 }, resource: { signedId: -10163 }, basis: 'compatibility-policy' });
-    expect(t.bevel.steps.filter(s => s.reason.startsWith('bevel-')).map(s => s.reason)).toEqual(['bevel-unpressed-fallback', 'bevel-default-fallback']);
-    expect(t.plain.steps.filter(s => s.role === 'default-ring' && s.action === 'selected')).toMatchObject([{ usage: 'layout-reservation', basis: 'compatibility-policy', resource: { signedId: -10231 } }]);
-    expect(t.plain.steps.some(s => s.role === 'default-ring' && s.usage === 'paint')).toBe(false);
-    expect(t.pressedDefault.steps.find(s => s.reason === 'pressed-ring-to-active')).toMatchObject({ basis: 'source-dispatch', usage: 'paint' });
-    expect(t.pressedDefault.steps.find(s => s.reason === 'ring-paint')).toMatchObject({ requestedId: -10230, resource: { signedId: -10231 }, usage: 'paint' });
-    expect(t.noRing.steps.find(s => s.reason === 'ring-unavailable')).toMatchObject({ requestedId: -10231, action: 'missing', usage: 'paint' });
-    expect(t.missing.outcome).toEqual({ status: 'unavailable' });
+    for(const name of ['activeMissing','unknown','missing']){expect(t[name].outcome).toEqual({status:'unavailable'});expect(selected(t[name])).toBeUndefined();}
+    // Bevel is explicitly outside the PB engine contract and retains its
+    // still-supported compatibility fallback. Do not erase an unmigrated API.
+    expect(selected(t.bevel)).toMatchObject({owner:{chainDepth:1},resource:{signedId:-10163},basis:'compatibility-policy'});
+    expect(t.bevel.steps.filter(s=>s.reason.startsWith('bevel-')).map(s=>s.reason)).toEqual(['bevel-unpressed-fallback','bevel-default-fallback']);
+    expect(t.child.steps.some(s=>s.resource?.signedId===10239&&s.usage==='paint')).toBe(false);
+    expect(t.plain.steps.some(s=>s.role==='default-ring'&&s.usage==='paint')).toBe(false);
+    const ring=t.pressedDefault.steps.find(s=>s.role==='default-ring'&&s.usage==='paint'&&s.resource?.type==='cicn');
+    expect(ring.resource.signedId).toBe(-10231);
+    expect(t.pressedDefault.steps.some(s=>s.requestedId===-10230&&s.action==='missing')).toBe(true);
+    expect(t.noRing.steps.some(s=>s.role==='default-ring'&&s.requestedId===-10231&&s.action==='missing')).toBe(true);
     expect(Object.values(result.pixelsEqual).every(Boolean)).toBe(true);
     expect(Object.values(result.frozen).every(Boolean)).toBe(true);
     expect(result.attached).toMatchObject({ version: 1, family: 'push-button', outcome: { status: 'themed' } });
@@ -191,7 +187,7 @@ for (const mode of ['source', 'built']) {
       return rows;
     }, mode);
     for (const { slug, family, state, trace } of rows) {
-      const face = trace.steps.find(s => s.role === 'face' && s.action === 'selected');
+      const face = trace.steps.find(s => s.role === 'face' && s.action === 'selected' && s.usage === 'paint' && s.resource?.type === 'cicn');
       // Expectations are explicit reviewed source IDs and runtime policy choices,
       // not derived by repeating the production resolver in the harness.
       const faceId = family === 'bevel' ? { active: -10166, pressed: -10165, inactive: -10167 }[state]
@@ -200,7 +196,7 @@ for (const mode of ['source', 'built']) {
       expect(face.resource.sourceCinfId).toBe(faceId);
       expect(face.owner.chainDepth).toBe(0);
       if (family === 'push') {
-        expect(trace.steps.find(s => s.reason === 'ring-paint').resource.signedId).toBe(state === 'inactive' ? -10232 : -10231);
+        expect(trace.steps.find(s => s.role==='default-ring'&&s.usage==='paint'&&s.resource?.type==='cicn').resource.signedId).toBe(state === 'inactive' ? -10232 : -10231);
         if (slug !== 'windows-95' && state === 'active') {
           expect(face).toMatchObject({basis:'source-dispatch',reason:'resource-id',resource:{signedId:-10239,manifestKey:'solo-menu-background-2'}});
           expect(trace.steps.some(s => s.action==='rejected'||s.reason==='active-to-pressed')).toBe(false);
@@ -228,9 +224,9 @@ for (const mode of ['source', 'built']) {
       HTMLImageElement.prototype.decode = async function () { if (this.src.endsWith('#trace-error')) throw rendererError; return decode.call(this); };
       let failureCalls = 0, failureTrace, failureError;
       try {
-        const broken = { baseUrl: location.origin, manifest: { chromeElements: { slot: {
-          sourceCicnId: -10239, asset: 'data:image/png;base64,broken#trace-error', width: 9, height: 9,
-        } } } };
+        const {loadOwnedControlFixture,plane}=await import('/tests/rendering-options/owned-control-fixture.mjs');
+        const broken=await loadOwnedControlFixture(api,{faces:[{id:-10239,name:'slot',pixels:plane(9,9,[100,120,140,255]),cinf:{corner:2,side:1}}]});
+        broken.manifest.chromeElements.slot.asset='data:image/png;base64,broken#trace-error';
         await api.composeButton(broken, { label: '', diagnostics: { onComplete: trace => {
           failureCalls++; failureTrace = trace; throw callbackError;
         } } });
@@ -242,12 +238,15 @@ for (const mode of ['source', 'built']) {
     }, mode);
     expect(result.isolated).toBe(true);
     expect(result.records.map(t => t.correlationId).sort()).toEqual(['bevel', 'push']);
-    expect(result.records.find(t => t.correlationId === 'push').steps.filter(s => s.role === 'face' && s.action === 'selected').map(s => s.resource.signedId)).toEqual([-10239]);
-    expect(result.records.find(t => t.correlationId === 'bevel').steps.filter(s => s.role === 'face' && s.action === 'selected').map(s => s.resource.signedId)).toEqual([-10167]);
+    expect(result.records.find(t => t.correlationId === 'push').steps.filter(s => s.role === 'face' && s.action === 'selected' && s.usage === 'paint' && s.resource?.type === 'cicn').map(s => s.resource.signedId)).toEqual([-10239]);
+    expect(result.records.find(t => t.correlationId === 'bevel').steps.filter(s => s.role === 'face' && s.action === 'selected' && s.usage === 'paint' && s.resource?.type === 'cicn').map(s => s.resource.signedId)).toEqual([-10167]);
     expect(result.disposals).toBe(0);
     expect([result.successCalls, result.failureCalls]).toEqual([1, 1]);
     expect(result.successError).toBe(true); expect(result.failureError).toBe(true);
     expect(result.failureTrace.outcome).toEqual({ status: 'error' });
-    expect(result.failureTrace.steps[0]).toMatchObject({ action: 'selected', resource: { signedId: -10239 } });
+    // Resource preparation can fail before the driver selects any art. An
+    // admission or completion must never be invented for that failed preload.
+    expect(result.failureTrace.steps.filter(s=>s.usage==='paint')).toEqual([]);
+    expect(result.failureTrace.bandPaints??[]).toEqual([]);
   });
 }

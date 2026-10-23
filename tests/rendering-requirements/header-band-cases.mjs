@@ -64,6 +64,7 @@ export function verifyHeaderBandRows(rows,indices) {
       for(const b of sampled){
         assert.deepEqual(b.owner,face.owner);assert.deepEqual(b.resource,face.resource);assert.equal(b.role,'face');
         actualJoin({...b,action:'selected',usage:'paint'},row,pin);
+        assert(b.derived,`${pin.id}: completed sampled companion derivation missing`);
         assert.equal(b.derived.path,'cicn-sampled/cicn-n10239-band-fixture.png');assert.equal(b.derived.model,'kaleidoscope-2.3.1-opaque-sampling-v1');assert.equal(b.derived.displayPolicy,'mac-1.8-to-2.2-high-byte');
         assert.equal(row.owner.element.manifestKey,pin.expectedSelection.manifestKey);
         assert.equal(row.owner.element.asset,face.resource.assetUrl);

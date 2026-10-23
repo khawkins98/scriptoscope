@@ -17,17 +17,17 @@ for (const mode of ['source', 'built']) test(`${mode}: pattern bodies preserve p
       const colors = Array.from({ length: 8 }, (_, n) => [(n & 1) * 255, ((n >> 1) & 1) * 255, ((n >> 2) & 1) * 255, 255]);
       for (let y = 0; y < 2; y++) for (let x = 0; x < 4; x++) tile.setPixel(x, y, ...colors[y * 4 + x]);
       const faceUrl = api.bufferToCanvas(face).toDataURL(), patternUrl = api.bufferToCanvas(tile).toDataURL();
-      const element = id => ({ sourceCicnId: id, sourceCinfId: id, asset: faceUrl, width: 7, height: 7,
-        slice: { corner: 3, side: 1, tile: false }, bodyRequest: { mode: 0, resourceId: 0 }, bgPattern: 'mislinked' });
-      const owner = { baseUrl: `${location.origin}/owner/`, manifest: { chromeElements: Object.fromEntries([-10239, -10238, -10240, -10166, -10165, -10167].map(id => [String(id), element(id)])),
-        patterns: { zero: { sourcePpatId: 0, asset: patternUrl }, mislinked: { sourcePpatId: 999, asset: '/must-not-load-mismatched-pattern.png' } } } };
-      // The child has a misleading same-ID pattern but no face. Its art cannot
-      // replace the actual selected face owner's catalog binding.
-      const child = { baseUrl: `${location.origin}/child/`, base: owner, manifest: { chromeElements: {}, patterns: { wrong: { sourcePpatId: 0, asset: faceUrl } } } };
+      const {loadOwnedControlFixture}=await import('/tests/rendering-options/owned-control-fixture.mjs');
+      const sourcePlane=Array.from({length:7},()=>Array.from({length:7},()=>[0,0,0,0]));
+      const owner=await loadOwnedControlFixture(api,{faces:[-10239,-10238,-10240,-10166,-10165,-10167].map(id=>({id,name:`face-${Math.abs(id)}`,pixels:sourcePlane,cinf:{corner:3,side:1,resourceId:0}})),patterns:[{id:0,name:'zero',pixels:Array.from({length:2},(_,y)=>Array.from({length:4},(_,x)=>colors[y*4+x]))}]});
+      owner.baseUrl=`${location.origin}/owner/`;
+      for(const e of Object.values(owner.manifest.chromeElements))e.bgPattern='mislinked';
+      owner.manifest.patterns.mislinked={sourcePpatId:999,asset:'/must-not-load-mismatched-pattern.png'};
+      const child={baseUrl:`${location.origin}/child/`,base:owner,manifest:{chromeElements:{},displayProfile:owner.manifest.displayProfile,patterns:{wrong:{sourcePpatId:0,asset:faceUrl}}}};
       const rows = [];
-      for (const family of ['push', 'bevel']) for (const state of ['normal', 'pressed', 'disabled']) for (const shifted of [false, true]) {
+      for(const inherited of [false,true])for (const family of ['push', 'bevel']) for (const state of ['normal', 'pressed', 'disabled']) for (const shifted of [false, true]) {
         let trace;
-        const output = await api[family === 'push' ? 'composeButton' : 'composeBevelButton'](child, {
+        const output = await api[family === 'push' ? 'composeButton' : 'composeBevelButton'](inherited?child:owner, {
           label: '', minWidth: 29, height: 9, pressed: state === 'pressed', disabled: state === 'disabled',
           compositionContext: { controlOrigin: shifted ? [23, 25] : [20, 20], portOrigin: shifted ? [3, 5] : [0, 0],
             patternOrigin: { status: 'known', offset: [0, 0] }, clip: { kind: 'unbounded' } },
@@ -37,29 +37,27 @@ for (const mode of ['source', 'built']) test(`${mode}: pattern bodies preserve p
           const pixel = [...output.getPixel(x, y)]; if (!pixel[3]) return '.';
           const i = colors.findIndex(color => color.every((v, j) => v === pixel[j])); return i < 0 ? '?' : String.fromCharCode(65 + i);
         }).join(''));
-        rows.push({ family, state, shifted, size: [output.width, output.height], pixels, trace });
+        rows.push({inherited,family,state,shifted, size: [output.width, output.height], pixels, trace });
       }
-      return rows;
+      owner.dispose();return rows;
     }, mode);
-    expect(rows).toHaveLength(12);
-    expect(rows.filter(r => r.family === 'push' && r.state === 'normal' && !r.shifted)).toHaveLength(1);
+    expect(rows).toHaveLength(24);
+    expect(rows.filter(r => r.family === 'push' && r.state === 'normal' && !r.shifted&&!r.inherited)).toHaveLength(1);
     for (const row of rows) {
       expect(row.size).toEqual([29, 9]);
       expect(row.trace.requested).toMatchObject({ state: row.state === 'normal' ? 'active' : row.state === 'disabled' ? 'inactive' : 'pressed', pressed: row.state === 'pressed', disabled: row.state === 'disabled' });
       const faceId = { push: { normal: -10239, pressed: -10238, disabled: -10240 }, bevel: { normal: -10166, pressed: -10165, disabled: -10167 } }[row.family][row.state];
-      expect(row.trace.steps.find(step => step.role === 'face' && step.action === 'selected')).toMatchObject({ owner: { chainDepth: 1 }, resource: { signedId: faceId, manifestKey: String(faceId) } });
-      expect(row.pixels, `${row.family}/${row.state}/${row.shifted}`).toEqual(row.shifted ? shiftedRows : normalRows);
+      expect(row.trace.steps.find(step => step.role === 'face' && step.action === 'selected' && step.usage==='paint' && step.resource?.type==='cicn')).toMatchObject({ owner:{chainDepth:row.inherited?1:0}, resource: { signedId: faceId, manifestKey:`face-${Math.abs(faceId)}` } });
+      expect.soft(row.pixels, `${row.family}/${row.state}/${row.shifted}`).toEqual(row.shifted ? shiftedRows : normalRows);
       expect(row.trace.composition.faceRect).toMatchObject({ w: 29, h: 9 });
-      const paints = row.trace.steps.filter(step => step.role === 'body-fill' && step.action === 'selected');
+      const paints = row.trace.steps.filter(step => step.role === 'body-fill' && step.action === 'selected' && step.usage==='paint');
       expect(paints).toHaveLength(1);
-      expect(paints[0].bodyPaint).toMatchObject({branch:'pattern-fill-union', unionRects:[{x:3,y:1,w:23,h:7},{x:1,y:3,w:27,h:3}],
+      expect.soft(paints[0].bodyPaint,'completed pattern operation remains mandatory').toMatchObject({branch:'pattern-fill-union', unionRects:[{x:3,y:1,w:23,h:7},{x:1,y:3,w:27,h:3}],
         paintedPixels:173, sourceSize:[4,2], phase:{basis:'modern-composition-policy',offset:row.shifted?[23,25]:[20,20],originalPatternPhase:'unverified'}});
-      expect(paints[0]).toMatchObject({ requestedId: 0, basis: 'compatibility-policy', usage: 'paint',
-        owner: { chainDepth: 1 }, resource: { type: 'ppat', signedId: 0, manifestKey: 'zero' } });
+      expect.soft(paints[0]).toMatchObject({ requestedId:0,basis:row.family==='bevel'?'compatibility-policy':'source-dispatch',usage:'paint',
+        owner:{chainDepth:row.inherited?1:0}, resource: { type: 'ppat', signedId: 0, manifestKey: 'zero' } });
       expect(paints[0].owner.baseUrl).toContain('/owner/');
-      expect(row.trace.steps.filter(step => step.role === 'body-fill' && step.action === 'rejected')).toMatchObject([
-        { requestedId: 0, reason: 'linked-pattern-id-mismatch', resource: { type: 'ppat', signedId: 999, manifestKey: 'mislinked' } },
-      ]);
+      expect(row.trace.steps.some(step=>step.role==='body-fill'&&step.usage==='paint'&&step.resource?.signedId===999)).toBe(false);
     }
   } catch (error) { await attachCase(page, testInfo, { mode, oracle: 'literal-pattern-body-port-rows', rows }, error); throw error; }
 });
@@ -75,14 +73,12 @@ for (const mode of ['source', 'built']) test(`${mode}: corner phase and port cli
       face.setPixel(0, 0, 199, 33, 77, 255); ring.setPixel(0, 0, 123, 45, 67, 255);
       for (let y = 0; y < 3; y++) for (let x = 0; x < 5; x++) tile.setPixel(x, y, (y * 5 + x + 1) * 10, 0, 0, 255);
       const url = source => api.bufferToCanvas(source).toDataURL();
-      const faceEntry = { sourceCicnId: -10239, asset: url(face), width: 7, height: 7,
-        slice: { corner: 3, side: 1, tile: false }, bodyRequest: { mode: 0, resourceId: 0 } };
-      const theme = { baseUrl: location.origin, manifest: { chromeElements: { face: faceEntry,
-        ring: { sourceCicnId: -10231, asset: url(ring), width: 9, height: 9, slice: { corner: 1, side: 1, tile: false } } },
-        patterns: { tile: { sourcePpatId: 0, asset: url(tile) } } } };
+      const {loadOwnedControlFixture}=await import('/tests/rendering-options/owned-control-fixture.mjs');
+      const pixels=b=>Array.from({length:b.height},(_,y)=>Array.from({length:b.width},(_,x)=>[...b.getPixel(x,y)]));
+      const theme=await loadOwnedControlFixture(api,{faces:[{id:-10239,name:'face',pixels:pixels(face),cinf:{corner:3,side:1,resourceId:0}},{id:-10231,name:'ring',pixels:pixels(ring),cinf:{corner:1,side:1}}],patterns:[{id:0,name:'tile',pixels:pixels(tile)}]});
       const rows = [];
       for (const bodyMode of [0, 1, 2, 3, 4, 6, 127, 128, 255]) for (const clipped of [false, true]) {
-        faceEntry.bodyRequest.mode = bodyMode; let trace;
+        theme.manifest.engineCinfs['-10239'][3]=bodyMode; let trace;
         const output = await api.composeButton(theme, { label: '', minWidth: 29, height: 8, default: true,
           compositionContext: { controlOrigin: [23, 25], portOrigin: [3, 5], patternOrigin: { status: 'known', offset: [-3, 5] },
             clip: clipped ? { kind: 'rect', rect: { x: 27, y: 27, w: 5, h: 4 } } : { kind: 'unbounded' } },
@@ -101,7 +97,7 @@ for (const mode of ['source', 'built']) test(`${mode}: corner phase and port cli
     for (const row of rows) {
       expect(row.size).toEqual([37, 16]);
       expect(row.trace.requested).toMatchObject({ state: 'active', pressed: false, disabled: false, default: true });
-      expect(row.trace.steps.find(step => step.role === 'face' && step.action === 'selected')).toMatchObject({ owner: { chainDepth: 0 }, resource: { signedId: -10239, manifestKey: 'face' } });
+      expect(row.trace.steps.find(step => step.role === 'face' && step.action === 'selected' && step.usage==='paint' && step.resource?.type==='cicn')).toMatchObject({ owner: { chainDepth: 0 }, resource: { signedId: -10239, manifestKey: 'face' } });
       expect(row.trace.steps.find(step => step.role === 'default-ring' && step.action === 'selected' && step.usage === 'paint')).toMatchObject({ owner: { chainDepth: 0 }, resource: { signedId: -10231, manifestKey: 'ring' } });
       expect(row.inside).toEqual([(first[row.bodyMode > 4 ? 0 : row.bodyMode] + 1) * 10, 0, 0, 255]);
       expect(row.farInside).toEqual([(second[row.bodyMode > 4 ? 0 : row.bodyMode] + 1) * 10, 0, 0, 255]);
@@ -143,16 +139,17 @@ for (const mode of ['source', 'built']) test(`${mode}: Crayon painted dependenci
       expect(face.resource).toMatchObject({ signedId: { normal: -10239, pressed: -10238, disabled: -10240 }[row.state], manifestKey: `push-button-${row.state === 'normal' ? 'active' : row.state === 'disabled' ? 'inactive' : 'pressed'}` });
       expect(row.size).toEqual([88, 28]);
       expect(row.trace.composition.faceRect).toMatchObject({ w: 80, h: 20 });
-      const painted = row.trace.steps.filter(step => step.role === 'body-fill' && step.action === 'selected');
+      const painted = row.trace.steps.filter(step => step.role === 'body-fill' && step.action === 'selected' && step.usage==='paint');
       expect(painted).toHaveLength(1);
       const step = painted[0], id = row.state === 'pressed' ? -10238 : 17;
-      expect(step).toMatchObject({ requestedId: id, bodyMode: 0, basis: 'compatibility-policy', usage: 'paint',
+      expect(step).toMatchObject({ requestedId: id, bodyMode: 0, basis: 'source-dispatch', usage: 'paint',
         owner: { chainDepth: row.inherited ? 1 : 0 }, resource: { type: 'ppat', signedId: id } });
       const entry = result.owner.manifest.patterns[step.resource.manifestKey], pin = pins.patterns.find(pin => pin.signedId === id);
       expect(step.resource.byteProvenance).toEqual(entry.byteProvenance);
       expect(comparePatternBinding(result.owner, step.resource.manifestKey, { ...pin,
         inputSha256: pins.archiveSha256, forkSha256: pins.forkSha256,
         resourceIndex: step.resource.byteProvenance.ppatResourceIndex }).status).toBe('matched');
+      expect(step.bodyPaint,'completed real pattern operation must publish bodyPaint').toMatchObject({branch:'pattern-fill-union',sourceAssetUrl:entry.asset});
       // Independent raw palette observations: normal[8,8]=(231,222,198),
       // [63,9]=(247,247,214), [0,9]=(247,239,214); pressed[8,8]=(33,33,198).
       // Literal expected bytes apply the DECLARED 1.8/2.2 display transform;
@@ -170,18 +167,14 @@ for (const mode of ['source', 'built']) test(`${mode}: missing or unsupported bo
   try {
     result = await page.evaluate(async mode => {
       const api = await import(mode === 'built' ? '/dist/scriptoscope.js' : '/src/index.ts');
-      const face = api.PixelBuffer.alloc(7, 7); face.fillRect({ x: 0, y: 0, w: 7, h: 7 }, 255, 255, 255, 255);
-      const asset = api.bufferToCanvas(face).toDataURL();
-      const entry = id => ({ sourceCicnId: id, asset, width: 7, height: 7, slice: { corner: 3, side: 1, tile: false }, bgAnchor: [3, 3] });
-      const normal = entry(-10239), theme = { baseUrl: location.origin, manifest: { chromeElements: { normal, pressed: entry(-10238) },
-        patterns: { mustNotLoad: { sourcePpatId: 17, asset: '/missing-unsupported-body-must-not-load.png' } } } };
-      const requests = [null, { mode: 5, resourceId: 17 }, { mode: 0, resourceId: -99 }], rows = [];
-      for (const request of requests) {
-        normal.bodyRequest = request; let trace;
-        const out = await api.composeButton(theme, { label: '', diagnostics: { onComplete: value => { trace = value; } } });
-        rows.push({ request, pixel: [...out.getPixel(10, 3)], trace });
-      }
-      normal.bodyRequest = null;
+      const {loadOwnedControlFixture,plane}=await import('/tests/rendering-options/owned-control-fixture.mjs');
+      const make=async request=>{
+        const theme=await loadOwnedControlFixture(api,{faces:[[-10239,'normal'],[-10238,'pressed']].map(([id,name])=>({id,name,pixels:plane(7,7,[255,255,255,255]),...(request?{cinf:{corner:3,side:1,background:[3,3],mode:request.mode,resourceId:request.resourceId}}:{})}))});
+        theme.manifest.patterns={mustNotLoad:{sourcePpatId:17,asset:'/missing-unsupported-body-must-not-load.png'}};return theme;
+      };
+      const requests=[null,{mode:5,resourceId:17},{mode:0,resourceId:-99}],rows=[];
+      for(const request of requests){const theme=await make(request);try{let trace;const out=await api.composeButton(theme,{label:'',diagnostics:{onComplete:t=>trace=t}});rows.push({request,pixel:[...out.getPixel(10,3)],trace});}finally{theme.dispose();}}
+      const theme=await make({mode:0,resourceId:-99});
       const input = { controlOrigin: [3, 5], portOrigin: [0, 0], patternOrigin: { status: 'unknown' }, clip: { kind: 'unbounded' } }, traces = [];
       const element = await api.interactiveButton(theme, { label: '', compositionContext: input, diagnostics: { onComplete: trace => {
         traces.push(trace); input.controlOrigin[0] = 99;
@@ -190,20 +183,15 @@ for (const mode of ['source', 'built']) test(`${mode}: missing or unsupported bo
       let invalidTrace, callbacks = 0, errorName;
       try { await api.composeButton(theme, { compositionContext: { ...input, controlOrigin: [NaN, 0] }, diagnostics: { onComplete: value => { invalidTrace = value; callbacks++; } } }); }
       catch (error) { errorName = error.name; }
-      return { rows, traces, callerOrigin: input.controlOrigin, invalidTrace, callbacks, errorName };
+      theme.dispose();return { rows, traces, callerOrigin: input.controlOrigin, invalidTrace, callbacks, errorName };
     }, mode);
     for (const row of result.rows) {
-      expect(row.pixel).toEqual([255, 255, 255, 255]);
+      expect(row.pixel).toEqual(row.request?[255,255,255,255]:[0,0,0,0]);
       expect(row.trace.composition).toMatchObject({ originalPortState: 'unverified', appliedUnknownPatternOffset: true,
         context: { basis: 'compatibility-default', controlOrigin: [0, 0], portOrigin: [0, 0], patternOrigin: { status: 'unknown' }, clip: { kind: 'unknown' } } });
-      const decisions = row.trace.steps.filter(step => step.role === 'body-fill');
-      if (!row.request) expect(decisions).toEqual([]);
-      else {
-        expect(decisions).toHaveLength(1);
-        expect(decisions[0]).toMatchObject({ requestedId: row.request.resourceId, bodyMode: row.request.mode,
-          action: row.request.mode === 0 ? 'missing' : 'fallback', requestedResourceType: row.request.mode === 5 ? 'cicn' : 'ppat' });
-        expect(decisions[0].resource).toBeUndefined();
-      }
+      const decisions=row.trace.steps.filter(step=>step.role==='body-fill');
+      if(!row.request){expect(decisions).toEqual([]);expect(row.trace.bandPaints??[]).toEqual([]);}
+      else{expect(decisions.some(step=>step.requestedId===row.request.resourceId&&step.action==='missing')).toBe(true);expect(decisions.some(step=>step.resource)).toBe(false);}
     }
     expect(result.traces).toHaveLength(2);
     for (const trace of result.traces) expect(trace.composition.context.controlOrigin).toEqual([3, 5]);
@@ -219,7 +207,7 @@ for (const mode of ['source', 'built']) test(`${mode}: numeric pattern names ret
   try {
     result = await page.evaluate(async mode => {
       const api = await import(mode === 'built' ? '/dist/scriptoscope.js' : '/src/index.ts');
-      const loader = mode === 'built' ? api : await import('/tools/theme-loader/loadKaleidoscopeScheme.js');
+      const loader=api;
       const { forkOf, cinf, onePixelCicn } = await import('/tests/resource-provenance/fixtures.mjs');
       const { twoPixelPpat } = await import('/tests/resource-provenance/patterns.mjs');
       const request = cinf(); request[0] = 0; request[1] = 0;
@@ -257,7 +245,7 @@ for (const mode of ['source', 'built']) test(`${mode}: numeric pattern names ret
       // numeric names sort in the opposite order; observation cannot change paint.
       expect(row.pixel).toEqual([0, 0, 0, 255]);
       expect(row).toMatchObject({ keys: ['1', '2'], bodyPattern: '1', bgPattern: null });
-      const selected = row.trace.steps.filter(step => step.role === 'body-fill' && step.action === 'selected');
+      const selected = row.trace.steps.filter(step => step.role === 'body-fill' && step.action === 'selected' && step.usage==='paint');
       expect(selected).toHaveLength(1);
       expect(selected[0].resource).toMatchObject({ type: 'ppat', signedId: 0, manifestKey: '1' });
       if (row.provenance) {
@@ -273,16 +261,13 @@ for (const mode of ['source', 'built']) test(`${mode}: numeric pattern names ret
         }
       }
       else expect(selected[0].resource.byteProvenance).toBeUndefined();
-      expect(selected[0].reason).toBe('carried-body-pattern-paint');
-      const [ambiguous, linked] = row.legacy;
-      expect(ambiguous.pixel).toEqual([255, 0, 0, 255]); // retained solid fallback, no invented order
-      expect(ambiguous.trace.steps.filter(step => step.role === 'body-fill')).toMatchObject([
-        { action: 'missing', reason: 'ambiguous-legacy-pattern-order', requestedId: 0 },
-      ]);
-      expect(linked.pixel).toEqual([0, 0, 0, 255]);
-      expect(linked.trace.steps.filter(step => step.role === 'body-fill')).toMatchObject([
-        { action: 'selected', reason: 'legacy-linked-pattern-paint', resource: { manifestKey: '1' } },
-      ]);
+      expect(selected[0].reason).toBe('resource-id');
+      const [unlinked,linked]=row.legacy;
+      for(const carried of [unlinked,linked]){
+        expect(carried.pixel).toEqual([0,0,0,255]);
+        const actual=carried.trace.steps.find(step=>step.role==='body-fill'&&step.action==='selected'&&step.usage==='paint');
+        expect(actual.resource).toMatchObject({type:'ppat',signedId:0,manifestKey:'1'});
+      }
     }
     await attachObservations(info, 'pattern-paint', `${mode}-numeric-order`, { mode, result });
   } catch (error) { await attachCase(page, info, { mode, result }, error); throw error; }
@@ -295,34 +280,35 @@ for (const mode of ['source', 'built']) test(`${mode}: completed pattern unions 
       const api=await import(mode==='built'?'/dist/scriptoscope.js':'/src/index.ts');
       const face=api.PixelBuffer.alloc(5,5),tile=api.PixelBuffer.alloc(2,1); // Both transparent: write count is not occupancy.
       const url=b=>api.bufferToCanvas(b).toDataURL();
-      const el={sourceCicnId:-10239,asset:url(face),width:5,height:5,slice:{corner:2,side:2,tile:true},bodyRequest:{mode:2,resourceId:0}};
-      const theme={baseUrl:location.origin,manifest:{chromeElements:{face:el},patterns:{tile:{sourcePpatId:0,asset:url(tile)}}}};
+      const {loadOwnedControlFixture,plane}=await import('/tests/rendering-options/owned-control-fixture.mjs');
+      const theme=await loadOwnedControlFixture(api,{faces:[{id:-10239,name:'face',pixels:plane(5,5),cinf:{corner:2,side:2,tile:true,mode:2,resourceId:0}}],patterns:[{id:0,name:'tile',pixels:plane(2,1,[0,0,0,255])}]});
+      // Explicit custom alpha pattern remains modern caller input; it is not a
+      // native PixPat transparency claim. Typed face/cinf identity stays real.
+      theme.manifest.patterns.tile.asset=url(tile);const el=theme.manifest.chromeElements.face;
       const rows=[];
       for(const spec of [{name:'equal',corner:2,side:2,height:10},{name:'cross',corner:3,side:1,height:10},{name:'clipped',corner:3,side:1,height:10,clip:{kind:'rect',rect:{x:23,y:22,w:5,h:4}}},{name:'zero',corner:2,side:2,height:10,clip:{kind:'rect',rect:{x:100,y:100,w:1,h:1}}},{name:'no-body',corner:6,side:6,height:4}]){
-        el.slice={corner:spec.corner,side:spec.side,tile:true};let trace;
+        theme.manifest.engineCinfs['-10239'][0]=spec.corner;theme.manifest.engineCinfs['-10239'][1]=spec.side;let trace;
         const out=await api.composeButton(theme,{label:'',minWidth:24,height:spec.height,compositionContext:{controlOrigin:[20,20],portOrigin:[0,0],patternOrigin:{status:'unknown'},clip:spec.clip??{kind:'unbounded'}},diagnostics:{onComplete:t=>trace=t}});
         rows.push({name:spec.name,trace,nonzero:[...out.data].filter(Boolean).length});
       }
-      // Hold the actual later border companion decode, after the body loop wrote.
-      face.fillRect({x:0,y:0,w:5,h:5},25,50,75,255);el.asset=url(face);el.slice={corner:2,side:1,tile:true};
-      const companion=new api.PixelBuffer(5,5,new Uint8ClampedArray(face.data));companion.setPixel(0,0,10,20,30,255);const heldUrl=url(companion);
-      el.sampledBandAsset={asset:heldUrl,derivedPath:'cicn-sampled/held.png',model:'kaleidoscope-2.3.1-opaque-sampling-v1',comparison:'opaque-current-display-rgb',displayPolicy:'mac-1.8-to-2.2-high-byte',width:5,height:5};
       let entered,release,trace,error;const atDecode=new Promise(r=>entered=r),gate=new Promise(r=>release=r),original=Image.prototype.decode,controller=new AbortController();
+      const abortedTheme=await loadOwnedControlFixture(api,{faces:[{id:-10239,name:'face',pixels:plane(5,5,[25,50,75,255]),cinf:{corner:2,side:1,tile:true,mode:2,resourceId:0}}],patterns:[{id:0,name:'tile',pixels:plane(2,1,[0,0,0,255])}]});
+      const heldUrl=abortedTheme.manifest.chromeElements.face.asset;
       Image.prototype.decode=async function(){if(this.src===heldUrl){entered();await gate}return original.call(this)};
-      try {
-        const pending=api.composeButton(theme,{label:'',minWidth:24,height:10,diagnostics:{onComplete:t=>trace=t}},controller.signal).catch(e=>{error=e.name});
-        await atDecode;controller.abort();release();await pending;
-      } finally {Image.prototype.decode=original}
+      try{
+        const pending=api.composeButton(abortedTheme,{label:'',minWidth:24,height:10,diagnostics:{onComplete:t=>trace=t}},controller.signal).then(()=>({resolved:true}),e=>{error=e.name;return{resolved:false}});
+        const reached=await Promise.race([atDecode.then(()=>true),pending.then(()=>false)]);if(!reached)throw Error('pattern abort fixture settled before decode');controller.abort();release();await pending;
+      }finally{release?.();Image.prototype.decode=original;abortedTheme.dispose();theme.dispose();}
       return{rows,aborted:{trace,error}};
     },mode);
     const expected={equal:{unionRects:[{x:2,y:2,w:20,h:6}],paintedPixels:120},cross:{unionRects:[{x:3,y:1,w:18,h:8},{x:1,y:3,w:22,h:4}],paintedPixels:160},clipped:{unionRects:[{x:3,y:1,w:18,h:8},{x:1,y:3,w:22,h:4}],paintedPixels:20}};
     for(const row of result.rows){
-      expect(row.nonzero).toBe(0);const selection=row.trace.steps.filter(s=>s.role==='body-fill'&&s.action==='selected');expect(selection).toHaveLength(1);
+      expect(row.nonzero).toBe(0);const selection=row.trace.steps.filter(s=>s.role==='body-fill'&&s.action==='selected'&&s.usage==='paint');expect(selection).toHaveLength(1);
       if(expected[row.name])expect(selection[0].bodyPaint).toMatchObject({...expected[row.name],branch:'pattern-fill-union',sourceSize:[2,1],phase:{basis:'modern-composition-policy',offset:[-24,0],originalPatternPhase:'unverified'}});
       else expect(selection[0].bodyPaint).toBeUndefined();
     }
     expect(result.aborted.error).toBe('AbortError');expect(result.aborted.trace.outcome.status).toBe('error');
-    expect(result.aborted.trace.steps.filter(s=>s.role==='body-fill'&&s.action==='selected')).toHaveLength(1);
+    expect(result.aborted.trace.steps.filter(s=>s.role==='body-fill'&&s.action==='selected'&&s.usage==='paint')).toHaveLength(0);
     expect(result.aborted.trace.steps.some(s=>s.bodyPaint)).toBe(false);
     await attachObservations(info,'pattern-paint',`${mode}-completion`,{mode,result});
   }catch(error){await attachCase(page,info,{mode,result},error);throw error}

@@ -1,3 +1,4 @@
+import {createHash} from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { test, expect, openHarness, attachCase, attachObservations } from './fixtures.mjs';
 import { listCases } from './cases.mjs';
@@ -13,8 +14,17 @@ async function pixels(page, canvases) {
   })), canvases.map(c => c.selector));
 }
 
-function assertOutput(result, c) {
-  expect(result.status, result.error ?? c.id).not.toBe('error');
+function assertOutput(result,c,slug){
+  const noCinfPush=['apple-platinum-2','black-platinum','platinum-8','slimes','system7-nostalgia-silver'].includes(slug)&&['push','default'].includes(c.family);
+  expect(result.status,result.error??c.id).not.toBe('error');
+  if(noCinfPush&&c.mode==='direct'){
+    expect(result.status).toBe('rendered');expect(result.resolutionTrace.outcome.status).toBe('themed');
+    const id=c.options.disabled?-10240:c.options.pressed?-10238:-10239;
+    const admitted=result.resolutionTrace.steps.find(s=>s.role==='face'&&s.action==='selected'&&s.resource?.type==='cicn');
+    expect(admitted).toBeDefined();expect(admitted.resource.signedId).toBe(id);expect(admitted.owner.chainDepth).toBe(0);expect(admitted.resource.manifestKey).toBeTruthy();
+    const nulls=result.resolutionTrace.steps.filter(s=>s.role==='face'&&s.action==='missing'&&s.reason.includes('cinf'));
+    expect(nulls.map(s=>s.requestedId)).toEqual([id,0]);
+  }
   if (result.status === 'unavailable') {
     expect(c.mode, 'only direct compositor calls may report missing themed art').toBe('direct');
     expect(result.canvases).toHaveLength(0);
@@ -25,14 +35,21 @@ function assertOutput(result, c) {
   // remains subject to style, focus, geometry and source/built screenshot checks.
   for (const canvas of result.canvases) {
     expect(canvas.width).toBeGreaterThan(0); expect(canvas.height).toBeGreaterThan(0);
-    expect(canvas.opaqueBounds, 'a rendered canvas contains art').not.toBeNull();
+    if(noCinfPush&&c.mode==='direct'){
+      if(!c.options.fg||!c.options.label)expect(canvas.opaqueBounds,'PB9 double-NULL retains transparent admission').toBeNull();
+      else{expect(canvas.opaqueBounds,'explicit caller foreground paints modern label ink').not.toBeNull();if(result.resolutionTrace.textColors)expect(result.resolutionTrace.textColors).toMatchObject({policy:'caller-override',labelPainted:true});}
+      expect(result.resolutionTrace.legacyFacePaint).toBeUndefined();
+      expect(result.resolutionTrace.bandPaints??[]).toEqual([]);
+      expect(result.resolutionTrace.steps.some(s=>s.bodyPaint)).toBe(false);
+    }else expect(canvas.opaqueBounds,'a rendered canvas contains art').not.toBeNull();
     expect(canvas.rect.width, 'CSS must not squash backing width').toBeCloseTo(canvas.width, 4);
     expect(canvas.rect.height, 'CSS must not squash backing height').toBeCloseTo(canvas.height, 4);
   }
   if (c.mode === 'declarative') {
     expect(result.controls.length, 'the real scanner produced control DOM').toBeGreaterThan(0);
     for (const control of result.controls) {
-      expect(control.boxShadow, 'window-only shadow must not decorate promoted controls').toBe('none');
+      if(noCinfPush){const shadows=control.boxShadow.split(/,(?![^(]*\))/).map(s=>s.trim());expect(shadows,'native baseline retains exactly its two bevel shadows').toHaveLength(2);for(const shadow of shadows)expect(shadow).toMatch(/\binset\b/);}
+      else expect(control.boxShadow,'window-only shadow must not decorate promoted controls').toBe('none');
       expect(control.filter, 'window-only filter must not decorate promoted controls').toBe('none');
     }
     expect(result.windows, 'both scanner and imperative windows must really be promoted').toHaveLength(2);
@@ -46,10 +63,38 @@ function assertOutput(result, c) {
   }
 }
 
+
+async function assertNativeReplacement(page,result,c){
+  expect(result.canvases,'known no-cinf consumer uses visible native replacement').toHaveLength(0);
+  expect(result.controls).toHaveLength(1);
+  const face=page.locator(result.controls[0].selector);
+  await expect(face).toBeVisible();
+  const setup=await page.evaluate(({nativeSelector,faceSelector,label})=>{
+    const original=document.querySelector(nativeSelector),face=document.querySelector(faceSelector);
+    if(!original||!face)throw Error('matrix native probe requires actual source and face');
+    window.matrixNativeProbe={original,clicks:0};const onClick=()=>window.matrixNativeProbe.clicks++;
+    original.addEventListener('click',onClick);window.matrixNativeProbe.onClick=onClick;
+    const before=document.createElement('button'),after=document.createElement('button');before.type=after.type='button';before.textContent='Before';after.textContent='After';before.id='matrix-probe-before';after.id='matrix-probe-after';original.before(before);face.after(after);
+    return{tag:face.tagName,label:face.textContent,disabled:face.disabled,sourceDisabled:original.disabled};
+  },{nativeSelector:result.native.selector,faceSelector:result.controls[0].selector,label:c.options.label});
+  try{
+    expect(setup).toEqual({tag:'BUTTON',label:c.options.label,disabled:!!c.options.disabled,sourceDisabled:!!c.options.disabled});
+    const box=await face.boundingBox();expect(box.width).toBeGreaterThan(0);expect(box.height).toBeGreaterThan(0);await page.mouse.click(box.x+box.width/2,box.y+box.height/2);
+    expect(await page.evaluate(()=>window.matrixNativeProbe.clicks)).toBe(c.options.disabled?0:1);
+    if(c.options.disabled){await page.locator('#matrix-probe-before').focus();await page.keyboard.press('Tab');await expect(page.locator('#matrix-probe-after')).toBeFocused();}else await face.focus();
+    await page.keyboard.press('Space');expect(await page.evaluate(()=>window.matrixNativeProbe.clicks)).toBe(c.options.disabled?0:2);
+    expect(await page.evaluate(selector=>document.querySelector(selector)===window.matrixNativeProbe.original,result.native.selector)).toBe(true);
+  }finally{await page.evaluate(()=>{const p=window.matrixNativeProbe;p.original.removeEventListener('click',p.onClick);document.querySelector('#matrix-probe-before')?.remove();document.querySelector('#matrix-probe-after')?.remove();delete window.matrixNativeProbe;});}
+}
+
 async function assertKeyboardFocus(page, result) {
   const candidates = result.controls.filter(c => c.tabIndex >= 0 && c.ariaDisabled !== 'true');
   if (!candidates.length) return;
-  const selector = candidates[0].selector;
+  let selector;
+  for (const candidate of candidates) {
+    if (await page.locator(candidate.selector).evaluate(el => !el.matches(':disabled'))) { selector = candidate.selector; break; }
+  }
+  if (!selector) return;
   // Enter keyboard modality before focusing, rather than checking a mouse-only
   // pseudo-state or merely trusting tabIndex metadata.
   await page.keyboard.press('Tab');
@@ -87,7 +132,7 @@ for (const { slug } of catalog) test(`${slug}: option contracts and source/built
   const context = await browser.newContext({ viewport: { width: 1280, height: 960 }, deviceScaleFactor: testInfo.project.use.deviceScaleFactor ?? 1 });
   const pages = { source: await context.newPage(), built: await context.newPage() };
   let activePage = pages.source, current, mode, result;
-  const summary = [];
+  const summary=[];let checkedNativeNegatives=false,checkedDirectNegative=false;
   try {
     for (const m of ['source', 'built']) await openHarness(pages[m], servers, m);
     const groupSizes = new Map();
@@ -99,13 +144,36 @@ for (const { slug } of catalog) test(`${slug}: option contracts and source/built
         activePage = pages[mode];
         result = await activePage.evaluate(({ c, slug }) => window.controlMatrix.runCase(c, { slug }), { c, slug });
         resolutionTraces[mode] = result.resolutionTrace;
-        assertOutput(result, c);
+        assertOutput(result,c,slug);
+        if(c.mode==='direct'&&['push','default'].includes(c.family)&&['apple-platinum-2','black-platinum','platinum-8','slimes','system7-nostalgia-silver'].includes(slug)&&!checkedDirectNegative){
+          const missing=structuredClone(result);missing.canvases=[];expect(()=>assertOutput(missing,c,slug),'missing direct canvas cannot pass PB9 admission').toThrow();
+          const unavailable=structuredClone(result);unavailable.status='unavailable';expect(()=>assertOutput(unavailable,c,slug),'unavailable cannot pass reached metadata NULL').toThrow();checkedDirectNegative=true;
+        }
+        if(c.mode==='declarative'&&['push','default'].includes(c.family)&&['apple-platinum-2','black-platinum','platinum-8','slimes','system7-nostalgia-silver'].includes(slug)){
+          await assertNativeReplacement(activePage,result,c);
+          if(!checkedNativeNegatives&&c.options.label&&!c.options.disabled){
+            const outer=structuredClone(result);outer.controls[0].boxShadow+=', rgb(0, 0, 0) 1px 1px 1px 0px';expect(()=>assertOutput(outer,c,slug),'extra outer window shadow must fail accepted native baseline').toThrow();
+            const empty=structuredClone(result);empty.controls[0].boxShadow='none';expect(()=>assertOutput(empty,c,slug),'missing baseline pair cannot pass').toThrow();
+            const selector=result.controls[0].selector;
+            await activePage.locator(selector).evaluate(e=>{e.textContent='';});
+            try{await expect(assertNativeReplacement(activePage,result,c),'blank native replacement must fail').rejects.toThrow();}
+            finally{await activePage.locator(selector).evaluate((e,label)=>{e.textContent=label;},c.options.label);}
+            await activePage.evaluate(({face,source})=>{window.matrixDuplicate=()=>document.querySelector(source).click();document.querySelector(face).addEventListener('click',window.matrixDuplicate);},{face:selector,source:result.native.selector});
+            try{await expect(assertNativeReplacement(activePage,result,c),'duplicate forwarding must fail exact callback count').rejects.toThrow();}
+            finally{await activePage.locator(selector).evaluate(e=>{e.removeEventListener('click',window.matrixDuplicate);delete window.matrixDuplicate;});}
+            checkedNativeNegatives=true;
+          }
+        }
         if (c.mode === 'declarative' && c.family === 'tab') await assertTabLayout(activePage, result);
-        versions[mode] = { status: result.status, pixels: await pixels(activePage, result.canvases) };
+        // Compare both entries in the same keyboard-focused presentation.
+        if (c.mode === 'declarative') await assertKeyboardFocus(activePage, result);
+        versions[mode]={status:result.status,pixels:await pixels(activePage,result.canvases)};
+        if(c.mode==='direct'&&(!c.options.fg||!c.options.label)&&['push','default'].includes(c.family)&&['apple-platinum-2','black-platinum','platinum-8','slimes','system7-nostalgia-silver'].includes(slug)){
+          expect(versions[mode].pixels).toEqual(result.canvases.map(canvas=>({width:canvas.width,height:canvas.height,sha256:createHash('sha256').update(new Uint8Array(canvas.width*canvas.height*4)).digest('hex')})));
+        }
         if (c.mode === 'declarative' && result.canvases.length === 0) {
           versions[mode].domPng = (await activePage.locator(result.outputSelector).screenshot({ animations: 'disabled', caret: 'hide' })).toString('base64');
         }
-        if (mode === 'built' && c.mode === 'declarative') await assertKeyboardFocus(activePage, result);
         if (['push', 'default', 'bevel'].includes(c.family) && c.labelKind !== 'empty' && result.status === 'rendered') {
           const key = `${mode}/${c.group}`;
           const geometry = result.canvases.map(({ width, height }) => ({ width, height }));

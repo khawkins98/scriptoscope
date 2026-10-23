@@ -1,3 +1,5 @@
+import {createHash} from 'node:crypto';
+import {indexedCicn} from './owned-control-fixture.mjs';
 import { test, expect, openHarness, attachCase } from './fixtures.mjs';
 
 for (const mode of ['source', 'built']) test(`${mode}: solid button faces use square corners, independent bands and inset-union body`, async ({ page, servers }, testInfo) => {
@@ -7,19 +9,19 @@ for (const mode of ['source', 'built']) test(`${mode}: solid button faces use sq
     rows = await page.evaluate(async mode => {
       const api = await import(mode === 'built' ? '/dist/scriptoscope.js' : '/src/index.ts');
       const rows = [], background = [27, 53, 79, 255];
+      const {loadOwnedControlFixture}=await import('/tests/rendering-options/owned-control-fixture.mjs');
       for (const [size, corner, side] of [[9, 4, 1], [21, 7, 14]]) for (const tile of [false, true]) {
         const source = api.PixelBuffer.alloc(size, size);
-        for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) source.setPixel(x, y, x * 9, y * 9, 123, 255);
+        for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) source.setPixel(x,y,...(size===21&&(x>=15||y>=15)?[3,5,7,255]:[x*9,y*9,123,255]));
         source.setPixel(size - 1, size - 1, ...background);
         // A hole in an edge can reveal the earlier body or earlier edge. A hole
         // outside both body rectangles must remain transparent.
         if (size === 21) for (const [x, y] of [[8, 8], [8, 7], [10, 12], [10, 7], [7, 12]]) source.setPixel(x, y, 0, 0, 0, 0);
         const canvas = api.bufferToCanvas(source); document.body.append(canvas);
-        const element = id => ({ sourceCicnId: id, asset: canvas.toDataURL(), width: size, height: size,
-          slice: { corner, side, tile }, bgAnchor: [size - 1, size - 1] });
+        const sourcePlane=Array.from({length:size},(_,y)=>Array.from({length:size},(_,x)=>[...source.getPixel(x,y)]));
         for (const family of ['push', 'bevel']) for (const state of ['normal', 'pressed', 'disabled']) {
           const ids = family === 'push' ? [-10239, -10238, -10240] : [-10166, -10165, -10167];
-          const theme = { baseUrl: location.origin, manifest: { chromeElements: Object.fromEntries(ids.map(id => [String(id), element(id)])) } };
+          const theme=await loadOwnedControlFixture(api,{faces:ids.map(id=>({id,name:`fixture-${id}`,pixels:sourcePlane,cinf:{corner,side,tile,background:[size-1,size-1]}}))});
           const opts = { label: '', minWidth: 53, height: 40, pressed: state === 'pressed', disabled: state === 'disabled' };
           const output = await api[family === 'push' ? 'composeButton' : 'composeBevelButton'](theme, opts);
           document.body.append(api.bufferToCanvas(output));
@@ -46,8 +48,13 @@ for (const mode of ['source', 'built']) test(`${mode}: solid button faces use sq
             { at: [10, 12], color: [0, 0, 0, 0] },
             { at: [26, 20], color: background },
           ];
-          rows.push({ size, corner, side, tile, family, state, width: output.width, height: output.height,
+          probes.push({at:[52,0],source:[size-1,0]});
+          const id=ids[state==='normal'?0:state==='pressed'?1:2],element=Object.values(theme.manifest.chromeElements).find(e=>e.sourceCicnId===id);
+          const sourceArt=await api.loadCicnBuffer(api.assetUrl(theme,element.asset));
+          const opaqueArt=await api.loadCicnBuffer(api.assetUrl(theme,element.iconBlit.unmaskedAsset));
+          rows.push({ size, corner, side, tile, family, state, width: output.width, height: output.height,sourcePlane,sourceArt:[...sourceArt.data],opaqueSourceArt:[...opaqueArt.data],sourceBounds:element.cicnSource.bounds,sourceRef:element.byteProvenance,provenance:theme.byteProvenance,
             probes: probes.map(probe => ({ ...probe, expected: probe.color ?? [...source.getPixel(...probe.source)], actual: [...output.getPixel(...probe.at)] })) });
+          theme.dispose();
         }
       }
       return rows;
@@ -55,6 +62,13 @@ for (const mode of ['source', 'built']) test(`${mode}: solid button faces use sq
     expect(rows).toHaveLength(24);
     for (const row of rows) {
       expect([row.width, row.height]).toEqual([53, 40]);
+      expect(row.sourceArt).toEqual(row.sourcePlane.flat(2));
+      expect(row.opaqueSourceArt).toEqual(row.sourcePlane.flatMap(line=>line.flatMap(p=>[...p.slice(0,3),255])));
+      expect(row.sourceBounds).toEqual({top:0,left:0,bottom:row.size,right:row.size});
+      const record=row.provenance.resources[row.sourceRef.cicnResourceIndex],bytes=indexedCicn(row.sourcePlane);
+      expect(record).toMatchObject({type:'cicn',status:'decoded',byteLength:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')});
+      expect(row.sourceRef.loadId).toBe(row.provenance.loadId);
+      if(row.size===21){expect(row.sourcePlane[0][20]).toEqual([3,5,7,255]);expect(row.sourcePlane[20][20]).toEqual([27,53,79,255]);for(const [x,y]of [[2,2],[10,2],[7,2],[2,10],[2,7],[9,9],[9,7],[13,9],[13,7]])expect(row.sourcePlane[y][x]).toEqual([x*9,y*9,123,255]);for(const [x,y]of [[8,8],[8,7],[10,12],[10,7],[7,12]])expect(row.sourcePlane[y][x]).toEqual([0,0,0,0]);}
       for (const probe of row.probes) expect(probe.actual, `${JSON.stringify(row)} at ${probe.at}`).toEqual(probe.expected);
     }
   } catch (error) { await attachCase(page, testInfo, { mode, oracle: 'solid-face-independent-bands', rows }, error); throw error; }

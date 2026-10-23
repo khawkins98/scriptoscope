@@ -132,8 +132,9 @@ The resolved phase is explicitly `modern-composition-policy`, with original
 pattern phase `unverified`; the event does not certify native provider or phase.
 Header/admission lookups and rendering pixels/order are unchanged.
 
-Promoted button/select lifetimes pass through face→pattern→pressed/ring sequential
-loads. An abort prevents subsequent loads and publication; an already-issued
+The older facade's button/select preparation passes through face→pattern→pressed/ring
+loads. Migrated push may eagerly prepare multiple owned planes before drawing;
+their decode count is not a completed-paint or singleton-load assertion. An abort prevents subsequent loads and publication; an already-issued
 image decode is a distinct browser lifetime boundary. No delay, retained revoked
 URL cache, borrowed-theme disposal or default-path hashing is added.
 
