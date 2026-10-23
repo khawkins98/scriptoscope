@@ -119,7 +119,7 @@ test('corpus rule coverage is nonvacuous for every new row', () => {
   assert.ok(t.orderSensitive > 10000 && t.unpaintedFrame > 1e6, JSON.stringify(t));
   // RM6 empties collapse boxes; HT8: mask-clear pixels inside a remapped rect do not hit.
   assert.ok(t.emptyCollapse > 100 && t.maskClearMisses > 1000 && t.hitPoints > 1e6, JSON.stringify(t));
-  // TT2a: the runtime default condensed width is reached (TT2 with room > 2 on the omitted-SWc sample).
+  // TT2a: the runtime default condensed width (SWc = SW, F11) is reached: TT2 with room > 2 on the omitted-SWc sample.
   assert.ok(t.tt2Default > 1000, JSON.stringify(t));
   assert.ok(t.pixels1px > 1e6 && t.pixelsWhole > 1e6 && t.pixelsForward > 1e6, JSON.stringify(t));
   // Only animals and monkey-paradise ship 11/14 cells with >1px partial runs (kdef231-reference.md §5.1).
@@ -199,8 +199,9 @@ const PROOFS = [
   ['noStripGate', '1138', 'document-window', /hit .*: spec (close|zoom|collapse), runtime null/, { withoutStrip: true }],
   ['nearEdge', '1138', 'titled-utility-window', /near collapse: spec collapse, runtime null/],
   ['noWD6', '1138', 'popup-window', /pixel /],
-  // TT2a: the omitted-SWc sample (SW 60, titleLen 12) puts R in (W − titleLen, W] on animals' titled sides.
-  ['tt2aInert', 'animals', 'movable-alert', /SW60: top\[\d+\] \([^)]*TT2[^)]*\): spec/],
+  // TT2a (amended, F11): the omitted-SWc sample (SW 60, titleLen 12) puts R in (W − titleLen, W] on
+  // animals' titled sides, so reverting the default to SW − titleLen narrows the plate there.
+  ['tt2aCondense', 'animals', 'movable-alert', /SW60: top\[\d+\] \([^)]*TT2[^)]*\): spec/],
 ];
 test('every spec-row mutation fails a corpus sample the unmutated rows pass', () => {
   assert.deepEqual(new Set(PROOFS.map(p => p[0])), new Set(Object.keys(MUTATIONS)));
