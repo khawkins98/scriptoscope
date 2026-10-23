@@ -32,3 +32,12 @@ for(const mode of ['source','built'])test(`${mode}: body owner and admission pol
  await attachObservations(info,'controls459-body-plain',mode,{mode,rows,limits:'Functional facade policy with diagnostics and provenance omitted; independently frozen literal inputs/outcomes'});
  assertPlainPolicy(rows,policyCases);
 });
+
+import {metadataOwnerCase,observeMetadataOwner,assertMetadataOwner} from './controls459/body-completion-metadata-owner.mjs';
+for(const mode of ['source','built'])test(`${mode}: caller metadata lookup remains separate from the face-owned body binding`,async({page,servers},info)=>{
+ await page.route('**/body-metadata-harness.html',route=>route.fulfill({contentType:'text/html',body:'<!doctype html><title>Separate metadata and body owners</title>'}));
+ await page.goto(`${servers[mode]}/body-metadata-harness.html`);
+ const fixture=metadataOwnerCase(),rows=await page.evaluate(observeMetadataOwner,{apiUrl:mode==='source'?'/src/index.ts':'/dist/scriptoscope.js',fixture,mode});
+ await attachObservations(info,'controls459-body-metadata-owner',mode,{mode,rows,limits:'Ordinary caller-chain cinf selection plus face-owned body; static cinf pairing is not a consumed occurrence claim'});
+ assertMetadataOwner(rows,fixture);
+});
