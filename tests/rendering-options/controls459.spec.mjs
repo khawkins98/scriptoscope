@@ -114,14 +114,17 @@ for(const mode of ['source','built'])test(`${mode}: public typed duplicate art r
   const {forkOf}=await import('/tests/resource-provenance/fixtures.mjs');
   const {solidBackgroundIcon,solidBackgroundInfo}=await import('/tests/decoder-fixtures/solid-background.mjs');
   const entries=[{type:'cicn',id:-10239,name:'face',data:solidBackgroundIcon()},{type:'cinf',id:-10239,data:solidBackgroundInfo()}];
-  const observe=async duplicate=>{const theme=await api.loadKaleidoscopeScheme(forkOf(duplicate==='null'?entries.filter(e=>e.type!=='cicn'):duplicate?[...entries,{type:'cicn',id:-10239,name:'duplicate',data:solidBackgroundIcon()}]:entries));try{let trace,error;let output;try{output=await api.composeButton(theme,{label:'',minWidth:17,height:9,diagnostics:{onComplete:t=>trace=t}});}catch(e){error={name:e.name,message:e.message};}return{trace,error,opaque:output?[...output.data].filter((v,i)=>i%4===3&&v!==0).length:null};}finally{theme.dispose();}};
-  return{positive:await observe(false),null:await observe('null'),duplicate:await observe(true)};
+  const ringEntries=[...entries,{type:'cicn',id:-10231,name:'ring',data:solidBackgroundIcon()},{type:'cinf',id:-10231,data:solidBackgroundInfo()}];
+  const observe=async duplicate=>{const isRing=typeof duplicate==='string'&&duplicate.startsWith('ring');const selected=duplicate==='ring-unknown'?[...ringEntries,{type:'cicn',id:-10231,name:'duplicate-ring',data:solidBackgroundIcon()}]:duplicate==='ring-valid'?ringEntries:isRing?entries:duplicate==='null'?entries.filter(e=>e.type!=='cicn'):duplicate?[...entries,{type:'cicn',id:-10239,name:'duplicate',data:solidBackgroundIcon()}]:entries;const theme=await api.loadKaleidoscopeScheme(forkOf(selected));try{let trace,error;let output;try{output=await api.composeButton(theme,{label:'',minWidth:17,height:9,default:isRing,diagnostics:{onComplete:t=>trace=t}});}catch(e){error={name:e.name,message:e.message};}return{trace,error,opaque:output?[...output.data].filter((v,i)=>i%4===3&&v!==0).length:null};}finally{theme.dispose();}};
+  return{positive:await observe(false),null:await observe('null'),duplicate:await observe(true),ringPositive:await observe('ring-valid'),ringNull:await observe('ring-null'),ringDuplicate:await observe('ring-unknown')};
  },mode);
  expect(observed.positive.error).toBeUndefined();expect(observed.positive.opaque).toBeGreaterThan(0);
  expect(observed.null.error).toBeUndefined();expect(observed.null.opaque).toBeNull();expect(observed.null.trace.outcome.status).toBe('unavailable');
  // Duplicate raw ownership is not proven NULL and cannot silently become a
  // successful blank paint. Diagnostic field spelling remains unconstrained.
- const visible=[observed.duplicate.error?.message,observed.duplicate.trace?.outcome?.reason,...(observed.duplicate.trace?.steps??[]).map(s=>s.reason)].filter(Boolean).join('\n');
+ const visible=row=>[row.error?.message,row.trace?.outcome?.reason,...(row.trace?.steps??[]).map(s=>s.reason)].filter(Boolean).join('\n');
+ expect(observed.ringPositive.error).toBeUndefined();expect(observed.ringPositive.opaque).toBeGreaterThan(0);expect(observed.ringNull.error).toBeUndefined();expect(observed.ringNull.opaque).toBeGreaterThan(0);
  await attachObservations(info,'controls459-public-unknown',mode,{mode,observed,unknown:['native malformed-resource pixels']});
- expect(visible).toMatch(/ambiguous/i);
+ expect.soft(visible(observed.duplicate)).toMatch(/ambiguous/i);
+ expect(visible(observed.ringDuplicate)).toMatch(/ambiguous/i);
 });

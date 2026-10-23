@@ -295,3 +295,28 @@ passing (`unknown-repair-public-diagnostic-v2`, exit1). Its observations and
 artifacts are preserved externally. The tests constrain visible ambiguity, not
 its field spelling or native painting. PM is routing a separate narrow facade
 repair; this candidate does not self-fix runtime or hide this blocker.
+
+The bitmap lifetime failure was independently narrowed to invalid setup, not an
+assertion needing replacement. PB9/PB10 require cinf metadata and finite source
+colors for text painting; its manual face/ring manifest supplied neither. That
+fixture now uses existing independently hand-encoded cicn/cinf bytes through the
+actual loader. The snapshot, late-abort and decode-failure assertions are
+unchanged; both source and built pass (`bitmap-lifetime-valid-source`, exit0).
+No raw value was reconstructed from a display image. Old failed receipts remain
+intact; the availability and border diagnostic joins remain unresolved.
+
+After the engine UNKNOWN repair, engine-diff again passes against the initial
+author freeze with only the two new families declared, without another seed.
+Source/built/standalone loader parity passes, and the expanded structural binding
+audit again recovers every old manifest, source/envelope identity and asset plane
+(`unknown-repair-engine-diff`, `unknown-repair-loader-parity`, and
+`unknown-repair-binding-audit`, all exit0).
+
+The public probe also covers normal-ring ambiguity with valid-ring and absent-ring
+controls. Both source and built retain valid face pixels (139 opaque pixels) but
+silently label the duplicate-ring result `themed`, omit the ambiguity diagnostic,
+and allocate the ring reserve; valid ring paints 140 opaque pixels and true absent
+ring paints 139. Both face and ring diagnostic assertions fail specifically after
+all four controls pass (`unknown-repair-public-face-ring`, exit1). Raw observations
+are retained in `public-unknown-face-ring-observations/`; no unsupported ring pixels
+or new fallback policy are inferred from the 139 retained face pixels.
