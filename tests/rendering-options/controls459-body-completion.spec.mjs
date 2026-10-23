@@ -41,3 +41,12 @@ for(const mode of ['source','built'])test(`${mode}: caller metadata lookup remai
  await attachObservations(info,'controls459-body-metadata-owner',mode,{mode,rows,limits:'Ordinary caller-chain cinf selection plus face-owned body; static cinf pairing is not a consumed occurrence claim'});
  assertMetadataOwner(rows,fixture);
 });
+
+import {fallbackFixture,observeTransportFallback,assertTransportFallback} from './controls459/body-completion-transport-fallback.mjs';
+for(const mode of ['source','built'])test(`${mode}: ordinary opaque current asset survives unavailable or mismatched optional companion`,async({page,servers},info)=>{
+ await page.route('**/body-fallback-harness.html',route=>route.fulfill({contentType:'text/html',body:'<!doctype html><title>Actual ordinary fallback</title>'}));
+ await page.goto(`${servers[mode]}/body-fallback-harness.html`);
+ const fixture=fallbackFixture(),rows=await page.evaluate(observeTransportFallback,{apiUrl:mode==='source'?'/src/index.ts':'/dist/scriptoscope.js',fixture,mode});
+ await attachObservations(info,'controls459-body-transport-fallback',mode,{mode,rows,limits:'Independently adjudicated ordinary current-asset control; exact original source pixels and current copy fallback, no native claim'});
+ assertTransportFallback(rows,fixture);
+});
