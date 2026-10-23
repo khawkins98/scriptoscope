@@ -2,7 +2,7 @@
 // Face/ring drivers request cicn first; this primitive requests metadata only.
 // Source: `0x107fe..0x10fbe`; wrappers `0x10fc0`, `0x107a4..0x107f6`.
 import type { Pixmap, QdPoint, QdRect, Rgba } from './types.js';
-import type { ControlBandPaint } from '../../controlDiagnostics.js';
+import type { ControlBandPaint, ControlResolutionStep } from '../../controlDiagnostics.js';
 import type { EngineTrace } from '../trace.js';
 import type { ResourceChain } from '../resources/chain.js';
 import { CINF_BODY, CINF_BODY_SKIP, CINF_BORDER_ORDER, CINF_EDGE, CINF_EMBOSS_ABSENT,
@@ -73,6 +73,23 @@ export function cinfPhase(D: QdRect, mode: number): { row: CinfPhaseRow; phase: 
     y: row.y === 'top' ? D.top : row.y === 'bottom' ? D.bottom : 0 } };
 }
 const none = (): CinfFrameResult => ({ drawn: false, cinfId: null, backgroundRGB: null, textRGB: null, embossRGB: null, colorsAvailable: false });
+
+/** Count the completed operation's visible write coverage, never the final raster. */
+function bodyWriteCount(port: Pixmap, boxes: readonly QdRect[], clip?: QdRect,
+  mask?: { pixmap: Pixmap; destination: QdRect }): number {
+  let count = 0;
+  for (const [index, r] of boxes.entries()) {
+    for (let y = Math.max(0, r.top, clip?.top ?? 0); y < Math.min(port.height, r.bottom, clip?.bottom ?? port.height); y++) {
+      for (let x = Math.max(0, r.left, clip?.left ?? 0); x < Math.min(port.width, r.right, clip?.right ?? port.width); x++) {
+        if (boxes.some((earlier, i) => i < index && x >= earlier.left && x < earlier.right
+          && y >= earlier.top && y < earlier.bottom)) continue;
+        if (mask && !getPixel(mask.pixmap, x - mask.destination.left, y - mask.destination.top)?.a) continue;
+        count++;
+      }
+    }
+  }
+  return count;
+}
 
 export function drawCinfFrame(port: Pixmap, chain: ResourceChain, input: CinfFrameInput, trace?: EngineTrace): CinfFrameResult {
   const { id, cicn, dstRect: D, bodyFill } = input;
@@ -146,12 +163,30 @@ export function drawCinfFrame(port: Pixmap, chain: ResourceChain, input: CinfFra
       ? textRGB16 !== null && embossKnown : absent || !!same || sentinel || embossRGB !== null);
     if (!colorsAvailable) trace?.drawOps.push({ op: 'cinfSamples', row: 'S1,S2,S4,S5', unspecified: 'raw colour output unavailable' });
     const body = CINF_BODY.find(r => r.mode === '*' || r.mode === cinf.patternAnchor)!;
-    const res = chain.getResource<Pixmap | IconSource>(body.type, cinf.bgPatternId, { row: body.id, ...(trace ? { trace } : {}) });
+    const request = { row: body.id, ...(trace ? { trace } : {}) };
+    const res = chain.bodyProvider
+      ? chain.get1Resource<Pixmap | IconSource>(body.type, cinf.bgPatternId, chain.bodyProvider, request)
+      : chain.getResource<Pixmap | IconSource>(body.type, cinf.bgPatternId, request);
     if (res && 'status' in res.value && res.value.status === 'unknown')
       return unsupported('reason' in res.value && typeof res.value.reason === 'string' && res.value.reason
         ? res.value.reason : 'cinf body resource unknown');
-    if (res && body.found === 'B2') {
+    let patternPhase: QdPoint | undefined;
+    const clippedBody = !!chain.bodyProvider && res && 'status' in res.value && res.value.status === 'clipped';
+    if (clippedBody) {
+      // Public allocation policy: there are no visible body writes, and no
+      // dependent decode was needed. Keep the resource observation only.
+    } else if (res && body.found === 'B2') {
       const icon = 'pixmap' in res.value ? res.value : { pixmap: res.value, pixelSize: null, unmasked: null };
+      if (chain.bodyProvider) {
+        const dst = insetRect(D, s, s);
+        if (emptyRect(dst) || icon.pixmap.width !== dst.right - dst.left || icon.pixmap.height !== dst.bottom - dst.top)
+          return unsupported('cicn-body-scaling-unsupported');
+        const unmasked = icon.pixelSize !== 1 && icon.pixelSize !== null && icon.unmasked;
+        const source = unmasked || icon.pixmap;
+        for (let i = 3; i < source.data.length; i += 4)
+          if (unmasked ? source.data[i] !== CINF_SAMPLE.opaque : source.data[i] !== 0 && source.data[i] !== CINF_SAMPLE.opaque)
+            return unsupported('cicn-body-alpha-mismatch');
+      }
       iconBlit(port, icon, rect(0, 0, icon.pixmap.height, icon.pixmap.width), insetRect(D, s, s), trace, 'B2');
     } else if (res) {
       const pattern = 'pixmap' in res.value ? res.value.pixmap : res.value;
@@ -159,19 +194,59 @@ export function drawCinfFrame(port: Pixmap, chain: ResourceChain, input: CinfFra
       const { row, phase } = cinfPhase(offsetRect(D, origin.x, origin.y), cinf.patternAnchor), off = input.patternOffset;
       const shifted = { x: phase.x - origin.x + (off?.x ?? 0), y: phase.y - origin.y + (off?.y ?? 0) };
       for (const r of cinfBodyRects(D, c, s)) fillPattern(port, r, pattern, shifted, trace, `B5,${row.id}`);
+      if (trace?.controlPaint) patternPhase = shifted;
     } else if (backgroundRGB) {
       for (const r of cinfBodyRects(D, c, s)) eraseRect(port, r, backgroundRGB, trace, body.absent);
     } else trace?.drawOps.push({ op: 'cinfBody', row: body.absent, dst: D, unspecified: 'background sample unavailable' });
     if (trace?.controlPaint) {
+      const detail = trace.controlPaint;
       const selected = res?.provider.selection?.(body.type, cinf.bgPatternId);
       const owner = res ? selected?.owner : art?.owner;
+      const box = (r: QdRect) => ({ x: r.left - D.left, y: r.top - D.top, w: r.right - r.left, h: r.bottom - r.top });
+      const union = () => cinfBodyRects(D, c, s).map(r => rect(Math.max(D.top, r.top), Math.max(D.left, r.left),
+        Math.min(D.bottom, r.bottom), Math.min(D.right, r.right))).filter(r => !emptyRect(r));
+      let bodyPaint: ControlResolutionStep['bodyPaint'];
+      if (clippedBody) {
+        // Selection is retained below without a completed operation.
+      } else if (res && body.found === 'B2' && selected?.resource) {
+        const source = 'pixmap' in res.value ? res.value : { pixmap: res.value, pixelSize: null, unmasked: null };
+        const dst = insetRect(D, s, s), pm = source.pixmap;
+        const unmasked = source.pixelSize !== 1 && source.pixelSize !== null && !!source.unmasked;
+        const transport = unmasked ? res.provider.unmaskedSource?.(body.type, cinf.bgPatternId) : undefined;
+        // Observe only the supported aligned copy; scaling and unknown source
+        // forms retain their existing raster behavior without a completion claim.
+        if (!emptyRect(dst) && pm.width === dst.right - dst.left && pm.height === dst.bottom - dst.top
+          && (source.pixelSize === 1 || source.pixelSize !== null && (source.unmasked || source.fallback))
+          && (!unmasked || transport)) {
+          const paintedPixels = bodyWriteCount(port, [dst], detail.clip, unmasked ? undefined : { pixmap: pm, destination: dst });
+          if (paintedPixels) bodyPaint = { branch: unmasked ? 'unmasked-copy' : 'masked-copy',
+            sourceRect: { x: 0, y: 0, w: pm.width, h: pm.height }, destinationRect: box(dst), paintedPixels,
+            sourceAssetUrl: transport?.assetUrl ?? selected.resource.assetUrl,
+            ...(transport?.derivedPath ? { derivedPath: transport.derivedPath } : {}) };
+        }
+      } else if (res && patternPhase && selected?.resource && detail.context) {
+        const pattern = 'pixmap' in res.value ? res.value.pixmap : res.value;
+        const boxes = union();
+        const paintedPixels = pattern.width > 0 && pattern.height > 0 ? bodyWriteCount(port, boxes, detail.clip) : 0;
+        if (paintedPixels) bodyPaint = { branch: 'pattern-fill-union', coordinateSpace: 'face-local-before-ring',
+          unionRects: boxes.map(box), paintedPixels, sourceAssetUrl: selected.resource.assetUrl,
+          sourceSize: [pattern.width, pattern.height], context: detail.context,
+          phase: { basis: 'modern-composition-policy', offset: [D.left - patternPhase.x, D.top - patternPhase.y], originalPatternPhase: 'unverified' } };
+      } else if (!res && backgroundRGB && backgroundRGB16) {
+        const paintedPixels = bodyWriteCount(port, union(), detail.clip);
+        if (paintedPixels) bodyPaint = { branch: 'missing-erase', destinationRect: box(D), paintedPixels };
+      }
       trace.controlPaint.bodies.push({ role: 'body-fill', requestedId: cinf.bgPatternId,
         bodyMode: cinf.patternAnchor, requestedResourceType: body.type,
         action: res ? 'selected' : 'missing', basis: 'source-dispatch', usage: 'paint',
         ...(owner ? { owner } : {}),
         ...(selected?.resource ? { resource: { ...selected.resource, ...(consumedCinf ? { consumedCinf } : {}) } } : {}),
         ...(consumedCinf ? { cinfLookup: consumedCinf } : {}),
+        ...(bodyPaint ? { bodyPaint } : {}),
         reason: res ? 'resource-id' : 'same-face-owner-pattern-unavailable' });
+      if (!res && body.found === 'B2' && !backgroundRGB16) detail.bodies.push({ role: 'body-fill', requestedId: cinf.bgPatternId,
+        bodyMode: cinf.patternAnchor, requestedResourceType: body.type, action: 'fallback', basis: 'compatibility-policy',
+        usage: 'paint', ...(owner ? { owner } : {}), reason: 'missing-cicn-body-background-unverified' });
     }
   } else trace?.drawOps.push({ op: 'cinfBody', row: CINF_BODY_SKIP.id, dst: D });
 

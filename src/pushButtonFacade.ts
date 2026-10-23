@@ -176,9 +176,14 @@ export async function composeEnginePush(theme: LoadedTheme, opts: ButtonOptions 
       const selected = faceEntry(theme, first) ? first : opts.pressed && !opts.disabled ? P.DR4.resource : null;
       if (selected !== null) requests.push({ type: 'cicn', id: selected }, { type: 'cinf', id: selected }, { type: 'cinf', id: P.DR5.fallback });
     }
-    if (declared?.metadata?.bodyRequest) requests.push({ type: 'ppat', id: declared.metadata.bodyRequest.resourceId });
     let chain = await themeResourceChain(theme, requests, { ...(signal ? { signal } : {}),
-      traceProvenance: !!diagnostics, cinfBodies: declared ? [] : [id, P.PB9.fallback] });
+      traceProvenance: !!diagnostics, cinfBodies: declared ? [] : [id, P.PB9.fallback],
+      bodyEnvironment: { owner: entry.theme, width, height,
+        ...(composition.clip.kind === 'rect' ? { clip: rect(composition.clip.rect.y - composition.controlOrigin[1],
+          composition.clip.rect.x - composition.controlOrigin[0], composition.clip.rect.y + composition.clip.rect.h - composition.controlOrigin[1],
+          composition.clip.rect.x + composition.clip.rect.w - composition.controlOrigin[0]) } : {}),
+        ...(declared?.metadata?.bodyRequest
+        ? { requests: [{ type: 'ppat', id: declared.metadata.bodyRequest.resourceId }] } : {}) } });
     alive(signal);
     if (declared) {
       const parent = chain.providers[0]!;
@@ -194,12 +199,12 @@ export async function composeEnginePush(theme: LoadedTheme, opts: ButtonOptions 
             if (anchor?.[0] === point.x && anchor[1] === point.y) return sample?.rgb16 ?? null;
           return null;
         } };
-      } }]);
+      } }], chain.bodyProvider);
     }
     const trace = createTrace('push-button', { ...native, default: !!opts.default, composition, fontPolicy: run ? 'caller-declared-bitmap' : 'browser-font-substitute' });
     if (diagnostics) {
       const clip = composition.clip;
-      trace.controlPaint = { bodies: [], bands: [], ...(clip.kind === 'rect' ? {
+      trace.controlPaint = { bodies: [], bands: [], context: composition, ...(clip.kind === 'rect' ? {
         clip: rect(clip.rect.y - composition.controlOrigin[1] + outset, clip.rect.x - composition.controlOrigin[0] + outset,
           clip.rect.y + clip.rect.h - composition.controlOrigin[1] + outset, clip.rect.x + clip.rect.w - composition.controlOrigin[0] + outset),
       } : {}) };
