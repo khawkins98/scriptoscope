@@ -139,7 +139,7 @@
   },
   "provenance": {
     "gitCommit": null,
-    "bundleSha256": "832e15805a0bbd5c8fcdbdebe17d75e73a9e60ae32293c4b31ed847ec9f714ba",
+    "bundleSha256": "afea3e510db6960b970d27fa8087e695305d1bf38fca9c519a8be26d36bd145c",
     "stylesheetSha256": "f675b1e9af7e6c337a58f5af8199444227605d4c9973474cf4ead2a85e04b087",
     "packageLockSha256": "baa47c6d50ece78dde26da85e7cd26765d79ba7a91c76f403551563fb33d1077"
   }
