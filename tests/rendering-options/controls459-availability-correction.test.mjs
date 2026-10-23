@@ -1,3 +1,4 @@
+import {frozenPushSource} from './controls459/frozen-push-source.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -26,7 +27,7 @@ test('459 correction preserves frozen draft and prior state through independentl
   assert.ok(current.review.transition.includes(delta.source.sha256));for(const c of delta.changes)assert.ok(current.review.transition.includes(c.id));
   assert.deepEqual(current.policy.rules.filter(r=>r.id===delta.candidatePolicyRule.id),[delta.candidatePolicyRule]);
  }
- assert.equal(delta.source.document,'docs/spec/engine/push-button.md');assert.equal(delta.source.sha256,createHash('sha256').update(readFileSync(new URL('../../docs/spec/engine/push-button.md',import.meta.url))).digest('hex'));
+ assert.equal(delta.source.document,'docs/spec/engine/push-button.md');assert.equal(delta.source.sha256,createHash('sha256').update(frozenPushSource()).digest('hex'));
  assert.deepEqual(delta.changes.map(c=>c.id),['synthetic.named-unknown-id','synthetic.inactive-to-active']);
  for(const change of delta.changes){
   const active=current.cases.find(c=>c.id===change.id);

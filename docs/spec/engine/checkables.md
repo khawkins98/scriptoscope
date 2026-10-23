@@ -147,6 +147,18 @@ push-only one-pixel correction for lineHeight < 13. Clip is old clip ∩ D
 All formulas assume no intermediate coordinate-word overflow; signed wrapping
 and extreme/negative sizes need an explicit extension before implementation.
 
+### Modern public allocation
+
+The public adapter declares a nominal 20px control height for ordinary
+single-line checkables. Its returned buffer includes the control rectangle
+and complete transferred source rectangles, retaining transparent margins
+and full source bounds. This is a modern allocation and compatibility/layout
+change from the previous glyph/label-sized buffers, not a native mandate for
+D or a change to the source geometry above. Consumers sizing rows, hit areas
+or canvas containers from returned height must accommodate the changed extent.
+Arbitrary multiline, extreme-size and native font/device equivalence remain
+unknown.
+
 ## 6. Not decoded / unknown; corpus impact
 
 - Value outside 0..3 is not given safe icon-table semantics. Stop rather than

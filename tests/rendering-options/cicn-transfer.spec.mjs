@@ -9,7 +9,7 @@ for (const mode of ['source','built']) test(`${mode}: finite CIcon transfer pres
     const option={results,contractId:results.contractId,maskPolicy:'source-mask-alpha'};
     const encoded=[];
     const theme=await api.loadKaleidoscopeScheme(Uint8Array.from(f.fork),{displayProfile:profile,cicnTransfer:option,provenance:true,
-      assetUrlFactory:(rgba,width,height)=>{encoded.push({rgba:[...rgba],width,height});return 'data:image/png;base64,owned';}});
+      assetUrlFactory:(rgba,width,height,path)=>{encoded.push({rgba:[...rgba],width,height,path});return 'data:owned,'+encodeURIComponent(path);}});
     try {
       let allocated=0;const errors=[];
       for(const opts of [{displayProfile:profile},{displayProfile:profile,cicnTransfer:{...option,contractId:'other'}},
@@ -19,12 +19,19 @@ for (const mode of ['source','built']) test(`${mode}: finite CIcon transfer pres
       }
       const e=theme.manifest.chromeElements.owned;
       return {mode,encoded,errors,allocated,profileId:profile.id,resultId:results.id,contractId:results.contractId,
-        transfer:e.cicnTransfer,sourceSampling:e.samplingEquivalence,load:theme.byteProvenance,expected:f.expectedRgba,
+        asset:e.asset,iconBlit:e.iconBlit,transfer:e.cicnTransfer,sourceSampling:e.samplingEquivalence,load:theme.byteProvenance,expected:f.expectedRgba,
         frozen:Object.isFrozen(e.cicnTransfer.operation.sourceRect)};
     } finally {theme.dispose();}
   },mode);
   await attachObservations(info,'finite-cicn-transfer',mode,row);
-  expect(row.encoded).toEqual([{rgba:[20,20,20,255,36,36,36,255,20,20,20,0],width:3,height:1}]);
+  // Literal sparse mask 110, destination indices 2/3/2, producer +3:
+  // source/display samples remain 20/36/20; opaque same-occurrence copy ignores mask.
+  expect(row.asset).toBe('data:owned,'+encodeURIComponent('cicns/cicn-n10239-owned.png'));
+  expect(row.iconBlit).toEqual({pixelSize:4,unmaskedAsset:'data:owned,'+encodeURIComponent('cicn-unmasked/cicn-n10239-owned.png')});
+  expect(row.encoded).toEqual([
+    {path:'cicns/cicn-n10239-owned.png',rgba:[20,20,20,255,36,36,36,255,20,20,20,0],width:3,height:1},
+    {path:'cicn-unmasked/cicn-n10239-owned.png',rgba:[20,20,20,255,36,36,36,255,20,20,20,255],width:3,height:1},
+  ]);
   expect(row.errors).toEqual(['UNSUPPORTED_SOURCE_COLOR','INVALID_CICN_TRANSFER','INVALID_CICN_TRANSFER','INVALID_CICN_TRANSFER']);
   expect(row.allocated).toBe(0);expect(row.frozen).toBe(true);
   expect(row.transfer).toMatchObject({resultsId:row.resultId,contractId:row.contractId,forkSha256:row.load.fork.sha256,
