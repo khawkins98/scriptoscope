@@ -22,35 +22,89 @@ test.before(async () => {
 });
 test.after(async () => { await browser?.close(); await server?.close(); });
 
+const mutation = process.env.SCRIPTOSCOPE_459_MUTATION;
+const fault = process.env.SCRIPTOSCOPE_459_HARNESS_FAULT;
+const evidence = new WeakMap();
 async function pageFor(t, suffix) {
   const page = await browser.newPage();
-  t.after(() => page.close());
-  const errors = [];
-  page.on('pageerror', error => errors.push(error.message));
-  t.after(() => assert.deepEqual(errors, [], 'no uncaught diagnostic errors'));
-  if (['initial-hash', 'hashchange'].includes(process.env.SCRIPTOSCOPE_459_MUTATION)) {
-    await page.route('**/diagnostic.html*', async route => {
-      const response = await route.fetch();
-      const original = await response.text();
-      const changed = process.env.SCRIPTOSCOPE_459_MUTATION === 'initial-hash'
-        ? original.replace('st?.theme ?? (themeBySlug.has(want)', 'null ?? (themeBySlug.has(want)')
-        : original.replace('if (st) activate(st.theme, st);', 'if (false) activate(st.theme, st);');
-      assert.notEqual(changed, original, 'hash selection mutation must apply');
-      await route.fulfill({ response, body: changed });
+  const receipt = { mutation, applications: 0, resources: [], navigations: 0,
+    routeErrors: [], navigationErrors: [], pageErrors: [], requestErrors: [], selectedFailure: null };
+  evidence.set(page, receipt);
+  page.on('pageerror', error => receipt.pageErrors.push(error.message));
+  page.on('requestfailed', request => receipt.requestErrors.push(`${request.url()}: ${request.failure()?.errorText}`));
+  t.after(async () => {
+    await page.close();
+    if (mutation) t.diagnostic(`459-browser-receipt ${Buffer.from(JSON.stringify(receipt)).toString('base64')}`);
+    assert.deepEqual(receipt.routeErrors, [], 'no route exceptions');
+    assert.deepEqual(receipt.navigationErrors, [], 'navigation completed');
+    assert.deepEqual(receipt.pageErrors, [], 'no uncaught diagnostic errors');
+    assert.deepEqual(receipt.requestErrors, [], 'no failed diagnostic requests');
+    if (['initial-hash', 'hashchange'].includes(mutation)) {
+      assert.equal(receipt.applications, 1, 'hash selection mutation must apply exactly once');
+    }
+  });
+  if (['initial-hash', 'hashchange'].includes(mutation)) {
+    // Vite extracts the inline module into this proxy. The HTML is not the
+    // executable source; responses without the exact target pass through.
+    await page.route('**/diagnostic.html?html-proxy*', async route => {
+      try {
+        if (fault === 'route-error') throw new Error('injected route exception');
+        const response = await route.fetch();
+        const original = await response.text();
+        const target = mutation === 'initial-hash'
+          ? 'st?.theme ?? (themeBySlug.has(want)'
+          : 'if (st) activate(st.theme, st);';
+        const replacement = mutation === 'initial-hash'
+          ? 'null ?? (themeBySlug.has(want)'
+          : 'if (false) activate(st.theme, st);';
+        const count = original.split(target).length - 1;
+        if (!count || fault === 'unapplied') {
+          await route.fulfill({ response });
+          return;
+        }
+        assert.equal(count, 1, 'exactly one source target in the JavaScript resource');
+        receipt.applications += count;
+        receipt.resources.push(route.request().url());
+        await route.fulfill({ response, body: original.replace(target, replacement) });
+      } catch (error) {
+        receipt.routeErrors.push(error.message);
+        await route.abort();
+      }
     });
   }
-  await page.goto(`${base}diagnostic.html${suffix}`);
+  if (fault === 'navigation') await page.route(url => url.pathname === '/diagnostic.html' && !url.searchParams.has('html-proxy'), route => route.abort('failed'));
+  try {
+    const response = await page.goto(`${base}diagnostic.html${suffix}`);
+    assert.equal(response?.status(), 200, 'diagnostic navigation returns HTTP 200');
+    receipt.navigations++;
+  } catch (error) {
+    receipt.navigationErrors.push(error.message);
+    throw error;
+  }
+  if (fault === 'unrelated') assert.fail('injected unrelated assertion');
   return page;
 }
 const playground = page => page.locator('.theme-row').filter({ has: page.getByRole('heading', { name: 'Window playground', exact: true }) });
 async function selected(page, slug, title) {
-  await page.waitForFunction(({ slug, title }) => {
-    const section = [...document.querySelectorAll('.theme-row')].find(s => s.querySelector('h2')?.textContent === 'Window playground');
-    return document.querySelector('#ribbon .active')?.getAttribute('data-slug') === slug &&
-      document.querySelector('#detail h2') && !/loading|failed|render error/i.test(document.querySelector('#detail').textContent) &&
-      section?.querySelector('input[type=text]')?.value === title &&
-      section?.querySelector('.scriptoscope-window') && !/rendering…|render failed|failed to load/.test(section.textContent);
-  }, { slug, title }, { timeout: process.env.SCRIPTOSCOPE_459_MUTATION ? 5_000 : 30_000 });
+  try {
+    await page.waitForFunction(({ slug, title }) => {
+      const section = [...document.querySelectorAll('.theme-row')].find(s => s.querySelector('h2')?.textContent === 'Window playground');
+      return document.querySelector('#ribbon .active')?.getAttribute('data-slug') === slug &&
+        document.querySelector('#detail h2') && !/loading|failed|render error/i.test(document.querySelector('#detail').textContent) &&
+        section?.querySelector('input[type=text]')?.value === title &&
+        section?.querySelector('.scriptoscope-window') && !/rendering…|render failed|failed to load/.test(section.textContent);
+    }, { slug, title }, { timeout: mutation ? 5_000 : 30_000 });
+  } catch (error) {
+    if (error.name !== 'TimeoutError') throw error;
+    const actual = await page.evaluate(() => document.querySelector('#ribbon .active')?.getAttribute('data-slug') ?? null);
+    // Only a wrong selected theme becomes this assertion. A rendering timeout
+    // with the correct theme remains an unrelated failure.
+    if (actual !== slug) {
+      evidence.get(page).selectedFailure = { expected: slug, actual };
+      assert.equal(actual, slug, `selected-theme contract: expected ${slug}`);
+    }
+    throw error;
+  }
   const detail = await page.locator('#detail h2').first().textContent();
   const label = await page.locator(`#ribbon [data-slug="${slug}"] .ribbon-title`).textContent();
   assert.equal(detail, label, 'detail header agrees with selected ribbon');

@@ -37,13 +37,38 @@ npm run test:acceptance:bindings
 node --experimental-strip-types --test tests/acceptance-bindings/generate.test.mjs
 ```
 
-The opt-in mutation runner requires each targeted test to exit 1 for its named
-assertion. It independently restores the retired classifier export, inspector
-property, public model export/property, and incorrect -10224 track label, then
-disables initial hash precedence and hashchange activation. Node module hooks,
-a compiler host, and intercepted HTML responses apply these mutations only
-inside test processes; no runtime file is rewritten. Browser mutations fail on
-the selected-theme/rendered-state wait, rather than a generic launch failure.
+The opt-in mutation runner independently restores the retired classifier export,
+inspector property, public model export/property, and incorrect -10224 track
+label, then disables initial hash precedence and hashchange activation. Node
+module hooks, a compiler host, and intercepted Vite JavaScript proxy responses
+apply these mutations only inside test processes; no runtime file is rewritten.
+The independent delayed-theme race and loader/type/label probes are retained.
+
+For each browser mutation the runner requires one precise replacement in
+`/diagnostic.html?html-proxy&index=0.js`, one successful HTTP-200 navigation,
+no route/navigation/page/request errors, and exactly one failed selected-theme
+assertion (`ERR_ASSERTION`, strict equality). Literal expected themes are
+`beos-r503` for initial hash and `windows-95` for hashchange; the disabled
+selection leaves `1138` active. A selected-state wait timeout alone cannot kill
+a mutation: a wrong ribbon theme must produce the named equality assertion,
+and a timeout with the correct theme remains an unrelated failure. The runner
+also launches real broken-navigation, route-exception, unapplied-mutation and
+unrelated-assertion controls and verifies that none qualify as runtime kills.
+Set `SCRIPTOSCOPE_459_EVIDENCE_DIR` to retain each child's raw TAP output.
+
+## Superseded negative-control evidence
+
+The original `28939beb` mutation receipts incorrectly claimed browser kills.
+The HTML route could not replace logic Vite extracted into its JavaScript proxy;
+its route assertion interrupted navigation, and the runner accepted a generic
+`TimeoutError`. Those browser receipts establish no runtime mutation coverage.
+The original report/logs are preserved without rewriting under
+`/Users/khawkins/Documents/git/scriptoscope-lanes/459-tests-evidence/` and marked
+superseded by a companion notice. Corrected raw child receipts and a new honest
+report live under
+`/Users/khawkins/Documents/git/scriptoscope-lanes/459-tests-repair/`.
+Positive browser/race and loader checks are rerun for this bounded repair; no
+historical drawing or visual approval is inferred from these assertions.
 
 ## Binding artifact scope
 
