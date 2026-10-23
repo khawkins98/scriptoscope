@@ -92,15 +92,21 @@ export async function validateSourceEvidence({ inventory, choices, candidates, f
         // This checks the cited documentation, not the binary's authenticity.
       } else throw new Error(`${c.id}: unsupported sourceEvidence reference`);
     }
-    for (const paint of c.proposed?.paint ?? []) {
+    // Admission retains the selected source identity even when PB9/PB10 suppress
+    // completed painting. It must pass the same byte/evidence joins as paint.
+    const identities = [
+      ...(c.proposed?.paint ?? []).map(identity => ['painted', identity]),
+      ...(c.proposed?.admission ?? []).map(identity => ['admitted', identity]),
+    ];
+    for (const [usage, paint] of identities) {
       check(typeof paint.manifestKey === 'string' && paint.manifestKey.length > 0, `${c.id}: missing exact manifest key`);
       if (c.input.startsWith('theme.')) {
         const slug = c.input.slice('theme.'.length);
         check(paint.ownerId === c.input && paint.chainDepth === 0, `${c.id}: real input has no base`);
         if (paint.type === 'ppat') {
           check(paint.role === 'body-fill' && paint.sourceCinfId === null, `${c.id}: ppat typed dependency mismatch`);
-          const ref = unique(c.sourceEvidence, r => r.slug === slug && r.type === 'ppat' && r.signedId === paint.signedId, `${c.id}: painted ppat evidence`);
-          check(ref.presence === 'present', `${c.id}: painted ppat missing`);
+          const ref = unique(c.sourceEvidence, r => r.slug === slug && r.type === 'ppat' && r.signedId === paint.signedId, `${c.id}: ${usage} ppat evidence`);
+          check(ref.presence === 'present', `${c.id}: ${usage} ppat missing`);
           const face = unique(c.proposed.paint, p => p.role === 'face', `${c.id}: pattern face`);
           const ci = unique(await patternResources(slug), r => r.type === 'cinf' && r.id === face.sourceCinfId, `${c.id}: pattern cinf`);
           check(ci.data.length >= 6, `${c.id}: pattern cinf too short`);
@@ -110,15 +116,15 @@ export async function validateSourceEvidence({ inventory, choices, candidates, f
         }
         check(paint.type === 'cicn', `${c.id}: unsupported paint resource type`);
         for (const [type, signedId, presence] of [['cicn', paint.signedId, 'present'], ['cinf', paint.sourceCinfId ?? paint.signedId, paint.sourceCinfId === null ? 'absent-from-selected-fork' : 'present']]) {
-          const ref = unique(c.sourceEvidence, ref => ref.slug === slug && ref.type === type && ref.signedId === signedId, `${c.id}: painted ${type} evidence`);
-          check(ref.presence === presence, `${c.id}: painted ${type} presence mismatch`);
+          const ref = unique(c.sourceEvidence, ref => ref.slug === slug && ref.type === type && ref.signedId === signedId, `${c.id}: ${usage} ${type} evidence`);
+          check(ref.presence === presence, `${c.id}: ${usage} ${type} presence mismatch`);
         }
       } else {
         const fixtureRef = unique(c.sourceEvidence, ref => Boolean(ref.fixture), `${c.id}: fixture evidence`);
         const fixture = unique(fixtures.fixtures, fixture => fixture.id === fixtureRef.fixture, `${c.id}: fixture`);
-        const owner = unique(fixture.themes, theme => theme.id === paint.ownerId, `${c.id}: painted owner`);
-        const resource = unique(owner.resources, resource => resource.manifestKey === paint.manifestKey, `${c.id}: painted key`);
-        check(resource.type === paint.type && resource.signedId === paint.signedId && resource.sourceCinfId === paint.sourceCinfId, `${c.id}: painted resource metadata mismatch`);
+        const owner = unique(fixture.themes, theme => theme.id === paint.ownerId, `${c.id}: ${usage} owner`);
+        const resource = unique(owner.resources, resource => resource.manifestKey === paint.manifestKey, `${c.id}: ${usage} key`);
+        check(resource.type === paint.type && resource.signedId === paint.signedId && resource.sourceCinfId === paint.sourceCinfId, `${c.id}: ${usage} resource metadata mismatch`);
       }
     }
   }

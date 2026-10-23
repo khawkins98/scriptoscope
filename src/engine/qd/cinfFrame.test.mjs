@@ -68,16 +68,19 @@ test('B6: ppat absent → erase R1/R2 with the background sample', () => {
   assert.deepEqual(getPixel(port, 5, 5), { r: 40, g: 40, b: 0, a: 255 }, 'bgPixel (3,3) → r 40, g 40');
 });
 
-test('B1/B3/B2: mode 5 requests a cicn, never a ppat; absent erases; found is traced unimplemented (§6 Q6)', () => {
+test('B1/B3/B2: mode 5 requests cicn; absent erases R1/R2; found blits inside side inset (0x109ea..0x10a00)', () => {
   const t = createTrace('test'), port = pm(12, 10);
   drawCinfFrame(port, chainOf([['cinf:5', cinf({ patternAnchor: 5 })], ['ppat:77', labelled(2, 2)]]), { id: 5, cicn: labelled(6, 6), dstRect: D, bodyFill: true }, t);
   assert.deepEqual(t.resolved.map(r => [r.type, r.id, r.found]), [['cinf', 5, true], ['cicn', 77, false]]);
   assert.equal(getPixel(port, 5, 5).r, 40, 'B3 erase');
   const t2 = createTrace('test'), port2 = pm(12, 10);
-  drawCinfFrame(port2, chainOf([['cinf:5', cinf({ patternAnchor: 5 })], ['cicn:77', labelled(3, 3)]]), { id: 5, cicn: labelled(6, 6), dstRect: D, bodyFill: true }, t2);
-  assert.equal(t2.drawOps[0].row, 'B2');
-  assert.match(t2.drawOps[0].unimplemented, /Q6/);
-  assert.equal(getPixel(port2, 5, 5).a, 0);
+  drawCinfFrame(port2, chainOf([['cinf:5', cinf({ patternAnchor: 5 })], ['cicn:77', { pixmap: labelled(3, 3), pixelSize: 8, unmasked: labelled(3, 3) }]]), { id: 5, cicn: labelled(6, 6), dstRect: D, bodyFill: true }, t2);
+  // B2 uses inset(D,s,s), independent of c; deep I3 is opaque.
+  // Under declared nearest-neighbor scaling (modern policy), (5,5) reads (1,1).
+  assert.ok(t2.drawOps[0].row.includes('B2'));
+  assert.equal(t2.drawOps[0].unimplemented, undefined);
+  assert.deepEqual(getPixel(port2, 5, 5), { r: 20, g: 20, b: 0, a: 255 });
+  assert.equal(getPixel(port2, 2, 2).a, 255, 's=1 body reaches x=2 despite c=2');
 });
 
 test('table P: phase per mode', () => {
@@ -126,21 +129,26 @@ test('E2: masked border pixels preserve the body (transparent edge reveals it); 
   assert.ok(t.drawOps.slice(0, firstBorder).every(o => o.op === 'erase'), 'body before border');
 });
 
-test('E4 (tile != 0) is traced unimplemented, not guessed', () => {
+test('E4 (0x10cee..0x10cfc): middle strip repeats forward; partial tile starts at its first sample', () => {
   const t = createTrace('test'), port = pm(12, 10);
   drawCinfFrame(port, chainOf([['cinf:5', cinf({ tileSides: 1 })]]), { id: 5, cicn: labelled(6, 6), dstRect: D, bodyFill: false }, t);
   const edges = t.drawOps.filter(o => o.op === 'cinfEdge');
   assert.equal(edges.length, 4);
-  assert.ok(edges.every(o => o.row === 'E4' && /L4-Q2/.test(o.unimplemented)));
-  assert.equal(getPixel(port, 5, 1).a, 0);
+  assert.ok(edges.every(o => o.row === 'E2,E4' && !o.unimplemented));
+  // W=6,c=2 gives source columns [2,4), destination [3,9): 30,40 repeated.
+  assert.deepEqual([3,4,5,6,7,8].map(x => getPixel(port,x,1).r), [30,40,30,40,30,40]);
 });
 
-test('samples: text from textPixel, emboss (0,0) absent, otherwise sampled', () => {
+test('B0 (0x1089e..0x109aa): ring skips every colour sample; face still samples text/emboss', () => {
   const cicn = labelled(6, 6);
-  const a = drawCinfFrame(pm(12, 10), chainOf([['cinf:5', cinf()]]), { id: 5, cicn, dstRect: D, bodyFill: false });
+  let calls = 0;
+  const ring = drawCinfFrame(pm(12,10), chainOf([['cinf:5',cinf()]]), { id:5, cicn, dstRect:D, bodyFill:false, icon: { pixmap:cicn, sampleRgb16:()=>{ calls++; throw Error('ring sample'); } } });
+  assert.equal(calls,0);
+  assert.deepEqual([ring.backgroundRGB,ring.textRGB,ring.embossRGB],[null,null,null]);
+  const a = drawCinfFrame(pm(12, 10), chainOf([['cinf:5', cinf()]]), { id: 5, cicn, dstRect: D, bodyFill: true });
   assert.deepEqual(a.textRGB, { r: 50, g: 30, b: 0, a: 255 });
   assert.equal(a.embossRGB, null);
   assert.deepEqual(a.backgroundRGB, { r: 40, g: 40, b: 0, a: 255 });
-  const b = drawCinfFrame(pm(12, 10), chainOf([['cinf:5', cinf({ embossPixel: { x: 1, y: 0 } })]]), { id: 5, cicn, dstRect: D, bodyFill: false });
+  const b = drawCinfFrame(pm(12, 10), chainOf([['cinf:5', cinf({ embossPixel: { x: 1, y: 0 } })]]), { id: 5, cicn, dstRect: D, bodyFill: true });
   assert.deepEqual(b.embossRGB, { r: 20, g: 10, b: 0, a: 255 });
 });

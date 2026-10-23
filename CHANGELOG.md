@@ -7,6 +7,21 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+- **Push-button and checkable engine migration** (#459): route push/default-ring,
+  checkbox and radio composition through separately authored engine drivers. Keep
+  signed resource selection, explicit NULL versus unknown results, exact prepared
+  owner/occurrence identity and opt-in completed-operation diagnostics.
+- **Controls migration notes:** named push-face aliases and cross-state fallback
+  no longer substitute for missing canonical signed art. Known art with proven
+  absent local `cinf` retains the reviewed modern admission result without claiming
+  completed paint or native pixel fidelity. Unknown or ambiguous dependencies stay
+  explicit. The loader adds typed occurrence/bounds and opaque companions; accepted
+  slider metadata removals and declared-provider completeness still apply.
+- **Combined regression capture candidates:** fresh Linux contact sheets for the
+  controls and accepted window/title/slider tree require separate Tier-2, all-image,
+  source and production review. Original captures retain their own identities;
+  no golden approval, ledger promotion or release claim is made here.
+
 ## [0.5.0] — 2026-10-23
 
 Fourth incremental release from the `v2` integration branch (#459,

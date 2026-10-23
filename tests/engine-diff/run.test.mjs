@@ -14,7 +14,11 @@ const subset = (cells, slug) => Object.fromEntries(Object.entries(cells).filter(
 test('the committed baselines are the head output for every family (run npm run engine-diff:write after blessing)', async () => {
   for (const family of Object.keys(FAMILIES)) {
     const head = await computeFamily(family);
-    assert.ok(Object.keys(head).length > 1000, `${family}: ${Object.keys(head).length} cells`);
+    // Independently enumerated #459 grids: 18×4×3×2 push cells and
+    // 18×2×4×4×2×2 checkable cells. Retain every older family's >1000 guard.
+    const newCounts = { pushButton: 432, checkables: 2304 };
+    if (family in newCounts) assert.equal(Object.keys(head).length, newCounts[family], family);
+    else assert.ok(Object.keys(head).length > 1000, `${family}: ${Object.keys(head).length} cells`);
     assert.deepEqual(head, committed(family), family);
     const expected = JSON.parse(readFileSync(expectedPath(family), 'utf8'));
     assert.equal(expected.family, family);

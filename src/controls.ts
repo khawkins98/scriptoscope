@@ -1,5 +1,7 @@
+import { composeEngineCheckable, type CheckableOptions } from './checkableFacade.js';
+import { composeEnginePush, loadEnginePushFace } from './pushButtonFacade.js';
 import { CinfEnvironmentError, snapshotBodyCinfFace, type CinfLookupView } from '../tools/theme-loader/cinf-environment.js';
-import { prepareBitmapGlyphRun, type PreparedBitmapFont, type BitmapGlyphRun } from './preparedBitmapFont.js';
+import type { PreparedBitmapFont, BitmapGlyphRun } from './preparedBitmapFont.js';
 import { paintBitmapText } from './paintBitmapText.js';
 import { ownerDisplayPolicyMatches, realizeRgb16 } from '../tools/theme-loader/display-profile.js';
 import { snapshotControlComposition, bodyPatternPhase, controlPointVisible, type ControlCompositionContext, type ControlCompositionSnapshot, type ButtonComposition } from './controlComposition.js';
@@ -179,9 +181,7 @@ async function loadById(theme: LoadedTheme, id: number): Promise<PixelBuffer | n
   return (await loadFaceById(theme, id))?.buffer ?? null;
 }
 
-/** Self-only art lookup for checkables; base-theme borrowing is not part of
- * this compatibility path. CICN state IDs are source-derived at kDEF
- * 0x7234–0x7282; the icon fallback remains a separate resource channel. */
+/** Self-only art lookup retained by the disclosure compatibility path. */
 async function loadByIdSelf(theme: LoadedTheme, id: number): Promise<PixelBuffer | null> {
   const el = elementById(theme, id);
   return el ? loadCicnBuffer(assetUrl(theme, el.asset)) : null;
@@ -226,79 +226,9 @@ function resolveControlHeight(face: PixelBuffer, optsHeight?: number): number {
   return face.height <= APPLE_REASONABLE_FACE_MAX ? face.height : APPLE_PUSH_BUTTON_HEIGHT;
 }
 
-/** Compatibility aliases for a push-button face when the owner's exact signed
- * kDEF resource ID is absent. Author labels and friendly keys cannot override
- * a present canonical resource (kDEF 0x7572–0x7594). */
-const PUSH_BUTTON_FACE_KEYS = {
-  active: ['push-button-active', 'active-push-button', 'active-button', 'push-button'],
-  pressed: ['push-button-pressed', 'pressed-push-button', 'pressed-button'],
-  inactive: ['push-button-inactive', 'inactive-push-button', 'inactive-button'],
-} as const;
-
-/** Legacy heuristic for positive-ID compatibility aliases only. Labels are
- * observed metadata, not evidence that kDEF rejects a negative resource ID. */
-const PUSH_BUTTON_FACE_ANTI_KEY_RE = /menu|tab.pane|pull.down|popup|window|dialog|scroll/i;
-
-/** Resolve the exact signed resource ID first within each owner, then named
- * and positive-ID compatibility aliases. Base traversal and state fallbacks
- * remain modern policy, not a reconstruction of Resource Manager lookup. */
-export async function loadPushButtonFace(
-  theme: LoadedTheme,
-  state: keyof typeof PUSH_BUTTON_FACE_KEYS,
-): Promise<PixelBuffer | null> {
-  return (await resolvePushButtonFace(theme, state))?.buffer ?? null;
-}
-
-async function resolvePushButtonFace(
-  theme: LoadedTheme,
-  state: keyof typeof PUSH_BUTTON_FACE_KEYS,
-  trace?: ControlTraceCollector,
-): Promise<ResolvedControlFace | null> {
-  const id = state === 'active' ? 10239 : state === 'pressed' ? 10238 : 10240;
-  let chainDepth = -1;
-  // Resource ownership outranks lookup spelling: a child's canonical slot wins
-  // over a named base resource. Within each owner, exact signed IDs win.
-  const found = resolveInChain(theme, (t) => {
-    chainDepth++;
-    if (chainDepth > 0) traceOwner(trace, FACE_LOOKUP, id, t, chainDepth, 'fallback', 'base-inheritance');
-    const ce = t.manifest.chromeElements ?? {};
-    for (const [k, v] of Object.entries(ce)) {
-      if (v.sourceCicnId !== -id || !v.asset) continue;
-      const hit = { theme: t, element: v, key: k, chainDepth };
-      traceHit(trace, FACE_LOOKUP, id, hit, 'selected', 'resource-id');
-      return hit;
-    }
-    for (const k of PUSH_BUTTON_FACE_KEYS[state]) {
-      if (ce[k]?.asset) {
-        const hit = { theme: t, element: ce[k]!, key: k, chainDepth };
-        traceHit(trace, { ...FACE_LOOKUP, basis: 'compatibility-policy' }, id, hit, 'selected', 'named-role');
-        return hit;
-      }
-    }
-    // Preserve positive-ID alias policy only after exact signed art and names.
-    for (const [k, v] of Object.entries(ce)) {
-      if (v.sourceCicnId !== id) continue;
-      // Prefer the verbatim source label for this rejection heuristic.
-      // The label itself is provenance; interpreting its words is policy.
-      const hit = { theme: t, element: v, key: k, chainDepth };
-      if (v.authorLabel && PUSH_BUTTON_FACE_ANTI_KEY_RE.test(v.authorLabel)) {
-        traceHit(trace, { ...FACE_LOOKUP, basis: 'compatibility-policy' }, id, hit, 'rejected', 'anti-role-label');
-        return null;
-      }
-      // Fallback check: the friendly key. Only consulted when the bundle
-      // ships no authorLabel (9 of 18 corpus bundles — kept for back-compat).
-      if (!v.authorLabel && PUSH_BUTTON_FACE_ANTI_KEY_RE.test(k)) {
-        traceHit(trace, { ...FACE_LOOKUP, basis: 'compatibility-policy' }, id, hit, 'rejected', 'anti-role-key');
-        return null;
-      }
-      traceHit(trace, { ...FACE_LOOKUP, basis: 'compatibility-policy' },
-        id, hit, 'selected', 'positive-id-alias');
-      return hit;
-    }
-    traceOwner(trace, FACE_LOOKUP, id, t, chainDepth, 'missing', 'missing-resource');
-    return null;
-  });
-  return found ? loadResolvedFace(found, trace) : null;
+/** Exact signed push art selected by the engine's state table. */
+export async function loadPushButtonFace(theme: LoadedTheme, state: 'active' | 'pressed' | 'inactive'): Promise<PixelBuffer | null> {
+  return loadEnginePushFace(theme, state);
 }
 
 /** The chromeElement whose asset encodes resource `id` (for textAnchor etc).
@@ -1264,119 +1194,15 @@ async function composeControlBorder(resolved: ResolvedControlFace, width: number
   return out;
 }
 
-/**
- * Compose a THEMED push button (docs/spec/kdef231-reference.md §1.2 / §2.2,
- * kDEF `0x30a8` — Platinum fallback: docs/kaleidoscope-asset-catalog.md §6.1): compose the
- * push-button face (-10239 active / -10238 pressed / -10240 inactive) into the
- * button rect; for the default button wrap the shipped ring (-10231/-10232) around
- * it. Returns null if the scheme ships no push-button cicn (→ baselineButton).
- */
+/** Compose a push face, label and optional default ring with the v2 engine. */
 export async function composeButton(theme: LoadedTheme, opts: ButtonOptions = {}, signal?: AbortSignal): Promise<PixelBuffer | null> {
   return (await composeButtonWithLayout(theme, opts, signal))?.buffer ?? null;
 }
 
 /** Internal adapter seam: actual face placement, never a second ring resolver. */
-export async function composeButtonWithLayout(theme: LoadedTheme, opts: ButtonOptions = {}, signal?: AbortSignal, preparedContext?: ControlCompositionSnapshot): Promise<ButtonComposition | null> {
-  let result: ButtonComposition | null = null;
-  const state = opts.disabled ? 'inactive' : opts.pressed ? 'pressed' : 'active';
-  await withControlDiagnostics(opts.diagnostics, 'push-button', {
-    state, pressed: !!opts.pressed, disabled: !!opts.disabled, default: !!opts.default,
-  }, async trace => {
-    let composition = preparedContext ?? snapshotControlComposition(opts.compositionContext);
-    // Omitted context is explicitly local compatibility geometry, not observed
-    // original port state. An explicitly unknown caller clip still rejects.
-    if (opts.bitmapFont && composition.basis === 'compatibility-default')
-      composition = Object.freeze({ ...composition, clip: Object.freeze({ kind: 'unbounded' as const }) });
-    const bitmapRun = opts.bitmapFont ? prepareBitmapGlyphRun(opts.bitmapFont, opts.label ?? '', opts.fontSize, composition) : undefined;
-    if (bitmapRun) for (const [name, value] of [['height', opts.height], ['minWidth', opts.minWidth]] as const)
-      if (value !== undefined && (!Number.isInteger(value) || value < (name === 'height' ? 1 : 0) || value > 32767))
-        throw new RangeError(`Bitmap ${name} must be a bounded integer`);
-    const preparedOptions = { ...opts, fontSize: bitmapRun ? bitmapRun.font.data.strikeSize : buttonFontSize(opts.fontSize),
-      ...(bitmapRun ? { bitmapRun } : {}) };
-    result = await composeButtonWithTrace(theme, preparedOptions, composition, trace, signal);
-    return result?.buffer ?? null;
-  });
-  return result;
-}
-
-async function composeButtonWithTrace(theme: LoadedTheme, opts: ButtonOptions & { bitmapRun?: BitmapGlyphRun }, composition: ControlCompositionSnapshot,
-  trace?: ControlTraceCollector, signal?: AbortSignal): Promise<ButtonComposition | null> {
-  assertControlAlive(signal);
-  const faceId = opts.disabled ? 10240 : opts.pressed ? 10238 : 10239;
-  const state: keyof typeof PUSH_BUTTON_FACE_KEYS = opts.disabled ? 'inactive' : opts.pressed ? 'pressed' : 'active';
-  // Exact requested signed IDs precede aliases within each owner. If no face
-  // resolves, retain the modern active→pressed / inactive→active compatibility
-  // policy and final raw-ID escape; these are not proven native state fallbacks.
-  let face = await resolvePushButtonFace(theme, state, trace);
-  assertControlAlive(signal);
-  if (!face && state === 'active') {
-    traceFallback(trace, 10238, 'active-to-pressed');
-    face = await resolvePushButtonFace(theme, 'pressed', trace);
-    assertControlAlive(signal);
-  }
-  if (!face && state === 'inactive') {
-    traceFallback(trace, 10239, 'inactive-to-active');
-    face = await resolvePushButtonFace(theme, 'active', trace);
-    assertControlAlive(signal);
-  }
-  if (!face) {
-    const lookup: TraceLookup = { ...FACE_LOOKUP, basis: 'compatibility-policy' };
-    traceFallback(trace, faceId, 'raw-id-escape');
-    face = await loadFaceById(theme, faceId, trace, lookup);
-    assertControlAlive(signal);
-    if (!face) {
-      traceFallback(trace, 10239, 'active-id-fallback');
-      face = await loadFaceById(theme, 10239, trace, lookup);
-      assertControlAlive(signal);
-    }
-  }
-  assertControlAlive(signal);
-  if (!face) return null; // baseline path
-  face = declaredBodyFace(theme, face, -faceId, opts.label ?? '', !!opts.default, trace);
-  const faceBuf = await composeFaceButton(face, { ...opts, composition, signal, trace });
-  assertControlAlive(signal);
-  // kDEF 2.3.1 copies the control rectangle at 0x7434, draws its face
-  // through 0x7572/0x7594, then expands that SAME rectangle by four pixels
-  // (InsetRect(-4,-4), 0x7698–0x76a2) before drawing the default ring.
-  // Template dimensions do not determine this outset. Separately, our layout
-  // policy reserves that footprint for plain buttons too, so changing default
-  // or pressed state never shifts neighboring controls.
-  // Footprint reservation needs metadata only. Unused state rasters must not
-  // add decode work or make a plain button fail because another state is bad.
-  const reservation: TraceLookup = { role: 'default-ring', basis: 'compatibility-policy', usage: 'layout-reservation' };
-  const activeRing = resolveFaceById(theme, 10231, trace, reservation);
-  const pressedRing = resolveFaceById(theme, 10230, trace, reservation);
-  const inactiveRing = resolveFaceById(theme, 10232, trace, reservation);
-  // The original dispatch uses inactive -10232; pressed -10230 falls back
-  // to active -10231 when absent (0x76b8–0x770e).
-  const ring = opts.default
-    ? opts.disabled ? inactiveRing : opts.pressed ? pressedRing ?? activeRing : activeRing
-    : null;
-  if (opts.default) {
-    const ringId = opts.disabled ? 10232 : opts.pressed ? 10230 : 10231;
-    const paint: TraceLookup = { role: 'default-ring', basis: 'source-dispatch', usage: 'paint' };
-    if (opts.pressed && !opts.disabled && !pressedRing) traceFallback(trace, 10231, 'pressed-ring-to-active', paint);
-    if (ring) traceHit(trace, paint, ringId, ring, 'selected', 'ring-paint');
-    else trace?.record({ ...paint, requestedId: -ringId, action: 'missing', reason: 'ring-unavailable' });
-  }
-  if (!activeRing && !pressedRing && !inactiveRing) return { buffer: faceBuf, layout: { faceRect: { x: 0, y: 0, w: faceBuf.width, h: faceBuf.height } } };
-  const outset = 4;
-  const out = PixelBuffer.alloc(faceBuf.width + outset * 2, faceBuf.height + outset * 2);
-  out.drawOver(faceBuf, outset, outset);
-  if (ring) {
-    const { element } = ring;
-    assertControlAlive(signal);
-    const buffer = await loadCicnBuffer(assetUrl(ring.theme, element.asset));
-    assertControlAlive(signal);
-    // Full source raster, including transparent margins. The ring is painted
-    // after face/text (0x76c8 onward), with its body-fill flag false.
-    out.drawOver(await composeControlBorder({ ...ring, buffer }, out.width, out.height, { trace, signal },
-      (x, y) => controlPointVisible(composition, x - outset, y - outset), 'default-ring'), 0, 0);
-  }
-  if (composition.clip.kind === 'rect') for (let y = 0; y < out.height; y++) for (let x = 0; x < out.width; x++) {
-    if (!controlPointVisible(composition, x - outset, y - outset)) out.setPixel(x, y, 0, 0, 0, 0);
-  }
-  return { buffer: out, layout: { faceRect: { x: outset, y: outset, w: faceBuf.width, h: faceBuf.height } } };
+export async function composeButtonWithLayout(theme: LoadedTheme, opts: ButtonOptions = {}, signal?: AbortSignal,
+  preparedContext?: ControlCompositionSnapshot): Promise<ButtonComposition | null> {
+  return composeEnginePush(theme, opts, signal, preparedContext);
 }
 
 /**
@@ -1524,75 +1350,10 @@ export async function composeListHeader(theme: LoadedTheme, opts: ListHeaderOpti
   return out;
 }
 
-/** Source table at 0x18b88, copied at 0x710e–0x712c. No pressed public option.
- * Modern same-owner selection does not establish original Resource Manager order. */
-async function loadCheckableIcon(
-  theme: LoadedTheme, kind: 'checkbox' | 'radio',
-  opts: { mixed?: boolean; checked?: boolean; disabled?: boolean },
-): Promise<PixelBuffer | null> {
-  const value = opts.mixed ? 2 : opts.checked ? 1 : 0;
-  const normal: readonly [number, number, number] = kind === 'checkbox' ? [-10236, -10235, -10234] : [-10220, -10219, -10218];
-  const disabled: readonly [number, number, number] = kind === 'checkbox' ? [-10240, -10239, -10238] : [-10224, -10223, -10222];
-  const row = opts.disabled ? disabled : normal;
-  // Hand-built themes without an inspector retain unobserved color-art fallback.
-  // A present but incomplete/contradictory inspector never takes this path.
-  if (!theme.inspector) {
-    return (await loadGlyphByIdSelf(theme, row[value])) ?? (await loadGlyphByIdSelf(theme, normal[value]));
-  }
-  const masks = theme.inspector.iconMaskResources;
-  if (!masks) return null;
-  const maskState = (id: number) => {
-    const found = masks.filter(r => r.id === id);
-    const first = found[0];
-    if (!first) return 'missing';
-    return found.length === 1 && Number.isInteger(first.resourceIndex) && first.resourceIndex >= 0
-      && Number.isInteger(first.byteLength) && first.byteLength >= 64 ? 'decoded' : 'invalid';
-  };
-  let id = row[value];
-  // 0x73ae–0x73d8 retries checked ONLY for a missing mixed mask, not missing color art.
-  if (value === 2 && maskState(id) === 'missing') id = row[1];
-  // f50c–f51e also requires the selected mask. Short/duplicate masks are unsupported.
-  if (maskState(id) !== 'decoded') return null;
-  const asset = theme.glyphs?.[String(id)];
-  if (!asset) return null;
-  const url = assetUrl(theme, asset);
-  const entries = theme.inspector.iconIndex.filter(e => e.id === id && e.url === url);
-  if (entries.length !== 1) return null;
-  const entry = entries[0];
-  if (!entry || entry.size !== 16 || !entry.masked || !Number.isInteger(entry.resourceIndex) || (entry.resourceIndex ?? -1) < 0
-    || !((entry.type === 'ics4' && entry.depth === 4) || (entry.type === 'ics8' && entry.depth === 8))) return null;
-  return loadCicnBuffer(url);
-}
-
-/** Compose self-owned checkable art. CICN selection and the icon table are
- * separate source paths; icon color depth remains the loader's modern policy. */
-export async function composeCheckable(
-  theme: LoadedTheme,
-  kind: 'checkbox' | 'radio',
-  opts: { label?: string; checked?: boolean; mixed?: boolean; disabled?: boolean; fg?: string } = {},
-): Promise<PixelBuffer | null> {
-  // kDEF 0x7234–0x7282: -9504 + 12*kind + 3*value + tier.
-  // Public mixed maps to value2 ahead of checked/value1; this API has no pressed
-  // tier. A missing mixed CICN retries checked at the SAME tier (0x7264).
-  const checked = !!(opts.mixed || opts.checked);
-  const activeId = kind === 'radio' ? (checked ? 9488 : 9491) : (checked ? 9500 : 9503);
-  const wantId = activeId + Number(!!opts.disabled);
-  const mixedId = (kind === 'radio' ? 9485 : 9497) + Number(!!opts.disabled);
-  const glyph =
-    (opts.mixed ? await loadByIdSelf(theme, mixedId) : null) ??
-    (await loadByIdSelf(theme, wantId)) ??
-    (await loadByIdSelf(theme, activeId)) ??
-    (await loadCheckableIcon(theme, kind, opts));
-  if (!glyph) return null;
-  const label = opts.label ?? '';
-  const glyphs = label ? rasterizeText(label, 9, opts.fg ?? '#000000') : null;
-  const gap = 5;
-  const w = glyph.width + (glyphs ? gap + glyphs.width : 0);
-  const h = Math.max(glyph.height, glyphs ? glyphs.height : 0);
-  const out = PixelBuffer.alloc(w, h);
-  out.copyBits(glyph, { x: 0, y: 0, w: glyph.width, h: glyph.height }, { x: 0, y: Math.round((h - glyph.height) / 2), w: glyph.width, h: glyph.height });
-  if (glyphs) out.drawOver(glyphs, glyph.width + gap, Math.round((h - glyphs.height) / 2));
-  return out;
+/** Checkable Boolean mapping, browser fonts and archive/base environment are
+ * declared public policies. The engine owns typed state selection and paint order. */
+export async function composeCheckable(theme: LoadedTheme, kind: 'checkbox' | 'radio', opts: CheckableOptions = {}): Promise<PixelBuffer | null> {
+  return composeEngineCheckable(theme, kind, opts);
 }
 
 // ─── Baseline (procedural Platinum) controls ───────────────────────────

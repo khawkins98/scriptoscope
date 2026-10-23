@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import { readInventory } from './validate-source.mjs';
 import { compareAvailability } from './compare.mjs';
 // Unit observations exercise the independent comparator without invoking a renderer.
@@ -34,7 +35,9 @@ test('ring reservation cannot stand in for a painted ring or mask a missing fall
   assert.equal(compareAvailability(c, noFallback).status, 'failed');
 });
 test('unknown signed metadata cannot be replaced by canonical request ID', () => {
-  const c = expected('synthetic.named-unknown-id'), o = observation(c);
+  // Comparator-only counterexample retains its exact archived declaration;
+  // this does not assert the current API can select art without a signed ID.
+  const c = JSON.parse(readFileSync(new URL('./corrections/459-push-strict-state.json',import.meta.url))).changes.find(c=>c.id==='synthetic.named-unknown-id').before, o = observation(c);
   assert.equal(compareAvailability(c, o).status, 'passed');
   o.traces[0].steps[0].resource.signedId = -10239;
   assert.equal(compareAvailability(c, o).status, 'failed');

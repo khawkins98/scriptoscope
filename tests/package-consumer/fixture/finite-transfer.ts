@@ -9,16 +9,23 @@ export async function verifyFiniteTransfer() {
   const results = await prepareCicnTransferResults(data), displayProfile = await prepareDisplayProfile(profileData);
   const cicnTransfer: CicnTransferOption = {results,contractId:results.contractId,maskPolicy:'source-mask-alpha'};
   let encoded=0;
-  const theme=await loadKaleidoscopeScheme(bytes,{displayProfile,cicnTransfer,assetUrlFactory:(rgba,width,height)=>{
+  const planes = new Set<string>();
+  const theme=await loadKaleidoscopeScheme(bytes,{displayProfile,cicnTransfer,assetUrlFactory:(rgba,width,height,path)=>{
     encoded++;
-    if(width!==3 || height!==1 || JSON.stringify([...rgba])!==JSON.stringify([20,20,20,255,36,36,36,255,20,20,20,0])) throw Error('Packed finite plane/mask drift');
-    return 'owned:finite-plane';
+    const opaque = path === 'cicn-unmasked/cicn-n10239-owned.png';
+    if (!opaque && path !== 'cicns/cicn-n10239-owned.png') throw Error('Unexpected packed finite asset identity');
+    if (planes.has(path)) throw Error('Duplicate packed finite asset');
+    planes.add(path);
+    // Same finite CopyBits source record, with source mask alpha only on the
+    // original plane; the new deep-icon companion preserves its hidden RGB.
+    if(width!==3 || height!==1 || JSON.stringify([...rgba])!==JSON.stringify([20,20,20,255,36,36,36,255,20,20,20,opaque ? 255 : 0])) throw Error('Packed finite plane/mask drift');
+    return opaque ? 'owned:finite-opaque' : 'owned:finite-plane';
   }});
   const evidence=theme.manifest.chromeElements.owned!.cicnTransfer;
-  if(encoded!==1 || evidence?.resultsId!==results.id || evidence.resource.signedId!==-10239 || !Object.isFrozen(evidence.operation)) throw Error('Packed finite identity failed');
+  if(encoded!==2 || planes.size!==2 || evidence?.resultsId!==results.id || evidence.resource.signedId!==-10239 || !Object.isFrozen(evidence.operation)) throw Error('Packed finite identity failed');
   theme.dispose?.();
   let rejected=false;
   try{await loadKaleidoscopeScheme(bytes,{displayProfile,cicnTransfer:{...cicnTransfer,contractId:'cicn-transfer-context:wrong'},assetUrlFactory:()=>{encoded++;return'never';}});}
   catch(e){if(!(e instanceof CicnTransferError))throw e;rejected=true;}
-  if(!rejected || encoded!==1)throw Error('Packed context mismatch allocated asset');
+  if(!rejected || encoded!==2)throw Error('Packed context mismatch allocated asset');
 }
