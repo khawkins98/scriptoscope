@@ -51,12 +51,17 @@ async function themeProvider(theme: LoadedTheme, tier: 'archive' | 'base', name:
   const entry = async ({ type, id }: { type: string; id: number }): Promise<[string, unknown] | null> => {
     const key = `${type}:${id}`;
     if (type === 'cicn') {
-      if (checkables && theme.inspector?.cicnResources) {
+      if (theme.inspector?.cicnResources) {
         const raw = theme.inspector.cicnResources.filter(r => r.id === id);
         const decoded = elements.filter(e => e.sourceCicnId === id && e.asset);
         if (raw.length > 1 || raw.length === 1 && (!validOccurrence(raw[0]!) || decoded.length !== 1))
           return [key, { status: 'unknown', reason: 'ambiguous or undecoded raw cicn occurrence' }];
         if (raw.length === 0 && decoded.length) return [key, { status: 'unknown', reason: 'cicn decoded asset contradicts raw census' }];
+        const el = decoded[0], occurrence = raw[0];
+        if (el && occurrence && (el.byteProvenance && el.byteProvenance.cicnResourceIndex !== occurrence.resourceIndex
+          || el.cicnSource && (el.cicnSource.id !== id || el.cicnSource.resourceIndex !== occurrence.resourceIndex
+            || el.cicnSource.byteLength !== occurrence.byteLength)))
+          return [key, { status: 'unknown', reason: 'decoded cicn occurrence contradicts raw census' }];
       }
       if (checkables && elements.filter(e => e.sourceCicnId === id).length > 1) return [key, { status: 'unknown', reason: 'ambiguous cicn occurrence' }];
       const el = elements.find(e => e.sourceCicnId === id && e.asset);
@@ -66,6 +71,16 @@ async function themeProvider(theme: LoadedTheme, tier: 'archive' | 'base', name:
       }
       const status = el.samplingEquivalence?.status ?? null;
       const sampleAsset = el.asset;
+      // Preserve the actual preparation binding before copying the finite values.
+      // Paths/dimensions and even equal census scalars cannot identify a provider.
+      const sampleSource = el.engineColorSamples?.source;
+      const selectedSource = el.cicnSource;
+      const boundOccurrence = () => selectedSource != null
+        && el.cicnSource === selectedSource && el.sourceCicnId === id && el.asset === sampleAsset
+        && (!el.byteProvenance || el.byteProvenance.cicnResourceIndex === selectedSource.resourceIndex)
+        && theme.inspector?.cicnResources?.filter(r => r.id === id).length === 1
+        && theme.inspector.cicnResources.find(r => r.id === id) === selectedSource;
+      const bounds = selectedSource?.bounds;
       const finiteSamples = el.engineColorSamples ? structuredClone(el.engineColorSamples) : undefined;
       const [pixmap, companion, sampled] = await Promise.all([load(el.asset),
         el.iconBlit?.unmaskedAsset ? load(el.iconBlit.unmaskedAsset) : Promise.resolve(null),
@@ -77,14 +92,17 @@ async function themeProvider(theme: LoadedTheme, tier: 'archive' | 'base', name:
       // current asset, and the fallback is recorded in the trace (iconSource.ts).
       // Line-colour inputs (slider BL8/BL12) and the bounds origin (BL11) ride along.
       return [key, { ...cicnIconSource(pixmap, el.iconBlit?.pixelSize ?? null, companion),
-        origin: el.boundsOrigin ?? null, sampling: status, sampled,
+        origin: selectedSource ? (boundOccurrence() && bounds
+          && bounds.right - bounds.left === pixmap.width && bounds.bottom - bounds.top === pixmap.height
+          ? { top: bounds.top, left: bounds.left } : null) : el.boundsOrigin ?? null,
+        sampling: status, sampled,
         realizeRgb16: (rgb: readonly [number, number, number]) => {
           const [r, g, b] = realizeRgb16(rgb, theme.manifest.displayProfile);
           return { r: r!, g: g!, b: b!, a: CINF_SAMPLE.opaque };
         },
         sampleRgb16: (point: QdPoint) => {
           const samples = finiteSamples;
-          if (!samples || samples.model !== 'kdef-2.3.1-engine-points' || samples.asset !== sampleAsset
+          if (!boundOccurrence() || sampleSource !== selectedSource || !samples || samples.model !== 'kdef-2.3.1-engine-points' || samples.asset !== sampleAsset
             || samples.width !== pixmap.width || samples.height !== pixmap.height
             || !ownerDisplayPolicyMatches(theme.manifest, samples.displayPolicy)) return null;
           return samples.points[`${point.x},${point.y}`]?.rgb16 ?? null;
