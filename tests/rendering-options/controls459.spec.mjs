@@ -107,3 +107,21 @@ for(const mode of ['source','built'])test(`${mode}: independent declared body en
  expect(observed.requests.some(p=>p.startsWith('invalid:'))).toBe(false);
  await attachObservations(info,'controls459-declared',mode,{mode,observed,unknown:['native glyph/device/provider equivalence','original resource file ownership']});
 });
+for(const mode of ['source','built'])test(`${mode}: public typed duplicate art retains an ambiguity diagnostic`,async({page,servers},info)=>{
+ await openHarness(page,servers,mode);
+ const observed=await page.evaluate(async mode=>{
+  const api=await import(mode==='built'?'/dist/scriptoscope.js':'/src/index.ts');
+  const {forkOf}=await import('/tests/resource-provenance/fixtures.mjs');
+  const {solidBackgroundIcon,solidBackgroundInfo}=await import('/tests/decoder-fixtures/solid-background.mjs');
+  const entries=[{type:'cicn',id:-10239,name:'face',data:solidBackgroundIcon()},{type:'cinf',id:-10239,data:solidBackgroundInfo()}];
+  const observe=async duplicate=>{const theme=await api.loadKaleidoscopeScheme(forkOf(duplicate==='null'?entries.filter(e=>e.type!=='cicn'):duplicate?[...entries,{type:'cicn',id:-10239,name:'duplicate',data:solidBackgroundIcon()}]:entries));try{let trace,error;let output;try{output=await api.composeButton(theme,{label:'',minWidth:17,height:9,diagnostics:{onComplete:t=>trace=t}});}catch(e){error={name:e.name,message:e.message};}return{trace,error,opaque:output?[...output.data].filter((v,i)=>i%4===3&&v!==0).length:null};}finally{theme.dispose();}};
+  return{positive:await observe(false),null:await observe('null'),duplicate:await observe(true)};
+ },mode);
+ expect(observed.positive.error).toBeUndefined();expect(observed.positive.opaque).toBeGreaterThan(0);
+ expect(observed.null.error).toBeUndefined();expect(observed.null.opaque).toBeNull();expect(observed.null.trace.outcome.status).toBe('unavailable');
+ // Duplicate raw ownership is not proven NULL and cannot silently become a
+ // successful blank paint. Diagnostic field spelling remains unconstrained.
+ const visible=[observed.duplicate.error?.message,observed.duplicate.trace?.outcome?.reason,...(observed.duplicate.trace?.steps??[]).map(s=>s.reason)].filter(Boolean).join('\n');
+ await attachObservations(info,'controls459-public-unknown',mode,{mode,observed,unknown:['native malformed-resource pixels']});
+ expect(visible).toMatch(/ambiguous/i);
+});

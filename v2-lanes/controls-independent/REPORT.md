@@ -251,3 +251,47 @@ The PNG comparison parser now counts only successful capture lines, excluding
 failed-test summaries. Recomputed initial evidence identifies only 10 captured
 pages and 26 retained old pages; final evidence identifies all 36 captures.
 This corrects evidence attribution without changing any PNG or pixel diff.
+
+## Frozen engine UNKNOWN repair and public boundary
+
+PM authorized frozen pushed `6f2c75273f593237d6c0067754209a5890cf485c` only after
+current Linux verify settled. Verification on `5f5ea033` completed exit0, all 36
+pages (21.5 minutes), before that integration; record provenance remains
+`11883e85`. Neither command was replaced or re-seeded. The frozen repair merged
+at `abef2c48`; no runtime changes were authored in this test lane.
+
+The unchanged private v3 command passes all four cases immediately after merge.
+The same regression is now owned at `controls459-unknown.test.mjs`. An additional
+isolated guard-removal mutation reproduces the two original TypeErrors and is
+killed by named assertions, with valid-art, true-NULL and unmutated UNKNOWN
+positive controls. This brings focused acceptance to 58 passing checks, including
+11 runtime/oracle mutations and a separate harness-failure rejection. Runtime
+files are never changed on disk by mutations. Raw mutation output remains outside
+the checkout. All four independently derived source/built corpus/environment
+browser checks and the actual installed npm consumer (including three defective
+package negatives) pass on the frozen repair. These do not establish native
+malformed-resource pixels.
+
+The author's interrupted browser run is NOT counted as passing or as mutation
+evidence. Independent reproduction of six selected old checks fails in both
+source and built: finite availability has 8/27 passed comparisons, including old
+painted-selection/resource-owner joins; bitmap snapshot fixture has no cinf and
+no completed text paint; border1138 joins an absent legacy selected manifestKey.
+The new engine transcript and independently derived corpus checks remain separate
+from these old diagnostic-shape assumptions. `unknown-repair-legacy-browser-triage`
+records exit1 and its full artifacts are retained; no old assertion was blindly
+replaced, skipped or promoted.
+
+A further public boundary is confirmed independently and PM adjudicated it as
+required diagnostic plumbing: duplicate raw cicn ownership must preserve visible
+selected-resource ambiguity rather than silently report blank themed success.
+Both public source and built observations use the same valid decoded face with
+same-ID cinf as a positive (139 opaque pixels), and proven no-cicn with that cinf
+as a NULL positive (null/unavailable, PB8 NULL diagnostic). With two raw cicn
+occurrences at the same ID instead, the facade returns a 24x9 transparent plane,
+reports `themed`, and publishes only `engine:PB7:cicn:theme-0`, losing the exact
+engine UNKNOWN reason. The public ambiguity assertion fails, with both controls
+passing (`unknown-repair-public-diagnostic-v2`, exit1). Its observations and
+artifacts are preserved externally. The tests constrain visible ambiguity, not
+its field spelling or native painting. PM is routing a separate narrow facade
+repair; this candidate does not self-fix runtime or hide this blocker.
