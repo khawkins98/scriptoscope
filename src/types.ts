@@ -1,4 +1,4 @@
-import type { BodyCinfView, CinfBindingSummary, SliderLayoutCinfView, SliderLayoutBindingSummary } from '../tools/theme-loader/cinf-environment.js';
+import type { BodyCinfView, CinfBindingSummary } from '../tools/theme-loader/cinf-environment.js';
 import type { DisplayProfile, DisplayPolicy } from '../tools/theme-loader/display-profile.js';
 import type { ElementByteProvenance, PatternByteProvenance, ThemeByteProvenance, WindowByteProvenance } from './loadProvenance.js';
 // Theme-bundle types — the fields the runtime reads from theme.json. This file
@@ -60,7 +60,16 @@ export interface WindowCinf {
   textPixel?: [number, number] | null;
 }
 
+/** Exact template samples for window-widgets TC1–TC5, before remapping. */
+export interface WindowTitleSamples {
+  readonly background: ControlColorSample | null;
+  readonly text: ControlColorSample | null;
+  readonly shadow: ControlColorSample | null;
+}
+
 export interface WindowType {
+  /** Per-template samples; mask-clear pixels retain their original RGB16. */
+  readonly titleSamples?: Partial<Record<WindowState, WindowTitleSamples>>;
   /** Opt-in exact converted input occurrences; not a paint/provider claim. */
   readonly byteProvenance?: WindowByteProvenance;
   /** State → relative path of the chrome cicn for that state. */
@@ -166,8 +175,6 @@ export type CicnBodyBinding = {
 export interface ChromeElement {
   /** Opt-in role view; common fields below retain their local pairing. */
   readonly bodyCinf?: BodyCinfView;
-  /** Separate group-base layout input, bound to this actual group2 thumb. */
-  readonly sliderLayoutCinf?: SliderLayoutCinfView;
   readonly cicnBody?: CicnBodyBinding;
   readonly sampledBandAsset?: CicnSampledBandAsset;
   /** Finite unmasked transfer pixels with separately applied modern source-mask alpha. */
@@ -294,8 +301,8 @@ export interface HeaderColors {
 
 export interface ThemeManifest {
   readonly cinfEnvironment?: CinfBindingSummary;
-  /** Explicit standalone slider role; independent of push/bevel body lookup. */
-  readonly sliderLayoutEnvironment?: SliderLayoutBindingSummary;
+  /** Opaque load-bound identity marker for the declared slider cinf providers. */
+  readonly sliderLayoutEnvironment?: Readonly<{ environmentId: string; bindingId: string }>;
   /**
    * Raw bytes of the first cinf at each id the engine families read (loader
    * option `engineCinfIds`; src/engine/tables/loaderNeeds.ts), keyed by the
@@ -408,8 +415,6 @@ export interface ThemeInspector {
   ppats: Array<{ file: string; label: string; url?: string }>;
   resourceRoles: {
     theme: string;
-    /** @deprecated Not used for drawing; the engine's cinf gate selects the progress path (progress.md GATE1–GATE4). Removal: #436. */
-    progress: ThemeProgressModel;
     scrollArrows: ThemeScrollArrowMap | null;
     resources: Array<{
       id: number | null; type: string; size?: number;
@@ -417,21 +422,6 @@ export interface ThemeInspector {
     }>;
   };
 }
-
-/** The per-scheme progress-bar model `buildResourceRoles` resolves from the cicns present.
- *  Two known shapes plus `'none'`; see `tools/theme-loader/classifyResources.js`.
- *  @deprecated Diagnostic only and wrong for the eight procedural schemes
- *  (docs/spec/engine/progress.md §8); composeProgress uses the engine's cinf gate. Removal: #436. */
-export type ThemeProgressModel =
-  | { model: 'none' }
-  | { model: 'lavender-2-part'; fill: number; track: number | null; frame: null; alternateHues: number[] }
-  | {
-      model: 'role-3-part';
-      frame: number | null;
-      fill: number | null;
-      track: number | null;
-      inactive: { frame: number | null; fill: number | null; track: number | null };
-    };
 
 /** The universal kDEF231 CDEF scroll-arrow mapping (per the asm 9f0e-9f38 decode). */
 export interface ThemeScrollArrowMap {

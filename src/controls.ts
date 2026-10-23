@@ -1,4 +1,4 @@
-import { CinfEnvironmentError, snapshotBodyCinfFace, snapshotSliderLayoutCinf, type CinfLookupView } from '../tools/theme-loader/cinf-environment.js';
+import { CinfEnvironmentError, snapshotBodyCinfFace, type CinfLookupView } from '../tools/theme-loader/cinf-environment.js';
 import { prepareBitmapGlyphRun, type PreparedBitmapFont, type BitmapGlyphRun } from './preparedBitmapFont.js';
 import { paintBitmapText } from './paintBitmapText.js';
 import { ownerDisplayPolicyMatches, realizeRgb16 } from '../tools/theme-loader/display-profile.js';
@@ -20,11 +20,12 @@ import { normalizeControlState } from './engine/state/control.js';
 import { SCROLLBAR_PRESSED_PARTS, SLIDER_PRESSED_PARTS } from './engine/tables/controlState.js';
 import { SCROLLBAR_FACADE_RANGE, SCROLLBAR_FACADE_THICKNESS } from './engine/tables/scrollbar.js';
 import { drawScrollbar, scrollbarPartAt, scrollbarResourceIds, type ScrollbarInput } from './engine/families/scrollbar.js';
-import { SLIDER_FACADE_BACKGROUND, SLIDER_FACADE_RANGE, SLIDER_FACADE_THICKNESS, SLIDER_THUMB, SLIDER_VARIATION } from './engine/tables/slider.js';
+import { SLIDER_FACADE_BACKGROUND, SLIDER_FACADE_RANGE, SLIDER_FACADE_THICKNESS, SLIDER_VARIATION } from './engine/tables/slider.js';
 import { drawSlider, sliderInit, sliderPartAt, sliderResourceIds, type SliderInput } from './engine/families/slider.js';
 import { PROGRESS_DATA, PROGRESS_FACADE_LENGTH, PROGRESS_FACADE_RANGE, PROGRESS_FACADE_VALUE, PROGRESS_IDLE, PROGRESS_RECT, PROGRESS_STATE,
   PROGRESS_VALUE_DOMAIN } from './engine/tables/progress.js';
 import { drawProgress, newProgressRecord, progressResourceIds, progressSetData, type ProgressInput } from './engine/families/progress.js';
+import { snapshotSliderEnvironment, unsupportedSliderEnvironment, admitSliderGeometry, admitSliderState } from './engine/resources/sliderEnvironment.js';
 import { themeResourceChain } from './engine/resources/theme.js';
 import { withControlDiagnostics, type ControlDiagnostics, type ControlTraceCollector, type ControlResolutionStep, type LegacyFacePaint } from './controlDiagnostics.js';
 
@@ -476,12 +477,8 @@ export async function composeSliderWithLayout(
   const value = Math.min(1, Math.max(0, opts.value ?? 0.5));
   // Declared group2 layout environment (slider-layout-cinf.md): its admission
   // rules still apply; the geometry itself now comes from the engine (§5.2).
-  const endpoint = snapshotSliderLayoutCinf(theme.manifest, elementById(theme, horiz ? 10129 : 10113), orientation);
-  const unsupported = (reason: string): never => {
-    throw new CinfEnvironmentError(`Unsupported group2 slider layout: ${reason}`, 'UNSUPPORTED_CINF_ENVIRONMENT');
-  };
-  if (endpoint && (endpoint.status !== 'ready' || endpoint.corner === undefined)) unsupported(endpoint.reason ?? 'missing corner');
-  if (endpoint && (theme.base || !Number.isInteger(length) || length > 32767 || !Number.isFinite(value))) unsupported('base chain or geometry outside admitted local Rect');
+  const endpoint = snapshotSliderEnvironment(theme, orientation);
+  const unsupported = unsupportedSliderEnvironment;
 
   const V = SLIDER_VARIATION;
   const variant = opts.variant ?? 'nonDirectional';
@@ -496,8 +493,9 @@ export async function composeSliderWithLayout(
   const native = range.min + Math.round(value * (range.max - range.min));
   const R = horiz ? rect(0, 0, cross, along) : rect(0, 0, along, cross);
   const input: SliderInput = { rect: R, hilite, min: range.min, max: range.max, value: native, variation };
+  admitSliderGeometry(endpoint, { length, along, cross, value, variant });
   if (signal?.aborted) return null;
-  const chain = await themeResourceChain(theme, sliderResourceIds(horiz), signal ? { signal } : {});
+  const chain = await themeResourceChain(theme, sliderResourceIds(horiz), { ...(signal ? { signal } : {}), ...(endpoint ? { cinfProviders: endpoint.providers } : {}) });
   if (signal?.aborted) return null;
   const trace = opts.trace ? createTrace('slider', { ...input, ticks }) : undefined;
   // Message 3 (init) creates the record and sets the tick count; the host then sets the value.
@@ -509,16 +507,7 @@ export async function composeSliderWithLayout(
   if (!state) return endpoint ? unsupported('handed off (no slider cinf)') : null;
   const Th = state.Th && !(state.Th.right <= state.Th.left || state.Th.bottom <= state.Th.top) ? state.Th : null;
   const c = state.c ?? 0, travel = Math.max(0, init.record.travel ?? 0);
-  if (endpoint && (!Th || (init.record.travel ?? -1) < 0)) unsupported('thumb geometry or travel outside admitted local Rect');
-  if (endpoint) {
-    // slider-layout-cinf.md admission, kept until the declared environment becomes
-    // the chain's cinf tier: the declared corner must be the corner the chain
-    // resolved (never silently select other geometry), and the thumb must hold four
-    // exact 16-px cross cells.
-    if (endpoint.corner !== state.c) unsupported('declared corner differs from the resource-chain corner');
-    const pm = state.thumb!.value.pixmap, cell = SLIDER_THUMB.TH3.cellSize, cells = SLIDER_THUMB.TH5.ghostCell + 1;
-    if ((horiz ? pm.height : pm.width) !== cells * cell) unsupported('thumb cross-cell is not 16 px');
-  }
+  admitSliderState(endpoint, state);
   const names = Object.entries(SLIDER_PRESSED_PARTS.parts);
   return {
     buffer: out,
@@ -529,7 +518,6 @@ export async function composeSliderWithLayout(
       // whole axis, with no corner inset (a track click maps over the full length).
       travelStart: Th ? c : 0, travelEnd: Th ? c + travel : along, value,
       valueDirection: horiz ? 1 : -1,
-      ...(endpoint ? { endpointPolicy: 'declared-group2' as const } : {}),
     },
     partAt: (x, y) => {
       const { part } = sliderPartAt(state, { x, y });
@@ -775,7 +763,8 @@ export async function composeProgressFrame(theme: LoadedTheme, opts: ProgressOpt
   const profile = theme.manifest.displayProfile;
   const realize = (rgb: readonly number[]) => { const [r, g, b] = realizeRgb16(rgb, profile); return { r: r!, g: g!, b: b!, a: 255 }; };
   const res = drawProgress(out, chain, record, input, { realize }, trace);
-  return { buffer: out, phase: res.phase, path: res.path ?? 'procedural', ...(trace ? { trace } : {}) };
+  if (res.path === null) throw new Error('composeProgress: engine skipped a visible, nonempty progress bar');
+  return { buffer: out, phase: res.phase, path: res.path, ...(trace ? { trace } : {}) };
 }
 
 export interface ButtonOptions {

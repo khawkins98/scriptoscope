@@ -98,3 +98,18 @@ test('ProgressIdle advances one phase every 3 ticks (IDLE2), only when indetermi
   await reset.compose(frameModeTheme(), { length: 60 });
   assert.equal(reset.phase, 0, 'frame mode reset written back');
 });
+
+test('ProgressIdle phase validation applies before any draw, including determinate instances', () => {
+  for (const phase of [-1, 256, 0.5, NaN, Infinity, -Infinity]) {
+    for (const indeterminate of [false, true]) assert.throws(() => new ProgressIdle({ phase, indeterminate }), RangeError, `${phase}/${indeterminate}`);
+  }
+  for (const phase of [0, 1, 255]) {
+    const idle = new ProgressIdle({ phase, indeterminate: true });
+    idle.indeterminate = false;
+    assert.equal(idle.phase, phase, 'IDLE4 changes only flag');
+    assert.equal(idle.idle(3), false);
+    idle.indeterminate = true;
+    assert.equal(idle.idle(3), true);
+    assert.equal(idle.phase, (phase + 1) % 256);
+  }
+});

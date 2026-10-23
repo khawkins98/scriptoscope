@@ -8,6 +8,7 @@ import type { LoadedTheme } from '../../src/types.js';
 
 export interface LoadKaleidoscopeSchemeOptions {
   /** Explicit standalone group2 slider layout cinf lookup; absent preserves compatibility. */
+  /** Authoritative ordered cinf-only providers for the engine group2 slider. */
   sliderLayoutEnvironment?: import('./cinf-environment.js').PreparedCinfEnvironment;
   /** Explicit standalone push/bevel body cinf lookup; absent preserves compatibility. */
   cinfEnvironment?: import('./cinf-environment.js').PreparedCinfEnvironment;

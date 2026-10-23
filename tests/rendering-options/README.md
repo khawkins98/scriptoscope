@@ -269,26 +269,21 @@ discrimination table:
 
 WD6's 15×15 rect ends at A's bottom-right corner (confirmed by the Tier-2
 review of #432/#444). Title text is covered separately by `window-title.spec.mjs` (source/built,
-helpers in `window-title-rules.mjs`, which imports nothing from `src/`). It
-isolates the title's ink as the pixels public `renderWindow` changes over the
-window's text-free chrome, recomposed through `composeWindowChrome` with the
-SW whose placement and title rect match. Rows (DECISIONS #13, window-widgets
-F11): (A) on evolution, dolphin-som and beos-r503 the ink stays inside the
-code-5 plate; (B) on the titled-utility bars of 1990, windows-95, 1984,
-floppies and windows-31 every glyph row is drawn (ink height equals the same
-title's unclipped height in that theme's document window) and no ink falls
-outside the title rect's rows; (C) on all 13 archives no ink leaves TX4's
-decoded clip, `t4p` widened by 2 on the right. (D) short titles ("Controls", "Document",
-"Tools") on floppies document and titled-utility windows and 1138
-titled-utility windows, whose code-5 plate is 1–2 px narrower than `t4p`, are
-drawn whole: `t4p` is SW wide (§5 "Title rect") and the ink width equals the
-same title's whole ink on 1984's document window (DECISIONS #13 (1) as amended
-by #455: the cap never drops below the title rect width). A plate-only cap
-fails D. Mutations: removing the
-baseline nudge fails B (and so does pre-#452 v2); the rejected widened clip
-fails C. Not covered by any rule row: the title colour (TX7) and the
-truncation text itself (TX5); the partial-zoom widget (WD5); the layout cache (LC1); ladder misses;
-and the five corner-sprite archives. Keyboard activation of title widgets
+helpers in `window-title-rules.mjs`, which imports nothing from `src/`). The
+registered `window.title-fit` assertion binds TF1 / DECISIONS #13: fitting
+Controls/Document/Tools titles remain whole on all 13 sliced archives, in
+document and titled utility windows, active and inactive. Geometry checks use a
+contrasting foreground with raw-equal shadow, isolating glyph coverage from
+natural swatch visibility and shadow extent. The existing plate, glyph-row and
+TX4 clip checks remain; ellipsis-only output keeps TX4 even when the marker
+exceeds room. `window-title-colors.spec.mjs` separately checks raw RGB16 equality,
+each differing channel (including display collisions), shadow first at (+1,+1),
+foreground second and declared browser alpha-over with fractional glyph coverage.
+Wrong opacity, shadow offset and order must fail the oracle. Hand-encoded raw
+loader fixtures cover mask-clear upper/lower, background and inactive samples.
+These are substitute-font contracts, not whole typography or native transfer
+fidelity. The partial-zoom widget (WD5), layout cache (LC1) and ladder misses
+remain outside these title rows. Keyboard activation of title widgets
 (DECISIONS #12) is asserted in `window-widgets.spec.mjs` on animals, whose
 widget top-left strip pixels are mask-clear. No image
 or golden is added.
@@ -497,8 +492,9 @@ and N6 (the 4-px US4 boundary).
 `window.procedural-frame-utility`) drives public `renderWindow` for the five
 reachable utility types on all five archives, active and inactive, 160 × 90
 content titled "Inspector". The legacy aliases `collapsed-titled-utility` and
-`collapsed-side-utility` are driven too. `collapsed-no-title-utility-window` is
-excluded: the loader does not expose it (#423). Expectations come from
+`collapsed-side-utility` are driven too. `collapsed-no-title-utility-window` and its legacy alias are also driven on all
+five archives (#423), giving six canonical utility types; its collapsed frame is
+169 × 15 with insets 4/14/5/1. Expectations come from
 `utilityPlan`, the rule model placed at the structure origin, resolved against
 each archive's own -14316/-14320 (side -14315/-14319) frame cicns, -14314
 (side -14318, else -14314) stripes and -14320/-14318/-14319 glyphs. It checks:

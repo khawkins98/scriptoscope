@@ -317,6 +317,11 @@
     // hooks so they follow the active theme. activeSlug is persisted in ?theme=.
     const detailEl = document.getElementById('detail');
     let activeSlug = null;
+    let routedUrl = location.href;
+    const replaceUrl = (url) => {
+      history.replaceState(null, '', url);
+      routedUrl = location.href;
+    };
     const syncHooks = []; // (slug) => void | Promise<void>
 
     // THEMES is the AUTO-GENERATED gallery list (demo/themes-manifest.json, imported
@@ -1383,7 +1388,7 @@
       const miniBtn = (txt, tip) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = txt; b.title = tip; b.setAttribute('aria-label', tip); b.style.cssText = 'font:12px system-ui;padding:2px 7px;cursor:pointer;border:1px solid #999;border-radius:4px;background:#fff;line-height:1.2'; return b; };
       const withSteppers = (el, onPrev, onNext, ...extra) => { const row = document.createElement('div'); row.style.cssText = 'display:flex;gap:4px;align-items:center'; const p = miniBtn('‹', 'previous'), n = miniBtn('›', 'next'); p.onclick = onPrev; n.onclick = onNext; row.append(p, el, n, ...extra); return row; };
       const cycleSel = (s, dir) => { const len = s.options.length; if (len) s.selectedIndex = (s.selectedIndex + dir + len) % len; };
-      const themeStep = (dir) => async () => { cycleSel(themeSel, dir); populateWindowTypes(await loadWithBase(themeSel.value)); writeHash(); rerender(); };
+      const themeStep = (dir) => () => { cycleSel(themeSel, dir); activate(themeSel.value); };
       const wtypeStep = (dir) => () => { cycleSel(wtypeSel, dir); writeHash(); rerender(); };
       const SAMPLE_TITLES = ['Hello!', 'Untitled', 'README', 'Macintosh HD', 'System Folder', 'untitled folder', 'A', 'My Long Window Title Goes On And On', '404 Not Found', 'Résumé', 'kaleidoscope', 'New Document', 'iMovie', 'Get Info'];
       const setTitle = (v) => { titleIn.value = v; writeHash(); rerender(); };
@@ -1496,43 +1501,53 @@
       const DEFAULTS = { theme: '1138', wt: 'document-window', title: 'Hello!', w: '150', h: '98', state: 'active', scale: '1' };
       const writeHash = () => {
         const p = new URLSearchParams({ theme: themeSel.value, wt: wtypeSel.value, title: titleIn.value, w: wIn.value, h: hIn.value, state: stateSel.value, scale: scaleSel.value });
-        history.replaceState(null, '', '#' + p.toString());
+        replaceUrl('#' + p.toString());
       };
-      const applyControls = (st) => {
-        if (st.theme) themeSel.value = st.theme;
-        // window types depend on the theme — populate, then apply wt if valid
-        return loadWithBase(themeSel.value).then((theme) => {
-          populateWindowTypes(theme);
-          if (st.wt && [...wtypeSel.options].some((o) => o.value === st.wt)) wtypeSel.value = st.wt;
-          if (st.title !== undefined) titleIn.value = st.title;
-          if (st.w) wIn.value = st.w;
-          if (st.h) hIn.value = st.h;
-          if (st.state) stateSel.value = st.state;
-          if (st.scale) scaleSel.value = st.scale;
-        });
+      let controlsToken = 0;
+      const applyControls = async (st) => {
+        const my = ++controlsToken;
+        const slug = THEMES.some((t) => t.slug === st.theme) ? st.theme : DEFAULTS.theme;
+        const theme = await loadWithBase(slug);
+        if (my !== controlsToken) return false;
+        themeSel.value = slug;
+        populateWindowTypes(theme);
+        if (st.wt && [...wtypeSel.options].some((o) => o.value === st.wt)) wtypeSel.value = st.wt;
+        if (st.title !== undefined) titleIn.value = st.title;
+        for (const [key, el] of [['w', wIn], ['h', hIn]]) {
+          if (st[key] && Number.isFinite(+st[key]) && +st[key] > 0) {
+            el.value = String(Math.min(+el.max || Infinity, Math.max(+el.min || 1, +st[key])));
+          }
+        }
+        for (const [key, el] of [['state', stateSel], ['scale', scaleSel]]) {
+          if ([...el.options].some((o) => o.value === st[key])) el.value = st[key];
+        }
+        return true;
       };
 
-      themeSel.onchange = async () => { populateWindowTypes(await loadWithBase(themeSel.value)); writeHash(); rerender(); };
+      themeSel.onchange = () => activate(themeSel.value);
       for (const el of [wtypeSel, stateSel, scaleSel]) el.onchange = () => { writeHash(); rerender(); };
       for (const el of [titleIn, wIn, hIn]) el.oninput = () => { clearTimeout(el._t); el._t = setTimeout(() => { writeHash(); rerender(); }, 250); };
-      resetBtn.onclick = async () => { await applyControls(DEFAULTS); history.replaceState(null, '', location.pathname + location.search); rerender(); };
+      resetBtn.onclick = async () => {
+        replaceUrl(location.pathname + location.search);
+        await activate(DEFAULTS.theme, DEFAULTS);
+      };
 
-      (async () => {
-        const h = location.hash.replace(/^#/, '');
-        const st = h ? Object.fromEntries(new URLSearchParams(h)) : DEFAULTS;
-        await applyControls(st);
-        if (h) writeHash(); // normalize
+      // Activation owns initial state and later hash/ribbon changes. Keep the
+      // previous window type when the next theme supports it.
+      let controlsInitialized = false;
+      syncHooks.push(async (slug, st) => {
+        const state = st ?? (controlsInitialized ? { wt: wtypeSel.value } : DEFAULTS);
+        if (!await applyControls({ ...state, theme: slug })) return;
+        controlsInitialized = true;
+        if (new URLSearchParams(location.hash.slice(1)).has('theme')) writeHash();
         rerender();
-      })();
-
-      // Follow the ribbon's active theme (window type / title / size stay put).
-      syncHooks.push(async (slug) => { themeSel.value = slug; populateWindowTypes(await loadWithBase(slug)); rerender(); });
+      });
     }
 
     const themeBySlug = new Map(THEMES.map((t) => [t.slug, t]));
 
     // ── resource-roles viewer: the generated themes/<slug>/resource-roles.json,
-    //    as a foldout with the progress + scroll-arrow summary cards and a
+    //    as a foldout with the scroll-arrow summary card and a
     //    filterable id → role table (the dual-channel cicn/ics4 mapping). ───────
     async function resourceRoles(theme) {
       const det = document.createElement('details');
@@ -1546,17 +1561,9 @@
         try { const r = await fetch(`${theme.baseUrl}/resource-roles.json`); if (r.ok) data = await r.json(); } catch { /* */ }
       }
       if (!data) { sum.textContent = 'Resource roles — (manifest not found)'; return det; }
-      sum.textContent = `Resource roles — ${data.resources.length} resources · progress=${data.progress?.model ?? '?'}${data.scrollArrows ? ' · scroll-arrows mapped' : ''} — click to expand`;
+      sum.textContent = `Resource roles — ${data.resources.length} resources${data.scrollArrows ? ' · scroll-arrows mapped' : ''} — click to expand`;
       const body = document.createElement('div'); body.style.cssText = 'padding:8px 0';
       const cards = document.createElement('div'); cards.className = 'rr-summary';
-      if (data.progress) {
-        const c = document.createElement('div'); c.className = 'card';
-        const p = data.progress;
-        const detail = p.model === 'lavender-2-part' ? `fill ${p.fill} · track ${p.track}`
-          : p.model === 'role-3-part' ? `frame ${p.frame} · fill ${p.fill} · track ${p.track}` : '—';
-        c.innerHTML = `<b>progress</b><br>${p.model}<br>${detail}`;
-        cards.appendChild(c);
-      }
       if (data.scrollArrows) {
         const c = document.createElement('div'); c.className = 'card'; const a = data.scrollArrows;
         c.innerHTML = `<b>scroll arrows</b><br>raised L${a.raised.left} R${a.raised.right} U${a.raised.up} D${a.raised.down}<br>pressed L${a.pressed.left} R${a.pressed.right}`;
@@ -1726,13 +1733,20 @@
 
     // ── activate: render the single-theme detail + sync the tools to it ───────
     let activateToken = 0;
-    async function activate(slug) {
+    async function activate(slug, controlState = null) {
+      if (!themeBySlug.has(slug)) return;
       const my = ++activateToken;
       activeSlug = slug;
       for (const b of ribbonEl.children) b.classList.toggle('active', b.dataset.slug === slug);
       const active = ribbonEl.querySelector('.ribbon-item.active');
       if (active) active.scrollIntoView({ inline: 'nearest', block: 'nearest' });
-      try { const u = new URL(location.href); u.searchParams.set('theme', slug); history.replaceState(null, '', u); } catch { /* */ }
+      try {
+        const u = new URL(location.href);
+        u.searchParams.set('theme', slug);
+        const h = new URLSearchParams(u.hash.slice(1));
+        if (h.has('theme')) { h.set('theme', slug); u.hash = h.toString(); }
+        replaceUrl(u);
+      } catch { /* */ }
       detailEl.replaceChildren(Object.assign(document.createElement('div'), { textContent: 'loading…', style: 'padding:28px;opacity:.55' }));
       let theme;
       try { theme = await loadWithBase(slug); }
@@ -1744,7 +1758,10 @@
       if (my !== activateToken) return;
       detailEl.replaceChildren(detail);
       revealHash();
-      for (const hook of syncHooks) { try { await hook(slug); } catch { /* tool sync best-effort */ } }
+      for (const hook of syncHooks) {
+        if (my !== activateToken) return;
+        try { await hook(slug, controlState); } catch { /* tool sync best-effort */ }
+      }
     }
 
     // ── Interactive playground (Phase 1) ─────────────────────────────────────
@@ -1951,11 +1968,31 @@
     // (The "Powers" intro + folder-strip theme picker that used to live here
     // moved to demo/index.html with the 2026-05-30 landing/diagnostic swap.)
 
-    // ── boot: build the ribbon, then activate the theme from ?theme= (or the first).
+    // A valid hash theme takes precedence over the query selection. Section
+    // anchors and unknown themes leave the current selection intact.
+    const hashControls = () => {
+      const st = Object.fromEntries(new URLSearchParams(location.hash.slice(1)));
+      return themeBySlug.has(st.theme) ? st : null;
+    };
+    const navigateFromUrl = () => {
+      // Traversal can emit both events, or only popstate after replaceState.
+      // Our own URL writes also mark the route so neither event reloads it.
+      if (routedUrl === location.href) return;
+      routedUrl = location.href;
+      const st = hashControls();
+      if (st) activate(st.theme, st);
+      else {
+        const want = new URL(location.href).searchParams.get('theme');
+        if (themeBySlug.has(want) && want !== activeSlug) activate(want);
+      }
+    };
+    addEventListener('popstate', navigateFromUrl);
+    addEventListener('hashchange', navigateFromUrl);
     await buildRibbon();
     {
+      const st = hashControls();
       const want = new URL(location.href).searchParams.get('theme');
-      activate(THEMES.some((t) => t.slug === want) ? want : THEMES[0].slug);
+      await activate(st?.theme ?? (themeBySlug.has(want) ? want : THEMES[0].slug), st);
     }
   </script>
   <section class="site-next" aria-label="Continue exploring">

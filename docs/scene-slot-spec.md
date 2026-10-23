@@ -127,18 +127,10 @@ The label colour applied to the volume name in the Scene's Finder info bar.
 
 Implemented in: `scripts/lib/scene-info-bar.mjs`, shared by `demo/diagnostic.html` and `scripts/scene-coverage-audit.mjs`. Background selection precedes text contrast; the existing precedence is unchanged.
 
-### `progress-bar-hue` — Progress-bar accent
-
-| Tier | Source field | Why |
-|---|---|---|
-| T1 | shipped `-10223` lavender canonical | `composeProgress` checks this FIRST — the kDEF default. Most platinum-family + Windows-port + dolphin-som themes land here |
-| T2 | role-3-part `-10080/-10079/-10078` (frame/fill/track) | Native-recipe schemes that paint a custom progress bar — runtime fallback when `-10223` isn't shipped |
-| T3 | multi-hue variant flag (informational) | When a scheme ships 3+ alternate hue cicns (apple-platinum-2, black-platinum, system7-nostalgia-silver ship 13 hues), exposing a picker is a future feature |
-| T4 | procedural Platinum | No progress art → `platinumProgress` fallback (no theme currently lands here) |
-
-Implemented in: `src/controls.ts:composeProgress`.
-
-Tier order **MUST mirror** composeProgress's runtime lookup order. The audit's tier order was reversed in an earlier draft (role-3-part as T1); the framework-architecture reviewer caught this and the order was corrected to match runtime. Future tier reordering must update both.
+Progress drawing is outside this manifest-only tier audit. The engine selects
+frame art or procedural drawing using the cinf gate described in
+[`engine/progress.md`](./spec/engine/progress.md) GATE1–GATE4; cicn presence
+alone does not select a drawing path or establish hue variants (#436).
 
 ### `title-widget-glyph` — Title-bar widget (close / zoom / collapse)
 
@@ -182,14 +174,6 @@ Implemented in: `demo/diagnostic.html schemeIcons`. Prefer the HIGHEST depth per
 
 These don't drive slot selection today, but the codex flags them so we can
 decide whether to expose them in future:
-
-### `progress-hues`
-
-Some schemes ship 6–13 progress-bar fill cicns at `-10071..-10080` and
-`-10220..-10222` — a hue picker the original installer offered. The runtime
-currently picks ONE (the canonical lavender or the role-3-part frame/fill/track
-trio). Exposing the picker at runtime would let a consumer match the progress
-bar to their accent.
 
 ### `numbered-ppats`
 

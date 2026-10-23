@@ -612,8 +612,8 @@ export const UTILITY_TYPES = [
   { slug: 'side-floating-utility-window', side: true, collapsed: false, titled: false },
   { slug: 'collapsed-side-floating-utility-window', legacy: 'collapsed-side-utility', side: true, collapsed: true, titled: false },
   { slug: 'no-title-utility-window', side: false, collapsed: false, titled: false },
+  { slug: 'collapsed-no-title-utility-window', legacy: 'collapsed-no-title-utility', side: false, collapsed: true, titled: false },
 ];
-export const UTILITY_EXCLUDED = { slug: 'collapsed-no-title-utility-window', legacy: 'collapsed-no-title-utility', issue: 423 };
 /** The content size the binding renders (UG1 needs C only; 160 × 90 keeps every probe clear of the title). */
 export const UTILITY_CONTENT = [160, 90];
 

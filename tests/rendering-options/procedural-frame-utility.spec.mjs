@@ -1,6 +1,6 @@
 import { existsSync } from 'node:fs';
 import { test, expect, openHarness, attachObservations } from './fixtures.mjs';
-import { SCHEMES, UTILITY_TYPES, UTILITY_EXCLUDED, UTILITY_CONTENT, utilityPlan } from './procedural-frame-rules.mjs';
+import { SCHEMES, UTILITY_TYPES, UTILITY_CONTENT, utilityPlan } from './procedural-frame-rules.mjs';
 
 // Public renderWindow (source and built) against the procedural-frame utility rows
 // (docs/spec/engine/procedural-frame.md rev 3, §9), for the five archives with no wnd#.
@@ -10,7 +10,7 @@ import { SCHEMES, UTILITY_TYPES, UTILITY_EXCLUDED, UTILITY_CONTENT, utilityPlan 
 // stripes cicn -14314 (side -14318, else -14314) and the widget ics8/ics# -14320/-14318/-14319.
 // Nothing is read from the runtime's tables. Each type is driven by its canonical slug and,
 // where one exists, its legacy alias (the #421 B1 class: an alias that misses the record falls
-// back to a document frame). collapsed-no-title-utility-window is excluded (#423).
+// back to a document frame). Includes the exact collapsed-no-title-utility-window (#423).
 const archiveOf = slug => ['scheme.sit', 'scheme.rsrc'].find(f => existsSync(new URL(`../../themes/${slug}/${f}`, import.meta.url)));
 const archives = Object.fromEntries(SCHEMES.map(slug => [slug, archiveOf(slug)]));
 const plans = UTILITY_TYPES.map(type => {
@@ -86,7 +86,7 @@ for (const mode of ['source', 'built']) {
       return rows;
     }, { mode, archives, plans, content: UTILITY_CONTENT, title: TITLE });
     await attachObservations(info, 'procedural-frame', `${mode}-utility`, { mode, rows });
-    expect(UTILITY_TYPES.map(t => t.slug)).not.toContain(UTILITY_EXCLUDED.slug);
+    expect(UTILITY_TYPES.map(t => t.slug)).toContain('collapsed-no-title-utility-window');
     expect(rows).toHaveLength(SCHEMES.length * UTILITY_TYPES.length * 2);
     const planOf = slug => plans.find(p => p.type.slug === slug).plan;
     for (const r of rows) {

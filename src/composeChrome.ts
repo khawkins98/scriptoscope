@@ -103,10 +103,6 @@ export interface ComposedChrome {
   titleRegion: { x: number; w: number; midY?: number };
   /** `t4p`, the remapped title rect (TX3) the title text is drawn in (wnd# windows); empty when it cannot be drawn. */
   titleRect?: PixRectXY;
-  /** cicn column of the title-text colour marker (cinf textPixel, else the marker rect), or −1. */
-  titleFillSrcX: number;
-  /** The template's colour at the marker, or null. */
-  titleFillRgb?: { r: number; g: number; b: number; a: number } | null;
   /** Slice-by-slice placement map for the diagnostic inspector. */
   placement: PlacementSlice[];
   /** Widgets with a reachable hit (HT1–HT5, HT7): remapped rects in buffer pixels. */
@@ -211,25 +207,18 @@ export function composeWindowChrome(cicn: PixelBuffer, windowType: WindowType, c
 
   // ── title plate and marker ─────────────────────────────────────────────────
   const top = layout.sides[0];
-  let titleMarkerX = -1, my0 = -1, my1 = -1;
+  let my0 = -1, my1 = -1;
   for (const [slug, part] of Object.entries(windowType.parts)) {
     const [l, t, r, b] = part.rect;
     // The title marker: a ≤ 2 px wide rect in the title bar (the colour sample line, 0x5530).
-    if (slug !== 'part-0' && r > l && b > t && t < frame.top && r - l <= 2) { titleMarkerX = l; my0 = t; my1 = b; break; }
+    if (slug !== 'part-0' && r > l && b > t && t < frame.top && r - l <= 2) { my0 = t; my1 = b; break; }
   }
   const titleRegion = {
     ...(top?.anchor ? { x: top.P[top.anchor - 1]!, w: top.P[top.anchor]! - top.P[top.anchor - 1]! } : { x: 0, w: fullW }),
     ...(my1 > my0 ? { midY: Math.min(frame.top - 1, (my0 + my1) / 2) } : {}),
   };
-  const cinf = opts.cinf ?? windowType.cinf ?? null;
-  const titleFillSrcX = cinf?.textPixel ? cinf.textPixel[0] : titleMarkerX;
-  let titleFillRgb: { r: number; g: number; b: number; a: number } | null = null;
-  if (titleFillSrcX >= 0 && my1 > my0 && titleFillSrcX < cicn.width) {
-    const [r, g, b, a] = cicn.getPixel(titleFillSrcX, Math.max(0, Math.min(cicn.height - 1, Math.floor((my0 + my1) / 2))));
-    if (a > 0) titleFillRgb = { r, g, b, a };
-  }
   return {
-    buffer: out, frame, fullWidth: fullW, fullHeight: fullH, titleRegion, titleFillSrcX, titleFillRgb, placement, layout,
+    buffer: out, frame, fullWidth: fullW, fullHeight: fullH, titleRegion, placement, layout,
     titleRect: xywh(remapWidget(layout, layout.T4)),
     widgets: hittable.map(w => ({ role: w.row.role, rect: xywh(w.rect) })),
     hitWidget: (x, y) => widgetHit(layout, widgets, strip, x, y).role,

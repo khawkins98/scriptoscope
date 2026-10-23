@@ -719,7 +719,7 @@ collapse rect's two corner cells by first match in side then segment order
 (RM3/RM4), using the template cross bands of CR1–CR4. A corner in a code-4
 cell on the first firing side or a later one, or in a dropped code-10 cell,
 counts as emptying (RM6). That test is a corner-cell reading, not a full
-layout, so three cases were checked by hand from `sf.out`:
+layout, so four types were checked by hand from `sf.out`:
 
 - 1990 side-floating-utility: top-left in top segment `[0,14)` code 1,
   bottom-right in left segment `[9,14)` code 4. With that cell at width 0 the
@@ -740,3 +740,34 @@ known to the runtime.
 `wd6.mjs` / `wd6.out`: all 13 `popup-window` types have type-5 and type-6
 rect-list entries. WD6 runs under `popupFamily` in the full draw
 (`0x5b7a`), so it is exercised wherever AP1 is.
+
+
+## C15. Issue #459: title samples and #445 wording (2026-10-23)
+
+Writer-only static reading of L1 `kdef0.annotated.txt` in
+`campaign-20261021/v2-lanes/L1/annotated/`; no execution. Independent verifier
+must re-trace these new TC rows; this writer makes no verifier marks.
+
+- `0x5560..0x5564`: `0x6582(0)` → fp-16 = A. `0x5574..0x5578`:
+  `0x6582(4)` → fp-8 = T4. `0x557e..0x5592` passes T4.left and
+  T4.bottom−4 into `0xfc5c`, result fp-290; `0x55e6..0x55ea` sets RGBBackColor.
+- `0x563e` tests A4+509, not a direct popup-family identity. Nonzero samples
+  A.left,A.bottom−1 (`0x5644..0x5672`); zero samples A.left,A.top
+  (`0x567e..0x56a8`). First result fp-22 is text; second fp-28 is shadow.
+- `0x56b2..0x56ce` compares three words; any mismatch reaches shadow RGBForeColor
+  and MoveTo(left+1,bottom−3), DrawString (`0x56d0..0x56ec`). Text uses
+  fp-22 and MoveTo(left,bottom−4), DrawString (`0x56ee..0x5706`).
+- Trap identities: `$AA15` RGBBackColor, `$AA14` RGBForeColor, `$A893` MoveTo,
+  `$A884` DrawString, `$A889` TextMode, from pinned Traps.h.
+
+N1–N5 preserve the independent #445 review's conclusions and attribution:
+`v2-lanes/window-migration/REVIEW-445.json` and `REVIEW-445.evidence.md`,
+independent Tier-1 verifier (Claude, Opus 5.5), 2026-10-22. N1: zero type-5/6
+entries in 1990, dolphin-som and evolution leave only WD6's corner paint.
+N2: 38 types have both corners in the zeroed code-4 cell; the other two empty
+by actual layout (1990 height 0, monkey-paradise height −2). N3: the collapse
+sub-rect mask is fully set in cicns −14330, −14298 and −14290; dolphin-som
+side-floating-utility's zoom rect is empty after TS3 (top-left maps through
+top code-1), so HT4 cannot shadow the collapse hit. N4 counts four types,
+not three bullets. N5: `0x5df6..0x5e42`, `0x607a..0x608e` apply +8 only
+with altWidgets; the sideTitle −8 NULL retry remains independent.

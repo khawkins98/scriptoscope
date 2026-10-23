@@ -1,6 +1,30 @@
 # `docs/spec/` index
 
-The standing primary-source references for the Kaleidoscope kDEF model. The tree is dense; this index groups docs by **source layer** to make navigation cheap.
+## Choose your role first
+
+**Runtime implementers:** this general index contains evidence locations and is
+forbidden by the clean-room brief. Go directly to
+[`engine/IMPLEMENTER-BRIEF.md`](./engine/IMPLEMENTER-BRIEF.md), then only the assigned
+safe `engine/<family>.md` and the brief's exhaustive allowed files. Do not follow
+the evidence or original-reference links below, inspect independent test/oracle
+sources or read verifier reports. Ask a spec question if a rule is missing or
+ambiguous; do not infer it from evidence or a conflicting legacy implementation.
+This routing does not add any allowed paths.
+
+**Spec writers and independent verifiers:** the source-layer index below is for
+your reference work. Use original evidence to write or verify listing-free family
+specs; send implementers spec clarifications through the spec author, never
+verifier reports or original listings. Keep independent test authorship separate.
+
+**Current orientation (2026-10-23):** October’s incremental decode-first `v2`
+integration branch is distinct from May’s v2/v3 resets. the package version is 0.5.0;
+not every family has migrated. Follow-up work and review state are tracked in [issue #459](https://github.com/khawkins98/scriptoscope/issues/459). See
+[DECISIONS #8](../v2/DECISIONS.md) and, for integration owners/spec writers,
+the [amended PLAN](../v2/PLAN.md). The current implementation surface is
+`src/engine/qd/`, `resources/`, `state/`, `tables/`, `families/` and `trace.ts`
+under `src/engine/`; `composeChrome.ts` wraps the window driver. The tables below retain the
+source-reference catalogue; they are not an implementer reading list or an
+exhaustive current-family inventory.
 
 The **citation chain** (highest authority first):
 
@@ -47,11 +71,11 @@ kdef-binary-inventory.md     (1.8.2 + 2.3.1 extraction recipe)
 
 | Doc | What it is | Source binary |
 |---|---|---|
-| **`kdef231-reference.md`** | THE standing reference. Every routine address, every resource id, every struct offset, every coordinate mapping for the 2.3.1 binary. First stop for "where is X?". | `/tmp/kaleido-trace/kDEF231_0.bin` (re-extractable via `.scratch/dump-kaleido-cdev.mjs`) |
+| **`kdef231-reference.md`** | Original binary lookup for spec writers/verifiers: routine addresses, resource ids, struct offsets and coordinate mappings. Forbidden implementer reading; use the brief and family spec instead. | `/tmp/kaleido-trace/kDEF231_0.bin` (re-extractable via `.scratch/dump-kaleido-cdev.mjs`) |
 | `kdef-binary-inventory.md` | The extraction recipe + 2.3.1 architectural findings (35-entry message dispatch, wnd# fallback ladder at 0x356c..0x367e, FourCC vocabulary, 17 new AppearanceLib calls in 2.3.1). | `.scratch/k{182,231}-kdef/` |
 | `kdef-service-handlers.md` | Per-slot decode of the 9-entry master service-handler table at `0x1c7c`. Pins slot 3 = `0x118b8` wnd# gate (NOT cinf — corrects an earlier inventory note); cinf consumer is `0x116f8`. | `.scratch/k231-kdef/kDEF/k231-kdef0.asm` |
 | `kdef182-disassembly-findings.md` | May 2026 1.8.2 binary archaeology pass. Structural facts (QuickDraw + CopyBits, kDEF themes surroundings + Appearance Mgr draws controls, 4 hardcoded `_GetResource` calls). | Same |
-| `kdef-architecture.md` | The "how does it work?" tour for new contributors. | Synthesis |
+| `kdef-architecture.md` | Background architecture tour; current engine layout is described above and in the family specs. | Synthesis |
 | `kdef231-recipe-walk.md` | The decoded recipe walk — the TRUTH source for part-code edges. | Same as kdef231-reference.md |
 | `kdef231-code10-widgets.md` | Stub (split 2026-10-22). Keeps only the ledger-pinned `kdef.too-short-step` excerpt; the behaviour is in `engine/window-widgets.md`, the trace in `engine/window-widgets.evidence.md`. | Same as kdef231-reference.md |
 | `engine/window-widgets.md` | Implementer spec for the window recipe: part-code verdicts, the too-short step, the titled side, the layout cache, and the rect-list widget remap, draw and hit. Evidence: `engine/window-widgets.evidence.md`. | Same as kdef231-reference.md |
@@ -69,14 +93,17 @@ kdef-binary-inventory.md     (1.8.2 + 2.3.1 extraction recipe)
 | `platinum-wdef125-decode.md` | Same. WDEF 125 specifically. |
 | `platinum-controls-faithfulness-ledger.md` | Companion ledger for the Platinum decode. |
 | `compositor-spec.md` | The runtime model the kDEF replays. The consumer of `kdef231-reference.md` §4. |
-| `glitch-punchlist.md` | A standing list of visual glitches per theme — kept as the v3-reset QA glossary; model alignment complete. |
+| `glitch-punchlist.md` | Historical May v3-reset QA glossary; not an October all-family migration or fidelity-completion claim. |
 | ~~`golden-reference-todo.md`~~ | **Moved to [#190](https://github.com/khawkins98/scriptoscope/issues/190)** 2026-05-30 (forward-looking work belongs on the tracker; design context archived at `../archive/golden-reference-todo.md`). |
 | `scheme-factory-vs-corpus.md` | Cross-correlation of the 127-entry Scheme Factory `STR# 128` role catalogue against the 6,842 corpus author labels: 12 canonical / 94 paraphrase / 15 weak / 12 invented; 52 of 120 SF slots are dead. |
 | `codebase-vs-primary-sources-audit.md` | 2026-05-29 holistic sweep of `src/` + scripts against the primary-source corpus. 12 findings (documentation, authorLabel adoption, unread decoded fields); nothing landed — gaps surfaced. |
 
 ---
 
-## How to use this tree
+## How spec writers and verifiers use the source references
+
+Runtime implementers follow the brief and spec-question route above; the lookup
+and acquisition steps here do not apply to them.
 
 When you ask "what does id X / field Y / address Z mean?":
 

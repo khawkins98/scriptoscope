@@ -281,3 +281,12 @@ matter to FRAME1's unreachable retry.
   patch repaints them is not decoded here (spec §6 item 1).
 - PACH 130 compares against `cicn −10223` (PACH `0x8f7a`, `0x10e10`); CDEF 5
   never requests it.
+
+
+## E13. Issue #459 FB9 count correction (2026-10-23)
+
+`v2-lanes/progress/REVIEW-440.json` N2 and `review-440/corpus-scan.json`
+record 36 FB9 unspecified cells for monkey-paradise (3 states × 3 lengths ×
+4 phases), correcting the PR body's 24. The source rule remains CDEF 5
+`0x71e..0x72e`; no new execution or native observation is claimed. This is
+transcription of the independent review, not a self-verification verdict.

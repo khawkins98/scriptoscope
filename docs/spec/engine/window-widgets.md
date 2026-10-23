@@ -36,7 +36,7 @@ F10 (title text), and corrects F6's scope.
 | message | every WDEF message except the custom messages 1000 and 1001 runs the layout (`0x2910..0x291e`). The widget draw answers `wDraw` (0) with draw parameter 0, 4, 5, 6 or 9. The widget hit answers `wHit` (1) |
 | binary | Kaleidoscope 2.3.1 `kDEF 0`, 107,726 B, SHA-256 `2c027276dae2355964a0dde1ace31f60ba845ab2c5fbf0496fd34ab2afe7c342` |
 | cited range | `0x2e02..0x38c8` (per-message flags, layout cache, per-side layout loop), `0x4778` (content rect), `0x487e` (collapse-box test), `0x49d6..0x4a62` (part-code verdict), `0x4a64..0x5176` (per-side layout), `0x5178..0x5354` (allocation walk), `0x5356..0x552e` (cell rects), `0x5cb6..0x5dda` (remap), `0x5ddc..0x6060` (widget hit), `0x6062..0x638e` (widget draw), `0x4124..0x41e6` (hit dispatch), `0x41ee..0x42d6` (draw dispatch), `0x572e..0x5cb4` (full draw: `0x58b8..0x58d8`, `0x5990..0x59c4`, `0x5a28..0x5a42`), `0x4c6a..0x4dfa` (popup placement), `0x38fe..0x3954` (popup data at window creation), `0x5530..0x572c` (title text), `0xf6e0..0xf718` (widget hit region) |
-| out of scope | the grower arithmetic itself (two-pass shares, tiles and remainder: [compositor-spec "Distribution"](../compositor-spec.md), restated only where this unit changes it); the tile and scale blits ([`qd-primitives.md`](qd-primitives.md)); the title text colour sample (`0xfc5c`; [`../kdef231-reference.md`](../kdef231-reference.md) `0x5530` row); the structure region (`wCalcRgns`) and the full draw's offscreen buffer; the built-in procedural frame of the five recipe-less schemes ([`procedural-frame.md`](procedural-frame.md)) |
+| out of scope | the grower arithmetic itself (two-pass shares, tiles and remainder: [compositor-spec "Distribution"](../compositor-spec.md), restated only where this unit changes it); the tile and scale blits ([`qd-primitives.md`](qd-primitives.md)); the structure region (`wCalcRgns`) and the full draw's offscreen buffer; the built-in procedural frame of the five recipe-less schemes ([`procedural-frame.md`](procedural-frame.md)) |
 
 ## 2. Inputs
 
@@ -74,7 +74,7 @@ F10 (title text), and corrects F6's scope.
 | `collapsed` | the window is collapsed: the result of a helper that asks the Appearance Manager (`$AA74` selector 16, identity not in the pinned Traps.h) or else an auxiliary-window flag bit (`0xf078`). Cleared for the popup family | `0x2e62`, `0x3216` |
 | `partialZoom`, `partialZoomColumn` | the vertical/horizontal-zoom document variants (procIDs 1026–1029; the column flag for 1026/1027) and families 66/67 with some variations | `0x2fba..0x3038`, `0x3194`, `0x31a8` |
 | `altWidgets` | alternate widget cicn set (+32) and bold title face | `0x3132`, `0x31ba`, read `0x4f0e`, `0x607e` |
-| `sideTitle` | side-titled variant: widget id +8 with a −8 fallback; collapsed content zeroes width not height | `0x3150`, `0x31fe` |
+| `sideTitle` | side-titled variant: widget id +8 only when `altWidgets` is also set (WD11); on a missing widget cicn, retry id −8 under `sideTitle`; collapsed content zeroes width not height | `0x3150`, `0x31fe` |
 | `popupFamily` | procID family 63 | `0x3210` |
 | `outlineDraw` | draw parameter 0 draws the outline instead of the frame | `0x428c..0x4292` |
 | `cacheable` | the window's private data carries the layout-cache tag, written at window creation only when `hasZoom` was set (`0x397c`, `0x39d2`) | `0x3746..0x376a` |
@@ -318,9 +318,43 @@ a frame rect (`0x414a..0x4164`, `0x4194..0x41bc`) are not decoded (§6 Q6).
 | TX4 | always | the text is clipped to the old clip ∩ `t4p` widened by 2 on the right | `0x55be..0x55e4` |
 | TX5 | `StringWidth(title) > room`, `room = t4p.right + 2 − t4p.left` | TextFace condense (32; 33 under `altWidgets`), then `$A8B5` TruncString(room, title, truncate at end). The condensed face stays on for the draw | `0x55ec..0x5636` |
 | TX6 | always | TextMode 1 (`srcOr`) | `0x5638..0x563c` |
-| TX7 | the two sampled text colours differ. The first colour is the chrome template's pixel at `(A.left, A.top)`, the second the pixel one to its right; the popup family samples at `(A.left, A.bottom − 1)` and one to its right (sampler: [`../kdef231-reference.md`](../kdef231-reference.md) `0x5530` row) | the shadow string first: second colour, pen at `(t4p.left + 1, t4p.bottom − 3)`, DrawString | `0x563e..0x56ec` |
+| TX7 | the two sampled text colours differ. The first colour is the chrome template's pixel at `(A.left, A.top)`, the second the pixel one to its right; the popup family samples at `(A.left, A.bottom − 1)` and one to its right (sampling and colour interpretation: TC1–TC5 below) | the shadow string first: second colour, pen at `(t4p.left + 1, t4p.bottom − 3)`, DrawString | `0x563e..0x56ec` |
 | TX8 | always | the text: first colour, pen at `(t4p.left, t4p.bottom − 4)`, DrawString. Left-aligned: the kDEF does not centre the string; the centring is the layout's (TT6/TT7, §5) | `0x56ee..0x5706` |
 | TX9 | after the draw | TextFace back to plain (bold under `altWidgets`), clip restored | `0x5708..0x5724` |
+
+### 4.13 Title colour sampling
+
+Samples use the loaded chrome template's original pixel coordinates, before
+remapping, blitting or display-profile conversion. The colours are full
+QuickDraw RGB triples; compare all three 16-bit channels. Use the indexed
+pixel sampler in [qd-primitives.md](qd-primitives.md) §4, Samplers; a mask-clear pixel
+still supplies colour. No palette role or scheme-name default substitutes for
+a valid sample (`0x557e..0x5592`, `0x563e..0x56ce`, `0xfc5c..0xfd74`).
+
+| # | condition | effect | source |
+|---|---|---|---|
+| TC1 | title path before remapping `T4` | background := template pixel `(T4.left, T4.bottom − 4)`; RGBBackColor(background) after setting the title clip | `0x556a..0x5592`, `0x55e6..0x55ea` |
+| TC2 | per-window lower-swatch flag clear | text := template pixel `(A.left, A.top)`; shadow := template pixel `(A.left + 1, A.top)` | `0x563e..0x5642`, `0x567e..0x56a8` |
+| TC3 | per-window lower-swatch flag set | text := template pixel `(A.left, A.bottom − 1)`; shadow := template pixel `(A.left + 1, A.bottom − 1)` | `0x5644..0x5672` |
+| TC4 | text RGB equals shadow RGB | skip the shadow draw; draw text once (TX8) | `0x56b2..0x56ce`, `0x56ee..0x5706` |
+| TC5 | any channel differs | draw shadow first at TX7's (+1,+1) pen offset, then text at TX8's pen; keep TextMode `srcOr` for both | `0x5638..0x563c`, `0x56d0..0x5706` |
+
+The lower-swatch flag is `popupFamily` (`0x3210`), distinct from TX2's
+empty-title flag. Use the lower swatch for `popupFamily`, upper otherwise. Out-of-bounds samples follow the sampler's unspecified-input
+boundary; do not replace them with invented colours. Independent verification
+must test differing RGB channels, equal colours and mask-clear swatches.
+
+**Runtime title-font policy.** The substitute glyphs retain the existing
+transparent-coverage, browser alpha-over painter, with shadow first and text
+second. As with [control text colours](../control-text-colors.md) and
+[prepared bitmap fonts](../prepared-bitmap-font.md), this does not establish
+pixel equivalence to QuickDraw's `srcOr` text transfer. TX6 and TC5 record the
+original requested mode; no bitwise RGB formula is inferred from that mode.
+The title sizing, clip and baseline policies remain those of DECISIONS #13.
+
+| id | condition | runtime font policy | authority |
+|---|---|---|---|
+| TF1 (`window.title-fit`) | substitute title font, every sliced archive | Measure and draw at full width (`SWc = SW`). Preserve a whole title whenever its measured width fits `room = min(t4p.width + 2, max(plate.right − t4p.left, t4p.width))`; otherwise retain the longest prefix plus ellipsis that fits, or ellipsis alone when no glyph-plus-ellipsis fits (even when the marker itself exceeds room). Keep TX4's clip and the DECISIONS #13 baseline adjustment. This is a finite substitute-font sizing contract, not whole typography fidelity or an original-font raster claim. | DECISIONS #13; TX5 truncEnd; declared substitute marker policy |
 
 ## 5. Geometry
 
@@ -429,7 +463,8 @@ rect-list type 3 widget wholly inside it. Rect tuples are (left, top, right, bot
 - Every side list is in ascending border order.
 - Rows no archive exercises: WD5, WD8, TT4a, LC1 (the runtime has no message
   stream). *Corrected 2026-10-22:* WD6 is exercised. All 13 `popup-window`
-  types have rect-list type-5 and type-6 entries, and the full draw runs WD6
+  types have rect-list type-5 and type-6 entries (both are zero rects in
+  1990, dolphin-som and evolution, so only the 15×15 corner blit paints there), and the full draw runs WD6
   for every `popupFamily` window, the AP1 case below.
 - *Corrected 2026-10-22.* AP1 is reachable: the `popup-window` type of all 13
   archives has a code-5 anchor on its top side, and the runtime sets
@@ -509,7 +544,7 @@ mutation it must fail, so a hook that cannot fail it does not count.
 | no widget stamp; a zero-width cell draws nothing | WD4, WD5 | covered. The partial-zoom pass (WD5) is not modelled; no procID 1026–1029 input exists |
 | `resolveTitleWidgetRects`: sides in order, segments ≥ 1, half-open template match, corners independent, empty on a miss | RM2–RM5, RM7, RM8 | covered |
 | `resolveTitleWidgetRects`: `br` translated by the cell's **near**-edge delta | RM6 | **finding F1**: the decode uses the far edge. In a dropped code-10 cell the collapse box becomes empty (not drawn, not hit). The runtime keeps a full-size hit and press rect at the collapse point |
-| `resolveTitleWidgetRects`: no collapse rect when `shadeCleared` | TS3 + HT5, LC1–LC3 | covered for a message that ran the layout. **Finding F5**: under LC1 the decode re-derives `collapseRequested` from the procID table, so the HT5 gate passes again on a cached message. The collapse box is hit only where its remapped rect (from the cached placed lists) is non-empty. *Corrected 2026-10-22.* TS3 is not confined to one side. By TS1/TS3 it fires on any too-short side whose code-4 width exceeds its code-17 width (`G > 0`) once dropping code 10 still leaves `E < F`. With every widget present, that happens for some content size on 42 window types in 10 archives (1984, 1990, animals, apple-lisa, crayon-os, dolphin-som, evolution, floppies, monkey-paradise, windows-95). At content delta −12 it fires on 12 sides in 6 archives (1984, animals, evolution, floppies, monkey-paradise, windows-95). On 40 of the 42 types a corner of the collapse rect lies in a cell the layout zeroed: the code-4 cell on the firing side or a later side, or a dropped code-10 cell. RM6 then empties the rect, so the cached message cannot hit it, and there is no corpus-observable divergence. The two exceptions are both dolphin-som. In side-floating-utility the collapse rect lies wholly in a top code-1 cell while TS3 fires on the left side (content height more than 18 below the template). In no-title-utility it lies wholly in a top code-3 cell while TS3 fires on the top (content width more than 18 below). There the remapped rect stays non-empty. On a cached message of a `cacheable` window (LC1, which needs `hasZoom` at creation), the original answers 9 (collapse box) where the laid-out message, like the runtime, gives no collapse hit. The runtime has no message stream (LC1 unexercised, §6.2), so this is a decode-internal difference the runtime cannot show |
+| `resolveTitleWidgetRects`: no collapse rect when `shadeCleared` | TS3 + HT5, LC1–LC3 | covered for a message that ran the layout. **Finding F5**: under LC1 the decode re-derives `collapseRequested` from the procID table, so the HT5 gate passes again on a cached message. The collapse box is hit only where its remapped rect (from the cached placed lists) is non-empty. *Corrected 2026-10-22.* TS3 is not confined to one side. By TS1/TS3 it fires on any too-short side whose code-4 width exceeds its code-17 width (`G > 0`) once dropping code 10 still leaves `E < F`. With every widget present, that happens for some content size on 42 window types in 10 archives (1984, 1990, animals, apple-lisa, crayon-os, dolphin-som, evolution, floppies, monkey-paradise, windows-95). At content delta −12 it fires on 12 sides in 6 archives (1984, animals, evolution, floppies, monkey-paradise, windows-95). On 38 of the 42 types both corners of the collapse rect lie in the code-4 cell that TS3 zeroes, so RM5 and RM6 give it zero extent. On 2 more (1990 and monkey-paradise side-floating-utility) the bottom-right corner lies in that cell and the laid-out rect has height 0 and −2 respectively. These 40 types have no collapse hit on the cached message. The two exceptions are both dolphin-som. In side-floating-utility the collapse rect lies wholly in a top code-1 cell while TS3 fires on the left side (content height more than 18 below the template). In no-title-utility it lies wholly in a top code-3 cell while TS3 fires on the top (content width more than 18 below). There the remapped rect stays non-empty. On a cached message of a `cacheable` window (LC1, which needs `hasZoom` at creation), the original answers 9 (collapse box) where the laid-out message, like the runtime, gives no collapse hit. The runtime has no message stream (LC1 unexercised, §6.2), so this is a decode-internal difference the runtime cannot show |
 | `distributeSide` grows each side over the full window extent (the drawn extent + the content delta, from `S[0]`), and stamps a far-edge cap past the last border on horizontal sides | LS7, LS9, AW8 | **finding F9** (2026-10-22): the decode budgets every side to end at `P[N] = S[N] + content delta`, and the growers share `P[N] − P[0] − F`. The side ends there whenever the allocation hands out the whole budget, which is every corpus side except the two in LS9. The decode and the runtime differ on the 150 corpus sides whose `S[N]` is not the drawn extent (§6.2): there the runtime stretches growers into the region past `P[N]`, or short of it. The runtime's far-edge cap is a runtime policy for a region the decode does not paint (Q3) |
 | template band for bottom/right cells uses the drawable extent (`drawH`, `drawW`) | CR2, CR4 | **finding F6** (scope corrected 2026-10-22): the decode uses the template cicn bounds. They differ on the axis of a bottom or right side in 19 window types across animals, beos-r503, crayon-os, evolution and monkey-paradise (§6.2), not only beos's active document window. The excess is transparent and holds no widget, so under CopyMask the pixels drawn are the same; the cell rects, the remap's `t`/`p` for those sides and the window's outer size differ |
 | `renderWindow` centres the title text on the code-5 plate and ellipsizes it to the plate's width | TX1–TX9, §5 "Title rect" | **finding F10** (2026-10-22): the decode draws the string left-aligned in the remapped `T4` (baseline 4 above its bottom), clipped to that rect + 2 px, truncated with TruncString in the condensed face only when it does not fit, and draws nothing for an empty title or a remapped `T4` of zero width or height (TX3 tests equality only; a negative-width rect is drawn into a clip of at most 1 px). The string is centred on the content rect's centre, so it matches plate-centring only where the margins around `T4` are equal |

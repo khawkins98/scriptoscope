@@ -76,3 +76,14 @@ export function rasterizeTitle(text: string, px: number, hex: string, opts: { ex
   return { buffer: buf, ascent: asc, advance: Math.ceil(tm.width), fontAscent, fontDescent };
 }
 
+
+/** TX5 / TruncString at end: retain the ellipsis even when no prefix fits. */
+export function truncateTitle(text: string, room: number, measure: (text: string) => number): string {
+  if (measure(text) <= room) return text;
+  const glyphs = Array.from(text);
+  for (let n = glyphs.length - 1; n > 0; n--) {
+    const candidate = `${glyphs.slice(0, n).join('')}…`;
+    if (measure(candidate) <= room) return candidate;
+  }
+  return '…';
+}
