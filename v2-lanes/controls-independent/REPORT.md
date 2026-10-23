@@ -451,3 +451,28 @@ and all five missing-local-push-cinf archives (three states, explicit and omitte
 sizes): all ten source/built archive scopes retain raw payload/fork/asset ownership
 and unassessed pixels. These executions test the candidate; they do not activate
 it, approve native pixels, or claim the full old border suite passes.
+
+## Frozen body/band repair and isolated ordinal red proof
+
+PM authorized settled `333c20534a638a9069e62f085a39cc721d088f3c`, merged at
+`ef2d18ed` without self-authored runtime edits. The unchanged focused suite passes
+82 checks; engine-diff passes without a seed change; independent source/built
+controls/bitmap/no-cinf candidate browser acceptance passes all14 checks. The
+first unchanged availability/border execution remains exit1 and is archived.
+Body request/mode/type, NULL-pattern admission and found-pattern ownership now
+pass in the 26 valid-cinf scopes. Their next original assertion exposes a distinct
+completed-band region mismatch: source-operation ordinals are required, whereas
+the recorder emits nine-cell-grid indices. Ten no-cinf probes and nine current
+paint expectations remain separately pending source-contract review.
+
+A new independent four-check direct diagnostic regression uses literal c1/s1,
+4x4 fully opaque art, a valid same-ID cinf, and a 24x20 destination at (3,2).
+Its positive verifies actual writes, complete metadata, eight supported completed
+operations, and byte-identical pixels/ordinary requests/ops with diagnostics off.
+Literal source/destination rectangles, owner/payload identity, sampler branch and
+policy checks pass. Ring body/color suppression and transparent/clipped/unsupported
+exclusions pass. ONLY the ordinal assertion fails, actual [0,2,1,6,8,7,3,5] versus
+independent source-call [0,1,2,3,4,5,6,7] (`band-ordinal-independent-red`, exit1).
+This isolates a diagnostic identity defect rather than a pixel/setup failure.
+PM confirmed the safe mapping and queued a separate runtime author. No private
+regression or oracle code is sent to that author.
