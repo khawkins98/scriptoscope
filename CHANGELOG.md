@@ -7,7 +7,19 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
-- **Contributor orientation** (#459): distinguish the current incremental v2 engine from historical renderer resets, route runtime implementers through the safe brief before any source-reference catalogue, and preserve role-specific evidence boundaries.
+## [0.5.0] — 2026-10-23
+
+Fourth incremental release candidate from the `v2` integration branch (#459,
+#460–#466): follow-ups to the existing window, progress and slider paths,
+process boundaries, diagnostic links and contributor documentation. Package version
+0.5.0 here does not assert publication to `main`, a release tag or npm. `v2`
+remains the integration branch between releases (DECISIONS #8). Push buttons and
+checkables remain future engine migration work; their specs do not ship those
+migrations in this release.
+
+- **Clean-room process boundaries** (#462): isolate independent oracles and verifier material from runtime implementer reading; retain separate spec, implementation and verification ownership.
+
+- **Contributor orientation** (#459, #466): distinguish the current incremental v2 engine from historical renderer resets, route runtime implementers through the safe brief before any source-reference catalogue, and preserve role-specific evidence boundaries.
 
 - **Declared slider resource chain** (#427, #459): the opt-in ordered `cinf` tier now supplies gate, corner and groove metadata together. Every declared provider must be complete before admission; missing declared metadata cannot borrow archive metadata. Ordinary resource resolution remains unchanged.
 - **Slider pointer geometry** (#427): imperative sliders use the engine's committed thumb travel, direction, exact-value grab and track-click centering for both ordinary and declared layouts.
@@ -21,6 +33,50 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 - **Diagnostic theme links** (#459): honor valid URL hash themes and playground settings on initial load and hash changes, including rapid switching. The manual visual-baseline command includes independent diagnostic hash checks.
 
 - **Window ledger housekeeping** (#459): the 39 retained-unknown flag, mask and remaining-fill obligations now cite their completed independent review. No status, evidence claim or case closure changes. The routine map points to the current window engine and drawing facade, replacing references to deleted compositor functions.
+
+### Migration and limits (0.4.0 → 0.5.0)
+
+- Stop importing `ThemeProgressModel` and reading
+  `ThemeInspector.resourceRoles.progress` or `progressSummary`; these deprecated
+  inspector fields are removed, with no replacement model predicting draw paths.
+  Progress selection remains with the engine's `cinf` gate.
+- Stop reading `ComposedChrome.titleFillSrcX` and `titleFillRgb`. Regenerate custom
+  sliced-window manifests with exact `WindowType.titleSamples` from the original
+  resources. Without those samples, source-backed title colors are unspecified and
+  the title is suppressed; built-in procedural titles keep their presentation.
+  Do not infer samples from composed browser output. The shadow draws before the
+  foreground, retaining the substitute-font geometry (DECISIONS #13) and browser
+  alpha-over policy. These accepted feature cases do not establish original-font,
+  native text-transfer or device equivalence; remaining native conditions stay unknown.
+- Remove uses of `ChromeElement.sliderLayoutCinf`, decoded slider summary fields,
+  `SliderLayout.endpointPolicy` and the retired slider admission helper exports.
+  Keep the opt-in preparation/binding option and generic IDs/data/body views.
+  `sliderLayoutEnvironment` is only the opaque frozen `{ environmentId, bindingId }`
+  marker; use engine traces for selected provider provenance. A declared provider
+  must supply gate, corner and groove metadata completely, without borrowing missing
+  declared metadata from the archive tier.
+- Ordinary imperative sliders now use committed thumb travel and direction, retain
+  the exact value when grabbed, and center the thumb on track clicks, matching the
+  declared path. This is a pointer geometry correction, not a new slider family.
+- Preserve existing golden capture provenance and independent approval: reviewed
+  browser goldens establish regression stability only. This release neither
+  recaptures goldens nor promotes ledger status, original-reference eligibility or
+  all-family fidelity. The 39 window obligations retain their unknown status.
+
+### Runtime size (`npm run loc:src -- HEAD --base v0.4.0`)
+
+| src/ lines (non-test .ts) | v0.4.0 | 0.5.0 | delta |
+|---|---:|---:|---:|
+| logic (all src except engine tables) | 16112 | 16150 | +38 |
+| engine tables (cited data) | 2145 | 2147 | +2 |
+| total | 18257 | 18297 | +40 |
+
+Measured with the repository tool against `v0.4.0`. The net logic growth includes
+an 86-line typed declared-slider provider adapter accepted in independent #465
+review: it routes complete declared metadata through the engine resource chain.
+Legacy slider metadata/admission branches and title sampling branches are deleted;
+the title, pointer and progress follow-ups account for the remaining changes.
+This release candidate changes no runtime behavior beyond those accepted fixes.
 
 ## [0.4.0] — 2026-10-23
 
