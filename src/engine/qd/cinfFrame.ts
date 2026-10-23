@@ -31,12 +31,19 @@ export function decodeCinfHeader(bytes: readonly number[]): CinfRecord | null {
 export type CinfRgb16 = readonly [number, number, number];
 /** Raw samples are inputs; display pixels cannot recover serialized palette values. */
 export interface CinfIconSource extends IconSource {
+  readonly status?: never;
   readonly sampleRgb16?: (point: QdPoint) => CinfRgb16 | null;
   readonly realizeRgb16?: (rgb: CinfRgb16) => Rgba;
 }
+/** Adapter diagnostic: a non-NULL resource whose decoded pixels are unavailable. */
+export interface CinfUnknownIconSource {
+  readonly status: 'unknown';
+  readonly reason?: string;
+  readonly pixmap?: never;
+}
 export interface CinfFrameInput {
-  id: number; cicn: Pixmap; dstRect: QdRect; bodyFill: boolean;
-  icon?: CinfIconSource;
+  id: number; cicn: Pixmap | undefined; dstRect: QdRect; bodyFill: boolean;
+  icon?: CinfIconSource | CinfUnknownIconSource;
   /** Requires raw samples for colour outputs; absent keeps older callers' display-pixel policy. */
   requireRawSamples?: boolean;
   realize?: (rgb: CinfRgb16) => Rgba;
@@ -47,6 +54,7 @@ export interface CinfFrameInput {
 }
 export interface CinfFrameResult {
   drawn: boolean; cinfId: number | null;
+  unsupported?: string;
   backgroundRGB: Rgba | null; textRGB: Rgba | null; embossRGB: Rgba | null;
   backgroundRGB16?: CinfRgb16 | null; textRGB16?: CinfRgb16 | null; embossRGB16?: CinfRgb16 | null;
   /** Unknown is distinct from an absent emboss. */
@@ -67,6 +75,13 @@ const none = (): CinfFrameResult => ({ drawn: false, cinfId: null, backgroundRGB
 
 export function drawCinfFrame(port: Pixmap, chain: ResourceChain, input: CinfFrameInput, trace?: EngineTrace): CinfFrameResult {
   const { id, cicn, dstRect: D, bodyFill } = input;
+  const icon = input.icon;
+  // Diagnostic propagation only; UNKNOWN is not a native NULL or a painting rule.
+  if (icon?.status === 'unknown' || !cicn) {
+    const unsupported = icon?.status === 'unknown' ? icon.reason || 'cicn resource unknown' : 'cicn pixmap unavailable';
+    trace?.drawOps.push({ op: 'cinfFrame', dst: D, status: 'unknown', unsupported });
+    return { ...none(), unsupported };
+  }
   const retry = CINF_RETRY.find(r => r.bodyFill === bodyFill)!;
   const hit = chain.probe<CinfRecord | { bytes: readonly number[] }>(CINF_REQUEST.type, [id, retry.retryId],
     { row: `${CINF_REQUEST.id},${retry.id}`, ...(trace ? { trace } : {}) });
@@ -84,13 +99,13 @@ export function drawCinfFrame(port: Pixmap, chain: ResourceChain, input: CinfFra
   let backgroundRGB16: CinfRgb16 | null = null, textRGB16: CinfRgb16 | null = null, embossRGB16: CinfRgb16 | null = null;
   let colorsAvailable = false;
   if (bodyFill) {
-    const raw = input.icon?.sampleRgb16;
+    const raw = icon?.sampleRgb16;
     backgroundRGB16 = raw?.(cinf.bgPixel) ?? null;
     textRGB16 = raw?.(cinf.textPixel) ?? null;
     const absent = cinf.embossPixel.x === CINF_EMBOSS_ABSENT.x && cinf.embossPixel.y === CINF_EMBOSS_ABSENT.y;
     embossRGB16 = absent ? null : raw?.(cinf.embossPixel) ?? null;
     const display = (point: QdPoint, rgb: CinfRgb16 | null): Rgba | null => {
-      const realize = input.icon?.realizeRgb16 ?? input.realize;
+      const realize = icon?.realizeRgb16 ?? input.realize;
       if (rgb && realize) return realize(rgb);
       if (input.requireRawSamples) return null;
       const p = getPixel(cicn, point.x, point.y);
@@ -147,8 +162,7 @@ export function drawCinfFrame(port: Pixmap, chain: ResourceChain, input: CinfFra
       if (!insideBounds(cicn, src)) trace?.drawOps.push({ op: 'cinfEdgeSample', row: 'S5', src,
         unspecified: 'source sample outside icon bounds; stored padding unavailable' });
       if (fast) {
-        const icon = input.icon ?? { pixmap: cicn, pixelSize: null, unmasked: null };
-        const colours = lineColourSource(icon, 'cinf E3/E4');
+        const colours = lineColourSource(icon ?? { pixmap: cicn, pixelSize: null, unmasked: null }, 'cinf E3/E4');
         if (colours.unspecified) trace?.drawOps.push({ op: 'cinfLine', row: `${fast},S2`, unspecified: colours.unspecified });
         sourceLines(port, cicn, colours.pm, src, dst, fast === 'T1');
       } else tileBlit(port, cicn, src, dst, 1, 'copyMask', trace);

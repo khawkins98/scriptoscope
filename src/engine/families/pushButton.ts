@@ -4,7 +4,7 @@
 import type { Pixmap, QdPoint, QdRect, Rgba } from '../qd/types.js';
 import type { EngineTrace } from '../trace.js';
 import type { ResourceChain } from '../resources/chain.js';
-import { drawCinfFrame, type CinfIconSource, type CinfFrameResult, type CinfRgb16 } from '../qd/cinfFrame.js';
+import { drawCinfFrame, type CinfIconSource, type CinfUnknownIconSource, type CinfFrameResult, type CinfRgb16 } from '../qd/cinfFrame.js';
 import { insetRect, offsetRect } from '../qd/rect.js';
 import { PUSH_BUTTON as P, PUSH_IDS, PUSH_LABEL } from '../tables/pushButton.js';
 
@@ -78,7 +78,7 @@ export function drawPushButton(port: Pixmap, chain: ResourceChain, input: PushBu
   const faceRow = disabled ? P.PB5 : pressed ? P.PB6 : P.PB7;
   trace?.drawOps.push({ op: 'state', row: disabled ? P.PB3.id : P.PB4.id, disabled, pressed });
   const attempt = (id: number, bodyFill: boolean, dstRect: QdRect, row: string): CinfFrameResult | null => {
-    const art = chain.getResource<CinfIconSource>('cicn', id, { row, ...(trace ? { trace } : {}) });
+    const art = chain.getResource<CinfIconSource | CinfUnknownIconSource>('cicn', id, { row, ...(trace ? { trace } : {}) });
     if (!art) return null;
     return drawCinfFrame(port, chain, { id, cicn: art.value.pixmap, icon: art.value, dstRect, bodyFill,
       requireRawSamples: true, ...(env.realize ? { realize: env.realize } : {}),
@@ -86,6 +86,7 @@ export function drawPushButton(port: Pixmap, chain: ResourceChain, input: PushBu
       ...(env.patternOffset ? { patternOffset: env.patternOffset } : {}) }, trace);
   };
   result.face = attempt(faceRow.resource, true, D, faceRow.id); result.faceFound = result.face !== null;
+  if (result.face?.unsupported) return { ...result, unsupported: result.face.unsupported };
   const label = input.label ?? '';
   const face = result.face;
   if (!face) trace?.drawOps.push({ op: 'face', row: P.PB8.id, unspecified: 'face absent; no face-state retry; label outputs unavailable' });
@@ -111,6 +112,7 @@ export function drawPushButton(port: Pixmap, chain: ResourceChain, input: PushBu
   let ring = attempt(ringRow.resource, false, R, ringRow.id);
   if (!ring && pressed) ring = attempt(P.DR4.resource, false, R, P.DR3.id);
   result.ringFound = ring !== null;
+  if (ring?.unsupported) return { ...result, unsupported: ring.unsupported };
   if (ring && !ring.drawn) trace?.drawOps.push({ op: 'ring', row: P.DR6.id, success: true });
   return result;
 }
