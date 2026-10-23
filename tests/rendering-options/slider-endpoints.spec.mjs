@@ -241,6 +241,9 @@ test('source: every opted-in slider cinf request uses the ordered declared tier;
 });
 
 for(const mode of ['source','built']) test(`${mode}: unchanged pinned corner-only fixture draws declared endpoints without archive groove metadata`,async({page,servers})=>{
+  // Keep the existing executable inventory link while the PM separately rejudges
+  // its historical unsupported assessment against the declared-provider migration.
+  test.info().annotations.push({type:'fidelity-assertion',description:'slider.declared-group2-endpoints'});
   await setup(page,servers,mode);
   const rows=await page.evaluate(async()=>{
     const {api}=window.declaredSlider;
