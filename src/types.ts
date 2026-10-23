@@ -60,7 +60,16 @@ export interface WindowCinf {
   textPixel?: [number, number] | null;
 }
 
+/** Exact template samples for window-widgets TC1–TC5, before remapping. */
+export interface WindowTitleSamples {
+  readonly background: ControlColorSample | null;
+  readonly text: ControlColorSample | null;
+  readonly shadow: ControlColorSample | null;
+}
+
 export interface WindowType {
+  /** Per-template samples; mask-clear pixels retain their original RGB16. */
+  readonly titleSamples?: Partial<Record<WindowState, WindowTitleSamples>>;
   /** Opt-in exact converted input occurrences; not a paint/provider claim. */
   readonly byteProvenance?: WindowByteProvenance;
   /** State → relative path of the chrome cicn for that state. */
