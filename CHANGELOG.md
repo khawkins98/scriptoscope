@@ -7,6 +7,8 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+- **Window titles are whole again on floppies and 1138's titled utility** (DECISIONS #13 (1), as amended in #455). The truncation room stops at the plate's right edge but never below the title rect's width. Those plates are 1–2 px narrower than the title rect, so the plate cap truncated every title there ("Contr…", "Docume…"). dolphin-som and evolution stay inside their plates, and plates shrunk by the decoded width caps still truncate.
+
 - **Window titles fit our title font (DECISIONS #13).** Two runtime limits of #432's decoded title draw are fixed. The runtime has no condensed face and draws titles at full width, so `composeWindowChrome` now defaults `SWc` to `SW` (TT2 no longer narrows the plate below the drawn text). Our title font is taller than the original's, so when its ascent would start above the remapped title rect, the baseline moves down by exactly that overflow, and no glyph is cut at the top. The decoded clip and baseline are kept otherwise.
 
 ### Migration notes (window title fit)
