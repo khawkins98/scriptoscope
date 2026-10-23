@@ -94,13 +94,36 @@ function browserPass(out: PixelBuffer, pass: PushLabelPass, font: string, overri
   out.drawOver(new PixelBuffer(out.width, out.height, ctx.getImageData(0, 0, out.width, out.height).data), 0, 0);
 }
 
-function publishEngineTrace(trace: EngineTrace, collector?: ControlTraceCollector): void {
+function publishEngineTrace(trace: EngineTrace, collector?: ControlTraceCollector, completed = false): void {
   if (!collector) return;
-  for (const request of trace.resolved) collector.record({
-    role: request.row?.startsWith('DR') ? 'default-ring' : request.type === 'ppat' || request.row === 'B1' ? 'body-fill' : 'face',
-    requestedId: request.id, action: request.found ? 'selected' : 'missing', basis: 'source-dispatch', usage: 'paint',
-    reason: `engine:${request.row ?? ''}:${request.type}:${request.provider ?? 'NULL'}`,
-  });
+  let role: 'face' | 'default-ring' = 'face';
+  let pressedRingMissing = false;
+  for (const [index, request] of trace.resolved.entries()) {
+    const artAttempt = request.type === 'cicn' && /^(PB|DR)/.test(request.row ?? '');
+    if (artAttempt) role = request.row!.startsWith('DR') ? 'default-ring' : 'face';
+    const body = request.type === 'ppat' || request.row === 'B1';
+    const requestRole = body ? 'body-fill' : role;
+    if (artAttempt && request.row === P.DR3.id && request.id === P.DR4.resource && pressedRingMissing)
+      collector.record({ role: 'default-ring', requestedId: P.DR3.resource, action: 'fallback', basis: 'source-dispatch',
+        usage: 'admission', reason: 'pressed-ring-to-active', ...request.selection });
+    if (artAttempt && request.id === P.DR3.resource && !request.found) pressedRingMissing = true;
+    // The transcript describes lookup, including metadata and NULL. A selected
+    // art dependency is a separate decision and never inferred from its name.
+    collector.record({ role: requestRole, requestedId: request.id, action: request.found ? 'selected' : 'missing',
+      basis: 'source-dispatch', usage: 'admission', ...request.selection,
+      reason: `engine:${request.row ?? ''}:${request.type}:${request.provider ?? 'NULL'}` });
+    if (request.found && request.selection?.resource) {
+      let metadataFound = body;
+      if (artAttempt) for (const following of trace.resolved.slice(index + 1)) {
+        if (following.type !== 'cinf') break;
+        if (following.found) metadataFound = true;
+      }
+      const frame = role === 'face' ? trace.rects.D : trace.rects.ringRect;
+      if (artAttempt && trace.drawOps.some(op => op.op === 'cinfFrame' && op.dst === frame)) metadataFound = false;
+      collector.record({ role: requestRole, requestedId: request.id, action: 'selected', basis: 'source-dispatch',
+        usage: completed && metadataFound ? 'paint' : 'admission', reason: 'resource-id', ...request.selection });
+    }
+  }
   for (const op of trace.drawOps) if (op.unsupported || op.unspecified || op.unimplemented) collector.record({ role: 'face', requestedId: 0,
     action: 'rejected', basis: 'compatibility-policy', usage: 'admission',
     reason: op.unsupported ? `${op.unsupported}` : `${op.row}: ${op.unspecified ?? op.unimplemented}` });
@@ -147,11 +170,14 @@ export async function composeEnginePush(theme: LoadedTheme, opts: ButtonOptions 
       if (selected !== null) requests.push({ type: 'cicn', id: selected }, { type: 'cinf', id: selected }, { type: 'cinf', id: P.DR5.fallback });
     }
     if (declared?.metadata?.bodyRequest) requests.push({ type: 'ppat', id: declared.metadata.bodyRequest.resourceId });
-    let chain = await themeResourceChain(theme, requests, { ...(signal ? { signal } : {}), cinfBodies: declared ? [] : [id, P.PB9.fallback] });
+    let chain = await themeResourceChain(theme, requests, { ...(signal ? { signal } : {}),
+      traceProvenance: !!diagnostics, cinfBodies: declared ? [] : [id, P.PB9.fallback] });
     alive(signal);
     if (declared) {
       const parent = chain.providers[0]!;
-      chain = new ResourceChain([{ name: `declared:${declared.view.bindingId}`, tier: 'archive', get(type, resourceId) {
+      chain = new ResourceChain([{ name: `declared:${declared.view.bindingId}`, tier: 'archive',
+        selection: (type, resourceId) => type === 'cinf' ? { owner: { baseUrl: theme.baseUrl, chainDepth: 0 } }
+          : parent.selection?.(type, resourceId), get(type, resourceId) {
         if (type === 'cinf') return resourceId === declared.view.selected?.signedId ? declared.record : null;
         const value = parent.get(type, resourceId);
         if (type !== 'cicn' || resourceId !== id || !value) return value;
@@ -214,7 +240,7 @@ export async function composeEnginePush(theme: LoadedTheme, opts: ButtonOptions 
       alive(signal);
       result = { buffer: out, layout: { faceRect: { x: outset, y: outset, w: width, h: height } } };
       return out;
-    } finally { publishEngineTrace(trace, diagnostics); }
+    } finally { publishEngineTrace(trace, diagnostics, result !== null); }
   });
   return result;
 }

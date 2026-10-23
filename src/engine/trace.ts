@@ -8,6 +8,10 @@
 // spec row id such as `T5` or `B3`), so a reviewer can map every recorded step
 // to a spec sentence.
 import type { QdRect } from './qd/types.js';
+import type { ControlResolutionStep } from '../controlDiagnostics.js';
+
+/** Adapter observations captured with the selected value, never a second lookup. */
+export type ResourceSelection = Pick<ControlResolutionStep, 'owner' | 'resource'>;
 
 /** One resource request and its outcome. */
 export interface ResolvedResource {
@@ -20,6 +24,7 @@ export interface ResolvedResource {
   tier: string | null;
   /** Spec/table row that issued the request, e.g. `cinf-request` or `B4`. */
   row?: string;
+  selection?: ResourceSelection;
 }
 
 /** One primitive call. `op` names the primitive; extra fields are op-specific JSON. */
