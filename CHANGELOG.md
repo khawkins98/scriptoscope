@@ -7,6 +7,8 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+- **Window ledger housekeeping** (#459): the 39 retained-unknown flag, mask and remaining-fill obligations now cite their completed independent review. No status, evidence claim or case closure changes. The routine map points to the current window engine and drawing facade, replacing references to deleted compositor functions.
+
 ## [0.4.0] — 2026-10-23
 
 Third incremental release from the v2 engine branch (#378). Three more families move onto the decoded Kaleidoscope 2.3.1 engine: the window recipe for the 13 schemes with a `wnd#` recipe, the slider and the progress bar.

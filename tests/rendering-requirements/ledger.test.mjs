@@ -839,7 +839,7 @@ test('window 1.5.0 (#432) re-judges the 13 wnd# cases against window-widgets.md 
 });
 
 test('window 1.5.1 (#452, DECISIONS #13) rewords the stated TT2a default to SWc = SW and changes no status', () => {
-  const live = liveFamily('window'), t = live.transitions.find(x => x.version === '1.5.1'), prior = atVersion(live, '1.5.0');
+  const live = atVersion(liveFamily('window'), '1.5.1'), t = live.transitions.find(x => x.version === '1.5.1'), prior = atVersion(live, '1.5.0');
   assert.equal(live.version, '1.5.1'); assert.equal(priorFamily(live).version, '1.5.0');
   for (const key of ARRAYS) assert.equal(live[key].length, prior[key].length, key);
   assert.deepEqual(Object.keys(t.replaced).sort(), ['assessments', 'cases', 'evidence']);

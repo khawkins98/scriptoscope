@@ -1,9 +1,11 @@
 # kDEF faithfulness ledger
 
-*The routine→`composeChrome.ts` map + divergences. For the architecture tour, see [`kdef-architecture.md`](./kdef-architecture.md); for binary lookups, [`kdef231-reference.md`](./kdef231-reference.md).*
+*The routine→window-engine map + divergences (updated after 0.4.0). For the architecture tour, see [`kdef-architecture.md`](./kdef-architecture.md); for binary lookups, [`kdef231-reference.md`](./kdef231-reference.md).*
 
-A one-to-one map of the Kaleidoscope **2.3.1** kDEF (the decompiled 68k WDEF) to our clean-room reimplementation in
-`src/composeChrome.ts`. We do **not** ship or execute the original code — this
+A map of the Kaleidoscope **2.3.1** kDEF to the clean-room window engine in
+`src/engine/families/window.ts` and `src/engine/tables/window.ts`, the drawing
+facade in `src/composeChrome.ts`, and title presentation in `src/renderWindow.ts`.
+Scriptoscope does not ship or execute original code as its runtime — this
 ledger is how we keep our own code a faithful mimic and make every divergence
 *explicit* instead of tribal.
 
@@ -12,7 +14,7 @@ ledger is how we keep our own code a faithful mimic and make every divergence
 > The routine addresses below are catalogued in the standing
 > [`kdef231-reference.md`](./kdef231-reference.md) (§1 routine map). Use that to
 > look up what a routine *does* in the binary; use this ledger to see how — and
-> how faithfully — `composeChrome.ts` mirrors it.
+> how faithfully — the window engine mirrors it.
 
 > **Two-channel resource model (controls) — 2026-05-25.** This ledger covers window
 > *chrome* (`composeChrome.ts`). The in-window *controls* live in `controls.ts` and
@@ -34,21 +36,26 @@ How to use it:
 
 Legend: ✓ faithful · ≈ approximated (render-correct for the corpus) · ✗ deliberately not implemented.
 
-| kDEF | Role | Our impl (`composeChrome.ts` unless noted) | Status | Verified by | Divergence / notes |
-|---|---|---|---|---|---|
-| `0x49d6` | Part-code → stretch-flag jump table | `classifyPart` | ✓ | `diag:audit` code→mode | — |
-| `0x4a0c` + `0x4dfe..0x4e42` | Code 10 returns the `0x49d6` flag, which is `0x4a64`'s too-short byte (`0x5178`'s first flag argument, read at `0x52fc`). It is set only when the side's placed extent is below its fixed-cell sum; then code 10 and the title drop to width 0, and if still short the shade widget is cleared | `negotiateSides` + `classifyPart` (`src/composeChrome.ts`) | ✓ as a source rule; no native capture | `window-chrome-rules` (below-template sample, sourced `[14,4,2]`/`[3,0,2]` traces) | Supersedes the "untitled sides pass 1" reading, which conflated `0x5178`'s second flag argument (the 5/6 gate) with its first ([engine/window-widgets.md](engine/window-widgets.md) PV5, TS1–TS4). Fixed at every size from the template up. Remaining approximations: widget presence is one runtime flag (`widgetPresent`) rather than the decoded goAway / window-state byte / `0x487e` inputs (detail in evidence); the titled-half split after a title drop keeps the runtime's undecoded split; title-text drawing for a dropped title is unchanged. |
-| `0x4a64` | Layout precompute: walk borders, measure title width (QuickDraw text traps → the measured title width), sum fixed-cell widths, per-half stretch-capacity flags (one per half) | `distributeSide` / `distributeHalf` | ✓ | recipe-walk doc; render | — |
-| `0x4f58` | Title-fits gate (collapse the 5/6 bezel when the title doesn't fit) | `distributeSide` plate clamp + `plateCap` | ≈ | render (1138 plate) | Approximated: we grow the code-5 cell to the measured title width capped at `plateCap`, rather than a hard fits/doesn't-fits branch. |
-| `0x4ff8`/`0x501c`/`0x5034` | Title centring + title-cell DEST span | `distributeSide` (code-5 grow), `renderWindow.ts` (text at `titleRegion` centre) | ✓ | render (beos/1990 title placement) | Horizontal. VERTICAL anchor follows the title-text MARKER's y-band (`0x5530`): `composeChrome` → `titleRegion.midY`, `renderWindow` draws there (else `frame.top/2`). Fixes tall ornate bars (evolution); `lint:themes` `title` rule guards it. |
-| `0x5178` | Two-pass width allocation: primary shares for 8/11/12/18, whole-tile truncation for 12, remainder shared by 8/11/13/14/18; per-half around the title | `distributeSide` / `distributeHalf` | ✓ for nonnegative budgets | `src/composeChrome.test.mjs`: hand-derived allocation cases + original animals/monkey-paradise corner pixels at native/240/320 widths | Fixed 2026-10-18: 13/14 no longer receive a primary share; tile fractions are redistributed and indivisible extras fall to later recipients. Below the fixed-art minimum, the existing clipping policy remains; small-window/widget/title-fit negotiation is not implemented. |
-| `0x5356` | Placement: segment *i* SRC = `[border[i-1], border[i])` (END-based); leading `[0,border[0])` = fixed corner | `recipeCells` (end-based; index-0 cell forced fixed) | ✓ | render (1138/1984 hatch alignment) | Off-by-one here was the original tile regression — now grounded in the asm. |
-| `0x572e` | Main draw loop — walks segments, never touches the rect-list | `composeEdge` draw loop | ✓ | render | — |
-| `0x632e` → `0x6062` (+ `0x5cb6` remap) | **Separate** rect-list widget-draw pass (close/zoom/shade). `0x5ffc` → `0x5ddc` is the hit-test, not this pass (corrected 2026-10-21) | — | ✗ | `diag:audit` widgets; `lint:themes` (no widget in a stretch cell) | **Deliberate divergence.** We don't run a second pass; the widgets ride the FIXED title-bar cells they sit in (drawn 1:1 by the edge walk). Holds *only* while no widget lands in a growing cell — both nets guard that assumption. The full draw itself only calls `0x632e` for partial-zoom part 5 (`0x5a3c`), which we don't model. Hit/press rects DO follow the `0x5cb6` remap (`resolveTitleWidgetRects`, all four sides; a collapse box in a dropped code-10 cell stays hit-testable unless the too-short step cleared the shade widget — PM decision, made on a reading the 2026-10-22 re-trace refutes: [window-widgets.md](engine/window-widgets.md) RM6 empties that rect, finding F1; the clear is also skipped on layout-cache hits, LC1–LC3, finding F5). |
-| `0xfeae` | Default blit — **always TILES** the src cell along the side. The direction byte (0 for codes 11 and 14, 1 otherwise) sets the anchor: 11/14 tile from the far end, everything else from the start (reference §5.1) | `composeEdge` `drawTile` (anchor from the part code) | ✓ as a source rule (`window-chrome-rules.mjs`); no native capture | recipe-walk Q5; reference §5.1; rule check | `cinf.tileSides` does NOT gate this (corrected from an earlier draft). A 1px src band ⇒ uniform fill. Before 2026-10-21 the runtime tiled 11/14 forward. Not modelled: opaque CopyBits when `grafProcs` is set, transparent pixels, and the 1px LineTo fast path's colour. |
-| `0x10320` | Code-18 — a single **scaled** CopyBits (drawn once, src→dst) | `composeEdge` `cls === 'scale'` branch | ✓ | render (evolution/beos pipes) | The only scaled blit; everything else tiles. |
-| structure rect from cicn | (Mac WDEF wCalcRgns: structure = content + border insets) | `frameFromBody` + `drawableExtent` | ✓ (fix) | render (beos) + `lint:themes` tail note | **Divergence we corrected:** the structure extent is the cicn's *drawable* extent (mask/last-opaque), not its raw resource bounds. A transparent tail past the art is slack, not window. Fixed beos's 22px→5px right inset. |
-| — | Inset on a side with no recipe | `composeWindowChrome` (composes an edge only if its side-list exists) | ✓ | `lint:themes` norecipe note | The kDEF draws no segments for a recipe-less side; we don't fake-fill (the old `composeSeamFallback` override is retired). Expected for collapsed/topless types. |
+The implementation locations below describe the shipped 0.4.0 architecture.
+They do not promote fidelity claims: the requirement-level statuses and limits
+in `tests/rendering-requirements/families/window.json` remain authoritative.
+The behavioral reference is [window-widgets.md](engine/window-widgets.md).
+
+| kDEF | Role / spec rows | Current implementation | Evidence / remaining boundary |
+|---|---|---|---|
+| `0x49d6` | Part verdict, PV1–PV9 | `verdictZero` in `engine/families/window.ts`; `PART_VERDICT` in `engine/tables/window.ts` | `window.recipe-rules`; flags use the declared §2.3 defaults. The old `classifyPart` is deleted. |
+| `0x4a0c`, `0x4dfe..0x4e42` | Code-10 and too-short negotiation, PV5 / TS1–TS4 | `layoutSide`, `TOO_SHORT` | Negative budgets and dropped titles follow the decoded rows. `negotiateSides` is deleted. Flag-gated obligations remain unknown. |
+| `0x4a64` | Layout sums, LS | `layoutSide`, `LAYOUT_SUMS` | Fixed sums, title margins and growers come from the spec. |
+| `0x4f58` | Title fit, TT2–TT4 | `layoutSide`, `TITLED_SIDE`; public width defaults in `composeWindowChrome` | DECISIONS #13 supplies SWc = SW because the runtime has no condensed face. The former `plateCap` approximation is deleted. |
+| `0x4ff8` / `0x501c` / `0x5034` | Title-side placement, TT5–TT10 | `layoutSide`; `remapWidget` supplies the title rect; `renderWindow.ts` draws the text | Centered plate and remapped title rect replace the old `titleRegion` text centering. Typography follows TX and DECISIONS #13, with title shadow still a follow-up. |
+| `0x5178` | Allocation, AW1–AW9 | `layoutSide`, `CELL_WIDTH` / `ALLOCATION` | Unclamped signed budgets; code-12 whole tiles and both remainder passes. `distributeSide` / `distributeHalf` are deleted. |
+| `0x5356` | Template and placed cell rects, CR1–CR4 | `windowCell`, `CELL_RECT` | Leading and trailing areas outside placed segments stay unpainted (LS9/Q3); the earlier forced leading-corner cell is gone. |
+| `0x572e` | Side draw, WD4 | `composeWindowChrome` walks `WINDOW_SIDES`, uses `windowCell` and the engine blit tables | Top, bottom, left, right order with CopyMask. Code 18 uses `scaleBlit`; the other cells use `tileBlit`. `composeEdge` is deleted. |
+| `0x632e` → `0x6062`, `0x5cb6` | Widget remap, draw and hit, RM / WD / HT | `windowWidgets`, `remapWidget`, `drawPressedWidget`, `widgetHit`; popup art via `popupRawBlits` | Pressed widgets use the strip and its mask. At-rest close/collapse art stays in the template; partial-zoom full-draw WD5 remains unexercised. RM6 empties widgets in dropped cells. Inactive public buttons stay operable under DECISIONS #12. |
+| `0xfeae` | Tile blit | `engine/qd/tile.ts` `tileBlit`, selected by `engine/tables/windowBlit.ts` | Codes 11/14 anchor at the far end; other tiled codes start at the near end. Masked composition and original device/primitive limits remain separately tracked. |
+| `0x10320` | Code-18 scaled blit | `engine/qd/scale.ts` `scaleBlit` | Scaling policy is declared in qd-primitives; it does not establish original scaled-pixel fidelity. |
+| Structure rect from cicn | Frame/content extent | `frameFromBody`, `drawableExtent` in `composeChrome.ts` | Transparent-tail handling remains a runtime policy guarded by theme lint. |
+| Side without recipe | No cell draw | `layoutWindow` / `composeWindowChrome` skip absent sides | No invented seam fill; unpainted screen content is outside the decoded Q3 claim. |
 
 ## Data-shape assumptions (enforced by `lint:themes`)
 
@@ -71,8 +78,10 @@ to a bug class we hit reactively before the linter existed:
   truth — tracked in [#190](https://github.com/khawkins98/scriptoscope/issues/190). The
   structured-fill joints at extreme widths (M5) and the 1984 title-bar arch (V1b)
   live here.
-- Anything requiring the **per-edge title-fits flag** or the **widget-draw pass**
-  we skip — guarded only indirectly (corpus has no widget in a growing cell).
+- Original device output beyond the sampled and decoded rule claims, the
+  unexercised partial-zoom full-draw branch (WD5), and title-shadow follow-ups.
+  Title fitting, widget remapping, pressed-strip drawing and masked hit testing
+  are now explicit engine paths checked by the window rule suite.
 
 ## Accepted divergences from kDEF / reference (by owner decision)
 
