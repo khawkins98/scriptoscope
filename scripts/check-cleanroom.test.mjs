@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
-import { checkCleanroom, scanText, commentsOf } from './check-cleanroom.mjs';
+import { checkCleanroom, scanText, commentsOf, RULE_TABLES, targets } from './check-cleanroom.mjs';
 
 const repo = join(dirname(fileURLToPath(import.meta.url)), '..');
 const script = join(repo, 'scripts/check-cleanroom.mjs');
@@ -177,5 +177,53 @@ test('constant census: vacuous without src/engine, anchored by spec or tables ot
     mkdirSync(join(root, 'src/engine/tables'), { recursive: true });
     writeFileSync(join(root, 'src/engine/tables/tile.ts'), "export const rows = [{ step: 37, source: '0x10146' }];\n");
     assert.equal(run(root), 0, 'tables anchor a constant');
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test('linted independent rules and tests are never an allowed read scope', () => {
+  const brief = 'docs/spec/engine/IMPLEMENTER-BRIEF.md';
+  const root = tree(Object.fromEntries(RULE_TABLES.map(f => [f, 'export {};\n'])));
+  mkdirSync(dirname(join(root, brief)), { recursive: true });
+  const hits = path => {
+    writeFileSync(join(root, brief), `## Allowed paths\n- ${path}\n`);
+    return checkCleanroom(root).hits.filter(h => h.rule === 'brief-scope');
+  };
+  try {
+    for (const path of RULE_TABLES) {
+      assert(targets(root).includes(join(root, path)), 'oracle remains linted');
+      assert.equal(hits('`' + path + '`').length, 1, path);
+    }
+    for (const path of ['tests/rendering-options/*-rules.mjs', 'tests/rendering-options/*.mjs',
+      'tests/rendering-options/', 'tests/rendering-options/range-rules.spec.mjs',
+      'src/engine/family-rules.test.mjs', 'tests/new-family.spec.mjs']) {
+      assert.equal(hits('`' + path + '`').length, 1, path);
+    }
+    writeFileSync(join(root, RULE_TABLES[0]), '// jsr elsewhere\n');
+    assert(checkCleanroom(root).hits.some(h => h.rule === 'mnemonic'), 'independent rules still linted');
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test('review files are forbidden under spec and code trees and never anchor constants', () => {
+  const brief = 'docs/spec/engine/IMPLEMENTER-BRIEF.md';
+  const root = tree({
+    [brief]: '## Allowed paths\n- `docs/spec/engine/*.md` except `*.evidence.md`, `*.review.md` and `*-review.md`.\n- `src/`\n',
+    'src/engine/family.ts': 'export const step = 37;\n',
+    'src/engine/family.test.mjs': 'export {};\n',
+    'docs/spec/engine/family.md': 'Behaviour only.\n',
+    'docs/spec/engine/family.review.md': 'step 37; jsr private\n',
+    'docs/spec/engine/family-review.md': 'step 37; jsr private\n',
+  });
+  try {
+    const result = checkCleanroom(root);
+    assert.deepEqual(result.hits.map(h => h.rule), ['census']);
+    assert(!targets(root).some(f => /[.-]review\.md$/.test(f)));
+    for (const path of ['docs/spec/engine/family.review.md', 'docs/spec/engine/family-review.json',
+      'docs/spec/engine/reviews/family.md', 'src/engine/verifier/family.json',
+      'src/engine/family.verifier.json']) {
+      writeFileSync(join(root, brief), `## Allowed paths\n- \`${path}\`\n`);
+      assert.equal(checkCleanroom(root).hits.filter(h => h.rule === 'brief-scope').length, 1, path);
+    }
+    writeFileSync(join(root, brief), '## Allowed paths\n- `src/engine/family.test.mjs`\n');
+    assert(!checkCleanroom(root).hits.some(h => h.rule === 'brief-scope'), 'implementation unit test remains allowed');
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
