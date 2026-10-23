@@ -149,6 +149,7 @@ export async function renderWindow(
   // platinum-8, slimes, system7-nostalgia-silver) draw through the v2 engine
   // (docs/spec/engine/procedural-frame.md), title text and pressed widget included.
   let composed;
+  let contentCollapsed = false;
   if (builtInFrame) {
     const key = Object.entries(owner.manifest.windowTypes ?? {}).find(([, v]) => v === wt)?.[0] ?? slug;
     const { composeProceduralFrameChrome } = await import('./proceduralFrameChrome.js');
@@ -160,6 +161,7 @@ export async function renderWindow(
       title: showTitle || builtInTitled ? title : '',
       ...(opts.pressedWidget ? { pressedWidget: opts.pressedWidget } : {}),
     });
+    contentCollapsed = composed.contentCollapsed;
   } else {
     // popup-window requests are service slot 8 (procID 1008 + varCode, family 63: window-widgets AP1).
     // The pressed strip (WD11) gates every widget hit and draws the pressed widget (WD9, HT7).
@@ -298,7 +300,12 @@ export async function renderWindow(
   // .scriptoscope-content can still receive direct children — no behavioural change.
   const content = document.createElement('div');
   content.className = 'scriptoscope-content';
+  // The decoded collapsed frame has no content region (§3.3 / §9.2). Keep the
+  // slot and caller-owned children, but remove their layout and interaction.
+  content.hidden = contentCollapsed;
+  content.inert = contentCollapsed;
   Object.assign(content.style, {
+    ...(contentCollapsed ? { display: 'none' } : {}),
     position: 'absolute',
     left: `${frame.left * scale}px`,
     top: `${frame.top * scale}px`,
