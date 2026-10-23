@@ -1,3 +1,18 @@
+# #459 consumer presentation delta: UNAPPROVED candidates
+
+Fresh serial all36 Linux record at `48cb7e1f6f2fd303609015cd8804a81d08a6424c`
+combines separately authored malformed-resource propagation and visible native/CSS
+consumer fallback repairs. Ten sheets change (the five affected icon-lane themes);
+26 PNGs remain byte-identical. The ten changed sheet dimensions also change as the
+visible consumer fallback enters the unchanged matrix layout. Case inventory,
+environment, fonts and source archive identities are unchanged.
+
+Actual record commit/dirty state and full previous/current images, dimensions and
+diffs remain preserved in the PM campaign's `459-controls-final-capture` lane.
+These are unapproved regression candidates pending separate source/production/image
+delta acceptance and exact verification; no native paint or ledger claim is made.
+The earlier capture/review records below retain their own original scopes.
+
 # #459 combined integration: UNAPPROVED capture candidates
 
 The controls delivery `edd60adcaa15ebfbb5dcc529d4c1dfec390d04d7` is mechanically
