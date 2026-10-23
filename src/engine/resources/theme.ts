@@ -25,6 +25,7 @@ import { ResourceChain, mapProvider, type ResourceProvider } from './chain.js';
 import { loadCicnBuffer } from '../../cicnImage.js';
 import { ownerDisplayPolicyMatches, realizeRgb16 } from '../../../tools/theme-loader/display-profile.js';
 import { decodeCinfHeader } from '../qd/cinfFrame.js';
+import { CINF_SAMPLE } from '../tables/cinfFrame.js';
 import type { QdPoint } from '../qd/types.js';
 import { assetUrl } from '../../loadTheme.js';
 import { onAssetUrlReleased } from '../../../tools/theme-loader/assetLifecycle.js';
@@ -51,6 +52,8 @@ async function themeProvider(theme: LoadedTheme, tier: 'archive' | 'base', name:
       const el = elements.find(e => e.sourceCicnId === id && e.asset);
       if (!el) return null;
       const status = el.samplingEquivalence?.status ?? null;
+      const sampleAsset = el.asset;
+      const finiteSamples = el.engineColorSamples ? structuredClone(el.engineColorSamples) : undefined;
       const [pixmap, companion, sampled] = await Promise.all([load(el.asset),
         el.iconBlit?.unmaskedAsset ? load(el.iconBlit.unmaskedAsset) : Promise.resolve(null),
         status === 'different' && el.sampledBandAsset && LINE_SAMPLED.has(id) ? load(el.sampledBandAsset.asset) : Promise.resolve(null)]);
@@ -64,11 +67,11 @@ async function themeProvider(theme: LoadedTheme, tier: 'archive' | 'base', name:
         origin: el.boundsOrigin ?? null, sampling: status, sampled,
         realizeRgb16: (rgb: readonly [number, number, number]) => {
           const [r, g, b] = realizeRgb16(rgb, theme.manifest.displayProfile);
-          return { r: r!, g: g!, b: b!, a: 255 };
+          return { r: r!, g: g!, b: b!, a: CINF_SAMPLE.opaque };
         },
         sampleRgb16: (point: QdPoint) => {
-          const samples = el.engineColorSamples;
-          if (!samples || samples.model !== 'kdef-2.3.1-engine-points' || samples.asset !== el.asset
+          const samples = finiteSamples;
+          if (!samples || samples.model !== 'kdef-2.3.1-engine-points' || samples.asset !== sampleAsset
             || samples.width !== pixmap.width || samples.height !== pixmap.height
             || !ownerDisplayPolicyMatches(theme.manifest, samples.displayPolicy)) return null;
           return samples.points[`${point.x},${point.y}`]?.rgb16 ?? null;
@@ -145,15 +148,15 @@ export async function themeResourceChain(theme: LoadedTheme, wanted: readonly { 
   // order/NULL semantics remain owned by the synchronous painter at draw time.
   if (opts.cinfBodies) {
     const dependencies = new Map(wanted.map(r => [`${r.type}:${r.id}`, r]));
-    let selected = null;
+    let selected = null, headerFound = false;
     for (const id of opts.cinfBodies) {
       const seenBodies = new Set<LoadedTheme>();
       for (let t: LoadedTheme | undefined = theme; t && !seenBodies.has(t); t = t.base) {
         seenBodies.add(t);
         const bytes = t.manifest.engineCinfs?.[String(id)];
-        if (bytes) { selected = decodeCinfHeader(bytes); break; }
+        if (bytes) { selected = decodeCinfHeader(bytes); headerFound = true; break; }
       }
-      if (selected) break;
+      if (headerFound) break;
     }
     if (selected) {
       const type = selected.patternAnchor === 5 ? 'cicn' : 'ppat', id = selected.bgPatternId;

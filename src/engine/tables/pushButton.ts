@@ -24,7 +24,7 @@ export const PUSH_LABEL = { shortLine: 13, source: '0x6fb8..0x7036, 0x707c..0x70
 export const PUSH_IDS = { bases: [PUSH_BUTTON.PB5.resource, PUSH_BUTTON.PB6.resource, PUSH_BUTTON.PB7.resource,
   PUSH_BUTTON.DR2.resource, PUSH_BUTTON.DR3.resource, PUSH_BUTTON.DR4.resource], terms: [] } as const;
 // Declared browser allocation/typography policy retained by the public facade.
-export const PUSH_FACADE = { minWidth: 56, padding: 12, height: 20, reasonableHeight: 28, fontSize: 12,
+export const PUSH_FACADE = { minWidth: 56, padding: 12, height: 20, reasonableHeight: 28, fontSize: 12, browserRasterHeight: 1.3,
   source: 'modern compatibility policy; push-button §2 and §5 (allocation around original D)' } as const;
 
 export const PUSH_PRESSED_PARTS = { family: 'push-button', parts: { button: 1 }, defaultPart: 'button',
