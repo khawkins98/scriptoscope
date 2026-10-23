@@ -86,6 +86,8 @@ export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourc
   // Scalar fields are diagnostic metadata, not a byte hash or native lookup claim.
   const cicnResources = entries.flatMap((e, resourceIndex) => e.type === 'cicn'
     ? [{ id: e.id, resourceIndex, byteLength: e.data.length }] : []);
+  const ppatResources = entries.flatMap((e, resourceIndex) => e.type === 'ppat'
+    ? [{ id: e.id, resourceIndex, byteLength: e.data.length }] : []);
   const cicnSourceByIndex = new Map(cicnResources.map(r => [r.resourceIndex, r]));
   const assets = [];      // { path, rgba, width, height } — gamma-applied
   const flatAssets = [];  // extraction-manifest (flat file names)
@@ -324,7 +326,7 @@ export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourc
 
   for (const occurrence of cicnResources) Object.freeze(occurrence);
   validateTheme(theme); // throws on a malformed bundle; callers report/abort
-  return { theme, assets, cicnResources, colorTables: colorTablesOf(entries, realizeRgb16), manifest: { source, counts, assets: flatAssets } };
+  return { theme, assets, cicnResources, ppatResources, colorTables: colorTablesOf(entries, realizeRgb16), manifest: { source, counts, assets: flatAssets } };
 }
 
 /**
@@ -526,6 +528,7 @@ export function convertScheme(fork, { meta = {}, source = 'scheme.rsrc', resourc
     iconMaskPlanes: icons.iconMaskPlanes,
     iconColorResources: icons.iconColorResources,
     cicnResources: chrome.cicnResources,
+    ppatResources: chrome.ppatResources,
     colorTables: chrome.colorTables,
     manifest: chrome.manifest,
   };

@@ -190,7 +190,7 @@ export async function composeEnginePush(theme: LoadedTheme, opts: ButtonOptions 
           rect(0, 0, out.height, out.width), out, clip);
       },
       traceProvenance: !!diagnostics, cinfBodies: declared ? [] : [id, P.PB9.fallback],
-      bodyEnvironment: { owner: entry.theme, width, height,
+      bodyEnvironment: { owner: entry.theme, face: entry.element, width, height,
         ...(composition.clip.kind === 'rect' ? { clip: rect(composition.clip.rect.y - composition.controlOrigin[1],
           composition.clip.rect.x - composition.controlOrigin[0], composition.clip.rect.y + composition.clip.rect.h - composition.controlOrigin[1],
           composition.clip.rect.x + composition.clip.rect.w - composition.controlOrigin[0]) } : {}),
