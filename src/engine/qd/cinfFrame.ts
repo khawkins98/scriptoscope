@@ -86,17 +86,37 @@ export function drawCinfFrame(port: Pixmap, chain: ResourceChain, input: CinfFra
     return { ...none(), unsupported };
   }
   const retry = CINF_RETRY.find(r => r.bodyFill === bodyFill)!;
-  const hit = chain.probe<CinfRecord | { bytes: readonly number[] }>(CINF_REQUEST.type, [id, retry.retryId],
+  const hit = chain.probe<unknown>(CINF_REQUEST.type, [id, retry.retryId],
     { row: `${CINF_REQUEST.id},${retry.id}`, ...(trace ? { trace } : {}) });
   if (!hit) { trace?.drawOps.push({ op: 'cinfFrame', row: CINF_SKIP.id, dst: D }); return none(); }
+  // Modern admission policy: a present but unusable record is not a native
+  // NULL. Stop without retrying metadata or claiming a completed paint stage.
+  const unsupported = (reason: string): CinfFrameResult => {
+    trace?.drawOps.push({ op: 'cinfFrame', dst: D, status: 'unknown', cinfId: hit.id,
+      provider: hit.provider.name, unsupported: reason });
+    return { ...none(), cinfId: hit.id, unsupported: reason };
+  };
+  const value = hit.value;
+  if (!value || typeof value !== 'object') return unsupported('malformed cinf metadata');
+  if ('status' in value && value.status === 'unknown')
+    return unsupported('reason' in value && typeof value.reason === 'string' && value.reason
+      ? value.reason : 'cinf metadata unknown');
   let cinf: CinfRecord;
-  if ('bytes' in hit.value) {
-    if (hit.value.bytes.length < CINF_SAMPLE.headerLength) {
-      trace?.drawOps.push({ op: 'cinfFrame', row: CINF_SKIP.id, unspecified: 'short cinf header', dst: D });
-      return { ...none(), cinfId: hit.id };
-    }
-    cinf = decodeCinfHeader(hit.value.bytes)!;
-  } else cinf = hit.value;
+  if ('bytes' in value) {
+    const bytes = value.bytes;
+    if (!(Array.isArray(bytes) || bytes instanceof Uint8Array)
+      || !bytes.every(b => Number.isInteger(b) && b >= 0 && b <= CINF_SAMPLE.opaque))
+      return unsupported('malformed cinf bytes');
+    if (bytes.length < CINF_SAMPLE.headerLength) return unsupported('short cinf header');
+    cinf = decodeCinfHeader(Array.from(bytes))!;
+  } else {
+    const record = value as Partial<CinfRecord>;
+    const point = (p: QdPoint | undefined): boolean => !!p && Number.isInteger(p.x) && Number.isInteger(p.y);
+    if (![record.cornerSize, record.sideThickness, record.tileSides, record.patternAnchor, record.bgPatternId].every(Number.isInteger)
+      || !point(record.bgPixel) || !point(record.textPixel) || !point(record.embossPixel))
+      return unsupported('malformed cinf metadata');
+    cinf = record as CinfRecord;
+  }
   const consumedCinf = trace?.controlPaint ? hit.provider.selection?.('cinf', hit.id)?.cinfLookup : undefined;
   const artResource = art?.resource && { ...art.resource, ...(consumedCinf ? { consumedCinf } : {}) };
   const c = cinf.cornerSize, s = cinf.sideThickness;
@@ -127,6 +147,9 @@ export function drawCinfFrame(port: Pixmap, chain: ResourceChain, input: CinfFra
     const body = CINF_BODY.find(r => r.mode === '*' || r.mode === cinf.patternAnchor)!;
     const res = chain.getResource<Pixmap | IconSource>(body.type, cinf.bgPatternId, { row: body.id, ...(trace ? { trace } : {}) });
     if (res && body.found === 'B2') {
+      if ('status' in res.value && res.value.status === 'unknown')
+        return unsupported('reason' in res.value && typeof res.value.reason === 'string' && res.value.reason
+          ? res.value.reason : 'cinf body cicn resource unknown');
       const icon = 'pixmap' in res.value ? res.value : { pixmap: res.value, pixelSize: null, unmasked: null };
       iconBlit(port, icon, rect(0, 0, icon.pixmap.height, icon.pixmap.width), insetRect(D, s, s), trace, 'B2');
     } else if (res) {
