@@ -67,83 +67,64 @@ for (const mode of ['source', 'built']) test(`${mode}: solid bodies consume sele
   } catch (error) { await attachCase(page, info, { mode, result, expected: solidBackgroundRows }, error); throw error; }
 });
 
+// Intent freeze: external 459-raw-solid-showcase-tests/FREEZE.md, before execution.
 for (const mode of ['source', 'built']) test(`${mode}: raw solid admission preserves unknown metadata, unsupported bodies and selected pattern priority`, async ({ page, servers }, info) => {
+  const { rawVariants, rawRecords, verifyRawRow } = await import('./controls459/raw-solid-showcase-fixtures.mjs');
   await openHarness(page, servers, mode); let result;
   try {
-    result = await page.evaluate(async mode => {
-      const api = await import(mode === 'built' ? '/dist/scriptoscope.js' : '/src/index.ts');
-      const { forkOf } = await import('/tests/resource-provenance/fixtures.mjs');
-      const { solidBackgroundIcon, solidBackgroundInfo } = await import('/tests/decoder-fixtures/solid-background.mjs');
-      const bytes = forkOf([{ type: 'cicn', id: -10239, data: solidBackgroundIcon() }, { type: 'cinf', id: -10239, data: solidBackgroundInfo() }]);
-      const owner = await api.loadKaleidoscopeScheme(bytes);
-      const key = Object.keys(owner.manifest.chromeElements)[0], initial = owner.manifest.chromeElements[key];
-      const green = api.PixelBuffer.alloc(1, 1); green.setPixel(0, 0, 0, 255, 0, 255);
-      const url = api.bufferToCanvas(green).toDataURL(); const rows = [];
-      try {
-        for (const variant of ['missing', 'wrong-model', 'wrong-policy', 'invalid-display', 'invalid-rgb16', 'ambiguous-sample', 'invalid-anchor', 'legacy-no-request', 'mode5', 'invalid-mode', 'invalid-resource', 'invalid-slice', 'declared-display', 'ambiguous-pattern', 'ppat0', 'ppat17', 'label', 'label-override']) {
-          const el = structuredClone(initial); owner.manifest.chromeElements[key] = el; owner.manifest.patterns = {};
-          if (variant === 'missing') delete el.colorSamples;
-          if (variant === 'wrong-model') el.colorSamples.model = 'unknown';
-          if (variant === 'wrong-policy') el.colorSamples.displayPolicy = 'unknown';
-          if (variant === 'invalid-display') el.colorSamples.background.displayRgb = [NaN, 48, 48];
-          if (variant === 'invalid-rgb16') el.colorSamples.background.rgb16 = [-1, 8481, 8481];
-          if (variant === 'ambiguous-sample') el.colorSamplesUnavailableReason = 'ambiguous-asset-path';
-          if (variant === 'invalid-anchor') el.bgAnchor = [99, 99];
-          if (variant === 'legacy-no-request') delete el.bodyRequest;
-          if (variant === 'mode5') el.bodyRequest.mode = 5;
-          if (variant === 'invalid-mode') el.bodyRequest.mode = 256;
-          if (variant === 'invalid-resource') el.bodyRequest.resourceId = 32768;
-          if (variant === 'invalid-slice') el.slice.corner = 3.5;
-          if (variant === 'declared-display') el.colorSamples.background.displayRgb = [96, 96, 96];
-          if (variant === 'ambiguous-pattern') owner.manifest.patterns = { 2: { sourcePpatId: 0, asset: url }, 1: { sourcePpatId: 0, asset: url } };
-          if (variant.startsWith('ppat')) { el.bodyRequest.resourceId = Number(variant.slice(4)); owner.manifest.patterns = { exact: { sourcePpatId: el.bodyRequest.resourceId, asset: url } }; }
-          let trace; const labelled = variant.startsWith('label');
-          const out = await api.composeButton(owner, { label: labelled ? 'H' : '', minWidth: labelled ? 80 : 29, height: labelled ? 20 : 9,
-            ...(variant === 'label-override' ? { fg: '#ff0000' } : {}), diagnostics: { onComplete: value => { trace = value; } } });
-          let blue = 0, red = 0;
-          if (labelled) for (let y = 3; y < 17; y++) for (let x = 25; x < 55; x++) {
-            const p = [...out.getPixel(x, y)]; if (p.every((v, i) => v === [0, 0, 255, 255][i])) blue++;
-            if (p.every((v, i) => v === [255, 0, 0, 255][i])) red++;
-          }
-          let legacyPixels;
-          if (variant === 'invalid-slice') {
-            delete el.colorSamples;
-            const legacy = await api.composeButton(owner, { label: '', minWidth: 29, height: 9 });
-            legacyPixels = Array.from(legacy.data);
-          }
-          rows.push({ variant, center: [...out.getPixel(4, 4)], arm: [...out.getPixel(1, 4)], trace, blue, red,
-            ...(legacyPixels ? { pixels: Array.from(out.data), legacyPixels } : {}) });
-        }
-        owner.manifest.chromeElements[key] = structuredClone(initial);
-        owner.manifest.patterns = { broken: { sourcePpatId: 0, asset: 'data:image/png;base64,AAAA' } };
-        let decodeRejected = false; try { await api.composeButton(owner, { label: '' }); } catch { decodeRejected = true; }
-        return { rows, decodeRejected };
-      } finally { owner.dispose(); }
-    }, mode);
-    expect(result.decodeRejected).toBe(true);
-    for (const row of result.rows) {
-      if (row.variant.startsWith('label')) {
-        expect(row.center).toEqual([48, 48, 48, 255]);
-        expect(row.trace.textColors.policy).toBe(row.variant === 'label' ? 'source-samples' : 'caller-override');
-        expect(row.variant === 'label' ? row.blue : row.red).toBeGreaterThan(0);
-        expect(row.variant === 'label' ? row.red : row.blue).toBe(0);
-      } else if (row.variant === 'invalid-slice') {
-        // Fractional geometry is not admitted to the raw-source body. Preserve
-        // the existing legacy result exactly without claiming it is meaningful art.
-        expect(row.pixels).toEqual(row.legacyPixels);
-        expect(row.center).not.toEqual([48, 48, 48, 255]);
-      } else if (row.variant === 'declared-display') {
-        // Direct hand-built metadata is a caller declaration. Public loading
-        // validates RGB16/display consistency; rendering does not reapply a LUT.
-        expect(row.center).toEqual([96, 96, 96, 255]); expect(row.arm).toEqual([96, 96, 96, 255]);
-      } else if (row.variant.startsWith('ppat')) {
-        expect(row.center).toEqual([0, 255, 0, 255]); expect(row.arm).toEqual([0, 255, 0, 255]);
-        expect(row.trace.steps.filter(s => s.role === 'body-fill' && s.action === 'selected')).toHaveLength(1);
-      } else {
-        expect(row.center, row.variant).toEqual([0, 0, 255, 255]);
-        expect(row.arm, row.variant).toEqual([0, 0, 0, 0]);
+    result = await page.evaluate(async ({mode,variants}) => {
+      const api=await import(mode==='built'?'/dist/scriptoscope.js':'/src/index.ts');
+      const {forkOf}=await import('/tests/resource-provenance/fixtures.mjs');
+      const {rawRecords,mutateCarried}=await import('/tests/rendering-options/controls459/raw-solid-showcase-fixtures.mjs');
+      const rows=[];
+      for(const variant of variants){
+        const owner=await api.loadKaleidoscopeScheme(forkOf(rawRecords(variant)),{provenance:true});
+        // Same signed art in a foreign base must not supply selected-owner RGB16.
+        const foreignBytes=rawRecords('valid')[0].data;
+        new DataView(foreignBytes.buffer).setUint16(99,65535); // foreign sample red, never selected gray
+        const foreignRecords=[{type:'cicn',id:-10239,data:foreignBytes}];
+        if(variant==='foreign-pattern'){const {profilePpat}=await import('/tests/decoder-fixtures/display-profile.mjs');foreignRecords.push({type:'ppat',id:0,data:profilePpat([65535,0,0])});}
+        const foreign=await api.loadKaleidoscopeScheme(forkOf(foreignRecords),{provenance:true});
+        owner.baseUrl=location.origin+'/raw-owner/';foreign.baseUrl=location.origin+'/foreign-base/';
+        owner.base=foreign;
+        const child={baseUrl:location.origin+'/wrong-child/',base:owner,manifest:{chromeElements:{}}};
+        const el=Object.values(owner.manifest.chromeElements).find(e=>e.sourceCicnId===-10239);
+        if(variant.startsWith('carried-'))mutateCarried(el,variant);
+        if(variant==='bound-bodyPattern'){el.bodyPattern='2';el.bgPattern='1';}
+        if(['bound-bgPattern','unique-no-link','unbound-ambiguous'].includes(variant)){delete el.bodyPattern;delete el.bgPattern;if(variant==='bound-bgPattern')el.bgPattern='2';}
+        if(variant==='wrong-ID-links'){el.bodyPattern='red';el.bgPattern='red';}
+        let trace,out,error;
+        const labelled=variant.startsWith('label');
+        try{out=await api.composeButton(child,{label:labelled?'H':'',default:false,minWidth:labelled?80:29,height:labelled?20:9,
+          ...(variant==='label-override'?{fg:'#ff0000'}:{}),diagnostics:{onComplete:t=>trace=t}});}catch(e){error={name:e.name,message:e.message};}
+        let blue=0,red=0;
+        if(labelled&&out)for(let y=3;y<17;y++)for(let x=25;x<55;x++){const p=[...out.getPixel(x,y)];if(p.join(',')==='0,0,255,255')blue++;if(p.join(',')==='255,0,0,255')red++;}
+        rows.push({variant,error,trace,owner:owner.baseUrl,provenance:owner.byteProvenance,foreign:foreign.baseUrl,
+          source:el.engineColorSamples,ordinaryBackground:[...((await api.loadCicnBuffer(api.assetUrl(owner,el.asset))).getPixel(3,3))],size:out?[out.width,out.height]:null,pixels:out?[...out.data]:null,center:out?[...out.getPixel(4,4)]:null,blue,red});
+        owner.dispose();foreign.dispose();
       }
-    }
-    await attachObservations(info, 'solid-background', `${mode}-boundaries`, { mode, result });
-  } catch (error) { await attachCase(page, info, { mode, result }, error); throw error; }
+      return rows;
+    },{mode,variants:rawVariants});
+    // Baseline first: no mutation result substitutes for a passing positive control.
+    const validationErrors=[];
+    for(const row of result)try{verifyRawRow(row);}catch(e){validationErrors.push({variant:row.variant,message:e.message});}
+    for(const variant of ['valid','ppat0','short-selected'])verifyRawRow(result.find(r=>r.variant===variant));
+    const negatives=[];
+    for(const [name,variant,mutate] of [
+      ['wrong-owner','valid',r=>r.trace.steps.find(s=>s.role==='face'&&s.usage==='admission').owner.baseUrl=r.foreign],
+      ['UNKNOWN-as-NULL','short-selected',r=>{r.error=undefined;r.trace.outcome.status='themed';r.pixels=Array(29*9*4).fill(0);}],
+      ['wrong-body-type','ppat0',r=>r.trace.steps.find(s=>s.bodyPaint).resource.type='cicn'],
+      ['extra-actual-paint','valid',r=>r.trace.steps.push(structuredClone(r.trace.steps.find(s=>s.role==='face'&&s.usage==='paint')))],
+      ['changed-output-sentinel-alpha','valid',r=>r.pixels[3]=0],
+      ['wrong-source-RGB16','valid',r=>r.source.points['3,3'].rgb16[0]=65535],
+      ['changed-current-source-mask','valid',r=>r.ordinaryBackground[3]=255],
+      ['extra-actual-body-paint','ppat0',r=>r.trace.steps.push(structuredClone(r.trace.steps.find(s=>s.bodyPaint)))],
+    ]){const changed=structuredClone(result.find(r=>r.variant===variant));mutate(changed);expect(()=>verifyRawRow(changed),name).toThrow();negatives.push(name);}
+    for(const row of result){const records=rawRecords(row.variant);for(const [index,record]of records.entries()){
+      expect(row.provenance.resources.find(r=>r.resourceIndex===index)).toMatchObject({type:record.type,signedId:record.id,sha256:hash(record.data)});
+    }}
+    await attachObservations(info,'solid-background',`${mode}-raw-boundaries`,{mode,result,negatives,validationErrors,limits:'Independent synthetic public inputs; native provider/cache/device behavior unknown'});
+    const path=info.outputPath('raw-observations.json');await (await import('node:fs/promises')).writeFile(path,JSON.stringify({mode,result,negatives,validationErrors},null,2));await info.attach('raw-observations.json',{path,contentType:'application/json'});
+    expect(validationErrors).toEqual([]);
+  } catch(error){await attachCase(page,info,{mode,result},error);throw error;}
 });
