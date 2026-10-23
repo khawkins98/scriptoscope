@@ -4,8 +4,7 @@
 
 **Current orientation supersedes the May renderer pointers below.** `main` has
 released 0.4.0; the October decode-first `v2` integration branch delivers families
-incrementally ([DECISIONS #8](./docs/v2/DECISIONS.md)). PR #464’s window follow-up
-has merged into `v2`; PR #465 and further controls work remain in flight. The
+incrementally ([DECISIONS #8](./docs/v2/DECISIONS.md)). Follow-up work and review state are tracked in [issue #459](https://github.com/khawkins98/scriptoscope/issues/459). The
 all-family/no-legacy target is 1.0. `composeChrome.ts` is a facade over the engine
 window driver; it no longer houses the old recipe renderer. Rules, family drivers,
 QuickDraw, resource adapters, state and traces now live under `src/engine/`.
