@@ -79,3 +79,60 @@ for (const mode of ['source', 'built']) {
     }
   });
 }
+
+// D. A title that fits its title rect is drawn whole (TX5; DECISIONS #13 (1) as amended by #455:
+// the truncation room is capped at the plate but never below the title rect's width). When the
+// side has room, TT6/TT7 leave the remapped title rect exactly SW wide (window-widgets §5
+// "Title rect"), so TX5's room t4p.w + 2 exceeds SW and nothing is truncated. On floppies (all
+// titled types) and 1138 titled-utility the code-5 plate is 1–2 px narrower than t4p, which a
+// plate-only cap turns into a room below SW. The whole title's ink width comes from a window
+// that cannot truncate it: 1984's document window, whose plate ends at or past t4p (the
+// runtime's title raster does not depend on the theme or the window type).
+const WHOLE = [['floppies', 'document-window'], ['floppies', 'titled-utility-window'], ['1138', 'titled-utility-window']];
+const SHORT = ['Controls', 'Document', 'Tools'];
+const REFERENCE = ['1984', 'document-window'];
+for (const mode of ['source', 'built']) {
+  test(`${mode}: short titles that fit their title rect are drawn whole on floppies and 1138 titled-utility`, async ({ page, servers }, info) => {
+    info.annotations.push({ type: 'fidelity-assertion', description: 'window.title-fit' });
+    await openHarness(page, servers, mode);
+    const rows = await page.evaluate(async ({ mode, archives, cases, titles }) => {
+      const api = await import(mode === 'built' ? '/dist/scriptoscope.js' : '/src/index.ts');
+      const R = await import('/tests/rendering-options/window-title-rules.mjs');
+      const out = [], decoded = {}, themes = {};
+      for (const [slug, key] of cases) {
+        decoded[slug] ??= await api.loadKaleidoscopeScheme(new Uint8Array(await (await fetch(`/themes/${slug}/${archives[slug]}`)).arrayBuffer()), { encodeAssets: false });
+        themes[slug] ??= await api.loadTheme(`/themes/${slug}`);
+        const wt = decoded[slug].manifest.windowTypes[key];
+        for (const state of ['active', 'inactive']) {
+          const a = decoded[slug].assets.find(x => x.path === wt.chrome[state]), cicn = new api.PixelBuffer(a.width, a.height, new Uint8ClampedArray(a.rgba));
+          for (const title of titles) {
+            const c = (await api.renderWindow(themes[slug], { title, width: 240, height: 120, windowType: key, state }))._scriptoscopeComposed;
+            const tf = R.textFreeChrome(api.composeWindowChrome, cicn, wt, c, { titleLength: title.length });
+            const ink = tf ? R.inkPixels(c.buffer, tf.buffer) : [];
+            out.push({ slug, key, state, title, SW: tf?.SW ?? null, t4p: c.titleRect, plate: R.plateOf(c), box: R.bbox(ink),
+              outsideClip: c.titleRect ? R.inside(ink, R.decodedClip(c.titleRect)).length : null });
+          }
+        }
+      }
+      Object.values(themes).forEach(t => t.dispose?.());
+      return out;
+    }, { mode, archives, cases: [REFERENCE, ...WHOLE], titles: SHORT });
+    await attachObservations(info, 'window-title', `${mode}-whole`, { mode, rows });
+    const width = r => r.box ? r.box.r - r.box.l : 0;
+    for (const title of SHORT) for (const state of ['active', 'inactive']) {
+      const ref = rows.find(r => r.slug === REFERENCE[0] && r.key === REFERENCE[1] && r.state === state && r.title === title);
+      // The reference cannot truncate: t4p is SW wide and the plate reaches past t4p.
+      expect(ref.t4p.w, `reference ${title}`).toBe(ref.SW);
+      expect(ref.plate.x + ref.plate.w >= ref.t4p.x + ref.t4p.w, `reference ${title}: plate reaches t4p`).toBe(true);
+      expect(width(ref), `reference ${title}: ink`).toBeGreaterThan(0);
+      for (const [slug, key] of WHOLE) {
+        const row = rows.find(r => r.slug === slug && r.key === key && r.state === state && r.title === title);
+        const label = `${slug} ${key} ${state} "${title}"`;
+        expect.soft(row.t4p.w, `${label}: t4p is SW wide (§5)`).toBe(row.SW);
+        expect.soft(row.SW, `${label}: same measured width as the reference`).toBe(ref.SW);
+        expect.soft(width(row), `${label}: drawn whole (ink ${JSON.stringify(row.box)}, plate ${JSON.stringify(row.plate)}, t4p ${JSON.stringify(row.t4p)})`).toBe(width(ref));
+        expect.soft(row.outsideClip, `${label}: inside the decoded clip`).toBe(0);
+      }
+    }
+  });
+}

@@ -23,24 +23,16 @@ Third incremental release from the v2 engine branch (#378). Three more families 
 
 - **Specs:**
   - the progress CDEF 5 decode (#430, #443);
-  - window-widgets answers and corrections (#437, #445);
+  - window-widgets answers and corrections (#437, #445, #450);
   - DECISIONS #10–#13 (#433, #435, #438, #441, #442, #449, #451, #454).
 - **Tooling:**
   - `lane:ready` now rejects silent reverts of base commits, and CI builds the demo (#447).
 - **Known gaps:**
   - collapsed no-title utility windows on the five built-in-frame schemes render expanded (#423);
-  - the title shadow (TX7) is not yet drawn.
+  - the title shadow (TX7) is not yet drawn;
+  - with no condensed face, long titles truncate sooner than in the original (DECISIONS #13).
 
 ### Changes
-
-- **Window titles fit our title font (DECISIONS #13).** Two runtime limits of #432's decoded title draw are fixed. The runtime has no condensed face and draws titles at full width, so `composeWindowChrome` now defaults `SWc` to `SW` (TT2 no longer narrows the plate below the drawn text). Our title font is taller than the original's, so when its ascent would start above the remapped title rect, the baseline moves down by exactly that overflow, and no glyph is cut at the top. The decoded clip and baseline are kept otherwise.
-
-### Migration notes (window title fit)
-
-- `composeWindowChrome({ titleWidthCondensedPx })` now defaults to `titleWidthPx` (SW). It used to default to the TT2a value `SW − titleLength`. Pass a measured condensed width to get TT2's narrowing.
-- Titled-utility titles on 1984, 1990, floppies, windows-31 and windows-95 now draw 1 px lower, inside the title rect: their letter tops were cut before. No title's descent leaves the rect (checked on every wnd# scheme with a descender title). Document-window titles are unchanged.
-- Titles truncate to the plate: the truncation room is the title rect + 2 px (TX5) but never past the plate's right edge, so on dolphin-som and evolution, whose title rect ends flush with the plate, a truncated title no longer draws 1 px past it. The clip stays the decoded title rect + 2 px.
-- Unchanged by design: titles are left-aligned in a plate exactly `SW + margins` wide, so on schemes whose title rect fills the code-5 cell (evolution, dolphin-som) the text starts at the plate's first column. BeOS tabs follow the TT rows (no extra plate padding).
 
 - **v2 engine: `wnd#` windows now lay out and hit-test through the decoded 2.3.1 window recipe** (engine family `window`, `docs/spec/engine/window-widgets.md`). A new driver (`src/engine/families/window.ts`, tables in `src/engine/tables/window.ts`) follows the spec rows: part-code verdicts (PV), layout sums and placed ends (LS), the too-short step (TS), the allocation path (AP), per-cell widths with the unclamped budget (AW), the titled side (TT), cell rects (CR), the widget remap (RM), the pressed-widget draw (WD9) and the widget hit (HT). `composeChrome.ts` is now a facade over it; the legacy classifier, too-short negotiation, half split and placement-based widget remap are deleted. It fixes the window-widgets §7.2 findings F1–F10: a collapse box inside a dropped code-10 cell is now empty (not drawn, not hit, RM6); below the minimum the budget goes negative instead of clamping (AW8); the title plate is placed on the content centre with `W = SW + margins` and drops at ≤ 2 px of room (TT2–TT9); close, zoom and collapse are separate flags (F7); the collapse gate is re-read on every layout (F5, LC3); widget hits need the pressed-strip cicn and its mask (HT3–HT7, F8; inactive windows keep keyboard-reachable buttons, a runtime policy where HT2 would make them inert); the cell bands use the template cicn bounds (CR2/CR4, F6).
 
@@ -57,6 +49,17 @@ Third incremental release from the v2 engine branch (#378). Three more families 
 - Inactive windows keep focusable, operable widget buttons, although the decode makes them inert (HT2), so keyboard and assistive-technology users can act on background windows; widget art still follows the decode (DECISIONS #12).
 - Pressed `wnd#` widgets draw the scheme's pressed-strip cicn (WD9) instead of darkening the template; a scheme without it draws nothing.
 - The L4 parity lock `src/engine/windowChromeParity.*` is removed. The engine diff covers its archives, window types, states and titles at native, 97×53 and 320×160, but not its 240×120 size. `tests/engine-diff/cases.mjs` accepts `window-widgets.md` row ids for the window family.
+
+- **Window titles fit our title font (DECISIONS #13).** Two runtime limits of #432's decoded title draw are fixed. The runtime has no condensed face and draws titles at full width, so `composeWindowChrome` now defaults `SWc` to `SW` (TT2 no longer narrows the plate below the drawn text). Our title font is taller than the original's, so when its ascent would start above the remapped title rect, the baseline moves down by exactly that overflow, and no glyph is cut at the top. The decoded clip and baseline are kept otherwise.
+
+- **Window titles are whole again on floppies and 1138's titled utility** (DECISIONS #13 (1), as amended in #455). The truncation room stops at the plate's right edge but never below the title rect's width. Those plates are 1–2 px narrower than the title rect, so the plate cap truncated every title there ("Contr…", "Docume…"). dolphin-som and evolution stay inside their plates, and plates shrunk by the decoded width caps still truncate.
+
+### Migration notes (window title fit)
+
+- `composeWindowChrome({ titleWidthCondensedPx })` now defaults to `titleWidthPx` (SW). It used to default to the TT2a value `SW − titleLength`. Pass a measured condensed width to get TT2's narrowing.
+- Titled-utility titles on 1984, 1990, floppies, windows-31 and windows-95 now draw 1 px lower, inside the title rect: their letter tops were cut before. No title's descent leaves the rect (checked on every wnd# scheme with a descender title). Document-window titles are unchanged.
+- Titles truncate to the plate: the truncation room is the title rect + 2 px (TX5) but never past the plate's right edge, so on dolphin-som and evolution, whose title rect ends flush with the plate, a truncated title no longer draws 1 px past it. The clip stays the decoded title rect + 2 px.
+- Unchanged by design: titles are left-aligned in a plate exactly `SW + margins` wide, so on schemes whose title rect fills the code-5 cell (evolution, dolphin-som) the text starts at the plate's first column. BeOS tabs follow the TT rows (no extra plate padding).
 
 - **v2 engine: the progress bar now draws through the decoded 2.3.1 progress CDEF 5.** A new driver (`src/engine/families/progress.ts`, tables in `src/engine/tables/progress.ts`) follows `docs/spec/engine/progress.md`. It forces the control rect to 14 rows (RECT1). The path is chosen by the `cinf` gate: inactive (hilite 254 or 255) needs `cinf −10077`, and without it the whole bar draws with the active ids (GATE1/GATE1a). No `cinf −10080` or a missing frame cicn means CDEF 5's own procedural bar (GATE2/GATE3). Otherwise the frame is drawn as a body-less cinf border (FRAME1–FRAME8), with one-column bands as lines and `tile ≠ 0` bands tiled. The inner rect is inset by `k` when `k > 2`, else 2, and by `s` (INSET1/INSET2). The determinate split is `x = I.left + trunc(w · offset / range)`, unclamped (DET1–DET4). The fill `[I.left, x)` and the track `[x, I.right)` are each sliced from their own `cicn`/`cinf` pair: halves, caps, a one-column or tiled middle anchored at the start or end, with the art keeping its own height (SLICE1–SLICE7). Indeterminate mode uses pattern frames or a 4 px-per-phase shift (IND1–IND7). Art is copied through its mask (BLIT1–BLIT8) and nothing is erased (ERASE1–ERASE4). This fixes every §8 divergence: the eight procedural schemes (animals, apple-platinum-2, beos-r503, black-platinum, monkey-paradise, platinum-8, slimes, system7-nostalgia-silver) no longer use the "lavender 2-part" cicn −10223/−10224 model. They draw the procedural bar: bevel lines sampled from `cicn −10224`, a FrameRect, then dark grey and lavender PaintRects or `ppat −10064` (FB1–FB10). The removed behaviours are the per-part inactive→active fallback, disabled drawing as active, `null` returns, rounding, the pixel-scan inset, the track-under-frame draw order, the frame's centre cell overwriting the track, stretched bands and art, and the unmasked copies. Monkey-paradise's indeterminate procedural bar draws nothing inside the frame (FB9, an undecoded rect; the control-panel `ppat −10064` is not shipped, DECISIONS #5). The legacy progress drawing code is removed. The engine diff gate gains a `progress` family (1,458 cells), and reviewed progress goldens are re-recorded.
 
@@ -93,11 +96,11 @@ Third incremental release from the v2 engine branch (#378). Three more families 
 
 | src/ lines (non-test .ts) | v0.3.0 | 0.4.0 | delta |
 |---|---:|---:|---:|
-| logic (all src except engine tables) | 15399 | 16111 | +712 |
+| logic (all src except engine tables) | 15399 | 16112 | +713 |
 | engine tables (cited data) | 1258 | 2145 | +887 |
-| total | 16657 | 18256 | +1599 |
+| total | 16657 | 18257 | +1600 |
 
-By family: the window recipe removes 405 logic lines (the title fit adds 10 back) and `composeChrome.ts` drops from 924 to 255 lines. The slider (+648) and the progress bar (+456) grow because they add behaviour the legacy drawers never had (procedural bar, indeterminate mode, page parts, tick marks). The legacy slider and progress drawers are deleted.
+By family: the window recipe removes 405 logic lines (the title fit adds 11 back) and `composeChrome.ts` drops from 924 to 255 lines. The slider (+648) and the progress bar (+456) grow because they add behaviour the legacy drawers never had (procedural bar, indeterminate mode, page parts, tick marks). The legacy slider and progress drawers are deleted.
 
 ## [0.3.0] — 2026-10-22
 

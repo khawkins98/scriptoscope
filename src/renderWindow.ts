@@ -187,10 +187,11 @@ export async function renderWindow(
   const t4p = composed.titleRect;
   if (measured && t4p && t4p.w > 0 && t4p.h > 0) {
     // DECISIONS #13: the plate fits the text as drawn. TX5's truncation room is the title rect
-    // + 2, but where the rect ends flush with the plate (dolphin-som, evolution) that put ink
-    // 1 px past the plate, so for the runtime font the room stops at the plate's right edge.
+    // + 2; where the rect ends flush with the plate (dolphin-som, evolution) that put ink 1 px
+    // past it, so the room stops at the plate's right edge, but never below the title rect's own
+    // width (floppies and 1138's titled utility have plates 1-2 px narrower than the rect).
     const plateRight = composed.titleRegion.x + composed.titleRegion.w;
-    const room = Math.min(t4p.w + TITLE_TEXT.TX4.widenRight, plateRight - t4p.x);
+    const room = Math.min(t4p.w + TITLE_TEXT.TX4.widenRight, Math.max(plateRight - t4p.x, t4p.w));
     let dispTitle = title;
     if (measured.advance > room) { // TX5
       dispTitle = '';
