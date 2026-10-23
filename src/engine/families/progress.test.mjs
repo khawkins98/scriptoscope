@@ -449,3 +449,14 @@ test('progressResourceIds / loader needs: frame, fill, track cinfs and cicns, 16
   assert.ok(!ids.some(r => r.id === -10223), 'cicn −10223 is never requested');
   assert.ok(engineLineSampledCicnIds().includes(-10224));
 });
+
+test('DATA1 reads a byte, never booleanizes it, and ignores subsequent bytes (IDLE4)', () => {
+  for (const [input, byte] of [[0, 0], [1, 1], [2, 2], [127, 127], [128, 128], [255, 255], [256, 0], [-1, 255], [511, 255]]) {
+    const r = { indeterminate: 17, phase: 251, idleTime: 1234 };
+    assert.equal(progressSetData(r, 'inde', [input, 99]).result, 0);
+    assert.deepEqual(r, { indeterminate: byte, phase: 251, idleTime: 1234 });
+    const before = { ...r };
+    assert.equal(progressSetData(r, 'INDE', [1]).result, -30581);
+    assert.deepEqual(r, before);
+  }
+});

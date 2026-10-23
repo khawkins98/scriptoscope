@@ -45,7 +45,7 @@ for (const mode of ['source', 'built']) {
       f.themes.forEach(t => t.dispose?.()); return results;
     }, pairs);
     await attachObservations(testInfo, 'window-aliases', `${mode}-direct`, { mode, observations });
-    expect(observations).toHaveLength(32); // Eight actual authored variants × two states × canonical/raw spelling.
+    expect(observations).toHaveLength(36); // Nine variants: three types × three themes × two states × two spellings (#423).
     expect(observations.filter(r => r.actualKey !== r.expectedKey || !r.samePixels || !r.sameFrame || !r.sameBackground || String(r.actualSize) !== String(r.expectedSize))).toEqual([]);
   });
 
@@ -68,7 +68,7 @@ for (const mode of ['source', 'built']) {
       f.themes.forEach(t => t.dispose?.()); return results;
     }, pairs);
     await attachObservations(testInfo, 'window-aliases', `${mode}-manager`, { mode, observations });
-    expect(observations).toHaveLength(16);
+    expect(observations).toHaveLength(18);
     expect(observations.filter(r => r.actualKey !== r.expectedKey || !r.collapsed || !r.samePixels || String(r.actualSize) !== String(r.expectedSize))).toEqual([]);
   });
 
@@ -103,7 +103,7 @@ for (const mode of ['source', 'built']) {
       f.themes.forEach(t => t.dispose?.()); return results;
     }, pairs);
     await attachObservations(testInfo, 'window-aliases', `${mode}-gesture`, { mode, observations });
-    expect(observations).toHaveLength(8);
+    expect(observations).toHaveLength(9);
     expect(observations.filter(r => r.collapsedKey !== r.expectedKey || !r.isCollapsed || !r.sameCollapsedPixels || !r.sameExpandedPixels || !r.restoredExpanded || r.restoredHeight !== 75)).toEqual([]);
   });
 

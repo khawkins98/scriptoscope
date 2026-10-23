@@ -352,6 +352,10 @@ pixel equivalence to QuickDraw's `srcOr` text transfer. TX6 and TC5 record the
 original requested mode; no bitwise RGB formula is inferred from that mode.
 The title sizing, clip and baseline policies remain those of DECISIONS #13.
 
+| id | condition | runtime font policy | authority |
+|---|---|---|---|
+| TF1 (`window.title-fit`) | substitute title font, every sliced archive | Measure and draw at full width (`SWc = SW`). Preserve a whole title whenever its measured width fits `room = min(t4p.width + 2, max(plate.right − t4p.left, t4p.width))`; otherwise retain the longest prefix plus ellipsis that fits, or ellipsis alone when no glyph-plus-ellipsis fits (even when the marker itself exceeds room). Keep TX4's clip and the DECISIONS #13 baseline adjustment. This is a finite substitute-font sizing contract, not whole typography fidelity or an original-font raster claim. | DECISIONS #13; TX5 truncEnd; declared substitute marker policy |
+
 ## 5. Geometry
 
 - **Placed extent.** `E = (S[N] − S[0]) + (C.right − C.left) − (A.right − A.left)`
