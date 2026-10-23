@@ -77,14 +77,14 @@ for (const mode of ['source', 'built']) test(`${mode}: raw solid admission prese
       const {forkOf}=await import('/tests/resource-provenance/fixtures.mjs');
       const {rawRecords,mutateCarried}=await import('/tests/rendering-options/controls459/raw-solid-showcase-fixtures.mjs');
       const rows=[];
-      for(const variant of variants){
-        const owner=await api.loadKaleidoscopeScheme(forkOf(rawRecords(variant)),{provenance:true});
+      for(const observed of [false,true])for(const variant of variants){
+        const owner=await api.loadKaleidoscopeScheme(forkOf(rawRecords(variant)),{provenance:observed});
         // Same signed art in a foreign base must not supply selected-owner RGB16.
         const foreignBytes=rawRecords('valid')[0].data;
         new DataView(foreignBytes.buffer).setUint16(99,65535); // foreign sample red, never selected gray
         const foreignRecords=[{type:'cicn',id:-10239,data:foreignBytes}];
         if(variant==='foreign-pattern'){const {profilePpat}=await import('/tests/decoder-fixtures/display-profile.mjs');foreignRecords.push({type:'ppat',id:0,data:profilePpat([65535,0,0])});}
-        const foreign=await api.loadKaleidoscopeScheme(forkOf(foreignRecords),{provenance:true});
+        const foreign=await api.loadKaleidoscopeScheme(forkOf(foreignRecords),{provenance:observed});
         owner.baseUrl=location.origin+'/raw-owner/';foreign.baseUrl=location.origin+'/foreign-base/';
         owner.base=foreign;
         const child={baseUrl:location.origin+'/wrong-child/',base:owner,manifest:{chromeElements:{}}};
@@ -99,7 +99,7 @@ for (const mode of ['source', 'built']) test(`${mode}: raw solid admission prese
           ...(variant==='label-override'?{fg:'#ff0000'}:{}),diagnostics:{onComplete:t=>trace=t}});}catch(e){error={name:e.name,message:e.message};}
         let blue=0,red=0;
         if(labelled&&out)for(let y=3;y<17;y++)for(let x=25;x<55;x++){const p=[...out.getPixel(x,y)];if(p.join(',')==='0,0,255,255')blue++;if(p.join(',')==='255,0,0,255')red++;}
-        rows.push({variant,error,trace,owner:owner.baseUrl,provenance:owner.byteProvenance,foreign:foreign.baseUrl,
+        rows.push({variant,observed,error,trace,owner:owner.baseUrl,provenance:owner.byteProvenance,foreign:foreign.baseUrl,
           source:el.engineColorSamples,ordinaryBackground:[...((await api.loadCicnBuffer(api.assetUrl(owner,el.asset))).getPixel(3,3))],size:out?[out.width,out.height]:null,pixels:out?[...out.data]:null,center:out?[...out.getPixel(4,4)]:null,blue,red});
         owner.dispose();foreign.dispose();
       }
@@ -107,8 +107,8 @@ for (const mode of ['source', 'built']) test(`${mode}: raw solid admission prese
     },{mode,variants:rawVariants});
     // Baseline first: no mutation result substitutes for a passing positive control.
     const validationErrors=[];
-    for(const row of result)try{verifyRawRow(row);}catch(e){validationErrors.push({variant:row.variant,message:e.message});}
-    for(const variant of ['valid','ppat0','short-selected'])verifyRawRow(result.find(r=>r.variant===variant));
+    for(const row of result)try{verifyRawRow(row);}catch(e){validationErrors.push({variant:row.variant,message:e.message,observed:row.observed});}
+    for(const observed of [false,true])for(const variant of ['valid','ppat0','short-selected'])verifyRawRow(result.find(r=>r.variant===variant&&r.observed===observed));
     const negatives=[];
     for(const [name,variant,mutate] of [
       ['wrong-owner','valid',r=>r.trace.steps.find(s=>s.role==='face'&&s.usage==='admission').owner.baseUrl=r.foreign],
@@ -119,8 +119,8 @@ for (const mode of ['source', 'built']) test(`${mode}: raw solid admission prese
       ['wrong-source-RGB16','valid',r=>r.source.points['3,3'].rgb16[0]=65535],
       ['changed-current-source-mask','valid',r=>r.ordinaryBackground[3]=255],
       ['extra-actual-body-paint','ppat0',r=>r.trace.steps.push(structuredClone(r.trace.steps.find(s=>s.bodyPaint)))],
-    ]){const changed=structuredClone(result.find(r=>r.variant===variant));mutate(changed);expect(()=>verifyRawRow(changed),name).toThrow();negatives.push(name);}
-    for(const row of result){const records=rawRecords(row.variant);for(const [index,record]of records.entries()){
+    ]){for(const observed of [false,true]){const changed=structuredClone(result.find(r=>r.variant===variant&&r.observed===observed));mutate(changed);expect(()=>verifyRawRow(changed),`${name}/observed=${observed}`).toThrow();negatives.push({name,observed});}}
+    for(const row of result){if(!row.observed){expect(row.provenance).toBeUndefined();continue;}const records=rawRecords(row.variant);for(const [index,record]of records.entries()){
       expect(row.provenance.resources.find(r=>r.resourceIndex===index)).toMatchObject({type:record.type,signedId:record.id,sha256:hash(record.data)});
     }}
     await attachObservations(info,'solid-background',`${mode}-raw-boundaries`,{mode,result,negatives,validationErrors,limits:'Independent synthetic public inputs; native provider/cache/device behavior unknown'});
