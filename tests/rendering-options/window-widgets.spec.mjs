@@ -94,3 +94,51 @@ for (const mode of ['source', 'built']) {
     await attachObservations(testInfo, 'window-widgets', `${mode}-actions`, { mode, observations });
   });
 }
+
+// Keyboard and assistive-technology activation (DECISIONS #12: title widgets stay focusable,
+// operable buttons on active and inactive windows). The HT7/HT8 mask decides pointer hits only;
+// a keyboard click carries no pointer position. animals is the scheme whose pressed-strip pixel
+// at every widget's top-left is mask-clear (−14330 strip, window-chrome-rules.test.mjs), so a
+// gate that tests the click's offset there drops the activation; 1138's is mask-set.
+const KEYBOARD_SUBJECTS = ['animals', '1138'];
+for (const mode of ['source', 'built']) {
+  test(`${mode}: Enter and Space fire close, zoom and collapse on active and inactive wnd# windows`, async ({ page, servers }) => {
+    await openHarness(page, servers, mode);
+    const rows = [];
+    for (const slug of KEYBOARD_SUBJECTS) {
+      await page.evaluate(async ({ mode, slug }) => {
+        const api = await import(mode === 'source' ? '/src/index.ts' : '/dist/scriptoscope.js');
+        const theme = await api.loadTheme(`/themes/${slug}`);
+        const manager = new api.WindowManager(), calls = [];
+        const add = async (name, left) => {
+          const host = await manager.add(theme, { width: 240, height: 120, title: name },
+            { onClose: () => calls.push(`${name}:close`), onZoom: () => calls.push(`${name}:zoom`), onCollapse: () => calls.push(`${name}:collapse`) });
+          document.body.append(host);
+          Object.assign(host.style, { position: 'absolute', left: `${left}px`, top: '40px' });
+          return host;
+        };
+        const a = await add('A', 20), b = await add('B', 320);
+        window.kbd = { theme, manager, calls, hosts: { A: a, B: b } };
+      }, { mode, slug });
+      for (const name of ['A', 'B']) for (const role of ['close', 'zoom', 'collapse']) for (const key of ['Enter', 'Space']) {
+        const state = await page.evaluate(({ name, role }) => {
+          const k = window.kbd, host = k.hosts[name], other = k.hosts[name === 'A' ? 'B' : 'A'];
+          const btn = host.shadowRoot.querySelector(`.scriptoscope-titlewidget-${role}`);
+          if (!btn) return { missing: true };
+          btn.focus();
+          const z = k.manager.describe(host)?.z ?? 0, zo = k.manager.describe(other)?.z ?? 0;
+          return { missing: false, focused: host.shadowRoot.activeElement === btn, active: z > zo, before: k.calls.length };
+        }, { name, role });
+        expect(state.missing, `${slug} ${name} ${role}`).toBe(false);
+        expect(state.focused, `${slug} ${name} ${role}: focused`).toBe(true);
+        await page.keyboard.press(key);
+        const after = await page.evaluate(() => window.kbd.calls.slice());
+        rows.push({ slug, window: name, active: state.active, role, key, fired: after.slice(state.before) });
+      }
+      await page.evaluate(() => { const k = window.kbd; Object.values(k.hosts).forEach(h => k.manager.remove(h)); k.theme.dispose?.(); });
+    }
+    // Both an active and an inactive window were exercised for every scheme.
+    for (const slug of KEYBOARD_SUBJECTS) expect(new Set(rows.filter(r => r.slug === slug).map(r => r.active)), slug).toEqual(new Set([true, false]));
+    for (const r of rows) expect(r.fired, `${r.slug} ${r.window} (${r.active ? 'active' : 'inactive'}) ${r.role} ${r.key}`).toEqual([`${r.window}:${r.role}`]);
+  });
+}

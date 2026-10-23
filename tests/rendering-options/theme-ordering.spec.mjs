@@ -233,6 +233,13 @@ for (const mode of ['source', 'built']) {
       f.options = { title: 'Widget race', width: 240, height: 100, reuseCanvas: document.createElement('canvas') };
       f.host = await f.manager.add(f.themes[0], f.options, { onClose() {} }); f.root.append(f.host);
       f.button = f.host.shadowRoot.querySelector('.scriptoscope-titlewidget-zoom');
+      // HT7/HT8: a press hits only inside the widget's remapped rect where the pressed strip's
+      // mask is set. windows-95's −14330 zoom art is mask-set over its whole 16×14 source, so
+      // the rect's centre is a real press point (checked in window-chrome-rules.test.mjs).
+      f.press = button => {
+        const r = button.getBoundingClientRect();
+        button.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, clientX: r.x + r.width / 2, clientY: r.y + r.height / 2 }));
+      };
       f.holdFonts = () => {
         const load = document.fonts.load; f.held = 0;
         const barrier = new Promise(resolve => f.release = resolve);
@@ -241,7 +248,7 @@ for (const mode of ['source', 'built']) {
         };
       };
       f.holdFonts();
-      f.button.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+      f.press(f.button);
     });
     await page.waitForFunction(() => window.ordering.held === 1);
     await page.evaluate(async () => {
@@ -258,7 +265,7 @@ for (const mode of ['source', 'built']) {
     await page.evaluate(async () => {
       const f = window.ordering; await f.manager.retheme(f.themes[0]);
       f.expected = f.snapshot(); f.button = f.host.shadowRoot.querySelector('.scriptoscope-titlewidget-zoom');
-      f.holdFonts(); f.button.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+      f.holdFonts(); f.press(f.button);
     });
     await page.waitForFunction(() => window.ordering.held === 1);
     await page.evaluate(async () => {

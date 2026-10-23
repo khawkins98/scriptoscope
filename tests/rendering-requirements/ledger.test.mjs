@@ -669,10 +669,11 @@ test('tab/header source-rule port (main 1.23.0) preserves the exact 1.22.0 ledge
   // mismatches and moves the 6 declared-group2 endpoint rows from verified to unsupported.
   // progress@1.1.0 (#440 engine, progress.rules) verifies selection, layout and state mapping for
   // the 10 GATE4 archives (30 rows) and keeps the other 60 progress rows unknown.
+  // window@1.5.0 (#432) verifies recipe-cells and half-extent for the 13 wnd# cases (+26).
   const mainLineage = assemble(sources.base, sources.families.map(f => ['scrollbar', 'push-button', 'slider', 'progress'].includes(f.family) ? baseFamily(f) : f.family === 'window' ? atVersion(f, '1.1.0') : f)).ledger;
   assert.deepEqual(makeReport(mainLineage).requirementStatus.counts, { verified: 216, mismatched: 18, unsupported: 0, unknown: 1494 });
   assert.equal(makeReport(mainLineage).cases.length, 234);
-  assert.deepEqual(makeReport(live).requirementStatus.counts, { verified: 314, mismatched: 0, unsupported: 6, unknown: 1512 });
+  assert.deepEqual(makeReport(live).requirementStatus.counts, { verified: 340, mismatched: 0, unsupported: 6, unknown: 1486 });
   assert.equal(makeReport(live).cases.length, 239);
 });
 
@@ -750,7 +751,7 @@ test('window 1.3.0 (#412) narrows the corner-sprite cases, promotes exactly 14 r
 });
 
 test('window 1.4.0 (#421) binds the utility cases to window.procedural-frame-utility and promotes exactly 14 rows', () => {
-  const w = liveFamily('window'), t = w.transitions.find(x => x.version === '1.4.0'), prior = atVersion(w, '1.3.0');
+  const w = atVersion(liveFamily('window'), '1.4.0'), t = w.transitions.find(x => x.version === '1.4.0'), prior = atVersion(w, '1.3.0');
   const slugs = ['apple-platinum-2', 'black-platinum', 'platinum-8', 'slimes', 'system7-nostalgia-silver'], cases = slugs.map(s => `${s}.window.procedural-frame-utility`);
   assert.equal(w.version, '1.4.0'); assert.equal(priorFamily(w).version, '1.3.0');
   assert.deepEqual(w.requirements, prior.requirements); assert.equal(w.cases.length, prior.cases.length); assert.equal(w.assessments.length, prior.assessments.length);
@@ -808,4 +809,31 @@ test('progress 1.1.0 (#440 engine) verifies exactly the 30 GATE4 selection/layou
   for (const slug of ['animals', 'monkey-paradise', 'platinum-8']) assert.match(p.assessments.find(a => a.caseId === `${slug}.progress.public-rows.sampled` && a.requirementId === 'progress.selection').rationale, /PACH 130/);
   const count = f => f.assessments.reduce((m, a) => (m[a.status] = (m[a.status] ?? 0) + 1, m), {});
   assert.deepEqual(count(prior), { unknown: 90 }); assert.deepEqual(count(p), { verified: 30, unknown: 60 });
+});
+
+test('window 1.5.0 (#432) re-judges the 13 wnd# cases against window-widgets.md and promotes exactly recipe-cells and half-extent', () => {
+  const live = liveFamily('window'), t = live.transitions.find(x => x.version === '1.5.0'), prior = atVersion(live, '1.4.0');
+  assert.equal(live.version, '1.5.0'); assert.equal(priorFamily(live).version, '1.4.0');
+  const slugs = ['1138','1984','1990','animals','apple-lisa','beos-r503','crayon-os','dolphin-som','evolution','floppies','monkey-paradise','windows-31','windows-95'];
+  const cases = slugs.map(s => `${s}.window.sliced-recipes.sampled`);
+  assert.equal(live.cases.length, prior.cases.length); assert.equal(live.assessments.length, prior.assessments.length); assert.equal(live.assertions.length, prior.assertions.length);
+  // Appended: nine evidence rows, every one an excerpt of docs/spec/engine/window-widgets.md.
+  const added = live.evidence.slice(t.counts.evidence);
+  assert.deepEqual(added.map(e => e.id), ['kdef.window-layout-sums', 'kdef.window-too-short', 'kdef.window-allocation', 'kdef.window-titled-side', 'kdef.window-popup', 'kdef.window-cells', 'kdef.window-remap', 'kdef.window-full-draw', 'kdef.window-hit']);
+  assert(added.every(e => e.document === 'docs/spec/engine/window-widgets.md' && e.kind === 'primary-decode'));
+  // In place: only window rows; two requirement claims, the 13 cases' options, window.recipe-rules' claim, and 65 assessments.
+  assert.deepEqual(Object.keys(t.replaced).sort(), ['assertions', 'assessments', 'cases', 'requirements']);
+  assert.deepEqual(t.replaced.requirements.map(r => live.requirements[r.index].id), ['window.recipe-cells', 'window.half-extent']);
+  assert.deepEqual(t.replaced.assertions.map(r => live.assertions[r.index].id), ['window.recipe-rules']);
+  assert.deepEqual(t.replaced.cases.map(r => live.cases[r.index].id), cases);
+  const changed = t.replaced.assessments.map(r => ({ now: live.assessments[r.index], was: r.row }));
+  assert.equal(changed.length, 65);
+  assert(changed.every(c => cases.includes(c.now.caseId) && c.was.requirementId === c.now.requirementId));
+  const promoted = changed.filter(c => c.now.status !== c.was.status);
+  assert.equal(promoted.length, 26);
+  assert(promoted.every(c => c.was.status === 'unknown' && c.now.status === 'verified' && ['window.recipe-cells', 'window.half-extent'].includes(c.now.requirementId) && c.now.assertions.join() === 'window.recipe-rules'));
+  assert(changed.filter(c => c.now.requirementId === 'window.masked-composition').every(c => c.now.status === 'unknown' && /WD6/.test(c.now.rationale)));
+  assert(changed.filter(c => c.now.requirementId === 'window.flag-gated-parts').every(c => c.now.status === 'unknown' && /F7/.test(c.now.rationale)));
+  const count = f => f.assessments.reduce((m, a) => (m[a.status] = (m[a.status] ?? 0) + 1, m), {});
+  assert.deepEqual(count(live), { verified: count(prior).verified + 26, unknown: count(prior).unknown - 26 });
 });
