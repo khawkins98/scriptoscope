@@ -408,8 +408,6 @@ export interface ThemeInspector {
   ppats: Array<{ file: string; label: string; url?: string }>;
   resourceRoles: {
     theme: string;
-    /** @deprecated Not used for drawing; the engine's cinf gate selects the progress path (progress.md GATE1–GATE4). Removal: #436. */
-    progress: ThemeProgressModel;
     scrollArrows: ThemeScrollArrowMap | null;
     resources: Array<{
       id: number | null; type: string; size?: number;
@@ -417,21 +415,6 @@ export interface ThemeInspector {
     }>;
   };
 }
-
-/** The per-scheme progress-bar model `buildResourceRoles` resolves from the cicns present.
- *  Two known shapes plus `'none'`; see `tools/theme-loader/classifyResources.js`.
- *  @deprecated Diagnostic only and wrong for the eight procedural schemes
- *  (docs/spec/engine/progress.md §8); composeProgress uses the engine's cinf gate. Removal: #436. */
-export type ThemeProgressModel =
-  | { model: 'none' }
-  | { model: 'lavender-2-part'; fill: number; track: number | null; frame: null; alternateHues: number[] }
-  | {
-      model: 'role-3-part';
-      frame: number | null;
-      fill: number | null;
-      track: number | null;
-      inactive: { frame: number | null; fill: number | null; track: number | null };
-    };
 
 /** The universal kDEF231 CDEF scroll-arrow mapping (per the asm 9f0e-9f38 decode). */
 export interface ThemeScrollArrowMap {

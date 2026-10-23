@@ -11,26 +11,26 @@ See [docs/scene-slot-spec.md](./scene-slot-spec.md) for the hand-authored contra
 
 ## Slot resolution per theme
 
-| theme | info-bar-bg | finder-header-badge | window-body-bg | desktop-bg | dialog-body-bg | info-bar-text-color | progress-bar-hue | title-widget-glyph | scroll-arrow-glyph | folder-scene-icons |
-|---|---|---|---|---|---|---|---|---|---|---|
-| 1138 | T3 · headerFill | T1 · ics4/8 -3790 | T2 · white | T1 · desktop-pattern key | T1 · ppat-42 (utility-window canonical) | T2 · contrast-pick → black | T2 · role-3-part frame/fill/track | T1 · baked into chrome cicn (native recipe) | T1 · baked into scrollbar cicn (native recipe) | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
-| 1984 | T2 · bodyBackground | T1 · ics4/8 -3790 | T1 · bodyBackground | T1 · desktop-pattern key | T1 · ppat-42 (utility-window canonical) | T2 · contrast-pick → black | T2 · role-3-part frame/fill/track | T1 · baked into chrome cicn (native recipe) | T1 · baked into scrollbar cicn (native recipe) | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
-| 1990 | T1 · cinf bgPattern | T1 · ics4/8 -3790 | T1 · bodyBackground | T2 · ppat-17 (canonical Mac desktop) | T1 · ppat-42 (utility-window canonical) | T2 · contrast-pick → black | T2 · role-3-part frame/fill/track | T1 · baked into chrome cicn (native recipe) | T1 · baked into scrollbar cicn (native recipe) | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
-| animals | T1 · cinf bgPattern | T1 · ics4/8 -3790 | T1 · bodyBackground | T2 · ppat-17 (canonical Mac desktop) | T1 · ppat-42 (utility-window canonical) | T2 · contrast-pick → black | T1 · lavender 2-part canonical | T1 · baked into chrome cicn (native recipe) | T1 · baked into scrollbar cicn (native recipe) | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
-| apple-lisa | T3 · headerFill | T1 · ics4/8 -3790 | T2 · white | T1 · desktop-pattern key | T1 · ppat-42 (utility-window canonical) | T2 · contrast-pick → black | T2 · role-3-part frame/fill/track | T1 · baked into chrome cicn (native recipe) | T1 · baked into scrollbar cicn (native recipe) | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
-| apple-platinum-2 | T3 · headerFill | T2 · FINDER_GRID_PNG | T2 · white | T3 · CSS checkerboard | T3 · flat #ffffff | T2 · contrast-pick → black | T1 · lavender 2-part canonical | T2 · document widgets (-14336/-14335/-14334) | T2 · full 8-glyph set (-10197..-10204) | T2 · coverage-ranked icl4/8 |
-| beos-r503 | T3 · headerFill | T1 · ics4/8 -3790 | T2 · white | T1 · desktop-pattern key | T3 · flat #ffffff | T2 · contrast-pick → black | T1 · lavender 2-part canonical | T1 · baked into chrome cicn (native recipe) | T1 · baked into scrollbar cicn (native recipe) | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
-| black-platinum | T3 · headerFill | T1 · ics4/8 -3790 | T2 · white | T3 · CSS checkerboard | T3 · flat #ffffff | T2 · contrast-pick → black | T1 · lavender 2-part canonical | T2 · document widgets (-14336/-14335/-14334) | T2 · full 8-glyph set (-10197..-10204) | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
-| crayon-os | T1 · cinf bgPattern | T1 · ics4/8 -3790 | T1 · bodyBackground | T3 · CSS checkerboard | T1 · ppat-42 (utility-window canonical) | T2 · contrast-pick → black | T2 · role-3-part frame/fill/track | T1 · baked into chrome cicn (native recipe) | T1 · baked into scrollbar cicn (native recipe) | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
-| dolphin-som | T2 · bodyBackground | T1 · ics4/8 -3790 | T1 · bodyBackground | T2 · ppat-17 (canonical Mac desktop) | T3 · flat #ffffff | T2 · contrast-pick → black | T2 · role-3-part frame/fill/track | T1 · baked into chrome cicn (native recipe) | T1 · baked into scrollbar cicn (native recipe) | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
-| evolution | T1 · cinf bgPattern | T1 · ics4/8 -3790 | T1 · bodyBackground | T2 · ppat-17 (canonical Mac desktop) | T3 · flat #ffffff | T2 · contrast-pick → black | T2 · role-3-part frame/fill/track | T1 · baked into chrome cicn (native recipe) | T1 · baked into scrollbar cicn (native recipe) | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
-| floppies | T2 · bodyBackground | T2 · FINDER_GRID_PNG | T1 · bodyBackground | T3 · CSS checkerboard | T3 · flat #ffffff | T2 · contrast-pick → black | T2 · role-3-part frame/fill/track | T1 · baked into chrome cicn (native recipe) | T1 · baked into scrollbar cicn (native recipe) | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
-| monkey-paradise | T1 · cinf bgPattern | T1 · ics4/8 -3790 | T1 · bodyBackground | T2 · ppat-17 (canonical Mac desktop) | T1 · ppat-42 (utility-window canonical) | T2 · contrast-pick → black | T1 · lavender 2-part canonical | T1 · baked into chrome cicn (native recipe) | T1 · baked into scrollbar cicn (native recipe) | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
-| platinum-8 | T3 · headerFill | T2 · FINDER_GRID_PNG | T2 · white | T3 · CSS checkerboard | T3 · flat #ffffff | T2 · contrast-pick → black | T1 · lavender 2-part canonical | T2 · document widgets (-14336/-14335/-14334) | T2 · full 8-glyph set (-10197..-10204) | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
-| slimes | T3 · headerFill | T2 · FINDER_GRID_PNG | T2 · white | T3 · CSS checkerboard | T3 · flat #ffffff | T2 · contrast-pick → black | T1 · lavender 2-part canonical | T2 · document widgets (-14336/-14335/-14334) | T2 · full 8-glyph set (-10197..-10204) | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
-| system7-nostalgia-silver | T3 · headerFill | T2 · FINDER_GRID_PNG | T2 · white | T3 · CSS checkerboard | T3 · flat #ffffff | T2 · contrast-pick → black | T1 · lavender 2-part canonical | T2 · document widgets (-14336/-14335/-14334) | T2 · full 8-glyph set (-10197..-10204) | T2 · coverage-ranked icl4/8 |
-| windows-31 | T3 · headerFill | T1 · ics4/8 -3790 | T2 · white | T2 · ppat-17 (canonical Mac desktop) | T1 · ppat-42 (utility-window canonical) | T2 · contrast-pick → black | T2 · role-3-part frame/fill/track | T1 · baked into chrome cicn (native recipe) | T1 · baked into scrollbar cicn (native recipe) | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
-| windows-95 | T3 · headerFill | T1 · ics4/8 -3790 | T2 · white | T2 · ppat-17 (canonical Mac desktop) | T1 · ppat-42 (utility-window canonical) | T2 · contrast-pick → black | T2 · role-3-part frame/fill/track | T1 · baked into chrome cicn (native recipe) | T1 · baked into scrollbar cicn (native recipe) | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
+| theme | info-bar-bg | finder-header-badge | window-body-bg | desktop-bg | dialog-body-bg | info-bar-text-color | title-widget-glyph | scroll-arrow-glyph | folder-scene-icons |
+|---|---|---|---|---|---|---|---|---|---|
+| 1138 | T3 · headerFill | T1 · ics4/8 -3790 | T2 · white | T1 · desktop-pattern key | T1 · ppat-42 (utility-window canonical) | T2 · contrast-pick → black | T1 · baked into chrome cicn (native recipe) | T1 · baked into scrollbar cicn (native recipe) | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
+| 1984 | T2 · bodyBackground | T1 · ics4/8 -3790 | T1 · bodyBackground | T1 · desktop-pattern key | T1 · ppat-42 (utility-window canonical) | T2 · contrast-pick → black | T1 · baked into chrome cicn (native recipe) | T1 · baked into scrollbar cicn (native recipe) | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
+| 1990 | T1 · cinf bgPattern | T1 · ics4/8 -3790 | T1 · bodyBackground | T2 · ppat-17 (canonical Mac desktop) | T1 · ppat-42 (utility-window canonical) | T2 · contrast-pick → black | T1 · baked into chrome cicn (native recipe) | T1 · baked into scrollbar cicn (native recipe) | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
+| animals | T1 · cinf bgPattern | T1 · ics4/8 -3790 | T1 · bodyBackground | T2 · ppat-17 (canonical Mac desktop) | T1 · ppat-42 (utility-window canonical) | T2 · contrast-pick → black | T1 · baked into chrome cicn (native recipe) | T1 · baked into scrollbar cicn (native recipe) | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
+| apple-lisa | T3 · headerFill | T1 · ics4/8 -3790 | T2 · white | T1 · desktop-pattern key | T1 · ppat-42 (utility-window canonical) | T2 · contrast-pick → black | T1 · baked into chrome cicn (native recipe) | T1 · baked into scrollbar cicn (native recipe) | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
+| apple-platinum-2 | T3 · headerFill | T2 · FINDER_GRID_PNG | T2 · white | T3 · CSS checkerboard | T3 · flat #ffffff | T2 · contrast-pick → black | T2 · document widgets (-14336/-14335/-14334) | T2 · full 8-glyph set (-10197..-10204) | T2 · coverage-ranked icl4/8 |
+| beos-r503 | T3 · headerFill | T1 · ics4/8 -3790 | T2 · white | T1 · desktop-pattern key | T3 · flat #ffffff | T2 · contrast-pick → black | T1 · baked into chrome cicn (native recipe) | T1 · baked into scrollbar cicn (native recipe) | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
+| black-platinum | T3 · headerFill | T1 · ics4/8 -3790 | T2 · white | T3 · CSS checkerboard | T3 · flat #ffffff | T2 · contrast-pick → black | T2 · document widgets (-14336/-14335/-14334) | T2 · full 8-glyph set (-10197..-10204) | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
+| crayon-os | T1 · cinf bgPattern | T1 · ics4/8 -3790 | T1 · bodyBackground | T3 · CSS checkerboard | T1 · ppat-42 (utility-window canonical) | T2 · contrast-pick → black | T1 · baked into chrome cicn (native recipe) | T1 · baked into scrollbar cicn (native recipe) | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
+| dolphin-som | T2 · bodyBackground | T1 · ics4/8 -3790 | T1 · bodyBackground | T2 · ppat-17 (canonical Mac desktop) | T3 · flat #ffffff | T2 · contrast-pick → black | T1 · baked into chrome cicn (native recipe) | T1 · baked into scrollbar cicn (native recipe) | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
+| evolution | T1 · cinf bgPattern | T1 · ics4/8 -3790 | T1 · bodyBackground | T2 · ppat-17 (canonical Mac desktop) | T3 · flat #ffffff | T2 · contrast-pick → black | T1 · baked into chrome cicn (native recipe) | T1 · baked into scrollbar cicn (native recipe) | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
+| floppies | T2 · bodyBackground | T2 · FINDER_GRID_PNG | T1 · bodyBackground | T3 · CSS checkerboard | T3 · flat #ffffff | T2 · contrast-pick → black | T1 · baked into chrome cicn (native recipe) | T1 · baked into scrollbar cicn (native recipe) | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
+| monkey-paradise | T1 · cinf bgPattern | T1 · ics4/8 -3790 | T1 · bodyBackground | T2 · ppat-17 (canonical Mac desktop) | T1 · ppat-42 (utility-window canonical) | T2 · contrast-pick → black | T1 · baked into chrome cicn (native recipe) | T1 · baked into scrollbar cicn (native recipe) | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
+| platinum-8 | T3 · headerFill | T2 · FINDER_GRID_PNG | T2 · white | T3 · CSS checkerboard | T3 · flat #ffffff | T2 · contrast-pick → black | T2 · document widgets (-14336/-14335/-14334) | T2 · full 8-glyph set (-10197..-10204) | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
+| slimes | T3 · headerFill | T2 · FINDER_GRID_PNG | T2 · white | T3 · CSS checkerboard | T3 · flat #ffffff | T2 · contrast-pick → black | T2 · document widgets (-14336/-14335/-14334) | T2 · full 8-glyph set (-10197..-10204) | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
+| system7-nostalgia-silver | T3 · headerFill | T2 · FINDER_GRID_PNG | T2 · white | T3 · CSS checkerboard | T3 · flat #ffffff | T2 · contrast-pick → black | T2 · document widgets (-14336/-14335/-14334) | T2 · full 8-glyph set (-10197..-10204) | T2 · coverage-ranked icl4/8 |
+| windows-31 | T3 · headerFill | T1 · ics4/8 -3790 | T2 · white | T2 · ppat-17 (canonical Mac desktop) | T1 · ppat-42 (utility-window canonical) | T2 · contrast-pick → black | T1 · baked into chrome cicn (native recipe) | T1 · baked into scrollbar cicn (native recipe) | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
+| windows-95 | T3 · headerFill | T1 · ics4/8 -3790 | T2 · white | T2 · ppat-17 (canonical Mac desktop) | T1 · ppat-42 (utility-window canonical) | T2 · contrast-pick → black | T1 · baked into chrome cicn (native recipe) | T1 · baked into scrollbar cicn (native recipe) | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
 
 ## Tier distribution per slot
 
@@ -93,17 +93,6 @@ Resolved in: `demo/diagnostic.html buildScene volume span`
 | T2 | `contrast-pick → black` | resolved info-bar fill is light (luminance ≥ 128) OR a textured ppat (we keep black against varied pattern luminance) | 1138, 1984, 1990, animals, apple-lisa, apple-platinum-2, beos-r503, black-platinum, crayon-os, dolphin-som, evolution, floppies, monkey-paradise, platinum-8, slimes, system7-nostalgia-silver, windows-31, windows-95 |
 | T3 | `flat #000` | hardcoded fallback for schemes with malformed headerColors | — |
 
-### Progress-bar accent hue  `progress-bar-hue`
-
-Resolved in: `src/controls.ts composeProgress (currently always lavender / role-3-part)`
-
-| Tier | Field | Why | Themes |
-|---|---|---|---|
-| T1 | `lavender 2-part canonical` | shipped -10223 — the kDEF default lavender progress (composeProgress checks this first) | animals, apple-platinum-2, beos-r503, black-platinum, monkey-paradise, platinum-8, slimes, system7-nostalgia-silver |
-| T2 | `role-3-part frame/fill/track` | schemes shipping -10080/-10079/-10078 carry the artist-painted progress bar; runtime fallback when -10223 absent | 1138, 1984, 1990, apple-lisa, crayon-os, dolphin-som, evolution, floppies, windows-31, windows-95 |
-| T3 | `multi-hue` | scheme ships 3+ alternate hues — runtime could expose a picker, currently picks default | — |
-| T4 | `procedural Platinum` | no progress cicn → platinumProgress fallback | — |
-
 ### Title-bar widget glyph (close / zoom / collapse)  `title-widget-glyph`
 
 Resolved in: `src/composeCornerSprite.ts loadWidgetGlyph + src/renderWindow.ts widget id arithmetic`
@@ -160,27 +149,6 @@ Resolved in: `demo/diagnostic.html schemeIcons`
 | windows-95 | 26 | 245 | 232 | 214 |
 
 ## Multi-flavor / variant flags
-
-### Progress-bar hue variants  `progress-hues`
-
-Some 1998–2000 schemes shipped a hue picker; cicns at -10071..-10080 / -10220..-10222 are the alternate fills
-
-| theme | variant evidence |
-|---|---|
-| 1138 | -10075, -10076, -10077, -10078, -10079, -10080 |
-| 1984 | -10075, -10076, -10077, -10078, -10079, -10080 |
-| 1990 | -10075, -10076, -10077, -10078, -10079, -10080 |
-| apple-lisa | -10078, -10079, -10080 |
-| apple-platinum-2 | -10071, -10072, -10073, -10074, -10075, -10076, -10077, -10078, -10079, -10080, -10220, -10221, -10222 |
-| black-platinum | -10071, -10072, -10073, -10074, -10075, -10076, -10077, -10078, -10079, -10080, -10220, -10221, -10222 |
-| crayon-os | -10075, -10076, -10077, -10078, -10079, -10080 |
-| dolphin-som | -10075, -10076, -10077, -10078, -10079, -10080 |
-| evolution | -10075, -10076, -10077, -10078, -10079, -10080 |
-| floppies | -10075, -10076, -10077, -10078, -10079, -10080 |
-| platinum-8 | -10078, -10220, -10221, -10222 |
-| system7-nostalgia-silver | -10071, -10072, -10073, -10074, -10075, -10076, -10077, -10078, -10079, -10080, -10220, -10221, -10222 |
-| windows-31 | -10075, -10076, -10077, -10078, -10079, -10080 |
-| windows-95 | -10075, -10076, -10077, -10078, -10079, -10080 |
 
 ### Sequential positive-id ppats  `numbered-ppats`
 

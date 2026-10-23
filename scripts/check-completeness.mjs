@@ -39,11 +39,7 @@ const CHECKS = [
   ['checkbox', 'cicn', neg(C.checkbox.lookupIds.slice(0, 2))],
   ['radio', 'cicn', neg(C.radio.lookupIds.slice(0, 2))],
   ['slider', 'cicn', [-10131, -10115]],
-  // Progress: include the role-3-part canonical (-10080/-10078) AND the
-  // lavender 2-part canonical (-10223) so a Platinum-family scheme that
-  // ships only the lavender doesn't read as incomplete (the audit's
-  // progress-bar-hue T1).
-  ['progress', 'cicn', neg([C.progress.frame, C.progress.track, C.progress.lavenderCanonical])],
+  // Progress always has an engine procedural path; cicn presence is not a completeness test.
 ];
 
 function check(label, entries) {

@@ -2,10 +2,7 @@
 //
 // Single source of truth for the kDEF 2.3.1 control resource ids that BOTH
 // lint:themes (control-coverage warns) and audit:scenes (codex tier resolvers)
-// read. Previously each script hardcoded the same numbers inline — when a
-// reviewer added the `-10223 lavender canonical` slot to the audit, the lint's
-// `progress` family list had to be updated separately, and the two could (and
-// did) drift on related ids. One catalogue, one update site.
+// read. One catalogue keeps shared control resource coverage checks consistent.
 //
 // The id constants are POSITIVE here (the kDEF dispatches on |id|; bundles
 // ship them as negative-resource cicns, but `cicn-n10239-...` and `cicn--10239-...`
@@ -16,8 +13,7 @@
 // import the same constants and apply their own semantics:
 //   - lint uses `lookupIds` (what composeX calls) vs `familyRanges` (what the
 //     bundle ships) to flag "ships art that composeX won't find."
-//   - audit uses individual constants in per-tier resolvers (e.g.,
-//     -10223 → lavender progress-bar tier).
+//   - audit uses individual constants in per-tier resolvers.
 
 export const KDEF_CONTROL_IDS = {
   // composeButton looks up these three; the family covers all canonical face slots.
@@ -53,17 +49,11 @@ export const KDEF_CONTROL_IDS = {
     lookupIds: [8277, 8278, 8279, 8280, 8285, 8286, 8287, 8288],
     familyRanges: [[8277, 8288]],
   },
-  // composeProgress: -10075..-10080 (role-3-part frame/fill/track variants) +
-  // -10223/-10224 (lavender 2-part canonical default that the kDEF checks first).
-  // See controls.ts composeProgress + docs/scene-codex.md progress-bar-hue.
+  // Progress resource requests: docs/spec/engine/progress.md §3.1.
+  // This is a resource inventory, not a drawing-path or completeness selector.
   progress: {
-    lavenderCanonical: 10223,
-    lavenderInactive: 10224,
-    frame: 10080,
-    fill: 10079,
-    track: 10078,
-    lookupIds: [10075, 10076, 10077, 10078, 10079, 10080, 10223, 10224],
-    familyRanges: [[10075, 10080], [10223, 10224]],
+    lookupIds: [10075, 10076, 10077, 10078, 10079, 10080, 10224],
+    familyRanges: [[10071, 10080], [10220, 10224]],
   },
   // composeTab: -9972/-9975/-9980/-9983 (front/rear × active/inactive).
   tab: {
