@@ -57,6 +57,7 @@ for (const mode of ['source', 'built']) test(`${mode}: solid bodies consume sele
     }
     const verifiedCaseIds = verifySolidCases(result);
     const negatives = [];
+    for(const role of ['face','body-fill']){const changed=structuredClone(result),paint=changed[0].trace.steps.find(s=>s.role===role&&s.usage==='paint');changed[0].trace.steps.push(structuredClone(paint));expect(()=>verifySolidCases(changed),`duplicate actual ${role} paint`).toThrow();negatives.push(`duplicate-actual-${role}-paint`);}
     for (const [name, mutate] of solidMutations) {
       const changed = structuredClone(result); mutate(changed);
       expect(() => verifySolidCases(changed), name).toThrow(); negatives.push(name);

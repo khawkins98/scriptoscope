@@ -31,10 +31,10 @@ export function verifySolidCases(rows) {
     assert.deepEqual(compareByteProvenance(face, r.owner, source, expected), { status: 'passed', errors: [] }, `${pin.id}: owning bytes`);
     assert.equal(face.resource.byteProvenance.cicnResourceIndex, pin.cicnIndex);
     assert.equal(face.resource.byteProvenance.cinfResourceIndex, pin.cinfIndex);
-    const body = r.trace.steps.filter(s => s.role === 'body-fill');
+    const body = r.trace.steps.filter(s => s.role === 'body-fill' && s.usage === 'paint');
     assert.equal(body.length, 1);
     assert.deepEqual({ action: body[0].action, reason: body[0].reason, requestedId: body[0].requestedId, bodyMode: body[0].bodyMode, requestedResourceType: body[0].requestedResourceType, owner: body[0].owner, basis: body[0].basis, usage: body[0].usage },
-      { action: 'missing', reason: 'same-face-owner-pattern-unavailable', requestedId: 0, bodyMode: 0, requestedResourceType: 'ppat', owner: face.owner, basis: 'compatibility-policy', usage: 'paint' });
+      { action: 'missing', reason: 'same-face-owner-pattern-unavailable', requestedId: 0, bodyMode: 0, requestedResourceType: 'ppat', owner: face.owner, basis: pin.family==='push'?'source-dispatch':'compatibility-policy', usage: 'paint' });
     assert.deepEqual(r.background, { rgb16: [8481, 8481, 8481], displayRgb: [48, 48, 48] });
     assert.deepEqual(r.pixels, solidBackgroundRows, `${pin.id}: complete literal output`);
     verified.push(pin.id);

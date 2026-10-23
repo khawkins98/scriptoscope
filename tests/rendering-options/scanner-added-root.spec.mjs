@@ -74,9 +74,9 @@ for (const mode of ['source', 'built']) for (const barrierKind of ['preparation'
       const theme = await api.loadTheme('/themes/windows-95');
       const root = document.createElement('section'); root.id = 'queued-roots'; document.body.append(root);
       const handle = await api.mountDeclarative({ root, themeBaseUrl: '/themes', pageThemeDefault: 'fixture', bootAffordance: 'none' }); handle.registerTheme('fixture', theme);
-      const f = window.queuedScan = { api, root, handle, theme, held: false, clicks: 0, broadScans: 0 };
+      const f = window.queuedScan = { api, root, handle, theme, held: false, clicks: 0, broadScans: 0, originals:[] };
       const query = root.querySelectorAll.bind(root); root.querySelectorAll = selector => { if (selector.includes('[data-scriptoscope-window]')) f.broadScans++; return query(selector); };
-      f.add = title => { const el = document.createElement('article'); el.dataset.scriptoscopeWindow = ''; el.dataset.scriptoscopeTitle = title; el.style.width = '240px'; const button = document.createElement('button'); button.dataset.scriptoscopeButton = ''; button.textContent = title; button.type = 'button'; button.addEventListener('click', () => f.clicks++); el.append(button); root.append(el); return el; };
+      f.add = title => { const el = document.createElement('article'); el.dataset.scriptoscopeWindow = ''; el.dataset.scriptoscopeTitle = title; el.style.width = '240px'; const button = document.createElement('button'); button.dataset.scriptoscopeButton = ''; button.textContent = title; button.type = 'button'; button.addEventListener('click', () => f.clicks++); f.originals.push(button);el.append(button); root.append(el); return el; };
       if (barrierKind === 'preparation') {
         const decode = HTMLImageElement.prototype.decode; const gate = new Promise(resolve => f.release = resolve);
         HTMLImageElement.prototype.decode = async function () { HTMLImageElement.prototype.decode = decode; const result = await decode.call(this); f.held = true; await gate; return result; };
@@ -88,7 +88,7 @@ for (const mode of ['source', 'built']) for (const barrierKind of ['preparation'
     await page.evaluate(async () => { const f = window.queuedScan; f.second = f.add('Second queued'); await new Promise(resolve => requestAnimationFrame(resolve)); f.root.append(document.createElement('aside')); });
     if (barrierKind === 'theme') releaseArchive(); else await page.evaluate(() => window.queuedScan.release());
     await expect(page.locator('#queued-roots [data-scriptoscope-window-host]')).toHaveCount(2);
-    await expect(page.locator('#queued-roots .scriptoscope-button')).toHaveCount(2);
+    await expect.poll(()=>page.evaluate(()=>window.queuedScan.originals.map(source=>{const face=source.nextElementSibling;return{sourceConnected:source.isConnected,tag:face?.tagName,label:face?.getAttribute('aria-label')??face?.textContent,visible:!!face&&getComputedStyle(face).display!=='none',canvas:!!face?.querySelector('canvas')};}))).toEqual(['First queued','Second queued'].map(label=>({sourceConnected:true,tag:barrierKind==='theme'?'BUTTON':'SPAN',label,visible:true,canvas:barrierKind!=='theme'})));
     // Repeated consumer additions and real chrome mutations must not duplicate
     // faces/listeners. Additions inside an existing promoted content slot remain
     // outside this scanner's declared boundary.
