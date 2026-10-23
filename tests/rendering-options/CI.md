@@ -125,3 +125,10 @@ The checkable selection oracle wraps complete archive rasters in the declared
 mask-set RGB, including full transparent source margins and outer padding; it
 does not crop to nontransparent bounds. Finite CIcon coverage separately asserts
 the complete literal masked and opaque same-occurrence planes.
+
+`controls459-sparse.spec.mjs` and `controls459-sparse.test.mjs` retain the
+independent R3 selected/fallback sparse-header rejection contract. Dense arrays,
+Uint8Arrays, true NULL and an unused sparse default remain positive controls;
+sparse selected metadata cannot authorize a valid fallback or completed paint.
+This tests mutable modern manifest/typed-provider input, not a claim that raw
+resource-fork decoding produces sparse arrays or that native behavior is known.
