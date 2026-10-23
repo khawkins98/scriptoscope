@@ -31,6 +31,8 @@ export interface ResourceProvider {
   get(type: string, id: number): unknown;
   /** Provenance bound to the same prepared value returned by get. */
   selection?(type: string, id: number): ResourceSelection | undefined;
+  /** Actual accepted opaque copy transport, captured alongside the prepared value. */
+  unmaskedSource?(type: string, id: number): { assetUrl: string; derivedPath?: string } | undefined;
 }
 
 export interface ResourceHit<T> {
@@ -50,8 +52,10 @@ const TIER_ORDER: Record<ResourceTier, number> = { archive: 0, base: 1, cinf: 2,
 
 export class ResourceChain {
   readonly providers: readonly ResourceProvider[];
+  /** Public push adapter policy only; ordinary engine requests keep their chain. */
+  readonly bodyProvider?: ResourceProvider;
 
-  constructor(providers: readonly ResourceProvider[]) {
+  constructor(providers: readonly ResourceProvider[], bodyProvider?: ResourceProvider) {
     for (let i = 1; i < providers.length; i++) {
       if (TIER_ORDER[providers[i]!.tier] < TIER_ORDER[providers[i - 1]!.tier]) {
         throw new Error(`ResourceChain: provider ${providers[i]!.name} (${providers[i]!.tier}) is out of tier order`);
@@ -59,6 +63,7 @@ export class ResourceChain {
     }
     if (providers.filter(p => p.tier === 'archive').length > 1) throw new Error('ResourceChain: at most one archive provider');
     this.providers = providers;
+    if (bodyProvider) this.bodyProvider = bodyProvider;
   }
 
   /** GetResource over archive → base (→ procedural only when authorised). */

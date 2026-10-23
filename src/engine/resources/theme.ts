@@ -27,7 +27,7 @@ import { loadCicnBuffer } from '../../cicnImage.js';
 import { ownerDisplayPolicyMatches, realizeRgb16 } from '../../../tools/theme-loader/display-profile.js';
 import { decodeCinfHeader } from '../qd/cinfFrame.js';
 import { CINF_SAMPLE } from '../tables/cinfFrame.js';
-import type { QdPoint } from '../qd/types.js';
+import type { QdPoint, QdRect } from '../qd/types.js';
 import { assetUrl } from '../../loadTheme.js';
 import { onAssetUrlReleased } from '../../../tools/theme-loader/assetLifecycle.js';
 import { engineLineSampledCicnIds } from './ids.js';
@@ -37,8 +37,10 @@ const LINE_SAMPLED = new Set(engineLineSampledCicnIds());
 import { cicnIconSource } from './iconSource.js';
 
 async function themeProvider(theme: LoadedTheme, tier: 'archive' | 'base', name: string,
-  wanted: readonly { type: string; id: number }[], chainDepth: number, life?: ChainLife, checkables = false, traceProvenance = false, declaredCinfs = false): Promise<ResourceProvider> {
+  wanted: readonly { type: string; id: number }[], chainDepth: number, life?: ChainLife, checkables = false, traceProvenance = false, declaredCinfs = false,
+  clippedBodyId?: number): Promise<ResourceProvider> {
   const selections = new Map<string, ResourceSelection>();
+  const unmaskedSources = traceProvenance ? new Map<string, { assetUrl: string; derivedPath?: string }>() : undefined;
   const owner = { baseUrl: theme.baseUrl, chainDepth };
   const elementEntries = Object.entries(theme.manifest.chromeElements ?? {});
   const elements = elementEntries.map(([, element]) => element);
@@ -84,6 +86,7 @@ async function themeProvider(theme: LoadedTheme, tier: 'archive' | 'base', name:
         sourceCinfId: Number.isInteger(el.sourceCinfId) ? el.sourceCinfId! : null,
         manifestKey: selected![0], assetUrl: assetUrl(theme, el.asset),
         ...(el.byteProvenance ? { byteProvenance: { ...el.byteProvenance } } : {}) } });
+      if (id === clippedBodyId) return [key, { status: 'clipped' }];
       const sampleAsset = el.asset;
       // Preserve the actual preparation binding before copying the finite values.
       // Paths/dimensions and even equal census scalars cannot identify a provider.
@@ -96,8 +99,12 @@ async function themeProvider(theme: LoadedTheme, tier: 'archive' | 'base', name:
         && theme.inspector.cicnResources.find(r => r.id === id) === selectedSource;
       const bounds = selectedSource?.bounds;
       const finiteSamples = el.engineColorSamples ? structuredClone(el.engineColorSamples) : undefined;
+      const companionAsset = el.iconBlit?.unmaskedAsset;
+      const companionTransport = unmaskedSources && companionAsset
+        ? { assetUrl: assetUrl(theme, companionAsset),
+          ...(/^(?:blob:|https?:|data:)/.test(companionAsset) ? {} : { derivedPath: companionAsset }) } : undefined;
       const [pixmap, companion, sampled] = await Promise.all([load(el.asset),
-        el.iconBlit?.unmaskedAsset ? load(el.iconBlit.unmaskedAsset) : Promise.resolve(null),
+        companionAsset ? load(companionAsset) : Promise.resolve(null),
         status === 'different' && el.sampledBandAsset && LINE_SAMPLED.has(id) ? load(el.sampledBandAsset.asset) : Promise.resolve(null)]);
       // Adapter policy, not a spec row (docs/v2/DECISIONS.md #7): the opaque
       // companion is used only when it is the same occurrence as the element's
@@ -105,7 +112,9 @@ async function themeProvider(theme: LoadedTheme, tier: 'archive' | 'base', name:
       // a consumer replaced `asset`) the icon falls back to the masked copy of the
       // current asset, and the fallback is recorded in the trace (iconSource.ts).
       // Line-colour inputs (slider BL8/BL12) and the bounds origin (BL11) ride along.
-      return [key, { ...cicnIconSource(pixmap, el.iconBlit?.pixelSize ?? null, companion),
+      const source = cicnIconSource(pixmap, el.iconBlit?.pixelSize ?? null, companion);
+      if (source.unmasked && companionTransport) unmaskedSources!.set(key, companionTransport);
+      return [key, { ...source,
         origin: selectedSource ? (boundOccurrence() && bounds
           && bounds.right - bounds.left === pixmap.width && bounds.bottom - bounds.top === pixmap.height
           ? { top: bounds.top, left: bounds.left } : null) : el.boundsOrigin ?? null,
@@ -185,7 +194,8 @@ async function themeProvider(theme: LoadedTheme, tier: 'archive' | 'base', name:
     }
   }));
   return { ...mapProvider(name, tier, entries.filter((e): e is [string, unknown] => e !== null)),
-    selection: (type, id) => selections.get(`${type}:${id}`) };
+    selection: (type, id) => selections.get(`${type}:${id}`),
+    ...(unmaskedSources ? { unmaskedSource: (type: string, id: number) => unmaskedSources.get(`${type}:${id}`) } : {}) };
 }
 
 interface ChainLife { ended(): boolean; close(): void }
@@ -222,8 +232,13 @@ function chainLife(theme: LoadedTheme, signal: AbortSignal): ChainLife {
  * changes.
  */
 export async function themeResourceChain(theme: LoadedTheme, wanted: readonly { type: string; id: number }[],
-  opts: { signal?: AbortSignal; cinfProviders?: readonly ResourceProvider[]; cinfBodies?: readonly number[]; checkables?: boolean; traceProvenance?: boolean } = {}): Promise<ResourceChain> {
+  opts: { signal?: AbortSignal; cinfProviders?: readonly ResourceProvider[]; cinfBodies?: readonly number[]; checkables?: boolean; traceProvenance?: boolean;
+    bodyEnvironment?: { owner: LoadedTheme; width: number; height: number; clip?: QdRect;
+      requests?: readonly { type: string; id: number }[] } } = {}): Promise<ResourceChain> {
   const providers: ResourceProvider[] = [];
+  const bodyRequests = opts.bodyEnvironment ? new Map(opts.bodyEnvironment.requests?.map(r => [`${r.type}:${r.id}`, r])) : undefined;
+  let bodyProvider: ResourceProvider | undefined;
+  let clippedBodyId: number | undefined;
   // Preload typed body dependencies without issuing engine requests. Resource
   // order/NULL semantics remain owned by the synchronous painter at draw time.
   if (opts.cinfBodies) {
@@ -240,7 +255,12 @@ export async function themeResourceChain(theme: LoadedTheme, wanted: readonly { 
     }
     if (selected) {
       const type = selected.patternAnchor === 5 ? 'cicn' : 'ppat', id = selected.bgPatternId;
-      dependencies.set(`${type}:${id}`, { type, id });
+      (bodyRequests ?? dependencies).set(`${type}:${id}`, { type, id });
+      if (opts.bodyEnvironment && type === 'cicn') {
+        const { width, height, clip } = opts.bodyEnvironment, side = selected.sideThickness;
+        if (Math.max(0, side, clip?.left ?? 0) >= Math.min(width, width - side, clip?.right ?? width)
+          || Math.max(0, side, clip?.top ?? 0) >= Math.min(height, height - side, clip?.bottom ?? height)) clippedBodyId = id;
+      }
     }
     wanted = [...dependencies.values()];
   }
@@ -253,12 +273,18 @@ export async function themeResourceChain(theme: LoadedTheme, wanted: readonly { 
     if (life?.ended()) throw abortError();
     seen.add(t);
     const name = t.manifest.name ? String(t.manifest.name) : `theme-${depth}`;
-    providers.push(await themeProvider(t, depth === 0 ? 'archive' : 'base', depth === 0 ? name : `${name}#base${depth}`,
-      wanted, depth, life, opts.checkables, opts.traceProvenance, opts.cinfProviders !== undefined));
+    const ownsBody = t === opts.bodyEnvironment?.owner;
+    const requests = ownsBody ? [...new Map([...wanted, ...bodyRequests!.values()].map(r => [`${r.type}:${r.id}`, r])).values()] : wanted;
+    const provider = await themeProvider(t, depth === 0 ? 'archive' : 'base', depth === 0 ? name : `${name}#base${depth}`,
+      requests, depth, life, opts.checkables, opts.traceProvenance, opts.cinfProviders !== undefined,
+      ownsBody && !wanted.some(r => r.type === 'cicn' && r.id === clippedBodyId) ? clippedBodyId : undefined);
+    providers.push(provider);
+    if (ownsBody) bodyProvider = provider;
   }
   if (life?.ended()) throw abortError();
+  if (opts.bodyEnvironment && !bodyProvider) throw new Error('Selected push face owner unavailable');
   } finally { life?.close(); }
   // A declared cinf-only tier is authoritative: archive/base cinfs were
   // suppressed above, while all non-cinf resources retain their normal chain.
-  return new ResourceChain([...(opts.traceProvenance ? providers : providers.map(({ selection: _selection, ...provider }) => provider)), ...(opts.cinfProviders ?? [])]);
+  return new ResourceChain([...(opts.traceProvenance ? providers : providers.map(({ selection: _selection, ...provider }) => provider)), ...(opts.cinfProviders ?? [])], bodyProvider);
 }
