@@ -51,7 +51,7 @@ async function themeProvider(theme: LoadedTheme, tier: 'archive' | 'base', name:
   const entry = async ({ type, id }: { type: string; id: number }): Promise<[string, unknown] | null> => {
     const key = `${type}:${id}`;
     if (type === 'cicn') {
-      if (checkables && theme.inspector?.cicnResources) {
+      if (theme.inspector?.cicnResources) {
         const raw = theme.inspector.cicnResources.filter(r => r.id === id);
         const decoded = elements.filter(e => e.sourceCicnId === id && e.asset);
         if (raw.length > 1 || raw.length === 1 && (!validOccurrence(raw[0]!) || decoded.length !== 1))
