@@ -19,8 +19,8 @@ test('dangling resource evidence and forged presence/payload pins fail independe
 });
 test('missing cinf evidence, fabricated cinf on absent source and wrong synthetic key fail', async () => {
   await assert.rejects(validateSourceEvidence(changed(d => d.inventory.cases[0].sourceEvidence = d.inventory.cases[0].sourceEvidence.filter(r => r.type !== 'cinf'))), /painted cinf evidence/);
-  await assert.rejects(validateSourceEvidence(changed(d => d.inventory.cases.find(c => c.id === 'system7-nostalgia-silver.push.normal').proposed.paint[0].sourceCinfId = -10239)), /painted cinf presence/);
-  await assert.rejects(validateSourceEvidence(changed(d => d.inventory.cases.find(c => c.id === 'synthetic.named-preference').proposed.paint[0].manifestKey = 'cicn--123')), /painted key/);
+  await assert.rejects(validateSourceEvidence(changed(d => d.inventory.cases.find(c => c.id === 'system7-nostalgia-silver.push.normal').proposed.admission[0].sourceCinfId = -10239)), /admitted cinf presence/);
+  await assert.rejects(validateSourceEvidence(changed(d => d.inventory.cases.find(c => c.id === 'synthetic.named-preference').proposed.admission[0].manifestKey = 'cicn--123')), /admitted key/);
 });
 test('candidate payload drift and fixture evidence drift cannot hide behind matching references', async () => {
   await assert.rejects(validateSourceEvidence(changed(d => d.candidates.themes[0].candidates.find(r => r.presence === 'present').payloadSha256 = '0'.repeat(64))), /source candidate bytes/);
@@ -40,4 +40,35 @@ test('normal body dependencies bind raw ppat bytes and actual cinf request', asy
   await assert.rejects(validateSourceEvidence(change(c => c.sourceEvidence.find(r => r.type === 'ppat').payloadSha256 = '0'.repeat(64))), /ppat payload/);
   await assert.rejects(validateSourceEvidence(change(c => c.proposed.paint.find(p => p.type === 'ppat').signedId = 128)), /painted ppat evidence/);
   await assert.rejects(validateSourceEvidence(change(c => c.proposed.paint[0].sourceCinfId = -10238)), /pattern request mismatch/);
+});
+
+// Every migrated row starts as a valid control. Mutations use the exact declared
+// identity, and must reach the validator's own rejection (never a setup TypeError).
+test('all nine admission identities retain source joins with valid controls', async () => {
+  const baseline = readInventory();
+  const admissions = baseline.inventory.cases.filter(c => c.proposed.admission?.length);
+  assert.equal(admissions.length, 9);
+  await validateSourceEvidence(baseline);
+  for (const original of admissions) {
+    const alter = mutation => changed(d => mutation(d.inventory.cases.find(c => c.id === original.id)));
+    const rejects = async (mutation, pattern) => {
+      await assert.rejects(validateSourceEvidence(alter(mutation)), error => {
+        assert.equal(error instanceof TypeError, false, `${original.id}: harness failure`);
+        assert.match(error.message, pattern, original.id);
+        return true;
+      });
+    };
+    await rejects(c => delete c.proposed.admission[0].manifestKey, /missing exact manifest key/);
+    await rejects(c => c.proposed.admission[0].ownerId = 'wrong-owner', /real input has no base|admitted owner/);
+    await rejects(c => c.proposed.admission[0].signedId = -1, /admitted cicn evidence|admitted resource metadata/);
+    await rejects(c => c.proposed.admission[0].sourceCinfId = original.proposed.admission[0].signedId, /admitted cinf presence|admitted resource metadata/);
+    if (original.input.startsWith('theme.')) {
+      await rejects(c => c.sourceEvidence = c.sourceEvidence.filter(r => r.type !== 'cinf'), /admitted cinf evidence/);
+      await rejects(c => c.proposed.admission[0].chainDepth = 1, /real input has no base/);
+    } else {
+      await rejects(c => c.proposed.admission[0].manifestKey = 'cicn--123', /admitted key/);
+      await rejects(c => c.proposed.admission[0].type = 'ics8', /admitted resource metadata/);
+    }
+  }
+  await validateSourceEvidence(readInventory());
 });

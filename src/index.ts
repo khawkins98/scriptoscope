@@ -144,3 +144,4 @@ export { prepareCinfEnvironment, CinfEnvironmentError, type PreparedCinfEnvironm
 
 export { prepareCicnTransferResults, CicnTransferError } from '../tools/theme-loader/cicn-transfer-results.js';
 export type { CicnTransferData, PreparedCicnTransfers, CicnTransferOption, CicnTransferProvenance } from '../tools/theme-loader/cicn-transfer-results.js';
+export type { CheckableOptions } from './checkableFacade.js';

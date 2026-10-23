@@ -19,7 +19,7 @@
 // ordered id list from a decision-table row and records every request in the
 // trace, including repeats of the same id (cinf-lookup-contract: a request
 // that already equals the retry id is still made twice).
-import type { EngineTrace } from '../trace.js';
+import type { EngineTrace, ResourceSelection } from '../trace.js';
 
 export type ResourceTier = 'archive' | 'base' | 'cinf' | 'procedural';
 
@@ -29,6 +29,8 @@ export interface ResourceProvider {
   readonly tier: ResourceTier;
   /** The resource, or null/undefined when this provider has none. */
   get(type: string, id: number): unknown;
+  /** Provenance bound to the same prepared value returned by get. */
+  selection?(type: string, id: number): ResourceSelection | undefined;
 }
 
 export interface ResourceHit<T> {
@@ -92,10 +94,12 @@ export class ResourceChain {
   }
 
   private record(type: string, id: number, hit: ResourceHit<unknown> | null, opts: RequestOptions): void {
+    const selection = hit?.provider.selection?.(type, id);
     opts.trace?.resolved.push({
       type, id, found: hit != null,
       provider: hit?.provider.name ?? null, tier: hit?.provider.tier ?? null,
       ...(opts.row ? { row: opts.row } : {}),
+      ...(selection ? { selection } : {}),
     });
   }
 }

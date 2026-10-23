@@ -15,6 +15,7 @@ import { parseResourceFork } from './resource-fork.js';
 import { decodeCicn } from './decoders/cicn.js';
 import { decodePpat } from './decoders/ppat.js';
 import { decodeCinf } from './decoders/cinf.js';
+import { realizeRgb16 as mapEngineRgb16 } from './display-profile.js';
 import { decodeWnd } from './decoders/wnd.js';
 import { decodeClut, headerColorsFromClut } from './decoders/clut.js';
 import { decodeColr } from './decoders/colr.js';
@@ -81,6 +82,11 @@ export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourc
   const realizeDirectRgb8 = directRgb8Realizer(displayProfile);
   const policy = displayPolicy(displayProfile);
   const entries = parseResourceFork(asBytes(fork));
+  // Shared object identity binds finite samples to this exact load/occurrence.
+  // Scalar fields are diagnostic metadata, not a byte hash or native lookup claim.
+  const cicnResources = entries.flatMap((e, resourceIndex) => e.type === 'cicn'
+    ? [{ id: e.id, resourceIndex, byteLength: e.data.length }] : []);
+  const cicnSourceByIndex = new Map(cicnResources.map(r => [r.resourceIndex, r]));
   const assets = [];      // { path, rgba, width, height } — gamma-applied
   const flatAssets = [];  // extraction-manifest (flat file names)
   const subAssets = [];   // for buildThemeJson (cicns/ + ppats/ paths)
@@ -139,6 +145,13 @@ export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourc
       continue;
     }
     if (e.type === 'cicn' || e.type === 'ppat') {
+      if (e.type === 'cicn') {
+        // The decoder has validated this pixel-map header and its stored plane.
+        // Preserve full logical bounds before PNG transport drops their origin.
+        const view = new DataView(e.data.buffer, e.data.byteOffset, e.data.byteLength);
+        cicnSourceByIndex.get(resourceIndex).bounds = Object.freeze({
+          top: view.getInt16(6), left: view.getInt16(8), bottom: view.getInt16(10), right: view.getInt16(12) });
+      }
       const fname = `${e.type}-${idStr(e.id)}-${slugify(e.name)}.png`;
       const sub = e.type === 'cicn' ? 'cicns' : 'ppats';
       resourceObserver?.bindAsset(byteReference, `${sub}/${fname}`);
@@ -155,7 +168,7 @@ export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourc
       }
       counts.ok++; counts.raster++;
       flatAssets.push({ ...base, status: 'ok', file: fname, width: payload.width, height: payload.height, debug: payload.debug });
-      subAssets.push({ ...base, status: 'ok', file: `${sub}/${fname}`, width: payload.width, height: payload.height, debug: payload.debug,
+      subAssets.push({ ...base, cicnSource: cicnSourceByIndex.get(resourceIndex), status: 'ok', file: `${sub}/${fname}`, width: payload.width, height: payload.height, debug: payload.debug,
         ...(sampledBandAsset ? { sampledBandAsset } : {}),
         ...(payload.bodyCicnSource ? { bodyCicnSource: payload.bodyCicnSource } : {}),
         ...(payload.cicnTransfer ? { cicnTransfer: payload.cicnTransfer } : {}),
@@ -171,6 +184,16 @@ export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourc
   for (const a of subAssets) if (a.cicnTransfer && subAssets.filter(other => other.file === a.file).length !== 1)
     throw new CicnTransferError('Ambiguous finite transfer asset path');
   const theme = buildThemeJson({ source, counts, assets: subAssets }, { meta, displayProfile, cinfBinding, cicnTransferBinding });
+  for (const element of Object.values(theme.chromeElements ?? {})) {
+    const records = subAssets.filter(a => a.type === 'cicn' && a.status === 'ok'
+      && a.id === element.sourceCicnId && a.file === element.asset);
+    if (records.length === 1) {
+      element.cicnSource = records[0].cicnSource;
+      const bounds = element.cicnSource.bounds;
+      if (bounds && engineCinfIds?.includes(element.sourceCicnId))
+        element.boundsOrigin = { top: bounds.top, left: bounds.left };
+    }
+  }
   // Only actual surviving, unambiguous element links may allocate derived URLs.
   const usedCompanions = new Set(Object.values(theme.chromeElements ?? {}).flatMap(e => e.sampledBandAsset ? [e.sampledBandAsset.derivedPath] : []));
   for (let i = assets.length - 1; i >= 0; i--)
@@ -202,6 +225,11 @@ export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourc
   // promotion is enough. Off by default: lint and local bakes are unchanged.
   if (iconBlitCicnIds?.length) {
     const wanted = new Set(iconBlitCicnIds), done = new Set();
+    // Engine mode-5 bodies use the same opaque icon-blit contract.
+    for (const e of entries) if (e.type === 'cinf' && engineCinfIds?.includes(e.id) && e.data.length >= 18) {
+      const cinf = decodeCinf(e.data);
+      if (cinf.patternAnchor === 5) wanted.add(cinf.bgPatternId);
+    }
     for (const element of Object.values(theme.chromeElements ?? {})) {
       if (!wanted.has(element.sourceCicnId)) continue;
       const record = recordByPath.get(element.asset), original = originalByPath.get(element.asset);
@@ -233,19 +261,25 @@ export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourc
       if (e.type === 'cinf' && wanted.has(e.id) && !(String(e.id) in engineCinfs)) engineCinfs[String(e.id)] = Array.from(e.data);
     }
     theme.engineCinfs = engineCinfs;
-    // The same ids' cicn bounds origins (slider BL11): engine pixmaps drop the
-    // origin, so the engine traces any cicn whose origin is not (0, 0).
-    // The pixel map's bounds rect follows its 4-byte base address and 2-byte
-    // rowBytes (Inside Macintosh: Imaging With QuickDraw, PixMap), top then left.
-    const origins = new Map();
-    for (const e of entries) {
-      if (e.type !== 'cicn' || !wanted.has(e.id) || origins.has(e.id) || e.data.length < 10) continue;
-      const view = new DataView(e.data.buffer, e.data.byteOffset, e.data.byteLength);
-      origins.set(e.id, { top: view.getInt16(6), left: view.getInt16(8) });
+    // A finite point set, never a general sampler. A later base/provider cinf
+    // can name another point; its colour then remains explicitly unavailable.
+    const points = new Map();
+    for (const bytes of Object.values(engineCinfs)) if (bytes.length >= 18) {
+      const cinf = decodeCinf(Uint8Array.from(bytes));
+      for (const p of [cinf.bgPixel, cinf.textPixel, cinf.embossPixel]) points.set(`${p.x},${p.y}`, p);
     }
     for (const element of Object.values(theme.chromeElements ?? {})) {
-      const origin = origins.get(element.sourceCicnId);
-      if (origin) element.boundsOrigin = origin;
+      if (!wanted.has(element.sourceCicnId)) continue;
+      const records = subAssets.filter(a => a.type === 'cicn' && a.file === element.asset);
+      const record = records.length === 1 ? records[0] : null;
+      if (!record?.sampleKdefRgb16) continue;
+      const samples = {};
+      for (const [key, point] of points) {
+        const rgb16 = record.sampleKdefRgb16(point.x, point.y);
+        samples[key] = rgb16 ? { rgb16, displayRgb: mapEngineRgb16(rgb16, displayProfile) } : null;
+      }
+      element.engineColorSamples = { model: 'kdef-2.3.1-engine-points', source: record.cicnSource, asset: element.asset,
+        width: element.width, height: element.height, displayPolicy: policy, points: samples };
     }
   }
 
@@ -288,8 +322,9 @@ export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourc
     }
   }
 
+  for (const occurrence of cicnResources) Object.freeze(occurrence);
   validateTheme(theme); // throws on a malformed bundle; callers report/abort
-  return { theme, assets, colorTables: colorTablesOf(entries, realizeRgb16), manifest: { source, counts, assets: flatAssets } };
+  return { theme, assets, cicnResources, colorTables: colorTablesOf(entries, realizeRgb16), manifest: { source, counts, assets: flatAssets } };
 }
 
 /**
@@ -398,7 +433,7 @@ const ICON_TYPES = {
  * @param {{ ids?: number[] }} [options] Restrict decoding to these resource ids.
  * @returns {{ assets: {path,rgba,width,height}[], index: object[], census: object }}
  */
-export function convertIcons(fork, { ids, displayProfile } = {}) {
+export function convertIcons(fork, { ids, displayProfile, unmaskedIconIds = [] } = {}) {
   const realizeRgb16 = displayRealizer(displayProfile);
   const entries = parseResourceFork(asBytes(fork));
   const requested = ids ? new Set(ids) : null;
@@ -435,8 +470,17 @@ export function convertIcons(fork, { ids, displayProfile } = {}) {
       for (let i = 0; i < cfg.size * cfg.size; i++) if (rgba[i * 4 + 3] > 127) opaque++;
       const coverage = +(opaque / (cfg.size * cfg.size)).toFixed(3);
       const fname = `${type}-${idStr(e.id)}.png`;
+      // Preserve this actual decoded occurrence's RGB before Canvas drops
+      // mask-clear colours. Display realization above has already run once.
+      let unmaskedFile;
+      if (type === 'ics8' && unmaskedIconIds.includes(e.id)) {
+        unmaskedFile = `opaque-${fname}`;
+        const opaqueRgba = rgba.slice();
+        for (let i = 3; i < opaqueRgba.length; i += 4) opaqueRgba[i] = 255;
+        assets.push({ path: `icons/${unmaskedFile}`, rgba: opaqueRgba, width: cfg.size, height: cfg.size });
+      }
       assets.push({ path: `icons/${fname}`, rgba, width: cfg.size, height: cfg.size });
-      index.push({ id: e.id, type, size: cfg.size, depth: cfg.depth, file: fname, name: e.name || null, masked: !!mask, coverage, resourceIndex: entries.indexOf(e) });
+      index.push({ id: e.id, type, size: cfg.size, depth: cfg.depth, file: fname, name: e.name || null, masked: !!mask, coverage, ...(unmaskedFile ? { unmaskedFile } : {}), resourceIndex: entries.indexOf(e) });
       done.add(key);
     }
   }
@@ -452,7 +496,9 @@ export function convertIcons(fork, { ids, displayProfile } = {}) {
     if (e.type !== 'ics#' || e.data.length < 64 || String(e.id) in iconMaskPlanes) continue;
     iconMaskPlanes[String(e.id)] = Array.from(e.data.subarray(0, 64));
   }
-  return { assets, index, census, iconMaskResources, iconMaskPlanes };
+  const iconColorResources = entries.flatMap((e, resourceIndex) => e.type in ICON_TYPES
+    ? [{ type: e.type, id: e.id, resourceIndex, byteLength: e.data.length }] : []);
+  return { assets, index, census, iconMaskResources, iconMaskPlanes, iconColorResources };
 }
 
 /**
@@ -468,16 +514,18 @@ export function convertIcons(fork, { ids, displayProfile } = {}) {
  * @returns {{ theme: object, assets: {path,rgba,width,height}[], iconIndex: object[],
  *             manifest: object }}
  */
-export function convertScheme(fork, { meta = {}, source = 'scheme.rsrc', resourceObserver, displayProfile, cinfBinding, cicnTransferBinding, iconBlitCicnIds, engineCinfIds } = {}) {
+export function convertScheme(fork, { meta = {}, source = 'scheme.rsrc', resourceObserver, displayProfile, cinfBinding, cicnTransferBinding, iconBlitCicnIds, engineCinfIds, unmaskedIconIds } = {}) {
   const bytes = asBytes(fork); // parse once conceptually; chrome+icons each re-parse (cheap, KB)
   const chrome = convertChrome(bytes, { meta, source, resourceObserver, displayProfile, cinfBinding, cicnTransferBinding, iconBlitCicnIds, engineCinfIds });
-  const icons = convertIcons(bytes, { displayProfile });
+  const icons = convertIcons(bytes, { displayProfile, unmaskedIconIds });
   return {
     theme: chrome.theme,
     assets: [...chrome.assets, ...icons.assets],
     iconIndex: icons.index,
     iconMaskResources: icons.iconMaskResources,
     iconMaskPlanes: icons.iconMaskPlanes,
+    iconColorResources: icons.iconColorResources,
+    cicnResources: chrome.cicnResources,
     colorTables: chrome.colorTables,
     manifest: chrome.manifest,
   };

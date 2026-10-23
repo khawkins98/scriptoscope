@@ -1,3 +1,31 @@
+# #459 combined integration: UNAPPROVED capture candidates
+
+The controls delivery `edd60adcaa15ebfbb5dcc529d4c1dfec390d04d7` is mechanically
+integrated with accepted base `e30b7802da1973311c2c1e1a7fd531f895f1553f`.
+Until fresh serial capture completes, the materialized PNGs/manifest are the exact
+unapproved controls side used temporarily to resolve the binary merge. After the
+coherent capture commit, use the current manifest for that new acquisition's own
+identity. Neither original controls nor accepted-base capture identity is replaced.
+Both complete original sets, all failures and exact capture execution provenance
+are retained in the external `459-controls-integration` evidence lane.
+
+The combined candidates require different full Tier-2/source/all36-image and actual
+production review plus final CI. No approval or native fidelity claim is made here.
+
+# Prior #459 controls branch candidates (identity preserved)
+
+The current 36 PNGs are independent test-author candidates for the push/checkable
+engine migration, recorded from `11883e85` with the separately frozen preparation
+repair `fc5e96956b0541657f615602ac45aefb35a2b152`. Approval of this delta requires a
+different Tier-2 reviewer and actual production demo visual review. The historical
+review records below retain their original capture scopes and hashes.
+
+Old/new/diff evidence, failed history, exact command receipts and the residual
+typed-UNKNOWN blocker are described in
+[the independent candidate report](../../../v2-lanes/controls-independent/REPORT.md).
+Passing regression verification does not establish native glyph/device/provider
+or original-engine pixel equivalence, and changes no ledger status.
+
 # Reviewed regression seed — 2026-10-18
 
 These 36 images record Scriptoscope output, not original-engine reference images.

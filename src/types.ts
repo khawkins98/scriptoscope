@@ -172,7 +172,33 @@ export type CicnBodyBinding = {
   readonly derivedPath?: string;
 });
 
+/** One loader-owned cicn occurrence. Shared object identity is load-local and
+ * survives URL encoding, but JSON copies cannot establish a finite-sample binding.
+ * These scalar fields describe the occurrence; they are not byte provenance. */
+export interface CicnSourceIdentity {
+  readonly id: number;
+  readonly resourceIndex: number;
+  readonly byteLength: number;
+  /** Validated full pixel-map bounds; absent for an undecoded occurrence. */
+  readonly bounds?: { readonly top: number; readonly left: number; readonly bottom: number; readonly right: number };
+}
+
 export interface ChromeElement {
+  /** Actual decoder occurrence, shared with the raw census independently of
+   * optional public byte provenance. Absent on older declared environments. */
+  readonly cicnSource?: CicnSourceIdentity;
+  /** Finite raw colour samples at the exact points of engine cinfs available at
+   * conversion. Bound to this asset occurrence; absent points are unspecified. */
+  readonly engineColorSamples?: {
+    readonly model: 'kdef-2.3.1-engine-points';
+    /** Must share the selected element's actual census object. Missing or
+     * serialized/copied bindings leave colours unknown, including legacy samples. */
+    readonly source?: CicnSourceIdentity;
+    readonly asset: string;
+    readonly width: number; readonly height: number;
+    readonly displayPolicy: DisplayPolicy;
+    readonly points: Readonly<Record<string, ControlColorSample | null>>;
+  };
   /** Opt-in role view; common fields below retain their local pairing. */
   readonly bodyCinf?: BodyCinfView;
   readonly cicnBody?: CicnBodyBinding;
@@ -224,9 +250,9 @@ export interface ChromeElement {
    */
   iconBlit?: { pixelSize: number; unmaskedAsset?: string };
   /**
-   * The cicn's pixel-map bounds origin, present only for cicn ids an engine
-   * family asks the loader for (`engineCinfIds`, slider BL11). Engine pixmaps
-   * drop the origin; a non-zero origin is traced by the driver.
+   * Compatibility pixel-map origin for engineCinfIds, or a legacy caller
+   * declaration. New loaders bind full bounds through cicnSource for every
+   * decoded cicn. Engine pixmaps use storage coordinates and drop the origin.
    */
   boundsOrigin?: { top: number; left: number };
   /**
@@ -383,6 +409,12 @@ export interface LoadedTheme {
  *  off `theme.inspector` without re-fetching the bundle. URLs are pre-baked (blob: in a
  *  browser; pass-through in Node when an `assetUrlFactory` was set). */
 export interface ThemeInspector {
+  /** Complete same-fork cicn occurrence census. Present-but-undecoded and
+   * duplicate inputs stay unresolved; absence of this field is an older declared environment. */
+  cicnResources?: CicnSourceIdentity[];
+  /** Complete same-owner colour-icon census. Missing is unknown; [] proves absence.
+   * Signed type/id and occurrence bind decoded art; duplicate/short inputs are unresolved. */
+  iconColorResources?: Array<{ type: 'icl4' | 'ics4' | 'icl8' | 'ics8'; id: number; resourceIndex: number; byteLength: number }>;
   /** Complete same-fork ics# input census, including masks without color art.
    * Absent means unknown; [] means no such raw resources. Duplicate IDs and
    * fewer than 64 bytes are unsupported by the checkable icon path, not NULL.
@@ -404,6 +436,9 @@ export interface ThemeInspector {
     name?: string | null;
     /** Asset URL (blob: in a browser; pass-through in Node when assetUrlFactory was set). */
     url?: string;
+    /** Opaque pixels from this exact decoded occurrence, before Canvas mask loss.
+     * Prepared only for requested identities; older manifests leave this unknown. */
+    unmaskedUrl?: string;
     /** Raw color-resource occurrence in this loaded fork, when decoded by the loader. */
     resourceIndex?: number;
     /** True iff the first matching mask supplied a complete decoded mask plane. */
