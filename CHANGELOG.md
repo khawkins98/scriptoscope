@@ -13,29 +13,36 @@ Third incremental release from the v2 engine branch (#378). Three more families 
 
 - **Window recipe on the v2 engine** (#432, #444). Layout, title, widget remap, draw and hit test follow the decoded kDEF window widgets (`docs/spec/engine/window-widgets.md`), fixing runtime divergences F1–F10. Most `wnd#` windows change slightly; see the migration notes.
   - **Accessibility divergence (DECISIONS #12):** title-bar widgets on inactive windows stay focusable and keyboard-operable, although the original makes them inert.
+  - **Font substitution (DECISIONS #13, #453):** the runtime can't draw the original's condensed title face, so titles are sized and truncated to the plate for the font we draw. They also move down when our taller font would clip their tops.
 - **Slider on the v2 engine** (CDEF 3; #419, fixes #407). It adds `pressedPart`, `variant`, `tickMarks`, `thickness` and `background`. Vertical sliders now put 0 at the bottom.
 - **Progress bar on the v2 engine** (CDEF 5; #440, #446). It adds integer `range` and `indeterminate`/`phase` (DECISIONS #10, #11). The 8 schemes without progress art now draw the original's own procedural bar, and `composeProgress` never returns `null`.
 - **Loader:** the public `loadKaleidoscopeScheme` (npm export and the Pages `theme-loader/` module) passes the engine's `cinf` and icon-blit ids by default (#428, #434, #439; fixes #431). Dropped archives get the same output as bundled themes.
-- **Fidelity ledger:** 340 verified obligations and 0 mismatched, up from 257 verified and 33 mismatched in 0.3.0.
+- **Fidelity ledger:** 340 verified, 0 mismatched, 6 unsupported and 1,486 unknown of 1,832 obligations. In 0.3.0 it was 257 verified and 33 mismatched.
 
 ### Also in this release
 
 - **Specs:**
   - the progress CDEF 5 decode (#430, #443);
   - window-widgets answers and corrections (#437, #445);
-  - DECISIONS #10–#12 (#433, #435, #438, #441, #442).
+  - DECISIONS #10–#13 (#433, #435, #438, #441, #442, #449, #451, #454).
 - **Tooling:**
-  - `npm run loc:src` and the runtime size rule (#422);
   - `lane:ready` now rejects silent reverts of base commits, and CI builds the demo (#447).
 - **Known gaps:**
   - collapsed no-title utility windows on the five built-in-frame schemes render expanded (#423);
-  - title text has no condensed face, so it truncates in the plain face;
   - the title shadow (TX7) is not yet drawn.
 
 ### Changes
 
+- **Window titles fit our title font (DECISIONS #13).** Two runtime limits of #432's decoded title draw are fixed. The runtime has no condensed face and draws titles at full width, so `composeWindowChrome` now defaults `SWc` to `SW` (TT2 no longer narrows the plate below the drawn text). Our title font is taller than the original's, so when its ascent would start above the remapped title rect, the baseline moves down by exactly that overflow, and no glyph is cut at the top. The decoded clip and baseline are kept otherwise.
 
-- **v2 engine: `wnd#` windows now lay out and hit-test through the decoded 2.3.1 window recipe** (engine family `window`, `docs/spec/engine/window-widgets.md`). A new driver (`src/engine/families/window.ts`, tables in `src/engine/tables/window.ts`) follows the spec rows: part-code verdicts (PV), layout sums and placed ends (LS), the too-short step (TS), the allocation path (AP), per-cell widths with the unclamped budget (AW), the titled side (TT), cell rects (CR), the widget remap (RM), the pressed-widget draw (WD9) and the widget hit (HT). `composeChrome.ts` is now a facade over it; the legacy classifier, too-short negotiation, half split and placement-based widget remap are deleted. It fixes the window-widgets §7.2 findings F1–F8: a collapse box inside a dropped code-10 cell is now empty (not drawn, not hit, RM6); below the minimum the budget goes negative instead of clamping (AW8); the title plate is placed on the content centre with `W = SW + margins` and drops at ≤ 2 px of room (TT2–TT9); close, zoom and collapse are separate flags (F7); the collapse gate is re-read on every layout (F5, LC3); widget hits need the pressed-strip cicn and its mask (HT3–HT7, F8; inactive windows keep keyboard-reachable buttons, a runtime policy where HT2 would make them inert); the cell bands use the template cicn bounds (CR2/CR4, F6).
+### Migration notes (window title fit)
+
+- `composeWindowChrome({ titleWidthCondensedPx })` now defaults to `titleWidthPx` (SW). It used to default to the TT2a value `SW − titleLength`. Pass a measured condensed width to get TT2's narrowing.
+- Titled-utility titles on 1984, 1990, floppies, windows-31 and windows-95 now draw 1 px lower, inside the title rect: their letter tops were cut before. No title's descent leaves the rect (checked on every wnd# scheme with a descender title). Document-window titles are unchanged.
+- Titles truncate to the plate: the truncation room is the title rect + 2 px (TX5) but never past the plate's right edge, so on dolphin-som and evolution, whose title rect ends flush with the plate, a truncated title no longer draws 1 px past it. The clip stays the decoded title rect + 2 px.
+- Unchanged by design: titles are left-aligned in a plate exactly `SW + margins` wide, so on schemes whose title rect fills the code-5 cell (evolution, dolphin-som) the text starts at the plate's first column. BeOS tabs follow the TT rows (no extra plate padding).
+
+- **v2 engine: `wnd#` windows now lay out and hit-test through the decoded 2.3.1 window recipe** (engine family `window`, `docs/spec/engine/window-widgets.md`). A new driver (`src/engine/families/window.ts`, tables in `src/engine/tables/window.ts`) follows the spec rows: part-code verdicts (PV), layout sums and placed ends (LS), the too-short step (TS), the allocation path (AP), per-cell widths with the unclamped budget (AW), the titled side (TT), cell rects (CR), the widget remap (RM), the pressed-widget draw (WD9) and the widget hit (HT). `composeChrome.ts` is now a facade over it; the legacy classifier, too-short negotiation, half split and placement-based widget remap are deleted. It fixes the window-widgets §7.2 findings F1–F10: a collapse box inside a dropped code-10 cell is now empty (not drawn, not hit, RM6); below the minimum the budget goes negative instead of clamping (AW8); the title plate is placed on the content centre with `W = SW + margins` and drops at ≤ 2 px of room (TT2–TT9); close, zoom and collapse are separate flags (F7); the collapse gate is re-read on every layout (F5, LC3); widget hits need the pressed-strip cicn and its mask (HT3–HT7, F8; inactive windows keep keyboard-reachable buttons, a runtime policy where HT2 would make them inert); the cell bands use the template cicn bounds (CR2/CR4, F6).
 
 ### Migration notes (window recipe)
 

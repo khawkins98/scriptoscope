@@ -45,8 +45,17 @@ export function ladderSelection(id, present) {
 export const DECLARED_FLAGS = Object.freeze({ hasClose: true, hasZoom: true, collapseRequested: true, widgetFrame: true, noWidgets: false, drawActive: true, popupFamily: false });
 /** PP6/PP7: the popup data at window creation, the declared runtime values. */
 export const POPUP_CREATION = Object.freeze({ pdMode: 0, pdX: 0, pdLen: 33, pdCentre: 0 });
-/** TT2a: the declared condensed width, `SWc = SW − titleLen` (Inside Macintosh: Text). */
-export const condensedDefault = (SW, titleLen) => SW - titleLen;
+/**
+ * TT2a as amended 2026-10-23 (DECISIONS #13, window-widgets F11): the runtime has no
+ * condensed face, so the declared default is `SWc = SW` and TT2 never narrows the plate.
+ */
+export const condensedDefault = (SW, _titleLen) => SW;
+/**
+ * The TT2a row's reference value, Apple's synthetic condense of one pixel less per character
+ * (Inside Macintosh: Text): what a runtime with a condensed face would measure. The explicit
+ * samples pass it as a measured SWc, so TT2's narrowing stays exercised.
+ */
+export const condensedReference = (SW, titleLen) => SW - titleLen;
 
 const code = slug => Number(/^part-(-?\d+)$/.exec(slug)?.[1] ?? NaN);
 const R = ([left, top, right, bottom]) => ({ left, top, right, bottom });
@@ -102,7 +111,7 @@ export const MUTATIONS = Object.freeze({
   opaque: 'WD4/X2: an opaque copy instead of CopyMask',
   paintTrailing: 'Q3/LS9: paint the trailing region [S[N], extent) 1:1 after P[N]',
   noWD6: 'WD6: skip the popup-family raw template blits',
-  tt2aInert: 'TT2a: the default condensed width SWc = SW (TT2 inert)',
+  tt2aCondense: 'TT2a (amended, F11): revert the default condensed width to SW − titleLen',
   rectHit: 'HT7/HT8: hit on the remapped rect without the strip mask',
   noStripGate: 'HT7: hit without the pressed-strip cicn',
 });
@@ -148,9 +157,9 @@ function allocate(L, first, last, required, primary, drop, gate, f, mutation) {
 export function layoutWindow({ windowType, B, C, SW = 0, SWc, titleLen = SW > 0 ? 1 : 0, flags = DECLARED_FLAGS, pd = POPUP_CREATION, full, mutation }) {
   const f = { ...flags };
   const A = R(windowType.parts['part-0'].rect), T4 = lookupRect(windowType, 4);
-  // TT2a: with no measured SWc the runtime default applies; the tt2aInert mutation is the
-  // divergence TT2a names (SWc = SW, TT2 inert), and only changes the default path.
-  const condensed = SWc ?? (mutation === 'tt2aInert' ? SW : condensedDefault(SW, titleLen));
+  // TT2a: with no measured SWc the runtime default applies (amended: SWc = SW, F11); the
+  // tt2aCondense mutation reverts it to the reference SW − titleLen, on the default path only.
+  const condensed = SWc ?? (mutation === 'tt2aCondense' ? condensedReference(SW, titleLen) : condensedDefault(SW, titleLen));
   const sides = SIDES.map(({ side, edge, horizontal }) => {
     const list = windowType.edges?.[edge] ?? [];
     if (!list.length) return null; // N = −1: no recipe (0x4a8a)
@@ -487,16 +496,17 @@ export const SIZE_OFFSETS = { width: [-12, 0, 1, 2, 7, 97], height: [-12, 0, 1, 
 /**
  * Sampled titles (SW, titleLen, SWc): untitled (TT10); a short title; a title
  * wider than every sampled room (TT2 then TT3 or a capped plate), both with
- * the declared TT2a SWc passed explicitly; and one with SWc omitted, so the
+ * the TT2a reference SWc (SW − titleLen) passed explicitly as a measured condensed
+ * width, so TT2 still narrows; and one with SWc omitted, so the
  * runtime's own TT2a default is exercised. Layout, cells, title rect and hits
  * are checked for every title; pixels for the untitled sample only (cost).
  */
 export const TITLE_SAMPLES = [
   { SW: 0, titleLen: 0 },
-  { SW: 41, titleLen: 7, SWc: condensedDefault(41, 7) },
-  { SW: 300, titleLen: 40, SWc: condensedDefault(300, 40) },
+  { SW: 41, titleLen: 7, SWc: condensedReference(41, 7) },
+  { SW: 300, titleLen: 40, SWc: condensedReference(300, 40) },
   // SWc omitted: the runtime's own TT2a default is exercised (composeWindowChrome gets no
-  // titleWidthCondensedPx). The model uses the declared default, SW − titleLen.
+  // titleWidthCondensedPx). The model uses the amended declared default, SWc = SW (F11).
   { SW: 60, titleLen: 12 },
 ];
 

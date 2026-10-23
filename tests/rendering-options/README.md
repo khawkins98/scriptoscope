@@ -226,8 +226,9 @@ list and cicns.
 
 For every sliced window type of the 13 `wnd#` archives, both states, content
 sizes of template + {−12,0,1,2,7,97} × {−12,0,1,33} and titles SW 0/41/300
-(SWc the TT2a value, passed explicitly) plus SW 60 with SWc omitted (the
-runtime's own TT2a default), the checker:
+(SWc the TT2a reference SW − titleLen, passed explicitly as a measured
+condensed width) plus SW 60 with SWc omitted (the runtime's own TT2a default,
+`SWc = SW` since DECISIONS #13 / F11), the checker:
 
 - lays out each side (LS1–LS9, TS1–TS4, AP1–AP3, TT1–TT10, PP1–PP7,
   AW1–AW9; budgets are not clamped, sides end where their widths sum) and
@@ -249,8 +250,9 @@ reading and must fail a corpus sample the real rows pass: clamped budget (AW8),
 full-extent and pinned last border (LS9), near-edge remap (RM6), kept bezels and
 dropped plate (TT4/TT10), skipped TT8, reversed draw order (WD4), opaque copy,
 painted trailing region, rect-only hit (HT8), no strip gate (HT7),
-skipped WD6 blits and `SWc = SW` for the default condensed width (TT2a; the
-omitted-SWc sample fails it on animals' titled sides). The spec
+skipped WD6 blits and the default condensed width reverted to `SW − titleLen`
+(TT2a as amended by F11; the omitted-SWc sample fails it on animals' titled
+sides). The spec
 runs most of them in-page too. Dedicated rows cover RM6/F1 (the 11 collapse
 boxes in code-10 cells, whole at E = F and empty one pixel below), the two LS9
 short sides (floppies collapsed-document-window right, animals
@@ -266,9 +268,20 @@ discrimination table:
 | 1138, 1984, apple-lisa, beos-r503, windows-31, windows-95 | passes | passes | passes |
 
 WD6's 15×15 rect ends at A's bottom-right corner (confirmed by the Tier-2
-review of #432/#444). Not covered by these rule rows: the title
-text (TX1–TX9: origin, baseline, clip, truncation; only the container goldens
-see it); the partial-zoom widget (WD5); the layout cache (LC1); ladder misses;
+review of #432/#444). Title text is covered separately by `window-title.spec.mjs` (source/built,
+helpers in `window-title-rules.mjs`, which imports nothing from `src/`). It
+isolates the title's ink as the pixels public `renderWindow` changes over the
+window's text-free chrome, recomposed through `composeWindowChrome` with the
+SW whose placement and title rect match. Rows (DECISIONS #13, window-widgets
+F11): (A) on evolution, dolphin-som and beos-r503 the ink stays inside the
+code-5 plate; (B) on the titled-utility bars of 1990, windows-95, 1984,
+floppies and windows-31 every glyph row is drawn (ink height equals the same
+title's unclipped height in that theme's document window) and no ink falls
+outside the title rect's rows; (C) on all 13 archives no ink leaves TX4's
+decoded clip, `t4p` widened by 2 on the right. Mutations: removing the
+baseline nudge fails B (and so does pre-#452 v2); the rejected widened clip
+fails C. Not covered by any rule row: the title colour (TX7) and the
+truncation text itself (TX5); the partial-zoom widget (WD5); the layout cache (LC1); ladder misses;
 and the five corner-sprite archives. Keyboard activation of title widgets
 (DECISIONS #12) is asserted in `window-widgets.spec.mjs` on animals, whose
 widget top-left strip pixels are mask-clear. No image

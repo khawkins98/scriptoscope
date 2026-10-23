@@ -123,7 +123,7 @@ export interface ComposeWindowOptions {
   cinf?: WindowCinf | null;
   /** `SW`: the title's measured width in the title face; 0 for no title. */
   titleWidthPx?: number;
-  /** `SWc`: the title's width in the condensed face (TT2). Default TT2a, `SW − titleLength`. */
+  /** `SWc`: the title's width in the condensed face (TT2). Default `SW` (DECISIONS #13: no condensed face). */
   titleWidthCondensedPx?: number;
   /** `titleLen`: the title's length (only its zero-ness is read: TT4, AW5). Default 1 when `SW > 0`, else 0. */
   titleLength?: number;
@@ -160,7 +160,9 @@ export function composeWindowChrome(cicn: PixelBuffer, windowType: WindowType, c
   const layout = layoutWindow({
     sides: WINDOW_SIDES.map(s => windowType.edges?.[s.edge]?.map(e => ({ code: partCode(e.part), border: e.at }))),
     rects, B: rect(0, 0, cicn.height, cicn.width), C: rectXYWH(frame.left, frame.top, contentW, contentH),
-    titleWidth: SW, ...(opts.titleWidthCondensedPx !== undefined ? { titleWidthCondensed: opts.titleWidthCondensedPx } : {}),
+    // DECISIONS #13: the runtime has no condensed face and draws the title at full width,
+    // so without a measured condensed width SWc = SW (TT2 does not narrow the plate).
+    titleWidth: SW, titleWidthCondensed: opts.titleWidthCondensedPx ?? SW,
     titleLength: opts.titleLength ?? (SW > 0 ? 1 : 0),
     flags: { popupFamily: opts.popupFamily ?? false, drawActive: opts.active ?? true },
   }, opts.trace);

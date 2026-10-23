@@ -24,7 +24,7 @@ questions the window-recipe migration raised. Three open items are now
 decoded: the popup-family placement (§4.6a, was Q1), the title text draw
 (§4.12, was Q4) and the widget hit region (HT8, was Q5). The leading and
 trailing regions (Q3) are narrowed. New rows: LS9, AW1a, TT2a, TT4a, TT10,
-PP1–PP7, WD13, HT8, TX1–TX9. §7.2 adds finding F9 (sides are budgeted to end at `P[N]`) and
+PP1–PP7, WD13, HT8, TX1–TX9. *2026-10-23:* TT2a's declared default is now `SWc = SW` (note after §4.6), and §7.2 adds F11 (runtime font substitution, DECISIONS #13). §7.2 adds finding F9 (sides are budgeted to end at `P[N]`) and
 F10 (title text), and corrects F6's scope.
 
 ## 1. Unit id and scope
@@ -198,6 +198,14 @@ TS1 + AW4/AW6), and codes 5/6 never grow inside an allocation.
 | TT8 | `W < 0` | `P[anchor−1] −= S[anchor−1] − T4.left`, `Fb −=` the same; `P[anchor] −= S[anchor] − T4.right`, `Fa +=` the same; then the working template borders `S[anchor−1]`, `S[anchor]` become `T4.left`, `T4.right` for the rest of this message | `0x50be..0x50fa` |
 | TT9 | always | two allocations: segments `1..anchor−1` (required `Fb`, primary count `growersBefore`) and `anchor+1..N` (required `Fa`, `growersAfter`), both with the side's `drop` and the title gate `titleLen` | `0x5100..0x513c` |
 | TT10 | untitled window (`titleLen = 0`, `SW = 0`, no drop) | the same rows as after a drop, except `W`: TT4 removes the code-6 neighbours from `Fb`/`Fa`, and TT9's gate 0 gives every 5/6 segment inside the two allocations width 0 (AW5), so the **bezels are not drawn**. The anchor (plate) cell is **not** forced to 0: `W = (T4.left − S[anchor−1]) + (S[anchor] − T4.right)` (LS6 with `SW = 0`), and TT6/TT7 cap the cell at that width when either half has a primary grower. It is 0 where the two margins sum to 0 (`T4` fills the cell, or is shifted inside it as on monkey-paradise movable-modal), positive where `T4` is narrower, and negative where `T4` overhangs it, which runs TT8 | `0x4a94..0x4aa6`, `0x4b20..0x4b3a`, `0x4f66`, `0x530c` |
+
+**TT2a amended 2026-10-23 (DECISIONS #13, maintainer).** The declared
+default is now `SWc = SW`, the full drawn width of the title in the runtime's
+face. The runtime's title font has no condensed face, so TT2 changes nothing
+(§7.2 F11). This supersedes the `SWc = SW − titleLen` the TT2a row above
+still states. That row stays verbatim because a ledger locator quotes it, and
+it remains the reference value (Apple's synthetic condense) for a runtime that
+gains a condensed face. TT2 and every other decoded row are unchanged.
 
 `mid = (C.left + C.right) / 2` (`0x4fe6..0x5002`, `0x5054..0x5070`). The
 anchor (code-5) cell is not part of either allocation. Its span is
@@ -478,7 +486,7 @@ mutation it must fail, so a hook that cannot fail it does not count.
 |---|---|---|
 | LS9 | engine-diff window cells at template size for a side with `S[N]` short of the drawn extent (1138 document top) and one past it (1138 document left) | end the side at the window's full extent instead of `P[N]`; pin the last border to `P[N]` on floppies collapsed-document-window right |
 | AW1a | a synthetic allocation with a width-0 code-12 segment and a code-8 grower | divide by the zero width, or give the code-12 cell a nonzero width |
-| TT2a | a titled side with `R` between `W − titleLen` and `W` | `SWc = SW` (the plate stays at `W`) |
+| TT2a | a titled side with `R` between `W − titleLen` and `W` | apply a condensed width (`SWc < SW`), so the plate shrinks below `W`; the amended default is `SWc = SW` (F11) |
 | TT4a | a synthetic side with its anchor at segment 1 and entry 0 coded 6 | subtract entry 0's width from `Fb` |
 | TT10 | untitled document windows: animals (plate 5 px), 1984 (plate 0), floppies (TT8) | drop the plate to 0 on animals; keep the bezels; skip TT8 on floppies |
 | PP1–PP7 | a `popup-window` cell set with `popupFamily` on (1138, animals) | lay the popup side out with the TT rows; ignore `pdLen`; use the `pdMode = −2` branch with the creation values |
@@ -505,6 +513,7 @@ mutation it must fail, so a hook that cannot fail it does not count.
 | `distributeSide` grows each side over the full window extent (the drawn extent + the content delta, from `S[0]`), and stamps a far-edge cap past the last border on horizontal sides | LS7, LS9, AW8 | **finding F9** (2026-10-22): the decode budgets every side to end at `P[N] = S[N] + content delta`, and the growers share `P[N] − P[0] − F`. The side ends there whenever the allocation hands out the whole budget, which is every corpus side except the two in LS9. The decode and the runtime differ on the 150 corpus sides whose `S[N]` is not the drawn extent (§6.2): there the runtime stretches growers into the region past `P[N]`, or short of it. The runtime's far-edge cap is a runtime policy for a region the decode does not paint (Q3) |
 | template band for bottom/right cells uses the drawable extent (`drawH`, `drawW`) | CR2, CR4 | **finding F6** (scope corrected 2026-10-22): the decode uses the template cicn bounds. They differ on the axis of a bottom or right side in 19 window types across animals, beos-r503, crayon-os, evolution and monkey-paradise (§6.2), not only beos's active document window. The excess is transparent and holds no widget, so under CopyMask the pixels drawn are the same; the cell rects, the remap's `t`/`p` for those sides and the window's outer size differ |
 | `renderWindow` centres the title text on the code-5 plate and ellipsizes it to the plate's width | TX1–TX9, §5 "Title rect" | **finding F10** (2026-10-22): the decode draws the string left-aligned in the remapped `T4` (baseline 4 above its bottom), clipped to that rect + 2 px, truncated with TruncString in the condensed face only when it does not fit, and draws nothing for an empty title or a remapped `T4` of zero width or height (TX3 tests equality only; a negative-width rect is drawn into a clip of at most 1 px). The string is centred on the content rect's centre, so it matches plate-centring only where the margins around `T4` are equal |
+| title text in the runtime's title font (not the original's Charcoal/Virtue bitmap faces) | TT2, TT2a, TX4, TX8 | **finding F11** (2026-10-23, runtime font substitution, DECISIONS #13): a deliberate divergence, not a decode gap. The runtime cannot reproduce the original's title fonts, so it departs from the decode in two places. (1) It has no condensed face, so TT2a's `SWc` is `SW`, the full drawn width (the TT2a amendment below §4.6). TT2 then never shrinks `W`, so a title the original would fit by condensing reaches TT3 or the TT6/TT7 cap at full width and is truncated sooner. (2) Its title font is taller than the original's. The decoded clip of TX4 (`t4p` widened by 2 on the right) and the decoded pen position (baseline `t4p.bottom − 4`, TX8, shadow at (+1, +1), TX7) are kept, except that when the drawn glyphs' ascent would start above `t4p.top`, the baseline moves down by exactly that overflow (baseline = max(`t4p.bottom − 4`, `t4p.top` + ascent)), so the glyphs fit the clip. (Amended 2026-10-23: a vertically widened clip was tried first and overdrew frame art on windows-31 and floppies.) No decoded row changes |
 | hit and press areas are the remapped rect | HT7 | **finding F8**: the decode also requires the widget cicn to exist and the point to be in its region, and it gates every widget hit on `drawActive`, `widgetFrame` and the per-widget flags (HT1–HT5) |
 | one `widgetPresent` flag for close, zoom and collapse | PV2–PV4, PV6–PV8 | **finding F7** (approximation already recorded in the faithfulness ledger) |
 
