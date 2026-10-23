@@ -10,6 +10,7 @@ for (const mode of ['source', 'built']) test(`${mode}: raw masked text samples a
   try {
     result = await page.evaluate(async mode => {
       const api = await import(mode === 'built' ? '/dist/scriptoscope.js' : '/src/index.ts');
+      const { labelOracle, inkBounds, foregroundBounds } = await import('/tests/rendering-options/label-oracle.mjs');
       const { forkOf } = await import('/tests/resource-provenance/fixtures.mjs');
       const { colorIcon, colorInfo } = await import('/tests/decoder-fixtures/control-colors.mjs');
       // All source pixels are masked. RGB must survive before canvas transport;
@@ -23,34 +24,30 @@ for (const mode of ['source', 'built']) test(`${mode}: raw masked text samples a
       try {
         // Independent browser-font mask, not a historical glyph oracle. Only
         // full-coverage foreground/emboss pixels establish order and (+1,+1).
-        const canvas = document.createElement('canvas'); canvas.width = 80; canvas.height = 20;
-        const ctx = canvas.getContext('2d'); ctx.font = '12px Chicago, "Charcoal", Geneva, sans-serif';
-        const width = Math.ceil(ctx.measureText('H').width), glyphHeight = 16;
-        const gx = Math.round((80 - width) / 2), gy = Math.round((20 - glyphHeight) / 2);
-        ctx.fillStyle = '#000'; ctx.textBaseline = 'middle'; ctx.fillText('H', gx, gy + 8);
-        const mask = ctx.getImageData(0, 0, 80, 20).data;
-        const foreground = [], emboss = [];
-        for (let y = 1; y < 20; y++) for (let x = 1; x < 80; x++) {
-          if (mask[(y * 80 + x) * 4 + 3] === 255) foreground.push([x, y]);
-          else if (mask[(y * 80 + x) * 4 + 3] === 0 && mask[((y - 1) * 80 + x - 1) * 4 + 3] === 255) emboss.push([x, y]);
-        }
+        const oracles = Object.fromEntries(['push', 'bevel'].map(family => [family, labelOracle(family, 'H', 12, 80, 20)]));
         const rows = [];
         for (const family of ['push', 'bevel']) for (const state of ['normal', 'pressed', 'disabled']) for (const override of [false, true]) {
+          const oracle = oracles[family];
+          const { foreground, emboss } = oracle;
           let trace;
           const output = await api[family === 'push' ? 'composeButton' : 'composeBevelButton'](child, { label: 'H', minWidth: 80, height: 20, ...(family === 'bevel' ? { small: true } : {}),
             pressed: state === 'pressed', disabled: state === 'disabled', ...(override ? { fg: '#0000ff' } : {}), diagnostics: { onComplete: value => { trace = value; } } });
           rows.push({ family, state, override, size: [output.width, output.height], trace,
+            clippedInk: oracle.clippedInk,
+            geometry: { expected: inkBounds(foreground), actual: foregroundBounds(output, override ? [0, 0, 255, 255] : [255, 0, 0, 255]) },
             foreground: foreground.map(([x, y]) => [...output.getPixel(x, y)]), emboss: emboss.map(([x, y]) => [...output.getPixel(x, y)]) });
         }
-        return { rows, foregroundCount: foreground.length, embossCount: emboss.length, metadata: Object.values(owner.manifest.chromeElements).map(e => e.colorSamples) };
+        return { rows, foregroundCount: Object.values(oracles).map(o => o.foreground.length), embossCount: Object.values(oracles).map(o => o.emboss.length), metadata: Object.values(owner.manifest.chromeElements).map(e => e.colorSamples) };
       } finally { owner.dispose(); }
     }, mode);
-    expect(result.foregroundCount).toBeGreaterThan(0); expect(result.embossCount).toBeGreaterThan(0);
+    for (const count of [...result.foregroundCount, ...result.embossCount]) expect(count).toBeGreaterThan(0);
     expect(result.rows.filter(r => r.state === 'normal' && !r.override).map(r => r.family).sort()).toEqual(['bevel', 'push']);
     for (const row of result.rows) {
       expect(row.trace.requested).toMatchObject({ state: row.state === 'normal' ? 'active' : row.state === 'disabled' ? 'inactive' : 'pressed', pressed: row.state === 'pressed', disabled: row.state === 'disabled' });
       expect(row.trace.textColors.embossDecision).toBe(row.override ? 'caller-override' : 'present');
       expect(row.size).toEqual([80, 20]);
+      expect(row.geometry.actual).toEqual(row.geometry.expected);
+      expect(row.clippedInk).toBe(0);
       for (const pixel of row.foreground) expect(pixel).toEqual(row.override ? [0, 0, 255, 255] : [255, 0, 0, 255]);
       // Suppressing emboss reveals the independently encoded white body,
       // including when its background RGB sample is masked in the source cicn.
@@ -75,10 +72,13 @@ for (const mode of ['source', 'built']) test(`${mode}: Crayon push and bevel lab
   try {
     result = await page.evaluate(async mode => {
       const api = await import(mode === 'built' ? '/dist/scriptoscope.js' : '/src/index.ts');
+      const { labelOracle } = await import('/tests/rendering-options/label-oracle.mjs');
       const owner = await api.loadTheme('/themes/crayon-os', { provenance: true });
       try {
         const rows = [];
         for (const family of ['push', 'bevel']) for (const state of ['normal', 'pressed', 'disabled']) {
+          const inset = family === 'push' ? 4 : 0; // Crayon declares signed ring resources.
+          const oracle = labelOracle(family, 'H', 12, 80 + 2 * inset, 20 + 2 * inset, inset);
           let trace;
           const output = await api[family === 'push' ? 'composeButton' : 'composeBevelButton'](owner, { label: 'H', minWidth: 80, height: 20, ...(family === 'bevel' ? { small: true } : {}),
             pressed: state === 'pressed', disabled: state === 'disabled', diagnostics: { onComplete: value => { trace = value; } } });
@@ -94,7 +94,10 @@ for (const mode of ['source', 'built']) test(`${mode}: Crayon push and bevel lab
             const p = output.getPixel(x, y), before = empty.getPixel(x, y);
             if (p[0] === wanted && p[1] === wanted && p[2] === wanted && p[3] === 255 && p.some((v, i) => v !== before[i])) count++;
           }
-          rows.push({ family, state, trace, colors: entry.colorSamples, selectedResources, count });
+          const rgba = [wanted, wanted, wanted, 255];
+          rows.push({ family, state, trace, colors: entry.colorSamples, selectedResources, count,
+            opaqueInk: oracle.foreground.length, clippedInk: oracle.clippedInk,
+            preservedInk: oracle.foreground.filter(([x, y]) => output.getPixel(x, y).every((v, i) => v === rgba[i])).length });
         }
         return { rows, load: owner.byteProvenance };
       } finally { owner.dispose(); }
@@ -115,6 +118,9 @@ for (const mode of ['source', 'built']) test(`${mode}: Crayon push and bevel lab
       expect(row.colors.text.rgb16).toEqual(pin.textRgb16);
       expect(row.colors.text.displayRgb).toEqual(row.state === 'disabled' ? [152, 152, 152] : [48, 48, 48]);
       expect(row.count).toBeGreaterThan(0);
+      expect(row.opaqueInk).toBeGreaterThan(0);
+      expect(row.clippedInk).toBe(0);
+      expect(row.preservedInk).toBe(row.opaqueInk);
       expect(row.colors.embossDecision).toBe('absent-coordinates'); expect(row.trace.textColors.emboss).toBeNull();
       for (const resource of row.selectedResources) expect(resource.sha256).toBe(resource.type === 'cicn' ? pin.cicnSha256 : pin.cinfSha256);
       expect(row.selectedResources).toHaveLength(2);
