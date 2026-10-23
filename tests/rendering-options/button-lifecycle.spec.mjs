@@ -1,3 +1,5 @@
+// Themed-face lifecycle controls use windows-31: no-cinf themes deliberately
+// restore native presentation and are covered separately below.
 import { test, expect, openHarness, attachObservations } from './fixtures.mjs';
 
 for (const mode of ['source', 'built']) for (const insideWindow of [false, true]) {
@@ -5,7 +7,7 @@ for (const mode of ['source', 'built']) for (const insideWindow of [false, true]
     await openHarness(page, servers, mode);
     await page.evaluate(async ({ mode, insideWindow }) => {
       const runtime = await import(mode === 'source' ? '/src/index.ts' : '/dist/scriptoscope.js');
-      const themes = await Promise.all(['windows-95', 'system7-nostalgia-silver'].map(slug => runtime.loadTheme(`/themes/${slug}`)));
+      const themes = await Promise.all(['windows-95', 'windows-31'].map(slug => runtime.loadTheme(`/themes/${slug}`)));
       const root = document.createElement('section'), content = document.createElement('div');
       document.body.append(root);
       if (insideWindow) { content.dataset.scriptoscopeWindow = ''; content.style.width = '360px'; }
@@ -83,7 +85,7 @@ for (const mode of ['source', 'built']) {
     for (const retheme of [false, true]) {
       await page.evaluate(async ({ mode, retheme }) => {
         const runtime = await import(mode === 'source' ? '/src/index.ts' : '/dist/scriptoscope.js');
-        const themes = await Promise.all(['windows-95', 'system7-nostalgia-silver'].map(slug => runtime.loadTheme(`/themes/${slug}`)));
+        const themes = await Promise.all(['windows-95', 'windows-31'].map(slug => runtime.loadTheme(`/themes/${slug}`)));
         const root = document.createElement('section'), holder = document.createElement('div'), native = document.createElement('button');
         native.textContent = 'Original'; native.dataset.scriptoscopeButton = ''; native.style.display = 'inline-flex'; holder.append(native); document.body.append(root);
         const handle = await runtime.mountDeclarative({ root, pageThemeDefault: 'first', bootAffordance: 'none' });
@@ -143,15 +145,18 @@ for (const mode of ['source', 'built']) {
     await page.waitForFunction(() => window.buttonHeld.held);
     const result = await page.evaluate(async () => {
       const f = window.buttonHeld;
+      const started = f.decodes.slice(); // normal preparation may load multiple same-art companions concurrently
       const settled = f.handle.retheme('windows-95'); // waits for the already-started scan
       f.handle.disconnect(); f.release(); await settled;
       f.restore();
-      const result = { decodes: f.decodes.length, faces: f.root.querySelectorAll('.scriptoscope-button').length,
+      const result = { started, decodes: f.decodes.slice(), faces: f.root.querySelectorAll('.scriptoscope-button').length,
         display: f.native.style.display, stamp: f.native.getAttribute('data-scriptoscope-promoted'), errors: f.errors };
       f.root.remove(); return result;
     });
     await attachObservations(testInfo, 'button-lifecycle', `${mode}-held-owned`, { mode, result });
-    expect(result).toEqual({ decodes: 1, faces: 0, display: '', stamp: null, errors: [] });
+    expect(result.started.length).toBeGreaterThan(0);
+    expect(result.decodes).toEqual(result.started); // disconnect cannot start any later decode
+    expect({...result,started:undefined,decodes:undefined}).toEqual({started:undefined,decodes:undefined,faces:0,display:'',stamp:null,errors:[]});
   });
 
   test(`${mode}: pending moved sources stay consumer-owned and aborted borrowed themes remain usable`, async ({ page, servers }) => {
@@ -232,14 +237,14 @@ for (const mode of ['source', 'built']) for (const movement of ['source', 'paren
   const barrier = new Promise(resolve => release = resolve);
   const newBarrier = new Promise(resolve => releaseNew = resolve);
   await page.route('**/themes/windows-95/scheme.*', async route => { held = true; await barrier; await route.continue(); });
-  await page.route('**/themes/system7-nostalgia-silver/scheme.*', async route => { heldNew = true; await newBarrier; await route.continue(); });
+  await page.route('**/themes/windows-31/scheme.*', async route => { heldNew = true; await newBarrier; await route.continue(); });
   await page.evaluate(async ({ mode, movement }) => {
     const runtime = await import(mode === 'source' ? '/src/index.ts' : '/dist/scriptoscope.js');
     const root = document.createElement('section'), holder = document.createElement('div'), other = document.createElement('div'), native = document.createElement('button');
     native.textContent = 'Moved during archive load'; native.dataset.scriptoscopeButton = ''; holder.append(native); document.body.append(root, other);
     const handle = await runtime.mountDeclarative({ root, themeBaseUrl: '/themes', pageThemeDefault: 'windows-95', bootAffordance: 'none' });
     window.buttonThemeLoad = { root, holder, other, native, handle, movement, runtime };
-    if (movement === 'within') { other.dataset.scriptoscopeTheme = 'system7-nostalgia-silver'; root.append(other); }
+    if (movement === 'within') { other.dataset.scriptoscopeTheme = 'windows-31'; root.append(other); }
     root.append(holder);
   }, { mode, movement });
   await expect.poll(() => held).toBe(true);
@@ -263,7 +268,7 @@ for (const mode of ['source', 'built']) for (const movement of ['source', 'paren
     await expect(page.locator('.scriptoscope-button')).toHaveCount(1);
     await expect.poll(() => page.evaluate(() => window.buttonThemeLoad.handle.stats.buttons)).toBe(1);
     expect(await page.evaluate(async () => {
-      const f = window.buttonThemeLoad, theme = await f.runtime.loadTheme('/themes/system7-nostalgia-silver');
+      const f = window.buttonThemeLoad, theme = await f.runtime.loadTheme('/themes/windows-31');
       try {
         const expected = await f.runtime.composeButton(theme, { label: f.native.textContent });
         const canvas = f.native.nextElementSibling.querySelector('canvas');
@@ -280,7 +285,7 @@ for (const mode of ['source', 'built']) for (const movement of ['outside', 'new-
   await openHarness(page, servers, mode);
   await page.evaluate(async ({ mode, movement }) => {
     const runtime = await import(mode === 'source' ? '/src/index.ts' : '/dist/scriptoscope.js');
-    const themes = await Promise.all(['windows-95', 'system7-nostalgia-silver'].map(slug => runtime.loadTheme(`/themes/${slug}`)));
+    const themes = await Promise.all(['windows-95', 'windows-31'].map(slug => runtime.loadTheme(`/themes/${slug}`)));
     const root = document.createElement('section'), holder = document.createElement('div'), other = document.createElement('div'), native = document.createElement('button');
     native.textContent = 'Ancestor move'; native.dataset.scriptoscopeButton = ''; holder.append(native); document.body.append(root, other);
     const handle = await runtime.mountDeclarative({ root, pageThemeDefault: 'win', bootAffordance: 'none' });
@@ -317,7 +322,7 @@ for (const mode of ['source', 'built']) for (const movement of ['outside', 'new-
 
 for (const mode of ['source', 'built']) test(`${mode}: successive held-theme relocations settle under the final parent without another mutation`, async ({ page, servers }, testInfo) => {
   await openHarness(page, servers, mode);
-  const slugs = ['windows-95', 'system7-nostalgia-silver', '1138'], holds = [];
+  const slugs = ['windows-95', 'windows-31', '1138'], holds = [];
   for (const slug of slugs) {
     const hold = { held: false }; const barrier = new Promise(resolve => hold.release = resolve); holds.push(hold);
     await page.route(`**/themes/${slug}/scheme.*`, async route => { hold.held = true; await barrier; await route.continue(); });
@@ -389,4 +394,31 @@ for (const mode of ['source', 'built']) test(`${mode}: disconnect cancels an own
   await attachObservations(testInfo, 'button-lifecycle', `${mode}-cancel-retry-frame`, { mode, result, secondLoads });
   expect(result).toEqual({ scheduled: 1, cancelled: 1, pendingFrames: 0, faces: 0, display: '', stamp: null });
   expect(secondLoads).toBe(0);
+});
+
+for (const mode of ['source','built']) test(`${mode}: no-cinf retheme preserves visible native identity and restores themed lifecycle`,async({page,servers},info)=>{
+ await openHarness(page,servers,mode);
+ const result=await page.evaluate(async mode=>{
+  const api=await import(mode==='built'?'/dist/scriptoscope.js':'/src/index.ts');
+  const root=document.createElement('section'),native=document.createElement('button');
+  native.dataset.scriptoscopeButton='';native.textContent='Fallback label';native.style.margin='3px';root.append(native);document.body.append(root);
+  let clicks=0;native.addEventListener('click',()=>clicks++);
+  const style=native.getAttribute('style');
+  const handle=await api.mountDeclarative({root,themeBaseUrl:'/themes',pageThemeDefault:'windows-95',bootAffordance:'none'});
+  try {
+   await handle.retheme('windows-95');
+   const themedBefore=root.querySelectorAll('.scriptoscope-button').length;
+   await handle.retheme('system7-nostalgia-silver');
+   const r=native.getBoundingClientRect(),css=getComputedStyle(native);
+   native.click();
+   const fallback={same:root.contains(native),faces:root.querySelectorAll('.scriptoscope-button').length,label:native.textContent,visible:r.width>0&&r.height>0&&css.display!=='none'&&css.visibility!=='hidden',clicks,style:native.getAttribute('style')};
+   await handle.retheme('windows-95');
+   const themedAfter=root.querySelectorAll('.scriptoscope-button').length;
+   handle.disconnect();
+   return {themedBefore,themedAfter,fallback,style,restored:root.contains(native)&&native.getAttribute('style')===style,facesAfter:root.querySelectorAll('.scriptoscope-button').length};
+  } finally {handle.disconnect();root.remove();}
+ },mode);
+ await attachObservations(info,'button-lifecycle',`${mode}-native-fallback`,{mode,result});
+ expect(result.themedBefore).toBe(1);expect(result.themedAfter).toBe(1);expect(result.restored).toBe(true);expect(result.facesAfter).toBe(0);
+ expect(result.fallback).toEqual({same:true,faces:0,label:'Fallback label',visible:true,clicks:1,style:result.style});
 });

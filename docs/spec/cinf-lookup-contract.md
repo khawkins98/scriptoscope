@@ -9,23 +9,28 @@ no production defaults, new public API, ledger evidence or reference admission.
 Pinned kDEF0 SHA256:
 `2c027276dae2355964a0dde1ace31f60ba845ab2c5fbf0496fd34ab2afe7c342`.
 
-1. `10860/10862` restores caller CurResFile before requesting cinf. Image and
-   cinf therefore need not share a provider.
-2. `1086e–10878` calls `116f8(requestedID,false)`. Its `11722` trap is `$A9A0`
-   **GetResource**, not `$A81F` **Get1Resource**.
-3. Only a NULL return advances to `10880–10898`: cinf 0 with body=true
-   (push/bevel wrapper `10fc0`), cinf 1 with body=false (ring wrapper).
-4. A second NULL branches `1089a → 10fa8`, skipping this body/border stage.
-   Nonnull admits metadata/painter execution; it does not establish any painted
-   pixel, successful decode, visible contribution or whole-control output.
+1. Image lookup may select a different resource file; the caller's current
+   resource file is restored before metadata lookup. Image ownership therefore
+   does not establish cinf ownership (source: `0x10860..0x10862`).
+2. Metadata lookup uses GetResource, which searches the caller's resource
+   environment, rather than Get1Resource's current-file-only search
+   (source: `0x1086e..0x10878`, `0x116f8..0x11722`). This distinction alone
+   establishes no provider order or cache behavior.
+3. Only a NULL requested-ID result advances to cinf 0 for body=true
+   (push/bevel) or cinf 1 for body=false (ring)
+   (source: `0x10880..0x10898`, `0x10fc0`, `0x107a4..0x107f6`).
+4. A second NULL skips this body/border stage. Non-NULL admits metadata/painter
+   execution; it does not establish any painted pixel, successful decode,
+   visible contribution or whole-control output (source: `0x1089a`, `0x10fa8`).
 
 If requestedID already equals 0 or 1, the source still makes two calls after the
 first NULL. The model preserves them. A transcript may record different results
 between calls; a static complete environment normally returns the same result.
 
-The three wnd# gates likewise use GetResource: `118ee`, `15296`, `17472`
-inside entrypoints `118b8`, `1525a`, `17452`, requesting −14336/−14304/−12320.
-The corrected trap name does not by itself establish any provider order.
+The three wnd# gates likewise use GetResource, requesting
+−14336/−14304/−12320 respectively (source: `0x118ee`, `0x15296`, `0x17472`;
+caller contexts `0x118b8`, `0x1525a`, `0x17452`). The lookup API distinction
+does not by itself establish any provider order.
 
 ## Executable conditional fixture
 

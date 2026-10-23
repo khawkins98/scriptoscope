@@ -2,7 +2,7 @@
 
 `npm ci` installs the exact Playwright package in the lockfile. For a native local
 contract run, install its browser with `npx playwright install chromium`, then run
-`npm run test:rendering`. The command builds the public library first and compares
+`npm run test:rendering`. The command builds the public library and production demo first and compares
 it with the source entry through separate static/Vite servers. It exercises every
 corpus theme, the bounded option cases, source-art and synthetic slice/ring oracles,
 label ink, value endpoints, actual promoted DOM, keyboard focus, and grid/flex
@@ -100,3 +100,28 @@ and shadow behavior, not the complete window-management lifecycle.
 See the [fidelity plan](../../docs/spec/fidelity-verification-plan.md) and
 [epic #221](https://github.com/khawkins98/scriptoscope/issues/221) for independent
 truth, actual selection provenance and requirement-level verification work.
+
+## Independent #459 regressions
+
+`controls459-public-boundary.spec.mjs` is discovered by the ordinary rendering
+configuration in both source and built modes. It retains the frozen independent
+hand-encoded inputs and literal rejection/selection assertions, including valid
+and NULL controls, malformed selected/fallback/ring metadata, mode-5 UNKNOWN and
+the declared first-raw-cinf policy. `controls459-metadata.test.mjs` and its isolated
+guard-removal mutations are included by the ordinary `npm test` glob. Typed
+UNKNOWN cinf/ppat/mode-5 inputs must preserve their explicit original reasons.
+
+`controls459-consumer-visibility.spec.mjs` starts a genuine production preview
+and runs the unchanged independent presentation probe. Built asset URLs and
+four themes' page, pointer, Space, disabled and checkable controls must pass
+before visibility failures are considered. Six missing labels on the pre-repair
+head remain a retained red result; visible fallback is a modern consumer policy.
+This bounded presentation test uses Chromium and does not establish native glyph
+OCR, native pixels or all-browser visual equivalence. Neither regression updates
+goldens, source verification or native evidence status.
+
+The checkable selection oracle wraps complete archive rasters in the declared
+20px allocation using the source placement rules. It compares all alpha and
+mask-set RGB, including full transparent source margins and outer padding; it
+does not crop to nontransparent bounds. Finite CIcon coverage separately asserts
+the complete literal masked and opaque same-occurrence planes.
