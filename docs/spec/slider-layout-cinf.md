@@ -4,31 +4,49 @@
 `sliderLayoutEnvironment: PreparedCinfEnvironment`. Prepare it with the existing
 `prepareCinfEnvironment` factory and an explicit ordered, complete cinf-only
 provider declaration. This option is independent of the push/bevel
-`cinfEnvironment` option; omitting it preserves compatibility slider geometry and
-existing prepared environment IDs, body views and common chrome fields.
+`cinfEnvironment` option; omitting it preserves ordinary engine resource resolution and existing prepared
+environment IDs, body views and common chrome fields.
 
-The role tries horizontal cinf IDs `-10132`, then `-10144`, or vertical IDs
-`-10116`, then `-10128`. It is attached to the actual group2 thumb (`-10129` or
-`-10113`), not the currently selected groove. Each attempt retains its outcome
-and the selected provider, fork hash, resource occurrence, signed ID, payload
-length and hash. The manifest's `sliderLayoutEnvironment` and thumb's
-`sliderLayoutCinf` describe this consumed role separately from the static local
-cicn/cinf pair. No provenance option is needed for admission.
+The engine adapter uses the declared ordered providers as an authoritative
+`cinf` tier for every opted-in slider request: gate, group-base corner and groove
+slicing. Archive/base `cinf` inputs are suppressed for that composition; cicn art
+keeps its ordinary archive provider. Missing declared metadata never falls back
+to unrelated archive metadata. No-opt-in resource resolution is unchanged.
 
-Only the selected cinf's first byte supplies the layout corner. A one-byte
-payload and an explicit zero are valid; the body decoder's 18-byte requirement
-does not apply to this role. An empty present payload, duplicate match, incomplete
-provider/environment, or two missing results is unsupported. Unknown evidence
-never becomes a NULL lookup. Horizontal and vertical views are prepared
-independently, so unavailable vertical inputs do not prevent horizontal use.
+The corner tries horizontal IDs `-10132`, then `-10144`, or vertical IDs
+`-10116`, then `-10128`. Only its first byte supplies the corner: a one-byte
+payload and explicit zero are valid. An empty present payload, duplicate match,
+incomplete provider/environment, or two missing corner results is unsupported.
+Unknown evidence never becomes a NULL lookup. Other requests consume the complete
+copied payload, including the gate's presence test and the groove slicer's bytes
+0, 2 and 3. A short groove payload follows engine/slider.md CF3: that candidate
+fails, rather than inventing missing bytes. Consequently an opted-in environment
+can change gate and groove selection as well as endpoints.
 
-Consumption snapshots the actual finalized thumb and immutable role before
-image decoding. Transplanted views, cloned manifests, changed assets, wrong-axis
-thumbs, absent thumbs and base inheritance reject explicitly. Unsupported
-geometry or lookup results raise `CinfEnvironmentError` with code
-`UNSUPPORTED_CINF_ENVIRONMENT`; they do not silently select zero or legacy
-geometry. Provider and input bytes are copied before asynchronous preparation,
-including loads without `provenance: true`.
+The loader attaches an opaque frozen `sliderLayoutEnvironment` marker containing
+only `environmentId` and `bindingId`, using a generic load-bound owner/asset
+capability. The typed engine adapter interprets and validates the slider inputs
+before image decoding. Private owner identity rejects cloned manifests,
+transplanted markers, marker deletion on the original owner, changed assets,
+wrong-axis or absent thumbs and base inheritance. Each orientation is admitted
+independently. Unsupported geometry or lookups raise `CinfEnvironmentError` with
+code `UNSUPPORTED_CINF_ENVIRONMENT`; they never select zero or legacy geometry.
+Provider and input bytes are copied before asynchronous preparation, including
+loads without `provenance: true`.
+
+### Migration
+
+The `sliderLayoutEnvironment` input option, generic preparation/binding, existing
+prepared IDs/data and push/bevel body views are preserved. The retired decoded
+`ChromeElement.sliderLayoutCinf` view and slider summary fields (`scope`,
+`policy`, `themeForkSha256`) are removed; the manifest marker is identity only.
+Consumers needing provider provenance should inspect opted-in engine resource
+traces (`tier: 'cinf'`, declared provider ID). The engine adapter's private role
+snapshot also retains corner lookup attempts and selected resource identity.
+`SliderLayout.endpointPolicy` is removed: all sliders use the committed engine
+layout for pointer mapping. This also updates ordinary imperative sliders from
+full-canvas value mapping to the drawn thumb travel, exact-value grabs and
+track-click centering already used by the native adapter.
 
 ## Conditional source rule
 
@@ -53,8 +71,9 @@ corner the resource chain resolves. Track art of any cross size is admitted:
 engine/slider.md §5.5 SL1 centres it in the 16-pixel band `B` with signed
 truncation, and §5.1 never draws outside the control rect, so no groove-width
 admission applies. The committed slider layout carries its value
-direction to pointer consumers. Default geometry and scrollbar behavior remain
-compatibility paths.
+direction to pointer consumers. Ordinary and declared sliders share the engine
+layout, and the pointer adapter consumes that committed layout in both cases.
+Scrollbar behavior is unchanged.
 
 This does not establish a historical Resource Manager search order, actual
 provider/cache, native device/offscreen allocation success, exact original
