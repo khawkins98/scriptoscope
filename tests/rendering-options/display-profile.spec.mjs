@@ -59,12 +59,14 @@ for(const mode of ['source','built']) {
  });
  test(`${mode}: measured profiles retain comparable native planes and explicit no-cinf comparison gaps`,async({page,servers},info)=>{
   info.annotations.push({type:'native-comparison-unassessed',description:'recorded.empty-face-six'});
+  info.annotations.push({type:'fidelity-assertion',description:'recorded.windows95-three-state'});
   info.annotations.push({type:'fidelity-assertion',description:'recorded.crayon-normal'});
   info.annotations.push({type:'fidelity-assertion',description:'recorded.lisa-normal'});
   info.annotations.push({type:'fidelity-assertion',description:'recorded.crayon-lisa-four-state'});
   info.annotations.push({type:'fidelity-assertion',description:'recorded.animals-three-state'});
   info.annotations.push({type:'fidelity-assertion',description:'recorded.beos-three-state'});
   info.annotations.push({type:'native-comparison-unassessed',description:'recorded.shared307-eighteen'});
+  info.annotations.push({type:'fidelity-assertion',description:'recorded.shared307-comparable-six'});
   info.annotations.push({type:'fidelity-assertion',description:'recorded.evolution-empty-two'});
   info.annotations.push({type:'fidelity-assertion',description:'recorded.monkey-three-state'});
   info.annotations.push({type:'fidelity-assertion',description:'recorded.floppies-evolution-four-state'});

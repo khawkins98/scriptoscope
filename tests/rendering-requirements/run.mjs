@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
 import { gitIdentity } from './execution.mjs';
 import { collectObservations } from './observations.mjs';
-import { validateLedger, loadIssueStates, makeReport, markdownReport } from './ledger.mjs';
+import { validateLedger, loadIssueStates, makeReport, markdownReport, requiredExecutionErrors } from './ledger.mjs';
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const args = new Set(process.argv.slice(2));
 for (const arg of args) if (!['--check-issues', '--require-execution'].includes(arg)) throw new Error(`Unknown option: ${arg}`);
@@ -30,7 +30,7 @@ if (result.errors.length) {
 else {
   const report = makeReport(ledger, { execution, executionCommit, workingTreeDirty, observations, issuesChecked: args.has('--check-issues') });
   if (args.has('--require-execution')) {
-    for (const assertion of report.execution.assertions) for (const mode of assertion.modes) if (mode.status !== 'passed') result.errors.push(`${assertion.id}/${mode.mode}: ${mode.status}`);
+    result.errors.push(...requiredExecutionErrors(report));
     if (result.errors.length) { console.error(result.errors.join('\n')); process.exitCode = 1; }
   }
   const directory = resolve(root, 'test-results/rendering-evidence/requirements'); mkdirSync(directory, { recursive: true });
