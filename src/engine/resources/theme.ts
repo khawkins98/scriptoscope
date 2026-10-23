@@ -57,6 +57,11 @@ async function themeProvider(theme: LoadedTheme, tier: 'archive' | 'base', name:
         if (raw.length > 1 || raw.length === 1 && (!validOccurrence(raw[0]!) || decoded.length !== 1))
           return [key, { status: 'unknown', reason: 'ambiguous or undecoded raw cicn occurrence' }];
         if (raw.length === 0 && decoded.length) return [key, { status: 'unknown', reason: 'cicn decoded asset contradicts raw census' }];
+        const el = decoded[0], occurrence = raw[0];
+        if (el && occurrence && (el.byteProvenance && el.byteProvenance.cicnResourceIndex !== occurrence.resourceIndex
+          || el.cicnSource && (el.cicnSource.id !== id || el.cicnSource.resourceIndex !== occurrence.resourceIndex
+            || el.cicnSource.byteLength !== occurrence.byteLength)))
+          return [key, { status: 'unknown', reason: 'decoded cicn occurrence contradicts raw census' }];
       }
       if (checkables && elements.filter(e => e.sourceCicnId === id).length > 1) return [key, { status: 'unknown', reason: 'ambiguous cicn occurrence' }];
       const el = elements.find(e => e.sourceCicnId === id && e.asset);
@@ -66,6 +71,15 @@ async function themeProvider(theme: LoadedTheme, tier: 'archive' | 'base', name:
       }
       const status = el.samplingEquivalence?.status ?? null;
       const sampleAsset = el.asset;
+      // Preserve the actual preparation binding before copying the finite values.
+      // Paths/dimensions and even equal census scalars cannot identify a provider.
+      const sampleSource = el.engineColorSamples?.source;
+      const selectedSource = el.cicnSource;
+      const boundSource = () => selectedSource != null && sampleSource === selectedSource
+        && el.cicnSource === selectedSource && el.sourceCicnId === id && el.asset === sampleAsset
+        && (!el.byteProvenance || el.byteProvenance.cicnResourceIndex === selectedSource.resourceIndex)
+        && theme.inspector?.cicnResources?.filter(r => r.id === id).length === 1
+        && theme.inspector.cicnResources.find(r => r.id === id) === selectedSource;
       const finiteSamples = el.engineColorSamples ? structuredClone(el.engineColorSamples) : undefined;
       const [pixmap, companion, sampled] = await Promise.all([load(el.asset),
         el.iconBlit?.unmaskedAsset ? load(el.iconBlit.unmaskedAsset) : Promise.resolve(null),
@@ -84,7 +98,7 @@ async function themeProvider(theme: LoadedTheme, tier: 'archive' | 'base', name:
         },
         sampleRgb16: (point: QdPoint) => {
           const samples = finiteSamples;
-          if (!samples || samples.model !== 'kdef-2.3.1-engine-points' || samples.asset !== sampleAsset
+          if (!boundSource() || !samples || samples.model !== 'kdef-2.3.1-engine-points' || samples.asset !== sampleAsset
             || samples.width !== pixmap.width || samples.height !== pixmap.height
             || !ownerDisplayPolicyMatches(theme.manifest, samples.displayPolicy)) return null;
           return samples.points[`${point.x},${point.y}`]?.rgb16 ?? null;

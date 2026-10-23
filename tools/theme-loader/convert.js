@@ -82,6 +82,11 @@ export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourc
   const realizeDirectRgb8 = directRgb8Realizer(displayProfile);
   const policy = displayPolicy(displayProfile);
   const entries = parseResourceFork(asBytes(fork));
+  // Shared object identity binds finite samples to this exact load/occurrence.
+  // Scalar fields are diagnostic metadata, not a byte hash or native lookup claim.
+  const cicnResources = entries.flatMap((e, resourceIndex) => e.type === 'cicn'
+    ? [Object.freeze({ id: e.id, resourceIndex, byteLength: e.data.length })] : []);
+  const cicnSourceByIndex = new Map(cicnResources.map(r => [r.resourceIndex, r]));
   const assets = [];      // { path, rgba, width, height } — gamma-applied
   const flatAssets = [];  // extraction-manifest (flat file names)
   const subAssets = [];   // for buildThemeJson (cicns/ + ppats/ paths)
@@ -156,7 +161,7 @@ export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourc
       }
       counts.ok++; counts.raster++;
       flatAssets.push({ ...base, status: 'ok', file: fname, width: payload.width, height: payload.height, debug: payload.debug });
-      subAssets.push({ ...base, status: 'ok', file: `${sub}/${fname}`, width: payload.width, height: payload.height, debug: payload.debug,
+      subAssets.push({ ...base, cicnSource: cicnSourceByIndex.get(resourceIndex), status: 'ok', file: `${sub}/${fname}`, width: payload.width, height: payload.height, debug: payload.debug,
         ...(sampledBandAsset ? { sampledBandAsset } : {}),
         ...(payload.bodyCicnSource ? { bodyCicnSource: payload.bodyCicnSource } : {}),
         ...(payload.cicnTransfer ? { cicnTransfer: payload.cicnTransfer } : {}),
@@ -172,6 +177,11 @@ export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourc
   for (const a of subAssets) if (a.cicnTransfer && subAssets.filter(other => other.file === a.file).length !== 1)
     throw new CicnTransferError('Ambiguous finite transfer asset path');
   const theme = buildThemeJson({ source, counts, assets: subAssets }, { meta, displayProfile, cinfBinding, sliderLayoutBinding, cicnTransferBinding });
+  for (const element of Object.values(theme.chromeElements ?? {})) {
+    const records = subAssets.filter(a => a.type === 'cicn' && a.status === 'ok'
+      && a.id === element.sourceCicnId && a.file === element.asset);
+    if (records.length === 1) element.cicnSource = records[0].cicnSource;
+  }
   // Only actual surviving, unambiguous element links may allocate derived URLs.
   const usedCompanions = new Set(Object.values(theme.chromeElements ?? {}).flatMap(e => e.sampledBandAsset ? [e.sampledBandAsset.derivedPath] : []));
   for (let i = assets.length - 1; i >= 0; i--)
@@ -256,7 +266,7 @@ export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourc
         const rgb16 = record.sampleKdefRgb16(point.x, point.y);
         samples[key] = rgb16 ? { rgb16, displayRgb: mapEngineRgb16(rgb16, displayProfile) } : null;
       }
-      element.engineColorSamples = { model: 'kdef-2.3.1-engine-points', asset: element.asset,
+      element.engineColorSamples = { model: 'kdef-2.3.1-engine-points', source: record.cicnSource, asset: element.asset,
         width: element.width, height: element.height, displayPolicy: policy, points: samples };
     }
     // The same ids' cicn bounds origins (slider BL11): engine pixmaps drop the
@@ -315,8 +325,6 @@ export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourc
   }
 
   validateTheme(theme); // throws on a malformed bundle; callers report/abort
-  const cicnResources = entries.flatMap((e, resourceIndex) => e.type === 'cicn'
-    ? [{ id: e.id, resourceIndex, byteLength: e.data.length }] : []);
   return { theme, assets, cicnResources, colorTables: colorTablesOf(entries, realizeRgb16), manifest: { source, counts, assets: flatAssets } };
 }
 
