@@ -1,7 +1,10 @@
 # Independent slider contract candidate (#427 / #459)
 
 Runtime under test: `b540d193733d0e77a9c803bf734350cb9d60efab`.
-The test author owns no runtime or loader changes. Expectations come from
+The test author owns no direct runtime or loader edits. The PM subsequently
+authorized merging separately authored repair `d49c8f4be87153e7eeaf9bd456663031db863750`
+(declaration-wide completeness only) into the candidate; original failures remain
+in durable receipts, and the unchanged regressions must pass after that repair. Expectations come from
 `docs/spec/slider-layout-cinf.md`, `engine/slider.md` G1/CF1/CF3, §5.2,
 SL1/SL3–SL6 and `slider-interaction.md`, with DECISIONS #9 for pressed art.
 This is modern declared-input consistency coverage, not original acquisition
@@ -52,14 +55,14 @@ The old decoded loader role is replaced by opaque manifest identity plus the
 typed adapter's actual corner selection joined to load ID, resource occurrence,
 actual decode URL and complete output plane.
 
-A blocking regression deliberately fails on this runtime: a complete first
+A blocking regression deliberately failed on the original runtime: a complete first
 provider can hide a later incomplete provider. The coordinator adjudicated
 whole-declaration completeness mandatory on 2026-10-23. The Node adapter and
 source/built public composition reproduce this independently; each begins with
 a passing complete-provider control. Public controls include empty base gate
 payloads (presence-only CF1), so all engine cinf requests hit provider A and
 cannot accidentally discover B through a missing first request. Runtime repair
-belongs to a different author; these tests must not be weakened to pass.
+belongs to a different author; these tests are retained unchanged in behavior after the repair.
 
 `slider-mutations.mjs <durable-directory> [node|browser|mutation-id]` injects
 independent runtime faults using Node load hooks or intercepted source responses;
@@ -69,7 +72,8 @@ setup errors, TypeError/ReferenceError, unrelated exceptions and timeouts do not
 count. The final set covers provider order, corner payload use, duplicate/empty/
 unknown input, owner asset and marker deletion, archive groove mixing, truncated
 groove payload, full-canvas travel, absent track centering, grab reanchoring and
-vertical sign. It is a bounded probe set, not an exhaustive mutation score or a
+vertical sign. A further repaired-runtime mutation ignores an incomplete later
+provider and must fail the original regression after a passing complete control. It is a bounded probe set, not an exhaustive mutation score or a
 built-minifier mutation test. Earlier invalid probe receipts are retained.
 
 Acceptance-binding regeneration changes only the four toolchain hashes below.

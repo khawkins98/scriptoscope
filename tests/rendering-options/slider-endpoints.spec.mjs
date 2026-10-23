@@ -331,7 +331,7 @@ test('source: pinned provider identities, actual decode URLs and typed corner se
   expect(verifySliderRows(result)).toEqual(sliderPins.cases.map(p=>p.id));
 });
 
-// Blocking runtime finding independently reproduced through each public bundle.
+// Original blocking finding, retained through the separately authored repair.
 for(const mode of ['source','built']) test(`${mode}: whole declared environment rejects an unqueried incomplete tail`,async({page,servers})=>{
   await setup(page,servers,mode);
   const result=await page.evaluate(async()=>{

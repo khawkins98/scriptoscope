@@ -69,8 +69,8 @@ test('typed adapter binds actual owner, thumb, asset, dimensions, source identit
 });
 
 // PM adjudication (2026-10-23): completeness applies to the whole declaration,
-// including providers never reached by a first-hit lookup. Preserve this failure
-// until the separate runtime owner repairs it; do not encode unknown as absence.
+// including providers never reached by a first-hit lookup. Keep this original
+// regression after the separate repair; do not encode unknown as absence.
 test('declaration-wide completeness rejects an unqueried later incomplete provider', async () => {
   const good = external('complete', endpointProvider(3));
   const control = await load([good]); assert.equal(view(control).corner, 3);
