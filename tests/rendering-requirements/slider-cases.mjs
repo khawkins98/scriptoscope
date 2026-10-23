@@ -7,6 +7,7 @@ export const sliderPins=JSON.parse(readFileSync(new URL('../decoder-fixtures/sli
 export const sliderCaseIds=sliderPins.cases.map(p=>p.id);
 export const sliderRequirement='geometry.conditional-group2-slider-endpoints';
 const sha=b=>createHash('sha256').update(b).digest('hex');
+export const sliderBindingIdentity=d=>`cinf-binding:${sha(JSON.stringify({environmentId:d.environmentId,themeForkSha256:d.themeFork.sha256,complete:true,providers:d.providerData.providers}))}`;
 export function verifySliderFixtures(root){
  const d=sliderPins.definition;
  for(const pin of [d.fixture,d.forkBuilder])assert.equal(sha(readFileSync(resolve(root,pin.path))),pin.sha256,'owned fixture source');
@@ -32,13 +33,14 @@ export function validateSliderCase(c,input){
  assert.deepEqual(c.inputs,[sliderPins.inputId]);assert.deepEqual(c.baseInputs,[]);
  assert.equal(input.kind,'synthetic');assert.deepEqual(input.definition,sliderPins.definition,'exact declared forks and environment');
 }
-/** Literal owned red thumb over a cyan three-pixel groove and transparent initial
- * plane. Native transfer and decoder truth are NOT inferred from this check. */
+/** Current declared-lane literal: red thumb over opaque white. The pinned
+ * provider has corner cinfs only: archive groove metadata is suppressed.
+ * Historical pin identities/statuses remain unchanged; this is modern policy. */
 export function sliderLiteralPlane(pin){
  const vertical=pin.options.orientation==='vertical',[width,height]=pin.size,[left,top,w,h]=pin.thumbRect;
  return Array.from({length:width*height},(_,i)=>{
   const x=i%width,y=Math.floor(i/width),cross=vertical?x:y;
-  return x>=left&&x<left+w&&y>=top&&y<top+h?[255,0,0,255]:cross>=6&&cross<9?[0,255,255,255]:[0,0,0,0];
+  return x>=left&&x<left+w&&y>=top&&y<top+h?[255,0,0,255]:[255,255,255,255];
  }).flat();
 }
 export function verifySliderRows(result){
@@ -46,7 +48,7 @@ export function verifySliderRows(result){
  assert.deepEqual(result.baseInputs,[],'standalone invocation');assert.equal(result.displayPolicy,d.displayPolicy);
  assert.deepEqual(result.providerData,{id:d.environmentId,data:d.providerData},'actual prepared provider snapshot');
  assert.equal(result.provenance.fork.sha256,d.themeFork.sha256);assert.equal(result.provenance.fork.byteLength,d.themeFork.byteLength);
- assert.deepEqual(result.layoutEnvironment,{environmentId:d.environmentId,bindingId:d.bindingId,themeForkSha256:d.themeFork.sha256,policy:'caller-declared-ordered-cinf-only',scope:'standalone-group2-slider-layout'});
+ assert.deepEqual(result.layoutEnvironment,{environmentId:d.environmentId,bindingId:sliderBindingIdentity(d)},'opaque generic binding identity');
  for(const pin of sliderPins.cases){
   const matches=result.rows.filter(r=>r.orientation===pin.options.orientation&&r.state==='normal'&&r.value===pin.options.value);
   assert.equal(matches.length,1,'missing/duplicate exact invocation');const row=matches[0];
@@ -61,7 +63,9 @@ export function verifySliderRows(result){
   assert.deepEqual({resourceIndex:actual.resourceIndex,type:actual.type,signedId:actual.signedId,status:actual.status,byteLength:actual.byteLength,sha256:actual.sha256},
    {resourceIndex:t.resourceIndex,type:'cicn',signedId:t.signedId,status:'decoded',byteLength:t.byteLength,sha256:t.sha256});
   const resource={providerId:'layout',providerKind:'raw-fork',forkSha256:d.providerData.providers[0].forkSha256,occurrence:t.providerOccurrence,signedId:t.cinfId,byteLength:1,sha256:d.providerData.providers[0].resources[t.providerOccurrence].sha256};
-  assert.deepEqual(element.sliderLayoutCinf,{...result.layoutEnvironment,orientation:t.orientation,thumbId:t.signedId,attempts:[{id:t.cinfId,outcome:'found',resource}],selected:resource,status:'ready',corner:3},'actual consumed external role');
+  const role=result.cornerRoles.find(r=>r.orientation===t.orientation);
+  assert.deepEqual(role,{orientation:t.orientation,attempts:[{id:t.cinfId,outcome:'found',resource}],selected:resource,corner:3},'typed adapter corner selection');
+  assert.equal('sliderLayoutCinf' in element,false,'retired decoded loader view');
  }
  return sliderCaseIds;
 }
