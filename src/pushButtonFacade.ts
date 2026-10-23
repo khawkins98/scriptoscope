@@ -146,7 +146,7 @@ export async function composeEnginePush(theme: LoadedTheme, opts: ButtonOptions 
       if (selected !== null) requests.push({ type: 'cicn', id: selected }, { type: 'cinf', id: selected }, { type: 'cinf', id: P.DR5.fallback });
     }
     if (declared?.metadata?.bodyRequest) requests.push({ type: 'ppat', id: declared.metadata.bodyRequest.resourceId });
-    let chain = await themeResourceChain(theme, requests, { ...(signal ? { signal } : {}), cinfBodies: [id, P.PB9.fallback] });
+    let chain = await themeResourceChain(theme, requests, { ...(signal ? { signal } : {}), cinfBodies: declared ? [] : [id, P.PB9.fallback] });
     alive(signal);
     if (declared) {
       const parent = chain.providers[0]!;
