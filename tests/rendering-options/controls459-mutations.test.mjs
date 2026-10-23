@@ -1,0 +1,11 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { mkdirSync,writeFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+const file='tests/rendering-options/controls459-rules.test.mjs';
+const childEnv={...process.env};delete childEnv.NODE_TEST_CONTEXT;
+const run=(pattern,mutation)=>spawnSync(process.execPath,[...(mutation?['--import','./tests/rendering-options/controls459/mutation-loader.mjs']:[]),'--test','--test-reporter=tap',`--test-name-pattern=${pattern}`,file],{encoding:'utf8',timeout:15000,env:{...childEnv,...(mutation?{CONTROLS459_MUTATION:mutation}:{})}});
+function killed(r,pattern){return r.status===1&&!r.signal&&!r.error&&/ERR_ASSERTION/.test(r.stdout)&&r.stdout.includes('not ok')&&r.stdout.includes(pattern)&&!/MUTATION_NOT_APPLIED|mutation token absent|ERR_MODULE_NOT_FOUND/.test(r.stdout+r.stderr);}
+const cases=[['storage-origin','source-bounds'],['mask-repeat','check-retry'],['push-state','push-state'],['disabled-precedence','check-state'],['ring-outset','paint-order'],['original-value','check-retry'],['color-custom','icon-transfer'],['body-sampling','paint-order'],['sentinel','raw-colour'],['oracle-state','push-state']];
+for(const [mutation,pattern] of cases)test(`isolated ${mutation} targets ${pattern}, positive control passes, assertion kills only`,()=>{const control=run(pattern);if(process.env.CONTROLS459_MUTATION_RECEIPTS){mkdirSync(process.env.CONTROLS459_MUTATION_RECEIPTS,{recursive:true});writeFileSync(`${process.env.CONTROLS459_MUTATION_RECEIPTS}/${mutation}-control.log`,control.stdout+control.stderr); }assert.equal(control.status,0,control.stdout+control.stderr);const r=run(pattern,mutation);if(process.env.CONTROLS459_MUTATION_RECEIPTS)writeFileSync(`${process.env.CONTROLS459_MUTATION_RECEIPTS}/${mutation}-mutant.log`,r.stdout+r.stderr);assert.ok(killed(r,pattern),r.stdout+r.stderr);});
+test('harness setup failure is rejected as a killed mutant',()=>{const r=run('push-state','harness-failure');assert.notEqual(r.status,0);assert.equal(killed(r,'push-state'),false);});
