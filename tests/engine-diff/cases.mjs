@@ -369,7 +369,11 @@ async function* progressCells({ slug, decoded, mutate = x => x }) {
 /** @internal probe hook: the proceduralFrame chain over one decoded archive. */
 export const __frameChain = (E, slug, decoded) => frameChain(E, slug, decoded, x => x);
 
+import { pushCells, checkCells } from './controls459-cases.mjs';
+
 export const FAMILIES = {
+  pushButton: { rules: ['docs/spec/engine/push-button.md', 'docs/spec/engine/qd-primitives.md'], cells: pushCells },
+  checkables: { rules: ['docs/spec/engine/checkables.md', 'docs/spec/engine/qd-primitives.md'], cells: checkCells },
   window: { rules: ['docs/spec/engine/window-widgets.md', 'docs/spec/engine/qd-primitives.md'], cells: windowCells },
   scrollbar: { rules: ['docs/spec/engine/scrollbar.md', 'docs/spec/engine/qd-primitives.md'], cells: scrollbarCells },
   proceduralFrame: { rules: ['docs/spec/engine/procedural-frame.md', 'docs/spec/engine/qd-primitives.md'], cells: proceduralFrameCells },

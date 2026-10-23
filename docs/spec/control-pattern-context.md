@@ -113,6 +113,16 @@ original Resource Manager search order. Missing patterns and unsupported modes
 are recorded and retain the prior face fallback. Decode failures still reject.
 Legacy manifests without raw body requests retain prior behavior.
 
+For migrated push/default, the current modern same-owner binding policy retains
+valid exact `bodyPattern`, then valid exact `bgPattern`, then a unique matching
+raw-ID occurrence. A link must identify the requested signed ppat ID and the
+selected face owner's actual occurrence; it cannot borrow another owner's art.
+Only absence of a matching raw occurrence is NULL. Present undecoded or unbound multiple occurrences
+are UNKNOWN and reject explicitly; they cannot become absence or an arbitrary
+first candidate. The earlier legacy ambiguity/fallback behavior remains an
+unmigrated bevel compatibility path. These are public compatibility obligations,
+not claims about original provider precedence or native resource uniqueness.
+
 A `body-fill` trace step records raw requested mode/ID and the actual selected
 ppat ID/key/owner/base depth/asset, plus occurrence-carried byte provenance when
 collected. The ppat/cicn resource union distinguishes their provenance types.
@@ -132,8 +142,9 @@ The resolved phase is explicitly `modern-composition-policy`, with original
 pattern phase `unverified`; the event does not certify native provider or phase.
 Header/admission lookups and rendering pixels/order are unchanged.
 
-Promoted button/select lifetimes pass through face→pattern→pressed/ring sequential
-loads. An abort prevents subsequent loads and publication; an already-issued
+The older facade's button/select preparation passes through face→pattern→pressed/ring
+loads. Migrated push may eagerly prepare multiple owned planes before drawing;
+their decode count is not a completed-paint or singleton-load assertion. An abort prevents subsequent loads and publication; an already-issued
 image decode is a distinct browser lifetime boundary. No delay, retained revoked
 URL cache, borrowed-theme disposal or default-path hashing is added.
 

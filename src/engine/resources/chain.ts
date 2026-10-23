@@ -19,7 +19,7 @@
 // ordered id list from a decision-table row and records every request in the
 // trace, including repeats of the same id (cinf-lookup-contract: a request
 // that already equals the retry id is still made twice).
-import type { EngineTrace } from '../trace.js';
+import type { EngineTrace, ResourceSelection } from '../trace.js';
 
 export type ResourceTier = 'archive' | 'base' | 'cinf' | 'procedural';
 
@@ -29,6 +29,10 @@ export interface ResourceProvider {
   readonly tier: ResourceTier;
   /** The resource, or null/undefined when this provider has none. */
   get(type: string, id: number): unknown;
+  /** Provenance bound to the same prepared value returned by get. */
+  selection?(type: string, id: number): ResourceSelection | undefined;
+  /** Actual accepted opaque copy transport, captured alongside the prepared value. */
+  unmaskedSource?(type: string, id: number): { assetUrl: string; derivedPath?: string } | undefined;
 }
 
 export interface ResourceHit<T> {
@@ -48,8 +52,10 @@ const TIER_ORDER: Record<ResourceTier, number> = { archive: 0, base: 1, cinf: 2,
 
 export class ResourceChain {
   readonly providers: readonly ResourceProvider[];
+  /** Public push adapter policy only; ordinary engine requests keep their chain. */
+  readonly bodyProvider?: ResourceProvider;
 
-  constructor(providers: readonly ResourceProvider[]) {
+  constructor(providers: readonly ResourceProvider[], bodyProvider?: ResourceProvider) {
     for (let i = 1; i < providers.length; i++) {
       if (TIER_ORDER[providers[i]!.tier] < TIER_ORDER[providers[i - 1]!.tier]) {
         throw new Error(`ResourceChain: provider ${providers[i]!.name} (${providers[i]!.tier}) is out of tier order`);
@@ -57,6 +63,7 @@ export class ResourceChain {
     }
     if (providers.filter(p => p.tier === 'archive').length > 1) throw new Error('ResourceChain: at most one archive provider');
     this.providers = providers;
+    if (bodyProvider) this.bodyProvider = bodyProvider;
   }
 
   /** GetResource over archive → base (→ procedural only when authorised). */
@@ -92,10 +99,12 @@ export class ResourceChain {
   }
 
   private record(type: string, id: number, hit: ResourceHit<unknown> | null, opts: RequestOptions): void {
+    const selection = hit?.provider.selection?.(type, id);
     opts.trace?.resolved.push({
       type, id, found: hit != null,
       provider: hit?.provider.name ?? null, tier: hit?.provider.tier ?? null,
       ...(opts.row ? { row: opts.row } : {}),
+      ...(selection ? { selection } : {}),
     });
   }
 }

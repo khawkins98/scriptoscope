@@ -4,18 +4,8 @@ async function setup(page, servers, mode, scale = 1) {
   await openHarness(page, servers, mode);
   await page.evaluate(async ({mode,scale}) => {
     const api = await import(mode === 'built' ? '/dist/scriptoscope.js' : '/src/index.ts');
-    const face = api.PixelBuffer.alloc(7,7), ring = api.PixelBuffer.alloc(9,9);
-    ring.setPixel(0,0,199,33,77,255);
-    const patterns = {};
-    for (let id=0;id<2;id++) {
-      const tile = api.PixelBuffer.alloc(5,3);
-      for(let y=0;y<3;y++)for(let x=0;x<5;x++)tile.setPixel(x,y,id?0:(y*5+x+1)*10,id?(y*5+x+1)*10:0,0,255);
-      patterns[id] = {sourcePpatId:id,asset:api.bufferToCanvas(tile).toDataURL()};
-    }
-    const asset = api.bufferToCanvas(face).toDataURL();
-    const element = (id,pattern) => ({sourceCicnId:id,asset,width:7,height:7,slice:{corner:3,side:1,tile:false},bodyRequest:{mode:0,resourceId:pattern}});
-    const theme = {baseUrl:location.origin,manifest:{chromeElements:{normal:element(-10239,0),pressed:element(-10238,1),inactive:element(-10240,0),
-      ring:{sourceCicnId:-10231,asset:api.bufferToCanvas(ring).toDataURL(),width:9,height:9,slice:{corner:1,side:1,tile:false}}},patterns}};
+    const {managedFixture}=await import('/tests/rendering-options/owned-control-fixture.mjs');
+    const theme=await managedFixture(api);
     const content = document.createElement('div');content.style.cssText='position:relative;width:100%;height:100%;overflow:auto';
     const spacer=document.createElement('div');spacer.style.cssText='width:800px;height:800px';content.append(spacer);
     const traces=[],controls=[];
@@ -185,7 +175,7 @@ for(const mode of ['source','built']) test(`${mode}: declared buttons follow own
   await page.evaluate(async()=>{
     const f=window.managed;await Promise.all(f.bindings.map(b=>b.dispose()));f.manager.remove(f.host);f.host.remove();
     const root=document.createElement('section');root.style.setProperty('--scriptoscope-content-padding','0px');document.body.append(root);
-    const handle=await f.api.mountDeclarative({root,pageThemeDefault:'pattern',bootAffordance:'none'});handle.registerTheme('pattern',f.theme);
+    const handle=await f.api.mountDeclarative({root,pageThemeDefault:'pattern',displayProfile:f.theme.manifest.displayProfile,bootAffordance:'none'});handle.registerTheme('pattern',f.theme);
     const make=(name,x,y)=>{
       const holder=document.createElement('div');holder.style.cssText=`position:absolute;left:${x}px;top:${y}px;font-size:0;line-height:0`;
       const native=document.createElement('button');native.dataset.scriptoscopeButton='';native.dataset.scriptoscopeDefault='';native.type='button';native.setAttribute('aria-label',name);holder.append(native);return{holder,native};
@@ -261,8 +251,8 @@ for(const mode of ['source','built']) test(`${mode}: incompatible state layouts 
     const f=window.managed,button=f.controls[0],binding=f.bindings[0];
     button.style.transform='rotate(2deg)';await f.frames(2);await binding.refresh();const rotated=binding.state;
     button.style.transform='none';await f.frames(2);await binding.refresh();const recovered=binding.state;
-    const pressed=f.api.PixelBuffer.alloc(7,12),element=f.theme.manifest.chromeElements.pressed;
-    const theme={...f.theme,manifest:{...f.theme.manifest,chromeElements:{...f.theme.manifest.chromeElements,pressed:{...element,height:12,asset:f.api.bufferToCanvas(pressed).toDataURL()}}}};
+    const {managedFixture}=await import('/tests/rendering-options/owned-control-fixture.mjs');
+    const theme=await managedFixture(f.api,{pressedHeight:12});
     const mismatch=await f.api.interactiveButton(theme,{label:'',default:true,minWidth:29});mismatch.style.cssText+=';position:absolute;left:70px;top:30px';f.content.append(mismatch);
     const mismatchBinding=f.api.bindButtonToContentPort(mismatch,f.port);await mismatchBinding.refresh();const incompatible=mismatchBinding.state;
     mismatch.dispatchEvent(new KeyboardEvent('keydown',{key:' ',bubbles:true}));await mismatchBinding.refresh();const pressedState=mismatchBinding.state;
@@ -358,7 +348,7 @@ for(const mode of ['source','built']) test(`${mode}: detached managed windows re
 for(const mode of ['source','built']) test(`${mode}: public bevel primitive uses actual buffer geometry for explicit port refresh`,async({page,servers},info)=>{
   await setup(page,servers,mode);
   const result=await page.evaluate(async()=>{
-    const f=window.managed,entry={...f.theme.manifest.chromeElements.normal,sourceCicnId:-10166};
+    const f=window.managed,entry=f.theme.manifest.chromeElements.bevel;
     const theme={...f.theme,manifest:{...f.theme.manifest,chromeElements:{bevel:entry}}};
     const options={label:'',minWidth:29,height:9};
     const initial=await f.api.composeBevelButton(theme,options),canvas=f.api.bufferToCanvas(initial);
@@ -380,4 +370,16 @@ for(const mode of ['source','built']) test(`${mode}: public bevel primitive uses
   expect(result.moved.measurement.context.controlOrigin).toEqual([24,31]);expect(result.moved.pixel).toEqual([40,0,0,255]);
   expect(result.scrolled.measurement.context.controlOrigin).toEqual([24,20]);expect(result.scrolled.pixel).toEqual([90,0,0,255]);
   await attachObservations(info,'managed-context',`${mode}-direct-bevel`,{mode,result,limits:'Caller-controlled one-shot primitive refresh, not automatic bevel interaction or historical port evidence.'});
+});
+
+for(const mode of ['source','built'])test(`${mode}: managed binding explicitly rejects the original no-cinf manual fixture`,async({page,servers})=>{
+  await openHarness(page,servers,mode);
+  const result=await page.evaluate(async mode=>{
+    const api=await import(mode==='built'?'/dist/scriptoscope.js':'/src/index.ts');
+    const source=api.PixelBuffer.alloc(7,7),theme={baseUrl:location.origin,manifest:{chromeElements:{normal:{sourceCicnId:-10239,asset:api.bufferToCanvas(source).toDataURL(),width:7,height:7,slice:{corner:3,side:1,tile:false},bodyRequest:{mode:0,resourceId:0}}}}};
+    const button=await api.interactiveButton(theme,{label:'',minWidth:29,height:9});document.body.append(button);
+    let message;try{api.bindButtonToContentPort(button,{});}catch(e){message=e.message;}
+    const result={canvas:!!button.querySelector('canvas'),message};button.remove();return result;
+  },mode);
+  expect(result).toEqual({canvas:false,message:'Button has no live themed canvas to bind'});
 });

@@ -26,3 +26,4 @@ export * from './slider.js';
 export * from './progress.js';
 export * from './window.js';
 export * from './loaderNeeds.js';
+export * from './checkables.js';

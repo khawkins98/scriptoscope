@@ -8,6 +8,11 @@
 // spec row id such as `T5` or `B3`), so a reviewer can map every recorded step
 // to a spec sentence.
 import type { QdRect } from './qd/types.js';
+import type { ControlBandPaint, ControlResolutionStep } from '../controlDiagnostics.js';
+import type { ControlCompositionSnapshot } from '../controlComposition.js';
+
+/** Adapter observations captured with the selected value, never a second lookup. */
+export type ResourceSelection = Pick<ControlResolutionStep, 'owner' | 'resource' | 'cinfLookup'>;
 
 /** One resource request and its outcome. */
 export interface ResolvedResource {
@@ -20,6 +25,7 @@ export interface ResolvedResource {
   tier: string | null;
   /** Spec/table row that issued the request, e.g. `cinf-request` or `B4`. */
   row?: string;
+  selection?: ResourceSelection;
 }
 
 /** One primitive call. `op` names the primitive; extra fields are op-specific JSON. */
@@ -38,6 +44,13 @@ export interface EngineTrace {
   resolved: ResolvedResource[];
   rects: Record<string, QdRect>;
   drawOps: DrawOp[];
+  /** Opt-in adapter diagnostics; ordinary family traces retain their shape. */
+  controlPaint?: {
+    clip?: QdRect;
+    context?: ControlCompositionSnapshot;
+    bodies: ControlResolutionStep[];
+    bands: ControlBandPaint[];
+  };
 }
 
 export function createTrace(family: string, inputs: Record<string, unknown> = {}): EngineTrace {

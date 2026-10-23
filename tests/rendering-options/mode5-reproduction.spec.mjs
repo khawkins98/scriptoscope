@@ -41,6 +41,7 @@ for(const mode of ['source','built']) for(const c of cases) test(`${mode}: mode5
     const binding=result.elements['mode5-face'].cicnBody;
     expect(binding.requestedId).toBe(c.kind==='missing'||c.id==='missing'?52:c.bodyId??51);
     const painted=result.trace.steps.find(s=>s.bodyPaint);
+    expect(painted,'nonempty completed mode5 operation must publish bodyPaint').toBeDefined();
     expect(painted.bodyPaint.paintedPixels).toBe(observation.expectedOpaque);
     if(c.expected==='missing') expect(painted.bodyPaint.branch).toBe('missing-erase');
     else {
@@ -60,26 +61,42 @@ for(const mode of ['source','built']) test(`${mode}: mode5 encoded hidden RGB an
     result=await page.evaluate(async({mode,records})=>{
       const api=await import(mode==='source'?'/src/index.ts':'/dist/scriptoscope.js'),{forkOf}=await import('/tests/resource-provenance/fixtures.mjs');
       const owner=await api.loadKaleidoscopeScheme(forkOf(records.map(r=>({...r,data:Uint8Array.from(r.data)}))),{provenance:true});owner.baseUrl='actual-body-owner';
-      const child={baseUrl:'child',base:owner,manifest:{chromeElements:{}}},binding=owner.manifest.chromeElements['mode5-face'].cicnBody;
+      const child={baseUrl:'child',base:owner,manifest:{chromeElements:{}}},binding=owner.manifest.chromeElements['mode5-face'].cicnBody,target=owner.manifest.chromeElements['mode5-body'];
+      const bodyAsset=target.iconBlit.unmaskedAsset;
       const decode=HTMLImageElement.prototype.decode;let calls=0;
-      HTMLImageElement.prototype.decode=function(){if(this.src===binding.asset)calls++;return decode.call(this);};
+      HTMLImageElement.prototype.decode=function(){if(this.src===bodyAsset)calls++;return decode.call(this);};
       try{
         const rows=[];
         for(const kind of ['full-clip','scaled','normal']){
           let trace;const options={label:'',minWidth:24,height:kind==='scaled'?7:6,diagnostics:{onComplete:t=>{trace=t;}},...(kind==='full-clip'?{compositionContext:{controlOrigin:[0,0],portOrigin:[0,0],patternOrigin:{status:'unknown'},clip:{kind:'rect',rect:{x:100,y:100,w:1,h:1}}}}:{})};
-          const out=await api.composeButton(child,options);rows.push({kind,trace,pixel:out.getPixel(3,2),calls});
+          let out,error;try{out=await api.composeButton(child,options);}catch(e){error=e.message;}
+          rows.push({kind,trace,pixel:out?out.getPixel(3,2):null,plane:out?[...out.data]:null,calls,error});
         }
-        return{rows,binding,provenance:owner.byteProvenance};
+        return{rows,binding,bodyAsset,provenance:owner.byteProvenance};
       }finally{HTMLImageElement.prototype.decode=decode;owner.dispose();}
     },{mode,records:records.map(r=>({...r,data:Array.from(r.data)}))});
-    expect(result.rows.map(r=>r.calls)).toEqual([0,0,1]);expect(result.rows[2].pixel).toEqual([0,48,0,255]);
+    // Wholly clipped coverage starts no dependent decode. The public scaled
+    // rejection may prepare dimensions, but cannot allocate a second cached dependency.
+    expect(result.rows[0].calls).toBe(0);
+    expect(result.rows[2].calls).toBe(1);
+    expect(result.rows[1].calls).toBeLessThanOrEqual(result.rows[2].calls);
+    expect(result.rows[2].pixel).toEqual([0,48,0,255]);
+    const hiddenExpected=Uint8Array.from(expectedBuffers.color8);
+    for(let i=0;i<hiddenExpected.length;i+=4)if(hiddenExpected[i]===0&&hiddenExpected[i+1]===255&&hiddenExpected[i+2]===0)hiddenExpected[i+1]=48;
+    expect(result.rows[2].plane).toEqual([...hiddenExpected]);
     const paint=result.rows[2].trace.steps.find(s=>s.bodyPaint);
+    expect(paint,'completed owned mode5 operation must publish bodyPaint').toBeDefined();
     expect(paint.owner).toEqual({baseUrl:'actual-body-owner',chainDepth:1});
     expect(paint.resource.byteProvenance.loadId).toBe(result.provenance.loadId);
     expect(result.provenance.resources[2].sha256).toBe(sha(mid));
-    expect(paint.bodyPaint.sourceAssetUrl).toBe(result.binding.asset);expect(paint.bodyPaint.derivedPath).toBe(result.binding.derivedPath);
-    expect(result.rows[0].trace.steps.some(s=>s.reason==='cicn-body-outside-clip')).toBe(true);
+    expect(paint.bodyPaint.sourceAssetUrl).toBe(result.bodyAsset);
+    expect(result.rows[0].plane).toEqual(Array(24*6*4).fill(0));
+    expect(result.rows[0].trace.steps.some(s=>s.bodyPaint)).toBe(false);
+    expect(result.rows[1].error).toContain('cicn-body-scaling-unsupported');
+    expect(result.rows[1].trace.outcome.status).toBe('error');
     expect(result.rows[1].trace.steps.some(s=>s.reason==='cicn-body-scaling-unsupported')).toBe(true);
+    expect(result.rows[1].trace.steps.some(s=>s.bodyPaint)).toBe(false);
+    expect(result.rows[0].error).toBeUndefined();expect(result.rows[2].error).toBeUndefined();
   }catch(error){await attachCase(page,info,{mode,result},error);throw error;}
   await attachObservations(info,'mode5-reproduction',`${mode}-owner-hidden-rgb`,{mode,result});
 });
@@ -91,19 +108,21 @@ for(const mode of ['source','built']) test(`${mode}: mode5 cancellation and deco
       const api=await import(mode==='source'?'/src/index.ts':'/dist/scriptoscope.js'),{forkOf}=await import('/tests/resource-provenance/fixtures.mjs');const decode=HTMLImageElement.prototype.decode,rows=[];
       for(const kind of ['face-abort','body-abort','body-error']){
         const t=await api.loadKaleidoscopeScheme(forkOf(records.map(r=>({...r,data:Uint8Array.from(r.data)}))));
-        const face=t.manifest.chromeElements['mode5-face'],body=face.cicnBody.asset;let release,entered,trace,calls=0;
+        const face=t.manifest.chromeElements['mode5-face'],body=t.manifest.chromeElements['mode5-body']?.iconBlit?.unmaskedAsset;let release,entered,trace,calls=0;
         const wait=new Promise(r=>{release=r;}),started=new Promise(r=>{entered=r;}),controller=new AbortController();
         const held=kind==='face-abort'?face.asset:body;
         HTMLImageElement.prototype.decode=async function(){if(this.src===body)calls++;if(this.src===held){if(kind==='body-error')throw Error('intentional body decode');entered();await wait;}return decode.call(this);};
         try{
           const pending=api.composeButton(t,{label:'',minWidth:24,height:6,diagnostics:{onComplete:t=>{trace=t;}}},controller.signal).then(()=>({resolved:true}),e=>({resolved:false,name:e.name,message:e.message}));
-          if(kind!=='body-error'){await started;controller.abort();release();}
-          rows.push({kind,outcome:await pending,trace,calls});
+          let issuedBeforeAbort;
+          if(kind!=='body-error'){const reached=await Promise.race([started.then(()=>true),pending.then(()=>false)]);if(!reached)throw Error('mode5 abort fixture settled before actual decode');issuedBeforeAbort=calls;controller.abort();release();}
+          rows.push({kind,outcome:await pending,trace,calls,issuedBeforeAbort});
         }finally{release();HTMLImageElement.prototype.decode=decode;t.dispose();}
       }
       return rows;
     },{mode,records:entries().map(r=>({...r,data:Array.from(r.data)}))});
-    expect(result.map(r=>r.calls)).toEqual([0,1,1]);
+    expect(result.map(r=>r.calls)).toEqual([1,1,1]);
+    for(const r of result.filter(r=>r.kind!=='body-error'))expect(r.calls).toBe(r.issuedBeforeAbort); // No decode starts after cancellation.
     for(const r of result){expect(r.outcome.resolved).toBe(false);expect(r.trace.outcome.status).toBe('error');expect(r.trace.steps.some(s=>s.bodyPaint)).toBe(false);}
     expect(result[0].outcome.name).toBe('AbortError');expect(result[1].outcome.name).toBe('AbortError');expect(result[2].outcome.message).toContain('intentional body decode');
   }catch(error){await attachCase(page,info,{mode,result},error);throw error;}
@@ -125,7 +144,7 @@ for(const mode of ['source','built']) test(`${mode}: mode5 later border and ring
       const decode=HTMLImageElement.prototype.decode,rows=[];
       for(const [group,records] of Object.entries(groups))for(const action of ['abort','error']){
         const t=await api.loadKaleidoscopeScheme(forkOf(records.map(r=>({...r,data:Uint8Array.from(r.data)}))),{provenance:true});
-        const face=t.manifest.chromeElements['mode5-face'],body=face.cicnBody.asset;
+        const face=t.manifest.chromeElements['mode5-face'],body=t.manifest.chromeElements['mode5-body']?.iconBlit?.unmaskedAsset;
         const border=group==='ring'?t.manifest.chromeElements['sampled-ring']:face;
         const held=border.sampledBandAsset.asset;
         let entered,release,trace,bodyCalls=0,bandCalls=0;
@@ -138,7 +157,7 @@ for(const mode of ['source','built']) test(`${mode}: mode5 later border and ring
         try{
           const pending=api.composeButton(t,{label:'',minWidth:24,height:6,default:group==='ring',diagnostics:{onComplete:t=>{trace=t;}}},controller.signal)
             .then(()=>({resolved:true}),e=>({resolved:false,name:e.name,message:e.message}));
-          await started;
+          const reached=await Promise.race([started.then(()=>true),pending.then(()=>false)]);if(!reached)throw Error('mode5 border fixture settled before actual decode');
           const bodyCallsBeforeRelease=bodyCalls;
           if(action==='abort')controller.abort();release();
           rows.push({group,action,outcome:await pending,trace,bodyCallsBeforeRelease,bodyCalls,bandCalls,bodyAsset:body??null,heldAsset:held});
@@ -163,31 +182,32 @@ for(const mode of ['source','built']) test(`${mode}: mode5 disposal revokes and 
   try{
     result=await page.evaluate(async({mode,records})=>{
       const api=await import(mode==='source'?'/src/index.ts':'/dist/scriptoscope.js'),{forkOf}=await import('/tests/resource-provenance/fixtures.mjs');
-      const t=await api.loadKaleidoscopeScheme(forkOf(records.map(r=>({...r,data:Uint8Array.from(r.data)}))),{assetUrlFactory:async(rgba,w,h,path)=>{
+      const allocated=[];const t=await api.loadKaleidoscopeScheme(forkOf(records.map(r=>({...r,data:Uint8Array.from(r.data)}))),{assetUrlFactory:async(rgba,w,h,path)=>{
         const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(rgba),w,h),0,0);
-        return path.startsWith('cicn-body/')?URL.createObjectURL(await new Promise(r=>c.toBlob(r))):c.toDataURL();
+        const url=(path.startsWith('cicn-body/')||path.startsWith('cicn-unmasked/'))?URL.createObjectURL(await new Promise(r=>c.toBlob(r))):c.toDataURL();if(url.startsWith('blob:'))allocated.push(url);return url;
       }});
-      const binding=t.manifest.chromeElements['mode5-face'].cicnBody,decode=HTMLImageElement.prototype.decode,revoke=URL.revokeObjectURL;let calls=0;const revoked=[];
-      HTMLImageElement.prototype.decode=function(){if(this.src===binding.asset)calls++;return decode.call(this);};URL.revokeObjectURL=url=>{revoked.push(url);revoke.call(URL,url);};
+      const binding=t.manifest.chromeElements['mode5-face'].cicnBody,bodyAsset=t.manifest.chromeElements['mode5-body'].iconBlit.unmaskedAsset,decode=HTMLImageElement.prototype.decode,revoke=URL.revokeObjectURL;let calls=0;const revoked=[];
+      HTMLImageElement.prototype.decode=function(){if(this.src===bodyAsset)calls++;return decode.call(this);};URL.revokeObjectURL=url=>{revoked.push(url);revoke.call(URL,url);};
       try{
         const opts={label:'',minWidth:24,height:6};await api.composeButton(t,opts);await api.composeButton(t,opts);const before=calls;t.dispose();t.dispose();
         const after=await api.composeButton(t,opts).then(()=>({resolved:true}),e=>({resolved:false,name:e.name}));
-        return{before,calls,revoked,bodyUrl:binding.asset,after};
+        return{before,calls,revoked,allocated,bodyUrl:bodyAsset,carriedUrl:binding.asset,after};
       }finally{HTMLImageElement.prototype.decode=decode;t.dispose();URL.revokeObjectURL=revoke;}
     },{mode,records:entries().map(r=>({...r,data:Array.from(r.data)}))});
-    expect(result.before).toBe(1);expect(result.calls).toBe(2);expect(result.revoked).toEqual([result.bodyUrl]);
+    expect(result.before).toBe(1);expect(result.calls).toBe(2);expect(result.after.resolved).toBe(false);expect(result.revoked).toEqual(expect.arrayContaining([result.bodyUrl,result.carriedUrl]));expect(new Set(result.revoked).size).toBe(result.revoked.length);expect([...result.revoked].sort()).toEqual([...result.allocated].sort());
   }catch(error){await attachCase(page,info,{mode,result},error);throw error;}
   await attachObservations(info,'mode5-reproduction',`${mode}-disposal`,{mode,result});
 });
 
-for(const mode of ['source','built']) test(`${mode}: mode5 malformed caller bindings cannot claim source paint or borrow another owner`,async({page,servers},info)=>{
+for(const mode of ['source','built']) test(`${mode}: mode5 typed bindings ignore legacy fields, reject actual UNKNOWN and retain owner boundaries`,async({page,servers},info)=>{
   await openHarness(page,servers,mode);let result;
   try{
     result=await page.evaluate(async({mode,records,maskedRecords})=>{
       const api=await import(mode==='source'?'/src/index.ts':'/dist/scriptoscope.js'),{forkOf}=await import('/tests/resource-provenance/fixtures.mjs');const rows=[];
-      for(const kind of ['no-binding','wrong-id','wrong-key','wrong-copy','wrong-alpha','missing-child-owner','masked-transparent','masked-nonbinary']){
+      for(const kind of ['no-binding','wrong-id','wrong-key','wrong-copy','wrong-alpha','missing-child-owner','masked-transparent','masked-nonbinary','duplicate-raw-body']){
         const selected=(kind.startsWith('masked-')?maskedRecords:records).map(r=>({...r,data:Uint8Array.from(r.data)}));
         if(kind==='masked-transparent')selected[2].data.fill(0,82,90);
+        if(kind==='duplicate-raw-body')selected.push({...selected[2],name:'duplicate-body'});
         const t=await api.loadKaleidoscopeScheme(forkOf(selected));
         const face=t.manifest.chromeElements['mode5-face'],b=face.cicnBody;let theme=t,trace;
         if(kind==='no-binding')delete face.cicnBody;
@@ -202,17 +222,28 @@ for(const mode of ['source','built']) test(`${mode}: mode5 malformed caller bind
           face.cicnBody={...b,asset};t.manifest.chromeElements[b.manifestKey].asset=asset;
         }
         if(kind==='missing-child-owner')theme={base:t,baseUrl:'child',manifest:{chromeElements:{'mode5-face':face}}};
-        try{await api.composeButton(theme,{label:'',minWidth:24,height:6,diagnostics:{onComplete:t=>{trace=t;}}});rows.push({kind,trace});}finally{t.dispose();}
+        try{let out,error;try{out=await api.composeButton(theme,{label:'',minWidth:24,height:6,diagnostics:{onComplete:t=>{trace=t;}}});}catch(e){error={name:e.name,message:e.message};}rows.push({kind,trace,error,pixels:out?[...out.data]:null});}finally{t.dispose();}
       }
       return rows;
     },{mode,records:entries().map(r=>({...r,data:Array.from(r.data)})),maskedRecords:entries('indexed1').map(r=>({...r,data:Array.from(r.data)}))});
-    expect(result.find(r=>r.kind==='masked-transparent').trace.steps.filter(s=>s.role==='body-fill').every(s=>!s.resource)).toBe(true);
-    for(const row of result){expect(row.trace.steps.some(s=>s.bodyPaint)).toBe(false);expect(row.trace.steps.some(s=>s.role==='body-fill'&&s.action==='fallback')).toBe(true);}
+    for(const row of result){
+      if(['no-binding','wrong-id','wrong-key','wrong-copy','wrong-alpha'].includes(row.kind)){
+        expect(row.error,row.kind).toBeUndefined();expect(row.pixels).toEqual([...expectedBuffers.color8]);
+        const target=row.trace.steps.find(s=>s.role==='body-fill'&&s.usage==='paint'&&s.resource?.type==='cicn');expect(target.resource).toMatchObject({signedId:51,manifestKey:'mode5-body'});
+      }else if(row.kind==='masked-transparent'){expect(row.error).toBeUndefined();expect(row.pixels).toEqual(Array(24*6*4).fill(0));expect(row.trace.steps.some(s=>s.bodyPaint)).toBe(false);}
+      else if(['masked-nonbinary','duplicate-raw-body'].includes(row.kind)){
+        expect(row.error,row.kind).toMatchObject({name:'Error',message:expect.stringMatching(/Unsupported push-button output:/)});expect(row.error.name).not.toBe('TypeError');expect(row.trace.outcome.status).toBe('error');expect(row.trace.steps.some(s=>s.bodyPaint)).toBe(false);
+      }else{
+        // The same-owner body policy is under independent contract review.
+        // Keep this negative asserted; selection/admission cannot waive it.
+        expect.soft(row.trace.steps.some(s=>s.role==='body-fill'&&s.usage==='paint'&&s.resource?.type==='cicn'),'body must not borrow a different selected face owner').toBe(false);
+      }
+    }
   }catch(error){await attachCase(page,info,{mode,result},error);throw error;}
   await attachObservations(info,'mode5-reproduction',`${mode}-admission`,{mode,result});
 });
 
-for(const mode of ['source','built']) test(`${mode}: mode5 missing-body raster background approximation is explicit`,async({page,servers},info)=>{
+for(const mode of ['source','built']) test(`${mode}: mode5 missing body uses actual raw source samples independently of carried legacy colour metadata`,async({page,servers},info)=>{
   await openHarness(page,servers,mode);let result;
   const records=entries('missing');records[0].data=records[0].data.slice();records[0].data[82]=0x80; // only the bg sample becomes opaque
   try{
@@ -227,7 +258,7 @@ for(const mode of ['source','built']) test(`${mode}: mode5 missing-body raster b
       }
       return rows;
     },{mode,records:records.map(r=>({...r,data:Array.from(r.data)}))});
-    for(const row of result){expect(row.pixel).toEqual([0,255,0,255]);expect(row.trace.steps.some(s=>s.action==='missing'&&s.reason==='same-owner-resource-absent')).toBe(true);expect(row.trace.steps.some(s=>s.action==='fallback'&&s.reason==='missing-cicn-body-background-unverified'&&s.basis==='compatibility-policy')).toBe(true);expect(row.trace.steps.some(s=>s.bodyPaint)).toBe(false);}
+    for(const row of result){expect(row.pixel).toEqual([0,255,0,255]);expect(row.trace.steps.some(s=>s.role==='body-fill'&&s.requestedId===52&&s.action==='missing')).toBe(true);const paint=row.trace.steps.find(s=>s.bodyPaint);expect(paint,'actual missing-body erasure must publish completed bodyPaint').toBeDefined();expect(paint.bodyPaint.branch).toBe('missing-erase');}
   }catch(error){await attachCase(page,info,{mode,result},error);throw error;}
   await attachObservations(info,'mode5-reproduction',`${mode}-missing-bg-policy`,{mode,result});
 });
@@ -243,13 +274,14 @@ for(const mode of ['source','built']) test(`${mode}: concurrent mode5 same-key o
       }));const traces=[],onComplete=t=>traces.push(t);
       try{
         const outputs=await Promise.all(themes.map((t,i)=>{t.baseUrl=`body-owner-${i}`;return api.composeButton(t,{label:'',minWidth:24,height:6,diagnostics:{correlationId:`body-${i}`,onComplete}});}));
-        return{pixels:outputs.map(out=>out.getPixel(3,2)),traces,owners:themes.map(t=>({loadId:t.byteProvenance.loadId,payloadSha256:t.byteProvenance.resources[2].sha256,binding:t.manifest.chromeElements['mode5-face'].cicnBody}))};
+        return{pixels:outputs.map(out=>out.getPixel(3,2)),traces,owners:themes.map(t=>({loadId:t.byteProvenance.loadId,payloadSha256:t.byteProvenance.resources[2].sha256,binding:t.manifest.chromeElements['mode5-face'].cicnBody,bodyAsset:t.manifest.chromeElements['mode5-body'].iconBlit.unmaskedAsset}))};
       }finally{themes.forEach(t=>t.dispose());}
     },{mode,records:entries().map(r=>({...r,data:Array.from(r.data)}))});
     expect(result.pixels).toEqual([[0,255,0,255],[0,48,0,255]]);expect(new Set(result.owners.map(o=>o.loadId)).size).toBe(2);expect(new Set(result.owners.map(o=>o.payloadSha256)).size).toBe(2);
     for(const [i,owner] of result.owners.entries()){
       const trace=result.traces.find(t=>t.correlationId===`body-${i}`),paint=trace.steps.find(s=>s.bodyPaint);
-      expect(paint.owner.baseUrl).toBe(`body-owner-${i}`);expect(paint.resource.byteProvenance.loadId).toBe(owner.loadId);expect(paint.bodyPaint.sourceAssetUrl).toBe(owner.binding.asset);expect(paint.bodyPaint.paintedPixels).toBe(40);
+      expect(paint,'completed concurrent owner operation must publish bodyPaint').toBeDefined();
+      expect(paint.owner.baseUrl).toBe(`body-owner-${i}`);expect(paint.resource.byteProvenance.loadId).toBe(owner.loadId);expect(paint.bodyPaint.sourceAssetUrl).toBe(owner.bodyAsset);expect(paint.bodyPaint.paintedPixels).toBe(40);
     }
   }catch(error){await attachCase(page,info,{mode,result},error);throw error;}
   await attachObservations(info,'mode5-reproduction',`${mode}-concurrent`,{mode,result});

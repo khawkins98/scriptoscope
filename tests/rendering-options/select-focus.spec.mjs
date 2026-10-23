@@ -22,12 +22,14 @@ for (const mode of ['source', 'built']) for (const slug of ['windows-95', 'syste
         const wrapper = el.closest('.scriptoscope-select'), style = getComputedStyle(wrapper);
         return { nativeVisibleFocus: el.matches(':focus-visible'), outline: style.outlineStyle,
           width: parseFloat(style.outlineWidth), opacity: style.opacity,
-          decoration: [...wrapper.querySelectorAll('.scriptoscope-button')].map(button => ({ tabIndex: button.tabIndex, hidden: button.getAttribute('aria-hidden') })) };
+          decoration: [...wrapper.querySelectorAll(':scope > [aria-hidden="true"]')].map(button => ({ tabIndex: button.tabIndex, hidden: button.getAttribute('aria-hidden'), tag:button.tagName, canvas:!!button.querySelector('canvas'),label:button.getAttribute('aria-label') })) };
       });
       expect(focus.nativeVisibleFocus).toBe(true);
       expect(focus.outline, 'the visible wrapper mirrors native keyboard focus').not.toBe('none');
       expect(focus.width).toBeGreaterThan(0); expect(focus.opacity).not.toBe('0');
       expect(focus.decoration).toHaveLength(1);
+      expect(focus.decoration[0].tag).toBe(slug==='system7-nostalgia-silver'?'BUTTON':'SPAN');
+      expect(focus.decoration[0].canvas).toBe(slug==='windows-95');
       expect(focus.decoration[0].tabIndex, 'paint-only button must not create a dead tab stop').toBe(-1);
       expect(focus.decoration[0].hidden, 'native combobox is the accessible control').toBe('true');
       // Native popup arrow behavior varies by OS even for a plain select.
@@ -35,9 +37,10 @@ for (const mode of ['source', 'built']) for (const slug of ['windows-95', 'syste
       await page.keyboard.press('a');
       await expect(native).toHaveValue('second');
       const wrapper = native.locator('..');
-      await expect(wrapper.locator('.scriptoscope-button')).toHaveAttribute('aria-label', 'Alternative Agjp  ▾');
-      await expect(wrapper.locator('.scriptoscope-button')).toHaveAttribute('aria-hidden', 'true');
-      expect(await wrapper.locator('.scriptoscope-button').evaluate(el => el.tabIndex)).toBe(-1);
+      if(slug==='system7-nostalgia-silver')await expect(wrapper.locator(':scope > [aria-hidden="true"]')).toHaveText('Alternative Agjp  ▾');
+      else await expect(wrapper.locator(':scope > [aria-hidden="true"]')).toHaveAttribute('aria-label', 'Alternative Agjp  ▾');
+      await expect(wrapper.locator(':scope > [aria-hidden="true"]')).toHaveAttribute('aria-hidden', 'true');
+      expect(await wrapper.locator(':scope > [aria-hidden="true"]').evaluate(el => el.tabIndex)).toBe(-1);
       await expect(native).toBeFocused();
       await page.keyboard.press('Tab');
       await expect(page.locator('#after-select')).toBeFocused();

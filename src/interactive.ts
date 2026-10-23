@@ -126,7 +126,7 @@ export interface InteractiveButtonOptions extends ButtonOptions {
 /**
  * A themed push button that depresses on press (the scheme's pressed cicn) and
  * fires `onClick` on release / keyboard activation. Falls back to the native
- * baseline button when the scheme ships no push-button cicns.
+ * baseline button when either required face lacks an admitted paint stage.
  */
 export async function interactiveButton(
   theme: LoadedTheme,
@@ -140,9 +140,11 @@ export async function interactiveButton(
   const painter = await prepareButtonPainter(theme, bo, scale, signal);
   current();
   if (!painter) {
-    // No themed button cicns → the native CSS baseline button is already a real,
-    // accessible, interactive <button>.
+    // Missing art or face metadata uses the existing visible, labelled native
+    // baseline. Low-level art admission and composition pixels remain separate.
     const b = baselineButton(bo.label ?? '', bo);
+    // Activation belongs to the callback; the presentation must not submit its form.
+    b.type = 'button';
     const events = new AbortController();
     controlDisposers.set(b, () => events.abort());
     if (onClick && !bo.disabled) listenUntilAborted(events.signal, b, 'click', onClick);

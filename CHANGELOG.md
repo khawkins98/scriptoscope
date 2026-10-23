@@ -7,6 +7,39 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+- **Legacy fixture migration:** push/default diagnostics distinguish typed art and
+  metadata admission from completed paint; retired push alias/state fallbacks and
+  no-cinf nine-slice assumptions no longer describe the migrated engine. Bevel and
+  tab retain their independently supported compatibility behavior. Canonical
+  checkable CICNs may resolve in the declared base chain, while icon colour stays
+  with its mask provider; this does not certify native provider order.
+
+- **Push-button and checkable engine migration** (#459): route push/default-ring,
+  checkbox and radio composition through separately authored engine drivers. Keep
+  signed resource selection, explicit NULL versus unknown results, exact prepared
+  owner/occurrence identity and opt-in completed-operation diagnostics.
+- **Controls migration notes:** named push-face aliases and cross-state fallback
+  no longer substitute for missing canonical signed art. Known art with proven
+  absent local `cinf` retains the reviewed modern admission result without claiming
+  completed paint or native pixel fidelity. Unknown or ambiguous dependencies stay
+  explicit. The loader adds typed occurrence/bounds and opaque companions; accepted
+  slider metadata removals and declared-provider completeness still apply.
+- **Controls compatibility:** ordinary raw `cinf` lookup retains the first
+  occurrence of the selected signed ID: a valid first record ignores later
+  duplicates, unused defaults and later providers; a selected malformed or
+  UNKNOWN record rejects explicitly without fallback. Static
+  `byteProvenance.cinfResourceIndex` describes the builder pair and may differ
+  from consumed first metadata; ordinary traces do not establish a consumed
+  raw duplicate-metadata occurrence or native provider/cache behavior.
+- **Checkable layout migration:** the public adapter now declares a nominal
+  20px single-line extent and retains full transferred source bounds. Consumers
+  depending on previous glyph/label-sized returned heights must accommodate this
+  allocation change; 20px is modern compatibility policy, not native geometry.
+- **Combined regression capture candidates:** fresh Linux contact sheets for the
+  controls and accepted window/title/slider tree require separate Tier-2, all-image,
+  source and production review. Original captures retain their own identities;
+  no golden approval, ledger promotion or release claim is made here.
+
 ## [0.5.0] — 2026-10-23
 
 Fourth incremental release from the `v2` integration branch (#459,

@@ -4,20 +4,21 @@
 // (slider G1/CF1) and carries the icon-blit metadata (depth and opaque
 // companion) for the cicns the engine draws with the icon blit, the same as
 // loadTheme. The conversion module itself stays default-off, so lint and local
-// bakes are unchanged. An explicit `engineCinfIds` or `iconBlitCicnIds`
+// bakes are unchanged. An explicit `engineCinfIds`, `iconBlitCicnIds` or `unmaskedIconIds`
 // (including []) overrides the default.
 import {
   loadKaleidoscopeScheme as loadKaleidoscopeSchemeCore, type LoadKaleidoscopeSchemeOptions,
 } from '../tools/theme-loader/loadKaleidoscopeScheme.js';
 import type { LoadedTheme } from './types.js';
-import { engineCinfIds, engineIconBlitCicnIds } from './engine/resources/ids.js';
+import { engineCinfIds, engineIconBlitCicnIds, engineCheckableIconIds } from './engine/resources/ids.js';
 
 const ENGINE_CINF_IDS = engineCinfIds();
+const CHECKABLE_ICON_IDS = engineCheckableIconIds();
 const ICON_BLIT_CICN_IDS = engineIconBlitCicnIds();
 
 export function loadKaleidoscopeScheme(
   input: Uint8Array | ArrayBuffer | Blob | string,
   options: LoadKaleidoscopeSchemeOptions = {},
 ): Promise<LoadedTheme> {
-  return loadKaleidoscopeSchemeCore(input, { iconBlitCicnIds: ICON_BLIT_CICN_IDS, engineCinfIds: ENGINE_CINF_IDS, ...options });
+  return loadKaleidoscopeSchemeCore(input, { iconBlitCicnIds: ICON_BLIT_CICN_IDS, unmaskedIconIds: CHECKABLE_ICON_IDS, engineCinfIds: ENGINE_CINF_IDS, ...options });
 }

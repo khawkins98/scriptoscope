@@ -1,0 +1,50 @@
+--- a/tests/rendering-options/border-boundaries.spec.mjs
++++ b/tests/rendering-options/border-boundaries.spec.mjs
+@@ -11,6 +11,7 @@
+       result = await page.evaluate(async ({ mode, input }) => {
+         const api = await import(mode === 'source' ? '/src/index.ts' : '/dist/scriptoscope.js');
+         const { boundaryVariants, boundarySizes, tinyBoundarySizes, omittedDimensions, borderWriter, admitSolidBody, solidBodyOrInitial, admitPatternBody, patternBodyOrInitial } = await import('/tests/rendering-options/border-boundary-model.mjs');
++        const {compareNoCinfAdmission}=await import('/tests/rendering-options/controls459/no-cinf-admission.mjs');
+         const check = (value, message) => { if (!value) throw new Error(message); };
+         const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+         const digest = async bytes => [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))].map(v => v.toString(16).padStart(2, '0')).join('');
+@@ -89,11 +90,20 @@
+             'Canonical input/actual loader fork mismatch');
+           check(provenance.fork.selection.entryIndex === input.choice.entryIndex && provenance.fork.selection.entryName === input.choice.entryName,
+             'Archive occurrence mismatch');
++          const selectedFace=(trace,allowAdmission=false)=>trace.steps.filter(s=>s.role==='face'&&s.usage==='paint'&&s.action==='selected').at(-1)
++            ?? (allowAdmission?trace.steps.filter(s=>s.role==='face'&&s.usage==='admission'&&s.action==='selected'&&s.reason==='resource-id').at(-1):undefined);
++          const verifyNoCinfAdmission=(composed,key,expected)=>{
++            check(expected.status==='missing-cinf'&&expected.cinfResourceIndex===null,'Admission requires independent known absent local cinf');
++            const identity={role:'face',usage:'admission',ownerId:'actual-theme',chainDepth:0,type:'cicn',signedId:expected.signedId,sourceCinfId:null,manifestKey:key};
++            const errors=compareNoCinfAdmission({family:'push-button',proposed:{admission:[identity],metadataAbsence:{type:'cinf',kind:'known-null-in-declared-theme-chain',requestedIds:[expected.signedId,0]}}},
++              {result:{kind:composed.buffer?'themed':'unavailable',width:composed.buffer?.width,height:composed.buffer?.height},owners:{'actual-theme':theme.baseUrl},traces:[composed.trace]});
++            check(errors.length===0,errors.join('; '));
++          };
+           for (const variant of variants) {
+             const minimum = variant.family === 'push' ? 24 : 16;
+             // Selection-only probe: no pixel correctness assertion at this size.
+             const probe = await compose(variant, minimum, 1);
+-            const selected = probe.trace.steps.filter(s => s.role === 'face' && s.usage === 'paint' && s.action === 'selected').at(-1);
++            const selected = selectedFace(probe.trace,variant.family==='push'&&!declared);
+             if (!probe.buffer) {
+               check(!selected && probe.trace.outcome.status === 'unavailable', 'Unavailable face reported selected');
+               const omitted = await compose(variant, null, null, false, true);
+@@ -105,12 +115,16 @@
+                   status: 'unavailable', asserted: 0, unassessed: null, selection: omitted.trace.steps } }); continue;
+             }
+             const { key, e, expected } = join(selected.resource);
++            const noCinfAdmission=!declared&&variant.family==='push'&&expected.status==='missing-cinf';
++            check(selected.usage===(noCinfAdmission?'admission':'paint'),'Known metadata cannot borrow admission for missing paint');
++            if(noCinfAdmission)verifyNoCinfAdmission(probe,key,expected);
+             check(selected.owner.chainDepth === 0 && selected.owner.baseUrl === theme.baseUrl, 'Unexpected face owner');
+             if (!faces[key]) faces[key] = { input: expected, resource: selected.resource, owner: selected.owner,
+               cicn: resources.get(expected.cicnResourceIndex), cinf: resources.get(expected.cinfResourceIndex) ?? null };
+             const defaultSize = omittedDimensions(variant, expected.height);
+             const omitted = await compose(variant, ...defaultSize, false, true);
+-            const omittedSelection = omitted.trace.steps.filter(s => s.role === 'face' && s.usage === 'paint' && s.action === 'selected').at(-1);
++            const omittedSelection = selectedFace(omitted.trace,noCinfAdmission);
++            if(noCinfAdmission)verifyNoCinfAdmission(omitted,key,expected);
+             check(omitted.buffer && omitted.trace.outcome.status === 'themed' && join(omittedSelection.resource).key === key
+               && omittedSelection.owner.chainDepth === 0 && omittedSelection.owner.baseUrl === theme.baseUrl,
+             'Omitted dimensions changed actual face/owner');
