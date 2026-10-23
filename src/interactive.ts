@@ -88,12 +88,14 @@ import { ManagedContentPort, type ManagedControlPort } from './managedContentPor
 import { resolveWindowSelection, resolveCollapsedWindowTypeSlug } from './resolveWindowType.js';
 import { listenUntilAborted } from './listenUntilAborted.js';
 import {
-  composeCheckable, composeDisclosure, composeSliderWithLayout, composeScrollbar, composeScrollbarFrame,
+  composeCheckable, composeDisclosure, composeSliderWithLayout, composeScrollbar, composeScrollbarFrame, type SliderFrame, type SliderOptions,
   type ScrollbarFrame, type ScrollbarOptions,
   baselineButton, baselineCheckable, bufferToCanvas,
-  type ButtonOptions, type ControlState,
+  type ButtonOptions, type ControlState, composeProgressFrame, type ProgressOptions,
 } from './controls.js';
-import { platinumSlider, platinumSliderWithLayout, platinumScrollbar } from './platinum.js';
+import { newProgressRecord, progressIdleAdvance, progressSetData, type ProgressRecord } from './engine/families/progress.js';
+import { PROGRESS_DATA, PROGRESS_FACADE_TICKS } from './engine/tables/progress.js';
+import { platinumSliderWithLayout, platinumScrollbar } from './platinum.js';
 import { findPositionedAncestor } from './positioning.js';
 import { debug } from './debug.js';
 import { renderWindow, resolveTitleWidgetRects, type RenderWindowOptions } from './renderWindow.js';
@@ -457,6 +459,9 @@ async function buildDraggable(
     const t = orientation === 'horizontal' ? (e.clientX - r.left) / r.width : (e.clientY - r.top) / r.height;
     return clamp01(t);
   };
+  // A painted layout whose value runs against the axis (the engine slider's
+  // vertical minimum is at the bottom, slider §5.2) flips the pointer fraction.
+  const spatialValue = (t: number): number => (paintedLayout?.valueDirection === -1 ? 1 - t : t);
   const nativePoint = (e: PointerEvent, axisLength: number): { axis: number; x: number; y: number; inside: boolean } | null => {
     const canvas = el.querySelector('canvas');
     if (!canvas) return null;
@@ -500,7 +505,7 @@ async function buildDraggable(
       // Use the exact native starting value, not inversion of rounded raster
       // coordinates. Returning to the same pointer coordinate restores it too.
       update(clamp01(nativeDrag.value + nativeDrag.direction * delta / nativeDrag.travel), native && delta === 0 ? nativeDrag.exact : undefined);
-    } else update(valueAt(e));
+    } else update(spatialValue(valueAt(e)));
     schedule();
   };
   const onUp = (e: PointerEvent): void => {
@@ -537,12 +542,13 @@ async function buildDraggable(
         // Explicit track policy: center an existing thumb under the pointer.
         // A track without thumb art uses its full axis. Zero travel is inert.
         const half = thumb ? (orientation === 'horizontal' ? thumb.w : thumb.h) / 2 : 0;
-        const spatial = (point.axis - layout.travelStart - half) / travel;
+        // Without thumb art the full axis has no corner inset either (slider TRK4).
+        const spatial = (point.axis - (thumb ? layout.travelStart : 0) - half) / travel;
         update(clamp01(direction === 1 ? spatial : 1 - spatial));
       }
       nativeDrag = { axisLength: layout.axisLength, travel, pointer: point.axis,
         value: native ? nativeRangeValue(native.input) : value, exact: native?.input.value ?? '', direction };
-    } else update(valueAt(e));
+    } else update(spatialValue(valueAt(e)));
     if (!live()) return;
     stopDrag();
     const removeMove = listenUntilAborted(events.signal, window, 'pointermove', onMove);
@@ -629,29 +635,69 @@ function nativeRangeValue(input: HTMLInputElement): number {
 }
 
 /** Internal native form adapter; the public imperative API remains normalized. */
+/** A composition whose lifetime ended (its theme's assets were released, or its signal aborted): paint nothing. */
+const ENDED = Symbol('ended');
+async function composeSliderEnded(p: Promise<SliderFrame | null>): Promise<SliderFrame | null | typeof ENDED> {
+  try { return await p; } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') return ENDED;
+    throw error;
+  }
+}
+
+/**
+ * The pressed slider part is the part under the pointer at press time (slider
+ * §4.9 hit test on the painted geometry; DECISIONS #9). A capture listener runs
+ * before the drag wiring's own pointerdown repaint reads it. Part 0 (outside
+ * the band) paints the normal state.
+ */
+function sliderPressTracker(el: HTMLElement): {
+  painted(frame: SliderFrame | null, state: ControlState): void;
+  pressed(state: ControlState): { state: ControlState; pressedPart?: NonNullable<SliderOptions['pressedPart']> };
+} {
+  let painted: SliderFrame | null = null;
+  let part: SliderOptions['pressedPart'] | null = null;
+  el.addEventListener('pointerdown', (e) => {
+    const canvas = el.querySelector('canvas');
+    if (!painted || !canvas) { part = undefined; return; }
+    const r = canvas.getBoundingClientRect();
+    if (!(r.width > 0 && r.height > 0)) { part = undefined; return; }
+    const x = Math.floor((e.clientX - r.left) * painted.buffer.width / r.width);
+    const y = Math.floor((e.clientY - r.top) * painted.buffer.height / r.height);
+    part = painted.partAt(x, y);
+  }, { capture: true });
+  return {
+    painted: (frame, state) => { if (frame && state !== 'pressed') painted = frame; },
+    pressed: (state) => state !== 'pressed' ? { state } : part === null ? { state: 'normal' } : { state, ...(part ? { pressedPart: part } : {}) },
+  };
+}
+
 export async function interactiveNativeSlider(theme: LoadedTheme, input: HTMLInputElement,
   active: () => boolean): Promise<HTMLElement> {
   const el = document.createElement('span'); el.className = 'scriptoscope-slider';
+  const press = sliderPressTracker(el);
   await buildDraggable(el, 'horizontal', nativeRangeValue(input), 1,
     async (value, state, signal) => {
-      const frame = await composeSliderWithLayout(theme, { orientation: 'horizontal', length: 120, value, state }, signal);
-      if (signal.aborted) return null;
+      const frame = await composeSliderEnded(composeSliderWithLayout(theme, { orientation: 'horizontal', length: 120, value, ...press.pressed(state) }, signal));
+      if (signal.aborted || frame === ENDED) return null;
+      press.painted(frame, state);
       return frame ?? platinumSliderWithLayout({ orientation: 'horizontal', length: 120, value });
     },
     undefined, { input, active });
   return el;
 }
 
-/** A draggable slider (themed where the scheme ships slider cicns, else procedural). */
+/** A draggable slider (themed where the scheme's slider CDEF draws, else procedural). */
 export async function interactiveSlider(theme: LoadedTheme, opts: InteractiveSliderOptions = {}): Promise<HTMLElement> {
   const { orientation = 'horizontal', length = 120, value = 0.5, scale = 1, onChange } = opts;
   const el = document.createElement('span');
   el.className = 'scriptoscope-slider';
+  const press = sliderPressTracker(el);
   await buildDraggable(el, orientation, value, scale,
     async (v, state, signal) => {
-      const frame = await composeSliderWithLayout(theme, { orientation, length, value: v, state }, signal);
-      if (signal.aborted) return null;
-      return frame ?? platinumSlider({ orientation, length, value: v });
+      const frame = await composeSliderEnded(composeSliderWithLayout(theme, { orientation, length, value: v, ...press.pressed(state) }, signal));
+      if (signal.aborted || frame === ENDED) return null;
+      press.painted(frame, state);
+      return frame ?? platinumSliderWithLayout({ orientation, length, value: v });
     },
     onChange);
   return el;
@@ -685,6 +731,47 @@ export async function interactiveScrollbar(theme: LoadedTheme, opts: Interactive
     },
     onChange);
   return el;
+}
+
+// ── Progress bar idle (DECISIONS #11) ─────────────────────────────────────────
+/** The Mac TickCount stand-in the idle helper uses: whole ticks since page load. */
+export function progressTickCount(): number {
+  return Math.floor((performance.now() * PROGRESS_FACADE_TICKS.perSecond) / 1000);
+}
+
+/**
+ * The progress bar's idle advance (DECISIONS #11; docs/spec/engine/progress.md
+ * IDLE1–IDLE4): keeps the private record's phase byte and idle time across
+ * frames, advances the phase once at least 3 ticks have passed (indeterminate
+ * bars only), and writes back the phase each draw reports (frame mode resets it).
+ * Call `idle()` from the host's timer; redraw with `compose()` when it returns true.
+ */
+export class ProgressIdle {
+  private readonly record: ProgressRecord = newProgressRecord();
+
+  constructor(opts: { indeterminate?: boolean; phase?: number } = {}) {
+    this.indeterminate = !!opts.indeterminate;
+    this.record.phase = opts.phase ?? 0;
+  }
+
+  get phase(): number { return this.record.phase; }
+
+  get indeterminate(): boolean { return this.record.indeterminate !== 0; }
+
+  /** Message 20 (IDLE4): changes the flag only; the phase is kept. */
+  set indeterminate(on: boolean) { progressSetData(this.record, PROGRESS_DATA.tag, [on ? 1 : 0]); }
+
+  /** Message 18's advance (IDLE2): true when the phase advanced. */
+  idle(ticks: number = progressTickCount()): boolean {
+    return progressIdleAdvance(this.record, ticks);
+  }
+
+  /** Draw the current phase (one frame) and keep the phase the draw reports. */
+  async compose(theme: LoadedTheme, opts: Omit<ProgressOptions, 'indeterminate' | 'phase'> = {}): Promise<PixelBuffer> {
+    const frame = await composeProgressFrame(theme, { ...opts, indeterminate: this.indeterminate, phase: this.record.phase });
+    this.record.phase = frame.phase;
+    return frame.buffer;
+  }
 }
 
 // ── Title-bar widget hit-testing ──────────────────────────────────────────────
@@ -1812,7 +1899,11 @@ export class WindowManager {
         padding: '0', margin: '0', border: '0', background: 'transparent',
         cursor: 'default', zIndex: '2',
       } satisfies Partial<CSSStyleDeclaration>);
-      btn.addEventListener('click', (e) => { e.stopPropagation(); if (currentChrome()) handler(); });
+      // HT7: inside the rect, only the pressed strip's mask hits; elsewhere the event passes to the window.
+      const onWidget = (e: MouseEvent): boolean => !composed.hitWidget
+        || composed.hitWidget(Math.floor((hit.rect.x + e.offsetX) / scale), Math.floor((hit.rect.y + e.offsetY) / scale)) === hit.role;
+      // A keyboard or assistive-technology click (detail 0) has no pointer position: it always acts (DECISIONS #12).
+      btn.addEventListener('click', (e) => { if (e.detail !== 0 && !onWidget(e)) return; e.stopPropagation(); if (currentChrome()) handler(); });
       if (chrome && cctx) {
         let pressedCanvas: HTMLCanvasElement | null | undefined;
         let cacheEpoch = -1, pressEpoch = -1, pressGeneration = 0;
@@ -1848,7 +1939,7 @@ export class WindowManager {
         };
         // stopPropagation so the window's mousedown→focus handler doesn't re-render (which would
         // destroy this button mid-press); a widget press shouldn't require focusing the window first.
-        btn.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); void press(); });
+        btn.addEventListener('pointerdown', (e) => { if (!onWidget(e)) return; e.preventDefault(); e.stopPropagation(); void press(); });
         btn.addEventListener('pointerup', release);
         btn.addEventListener('pointerleave', release);
       }

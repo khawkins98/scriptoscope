@@ -214,25 +214,52 @@ separate scope.
 
 ### Window-chrome source rules
 
-`window-chrome-rules.mjs` is a literal rule table with a kDEF address or
-reference section on every row. `window-chrome-rules.test.mjs` (Node, part of
-`npm test`) and `window-chrome-rules.spec.mjs` (source/built) run it over the
-actual archives. The 13 `wnd#` archives cover every sliced window type, both
-states and content sizes of template + {−12,0,1,2,7,97} × {−12,0,1,33}. The checks are
-END-based cells (`0x5356`), the 1:1 `[0,border[0])` corner (`0x4a64`),
-flag-independent part-code widths (`0x49d6`/`0x5178`), the two-pass per-half
-allocation (`0x5178`, nonnegative budgets, given the observed half extent) and
-opaque-pixel tiling (`0xfeae`). The tiling check follows the decoded direction
-byte (`(pc==11||pc==14)?0:1`, [reference §5.1](../../docs/spec/kdef231-reference.md)).
-Codes 11/14 tile from the far end, so dst index `k` reads
-`sw-1-((dw-1-k) % sw)`. Every other non-18 cell reads `k % sw`. That includes
-the unknown-class cells (5/6/10/flag-gated), which are checked over their
-runtime-placed width. Pixels are counted separately for 1px runs, whole
-copies, forward and reverse >1px runs. Only animals and monkey-paradise have
-reverse runs. Nonzero counts bound discrimination but do not prove it: a
-source that is uniform along the run passes under any anchor. The Node test
-therefore re-runs the corpus check under three repainted wrong blits and
-asserts which archives fail:
+`window-chrome-rules.mjs` is a rule table transcribed from
+[engine/window-widgets.md](../../docs/spec/engine/window-widgets.md) (rule ids in
+every row), [engine/qd-primitives.md](../../docs/spec/engine/qd-primitives.md)
+(tile blit T/X/W rows) and the `wnd#` ladder of
+[reference §3.4.1](../../docs/spec/kdef231-reference.md). It imports nothing
+from `src/`: the Node test (`window-chrome-rules.test.mjs`, part of `npm test`)
+and the source/built spec (`window-chrome-rules.spec.mjs`) inject the runtime.
+Expected values are recomputed from each archive's own `wnd#` side lists, rect
+list and cicns.
+
+For every sliced window type of the 13 `wnd#` archives, both states, content
+sizes of template + {−12,0,1,2,7,97} × {−12,0,1,33} and titles SW 0/41/300
+(SWc the TT2a reference SW − titleLen, passed explicitly as a measured
+condensed width) plus SW 60 with SWc omitted (the runtime's own TT2a default,
+`SWc = SW` since DECISIONS #13 / F11), the checker:
+
+- lays out each side (LS1–LS9, TS1–TS4, AP1–AP3, TT1–TT10, PP1–PP7,
+  AW1–AW9; budgets are not clamped, sides end where their widths sum) and
+  compares every placed cell's code, template rect and placed rect (CR1–CR4);
+- compares the title rect with T4 remapped (RM1–RM8, TX3);
+- replays the full draw (WD4) for the untitled samples and compares **every**
+  structure pixel: sides top, bottom, left, right; tile blits forward or
+  reverse (W2/W3) through CopyMask (X2); pixels no cell paints must stay
+  0,0,0,0 (Q3); popup-family windows then get the three WD6 raw template
+  blits; resized code-18 pixels are excluded (the scale mapping is policy);
+- asks `hitWidget` at every pixel of each widget's remapped rect and of its
+  template-size rect at the near-edge position, against HT1–HT8 with the
+  archive's own −14330 strip.
+
+Inputs the decode leaves to the runtime are named, not asserted: the §2.3 flag
+defaults (one widget flag, F7), the content rect at the body inset, PP7 popup
+data and TT2a. Mutation proofs (`MUTATIONS`) switch one row to its refuted
+reading and must fail a corpus sample the real rows pass: clamped budget (AW8),
+full-extent and pinned last border (LS9), near-edge remap (RM6), kept bezels and
+dropped plate (TT4/TT10), skipped TT8, reversed draw order (WD4), opaque copy,
+painted trailing region, rect-only hit (HT8), no strip gate (HT7),
+skipped WD6 blits and the default condensed width reverted to `SW − titleLen`
+(TT2a as amended by F11; the omitted-SWc sample fails it on animals' titled
+sides). The spec
+runs most of them in-page too. Dedicated rows cover RM6/F1 (the 11 collapse
+boxes in code-10 cells, whole at E = F and empty one pixel below), the two LS9
+short sides (floppies collapsed-document-window right, animals
+collapsed-no-title-utility right), TT4/TT10 plates (52 zero, 9 positive, 9
+TT8) and 1138's document top ending at P[N] = 102 in a 103 px window. The
+three repainted-blit mutations keep the earlier per-archive tile
+discrimination table:
 
 | archive | flip 11/14 (pre-fix runtime) | inverted anchor | scaled |
 |---|---|---|---|
@@ -240,37 +267,31 @@ asserts which archives fail:
 | animals, monkey-paradise | FAILS | FAILS | FAILS |
 | 1138, 1984, apple-lisa, beos-r503, windows-31, windows-95 | passes | passes | passes |
 
-The six archives in the last row cannot tell the anchor or tiling from
-scaling at the sampled sizes. 1138, 1984, beos-r503 and windows-31 have only
-1px and whole-copy pixels. apple-lisa and windows-95 have uniform >1px
-sources. Opaque CopyBits under
-`grafProcs` and transparent pixels are not modelled. The cross-axis origin
-comes from runtime placement. Selection follows the twelve-mask `wnd#` ladder (`0x356c..0x367e`)
-for all 13 canonical requests. The Node test adds 1,794 one-type-removed
-variants. Author labels on all 18 archives must not contradict the selected
-state. Negative cases confirm the checker rejects START-based cells, primary
-shares for 13/14, untruncated tiles and changed pixels. Mutation cases confirm
-it rejects forward-tiled 11/14 cells, reverse-tiled forward cells and scaled
-tile cells.
-
-Code 10 is asserted from the too-short step (`0x4dfe..0x4e0e`;
-[engine/window-widgets.md](../../docs/spec/engine/window-widgets.md) rows PV5, TS1, TS2): fixed
-when the side's placed extent reaches its fixed-cell sum, width 0 below it.
-`sideTooShort` computes the verdict from the recipe and the content delta,
-bounding widget-gated codes, and leaves code 10 unknown when the bound
-straddles the extent. The −12 samples reach the step; sourced hand traces
-(`[14,4,2]` at width 20, `[3,0,2]` at width 5) and checker mutations (code 10
-kept below the template, dropped above it) are in the Node test. Widget hit and
-press rects (`0x5cb6`) are checked in `src/titleWidgets.test.mjs` and, through
-WindowManager overlays, in `window-widget-remap.spec.mjs` (source/built).
-
-These checks do not cover codes 5/2/3/4/15/16/17 (flag-gated), title-anchor
-half extents, the second too-short step (shade-widget clear), side draw order,
-CopyMask transparency, code-18 scaled pixels, trailing side regions, the
-`0x632e`/`0x6062` widget draw pass, ladder misses (where the runtime heuristic
-substitutes) or the five corner-sprite archives. An observation test records an
-undecoded overrun, with no expected value: the 1138 document-window title bar at
-its template size places 107px in 103px. No image or golden is added.
+WD6's 15×15 rect ends at A's bottom-right corner (confirmed by the Tier-2
+review of #432/#444). Title text is covered separately by `window-title.spec.mjs` (source/built,
+helpers in `window-title-rules.mjs`, which imports nothing from `src/`). It
+isolates the title's ink as the pixels public `renderWindow` changes over the
+window's text-free chrome, recomposed through `composeWindowChrome` with the
+SW whose placement and title rect match. Rows (DECISIONS #13, window-widgets
+F11): (A) on evolution, dolphin-som and beos-r503 the ink stays inside the
+code-5 plate; (B) on the titled-utility bars of 1990, windows-95, 1984,
+floppies and windows-31 every glyph row is drawn (ink height equals the same
+title's unclipped height in that theme's document window) and no ink falls
+outside the title rect's rows; (C) on all 13 archives no ink leaves TX4's
+decoded clip, `t4p` widened by 2 on the right. (D) short titles ("Controls", "Document",
+"Tools") on floppies document and titled-utility windows and 1138
+titled-utility windows, whose code-5 plate is 1–2 px narrower than `t4p`, are
+drawn whole: `t4p` is SW wide (§5 "Title rect") and the ink width equals the
+same title's whole ink on 1984's document window (DECISIONS #13 (1) as amended
+by #455: the cap never drops below the title rect width). A plate-only cap
+fails D. Mutations: removing the
+baseline nudge fails B (and so does pre-#452 v2); the rejected widened clip
+fails C. Not covered by any rule row: the title colour (TX7) and the
+truncation text itself (TX5); the partial-zoom widget (WD5); the layout cache (LC1); ladder misses;
+and the five corner-sprite archives. Keyboard activation of title widgets
+(DECISIONS #12) is asserted in `window-widgets.spec.mjs` on animals, whose
+widget top-left strip pixels are mask-clear. No image
+or golden is added.
 
 ### Checkable source rules
 

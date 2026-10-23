@@ -1,7 +1,7 @@
 import { CinfEnvironmentError, snapshotBodyCinfFace, snapshotSliderLayoutCinf, type CinfLookupView } from '../tools/theme-loader/cinf-environment.js';
 import { prepareBitmapGlyphRun, type PreparedBitmapFont, type BitmapGlyphRun } from './preparedBitmapFont.js';
 import { paintBitmapText } from './paintBitmapText.js';
-import { ownerDisplayPolicyMatches } from '../tools/theme-loader/display-profile.js';
+import { ownerDisplayPolicyMatches, realizeRgb16 } from '../tools/theme-loader/display-profile.js';
 import { snapshotControlComposition, bodyPatternPhase, controlPointVisible, type ControlCompositionContext, type ControlCompositionSnapshot, type ButtonComposition } from './controlComposition.js';
 import type { SliderComposition } from './sliderLayout.js';
 import type { LoadedTheme, ChromeElement } from './types.js';
@@ -17,9 +17,14 @@ import { planHeaderSurface, headerMetadataRejection, headerBackground, paintHead
 import { createTrace, type EngineTrace } from './engine/trace.js';
 import { rect } from './engine/qd/rect.js';
 import { normalizeControlState } from './engine/state/control.js';
-import { SCROLLBAR_PRESSED_PARTS } from './engine/tables/controlState.js';
+import { SCROLLBAR_PRESSED_PARTS, SLIDER_PRESSED_PARTS } from './engine/tables/controlState.js';
 import { SCROLLBAR_FACADE_RANGE, SCROLLBAR_FACADE_THICKNESS } from './engine/tables/scrollbar.js';
 import { drawScrollbar, scrollbarPartAt, scrollbarResourceIds, type ScrollbarInput } from './engine/families/scrollbar.js';
+import { SLIDER_FACADE_BACKGROUND, SLIDER_FACADE_RANGE, SLIDER_FACADE_THICKNESS, SLIDER_THUMB, SLIDER_VARIATION } from './engine/tables/slider.js';
+import { drawSlider, sliderInit, sliderPartAt, sliderResourceIds, type SliderInput } from './engine/families/slider.js';
+import { PROGRESS_DATA, PROGRESS_FACADE_LENGTH, PROGRESS_FACADE_RANGE, PROGRESS_FACADE_VALUE, PROGRESS_IDLE, PROGRESS_RECT, PROGRESS_STATE,
+  PROGRESS_VALUE_DOMAIN } from './engine/tables/progress.js';
+import { drawProgress, newProgressRecord, progressResourceIds, progressSetData, type ProgressInput } from './engine/families/progress.js';
 import { themeResourceChain } from './engine/resources/theme.js';
 import { withControlDiagnostics, type ControlDiagnostics, type ControlTraceCollector, type ControlResolutionStep, type LegacyFacePaint } from './controlDiagnostics.js';
 
@@ -29,13 +34,6 @@ function sliceInset(w: number, h: number): number {
   return Math.max(2, Math.floor((Math.min(w, h) - 3) / 2));
 }
 
-/**
- * Measure a border-ring cicn's border thickness: scan in from the middle
- * row/column until alpha drops out (the transparent interior begins). Used
- * to inset a progress track inside its frame and to size the frame's
- * 9-slice corners. Falls back to a small inset if the cicn has no
- * transparent interior.
- */
 /** Bounding box of the buffer's non-transparent pixels (alpha > 0). */
 function opaqueBounds(buf: PixelBuffer): { x0: number; y0: number; x1: number; y1: number } {
   let x0 = buf.width, y0 = buf.height, x1 = -1, y1 = -1;
@@ -48,17 +46,6 @@ function opaqueBounds(buf: PixelBuffer): { x0: number; y0: number; x1: number; y
         if (y > y1) y1 = y;
       }
   return { x0, y0, x1, y1 };
-}
-
-function frameBorder(buf: PixelBuffer): number {
-  const my = buf.height >> 1;
-  let l = 0;
-  while (l < buf.width && buf.getPixel(l, my)[3] >= 40) l++;
-  const mx = buf.width >> 1;
-  let t = 0;
-  while (t < buf.height && buf.getPixel(mx, t)[3] >= 40) t++;
-  if (l >= buf.width >> 1 || t >= buf.height >> 1) return Math.max(1, Math.min(2, (Math.min(buf.width, buf.height) - 1) >> 1));
-  return Math.max(1, Math.min(l, t));
 }
 
 /**
@@ -421,16 +408,54 @@ export async function composeScrollbarFrame(
 
 export interface SliderOptions {
   orientation?: Orientation;
+  /** Length along the slider axis, in px (minimum 32). */
   length?: number;
+  /** Thumb position, 0..1 (native 0..100, rounded; minimum at the left / bottom). */
   value?: number;
   state?: ControlState;
+  /**
+   * The part being pressed when `state` is `'pressed'` (DECISIONS #9): native
+   * part 129 `thumb`, 22 `pageUp`, 23 `pageDown`. Pressed without a part means
+   * `thumb`. A page press draws the pressed track with the normal thumb.
+   * Ignored for other states.
+   */
+  pressedPart?: 'thumb' | 'pageUp' | 'pageDown';
+  /**
+   * Slider variant (Appearance HISlider.h variation bits; slider §1.1, §5.1):
+   * `'nonDirectional'` (default, variation bit 3, group 2, centred band),
+   * `'pointsDownOrRight'` (no bit, group 0, band at the top / left) or
+   * `'pointsUpOrLeft'` (bit 2, group 1, band at the bottom / right).
+   */
+  variant?: 'nonDirectional' | 'pointsDownOrRight' | 'pointsUpOrLeft';
+  /**
+   * Tick-mark count (variation bit 1; slider §4.6). Directional variants only:
+   * the 2.3.1 CDEF draws no ticks for the non-directional variant (ID4).
+   */
+  tickMarks?: number;
+  /** Control rect cross size in px. Default 16, or 32 with tick marks on a directional variant (facade policy). */
+  thickness?: number;
+  /**
+   * The colour R is erased to before the art is drawn (slider O3/O4; the
+   * 2.3.1 CDEF repaints the whole control rect opaque). Default white.
+   */
+  background?: { r: number; g: number; b: number };
+}
+
+/** @internal A composed slider plus its part test and tracking (slider §4.9, §5.6). */
+export interface SliderFrame extends SliderComposition {
+  /** Public part name at buffer pixel (x, y), or null for part 0 (outside the band). */
+  partAt(x: number, y: number): NonNullable<SliderOptions['pressedPart']> | null;
+  trace?: EngineTrace;
 }
 
 /**
- * Compose a slider (docs/spec/kdef231-reference.md §2.4 / §2.6): stretch the groove track
- * along the axis, stamp the thumb at the value position. 7 Le's thumb
- * cicns are 15×64 sprite sheets — 4 stacked 15×16 states
- * (blank / normal / pressed / disabled).
+ * Compose a slider on the v2 engine: the Kaleidoscope 2.3.1 slider CDEF 3
+ * (docs/spec/engine/slider.md; driver src/engine/families/slider.ts) drawing
+ * into a port whose control rect is the whole buffer.
+ *
+ * Returns null when the gate hands the control off to the System slider (G2:
+ * the theme chain has no slider `cinf`); callers then draw the procedural
+ * Platinum slider, the declared substitute (slider §6 item 3).
  */
 export async function composeSlider(
   theme: LoadedTheme,
@@ -442,127 +467,76 @@ export async function composeSlider(
 /** @internal Shared draw path for native-backed slider hit testing. */
 export async function composeSliderWithLayout(
   theme: LoadedTheme,
-  opts: SliderOptions = {},
+  opts: SliderOptions & { trace?: boolean } = {},
   signal?: AbortSignal,
-): Promise<SliderComposition | null> {
-  // Native faces can be disposed while a track is decoding. Guard every
-  // sequential dependency so resuming cannot start a thumb/fallback read from
-  // a theme whose owned URLs have already been revoked.
-  const load = async (id: number): Promise<{ buffer: PixelBuffer; element: ChromeElement } | null> => {
-    if (signal?.aborted) return null;
-    const element = elementById(theme, id);
-    if (!element) return null;
-    const buffer = await loadCicnBuffer(assetUrl(theme, element.asset));
-    return signal?.aborted ? null : { buffer, element };
-  };
+): Promise<SliderFrame | null> {
   const orientation = opts.orientation ?? 'horizontal';
+  const horiz = orientation === 'horizontal';
   const length = Math.max(32, opts.length ?? 120);
   const value = Math.min(1, Math.max(0, opts.value ?? 0.5));
-  const state = opts.state ?? 'normal';
-  const horiz = orientation === 'horizontal';
-  const thumbElement = elementById(theme, horiz ? 10129 : 10113);
-  const endpoint = snapshotSliderLayoutCinf(theme.manifest, thumbElement, orientation);
+  // Declared group2 layout environment (slider-layout-cinf.md): its admission
+  // rules still apply; the geometry itself now comes from the engine (§5.2).
+  const endpoint = snapshotSliderLayoutCinf(theme.manifest, elementById(theme, horiz ? 10129 : 10113), orientation);
   const unsupported = (reason: string): never => {
     throw new CinfEnvironmentError(`Unsupported group2 slider layout: ${reason}`, 'UNSUPPORTED_CINF_ENVIRONMENT');
   };
   if (endpoint && (endpoint.status !== 'ready' || endpoint.corner === undefined)) unsupported(endpoint.reason ?? 'missing corner');
   if (endpoint && (theme.base || !Number.isInteger(length) || length > 32767 || !Number.isFinite(value))) unsupported('base chain or geometry outside admitted local Rect');
-  // The identity is checked before decoding; later mutation cannot redirect this load.
-  const thumbUrl = endpoint && thumbElement ? assetUrl(theme, thumbElement.asset) : undefined;
 
-  // Resolve by RESOURCE ID (slugs vary per scheme; ids are stable). The
-  // non-directional slider: horizontal track -10131 (pressed -10130 /
-  // inactive -10132) + thumbs -10129 · vertical track -10115 (-10114 /
-  // -10116) + thumbs -10113.
-  const tA = horiz ? 10131 : 10115;
-  const tP = horiz ? 10130 : 10114;
-  const tI = horiz ? 10132 : 10116;
-  const tId = state === 'pressed' ? tP : state === 'disabled' || state === 'inactive' ? tI : tA;
-  // SELF-ONLY (like composeCheckable): a scheme renders its OWN slider groove +
-  // thumb (the -10131/-10129 h · -10115/-10113 v family) or falls to procedural
-  // Platinum — it does NOT borrow the base bundle's. Every texture/cicn scheme +
-  // 1990 + the replica ship this family in their OWN bundle (self hop hits); the
-  // corner-sprite schemes ship NO slider groove (their -10205..-10208 are the
-  // scrollbar thumb / directional indicators, not a groove+thumb pair — verified
-  // by pixel-decode), so they fall to platinumSlider rather than the replica's.
-  const selectedTrack = (await load(tId)) ?? (await load(tA));
+  const V = SLIDER_VARIATION;
+  const variant = opts.variant ?? 'nonDirectional';
+  const ticks = variant !== 'nonDirectional' && (opts.tickMarks ?? 0) > 1 ? Math.trunc(opts.tickMarks!) : 0;
+  const variation = (variant === 'nonDirectional' ? V.nonDirectional : variant === 'pointsUpOrLeft' ? V.reverse : 0) | (ticks ? V.tickMarks : 0);
+  const cross = Math.max(1, Math.trunc(opts.thickness ?? (ticks ? SLIDER_FACADE_THICKNESS.withTicks : SLIDER_FACADE_THICKNESS.plain)));
+  // The engine reads a square or taller rect as vertical (§2): keep the axis the caller asked for.
+  const along = Math.max(length, cross + 1);
+  const { hilite } = normalizeControlState({ state: opts.state ?? 'normal', ...(opts.pressedPart ? { pressedPart: opts.pressedPart } : {}) },
+    SLIDER_PRESSED_PARTS);
+  const range = SLIDER_FACADE_RANGE;
+  const native = range.min + Math.round(value * (range.max - range.min));
+  const R = horiz ? rect(0, 0, cross, along) : rect(0, 0, along, cross);
+  const input: SliderInput = { rect: R, hilite, min: range.min, max: range.max, value: native, variation };
   if (signal?.aborted) return null;
-  if (!selectedTrack) return endpoint ? unsupported('missing track') : null;
-  const { buffer: track, element: trackEl } = selectedTrack;
-  const thumbs = thumbUrl ? await loadCicnBuffer(thumbUrl) : (await load(horiz ? 10129 : 10113))?.buffer ?? null;
+  const chain = await themeResourceChain(theme, sliderResourceIds(horiz), signal ? { signal } : {});
   if (signal?.aborted) return null;
-
-  const thickness = horiz ? track.height : track.width;
-  const longSrc = horiz ? track.width : track.height;
-  const groove = horiz ? PixelBuffer.alloc(length, thickness) : PixelBuffer.alloc(thickness, length);
-
-  // groove: 3-slice along the axis — keep the rounded end caps 1:1, stretch
-  // OR TILE the uniform middle per the cinf's slice.tile. (Full-stretch would
-  // smear the caps; tiling preserves pixel-rate detail at long lengths.)
-  // Read the cinf's slice.corner for the cap thickness; fall back to the
-  // historical 6-clamp.
-  // Metadata belongs to the actual selected groove, including active fallback.
-  const end = trackEl?.slice?.corner ?? Math.min(6, Math.floor((longSrc - 1) / 2));
-  const tileMid = !!trackEl?.slice?.tile;
-  const mid = longSrc - end * 2;
-  const dmid = length - end * 2;
-  const drawMid = (sx: number, sy: number, sw: number, sh: number, dx: number, dy: number, dw: number, dh: number): void => {
-    if (sw <= 0 || sh <= 0 || dw <= 0 || dh <= 0) return;
-    if (!tileMid) { groove.copyBits(track, { x: sx, y: sy, w: sw, h: sh }, { x: dx, y: dy, w: dw, h: dh }); return; }
-    const axisLen = horiz ? dw : dh;
-    const slab = horiz ? sw : sh;
-    for (let t = 0; t < axisLen; t += slab) {
-      const r = Math.min(slab, axisLen - t);
-      if (horiz) groove.copyBits(track, { x: sx, y: sy, w: r, h: sh }, { x: dx + t, y: dy, w: r, h: sh });
-      else        groove.copyBits(track, { x: sx, y: sy, w: sw, h: r }, { x: dx, y: dy + t, w: sw, h: r });
-    }
+  const trace = opts.trace ? createTrace('slider', { ...input, ticks }) : undefined;
+  // Message 3 (init) creates the record and sets the tick count; the host then sets the value.
+  const init = sliderInit(chain, { ...input, value: range.min }, ticks, trace);
+  if (!init) return endpoint ? unsupported('handed off (no slider cinf)') : null;
+  const out = PixelBuffer.alloc(R.right, R.bottom);
+  const bg = opts.background ?? SLIDER_FACADE_BACKGROUND;
+  const { state } = drawSlider(out, chain, init.record, input, { background: { r: bg.r, g: bg.g, b: bg.b, a: 255 } }, trace);
+  if (!state) return endpoint ? unsupported('handed off (no slider cinf)') : null;
+  const Th = state.Th && !(state.Th.right <= state.Th.left || state.Th.bottom <= state.Th.top) ? state.Th : null;
+  const c = state.c ?? 0, travel = Math.max(0, init.record.travel ?? 0);
+  if (endpoint && (!Th || (init.record.travel ?? -1) < 0)) unsupported('thumb geometry or travel outside admitted local Rect');
+  if (endpoint) {
+    // slider-layout-cinf.md admission, kept until the declared environment becomes
+    // the chain's cinf tier: the declared corner must be the corner the chain
+    // resolved (never silently select other geometry), and the thumb must hold four
+    // exact 16-px cross cells.
+    if (endpoint.corner !== state.c) unsupported('declared corner differs from the resource-chain corner');
+    const pm = state.thumb!.value.pixmap, cell = SLIDER_THUMB.TH3.cellSize, cells = SLIDER_THUMB.TH5.ghostCell + 1;
+    if ((horiz ? pm.height : pm.width) !== cells * cell) unsupported('thumb cross-cell is not 16 px');
+  }
+  const names = Object.entries(SLIDER_PRESSED_PARTS.parts);
+  return {
+    buffer: out,
+    layout: {
+      orientation, axisLength: along,
+      thumb: Th ? { x: Th.left, y: Th.top, w: Th.right - Th.left, h: Th.bottom - Th.top } : null,
+      // TRK4 (modern pointer policy): with a thumb the travel is [c, c + T); without one the
+      // whole axis, with no corner inset (a track click maps over the full length).
+      travelStart: Th ? c : 0, travelEnd: Th ? c + travel : along, value,
+      valueDirection: horiz ? 1 : -1,
+      ...(endpoint ? { endpointPolicy: 'declared-group2' as const } : {}),
+    },
+    partAt: (x, y) => {
+      const { part } = sliderPartAt(state, { x, y });
+      return (names.find(([, code]) => code === part)?.[0] ?? null) as NonNullable<SliderOptions['pressedPart']> | null;
+    },
+    ...(trace ? { trace } : {}),
   };
-  if (horiz) {
-    groove.copyBits(track, { x: 0, y: 0, w: end, h: thickness }, { x: 0, y: 0, w: end, h: thickness });
-    groove.copyBits(track, { x: longSrc - end, y: 0, w: end, h: thickness }, { x: length - end, y: 0, w: end, h: thickness });
-    drawMid(end, 0, mid, thickness, end, 0, dmid, thickness);
-  } else {
-    groove.copyBits(track, { x: 0, y: 0, w: thickness, h: end }, { x: 0, y: 0, w: thickness, h: end });
-    groove.copyBits(track, { x: 0, y: longSrc - end, w: thickness, h: end }, { x: 0, y: length - end, w: thickness, h: end });
-    drawMid(0, end, thickness, mid, 0, end, thickness, dmid);
-  }
-
-  // The groove is often much thinner than the authored thumb cell (Windows95:
-  // 4px groove, 16px cell). Keep both at native cross-axis size instead of
-  // clipping the thumb to the groove's buffer. Floor-centering is our explicit
-  // integer placement policy. The opted group2 local Rect has cross-size16;
-  // native groove centering/transfer is outside that endpoint-only contract.
-  const cellW = thumbs ? (horiz ? thumbs.width : Math.floor(thumbs.width / 4)) : 0;
-  const cellH = thumbs ? (horiz ? Math.floor(thumbs.height / 4) : thumbs.height) : 0;
-  const naturalCross = Math.max(thickness, horiz ? cellH : cellW);
-  const inset = endpoint?.corner ?? 0;
-  const extent = horiz ? cellW : cellH;
-  if (endpoint && (!thumbs || cellW <= 0 || cellH <= 0 || naturalCross > 16 || (horiz ? cellH : cellW) !== 16
-    || (horiz ? thumbs.height : thumbs.width) % 4 !== 0 || length - extent - 2 * inset < 0)) {
-    unsupported('thumb geometry or travel outside admitted local Rect');
-  }
-  const cross = endpoint ? 16 : naturalCross;
-  const out = horiz ? PixelBuffer.alloc(length, cross) : PixelBuffer.alloc(cross, length);
-  const grooveOffset = Math.floor((cross - thickness) / 2);
-  out.copyBits(groove, { x: 0, y: 0, w: groove.width, h: groove.height },
-    { x: horiz ? 0 : grooveOffset, y: horiz ? grooveOffset : 0, w: groove.width, h: groove.height });
-
-  // Retain the complete selected state cell. Preserve the existing srcCopy
-  // transfer behavior; the original slider's mask/painter path is untraced.
-  let thumb: SliderComposition['layout']['thumb'] = null;
-  const travel = Math.max(0, length - extent - 2 * inset);
-  const direction = endpoint && !horiz ? -1 : 1;
-  if (thumbs && cellW > 0 && cellH > 0) {
-    const stateRow = state === 'pressed' ? 2 : state === 'disabled' || state === 'inactive' ? 3 : 1;
-    const offset = (direction === 1 ? value : 1 - value) * travel;
-    const pos = inset + (endpoint ? Math.trunc(offset) : Math.round(offset));
-    const thumbOffset = Math.floor((cross - (horiz ? cellH : cellW)) / 2);
-    thumb = { x: horiz ? pos : thumbOffset, y: horiz ? thumbOffset : pos, w: cellW, h: cellH };
-    out.copyBits(thumbs,
-      { x: horiz ? 0 : stateRow * cellW, y: horiz ? stateRow * cellH : 0, w: cellW, h: cellH }, thumb);
-  }
-  return { buffer: out, layout: { orientation, axisLength: length, thumb, travelStart: inset, travelEnd: inset + travel, value,
-    ...(endpoint ? { endpointPolicy: 'declared-group2' as const, valueDirection: direction as 1 | -1 } : {}) } };
 }
 
 export interface DisclosureOptions {
@@ -672,7 +646,7 @@ async function composeTabWithTrace(theme: LoadedTheme, opts: TabOptions, trace?:
   const glyphs = label ? rasterizeText(label, Math.max(8, Math.round(bh * 0.42)), fg) : null;
   // Prefer cinf-declared slice.corner for the end-cap thickness; fall back to the
   // historical clamp when no cinf was shipped. Same shape as composeFaceButton /
-  // composeProgress — read the artist's authored answer rather than the heuristic.
+  // the cinf-driven controls — read the artist's authored answer rather than the heuristic.
   const tabEl = face.element;
   const cap = tabEl?.slice?.corner ?? Math.max(2, Math.min(12, Math.floor((bw - 1) / 2)));
   const labelWidth = (glyphs ? glyphs.width : 0) + cap * 2 + 6;
@@ -728,130 +702,80 @@ export async function composeGrowBox(
 }
 
 export interface ProgressOptions {
+  /** Bar width in px (facade policy: at least 16, default 160). The bar is always 14 px tall (progress RECT1). */
   length?: number;
+  /**
+   * Normalized fill, 0..1 (compatibility facade, DECISIONS #10): clamped, then
+   * mapped to native `min = 0`, `max = 10000`, `value = trunc(v × 10000)`.
+   * Default 0.5. Passing both `value` and `range` throws a `TypeError` (DECISIONS #10).
+   */
   value?: number;
+  /**
+   * Native control values (DECISIONS #10): 16-bit signed integers, unclamped, as
+   * CDEF 5 reads them (progress §5.3, DET2, DET3). A value outside `[min, max]`
+   * moves the split past the track, and the trace records the overflow.
+   */
+  range?: { value: number; min: number; max: number };
+  /** `'pressed'` draws as `'normal'` (no pressed art); `'disabled'` draws as `'inactive'` (hilite 255 / 254). */
   state?: ControlState;
+  /** Indeterminate mode (DECISIONS #11; the `'inde'` flag, progress §4.7). */
+  indeterminate?: boolean;
+  /** The stored phase byte at draw time, integer 0..255 (DECISIONS #11). Default 0. */
+  phase?: number;
+}
+
+/** A composed progress bar plus the phase byte after the draw (frame mode resets it, IND2/IND3). */
+export interface ProgressFrame {
+  buffer: PixelBuffer;
+  phase: number;
+  /** `kaleidoscope` (the scheme's art, GATE4) or `procedural` (CDEF 5's own bar, §4.9). */
+  path: 'kaleidoscope' | 'procedural';
+  trace?: EngineTrace;
 }
 
 /**
- * Compose a determinate progress bar (docs/spec/kdef231-reference.md §2.6): stretch
- * the unfilled track across the bar, overlay the fill cicn across the
- * 0..value portion (inset to the interior), cap with the frame ends.
+ * Compose a progress bar on the v2 engine: the Kaleidoscope 2.3.1 progress bar
+ * CDEF 5 (docs/spec/engine/progress.md; driver src/engine/families/progress.ts)
+ * drawing into a transparent 14-row port whose control rect is the whole buffer.
+ * CDEF 5 always draws: the scheme's art when it ships `cinf`/`cicn −10080`, else
+ * its own procedural bar. Pixels no step covers stay transparent (ERASE3).
  */
-export async function composeProgress(
-  theme: LoadedTheme,
-  opts: ProgressOptions = {},
-): Promise<PixelBuffer | null> {
-  const length = Math.max(16, opts.length ?? 160);
-  const value = Math.min(1, Math.max(0, opts.value ?? 0.5));
-  const active = (opts.state ?? 'normal') !== 'inactive';
+export async function composeProgress(theme: LoadedTheme, opts: ProgressOptions = {}): Promise<PixelBuffer> {
+  return (await composeProgressFrame(theme, opts)).buffer;
+}
 
-  // PROGRESS-BAR RESOURCE MODEL — TWO FAMILIES (enumerate the FULL id set before
-  // assuming roles from slug names; that was the recurring trap here):
-  //  • LAVENDER 2-PART (apple-platinum-2 / system7-nostalgia-silver / black-platinum /
-  //    platinum-8 / beos-r503): a dedicated FILL `-10223` ("lavender", the canonical
-  //    DEFAULT — owner-chosen) + an empty TRACK `-10224`. These schemes ALSO ship
-  //    `-10071..-10080` + `-10220..-10222` — but those are ALTERNATE HUE fills
-  //    (teal/rose/…/copper/aquamarine; picker deferred), NOT frame/track/fill roles,
-  //    and they carry NO progress frame. (I repeatedly mis-modelled these by reading
-  //    only the -1007x hue slugs and missing that -10223/-10224 also ship here.)
-  //  • ROLE 3-PART (1138 / 1984 / 1990 / evolution; replica = 2-part): the
-  //    deconstructed layers — frame `-10080`/`-10077`, fill `-10079`/`-10076`, track
-  //    `-10078`/`-10075` (active/inactive). Used only by schemes WITHOUT `-10223`.
-  // See kdef231-reference §2.4 + the per-theme resource-role manifest.
-  const lavender = await loadById(theme, 10223);
-  if (lavender) {
-    const trk = await loadById(theme, 10224);
-    const ph = (trk ?? lavender).height;
-    const out = PixelBuffer.alloc(length, ph);
-    // 3-slice a tile into `dst` across its full width: rounded end caps 1:1, middle
-    // stretched. `dst` width sets the run (so the fill goes in its own buffer, below).
-    const slice3 = (dst: PixelBuffer, src: PixelBuffer): void => {
-      const w = dst.width;
-      if (w <= 0) return;
-      if (w <= src.width) { dst.copyBits(src, { x: 0, y: 0, w: src.width, h: src.height }, { x: 0, y: 0, w, h: ph }); return; }
-      const cap = Math.min(4, Math.max(1, (src.width - 2) >> 1));
-      dst.copyBits(src, { x: 0, y: 0, w: cap, h: src.height }, { x: 0, y: 0, w: cap, h: ph });
-      dst.copyBits(src, { x: src.width - cap, y: 0, w: cap, h: src.height }, { x: w - cap, y: 0, w: cap, h: ph });
-      dst.copyBits(src, { x: cap, y: 0, w: src.width - cap * 2, h: src.height }, { x: cap, y: 0, w: w - cap * 2, h: ph });
-    };
-    // Empty track across the full bar, then the FILL tile 3-sliced to value over it.
-    // The fill keeps its OWN tile (bevel + highlight + leading edge) — 3-slicing (caps
-    // 1:1, middle stretched) preserves that, where stretching only the interior colour
-    // came out flat/awkward. drawOver (alpha-respecting) composites the fill so its
-    // rounded corners don't erase the track at the leading edge (a 1px seam otherwise).
-    if (trk) slice3(out, trk);
-    if (value > 0) {
-      const fb = PixelBuffer.alloc(Math.max(1, Math.round(value * length)), ph);
-      slice3(fb, lavender);
-      out.drawOver(fb, 0, 0);
-    }
-    return out;
+const int16 = (name: string, v: number): number => {
+  const D = PROGRESS_VALUE_DOMAIN;
+  if (!Number.isInteger(v) || v < D.min || v > D.max) throw new RangeError(`composeProgress: range.${name} must be a 16-bit signed integer`);
+  return v;
+};
+
+/** Compose one progress frame (DECISIONS #11): draws once and reports the phase after the draw. */
+export async function composeProgressFrame(theme: LoadedTheme, opts: ProgressOptions & { trace?: boolean } = {}): Promise<ProgressFrame> {
+  const length = Math.max(PROGRESS_FACADE_LENGTH.min, Math.trunc(opts.length ?? PROGRESS_FACADE_LENGTH.default));
+  const phase = opts.phase ?? 0;
+  if (!Number.isInteger(phase) || phase < 0 || phase >= PROGRESS_IDLE.phaseModulo) throw new RangeError('composeProgress: phase must be an integer 0..255');
+  let native: { value: number; min: number; max: number };
+  if (opts.range && opts.value !== undefined) throw new TypeError('composeProgress: pass either value or range, not both (DECISIONS #10)');
+  if (opts.range) native = { value: int16('value', opts.range.value), min: int16('min', opts.range.min), max: int16('max', opts.range.max) };
+  else {
+    const F = PROGRESS_FACADE_RANGE, v = Math.min(1, Math.max(0, opts.value ?? PROGRESS_FACADE_VALUE.default));
+    native = { value: F.min + Math.trunc(v * (F.max - F.min)), min: F.min, max: F.max };
   }
-
-  // ROLE 3-part (schemes WITHOUT -10223): the id is the stable selector (slugs differ:
-  // "progress-bar-frame-active" vs "progress-indicator-frame"). Inactive uses -1007{7,6,5}.
-  const frame = await loadById(theme, active ? 10080 : 10077);
-  const track = (await loadById(theme, active ? 10078 : 10075)) ?? (await loadById(theme, 10078));
-  const fill = (await loadById(theme, active ? 10079 : 10076)) ?? (await loadById(theme, 10079));
-  if (!frame && !track) return null;
-
-  const h = frame ? frame.height : track!.height;
-  const out = PixelBuffer.alloc(length, h);
-
-  // The frame is a border ring with a transparent interior; its border thickness
-  // (the inset where alpha drops out) sets where the track/fill live. Prefer the
-  // cinf-decoded `slice.corner` when present (the artist's authored answer); fall
-  // back to the pixel-scan only when no cinf was shipped. Same shape as the just-
-  // landed `composeFaceButton` / `composeButton` ring fix — the cinf is the
-  // source of truth, the pixel scan is a heuristic that drifts from artist intent.
-  const frameEl = elementById(theme, active ? 10080 : 10077);
-  const border = frameEl?.slice?.corner ?? (frame ? frameBorder(frame) : 1);
-  const borderV = frameEl?.slice?.side ?? border;
-  // Track + fill placement use the SAME pair of insets the frame's 9-slice does
-  // — horizontal corner width for x, vertical side thickness for y. Mixing
-  // border for y (the prior code) misaligned the interior against the frame
-  // when corner ≠ side, leaving the track/fill drawn outside the visible
-  // frame bands. Latent today (all corpus -10080 ship symmetric), exposed the
-  // moment a future scheme imports an asymmetric authoring.
-  const ix = border;
-  const iw = Math.max(0, length - border * 2);
-  const iy = borderV;
-  const ih = Math.max(0, h - borderV * 2);
-
-  // 1) unfilled track stretched across the interior (the empty look for
-  //    schemes whose frame has a transparent interior, e.g. 1990).
-  if (track && iw > 0 && ih > 0) {
-    out.copyBits(track, { x: 0, y: 0, w: track.width, h: track.height }, { x: ix, y: iy, w: iw, h: ih });
-  }
-
-  // 2) frame border: 9-slice so corners stay crisp. Some schemes' frames
-  //    have a transparent interior (track shows through), others an opaque
-  //    one (1984 is solid white) — either way the fill goes on TOP next.
-  if (frame) {
-    // Honour the cinf-declared slice.tile (same as composeFaceButton / composeButton ring).
-    const frameMode = frameEl?.slice?.tile ? 'tile' : 'stretch';
-    out.nineSlice(frame, { x: 0, y: 0, w: frame.width, h: frame.height }, { l: border, t: borderV, r: border, b: borderV }, { x: 0, y: 0, w: length, h }, frameMode);
-  }
-
-  // 3) fill across 0..value of the interior, ON TOP of the frame — 3-slice
-  //    along the bar: keep the section's rounded end caps 1:1, stretch the
-  //    middle (NOT tiled — tiling repeats the section into visible chevrons).
-  if (fill && value > 0 && iw > 0 && ih > 0) {
-    const fw = Math.round(value * iw);
-    if (fw > 0 && fw <= fill.width) {
-      out.copyBits(fill, { x: 0, y: 0, w: fill.width, h: fill.height }, { x: ix, y: iy, w: fw, h: ih });
-    } else if (fw > 0) {
-      // cap = the rounded-corner width (~a few px); keep it small so a
-      // non-empty middle remains even for narrow (12px) fill sections.
-      const cap = Math.min(4, Math.max(1, (fill.width - 2) >> 1));
-      const fmid = fill.width - cap * 2;
-      out.copyBits(fill, { x: 0, y: 0, w: cap, h: fill.height }, { x: ix, y: iy, w: cap, h: ih });
-      out.copyBits(fill, { x: fill.width - cap, y: 0, w: cap, h: fill.height }, { x: ix + fw - cap, y: iy, w: cap, h: ih });
-      out.copyBits(fill, { x: cap, y: 0, w: fmid, h: fill.height }, { x: ix + cap, y: iy, w: fw - cap * 2, h: ih });
-    }
-  }
-  return out;
+  const state = opts.state ?? 'normal';
+  const row = PROGRESS_STATE.find(r => r.state === state);
+  if (!row) throw new TypeError(`composeProgress: unknown state ${String(state)}`);
+  const input: ProgressInput = { rect: rect(0, 0, PROGRESS_RECT.RECT1.height, length), hilite: row.hilite, ...native };
+  const chain = await themeResourceChain(theme, progressResourceIds());
+  const trace = opts.trace ? createTrace('progress', { ...input, indeterminate: !!opts.indeterminate, phase }) : undefined;
+  const record = newProgressRecord(trace);
+  progressSetData(record, PROGRESS_DATA.tag, [opts.indeterminate ? 1 : 0]);
+  record.phase = phase;
+  const out = PixelBuffer.alloc(length, PROGRESS_RECT.RECT1.height);
+  const profile = theme.manifest.displayProfile;
+  const realize = (rgb: readonly number[]) => { const [r, g, b] = realizeRgb16(rgb, profile); return { r: r!, g: g!, b: b!, a: 255 }; };
+  const res = drawProgress(out, chain, record, input, { realize }, trace);
+  return { buffer: out, phase: res.phase, path: res.path ?? 'procedural', ...(trace ? { trace } : {}) };
 }
 
 export interface ButtonOptions {

@@ -338,8 +338,9 @@ for (const mode of ['source', 'built']) {
       HTMLImageElement.prototype.decode = function () { lateDecodes++; return decode.call(this); };
       native.addEventListener('input', () => f.handle.disconnect(), { once: true });
       const rect = face.querySelector('canvas').getBoundingClientRect();
-      // An unambiguous track click: Windows95 has an 11px thumb in the
-      // 120px native face, so the centered-track policy sanitizes this to78.
+      // An unambiguous track click: Windows95 has an 11px thumb (tA) and corner c = 2 (slider.md §6) in the
+      // 120px native face, so travel is T = 120 - 11 - 2c = 105 from c (§5.2) and the centred-track policy
+      // (slider-interaction.md, TRK4) sanitizes this to round((90 - 2 - 5.5) / 105 * 100) = 79.
       face.dispatchEvent(new PointerEvent('pointerdown', { clientX: rect.left + rect.width * 0.75, clientY: rect.top + 2, bubbles: true }));
       await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
       HTMLImageElement.prototype.decode = decode;
@@ -347,7 +348,7 @@ for (const mode of ['source', 'built']) {
         nativeVisible: !native.hasAttribute('aria-hidden') && !native.hasAttribute('style') };
       f.root.remove(); return result;
     });
-    const expectedValue = String(Math.round((120 * 0.75 - 11 / 2) / (120 - 11) * 100));
+    const expectedValue = String(Math.round((120 * 0.75 - 2 - 11 / 2) / (120 - 11 - 2 * 2) * 100));
     expect(result).toEqual({ lateDecodes: 0, value: expectedValue, faceCount: 0, nativeVisible: true });
   });
 

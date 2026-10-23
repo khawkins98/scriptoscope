@@ -29,6 +29,9 @@ export async function runtime() {
   engine ??= {
     E: await import('../../src/engine/index.ts'),
     tables: await import('../../src/engine/tables/scrollbar.ts'),
+    sliderTables: await import('../../src/engine/tables/slider.ts'),
+    progressTables: await import('../../src/engine/tables/progress.ts'),
+    realizeRgb16: (await import('../../tools/theme-loader/display-profile.js')).realizeRgb16,
     PixelBuffer: (await import('../../src/pixelBuffer.ts')).PixelBuffer,
     composeWindowChrome: (await import('../../src/composeChrome.ts')).composeWindowChrome,
   };
@@ -44,7 +47,7 @@ export async function decode(slug) {
   if (!decodedCache.has(slug)) {
     const { E } = await runtime();
     const path = ['scheme.sit', 'scheme.rsrc'].map(f => new URL(`${slug}/${f}`, THEMES_DIR)).find(existsSync);
-    decodedCache.set(slug, await loadKaleidoscopeScheme(readFileSync(path), { encodeAssets: false, iconBlitCicnIds: E.engineIconBlitCicnIds() }));
+    decodedCache.set(slug, await loadKaleidoscopeScheme(readFileSync(path), { encodeAssets: false, iconBlitCicnIds: E.engineIconBlitCicnIds(), engineCinfIds: E.engineCinfIds() }));
   }
   return decodedCache.get(slug);
 }
@@ -54,7 +57,9 @@ const xywh = r => r && { x: r.x, y: r.y, w: r.w, h: r.h };
 
 // ── window chrome (wnd# 9-slice re-point onto src/engine/qd) ─────────────────
 // Every sliced window type of every wnd# archive, both states, at the template's
-// native content size, 97x53 and 320x160, each with no title and a 60 px title.
+// native content size, 97x53 and 320x160, each with no title and a 60 px title. The
+// popup-window type is traced again as the popup family (`/popup` keys), the way
+// renderWindow draws it (window-widgets AP1/PP rows, WD6).
 // composeWindowChrome carries no EngineTrace, so the cell trace is built from its
 // public result: the template cicn resolved, the frame/title rects, and the
 // placement map in draw order (edge, part code, mode, source band, destination rects).
@@ -72,13 +77,14 @@ async function* windowCells({ decoded, mutate = x => x }) {
       if (!asset?.rgba) continue;
       const cicnId = elements.find(e => e.asset === wt.chrome[state])?.sourceCicnId ?? null;
       const [l, t, r, b] = wt.parts['part-0'].rect;
+      for (const popupFamily of type === 'popup-window' ? [false, true] : [false])
       for (const size of WINDOW_SIZES) for (const titleWidthPx of WINDOW_TITLES) {
         const [w, h] = size ?? [Math.max(0, r - l), Math.max(0, b - t)];
-        const key = `${type}/${state}/${size ? `${w}x${h}` : 'native'}/t${titleWidthPx}`;
-        const inputs = { type, state, w, h, titleWidthPx, recipeSha256: sha(JSON.stringify(wt.edges)) };
+        const key = `${type}/${state}/${size ? `${w}x${h}` : 'native'}/t${titleWidthPx}${popupFamily ? '/popup' : ''}`;
+        const inputs = { type, state, w, h, titleWidthPx, ...(popupFamily ? { popupFamily } : {}), recipeSha256: sha(JSON.stringify(wt.edges)) };
         const source = new PixelBuffer(asset.width, asset.height, new Uint8ClampedArray(asset.rgba));
         let c;
-        try { c = composeWindowChrome(source, wt, w, h, { titleWidthPx }); }
+        try { c = composeWindowChrome(source, wt, w, h, { titleWidthPx, popupFamily }); }
         catch (e) { yield { key, trace: { family: 'window', inputs, error: String(e.message) } }; continue; }
         yield {
           key,
@@ -223,11 +229,150 @@ async function* proceduralFrameCells({ slug, decoded, mutate = x => x }) {
   }
 }
 
+// ── slider (CDEF 3 driver on the v2 engine) ──────────────────────────────────
+// Every archive, both orientations, the three variant groups (directional ones
+// with 5 tick marks on a 32 px rect, as the composeSlider facade defaults), every
+// public state (pressed per part), at lengths 32 and 120 and values 0, 0.25 and
+// 1, through the inputs the facade builds: message 3 (init) then message 0. The
+// chain mirrors src/engine/resources/theme.ts over the loader's raw assets (cicn
+// pixels, manifest.engineCinfs bytes). A handed-off control (G2) is one cell.
+const SLIDER_STATES = [
+  { state: 'normal' }, { state: 'disabled' }, { state: 'inactive' },
+  ...['thumb', 'pageUp', 'pageDown'].map(pressedPart => ({ state: 'pressed', pressedPart })),
+];
+const SLIDER_VARIANTS = [['nonDirectional', 8, 0], ['pointsDownOrRight', 2, 5], ['pointsUpOrLeft', 6, 5]];
+const SLIDER_LENGTHS = [32, 120];
+const SLIDER_VALUES = [0, 0.25, 1];
+
+// The slider and progress adapters share their cicn and cinf entries (src/engine/resources/theme.ts):
+// cicn pixels with depth, bounds origin and the sampler companion; raw engine cinf bytes.
+function lineSampledCicnEntry(elements, id, asset) {
+  const el = elements.find(e => e.sourceCicnId === id && e.asset);
+  if (!el) return null;
+  const status = el.samplingEquivalence?.status ?? null;
+  return [`cicn:${id}`, { pixmap: asset(el.asset), pixelSize: el.iconBlit?.pixelSize ?? null, unmasked: null,
+    origin: el.boundsOrigin ?? null, sampling: status,
+    sampled: status === 'different' && el.sampledBandAsset ? asset(el.sampledBandAsset.asset) : null }];
+}
+function cinfEntry(decoded, id) {
+  const bytes = decoded.manifest.engineCinfs?.[String(id)];
+  return bytes ? [`cinf:${id}`, { bytes }] : null;
+}
+
+function sliderChain(E, slug, decoded, horizontal, mutate) {
+  const asset = path => { const a = decoded.assets.find(x => x.path === path || x.path.endsWith(`/${path}`)); return a && { width: a.width, height: a.height, data: new Uint8ClampedArray(a.rgba) }; };
+  const elements = Object.values(decoded.manifest.chromeElements ?? {});
+  const entries = [];
+  for (const { type, id } of E.sliderResourceIds(horizontal)) {
+    if (type === 'cicn') {
+      const entry = lineSampledCicnEntry(elements, id, asset);
+      if (entry) entries.push(entry);
+    } else if (type === 'cinf') {
+      const entry = cinfEntry(decoded, id);
+      if (entry) entries.push(entry);
+    }
+  }
+  return new E.ResourceChain([E.mapProvider(slug, 'archive', mutate(entries, { family: 'slider', horizontal }))]);
+}
+
+async function* sliderCells({ slug, decoded, mutate = x => x }) {
+  const { E, sliderTables: T } = await runtime();
+  const range = T.SLIDER_FACADE_RANGE, bg = T.SLIDER_FACADE_BACKGROUND;
+  for (const orientation of ['horizontal', 'vertical']) {
+    const horizontal = orientation === 'horizontal';
+    const chain = sliderChain(E, slug, decoded, horizontal, mutate);
+    for (const [variant, variation, ticks] of SLIDER_VARIANTS) {
+      const cross = ticks ? T.SLIDER_FACADE_THICKNESS.withTicks : T.SLIDER_FACADE_THICKNESS.plain;
+      // G2 depends only on the archive, the orientation and the variation: one cell.
+      const gate = E.createTrace('slider', { variation });
+      const R0 = horizontal ? E.rect(0, 0, cross, 120) : E.rect(0, 0, 120, cross);
+      if (E.sliderGate(chain, { rect: R0, hilite: 0, min: range.min, max: range.max, value: range.min, variation }, gate) === 'G2') {
+        yield { key: `${orientation}/${variant}/handoff`, trace: gate };
+        continue;
+      }
+      for (const st of SLIDER_STATES) for (const length of SLIDER_LENGTHS) for (const value of SLIDER_VALUES) {
+        const { hilite } = E.normalizeControlState(st, E.SLIDER_PRESSED_PARTS);
+        const R = horizontal ? E.rect(0, 0, cross, length) : E.rect(0, 0, length, cross);
+        const input = { rect: R, hilite, min: range.min, max: range.max, value: range.min + Math.round(value * (range.max - range.min)), variation };
+        const trace = E.createTrace('slider', { ...input, ticks });
+        const key = `${orientation}/${variant}/${st.pressedPart ? `pressed-${st.pressedPart}` : st.state}/${length}/v${value}`;
+        const port = { width: R.right, height: R.bottom, data: new Uint8ClampedArray(R.right * R.bottom * 4) };
+        try {
+          const init = E.sliderInit(chain, { ...input, value: range.min }, ticks, trace);
+          if (!init) throw new Error('handed off after a G1 gate');
+          E.drawSlider(port, chain, init.record, input, { background: { r: bg.r, g: bg.g, b: bg.b, a: bg.a } }, trace);
+        } catch (e) { yield { key, trace: { family: 'slider', inputs: trace.inputs, error: String(e.message) } }; continue; }
+        yield { key, trace: { ...trace, pixels: sha(port.data) } };
+      }
+    }
+  }
+}
+
+// ── progress bar (CDEF 5 driver on the v2 engine) ────────────────────────────
+// Every archive, the three public states that draw differently (pressed draws as
+// normal), lengths 40, 100 (the spec examples) and 160, determinate values 0, 0.25 and 1 through the
+// facade's 0..10000 mapping, two unclamped native cells (DET3 below min and past
+// max), and indeterminate phases 0, 2, 4 and 9. The chain mirrors
+// src/engine/resources/theme.ts over the loader's raw assets (cicn pixels and
+// sampler companions, manifest.engineCinfs bytes, ppat pixels).
+const PROGRESS_STATES = ['normal', 'inactive', 'disabled'];
+const PROGRESS_LENGTHS = [40, 100, 160];
+const PROGRESS_VALUES = [0, 0.25, 1];
+const PROGRESS_NATIVE = [[-10, 0, 100], [150, 0, 100]];
+const PROGRESS_PHASES = [0, 2, 4, 9];
+
+function progressChain(E, slug, decoded, mutate) {
+  const asset = path => { const a = decoded.assets.find(x => x.path === path || x.path.endsWith(`/${path}`)); return a && { width: a.width, height: a.height, data: new Uint8ClampedArray(a.rgba) }; };
+  const elements = Object.values(decoded.manifest.chromeElements ?? {}), patterns = Object.values(decoded.manifest.patterns ?? {});
+  const entries = [];
+  for (const { type, id } of E.progressResourceIds()) {
+    if (type === 'cicn') {
+      const entry = lineSampledCicnEntry(elements, id, asset);
+      if (entry) entries.push(entry);
+    } else if (type === 'cinf') {
+      const entry = cinfEntry(decoded, id);
+      if (entry) entries.push(entry);
+    } else if (type === 'ppat') {
+      const p = patterns.find(e => e.sourcePpatId === id && e.asset);
+      if (p) entries.push([`ppat:${id}`, asset(p.asset)]);
+    }
+  }
+  return new E.ResourceChain([E.mapProvider(slug, 'archive', mutate(entries, { family: 'progress' }))]);
+}
+
+async function* progressCells({ slug, decoded, mutate = x => x }) {
+  const { E, progressTables: T, realizeRgb16 } = await runtime();
+  const chain = progressChain(E, slug, decoded, mutate);
+  const realize = rgb => { const [r, g, b] = realizeRgb16(rgb, decoded.manifest.displayProfile); return { r, g, b, a: 255 }; };
+  const F = T.PROGRESS_FACADE_RANGE;
+  const variants = [
+    ...PROGRESS_VALUES.map(v => [`v${v}`, { value: F.min + Math.trunc(v * (F.max - F.min)), min: F.min, max: F.max }, 0, 0]),
+    ...PROGRESS_NATIVE.map(([value, min, max]) => [`native${value}`, { value, min, max }, 0, 0]),
+    ...PROGRESS_PHASES.map(phase => [`indeterminate/p${phase}`, { value: F.min, min: F.min, max: F.max }, 1, phase]),
+  ];
+  for (const state of PROGRESS_STATES) for (const length of PROGRESS_LENGTHS) for (const [name, native, inde, phase] of variants) {
+    const hilite = T.PROGRESS_STATE.find(r => r.state === state).hilite;
+    const input = { rect: E.rect(0, 0, T.PROGRESS_RECT.RECT1.height, length), hilite, ...native };
+    const trace = E.createTrace('progress', { ...input, indeterminate: inde, phase });
+    const key = `${state}/${length}/${name}`;
+    const port = { width: length, height: input.rect.bottom, data: new Uint8ClampedArray(length * input.rect.bottom * 4) };
+    try {
+      const record = E.newProgressRecord(trace);
+      record.indeterminate = inde; record.phase = phase;
+      const res = E.drawProgress(port, chain, record, input, { realize }, trace);
+      trace.phaseAfter = res.phase;
+    } catch (e) { yield { key, trace: { family: 'progress', inputs: trace.inputs, error: String(e.message) } }; continue; }
+    yield { key, trace: { ...trace, pixels: sha(port.data) } };
+  }
+}
+
 /** @internal probe hook: the proceduralFrame chain over one decoded archive. */
 export const __frameChain = (E, slug, decoded) => frameChain(E, slug, decoded, x => x);
 
 export const FAMILIES = {
-  window: { rules: ['docs/spec/engine/qd-primitives.md'], cells: windowCells },
+  window: { rules: ['docs/spec/engine/window-widgets.md', 'docs/spec/engine/qd-primitives.md'], cells: windowCells },
   scrollbar: { rules: ['docs/spec/engine/scrollbar.md', 'docs/spec/engine/qd-primitives.md'], cells: scrollbarCells },
   proceduralFrame: { rules: ['docs/spec/engine/procedural-frame.md', 'docs/spec/engine/qd-primitives.md'], cells: proceduralFrameCells },
+  slider: { rules: ['docs/spec/engine/slider.md', 'docs/spec/engine/qd-primitives.md'], cells: sliderCells },
+  progress: { rules: ['docs/spec/engine/progress.md'], cells: progressCells },
 };

@@ -1,6 +1,6 @@
 {
   "name": "scriptoscope",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": false,
   "description": "A Kaleidoscope-compatible window manager and theme engine for the web. Renders classic Mac OS schemes from their original binary resources (cicn/wnd#/cinf/ppat/Colr).",
   "license": "MIT",
@@ -58,7 +58,7 @@
     "dev": "vite",
     "build": "vite build && tsc -p tsconfig.build.json && node scripts/copy-css-to-dist.mjs && node scripts/copy-loader-declarations.mjs",
     "prepublishOnly": "npm run build",
-    "build:demo": "npm run build && vite build --config vite.demo.config.js && node scripts/copy-demo-assets.mjs",
+    "build:demo": "npm run build && vite build --config vite.demo.config.js && vite build --config vite.loader.config.js && node scripts/copy-demo-assets.mjs",
     "preview": "vite preview",
     "preview:demo": "vite preview --config vite.demo.config.js --port 4173",
     "typecheck": "tsc -p tsconfig.json --noEmit",

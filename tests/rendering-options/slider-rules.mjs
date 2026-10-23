@@ -293,7 +293,7 @@ export const STATE_HILITE = { normal: 0, pressed: 129, inactive: 254, disabled: 
 export const PRESSED_PART = { thumb: 129, pageUp: 22, pageDown: 23 };
 export const STATES = ['normal', 'pressed', 'disabled', 'inactive'];
 export const PUBLIC_ROWS = ['horizontal', 'vertical'].flatMap(orientation => STATES.map(state => ({ orientation, state })));
-/** Rows that need the public pressedPart option (DECISIONS #9): await the slider driver. */
+/** Rows that need the public pressedPart option (DECISIONS #9); bound in slider-rules.spec.mjs since the slider driver (#416). */
 export const AWAITING_ROWS = ['horizontal', 'vertical'].flatMap(orientation => ['pageUp', 'pageDown'].map(pressedPart => ({ orientation, state: 'pressed', pressedPart })));
 export const SAMPLE = { length: 120, value: 0.25 };
 export function nativeFor({ orientation, state, pressedPart }, { length = SAMPLE.length, value = SAMPLE.value } = {}) {
@@ -312,8 +312,8 @@ export const DRIVER_ROWS = {
     expected: [['copy', [0, 5], [0, 5]], ['copy', [115, 120], [44, 49]], ['tile', [5, 44], [5, 44]], ['tile', [44, 83], [5, 44]], ['tile', [83, 115], [5, 37]]] },
   D3: { row: 'R16 SL1/SL4/BL4 example C one-column lines', needs: 'engine trace slice pieces (BL4 lines)',
     expected: [['copy', [6, 0, 10, 2], [0, 0, 4, 2]], ['copy', [6, 98, 10, 100], [0, 3, 4, 5]], ['lines', [6, 2, 10, 98], [0, 2, 4, 3]]] },
-  D4: { row: 'R17 SL2 example D halves (1984 h, along 15)', needs: 'engine trace; along 15 is below the public minimum length 32',
-    expected: [['copy', [0, 8], [0, 8]], ['copy', [8, 15], [42, 49]]] },
+  D4: { row: 'R17 SL2 example D halves (1984 h, along 15; vertical twin)', needs: 'engine trace source rects (1984 art is symmetric, so pixels cannot tell halves from caps); along 15 is below the public minimum length 32',
+    expected: [[['copy', [0, 8], [0, 8]], ['copy', [8, 15], [42, 49]]], [['copy', [0, 8], [0, 8]], ['copy', [8, 15], [42, 49]]]] },
   D5: { row: 'R11 §5.1 F1 group-2 centre of rows (−10, 5)', needs: 'engine trace band B at a negative R', expected: [-10, 6] },
   D6: { row: 'R19 TK5/§5.4 example A tick rects', needs: 'public group and tick-count inputs', expected: [[0, 10, 16, 15, 23], [25, 33, 16, 38, 23], [50, 57, 16, 62, 23], [75, 81, 16, 86, 23], [100, 105, 16, 110, 23]] },
   D7: { row: 'R20 TK5/§5.4 example B tick rects', needs: 'public group and tick-count inputs', expected: [[0, 84, 16, 87, 23], [50, 48, 16, 51, 23], [100, 13, 16, 16, 23]] },
@@ -329,11 +329,13 @@ export const DRIVER_ROWS = {
  * Disagreement classes for one public row (docs/spec/engine/slider.md §8; the
  * slider issue lists them). `pred` = layout() of the row, `predMap` its
  * sourceMap, `obs` = { isNull, size: [w, h], map } where map[y][x] is null
- * (transparent) or { id, x, y } (the sentinel-decoded source pixel).
+ * (the sentinel `background` the host supplied, BG6: the O4 erase),
+ * { id: 'transparent' } (alpha 0: R was not erased or not copied opaque) or
+ * { id, x, y } (the sentinel-decoded source pixel).
  *   S1 gate (G1/G2): drew a slider the gate hands off, or vice versa.
  *   S2 thumb cell (TH3, cell map): the thumb drawn from another 16-px cell.
  *   S3 thumb transfer (BL1/TH4): mask-clear thumb pixels erase what is below.
- *   S4 no erase (OS4/OS5): pixels of R the decode leaves as background are transparent.
+ *   S4 no erase (OS4/OS5, BG5/BG6): pixels of R the decode leaves as the background are transparent.
  *   S5 thumb position (§5.2): the thumb drawn at another along offset.
  *   S6 track middle (SL4/BL4): track middle pixels from other source columns/rows.
  *   S7 track id (TR3/TR4): another track cicn.
@@ -359,9 +361,9 @@ export function classify(pred, predMap, obs) {
   const obsStart = starts.size === 1 ? [...starts][0] : null;
   const inObsThumb = (x, y) => obsStart !== null && (h ? x >= obsStart && x < obsStart + pred.tA : y >= obsStart && y < obsStart + pred.tA);
   for (let y = 0; y < hgt; y++) for (let x = 0; x < w; x++) {
-    const p = predMap[y][x], o = obs.map[y][x];
-    if (p === null && o === null) { out.add('S4'); continue; }   // the decode's O4 background, observed transparent
-    if (JSON.stringify(p) === JSON.stringify(o)) continue;
+    const p = predMap[y][x], seen = obs.map[y][x], transparent = !!seen && seen.id === 'transparent', o = transparent ? null : seen;
+    if (p === null && transparent) { out.add('S4'); continue; }   // the decode's O4 background, observed transparent
+    if (!transparent && JSON.stringify(p) === JSON.stringify(o)) continue;   // includes the background (null) where the decode leaves it
     if (o && o.id === thumbId) continue;                          // thumb pixels: S2 / S5 above
     if (p && p.id === thumbId) { if (!out.has('S5')) out.add('SX'); continue; }   // decode's thumb pixel; the observed thumb moved
     if (!o) { out.add(p.id === trackId && inObsThumb(x, y) ? 'S3' : 'SX'); continue; }   // track erased under the observed thumb

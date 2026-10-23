@@ -8,7 +8,7 @@ import { stuffItResourceForkWithSelection } from '../../tools/sit-wasm/index.mjs
 import { readCicnIndexed } from '../../tools/theme-loader/decoders/cicn.js';
 import { parseResourceMap } from './checkable-rules.mjs';
 import {
-  AWAITING_ROWS, BASE, DRIVER_ROWS, PUBLIC_ROWS, SLUGS, W, H, band, gate, hitTest, inSliderRange, layout, nativeFor, posCntl, rect, select,
+  AWAITING_ROWS, BASE, DRIVER_ROWS, PUBLIC_ROWS, SLUGS, W, H, band, classify, gate, hitTest, inSliderRange, layout, nativeFor, posCntl, rect, select,
   sliderCensus, sourceMap, thumbCntl, tickCount, valueFromGhost,
 } from './slider-rules.mjs';
 
@@ -41,7 +41,8 @@ const B16 = (w, h) => ({ top: 0, left: 0, bottom: h, right: w });
 const A = { rect: rect(0, 0, 32, 120), hilite: 0, variation: 2, initialValue: 5, min: 0, max: 100, value: 50 };   // 1138 h group 0, n = 5
 const Bx = { rect: rect(0, 0, 100, 32), hilite: 0, variation: 2, initialValue: 3, min: 0, max: 100, value: 25 };  // 1990 v group 0, n = 3
 const C = { rect: rect(0, 0, 16, 100), hilite: 0, variation: 8, min: 0, max: 100, value: 50 };                    // windows-95 h group 2
-const D = { rect: rect(0, 0, 12, 15), hilite: 0, variation: 0, min: 0, max: 100, value: 50 };                     // 1984 h, along 15
+const D = { rect: rect(0, 0, 14, 15), hilite: 0, variation: 0, min: 0, max: 100, value: 50 };                     // 1984 h, along 15 (15 > 14: horizontal)
+const Dv = { ...D, rect: rect(0, 0, 15, 14) };                                                                   // its vertical twin
 const at = (slug, native, r) => layout(native, census(slug), { reading: r });
 const cross = (b, h) => (h ? [b.top, b.bottom] : [b.left, b.right]);
 const pieces = l => l.trackPieces.map(p => [p.kind, l.horizontal ? [p.dst.left, p.dst.right] : [p.dst.top, p.dst.bottom], l.horizontal ? [p.src.left, p.src.right] : [p.src.top, p.src.bottom]]);
@@ -80,7 +81,7 @@ const ROWS = {
   'R14 §5.2 vertical minimum at the bottom (1990 v, value 0)': r => at('1990', { ...Bx, value: 0 }, r).Th.top,
   'R15 SL3/SL5/SL6 example A track pieces': r => pieces(at('1138', A, r)),
   'R16 SL1/SL4/BL4 example C one-column lines': r => { const l = at('windows-95', C, r); return l.trackPieces.map(p => [p.kind, [p.dst.top, p.dst.left, p.dst.bottom, p.dst.right], [p.src.top, p.src.left, p.src.bottom, p.src.right]]); },
-  'R17 SL2 example D halves (1984 h, along 15)': r => pieces(at('1984', D, r)),
+  'R17 SL2 example D halves (1984 h, along 15; vertical twin)': r => [pieces(at('1984', D, r)), pieces(at('1984', Dv, r))],
   'R18 SL6 end-anchored tiles (synthetic byte 3 ≠ 0 on 1138 −10143)': r => { const c = census('1138');
     return pieces(layout(A, { cinf: new Map([...c.cinf, [-10143, [5, 16, 1, 1]]]), cicn: c.cicn }, { reading: r })); },
   'R19 TK5/§5.4 example A tick rects': r => at('1138', A, r).ticks.map(t => [t.v, t.dst.left, t.dst.top, t.dst.right, t.dst.bottom]),
@@ -125,7 +126,7 @@ const EXPECTED = {
   'R14 §5.2 vertical minimum at the bottom (1990 v, value 0)': 76,
   'R15 SL3/SL5/SL6 example A track pieces': [['copy', [0, 5], [0, 5]], ['copy', [115, 120], [44, 49]], ['tile', [5, 44], [5, 44]], ['tile', [44, 83], [5, 44]], ['tile', [83, 115], [5, 37]]],
   'R16 SL1/SL4/BL4 example C one-column lines': [['copy', [6, 0, 10, 2], [0, 0, 4, 2]], ['copy', [6, 98, 10, 100], [0, 3, 4, 5]], ['lines', [6, 2, 10, 98], [0, 2, 4, 3]]],
-  'R17 SL2 example D halves (1984 h, along 15)': [['copy', [0, 8], [0, 8]], ['copy', [8, 15], [42, 49]]],
+  'R17 SL2 example D halves (1984 h, along 15; vertical twin)': [[['copy', [0, 8], [0, 8]], ['copy', [8, 15], [42, 49]]], [['copy', [0, 8], [0, 8]], ['copy', [8, 15], [42, 49]]]],
   'R18 SL6 end-anchored tiles (synthetic byte 3 ≠ 0 on 1138 −10143)': [['copy', [0, 5], [0, 5]], ['copy', [115, 120], [44, 49]], ['tile', [76, 115], [5, 44]], ['tile', [37, 76], [5, 44]], ['tile', [5, 37], [12, 44]]],
   'R19 TK5/§5.4 example A tick rects': [[0, 10, 16, 15, 23], [25, 33, 16, 38, 23], [50, 57, 16, 62, 23], [75, 81, 16, 86, 23], [100, 105, 16, 110, 23]],
   'R20 TK5/§5.4 example B tick rects': [[0, 84, 16, 87, 23], [50, 48, 16, 51, 23], [100, 13, 16, 16, 23]],
@@ -315,4 +316,22 @@ test('per-archive mutation table over sampled draws; readings no archive discrim
 test('driver rows: DRIVER_ROWS expected values are the spec rows', () => {
   for (const [id, row] of Object.entries(DRIVER_ROWS)) assert.deepEqual(ROWS[row.row]({}), row.expected, `${id} ${row.row}`);
   for (const row of Object.values(DRIVER_ROWS)) assert.deepEqual(row.expected, EXPECTED[row.row]);
+});
+
+// BG1–BG6 (spec §4.10, §7 "the #407 S4 class"): the browser binding names the host's sentinel background as null
+// and alpha 0 as { id: 'transparent' }. The §7 mutations must each be classified, never read as agreement.
+test('classify: BG1–BG6 mutations of an observed draw are named (1138 h/normal and 1984 h/normal)', () => {
+  const named = (slug, mutate) => {
+    const l = layout(nativeFor({ orientation: 'horizontal', state: 'normal' }), census(slug)), m = sourceMap(l, maskOf(slug));
+    const map = m.map((line, y) => line.map((v, x) => mutate(v, x, y, l)));
+    return classify(l, m, { isNull: false, size: [W(l.R), H(l.R)], map });
+  };
+  const trackPixel = l => ({ id: l.sel.track, x: 0, y: 8 });
+  for (const slug of ['1138', '1984']) {
+    assert.deepEqual(named(slug, v => v), [], `${slug} decode`);
+    assert.deepEqual(named(slug, v => (v === null ? { id: 'transparent' } : v)), ['S4'], `${slug} transparent R`);
+    assert.notDeepEqual(named(slug, (v, x, y, l) => (v === null ? trackPixel(l) : v)), [], `${slug} background taken from the track's first pixel`);
+    assert.notDeepEqual(named(slug, (v, x, y, l) => (v && v.id === l.sel.track ? null : v)), [], `${slug} erase after the track`);
+  }
+  assert.deepEqual(classify(layout(nativeFor({ orientation: 'horizontal', state: 'normal' }), census('floppies')), null, { isNull: false }), ['S1']);
 });

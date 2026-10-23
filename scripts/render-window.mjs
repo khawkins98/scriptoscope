@@ -41,12 +41,13 @@ const { key: wtKey, wt } = resolved;
 if (!wt?.chrome?.active) { console.error(`window type "${wtKey}" has no active chrome cicn`); process.exit(1); }
 
 const cicn = loadCicn(themeDir, wt.chrome.active);
-// Title width drives the part-5 plate: an explicit --plate N wins; else estimate
-// from the --title text (~6px/char + 12px plate padding), so the plate sizes to
-// the title exactly as the kDEF measures StringWidth.
+// `titleWidthPx` is SW, the bare StringWidth of the title (window-widgets LS6; the
+// layout adds the plate margins itself). An explicit --plate N gives SW directly;
+// else estimate ~6px per character of --title.
 const titleWidthPx = opts.plate > 0
   ? opts.plate
-  : (opts.title ? opts.title.length * 6 + 12 : 0);
+  : (opts.title ? opts.title.length * 6 : 0);
+const titleLength = opts.title ? opts.title.length : (titleWidthPx > 0 ? 1 : 0);
 // Corner-sprite window types (schemes with no wnd# recipe) draw through the v2
 // engine family proceduralFrame, which loads its art by resource id from a
 // decoded theme; this file-based tool walks only wnd# recipes. Use
@@ -56,7 +57,7 @@ if (wt.model === 'corner-sprite') {
   console.error(`"${wtKey}" is a built-in-frame window (no wnd# recipe); render it in the browser or dump an engine-diff proceduralFrame cell.`);
   process.exit(1);
 }
-const composed = composeWindowChrome(cicn, wt, opts.w, opts.h, { cinf: wt.cinf ?? null, titleWidthPx });
+const composed = composeWindowChrome(cicn, wt, opts.w, opts.h, { cinf: wt.cinf ?? null, titleWidthPx, titleLength });
 
 const diagDir = resolve(themeDir, 'diag');
 if (!existsSync(diagDir)) mkdirSync(diagDir, { recursive: true });

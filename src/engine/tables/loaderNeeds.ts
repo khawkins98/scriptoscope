@@ -6,6 +6,8 @@
 // each `terms` array (src/engine/resources/ids.ts expands it).
 import { SCROLLBAR_TRACK_IDS } from './scrollbar.js';
 import { PF_ART, PF_UTILITY_ART, PF_UTILITY_GROW, PF_UTILITY_STRIPES } from './proceduralFrame.js';
+import { SLIDER_IDS } from './slider.js';
+import { PROGRESS_FALLBACK, PROGRESS_IDS } from './progress.js';
 
 export interface IdGrid {
   readonly bases: readonly number[];
@@ -16,6 +18,10 @@ export interface FamilyLoaderNeeds {
   readonly family: string;
   /** cicns the family draws with the icon blit (qd-primitives I1–I3): the loader records depth and an opaque companion. */
   readonly iconBlitCicns: readonly IdGrid[];
+  /** cinfs the family reads raw header bytes of (gate / corner / slicing): the loader keeps them in `manifest.engineCinfs`. */
+  readonly cinfs?: readonly IdGrid[];
+  /** cicns the family draws through the line samplers (slider BL4/BL5, BL8/BL12): the adapter also loads their sampler companion. */
+  readonly lineSampledCicns?: readonly IdGrid[];
   readonly source: string;
 }
 
@@ -33,4 +39,9 @@ export const ENGINE_LOADER_NEEDS: readonly FamilyLoaderNeeds[] = [
     }],
     source: 'procedural-frame GB3a opaque copies (§4/§5/§5A corners, §9.5 US5 utility stripes); frame samples read the opaque companion (§3.5 "Sampling", §9.4); grow and utility frame cicns are copied masked (GB3)',
   },
+  { family: 'slider', iconBlitCicns: [], cinfs: [SLIDER_IDS.horizontal, SLIDER_IDS.vertical],
+    lineSampledCicns: [SLIDER_IDS.horizontal, SLIDER_IDS.vertical], source: 'slider G1, ID6, TR3–TR6 (cinf bytes 0, 2, 3); BL4/BL5 line colours (BL8, BL12)' },
+  { family: 'progress', iconBlitCicns: [], cinfs: [PROGRESS_IDS.art],
+    lineSampledCicns: [PROGRESS_IDS.art, { bases: [PROGRESS_FALLBACK.cicn], terms: [] }],
+    source: 'progress GATE1–GATE4, CINF2 (frame bytes 0–2, fill/track bytes 0, 2, 3); BLIT3/BLIT4 line colours and FB1–FB3 samples (COL1)' },
 ];

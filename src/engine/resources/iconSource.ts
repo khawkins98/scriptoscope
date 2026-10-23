@@ -28,3 +28,18 @@ export function cicnIconSource(pixmap: Pixmap, pixelSize: number | null, compani
   if (sameOccurrence(pixmap, companion)) return { pixmap, pixelSize, unmasked: companion };
   return { pixmap, pixelSize, unmasked: null, fallback: OPAQUE_COMPANION_MISMATCH };
 }
+
+/**
+ * Where one-column / one-row line colours come from (slider BL8/BL12, progress
+ * COL1; adapter policy shared by both CDEFs, which use the same colour-table
+ * search). The decoded colour is the search's colour when the loader found the
+ * two equal at every opaque pixel (`equivalent`: `shortcut`, no trace); otherwise
+ * the loader's sampler companion supplies the search's colours; with neither,
+ * the decoded colour is drawn and `unspecified` says so.
+ */
+export function lineColourSource(icon: IconSource, rule: string): { pm: Pixmap; shortcut: boolean; unspecified?: string } {
+  if (icon.sampling === 'equivalent') return { pm: icon.pixmap, shortcut: true };
+  if (icon.sampled) return { pm: icon.sampled, shortcut: false };
+  return { pm: icon.pixmap, shortcut: true,
+    unspecified: `decoded colour used for ${rule} without an equivalence record (sampling ${icon.sampling ?? 'unknown'})` };
+}

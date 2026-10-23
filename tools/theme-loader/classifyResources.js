@@ -76,7 +76,13 @@ export function classify(id, type, slug) {
   return { family: 'other', role: s ? `cicn body (${s})` : 'unclassified cicn body' };
 }
 
-/** Resolve the per-scheme PROGRESS model from the cicn ids + slug map. */
+/**
+ * Resolve the per-scheme PROGRESS model from the cicn ids + slug map.
+ * @deprecated Diagnostic only; the runtime never reads it. The progress bar's
+ * drawing path is chosen by the v2 engine's cinf gate (docs/spec/engine/progress.md
+ * GATE1–GATE4), and this lavender / role model is wrong for the eight procedural
+ * schemes (progress.md §8). Kept for the resource-roles consumers; removal: #436.
+ */
 export function progressSummary(cicnIds, cicnSlug) {
   const has = (id) => cicnIds.has(id);
   if (has(-10223)) {

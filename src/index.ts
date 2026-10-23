@@ -14,7 +14,7 @@ export type { ControlCompositionContext, ControlCompositionSnapshot, ControlPoin
 
 // Pre-1.0 — release version is tracked in package.json. Keep this constant aligned
 // with the package.json `version` field.
-export const VERSION = '0.3.0';
+export const VERSION = '0.4.0';
 
 export { setDebug, isDebug, debug, type DebugOpts } from './debug.js';
 
@@ -39,15 +39,16 @@ export { loadTheme, assetUrl, findChromeElement, type ThemeMeta } from './loadTh
 // runs internally; surfaced here so an npm consumer can reach it without importing a
 // /tools/ path. Returns a `LoadedTheme` (encoded mode) or `{ manifest, assets, iconIndex }`
 // (raw mode, when `encodeAssets: false` is set). Typing comes from the sibling
-// `tools/theme-loader/loadKaleidoscopeScheme.d.ts` shim.
-export { loadKaleidoscopeScheme } from '../tools/theme-loader/loadKaleidoscopeScheme.js';
+// `tools/theme-loader/loadKaleidoscopeScheme.d.ts` shim; src/loadKaleidoscopeScheme.ts
+// adds the engine's default loader inputs (engine cinf ids).
+export { loadKaleidoscopeScheme } from './loadKaleidoscopeScheme.js';
 export { renderWindow, type RenderWindowOptions } from './renderWindow.js';
 export type { ControlDiagnostics, ControlRenderTrace, ControlResolutionStep, TabBodyTrace } from './controlDiagnostics.js';
 export type { HeaderSurfaceOptions, HeaderSurfaceResult, HeaderSurfaceUnsupportedReason, HeaderSurfaceTrace } from './headerSurface.js';
 
 export {
   interactiveButton, interactiveCheckbox, radioGroup, interactiveDisclosure,
-  interactiveSlider, interactiveScrollbar, WindowManager, titleWidgetHits,
+  interactiveSlider, interactiveScrollbar, WindowManager, titleWidgetHits, ProgressIdle, progressTickCount,
   type InteractiveButtonOptions, type InteractiveCheckableOptions,
   type RadioGroupOptions, type InteractiveDisclosureOptions,
   type InteractiveSliderOptions, type InteractiveScrollbarOptions,
@@ -69,6 +70,7 @@ export {
   composeSlider,
   composeDisclosure,
   composeProgress,
+  composeProgressFrame,
   composeTab,
   composeButton,
   composeBevelButton,
@@ -86,6 +88,7 @@ export {
   type SliderOptions,
   type DisclosureOptions,
   type ProgressOptions,
+  type ProgressFrame,
   type Orientation,
   type ControlState,
 } from './controls.js';

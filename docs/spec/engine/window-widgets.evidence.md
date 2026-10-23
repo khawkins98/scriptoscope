@@ -502,3 +502,241 @@ segments, 0 sides with a 5/6 segment off a titled horizontal side, 0 unsorted
 side lists, 211 widget entries with every corner in a code 1/2/3/4/10 segment,
 the 11 in code 10 all collapse boxes. `scan-shrink.mjs` (`scan-shrink.out`):
 the §7 shrink values.
+
+---
+
+# Part C — window-migration answers, 2026-10-22 (spec writer)
+
+Listing: the same `k231-kdef0.asm`, navigated by hand. Corpus scans read only
+the theme-loader's decoded recipes, rect lists and chrome cicn pixels (scripts
+and outputs in the lane store `v2-lanes/window-widgets-answers/`). No tooling
+was run over the original binaries. Marks are the spec writer's; an
+independent verifier has not marked them.
+
+## C1. LS9: the side span ends at `P[N]` (question 1, F9)
+
+`0x4be4..0x4c60`: with the axis byte `fp@(24)` set, `a3@(4)` (dest border 0)
+= `a2@(4)` + `fp@(20)`→`+2` (content left) − `fp@(16)`→`+2` (body left); dest
+border `N` (`a3@(4,N:l:4)`) = `a2@(4,N:l:4)` + content `+6` (right) − body
+`+6`. Clear: `+0`/`+4` (top/bottom). These are the only writes to dest borders
+0 and `N` in `0x4a64`. The AP3 call `0x5148..0x5166` pushes first = 1, last =
+`a3@` (= `N`), required `fp@(-16)`; `0x5178` budget `0x5180..0x519c` =
+dest[last] − dest[first−1] − required = `P[N] − P[0] − F`, and the walk
+`0x532e..0x534a` writes dest borders `first..last` only. AP2: TT5
+`0x4fa8..0x4fcc` reads dest[0] and dest[`N`]; the two `0x5178` calls cover
+`1..d4−1` and `d4+1..N`. The full draw `0x5938..0x59f8` walks segments `1..N`
+and builds each cell with `0x5356` from the dest borders. No other code
+reaches past dest[`N`]. CONFIRMED. The runtime cross-check is
+`src/composeChrome.ts` `composeEdge`/`distributeSide` on origin/v2:
+`distributeHalf(cells, 0, n, outExtent − srcStart)` with `outExtent` the full
+window width/height (`fullW = frame.left + contentW + frame.right`, frame from
+`drawableExtent`), plus the horizontal far-edge cap.
+
+## C2. TT10: untitled windows (question 3)
+
+`0x4a94..0x4aa6`: GetWTitle into `fp@(-290)`, StringWidth into `fp@(-2)`; an
+empty title gives length byte 0 and width 0 with no drop. LS6 `0x4b20..0x4b3a`
+then leaves `fp@(-2)` = `(S[i] − T4.right) + (T4.left − S[i−1])`. TT4
+`0x4f66` tests the length byte itself (`tstb fp@(-290)`), so it fires for an
+empty title. The TT9 calls push `fp@(-290)` as the gate (`0x5100`, `0x5120`),
+read at `0x530c`: zero → codes 5/6 width 0 (`0x5312..0x531c`). The anchor cell
+is outside both calls; TT6 `0x5034..0x5042` caps dest[`d4`] at dest[`d4−1`] +
+`fp@(-2)`, TT7 `0x5094..0x50ba` the same from the other side. TT8
+`0x50be..0x50fa` runs when `fp@(-2)` < 0. CONFIRMED. Corpus (`scan2.out`): 83
+anchored sides, plate widths 0 ×63, positive ×10, negative ×10.
+
+## C3. TT2: condensed width (question 4)
+
+`0x4f04..0x4f42`: `d3` = StringWidth (current face); TextFace 33 or 32
+(`a4@(506)`); `d5` = StringWidth; TextFace 1 or 0; `fp@(-2) −= d3 − d5`.
+CONFIRMED. The value of `d5` is the Font Manager's; nothing in the kDEF
+computes it. TT2a is a declared default from Apple's documented synthetic
+condense, not an observation.
+
+## C4. PP1–PP7: popup placement (question 5)
+
+`0x4c64..0x4c6e`: `d4` (anchor) and `a4@(509)` (family 63), no axis test.
+`0x4c72..0x4c8c`: window `+130` (dataHandle) dereferenced; `fp@(-326)` = word
+at `+22`, `fp@(-330)` = long at `+16`. `0x4c92..0x4cbc`: long `+16` = −2 →
+`d0` = `fp@(-326)` halved (`lsrw #8`, `lsrw #7`, add, `asrw #1`: truncation
+toward zero), `d1` = word `+26` − content left + 4 − `d0`; else `0x4cbe`
+`d0` = `fp@(-328)` (the low word of the `+16` long, offset 18). Result →
+`fp@(-316)` (`X`). `0x4cc6..0x4d5c`: `fp@(-32)` (before) and `fp@(-34)`
+(after) summed over `0x49d6(code, fp@(-3))` keep and not {8,11,18,12,13,14};
+`fp@(-3)` is 0 here (the step at `0x4dfe` has not run). `0x4d5e..0x4d86`:
+dest[`d4−1`] = content left + `X` + 10 + `S[d4−1]` − `fp@(-296)` (T4 left).
+`0x4d8a..0x4db0`: dest[`d4`] = content left + `X` + `fp@(-326)` − 10 + `S[d4]`
+− `fp@(-298)` (T4 right). `0x4db4..0x4df0`: two `0x5178` calls, gate `#1`,
+flag `fp@(-3)`, required `fp@(-32)`/`fp@(-34)`, growers `fp@(-18)`/`fp@(-20)`,
+ranges `1..d4−1` and `d4+1..N`. `0x4dfa` returns. CONFIRMED.
+
+Creation: `0x38fe` (`wNew`, dispatch case 3). `0x390a` `tstb a4@(509)`;
+`0x3910..0x3916` NewHandle(28) stored at window `+130`; `0x3920..0x3950`
+writes long 0 at 0, 4, 8; long 10312 at 12; long 0 at 16; long 33 at 20; word
+0 at 26 and 24; `0x3954` returns to the dispatcher. So `pdMode` 0, `pdX` 0,
+`pdLen` = low word of 33 = 33, `pdCentre` 0. Writers after creation: none in
+`0x4a64`, `0x38fe` or the message 1000/1001 handlers (`0x2dbc..0x2dd6`, which
+call `0xee7a`/`0xef8a` and `0xeeb2`/`0xf010` without the window). Not searched
+beyond these: Q10. The cache tag test at `0x375c` reads `+36`, past the
+28-byte block; its outcome there is not decoded (it would need heap contents).
+
+Corpus: `popup-window` has a code-5 top anchor in all 13 `wnd#` archives
+(`c5.mjs`).
+
+## C5. WD13, HT8: blit and hit region (question 6)
+
+Calls in `0x6062..0x638e` (a plain text search of the existing listing):
+`0x6146`, `0x62e0`, `0x6318` are each `bsrl 0x10320` (scale blit), after
+`0x5cb6` at `0x6138`, `0x62b0`, `0x6308`. qd-primitives SC3/SC4 give the
+transfer. `0xf6e0`: `0xf30a` (pixmap lock), `$A8D7` BitMapToRegion(rgn,
+`(*cicn)+50`) — `+50` is the CIcon's `iconMask` BitMap after the 50-byte
+`iconPMap` — and on a nonzero result `$A8DD` SetEmptyRgn; `0xf35e` unlock.
+`0x5f98..0x5fbe` (in `0x5ddc`): NewRgn, `0xf6e0`, `$A8E0` OffsetRgn by
+(placed left − source left, placed top − source top) from `fp@(-14)`−`fp@(-6)`
+and `fp@(-16)`−`fp@(-8)`; no MapRgn. CONFIRMED.
+
+## C6. TT4a (question 7)
+
+`0x4f6c..0x4f7a` reads the code at dest `+2 + 4·(d4+1)`; `0x4f88..0x4f96` at
+`+2 + 4·(d4−1)`. Dest codes are written only for entries `1..N` (`0x4b14`
+copies the source long at entry *i* for *i* = 1..`N`); `0x4a88` writes the
+count, `0x4bfe` border 0. For `d4 = 1` the read is entry 0's code; for
+`d4 = N` entry `N+1`. Neither is written in `0x4a64`. The source lists are
+copied as fixed 162-byte blocks from the `wnd#` (`0x36ce..0x373c`), but the
+dest lists at `a4@(2140)` are not. For `d4 = 1` the subtracted width would be
+`S[0] − a2@(0)` (the count word), since index `d4−2 = −1`. NOT DECODED beyond
+the read.
+
+## C7. AW1a (question 8)
+
+First pass `0x51f2..0x5212`: code 12, `d6` = width; `beqs 0x5214` on 0 skips
+the remainder term. Second pass `0x526c..0x527c`: width 0 → `0x5298` `d6` = 0.
+CONFIRMED.
+
+## C8. Rect lists (question 9)
+
+`dups.mjs` over the raw `wnd#` rect lists (`tools/theme-loader/decoders/wnd.js`):
+138 resources; every list's first entry has type 0; type 4 repeats in 8; no
+type 1–3 repeat; 32 lack type 4. `buildThemeJson.js` keys `parts` by type and
+overwrites, so it keeps the last rect per type at the first key's position.
+
+## C9. Q3: full draw paints (question 10)
+
+`0x572e..0x5cb4` walked end to end. Writes to the port or the offscreen: the
+GWorld setup (`$AB1D` selectors `0x16` NewGWorld into `fp@(-56)` with the
+structure bbox, `0x17`, `0x01`, `0x05`, `0x06`), `0xea6c` (border cache, a
+pixmap built by four CopyMask calls; it paints the cache, not the port), the
+side loop `0x5938..0x5a1a` (`0xfeae` tile, `0x10320` scale, `0x5530` title),
+`0x632e(5, 0)` at `0x5a3c`, the four `$A8EC` CopyBits at `0x5a9e..0x5b32`
+(offscreen → window, srcCopy, mask = DiffRgn(strucRgn, contRgn), rects = the
+structure bbox above, below, left and right of the content rect), the untraced
+`0x480a`/`0x45b2` pair (Q8) and the family-63 blits `0x5bd8`, `0x5c34`,
+`0x5c92`. No EraseRect, FillRect or pattern fill of the offscreen was found in
+this range. CONFIRMED for the range; the offscreen's prior contents and Q8 are
+open.
+
+## C10. TX1–TX9: title text (question 12)
+
+`0x5538` no template → exit. `0x5540..0x5554` GetWTitle into `fp@(-284)`;
+empty and `a4@(511)` clear → exit. `0x5558..0x5578` `fp@(-16)` = body rect,
+`fp@(-8)` = T4. `0x557e..0x5592` `0xfc5c` samples at (T4 left, T4 bottom − 4)
+into `fp@(-290)`, later `$AA15` RGBBackColor (`0x55ea`). `0x5598` `0x5cb6(T4)`;
+`0x55a2..0x55ba` right = left or bottom = top → exit (equality only).
+`0x55be` right += 2. `0x55c2..0x55e4` NewRgn ×2, GetClip, RectRgn(T4p),
+SectRgn, SetClip. `0x55ec..0x5606` room = right − left; StringWidth(title) ≤
+room → skip. `0x5608..0x5634` TextFace 33/32, `$A8B5` with selector
+`0x8208FFE0` (TruncString: width, string, truncWhere 0). `0x5638` TextMode 1.
+`0x563e..0x56ae` colours: family 63 samples (body left, body bottom − 1) into
+`fp@(-22)` and (body left + 1, same row) into `fp@(-28)`; otherwise (body left,
+body top) and (body left + 1, body top). `0x56b2..0x56ce` compare; different →
+`0x56d0..0x56ec` RGBForeColor(`fp@(-28)`), MoveTo(left + 1, bottom − 3),
+DrawString. `0x56ee..0x5706` RGBForeColor(`fp@(-22)`), MoveTo(left, bottom −
+4), DrawString. `0x5708..0x5724` TextFace 1/0, SetClip(saved), DisposeRgn ×2.
+CONFIRMED. `0x58ee..0x5936` picks the side; `0x59fc` calls `0x5530` after that
+side's segments.
+
+Note for the reference's owner: `kdef231-reference.evidence.md` (`0x5530` row)
+names `fp@(-28)` the text colour and `fp@(-22)` the shadow. By the draw order
+above, `fp@(-28)` is drawn first at (+1, +1) and `fp@(-22)` on top at the
+unshifted point, so `fp@(-22)` is the text and `fp@(-28)` the shadow. The
+reference's own prose ("text in colour1 + a ~1px-offset shadow in colour2",
+colour1 sampled first) agrees with this reading. Not edited here.
+
+## C11. HT2 (question 14)
+
+`0x4124..0x4128` `tstb a4@(508)`, clear → result 2, ahead of every widget test
+(`0x412c`, `0x4168`, `0x41be`). Re-read, CONFIRMED. The keyboard is not a WDEF
+message. The full draw's only `a4@(508)` gate is WD5 (`0x5a30`); close and
+collapse art at rest are the template pixels the side cells copy, so whether
+an inactive window shows widget art depends on its template, not on a widget
+draw.
+
+## C12. F6 corpus (question 2)
+
+`f6b.mjs` / `f6b.out`: for each `wnd#` window type and state, the decoded
+chrome cicn's last column and row with alpha > 16 (the runtime's
+`drawableExtent` threshold) against its bounds, keeping sides with at least
+one segment. 19 types have a bottom (height differs) or right (width differs)
+side; no type-1–3 rect reaches past the drawn extent. The implementer's list of
+seven is a subset, except beos collapsed-no-title-utility, whose only side is
+the top, where CR1 does not read `B`.
+
+## C13. Corrections after the #437 review (2026-10-22)
+
+The Tier-1 verifier's REVIEW-437 refuted two Part C claims. The spec now
+carries the verifier's replacement text.
+
+- **C1 overclaim (B1).** "No other code reaches past dest[`N`]" holds, but the
+  walk `0x532e..0x534a` rewrites dest[last] = dest[`N`] with the running sum.
+  So the side ends at `P[N]` only when the allocation hands out its whole
+  budget. That needs a code 8/11/13/14/18 recipient and no code-12 cell of
+  width 0 (`0x5202`), or a zero budget. With no primary grower (`0x52b0`,
+  `0x52e6`) the side ends at `P[0] + F`, and code-12-only growers leave the
+  remainder `d4` undistributed. Two corpus AP3 sides are inexact: floppies
+  collapsed-document-window right and animals collapsed-no-title-utility right
+  (the verifier's `span-fill.out`). LS9, §5, F9 and §9 row 1 are corrected.
+- **C2 counts (B2).** The 83 anchored sides include 13 `popup-window` top
+  sides, which take AP1 at `0x4c64`/`0x4c6a` and return at `0x4dfa` before
+  TT4–TT10. On the other 70: 52 zero, 9 positive, 9 negative. The 1138
+  popup-window side is not a TT8 case.
+- **C8.** `dups.out` itself shows crayon-os −14332 starting with type 4
+  (order 4, 1, 2, 3, 0, each once). 137 of 138 lists start with type 0, and the
+  equivalence conclusion stands.
+- **C9.** Two items were missing from the call list, and neither paints:
+  `0xecb6` at `0x5a22` (handle unlock and purge) and the `0x489c` gate before
+  the Q8 pair. WD6's held rect is the content rect from `0x4778` (`0x5786`);
+  the WD6 row is corrected.
+
+## C14. F5 reach and WD6 reach (2026-10-22, after the #444 test author's note)
+
+`ts3.mjs` / `ts3.out` (lane store; theme-loader recipes and rect lists only)
+applies TS1–TS3 to every `wnd#` side with every widget present. Codes 15, 16
+and 17 are zero, and so is code 0. `F` excludes {5, 6, 8, 11, 12, 13, 14, 18}.
+`G` = Σ code 4 − Σ code 17. TS3 can fire when `G > 0` and the smallest
+placed extent (content 0) is below `F − D`. The scan finds 42 types in 10
+archives, and 12 sides at content delta −12. For each such type it finds the
+collapse rect's two corner cells by first match in side then segment order
+(RM3/RM4), using the template cross bands of CR1–CR4. A corner in a code-4
+cell on the first firing side or a later one, or in a dropped code-10 cell,
+counts as emptying (RM6). That test is a corner-cell reading, not a full
+layout, so three cases were checked by hand from `sf.out`:
+
+- 1990 side-floating-utility: top-left in top segment `[0,14)` code 1,
+  bottom-right in left segment `[9,14)` code 4. With that cell at width 0 the
+  rect's top and bottom both land at `9 + Δ`, so it is empty.
+- monkey-paradise side-floating-utility: bottom-right in right segment
+  `[0,22)` code 4. The height comes out at −2, so it is empty.
+- dolphin-som side-floating-utility `[2,2,8,8]` and no-title-utility
+  `[57,7,61,11]`: both corners lie in one top cell, code 1 (segment `[0,14)`)
+  and code 3 (segment `[57,63)`) respectively. Neither cell is zeroed by TS3,
+  so the rect is not emptied.
+
+The LC1 path itself is as R3: `collapseRequested` comes back from the table
+at `0x2e26`, the cached placed lists are reused, and HT5 then reads
+`collapseBox` at `0x41be`. Whether a dolphin-som utility window is
+`cacheable` depends on `hasZoom` at creation, which is per-procID and not
+known to the runtime.
+
+`wd6.mjs` / `wd6.out`: all 13 `popup-window` types have type-5 and type-6
+rect-list entries. WD6 runs under `popupFamily` in the full draw
+(`0x5b7a`), so it is exercised wherever AP1 is.

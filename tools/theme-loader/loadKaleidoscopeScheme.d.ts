@@ -15,6 +15,9 @@ export interface LoadKaleidoscopeSchemeOptions {
   /** cicn ids an engine caller draws with the icon blit (qd-primitives I1–I3):
    * their elements gain `iconBlit` (pixel depth and, above 1 bit, an opaque companion). */
   iconBlitCicnIds?: readonly number[];
+  /** cinf ids an engine caller reads raw bytes of (slider gate, corner, slicing):
+   * the manifest gains `engineCinfs` (id string → the first such cinf's bytes). */
+  engineCinfIds?: readonly number[];
   displayProfile?: import('./display-profile.js').DisplayProfile;
   /** Opt-in actual input/fork/cicn/cinf byte evidence; requires Web Crypto. */
   provenance?: boolean;
