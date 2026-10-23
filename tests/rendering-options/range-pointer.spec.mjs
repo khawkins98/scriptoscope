@@ -268,7 +268,9 @@ for (const mode of ['source', 'built']) {
         const box = await page.locator(`#${id} canvas`).boundingBox();
         await page.mouse.click(box.x + box.width * 0.25, box.y + box.height / 2);
       }
-      expect(await page.evaluate(() => window.pointerFixture.values)).toEqual([['slider', 0.25], ['scrollbar', 0.25]]);
+      // The slider click is inside its drawn thumb [28,39): exact-value grab emits no change.
+      // The scrollbar retains its ordinary full-axis pointer callback.
+      expect(await page.evaluate(() => window.pointerFixture.values)).toEqual([['scrollbar', 0.25]]);
     } catch (error) { await attachCase(page, info, { mode }, error); throw error; }
     finally { await cleanup(page); }
   });

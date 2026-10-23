@@ -1,4 +1,4 @@
-import type { BodyCinfView, CinfBindingSummary, SliderLayoutCinfView, SliderLayoutBindingSummary } from '../tools/theme-loader/cinf-environment.js';
+import type { BodyCinfView, CinfBindingSummary } from '../tools/theme-loader/cinf-environment.js';
 import type { DisplayProfile, DisplayPolicy } from '../tools/theme-loader/display-profile.js';
 import type { ElementByteProvenance, PatternByteProvenance, ThemeByteProvenance, WindowByteProvenance } from './loadProvenance.js';
 // Theme-bundle types — the fields the runtime reads from theme.json. This file
@@ -175,8 +175,6 @@ export type CicnBodyBinding = {
 export interface ChromeElement {
   /** Opt-in role view; common fields below retain their local pairing. */
   readonly bodyCinf?: BodyCinfView;
-  /** Separate group-base layout input, bound to this actual group2 thumb. */
-  readonly sliderLayoutCinf?: SliderLayoutCinfView;
   readonly cicnBody?: CicnBodyBinding;
   readonly sampledBandAsset?: CicnSampledBandAsset;
   /** Finite unmasked transfer pixels with separately applied modern source-mask alpha. */
@@ -303,8 +301,8 @@ export interface HeaderColors {
 
 export interface ThemeManifest {
   readonly cinfEnvironment?: CinfBindingSummary;
-  /** Explicit standalone slider role; independent of push/bevel body lookup. */
-  readonly sliderLayoutEnvironment?: SliderLayoutBindingSummary;
+  /** Opaque load-bound identity marker for the declared slider cinf providers. */
+  readonly sliderLayoutEnvironment?: Readonly<{ environmentId: string; bindingId: string }>;
   /**
    * Raw bytes of the first cinf at each id the engine families read (loader
    * option `engineCinfIds`; src/engine/tables/loaderNeeds.ts), keyed by the

@@ -6,6 +6,7 @@
 //               (DECISIONS #5 and scrollbar §2 "Declared defaults": the
 //               archive's own fork, then its base chain; the Kaleidoscope
 //               control-panel fork is not shipped, a recorded divergence);
+//   cinf        explicitly declared cinf-only providers (slider opt-in only);
 //   procedural  engine-supplied stand-ins (e.g. procedural Platinum art).
 //
 // `getResource` models GetResource `$A9A0` over the open-file chain: archive,
@@ -20,7 +21,7 @@
 // that already equals the retry id is still made twice).
 import type { EngineTrace } from '../trace.js';
 
-export type ResourceTier = 'archive' | 'base' | 'procedural';
+export type ResourceTier = 'archive' | 'base' | 'cinf' | 'procedural';
 
 export interface ResourceProvider {
   /** Stable name for traces (e.g. the theme slug, or `procedural:platinum`). */
@@ -43,7 +44,7 @@ export interface RequestOptions {
   trace?: EngineTrace;
 }
 
-const TIER_ORDER: Record<ResourceTier, number> = { archive: 0, base: 1, procedural: 2 };
+const TIER_ORDER: Record<ResourceTier, number> = { archive: 0, base: 1, cinf: 2, procedural: 3 };
 
 export class ResourceChain {
   readonly providers: readonly ResourceProvider[];
