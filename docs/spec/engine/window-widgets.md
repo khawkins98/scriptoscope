@@ -344,6 +344,14 @@ empty-title flag. Use the lower swatch for `popupFamily`, upper otherwise. Out-o
 boundary; do not replace them with invented colours. Independent verification
 must test differing RGB channels, equal colours and mask-clear swatches.
 
+**Runtime title-font policy.** The substitute glyphs retain the existing
+transparent-coverage, browser alpha-over painter, with shadow first and text
+second. As with [control text colours](../control-text-colors.md) and
+[prepared bitmap fonts](../prepared-bitmap-font.md), this does not establish
+pixel equivalence to QuickDraw's `srcOr` text transfer. TX6 and TC5 record the
+original requested mode; no bitwise RGB formula is inferred from that mode.
+The title sizing, clip and baseline policies remain those of DECISIONS #13.
+
 ## 5. Geometry
 
 - **Placed extent.** `E = (S[N] − S[0]) + (C.right − C.left) − (A.right − A.left)`
