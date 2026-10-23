@@ -232,7 +232,7 @@ export function drawCinfFrame(port: Pixmap, chain: ResourceChain, input: CinfFra
           unionRects: boxes.map(box), paintedPixels, sourceAssetUrl: selected.resource.assetUrl,
           sourceSize: [pattern.width, pattern.height], context: detail.context,
           phase: { basis: 'modern-composition-policy', offset: [D.left - patternPhase.x, D.top - patternPhase.y], originalPatternPhase: 'unverified' } };
-      } else if (!res && backgroundRGB && backgroundRGB16) {
+      } else if (!res && body.found === 'B2' && backgroundRGB && backgroundRGB16) {
         const paintedPixels = bodyWriteCount(port, union(), detail.clip);
         if (paintedPixels) bodyPaint = { branch: 'missing-erase', destinationRect: box(D), paintedPixels };
       }
