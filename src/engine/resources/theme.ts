@@ -103,6 +103,9 @@ async function themeProvider(theme: LoadedTheme, tier: 'archive' | 'base', name:
       const companionTransport = unmaskedSources && companionAsset
         ? { assetUrl: assetUrl(theme, companionAsset),
           ...(/^(?:blob:|https?:|data:)/.test(companionAsset) ? {} : { derivedPath: companionAsset }) } : undefined;
+      const sampledSource = traceProvenance && status === 'different' && el.sampledBandAsset && LINE_SAMPLED.has(id)
+        ? { path: el.sampledBandAsset.derivedPath, assetUrl: assetUrl(theme, el.sampledBandAsset.asset),
+          model: el.sampledBandAsset.model, displayPolicy: el.sampledBandAsset.displayPolicy } : undefined;
       const [pixmap, companion, sampled] = await Promise.all([load(el.asset),
         companionAsset ? load(companionAsset) : Promise.resolve(null),
         status === 'different' && el.sampledBandAsset && LINE_SAMPLED.has(id) ? load(el.sampledBandAsset.asset) : Promise.resolve(null)]);
@@ -115,6 +118,7 @@ async function themeProvider(theme: LoadedTheme, tier: 'archive' | 'base', name:
       const source = cicnIconSource(pixmap, el.iconBlit?.pixelSize ?? null, companion);
       if (source.unmasked && companionTransport) unmaskedSources!.set(key, companionTransport);
       return [key, { ...source,
+        ...(sampled && sampledSource && { sampledSource }),
         origin: selectedSource ? (boundOccurrence() && bounds
           && bounds.right - bounds.left === pixmap.width && bounds.bottom - bounds.top === pixmap.height
           ? { top: bounds.top, left: bounds.left } : null) : el.boundsOrigin ?? null,

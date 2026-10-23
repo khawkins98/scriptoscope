@@ -33,6 +33,8 @@ export type CinfRgb16 = readonly [number, number, number];
 /** Raw samples are inputs; display pixels cannot recover serialized palette values. */
 export interface CinfIconSource extends IconSource {
   readonly status?: never;
+  /** Opt-in identity of the prepared line-colour companion actually loaded. */
+  readonly sampledSource?: ControlBandPaint['derived'];
   readonly sampleRgb16?: (point: QdPoint) => CinfRgb16 | null;
   readonly realizeRgb16?: (rgb: CinfRgb16) => Rgba;
 }
@@ -213,10 +215,9 @@ export function drawCinfFrame(port: Pixmap, chain: ResourceChain, input: CinfFra
         const dst = insetRect(D, s, s), pm = source.pixmap;
         const unmasked = source.pixelSize !== 1 && source.pixelSize !== null && !!source.unmasked;
         const transport = unmasked ? res.provider.unmaskedSource?.(body.type, cinf.bgPatternId) : undefined;
-        // Observe only the supported aligned copy; scaling and unknown source
-        // forms retain their existing raster behavior without a completion claim.
+        // Observe the actual aligned branch, including the masked fallback
+        // when depth or opaque companion metadata is unavailable.
         if (!emptyRect(dst) && pm.width === dst.right - dst.left && pm.height === dst.bottom - dst.top
-          && (source.pixelSize === 1 || source.pixelSize !== null && (source.unmasked || source.fallback))
           && (!unmasked || transport)) {
           const paintedPixels = bodyWriteCount(port, [dst], detail.clip, unmasked ? undefined : { pixmap: pm, destination: dst });
           if (paintedPixels) bodyPaint = { branch: unmasked ? 'unmasked-copy' : 'masked-copy',
@@ -280,7 +281,8 @@ export function drawCinfFrame(port: Pixmap, chain: ResourceChain, input: CinfFra
     const box = (r: QdRect) => ({ x: r.left, y: r.top, w: r.right - r.left, h: r.bottom - r.top });
     const regions: Record<string, number> = { TL: 0, TR: 1, top: 2, BL: 3, BR: 4, bottom: 5, left: 6, right: 7 };
     detail.bands.push({ role: bodyFill ? 'face' : 'default-ring', region: regions[piece]!, branch, policy,
-      owner: art.owner, resource: artResource, sourceRect: box(src), destinationRect: box(dst) });
+      owner: art.owner, resource: artResource, sourceRect: box(src), destinationRect: box(dst),
+      ...(policy === 'sampled-companion' && icon?.sampledSource ? { derived: icon.sampledSource } : {}) });
   };
   for (const piece of CINF_BORDER_ORDER.pieces) {
     if (piece === 'TL' || piece === 'TR' || piece === 'BL' || piece === 'BR') {
