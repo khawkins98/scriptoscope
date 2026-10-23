@@ -396,29 +396,44 @@ for (const mode of ['source', 'built']) test(`${mode}: disconnect cancels an own
   expect(secondLoads).toBe(0);
 });
 
-for (const mode of ['source','built']) test(`${mode}: no-cinf retheme preserves visible native identity and restores themed lifecycle`,async({page,servers},info)=>{
+for (const mode of ['source','built']) test(`${mode}: no-cinf retheme preserves visible replacement and restores native identity`,async({page,servers},info)=>{
  await openHarness(page,servers,mode);
- const result=await page.evaluate(async mode=>{
+ await page.evaluate(async mode=>{
   const api=await import(mode==='built'?'/dist/scriptoscope.js':'/src/index.ts');
-  const root=document.createElement('section'),native=document.createElement('button');
-  native.dataset.scriptoscopeButton='';native.textContent='Fallback label';native.style.margin='3px';root.append(native);document.body.append(root);
-  let clicks=0;native.addEventListener('click',()=>clicks++);
-  const style=native.getAttribute('style');
-  const handle=await api.mountDeclarative({root,themeBaseUrl:'/themes',pageThemeDefault:'windows-95',bootAffordance:'none'});
-  try {
-   await handle.retheme('windows-95');
-   const themedBefore=root.querySelectorAll('.scriptoscope-button').length;
-   await handle.retheme('system7-nostalgia-silver');
-   const r=native.getBoundingClientRect(),css=getComputedStyle(native);
-   native.click();
-   const fallback={same:root.contains(native),faces:root.querySelectorAll('.scriptoscope-button').length,label:native.textContent,visible:r.width>0&&r.height>0&&css.display!=='none'&&css.visibility!=='hidden',clicks,style:native.getAttribute('style')};
-   await handle.retheme('windows-95');
-   const themedAfter=root.querySelectorAll('.scriptoscope-button').length;
-   handle.disconnect();
-   return {themedBefore,themedAfter,fallback,style,restored:root.contains(native)&&native.getAttribute('style')===style,facesAfter:root.querySelectorAll('.scriptoscope-button').length};
-  } finally {handle.disconnect();root.remove();}
+  const root=document.createElement('section');root.id='native-roundtrip';
+  const sources=['Fallback label','Disabled fallback'].map((label,i)=>{
+   const el=document.createElement('button');el.dataset.scriptoscopeButton='';el.textContent=label;el.style.margin='3px';el.disabled=!!i;root.append(el);return el;
+  });document.body.append(root);
+  const f=window.nativeRoundtrip={root,sources,styles:sources.map(e=>e.getAttribute('style')),clicks:[0,0],snapshots:[]};
+  sources.forEach((el,i)=>el.addEventListener('click',()=>f.clicks[i]++));
+  f.handle=await api.mountDeclarative({root,themeBaseUrl:'/themes',pageThemeDefault:'windows-95',bootAffordance:'none'});
  },mode);
- await attachObservations(info,'button-lifecycle',`${mode}-native-fallback`,{mode,result});
- expect(result.themedBefore).toBe(1);expect(result.themedAfter).toBe(1);expect(result.restored).toBe(true);expect(result.facesAfter).toBe(0);
- expect(result.fallback).toEqual({same:true,faces:0,label:'Fallback label',visible:true,clicks:1,style:result.style});
+ const root=page.locator('#native-roundtrip'),snapshots=[];
+ try {
+  for(const theme of ['windows-95','system7-nostalgia-silver','windows-95']){
+   await page.evaluate(theme=>window.nativeRoundtrip.handle.retheme(theme),theme);
+   const active=root.getByRole('button',{name:'Fallback label',exact:true});
+   await expect(active).toHaveCount(1);await expect(active).toBeVisible();
+   await active.click();await active.focus();await expect(active).toBeFocused();await page.keyboard.press('Space');
+   const disabled=root.getByRole('button',{name:'Disabled fallback',exact:true});await expect(disabled).toBeVisible();
+   expect(await disabled.evaluate(e=>e.disabled||e.getAttribute('aria-disabled')==='true')).toBe(true);
+   const b=await disabled.boundingBox();await page.mouse.click(b.x+b.width/2,b.y+b.height/2);
+   expect(await disabled.evaluate(e=>e.disabled||e.tabIndex===-1)).toBe(true);
+   snapshots.push(await page.evaluate(theme=>{
+    const f=window.nativeRoundtrip;
+    return {theme,clicks:[...f.clicks],surfaces:[...f.root.querySelectorAll('button,[role=button]')].map(e=>{
+     const r=e.getBoundingClientRect(),css=getComputedStyle(e);
+     return {label:e.getAttribute('aria-label')||e.textContent,source:f.sources.includes(e),style:e.getAttribute('style'),rect:{width:r.width,height:r.height},visible:r.width>0&&r.height>0&&css.display!=='none'&&css.visibility!=='hidden'};
+    })};
+   },theme));
+  }
+  expect(snapshots.map(s=>s.clicks)).toEqual([[2,0],[4,0],[6,0]]);
+  const fallback=snapshots[1].surfaces.filter(s=>s.visible);
+  expect(fallback).toHaveLength(2);expect(fallback.every(s=>!s.source)).toBe(true);
+  expect(fallback.map(s=>s.label)).toEqual(['Fallback label','Disabled fallback']);
+  const restored=await page.evaluate(()=>{const f=window.nativeRoundtrip;f.handle.disconnect();return {same:f.sources.every(e=>f.root.contains(e)),styles:f.sources.map(e=>e.getAttribute('style')),expected:f.styles,buttons:f.root.querySelectorAll('button').length,canvases:f.root.querySelectorAll('canvas').length};});
+  expect(restored.same).toBe(true);expect(restored.styles).toEqual(restored.expected);expect(restored.buttons).toBe(2);expect(restored.canvases).toBe(0);
+  await expect(root.getByRole('button',{name:'Fallback label',exact:true})).toBeVisible();
+  await attachObservations(info,'button-lifecycle',`${mode}-native-fallback`,{mode,snapshots,restored});
+ } finally {await page.evaluate(()=>{window.nativeRoundtrip.handle.disconnect();window.nativeRoundtrip.root.remove();});}
 });
