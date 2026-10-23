@@ -278,7 +278,13 @@ code-5 plate; (B) on the titled-utility bars of 1990, windows-95, 1984,
 floppies and windows-31 every glyph row is drawn (ink height equals the same
 title's unclipped height in that theme's document window) and no ink falls
 outside the title rect's rows; (C) on all 13 archives no ink leaves TX4's
-decoded clip, `t4p` widened by 2 on the right. Mutations: removing the
+decoded clip, `t4p` widened by 2 on the right. (D) short titles ("Controls", "Document",
+"Tools") on floppies document and titled-utility windows and 1138
+titled-utility windows, whose code-5 plate is 1–2 px narrower than `t4p`, are
+drawn whole: `t4p` is SW wide (§5 "Title rect") and the ink width equals the
+same title's whole ink on 1984's document window (DECISIONS #13 (1) as amended
+by #455: the cap never drops below the title rect width). A plate-only cap
+fails D. Mutations: removing the
 baseline nudge fails B (and so does pre-#452 v2); the rejected widened clip
 fails C. Not covered by any rule row: the title colour (TX7) and the
 truncation text itself (TX5); the partial-zoom widget (WD5); the layout cache (LC1); ladder misses;
