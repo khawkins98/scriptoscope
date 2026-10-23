@@ -15,7 +15,7 @@ package, engine-diff without re-seeding, loader parity and structural asset reco
 pass. The two availability corrections have DIFFERENT bounded reviewer receipts;
 whole-controls Tier2, combined captures and production visual review are separate.
 Final exact-head readiness is recorded outside this checkout in
-`/Users/khawkins/orca/worker-receipts/v2-lanes/459-controls-independent/final-lane-ready.json`
+`/Users/khawkins/orca/worker-receipts/v2-lanes/459-controls-independent/final-lane-ready-corrected.json`
 and `.log`, so it can attest the committed report without modifying the tested head.
 No runtime, loader, spec, evidence appendix, CHANGELOG or ledger-status edits are owned here.
 Native glyph, device, transfer and historical provider equivalence remain UNKNOWN.
@@ -571,3 +571,34 @@ PNGs serially. Do not choose one conflicting PNG side or relabel old provenance.
 Different full Tier2 and actual production demo visual review remain mandatory
 before any final visual/fidelity/release claim. All native/provider/device/glyph
 and malformed-resource unknowns remain unknown; no ledger-status promotion occurs.
+
+
+## Exact-head readiness setup correction
+
+Ordinary no-bypass readiness on `300a5379c20e508a97171bb63546e6021f38af0f`
+failed at one source-validator counterexample after956 passing unit checks. The
+approved nine-row admission migration had emptied its `paint` array; the old test
+raised a setup TypeError before validation. This is not a meaningful mutation kill.
+The original `final-lane-ready.json/.log` exit1 is preserved unchanged.
+
+PM explicitly authorized a test/validator-only material correction and one ordinary
+ready rerun. `validate-source.mjs` previously joined only paint identities; it now
+applies the identical evidence/owner/resource metadata joins to the union of paint
+and admission identities. Existing paint joins and all source files, payloads,
+inventory/envelope/review hashes and runtime behavior remain unchanged. The original
+missing-evidence, fabricated sourceCinfId and wrong synthetic key negatives retain
+their intent against the current declared identity. All nine admission rows have
+valid baseline controls and54 targeted rejections: exact key omission, wrong owner,
+wrong signed ID, fabricated non-null cinf, plus real missing cinf evidence/depth or
+synthetic wrong key/type. Rejections must reach the named validator error and cannot
+pass on TypeError. This extends the existing finite source-identity audit; it does
+not certify native rendering, provider equivalence or arbitrary manifest naming.
+
+`validator-admission-focused-corrected` passes40/40, including inventory, comparison,
+both correction recovery guards and the18 no-cinf behavior checks. The first added
+test attempt (`validator-admission-focused`, exit1) caught its hardcoded normal cinf
+ID on a pressed row via the expected-error guard; it is preserved as test setup
+failure. The corrected negative fabricates the exact selected state's cinf so all
+nine rows independently reject the intended presence/metadata mismatch. The final
+readiness receipt is `final-lane-ready-corrected.json/.log` outside this checkout;
+that command attests the committed, pushed head without modifying this report.
