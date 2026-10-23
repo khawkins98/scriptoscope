@@ -192,7 +192,7 @@ for(const mode of ['source','built']) {
   expect(result.find(row=>row.slug==='windows-95'&&row.state==='normal').body).toEqual([218,218,218,255]);
   await attachObservations(info,'display-profile',mode,{mode,rows:result,claim:'Exact recorded pixels only for comparable admitted cinf-painted faces; fifteen no-cinf cases retain explicit unassessed native comparison and current transparent planes. No mask/font/private-painter/whole-requirement promotion.'});
  });
- test(`${mode}: joint profile reaches sampled bands and rejects missing maps before URL allocation`,async({page,servers})=>{
+ test(`${mode}: joint profile reaches sampled bands and rejects missing maps before URL allocation`,async({page,servers},info)=>{
   await openHarness(page,servers,mode);const result=await page.evaluate(async mode=>{
    const api=await import(mode==='built'?'/dist/scriptoscope.js':'/src/index.ts');const {forkOf}=await import('/tests/resource-provenance/fixtures.mjs');const {sampledBandIcon,sampledBandInfo}=await import('/tests/decoder-fixtures/sampled-bands.mjs');const {syntheticDisplayProfile}=await import('/tests/decoder-fixtures/display-profile.mjs');
    const bytes=forkOf([{type:'cicn',id:-10239,data:sampledBandIcon()},{type:'cinf',id:-10239,data:sampledBandInfo(true)}]);
@@ -202,8 +202,9 @@ for(const mode of ['source','built']) {
    let count=0,code;const incomplete=syntheticDisplayProfile();incomplete.mappings=incomplete.mappings.filter(r=>r.rgb16[0]!==0x2121);
    try{await api.loadKaleidoscopeScheme(bytes,{displayProfile:await api.prepareDisplayProfile(incomplete),assetUrlFactory:()=>{count++;return'bad';}});}catch(e){code=e.code;}
    let chain;try{await api.composeButton({...loaded,base:second},{label:''});}catch(e){chain=e.code;}
-   const result={band:[...out.getPixel(4,0)],corner:[...out.getPixel(0,0)],other:[...otherOut.getPixel(4,0)],derivedPolicies:trace.bandPaints.filter(x=>x.derived).map(x=>x.derived.displayPolicy),profile:p.id,count,code,chain};loaded.dispose();second.dispose();return result;
+   const result={band:[...out.getPixel(4,0)],corner:[...out.getPixel(0,0)],other:[...otherOut.getPixel(4,0)],trace,derivedPolicies:trace.bandPaints.filter(x=>x.derived).map(x=>x.derived.displayPolicy),profile:p.id,count,code,chain};loaded.dispose();second.dispose();return result;
   },mode);
+  await info.attach('joint-profile-result.json',{body:JSON.stringify(result,null,2),contentType:'application/json'});
   expect(result.band).toEqual([90,100,110,255]);expect(result.corner).toEqual([20,30,40,255]);expect(result.other).toEqual([91,100,110,255]);expect(result.derivedPolicies.length).toBeGreaterThan(0);expect(result.derivedPolicies.every(x=>x===result.profile)).toBe(true);expect(result.count).toBe(0);expect(result.code).toBe('MISSING_MAPPING');expect(result.chain).toBe('PROFILE_MISMATCH');
  });
  test(`${mode}: profile mode5 keeps hidden body RGB realized once through public paint`,async({page,servers})=>{

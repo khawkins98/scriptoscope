@@ -48,7 +48,12 @@ function assertOutput(result,c,slug){
   if (c.mode === 'declarative') {
     expect(result.controls.length, 'the real scanner produced control DOM').toBeGreaterThan(0);
     for (const control of result.controls) {
-      if(noCinfPush){const shadows=control.boxShadow.split(/,(?![^(]*\))/).map(s=>s.trim());expect(shadows,'native baseline retains exactly its two bevel shadows').toHaveLength(2);for(const shadow of shadows)expect(shadow).toMatch(/\binset\b/);}
+      if(noCinfPush){
+        const shadows=control.boxShadow.split(/,(?![^(]*\))/).map(s=>s.trim());
+        const baseline=['rgb(255, 255, 255) 0px 1px 0px 0px inset','rgba(0, 0, 0, 0.14) 0px -1px 1px 0px inset'];
+        if(c.options.default)baseline.push('rgb(212, 212, 212) 0px 0px 0px 1px','rgb(0, 0, 0) 0px 0px 0px 3px');
+        expect(shadows,'native baseline retains only its declared bevel and default outline layers').toEqual(baseline);
+      }
       else expect(control.boxShadow,'window-only shadow must not decorate promoted controls').toBe('none');
       expect(control.filter, 'window-only filter must not decorate promoted controls').toBe('none');
     }
@@ -140,6 +145,7 @@ for (const { slug } of catalog) test(`${slug}: option contracts and source/built
       current = c;
       const versions = {};
       const resolutionTraces = {};
+      const presentationStates = {};
       for (mode of ['source', 'built']) {
         activePage = pages[mode];
         result = await activePage.evaluate(({ c, slug }) => window.controlMatrix.runCase(c, { slug }), { c, slug });
@@ -172,6 +178,10 @@ for (const { slug } of catalog) test(`${slug}: option contracts and source/built
           expect(versions[mode].pixels).toEqual(result.canvases.map(canvas=>({width:canvas.width,height:canvas.height,sha256:createHash('sha256').update(new Uint8Array(canvas.width*canvas.height*4)).digest('hex')})));
         }
         if (c.mode === 'declarative' && result.canvases.length === 0) {
+          presentationStates[mode]=await activePage.evaluate(({root,controls})=>{
+            const inspect=selector=>{const el=document.querySelector(selector),r=el.getBoundingClientRect(),s=getComputedStyle(el);return{rect:{x:r.x,y:r.y,width:r.width,height:r.height},active:document.activeElement===el,focusVisible:el.matches(':focus-visible'),hover:el.matches(':hover'),disabled:el.matches(':disabled'),style:Object.fromEntries(['appearance','backgroundColor','border','borderRadius','boxShadow','outline','outlineOffset','opacity','font','transform','zoom'].map(k=>[k,s[k]]))};};
+            return{scroll:[scrollX,scrollY],devicePixelRatio,fonts:document.fonts.status,root:inspect(root),controls:controls.map(inspect)};
+          },{root:result.outputSelector,controls:result.controls.map(c=>c.selector)});
           versions[mode].domPng = (await activePage.locator(result.outputSelector).screenshot({ animations: 'disabled', caret: 'hide' })).toString('base64');
         }
         if (['push', 'default', 'bevel'].includes(c.family) && c.labelKind !== 'empty' && result.status === 'rendered') {
@@ -181,6 +191,7 @@ for (const { slug } of catalog) test(`${slug}: option contracts and source/built
           else groupSizes.set(key, geometry);
         }
       }
+      if(versions.source.domPng!==versions.built.domPng)await testInfo.attach('dom-parity-presentation.json',{body:JSON.stringify({slug,case:c,presentationStates},null,2),contentType:'application/json'});
       expect(versions.built, `${c.id}: actual published entry preserves source pixels`).toEqual(versions.source);
       const { domPng, ...record } = versions.built;
       summary.push({ id: c.id, ...record, resolutionTraces, nativeScreenshotCompared: !!domPng });

@@ -69,20 +69,31 @@ for(const mode of ['source','built']) test(`${mode}: mode5 encoded hidden RGB an
         const rows=[];
         for(const kind of ['full-clip','scaled','normal']){
           let trace;const options={label:'',minWidth:24,height:kind==='scaled'?7:6,diagnostics:{onComplete:t=>{trace=t;}},...(kind==='full-clip'?{compositionContext:{controlOrigin:[0,0],portOrigin:[0,0],patternOrigin:{status:'unknown'},clip:{kind:'rect',rect:{x:100,y:100,w:1,h:1}}}}:{})};
-          const out=await api.composeButton(child,options);rows.push({kind,trace,pixel:out.getPixel(3,2),calls});
+          let out,error;try{out=await api.composeButton(child,options);}catch(e){error=e.message;}
+          rows.push({kind,trace,pixel:out?out.getPixel(3,2):null,plane:kind==='full-clip'&&out?[...out.data]:null,calls,error});
         }
         return{rows,binding,bodyAsset,provenance:owner.byteProvenance};
       }finally{HTMLImageElement.prototype.decode=decode;owner.dispose();}
     },{mode,records:records.map(r=>({...r,data:Array.from(r.data)}))});
-    expect(result.rows.map(r=>r.calls)).toEqual([1,1,1]); // Eager owned resource preparation precedes clip/scale decisions.expect(result.rows[2].pixel).toEqual([0,48,0,255]);
+    // Wholly clipped coverage starts no dependent decode. The public scaled
+    // rejection may prepare dimensions, but cannot allocate a second cached dependency.
+    expect(result.rows[0].calls).toBe(0);
+    expect(result.rows[2].calls).toBe(1);
+    expect(result.rows[1].calls).toBeLessThanOrEqual(result.rows[2].calls);
+    expect(result.rows[2].pixel).toEqual([0,48,0,255]);
     const paint=result.rows[2].trace.steps.find(s=>s.bodyPaint);
     expect(paint,'completed owned mode5 operation must publish bodyPaint').toBeDefined();
     expect(paint.owner).toEqual({baseUrl:'actual-body-owner',chainDepth:1});
     expect(paint.resource.byteProvenance.loadId).toBe(result.provenance.loadId);
     expect(result.provenance.resources[2].sha256).toBe(sha(mid));
     expect(paint.bodyPaint.sourceAssetUrl).toBe(result.bodyAsset);
-    expect(result.rows[0].trace.steps.some(s=>s.reason==='cicn-body-outside-clip')).toBe(true);
+    expect(result.rows[0].plane).toEqual(Array(24*6*4).fill(0));
+    expect(result.rows[0].trace.steps.some(s=>s.bodyPaint)).toBe(false);
+    expect(result.rows[1].error).toContain('cicn-body-scaling-unsupported');
+    expect(result.rows[1].trace.outcome.status).toBe('error');
     expect(result.rows[1].trace.steps.some(s=>s.reason==='cicn-body-scaling-unsupported')).toBe(true);
+    expect(result.rows[1].trace.steps.some(s=>s.bodyPaint)).toBe(false);
+    expect(result.rows[0].error).toBeUndefined();expect(result.rows[2].error).toBeUndefined();
   }catch(error){await attachCase(page,info,{mode,result},error);throw error;}
   await attachObservations(info,'mode5-reproduction',`${mode}-owner-hidden-rgb`,{mode,result});
 });

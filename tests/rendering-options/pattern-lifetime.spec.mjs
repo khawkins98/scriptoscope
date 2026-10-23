@@ -1,6 +1,6 @@
 import { test, expect, openHarness, attachCase } from './fixtures.mjs';
 
-for (const mode of ['source', 'built']) for (const family of ['select', 'button']) for (const holdAt of [1, 2]) test(`${mode}: owned ${family} pattern preparation cancels at decoded ${holdAt === 1 ? 'face' : 'pattern'}`, async ({ page, servers }, info) => {
+for (const mode of ['source', 'built']) for (const family of ['select', 'button']) for (const holdAt of [1, 2]) test(`${mode}: owned ${family} pattern preparation cancels at decoded dependency ${holdAt}`, async ({ page, servers }, info) => {
   const errors = [];
   page.on('pageerror', error => errors.push(String(error)));
   page.on('requestfailed', request => errors.push(`${request.url()}: ${request.failure()?.errorText}`));
@@ -40,15 +40,25 @@ for (const mode of ['source', 'built']) for (const family of ['select', 'button'
     await page.waitForFunction(() => window.patternLifetime.ready);
     const result = await page.evaluate(async () => {
       const f = window.patternLifetime;
+      const startedBeforeDisconnect=f.loads;
       f.phase = 'disposed'; f.handle.disconnect();
       const revokedHeld = f.revoked.has(f.held.src), before = f.root.innerHTML;
       f.release(); await f.switching;
       await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
       return { revokedHeld, sameNative: f.root.querySelector(f.family) === f.native, faces: f.root.querySelectorAll('.scriptoscope-select,.scriptoscope-button').length,
-        unchanged: f.root.innerHTML === before, lateStarts: f.lateStarts, loads: f.loads };
+        unchanged: f.root.innerHTML === before, lateStarts: f.lateStarts, loads: f.loads, startedBeforeDisconnect };
     });
-    expect(result).toMatchObject({ revokedHeld: true, sameNative: true, faces: 0, unchanged: true, loads: holdAt });
-    expect(result.lateStarts, 'No later pattern/pressed/ring decode can start after owned release').toEqual([]);
+    await info.attach('owned-pattern-lifetime.json',{body:JSON.stringify({mode,family,holdAt,result},null,2),contentType:'application/json'});
+    const verify=actual=>{
+      expect(actual).toMatchObject({revokedHeld:true,sameNative:true,faces:0,unchanged:true});
+      expect(actual.startedBeforeDisconnect,'actual held decode has reached before release').toBeGreaterThanOrEqual(holdAt);
+      expect(actual.loads,'no later owned decode starts after disconnect').toBe(actual.startedBeforeDisconnect);
+      expect(actual.lateStarts,'No later pattern/pressed/ring request starts after owned release').toEqual([]);
+    };
+    verify(result);
+    for(const [name,mutate] of [['late-start',r=>r.lateStarts.push({url:'mutated-after-release',revoked:false})],['late-decode',r=>r.loads++],['late-publication',r=>r.faces++],['lost-native',r=>r.sameNative=false],['unrevoked-held',r=>r.revokedHeld=false]]){
+      const changed=structuredClone(result);mutate(changed);expect(()=>verify(changed),name).toThrow();
+    }
     expect(errors).toEqual([]);
   } catch (error) { await attachCase(page, info, { mode, family, holdAt, errors }, error); throw error; }
   finally {

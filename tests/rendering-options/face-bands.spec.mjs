@@ -51,8 +51,9 @@ for (const mode of ['source', 'built']) test(`${mode}: solid button faces use sq
           probes.push({at:[52,0],source:[size-1,0]});
           const id=ids[state==='normal'?0:state==='pressed'?1:2],element=Object.values(theme.manifest.chromeElements).find(e=>e.sourceCicnId===id);
           const sourceArt=await api.loadCicnBuffer(api.assetUrl(theme,element.asset));
-          const opaqueArt=await api.loadCicnBuffer(api.assetUrl(theme,element.iconBlit.unmaskedAsset));
-          rows.push({ size, corner, side, tile, family, state, width: output.width, height: output.height,sourcePlane,sourceArt:[...sourceArt.data],opaqueSourceArt:[...opaqueArt.data],sourceBounds:element.cicnSource.bounds,sourceRef:element.byteProvenance,provenance:theme.byteProvenance,
+          // Only migrated push declares an opaque icon-blit companion; bevel remains masked legacy input.
+          const opaqueArt=family==='push'?await api.loadCicnBuffer(api.assetUrl(theme,element.iconBlit.unmaskedAsset)):null;
+          rows.push({ size, corner, side, tile, family, state, width: output.width, height: output.height,sourcePlane,sourceArt:[...sourceArt.data],opaqueSourceArt:opaqueArt?[...opaqueArt.data]:null,sourceBounds:element.cicnSource.bounds,sourceRef:element.byteProvenance,provenance:theme.byteProvenance,
             probes: probes.map(probe => ({ ...probe, expected: probe.color ?? [...source.getPixel(...probe.source)], actual: [...output.getPixel(...probe.at)] })) });
           theme.dispose();
         }
@@ -63,7 +64,8 @@ for (const mode of ['source', 'built']) test(`${mode}: solid button faces use sq
     for (const row of rows) {
       expect([row.width, row.height]).toEqual([53, 40]);
       expect(row.sourceArt).toEqual(row.sourcePlane.flat(2));
-      expect(row.opaqueSourceArt).toEqual(row.sourcePlane.flatMap(line=>line.flatMap(p=>[...p.slice(0,3),255])));
+      if(row.family==='push')expect(row.opaqueSourceArt).toEqual(row.sourcePlane.flatMap(line=>line.flatMap(p=>[...p.slice(0,3),255])));
+      else expect(row.opaqueSourceArt).toBeNull();
       expect(row.sourceBounds).toEqual({top:0,left:0,bottom:row.size,right:row.size});
       const record=row.provenance.resources[row.sourceRef.cicnResourceIndex],bytes=indexedCicn(row.sourcePlane);
       expect(record).toMatchObject({type:'cicn',status:'decoded',byteLength:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')});

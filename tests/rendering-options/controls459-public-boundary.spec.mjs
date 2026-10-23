@@ -15,6 +15,22 @@ for(const mode of ['source','built']) test(`${mode}: selected malformed metadata
    assert.equal(row('NULL').opaque,0);
    const requests=row('pressed-ring-NULL').trace.steps.filter(s=>/^engine:DR.*:cicn:/.test(s.reason));assert.deepEqual(requests.map(s=>s.requestedId),[-10230]);
   });
+  await test.step(`${mode} aligned mode5 positive and scaled unsupported discriminate admission`,()=>{
+   const valid=row('body-mode5-valid');assert.deepEqual(valid.size,[9,9]);
+   const ordinary=Array.from({length:49},(_,i)=>i===0?[0,0,255,255]:[0,0,0,0]).flat();
+   const opaque=Array.from({length:49},(_,i)=>i===0?[0,0,255,255]:[48,48,48,255]).flat();
+   assert.deepEqual(valid.bodySource.ordinary,ordinary);assert.deepEqual(valid.bodySource.opaque,opaque);
+   assert.deepEqual(valid.bodySource.bounds,{top:0,left:0,bottom:7,right:7});
+   const bodies=valid.trace.steps.filter(s=>s.bodyPaint);assert.equal(bodies.length,1);
+   assert.equal(bodies[0].resource.type,'cicn');assert.equal(bodies[0].resource.signedId,77);assert.equal(bodies[0].owner.chainDepth,0);
+   assert.deepEqual(bodies[0].bodyPaint.sourceRect,{x:0,y:0,w:7,h:7});
+   assert.deepEqual(bodies[0].bodyPaint.destinationRect,{x:1,y:1,w:7,h:7});
+   assert.equal(bodies[0].bodyPaint.branch,'unmasked-copy');assert.equal(bodies[0].bodyPaint.paintedPixels,49);
+   const nil=row('body-mode5-NIL-mono');assert.equal(nil.error?.name,'Error');assert.match(nil.error.message,/cicn-body-scaling-unsupported/);assert.equal(nil.outcome.status,'error');assert.equal(nil.trace.steps.some(s=>s.bodyPaint),false);
+   const scaled=row('body-mode5-scaled-unsupported');assert.equal(scaled.error?.name,'Error');
+   assert.match(scaled.error.message,/cicn-body-scaling-unsupported/);assert.equal(scaled.outcome.status,'error');
+   assert.equal(scaled.trace.steps.some(s=>s.bodyPaint),false);assert.equal(scaled.size,null);
+  });
   await test.step(`${mode} selected malformed metadata and body UNKNOWN reject explicitly`,()=>{
    const failures=[];
    for(const name of ['short-selected','short-selected-valid-fallback','base-fallback-short','short-fallback','ring-short','ring-fallback-short','pressed-ring-short','body-mode5-UNKNOWN']){
