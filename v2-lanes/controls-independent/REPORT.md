@@ -339,3 +339,43 @@ signed state lookup/no-other-face-state retry; restoring old behavior would be a
 source-rule contradiction. No reviewed expectation, source evidence or status was
 changed here. PM has received these two distinctions separately from the trace
 regressions so an identity repair cannot accidentally restore forbidden fallback.
+
+## Frozen public UNKNOWN repair and inactive availability correction
+
+PM authorized exact settled `5d4ee22832f896ee0317570dfe1d90c2976994a0`, merged at
+`18a0c1fd` without runtime self-edits. After rebuilding, the UNCHANGED public
+source/built face/ring ambiguity regression passes first. All four valid/NULL
+controls remain passing; both ambiguous selections now expose their reason rather
+than returning a themed composition. Expanded independent controls/bitmap browser
+acceptance passes all 10 checks, and the actual installed-package consumer with
+three defective-package negatives passes. Earlier failures remain retained.
+The initial fetch used an incorrect branch name (exit128); exact frozen object was
+already present and merged, and ls-remote then verified the real
+`pm/459-push-unknown-repair` head equals the authorized SHA. No alternate runtime
+patch was substituted.
+
+An additional facade mutation replaces only its unsupported-result rejection
+condition in memory. It uses an explicit synthetic typed-provider import boundary;
+real loader/decode coverage remains in the browser and package tests. Valid art,
+NULL face, NULL ring, and unmutated exact face/ring ambiguity controls establish
+setup before the missing-rejection mutant is assessed. The first static-import
+attempt failed module resolution, and the second failed mutation-token setup after
+transpilation; BOTH are preserved harness failures and neither counts as a kill.
+
+PM authorized a narrow versioned correction for only
+`synthetic.named-unknown-id` and `synthetic.inactive-to-active`. The independently
+authored `tests/control-availability/corrections/459-push-strict-state.json` is an
+INACTIVE 1.0.15→1.0.16 candidate: exact old rows and prior review are archived,
+PB5/PB7/PB8 and the safe document hash are cited, proposed outcomes are unavailable,
+and effective candidate outcomes remain unknown until different Tier-2 acceptance.
+The current active reviewed inventory is byte-identical. Its independent guard
+allows only those two finite rows and those outcome/policy/note fields; source
+input identities, fixture evidence, options, exclusions, every unrelated row,
+existing owner/resource joins and all prior unknowns are preserved. This is not a
+self-review activation or an availability promotion.
+The corrected facade mutation run passes all 17 checks (12 meaningful mutations,
+separate setup-failure rejection, three facade controls/assertions and the inactive
+correction guard); the removed rejection is killed by explicit error/outcome
+assertions. Raw positive/mutant logs are retained under `public-repair-mutations/`.
+`public-repair-engine-diff` also passes without another seed. Selected trace-identity
+regressions remain open for PM's separate repair; this success does not erase them.

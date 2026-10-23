@@ -2,6 +2,7 @@
 import '../../helpers/registerTs.mjs';
 import { registerHooks } from 'node:module';
 const variants={
+ 'public-unsupported':['/pushButtonFacade.ts','if (drawn.unsupported)','if (false)'],
  'unknown-guard':['/qd/cinfFrame.ts',"if (icon?.status === 'unknown' || !cicn) {",'if (false) {'],
  'push-state':['/tables/pushButton.ts',"resource: -10240", "resource: -10239"],
  'disabled-precedence':['/tables/checkables.ts','hilites: [254, 255]','hilites: [255]'],
