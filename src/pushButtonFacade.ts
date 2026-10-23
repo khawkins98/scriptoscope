@@ -65,13 +65,14 @@ function declaredEnvironment(theme: LoadedTheme, element: ChromeElement, id: num
   if (!view || view.requestedId !== id || view.bindingId !== prepared?.environment.bindingId) reject('cinf-environment-role-binding-missing');
   if (view!.status === 'unsupported') reject(view!.reason ?? 'cinf-environment-unknown');
   if (!ownerDisplayPolicyMatches(theme.manifest, view!.displayPolicy)) reject('cinf-environment-display-policy-mismatch');
-  const metadata = view!.metadata;
+  const { metadata, ...lookup } = view!;
   if (view!.status === 'ready' && (!metadata?.slice || !metadata.bodyRequest)) reject('cinf-environment-metadata-unavailable');
   if (metadata?.bodyRequest?.mode === 5) reject('cinf-environment-mode5-unsupported');
   if (opts.label && (view!.status === 'no-body-or-border' || !metadata?.colorSamples?.text || metadata.colorSamples.embossDecision === 'unknown'))
     reject('cinf-environment-text-outputs-unavailable');
   diagnostics?.record({ role: 'face', requestedId: id, action: view!.status === 'ready' ? 'selected' : 'missing',
-    reason: 'declared-cinf-role-view', basis: 'compatibility-policy', usage: 'admission', cinfLookup: view! });
+    reason: 'declared-cinf-role-view', basis: 'compatibility-policy', usage: 'admission',
+    owner: { baseUrl: theme.baseUrl, chainDepth: 0 }, cinfLookup: lookup });
   let record: CinfRecord | null = null;
   if (metadata?.slice && metadata.bodyRequest && metadata.bgAnchor && metadata.textAnchor && metadata.embossAnchor) {
     record = { cornerSize: metadata.slice.corner, sideThickness: metadata.slice.side, tileSides: metadata.slice.tile ? 1 : 0,
@@ -79,7 +80,7 @@ function declaredEnvironment(theme: LoadedTheme, element: ChromeElement, id: num
       bgPixel: { x: metadata.bgAnchor[0], y: metadata.bgAnchor[1] }, textPixel: { x: metadata.textAnchor[0], y: metadata.textAnchor[1] },
       embossPixel: { x: metadata.embossAnchor[0], y: metadata.embossAnchor[1] } };
   }
-  return { view: view!, metadata, record };
+  return { view: lookup, metadata, record };
 }
 
 /** Render a single browser glyph pass with the engine's baseline and face clip. */
