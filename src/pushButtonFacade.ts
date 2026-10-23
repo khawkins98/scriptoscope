@@ -101,8 +101,9 @@ function publishEngineTrace(trace: EngineTrace, collector?: ControlTraceCollecto
     requestedId: request.id, action: request.found ? 'selected' : 'missing', basis: 'source-dispatch', usage: 'paint',
     reason: `engine:${request.row ?? ''}:${request.type}:${request.provider ?? 'NULL'}`,
   });
-  for (const op of trace.drawOps) if (op.unspecified || op.unimplemented) collector.record({ role: 'face', requestedId: 0,
-    action: 'rejected', basis: 'compatibility-policy', usage: 'admission', reason: `${op.row}: ${op.unspecified ?? op.unimplemented}` });
+  for (const op of trace.drawOps) if (op.unsupported || op.unspecified || op.unimplemented) collector.record({ role: 'face', requestedId: 0,
+    action: 'rejected', basis: 'compatibility-policy', usage: 'admission',
+    reason: op.unsupported ? `${op.unsupported}` : `${op.row}: ${op.unspecified ?? op.unimplemented}` });
 }
 
 export async function composeEnginePush(theme: LoadedTheme, opts: ButtonOptions = {}, signal?: AbortSignal,
@@ -195,6 +196,7 @@ export async function composeEnginePush(theme: LoadedTheme, opts: ButtonOptions 
         patternOffset: composition.patternOrigin.status === 'known'
           ? { x: -composition.patternOrigin.offset[0], y: -composition.patternOrigin.offset[1] } : { x: 0, y: 0 },
       }, trace);
+      if (drawn.unsupported) throw new Error(`Unsupported push-button output: ${drawn.unsupported}`);
       if (!drawn.faceFound) return null;
       if (drawn.face?.colorsAvailable && drawn.face.textRGB) {
         const face = drawn.face;
