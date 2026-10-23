@@ -15,6 +15,7 @@ import { parseResourceFork } from './resource-fork.js';
 import { decodeCicn } from './decoders/cicn.js';
 import { decodePpat } from './decoders/ppat.js';
 import { decodeCinf } from './decoders/cinf.js';
+import { realizeRgb16 as mapEngineRgb16 } from './display-profile.js';
 import { decodeWnd } from './decoders/wnd.js';
 import { decodeClut, headerColorsFromClut } from './decoders/clut.js';
 import { decodeColr } from './decoders/colr.js';
@@ -202,6 +203,11 @@ export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourc
   // promotion is enough. Off by default: lint and local bakes are unchanged.
   if (iconBlitCicnIds?.length) {
     const wanted = new Set(iconBlitCicnIds), done = new Set();
+    // Engine mode-5 bodies use the same opaque icon-blit contract.
+    for (const e of entries) if (e.type === 'cinf' && engineCinfIds?.includes(e.id) && e.data.length >= 18) {
+      const cinf = decodeCinf(e.data);
+      if (cinf.patternAnchor === 5) wanted.add(cinf.bgPatternId);
+    }
     for (const element of Object.values(theme.chromeElements ?? {})) {
       if (!wanted.has(element.sourceCicnId)) continue;
       const record = recordByPath.get(element.asset), original = originalByPath.get(element.asset);
@@ -233,6 +239,26 @@ export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourc
       if (e.type === 'cinf' && wanted.has(e.id) && !(String(e.id) in engineCinfs)) engineCinfs[String(e.id)] = Array.from(e.data);
     }
     theme.engineCinfs = engineCinfs;
+    // A finite point set, never a general sampler. A later base/provider cinf
+    // can name another point; its colour then remains explicitly unavailable.
+    const points = new Map();
+    for (const bytes of Object.values(engineCinfs)) if (bytes.length >= 18) {
+      const cinf = decodeCinf(Uint8Array.from(bytes));
+      for (const p of [cinf.bgPixel, cinf.textPixel, cinf.embossPixel]) points.set(`${p.x},${p.y}`, p);
+    }
+    for (const element of Object.values(theme.chromeElements ?? {})) {
+      if (!wanted.has(element.sourceCicnId)) continue;
+      const records = subAssets.filter(a => a.type === 'cicn' && a.file === element.asset);
+      const record = records.length === 1 ? records[0] : null;
+      if (!record?.sampleKdefRgb16) continue;
+      const samples = {};
+      for (const [key, point] of points) {
+        const rgb16 = record.sampleKdefRgb16(point.x, point.y);
+        samples[key] = rgb16 ? { rgb16, displayRgb: mapEngineRgb16(rgb16, displayProfile) } : null;
+      }
+      element.engineColorSamples = { model: 'kdef-2.3.1-engine-points', asset: element.asset,
+        width: element.width, height: element.height, displayPolicy: policy, points: samples };
+    }
     // The same ids' cicn bounds origins (slider BL11): engine pixmaps drop the
     // origin, so the engine traces any cicn whose origin is not (0, 0).
     // The pixel map's bounds rect follows its 4-byte base address and 2-byte

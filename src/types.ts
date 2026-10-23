@@ -164,6 +164,15 @@ export type CicnBodyBinding = {
 });
 
 export interface ChromeElement {
+  /** Finite raw colour samples at the exact points of engine cinfs available at
+   * conversion. Bound to this asset occurrence; absent points are unspecified. */
+  readonly engineColorSamples?: {
+    readonly model: 'kdef-2.3.1-engine-points';
+    readonly asset: string;
+    readonly width: number; readonly height: number;
+    readonly displayPolicy: DisplayPolicy;
+    readonly points: Readonly<Record<string, ControlColorSample | null>>;
+  };
   /** Opt-in role view; common fields below retain their local pairing. */
   readonly bodyCinf?: BodyCinfView;
   /** Separate group-base layout input, bound to this actual group2 thumb. */

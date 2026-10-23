@@ -8,6 +8,7 @@ import { SCROLLBAR_TRACK_IDS } from './scrollbar.js';
 import { PF_ART, PF_UTILITY_ART, PF_UTILITY_GROW, PF_UTILITY_STRIPES } from './proceduralFrame.js';
 import { SLIDER_IDS } from './slider.js';
 import { PROGRESS_FALLBACK, PROGRESS_IDS } from './progress.js';
+import { PUSH_IDS, PUSH_BUTTON } from './pushButton.js';
 
 export interface IdGrid {
   readonly bases: readonly number[];
@@ -26,6 +27,9 @@ export interface FamilyLoaderNeeds {
 }
 
 export const ENGINE_LOADER_NEEDS: readonly FamilyLoaderNeeds[] = [
+  { family: 'push-button', iconBlitCicns: [PUSH_IDS],
+    cinfs: [PUSH_IDS, { bases: [PUSH_BUTTON.PB9.fallback, PUSH_BUTTON.DR5.fallback], terms: [] }],
+    lineSampledCicns: [PUSH_IDS], source: 'push-button PB5–PB10, DR2–DR6; qd B2, E3/E4, S2/S4' },
   { family: 'scrollbar', iconBlitCicns: [SCROLLBAR_TRACK_IDS.horizontal, SCROLLBAR_TRACK_IDS.vertical], source: 'scrollbar AC5 (composite arrow cells, icon blit)' },
   {
     family: 'proceduralFrame',

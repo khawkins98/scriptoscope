@@ -23,6 +23,9 @@ import type { LoadedTheme } from '../../types.js';
 import type { Pixmap } from '../qd/types.js';
 import { ResourceChain, mapProvider, type ResourceProvider } from './chain.js';
 import { loadCicnBuffer } from '../../cicnImage.js';
+import { ownerDisplayPolicyMatches, realizeRgb16 } from '../../../tools/theme-loader/display-profile.js';
+import { decodeCinfHeader } from '../qd/cinfFrame.js';
+import type { QdPoint } from '../qd/types.js';
 import { assetUrl } from '../../loadTheme.js';
 import { onAssetUrlReleased } from '../../../tools/theme-loader/assetLifecycle.js';
 import { engineLineSampledCicnIds } from './ids.js';
@@ -58,7 +61,18 @@ async function themeProvider(theme: LoadedTheme, tier: 'archive' | 'base', name:
       // current asset, and the fallback is recorded in the trace (iconSource.ts).
       // Line-colour inputs (slider BL8/BL12) and the bounds origin (BL11) ride along.
       return [key, { ...cicnIconSource(pixmap, el.iconBlit?.pixelSize ?? null, companion),
-        origin: el.boundsOrigin ?? null, sampling: status, sampled }];
+        origin: el.boundsOrigin ?? null, sampling: status, sampled,
+        realizeRgb16: (rgb: readonly [number, number, number]) => {
+          const [r, g, b] = realizeRgb16(rgb, theme.manifest.displayProfile);
+          return { r: r!, g: g!, b: b!, a: 255 };
+        },
+        sampleRgb16: (point: QdPoint) => {
+          const samples = el.engineColorSamples;
+          if (!samples || samples.model !== 'kdef-2.3.1-engine-points' || samples.asset !== el.asset
+            || samples.width !== pixmap.width || samples.height !== pixmap.height
+            || !ownerDisplayPolicyMatches(theme.manifest, samples.displayPolicy)) return null;
+          return samples.points[`${point.x},${point.y}`]?.rgb16 ?? null;
+        } }];
     }
     if (type === 'cinf') {
       // Raw cinf bytes the loader kept for the engine's cinf ids (manifest.engineCinfs;
@@ -125,8 +139,28 @@ function chainLife(theme: LoadedTheme, signal: AbortSignal): ChainLife {
  * changes.
  */
 export async function themeResourceChain(theme: LoadedTheme, wanted: readonly { type: string; id: number }[],
-  opts: { signal?: AbortSignal } = {}): Promise<ResourceChain> {
+  opts: { signal?: AbortSignal; cinfBodies?: readonly number[] } = {}): Promise<ResourceChain> {
   const providers: ResourceProvider[] = [];
+  // Preload typed body dependencies without issuing engine requests. Resource
+  // order/NULL semantics remain owned by the synchronous painter at draw time.
+  if (opts.cinfBodies) {
+    const dependencies = new Map(wanted.map(r => [`${r.type}:${r.id}`, r]));
+    let selected = null;
+    for (const id of opts.cinfBodies) {
+      const seenBodies = new Set<LoadedTheme>();
+      for (let t: LoadedTheme | undefined = theme; t && !seenBodies.has(t); t = t.base) {
+        seenBodies.add(t);
+        const bytes = t.manifest.engineCinfs?.[String(id)];
+        if (bytes) { selected = decodeCinfHeader(bytes); break; }
+      }
+      if (selected) break;
+    }
+    if (selected) {
+      const type = selected.patternAnchor === 5 ? 'cicn' : 'ppat', id = selected.bgPatternId;
+      dependencies.set(`${type}:${id}`, { type, id });
+    }
+    wanted = [...dependencies.values()];
+  }
   const seen = new Set<LoadedTheme>();
   const life = opts.signal ? chainLife(theme, opts.signal) : undefined;
   let depth = 0;
