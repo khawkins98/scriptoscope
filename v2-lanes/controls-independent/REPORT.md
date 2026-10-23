@@ -379,3 +379,39 @@ correction guard); the removed rejection is killed by explicit error/outcome
 assertions. Raw positive/mutant logs are retained under `public-repair-mutations/`.
 `public-repair-engine-diff` also passes without another seed. Selected trace-identity
 regressions remain open for PM's separate repair; this success does not erase them.
+
+## Frozen trace repair and approved two-row activation
+
+PM authorized exact settled `1ee442d999d0e22e7be1d7bba987cad31859ba6f`, merged at
+`79eea491` with only its four runtime files. The unchanged focused suite passes
+63 checks, and engine-diff passes with no seed change. The first unchanged public
+availability/border run is retained as exit1. It confirms restored structured
+owner/resource/manifest joins, metadata-versus-paint and pressed-ring fallback for
+valid-cinf cases: availability increases from 8/27 to 16/27 passing. Remaining
+11 cases are the two separately approved unavailable corrections plus nine
+art-present/no-cinf cases that formerly demanded painted selections. Those nine
+must not be satisfied by fabricating PB9/PB10 paint. Border36/36 still fail: 20
+valid-cinf cases miss conditional NULL body-admission diagnostics, six pattern
+cases miss body request/mode contract, and ten no-cinf probes dereference a missing
+paint selection. All raw artifacts and observed execution records are archived;
+no broad assertion update, native-pixel claim or runtime self-fix is made.
+
+A DIFFERENT bounded reviewer approved the frozen two-row correction: task
+`task_250da34b4ee4`, dispatch `ctx_665557c4ea84`, session
+`orca_session_id:0ddda36d-6b99-47bf-aa9d-18e8913a21a8`, dated 2026-10-23,
+receipt `/Users/khawkins/Documents/git/scriptoscope-lanes/459-availability-review/REPORT.md`.
+PM explicitly authorized exact application. Active 1.0.16 now changes ONLY those
+two outcomes and adds their scoped policy rule; its recomputed case digest exactly
+matches the reviewer's prospective
+`3b17c3e7ea05462073f65dad01c12a8618d84105bacc55bbf15fca64da35205f`.
+Full old review is archived under previousReview, and frozen draft/before rows and
+overlay SHA remain unchanged. The accepted-state guard reconstructs all27 old rows
+to the old case digest, verifies exact new rows plus only activation fields,
+reviewer identity/receipt/date/linkage and scoped policy. Source validation passes.
+
+The first focused comparison run exposed a unit-only counterexample coupled to the
+now-corrected named-unknown-id active outcome. Its renderer-free identity-spoofing
+assertions remain unchanged; its synthetic expectation now reads the exact archived
+before declaration so it continues to prove that signed null cannot be replaced by
+a canonical request ID. It makes no current public availability claim. The failed
+setup receipt is retained; corrected inventory/comparison/correction13 checks pass.

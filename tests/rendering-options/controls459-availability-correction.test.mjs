@@ -5,16 +5,29 @@ import {createHash} from 'node:crypto';
 const read=p=>JSON.parse(readFileSync(new URL(p,import.meta.url)));
 const current=read('../control-availability/expectations.json');
 const delta=read('../control-availability/corrections/459-push-strict-state.json');
-test('459 correction is a two-row inactive candidate with exact prior-state archive and source pin',()=>{
+const hash=value=>createHash('sha256').update(value).digest('hex');
+test('459 correction preserves frozen draft and prior state through independently approved activation',()=>{
  assert.equal(delta.status,'candidate-requires-different-tier2');assert.equal(delta.activeInventoryUnchanged,true);
- assert.equal(delta.priorInventoryVersion,current.inventoryVersion);assert.equal(delta.priorInventorySha256,current.inventorySha256);assert.deepEqual(delta.priorReview,current.review);
+ assert.equal(hash(readFileSync(new URL('../control-availability/corrections/459-push-strict-state.json',import.meta.url))),'13b7f23c9ab492670e1b3e978640ebe438e16b443af0cbe2964bb1aaa9004483');
+ assert.equal(current.inventorySha256,hash(JSON.stringify(current.cases)));
+ const accepted=current.inventoryVersion===delta.candidateInventoryVersion;
+ if(!accepted){assert.equal(current.inventoryVersion,delta.priorInventoryVersion);assert.equal(current.inventorySha256,delta.priorInventorySha256);assert.deepEqual(current.review,delta.priorReview);}
+ else {
+  assert.equal(current.inventoryVersion,'1.0.16');assert.equal(current.inventorySha256,'3b17c3e7ea05462073f65dad01c12a8618d84105bacc55bbf15fca64da35205f');
+  assert.equal(current.reviewStatus,'reviewed');assert.deepEqual(current.review.previousReview,delta.priorReview);assert.equal(current.review.inventoryVersion,current.inventoryVersion);assert.equal(current.review.inventorySha256,current.inventorySha256);assert.equal(current.review.date,'2026-10-23');
+  const receipt=JSON.stringify(current.review.reviewers);for(const identity of ['task_250da34b4ee4','ctx_665557c4ea84','orca_session_id:0ddda36d-6b99-47bf-aa9d-18e8913a21a8','/Users/khawkins/Documents/git/scriptoscope-lanes/459-availability-review/REPORT.md','a54994b2c64503f8bfc362504faadfb310547f7b'])assert.ok(receipt.includes(identity));
+  assert.ok(current.review.transition.includes(delta.source.sha256));for(const c of delta.changes)assert.ok(current.review.transition.includes(c.id));
+  assert.deepEqual(current.policy.rules.filter(r=>r.id===delta.candidatePolicyRule.id),[delta.candidatePolicyRule]);
+ }
  assert.equal(delta.source.document,'docs/spec/engine/push-button.md');assert.equal(delta.source.sha256,createHash('sha256').update(readFileSync(new URL('../../docs/spec/engine/push-button.md',import.meta.url))).digest('hex'));
  assert.deepEqual(delta.changes.map(c=>c.id),['synthetic.named-unknown-id','synthetic.inactive-to-active']);
  for(const change of delta.changes){
-  assert.deepEqual(change.before,current.cases.find(c=>c.id===change.id));
+  const active=current.cases.find(c=>c.id===change.id);
+  assert.deepEqual(active,accepted?{...change.after,reviewStatus:'reviewed',effectiveAvailability:'unavailable'}:change.before);
   const after=change.after;assert.equal(after.reviewStatus,'draft-requires-independent-review');assert.equal(after.effectiveAvailability,'unknown');assert.deepEqual(after.proposed,{outcome:'unavailable',paint:[],noPaintRoles:['face','default-ring'],requiredDecisions:[]});
   const recover=structuredClone(after);for(const key of ['reviewStatus','effectiveAvailability','proposed','policyRefs','notes'])recover[key]=change.before[key];assert.deepEqual(recover,change.before,'input/source/evidence/owner identity cannot change');
   assert.deepEqual(after.policyRefs,[delta.candidatePolicyRule.id]);assert.ok(change.sourceRows.includes('PB8'));
  }
- assert.equal(delta.unlistedAvailability,'unknown');
+ const recovered=current.cases.map(row=>delta.changes.find(c=>c.id===row.id)?.before??row);assert.equal(recovered.length,27);assert.equal(hash(JSON.stringify(recovered)),delta.priorInventorySha256,'all 27 old rows recover exactly; other 25 cannot change');
+ assert.equal(delta.unlistedAvailability,'unknown');assert.equal(current.scope.unlistedAvailability,'unknown');
 });
