@@ -7,38 +7,74 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
-- **Legacy fixture migration:** push/default diagnostics distinguish typed art and
-  metadata admission from completed paint; retired push alias/state fallbacks and
-  no-cinf nine-slice assumptions no longer describe the migrated engine. Bevel and
-  tab retain their independently supported compatibility behavior. Canonical
-  checkable CICNs may resolve in the declared base chain, while icon colour stays
-  with its mask provider; this does not certify native provider order.
+## [0.6.0] — 2026-10-23
 
-- **Push-button and checkable engine migration** (#459): route push/default-ring,
-  checkbox and radio composition through separately authored engine drivers. Keep
-  signed resource selection, explicit NULL versus unknown results, exact prepared
-  owner/occurrence identity and opt-in completed-operation diagnostics.
-- **Controls migration notes:** named push-face aliases and cross-state fallback
-  no longer substitute for missing canonical signed art. Known art with proven
-  absent local `cinf` retains the reviewed modern admission result without claiming
-  completed paint or native pixel fidelity. Unknown or ambiguous dependencies stay
-  explicit. The loader adds typed occurrence/bounds and opaque companions; accepted
-  slider metadata removals and declared-provider completeness still apply.
-- **Controls compatibility:** ordinary raw `cinf` lookup retains the first
-  occurrence of the selected signed ID: a valid first record ignores later
-  duplicates, unused defaults and later providers; a selected malformed or
-  UNKNOWN record rejects explicitly without fallback. Static
-  `byteProvenance.cinfResourceIndex` describes the builder pair and may differ
-  from consumed first metadata; ordinary traces do not establish a consumed
-  raw duplicate-metadata occurrence or native provider/cache behavior.
-- **Checkable layout migration:** the public adapter now declares a nominal
-  20px single-line extent and retains full transferred source bounds. Consumers
-  depending on previous glyph/label-sized returned heights must accommodate this
-  allocation change; 20px is modern compatibility policy, not native geometry.
-- **Combined regression capture candidates:** fresh Linux contact sheets for the
-  controls and accepted window/title/slider tree require separate Tier-2, all-image,
-  source and production review. Original captures retain their own identities;
-  no golden approval, ledger promotion or release claim is made here.
+Fifth incremental release from the `v2` integration branch (#459), moving push
+buttons, default rings, checkboxes and radios onto decoded engine drivers.
+Other families continue to migrate separately; this is not the all-family 1.0
+milestone (DECISIONS #8).
+
+### Controls and migration (0.5.0 → 0.6.0)
+
+- Push/default-ring and checkable composition now use the engine through public
+  facades. Selection preserves signed resource IDs and the selected owner and
+  occurrence. Known absent (`NULL`) resources remain distinct from `UNKNOWN`
+  dependencies; selected malformed records reject explicitly instead of silently
+  choosing another state or provider. Retired named push aliases and cross-state
+  substitutions no longer stand in for missing canonical art. Known art with
+  proven absent local `cinf` retains its reviewed modern admission result,
+  without implying completed paint.
+- Ordinary raw `cinf` lookup consumes the first occurrence of the selected signed
+  ID. A valid first record ignores later duplicates, unused defaults and later
+  providers. Static `byteProvenance.cinfResourceIndex` identifies the builder pair
+  and need not identify the consumed raw metadata occurrence.
+- Sampled assets are prepared lazily for eligible operations, with abort and
+  released-theme handling, immutable composition snapshots and opt-in diagnostics
+  for completed operations. Missing optional sampling proof retains the bounded
+  compatibility path; eligible decode errors remain errors. Diagnostics do not
+  turn resource admission into proof of completed paint.
+- Consumers retain visible labelled native/CSS fallback buttons when themed push
+  painting is unavailable. Replacement buttons have neutral `type=button`
+  behavior, preserving the original control's activation and form semantics.
+  No Theme restores native controls; theme restoration reapplies the theme.
+- **Layout changes:** public checkables allocate a nominal **20px single-line
+  extent** and retain full transferred source bounds. Accommodate this allocation
+  instead of depending on the former glyph/label-sized returned height. Visible
+  native fallback adds **2px to ordinary flow** in affected layouts. Both are
+  modern compatibility policy, not historical native geometry.
+- Explicit public **mode 5** inputs require aligned **1:1** source/destination
+  validation. Do not rely on an implicit scaled or misaligned mode 5 transfer.
+
+### Validation and remaining limits
+
+The finite modern public API compatibility cases cover selected resource identity,
+malformed rejection, sampled preparation and visible fallback semantics. They do
+not establish historical native geometry, provider/cache ordering, fonts,
+device/depth behavior or transfer equivalence. The 39 unknown window rows and six
+unsupported slider cases remain unchanged; no native ledger status is promoted.
+
+The full ordinary browser suite passed **530 tests**, and pinned Linux verification
+passed **36 sheets / 1260 cases**, at clean `12ff5a99826b1c0c6707573317bb9e9640e206fe`.
+Independent visual review approved that bounded delta at the same actual head.
+The later test-only `5b65c271e5dd316831633ee57acd643ab29b4a67` strengthens sampled
+coverage with **64 complete source/static RGBA planes and four explicit no-output
+errors** in a separate targeted run and independent review; it is not a rerun of
+all 530 tests. Historical failed evidence retains its original scope and identity.
+Browser goldens are regression evidence, not original-engine references.
+
+### Runtime size (`npm run loc:src -- HEAD --base v0.5.0`)
+
+Logic grows by 944 lines: bounded migration drivers/facades, resource admission,
+preparation, trace and lifetime handling replace the legacy control drawers.
+`src/controls.ts` itself loses a net 239 lines; the overall runtime grows rather
+than shrinks. Cited engine tables add 90 lines. These release measurements are
+separate from the final visual review's measurements at its actual `12ff5a9` head.
+
+| src/ lines (non-test .ts) | v0.5.0 | HEAD | delta |
+|---|---:|---:|---:|
+| logic (all src except engine tables) | 16150 | 17094 | +944 |
+| engine tables (cited data) | 2147 | 2237 | +90 |
+| total | 18297 | 19331 | +1034 |
 
 ## [0.5.0] — 2026-10-23
 
