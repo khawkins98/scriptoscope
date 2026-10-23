@@ -7,6 +7,11 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+- **Window titles** (#459): load raw title color samples and draw TX7's shadow before the foreground, preserving the declared substitute-font sizing, clip and alpha-over policies. When no glyph plus ellipsis fits, retain the ellipsis alone. The corpus-wide `window.title-fit` assertion checks that fitting titles stay whole; it does not claim original-font pixel equivalence.
+- **Collapsed utility windows** (#423, #459): route the exact collapsed no-title utility type through the built-in frame engine on all five built-in schemes.
+- **Progress follow-ups** (#459): preserve the `progressSetData` flag byte, validate `ProgressIdle` phase inputs and enforce the public draw-path invariant. Correct the FB9 corpus count to 36.
+- **Breaking title metadata cleanup** (#459): remove `ComposedChrome.titleFillSrcX` and `titleFillRgb`. Regenerate custom sliced-window manifests to supply `WindowType.titleSamples`; without exact samples, source-backed title colors remain unspecified and the title is suppressed. Built-in procedural titles retain their existing presentation.
+
 - **Breaking inspector cleanup** (#436, #459): remove the deprecated `ThemeProgressModel` type, `ThemeInspector.resourceRoles.progress` and `progressSummary`. Progress rendering remains selected by the engine's `cinf` gate; inspector artwork roles no longer predict the drawing path. Consumers must stop reading the removed metadata.
 - **Diagnostic theme links** (#459): honor valid URL hash themes and playground settings on initial load and hash changes, including rapid switching. The manual visual-baseline command includes independent diagnostic hash checks.
 

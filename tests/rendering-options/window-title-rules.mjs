@@ -39,3 +39,13 @@ export const inside = (pts, rect) => pts.filter(([x, y]) => !(x >= rect.x && x <
 
 /** The top side's code-5 anchor cell (the plate, TT5–TT9) from the placement map. */
 export const plateOf = composed => composed.placement.find(p => p.edge === 'top' && p.code === 5)?.rects[0] ?? null;
+
+// Geometry is measured with one contrasting foreground and equal raw shadow:
+// TC4 suppresses the shadow, so natural swatch visibility and the +1 shadow
+// cannot alter the glyph box. Raw samples and TC5 paint are tested separately.
+export const isolateGlyphs = theme => {
+  for (const wt of Object.values(theme.manifest.windowTypes)) {
+    const fg = { rgb16: [65535, 0, 65535], displayRgb: [255, 0, 255] };
+    wt.titleSamples = Object.fromEntries(Object.entries(wt.titleSamples ?? {}).map(([state, sample]) => [state, { ...sample, text: fg, shadow: fg }]));
+  }
+};

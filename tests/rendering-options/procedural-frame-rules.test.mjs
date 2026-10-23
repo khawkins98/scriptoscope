@@ -11,7 +11,7 @@ import {
   selectArt, titleMode, documentFrameOps, titleOps, dialogRingOps, textPasses, titleBaseline, hitTest,
   toggleRun, ctEntry, ctEqual, copyPixel, kind5GrowOps, UDECODE, utilityInputs, utilityGeometry, utilityFrameOps, utilityFrameArt,
   utilityStripes, utilityTitleRect, utilityTitleOps, utilityDrawOrder, utilityWidgets, utilityGrowArt, utilityMessage6, utilityHit,
-  UTILITY_TYPES, UTILITY_EXCLUDED, utilityPlan,
+  UTILITY_TYPES, utilityPlan,
 } from './procedural-frame-rules.mjs';
 
 // Rule rows of docs/spec/engine/procedural-frame.md (§3–§6, test hooks §12).
@@ -685,7 +685,7 @@ const U_EXPECTED = {
   'UG2 §9.2 public-type frame insets [l, t, r, b] and structure size, 160 × 90 content': [
     ['titled-utility-window', [4, 16, 5, 5], [169, 111]], ['collapsed-titled-utility-window', [4, 16, 5, 1], [169, 17]],
     ['side-floating-utility-window', [14, 4, 5, 5], [179, 99]], ['collapsed-side-floating-utility-window', [14, 4, 1, 5], [15, 99]],
-    ['no-title-utility-window', [4, 14, 5, 5], [169, 109]]],
+    ['no-title-utility-window', [4, 14, 5, 5], [169, 109]], ['collapsed-no-title-utility-window', [4, 14, 5, 1], [169, 15]]],
   // 16 × 16 at (C.r − 14, C.b − 14); small 12 × 12 at (C.r − 10, C.b − 10); content minus grow only with smallGrow and grow.
   'UG3 §9.2 UG4/UG10 grow rect and content minus grow (grow; smallGrow + grow; smallGrow only)': [[[246, 136, 262, 152], null], [[250, 140, 262, 152], [250, 140, 262, 152]], [[250, 140, 262, 152], null]],
   'UG4 §9.2 UG5–UG9 boxes and limits': [
@@ -805,9 +805,8 @@ test('rev 3 corpus: the utility resources each archive ships (§8, §9.4–§9.8
   const same12 = (slug, x, y) => Array.from({ length: 144 }, (_, i) => [i % 12, Math.trunc(i / 12)]).every(p => P(slug, x, p) === P(slug, y, p));
   assert.ok(same12('apple-platinum-2', -14316, -14320) && same12('apple-platinum-2', -14315, -14319));
   for (const slug of SCHEMES.filter(s => s !== 'apple-platinum-2')) assert.ok(!same12(slug, -14316, -14320) && !same12(slug, -14315, -14319), slug);
-  // The excluded type is a real public type (#423) and the binding drives the other five.
-  assert.equal(UTILITY_EXCLUDED.issue, 423);
-  assert.deepEqual(UTILITY_TYPES.map(t => t.slug), ['titled-utility-window', 'collapsed-titled-utility-window', 'side-floating-utility-window', 'collapsed-side-floating-utility-window', 'no-title-utility-window']);
+  // #423: all six canonical utility types are reachable through the public loader.
+  assert.deepEqual(UTILITY_TYPES.map(t => t.slug), ['titled-utility-window', 'collapsed-titled-utility-window', 'side-floating-utility-window', 'collapsed-side-floating-utility-window', 'no-title-utility-window', 'collapsed-no-title-utility-window']);
 });
 
 test('rev 3 binding plan: every browser probe lies on the frame op the spec names, outside the interior', () => {

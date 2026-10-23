@@ -132,6 +132,7 @@ export const TITLE_TEXT = {
   /** TX4 / TX5: the clip and the truncation room are `t4p` widened by 2 on the right. */
   TX4: { id: 'TX4', widenRight: 2, source: '0x55be..0x55e4' },
   TX5: { id: 'TX5', source: '0x55ec..0x5636' },
+  TX7: { id: 'TX7', offsetX: 1, offsetY: 1, source: '0x563e..0x56ec' },
   /** TX8: left-aligned, baseline 4 above `t4p.bottom`. */
   TX8: { id: 'TX8', baselineAbove: 4, source: '0x56ee..0x5706' },
 } as const;
