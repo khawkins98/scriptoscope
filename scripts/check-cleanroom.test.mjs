@@ -242,6 +242,32 @@ test('recognized review artifacts cannot anchor constants in specs or tables', (
   }
 });
 
+for (const artifact of [
+  'src/engine/tables/family-rules.mjs',
+  'src/engine/tables/family-rules.spec.mjs',
+  'src/engine/tables/tests/family.spec.mjs',
+]) test(`independent oracle cannot anchor table constants: ${artifact}`, () => {
+  const root = tree({
+    'src/engine/family.ts': 'export const step = 37;\n',
+    [artifact]: 'export const expected = 37;\n',
+  });
+  try {
+    assert.deepEqual(checkCleanroom(root).hits, [
+      { file: 'src/engine/family.ts', rule: 'census', line: 1, text: '37' },
+    ], 'an independent oracle alone never anchors the implementation');
+    assert.equal(run(root), 1, 'CLI rejects the unanchored constant');
+    assert(targets(root).includes(join(root, artifact)), 'oracle remains scanned');
+    writeFileSync(join(root, 'src/engine/tables/cited.json'), '{ "step": 37 }\n');
+    assert.deepEqual(checkCleanroom(root).hits, [], 'implementation table still anchors the same constant');
+    assert.equal(run(root), 0, 'CLI accepts the implementation table anchor');
+    writeFileSync(join(root, artifact), '// jsr elsewhere\nexport const expected = 37;\n');
+    assert.deepEqual(checkCleanroom(root).hits, [
+      { file: artifact, rule: 'mnemonic', line: 1, text: 'jsr' },
+    ], 'excluding oracle anchors preserves contamination scanning');
+    assert.equal(run(root), 1, 'CLI rejects contaminated oracle input');
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
 test('linted independent rules and tests are never an allowed read scope', () => {
   const brief = 'docs/spec/engine/IMPLEMENTER-BRIEF.md';
   const root = tree(Object.fromEntries(RULE_TABLES.map(f => [f, 'export {};\n'])));

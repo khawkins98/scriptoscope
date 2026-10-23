@@ -55,7 +55,8 @@
 //   census         code   every numeric constant in `src/engine/` (outside
 //                         `tables/` and tests) must appear in a behavioural spec
 //                         `docs/spec/engine/*.md` (never `*.evidence.md`) or in
-//                         `src/engine/tables/`. 0, 1, 2 and -1 are exempt as
+//                         implementation files in `src/engine/tables/` (never
+//                         independent oracles or reviews). 0, 1, 2 and -1 are exempt as
 //                         structural. Passes vacuously while `src/engine/` does
 //                         not exist.
 //   brief-scope    -      every path the implementer brief allows (its
@@ -332,7 +333,7 @@ export function census(root) {
   const specDir = join(root, 'docs/spec/engine');
   const anchored = new Set([0, 1, 2, -1]);
   for (const f of walk(specDir)) if (engineSpec(posix(relative(root, f)))) for (const v of numbersIn(readFileSync(f, 'utf8'))) anchored.add(v);
-  for (const f of walk(tablesDir)) if (!/\.test\./.test(f) && !REVIEW_PATH.test(posix(relative(root, f)))) for (const v of numbersIn(stripComments(readFileSync(f, 'utf8')))) anchored.add(v);
+  for (const f of walk(tablesDir)) if (!/\.test\./.test(f) && !forbiddenRead(posix(relative(root, f)))) for (const v of numbersIn(stripComments(readFileSync(f, 'utf8')))) anchored.add(v);
   const hits = [];
   for (const f of walk(engine)) {
     if (f.startsWith(tablesDir + sep) || /\.test\.|\.json$/.test(f) || !/\.(ts|mts|js|mjs)$/.test(f)) continue;
