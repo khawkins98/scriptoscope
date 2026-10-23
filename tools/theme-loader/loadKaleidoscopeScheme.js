@@ -97,7 +97,7 @@ export async function loadKaleidoscopeScheme(input, options = {}) {
     if (evidence) await evidence.settle();
     throw error;
   }
-  const { theme, assets, iconIndex, iconMaskResources, iconMaskPlanes, iconColorResources, cicnResources, colorTables } = converted;
+  const { theme, assets, iconIndex, iconMaskResources, iconMaskPlanes, iconColorResources, cicnResources, ppatResources, colorTables } = converted;
   // Complete or reject all hashing before any encoder can allocate asset URLs.
   const byteProvenance = evidence ? await evidence.finish() : undefined;
   // convertScheme already validated the theme (convertChrome → validateTheme).
@@ -113,7 +113,7 @@ export async function loadKaleidoscopeScheme(input, options = {}) {
     finalizeCinfTheme(theme);
     finalizeCinfResourceOwner(theme, sliderLayoutBinding, 'sliderLayoutEnvironment');
     // Raw mode: hand back the contract + the un-encoded RGBA assets.
-    return { manifest: theme, assets, iconIndex, iconMaskResources, iconMaskPlanes, iconColorResources, cicnResources, colorTables, ...(byteProvenance ? { byteProvenance } : {}) };
+    return { manifest: theme, assets, iconIndex, iconMaskResources, iconMaskPlanes, iconColorResources, cicnResources, ppatResources, colorTables, ...(byteProvenance ? { byteProvenance } : {}) };
   }
 
   const urlFor = options.assetUrlFactory ?? defaultAssetUrlFactory;
@@ -159,6 +159,7 @@ export async function loadKaleidoscopeScheme(input, options = {}) {
   inspector.iconMaskPlanes = iconMaskPlanes;
   inspector.iconColorResources = iconColorResources;
   inspector.cicnResources = cicnResources;
+  inspector.ppatResources = ppatResources;
   inspector.colorTables = colorTables;
 
   // dispose() revokes every blob: URL this decode minted (~500 per scheme). Without
