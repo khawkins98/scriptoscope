@@ -1,4 +1,4 @@
-import { bodyCinfView, cinfBindingSummary, sliderLayoutCinfView, sliderLayoutBindingSummary } from './cinf-environment.js';
+import { bodyCinfView, cinfBindingSummary } from './cinf-environment.js';
 import { bindCicnBodies } from './cicn-body.js';
 // Build a schema-conformant theme.json from an extraction-manifest.json.
 //
@@ -156,8 +156,6 @@ export function buildThemeJson(manifest, options = {}) {
     if (options.cinfBinding && ([-10239, -10238, -10240].includes(cicn.id)
       || (cicn.id >= -10167 && cicn.id <= -10162) || (cicn.id >= -10176 && cicn.id <= -10171))) entry.bodyCinf = bodyCinfView(options.cinfBinding, cicn, ppatSlugById,
       options.displayProfile, cicnPathCounts.get(cicn.file) > 1, entry);
-    if (options.sliderLayoutBinding && [-10129, -10113].includes(cicn.id))
-      entry.sliderLayoutCinf = sliderLayoutCinfView(options.sliderLayoutBinding, cicn, cicnPathCounts.get(cicn.file) > 1, entry);
     chromeElements[slug] = entry;
     keyByCicn.set(cicn, slug);
   }
@@ -370,7 +368,6 @@ export function buildThemeJson(manifest, options = {}) {
   if (Object.keys(patterns).length > 0)       theme.patterns = patterns;
 
   if (options.cinfBinding) theme.cinfEnvironment = cinfBindingSummary(options.cinfBinding);
-  if (options.sliderLayoutBinding) theme.sliderLayoutEnvironment = sliderLayoutBindingSummary(options.sliderLayoutBinding);
   if (options.displayProfile) theme.displayProfile = options.displayProfile;
   return theme;
 }

@@ -7,6 +7,9 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+- **Declared slider resource chain** (#427, #459): the opt-in ordered `cinf` tier now supplies gate, corner and groove metadata together. Every declared provider must be complete before admission; missing declared metadata cannot borrow archive metadata. Ordinary resource resolution remains unchanged.
+- **Slider pointer geometry** (#427): imperative sliders use the engine's committed thumb travel, direction, exact-value grab and track-click centering for both ordinary and declared layouts.
+- **Breaking slider metadata cleanup** (#427): remove `ChromeElement.sliderLayoutCinf`, `SliderLayout.endpointPolicy`, the decoded slider summary fields and retired slider admission helper exports. Keep the preparation/binding option and generic IDs/data/body views; `sliderLayoutEnvironment` is now only the opaque frozen `{ environmentId, bindingId }` marker. Use engine traces for selected provider provenance.
 - **Window titles** (#459): load raw title color samples and draw TX7's shadow before the foreground, preserving the declared substitute-font sizing, clip and alpha-over policies. When no glyph plus ellipsis fits, retain the ellipsis alone. The corpus-wide `window.title-fit` assertion checks that fitting titles stay whole; it does not claim original-font pixel equivalence.
 - **Collapsed utility windows** (#423, #459): route the exact collapsed no-title utility type through the built-in frame engine on all five built-in schemes.
 - **Progress follow-ups** (#459): preserve the `progressSetData` flag byte, validate `ProgressIdle` phase inputs and enforce the public draw-path invariant. Correct the FB9 corpus count to 36.

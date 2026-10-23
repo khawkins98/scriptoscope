@@ -111,9 +111,19 @@ consumer.ready = (async () => {
     || cinfFace.bodyCinf.selected?.providerId !== 'actual') throw new Error('Packed cinf environment/role view failed');
   const sliderLoaded = await loadKaleidoscopeScheme(bytes, { sliderLayoutEnvironment: cinfEnvironment, encodeAssets: false });
   const sliderThumb = Object.values(sliderLoaded.manifest.chromeElements).find(e => e.sourceCicnId === -10129);
-  if (sliderLoaded.manifest.sliderLayoutEnvironment?.scope !== 'standalone-group2-slider-layout'
-    || sliderThumb?.sliderLayoutCinf?.orientation !== 'horizontal'
-    || !['ready', 'unsupported'].includes(sliderThumb.sliderLayoutCinf.status)) throw new Error('Packed slider layout role failed');
+  const sliderMarker = sliderLoaded.manifest.sliderLayoutEnvironment;
+  if (!sliderMarker || sliderMarker.environmentId !== cinfEnvironment.id
+    || !sliderMarker.bindingId.startsWith('cinf-binding:') || !Object.isFrozen(sliderMarker)
+    || Object.keys(sliderMarker).sort().join(',') !== 'bindingId,environmentId'
+    || !sliderThumb || 'sliderLayoutCinf' in sliderThumb) throw new Error('Packed slider identity marker failed');
+  const sliderFromDirectory = await loadTheme(`${import.meta.env.BASE_URL}themes/windows-95`, { sliderLayoutEnvironment: cinfEnvironment });
+  if (sliderFromDirectory.manifest.sliderLayoutEnvironment?.environmentId !== cinfEnvironment.id
+    || !Object.isFrozen(sliderFromDirectory.manifest.sliderLayoutEnvironment)) throw new Error('Packed directory slider option failed');
+  // The removed decoded role and summary fields must also be absent from the installed declaration graph.
+  // @ts-expect-error slider marker is opaque identity, with no scope summary
+  void sliderMarker.scope;
+  // @ts-expect-error decoded slider roles belong to the typed engine adapter
+  void sliderThumb.sliderLayoutCinf;
   // A no-wnd# scheme renders through the lazily imported built-in-frame
   // compositor chunk; windows-95 alone would never request that chunk.
   const builtInTheme = await loadTheme(`${import.meta.env.BASE_URL}themes/platinum-8`, { source: 'scheme.sit' });
