@@ -55,23 +55,28 @@ async function themeProvider(theme: LoadedTheme, tier: 'archive' | 'base', name:
   const entry = async ({ type, id }: { type: string; id: number }): Promise<[string, unknown] | null> => {
     const key = `${type}:${id}`;
     if (type === 'cicn') {
+      const unknown = (reason: string): [string, unknown] => {
+        // The provider is known; an unavailable asset identity remains unknown.
+        if (traceProvenance) selections.set(key, { owner });
+        return [key, { status: 'unknown', reason }];
+      };
       if (theme.inspector?.cicnResources) {
         const raw = theme.inspector.cicnResources.filter(r => r.id === id);
         const decoded = elements.filter(e => e.sourceCicnId === id && e.asset);
         if (raw.length > 1 || raw.length === 1 && (!validOccurrence(raw[0]!) || decoded.length !== 1))
-          return [key, { status: 'unknown', reason: 'ambiguous or undecoded raw cicn occurrence' }];
-        if (raw.length === 0 && decoded.length) return [key, { status: 'unknown', reason: 'cicn decoded asset contradicts raw census' }];
+          return unknown('ambiguous or undecoded raw cicn occurrence');
+        if (raw.length === 0 && decoded.length) return unknown('cicn decoded asset contradicts raw census');
         const el = decoded[0], occurrence = raw[0];
         if (el && occurrence && (el.byteProvenance && el.byteProvenance.cicnResourceIndex !== occurrence.resourceIndex
           || el.cicnSource && (el.cicnSource.id !== id || el.cicnSource.resourceIndex !== occurrence.resourceIndex
             || el.cicnSource.byteLength !== occurrence.byteLength)))
-          return [key, { status: 'unknown', reason: 'decoded cicn occurrence contradicts raw census' }];
+          return unknown('decoded cicn occurrence contradicts raw census');
       }
-      if (checkables && elements.filter(e => e.sourceCicnId === id).length > 1) return [key, { status: 'unknown', reason: 'ambiguous cicn occurrence' }];
+      if (checkables && elements.filter(e => e.sourceCicnId === id).length > 1) return unknown('ambiguous cicn occurrence');
       const selected = elementEntries.find(([, e]) => e.sourceCicnId === id && e.asset);
       const el = selected?.[1];
       if (!el) {
-        if (checkables && elements.some(e => e.sourceCicnId === id)) return [key, { status: 'unknown', reason: 'cicn occurrence has no decoded asset' }];
+        if (checkables && elements.some(e => e.sourceCicnId === id)) return unknown('cicn occurrence has no decoded asset');
         return null;
       }
       const status = el.samplingEquivalence?.status ?? null;
