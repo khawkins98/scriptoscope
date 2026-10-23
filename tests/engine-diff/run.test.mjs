@@ -164,7 +164,7 @@ test('CLI: a family judged at the base cannot be deleted, renamed or taken over 
   g(wt, '-c', 'user.email=t@t', '-c', 'user.name=t', '-c', 'commit.gpgsign=false', 'commit', '-qam', 'base', '--allow-empty');
   const base = g(wt, 'rev-parse', 'HEAD');
   const cases = join(wt, 'tests/engine-diff/cases.mjs'), original = read(cases, 'utf8');
-  const WINDOW = "  window: { rules: ['docs/spec/engine/qd-primitives.md'], cells: windowCells },\n";
+  const WINDOW = "  window: { rules: ['docs/spec/engine/window-widgets.md', 'docs/spec/engine/qd-primitives.md'], cells: windowCells },\n";
   assert.ok(original.includes(WINDOW));
   const run = body => spawnSync(process.execPath, [join(wt, 'tests/engine-diff/run.mjs'), '--check', '--base-commit', base], { cwd: wt, encoding: 'utf8', env: { ...process.env, ENGINE_DIFF_PR_BODY: body } });
   const reset = () => { g(wt, 'checkout', '-q', '--', '.'); g(wt, 'clean', '-qfd', 'tests/engine-diff'); };

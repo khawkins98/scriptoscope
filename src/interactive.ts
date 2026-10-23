@@ -1899,7 +1899,11 @@ export class WindowManager {
         padding: '0', margin: '0', border: '0', background: 'transparent',
         cursor: 'default', zIndex: '2',
       } satisfies Partial<CSSStyleDeclaration>);
-      btn.addEventListener('click', (e) => { e.stopPropagation(); if (currentChrome()) handler(); });
+      // HT7: inside the rect, only the pressed strip's mask hits; elsewhere the event passes to the window.
+      const onWidget = (e: MouseEvent): boolean => !composed.hitWidget
+        || composed.hitWidget(Math.floor((hit.rect.x + e.offsetX) / scale), Math.floor((hit.rect.y + e.offsetY) / scale)) === hit.role;
+      // A keyboard or assistive-technology click (detail 0) has no pointer position: it always acts (DECISIONS #12).
+      btn.addEventListener('click', (e) => { if (e.detail !== 0 && !onWidget(e)) return; e.stopPropagation(); if (currentChrome()) handler(); });
       if (chrome && cctx) {
         let pressedCanvas: HTMLCanvasElement | null | undefined;
         let cacheEpoch = -1, pressEpoch = -1, pressGeneration = 0;
@@ -1935,7 +1939,7 @@ export class WindowManager {
         };
         // stopPropagation so the window's mousedown→focus handler doesn't re-render (which would
         // destroy this button mid-press); a widget press shouldn't require focusing the window first.
-        btn.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); void press(); });
+        btn.addEventListener('pointerdown', (e) => { if (!onWidget(e)) return; e.preventDefault(); e.stopPropagation(); void press(); });
         btn.addEventListener('pointerup', release);
         btn.addEventListener('pointerleave', release);
       }

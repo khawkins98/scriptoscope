@@ -1,30 +1,19 @@
 import type { LoadedTheme, WindowState, WindowType } from './types.js';
 import { assetUrl, findChromeElement } from './loadTheme.js';
 import { loadCicnBuffer } from './cicnImage.js';
-import { composeWindowChrome, type ComposedChrome } from './composeChrome.js';
+import { composeWindowChrome, type ComposedChrome, type TitleWidgetRole } from './composeChrome.js';
+import { themeResourceChain } from './engine/resources/theme.js';
+import { widgetCicnIds } from './engine/families/window.js';
+import type { IconSource } from './engine/qd/region.js';
 // The built-in frame (the `wt.model === 'corner-sprite'` branch: schemes with no
 // wnd# recipe) draws through the v2 engine family proceduralFrame, dynamically
 // imported so the 13 wnd# themes don't load it on first paint.
 import { rasterizeText } from './textRaster.js';
-import { rasterizeTitleFont } from './titleFont.js';
+import { rasterizeTitle } from './titleFont.js';
+import { TITLE_TEXT } from './engine/tables/window.js';
 import { PixelBuffer } from './pixelBuffer.js';
 import { resolveWindowSelection } from './resolveWindowType.js';
 import { canonicalWindowTypeSlug } from './wndCascade.js';
-
-/** Pixels reserved between the title plate's edge and the nearest title-bar widget.
- *  Used by BOTH the plate sizing (so the plate grows wide enough that a widget
- *  immediately adjacent to it doesn't overlap the title text's footprint) AND the
- *  truncation budget (so the truncator's `maxTitleW` reserves the same margin on
- *  each side). The two sites MUST use the same constant — when they diverged
- *  before this constant was named, schemes with tight title bars (windows-95,
- *  floppies, apple-lisa) truncated "Hello!" to "Hel…". Period-faithful: mirrors
- *  the kDEF's `0x4f18` plate-tile pass which measured with trailing space too. */
-const TITLE_WIDGET_CLEARANCE_PX = 5;
-
-/** Pixels of visual padding around the title glyph WITHIN the plate (independent
- *  of the widget-clearance budget — this is the inset between the plate's left/
- *  right edges and the glyph's left/right edges, NOT between plate and widget). */
-const TITLE_PLATE_VISUAL_PAD_PX = 8;
 
 export interface RenderWindowOptions {
   /** Window-type slug. Default `'document-window'`. */
@@ -39,10 +28,9 @@ export interface RenderWindowOptions {
   height?: number;
   /** Integer display scale (crisp upscaling via CSS). Default 1. */
   scale?: number;
-  /** Render one title-bar widget in its PRESSED state (mouse held down on it).
-   *  Built-in-frame schemes (no wnd#) draw the widget's pressed icon (procedural-frame
-   *  §2 parts 4/5/9: close -14333, zoom -14331, collapse -14332); native-recipe schemes
-   *  (widget baked into the title cicn) darken its rect. */
+  /** Render one title-bar widget in its PRESSED state (mouse held down on it): the
+   *  built-in frame's pressed icon (procedural-frame §2 parts 4/5/9), or a wnd# scheme's
+   *  pressed strip cicn (window-widgets WD9; none drawn when the scheme ships none). */
   pressedWidget?: TitleWidgetRole;
   /** Optional canvas element to REUSE for the chrome painting (saves a per-render
    *  allocation). Width and height are reset to the new chrome size, which clears
@@ -55,90 +43,29 @@ export interface RenderWindowOptions {
   reuseCanvas?: HTMLCanvasElement;
 }
 
-/** A title-bar widget action, independent of its authored position. */
-export type TitleWidgetRole = 'close' | 'zoom' | 'collapse';
+export type { TitleWidgetRole };
 
 /**
- * Resolve title-bar widget rects (UNSCALED, in composed-buffer pixel space) from the `wnd#`
- * parts, mapped onto the stretched window. Press feedback and interactive hit testing
- * share this resolver. The rectangle list carries semantic part IDs: 1 close,
- * 2 zoom, 3 collapse; 0 is the body and 4 the title marker. These are NOT the
- * separate side-list recipe codes. kDEF 0x5ffc maps selectors 0/1/3 to these
- * parts; hit dispatch 0x4138/0x4176/0x41d0 returns close/zoom/collapse.
- * Preserve those IDs even when a scheme puts close on the right or stacks its
- * widgets vertically. Geometry follows the actual compositor placements through the
- * kDEF's 0x5cb6 remap (below), so e.g. 1990's widgets left of a grown title plate
- * shift with their own cells (docs/spec/engine/window-widgets.md RM1–RM8; finding F1 there: the
- * bottom-right corner should follow the cell's far edge).
+ * Title-bar widget hit areas (UNSCALED, composed-buffer pixels), shared by press
+ * feedback and WindowManager. Rect-list types 1 close, 2 zoom, 3 collapse keep
+ * their roles wherever a scheme places them. The built-in frame reports its
+ * widgets as one `edge: 'widget'` placement; a wnd# window reports the widgets
+ * whose `wHit` branch is reachable, at their remapped rects (window-widgets RM,
+ * HT rows: cleared collapse boxes, empty rects and schemes without the pressed
+ * strip have none; inactive windows keep theirs, runtime policy, see renderWindow). Inside a rect, `composed.hitWidget`
+ * applies the strip's mask (HT7).
  */
 export function resolveTitleWidgetRects(
-  wt: WindowType,
+  _wt: WindowType,
   composed: ComposedChrome,
 ): { role: TitleWidgetRole; rect: { x: number; y: number; w: number; h: number } }[] {
-  // Built-in frame (proceduralFrameChrome): ONE `edge:'widget'` placement whose `rects` are the
-  // widgets left to right and whose `role` joins their names (e.g. "close/zoom/collapse").
   const ws = composed.placement.find((s) => s.edge === 'widget');
-  if (ws && ws.rects.length) {
-    const roles = ws.role.split('/');
-    const out: { role: TitleWidgetRole; rect: { x: number; y: number; w: number; h: number } }[] = [];
-    ws.rects.forEach((r, i) => {
-      const role = roles[i];
-      if (role === 'close' || role === 'zoom' || role === 'collapse') out.push({ role, rect: { x: r.x, y: r.y, w: r.w, h: r.h } });
-    });
-    return out;
-  }
-  // Native wnd# model: the kDEF's 0x5cb6 template → placed remap. Each drawn
-  // side segment (sides in 0x5356 order top, bottom, left, right; segments from
-  // index 1, 0x5d26) is a template cell `src` with a placed cell `rects[0]`.
-  // The rect's topLeft is translated by the (placed − template) offset of the
-  // first template cell containing it (PtInRect is half-open, 0x5d4a..0x5d76);
-  // botRight − 1 is matched separately and translates bottom/right by its own
-  // cell (0x5d78..0x5da4). If either corner matches no cell the rect is emptied
-  // (0x5dc6..0x5dd0), so the widget has no hit or press area. A cell collapsed
-  // to width 0 keeps its template rect, so its widget lands, at full size, at
-  // the collapse point (still hit-testable, as 0x5ddc uses the same remap at
-  // 0x5f72). The leading [0, border[0]) region and the runtime's far-edge cap
-  // are not segments and never match.
-  // Divergence (docs/spec/engine/window-widgets.md RM6, finding F1): the decode
-  // moves bottom/right by the containing cell's FAR edge (placed − template
-  // right/bottom), so a widget in a cell dropped to width 0 becomes empty, and
-  // is neither drawn nor hit. This code still uses the near-edge delta for both
-  // corners and keeps the full-size rect described above.
-  const order = ['top', 'bottom', 'left', 'right'] as const;
-  const segs = order.flatMap((edge) => composed.placement.filter((s) => s.edge === edge && (s.segment ?? 1) >= 1 && s.rects.length > 0));
-  if (!segs.length || !wt.parts) return [];
-  const delta = (x: number, y: number): { dx: number; dy: number } | null => {
-    const hit = segs.find((s) => x >= s.src.x && x < s.src.x + s.src.w && y >= s.src.y && y < s.src.y + s.src.h);
-    return hit ? { dx: hit.rects[0]!.x - hit.src.x, dy: hit.rects[0]!.y - hit.src.y } : null;
-  };
-  const out: { role: TitleWidgetRole; rect: { x: number; y: number; w: number; h: number } }[] = [];
-  const roles = { 'part-1': 'close', 'part-2': 'zoom', 'part-3': 'collapse' } as const;
-  for (const [part, role] of Object.entries(roles)) {
-    // 0x41be: no collapse hit when 0x487e is false (shade flag cleared at 0x4e3a).
-    if (role === 'collapse' && composed.shadeCleared) continue;
-    const rect = wt.parts[part]?.rect;
-    if (!rect) continue;
-    const [l, t, r, b] = rect;
-    if (r <= l || b <= t) continue;
-    const tl = delta(l, t), br = delta(r - 1, b - 1);
-    if (!tl || !br) continue;
-    const x = l + tl.dx, y = t + tl.dy, w = r + br.dx - x, h = b + br.dy - y;
-    if (w <= 0 || h <= 0) continue;
-    out.push({ role, rect: { x, y, w, h } });
-  }
-  return out;
-}
-
-/** Darken a rect of a chrome buffer to read as a "pressed in" title-bar widget — the synthesized
- *  press for native-recipe schemes that bake the widget into the title cicn (no pressed art). */
-function pressRect(buf: PixelBuffer, r: { x: number; y: number; w: number; h: number }): void {
-  const x1 = Math.min(buf.width, r.x + r.w), y1 = Math.min(buf.height, r.y + r.h);
-  for (let y = Math.max(0, r.y); y < y1; y++) {
-    for (let x = Math.max(0, r.x); x < x1; x++) {
-      const [pr, pg, pb, pa] = buf.getPixel(x, y);
-      if (pa > 0) buf.setPixel(x, y, Math.round(pr * 0.6), Math.round(pg * 0.6), Math.round(pb * 0.6), pa);
-    }
-  }
+  if (!ws?.rects.length) return composed.widgets ?? [];
+  const roles = ws.role.split('/');
+  return ws.rects.flatMap((r, i) => {
+    const role = roles[i];
+    return role === 'close' || role === 'zoom' || role === 'collapse' ? [{ role, rect: { x: r.x, y: r.y, w: r.w, h: r.h } }] : [];
+  });
 }
 
 /**
@@ -192,16 +119,19 @@ export async function renderWindow(
   const isTitledUtility = /^titled-utility-window/.test(slug);
   const showTitle = !!title && (!isUtility || isTitledUtility);
 
-  // ── title geometry: the title TEXT is a CENTRED part (kDEF placement mode 0).
-  // We rasterize it (width pass) BEFORE composing so the compositor can reserve
-  // the measured title-text width for the title-plate cell (code 5) — the kDEF
-  // measures the title via StringWidth and sizes that cell to it (0x4a64/0x5034),
-  // tiling the plate src across it (the "pill" behind the title). Without that
-  // the plate stays its tiny src width and the text spills onto the bezel. ──
+  // ── title width: rasterize the title BEFORE composing; its width is the layout's
+  // `SW` (window-widgets LS6, TT rows), which sizes the code-5 plate. ──
   const frameTop = wt.parts['part-0']?.rect[1] ?? 0;
   const builtInFrame = wt.model === 'corner-sprite';
-  let glyphs: PixelBuffer | null = null;
   let textH = 0;
+  // Pen advance (StringWidth) and baseline row; the pixel rasterizer (non-DOM) has neither, so its box stands in.
+  const raster = (text: string, hex: string): { buffer: PixelBuffer; ascent: number; advance: number } => {
+    const r = rasterizeTitle(text, textH, hex);
+    if (r) return r;
+    const b = rasterizeText(text, textH, hex);
+    return { buffer: b, ascent: b.height, advance: b.width };
+  };
+  let measured: ReturnType<typeof raster> | null = null;
   if (showTitle && frameTop > 6 && !builtInFrame) {
     textH = Math.max(8, Math.min(13, frameTop - 6)); // ~Chicago 12px, never frame-scaled
     // Canvas text only uses a font that's ALREADY loaded — so ensure the
@@ -213,19 +143,8 @@ export async function renderWindow(
     }
     // Title in the "Charcoal" font (period anti-aliased type); pixel rasterizer
     // is the fallback (non-DOM contexts). Width pass; recoloured below.
-    glyphs = rasterizeTitleFont(title, textH, '#000000') ?? rasterizeText(title, textH, '#000000');
+    measured = raster(title, '#000000');
   }
-  // Plate width = measured title width + a little padding each side (the kDEF
-  // measures with trailing space, 0x4f18); 0 when there's no visible title.
-  // The plate sizing + the truncation-budget math at L356 use the SAME
-  // widget-clearance constant — make it named so a future tune of one site
-  // can't desync the other (the regression class this fixes: schemes whose
-  // recipe places a widget immediately after the plate had `maxTitleW <
-  // glyph_width` and the title truncated to "Hel…"). Period-faithful in
-  // spirit: the kDEF's plate-tile pass `0x4f18` measures with trailing
-  // space too — same idea, smaller constant.
-  const titleWidthPx = glyphs ? glyphs.width + TITLE_PLATE_VISUAL_PAD_PX + TITLE_WIDGET_CLEARANCE_PX * 2 : 0;
-
   // Built-in frame windows (no wnd# recipe: apple-platinum-2, black-platinum,
   // platinum-8, slimes, system7-nostalgia-silver) draw through the v2 engine
   // (docs/spec/engine/procedural-frame.md), title text and pressed widget included.
@@ -242,64 +161,50 @@ export async function renderWindow(
       ...(opts.pressedWidget ? { pressedWidget: opts.pressedWidget } : {}),
     });
   } else {
-    // popup-window requests are service slot 8 (procID 1008 + varCode, family 63 → the family-63 flag, 0x3210).
-    composed = composeWindowChrome(cicn!, wt, contentW, contentH, { cinf: wt.cinf ?? null, titleWidthPx, popupFamily: slug === 'popup-window' });
-    // Native-recipe widgets are baked into the title cicn (no pressed art), so synthesize the
-    // press by darkening the held widget's rect (corner-sprite schemes used the pressed glyph above).
-    if (opts.pressedWidget && wt) {
-      const wr = resolveTitleWidgetRects(wt, composed).find((w) => w.role === opts.pressedWidget);
-      if (wr) pressRect(composed.buffer, wr.rect);
-    }
+    // popup-window requests are service slot 8 (procID 1008 + varCode, family 63: window-widgets AP1).
+    // The pressed strip (WD11) gates every widget hit and draws the pressed widget (WD9, HT7).
+    // Accessibility divergence (DECISIONS #12): `active` is deliberately not passed. The decode
+    // makes an inactive window's widgets inert (window-widgets HT2); we keep focusable, operable
+    // buttons so keyboard and assistive-technology users can act on background windows. Widget
+    // art still follows the decode.
+    const ids = widgetCicnIds();
+    const strip = (await themeResourceChain(owner, ids.map((id) => ({ type: 'cicn', id })))).probe<IconSource>('cicn', ids);
+    composed = composeWindowChrome(cicn!, wt, contentW, contentH, {
+      cinf: wt.cinf ?? null, titleWidthPx: measured?.advance ?? 0, titleLength: measured ? title.length : 0,
+      popupFamily: slug === 'popup-window', widgetCicn: strip?.value.pixmap ?? null,
+      ...(opts.pressedWidget ? { pressedWidget: opts.pressedWidget } : {}),
+    });
   }
   const { frame, fullWidth, fullHeight } = composed;
 
-  if (glyphs && frame.top > 6) {
-    const tr = composed.titleRegion;
-    const cx = tr.x + tr.w / 2;
-    // Vertical anchor: the centre of the scheme's title-text marker band (tr.midY — the cicn
-    // colour-sample line), faithful for tall ornate bars (evolution); else the bar's geometric centre.
-    const titleMidY = tr.midY ?? frame.top / 2;
-
-    // TRUNCATION — the available title width is the gap between the close (left) and zoom/collapse
-    // (right) widgets, centred at cx. When the full title can't fit (a narrow window) we truncate it
-    // with an ellipsis, and when even "…" can't fit we drop the title entirely — Mac OS behaviour
-    // ("Infinite HD" → "Infi…" → nothing). Widget rects come from the SAME resolver the hit-testing
-    // uses, so the text never runs under a widget.
-    const wrects = resolveTitleWidgetRects(wt, composed);
-    // Available title width starts from the titleRegion — the kDEF placed a title PLATE
-    // there that's already sized to fit the title. Widget rects only further CLIP it
-    // when they actually overlap the title region (Mac OS 8.5+ Platinum: zoom/collapse
-    // can intrude into the bar's middle). Schemes like 1990 stack widgets to the LEFT of
-    // the plate; the widgets sit OUTSIDE the title region so they don't constrain it.
-    const trLeft = tr.x;
-    const trRight = tr.x + tr.w;
-    const leftEnd = wrects
-      .filter((w) => w.rect.x + w.rect.w > trLeft && w.rect.x < trRight && (w.rect.x + w.rect.w / 2) < cx)
-      .reduce((m, w) => Math.max(m, w.rect.x + w.rect.w), trLeft);
-    const rightStart = wrects
-      .filter((w) => w.rect.x + w.rect.w > trLeft && w.rect.x < trRight && (w.rect.x + w.rect.w / 2) >= cx)
-      .reduce((m, w) => Math.min(m, w.rect.x), trRight);
-    const maxTitleW = Math.max(0, Math.floor(2 * Math.min(cx - (leftEnd + TITLE_WIDGET_CLEARANCE_PX), (rightStart - TITLE_WIDGET_CLEARANCE_PX) - cx)));
+  // Title text (window-widgets §4.12): in `t4p`, the remapped title rect (TX3); nothing for an
+  // empty title (TX2) or an empty `t4p`. Left-aligned, baseline 4 above its bottom (TX8),
+  // clipped to `t4p` widened by 2 on the right (TX4). The layout centres `t4p` on the content
+  // (TT6/TT7). DIVERGENCES (runtime): TX5 condenses before TruncString, but the runtime has
+  // no condensed face, so it only truncates (plain face, ellipsis); TX7's shadow string and
+  // sampled colours are not drawn (the colour rule below is the runtime's); the text is drawn
+  // after every side, not right after the side holding T4 (TX1).
+  const t4p = composed.titleRect;
+  if (measured && t4p && t4p.w > 0 && t4p.h > 0) {
+    const room = t4p.w + TITLE_TEXT.TX4.widenRight;
     let dispTitle = title;
-    if (glyphs.width > maxTitleW && title.length > 1) {
-      dispTitle = '…';
+    if (measured.advance > room) { // TX5
+      dispTitle = '';
       for (let n = title.length - 1; n >= 1; n--) {
         const cand = `${title.slice(0, n)}…`;
-        const cg = rasterizeTitleFont(cand, textH, '#000000') ?? rasterizeText(cand, textH, '#000000');
-        if (cg && cg.width <= maxTitleW) { dispTitle = cand; break; }
+        if (raster(cand, '#000000').advance <= room) { dispTitle = cand; break; }
       }
     }
-    const baseGlyphs = dispTitle === title ? glyphs : (rasterizeTitleFont(dispTitle, textH, '#000000') ?? rasterizeText(dispTitle, textH, '#000000'));
-    if (baseGlyphs && baseGlyphs.width <= maxTitleW) {
-      // Title colour CONTRASTS with the bar the text sits on: sample the composed buffer over the
-      // text's OWN footprint (the title plate / pinstripe), not the dark frame — a dark bar (Black
-      // Platinum) gets WHITE text; light bars keep BLACK. NOT headerColors.text (a frame tint).
-      const sgx = Math.max(1, Math.min(fullWidth - baseGlyphs.width - 1, Math.round(cx - baseGlyphs.width / 2)));
-      const sgy = Math.max(1, Math.round(titleMidY - baseGlyphs.height / 2));
+    const base = dispTitle === title ? measured : dispTitle ? raster(dispTitle, '#000000') : null;
+    if (base) {
+      const x0 = t4p.x, y0 = t4p.y + t4p.h - TITLE_TEXT.TX8.baselineAbove - base.ascent;
+      const clip = { l: Math.max(0, t4p.x), t: Math.max(0, t4p.y), r: Math.min(fullWidth, t4p.x + room), b: Math.min(fullHeight, t4p.y + t4p.h) };
+      const inClip = (x: number, y: number): boolean => x >= clip.l && x < clip.r && y >= clip.t && y < clip.b;
+      // Title colour CONTRASTS with the bar under the text's own footprint (runtime rule, not TX7).
       let lumSum = 0, lumN = 0;
-      const sx1 = Math.min(fullWidth, sgx + baseGlyphs.width), sy1 = Math.min(frame.top - 1, sgy + baseGlyphs.height);
-      for (let sy = sgy; sy < sy1; sy++) for (let sx = sgx; sx < sx1; sx++) {
-        const [pr, pg, pb, pa] = composed.buffer.getPixel(sx, sy);
+      for (let y = 0; y < base.buffer.height; y++) for (let x = 0; x < base.buffer.width; x++) {
+        if (!inClip(x0 + x, y0 + y)) continue;
+        const [pr, pg, pb, pa] = composed.buffer.getPixel(x0 + x, y0 + y);
         if (pa < 8) continue;
         lumSum += 0.299 * pr + 0.587 * pg + 0.114 * pb; lumN++;
       }
@@ -339,10 +244,16 @@ export async function renderWindow(
           ? (state === 'inactive' ? '#bcbcbc' : '#ffffff')
           : (state === 'inactive' ? '#808080' : '#000000');
       }
-      const g = fgHex === '#000000' ? baseGlyphs : (rasterizeTitleFont(dispTitle, textH, fgHex) ?? rasterizeText(dispTitle, textH, fgHex));
-      const gx = Math.max(1, Math.min(fullWidth - g.width - 1, Math.round(cx - g.width / 2)));
-      const gy = Math.max(1, Math.min(frame.top - g.height - 1, Math.round(titleMidY - g.height / 2)));
-      composed.buffer.drawOver(g, gx, gy);
+      const g = fgHex === '#000000' ? base : raster(dispTitle, fgHex);
+      for (let y = 0; y < g.buffer.height; y++) for (let x = 0; x < g.buffer.width; x++) {
+        const px = x0 + x, py = y0 + y;
+        if (!inClip(px, py)) continue;
+        const [r, gg, b, a] = g.buffer.getPixel(x, y);
+        if (a === 0) continue;
+        const [dr, dg, db, da] = composed.buffer.getPixel(px, py);
+        const sa = a / 255;
+        composed.buffer.setPixel(px, py, Math.round(r * sa + dr * (1 - sa)), Math.round(gg * sa + dg * (1 - sa)), Math.round(b * sa + db * (1 - sa)), Math.max(a, da));
+      }
     }
   }
 
