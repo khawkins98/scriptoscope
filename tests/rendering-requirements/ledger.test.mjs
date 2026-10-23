@@ -673,7 +673,9 @@ test('tab/header source-rule port (main 1.23.0) preserves the exact 1.22.0 ledge
   const mainLineage = assemble(sources.base, sources.families.map(f => ['scrollbar', 'push-button', 'slider', 'progress'].includes(f.family) ? baseFamily(f) : f.family === 'window' ? atVersion(f, '1.1.0') : f)).ledger;
   assert.deepEqual(makeReport(mainLineage).requirementStatus.counts, { verified: 216, mismatched: 18, unsupported: 0, unknown: 1494 });
   assert.equal(makeReport(mainLineage).cases.length, 234);
-  assert.deepEqual(makeReport(live).requirementStatus.counts, { verified: 340, mismatched: 0, unsupported: 6, unknown: 1486 });
+  // Keep this historical port's pre-issue459 totals; its later withdrawal has its own conservation test.
+  const before459 = assemble(sources.base, sources.families.map(f => f.family === 'push-button' ? atVersion(f, '1.0.2') : f)).ledger;
+  assert.deepEqual(makeReport(before459).requirementStatus.counts, { verified: 340, mismatched: 0, unsupported: 6, unknown: 1486 });
   assert.equal(makeReport(live).cases.length, 239);
 });
 

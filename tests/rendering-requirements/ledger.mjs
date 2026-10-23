@@ -73,6 +73,37 @@ export function validateLedger(ledger, { root, read = path => readOriginal(path)
     refs(assertion.caseIds, cases, `${assertion.id}.caseIds`); text(assertion.claim, `${assertion.id}.claim`);
     check(JSON.stringify(assertion.modes) === JSON.stringify(['source', 'built']), `${assertion.id}: declare both execution modes`);
   }
+  // Only the two reviewed issue459 aggregate comparisons can be superseded.
+  // Their identities remain visible; replacement assertions still require execution.
+  const supersedable = new Map([
+    ['recorded.empty-face-six', ['system7-nostalgia-silver']],
+    ['recorded.shared307-eighteen', ['apple-platinum-2', 'black-platinum', 'platinum-8', 'slimes']],
+  ]);
+  for (const assertion of assertions.values()) if (assertion.executionDisposition !== undefined) {
+    const d = assertion.executionDisposition, name = `${assertion.id}: superseded comparison`;
+    check(supersedable.has(assertion.id), `${name}: not an authorized aggregate`);
+    check(d?.status === 'superseded-unassessed', `${name}: invalid disposition`);
+    text(d?.rationale, `${name}.rationale`); text(d?.review, `${name}.review`);
+    const amendment = ledger.scope?.families?.['push-button']?.transitions?.find(t => t.version === d?.transitionVersion);
+    check(Boolean(amendment && amendment.review === d?.review), `${name}: missing reviewed family transition`);
+    const replacementIds = refs(d?.replacements, assertions, `${name}.replacements`);
+    const retained = list(d?.retainedCaseIds, `${name}.retainedCaseIds`);
+    const expectedRetained = assertion.caseIds.filter(id => !(supersedable.get(assertion.id) ?? []).some(slug => id.startsWith(`recorded.${slug}.`)));
+    check(JSON.stringify(retained) === JSON.stringify(expectedRetained), `${name}: retained coverage differs from reviewed comparable cases`);
+    const replacementCases = [];
+    for (const id of replacementIds) {
+      const replacement = assertions.get(id);
+      check(id !== assertion.id && replacement && replacement.executionDisposition === undefined, `${name}: replacement must be active (no missing, cyclic or retired replacement)`);
+      if (replacement) replacementCases.push(...replacement.caseIds);
+    }
+    check(new Set(replacementCases).size === replacementCases.length && JSON.stringify([...replacementCases].sort()) === JSON.stringify([...retained].sort()), `${name}: replacement coverage must equal retained comparable cases`);
+    check(!ledger.assessments.some(row => row.status === 'verified' && row.assertions?.includes(assertion.id)), `${name}: verified reference to unassessed aggregate`);
+    for (const caseId of assertion.caseIds) {
+      const row = ledger.assessments.find(r => r.caseId === caseId && r.requirementId === REQUIREMENT);
+      if (retained.includes(caseId)) check(row?.status === 'verified' && row.assertions?.length === 1 && replacementIds.includes(row.assertions[0]), `${name}: retained output must cite active replacement`);
+      else check(row?.status === 'unknown' && row.assertions?.length === 0, `${name}: withdrawn output must remain unknown without execution claim`);
+    }
+  }
   for (const requirement of requirements.values()) { text(requirement.claim, `${requirement.id}.claim`); check(DIMENSIONS.includes(requirement.dimension), `${requirement.id}: invalid dimension`); }
   let recordedContext;
   if (ledger.evidence?.some(e=>e.kind==='scoped-original')) {
@@ -166,10 +197,11 @@ export function makeReport(ledger, { execution, executionCommit, workingTreeDirt
   const freshness = !execution ? 'not supplied' : !executionCommit || execution.executionCommit !== executionCommit ? 'stale or unidentified commit; ignored' : execution.workingTreeDirty !== false || workingTreeDirty !== false ? 'dirty or unknown worktree; untrusted, ignored' : !Array.isArray(execution.assertions) ? 'invalid assertion records; ignored' : 'current and clean';
   const current = freshness === 'current and clean';
   const assertions = ledger.assertions.map(assertion => {
-    const records = current ? execution.assertions.filter(row => row.id === assertion.id) : [];
-    return { id: assertion.id, modes: assertion.modes.map(mode => {
+    const records = (current || assertion.executionDisposition) && Array.isArray(execution?.assertions) ? execution.assertions.filter(row => row.id === assertion.id) : [];
+    return { id: assertion.id, ...(assertion.executionDisposition ? { executionDisposition: assertion.executionDisposition, rejectedExecutionRecords: records } : {}), modes: assertion.modes.map(mode => {
       const runs = records.filter(row => row.mode === mode && row.path === assertion.path);
       const rejectedRuns = records.filter(row => row.mode === mode && row.path !== assertion.path).map(row => ({ ...row, reason: 'observed test path does not match registry' }));
+      if (assertion.executionDisposition) return { mode, status: 'unassessed', runs: [], rejectedRuns: [...runs, ...rejectedRuns].map(row => ({ ...row, reason: 'superseded aggregate is unassessed; execution cannot establish it' })) };
       return { mode, status: runs.length === 0 ? 'not run' : runs.every(row => row.status === 'passed') ? 'passed' : 'failed or incomplete', runs, rejectedRuns };
     }) };
   });
@@ -199,6 +231,18 @@ export function markdownReport(report) {
   for (const c of report.cases) for (const ex of c.exclusions) lines.push(`- ${c.id}, ${ex.dimension}: ${ex.excluded}`);
   for (const c of report.cases) for (const substitution of c.substitutions) lines.push(`- ${c.id}: substitution ${substitution}`);
   if(report.recordedConditionComparisons.cases.length) lines.push('', '## Recorded-condition comparisons', '', report.recordedConditionComparisons.claim, '', ...report.recordedConditionComparisons.cases.map(c=>`- ${c.id}: ${c.verifiedRequirements} narrow verified obligation; closure ${c.inventoryClosure.status}; execution ${c.execution.map(m=>m.mode+': '+m.status).join(', ')}.`));
+  for (const a of report.execution.assertions.filter(a => a.executionDisposition)) lines.push(`- ${a.id}: UNASSESSED (superseded aggregate). ${a.executionDisposition.rationale} Active replacements: ${a.executionDisposition.replacements.join(', ')}.`);
   lines.push('', `Regression observation files: ${report.regressionObservations.files.length}. These record executions/availability, not independent truth.`, '', 'The JSON companion retains exact observation paths, input provenance and assertion runs.');
   return lines.join('\n') + '\n';
+}
+
+/** Fail closed for all active assertions and any claimed pass for retired comparisons. */
+export function requiredExecutionErrors(report) {
+  const errors = [];
+  for (const assertion of report.execution.assertions) {
+    if (assertion.executionDisposition) {
+      if (assertion.rejectedExecutionRecords.some(run => run.status === 'passed')) errors.push(`${assertion.id}: forged passed evidence for unassessed aggregate`);
+    } else for (const mode of assertion.modes) if (mode.status !== 'passed') errors.push(`${assertion.id}/${mode.mode}: ${mode.status}`);
+  }
+  return errors;
 }
