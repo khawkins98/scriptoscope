@@ -21,6 +21,7 @@
 //   actb / clut  inspector.colorTables[`type:id`] (entries in index order).
 import type { LoadedTheme } from '../../types.js';
 import type { Pixmap } from '../qd/types.js';
+import type { ResourceSelection } from '../trace.js';
 import { ResourceChain, mapProvider, type ResourceProvider } from './chain.js';
 import { loadCicnBuffer } from '../../cicnImage.js';
 import { ownerDisplayPolicyMatches, realizeRgb16 } from '../../../tools/theme-loader/display-profile.js';
@@ -36,9 +37,12 @@ const LINE_SAMPLED = new Set(engineLineSampledCicnIds());
 import { cicnIconSource } from './iconSource.js';
 
 async function themeProvider(theme: LoadedTheme, tier: 'archive' | 'base', name: string,
-  wanted: readonly { type: string; id: number }[], life?: ChainLife, checkables = false): Promise<ResourceProvider> {
-  const elements = Object.values(theme.manifest.chromeElements ?? {});
-  const patterns = Object.values(theme.manifest.patterns ?? {});
+  wanted: readonly { type: string; id: number }[], chainDepth: number, life?: ChainLife, checkables = false, traceProvenance = false): Promise<ResourceProvider> {
+  const selections = new Map<string, ResourceSelection>();
+  const owner = { baseUrl: theme.baseUrl, chainDepth };
+  const elementEntries = Object.entries(theme.manifest.chromeElements ?? {});
+  const elements = elementEntries.map(([, element]) => element);
+  const patternEntries = Object.entries(theme.manifest.patterns ?? {});
   const icons = theme.inspector?.iconIndex ?? [];
   const validOccurrence = (r: { resourceIndex: number; byteLength: number }) => Number.isInteger(r.resourceIndex)
     && r.resourceIndex >= 0 && Number.isInteger(r.byteLength) && r.byteLength >= 0;
@@ -64,12 +68,17 @@ async function themeProvider(theme: LoadedTheme, tier: 'archive' | 'base', name:
           return [key, { status: 'unknown', reason: 'decoded cicn occurrence contradicts raw census' }];
       }
       if (checkables && elements.filter(e => e.sourceCicnId === id).length > 1) return [key, { status: 'unknown', reason: 'ambiguous cicn occurrence' }];
-      const el = elements.find(e => e.sourceCicnId === id && e.asset);
+      const selected = elementEntries.find(([, e]) => e.sourceCicnId === id && e.asset);
+      const el = selected?.[1];
       if (!el) {
         if (checkables && elements.some(e => e.sourceCicnId === id)) return [key, { status: 'unknown', reason: 'cicn occurrence has no decoded asset' }];
         return null;
       }
       const status = el.samplingEquivalence?.status ?? null;
+      if (traceProvenance) selections.set(key, { owner, resource: { type: 'cicn', signedId: el.sourceCicnId!,
+        sourceCinfId: Number.isInteger(el.sourceCinfId) ? el.sourceCinfId! : null,
+        manifestKey: selected![0], assetUrl: assetUrl(theme, el.asset),
+        ...(el.byteProvenance ? { byteProvenance: { ...el.byteProvenance } } : {}) } });
       const sampleAsset = el.asset;
       // Preserve the actual preparation binding before copying the finite values.
       // Paths/dimensions and even equal census scalars cannot identify a provider.
@@ -113,10 +122,15 @@ async function themeProvider(theme: LoadedTheme, tier: 'archive' | 'base', name:
       // loadTheme and the public loadKaleidoscopeScheme ask for them by default). A
       // load without them has no engine cinfs: every cinf request is absent.
       const bytes = theme.manifest.engineCinfs?.[String(id)];
+      if (traceProvenance && bytes) selections.set(key, { owner });
       return bytes ? [key, { bytes }] : null;
     }
     if (type === 'ppat') {
-      const p = patterns.find(e => e.sourcePpatId === id && e.asset);
+      const selected = patternEntries.find(([, e]) => e.sourcePpatId === id && e.asset);
+      const p = selected?.[1];
+      if (traceProvenance && p) selections.set(key, { owner, resource: { type: 'ppat', signedId: p.sourcePpatId!, sourceCinfId: null,
+        manifestKey: selected![0], assetUrl: assetUrl(theme, p.asset),
+        ...(p.byteProvenance ? { byteProvenance: { ...p.byteProvenance } } : {}) } });
       return p ? [key, await load(p.asset)] : null;
     }
     if (checkables && type === 'ics#') {
@@ -164,7 +178,8 @@ async function themeProvider(theme: LoadedTheme, tier: 'archive' | 'base', name:
       return [`${request.type}:${request.id}`, { status: 'unknown', reason: `resource decode failed: ${String(error)}` }] as [string, unknown];
     }
   }));
-  return mapProvider(name, tier, entries.filter((e): e is [string, unknown] => e !== null));
+  return { ...mapProvider(name, tier, entries.filter((e): e is [string, unknown] => e !== null)),
+    selection: (type, id) => selections.get(`${type}:${id}`) };
 }
 
 interface ChainLife { ended(): boolean; close(): void }
@@ -201,7 +216,7 @@ function chainLife(theme: LoadedTheme, signal: AbortSignal): ChainLife {
  * changes.
  */
 export async function themeResourceChain(theme: LoadedTheme, wanted: readonly { type: string; id: number }[],
-  opts: { signal?: AbortSignal; cinfBodies?: readonly number[]; checkables?: boolean } = {}): Promise<ResourceChain> {
+  opts: { signal?: AbortSignal; cinfBodies?: readonly number[]; checkables?: boolean; traceProvenance?: boolean } = {}): Promise<ResourceChain> {
   const providers: ResourceProvider[] = [];
   // Preload typed body dependencies without issuing engine requests. Resource
   // order/NULL semantics remain owned by the synchronous painter at draw time.
@@ -232,9 +247,10 @@ export async function themeResourceChain(theme: LoadedTheme, wanted: readonly { 
     if (life?.ended()) throw abortError();
     seen.add(t);
     const name = t.manifest.name ? String(t.manifest.name) : `theme-${depth}`;
-    providers.push(await themeProvider(t, depth === 0 ? 'archive' : 'base', depth === 0 ? name : `${name}#base${depth}`, wanted, life, opts.checkables));
+    providers.push(await themeProvider(t, depth === 0 ? 'archive' : 'base', depth === 0 ? name : `${name}#base${depth}`,
+      wanted, depth, life, opts.checkables, opts.traceProvenance));
   }
   if (life?.ended()) throw abortError();
   } finally { life?.close(); }
-  return new ResourceChain(providers);
+  return new ResourceChain(opts.traceProvenance ? providers : providers.map(({ selection: _selection, ...provider }) => provider));
 }
