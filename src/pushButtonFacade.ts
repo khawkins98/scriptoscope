@@ -112,17 +112,23 @@ function publishEngineTrace(trace: EngineTrace, collector?: ControlTraceCollecto
     collector.record({ role: requestRole, requestedId: request.id, action: request.found ? 'selected' : 'missing',
       basis: 'source-dispatch', usage: 'admission', ...request.selection,
       reason: `engine:${request.row ?? ''}:${request.type}:${request.provider ?? 'NULL'}` });
-    if (request.found && request.selection?.resource) {
-      let metadataFound = body;
+    if (!body && request.found && request.selection?.resource) {
+      let metadataFound: boolean = false;
+      let consumedCinf;
       if (artAttempt) for (const following of trace.resolved.slice(index + 1)) {
         if (following.type !== 'cinf') break;
-        if (following.found) metadataFound = true;
+        if (following.found) { metadataFound = true; consumedCinf = following.selection?.cinfLookup; }
       }
       const frame = role === 'face' ? trace.rects.D : trace.rects.ringRect;
       if (artAttempt && trace.drawOps.some(op => op.op === 'cinfFrame' && op.dst === frame)) metadataFound = false;
       collector.record({ role: requestRole, requestedId: request.id, action: 'selected', basis: 'source-dispatch',
-        usage: completed && metadataFound ? 'paint' : 'admission', reason: 'resource-id', ...request.selection });
+        usage: completed && metadataFound ? 'paint' : 'admission', reason: 'resource-id', ...request.selection,
+        ...(consumedCinf ? { cinfLookup: consumedCinf, resource: { ...request.selection.resource, consumedCinf } } : {}) });
     }
+  }
+  if (completed) {
+    for (const body of trace.controlPaint?.bodies ?? []) collector.record(body);
+    for (const band of trace.controlPaint?.bands ?? []) collector.bandPaint(band);
   }
   for (const op of trace.drawOps) if (op.unsupported || op.unspecified || op.unimplemented) collector.record({ role: 'face', requestedId: 0,
     action: 'rejected', basis: 'compatibility-policy', usage: 'admission',
@@ -176,7 +182,7 @@ export async function composeEnginePush(theme: LoadedTheme, opts: ButtonOptions 
     if (declared) {
       const parent = chain.providers[0]!;
       chain = new ResourceChain([{ name: `declared:${declared.view.bindingId}`, tier: 'archive',
-        selection: (type, resourceId) => type === 'cinf' ? { owner: { baseUrl: theme.baseUrl, chainDepth: 0 } }
+        selection: (type, resourceId) => type === 'cinf' ? { cinfLookup: declared.view }
           : parent.selection?.(type, resourceId), get(type, resourceId) {
         if (type === 'cinf') return resourceId === declared.view.selected?.signedId ? declared.record : null;
         const value = parent.get(type, resourceId);
@@ -190,6 +196,13 @@ export async function composeEnginePush(theme: LoadedTheme, opts: ButtonOptions 
       } }]);
     }
     const trace = createTrace('push-button', { ...native, default: !!opts.default, composition, fontPolicy: run ? 'caller-declared-bitmap' : 'browser-font-substitute' });
+    if (diagnostics) {
+      const clip = composition.clip;
+      trace.controlPaint = { bodies: [], bands: [], ...(clip.kind === 'rect' ? {
+        clip: rect(clip.rect.y - composition.controlOrigin[1] + outset, clip.rect.x - composition.controlOrigin[0] + outset,
+          clip.rect.y + clip.rect.h - composition.controlOrigin[1] + outset, clip.rect.x + clip.rect.w - composition.controlOrigin[0] + outset),
+      } : {}) };
+    }
     const D = rect(outset, outset, outset + height, outset + width);
     const [ox, oy] = composition.controlOrigin;
     diagnostics?.composition({ context: composition, originalPortState: 'unverified', faceRect: { x: ox, y: oy, w: width, h: height }, appliedUnknownPatternOffset: composition.patternOrigin.status === 'unknown' });
