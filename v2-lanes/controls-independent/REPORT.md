@@ -476,3 +476,46 @@ independent source-call [0,1,2,3,4,5,6,7] (`band-ordinal-independent-red`, exit1
 This isolates a diagnostic identity defect rather than a pixel/setup failure.
 PM confirmed the safe mapping and queued a separate runtime author. No private
 regression or oracle code is sent to that author.
+
+## Independently approved no-cinf activation and remaining prepared diagnostics
+
+A DIFFERENT reviewer accepted the exact frozen fbf037ee proposal and two code
+patches: task `task_f0e8d50bb29e`, dispatch `ctx_740ce59c7d92`, session
+`orca_session_id:03d13ac4-2b76-4d5a-b060-a3d12c5381c1`, 2026-10-23,
+receipt `/Users/khawkins/Documents/git/scriptoscope-lanes/459-no-cinf-review/REPORT.md`.
+PM authorized only those concrete activation steps. Before application, active
+1.0.16 case digest and complete file hash plus both before-code hashes matched.
+Active 1.0.17 now contains exactly nine accepted rows (draft after plus only the
+authorized activation fields) and the scoped policy; the other18 remain exact.
+Its independently recomputed case digest is the reviewed
+`8e69378da5874b9c83b400c0b3d485f73494ae335f10b9aa3c40dcbcf171a778`.
+Both frozen code patches were applied exactly; their after hashes match the
+archives. Full prior review is archived verbatim, and the frozen proposal's
+before/draft bytes remain unchanged. The current correction guard recovers all27
+prior rows and the COMPLETE 1.0.16 inventory file hash; the earlier guard first
+recovers that exact state and then retains the original two-row/1.0.15 proof and
+its distinct review receipt. All32 focused correction/inventory/comparison tests
+and source validation pass. Candidate browser observation tags now reflect actual
+accepted inventory state; their assertions did not change.
+
+The first source/built availability/border run after activation is retained:
+availability2/2 now passes all27 cases in each mode. Border36/36 remains failing
+at the already isolated ordinal/prepared-admission boundaries; this is not a
+blanket green browser claim. PM separately confirmed that the prepared environment
+must publish exact CinfLookupView projection without BodyCinfView.metadata, and
+must bind actual standalone art owner URL/depth0 on role admission. No identity
+normalization was authorized. A new source/built real raw-fork regression preserves
+valid nonblank art+foreign cinf0, verifies input fork/payload/provider/occurrence
+identity and both lookup attempts, and fails specifically on missing admission
+owner plus extra metadata in lookup/consumedCinf (`prepared-lookup-independent-red`,
+exit1). All corresponding raw observations and artifacts are retained. The original
+prepared view/metadata, environment binding and successful plane are unchanged.
+
+PM's latest-v2 preflight found accepted window title changes and16 overlapping PNG
+conflicts. Therefore the prior successful record11883/verify5f and all images remain
+BRANCH evidence, not final combined captures. Do not pick either PNG conflict side
+or relabel provenance. After this test delivery freezes, PM owns integration onto
+latest accepted v2 and fresh serial Linux record/verify of that coherent tree,
+followed by different full Tier2 and actual production demo visual review. No extra
+old-branch full browser or golden rerun is requested; focused acceptance, package
+and ordinary final exact-head readiness remain this delivery's responsibility.

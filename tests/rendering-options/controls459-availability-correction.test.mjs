@@ -3,10 +3,17 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 const read=p=>JSON.parse(readFileSync(new URL(p,import.meta.url)));
-const current=read('../control-availability/expectations.json');
+const live=read('../control-availability/expectations.json');
 const delta=read('../control-availability/corrections/459-push-strict-state.json');
 const hash=value=>createHash('sha256').update(value).digest('hex');
 test('459 correction preserves frozen draft and prior state through independently approved activation',()=>{
+ let current=live;const later=read('../control-availability/corrections/459-no-cinf-admission.json');
+ if(live.inventoryVersion===later.candidateInventoryVersion){
+  assert.deepEqual(live.review.previousReview,later.priorReview);for(const c of later.changes)assert.deepEqual(live.cases.find(r=>r.id===c.id),{...c.after,reviewStatus:'reviewed',effectiveAvailability:'themed'});
+  current={...live,inventoryVersion:later.priorInventoryVersion,inventorySha256:later.priorInventorySha256,review:live.review.previousReview,cases:live.cases.map(row=>later.changes.find(c=>c.id===row.id)?.before??row),policy:{...live.policy,rules:live.policy.rules.filter(r=>r.id!==later.candidatePolicyRule.id)}};
+  assert.equal(hash(JSON.stringify(current.cases)),later.priorInventorySha256,'recover all27 accepted1.0.16 rows before the original two-row proof');
+  assert.equal(hash(JSON.stringify(current,null,2)+'\n'),'27f6e3f36466e79063ecaaf4df735ec828aed6926aff5be6a10b3e123b679e3d','recover complete frozen1.0.16 inventory, not only changed outcomes');
+ }
  assert.equal(delta.status,'candidate-requires-different-tier2');assert.equal(delta.activeInventoryUnchanged,true);
  assert.equal(hash(readFileSync(new URL('../control-availability/corrections/459-push-strict-state.json',import.meta.url))),'13b7f23c9ab492670e1b3e978640ebe438e16b443af0cbe2964bb1aaa9004483');
  assert.equal(current.inventorySha256,hash(JSON.stringify(current.cases)));
