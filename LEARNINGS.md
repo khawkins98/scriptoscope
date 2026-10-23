@@ -1,5 +1,22 @@
 # Learnings
 
+## 2026-10-23 — October incremental v2 is distinct from the May reset names
+
+**Current orientation supersedes the May renderer pointers below.** `main` has
+released 0.4.0; the October decode-first `v2` integration branch delivers families
+incrementally ([DECISIONS #8](./docs/v2/DECISIONS.md)). PR #464’s window follow-up
+has merged into `v2`; PR #465 and further controls work remain in flight. The
+all-family/no-legacy target is 1.0. `composeChrome.ts` is a facade over the engine
+window driver; it no longer houses the old recipe renderer. Rules, family drivers,
+QuickDraw, resource adapters, state and traces now live under `src/engine/`.
+
+The May “v2 clean break” and “v3 part-code reset” entries retain their original
+names and dated reasoning. They do not describe the October branch or package
+versions. Runtime implementers must start with the
+[implementer brief](./docs/spec/engine/IMPLEMENTER-BRIEF.md) and assigned safe specs;
+this historical log is forbidden implementer reading. Ambiguities go back as spec
+questions. This bounded orientation correction does not revalidate every entry.
+
 ## 2026-10-21 — Evidence volume, not test time, was the fidelity bottleneck
 
 The empty-face campaign was effective but expensive. One batch committed 349k
@@ -174,7 +191,8 @@ prior complete references or establish private resource/pattern ownership.
 
 > **Read this first — this is a historical, append-only running log.** Entries are
 > never deleted; they're added chronologically as the project ships. The
-> **authoritative current narrative and architecture now live elsewhere**:
+> **May narrative and architecture were recorded elsewhere** (current October
+> orientation is at the top of this file):
 > [`docs/history.md`](docs/history.md) (especially its
 > "[Dead ends — don't relitigate these](docs/history.md#dead-ends--dont-relitigate-these)"
 > section) and the specs under [`docs/spec/`](docs/spec/) (start with
@@ -185,7 +203,7 @@ prior complete references or establish private resource/pattern ownership.
 > `cornerSize` heuristics, widget carving + a second stamping pass, the kDEF 1.8.2
 > decode, and the Kind A/B/C chrome classifier, among others. **Read them as
 > history; verify against the current docs before acting on them.** Entries that
-> directly contradict the current v3 model are tagged inline with a
+> directly contradict the May v3 model are tagged inline with a
 > `> ⚠️ Superseded` blockquote pointing back to `docs/history.md`.
 
 A running log of things we've learned building Aaron UI — gotchas, dead ends, surprises, and decisions worth remembering. The goal is to save the next person (or future-you) from rediscovering the same lessons.
@@ -1610,6 +1628,8 @@ Net value: **moderate.** Confirmed several design decisions weren't guesses, sur
 Future deeper traces should: (1) install Ghidra + load the PEF for the PowerPC kDEF (has symbol info), (2) follow specific named functions like `DrawWindow*` rather than scanning all instructions.
 
 ## 2026-05-19 — Clean-break v2 reset (the churn got too expensive)
+
+> **Superseded as current branch/process guidance, 2026-10-23:** see the October incremental-v2 note at the top of this file. This May `v2-reset` event is preserved as history; its no-tests policy is not the current contribution process.
 
 After the spec-trilogy rebuild + the chrome composer iterations, the project had ~608 tests (540 unit + 68 e2e) and a per-PR ceremony that broke on every HTML-structure revision — while we were *still* figuring out the right structure to map Kaleidoscope chrome into. The owner called a clean break: new `v2-reset` branch, `src/` blanked to a stub, **no tests**, build up from zero. v1 stays frozen on `main`.
 
