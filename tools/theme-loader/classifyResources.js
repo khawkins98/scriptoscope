@@ -39,8 +39,8 @@ export function classify(id, type, slug) {
 
   // BODY (cicn) channel
   if ((a >= 10071 && a <= 10080) || (a >= 10220 && a <= 10224)) {
-    if (a === 10224) return { family: 'progress', role: 'progress TRACK (empty trough)' };
-    if (a === 10223) return { family: 'progress', role: 'progress FILL — lavender (canonical default)' };
+    if (a === 10224) return { family: 'progress', role: 'procedural progress colour samples (three pixels; not track art)' };
+    if (a === 10223) return { family: 'progress', role: 'unused by CDEF 5 (not requested for progress drawing)' };
     if (/frame/.test(s)) return { family: 'progress', role: `progress FRAME${/inactive/.test(s) ? ' (inactive)' : ''}` };
     if (/track/.test(s)) return { family: 'progress', role: `progress TRACK${/inactive/.test(s) ? ' (inactive)' : ''}` };
     if (/full|fill|section/.test(s)) return { family: 'progress', role: `progress FILL${/inactive/.test(s) ? ' (inactive)' : ''}` };
@@ -74,34 +74,6 @@ export function classify(id, type, slug) {
   if (a === 12272 || a === 12287 || a === 12288) return { family: 'menubar', role: 'menubar background/highlight cicn' };
   if (a >= 12256 && a <= 12271) return { family: 'accent-menu', role: 'accent menu-highlight cicn' };
   return { family: 'other', role: s ? `cicn body (${s})` : 'unclassified cicn body' };
-}
-
-/**
- * Resolve the per-scheme PROGRESS model from the cicn ids + slug map.
- * @deprecated Diagnostic only; the runtime never reads it. The progress bar's
- * drawing path is chosen by the v2 engine's cinf gate (docs/spec/engine/progress.md
- * GATE1–GATE4), and this lavender / role model is wrong for the eight procedural
- * schemes (progress.md §8). Kept for the resource-roles consumers; removal: #436.
- */
-export function progressSummary(cicnIds, cicnSlug) {
-  const has = (id) => cicnIds.has(id);
-  if (has(-10223)) {
-    const hues = [...cicnIds].filter((id) =>
-      ((Math.abs(id) >= 10071 && Math.abs(id) <= 10080) || (Math.abs(id) >= 10220 && Math.abs(id) <= 10222))
-      && /french-blue|copper|aquamarine|teal|rose|plum|olive|nutmeg|lime|ivy|turquoise|emerald|gold/.test(cicnSlug.get(id) || '')
-    ).sort((x, y) => x - y);
-    return { model: 'lavender-2-part', fill: -10223, track: has(-10224) ? -10224 : null, frame: null, alternateHues: hues };
-  }
-  if (has(-10080) || has(-10079) || has(-10078)) {
-    return {
-      model: 'role-3-part',
-      frame: has(-10080) ? -10080 : null,
-      fill: has(-10079) ? -10079 : null,
-      track: has(-10078) ? -10078 : null,
-      inactive: { frame: has(-10077) ? -10077 : null, fill: has(-10076) ? -10076 : null, track: has(-10075) ? -10075 : null },
-    };
-  }
-  return { model: 'none' };
 }
 
 /** Resolve the SCROLL-ARROW model (universal kDEF mapping) for arrows the scheme ships. */
@@ -139,18 +111,14 @@ export function parsePpatFilename(file) {
  * @param {{ file: string; id: number|null; name: string|null }[]} cicns
  * @param {{ file: string; label: string }[]} ppats
  * @param {{ id: number; type: string; size?: number; depth?: number; file: string; name?: string }[]} iconIndex
- * @returns {{ theme: string; progress: object; scrollArrows: object|null; resources: object[] }}
+ * @returns {{ theme: string; scrollArrows: object|null; resources: object[] }}
  */
 export function buildResourceRoles(themeSlug, cicns, ppats, iconIndex) {
   const resources = [];
-  const cicnIds = new Set();
-  const cicnSlug = new Map();
   const iconIds = new Set();
 
   for (const c of cicns) {
     if (c.id == null) continue;
-    cicnIds.add(c.id);
-    if (c.name) cicnSlug.set(c.id, c.name);
     const { family, role } = classify(c.id, 'cicn', c.name);
     resources.push({ id: c.id, type: 'cicn', slug: c.name, family, role });
   }
@@ -171,7 +139,6 @@ export function buildResourceRoles(themeSlug, cicns, ppats, iconIndex) {
 
   return {
     theme: themeSlug,
-    progress: progressSummary(cicnIds, cicnSlug),
     scrollArrows: scrollArrowSummary(iconIds),
     resources,
   };

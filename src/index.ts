@@ -30,7 +30,6 @@ export type {
   ThemeManifest,
   LoadedTheme,
   ThemeInspector,
-  ThemeProgressModel,
   ThemeScrollArrowMap,
 } from './types.js';
 export { loadTheme, assetUrl, findChromeElement, type ThemeMeta } from './loadTheme.js';
