@@ -85,7 +85,7 @@ export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourc
   // Shared object identity binds finite samples to this exact load/occurrence.
   // Scalar fields are diagnostic metadata, not a byte hash or native lookup claim.
   const cicnResources = entries.flatMap((e, resourceIndex) => e.type === 'cicn'
-    ? [Object.freeze({ id: e.id, resourceIndex, byteLength: e.data.length })] : []);
+    ? [{ id: e.id, resourceIndex, byteLength: e.data.length }] : []);
   const cicnSourceByIndex = new Map(cicnResources.map(r => [r.resourceIndex, r]));
   const assets = [];      // { path, rgba, width, height } — gamma-applied
   const flatAssets = [];  // extraction-manifest (flat file names)
@@ -145,6 +145,13 @@ export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourc
       continue;
     }
     if (e.type === 'cicn' || e.type === 'ppat') {
+      if (e.type === 'cicn') {
+        // The decoder has validated this pixel-map header and its stored plane.
+        // Preserve full logical bounds before PNG transport drops their origin.
+        const view = new DataView(e.data.buffer, e.data.byteOffset, e.data.byteLength);
+        cicnSourceByIndex.get(resourceIndex).bounds = Object.freeze({
+          top: view.getInt16(6), left: view.getInt16(8), bottom: view.getInt16(10), right: view.getInt16(12) });
+      }
       const fname = `${e.type}-${idStr(e.id)}-${slugify(e.name)}.png`;
       const sub = e.type === 'cicn' ? 'cicns' : 'ppats';
       resourceObserver?.bindAsset(byteReference, `${sub}/${fname}`);
@@ -180,7 +187,12 @@ export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourc
   for (const element of Object.values(theme.chromeElements ?? {})) {
     const records = subAssets.filter(a => a.type === 'cicn' && a.status === 'ok'
       && a.id === element.sourceCicnId && a.file === element.asset);
-    if (records.length === 1) element.cicnSource = records[0].cicnSource;
+    if (records.length === 1) {
+      element.cicnSource = records[0].cicnSource;
+      const bounds = element.cicnSource.bounds;
+      if (bounds && engineCinfIds?.includes(element.sourceCicnId))
+        element.boundsOrigin = { top: bounds.top, left: bounds.left };
+    }
   }
   // Only actual surviving, unambiguous element links may allocate derived URLs.
   const usedCompanions = new Set(Object.values(theme.chromeElements ?? {}).flatMap(e => e.sampledBandAsset ? [e.sampledBandAsset.derivedPath] : []));
@@ -269,20 +281,6 @@ export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourc
       element.engineColorSamples = { model: 'kdef-2.3.1-engine-points', source: record.cicnSource, asset: element.asset,
         width: element.width, height: element.height, displayPolicy: policy, points: samples };
     }
-    // The same ids' cicn bounds origins (slider BL11): engine pixmaps drop the
-    // origin, so the engine traces any cicn whose origin is not (0, 0).
-    // The pixel map's bounds rect follows its 4-byte base address and 2-byte
-    // rowBytes (Inside Macintosh: Imaging With QuickDraw, PixMap), top then left.
-    const origins = new Map();
-    for (const e of entries) {
-      if (e.type !== 'cicn' || !wanted.has(e.id) || origins.has(e.id) || e.data.length < 10) continue;
-      const view = new DataView(e.data.buffer, e.data.byteOffset, e.data.byteLength);
-      origins.set(e.id, { top: view.getInt16(6), left: view.getInt16(8) });
-    }
-    for (const element of Object.values(theme.chromeElements ?? {})) {
-      const origin = origins.get(element.sourceCicnId);
-      if (origin) element.boundsOrigin = origin;
-    }
   }
 
   // Header colours from the window cluts (-14336 active / -14335 inactive), gamma'd
@@ -324,6 +322,7 @@ export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourc
     }
   }
 
+  for (const occurrence of cicnResources) Object.freeze(occurrence);
   validateTheme(theme); // throws on a malformed bundle; callers report/abort
   return { theme, assets, cicnResources, colorTables: colorTablesOf(entries, realizeRgb16), manifest: { source, counts, assets: flatAssets } };
 }

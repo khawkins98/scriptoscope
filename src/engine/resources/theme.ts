@@ -75,11 +75,12 @@ async function themeProvider(theme: LoadedTheme, tier: 'archive' | 'base', name:
       // Paths/dimensions and even equal census scalars cannot identify a provider.
       const sampleSource = el.engineColorSamples?.source;
       const selectedSource = el.cicnSource;
-      const boundSource = () => selectedSource != null && sampleSource === selectedSource
+      const boundOccurrence = () => selectedSource != null
         && el.cicnSource === selectedSource && el.sourceCicnId === id && el.asset === sampleAsset
         && (!el.byteProvenance || el.byteProvenance.cicnResourceIndex === selectedSource.resourceIndex)
         && theme.inspector?.cicnResources?.filter(r => r.id === id).length === 1
         && theme.inspector.cicnResources.find(r => r.id === id) === selectedSource;
+      const bounds = selectedSource?.bounds;
       const finiteSamples = el.engineColorSamples ? structuredClone(el.engineColorSamples) : undefined;
       const [pixmap, companion, sampled] = await Promise.all([load(el.asset),
         el.iconBlit?.unmaskedAsset ? load(el.iconBlit.unmaskedAsset) : Promise.resolve(null),
@@ -91,14 +92,17 @@ async function themeProvider(theme: LoadedTheme, tier: 'archive' | 'base', name:
       // current asset, and the fallback is recorded in the trace (iconSource.ts).
       // Line-colour inputs (slider BL8/BL12) and the bounds origin (BL11) ride along.
       return [key, { ...cicnIconSource(pixmap, el.iconBlit?.pixelSize ?? null, companion),
-        origin: el.boundsOrigin ?? null, sampling: status, sampled,
+        origin: selectedSource ? (boundOccurrence() && bounds
+          && bounds.right - bounds.left === pixmap.width && bounds.bottom - bounds.top === pixmap.height
+          ? { top: bounds.top, left: bounds.left } : null) : el.boundsOrigin ?? null,
+        sampling: status, sampled,
         realizeRgb16: (rgb: readonly [number, number, number]) => {
           const [r, g, b] = realizeRgb16(rgb, theme.manifest.displayProfile);
           return { r: r!, g: g!, b: b!, a: CINF_SAMPLE.opaque };
         },
         sampleRgb16: (point: QdPoint) => {
           const samples = finiteSamples;
-          if (!boundSource() || !samples || samples.model !== 'kdef-2.3.1-engine-points' || samples.asset !== sampleAsset
+          if (!boundOccurrence() || sampleSource !== selectedSource || !samples || samples.model !== 'kdef-2.3.1-engine-points' || samples.asset !== sampleAsset
             || samples.width !== pixmap.width || samples.height !== pixmap.height
             || !ownerDisplayPolicyMatches(theme.manifest, samples.displayPolicy)) return null;
           return samples.points[`${point.x},${point.y}`]?.rgb16 ?? null;

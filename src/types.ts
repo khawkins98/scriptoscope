@@ -170,6 +170,8 @@ export interface CicnSourceIdentity {
   readonly id: number;
   readonly resourceIndex: number;
   readonly byteLength: number;
+  /** Validated full pixel-map bounds; absent for an undecoded occurrence. */
+  readonly bounds?: { readonly top: number; readonly left: number; readonly bottom: number; readonly right: number };
 }
 
 export interface ChromeElement {
@@ -241,9 +243,9 @@ export interface ChromeElement {
    */
   iconBlit?: { pixelSize: number; unmaskedAsset?: string };
   /**
-   * The cicn's pixel-map bounds origin, present only for cicn ids an engine
-   * family asks the loader for (`engineCinfIds`, slider BL11). Engine pixmaps
-   * drop the origin; a non-zero origin is traced by the driver.
+   * Compatibility pixel-map origin for engineCinfIds, or a legacy caller
+   * declaration. New loaders bind full bounds through cicnSource for every
+   * decoded cicn. Engine pixmaps use storage coordinates and drop the origin.
    */
   boundsOrigin?: { top: number; left: number };
   /**
