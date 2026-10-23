@@ -143,6 +143,8 @@ export async function interactiveButton(
     // Missing art or face metadata uses the existing visible, labelled native
     // baseline. Low-level art admission and composition pixels remain separate.
     const b = baselineButton(bo.label ?? '', bo);
+    // Activation belongs to the callback; the presentation must not submit its form.
+    b.type = 'button';
     const events = new AbortController();
     controlDisposers.set(b, () => events.abort());
     if (onClick && !bo.disabled) listenUntilAborted(events.signal, b, 'click', onClick);
