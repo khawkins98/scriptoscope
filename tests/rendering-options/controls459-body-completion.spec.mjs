@@ -23,3 +23,12 @@ for(const mode of ['source','built'])test(`${mode}: inherited body policy preser
  await attachObservations(info,'controls459-body-owner',mode,{mode,rows,limits:'Mandatory modern same-face-owner policy, explicit malformed transport/UNKNOWN and bounded1:1 admission; not native provider equivalence'});
  assertOwnerPolicy(rows,policyCases,lateCases);
 });
+
+import {observePlainPolicy,assertPlainPolicy} from './controls459/body-completion-policy-plain.mjs';
+for(const mode of ['source','built'])test(`${mode}: body owner and admission policies also hold without diagnostics or provenance`,async({page,servers},info)=>{
+ await page.route('**/body-plain-harness.html',route=>route.fulfill({contentType:'text/html',body:'<!doctype html><title>Plain body policy</title>'}));
+ await page.goto(`${servers[mode]}/body-plain-harness.html`);
+ const rows=await page.evaluate(observePlainPolicy,{apiUrl:mode==='source'?'/src/index.ts':'/dist/scriptoscope.js',cases:policyCases,admission:admissionCases(),mode});
+ await attachObservations(info,'controls459-body-plain',mode,{mode,rows,limits:'Functional facade policy with diagnostics and provenance omitted; independently frozen literal inputs/outcomes'});
+ assertPlainPolicy(rows,policyCases);
+});
