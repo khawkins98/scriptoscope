@@ -21,7 +21,9 @@ for(const origin of [9,-9]) {
   const color=out.iconIndex.find(r=>r.type==='ics8'),opaque=out.assets.find(a=>a.path===`icons/${color.unmaskedFile}`),masked=out.assets.find(a=>a.path===`icons/${color.file}`);
   assert.equal(color.resourceIndex,4);assert.equal(masked.rgba[3],0);assert.equal(opaque.rgba[3],255);assert.ok(opaque.rgba.every((v,i)=>i%4!==3||v===255));
   assert.ok(out.manifest.chromeElements.face.engineColorSamples.points['0,0']);
-  if(JSON.stringify(out.manifest.chromeElements.check.boundsOrigin)!==JSON.stringify({top:origin,left:origin}))failures.push({mode,origin,rule:'CB11 full source bounds',actual:out.manifest.chromeElements.check.boundsOrigin??null,expected:{top:origin,left:origin}});
+  const check=out.manifest.chromeElements.check;
+  assert.equal(check.cicnSource,out.cicnResources.find(r=>r.id===-9503));assert.equal(out.manifest.chromeElements.face.engineColorSamples.source,out.manifest.chromeElements.face.cicnSource);
+  const bounds={top:origin,left:origin,bottom:origin+2,right:origin+4};if(JSON.stringify(check.cicnSource?.bounds)!==JSON.stringify(bounds))failures.push({mode,origin,rule:'CB11 full source bounds',actual:check.cicnSource?.bounds??null,expected:bounds});
   for(const [option,predicate] of [
    ['iconBlitCicnIds',x=>!x.assets.some(a=>a.path.startsWith('cicn-unmasked/'))],
    ['unmaskedIconIds',x=>!x.assets.some(a=>a.path.startsWith('icons/opaque-'))],

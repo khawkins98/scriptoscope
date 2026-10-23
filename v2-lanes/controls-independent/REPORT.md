@@ -167,3 +167,32 @@ PM then authorized integration of a separate frozen cleanroom preparation repair
 `fc5e96956b0541657f615602ac45aefb35a2b152`, limited to theme resource preparation,
 convert metadata and types. Runtime edits remain owned by that author. Subsequent
 receipts distinguish this integration from the initial-freeze failures.
+
+## Frozen repair integration checkpoint
+
+The initial independent checkpoint is `b4316ef3`; merge `734bc8fb` incorporates
+only the separately authorized `fc5e96956b0541657f615602ac45aefb35a2b152` runtime
+freeze. Tests now supply the documented shared occurrence object in their valid
+positive fixtures. The stale-occurrence negative still changes only the selected
+occurrence while retaining old sample ownership; copied census and foreign
+provider references are separately rejected. The original failures and first
+post-merge invalid legacy-fixture setup are preserved, not counted as new kills.
+No NULL/UNKNOWN gate or runtime binding check was loosened.
+
+After this integration: all four independent browser source/built tests pass;
+resource assertions pass including the original two regressions; the actual npm
+installed consumer and all three package negatives pass; source/built/standalone
+loader parity, both signed full-bound origins and every [] opt-out pass. The
+repaired engine-diff check passes against the original author freeze with only
+`pushButton,checkables` declared; no baseline re-seed was needed for this repair.
+
+The repair adds `cicnSource` identity metadata to default core manifests as well
+as public manifests. A second expanded audit removes only that newly added
+preparation metadata in addition to the earlier documented fields, recomputes
+catalog/manifest hashes from recovered values, and recovers the ENTIRE prior
+binding structure. All existing asset planes are unchanged and the 422 public
+opaque companion additions remain separately enumerated. The regenerated binding
+artifact now includes those audited additive metadata hashes; it is no longer
+merely the initial three toolchain hash changes. Detailed repaired recovery is in
+`binding-repaired-audit.json`, and reconstructed initial recovery is in
+`initial-binding-structural-report.json`, both outside the checkout.

@@ -5,9 +5,9 @@ const { themeResourceChain }=await import('../../src/engine/resources/theme.ts')
 const { notifyAssetUrlReleased }=await import('../../tools/theme-loader/assetLifecycle.js');
 const { LEGACY_DISPLAY_POLICY }=await import('../../tools/theme-loader/display-profile.js');
 const key={type:'cicn',id:-9503},color={type:'ics8',id:-10236},mask={type:'ics#',id:-10236};
-const theme=(inspector={},chromeElements={})=>({manifest:{name:'independent',chromeElements},baseUrl:'',inspector:{iconIndex:[],...inspector}});
+const theme=(inspector={},chromeElements={})=>({manifest:{name:'independent',chromeElements},baseUrl:'',inspector:{iconIndex:[],...(Object.values(chromeElements).some(el=>el.cicnSource)?{cicnResources:Object.values(chromeElements).flatMap(el=>el.cicnSource?[el.cicnSource]:[])}:{}),...inspector}});
 let serial=0;
-function sampleElement() { const asset=`blob:independent-${serial++}`;return {asset,width:3,height:3,sourceCicnId:-9503,boundsOrigin:{left:0,top:0},byteProvenance:{loadId:'owner-A',cicnResourceIndex:7},engineColorSamples:{model:'kdef-2.3.1-engine-points',asset,width:3,height:3,displayPolicy:LEGACY_DISPLAY_POLICY,points:{'0,0':{rgb16:[257,258,259],displayRgb:[1,1,1]}}}}; }
+function sampleElement() { const asset=`blob:independent-${serial++}`,source={id:-9503,resourceIndex:7,byteLength:100,bounds:{top:0,left:0,bottom:3,right:3}};return {cicnSource:source,asset,width:3,height:3,sourceCicnId:-9503,boundsOrigin:{left:0,top:0},byteProvenance:{loadId:'owner-A',cicnResourceIndex:7},engineColorSamples:{source,model:'kdef-2.3.1-engine-points',asset,width:3,height:3,displayPolicy:LEGACY_DISPLAY_POLICY,points:{'0,0':{rgb16:[257,258,259],displayRgb:[1,1,1]}}}}; }
 async function imageEnvironment(fn) {
   const oldImage=globalThis.Image,oldDocument=globalThis.document;
   const requests=[];let pause,start,fail=false;
@@ -40,8 +40,8 @@ test('finite raw samples reject an occurrence replaced at the same asset path',a
   const el=sampleElement();el.byteProvenance.cicnResourceIndex=8;
   // Existing serialized points belong to occurrence 7; the path alone cannot
   // establish source identity when occurrence 8 replaces it.
-  el.engineColorSamples.byteProvenance={loadId:'owner-A',cicnResourceIndex:7};
-  const c=await themeResourceChain(theme({cicnResources:[{id:-9503,resourceIndex:8,byteLength:100}]},{el}),[key],{checkables:true});
+  const replacement={...el.cicnSource,resourceIndex:8};el.cicnSource=replacement;
+  const c=await themeResourceChain(theme({cicnResources:[replacement]},{el}),[key],{checkables:true});
   assert.equal(c.getResource(key.type,key.id).value.sampleRgb16({x:0,y:0}),null,'stale occurrence samples must be unavailable');
 }));
 test('typed cicn decoded occurrence must agree with raw occurrence, not merely signed ID',async()=>imageEnvironment(async()=>{
@@ -67,4 +67,10 @@ test('explicit empty cinfBodies prevents raw body preload; selected header other
  const wanted=[{type:'cinf',id:-10239}];
  await themeResourceChain(t,wanted,{cinfBodies:[]});assert.deepEqual(requests,[],'declared environment opts out of local raw body preparation');
  const prepared=await themeResourceChain(t,wanted,{cinfBodies:[-10239,0]});assert.deepEqual(requests,[t.manifest.patterns.poison.asset]);assert.ok(prepared.getResource('ppat',77));assert.equal(prepared.getResource('cicn',77),null);
+}));
+
+test('finite samples from another provider or a copied census object stay unavailable despite equal scalar identity',async()=>imageEnvironment(async()=>{
+ const el=sampleElement(),t=theme({}, {el});const chain=await themeResourceChain(t,[key]);const source=chain.getResource(key.type,key.id).value;assert.deepEqual(source.sampleRgb16({x:0,y:0}),[257,258,259]);
+ t.inspector.cicnResources=[{...el.cicnSource}];assert.equal(source.sampleRgb16({x:0,y:0}),null);
+ const fresh=sampleElement(),other=sampleElement();fresh.engineColorSamples.source=other.cicnSource;const foreign=await themeResourceChain(theme({}, {fresh}),[key]);assert.equal(foreign.getResource(key.type,key.id).value.sampleRgb16({x:0,y:0}),null);
 }));
