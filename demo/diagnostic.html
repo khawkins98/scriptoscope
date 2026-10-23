@@ -317,6 +317,11 @@
     // hooks so they follow the active theme. activeSlug is persisted in ?theme=.
     const detailEl = document.getElementById('detail');
     let activeSlug = null;
+    let routedUrl = location.href;
+    const replaceUrl = (url) => {
+      history.replaceState(null, '', url);
+      routedUrl = location.href;
+    };
     const syncHooks = []; // (slug) => void | Promise<void>
 
     // THEMES is the AUTO-GENERATED gallery list (demo/themes-manifest.json, imported
@@ -1496,7 +1501,7 @@
       const DEFAULTS = { theme: '1138', wt: 'document-window', title: 'Hello!', w: '150', h: '98', state: 'active', scale: '1' };
       const writeHash = () => {
         const p = new URLSearchParams({ theme: themeSel.value, wt: wtypeSel.value, title: titleIn.value, w: wIn.value, h: hIn.value, state: stateSel.value, scale: scaleSel.value });
-        history.replaceState(null, '', '#' + p.toString());
+        replaceUrl('#' + p.toString());
       };
       let controlsToken = 0;
       const applyControls = async (st) => {
@@ -1523,7 +1528,7 @@
       for (const el of [wtypeSel, stateSel, scaleSel]) el.onchange = () => { writeHash(); rerender(); };
       for (const el of [titleIn, wIn, hIn]) el.oninput = () => { clearTimeout(el._t); el._t = setTimeout(() => { writeHash(); rerender(); }, 250); };
       resetBtn.onclick = async () => {
-        history.replaceState(null, '', location.pathname + location.search);
+        replaceUrl(location.pathname + location.search);
         await activate(DEFAULTS.theme, DEFAULTS);
       };
 
@@ -1740,7 +1745,7 @@
         u.searchParams.set('theme', slug);
         const h = new URLSearchParams(u.hash.slice(1));
         if (h.has('theme')) { h.set('theme', slug); u.hash = h.toString(); }
-        history.replaceState(null, '', u);
+        replaceUrl(u);
       } catch { /* */ }
       detailEl.replaceChildren(Object.assign(document.createElement('div'), { textContent: 'loading…', style: 'padding:28px;opacity:.55' }));
       let theme;
@@ -1969,10 +1974,20 @@
       const st = Object.fromEntries(new URLSearchParams(location.hash.slice(1)));
       return themeBySlug.has(st.theme) ? st : null;
     };
-    addEventListener('hashchange', () => {
+    const navigateFromUrl = () => {
+      // Traversal can emit both events, or only popstate after replaceState.
+      // Our own URL writes also mark the route so neither event reloads it.
+      if (routedUrl === location.href) return;
+      routedUrl = location.href;
       const st = hashControls();
       if (st) activate(st.theme, st);
-    });
+      else {
+        const want = new URL(location.href).searchParams.get('theme');
+        if (themeBySlug.has(want) && want !== activeSlug) activate(want);
+      }
+    };
+    addEventListener('popstate', navigateFromUrl);
+    addEventListener('hashchange', navigateFromUrl);
     await buildRibbon();
     {
       const st = hashControls();
