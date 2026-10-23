@@ -320,3 +320,22 @@ ring paints 139. Both face and ring diagnostic assertions fail specifically afte
 all four controls pass (`unknown-repair-public-face-ring`, exit1). Raw observations
 are retained in `public-unknown-face-ring-observations/`; no unsupported ring pixels
 or new fallback policy are inferred from the 139 retained face pixels.
+
+PM subsequently confirmed that the reviewed public trace API is a superset
+contract: missing selected identity and metadata counted as paint are runtime
+regressions, not permission to drop the old checks. Safe gaps independently
+observed are: missing owner base URL/depth and resource type/signed ID/source cinf
+ID/manifest key/provenance; successful cinf lookup counted as an extra face paint;
+ring cinf mislabeled face; no explicit pressed-ring-to-active decision despite the
+-10230 NULL then -10231 hit; and lost `resource-id` selection decisions. Availability
+and border checks/expectations stay intact, with the full source/built reproducer
+and raw comparisons retained. The earlier references to diagnostic joins describe
+the observed failure location, not an adjudication that the loss is legitimate.
+
+Two existing availability outcomes require separate source-contract adjudication:
+a merely named asset without the canonical signed ID, and absent disabled face
+previously borrowing active art. Their unavailable results follow PB5–PB8's strict
+signed state lookup/no-other-face-state retry; restoring old behavior would be a
+source-rule contradiction. No reviewed expectation, source evidence or status was
+changed here. PM has received these two distinctions separately from the trace
+regressions so an identity repair cannot accidentally restore forbidden fallback.
