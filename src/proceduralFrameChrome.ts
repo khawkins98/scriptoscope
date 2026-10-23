@@ -69,7 +69,7 @@ export function proceduralFrameRecord(key: string): (typeof PF_WINDOW_SLUGS)[num
  * window-type key; `contentW`/`contentH` the content rect C.
  */
 export async function composeProceduralFrameChrome(owner: LoadedTheme, key: string, state: WindowState, contentW: number, contentH: number,
-  opts: ProceduralFrameChromeOptions = {}): Promise<ComposedChrome & { trace?: EngineTrace }> {
+  opts: ProceduralFrameChromeOptions = {}): Promise<ComposedChrome & { contentCollapsed: boolean; trace?: EngineTrace }> {
   const record = proceduralFrameRecordFor(key);
   const row = record.row;
   const hilited = !/inactive/.test(state);
@@ -155,6 +155,7 @@ export async function composeProceduralFrameChrome(owner: LoadedTheme, key: stri
   }
   return {
     buffer,
+    contentCollapsed: g.state.collapsed,
     frame: { left: C.left, top: C.top, right: W - C.right, bottom: Hh - C.bottom },
     fullWidth: W,
     fullHeight: Hh,
