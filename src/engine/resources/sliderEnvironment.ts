@@ -34,6 +34,8 @@ export function snapshotSliderEnvironment(theme: LoadedTheme, orientation: 'hori
     unsupportedSliderEnvironment('input does not belong to the actual loaded group2 thumb');
   if (theme.base) unsupportedSliderEnvironment('base inheritance');
   const binding = saved.binding;
+  if (!binding.complete || binding.providers.some(p => !p.complete))
+    unsupportedSliderEnvironment('incomplete declared environment/provider');
   const providers: ResourceProvider[] = binding.providers.map(p => {
     const resources = new Map<number, CinfPayload | { ambiguous: true }>();
     for (const r of p.resources) {
@@ -45,13 +47,11 @@ export function snapshotSliderEnvironment(theme: LoadedTheme, orientation: 'hori
     }
     return { name: p.id, tier: 'cinf', get(type: string, resourceId: number) {
       if (type !== 'cinf') return null;
-      if (!binding.complete || !p.complete) unsupportedSliderEnvironment('incomplete declared environment/provider');
       const result = resources.get(resourceId);
       if (result && 'ambiguous' in result) unsupportedSliderEnvironment('duplicate cinf');
       return result ?? null;
     } };
   });
-  if (!binding.complete) unsupportedSliderEnvironment('incomplete declared environment');
   const attempts: { id: number; outcome: 'found' | 'missing'; resource?: CinfProviderReference }[] = [];
   let selected: CinfPayload | undefined;
   for (const resourceId of orientation === 'horizontal' ? [-10132, -10144] : [-10116, -10128]) {
