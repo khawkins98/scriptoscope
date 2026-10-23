@@ -136,6 +136,9 @@ for (const mode of ['source', 'production']) {
       const olderResponse = page.waitForResponse(response => /\/themes\/1984\/scheme\./.test(response.url()));
       release();
       await olderResponse;
+      await page.waitForTimeout(2500); // bounded post-response observation window; proposal only
+      await ready(page);
+      await info.attach('post-older-observation.json', { body: JSON.stringify({ snapshot: await snapshot(page), olderResponseStatus: (await olderResponse).status() }, null, 2), contentType: 'application/json' });
       await positive(page, B);
       await info.attach('diagnostic-rapid.json', { body: JSON.stringify(await snapshot(page), null, 2), contentType: 'application/json' });
     } finally { release(); }
