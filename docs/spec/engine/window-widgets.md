@@ -327,7 +327,7 @@ a frame rect (`0x414a..0x4164`, `0x4194..0x41bc`) are not decoded (§6 Q6).
 Samples use the loaded chrome template's original pixel coordinates, before
 remapping, blitting or display-profile conversion. The colours are full
 QuickDraw RGB triples; compare all three 16-bit channels. Use the indexed
-pixel sampler in [qd-primitives.md](qd-primitives.md) §4.5; a mask-clear pixel
+pixel sampler in [qd-primitives.md](qd-primitives.md) §4, Samplers; a mask-clear pixel
 still supplies colour. No palette role or scheme-name default substitutes for
 a valid sample (`0x557e..0x5592`, `0x563e..0x56ce`, `0xfc5c..0xfd74`).
 
@@ -339,10 +339,8 @@ a valid sample (`0x557e..0x5592`, `0x563e..0x56ce`, `0xfc5c..0xfd74`).
 | TC4 | text RGB equals shadow RGB | skip the shadow draw; draw text once (TX8) | `0x56b2..0x56ce`, `0x56ee..0x5706` |
 | TC5 | any channel differs | draw shadow first at TX7's (+1,+1) pen offset, then text at TX8's pen; keep TextMode `srcOr` for both | `0x5638..0x563c`, `0x56d0..0x5706` |
 
-The lower-swatch flag is the same flag whose relationship to `popupFamily`
-remains undecoded in Q11. Declared engine default: use the lower swatch for
-`popupFamily`, upper otherwise. This policy is separate from TC2/TC3's decoded
-flag test. Out-of-bounds samples follow the sampler's unspecified-input
+The lower-swatch flag is `popupFamily` (`0x3210`), distinct from TX2's
+empty-title flag. Use the lower swatch for `popupFamily`, upper otherwise. Out-of-bounds samples follow the sampler's unspecified-input
 boundary; do not replace them with invented colours. Independent verification
 must test differing RGB channels, equal colours and mask-clear swatches.
 
