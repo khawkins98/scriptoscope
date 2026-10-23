@@ -10,9 +10,9 @@
 // scheme's actual resource set.
 //
 // Output per theme:
-//   { theme, progress:{…resolved model…}, scrollArrows:{…}, resources:[ {id,type,slug,family,role} … ] }
-// The `progress` + `scrollArrows` summaries resolve the per-scheme model (the two
-// families that historically bit us); `resources` is the full classified list.
+//   { theme, scrollArrows:{…}, resources:[ {id,type,slug,family,role} … ] }
+// `scrollArrows` maps the shipped arrow pictograms; `resources` is the full classified list.
+// Progress drawing selection belongs to the engine, not resource classification.
 //
 // Deterministic (sorted, no timestamp). Run in build:themes so every import regen's it.
 // Usage:  node scripts/gen-resource-roles.mjs [slug]
@@ -58,6 +58,6 @@ for (const slug of slugs) {
   };
   writeFileSync(resolve(dir, 'resource-roles.json'), JSON.stringify(out, null, 1) + '\n');
   total++;
-  console.log(`  ${slug.padEnd(28)} ${out.resources.length} resources · progress=${out.progress.model} · arrows=${out.scrollArrows ? 'yes' : 'no'}`);
+  console.log(`  ${slug.padEnd(28)} ${out.resources.length} resources · arrows=${out.scrollArrows ? 'yes' : 'no'}`);
 }
 console.log(`\n-- wrote resource-roles.json for ${total} theme(s) --`);

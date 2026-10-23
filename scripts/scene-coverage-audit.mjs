@@ -5,7 +5,7 @@
 // record which TIER of the lookup hierarchy resolved per theme. Plus a "shipped
 // but unused" pass — resources the scheme ships that the Scene currently ignores —
 // and a "multi-flavor" pass that flags resource families with variants the demo
-// could expose (1990's 10 progress hues, monkey-paradise's 5 numbered ppats,
+// could expose (monkey-paradise's numbered ppats,
 // per-state header colour pairs, etc).
 //
 // Output formats:
@@ -207,50 +207,6 @@ const SLOTS = [
     ],
   },
   {
-    key: 'progress-bar-hue',
-    label: 'Progress-bar accent hue',
-    where: 'src/controls.ts composeProgress (currently always lavender / role-3-part)',
-    terminalIsAcceptable: false, // a theme with no progress art is a coverage gap, not a deliberate fallback
-    tiers: [
-      // Audit tier order MUST mirror composeProgress's runtime lookup order:
-      // -10223 lavender check fires FIRST (controls.ts ~L711); only when that
-      // misses does the role-3-part branch take over. Previous tier order
-      // (role-3-part as T1, lavender as T2) reported wrong tiers for the 5
-      // themes that ship BOTH (apple-platinum-2 / black-platinum / system7-
-      // nostalgia-silver / windows-31 / windows-95). Reviewer-flagged in the
-      // framework-architecture pass.
-      {
-        name: 'lavender 2-part canonical',
-        why: 'shipped -10223 — the kDEF default lavender progress (composeProgress checks this first)',
-        resolve: (m) => {
-          const has = (id) => Object.values(m.chromeElements ?? {}).some((v) => v.sourceCicnId === id);
-          return has(-KDEF_CONTROL_IDS.progress.lavenderCanonical) ? `lavender canonical (-${KDEF_CONTROL_IDS.progress.lavenderCanonical})` : null;
-        },
-      },
-      {
-        name: 'role-3-part frame/fill/track',
-        why: 'schemes shipping -10080/-10079/-10078 carry the artist-painted progress bar; runtime fallback when -10223 absent',
-        resolve: (m) => {
-          const has = (id) => Object.values(m.chromeElements ?? {}).some((v) => v.sourceCicnId === id);
-          const { frame, fill, track } = KDEF_CONTROL_IDS.progress;
-          return (has(-frame) && has(-fill) && has(-track)) ? `role-3-part (-${frame}/-${fill}/-${track})` : null;
-        },
-      },
-      {
-        name: 'multi-hue',
-        why: 'scheme ships 3+ alternate hues — runtime could expose a picker, currently picks default',
-        resolve: (m) => {
-          const [lo, hi] = KDEF_CONTROL_IDS.progress.familyRanges[0]; // role-3-part hue range
-          const ids = Object.values(m.chromeElements ?? {})
-            .map((v) => v.sourceCicnId)
-            .filter((id) => typeof id === 'number' && Math.abs(id) >= lo && Math.abs(id) <= hi);
-          return ids.length >= 3 ? `${ids.length} hue cicns shipped (variant picker candidate)` : null;
-        },
-      },
-      { name: 'procedural Platinum', why: 'no progress cicn → platinumProgress fallback', resolve: () => 'procedural' },
-    ],
-  },
-  {
     key: 'title-widget-glyph',
     label: 'Title-bar widget glyph (close / zoom / collapse)',
     where: 'src/composeCornerSprite.ts loadWidgetGlyph + src/renderWindow.ts widget id arithmetic',
@@ -369,21 +325,6 @@ const SLOTS = [
 // ship multiple members of each family — those are candidates for runtime
 // variant selection in the Scene / future theme picker.
 const VARIANT_FAMILIES = [
-  {
-    key: 'progress-hues',
-    label: 'Progress-bar hue variants',
-    role: 'Some 1998–2000 schemes shipped a hue picker; cicns at -10071..-10080 / -10220..-10222 are the alternate fills',
-    test: (m) => {
-      const ids = [...new Set(
-        Object.values(m.chromeElements ?? {})
-          .map((v) => v.sourceCicnId)
-          .filter((id) => typeof id === 'number'
-            && ((Math.abs(id) >= 10071 && Math.abs(id) <= 10080)
-              || (Math.abs(id) >= 10220 && Math.abs(id) <= 10222))),
-      )].sort();
-      return ids.length > 2 ? ids : null;
-    },
-  },
   {
     key: 'numbered-ppats',
     label: 'Sequential positive-id ppats',
