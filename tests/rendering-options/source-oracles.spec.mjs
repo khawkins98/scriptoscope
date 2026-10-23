@@ -63,7 +63,7 @@ for (const mode of ['source', 'built']) {
         const face = makeArt(6), ring = makeArt(10, true);
         const declared=[{id:-10239,name:'face',pixels:face,cinf:{corner:1,side:1,tile:true,background:[3,3]}},{id:-10231,name:'ring',pixels:ring,cinf:{corner:2,side:2,tile:true,background:[3,3]}}];
         const theme=await loadOwnedControlFixture(api,{faces:declared});
-        const sources=[];for(const input of declared){const el=Object.values(theme.manifest.chromeElements).find(e=>e.sourceCicnId===input.id),ordinary=await api.loadCicnBuffer(api.assetUrl(theme,el.asset)),opaque=await api.loadCicnBuffer(api.assetUrl(theme,el.iconBlit.unmaskedAsset));sources.push({id:input.id,bounds:el.cicnSource.bounds,expected:input.pixels,sourceRef:el.byteProvenance,loadId:theme.byteProvenance.loadId,resource:theme.byteProvenance.resources.find(r=>r.resourceIndex===el.byteProvenance.cicnResourceIndex),ordinary:[...ordinary.data],opaque:[...opaque.data]});} 
+        const sources=[];for(const input of declared){const el=Object.values(theme.manifest.chromeElements).find(e=>e.sourceCicnId===input.id),ordinary=await api.loadCicnBuffer(api.assetUrl(theme,el.asset)),opaque=await api.loadCicnBuffer(api.assetUrl(theme,el.iconBlit.unmaskedAsset));sources.push({id:input.id,bounds:el.cicnSource.bounds,expected:input.pixels,sourceRef:el.byteProvenance,loadId:theme.byteProvenance.loadId,resource:theme.byteProvenance.resources.find(r=>r.resourceIndex===el.byteProvenance.cicnResourceIndex),ordinary:[...ordinary.data],opaque:[...opaque.data]});}
         const rows = [];
         for (const height of [5, 6, 20, 21]) for (const isDefault of [false, true]) {
           const output = await api.composeButton(theme, { label: '', height, default: isDefault });
@@ -80,16 +80,20 @@ for (const mode of ['source', 'built']) {
         const without=await loadOwnedControlFixture(api,{faces:declared.map(({cinf,...face})=>face)});const missing=await api.composeButton(without,{label:'',height:20,default:true});without.dispose();theme.dispose();
         return { rows, cornerColors,sources,missing:[...missing.data] };
       }, mode);
-      for(const source of results.sources){const size=source.id===-10239?6:10;expect(source.bounds).toEqual({top:0,left:0,bottom:size,right:size});expect(source.sourceRef.loadId).toBe(source.loadId);expect(source.resource.signedId).toBe(source.id);expect(source.resource.sha256).toBe(createHash('sha256').update(indexedCicn(source.expected)).digest('hex'));expect(source.ordinary).toEqual(source.expected.flat(2));expect(source.opaque).toEqual(source.expected.flatMap(row=>row.flatMap(p=>[...p.slice(0,3),255])));}
+      const verifySource=source=>{const size=source.id===-10239?6:10;expect(source.bounds).toEqual({top:0,left:0,bottom:size,right:size});expect(source.sourceRef.loadId).toBe(source.loadId);expect(source.resource.signedId).toBe(source.id);expect(source.resource.sha256).toBe(createHash('sha256').update(indexedCicn(source.expected)).digest('hex'));expect(source.ordinary).toEqual(source.expected.flat(2));expect(source.opaque).toEqual(source.expected.flatMap(row=>row.flatMap(p=>[...p.slice(0,3),255])));};
+      for(const source of results.sources)verifySource(source);
+      const shifted=structuredClone(results.sources[0]);shifted.bounds.left=1;expect(()=>verifySource(shifted),'shifted full source bounds cannot pass zero-origin identity').toThrow();
       expect(results.missing.every(v=>v===0),'missing raw cinf cannot invent original painted sentinels').toBe(true);
-      for (const row of results.rows) {
+      const verifySlice=row=>{
         expect(row.width).toBe(64); // public minimum56 plus documented4px ring rect expansion
         expect(row.actualHeight).toBe(row.height + 8);
         expect(row.corners, 'face corner source pixels survive slicing').toEqual(results.cornerColors);
         expect(row.topEdge, 'tiled edge repeats the authored interior strip without stretching').toEqual(Array.from({ length: 10 }, (_, i) => results.cornerColors[i % 4]));
         expect(row.ringCorners).toEqual(row.isDefault ? results.cornerColors : Array(4).fill([0, 0, 0, 0]));
         expect(row.outerCorners, 'authored transparent ring rim must not be cropped').toEqual(Array(4).fill([0, 0, 0, 0]));
-      }
+      };
+      for(const row of results.rows)verifySlice(row);
+      const cropped=structuredClone(results.rows.find(r=>r.isDefault));cropped.outerCorners[0][3]=255;expect(()=>verifySlice(cropped),'cropped opaque ring rim must fail').toThrow();
     } catch (error) { await attachCase(page, testInfo, { mode, oracle: 'slice-sentinels', results }, error); throw error; }
   });
 }
@@ -146,7 +150,7 @@ for (const mode of ['source', 'built']) test(`${mode}: ring state and asymmetric
       rows.push({ kind: 'state', state: 'pressed-missing', expected: active.buffer.getPixel(2, 2), actual: fallback.getPixel(2, 2) });
       missingPressed.dispose();return rows;
     }, mode);
-    for (const row of rows) {
+    const verifyRing=row=>{
       if (row.kind === 'geometry') {
         expect(row.sourceBounds).toEqual({top:0,left:0,bottom:row.size,right:row.size});expect(row.sourceRef.loadId).toBe(row.loadId);expect(row.resource.signedId).toBe(-10231);expect(row.resource.sha256).toBe(createHash('sha256').update(indexedCicn(row.sourcePlane)).digest('hex'));expect(row.sourceActual).toEqual(row.sourcePlane.flat(2));
         for(const probe of row.probes)expect(probe.declared).toEqual(probe.expected);
@@ -155,6 +159,9 @@ for (const mode of ['source', 'built']) test(`${mode}: ring state and asymmetric
         for (const probe of row.probes) expect(probe.actual, JSON.stringify({ ...row, probes: probe })).toEqual(probe.expected);
       }
       else expect(row.actual, `default ring state ${row.state}`).toEqual(row.expected);
-    }
+    };
+    for(const row of rows)verifyRing(row);
+    const wrong=structuredClone(rows.find(r=>r.kind==='state'&&r.state==='pressed'));wrong.actual=rows.find(r=>r.kind==='state'&&r.state==='normal').actual;expect(()=>verifyRing(wrong),'wrong signed ring state must fail original literal').toThrow();
+    const shifted=structuredClone(rows.find(r=>r.kind==='geometry'));shifted.sourceBounds.left=1;expect(()=>verifyRing(shifted),'shifted raw ring full bounds must fail').toThrow();
   } catch (error) { await attachCase(page, testInfo, { mode, oracle: 'ring-state-asymmetric-slices', rows }, error); throw error; }
 });
