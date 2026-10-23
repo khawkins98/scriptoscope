@@ -9,6 +9,7 @@
 // to a spec sentence.
 import type { QdRect } from './qd/types.js';
 import type { ControlBandPaint, ControlResolutionStep } from '../controlDiagnostics.js';
+import type { ControlCompositionSnapshot } from '../controlComposition.js';
 
 /** Adapter observations captured with the selected value, never a second lookup. */
 export type ResourceSelection = Pick<ControlResolutionStep, 'owner' | 'resource' | 'cinfLookup'>;
@@ -46,6 +47,7 @@ export interface EngineTrace {
   /** Opt-in adapter diagnostics; ordinary family traces retain their shape. */
   controlPaint?: {
     clip?: QdRect;
+    context?: ControlCompositionSnapshot;
     bodies: ControlResolutionStep[];
     bands: ControlBandPaint[];
   };
