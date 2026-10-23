@@ -23,15 +23,15 @@ substituting a carried legacy URL or claiming an unconsumed derived asset.
 Masked and opaque planes, hidden source RGB and signed/type identity remain
 separate assertions.
 
-Public engine resource preparation can eagerly decode owned ordinary and
-opaque planes before clipping/scaling or the draw stage. A decoded asset is not
-proof of visible paint. An already-issued decode is a browser lifetime; no new
-owned decode may start after a signalled cancellation/disconnect. Fully clipped
-and unsupported geometry must still have no completed operation. The conditional
-painter/decode observations below describe the original facade seam where still
-used; they must not be read as a singleton/preload-count promise for migrated
-push. Cache eviction/disposal must cover the actual owned transport as well as
-unused generated companions, without revoking a caller's unrelated assets.
+Public resource admission can prepare owned planes before drawing, but a
+wholly clipped body must start no dependent body decode in the current public
+path. A visible nonaligned admission may decode to validate actual dimensions;
+rejection still publishes no completed body operation. These obligations do not
+impose a singleton count on unrelated face/pattern preparation. An already-issued
+decode is a browser lifetime; no new owned decode may start after signalled
+cancellation/disconnect. Decoding alone never proves visible paint. Cache eviction
+and disposal must cover the actual owned transport and unused generated companions
+without revoking a caller's unrelated assets.
 
 ## Source contract
 

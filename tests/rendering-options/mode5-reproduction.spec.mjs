@@ -70,7 +70,7 @@ for(const mode of ['source','built']) test(`${mode}: mode5 encoded hidden RGB an
         for(const kind of ['full-clip','scaled','normal']){
           let trace;const options={label:'',minWidth:24,height:kind==='scaled'?7:6,diagnostics:{onComplete:t=>{trace=t;}},...(kind==='full-clip'?{compositionContext:{controlOrigin:[0,0],portOrigin:[0,0],patternOrigin:{status:'unknown'},clip:{kind:'rect',rect:{x:100,y:100,w:1,h:1}}}}:{})};
           let out,error;try{out=await api.composeButton(child,options);}catch(e){error=e.message;}
-          rows.push({kind,trace,pixel:out?out.getPixel(3,2):null,plane:kind==='full-clip'&&out?[...out.data]:null,calls,error});
+          rows.push({kind,trace,pixel:out?out.getPixel(3,2):null,plane:out?[...out.data]:null,calls,error});
         }
         return{rows,binding,bodyAsset,provenance:owner.byteProvenance};
       }finally{HTMLImageElement.prototype.decode=decode;owner.dispose();}
@@ -81,6 +81,9 @@ for(const mode of ['source','built']) test(`${mode}: mode5 encoded hidden RGB an
     expect(result.rows[2].calls).toBe(1);
     expect(result.rows[1].calls).toBeLessThanOrEqual(result.rows[2].calls);
     expect(result.rows[2].pixel).toEqual([0,48,0,255]);
+    const hiddenExpected=Uint8Array.from(expectedBuffers.color8);
+    for(let i=0;i<hiddenExpected.length;i+=4)if(hiddenExpected[i]===0&&hiddenExpected[i+1]===255&&hiddenExpected[i+2]===0)hiddenExpected[i+1]=48;
+    expect(result.rows[2].plane).toEqual([...hiddenExpected]);
     const paint=result.rows[2].trace.steps.find(s=>s.bodyPaint);
     expect(paint,'completed owned mode5 operation must publish bodyPaint').toBeDefined();
     expect(paint.owner).toEqual({baseUrl:'actual-body-owner',chainDepth:1});
