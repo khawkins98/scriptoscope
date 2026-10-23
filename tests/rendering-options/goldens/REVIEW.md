@@ -1,3 +1,17 @@
+# #459 current images: unapproved candidates
+
+The current 36 PNGs are independent test-author candidates for the push/checkable
+engine migration, recorded from `11883e85` with the separately frozen preparation
+repair `fc5e96956b0541657f615602ac45aefb35a2b152`. Approval of this delta requires a
+different Tier-2 reviewer and actual production demo visual review. The historical
+review records below retain their original capture scopes and hashes.
+
+Old/new/diff evidence, failed history, exact command receipts and the residual
+typed-UNKNOWN blocker are described in
+[the independent candidate report](../../../v2-lanes/controls-independent/REPORT.md).
+Passing regression verification does not establish native glyph/device/provider
+or original-engine pixel equivalence, and changes no ledger status.
+
 # Reviewed regression seed — 2026-10-18
 
 These 36 images record Scriptoscope output, not original-engine reference images.

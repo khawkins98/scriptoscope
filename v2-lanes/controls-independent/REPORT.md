@@ -196,3 +196,42 @@ artifact now includes those audited additive metadata hashes; it is no longer
 merely the initial three toolchain hash changes. Detailed repaired recovery is in
 `binding-repaired-audit.json`, and reconstructed initial recovery is in
 `initial-binding-structural-report.json`, both outside the checkout.
+
+## Coherent candidate and residual blocker
+
+The final ordinary-corpus pinned Linux recording from `11883e85` passes all 36
+pages (7.6 minutes). It is distinct from the initial incomplete recording.
+`goldens-final-recorded/`, `png-final-comparison.json` and its diff PNG directory
+retain all old/new/diff evidence. All 36 sheets change; sheet heights change with
+the control allocation, so diff maps use top-left alignment with transparent
+padding to the maximum extent, never scaling. Magenta marks any changed RGBA
+pixel; raw old/new source PNGs are retained alongside size and SHA256 identities.
+These are UNAPPROVED CANDIDATES, even after exact verification succeeds.
+
+Broader unit validation exposed two additional obsolete test assumptions. The
+unsigned-name alias expectation in `src/controls.test.mjs` contradicts PB5–PB7's
+signed identity and declared archive/base lookup, so its expected owner is now
+the base signed resource. The new family's exact 432-cell grid cannot satisfy the
+old generic >1000 guard; the new 432/2304 grids receive exact count assertions,
+while every existing family's >1000 requirement is unchanged. Empty expected
+files register ONLY the two newly seeded families; no existing blessing changes.
+The earlier failed broad/harness runs are retained; both targeted replacements
+pass independently. The final exact-head lane performs the complete current suite.
+
+One residual blocker was found after the preparation repair and explicitly
+accepted by PM for separate follow-up: non-NULL typed UNKNOWN cicn + valid same-ID
+cinf reaches `cicn.width` and throws TypeError rather than preserving an explicit
+unsupported/UNKNOWN diagnostic. No alternate state is borrowed in the probe, and
+native malformed-resource pixels remain UNKNOWN. Runtime was not self-edited.
+PM requested its regression outside the ordinary candidate suite so the coherent
+ordinary-corpus record/verify can finish without hiding this blocker.
+
+Portable private regression:
+`/Users/khawkins/orca/worker-receipts/v2-lanes/459-controls-independent/push-unknown-regression.test.mjs`.
+Run it with Node --test from any candidate checkout root. It pins valid decoded
+art + same-ID cinf as a passing positive, proven NULL + same-ID cinf as a second
+passing positive, and a named explicit UNKNOWN/unsupported propagation assertion
+as the failing negative. `residual-unknown-regression.json` records exit1; the
+negative fails an ERR_ASSERTION caused by the TypeError, with both positives
+passing. Its test/oracle material must not be sent to runtime authors; only safe
+behavior facts were sent to PM. A green ordinary lane does not resolve this defect.
