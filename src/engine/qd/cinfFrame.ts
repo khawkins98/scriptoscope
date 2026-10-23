@@ -179,7 +179,7 @@ export function drawCinfFrame(port: Pixmap, chain: ResourceChain, input: CinfFra
     }
     if (!visible) return;
     const box = (r: QdRect) => ({ x: r.left, y: r.top, w: r.right - r.left, h: r.bottom - r.top });
-    const regions: Record<string, number> = { TL: 0, top: 1, TR: 2, left: 3, right: 5, BL: 6, bottom: 7, BR: 8 };
+    const regions: Record<string, number> = { TL: 0, TR: 1, top: 2, BL: 3, BR: 4, bottom: 5, left: 6, right: 7 };
     detail.bands.push({ role: bodyFill ? 'face' : 'default-ring', region: regions[piece]!, branch, policy,
       owner: art.owner, resource: artResource, sourceRect: box(src), destinationRect: box(dst) });
   };
