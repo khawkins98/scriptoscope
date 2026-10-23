@@ -197,7 +197,11 @@ export async function renderWindow(
     }
     const base = dispTitle === title ? measured : dispTitle ? raster(dispTitle, '#000000') : null;
     if (base) {
-      const x0 = t4p.x, y0 = t4p.y + t4p.h - TITLE_TEXT.TX8.baselineAbove - base.ascent;
+      // DECISIONS #13 (2): the decoded baseline (TX8) and clip (TX4) are kept, except that our
+      // title font is taller than the original's: when its ascent would start above the title
+      // rect, the baseline moves down by exactly that overflow, so every glyph stays inside.
+      const baseline = Math.max(t4p.y + t4p.h - TITLE_TEXT.TX8.baselineAbove, t4p.y + base.ascent);
+      const x0 = t4p.x, y0 = baseline - base.ascent;
       const clip = { l: Math.max(0, t4p.x), t: Math.max(0, t4p.y), r: Math.min(fullWidth, t4p.x + room), b: Math.min(fullHeight, t4p.y + t4p.h) };
       const inClip = (x: number, y: number): boolean => x >= clip.l && x < clip.r && y >= clip.t && y < clip.b;
       // Title colour CONTRASTS with the bar under the text's own footprint (runtime rule, not TX7).
