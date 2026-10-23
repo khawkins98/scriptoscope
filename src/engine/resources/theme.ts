@@ -32,7 +32,7 @@ const LINE_SAMPLED = new Set(engineLineSampledCicnIds());
 import { cicnIconSource } from './iconSource.js';
 
 async function themeProvider(theme: LoadedTheme, tier: 'archive' | 'base', name: string,
-  wanted: readonly { type: string; id: number }[], life?: ChainLife): Promise<ResourceProvider> {
+  wanted: readonly { type: string; id: number }[], life?: ChainLife, declaredCinfs = false): Promise<ResourceProvider> {
   const elements = Object.values(theme.manifest.chromeElements ?? {});
   const patterns = Object.values(theme.manifest.patterns ?? {});
   const icons = theme.inspector?.iconIndex ?? [];
@@ -61,6 +61,7 @@ async function themeProvider(theme: LoadedTheme, tier: 'archive' | 'base', name:
         origin: el.boundsOrigin ?? null, sampling: status, sampled }];
     }
     if (type === 'cinf') {
+      if (declaredCinfs) return null;
       // Raw cinf bytes the loader kept for the engine's cinf ids (manifest.engineCinfs;
       // loadTheme and the public loadKaleidoscopeScheme ask for them by default). A
       // load without them has no engine cinfs: every cinf request is absent.
@@ -125,7 +126,7 @@ function chainLife(theme: LoadedTheme, signal: AbortSignal): ChainLife {
  * changes.
  */
 export async function themeResourceChain(theme: LoadedTheme, wanted: readonly { type: string; id: number }[],
-  opts: { signal?: AbortSignal } = {}): Promise<ResourceChain> {
+  opts: { signal?: AbortSignal; cinfProviders?: readonly ResourceProvider[] } = {}): Promise<ResourceChain> {
   const providers: ResourceProvider[] = [];
   const seen = new Set<LoadedTheme>();
   const life = opts.signal ? chainLife(theme, opts.signal) : undefined;
@@ -136,9 +137,11 @@ export async function themeResourceChain(theme: LoadedTheme, wanted: readonly { 
     if (life?.ended()) throw abortError();
     seen.add(t);
     const name = t.manifest.name ? String(t.manifest.name) : `theme-${depth}`;
-    providers.push(await themeProvider(t, depth === 0 ? 'archive' : 'base', depth === 0 ? name : `${name}#base${depth}`, wanted, life));
+    providers.push(await themeProvider(t, depth === 0 ? 'archive' : 'base', depth === 0 ? name : `${name}#base${depth}`, wanted, life, opts.cinfProviders !== undefined));
   }
   if (life?.ended()) throw abortError();
   } finally { life?.close(); }
-  return new ResourceChain(providers);
+  // A declared cinf-only tier is authoritative: archive/base cinfs were
+  // suppressed above, while all non-cinf resources retain their normal chain.
+  return new ResourceChain([...providers, ...(opts.cinfProviders ?? [])]);
 }

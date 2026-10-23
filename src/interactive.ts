@@ -367,8 +367,8 @@ export interface InteractiveScrollbarOptions extends InteractiveSliderOptions {
 }
 
 /**
- * Shared 1-D drag wiring. Imperative controls retain their full-canvas pointer
- * mapping; native ranges use the committed slider composition layout. Render in
+ * Shared 1-D drag wiring. Sliders use their committed composition layout;
+ * controls without a layout retain their canvas mapping. Render in
  * the pressed state while dragging. The re-compose is async (cicn loading) so
  * it's coalesced to one per animation frame; `onChange` fires immediately. The
  * element is a `role=slider` with arrow-key support.
@@ -519,7 +519,7 @@ async function buildDraggable(
     void repaint();
   };
   listenUntilAborted(events.signal, el, 'pointerdown', (e) => {
-    const mapped = !!native || paintedLayout?.endpointPolicy === 'declared-group2';
+    const mapped = !!native || paintedLayout !== null;
     if (!live() || disabled() || (mapped && (e.button !== 0 || dragging))) return;
     // A stretched wrapper can have blank space outside its real canvas. Only
     // the canvas begins native interaction; an active drag may leave its bounds.

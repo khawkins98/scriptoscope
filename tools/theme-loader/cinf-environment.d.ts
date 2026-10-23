@@ -31,16 +31,18 @@ export function assertCinfEnvironment(value?: PreparedCinfEnvironment): void;
 /** Internal load-bound identity snapshot; serialized declarations are not prepared inputs. */
 export function snapshotBodyCinfFace(theme: ThemeManifest, element: ChromeElement): { environment: CinfBindingSummary; view?: BodyCinfView } | undefined;
 
-export interface SliderLayoutBindingSummary extends Omit<CinfBindingSummary, 'scope'> {
-  readonly scope: 'standalone-group2-slider-layout';
+/** Internal generic engine handoff; prepared serialized identities are unchanged. */
+export interface BoundCinfEnvironment {
+  readonly id: string; readonly environmentId: string; readonly complete: boolean;
+  readonly providers: readonly { readonly id: string; readonly kind: 'theme-fork' | 'raw-fork';
+    readonly complete: boolean; readonly forkSha256: string;
+    readonly resources: readonly { readonly signedId: number; readonly occurrence: number;
+      readonly byteLength: number; readonly sha256: string }[] }[];
 }
-export interface SliderLayoutCinfView extends SliderLayoutBindingSummary {
-  readonly orientation: 'horizontal' | 'vertical'; readonly thumbId: -10129 | -10113;
-  readonly status: 'ready' | 'unsupported'; readonly reason?: string;
-  readonly attempts: CinfLookupView['attempts']; readonly selected?: CinfProviderReference;
-  /** Raw group-base cinf first byte; present only for a ready view. */
-  readonly corner?: number;
-}
-/** Internal, finalized exact-thumb snapshot. Absent opt-in alone returns undefined. */
-export function snapshotSliderLayoutCinf(theme: ThemeManifest, element: ChromeElement | undefined,
-  orientation: 'horizontal' | 'vertical'): SliderLayoutCinfView | undefined;
+export function snapshotCinfBinding(binding: unknown): BoundCinfEnvironment;
+export function copiedCinfPayload(resource: unknown): number[];
+export function finalizeCinfResourceOwner(theme: ThemeManifest, binding: unknown, field: string): void;
+export function snapshotCinfResourceOwner(theme: ThemeManifest, field: string): {
+  readonly binding: BoundCinfEnvironment;
+  elementSnapshot(element: ChromeElement): Readonly<Pick<ChromeElement, 'asset' | 'width' | 'height' | 'sourceCicnId' | 'byteProvenance'>> | undefined;
+} | undefined;

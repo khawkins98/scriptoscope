@@ -7,6 +7,10 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+- **Declared slider resource chain** (#427, #459): the opt-in ordered `cinf` tier now supplies gate, corner and groove metadata together. Every declared provider must be complete before admission; missing declared metadata cannot borrow archive metadata. Ordinary resource resolution remains unchanged.
+- **Slider pointer geometry** (#427): imperative sliders use the engine's committed thumb travel, direction, exact-value grab and track-click centering for both ordinary and declared layouts.
+- **Breaking slider metadata cleanup** (#427): remove `ChromeElement.sliderLayoutCinf`, `SliderLayout.endpointPolicy`, the decoded slider summary fields and retired slider admission helper exports. Keep the preparation/binding option and generic IDs/data/body views; `sliderLayoutEnvironment` is now only the opaque frozen `{ environmentId, bindingId }` marker. Use engine traces for selected provider provenance.
+
 - **Breaking inspector cleanup** (#436, #459): remove the deprecated `ThemeProgressModel` type, `ThemeInspector.resourceRoles.progress` and `progressSummary`. Progress rendering remains selected by the engine's `cinf` gate; inspector artwork roles no longer predict the drawing path. Consumers must stop reading the removed metadata.
 - **Diagnostic theme links** (#459): honor valid URL hash themes and playground settings on initial load and hash changes, including rapid switching. The manual visual-baseline command includes independent diagnostic hash checks.
 
