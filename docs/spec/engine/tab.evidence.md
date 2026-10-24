@@ -198,3 +198,39 @@ Existing 18-fork census/rule evidence is in `../tab-cdef8-body.md` and
 captures. The new pattern-phase rows require independent synthetic assertions
 before implementation acceptance; prior Crayon centre exclusions are insufficient.
 No runtime, tests, goldens or ledger edits were made by the author.
+
+## E7. Transport clarification (modern policy, 2026-10-24)
+
+The implementer asked how older manifests without raw cinf census, bound engine
+sample identity or exported origin can enter the bounded modern domain. This is
+a transport-policy clarification, not additional CDEF decode. New §6.1 is the
+complete listing-free answer; its MD/OR/CS rows must receive independent review.
+
+At the base, `buildThemeJson.js` creates byTypeAndId only from status-ok decoded
+assets, pairs same-ID cinf, and writes `sourceCinfId: cinf?.id ?? null`.
+Therefore explicit null cannot prove original resource absence: it can also
+mean no successfully decoded pairing. MD2 gives it an explicit tab-only declared
+no-paint meaning and compatibility trace basis; omitted fields remain unknown.
+No inspector absence is promoted into an exhaustive raw cinf census.
+
+The same builder emits immutable role colour samples from the selected local
+cicn/cinf pair, suppressing ambiguous generated paths. `kdef-color-samples.js`
+reads rawRGB16 before canvas transport and exports both raw and display triples.
+`convert.js` later attaches newer cicnSource / engineColorSamples. The generic
+adapter requires actual per-load identity for the newer points. CS2 deliberately
+permits older local role samples as a **declaration**, without altering that
+adapter's generic identity rules; CS3 forbids bypassing a contradictory supplied
+strong binding. Needed-versus-unused points are separate so public contrast
+labels do not force realization of unused native text/emboss.
+
+Older JSON elements may lack both origin fields; OR1 explicitly declares a local
+zero-origin raster, and OR5 uses that raster's binary alpha as the modern mask.
+Neither RGBA dimensions nor pixmap-only cicnSource bounds prove original mask
+bounds. Explicit invalid/nonzero/conflicting source/mask information rejects;
+no new broad original-mask interpretation is inferred. This preserves the old
+public consumer while keeping native geometry and display evidence unproved.
+
+Independent mutations are specified for missing/null/conflicting metadata,
+legacy bounds default versus explicit contradiction, same-owner finite samples,
+strong-binding downgrade, and pre/post-await snapshot mixing. No runtime or
+other-family transport policy was edited in this spec lane.
