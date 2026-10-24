@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { composeButton, bufferToCanvas } from "../../src/controls.js";
+import { createPortal } from "react-dom";
+import type { ReactNode } from "react";
+import type { WindowState } from "./window-profile.js";
 import { renderWindow } from "../../src/renderWindow.js";
 import type { LoadedTheme } from "../../src/types.js";
 
@@ -36,7 +39,7 @@ function GalleryButton({
     })
       .then((buffer) => {
         if (cancelled) return;
-        if (buffer) host.current?.replaceChildren(bufferToCanvas(buffer, 2));
+        if (buffer) host.current?.replaceChildren(bufferToCanvas(buffer, 1));
         else setUnavailable(true);
       })
       .catch(() => {
@@ -51,7 +54,10 @@ function GalleryButton({
       className="gallery-state"
       aria-label={`Edit ${stateLabel(state)} button properties`}
       aria-pressed={selected}
-      onClick={onSelect}
+      onClick={(event) => {
+        event.stopPropagation();
+        onSelect();
+      }}
     >
       <span className="gallery-state-label">
         {stateLabel(state)}
@@ -64,43 +70,89 @@ function GalleryButton({
   );
 }
 
-function RetainedWindow({ theme }: { theme: LoadedTheme | null }) {
+function SceneWindow({
+  theme,
+  state,
+  selected,
+  onSelect,
+  children,
+}: {
+  theme: LoadedTheme | null;
+  state: WindowState;
+  selected: boolean;
+  onSelect: () => void;
+  children: ReactNode;
+}) {
   const host = useRef<HTMLDivElement>(null);
+  const [content, setContent] = useState<Element | null>(null);
+  const [unavailable, setUnavailable] = useState(false);
   useEffect(() => {
     let cancelled = false;
+    setContent(null);
+    setUnavailable(false);
     host.current?.replaceChildren();
     if (!theme) return;
     void renderWindow(theme, {
-      title: "Document",
-      width: 220,
-      height: 66,
+      title: state === "active" ? "Field notes" : "Reference",
+      width: 272,
+      height: state === "active" ? 252 : 84,
       scale: 1,
-      state: "active",
+      state,
     })
       .then((win) => {
-        const content = win.querySelector(".scriptoscope-content");
-        if (content) {
-          const label = document.createElement("p");
-          label.className = "retained-window-label";
-          label.textContent = "Your imported window artwork is retained.";
-          content.replaceChildren(label);
-        }
-        if (!cancelled) host.current?.replaceChildren(win);
+        if (cancelled) return;
+        host.current?.replaceChildren(win);
+        setContent(win.querySelector(".scriptoscope-content"));
       })
       .catch(() => {
-        if (!cancelled && host.current)
-          host.current.textContent = "Window preview unavailable";
+        if (!cancelled) setUnavailable(true);
       });
     return () => {
       cancelled = true;
     };
-  }, [theme]);
-  return <div className="retained-window" ref={host} />;
+  }, [theme, state]);
+  return (
+    <section
+      className="scene-window"
+      data-state={state}
+      data-selected={selected}
+      aria-label={`${stateLabel(state)} document window`}
+    >
+      <button
+        className="scene-window-label"
+        aria-label={`Edit ${stateLabel(state)} window properties`}
+        aria-pressed={selected}
+        onClick={onSelect}
+      >
+        {stateLabel(state)} window <span aria-hidden="true">↗</span>
+      </button>
+      <div className="scene-frame" ref={host} onClick={onSelect} />
+      {!content && !unavailable && (
+        <p className="scene-loading" role="status">
+          Rendering {stateLabel(state)} window…
+        </p>
+      )}
+      {unavailable && <p>Window preview unavailable for this scheme.</p>}
+      {content &&
+        createPortal(
+          <div
+            className="scene-document"
+            onClick={(event) => event.stopPropagation()}
+          >
+            {children}
+          </div>,
+          content,
+        )}
+    </section>
+  );
 }
 
 export function AuthoringGallery({
   theme,
   scope,
+  windowScope,
+  onWindowScope,
+  onText,
   original,
   compiling,
   onScope,
@@ -108,6 +160,9 @@ export function AuthoringGallery({
 }: {
   theme: LoadedTheme | null;
   scope: string;
+  windowScope: string;
+  onWindowScope: (state: WindowState) => void;
+  onText: () => void;
   original: boolean;
   compiling: boolean;
   onScope: (scope: ButtonState) => void;
@@ -118,8 +173,8 @@ export function AuthoringGallery({
     <aside className="authoring-gallery" aria-label="Theme preview gallery">
       <div className="gallery-heading">
         <div>
-          <span className="eyebrow">LIVE GALLERY</span>
-          <h2>See every state</h2>
+          <span className="eyebrow">LIVE DOCUMENT SCENE</span>
+          <h2>See it together</h2>
         </div>
         <span className="live-dot" title="Live renderer preview" />
       </div>
@@ -149,28 +204,51 @@ export function AuthoringGallery({
           Imported original · editing paused
         </p>
       )}
-      <div className="gallery-states" aria-busy={compiling}>
-        {buttonStates.map((state) => (
-          <GalleryButton
-            key={state}
-            theme={theme}
-            state={state}
-            wide={wide}
-            selected={scope === state}
-            onSelect={() => onScope(state)}
-          />
-        ))}
+      <div className="document-scene" aria-busy={compiling}>
+        <SceneWindow
+          theme={theme}
+          state="active"
+          selected={windowScope === "active"}
+          onSelect={() => onWindowScope("active")}
+        >
+          <div className="scene-document-copy">
+            <strong>Field notes</strong>
+            <p>A small detail can change how the whole theme feels.</p>
+          </div>
+          <div className="gallery-states">
+            {buttonStates.map((state) => (
+              <GalleryButton
+                key={state}
+                theme={theme}
+                state={state}
+                wide={wide}
+                selected={scope === state}
+                onSelect={() => onScope(state)}
+              />
+            ))}
+          </div>
+        </SceneWindow>
+        <SceneWindow
+          theme={theme}
+          state="inactive"
+          selected={windowScope === "inactive"}
+          onSelect={() => onWindowScope("inactive")}
+        >
+          <div className="scene-document-copy">
+            <strong>Keep a reference nearby</strong>
+            <p>
+              Compare <mark>selected words</mark> with the surrounding text.
+            </p>
+            <button className="sample-content-link" onClick={onText}>
+              About sample text &amp; selection →
+            </button>
+          </div>
+        </SceneWindow>
       </div>
       <p className="gallery-help">
-        Select a preview to edit that state. All three update from the same
-        source-backed project.
+        Select a window frame or button to edit its state. Original compares the
+        whole scene. Document content is a fixed preview example.
       </p>
-      <details className="retained-preview">
-        <summary>
-          Window preview <span>Retained only</span>
-        </summary>
-        <RetainedWindow theme={theme} />
-      </details>
       <div className="gallery-output">
         <strong>Your output</strong>
         <p>

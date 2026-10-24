@@ -43,6 +43,12 @@ import {
   type AuthoringState,
   type AuthoringRole,
 } from "./profile.js";
+import {
+  WINDOW_ROLES,
+  getWindowProfile,
+  applyWindowColor,
+  resetWindowColor,
+} from "./window-profile.js";
 import "./style.css";
 
 const samples = [
@@ -243,6 +249,10 @@ function App() {
   const [originalTheme, setOriginalTheme] = useState<LoadedTheme | null>(null);
   const authoringProfile = useMemo(
     () => (project ? getAuthoringProfile(project, originalTheme) : null),
+    [project, originalTheme],
+  );
+  const windowProfile = useMemo(
+    () => (project ? getWindowProfile(project, originalTheme) : null),
     [project, originalTheme],
   );
   const [focus, setFocus] = useState<ComponentSelection | null>({
@@ -750,7 +760,7 @@ function App() {
         <p>
           {advanced
             ? "Exact source records, palette colors and geometry"
-            : "Button color profile · windows and other artwork retained"}
+            : "Window titles and buttons · scheme-specific coverage"}
         </p>
         <span>Experimental · no installable export</span>
       </div>
@@ -758,6 +768,40 @@ function App() {
         <AuthoringSheet
           project={project}
           profile={authoringProfile}
+          windowProfile={windowProfile}
+          onWindowColor={(role, states, rgb) => {
+            if (project && windowProfile)
+              semanticChange(() =>
+                applyWindowColor(project, windowProfile, role, states, rgb),
+              );
+          }}
+          onWindowReset={(role, states) => {
+            if (project && windowProfile)
+              semanticChange(() =>
+                resetWindowColor(project, windowProfile, role, states),
+              );
+          }}
+          onWindowResetGroup={(states) => {
+            if (project && windowProfile)
+              semanticChange(() => {
+                let next = project;
+                for (const role of WINDOW_ROLES) {
+                  const supported = states.filter((state) =>
+                    windowProfile.bindings.some(
+                      (b) => b.role === role.id && b.state === state,
+                    ),
+                  );
+                  if (supported.length)
+                    next = resetWindowColor(
+                      next,
+                      windowProfile,
+                      role.id,
+                      supported,
+                    );
+                }
+                return next;
+              });
+          }}
           theme={displayTheme}
           original={compareOriginal}
           compiling={compiling}

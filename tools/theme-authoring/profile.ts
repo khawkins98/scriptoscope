@@ -69,7 +69,7 @@ const equal = (a: readonly number[], b: readonly number[]) =>
  * Reject ambiguous/missing indices instead of adopting a compatibility fallback.
  * The engine's color sampler ignores the source mask and ctFlags.
  */
-function sampledRecord(
+export function sampledRecord(
   image: NonNullable<ReturnType<typeof indexedArtwork>>,
   x: number,
   y: number,

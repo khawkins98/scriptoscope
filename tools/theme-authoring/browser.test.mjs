@@ -80,6 +80,214 @@ test(
             canvases.map((canvas) => canvas.toDataURL()),
           );
       const originalGallery = await galleryPixels();
+      const windowPixels = (target = page) =>
+        target
+          .locator(".scene-window .scene-frame > div > canvas")
+          .evaluateAll((canvases) =>
+            canvases.map((canvas) => canvas.toDataURL()),
+          );
+      const waitWindows = (pixels, target = page) =>
+        target.waitForFunction(
+          (before) =>
+            JSON.stringify(
+              [
+                ...document.querySelectorAll(
+                  ".scene-window .scene-frame > div > canvas",
+                ),
+              ].map((canvas) => canvas.toDataURL()),
+            ) === JSON.stringify(before),
+          pixels,
+        );
+      await page.waitForFunction(
+        () =>
+          document.querySelectorAll(".scene-window .scene-frame > div > canvas")
+            .length === 2,
+      );
+      const originalWindows = await windowPixels();
+      assert.equal(
+        await page
+          .getByRole("heading", { name: "Shape the whole scene", exact: true })
+          .isVisible(),
+        true,
+      );
+      // Pick actual chrome; the keyboard-accessible window label offers the same action.
+      await page
+        .locator('.scene-window[data-state="active"] .scene-frame > div')
+        .click({ position: { x: 140, y: 8 } });
+      assert.equal(
+        await page
+          .getByRole("group", { name: "Window state scope", exact: true })
+          .getByRole("button", { name: "Active", exact: true })
+          .getAttribute("aria-pressed"),
+        "true",
+      );
+      const titleColor = page.getByRole("textbox", {
+        name: "Title bar color hex color",
+        exact: true,
+      });
+      await titleColor.fill("#9f6b20");
+      await titleColor.press("Enter");
+      await page.waitForFunction((before) => {
+        const canvases = [
+          ...document.querySelectorAll(
+            ".scene-window .scene-frame > div > canvas",
+          ),
+        ];
+        return (
+          canvases.length === 2 &&
+          canvases[0].toDataURL() !== before[0] &&
+          canvases[1].toDataURL() === before[1]
+        );
+      }, originalWindows);
+      const activeWindows = await windowPixels();
+      assert.deepEqual(await galleryPixels(), originalGallery);
+      await page.getByRole("button", { name: "Original", exact: true }).click();
+      await waitWindows(originalWindows);
+      assert.equal(await titleColor.isDisabled(), true);
+      assert.equal(
+        await page
+          .getByRole("button", {
+            name: "Reset Active window colors",
+            exact: true,
+          })
+          .isDisabled(),
+        true,
+      );
+      await page.getByRole("button", { name: "Working", exact: true }).click();
+      await waitWindows(activeWindows);
+      await page
+        .getByRole("button", { name: "Undo edit", exact: true })
+        .click();
+      await waitWindows(originalWindows);
+      await page
+        .getByRole("button", { name: "Redo edit", exact: true })
+        .click();
+      await waitWindows(activeWindows);
+      await page
+        .getByRole("button", {
+          name: "Edit Inactive window properties",
+          exact: true,
+        })
+        .click();
+      const titleText = page.getByRole("textbox", {
+        name: "Window title text hex color",
+        exact: true,
+      });
+      await titleText.fill("#523577");
+      await titleText.press("Enter");
+      await page.waitForFunction((before) => {
+        const canvases = [
+          ...document.querySelectorAll(
+            ".scene-window .scene-frame > div > canvas",
+          ),
+        ];
+        return (
+          canvases.length === 2 &&
+          canvases[0].toDataURL() === before[0] &&
+          canvases[1].toDataURL() !== before[1]
+        );
+      }, activeWindows);
+      const editedWindows = await windowPixels();
+      assert.equal(
+        await page
+          .getByRole("textbox", {
+            name: "Title shadow color hex color",
+            exact: true,
+          })
+          .inputValue(),
+        await titleText.inputValue(),
+      );
+      assert.match(
+        await page
+          .getByRole("region", { name: "Window title text", exact: true })
+          .innerText(),
+        /Coupled with Title shadow color/,
+      );
+      const windowDownload = page.waitForEvent("download");
+      await page
+        .getByRole("button", { name: "Save project", exact: false })
+        .click();
+      const windowFile = await windowDownload;
+      const windowPath = resolve(dir, "window-project.json");
+      await windowFile.saveAs(windowPath);
+      const windowSaved = await openProject(await readFile(windowPath, "utf8"));
+      assert.equal(windowSaved.edits.length, 2);
+      const windowContext = await browser.newContext();
+      const windowReopen = await windowContext.newPage();
+      windowReopen.on("pageerror", (error) => errors.push(error.message));
+      await windowReopen.goto(url);
+      await windowReopen
+        .getByLabel("Open project file", { exact: true })
+        .setInputFiles(windowPath);
+      await waitWindows(editedWindows, windowReopen);
+      await windowReopen.setViewportSize({ width: 390, height: 844 });
+      await windowReopen
+        .getByRole("group", { name: "Authoring panels", exact: true })
+        .getByRole("button", { name: "Preview", exact: true })
+        .click();
+      await windowReopen
+        .getByRole("button", {
+          name: "Edit Inactive window properties",
+          exact: true,
+        })
+        .click();
+      assert.equal(
+        await windowReopen
+          .getByRole("group", { name: "Window state scope", exact: true })
+          .getByRole("button", { name: "Inactive", exact: true })
+          .getAttribute("aria-pressed"),
+        "true",
+      );
+      assert.equal(
+        await windowReopen
+          .getByRole("textbox", {
+            name: "Window title text hex color",
+            exact: true,
+          })
+          .isVisible(),
+        true,
+      );
+      assert.equal(
+        await windowReopen.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth,
+        ),
+        true,
+      );
+      await windowContext.close();
+      await page
+        .getByRole("button", { name: "Both states", exact: true })
+        .click();
+      await page
+        .getByRole("button", { name: "Reset all window colors", exact: true })
+        .click();
+      await waitWindows(originalWindows);
+      await page
+        .getByRole("button", { name: "Undo edit", exact: true })
+        .click();
+      await waitWindows(editedWindows);
+      await page
+        .getByRole("navigation", { name: "Property groups", exact: true })
+        .getByRole("button", { name: "Text & selection", exact: true })
+        .click();
+      assert.equal(await page.getByRole("textbox").count(), 0);
+      assert.equal(
+        await page
+          .getByText(
+            "No verified source binding for document selection. The sample highlight is fixed preview content.",
+            { exact: true },
+          )
+          .isVisible(),
+        true,
+      );
+      // Return to a fresh source before the established button/advanced acceptance flow.
+      await page
+        .getByRole("button", { name: "Start with 1138", exact: true })
+        .click();
+      await waitWindows(originalWindows);
+      await page
+        .getByRole("navigation", { name: "Property groups", exact: true })
+        .getByRole("button", { name: "Controls", exact: true })
+        .click();
       await page
         .getByRole("button", { name: "Apply amber variation", exact: true })
         .click();
@@ -268,6 +476,10 @@ test(
           ) === JSON.stringify(before),
         amberGallery,
       );
+      await semanticReopen
+        .getByRole("navigation", { name: "Property groups", exact: true })
+        .getByRole("button", { name: "Controls", exact: true })
+        .click();
       await semanticReopen.setViewportSize({ width: 390, height: 844 });
       const authoringPanels = semanticReopen.getByRole("group", {
         name: "Authoring panels",
