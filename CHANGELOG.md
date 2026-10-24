@@ -7,6 +7,20 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+### Changed
+
+- Segmented tabs use a cited engine driver for full-source end strips, sampled
+  bands and separate solid or patterned centers (#378). Pattern phase follows
+  the incoming outer tab rectangle; the replaced three-slice fallback and
+  tab-body helper are removed. Public selection, label sizing and contrast stay
+  explicit modern policies; control-panel fallback artwork remains excluded.
+- Unsupported tab metadata, sampling or patterns return null with distinct
+  diagnostics instead of drawing the legacy body. Declared no-cinf inputs,
+  unknown metadata and missing art remain distinguishable. Older manifests use
+  the documented tab-only transport conventions in `docs/spec/engine/tab.md`;
+  these declarations do not establish original resource or mask provenance.
+  Native typography, device rendering and whole-control fidelity remain unknown.
+
 ### Fixed
 
 - Keep visible title-widget buttons reachable when an enlarged WindowManager
