@@ -1,0 +1,950 @@
+/* Studio shares the site's paper, ink, spectrum and type. The authored scene
+   remains isolated: these rules style the workbench, never theme pixels. */
+@font-face {
+  font-family: "Instrument Serif";
+  src: url("../../demo/assets/fonts/instrument-serif-normal-latin.woff2")
+    format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Studio Charcoal";
+  src: url("../../demo/assets/fonts/charcoal-12.woff") format("woff");
+  font-display: swap;
+}
+:root {
+  --paper: #f4f0e6;
+  --sheet: #fcfaf5;
+  --ink: #28251f;
+  --accent: #765222;
+  --muted: #605747;
+  --line: #cfc7b8;
+  --selected: #e9dfca;
+  color: var(--ink);
+  background: var(--paper);
+  color-scheme: light;
+  font-size: 13px;
+}
+.studio {
+  min-height: 0;
+}
+.studio-masthead {
+  flex-shrink: 0;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 0 24px;
+  color: #f4f0e6;
+  background: #151512;
+}
+.studio-wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font:
+    30px/0.95 "Instrument Serif",
+    Georgia,
+    serif;
+  letter-spacing: -0.035em;
+  white-space: nowrap;
+}
+.studio-wordmark:hover {
+  text-decoration: none;
+  color: #e8c975;
+}
+.studio-edition {
+  font:
+    10px/1.5 Monaco,
+    monospace;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border-left: 1px solid #6f6659;
+  padding-left: 12px;
+  margin-left: 2px;
+}
+.spectrum-mark {
+  display: grid;
+  grid-template-columns: repeat(3, 6px);
+  grid-template-rows: repeat(2, 9px);
+  gap: 2px;
+  transform: rotate(-8deg);
+}
+.spectrum-mark i:nth-child(1) {
+  background: #70ab65;
+}
+.spectrum-mark i:nth-child(2) {
+  background: #e5c34a;
+}
+.spectrum-mark i:nth-child(3) {
+  background: #dc8f42;
+}
+.spectrum-mark i:nth-child(4) {
+  background: #b95c87;
+}
+.spectrum-mark i:nth-child(5) {
+  background: #8174ae;
+}
+.spectrum-mark i:nth-child(6) {
+  background: #5d99b6;
+}
+.studio-masthead nav {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+.studio-masthead nav a,
+.studio-masthead nav button {
+  color: #c7c1b4;
+  font:
+    10px/1.4 Monaco,
+    monospace;
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+.studio-masthead nav :is(a, button):hover {
+  color: #f4f0e6;
+  text-decoration: underline;
+  text-underline-offset: 5px;
+}
+.studio-skip {
+  position: absolute;
+  top: 8px;
+  left: 16px;
+  transform: translateY(-200%);
+  z-index: 200;
+  padding: 12px;
+  background: var(--paper);
+}
+.studio-skip:focus {
+  transform: translateY(0);
+}
+.studio-masthead :focus-visible {
+  outline-color: #e8c975;
+}
+button,
+select,
+input:not([type="color"]),
+input[type="color"] {
+  border-radius: 2px;
+}
+button {
+  background: var(--sheet);
+  border-color: #bcb2a0;
+  font-weight: 500;
+}
+button:hover:not(:disabled) {
+  background: #ece5d8;
+  border-color: #97866c;
+}
+button:disabled {
+  opacity: 0.55;
+}
+select,
+input:not([type="color"]),
+input[type="color"] {
+  background: var(--sheet);
+  border-color: #bcb2a0;
+}
+.app-header {
+  min-height: 64px;
+  padding: 8px 22px;
+  gap: 20px;
+  color: var(--ink);
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+  box-shadow: none;
+  z-index: auto;
+}
+.project-heading {
+  border: 0;
+  padding-left: 0;
+  gap: 16px;
+}
+.project-heading h1 {
+  font:
+    400 29px/1.1 "Instrument Serif",
+    Georgia,
+    serif;
+  letter-spacing: -0.025em;
+}
+.document-state {
+  color: var(--muted);
+}
+.document-state::before {
+  background: #667657;
+}
+.document-state.unsaved::before {
+  background: #956f2f;
+}
+.document-actions button {
+  background: var(--sheet);
+  border-color: #bcb2a0;
+  color: var(--ink);
+}
+.document-actions button:hover:not(:disabled) {
+  background: #e8dfce;
+}
+.document-actions .primary {
+  background: #28251f;
+  border-color: #28251f;
+  color: #fcfaf5;
+}
+.document-actions .primary:hover:not(:disabled) {
+  background: #493b28;
+}
+.save-action small {
+  color: var(--muted);
+  font-size: 9px;
+}
+.authoring-mode-bar {
+  min-height: 44px;
+  padding: 3px 20px;
+  background: #eae5d9;
+  gap: 18px;
+}
+.authoring-mode-bar .segmented {
+  background: transparent;
+  padding: 0;
+}
+.segmented {
+  border-radius: 2px;
+  background: #e7e1d5;
+}
+.segmented button {
+  border-radius: 1px;
+  background: transparent;
+}
+.segmented button[aria-pressed="true"] {
+  color: var(--ink);
+  background: var(--sheet);
+  box-shadow:
+    0 1px 2px #28251f22,
+    inset 0 -2px #765222;
+}
+.authoring-mode-bar .segmented button {
+  min-height: 36px;
+}
+.eyebrow,
+.gallery-heading .eyebrow,
+.sheet-heading .eyebrow,
+.base-details .eyebrow {
+  color: var(--muted);
+  font-family: Monaco, "Courier New", monospace;
+  font-size: 9px;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+}
+.authoring-workspace {
+  grid-template-columns: 190px minmax(360px, 1fr) 410px;
+}
+.starter-library {
+  background: #eae5d9;
+  border-color: var(--line);
+  padding: 22px 14px;
+}
+.starter-library h2 {
+  font:
+    400 27px/1.1 "Instrument Serif",
+    Georgia,
+    serif;
+}
+.starter-list {
+  gap: 0;
+  margin: 18px 0;
+  border-top: 1px solid var(--line);
+}
+.starter-list button {
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  background: transparent;
+  min-height: 58px;
+  padding: 9px 8px;
+}
+.starter-list button[aria-pressed="true"] {
+  background: #ddd3bd;
+  border-color: #b6a88d;
+  box-shadow: inset 3px 0 #765222;
+}
+.starter-monogram {
+  background: #f4f0e6;
+  color: #765222;
+  border-radius: 1px;
+}
+.starter-check {
+  color: #765222;
+}
+.base-details {
+  margin-top: 4px;
+}
+.base-details h3 {
+  font-size: 12px;
+}
+.base-details dl div {
+  border-color: #d0c6b4;
+}
+.base-details p,
+.base-preservation {
+  line-height: 1.6;
+}
+.advanced-entry {
+  border-color: #bcb2a0;
+  color: var(--accent);
+  background: #f4f0e6;
+}
+.property-sheet {
+  background: var(--sheet);
+  padding: 20px 28px 28px;
+}
+.property-navigation {
+  margin: -4px 0 22px;
+  padding-bottom: 0;
+  gap: 18px;
+}
+.property-navigation button {
+  border-radius: 0;
+  padding: 10px 0;
+  min-height: 40px;
+}
+.property-navigation button[aria-current="page"] {
+  color: var(--ink);
+  background: transparent;
+  box-shadow: inset 0 -2px #765222;
+}
+.sheet-heading h2 {
+  font:
+    400 38px/1.05 "Instrument Serif",
+    Georgia,
+    serif;
+  letter-spacing: -0.025em;
+}
+.sheet-heading p {
+  max-width: 56ch;
+  font:
+    14px/1.5 Georgia,
+    serif;
+}
+.quick-start {
+  border-bottom: 1px solid var(--line);
+  padding: 20px 0 18px;
+  margin-top: 10px;
+}
+.quick-start ol {
+  list-style: none;
+  counter-reset: steps;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  margin: 12px 0 15px;
+  padding: 0;
+  font-size: 11px;
+}
+.quick-start li {
+  counter-increment: steps;
+}
+.quick-start li::before {
+  content: "0" counter(steps) " / ";
+  color: var(--accent);
+  font:
+    10px Monaco,
+    monospace;
+}
+.quick-start button {
+  background: #28251f;
+  color: var(--sheet);
+  border-color: #28251f;
+  padding-inline: 16px;
+}
+.quick-start button:hover:not(:disabled) {
+  background: #493b28;
+}
+.quick-start button span {
+  margin-left: 24px;
+}
+.quick-start p {
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.5;
+}
+.overview-groups {
+  gap: 0;
+  margin: 0 0 20px;
+}
+.overview-groups > button {
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  padding: 18px 0;
+  gap: 18px;
+}
+.overview-groups > button:hover:not(:disabled) {
+  background: #f0eadf;
+}
+.overview-number {
+  color: #765222;
+  font:
+    italic 23px Georgia,
+    serif;
+}
+.overview-groups strong {
+  font:
+    400 25px/1.1 "Instrument Serif",
+    Georgia,
+    serif;
+}
+.overview-groups small {
+  margin: 5px 0;
+}
+.overview-groups em {
+  color: #765222;
+}
+.coverage-explanation {
+  background: #f0eadf;
+  border: 0;
+  border-left: 2px solid #a28b63;
+  border-radius: 0;
+  padding: 14px 16px;
+}
+.coverage-explanation p {
+  margin-block: 6px;
+  line-height: 1.6;
+}
+.scope-section {
+  margin-top: 20px;
+}
+.named-property {
+  padding: 17px 0;
+}
+.role-heading h3 {
+  font-size: 13px;
+}
+.role-heading p {
+  margin-top: 4px;
+  line-height: 1.5;
+}
+.role-heading > button,
+.property-group-heading button {
+  color: var(--accent);
+}
+.role-edit-row {
+  margin-top: 11px;
+}
+.role-color-input input[type="text"] {
+  font:
+    11px Monaco,
+    monospace;
+}
+.state-color-values button {
+  background: #f3eee3;
+  border-color: #d5cbb7;
+  border-radius: 1px;
+}
+.state-color-values code {
+  font-size: 9px;
+}
+.role-edited {
+  color: #765222;
+  background: #eee1c4;
+  border-radius: 1px;
+}
+.coupled-note {
+  line-height: 1.55;
+}
+.authoring-gallery {
+  background: #deded2;
+  border-color: #bcb9a9;
+  padding: 20px 18px;
+  box-shadow: inset 1px 0 #ffffff44;
+}
+.gallery-heading h2 {
+  font:
+    400 29px/1.1 "Instrument Serif",
+    Georgia,
+    serif;
+}
+.gallery-options {
+  margin-block: 14px;
+}
+.gallery-options .segmented {
+  background: #cccebf;
+}
+.gallery-options select {
+  background: #f4f0e6;
+}
+.document-scene {
+  background: #b7bca9;
+  border: 1px solid #8d947e;
+  border-radius: 1px;
+  box-shadow: inset 0 1px 3px #28251f24;
+  padding: 10px 10px 18px;
+  gap: 14px;
+}
+.scene-window-label {
+  color: #343d2c;
+  font:
+    10px/1.4 Monaco,
+    monospace;
+  padding-bottom: 7px;
+}
+.scene-window-label[aria-pressed="true"] {
+  color: #25291e;
+}
+.scene-window[data-selected="true"] .scene-frame {
+  outline-color: #765222;
+}
+.scene-window .scene-loading {
+  color: #343d2c;
+}
+.gallery-help,
+.gallery-output p {
+  line-height: 1.6;
+  color: #5b5c4f;
+}
+.gallery-output {
+  border-color: #b7b8a6;
+}
+.gallery-output > span {
+  color: #5b5c4f;
+}
+.scene-document .gallery-state-label {
+  color: #545044;
+}
+.scene-document .gallery-state[aria-pressed="true"] {
+  border-color: #a28b63;
+  background: #f3eee3;
+}
+.scene-document .sample-content-link {
+  color: #765222;
+}
+.status-bar {
+  background: #e7e1d5;
+  border-color: #c6bda9;
+  color: #5d5548;
+  min-height: 34px;
+}
+.status-bar .history-actions button {
+  color: var(--ink);
+}
+.status-bar .local-label {
+  font-family: Monaco, monospace;
+  font-size: 9px;
+}
+.library,
+.inspector {
+  background: #eee8dc;
+}
+.canvas-panel {
+  background: #dddcd0;
+}
+.selection-bar,
+.canvas-toolbar {
+  background: #f4f0e6;
+}
+/* The menu chrome is painted by the existing runtime, rather than a CSS imitation. */
+.studio-menu {
+  position: relative;
+  flex-shrink: 0;
+  z-index: 50;
+  height: 40px;
+  background: #eee;
+  color: #000;
+}
+.menu-chrome {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.menu-chrome canvas {
+  display: block;
+  image-rendering: pixelated;
+}
+.studio-menubar {
+  position: relative;
+  display: flex;
+  height: 40px;
+  width: max-content;
+  padding-left: 14px;
+}
+.studio-menu-group {
+  position: relative;
+}
+.studio-menubar > .studio-menu-group > button {
+  height: 40px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  font:
+    14px "Studio Charcoal",
+    Chicago,
+    system-ui,
+    sans-serif;
+  color: #000;
+}
+.studio-menubar
+  > .studio-menu-group
+  > button:is([aria-expanded="true"], :focus-visible) {
+  background: #000;
+  color: #fff;
+  outline-offset: -3px;
+  outline-color: #fff;
+}
+.studio-menu button:active {
+  scale: 1;
+}
+.studio-menu-panel {
+  position: absolute;
+  top: 40px;
+  left: 0;
+  width: 320px;
+  padding: 3px 2px;
+  box-shadow: 3px 4px 0 #0005;
+  z-index: 1;
+}
+.menu-panel-chrome {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+}
+.menu-panel-chrome canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  image-rendering: pixelated;
+}
+.studio-menu-panel > button {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+  min-height: 40px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #000;
+  padding: 6px 10px;
+  font-size: 12px;
+  text-align: left;
+}
+.studio-menu-panel > button:is(:focus-visible, :hover):not(:disabled) {
+  background: #000;
+  color: #fff;
+  outline: 0;
+}
+.studio-menu-panel > button:disabled {
+  opacity: 1;
+  color: #737373;
+}
+.menu-check {
+  width: 14px;
+  flex-shrink: 0;
+}
+.studio-menu-panel kbd {
+  margin-left: auto;
+  white-space: nowrap;
+  font:
+    9px Monaco,
+    monospace;
+}
+.studio-menu-panel [role="separator"] {
+  height: 1px;
+  background: #9a9a9a;
+  margin: 5px 10px;
+}
+.menu-workspace-label {
+  position: absolute;
+  right: 24px;
+  top: 0;
+  line-height: 40px;
+  color: #555;
+  font:
+    10px/40px Monaco,
+    monospace;
+  pointer-events: none;
+}
+.menu-workspace-label span {
+  color: #888;
+  padding-inline: 8px;
+}
+.studio-help {
+  background: var(--paper);
+  color: var(--ink);
+  padding: 30px;
+  border: 1px solid #514a40;
+  width: min(560px, calc(100% - 32px));
+  max-height: calc(100dvh - 32px);
+  box-shadow: 6px 8px 0 #0003;
+}
+.studio-help::backdrop {
+  background: #15151288;
+}
+.studio-help h2 {
+  font:
+    400 38px/1.1 "Instrument Serif",
+    Georgia,
+    serif;
+  margin: 14px 0 20px;
+}
+.studio-help ol {
+  padding-left: 20px;
+  font-size: 13px;
+  line-height: 1.7;
+}
+.studio-help li + li {
+  margin-top: 10px;
+}
+.studio-help p {
+  font-size: 12px;
+  line-height: 1.7;
+  margin: 16px 0;
+}
+.studio-help .help-runtime {
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  font-size: 11px;
+  color: var(--muted);
+}
+.studio-help > button {
+  background: var(--ink);
+  color: var(--paper);
+  padding-inline: 16px;
+}
+@media (min-width: 851px) and (max-width: 1280px) {
+  .authoring-workspace {
+    grid-template-columns: 168px minmax(300px, 1fr) 352px;
+  }
+  .property-sheet {
+    padding-inline: 22px;
+  }
+  .authoring-gallery {
+    padding-inline: 12px;
+  }
+}
+@media (max-width: 850px) {
+  .studio {
+    height: 100dvh;
+    min-height: 0;
+  }
+  .studio-masthead {
+    height: 50px;
+    padding: 0 16px;
+  }
+  .studio-wordmark {
+    font-size: 27px;
+    gap: 9px;
+  }
+  .studio-edition {
+    font-size: 9px;
+    padding-left: 9px;
+  }
+  .studio-masthead nav {
+    gap: 0;
+  }
+  .studio-masthead nav a {
+    display: none;
+  }
+  .studio-masthead nav button {
+    font-size: 9px;
+  }
+  .menu-workspace-label {
+    display: none;
+  }
+  .studio-menubar {
+    padding-left: 7px;
+  }
+  .studio-menubar > .studio-menu-group > button {
+    padding-inline: 16px;
+  }
+  .studio-menu-panel {
+    width: min(320px, calc(100vw - 20px));
+    position: fixed;
+    top: 90px;
+    left: 10px;
+  }
+  .app-header {
+    padding: 10px 16px 8px;
+    gap: 8px;
+    min-height: 94px;
+  }
+  .project-heading {
+    padding: 0;
+    border: 0;
+    display: flex;
+    width: 100%;
+  }
+  .project-heading h1 {
+    font-size: 25px;
+  }
+  .document-state {
+    margin-left: auto;
+    font-size: 9px;
+  }
+  .document-actions {
+    width: 100%;
+    margin: 0;
+  }
+  .document-actions button {
+    font-size: 10px;
+    min-height: 36px;
+    padding-inline: 5px;
+  }
+  .save-action small {
+    display: none;
+  }
+  .authoring-mode-bar {
+    padding: 4px 12px;
+    min-height: 44px;
+  }
+  .authoring-mode-bar > p,
+  .authoring-mode-bar > span {
+    display: none;
+  }
+  .authoring-workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .authoring-panel-navigation {
+    background: #e7e1d5;
+  }
+  .starter-library,
+  .property-sheet,
+  .authoring-gallery {
+    padding: 18px;
+  }
+  .sheet-heading h2 {
+    font-size: 33px;
+  }
+  .property-navigation {
+    gap: 15px;
+    margin-bottom: 20px;
+  }
+  .property-navigation button {
+    font-size: 10px;
+    padding-inline: 0;
+  }
+  .quick-start ol {
+    gap: 10px;
+  }
+  .document-scene {
+    padding-inline: 6px;
+  }
+  .status-bar .local-label {
+    display: none;
+  }
+}
+/* Keep muted commands readable on the darker tool and comparison strips. */
+.segmented button {
+  color: var(--muted);
+}
+.status-bar .local-label {
+  color: #5d5548;
+}
+@media (max-width: 370px) {
+  .studio-masthead nav {
+    display: none;
+  }
+}
+/* Source inspection belongs to the same desk; guide colors remain semantic. */
+.component-family.selected,
+.component-states button.selected {
+  color: var(--accent);
+  background: var(--selected);
+}
+.component-family > span {
+  color: #8e7751;
+}
+.component-states {
+  border-color: var(--line);
+}
+.component-states button.selected {
+  box-shadow: inset 2px 0 var(--accent);
+}
+.component-states button > span,
+.library-footnote,
+.change-list code {
+  color: var(--muted);
+}
+.count-badge {
+  color: var(--accent);
+  background: #e3d8c2;
+  border-radius: 1px;
+}
+.canvas-toolbar .segmented button[aria-pressed="true"] {
+  background: var(--selected);
+}
+.canvas-toolbar .compare-toggle {
+  background: #e7e1d5;
+}
+.canvas-toolbar .compare-toggle button[aria-pressed="true"] {
+  background: var(--sheet);
+}
+.selection-bar h2 {
+  font:
+    400 32px/1.1 "Instrument Serif",
+    Georgia,
+    serif;
+}
+.variant-strip button {
+  background: #f4f0e6;
+  border-color: var(--line);
+  border-radius: 2px;
+}
+.variant-strip button[aria-pressed="true"] {
+  background: var(--sheet);
+  border-color: var(--accent);
+  box-shadow: inset 0 -2px var(--accent);
+}
+.preview-stage,
+.artwork-pane {
+  background: var(--sheet);
+  border-radius: 2px;
+  box-shadow:
+    0 0 0 1px #28251f22,
+    0 2px 4px #28251f0a;
+}
+.stage-heading .eyebrow {
+  color: var(--muted);
+}
+.preview-scroll {
+  background: #b7bca9;
+  background-image: none;
+  scrollbar-color: #8d947e #b7bca9;
+}
+.scope-card {
+  background: #f4f0e6;
+  border-radius: 2px;
+  border: 1px solid var(--line);
+}
+.scope-card > p {
+  color: var(--muted);
+}
+.usage-links button {
+  color: var(--accent);
+  background: var(--selected);
+}
+.open-source {
+  color: var(--accent);
+  background: var(--sheet);
+  border-color: var(--line);
+}
+.specimen-settings .segmented button[aria-pressed="true"] {
+  background: var(--selected);
+}
+.specimen-settings select {
+  background: #f4f0e6;
+}
+
+@media (max-width: 850px) {
+  .project-heading .document-state {
+    display: inline;
+  }
+}
