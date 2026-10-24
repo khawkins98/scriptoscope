@@ -13,7 +13,7 @@ import { PixelBuffer } from './pixelBuffer.js';
 import { rasterizeText } from './textRaster.js';
 import { assertDisplayProfileChain, ownerDisplayPolicyMatches, realizeRgb16 } from '../tools/theme-loader/display-profile.js';
 import { headerResourceId, planHeaderSurface, planHeaderGeometry, headerMetadataRejection, drawHeaderSurface,
-  planHeaderColumns, drawHeaderColumns, type HeaderSurfacePlan } from './engine/families/header.js';
+  planHeaderColumns, drawHeaderColumns, headerSourceRejection, type HeaderSurfacePlan } from './engine/families/header.js';
 
 type Identity = Required<Pick<ControlResolutionStep, 'owner' | 'resource'>>;
 type PatternBinding = { kind: 'missing' | 'ambiguous' } | { kind: 'selected'; asset: string; key: string; id: number; byteProvenance?: NonNullable<LoadedTheme['manifest']['patterns']>[string]['byteProvenance'] };
@@ -130,6 +130,8 @@ export async function composeEngineHeaderSurface(theme: LoadedTheme, opts: Heade
       if (body.buffer && plan.context.patternOrigin.status === 'unknown') return finish({ status: 'unsupported', reason: 'unknown-pattern-origin' });
       const background = geometry.bodyVisible && !body.buffer ? backgroundColor(face, source) : null;
       if (geometry.bodyVisible && !body.buffer && !background) return finish({ status: 'unsupported', reason: 'missing-background-sample' });
+      const invalidSource = headerSourceRejection(source, geometry);
+      if (invalidSource) return finish({ status: 'unsupported', reason: invalidSource });
       const proof = el.samplingEquivalence;
       const equivalent = geometry.needsSampling && samplingMatches(face, source, proof)
         && proof?.status === 'equivalent' && proof.reason === 'all-opaque-display-rgb-equal';
