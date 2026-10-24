@@ -7,6 +7,14 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+### Added
+
+- An integrated capability collection demonstrates live windows, controls and
+  keyboard tabs, whole-header results, column helpers, decoded assets and
+  reproducible runtime traces across schemes. Procedural menu samples, missing
+  theme resources and the absence of a scheme-cursor API are labeled explicitly;
+  the coverage map records example and diagnostic gaps.
+
 ### Changed
 
 - Whole-header and list-column composition use typed engine drivers while
@@ -33,6 +41,9 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ### Fixed
 
+- Keep declarative tab panels outside the semantic tab list. The generated strip
+  preserves native button identity, keyboard selection and retheme behavior while
+  giving assistive technology the correct tab/panel structure.
 - Keep visible title-widget buttons reachable when an enlarged WindowManager
   resize target overlaps them, including 1138's template-width side-floating
   utility window (#381). This is a modern web interaction policy; decoded
