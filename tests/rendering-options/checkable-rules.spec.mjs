@@ -58,7 +58,9 @@ for (const mode of ['source', 'built']) {
             .filter(([r, a]) => r?.type === 'cicn' && inLane(r.signedId) && a).map(([r, a]) => ({ lane: 'cicn', id: r.signedId, a })),
           ...raw.iconIndex.filter(e => inIcons(e.id) && /^ics[48]$/.test(e.type)).map(e => ({ lane: 'icon', id: e.id, type: e.type, a: asset(`icons/${e.file}`) })).filter(c => c.a),
         ];
-        const same = (a, b) => {
+        const {checkablePresentation}=await import('/tests/rendering-options/checkable-presentation.mjs');
+        const same = (source, b, lane) => {
+          const a=checkablePresentation(source,lane);
           if (a.width !== b.width || a.height !== b.height) return false;
           for (let i = 0; i < b.data.length; i += 4) {
             if (a.rgba[i + 3] !== b.data[i + 3]) return false;
@@ -70,7 +72,7 @@ for (const mode of ['source', 'built']) {
         out[slug] = [];
         for (const { kind, options } of rows) {
           const buffer = await api.composeCheckable(theme, kind, options);
-          out[slug].push(buffer ? { isNull: false, size: [buffer.width, buffer.height], matches: candidates.filter(c => same(c.a, buffer)).map(({ lane, id, type }) => ({ lane, id, type })) } : { isNull: true, matches: [] });
+          out[slug].push(buffer ? { isNull: false, size: [buffer.width, buffer.height], matches: candidates.filter(c => same(c.a, buffer, c.lane)).map(({ lane, id, type }) => ({ lane, id, type })) } : { isNull: true, matches: [] });
         }
         theme.dispose?.();
       }

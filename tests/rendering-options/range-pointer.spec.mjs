@@ -323,37 +323,51 @@ for (const mode of ['source', 'built']) {
   // two compositions resolve in order. The contract under test: the pressed (stale) composition never commits a
   // canvas once a later repaint is pending, and the committed geometry is the normal composition's.
   test(`${mode}: stale pressed composition cannot replace the committed canvas or hit geometry`, async ({ page, servers }, info) => {
-    let release;
+    let release, acknowledge, failed = false;
     const held = new Promise(resolve => { release = resolve; });
+    const intercepted = new Promise(resolve => { acknowledge = resolve; });
     try {
       await setup(page, servers, mode, 'wide');
       await setValue(page, { min: '0', max: '1', step: 'any', value: '0.25' });
-      const asset = await page.evaluate(() => {
+      let asset;
+      // A pending normal repaint also preloads pressed art. Install both the
+      // route and its durable acknowledgement before exposing the held URL;
+      // waiting for a future request event after rect() can miss that request.
+      await page.route('**/held-slider-pressed.png', async route => {
+        acknowledge();
+        await held; await route.fulfill({ contentType: 'image/png', body: Buffer.from(asset, 'base64') });
+      });
+      asset = await page.evaluate(() => {
         const f = window.pointerFixture, b = f.api.PixelBuffer.alloc(7, 3);
         for (let y = 0; y < b.height; y++) for (let x = 0; x < b.width; x++) b.setPixel(x, y, 61, 71, 81, 255);
         f.heldUrl = `${location.origin}/held-slider-pressed.png`;
         // The pressed track (TR3 tier 2, gb + 2 = -10130, with its cinf) now decodes from a held URL.
         Object.values(f.theme.manifest.chromeElements).find(e => e.sourceCicnId === -10130).asset = f.heldUrl;
         f.commits = [];
-        f.observer = new MutationObserver(() => { const c = document.querySelector('#pointer-root canvas'); if (c && f.commits.at(-1) !== c) f.commits.push(c); });
+        // Preserve transient commits too: several replacements may be delivered
+        // together, when querying the current canvas would see only the last.
+        f.observer = new MutationObserver(records => {
+          for (const record of records) for (const node of record.addedNodes) {
+            if (node instanceof HTMLCanvasElement) f.commits.push(node);
+          }
+        });
         f.observer.observe(document.getElementById('pointer-root'), { childList: true, subtree: true });
         f.initialCanvas = document.querySelector('#pointer-root canvas');
         return f.api.bufferToCanvas(b).toDataURL().split(',')[1];
       });
-      await page.route('**/held-slider-pressed.png', async route => {
-        await held; await route.fulfill({ contentType: 'image/png', body: Buffer.from(asset, 'base64') });
-      });
       // Inside the normal thumb: start 3 + trunc(91 · 25 / 100) = 25 (§5.2, c = 3, tA = 23), 23 wide.
       const box = await rect(page), x = box.x + startOf('wide', 0.25) + 2, y = box.y + 4;
-      const request = page.waitForRequest('**/held-slider-pressed.png');
-      await page.mouse.move(x, y); await page.mouse.down(); await request;
+      await page.mouse.move(x, y); await page.mouse.down();
+      await test.step('pressed asset request reaches the held route', () => intercepted, { timeout: 10_000 });
       await page.mouse.up();
+      await page.evaluate(() => { window.pointerFixture.beforeReleaseCanvas = document.querySelector('#pointer-root canvas'); });
       release();
-      await page.evaluate(async () => {
-        const f = window.pointerFixture; await f.api.loadCicnBuffer(f.heldUrl);
-        for (let i = 0; i < 3; i++) await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-      });
-      const out = await page.evaluate(async () => {
+      await test.step('released pressed asset finishes decoding', () => page.evaluate(() => {
+        const f = window.pointerFixture; return f.api.loadCicnBuffer(f.heldUrl).then(() => {});
+      }), { timeout: 10_000 });
+      await expect.poll(() => page.evaluate(() => document.querySelector('#pointer-root canvas') !== window.pointerFixture.beforeReleaseCanvas),
+        { message: 'release commits a new slider canvas' }).toBe(true);
+      const out = await test.step('compare committed normal and stale pressed canvases', () => page.evaluate(async () => {
         const f = window.pointerFixture; f.observer.disconnect();
         const url = b => f.api.bufferToCanvas(b).toDataURL();
         const normal = url(await f.api.composeSlider(f.theme, { length: 120, value: 0.25 }));
@@ -361,12 +375,19 @@ for (const mode of ['source', 'built']) {
         const canvas = document.querySelector('#pointer-root canvas');
         return { distinct: normal !== pressed, final: canvas.toDataURL() === normal, height: canvas.height,
           pressedCommits: f.commits.filter(c => c.toDataURL() === pressed).length, replaced: canvas !== f.initialCanvas };
-      });
+      }), { timeout: 10_000 });
       expect(out).toEqual({ distinct: true, final: true, height: 16, pressedCommits: 0, replaced: true });
       await clear(page); await page.mouse.click(x, y);
       expect(await read(page)).toEqual({ value: '0.25', events: [] });
-    } catch (error) { await attachCase(page, info, { mode, oracle: 'atomic-slider-layout' }, error); throw error; }
-    finally { release?.(); await cleanup(page); }
+    } catch (error) { failed = true; await attachCase(page, info, { mode, oracle: 'atomic-slider-layout' }, error); throw error; }
+    finally {
+      release?.();
+      try { if (!page.isClosed()) await cleanup(page); }
+      catch (error) {
+        if (!failed) throw error;
+        await info.attach('cleanup-warning.txt', { body: String(error), contentType: 'text/plain' }).catch(() => {});
+      }
+    }
   });
 
 }

@@ -65,6 +65,9 @@ export type TabBodyTrace = {
 export interface ControlBandPaint {
   readonly role: 'face' | 'default-ring';
   readonly region: number;
+  /** Source raster coordinates and destination allocation coordinates. */
+  readonly sourceRect?: ControlRect;
+  readonly destinationRect?: ControlRect;
   readonly branch: 'copy' | 'horizontal-lines' | 'vertical-lines';
   readonly policy: 'ordinary-raster' | 'equivalent-raster' | 'sampled-companion' | 'compatibility-raster';
   readonly owner: { readonly baseUrl: string; readonly chainDepth: number };

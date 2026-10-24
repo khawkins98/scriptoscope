@@ -1,3 +1,124 @@
+# Reviewed #459 controls regression baseline — 2026-10-23
+
+The retained 36 sheets are approved as bounded controls regression expectations.
+This approval supersedes only the historical unapproved status below;
+every historical section and acquisition narrative is preserved verbatim. It does
+not rewrite provenance, establish original-engine equivalence, promote ledger
+status, or declare every family complete. These are Scriptoscope outputs.
+
+Actual acquisition remains `48cb7e1f6f2fd303609015cd8804a81d08a6424c`:
+`npm ci && npm run build:themes && npm run test:rendering:goldens:update`,
+exit 0, 2026-10-23 18:08:59.281Z–18:14:46.696Z, dirty after recording.
+Original exact verification remains `2652bcaed771a9ef6c150e2ae10cafd253a30fe2`:
+`npm ci && npm run build:themes && npm run test:rendering:goldens`, exit 0,
+18:17:02.347Z–18:20:47.261Z, clean actual checkout identity.
+Their full Docker argv and actual identities remain in the campaign's
+`459-controls-final-capture/linux-record.json` and `linux-verify.json`.
+
+Fresh final VERIFY used actual clean `12ff5a99826b1c0c6707573317bb9e9640e206fe`,
+not a substituted declaration: the same verify command exited0 at
+20:58:20.192Z–21:06:04.962Z. All 36 sheets passed exact threshold 0/maxDiffPixels 0
+comparison, with 1260 cases (1164 rendered, 96 unavailable). Execution counts do
+not independently establish availability or visible/native paint. The pinned
+Linux/amd64 environment used Playwright 1.64.0, Chromium 156.0.8078.4, DPR1,
+1280×960 and image digest
+`sha256:06a9939e57531807f8d5fd76ce44b53165ffb7d7501d87ab10e285c20b1e971f`.
+All pages report git-checkout identity, matching declarations and dirty=false;
+no PNG or manifest was written. Full receipt, image hashes, metadata invariants
+and independent APPROVE are retained in `459-final-controls-visual-review/REPORT.md`,
+`linux-verify.json` and `verification-audit.json` in the external campaign.
+
+Ten sheets change from the preceding controls capture; 26 carry exact bytes.
+The ten cover both pages of Apple Platinum2, Black Platinum, Platinum8, Slimes
+and System7 Nostalgia Silver. The earlier full-sheet/source review and 40
+native-size old/new consumer output crops retain their original identities and
+bounded acceptance; “native-size” describes unscaled crops of modern output,
+not new native-engine captures. The fallback image review accepted visible
+normal/default/disabled labels and select faces, width 1248 and ordinary +2px
+sheet-height flow growth. Earlier consumer visibility and duplicate form-submit
+findings are resolved only within the final source/production checks recorded by
+the final visual reviewer; their original failing reports remain historical.
+
+Approval of the latest preparation delta is separately bounded to `9ec870f9352c0f4182d25de44eff35d3a172e051`
+in `459-public-admission-delta-review/REPORT.md`, preserving prior source reviews’
+own scopes. Its changed-input audit of all 18
+public archives, 3325 elements and 1026 body requests, plus 336 parent/candidate
+ordinary draws with exact pixels/dimensions/full validated traces, supports
+carrying unchanged valid-input geometry/default-family evidence. Malformed,
+ambiguous, unusable and mutation-sensitive preparation inputs were independently
+reviewed as changed behavior; carry does not erase their historical reds or
+certify native outcomes. Final 12ff source/demo/tools equal approved 9ec. Earlier
+body, source, full-sheet and crop evidence carries only within those exact
+unchanged-input and final visual-review boundaries.
+
+Legacy test/docs APPROVE is separately at
+`da30ea060a9b93ed3d65578cb3d263ebfded8f72`
+(`459-legacy-corrective-delta-review/REPORT.md`). The one ordinary
+`npm run test:rendering` run at clean actual 12ff completed exit 0, 530 passed
+(14.7m), finished21:09:44.411710Z; receipt and log are
+`459-final-tests-integration-review/full-receipt.json` and `full.log`.
+The independently approved final test candidate
+`5b65c271e5dd316831633ee57acd643ab29b4a67` adds stronger assertions in only
+three sampled-admission test files relative to12ff: independent complete RGBA
+planes and off-probe sensitivity. Its source/tools are unchanged; focused
+source/built execution passed 2/2, exit 0
+(`459-sampled-whole-plane-delta-review/REPORT.md`). The full 530 and image VERIFY
+actually ran at 12ff, not 5b65. No recapture, acquisition relabelling or claim of
+a full 530 rerun at 5b65 is made.
+
+The modern 20px checkable allocation and labelled native/CSS fallback presentation
+(normal/default/disabled and +2px ordinary-flow dimensions) are regression and
+compatibility policies, not certification of native geometry, fonts, providers,
+devices or transfer behavior. Low-level art-present/cinf-NULL transparent buffers
+retain their admitted scope. Original provider/cache/System-file, depth/palette,
+native typography, unsampled cases, malformed native outcomes and extreme or
+multiline bounds remain unknown; 39 window rows retained as unknown and six unsupported slider cases and all ledger statuses remain unchanged. The focused native-AA
+single-pixel diagnostic remains UNKNOWN. This metadata approves the reviewed
+regression bytes and boundaries; merge, CI and release decisions remain separate.
+
+# #459 consumer presentation delta: UNAPPROVED candidates
+
+Fresh serial all36 Linux record at `48cb7e1f6f2fd303609015cd8804a81d08a6424c`
+combines separately authored malformed-resource propagation and visible native/CSS
+consumer fallback repairs. Ten sheets change (the five affected icon-lane themes);
+26 PNGs remain byte-identical. The ten changed sheet dimensions also change as the
+visible consumer fallback enters the unchanged matrix layout. Case inventory,
+environment, fonts and source archive identities are unchanged.
+
+Actual record commit/dirty state and full previous/current images, dimensions and
+diffs remain preserved in the PM campaign's `459-controls-final-capture` lane.
+These are unapproved regression candidates pending separate source/production/image
+delta acceptance and exact verification; no native paint or ledger claim is made.
+The earlier capture/review records below retain their own original scopes.
+
+# #459 combined integration: UNAPPROVED capture candidates
+
+The controls delivery `edd60adcaa15ebfbb5dcc529d4c1dfec390d04d7` is mechanically
+integrated with accepted base `e30b7802da1973311c2c1e1a7fd531f895f1553f`.
+Until fresh serial capture completes, the materialized PNGs/manifest are the exact
+unapproved controls side used temporarily to resolve the binary merge. After the
+coherent capture commit, use the current manifest for that new acquisition's own
+identity. Neither original controls nor accepted-base capture identity is replaced.
+Both complete original sets, all failures and exact capture execution provenance
+are retained in the external `459-controls-integration` evidence lane.
+
+The combined candidates require different full Tier-2/source/all36-image and actual
+production review plus final CI. No approval or native fidelity claim is made here.
+
+# Prior #459 controls branch candidates (identity preserved)
+
+The current 36 PNGs are independent test-author candidates for the push/checkable
+engine migration, recorded from `11883e85` with the separately frozen preparation
+repair `fc5e96956b0541657f615602ac45aefb35a2b152`. Approval of this delta requires a
+different Tier-2 reviewer and actual production demo visual review. The historical
+review records below retain their original capture scopes and hashes.
+
+Old/new/diff evidence, failed history, exact command receipts and the residual
+typed-UNKNOWN blocker are described in
+[the independent candidate report](../../../v2-lanes/controls-independent/REPORT.md).
+Passing regression verification does not establish native glyph/device/provider
+or original-engine pixel equivalence, and changes no ledger status.
+
 # Reviewed regression seed — 2026-10-18
 
 These 36 images record Scriptoscope output, not original-engine reference images.
@@ -237,3 +358,53 @@ evidence. These snapshots certify regression stability only: substitute glyphs
 and alpha-over policy do not establish original typography or native srcOr,
 provider/cache/device/transfer fidelity, ledger status or whole-window closure.
 No utility-window golden was added; #423 DOM geometry/focus coverage is separate.
+
+
+## Finite disabled modern CSS edge proposal — #459, 2026-10-24
+
+This independently authored proposal extends the existing canonical stock
+Playwright predicate only after it fails. It requires separate independent source,
+visual and oracle review; this text grants no approval. All 36 canonical PNGs,
+manifest bytes, prior review text and acquisition/verification identities above
+remain unchanged. In particular acquisition48cb, verification2652 and12ff are
+not relabelled as the later CI or proposal execution.
+
+`disabled-css-edge-variants.json` binds exactly Apple Platinum2, Platinum8, Slimes
+and System7 Nostalgia Silver page1, case index8,
+`declarative/push/auto/ink/horizontal/0.5/true/disabled`, to their canonical PNG
+SHA256, dimensions, complete canonical/alternative RGBA SHA256 and manifest
+environment digest. The 27 exact before/after RGBA replacements per sheet
+reconstruct one frozen complete B image from its canonical image. Reconstruction
+validates every old pixel, replacement count, unique coordinate and whole-plane
+hash. The additional acceptance requires equal dimensions and every RGBA byte;
+there is no regional allowance, mask or additional AA tolerance. A change to any
+other pixel or an unrecognized third edge value in rejected B stays rejected.
+
+Data originates in the preserved failures of CI40038090066. Before implementation,
+the author downloaded CI40042310539's `rendering-options-1` artifact (12540168781,
+GitHub digest `sha256:849add71e1f483a9127a80128a4a2050eefdb21a7accc0c4dec24dee816ba2cb`)
+and independently decoded its four complete images: each equals its original B
+RGBA plane. The original artifact index is sealed by SHA256
+`b22a1bc40a9bff7318a0627d4cbf1fe882daec9c347d5029c7e5ba34c45aa346`.
+The externally frozen evidence and whole/edge visual review aids remain in
+`459-css-edge-finite-oracle`; all original failures remain preserved.
+
+The affected output is the disabled79×24 browser CSS fallback button; geometry,
+labels, state, themed artwork and every pixel outside its rounded edge are
+unchanged between these retained images. Public `baselineButton` uses a10px
+rounded border and inset highlights/shadow. These are modern web regression
+expectations, not original-native painting truth. The precise browser raster
+trigger remains UNKNOWN; no claim that the two observed outputs exhaust possible
+outputs is made. The failed Skia flag study is not adopted.
+
+The stock `toHaveScreenshot` call retains animations disabled, caret hidden,
+threshold0 and maxDiffPixels0. Its existing AA classifier can accept raw pixel
+differences, so canonical success does not establish raw canonical equality.
+The strict new branch adds only exact B planes rejected by that existing
+predicate. It reuses the matcher's failed actual attachment through public
+`testInfo.attachments`; no additional screenshot or settlement step is added.
+Expected/actual/diff and the original canonical failure remain attached, alongside
+`golden-comparison.json`. Every page observation records which branch accepted it.
+Missing/ambiguous attachments or an unmatched binding preserve the original
+matcher failure. Recording stays on its original separate path and never creates
+alternative expectations from the current screenshot.

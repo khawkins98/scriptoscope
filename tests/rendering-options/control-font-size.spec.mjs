@@ -4,6 +4,7 @@ for (const mode of ['source', 'built']) test(`${mode}: push and bevel font size 
   await openHarness(page, servers, mode);
   const result = await page.evaluate(async mode => {
     const api = await import(mode === 'built' ? '/dist/scriptoscope.js' : '/src/index.ts');
+    const { labelOracle, inkBounds, foregroundBounds } = await import('/tests/rendering-options/label-oracle.mjs');
     const { forkOf } = await import('/tests/resource-provenance/fixtures.mjs');
     const { colorIcon, colorInfo } = await import('/tests/decoder-fixtures/control-colors.mjs');
     // Hidden red foreground and green emboss, with a white solid body.
@@ -13,21 +14,28 @@ for (const mode of ['source', 'built']) test(`${mode}: push and bevel font size 
     ])));
     const original = CanvasRenderingContext2D.prototype.fillText;
     let calls = [];
-    CanvasRenderingContext2D.prototype.fillText = function(...args) { calls.push({ font: this.font, color: this.fillStyle }); return original.apply(this, args); };
+    CanvasRenderingContext2D.prototype.fillText = function(...args) { calls.push({ font: this.font, color: this.fillStyle, x: args[1], y: args[2], textBaseline: this.textBaseline }); return original.apply(this, args); };
     const rows = [], invalid = [];
     try {
       for (const family of ['composeButton', 'composeBevelButton']) {
         for (const fontSize of [undefined, 6, 16]) for (const height of [12, 20, 24, undefined]) {
           calls = [];
           const options = { label: 'AgjpQy', small: true, minWidth: 0, ...(height === undefined ? {} : { height }), ...(fontSize === undefined ? {} : { fontSize }) };
+          const nominal = fontSize ?? 12;
+          const measure = document.createElement('canvas').getContext('2d');
+          measure.font = `${nominal}px Chicago, "Charcoal", Geneva, sans-serif`;
+          const measuredWidth = Math.ceil(measure.measureText(options.label).width) + (family === 'composeButton' ? 24 : 16);
+          const oracle = labelOracle(family, options.label, nominal, measuredWidth, height ?? 20, 0, original);
+          const expectedPlacement = family === 'composeButton'
+            ? [{ x: oracle.x + 1, y: oracle.baseline + 1, textBaseline: 'alphabetic' }, { x: oracle.x, y: oracle.baseline, textBaseline: 'alphabetic' }]
+            : Array(2).fill({ x: 0, y: Math.round(Math.ceil(nominal * 1.3) / 2), textBaseline: 'middle' });
           const output = await api[family](theme, options);
           const painted = [...calls];
           // Independent browser measurement establishes nominal size/auto-width,
           // not historical glyph or baseline equivalence.
           const ctx = document.createElement('canvas').getContext('2d');
-          const nominal = fontSize ?? 12;
           ctx.font = `${nominal}px Chicago, "Charcoal", Geneva, sans-serif`;
-          rows.push({ family, fontSize: nominal, height: height ?? null, size: [output.width, output.height], calls: painted,
+          rows.push({ family, fontSize: nominal, height: height ?? null, size: [output.width, output.height], calls: painted, expectedPlacement,
             measuredWidth: Math.ceil(ctx.measureText(options.label).width) + (family === 'composeButton' ? 24 : 16) });
         }
         for (const fontSize of [NaN, Infinity, -1, 5.99]) {
@@ -36,19 +44,12 @@ for (const mode of ['source', 'built']) test(`${mode}: push and bevel font size 
         }
         // Full-coverage pixels of a separate 12px browser glyph mask prove that
         // both foreground and (+1,+1) emboss consume the fixed nominal size.
+        const oracle = labelOracle(family, 'H', 12, 80, 24, 0, original);
         const output = await api[family](theme, { label: 'H', small: true, height: 24, minWidth: 80 });
-        const canvas = document.createElement('canvas'); canvas.width = 80; canvas.height = 24;
-        const ctx = canvas.getContext('2d'); ctx.font = '12px Chicago, "Charcoal", Geneva, sans-serif';
-        const gx = Math.round((80 - Math.ceil(ctx.measureText('H').width)) / 2);
-        ctx.fillStyle = '#000'; ctx.textBaseline = 'middle'; original.call(ctx, 'H', gx, 12);
-        const mask = ctx.getImageData(0, 0, 80, 24).data;
-        const fg = [], emboss = [];
-        for (let y = 1; y < 24; y++) for (let x = 1; x < 80; x++) {
-          const a = mask[(y * 80 + x) * 4 + 3];
-          if (a === 255) fg.push([...output.getPixel(x, y)]);
-          else if (a === 0 && mask[((y - 1) * 80 + x - 1) * 4 + 3] === 255) emboss.push([...output.getPixel(x, y)]);
-        }
-        rows.push({ family, fg, emboss });
+        const fg = oracle.foreground.map(([x, y]) => [...output.getPixel(x, y)]);
+        const emboss = oracle.emboss.map(([x, y]) => [...output.getPixel(x, y)]);
+        const geometry = { expected: inkBounds(oracle.foreground), actual: foregroundBounds(output, [255, 0, 0, 255]) };
+        rows.push({ family, fg, emboss, geometry, clippedInk: oracle.clippedInk });
       }
       return { rows, invalid };
     } finally { CanvasRenderingContext2D.prototype.fillText = original; theme.dispose(); }
@@ -56,9 +57,14 @@ for (const mode of ['source', 'built']) test(`${mode}: push and bevel font size 
   for (const row of result.rows) {
     if (row.calls) {
       expect(row.calls).toHaveLength(2);
-      for (const call of row.calls) expect(call.font.startsWith(`${row.fontSize}px `)).toBe(true);
+      for (const [index, call] of row.calls.entries()) {
+        expect(call.font.startsWith(`${row.fontSize}px `)).toBe(true);
+        expect(call).toMatchObject(row.expectedPlacement[index]);
+      }
       expect(row.size).toEqual([row.measuredWidth, row.height ?? 20]);
     } else {
+      expect(row.geometry.actual).toEqual(row.geometry.expected);
+      expect(row.clippedInk).toBe(0);
       expect(row.fg.length).toBeGreaterThan(0); expect(row.emboss.length).toBeGreaterThan(0);
       for (const p of row.fg) expect(p).toEqual([255, 0, 0, 255]);
       for (const p of row.emboss) expect(p).toEqual([0, 255, 0, 255]);

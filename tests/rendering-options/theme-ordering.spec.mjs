@@ -310,7 +310,7 @@ for (const mode of ['source', 'built']) {
       const handle = await runtime.mountDeclarative({ root, themeBaseUrl: '/themes', pageThemeDefault: 'windows-95', bootAffordance: 'none' });
       let newer, discarded;
       const observer = new MutationObserver(records => {
-        const inserted = records.flatMap(r => [...r.addedNodes]).find(n => n instanceof HTMLElement && n.matches('.scriptoscope-button'));
+        const inserted = records.flatMap(r => [...r.addedNodes]).find(n => n instanceof HTMLElement && n===source.nextElementSibling&&n.tagName==='BUTTON'&&n.textContent==='Apply'&&getComputedStyle(n).display!=='none');
         if (!inserted) return;
         observer.disconnect(); discarded = inserted;
         newer = handle.retheme('beos-r503');

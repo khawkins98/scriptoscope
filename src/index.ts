@@ -14,7 +14,7 @@ export type { ControlCompositionContext, ControlCompositionSnapshot, ControlPoin
 
 // Pre-1.0 — release version is tracked in package.json. Keep this constant aligned
 // with the package.json `version` field.
-export const VERSION = '0.5.0';
+export const VERSION = '0.6.0';
 
 export { setDebug, isDebug, debug, type DebugOpts } from './debug.js';
 
@@ -144,3 +144,4 @@ export { prepareCinfEnvironment, CinfEnvironmentError, type PreparedCinfEnvironm
 
 export { prepareCicnTransferResults, CicnTransferError } from '../tools/theme-loader/cicn-transfer-results.js';
 export type { CicnTransferData, PreparedCicnTransfers, CicnTransferOption, CicnTransferProvenance } from '../tools/theme-loader/cicn-transfer-results.js';
+export type { CheckableOptions } from './checkableFacade.js';

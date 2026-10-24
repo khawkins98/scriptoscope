@@ -12,12 +12,27 @@ a differently numbered element named `push-button-active` does not replace it.
 Diagnostics report this choice as `source-dispatch` / `resource-id`, retaining
 the actual selected key, owner and decoded resource identity.
 
-When that owner's exact signed art is absent, named roles and positive-ID aliases
-retain their compatibility behavior. Positive aliases retain the existing label
-heuristic. Self-first base traversal, active-to-pressed, inactive-to-active and
-the final raw-ID escape remain modern policies, not proven native lookup order.
-Duplicate-resource selection, provider/cache behavior and decoder correctness
-are separate obligations.
+## Current migrated push/default policy
+
+For migrated push/default composition, a missing canonical signed face does not
+enter the former named-role, positive-ID, anti-role, cross-state or raw-ID escape
+ladder. The engine requests the PB state ID from the declared archive/base
+resource environment. A successful base request retains that actual base owner
+and signed identity; a positive local alias cannot replace it. Missing art is
+unavailable. Known art plus same-ID/default metadata NULL skips body/border under
+PB9/DR6; selected malformed or UNKNOWN data is not NULL. A visible native consumer
+replacement is separate browser presentation policy, not a legacy source paint.
+
+The previous facade's alias/heuristic and active-state fallback vocabulary is
+historical for these migrated families. It remains relevant where an unmigrated
+family still explicitly supports it: bevel compatibility retries and tab
+selection are not changed by the PB migration. Exact completed-operation
+diagnostics, signed resource/owner joins and admission-versus-paint distinctions
+remain required. See [engine/push-button.md](engine/push-button.md) and
+[control-resolution-diagnostics.md](control-resolution-diagnostics.md).
+Duplicate-resource selection, historical provider/cache ordering and decoder
+correctness remain separate obligations; the declared modern chain is not proof
+of original Resource Manager precedence.
 
 The triggering Animals comparison retained the original 80×20 normal capture,
 measured profile and canonical −10239 source pin. Before the correction it

@@ -1,3 +1,4 @@
+import {compareNoCinfAdmission} from '../rendering-options/controls459/no-cinf-admission.mjs';
 import { isDeepStrictEqual } from 'node:util';
 /** Compare one execution with a reviewed expectation. No resource resolution. */
 export function compareAvailability(expected, observed) {
@@ -26,6 +27,7 @@ export function compareAvailability(expected, observed) {
         require(observed.result.width > 0 && observed.result.height > 0, 'Themed realization has no positive pixel extent');
         require(trace.outcome.width === observed.result.width && trace.outcome.height === observed.result.height, 'Trace extent disagrees with returned pixel extent');
       }
+      if(target.admission)errors.push(...compareNoCinfAdmission(expected,observed));
       const paint = (trace.steps ?? []).filter(step => step.action === 'selected' && step.usage === 'paint');
       require(paint.length === (target.paint?.length ?? 0), 'Unexpected count of painted selections');
       for (const identity of target.paint ?? []) {

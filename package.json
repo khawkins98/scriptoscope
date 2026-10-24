@@ -1,6 +1,6 @@
 {
   "name": "scriptoscope",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "private": false,
   "description": "A Kaleidoscope-compatible window manager and theme engine for the web. Renders classic Mac OS schemes from their original binary resources (cicn/wnd#/cinf/ppat/Colr).",
   "license": "MIT",
@@ -79,8 +79,8 @@
     "engine-diff": "node tests/engine-diff/run.mjs --check",
     "engine-diff:write": "node tests/engine-diff/run.mjs --write",
     "gates": "npm run typecheck && npm run lint:cleanroom && npm test && npm run lint:themes -- --strict && npm run audit:scenes -- --check && npm run test:requirements && npm run test:availability:sources && npm run test:references && npm run test:source-inputs && npm run test:acceptance:bindings",
-    "test:rendering": "npm run build && playwright test --config tests/rendering-options/playwright.config.mjs",
-    "test:rendering:extended": "npm run build && SCRIPTOSCOPE_RENDERING_PROFILE=extended playwright test --config tests/rendering-options/playwright.config.mjs",
+    "test:rendering": "npm run build:demo && playwright test --config tests/rendering-options/playwright.config.mjs",
+    "test:rendering:extended": "npm run build:demo && SCRIPTOSCOPE_RENDERING_PROFILE=extended playwright test --config tests/rendering-options/playwright.config.mjs",
     "test:rendering:goldens": "npm run build && SCRIPTOSCOPE_RENDERING_GOLDENS=1 playwright test --config tests/rendering-options/playwright.config.mjs",
     "test:rendering:goldens:update": "npm run build && SCRIPTOSCOPE_RENDERING_GOLDENS=1 SCRIPTOSCOPE_UPDATE_GOLDENS=1 playwright test --config tests/rendering-options/playwright.config.mjs",
     "test:rendering:container": "node tests/rendering-options/container.mjs",
