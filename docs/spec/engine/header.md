@@ -68,11 +68,29 @@ columns by analogy.
 | ADM8 | pattern realization | Selected visible pattern body requires positive-size opaque prepared pixels and a known pattern offset or explicit API-unavailable declaration. Unknown offset gives `unknown-pattern-origin`; any nonopaque pattern gives `nonopaque-pattern`. Already-realized pixels are not transformed again. |
 | ADM9 | solid realization | A visible solid body requires selected-owner background sample model `kdef-2.3.1-color`, matching display policy, valid RGB16 (three integers 0..65535), display RGB (three integers 0..255) and in-bounds integral bgAnchor. Unavailable samples reject with `missing-background-sample`. Use raw background sampling independent of source mask; no corner/text/opaque-anchor fallback. |
 | ADM10 | source alpha / geometry | Whole-header face alpha is binary 0/255; otherwise `nonbinary-mask`. A visible nonempty band with source coordinates outside the actual raster gives `unsafe-source-geometry`. Overlap and unequal c/s alone are valid. Skip nonpositive source/destination extents. |
-| ADM11 | expanded lines | Before clipping, choose horizontal sampled lines if source width = 1 and destination width > 1; else vertical if source height = 1 and destination height > 1; otherwise ordinary masked copy/repeat. Tile flag does not suppress sampled expansion. Only visible required line branches need color evidence. |
-| ADM12 | line evidence | Use ordinary pixels only with model `kaleidoscope-2.3.1-opaque-sampling-v1`, comparison `opaque-current-display-rgb`, matching actual dimensions and owner display policy, status `equivalent`, reason `all-opaque-display-rgb-equal`. Otherwise require selected-owner sampledBandAsset with the same model/comparison/dimensions/policy, nonempty asset and derived path `cicn-sampled/<one filename>.png`. Decoded companion size and entire alpha mask must equal face. Missing/incompatible evidence gives `unverified-line-sampling`; actual decode errors reject. Companion pixels replace only sampled lines, never ordinary corners/copies. |
+| ADM11 | expanded lines | Before clipping, choose horizontal sampled lines if source width = 1 and destination width > 1; else vertical if source height = 1 and destination height > 1; otherwise ordinary masked copy/repeat. Tile flag does not suppress sampled expansion. Only visible required line branches need color evidence; geometric visibility alone does not establish a color dependency (ADM16). |
+| ADM12 | line evidence | When ADM16 requires line color, use ordinary pixels only with model `kaleidoscope-2.3.1-opaque-sampling-v1`, comparison `opaque-current-display-rgb`, matching actual dimensions and owner display policy, status `equivalent`, reason `all-opaque-display-rgb-equal`. Otherwise require selected-owner sampledBandAsset with the same model/comparison/dimensions/policy, nonempty asset and derived path `cicn-sampled/<one filename>.png`. Decoded companion size and entire alpha mask must equal face. Missing/incompatible evidence gives `unverified-line-sampling`; actual decode errors reject. Companion pixels replace only sampled lines, never ordinary corners/copies. |
 | ADM13 | color capability | Default current-display and registered opt-in profiles remain distinct. If RGB16 realization is required, use the retained owner's prepared capability and exact mappings. Missing mapping/profile failure rejects with the existing DisplayProfileError; do not use stored display RGB to bypass a required profile mapping. Do not demand text/emboss/unused background/unused companion mappings. Shared `display-profile.md` and qd-primitives color policy. |
 | ADM14 | optional cinf environments | The existing manifest.cinfEnvironment summary and element.bodyCinf view have scope `standalone-push-bevel-body`; neither is consumed or merged by either header path. Their presence alone does not change header admission or pixels. Whole-header uses selected element.slice (ADM5), bodyRequest (ADM6), same-owner pattern links/catalog (ADM7), colorSamples/bgAnchor (ADM9), samplingEquivalence/sampledBandAsset (ADM12), and owner display profile (F5/ADM13). Validate those actual common fields under those deterministic rules. No header role, default-cinf ladder, declared-null behavior or additional environment failure is introduced. |
 | ADM15 | empty operations | Whole-chain guard, scalar validation and structural metadata validation still apply to an empty effective clip. Return rendered transparent requested-size output once admitted, with painted=false. No unused pattern/companion decode or color realization is required; invisible body and bands create no paint claim. A nonempty clip can also produce no writes through empty regions or masks. Empty public dimensions are governed by F2. Modern dependency policy; native helper rejects empty source/destination Rects at `0x5ccc..0x5cf0`. |
+
+
+ADM16 — mask-clear sampled lines: after source geometry and binary-mask validation,
+line-color evidence is needed only when at least one source-mask sample selected
+by the original unclipped band mapping would emit a line intersecting the
+effective clip. If all those samples are clear, that band requires no sampling
+equivalence, sampled companion decode or line-color realization, even when its
+rectangle is visible. Opaque pixels at unrelated source positions do not create
+this dependency. If no other band requires sampled color, lineSampling is
+`not-required`; no companion bandPaint is recorded for the clear band. Other
+body/border writes still determine overall painted and face-paint diagnostics.
+This exception does not bypass structural metadata, source bounds, binary mask,
+whole-chain/profile guards or independently required body dependencies. It cannot
+turn an out-of-bounds sample into a clear-mask fact. Branch selection still uses
+original unclipped dimensions (ADM11); clipping does not restart source phase.
+This is the modern needed-only admission policy, supported by the native
+mask-before-palette/no-line behavior (`0x5874..0x58d4`, `0x5d76..0x5da2`,
+`0x5dde..0x5e06`), not a claim about preserved native foreground/port state.
 
 Validate the selected dependency itself: an invalid asset identity, transport failure
 or decode error rejects rather than falling through to a later alias, owner or
