@@ -771,3 +771,51 @@ side-floating-utility's zoom rect is empty after TS3 (top-left maps through
 top code-1), so HT4 cannot shadow the collapse hit. N4 counts four types,
 not three bullets. N5: `0x5df6..0x5e42`, `0x607a..0x608e` apply +8 only
 with altWidgets; the sideTitle −8 NULL retry remains independent.
+
+
+## S. Issue #381: bounded outer hit / grow trace (2026-10-24)
+
+Static reading only of
+`/Users/khawkins/Documents/git/aaron-ui/.scratch/k231-kdef/kDEF/k231-kdef0.asm`,
+SHA-256 `6372c10fff5fb1120bc091978d58d8161e1550e0c6d406ccdf611bda2fae902d`.
+The binary identity remains §1 of the safe spec: 2.3.1 kDEF 0, 107,726 B,
+SHA-256 `2c027276dae2355964a0dde1ace31f60ba845ab2c5fbf0496fd34ab2afe7c342`;
+the listing hash is a separate text identity, not a rehash of the binary.
+No execution, native acquisition, runtime inspection or broad family decode.
+Trap identities checked in the supplied UI 3.0.1 `Traps.h`: A8E8 PtInRgn,
+A8AD PtInRect. Classic WindowRecord offsets (visible 110, structure region
+114, content region 118) are the same structural interpretation used above.
+
+- Caller: message 1 dispatches at `0x296c..0x2978` to `0x3f2c`, passing the
+  window and message point and retaining its returned result. Per-message
+  preparation precedes this at `0x2910..0x2924`.
+- Outer rejection: `0x3f38..0x3f66` returns 0 for invisible windows or a point
+  outside the structure region. `0x4778` supplies the global content rect.
+- Grow gate: `0x3f6a..0x3f7a` bypasses the early grow test for popup flag 509,
+  collapsed flag 510, or clear flag 499. Preparation clears 499 at `0x2e22`;
+  per-procID assignments include `0x3164..0x316c` and `0x31da..0x31e2`.
+  This pass deliberately does not identify the public 1138 option's procID.
+- Grow geometry: `0x480a..0x482a` selects d=16, or (flag 506 set) d=11 when
+  flag 495, otherwise d=15. `0x4832..0x4856` makes left=C.right−d+1,
+  top=C.bottom−d+1, right=C.right+2, bottom=C.bottom+2. `0x485a..0x4872`
+  offsets all four edges by +3 only with flag 496 and clear flag 495.
+  Crucially the caller `0x3f86..0x3f94` then overwrites right and bottom with
+  the structure region bounding box's right and bottom. HG3 describes this
+  caller-adjusted rectangle, not the helper's intermediate draw rectangle.
+- `0x3f96..0x3fb2` tests this rectangle with PtInRect and immediately returns
+  3 when active flag 508 is set, 1 otherwise. It does not consult widgets.
+- After a miss/bypass, `0x3fb6..0x3fc6` returns 1 on the content-region hit.
+  `0x3fca..0x3fce` routes a non-popup miss to `0x411c`, the existing HT path.
+  Thus outer precedence is structure rejection → eligible grow → content →
+  widget branch; it is not widget-first. Popup `0x3fd2..0x4118` is excluded.
+
+Unknowns / limits: the exact original procID, global content rectangle,
+structure region and click point for the issue's template-width 1138 case
+have not been bound by this pass. The existing §10 observation describes a
+modern overlay and its +60 px workaround, not an original grow-region oracle.
+No numerical original overlap or native result is asserted. Exact-point
+close/zoom fallback Q6 and the full structure-region construction remain
+outside this trace; HG uses the region supplied to the WDEF. Public DOM
+stacking and enlarged resize zones require modern policy; DECISIONS #12
+remains in force. Safe handoff is §4.11a HG1–HG5 only, after independent
+review; this appendix is not implementer material.
