@@ -890,3 +890,349 @@ h2 {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
 }
+
+/* Component-first navigation and source artwork workspace. */
+.navigation-tabs {
+  margin: 20px 0;
+}
+.navigation-tabs button {
+  flex: 1;
+  padding: 8px 5px;
+}
+.component-tree section + section {
+  margin-top: 22px;
+}
+.component-family {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  text-align: left;
+  margin: 8px 0 4px;
+}
+.component-family.selected {
+  background: #f1edf8;
+  border-color: #b4a0d6;
+  color: #584079;
+}
+.component-family > span {
+  font-size: 19px;
+}
+.component-states {
+  border-left: 1px solid #ded8e6;
+  margin-left: 17px;
+  padding-left: 9px;
+}
+.component-states button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 5px;
+  width: 100%;
+  border-color: transparent;
+  background: transparent;
+  text-align: left;
+  padding: 8px;
+}
+.component-states button.selected {
+  background: #eee8f7;
+  color: #523773;
+}
+.component-states button > span {
+  font-size: 9px;
+  color: #5d5366;
+}
+.component-tree > .field-help {
+  margin-top: 24px;
+}
+.selection-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 22px 24px 16px;
+}
+.selection-bar h2 {
+  font-size: 20px;
+  margin-top: 4px;
+}
+.selection-bar .quiet-button {
+  margin-left: auto;
+}
+.comparison-badge {
+  font-size: 10px;
+  background: #eee9f5;
+  color: #584079;
+  padding: 7px 9px;
+  border-radius: 5px;
+}
+.variant-strip {
+  display: flex;
+  gap: 8px;
+  padding: 0 24px 20px;
+  overflow: auto;
+}
+.variant-strip button {
+  flex: 1;
+  display: flex;
+  min-width: 90px;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  text-align: left;
+}
+.variant-strip button[aria-pressed="true"] {
+  background: #f3eff9;
+  border-color: #9d87bd;
+  box-shadow: inset 0 0 0 1px #9d87bd;
+}
+.variant-strip img,
+.missing-thumbnail {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+.variant-strip small {
+  display: block;
+  color: #706876;
+  font-size: 9px;
+  margin-top: 3px;
+}
+.selection-note {
+  font-size: 12px;
+  line-height: 1.6;
+  padding: 12px 24px;
+  background: #f5f0df;
+}
+.specimen-settings {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  font-size: 11px;
+  color: #6e6475;
+}
+.specimen-settings label {
+  margin-left: auto;
+}
+.specimen .specimen-pick,
+.specimen .window-pick {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  line-height: 0;
+  min-height: 40px;
+  box-shadow: none;
+  scale: 1;
+}
+.specimen .specimen-pick:hover,
+.specimen .window-pick:hover {
+  background: transparent;
+}
+.specimen .specimen-pick[aria-pressed="true"] {
+  outline: 2px solid #8261b7;
+  outline-offset: 4px;
+}
+.specimen .specimen-pick:focus-visible,
+.specimen .window-pick:focus-visible {
+  outline: 3px solid #7156b4;
+  outline-offset: 4px;
+}
+.specimen .window-pick {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 5;
+}
+.specimen .window-pick:hover {
+  outline: 2px dashed #8261b7;
+  outline-offset: 2px;
+}
+.specimen .window-pick[aria-pressed="true"] {
+  outline: 2px solid #8261b7;
+  outline-offset: 2px;
+}
+.edit-marker {
+  color: #654293;
+  font-size: 9px;
+  font-weight: 650;
+}
+.reset-property {
+  border: 0;
+  background: transparent;
+  color: #654293;
+  font-size: 11px;
+  padding: 8px 4px;
+}
+.property-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.property-label label {
+  font-size: 11px;
+}
+.precise-color {
+  margin-top: 14px;
+}
+.precise-color summary {
+  font-size: 11px;
+  cursor: pointer;
+  padding: 10px 0;
+}
+.artwork-editor {
+  min-width: 0;
+}
+.artwork-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 11px;
+}
+.artwork-toolbar label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.artwork-editor:not(.compact) .artboard {
+  min-height: 320px;
+  max-height: 520px;
+  justify-content: safe center;
+  align-items: safe center;
+  padding: 40px;
+}
+.geometry-guide {
+  position: absolute;
+  pointer-events: none;
+  border: 1px dashed;
+}
+.geometry-guide.corner {
+  border-color: #7f3fe4;
+}
+.geometry-guide.side {
+  border-color: #08766c;
+}
+.guide-handle {
+  position: absolute;
+  z-index: 2;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  touch-action: none;
+  outline-offset: 0;
+}
+.guide-handle.corner {
+  top: -28px;
+  transform: translateX(-50%);
+  cursor: ew-resize;
+}
+.guide-handle.side {
+  left: -28px;
+  transform: translateY(-50%);
+  cursor: ns-resize;
+}
+.guide-handle span {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 2px solid white;
+  border-radius: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  color: white;
+  box-shadow: 0 1px 5px #0003;
+}
+.guide-handle.corner span {
+  background: #7042a4;
+}
+.guide-handle.side span {
+  background: #08766c;
+}
+.guide-handle:focus-visible {
+  outline: 2px solid #7156b4;
+}
+.guide-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  padding: 20px 0;
+  font-size: 11px;
+}
+.guide-legend .corner {
+  color: #7042a4;
+  font-weight: 600;
+}
+.guide-legend .side {
+  color: #08766c;
+  font-weight: 600;
+}
+.guide-legend p {
+  width: 100%;
+  line-height: 1.6;
+  color: #6e6475;
+}
+@media (max-width: 800px) {
+  .workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .library {
+    border-right: 0;
+    border-bottom: 1px solid #ddd;
+  }
+  .component-tree {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+  }
+  .component-tree section + section {
+    margin-top: 0;
+  }
+  .component-tree > .field-help {
+    grid-column: 1/-1;
+    margin-top: 0;
+  }
+  .library-footnote {
+    margin-top: 16px;
+  }
+  .resource-list {
+    max-height: 220px;
+  }
+  .selection-bar {
+    padding: 18px 12px;
+  }
+  .selection-bar h2 {
+    font-size: 18px;
+  }
+  .variant-strip {
+    padding: 0 12px 16px;
+  }
+  .variant-strip button {
+    min-width: 94px;
+    gap: 5px;
+    padding: 8px;
+  }
+  .variant-strip img {
+    width: 24px;
+    height: 24px;
+  }
+  .inspector {
+    display: block;
+  }
+  .inspector > * + * {
+    margin-top: 16px;
+  }
+  .canvas-toolbar {
+    justify-content: space-between;
+  }
+  .segmented button {
+    padding: 8px;
+  }
+}

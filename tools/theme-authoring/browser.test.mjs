@@ -69,6 +69,9 @@ test(
       await page
         .getByRole("button", { name: "Palette record 1", exact: true })
         .click();
+      await page
+        .getByText("Precise source color (RGB16)", { exact: true })
+        .click();
       const red = page.getByRole("spinbutton", { name: "Red (RGB16)" });
       const originalRed = await red.inputValue();
       await red.fill("45000");
@@ -89,6 +92,215 @@ test(
       assert.equal(await red.inputValue(), originalRed);
       await page
         .getByRole("button", { name: "Redo edit", exact: true })
+        .click();
+      await page.waitForFunction(
+        (before) =>
+          document.querySelector(".specimen-row canvas")?.toDataURL() ===
+          before,
+        edited,
+      );
+
+      // Comparison is source-original, read-only, and does not mutate the draft.
+      await page.getByRole("button", { name: "Original", exact: true }).click();
+      await page.waitForFunction(
+        (before) =>
+          document.querySelector(".specimen-row canvas")?.toDataURL() ===
+          before,
+        original,
+      );
+      assert.equal(await red.isDisabled(), true);
+      assert.equal(await red.inputValue(), originalRed);
+      await page.getByRole("button", { name: "Working", exact: true }).click();
+      await page.waitForFunction(
+        (before) =>
+          document.querySelector(".specimen-row canvas")?.toDataURL() ===
+          before,
+        edited,
+      );
+      await page
+        .getByRole("button", { name: "Reset color", exact: true })
+        .click();
+      await page.waitForFunction(
+        (before) =>
+          document.querySelector(".specimen-row canvas")?.toDataURL() ===
+          before,
+        original,
+      );
+      await page
+        .getByRole("button", { name: "Undo edit", exact: true })
+        .click();
+      await page.waitForFunction(
+        (before) =>
+          document.querySelector(".specimen-row canvas")?.toDataURL() ===
+          before,
+        edited,
+      );
+
+      // The live gallery, state strip and component tree select the same artwork.
+      await page
+        .getByRole("button", { name: "Edit push button: Pressed", exact: true })
+        .click();
+      await page.waitForFunction(
+        () =>
+          document
+            .querySelector('button[aria-label="Push button: Pressed"]')
+            ?.getAttribute("aria-pressed") === "true",
+      );
+      assert.equal(
+        await page
+          .getByRole("button", { name: "State: Pressed", exact: true })
+          .getAttribute("aria-pressed"),
+        "true",
+      );
+      await page
+        .getByRole("button", {
+          name: "Edit document window: Active",
+          exact: true,
+        })
+        .click();
+      await page
+        .getByRole("button", { name: "State: Inactive", exact: true })
+        .click();
+      await page
+        .getByRole("button", {
+          name: "Edit document window: Inactive",
+          exact: true,
+        })
+        .waitFor();
+      await page
+        .getByRole("button", { name: "Push button: Normal", exact: true })
+        .click();
+      await page.getByRole("button", { name: "Active", exact: true }).click();
+      await page
+        .getByRole("button", { name: "Palette record 1", exact: true })
+        .click();
+      await page.waitForFunction(
+        (before) =>
+          document.querySelector(".specimen-row canvas")?.toDataURL() ===
+          before,
+        edited,
+      );
+
+      // Guides draft locally during a pointer gesture and commit a single undo step.
+      await page.getByRole("button", { name: "Artwork", exact: true }).click();
+      const corner = page.getByRole("slider", {
+        name: "Corner guide",
+        exact: true,
+      });
+      const cornerInput = page.getByRole("spinbutton", {
+        name: "Corner size",
+        exact: true,
+      });
+      const initialCorner = Number(await cornerInput.inputValue());
+      await corner.focus();
+      await page.keyboard.press("ArrowRight");
+      await page.waitForFunction(
+        (value) =>
+          document.querySelector("#geometry-0")?.value === String(value),
+        initialCorner + 1,
+      );
+      await page
+        .getByRole("button", { name: "Undo edit", exact: true })
+        .click();
+      await page.waitForFunction(
+        (value) =>
+          document.querySelector("#geometry-0")?.value === String(value),
+        initialCorner,
+      );
+      const handle = await corner.boundingBox();
+      await page.mouse.move(
+        handle.x + handle.width / 2,
+        handle.y + handle.height / 2,
+      );
+      await page.mouse.down();
+      await page.mouse.move(
+        handle.x + handle.width / 2 + 32,
+        handle.y + handle.height / 2,
+      );
+      assert.equal(await cornerInput.inputValue(), String(initialCorner));
+      await page.mouse.up();
+      await page.waitForFunction(
+        (value) =>
+          document.querySelector("#geometry-0")?.value === String(value),
+        initialCorner + 2,
+      );
+      await page
+        .getByRole("button", { name: "Undo edit", exact: true })
+        .click();
+      await page.waitForFunction(
+        (value) =>
+          document.querySelector("#geometry-0")?.value === String(value),
+        initialCorner,
+      );
+      await page.mouse.move(
+        handle.x + handle.width / 2,
+        handle.y + handle.height / 2,
+      );
+      await page.mouse.down();
+      await page.mouse.move(
+        handle.x + handle.width / 2 + 16,
+        handle.y + handle.height / 2,
+      );
+      await page.keyboard.press("Escape");
+      await page.mouse.up();
+      assert.equal(await cornerInput.inputValue(), String(initialCorner));
+      assert.equal(
+        await page
+          .getByRole("button", { name: "Redo edit", exact: true })
+          .isEnabled(),
+        true,
+      );
+
+      // Cancellation and loss of capture discard the temporary guide as well.
+      for (const event of ["pointercancel", "lostpointercapture"]) {
+        await page.mouse.move(
+          handle.x + handle.width / 2,
+          handle.y + handle.height / 2,
+        );
+        await page.mouse.down();
+        await page.mouse.move(
+          handle.x + handle.width / 2 + 16,
+          handle.y + handle.height / 2,
+        );
+        await corner.dispatchEvent(event);
+        await page.mouse.up();
+        assert.equal(await cornerInput.inputValue(), String(initialCorner));
+        assert.equal(
+          await page
+            .getByRole("button", { name: "Redo edit", exact: true })
+            .isEnabled(),
+          true,
+        );
+      }
+
+      // Per-field reset retains other edits; whole-artwork reset is undoable.
+      const sideInput = page.getByRole("spinbutton", {
+        name: "Side thickness",
+        exact: true,
+      });
+      const initialSide = await sideInput.inputValue();
+      await cornerInput.fill("3");
+      await sideInput.fill("5");
+      await page
+        .getByRole("button", { name: "Reset corner size", exact: true })
+        .click();
+      assert.equal(await cornerInput.inputValue(), String(initialCorner));
+      assert.equal(await sideInput.inputValue(), "5");
+      assert.equal(await red.inputValue(), "45000");
+      await page
+        .getByRole("button", { name: "Reset selected artwork", exact: true })
+        .click();
+      assert.equal(await sideInput.inputValue(), initialSide);
+      assert.equal(await red.inputValue(), originalRed);
+      for (let i = 0; i < 4; i++)
+        await page
+          .getByRole("button", { name: "Undo edit", exact: true })
+          .click();
+      assert.equal(await sideInput.inputValue(), initialSide);
+      assert.equal(await cornerInput.inputValue(), String(initialCorner));
+      assert.equal(await red.inputValue(), "45000");
+      await page
+        .getByRole("button", { name: "Theme preview", exact: true })
         .click();
       await page.waitForFunction(
         (before) =>
@@ -162,6 +374,9 @@ test(
       await reopened
         .getByRole("button", { name: "Palette record 1", exact: true })
         .click();
+      await reopened
+        .getByText("Precise source color (RGB16)", { exact: true })
+        .click();
       assert.equal(
         await reopened
           .getByRole("spinbutton", { name: "Red (RGB16)" })
@@ -200,19 +415,28 @@ test(
         "2",
       );
       await page
-        .getByRole("button", { name: "Pressed -10238", exact: true })
+        .getByRole("button", { name: "Push button: Pressed", exact: true })
         .click();
-      assert.equal(
-        await page
-          .getByRole("spinbutton", { name: "Corner size", exact: true })
-          .inputValue(),
-        "6",
+      await page.waitForFunction(
+        () => document.querySelector("#geometry-0")?.value === "6",
       );
       assert.equal(
         await page
           .getByRole("spinbutton", { name: "Side thickness", exact: true })
           .inputValue(),
         "4",
+      );
+      await page
+        .getByRole("button", { name: "Resources", exact: true })
+        .click();
+      await page
+        .getByRole("textbox", { name: "Search source artwork", exact: true })
+        .fill("-10238");
+      assert.equal(await page.locator(".resource-list button").count(), 1);
+      await page.locator(".resource-list button").click();
+      assert.match(
+        await page.locator(".asset-subtitle").textContent(),
+        /-10238/,
       );
       await page.setViewportSize({ width: 390, height: 844 });
       assert.equal(

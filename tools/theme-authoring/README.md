@@ -1,6 +1,6 @@
 # Scriptoscope Studio — authoring prototype
 
-A browser-first React experiment for [#472](https://github.com/khawkins98/scriptoscope/issues/472). It tests the source-preserving **import → edit → save → reopen** loop using the existing Scriptoscope renderer. This is a draft, standalone companion app; it adds no React dependency or new API to the runtime package.
+A browser-first React experiment for [#472](https://github.com/khawkins98/scriptoscope/issues/472). It tests the source-preserving **import → edit → save → reopen** loop using the existing Scriptoscope renderer. This is an experimental standalone companion app; it adds no React dependency or new API to the runtime package.
 
 ## Run it
 
@@ -24,13 +24,17 @@ The app is not added to the public demo deployment. The two sample files and the
 ## Try the round trip
 
 1. Start with **1138**, or choose **Animals** to exercise StuffIt import. You can also import a supported scheme/container file.
-2. Select **Normal** under Push button, then a palette record. Edit a source color using the picker or exact RGB16 fields. The picker deliberately expands an 8-bit source color to 16-bit channels; untouched entries retain their original precision. The display preview applies the runtime's existing color policy.
+2. Select **Normal** under Push button, or click a button in the live specimen. The state strip and inspector follow the selection. Choose a palette record and edit its source color using the picker or the **Precise source color (RGB16)** disclosure. The picker deliberately expands an 8-bit source color to 16-bit channels; untouched entries retain their original precision. The display preview applies the runtime's existing color policy.
 3. Change **Corner size** or **Side thickness** when a unique same-ID `cinf` exists. These fields apply to that source occurrence, not all button states. Records are never synthesized and missing external providers are not supplied by the app.
-4. Inspect the window and three button states. Switch active/inactive or compact/wide. Undo and redo edits.
+4. Inspect the window and three button states. Switch active/inactive or compact/wide. Use **Original / Working** to compare without changing edits. Reset a color, one geometry field, or the selected artwork; every reset is undoable. On the **Artwork** surface, drag C horizontally or S vertically to adjust source geometry; arrows adjust one pixel, and Escape cancels a drag.
 5. **Save project**, refresh or open another session, then **Open project**. The original archive/fork and selection are verified before edits are reapplied through a fresh loader call.
 6. **Recover original** downloads exactly the imported bytes, even after edits.
 
-All color icons can be inspected and palette-edited. The live specimen only exercises a document window and push buttons; other assets may not affect it. The push-button shortcuts follow the current engine's declared source IDs. The raw resource library keeps occurrence identities and original names, including duplicate IDs. Unsupported palettes remain preserved.
+All color icons can be inspected and palette-edited. The live specimen only exercises a document window and push buttons; other assets may not affect it. Component mappings follow the current renderer and decoder's exact source occurrences; unsupported or multi-asset selections are explicitly unavailable. Switch to **Resources** for the raw library. The raw resource library keeps occurrence identities and original names, including duplicate IDs. Unsupported palettes remain preserved.
+
+## UX rationale
+
+[UX.md](./UX.md) analyzes ThemeRoller, Godot, Penpot, Piskel and Themix, records the patterns adopted here, and defines acceptance criteria and deferred work. Component navigation and preview picking use the existing React/renderer stack; no editor engine is added.
 
 ## Experimental document contract
 
@@ -62,4 +66,4 @@ npx playwright install chromium
 npm run test:browser --prefix tools/theme-authoring
 ```
 
-The model tests check byte-exact source recovery, narrowly scoped edits, masks, duplicate occurrence identity, archive selection and malformed projects. The browser test starts its own server on port 5184. It verifies real rendered edits, undo/redo, geometry, downloaded project/original files, pixel-identical fresh-session reopening, invalid-project recovery, StuffIt sample switching, and narrow-screen overflow. These are same-renderer regression checks, not independent classic-system comparisons. Chromium must be installed; it is not silently skipped.
+The model tests check semantic occurrence admission (including duplicates and missing provenance), scoped resets, byte-exact source recovery, narrowly scoped edits, masks, duplicate occurrence identity, archive selection and malformed projects. The browser test starts its own server on port 5184. It verifies real rendered edits, undo/redo, geometry, synchronized component/state/preview selection, read-only original comparison, per-field/artwork resets, guide dragging as one undo step, keyboard adjustment and gesture cancellation, downloaded project/original files, pixel-identical fresh-session reopening, invalid-project recovery, StuffIt sample switching, and narrow-screen overflow. These are same-renderer regression checks, not independent classic-system comparisons. Chromium must be installed; it is not silently skipped.

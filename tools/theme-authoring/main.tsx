@@ -1,13 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { loadKaleidoscopeScheme } from "../../src/loadKaleidoscopeScheme.js";
 import { renderWindow } from "../../src/renderWindow.js";
 import { composeButton, bufferToCanvas } from "../../src/controls.js";
 import type { LoadedTheme } from "../../src/types.js";
-import { PUSH_BUTTON } from "../../src/engine/tables/pushButton.js";
 import { parseResourceFork } from "../theme-loader/resource-fork.js";
-import { decodeCicn } from "../theme-loader/decoders/cicn.js";
-import { gammaCorrectRgba, macRgbToSrgb } from "../theme-loader/mac-gamma.js";
+import { macRgbToSrgb } from "../theme-loader/mac-gamma.js";
 import {
   decodeBytes,
   importSource,
@@ -27,6 +25,14 @@ import sample1138 from "../../themes/1138/scheme.rsrc?url";
 import sampleAnimals from "../../themes/animals/scheme.sit?url";
 import meta1138 from "../../themes/1138/meta.json";
 import metaAnimals from "../../themes/animals/meta.json";
+import { resolveWindowSelection } from "../../src/resolveWindowType.js";
+import { ArtworkEditor } from "./ArtworkEditor.js";
+import {
+  componentsFor,
+  editedVariant,
+  resetArtwork,
+  type ComponentSelection,
+} from "./components.js";
 import "./style.css";
 
 const samples = [
@@ -37,11 +43,6 @@ const samples = [
     filename: "animals.sit",
     meta: metaAnimals,
   },
-];
-const buttonStates = [
-  { label: "Normal", id: PUSH_BUTTON.PB7.resource },
-  { label: "Pressed", id: PUSH_BUTTON.PB6.resource },
-  { label: "Disabled", id: PUSH_BUTTON.PB5.resource },
 ];
 const message = (error: unknown) =>
   error instanceof Error ? error.message : String(error);
@@ -67,10 +68,14 @@ function Specimen({
   theme,
   width,
   inactive,
+  selection,
+  onSelect,
 }: {
   theme: LoadedTheme;
   width: number;
   inactive: boolean;
+  selection: ComponentSelection | null;
+  onSelect: (selection: ComponentSelection) => void;
 }) {
   const host = useRef<HTMLDivElement>(null);
   const [error, setError] = useState("");
@@ -87,6 +92,25 @@ function Specimen({
       });
       const content = win.querySelector(".scriptoscope-content");
       if (!content) throw new Error("Window preview has no content area.");
+      const pickWindow = document.createElement("button");
+      pickWindow.className = "window-pick";
+      pickWindow.type = "button";
+      pickWindow.setAttribute(
+        "aria-label",
+        `Edit document window: ${inactive ? "Inactive" : "Active"}`,
+      );
+      pickWindow.setAttribute(
+        "aria-pressed",
+        String(selection?.component === "document-window"),
+      );
+      pickWindow.style.height = `${Math.max(32, parseFloat((content as HTMLElement).style.top) || 32)}px`;
+      pickWindow.addEventListener("click", () =>
+        onSelect({
+          component: "document-window",
+          variant: inactive ? "inactive" : "active",
+        }),
+      );
+      win.append(pickWindow);
       const body = document.createElement("div");
       body.className = "specimen-body";
       const heading = document.createElement("h3");
@@ -106,8 +130,27 @@ function Specimen({
           disabled: state === "Disabled",
         });
         row.append(label);
-        if (button) row.append(bufferToCanvas(button, 2));
-        else row.append(document.createTextNode("No supported face"));
+        if (button) {
+          const picker = document.createElement("button");
+          picker.type = "button";
+          picker.className = "specimen-pick";
+          picker.setAttribute("aria-label", `Edit push button: ${state}`);
+          picker.setAttribute(
+            "aria-pressed",
+            String(
+              selection?.component === "push-button" &&
+                selection.variant === state.toLowerCase(),
+            ),
+          );
+          picker.addEventListener("click", () =>
+            onSelect({
+              component: "push-button",
+              variant: state.toLowerCase(),
+            }),
+          );
+          picker.append(bufferToCanvas(button, 2));
+          row.append(picker);
+        } else row.append(document.createTextNode("No supported face"));
         body.append(row);
       }
       content.replaceChildren(body);
@@ -118,7 +161,7 @@ function Specimen({
     return () => {
       cancelled = true;
     };
-  }, [theme, width, inactive]);
+  }, [theme, width, inactive, selection, onSelect]);
   return (
     <>
       {error && (
@@ -127,63 +170,6 @@ function Specimen({
         </p>
       )}
       <div ref={host} className="specimen" />
-    </>
-  );
-}
-
-function Artwork({
-  data,
-  corner,
-}: {
-  data: Uint8Array;
-  corner: number | undefined;
-}) {
-  const canvas = useRef<HTMLCanvasElement>(null);
-  const [dimensions, setDimensions] = useState("");
-  const [error, setError] = useState("");
-  useEffect(() => {
-    try {
-      const image = decodeCicn(data);
-      if (!image)
-        throw new Error(
-          "This palette variant is preserved but cannot be edited here.",
-        );
-      const rgba = new Uint8Array(image.rgba);
-      gammaCorrectRgba(rgba);
-      const el = canvas.current!;
-      el.width = image.width;
-      el.height = image.height;
-      el.getContext("2d")!.putImageData(
-        new ImageData(new Uint8ClampedArray(rgba), image.width, image.height),
-        0,
-        0,
-      );
-      el.style.width = `${Math.min(240, image.width * 10)}px`;
-      el.style.height = `${(Math.min(240, image.width * 10) * image.height) / image.width}px`;
-      setDimensions(`${image.width} × ${image.height} px`);
-      setError("");
-    } catch (e) {
-      setError(message(e));
-    }
-  }, [data]);
-  return (
-    <>
-      <div className="artboard">
-        <div className="artwork-wrap">
-          <canvas ref={canvas} aria-label="Selected source artwork" />
-          {corner !== undefined && canvas.current && (
-            <div
-              className="slice-guides"
-              style={{
-                inset: `${(corner / canvas.current.height) * 100}% ${(corner / canvas.current.width) * 100}%`,
-              }}
-            />
-          )}
-        </div>
-      </div>
-      <p className="artwork-caption">
-        {error || `${dimensions} · enlarged, nearest neighbor`}
-      </p>
     </>
   );
 }
@@ -198,6 +184,16 @@ function App() {
   });
   const project = history.present;
   const [loaded, setLoaded] = useState<LoadedTheme | null>(null);
+  const [originalTheme, setOriginalTheme] = useState<LoadedTheme | null>(null);
+  const [focus, setFocus] = useState<ComponentSelection | null>({
+    component: "push-button",
+    variant: "normal",
+  });
+  const [navigation, setNavigation] = useState<"components" | "resources">(
+    "components",
+  );
+  const [surface, setSurface] = useState<"preview" | "artwork">("preview");
+  const [compareOriginal, setCompareOriginal] = useState(false);
   const [busy, setBusy] = useState(false);
   const [compiling, setCompiling] = useState(false);
   const [error, setError] = useState("");
@@ -240,7 +236,85 @@ function App() {
     );
     return candidates.length === 1 ? candidates[0] : undefined;
   }, [resources, selectedResource]);
-  const color = palette?.entries[record]?.rgb;
+  const originalResources = useMemo(
+    () => (project ? inventory(project) : []),
+    [project?.source],
+  );
+  const originalPalette = useMemo(() => {
+    try {
+      return originalResources[selected]
+        ? paletteFor(originalResources[selected]!)
+        : null;
+    } catch {
+      return null;
+    }
+  }, [originalResources, selected]);
+  const displayedPalette = compareOriginal ? originalPalette : palette;
+  const workingColor = palette?.entries[record]?.rgb;
+  const color = displayedPalette?.entries[record]?.rgb;
+  const originalColor = originalPalette?.entries[record]?.rgb;
+  const colorEdited =
+    !!workingColor &&
+    !!originalColor &&
+    workingColor.some((n, i) => n !== originalColor[i]);
+  const originalGeometry = geometry
+    ? originalResources[geometry.occurrence]
+    : undefined;
+  const canEdit = !busy && !compareOriginal;
+  const components = useMemo(() => {
+    const theme = compareOriginal ? originalTheme : (loaded ?? originalTheme);
+    const windowAssets: Partial<Record<"active" | "inactive", string>> = {};
+    if (theme)
+      for (const state of ["active", "inactive"] as const) {
+        const selectedWindow = resolveWindowSelection(
+          theme,
+          "document-window",
+          state,
+        );
+        if (
+          selectedWindow?.owner === theme &&
+          selectedWindow.wt.model !== "corner-sprite"
+        )
+          windowAssets[state] = selectedWindow.cicnPath;
+      }
+    return componentsFor(theme, resources, windowAssets);
+  }, [loaded, originalTheme, resources, compareOriginal]);
+  const component = components.find((c) => c.id === focus?.component);
+  const variant = component?.variants.find((v) => v.key === focus?.variant);
+  const selectComponent = useCallback((next: ComponentSelection) => {
+    setFocus(next);
+    setNavigation("components");
+    setRecord(0);
+    if (next.component === "document-window")
+      setInactive(next.variant === "inactive");
+  }, []);
+  useEffect(() => {
+    if (focus) setSelected(variant?.occurrence ?? -1);
+  }, [focus, variant?.occurrence]);
+  const source = project?.source;
+  useEffect(() => {
+    setOriginalTheme(null);
+    if (!source) return;
+    let cancelled = false;
+    let owned: LoadedTheme | null = null;
+    void loadKaleidoscopeScheme(decodeBytes(source.fork), { meta: source.meta })
+      .then((theme) => {
+        if (cancelled) {
+          theme.dispose?.();
+          return;
+        }
+        owned = theme;
+        setOriginalTheme(theme);
+      })
+      .catch((e) => {
+        if (!cancelled)
+          setError(`Original comparison unavailable: ${message(e)}`);
+      });
+    return () => {
+      cancelled = true;
+      owned?.dispose?.();
+    };
+  }, [source]);
   const serialized = useMemo(
     () => (project ? serializeProject(project) : ""),
     [project],
@@ -251,14 +325,11 @@ function App() {
 
   useEffect(() => {
     if (!project) return;
-    const list = inventory(project);
-    setSelected(
-      list.find((r) => r.type === "cicn" && r.id === PUSH_BUTTON.PB7.resource)
-        ?.occurrence ??
-        list.find((r) => r.type === "cicn")?.occurrence ??
-        -1,
-    );
+    setSelected(-1);
     setRecord(0);
+    setFocus({ component: "push-button", variant: "normal" });
+    setNavigation("components");
+    setCompareOriginal(false);
     setSearch("");
   }, [project?.source.forkSha256]); // Selection survives edits and undo.
 
@@ -392,7 +463,7 @@ function App() {
   }
 
   function applyColor(next: Rgb16) {
-    if (!project) return;
+    if (!project || !canEdit || color?.every((n, i) => n === next[i])) return;
     try {
       change(setPalette(project, selected, record, next));
     } catch (e) {
@@ -400,6 +471,26 @@ function App() {
     }
   }
 
+  const applyGeometry = (next: [number, number]) => {
+    if (
+      !project ||
+      !geometry ||
+      !canEdit ||
+      next.every((n, i) => n === geometry.data[i])
+    )
+      return;
+    try {
+      change(setGeometry(project, geometry.occurrence, next));
+    } catch (e) {
+      setError(message(e));
+    }
+  };
+  const selectionEdited = !!project?.edits.some((edit) =>
+    edit.kind === "palette"
+      ? edit.occurrence === selected
+      : edit.occurrence === geometry?.occurrence,
+  );
+  const displayTheme = compareOriginal ? originalTheme : loaded;
   const editedOccurrences = new Set(project?.edits.map((e) => e.occurrence));
   const icons = resources.filter(
     (r) =>
@@ -513,65 +604,126 @@ function App() {
               </option>
             ))}
           </select>
-          <h3 className="section-label">PUSH BUTTON</h3>
-          <div className="component-list">
-            {buttonStates.map((state) => {
-              const resource = resources.find(
-                (r) => r.type === "cicn" && r.id === state.id,
-              );
-              return (
-                <button
-                  key={state.label}
-                  disabled={!resource || busy}
-                  className={
-                    selected === resource?.occurrence ? "selected" : ""
-                  }
-                  onClick={() => {
-                    setSelected(resource!.occurrence);
-                    setRecord(0);
-                  }}
-                >
-                  <span className="component-symbol" aria-hidden="true">
-                    ▱
-                  </span>
-                  {state.label}
-                  <span className="resource-id">{state.id}</span>
-                </button>
-              );
-            })}
+          <div
+            className="navigation-tabs segmented"
+            role="group"
+            aria-label="Library view"
+          >
+            <button
+              aria-pressed={navigation === "components"}
+              onClick={() => setNavigation("components")}
+            >
+              Components
+            </button>
+            <button
+              aria-pressed={navigation === "resources"}
+              onClick={() => setNavigation("resources")}
+            >
+              Resources
+            </button>
           </div>
-          <div className="inventory-heading">
-            <h3 className="section-label">ALL COLOR ICONS</h3>
-            <span>{resources.filter((r) => r.type === "cicn").length}</span>
-          </div>
-          <input
-            className="search"
-            aria-label="Search source artwork"
-            placeholder="Search artwork or ID…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          <div className="resource-list">
-            {icons.map((resource) => (
-              <button
-                key={resource.occurrence}
-                disabled={busy}
-                className={selected === resource.occurrence ? "selected" : ""}
-                onClick={() => {
-                  setSelected(resource.occurrence);
-                  setRecord(0);
-                }}
-              >
-                <span>{resource.name || "Untitled color icon"}</span>
-                <small>
-                  {resource.id} · #{resource.occurrence}
-                  {editedOccurrences.has(resource.occurrence)
-                    ? " · edited"
-                    : ""}
-                </small>
-              </button>
-            ))}
-          </div>
+          {navigation === "components" ? (
+            <div className="component-tree">
+              {components.map((c) => (
+                <section key={c.id}>
+                  <h3 className="section-label">{c.group}</h3>
+                  <button
+                    className={`component-family ${focus?.component === c.id ? "selected" : ""}`}
+                    aria-pressed={focus?.component === c.id}
+                    disabled={busy}
+                    onClick={() =>
+                      selectComponent({
+                        component: c.id,
+                        variant: c.variants[0]!.key,
+                      })
+                    }
+                  >
+                    <span aria-hidden="true">
+                      {c.id === "document-window" ? "▣" : "▱"}
+                    </span>
+                    {c.label}
+                  </button>
+                  <div className="component-states">
+                    {c.variants.map((v) => (
+                      <button
+                        key={v.key}
+                        aria-label={`${c.label}: ${v.label}`}
+                        aria-pressed={
+                          focus?.component === c.id && focus.variant === v.key
+                        }
+                        disabled={busy}
+                        className={
+                          focus?.component === c.id && focus.variant === v.key
+                            ? "selected"
+                            : ""
+                        }
+                        onClick={() =>
+                          selectComponent({ component: c.id, variant: v.key })
+                        }
+                      >
+                        {v.label}
+                        <span
+                          className={
+                            editedVariant(project, v, resources)
+                              ? "edit-marker"
+                              : ""
+                          }
+                        >
+                          {editedVariant(project, v, resources)
+                            ? "Edited"
+                            : v.occurrence === null
+                              ? "Unavailable"
+                              : "Original"}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </section>
+              ))}
+              <p className="field-help">
+                Choose a component here or pick it directly in the specimen.
+                More control families will follow.
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className="inventory-heading">
+                <h3 className="section-label">SOURCE COLOR ICONS</h3>
+                <span>{resources.filter((r) => r.type === "cicn").length}</span>
+              </div>
+              <input
+                className="search"
+                aria-label="Search source artwork"
+                placeholder="Search artwork or ID…"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+              <div className="resource-list">
+                {icons.map((resource) => (
+                  <button
+                    key={resource.occurrence}
+                    disabled={busy}
+                    className={
+                      selected === resource.occurrence ? "selected" : ""
+                    }
+                    onClick={() => {
+                      setFocus(null);
+                      setSelected(resource.occurrence);
+                      setRecord(0);
+                    }}
+                  >
+                    <span>{resource.name || "Untitled color icon"}</span>
+                    <small>
+                      {resource.id} · #{resource.occurrence}
+                      {editedOccurrences.has(resource.occurrence)
+                        ? " · edited"
+                        : ""}
+                    </small>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
           <div className="library-footnote">
             <span className="preserved-mark">✓</span>
             <div>
@@ -582,55 +734,206 @@ function App() {
         </aside>
         <main className="canvas-panel">
           <div className="canvas-toolbar">
-            <div className="segmented" role="group" aria-label="Window state">
-              {["Active", "Inactive"].map((state, i) => (
+            <div
+              className="segmented"
+              role="group"
+              aria-label="Workspace surface"
+            >
+              <button
+                aria-pressed={surface === "preview"}
+                onClick={() => setSurface("preview")}
+              >
+                Theme preview
+              </button>
+              <button
+                aria-pressed={surface === "artwork"}
+                disabled={!selectedResource}
+                onClick={() => setSurface("artwork")}
+              >
+                Artwork
+              </button>
+            </div>
+            <div
+              className="segmented compare-toggle"
+              role="group"
+              aria-label="Theme comparison"
+            >
+              <button
+                aria-pressed={!compareOriginal}
+                onClick={() => setCompareOriginal(false)}
+              >
+                Working
+              </button>
+              <button
+                aria-pressed={compareOriginal}
+                disabled={!originalTheme}
+                onClick={() => setCompareOriginal(true)}
+              >
+                Original
+              </button>
+            </div>
+          </div>
+          <div className="selection-bar">
+            <div>
+              <span className="eyebrow">
+                {component?.group ?? "SOURCE RESOURCE"}
+              </span>
+              <h2>
+                {component?.label ?? selectedResource?.name ?? "Source artwork"}
+              </h2>
+            </div>
+            {compareOriginal && (
+              <span className="comparison-badge">
+                Original · editing paused
+              </span>
+            )}
+            <button
+              className="quiet-button"
+              disabled={!selectionEdited || !canEdit || !project}
+              onClick={() =>
+                project &&
+                change(resetArtwork(project, selected, geometry?.occurrence))
+              }
+            >
+              Reset selected artwork
+            </button>
+          </div>
+          {component && (
+            <div
+              className="variant-strip"
+              role="group"
+              aria-label={`${component.label} states`}
+            >
+              {component.variants.map((v) => (
                 <button
-                  key={state}
-                  aria-pressed={inactive === !!i}
-                  onClick={() => setInactive(!!i)}
+                  key={v.key}
+                  aria-label={`State: ${v.label}`}
+                  aria-pressed={focus?.variant === v.key}
+                  disabled={busy}
+                  onClick={() =>
+                    selectComponent({ component: component.id, variant: v.key })
+                  }
                 >
-                  {state}
+                  {v.asset ? (
+                    <img src={v.asset} alt="" />
+                  ) : (
+                    <span className="missing-thumbnail" aria-hidden="true">
+                      —
+                    </span>
+                  )}
+                  <span>
+                    {v.label}
+                    <small>
+                      {editedVariant(project, v, resources)
+                        ? "Edited"
+                        : v.occurrence === null
+                          ? "Unavailable"
+                          : "Original"}
+                    </small>
+                  </span>
                 </button>
               ))}
             </div>
-            <div className="toolbar-right">
-              <label htmlFor="preview-size">Size</label>
-              <select
-                id="preview-size"
-                value={width}
-                onChange={(e) => setWidth(Number(e.target.value))}
-              >
-                <option value={240}>Compact</option>
-                <option value={320}>Wide</option>
-              </select>
-              <span className="zoom-label">2×</span>
-            </div>
-          </div>
+          )}
+          {variant?.unavailable && (
+            <p className="selection-note" role="status">
+              {variant.unavailable} Try Resources to inspect the retained
+              records.
+            </p>
+          )}
           <div className="preview-stage" aria-busy={compiling || busy}>
             <div className="stage-heading">
-              <span className="eyebrow">LIVE SPECIMEN</span>
+              <span className="eyebrow">
+                {surface === "preview" ? "LIVE SPECIMEN" : "ARTWORK WORKSPACE"}
+              </span>
               <span>
-                {compiling
-                  ? "Rebuilding preview…"
-                  : loaded
-                    ? "Scriptoscope renderer"
-                    : "Waiting for a theme"}
+                {compareOriginal
+                  ? "Imported original"
+                  : compiling
+                    ? "Rebuilding preview…"
+                    : "Scriptoscope renderer"}
               </span>
             </div>
-            <div className="preview-scroll">
-              {loaded ? (
-                <Specimen theme={loaded} width={width} inactive={inactive} />
-              ) : (
-                <div className="preview-placeholder">
-                  {busy || compiling
-                    ? "Preparing your theme…"
-                    : "Import a scheme to begin."}
+            {surface === "preview" ? (
+              <>
+                <div className="specimen-settings">
+                  <div
+                    className="segmented"
+                    role="group"
+                    aria-label="Window state"
+                  >
+                    {["Active", "Inactive"].map((state, i) => (
+                      <button
+                        key={state}
+                        aria-pressed={inactive === !!i}
+                        onClick={() => {
+                          setInactive(!!i);
+                          if (focus?.component === "document-window")
+                            selectComponent({
+                              component: "document-window",
+                              variant: i ? "inactive" : "active",
+                            });
+                        }}
+                      >
+                        {state}
+                      </button>
+                    ))}
+                  </div>
+                  <label>
+                    Size{" "}
+                    <select
+                      aria-label="Size"
+                      value={width}
+                      onChange={(e) => setWidth(Number(e.target.value))}
+                    >
+                      <option value={240}>Compact</option>
+                      <option value={320}>Wide</option>
+                    </select>
+                  </label>
+                  <span>2×</span>
                 </div>
-              )}
-            </div>
-            <p className="stage-caption">
-              A real window. Three button states. Your edits, in context.
-            </p>
+                <div className="preview-scroll">
+                  {displayTheme ? (
+                    <Specimen
+                      theme={displayTheme}
+                      width={width}
+                      inactive={inactive}
+                      selection={focus}
+                      onSelect={selectComponent}
+                    />
+                  ) : (
+                    <div className="preview-placeholder">
+                      Preparing your theme…
+                    </div>
+                  )}
+                </div>
+                <p className="stage-caption">
+                  Click a window title or button to select it. Each state keeps
+                  its own artwork and geometry.
+                </p>
+              </>
+            ) : selectedResource ? (
+              <ArtworkEditor
+                data={
+                  compareOriginal
+                    ? originalResources[selected]!.data
+                    : selectedResource.data
+                }
+                geometry={
+                  geometry
+                    ? compareOriginal && originalGeometry
+                      ? [originalGeometry.data[0]!, originalGeometry.data[1]!]
+                      : [geometry.data[0]!, geometry.data[1]!]
+                    : undefined
+                }
+                editable={canEdit && !!geometry}
+                onGeometry={applyGeometry}
+              />
+            ) : (
+              <p className="preview-placeholder">
+                Select supported artwork to inspect it.
+              </p>
+            )}
           </div>
           <div className="preservation-card">
             <div className="preservation-icon" aria-hidden="true">
@@ -667,11 +970,13 @@ function App() {
         </main>
         <aside className="inspector" aria-label="Artwork inspector">
           <div className="panel-heading">
-            <h2>Artwork inspector</h2>
+            <h2>Appearance</h2>
             <span className="small-badge">cicn</span>
           </div>
           <h3 className="asset-title">
-            {selectedResource?.name || "Source artwork"}
+            {component
+              ? `${component.label} · ${variant?.label ?? ""}`
+              : selectedResource?.name || "Source artwork"}
           </h3>
           <p className="asset-subtitle">
             {selectedResource
@@ -679,16 +984,30 @@ function App() {
               : "Select a color icon"}
           </p>
           {selectedResource && (
-            <Artwork data={selectedResource.data} corner={geometry?.data[0]} />
+            <ArtworkEditor
+              compact
+              data={
+                compareOriginal
+                  ? originalResources[selected]!.data
+                  : selectedResource.data
+              }
+              geometry={
+                geometry
+                  ? compareOriginal && originalGeometry
+                    ? [originalGeometry.data[0]!, originalGeometry.data[1]!]
+                    : [geometry.data[0]!, geometry.data[1]!]
+                  : undefined
+              }
+            />
           )}
           <div className="inventory-heading">
             <h3 className="section-label">PALETTE</h3>
-            <span>{palette?.entries.length ?? 0} colors</span>
+            <span>{displayedPalette?.entries.length ?? 0} colors</span>
           </div>
-          {palette ? (
+          {displayedPalette ? (
             <>
               <div className="swatches">
-                {palette.entries.map((entry, i) => (
+                {displayedPalette.entries.map((entry, i) => (
                   <button
                     key={i}
                     aria-label={`Palette record ${i}`}
@@ -708,19 +1027,29 @@ function App() {
                   <div className="color-summary">
                     <span style={{ background: displayColor(color) }} />
                     <div>
-                      Color record {record}
+                      Color record {record}{" "}
+                      {colorEdited && (
+                        <span className="edit-marker">Edited</span>
+                      )}
                       <small>
-                        Palette index {palette.entries[record]!.value}
+                        Palette index {displayedPalette.entries[record]!.value}
                       </small>
                     </div>
                   </div>
+                  <button
+                    className="reset-property"
+                    disabled={!colorEdited || !canEdit}
+                    onClick={() => originalColor && applyColor(originalColor)}
+                  >
+                    Reset color
+                  </button>
                   <label className="field-label" htmlFor="source-color">
                     Source RGB color
                   </label>
                   <input
                     id="source-color"
                     type="color"
-                    disabled={busy}
+                    disabled={!canEdit}
                     value={hex(color.map((n) => n >> 8))}
                     onChange={(e) => {
                       const next = [1, 3, 5].map(
@@ -733,32 +1062,35 @@ function App() {
                       applyColor(next);
                     }}
                   />
-                  <div className="channel-fields">
-                    {["Red", "Green", "Blue"].map((channel, i) => (
-                      <label key={channel}>
-                        {channel}
-                        <input
-                          aria-label={`${channel} (RGB16)`}
-                          type="number"
-                          min={0}
-                          max={65535}
-                          value={color[i]}
-                          disabled={busy}
-                          onChange={(e) => {
-                            if (!e.target.value) return;
-                            const next: Rgb16 = [...color];
-                            next[i] = Number(e.target.value);
-                            applyColor(next);
-                          }}
-                        />
-                      </label>
-                    ))}
-                  </div>
-                  <p className="field-help">
-                    RGB16 fields retain exact source values. The color picker
-                    writes an 8-bit source color; the preview applies the
-                    runtime display policy.
-                  </p>
+                  <details className="precise-color">
+                    <summary>Precise source color (RGB16)</summary>
+                    <div className="channel-fields">
+                      {["Red", "Green", "Blue"].map((channel, i) => (
+                        <label key={channel}>
+                          {channel}
+                          <input
+                            aria-label={`${channel} (RGB16)`}
+                            type="number"
+                            min={0}
+                            max={65535}
+                            value={color[i]}
+                            disabled={!canEdit}
+                            onChange={(e) => {
+                              if (!e.target.value) return;
+                              const next: Rgb16 = [...color];
+                              next[i] = Number(e.target.value);
+                              applyColor(next);
+                            }}
+                          />
+                        </label>
+                      ))}
+                    </div>
+                    <p className="field-help">
+                      RGB16 fields retain exact source values. The color picker
+                      writes an 8-bit source color; the preview applies the
+                      runtime display policy.
+                    </p>
+                  </details>
                 </div>
               )}
             </>
@@ -768,19 +1100,49 @@ function App() {
               editor.
             </p>
           )}
+          <p className="field-help">
+            Changes and resets apply to the source record everywhere it is used.
+          </p>
           <h3 className="section-label">MATCHING GEOMETRY</h3>
           {geometry && project ? (
             <>
               <div className="channel-fields geometry-fields">
                 {["Corner size", "Side thickness"].map((label, i) => (
-                  <label key={label}>
-                    {label}
+                  <div key={label}>
+                    <span className="property-label">
+                      <label htmlFor={`geometry-${i}`}>{label}</label>
+                      <button
+                        className="reset-property"
+                        aria-label={`Reset ${label.toLowerCase()}`}
+                        disabled={
+                          !canEdit ||
+                          geometry.data[i] === originalGeometry?.data[i]
+                        }
+                        onClick={() => {
+                          if (originalGeometry) {
+                            const next: [number, number] = [
+                              geometry.data[0]!,
+                              geometry.data[1]!,
+                            ];
+                            next[i] = originalGeometry.data[i]!;
+                            applyGeometry(next);
+                          }
+                        }}
+                      >
+                        Reset
+                      </button>
+                    </span>
                     <input
+                      id={`geometry-${i}`}
                       type="number"
                       min={0}
                       max={255}
-                      value={geometry.data[i]}
-                      disabled={busy}
+                      value={
+                        compareOriginal && originalGeometry
+                          ? originalGeometry.data[i]
+                          : geometry.data[i]
+                      }
+                      disabled={!canEdit}
                       onChange={(e) => {
                         if (!e.target.value) return;
                         const next: [number, number] = [
@@ -788,21 +1150,15 @@ function App() {
                           geometry.data[1]!,
                         ];
                         next[i] = Number(e.target.value);
-                        try {
-                          change(
-                            setGeometry(project, geometry.occurrence, next),
-                          );
-                        } catch (err) {
-                          setError(message(err));
-                        }
+                        applyGeometry(next);
                       }}
                     />
-                  </label>
+                  </div>
                 ))}
               </div>
               <p className="field-help">
-                Edits the unique same-ID cinf record. No missing records are
-                synthesized.
+                Edits the unique same-ID cinf record. Shared source records
+                change everywhere they are used.
               </p>
             </>
           ) : (
