@@ -8,7 +8,7 @@ import { assetUrl } from './loadTheme.js';
 import { loadCicnBuffer } from './cicnImage.js';
 import { PixelBuffer } from './pixelBuffer.js';
 import { rasterizeText } from './textRaster.js';
-import { ownerDisplayPolicyMatches, realizeRgb16, DisplayProfileError } from '../tools/theme-loader/display-profile.js';
+import { ownerDisplayPolicyMatches, realizeRgb16, DisplayProfileError, assertDisplayProfileChain } from '../tools/theme-loader/display-profile.js';
 import { drawTab, admitTabGeometry, tabBandPlan, tabCenter, tabNeedsSampledBands, validTabCompanion,
   type TabInput, type TabMetadata } from './engine/families/tab.js';
 import { TAB_DOMAIN, TAB_FACADE, TAB_LABEL } from './engine/tables/tab.js';
@@ -207,6 +207,7 @@ export function tabBodyColors(el: ChromeElement, owner: LoadedTheme, source: Pix
 export async function composeEngineTab(theme: LoadedTheme, opts: TabOptions): Promise<PixelBuffer | null> {
   const selected = !!opts.selected, label = opts.label ?? '';
   return withControlDiagnostics(opts.diagnostics, 'tab', { state: 'active', pressed: false, disabled: false, selected }, async trace => {
+    assertDisplayProfileChain(theme, theme.manifest.displayProfile);
     const hit = selectTab(theme, selected, trace);
     const requestedId = TAB_FACADE.find(row => row.selected === selected)!.ids[0];
     let sourceWidth = 0, sourceHeight = 0, requestedWidth = 0;
