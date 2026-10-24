@@ -10,7 +10,7 @@ registerHooks({ resolve(specifier, context, nextResolve) {
     throw error;
   }
 } });
-const { tabBodyColors } = await import('./tabFacade.ts');
+const { tabBodyColors, composeEngineTab } = await import('./tabFacade.ts');
 const { PixelBuffer } = await import('./pixelBuffer.ts');
 const { prepareDisplayProfile } = await import('../tools/theme-loader/display-profile.js');
 const profile = await prepareDisplayProfile({ version: 1, conditions: { synthetic: true },
@@ -38,4 +38,15 @@ test('needed mapped background is realized once without querying unused native o
   const result = tabBodyColors(element(sample([0, 0, 0])), owner, source, false, false, true);
   assert.deepEqual(result.backgroundRGB, { r: 0, g: 0, b: 0, a: 255 });
   assert.equal(result.textRGB, null); assert.equal(result.embossRGB, null);
+});
+
+test('whole-chain profile mismatch rejects before root art decode and completes diagnostics once', async () => {
+  const theme = { baseUrl: 'root/', manifest: { chromeElements: { own: { sourceCicnId: -9975, asset: 'never-decode.png' } } },
+    base: { baseUrl: 'base/', manifest: { displayProfile: profile, chromeElements: {} } } };
+  let completions = 0;
+  await assert.rejects(composeEngineTab(theme, { diagnostics: { onComplete(trace) {
+    completions++; assert.equal(trace.outcome.status, 'error'); assert.equal(trace.steps.length, 0);
+    throw new Error('callback must not replace renderer failure');
+  } } }), error => error.code === 'PROFILE_MISMATCH');
+  assert.equal(completions, 1);
 });
