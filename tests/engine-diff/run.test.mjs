@@ -16,8 +16,11 @@ test('the committed baselines are the head output for every family (run npm run 
     const head = await computeFamily(family);
     // Independently enumerated grids: #459 has 18×4×3×2 push cells and
     // 18×2×4×4×2×2 checkable cells. Tab has 14 art archives×2 selections×2
-    // widths + 4 missing-art archives×2 selections. Retain older >1000 guards.
-    const newCounts = { pushButton: 432, checkables: 2304, tab: 64 };
+    // widths + 4 missing-art archives×2 selections. Header has 13 art archives
+    // ×3 raw states×2 kinds×2 sizes×2 origins +5 missing archives×3 states.
+    // Missing art is one cell per state, with no filler geometry combinations.
+    // Retain older >1000 guards and full committed-baseline equality below.
+    const newCounts = { pushButton: 432, checkables: 2304, tab: 64, header: 327 };
     if (family in newCounts) assert.equal(Object.keys(head).length, newCounts[family], family);
     else assert.ok(Object.keys(head).length > 1000, `${family}: ${Object.keys(head).length} cells`);
     assert.deepEqual(head, committed(family), family);
