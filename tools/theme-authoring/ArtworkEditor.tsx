@@ -23,7 +23,7 @@ export function ArtworkEditor({
     original: Geometry;
     draft: Geometry;
   } | null>(null);
-  const [zoom, setZoom] = useState(16);
+  const [zoom, setZoom] = useState(8);
   const [size, setSize] = useState<[number, number]>([1, 1]);
   const [error, setError] = useState("");
   const [draft, setDraft] = useState<Geometry | null>(null);

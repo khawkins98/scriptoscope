@@ -69,3 +69,27 @@ All 10 model tests, the companion typecheck/production build, and the expanded C
 Desktop preview and artwork surfaces were inspected in Chromium. Automated axe WCAG A/AA checks reported zero violations on both surfaces after correcting selected-state label contrast. Axe leaves some contrast checks incomplete because of patterned backgrounds; this result is not a full accessibility conformance claim. Narrow layouts stack the library, workspace and inspector rather than compressing the editing controls.
 
 The next useful UX work is a dependency-aware component inventory: distinguish face artwork, body patterns, rings, text and window recipe dependencies before expanding beyond the two admitted families. That should precede any generic nine-slice editor or automatic linking of similar-looking colors.
+
+## Visual reimplementation and designer review
+
+A dedicated UX/UI design reviewer inspected the running implementation at 1600×1000 and 1440×900. The resulting direction is a compact editor: neutral panels and charcoal application chrome, restrained emerald selection, and imported artwork as the primary visual content. The new layout keeps the rendered component, its source image and its properties in one working context. This is a visual and structural replacement of the first presentation.
+
+| Before                                             | Implemented after review                                                                                                                                         |
+| -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Preview and artwork are mutually exclusive         | Split workspace is the default. Wide centers place the specimen and source editor side by side; narrower centers stack them. Single-pane modes remain available. |
+| Large introductory cards compete with authoring    | Compact project actions, explorer, working surfaces, inspector and footer. Original recovery lives with source details.                                          |
+| Component title omits the selected state           | Persistent semantic component/state title with a subordinate exact source breadcrumb. Raw labels remain in Resources.                                            |
+| Promotional content in the specimen                | Neutral document content and stable control labels. Selection targets retain the renderer's source pixels.                                                       |
+| Original is easy to mistake for another edit mode  | A visible read-only comparison banner explains that working edits are retained and offers a return action.                                                       |
+| Selection and edits use similar emphasis           | Emerald outline/tint identifies selection; a small warm dot and Edited text identify overrides.                                                                  |
+| Palette preview duplicates the source editor       | Inspector focuses on palette and geometry properties; source pixels and guides occupy their own workspace pane.                                                  |
+| Geometry fields appear unrelated to their guides   | Corner and side field labels share their corresponding guide colors.                                                                                             |
+| Changes require hunting through artwork            | Changes view lists actual palette/geometry overrides and selects their source artwork. Ambiguous geometry-to-artwork selections are disabled.                    |
+| History requires footer buttons                    | Command/Ctrl-Z and Shift-Z work outside native text/number fields; native field undo is retained.                                                                |
+| Phone layout puts the full explorer before editing | Workspace opens first, with explicit Explorer/Workspace/Properties controls; selecting artwork returns to Workspace.                                             |
+| Short windows obscure the specimen's lower frame   | The preview has bounded internal scrolling with a visible scrollbar treatment and reduced padding.                                                               |
+| Rebuilding can briefly imply unsupported source    | Loading labels distinguish pending admission from confirmed unavailable mappings.                                                                                |
+
+The review deliberately preserves independent corner/side source semantics and exact RGB16 controls. It does not introduce a generic layer hierarchy or treat an image face as the complete component definition. A dependency-aware selection model remains the next design step.
+
+Verification for the reimplementation includes default simultaneous surfaces, Changes selection, keyboard history, phone panel navigation, and the existing byte-preserving browser round trip. The earlier acceptance criteria still apply.

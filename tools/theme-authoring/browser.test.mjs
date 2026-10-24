@@ -66,6 +66,26 @@ test(
           .first()
           .evaluate((el) => el.toDataURL());
       const original = await pixelSnapshot();
+      assert.equal(
+        await page
+          .getByRole("button", { name: "Split workspace", exact: true })
+          .getAttribute("aria-pressed"),
+        "true",
+      );
+      assert.equal(
+        await page
+          .getByRole("region", { name: "Live theme preview", exact: true })
+          .isVisible(),
+        true,
+      );
+      assert.equal(
+        await page
+          .getByRole("region", { name: "Source artwork editor", exact: true })
+          .isVisible(),
+        true,
+      );
+      assert.equal(await page.locator(".selection-note").count(), 0);
+
       await page
         .getByRole("button", { name: "Palette record 1", exact: true })
         .click();
@@ -80,6 +100,35 @@ test(
         return canvases.length === 3 && canvases[0].toDataURL() !== before;
       }, original);
       const edited = await pixelSnapshot();
+      await page.getByRole("button", { name: /^Changes/ }).click();
+      assert.equal(await page.locator(".change-list > button").count(), 1);
+      await page.locator(".change-list > button").click();
+      assert.equal(await red.inputValue(), "45000");
+      await page
+        .getByRole("button", { name: "Edit push button: Normal", exact: true })
+        .click();
+      await page
+        .getByRole("button", { name: "Palette record 1", exact: true })
+        .click();
+      // History shortcuts work outside text fields without stealing native field undo.
+      await page
+        .getByRole("button", { name: "Theme preview", exact: true })
+        .focus();
+      await page.keyboard.press("Control+z");
+      await page.waitForFunction(
+        (before) =>
+          document.querySelector(".specimen-row canvas")?.toDataURL() ===
+          before,
+        original,
+      );
+      await page.keyboard.press("Control+Shift+z");
+      await page.waitForFunction(
+        (before) =>
+          document.querySelector(".specimen-row canvas")?.toDataURL() ===
+          before,
+        edited,
+      );
+
       await page
         .getByRole("button", { name: "Undo edit", exact: true })
         .click();
@@ -207,6 +256,9 @@ test(
           document.querySelector("#geometry-0")?.value === String(value),
         initialCorner,
       );
+      await page
+        .getByRole("combobox", { name: "Artwork zoom", exact: true })
+        .selectOption("16");
       const handle = await corner.boundingBox();
       await page.mouse.move(
         handle.x + handle.width / 2,
@@ -439,6 +491,53 @@ test(
         /-10238/,
       );
       await page.setViewportSize({ width: 390, height: 844 });
+      assert.equal(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= window.innerWidth,
+        ),
+        true,
+      );
+
+      const panels = page.getByRole("group", {
+        name: "Editor panels",
+        exact: true,
+      });
+      assert.equal(await page.getByRole("main").isVisible(), true);
+      await panels
+        .getByRole("button", { name: "Properties", exact: true })
+        .click();
+      assert.equal(
+        await page
+          .getByRole("complementary", {
+            name: "Artwork inspector",
+            exact: true,
+          })
+          .isVisible(),
+        true,
+      );
+      assert.equal(await page.getByRole("main").isVisible(), false);
+      assert.equal(
+        await page
+          .getByRole("spinbutton", { name: "Corner size", exact: true })
+          .inputValue(),
+        "6",
+      );
+      await panels
+        .getByRole("button", { name: "Explorer", exact: true })
+        .click();
+      await page
+        .getByRole("button", { name: "Components", exact: true })
+        .click();
+      await page
+        .getByRole("button", { name: "Push button: Normal", exact: true })
+        .click();
+      assert.equal(await page.getByRole("main").isVisible(), true);
+      await panels
+        .getByRole("button", { name: "Properties", exact: true })
+        .click();
+      await page.waitForFunction(
+        () => document.querySelector("#geometry-0")?.value === "2",
+      );
       assert.equal(
         await page.evaluate(
           () => document.documentElement.scrollWidth <= window.innerWidth,

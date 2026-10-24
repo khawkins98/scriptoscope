@@ -84,9 +84,9 @@ function Specimen({
     setError("");
     void (async () => {
       const win = await renderWindow(theme, {
-        title: "A new life for old themes",
+        title: "Document preview",
         width,
-        height: 190,
+        height: 144,
         scale: 2,
         state: inactive ? "inactive" : "active",
       });
@@ -114,9 +114,10 @@ function Specimen({
       const body = document.createElement("div");
       body.className = "specimen-body";
       const heading = document.createElement("h3");
-      heading.textContent = "Make something wonderfully yours.";
+      heading.textContent = "Document preview";
       const subtitle = document.createElement("p");
-      subtitle.textContent = "Original artwork. New possibilities.";
+      subtitle.textContent =
+        "Inspect each control state, then edit its appearance.";
       body.append(heading, subtitle);
       for (const state of ["Normal", "Pressed", "Disabled"] as const) {
         const row = document.createElement("div");
@@ -124,7 +125,7 @@ function Specimen({
         const label = document.createElement("span");
         label.textContent = state;
         const button = await composeButton(theme, {
-          label: "Hello, world",
+          label: "Button label",
           minWidth: 100,
           pressed: state === "Pressed",
           disabled: state === "Disabled",
@@ -189,11 +190,16 @@ function App() {
     component: "push-button",
     variant: "normal",
   });
-  const [navigation, setNavigation] = useState<"components" | "resources">(
-    "components",
+  const [navigation, setNavigation] = useState<
+    "components" | "resources" | "changes"
+  >("components");
+  const [surface, setSurface] = useState<"split" | "preview" | "artwork">(
+    "split",
   );
-  const [surface, setSurface] = useState<"preview" | "artwork">("preview");
   const [compareOriginal, setCompareOriginal] = useState(false);
+  const [mobilePanel, setMobilePanel] = useState<
+    "explorer" | "workspace" | "properties"
+  >("workspace");
   const [busy, setBusy] = useState(false);
   const [compiling, setCompiling] = useState(false);
   const [error, setError] = useState("");
@@ -279,10 +285,12 @@ function App() {
       }
     return componentsFor(theme, resources, windowAssets);
   }, [loaded, originalTheme, resources, compareOriginal]);
+  const loadingSource = busy || (!loaded && !originalTheme && !error);
   const component = components.find((c) => c.id === focus?.component);
   const variant = component?.variants.find((v) => v.key === focus?.variant);
   const selectComponent = useCallback((next: ComponentSelection) => {
     setFocus(next);
+    setMobilePanel("workspace");
     setNavigation("components");
     setRecord(0);
     if (next.component === "document-window")
@@ -373,6 +381,52 @@ function App() {
     window.addEventListener("beforeunload", preventLoss);
     return () => window.removeEventListener("beforeunload", preventLoss);
   }, [unsaved]);
+
+  const undo = useCallback(
+    () =>
+      setHistory((h) =>
+        h.past.length
+          ? {
+              past: h.past.slice(0, -1),
+              present: h.past.at(-1)!,
+              future: [h.present!, ...h.future],
+            }
+          : h,
+      ),
+    [],
+  );
+  const redo = useCallback(
+    () =>
+      setHistory((h) =>
+        h.future.length
+          ? {
+              past: [...h.past, h.present!],
+              present: h.future[0]!,
+              future: h.future.slice(1),
+            }
+          : h,
+      ),
+    [],
+  );
+  useEffect(() => {
+    const handleKey = (event: KeyboardEvent) => {
+      const target = event.target;
+      if (
+        busy ||
+        !(event.metaKey || event.ctrlKey) ||
+        event.key.toLowerCase() !== "z" ||
+        (target instanceof HTMLElement &&
+          (target.matches("input, textarea, select") ||
+            target.isContentEditable))
+      )
+        return;
+      event.preventDefault();
+      if (event.shiftKey) redo();
+      else undo();
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [busy, undo, redo]);
 
   function change(next: Project) {
     setHistory((h) => ({
@@ -498,7 +552,7 @@ function App() {
       `${r.name} ${r.id}`.toLowerCase().includes(search.toLowerCase()),
   );
   return (
-    <div className="studio">
+    <div className={`studio mobile-${mobilePanel}`}>
       <header className="app-header">
         <div className="brand">
           <span className="brand-mark" aria-hidden="true">
@@ -507,22 +561,25 @@ function App() {
           <span>
             Scriptoscope <strong>Studio</strong>
           </span>
-          <span className="prototype">Prototype</span>
+          <span className="prototype">AUTHORING · 02</span>
         </div>
         <a
           href="https://github.com/khawkins98/scriptoscope/issues/472"
           target="_blank"
           rel="noreferrer"
         >
-          The authoring experiment ↗
+          Project notes ↗
         </a>
       </header>
       <div className="document-bar">
         <div>
-          <p className="eyebrow">THEME WORKSPACE</p>
+          <p className="eyebrow">THEME PROJECT</p>
           <h1>
             {project?.name ?? "Your next theme"}{" "}
             <span className={unsaved ? "status-dot changed" : "status-dot"} />
+            <span className="document-state">
+              {unsaved ? "Unsaved changes" : "Source preserved"}
+            </span>
           </h1>
         </div>
         <div className="document-actions">
@@ -571,10 +628,29 @@ function App() {
           </button>
         </div>
       )}
+      <div
+        className="mobile-navigation segmented"
+        role="group"
+        aria-label="Editor panels"
+      >
+        {(["explorer", "workspace", "properties"] as const).map((panel) => (
+          <button
+            key={panel}
+            aria-pressed={mobilePanel === panel}
+            onClick={() => setMobilePanel(panel)}
+          >
+            {panel === "explorer"
+              ? "Explorer"
+              : panel === "workspace"
+                ? "Workspace"
+                : "Properties"}
+          </button>
+        ))}
+      </div>
       <div className="workspace">
         <aside className="library" aria-label="Source artwork library">
           <div className="panel-heading">
-            <h2>Theme library</h2>
+            <h2>Explorer</h2>
             <span className="small-badge">LOCAL</span>
           </div>
           <label className="field-label" htmlFor="sample">
@@ -620,6 +696,15 @@ function App() {
               onClick={() => setNavigation("resources")}
             >
               Resources
+            </button>
+            <button
+              aria-pressed={navigation === "changes"}
+              onClick={() => setNavigation("changes")}
+            >
+              Changes
+              {project?.edits.length ? (
+                <span className="count-badge">{project.edits.length}</span>
+              ) : null}
             </button>
           </div>
           {navigation === "components" ? (
@@ -671,9 +756,11 @@ function App() {
                         >
                           {editedVariant(project, v, resources)
                             ? "Edited"
-                            : v.occurrence === null
-                              ? "Unavailable"
-                              : "Original"}
+                            : loadingSource
+                              ? "Loading…"
+                              : v.occurrence === null
+                                ? "Unavailable"
+                                : "Original"}
                         </span>
                       </button>
                     ))}
@@ -684,6 +771,54 @@ function App() {
                 Choose a component here or pick it directly in the specimen.
                 More control families will follow.
               </p>
+            </div>
+          ) : navigation === "changes" ? (
+            <div className="change-list">
+              <h3 className="section-label">Working overrides</h3>
+              {project?.edits.length ? (
+                project.edits.map((edit) => {
+                  const candidates = resources.filter(
+                    (r) => r.type === "cicn" && r.id === edit.id,
+                  );
+                  const occurrence =
+                    edit.kind === "palette"
+                      ? edit.occurrence
+                      : candidates.length === 1
+                        ? candidates[0]!.occurrence
+                        : null;
+                  return (
+                    <button
+                      key={`${edit.kind}:${edit.occurrence}:${edit.kind === "palette" ? edit.record : "geometry"}`}
+                      disabled={busy || occurrence === null}
+                      onClick={() => {
+                        setFocus(null);
+                        setSelected(occurrence!);
+                        setRecord(edit.kind === "palette" ? edit.record : 0);
+                      }}
+                    >
+                      <span>
+                        {edit.kind === "palette"
+                          ? `Color record ${edit.record}`
+                          : "Corner / side geometry"}
+                      </span>
+                      <small>
+                        Resource {edit.id} · #{edit.occurrence}
+                      </small>
+                      <code>
+                        {edit.before.join(" / ")} → {edit.after.join(" / ")}
+                      </code>
+                    </button>
+                  );
+                })
+              ) : (
+                <div className="empty-changes">
+                  <span aria-hidden="true">✓</span>
+                  <p>No overrides yet</p>
+                  <small>
+                    Edit a color or geometry value to start shaping this theme.
+                  </small>
+                </div>
+              )}
             </div>
           ) : (
             <>
@@ -708,6 +843,7 @@ function App() {
                     }
                     onClick={() => {
                       setFocus(null);
+                      setMobilePanel("workspace");
                       setSelected(resource.occurrence);
                       setRecord(0);
                     }}
@@ -727,18 +863,24 @@ function App() {
           <div className="library-footnote">
             <span className="preserved-mark">✓</span>
             <div>
-              Originals stay original.
-              <small>Every source record is retained.</small>
+              Original safely retained
+              <small>{resources.length} source records · local project</small>
             </div>
           </div>
         </aside>
-        <main className="canvas-panel">
+        <main className={`canvas-panel layout-${surface}`}>
           <div className="canvas-toolbar">
             <div
               className="segmented"
               role="group"
               aria-label="Workspace surface"
             >
+              <button
+                aria-pressed={surface === "split"}
+                onClick={() => setSurface("split")}
+              >
+                Split workspace
+              </button>
               <button
                 aria-pressed={surface === "preview"}
                 onClick={() => setSurface("preview")}
@@ -779,16 +921,20 @@ function App() {
                 {component?.group ?? "SOURCE RESOURCE"}
               </span>
               <h2>
-                {component?.label ?? selectedResource?.name ?? "Source artwork"}
+                {component
+                  ? `${component.label} / ${variant?.label ?? ""}`
+                  : (selectedResource?.name ?? "Source artwork")}
               </h2>
+              {selectedResource && (
+                <p className="selection-source" title={selectedResource.name}>
+                  cicn · {selectedResource.id} · occurrence #{selected}
+                </p>
+              )}
             </div>
-            {compareOriginal && (
-              <span className="comparison-badge">
-                Original · editing paused
-              </span>
-            )}
+
             <button
               className="quiet-button"
+              title="Reset the selected source artwork wherever it is used; undo restores your edits."
               disabled={!selectionEdited || !canEdit || !project}
               onClick={() =>
                 project &&
@@ -798,6 +944,17 @@ function App() {
               Reset selected artwork
             </button>
           </div>
+          {compareOriginal && (
+            <div className="comparison-banner" role="note">
+              <strong>Viewing the imported original</strong>
+              <span>
+                Read-only comparison. Your working edits are preserved.
+              </span>
+              <button onClick={() => setCompareOriginal(false)}>
+                Return to working
+              </button>
+            </div>
+          )}
           {component && (
             <div
               className="variant-strip"
@@ -826,35 +983,40 @@ function App() {
                     <small>
                       {editedVariant(project, v, resources)
                         ? "Edited"
-                        : v.occurrence === null
-                          ? "Unavailable"
-                          : "Original"}
+                        : loadingSource
+                          ? "Loading…"
+                          : v.occurrence === null
+                            ? "Unavailable"
+                            : "Original"}
                     </small>
                   </span>
                 </button>
               ))}
             </div>
           )}
-          {variant?.unavailable && (
+          {!loadingSource && variant?.unavailable && (
             <p className="selection-note" role="status">
               {variant.unavailable} Try Resources to inspect the retained
               records.
             </p>
           )}
-          <div className="preview-stage" aria-busy={compiling || busy}>
-            <div className="stage-heading">
-              <span className="eyebrow">
-                {surface === "preview" ? "LIVE SPECIMEN" : "ARTWORK WORKSPACE"}
-              </span>
-              <span>
-                {compareOriginal
-                  ? "Imported original"
-                  : compiling
-                    ? "Rebuilding preview…"
-                    : "Scriptoscope renderer"}
-              </span>
-            </div>
-            {surface === "preview" ? (
+          <div className="editing-surfaces">
+            <section
+              className="preview-stage"
+              aria-label="Live theme preview"
+              hidden={surface === "artwork"}
+              aria-busy={compiling || busy}
+            >
+              <div className="stage-heading">
+                <span className="eyebrow">Live preview</span>
+                <span>
+                  {compareOriginal
+                    ? "Imported original"
+                    : compiling
+                      ? "Rebuilding preview…"
+                      : "Scriptoscope renderer"}
+                </span>
+              </div>
               <>
                 <div className="specimen-settings">
                   <div
@@ -908,70 +1070,72 @@ function App() {
                   )}
                 </div>
                 <p className="stage-caption">
-                  Click a window title or button to select it. Each state keeps
-                  its own artwork and geometry.
+                  Click a control to select it. Scroll to inspect the full 2×
+                  preview.
                 </p>
               </>
-            ) : selectedResource ? (
-              <ArtworkEditor
-                data={
-                  compareOriginal
-                    ? originalResources[selected]!.data
-                    : selectedResource.data
-                }
-                geometry={
-                  geometry
-                    ? compareOriginal && originalGeometry
-                      ? [originalGeometry.data[0]!, originalGeometry.data[1]!]
-                      : [geometry.data[0]!, geometry.data[1]!]
-                    : undefined
-                }
-                editable={canEdit && !!geometry}
-                onGeometry={applyGeometry}
-              />
-            ) : (
-              <p className="preview-placeholder">
-                Select supported artwork to inspect it.
-              </p>
-            )}
-          </div>
-          <div className="preservation-card">
-            <div className="preservation-icon" aria-hidden="true">
-              ↺
-            </div>
-            <div>
-              <h3>A project you can come back to.</h3>
-              <p>
-                Save the original scheme together with your edits. Reopen it
-                here and keep exploring.
-              </p>
-            </div>
-            <button
-              disabled={!project || busy}
-              onClick={() =>
-                project &&
-                download(
-                  decodeBytes(project.source.original),
-                  project.source.filename,
-                  "application/octet-stream",
-                )
-              }
+            </section>
+            <section
+              className="artwork-pane"
+              aria-label="Source artwork editor"
+              hidden={surface === "preview"}
             >
-              Recover original ↓
-            </button>
+              <div className="stage-heading">
+                <span className="eyebrow">Source artwork</span>
+                <span className="small-badge">
+                  {selectedResource
+                    ? `cicn ${selectedResource.id}`
+                    : "NO SELECTION"}
+                </span>
+              </div>
+              <h3 className="artwork-title">
+                {loadingSource ? "Preparing source…" : "Indexed source image"}
+                <span>
+                  {loadingSource
+                    ? "Loading…"
+                    : geometry
+                      ? "Editable geometry"
+                      : "Palette only"}
+                </span>
+              </h3>
+              {selectedResource ? (
+                <ArtworkEditor
+                  data={
+                    compareOriginal
+                      ? originalResources[selected]!.data
+                      : selectedResource.data
+                  }
+                  geometry={
+                    geometry
+                      ? compareOriginal && originalGeometry
+                        ? [originalGeometry.data[0]!, originalGeometry.data[1]!]
+                        : [geometry.data[0]!, geometry.data[1]!]
+                      : undefined
+                  }
+                  editable={canEdit && !!geometry}
+                  onGeometry={applyGeometry}
+                />
+              ) : (
+                <div className="preview-placeholder">
+                  {loadingSource
+                    ? "Preparing source artwork…"
+                    : "Choose supported artwork from the Explorer."}
+                </div>
+              )}
+            </section>
           </div>
-          <div className="prototype-note">
-            <strong>First experiment</strong>
-            <span>
-              Palette + geometry editing · source-backed project files.
-              Web-runtime and Linux exports come later.
-            </span>
+          <div className="workspace-hint">
+            <span aria-hidden="true">↖</span> Pick a control in the preview,
+            then edit its source artwork.{" "}
+            <span>{project?.edits.length ?? 0} overrides</span>
           </div>
         </main>
         <aside className="inspector" aria-label="Artwork inspector">
           <div className="panel-heading">
-            <h2>Appearance</h2>
-            <span className="small-badge">cicn</span>
+            <h2>Properties</h2>
+            <span className="small-badge">
+              {compareOriginal ? "READ ONLY" : "WORKING"}
+            </span>
           </div>
           <h3 className="asset-title">
             {component
@@ -983,189 +1147,192 @@ function App() {
               ? `Resource ${selectedResource.id} · occurrence ${selected}`
               : "Select a color icon"}
           </p>
-          {selectedResource && (
-            <ArtworkEditor
-              compact
-              data={
-                compareOriginal
-                  ? originalResources[selected]!.data
-                  : selectedResource.data
-              }
-              geometry={
-                geometry
-                  ? compareOriginal && originalGeometry
-                    ? [originalGeometry.data[0]!, originalGeometry.data[1]!]
-                    : [geometry.data[0]!, geometry.data[1]!]
-                  : undefined
-              }
-            />
-          )}
-          <div className="inventory-heading">
-            <h3 className="section-label">PALETTE</h3>
-            <span>{displayedPalette?.entries.length ?? 0} colors</span>
-          </div>
-          {displayedPalette ? (
-            <>
-              <div className="swatches">
-                {displayedPalette.entries.map((entry, i) => (
-                  <button
-                    key={i}
-                    aria-label={`Palette record ${i}`}
-                    aria-pressed={record === i}
-                    title={`Record ${i} · index ${entry.value}`}
-                    style={
-                      {
-                        "--swatch": displayColor(entry.rgb),
-                      } as React.CSSProperties
-                    }
-                    onClick={() => setRecord(i)}
-                  />
-                ))}
-              </div>
-              {color && (
-                <div className="color-editor">
-                  <div className="color-summary">
-                    <span style={{ background: displayColor(color) }} />
-                    <div>
-                      Color record {record}{" "}
-                      {colorEdited && (
-                        <span className="edit-marker">Edited</span>
-                      )}
-                      <small>
-                        Palette index {displayedPalette.entries[record]!.value}
-                      </small>
-                    </div>
-                  </div>
-                  <button
-                    className="reset-property"
-                    disabled={!colorEdited || !canEdit}
-                    onClick={() => originalColor && applyColor(originalColor)}
-                  >
-                    Reset color
-                  </button>
-                  <label className="field-label" htmlFor="source-color">
-                    Source RGB color
-                  </label>
-                  <input
-                    id="source-color"
-                    type="color"
-                    disabled={!canEdit}
-                    value={hex(color.map((n) => n >> 8))}
-                    onChange={(e) => {
-                      const next = [1, 3, 5].map(
-                        (offset) =>
-                          parseInt(
-                            e.target.value.slice(offset, offset + 2),
-                            16,
-                          ) * 257,
-                      ) as Rgb16;
-                      applyColor(next);
-                    }}
-                  />
-                  <details className="precise-color">
-                    <summary>Precise source color (RGB16)</summary>
-                    <div className="channel-fields">
-                      {["Red", "Green", "Blue"].map((channel, i) => (
-                        <label key={channel}>
-                          {channel}
-                          <input
-                            aria-label={`${channel} (RGB16)`}
-                            type="number"
-                            min={0}
-                            max={65535}
-                            value={color[i]}
-                            disabled={!canEdit}
-                            onChange={(e) => {
-                              if (!e.target.value) return;
-                              const next: Rgb16 = [...color];
-                              next[i] = Number(e.target.value);
-                              applyColor(next);
-                            }}
-                          />
-                        </label>
-                      ))}
-                    </div>
-                    <p className="field-help">
-                      RGB16 fields retain exact source values. The color picker
-                      writes an 8-bit source color; the preview applies the
-                      runtime display policy.
-                    </p>
-                  </details>
-                </div>
-              )}
-            </>
-          ) : (
-            <p className="field-help">
-              This artwork is retained, but its palette is not supported by this
-              editor.
-            </p>
-          )}
-          <p className="field-help">
-            Changes and resets apply to the source record everywhere it is used.
-          </p>
-          <h3 className="section-label">MATCHING GEOMETRY</h3>
-          {geometry && project ? (
-            <>
-              <div className="channel-fields geometry-fields">
-                {["Corner size", "Side thickness"].map((label, i) => (
-                  <div key={label}>
-                    <span className="property-label">
-                      <label htmlFor={`geometry-${i}`}>{label}</label>
-                      <button
-                        className="reset-property"
-                        aria-label={`Reset ${label.toLowerCase()}`}
-                        disabled={
-                          !canEdit ||
-                          geometry.data[i] === originalGeometry?.data[i]
-                        }
-                        onClick={() => {
-                          if (originalGeometry) {
-                            const next: [number, number] = [
-                              geometry.data[0]!,
-                              geometry.data[1]!,
-                            ];
-                            next[i] = originalGeometry.data[i]!;
-                            applyGeometry(next);
-                          }
-                        }}
-                      >
-                        Reset
-                      </button>
-                    </span>
-                    <input
-                      id={`geometry-${i}`}
-                      type="number"
-                      min={0}
-                      max={255}
-                      value={
-                        compareOriginal && originalGeometry
-                          ? originalGeometry.data[i]
-                          : geometry.data[i]
+          <section
+            className="inspector-section"
+            aria-label="Palette properties"
+          >
+            <div className="inventory-heading">
+              <h3 className="section-label">PALETTE</h3>
+              <span>{displayedPalette?.entries.length ?? 0} colors</span>
+            </div>
+            {displayedPalette ? (
+              <>
+                <div className="swatches">
+                  {displayedPalette.entries.map((entry, i) => (
+                    <button
+                      key={i}
+                      aria-label={`Palette record ${i}`}
+                      aria-pressed={record === i}
+                      title={`Record ${i} · index ${entry.value}`}
+                      style={
+                        {
+                          "--swatch": displayColor(entry.rgb),
+                        } as React.CSSProperties
                       }
+                      onClick={() => setRecord(i)}
+                    />
+                  ))}
+                </div>
+                {color && (
+                  <div className="color-editor">
+                    <div className="color-summary">
+                      <span style={{ background: displayColor(color) }} />
+                      <div>
+                        Color record {record}{" "}
+                        {colorEdited && (
+                          <span className="edit-marker">Edited</span>
+                        )}
+                        <small>
+                          Palette index{" "}
+                          {displayedPalette.entries[record]!.value}
+                        </small>
+                      </div>
+                    </div>
+                    <button
+                      className="reset-property"
+                      disabled={!colorEdited || !canEdit}
+                      onClick={() => originalColor && applyColor(originalColor)}
+                    >
+                      Reset color
+                    </button>
+                    <label className="field-label" htmlFor="source-color">
+                      Source RGB color
+                    </label>
+                    <input
+                      id="source-color"
+                      type="color"
                       disabled={!canEdit}
+                      value={hex(color.map((n) => n >> 8))}
                       onChange={(e) => {
-                        if (!e.target.value) return;
-                        const next: [number, number] = [
-                          geometry.data[0]!,
-                          geometry.data[1]!,
-                        ];
-                        next[i] = Number(e.target.value);
-                        applyGeometry(next);
+                        const next = [1, 3, 5].map(
+                          (offset) =>
+                            parseInt(
+                              e.target.value.slice(offset, offset + 2),
+                              16,
+                            ) * 257,
+                        ) as Rgb16;
+                        applyColor(next);
                       }}
                     />
+                    <details className="precise-color">
+                      <summary>Precise source color (RGB16)</summary>
+                      <div className="channel-fields">
+                        {["Red", "Green", "Blue"].map((channel, i) => (
+                          <label key={channel}>
+                            {channel}
+                            <input
+                              aria-label={`${channel} (RGB16)`}
+                              type="number"
+                              min={0}
+                              max={65535}
+                              value={color[i]}
+                              disabled={!canEdit}
+                              onChange={(e) => {
+                                if (!e.target.value) return;
+                                const next: Rgb16 = [...color];
+                                next[i] = Number(e.target.value);
+                                applyColor(next);
+                              }}
+                            />
+                          </label>
+                        ))}
+                      </div>
+                      <p className="field-help">
+                        RGB16 fields retain exact source values. The color
+                        picker writes an 8-bit source color; the preview applies
+                        the runtime display policy.
+                      </p>
+                    </details>
                   </div>
-                ))}
-              </div>
+                )}
+              </>
+            ) : (
               <p className="field-help">
-                Edits the unique same-ID cinf record. Shared source records
-                change everywhere they are used.
+                {loadingSource
+                  ? "Preparing palette…"
+                  : "This artwork is retained, but its palette is not supported by this editor."}
               </p>
-            </>
-          ) : (
+            )}
             <p className="field-help">
-              No unique matching cinf record. Palette edits are still available.
+              Changes and resets apply to the source record everywhere it is
+              used.
             </p>
-          )}
+          </section>
+          <section
+            className="inspector-section"
+            aria-label="Geometry properties"
+          >
+            <h3 className="section-label">Geometry</h3>
+            {geometry && project ? (
+              <>
+                <div className="channel-fields geometry-fields">
+                  {["Corner size", "Side thickness"].map((label, i) => (
+                    <div key={label}>
+                      <span className="property-label">
+                        <label
+                          className={i === 0 ? "corner-label" : "side-label"}
+                          htmlFor={`geometry-${i}`}
+                        >
+                          {label}
+                        </label>
+                        <button
+                          className="reset-property"
+                          aria-label={`Reset ${label.toLowerCase()}`}
+                          disabled={
+                            !canEdit ||
+                            geometry.data[i] === originalGeometry?.data[i]
+                          }
+                          onClick={() => {
+                            if (originalGeometry) {
+                              const next: [number, number] = [
+                                geometry.data[0]!,
+                                geometry.data[1]!,
+                              ];
+                              next[i] = originalGeometry.data[i]!;
+                              applyGeometry(next);
+                            }
+                          }}
+                        >
+                          Reset
+                        </button>
+                      </span>
+                      <input
+                        id={`geometry-${i}`}
+                        type="number"
+                        min={0}
+                        max={255}
+                        value={
+                          compareOriginal && originalGeometry
+                            ? originalGeometry.data[i]
+                            : geometry.data[i]
+                        }
+                        disabled={!canEdit}
+                        onChange={(e) => {
+                          if (!e.target.value) return;
+                          const next: [number, number] = [
+                            geometry.data[0]!,
+                            geometry.data[1]!,
+                          ];
+                          next[i] = Number(e.target.value);
+                          applyGeometry(next);
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+                <p className="field-help">
+                  Edits the unique same-ID cinf record. Shared source records
+                  change everywhere they are used.
+                </p>
+              </>
+            ) : (
+              <p className="field-help">
+                {loadingSource
+                  ? "Preparing geometry…"
+                  : "No unique matching cinf record. Palette edits are still available."}
+              </p>
+            )}
+          </section>
           {project && (
             <details className="source-details">
               <summary>Source preservation</summary>
@@ -1184,6 +1351,20 @@ function App() {
               </p>
             </details>
           )}
+          <button
+            className="recover-source"
+            disabled={!project || busy}
+            onClick={() =>
+              project &&
+              download(
+                decodeBytes(project.source.original),
+                project.source.filename,
+                "application/octet-stream",
+              )
+            }
+          >
+            Recover original <span aria-hidden="true">↓</span>
+          </button>
         </aside>
       </div>
       <footer className="status-bar">
@@ -1191,33 +1372,23 @@ function App() {
           <button
             aria-label="Undo edit"
             disabled={!history.past.length || busy}
-            onClick={() =>
-              setHistory((h) => ({
-                past: h.past.slice(0, -1),
-                present: h.past.at(-1)!,
-                future: [h.present!, ...h.future],
-              }))
-            }
+            onClick={undo}
           >
             ↶
           </button>
           <button
             aria-label="Redo edit"
             disabled={!history.future.length || busy}
-            onClick={() =>
-              setHistory((h) => ({
-                past: [...h.past, h.present!],
-                present: h.future[0]!,
-                future: h.future.slice(1),
-              }))
-            }
+            onClick={redo}
           >
             ↷
           </button>
           <span>{project?.edits.length ?? 0} edits</span>
         </div>
         <p role="status">{busy ? "Reading source…" : notice}</p>
-        <span className="local-label">● Everything stays in your browser</span>
+        <span className="local-label">
+          ● Local workspace · source-backed v0
+        </span>
       </footer>
     </div>
   );
