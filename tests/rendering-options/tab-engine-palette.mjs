@@ -1,5 +1,5 @@
 // Independently hand-encoded sparse/duplicate ColorSpec fixture, CDEF8 C4/C5.
-// Raster lookup uses positions; sampler positional-match/reverse-value search
+// Raster lookup explicitly uses ctFlags bit15 positions; sampler positional-match/reverse-value search
 // gives different RGB. No renderer or loader is used to generate these bytes.
 export function sparseTabCicn() {
   const w = 7, h = 5, maskBytes = h, bitmapBytes = h;
@@ -9,7 +9,8 @@ export function sparseTabCicn() {
   view.setUint16(32, 8); view.setUint16(34, 1); view.setUint16(36, 8);
   for (const offset of [50, 64]) { view.setUint16(offset + 4, 1); view.setUint16(offset + 10, h); view.setUint16(offset + 12, w); }
   bytes.fill(0xfe, 82, 82 + maskBytes);
-  view.setUint16(table + 6, 3);
+  // Explicit bit15 makes ordinary decoder position-keyed; CDEF8 C5 ignores it.
+  view.setUint16(table + 4, 0x8000); view.setUint16(table + 6, 3);
   const entries = [[9, 65535, 0, 0], [7, 0, 65535, 0], [1, 0, 0, 65535], [7, 65535, 65535, 0]];
   entries.forEach((entry, i) => entry.forEach((v, j) => view.setUint16(table + 8 + i * 8 + j * 2, v)));
   // Caps index1 => decoded green; source top/bottom middle1/7 => sampled
