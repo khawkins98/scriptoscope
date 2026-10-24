@@ -13,10 +13,12 @@ never by where the binary keeps them. Addresses appear only as citations:
 in the evidence appendix. `node scripts/check-cleanroom.mjs` lints every `docs/spec/engine/*.md` except
 `*.evidence.md`.
 
-**Who reads what.** Implementers read this file, Apple Inside Macintosh /
-Universal Interfaces and `tests/rendering-options/*-rules.mjs`. They never read
-the evidence appendix ([implementer brief](IMPLEMENTER-BRIEF.md)). Anything an
-implementer needs must therefore be stated here.
+**Who reads what.** Implementers read this behavioral spec, Apple Inside
+Macintosh / Universal Interfaces and only the exhaustive allowed paths in the
+[implementer brief](IMPLEMENTER-BRIEF.md). Independent test/rule sources, oracle
+data, verifier material and evidence appendices are not implementer reading.
+Assigned independent checks may be run without opening their source or data.
+Anything an implementer needs must therefore be stated in the safe contract.
 
 ---
 

@@ -1,14 +1,6 @@
 # `qd.blit` — kDEF blit primitives: tile, scale, corner, icon blit, samplers, pattern fills, cinf body + border
 
-*Behavioural spec, [TEMPLATE](TEMPLATE.md) shape. First split out of
-`kdef231-reference.md` §1.5 / §3.6 / §5 / §5.1 and `kdef231-recipe-walk.md`
-Q2 / Q5 on 2026-10-21 (v2 lane L2, moved prose). **Revised 2026-10-22** (spec
-writer, `v2-spec-qd-answers`) to answer the L4 implementer's questions Q1–Q11
-(§8): every row below was re-read in the 2.3.1 listing, several rows were
-corrected (§9), and rows were added for the icon blit, the samplers, the
-pattern fills and the cinf border rects. It has **not** yet had an independent
-verifier pass. Listing provenance: `qd-primitives.evidence.md` (spec writers
-and verifiers only).*
+*Behavioral spec in the [TEMPLATE](TEMPLATE.md) shape.*
 
 **Two kinds of statement.** Rows with an address in `source` are decoded from
 the kDEF. QuickDraw itself is not in the kDEF: whatever CopyBits, CopyMask,
@@ -286,12 +278,12 @@ Scaling as for the scale blit. No picture or bottleneck test.
 
 | # | condition | behaviour | source |
 |---|---|---|---|
-| S1 | every sample | the point `(h, v)` is read as an offset from the icon's first stored pixel (row `v`, column `h`), **with no range check**. For every corpus cicn the bounds start at `(0, 0)`, so the offset equals the bounds coordinate (census, §6) | `0xfc5c..0xfcc4`, `0xfa8a..0xfae4` |
+| S1 | every sample | the point `(h, v)` is read as an offset from the icon's first stored pixel (row `v`, column `h`), **with no range check**. For bounds starting at `(0, 0)`, the offset equals the bounds coordinate | `0xfc5c..0xfcc4`, `0xfa8a..0xfae4` |
 | S2 | not `lowDepth` | colour = the stored pixel value (1, 2, 4 or 8 bit; leftmost pixel in the high bits) looked up in the icon's colour table, in this order: (a) value ≤ the table's last index (`ctSize`, i.e. entries − 1) and that entry's value equals it → that entry; (b) else, if the **last** entry's value is 0 → the entry at that position (beyond the table when the value exceeds the last index: undefined); (c) else the highest-indexed entry whose value equals it; (d) none → entry 0 | `0xfd34..0xfde8`, `0x10702..0x10766` |
 | S3 | `lowDepth` | colour = the icon's 1-bit image bit: set → black, clear → white | `0xfcc8..0xfd30` |
 | S4 | the returned mask bit | the line path tests it (L1); the cinf colour samples ignore it | `0xfcb8..0xfcc4`, `0x1091a`, `0x10934`, `0x1096a` |
 | S5 | point outside the icon's bounds | if it still falls inside the stored row bytes (row padding), the stored padding bits are read; otherwise memory outside the icon's data is read and the result is **undefined**. Not a defined colour in the original: an implementation records it as `unspecified` rather than invent one | `0xfc5c..0xfde8` (no bounds test) |
-| S6 | depth 16 or 32 icon pixel maps | not handled by the sampler (no branch); not reached by the corpus | `0xfd4a..0xfd5e` |
+| S6 | depth 16 or 32 icon pixel maps | not handled by the sampler (no branch) | `0xfd4a..0xfd5e` |
 
 ### cinf body (`bodyFill` true)
 
@@ -409,7 +401,7 @@ Consequences, all from the formulas:
   left/right bands in an `(s − c) × (s − c)` square next to each corner
   (e.g. `[D.left + c, D.left + s) × [D.top + c, D.top + s)`); left/right are
   drawn last and win there where their mask is set. All four corner blocks
-  survive (agrees with `face-bands.spec.mjs`).
+  survive.
 - `s` larger than the icon: the band thickness is cut to the icon (`sw`, `sh`).
 
 **Body inset rects** (relative to `D`'s top-left, as `(x, y, w, h)`):
@@ -457,55 +449,10 @@ equivalence (L1–L3); the scale-blit selection and its colour call (SC1–SC4,
 §3 colour setup); the inset reconciliation (B2 versus R1, §9); the pattern
 fill path and phase sign (F1–F4).
 
-Corpus impact (13 `wnd#` archives, every sliced type, counts per state;
-survey script and output in the private store, lanes/H):
-
-- Code 11: 38 horizontal rows, all 1 px (direction-neutral); 6 vertical rows,
-  4 with varying >1 px sources: animals `side-floating-utility-window` right
-  (15 px) and `collapsed-no-title-utility` left (3 px).
-- Code 14: 6 horizontal rows, 4 varying: animals `document-window` and
-  `collapsed-document-window` bottom (6 px). 6 vertical rows, 2 varying:
-  monkey-paradise `document-window` right (4 px).
-- Code 13: 28 horizontal rows, 6 varying and phase-sensitive (animals); forward.
-- Code 8: 678 horizontal and 512 vertical rows; 205 and 140 have a varying
-  >1 px source and need the forward anchor.
-- So five cells (× 2 states) are where `direction` is visible.
-
-cinf census (own forks, 14 archives with cinfs, 1,033 records; script and
-output in the private store, `v2-lanes/spec-qd/`):
-
-- mode 0: 964, mode 1: 49, mode 2: 9, mode 3: 8, mode 4: 3, mode ≥ 5: none
-  (B1–B3 and I1–I3 unexercised by the cinf body); `tile` 0 = 818, 1 = 215.
-- 7 records have no same-id cicn in their own fork (crayon-os, floppies):
-  under §3 step 1 they draw nothing unless the base chain supplies the cicn.
-- Every same-id cicn has bounds starting at `(0, 0)` (S1).
-- `2c > W` or `2c > H`: 160 records in all 14 archives (empty E4 bands, cut
-  corners). `s > c`: 164 records (9 archives). `s` beyond the icon: 12.
-- E3 sample outside the icon (`tile == 0`, `c ≥ W` or `c ≥ H`): 11 records,
-  ids -12235 (1138, 1984, 1990, beos-r503, dolphin-som, evolution, floppies,
-  windows-31, windows-95), -12232 (beos-r503) and -12236 (floppies). Undefined
-  in the original when the face is taller (wider) than `2c + 1`.
-- Colour samples on mask-clear pixels: 183 background and 179 text samples
-  (13 archives); S4 says they still yield their colour.
-- Samples outside the bounds: 1138 -9549 and -9548 (text, 1 × 1 icons) and
-  -9776 (emboss, 2 × 1): all inside the stored row byte, so S5 reads stored
-  padding bits.
+Corpus observations do not add behavioral requirements to this contract.
 
 ## 7. Test hooks
 
-- `tests/rendering-options/window-chrome-rules.mjs` asserts the §5 tile formula
-  for every non-18 cell over the runtime-placed width, counting 1 px,
-  whole-copy, forward >1 px and reverse >1 px pixels separately, opaque source
-  pixels only.
-- Mutations that must fail (per-archive table, PR #373 review): flipping the
-  11/14 anchor fails only animals and monkey-paradise; inverted-anchor and
-  scaled blits fail 1990, animals, crayon-os, dolphin-som, evolution, floppies
-  and monkey-paradise. 1138, 1984, apple-lisa, beos-r503, windows-31 and
-  windows-95 pass all three mutations, so they do not discriminate T5/T6.
-- `tests/rendering-options/face-bands.spec.mjs`: hand-derived 9×9/c4/s1 and
-  21×21/c7/s14 sources distinguish square corners (E1), transposed body fill
-  (§5 R1/R2), first-strip versus repeat sampling (E3/E4), overlapping edge
-  order (E2) and transparent holes.
 - Primitive unit tests the v2 engine should add: T0 for each empty-rect and
   clip case; tile forward and reverse with a partial tile at each end;
   whole-multiple coincidence; T1/T2 triggers with a mask-clear source row (L1);
@@ -523,16 +470,16 @@ output in the private store, `v2-lanes/spec-qd/`):
 
 | Q | question (short) | answer | rows |
 |---|---|---|---|
-| Q1 | cinf corner / band rects; `2c > W`, `s > c`, `s` beyond the icon | The engine's reading is right for corners and bands, with three precisions: corner sources are cut to the icon (`cw`, `ch`) and the destination corner takes the cut size; band thickness is cut to the icon (`sw`, `sh`) and the band's dst thickness equals it; the along range uses the uncut `c`, so bands never cover corners; with `s > c` bands overlap each other next to the corners and left/right win. Edge cases follow from the formulas | §5 cinf border rects, E1–E5 |
+| Q1 | cinf corner / band rects; `2c > W`, `s > c`, `s` beyond the icon | Corner and band geometry: corner sources are cut to the icon (`cw`, `ch`) and the destination corner takes the cut size; band thickness is cut to the icon (`sw`, `sh`) and the band's dst thickness equals it; the along range uses the uncut `c`, so bands never cover corners; with `s > c` bands overlap each other next to the corners and left/right win. Edge cases follow from the formulas | §5 cinf border rects, E1–E5 |
 | Q2 | E4 tile direction | `1` (forward) for all four bands; the source is the whole middle strip; with the cache mode on, `altSource` is a pixel-neutral border cache | E4, E6, §2 tile inputs |
 | Q3 | "nonzero" in T1/T2; equal to CopyMask? | The icon's mask bit at the sample point (the fast path asks the sampler to test the mask). Colour = S2 (or S3 at `lowDepth`). Pixels equal CopyMask's under a normal pen, no picture recording, a direct-colour device and equal cross-axis extents; the residual differences are listed | T1, T2, L1–L3, S2–S4 |
 | Q4 | CopyBits scaling rule; scale-blit selection | Selection decoded: CopyMask on screen; CopyBits through the scaled mask region when recording a picture or with custom bottlenecks. The 0xf30a "RGBForeColor" claim was wrong: colours are black/white (`0xf378`). The pixel mapping of scaling is not specified by Apple and not in these binaries: keep `floor(k · sw / dw)` as a recorded **modern policy** | SC1–SC4, §3 colour setup, §6 item 2 |
-| Q5 | window chrome transfer | **CopyMask** for every on-screen chrome tile, and for code 18 unless the port has custom bottlenecks (then CopyBits through the mapped mask region, still masked: SC4); opaque CopyBits only while a picture is being recorded (not when bottlenecks are custom: that was a misread field). The runtime's opaque CopyBits for every cell is a divergence from the decode; changing it (192 digests) is a family decision, not this unit's. The faithfulness-ledger row `0xfeae` still names `drawTile`; its owner should update it | X1–X4, W1–W4 |
+| Q5 | window chrome transfer | **CopyMask** for every on-screen chrome tile, and for code 18 unless the port has custom bottlenecks (then CopyBits through the mapped mask region, still masked: SC4); opaque CopyBits only while a picture is being recorded (not when bottlenecks are custom: that was a misread field). | X1–X4, W1–W4 |
 | Q6 | vertical step with unequal cross widths | One column of source width at the anchor edge, cut if wider, the rest left undrawn if narrower. No decoded caller reaches it | T8 |
 | Q7 | pattern phase sign; FillCRect vs FillRect | Positive: port pixel `(X, Y)` shows pattern `((X − x) mod pw, (Y − y) mod ph)` (origin move decoded, alignment Apple-documented). FillCRect normally; FillRect with the 1-bit pattern in black on white at `lowDepth` | F1–F4, P1–P5 |
 | Q8 | when the cinf engine requests its own cicn | Always, **first**, before the cinf (from the `'Copl'` Gestalt file when available, through the kDEF's cicn loader). NULL → return immediately: nothing drawn, no cinf request, no colour sampled | §3 cinf requests step 1 |
-| Q9 | samples outside the cicn | No range check in the original: inside the stored row bytes it reads padding; beyond, undefined. Record as `unspecified`. Separately, a sample on a **mask-clear** pixel is valid and yields its colour (183 corpus records) | S1, S4, S5 |
-| Q10 | mode-5 icon body inset | Reconciled: B2 is `D` inset by `s` on all four sides; the `c`-horizontal/`s`-vertical rect at `0x10a28..0x10a34` is B3's first erase rect R1, not a slice rect. B2 uses the icon blit (I1–I3), so a deep icon body is opaque. No corpus cinf has mode 5 | B2, B3, §5 body inset rects, I1–I3 |
+| Q9 | samples outside the cicn | No range check in the original: inside the stored row bytes it reads padding; beyond, undefined. Record as `unspecified`. Separately, a sample on a **mask-clear** pixel is valid and yields its colour | S1, S4, S5 |
+| Q10 | mode-5 icon body inset | Reconciled: B2 is `D` inset by `s` on all four sides; the `c`-horizontal/`s`-vertical rect at `0x10a28..0x10a34` is B3's first erase rect R1, not a slice rect. B2 uses the icon blit (I1–I3), so a deep icon body is opaque. | B2, B3, §5 body inset rects, I1–I3 |
 | Q11 | window far-edge cap | The frame draw loop draws cells `1..count` only; there is no cap cell past the last recipe border and no 1:1 stamp there. The runtime's `[lastAt, srcExtent)` cap is runtime policy with no decoded basis; keep it labelled as such (DECISIONS/ledger), not as a spec row. The untraced second side walker (§6 item 6) is the only reason this is not "never" | W4 |
 
 ## 9. Corrections in this revision
