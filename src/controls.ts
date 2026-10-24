@@ -13,7 +13,7 @@ import { loadCicnBuffer } from './cicnImage.js';
 import { PixelBuffer } from './pixelBuffer.js';
 import { rasterizeText } from './textRaster.js';
 import { controlTextColors } from './controlTextColors.js';
-import { composeTabBody } from './composeTabBody.js';
+import { composeEngineTab } from './tabFacade.js';
 import { planHeaderSurface, headerMetadataRejection, headerBackground, paintHeaderSurface,
   type HeaderSurfaceOptions, type HeaderSurfaceResult, type HeaderSurfaceTrace } from './headerSurface.js';
 import { createTrace, type EngineTrace } from './engine/trace.js';
@@ -35,20 +35,6 @@ import { withControlDiagnostics, type ControlDiagnostics, type ControlTraceColle
  *  a 15px button face (kDEF routine `0x30a8`): floor((min(w,h)-3)/2). */
 function sliceInset(w: number, h: number): number {
   return Math.max(2, Math.floor((Math.min(w, h) - 3) / 2));
-}
-
-/** Bounding box of the buffer's non-transparent pixels (alpha > 0). */
-function opaqueBounds(buf: PixelBuffer): { x0: number; y0: number; x1: number; y1: number } {
-  let x0 = buf.width, y0 = buf.height, x1 = -1, y1 = -1;
-  for (let y = 0; y < buf.height; y++)
-    for (let x = 0; x < buf.width; x++)
-      if (buf.getPixel(x, y)[3] > 0) {
-        if (x < x0) x0 = x;
-        if (x > x1) x1 = x;
-        if (y < y0) y0 = y;
-        if (y > y1) y1 = y;
-      }
-  return { x0, y0, x1, y1 };
 }
 
 /**
@@ -516,92 +502,9 @@ export interface TabOptions {
   selected?: boolean;
 }
 
-/**
- * Compose one segmented TAB (e.g. an On|Off pair) from the scheme's tab cicns.
- * Selected = the "front"/"on" tab (`-9972` SSF small / `-9980` LSF large — the
- * taller, raised trapezoid); unselected = the shorter "rear"/"off" tab
- * (`-9975` / `-9983`). Supported cinf bodies use CDEF 8 full-height end strips
- * and independent bands/solid center. Unsupported bodies retain the legacy
- * three-slice compatibility path. Returns null when the
- * scheme ships no tab cicn (caller falls back to a CSS segmented control).
- *
- * NB: this is NOT the popup-menu tab `-12319` (a different control that no
- * corpus scheme ships) — the segmented tab control is the `-998x` family
- * (SSF/LSF front/rear tabs + tab pane). See docs/spec/kdef231-reference.md.
- */
+/** Compose one resting enabled segmented tab (engine/tab.md modern facade). */
 export async function composeTab(theme: LoadedTheme, opts: TabOptions = {}): Promise<PixelBuffer | null> {
-  return withControlDiagnostics(opts.diagnostics, 'tab', {
-    state: 'active', pressed: false, disabled: false, selected: !!opts.selected,
-  }, trace => composeTabWithTrace(theme, opts, trace));
-}
-
-async function composeTabWithTrace(theme: LoadedTheme, opts: TabOptions, trace?: ControlTraceCollector): Promise<PixelBuffer | null> {
-  const lookup: TraceLookup = { ...FACE_LOOKUP, basis: 'compatibility-policy' };
-  const ids = opts.selected ? [9972, 9980] : [9975, 9983]; // small then large; front/rear
-  let face: ResolvedControlFace | null = null;
-  for (const [index, id] of ids.entries()) {
-    if (index > 0) traceFallback(trace, id, 'tab-small-to-large', lookup);
-    face = await loadFaceById(theme, id, trace, lookup);
-    if (face) break;
-  }
-  if (!face) return null;
-  const tab = face.buffer;
-  const b = opaqueBounds(tab);
-  if (b.x1 < b.x0 || b.y1 < b.y0) return null;
-  const bw = b.x1 - b.x0 + 1;
-  const bh = b.y1 - b.y0 + 1;
-
-  // Retained compatibility typography: CDEF 8 has authored text/emboss
-  // samples and data-driven fonts, but those separate rules are not implemented
-  // by this body correction. Do not infer original text color from contrast.
-  const cx = (b.x0 + b.x1) >> 1;
-  const cy = (b.y0 + b.y1) >> 1;
-  const [fr, fgc, fbc] = tab.getPixel(cx, cy);
-  const faceLum = 0.299 * fr + 0.587 * fgc + 0.114 * fbc;
-  const fg = faceLum < 128 ? '#ffffff' : '#000000';
-
-  const label = opts.label ?? '';
-  const glyphs = label ? rasterizeText(label, Math.max(8, Math.round(bh * 0.42)), fg) : null;
-  // Prefer cinf-declared slice.corner for the end-cap thickness; fall back to the
-  // historical clamp when no cinf was shipped. Same shape as composeFaceButton /
-  // the cinf-driven controls — read the artist's authored answer rather than the heuristic.
-  const tabEl = face.element;
-  const cap = tabEl?.slice?.corner ?? Math.max(2, Math.min(12, Math.floor((bw - 1) / 2)));
-  const labelWidth = (glyphs ? glyphs.width : 0) + cap * 2 + 6;
-  const body = composeTabBody(tab, tabEl, Math.max(tab.width, labelWidth), trace?.tabBody, face.theme.manifest);
-  if (body) {
-    // Preserve the previous glyph size and vertical offset; source body height
-    // is independent of that still-unverified typography policy.
-    if (glyphs) body.drawOver(glyphs, Math.round((body.width - glyphs.width) / 2), Math.round((bh - glyphs.height) / 2) + 1);
-    return body;
-  }
-  // Missing cinf/safe background or a positive pattern-backed center retains
-  // the old compatibility compositor until its separate contract is supported.
-  const outW = Math.max(bw, labelWidth);
-  const out = PixelBuffer.alloc(outW, bh);
-  const tileMiddle = !!tabEl?.slice?.tile;
-
-  // 3-slice the tab box across its width: fixed ends 1:1, stretched OR tiled middle
-  // depending on the cinf slice.tile flag. Crayon-os's tab cicns ship slice.tile:true
-  // so the artist's pixel-rate pattern is preserved instead of smeared.
-  out.copyBits(tab, { x: b.x0, y: b.y0, w: cap, h: bh }, { x: 0, y: 0, w: cap, h: bh });
-  out.copyBits(tab, { x: b.x1 - cap + 1, y: b.y0, w: cap, h: bh }, { x: outW - cap, y: 0, w: cap, h: bh });
-  const midSrcW = bw - cap * 2;
-  const midDstW = outW - cap * 2;
-  if (midSrcW > 0 && midDstW > 0) {
-    if (tileMiddle) {
-      // Repeat the source middle band 1:1 across the destination.
-      for (let tx = 0; tx < midDstW; tx += midSrcW) {
-        const w = Math.min(midSrcW, midDstW - tx);
-        out.copyBits(tab, { x: b.x0 + cap, y: b.y0, w, h: bh }, { x: cap + tx, y: 0, w, h: bh });
-      }
-    } else {
-      out.copyBits(tab, { x: b.x0 + cap, y: b.y0, w: midSrcW, h: bh }, { x: cap, y: 0, w: midDstW, h: bh });
-    }
-  }
-  // The body label sits slightly below center (the trapezoid's top is the bevel).
-  if (glyphs) out.drawOver(glyphs, Math.round((outW - glyphs.width) / 2), Math.round((bh - glyphs.height) / 2) + 1);
-  return out;
+  return composeEngineTab(theme, opts);
 }
 
 /**
