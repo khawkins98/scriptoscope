@@ -144,7 +144,7 @@ adapter at the branch it actually executes (see [tab.md](engine/tab.md)):
 
 - `source-bands` records source dimensions, requested output width, corner/side,
   repeat flag, and `center: 'empty' | 'solid' | 'pattern'`. Background policy is `none`,
-  `raw-sample`, or `decoded-anchor`. An empty center needs no background request
+  `raw-sample`, or `decoded-anchor`. An empty center needs no background or pattern realization
   and must not be confused with an unsupported positive center.
   Pattern bodies also record the requested pattern ID, missing-pattern erase
   and actual phase. Public label policy remains separately identified.
