@@ -37,4 +37,4 @@ These are implementation observations from the current collection, not permanent
 3. Header admission remains bounded, and column interaction is separate application work. Expand diagnostics only for concrete consumer needs.
 4. Prepared bitmap fonts/display profiles need independently justified caller data before a meaningful additional example can be provided.
 
-The new browser regression can be run after `npm run build:demo` against `preview:demo`; set `SCRIPTOSCOPE_TABS_BASE_URL` if the preview is not at `http://127.0.0.1:4173/scriptoscope/`. It uses a new HTML consumer fixture and public packaged APIs, without historical captures or golden comparisons.
+After `npm run build`, run `npx playwright test --config tests/rendering-options/playwright.config.mjs tabs-accessibility.spec.mjs`. The regression starts and closes its own shared transports and tests the public entry separately from source (`/src/index.ts`) and the built bundle (`/dist/scriptoscope.js`); no preexisting preview server or base-URL override is needed. It uses a new HTML consumer fixture without historical captures or golden comparisons.
