@@ -308,6 +308,51 @@ Input: a widget entry rect `r` in template coordinates. Output: `r` placed.
 Two fallbacks that return 4 or 5/6 when the point equals one exact offset of
 a frame rect (`0x414a..0x4164`, `0x4194..0x41bc`) are not decoded (§6 Q6).
 
+### 4.11a Outer hit classification and grow precedence (issue #381)
+
+HT1–HT8 describe only the widget branch. The enclosing `wHit` path uses
+the global point, the window's structure and content regions, and `C` (§2.1).
+For this bounded trace, `growEnabled` denotes the per-procID flag read at
+`0x3f76`; `utilityFrame` denotes the per-procID flag read at `0x481c`.
+These names do not establish a mapping from public window options to procIDs.
+The popup family has a separate path, outside the following ordinary path.
+
+| row | condition (in order) | result / rule | evidence |
+|---|---|---|---|
+| HG1 | window not visible, or point outside its structure region | 0 (`wNoHit`); no grow, content or widget test follows | `0x3f38..0x3f66` |
+| HG2 | not `popupFamily`, not `collapsed`, and `growEnabled` | test grow rect `G` (HG3) before content and widgets; a hit returns 3 (`wInGrow`) when `drawActive`, otherwise 1 (`wInContent`), and stops | `0x3f6a..0x3fb2` |
+| HG3 | HG2's rectangle | let `d = 16` when `altWidgets` is clear, otherwise 11 when `utilityFrame`, otherwise 15. Let `s = 3` when `noWidgets` and not `utilityFrame`, otherwise 0. Then `G = [C.right − d + 1 + s, C.bottom − d + 1 + s, structureBounds.right, structureBounds.bottom]` in `[left, top, right, bottom]` order. Membership uses half-open `PtInRect`. This is a bottom-right rectangle, not a band spanning the window edge | `0x480a..0x4876`, `0x3f7c..0x3fa4` |
+| HG4 | no earlier result, point in content region | 1 (`wInContent`); widgets are not tested | `0x3fb6..0x3fc6` |
+| HG5 | no earlier result, not `popupFamily` | enter the widget branch HT1–HT8 (including its inactive gate); its existing exact-point close/zoom fallbacks remain Q6 | `0x3fca..0x3fce`, `0x411c..0x41e4` |
+
+Thus a point in both the original grow rectangle and a collapse hit region
+is classified by HG2, **before** collapse. A point covered only by a modern
+expanded resize overlay does not thereby belong to the original grow region.
+The source rule alone neither proves the numeric original intersection for
+1138's template-width side-floating utility nor prescribes public DOM stacking,
+resize-target enlargement, or widget priority within enlarged targets. Those
+require bound geometry inputs or an explicit modern policy. Adding 60 px to a
+regression window does not test the reported template-width overlap. DECISIONS
+#12 continues to govern operable public widgets on inactive windows; HG2 and
+HT2 are decoded WDEF results, not a reversal of that accessibility decision.
+
+#### Modern public WindowManager collision policy (issue #381)
+
+The following is an explicit modern compatibility policy authorized by the PM
+on 2026-10-24 after an independent public-layer reproducer. It does not change
+HG1–HG5 or establish original-engine fidelity.
+
+| row | public-layer condition | required behavior | authority |
+|---|---|---|---|
+| WM381 | an enlarged resize overlay overlaps a visible, enabled title-widget DOM button (close, zoom or collapse) | the button retains its pointer hit target and performs its title action; the same press must not also start resize. Uncovered grow targets and keyboard resize remain available. DECISIONS #12's operable inactive-window buttons remain unchanged | PM compatibility decision, 2026-10-24, issue #381 |
+
+The bounded regression case is 1138 side-floating utility at template content
+size 2×35 (full window 20×45), where the independent reproducer found collapse
+presses reaching the grow overlay; the +60 px width control avoids that collision.
+Cover the template-width collision as well as ordinary grow and keyboard resize.
+This public geometry is not an original procID, global structure-region or
+native click binding; the numeric original intersection remains unknown.
+
 ### 4.12 Title text (`0x5530`, called from the full draw)
 
 | # | condition | effect | source |
