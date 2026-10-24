@@ -65,7 +65,7 @@ function RoleColorInput({
         aria-label={`${label} hex color`}
         aria-invalid={invalid}
         value={draft}
-        placeholder={mixed ? "Mixed" : "#000000"}
+        placeholder={mixed ? "By state" : "#000000"}
         spellCheck={false}
         maxLength={7}
         disabled={disabled}
@@ -506,6 +506,22 @@ export function AuthoringSheet({
                 Start with a property group, or select a window or button in the
                 preview. Each named color edits a verified part of{" "}
                 {project?.name || "your imported scheme"}.
+              </p>
+            </div>
+            <div className="quick-start">
+              <span className="eyebrow">YOUR FIRST VARIATION</span>
+              <ol>
+                <li>Choose a base</li>
+                <li>Edit in the scene</li>
+                <li>Compare the original</li>
+                <li>Download your project</li>
+              </ol>
+              <button onClick={() => navigate("windows")}>
+                Edit window colors <span aria-hidden="true">→</span>
+              </button>
+              <p>
+                Your original stays intact. Nothing is installed or applied to
+                your desktop.
               </p>
             </div>
             <div className="overview-groups">

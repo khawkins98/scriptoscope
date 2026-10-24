@@ -49,7 +49,9 @@ import {
   applyWindowColor,
   resetWindowColor,
 } from "./window-profile.js";
+import { StudioMenu, StudioHelp } from "./StudioMenu.js";
 import "./style.css";
+import "./workbench.css";
 
 const samples = [
   { label: "1138", url: sample1138, filename: "1138.rsrc", meta: meta1138 },
@@ -242,6 +244,8 @@ function App() {
   });
   const project = history.present;
   const [advanced, setAdvanced] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
+  const [saveRequested, setSaveRequested] = useState(false);
   const [authoringScope, setAuthoringScope] = useState<"all" | AuthoringState>(
     "all",
   );
@@ -487,14 +491,14 @@ function App() {
       if (
         busy ||
         !(event.metaKey || event.ctrlKey) ||
-        event.key.toLowerCase() !== "z" ||
+        !["z", "y"].includes(event.key.toLowerCase()) ||
         (target instanceof HTMLElement &&
           (target.matches("input, textarea, select") ||
             target.isContentEditable))
       )
         return;
       event.preventDefault();
-      if (event.shiftKey) redo();
+      if (event.shiftKey || event.key.toLowerCase() === "y") redo();
       else undo();
     };
     window.addEventListener("keydown", handleKey);
@@ -589,6 +593,25 @@ function App() {
     setNotice("Project downloaded with original bytes, metadata, and edits.");
   }
 
+  useEffect(() => {
+    const saveKey = (event: KeyboardEvent) => {
+      if (!(event.metaKey || event.ctrlKey) || event.key.toLowerCase() !== "s")
+        return;
+      event.preventDefault();
+      if (!project || busy) return;
+      if (document.activeElement instanceof HTMLInputElement)
+        document.activeElement.blur();
+      setSaveRequested(true);
+    };
+    window.addEventListener("keydown", saveKey);
+    return () => window.removeEventListener("keydown", saveKey);
+  }, [project, busy]);
+  useEffect(() => {
+    if (!saveRequested) return;
+    save();
+    setSaveRequested(false);
+  }, [saveRequested, serialized]);
+
   function applyColor(next: Rgb16) {
     if (!project || !canEdit || color?.every((n, i) => n === next[i])) return;
     try {
@@ -678,15 +701,141 @@ function App() {
     <div
       className={`studio mobile-${mobilePanel} ${advanced ? "mode-source" : "mode-authoring"}`}
     >
+      <a className="studio-skip" href="#studio-properties">
+        Skip to workspace
+      </a>
+      <header className="studio-masthead">
+        <a
+          className="studio-wordmark"
+          href="https://khawkins98.github.io/scriptoscope/"
+          aria-label="Scriptoscope home"
+        >
+          <span className="spectrum-mark" aria-hidden="true">
+            {Array.from({ length: 6 }, (_, i) => (
+              <i key={i} />
+            ))}
+          </span>
+          Scriptoscope <span className="studio-edition">Studio</span>
+        </a>
+        <nav aria-label="Scriptoscope site">
+          <a href="https://khawkins98.github.io/scriptoscope/showcase.html">
+            Showcase ↗
+          </a>
+          <a href="https://khawkins98.github.io/scriptoscope/story.html">
+            The story ↗
+          </a>
+          <button onClick={() => setHelpOpen(true)}>Field guide</button>
+        </nav>
+      </header>
+      <StudioMenu
+        groups={[
+          {
+            label: "File",
+            commands: [
+              {
+                label: "Import Kaleidoscope scheme…",
+                action: () => sourceInput.current?.click(),
+                disabled: busy,
+              },
+              {
+                label: "Open Studio project…",
+                action: () => projectInput.current?.click(),
+                disabled: busy,
+              },
+              null,
+              {
+                label: "Download project…",
+                action: save,
+                disabled: !project || busy,
+                shortcut: "⌘S / Ctrl+S",
+              },
+              {
+                label: "Recover original…",
+                action: () => {
+                  if (project)
+                    download(
+                      decodeBytes(project.source.original),
+                      project.source.filename,
+                      "application/octet-stream",
+                    );
+                },
+                disabled: !project || busy,
+              },
+            ],
+          },
+          {
+            label: "Edit",
+            commands: [
+              {
+                label: "Undo theme edit",
+                action: undo,
+                disabled: !history.past.length || busy,
+                shortcut: "⌘Z / Ctrl+Z",
+              },
+              {
+                label: "Redo theme edit",
+                action: redo,
+                disabled: !history.future.length || busy,
+                shortcut: "⇧⌘Z / Ctrl+Y",
+              },
+              null,
+              {
+                label: "Revert all edits",
+                action: () => {
+                  if (project) change({ ...project, edits: [] });
+                },
+                disabled: !project?.edits.length || busy || compareOriginal,
+              },
+            ],
+          },
+          {
+            label: "View",
+            commands: [
+              {
+                label: "Theme properties",
+                action: () => setAdvanced(false),
+                checked: !advanced,
+              },
+              {
+                label: "Advanced source",
+                action: () => setAdvanced(true),
+                checked: advanced,
+              },
+              null,
+              {
+                label: "Working theme",
+                action: () => setCompareOriginal(false),
+                checked: !compareOriginal,
+                disabled: !project,
+              },
+              {
+                label: "Imported original",
+                action: () => setCompareOriginal(true),
+                checked: compareOriginal,
+                disabled: !project,
+              },
+            ],
+          },
+          {
+            label: "Help",
+            commands: [
+              {
+                label: "Quick start & editing coverage",
+                action: () => setHelpOpen(true),
+              },
+              {
+                label: "Saving and export limitations",
+                action: () => setHelpOpen(true),
+              },
+              {
+                label: "About this working menu",
+                action: () => setHelpOpen(true),
+              },
+            ],
+          },
+        ]}
+      />
       <header className="app-header">
-        <div className="brand">
-          <span className="brand-mark" aria-hidden="true">
-            ✳
-          </span>
-          <span>
-            Scriptoscope <strong>Studio</strong>
-          </span>
-        </div>
         <div className="project-heading">
           <h1>{project?.name ?? "Opening theme…"}</h1>
           <span
@@ -748,7 +897,7 @@ function App() {
           </button>
         </div>
       )}
-      <div className="authoring-mode-bar">
+      <div className="authoring-mode-bar" id="studio-properties" tabIndex={-1}>
         <div className="segmented" role="group" aria-label="Workspace mode">
           <button aria-pressed={!advanced} onClick={() => setAdvanced(false)}>
             Theme properties
@@ -1801,6 +1950,7 @@ function App() {
           </aside>
         </div>
       </div>
+      <StudioHelp open={helpOpen} onClose={() => setHelpOpen(false)} />
       <footer className="status-bar">
         <div className="history-actions">
           <button

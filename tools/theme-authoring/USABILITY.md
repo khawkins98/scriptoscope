@@ -123,3 +123,44 @@ Local evidence under `/tmp/junior-theme-review/screenshots/`: `broader-01-window
 The downloaded broader project was also reopened through the UI. The inactive plate (`#C1B59E`), coupled text/shadow (`#332211`), rendered window scene and button edits returned; fresh undo history was empty as expected. Evidence: `broader-07-reopened.png`.
 
 Implementation follow-up after this review: the phone action row now gives Save an equal-width grid column; developer inspection at 390×844 confirmed the full label/glyph fits and the page has no horizontal overflow. Each window also reserves its scene space and shows “Rendering Active/Inactive window…” while rebuilding. These fixes were made after the junior walkthrough; they are developer verification, not a second junior retest.
+
+## Evening iteration: first-use and traditional editing expectations
+
+Before the menu/identity revision, the junior-developer agent revisited the current UI at 1280×800. Named scopes and available window/button properties remained understandable; the next priority is a concrete first-use path and predictable editing actions, rather than more source terminology.
+
+Recommended first-use guidance is a compact, nonmodal sequence: choose a base, edit a named window/button color or select it in the scene, compare Original, then download a Studio project. Include one clear starter action. State that editing does not install/apply a theme and that the imported original is retained.
+
+Expected essential menu tasks:
+
+- File: Import original scheme, Open Studio project, Download project, Recover original. Import and Open should explain their different input artifacts; downloading does not imply overwriting a previously opened file.
+- Edit: Undo/Redo and scope-named resets, with actual availability reflected by disabled states. App undo must not intercept native text-field typing undo.
+- View: Working/Original and Theme properties/Advanced source, with the current choices checked. Switching to Original must not discard edits.
+- Help: Quick start, supported editing coverage, and project-versus-installable-output explanation.
+
+Keyboard acceptance should include Command/Control+S for project download, conventional undo/redo outside editable inputs, and Escape/arrow/Enter navigation for menus. Menu labels and shortcut hints must match implemented behavior; do not advertise inert commands. On phone, navigation and project download must remain fully visible.
+
+Smaller clarity improvements: prefer “Different by state” to unexplained “MIXED,” retain explicit Both states/All button states scope, and avoid making unavailable Text & selection properties a required onboarding step. Existing links from that group to editable title/label colors are useful. Baseline evidence: `/tmp/junior-theme-review/screenshots/evening-01-overview.png`. These are recommendations pending implementation/retest, not newly verified menu capabilities.
+
+## Retest after site identity, menu and field-guide revision
+
+The junior-developer agent revisited the revised workbench through the browser at 1280×800 and 390×844. The Overview now presents a concrete choose/edit/compare/download path and an Edit window colors action. The Field guide explains supported roles, shared source effects, project output and the stable built-in Platinum menu chrome. The menu chrome is not presented as an editable scheme-specific menu preview.
+
+| Task | Observed result |
+| --- | --- |
+| Discover first action and output purpose | Passed: Overview gives a short task path and direct editing action; guide explains that nothing is installed/applied and Save downloads a resumable Studio project. |
+| Distinguish source import from project reopening | Passed: File explicitly labels Import Kaleidoscope scheme and Open Studio project, separately from Download project and Recover original. |
+| Use menu keyboard navigation | Passed for sampled paths: File then ArrowRight opened Edit; unavailable undo/redo/revert were disabled initially; Escape closed a menu. Help plus ArrowDown/Enter opened the guide. Tab dismissed a View menu and moved focus onward to Import scheme. |
+| Save a pending color draft | Passed: entered `#CCA566` into the title-plate field and pressed Command+S without manually blurring. Both state values committed, the project showed 2 source edits, and the UI reported Project saved / project downloaded. |
+| Revert without losing recovery | Passed: Edit → Revert all edits returned the properties to imported values; Command+Z restored the `#CCA566` title plates. |
+| Preserve native text-field undo | Passed: after committing `#CCA566`, selected/retyped `#BB8844` and pressed Command+Z while the field retained focus. The field returned to `#cca566` and the theme retained its 2 edits; app history was not consumed. |
+| Understand View state | Passed: View exposed checked Theme properties/Working theme choices; selecting Imported original showed the read-only comparison banner with Return to working. |
+| Dismiss help and recover focus | Passed: Escape returned focus to Field guide when opened from the toolbar, and to Help when opened through its keyboard-operated menu. |
+| Use menus/help on phone | Passed at 390×844: File's commands fitted the viewport; the guide's complete explanation and Back to the workbench button were visible. The header Save action was no longer clipped. |
+
+No blocking usability failure or page error was observed in this retest. An ambiguous redo shortcut hint was reported during testing and corrected to the explicit `⇧⌘Z / Ctrl+Y` notation. A development hot reload interrupted one attempt; the input-undo task was repeated successfully after a coordinated pause. This review does not claim every menu command or operating-system shortcut was exhaustively tested; independent browser regression checks cover the wider action set.
+
+Local evidence under `/tmp/junior-theme-review/screenshots/`: `evening-02-file-menu.png`, `evening-03-pending-save.png`, `evening-04-view-menu.png`, `evening-05-phone-file.png`, `evening-06-phone-guide.png` and `evening-07-phone-workbench.png`. The pending-save screenshot includes active preview regeneration, rather than the final rendered windows.
+
+### Final 320×768 check
+
+A targeted UI check verified that Help → Quick start opens the Field guide at its beginning, with the heading focused and the introduction visible. Escape returned keyboard focus to Help. All four File commands and the shortcut hint fitted within the 320-pixel viewport. After a title-plate edit and project download, the phone header visibly displayed the dirty/saved state; Save remained fully visible. These checks do not repeat broad Advanced source regression testing. Evidence: `final-320-guide-top.png`, `final-320-file-menu.png`, `final-320-dirty.png` and `final-320-saved.png` under `/tmp/junior-theme-review/screenshots/`.

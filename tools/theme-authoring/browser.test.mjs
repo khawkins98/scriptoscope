@@ -1192,6 +1192,171 @@ test(
         true,
       );
       assert.equal(decodeBytes(saved.source.original).length, rawSource.length);
+      // A separate, fresh workspace exercises real menu commands and keyboard focus.
+      const menuContext = await browser.newContext({
+        viewport: { width: 1280, height: 900 },
+      });
+      const menuPage = await menuContext.newPage();
+      menuPage.on("pageerror", (error) => errors.push(error.message));
+      await menuPage.goto(url);
+      await menuPage.waitForFunction(
+        () => document.querySelectorAll(".gallery-control canvas").length === 3,
+      );
+      const menuTitle = (name) =>
+        menuPage
+          .getByRole("menubar")
+          .getByRole("menuitem", { name, exact: true });
+      await menuTitle("Edit").click();
+      assert.equal(
+        await menuPage
+          .getByRole("menuitem", { name: "Undo theme edit", exact: false })
+          .isDisabled(),
+        true,
+      );
+      await menuPage.keyboard.press("Escape");
+      assert.equal(
+        await menuTitle("Edit").evaluate(
+          (element) => element === document.activeElement,
+        ),
+        true,
+      );
+      await menuTitle("File").focus();
+      await menuPage.keyboard.press("ArrowDown");
+      assert.equal(
+        await menuPage
+          .getByRole("menuitem", {
+            name: "Import Kaleidoscope scheme…",
+            exact: true,
+          })
+          .evaluate((element) => element === document.activeElement),
+        true,
+      );
+      await menuPage.keyboard.press("End");
+      assert.equal(
+        await menuPage
+          .getByRole("menuitem", { name: "Recover original…", exact: true })
+          .evaluate((element) => element === document.activeElement),
+        true,
+      );
+      await menuPage.keyboard.press("Escape");
+      for (const [label, inputLabel] of [
+        ["Import Kaleidoscope scheme…", "Import scheme file"],
+        ["Open Studio project…", "Open project file"],
+      ]) {
+        await menuTitle("File").click();
+        const chooserEvent = menuPage.waitForEvent("filechooser");
+        await menuPage
+          .getByRole("menuitem", { name: label, exact: true })
+          .click();
+        const chooser = await chooserEvent;
+        assert.equal(
+          await chooser.element().getAttribute("aria-label"),
+          inputLabel,
+        );
+        await chooser.setFiles([]);
+      }
+      await menuTitle("Help").click();
+      await menuPage
+        .getByRole("menuitem", {
+          name: "Quick start & editing coverage",
+          exact: true,
+        })
+        .click();
+      assert.equal(await menuPage.getByRole("dialog").isVisible(), true);
+      assert.equal(
+        await menuPage
+          .locator("#studio-help-title")
+          .evaluate((element) => element === document.activeElement),
+        true,
+      );
+      await menuPage.keyboard.press("Escape");
+      assert.equal(
+        await menuTitle("Help").evaluate(
+          (element) => element === document.activeElement,
+        ),
+        true,
+      );
+      await menuPage
+        .getByRole("button", { name: "Edit window colors", exact: false })
+        .click();
+      await menuPage
+        .getByRole("group", { name: "Window state scope", exact: true })
+        .getByRole("button", { name: "Active", exact: true })
+        .click();
+      const pendingColor = menuPage.getByRole("textbox", {
+        name: "Title bar color hex color",
+        exact: true,
+      });
+      await pendingColor.fill("#abcdef");
+      const shortcutDownload = menuPage.waitForEvent("download");
+      await menuPage.keyboard.press("Control+s");
+      const shortcutFile = await shortcutDownload;
+      const shortcutPath = resolve(dir, "menu-shortcut-project.json");
+      await shortcutFile.saveAs(shortcutPath);
+      const shortcutSaved = await openProject(
+        await readFile(shortcutPath, "utf8"),
+      );
+      assert.equal(
+        shortcutSaved.edits.length,
+        1,
+        "Save shortcut commits the pending color field before serializing",
+      );
+      await menuTitle("View").click();
+      await menuPage
+        .getByRole("menuitemcheckbox", {
+          name: "Imported original",
+          exact: true,
+        })
+        .click();
+      assert.equal(await pendingColor.isDisabled(), true);
+      await menuTitle("View").click();
+      assert.equal(
+        await menuPage
+          .getByRole("menuitemcheckbox", {
+            name: "Imported original",
+            exact: true,
+          })
+          .getAttribute("aria-checked"),
+        "true",
+      );
+      await menuPage
+        .getByRole("menuitemcheckbox", { name: "Working theme", exact: true })
+        .click();
+      await menuTitle("Edit").click();
+      await menuPage
+        .getByRole("menuitem", { name: "Revert all edits", exact: true })
+        .click();
+      await menuPage.waitForFunction(
+        () =>
+          document.querySelector(".history-actions span")?.textContent ===
+          "0 edits",
+      );
+      await menuPage.keyboard.press("Control+z");
+      await menuPage.waitForFunction(
+        () =>
+          document.querySelector(".history-actions span")?.textContent ===
+          "1 edits",
+      );
+      await menuPage.keyboard.press("Control+y");
+      await menuPage.waitForFunction(
+        () =>
+          document.querySelector(".history-actions span")?.textContent ===
+          "0 edits",
+      );
+      await menuPage.setViewportSize({ width: 390, height: 844 });
+      await menuTitle("File").click();
+      const menuBounds = await menuPage
+        .getByRole("menu", { name: "File", exact: true })
+        .boundingBox();
+      assert.ok(menuBounds.x >= 0 && menuBounds.x + menuBounds.width <= 390);
+      await menuPage.keyboard.press("Escape");
+      assert.equal(
+        await menuPage.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth,
+        ),
+        true,
+      );
+      await menuContext.close();
       assert.deepEqual(errors, []);
     } finally {
       await browser?.close();

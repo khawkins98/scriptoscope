@@ -5,10 +5,10 @@
   font-synthesis: none;
   -webkit-font-smoothing: antialiased;
   font-variant-numeric: tabular-nums;
-  --accent: #4359ad;
+  --accent: #765222;
   --muted: #606675;
   --line: #e2e4ea;
-  --selected: #edf0ff;
+  --selected: #e9dfca;
 }
 * {
   box-sizing: border-box;
@@ -751,17 +751,17 @@ h2 {
 .specimen .specimen-pick:hover,
 .specimen .window-pick:hover {
   background: transparent;
-  outline: 2px dashed #4359ad;
+  outline: 2px dashed #765222;
   outline-offset: 4px;
 }
 .specimen .specimen-pick[aria-pressed="true"],
 .specimen .window-pick[aria-pressed="true"] {
-  outline: 2px solid #4359ad;
+  outline: 2px solid #765222;
   outline-offset: 4px;
 }
 .specimen .specimen-pick:focus-visible,
 .specimen .window-pick:focus-visible {
-  outline: 3px solid #4359ad;
+  outline: 3px solid #765222;
   outline-offset: 4px;
 }
 .specimen .window-pick {
@@ -798,7 +798,7 @@ h2 {
   background: transparent;
   border: 0;
   font-size: 10px;
-  color: #4359ad;
+  color: #765222;
 }
 .source-context {
   display: none;
@@ -1046,7 +1046,7 @@ h2 {
 }
 .usage-links button {
   min-height: 40px;
-  background: #edf0fa;
+  background: #eee6d6;
   color: #43558f;
   border: 0;
   font-size: 10px;
@@ -1069,7 +1069,7 @@ h2 {
   padding: 6px 0;
   background: transparent;
   font-size: 11px;
-  color: #4359ad;
+  color: #765222;
 }
 .scope-card summary {
   font-size: 10px;
@@ -1112,14 +1112,14 @@ h2 {
   inset: -4px;
 }
 .swatches button[aria-pressed="true"] {
-  outline: 2px solid #4359ad;
+  outline: 2px solid #765222;
   outline-offset: 2px;
 }
 .swatches button:hover:not(:disabled) {
   background: var(--swatch);
 }
 .swatches button:focus-visible {
-  outline: 3px solid #4359ad;
+  outline: 3px solid #765222;
   outline-offset: 3px;
 }
 .swatches button > span {
@@ -1201,7 +1201,7 @@ h2 {
 .reset-property {
   border: 0;
   background: transparent;
-  color: #4359ad;
+  color: #765222;
   font-size: 11px;
   padding: 8px 4px;
 }
@@ -1271,7 +1271,7 @@ summary {
 }
 .override-row code span {
   display: block;
-  color: #4359ad;
+  color: #765222;
 }
 .override-row button {
   font-size: 10px;
@@ -1525,9 +1525,9 @@ summary {
     display: block;
     width: calc(100% - 32px);
     margin: 0 16px 16px;
-    background: #edf0fa;
+    background: #eee6d6;
     border: 0;
-    color: #4359ad;
+    color: #765222;
   }
   .mobile-navigation {
     display: flex;
@@ -1636,7 +1636,7 @@ summary {
   border-bottom: 1px solid var(--line);
 }
 .authoring-mode-bar .segmented {
-  background: #edf0f7;
+  background: #e7e1d5;
 }
 .authoring-mode-bar p,
 .authoring-mode-bar > span {
@@ -1699,8 +1699,8 @@ summary {
 }
 .starter-list button[aria-pressed="true"] {
   background: #eef1fc;
-  border-color: #8798d0;
-  box-shadow: inset 2px 0 #6277bd;
+  border-color: #a28b63;
+  box-shadow: inset 2px 0 #765222;
 }
 .starter-monogram {
   flex-shrink: 0;
@@ -1726,7 +1726,7 @@ summary {
 }
 .starter-check {
   margin-left: auto;
-  color: #5265a7;
+  color: #765222;
 }
 .imported-base {
   padding: 12px 0 20px;
@@ -1775,7 +1775,7 @@ summary {
   margin-top: 24px;
   background: transparent;
   font-size: 10px;
-  color: #4359ad;
+  color: #765222;
 }
 .base-preservation {
   margin-top: auto;
@@ -1895,7 +1895,7 @@ summary {
 }
 .property-group-heading button {
   font-size: 10px;
-  color: #4359ad;
+  color: #765222;
   background: transparent;
   border: 0;
   padding-right: 0;
@@ -1925,7 +1925,7 @@ summary {
   font-size: 10px;
   border: 0;
   background: transparent;
-  color: #4359ad;
+  color: #765222;
   padding-right: 0;
 }
 .role-edited {
@@ -2048,7 +2048,7 @@ summary {
 .color-policy-note button {
   font-size: 11px;
   margin-top: 12px;
-  color: #4359ad;
+  color: #765222;
 }
 .authoring-comparison {
   padding: 14px;
@@ -2118,8 +2118,8 @@ summary {
   box-shadow: 0 2px 5px #2c3c5e06;
 }
 .gallery-state[aria-pressed="true"] {
-  border-color: #768bc6;
-  box-shadow: 0 0 0 1px #768bc6;
+  border-color: #a28b63;
+  box-shadow: 0 0 0 1px #a28b63;
 }
 .gallery-state-label {
   display: flex;
@@ -2127,7 +2127,7 @@ summary {
   justify-content: space-between;
   width: 100%;
   font-size: 10px;
-  color: #5a6580;
+  color: #6f6659;
   margin-bottom: 14px;
 }
 .gallery-state-label > span {
@@ -2509,8 +2509,8 @@ summary {
   color: var(--muted);
 }
 .property-navigation button[aria-current="page"] {
-  background: #edf0fa;
-  color: #3e5295;
+  background: #eee6d6;
+  color: #765222;
   box-shadow: inset 0 -2px #7a8dc6;
 }
 .overview-groups {
@@ -2549,7 +2549,7 @@ summary {
 .overview-groups em {
   font-size: 10px;
   font-style: normal;
-  color: #4d608a;
+  color: #765222;
 }
 .coverage-explanation {
   padding: 20px;
@@ -2590,7 +2590,7 @@ summary {
 .unsupported-properties section > span {
   display: block;
   font-size: 10px;
-  color: #6e6273;
+  color: #6f6659;
   margin-top: 7px;
 }
 .unsupported-properties p {
@@ -2627,7 +2627,7 @@ summary {
   border-radius: 0;
 }
 .scene-window-label[aria-pressed="true"] {
-  color: #354a91;
+  color: #765222;
   font-weight: 600;
 }
 .scene-frame {
@@ -2638,7 +2638,7 @@ summary {
   border-radius: 1px;
 }
 .scene-window[data-selected="true"] .scene-frame {
-  outline-color: #8798cb;
+  outline-color: #a28b63;
 }
 .scene-frame > div {
   flex-shrink: 0;
@@ -2678,8 +2678,8 @@ summary {
   padding: 2px 4px 4px;
 }
 .scene-document .gallery-state[aria-pressed="true"] {
-  border-color: #8798cb;
-  background: #f1f4fa;
+  border-color: #a28b63;
+  background: #f3eee3;
 }
 .scene-document .gallery-state-label {
   font-size: 9px;
@@ -2695,7 +2695,7 @@ summary {
 .sample-content-link {
   background: transparent;
   border: 0;
-  color: #435b98;
+  color: #765222;
   font-size: 9px;
   padding: 0;
   min-height: 18px;
@@ -2752,7 +2752,7 @@ summary {
   inset: 45% 0 auto;
   text-align: center;
   font-size: 11px;
-  color: #5a6580;
+  color: #6f6659;
 }
 @media (max-width: 850px) {
   .document-actions {
