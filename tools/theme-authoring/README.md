@@ -41,6 +41,8 @@ All color icons can be inspected and palette-edited. The live specimen only exer
 
 [UX.md](./UX.md) analyzes ThemeRoller, Godot, Penpot, Piskel and Themix, records the patterns adopted here, and defines acceptance criteria and deferred work. Component navigation and preview picking use the existing React/renderer stack; no editor engine is added.
 
+[Task-based usability review and Themix comparison](./USABILITY.md) records the subsequent junior-developer walkthrough, task failures, capability gaps and proposed next authoring slice.
+
 ## Experimental document contract
 
 Saved `.scriptoscope-project.json` files use `scriptoscope-authoring-experiment`, version `0`, with required profile `kaleidoscope-source-edits/0`. This is **not a stable interchange standard**.
