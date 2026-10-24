@@ -107,7 +107,9 @@ for (const mode of ['source', 'built']) {
     expect(headerTable).toEqual(HEADER_TABLE);
     expect(unknownPixels).toEqual(UNKNOWN_PIXELS);
     expect(Object.fromEntries(TAB_ARCHIVES.map(s => [s, tabRows.filter(r => r.slug === s).map(r => r.size[0])]))).toEqual(TAB_WIDTHS);
-    expect(tabRows.filter(r => r.path === 'legacy-three-slice').map(r => r.slug)).toEqual(['crayon-os', 'crayon-os']);
+    // Replaced by engine/tab.md P3/P4; tab-engine.spec asserts every Crayon
+    // centre pixel. Keep this older table's limited oracle and all headers intact.
+    expect(tabRows.filter(r => r.path === 'legacy-three-slice').map(r => r.slug)).toEqual([]);
     // Probe order: the decode probes -9960+state after a small miss (0x914);
     // the runtime probes the large id instead (compatibility policy). Only the
     // four archives with no tab art reach a second probe. Null there is pinned as
@@ -149,5 +151,6 @@ const HEADER_TABLE = {
   'borders reversed': ['1984', 'animals', 'crayon-os', 'dolphin-som', 'monkey-paradise', 'windows-95'], 'body painted last': [],
 };
 // [tab, header] pixels the rules do not fix: crayon-os tab centres request ppat 17
-// (cinf+4), whose phase is not decoded; the runtime keeps its legacy path there.
+// (cinf+4). This older table leaves them unknown; tab-engine.spec independently
+// asserts the now-decoded P3/P4 centre in every public row.
 const UNKNOWN_PIXELS = Object.fromEntries(ALL_ARCHIVES.map(s => [s, [s === 'crayon-os' ? 1664 : 0, 0]]));

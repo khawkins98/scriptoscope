@@ -10,7 +10,6 @@ const repeatedBand = ['.LLAMBAMBRR.', '.LLCMDCMDRR.', '.LL.ME.MERR.', '.LLFMGFMG
 const partialInput = ['.LLAMBCRR.', '.LLDMEFRR.', '.LL.MGHRR.', '.LLIMJKRR.', '.LLLMNORR.', '.LLPMQRRR.'];
 const partialOutput = ['.LLAMBCAMRR.', '.LLDMEFDMRR.', '.LL.MGH.MRR.', '.LLIMJKIMRR.', '.LLLMNOLMRR.', '.LLPMQRPMRR.'];
 const positiveCenter = ['.LAMBR.', '.LMMMR.', '.LMMMR.', '.LMMMR.', '.LMGMR.', '.LMMMR.', '.LMMMR.', '.LMMMR.', '.LZMNR.'];
-const legacyCenter = ['LAMMMMMMBR', 'LMMMMMMMMR', 'LMMMMMMMMR', 'LMMMMMMMMR', 'LMGGGGGGMR', 'LMMMMMMMMR', 'LMMMMMMMMR', 'LMMMMMMMMR', 'LZMMMMMMNR'];
 const filledCenter = ['.LAAAAAAR.', '.LGGGGGGR.', '.LGGGGGGR.', '.LGGGGGGR.', '.LGGGGGGR.', '.LGGGGGGR.', '.LGGGGGGR.', '.LGGGGGGR.', '.LZZZZZZR.'];
 
 for (const mode of ['source', 'built']) test(`${mode}: tab body uses full-height ends, first-column or tiled bands and separate center`, async ({ page, servers }, info) => {
@@ -32,7 +31,8 @@ for (const mode of ['source', 'built']) test(`${mode}: tab body uses full-height
         const canvas = api.bufferToCanvas(art); document.body.append(canvas);
         const element = { sourceCicnId: -9975, sourceCinfId: -9975, asset: canvas.toDataURL(), width: art.width, height: art.height,
           slice: { corner: isCenter ? 2 : 3, side: isCenter ? 1 : 4, tile: kind.endsWith('tile') },
-          bodyRequest: { mode: 0, resourceId: 0 }, bgAnchor: isCenter ? [3, 4] : [3, 0] };
+          bodyRequest: { mode: 0, resourceId: 0 }, bgAnchor: isCenter ? [3, 4] : [3, 0],
+          samplingEquivalence: { model: 'kaleidoscope-2.3.1-opaque-sampling-v1', comparison: 'opaque-current-display-rgb', displayPolicy: 'mac-1.8-to-2.2-high-byte', width: art.width, height: art.height, status: 'equivalent', reason: 'all-opaque-display-rgb-equal' } };
         if (kind === 'masked-background') element.colorSamples = { model: 'kdef-2.3.1-color', displayPolicy: 'mac-1.8-to-2.2-high-byte', background: { rgb16: [8481, 34952, 8481], displayRgb: colors.G.slice(0, 3) }, text: null, emboss: null, embossDecision: 'unknown' }; // Declared transport-consumption fixture, not a decoder/RGB transform proof.
         if (kind === 'pattern-center') element.bodyRequest.resourceId = 17;
         if (kind === 'unknown-request') delete element.bodyRequest;
@@ -40,19 +40,21 @@ for (const mode of ['source', 'built']) test(`${mode}: tab body uses full-height
         const owner = { baseUrl: location.origin, manifest: { chromeElements: { rear: element } } };
         const child = { baseUrl: location.origin, base: owner, manifest: { chromeElements: {} } };
         const output = await api.composeTab(child, { label: '', selected: false });
-        document.body.append(api.bufferToCanvas(output));
-        const pixels = Array.from({ length: output.height }, (_, y) => Array.from({ length: output.width }, (_, x) => {
+        if (output) document.body.append(api.bufferToCanvas(output));
+        const pixels = output && Array.from({ length: output.height }, (_, y) => Array.from({ length: output.width }, (_, x) => {
           const p = [...output.getPixel(x, y)]; if (!p[3]) return '.';
           return Object.keys(colors).find(c => colors[c].every((v, i) => v === p[i])) ?? '?';
         }).join(''));
-        rows.push({ kind, size: [output.width, output.height], pixels });
+        rows.push({ kind, size: output && [output.width, output.height], pixels });
       }
       return rows;
     }, { mode, overlapping, positiveCenter, partialInput });
     expect(rows.map(r => r.kind)).toEqual(['overlap-first', 'overlap-tile', 'partial-tile', 'center', 'masked-background', 'pattern-center', 'unknown-request']);
     for (const row of rows) {
+      // AD4 replaces unsupported legacy drawing; P2 absent pattern now erases.
+      if (row.kind === 'unknown-request') { expect(row.size).toBeNull(); expect(row.pixels).toBeNull(); continue; }
       expect(row.size).toEqual(['center', 'masked-background', 'pattern-center', 'unknown-request'].includes(row.kind) ? [10, 9] : [12, 6]);
-      expect(row.pixels, row.kind).toEqual(['pattern-center', 'unknown-request'].includes(row.kind) ? legacyCenter : ['center', 'masked-background'].includes(row.kind) ? filledCenter : row.kind === 'partial-tile' ? partialOutput : row.kind === 'overlap-tile' ? repeatedBand : firstColumn);
+      expect(row.pixels, row.kind).toEqual(['center', 'masked-background', 'pattern-center'].includes(row.kind) ? filledCenter : row.kind === 'partial-tile' ? partialOutput : row.kind === 'overlap-tile' ? repeatedBand : firstColumn);
     }
     await attachObservations(info, 'tab-body', `${mode}-literal`, { mode, rows, limits: 'Literal source-model body rows only; no original device, font, transfer or selection claim.' });
   } catch (error) { await attachCase(page, info, { mode, rows, overlapping, firstColumn, repeatedBand, filledCenter }, error); throw error; }
