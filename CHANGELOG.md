@@ -9,6 +9,16 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ### Changed
 
+- Whole-header and list-column composition use typed engine drivers while
+  keeping their public signatures and separate rendering contracts. Native
+  window/list-view geometry stays distinct from modern column layout and labels;
+  the replaced header painters are removed. Input snapshots retain their selected
+  owner and prepared display-profile capability across asset decoding.
+- Header diagnostics attribute completed writes, and empty clips or fully clear
+  sampled bands avoid unused color/companion realization. Profile-chain checks,
+  structural validation and real decode failures remain visible. Original fonts,
+  resource-manager fallback, device state and sort interaction remain outside
+  the supported header contract.
 - Segmented tabs use a cited engine driver for full-source end strips, sampled
   bands and separate solid or patterned centers (#378). Pattern phase follows
   the incoming outer tab rectangle; the replaced three-slice fallback and
