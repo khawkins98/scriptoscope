@@ -75,6 +75,9 @@ for (const mode of ['source', 'built']) {
         await waiting;
         f.element.slice.corner = 3; f.element.bodyRequest.mode = 4; f.element.bodyRequest.resourceId = 0;
         f.element.width = 100; f.element.bgAnchor[0] = 0; f.cinf[0] = 3;
+        // Raw-header reconstruction snapshots slice scalars even without the
+        // element clone; mutate nested occurrence bounds to distinguish it.
+        f.element.cicnSource.bounds.left = 1;
         f.owner.manifest.patterns.chosen.asset = f.image(['ZZZ', 'ZZZ']);
         f.owner.manifest.chromeElements = {}; release();
         return { pixels: tabPixels(await pending), trace };
