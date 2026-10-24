@@ -27,7 +27,7 @@ consumer diagnostic callback. Other control families remain outside this trace.
 Push/default-ring now follow the normative PB/DR signed dispatch and NULL rules.
 Their former alias/anti-role/cross-state/raw-ID fallback reasons are historical,
 not alternate current push selection paths. The same reason vocabulary may
-still describe supported unmigrated bevel or tab policy; migration does not
+still describe supported unmigrated bevel policy; migration does not
 remove those families' contracts. Checkable CB dispatch likewise preserves its
 kind/value/tier and full public bounds. Its declared archive/base chain is a
 modern environment: a canonical CICN may resolve in a base, while CB18's `ics8`
@@ -139,25 +139,29 @@ pressed tab option). Resolution records the actual requested front IDs
 base/alias resolution remain explicit **compatibility policy**. No expected
 catalog lookup is substituted for the actual compositor selection.
 
-The exported `TabBodyTrace` type describes `trace.tabBody`, emitted by the body
-helper at the branch it actually executes:
+The exported `TabBodyTrace` type describes `trace.tabBody`, emitted by the engine
+adapter at the branch it actually executes (see [tab.md](engine/tab.md)):
 
 - `source-bands` records source dimensions, requested output width, corner/side,
-  repeat flag, and `center: 'empty' | 'solid'`. Background policy is `none`,
+  repeat flag, and `center: 'empty' | 'solid' | 'pattern'`. Background policy is `none`,
   `raw-sample`, or `decoded-anchor`. An empty center needs no background request
   and must not be confused with an unsupported positive center.
-- `legacy-three-slice` records a precise reason: missing/invalid slice or size,
-  missing/invalid body request, nonzero pattern center, missing/invalid anchor,
-  or masked decoded background. These are current compatibility decisions,
-  **not** proof of the original engine's fallback behavior. A missing face or
-  failed decode has no body decision; use the completed outcome and steps.
+  Pattern bodies also record the requested pattern ID, missing-pattern erase
+  and actual phase. Public label policy remains separately identified.
+- `unavailable` distinguishes missing art, empty art, no-cinf no-paint,
+  unsupported metadata, unsupported sampling and unsupported patterns, with a
+  concrete reason. Admission steps identify modern origin/mask/sample
+  declarations separately from source-derived painting. Asset decode failures
+  remain errors under the completion/error contract.
+- `legacy-three-slice` remains in the public type as a deprecated historical
+  shape, but the migrated tab path never emits it or calls that painter.
 
 `source-dispatch` on a supported body identifies the implemented source-derived
 band geometry. It does not authenticate a decoded-anchor sample as raw RGB16,
 certify device/display conversion, or validate retained text layout and variant
 selection. Requested width includes the existing API label-width policy; the
-completed outcome reports the actual returned dimensions, including legacy
-cropping. Diagnostics do not add a decode, change pixels, or assume ownership.
+completed outcome reports the actual returned full-source height and allocated
+width. Diagnostics do not add a decode, change pixels, or assume ownership.
 No detailed branch record is constructed when diagnostics are disabled.
 
 `tab-trace.spec.mjs` joins actual selected face references to the **owning load's
