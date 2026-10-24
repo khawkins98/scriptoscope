@@ -46,8 +46,7 @@ test('P4 phase uses incoming outer rect and B6 returns source bottom', () => {
   pattern.setPixel(0, 0, 1, 0, 0, 255); pattern.setPixel(1, 0, 2, 0, 0, 255);
   pattern.setPixel(0, 1, 3, 0, 0, 255); pattern.setPixel(1, 1, 4, 0, 0, 255);
   const r = drawTab(port, input(p, { destination: { left: 1, top: 2, right: 9, bottom: 9 },
-    metadata: { corner: 1, side: 1, tile: true, mode: 4, patternId: 17 }, pattern,
-    backgroundRGB: { r: 0, g: 0, b: 0, a: 255 } }));
+    metadata: { corner: 1, side: 1, tile: true, mode: 4, patternId: 17 }, pattern }));
   assert.equal(r.drawn, true); assert.equal(r.bottom, 5); assert.deepEqual(r.phase, { x: 9, y: 9 });
   assert.deepEqual(port.getPixel(2, 3), [2, 0, 0, 255]);
 });
