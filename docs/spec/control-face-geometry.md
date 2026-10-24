@@ -24,14 +24,16 @@ Offline kDEF 2.3.1 `kDEF0` disassembly:
   applied through `RGBBackColor` at `0x109b2..0x109b6`.
 - Border order is TL, TR, top, BL, BR, bottom, left, right, through
   `0x10c18..0x10f82`. Each corner uses `c` in both dimensions. Bands have
-  independent thickness `s`, so bands can overlap one another and corner blocks.
+  independent thickness `s`, so bands can overlap one another when s exceeds c; they do not cover the corner blocks.
   Masked samples preserve earlier pixels; a transparent edge can reveal the body.
 - `cinf` byte 2 false chooses the first middle source column/row
   (`0x10cf6`, `0x10e54`, `0x10ecc`, `0x10f44`). True repeats the full middle
   strip through `0xfeae`. Neither operation is generic whole-band stretching.
 
-`composeControlBorder` implements this shared border path; the ring has no body,
-while solid faces fill the two rectangles first. The general-purpose rectangular
+The shared geometry comes from `cinfBorderPlan` in `engine/qd/cinfFrame.ts`,
+consumed by engine preparation/painting and bevel `composeControlBorder`. Their
+transfer and admission policies remain separate. Rings skip the body; solid faces
+fill the two rectangles first. The general-purpose rectangular
 `PixelBuffer.nineSlice` API remains unchanged for its other callers.
 
 ## Independent checks and remaining limits
