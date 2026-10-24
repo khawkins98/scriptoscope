@@ -1,8 +1,8 @@
 import { composeEngineCheckable, type CheckableOptions } from './checkableFacade.js';
 import { composeEnginePush, loadEnginePushFace } from './pushButtonFacade.js';
 import { CinfEnvironmentError, snapshotBodyCinfFace, type CinfLookupView } from '../tools/theme-loader/cinf-environment.js';
-import type { PreparedBitmapFont, BitmapGlyphRun } from './preparedBitmapFont.js';
-import { paintBitmapText } from './paintBitmapText.js';
+import type { PreparedBitmapFont } from './preparedBitmapFont.js';
+import { cinfBorderPlan } from './engine/qd/cinfFrame.js';
 import { ownerDisplayPolicyMatches, realizeRgb16 } from '../tools/theme-loader/display-profile.js';
 import { snapshotControlComposition, bodyPatternPhase, controlPointVisible, type ControlCompositionContext, type ControlCompositionSnapshot, type ButtonComposition } from './controlComposition.js';
 import type { SliderComposition } from './sliderLayout.js';
@@ -109,7 +109,7 @@ async function loadResolvedFace(hit: ResolvedFaceMetadata, trace?: ControlTraceC
 
 /** Select a prepared role view without mutating common element/local pair facts. */
 function declaredBodyFace(root: LoadedTheme, face: ResolvedControlFace, requestedId: number, label: string,
-  defaultRing: boolean, trace?: ControlTraceCollector): ResolvedControlFace {
+  trace?: ControlTraceCollector): ResolvedControlFace {
   const environment = face.declaredCinf?.environment ?? root.manifest.cinfEnvironment;
   if (!environment) return face;
   const view = face.declaredCinf?.view;
@@ -119,7 +119,6 @@ function declaredBodyFace(root: LoadedTheme, face: ResolvedControlFace, requeste
     throw new CinfEnvironmentError(reason, 'UNSUPPORTED_CINF_ENVIRONMENT');
   };
   if (root.base || face.chainDepth !== 0 || face.theme !== root) reject('cinf-environment-base-inheritance');
-  if (defaultRing) reject('cinf-environment-default-ring-unsupported');
   if (face.element.sourceCicnId !== requestedId) reject('cinf-environment-requested-selected-id-mismatch');
   if (!view || view.bindingId !== environment.bindingId || view.requestedId !== requestedId) reject('cinf-environment-role-binding-missing');
   const consumed = lookupOnly(view!);
@@ -630,16 +629,12 @@ export interface BevelButtonOptions {
   fg?: string;
 }
 
-interface FaceOptions { composition?: ControlCompositionSnapshot; signal?: AbortSignal | undefined; trace?: ControlTraceCollector | undefined; label?: string; bitmapRun?: BitmapGlyphRun; fontSize?: number; disabled?: boolean; minWidth?: number; fg?: string; padX?: number; width?: number; height?: number; align?: 'center' | 'left'; }
+interface FaceOptions { composition: ControlCompositionSnapshot; trace?: ControlTraceCollector | undefined; label?: string; fontSize: number; disabled?: boolean; minWidth: number; fg?: string; height?: number; }
 
 function buttonFontSize(value: number | undefined): number {
   const size = value === undefined ? 12 : value;
   if (!Number.isFinite(size) || size < 6) throw new RangeError('fontSize must be finite and at least 6 CSS pixels');
   return size;
-}
-
-function assertControlAlive(signal?: AbortSignal): void {
-  if (signal?.aborted) throw new DOMException('Control preparation aborted', 'AbortError');
 }
 
 type PreparedCicnBody = { kind: 'missing' | 'unsupported' } | { kind: 'ready'; buffer: PixelBuffer;
@@ -685,9 +680,7 @@ async function loadCicnBody(face: ResolvedControlFace, opts: FaceOptions, width:
   const step: ControlResolutionStep = { ...common, action: 'selected', reason: 'same-owner-cicn-body-paint',
     resource: resourceIdentity({ theme: face.theme, element: target, key: binding.manifestKey, chainDepth: face.chainDepth }) };
   const url = assetUrl(face.theme, binding.asset), copy = binding.copy, derivedPath = binding.derivedPath;
-  assertControlAlive(opts.signal);
   const buffer = await loadCicnBuffer(url);
-  assertControlAlive(opts.signal);
   if (buffer.width !== sourceRect.w || buffer.height !== sourceRect.h) return reject('cicn-body-decoded-size-mismatch');
   for (let i = 3; i < buffer.data.length; i += 4)
     if (copy === 'unmasked' ? buffer.data[i] !== 255 : buffer.data[i] !== 0 && buffer.data[i] !== 255)
@@ -695,12 +688,12 @@ async function loadCicnBody(face: ResolvedControlFace, opts: FaceOptions, width:
   return { kind: 'ready', buffer, sourceRect, side: inset, step, copy, sourceAssetUrl: url, ...(derivedPath ? { derivedPath } : {}) };
 }
 
-async function loadBodyPattern(face: ResolvedControlFace, opts: FaceOptions, usage: 'paint' | 'admission' = 'paint'): Promise<{ buffer: PixelBuffer | null; solidFallback: boolean; selection?: ControlResolutionStep }> {
+async function loadBodyPattern(face: ResolvedControlFace, opts: FaceOptions): Promise<{ buffer: PixelBuffer | null; solidFallback: boolean; selection?: ControlResolutionStep }> {
   const request = face.element.bodyRequest;
   if (!request) return { buffer: null, solidFallback: false }; // Legacy manifests have no observed raw request.
   const common = { role: 'body-fill' as const, requestedId: request.resourceId, bodyMode: request.mode,
     requestedResourceType: request.mode === 5 ? 'cicn' as const : 'ppat' as const,
-    basis: 'compatibility-policy' as const, usage,
+    basis: 'compatibility-policy' as const, usage: 'paint' as const,
     owner: { baseUrl: face.theme.baseUrl, chainDepth: face.chainDepth } };
   if (!Number.isInteger(request.mode) || request.mode < 0 || request.mode > 255 || request.mode === 5 || !face.element.slice) {
     opts.trace?.record({ ...common, action: 'fallback', reason: request.mode === 5 ? 'cicn-body-not-implemented' : 'body-mode-or-geometry-not-implemented' });
@@ -746,16 +739,14 @@ async function loadBodyPattern(face: ResolvedControlFace, opts: FaceOptions, usa
       && [face.element.slice.corner, face.element.slice.side].every(value => Number.isInteger(value) && value >= 0 && value <= 255);
     return { buffer: null, solidFallback };
   }
-  assertControlAlive(opts.signal);
   const url = assetUrl(face.theme, pattern.asset);
   // Capture actual owner/occurrence at the load boundary for completed header
   // paint reporting, without repeating resolution after asynchronous decoding.
   const selection: ControlResolutionStep | undefined = opts.trace ? { ...common, action: 'selected',
-    reason: usage === 'admission' ? selectionReason.replace(/-paint$/, '-admission') : selectionReason,
+    reason: selectionReason,
     resource: { type: 'ppat', signedId: pattern.sourcePpatId ?? null, sourceCinfId: null, manifestKey: key!, assetUrl: url,
       ...(pattern.byteProvenance ? { byteProvenance: { ...pattern.byteProvenance } } : {}) } } : undefined;
   const buffer = await loadCicnBuffer(url);
-  assertControlAlive(opts.signal);
   if (selection) opts.trace?.record(selection);
   return { buffer, solidFallback: false, ...(selection ? { selection } : {}) };
 }
@@ -775,7 +766,7 @@ async function composeFaceButton(
   const label = opts.label ?? '';
   const { buffer: face, element: faceEl } = resolved;
   if (resolved.consumedCinf?.status === 'no-body-or-border') {
-    const width = opts.width ?? Math.max(opts.minWidth ?? 56, (opts.padX ?? 12) * 2), height = resolveControlHeight(face, opts.height);
+    const width = Math.max(opts.minWidth, 16), height = resolveControlHeight(face, opts.height);
     const context = opts.composition ?? snapshotControlComposition();
     opts.trace?.composition({ context, originalPortState: 'unverified', faceRect: { x: context.controlOrigin[0], y: context.controlOrigin[1], w: width, h: height },
       appliedUnknownPatternOffset: context.patternOrigin.status === 'unknown' });
@@ -813,17 +804,15 @@ async function composeFaceButton(
   let lineH = resolveControlHeight(face, opts.height);
   // kDEF reads effective port txSize (0x7546/0x754a), not Rect height.
   const fontSize = opts.fontSize!;
-  const bitmapRun = opts.bitmapRun;
-  const glyphs = !bitmapRun && label ? rasterizeText(label, fontSize, fg) : null;
+  const glyphs = label ? rasterizeText(label, fontSize, fg) : null;
   // A cicn is a resizable template, not a minimum control rectangle. Tiny
   // templates (e.g. a 5×6 face) cannot contain even our smallest label raster.
   // Use the existing standard height without changing the button font size.
   // Caller-specified heights remain authoritative, including compact controls.
-  if (opts.height == null && ((glyphs && glyphs.height > lineH) || (bitmapRun && label && bitmapRun.lineHeight > lineH))) {
+  if (opts.height == null && glyphs && glyphs.height > lineH) {
     lineH = APPLE_PUSH_BUTTON_HEIGHT;
   }
-  const padX = opts.padX ?? 12;
-  const innerW = opts.width ?? Math.max(opts.minWidth ?? 56, (bitmapRun ? bitmapRun.advance : glyphs ? glyphs.width : 0) + padX * 2);
+  const innerW = Math.max(opts.minWidth, (glyphs ? glyphs.width : 0) + 16);
   const innerH = lineH;
   const out = PixelBuffer.alloc(innerW, innerH);
   const context = opts.composition ?? snapshotControlComposition();
@@ -970,9 +959,8 @@ async function composeFaceButton(
       }
     }
   }
-  const bitmapTextPaint = bitmapRun ? paintBitmapText(out, bitmapRun, context, fg, colors.emboss) : null;
   if (glyphs) {
-    const gx = opts.align === 'left' ? padX : Math.round((innerW - glyphs.width) / 2);
+    const gx = Math.round((innerW - glyphs.width) / 2);
     const gy = Math.round((innerH - glyphs.height) / 2);
     if (colors.emboss) out.drawOver(rasterizeText(label, fontSize, colors.emboss), gx + 1, gy + 1);
     out.drawOver(glyphs, gx, gy);
@@ -981,45 +969,21 @@ async function composeFaceButton(
     for (let y = 0; y < innerH; y++) for (let x = 0; x < innerW; x++)
       if (!controlPointVisible(context, x, y)) out.setPixel(x, y, 0, 0, 0, 0);
   }
-  assertControlAlive(opts.signal);
   if (patternPaint && body.selection) opts.trace?.completeBodyPaint(body.selection, patternPaint);
   if (mode5PaintStep) opts.trace?.record(mode5PaintStep);
   if (legacyFacePaint) opts.trace?.legacyFacePaint(legacyFacePaint);
-  if (bitmapTextPaint) opts.trace?.bitmapTextPaint(bitmapTextPaint);
   return out;
 }
 
-/** The border path shared by kDEF 0x107fe faces and rings: square corners plus independently thick
- * bands, in painter order TL/TR/top/BL/BR/bottom/left/right. Cinf side thickness
- * may exceed corner size (e.g. 7/14 in a 21px ring); these are overlapping
- * masked bands, not a rectangular nine-slice partition. Body fill is disabled
- * by the ring wrapper at 0x107de; solid faces fill it separately first. */
+/** Bevel compatibility transfers consume shared cinf geometry in painter order. */
 async function composeControlBorder(resolved: ResolvedControlFace, width: number, height: number,
-  opts: Pick<FaceOptions, 'trace' | 'signal'>, visible: (x: number, y: number) => boolean,
-  role: 'face' | 'default-ring' = 'face'): Promise<PixelBuffer> {
-  assertControlAlive(opts.signal);
+  opts: Pick<FaceOptions, 'trace'>, visible: (x: number, y: number) => boolean): Promise<PixelBuffer> {
   const { buffer: source, element } = resolved;
   const out = PixelBuffer.alloc(width, height);
   const c = Math.max(0, element.slice?.corner ?? sliceInset(source.width, source.height));
   const side = Math.max(0, element.slice?.side ?? c);
-  const cw = Math.min(c, source.width), ch = Math.min(c, source.height);
-  const sw = Math.min(side, source.width), sh = Math.min(side, source.height);
   const repeat = element.slice?.tile ?? false;
-  // 0x10cf6/0x10e54 restrict non-repeated horizontal bands to the first
-  // source column; 0x10ecc/0x10f44 do the same with the first vertical row.
-  const middleW = source.width - c * 2, middleH = source.height - c * 2;
-  const bandW = repeat ? Math.max(0, middleW) : c < source.width ? 1 : 0;
-  const bandH = repeat ? Math.max(0, middleH) : c < source.height ? 1 : 0;
-  const regions: [number, number, number, number, number, number, number, number][] = [
-    [0, 0, cw, ch, 0, 0, cw, ch],
-    [source.width - cw, 0, cw, ch, width - cw, 0, cw, ch],
-    [c, 0, bandW, sh, c, 0, width - c * 2, sh],
-    [0, source.height - ch, cw, ch, 0, height - ch, cw, ch],
-    [source.width - cw, source.height - ch, cw, ch, width - cw, height - ch, cw, ch],
-    [c, source.height - sh, bandW, sh, c, height - sh, width - c * 2, sh],
-    [0, c, sw, bandH, 0, c, sw, height - c * 2],
-    [source.width - sw, c, sw, bandH, width - sw, c, sw, height - c * 2],
-  ];
+  const regions = cinfBorderPlan(source, { cornerSize: c, sideThickness: side, tileSides: repeat }, rect(0, 0, height, width));
   const proof = element.samplingEquivalence;
   const identityMatches = (a: { model: string; comparison: string; displayPolicy: string; width: number; height: number } | undefined | null) =>
     a?.model === 'kaleidoscope-2.3.1-opaque-sampling-v1' && a.comparison === 'opaque-current-display-rgb'
@@ -1031,7 +995,7 @@ async function composeControlBorder(resolved: ResolvedControlFace, width: number
   let sampled: PixelBuffer | null = null;
   let attempted = false;
   for (const [regionIndex, region] of regions.entries()) {
-    const [sx, sy, rw, rh, dx, dy, dw, dh] = region;
+    const { src: { left: sx, top: sy }, dst: { left: dx, top: dy }, extents: [rw, rh, dw, dh] } = region;
     if (rw <= 0 || rh <= 0 || dw <= 0 || dh <= 0) continue;
     // Clip allocation to the output, while retaining the original tile phase.
     const x0 = Math.max(0, dx), y0 = Math.max(0, dy);
@@ -1046,10 +1010,8 @@ async function composeControlBorder(resolved: ResolvedControlFace, width: number
     }
     if (!paints) continue;
     if (branch !== 'copy' && !equivalent && eligible && !attempted) {
-      assertControlAlive(opts.signal);
       attempted = true;
       const decoded = await loadCicnBuffer(assetUrl(resolved.theme, companion.asset));
-      assertControlAlive(opts.signal);
       if (decoded.width === source.width && decoded.height === source.height) {
         let sameMask = true;
         for (let i = 3; i < source.data.length; i += 4) if (decoded.data[i] !== source.data[i]) { sameMask = false; break; }
@@ -1069,7 +1031,7 @@ async function composeControlBorder(resolved: ResolvedControlFace, width: number
     }
     // FEAE's masked blits preserve earlier bands below transparent samples.
     out.drawOver(band, x0, y0);
-    if (opaqueUsed) opts.trace?.bandPaint({ role, region: regionIndex, branch, policy,
+    if (opaqueUsed) opts.trace?.bandPaint({ role: 'face', region: regionIndex, branch, policy,
       owner: { baseUrl: resolved.theme.baseUrl, chainDepth: resolved.chainDepth }, resource: resourceIdentity(resolved),
       ...(policy === 'sampled-companion' && companion ? { derived: { path: companion.derivedPath,
         assetUrl: assetUrl(resolved.theme, companion.asset), model: companion.model, displayPolicy: companion.displayPolicy } } : {}) });
@@ -1122,8 +1084,8 @@ async function composeBevelButtonWithTrace(theme: LoadedTheme, opts: BevelButton
     if (face) break;
   }
   if (!face) return null; // → platinumBevelButton
-  face = declaredBodyFace(theme, face, -reqId, opts.label ?? '', false, trace);
-  const faceOpts: FaceOptions = { composition, trace, fontSize: opts.fontSize!, padX: 8, minWidth: opts.minWidth ?? (opts.small ? 18 : 22) };
+  face = declaredBodyFace(theme, face, -reqId, opts.label ?? '', trace);
+  const faceOpts: FaceOptions = { composition, trace, fontSize: opts.fontSize!, minWidth: opts.minWidth ?? (opts.small ? 18 : 22) };
   if (opts.label != null) faceOpts.label = opts.label;
   if (opts.disabled != null) faceOpts.disabled = opts.disabled;
   if (opts.fg != null) faceOpts.fg = opts.fg;
