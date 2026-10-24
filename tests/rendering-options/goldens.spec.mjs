@@ -6,6 +6,7 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { test, expect, openHarness, attachCase, attachObservations } from './fixtures.mjs';
 import { goldenCasePages } from './golden-cases.mjs';
+import { compareGoldenWithDisabledCssEdge } from './disabled-css-edge-oracle.mjs';
 const directory = new URL('./goldens/', import.meta.url);
 const manifestPath = new URL('manifest.json', directory);
 const catalog = JSON.parse(readFileSync(new URL('../../demo/themes-manifest.json', import.meta.url)));
@@ -41,11 +42,11 @@ for (const { slug } of catalog) for (const [pageIndex, cases] of pages.entries()
     expect(existsSync(manifestPath), 'Missing reviewed golden manifest. Recording requires explicit update + visual review.').toBe(true);
     expect(JSON.parse(readFileSync(manifestPath)).environment, 'baseline environment/case inventory must match').toEqual(environment);
   }
-  let current, result;
+  let current, result, comparison;
   const observed = [];
   const attachObserved = complete => attachObservations(testInfo, 'golden-pages', `${slug}-page-${pageIndex + 1}`, {
     slug, page: pageIndex + 1, declaredRuntimeModes: ['built'], complete, operation: update ? 'record-candidates' : 'verify',
-    environment, executionProvenance,
+    environment, executionProvenance, comparison,
     interpretation: 'Statuses and dimensions describe this execution, not independent expected availability or fidelity.',
     cases: observed,
   });
@@ -65,8 +66,12 @@ for (const { slug } of catalog) for (const [pageIndex, cases] of pages.entries()
     // Hide transient server URLs; the cases, labels, dimensions and native DOM
     // stay visible. Backing font binaries and viewport are pinned above.
     await page.locator('#status').evaluate(el => el.remove());
-    await expect(page.locator('#matrix')).toHaveScreenshot(`${slug}-page-${pageIndex + 1}.png`, {
+    const compareCanonical = () => expect(page.locator('#matrix')).toHaveScreenshot(`${slug}-page-${pageIndex + 1}.png`, {
       animations: 'disabled', caret: 'hide', threshold: 0, maxDiffPixels: 0,
+    });
+    if (update) { await compareCanonical(); comparison = { branch: 'record-candidates' }; }
+    else comparison = await compareGoldenWithDisabledCssEdge(compareCanonical, testInfo, {
+      slug, page: pageIndex + 1, caseIndex: 8, caseId: cases[8]?.id, environment,
     });
     await attachObserved(true);
   } catch (error) {

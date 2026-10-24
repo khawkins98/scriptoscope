@@ -358,3 +358,53 @@ evidence. These snapshots certify regression stability only: substitute glyphs
 and alpha-over policy do not establish original typography or native srcOr,
 provider/cache/device/transfer fidelity, ledger status or whole-window closure.
 No utility-window golden was added; #423 DOM geometry/focus coverage is separate.
+
+
+## Finite disabled modern CSS edge proposal — #459, 2026-10-24
+
+This independently authored proposal extends the existing canonical stock
+Playwright predicate only after it fails. It requires separate independent source,
+visual and oracle review; this text grants no approval. All 36 canonical PNGs,
+manifest bytes, prior review text and acquisition/verification identities above
+remain unchanged. In particular acquisition48cb, verification2652 and12ff are
+not relabelled as the later CI or proposal execution.
+
+`disabled-css-edge-variants.json` binds exactly Apple Platinum2, Platinum8, Slimes
+and System7 Nostalgia Silver page1, case index8,
+`declarative/push/auto/ink/horizontal/0.5/true/disabled`, to their canonical PNG
+SHA256, dimensions, complete canonical/alternative RGBA SHA256 and manifest
+environment digest. The 27 exact before/after RGBA replacements per sheet
+reconstruct one frozen complete B image from its canonical image. Reconstruction
+validates every old pixel, replacement count, unique coordinate and whole-plane
+hash. The additional acceptance requires equal dimensions and every RGBA byte;
+there is no regional allowance, mask or additional AA tolerance. A change to any
+other pixel or an unrecognized third edge value in rejected B stays rejected.
+
+Data originates in the preserved failures of CI40038090066. Before implementation,
+the author downloaded CI40042310539's `rendering-options-1` artifact (12540168781,
+GitHub digest `sha256:849add71e1f483a9127a80128a4a2050eefdb21a7accc0c4dec24dee816ba2cb`)
+and independently decoded its four complete images: each equals its original B
+RGBA plane. The original artifact index is sealed by SHA256
+`b22a1bc40a9bff7318a0627d4cbf1fe882daec9c347d5029c7e5ba34c45aa346`.
+The externally frozen evidence and whole/edge visual review aids remain in
+`459-css-edge-finite-oracle`; all original failures remain preserved.
+
+The affected output is the disabled79×24 browser CSS fallback button; geometry,
+labels, state, themed artwork and every pixel outside its rounded edge are
+unchanged between these retained images. Public `baselineButton` uses a10px
+rounded border and inset highlights/shadow. These are modern web regression
+expectations, not original-native painting truth. The precise browser raster
+trigger remains UNKNOWN; no claim that the two observed outputs exhaust possible
+outputs is made. The failed Skia flag study is not adopted.
+
+The stock `toHaveScreenshot` call retains animations disabled, caret hidden,
+threshold0 and maxDiffPixels0. Its existing AA classifier can accept raw pixel
+differences, so canonical success does not establish raw canonical equality.
+The strict new branch adds only exact B planes rejected by that existing
+predicate. It reuses the matcher's failed actual attachment through public
+`testInfo.attachments`; no additional screenshot or settlement step is added.
+Expected/actual/diff and the original canonical failure remain attached, alongside
+`golden-comparison.json`. Every page observation records which branch accepted it.
+Missing/ambiguous attachments or an unmatched binding preserve the original
+matcher failure. Recording stays on its original separate path and never creates
+alternative expectations from the current screenshot.
