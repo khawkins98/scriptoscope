@@ -36,7 +36,7 @@ function selectTab(theme: LoadedTheme, selected: boolean, trace?: ControlTraceCo
       seen.add(owner);
       const where = { baseUrl: owner.baseUrl, chainDepth };
       if (chainDepth) trace?.record({ ...step, owner: where, action: 'fallback', reason: 'base-inheritance' });
-      const entry = Object.entries(owner.manifest.chromeElements ?? {}).find(([, e]) => Math.abs(e.sourceCicnId!) === Math.abs(id));
+      const entry = Object.entries(owner.manifest.chromeElements ?? {}).find(([, e]) => Number.isInteger(e.sourceCicnId) && Math.abs(e.sourceCicnId!) === Math.abs(id));
       if (!entry) { trace?.record({ ...step, owner: where, action: 'missing', reason: 'missing-resource' }); continue; }
       const hit = { theme: owner, key: entry[0], element: entry[1], chainDepth };
       trace?.record({ ...step, ...identity(hit), action: 'selected', reason: hit.element.sourceCicnId! > 0 ? 'positive-id-alias' : 'resource-id' });
@@ -60,7 +60,7 @@ function metadata(el: ChromeElement): TabMetadata | string {
     mode: el.bodyRequest.mode, patternId: el.bodyRequest.resourceId };
 }
 function finiteRgb(values: readonly number[] | undefined, maximum: number): values is readonly [number, number, number] {
-  return !!values && values.length === 3 && values.every(v => Number.isInteger(v) && v >= 0 && v <= maximum);
+  return Array.isArray(values) && values.length === 3 && Array.from(values).every(v => Number.isInteger(v) && v >= 0 && v <= maximum);
 }
 /** A matching-size/owner-display record is a finite declaration, not device proof. */
 function samplingEquivalent(el: ChromeElement, owner: LoadedTheme, source: PixelBuffer): boolean {
@@ -74,7 +74,8 @@ async function sampledCompanion(el: ChromeElement, owner: LoadedTheme, source: P
   if (!descriptor || descriptor.model !== 'kaleidoscope-2.3.1-opaque-sampling-v1'
     || descriptor.comparison !== 'opaque-current-display-rgb' || descriptor.width !== source.width || descriptor.height !== source.height
     || !ownerDisplayPolicyMatches(owner.manifest, descriptor.displayPolicy)
-    || typeof descriptor.asset !== 'string' || !descriptor.asset.trim()) return null;
+    || typeof descriptor.asset !== 'string' || !descriptor.asset.trim()
+    || typeof descriptor.derivedPath !== 'string' || !descriptor.derivedPath.trim()) return null;
   const sampled = await loadCicnBuffer(assetUrl(owner, descriptor.asset));
   return validTabCompanion(source, sampled) ? sampled : null;
 }
@@ -134,7 +135,7 @@ function prepareMetadata(el: ChromeElement, bytes: readonly number[] | undefined
   if (el.sourceCinfId !== undefined && (!Number.isInteger(el.sourceCinfId) || el.sourceCinfId !== id))
     return 'same-id-cinf-mismatch';
   if (bytes === undefined) return el;
-  if (!Array.isArray(bytes) || !bytes.every(v => Number.isInteger(v) && v >= 0 && v <= TAB_DOMAIN.opaque)
+  if (!(Array.isArray(bytes) || bytes instanceof Uint8Array) || !Array.from(bytes).every((v, i) => Object.hasOwn(bytes, i) && Number.isInteger(v) && v >= 0 && v <= TAB_DOMAIN.opaque)
     || bytes.length < CINF_SAMPLE.headerLength) return 'invalid-retained-cinf-header';
   const raw = decodeCinfHeader(bytes)!;
   const fields = { slice: { corner: raw.cornerSize, side: raw.sideThickness, tile: raw.tileSides !== 0 },
@@ -146,7 +147,7 @@ function prepareMetadata(el: ChromeElement, bytes: readonly number[] | undefined
     || el.bodyRequest !== undefined && (!el.bodyRequest || el.bodyRequest.mode !== fields.bodyRequest.mode || el.bodyRequest.resourceId !== fields.bodyRequest.resourceId))
     return 'retained-cinf-contradicts-prepared-fields';
   for (const key of ['bgAnchor', 'textAnchor', 'embossAnchor'] as const)
-    if (el[key] !== undefined && (!el[key] || el[key]!.length !== 2 || el[key]!.some((v, i) => v !== fields[key][i])))
+    if (el[key] !== undefined && (!Array.isArray(el[key]) || el[key]!.length !== 2 || Array.from(el[key]!).some((v, i) => v !== fields[key][i])))
       return `retained-cinf-contradicts-${key}`;
   return { ...el, ...fields };
 }
@@ -166,7 +167,7 @@ function sampleColors(el: ChromeElement, owner: LoadedTheme, source: PixelBuffer
   let backgroundPolicy: 'none' | 'raw-sample' | 'decoded-anchor' = 'none';
   const read = (role: 'background' | 'text' | 'emboss'): Rgba | null => {
     const anchor = role === 'background' ? el.bgAnchor : role === 'text' ? el.textAnchor : el.embossAnchor;
-    if (!anchor || anchor.length !== 2 || !anchor.every(Number.isInteger) || anchor[0] < 0 || anchor[1] < 0
+    if (!Array.isArray(anchor) || anchor.length !== 2 || !Array.from(anchor).every(Number.isInteger) || anchor[0] < 0 || anchor[1] < 0
       || anchor[0] >= source.width || anchor[1] >= source.height) return null;
     if (role === 'emboss' && anchor[0] === 0 && anchor[1] === 0) return null;
     const strong = el.engineColorSamples;
@@ -176,11 +177,14 @@ function sampleColors(el: ChromeElement, owner: LoadedTheme, source: PixelBuffer
       && strong.width === source.width && strong.height === source.height && strong.asset === el.asset
       && ownerDisplayPolicyMatches(owner.manifest, strong.displayPolicy) ? strong.points?.[`${anchor[0]},${anchor[1]}`] : null
       : local?.model === 'kdef-2.3.1-color' && ownerDisplayPolicyMatches(owner.manifest, local.displayPolicy) ? local[role] : null;
-    if (sample && finiteRgb(sample.rgb16, TAB_DOMAIN.rgb16Max) && finiteRgb(sample.displayRgb, TAB_DOMAIN.opaque)) {
+    if (sample && finiteRgb(sample.rgb16, TAB_DOMAIN.rgb16Max)) {
       const realized = realizeRgb16(sample.rgb16, owner.manifest.displayProfile);
-      if (realized.every((v, i) => v === sample.displayRgb[i])) {
+      // CS1 uses the established raw-sample seam. CS2 additionally validates
+      // the declared realized tuple; neither tuple is transformed twice.
+      if (finiteRgb(realized, TAB_DOMAIN.opaque) && (strongSupplied || finiteRgb(sample.displayRgb, TAB_DOMAIN.opaque)
+        && realized.every((v, i) => v === sample.displayRgb[i]))) {
         if (role === 'background') backgroundPolicy = 'raw-sample';
-        return { r: sample.displayRgb[0], g: sample.displayRgb[1], b: sample.displayRgb[2], a: TAB_DOMAIN.opaque };
+        return { r: realized[0], g: realized[1], b: realized[2], a: TAB_DOMAIN.opaque };
       }
     }
     // A failed stronger/local declaration cannot be bypassed with decoded RGB.
