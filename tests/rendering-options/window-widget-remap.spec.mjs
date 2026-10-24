@@ -69,3 +69,83 @@ for (const mode of ['source', 'built']) {
     }
   });
 }
+
+// WM381 is modern public WindowManager policy, not decoded native precedence.
+// The frozen policy names 1138's 2x35 template-content case. Its collapse
+// part-3 is [4,30,12,38]; probe (8,34) comes from that input, never the overlay
+// being tested. HG1–HG5's original numeric intersection remains unknown.
+for (const mode of ['source', 'built']) {
+  test(`${mode}: template-width widgets act exclusively over resize, with ordinary pointer and keyboard resize preserved`, async ({ page, servers }, info) => {
+    await openHarness(page, servers, mode);
+    const rows = [];
+    for (const state of ['active', 'inactive']) for (const scale of [1, 2]) {
+      await page.evaluate(async ({ mode, state, scale }) => {
+        const api = await import(mode === 'built' ? '/dist/scriptoscope.js' : '/src/index.ts');
+        const theme = await api.loadTheme('/themes/1138');
+        const manager = new api.WindowManager(), actions = [], resize = [], targets = [];
+        const host = await manager.add(theme, { windowType: 'side-floating-utility-window', width: 2, height: 35, scale, state },
+          { onClose() { actions.push('close'); }, onZoom() { actions.push('zoom'); }, onCollapse() { actions.push('collapse'); } });
+        host.style.left = '100px'; host.style.top = '120px'; document.body.append(host);
+        host.addEventListener('scriptoscope:userresize', e => resize.push(e.detail));
+        host.shadowRoot.addEventListener('pointerdown', e => targets.push(e.target.className), true);
+        window.wm381 = { api, theme, manager, host, actions, resize, targets };
+      }, { mode, state, scale });
+      // Fixed input-space point, with the consumer's explicit host origin.
+      await page.mouse.click(100 + 8 * scale, 120 + 34 * scale);
+      const click = await page.evaluate(() => ({ actions: [...window.wm381.actions], resize: [...window.wm381.resize] }));
+      await page.mouse.move(100 + 8 * scale, 120 + 34 * scale);
+      await page.mouse.down();
+      await page.mouse.move(100 + 14 * scale, 120 + 38 * scale, { steps: 3 });
+      await page.mouse.up();
+      const row = await page.evaluate(async ({ state, scale }) => {
+        const { manager, host, actions, resize, targets, theme } = window.wm381;
+        const btn = host.shadowRoot.querySelector('.scriptoscope-titlewidget-collapse');
+        const keyboard = { label: btn?.getAttribute('aria-label'), disabled: btn?.disabled, tabIndex: btn?.tabIndex };
+        btn?.focus(); keyboard.focused = host.shadowRoot.activeElement === btn;
+        const result = { state, scale, actions: [...actions], resize: [...resize], targets: [...targets], keyboard,
+          width: manager.describe(host).width, height: manager.describe(host).height };
+        return result;
+      }, { state, scale });
+      await page.keyboard.press('Enter');
+      const keyboardAction = await page.evaluate(() => { const { manager, host, theme, actions } = window.wm381; const result = [...actions]; manager.remove(host); host.remove(); theme.dispose?.(); return result; });
+      rows.push({ ...row, click, keyboardAction });
+    }
+    // A larger ordinary window has an uncovered bottom-right grow target.
+    // Its measured root corner is an interaction location only: expected size
+    // changes are specified by the independent input deltas below.
+    await page.evaluate(async ({ mode }) => {
+      const api = await import(mode === 'built' ? '/dist/scriptoscope.js' : '/src/index.ts');
+      const theme = await api.loadTheme('/themes/1138'), manager = new api.WindowManager();
+      const actions = [], resize = [];
+      const host = await manager.add(theme, { windowType: 'side-floating-utility-window', width: 160, height: 100, scale: 1 },
+        { onClose() { actions.push('close'); }, onZoom() { actions.push('zoom'); }, onCollapse() { actions.push('collapse'); } });
+      host.style.left = '100px'; host.style.top = '120px'; document.body.append(host);
+      host.addEventListener('scriptoscope:userresize', e => resize.push(e.detail));
+      window.wm381 = { theme, manager, host, actions, resize };
+    }, { mode });
+    const corner = await page.evaluate(() => { const b = window.wm381.host.getBoundingClientRect(); return { x: b.right - 2, y: b.bottom - 2 }; });
+    await page.mouse.move(corner.x, corner.y); await page.mouse.down();
+    await page.mouse.move(corner.x + 24, corner.y + 16, { steps: 3 }); await page.mouse.up();
+    await page.waitForFunction(() => window.wm381.host.shadowRoot.querySelector('.scriptoscope-growbox'));
+    const pointer = await page.evaluate(() => { const { manager, host, actions, resize } = window.wm381; const { width, height } = manager.describe(host); return { width, height, actions: [...actions], resize: [...resize] }; });
+    await page.locator('[data-scriptoscope-window-host]').getByRole('button', { name: 'Resize window' }).focus();
+    await page.keyboard.press('ArrowRight');
+    const keyboardResize = await page.evaluate(() => { const { manager, host, actions, resize, theme } = window.wm381; const { width, height } = manager.describe(host); const out = { width, height, actions: [...actions], resize: [...resize] }; manager.remove(host); host.remove(); theme.dispose?.(); return out; });
+    await attachObservations(info, 'window-widget-collision', mode, { mode, policy: 'WM381 modern compatibility; original numeric overlap unknown', rows, pointer, keyboardResize });
+    for (const row of rows) {
+      const label = `${row.state} scale ${row.scale}`;
+      expect(row.click, `${label}: one stationary click, one title action`).toEqual({ actions: ['collapse'], resize: [] });
+      expect(row.keyboardAction, `${label}: keyboard activation remains available`).toEqual([...row.actions, 'collapse']);
+      expect(row.targets.every(target => target.includes('titlewidget-collapse')), label).toBe(true);
+      expect(row.actions[0], label).toBe('collapse');
+      expect(row.actions.every(action => action === 'collapse'), label).toBe(true);
+      expect(row.actions.length, label).toBeGreaterThanOrEqual(1);
+      expect(row.actions.length, label).toBeLessThanOrEqual(2);
+      expect(row.resize, `${label}: widget press/drag must not start resize`).toEqual([]);
+      expect([row.width, row.height], label).toEqual([2, 35]);
+      expect(row.keyboard, label).toEqual({ label: 'Collapse window', disabled: false, tabIndex: 0, focused: true });
+    }
+    expect(pointer).toEqual({ width: 184, height: 116, actions: [], resize: [{ w: 184, h: 116 }] });
+    expect(keyboardResize).toEqual({ width: 192, height: 116, actions: [], resize: [{ w: 184, h: 116 }, { w: 192, h: 116 }] });
+  });
+}
