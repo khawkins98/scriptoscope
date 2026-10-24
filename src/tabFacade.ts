@@ -8,7 +8,7 @@ import { assetUrl } from './loadTheme.js';
 import { loadCicnBuffer } from './cicnImage.js';
 import { PixelBuffer } from './pixelBuffer.js';
 import { rasterizeText } from './textRaster.js';
-import { ownerDisplayPolicyMatches, realizeRgb16 } from '../tools/theme-loader/display-profile.js';
+import { ownerDisplayPolicyMatches, realizeRgb16, DisplayProfileError } from '../tools/theme-loader/display-profile.js';
 import { drawTab, admitTabGeometry, tabBandPlan, tabCenter, tabNeedsSampledBands, validTabCompanion,
   type TabInput, type TabMetadata } from './engine/families/tab.js';
 import { TAB_DOMAIN, TAB_FACADE, TAB_LABEL } from './engine/tables/tab.js';
@@ -163,27 +163,33 @@ function admitOrigin(el: ChromeElement, source: PixelBuffer): string {
   if (supplied('boundsOrigin') && (!el.boundsOrigin || el.boundsOrigin.left !== 0 || el.boundsOrigin.top !== 0)) return 'invalid-source-origin';
   return 'declared-zero-origin';
 }
-function sampleColors(el: ChromeElement, owner: LoadedTheme, source: PixelBuffer, equivalent: boolean, strongValid: boolean) {
+export function tabBodyColors(el: ChromeElement, owner: LoadedTheme, source: PixelBuffer, equivalent: boolean, strongValid: boolean, backgroundNeeded: boolean) {
   let backgroundPolicy: 'none' | 'raw-sample' | 'decoded-anchor' = 'none';
-  const read = (role: 'background' | 'text' | 'emboss'): Rgba | null => {
-    const anchor = role === 'background' ? el.bgAnchor : role === 'text' ? el.textAnchor : el.embossAnchor;
+  let failure: string | undefined;
+  const read = (): Rgba | null => {
+    const anchor = el.bgAnchor;
     if (!Array.isArray(anchor) || anchor.length !== 2 || !Array.from(anchor).every(Number.isInteger) || anchor[0] < 0 || anchor[1] < 0
       || anchor[0] >= source.width || anchor[1] >= source.height) return null;
-    if (role === 'emboss' && anchor[0] === 0 && anchor[1] === 0) return null;
     const strong = el.engineColorSamples;
     const strongSupplied = Object.hasOwn(el, 'engineColorSamples') && strong !== undefined;
     const local = el.colorSamples;
     const sample = strongSupplied ? strongValid && strong && strong.model === 'kdef-2.3.1-engine-points'
       && strong.width === source.width && strong.height === source.height && strong.asset === el.asset
       && ownerDisplayPolicyMatches(owner.manifest, strong.displayPolicy) ? strong.points?.[`${anchor[0]},${anchor[1]}`] : null
-      : local?.model === 'kdef-2.3.1-color' && ownerDisplayPolicyMatches(owner.manifest, local.displayPolicy) ? local[role] : null;
+      : local?.model === 'kdef-2.3.1-color' && ownerDisplayPolicyMatches(owner.manifest, local.displayPolicy) ? local.background : null;
     if (sample && finiteRgb(sample.rgb16, TAB_DOMAIN.rgb16Max)) {
-      const realized = realizeRgb16(sample.rgb16, owner.manifest.displayProfile);
+      let realized: number[];
+      try { realized = realizeRgb16(sample.rgb16, owner.manifest.displayProfile); }
+      catch (error) {
+        if (!(error instanceof DisplayProfileError)) throw error;
+        failure = `background-display-mapping:${error.code}`;
+        return null;
+      }
       // CS1 uses the established raw-sample seam. CS2 additionally validates
       // the declared realized tuple; neither tuple is transformed twice.
       if (finiteRgb(realized, TAB_DOMAIN.opaque) && (strongSupplied || finiteRgb(sample.displayRgb, TAB_DOMAIN.opaque)
         && realized.every((v, i) => v === sample.displayRgb[i]))) {
-        if (role === 'background') backgroundPolicy = 'raw-sample';
+        backgroundPolicy = 'raw-sample';
         return { r: realized[0], g: realized[1], b: realized[2], a: TAB_DOMAIN.opaque };
       }
     }
@@ -191,11 +197,11 @@ function sampleColors(el: ChromeElement, owner: LoadedTheme, source: PixelBuffer
     if (strongSupplied || local != null) return null;
     const pixel = source.getPixel(anchor[0], anchor[1]);
     if (!equivalent || pixel[3] !== TAB_DOMAIN.opaque) return null;
-    if (role === 'background') backgroundPolicy = 'decoded-anchor';
+    backgroundPolicy = 'decoded-anchor';
     return { r: pixel[0], g: pixel[1], b: pixel[2], a: TAB_DOMAIN.opaque };
   };
-  const backgroundRGB = read('background'), textRGB = read('text'), embossRGB = read('emboss');
-  return { backgroundRGB, textRGB, embossRGB, backgroundPolicy: backgroundPolicy as 'none' | 'raw-sample' | 'decoded-anchor' };
+  const backgroundRGB = backgroundNeeded ? read() : null;
+  return { backgroundRGB, textRGB: null, embossRGB: null, failure, backgroundPolicy: backgroundPolicy as 'none' | 'raw-sample' | 'decoded-anchor' };
 }
 
 export async function composeEngineTab(theme: LoadedTheme, opts: TabOptions): Promise<PixelBuffer | null> {
@@ -254,8 +260,6 @@ export async function composeEngineTab(theme: LoadedTheme, opts: TabOptions): Pr
       input.sampled = await sampledCompanion(el, owner, source);
       if (!input.sampled) return unavailable('unsupported-sampling', 'sampled-band-companion-or-equivalence-unavailable');
     }
-    const colors = sampleColors(el, owner, source, !!input.samplingEquivalent, strongValid);
-    Object.assign(input, colors);
     let pattern: PatternBinding = { status: 'missing' };
     if (!emptyRect(tabCenter(input)) && m.patternId !== 0) {
       pattern = bindPattern(owner, el, m.patternId);
@@ -266,8 +270,10 @@ export async function composeEngineTab(theme: LoadedTheme, opts: TabOptions): Pr
         reason: pattern.status === 'ready' ? 'same-selected-face-owner-pattern' : 'missing-pattern-solid-erase' });
       if (pattern.status === 'ready') input.pattern = await loadCicnBuffer(pattern.url);
     }
+    const colors = tabBodyColors(el, owner, source, !!input.samplingEquivalent, strongValid, !emptyRect(tabCenter(input)) && !input.pattern);
+    Object.assign(input, colors);
     if (!emptyRect(tabCenter(input)) && !input.pattern && !input.backgroundRGB)
-      return unavailable('unsupported-sampling', 'background-sample-unavailable-or-invalid');
+      return unavailable('unsupported-sampling', colors.failure ?? 'background-sample-unavailable-or-invalid');
     const out = PixelBuffer.alloc(requestedWidth, source.height);
     const body = drawTab(out, input);
     if (!body.drawn) return unavailable(body.unsupported!, body.reason!);
