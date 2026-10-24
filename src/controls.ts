@@ -14,8 +14,8 @@ import { PixelBuffer } from './pixelBuffer.js';
 import { rasterizeText } from './textRaster.js';
 import { controlTextColors } from './controlTextColors.js';
 import { composeEngineTab } from './tabFacade.js';
-import { planHeaderSurface, headerMetadataRejection, headerBackground, paintHeaderSurface,
-  type HeaderSurfaceOptions, type HeaderSurfaceResult, type HeaderSurfaceTrace } from './headerSurface.js';
+import type { HeaderSurfaceOptions, HeaderSurfaceResult } from './headerSurface.js';
+import { composeEngineHeaderSurface, composeEngineHeaderColumns } from './headerFacade.js';
 import { createTrace, type EngineTrace } from './engine/trace.js';
 import { rect } from './engine/qd/rect.js';
 import { normalizeControlState } from './engine/state/control.js';
@@ -777,18 +777,17 @@ async function loadBodyPattern(face: ResolvedControlFace, opts: FaceOptions, usa
  * Compose a button face and its label. For explicit cinf metadata with a valid
  * solid background sample, use kDEF 0x10fc0 → 0x107fe: fill the inset cross,
  * then paint square corners and independent masked edge bands. Full-color pattern bodies use the same
- * inset union with explicit port phase. Unsupported body modes and list headers
- * retain the legacy approximation pending separate call-site evidence. Text RGB/emboss use preserved samples
+ * inset union with explicit port phase. Unsupported button body modes
+ * retain their compatibility approximation. Text RGB/emboss use preserved samples
  * from 0x10922–0x10990; font metrics and browser alpha-over remain policies.
  */
 async function composeFaceButton(
   resolved: ResolvedControlFace,
   opts: FaceOptions,
-  geometry: 'button' | 'legacy-list-header' = 'button',
 ): Promise<PixelBuffer> {
   const label = opts.label ?? '';
   const { buffer: face, element: faceEl } = resolved;
-  if (geometry === 'button' && resolved.consumedCinf?.status === 'no-body-or-border') {
+  if (resolved.consumedCinf?.status === 'no-body-or-border') {
     const width = opts.width ?? Math.max(opts.minWidth ?? 56, (opts.padX ?? 12) * 2), height = resolveControlHeight(face, opts.height);
     const context = opts.composition ?? snapshotControlComposition();
     opts.trace?.composition({ context, originalPortState: 'unverified', faceRect: { x: context.controlOrigin[0], y: context.controlOrigin[1], w: width, h: height },
@@ -819,28 +818,22 @@ async function composeFaceButton(
   // 0x10922–0x10990 samples exact cicn/cinf colors. Preserve hidden RGB and
   // 16-bit sentinel/equality decisions through metadata, not canvas readback.
   // The traced push/bevel call sites draw emboss first at (+1,+1), then text.
-  // List-header dispatch and legacy manifests retain their prior policy.
-  const colors = geometry === 'button' ? controlTextColors(faceEl, opts.fg, fallbackFg, resolved.theme.manifest)
-    : { foreground: opts.fg ?? fallbackFg, emboss: null, policy: 'contrast-fallback' as const, embossDecision: 'unavailable' as const, sampleFallbackReason: null };
+  // Legacy button manifests retain their prior policy.
+  const colors = controlTextColors(faceEl, opts.fg, fallbackFg, resolved.theme.manifest);
   const fg = colors.foreground;
-  if (geometry === 'button') opts.trace?.textColors({ ...colors, labelPainted: label.length > 0,
+  opts.trace?.textColors({ ...colors, labelPainted: label.length > 0,
     deviceMode: 'full-color-policy', sourceManifestKey: resolved.key, sourceOwnerDepth: resolved.chainDepth });
   let lineH = resolveControlHeight(face, opts.height);
   // kDEF reads effective port txSize (0x7546/0x754a), not Rect height.
-  // Keep the separate multi-column compatibility helper's existing typography.
-  let fontSize = geometry === 'button' ? opts.fontSize! : Math.max(8, Math.round(lineH * 0.6));
+  const fontSize = opts.fontSize!;
   const bitmapRun = opts.bitmapRun;
-  let glyphs = !bitmapRun && label ? rasterizeText(label, fontSize, fg) : null;
+  const glyphs = !bitmapRun && label ? rasterizeText(label, fontSize, fg) : null;
   // A cicn is a resizable template, not a minimum control rectangle. Tiny
   // templates (e.g. a 5×6 face) cannot contain even our smallest label raster.
   // Use the existing standard height without changing the button font size.
   // Caller-specified heights remain authoritative, including compact controls.
   if (opts.height == null && ((glyphs && glyphs.height > lineH) || (bitmapRun && label && bitmapRun.lineHeight > lineH))) {
     lineH = APPLE_PUSH_BUTTON_HEIGHT;
-    if (geometry === 'legacy-list-header') {
-      fontSize = Math.max(8, Math.round(lineH * 0.6));
-      glyphs = rasterizeText(label, fontSize, fg);
-    }
   }
   const padX = opts.padX ?? 12;
   const innerW = opts.width ?? Math.max(opts.minWidth ?? 56, (bitmapRun ? bitmapRun.advance : glyphs ? glyphs.width : 0) + padX * 2);
@@ -852,13 +845,13 @@ async function composeFaceButton(
   let mode5PaintStep: ControlResolutionStep | undefined;
   let patternPaint: NonNullable<ControlResolutionStep['bodyPaint']> | undefined;
   let legacyFacePaint: LegacyFacePaint | undefined;
-  if (geometry === 'button') opts.trace?.composition({ context, originalPortState: 'unverified',
+  opts.trace?.composition({ context, originalPortState: 'unverified',
     faceRect: { x: context.controlOrigin[0], y: context.controlOrigin[1], w: innerW, h: innerH },
     appliedUnknownPatternOffset: context.patternOrigin.status === 'unknown' });
-  const mode5 = geometry === 'button' && faceEl.bodyRequest?.mode === 5;
+  const mode5 = faceEl.bodyRequest?.mode === 5;
   const cicnBody = mode5 ? await loadCicnBody(resolved, opts, innerW, innerH, context) : null;
   const body = mode5 ? { buffer: null, solidFallback: cicnBody?.kind === 'missing' }
-    : geometry === 'button' ? await loadBodyPattern(resolved, opts) : { buffer: null, solidFallback: false };
+    : await loadBodyPattern(resolved, opts);
   const pattern = body.buffer;
   if (resolved.consumedCinf && !pattern && !body.solidFallback)
     throw new CinfEnvironmentError('Declared cinf body pattern lookup is ambiguous or unsupported', 'UNSUPPORTED_CINF_ENVIRONMENT');
@@ -934,7 +927,7 @@ async function composeFaceButton(
         phase: { basis: 'modern-composition-policy', offset: [phaseX, phaseY], originalPatternPhase: 'unverified' } };
     }
     out.drawOver(await composeControlBorder(resolved, innerW, innerH, opts, (x, y) => controlPointVisible(context, x, y)), 0, 0);
-  } else if (geometry === 'button' && faceEl.slice && (sourceBg || validBg)) {
+  } else if (faceEl.slice && (sourceBg || validBg)) {
     // 0x10b72–0x10bb8 erases two rectangles using the sampled background:
     // inset(horizontal=corner, vertical=side), then the transposed insets.
     // Their union is a cross when corner != side. Fill precedes the border,
@@ -968,7 +961,7 @@ async function composeFaceButton(
           destinationRect: { x: fIns, y: fSide, w: cw, h: ch }, outputAlpha: 255 };
       }
     }
-    if (geometry === 'button' && opts.trace && resolved.loadedIdentity) {
+    if (opts.trace && resolved.loadedIdentity) {
       // Occupancy of this stage under the actual clip, before glyphs. This is
       // neither historical band attribution nor final surviving contribution.
       let retainedNonzeroAlphaPixels = 0;
@@ -997,7 +990,7 @@ async function composeFaceButton(
     if (colors.emboss) out.drawOver(rasterizeText(label, fontSize, colors.emboss), gx + 1, gy + 1);
     out.drawOver(glyphs, gx, gy);
   }
-  if (geometry === 'button' && context.clip.kind === 'rect') {
+  if (context.clip.kind === 'rect') {
     for (let y = 0; y < innerH; y++) for (let x = 0; x < innerW; x++)
       if (!controlPointVisible(context, x, y)) out.setPixel(x, y, 0, 0, 0, 0);
   }
@@ -1163,63 +1156,7 @@ async function composeBevelButtonWithTrace(theme: LoadedTheme, opts: BevelButton
 /** Whole Appearance header surface with explicit Rect/state/clip and finite
  * source admission. Existing composeListHeader remains a column compatibility API. */
 export async function composeHeaderSurface(theme: LoadedTheme, opts: HeaderSurfaceOptions): Promise<HeaderSurfaceResult> {
-  let result: HeaderSurfaceResult = { status: 'unavailable', reason: 'missing-face' };
-  await withControlDiagnostics(opts?.diagnostics, 'header-surface', {
-    state: opts?.drawState === 0 ? 'inactive' : 'active', pressed: false, disabled: false,
-  }, async trace => {
-    const plan = planHeaderSurface(opts);
-    const finish = (value: HeaderSurfaceResult, extra: Partial<Pick<HeaderSurfaceTrace, 'backgroundPolicy' | 'lineSampling' | 'painted' | 'patternBody'>> = {}): PixelBuffer | null => {
-      result = value;
-      trace?.headerSurface({ ...plan, admission: value.status, ...(value.status === 'rendered' ? {} : { reason: value.reason }),
-        geometry: 'pach130-ordinary-full-color', sourceSelection: 'current-manifest-compatibility', ...extra });
-      return value.status === 'rendered' ? value.buffer : null;
-    };
-    if (!plan.effectiveClip) return finish({ status: 'unsupported', reason: 'unknown-clip' });
-    // PACH130 c430..c4d4 treats this ordinary-header sentinel specially using
-    // window visibility/port bounds that this explicit Rect API does not carry.
-    if (plan.kind === 'window-header' && plan.requestedRect.x === -1 && plan.requestedRect.y === -1)
-      return finish({ status: 'unsupported', reason: 'special-window-origin' });
-    try {
-      // Callback state dispatch is source-backed; manifest ownership, aliases and
-      // base search remain the current compatibility resolver's policy.
-      const id = plan.drawState === 0 ? 9568 : 9567;
-      const selected = resolveFaceById(theme, id, trace,
-        { ...FACE_LOOKUP, basis: 'compatibility-policy', usage: 'admission' });
-      if (!selected) return finish({ status: 'unavailable', reason: 'missing-face' });
-      // Capture the actual selected identity before decoding. The successful
-      // paint record reuses it; it never repeats lookup or guesses an owner.
-      const identity = trace ? { owner: { baseUrl: selected.theme.baseUrl, chainDepth: selected.chainDepth }, resource: resourceIdentity(selected) } : null;
-      const face: ResolvedControlFace = { ...selected, buffer: await loadCicnBuffer(assetUrl(selected.theme, selected.element.asset)) };
-      const rejection = headerMetadataRejection(face.element);
-      if (rejection) return finish({ status: 'unsupported', reason: rejection });
-      // A selected ppat (including ID0) takes priority. Keep real decode errors
-      // as errors, not a manufactured NULL lookup/solid fallback.
-      const body = await loadBodyPattern(face, { trace }, 'admission');
-      if (body.buffer && plan.context.patternOrigin.status === 'unknown')
-        return finish({ status: 'unsupported', reason: 'unknown-pattern-origin' });
-      if (!body.buffer && !body.solidFallback) return finish({ status: 'unsupported', reason: 'ambiguous-body-selection' });
-      const background = headerBackground(face.buffer, face.element, face.theme.manifest);
-      if (!body.buffer && !background) return finish({ status: 'unsupported', reason: 'missing-background-sample' });
-      const companion = face.element.sampledBandAsset;
-      const companionUrl = companion ? assetUrl(face.theme, companion.asset) : null;
-      const painted = await paintHeaderSurface(face.buffer, face.element, plan, background ?? [], face.theme.manifest,
-        companionUrl ? () => loadCicnBuffer(companionUrl) : undefined, body.buffer ?? undefined);
-      if (identity && companion && companionUrl) for (const band of painted.sampledRegions ?? []) trace?.bandPaint({
-        ...identity, role: 'face', ...band, policy: 'sampled-companion',
-        derived: { path: companion.derivedPath, assetUrl: companionUrl, model: companion.model, displayPolicy: companion.displayPolicy },
-      });
-      if (painted.patternBody && body.selection) trace?.record({ ...body.selection, usage: 'paint', reason: 'completed-header-pattern-inset-union' });
-      if (painted.painted && identity) trace?.record({ ...identity, role: 'face', requestedId: -id,
-        action: 'selected', basis: 'compatibility-policy', usage: 'paint', reason: 'admitted-header-surface-paint' });
-      return finish(painted.result, { ...(painted.result.status === 'rendered' ? { painted: painted.painted,
-        ...(painted.patternBody ? { patternBody: painted.patternBody } : {}),
-        ...(painted.painted && !body.buffer ? { backgroundPolicy: 'raw-sample-current-display' as const } : {}) } : {}), lineSampling: painted.lineSampling });
-    } catch (error) {
-      trace?.headerSurface({ ...plan, admission: 'error', geometry: 'pach130-ordinary-full-color', sourceSelection: 'current-manifest-compatibility' });
-      throw error;
-    }
-  });
-  return result;
+  return composeEngineHeaderSurface(theme, opts);
 }
 
 export interface ListHeaderColumn { label: string; width: number; }
@@ -1232,25 +1169,7 @@ export interface ListHeaderOptions { columns?: ListHeaderColumn[]; height?: numb
  * separately admitted Rect/state model. Returns null when the scheme ships none.
  */
 export async function composeListHeader(theme: LoadedTheme, opts: ListHeaderOptions = {}): Promise<PixelBuffer | null> {
-  const cellId = opts.inactive ? 9568 : 9567;
-  const cell = await loadFaceById(theme, cellId);
-  if (!cell) return null; // → platinumListHeader
-  const cols = opts.columns ?? [{ label: 'Name', width: 140 }, { label: 'Size', width: 56 }, { label: 'Kind', width: 90 }];
-  // List-header cells follow the same clamp rule as buttons — crayon-os ships
-  // -9567 at 70×70 (Finder Header Active), which would blow the list header up
-  // to ~70 px without the Apple-metric cap. `Math.max(16, …)` here is a floor
-  // (the cicn can't shrink below a usable size); `resolveControlHeight` is the
-  // CEILING (the cicn can't blow up beyond Apple's metric).
-  const H = Math.max(16, resolveControlHeight(cell.buffer, opts.height));
-  const W = cols.reduce((a, c) => a + c.width, 0);
-  const out = PixelBuffer.alloc(W, H);
-  let x = 0;
-  for (const c of cols) {
-    const cellBuf = await composeFaceButton(cell, { label: c.label, width: c.width, height: H, align: 'left', padX: 6 }, 'legacy-list-header');
-    out.drawOver(cellBuf, x, 0);
-    x += c.width;
-  }
-  return out;
+  return composeEngineHeaderColumns(theme, opts);
 }
 
 /** Checkable Boolean mapping, browser fonts and archive/base environment are
