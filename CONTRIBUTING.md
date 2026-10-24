@@ -55,10 +55,14 @@ toolchain requirement.
    Use the relevant unit/browser test while iterating. For chrome diagnosis,
    `npm run diag:render` and `npm run diag:audit` help inspect the result.
 
-   Before pushing, run `npm run build:themes`, `npm run build`, then `npm run gates`.
+   On the finished candidate, run `npm run build:themes`, `npm run build`, then
+   `npm run gates`; use affected checks while iterating rather than repeating this
+   chain after every edit.
    The build supplies the library used by strict lint; theme extraction supplies
    the local derivatives used by the scene audit. For controls, CSS, fonts or
-   promotion changes, also run `npm run test:rendering`. Install Chromium with
+   promotion changes, also run `npm run test:rendering` in the final validation
+   chain. The required full rendering run may be supplied by final CI; use the
+   affected browser contracts locally during iteration. Install Chromium with
    `npx playwright install --with-deps chromium` first. The rendering matrix and
    pinned Linux golden workflow are documented in
    [`tests/rendering-options/README.md`](./tests/rendering-options/README.md).
@@ -185,6 +189,45 @@ feat(api)!: rename ScriptoscopeWindow constructor option `theme` to `themeId`
 Evidence acquisition and original-source inspection below belong to spec writers
 and verifiers. Runtime implementers remain within the brief; a general workflow
 in this section never grants access to evidence, independent tests or reviews.
+
+### Efficient delivery for focused fixes
+
+Agreed working practice (2026-10-24): reduce repeated work while retaining the
+existing clean-room boundaries, review tiers, exact-head readiness and required CI.
+
+- **Settle the question first.** Start with a bounded reproduction, an acceptance
+  case and a check for missing behavioural rules. Resolve material spec questions
+  before implementation; distinguish decoded behaviour from modern compatibility
+  policy. Add a spec specialist only when the question needs one.
+- **Use a small, stable team.** Default to one implementer, one independent
+  test/review lane and one integration owner for a focused fix. Keep independent
+  spec verification separate from spec authorship. After spec verification, run
+  implementation and independent test authoring in parallel with separate file
+  ownership and the implementer's existing access restrictions.
+- **Keep the reviewer through corrections.** Return findings to their existing
+  owner and have the same independent reviewer check the changed claims and
+  dependencies. Carry approval over provably unchanged content. A mechanical
+  integration needs an exact tree/delta check, not a new review of every unchanged
+  component; unresolved findings and material changes still reopen their review.
+- **Validate narrowly while iterating.** Run affected contracts and meaningful
+  negative or mutation checks. On the finished integrated candidate, run one
+  change-appropriate validation chain and the ordinary exact-head `lane:ready`.
+  Let required CI supply the full repository matrix when applicable. Repeat or
+  broaden checks only for changes, failures or unresolved concerns; retain required
+  final checks and independent visual review for changed pixels. A failure must
+  remain visible rather than being retried until green.
+- **Check provenance before expensive runs.** Verify the actual checkout, clean
+  state, dependency/browser versions, capture configuration and artifact output
+  paths first. Record each command's exit and each run's actual commit/tree;
+  declared labels do not repair missing execution identity. Preserve failed or
+  incomplete receipts and diagnose the gap before repeating a long run.
+- **Integrate once per coherent fix.** Freeze the related spec, implementation,
+  independent tests and documentation together for final review and PR checks.
+  Keep an explicit owner and next gate so handoffs do not become serial idle time.
+  Profile CI and consider caching or sharding as separate work; do not silently
+  remove coverage or change approval gates to make the current fix faster.
+
+### Evidence and batch requirements
 
 - **Check the claim and dependencies before acquisition.** Name the public consumer,
   source inputs, operation, required color mappings and conditions, and independent

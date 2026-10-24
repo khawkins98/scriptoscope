@@ -1,5 +1,15 @@
 # V2 plan: decode-first engine, sharpened for parallel agents (2026-10-21)
 
+> **Workflow amendment (2026-10-24):** use
+> [CONTRIBUTING — Efficient delivery for focused fixes](../../CONTRIBUTING.md#efficient-delivery-for-focused-fixes)
+> for current coordination and validation practice. Reproduce and settle spec
+> gaps first; keep a small team and the same independent reviewer through fixes;
+> parallelize implementation and independent tests after spec verification; check
+> provenance before expensive runs; use targeted iteration and one final integrated
+> validation chain. Required CI, review tiers and clean-room boundaries remain in
+> force. The original lane counts and timing estimates below are planning history,
+> not a requirement to create another agent or repeat a full suite at each handoff.
+
 Reviewed: #378, #221 exit criteria, RE-ADVISORY.md + re-routine-inventory.json, BRIEF.md/STAGE.json, repo CLAUDE.md/CONTRIBUTING, history "Dead ends", spec index, `src/` (13.3k lines incl. declarative/interactive), `tests/` (rule tables, ledger + transitions, 36 golden sheets), package exports, lane I/H/K reviews.
 
 ## 1. Critique of #378 and the advisory
