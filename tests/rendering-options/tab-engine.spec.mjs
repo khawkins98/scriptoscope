@@ -59,9 +59,9 @@ for (const mode of ['source', 'built']) {
         const f = tabFixture(api, { request: 0, pattern: false, tile: false });
         // Valid large art exists but must never be retried after found small art.
         f.owner.manifest.chromeElements.large = { ...f.element, sourceCicnId: -9983, sourceCinfId: -9983 };
-        if (name === 'no-cinf') { f.element.sourceCinfId = null; delete f.element.slice; delete f.element.bodyRequest; delete f.owner.manifest.engineCinfs[-9975]; }
-        if (name === 'missing-slice') delete f.element.slice;
-        if (name === 'missing-body-request') delete f.element.bodyRequest;
+        if (name === 'no-cinf') { f.element.sourceCinfId = null; for (const key of ['slice', 'bodyRequest', 'bgAnchor', 'colorSamples', 'engineColorSamples']) delete f.element[key]; delete f.owner.manifest.engineCinfs[-9975]; }
+        if (name === 'missing-slice') { delete f.element.slice; delete f.owner.manifest.engineCinfs[-9975]; }
+        if (name === 'missing-body-request') { delete f.element.bodyRequest; delete f.owner.manifest.engineCinfs[-9975]; }
         if (name === 'invalid-body-request') f.element.bodyRequest.resourceId = 0.5;
         if (name === 'invalid-slice') f.element.slice.corner = 4;
         if (name === 'unknown-lines') delete f.element.samplingEquivalence;
