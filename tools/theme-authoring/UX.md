@@ -18,9 +18,9 @@ These sources establish useful interaction patterns. The mapping and prioritizat
 
 The resource list exposes historical names and numbers before explaining the component being edited. Different state images appear as separate entries. Numeric geometry fields have no direct manipulation. A user must remember what changed and use global undo to restore a single property. The preview cannot be used to select a component or inspect the original. Precise RGB16 controls are useful but dominate ordinary color edits.
 
-The central task should read: **choose a component → choose a state → edit its appearance → check the result → save**. Raw records remain available for inspection, source recovery and unsupported components.
+The first workbench pass framed the task as **choose a component → choose a state → edit its appearance → check the result → save**. The task review in [USABILITY.md](./USABILITY.md) showed that users still had to infer design roles from source palettes; the primary workflow below supersedes that emphasis. Raw records remain available for inspection, source recovery and unsupported components.
 
-## Interaction contract
+## Advanced source workbench interaction contract
 
 ### Navigation and state
 
@@ -111,3 +111,36 @@ The model suite now has 11 tests, including explicit/positional index lookup, du
 The companion build and root clean-room lint pass. Desktop, focused-source, edited-override and phone surfaces are inspected with Chromium. Automated axe WCAG A/AA checks are used to catch contrast and structure regressions; patterned backgrounds and non-text symbols still require manual review. This is not a full conformance claim.
 
 `project.ts`, renderer core and the experimental document profile are unchanged. There are no new runtime dependencies, theme-wide color tokens, inferred state inheritance, paint tools or target-export controls in this pass. The next semantic expansion remains a real dependency inventory and explicit target adapters, as described in #472.
+
+## Primary named-property authoring
+
+The [task-based review](./USABILITY.md) established that the source workbench remained a source editor, even after visual polishing. The implemented primary flow now follows the useful Themix relationship: **starting theme → named property sheet → compact persistent gallery**. The advanced workbench remains available, with its preservation guarantees, but no palette-record knowledge is needed for the supported button variation task.
+
+### Authoring relationship
+
+| Before                                                        | After                                                                                                                                                                                                                            |
+| ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Component/source selection was the entry point                | A starting-theme rail, primary **Theme properties** sheet and compact all-state gallery are the default. **Advanced source** is an explicit separate workspace.                                                                  |
+| Background and label colors required guessing swatches        | Verified **Button face color**, **Button label color** and, where admitted, **Label emboss color** bind to declared source samples. Unsupported roles show a reason, with no fabricated color control.                           |
+| Each state required rediscovering its palette                 | **All states / Normal / Pressed / Disabled** sets operation scope. Each role lists its actual affected states; partial coverage has a visible warning. Mixed preview values are identified explicitly.                           |
+| A family variation was a sequence of manual edits             | **Apply amber variation** assigns coordinated, distinct face/label colors through verified bindings as one history operation. Partial admission uses an explicit supported-states action; linked-role conflicts fail atomically. |
+| Source RGB had to be understood before picking a modern color | Named controls use preview RGB, with a nearest-representable-source conversion. Advanced source still provides raw source RGB and exact RGB16.                                                                                   |
+| A “background” edit could silently recolor outlines           | Each property explains shared artwork effects. Coupled roles and unselected states sharing a source color are called out; no independent-state copy is implied.                                                                  |
+| Only per-record reset was available                           | Reset one named role or the button-color group in the selected scope as one undoable operation. Each binding resets to its own exact imported values.                                                                            |
+| Preview and editing competed at short heights                 | A compact three-state gallery remains alongside the property sheet at desktop sizes, with tighter spacing at short heights. Narrow screens start with **Properties**, with **Bases / Preview** panel navigation.                 |
+| Output limitations appeared late                              | **Project only · reopen in Studio** sits beside Save. Coverage identifies window artwork as advanced-only and global accent as unbound; the gallery explains that installable exports are not available.                         |
+| Semantic resource names were hard to find                     | Advanced resource search includes admitted component/state aliases as well as original names and IDs.                                                                                                                            |
+
+### Binding and color contract
+
+`profile.ts` derives bindings from the retained original theme and its source, never from a freshly recolored preview. Admission requires the renderer-selected push-button occurrence, unique same-ID `cinf`, declared source anchor agreement and exact original RGB16 sample agreement. Button role sampling follows the current kdef sampler policy, which ignores `ctFlags` and mask alpha; that is deliberately separate from the ordinary indexed-pixel picker in Advanced source. Unknown or ambiguous bindings are unavailable rather than guessed from equal colors, resource names or matching indices across states.
+
+Operations compile to the existing palette edits. They do not add a persisted operation type or change v0 project meaning. Role edits and coordinated variations are batched into one project history step. Shared bindings stay shared. The amber recipe uses different state tones and checks readable label contrast under the current display policy; it does not recolor unrelated window/artwork resources or create missing effects.
+
+`colors.ts` defines the named-picker policy: search the existing 256-level source-to-preview lookup for the nearest preview channel, break ties toward the lower source channel, then expand by 257. This is an explicit quantization policy under the renderer's declared display approximation, not full color management or an inverse used on imported colors. Unchanged uniform displayed values do not trigger edits. A deliberate all-state assignment may quantize targeted members; untouched roles/states and all stored original bytes retain exact precision. Exact source values remain inspectable in Advanced source.
+
+### Acceptance and verification
+
+The primary browser acceptance task starts with 1138 and applies one amber variation, proves all three rendered button states change, proves one Undo restores all three, edits only Pressed, resets faces while retaining the Disabled label override, resets the full named group, compares read-only Original, saves and reopens in a fresh context with identical gallery pixels. It then runs the existing advanced palette/geometry/history/download/source recovery regressions. Phone coverage checks property-first navigation, gallery-to-state selection, comparison, starter access and overflow. Semantic resource search is also covered.
+
+The model suite covers role admission, original precision, same-source coupling/conflicts, recipe byte boundaries and reopen, readable recipe contrast and nearest-preview-color quantization. No renderer-core or source-document changes, new runtime dependencies, Linux adapters, window semantic controls or global accent controls are introduced by this slice.

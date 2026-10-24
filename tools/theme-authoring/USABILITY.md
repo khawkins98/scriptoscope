@@ -77,3 +77,24 @@ The current editor's only write operations are palette RGB16 edits and two admit
 The agent recorded screenshots and notes under `/tmp/junior-theme-review/` on the review machine. Relevant artifacts are `screenshots/03-workspace.png`, `06-amber-rendered.png`, `08-pressed.png`, `09-window-active.png`, `10-search-accent.png`, `11-search-button.png`, `13-reset.png`, `17-output-disclosure.png` and `18-reopened-rendered.png`. These local paths are not published web assets. The numbered task steps and outcomes above are the durable record.
 
 No page errors were observed. Native color-input filling through the automation tool did not persist, so the tester used the visible RGB16 fields for the amber edit. That automation behavior is not classified as an application bug without a native-picker reproduction. No app implementation was read during the walkthrough and no application code was changed for this review.
+
+## Retest after named-property implementation
+
+The same junior-developer agent repeated the central task against the implemented property sheet, without reading implementation files. The tested slice is deliberately limited to declared button color roles; it does not claim semantic window or global-accent editing.
+
+| Task                                    | Retest result                                                                                                                                                    |
+| --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Create a coherent amber button family   | Passed: All states → Apply amber variation produced distinct Normal/Pressed/Disabled faces and readable coordinated labels.                                      |
+| Customize one state by design property  | Passed: selected Pressed from the gallery and changed Button face color without using resource IDs or palette indices.                                           |
+| Compare and reverse work                | Passed: Original was clearly read-only; returning, undoing and resetting the selected role behaved as expected.                                                  |
+| Understand coverage and source coupling | Passed: window/global-accent limits and shared-artwork effects were visible in the main workflow.                                                                |
+| Understand the output                   | Passed: the header and gallery described a local Studio project with retained source and edits, and explicitly disclosed that installable export is unavailable. |
+| Work at 1200×650                        | All three state previews and face editing remained visible; lower properties required panel scrolling.                                                           |
+
+The implementation binds roles through the source's declared `cinf` sample points and the renderer's exact samples, checks the selected source occurrence and unambiguous palette lookup, and retains original per-state RGB16 values. It does not infer roles from color similarity or copy indices between states. Multi-state operations become existing typed palette edits and one history action. Named display-color controls use an explicit nearest-representable source-color quantization policy for newly chosen values; untouched source values retain their precision. Advanced source editing remains available separately.
+
+A hot reload during ongoing implementation reinitialized the test page once. The agent repeated the amber operation and saved successfully afterward; this was not classified as a product regression. Automated browser checks separately verify the persisted recipe through fresh-session reopening.
+
+Remaining usability work includes a more complete visual indication of coupled details and semantic coverage beyond button colors. The retest also requested neutral initial loading coverage and scope-specific reset wording. These refinements do not change the underlying source-admission rules.
+
+Local retest evidence: `screenshots/retest-01-ready.png`, `retest-02-amber.png`, `retest-03-pressed-override.png`, `retest-04-original.png`, `retest-05-reset-role.png`, `retest-08-short-ready.png` and `retest-10-confirmed-save.png` under the same `/tmp/junior-theme-review/` session directory.

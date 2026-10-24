@@ -57,6 +57,302 @@ test(
       page.on("pageerror", (error) => errors.push(error.message));
       page.on("dialog", (dialog) => dialog.accept());
       await page.goto(url);
+      // A named-role task must succeed before opening the advanced source editor.
+      await page.waitForFunction(
+        () => document.querySelectorAll(".gallery-control canvas").length === 3,
+      );
+      assert.equal(
+        await page
+          .getByRole("main", { name: "Theme properties", exact: true })
+          .isVisible(),
+        true,
+      );
+      assert.equal(
+        await page
+          .getByText("Project only · reopen in Studio", { exact: true })
+          .isVisible(),
+        true,
+      );
+      const galleryPixels = () =>
+        page
+          .locator(".gallery-control canvas")
+          .evaluateAll((canvases) =>
+            canvases.map((canvas) => canvas.toDataURL()),
+          );
+      const originalGallery = await galleryPixels();
+      await page
+        .getByRole("button", { name: "Apply amber variation", exact: true })
+        .click();
+      await page.waitForFunction((before) => {
+        const canvases = [
+          ...document.querySelectorAll(".gallery-control canvas"),
+        ];
+        return (
+          canvases.length === 3 &&
+          canvases.every(
+            (canvas, index) => canvas.toDataURL() !== before[index],
+          )
+        );
+      }, originalGallery);
+      const amberGallery = await galleryPixels();
+      await page
+        .getByRole("button", { name: "Undo edit", exact: true })
+        .click();
+      await page.waitForFunction(
+        (before) =>
+          JSON.stringify(
+            [...document.querySelectorAll(".gallery-control canvas")].map(
+              (canvas) => canvas.toDataURL(),
+            ),
+          ) === JSON.stringify(before),
+        originalGallery,
+      );
+      assert.equal(
+        await page
+          .getByRole("button", { name: "Undo edit", exact: true })
+          .isDisabled(),
+        true,
+      );
+      await page
+        .getByRole("button", { name: "Redo edit", exact: true })
+        .click();
+      await page.waitForFunction(
+        (before) =>
+          JSON.stringify(
+            [...document.querySelectorAll(".gallery-control canvas")].map(
+              (canvas) => canvas.toDataURL(),
+            ),
+          ) === JSON.stringify(before),
+        amberGallery,
+      );
+      await page.getByRole("button", { name: "Original", exact: true }).click();
+      await page.waitForFunction(
+        (before) =>
+          JSON.stringify(
+            [...document.querySelectorAll(".gallery-control canvas")].map(
+              (canvas) => canvas.toDataURL(),
+            ),
+          ) === JSON.stringify(before),
+        originalGallery,
+      );
+      assert.equal(
+        await page
+          .getByRole("textbox", {
+            name: "Button face color hex color",
+            exact: true,
+          })
+          .isDisabled(),
+        true,
+      );
+      assert.equal(
+        await page
+          .getByRole("button", { name: "Reset all button colors", exact: true })
+          .isDisabled(),
+        true,
+      );
+      await page.getByRole("button", { name: "Working", exact: true }).click();
+      await page
+        .getByRole("button", {
+          name: "Edit Pressed button properties",
+          exact: true,
+        })
+        .click();
+      assert.equal(
+        await page
+          .getByRole("group", { name: "Property state scope", exact: true })
+          .getByRole("button", { name: "Pressed", exact: true })
+          .getAttribute("aria-pressed"),
+        "true",
+      );
+      assert.equal(
+        await page
+          .getByRole("button", { name: "Reset Pressed colors", exact: true })
+          .isEnabled(),
+        true,
+      );
+      const faceHex = page.getByRole("textbox", {
+        name: "Button face color hex color",
+        exact: true,
+      });
+      await faceHex.fill("#996633");
+      await faceHex.press("Enter");
+      await page.waitForFunction((before) => {
+        const canvases = [
+          ...document.querySelectorAll(".gallery-control canvas"),
+        ];
+        return (
+          canvases.length === 3 &&
+          canvases[1].toDataURL() !== before[1] &&
+          canvases[0].toDataURL() === before[0] &&
+          canvases[2].toDataURL() === before[2]
+        );
+      }, amberGallery);
+      await page
+        .getByRole("button", { name: "Undo edit", exact: true })
+        .click();
+      await page
+        .getByRole("button", { name: "All states", exact: true })
+        .click();
+      await page
+        .getByRole("button", { name: "Reset Button face color", exact: true })
+        .click();
+      await page.waitForFunction((before) => {
+        const canvases = [
+          ...document.querySelectorAll(".gallery-control canvas"),
+        ];
+        return (
+          canvases.length === 3 &&
+          canvases[0].toDataURL() === before[0] &&
+          canvases[1].toDataURL() === before[1] &&
+          canvases[2].toDataURL() !== before[2]
+        );
+      }, originalGallery);
+      const withoutFaces = await galleryPixels();
+      assert.equal(withoutFaces[0], originalGallery[0]);
+      assert.equal(withoutFaces[1], originalGallery[1]);
+      assert.notEqual(withoutFaces[2], originalGallery[2]); // Disabled label override is retained.
+      await page
+        .getByRole("button", { name: "Undo edit", exact: true })
+        .click();
+      await page
+        .getByRole("button", { name: "Reset all button colors", exact: true })
+        .click();
+      await page.waitForFunction(
+        (before) =>
+          JSON.stringify(
+            [...document.querySelectorAll(".gallery-control canvas")].map(
+              (canvas) => canvas.toDataURL(),
+            ),
+          ) === JSON.stringify(before),
+        originalGallery,
+      );
+      await page
+        .getByRole("button", { name: "Undo edit", exact: true })
+        .click();
+      await page.waitForFunction(
+        (before) =>
+          JSON.stringify(
+            [...document.querySelectorAll(".gallery-control canvas")].map(
+              (canvas) => canvas.toDataURL(),
+            ),
+          ) === JSON.stringify(before),
+        amberGallery,
+      );
+      const semanticDownload = page.waitForEvent("download");
+      await page
+        .getByRole("button", { name: "Save project", exact: false })
+        .click();
+      const semanticFile = await semanticDownload;
+      const semanticPath = resolve(dir, "amber-project.json");
+      await semanticFile.saveAs(semanticPath);
+      const semanticSaved = await openProject(
+        await readFile(semanticPath, "utf8"),
+      );
+      assert.equal(semanticSaved.edits.length, 4);
+      const semanticContext = await browser.newContext();
+      const semanticReopen = await semanticContext.newPage();
+      semanticReopen.on("pageerror", (error) => errors.push(error.message));
+      await semanticReopen.goto(url);
+      await semanticReopen.waitForFunction(
+        () => document.querySelectorAll(".gallery-control canvas").length === 3,
+      );
+      await semanticReopen
+        .getByLabel("Open project file", { exact: true })
+        .setInputFiles(semanticPath);
+      await semanticReopen.waitForFunction(
+        (before) =>
+          JSON.stringify(
+            [...document.querySelectorAll(".gallery-control canvas")].map(
+              (canvas) => canvas.toDataURL(),
+            ),
+          ) === JSON.stringify(before),
+        amberGallery,
+      );
+      await semanticReopen.setViewportSize({ width: 390, height: 844 });
+      const authoringPanels = semanticReopen.getByRole("group", {
+        name: "Authoring panels",
+        exact: true,
+      });
+      assert.equal(
+        await semanticReopen
+          .getByRole("main", { name: "Theme properties", exact: true })
+          .isVisible(),
+        true,
+      );
+      assert.equal(
+        await semanticReopen.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth,
+        ),
+        true,
+      );
+      await authoringPanels
+        .getByRole("button", { name: "Preview", exact: true })
+        .click();
+      assert.equal(
+        await semanticReopen
+          .getByRole("complementary", {
+            name: "Theme preview gallery",
+            exact: true,
+          })
+          .isVisible(),
+        true,
+      );
+      await semanticReopen
+        .getByRole("button", { name: "Original", exact: true })
+        .click();
+      await authoringPanels
+        .getByRole("button", { name: "Properties", exact: true })
+        .click();
+      assert.equal(
+        await semanticReopen
+          .getByRole("textbox", {
+            name: "Button face color hex color",
+            exact: true,
+          })
+          .isDisabled(),
+        true,
+      );
+      await semanticReopen
+        .getByRole("button", { name: "Return to working", exact: true })
+        .click();
+      await authoringPanels
+        .getByRole("button", { name: "Preview", exact: true })
+        .click();
+      await semanticReopen
+        .getByRole("button", {
+          name: "Edit Pressed button properties",
+          exact: true,
+        })
+        .click();
+      assert.equal(
+        await semanticReopen
+          .getByRole("main", { name: "Theme properties", exact: true })
+          .isVisible(),
+        true,
+      );
+      await authoringPanels
+        .getByRole("button", { name: "Bases", exact: true })
+        .click();
+      assert.equal(
+        await semanticReopen
+          .getByRole("button", { name: "Start with Animals", exact: true })
+          .isVisible(),
+        true,
+      );
+      assert.equal(
+        await semanticReopen.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth,
+        ),
+        true,
+      );
+      await semanticContext.close();
+      await page
+        .getByRole("button", { name: "Start with 1138", exact: true })
+        .click();
+      await page
+        .getByRole("group", { name: "Workspace mode", exact: true })
+        .getByRole("button", { name: "Advanced source", exact: true })
+        .click();
       await page.waitForFunction(
         () => document.querySelectorAll(".specimen-row canvas").length === 3,
       );
@@ -522,6 +818,10 @@ test(
       const reopened = await context.newPage();
       reopened.on("pageerror", (error) => errors.push(error.message));
       await reopened.goto(url);
+      await reopened
+        .getByRole("group", { name: "Workspace mode", exact: true })
+        .getByRole("button", { name: "Advanced source", exact: true })
+        .click();
       await reopened.waitForFunction(
         () => document.querySelectorAll(".specimen-row canvas").length === 3,
       );
@@ -596,6 +896,10 @@ test(
       await page
         .getByRole("button", { name: "Resources", exact: true })
         .click();
+      await page
+        .getByRole("textbox", { name: "Search source artwork", exact: true })
+        .fill("Push button Pressed");
+      assert.equal(await page.locator(".resource-list button").count(), 1);
       await page
         .getByRole("textbox", { name: "Search source artwork", exact: true })
         .fill("-10238");

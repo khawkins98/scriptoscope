@@ -33,6 +33,16 @@ import {
   resetArtwork,
   type ComponentSelection,
 } from "./components.js";
+import { AuthoringSheet } from "./AuthoringSheet.js";
+import {
+  AUTHORING_ROLES,
+  getAuthoringProfile,
+  applyRoleColor,
+  resetRoleColor,
+  applyAmberVariation,
+  type AuthoringState,
+  type AuthoringRole,
+} from "./profile.js";
 import "./style.css";
 
 const samples = [
@@ -225,8 +235,16 @@ function App() {
     future: [],
   });
   const project = history.present;
+  const [advanced, setAdvanced] = useState(false);
+  const [authoringScope, setAuthoringScope] = useState<"all" | AuthoringState>(
+    "all",
+  );
   const [loaded, setLoaded] = useState<LoadedTheme | null>(null);
   const [originalTheme, setOriginalTheme] = useState<LoadedTheme | null>(null);
+  const authoringProfile = useMemo(
+    () => (project ? getAuthoringProfile(project, originalTheme) : null),
+    [project, originalTheme],
+  );
   const [focus, setFocus] = useState<ComponentSelection | null>({
     component: "push-button",
     variant: "normal",
@@ -383,6 +401,7 @@ function App() {
     setNavigation("components");
     setCompareOriginal(false);
     setSearch("");
+    setAuthoringScope("all");
   }, [project?.source.forkSha256]); // Selection survives edits and undo.
 
   useEffect(() => {
@@ -622,10 +641,33 @@ function App() {
   const icons = resources.filter(
     (r) =>
       r.type === "cicn" &&
-      `${r.name} ${r.id}`.toLowerCase().includes(search.toLowerCase()),
+      `${r.name} ${r.id} ${components.flatMap((component) => component.variants.filter((variant) => variant.occurrence === r.occurrence).map((variant) => `${component.label} ${variant.label}`)).join(" ")}`
+        .toLowerCase()
+        .includes(search.toLowerCase()),
   );
+  const semanticChange = (operation: () => Project) => {
+    if (!canEdit) return;
+    try {
+      const next = operation();
+      if (project && serializeProject(next) !== serialized) change(next);
+    } catch (error) {
+      setError(message(error));
+    }
+  };
+  const editRole = (
+    role: AuthoringRole,
+    states: AuthoringState[],
+    rgb: Rgb16,
+  ) => {
+    if (project && authoringProfile)
+      semanticChange(() =>
+        applyRoleColor(project, authoringProfile, role, states, rgb),
+      );
+  };
   return (
-    <div className={`studio mobile-${mobilePanel}`}>
+    <div
+      className={`studio mobile-${mobilePanel} ${advanced ? "mode-source" : "mode-authoring"}`}
+    >
       <header className="app-header">
         <div className="brand">
           <span className="brand-mark" aria-hidden="true">
@@ -654,13 +696,16 @@ function App() {
           <button disabled={busy} onClick={() => projectInput.current?.click()}>
             Open project
           </button>
-          <button
-            className="primary"
-            disabled={!project || busy}
-            onClick={save}
-          >
-            Save project <span aria-hidden="true">↓</span>
-          </button>
+          <div className="save-action">
+            <button
+              className="primary"
+              disabled={!project || busy}
+              onClick={save}
+            >
+              Save project <span aria-hidden="true">↓</span>
+            </button>
+            <small>Project only · reopen in Studio</small>
+          </div>
         </div>
         <input
           hidden
@@ -693,940 +738,1024 @@ function App() {
           </button>
         </div>
       )}
-      <div
-        className="mobile-navigation segmented"
-        role="group"
-        aria-label="Editor panels"
-      >
-        {(["explorer", "workspace", "properties"] as const).map((panel) => (
-          <button
-            key={panel}
-            aria-pressed={mobilePanel === panel}
-            onClick={() => setMobilePanel(panel)}
-          >
-            {panel === "explorer"
-              ? "Explorer"
-              : panel === "workspace"
-                ? "Workspace"
-                : "Properties"}
+      <div className="authoring-mode-bar">
+        <div className="segmented" role="group" aria-label="Workspace mode">
+          <button aria-pressed={!advanced} onClick={() => setAdvanced(false)}>
+            Theme properties
           </button>
-        ))}
+          <button aria-pressed={advanced} onClick={() => setAdvanced(true)}>
+            Advanced source
+          </button>
+        </div>
+        <p>
+          {advanced
+            ? "Exact source records, palette colors and geometry"
+            : "Button color profile · windows and other artwork retained"}
+        </p>
+        <span>Experimental · no installable export</span>
       </div>
-      <div className="workspace">
-        <aside className="library" aria-label="Source artwork library">
-          <div className="panel-heading">
-            <h2>Theme library</h2>
-            <span className="small-badge">LOCAL</span>
-          </div>
-          <label className="field-label" htmlFor="sample">
-            Start with a scheme
-          </label>
-          <select
-            id="sample"
-            disabled={busy}
-            value={
-              project?.source.filename === "animals.sit"
-                ? "1"
-                : project?.source.filename === "1138.rsrc"
-                  ? "0"
-                  : ""
-            }
-            onChange={(e) => {
-              if (e.target.value !== "")
-                void loadSample(Number(e.target.value));
-            }}
-          >
-            <option value="" disabled>
-              Imported scheme
-            </option>
-            {samples.map((sample, i) => (
-              <option key={sample.label} value={i}>
-                {sample.label}
-              </option>
-            ))}
-          </select>
-          <div
-            className="navigation-tabs segmented"
-            role="group"
-            aria-label="Library view"
-          >
-            <button
-              aria-pressed={navigation === "components"}
-              onClick={() => setNavigation("components")}
-            >
-              Components
-            </button>
-            <button
-              aria-pressed={navigation === "resources"}
-              onClick={() => setNavigation("resources")}
-            >
-              Resources
-            </button>
-            <button
-              aria-pressed={navigation === "changes"}
-              onClick={() => setNavigation("changes")}
-            >
-              Changes
-              {project?.edits.length ? (
-                <span className="count-badge">{project.edits.length}</span>
-              ) : null}
-            </button>
-          </div>
-          {navigation === "components" ? (
-            <div className="component-tree">
-              {components.map((c) => (
-                <section key={c.id}>
-                  <h3 className="section-label">{c.group}</h3>
-                  <button
-                    className={`component-family ${focus?.component === c.id ? "selected" : ""}`}
-                    aria-pressed={focus?.component === c.id}
-                    disabled={busy}
-                    onClick={() =>
-                      selectComponent({
-                        component: c.id,
-                        variant: c.variants[0]!.key,
-                      })
-                    }
-                  >
-                    <span aria-hidden="true">
-                      {c.id === "document-window" ? "▣" : "▱"}
-                    </span>
-                    {c.label}
-                  </button>
-                  <div className="component-states">
-                    {c.variants.map((v) => (
-                      <button
-                        key={v.key}
-                        aria-label={`${c.label}: ${v.label}`}
-                        aria-pressed={
-                          focus?.component === c.id && focus.variant === v.key
-                        }
-                        disabled={busy}
-                        className={
-                          focus?.component === c.id && focus.variant === v.key
-                            ? "selected"
-                            : ""
-                        }
-                        onClick={() =>
-                          selectComponent({ component: c.id, variant: v.key })
-                        }
-                      >
-                        {v.label}
-                        <span
-                          className={
-                            editedVariant(project, v, resources)
-                              ? "edit-marker"
-                              : ""
-                          }
-                        >
-                          {editedVariant(project, v, resources)
-                            ? "Edited"
-                            : loadingSource
-                              ? "Loading…"
-                              : v.occurrence === null
-                                ? "Unavailable"
-                                : "Original"}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                </section>
-              ))}
-              <p className="field-help">
-                Two component families are mapped to source artwork. Use
-                Resources to inspect the full library.
-              </p>
-            </div>
-          ) : navigation === "changes" ? (
-            <div className="change-list">
-              <h3 className="section-label">Working overrides</h3>
-              {project?.edits.length ? (
-                project.edits.map((edit) => {
-                  const candidates = resources.filter(
-                    (r) => r.type === "cicn" && r.id === edit.id,
+      {!advanced && (
+        <AuthoringSheet
+          project={project}
+          profile={authoringProfile}
+          theme={displayTheme}
+          original={compareOriginal}
+          compiling={compiling}
+          checkingCoverage={!originalTheme || busy}
+          busy={busy}
+          scope={authoringScope}
+          onScope={setAuthoringScope}
+          onCompare={setCompareOriginal}
+          onColor={editRole}
+          onReset={(role, states) => {
+            if (project && authoringProfile)
+              semanticChange(() =>
+                resetRoleColor(project, authoringProfile, role, states),
+              );
+          }}
+          onResetGroup={(states) => {
+            if (project && authoringProfile)
+              semanticChange(() => {
+                let next = project;
+                for (const role of AUTHORING_ROLES) {
+                  const supported = states.filter((state) =>
+                    authoringProfile.bindings.some(
+                      (binding) =>
+                        binding.role === role.id && binding.state === state,
+                    ),
                   );
-                  const occurrence =
-                    edit.kind === "palette"
-                      ? edit.occurrence
-                      : candidates.length === 1
-                        ? candidates[0]!.occurrence
-                        : null;
-                  return (
-                    <button
-                      key={`${edit.kind}:${edit.occurrence}:${edit.kind === "palette" ? edit.record : "geometry"}`}
-                      disabled={busy || occurrence === null}
-                      onClick={() => {
-                        visitResource(
-                          occurrence!,
-                          edit.kind === "palette" ? edit.record : 0,
-                        );
-                      }}
-                    >
-                      <strong>
-                        {components
-                          .flatMap((c) =>
-                            c.variants
-                              .filter((v) => v.occurrence === occurrence)
-                              .map((v) => `${c.label} · ${v.label}`),
-                          )
-                          .join(", ") ||
-                          resources[occurrence ?? -1]?.name ||
-                          "Source artwork"}
-                      </strong>
-                      <span>
-                        {edit.kind === "palette"
-                          ? `Color record ${edit.record}`
-                          : "Corner / side geometry"}
-                      </span>
-                      <small>
-                        Resource {edit.id} · #{edit.occurrence}
-                      </small>
-                      <code>
-                        {edit.before.join(" / ")} → {edit.after.join(" / ")}
-                      </code>
-                    </button>
-                  );
-                })
-              ) : (
-                <div className="empty-changes">
-                  <span aria-hidden="true">✓</span>
-                  <p>No overrides yet</p>
-                  <small>
-                    Edit a color or geometry value to start shaping this theme.
-                  </small>
-                </div>
-              )}
-            </div>
-          ) : (
-            <>
-              <div className="inventory-heading">
-                <h3 className="section-label">SOURCE COLOR ICONS</h3>
-                <span>{resources.filter((r) => r.type === "cicn").length}</span>
-              </div>
-              <input
-                className="search"
-                aria-label="Search source artwork"
-                placeholder="Search artwork or ID…"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-              <div className="resource-list">
-                {icons.map((resource) => (
-                  <button
-                    key={resource.occurrence}
-                    disabled={busy}
-                    className={
-                      selected === resource.occurrence ? "selected" : ""
-                    }
-                    onClick={() => {
-                      visitResource(resource.occurrence);
-                    }}
-                  >
-                    <span>{resource.name || "Untitled color icon"}</span>
-                    <small>
-                      {resource.id} · #{resource.occurrence}
-                      {editedOccurrences.has(resource.occurrence)
-                        ? " · edited"
-                        : ""}
-                    </small>
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
-          <div className="library-footnote">
-            <span className="preserved-mark">✓</span>
-            <div>
-              Source project
-              <small>{resources.length} records · original retained</small>
-              <a
-                href="https://github.com/khawkins98/scriptoscope/issues/472"
-                target="_blank"
-                rel="noreferrer"
-              >
-                About this experiment ↗
-              </a>
-            </div>
-          </div>
-        </aside>
-        <main className={`canvas-panel layout-${surface}`}>
-          <div className="canvas-toolbar">
-            <div
-              className="segmented"
-              role="group"
-              aria-label="Workspace surface"
-            >
-              <button
-                aria-pressed={surface === "split"}
-                onClick={() => setSurface("split")}
-              >
-                Preview + source
-              </button>
-              <button
-                aria-pressed={surface === "preview"}
-                onClick={() => setSurface("preview")}
-              >
-                Preview only
-              </button>
-              <button
-                aria-pressed={surface === "artwork"}
-                disabled={!selectedResource}
-                onClick={() => setSurface("artwork")}
-              >
-                Focus source
-              </button>
-            </div>
-            <div
-              className="segmented compare-toggle"
-              role="group"
-              aria-label="Theme comparison"
-            >
-              <button
-                aria-pressed={!compareOriginal}
-                onClick={() => setCompareOriginal(false)}
-              >
-                Working
-              </button>
-              <button
-                aria-pressed={compareOriginal}
-                disabled={!originalTheme}
-                onClick={() => setCompareOriginal(true)}
-              >
-                Original
-              </button>
-            </div>
-          </div>
-          <div className="selection-bar">
-            <div>
-              <span className="eyebrow">
-                {component?.group ?? "SOURCE RESOURCE"}
-              </span>
-              <h2>
-                {component
-                  ? component.label
-                  : (selectedResource?.name ?? "Source artwork")}
-              </h2>
-              {selectedResource && (
-                <p className="selection-source" title={selectedResource.name}>
-                  {component ? "State artwork" : "Source artwork"}{" "}
-                  <span aria-hidden="true">/</span>{" "}
-                  {variant?.label ?? selectedResource.name}{" "}
-                  <span aria-hidden="true">/</span> cicn {selectedResource.id}
-                </p>
-              )}
-            </div>
-
+                  if (supported.length)
+                    next = resetRoleColor(
+                      next,
+                      authoringProfile,
+                      role.id,
+                      supported,
+                    );
+                }
+                return next;
+              });
+          }}
+          onAmber={(states) => {
+            if (project && authoringProfile)
+              semanticChange(() =>
+                applyAmberVariation(project, authoringProfile, states),
+              );
+          }}
+          onAdvanced={() => setAdvanced(true)}
+          onSample={(index) => void loadSample(index)}
+        />
+      )}
+      <div className="advanced-workspace" hidden={!advanced}>
+        <div
+          className="mobile-navigation segmented"
+          role="group"
+          aria-label="Editor panels"
+        >
+          {(["explorer", "workspace", "properties"] as const).map((panel) => (
             <button
-              className="quiet-button"
-              aria-label="Reset selected artwork"
-              title="Reset the selected source artwork wherever it is used; undo restores your edits."
-              disabled={!selectionEdited || !canEdit || !project}
-              onClick={() =>
-                project &&
-                change(resetArtwork(project, selected, geometry?.occurrence))
+              key={panel}
+              aria-pressed={mobilePanel === panel}
+              onClick={() => setMobilePanel(panel)}
+            >
+              {panel === "explorer"
+                ? "Explorer"
+                : panel === "workspace"
+                  ? "Workspace"
+                  : "Properties"}
+            </button>
+          ))}
+        </div>
+        <div className="workspace">
+          <aside className="library" aria-label="Source artwork library">
+            <div className="panel-heading">
+              <h2>Theme library</h2>
+              <span className="small-badge">LOCAL</span>
+            </div>
+            <label className="field-label" htmlFor="sample">
+              Start with a scheme
+            </label>
+            <select
+              id="sample"
+              disabled={busy}
+              value={
+                project?.source.filename === "animals.sit"
+                  ? "1"
+                  : project?.source.filename === "1138.rsrc"
+                    ? "0"
+                    : ""
               }
-            >
-              <span aria-hidden="true">↶ </span>Reset selected artwork
-            </button>
-          </div>
-          {compareOriginal && (
-            <div className="comparison-banner" role="note">
-              <strong>Viewing the imported original</strong>
-              <span>
-                Read-only comparison. Your working edits are preserved.
-              </span>
-              <button onClick={() => setCompareOriginal(false)}>
-                Return to working
-              </button>
-            </div>
-          )}
-          {component && (
-            <div
-              className="variant-strip"
-              role="group"
-              aria-label={`${component.label} states`}
-            >
-              {component.variants.map((v) => (
-                <button
-                  key={v.key}
-                  aria-label={`State: ${v.label}`}
-                  aria-pressed={focus?.variant === v.key}
-                  disabled={busy}
-                  onClick={() =>
-                    selectComponent({ component: component.id, variant: v.key })
-                  }
-                >
-                  <StateThumbnail
-                    theme={displayTheme}
-                    component={component.id}
-                    state={v.key}
-                    {...(v.asset ? { asset: v.asset } : {})}
-                  />
-                  <span>
-                    {v.label}
-                    <small>
-                      {editedVariant(project, v, resources)
-                        ? "Edited"
-                        : loadingSource
-                          ? "Loading…"
-                          : v.occurrence === null
-                            ? "Unavailable"
-                            : "Original"}
-                    </small>
-                  </span>
-                </button>
-              ))}
-            </div>
-          )}
-          {!loadingSource && variant?.unavailable && (
-            <p className="selection-note" role="status">
-              {variant.unavailable} Try Resources to inspect the retained
-              records.
-            </p>
-          )}
-          <div className="editing-surfaces">
-            <section
-              className="preview-stage"
-              aria-label="Live theme preview"
-              hidden={surface === "artwork"}
-              aria-busy={compiling || busy}
-            >
-              <div className="stage-heading">
-                <span className="eyebrow">
-                  <span className="live-dot" /> Live specimen
-                </span>
-                <span>
-                  {compareOriginal
-                    ? "Imported original"
-                    : compiling
-                      ? "Rebuilding preview…"
-                      : "Scriptoscope renderer"}
-                </span>
-              </div>
-              <>
-                <div className="specimen-settings">
-                  <div
-                    className="segmented"
-                    role="group"
-                    aria-label="Window state"
-                  >
-                    {["Active", "Inactive"].map((state, i) => (
-                      <button
-                        key={state}
-                        aria-pressed={inactive === !!i}
-                        onClick={() => {
-                          setInactive(!!i);
-                          if (focus?.component === "document-window")
-                            selectComponent({
-                              component: "document-window",
-                              variant: i ? "inactive" : "active",
-                            });
-                        }}
-                      >
-                        {state}
-                      </button>
-                    ))}
-                  </div>
-                  <label>
-                    Size{" "}
-                    <select
-                      aria-label="Size"
-                      value={width}
-                      onChange={(e) => setWidth(Number(e.target.value))}
-                    >
-                      <option value={240}>Compact</option>
-                      <option value={320}>Wide</option>
-                    </select>
-                  </label>
-                  <span>2×</span>
-                </div>
-                <div className="preview-scroll">
-                  {displayTheme ? (
-                    <Specimen
-                      theme={displayTheme}
-                      width={width}
-                      inactive={inactive}
-                      selection={focus}
-                      onSelect={selectComponent}
-                    />
-                  ) : (
-                    <div className="preview-placeholder">
-                      Preparing your theme…
-                    </div>
-                  )}
-                </div>
-                <p className="stage-caption">
-                  Pick any button or the window title bar to inspect its state.
-                  Rendered at 2×.
-                </p>
-              </>
-            </section>
-            <section
-              className="artwork-pane"
-              aria-label="Source artwork editor"
-              hidden={surface === "preview"}
-            >
-              <div className="stage-heading">
-                <span className="eyebrow">Source artwork</span>
-                <div className="source-heading-actions">
-                  <span className="small-badge">
-                    {selectedResource
-                      ? `cicn ${selectedResource.id}`
-                      : "NO SELECTION"}
-                  </span>
-                  <button
-                    disabled={!selectedResource}
-                    onClick={() =>
-                      setSurface(surface === "artwork" ? "split" : "artwork")
-                    }
-                  >
-                    {surface === "artwork"
-                      ? "Back to specimen"
-                      : "Expand source ↗"}
-                  </button>
-                </div>
-              </div>
-              <div className="source-context">
-                <h3>
-                  {loadingSource
-                    ? "Preparing source…"
-                    : selectedResource?.name || "Indexed source image"}
-                </h3>
-                <span>Pick a color · adjust source geometry</span>
-              </div>
-              {selectedResource ? (
-                <ArtworkEditor
-                  data={
-                    compareOriginal
-                      ? originalResources[selected]!.data
-                      : selectedResource.data
-                  }
-                  geometry={
-                    geometry
-                      ? compareOriginal && originalGeometry
-                        ? [originalGeometry.data[0]!, originalGeometry.data[1]!]
-                        : [geometry.data[0]!, geometry.data[1]!]
-                      : undefined
-                  }
-                  editable={canEdit && !!geometry}
-                  onGeometry={applyGeometry}
-                  selectedRecord={record}
-                  onPickRecord={(next) => {
-                    setRecord(next);
-                    setInspectorTab("appearance");
-                  }}
-                />
-              ) : (
-                <div className="preview-placeholder">
-                  {loadingSource
-                    ? "Preparing source artwork…"
-                    : "Choose supported artwork from the Explorer."}
-                </div>
-              )}
-              <button
-                className="mobile-edit-color"
-                disabled={!color}
-                onClick={() => {
-                  setInspectorTab("appearance");
-                  setMobilePanel("properties");
-                }}
-              >
-                Edit color record {record} →
-              </button>
-            </section>
-          </div>
-        </main>
-        <aside className="inspector" aria-label="Artwork inspector">
-          <div className="panel-heading">
-            <h2>Properties</h2>
-            <span className="small-badge">
-              {compareOriginal ? "READ ONLY" : "WORKING"}
-            </span>
-          </div>
-          <h3 className="asset-title">
-            {component
-              ? `${component.label} · ${variant?.label ?? ""}`
-              : selectedResource?.name || "Source artwork"}
-          </h3>
-          <p className="asset-subtitle">
-            {selectedResource
-              ? `Resource ${selectedResource.id} · occurrence ${selected}`
-              : "Select a color icon"}
-          </p>
-          <div className="scope-card">
-            <span className="eyebrow">
-              {component?.id === "push-button"
-                ? "BUTTON FACE"
-                : component
-                  ? "WINDOW ARTWORK"
-                  : "SOURCE RECORD"}
-            </span>
-            <p>
-              {usages.length
-                ? `Used by ${usages.length} mapped ${usages.length === 1 ? "state" : "states"}`
-                : "No mapped state in this specimen"}
-            </p>
-            <div className="usage-links">
-              {usages.map((usage) => (
-                <button
-                  key={`${usage.component}:${usage.variant}`}
-                  onClick={() => selectComponent(usage)}
-                >
-                  {usage.component === focus?.component
-                    ? usage.label
-                    : `${usage.componentLabel} · ${usage.label}`}
-                </button>
-              ))}
-            </div>
-            <button
-              className="open-source"
-              disabled={!selectedResource}
-              onClick={() => {
-                setSurface("artwork");
-                setMobilePanel("workspace");
+              onChange={(e) => {
+                if (e.target.value !== "")
+                  void loadSample(Number(e.target.value));
               }}
             >
-              Open source artwork <span aria-hidden="true">↗</span>
-            </button>
-            <details>
-              <summary>What does this edit affect?</summary>
-              <p>
-                Palette and geometry belong to this source occurrence. Every use
-                of that record changes together.{" "}
-                {component?.id === "push-button"
-                  ? "Body patterns, rings and text are separate renderer dependencies; this edits the face artwork."
-                  : "Other window recipe parts are not editable here."}{" "}
-                Mapped states above are not a complete dependency inventory.
-              </p>
-            </details>
-          </div>
-          <div
-            className="inspector-tabs segmented"
-            role="group"
-            aria-label="Inspector view"
-          >
-            <button
-              aria-pressed={inspectorTab === "appearance"}
-              onClick={() => setInspectorTab("appearance")}
+              <option value="" disabled>
+                Imported scheme
+              </option>
+              {samples.map((sample, i) => (
+                <option key={sample.label} value={i}>
+                  {sample.label}
+                </option>
+              ))}
+            </select>
+            <div
+              className="navigation-tabs segmented"
+              role="group"
+              aria-label="Library view"
             >
-              Appearance
-            </button>
-            <button
-              aria-pressed={inspectorTab === "overrides"}
-              onClick={() => setInspectorTab("overrides")}
-            >
-              Overrides{" "}
-              <span className="count-badge">{selectionEdits.length}</span>
-            </button>
-          </div>
-          {inspectorTab === "overrides" && (
-            <section
-              className="local-overrides"
-              aria-label="Selected artwork overrides"
-            >
-              <h3>Changes to this artwork</h3>
-              <p className="field-help">
-                Values are compared with the imported source. Each reset is
-                undoable.
-              </p>
-              {selectionEdits.length ? (
-                selectionEdits.map((edit) => (
-                  <div
-                    className="override-row"
-                    key={`${edit.kind}:${edit.kind === "palette" ? edit.record : edit.occurrence}`}
-                  >
-                    <div>
-                      <strong>
-                        {edit.kind === "palette"
-                          ? `Color record ${edit.record}`
-                          : "Corner / side geometry"}
-                      </strong>
-                      <code>
-                        {edit.before.join(" / ")}
-                        <span>→ {edit.after.join(" / ")}</span>
-                      </code>
-                    </div>
+              <button
+                aria-pressed={navigation === "components"}
+                onClick={() => setNavigation("components")}
+              >
+                Components
+              </button>
+              <button
+                aria-pressed={navigation === "resources"}
+                onClick={() => setNavigation("resources")}
+              >
+                Resources
+              </button>
+              <button
+                aria-pressed={navigation === "changes"}
+                onClick={() => setNavigation("changes")}
+              >
+                Changes
+                {project?.edits.length ? (
+                  <span className="count-badge">{project.edits.length}</span>
+                ) : null}
+              </button>
+            </div>
+            {navigation === "components" ? (
+              <div className="component-tree">
+                {components.map((c) => (
+                  <section key={c.id}>
+                    <h3 className="section-label">{c.group}</h3>
                     <button
-                      aria-label={
-                        edit.kind === "palette"
-                          ? `Reset color record ${edit.record}`
-                          : "Reset geometry override"
-                      }
-                      disabled={!canEdit}
+                      className={`component-family ${focus?.component === c.id ? "selected" : ""}`}
+                      aria-pressed={focus?.component === c.id}
+                      disabled={busy}
                       onClick={() =>
-                        project &&
-                        change({
-                          ...project,
-                          edits: project.edits.filter((e) => e !== edit),
+                        selectComponent({
+                          component: c.id,
+                          variant: c.variants[0]!.key,
                         })
                       }
                     >
-                      Reset
+                      <span aria-hidden="true">
+                        {c.id === "document-window" ? "▣" : "▱"}
+                      </span>
+                      {c.label}
+                    </button>
+                    <div className="component-states">
+                      {c.variants.map((v) => (
+                        <button
+                          key={v.key}
+                          aria-label={`${c.label}: ${v.label}`}
+                          aria-pressed={
+                            focus?.component === c.id && focus.variant === v.key
+                          }
+                          disabled={busy}
+                          className={
+                            focus?.component === c.id && focus.variant === v.key
+                              ? "selected"
+                              : ""
+                          }
+                          onClick={() =>
+                            selectComponent({ component: c.id, variant: v.key })
+                          }
+                        >
+                          {v.label}
+                          <span
+                            className={
+                              editedVariant(project, v, resources)
+                                ? "edit-marker"
+                                : ""
+                            }
+                          >
+                            {editedVariant(project, v, resources)
+                              ? "Edited"
+                              : loadingSource
+                                ? "Loading…"
+                                : v.occurrence === null
+                                  ? "Unavailable"
+                                  : "Original"}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </section>
+                ))}
+                <p className="field-help">
+                  Two component families are mapped to source artwork. Use
+                  Resources to inspect the full library.
+                </p>
+              </div>
+            ) : navigation === "changes" ? (
+              <div className="change-list">
+                <h3 className="section-label">Working overrides</h3>
+                {project?.edits.length ? (
+                  project.edits.map((edit) => {
+                    const candidates = resources.filter(
+                      (r) => r.type === "cicn" && r.id === edit.id,
+                    );
+                    const occurrence =
+                      edit.kind === "palette"
+                        ? edit.occurrence
+                        : candidates.length === 1
+                          ? candidates[0]!.occurrence
+                          : null;
+                    return (
+                      <button
+                        key={`${edit.kind}:${edit.occurrence}:${edit.kind === "palette" ? edit.record : "geometry"}`}
+                        disabled={busy || occurrence === null}
+                        onClick={() => {
+                          visitResource(
+                            occurrence!,
+                            edit.kind === "palette" ? edit.record : 0,
+                          );
+                        }}
+                      >
+                        <strong>
+                          {components
+                            .flatMap((c) =>
+                              c.variants
+                                .filter((v) => v.occurrence === occurrence)
+                                .map((v) => `${c.label} · ${v.label}`),
+                            )
+                            .join(", ") ||
+                            resources[occurrence ?? -1]?.name ||
+                            "Source artwork"}
+                        </strong>
+                        <span>
+                          {edit.kind === "palette"
+                            ? `Color record ${edit.record}`
+                            : "Corner / side geometry"}
+                        </span>
+                        <small>
+                          Resource {edit.id} · #{edit.occurrence}
+                        </small>
+                        <code>
+                          {edit.before.join(" / ")} → {edit.after.join(" / ")}
+                        </code>
+                      </button>
+                    );
+                  })
+                ) : (
+                  <div className="empty-changes">
+                    <span aria-hidden="true">✓</span>
+                    <p>No overrides yet</p>
+                    <small>
+                      Edit a color or geometry value to start shaping this
+                      theme.
+                    </small>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <>
+                <div className="inventory-heading">
+                  <h3 className="section-label">SOURCE COLOR ICONS</h3>
+                  <span>
+                    {resources.filter((r) => r.type === "cicn").length}
+                  </span>
+                </div>
+                <input
+                  className="search"
+                  aria-label="Search source artwork"
+                  placeholder="Search artwork or ID…"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+                <div className="resource-list">
+                  {icons.map((resource) => (
+                    <button
+                      key={resource.occurrence}
+                      disabled={busy}
+                      className={
+                        selected === resource.occurrence ? "selected" : ""
+                      }
+                      onClick={() => {
+                        visitResource(resource.occurrence);
+                      }}
+                    >
+                      <span>{resource.name || "Untitled color icon"}</span>
+                      <small>
+                        {resource.id} · #{resource.occurrence}
+                        {editedOccurrences.has(resource.occurrence)
+                          ? " · edited"
+                          : ""}
+                      </small>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+            <div className="library-footnote">
+              <span className="preserved-mark">✓</span>
+              <div>
+                Source project
+                <small>{resources.length} records · original retained</small>
+                <a
+                  href="https://github.com/khawkins98/scriptoscope/issues/472"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  About this experiment ↗
+                </a>
+              </div>
+            </div>
+          </aside>
+          <main className={`canvas-panel layout-${surface}`}>
+            <div className="canvas-toolbar">
+              <div
+                className="segmented"
+                role="group"
+                aria-label="Workspace surface"
+              >
+                <button
+                  aria-pressed={surface === "split"}
+                  onClick={() => setSurface("split")}
+                >
+                  Preview + source
+                </button>
+                <button
+                  aria-pressed={surface === "preview"}
+                  onClick={() => setSurface("preview")}
+                >
+                  Preview only
+                </button>
+                <button
+                  aria-pressed={surface === "artwork"}
+                  disabled={!selectedResource}
+                  onClick={() => setSurface("artwork")}
+                >
+                  Focus source
+                </button>
+              </div>
+              <div
+                className="segmented compare-toggle"
+                role="group"
+                aria-label="Theme comparison"
+              >
+                <button
+                  aria-pressed={!compareOriginal}
+                  onClick={() => setCompareOriginal(false)}
+                >
+                  Working
+                </button>
+                <button
+                  aria-pressed={compareOriginal}
+                  disabled={!originalTheme}
+                  onClick={() => setCompareOriginal(true)}
+                >
+                  Original
+                </button>
+              </div>
+            </div>
+            <div className="selection-bar">
+              <div>
+                <span className="eyebrow">
+                  {component?.group ?? "SOURCE RESOURCE"}
+                </span>
+                <h2>
+                  {component
+                    ? component.label
+                    : (selectedResource?.name ?? "Source artwork")}
+                </h2>
+                {selectedResource && (
+                  <p className="selection-source" title={selectedResource.name}>
+                    {component ? "State artwork" : "Source artwork"}{" "}
+                    <span aria-hidden="true">/</span>{" "}
+                    {variant?.label ?? selectedResource.name}{" "}
+                    <span aria-hidden="true">/</span> cicn {selectedResource.id}
+                  </p>
+                )}
+              </div>
+
+              <button
+                className="quiet-button"
+                aria-label="Reset selected artwork"
+                title="Reset the selected source artwork wherever it is used; undo restores your edits."
+                disabled={!selectionEdited || !canEdit || !project}
+                onClick={() =>
+                  project &&
+                  change(resetArtwork(project, selected, geometry?.occurrence))
+                }
+              >
+                <span aria-hidden="true">↶ </span>Reset selected artwork
+              </button>
+            </div>
+            {compareOriginal && (
+              <div className="comparison-banner" role="note">
+                <strong>Viewing the imported original</strong>
+                <span>
+                  Read-only comparison. Your working edits are preserved.
+                </span>
+                <button onClick={() => setCompareOriginal(false)}>
+                  Return to working
+                </button>
+              </div>
+            )}
+            {component && (
+              <div
+                className="variant-strip"
+                role="group"
+                aria-label={`${component.label} states`}
+              >
+                {component.variants.map((v) => (
+                  <button
+                    key={v.key}
+                    aria-label={`State: ${v.label}`}
+                    aria-pressed={focus?.variant === v.key}
+                    disabled={busy}
+                    onClick={() =>
+                      selectComponent({
+                        component: component.id,
+                        variant: v.key,
+                      })
+                    }
+                  >
+                    <StateThumbnail
+                      theme={displayTheme}
+                      component={component.id}
+                      state={v.key}
+                      {...(v.asset ? { asset: v.asset } : {})}
+                    />
+                    <span>
+                      {v.label}
+                      <small>
+                        {editedVariant(project, v, resources)
+                          ? "Edited"
+                          : loadingSource
+                            ? "Loading…"
+                            : v.occurrence === null
+                              ? "Unavailable"
+                              : "Original"}
+                      </small>
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+            {!loadingSource && variant?.unavailable && (
+              <p className="selection-note" role="status">
+                {variant.unavailable} Try Resources to inspect the retained
+                records.
+              </p>
+            )}
+            <div className="editing-surfaces">
+              <section
+                className="preview-stage"
+                aria-label="Live theme preview"
+                hidden={surface === "artwork"}
+                aria-busy={compiling || busy}
+              >
+                <div className="stage-heading">
+                  <span className="eyebrow">
+                    <span className="live-dot" /> Live specimen
+                  </span>
+                  <span>
+                    {compareOriginal
+                      ? "Imported original"
+                      : compiling
+                        ? "Rebuilding preview…"
+                        : "Scriptoscope renderer"}
+                  </span>
+                </div>
+                <>
+                  <div className="specimen-settings">
+                    <div
+                      className="segmented"
+                      role="group"
+                      aria-label="Window state"
+                    >
+                      {["Active", "Inactive"].map((state, i) => (
+                        <button
+                          key={state}
+                          aria-pressed={inactive === !!i}
+                          onClick={() => {
+                            setInactive(!!i);
+                            if (focus?.component === "document-window")
+                              selectComponent({
+                                component: "document-window",
+                                variant: i ? "inactive" : "active",
+                              });
+                          }}
+                        >
+                          {state}
+                        </button>
+                      ))}
+                    </div>
+                    <label>
+                      Size{" "}
+                      <select
+                        aria-label="Size"
+                        value={width}
+                        onChange={(e) => setWidth(Number(e.target.value))}
+                      >
+                        <option value={240}>Compact</option>
+                        <option value={320}>Wide</option>
+                      </select>
+                    </label>
+                    <span>2×</span>
+                  </div>
+                  <div className="preview-scroll">
+                    {displayTheme ? (
+                      <Specimen
+                        theme={displayTheme}
+                        width={width}
+                        inactive={inactive}
+                        selection={focus}
+                        onSelect={selectComponent}
+                      />
+                    ) : (
+                      <div className="preview-placeholder">
+                        Preparing your theme…
+                      </div>
+                    )}
+                  </div>
+                  <p className="stage-caption">
+                    Pick any button or the window title bar to inspect its
+                    state. Rendered at 2×.
+                  </p>
+                </>
+              </section>
+              <section
+                className="artwork-pane"
+                aria-label="Source artwork editor"
+                hidden={surface === "preview"}
+              >
+                <div className="stage-heading">
+                  <span className="eyebrow">Source artwork</span>
+                  <div className="source-heading-actions">
+                    <span className="small-badge">
+                      {selectedResource
+                        ? `cicn ${selectedResource.id}`
+                        : "NO SELECTION"}
+                    </span>
+                    <button
+                      disabled={!selectedResource}
+                      onClick={() =>
+                        setSurface(surface === "artwork" ? "split" : "artwork")
+                      }
+                    >
+                      {surface === "artwork"
+                        ? "Back to specimen"
+                        : "Expand source ↗"}
                     </button>
                   </div>
-                ))
-              ) : (
-                <div className="empty-changes">
-                  <span aria-hidden="true">✓</span>
-                  <p>Matches the original</p>
-                  <small>Color and geometry edits will appear here.</small>
                 </div>
-              )}
-            </section>
-          )}
-          <div hidden={inspectorTab !== "appearance"}>
-            <section
-              className="inspector-section"
-              aria-label="Palette properties"
-            >
-              <div className="inventory-heading">
-                <h3 className="section-label">PALETTE</h3>
-                <span>{displayedPalette?.entries.length ?? 0} colors</span>
-              </div>
-              {displayedPalette ? (
-                <>
-                  <div className="swatches">
-                    {displayedPalette.entries.map((entry, i) => (
-                      <button
-                        key={i}
-                        aria-label={`Palette record ${i}`}
-                        aria-pressed={record === i}
-                        title={`Record ${i} · index ${entry.value}`}
-                        className={
-                          project?.edits.some(
-                            (edit) =>
-                              edit.kind === "palette" &&
-                              edit.occurrence === selected &&
-                              edit.record === i,
-                          )
-                            ? "swatch-edited"
-                            : ""
-                        }
-                        style={
-                          {
-                            "--swatch": displayColor(entry.rgb),
-                          } as React.CSSProperties
-                        }
-                        onClick={() => setRecord(i)}
-                      >
-                        <span>{i}</span>
-                      </button>
-                    ))}
+                <div className="source-context">
+                  <h3>
+                    {loadingSource
+                      ? "Preparing source…"
+                      : selectedResource?.name || "Indexed source image"}
+                  </h3>
+                  <span>Pick a color · adjust source geometry</span>
+                </div>
+                {selectedResource ? (
+                  <ArtworkEditor
+                    data={
+                      compareOriginal
+                        ? originalResources[selected]!.data
+                        : selectedResource.data
+                    }
+                    geometry={
+                      geometry
+                        ? compareOriginal && originalGeometry
+                          ? [
+                              originalGeometry.data[0]!,
+                              originalGeometry.data[1]!,
+                            ]
+                          : [geometry.data[0]!, geometry.data[1]!]
+                        : undefined
+                    }
+                    editable={canEdit && !!geometry}
+                    onGeometry={applyGeometry}
+                    selectedRecord={record}
+                    onPickRecord={(next) => {
+                      setRecord(next);
+                      setInspectorTab("appearance");
+                    }}
+                  />
+                ) : (
+                  <div className="preview-placeholder">
+                    {loadingSource
+                      ? "Preparing source artwork…"
+                      : "Choose supported artwork from the Explorer."}
                   </div>
-                  {color && (
-                    <div className="color-editor">
-                      <div className="color-summary">
-                        <span style={{ background: displayColor(color) }} />
-                        <div>
-                          Color record {record}{" "}
-                          {colorEdited && (
-                            <span className="edit-marker">Edited</span>
-                          )}
-                          <small>
-                            Display {displayColor(color).toUpperCase()} · index{" "}
-                            {displayedPalette.entries[record]!.value}
-                          </small>
-                        </div>
+                )}
+                <button
+                  className="mobile-edit-color"
+                  disabled={!color}
+                  onClick={() => {
+                    setInspectorTab("appearance");
+                    setMobilePanel("properties");
+                  }}
+                >
+                  Edit color record {record} →
+                </button>
+              </section>
+            </div>
+          </main>
+          <aside className="inspector" aria-label="Artwork inspector">
+            <div className="panel-heading">
+              <h2>Properties</h2>
+              <span className="small-badge">
+                {compareOriginal ? "READ ONLY" : "WORKING"}
+              </span>
+            </div>
+            <h3 className="asset-title">
+              {component
+                ? `${component.label} · ${variant?.label ?? ""}`
+                : selectedResource?.name || "Source artwork"}
+            </h3>
+            <p className="asset-subtitle">
+              {selectedResource
+                ? `Resource ${selectedResource.id} · occurrence ${selected}`
+                : "Select a color icon"}
+            </p>
+            <div className="scope-card">
+              <span className="eyebrow">
+                {component?.id === "push-button"
+                  ? "BUTTON FACE"
+                  : component
+                    ? "WINDOW ARTWORK"
+                    : "SOURCE RECORD"}
+              </span>
+              <p>
+                {usages.length
+                  ? `Used by ${usages.length} mapped ${usages.length === 1 ? "state" : "states"}`
+                  : "No mapped state in this specimen"}
+              </p>
+              <div className="usage-links">
+                {usages.map((usage) => (
+                  <button
+                    key={`${usage.component}:${usage.variant}`}
+                    onClick={() => selectComponent(usage)}
+                  >
+                    {usage.component === focus?.component
+                      ? usage.label
+                      : `${usage.componentLabel} · ${usage.label}`}
+                  </button>
+                ))}
+              </div>
+              <button
+                className="open-source"
+                disabled={!selectedResource}
+                onClick={() => {
+                  setSurface("artwork");
+                  setMobilePanel("workspace");
+                }}
+              >
+                Open source artwork <span aria-hidden="true">↗</span>
+              </button>
+              <details>
+                <summary>What does this edit affect?</summary>
+                <p>
+                  Palette and geometry belong to this source occurrence. Every
+                  use of that record changes together.{" "}
+                  {component?.id === "push-button"
+                    ? "Body patterns, rings and text are separate renderer dependencies; this edits the face artwork."
+                    : "Other window recipe parts are not editable here."}{" "}
+                  Mapped states above are not a complete dependency inventory.
+                </p>
+              </details>
+            </div>
+            <div
+              className="inspector-tabs segmented"
+              role="group"
+              aria-label="Inspector view"
+            >
+              <button
+                aria-pressed={inspectorTab === "appearance"}
+                onClick={() => setInspectorTab("appearance")}
+              >
+                Appearance
+              </button>
+              <button
+                aria-pressed={inspectorTab === "overrides"}
+                onClick={() => setInspectorTab("overrides")}
+              >
+                Overrides{" "}
+                <span className="count-badge">{selectionEdits.length}</span>
+              </button>
+            </div>
+            {inspectorTab === "overrides" && (
+              <section
+                className="local-overrides"
+                aria-label="Selected artwork overrides"
+              >
+                <h3>Changes to this artwork</h3>
+                <p className="field-help">
+                  Values are compared with the imported source. Each reset is
+                  undoable.
+                </p>
+                {selectionEdits.length ? (
+                  selectionEdits.map((edit) => (
+                    <div
+                      className="override-row"
+                      key={`${edit.kind}:${edit.kind === "palette" ? edit.record : edit.occurrence}`}
+                    >
+                      <div>
+                        <strong>
+                          {edit.kind === "palette"
+                            ? `Color record ${edit.record}`
+                            : "Corner / side geometry"}
+                        </strong>
+                        <code>
+                          {edit.before.join(" / ")}
+                          <span>→ {edit.after.join(" / ")}</span>
+                        </code>
                       </div>
                       <button
-                        className="reset-property"
-                        disabled={!colorEdited || !canEdit}
+                        aria-label={
+                          edit.kind === "palette"
+                            ? `Reset color record ${edit.record}`
+                            : "Reset geometry override"
+                        }
+                        disabled={!canEdit}
                         onClick={() =>
-                          originalColor && applyColor(originalColor)
+                          project &&
+                          change({
+                            ...project,
+                            edits: project.edits.filter((e) => e !== edit),
+                          })
                         }
                       >
-                        Reset color
+                        Reset
                       </button>
-                      {colorEdited && originalColor && (
-                        <div className="color-comparison">
-                          <span
-                            style={{ background: displayColor(originalColor) }}
-                          />
-                          <small>Original</small>
-                          <span aria-hidden="true">→</span>
-                          <span
-                            style={{ background: displayColor(workingColor!) }}
-                          />
-                          <small>Working</small>
-                        </div>
-                      )}
-                      <label className="field-label" htmlFor="source-color">
-                        Source RGB color
-                      </label>
-                      <input
-                        id="source-color"
-                        type="color"
-                        disabled={!canEdit}
-                        value={hex(color.map((n) => n >> 8))}
-                        onChange={(e) => {
-                          const next = [1, 3, 5].map(
-                            (offset) =>
-                              parseInt(
-                                e.target.value.slice(offset, offset + 2),
-                                16,
-                              ) * 257,
-                          ) as Rgb16;
-                          applyColor(next);
-                        }}
-                      />
-                      <details className="precise-color">
-                        <summary>Precise source color (RGB16)</summary>
-                        <div className="channel-fields">
-                          {["Red", "Green", "Blue"].map((channel, i) => (
-                            <label key={channel}>
-                              {channel}
-                              <input
-                                aria-label={`${channel} (RGB16)`}
-                                type="number"
-                                min={0}
-                                max={65535}
-                                value={color[i]}
-                                disabled={!canEdit}
-                                onChange={(e) => {
-                                  if (!e.target.value) return;
-                                  const next: Rgb16 = [...color];
-                                  next[i] = Number(e.target.value);
-                                  applyColor(next);
-                                }}
-                              />
-                            </label>
-                          ))}
-                        </div>
-                        <p className="field-help">
-                          RGB16 fields retain exact source values. The color
-                          picker writes an 8-bit source color; the preview
-                          applies the runtime display policy.
-                        </p>
-                      </details>
                     </div>
-                  )}
-                </>
-              ) : (
-                <p className="field-help">
-                  {loadingSource
-                    ? "Preparing palette…"
-                    : "This artwork is retained, but its palette is not supported by this editor."}
-                </p>
-              )}
-            </section>
-            <section
-              className="inspector-section"
-              aria-label="Geometry properties"
-            >
-              <h3 className="section-label">Geometry</h3>
-              {geometry && project ? (
-                <>
-                  <div className="channel-fields geometry-fields">
-                    {["Corner size", "Side thickness"].map((label, i) => (
-                      <div key={label}>
-                        <span className="property-label">
-                          <label
-                            className={i === 0 ? "corner-label" : "side-label"}
-                            htmlFor={`geometry-${i}`}
-                          >
-                            {label}
-                          </label>
-                          <button
-                            className="reset-property"
-                            aria-label={`Reset ${label.toLowerCase()}`}
-                            disabled={
-                              !canEdit ||
-                              geometry.data[i] === originalGeometry?.data[i]
-                            }
-                            onClick={() => {
-                              if (originalGeometry) {
-                                const next: [number, number] = [
-                                  geometry.data[0]!,
-                                  geometry.data[1]!,
-                                ];
-                                next[i] = originalGeometry.data[i]!;
-                                applyGeometry(next);
-                              }
-                            }}
-                          >
-                            Reset
-                          </button>
-                        </span>
-                        <input
-                          id={`geometry-${i}`}
-                          type="number"
-                          min={0}
-                          max={255}
-                          value={
-                            compareOriginal && originalGeometry
-                              ? originalGeometry.data[i]
-                              : geometry.data[i]
+                  ))
+                ) : (
+                  <div className="empty-changes">
+                    <span aria-hidden="true">✓</span>
+                    <p>Matches the original</p>
+                    <small>Color and geometry edits will appear here.</small>
+                  </div>
+                )}
+              </section>
+            )}
+            <div hidden={inspectorTab !== "appearance"}>
+              <section
+                className="inspector-section"
+                aria-label="Palette properties"
+              >
+                <div className="inventory-heading">
+                  <h3 className="section-label">PALETTE</h3>
+                  <span>{displayedPalette?.entries.length ?? 0} colors</span>
+                </div>
+                {displayedPalette ? (
+                  <>
+                    <div className="swatches">
+                      {displayedPalette.entries.map((entry, i) => (
+                        <button
+                          key={i}
+                          aria-label={`Palette record ${i}`}
+                          aria-pressed={record === i}
+                          title={`Record ${i} · index ${entry.value}`}
+                          className={
+                            project?.edits.some(
+                              (edit) =>
+                                edit.kind === "palette" &&
+                                edit.occurrence === selected &&
+                                edit.record === i,
+                            )
+                              ? "swatch-edited"
+                              : ""
                           }
+                          style={
+                            {
+                              "--swatch": displayColor(entry.rgb),
+                            } as React.CSSProperties
+                          }
+                          onClick={() => setRecord(i)}
+                        >
+                          <span>{i}</span>
+                        </button>
+                      ))}
+                    </div>
+                    {color && (
+                      <div className="color-editor">
+                        <div className="color-summary">
+                          <span style={{ background: displayColor(color) }} />
+                          <div>
+                            Color record {record}{" "}
+                            {colorEdited && (
+                              <span className="edit-marker">Edited</span>
+                            )}
+                            <small>
+                              Display {displayColor(color).toUpperCase()} ·
+                              index {displayedPalette.entries[record]!.value}
+                            </small>
+                          </div>
+                        </div>
+                        <button
+                          className="reset-property"
+                          disabled={!colorEdited || !canEdit}
+                          onClick={() =>
+                            originalColor && applyColor(originalColor)
+                          }
+                        >
+                          Reset color
+                        </button>
+                        {colorEdited && originalColor && (
+                          <div className="color-comparison">
+                            <span
+                              style={{
+                                background: displayColor(originalColor),
+                              }}
+                            />
+                            <small>Original</small>
+                            <span aria-hidden="true">→</span>
+                            <span
+                              style={{
+                                background: displayColor(workingColor!),
+                              }}
+                            />
+                            <small>Working</small>
+                          </div>
+                        )}
+                        <label className="field-label" htmlFor="source-color">
+                          Source RGB color
+                        </label>
+                        <input
+                          id="source-color"
+                          type="color"
                           disabled={!canEdit}
+                          value={hex(color.map((n) => n >> 8))}
                           onChange={(e) => {
-                            if (!e.target.value) return;
-                            const next: [number, number] = [
-                              geometry.data[0]!,
-                              geometry.data[1]!,
-                            ];
-                            next[i] = Number(e.target.value);
-                            applyGeometry(next);
+                            const next = [1, 3, 5].map(
+                              (offset) =>
+                                parseInt(
+                                  e.target.value.slice(offset, offset + 2),
+                                  16,
+                                ) * 257,
+                            ) as Rgb16;
+                            applyColor(next);
                           }}
                         />
+                        <details className="precise-color">
+                          <summary>Precise source color (RGB16)</summary>
+                          <div className="channel-fields">
+                            {["Red", "Green", "Blue"].map((channel, i) => (
+                              <label key={channel}>
+                                {channel}
+                                <input
+                                  aria-label={`${channel} (RGB16)`}
+                                  type="number"
+                                  min={0}
+                                  max={65535}
+                                  value={color[i]}
+                                  disabled={!canEdit}
+                                  onChange={(e) => {
+                                    if (!e.target.value) return;
+                                    const next: Rgb16 = [...color];
+                                    next[i] = Number(e.target.value);
+                                    applyColor(next);
+                                  }}
+                                />
+                              </label>
+                            ))}
+                          </div>
+                          <p className="field-help">
+                            RGB16 fields retain exact source values. The color
+                            picker writes an 8-bit source color; the preview
+                            applies the runtime display policy.
+                          </p>
+                        </details>
                       </div>
-                    ))}
-                  </div>
+                    )}
+                  </>
+                ) : (
                   <p className="field-help">
-                    Corner and side measurements are independent. Use the fields
-                    or drag the C / S guides.
+                    {loadingSource
+                      ? "Preparing palette…"
+                      : "This artwork is retained, but its palette is not supported by this editor."}
                   </p>
-                  <button
-                    className="edit-guides"
-                    onClick={() => {
-                      setSurface("artwork");
-                      setMobilePanel("workspace");
-                    }}
-                  >
-                    Adjust guides in source ↗
-                  </button>
-                </>
-              ) : (
-                <p className="field-help">
-                  {loadingSource
-                    ? "Preparing geometry…"
-                    : "No unique matching cinf record. Palette edits are still available."}
+                )}
+              </section>
+              <section
+                className="inspector-section"
+                aria-label="Geometry properties"
+              >
+                <h3 className="section-label">Geometry</h3>
+                {geometry && project ? (
+                  <>
+                    <div className="channel-fields geometry-fields">
+                      {["Corner size", "Side thickness"].map((label, i) => (
+                        <div key={label}>
+                          <span className="property-label">
+                            <label
+                              className={
+                                i === 0 ? "corner-label" : "side-label"
+                              }
+                              htmlFor={`geometry-${i}`}
+                            >
+                              {label}
+                            </label>
+                            <button
+                              className="reset-property"
+                              aria-label={`Reset ${label.toLowerCase()}`}
+                              disabled={
+                                !canEdit ||
+                                geometry.data[i] === originalGeometry?.data[i]
+                              }
+                              onClick={() => {
+                                if (originalGeometry) {
+                                  const next: [number, number] = [
+                                    geometry.data[0]!,
+                                    geometry.data[1]!,
+                                  ];
+                                  next[i] = originalGeometry.data[i]!;
+                                  applyGeometry(next);
+                                }
+                              }}
+                            >
+                              Reset
+                            </button>
+                          </span>
+                          <input
+                            id={`geometry-${i}`}
+                            type="number"
+                            min={0}
+                            max={255}
+                            value={
+                              compareOriginal && originalGeometry
+                                ? originalGeometry.data[i]
+                                : geometry.data[i]
+                            }
+                            disabled={!canEdit}
+                            onChange={(e) => {
+                              if (!e.target.value) return;
+                              const next: [number, number] = [
+                                geometry.data[0]!,
+                                geometry.data[1]!,
+                              ];
+                              next[i] = Number(e.target.value);
+                              applyGeometry(next);
+                            }}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                    <p className="field-help">
+                      Corner and side measurements are independent. Use the
+                      fields or drag the C / S guides.
+                    </p>
+                    <button
+                      className="edit-guides"
+                      onClick={() => {
+                        setSurface("artwork");
+                        setMobilePanel("workspace");
+                      }}
+                    >
+                      Adjust guides in source ↗
+                    </button>
+                  </>
+                ) : (
+                  <p className="field-help">
+                    {loadingSource
+                      ? "Preparing geometry…"
+                      : "No unique matching cinf record. Palette edits are still available."}
+                  </p>
+                )}
+              </section>
+            </div>
+            {project && (
+              <details className="source-details">
+                <summary>Source preservation</summary>
+                <p>
+                  {resources.length} records retained · {project.edits.length}{" "}
+                  edit operations
                 </p>
-              )}
-            </section>
-          </div>
-          {project && (
-            <details className="source-details">
-              <summary>Source preservation</summary>
-              <p>
-                {resources.length} records retained · {project.edits.length}{" "}
-                edit operations
-              </p>
-              <p>SHA-256 of original</p>
-              <code>{project.source.originalSha256}</code>
-              <p>
-                {project.source.container} · {project.source.selection.policy}
-              </p>
-              <p>
-                Experimental project format v0. Not a compiled web theme or
-                edited classic export.
-              </p>
-            </details>
-          )}
-          <button
-            className="recover-source"
-            disabled={!project || busy}
-            onClick={() =>
-              project &&
-              download(
-                decodeBytes(project.source.original),
-                project.source.filename,
-                "application/octet-stream",
-              )
-            }
-          >
-            Recover original <span aria-hidden="true">↓</span>
-          </button>
-        </aside>
+                <p>SHA-256 of original</p>
+                <code>{project.source.originalSha256}</code>
+                <p>
+                  {project.source.container} · {project.source.selection.policy}
+                </p>
+                <p>
+                  Experimental project format v0. Not a compiled web theme or
+                  edited classic export.
+                </p>
+              </details>
+            )}
+            <button
+              className="recover-source"
+              disabled={!project || busy}
+              onClick={() =>
+                project &&
+                download(
+                  decodeBytes(project.source.original),
+                  project.source.filename,
+                  "application/octet-stream",
+                )
+              }
+            >
+              Recover original <span aria-hidden="true">↓</span>
+            </button>
+          </aside>
+        </div>
       </div>
       <footer className="status-bar">
         <div className="history-actions">
