@@ -243,6 +243,11 @@ Snapshot the selected owner, element key, signed icon ID, asset URL, declared
 width/height, slices/request/anchors, sample records, bounds records and display
 policy **before the first asynchronous asset load**. Use those snapshots for
 admission and paint; never join a loaded buffer to later mutable metadata.
+Retain the selected owner's registered immutable prepared display-profile object
+by reference throughout the operation; snapshotting policy does not mean cloning
+or reconstructing this capability from its data or ID (existing
+`display-profile.md` ownership contract). Snapshot mutable scalar descriptors
+separately, preserving that owner/policy choice across the await.
 After decode, declared dimensions must equal actual prepared dimensions. In the
 bounds rows, supplied means an own field whose value is not undefined; explicit
 null is invalid bounds data, not omission.

@@ -234,3 +234,10 @@ Independent mutations are specified for missing/null/conflicting metadata,
 legacy bounds default versus explicit contradiction, same-owner finite samples,
 strong-binding downgrade, and pre/post-await snapshot mixing. No runtime or
 other-family transport policy was edited in this spec lane.
+
+The subsequent profile clarification preserves the existing
+`../display-profile.md` ownership contract: a prepared realizer is registered
+by the factory and a copied object is not usable, even with identical data/ID.
+Snapshotting mutable descriptors must retain the selected immutable profile
+capability by reference. This is an existing public-contract clarification, not
+a changed display rule or additional original-source claim.
