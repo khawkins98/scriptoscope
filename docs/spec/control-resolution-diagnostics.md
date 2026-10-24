@@ -22,6 +22,33 @@ DOM mount or interaction; a higher-level caller can invoke a compositor more
 than once. The declarative mount/closed-select path does not yet forward a
 consumer diagnostic callback. Other control families remain outside this trace.
 
+## Migrated-family interpretation
+
+Push/default-ring now follow the normative PB/DR signed dispatch and NULL rules.
+Their former alias/anti-role/cross-state/raw-ID fallback reasons are historical,
+not alternate current push selection paths. The same reason vocabulary may
+still describe supported unmigrated bevel or tab policy; migration does not
+remove those families' contracts. Checkable CB dispatch likewise preserves its
+kind/value/tier and full public bounds. Its declared archive/base chain is a
+modern environment: a canonical CICN may resolve in a base, while CB18's `ics8`
+lookup remains restricted to the selected mask's provider. Neither policy proves
+native provider/cache order.
+
+A driver trace can include extra resource/metadata admission events. Select the
+intended role, usage and actual typed resource when joining identity; a metadata
+admission may have no `resource`. A planned `usage: paint` selection alone still
+does not prove a completed operation. Completed band/body records must retain
+their documented owner/occurrence/transport/geometry/count obligations and must
+not be replaced with admission evidence. Resource preparation can fail before
+the driver selects anything, so an error trace may have no selection steps;
+completion/error identity and callback precedence still apply.
+
+For migrated push, present art with two metadata NULLs retains transparent
+admission and no completed legacy/body/border paint. Native consumer presentation
+is separately observable and operable. Legacy nine-slice occupancy remains an
+explicit compatibility operation for unmigrated bevel, including caller PNG alpha
+and clipped raster geometry; it is not a replacement for PB9.
+
 ## Record and identity
 
 Version 1 records the family, effective requested state and original boolean
@@ -45,7 +72,7 @@ an archive identity. Opted-in loads additionally carry exact per-entry
 `byteProvenance` references; join these to the owning load record as described in
 [actual byte provenance](resource-byte-provenance.md). Absent evidence stays unknown.
 A `selected` step means that metadata won the existing
-resolver. A later decode/render can fail, so it is not itself proof that those
+resolver or engine request. A later decode/render can fail, so it is not itself proof that those
 pixels were painted. `rejected` includes the rejected candidate's identity.
 
 ## Policy versus original dispatch
@@ -175,7 +202,9 @@ additive step data does not replace band, text, composition, tab or header chann
 `legacy-nine-slice-and-sample-fill`, always with `basis: 'compatibility-policy'`.
 It is separate from `bandPaints`; neither a planned `usage: paint` selection nor
 this legacy record establishes an original kDEF painter or private provider.
-System 7’s no-cinf face uses this path. No new fallback or pixel policy is added.
+System 7's push face used this path in the retired facade. Migrated push follows
+PB9 instead: no-cinf admission has no legacy paint. The operation remains
+supported by unmigrated bevel; no new fallback or pixel policy is added.
 
 The record captures the owner, key, signed IDs, URL and optional byte-provenance
 scalars at the actual asset-load boundary, before decoding awaits. The source
@@ -200,19 +229,27 @@ record even if a subsequent label paints. Publication requires a successful
 whole composition: face/ring preparation errors or cancellation suppress it.
 No extra decode or occupancy scan occurs with diagnostics disabled.
 
-The source/built test joins actual System 7 raw-fork ownership and decoder
-occurrence to independent fork/payload pins, with missing/wrong joins rejected.
+The source/built test joins System 7 art admission to actual raw-fork ownership
+and independent fork/payload pins, without calling that admission completed paint.
+Separate unmigrated bevel cases retain clipped literal RGBA and legacy occupancy,
+with missing/wrong identity joins rejected.
 Concurrent direct/inherited and opt-in-profile calls retain separate records;
-no-cinf paint remains compatibility policy under either display preparation.
+no-cinf push admission remains distinct from any completed paint under either display preparation.
 Literal clipped RGBA and hidden-stage tests preserve the distinction between
 raster occupancy and later text, while held loads test identity, abort and error
 precedence. These checks do not admit original reference evidence or promote
 requirement-ledger assessments.
 
-The existing source/built profile checks also compare all 1,600 face pixels with
+For comparable cinf-painted inputs, the existing source/built profile checks
+compare all 1,600 face pixels with
 the [reviewed original observations](../../tests/reference-captures/ORIGINALS.md),
 using their hash-checked port PNGs and recorded opaque white background. The same
 render must supply its actual modern face-paint identity. This comparison reuses
 the existing renders and remains limited to empty normal faces under the explicit
-measured profile. System 7's palette/gamma association is cross-run; masks, font,
+measured profile. The fifteen recorded states of System7, Apple Platinum2, Black
+Platinum, Platinum8 and Slimes now have explicit unassessed current comparisons:
+PB9 admits their art without completed face paint. Their original images, hashes,
+profiles and full current planes remain retained; a passing modern boundary
+assertion is not a new native match or a historical-ledger status change. System
+7's palette/gamma association is cross-run; masks, font,
 original private providers and broader requirements remain unresolved.

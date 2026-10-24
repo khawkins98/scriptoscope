@@ -25,16 +25,17 @@ export function validateMixedCase(c,input){
  assert.equal(c.mode,'direct');assert.equal(c.family,p.kind);assert.deepEqual(c.options,p.options);assert.deepEqual(c.inputs,[p.inputId]);assert.deepEqual(c.baseInputs,[]);
  assert.equal(input.kind,'synthetic');assert.deepEqual(input.definition,{pins:{path:'tests/decoder-fixtures/mixed-checkable-pins.json',sha256:hash(readFileSync(new URL('../decoder-fixtures/mixed-checkable-pins.json',import.meta.url)))},caseId:p.id,forkSha256:p.definition.forkSha256},'exact owned input');
 }
-export function verifyMixedRows(rows){
+export function verifyMixedRows(rows,{presentation}={}){
  for(const p of mixedPins.cases){
   const matches=rows.filter(r=>r.kind===p.kind && r.name===p.rowName && r.mixed===true && !r.checked && !!r.disabled===p.options.disabled);
   assert.equal(matches.length,1,`${p.id}: missing/duplicate invocation`);const r=matches[0];
   assert.deepEqual(r.options,p.options,'actual invocation');assert.deepEqual(r.keep,p.keep,'declared availability');
   assert.equal(r.provenance.fork.sha256,p.definition.forkSha256,'actual loaded fork');
-  assert.deepEqual(r.size,p.size);assert.deepEqual(r.pixels,p.pixels,'complete literal output');
-  assert.equal(r.selected.length,1);assert.equal(r.calls.length,1);
+  const plane=presentation?presentation({width:p.size[0],height:p.size[1],rgba:p.pixels},'cicn'):null;
+  assert.deepEqual(r.size,plane?[plane.width,plane.height]:p.size);assert.deepEqual(r.pixels,plane?plane.rgba:p.pixels,'complete literal output');
+  assert.equal(r.selected.length,1);if(presentation)assert(r.calls.length>0);else assert.equal(r.calls.length,1);
   const [key,e]=r.selected[0],ref=e.byteProvenance,actual=r.provenance.resources[ref.cicnResourceIndex],expected=p.definition.resources.find(e=>e.id===p.expectedId);
-  assert.equal(e.sourceCicnId,p.expectedId);assert.equal(ref.loadId,r.provenance.loadId);assert.equal(ref.manifestKey,key);assert.equal(r.calls[0],e.asset,'actual decoded selected URL');
+  assert.equal(e.sourceCicnId,p.expectedId);assert.equal(ref.loadId,r.provenance.loadId);assert.equal(ref.manifestKey,key);if(presentation){assert(r.calls.includes(e.asset),'actual selected source was prepared');assert(r.trace.resolved.some(x=>x.type==='cicn'&&x.found&&x.id===p.expectedId),'actual consumed typed selection');}else assert.equal(r.calls[0],e.asset,'actual decoded selected URL');
   assert.deepEqual({type:actual.type,signedId:actual.signedId,status:actual.status,byteLength:actual.byteLength,sha256:actual.sha256},{type:'cicn',signedId:p.expectedId,status:'decoded',byteLength:expected.byteLength,sha256:expected.sha256});
  }
  return mixedCaseIds;

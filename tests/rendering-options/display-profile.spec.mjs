@@ -1,3 +1,8 @@
+import {createHash} from 'node:crypto';
+import {existsSync} from 'node:fs';
+import {parseResourceMap} from './checkable-rules.mjs';
+import {detectContainer,unwrapToResourceFork} from '../../tools/theme-loader/containers.js';
+import {stuffItResourceForkWithSelection} from '../../tools/sit-wasm/index.mjs';
 import {RECORDED_CASES,recordedSubjects,readRecordedContext,captureBinding,validateRecordedExecution,validateRecordedBinding,compareRecordedPixels} from '../rendering-requirements/recorded-face.mjs';
 import {readFileSync} from 'node:fs';
 import {readOriginal} from '../helpers/compact-json.mjs';
@@ -52,14 +57,16 @@ for(const mode of ['source','built']) {
   expect(row.bodyFillSteps.some(s=>s.action==='selected'&&s.resource?.signedId===128)).toBe(false);
   expect(row.missingCode).toBe('MISSING_MAPPING');expect(row.allocated).toBe(0);
  });
- test(`${mode}: measured profile loads real themes without asset overrides and isolates default pixels`,async({page,servers},info)=>{
-  info.annotations.push({type:'fidelity-assertion',description:'recorded.empty-face-six'});
+ test(`${mode}: measured profiles retain comparable native planes and explicit no-cinf comparison gaps`,async({page,servers},info)=>{
+  info.annotations.push({type:'native-comparison-unassessed',description:'recorded.empty-face-six'});
+  info.annotations.push({type:'fidelity-assertion',description:'recorded.windows95-three-state'});
   info.annotations.push({type:'fidelity-assertion',description:'recorded.crayon-normal'});
   info.annotations.push({type:'fidelity-assertion',description:'recorded.lisa-normal'});
   info.annotations.push({type:'fidelity-assertion',description:'recorded.crayon-lisa-four-state'});
   info.annotations.push({type:'fidelity-assertion',description:'recorded.animals-three-state'});
   info.annotations.push({type:'fidelity-assertion',description:'recorded.beos-three-state'});
-  info.annotations.push({type:'fidelity-assertion',description:'recorded.shared307-eighteen'});
+  info.annotations.push({type:'native-comparison-unassessed',description:'recorded.shared307-eighteen'});
+  info.annotations.push({type:'fidelity-assertion',description:'recorded.shared307-comparable-six'});
   info.annotations.push({type:'fidelity-assertion',description:'recorded.evolution-empty-two'});
   info.annotations.push({type:'fidelity-assertion',description:'recorded.monkey-three-state'});
   info.annotations.push({type:'fidelity-assertion',description:'recorded.floppies-evolution-four-state'});
@@ -69,7 +76,19 @@ for(const mode of ['source','built']) {
   const ledger=JSON.parse(readFileSync(new URL('../rendering-requirements/ledger.json',import.meta.url)));
   for(const binding of bindings)validateRecordedBinding(ledger.cases.find(c=>c.recordedComparison?.captureId===binding.captureId),binding,referenceContext);
   await openHarness(page,servers,mode);
-  const subjects=recordedSubjects();
+  const subjects=recordedSubjects(),gapPins={};
+  for(const slug of ['system7-nostalgia-silver','apple-platinum-2','black-platinum','platinum-8','slimes']){
+    const filename=['scheme.sit','scheme.rsrc'].find(name=>existsSync(new URL(`../../themes/${slug}/${name}`,import.meta.url)));
+    const archive=readFileSync(new URL(`../../themes/${slug}/${filename}`,import.meta.url));
+    const fork=detectContainer(archive)==='stuffit'?(await stuffItResourceForkWithSelection(archive)).bytes:unwrapToResourceFork(archive);
+    const raw=parseResourceMap(fork),hash=bytes=>createHash('sha256').update(bytes).digest('hex');gapPins[slug]={};
+    for(const [state,id]of [['normal',-10239],['pressed',-10238],['inactive',-10240]]){
+      const matches=raw.map((r,index)=>({...r,index})).filter(r=>r.type==='cicn'&&r.id===id);expect(matches).toHaveLength(1);expect(raw.some(r=>r.type==='cinf'&&(r.id===id||r.id===0))).toBe(false);
+      const face=matches[0],v=new DataView(face.data.buffer,face.data.byteOffset,face.data.byteLength),capture=referenceContext.captures.find(c=>c.source.slug===slug&&c.conditions.state===state);
+      const sourceArchiveSha256=hash(archive),sourceForkSha256=hash(fork);expect(sourceArchiveSha256).toBe(capture.source.archiveSha256);expect(sourceForkSha256).toBe(capture.source.forkSha256);
+      gapPins[slug][state]={resourceIndex:face.index,bytes:face.data.length,payloadSha256:hash(face.data),sourceArchiveSha256,sourceForkSha256,bounds:{top:v.getInt16(6),left:v.getInt16(8),bottom:v.getInt16(10),right:v.getInt16(12)}};
+    }
+  }
   // Browser preparation receives the bound original DATA bytes recovered from compact storage.
   const transferBytes=Object.fromEntries(subjects.flatMap(s=>s.cases).filter(c=>c.cicnTransfer).map(c=>[c.cicnTransfer.path,readOriginal(c.cicnTransfer.path).toString('base64')]));
   const result=await page.evaluate(async ({mode,bindings,subjects,transferBytes})=>{
@@ -119,7 +138,7 @@ for(const mode of ['source','built']) {
       patternEvidence={patternCatalog:{manifestKey:key,entry},patternLoad:b.byteProvenance,patternPlane:{size:[pc.width,pc.height],encoding:'base64-rgba8',rgba:btoa(String.fromCharCode(...rgba))}};
      }
     }
-    rows.push({slug,state,options,completionCount,bodyFillSteps:trace.steps.filter(s=>s.role==='body-fill'),composition:trace.composition,recordedSourcePins,patternAsset:patternStep?b.manifest.patterns[patternStep.resource.manifestKey]?.asset:null,loadId:b.byteProvenance.loadId,profileFork:b.byteProvenance.fork.sha256,selectedKey:selected.resource.manifestKey,selectedAsset:el.asset,selectedCinfId:el.sourceCinfId??null,...(recordedSourcePins?{selectedBodyRequest:el.bodyRequest??null}:{}),outcome:trace.outcome,requested:trace.requested,profile:b.manifest.displayProfile.id,baseUrl:(a??b).baseUrl,profileBaseUrl:b.baseUrl,input:(a??b).byteProvenance.input.sha256,profileInput:b.byteProvenance.input.sha256,
+    rows.push({slug,state,options,completionCount,metadataAttempts:trace.steps.filter(s=>s.role==='face'&&s.action==='missing'&&s.reason.includes('cinf')),selectedSourceBounds:el.cicnSource?.bounds,ownerPolicy:b.manifest.displayProfile.id,bodyFillSteps:trace.steps.filter(s=>s.role==='body-fill'),composition:trace.composition,recordedSourcePins,patternAsset:patternStep?b.manifest.patterns[patternStep.resource.manifestKey]?.asset:null,loadId:b.byteProvenance.loadId,profileFork:b.byteProvenance.fork.sha256,selectedKey:selected.resource.manifestKey,selectedAsset:el.asset,selectedCinfId:el.sourceCinfId??null,...(recordedSourcePins?{selectedBodyRequest:el.bodyRequest??null}:{}),outcome:trace.outcome,requested:trace.requested,profile:b.manifest.displayProfile.id,baseUrl:(a??b).baseUrl,profileBaseUrl:b.baseUrl,input:(a??b).byteProvenance.input.sha256,profileInput:b.byteProvenance.input.sha256,
      ...patternEvidence,...retainRecordedTransfers(b,cicnTransfer),...(el.cicnTransfer?{selectedCicnTransfer:el.cicnTransfer}:{}),
      originalComparison:{binding:bindings.find(b=>b.captureId===reference.id),comparedPixels:1600,originalRgba:btoa(String.fromCharCode(...original)),captureId:reference.id,requestDigest:reference.requestDigest,imageSha256,imageSize:[canvas.width,canvas.height],sourceArchiveSha256:reference.source.archiveSha256,
       layer:'composited-face-pixels',background:[255,255,255],differentPixels,verifiedRequirementIds:[]},
@@ -130,13 +149,42 @@ for(const mode of ['source','built']) {
     } finally { a?.dispose();for(const theme of profileThemes.values())theme.dispose(); }
    }return rows;
   },{mode,bindings,subjects,transferBytes});
+  const gapSlugs=['system7-nostalgia-silver','apple-platinum-2','black-platinum','platinum-8','slimes'];
+  const gaps=result.filter(r=>gapSlugs.includes(r.slug));
+  expect(gaps).toHaveLength(15);
+  const assertGap=row=>{
+    expect(gapSlugs).toContain(row.slug);expect(['normal','pressed','inactive']).toContain(row.state);
+    expect(row.outcome).toEqual({status:'themed',width:88,height:28});expect(row.completionCount).toBe(1);
+    const id=row.state==='normal'?-10239:row.state==='pressed'?-10238:-10240;
+    expect(row.selected).toMatchObject({role:'face',action:'selected',usage:'admission',owner:{baseUrl:row.profileBaseUrl,chainDepth:0},resource:{type:'cicn',signedId:id,sourceCinfId:null,byteProvenance:row.source}});
+    expect(row.source.loadId).toBe(row.loadId);expect(row.source.cinfResourceIndex).toBeNull();
+    const actual=row.resources.find(r=>r.resourceIndex===row.source.cicnResourceIndex),pin=gapPins[row.slug][row.state];
+    expect(actual).toMatchObject({resourceIndex:pin.resourceIndex,type:'cicn',signedId:id,byteLength:pin.bytes,sha256:pin.payloadSha256,status:'decoded'});
+    expect(row.metadataAttempts.map(s=>[s.requestedId,s.action])).toEqual([[id,'missing'],[0,'missing']]);
+    expect(row.selectedSourceBounds).toEqual(pin.bounds);expect(pin.bounds).toEqual({top:0,left:0,bottom:16,right:16});
+    expect(row.profileInput).toBe(pin.sourceArchiveSha256);expect(row.profileFork).toBe(pin.sourceForkSha256);expect(row.selected.resource.assetUrl).toBe(row.selectedAsset);expect(row.selected.resource.manifestKey).toBe(row.selectedKey);
+    expect(row.paintSelectionSteps.filter(s=>s.role==='face'||s.role==='body-fill')).toEqual([]);expect(row.bandPaints).toEqual([]);expect(row.legacyFacePaint).toBeNull();expect(row.bodyFillSteps.some(s=>s.bodyPaint)).toBe(false);
+    expect(row.facePlane.rect).toEqual([4,4,80,20]);expect([...Buffer.from(row.facePlane.rgba,'base64')]).toEqual(Array(1600*4).fill(0));
+    expect(row.profile).toBe(row.ownerPolicy);expect(row.profile).toBe(row.originalComparison.binding.profile.id);
+    expect(row.originalComparison.verifiedRequirementIds).toEqual([]);
+  };
+  const gapDiscriminations=[];
+  for(const row of gaps){
+    assertGap(row);
+    row.comparisonDisposition={status:'unassessed',reason:'PB9 two metadata NULLs admit art without completed face paint; native reference is retained but current paint dependency is absent'};
+    for(const [name,mutate]of [['invented-paint',r=>r.paintSelectionSteps.push({...r.selected,usage:'paint'})],['UNKNOWN-not-NULL',r=>r.metadataAttempts[0].action='unknown'],['nontransparent-plane',r=>{const data=Buffer.from(r.facePlane.rgba,'base64');data[3]=255;r.facePlane.rgba=data.toString('base64');}],['wrong-owner',r=>r.selected.owner.chainDepth=1]]){
+      const changed=structuredClone(row);mutate(changed);expect(()=>assertGap(changed),name).toThrow();gapDiscriminations.push({slug:row.slug,state:row.state,name});
+    }
+  }
+  await info.attach('native-comparison-unassessed.json',{body:JSON.stringify({mode,rows:gaps,sourcePins:gapPins,discriminations:gapDiscriminations,limits:'Current modern gap only; unchanged native captures/pins/ledger and no source-fidelity promotion'},null,2),contentType:'application/json'});
   await info.attach('recorded-before-validation.json',{body:JSON.stringify(result,null,2),contentType:'application/json'});
   for(const row of result){
    const capture=referenceContext.captures.find(c=>c.id===row.originalComparison.captureId);
+   if(row.comparisonDisposition?.status==='unassessed')continue;
    validateRecordedExecution(row,captureBinding(capture),capture);
    expect(compareRecordedPixels(Buffer.from(row.facePlane.rgba,'base64'),Buffer.from(row.originalComparison.originalRgba,'base64'))).toBe(0);
   }
-  for(const row of result){expect(row.profileInput).toBe(row.input);expect(row.profileBaseUrl).toBe(row.baseUrl);if(row.cicnTransfer){expect(row.urlsDistinct).toBeNull();expect(row.different).toBeNull();}else expect(row.urlsDistinct).toBe(true);if(!row.cicnTransfer&&row.state==='normal'&&RECORDED_CASES[row.slug].expectNormalDefaultDifference)expect(row.different).toBe(true);expect(row.policy).toBe(row.profile);expect(row.selected.resource.byteProvenance).toBeTruthy();
+  for(const row of result){if(row.comparisonDisposition?.status==='unassessed')continue;expect(row.profileInput).toBe(row.input);expect(row.profileBaseUrl).toBe(row.baseUrl);if(row.cicnTransfer){expect(row.urlsDistinct).toBeNull();expect(row.different).toBeNull();}else expect(row.urlsDistinct).toBe(true);if(!row.cicnTransfer&&row.state==='normal'&&RECORDED_CASES[row.slug].expectNormalDefaultDifference)expect(row.different).toBe(true);expect(row.policy).toBe(row.profile);expect(row.selected.resource.byteProvenance).toBeTruthy();
    expect(row.requested).toMatchObject({state:row.state==='normal'?'active':row.state,pressed:row.state==='pressed',disabled:row.state==='inactive',default:false});
    expect(row.originalComparison.imageSize).toEqual([160,80]);expect(row.originalComparison.sourceArchiveSha256).toBe(row.profileInput);expect(row.originalComparison.differentPixels).toBe(0);
    if(RECORDED_CASES[row.slug].paintKind==='legacy-face')expect(row.legacyFacePaint.resource.byteProvenance).toEqual(row.selected.resource.byteProvenance);
@@ -144,9 +192,9 @@ for(const mode of ['source','built']) {
   }
   expect(result).toHaveLength(subjects.reduce((n,s)=>n+s.cases.length,0));
   expect(result.find(row=>row.slug==='windows-95'&&row.state==='normal').body).toEqual([218,218,218,255]);
-  await attachObservations(info,'display-profile',mode,{mode,rows:result,claim:'Exact recorded empty-face composited pixels under the explicit measured profile only; no mask, font, private-painter or whole-requirement verification.'});
+  await attachObservations(info,'display-profile',mode,{mode,rows:result,claim:'Exact recorded pixels only for comparable admitted cinf-painted faces; fifteen no-cinf cases retain explicit unassessed native comparison and current transparent planes. No mask/font/private-painter/whole-requirement promotion.'});
  });
- test(`${mode}: joint profile reaches sampled bands and rejects missing maps before URL allocation`,async({page,servers})=>{
+ test(`${mode}: joint profile reaches sampled bands and rejects missing maps before URL allocation`,async({page,servers},info)=>{
   await openHarness(page,servers,mode);const result=await page.evaluate(async mode=>{
    const api=await import(mode==='built'?'/dist/scriptoscope.js':'/src/index.ts');const {forkOf}=await import('/tests/resource-provenance/fixtures.mjs');const {sampledBandIcon,sampledBandInfo}=await import('/tests/decoder-fixtures/sampled-bands.mjs');const {syntheticDisplayProfile}=await import('/tests/decoder-fixtures/display-profile.mjs');
    const bytes=forkOf([{type:'cicn',id:-10239,data:sampledBandIcon()},{type:'cinf',id:-10239,data:sampledBandInfo(true)}]);
@@ -156,8 +204,9 @@ for(const mode of ['source','built']) {
    let count=0,code;const incomplete=syntheticDisplayProfile();incomplete.mappings=incomplete.mappings.filter(r=>r.rgb16[0]!==0x2121);
    try{await api.loadKaleidoscopeScheme(bytes,{displayProfile:await api.prepareDisplayProfile(incomplete),assetUrlFactory:()=>{count++;return'bad';}});}catch(e){code=e.code;}
    let chain;try{await api.composeButton({...loaded,base:second},{label:''});}catch(e){chain=e.code;}
-   const result={band:[...out.getPixel(4,0)],corner:[...out.getPixel(0,0)],other:[...otherOut.getPixel(4,0)],derivedPolicies:trace.bandPaints.filter(x=>x.derived).map(x=>x.derived.displayPolicy),profile:p.id,count,code,chain};loaded.dispose();second.dispose();return result;
+   const result={band:[...out.getPixel(4,0)],corner:[...out.getPixel(0,0)],other:[...otherOut.getPixel(4,0)],trace,derivedPolicies:trace.bandPaints.filter(x=>x.derived).map(x=>x.derived.displayPolicy),profile:p.id,count,code,chain};loaded.dispose();second.dispose();return result;
   },mode);
+  await info.attach('joint-profile-result.json',{body:JSON.stringify(result,null,2),contentType:'application/json'});
   expect(result.band).toEqual([90,100,110,255]);expect(result.corner).toEqual([20,30,40,255]);expect(result.other).toEqual([91,100,110,255]);expect(result.derivedPolicies.length).toBeGreaterThan(0);expect(result.derivedPolicies.every(x=>x===result.profile)).toBe(true);expect(result.count).toBe(0);expect(result.code).toBe('MISSING_MAPPING');expect(result.chain).toBe('PROFILE_MISMATCH');
  });
  test(`${mode}: profile mode5 keeps hidden body RGB realized once through public paint`,async({page,servers})=>{
@@ -174,7 +223,7 @@ for(const mode of ['source','built']) {
    }finally{theme.dispose();}
   },{mode,records:records.map(r=>({...r,data:[...r.data]}))});
   const expected=Array.from({length:24*6},(_,i)=>{const x=i%24,y=Math.floor(i/24);return x>=2&&x<22&&y===2?[21,30,40,255]:x>=2&&x<22&&y===3?[7,9,11,255]:[0,0,0,0];}).flat();
-  expect(result.rgba).toEqual(expected);expect(result.policy).toBe(result.profile);expect(result.paint.branch).toBe('unmasked-copy');expect(result.paint.paintedPixels).toBe(40);
+  expect(result.rgba).toEqual(expected);expect(result.policy).toBe(result.profile);expect(result.paint,'completed profiled mode5 operation must publish bodyPaint').toBeDefined();expect(result.paint.branch).toBe('unmasked-copy');expect(result.paint.paintedPixels).toBe(40);
  });
  test(`${mode}: declarative resolver snapshots profile and rejects incompatible borrowed themes`,async({page,servers})=>{
   await openHarness(page,servers,mode);const result=await page.evaluate(async mode=>{

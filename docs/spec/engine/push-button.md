@@ -147,6 +147,26 @@ Own-fork census of the 18 shipped archives (resource identities, not captures):
 | default metadata prerequisite | apple-platinum-2, black-platinum, platinum-8, slimes, system7-nostalgia-silver have no local face/ring cinf; none of the 18 carries cinf 0 or 1. Supply an explicit reviewed base/default environment or mark these branches unresolved |
 | PB1/PB2/PB8; DR1/DR6 | need conditioned/synthetic inputs; presence census alone cannot establish their output |
 
+## Modern raw-cinf compatibility policy
+
+The ordinary public loader consumes the first raw occurrence of a requested
+signed `cinf` ID in the selected provider. This is a bounded modern policy,
+not native Resource Manager, provider-order or cache equivalence. A valid first
+record ignores later duplicate records, unused defaults and later providers.
+A present selected malformed header or typed UNKNOWN metadata/body result
+rejects explicitly with its reason; it is not NULL and does not authorize a
+default, later-provider or other-state retry. Two proven metadata NULLs retain
+the reviewed transparent admission extent without claiming completed paint.
+No loader schema expansion or blanket duplicate rejection is implied.
+
+`byteProvenance.cinfResourceIndex` identifies the builder's static image/metadata
+pair. With raw duplicate metadata that pair may identify a later occurrence
+than the first consumed record. The ordinary trace makes no `consumedCinf` or
+lookup-occurrence claim. A consumed raw duplicate-metadata join, uniqueness,
+and native provider/cache behavior remain unknown. The opt-in prepared cinf
+environment has its own explicit identity/completeness contract; it does not
+change this ordinary policy.
+
 ## 7. Test hooks
 
 The separate test author must bind every PB/DR row to an assertion and record

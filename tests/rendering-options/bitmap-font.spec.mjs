@@ -65,11 +65,16 @@ for (const mode of ['source', 'built']) {
       const api=await import(mode==='built'?'/dist/scriptoscope.js':'/src/index.ts');
       const {bitmapFontFixture}=await import('/tests/decoder-fixtures/bitmap-font.mjs');
       const font=await api.prepareBitmapFont(bitmapFontFixture());
-      const source=api.PixelBuffer.alloc(7,7);source.fillRect({x:0,y:0,w:7,h:7},255,255,255,255);
-      const encoded=api.bufferToCanvas(source).toDataURL();const decode=HTMLImageElement.prototype.decode;const rows=[];
+      // PB9/PB10 require actual cinf metadata and finite source samples before
+      // text painting. Own serialized fixtures give this lifetime check a valid
+      // positive setup without reconstructing raw values from its display PNG.
+      const {colorIcon,colorInfo}=await import('/tests/decoder-fixtures/control-colors.mjs');
+      const {forkOf}=await import('/tests/resource-provenance/fixtures.mjs');
+      const bytes=forkOf([{type:'cicn',id:-10239,name:'face',data:colorIcon()},{type:'cinf',id:-10239,data:colorInfo()},{type:'cicn',id:-10231,name:'ring',data:colorIcon()},{type:'cinf',id:-10231,data:colorInfo()}]);
+      const decode=HTMLImageElement.prototype.decode;const rows=[];
       try {
         for(const action of ['mutate','abort','fail']){
-          const theme={baseUrl:'/',manifest:{chromeElements:{face:{asset:`${encoded}#${action}-face`,sourceCicnId:-10239},ring:{asset:`${encoded}#${action}-ring`,sourceCicnId:-10231}}}};
+          const theme=await api.loadKaleidoscopeScheme(bytes);
           let release,reached;const gate=new Promise(r=>release=r),held=new Promise(r=>reached=r);const controller=new AbortController();
           const target=theme.manifest.chromeElements[action==='mutate'?'face':'ring'].asset;
           HTMLImageElement.prototype.decode=async function(){if(this.src===target){reached();await gate;if(action==='fail')throw new Error('held ring failed');}return decode.call(this);};
@@ -78,7 +83,7 @@ for (const mode of ['source', 'built']) {
           await held;
           if(action==='mutate'){opts.label='Y';opts.bitmapFont={};opts.fontSize=99;}
           if(action==='abort')controller.abort();release();await pending;
-          rows.push({action,trace,error});HTMLImageElement.prototype.decode=decode;
+          rows.push({action,trace,error});HTMLImageElement.prototype.decode=decode;theme.dispose();
         }
         return {rows,fontId:font.id};
       } finally {HTMLImageElement.prototype.decode=decode;}

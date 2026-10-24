@@ -88,6 +88,7 @@ export async function loadKaleidoscopeScheme(input, options = {}) {
     converted = convertScheme(fork, {
       meta: options.meta, source: options.source ?? 'resource-fork', displayProfile, cinfBinding, cicnTransferBinding,
       ...(options.iconBlitCicnIds ? { iconBlitCicnIds: options.iconBlitCicnIds } : {}),
+      ...(options.unmaskedIconIds ? { unmaskedIconIds: options.unmaskedIconIds } : {}),
       ...(options.engineCinfIds ? { engineCinfIds: options.engineCinfIds } : {}),
       ...(evidence ? { resourceObserver: evidence.observer } : {}),
     });
@@ -96,7 +97,7 @@ export async function loadKaleidoscopeScheme(input, options = {}) {
     if (evidence) await evidence.settle();
     throw error;
   }
-  const { theme, assets, iconIndex, iconMaskResources, iconMaskPlanes, colorTables } = converted;
+  const { theme, assets, iconIndex, iconMaskResources, iconMaskPlanes, iconColorResources, cicnResources, ppatResources, colorTables } = converted;
   // Complete or reject all hashing before any encoder can allocate asset URLs.
   const byteProvenance = evidence ? await evidence.finish() : undefined;
   // convertScheme already validated the theme (convertChrome → validateTheme).
@@ -112,7 +113,7 @@ export async function loadKaleidoscopeScheme(input, options = {}) {
     finalizeCinfTheme(theme);
     finalizeCinfResourceOwner(theme, sliderLayoutBinding, 'sliderLayoutEnvironment');
     // Raw mode: hand back the contract + the un-encoded RGBA assets.
-    return { manifest: theme, assets, iconIndex, iconMaskResources, iconMaskPlanes, colorTables, ...(byteProvenance ? { byteProvenance } : {}) };
+    return { manifest: theme, assets, iconIndex, iconMaskResources, iconMaskPlanes, iconColorResources, cicnResources, ppatResources, colorTables, ...(byteProvenance ? { byteProvenance } : {}) };
   }
 
   const urlFor = options.assetUrlFactory ?? defaultAssetUrlFactory;
@@ -156,6 +157,9 @@ export async function loadKaleidoscopeScheme(input, options = {}) {
   const inspector = buildInspector(theme, assets, iconIndex, urlByPath, options.meta?.name);
   inspector.iconMaskResources = iconMaskResources;
   inspector.iconMaskPlanes = iconMaskPlanes;
+  inspector.iconColorResources = iconColorResources;
+  inspector.cicnResources = cicnResources;
+  inspector.ppatResources = ppatResources;
   inspector.colorTables = colorTables;
 
   // dispose() revokes every blob: URL this decode minted (~500 per scheme). Without
@@ -207,6 +211,7 @@ function buildInspector(manifest, assets, iconIndex, urlByPath, slugHint) {
   const enrichedIcons = iconIndex.map((e) => ({
     ...e,
     url: urlByPath.get(`icons/${e.file}`),
+    ...(e.unmaskedFile ? { unmaskedUrl: urlByPath.get(`icons/${e.unmaskedFile}`) } : {}),
   }));
 
   const themeSlug = (slugHint || manifest?.name || 'theme').toString();

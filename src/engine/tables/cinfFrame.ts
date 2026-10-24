@@ -2,7 +2,7 @@
 // B, P and "Border bands"; docs/spec/cinf-lookup-contract.md (request order).
 
 /** The cinf request and its single retry (§3 "Resource requests", item 1). */
-export const CINF_REQUEST = { id: 'cinf-request', type: 'cinf', source: '0x10860..0x10878' } as const;
+export const CINF_REQUEST = { id: 'cinf-request', type: 'cinf', source: '0x1086e..0x10898' } as const;
 
 export interface CinfRetryRow {
   readonly id: string;
@@ -73,3 +73,12 @@ export const CINF_EDGE: readonly CinfEdgeRow[] = [
   { id: 'E3', tile: 'zero', sampling: 'first-middle', source: '0x10cf0/0x10cf6, 0x10e4e/0x10e54, 0x10ec6/0x10ecc, 0x10f3e/0x10f44' },
   { id: 'E4', tile: 'nonzero', sampling: 'repeat-middle', source: '0x10cf0/0x10cf6, 0x10e4e/0x10e54, 0x10ec6/0x10ecc, 0x10f3e/0x10f44 → 0xfeae' },
 ];
+
+/** Serialized header length (TMPL 129); raw RGB16 sentinel and opaque output. */
+export const CINF_SAMPLE = { headerLength: 18, sentinel: 0x1234, opaque: 255,
+  source: 'qd-primitives §2 cinf header; §3 sampled colours; push-button PB10' } as const;
+
+/** TMPL 129 serialized header layout, qd-primitives §2 and cinf-lookup-contract. */
+export const CINF_HEADER = { corner: 0, side: 1, tile: 2, mode: 3, backgroundId: 4,
+  backgroundY: 6, backgroundX: 8, textY: 10, textX: 12, embossY: 14, embossX: 16,
+  source: 'qd-primitives §2 cinf header; cinf-lookup-contract TMPL 129' } as const;

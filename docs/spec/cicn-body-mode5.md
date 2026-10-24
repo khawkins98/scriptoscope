@@ -5,6 +5,34 @@ body before its ordinary border. This is source-derived compatibility, not an
 original capture, device-color proof or a whole-control fidelity claim. The
 current eighteen-scheme corpus contains no mode-5 requests.
 
+## Migrated push transport
+
+Migrated push/default consumes typed signed cicn/cinf resources and the actual
+prepared source occurrence. The converter's older carried `cicnBody` record
+remains a decoder observation and input to still-supported unmigrated paths;
+deleting or rewriting that record alone is not a typed-resource override for
+migrated push. Admission checks must perturb the consumed occurrence, raw
+request, bounds, or actual transport rather than an unused legacy field.
+This does not relax the mandatory same-selected-face-owner body policy.
+
+A selected deep body can use its occurrence-bound opaque icon-blit companion;
+its transport need not be the older `cicn-body/` companion. DECISIONS #7's
+same-occurrence validation and current-asset masked fallback remain required.
+Completed diagnostics must identify the transport actually copied, without
+substituting a carried legacy URL or claiming an unconsumed derived asset.
+Masked and opaque planes, hidden source RGB and signed/type identity remain
+separate assertions.
+
+Public resource admission can prepare owned planes before drawing, but a
+wholly clipped body must start no dependent body decode in the current public
+path. A visible nonaligned admission may decode to validate actual dimensions;
+rejection still publishes no completed body operation. These obligations do not
+impose a singleton count on unrelated face/pattern preparation. An already-issued
+decode is a browser lifetime; no new owned decode may start after signalled
+cancellation/disconnect. Decoding alone never proves visible paint. Cache eviction
+and disposal must cover the actual owned transport and unused generated companions
+without revoking a caller's unrelated assets.
+
 ## Source contract
 
 The pinned Kaleidoscope 2.3.1 `kDEF` 0 has 107,726 bytes and SHA256

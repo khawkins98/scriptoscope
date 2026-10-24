@@ -1,0 +1,43 @@
+import assert from 'node:assert/strict';
+const completed=row=>row.trace.steps.filter(s=>s.bodyPaint);
+const selected=(row,type)=>row.trace.steps.filter(s=>s.role==='body-fill'&&s.usage==='paint'&&s.action==='selected'&&s.resource?.type===type);
+function shared(row){assert.equal(row.calls,1,`${row.id}: callback once`);assert.equal(row.frozen,true,`${row.id}: deeply frozen callback`);assert.equal(row.trace.outcome.status,'themed',`${row.id}: admitted themed output`);}
+export function assertPositiveControls(rows,cases){
+ for(const c of cases){const r=rows.find(r=>r.id===c.id);assert.ok(r,`${c.id}: observation reached`);shared(r);assert.deepEqual(r.size,[c.options.minWidth,c.options.height],`${c.id}: literal dimensions`);assert.deepEqual(r.rgba,c.rgba,`${c.id}: independent full literal RGBA`);assert.ok(r.rgba.some((v,i)=>i%4===3&&v),`${c.id}: nonempty literal positive`);assert.equal(r.borrowedDisposals,0,`${c.id}: borrowed owner not disposed`);assert.deepEqual(r.trace.composition.context,{basis:'caller-declared',...c.options.compositionContext},`${c.id}: exact caller context`);assert.deepEqual(r.trace.composition.faceRect,{x:c.options.compositionContext.controlOrigin[0],y:c.options.compositionContext.controlOrigin[1],w:c.options.minWidth,h:c.options.height},`${c.id}: original logical face geometry`);
+ const face=r.trace.steps.find(s=>s.role==='face'&&s.action==='selected'&&s.resource?.type==='cicn');assert.equal(face.resource.signedId,-10239);assert.equal(face.owner.chainDepth,1);
+ if(!c.missing){const a=selected(r,c.kind==='pattern'?'ppat':'cicn');assert.equal(a.length,1,`${c.id}: one actual paint selection distinct from admission`);assert.equal(a[0].resource.signedId,c.bodyId);assert.equal(a[0].resource.manifestKey,c.kind==='pattern'?'literal-pattern':'mode5-body');assert.equal(a[0].owner.chainDepth,1);assert.equal(a[0].resource.byteProvenance.loadId,r.owner.provenance.loadId);assert.equal(a[0].resource.byteProvenance[c.kind==='pattern'?'ppatResourceIndex':'cicnResourceIndex'],2);}
+ }
+ const real=rows.find(r=>r.id==='real-crayon');shared(real);assert.deepEqual(real.size,[88,28]);assert.deepEqual(real.samples,[[235,228,207,255],[248,248,221,255],[248,242,221,255]],'real-crayon: independent source sample pins');assert.equal(selected(real,'ppat').length,1,'real-crayon: actual paint selection');assert.equal(selected(real,'ppat')[0].resource.signedId,17);
+ for(const r of rows.filter(r=>/^(body|pattern|ring)-(abort|error)$/.test(r.id))){assert.equal(r.first,'entered',`${r.id}: actual typed transport reached before settlement`);assert.equal(r.reached,1,`${r.id}: one actual held decode`);assert.equal(r.callsWhileHeld,0,`${r.id}: callback staged while held`);assert.equal(r.calls,1,`${r.id}: callback once`);assert.equal(r.frozen,true);assert.equal(r.outcome.resolved,false);assert.equal(r.trace.outcome.status,'error');if(r.id.endsWith('abort'))assert.equal(r.outcome.name,'AbortError');else assert.equal(r.outcome.sameError,true,`${r.id}: original renderer error beats callback throw`);assert.equal(completed(r).length,0,`${r.id}: no unpublished completion`);}
+ const cb=rows.find(r=>r.id==='callback-throw');shared(cb);assert.equal(cb.sameError,true,'success callback propagates original exception');
+ for(const id of ['transparent','zero-clip']){const r=rows.find(r=>r.id===id);shared(r);assert.ok(r.rgba.every(v=>v===0),`${id}: full transparent literal plane`);if(id==='zero-clip')assert.equal(completed(r).length,0,'zero-clip: no completed payload');}
+}
+function requirePaint(r,branch,count){const paints=completed(r);assert.equal(paints.length,1,`${r.id}: completed-body-payload-required`);const s=paints[0];assert.equal(s.role,'body-fill');assert.equal(s.usage,'paint');assert.equal(s.bodyPaint.branch,branch,`${r.id}: actual body branch`);assert.equal(s.bodyPaint.paintedPixels,count,`${r.id}: independent visible write count`);return s;}
+export function assertNormativeRow(r,c){
+ const s=requirePaint(r,c.branch,c.count),p=s.bodyPaint;
+ assert.deepEqual(s.owner,{baseUrl:r.owner.baseUrl,chainDepth:1},`${c.id}: actual selected owner`);
+ if(!c.missing){const type=c.kind==='pattern'?'ppat':'cicn',entry=(type==='ppat'?r.owner.patterns:r.owner.elements)[type==='ppat'?'literal-pattern':'mode5-body'];assert.equal(s.action,'selected');assert.equal(s.requestedResourceType,type);assert.equal(s.requestedId,c.bodyId);assert.equal(s.bodyMode,type==='ppat'?0:5);assert.equal(s.resource.type,type);assert.equal(s.resource.signedId,c.bodyId);assert.equal(s.resource.manifestKey,type==='ppat'?'literal-pattern':'mode5-body');assert.deepEqual(s.resource.byteProvenance,entry.byteProvenance);assert.equal(s.resource.assetUrl,entry.asset);
+ // Depth1 uses the ordinary masked asset. Deep input retains the selected
+ // occurrence eligible opaque record when present; opacity alone cannot choose
+ // among existing equal-looking URLs. Separate fallback controls require the
+ // actual ordinary current asset when no valid companion is available.
+ const transport=type==='ppat'||c.id==='indexed1'?entry.asset:(entry.iconBlit?.unmaskedAsset??entry.asset);
+ assert.equal(p.sourceAssetUrl,transport,`${c.id}: actual justified source transport`);assert.ok(r.decoded.includes(p.sourceAssetUrl),`${c.id}: completed source was actually decoded`);
+ if(p.derivedPath!==undefined){assert.equal(typeof p.derivedPath,'string');assert.ok(p.derivedPath.length>0);}
+ if(type==='ppat'){assert.deepEqual(p.unionRects,c.rects);assert.deepEqual(p.sourceSize,[4,2]);assert.equal(p.coordinateSpace,'face-local-before-ring');assert.deepEqual(p.phase,{basis:'modern-composition-policy',offset:[20,20],originalPatternPhase:'unverified'});assert.deepEqual(p.context,{basis:'caller-declared',...c.options.compositionContext});}
+ else{assert.deepEqual(p.sourceRect,{x:0,y:0,w:20,h:2});assert.deepEqual(p.destinationRect,{x:2,y:2,w:20,h:2});}
+ }else{assert.equal(s.action,'missing');assert.equal(s.resource,undefined);assert.equal(p.sourceRect,undefined);assert.equal(p.sourceAssetUrl,undefined);assert.equal(p.derivedPath,undefined);assert.deepEqual(p.destinationRect,{x:0,y:0,w:24,h:6},`${c.id}: face allocation; count remains only union writes`);}
+}
+export function evaluateNormative(rows,cases){
+ // All independently valid pixel/admission/lifetime controls must pass before
+ // any failure can be classified as a semantic diagnostics regression.
+ assertPositiveControls(rows,cases);const failures=[],passed=[];
+ const check=(id,fn)=>{try{fn();passed.push(id);}catch(e){failures.push({id,message:e.message});}};
+ for(const c of cases)check(c.id,()=>assertNormativeRow(rows.find(r=>r.id===c.id),c));
+ check('real-crayon',()=>{const r=rows.find(r=>r.id==='real-crayon'),s=requirePaint(r,'pattern-fill-union',1020),p=s.bodyPaint;assert.equal(s.resource.signedId,17);assert.equal(s.resource.manifestKey,'manilla-for-everything');assert.deepEqual(s.resource.byteProvenance,r.owner.patterns['manilla-for-everything'].byteProvenance);assert.deepEqual(s.owner,{baseUrl:r.owner.baseUrl,chainDepth:0});assert.equal(p.sourceAssetUrl,r.owner.patterns['manilla-for-everything'].asset);assert.deepEqual(p.sourceSize,[64,64]);assert.deepEqual(p.unionRects,[{x:5,y:3,w:70,h:14},{x:3,y:5,w:74,h:10}]);assert.deepEqual(p.phase,{basis:'modern-composition-policy',offset:[0,0],originalPatternPhase:'unverified'});assert.deepEqual(p.context,{basis:'caller-declared',controlOrigin:[0,0],portOrigin:[0,0],patternOrigin:{status:'known',offset:[0,0]},clip:{kind:'unbounded'}});});
+ check('transparent-writes',()=>{const r=rows.find(r=>r.id==='transparent');const s=requirePaint(r,'pattern-fill-union',173);assert.deepEqual(s.bodyPaint.unionRects,[{x:3,y:1,w:23,h:7},{x:1,y:3,w:27,h:3}]);});
+ check('callback-throw',()=>requirePaint(rows.find(r=>r.id==='callback-throw'),'unmasked-copy',40));
+ check('concurrent',()=>{const values=rows.find(r=>r.id==='concurrent').values;assert.notEqual(values[0].owner.provenance.loadId,values[1].owner.provenance.loadId);for(const [i,r]of values.entries()){assert.equal(r.trace.correlationId,`completion-${i}`);assert.equal(r.calls,1);assert.equal(r.frozen,true);const s=requirePaint({...r,id:`concurrent-${i}`},'unmasked-copy',40);assert.equal(s.owner.baseUrl,`concurrent-${i}`);assert.equal(s.resource.byteProvenance.loadId,r.owner.provenance.loadId);assert.equal(s.bodyPaint.sourceAssetUrl,r.owner.elements['mode5-body'].iconBlit?.unmaskedAsset??r.owner.elements['mode5-body'].asset);}});
+ return{positiveControls:'passed',passed,failures};
+}
+export function assertCompletion(rows,cases){const result=evaluateNormative(rows,cases);assert.equal(result.failures.length,0,JSON.stringify(result.failures));return result;}

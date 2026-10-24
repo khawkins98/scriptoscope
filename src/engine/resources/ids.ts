@@ -23,3 +23,8 @@ export function engineCinfIds(): number[] {
 export function engineLineSampledCicnIds(): number[] {
   return [...new Set(ENGINE_LOADER_NEEDS.flatMap(n => (n.lineSampledCicns ?? []).flatMap(expandIdGrid)))];
 }
+
+/** Signed small-icon identities requiring opaque colour data, by family registration. */
+export function engineCheckableIconIds(): number[] {
+  return [...new Set(ENGINE_LOADER_NEEDS.flatMap(n => n.checkableIconIds ?? []))];
+}

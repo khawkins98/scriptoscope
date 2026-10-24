@@ -87,23 +87,27 @@ for(const mode of ['source','built']) test(`${mode}: cancelled face or companion
       const api=await import(mode==='source'?'/src/index.ts':'/dist/scriptoscope.js');
       const {forkOf}=await import('/tests/resource-provenance/fixtures.mjs');
       const {sampledBandIcon,sampledBandInfo}=await import('/tests/decoder-fixtures/sampled-bands.mjs');
-      const decode=HTMLImageElement.prototype.decode, rows=[];
+      const decode=HTMLImageElement.prototype.decode,descriptor=Object.getOwnPropertyDescriptor(HTMLImageElement.prototype,'src'),rows=[];
       for(const heldPart of ['face','companion']){
         const t=await api.loadKaleidoscopeScheme(forkOf([{type:'cicn',id:-10239,name:'face',data:sampledBandIcon()},{type:'cinf',id:-10239,data:sampledBandInfo()}]));
-        const e=t.manifest.chromeElements.face, hold=heldPart==='face'?e.asset:e.sampledBandAsset.asset;
-        let release,entered,trace,calls=[];const barrier=new Promise(r=>{release=r;}),started=new Promise(r=>{entered=r;});
-        HTMLImageElement.prototype.decode=async function(){calls.push(this.src);if(this.src===hold){entered();await barrier;}return decode.call(this);};
+        const e=t.manifest.chromeElements.face,hold=heldPart==='face'?e.asset:e.sampledBandAsset.asset;
+        const owned=new Set([e.asset,e.sampledBandAsset.asset,e.iconBlit?.unmaskedAsset].filter(Boolean));
+        let release,entered,trace,phase='preparing',calls=[];const events=[],barrier=new Promise(r=>{release=r;}),started=new Promise(r=>{entered=r;});
+        Object.defineProperty(HTMLImageElement.prototype,'src',{...descriptor,set(url){if(owned.has(url))events.push({event:'request-start',url,phase});descriptor.set.call(this,url);}});
+        HTMLImageElement.prototype.decode=async function(){calls.push(this.src);events.push({event:'decode-entry',url:this.src,phase});const pending=decode.call(this);if(this.src===hold){await pending;events.push({event:'held-real-decode-complete',url:this.src,phase});entered();await barrier;}else await pending;};
         const controller=new AbortController();
         try {
-          const pending=api.composeButton(t,{label:'',minWidth:29,height:17,diagnostics:{onComplete:t=>{trace=t;}}},controller.signal).then(()=>({resolved:true}),e=>({resolved:false,name:e.name}));
-          await started;controller.abort();release();const outcome=await pending;
-          rows.push({heldPart,outcome,trace,companionDecodes:calls.filter(u=>u===e.sampledBandAsset.asset).length});
-        }finally{release();HTMLImageElement.prototype.decode=decode;t.dispose();}
+          const pending=api.composeButton(t,{label:'',minWidth:29,height:17,diagnostics:{onComplete:t=>{trace=t;events.push({event:'callback',phase});}}},controller.signal).then(()=>({resolved:true}),e=>({resolved:false,name:e.name}));
+          const reached=await Promise.race([started.then(()=>({held:true})),pending.then(outcome=>({settled:outcome}))]);if(!reached.held)throw Error('Actual held source decode not reached before composition settled');
+          events.push({event:'abort',phase});phase='aborted';controller.abort();release();const outcome=await pending;
+          rows.push({heldPart,outcome,trace,events,companionDecodes:calls.filter(u=>u===e.sampledBandAsset.asset).length});
+        }finally{release();HTMLImageElement.prototype.decode=decode;Object.defineProperty(HTMLImageElement.prototype,'src',descriptor);t.dispose();}
       }
       return rows;
     },mode);
     for(const r of result){expect(r.outcome).toEqual({resolved:false,name:'AbortError'});expect(r.trace.outcome.status).toBe('error');expect((r.trace.bandPaints??[]).some(p=>p.policy==='sampled-companion')).toBe(false);}
     expect(result.map(r=>r.companionDecodes)).toEqual([0,1]);
+    for(const row of result){const held=row.events.findIndex(e=>e.event==='held-real-decode-complete'),aborted=row.events.findIndex(e=>e.event==='abort');expect(held).toBeGreaterThanOrEqual(0);expect(aborted).toBeGreaterThan(held);expect(row.events.filter(e=>e.phase==='aborted'&&['request-start','decode-entry'].includes(e.event)),'no actual owned starts after abort').toEqual([]);}
   }catch(error){await attachCase(page,info,{mode,result},error);throw error;}
   await attachObservations(info,'sampled-bands',`${mode}-cancel`,{mode,result});
 });
@@ -115,29 +119,32 @@ for(const mode of ['source','built']) test(`${mode}: sampled mask holes preserve
       const api=await import(mode==='source'?'/src/index.ts':'/dist/scriptoscope.js');
       const {forkOf}=await import('/tests/resource-provenance/fixtures.mjs');
       const {sampledBandIcon,sampledBandInfo}=await import('/tests/decoder-fixtures/sampled-bands.mjs');
-      const cinf=sampledBandInfo();cinf[1]=4;
+      const {greenBodySampleIcon,greenBodySampleInfo}=await import('/tests/rendering-options/sampled-body-input.mjs');const cinf=greenBodySampleInfo();
       // Ordinary face is a retained data URL; only the actual derived blob is
       // revoked. A later public compose must attempt decode again, not retain it.
-      const t=await api.loadKaleidoscopeScheme(forkOf([{type:'cicn',id:-10239,name:'face',data:sampledBandIcon()},{type:'cinf',id:-10239,data:cinf}]),{
+      const t=await api.loadKaleidoscopeScheme(forkOf([{type:'cicn',id:-10239,name:'face',data:greenBodySampleIcon()},{type:'cinf',id:-10239,data:cinf}]),{
         assetUrlFactory:async(rgba,w,h,path)=>{
           const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(rgba),w,h),0,0);
           return path.startsWith('cicn-sampled/')?URL.createObjectURL(await new Promise(r=>c.toBlob(r))):c.toDataURL();
         },
       });
       const e=t.manifest.chromeElements.face;
-      // Distinguishable caller-declared body below the loader's actual masked band.
-      e.colorSamples={...e.colorSamples,background:{rgb16:[0,65535,0],displayRgb:[0,255,0]}};
+      const sourceBackground=structuredClone(e.colorSamples.background);
       const decode=HTMLImageElement.prototype.decode,revoke=URL.revokeObjectURL,revoked=[];let companionDecodes=0;
       URL.revokeObjectURL=url=>{revoked.push(url);revoke.call(URL,url);};
       HTMLImageElement.prototype.decode=function(){if(this.src===e.sampledBandAsset.asset)companionDecodes++;return decode.call(this);};
       try{
         const out=await api.composeButton(t,{label:'',minWidth:29,height:17});
         await api.composeButton(t,{label:'',minWidth:29,height:17});
+        e.colorSamples={...e.colorSamples,background:{rgb16:[0,0,65535],displayRgb:[0,0,255]}};
+        const carried=await api.composeButton(t,{label:'',minWidth:29,height:17});
+        const carriedOverride=carried.getPixel(4,3);
         const cachedDecodes=companionDecodes;t.dispose();
         const after=await api.composeButton(t,{label:'',minWidth:29,height:17}).then(()=>({resolved:true}),error=>({resolved:false,name:error.name}));
-        return{body:out.getPixel(4,3),band:out.getPixel(4,0),corner:out.getPixel(0,0),cachedDecodes,after,companionDecodes,revokedCompanion:revoked.filter(url=>url===e.sampledBandAsset.asset).length};
+        return{sourceBackground,carriedOverride,body:out.getPixel(4,3),band:out.getPixel(4,0),corner:out.getPixel(0,0),cachedDecodes,after,companionDecodes,revokedCompanion:revoked.filter(url=>url===e.sampledBandAsset.asset).length};
       }finally{HTMLImageElement.prototype.decode=decode;t.dispose();URL.revokeObjectURL=revoke;}
     },mode);
+    expect(result.sourceBackground).toEqual({rgb16:[0,65535,0],displayRgb:[0,255,0]});expect(result.carriedOverride).toEqual([0,255,0,255]);
     expect(result.body).toEqual([0,255,0,255]);expect(result.band).toEqual([48,48,48,255]);expect(result.corner).toEqual([255,0,0,255]);
     expect(result.cachedDecodes).toBe(1);expect(result.companionDecodes).toBe(2);expect(result.revokedCompanion).toBe(1); // Firefox may retain its own decoded blob after revocation
   }catch(error){await attachCase(page,info,{mode,result},error);throw error;}
@@ -180,15 +187,17 @@ for(const mode of ['source','built']) test(`${mode}: caller-declared companion c
       const api=await import(mode==='source'?'/src/index.ts':'/dist/scriptoscope.js');
       const {forkOf}=await import('/tests/resource-provenance/fixtures.mjs');
       const {sampledBandIcon,sampledBandInfo}=await import('/tests/decoder-fixtures/sampled-bands.mjs');
-      const info=sampledBandInfo();info[1]=4;
-      const t=await api.loadKaleidoscopeScheme(forkOf([{type:'cicn',id:-10239,name:'face',data:sampledBandIcon()},{type:'cinf',id:-10239,data:info}]));
+      const {greenBodySampleIcon,greenBodySampleInfo}=await import('/tests/rendering-options/sampled-body-input.mjs');const info=greenBodySampleInfo();
+      const t=await api.loadKaleidoscopeScheme(forkOf([{type:'cicn',id:-10239,name:'face',data:greenBodySampleIcon()},{type:'cinf',id:-10239,data:info}]));
       const c=document.createElement('canvas');c.width=7;c.height=7;const ctx=c.getContext('2d');ctx.fillStyle='#0000ff';ctx.fillRect(0,0,7,7);
       const e=t.manifest.chromeElements.face;e.sampledBandAsset={...e.sampledBandAsset,asset:c.toDataURL()};
-      e.colorSamples={...e.colorSamples,background:{rgb16:[0,65535,0],displayRgb:[0,255,0]}};let trace;
-      try{const out=await api.composeButton(t,{label:'',minWidth:29,height:17,diagnostics:{onComplete:t=>{trace=t;}}});return{hole:out.getPixel(4,3),band:out.getPixel(4,0),trace};}finally{t.dispose();}
+      const sourceBackground=structuredClone(e.colorSamples.background);let trace;
+      try{const out=await api.composeButton(t,{label:'',minWidth:29,height:17,diagnostics:{onComplete:t=>{trace=t;}}});return{sourceBackground,hole:out.getPixel(4,3),band:out.getPixel(4,0),trace};}finally{t.dispose();}
     },mode);
+    expect(result.sourceBackground).toEqual({rgb16:[0,65535,0],displayRgb:[0,255,0]});
     expect(result.hole).toEqual([0,255,0,255]);expect(result.band).toEqual([255,0,0,255]);
     expect(result.trace.bandPaints.some(p=>p.policy==='sampled-companion')).toBe(false);
+    expect(result.trace.bandPaints.filter(p=>p.branch!=='copy')).toHaveLength(2);
     expect(result.trace.bandPaints.filter(p=>p.branch!=='copy').every(p=>p.policy==='compatibility-raster')).toBe(true);
   }catch(error){await attachCase(page,info,{mode,result},error);throw error;}
   await attachObservations(info,'sampled-bands',`${mode}-invalid-mask`,{mode,result});
