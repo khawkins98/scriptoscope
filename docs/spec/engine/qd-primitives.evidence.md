@@ -570,3 +570,103 @@ check for the three 1138 out-of-bounds samples:
 `e29ea3b87a51f9a45f5bf8161fe917021a92384024429034e89e2a3d1b65a4b4`): all three
 icons are 1-bit with 1-byte rows, so `h = 1, 2` read padding bits. Mode/tile
 counts re-confirmed with `scripts/survey-cinf-body.mjs`.
+
+## 2026-10-24 role-boundary repair: retained original observations
+
+Moved verbatim from qd-primitives.md at original git blob `768ca60b588dc1627c1c538d15db0e370a52c673`
+(parent commit702f929bfa3b5b6fae6472cbb3f9af49d8f84f02). These historical
+corpus and independent-test/review observations are evidence-role material,
+not runtime implementation inputs. No new source acquisition or validation
+of their historical results was performed during this boundary repair.
+
+### Corpus and cinf census observations (original lines460–493)
+
+Corpus impact (13 `wnd#` archives, every sliced type, counts per state;
+survey script and output in the private store, lanes/H):
+
+- Code 11: 38 horizontal rows, all 1 px (direction-neutral); 6 vertical rows,
+  4 with varying >1 px sources: animals `side-floating-utility-window` right
+  (15 px) and `collapsed-no-title-utility` left (3 px).
+- Code 14: 6 horizontal rows, 4 varying: animals `document-window` and
+  `collapsed-document-window` bottom (6 px). 6 vertical rows, 2 varying:
+  monkey-paradise `document-window` right (4 px).
+- Code 13: 28 horizontal rows, 6 varying and phase-sensitive (animals); forward.
+- Code 8: 678 horizontal and 512 vertical rows; 205 and 140 have a varying
+  >1 px source and need the forward anchor.
+- So five cells (× 2 states) are where `direction` is visible.
+
+cinf census (own forks, 14 archives with cinfs, 1,033 records; script and
+output in the private store, `v2-lanes/spec-qd/`):
+
+- mode 0: 964, mode 1: 49, mode 2: 9, mode 3: 8, mode 4: 3, mode ≥ 5: none
+  (B1–B3 and I1–I3 unexercised by the cinf body); `tile` 0 = 818, 1 = 215.
+- 7 records have no same-id cicn in their own fork (crayon-os, floppies):
+  under §3 step 1 they draw nothing unless the base chain supplies the cicn.
+- Every same-id cicn has bounds starting at `(0, 0)` (S1).
+- `2c > W` or `2c > H`: 160 records in all 14 archives (empty E4 bands, cut
+  corners). `s > c`: 164 records (9 archives). `s` beyond the icon: 12.
+- E3 sample outside the icon (`tile == 0`, `c ≥ W` or `c ≥ H`): 11 records,
+  ids -12235 (1138, 1984, 1990, beos-r503, dolphin-som, evolution, floppies,
+  windows-31, windows-95), -12232 (beos-r503) and -12236 (floppies). Undefined
+  in the original when the face is taller (wider) than `2c + 1`.
+- Colour samples on mask-clear pixels: 183 background and 179 text samples
+  (13 archives); S4 says they still yield their colour.
+- Samples outside the bounds: 1138 -9549 and -9548 (text, 1 × 1 icons) and
+  -9776 (emboss, 2 × 1): all inside the stored row byte, so S5 reads stored
+  padding bits.
+
+### Independent test/review observations (original lines496–508)
+
+- `tests/rendering-options/window-chrome-rules.mjs` asserts the §5 tile formula
+  for every non-18 cell over the runtime-placed width, counting 1 px,
+  whole-copy, forward >1 px and reverse >1 px pixels separately, opaque source
+  pixels only.
+- Mutations that must fail (per-archive table, PR #373 review): flipping the
+  11/14 anchor fails only animals and monkey-paradise; inverted-anchor and
+  scaled blits fail 1990, animals, crayon-os, dolphin-som, evolution, floppies
+  and monkey-paradise. 1138, 1984, apple-lisa, beos-r503, windows-31 and
+  windows-95 pass all three mutations, so they do not discriminate T5/T6.
+- `tests/rendering-options/face-bands.spec.mjs`: hand-derived 9×9/c4/s1 and
+  21×21/c7/s14 sources distinguish square corners (E1), transposed body fill
+  (§5 R1/R2), first-strip versus repeat sampling (E3/E4), overlapping edge
+  order (E2) and transparent holes.
+
+### Additional inline history and corpus observations (same original blob)
+
+#### Introductory provenance/history (original lines3–12)
+
+*Behavioural spec, [TEMPLATE](TEMPLATE.md) shape. First split out of
+`kdef231-reference.md` §1.5 / §3.6 / §5 / §5.1 and `kdef231-recipe-walk.md`
+Q2 / Q5 on 2026-10-21 (v2 lane L2, moved prose). **Revised 2026-10-22** (spec
+writer, `v2-spec-qd-answers`) to answer the L4 implementer's questions Q1–Q11
+(§8): every row below was re-read in the 2.3.1 listing, several rows were
+corrected (§9), and rows were added for the icon blit, the samplers, the
+pattern fills and the cinf border rects. It has **not** yet had an independent
+verifier pass. Listing provenance: `qd-primitives.evidence.md` (spec writers
+and verifiers only).*
+
+
+
+#### S1 corpus bounds observation (original lines289–289)
+
+For every corpus cicn the bounds start at `(0, 0)`, so the offset equals the bounds coordinate (census, §6)
+
+#### S6 corpus coverage observation (original lines294–294)
+
+; not reached by the corpus
+
+#### Q1 historical implementation assessment (original lines526–526)
+
+The engine's reading is right for corners and bands, with three precisions:
+
+#### Q5 historical runtime digest/ledger outcome (original lines530–530)
+
+ The runtime's opaque CopyBits for every cell is a divergence from the decode; changing it (192 digests) is a family decision, not this unit's. The faithfulness-ledger row `0xfeae` still names `drawTile`; its owner should update it
+
+#### Q9 corpus sample count (original lines534–534)
+
+ (183 corpus records)
+
+#### Q10 corpus mode observation (original lines535–535)
+
+ No corpus cinf has mode 5
