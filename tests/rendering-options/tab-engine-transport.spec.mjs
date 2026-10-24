@@ -96,3 +96,58 @@ for (const mode of ['source', 'built']) {
     expect(error).toBeTruthy();
   });
 }
+
+for (const mode of ['source', 'built']) test(`${mode}: tab snapshot preserves the prepared owner display realization`, async ({ page, servers }, info) => {
+  await openHarness(page, servers, mode);
+  const result = await page.evaluate(async mode => {
+    const api = await import(mode === 'built' ? '/dist/scriptoscope.js' : '/src/index.ts');
+    const { tabFixture, tabPixels } = await import('/tests/rendering-options/tab-engine-fixtures.mjs');
+    const f = tabFixture(api, { request: 0, pattern: false });
+    const mapped = [48 * 257, 152 * 257, 48 * 257];
+    const profile = await api.prepareDisplayProfile({ version: 1, conditions: { test: 'finite-tab-owner-declaration' }, evidence: [{ sha256: '0'.repeat(64), description: 'Synthetic declaration; no historical device claim' }],
+      producer: { model: 'rgb16-high-byte-table', channels: Array.from({ length: 3 }, () => Array.from({ length: 256 }, (_, i) => i)) },
+      devicePalette: [{ index: 0, rgb16: mapped }], mappings: [{ rgb16: [8481, 34952, 8481], deviceRgb16: mapped, deviceIndex: 0 }] });
+    f.owner.manifest.displayProfile = profile;
+    f.element.samplingEquivalence.displayPolicy = profile.id; f.element.colorSamples.displayPolicy = profile.id; f.element.engineColorSamples.displayPolicy = profile.id;
+    let trace;
+    try { const out = await api.composeTab(f.owner, { label: '', diagnostics: { onComplete: t => { trace = t; } } }); return { pixels: tabPixels(out), trace }; }
+    catch (error) { return { error: String(error), trace }; }
+  }, mode);
+  await attachObservations(info, 'tab-engine', `${mode}-owner-display`, { mode, result });
+  expect(result.error).toBeUndefined();
+  expect(result.pixels).toEqual(TAB_ENGINE_SOLID_ROWS);
+});
+
+// CS4 needed-point boundary: finite profile intentionally has one mapping.
+// Unused native roles may remain unspecified; a needed missing background is AD5.
+for (const mode of ['source', 'built']) test(`${mode}: finite tab profiles realize only needed body samples`, async ({ page, servers }, info) => {
+  await openHarness(page, servers, mode);
+  const rows = await page.evaluate(async mode => {
+    const api = await import(mode === 'built' ? '/dist/scriptoscope.js' : '/src/index.ts');
+    const { tabFixture, tabPixels } = await import('/tests/rendering-options/tab-engine-fixtures.mjs');
+    const mapped = [48 * 257, 152 * 257, 48 * 257];
+    const profile = await api.prepareDisplayProfile({ version: 1, conditions: { test: 'tab-needed-points' }, evidence: [{ sha256: '1'.repeat(64), description: 'Finite synthetic role mapping' }], producer: { model: 'rgb16-high-byte-table', channels: Array.from({ length: 3 }, () => Array.from({ length: 256 }, (_, i) => i)) }, devicePalette: [{ index: 0, rgb16: mapped }], mappings: [{ rgb16: [8481, 34952, 8481], deviceRgb16: mapped, deviceIndex: 0 }] });
+    const rows = [];
+    for (const name of ['solid-unused-text', 'pattern-unused-background', 'solid-needed-background']) {
+      const pattern = name === 'pattern-unused-background', f = tabFixture(api, { request: pattern ? 17 : 0, pattern });
+      f.owner.manifest.displayProfile = profile;
+      f.element.samplingEquivalence.displayPolicy = profile.id; f.element.colorSamples.displayPolicy = profile.id; f.element.engineColorSamples.displayPolicy = profile.id;
+      const unmapped = { rgb16: [0, 0, 0], displayRgb: [0, 0, 0] };
+      // Authored foreground/emboss at(1,1), whose raw color has no mapping.
+      f.cinf[10] = 0; f.cinf[11] = 1; f.cinf[12] = 0; f.cinf[13] = 1;
+      f.cinf[14] = 0; f.cinf[15] = 1; f.cinf[16] = 0; f.cinf[17] = 1;
+      f.element.engineColorSamples.points['1,1'] = unmapped;
+      if (name !== 'solid-unused-text') f.element.engineColorSamples.points['3,2'] = unmapped;
+      let trace;
+      try { const out = await api.composeTab(f.owner, { label: 'OK', diagnostics: { onComplete: t => { trace = t; } } }); rows.push({ name, rendered: out !== null, trace }); }
+      catch (e) { rows.push({ name, error: String(e), trace }); }
+    }
+    return rows;
+  }, mode);
+  await attachObservations(info, 'tab-engine', `${mode}-needed-profile-points`, { mode, rows });
+  for (const row of rows) {
+    expect(row.error, row.name).toBeUndefined();
+    expect(row.rendered, row.name).toBe(row.name !== 'solid-needed-background');
+    if (!row.rendered) expect(row.trace.tabBody).toMatchObject({ path: 'unavailable', outcome: 'unsupported-sampling' });
+  }
+});

@@ -21,7 +21,7 @@ async function observe(page, mode) {
       const tabs = [];
       for (const row of tabRows) {
         let trace; const buf = await api.composeTab(theme, { ...row, diagnostics: { correlationId: slug, onComplete: t => { trace = t; } } });
-        tabs.push({ out: buf && enc(buf), path: trace?.tabBody?.path ?? null, probes: trace?.steps.filter(x => x.role === 'face' && x.action !== 'fallback').map(x => x.requestedId) ?? null });
+        tabs.push({ out: buf && enc(buf), path: trace?.tabBody?.path ?? null, probes: trace?.steps.filter(x => x.role === 'face' && x.usage === 'paint' && x.action !== 'fallback').map(x => x.requestedId) ?? null });
       }
       const headers = [];
       for (const { kind, drawState, width, height, origin } of headerRows) {
@@ -136,7 +136,8 @@ const SHARED_HEADERS = ['1984', '1990', 'apple-lisa', 'evolution', 'windows-31',
 const TAB_TABLE = {
   'selected ignored (always rear)': TAB_ARCHIVES, 'selected adds 1 (pressed rear)': TAB_ARCHIVES, 'large variant': TAB_ARCHIVES,
   'disabled state': but(TAB_ARCHIVES, '1990', 'apple-lisa', 'windows-31', 'windows-95'),
-  'c and s swapped': ['1984', 'animals', 'apple-lisa', 'apple-platinum-2', 'beos-r503', 'monkey-paradise'],
+  // P3/P4 source-band replacement now discriminates Crayon c/s at known borders.
+  'c and s swapped': ['1984', 'animals', 'apple-lisa', 'apple-platinum-2', 'beos-r503', 'crayon-os', 'monkey-paradise'],
   'band repeats the whole middle': ['1138', '1984', '1990', 'dolphin-som', 'evolution', 'floppies'],
   'band uses column c+1': ['1138', '1990', 'crayon-os', 'dolphin-som', 'evolution', 'floppies'],
   'centre not filled': but(TAB_ARCHIVES, '1138', '1990', 'dolphin-som', 'evolution'),
