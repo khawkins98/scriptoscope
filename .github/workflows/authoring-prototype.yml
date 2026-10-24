@@ -1,0 +1,35 @@
+name: Authoring prototype
+
+on:
+  pull_request:
+    paths:
+      - "tools/theme-authoring/**"
+      - "src/**"
+      - "tools/theme-loader/**"
+      - "tools/sit-wasm/**"
+      - "themes/**"
+      - "package*.json"
+      - ".github/workflows/authoring-prototype.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  prototype:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            tools/theme-authoring/package-lock.json
+      - run: npm ci
+      - run: npm ci --prefix tools/theme-authoring
+      - run: npx playwright install --with-deps chromium
+      - run: npm test --prefix tools/theme-authoring
+      - run: npm run build --prefix tools/theme-authoring
+      - run: npm run test:browser --prefix tools/theme-authoring
