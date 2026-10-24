@@ -1,17 +1,22 @@
 import { test, expect } from '@playwright/test';
+import { startServers } from './servers.mjs';
 
-// Standalone public-consumer regression. Run against build:demo + preview:demo;
-// no engine fixtures, historical captures or pixel goldens are involved.
-const base = process.env.SCRIPTOSCOPE_TABS_BASE_URL ?? 'http://127.0.0.1:4173/scriptoscope/';
+// Public-consumer regression using the repository's separate source/built
+// transports. No preexisting preview server, fixtures or pixel goldens needed.
+let servers;
+test.beforeAll(async () => { servers = await startServers(); });
+test.afterAll(async () => { await servers?.close(); });
 
-test('tabs keep semantic ownership, native identity and keyboard selection through retheme', async ({ page }) => {
+for (const mode of ['source', 'built']) {
+test(`${mode}: tabs keep semantic ownership, native identity and keyboard selection through retheme`, async ({ page }) => {
+  const base = servers[mode];
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   await page.route('**/tabs-accessibility-fixture.html', route => route.fulfill({
     contentType: 'text/html',
     body: '<!doctype html><html lang="en"><title>Tab accessibility fixture</title><main id="fixture"></main></html>',
   }));
-  await page.goto(new URL('tabs-accessibility-fixture.html', base).href);
+  await page.goto(new URL('/tabs-accessibility-fixture.html', base).href);
   await page.evaluate(async ({ runtimeUrl, themeUrl }) => {
     const api = await import(runtimeUrl);
     const root = document.getElementById('fixture');
@@ -32,7 +37,8 @@ test('tabs keep semantic ownership, native identity and keyboard selection throu
       manifest: { name: 'Explicit empty theme', windowTypes: {}, chromeElements: {}, patterns: {} } };
     handle.registerTheme('empty-tabs', empty);
     window.tabsFixture = { api, root, native, handle, empty, clicks: () => clicks, themeUrl };
-  }, { runtimeUrl: new URL('scriptoscope.js', base).href, themeUrl: new URL('themes/1138', base).href });
+  }, { runtimeUrl: new URL(mode === 'source' ? '/src/index.ts' : '/dist/scriptoscope.js', base).href,
+    themeUrl: new URL('/themes/1138', base).href });
 
   const tabs = page.getByRole('tablist', { name: 'Example settings' });
   const assertStructure = async () => {
@@ -91,3 +97,4 @@ test('tabs keep semantic ownership, native identity and keyboard selection throu
   await assertStructure();
   expect(errors).toEqual([]);
 });
+}
