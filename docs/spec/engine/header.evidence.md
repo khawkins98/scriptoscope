@@ -151,3 +151,34 @@ remain outside the safe contract. No corpus-wide, arbitrary-depth or historical
 color-environment claim is made. Source-address evidence supports finite rules;
 modern generated pixels and a matching source hash alone do not establish original
 execution fidelity.
+
+## Mask-clear sampled-line clarification (2026-10-24)
+
+Question: does geometric visibility of a sampled-line band require equivalence
+or companion evidence even when every actually selected source mask point is
+clear? ADM16 explicitly chooses modern needed-only admission, consistent with
+ADM13/ADM15, instead of conservative geometry-only companion admission. No tests,
+oracle outputs or runtime algorithm were supplied to derive this rule.
+
+Independent author retrace uses the same already reconstructed PACH130 payload,
+SHA256bf113e709425a811e0805e97dea7c028e46c50909fadb781226295e0b52d5b44.
+No new original source acquisition or native execution was performed.
+
+| source citation | observation and boundary |
+|---|---|
+| 0x5d76..0x5d8c;0x5dde..0x5df2 | Both sampled-line branches pass true mask-test to5810 and branch past line drawing when its return is false. Horizontal draw only5d8e..5da0; vertical only5df4..5e04. |
+| 0x5810..0x5842 | Wrapper forwards mask-test, source point and icon to5874. It preserves returned mask result across an unconditional RGBForeColor call at5836. Therefore no claim that foreground state is untouched or that the complete historical wrapper has no color API call. |
+| 0x5884..0x58d4 | When mask-test is true, sampler extracts the source mask bit first. A zero mask result branches directly to5a3c before color-content/palette lookup. |
+| 0x5964..0x5a32;0x5a3c..0x5a44 | The admitted full-color path computes indexed source color and calls687e only after the mask gate; return preserves mask result. Thus clear points contribute no defined sampled line RGB and emit no line write. |
+
+The modern requirement concerns published pixels and required color evidence.
+Only samples whose corresponding line spans intersect effective clip create a
+possible published line-color dependency; mapping remains anchored before clip.
+The public header subset excludes native foreground/port-state certification.
+No companion decode or missing exact color mapping is demanded solely for a
+clear-mask line, but source bounds and binary face mask still must be established.
+An out-of-bounds transparent read cannot stand in for a verified clear mask.
+Other body/border dependencies and whole-chain/profile guards remain unchanged.
+If another sampled band does require color, ADM12 still applies fully; only that
+required companion undergoes the existing complete dimension/mask identity checks.
+No independent test or review result is asserted by this clarification.
