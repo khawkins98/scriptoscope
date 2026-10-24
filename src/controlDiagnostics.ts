@@ -45,17 +45,24 @@ export interface ControlResolutionStep {
   readonly usage: 'paint' | 'layout-reservation' | 'admission';
 }
 
-/** Actual tab assembly decision. Legacy reasons describe current compatibility
- * policy, not an original-engine fallback. No font/device fidelity is implied. */
+/** Actual tab admission/assembly; no font/device fidelity is implied. */
 export type TabBodyTrace = {
-  readonly sourceWidth: number; readonly sourceHeight: number;
-  readonly requestedWidth: number;
+  readonly sourceWidth: number; readonly sourceHeight: number; readonly requestedWidth: number;
 } & ({
   readonly path: 'source-bands'; readonly basis: 'source-dispatch';
-  readonly center: 'empty' | 'solid';
+  readonly center: 'empty' | 'solid' | 'pattern';
   readonly backgroundPolicy: 'none' | 'raw-sample' | 'decoded-anchor';
   readonly corner: number; readonly side: number; readonly tile: boolean;
+  readonly patternId?: number; readonly patternMissing?: boolean;
+  readonly phase?: { readonly x: number; readonly y: number };
+  readonly labelBasis?: 'modern-contrast-policy';
 } | {
+  readonly path: 'unavailable'; readonly basis: 'compatibility-policy';
+  readonly outcome: 'missing-art' | 'empty-art' | 'no-cinf-no-paint'
+    | 'unsupported-metadata' | 'unsupported-sampling' | 'unsupported-pattern';
+  readonly reason: string;
+} | {
+  /** @deprecated Historical trace shape retained for source compatibility; never emitted. */
   readonly path: 'legacy-three-slice'; readonly basis: 'compatibility-policy';
   readonly reason: 'missing-slice' | 'invalid-slice-or-size' | 'missing-body-request'
     | 'invalid-body-request' | 'pattern-center' | 'missing-or-invalid-background-anchor' | 'masked-background';
