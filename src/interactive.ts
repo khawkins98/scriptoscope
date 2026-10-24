@@ -1901,7 +1901,8 @@ export class WindowManager {
         position: 'absolute', left: `${hit.rect.x}px`, top: `${hit.rect.y}px`,
         width: `${hit.rect.w}px`, height: `${hit.rect.h}px`,
         padding: '0', margin: '0', border: '0', background: 'transparent',
-        cursor: 'default', zIndex: '2',
+        // WM381 modern policy: title buttons take priority over enlarged resize overlays.
+        cursor: 'default', zIndex: '5',
       } satisfies Partial<CSSStyleDeclaration>);
       // HT7: inside the rect, only the pressed strip's mask hits; elsewhere the event passes to the window.
       const onWidget = (e: MouseEvent): boolean => !composed.hitWidget
