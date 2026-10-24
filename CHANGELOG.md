@@ -7,6 +7,20 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+### Fixed
+
+- Keep visible title-widget buttons reachable when an enlarged WindowManager
+  resize target overlaps them, including 1138's template-width side-floating
+  utility window (#381). This is a modern web interaction policy; decoded
+  original grow-before-widget precedence is unchanged. Ordinary pointer and
+  keyboard resize remain available.
+
+### Contributor workflow
+
+- Document focused reproduction and spec checks, a small stable team, reviewer
+  continuity, provenance preflight, targeted iteration and one final integrated
+  validation chain. Required CI and independent evidence/review gates remain.
+
 ## [0.6.0] — 2026-10-23
 
 Fifth incremental release from the `v2` integration branch (#459), moving push
