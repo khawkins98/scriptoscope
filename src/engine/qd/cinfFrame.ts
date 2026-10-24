@@ -121,11 +121,18 @@ function bodyWriteCount(port: Pixmap, boxes: readonly QdRect[], clip?: QdRect,
   return count;
 }
 
-/** One border plan is shared by preparation and paint; clipping never changes its phase. */
-function cinfBorderPlan(cicn: Pixmap, cinf: CinfRecord, D: QdRect) {
+export interface CinfBorderPiece {
+  piece: typeof CINF_BORDER_ORDER.pieces[number]; src: QdRect; dst: QdRect; fast: 'T1' | 'T2' | null;
+  extents: readonly [sourceWidth: number, sourceHeight: number, destinationWidth: number, destinationHeight: number];
+}
+/** Shared geometry; scalar extents retain bevel arithmetic independently of engine Rects. */
+export function cinfBorderPlan(cicn: Pick<Pixmap, 'width' | 'height'>,
+  cinf: { cornerSize: number; sideThickness: number; tileSides: number | boolean }, D: QdRect): CinfBorderPiece[] {
   const c = cinf.cornerSize, s = cinf.sideThickness;
   const W = cicn.width, H = cicn.height, cw = Math.min(c, W), ch = Math.min(c, H), sw = Math.min(s, W), sh = Math.min(s, H);
   const bw = cinf.tileSides ? W - 2 * c : 1, bh = cinf.tileSides ? H - 2 * c : 1;
+  const scalarW = cinf.tileSides ? Math.max(0, W - c * 2) : c < W ? 1 : 0;
+  const scalarH = cinf.tileSides ? Math.max(0, H - c * 2) : c < H ? 1 : 0;
   const band = (piece: 'top' | 'bottom' | 'left' | 'right'): [QdRect, QdRect] => {
     switch (piece) {
       case 'top': return [rect(0, c, sh, c + bw), rect(D.top, D.left + c, D.top + sh, D.right - c)];
@@ -134,15 +141,18 @@ function cinfBorderPlan(cicn: Pixmap, cinf: CinfRecord, D: QdRect) {
       case 'right': return [rect(c, W - sw, c + bh, W), rect(D.top + c, D.right - sw, D.bottom - c, D.right)];
     }
   };
-  return CINF_BORDER_ORDER.pieces.map(piece => {
+  return CINF_BORDER_ORDER.pieces.map((piece): CinfBorderPiece => {
     if (piece === 'TL' || piece === 'TR' || piece === 'BL' || piece === 'BR') {
       const right = piece === 'TR' || piece === 'BR', bottom = piece === 'BL' || piece === 'BR';
       const x = right ? W - cw : 0, y = bottom ? H - ch : 0;
       const dx = right ? D.right - cw : D.left, dy = bottom ? D.bottom - ch : D.top;
-      return { piece, src: rect(y, x, y + ch, x + cw), dst: rect(dy, dx, dy + ch, dx + cw), fast: null };
+      return { piece, src: rect(y, x, y + ch, x + cw), dst: rect(dy, dx, dy + ch, dx + cw), fast: null,
+        extents: [cw, ch, cw, ch] };
     }
     const [src, dst] = band(piece);
-    return { piece, src, dst, fast: tileFastPathRow(src, dst) };
+    const extents: CinfBorderPiece['extents'] = piece === 'top' || piece === 'bottom'
+      ? [scalarW, sh, (D.right - D.left) - c * 2, sh] : [sw, scalarH, sw, (D.bottom - D.top) - c * 2];
+    return { piece, src, dst, fast: tileFastPathRow(src, dst), extents };
   });
 }
 
