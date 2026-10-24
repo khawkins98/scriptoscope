@@ -670,3 +670,11 @@ The engine's reading is right for corners and bands, with three precisions:
 #### Q10 corpus mode observation (original lines535–535)
 
  No corpus cinf has mode 5
+
+### Residual historical fixture agreement (original line412)
+
+Moved verbatim from the same original safe-doc blob
+`768ca60b588dc1627c1c538d15db0e370a52c673`; normative corner-survival
+statement stays in section5.
+
+ (agrees with `face-bands.spec.mjs`)

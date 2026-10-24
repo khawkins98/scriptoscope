@@ -401,7 +401,7 @@ Consequences, all from the formulas:
   left/right bands in an `(s − c) × (s − c)` square next to each corner
   (e.g. `[D.left + c, D.left + s) × [D.top + c, D.top + s)`); left/right are
   drawn last and win there where their mask is set. All four corner blocks
-  survive (agrees with `face-bands.spec.mjs`).
+  survive.
 - `s` larger than the icon: the band thickness is cut to the icon (`sw`, `sh`).
 
 **Body inset rects** (relative to `D`'s top-left, as `(x, y, w, h)`):
