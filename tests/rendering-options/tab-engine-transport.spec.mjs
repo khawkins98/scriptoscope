@@ -151,3 +151,20 @@ for (const mode of ['source', 'built']) test(`${mode}: finite tab profiles reali
     if (!row.rendered) expect(row.trace.tabBody).toMatchObject({ path: 'unavailable', outcome: 'unsupported-sampling' });
   }
 });
+
+for (const mode of ['source', 'built']) test(`${mode}: tab facade preserves display-profile base-chain mismatch rejection`, async ({ page, servers }) => {
+  await openHarness(page, servers, mode);
+  const result = await page.evaluate(async mode => {
+    const api = await import(mode === 'built' ? '/dist/scriptoscope.js' : '/src/index.ts');
+    const { tabFixture } = await import('/tests/rendering-options/tab-engine-fixtures.mjs');
+    const mapped = [48 * 257, 152 * 257, 48 * 257];
+    const profile = await api.prepareDisplayProfile({ version: 1, conditions: { test: 'tab-chain-policy' }, evidence: [{ sha256: '2'.repeat(64), description: 'Synthetic distinct policy identity' }], producer: { model: 'rgb16-high-byte-table', channels: Array.from({ length: 3 }, () => Array.from({ length: 256 }, (_, i) => i)) }, devicePalette: [{ index: 0, rgb16: mapped }], mappings: [{ rgb16: [8481, 34952, 8481], deviceRgb16: mapped, deviceIndex: 0 }] });
+    const root = tabFixture(api, { request: 0, pattern: false }), base = tabFixture(api, { request: 0, pattern: false });
+    base.owner.manifest.displayProfile = profile; root.owner.base = base.owner;
+    // Even if root owns the selected art, global display-profile.md requires
+    // every provider to share one policy, as the pre-migration resolver did.
+    try { await api.composeTab(root.owner, { label: '' }); return { error: null }; }
+    catch (e) { return { error: e.code }; }
+  }, mode);
+  expect(result.error).toBe('PROFILE_MISMATCH');
+});
