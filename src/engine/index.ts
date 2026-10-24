@@ -23,3 +23,5 @@ export * from './families/window.js';
 export * from './families/pushButton.js';
 export * from './tables/pushButton.js';
 export * from './families/checkables.js';
+export * from './families/tab.js';
+export * from './tables/tab.js';
