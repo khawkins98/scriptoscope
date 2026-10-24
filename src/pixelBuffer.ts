@@ -82,7 +82,7 @@ export class PixelBuffer {
    *     for (apple-lisa rings, windows-31 rings, crayon-os faces — they all
    *     bake the border thickness into the pixel pattern; stretching it
    *     blurs the artist's intent).
-   * See docs/spec/kdef231-reference.md §5.
+   * See docs/spec/engine/bevel.md BV05 for retained rectangular nine-slice compatibility behavior.
    */
   nineSlice(
     src: PixelBuffer,
