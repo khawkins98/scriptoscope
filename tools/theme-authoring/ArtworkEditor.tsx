@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type PointerEvent } from "react";
 import { decodeCicn } from "../theme-loader/decoders/cicn.js";
+import { indexedArtwork, recordAtPixel } from "./source-picking.js";
 import { gammaCorrectRgba } from "../theme-loader/mac-gamma.js";
 
 type Geometry = [number, number];
@@ -9,12 +10,16 @@ export function ArtworkEditor({
   editable = false,
   onGeometry,
   compact = false,
+  onPickRecord,
+  selectedRecord = 0,
 }: {
   data: Uint8Array;
   geometry?: Geometry | undefined;
   editable?: boolean;
   onGeometry?: (next: Geometry) => void;
   compact?: boolean;
+  onPickRecord?: (record: number) => void;
+  selectedRecord?: number;
 }) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const bounds = useRef<HTMLDivElement>(null);
@@ -28,10 +33,32 @@ export function ArtworkEditor({
   const [error, setError] = useState("");
   const [draft, setDraft] = useState<Geometry | null>(null);
   const shown = draft ?? geometry;
+  const [cursor, setCursor] = useState<[number, number]>([0, 0]);
+  const [pickNotice, setPickNotice] = useState("");
+  const [pixelGrid, setPixelGrid] = useState(false);
+  const pick = (x: number, y: number) => {
+    setCursor([x, y]);
+    try {
+      const image = indexedArtwork(data);
+      if (!image) return;
+      const result = recordAtPixel(image, x, y);
+      if ("reason" in result) setPickNotice(result.reason);
+      else {
+        onPickRecord?.(result.record);
+        setPickNotice(
+          `Pixel ${x}, ${y} → color record ${result.record} · index ${result.index}`,
+        );
+      }
+    } catch {
+      setPickNotice("Pixel selection is unavailable for this source.");
+    }
+  };
 
   useEffect(() => {
     drag.current = null;
     setDraft(null);
+    setCursor([0, 0]);
+    setPickNotice("");
     try {
       const image = decodeCicn(data);
       if (!image)
@@ -90,8 +117,15 @@ export function ArtworkEditor({
       {!compact && (
         <div className="artwork-toolbar">
           <span>
-            Source artwork · {size[0]} × {size[1]} px
+            {size[0]} × {size[1]} px · indexed color
           </span>
+          <button
+            className="grid-toggle"
+            aria-pressed={pixelGrid}
+            onClick={() => setPixelGrid(!pixelGrid)}
+          >
+            Pixel grid
+          </button>
           <label>
             Zoom{" "}
             <select
@@ -117,8 +151,87 @@ export function ArtworkEditor({
           <canvas
             ref={canvas}
             aria-label="Selected source artwork"
+            role="button"
+            tabIndex={0}
+            aria-describedby="pixel-pick-help"
+            onClick={(event) => {
+              const rect = event.currentTarget.getBoundingClientRect();
+              pick(
+                Math.min(
+                  size[0] - 1,
+                  Math.floor(
+                    ((event.clientX - rect.left) / rect.width) * size[0],
+                  ),
+                ),
+                Math.min(
+                  size[1] - 1,
+                  Math.floor(
+                    ((event.clientY - rect.top) / rect.height) * size[1],
+                  ),
+                ),
+              );
+            }}
+            onKeyDown={(event) => {
+              if (
+                [
+                  "ArrowLeft",
+                  "ArrowRight",
+                  "ArrowUp",
+                  "ArrowDown",
+                  "Enter",
+                  " ",
+                ].includes(event.key)
+              ) {
+                event.preventDefault();
+                pick(
+                  Math.max(
+                    0,
+                    Math.min(
+                      size[0] - 1,
+                      cursor[0] +
+                        (event.key === "ArrowRight"
+                          ? 1
+                          : event.key === "ArrowLeft"
+                            ? -1
+                            : 0),
+                    ),
+                  ),
+                  Math.max(
+                    0,
+                    Math.min(
+                      size[1] - 1,
+                      cursor[1] +
+                        (event.key === "ArrowDown"
+                          ? 1
+                          : event.key === "ArrowUp"
+                            ? -1
+                            : 0),
+                    ),
+                  ),
+                );
+              }
+            }}
             style={{ width: sourceWidth, height: sourceHeight }}
           />
+          {pixelGrid && (
+            <div
+              className="pixel-grid"
+              aria-hidden="true"
+              style={{ backgroundSize: `${zoom}px ${zoom}px` }}
+            />
+          )}
+          {pickNotice && (
+            <div
+              className="pixel-cursor"
+              aria-hidden="true"
+              style={{
+                left: cursor[0] * zoom,
+                top: cursor[1] * zoom,
+                width: zoom,
+                height: zoom,
+              }}
+            />
+          )}
           {shown && !error && (
             <>
               <div
@@ -217,6 +330,12 @@ export function ArtworkEditor({
           )}
         </div>
       </div>
+      <p className="pixel-pick-help" id="pixel-pick-help">
+        Click a pixel to select its color. Arrow keys move the pixel selection.
+      </p>
+      <p className="pixel-readout" role="status">
+        {pickNotice || `Color record ${selectedRecord} selected in the palette`}
+      </p>
       <p className="artwork-caption">
         {error ||
           `${size[0]} × ${size[1]} px · ${compact ? "source preview, nearest neighbor" : "pixel-aligned display"}`}

@@ -88,3 +88,44 @@ test("artwork reset removes only selected palette and unique geometry edits", ()
     false,
   );
 });
+
+test("pixel picking uses admitted source indices, rejects ambiguous records and masked pixels", async () => {
+  const { recordAtPixel } = await import("./source-picking.ts");
+  const image = {
+    pmap: { width: 3, height: 2 },
+    mask: { width: 2, height: 2 },
+    indices: new Uint8Array([7, 3, 9, 3, 7, 0]),
+    maskAlpha: new Uint8Array([255, 0, 255, 255]),
+    colorTable: {
+      flags: 0,
+      entries: [{ value: 3 }, { value: 7 }, { value: 9 }],
+    },
+  };
+  assert.deepEqual(recordAtPixel(image, 0, 0), { index: 7, record: 1 });
+  assert.match(recordAtPixel(image, 1, 0).reason, /Transparent/);
+  // Outside mask bounds follows the decoder's opaque-outside compatibility policy.
+  assert.deepEqual(recordAtPixel(image, 2, 0), { index: 9, record: 2 });
+  assert.match(recordAtPixel(image, 2, 1).reason, /no matching/);
+  for (const [x, y] of [
+    [-1, 0],
+    [3, 0],
+    [0, 2],
+    [0.5, 0],
+  ])
+    assert.match(recordAtPixel(image, x, y).reason, /inside/);
+  const duplicate = {
+    ...image,
+    colorTable: { flags: 0, entries: [{ value: 7 }, { value: 7 }] },
+  };
+  assert.match(recordAtPixel(duplicate, 0, 0).reason, /duplicate/);
+  const positional = {
+    ...image,
+    indices: new Uint8Array([1, 0, 2, 0, 1, 0]),
+    colorTable: {
+      flags: 0x8000,
+      entries: [{ value: 7 }, { value: 7 }, { value: 7 }],
+    },
+  };
+  assert.deepEqual(recordAtPixel(positional, 0, 0), { index: 1, record: 1 });
+  assert.deepEqual(recordAtPixel(positional, 2, 0), { index: 2, record: 2 });
+});

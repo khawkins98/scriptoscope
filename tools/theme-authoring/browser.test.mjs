@@ -68,7 +68,7 @@ test(
       const original = await pixelSnapshot();
       assert.equal(
         await page
-          .getByRole("button", { name: "Split workspace", exact: true })
+          .getByRole("button", { name: "Preview + source", exact: true })
           .getAttribute("aria-pressed"),
         "true",
       );
@@ -86,6 +86,69 @@ test(
       );
       assert.equal(await page.locator(".selection-note").count(), 0);
 
+      // The state rail uses composed controls, rather than stretching source templates.
+      await page.waitForFunction(
+        () => document.querySelectorAll(".state-thumbnail canvas").length === 3,
+      );
+      assert.equal(
+        await page
+          .locator(".scope-card")
+          .getByText("Used by 1 mapped state", { exact: true })
+          .isVisible(),
+        true,
+      );
+      await page
+        .getByRole("button", { name: "Focus source", exact: true })
+        .click();
+      await page
+        .getByRole("button", { name: "Pixel grid", exact: true })
+        .click();
+      assert.equal(await page.locator(".pixel-grid").count(), 1);
+      const sourceCanvas = page.getByRole("button", {
+        name: "Selected source artwork",
+        exact: true,
+      });
+      // Normal face pixel (0, 0) is source index 15, record 6. Keyboard walks exact indices.
+      await sourceCanvas.click({ position: { x: 4, y: 4 } });
+      assert.equal(
+        await page
+          .getByRole("button", { name: "Palette record 6", exact: true })
+          .getAttribute("aria-pressed"),
+        "true",
+      );
+      await sourceCanvas.focus();
+      await page.keyboard.press("Enter");
+      assert.match(
+        await page.locator(".pixel-readout").textContent(),
+        /Pixel 0, 0 → color record 6/,
+      );
+      await page.keyboard.press("ArrowRight");
+      assert.match(
+        await page.locator(".pixel-readout").textContent(),
+        /Pixel 1, 0/,
+      );
+      assert.equal(
+        await page
+          .getByRole("button", { name: "Undo edit", exact: true })
+          .isEnabled(),
+        false,
+      );
+      await page
+        .getByRole("button", { name: "Back to specimen", exact: true })
+        .click();
+      await page
+        .getByRole("button", { name: "Expand source ↗", exact: true })
+        .click();
+      assert.equal(
+        await page
+          .getByRole("button", { name: "Focus source", exact: true })
+          .getAttribute("aria-pressed"),
+        "true",
+      );
+      await page
+        .getByRole("button", { name: "Back to specimen", exact: true })
+        .click();
+
       await page
         .getByRole("button", { name: "Palette record 1", exact: true })
         .click();
@@ -100,9 +163,46 @@ test(
         return canvases.length === 3 && canvases[0].toDataURL() !== before;
       }, original);
       const edited = await pixelSnapshot();
+      await page
+        .getByRole("button", { name: "Overrides 1", exact: true })
+        .click();
+      const overrides = page.getByRole("region", {
+        name: "Selected artwork overrides",
+        exact: true,
+      });
+      assert.equal(
+        await overrides
+          .getByText("Color record 1", { exact: true })
+          .isVisible(),
+        true,
+      );
+      await overrides
+        .getByRole("button", { name: "Reset color record 1", exact: true })
+        .click();
+      assert.equal(
+        await overrides
+          .getByText("Matches the original", { exact: true })
+          .isVisible(),
+        true,
+      );
+      await page
+        .getByRole("button", { name: "Undo edit", exact: true })
+        .click();
+      await page
+        .getByRole("button", { name: "Appearance", exact: true })
+        .click();
+      assert.equal(await red.inputValue(), "45000");
+
       await page.getByRole("button", { name: /^Changes/ }).click();
       assert.equal(await page.locator(".change-list > button").count(), 1);
       await page.locator(".change-list > button").click();
+      assert.equal(
+        await page
+          .getByRole("button", { name: "State: Normal", exact: true })
+          .getAttribute("aria-pressed"),
+        "true",
+      );
+
       assert.equal(await red.inputValue(), "45000");
       await page
         .getByRole("button", { name: "Edit push button: Normal", exact: true })
@@ -112,7 +212,7 @@ test(
         .click();
       // History shortcuts work outside text fields without stealing native field undo.
       await page
-        .getByRole("button", { name: "Theme preview", exact: true })
+        .getByRole("button", { name: "Preview only", exact: true })
         .focus();
       await page.keyboard.press("Control+z");
       await page.waitForFunction(
@@ -158,6 +258,19 @@ test(
         original,
       );
       assert.equal(await red.isDisabled(), true);
+      await page
+        .getByRole("button", { name: "Overrides 1", exact: true })
+        .click();
+      assert.equal(
+        await page
+          .getByRole("button", { name: "Reset color record 1", exact: true })
+          .isDisabled(),
+        true,
+      );
+      await page
+        .getByRole("button", { name: "Appearance", exact: true })
+        .click();
+
       assert.equal(await red.inputValue(), originalRed);
       await page.getByRole("button", { name: "Working", exact: true }).click();
       await page.waitForFunction(
@@ -231,7 +344,9 @@ test(
       );
 
       // Guides draft locally during a pointer gesture and commit a single undo step.
-      await page.getByRole("button", { name: "Artwork", exact: true }).click();
+      await page
+        .getByRole("button", { name: "Focus source", exact: true })
+        .click();
       const corner = page.getByRole("slider", {
         name: "Corner guide",
         exact: true,
@@ -352,7 +467,7 @@ test(
       assert.equal(await cornerInput.inputValue(), String(initialCorner));
       assert.equal(await red.inputValue(), "45000");
       await page
-        .getByRole("button", { name: "Theme preview", exact: true })
+        .getByRole("button", { name: "Preview only", exact: true })
         .click();
       await page.waitForFunction(
         (before) =>
@@ -542,6 +657,22 @@ test(
         await page.evaluate(
           () => document.documentElement.scrollWidth <= window.innerWidth,
         ),
+        true,
+      );
+      await page
+        .getByRole("button", { name: "Open source artwork", exact: true })
+        .click();
+      assert.equal(await page.getByRole("main").isVisible(), true);
+      await page
+        .getByRole("button", { name: "Edit color record 0 →", exact: true })
+        .click();
+      assert.equal(
+        await page
+          .getByRole("complementary", {
+            name: "Artwork inspector",
+            exact: true,
+          })
+          .isVisible(),
         true,
       );
       assert.equal(decodeBytes(saved.source.original).length, rawSource.length);
