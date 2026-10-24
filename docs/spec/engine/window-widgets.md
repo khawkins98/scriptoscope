@@ -336,6 +336,23 @@ regression window does not test the reported template-width overlap. DECISIONS
 #12 continues to govern operable public widgets on inactive windows; HG2 and
 HT2 are decoded WDEF results, not a reversal of that accessibility decision.
 
+#### Modern public WindowManager collision policy (issue #381)
+
+The following is an explicit modern compatibility policy authorized by the PM
+on 2026-10-24 after an independent public-layer reproducer. It does not change
+HG1–HG5 or establish original-engine fidelity.
+
+| row | public-layer condition | required behavior | authority |
+|---|---|---|---|
+| WM381 | an enlarged resize overlay overlaps a visible, enabled title-widget DOM button (close, zoom or collapse) | the button retains its pointer hit target and performs its title action; the same press must not also start resize. Uncovered grow targets and keyboard resize remain available. DECISIONS #12's operable inactive-window buttons remain unchanged | PM compatibility decision, 2026-10-24, issue #381 |
+
+The bounded regression case is 1138 side-floating utility at template content
+size 2×35 (full window 20×45), where the independent reproducer found collapse
+presses reaching the grow overlay; the +60 px width control avoids that collision.
+Cover the template-width collision as well as ordinary grow and keyboard resize.
+This public geometry is not an original procID, global structure-region or
+native click binding; the numeric original intersection remains unknown.
+
 ### 4.12 Title text (`0x5530`, called from the full draw)
 
 | # | condition | effect | source |

@@ -819,3 +819,19 @@ outside this trace; HG uses the region supplied to the WDEF. Public DOM
 stacking and enlarged resize zones require modern policy; DECISIONS #12
 remains in force. Safe handoff is §4.11a HG1–HG5 only, after independent
 review; this appendix is not implementer material.
+
+
+### S.1 Modern policy boundary
+
+The coordinator's 2026-10-24 follow-up `msg_a087427a6eab` reports an independent
+source+built public reproducer: 1138 template content 2×35/full 20×45 sends a
+collapse pointer press to the grow box and emits resize without collapse;
+the +60 px control collapses. This is the coordinator's reproducer summary,
+not a native observation or a re-trace by this spec author. No raw reproducer
+or reviewer report is handed to the implementer. The same message explicitly
+authorizes WM381: visible enabled title-widget DOM targets survive enlarged
+resize-overlay collisions, one action per press, uncovered grow and keyboard
+resize preserved, DECISIONS #12 unchanged. WM381 is a modern compatibility
+rule, not a correction to HG precedence or a fidelity promotion. It resolves
+public overlay policy only; the original numeric 1138 intersection remains
+unknown and no further acquisition was undertaken.
