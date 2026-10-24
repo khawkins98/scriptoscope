@@ -378,7 +378,7 @@ export interface LoadedTheme {
   /**
    * Optional BASE theme this one defers to for any control/chrome it doesn't
    * ship itself (the "base Platinum look" lightly-skinned schemes inherit).
-   * Control lookups (loadById/loadByKey) fall back to `base` on a miss, loading
+   * Control lookups that follow this chain fall back to `base` on a miss, loading
    * the asset from the base bundle's own URL. Chains (base.base) are followed.
    */
   base?: LoadedTheme;

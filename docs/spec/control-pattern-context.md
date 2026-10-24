@@ -73,10 +73,7 @@ The face dimensions are the actual composed width/height. Public sizing remains
 `minWidth` plus optional `height`; the internal list-header `width` option is not
 a public button option. The browser oracles assert the actual29×9 or80×20 face
 dimensions instead of assuming a requested minimum is an exact width. A ring expands the
-output buffer but does not translate D or restart its pattern. The internal
-`composeButtonWithLayout`/`composeBevelButtonWithLayout` result exposes the actual
-face rectangle inside that buffer for the managed adapter; public compose
-functions retain their PixelBuffer/null returns.
+output buffer but does not translate D or restart its pattern. The internal `composeButtonWithLayout` result exposes the actual face rectangle inside that buffer for the managed push adapter; public push and bevel compose functions retain their PixelBuffer/null returns.
 
 Omitted context applies local D=0/O=0, zero extra offset and an unbounded clip as
 compatibility defaults. Diagnostics explicitly mark `basis: compatibility-default`,
