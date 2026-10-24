@@ -46,14 +46,16 @@ No new historical fidelity, ledger status, loader schema or release is implied.
 | N5 | native generic face dependency | Native draw first requires selected icon; same-ID cinf is requested, then default cinf 0 for this body-enabled caller. If both metadata requests fail, no body/border is painted. This does not establish same-owner metadata or archive/base policy. | `0x7668..0x7684`, `0x6ebc..0x6f48`, `0x7ea2..0x7ed2` |
 | ADM3 | public metadata | Consume only the selected owner's finite prepared header metadata. Missing fields are unsupported, not evidence of native cinf absence. Do not infer tab-style declared-null/no-cinf behavior, use cinf0, or borrow another owner's metadata. | modern selected-owner policy |
 
-The separate native stateful header/button callback selects other art: state 2
-tries -9790 then -10174 before the zero/nonzero -9792/-9791 selection; an
-application-specific branch tries state-relative -10176 art first. Its eventual
-fallback is the ordinary header callback. These are separate caller conditions,
-not a sort or pressed ladder for F1 (`0xc584..0xc6be`). The public APIs here expose
-neither a sort state nor a sort indicator. Native sort-column background colors,
-indicator glyphs, interaction and later named ThemeDrawState semantics are outside
-this delivery; do not add them to N1/N2 or columns by analogy.
+Selector7 is the separate DrawThemePlacard API, whose wrapper uses a distinct
+stateful callback and may ultimately reuse the ordinary header callback
+(`0x9b28..0x9bbc`, `0xc584..0xc71a`). It is outside this header family delivery.
+The pinned Apple Universal Interfaces 3.4.1 Appearance.h API identities are
+DrawThemeWindowHeader=5, DrawThemeWindowListViewHeader=6 and DrawThemePlacard=7.
+That later API declaration identifies dispatch shape, not original pixel output.
+The public APIs here expose neither a sort state nor a sort indicator. Native
+sort-column background colors, indicator glyphs, interaction and later named
+ThemeDrawState semantics are outside this delivery; do not add them to N1/N2 or
+columns by analogy.
 
 ## Admission and dependencies
 
@@ -69,7 +71,7 @@ this delivery; do not add them to N1/N2 or columns by analogy.
 | ADM11 | expanded lines | Before clipping, choose horizontal sampled lines if source width = 1 and destination width > 1; else vertical if source height = 1 and destination height > 1; otherwise ordinary masked copy/repeat. Tile flag does not suppress sampled expansion. Only visible required line branches need color evidence. |
 | ADM12 | line evidence | Use ordinary pixels only with model `kaleidoscope-2.3.1-opaque-sampling-v1`, comparison `opaque-current-display-rgb`, matching actual dimensions and owner display policy, status `equivalent`, reason `all-opaque-display-rgb-equal`. Otherwise require selected-owner sampledBandAsset with the same model/comparison/dimensions/policy, nonempty asset and derived path `cicn-sampled/<one filename>.png`. Decoded companion size and entire alpha mask must equal face. Missing/incompatible evidence gives `unverified-line-sampling`; actual decode errors reject. Companion pixels replace only sampled lines, never ordinary corners/copies. |
 | ADM13 | color capability | Default current-display and registered opt-in profiles remain distinct. If RGB16 realization is required, use the retained owner's prepared capability and exact mappings. Missing mapping/profile failure rejects with the existing DisplayProfileError; do not use stored display RGB to bypass a required profile mapping. Do not demand text/emboss/unused background/unused companion mappings. Shared `display-profile.md` and qd-primitives color policy. |
-| ADM14 | optional cinf environments | No expanded environment ladder is introduced. Harmless extra metadata alone does not reject. A selected-header role declaration that explicitly supplies a different icon/cinf ID, owner, profile, slice or body request from the selected finite header dependency is contradictory; a role claiming to replace that dependency but supplying no usable required fields is unsupported. Unrelated push/bevel role views and top-level environment summaries do not activate this rule. Report the specific contradicted/missing dependency in diagnostics; do not silently ignore it. Use an existing applicable unsupported category (invalid slice/request, ambiguous body selection, missing sample, or unverified sampling); do not expand the public result union. PM classification 2026-10-24. |
+| ADM14 | optional cinf environments | The existing manifest.cinfEnvironment summary and element.bodyCinf view have scope `standalone-push-bevel-body`; neither is consumed or merged by either header path. Their presence alone does not change header admission or pixels. Whole-header uses selected element.slice (ADM5), bodyRequest (ADM6), same-owner pattern links/catalog (ADM7), colorSamples/bgAnchor (ADM9), samplingEquivalence/sampledBandAsset (ADM12), and owner display profile (F5/ADM13). Validate those actual common fields under those deterministic rules. No header role, default-cinf ladder, declared-null behavior or additional environment failure is introduced. |
 | ADM15 | empty operations | Whole-chain guard, scalar validation and structural metadata validation still apply to an empty effective clip. Return rendered transparent requested-size output once admitted, with painted=false. No unused pattern/companion decode or color realization is required; invisible body and bands create no paint claim. A nonempty clip can also produce no writes through empty regions or masks. Empty public dimensions are governed by F2. Modern dependency policy; native helper rejects empty source/destination Rects at `0x5ccc..0x5cf0`. |
 
 Validate the selected dependency itself: an invalid asset identity, transport failure

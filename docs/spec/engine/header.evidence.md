@@ -58,7 +58,7 @@ owned and are not fabricated here.
 
 | safe rule | exact payload citations | retraced observations / limits |
 |---|---|---|
-| F1, N3/N4 | 0x9b18/0x9b20, 0x9bd4/0x9bda | Selectors5/6 jump to c41c/c504 respectively. These are ordinary/header-list wrappers, not a per-column text interface. Later UI3.4.1 API naming is corroboration from the pinned legacy lead, not original runtime evidence acquired here. |
+| F1, N3/N4 | 0x9b18/0x9b20, 0x9bd4/0x9bda | Selectors5/6 jump to c41c/c504 respectively. These are ordinary/header-list wrappers, not a per-column text interface. Independently fetched pinned UI3.4.1 Appearance.h maps these selectors to DrawThemeWindowHeader/DrawThemeWindowListViewHeader. This names the API shape, not original runtime pixels. |
 | N1/N2 | 0xc1b4..0xc200 | Shared callback prepares painter state, then `tst.l 8(a2)` controls 0/1 added to word daa0; c1fa calls7668. Therefore exactly -9568/-9567; raw nonzero isn't a pressed comparison. |
 | N3, ADM1 | 0xc430..0xc48a, 0xc4ae..0xc4d4 | State0 and origin(-1,-1) trigger conditional window visibility/region inspection and ClipRect; sentinel origin independently caps right to portRect.right+1. Public missing window/port inputs justify finite rejection for that origin in both states. |
 | N4 | 0xc518..0xc55c | GetClip obtains saved clip; RectRgn requested Rect and SectRgn produce intersection; SetClip applies it. Copy Rect then increment word bottom at c546 before callback. Restore old clip afterward. |
@@ -76,12 +76,12 @@ owned and are not fabricated here.
 | N9/N10 | 0x73e4..0x74be | BL then BR corners. Source top clamps at source top, right/left likewise; destination anchors bottom edges with actual clamped source height. |
 | N11 | 0x74be..0x7542 | Bottom source/destination; false tile narrows width at74fc..7502; forward flag752c. |
 | N12/N13 | 0x7542..0x762e | Left then right; source side widths clamp to raster, source middle height uses c; false tile narrows height at7574..757a and75ec..75f2; forward flags75a4/761c. No c/s transposition into rectangular nine-slice. |
-| corner transfer | 0x60da..0x61b0 | Coordinate wrapper builds destination Rect from source dimensions and requested position, then reaches masked drawing helper. Original CopyMask source semantics are distinct from browser RGBA blending. |
+| corner transfer | 0x60da..0x6228 | Coordinate wrapper builds destination Rect from source dimensions and requested position, then calls612a. Ordinary nonrecording transfer at61fc..620c invokes CopyMask A817; the separate recording branch at61c0..61f8 uses temporary mask-region/CopyBits handling. Original CopyMask semantics are distinct from browser RGBA blending. |
 | ADM10/ADM11 | 0x5ccc..0x5cf0, 0x5d48..0x5e26 | Empty source/destination exits. Source width1 + expanded destination takes horizontal sample branch first; source height1 + expanded height otherwise takes vertical. Selection precedes clipping.5874 checks original mask before emitting sampled lines. |
 | ADM12 | 0x5874..0x59bc, 0x687e..0x68e2 | Mask-gated sampler derives color from original indexed content;687e has ColorSpec-value/index rules that differ from ordinary raster interpretation. Thus a sampled companion or full current-display opaque equivalence is required; neither certifies out-of-bounds source coordinates. |
-| repetition | 0x5e86..0x5f84 | Forward iteration preserves original tile start; tail is clipped through temporary clip state; ordinary branch at5f36..5f4e invokes original-mask CopyMask A817. Recording branch5f18..5f32 uses CopyBits A8EC and is excluded. |
+| repetition | 0x5e86..0x5f84 | Forward iteration preserves original tile start; partial-tail handling at5eaa..5f00 narrows the source/destination rectangles at the requested end; this is not a temporary-clip mutation; ordinary branch at5f36..5f4e invokes original-mask CopyMask A817. Recording branch5f18..5f32 uses CopyBits A8EC and is excluded. |
 | cache exclusions | 0x6ede..0x6f08, 0x7268..0x72a4 | Optional cached icon path1367a and band cache13406 are conditional. No universal cache/depth/device identity is inferred from this static trace. |
-| separate callback boundary | 0xc584..0xc6be | On process signature SJAM branch, word selection is state−10176. For state2 normal path, try -9790 then state−10176 (-10174); then raw zero/nonzero gives -9792/-9791. If unsuccessful callc1b4. This callback is reached from distinct selector7 wrapperc6c2; it is not F1 selector5/6. Its process identity and complete native state/sort semantics remain unverified. |
+| separate Placard boundary | 0xc584..0xc6be | On process signature SJAM branch, word selection is state−10176. For state2 normal path, try -9790 then state−10176 (-10174); then raw zero/nonzero gives -9792/-9791. If unsuccessful callc1b4. This callback is reached from selector7 wrapperc6c2, independently identified as DrawThemePlacard by the pinned Appearance.h. It is a separate family from F1 selectors5/6 and is not evidence of header sort behavior. Its process identity and complete placard semantics remain unverified. |
 | no -9566 claim | 0xc76e..0xc774 | The byte sequence daa2 occurs within an instruction displacement for calla212; it is **not** an immediate resource request. A search hit is not a decoded selection rule. |
 
 ## Modern policy provenance and correction boundaries
@@ -99,11 +99,24 @@ color mappings are not newly required.
 
 PM messages on 2026-10-24 classified (1) preservation of column pixels/defaults,
 (2) no expanded cinf-environment/default-cinf delivery and no blanket rejection
-of harmless summaries, and (3) explicit exclusion of native sort/stateful callback
-features absent from the public APIs. The safe selected-header contradiction
-rule is modern admission only; original search and environment behavior is not
-thereby implemented. The concrete public unsupported category remains the
-existing finite result union.
+of harmless summaries, and (3) exclusion of unexposed native sort features.
+The first candidate invented a hypothetical selected-header role contradiction
+rule; independent review rejected that ambiguity. The corrected ADM14 consumes
+no cinfEnvironment/bodyCinf views: current CinfBindingSummary explicitly scopes
+both to standalone-push-bevel-body (cinf-environment.d.ts lines10..25).
+Only the actual common selected element fields use their existing named finite
+admission rules. No new role discriminant/schema/failure category is invented.
+
+The first candidate also misnamed the selector7 callback a header/button path.
+Independent reinspection of the binary dispatch and independently fetched Apple
+UI3.4.1 Appearance.h confirms **DrawThemePlacard**, a separate family; there is
+no source basis to identify it as native header sort behavior. The header was
+fetched from commit328d38f2b72b2d4ceda30170eea32ca6b9de218a,
+3.4.1/Universal/Interfaces/CIncludes/Appearance.h at the UniversalInterfaces
+source mirror. Its SHA256 is
+ea4337a6b07144879928ef1d73caca8ef9ff771b63fcd9f11fe9921e885b05fc;
+lines1786..1788,1800..1802,1814..1816 explicitly bind AA74 selectors5/6/7.
+The exact input is retained as Appearance.h in this lane's external store.
 
 C1–C8 are independently specified from the assigned base's compatibility helper,
 not PACH. Source pins: base commit
