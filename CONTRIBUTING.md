@@ -367,6 +367,7 @@ existing clean-room boundaries, review tiers, exact-head readiness and required 
   - **Every release reports the trend.** Each release's CHANGELOG section ends with the
     same table measured against the previous release tag, e.g.
     `npm run loc:src -- HEAD --base v0.2.0`.
+- **Retire architecture in measured steps.** Audit callers and drivers first: distinguish proven dead private paths from live or uncertain public/dynamic roots. Retire a measured, bounded slice before a larger migration, require independent behavior verification, and report the actual net runtime LOC change.
 - **Bound finite adapters.** Name the exact supported inputs/operation and the consumer
   claim or preparation dependency they serve. Stop on an unmatched context, missing
   mapping or unexplained difference. A finite result is not a general source rule:

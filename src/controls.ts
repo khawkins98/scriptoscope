@@ -38,19 +38,6 @@ function sliceInset(w: number, h: number): number {
 }
 
 /**
- * Look up a chromeElement by its bundle key (e.g.
- * `'normal-horizontal-scrollbar'`) and load its cicn into a PixelBuffer.
- * Returns null if the scheme doesn't ship that element (→ baseline path).
- */
-async function loadByKey(theme: LoadedTheme, key: string): Promise<PixelBuffer | null> {
-  const hit = resolveInChain(theme, (t) => {
-    const asset = t.manifest.chromeElements?.[key]?.asset;
-    return asset ? { theme: t, asset } : null; // first theme in the chain that ships it
-  });
-  return hit ? loadCicnBuffer(assetUrl(hit.theme, hit.asset)) : null;
-}
-
-/**
  * Look up a chromeElement by its Kaleidoscope RESOURCE ID and load it.
  * The id is the authoritative selector the kDEF uses (e.g. -8286 = the
  * horizontal scrollbar track); bundle slugs for the same resource vary
@@ -178,8 +165,8 @@ async function loadGlyphByIdSelf(theme: LoadedTheme, id: number): Promise<PixelB
   return asset ? loadCicnBuffer(assetUrl(theme, asset)) : null;
 }
 
-/** SELF-ONLY variant of {@link loadByKey}: a scheme's own chromeElement by key,
- *  no base-chain walk. */
+/** Load a scheme's own chromeElement by key for disclosure compatibility,
+ *  without walking the base chain. */
 async function loadByKeySelf(theme: LoadedTheme, key: string): Promise<PixelBuffer | null> {
   const asset = theme.manifest.chromeElements?.[key]?.asset;
   return asset ? loadCicnBuffer(assetUrl(theme, asset)) : null;
@@ -1110,23 +1097,14 @@ export async function composeButtonWithLayout(theme: LoadedTheme, opts: ButtonOp
  * platinumBevelButton) when the scheme ships no bevel-button cicn for this state.
  */
 export async function composeBevelButton(theme: LoadedTheme, opts: BevelButtonOptions = {}): Promise<PixelBuffer | null> {
-  return (await composeBevelButtonWithLayout(theme, opts))?.buffer ?? null;
-}
-
-/** Internal adapter seam; bevel faces have no reserved ring offset. */
-async function composeBevelButtonWithLayout(theme: LoadedTheme, opts: BevelButtonOptions = {}): Promise<ButtonComposition | null> {
-  let result: ButtonComposition | null = null;
   const state = opts.pressed ? 'pressed' : opts.disabled ? 'inactive' : 'active';
-  await withControlDiagnostics(opts.diagnostics, 'bevel-button', {
+  return withControlDiagnostics(opts.diagnostics, 'bevel-button', {
     state, pressed: !!opts.pressed, disabled: !!opts.disabled, on: !!opts.on, small: !!opts.small,
   }, async trace => {
     const composition = snapshotControlComposition(opts.compositionContext);
     const preparedOptions = { ...opts, fontSize: buttonFontSize(opts.fontSize) };
-    const buffer = await composeBevelButtonWithTrace(theme, preparedOptions, composition, trace);
-    result = buffer ? { buffer, layout: { faceRect: { x: 0, y: 0, w: buffer.width, h: buffer.height } } } : null;
-    return buffer;
+    return composeBevelButtonWithTrace(theme, preparedOptions, composition, trace);
   });
-  return result;
 }
 
 async function composeBevelButtonWithTrace(theme: LoadedTheme, opts: BevelButtonOptions, composition: ControlCompositionSnapshot,
