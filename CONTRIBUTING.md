@@ -204,6 +204,13 @@ existing clean-room boundaries, review tiers, exact-head readiness and required 
   spec verification separate from spec authorship. After spec verification, run
   implementation and independent test authoring in parallel with separate file
   ownership and the implementer's existing access restrictions.
+- **Preflight clean-room handoffs.** Read every required implementation reference
+  before dispatch; an allowlisted filename does not make embedded private pointers,
+  independent test oracles or review outcomes safe. Move such material to gated
+  evidence appendices while preserving behavioral rules, then independently review
+  the split. Verify the exact changed paths and blobs of behavior-only handoff
+  commits before providing them to an implementer. Preserve and classify any
+  exposure incident; a repaired document does not erase an earlier exposure.
 - **Keep the reviewer through corrections.** Return findings to their existing
   owner and have the same independent reviewer check the changed claims and
   dependencies. Carry approval over provably unchanged content. A mechanical

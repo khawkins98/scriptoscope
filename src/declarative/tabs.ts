@@ -36,7 +36,7 @@ function ensureTabsCSS(): void {
   // skinned span sibling carries the visual + focus.
   style.textContent = `
     [data-scriptoscope-tabs] { display: block; }
-    [data-scriptoscope-tabs][role="tablist"] > [role="tab"][data-scriptoscope-tab-skinned] {
+    [data-scriptoscope-tabs] > [data-scriptoscope-tablist] > [role="tab"][data-scriptoscope-tab-skinned] {
       display: inline-block; vertical-align: bottom; cursor: pointer; user-select: none;
       line-height: 0; outline-offset: 2px; margin-right: -2px; /* tabs visually overlap their bevels */
     }
@@ -73,7 +73,7 @@ export async function promoteTabs(
   if (!opts.forceRescan && el.dataset.scriptoscopeTabsPromoted != null) return;
   ensureTabsCSS();
 
-  const tabs = Array.from(el.querySelectorAll<HTMLElement>(':scope > [data-scriptoscope-tab]'));
+  const tabs = Array.from(el.querySelectorAll<HTMLElement>(':scope > [data-scriptoscope-tab], :scope > [data-scriptoscope-tablist] > [data-scriptoscope-tab]'));
   const panels = Array.from(el.querySelectorAll<HTMLElement>(':scope > [data-scriptoscope-panel]'));
   if (tabs.length === 0) return;
 
@@ -95,18 +95,34 @@ export async function promoteTabs(
   if (opts.signal && (opts.signal.aborted || !el.isConnected)) return;
   const generation = {};
   generations.set(el, generation);
-  const oldFaces = Array.from(el.querySelectorAll<HTMLElement>(':scope > [data-scriptoscope-tab-skinned]'));
+  const oldFaces = Array.from(el.querySelectorAll<HTMLElement>(':scope > [data-scriptoscope-tablist] > [data-scriptoscope-tab-skinned]'));
   const focusedIndex = tabs.findIndex((tab, i) => document.activeElement === tab || document.activeElement === oldFaces[i]);
   if (opts.forceRescan) {
-    for (const old of el.querySelectorAll(':scope > [data-scriptoscope-tab-skinned]')) old.remove();
+    for (const old of oldFaces) old.remove();
     for (const tab of tabs) {
       tab.style.display = '';
       delete tab.dataset.scriptoscopePromoted;
       delete tab.dataset.scriptoscopeTabFallback;
     }
   }
-  el.setAttribute('role', 'tablist');
-  el.setAttribute('aria-orientation', 'horizontal');
+  // A tablist owns only tab controls, never tabpanels. Keep the authored
+  // wrapper/panels and native button identities; generate the semantic strip.
+  let tablist = el.querySelector<HTMLElement>(':scope > [data-scriptoscope-tablist]');
+  if (!tablist) {
+    tablist = document.createElement('div');
+    tablist.dataset.scriptoscopeTablist = '';
+    el.insertBefore(tablist, tabs[0]!);
+  }
+  el.setAttribute('role', 'group');
+  el.removeAttribute('aria-orientation');
+  tablist.setAttribute('role', 'tablist');
+  tablist.setAttribute('aria-orientation', 'horizontal');
+  for (const name of ['aria-label', 'aria-labelledby']) {
+    const value = el.getAttribute(name);
+    if (value !== null) tablist.setAttribute(name, value);
+    else tablist.removeAttribute(name);
+  }
+  for (const tab of tabs) tablist.appendChild(tab);
 
   // Stamp ids onto tabs + panels so aria-labelledby / aria-controls can cross-reference. We use
   // explicit IDs derived from data-scriptoscope-tab so multiple tablists on a page don't collide.
