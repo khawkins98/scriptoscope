@@ -197,3 +197,27 @@ for (const mode of ['source', 'built']) test(`${mode}: F1–F6 tab resolution is
     if (row.branch === 'base-small') expect(row.trace.steps.some(s => s.requestedId === decision.ids[1])).toBe(false);
   }
 });
+
+import { SPARSE_TAB_ROWS } from './tab-engine-palette.mjs';
+for (const mode of ['source', 'built']) test(`${mode}: raw sparse duplicate palette tabs distinguish C5 sampling from raster colour`, async ({ page, servers }, info) => {
+  await openHarness(page, servers, mode);
+  const observed = await page.evaluate(async mode => {
+    const api = await import(mode === 'built' ? '/dist/scriptoscope.js' : '/src/index.ts');
+    const loader = mode === 'built' ? api : await import('/tools/theme-loader/loadKaleidoscopeScheme.js');
+    const { forkOf } = await import('/tests/resource-provenance/fixtures.mjs');
+    const { sparseTabCicn, SPARSE_TAB_CINF, SPARSE_TAB_COLORS } = await import('/tests/rendering-options/tab-engine-palette.mjs');
+    const bytes = forkOf([{ type: 'cicn', id: -9975, data: sparseTabCicn() }, { type: 'cinf', id: -9975, data: Uint8Array.from(SPARSE_TAB_CINF) }]);
+    const theme = await loader.loadKaleidoscopeScheme(bytes, { provenance: true, engineCinfIds: [-9975] });
+    try {
+      let trace; const out = await api.composeTab(theme, { label: '', diagnostics: { onComplete: t => { trace = t; } } });
+      const pixels = out && Array.from({ length: out.height }, (_, y) => Array.from({ length: out.width }, (_, x) => {
+        const p = out.getPixel(x, y); return Object.keys(SPARSE_TAB_COLORS).find(k => SPARSE_TAB_COLORS[k].every((v, i) => v === p[i])) ?? '?';
+      }).join(''));
+      const element = Object.values(theme.manifest.chromeElements).find(e => e.sourceCicnId === -9975);
+      return { pixels, sampling: element.samplingEquivalence, companion: !!element.sampledBandAsset, trace, input: theme.byteProvenance.input };
+    } finally { theme.dispose(); }
+  }, mode);
+  await attachObservations(info, 'tab-engine', `${mode}-sparse-palette`, { mode, observed });
+  expect(observed.sampling.status).toBe('different'); expect(observed.companion).toBe(true);
+  expect(observed.pixels).toEqual(SPARSE_TAB_ROWS);
+});
