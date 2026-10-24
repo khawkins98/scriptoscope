@@ -371,8 +371,10 @@ export const __frameChain = (E, slug, decoded) => frameChain(E, slug, decoded, x
 
 import { pushCells, checkCells } from './controls459-cases.mjs';
 import { tabCells } from './tab-cases.mjs';
+import { headerCells } from './header-cases.mjs';
 
 export const FAMILIES = {
+  header: { rules: ['docs/spec/engine/header.md'], cells: headerCells },
   tab: { rules: ['docs/spec/engine/tab.md'], cells: tabCells },
   pushButton: { rules: ['docs/spec/engine/push-button.md', 'docs/spec/engine/qd-primitives.md'], cells: pushCells },
   checkables: { rules: ['docs/spec/engine/checkables.md', 'docs/spec/engine/qd-primitives.md'], cells: checkCells },
