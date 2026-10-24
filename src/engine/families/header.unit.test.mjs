@@ -169,3 +169,29 @@ test('observed undecoded same-owner patterns never turn into solid fallback', as
   assets.set('https://owned.invalid/observed-face.png', { pixels: solid(3, 3, [200, 0, 0, 255]) });
   assert.equal((await composeEngineHeaderSurface(owner, wholeOptions())).reason, 'ambiguous-body-selection');
 });
+test('ADM16 clear sampled lines skip companion IO while independent body and corners paint', async () => {
+  const pixels = solid(3, 3, [0, 0, 0, 0]);
+  for (const [x, y] of [[0, 0], [2, 0], [0, 2], [2, 2]]) pixels.setPixel(x, y, 180, 0, 0, 255);
+  const owner = theme('clear-lines-face.png', { slice: { corner: 1, side: 1, tile: false }, bodyPattern: 'needed-body',
+    sampledBandAsset: { model: 'kaleidoscope-2.3.1-opaque-sampling-v1', comparison: 'opaque-current-display-rgb',
+      displayPolicy: 'mac-1.8-to-2.2-high-byte', width: 3, height: 3, asset: 'must-not-decode.png', derivedPath: 'cicn-sampled/unused.png' } });
+  owner.manifest.patterns = { 'needed-body': { sourcePpatId: 0, asset: 'clear-lines-body.png' } };
+  assets.set('https://owned.invalid/clear-lines-face.png', { pixels });
+  assets.set('https://owned.invalid/clear-lines-body.png', { pixels: solid(1, 1, [10, 20, 30, 255]) });
+  let trace;
+  const before = loads.length;
+  const result = await composeEngineHeaderSurface(owner, wholeOptions({ diagnostics: { onComplete(value) { trace = value; } } }));
+  assert.equal(result.status, 'rendered'); assert.equal(trace.headerSurface.lineSampling, 'not-required');
+  assert.equal(trace.headerSurface.painted, true); assert.equal(trace.bandPaints, undefined);
+  assert.deepEqual(loads.slice(before), ['https://owned.invalid/clear-lines-face.png', 'https://owned.invalid/clear-lines-body.png']);
+  assert.deepEqual(result.buffer.getPixel(0, 0), [180, 0, 0, 255]); assert.deepEqual(result.buffer.getPixel(1, 1), [10, 20, 30, 255]);
+});
+test('ADM16 ignores mask-set sample lines outside clip without restarting source phase', () => {
+  const source = solid(3, 5, [0, 0, 0, 0]); source.setPixel(1, 0, 200, 0, 0, 255);
+  const p = plan({ width: 7, height: 7, context: context({ clip: { kind: 'rect', rect: { x: 0, y: 1, w: 7, h: 1 } } }) });
+  const slice = { corner: 1, side: 2, tile: false }, geometry = planHeaderGeometry(source, slice, p);
+  assert.equal(geometry.needsSampling, false);
+  const out = PixelBuffer.alloc(7, 7), result = drawHeaderSurface(out, { source, plan: p, slice, mode: 0, background: bg });
+  assert.equal(result.lineSampling, 'not-required'); assert.equal(result.unsupported, undefined);
+  assert.equal(out.getPixel(1, 1)[3], 0); assert.deepEqual(out.getPixel(2, 1), [10, 20, 30, 255]);
+});

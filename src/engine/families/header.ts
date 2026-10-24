@@ -94,7 +94,7 @@ export function planHeaderSurface(input: HeaderSurfaceInput): HeaderSurfacePlan 
     ? intersect(requestedRect, context.clip.rect) : requestedRect;
   return { kind, drawState, context, requestedRect, paintRect, effectiveClip };
 }
-export function planHeaderGeometry(source: Pick<Pixmap, 'width' | 'height'>, slice: HeaderSlice, plan: HeaderSurfacePlan): HeaderGeometry {
+export function planHeaderGeometry(source: Pick<Pixmap, 'width' | 'height'> & Partial<Pick<Pixmap, 'data'>>, slice: HeaderSlice, plan: HeaderSurfacePlan): HeaderGeometry {
   const { width: U, height: V } = source, { corner: c, side: s, tile } = slice;
   const W = plan.paintRect.w, H = plan.paintRect.h, clip = localClip(plan);
   const cx = Math.min(c, U), cy = Math.min(c, V), sx = Math.min(s, U), sy = Math.min(s, V);
@@ -115,10 +115,31 @@ export function planHeaderGeometry(source: Pick<Pixmap, 'width' | 'height'>, sli
       branch: source.w === 1 && destination.w > 1 ? 'horizontal-lines' : source.h === 1 && destination.h > 1 ? 'vertical-lines' : 'copy' };
   });
   const bodyRects = [box(c, s, W - 2 * c, H - 2 * s), box(s, c, W - 2 * s, H - 2 * c)].filter(nonempty);
+  const unsafeSource = bands.some(b => b.visible && (b.source.x < 0 || b.source.y < 0 || b.source.x + b.source.w > U || b.source.y + b.source.h > V));
   return { bands, bodyRects, bodyVisible: bodyRects.some(r => nonempty(intersect(r, clip))),
-    needsSampling: bands.some(b => b.visible && b.branch !== 'copy'),
-    unsafeSource: bands.some(b => b.visible && (b.source.x < 0 || b.source.y < 0 || b.source.x + b.source.w > U || b.source.y + b.source.h > V)) };
+    // Dimension-only planning remains conservative. Actual prepared pixels make
+    // ADM16 mask-before-color dependencies precise without restarting phase.
+    needsSampling: bands.some(b => b.visible && b.branch !== 'copy'
+      && (unsafeSource || !source.data || headerBandWrites(source as Pixmap, b, clip))), unsafeSource };
 }
+function headerBandWrites(source: Pixmap, band: HeaderBand, clip: ControlRect): boolean {
+  const s = band.source, dest = band.destination, r = intersect(dest, clip);
+  for (let y = r.y; y < r.y + r.h; y++) for (let x = r.x; x < r.x + r.w; x++) {
+    if (band.branch === 'horizontal-lines' && y - dest.y >= s.h || band.branch === 'vertical-lines' && x - dest.x >= s.w) continue;
+    const sx = s.x + (band.branch === 'horizontal-lines' ? 0 : (x - dest.x) % s.w);
+    const sy = s.y + (band.branch === 'vertical-lines' ? 0 : (y - dest.y) % s.h);
+    if (getPixel(source, sx, sy)?.a) return true;
+  }
+  return false;
+}
+/** Source rejection remains independent of the needed-only palette dependency. */
+export function headerSourceRejection(source: Pixmap, geometry: HeaderGeometry): HeaderSurfaceUnsupportedReason | null {
+  if (geometry.unsafeSource) return 'unsafe-source-geometry';
+  for (let i = D.channels - 1; i < source.data.length; i += D.channels)
+    if (source.data[i] !== 0 && source.data[i] !== D.byteMax) return 'nonbinary-mask';
+  return null;
+}
+
 /** All admission precedes writes; dependencies have already been realized by the adapter. */
 export function drawHeaderSurface(port: Pixmap, input: HeaderSurfacePaintInput): HeaderSurfacePaintResult {
   const { source, plan, slice, mode, background, pattern, sampled, samplingEquivalent } = input;
@@ -128,9 +149,8 @@ export function drawHeaderSurface(port: Pixmap, input: HeaderSurfacePaintInput):
   const reject = (unsupported: HeaderSurfaceUnsupportedReason): HeaderSurfacePaintResult => ({ painted: false, unsupported, lineSampling, sampledRegions: [] });
   if (!plan.effectiveClip) return reject('unknown-clip');
   if (plan.kind === 'window-header' && plan.requestedRect.x === -1 && plan.requestedRect.y === -1) return reject('special-window-origin');
-  if (geometry.unsafeSource) return reject('unsafe-source-geometry');
-  for (let i = D.channels - 1; i < source.data.length; i += D.channels)
-    if (source.data[i] !== 0 && source.data[i] !== D.byteMax) return reject('nonbinary-mask');
+  const sourceRejection = headerSourceRejection(source, geometry);
+  if (sourceRejection) return reject(sourceRejection);
   if (geometry.needsSampling && !samplingEquivalent) {
     if (!sampled || sampled.width !== source.width || sampled.height !== source.height || sampled.data.length !== source.data.length) return reject('unverified-line-sampling');
     for (let i = D.channels - 1; i < source.data.length; i += D.channels)
@@ -162,15 +182,8 @@ export function drawHeaderSurface(port: Pixmap, input: HeaderSurfacePaintInput):
   const sampledRegions: { region: number; branch: HeaderBandBranch }[] = [];
   for (const band of geometry.bands) {
     if (!band.visible) continue;
-    const s = band.source, dest = band.destination, r = intersect(dest, clip);
-    let writes = false;
-    for (let y = r.y; y < r.y + r.h && !writes; y++) for (let x = r.x; x < r.x + r.w; x++) {
-      if (band.branch === 'horizontal-lines' && y - dest.y >= s.h || band.branch === 'vertical-lines' && x - dest.x >= s.w) continue;
-      const sx = s.x + (band.branch === 'horizontal-lines' ? 0 : (x - dest.x) % s.w);
-      const sy = s.y + (band.branch === 'vertical-lines' ? 0 : (y - dest.y) % s.h);
-      if (getPixel(source, sx, sy)?.a) { writes = true; break; }
-    }
-    if (!writes) continue;
+    const s = band.source, dest = band.destination;
+    if (!headerBandWrites(source, band, clip)) continue;
     painted = true;
     if (band.branch === 'copy') tileBlit(work, source, qd(s), qd(dest), 1, 'copyMask');
     else {
