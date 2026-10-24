@@ -52,3 +52,22 @@ test('native colour outputs retain emboss even when equal to background; facade 
   const result = E.drawTab(port, { source: pixmap(TAB_ENGINE_INPUT), destination: E.rect(0, 0, 5, 8), metadata: { ...metadata(0), patternId: 0 }, samplingEquivalent: true, backgroundRGB: color, textRGB: color, embossRGB: color });
   assert.deepEqual(result.textRGB, color); assert.deepEqual(result.embossRGB, color, 'no generic background-equality suppression');
 });
+
+test('B1/B2 ordinary transparent mask leaves existing destination paint intact', () => {
+  const source = pixmap(['.ABCDER', 'LMMMMMR', 'LMMZMMR', 'LMMMMMR', 'LFGHIJ.']);
+  const port = pixmap(['YYYYYYYY', 'YYYYYYYY', 'YYYYYYYY', 'YYYYYYYY', 'YYYYYYYY']);
+  const result = E.drawTab(port, { source, destination: E.rect(0, 0, 5, 8), metadata: metadata(0), backgroundRGB: rgba('Z'), pattern: pixmap(TAB_ENGINE_PATTERN) });
+  assert.equal(result.drawn, true);
+  assert.deepEqual(readRows(port), ['YABCDEAR', 'LEFDEFDR', 'LBCABCAR', 'LEFDEFDR', 'LFGHIJFY']);
+});
+
+test('ST/V native state and fallback tables remain distinct from public F1/F2', () => {
+  for (const [hilite, enabled, selected, inside, state] of [
+    [0, true, false, undefined, 1], [254, true, false, undefined, 0], [255, true, true, undefined, 3],
+    [0, false, true, undefined, 3], [0, true, false, true, 2], [0, true, true, false, 4],
+  ]) assert.equal(E.tabOriginalState(hilite, enabled, selected, inside), state);
+  for (let state = 0; state <= 5; state++) {
+    assert.deepEqual(E.tabOriginalResourceIds('small', state), [-9976 + state, -9960 + state]);
+    assert.deepEqual(E.tabOriginalResourceIds('large', state), [-9984 + state, -9968 + state]);
+  }
+});
