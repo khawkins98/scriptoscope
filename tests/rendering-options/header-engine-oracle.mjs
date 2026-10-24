@@ -737,6 +737,26 @@ export const HEADER_NATIVE_LITERALS = [
 ];
 
 export const HEADER_STATE_DECISIONS = [[0,-9568],[1,-9567],[2,-9567],[2147483648,-9567],[4294967295,-9567]];
+
+// ADM16 was independently source-verified after the original freeze. These
+// additions predate candidate inspection and leave all earlier planes intact.
+export const HEADER_MASK_CLEAR_LITERALS = [
+  { name: 'all-clear-lines', source: ['.......','.......','.......','.......','.......','.......','.......'],
+    kind: 'window-header', width: 11, height: 9, corner: 2, side: 1, tile: false, origin: [0,0], offset: [0,0],
+    rows: ['...........','..#######..','.#########.','.#########.','.#########.','.#########.','.#########.','..#######..','...........'] },
+  { name: 'unrelated-opaque-source', source: ['B......','.......','.......','...A...','.......','.......','.......'],
+    kind: 'window-header', width: 11, height: 9, corner: 2, side: 1, tile: false, origin: [0,0], offset: [0,0],
+    rows: ['B..........','..#######..','.#########.','.#########.','.#########.','.#########.','.#########.','..#######..','...........'] },
+  { name: 'opaque-sample-outside-clip', source: ['..A....','.......','.......','.......','.......','.......','.......'],
+    kind: 'window-header', width: 11, height: 9, corner: 2, side: 3, tile: false, origin: [0,0], offset: [0,0], clip: [4,1,2,1], noBackground: true,
+    rows: ['...........','...........','...........','...........','...........','...........','...........','...........','...........'] },
+  { name: 'required-opaque-sample', source: ['..A....','.......','.......','.......','.......','.......','.......'],
+    kind: 'window-header', width: 11, height: 9, corner: 2, side: 3, tile: false, origin: [0,0], offset: [0,0], clip: [4,0,2,1], noBackground: true,
+    expectedReason: 'unverified-line-sampling' },
+  { name: 'clear-mask-cannot-prove-outside-source', source: ['.......','.......','.......','.......','.......','.......','.......'],
+    kind: 'window-header', width: 19, height: 9, corner: 7, side: 1, tile: false, origin: [0,0], offset: [0,0],
+    expectedReason: 'unsafe-source-geometry' },
+];
 export const markerRgba = token => token === "." ? [0,0,0,0] : token === "#" ? [48,48,48,255] : [token.charCodeAt(0),255-token.charCodeAt(0),(token.charCodeAt(0)*3)%256,255];
 export const literalPixels = rows => rows.flatMap(row => [...row].flatMap(markerRgba));
 

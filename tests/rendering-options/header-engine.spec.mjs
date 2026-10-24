@@ -1,7 +1,40 @@
 import { test, expect, openHarness, attachObservations } from './fixtures.mjs';
-import { HEADER_NATIVE_LITERALS, HEADER_COLUMN_LITERALS, HEADER_STATE_DECISIONS, literalPixels } from './header-engine-oracle.mjs';
+import { HEADER_NATIVE_LITERALS, HEADER_COLUMN_LITERALS, HEADER_MASK_CLEAR_LITERALS, HEADER_STATE_DECISIONS, literalPixels } from './header-engine-oracle.mjs';
 
 for (const mode of ['source', 'built']) {
+  test(`${mode}: header omits only mask-clear or offclip sampled color dependencies`, async ({ page, servers }, info) => {
+    await openHarness(page, servers, mode);
+    const observed = await page.evaluate(async ({ mode, fixtures }) => {
+      const api = await import(mode === 'source' ? '/src/index.ts' : '/dist/scriptoscope.js');
+      const { headerTheme, headerOptions } = await import('/tests/rendering-options/header-engine-inputs.mjs');
+      const rows = [];
+      for (const fixture of fixtures) {
+        const owner = headerTheme(api, fixture), el = owner.manifest.chromeElements.face;
+        delete el.samplingEquivalence; delete el.sampledBandAsset;
+        if (fixture.noBackground) delete el.colorSamples;
+        let trace;
+        const result = await api.composeHeaderSurface(owner, { ...headerOptions(fixture), diagnostics: { onComplete: t => { trace = t; } } });
+        rows.push({ name: fixture.name, status: result.status, reason: result.reason,
+          pixels: result.buffer && Array.from(result.buffer.data), trace });
+      }
+      return rows;
+    }, { mode, fixtures: HEADER_MASK_CLEAR_LITERALS });
+    await attachObservations(info, 'header-engine', `${mode}-mask-clear`, { mode, observed });
+    for (const [i, row] of observed.entries()) {
+      const fixture = HEADER_MASK_CLEAR_LITERALS[i];
+      if (fixture.expectedReason) {
+        expect([row.status, row.reason], fixture.name).toEqual(['unsupported', fixture.expectedReason]);
+        expect(row.trace.steps.some(s => s.usage === 'paint')).toBe(false);
+      } else {
+        expect(row.status, fixture.name).toBe('rendered');
+        expect(row.pixels, fixture.name).toEqual(literalPixels(fixture.rows));
+        expect(row.trace.headerSurface.lineSampling, fixture.name).toBe('not-required');
+        expect(row.trace.bandPaints, fixture.name).toBeUndefined();
+        expect(row.trace.headerSurface.painted, fixture.name).toBe(fixture.name !== 'opaque-sample-outside-clip');
+      }
+    }
+  });
+
   test(`${mode}: header engine preserves independent complete native planes`, async ({ page, servers }, info) => {
     await openHarness(page, servers, mode);
     const observed = await page.evaluate(async ({ mode, fixtures }) => {

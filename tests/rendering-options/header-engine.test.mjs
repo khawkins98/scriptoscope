@@ -1,7 +1,7 @@
 import '../helpers/registerTs.mjs';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { HEADER_NATIVE_LITERALS, HEADER_COLUMN_LITERALS, HEADER_STATE_DECISIONS, HEADER_COLUMN_DECISIONS, markerRgba, literalPixels } from './header-engine-oracle.mjs';
+import { HEADER_NATIVE_LITERALS, HEADER_COLUMN_LITERALS, HEADER_MASK_CLEAR_LITERALS, HEADER_STATE_DECISIONS, HEADER_COLUMN_DECISIONS, markerRgba, literalPixels } from './header-engine-oracle.mjs';
 
 // Resolve production .js specifiers only after the shared TS hook is registered.
 const E = await import('../../src/engine/index.ts');
@@ -43,6 +43,19 @@ for (const fixture of HEADER_NATIVE_LITERALS) test(`header native literal: ${fix
   if (fixture.name === 'empty-clip') {
     assert.deepEqual(result.sampledRegions, []);
     assert.equal(E.planHeaderGeometry(input.source, input.slice, input.plan).bodyVisible, false);
+  }
+});
+
+for (const fixture of HEADER_MASK_CLEAR_LITERALS) test(`header needed-only sample: ${fixture.name}`, enabled, () => {
+  const input = { ...surfaceInput(fixture), samplingEquivalent: false, sampled: null,
+    background: fixture.noBackground ? null : background };
+  const port = blank(fixture.width, fixture.height), result = E.drawHeaderSurface(port, input);
+  assert.equal(result.unsupported, fixture.expectedReason);
+  if (!fixture.expectedReason) {
+    assert.deepEqual(Array.from(port.data), literalPixels(fixture.rows));
+    assert.equal(result.lineSampling, 'not-required');
+    assert.deepEqual(result.sampledRegions, []);
+    assert.equal(result.painted, fixture.name !== 'opaque-sample-outside-clip');
   }
 });
 
