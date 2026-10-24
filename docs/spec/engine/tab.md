@@ -37,8 +37,9 @@ vertical inset `s`, full-band-repeat flag `tile`, pattern alignment mode `m`,
 signed pattern request `p`, and authored background/text/emboss sample points.
 These are semantic values; do not substitute opaque bounds for `S`.
 
-The supported modern domain is zero-origin matching icon/mask bounds, positive
-integer `w,H`, binary mask, integer `0 ≤ c`, `2c < w`, `0 ≤ s ≤ H`, and
+The supported modern domain is a zero-origin prepared colour plane and matching
+same-size binary alpha plane (the modern mask), with native-bounds admission as
+§6.1 declares; positive integer `w,H`, integer `0 ≤ c`, `2c < w`, `0 ≤ s ≤ H`, and
 integer output width `W ≥ 2c`. Coordinates and dimensions must be finite and
 representable without 16-bit QuickDraw overflow. These are admission limits,
 not a claim about the original's handling of malformed resources.
@@ -219,7 +220,7 @@ this modern facade geometry.
 |---|---|---|
 | AD1 | F5 all icon candidates absent | null; `missing-art`, attempted IDs and owner chain |
 | AD2 | selected icon has no opaque pixels | null; `empty-art`, actual selected owner/id |
-| AD3 | selected icon found, original same-ID cinf absent | null; `no-cinf-no-paint`, handled icon, no retry (V3); no label drawn |
+| AD3 | selected icon found, authoritative same-ID cinf absence or explicit declared no-cinf input (§6.1) | null; `no-cinf-no-paint`, handled icon, no retry (V3); no label drawn; distinguish original absence from modern declaration |
 | AD4 | metadata missing from transport, incomplete/short, invalid domain or absent explicit body request | null; `unsupported-metadata` and concrete missing/invalid field; distinguish absence of original cinf from absence of prepared metadata |
 | AD5 | required sample or pattern exists but cannot be safely realized | null; `unsupported-sampling` or `unsupported-pattern`, owner/id and reason; do not label resource missing |
 | AD6 | admitted body | buffer; source selection, bands versus sampled lines, centre empty/solid/pattern, requested pattern and missing-pattern erase, actual phase and modern label basis |
@@ -230,8 +231,92 @@ distinguishable from missing art and no-cinf no-paint, with no loss of caller-vi
 error context. Without diagnostics, the existing nullable signature is preserved.
 AD1–AD5 are not successful source-faithful renders. No legacy body fallback is kept.
 For empty centres, missing unused background/pattern samples do not cause AD5;
-malformed body request or slices still cause AD4. AD3 requires an authoritative
-absence fact; omitted exported slice metadata alone proves only AD4.
+malformed body request or slices still cause AD4. Omitted exported slice metadata alone proves only AD4; §6.1 defines the exact
+authoritative-versus-declared distinction for AD3.
+
+### 6.1 Tab-only transport conventions (modern clarification, 2026-10-24)
+
+These conventions apply only to the public tab facade. They do not relax any
+other family or the generic engine sample adapter. A successful declaration is
+not loader-occurrence proof, raw resource-census proof or native certification.
+Snapshot the selected owner, element key, signed icon ID, asset URL, declared
+width/height, slices/request/anchors, sample records, bounds records and display
+policy **before the first asynchronous asset load**. Use those snapshots for
+admission and paint; never join a loaded buffer to later mutable metadata.
+After decode, declared dimensions must equal actual prepared dimensions. In the
+bounds rows, supplied means an own field whose value is not undefined; explicit
+null is invalid bounds data, not omission.
+
+| row | selected-owner transport fact | result and diagnostic basis |
+|---|---|---|
+| MD1 | complete authoritative cinf lookup/census explicitly establishes same-ID absence | AD3, original-absence fact; V3 is the source no-paint rule |
+| MD2 | own `sourceCinfId` property explicitly equals null, no contradictory header/slice/request/sample declaration | AD3 as **declared no-cinf**, compatibility basis; original absence remains unproved |
+| MD3 | `sourceCinfId` omitted/undefined and required slice/request absent | AD4, unknown metadata; missing transport never becomes MD1/MD2 |
+| MD4 | valid same-ID prepared slice/request present; `sourceCinfId` equals selected signed icon ID or is omitted | body admission continues; omission is declared local metadata, not a proved original join |
+| MD5 | explicit numeric cinf ID differs from selected signed icon ID; null contradicts usable header/slice/request/sample; supplied retained header contradicts prepared fields; or any required metadata malformed | AD4, contradictory/invalid metadata; never silently prefer a weaker declaration |
+
+MD2 is an explicit modern negative declaration convention, not an inference that
+an undecoded or unexported resource was absent. Null slice/request/anchor/sample
+fields accompanying MD2 do not contradict it. A usable raw same-ID cinf header
+or any nonnull body metadata does contradict it. Missing entries in a partial
+`engineCinfs` map, or missing inspector data, do not establish MD1. A supplied
+usable raw header can supply body fields; an omitted exported field need not be
+invented when that header provides it. No default cinf or unrelated owner is used.
+
+| row | bounds and mask transport | result and diagnostic basis |
+|---|---|---|
+| OR1 | neither `cicnSource` nor `boundsOrigin` supplied | declare prepared source origin `(0,0)` for this legacy tab facade; `legacy-zero-origin-policy` in diagnostics |
+| OR2 | valid `cicnSource.bounds` supplied | source ID must equal the selected signed icon ID; top/left must be zero and extent must equal actual prepared dimensions; an accompanying `boundsOrigin` must agree |
+| OR3 | no `cicnSource`, valid `boundsOrigin` supplied | both coordinates must be zero; explicit origin declaration |
+| OR4 | present source record lacks usable bounds or has wrong source ID; any supplied bounds invalid/nonzero, dimensions disagree, or origin records conflict | AD4; OR1 cannot override present contrary or incomplete bounds data |
+| OR5 | admitted prepared raster | its alpha plane of the same width/height is the modern mask; require binary alpha; do not assert that native PixMap and mask bounds matched |
+
+No new raw-mask census is required for OR1/OR5. A colour PNG alone cannot prove
+original mask dimensions or origin. If original mask bounds/layout are explicitly
+supplied and disagree with the admitted zero-origin same-size domain, reject AD4;
+never erase contrary information by normalizing it. A pixmap-only
+`cicnSource.bounds` is not original mask evidence. Missing sampler proof still
+rejects a needed C1 line under C1's own rules even though ordinary raster copies
+can use the declared alpha mask. Corpus tests must retain legacy JSON-manifest
+and current loader consumers; do not reject all older manifests for lacking the
+newer occurrence/bounds objects.
+
+| row | required colour transport | result |
+|---|---|---|
+| CS1 | usable occurrence-bound `engineColorSamples` | use that strong source under its existing identity/dimensions/display rules |
+| CS2 | newer engine samples absent; selected element has `colorSamples.model = kdef-2.3.1-color` | tab-only **declared local role samples** may supply RGB16 without newer object-identity binding, subject to the checks below; diagnostics mark compatibility declaration |
+| CS3 | supplied newer sample binding is contradictory/invalid for a required point | AD5; no downgrade to CS2 to bypass a failed stronger binding |
+| CS4 | native text/emboss samples unavailable but not used by public paint | leave those native outputs unspecified; do not reject an otherwise paintable public body |
+
+CS2 requires the frozen samples to accompany that same selected element and its
+local same-ID metadata (MD4), not be borrowed from a root/base sibling. Its
+background/text/emboss role must correspond to the matching frozen authored
+anchor, with integer in-bounds coordinates; `rgb16` must be three integers in
+`[0,65535]`, `displayRgb` three integers in `[0,255]`. Model and display policy
+must match the owner; realizing RGB16 once under that owner's current policy must
+equal the declared displayRgb. Use the already-realized value thereafter. Invalid
+or contradictory values reject AD5 for a **needed** point. CS2's frozen parent
+join is a compatibility declaration; equal paths/IDs/dimensions do not make it an
+independent occurrence proof. No `embossDecision: same-as-background` suppression
+is imported into the tab engine.
+
+Needed samples are the C1 line colours whenever a line expands, and the
+background when a positive centre will erase (P1 or P2). A found usable pattern
+centre needs its pattern raster/phase, not otherwise-unused native background,
+text or emboss outputs. Empty centres require none of those colour outputs.
+The public label still uses §5 contrast policy. C1's complete companion or
+matching sampler-equivalence requirement is unchanged; local role colour samples
+cannot stand in for a whole sampled-line raster. CS4 similarly leaves optional
+engine colour outputs unavailable rather than synthesizing them.
+
+Test hooks: distinguish omitted/null/contradictory cinf metadata (MD1–MD5), old
+JSON manifests with neither bounds object (OR1) versus explicit invalid or
+nonzero records (OR4), binary-alpha declaration versus native-mask proof (OR5),
+legacy local samples versus valid/contradictory strong binding (CS1–CS3), masked
+background RGB and missing unused native text/emboss (CS4). Mutations that infer
+absence from omission, ignore explicit nonzero bounds, borrow another owner's
+samples, mix pre/post-await records, relax C1 proof, or reject valid legacy
+manifests must fail. These are modern declaration checks, not native pixel tests.
 
 ## 7. Not decoded / corpus impact
 
