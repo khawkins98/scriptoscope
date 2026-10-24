@@ -220,7 +220,7 @@ export async function composeEngineTab(theme: LoadedTheme, opts: TabOptions): Pr
       && hit.theme.inspector?.cicnResources?.filter(r => r.id === occurrence.id).length === 1
       && hit.theme.inspector.cicnResources.find(r => r.id === occurrence.id) === occurrence;
     const owner: LoadedTheme = { ...hit.theme, manifest: { ...hit.theme.manifest,
-      ...(hit.theme.manifest.displayProfile ? { displayProfile: structuredClone(hit.theme.manifest.displayProfile) } : {}),
+      ...(hit.theme.manifest.displayProfile ? { displayProfile: hit.theme.manifest.displayProfile } : {}),
       patterns: structuredClone(hit.theme.manifest.patterns ?? {}) },
       ...(hit.theme.inspector ? { inspector: { ...hit.theme.inspector, ...(hit.theme.inspector.ppatResources ? { ppatResources: structuredClone(hit.theme.inspector.ppatResources) } : {}) } } : {}) };
     const frozen = structuredClone(original);
