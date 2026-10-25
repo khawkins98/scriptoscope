@@ -103,7 +103,7 @@ export async function renderWindow(
   const { owner, wt, cicnPath } = resolved;
 
   // The sliced path walks the chrome cicn; the built-in frame loads its own art by id.
-  const cicn = wt.model === 'corner-sprite' ? null : await owner.pixels(cicnPath);
+  const cicn = wt.model === 'corner-sprite' ? null : await owner.asset(cicnPath).pixels();
 
   // Utility / mini / floating / palette windows usually carry NO visible title — the label is
   // screen-reader-only via aria-label. EXCEPT `titled-utility-window` (literally named for having
@@ -538,8 +538,8 @@ async function bodyBackgroundStyle(theme: ThemeView, scale: number, slug?: strin
   // Baseline windows historically size from the document pattern, including
   // utility windows. Preserve that policy separately from CSS tile selection.
   const sizeRef = sizingPattern === undefined ? ref : sizingPattern;
-  const [url, tile] = await Promise.all([theme.imageUrl(ref),
-    scale > 1 && sizeRef ? theme.dimensions(sizeRef).catch(() => undefined) : undefined]);
+  const [url, tile] = await Promise.all([theme.asset(ref).imageUrl(),
+    scale > 1 && sizeRef ? theme.asset(sizeRef).dimensions().catch(() => undefined) : undefined]);
   return {
     backgroundColor: '#ffffff',
     backgroundImage: `url("${url}")`,

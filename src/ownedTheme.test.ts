@@ -1,12 +1,20 @@
 import { assetUrl } from './loadTheme.js';
 import { WindowManager } from './interactive.js';
-import { composeButton } from './controls.js';
+import { composeButton, composeCheckable, composeSlider, composeProgress, composeDisclosure, composeTab, composeBevelButton, composeListHeader, composeGrowBox } from './controls.js';
 import type { LoadedTheme } from './types.js';
 import { themeView, type OwnedTheme } from './ownedTheme.js';
 
 function contracts(owned: OwnedTheme, loaded: LoadedTheme): void {
   assetUrl(loaded, 'image.png');
   void composeButton(owned);
+  void composeCheckable(owned, 'checkbox');
+  void composeSlider(owned);
+  void composeProgress(owned);
+  void composeDisclosure(owned);
+  void composeTab(owned);
+  void composeBevelButton(owned);
+  void composeListHeader(owned);
+  void composeGrowBox(owned);
   const legacyManager = new WindowManager();
   const ownedManager = new WindowManager<OwnedTheme>();
   const host = document.createElement('div');

@@ -66,7 +66,14 @@ disposal probes pass across source and built entries.
 Thirty-six each of interactive activation, diagnostic URL,
 zero-PNG rendering and post-disposal source/built checks passed. One requested
 image shares work and does not encode unrelated assets.
-There were no matching errors or missing faces counted as successful paint.
+The family matrix adds **19,152 cases** through public source and built APIs:
+15,278 painted outputs, 3,474 matching missing outcomes and 400 explicitly
+unsupported checkable outcomes for sparse children without a declared census.
+Slider, progress, checkable, disclosure, grow, tab, bevel and both header APIs
+participate; checkable also distinguishes unknown from explicitly empty census.
+There are zero mismatches or unexpected errors. Another 108 completed tab,
+bevel and header diagnostic checks verify real image URLs and one completion.
+Missing and unsupported outcomes are reported separately from successful paint.
 Public button output is a pixel buffer; its dimensions and bytes are compared.
 The internal face-layout assertion remains in the original source-only spike.
 
@@ -104,8 +111,8 @@ all destination composition, independent original captures, complete DOM
 lifecycles or other browsers. Window regression coverage is described above; complete
 application adoption and lifecycle validation remain open.
 
-The next change migrates remaining renderers and first-party loading/image
-consumers onto this owner and retires replaced plumbing. Resource indexing and
+The next change retires the global private-reference registry, then migrates
+first-party loading/image consumers onto this owner. Resource indexing and
 diagnostic redesign remain separate experiments.
 
 New runner reports pin runtime, built and harness hashes, and reject changed inputs

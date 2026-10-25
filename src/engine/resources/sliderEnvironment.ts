@@ -21,7 +21,7 @@ export interface SliderEnvironment {
 
 /** Snapshot before any image load. Each provider owns copied complete payloads.
  * Missing is explicit; incomplete or duplicate input never becomes a NULL hit. */
-export function snapshotSliderEnvironment(theme: LoadedTheme, orientation: 'horizontal' | 'vertical'): SliderEnvironment | undefined {
+export function snapshotSliderEnvironment(theme: Pick<LoadedTheme, 'manifest'> & { readonly base?: unknown }, orientation: 'horizontal' | 'vertical'): SliderEnvironment | undefined {
   const manifest = theme.manifest, saved = snapshotCinfResourceOwner(manifest, 'sliderLayoutEnvironment');
   if (!manifest.sliderLayoutEnvironment && !saved) return undefined;
   const id = orientation === 'horizontal' ? -10129 : -10113;

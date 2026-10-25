@@ -139,10 +139,70 @@ async function windowLifetimeProbe(runtime, report) {
   report.pendingWindows++;
 }
 
+async function compareFamilies(runtime, old, current, report, transport, slug) {
+  const cases = [];
+  for (const orientation of ['horizontal', 'vertical']) for (const length of [32, 121])
+    for (const state of ['normal', 'pressed', 'disabled']) for (const value of [0, 0.37, 1])
+      cases.push(['slider', 'composeSlider', { orientation, length, state, value }]);
+  for (const length of [16, 121]) for (const state of ['normal', 'pressed', 'disabled']) {
+    for (const value of [0, 0.37, 1]) cases.push(['progress', 'composeProgressFrame', { length, state, value }]);
+    for (const phase of [0, 7, 255]) cases.push(['progress', 'composeProgressFrame', { length, state, indeterminate: true, phase }]);
+  }
+  for (const kind of ['checkbox', 'radio']) for (const disabled of [false, true]) for (const label of ['', 'Ag'])
+    for (const value of kind === 'checkbox' ? [0, 1, 2] : [0, 1])
+      cases.push(['checkable', 'composeCheckable', { disabled, label, checked: value === 1, mixed: value === 2 }, kind]);
+  for (const direction of ['right', 'down']) for (const state of ['normal', 'pressed', 'disabled'])
+    cases.push(['disclosure', 'composeDisclosure', { direction, state }]);
+  for (const selected of [false, true]) for (const label of ['', 'Ag']) cases.push(['tab', 'composeTab', { selected, label }]);
+  for (const on of [false, true]) for (const small of [false, true]) for (const state of ['normal', 'pressed', 'disabled'])
+    for (const label of ['', 'Ag']) cases.push(['bevel', 'composeBevelButton', { on, small, label, pressed: state === 'pressed', disabled: state === 'disabled' }]);
+  for (const state of ['normal', 'inactive']) cases.push(['grow', 'composeGrowBox', { state }]);
+  for (const inactive of [false, true]) for (const height of [16, 30])
+    cases.push(['headerColumns', 'composeListHeader', { inactive, height, columns: [{ label: 'A', width: 32 }, { label: 'B', width: 65 }] }]);
+  for (const kind of ['window-header', 'list-view-header']) for (const drawState of [0, 1])
+    for (const width of [32, 97]) for (const height of [16, 30]) for (const clipped of [false, true])
+      cases.push(['headerSurface', 'composeHeaderSurface', { kind, drawState, width, height,
+        compositionContext: { controlOrigin: [0, 0], portOrigin: [0, 0], patternOrigin: { status: 'known', offset: [3, 5] },
+          clip: { kind: 'rect', rect: { x: clipped ? 5 : 0, y: clipped ? 3 : 0, w: clipped ? 17 : width, h: clipped ? 7 : height } } } }]);
+  const declaredChild = theme => {
+    const out = child(theme), source = out.source ?? out;
+    source.inspector = { cicnResources: [], iconMaskResources: [], iconColorResources: [] };
+    return out;
+  };
+  const capture = async (theme, method, options, kind) => {
+    try { return { pixels: await (kind ? runtime[method](theme, kind, options) : runtime[method](theme, options)) }; }
+    catch (error) { return { error: `${error.name}: ${error.message}` }; }
+  };
+  for (const [environment, a, b] of [['own', old, current], ['base', child(old), child(current)], ['mixed', child(old), { ...child(current), base: old }],
+    ['declaredBase', declaredChild(old), declaredChild(current)], ['declaredMixed', declaredChild(old), { ...declaredChild(current), base: old }]])
+    for (const [family, method, options, kind] of cases) {
+      if (environment.startsWith('declared') && family !== 'checkable') continue;
+      const row = report.families[family] ??= { compared: 0, painted: 0, missing: 0, errors: 0, unsupported: 0, outcomes: {}, errorOutcomes: {} };
+      const A = await capture(a, method, options, kind), B = await capture(b, method, options, kind);
+      let difference = A.error || B.error ? (A.error === B.error ? null : { old: A.error, current: B.error })
+        : family === 'headerSurface' && (A.pixels.status !== B.pixels.status || A.pixels.reason !== B.pixels.reason) ? 'header admission'
+        : family === 'headerSurface' && A.pixels.status !== 'rendered' ? null : compare(A.pixels, B.pixels);
+      if (!difference && A.pixels && B.pixels && family === 'progress'
+        && (A.pixels.phase !== B.pixels.phase || A.pixels.path !== B.pixels.path)) difference = 'progress phase/path';
+      row.compared++;
+      if (difference) report.mismatches.push({ transport, slug, family, environment, options, difference });
+      else if (A.error) {
+        // Deliberately unobserved sparse children are a declared unknown census,
+        // distinct from declared-empty children and from successful paint.
+        if (family === 'checkable' && ['base', 'mixed'].includes(environment) && A.error === 'Error: Unsupported checkable output: ics# census unavailable') row.unsupported++;
+        else row.errors++;
+        row.errorOutcomes[A.error] = (row.errorOutcomes[A.error] ?? 0) + 1; if (report.errors.length < 10) report.errors.push({ transport, slug, family, environment, options, error: A.error }); }
+      else if (family === 'headerSurface' && A.pixels.status !== 'rendered') {
+        const outcome = `${A.pixels.status}:${A.pixels.reason}`; row.outcomes[outcome] = (row.outcomes[outcome] ?? 0) + 1;
+        if (A.pixels.status === 'unsupported') row.unsupported++; else row.missing++;
+      } else if (!A.pixels) row.missing++; else row.painted++;
+    }
+}
+
 async function run() {
   const report = { runAt: new Date().toISOString(), userAgent: navigator.userAgent,
     rows: [], mismatches: [], errors: [], compared: 0, painted: 0, equalMissing: 0, equalErrors: 0, rasters: 0, disposedLoads: 0,
-    baselinePatterns: 0, pendingWindows: 0, scrollbars: 0, paintedScrollbars: 0, missingScrollbars: 0, windows: 0, paintedWindows: 0, baselineWindows: 0, lazyWindows: 0, disposedWindows: 0, managedWindows: 0, diagnostics: 0, interactions: 0, zeroPngRenders: 0, bitmapPaints: 0 };
+    families: {}, familyDiagnostics: 0, baselinePatterns: 0, pendingWindows: 0, scrollbars: 0, paintedScrollbars: 0, missingScrollbars: 0, windows: 0, paintedWindows: 0, baselineWindows: 0, lazyWindows: 0, disposedWindows: 0, managedWindows: 0, diagnostics: 0, interactions: 0, zeroPngRenders: 0, bitmapPaints: 0 };
   for (const [transport, runtime] of [['source', source], ['built', built]]) for (const slug of slugs) {
     const input = await bytes(slug);
     const old = await runtime.loadKaleidoscopeScheme(input, { assetUrlFactory: encode });
@@ -187,6 +247,8 @@ async function run() {
           else if (A && B) report.paintedScrollbars++; else report.missingScrollbars++;
         }
       if (rasterOwner(current.source).usage().images !== 0) throw new Error('Owned scrollbar rendering unexpectedly encoded PNGs');
+      await compareFamilies(runtime, old, current, report, transport, slug);
+      if (rasterOwner(current.source).usage().images !== 0) throw new Error('Owned family rendering unexpectedly encoded PNGs');
       report.zeroPngRenders++;
       await compareWindows(runtime, old, current, report, transport, slug);
       if (rasterOwner(current.source).usage().images > 2) throw new Error('Window rendering exported unrelated raster images');
@@ -213,6 +275,15 @@ async function run() {
       await runtime.composeButton(current, { default: true, label: 'OK', diagnostics: { onComplete: trace => { diagnostic = trace; } } });
       if (!diagnostic || privateImage(diagnostic)) throw new Error('Diagnostic image fields exposed private references');
       report.diagnostics++;
+      for (const [method, options] of [['composeTab', { selected: true, label: 'Ag' }], ['composeBevelButton', { label: 'Ag' }],
+        ['composeHeaderSurface', { kind: 'window-header', width: 97, height: 30, drawState: 1,
+          compositionContext: { controlOrigin: [0, 0], portOrigin: [0, 0], patternOrigin: { status: 'known', offset: [0, 0] },
+            clip: { kind: 'rect', rect: { x: 0, y: 0, w: 97, h: 30 } } } }]]) {
+        let completed = 0, trace;
+        await runtime[method](current, { ...options, diagnostics: { onComplete(value) { completed++; trace = value; } } });
+        if (completed !== 1 || !trace || privateImage(trace)) throw new Error(`Invalid owned diagnostics: ${method}`);
+        report.familyDiagnostics++;
+      }
       // Materialize the exhaustive image comparison concurrently, matching the
       // eager adapter's worker pool instead of benchmarking serial PNG exports.
       const imageByRef = new Map(await Promise.all([...ownedUrls].map(async ref => [ref, await current.imageUrl(ref)])));
@@ -242,7 +313,7 @@ async function run() {
     report.rows.push({ transport, slug, rasters: report.rasters - before });
     document.querySelector('#result').textContent = JSON.stringify(report, null, 2);
   }
-  report.status = report.mismatches.length || report.painted !== report.compared || report.compared === 0 || report.windows !== slugs.length * 2 * 3 * 4 * 2 * 2 ? 'mismatch' : 'pass';
+  report.status = report.mismatches.length || report.painted !== report.compared || report.compared === 0 || Object.values(report.families).some(row => row.errors || !row.compared) || report.windows !== slugs.length * 2 * 3 * 4 * 2 * 2 ? 'mismatch' : 'pass';
   return report;
 }
 window.spikeDone = run().then(report => {

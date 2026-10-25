@@ -6,8 +6,8 @@ sub-PRs. The integration branch targets `v2`: [draft PR #480](https://github.com
 The working branch is `refactor/runtime-streamlining`, starting from
 `de942c6399c81d1f15d23247dfd62a36e11a64bc` with upstream `origin/v2`.
 The [consumer inventory and ownership contract](raster-asset-consumers.md) records
-the first design decision. The owned loader, push/default and window slices are implemented;
-remaining renderer migration and first-party default adoption are open. The
+the first design decision. The owned loader and all low-level renderer families accept the explicit owned
+contract. Shared declarative adoption and transport retirement remain open. The
 [owned loading API](owned-theme-api.md) records the current supported boundary.
 
 Architecture review with Astra selected one owner implementation with two explicit
@@ -25,7 +25,12 @@ serialization and inspection would trigger broad encoding.
   of zero-PNG rendering, interactive activation, diagnostic URL and disposal
   checks pass. Public button dimensions and pixels are compared; internal face
   layout is separately compared by the source-only benchmark.
-- Current full gates pass: 1,114 Node tests pass, 2 skip and 12 remain TODO,
+- The renderer-family slice adds 19,152 comparisons: 15,278 paints, 3,474
+  matching missing outcomes and 400 explicitly unsupported checkable outcomes
+  where the sparse child lacks a declared census. None are counted as painted
+  output. There are zero mismatches or unexpected errors. Another 108 completed
+  tab, bevel and header diagnostic checks pass.
+- Current full gates pass: 1,122 Node tests pass, 2 skip and 12 remain TODO,
   with zero failures. This includes ownership, failure, diagnostic snapshot and
   duplicate-path occurrence checks. Typechecking includes negative public-source
   compatibility assertions.
@@ -44,23 +49,26 @@ serialization and inspection would trigger broad encoding.
   baseline sizing and two pending-CSS disposal probes. The final transport report
   records runtime, built and harness hashes and rejects changed inputs.
 - All 12,902 engine-diff cells remain unchanged.
-- Default first-party adoption, remaining families, retained-heap/process
+- Default first-party adoption, registry retirement, retained-heap/process
   measurements, final code reduction and full final acceptance remain open.
 
 ## Next vertical slice and compatibility boundary
 
-The explicit internal `ThemeView` now serves buttons, resource preparation and
-window chrome/body patterns. The prototype view and owner rebinding are removed;
-window dimensions no longer require a separate sampler in the window renderer.
-The generic `WindowManager` preserves original public input identity and defaults
-to its existing `LoadedTheme` contract.
+The explicit internal `ThemeView` now serves every low-level control family and
+window chrome/body patterns. `asset(ref)` captures one transport identity before
+asynchronous work, with pixels, dimensions and optional public image export on
+that identity. Selection and diagnostic metadata remain captured by each family;
+diagnostic URLs cannot redirect the pixels subsequently loaded. The prototype
+view and owner rebinding are removed. The generic `WindowManager` preserves
+original public input identity and defaults to its existing `LoadedTheme` contract.
 
-Migrate remaining family facades, image consumers and the shared declarative
-scanner/resolver next. Existing `ThemeResolver.load()` defaults to `LoadedTheme`;
-an owned resolver accepting registered legacy themes returns `ThemeInput`.
-Introduce a supported owned mount over that same scanner/lifecycle. Use generics
-only where original public theme identity is stored or returned, with no transport
-boolean or duplicated implementation through the UI.
+Retire the global private-reference registry next, replacing its indirect lookup
+with owner-local captured entries and retaining the ordinary external image
+cache. Then migrate image consumers and the shared declarative scanner/resolver.
+Existing `ThemeResolver.load()` defaults to `LoadedTheme`; an owned resolver
+accepting registered legacy themes returns `ThemeInput`. Introduce a supported
+owned mount over the same scanner/lifecycle. Use generics only where original
+public theme identity is stored or returned, without duplicating UI lifecycles.
 
 The first-party demo's ordinary startup and dropped-theme flow must use owned
 loading before completion. Audit every selected owner/reference handoff before

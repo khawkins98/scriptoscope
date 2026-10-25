@@ -55,12 +55,15 @@ boundary. No placeholder, Promise or internal identity escapes as an image URL.
 
 The additive `OwnedTheme` keeps reference-bearing manifests under `source`,
 structurally distinct from `LoadedTheme`. Public migrated entries accept
-`ThemeInput = LoadedTheme | OwnedTheme`. One cached internal `ThemeView` exposes
-pixels, async image export, dimensions and lifetime, without `baseUrl` or disposal.
+`ThemeInput = LoadedTheme | OwnedTheme`. One cached internal `ThemeView` captures an asset source with pixel, async
+image and dimension access. The view has lifetime observation, without `baseUrl`
+or disposal. Asset capture binds transport identity synchronously and starts no
+encoding or decoding.
 Live manifest/base reads and precise selected owner/reference pairs are preserved.
 The prototype adapter and wrapper owner rebinding have been deleted.
 
-Push/default buttons, window rendering and scrollbars use this boundary. Owned
+All low-level control families and window rendering use this boundary. Button,
+form-control and tab promotion accept owned inputs as well. Owned
 window body CSS exports only selected tiles. Dimensions use decoded pixels when
 available and dimension-only image decoding for external/unreadable images.
 Baseline utility sizing retains its pre-migration document-pattern policy.
@@ -69,8 +72,8 @@ remain supported. Requested public diagnostic image fields materialize valid URL
 
 ## Remaining consumers and retirement
 
-Migrate the other family facades, declarative controls/icons, picker/inspector and
-first-party loading onto this boundary. Preserve synchronous `assetUrl` and
+Migrate declarative icon/catalog consumers, picker/inspector and first-party
+loading onto this boundary through the shared scanner/resolver. Preserve synchronous `assetUrl` and
 `promoteIcon` contracts for existing loaded themes. An asynchronous owned mount
 must share their selection and lifecycle implementation and check generation and
 disconnect before adopting prepared DOM.
@@ -84,3 +87,15 @@ them together only after auditing every cross-owner glyph, sampled-resource and
 pattern handoff. Local paths alone cannot identify an asset across owners.
 Compatibility adapters remain; a second engine or permanent experiment flag does
 not. Net runtime reduction and retained-memory measurements remain merge conditions.
+
+The next retirement uses owner-local captured entries instead of the global raw
+reference map. Capture must reject unknown local references, retain custom encoder
+and fractional-alpha semantics, and invalidate later access after disposal.
+Retained descriptors must not retain raw arrays or settled image promises after
+disposal; pending encoder inputs remain accounted for until settlement. Borrowed
+buffers already returned to callers and external URL caches stay outside that
+reclamation promise. Keep the shared source-to-owner WeakMap for separate bundles,
+owner lifetime notifications and actual blob-release notifications. Remove raw
+reference registration, namespace parsing and per-reference cache invalidation
+together; do not introduce another global source cache. Measure the actual net
+change immediately after retirement, before claiming simplification.

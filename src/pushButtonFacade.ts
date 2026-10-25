@@ -34,7 +34,7 @@ function faceEntry(theme: ThemeView, id: number): { theme: ThemeView; element: C
 export async function loadEnginePushFace(theme: ThemeView, state: 'active' | 'pressed' | 'inactive'): Promise<PixelBuffer | null> {
   const id = state === 'inactive' ? P.PB5.resource : state === 'pressed' ? P.PB6.resource : P.PB7.resource;
   const entry = faceEntry(theme, id);
-  return entry ? entry.theme.pixels(entry.element.asset) : null;
+  return entry ? entry.theme.asset(entry.element.asset).pixels() : null;
 }
 const css = (p: Rgba): string => `rgb(${p.r}, ${p.g}, ${p.b})`;
 

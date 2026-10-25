@@ -15,6 +15,13 @@ export interface OwnedTheme {
 }
 export type ThemeInput = LoadedTheme | OwnedTheme;
 const viewTag = Symbol('ThemeView');
+/** Captured transport identity. key is internal identity, never a public image URL. */
+export interface RasterSource {
+  readonly key: string;
+  pixels(): Promise<PixelBuffer>;
+  imageUrl(): Promise<string>;
+  dimensions(): Promise<{ width: number; height: number }>;
+}
 /** Internal rendering capability. It neither owns nor exposes ready images. */
 export interface ThemeView {
   readonly [viewTag]: true;
@@ -25,10 +32,7 @@ export interface ThemeView {
   readonly origin: string;
   readonly base: ThemeView | undefined;
   readonly lifetime: { readonly lifetime: string; readonly disposed: boolean } | undefined;
-  assetKey(ref: string): string;
-  pixels(ref: string): Promise<PixelBuffer>;
-  imageUrl(ref: string): Promise<string>;
-  dimensions(ref: string): Promise<{ width: number; height: number }>;
+  asset(ref: string): RasterSource;
 }
 const views = new WeakMap<ThemeInput, ThemeView>();
 function isOwned(input: ThemeInput): input is OwnedTheme { return 'kind' in input && input.kind === 'owned-theme'; }
@@ -48,7 +52,7 @@ export function themeView(input: ThemeInput | ThemeView): ThemeView {
   if (!view) {
     const owned = isOwned(input);
     const source = () => owned ? input.source : input;
-    const key = (ref: string) => owned ? ref : assetUrl(input, ref);
+
     view = {
       [viewTag]: true,
       get manifest() { return source().manifest; },
@@ -58,18 +62,38 @@ export function themeView(input: ThemeInput | ThemeView): ThemeView {
       get origin() { return owned ? input.origin : input.baseUrl; },
       get base() { return input.base ? themeView(input.base) : undefined; },
       get lifetime() { return rasterOwner(source()); },
-      assetKey: key,
-      pixels: ref => loadCicnBuffer(key(ref)),
-      dimensions: ref => rasterDimensions(key(ref)),
-      imageUrl: ref => owned && !/^(?:scriptoscope-raster:|blob:|https?:|data:)/.test(ref)
-        ? input.imageUrl(ref) : materializeRasterImage(key(ref)),
+      asset(ref) {
+        const owner = rasterOwner(source());
+        const key = owned ? owner?.references.get(ref) ?? ref : assetUrl(input, ref);
+        const exportImage = owned ? input.imageUrl.bind(input) : undefined;
+        const current = () => { if (owner?.disposed) throw new DOMException('Raster owner disposed', 'AbortError'); };
+        return {
+          key,
+          async pixels() { current(); return loadCicnBuffer(key); },
+          async dimensions() { current(); return rasterDimensions(key); },
+          async imageUrl() {
+            current();
+            return exportImage && !/^(?:scriptoscope-raster:|blob:|https?:|data:)/.test(key)
+              ? exportImage(key) : materializeRasterImage(key);
+          },
+        };
+      },
     };
     views.set(input, view);
   }
   return view;
 }
 
+/** Shared preparation lifetime for public renderers accepting either theme contract. */
+export async function withThemeView<T>(input: ThemeInput | ThemeView, render: (view: ThemeView) => Promise<T>): Promise<T> {
+  const view = themeView(input);
+  assertThemeAlive(view);
+  const result = await render(view);
+  assertThemeAlive(view);
+  return result;
+}
+
 /** Explicit image boundary for an owned reference or an existing image URL. */
 export function themeImageUrl(input: ThemeInput, ref: string): Promise<string> {
-  return themeView(input).imageUrl(ref);
+  return themeView(input).asset(ref).imageUrl();
 }

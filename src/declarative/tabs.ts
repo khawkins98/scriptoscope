@@ -18,7 +18,7 @@
 // canvas-faced span sits as a sibling and takes focus + clicks, forwarding selection.
 // Without `data-scriptoscope-selected`, the first tab is the initial selection.
 
-import type { LoadedTheme } from '../types.js';
+import type { ThemeInput } from '../ownedTheme.js';
 import { composeTab, bufferToCanvas } from '../controls.js';
 import { debug } from '../debug.js';
 
@@ -68,7 +68,7 @@ function panelIdFor(tab: HTMLElement): string {
 /** Promote a [data-scriptoscope-tabs] wrapper. Idempotent — re-promoting a promoted wrapper is a no-op
  *  unless `forceRescan` is true (used by retheme to swap the canvas faces in-place). */
 export async function promoteTabs(
-  el: HTMLElement, theme: LoadedTheme, opts: { forceRescan?: boolean; signal?: AbortSignal } = {},
+  el: HTMLElement, theme: ThemeInput, opts: { forceRescan?: boolean; signal?: AbortSignal } = {},
 ): Promise<void> {
   if (!opts.forceRescan && el.dataset.scriptoscopeTabsPromoted != null) return;
   ensureTabsCSS();

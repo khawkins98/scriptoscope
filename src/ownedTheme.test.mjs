@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 const { loadOwnedKaleidoscopeScheme } = await import('./loadKaleidoscopeScheme.ts');
-const { composeButton } = await import('./controls.ts');
+const { composeButton, composeSlider, composeProgress, composeDisclosure, composeTab, composeBevelButton, composeHeaderSurface } = await import('./controls.ts');
 const { themeView } = await import('./ownedTheme.ts');
 const { loadOwnedTheme } = await import('./loadTheme.ts');
 import { rasterOwner, createRasterAssetOwner, bindRasterOwner } from '../tools/theme-loader/rasterAssets.js';
@@ -132,3 +132,99 @@ test('legacy sampled references resolve against the selected owner exactly once'
   } });
   assert.deepEqual(requested, ['/legacy-relative/cicns/face.png', '/legacy-relative/cicn-sampled/test.png']);
 });
+
+
+test('owned slider, progress and disclosure rendering use owned pixels through disposal', async t => {
+  const previous = globalThis.Image;
+  globalThis.Image = class { constructor() { throw new Error('Unexpected image decoder'); } };
+  t.after(() => { globalThis.Image = previous; });
+  const theme = await loadOwnedKaleidoscopeScheme(bytes); t.after(theme.dispose);
+  const calls = [() => composeSlider(theme), () => composeProgress(theme), () => composeDisclosure(theme)];
+  for (const render of calls) await render();
+  assert.equal(rasterOwner(theme.source).usage().images, 0);
+  theme.dispose();
+  for (const render of calls) await assert.rejects(render(), { name: 'AbortError' });
+});
+
+
+test('captured raster sources keep transport identity without starting work', async t => {
+  const owner = createRasterAssetOwner([
+    { path: 'first', width: 1, height: 1, rgba: new Uint8Array([21, 34, 55, 255]) },
+    { path: 'replacement', width: 1, height: 1, rgba: new Uint8Array([200, 201, 202, 255]) },
+  ], (_rgba, _w, _h, path) => `https://example.test/${path}.png`);
+  const source = { manifest: { chromeElements: {} } };
+  bindRasterOwner(source, owner); t.after(owner.dispose);
+  const theme = { kind: 'owned-theme', origin: '', source, imageUrl: owner.imageUrl, dispose: owner.dispose };
+  const first = themeView(theme).asset('first');
+  assert.equal(owner.usage().images, 0);
+  owner.references.set('first', owner.references.get('replacement'));
+  assert.equal(await first.imageUrl(), 'https://example.test/first.png');
+  assert.deepEqual([...(await first.pixels()).data], [21, 34, 55, 255]);
+  owner.dispose();
+  await assert.rejects(first.pixels(), { name: 'AbortError' });
+  await assert.rejects(first.imageUrl(), { name: 'AbortError' });
+  await assert.rejects(first.dimensions(), { name: 'AbortError' });
+  const legacy = { baseUrl: '/before', manifest: { chromeElements: {} } };
+  const captured = themeView(legacy).asset('image.png');
+  legacy.baseUrl = '/after';
+  assert.equal(await captured.imageUrl(), '/before/image.png');
+});
+
+const diagnosticFamilies = [
+  ['tab', -9975, (theme, diagnostics) => composeTab(theme, { diagnostics })],
+  ['bevel', -10163, (theme, diagnostics) => composeBevelButton(theme, { on: true, diagnostics })],
+  ['header', -9567, (theme, diagnostics) => composeHeaderSurface(theme, {
+    kind: 'window-header', width: 30, height: 20, drawState: 1, diagnostics,
+    compositionContext: { controlOrigin: [0, 0], portOrigin: [0, 0], patternOrigin: { status: 'known', offset: [0, 0] },
+      clip: { kind: 'rect', rect: { x: 0, y: 0, w: 30, h: 20 } } },
+  })],
+];
+function diagnosticTheme(id, encoder) {
+  const owner = createRasterAssetOwner(['first', 'replacement'].map((path, i) => ({ path, width: 3, height: 3,
+    rgba: new Uint8Array(Array.from({ length: 9 }, () => i ? [200, 201, 202, 255] : [21, 34, 55, 255]).flat()) })), encoder);
+  const face = { sourceCicnId: id, sourceCinfId: null, asset: owner.references.get('first'), width: 3, height: 3 };
+  const source = { manifest: { chromeElements: { face }, patterns: {} } };
+  bindRasterOwner(source, owner);
+  return { owner, face, theme: { kind: 'owned-theme', origin: '/diagnostic', source, imageUrl: owner.imageUrl, dispose: owner.dispose } };
+}
+for (const [family, id, render] of diagnosticFamilies) {
+  test(`${family} diagnostic export preserves primary errors and completes once`, async t => {
+    const primary = new Error('selected image export failed');
+    const { theme } = diagnosticTheme(id, () => { throw primary; }); t.after(theme.dispose);
+    let completed = 0;
+    await assert.rejects(render(theme, { onComplete(trace) {
+      completed++; assert.equal(trace.outcome.status, 'error');
+      assert.equal(JSON.stringify(trace).includes('scriptoscope-raster:'), false);
+      throw new Error('diagnostic callback failed too');
+    } }), error => error === primary);
+    assert.equal(completed, 1);
+  });
+  test(`${family} held image export keeps selected identity and aborts on owner disposal`, async t => {
+    for (const dispose of [false, true]) {
+      let begin, release;
+      const entered = new Promise(resolve => { begin = resolve; });
+      const held = new Promise(resolve => { release = resolve; });
+      const { theme, owner, face } = diagnosticTheme(id, async (_rgba, _w, _h, path) => {
+        begin(); await held; return `https://example.test/${path}.png`;
+      }); t.after(theme.dispose);
+      let completed = 0, observed;
+      const pending = render(theme, { onComplete(trace) { completed++; observed = trace; } });
+      await entered;
+      face.asset = owner.references.get('replacement');
+      if (dispose) theme.dispose();
+      release();
+      if (dispose) await assert.rejects(pending, { name: 'AbortError' }); else await pending;
+      assert.equal(completed, 1);
+      assert.equal(JSON.stringify(observed).includes('scriptoscope-raster:'), false);
+      if (!dispose) {
+        assert.ok(observed.steps.some(step => step.resource?.assetUrl === 'https://example.test/first.png'));
+        assert.equal(observed.steps.some(step => step.resource?.assetUrl === 'https://example.test/replacement.png'), false);
+        assert.equal(owner.usage().images, 1);
+      } else {
+        assert.equal(observed.outcome.status, 'error');
+        assert.equal(owner.usage().pixelBytes, 0);
+        assert.equal(owner.usage().pending, 0);
+      }
+    }
+  });
+}

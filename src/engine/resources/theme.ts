@@ -23,7 +23,7 @@ import type { ChromeElement } from '../../types.js';
 import type { Pixmap } from '../qd/types.js';
 import type { ResourceSelection } from '../trace.js';
 import { ResourceChain, mapProvider, type ResourceProvider } from './chain.js';
-import { themeView, type ThemeInput, type ThemeView } from '../../ownedTheme.js';
+import { themeView, type ThemeInput, type ThemeView, type RasterSource } from '../../ownedTheme.js';
 import { ownerDisplayPolicyMatches, realizeRgb16 } from '../../../tools/theme-loader/display-profile.js';
 import { decodeCinfHeader, type CinfIconSource } from '../qd/cinfFrame.js';
 import { CINF_SAMPLE } from '../tables/cinfFrame.js';
@@ -51,7 +51,7 @@ function sampledDeclaration(element: ChromeElement, theme: ThemeView) {
     ? descriptor : undefined;
 }
 
-type PreparedPattern = { owner: ThemeView; ref: string; selection: ResourceSelection } | { status: 'unknown'; reason: string } | null;
+type PreparedPattern = { source: RasterSource; selection: ResourceSelection } | { status: 'unknown'; reason: string } | null;
 /** Modern same-face-owner binding; generic resource lookup retains its policy. */
 function prepareBodyPattern(theme: ThemeView, face: Pick<ChromeElement, 'bodyPattern' | 'bgPattern'>, id: number): PreparedPattern {
   const entries = Object.entries(theme.manifest.patterns ?? {});
@@ -61,8 +61,8 @@ function prepareBodyPattern(theme: ThemeView, face: Pick<ChromeElement, 'bodyPat
   const candidates = linked ? [linked] : entries.filter(usable);
   if (candidates.length === 1) {
     const [manifestKey, pattern] = candidates[0]!;
-    const url = theme.assetKey(pattern.asset);
-    return { owner: theme, ref: pattern.asset, selection: { resource: { type: 'ppat', signedId: id, sourceCinfId: null, manifestKey, assetUrl: url,
+    const source = theme.asset(pattern.asset), url = source.key;
+    return { source, selection: { resource: { type: 'ppat', signedId: id, sourceCinfId: null, manifestKey, assetUrl: url,
       ...(pattern.byteProvenance ? { byteProvenance: { ...pattern.byteProvenance } } : {}) } } };
   }
   return candidates.length || entries.some(([, p]) => p.sourcePpatId === id) || theme.inspector?.ppatResources?.some(r => r.id === id)
@@ -85,7 +85,7 @@ async function themeProvider(theme: ThemeView, tier: 'archive' | 'base', name: s
   // aborted, or the owner released one of this chain's asset URLs).
   const load = (asset: string): Promise<Pixmap> => {
     if (life?.ended()) return Promise.reject(abortError());
-    return theme.pixels(asset);
+    return theme.asset(asset).pixels();
   };
   const entry = async ({ type, id }: { type: string; id: number }): Promise<[string, unknown] | null> => {
     const key = `${type}:${id}`;
@@ -117,10 +117,10 @@ async function themeProvider(theme: ThemeView, tier: 'archive' | 'base', name: s
       const status = el.samplingEquivalence?.status ?? null;
       if (traceProvenance) selections.set(key, { owner, resource: { type: 'cicn', signedId: el.sourceCicnId!,
         sourceCinfId: Number.isInteger(el.sourceCinfId) ? el.sourceCinfId! : null,
-        manifestKey: selected![0], assetUrl: theme.assetKey(el.asset),
+        manifestKey: selected![0], assetUrl: theme.asset(el.asset).key,
         ...(el.byteProvenance ? { byteProvenance: { ...el.byteProvenance } } : {}) } });
       if (id === clippedBodyId) return [key, { status: 'clipped' }];
-      const sampleAsset = el.asset;
+      const sampleAsset = el.asset, art = theme.asset(sampleAsset);
       // Preserve the actual preparation binding before copying the finite values.
       // Paths/dimensions and even equal census scalars cannot identify a provider.
       const sampleSource = el.engineColorSamples?.source;
@@ -133,8 +133,9 @@ async function themeProvider(theme: ThemeView, tier: 'archive' | 'base', name: s
       const bounds = selectedSource?.bounds;
       const finiteSamples = el.engineColorSamples ? structuredClone(el.engineColorSamples) : undefined;
       const companionAsset = el.iconBlit?.unmaskedAsset;
+      const companionRaster = companionAsset ? theme.asset(companionAsset) : undefined;
       const companionTransport = unmaskedSources && companionAsset
-        ? { assetUrl: theme.assetKey(companionAsset),
+        ? { assetUrl: theme.asset(companionAsset).key,
           ...(/^(?:scriptoscope-raster:|blob:|https?:|data:)/.test(companionAsset) ? {} : { derivedPath: companionAsset }) } : undefined;
       // Public push snapshots finite descriptors and URLs before ordinary decode.
       // Generic engine clients retain their existing eager sampling defaults.
@@ -144,7 +145,8 @@ async function themeProvider(theme: ThemeView, tier: 'archive' | 'base', name: s
       const validProof = finiteSampling(proof, theme);
       const matches = (a: typeof proof | typeof descriptor, pixmap: Pixmap) =>
         a?.width === pixmap.width && a.height === pixmap.height;
-      const sampledUrl = descriptor ? theme.assetKey(descriptor.asset) : undefined;
+      const sampledRaster = descriptor ? theme.asset(descriptor.asset) : undefined;
+      const sampledUrl = sampledRaster?.key;
       const sampledSource = traceProvenance && (lazySamples || status === 'different' && LINE_SAMPLED.has(id)) && descriptor
         ? { path: descriptor.derivedPath, assetUrl: sampledUrl!, model: descriptor.model, displayPolicy: descriptor.displayPolicy } : undefined;
       // All selected references and finite samples above are snapshotted before
@@ -152,10 +154,10 @@ async function themeProvider(theme: ThemeView, tier: 'archive' | 'base', name: s
       if (life?.ended()) throw abortError();
       const selection = selections.get(key);
       const [pixmap, companion, artImage, companionImage, sampledImage] = await Promise.all([
-        load(sampleAsset), companionAsset ? load(companionAsset) : Promise.resolve(null),
-        selection?.resource ? theme.imageUrl(sampleAsset) : undefined,
-        companionTransport ? theme.imageUrl(companionAsset!) : undefined,
-        sampledSource ? theme.imageUrl(descriptor!.asset) : undefined,
+        art.pixels(), companionRaster ? companionRaster.pixels() : Promise.resolve(null),
+        selection?.resource ? art.imageUrl() : undefined,
+        companionTransport ? companionRaster!.imageUrl() : undefined,
+        sampledSource ? sampledRaster!.imageUrl() : undefined,
       ]);
       if (life?.ended()) throw abortError();
       if (selection?.resource) selections.set(key, { ...selection, resource: { ...selection.resource, assetUrl: artImage! } });
@@ -169,7 +171,7 @@ async function themeProvider(theme: ThemeView, tier: 'archive' | 'base', name: s
       const prepareSampled = (): Promise<void> => pending ??= (async () => {
         if (equivalent || !eligible) return;
         if (life?.ended()) throw abortError();
-        const decoded = await theme.pixels(descriptor!.asset);
+        const decoded = await sampledRaster!.pixels();
         if (life?.ended()) throw abortError();
         if (decoded.width !== pixmap.width || decoded.height !== pixmap.height || decoded.data.length !== pixmap.data.length) return;
         for (let i = 3; i < pixmap.data.length; i += 4) if (decoded.data[i] !== pixmap.data[i]) return;
@@ -221,22 +223,22 @@ async function themeProvider(theme: ThemeView, tier: 'archive' | 'base', name: s
         if (!binding || 'status' in binding) return binding ? [key, binding] : null;
         if (life?.ended()) throw abortError();
         if (traceProvenance) selections.set(key, { ...binding.selection, owner: { baseUrl: bodyOwnerUrl!, chainDepth },
-          ...(binding.selection.resource ? { resource: { ...binding.selection.resource, assetUrl: await binding.owner.imageUrl(binding.ref) } } : {}) });
+          ...(binding.selection.resource ? { resource: { ...binding.selection.resource, assetUrl: await binding.source.imageUrl() } } : {}) });
         if (life?.ended()) throw abortError();
-        return [key, await binding.owner.pixels(binding.ref)];
+        return [key, await binding.source.pixels()];
       }
       const selected = patternEntries.find(([, e]) => e.sourcePpatId === id && e.asset);
       const p = selected?.[1];
-      const patternAsset = p?.asset;
+      const patternAsset = p?.asset, patternRaster = patternAsset ? theme.asset(patternAsset) : undefined;
       if (traceProvenance && p) {
         const resource = { type: 'ppat' as const, signedId: p.sourcePpatId!, sourceCinfId: null,
-          manifestKey: selected![0], assetUrl: theme.assetKey(patternAsset!),
+          manifestKey: selected![0], assetUrl: theme.asset(patternAsset!).key,
           ...(p.byteProvenance ? { byteProvenance: { ...p.byteProvenance } } : {}) };
         if (life?.ended()) throw abortError();
-        resource.assetUrl = await theme.imageUrl(patternAsset!);
+        resource.assetUrl = await patternRaster!.imageUrl();
         selections.set(key, { owner, resource });
       }
-      return patternAsset ? [key, await load(patternAsset)] : null;
+      return patternRaster ? [key, await patternRaster.pixels()] : null;
     }
     if (checkables && type === 'ics#') {
       const census = theme.inspector?.iconMaskResources;
@@ -306,11 +308,11 @@ function chainLife(theme: ThemeView, signal?: AbortSignal): ChainLife {
     const owner = t.lifetime;
     if (owner) { urls.add(owner.lifetime); released ||= owner.disposed; continue; }
     for (const e of Object.values(t.manifest.chromeElements ?? {})) {
-      for (const a of [e.asset, e.iconBlit?.unmaskedAsset, sampledDeclaration(e, t)?.asset]) if (a) urls.add(t.assetKey(a));
+      for (const a of [e.asset, e.iconBlit?.unmaskedAsset, sampledDeclaration(e, t)?.asset]) if (a) urls.add(t.asset(a).key);
     }
-    for (const p of Object.values(t.manifest.patterns ?? {})) if (p.asset) urls.add(t.assetKey(p.asset));
+    for (const p of Object.values(t.manifest.patterns ?? {})) if (p.asset) urls.add(t.asset(p.asset).key);
     for (const g of Object.values(t.glyphs ?? {})) if (g) urls.add(g);
-    for (const icon of t.inspector?.iconIndex ?? []) if (icon.unmaskedUrl) urls.add(t.assetKey(icon.unmaskedUrl));
+    for (const icon of t.inspector?.iconIndex ?? []) if (icon.unmaskedUrl) urls.add(t.asset(icon.unmaskedUrl).key);
   }
   const stop = onAssetUrlReleased(url => { if (urls.has(url)) released = true; });
   return { ended: () => !!signal?.aborted || released, close: stop };

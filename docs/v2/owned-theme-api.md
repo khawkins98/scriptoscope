@@ -1,9 +1,10 @@
 # Owned theme loading
 
 The render-focused loaders return an `OwnedTheme`, distinct from the existing
-ready-image `LoadedTheme`. Push/default buttons, window chrome and backgrounds,
-and scrollbars accept either contract. Other renderer entry points and default
-scanner loading are still being migrated in feature PR #480.
+ready-image `LoadedTheme`. All low-level window and control composition entry points accept either
+contract. Interactive sliders, checkables and disclosure controls, and button,
+form-control and tab promotion, use the same owned path. Default scanner loading
+and catalog image consumers are still being migrated in feature PR #480.
 
 ```ts
 import { loadOwnedTheme, interactiveButton, WindowManager, themeImageUrl, type OwnedTheme } from 'scriptoscope';
@@ -47,7 +48,9 @@ at disposal, including URLs completed by encoders after disposal.
 Eligible built-in raster inputs render without creating PNGs. Windows export
 only their selected CSS body tiles; their native dimensions come from the shared
 pixel source. Internal render views expose neither synchronous image URLs nor
-theme disposal. Fractional-alpha
+theme disposal. A captured asset binds its owner and transport identity before
+awaiting pixels or a diagnostic image; later edits to a manifest or legacy bundle
+URL do not redirect that prepared source. Fractional-alpha
 inputs retain browser readback to preserve channel rounding. A custom
 `assetUrlFactory` remains authoritative: drawing must export and decode its image,
 because the factory may transform the supplied pixels. Requested public control
@@ -65,8 +68,8 @@ parameterize it with `OwnedTheme` or `ThemeInput` for the owned path. Its
 `describe()` result preserves the original input identity. Default declarative
 mount loading remains unchanged in this slice.
 
-Aborted or disposed button composition does not publish a completed
-buffer. Renderers borrow source arrays; callers must not mutate those arrays.
+Disposed composition does not publish a completed buffer. Shared renderer
+preparation checks theme and base lifetimes before and after asynchronous work. Renderers borrow source arrays; callers must not mutate those arrays.
 
 The owner tracks registered backing buffers, in-flight encoding buffers, image
 exports and pending work. These counters do not include externally borrowed
@@ -74,10 +77,17 @@ buffers or total browser/process memory; final migration measurements must cover
 those separately. An in-flight encoder can retain pixels until it settles even
 after disposal begins.
 
-The production transport comparator exercises source and built entries, legacy
-and owned base inheritance, clipped and unclipped composition, browser and
-synthetic prepared bitmap labels, real image exports, diagnostic URL fields,
-interactive activation and disposal. Window comparisons cover chrome pixels,
+The production transport comparator exercises every renderer family through
+source and built entries, legacy and owned base inheritance, clipped and
+unclipped composition, browser and synthetic prepared bitmap labels, real image
+exports, diagnostic URL fields, interactive activation and disposal. Missing art
+and unsupported census outcomes are compared separately from painted buffers;
+a declared-empty base tier is distinct from an unobserved one. Window comparisons cover chrome pixels,
 layout, CSS tile pixels and scale, and inherited owner selection. A mounted
 owned window also retains its interactive content through retheming. It establishes transport regression parity,
 not additional historical engine or font fidelity.
+
+Owned diagnostic export failures occur within renderer preparation. Completion
+runs once with an error outcome and preserves the original renderer/export error
+if the diagnostic callback also throws. An unresolved private reference is never
+reported as a usable diagnostic image URL.

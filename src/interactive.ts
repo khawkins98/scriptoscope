@@ -205,7 +205,7 @@ interface Toggle {
 }
 
 async function buildToggle(
-  theme: LoadedTheme,
+  theme: ThemeInput,
   kind: 'checkbox' | 'radio',
   opts: InteractiveCheckableOptions,
 ): Promise<Toggle> {
@@ -261,7 +261,7 @@ async function buildToggle(
 
 /** A standalone interactive checkbox. */
 export async function interactiveCheckbox(
-  theme: LoadedTheme,
+  theme: ThemeInput,
   opts: InteractiveCheckableOptions = {},
 ): Promise<HTMLElement> {
   return (await buildToggle(theme, 'checkbox', opts)).el;
@@ -270,7 +270,7 @@ export async function interactiveCheckbox(
 /** A standalone interactive radio (group exclusivity is the consumer's job — when wrapping native
  *  inputs, the browser handles it via shared `name`; the visual sync is via `_scriptoscopeSetChecked`). */
 export async function interactiveRadio(
-  theme: LoadedTheme,
+  theme: ThemeInput,
   opts: InteractiveCheckableOptions = {},
 ): Promise<HTMLElement> {
   return (await buildToggle(theme, 'radio', opts)).el;
@@ -289,7 +289,7 @@ export interface RadioGroupOptions {
  * exclusivity the kind='radio' toggle can't enforce alone). Returns a container
  * `role=radiogroup` of the rendered radios.
  */
-export async function radioGroup(theme: LoadedTheme, opts: RadioGroupOptions): Promise<HTMLElement> {
+export async function radioGroup(theme: ThemeInput, opts: RadioGroupOptions): Promise<HTMLElement> {
   const { items, value, disabled = false, scale = 1, onChange } = opts;
   const group = document.createElement('div');
   group.setAttribute('role', 'radiogroup');
@@ -325,7 +325,7 @@ export interface InteractiveDisclosureOptions {
  * open state via `onToggle` (wire it to show/hide content).
  */
 export async function interactiveDisclosure(
-  theme: LoadedTheme,
+  theme: ThemeInput,
   opts: InteractiveDisclosureOptions = {},
 ): Promise<HTMLElement> {
   const { scale = 1, onToggle } = opts;
@@ -674,7 +674,7 @@ function sliderPressTracker(el: HTMLElement): {
   };
 }
 
-export async function interactiveNativeSlider(theme: LoadedTheme, input: HTMLInputElement,
+export async function interactiveNativeSlider(theme: ThemeInput, input: HTMLInputElement,
   active: () => boolean): Promise<HTMLElement> {
   const el = document.createElement('span'); el.className = 'scriptoscope-slider';
   const press = sliderPressTracker(el);
@@ -690,7 +690,7 @@ export async function interactiveNativeSlider(theme: LoadedTheme, input: HTMLInp
 }
 
 /** A draggable slider (themed where the scheme's slider CDEF draws, else procedural). */
-export async function interactiveSlider(theme: LoadedTheme, opts: InteractiveSliderOptions = {}): Promise<HTMLElement> {
+export async function interactiveSlider(theme: ThemeInput, opts: InteractiveSliderOptions = {}): Promise<HTMLElement> {
   const { orientation = 'horizontal', length = 120, value = 0.5, scale = 1, onChange } = opts;
   const el = document.createElement('span');
   el.className = 'scriptoscope-slider';
@@ -707,7 +707,7 @@ export async function interactiveSlider(theme: LoadedTheme, opts: InteractiveSli
 }
 
 /** A draggable scrollbar thumb (drag along the track sets the position). */
-export async function interactiveScrollbar(theme: LoadedTheme, opts: InteractiveScrollbarOptions = {}): Promise<HTMLElement> {
+export async function interactiveScrollbar(theme: ThemeInput, opts: InteractiveScrollbarOptions = {}): Promise<HTMLElement> {
   const { orientation = 'vertical', length = 120, value = 0.3, thumbExtent = 0.3, scale = 1, onChange } = opts;
   const el = document.createElement('span');
   el.className = 'scriptoscope-scrollbar';
@@ -772,7 +772,7 @@ export class ProgressIdle {
   }
 
   /** Draw the current phase (one frame) and keep the phase the draw reports. */
-  async compose(theme: LoadedTheme, opts: Omit<ProgressOptions, 'indeterminate' | 'phase'> = {}): Promise<PixelBuffer> {
+  async compose(theme: ThemeInput, opts: Omit<ProgressOptions, 'indeterminate' | 'phase'> = {}): Promise<PixelBuffer> {
     const frame = await composeProgressFrame(theme, { ...opts, indeterminate: this.indeterminate, phase: this.record.phase });
     this.record.phase = frame.phase;
     return frame.buffer;

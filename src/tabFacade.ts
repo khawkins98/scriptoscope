@@ -4,8 +4,7 @@ import type { ChromeElement, LoadedTheme } from './types.js';
 import type { TabOptions } from './controls.js';
 import type { ControlTraceCollector, ControlResolutionStep, TabBodyTrace } from './controlDiagnostics.js';
 import { withControlDiagnostics } from './controlDiagnostics.js';
-import { assetUrl } from './loadTheme.js';
-import { loadCicnBuffer } from './cicnImage.js';
+import { withThemeView, type ThemeInput, type ThemeView, type RasterSource } from './ownedTheme.js';
 import { PixelBuffer } from './pixelBuffer.js';
 import { rasterizeText } from './textRaster.js';
 import { ownerDisplayPolicyMatches, realizeRgb16, DisplayProfileError, assertDisplayProfileChain } from '../tools/theme-loader/display-profile.js';
@@ -17,29 +16,28 @@ import { decodeCinfHeader } from './engine/qd/cinfFrame.js';
 import { CINF_SAMPLE } from './engine/tables/cinfFrame.js';
 import type { Rgba } from './engine/qd/types.js';
 
-type Selection = { theme: LoadedTheme; key: string; element: ChromeElement; chainDepth: number };
+type Selection = { requestedId: number; theme: ThemeView; key: string; element: ChromeElement; chainDepth: number };
 type Identity = Pick<ControlResolutionStep, 'owner' | 'resource'>;
 function identity(hit: Selection): Identity {
   const el = hit.element;
-  return { owner: { baseUrl: hit.theme.baseUrl, chainDepth: hit.chainDepth },
+  return { owner: { baseUrl: hit.theme.origin, chainDepth: hit.chainDepth },
     resource: { type: 'cicn', signedId: el.sourceCicnId!, sourceCinfId: Number.isInteger(el.sourceCinfId) ? el.sourceCinfId! : null,
-      manifestKey: hit.key, assetUrl: assetUrl(hit.theme, el.asset),
+      manifestKey: hit.key, assetUrl: hit.theme.asset(el.asset).key,
       ...(el.byteProvenance ? { byteProvenance: structuredClone(el.byteProvenance) } : {}) } };
 }
-function selectTab(theme: LoadedTheme, selected: boolean, trace?: ControlTraceCollector): Selection | null {
+function selectTab(theme: ThemeView, selected: boolean, trace?: ControlTraceCollector): Selection | null {
   for (const [index, id] of TAB_FACADE.find(row => row.selected === selected)!.ids.entries()) {
     const step = { role: 'face', requestedId: id, basis: 'compatibility-policy', usage: 'paint' } as const;
     if (index) trace?.record({ ...step, action: 'fallback', reason: 'tab-small-to-large' });
-    const seen = new Set<LoadedTheme>();
+    const seen = new Set<ThemeView>();
     let chainDepth = 0;
-    for (let owner: LoadedTheme | undefined = theme; owner && !seen.has(owner); owner = owner.base, chainDepth++) {
+    for (let owner: ThemeView | undefined = theme; owner && !seen.has(owner); owner = owner.base, chainDepth++) {
       seen.add(owner);
-      const where = { baseUrl: owner.baseUrl, chainDepth };
+      const where = { baseUrl: owner.origin, chainDepth };
       if (chainDepth) trace?.record({ ...step, owner: where, action: 'fallback', reason: 'base-inheritance' });
       const entry = Object.entries(owner.manifest.chromeElements ?? {}).find(([, e]) => Number.isInteger(e.sourceCicnId) && Math.abs(e.sourceCicnId!) === Math.abs(id));
       if (!entry) { trace?.record({ ...step, owner: where, action: 'missing', reason: 'missing-resource' }); continue; }
-      const hit = { theme: owner, key: entry[0], element: entry[1], chainDepth };
-      trace?.record({ ...step, ...identity(hit), action: 'selected', reason: hit.element.sourceCicnId! > 0 ? 'positive-id-alias' : 'resource-id' });
+      const hit = { requestedId: id, theme: owner, key: entry[0], element: entry[1], chainDepth };
       return hit;
     }
   }
@@ -63,26 +61,26 @@ function finiteRgb(values: readonly number[] | undefined, maximum: number): valu
   return Array.isArray(values) && values.length === 3 && Array.from(values).every(v => Number.isInteger(v) && v >= 0 && v <= maximum);
 }
 /** A matching-size/owner-display record is a finite declaration, not device proof. */
-function samplingEquivalent(el: ChromeElement, owner: LoadedTheme, source: PixelBuffer): boolean {
+function samplingEquivalent(el: ChromeElement, owner: ThemeView, source: PixelBuffer): boolean {
   const proof = el.samplingEquivalence;
   return proof?.model === 'kaleidoscope-2.3.1-opaque-sampling-v1' && proof.comparison === 'opaque-current-display-rgb'
     && proof.status === 'equivalent' && proof.width === source.width && proof.height === source.height
     && ownerDisplayPolicyMatches(owner.manifest, proof.displayPolicy);
 }
-async function sampledCompanion(el: ChromeElement, owner: LoadedTheme, source: PixelBuffer): Promise<PixelBuffer | null> {
+async function sampledCompanion(el: ChromeElement, owner: ThemeView, source: PixelBuffer, raster: RasterSource | undefined): Promise<PixelBuffer | null> {
   const descriptor = el.sampledBandAsset;
   if (!descriptor || descriptor.model !== 'kaleidoscope-2.3.1-opaque-sampling-v1'
     || descriptor.comparison !== 'opaque-current-display-rgb' || descriptor.width !== source.width || descriptor.height !== source.height
     || !ownerDisplayPolicyMatches(owner.manifest, descriptor.displayPolicy)
     || typeof descriptor.asset !== 'string' || !descriptor.asset.trim()
     || typeof descriptor.derivedPath !== 'string' || !descriptor.derivedPath.trim()) return null;
-  const sampled = await loadCicnBuffer(assetUrl(owner, descriptor.asset));
+  const sampled = await raster!.pixels();
   return validTabCompanion(source, sampled) ? sampled : null;
 }
 
 type PatternBinding = { status: 'missing' } | { status: 'unsupported'; reason: string }
-  | { status: 'ready'; url: string; resource: NonNullable<ControlResolutionStep['resource']> };
-function bindPattern(owner: LoadedTheme, face: ChromeElement, id: number): PatternBinding {
+  | { status: 'ready'; raster: RasterSource; resource: NonNullable<ControlResolutionStep['resource']> };
+function bindPattern(owner: ThemeView, face: ChromeElement, id: number): PatternBinding {
   const entries = Object.entries(owner.manifest.patterns ?? {});
   const linked = [face.bodyPattern, face.bgPattern].map(key => entries.find(([k, p]) => k === key && p.sourcePpatId === id)).find(Boolean);
   const candidates = linked ? [linked] : entries.filter(([, p]) => p.sourcePpatId === id);
@@ -92,9 +90,9 @@ function bindPattern(owner: LoadedTheme, face: ChromeElement, id: number): Patte
     ? { status: 'unsupported', reason: 'undecoded-same-owner-ppat' } : { status: 'missing' };
   const [key, p] = entry;
   if (typeof p.asset !== 'string' || !p.asset.trim()) return { status: 'unsupported', reason: 'undecoded-same-owner-ppat' };
-  const url = assetUrl(owner, p.asset);
-  return { status: 'ready', url, resource: { type: 'ppat', signedId: id, sourceCinfId: null,
-    manifestKey: key, assetUrl: url, ...(p.byteProvenance ? { byteProvenance: structuredClone(p.byteProvenance) } : {}) } };
+  const raster = owner.asset(p.asset);
+  return { status: 'ready', raster, resource: { type: 'ppat', signedId: id, sourceCinfId: null,
+    manifestKey: key, assetUrl: raster.key, ...(p.byteProvenance ? { byteProvenance: structuredClone(p.byteProvenance) } : {}) } };
 }
 /** Public labels deliberately retain the contrast/font policy from tab.md §5. */
 function labelRaster(source: PixelBuffer, b: ReturnType<typeof opaqueBounds>, label: string) {
@@ -104,8 +102,9 @@ function labelRaster(source: PixelBuffer, b: ReturnType<typeof opaqueBounds>, la
   const foreground = lum < TAB_LABEL.threshold ? TAB_LABEL.light : TAB_LABEL.dark;
   return { foreground, glyphs: label ? rasterizeText(label, Math.max(TAB_LABEL.minimumSize, Math.round(bh * TAB_LABEL.heightFactor)), foreground) : null };
 }
-function observeBands(input: TabInput, selected: Identity, el: ChromeElement, owner: LoadedTheme, trace?: ControlTraceCollector): void {
+async function observeBands(input: TabInput, selected: Identity, el: ChromeElement, companion: RasterSource | undefined, trace?: ControlTraceCollector): Promise<void> {
   if (!trace || !selected.owner || !selected.resource) return;
+  let companionUrl: string | undefined;
   const box = (r: TabInput['destination']) => ({ x: r.left, y: r.top, w: r.right - r.left, h: r.bottom - r.top });
   for (const [region, p] of tabBandPlan(input).entries()) {
     if (emptyRect(p.src) || emptyRect(p.dst)) continue;
@@ -116,11 +115,12 @@ function observeBands(input: TabInput, selected: Identity, el: ChromeElement, ow
       if (input.source.data[(sy * input.source.width + sx) * TAB_DOMAIN.channels + TAB_DOMAIN.channels - 1]) { opaque = true; break; }
     }
     if (!opaque) continue;
+    if (p.lines && !input.samplingEquivalent && companion) companionUrl ??= await companion.imageUrl();
     trace.bandPaint({ role: 'face', region, sourceRect: box(p.src), destinationRect: box(p.dst),
       owner: selected.owner, resource: selected.resource, branch: p.lines ? 'horizontal-lines' : 'copy',
       policy: p.lines ? input.samplingEquivalent ? 'equivalent-raster' : 'sampled-companion' : 'ordinary-raster',
       ...(p.lines && !input.samplingEquivalent && el.sampledBandAsset ? { derived: {
-        path: el.sampledBandAsset.derivedPath, assetUrl: assetUrl(owner, el.sampledBandAsset.asset),
+        path: el.sampledBandAsset.derivedPath, assetUrl: companionUrl!,
         model: el.sampledBandAsset.model, displayPolicy: el.sampledBandAsset.displayPolicy } } : {}) });
   }
 }
@@ -163,7 +163,7 @@ function admitOrigin(el: ChromeElement, source: PixelBuffer): string {
   if (supplied('boundsOrigin') && (!el.boundsOrigin || el.boundsOrigin.left !== 0 || el.boundsOrigin.top !== 0)) return 'invalid-source-origin';
   return 'declared-zero-origin';
 }
-export function tabBodyColors(el: ChromeElement, owner: LoadedTheme, source: PixelBuffer, equivalent: boolean, strongValid: boolean, backgroundNeeded: boolean) {
+export function tabBodyColors(el: ChromeElement, owner: Pick<LoadedTheme, 'manifest'>, source: PixelBuffer, equivalent: boolean, strongValid: boolean, backgroundNeeded: boolean) {
   let backgroundPolicy: 'none' | 'raw-sample' | 'decoded-anchor' = 'none';
   let failure: string | undefined;
   const read = (): Rgba | null => {
@@ -204,90 +204,102 @@ export function tabBodyColors(el: ChromeElement, owner: LoadedTheme, source: Pix
   return { backgroundRGB, textRGB: null, embossRGB: null, failure, backgroundPolicy: backgroundPolicy as 'none' | 'raw-sample' | 'decoded-anchor' };
 }
 
-export async function composeEngineTab(theme: LoadedTheme, opts: TabOptions): Promise<PixelBuffer | null> {
-  const selected = !!opts.selected, label = opts.label ?? '';
-  return withControlDiagnostics(opts.diagnostics, 'tab', { state: 'active', pressed: false, disabled: false, selected }, async trace => {
-    assertDisplayProfileChain(theme, theme.manifest.displayProfile);
-    const hit = selectTab(theme, selected, trace);
-    const requestedId = TAB_FACADE.find(row => row.selected === selected)!.ids[0];
-    let sourceWidth = 0, sourceHeight = 0, requestedWidth = 0;
-    const chosen = hit ? identity(hit) : {};
-    const unavailable = (outcome: Extract<TabBodyTrace, { path: 'unavailable' }>['outcome'], reason: string): null => {
-      trace?.record({ role: 'face', requestedId: -Math.abs(chosen.resource?.signedId ?? requestedId), ...chosen,
-        action: outcome === 'missing-art' ? 'missing' : 'rejected', basis: 'compatibility-policy', usage: 'admission', reason: `${outcome}:${reason}` });
-      trace?.tabBody({ path: 'unavailable', basis: 'compatibility-policy', outcome, reason, sourceWidth, sourceHeight, requestedWidth });
-      return null;
-    };
-    if (!hit) return unavailable('missing-art', 'all-public-candidates-absent');
-    // Snapshot all finite owner/occurrence inputs before decode, retaining only
-    // an already-validated strong identity fact across structured cloning.
-    const original = hit.element, occurrence = original.cicnSource;
-    const strongValid = !!occurrence && original.engineColorSamples?.source === occurrence
-      && occurrence.id === original.sourceCicnId && (!original.byteProvenance || original.byteProvenance.cicnResourceIndex === occurrence.resourceIndex)
-      && hit.theme.inspector?.cicnResources?.filter(r => r.id === occurrence.id).length === 1
-      && hit.theme.inspector.cicnResources.find(r => r.id === occurrence.id) === occurrence;
-    const owner: LoadedTheme = { ...hit.theme, manifest: { ...hit.theme.manifest,
-      ...(hit.theme.manifest.displayProfile ? { displayProfile: hit.theme.manifest.displayProfile } : {}),
-      patterns: structuredClone(hit.theme.manifest.patterns ?? {}) },
-      ...(hit.theme.inspector ? { inspector: { ...hit.theme.inspector, ...(hit.theme.inspector.ppatResources ? { ppatResources: structuredClone(hit.theme.inspector.ppatResources) } : {}) } } : {}) };
-    const frozen = structuredClone(original);
-    const bytes = owner.manifest.engineCinfs?.[String(frozen.sourceCicnId)];
-    const prepared = prepareMetadata(frozen, bytes === undefined ? undefined : structuredClone(bytes));
-    const url = chosen.resource!.assetUrl;
-    const source = await loadCicnBuffer(url);
-    sourceWidth = source.width; sourceHeight = source.height; requestedWidth = source.width;
-    const b = opaqueBounds(source);
-    if (b.right < b.left || b.bottom < b.top) return unavailable('empty-art', 'selected-icon-has-no-opaque-pixels');
-    if (prepared === 'no-cinf-no-paint') return unavailable('no-cinf-no-paint', 'declared-no-cinf');
-    if (typeof prepared === 'string') return unavailable('unsupported-metadata', prepared);
-    const el = prepared;
-    if (el.width !== source.width || el.height !== source.height) return unavailable('unsupported-metadata', 'declared-dimensions-mismatch');
-    const origin = admitOrigin(el, source);
-    if (origin.startsWith('invalid-')) return unavailable('unsupported-metadata', origin);
-    trace?.record({ role: 'face', requestedId: frozen.sourceCicnId!, ...chosen, action: 'selected', usage: 'admission',
-      basis: 'compatibility-policy', reason: `${origin};prepared-binary-alpha-mask-policy` });
-    const m = metadata(el);
-    if (typeof m === 'string') return unavailable('unsupported-metadata', m);
-    // Validate the body before invoking the public text rasterizer.
-    const invalid = admitTabGeometry(source, rect(0, 0, source.height, source.width), m);
-    if (invalid) return unavailable('unsupported-metadata', invalid);
-    const { foreground, glyphs } = labelRaster(source, b, label);
-    requestedWidth = Math.max(source.width, (glyphs?.width ?? 0) + 2 * m.corner + TAB_LABEL.padding);
-    const input: TabInput = { source, destination: rect(0, 0, source.height, requestedWidth), metadata: m,
-      samplingEquivalent: samplingEquivalent(el, owner, source) };
-    const invalidOutput = admitTabGeometry(source, input.destination, m);
-    if (invalidOutput) return unavailable('unsupported-metadata', invalidOutput);
-    if (tabNeedsSampledBands(input) && !input.samplingEquivalent) {
-      input.sampled = await sampledCompanion(el, owner, source);
-      if (!input.sampled) return unavailable('unsupported-sampling', 'sampled-band-companion-or-equivalence-unavailable');
-    }
-    let pattern: PatternBinding = { status: 'missing' };
-    if (!emptyRect(tabCenter(input)) && m.patternId !== 0) {
-      pattern = bindPattern(owner, el, m.patternId);
-      if (pattern.status === 'unsupported') return unavailable('unsupported-pattern', pattern.reason);
-      trace?.record({ role: 'body-fill', requestedId: m.patternId, bodyMode: m.mode, requestedResourceType: 'ppat',
-        owner: chosen.owner!, ...(pattern.status === 'ready' ? { resource: pattern.resource } : {}),
-        action: pattern.status === 'ready' ? 'selected' : 'missing', basis: 'compatibility-policy', usage: 'paint',
-        reason: pattern.status === 'ready' ? 'same-selected-face-owner-pattern' : 'missing-pattern-solid-erase' });
-      if (pattern.status === 'ready') input.pattern = await loadCicnBuffer(pattern.url);
-    }
-    const colors = tabBodyColors(el, owner, source, !!input.samplingEquivalent, strongValid, !emptyRect(tabCenter(input)) && !input.pattern);
-    Object.assign(input, colors);
-    if (!emptyRect(tabCenter(input)) && !input.pattern && !input.backgroundRGB)
-      return unavailable('unsupported-sampling', colors.failure ?? 'background-sample-unavailable-or-invalid');
-    const out = PixelBuffer.alloc(requestedWidth, source.height);
-    const body = drawTab(out, input);
-    if (!body.drawn) return unavailable(body.unsupported!, body.reason!);
-    observeBands(input, chosen, el, owner, trace);
-    if (glyphs) out.drawOver(glyphs, Math.round((out.width - glyphs.width) / 2), Math.round((b.bottom - b.top + 1 - glyphs.height) / 2) + 1);
-    trace?.textColors({ foreground, emboss: null, policy: 'contrast-fallback', embossDecision: 'unavailable', sampleFallbackReason: null,
-      labelPainted: !!glyphs, deviceMode: 'full-color-policy', sourceManifestKey: hit.key, sourceOwnerDepth: hit.chainDepth });
-    trace?.tabBody({ path: 'source-bands', basis: 'source-dispatch', center: body.center,
-      backgroundPolicy: body.center === 'solid' ? colors.backgroundPolicy : 'none', sourceWidth, sourceHeight, requestedWidth,
-      corner: m.corner, side: m.side, tile: m.tile, patternId: m.patternId,
-      patternMissing: m.patternId !== 0 && body.center === 'solid', phase: body.phase, labelBasis: 'modern-contrast-policy' });
-    if (colors.backgroundPolicy === 'raw-sample' && !el.engineColorSamples) trace?.record({ role: 'face', requestedId: frozen.sourceCicnId!, ...chosen,
-      action: 'selected', usage: 'admission', basis: 'compatibility-policy', reason: 'declared-local-role-samples' });
-    return out;
+export async function composeEngineTab(inputTheme: ThemeInput | ThemeView, opts: TabOptions): Promise<PixelBuffer | null> {
+  return withThemeView(inputTheme, async theme => {
+    const selected = !!opts.selected, label = opts.label ?? '';
+    return withControlDiagnostics(opts.diagnostics, 'tab', { state: 'active', pressed: false, disabled: false, selected }, async trace => {
+      assertDisplayProfileChain(theme, theme.manifest.displayProfile);
+      const hit = selectTab(theme, selected, trace);
+      const requestedId = TAB_FACADE.find(row => row.selected === selected)!.ids[0];
+      let sourceWidth = 0, sourceHeight = 0, requestedWidth = 0;
+      let chosen = hit ? identity(hit) : {};
+      const unavailable = (outcome: Extract<TabBodyTrace, { path: 'unavailable' }>['outcome'], reason: string): null => {
+        trace?.record({ role: 'face', requestedId: -Math.abs(chosen.resource?.signedId ?? requestedId), ...chosen,
+          action: outcome === 'missing-art' ? 'missing' : 'rejected', basis: 'compatibility-policy', usage: 'admission', reason: `${outcome}:${reason}` });
+        trace?.tabBody({ path: 'unavailable', basis: 'compatibility-policy', outcome, reason, sourceWidth, sourceHeight, requestedWidth });
+        return null;
+      };
+      if (!hit) return unavailable('missing-art', 'all-public-candidates-absent');
+      // Snapshot all finite owner/occurrence inputs before decode, retaining only
+      // an already-validated strong identity fact across structured cloning.
+      const original = hit.element, occurrence = original.cicnSource;
+      const strongValid = !!occurrence && original.engineColorSamples?.source === occurrence
+        && occurrence.id === original.sourceCicnId && (!original.byteProvenance || original.byteProvenance.cicnResourceIndex === occurrence.resourceIndex)
+        && hit.theme.inspector?.cicnResources?.filter(r => r.id === occurrence.id).length === 1
+        && hit.theme.inspector.cicnResources.find(r => r.id === occurrence.id) === occurrence;
+      const owner: ThemeView = { ...hit.theme, manifest: { ...hit.theme.manifest,
+        ...(hit.theme.manifest.displayProfile ? { displayProfile: hit.theme.manifest.displayProfile } : {}),
+        patterns: structuredClone(hit.theme.manifest.patterns ?? {}) },
+        ...(hit.theme.inspector ? { inspector: { ...hit.theme.inspector, ...(hit.theme.inspector.ppatResources ? { ppatResources: structuredClone(hit.theme.inspector.ppatResources) } : {}) } } : {}) };
+      const frozen = structuredClone(original);
+      const bytes = owner.manifest.engineCinfs?.[String(frozen.sourceCicnId)];
+      const prepared = prepareMetadata(frozen, bytes === undefined ? undefined : structuredClone(bytes));
+      const raster = hit.theme.asset(frozen.asset);
+      const companion = typeof frozen.sampledBandAsset?.asset === 'string' ? hit.theme.asset(frozen.sampledBandAsset.asset) : undefined;
+      const boundPattern = typeof prepared !== 'string' && prepared.bodyRequest
+        ? bindPattern(owner, prepared, prepared.bodyRequest.resourceId) : { status: 'missing' as const };
+      if (trace) {
+        const assetUrl = await raster.imageUrl();
+        chosen = { ...chosen, resource: { ...chosen.resource!, assetUrl } };
+        trace.record({ role: 'face', requestedId: hit.requestedId, ...chosen, action: 'selected', basis: 'compatibility-policy', usage: 'paint',
+          reason: frozen.sourceCicnId! > 0 ? 'positive-id-alias' : 'resource-id' });
+      }
+      const source = await raster.pixels();
+      sourceWidth = source.width; sourceHeight = source.height; requestedWidth = source.width;
+      const b = opaqueBounds(source);
+      if (b.right < b.left || b.bottom < b.top) return unavailable('empty-art', 'selected-icon-has-no-opaque-pixels');
+      if (prepared === 'no-cinf-no-paint') return unavailable('no-cinf-no-paint', 'declared-no-cinf');
+      if (typeof prepared === 'string') return unavailable('unsupported-metadata', prepared);
+      const el = prepared;
+      if (el.width !== source.width || el.height !== source.height) return unavailable('unsupported-metadata', 'declared-dimensions-mismatch');
+      const origin = admitOrigin(el, source);
+      if (origin.startsWith('invalid-')) return unavailable('unsupported-metadata', origin);
+      trace?.record({ role: 'face', requestedId: frozen.sourceCicnId!, ...chosen, action: 'selected', usage: 'admission',
+        basis: 'compatibility-policy', reason: `${origin};prepared-binary-alpha-mask-policy` });
+      const m = metadata(el);
+      if (typeof m === 'string') return unavailable('unsupported-metadata', m);
+      // Validate the body before invoking the public text rasterizer.
+      const invalid = admitTabGeometry(source, rect(0, 0, source.height, source.width), m);
+      if (invalid) return unavailable('unsupported-metadata', invalid);
+      const { foreground, glyphs } = labelRaster(source, b, label);
+      requestedWidth = Math.max(source.width, (glyphs?.width ?? 0) + 2 * m.corner + TAB_LABEL.padding);
+      const input: TabInput = { source, destination: rect(0, 0, source.height, requestedWidth), metadata: m,
+        samplingEquivalent: samplingEquivalent(el, owner, source) };
+      const invalidOutput = admitTabGeometry(source, input.destination, m);
+      if (invalidOutput) return unavailable('unsupported-metadata', invalidOutput);
+      if (tabNeedsSampledBands(input) && !input.samplingEquivalent) {
+        input.sampled = await sampledCompanion(el, owner, source, companion);
+        if (!input.sampled) return unavailable('unsupported-sampling', 'sampled-band-companion-or-equivalence-unavailable');
+      }
+      let pattern: PatternBinding = { status: 'missing' };
+      if (!emptyRect(tabCenter(input)) && m.patternId !== 0) {
+        pattern = boundPattern;
+        if (pattern.status === 'unsupported') return unavailable('unsupported-pattern', pattern.reason);
+        if (trace && pattern.status === 'ready') pattern = { ...pattern, resource: { ...pattern.resource, assetUrl: await pattern.raster.imageUrl() } };
+        trace?.record({ role: 'body-fill', requestedId: m.patternId, bodyMode: m.mode, requestedResourceType: 'ppat',
+          owner: chosen.owner!, ...(pattern.status === 'ready' ? { resource: pattern.resource } : {}),
+          action: pattern.status === 'ready' ? 'selected' : 'missing', basis: 'compatibility-policy', usage: 'paint',
+          reason: pattern.status === 'ready' ? 'same-selected-face-owner-pattern' : 'missing-pattern-solid-erase' });
+        if (pattern.status === 'ready') input.pattern = await pattern.raster.pixels();
+      }
+      const colors = tabBodyColors(el, owner, source, !!input.samplingEquivalent, strongValid, !emptyRect(tabCenter(input)) && !input.pattern);
+      Object.assign(input, colors);
+      if (!emptyRect(tabCenter(input)) && !input.pattern && !input.backgroundRGB)
+        return unavailable('unsupported-sampling', colors.failure ?? 'background-sample-unavailable-or-invalid');
+      const out = PixelBuffer.alloc(requestedWidth, source.height);
+      const body = drawTab(out, input);
+      if (!body.drawn) return unavailable(body.unsupported!, body.reason!);
+      await observeBands(input, chosen, el, companion, trace);
+      if (glyphs) out.drawOver(glyphs, Math.round((out.width - glyphs.width) / 2), Math.round((b.bottom - b.top + 1 - glyphs.height) / 2) + 1);
+      trace?.textColors({ foreground, emboss: null, policy: 'contrast-fallback', embossDecision: 'unavailable', sampleFallbackReason: null,
+        labelPainted: !!glyphs, deviceMode: 'full-color-policy', sourceManifestKey: hit.key, sourceOwnerDepth: hit.chainDepth });
+      trace?.tabBody({ path: 'source-bands', basis: 'source-dispatch', center: body.center,
+        backgroundPolicy: body.center === 'solid' ? colors.backgroundPolicy : 'none', sourceWidth, sourceHeight, requestedWidth,
+        corner: m.corner, side: m.side, tile: m.tile, patternId: m.patternId,
+        patternMissing: m.patternId !== 0 && body.center === 'solid', phase: body.phase, labelBasis: 'modern-contrast-policy' });
+      if (colors.backgroundPolicy === 'raw-sample' && !el.engineColorSamples) trace?.record({ role: 'face', requestedId: frozen.sourceCicnId!, ...chosen,
+        action: 'selected', usage: 'admission', basis: 'compatibility-policy', reason: 'declared-local-role-samples' });
+      return out;
+    });
   });
 }
