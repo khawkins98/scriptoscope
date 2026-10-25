@@ -41,6 +41,9 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ### Fixed
 
+- Secondary and auxiliary clicks no longer invoke themed button primary actions
+  through the imperative or promoted path; primary clicks, Space and Enter retain
+  activation.
 - Keep declarative tab panels outside the semantic tab list. The generated strip
   preserves native button identity, keyboard selection and retheme behavior while
   giving assistive technology the correct tab/panel structure.

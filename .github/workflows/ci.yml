@@ -119,6 +119,9 @@ jobs:
       - name: Installed package consumer contract
         run: npm run test:package
 
+      - name: Browser button activation regression
+        run: node --test tests/visual-baselines/button-activation.spec.mjs
+
       # The immutable Linux image and exact Playwright package pin Chromium. Browser
       # coverage exercises real consumer DOM and the built public entry as well
       # as raw source pixels; gates alone cannot see CSS decoration regressions.

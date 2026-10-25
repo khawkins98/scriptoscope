@@ -174,9 +174,12 @@ export async function interactiveButton(
     if (fire && onClick) onClick();
   };
   // Pointer events cover mouse + touch + pen in one path. pointerleave releases without firing the
-  // click (canceled drag-away); pointerup fires it.
-  listenUntilAborted(events.signal, el, 'pointerdown', (e) => { e.preventDefault(); press(); });
-  listenUntilAborted(events.signal, el, 'pointerup', () => release(true));
+  // click (canceled drag-away); only the primary button can press or activate.
+  listenUntilAborted(events.signal, el, 'pointerdown', (e) => {
+    if (e.button !== 0) return;
+    e.preventDefault(); press();
+  });
+  listenUntilAborted(events.signal, el, 'pointerup', (e) => { if (e.button === 0) release(true); });
   listenUntilAborted(events.signal, el, 'pointerleave', () => release(false));
   listenUntilAborted(events.signal, el, 'keydown', (e) => { if (KEY_ACTIVATE(e)) { e.preventDefault(); press(); } });
   listenUntilAborted(events.signal, el, 'keyup', (e) => { if (KEY_ACTIVATE(e)) { e.preventDefault(); release(true); } });
