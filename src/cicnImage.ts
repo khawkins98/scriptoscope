@@ -1,4 +1,5 @@
 import { onAssetUrlReleased } from '../tools/theme-loader/assetLifecycle.js';
+import { decodedRaster } from '../tools/theme-loader/rasterAssets.js';
 import { PixelBuffer } from './pixelBuffer.js';
 
 const cache = new Map<string, Promise<PixelBuffer>>();
@@ -15,6 +16,8 @@ export function loadCicnBuffer(url: string): Promise<PixelBuffer> {
   const hit = cache.get(url);
   if (hit) return hit;
   const p = (async () => {
+    const decoded = decodedRaster(url);
+    if (decoded) return new PixelBuffer(decoded.width, decoded.height, decoded.data);
     const img = new Image();
     img.src = url;
     await img.decode();

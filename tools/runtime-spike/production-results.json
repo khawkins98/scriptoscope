@@ -1,0 +1,195 @@
+{
+  "compared": 5184,
+  "disposedLoads": 36,
+  "equalErrors": 0,
+  "equalMissing": 0,
+  "errors": [],
+  "mismatches": [],
+  "painted": 5184,
+  "rasters": 18704,
+  "rows": [
+    {
+      "rasters": 608,
+      "slug": "1138",
+      "transport": "source"
+    },
+    {
+      "rasters": 533,
+      "slug": "1984",
+      "transport": "source"
+    },
+    {
+      "rasters": 413,
+      "slug": "1990",
+      "transport": "source"
+    },
+    {
+      "rasters": 553,
+      "slug": "animals",
+      "transport": "source"
+    },
+    {
+      "rasters": 671,
+      "slug": "apple-lisa",
+      "transport": "source"
+    },
+    {
+      "rasters": 392,
+      "slug": "apple-platinum-2",
+      "transport": "source"
+    },
+    {
+      "rasters": 870,
+      "slug": "beos-r503",
+      "transport": "source"
+    },
+    {
+      "rasters": 387,
+      "slug": "black-platinum",
+      "transport": "source"
+    },
+    {
+      "rasters": 398,
+      "slug": "crayon-os",
+      "transport": "source"
+    },
+    {
+      "rasters": 408,
+      "slug": "dolphin-som",
+      "transport": "source"
+    },
+    {
+      "rasters": 579,
+      "slug": "evolution",
+      "transport": "source"
+    },
+    {
+      "rasters": 791,
+      "slug": "floppies",
+      "transport": "source"
+    },
+    {
+      "rasters": 393,
+      "slug": "monkey-paradise",
+      "transport": "source"
+    },
+    {
+      "rasters": 291,
+      "slug": "platinum-8",
+      "transport": "source"
+    },
+    {
+      "rasters": 240,
+      "slug": "slimes",
+      "transport": "source"
+    },
+    {
+      "rasters": 336,
+      "slug": "system7-nostalgia-silver",
+      "transport": "source"
+    },
+    {
+      "rasters": 702,
+      "slug": "windows-31",
+      "transport": "source"
+    },
+    {
+      "rasters": 787,
+      "slug": "windows-95",
+      "transport": "source"
+    },
+    {
+      "rasters": 608,
+      "slug": "1138",
+      "transport": "built"
+    },
+    {
+      "rasters": 533,
+      "slug": "1984",
+      "transport": "built"
+    },
+    {
+      "rasters": 413,
+      "slug": "1990",
+      "transport": "built"
+    },
+    {
+      "rasters": 553,
+      "slug": "animals",
+      "transport": "built"
+    },
+    {
+      "rasters": 671,
+      "slug": "apple-lisa",
+      "transport": "built"
+    },
+    {
+      "rasters": 392,
+      "slug": "apple-platinum-2",
+      "transport": "built"
+    },
+    {
+      "rasters": 870,
+      "slug": "beos-r503",
+      "transport": "built"
+    },
+    {
+      "rasters": 387,
+      "slug": "black-platinum",
+      "transport": "built"
+    },
+    {
+      "rasters": 398,
+      "slug": "crayon-os",
+      "transport": "built"
+    },
+    {
+      "rasters": 408,
+      "slug": "dolphin-som",
+      "transport": "built"
+    },
+    {
+      "rasters": 579,
+      "slug": "evolution",
+      "transport": "built"
+    },
+    {
+      "rasters": 791,
+      "slug": "floppies",
+      "transport": "built"
+    },
+    {
+      "rasters": 393,
+      "slug": "monkey-paradise",
+      "transport": "built"
+    },
+    {
+      "rasters": 291,
+      "slug": "platinum-8",
+      "transport": "built"
+    },
+    {
+      "rasters": 240,
+      "slug": "slimes",
+      "transport": "built"
+    },
+    {
+      "rasters": 336,
+      "slug": "system7-nostalgia-silver",
+      "transport": "built"
+    },
+    {
+      "rasters": 702,
+      "slug": "windows-31",
+      "transport": "built"
+    },
+    {
+      "rasters": 787,
+      "slug": "windows-95",
+      "transport": "built"
+    }
+  ],
+  "runAt": "2026-10-25T20:46:58.088Z",
+  "status": "pass",
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+}

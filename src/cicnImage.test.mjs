@@ -3,6 +3,25 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 const { loadCicnBuffer } = await import('./cicnImage.ts');
 
+test('decoded raster ownership avoids image decoding and ends on asset release', async (t) => {
+  const { ownRasterAssets } = await import('../tools/theme-loader/rasterAssets.js');
+  const previous = globalThis.Image;
+  t.after(() => { globalThis.Image = previous; });
+  let decodes = 0;
+  globalThis.Image = class { async decode() { decodes++; throw new Error('released raster'); } };
+  const url = 'blob:direct-raster-test';
+  const rgba = new Uint8Array([21, 34, 55, 255]);
+  const dispose = ownRasterAssets(new Map([['test', url]]), [{ path: 'test', width: 1, height: 1, rgba }]);
+  const buffer = await loadCicnBuffer(url);
+  assert.equal(buffer.data.buffer, rgba.buffer);
+  assert.deepEqual([...buffer.data], [...rgba]);
+  assert.equal(await loadCicnBuffer(url), buffer);
+  assert.equal(decodes, 0);
+  dispose();
+  await assert.rejects(loadCicnBuffer(url), /released raster/);
+  assert.equal(decodes, 1);
+});
+
 test('failed image decodes are retryable; pending and successful loads are shared', async (t) => {
   const previous = { Image: globalThis.Image, document: globalThis.document };
   t.after(() => Object.assign(globalThis, previous));

@@ -12,7 +12,7 @@ import { snapshotCicnTransfer, bindCicnTransfer } from './cicn-transfer-results.
 
 import { assertCinfEnvironment, bindCinfEnvironment, finalizeCinfTheme, finalizeCinfResourceOwner } from './cinf-environment.js';
 import { beginLoadProvenance } from './loadProvenance.js';
-import { notifyAssetUrlReleased } from './assetLifecycle.js';
+import { ownRasterAssets } from './rasterAssets.js';
 import { convertScheme } from './convert.js';
 import { displayRealizer } from './display-profile.js';
 import { unwrapToResourceFork, detectContainer } from './containers.js';
@@ -116,7 +116,8 @@ export async function loadKaleidoscopeScheme(input, options = {}) {
     return { manifest: theme, assets, iconIndex, iconMaskResources, iconMaskPlanes, iconColorResources, cicnResources, ppatResources, colorTables, ...(byteProvenance ? { byteProvenance } : {}) };
   }
 
-  const urlFor = options.assetUrlFactory ?? defaultAssetUrlFactory;
+  const customEncoder = options.assetUrlFactory;
+  const urlFor = customEncoder ?? defaultAssetUrlFactory;
   // Encode every decoded asset → a URL, keyed by its bundle path. Parallel: each
   // OffscreenCanvas convertToBlob call is its own task; with ~500 assets per scheme
   // a serial await-loop spent 30–50 ms × N = a 15–25 s freeze. Promise.all hands the
@@ -134,56 +135,28 @@ export async function loadKaleidoscopeScheme(input, options = {}) {
   }
   const failed = encoded.find((result) => result.status === 'rejected');
   if (failed) {
-    revokeAssetUrls(urlByPath);
+    ownRasterAssets(urlByPath)();
     throw failed.reason;
   }
 
-  // Rewrite every asset-path ref in the manifest to its URL (chrome, sprites, frame
-  // proxy, patterns, body pattern — all stored as path strings that match an asset).
-  rewriteAssetRefs(theme, urlByPath);
-  finalizeCinfTheme(theme);
-  finalizeCinfResourceOwner(theme, sliderLayoutBinding, 'sliderLayoutEnvironment');
+  const dispose = ownRasterAssets(urlByPath, customEncoder ? [] : assets);
 
-  // Glyph map (id → URL), highest depth per id — mirrors src/loadTheme.loadGlyphMap.
-  const glyphs = buildGlyphMap(iconIndex, urlByPath);
-
-  // Inspector catalog — the data the demo's diagnostic foldouts (icon inventory,
-  // raster inventory, resource-roles viewer) used to fetch from per-bundle JSON
-  // files (themes/<slug>/{icons/index.json,rasters.json,resource-roles.json}).
-  // Synthesising them here instead of shipping pre-extracted JSONs is what makes
-  // Option A (source-of-truth bundles, decode at runtime) compatible with the
-  // diagnostic UI. The catalog mirrors the legacy JSON shape exactly so the demo
-  // can swap fetch() → theme.inspector.* with no other change.
-  const inspector = buildInspector(theme, assets, iconIndex, urlByPath, options.meta?.name);
-  inspector.iconMaskResources = iconMaskResources;
-  inspector.iconMaskPlanes = iconMaskPlanes;
-  inspector.iconColorResources = iconColorResources;
-  inspector.cicnResources = cicnResources;
-  inspector.ppatResources = ppatResources;
-  inspector.colorTables = colorTables;
-
-  // dispose() revokes every blob: URL this decode minted (~500 per scheme). Without
-  // it, an app that switches themes 50× across a session leaks 25k blob URLs — each
-  // pins a decoded ImageBitmap in WebKit until the tab unloads. Idempotent + safe
-  // to call before the theme is rendered (the consumer accepts the references go bad).
-  const dispose = () => revokeAssetUrls(urlByPath);
-
-  return {
-    manifest: theme, baseUrl: '', inspector, dispose,
-    ...(byteProvenance ? { byteProvenance } : {}),
-    ...(Object.keys(glyphs).length ? { glyphs } : {}),
-  };
-}
-
-/** Release the URLs owned by one decode, once even if an encoder reused a URL. */
-function revokeAssetUrls(urlByPath) {
-  for (const url of new Set(urlByPath.values())) {
-    if (typeof url === 'string' && url.startsWith('blob:')) {
-      URL.revokeObjectURL(url);
-      notifyAssetUrlReleased(url);
-    }
+  try {
+    rewriteAssetRefs(theme, urlByPath);
+    finalizeCinfTheme(theme);
+    finalizeCinfResourceOwner(theme, sliderLayoutBinding, 'sliderLayoutEnvironment');
+    const glyphs = buildGlyphMap(iconIndex, urlByPath);
+    const inspector = { ...buildInspector(theme, assets, iconIndex, urlByPath, options.meta?.name),
+      iconMaskResources, iconMaskPlanes, iconColorResources, cicnResources, ppatResources, colorTables };
+    return {
+      manifest: theme, baseUrl: '', inspector, dispose,
+      ...(byteProvenance ? { byteProvenance } : {}),
+      ...(Object.keys(glyphs).length ? { glyphs } : {}),
+    };
+  } catch (error) {
+    dispose();
+    throw error;
   }
-  urlByPath.clear();
 }
 
 /** Build the inspector catalog from the decode output. Mirrors the on-disk JSON

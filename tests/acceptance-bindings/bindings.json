@@ -133,7 +133,7 @@
     },
     {
       "path": "tools/theme-loader/loadKaleidoscopeScheme.js",
-      "sha256": "da660284820a297fd4ebe1a52522eabe3d1c08540460152c9c2d3d1e2f02bc1d"
+      "sha256": "39006a711cfe5c28fa91433d569c8ffb96d07e21a74e8791391d7446ad108d42"
     },
     {
       "path": "tools/theme-loader/loadProvenance.js",
@@ -142,6 +142,10 @@
     {
       "path": "tools/theme-loader/mac-gamma.js",
       "sha256": "cd496a62fc96ce81a5609a1111987c2d1f99ba34ca5a84bdd69f954dfb33ce21"
+    },
+    {
+      "path": "tools/theme-loader/rasterAssets.js",
+      "sha256": "68736e8dbc82d8b8d0a3477b543af7b487c839648c0a312ce3a308c9b5e93f94"
     },
     {
       "path": "tools/theme-loader/resource-fork.js",
