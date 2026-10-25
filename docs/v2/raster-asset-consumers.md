@@ -5,7 +5,7 @@ Starting revision: `de942c6399c81d1f15d23247dfd62a36e11a64bc` on
 
 ## Consumer inventory
 
-| Consumer | Current access | Ownership and migration requirement |
+| Consumer | Starting access | Ownership and migration requirement |
 | --- | --- | --- |
 | Window chrome | `renderWindow.ts` loads chrome through `loadCicnBuffer` | Borrow decoded pixels without changing window resolution or geometry. |
 | Engine families | `engine/resources/theme.ts` prepares cicn, sampled, unmasked, ppat and icon sources through `loadCicnBuffer` | Preserve occurrence identity, display policy, owner, base order, unknown outcomes and pending-load cancellation. |
@@ -42,50 +42,45 @@ private transferred arrays on first access; callers must not mutate a borrowed
 source. Raw-mode conversion results stay caller-owned and unchanged.
 
 All encoder workers must settle before cleanup, including late successful work
-after an earlier failure. Future lazy materialization must additionally revoke a
-URL produced after its owner is disposed, and must not reinsert the owner's data.
+after an earlier failure. Lazy materialization revokes a URL produced after its owner is disposed and
+never reinserts the owner's data.
 
-## URL compatibility decision
+## Implemented compatibility boundary
 
-Stage 2 retains ready image URLs and eager encoding. It removes image readback
-from renderer calls for eligible built-in assets. It does not claim the spike's
-full loading reduction, and it temporarily retains all transferred raw arrays;
-memory measurement is required before final adoption.
+Existing `loadTheme` and `loadKaleidoscopeScheme` loaders retain their eager
+ready-image contract, materializing every occurrence through the shared owner
+and releasing its private source arrays. Legacy renderers keep browser decoding;
+the earlier registration behind PNG URLs was removed to preserve that observable
+boundary. No placeholder, Promise or internal identity escapes as an image URL.
 
-Stage 3 must keep the existing ready-URL API intact. A render-focused loading
-surface can be additive and explicit, with asynchronous image materialization
-for callers that opt into it. Internal consumers can adopt that surface where
-their own contracts permit awaiting image preparation. Existing `loadTheme` and
-`loadKaleidoscopeScheme` calls must continue to supply valid image URL strings.
-No placeholder blob, Promise or internal identity may escape as an image URL on
-those existing paths.
+The additive `OwnedTheme` keeps reference-bearing manifests under `source`,
+structurally distinct from `LoadedTheme`. Public migrated entries accept
+`ThemeInput = LoadedTheme | OwnedTheme`. One cached internal `ThemeView` exposes
+pixels, async image export, dimensions and lifetime, without `baseUrl` or disposal.
+Live manifest/base reads and precise selected owner/reference pairs are preserved.
+The prototype adapter and wrapper owner rebinding have been deleted.
 
-## Next production slice
+Push/default buttons, window rendering and scrollbars use this boundary. Owned
+window body CSS exports only selected tiles. Dimensions use decoded pixels when
+available and dimension-only image decoding for external/unreadable images.
+Baseline utility sizing retains its pre-migration document-pattern policy.
+Owned lifetimes avoid whole-manifest URL enumeration; legacy release observers
+remain supported. Requested public diagnostic image fields materialize valid URLs.
 
-Astra's follow-up review recommends a structurally distinct `OwnedTheme` whose
-reference-bearing manifest lives under `source`, rather than a top-level
-`LoadedTheme.manifest`. Public render/composition entry points accept
-`ThemeInput = LoadedTheme | OwnedTheme` and normalize through one internal
-`ThemeView`. Views provide `pixels(ref)`, `imageUrl(ref)` and owner lifetime;
-family selectors continue returning the selected owner and reference. The same
-painters and selectors serve both public inputs.
+## Remaining consumers and retirement
 
-Implement one additive owned loader and push/default composition first. Prove
-that owned loading plus an eligible button creates zero PNG URLs, and that a
-catalog image request creates one reusable real URL. The existing loader must
-materialize its ready-image contract over this same owner. Include mixed
-owned-child/legacy-base inputs. Preserve live reads of mutable legacy manifests
-and base chains rather than freezing copies during normalization.
+Migrate the other family facades, declarative controls/icons, picker/inspector and
+first-party loading onto this boundary. Preserve synchronous `assetUrl` and
+`promoteIcon` contracts for existing loaded themes. An asynchronous owned mount
+must share their selection and lifecycle implementation and check generation and
+disconnect before adopting prepared DOM.
 
-Replace whole-manifest URL enumeration in `engine/resources/theme.ts` with owner
-lifetime subscriptions for owned views, including an already-disposed check.
-Keep the legacy observer only for sources without an owner. A public diagnostic
-field named `assetUrl` must contain a usable image URL, never a private reference;
-materialize selected diagnostics only when requested.
+`WindowManager<Theme>` now stores and returns the original input identity; its
+default remains `LoadedTheme`. A supported owned mount must use the same scanner
+and resolver through this boundary, then replace ordinary demo startup and drops.
 
-Retain synchronous `assetUrl` and `promoteIcon` for existing loaded themes. A
-separate asynchronous image helper/promotion path serves owned themes, sharing
-selection and DOM assignment logic and checking scanner generation/disconnect
-before adoption. Migrate first-party loading to the owned surface before retiring
-the transitional URL-indexed registration. Compatibility adapters remain; a
-second conversion engine or permanent experimental flag does not.
+Private URI registration and prefix recognition are still transitional. Retire
+them together only after auditing every cross-owner glyph, sampled-resource and
+pattern handoff. Local paths alone cannot identify an asset across owners.
+Compatibility adapters remain; a second engine or permanent experiment flag does
+not. Net runtime reduction and retained-memory measurements remain merge conditions.

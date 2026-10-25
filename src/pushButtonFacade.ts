@@ -1,11 +1,9 @@
 // Public push adapter: browser allocation, declared context and font/display
 // policies around the source-backed engine callback (push-button.md §2/§5/§6).
 import type { ButtonOptions } from './controls.js';
-import { assertThemeAlive } from './ownedTheme.js';
-import type { LoadedTheme, ChromeElement } from './types.js';
+import { assertThemeAlive, type ThemeView } from './ownedTheme.js';
+import type { ChromeElement } from './types.js';
 import { PixelBuffer } from './pixelBuffer.js';
-import { assetUrl } from './loadTheme.js';
-import { loadCicnBuffer } from './cicnImage.js';
 import { resolveInChain } from './baseChain.js';
 import { snapshotControlComposition, controlPointVisible, recordButtonFaceStage, type ButtonComposition, type ControlCompositionSnapshot } from './controlComposition.js';
 import { prepareBitmapGlyphRun, type BitmapGlyphRun } from './preparedBitmapFont.js';
@@ -24,7 +22,7 @@ import { drawPushButton, type PushLabelPass } from './engine/families/pushButton
 import { PUSH_BUTTON as P, PUSH_FACADE as F, PUSH_PRESSED_PARTS } from './engine/tables/pushButton.js';
 
 const alive = (signal?: AbortSignal): void => { if (signal?.aborted) throw new DOMException('Control preparation aborted', 'AbortError'); };
-function faceEntry(theme: LoadedTheme, id: number): { theme: LoadedTheme; element: ChromeElement; key: string; chainDepth: number } | undefined {
+function faceEntry(theme: ThemeView, id: number): { theme: ThemeView; element: ChromeElement; key: string; chainDepth: number } | undefined {
   let chainDepth = -1;
   return resolveInChain(theme, t => {
     chainDepth++;
@@ -33,10 +31,10 @@ function faceEntry(theme: LoadedTheme, id: number): { theme: LoadedTheme; elemen
   });
 }
 /** Exact signed identity; no author-label, alias or different-state art inference. */
-export async function loadEnginePushFace(theme: LoadedTheme, state: 'active' | 'pressed' | 'inactive'): Promise<PixelBuffer | null> {
+export async function loadEnginePushFace(theme: ThemeView, state: 'active' | 'pressed' | 'inactive'): Promise<PixelBuffer | null> {
   const id = state === 'inactive' ? P.PB5.resource : state === 'pressed' ? P.PB6.resource : P.PB7.resource;
   const entry = faceEntry(theme, id);
-  return entry ? loadCicnBuffer(assetUrl(entry.theme, entry.element.asset)) : null;
+  return entry ? entry.theme.pixels(entry.element.asset) : null;
 }
 const css = (p: Rgba): string => `rgb(${p.r}, ${p.g}, ${p.b})`;
 
@@ -55,7 +53,7 @@ function browserFont(size: number, label: string) {
 
 /** Preserve the admitted standalone cinf-only environment. It is a caller
  * declaration, never a claim about the historical cicn file or search chain. */
-function declaredEnvironment(theme: LoadedTheme, element: ChromeElement, id: number, opts: ButtonOptions,
+function declaredEnvironment(theme: ThemeView, element: ChromeElement, id: number, opts: ButtonOptions,
   diagnostics?: ControlTraceCollector) {
   const prepared = snapshotBodyCinfFace(theme.manifest, element);
   if (!prepared && !theme.manifest.cinfEnvironment) return undefined;
@@ -73,7 +71,7 @@ function declaredEnvironment(theme: LoadedTheme, element: ChromeElement, id: num
     reject('cinf-environment-text-outputs-unavailable');
   diagnostics?.record({ role: 'face', requestedId: id, action: view!.status === 'ready' ? 'selected' : 'missing',
     reason: 'declared-cinf-role-view', basis: 'compatibility-policy', usage: 'admission',
-    owner: { baseUrl: theme.baseUrl, chainDepth: 0 }, cinfLookup: lookup });
+    owner: { baseUrl: theme.origin, chainDepth: 0 }, cinfLookup: lookup });
   let record: CinfRecord | null = null;
   if (metadata?.slice && metadata.bodyRequest && metadata.bgAnchor && metadata.textAnchor && metadata.embossAnchor) {
     record = { cornerSize: metadata.slice.corner, sideThickness: metadata.slice.side, tileSides: metadata.slice.tile ? 1 : 0,
@@ -137,7 +135,7 @@ function publishEngineTrace(trace: EngineTrace, collector?: ControlTraceCollecto
     reason: op.unsupported ? `${op.unsupported}` : `${op.row}: ${op.unspecified ?? op.unimplemented}` });
 }
 
-export async function composeEnginePush(theme: LoadedTheme, opts: ButtonOptions = {}, signal?: AbortSignal,
+export async function composeEnginePush(theme: ThemeView, opts: ButtonOptions = {}, signal?: AbortSignal,
   preparedContext?: ControlCompositionSnapshot): Promise<ButtonComposition | null> {
   const current = (): void => { alive(signal); assertThemeAlive(theme); };
   let result: ButtonComposition | null = null;

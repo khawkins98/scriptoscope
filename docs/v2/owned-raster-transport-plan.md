@@ -6,7 +6,7 @@ sub-PRs. The integration branch targets `v2`: [draft PR #480](https://github.com
 The working branch is `refactor/runtime-streamlining`, starting from
 `de942c6399c81d1f15d23247dfd62a36e11a64bc` with upstream `origin/v2`.
 The [consumer inventory and ownership contract](raster-asset-consumers.md) records
-the first design decision. The owned loader and push/default slice are implemented;
+the first design decision. The owned loader, push/default and window slices are implemented;
 remaining renderer migration and first-party default adoption are open. The
 [owned loading API](owned-theme-api.md) records the current supported boundary.
 
@@ -19,12 +19,13 @@ serialization and inspection would trigger broad encoding.
 ## Current validation
 
 - Production comparator: 8,424 painted push/default cases and 18,704 raster image
-  comparisons pass across all 18 themes, source and built entries. This includes
+  comparisons pass across all 18 themes, source and built entries. An additional
+  1,728 window paints and 432 scrollbar paints match exactly. This includes
   mixed owned/legacy bases and 648 prepared bitmap label cases. Thirty-six each
   of zero-PNG rendering, interactive activation, diagnostic URL and disposal
   checks pass. Public button dimensions and pixels are compared; internal face
   layout is separately compared by the source-only benchmark.
-- Current full gates pass: 1,112 Node tests pass, 2 skip and 12 remain TODO,
+- Current full gates pass: 1,114 Node tests pass, 2 skip and 12 remain TODO,
   with zero failures. This includes ownership, failure, diagnostic snapshot and
   duplicate-path occurrence checks. Typechecking includes negative public-source
   compatibility assertions.
@@ -33,32 +34,38 @@ serialization and inspection would trigger broad encoding.
 - The six previously failing/interrupted source/built image-decode lifecycle
   cases now pass unchanged. Existing loaders are eager compatibility adapters
   again; the distinct owned path has its own abort/disposal and snapshot tests.
-  A complete final browser run remains required.
+  The 56-case window/managed-context browser suite passes on the final slice;
+  full final browser/golden validation remains required.
 - Shared lazy image exports and bundle loading are implemented, with pending
   image reuse, failure retry and late disposal cleanup. The transitional
   pixel-registration-behind-PNG-URLs path has been removed.
+- Thirty-six mounted owned windows preserve input identity and interactive content
+  through retheming. Selected-only CSS export/disposal checks pass, as do two
+  baseline sizing and two pending-CSS disposal probes. The final transport report
+  records runtime, built and harness hashes and rejects changed inputs.
+- All 12,902 engine-diff cells remain unchanged.
 - Default first-party adoption, remaining families, retained-heap/process
   measurements, final code reduction and full final acceptance remain open.
 
 ## Next vertical slice and compatibility boundary
 
-Move window chrome and body patterns onto an explicit internal `ThemeView` with
-pixel and asynchronous image access. Remove the prototype view, private URI
-registry and private-prefix handling in public `assetUrl` as callers migrate to
-the selected owner's resolver.
+The explicit internal `ThemeView` now serves buttons, resource preparation and
+window chrome/body patterns. The prototype view and owner rebinding are removed;
+window dimensions no longer require a separate sampler in the window renderer.
+The generic `WindowManager` preserves original public input identity and defaults
+to its existing `LoadedTheme` contract.
 
-Existing `ThemeResolver.load()` and `WindowManager.describe().theme` expose
-`LoadedTheme`, including synchronous image observables. Preserve those APIs as
-compatibility adapters. Introduce a supported owned mount entry point over the
-same scanner and lifecycle implementation; use generics only where public input
-theme identity is stored or returned. An owned resolver accepting registered
-legacy themes returns `ThemeInput`, rather than promising only `OwnedTheme`.
+Migrate remaining family facades, image consumers and the shared declarative
+scanner/resolver next. Existing `ThemeResolver.load()` defaults to `LoadedTheme`;
+an owned resolver accepting registered legacy themes returns `ThemeInput`.
+Introduce a supported owned mount over that same scanner/lifecycle. Use generics
+only where original public theme identity is stored or returned, with no transport
+boolean or duplicated implementation through the UI.
 
 The first-party demo's ordinary startup and dropped-theme flow must use owned
-loading before completion. The existing mount API remains supported; no transport
-boolean or duplicate scanner/rendering implementation should be carried through
-the UI. Astra reviewed this boundary and recommends an owned window containing
-the migrated button as the next bounded slice before complete scanner adoption.
+loading before completion. Audit every selected owner/reference handoff before
+removing the private URI registry and private-prefix handling in public `assetUrl`.
+Those remain temporary until the other consumers migrate.
 
 ## Outcome
 
@@ -79,8 +86,9 @@ loading decreased from 401.4 ms to 60.1 ms; warm rendering stayed at 0.2 ms.
 These are medians of per-theme medians in one local Chromium run. No memory
 improvement or cross-browser equivalence is established.
 
-The spike adds seven runtime lines and does not change production defaults.
-Its empty blob URLs are unsuitable for public image consumers.
+That original experiment added seven runtime lines and used empty blob URLs;
+it has been superseded by the production owner and explicit loading API. The
+ready-image compatibility loaders retain eager encoding.
 
 ## Delivery structure
 
@@ -143,7 +151,7 @@ from old-versus-new regression comparisons.
 
 ## Merge conditions
 
-- [ ] Ownership and public URL compatibility decisions recorded and implemented.
+- [x] Ownership and public URL compatibility decisions recorded and implemented.
 - [ ] Push/default and all migrated families pass exact behavior comparisons.
 - [ ] Public image consumers, browser lifecycles and package paths pass.
 - [ ] Existing independent acceptance checks retain their meaning and pass.

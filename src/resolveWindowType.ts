@@ -4,7 +4,7 @@ import { resolveInChain } from './baseChain.js';
 
 /** Exact/equivalent identities precede the source-derived mask cascade, then
  * existing heuristic fallbacks. Alias names are not missing resources. */
-export function resolveWindowType(theme: LoadedTheme, slug: string): WindowType | undefined {
+export function resolveWindowType(theme: Pick<LoadedTheme, 'manifest'>, slug: string): WindowType | undefined {
   const wts = theme.manifest.windowTypes ?? {};
   const ok = (k: string): WindowType | undefined => (wts[k] && looksLikeWindow(theme, wts[k]) ? wts[k] : undefined);
   for (const key of equivalentWindowTypeKeys(slug)) { const hit = ok(key); if (hit) return hit; }
@@ -52,7 +52,7 @@ export function resolveWindowType(theme: LoadedTheme, slug: string): WindowType 
  * that's an actual window frame — NOT a grow-box cicn (some bundles mis-pair
  * a dialog/utility wnd# with the grow-box) and not an empty chrome map.
  */
-function looksLikeWindow(theme: LoadedTheme, wt: WindowType): boolean {
+function looksLikeWindow(theme: Pick<LoadedTheme, 'manifest'>, wt: WindowType): boolean {
   const ch = wt.chrome?.active ?? wt.chrome?.inactive;
   if (!ch) return false;
   // A malformed pairing can point at a grow-box resource. Consult the author's
@@ -66,8 +66,8 @@ function looksLikeWindow(theme: LoadedTheme, wt: WindowType): boolean {
 
 /** The existing child-first render policy, shared by rendering and collapse.
  * A child heuristic selection still wins over an exact type in its base. */
-export function resolveWindowSelection(theme: LoadedTheme, slug: string, state: WindowState = 'active'):
-  { owner: LoadedTheme; wt: WindowType; cicnPath: string } | undefined {
+export function resolveWindowSelection<Theme extends { manifest: LoadedTheme['manifest']; readonly base?: Theme | undefined }>(theme: Theme, slug: string, state: WindowState = 'active'):
+  { owner: Theme; wt: WindowType; cicnPath: string } | undefined {
   return resolveInChain(theme, owner => {
     const wt = resolveWindowType(owner, slug);
     const cicnPath = wt ? (wt.chrome[state] ?? wt.chrome.active) : undefined;
@@ -77,7 +77,7 @@ export function resolveWindowSelection(theme: LoadedTheme, slug: string, state: 
 
 /** Discover authored collapsed art only in the owner selected for the expanded
  * request. Corner-sprite windows need no sliced top-edge recipe. */
-export function resolveCollapsedWindowTypeSlug(theme: LoadedTheme, baseSlug: string, state: WindowState = 'active'): string | undefined {
+export function resolveCollapsedWindowTypeSlug<Theme extends { manifest: LoadedTheme['manifest']; readonly base?: Theme | undefined }>(theme: Theme, baseSlug: string, state: WindowState = 'active'): string | undefined {
   const selected = resolveWindowSelection(theme, baseSlug, state);
   if (!selected) return undefined;
   const { owner } = selected, wts = owner.manifest.windowTypes ?? {};

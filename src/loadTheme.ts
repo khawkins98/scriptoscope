@@ -125,7 +125,7 @@ async function loadBundle(
   return {
     ...loaded as LoadedTheme,
     baseUrl,
-    ...(base ? { base: themeView(base) } : {}),
+    ...(base ? { base: base as LoadedTheme } : {}),
   };
 }
 

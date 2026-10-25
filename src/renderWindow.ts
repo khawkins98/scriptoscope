@@ -1,6 +1,5 @@
-import type { LoadedTheme, WindowState, WindowType } from './types.js';
-import { assetUrl, findChromeElement } from './loadTheme.js';
-import { loadCicnBuffer } from './cicnImage.js';
+import type { WindowState, WindowType } from './types.js';
+import { themeView, assertThemeAlive, type ThemeInput, type ThemeView } from './ownedTheme.js';
 import { composeWindowChrome, type ComposedChrome, type TitleWidgetRole } from './composeChrome.js';
 import { themeResourceChain } from './engine/resources/theme.js';
 import { widgetCicnIds } from './engine/families/window.js';
@@ -76,9 +75,11 @@ export function resolveTitleWidgetRects(
  * width/height is the CONTENT rect; chrome extends outside it.
  */
 export async function renderWindow(
-  theme: LoadedTheme,
+  input: ThemeInput,
   opts: RenderWindowOptions = {},
 ): Promise<HTMLElement> {
+  const theme = themeView(input);
+  assertThemeAlive(theme);
   const requestedSlug = opts.windowType ?? 'document-window';
   const slug = canonicalWindowTypeSlug(requestedSlug);
   const state: WindowState = opts.state ?? 'active';
@@ -100,11 +101,9 @@ export async function renderWindow(
     return buildBaselineWindow(theme, { title, state, contentW, contentH, scale, utility, slug });
   }
   const { owner, wt, cicnPath } = resolved;
-  // (chromeElement lookup kept for validation / future metadata use)
-  findChromeElement(owner, cicnPath);
 
   // The sliced path walks the chrome cicn; the built-in frame loads its own art by id.
-  const cicn = wt.model === 'corner-sprite' ? null : await loadCicnBuffer(assetUrl(owner, cicnPath));
+  const cicn = wt.model === 'corner-sprite' ? null : await owner.pixels(cicnPath);
 
   // Utility / mini / floating / palette windows usually carry NO visible title — the label is
   // screen-reader-only via aria-label. EXCEPT `titled-utility-window` (literally named for having
@@ -234,6 +233,8 @@ export async function renderWindow(
   // ── window root: bounds the FULL window footprint (chrome included), so the
   // element's box encloses everything it draws. The canvas fills the root at
   // 0,0 and the content is INSET by the frame thickness. ──
+  const background = await bodyBackgroundStyle(owner, scale, slug);
+  assertThemeAlive(theme);
   const win = document.createElement('div');
   win.className = 'scriptoscope-window';
   // Optional shell CSS targets the actual frame, not a grid-stretched host.
@@ -319,9 +320,8 @@ export async function renderWindow(
     // iOS gestures during chrome drag, but content (consumer prose,
     // forms, scrollable lists) needs normal touch scrolling back.
     touchAction: 'auto',
-    ...bodyBackgroundStyle(owner, slug),
+    ...background,
   } satisfies Partial<CSSStyleDeclaration>);
-  scaleBodyPattern(content, owner, scale, slug);
   content.appendChild(document.createElement('slot'));
 
   win.append(canvas, content);
@@ -365,11 +365,13 @@ export async function renderWindow(
  * the titlebar fill/text so it still reads as that scheme. Returns the same
  * `.scriptoscope-window` / `.scriptoscope-content` structure consumers expect.
  */
-function buildBaselineWindow(
-  theme: LoadedTheme,
+async function buildBaselineWindow(
+  theme: ThemeView,
   opts: { title: string; state: WindowState; contentW: number; contentH: number; scale: number; utility?: boolean; slug?: string },
-): HTMLElement {
+): Promise<HTMLElement> {
   const { title, state, contentW, contentH, scale, utility, slug = '' } = opts;
+  const background = await bodyBackgroundStyle(theme, scale, utility ? 'utility' : undefined, theme.manifest.bodyBackground?.pattern ?? null);
+  assertThemeAlive(theme);
   const hc = (state === 'inactive' ? theme.manifest.headerColors?.inactive : theme.manifest.headerColors?.active) ?? {};
   const fill = hc.fill ?? '#cccccc';
   // Title text contrasts with the bar (white on a dark fill, else black). NOT
@@ -467,9 +469,8 @@ function buildBaselineWindow(
   Object.assign(content.style, {
     position: 'relative', width: `${contentW * scale}px`, height: `${contentH * scale}px`,
     overflow: 'hidden', boxSizing: 'border-box',
-    ...bodyBackgroundStyle(theme, utility ? 'utility' : undefined),
+    ...background,
   } satisfies Partial<CSSStyleDeclaration>);
-  scaleBodyPattern(content, theme, scale);
   content.appendChild(document.createElement('slot'));
   win.appendChild(content);
   return win;
@@ -519,7 +520,7 @@ const UTILITY_SLUG_RE = /utility|mini|floating|palette|dialog|alert|modal|popup/
  *  uses for chromeElements — it survives the Option-A blob-URL rewrite that
  *  replaces `asset` paths with `blob:` URLs at runtime (the alternative,
  *  parsing the id out of the asset path, breaks once `asset` becomes a blob URL). */
-function patternByResourceId(theme: LoadedTheme, id: number): string | null {
+function patternByResourceId(theme: ThemeView, id: number): string | null {
   const patterns = theme.manifest.patterns ?? {};
   const abs = Math.abs(id);
   for (const v of Object.values(patterns)) {
@@ -528,58 +529,24 @@ function patternByResourceId(theme: LoadedTheme, id: number): string | null {
   return null;
 }
 
-function bodyBackgroundStyle(theme: LoadedTheme, slug?: string): Partial<CSSStyleDeclaration> {
+async function bodyBackgroundStyle(theme: ThemeView, scale: number, slug?: string, sizingPattern?: string | null): Promise<Partial<CSSStyleDeclaration>> {
   const isUtility = !!slug && UTILITY_SLUG_RE.test(slug);
-  if (isUtility) {
-    // Walk by canonical resource id rather than friendly key — `ppat-42` is the
-    // kDEF's utility-window pattern slot, but each bundle author picked a
-    // different friendly name (1984="blue utility", monkey-paradise="utility
-    // pattern", crayon-os="utility pattern"). The id is the structured truth.
-    const utilPat = patternByResourceId(theme, 42)
-      ?? patternByResourceId(theme, -9568) // canonical kDEF cinf slot for utility-window
-      ?? null;
-    if (!utilPat) return { background: '#ffffff' };
-    return {
-      backgroundColor: '#ffffff',
-      backgroundImage: `url("${assetUrl(theme, utilPat)}")`,
-      backgroundRepeat: 'repeat',
-      imageRendering: 'pixelated',
-    };
-  }
-  const pat = theme.manifest.bodyBackground?.pattern;
-  if (!pat) return { background: '#ffffff' };
+  const ref = isUtility
+    ? patternByResourceId(theme, 42) ?? patternByResourceId(theme, -9568)
+    : theme.manifest.bodyBackground?.pattern;
+  if (!ref) return { background: '#ffffff' };
+  // Baseline windows historically size from the document pattern, including
+  // utility windows. Preserve that policy separately from CSS tile selection.
+  const sizeRef = sizingPattern === undefined ? ref : sizingPattern;
+  const [url, tile] = await Promise.all([theme.imageUrl(ref),
+    scale > 1 && sizeRef ? theme.dimensions(sizeRef).catch(() => undefined) : undefined]);
   return {
     backgroundColor: '#ffffff',
-    backgroundImage: `url("${assetUrl(theme, pat)}")`,
+    backgroundImage: `url("${url}")`,
     backgroundRepeat: 'repeat',
     imageRendering: 'pixelated',
+    ...(tile ? { backgroundSize: `${tile.width * scale}px ${tile.height * scale}px` } : {}),
   };
-}
-
-/**
- * Match the tiled body ppat to the display scale. The chrome canvas is a
- * native-resolution raster CSS-upscaled by `scale` (pixelated), but a CSS
- * `background-repeat` tile otherwise repeats at *native* px — so at 2× the
- * pattern reads half-size against the chrome. The ppat's native dimensions
- * aren't in theme.json, so read them off the decoded image and pin
- * `background-size` to native × scale (still pixelated, so it stays crisp).
- * No-op at 1× (native tiling already matches) and outside the browser.
- */
-function scaleBodyPattern(el: HTMLElement, theme: LoadedTheme, scale: number, slug?: string): void {
-  // For utility-style slugs, use the same hierarchy bodyBackgroundStyle picked
-  // (utility-pattern → -9568) so the scale-fix tracks the resolved asset, not
-  // the document-window default.
-  const isUtility = !!slug && UTILITY_SLUG_RE.test(slug);
-  const pat = isUtility
-    ? (patternByResourceId(theme, 42) ?? patternByResourceId(theme, -9568) ?? null)
-    : (theme.manifest.bodyBackground?.pattern ?? null);
-  if (!pat || scale <= 1 || typeof Image === 'undefined') return;
-  const img = new Image();
-  img.onload = () => {
-    if (!img.naturalWidth) return;
-    el.style.backgroundSize = `${img.naturalWidth * scale}px ${img.naturalHeight * scale}px`;
-  };
-  img.src = assetUrl(theme, pat);
 }
 
 /** Darken a hex color by `amt` (0..1). Used for the baseline pinstripe. */

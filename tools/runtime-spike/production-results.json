@@ -1,14 +1,23 @@
 {
+  "baselinePatterns": 2,
+  "baselineWindows": 0,
   "bitmapPaints": 648,
   "compared": 8424,
   "diagnostics": 36,
   "disposedLoads": 36,
+  "disposedWindows": 36,
   "equalErrors": 0,
   "equalMissing": 0,
   "errors": [],
   "interactions": 36,
+  "lazyWindows": 36,
+  "managedWindows": 36,
   "mismatches": [],
+  "missingScrollbars": 0,
   "painted": 8424,
+  "paintedScrollbars": 432,
+  "paintedWindows": 1728,
+  "pendingWindows": 2,
   "rasters": 18704,
   "rows": [
     {
@@ -192,8 +201,16 @@
       "transport": "built"
     }
   ],
-  "runAt": "2026-10-25T22:41:50.066Z",
+  "runAt": "2026-10-25T23:05:27.999Z",
+  "scrollbars": 432,
   "status": "pass",
   "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
-  "zeroPngRenders": 36
+  "windows": 1728,
+  "zeroPngRenders": 36,
+  "provenance": {
+    "revision": "9e95fbdcabc9aa8a5b3d0ffe8198d4a22bd83b95",
+    "runtime": "8a1418054ca8fd07436b57c25c1022bb3663ee8cd41108c5793d8d4d287296ba",
+    "built": "51e7ce9d0ea704cb919873143b86ab76d3081ae1b2bca4916de324f2c29c70f8",
+    "driver": "3ec38a7c92c25816d9d0aebe32ee8f0640cf0459c12cf81ec628661e6a6ac740"
+  }
 }

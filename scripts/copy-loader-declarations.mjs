@@ -16,13 +16,10 @@ const target = resolve(root, 'dist/tools/theme-loader/loadKaleidoscopeScheme.d.t
 await mkdir(dirname(target), { recursive: true });
 await writeFile(target, declaration);
 console.log('copied browser-loader declaration into packed public type graph');
-// The additive profile factory/types share one authoritative declaration with
-// the portable converter. Preserve its reference back to public LoadedTheme.
+// Profile validation consumes only a structural manifest/base chain.
 const profile = await readFile(resolve(root, 'tools/theme-loader/display-profile.d.ts'), 'utf8');
-const profileImport = "import('../../src/types.js')";
-if (profile.split(profileImport).length !== 2) throw new Error('Profile declaration dependencies changed');
-await writeFile(resolve(root, 'dist/tools/theme-loader/display-profile.d.ts'),
-  profile.replace(profileImport, "import('../../types/types.js')"));
+if (profile.includes('../../src/')) throw new Error('Profile declaration gained an unpacked source dependency');
+await writeFile(resolve(root, 'dist/tools/theme-loader/display-profile.d.ts'), profile);
 
 const cinf = await readFile(resolve(root, 'tools/theme-loader/cinf-environment.d.ts'), 'utf8');
 await writeFile(resolve(root, 'dist/tools/theme-loader/cinf-environment.d.ts'),

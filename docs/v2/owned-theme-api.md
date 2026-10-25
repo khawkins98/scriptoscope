@@ -1,21 +1,28 @@
 # Owned theme loading
 
 The render-focused loaders return an `OwnedTheme`, distinct from the existing
-ready-image `LoadedTheme`. Push/default button composition and interactive push
-buttons accept either contract. Other renderer entry points and default scanner
-loading are still being migrated in feature PR #480.
+ready-image `LoadedTheme`. Push/default buttons, window chrome and backgrounds,
+and scrollbars accept either contract. Other renderer entry points and default
+scanner loading are still being migrated in feature PR #480.
 
 ```ts
-import { loadOwnedTheme, interactiveButton, themeImageUrl } from 'scriptoscope';
+import { loadOwnedTheme, interactiveButton, WindowManager, themeImageUrl, type OwnedTheme } from 'scriptoscope';
 
 const theme = await loadOwnedTheme('/themes/1138');
 const button = await interactiveButton(theme, { label: 'OK', onClick: save });
-document.body.append(button);
+const manager = new WindowManager<OwnedTheme>();
+const content = document.createElement('div');
+content.append(button);
+const host = await manager.add(theme, { title: 'Owned theme' }, {}, { contentEl: content });
+document.body.append(host);
+// manager.describe(host)?.theme is the original theme object.
 
 const icon = theme.source.inspector?.iconIndex.find(entry => entry.id === -3999);
 if (icon?.url) image.src = await themeImageUrl(theme, icon.url);
 
 // After its consumers have been unmounted:
+manager.remove(host);
+host.remove();
 theme.dispose();
 ```
 
@@ -37,7 +44,10 @@ supported. Repeated requests share image work. A failed request can retry while
 the owner lives. Generated blob URLs remain owned by the theme and are revoked
 at disposal, including URLs completed by encoders after disposal.
 
-Eligible built-in raster inputs render without creating PNGs. Fractional-alpha
+Eligible built-in raster inputs render without creating PNGs. Windows export
+only their selected CSS body tiles; their native dimensions come from the shared
+pixel source. Internal render views expose neither synchronous image URLs nor
+theme disposal. Fractional-alpha
 inputs retain browser readback to preserve channel rounding. A custom
 `assetUrlFactory` remains authoritative: drawing must export and decode its image,
 because the factory may transform the supplied pixels. Requested public control
@@ -50,7 +60,12 @@ its private pixel references. Existing synchronous image consumers stay supporte
 ## Ownership and validation
 
 An owned theme borrows its configured base. Disposing a child does not dispose
-that base. Aborted or disposed button composition does not publish a completed
+that base. `WindowManager` defaults to its existing `LoadedTheme` contract;
+parameterize it with `OwnedTheme` or `ThemeInput` for the owned path. Its
+`describe()` result preserves the original input identity. Default declarative
+mount loading remains unchanged in this slice.
+
+Aborted or disposed button composition does not publish a completed
 buffer. Renderers borrow source arrays; callers must not mutate those arrays.
 
 The owner tracks registered backing buffers, in-flight encoding buffers, image
@@ -62,5 +77,7 @@ after disposal begins.
 The production transport comparator exercises source and built entries, legacy
 and owned base inheritance, clipped and unclipped composition, browser and
 synthetic prepared bitmap labels, real image exports, diagnostic URL fields,
-interactive activation and disposal. It establishes transport regression parity,
+interactive activation and disposal. Window comparisons cover chrome pixels,
+layout, CSS tile pixels and scale, and inherited owner selection. A mounted
+owned window also retains its interactive content through retheming. It establishes transport regression parity,
 not additional historical engine or font fidelity.

@@ -21,13 +21,13 @@ import type { LoadedTheme } from './types.js';
  * `pick` receives each theme so it can resolve theme-relative data correctly
  * (e.g. build an asset URL against the bundle that actually OWNS the asset).
  */
-export function resolveInChain<T>(
-  theme: LoadedTheme,
-  pick: (t: LoadedTheme) => T | null | undefined,
+export function resolveInChain<T, Theme extends { manifest: LoadedTheme['manifest']; readonly base?: Theme | undefined }>(
+  theme: Theme,
+  pick: (t: Theme) => T | null | undefined,
 ): T | undefined {
   assertDisplayProfileChain(theme, theme.manifest.displayProfile);
-  const seen = new Set<LoadedTheme>();
-  for (let t: LoadedTheme | undefined = theme; t && !seen.has(t); t = t.base) {
+  const seen = new Set<Theme>();
+  for (let t: Theme | undefined = theme; t && !seen.has(t); t = t.base) {
     seen.add(t);
     const v = pick(t);
     if (v != null) return v;

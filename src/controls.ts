@@ -272,7 +272,7 @@ export interface ScrollbarFrame {
  * a compatibility policy for art-less themes.
  */
 export async function composeScrollbar(
-  theme: LoadedTheme,
+  theme: ThemeInput,
   opts: ScrollbarOptions = {},
 ): Promise<PixelBuffer | null> {
   return (await composeScrollbarFrame(theme, opts))?.buffer ?? null;
@@ -280,9 +280,11 @@ export async function composeScrollbar(
 
 /** @internal Shared draw path for the interactive scroll bar's hit test. */
 export async function composeScrollbarFrame(
-  theme: LoadedTheme,
+  inputTheme: ThemeInput,
   opts: ScrollbarOptions & { trace?: boolean } = {},
 ): Promise<ScrollbarFrame | null> {
+  const theme = themeView(inputTheme);
+  assertThemeAlive(theme);
   const horizontal = (opts.orientation ?? 'vertical') === 'horizontal';
   const length = Math.max(16, opts.length ?? 120);
   const value = Math.min(1, Math.max(0, opts.value ?? 0));
@@ -295,6 +297,7 @@ export async function composeScrollbarFrame(
     hilite, min: range.min, max: range.max, value: range.min + Math.round(value * (range.max - range.min)),
   };
   const chain = await themeResourceChain(theme, scrollbarResourceIds(horizontal));
+  assertThemeAlive(theme);
   const trace = opts.trace ? createTrace('scrollbar', { ...input }) : undefined;
   const out = PixelBuffer.alloc(input.rect.right, input.rect.bottom);
   const { geometry } = drawScrollbar(out, chain, input, trace);

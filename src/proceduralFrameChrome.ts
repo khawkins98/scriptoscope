@@ -11,8 +11,9 @@
 // message 6 (§9.8 UM4); the grow box is returned as an overlay because the
 // content region excludes it (§3.3) while the runtime's content is DOM stacked
 // over the chrome canvas.
-import type { LoadedTheme, WindowState } from './types.js';
+import type { WindowState } from './types.js';
 import type { ComposedChrome, PlacementSlice } from './composeChrome.js';
+import { themeView, type ThemeInput, type ThemeView } from './ownedTheme.js';
 import { PixelBuffer } from './pixelBuffer.js';
 import { rasterizeTitle } from './titleFont.js';
 import { themeResourceChain } from './engine/resources/theme.js';
@@ -68,8 +69,9 @@ export function proceduralFrameRecord(key: string): (typeof PF_WINDOW_SLUGS)[num
  * Compose a built-in frame window at native resolution. `key` is the resolved
  * window-type key; `contentW`/`contentH` the content rect C.
  */
-export async function composeProceduralFrameChrome(owner: LoadedTheme, key: string, state: WindowState, contentW: number, contentH: number,
+export async function composeProceduralFrameChrome(theme: ThemeInput | ThemeView, key: string, state: WindowState, contentW: number, contentH: number,
   opts: ProceduralFrameChromeOptions = {}): Promise<ComposedChrome & { contentCollapsed: boolean; trace?: EngineTrace }> {
+  const owner = themeView(theme);
   const record = proceduralFrameRecordFor(key);
   const row = record.row;
   const hilited = !/inactive/.test(state);

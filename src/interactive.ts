@@ -135,7 +135,6 @@ export async function interactiveButton(
   /** Internal promotion lifetime; omitted for detached imperative preparation. */
   signal?: AbortSignal,
 ): Promise<HTMLElement> {
-  theme = themeView(theme);
   const current = (): void => { if (signal?.aborted) throw new DOMException('Button preparation aborted', 'AbortError'); };
   current();
   const { onClick, scale = 1, ...bo } = opts;
@@ -811,7 +810,7 @@ export interface TitleWidgetHit {
  * their positions; corner-sprite placements carry explicit roles.
  */
 export function titleWidgetHits(
-  theme: LoadedTheme,
+  theme: ThemeInput,
   windowType: string,
   composed: ComposedChrome,
   scale: number,
@@ -824,7 +823,7 @@ export function titleWidgetHits(
   // chaining, not an index into undefined.)
   // Without an explicit state, retain public lookup of either chrome state.
   // The manager supplies its actual state to match the rendered owner.
-  const wt = resolveWindowSelection(theme, windowType, state ?? 'inactive')?.wt;
+  const wt = resolveWindowSelection(themeView(theme), windowType, state ?? 'inactive')?.wt;
   if (!wt) return [];
   // Single source of truth (renderWindow.resolveTitleWidgetRects) — gives UNSCALED rects + roles;
   // the hit zones are those ×scale (the window element's own scaled pixel space).
@@ -835,12 +834,12 @@ export function titleWidgetHits(
 }
 
 // ── Window focus manager ────────────────────────────────────────────────────
-interface ManagedWindow {
+interface ManagedWindow<Theme extends ThemeInput> {
   contentPort: ManagedContentPort;
   /** Invalidates asynchronous paints when geometry/state changes or the entry is removed. */
   renderEpoch: number;
   initializing: boolean;
-  theme: LoadedTheme;
+  theme: Theme;
   opts: RenderWindowOptions;
   handlers: TitleWidgetHandlers;
   host: HTMLElement;
@@ -884,7 +883,7 @@ interface ManagedWindow {
    *  intentionally skipped for side-titled palettes (frame.top < 10px — the "title" lives on a
    *  vertical strip those windows don't expose as a horizontal block). */
   titleStripCache?: {
-    theme: LoadedTheme;
+    theme: Theme;
     slug: string;
     width: number;
     height: number;
@@ -926,8 +925,8 @@ const shadowFocusSheet: CSSStyleSheet = (() => {
   return sheet;
 })();
 
-export class WindowManager {
-  private windows: ManagedWindow[] = [];
+export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
+  private windows: ManagedWindow<Theme>[] = [];
   /** Monotonic stacking clock — each add/focus takes the next value so the most-recently-touched
    *  window is frontmost. render() adds a large offset for the active window so it sits above all
    *  inactive ones (classic "active window on top", with inactive windows in recency order beneath). */
@@ -942,7 +941,7 @@ export class WindowManager {
 
   /** Public read access to a managed window's current state (size, collapsed, z). Used by the
    *  persistence layer to snapshot. Returns null if the host isn't managed. */
-  describe(host: HTMLElement): { width?: number; height?: number; collapsed: boolean; z: number; theme: LoadedTheme } | null {
+  describe(host: HTMLElement): { width?: number; height?: number; collapsed: boolean; z: number; theme: Theme } | null {
     const entry = this.windows.find((w) => w.host === host);
     if (!entry) return null;
     return {
@@ -966,14 +965,14 @@ export class WindowManager {
    * a handler (the widget art itself lives in the chrome cicn).
    */
   async add(
-    theme: LoadedTheme,
+    theme: Theme,
     opts: RenderWindowOptions = {},
     handlers: TitleWidgetHandlers = {},
     extra: {
       contentEl?: HTMLElement;
       z?: number;
       collapsed?: boolean;
-      /** See ManagedWindow.enabledWidgets — opt-in widget subset. Plumbed
+      /** See ManagedWindow<Theme>.enabledWidgets — opt-in widget subset. Plumbed
        *  from `data-scriptoscope-widgets` for the declarative path. */
       enabledWidgets?: ReadonlySet<TitleWidget>;
     } = {},
@@ -1007,7 +1006,7 @@ export class WindowManager {
     // them on the host — double-labelling makes screen readers announce the window twice.
     // Initial focus: the first window added is active — UNLESS it explicitly requests inactive
     // (so a declarative `data-scriptoscope-state="inactive"` is honored; then no window starts focused).
-    const entry: ManagedWindow = {
+    const entry: ManagedWindow<Theme> = {
       theme, opts, handlers, host, renderEpoch: 0, initializing: true, contentPort: new ManagedContentPort(),
       ...(opts.reuseCanvas ? { chromeCanvas: opts.reuseCanvas } : {}),
       active: this.windows.length === 0 && opts.state !== 'inactive',
@@ -1151,7 +1150,7 @@ export class WindowManager {
    *  whole desktop changes scheme at runtime, the Kaleidoscope way. Public for imperative consumers.
    *  `themeRef` is the declarative mount's host metadata (not loaded asset identity);
    *  imperative callers normally omit it. It commits with the pixels, before onChange. */
-  async retheme(theme: LoadedTheme, signal?: AbortSignal, themeRef?: string): Promise<void> {
+  async retheme(theme: Theme, signal?: AbortSignal, themeRef?: string): Promise<void> {
     const epoch = ++this.themeEpoch;
     // Preserve the existing detached-host cleanup, but do not steal an add()
     // still preparing its initial off-DOM host.
@@ -1161,7 +1160,7 @@ export class WindowManager {
     const current = (): boolean => epoch === this.themeEpoch && !signal?.aborted;
     // Preparation never touches a live canvas. Failed/superseded batches leave
     // every current window intact; commit below contains no asynchronous work.
-    const prepared = new Map<ManagedWindow, { epoch: number; win: HTMLElement; slug: string; collapsed: boolean }>();
+    const prepared = new Map<ManagedWindow<Theme>, { epoch: number; win: HTMLElement; slug: string; collapsed: boolean }>();
     while (current()) {
       const entries = this.windows.filter(w => w.host.isConnected);
       try {
@@ -1193,7 +1192,7 @@ export class WindowManager {
     }
   }
 
-  private async focus(entry: ManagedWindow): Promise<void> {
+  private async focus(entry: ManagedWindow<Theme>): Promise<void> {
     entry.z = ++this.zClock; // raise above all (even if already active — re-clicking a window fronts it)
     if (entry.active) {
       debug('focus', `${entry.opts.title ?? '(untitled)'} — already active, z=${entry.z}`);
@@ -1224,9 +1223,9 @@ export class WindowManager {
 
   /** Title-strip cache helper — capture the just-painted title region after a full render() and
    *  store it under the current state. Subsequent focus flips that match all the other state keys
-   *  can fast-path via tryFastFocusFlip() instead of recomposing. See ManagedWindow.titleStripCache
+   *  can fast-path via tryFastFocusFlip() instead of recomposing. See ManagedWindow<Theme>.titleStripCache
    *  for the cache shape + invalidation rules. */
-  private captureTitleStrip(entry: ManagedWindow, slug: string): void {
+  private captureTitleStrip(entry: ManagedWindow<Theme>, slug: string): void {
     const canvas = entry.chromeCanvas;
     if (!canvas) return;
     const composed = (canvas.parentElement as unknown as { _scriptoscopeComposed?: ComposedChrome })._scriptoscopeComposed;
@@ -1266,7 +1265,7 @@ export class WindowManager {
    *  existing canvas, update data-scriptoscope-current-state on .scriptoscope-window, and update z-index — the chrome's body
    *  frame + widget overlays + scrollbars all stay in place (active state doesn't change those,
    *  only the title-bar tinting). */
-  private tryFastFocusFlip(entry: ManagedWindow): boolean {
+  private tryFastFocusFlip(entry: ManagedWindow<Theme>): boolean {
     const c = entry.titleStripCache;
     if (!c || c.theme !== entry.theme) return false;
     const canvas = entry.chromeCanvas;
@@ -1291,16 +1290,16 @@ export class WindowManager {
   }
 
   /** Active windows float above inactive ones; within each group, higher zClock (more recent) wins. */
-  private zIndexFor(entry: ManagedWindow): string {
+  private zIndexFor(entry: ManagedWindow<Theme>): string {
     return String((entry.active ? 100_000 : 0) + entry.z);
   }
 
   /** The window-type slug actually rendered: the collapsed variant when shaded, else the base type. */
-  private effectiveSlug(entry: ManagedWindow, theme = entry.theme): string {
+  private effectiveSlug(entry: ManagedWindow<Theme>, theme = entry.theme): string {
     const base = entry.opts.windowType ?? 'document-window';
     // Window-shade: render the collapsed chrome variant (title-bar-only art) if the theme ships one,
     // else fall back to the same type at zero body height — both roll the window up to the title bar.
-    return entry.collapsed ? (resolveCollapsedWindowTypeSlug(theme, base, entry.active ? 'active' : 'inactive') ?? base) : base;
+    return entry.collapsed ? (resolveCollapsedWindowTypeSlug(themeView(theme), base, entry.active ? 'active' : 'inactive') ?? base) : base;
   }
 
   /**
@@ -1324,7 +1323,7 @@ export class WindowManager {
    * to introduce — measured baseline is 2 renders on focus-change between two
    * windows, N renders on a theme switch (one per window). Don't regress this.
    */
-  private async render(entry: ManagedWindow): Promise<void> {
+  private async render(entry: ManagedWindow<Theme>): Promise<void> {
     const epoch = ++entry.renderEpoch;
     let prepared;
     try { prepared = await this.prepareRender(entry, entry.theme); }
@@ -1336,7 +1335,7 @@ export class WindowManager {
     this.commitRender(entry, prepared);
   }
 
-  private async prepareRender(entry: ManagedWindow, theme: LoadedTheme): Promise<{ win: HTMLElement; slug: string; collapsed: boolean }> {
+  private async prepareRender(entry: ManagedWindow<Theme>, theme: Theme): Promise<{ win: HTMLElement; slug: string; collapsed: boolean }> {
     const collapsed = entry.collapsed === true;
     const slug = this.effectiveSlug(entry, theme);
     const { reuseCanvas: _callerCanvas, ...options } = entry.opts;
@@ -1350,7 +1349,7 @@ export class WindowManager {
     return { win, slug, collapsed };
   }
 
-  private commitRender(entry: ManagedWindow, { win, slug, collapsed }: { win: HTMLElement; slug: string; collapsed: boolean }, notify = true): void {
+  private commitRender(entry: ManagedWindow<Theme>, { win, slug, collapsed }: { win: HTMLElement; slug: string; collapsed: boolean }, notify = true): void {
     const fresh = win.querySelector<HTMLCanvasElement>('canvas.scriptoscope-chrome');
     const pooled = entry.chromeCanvas;
     if (fresh && pooled) {
@@ -1396,7 +1395,7 @@ export class WindowManager {
     if (notify) this.notifyChange(entry);
   }
 
-  private notifyChange(entry: ManagedWindow): void {
+  private notifyChange(entry: ManagedWindow<Theme>): void {
     if (this.onChange) try { this.onChange(entry.host); } catch (err) { console.error('[scriptoscope] onChange threw:', err); }
   }
 
@@ -1410,7 +1409,7 @@ export class WindowManager {
    * the host isn't in the document yet so nothing has layout. Detects + wires BOTH axes — vertical and
    * horizontal — independently, so a long-and-wide content gets both bars + a clear bottom-right corner.
    */
-  private async wireScrollbars(entry: ManagedWindow, win: HTMLElement, attempt: number): Promise<void> {
+  private async wireScrollbars(entry: ManagedWindow<Theme>, win: HTMLElement, attempt: number): Promise<void> {
     // Staleness check: is `win` still the current chrome? See LEARNINGS 2026-05-28 "Shadow DOM
     // gotchas" — host.firstChild is the slotted .scriptoscope-slot now, not win. We resolve via shadowRoot.
     // We deliberately do NOT use win.isConnected: ScriptoscopeWindow.promote inserts the host into the
@@ -1486,7 +1485,7 @@ export class WindowManager {
    */
   private wireScrollbarAxis(
     axis: 'vertical' | 'horizontal',
-    entry: ManagedWindow,
+    entry: ManagedWindow<Theme>,
     win: HTMLElement,
     scrollEl: HTMLElement,
     composed: ComposedChrome,
@@ -1602,7 +1601,7 @@ export class WindowManager {
   }
 
   /** Toggle window-shade. Built-in for windows whose collapse widget has no explicit handler. */
-  private async toggleCollapse(entry: ManagedWindow): Promise<void> {
+  private async toggleCollapse(entry: ManagedWindow<Theme>): Promise<void> {
     entry.collapsed = !entry.collapsed;
     debug('drag', `toggleCollapse ${entry.opts.title ?? ''} → collapsed=${entry.collapsed}`);
     await this.render(entry);
@@ -1612,7 +1611,7 @@ export class WindowManager {
   /** Toggle zoom: grow to fit the content (capped), or restore the user/declared size.
    *  Bumps z-order so a background window zoomed-to-fit comes to the front (otherwise it'd
    *  re-render at the new size but stay buried — UX bug surfaced by 2026-05-28 review). */
-  private async toggleZoom(entry: ManagedWindow): Promise<void> {
+  private async toggleZoom(entry: ManagedWindow<Theme>): Promise<void> {
     if (entry.collapsed) entry.collapsed = false; // zooming an un-shades first
     entry.z = ++this.zClock;                       // raise to front (fix from 2026-05-28 review)
     if (!entry.zoomed) {
@@ -1645,7 +1644,7 @@ export class WindowManager {
    * window at the new content size on release (faithful to the Mac grow-box, and avoids an async
    * re-render per mouse-move). Re-attached on every render(), so it tracks the current chrome.
    */
-  private wireMoveResize(entry: ManagedWindow, win: HTMLElement): void {
+  private wireMoveResize(entry: ManagedWindow<Theme>, win: HTMLElement): void {
     const composed = (win as unknown as { _scriptoscopeComposed?: ComposedChrome })._scriptoscopeComposed;
     if (!composed) return;
     const scale = Math.max(1, Math.round(entry.opts.scale ?? 1));
@@ -1850,7 +1849,7 @@ export class WindowManager {
   }
 
   /** Overlay transparent hit buttons for any title-bar widget with a handler. */
-  private overlayWidgets(entry: ManagedWindow, win: HTMLElement): void {
+  private overlayWidgets(entry: ManagedWindow<Theme>, win: HTMLElement): void {
     const composed = (win as unknown as { _scriptoscopeComposed?: ComposedChrome })._scriptoscopeComposed;
     if (!composed) return; // baseline (procedural) window — no cicn widget rects
     const slug = this.effectiveSlug(entry);

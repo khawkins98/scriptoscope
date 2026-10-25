@@ -49,7 +49,7 @@ test('normalized owned sources retain live manifest and base reads', async t => 
   const view = themeView(theme);
   const base = { baseUrl: '/legacy', manifest: theme.source.manifest };
   theme.base = base;
-  assert.equal(view.base, base);
+  assert.equal(view.base, themeView(base));
   theme.source.manifest = { ...theme.source.manifest, name: 'changed' };
   assert.equal(view.manifest.name, 'changed');
   delete theme.base;
@@ -107,4 +107,28 @@ test('diagnostic image export cannot replace the selected pixel snapshot during 
   const selected = chain.getResource('cicn', -1, { trace });
   assert.deepEqual([...selected.value.pixmap.data], [1, 2, 3, 255]);
   assert.equal(trace.resolved[0].selection.resource.assetUrl, 'blob:initial-selected-image');
+});
+
+test('legacy sampled references resolve against the selected owner exactly once', async t => {
+  const previous = { Image: globalThis.Image, document: globalThis.document };
+  t.after(() => Object.assign(globalThis, previous));
+  const requested = [];
+  globalThis.Image = class {
+    naturalWidth = 1; naturalHeight = 1;
+    async decode() { requested.push(this.src); }
+  };
+  globalThis.document = { createElement: () => ({ getContext: () => ({
+    drawImage() {}, getImageData: () => ({ data: new Uint8ClampedArray([1, 2, 3, 255]) }),
+  }) }) };
+  const declaration = { model: 'kaleidoscope-2.3.1-opaque-sampling-v1', comparison: 'opaque-current-display-rgb',
+    displayPolicy: 'mac-1.8-to-2.2-high-byte', width: 1, height: 1 };
+  const theme = { baseUrl: '/legacy-relative', manifest: { chromeElements: { face: {
+    sourceCicnId: -1, asset: 'cicns/face.png',
+    samplingEquivalence: { ...declaration, status: 'different', reason: 'opaque-display-mismatch' },
+    sampledBandAsset: { ...declaration, asset: 'cicn-sampled/test.png', derivedPath: 'cicn-sampled/test.png' },
+  } } } };
+  await themeResourceChain(theme, [{ type: 'cicn', id: -1 }], { prepareSamples: async chain => {
+    await chain.getResource('cicn', -1).value.prepareSampled();
+  } });
+  assert.deepEqual(requested, ['/legacy-relative/cicns/face.png', '/legacy-relative/cicn-sampled/test.png']);
 });

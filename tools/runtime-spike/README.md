@@ -2,7 +2,8 @@
 
 This experiment asks whether the existing push-button renderer can consume decoded
 RGBA directly, avoiding RGBA → PNG → Image → Canvas → RGBA. It does not replace the
-renderer, change resource lookup policy, or enable a new production loading mode.
+renderer or change resource lookup policy. The experiment now drives the
+production owned loader introduced in feature PR #480.
 
 Run `npm run spike:runtime` from the repository root. It requires the installed
 `agent-browser` CLI and its Chromium browser. The runner starts a temporary Vite
@@ -12,15 +13,16 @@ measurements, not a portable performance budget.
 
 ## Recorded result
 
-The 2026-10-25 local Chromium 153 run in `results.json` passed all **1,944
+The 2026-10-25 22:51 UTC local Chromium 153 run in `results.json`, using
+the public owned API at `9e95fbdc`, passed all **1,944
 painted comparisons**, with zero missing faces, errors or mismatches. All 54
 direct-load disposal checks passed, as did the comparator mutation probes.
 
 | Measurement | PNG transport | Direct buffers |
 | --- | ---: | ---: |
-| Load | 401.4 ms | 60.1 ms |
-| First narrow render | 1.6 ms | 0.2 ms |
-| Warm render | 0.2 ms | 0.2 ms |
+| Load | 415.5 ms | 20.8 ms |
+| First narrow render | 1.8 ms | 0.2 ms |
+| Warm render | 0.3 ms | 0.2 ms |
 
 Each figure is the median of the 18 per-theme medians, rather than a combined
 page-load measurement. This supports removing serialization from the loading
@@ -53,7 +55,15 @@ The current production run passed **8,424 painted push/default comparisons**
 across source and built public entries, with own, sparse-base and mixed
 owned/legacy themes, clipped/unclipped composition and 648 synthetic prepared
 bitmap label cases. All **18,704 public raster image comparisons** matched direct
-access exactly. Thirty-six each of interactive activation, diagnostic URL,
+access exactly. The expanded window matrix compares 1,728 cases across document, dialog,
+titled and untitled utility requests, active/inactive states, 1×/2× scale,
+and own/base/mixed ownership. It compares chrome pixels, layout and CSS tile
+pixels; comparator probes reject pixel, tile and layout mutations. All 1,728
+cases paint, with zero baseline fallbacks. All 432 scrollbar comparisons paint
+exactly. Thirty-six mounted owned windows retain original input identity and
+interactive content through retheming. Two baseline sizing and two pending-CSS
+disposal probes pass across source and built entries.
+Thirty-six each of interactive activation, diagnostic URL,
 zero-PNG rendering and post-disposal source/built checks passed. One requested
 image shares work and does not encode unrelated assets.
 There were no matching errors or missing faces counted as successful paint.
@@ -91,8 +101,16 @@ A successful run supports migrating raster transport incrementally, while keepin
 the existing family engine and acceptance harness. The bounded push/base/bitmap/
 diagnostic/activation cases do not establish parity for other control families,
 all destination composition, independent original captures, complete DOM
-lifecycles or other browsers. Those remain acceptance work for adoption.
+lifecycles or other browsers. Window regression coverage is described above; complete
+application adoption and lifecycle validation remain open.
 
 The next change migrates remaining renderers and first-party loading/image
 consumers onto this owner and retires replaced plumbing. Resource indexing and
 diagnostic redesign remain separate experiments.
+
+New runner reports pin runtime, built and harness hashes, and reject changed inputs
+during measurement. Older reports predate that provenance guard.
+
+The recorded revision is checkout HEAD at run start; runtime hashes also identify
+uncommitted source changes included in that run. Reports are excluded from the
+fingerprint so saving measurement output does not invalidate it.

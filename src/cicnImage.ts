@@ -7,6 +7,22 @@ const cache = new Map<string, Promise<PixelBuffer>>();
 // disposed theme alive in this shared cache. Completion never reinserts it.
 onAssetUrlReleased((url) => { cache.delete(url); });
 
+async function loadImage(url: string): Promise<HTMLImageElement> {
+  const image = new Image();
+  image.src = url.startsWith('scriptoscope-raster:') ? await materializeRasterImage(url) : url;
+  await image.decode();
+  return image;
+}
+
+/** Size-only consumers must also work when cross-origin pixels are unreadable. */
+export async function rasterDimensions(url: string): Promise<{ width: number; height: number }> {
+  if (rasterDisposed(url)) throw new DOMException('Raster owner disposed', 'AbortError');
+  const pixels = decodedRaster(url);
+  if (pixels) return { width: pixels.width, height: pixels.height };
+  const image = await loadImage(url);
+  return { width: image.naturalWidth, height: image.naturalHeight };
+}
+
 /**
  * Load a cicn PNG into a PixelBuffer. Canvas is used ONLY to decode the
  * source image into raw RGBA — all compositing happens in PixelBuffer.
@@ -19,9 +35,7 @@ export function loadCicnBuffer(url: string): Promise<PixelBuffer> {
   const p = (async () => {
     const decoded = decodedRaster(url);
     if (decoded) return new PixelBuffer(decoded.width, decoded.height, decoded.data);
-    const img = new Image();
-    img.src = url.startsWith('scriptoscope-raster:') ? await materializeRasterImage(url) : url;
-    await img.decode();
+    const img = await loadImage(url);
     const w = img.naturalWidth;
     const h = img.naturalHeight;
     const canvas = document.createElement('canvas');
