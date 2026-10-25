@@ -1,7 +1,7 @@
 # Owned raster transport feature PR
 
 Status: in progress; delivery goal active. One integration PR with optional stacked
-sub-PRs. The integration branch targets `v2`; its draft PR link will be recorded here.
+sub-PRs. The integration branch targets `v2`: [draft PR #480](https://github.com/khawkins98/scriptoscope/pull/480).
 
 The working branch is `refactor/runtime-streamlining`, starting from
 `de942c6399c81d1f15d23247dfd62a36e11a64bc` with upstream `origin/v2`.
