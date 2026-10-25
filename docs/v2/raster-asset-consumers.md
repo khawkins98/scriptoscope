@@ -59,3 +59,33 @@ their own contracts permit awaiting image preparation. Existing `loadTheme` and
 `loadKaleidoscopeScheme` calls must continue to supply valid image URL strings.
 No placeholder blob, Promise or internal identity may escape as an image URL on
 those existing paths.
+
+## Next production slice
+
+Astra's follow-up review recommends a structurally distinct `OwnedTheme` whose
+reference-bearing manifest lives under `source`, rather than a top-level
+`LoadedTheme.manifest`. Public render/composition entry points accept
+`ThemeInput = LoadedTheme | OwnedTheme` and normalize through one internal
+`ThemeView`. Views provide `pixels(ref)`, `imageUrl(ref)` and owner lifetime;
+family selectors continue returning the selected owner and reference. The same
+painters and selectors serve both public inputs.
+
+Implement one additive owned loader and push/default composition first. Prove
+that owned loading plus an eligible button creates zero PNG URLs, and that a
+catalog image request creates one reusable real URL. The existing loader must
+materialize its ready-image contract over this same owner. Include mixed
+owned-child/legacy-base inputs. Preserve live reads of mutable legacy manifests
+and base chains rather than freezing copies during normalization.
+
+Replace whole-manifest URL enumeration in `engine/resources/theme.ts` with owner
+lifetime subscriptions for owned views, including an already-disposed check.
+Keep the legacy observer only for sources without an owner. A public diagnostic
+field named `assetUrl` must contain a usable image URL, never a private reference;
+materialize selected diagnostics only when requested.
+
+Retain synchronous `assetUrl` and `promoteIcon` for existing loaded themes. A
+separate asynchronous image helper/promotion path serves owned themes, sharing
+selection and DOM assignment logic and checking scanner generation/disconnect
+before adoption. Migrate first-party loading to the owned surface before retiring
+the transitional URL-indexed registration. Compatibility adapters remain; a
+second conversion engine or permanent experimental flag does not.
