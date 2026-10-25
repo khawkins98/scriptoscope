@@ -1,5 +1,7 @@
 # Scriptoscope Studio — authoring prototype
 
+**Parked proof of concept.** PR #475 is a draft checkpoint for later pickup. Start with [HANDOFF.md](./HANDOFF.md) for the validated baseline, durable screenshots, constraints and resume checklist.
+
 A browser-first React experiment for [#472](https://github.com/khawkins98/scriptoscope/issues/472). It tests the source-preserving **import → edit → save → reopen** loop using the existing Scriptoscope renderer. This is an experimental standalone companion app; it adds no React dependency or new API to the runtime package. Its output is a local **Studio project** that can be reopened here. It does not yet produce an installable Linux theme, compiled web theme, or edited classic scheme.
 
 ## Run it
