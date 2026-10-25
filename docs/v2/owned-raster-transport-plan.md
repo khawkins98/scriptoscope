@@ -6,7 +6,9 @@ sub-PRs. The integration branch targets `v2`: [draft PR #480](https://github.com
 The working branch is `refactor/runtime-streamlining`, starting from
 `de942c6399c81d1f15d23247dfd62a36e11a64bc` with upstream `origin/v2`.
 The [consumer inventory and ownership contract](raster-asset-consumers.md) records
-the first design decision. Stage 2 is being validated; subsequent stages remain open.
+the first design decision. The owned loader and push/default slice are implemented;
+remaining renderer migration and first-party default adoption are open. The
+[owned loading API](owned-theme-api.md) records the current supported boundary.
 
 Architecture review with Astra selected one owner implementation with two explicit
 contracts: an eager compatibility adapter for existing URL-bearing themes and a
@@ -16,23 +18,47 @@ serialization and inspection would trigger broad encoding.
 
 ## Current validation
 
-- Production comparator: 5,184 painted push/default cases and 18,704 raster image
-  comparisons pass across all 18 themes, source and built entries. Thirty-six
-  post-disposal checks pass. The public button API returns pixels; internal
-  face layout is separately compared by the source-only spike.
-- Initial full Node run: 1,100 passed, 14 skipped, zero failed. After architecture
-  review, 11 affected ownership/failure tests and typechecking pass, including
-  post-encoding assembly cleanup.
-- Library build and packed-consumer validation pass. Acceptance bindings require
-  the mechanical runtime-provenance refresh as the loader changes.
-- Full browser run is not green: 45 passed, 3 failed, 1 interrupted and 527 not
-  run before stopping. Source/built bitmap snapshot checks and a held normal
-  decode lifecycle check timed out; the interrupted moved-source check also waited
-  for a held decode. The owned path bypasses that boundary. Preserve the asserted
-  snapshot/abort/disconnect guarantees while updating scheduling fixtures; do not
-  insert fake image work or count these checks as obsolete.
-- Lazy image materialization, default first-party adoption, retained-memory
+- Production comparator: 8,424 painted push/default cases and 18,704 raster image
+  comparisons pass across all 18 themes, source and built entries. This includes
+  mixed owned/legacy bases and 648 prepared bitmap label cases. Thirty-six each
+  of zero-PNG rendering, interactive activation, diagnostic URL and disposal
+  checks pass. Public button dimensions and pixels are compared; internal face
+  layout is separately compared by the source-only benchmark.
+- Current full gates pass: 1,112 Node tests pass, 2 skip and 12 remain TODO,
+  with zero failures. This includes ownership, failure, diagnostic snapshot and
+  duplicate-path occurrence checks. Typechecking includes negative public-source
+  compatibility assertions.
+- Current library build and packed-consumer validation pass. Acceptance bindings
+  have been refreshed and verified for the loader changes.
+- The six previously failing/interrupted source/built image-decode lifecycle
+  cases now pass unchanged. Existing loaders are eager compatibility adapters
+  again; the distinct owned path has its own abort/disposal and snapshot tests.
+  A complete final browser run remains required.
+- Shared lazy image exports and bundle loading are implemented, with pending
+  image reuse, failure retry and late disposal cleanup. The transitional
+  pixel-registration-behind-PNG-URLs path has been removed.
+- Default first-party adoption, remaining families, retained-heap/process
   measurements, final code reduction and full final acceptance remain open.
+
+## Next vertical slice and compatibility boundary
+
+Move window chrome and body patterns onto an explicit internal `ThemeView` with
+pixel and asynchronous image access. Remove the prototype view, private URI
+registry and private-prefix handling in public `assetUrl` as callers migrate to
+the selected owner's resolver.
+
+Existing `ThemeResolver.load()` and `WindowManager.describe().theme` expose
+`LoadedTheme`, including synchronous image observables. Preserve those APIs as
+compatibility adapters. Introduce a supported owned mount entry point over the
+same scanner and lifecycle implementation; use generics only where public input
+theme identity is stored or returned. An owned resolver accepting registered
+legacy themes returns `ThemeInput`, rather than promising only `OwnedTheme`.
+
+The first-party demo's ordinary startup and dropped-theme flow must use owned
+loading before completion. The existing mount API remains supported; no transport
+boolean or duplicate scanner/rendering implementation should be carried through
+the UI. Astra reviewed this boundary and recommends an owned window containing
+the migrated button as the next bounded slice before complete scanner adoption.
 
 ## Outcome
 

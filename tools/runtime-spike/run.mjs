@@ -14,7 +14,7 @@ const browser = async (...args) => {
   if (!response.success) throw new Error(JSON.stringify(response.error));
   return response.data.result;
 };
-const server = await createServer({ configFile: false, root, server: { host: '127.0.0.1', port: 0 } });
+const server = await createServer({ configFile: false, root, server: { host: '127.0.0.1', port: 0, hmr: false } });
 try {
   await server.listen();
   await browser('open', `${server.resolvedUrls.local[0]}tools/runtime-spike/index.html${production ? '?production' : ''}`);

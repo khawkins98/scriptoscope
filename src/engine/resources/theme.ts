@@ -30,6 +30,7 @@ import { CINF_SAMPLE } from '../tables/cinfFrame.js';
 import type { QdPoint, QdRect } from '../qd/types.js';
 import { assetUrl } from '../../loadTheme.js';
 import { onAssetUrlReleased } from '../../../tools/theme-loader/assetLifecycle.js';
+import { materializeRasterImage, rasterOwner } from '../../../tools/theme-loader/rasterAssets.js';
 import { engineLineSampledCicnIds } from './ids.js';
 
 /** Only line-sampled cicns load their sampler companion (loaderNeeds `lineSampledCicns`). */
@@ -136,7 +137,7 @@ async function themeProvider(theme: LoadedTheme, tier: 'archive' | 'base', name:
       const companionAsset = el.iconBlit?.unmaskedAsset;
       const companionTransport = unmaskedSources && companionAsset
         ? { assetUrl: assetUrl(theme, companionAsset),
-          ...(/^(?:blob:|https?:|data:)/.test(companionAsset) ? {} : { derivedPath: companionAsset }) } : undefined;
+          ...(/^(?:scriptoscope-raster:|blob:|https?:|data:)/.test(companionAsset) ? {} : { derivedPath: companionAsset }) } : undefined;
       // Public push snapshots finite descriptors and URLs before ordinary decode.
       // Generic engine clients retain their existing eager sampling defaults.
       const proof = el.samplingEquivalence && { ...el.samplingEquivalence };
@@ -148,8 +149,20 @@ async function themeProvider(theme: LoadedTheme, tier: 'archive' | 'base', name:
       const sampledUrl = descriptor ? assetUrl(theme, descriptor.asset) : undefined;
       const sampledSource = traceProvenance && (lazySamples || status === 'different' && LINE_SAMPLED.has(id)) && descriptor
         ? { path: descriptor.derivedPath, assetUrl: sampledUrl!, model: descriptor.model, displayPolicy: descriptor.displayPolicy } : undefined;
-      const [pixmap, companion] = await Promise.all([load(sampleAsset),
-        companionAsset ? load(companionAsset) : Promise.resolve(null)]);
+      // All selected references and finite samples above are snapshotted before
+      // image export can yield. Diagnostics must not select a mutated replacement.
+      if (life?.ended()) throw abortError();
+      const selection = selections.get(key);
+      const [pixmap, companion, artImage, companionImage, sampledImage] = await Promise.all([
+        load(sampleAsset), companionAsset ? load(companionAsset) : Promise.resolve(null),
+        selection?.resource ? materializeRasterImage(selection.resource.assetUrl) : undefined,
+        companionTransport ? materializeRasterImage(companionTransport.assetUrl) : undefined,
+        sampledSource ? materializeRasterImage(sampledSource.assetUrl) : undefined,
+      ]);
+      if (life?.ended()) throw abortError();
+      if (selection?.resource) selections.set(key, { ...selection, resource: { ...selection.resource, assetUrl: artImage! } });
+      if (companionTransport) companionTransport.assetUrl = companionImage!;
+      if (sampledSource) sampledSource.assetUrl = sampledImage!;
       let sampled: Pixmap | null = null;
       const equivalent = validProof && matches(proof, pixmap) && proof?.status === 'equivalent' && proof.reason === 'all-opaque-display-rgb-equal';
       const eligible = !!descriptor && matches(descriptor, pixmap);
@@ -208,16 +221,24 @@ async function themeProvider(theme: LoadedTheme, tier: 'archive' | 'base', name:
       if (bodyPatterns?.has(id)) {
         const binding = bodyPatterns.get(id)!;
         if (!binding || 'status' in binding) return binding ? [key, binding] : null;
-        if (traceProvenance) selections.set(key, { ...binding.selection, owner: { baseUrl: bodyOwnerUrl!, chainDepth } });
+        if (life?.ended()) throw abortError();
+        if (traceProvenance) selections.set(key, { ...binding.selection, owner: { baseUrl: bodyOwnerUrl!, chainDepth },
+          ...(binding.selection.resource ? { resource: { ...binding.selection.resource, assetUrl: await materializeRasterImage(binding.url) } } : {}) });
         if (life?.ended()) throw abortError();
         return [key, await loadCicnBuffer(binding.url)];
       }
       const selected = patternEntries.find(([, e]) => e.sourcePpatId === id && e.asset);
       const p = selected?.[1];
-      if (traceProvenance && p) selections.set(key, { owner, resource: { type: 'ppat', signedId: p.sourcePpatId!, sourceCinfId: null,
-        manifestKey: selected![0], assetUrl: assetUrl(theme, p.asset),
-        ...(p.byteProvenance ? { byteProvenance: { ...p.byteProvenance } } : {}) } });
-      return p ? [key, await load(p.asset)] : null;
+      const patternAsset = p?.asset;
+      if (traceProvenance && p) {
+        const resource = { type: 'ppat' as const, signedId: p.sourcePpatId!, sourceCinfId: null,
+          manifestKey: selected![0], assetUrl: assetUrl(theme, patternAsset!),
+          ...(p.byteProvenance ? { byteProvenance: { ...p.byteProvenance } } : {}) };
+        if (life?.ended()) throw abortError();
+        resource.assetUrl = await materializeRasterImage(resource.assetUrl);
+        selections.set(key, { owner, resource });
+      }
+      return patternAsset ? [key, await load(patternAsset)] : null;
     }
     if (checkables && type === 'ics#') {
       const census = theme.inspector?.iconMaskResources;
@@ -280,9 +301,12 @@ const abortError = (): Error => new DOMException('slider composition ended', 'Ab
  */
 function chainLife(theme: LoadedTheme, signal?: AbortSignal): ChainLife {
   const urls = new Set<string>();
+  let released = false;
   const seen = new Set<LoadedTheme>();
   for (let t: LoadedTheme | undefined = theme; t && !seen.has(t); t = t.base) {
     seen.add(t);
+    const owner = rasterOwner(t);
+    if (owner) { urls.add(owner.lifetime); released ||= owner.disposed; continue; }
     for (const e of Object.values(t.manifest.chromeElements ?? {})) {
       for (const a of [e.asset, e.iconBlit?.unmaskedAsset, sampledDeclaration(e, t)?.asset]) if (a) urls.add(assetUrl(t, a));
     }
@@ -290,7 +314,6 @@ function chainLife(theme: LoadedTheme, signal?: AbortSignal): ChainLife {
     for (const g of Object.values(t.glyphs ?? {})) if (g) urls.add(g);
     for (const icon of t.inspector?.iconIndex ?? []) if (icon.unmaskedUrl) urls.add(assetUrl(t, icon.unmaskedUrl));
   }
-  let released = false;
   const stop = onAssetUrlReleased(url => { if (urls.has(url)) released = true; });
   return { ended: () => !!signal?.aborted || released, close: stop };
 }

@@ -103,6 +103,7 @@ import type { PixelBuffer } from './pixelBuffer.js';
 import type { SliderComposition, SliderLayout } from './sliderLayout.js';
 import type { ComposedChrome } from './composeChrome.js';
 import type { LoadedTheme, WindowState } from './types.js';
+import { themeView, type ThemeInput } from './ownedTheme.js';
 
 type Orientation = 'horizontal' | 'vertical';
 const clamp01 = (n: number): number => Math.min(1, Math.max(0, n));
@@ -129,11 +130,12 @@ export interface InteractiveButtonOptions extends ButtonOptions {
  * baseline button when either required face lacks an admitted paint stage.
  */
 export async function interactiveButton(
-  theme: LoadedTheme,
+  theme: ThemeInput,
   opts: InteractiveButtonOptions = {},
   /** Internal promotion lifetime; omitted for detached imperative preparation. */
   signal?: AbortSignal,
 ): Promise<HTMLElement> {
+  theme = themeView(theme);
   const current = (): void => { if (signal?.aborted) throw new DOMException('Button preparation aborted', 'AbortError'); };
   current();
   const { onClick, scale = 1, ...bo } = opts;

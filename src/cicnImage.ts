@@ -1,5 +1,5 @@
 import { onAssetUrlReleased } from '../tools/theme-loader/assetLifecycle.js';
-import { decodedRaster } from '../tools/theme-loader/rasterAssets.js';
+import { decodedRaster, materializeRasterImage, rasterDisposed } from '../tools/theme-loader/rasterAssets.js';
 import { PixelBuffer } from './pixelBuffer.js';
 
 const cache = new Map<string, Promise<PixelBuffer>>();
@@ -13,13 +13,14 @@ onAssetUrlReleased((url) => { cache.delete(url); });
  * Results are cached per URL.
  */
 export function loadCicnBuffer(url: string): Promise<PixelBuffer> {
+  if (rasterDisposed(url)) return Promise.reject(new DOMException('Raster owner disposed', 'AbortError'));
   const hit = cache.get(url);
   if (hit) return hit;
   const p = (async () => {
     const decoded = decodedRaster(url);
     if (decoded) return new PixelBuffer(decoded.width, decoded.height, decoded.data);
     const img = new Image();
-    img.src = url;
+    img.src = url.startsWith('scriptoscope-raster:') ? await materializeRasterImage(url) : url;
     await img.decode();
     const w = img.naturalWidth;
     const h = img.naturalHeight;

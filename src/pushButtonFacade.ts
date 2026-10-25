@@ -1,6 +1,7 @@
 // Public push adapter: browser allocation, declared context and font/display
 // policies around the source-backed engine callback (push-button.md §2/§5/§6).
 import type { ButtonOptions } from './controls.js';
+import { assertThemeAlive } from './ownedTheme.js';
 import type { LoadedTheme, ChromeElement } from './types.js';
 import { PixelBuffer } from './pixelBuffer.js';
 import { assetUrl } from './loadTheme.js';
@@ -138,11 +139,12 @@ function publishEngineTrace(trace: EngineTrace, collector?: ControlTraceCollecto
 
 export async function composeEnginePush(theme: LoadedTheme, opts: ButtonOptions = {}, signal?: AbortSignal,
   preparedContext?: ControlCompositionSnapshot): Promise<ButtonComposition | null> {
+  const current = (): void => { alive(signal); assertThemeAlive(theme); };
   let result: ButtonComposition | null = null;
   const state = opts.disabled ? 'disabled' : opts.pressed ? 'pressed' : 'normal';
   await withControlDiagnostics(opts.diagnostics, 'push-button', { state: state === 'normal' ? 'active' : state === 'disabled' ? 'inactive' : state,
     pressed: !!opts.pressed, disabled: !!opts.disabled, default: !!opts.default }, async diagnostics => {
-    alive(signal);
+    current();
     let composition = preparedContext ?? snapshotControlComposition(opts.compositionContext);
     if (opts.bitmapFont && composition.basis === 'compatibility-default') composition = Object.freeze({ ...composition, clip: Object.freeze({ kind: 'unbounded' as const }) });
     const run: BitmapGlyphRun | undefined = opts.bitmapFont ? prepareBitmapGlyphRun(opts.bitmapFont, opts.label ?? '', opts.fontSize, composition) : undefined;
@@ -196,7 +198,7 @@ export async function composeEnginePush(theme: LoadedTheme, opts: ButtonOptions 
           composition.clip.rect.x + composition.clip.rect.w - composition.controlOrigin[0]) } : {}),
         ...(declared?.metadata?.bodyRequest
         ? { requests: [{ type: 'ppat', id: declared.metadata.bodyRequest.resourceId }] } : {}) } });
-    alive(signal);
+    current();
     if (declared) {
       const parent = chain.providers[0]!;
       chain = new ResourceChain([{ name: `declared:${declared.view.bindingId}`, tier: 'archive',
@@ -267,7 +269,7 @@ export async function composeEnginePush(theme: LoadedTheme, opts: ButtonOptions 
       }
       for (let y = 0; y < out.height; y++) for (let x = 0; x < out.width; x++)
         if (!controlPointVisible(composition, x - outset, y - outset)) out.setPixel(x, y, 0, 0, 0, 0);
-      alive(signal);
+      current();
       result = { buffer: out, layout: { faceRect: { x: outset, y: outset, w: width, h: height } } };
       recordButtonFaceStage(result, drawn.face?.drawn === true);
       return out;

@@ -1,9 +1,8 @@
-// Render-only experiment. Empty blob URLs identify owned buffers; they are NOT
-// image sources. No production loader default or public export is changed.
-import { loadKaleidoscopeScheme } from '../../src/loadKaleidoscopeScheme.ts';
-import { composeEnginePush } from '../../src/pushButtonFacade.ts';
+// Compare the production owned loader against explicit historical PNG transport.
+import { loadKaleidoscopeScheme, loadOwnedKaleidoscopeScheme } from '../../src/loadKaleidoscopeScheme.ts';
+import { composeButtonWithLayout as composeEnginePush } from '../../src/controls.ts';
 import { loadCicnBuffer } from '../../src/cicnImage.ts';
-import { ownRasterAssets } from '../theme-loader/rasterAssets.js';
+import { rasterOwner } from '../theme-loader/rasterAssets.js';
 import { PixelBuffer } from '../../src/pixelBuffer.ts';
 
 const slugs = Object.keys(import.meta.glob('../../themes/*/meta.json')).map(p => p.split('/')[3]).sort();
@@ -41,16 +40,12 @@ async function source(slug) {
   throw new Error(`No archive: ${slug}`);
 }
 async function load(bytes, direct) {
-  let assets = 0, rawBytes = 0;
-  const urls = [];
   const start = performance.now();
-  const theme = await loadKaleidoscopeScheme(bytes, direct ? { encodeAssets: true, assetUrlFactory(rgba, w, h) {
-    const url = URL.createObjectURL(new Blob([]));
-    ownRasterAssets(new Map([[url, url]]), [{ path: url, width: w, height: h, rgba }]);
-    assets++; rawBytes += rgba.byteLength; urls.push(url);
-    return url;
-  } } : { assetUrlFactory: encodePng });
-  return { theme, ms: performance.now() - start, assets, rawBytes, urls };
+  const theme = await (direct ? loadOwnedKaleidoscopeScheme(bytes) : loadKaleidoscopeScheme(bytes, { assetUrlFactory: encodePng }));
+  const owner = direct ? rasterOwner(theme.source) : undefined;
+  const usage = owner?.usage();
+  return { theme, ms: performance.now() - start, assets: usage?.rasters ?? 0,
+    rawBytes: usage?.pixelBytes ?? 0, urls: owner ? [...owner.references.values()] : [] };
 }
 // Explicit custom factory keeps the comparison on the historical image-decode
 // path even when the production loader also retains its built-in encoder pixels.

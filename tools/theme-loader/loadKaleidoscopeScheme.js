@@ -12,7 +12,7 @@ import { snapshotCicnTransfer, bindCicnTransfer } from './cicn-transfer-results.
 
 import { assertCinfEnvironment, bindCinfEnvironment, finalizeCinfTheme, finalizeCinfResourceOwner } from './cinf-environment.js';
 import { beginLoadProvenance } from './loadProvenance.js';
-import { ownRasterAssets } from './rasterAssets.js';
+import { createRasterAssetOwner, bindRasterOwner } from './rasterAssets.js';
 import { convertScheme } from './convert.js';
 import { displayRealizer } from './display-profile.js';
 import { unwrapToResourceFork, detectContainer } from './containers.js';
@@ -45,7 +45,7 @@ import { buildResourceRoles, parseCicnFilename, parsePpatFilename } from './clas
  *   whose asset refs are blob: URLs (assetUrl passes them through); otherwise the raw
  *   `{ manifest, assets, iconIndex }`.
  */
-export async function loadKaleidoscopeScheme(input, options = {}) {
+async function decodeScheme(input, options) {
   const displayProfile = options.displayProfile;
   const cicnTransfer = snapshotCicnTransfer(options.cicnTransfer, displayProfile);
   const cinfEnvironment = options.cinfEnvironment;
@@ -97,50 +97,50 @@ export async function loadKaleidoscopeScheme(input, options = {}) {
     if (evidence) await evidence.settle();
     throw error;
   }
-  const { theme, assets, iconIndex, iconMaskResources, iconMaskPlanes, iconColorResources, cicnResources, ppatResources, colorTables } = converted;
   // Complete or reject all hashing before any encoder can allocate asset URLs.
   const byteProvenance = evidence ? await evidence.finish() : undefined;
-  // convertScheme already validated the theme (convertChrome → validateTheme).
+  return { converted, byteProvenance, sliderLayoutBinding };
+}
 
-  // Default: encode if EITHER OffscreenCanvas (fast path) OR document/HTMLCanvasElement
-  // (main-thread fallback for Safari 16.0–16.3) is reachable. A bare Node environment
-  // hits the else-branch (raw assets), which is what convert.test.mjs and the lint
-  // pipeline want.
+export async function loadKaleidoscopeScheme(input, options = {}) {
+  const { converted, byteProvenance, sliderLayoutBinding } = await decodeScheme(input, options);
+  const { theme, assets, ...catalog } = converted;
   const canEncode = typeof OffscreenCanvas !== 'undefined'
     || (typeof document !== 'undefined' && typeof HTMLCanvasElement !== 'undefined');
   const encodeAssets = options.encodeAssets ?? canEncode;
   if (!encodeAssets) {
     finalizeCinfTheme(theme);
     finalizeCinfResourceOwner(theme, sliderLayoutBinding, 'sliderLayoutEnvironment');
-    // Raw mode: hand back the contract + the un-encoded RGBA assets.
+    const { iconIndex, iconMaskResources, iconMaskPlanes, iconColorResources, cicnResources, ppatResources, colorTables } = catalog;
     return { manifest: theme, assets, iconIndex, iconMaskResources, iconMaskPlanes, iconColorResources, cicnResources, ppatResources, colorTables, ...(byteProvenance ? { byteProvenance } : {}) };
   }
 
-  const customEncoder = options.assetUrlFactory;
-  const urlFor = customEncoder ?? defaultAssetUrlFactory;
-  // Encode every decoded asset → a URL, keyed by its bundle path. Parallel: each
-  // OffscreenCanvas convertToBlob call is its own task; with ~500 assets per scheme
-  // a serial await-loop spent 30–50 ms × N = a 15–25 s freeze. Promise.all hands the
-  // pool off to the browser's encode workers and reduces wall time to a few seconds.
-  const urlByPath = new Map();
-  // Wait for every encoder to settle before cleaning up: Promise.all rejects
-  // early while other workers can still mint URLs. Defer factory invocation so
-  // synchronous exceptions participate in the same cleanup path.
-  const encoded = await Promise.allSettled(
-    assets.map((a) => Promise.resolve().then(() => urlFor(a.rgba, a.width, a.height, a.path))
-      .then((url) => [a.path, url])),
-  );
-  for (const result of encoded) {
-    if (result.status === 'fulfilled') urlByPath.set(...result.value);
-  }
-  const failed = encoded.find((result) => result.status === 'rejected');
-  if (failed) {
-    ownRasterAssets(urlByPath)();
-    throw failed.reason;
-  }
+  const owner = makeOwner(assets, options);
+  try {
+    const result = assembleTheme(converted, await owner.imageUrls(), sliderLayoutBinding, byteProvenance, options, owner);
+    owner.releasePixels();
+    return result;
+  } catch (error) { owner.dispose(); throw error; }
+}
 
-  const dispose = ownRasterAssets(urlByPath, customEncoder ? [] : assets);
+/** Render-focused contract: resource references and pixels, with lazy image exports. */
+export async function loadOwnedKaleidoscopeScheme(input, options = {}) {
+  const { converted, byteProvenance, sliderLayoutBinding } = await decodeScheme(input, options);
+  const owner = makeOwner(converted.assets, options);
+  const source = assembleTheme(converted, owner.references, sliderLayoutBinding, byteProvenance, options, owner);
+  delete source.baseUrl;
+  delete source.dispose;
+  bindRasterOwner(source, owner);
+  return { kind: 'owned-theme', origin: '', source, imageUrl: owner.imageUrl, dispose: owner.dispose };
+}
 
+function makeOwner(assets, options) {
+  const custom = options.assetUrlFactory;
+  return createRasterAssetOwner(assets, custom ?? defaultAssetUrlFactory, !!custom);
+}
+
+function assembleTheme(converted, urlByPath, sliderLayoutBinding, byteProvenance, options, owner) {
+  const { theme, assets, iconIndex, iconMaskResources, iconMaskPlanes, iconColorResources, cicnResources, ppatResources, colorTables } = converted;
   try {
     rewriteAssetRefs(theme, urlByPath);
     finalizeCinfTheme(theme);
@@ -149,12 +149,12 @@ export async function loadKaleidoscopeScheme(input, options = {}) {
     const inspector = { ...buildInspector(theme, assets, iconIndex, urlByPath, options.meta?.name),
       iconMaskResources, iconMaskPlanes, iconColorResources, cicnResources, ppatResources, colorTables };
     return {
-      manifest: theme, baseUrl: '', inspector, dispose,
+      manifest: theme, baseUrl: '', inspector, dispose: owner.dispose,
       ...(byteProvenance ? { byteProvenance } : {}),
       ...(Object.keys(glyphs).length ? { glyphs } : {}),
     };
   } catch (error) {
-    dispose();
+    owner.dispose();
     throw error;
   }
 }

@@ -1,11 +1,14 @@
 {
-  "compared": 5184,
+  "bitmapPaints": 648,
+  "compared": 8424,
+  "diagnostics": 36,
   "disposedLoads": 36,
   "equalErrors": 0,
   "equalMissing": 0,
   "errors": [],
+  "interactions": 36,
   "mismatches": [],
-  "painted": 5184,
+  "painted": 8424,
   "rasters": 18704,
   "rows": [
     {
@@ -189,7 +192,8 @@
       "transport": "built"
     }
   ],
-  "runAt": "2026-10-25T20:46:58.088Z",
+  "runAt": "2026-10-25T22:41:50.066Z",
   "status": "pass",
-  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+  "zeroPngRenders": 36
 }

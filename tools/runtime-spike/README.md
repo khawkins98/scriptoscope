@@ -30,21 +30,17 @@ the latter retains all 12,902 committed cells unchanged.
 
 ## Implementation
 
-The initial spike added seven lines in `src/cicnImage.ts` to register decoded
-buffers. That experimental seam is now replaced by the production raster owner in
-`tools/theme-loader/rasterAssets.js`. The spike still supplies the loader's custom
-asset factory with empty blob URLs as lifetime identities. Its PNG comparison uses
-an explicit custom PNG encoder, so the new built-in pixel shortcut cannot make
-the old-versus-new comparison compare the same direct path twice.
+The original empty-blob spike and pixel registration behind PNG URLs have been
+replaced by the production owned loader. The benchmark now calls
+`loadOwnedKaleidoscopeScheme` and the same button facade used by public APIs. Its
+baseline uses an explicit PNG encoder and the existing ready-image loader.
+Owned references are private resource identities; actual image requests export
+valid URLs lazily. Existing loaders remain eager compatibility adapters over the
+same owner. The public loading boundary is documented in
+[`owned-theme-api.md`](../../docs/v2/owned-theme-api.md).
 
-These empty URLs are **render-only identities, not usable image URLs**. Inspector,
-picker, CSS background and consumer `<img>` paths need real URLs. A production
-migration would supply lazy image encoding and preserve URL ownership semantics;
-this spike deliberately does not implement that second representation.
-
-The production loader still creates valid PNG URLs; eligible renderer reads now
-borrow owned pixels. Custom factories and external images retain image decoding.
-No package exports change. No net code-size saving is claimed at this stage.
+Custom factories and external images retain authoritative browser decoding.
+No net code-size saving is claimed at this stage.
 The experimental harness is under `tools/runtime-spike/`; it is not shipped.
 
 `node tools/runtime-spike/run.mjs --production` compares the production owner
@@ -53,10 +49,13 @@ decodes public image URLs and compares their pixels with direct buffer access,
 and exercises push/default buttons through own/base and clipped contexts.
 Results go to `production-results.json`; this requires a current `npm run build`.
 
-The first production run passed **5,184 painted push/default comparisons** across
-source and built public entries, with own and synthetic sparse-base themes and
-clipped/unclipped composition. All **18,704 public raster image comparisons**
-matched direct access exactly, and 36 post-disposal source/built checks passed.
+The current production run passed **8,424 painted push/default comparisons**
+across source and built public entries, with own, sparse-base and mixed
+owned/legacy themes, clipped/unclipped composition and 648 synthetic prepared
+bitmap label cases. All **18,704 public raster image comparisons** matched direct
+access exactly. Thirty-six each of interactive activation, diagnostic URL,
+zero-PNG rendering and post-disposal source/built checks passed. One requested
+image shares work and does not encode unrelated assets.
 There were no matching errors or missing faces counted as successful paint.
 Public button output is a pixel buffer; its dimensions and bytes are compared.
 The internal face-layout assertion remains in the original source-only spike.
@@ -89,13 +88,11 @@ establish a memory improvement.
 ## Decision boundary
 
 A successful run supports migrating raster transport incrementally, while keeping
-the existing family engine and acceptance harness. It does not establish parity
-for other control families, destination composition, base chains, prepared bitmap
-fonts, diagnostics, independent original captures, real DOM lifecycles, built
-entry points, or other browsers. Those remain acceptance work for adoption.
+the existing family engine and acceptance harness. The bounded push/base/bitmap/
+diagnostic/activation cases do not establish parity for other control families,
+all destination composition, independent original captures, complete DOM
+lifecycles or other browsers. Those remain acceptance work for adoption.
 
-The next bounded change would implement an owned raster store with lazy real image
-URLs, then exercise those consumers before retiring the corresponding PNG/cache
-plumbing. Resource indexing and diagnostic simplification remain separate
-experiments. Avoid combining them with this transport change: otherwise the
-source of a mismatch or speedup would become harder to identify.
+The next change migrates remaining renderers and first-party loading/image
+consumers onto this owner and retires replaced plumbing. Resource indexing and
+diagnostic redesign remain separate experiments.

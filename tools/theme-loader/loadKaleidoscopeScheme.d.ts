@@ -5,6 +5,7 @@
 // the JSDoc on the JS file.
 
 import type { LoadedTheme } from '../../src/types.js';
+import type { OwnedTheme } from '../../src/ownedTheme.js';
 
 export interface LoadKaleidoscopeSchemeOptions {
   /** Explicit standalone group2 slider layout cinf lookup; absent preserves compatibility. */
@@ -47,3 +48,9 @@ export function loadKaleidoscopeScheme(
   input: Uint8Array | ArrayBuffer | Blob | string,
   options?: LoadKaleidoscopeSchemeOptions,
 ): Promise<LoadedTheme>;
+
+/** Resource-reference source; image URLs are materialized only when requested. */
+export function loadOwnedKaleidoscopeScheme(
+  input: Uint8Array | ArrayBuffer | Blob | string,
+  options?: Omit<LoadKaleidoscopeSchemeOptions, 'encodeAssets'>,
+): Promise<OwnedTheme>;

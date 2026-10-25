@@ -1,4 +1,5 @@
 import { composeEngineCheckable, type CheckableOptions } from './checkableFacade.js';
+import { themeView, assertThemeAlive, type ThemeInput } from './ownedTheme.js';
 import { composeEnginePush, loadEnginePushFace } from './pushButtonFacade.js';
 import { CinfEnvironmentError, snapshotBodyCinfFace, type CinfLookupView } from '../tools/theme-loader/cinf-environment.js';
 import type { PreparedBitmapFont } from './preparedBitmapFont.js';
@@ -199,8 +200,8 @@ function resolveControlHeight(face: PixelBuffer, optsHeight?: number): number {
 }
 
 /** Exact signed push art selected by the engine's state table. */
-export async function loadPushButtonFace(theme: LoadedTheme, state: 'active' | 'pressed' | 'inactive'): Promise<PixelBuffer | null> {
-  return loadEnginePushFace(theme, state);
+export async function loadPushButtonFace(theme: ThemeInput, state: 'active' | 'pressed' | 'inactive'): Promise<PixelBuffer | null> {
+  return loadEnginePushFace(themeView(theme), state);
 }
 
 /** The chromeElement whose asset encodes resource `id` (for textAnchor etc).
@@ -1040,14 +1041,18 @@ async function composeControlBorder(resolved: ResolvedControlFace, width: number
 }
 
 /** Compose a push face, label and optional default ring with the v2 engine. */
-export async function composeButton(theme: LoadedTheme, opts: ButtonOptions = {}, signal?: AbortSignal): Promise<PixelBuffer | null> {
+export async function composeButton(theme: ThemeInput, opts: ButtonOptions = {}, signal?: AbortSignal): Promise<PixelBuffer | null> {
   return (await composeButtonWithLayout(theme, opts, signal))?.buffer ?? null;
 }
 
 /** Internal adapter seam: actual face placement, never a second ring resolver. */
-export async function composeButtonWithLayout(theme: LoadedTheme, opts: ButtonOptions = {}, signal?: AbortSignal,
+export async function composeButtonWithLayout(theme: ThemeInput, opts: ButtonOptions = {}, signal?: AbortSignal,
   preparedContext?: ControlCompositionSnapshot): Promise<ButtonComposition | null> {
-  return composeEnginePush(theme, opts, signal, preparedContext);
+  const view = themeView(theme);
+  assertThemeAlive(view);
+  const result = await composeEnginePush(view, opts, signal, preparedContext);
+  assertThemeAlive(view);
+  return result;
 }
 
 /**
