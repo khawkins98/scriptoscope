@@ -80,14 +80,14 @@ for(const mode of ['source','production']) test(`${mode}: showcase No theme rest
   // Requested URL must mean actual Windows95; a random/no-cinf theme is a bug.
   expect(new URL(page.url()).searchParams.get('theme')).toBe('windows-95');
   await expect(page.locator('#install-teaser')).toHaveAttribute('data-scriptoscope-theme','windows-95');
-  await expect(page.locator('#powers button[data-scriptoscope-button] + span.scriptoscope-button')).toHaveCount(2);
+  await expect(page.locator('#powers button[data-scriptoscope-button] + button.scriptoscope-button')).toHaveCount(2);
   expect(network.some(r=>r.status===200&&r.url.endsWith('/themes/windows-95/scheme.sit')&&r.sha256===choices.find(c=>c.slug==='windows-95').archiveSha256)).toBe(true);
   const initialShape=await shape();verifyShowcaseShape(initialShape,'themed');
   const shapeNegatives=[];
   for(const [name,mutate]of [
    ['missing-replacement',s=>s.pop()],['duplicate-replacement',s=>s.push(structuredClone(s[0]))],
    ['blank-canvas',s=>s[0].opaque=0],['hidden-replacement',s=>s[0].visible=false],
-   ['wrong-labelled-control',s=>s[1].label='OK'],['native-for-valid-theme',s=>s[0].tag='BUTTON'],
+   ['wrong-labelled-control',s=>s[1].label='OK'],['invalid-element-type',s=>s[0].tag='DIV'],
   ]){const changed=structuredClone(initialShape);mutate(changed);expect(()=>verifyShowcaseShape(changed,'themed'),name).toThrow();shapeNegatives.push(name);}
   await attachJson(info,'showcase-shape-negatives.json',{baseline:initialShape,negatives:shapeNegatives});
   await page.evaluate(()=>{const f=window.showcaseButtons;f.faces=f.originals.map(el=>el.nextElementSibling);f.range=document.querySelector('#powers-hero-vol');});

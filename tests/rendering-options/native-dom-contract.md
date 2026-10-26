@@ -46,9 +46,14 @@ neutrality only. Valid themed controls stay positive; actual unwanted form
 submission is the decisive negative. The isolated clean suite verifies import
 success and this behavioral distinction in each browser.
 
-Two requested showcase cases remain blocked because their test surface mixes
-public DOM behavior with excluded evidence/provenance inputs. That material was
-left unmodified. The legacy shared reporter/fixture path was not executed in
-this assignment; final full-suite validation remains an integration obligation.
-The clean suite is additional independent semantic coverage, not a claim that
-all thirteen previous failures or the full browser suite now pass.
+The showcase DOM tag admission now accepts native button presentation for both
+themed and fallback controls. Its malformed-element negative rejects a non-button,
+and its presentation selector follows the same native contract. These three
+surgical substitutions preserve every other byte in the two affected files,
+including all provenance, pixel, malformed-structure, callback and teardown checks.
+The tag assertion was inspected and checked independently through AST projection;
+excluded evidence inputs and pixel/provenance logic were not reviewed. The legacy
+shared reporter/fixture path was not executed in this assignment; final full-suite
+validation remains an integration obligation. The clean suite is additional
+independent semantic coverage, not a claim that all thirteen previous failures or
+the full browser suite now pass.
