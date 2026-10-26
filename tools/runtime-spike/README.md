@@ -57,8 +57,8 @@ JavaScript grows by 3,314 bytes; separate level-9 gzip totals grow by 516. Scrol
 lifetime and value epochs prevent late paints, stale ARIA values and rejected
 disposal work from escaping; seven implementation-owned regressions cover these
 races. PixelBuffer delegates duplicate access logic to the existing engine primitives.
-The earlier normal package capture is 996,635 compressed / 3,288,067 unpacked bytes,
-116 entries; it predates these review fixes. See
+The review candidate's normal package is 996,864 compressed / 3,288,964 unpacked
+bytes, 116 entries. The unchanged earlier snapshots predate the review fixes. See
 [production-size-results.json](production-size-results.json) and
 [shipped-size-results.json](shipped-size-results.json).
 

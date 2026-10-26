@@ -17,8 +17,21 @@ function canvases(root) {
   for (const el of root.querySelectorAll('*')) if (el.shadowRoot) all.push(...canvases(el.shadowRoot));
   return all;
 }
+function pendingScrollbars(root) {
+  return [...root.querySelectorAll('*')].flatMap(el => [
+    ...(el.matches('.scriptoscope-window-scrollbar') && !el.querySelector('canvas') ? [el.className] : []),
+    ...el.shadowRoot ? pendingScrollbars(el.shadowRoot) : [],
+  ]);
+}
 async function snapshot(runtime, root) {
   await nextFrame();
+  // Window chrome commits before its asynchronous scrollbar paints. Observe
+  // their actual canvas publication; a failed paint must fail this capture.
+  const deadline = performance.now() + 10_000;
+  while (pendingScrollbars(root).length) {
+    if (performance.now() > deadline) throw new Error(`Mounted scrollbars did not paint: ${pendingScrollbars(root).join(', ')}`);
+    await nextFrame();
+  }
   const images = [...root.querySelectorAll('img')].filter(image => image.getAttribute('src'));
   const pixels = await Promise.all(images.map(image => runtime.loadCicnBuffer(image.src)));
   const backgrounds = [];
@@ -29,10 +42,13 @@ async function snapshot(runtime, root) {
       if (match) backgrounds.push(await runtime.loadCicnBuffer(match[1]));
     }
   }
-  return { canvases: canvases(root).map(canvas => canvas.toDataURL()), pixels, backgrounds,
+  const captured = canvases(root);
+  return { canvases: captured.map(canvas => canvas.toDataURL()),
+    canvasInfo: captured.map(canvas => ({ width: canvas.width, height: canvas.height, className: canvas.className, parent: canvas.parentElement?.className })), pixels, backgrounds,
     stats: [...root.querySelectorAll('input,select')].map(el => [el.type, el.value, el.checked, el.disabled]) };
 }
-export async function compareMounts(runtime, slugs, report, compare) {
+export async function compareMounts(runtime, slugs, report, compare, transport) {
+  window.spikeContext = { phase: 'mount-lifecycle', transport };
   report.mounts ??= 0;
   const guardRoot = fixture();
   const guardOptions = { root: guardRoot, themeBaseUrl: '/themes', pageThemeDefault: slugs[0], bootAffordance: 'none' };
@@ -69,6 +85,7 @@ export async function compareMounts(runtime, slugs, report, compare) {
     dropHandle?.disconnect(); dropRoot.remove(); dropped.dispose(); legacy.dispose();
   }
   for (const slug of slugs) {
+    window.spikeContext = { phase: 'mount-comparison', transport, slug };
     const roots = [fixture(), fixture()], handles = [];
     try {
       const options = root => ({ root, themeBaseUrl: '/themes', pageThemeDefault: slug,
@@ -86,7 +103,17 @@ export async function compareMounts(runtime, slugs, report, compare) {
         || JSON.stringify(a.canvases) !== JSON.stringify(b.canvases) || JSON.stringify(a.stats) !== JSON.stringify(b.stats)
         || a.pixels.length !== b.pixels.length || a.backgrounds.length !== b.backgrounds.length
         || a.pixels.some((pixels, i) => compare(pixels, b.pixels[i]))
-        || a.backgrounds.some((pixels, i) => compare(pixels, b.backgrounds[i]))) throw new Error(`Mounted transport mismatch: ${slug}`);
+        || a.backgrounds.some((pixels, i) => compare(pixels, b.backgrounds[i]))) {
+        const mismatch = { slug, stats: handles.map(handle => handle.stats), controls: [a.stats, b.stats],
+          canvases: [a.canvases.length, b.canvases.length],
+          canvasDifferences: Array.from({ length: Math.max(a.canvases.length, b.canvases.length) }, (_, i) => i)
+            .filter(i => a.canvases[i] !== b.canvases[i]).map(index => ({ index, eager: a.canvasInfo[index], owned: b.canvasInfo[index] })),
+          pixels: [a.pixels.length, b.pixels.length], backgrounds: [a.backgrounds.length, b.backgrounds.length],
+          pixelDifferences: a.pixels.map((pixels, i) => compare(pixels, b.pixels[i])),
+          backgroundDifferences: a.backgrounds.map((pixels, i) => compare(pixels, b.backgrounds[i])) };
+        (report.mountMismatches ??= []).push(mismatch);
+        throw new Error(`Mounted transport mismatch: ${JSON.stringify(mismatch)}`);
+      }
       let clicks = 0;
       const sourceButton = roots[1].querySelector('[data-scriptoscope-button]');
       sourceButton.addEventListener('click', () => clicks++);

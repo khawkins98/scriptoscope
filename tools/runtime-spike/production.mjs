@@ -214,10 +214,12 @@ async function compareFamilies(runtime, old, current, report, transport, slug, p
     }
 }
 
+let progress;
 async function run() {
   const report = { runAt: new Date().toISOString(), userAgent: navigator.userAgent,
     comparison: reference ? 'historical-public-renderers' : 'current-eager-versus-owned', diagnosticComparisons: 0, rows: [], mismatches: [], errors: [], compared: 0, painted: 0, equalMissing: 0, equalErrors: 0, rasters: 0, referenceRasters: 0, disposedLoads: 0,
     families: {}, familyDiagnostics: 0, baselinePatterns: 0, pendingWindows: 0, scrollbars: 0, paintedScrollbars: 0, missingScrollbars: 0, windows: 0, paintedWindows: 0, baselineWindows: 0, lazyWindows: 0, disposedWindows: 0, managedWindows: 0, diagnostics: 0, interactions: 0, zeroPngRenders: 0, bitmapPaints: 0 };
+  progress = report;
   for (const [transport, runtime] of [['source', source], ['built', built]]) for (const slug of slugs) {
     const input = await bytes(slug);
     const previous = reference ?? runtime;
@@ -357,8 +359,8 @@ async function run() {
     report.rows.push({ transport, slug, rasters: report.rasters - before });
     document.querySelector('#result').textContent = JSON.stringify(report, null, 2);
   }
-  for (const runtime of [source, built]) await compareMounts(runtime, slugs, report, compare);
   report.rendererComparisons = reference ? report.compared + report.windows + report.scrollbars + Object.values(report.families).reduce((sum, row) => sum + row.compared, 0) : 0;
+  for (const [transport, runtime] of [['source', source], ['built', built]]) await compareMounts(runtime, slugs, report, compare, transport);
   report.status = report.mismatches.length || report.painted !== report.compared || report.compared === 0 || Object.values(report.families).some(row => row.errors || !row.compared) || report.windows !== slugs.length * 2 * 3 * 4 * 2 * 2 ? 'mismatch' : 'pass';
   return report;
 }
@@ -366,4 +368,4 @@ window.spikeDone = run().then(report => {
   window.spikeReport = report;
   document.querySelector('p').textContent = `Production comparison: ${report.status}`;
   document.querySelector('#result').textContent = JSON.stringify(report, null, 2);
-}).catch(error => { window.spikeReport = { status: 'error', error: error?.stack ?? `${error?.name}: ${error?.message ?? String(error)}`, context: window.spikeContext }; });
+}).catch(error => { window.spikeReport = { ...progress, status: 'error', error: error?.stack ?? `${error?.name}: ${error?.message ?? String(error)}`, context: window.spikeContext }; });
