@@ -2,7 +2,9 @@
 
 Deliverable: listing-free contract decisions and justified independent DOM-test
 changes for the frozen PR 484 draft. This is not a request to update expectations
-to make output pass, nor final approval to merge. Assignment awaits authorization.
+to make output pass, nor final approval to merge. The user authorized this assignment. Independent commits `30213948` and
+`686a94eb` are now integrated; final runtime and CI results are recorded in
+`native-form-results.md`. This text retains the original assignment scope.
 The implementer must not read or edit independent acceptance source or oracles.
 
 Use a fresh isolated worktree at the current PR head. No other checkouts, original
