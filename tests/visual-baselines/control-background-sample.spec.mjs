@@ -67,25 +67,45 @@ test('Windows95 faces use authored cinf background samples in every state', asyn
   }
 });
 
-test('fallback and inherited faces keep their own cinf metadata', async (t) => {
+test('signed face states inherit matching occurrence metadata without cross-state fallback', async (t) => {
   const page = await fixture(t);
   const result = await page.evaluate(async () => {
     const { controls, loadTheme } = window.controlFixture;
     const source = await loadTheme('/themes/windows-95');
-    const pressed = Object.values(source.manifest.chromeElements).find(e => e.sourceCicnId === -10238);
-    const inactive = Object.values(source.manifest.chromeElements).find(e => e.sourceCicnId === -10240);
-    // An absent active slot must use the pressed face's sample and slice bands.
-    const fallback = { ...source, manifest: { ...source.manifest, chromeElements: { 'push-button-pressed': pressed } } };
-    const inherited = { ...source, base: fallback, manifest: { ...source.manifest, chromeElements: {
-      'menu-background': { ...inactive, sourceCicnId: -10239, authorLabel: 'Solo Menu Background', bgAnchor: [0, 0] }
-    } } };
-    const expected = await controls.composeButton(fallback, { label: 'OK', pressed: true });
-    const active = await controls.composeButton(fallback, { label: 'OK' });
-    const base = await controls.composeButton(inherited, { label: 'OK' });
-    return { expected: [...expected.data], active: [...active.data], base: [...base.data] };
+    const states = [[-10239, {}], [-10238, { pressed: true }], [-10240, { disabled: true }]];
+    const rows = [];
+    for (const [id, opts] of states) {
+      const otherFaces = Object.fromEntries(Object.entries(source.manifest.chromeElements).filter(([,e]) => e.sourceCicnId !== id));
+      // Retain original raw/decoded occurrence identities. Remove the requested
+      // art from both catalogs, rather than relabeling another state's image.
+      const child = { ...source, baseUrl: `${source.baseUrl}/child`, base: source,
+        inspector: { ...source.inspector, cicnResources: source.inspector.cicnResources.filter(r => r.id !== id) },
+        manifest: { ...source.manifest, chromeElements: otherFaces } };
+      let trace;
+      const actual = await controls.composeButton(child, { label: 'Ag', height: 23, ...opts, diagnostics: { onComplete: t => { trace = t; } } });
+      const expected = await controls.composeButton(source, { label: 'Ag', height: 23, ...opts });
+      const missing = await controls.composeButton({ ...child, base: undefined }, opts);
+      const el = Object.values(source.manifest.chromeElements).find(e => e.sourceCicnId === id);
+      rows.push({ id, identity: el.cicnSource.id, index: el.cicnSource.resourceIndex,
+        same: actual.data.every((v,i) => v === expected.data[i]), missing: missing === null,
+        selected: trace.steps.filter(step => step.action === 'selected' && step.role === 'face' && step.usage === 'paint' && step.resource?.signedId === id),
+        signature: [...actual.data] });
+    }
+    return rows;
   });
-  assert.deepEqual(result.active, result.expected, 'active→pressed uses pressed metadata');
-  assert.deepEqual(result.base, result.expected, 'base resource keeps base metadata');
+  for (const row of result) {
+    assert.equal(row.identity, row.id, 'raw occurrence and decoded signed ID agree');
+    assert.equal(row.same, true, `${row.id}: inherited face keeps its own cinf geometry/samples`);
+    assert.equal(row.missing, true, `${row.id}: PB8 forbids another face-state retry`);
+    assert.ok(row.selected.length > 0, `${row.id}: diagnostic identifies actual face selection`);
+    for (const step of row.selected) {
+      assert.equal(step.resource.sourceCinfId, row.id);
+      assert.equal(step.owner.chainDepth, 1, 'selected face belongs to base');
+    }
+  }
+  assert.deepEqual(result.map(r => r.index), [238, 237, 239], 'distinct original occurrence identities');
+  assert.equal(result[0].signature.some((v,i) => v !== result[1].signature[i]), true, 'active/pressed fixture discriminates state');
+  assert.equal(result[0].signature.some((v,i) => v !== result[2].signature[i]), true, 'active/inactive fixture discriminates state');
 });
 
 test('solid bevel and list faces use their own authored background samples', async (t) => {
