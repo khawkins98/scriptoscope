@@ -3,7 +3,7 @@ import { withThemeView, type ThemeInput, type ThemeView, type RasterSource } fro
 import { composeEnginePush, loadEnginePushFace } from './pushButtonFacade.js';
 import { CinfEnvironmentError, snapshotBodyCinfFace, type CinfLookupView } from '../tools/theme-loader/cinf-environment.js';
 import type { PreparedBitmapFont } from './preparedBitmapFont.js';
-import { cinfBorderPlan } from './engine/qd/cinfFrame.js';
+import { cinfBorderPlan, cinfBodyRects, bodyWriteCount } from './engine/qd/cinfFrame.js';
 import { ownerDisplayPolicyMatches, realizeRgb16 } from '../tools/theme-loader/display-profile.js';
 import { snapshotControlComposition, bodyPatternPhase, controlPointVisible, type ControlCompositionContext, type ControlCompositionSnapshot, type ButtonComposition } from './controlComposition.js';
 import type { SliderComposition } from './sliderLayout.js';
@@ -17,6 +17,7 @@ import type { HeaderSurfaceOptions, HeaderSurfaceResult } from './headerSurface.
 import { composeEngineHeaderSurface, composeEngineHeaderColumns } from './headerFacade.js';
 import { createTrace, type EngineTrace } from './engine/trace.js';
 import { rect } from './engine/qd/rect.js';
+import { fillPattern } from './engine/qd/pattern.js';
 import { normalizeControlState } from './engine/state/control.js';
 import { SCROLLBAR_PRESSED_PARTS, SLIDER_PRESSED_PARTS } from './engine/tables/controlState.js';
 import { SCROLLBAR_FACADE_RANGE, SCROLLBAR_FACADE_THICKNESS } from './engine/tables/scrollbar.js';
@@ -829,6 +830,11 @@ async function composeFaceButton(
   const innerH = lineH;
   const out = PixelBuffer.alloc(innerW, innerH);
   const context = opts.composition ?? snapshotControlComposition();
+  const bodyRects = cinfBodyRects(rect(0, 0, innerH, innerW), fIns, fSide);
+  const pixelBodyRects = bodyRects.map(r => rect(Math.ceil(r.top), Math.ceil(r.left), Math.ceil(r.bottom), Math.ceil(r.right)));
+  const clip = context.clip.kind === 'rect' ? rect(context.clip.rect.y - context.controlOrigin[1],
+    context.clip.rect.x - context.controlOrigin[0], context.clip.rect.y + context.clip.rect.h - context.controlOrigin[1],
+    context.clip.rect.x + context.clip.rect.w - context.controlOrigin[0]) : undefined;
   // A completed body dependency describes a published composition, not an
   // intermediate offscreen write. Borders can still decode asynchronously.
   let mode5PaintStep: ControlResolutionStep | undefined;
@@ -888,28 +894,14 @@ async function composeFaceButton(
     out.drawOver(await composeControlBorder(resolved, innerW, innerH, opts, (x, y) => controlPointVisible(context, x, y)), 0, 0);
   } else if (pattern && faceEl.slice && faceEl.bodyRequest) {
     const [phaseX, phaseY] = bodyPatternPhase(context, faceEl.bodyRequest.mode, innerW, innerH);
-    let paintedPixels = 0;
-    // Full-color f7cc/FillCRect: both inset rectangles share the original D/P
-    // phase. Their union is filled before the masked border; do not tile each
-    // inset from its own origin or alpha-mask the body by the face raster.
-    for (let y = 0; y < innerH; y++) for (let x = 0; x < innerW; x++) {
-      const inBody = (x >= fIns && x < innerW - fIns && y >= fSide && y < innerH - fSide)
-        || (x >= fSide && x < innerW - fSide && y >= fIns && y < innerH - fIns);
-      if (!inBody || !controlPointVisible(context, x, y)) continue;
-      const px = ((phaseX + x) % pattern.width + pattern.width) % pattern.width;
-      const py = ((phaseY + y) % pattern.height + pattern.height) % pattern.height;
-      out.setPixel(x, y, ...pattern.getPixel(px, py));
-      // Count writes, including transparent samples, once across the overlapping union.
-      paintedPixels++;
-    }
+    // Both insets share the original phase. The final face clip clears writes
+    // outside the declared port; coverage counts the overlapping union once.
+    for (const box of pixelBodyRects) fillPattern(out, box, pattern, { x: -phaseX, y: -phaseY });
+    const paintedPixels = pattern.width > 0 && pattern.height > 0 ? bodyWriteCount(out, pixelBodyRects, clip) : 0;
     if (opts.trace && body.selection && paintedPixels) {
-      const rect = (x: number, y: number) => {
-        const left = Math.max(0, x), top = Math.max(0, y);
-        return { x: left, y: top, w: Math.max(0, Math.min(innerW, innerW - x) - left),
-          h: Math.max(0, Math.min(innerH, innerH - y) - top) };
-      };
-      const unionRects = [rect(fIns, fSide), ...(fIns === fSide ? [] : [rect(fSide, fIns)])]
-        .filter(r => r.w > 0 && r.h > 0);
+      const unionRects = bodyRects.map(r => ({ x: Math.max(0, r.left), y: Math.max(0, r.top),
+        w: Math.max(0, Math.min(innerW, r.right) - Math.max(0, r.left)),
+        h: Math.max(0, Math.min(innerH, r.bottom) - Math.max(0, r.top)) })).filter(r => r.w > 0 && r.h > 0);
       patternPaint = { branch: 'pattern-fill-union', coordinateSpace: 'face-local-before-ring',
         unionRects, paintedPixels, sourceAssetUrl: body.selection.resource!.assetUrl,
         sourceSize: [pattern.width, pattern.height], context,
@@ -922,13 +914,9 @@ async function composeFaceButton(
     // Their union is a cross when corner != side. Fill precedes the border,
     // so transparent edge samples reveal the body without erasing earlier art.
     const [br, bgc, bb] = sourceBg ?? [cr, cg, cb];
-    out.fillRect({ x: fIns, y: fSide, w: innerW - fIns * 2, h: innerH - fSide * 2 }, br!, bgc!, bb!, 255);
-    if (fIns !== fSide) out.fillRect({ x: fSide, y: fIns, w: innerW - fSide * 2, h: innerH - fIns * 2 }, br!, bgc!, bb!, 255);
+    for (const r of bodyRects) out.fillRect({ x: r.left, y: r.top, w: r.right - r.left, h: r.bottom - r.top }, br!, bgc!, bb!, 255);
     if (cicnBody?.kind === 'missing' && sourceBg) {
-      let paintedPixels = 0;
-      for (let y = 0; y < innerH; y++) for (let x = 0; x < innerW; x++)
-        if (controlPointVisible(context, x, y) && ((x >= fIns && x < innerW - fIns && y >= fSide && y < innerH - fSide)
-          || (x >= fSide && x < innerW - fSide && y >= fIns && y < innerH - fIns))) paintedPixels++;
+      const paintedPixels = bodyWriteCount(out, pixelBodyRects, clip);
       if (paintedPixels) mode5PaintStep = { role: 'body-fill', requestedId: faceEl.bodyRequest!.resourceId, bodyMode: 5,
         requestedResourceType: 'cicn', basis: 'source-dispatch', usage: 'paint', action: 'missing',
         owner: { baseUrl: resolved.theme.origin, chainDepth: resolved.chainDepth }, reason: 'missing-cicn-body-erase-union',
