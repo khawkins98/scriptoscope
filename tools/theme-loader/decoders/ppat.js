@@ -92,19 +92,10 @@ export function decodePpat(bytes, { realizeRgb16, realizeDirectRgb8 } = {}) {
             rgba.set([...realizeDirectRgb8([pixelBytes[p + 1], pixelBytes[p + 2], pixelBytes[p + 3]]), 255], o);
             continue;
           }
-          if (pmap.cmpCount === 4) {
-            rgba[o]     = pixelBytes[p + 1];
-            rgba[o + 1] = pixelBytes[p + 2];
-            rgba[o + 2] = pixelBytes[p + 3];
-            rgba[o + 3] = pixelBytes[p]; // alpha — usually 0 (padding) for ppats; force opaque below
-          } else {
-            rgba[o]     = pixelBytes[p + 1];
-            rgba[o + 1] = pixelBytes[p + 2];
-            rgba[o + 2] = pixelBytes[p + 3];
-            rgba[o + 3] = 255;
-          }
-          // ppats are fully opaque regardless of the source alpha byte
-          // (some encoders leave $00 as padding).
+          // Both ARGB and padding-RGB patterns ignore the high byte and are opaque.
+          rgba[o] = pixelBytes[p + 1];
+          rgba[o + 1] = pixelBytes[p + 2];
+          rgba[o + 2] = pixelBytes[p + 3];
           rgba[o + 3] = 255;
         } else {
           // 16 bpp: big-endian uint16, 0_RRRRR_GGGGG_BBBBB.

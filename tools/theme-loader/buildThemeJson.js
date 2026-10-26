@@ -70,7 +70,7 @@ export function buildThemeJson(manifest, options = {}) {
   /** @type {Record<number, string>} ppat resource ID → catalog slug */
   const ppatSlugById = {};
   for (const ppat of ppats) {
-    const slug = uniquePatternSlug(patterns, slugify(ppat.name) || `ppat-${ppat.id}`);
+    const slug = uniqueSlug(patterns, slugify(ppat.name) || `ppat-${ppat.id}`);
     // `sourcePpatId` mirrors `sourceCicnId` on chromeElements — it survives the
     // Option A blob-URL rewrite in loadKaleidoscopeScheme. Without it, runtime
     // resolution by canonical resource id (`ppat-42` = the kDEF utility-window
@@ -95,7 +95,7 @@ export function buildThemeJson(manifest, options = {}) {
   for (const cicn of cicns) {
     const cinf = byTypeAndId[`cinf:${cicn.id}`];
     const cd = cinf?.data;
-    const slug = uniqueElementSlug(chromeElements, slugify(cicn.name) || `cicn-${cicn.id}`);
+    const slug = uniqueSlug(chromeElements, slugify(cicn.name) || `cicn-${cicn.id}`);
 
     const entry = {
       asset: cicn.file,
@@ -189,7 +189,7 @@ export function buildThemeJson(manifest, options = {}) {
     // type (custom wnd ids = author intent, preserve as-is).
     const named = slugify(wnd.name);
     const canonical = CANONICAL_WNDTYPE_SLUGS[String(wnd.id)];
-    const slug = uniqueElementSlug(windowTypes, canonical || named || `wnd-${wnd.id}`);
+    const slug = uniqueSlug(windowTypes, canonical || named || `wnd-${wnd.id}`);
 
     const chromeRecords = pairChromeStates(wnd.id, byTypeAndId);
     const chrome = Object.fromEntries(Object.entries(chromeRecords).map(([state, record]) => [state, record.file]));
@@ -483,15 +483,11 @@ function slugify(name) {
     .slice(0, 60);
 }
 
-function uniqueElementSlug(existing, slug) {
+function uniqueSlug(existing, slug) {
   if (!(slug in existing)) return slug;
   let i = 2;
   while (`${slug}-${i}` in existing) i++;
   return `${slug}-${i}`;
-}
-
-function uniquePatternSlug(existing, slug) {
-  return uniqueElementSlug(existing, slug);
 }
 
 /**
