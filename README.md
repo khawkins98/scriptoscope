@@ -467,9 +467,10 @@ handle.disconnect();
 root.replaceChildren();
 ```
 
-The native inputs retain their form association and values. `disconnect()` does
-not dispose a registered borrowed theme; its owner releases it after its last
-consumer finishes.
+The native inputs retain their identity, form association and values. Checkboxes
+and radios may move into a themed carrier label while mounted; do not depend on
+their parent markup. `disconnect()` does not dispose a registered borrowed theme;
+its owner releases it after its last consumer finishes.
 
 `interactiveButton(theme, options)` and its `onClick` option remain available,
 but the returned themed element is now an actual `HTMLButtonElement` with
@@ -641,7 +642,7 @@ The same runtime exposed as markup. Put `data-scriptoscope-window` on a plain `<
 
 **Window attributes** (all `data-scriptoscope-*`): `window`, `title`, `window-type` (`document-window` / `movable-modal` / `dialog` / `titled-utility-window` / `side-floating-utility-window` / …), `x` / `y`, `width` / `height` (omit both → content-fit with a `ResizeObserver`), `state` (`active`/`inactive`), `z` (initial stacking order), `collapsed` (boot pre-shaded), `theme` (per-window scheme override, nearest-ancestor wins).
 
-**Promoted children**: `<button data-scriptoscope-button>` (with `data-scriptoscope-default` for the OK ring), and `<input type=checkbox|radio|range>` are auto-promoted to themed art (opt-out per-input with `data-scriptoscope-control="off"`). The native input is hidden in place — form values, events, accessibility all preserved.
+**Promoted children**: `<button data-scriptoscope-button>` (with `data-scriptoscope-default` for the OK ring), and `<input type=checkbox|radio|range>` are auto-promoted to themed art (opt-out per-input with `data-scriptoscope-control="off"`). The native input remains the form, event and accessibility control beneath the themed art.
 
 **Runtime theme switching**: any `<select data-scriptoscope-theme-switcher>` re-skins every window + control live, the Kaleidoscope way.
 
