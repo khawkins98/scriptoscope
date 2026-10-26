@@ -2,8 +2,9 @@
 
 The better experiment preserves all measured themed renders. Its two paint
 recipes remain a useful comparison candidate, but the subsequent contract audit
-has not established a production consolidation that preserves the remaining
-contracts and removes code. Production is unchanged. Do not ship the earlier
+did not establish an exact-preserving production consolidation. A subsequent
+[delivery candidate](bevel-delivery-results.md) removes code by proposing explicit
+compatibility changes. Shipped production is unchanged. Do not ship the earlier
 six-theme retirement recommendation.
 
 The frozen reference is the normal compiled build of `f7d93afb`, executed only
@@ -100,8 +101,8 @@ geometry, diagnostic completion, callback behavior or owner disposal protection.
 Snapshotting alone does not resolve the other differences. It is approved for the
 future implementation, not implemented by this spike.
 
-The current patch adds spike tooling and documentation only; it has removed no
-production code. The independent test author has added boundary coverage in a
+At the spike revision, only tooling and documentation were added and no
+production code was removed. The later delivery candidate is measured separately. The independent test author has added boundary coverage in a
 separate lane; that coverage does not certify a candidate that has not been built.
 
 Withdraw the earlier arbitrary 150-line minimum: preserving themed output is

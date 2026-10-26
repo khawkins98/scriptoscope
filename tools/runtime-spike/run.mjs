@@ -34,7 +34,7 @@ const browser = async (...args) => {
 };
 // Pin the actual runtime and driver bytes; reject a run whose inputs change.
 async function fingerprints() {
-  const { stdout } = await exec('git', ['ls-files', 'src', 'tools/theme-loader'], { cwd: root });
+  const { stdout } = await exec('git', ['ls-files', '--cached', '--others', '--exclude-standard', 'src', 'tools/theme-loader'], { cwd: root });
   const runtime = stdout.trim().split('\n').filter(p => /\.(?:ts|js)$/.test(p) && !/\.test\.|\.d\.ts$/.test(p));
   const built = (await readdir(new URL('../../dist/', import.meta.url))).filter(p => p.endsWith('.js')).map(p => `dist/${p}`);
   if (referenceEntry) built.push(resolve(dirname(referenceEntry), '../build.json'), ...referenceBuild.files.map(file => resolve(dirname(referenceEntry), file.path)));

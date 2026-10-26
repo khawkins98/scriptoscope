@@ -341,7 +341,9 @@ function chainLife(theme: ThemeView, signal?: AbortSignal): ChainLife {
  * changes.
  */
 export async function themeResourceChain(input: ThemeInput | ThemeView, wanted: readonly { type: string; id: number }[],
-  opts: { signal?: AbortSignal; cinfProviders?: readonly ResourceProvider[]; cinfBodies?: readonly number[]; checkables?: boolean; traceProvenance?: boolean;
+  opts: { signal?: AbortSignal;
+    /** Diagnostic depth when preparation starts at an already-selected base owner. */
+    ownerDepth?: number; cinfProviders?: readonly ResourceProvider[]; cinfBodies?: readonly number[]; checkables?: boolean; traceProvenance?: boolean;
     /** Public push dependency planning; generic adapters retain eager defaults. */
     prepareSamples?: (chain: ResourceChain) => Promise<void>;
     bodyEnvironment?: { owner: ThemeInput | ThemeView; face: Pick<ChromeElement, 'bodyPattern' | 'bgPattern'>; width: number; height: number; clip?: QdRect;
@@ -392,7 +394,7 @@ export async function themeResourceChain(input: ThemeInput | ThemeView, wanted: 
     const ownsBody = t === bodyEnvironment?.owner;
     const requests = ownsBody ? [...new Map([...wanted, ...bodyRequests!.values()].map(r => [`${r.type}:${r.id}`, r])).values()] : wanted;
     const provider = await themeProvider(t, depth === 0 ? 'archive' : 'base', depth === 0 ? name : `${name}#base${depth}`,
-      requests, depth, life, opts.checkables, opts.traceProvenance, opts.cinfProviders !== undefined,
+      requests, depth + (opts.ownerDepth ?? 0), life, opts.checkables, opts.traceProvenance, opts.cinfProviders !== undefined,
       ownsBody && !wanted.some(r => r.type === 'cicn' && r.id === clippedBodyId) ? clippedBodyId : undefined, !!opts.prepareSamples,
       ownsBody ? bodyPatterns : undefined, bodyOwnerUrl);
     providers.push(provider);
