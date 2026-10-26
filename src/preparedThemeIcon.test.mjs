@@ -4,7 +4,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 const { prepareThemeIcon } = await import('./engine/resources/theme.ts');
 const { ResourceChain, mapProvider } = await import('./engine/resources/chain.ts');
-const { drawCinfFrame, prepareCinfFrameSamples } = await import('./engine/qd/cinfFrame.ts');
+const { drawCinfFrame, drawPreparedCinfFrame } = await import('./engine/qd/cinfFrame.ts');
 const { PixelBuffer } = await import('./pixelBuffer.ts');
 const { createTrace } = await import('./engine/trace.ts');
 const { rect } = await import('./engine/qd/rect.ts');
@@ -33,7 +33,6 @@ test('a captured face is not decoded again or confused with a body at the same r
   const trace = createTrace('bevel-button');
   trace.controlPaint = { bodies: [], bands: [] };
   const out = PixelBuffer.alloc(4, 4);
-  await prepareCinfFrameSamples(chain, -10162, true, rect(0, 0, 4, 4), out, undefined, undefined, prepared.icon);
   const result = drawCinfFrame(out, chain, { id: -10162, cicn: face, icon: prepared.icon,
     dstRect: rect(0, 0, 4, 4), bodyFill: true, selection }, trace);
   assert.equal(result.drawn, true);
@@ -122,13 +121,13 @@ test('valid supplied solid metadata renders independently of absent or malformed
   }
 });
 
-test('prepared border retains both source-over stages for fractional alpha', () => {
+test('prepared border retains both source-over stages for fractional alpha', async () => {
   const face = PixelBuffer.alloc(9, 9), out = PixelBuffer.alloc(22, 9);
   face.fillRect({ x: 0, y: 0, w: 9, h: 9 }, 255, 255, 255, 128);
-  const result = drawCinfFrame(out, new ResourceChain([]), { id: -10163, cicn: face,
-    icon: { pixmap: face, pixelSize: null, unmasked: null }, dstRect: rect(0, 0, 9, 22), bodyFill: true,
-    prepared: { geometry: { cornerSize: 2, sideThickness: 1, tileSides: true }, bodyMode: 0, bodyId: 0,
-      background: null, rawBackground: false, bodyProvider: mapProvider('empty-body', 'archive', []) } });
+  const result = await drawPreparedCinfFrame(out, { id: -10163, cicn: face,
+    icon: { pixmap: face, pixelSize: null, unmasked: null }, dstRect: rect(0, 0, 9, 22), bodyFill: true },
+    { allocate: PixelBuffer.alloc, geometry: { cornerSize: 2, sideThickness: 1, tileSides: true }, bodyMode: 0, bodyId: 0,
+      background: null, rawBackground: false, bodyProvider: mapProvider('empty-body', 'archive', []) });
   assert.equal(result.drawn, true);
   assert.deepEqual(out.getPixel(0, 0), [64, 64, 64, 128]);
 });
@@ -146,10 +145,32 @@ test('prepared compatibility sampling needs no equivalence proof and exports onl
   const prepared = await prepareThemeIcon(theme, -10166, { asset: 'face', sampledBandAsset: descriptor },
     { key: 'face', async imageUrl() { return 'face-image'; } },
     { pixels: face, traceProvenance: true, lazySamples: true, sampling: { equivalent: false, descriptor } });
-  const geometry = { cornerSize: 2, sideThickness: 1, tileSides: false }, out = PixelBuffer.alloc(16, 6), chain = new ResourceChain([]);
-  await prepareCinfFrameSamples(chain, -10166, true, rect(0, 0, 6, 16), out, rect(0, 0, 0, 0), undefined, prepared.icon, geometry);
+  const geometry = { cornerSize: 2, sideThickness: 1, tileSides: false }, out = PixelBuffer.alloc(16, 6);
+  const frame = { allocate: PixelBuffer.alloc, geometry, bodyMode: 0, bodyId: 0, background: null, rawBackground: false,
+    bodyProvider: mapProvider('empty-body', 'archive', []) };
+  const input = { id: -10166, cicn: face, icon: prepared.icon, dstRect: rect(0, 0, 6, 16), bodyFill: true, selection };
+  await drawPreparedCinfFrame(out, input, frame, undefined, rect(0, 0, 0, 0));
   assert.deepEqual(counts, { decodes: 0, images: 0 });
-  await assert.rejects(prepareCinfFrameSamples(chain, -10166, true, rect(0, 0, 6, 16), out,
-    undefined, undefined, prepared.icon, geometry), error => error === sentinel);
+  const bands = [];
+  await assert.rejects(drawPreparedCinfFrame(out, input, frame, undefined, undefined, { bandPaint: band => bands.push(band) }),
+    error => error === sentinel);
+  assert.deepEqual(bands.map(band => band.region), [0, 1]);
   assert.deepEqual(counts, { decodes: 1, images: 1 });
+});
+
+test('prepared borders normalize negative corners independently of raw body insets', async () => {
+  const width = 5, height = 5, rgba = new Uint8Array(width * height * 4);
+  for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) rgba.set([10 + x, 20, 30, 255], (y * width + x) * 4);
+  const owner = createRasterAssetOwner([{ path: 'face', width, height, rgba }], () => 'unused-image');
+  const source = { manifest: { chromeElements: { face: { asset: 'face', width, height, sourceCicnId: -10163,
+    slice: { corner: -1, side: 1, tile: true }, bgAnchor: [0, 2] } } } };
+  bindRasterOwner(source, owner);
+  const theme = { kind: 'owned-theme', origin: 'geometry-probe', source, imageUrl: owner.imageUrl, dispose: owner.dispose };
+  try {
+    const out = await composeBevelButton(theme, { on: true, minWidth: 16, height: 5 });
+    assert.deepEqual([5, 6, 7, 8].map(x => out.getPixel(x, 0)[0]), [10, 11, 12, 13]);
+    const fractional = await composeBevelButton(theme, { on: true, minWidth: 16.5, height: 5.5 });
+    assert.equal(fractional.width, 16.5);
+    assert.equal(fractional.height, 5.5);
+  } finally { theme.dispose(); }
 });
