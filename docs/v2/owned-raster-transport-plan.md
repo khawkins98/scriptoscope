@@ -229,3 +229,37 @@ mount and image consumers are adopted; actual code reduction remains unmet.
 The next slice measures real mounted startup/switching and retained memory, then
 removes obsolete preparation/adapters where the measurements and source audit
 support it. Docker is available for final pinned-golden verification.
+
+
+### Application measurement and bounded cleanup, 2026-10-26
+
+`0a3ffc89` records six fresh-browser trials of the actual advertisement app,
+including real theme switches and twenty public mount/disconnect cycles per
+trial. See `tools/runtime-spike/application-results.json` and its README for raw
+samples, hashes and limitations. This compares current eager/owned APIs rather
+than a frozen historical executable; Vite servers and OS caches are shared.
+
+Eager startup is 2,512 / 2,557 / 2,759 ms; owned is 4,160 / 277 / 335 ms. The
+promising owned median must be read alongside the unexplained slow trial and its
+two slow first-round switches. Initial PNG URLs drop from 3,196 to 2. Owned
+caches retain 9,360,204 decoded pixel bytes; ready backing storage rises from
+4.87 MB to 13.84 MB. Observed advertisement storage and global URLs release on
+teardown; after cycle batches DOM nodes/listeners stabilize, but JS heap grows.
+This is bounded lifecycle evidence, not proof of lower retained memory or no
+leaks. Timing and memory acceptance remain unresolved.
+
+`42f0f4c9` consolidates the two PNG encoding shells and removes copied tab
+catalogs, retaining selected resource captures and display capabilities. Astra
+reviewed the cleanup and measurement methodology without finding a correctness
+or ownership blocker. Typecheck/build, seven encoder/failure tests, eleven tab
+tests and all 12,902 engine-diff cells pass. The full source/built transport matrix
+passes again with zero mismatches. All 1,134 Node tests pass; the final gate
+required refreshing generated loader acceptance bindings, which now validate.
+Packed-consumer validation passes. Full browser/pinned Linux checks are running.
+
+Production source is now 17,737 logic lines plus 2,323 cited-table lines; loader
+JavaScript is 4,205 lines. Against the same baseline, combined production growth
+is +326 lines. This cleanup removes 27 lines, but net reduction remains unmet.
+The draft PR also retains the eight unresolved additional visual-baseline
+failures. Lane readiness reported an unavailable `Traps.h` prerequisite; it is
+not recorded as passed. No golden expectations were changed.
