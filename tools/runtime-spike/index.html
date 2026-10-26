@@ -4,6 +4,7 @@
 <p>Running push-button transport comparison…</p>
 <pre id="result"></pre>
 <script type="module">
-if (new URLSearchParams(location.search).has('production')) import('./production.mjs');
+if (new URLSearchParams(location.search).has('bevel-proposal')) import('./bevel-proposal.mjs');
+else if (new URLSearchParams(location.search).has('production')) import('./production.mjs');
 else import('./spike.mjs');
 </script>
