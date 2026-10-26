@@ -4,7 +4,8 @@ import type { Pixmap, Rgba } from '../qd/types.js';
 import type { ControlCompositionSnapshot, ControlRect } from '../../controlComposition.js';
 import type { HeaderSurfaceUnsupportedReason } from '../../headerSurface.js';
 import { bodyPatternPhase } from '../../controlComposition.js';
-import { rectXYWH } from '../qd/rect.js';
+import { rectXYWH, type QdRect } from '../qd/index.js';
+import { cinfBorderPlan, cinfBodyRects, bandVisible, bodyWriteCount } from '../qd/cinfFrame.js';
 import { getPixel } from '../qd/pixel.js';
 import { copyBits } from '../qd/transfer.js';
 import { tileBlit } from '../qd/tile.js';
@@ -77,6 +78,7 @@ function intersect(a: ControlRect, b: ControlRect): ControlRect {
   return box(x, y, Math.max(0, Math.min(a.x + a.w, b.x + b.w) - x), Math.max(0, Math.min(a.y + a.h, b.y + b.h) - y));
 }
 const qd = (r: ControlRect) => rectXYWH(r.x, r.y, r.w, r.h);
+const xywh = (r: QdRect): ControlRect => box(r.left, r.top, r.right - r.left, r.bottom - r.top);
 function localClip(plan: HeaderSurfacePlan): ControlRect {
   const r = plan.effectiveClip;
   return r ? box(r.x - plan.requestedRect.x, r.y - plan.requestedRect.y, r.w, r.h) : box(0, 0, 0, 0);
@@ -95,26 +97,16 @@ export function planHeaderSurface(input: HeaderSurfaceInput): HeaderSurfacePlan 
   return { kind, drawState, context, requestedRect, paintRect, effectiveClip };
 }
 export function planHeaderGeometry(source: Pick<Pixmap, 'width' | 'height'> & Partial<Pick<Pixmap, 'data'>>, slice: HeaderSlice, plan: HeaderSurfacePlan): HeaderGeometry {
-  const { width: U, height: V } = source, { corner: c, side: s, tile } = slice;
+  const { width: U, height: V } = source, { corner: c, side: s } = slice;
   const W = plan.paintRect.w, H = plan.paintRect.h, clip = localClip(plan);
-  const cx = Math.min(c, U), cy = Math.min(c, V), sx = Math.min(s, U), sy = Math.min(s, V);
-  const bx = tile ? U - 2 * c : 1, by = tile ? V - 2 * c : 1;
-  const regions: Record<typeof HEADER_BANDS[number]['piece'], readonly [ControlRect, ControlRect]> = {
-    TL: [box(0, 0, cx, cy), box(0, 0, cx, cy)],
-    TR: [box(U - cx, 0, cx, cy), box(W - cx, 0, cx, cy)],
-    top: [box(c, 0, bx, sy), box(c, 0, W - 2 * c, sy)],
-    BL: [box(0, V - cy, cx, cy), box(0, H - cy, cx, cy)],
-    BR: [box(U - cx, V - cy, cx, cy), box(W - cx, H - cy, cx, cy)],
-    bottom: [box(c, V - sy, bx, sy), box(c, H - sy, W - 2 * c, sy)],
-    left: [box(0, c, sx, by), box(0, c, sx, H - 2 * c)],
-    right: [box(U - sx, c, sx, by), box(W - sx, c, sx, H - 2 * c)],
-  };
+  const destination = rectXYWH(0, 0, W, H);
+  const regions = new Map(cinfBorderPlan(source, { cornerSize: c, sideThickness: s, tileSides: slice.tile }, destination).map(b => [b.piece, b]));
   const bands = HEADER_BANDS.map((row, region): HeaderBand => {
-    const [source, destination] = regions[row.piece];
+    const band = regions.get(row.piece)!, source = xywh(band.src), destination = xywh(band.dst);
     return { region, source, destination, visible: nonempty(source) && nonempty(destination) && nonempty(intersect(destination, clip)),
-      branch: source.w === 1 && destination.w > 1 ? 'horizontal-lines' : source.h === 1 && destination.h > 1 ? 'vertical-lines' : 'copy' };
+      branch: band.fast === 'T1' ? 'horizontal-lines' : band.fast === 'T2' ? 'vertical-lines' : 'copy' };
   });
-  const bodyRects = [box(c, s, W - 2 * c, H - 2 * s), box(s, c, W - 2 * s, H - 2 * c)].filter(nonempty);
+  const bodyRects = cinfBodyRects(destination, c, s, true).map(xywh);
   const unsafeSource = bands.some(b => b.visible && (b.source.x < 0 || b.source.y < 0 || b.source.x + b.source.w > U || b.source.y + b.source.h > V));
   return { bands, bodyRects, bodyVisible: bodyRects.some(r => nonempty(intersect(r, clip))),
     // Dimension-only planning remains conservative. Actual prepared pixels make
@@ -123,14 +115,8 @@ export function planHeaderGeometry(source: Pick<Pixmap, 'width' | 'height'> & Pa
       && (unsafeSource || !source.data || headerBandWrites(source as Pixmap, b, clip))), unsafeSource };
 }
 function headerBandWrites(source: Pixmap, band: HeaderBand, clip: ControlRect): boolean {
-  const s = band.source, dest = band.destination, r = intersect(dest, clip);
-  for (let y = r.y; y < r.y + r.h; y++) for (let x = r.x; x < r.x + r.w; x++) {
-    if (band.branch === 'horizontal-lines' && y - dest.y >= s.h || band.branch === 'vertical-lines' && x - dest.x >= s.w) continue;
-    const sx = s.x + (band.branch === 'horizontal-lines' ? 0 : (x - dest.x) % s.w);
-    const sy = s.y + (band.branch === 'vertical-lines' ? 0 : (y - dest.y) % s.h);
-    if (getPixel(source, sx, sy)?.a) return true;
-  }
-  return false;
+  return bandVisible({ width: clip.x + clip.w, height: clip.y + clip.h }, source,
+    qd(band.source), qd(band.destination), band.branch, qd(clip));
 }
 /** Source rejection remains independent of the needed-only palette dependency. */
 export function headerSourceRejection(source: Pixmap, geometry: HeaderGeometry): HeaderSurfaceUnsupportedReason | null {
@@ -169,12 +155,10 @@ export function drawHeaderSurface(port: Pixmap, input: HeaderSurfacePaintInput):
   // publish only the declared clip, preserving source phase and caller pixels.
   const work: Pixmap = { width: port.width, height: port.height, data: new Uint8ClampedArray(port.data) };
   const phase = pattern && geometry.bodyVisible ? bodyPatternPhase(plan.context, mode, plan.paintRect.w, plan.paintRect.h) : null;
-  let bodyPixels = 0;
-  for (const [index, body] of geometry.bodyRects.entries()) {
+  const bodyPixels = bodyWriteCount({ width: clip.x + clip.w, height: clip.y + clip.h }, geometry.bodyRects.map(qd), qd(clip));
+  for (const body of geometry.bodyRects) {
     const r = intersect(body, clip);
     if (!nonempty(r)) continue;
-    for (let y = r.y; y < r.y + r.h; y++) for (let x = r.x; x < r.x + r.w; x++)
-      if (!geometry.bodyRects.some((earlier, i) => i < index && x >= earlier.x && x < earlier.x + earlier.w && y >= earlier.y && y < earlier.y + earlier.h)) bodyPixels++;
     if (pattern && phase) fillPattern(work, qd(r), pattern, { x: -phase[0], y: -phase[1] });
     else eraseRect(work, qd(r), background!);
   }

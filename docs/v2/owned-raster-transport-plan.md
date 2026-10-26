@@ -96,8 +96,7 @@ public image consumers and disposal. Finish by deleting replaced transport paths
 and demonstrating a net reduction in production logic across the affected runtime
 and loader code, alongside measured loading and memory behavior.
 
-Keep the current family renderers. Resource indexing and diagnostic redesign are
-outside this PR; either needs its own measured experiment.
+The user expanded scope to deeper compositor simplification to achieve a net production-code reduction. Preserve the current family contracts and draw order, while sharing equivalent geometry, visibility, coverage and transfer traversal. Resource indexing and diagnostic redesign remain separate experiments unless needed by a measured simplification.
 
 ## Starting evidence
 
@@ -332,3 +331,20 @@ user clarification on transport scope versus a deeper simplification is pending.
 No compiled artifact matching the frozen starting revision was found, so the
 historical loading/shipped-byte comparison also remains unverified. The PR stays
 draft; those requirements are not waived by the passing current-API checks.
+
+
+### Scope expansion authorized by maintainer
+
+The maintainer chose deeper simplification to require a net code reduction, rather
+than accepting the transport migration's +326-line production growth. Start with
+shared cinf/header geometry and visibility, then consolidate axis traversal while
+preserving transfer semantics, masks, clipped phase, painter order and diagnostic
+identities. Retire each duplicate implementation in the same slice; report actual
+source/loader totals rather than projected savings. Keep supported public APIs.
+
+The maintainer also authorized locating or remaking a compiled frozen baseline.
+Any remake uses an isolated automated build of the pinned implementation and
+exposes only compiled output and build metadata to the implementer. Do not inspect
+historical source, original listings, independent acceptance sources or private
+verifier material. Existing independent CI is green on `82e7d9f3`; its verified
+behavior remains the regression harness for the expanded work.
