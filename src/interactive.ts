@@ -874,23 +874,6 @@ interface ManagedWindow<Theme extends ThemeInput> {
    *  entry pattern #5). Async preparation uses a staging canvas; only the guarded synchronous
    *  commit copies its pixels into this live canvas and moves it into the new chrome. */
   chromeCanvas?: HTMLCanvasElement;
-  /** Cached active/inactive title-bar strips for fast focus-flip rendering (closes #173; classic
-   *  Mac OS lessons pattern #2 — active/inactive flip only repainted the title bar). At every
-   *  render() the just-painted title strip is captured here for the CURRENT state; on a focus flip
-   *  where the OPPOSITE state's strip is cached AND no other render-affecting state changed, we
-   *  putImageData the cached strip into the existing chromeCanvas instead of recomposing. Key
-   *  encodes (theme identity, slug, width, height); any change invalidates. Optimization is
-   *  intentionally skipped for side-titled palettes (frame.top < 10px — the "title" lives on a
-   *  vertical strip those windows don't expose as a horizontal block). */
-  titleStripCache?: {
-    theme: Theme;
-    slug: string;
-    width: number;
-    height: number;
-    stripHeight: number;
-    activeStrip?: ImageData;
-    inactiveStrip?: ImageData;
-  };
   /** Optional persistent content node (the declarative layer's slotted consumer DOM). Re-attached
    *  into the freshly-built `.scriptoscope-content` after every render() — `renderWindow` rebuilds the window
    *  subtree, so without this the slotted content would be destroyed on focus/resize. */
@@ -1160,7 +1143,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     const current = (): boolean => epoch === this.themeEpoch && !signal?.aborted;
     // Preparation never touches a live canvas. Failed/superseded batches leave
     // every current window intact; commit below contains no asynchronous work.
-    const prepared = new Map<ManagedWindow<Theme>, { epoch: number; win: HTMLElement; slug: string; collapsed: boolean }>();
+    const prepared = new Map<ManagedWindow<Theme>, { epoch: number; win: HTMLElement; collapsed: boolean }>();
     while (current()) {
       const entries = this.windows.filter(w => w.host.isConnected);
       try {
@@ -1193,6 +1176,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
   }
 
   private async focus(entry: ManagedWindow<Theme>): Promise<void> {
+    if (!this.windows.includes(entry)) return;
     entry.z = ++this.zClock; // raise above all (even if already active — re-clicking a window fronts it)
     if (entry.active) {
       debug('focus', `${entry.opts.title ?? '(untitled)'} — already active, z=${entry.z}`);
@@ -1200,93 +1184,16 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       return;
     }
     debug('focus', `${entry.opts.title ?? '(untitled)'} — gaining active`, { z: entry.z, total: this.windows.length });
+    const changed: ManagedWindow<Theme>[] = [];
+    // Publish the whole focus state before preparation can yield, then start
+    // every changed render so a later click cannot strand unpainted state.
     for (const w of this.windows) {
       const was = w.active;
       w.active = w === entry;
-      if (w.active !== was) {
-        w.renderEpoch++;
-        // Fast path (issue #173): if the OTHER state's title strip is cached under matching keys,
-        // putImageData it into the existing canvas + update z-index. Skips the full chrome
-        // recomposition + widget/scrollbar re-wiring. Falls back to render() on cache miss; the
-        // fallback render then populates this state's strip for next time.
-        if (this.tryFastFocusFlip(w)) {
-          debug('focus', `${w.opts.title ?? ''} — fast strip swap (active=${w.active})`);
-          if (this.onChange) try { this.onChange(w.host); } catch (err) { console.error('[scriptoscope] onChange threw:', err); }
-        } else {
-          await this.render(w);
-        }
-      } else {
-        w.host.style.zIndex = this.zIndexFor(w); // refresh the loser's z without a full re-render
-      }
+      if (w.active !== was) { w.renderEpoch++; changed.push(w); }
+      else w.host.style.zIndex = this.zIndexFor(w);
     }
-  }
-
-  /** Title-strip cache helper — capture the just-painted title region after a full render() and
-   *  store it under the current state. Subsequent focus flips that match all the other state keys
-   *  can fast-path via tryFastFocusFlip() instead of recomposing. See ManagedWindow<Theme>.titleStripCache
-   *  for the cache shape + invalidation rules. */
-  private captureTitleStrip(entry: ManagedWindow<Theme>, slug: string): void {
-    const canvas = entry.chromeCanvas;
-    if (!canvas) return;
-    const composed = (canvas.parentElement as unknown as { _scriptoscopeComposed?: ComposedChrome })._scriptoscopeComposed;
-    if (!composed) return;
-    const stripHeight = composed.frame.top;
-    // Skip side-titled palettes (title lives on a vertical strip the cache can't represent as a
-    // single horizontal block). The full render() path still applies for those — just no fast-path.
-    if (stripHeight < 10) return;
-    const theme = entry.theme;
-    const width = composed.fullWidth;
-    const height = composed.fullHeight;
-    // If any key changed, reset the cache for the new key (the previous state's strips no longer
-    // apply — different theme or different dimensions render different pixels).
-    const c = entry.titleStripCache;
-    const sameKey = c && c.theme === theme && c.slug === slug && c.width === width && c.height === height;
-    if (!sameKey) {
-      entry.titleStripCache = { theme, slug, width, height, stripHeight };
-    }
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    // Strip extends from y=0 to y=stripHeight; full width. ImageData is independent of the canvas.
-    try {
-      const strip = ctx.getImageData(0, 0, width, stripHeight);
-      if (entry.active) entry.titleStripCache!.activeStrip = strip;
-      else entry.titleStripCache!.inactiveStrip = strip;
-    } catch (err) {
-      // getImageData can throw for a tainted canvas (cross-origin images). Our canvases are
-      // always same-origin, but a misconfigured CSP could trigger this. Silently fall back to
-      // full-render path — no fast path, no crash.
-      debug('render', `title-strip cache capture failed`, { err: String(err) });
-    }
-  }
-
-  /** Try the title-strip fast-path for an active-state flip. Returns true iff the cache had the
-   *  target state's strip under matching keys AND the optimization is applicable (a chromeCanvas
-   *  exists; the target strip is present). On success, putImageData the cached strip into the
-   *  existing canvas, update data-scriptoscope-current-state on .scriptoscope-window, and update z-index — the chrome's body
-   *  frame + widget overlays + scrollbars all stay in place (active state doesn't change those,
-   *  only the title-bar tinting). */
-  private tryFastFocusFlip(entry: ManagedWindow<Theme>): boolean {
-    const c = entry.titleStripCache;
-    if (!c || c.theme !== entry.theme) return false;
-    const canvas = entry.chromeCanvas;
-    if (!canvas) return false;
-    // Canvas dims are the source-of-truth gate (any size mismatch means the strip is the wrong
-    // size). Theme + slug invalidation is handled in captureTitleStrip via sameKey reset; if
-    // we're here without going through render() first, the cache is fresh from the most recent
-    // render(), which is what we want.
-    if (canvas.width !== c.width || canvas.height !== c.height) return false;
-    const targetStrip = entry.active ? c.activeStrip : c.inactiveStrip;
-    if (!targetStrip) return false;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return false;
-    ctx.putImageData(targetStrip, 0, 0);
-    // Update data-scriptoscope-current-state on .scriptoscope-window so CSS selectors / AT see the new state. Without this,
-    // visual chrome would flip but the attribute would stay stale, breaking any [data-scriptoscope-current-state]
-    // styling the consumer or theme might have. Find via the canvas's parent (the .scriptoscope-window).
-    const win = canvas.parentElement as HTMLElement | null;
-    if (win) win.dataset.scriptoscopeCurrentState = entry.active ? 'active' : 'inactive';
-    entry.host.style.zIndex = this.zIndexFor(entry);
-    return true;
+    await Promise.all(changed.map(w => this.render(w)));
   }
 
   /** Active windows float above inactive ones; within each group, higher zClock (more recent) wins. */
@@ -1335,7 +1242,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     this.commitRender(entry, prepared);
   }
 
-  private async prepareRender(entry: ManagedWindow<Theme>, theme: Theme): Promise<{ win: HTMLElement; slug: string; collapsed: boolean }> {
+  private async prepareRender(entry: ManagedWindow<Theme>, theme: Theme): Promise<{ win: HTMLElement; collapsed: boolean }> {
     const collapsed = entry.collapsed === true;
     const slug = this.effectiveSlug(entry, theme);
     const { reuseCanvas: _callerCanvas, ...options } = entry.opts;
@@ -1346,10 +1253,10 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       state: entry.active ? 'active' : 'inactive',
       // Never lend a live pooled canvas to an asynchronous preparation.
     });
-    return { win, slug, collapsed };
+    return { win, collapsed };
   }
 
-  private commitRender(entry: ManagedWindow<Theme>, { win, slug, collapsed }: { win: HTMLElement; slug: string; collapsed: boolean }, notify = true): void {
+  private commitRender(entry: ManagedWindow<Theme>, { win, collapsed }: { win: HTMLElement; collapsed: boolean }, notify = true): void {
     const fresh = win.querySelector<HTMLCanvasElement>('canvas.scriptoscope-chrome');
     const pooled = entry.chromeCanvas;
     if (fresh && pooled) {
@@ -1361,11 +1268,6 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     }
     if (fresh) entry.chromeCanvas = pooled ?? fresh;
     else delete entry.chromeCanvas;
-    // Title-strip cache (closes #173) — capture the just-painted title region for the CURRENT
-    // active state. On the next focus flip in the opposite direction (with cache key matching),
-    // tryFastFocusFlip() can putImageData this strip into the existing canvas instead of doing a
-    // full render. Skip for side-titled palettes (frame.top too small to be a meaningful strip).
-    this.captureTitleStrip(entry, slug);
     entry.host.style.zIndex = this.zIndexFor(entry);
     this.overlayWidgets(entry, win);
     this.wireMoveResize(entry, win);

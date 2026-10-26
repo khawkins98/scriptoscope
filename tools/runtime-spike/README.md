@@ -275,3 +275,32 @@ Its single startup trial per mode is an integration check, not a performance
 budget or final historical comparison. The reconstructed baseline contains
 698,396 JavaScript bytes across all chunks; final current-build comparisons must
 use equivalent compiler settings and include every lazy chunk.
+
+## Focus-cache simplification
+
+`node tools/runtime-spike/focus.mjs current` exercises both public loaders, all
+18 themes, document/titled utility/side utility/collapsed document windows and
+180×90 / 900×600 content sizes. Each case alternates two windows eight times.
+The probe compares every committed full chrome raster with a fresh public render
+of its declared state, checks persistent content/selection and pooled canvas
+identity, checks two post-commit notifications per settled switch, and verifies
+that clicking an already active window performs no render. It uses its own local
+server and browser session. It does not read independent expectations or original
+engine outputs; consistency with the public render is the checked contract.
+
+To reproduce the earlier cache implementation, rebuild revision
+`f905de9d` using `build-frozen.mjs` with its full SHA from
+`focus-cache-build-results.json`, set `SCRIPTOSCOPE_FOCUS_ENTRY` to the compiled
+entry, and run `node tools/runtime-spike/focus.mjs cache`. The runner verifies
+reference artifact hashes. Reports retain all timings and input fingerprints.
+The pre-removal cache produces 1,312 mismatching raster comparisons across the
+288 cases. Cache removal repaints complete chrome through the guarded render
+path; it also removes retained title-strip ImageData. Eager decoding already had
+its own pixel cache, so direct raster transport alone does not explain the cost
+of recomposition. Compare focus latency separately from startup latency.
+
+`src/windowFocus.test.mjs` holds preparations to check rapid two/three-window
+focus, removal, already-active clicks and retheming. All changed renders start
+before focus awaits completion; per-window render epochs suppress stale commits.
+Post-render change callbacks follow completion order. The tests do not certify
+all scrollbar interactions or all asynchronous browser interleavings.

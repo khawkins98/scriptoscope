@@ -348,3 +348,44 @@ exposes only compiled output and build metadata to the implementer. Do not inspe
 historical source, original listings, independent acceptance sources or private
 verifier material. Existing independent CI is green on `82e7d9f3`; its verified
 behavior remains the regression harness for the expanded work.
+
+### Expanded implementation: measured removals and recovered baseline
+
+The first deeper slice shares header/cinf geometry, band visibility, body-write
+coverage and ordered axis traversal. The slicer now uses the existing sampled-line
+painter. This deletes 49 source lines while preserving duplicate header body
+rectangles, reverse partial tiles, source/destination aliasing and transfer order.
+Typecheck, focused units, 129 browser cases, repository gates and all 12,902 engine
+diff cells pass. The following bevel body-fill slice reuses cinf body rectangles,
+pattern writes and visible union counting, deleting another 12 lines. The full
+production comparator passes without mismatches on that slice.
+
+A compiler-only reconstruction of the exact frozen `de942c63` implementation is
+now available. The isolated builder deletes extracted historical inputs and keeps
+compiled output and provenance only. `frozen-build-results.json` records 698,396
+JavaScript bytes with the explicit common build recipe. This is a reconstruction,
+not a recovered release. `application-historical-results.json` compares that eager
+API with the owned API at `f905de9d` in the current real app. All six trials pass.
+Startup is 2,730 / 2,501 / 2,482 ms frozen and 241 / 223 / 1,237 ms owned; medians
+are 2,501 / 241 ms. Recorded teardown and mount-batch URL counts are zero. This
+stage-specific run precedes the focus-cache removal; timing variability and the
+previous retention limitations remain visible.
+
+The focus spike finds a concrete redundant optimization with incorrect output:
+title-strip cache flips disagree with fresh complete public renders in 1,312
+comparisons across 288 cases (both loaders, 18 themes, four window kinds, two
+sizes). Removing the strip cache restores complete chrome consistency and removes
+its retained ImageData and invalidation machinery. Focus flags are published
+before yielding, and all changed guarded renders start before awaiting completion.
+Six held-preparation tests cover two/three-window supersession, removed hosts,
+already-active clicks and a completed retheme. Change callbacks follow commit
+completion order. Whole chrome/content geometry, canvas identity, selection and
+notification probes pass. Performance is measured separately in `focus-*-results`;
+full recomposition costs more than the old partial cache. This is a correctness
+and complexity improvement, not a focus speedup.
+
+The expanded PR still requires a net decrease, updated shipped-size/application
+measurements and final independent checks. Neither the baseline reconstruction
+nor current-API parity resolves the older optional suite's eight failures. A
+search of available handoff metadata did not identify their listing-free input
+and expectation contract; no independent acceptance material was changed.
