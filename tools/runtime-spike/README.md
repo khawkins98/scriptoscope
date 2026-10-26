@@ -110,7 +110,7 @@ the existing family engine and acceptance harness. The bounded push/base/bitmap/
 diagnostic/activation cases do not establish parity for other control families,
 all destination composition, independent original captures, complete DOM
 lifecycles or other browsers. Window regression coverage is described above; complete
-application adoption and lifecycle validation remain open.
+application lifecycle and retained-memory validation remain open.
 
 The global private-reference registry is retired. Main demo loading and drops use the owner-local boundary; diagnostic inventories now export on open and ignore detached completions. Final
 application measurements remain open. Resource indexing and

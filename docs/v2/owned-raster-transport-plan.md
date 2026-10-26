@@ -194,7 +194,8 @@ At `5989db59`, `src/` non-test logic is 17,663 lines versus the frozen 17,477
 (+186); cited engine tables remain 2,323. Loader non-test JavaScript is 4,229
 versus 4,139 (+90). Combined affected production growth is +276 lines. Removing
 the registry simplifies ownership but does not yet meet the net reduction condition.
-Shared mount/image-consumer adoption and further deletion remain required.
+At that stage, shared mount/image-consumer adoption and further deletion were
+still required.
 
 Astra identified bounded follow-up simplifications: remove the tab facade's
 obsolete copied ThemeView snapshot after binding finite selected patterns;
@@ -218,3 +219,13 @@ shadow). Their relation to this migration remains unproven; do not claim those
 checks pass or change their fixtures to accommodate the transport. Triage remains
 part of the final verification audit. Required final browser/pinned-golden checks,
 actual mounted loading/memory measurements and net reduction are still open.
+
+## Intermediate size after consumer adoption
+
+At `47ec08d0`, `src/` non-test logic is 17,740 lines (+263 over the frozen
+17,477), with cited tables unchanged at 2,323. Loader non-test JavaScript remains
+4,229 (+90), for combined affected production growth of +353 lines. The owned
+mount and image consumers are adopted; actual code reduction remains unmet.
+The next slice measures real mounted startup/switching and retained memory, then
+removes obsolete preparation/adapters where the measurements and source audit
+support it. Docker is available for final pinned-golden verification.
