@@ -110,10 +110,9 @@ the existing family engine and acceptance harness. The bounded push/base/bitmap/
 diagnostic/activation cases do not establish parity for other control families,
 all destination composition, independent original captures, complete DOM
 lifecycles or other browsers. Window regression coverage is described above; complete
-application lifecycle and retained-memory validation remain open.
+application lifecycle and retained-memory limits are recorded below.
 
-The global private-reference registry is retired. Main demo loading and drops use the owner-local boundary; diagnostic inventories now export on open and ignore detached completions. Final
-application measurements remain open. Resource indexing and
+The global private-reference registry is retired. Main demo loading and drops use the owner-local boundary; diagnostic inventories now export on open and ignore detached completions. Application measurements are recorded below. Resource indexing and
 diagnostic redesign remain separate experiments.
 
 New runner reports pin runtime, built and harness hashes, and reject changed inputs
@@ -134,3 +133,50 @@ owned registration, legacy registration and borrowed-theme survival after teardo
 images remain unexported, opening the raster inventory produces real blob images,
 and detached images ignore held export completions. It also records the separate
 visual-baseline command's eight unresolved failures; those checks are not green.
+
+
+## Real application measurement
+
+Run `node tools/runtime-spike/application.mjs` after `npm run build`. It serves the
+existing advertisement app with local instrumentation and uses its real switch
+buttons, five windows, and public declarative mount/disconnect APIs. It compares
+the current eager compatibility API with the owned API, not a historical binary.
+Each trial has a fresh Chromium profile; the two Vite servers and OS caches are
+shared across trials. Source and built input hashes must remain stable during a
+run. `--smoke` performs one trial per mode. The harness and hooks are not shipped.
+
+The six-trial run recorded in `application-results.json` passed its action,
+window/theme assertions, URL cleanup and input-stability checks. Its timings
+were measured before the subsequent shared PNG encoder/tab snapshot cleanup;
+that cleanup requires separate output revalidation. Pass does not mean that a
+performance or memory budget was met.
+
+| Measurement | Eager compatibility | Owned |
+| --- | ---: | ---: |
+| Startup trials, milliseconds | 2,512 / 2,557 / 2,759 | 4,160 / 277 / 335 |
+| Startup median, milliseconds | 2,557 | 335 |
+| Initial live blob URLs | 3,196 | 2 |
+| Ready backing storage, decimal MB | 4.87 | 13.84 |
+| Ready JavaScript heap, approximately MB | 7.2 | 8.0 |
+| After 20 mount cycles, JS heap, approximately MB | 6.8 | 7.25 |
+
+The owned 4,160 ms trial also has 1,898 ms and 1,150 ms first-round theme
+switches. No phase trace was captured to explain these delays. Keep that trial
+when assessing the promising median; this run does not establish a uniform
+startup improvement. Subsequent switches cluster near 33 ms, including two
+animation frames, so they do not resolve underlying composition-time differences.
+
+Owned advertisement themes retain 9,360,204 decoded pixel bytes while cached.
+Their observed counters return to zero on teardown; global live blob URLs also
+return to zero in both modes. Post-GC backing storage converges to approximately
+3.645 MB. After the mount batches, DOM nodes/listeners stabilize at 350/16 in
+both modes, but JavaScript heap grows across batches. Twenty cycles do not prove
+absence of leaks. Advertisement owner telemetry does not observe mount-cycle
+owners; their retention evidence is heap/backing storage, DOM and global URL
+counts. Frame/task settling does not prove all asynchronous work is complete.
+
+The artifact separately records the sum of browser-process RSS, which includes
+browser infrastructure, allocator retention and potentially shared pages. Its
+lower observed owned values do not establish lower application-retained memory.
+A separate phase/long-task diagnostic run is needed before stronger performance
+claims; the existing measurements should remain available unchanged.
