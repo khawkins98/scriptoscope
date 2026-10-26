@@ -89,6 +89,18 @@ sources. After integrating the DOM-only showcase follow-up, the run reached
 prerequisite; both showcase cases then passed. The final complete affected-suite
 rerun passes **161/161**, exit 0.
 
+Full CI on `a406f85e` subsequently ran 586 cases: **583 pass / 3 fail**;
+its golden step was skipped. One diagnostic visibility case still required
+redundant checkable ARIA; source/built added-root cases still required span-shaped
+button faces. A separate independent DOM author reproduced all three failures,
+changed only those public DOM assertions, and ran all later behavioral checks:
+**19 focused pass**, **30 cross-browser DOM pass**. Temporary negative variants
+produced **8 intended failures / 8 unaffected passes**, covering incorrect native
+checked state, extra events, duplicate forwarding and missing cancellation.
+Independent review approved author commit `df627580` and independently passed all
+19 focused checks. No production files changed; the runtime fingerprint above
+remains exact. Full corrected-tree CI and goldens remain pending.
+
 Independent runtime review found a separate carrier-move teardown issue. An
 executed implementation-owned reproducer failed for parent moves, sibling
 reordering and retheming after a move. A first neighbor-based fix was rejected
