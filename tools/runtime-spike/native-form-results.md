@@ -66,6 +66,9 @@ This measures regressions against current production, not original Mac fidelity.
 - Implementation-owned native button/select and checkable form probes pass in
   Chromium, Firefox and WebKit against the built package. Source probes also
   exercise cancellation, ID ownership, source movement and restoration.
+- Packed-package consumer validation passes: public exports, strict declarations,
+  isolated production build, archive decoding, native interaction/teardown and
+  three package-boundary negative controls.
 - A requirements validation run exits 0 with zero mismatched obligations. No
   independent assertions, fixtures, goldens, evidence or binding hashes changed.
 
