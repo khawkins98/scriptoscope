@@ -13,6 +13,22 @@ rejected because it did not substantiate worthwhile net deletion. The subsequent
 [compatibility retirement proposal](../../../tools/runtime-spike/bevel-retirement-proposal.md)
 is a separate decision and has not changed the behavior recorded here.
 
+## Approved timing amendment (2026-10-26)
+
+The user approved a future bevel renderer capturing selected metadata at the start
+of a render. Getter invocation counts and metadata mutations during asynchronous
+rendering need not retain the baseline behavior described below. This is a
+compatibility change: callers must finish metadata edits before starting a render;
+edits made while it is pending are not guaranteed to affect that render. A later
+render may observe those edits. This permission does not authorize caching across
+renders or snapshotting an unrelated catalog.
+
+Normal themed pixels, public API signatures, resource selection and admission,
+callback completion/error behavior and owner disposal protection remain required.
+The baseline temporal observations below describe the frozen reference; they are
+not additional requirements where they conflict with this amendment. Production
+has not yet adopted the snapshot boundary.
+
 ## Current transport and temporal boundaries (BV01/BV02/BV07/BV08)
 
 `composeBevelButton` accepts `ThemeInput` and enters `withThemeView` before reading
