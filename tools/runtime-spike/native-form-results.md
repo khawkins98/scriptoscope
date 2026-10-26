@@ -11,8 +11,7 @@ original document remains a record of the first experiment and its frozen build.
   artwork is hidden from accessibility. The original input identity, form state
   and parent/sibling position are restored on disconnect. Consumer carrier moves
   survive teardown/retheme; neighboring promotions and insertions do not count
-  as moves. Implicit-label links
-  and generated IDs have reversible ownership, including caller ID changes.
+  as moves. Implicit-label links and generated IDs have reversible ownership, including caller ID changes.
 - `interactiveButton` keeps its factory, options and callback surface and returns
   a real `type=button` element. Its handlers paint feedback; browser click/default
   behavior activates it. Enter timing and synthetic pointer-only activation
@@ -72,8 +71,9 @@ This measures regressions against current production, not original Mac fidelity.
 - Packed-package consumer validation passes: public exports, strict declarations,
   isolated production build, archive decoding, native interaction/teardown and
   three package-boundary negative controls.
-- A requirements validation run exits 0 with zero mismatched obligations. No
-  independent assertions, fixtures, goldens, evidence or binding hashes changed.
+- A requirements validation run exits 0 with zero mismatched obligations. The
+  independent DOM author changed justified public DOM assertions and fixtures;
+  goldens, provenance evidence and binding hashes remain unchanged.
 
 The original broader affected browser run had **136 pass / 15 fail**. It exposed
 real native-pointer and passive-select metadata defects; both were fixed.
@@ -84,9 +84,10 @@ WebKit. The affected legacy run improved to **159 pass / 2 fail**; only mixed
 showcase tests remained. Independent follow-up `686a94eb` adjusted exactly three
 DOM tag sites while preserving all other pixel/provenance/structural/callback and
 teardown requirements. Root integrated both commits without reading acceptance
-sources. After integrating the DOM-only showcase follow-up, the run reached 160 pass /
-1 fail: production showcase readiness. Rebuilding the full demo resolved that
-prerequisite; both showcase cases then passed. The final complete affected-suite rerun passes **161/161**, exit 0.
+sources. After integrating the DOM-only showcase follow-up, the run reached
+160 pass / 1 fail: production showcase readiness. Rebuilding the full demo resolved that
+prerequisite; both showcase cases then passed. The final complete affected-suite
+rerun passes **161/161**, exit 0.
 
 Independent runtime review found a separate carrier-move teardown issue. An
 executed implementation-owned reproducer failed for parent moves, sibling
@@ -109,8 +110,9 @@ These corrections do not replace independent acceptance evidence.
 ## Next gate
 
 The user-authorized independent public DOM contract/test-author assignment is
-complete; its justified changes are integrated. Final local integration passes; full CI is pending. Do not merge, update acceptance data from implementation
-output, or weaken old behavior without review. Final acceptance/CI and independent
-adversarial review remain required. `lane:ready` has not passed; this environment
+complete; its justified changes are integrated. Final local integration and
+narrow independent runtime review pass; full CI and final readiness assessment
+remain pending. Do not merge or update acceptance data from implementation output
+to hide failures. `lane:ready` has not passed; this environment
 also lacks its configured Apple header path. This work establishes a bounded
 simplification with a real net deletion, not a large engine rewrite or a speedup.
