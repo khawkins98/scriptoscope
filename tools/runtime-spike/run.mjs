@@ -10,7 +10,9 @@ import { writeReport } from './report.mjs';
 const exec = promisify(execFile);
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const session = `raster-spike-${process.pid}`;
-const bevelProposal = process.argv.includes('--bevel-proposal');
+const bevelCompatibility = process.argv.some(arg => /^--bevel-compatibility(?:=cinf)?$/.test(arg));
+const compatibilityMode = process.argv.includes('--bevel-compatibility=cinf') ? 'cinf' : 'rectangular';
+const bevelProposal = bevelCompatibility || process.argv.includes('--bevel-proposal');
 const production = bevelProposal || process.argv.includes('--production');
 const referenceEntry = process.env.SCRIPTOSCOPE_RUNTIME_REFERENCE_ENTRY ? resolve(process.env.SCRIPTOSCOPE_RUNTIME_REFERENCE_ENTRY) : null;
 if (bevelProposal && !referenceEntry) throw new Error('Bevel proposal requires a frozen compiled reference');
@@ -36,7 +38,7 @@ async function fingerprints() {
   const built = (await readdir(new URL('../../dist/', import.meta.url))).filter(p => p.endsWith('.js')).map(p => `dist/${p}`);
   if (referenceEntry) built.push(resolve(dirname(referenceEntry), '../build.json'), ...referenceBuild.files.map(file => resolve(dirname(referenceEntry), file.path)));
   const driver = ['tools/runtime-spike/index.html', 'tools/runtime-spike/report.mjs', 'tools/runtime-spike/run.mjs',
-    ...(bevelProposal ? ['tools/runtime-spike/bevel-proposal.mjs', 'tools/runtime-spike/bevel-candidate.mjs']
+    ...(bevelProposal ? ['tools/runtime-spike/bevel-proposal.mjs', 'tools/runtime-spike/bevel-candidate.mjs', 'tools/runtime-spike/bevel-compatibility.mjs', 'tools/runtime-spike/bevel-synthetic.mjs']
       : [...(production ? ['tools/runtime-spike/mounts.mjs'] : []), `tools/runtime-spike/${production ? 'production' : 'spike'}.mjs`])];
   const hash = async files => {
     const digest = createHash('sha256');
@@ -50,7 +52,7 @@ const { stdout: revision } = await exec('git', ['rev-parse', 'HEAD'], { cwd: roo
 const server = await createServer({ configFile: false, root, server: { host: '127.0.0.1', port: 0, hmr: false, fs: { allow: [root, ...(referenceEntry ? [dirname(referenceEntry)] : [])] } }, resolve: { alias: referenceEntry ? { '/runtime-reference.js': referenceEntry } : {} } });
 try {
   await server.listen();
-  await browser('open', `${server.resolvedUrls.local[0]}tools/runtime-spike/index.html${bevelProposal ? '?bevel-proposal' : production ? referenceEntry ? '?production&reference' : '?production' : ''}`);
+  await browser('open', `${server.resolvedUrls.local[0]}tools/runtime-spike/index.html${bevelCompatibility ? `?bevel-proposal&prepared=${compatibilityMode}` : bevelProposal ? '?bevel-proposal' : production ? referenceEntry ? '?production&reference' : '?production' : ''}`);
   const deadline = Date.now() + (production ? 600_000 : 180_000);
   let report;
   while (Date.now() < deadline) {
@@ -63,10 +65,12 @@ try {
   report.provenance = { revision: revision.trim(), ...inputs };
   if (referenceBuild) report.referenceBuild = referenceBuild;
   if (JSON.stringify(inputs) !== JSON.stringify(finalInputs)) { report.status = 'unstable-inputs'; report.error = 'Runtime, built output or driver changed during the run'; }
-  await writeReport(bevelProposal ? 'bevel-proposal-results.json' : referenceEntry ? 'production-reference-results.json' : production ? 'production-results.json' : 'results.json', report);
-  console.log(JSON.stringify({ status: report.status, themes: report.rows ? new Set(report.rows.map(row => row.slug)).size : 0,
+  await writeReport(bevelCompatibility ? 'bevel-compatibility-results.json' : bevelProposal ? 'bevel-proposal-results.json' : referenceEntry ? 'production-reference-results.json' : production ? 'production-results.json' : 'results.json', report);
+  console.log(JSON.stringify({ status: report.status, themes: report.rows ? new Set(report.rows.filter(row => !row.slug.startsWith('synthetic:')).map(row => row.slug)).size : 0,
     compared: report.compared, painted: report.painted, windows: report.windows, rasters: report.rasters, referenceRasters: report.referenceRasters, rendererComparisons: report.rendererComparisons, diagnosticComparisons: report.diagnosticComparisons, mismatches: report.mismatches?.length,
-    ...(bevelProposal ? { outcomes: report.outcomes, purpose: report.purpose } : {}) }, null, 2));
+    ...(bevelProposal ? { mode: report.mode, corpusCompared: report.corpusCompared,
+      syntheticFixtures: report.rows?.filter(row => row.slug.startsWith('synthetic:')).length,
+      outcomes: report.outcomes, purpose: report.purpose } : {}) }, null, 2));
   if (report.status !== (bevelProposal ? 'measured' : 'pass')) process.exitCode = 1;
 } finally {
   await browser('close').catch(() => {});

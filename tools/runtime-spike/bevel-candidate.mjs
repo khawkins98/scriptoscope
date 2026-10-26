@@ -8,10 +8,11 @@ import { snapshotControlComposition, controlPointVisible } from '../../src/contr
 import { themeResourceChain } from '../../src/engine/resources/theme.ts';
 import { drawCinfFrame, prepareCinfFrameSamples } from '../../src/engine/qd/cinfFrame.ts';
 import { rect } from '../../src/engine/qd/rect.ts';
+import { prepareCompatibilityFrame, drawPreparedCompatibility } from './bevel-compatibility.mjs';
 
 export const bevelIds = Array.from({ length: 15 }, (_, i) => -10162 - i);
 
-export async function composeCandidate(input, supplied = {}, observe = () => {}) {
+export async function composeCandidate(input, supplied = {}, observe = () => {}, compatibilityMode = false) {
   const opts = { ...supplied };
   const fontSize = opts.fontSize ?? 12;
   if (!Number.isFinite(fontSize) || fontSize < 6) throw new RangeError('fontSize must be finite and at least 6 CSS pixels');
@@ -42,13 +43,23 @@ export async function composeCandidate(input, supplied = {}, observe = () => {})
     const clip = context.clip.kind === 'rect' ? rect(context.clip.rect.y - context.controlOrigin[1],
       context.clip.rect.x - context.controlOrigin[0], context.clip.rect.y + context.clip.rect.h - context.controlOrigin[1],
       context.clip.rect.x + context.clip.rect.w - context.controlOrigin[0]) : undefined;
-    const chain = await themeResourceChain(theme, [{ type: 'cicn', id }, { type: 'cinf', id }, { type: 'cinf', id: 0 }], {
+    let chain = await themeResourceChain(theme, [{ type: 'cicn', id }, { type: 'cinf', id }, { type: 'cinf', id: 0 }], {
       cinfBodies: [id, 0], bodyEnvironment: { owner, face: element, width, height, ...(clip ? { clip } : {}) },
       prepareSamples: prepared => prepareCinfFrameSamples(prepared, id, true, D, out, clip),
     });
+    const compatibility = compatibilityMode ? prepareCompatibilityFrame(chain, id, source, element, owner, opts, compatibilityMode) : null;
+    if (compatibility) {
+      chain = compatibility.chain ?? chain;
+      observe({ stage: 'prepared-compatibility', kind: compatibility.kind, selectedId: id,
+        corner: compatibility.corner, side: compatibility.side, sample: compatibility.sample });
+    }
     const icon = chain.getResource('cicn', id)?.value;
-    const result = drawCinfFrame(out, chain, { id, cicn: icon?.pixmap, icon, dstRect: D, bodyFill: true,
-      requireRawSamples: true, allocationOrigin: { x: context.controlOrigin[0], y: context.controlOrigin[1] },
+    let result;
+    if (compatibility?.kind === 'rectangular-compatibility') {
+      drawPreparedCompatibility(out, compatibility);
+      result = { drawn: true };
+    } else result = drawCinfFrame(out, chain, { id, cicn: icon?.pixmap, icon, dstRect: D, bodyFill: true,
+      requireRawSamples: !compatibility, allocationOrigin: { x: context.controlOrigin[0], y: context.controlOrigin[1] },
       patternOffset: context.patternOrigin.status === 'known'
         ? { x: -context.patternOrigin.offset[0], y: -context.patternOrigin.offset[1] } : { x: 0, y: 0 },
     });
@@ -56,12 +67,13 @@ export async function composeCandidate(input, supplied = {}, observe = () => {})
     if (!result.drawn) { observe({ stage: 'cinf-absent', selectedId: id, cinfId: result.cinfId }); return null; }
     if (label) {
       const overridden = opts.fg !== undefined;
-      if (!overridden && !result.colorsAvailable) throw new Error('proposal: label color unavailable');
+      if (!compatibility && !overridden && !result.colorsAvailable) throw new Error('proposal: label color unavailable');
       const css = color => `rgb(${color.r},${color.g},${color.b})`;
-      const foreground = opts.fg ?? css(result.textRGB);
+      const foreground = compatibility?.colors.foreground ?? opts.fg ?? css(result.textRGB);
       const glyph = rasterizeText(label, fontSize, foreground);
       const x = Math.round((width - glyph.width) / 2), y = Math.round((height - glyph.height) / 2);
-      if (!overridden && result.embossRGB) out.drawOver(rasterizeText(label, fontSize, css(result.embossRGB)), x + 1, y + 1);
+      const emboss = compatibility ? compatibility.colors.emboss : !overridden && result.embossRGB ? css(result.embossRGB) : null;
+      if (emboss) out.drawOver(rasterizeText(label, fontSize, emboss), x + 1, y + 1);
       out.drawOver(glyph, x, y);
     }
     for (let y = 0; y < height; y++) for (let x = 0; x < width; x++)

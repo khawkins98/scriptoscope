@@ -1,8 +1,10 @@
-// Measures compatibility loss. A completed measurement is NOT an equivalence pass.
+// Measures architecture changes. A completed measurement is NOT acceptance evidence.
 import * as reference from '/runtime-reference.js';
 import { loadOwnedKaleidoscopeScheme } from '../../src/loadKaleidoscopeScheme.ts';
 import { engineCinfIds, engineIconBlitCicnIds } from '../../src/engine/resources/ids.ts';
 import { composeCandidate, bevelIds } from './bevel-candidate.mjs';
+import { syntheticThemes, syntheticCases } from './bevel-synthetic.mjs';
+const prepared = new URLSearchParams(location.search).get('prepared');
 
 const slugs = Object.keys(import.meta.glob('../../themes/*/meta.json')).map(p => p.split('/')[3]).sort();
 const clip = { controlOrigin: [23, 41], portOrigin: [5, -7], patternOrigin: { status: 'known', offset: [3, 5] },
@@ -38,11 +40,25 @@ function compare(a, b) {
   return { kind: changedPixels ? 'pixels-change' : 'same-pixels', ...(changedPixels ? { changedPixels } : {}) };
 }
 
+let activeReport;
 async function run() {
-  const report = { status: 'running', purpose: 'Compatibility-change feasibility measurement; not acceptance or native-fidelity evidence',
+  const report = activeReport = { status: 'running', purpose: 'Bevel architecture feasibility measurement; not acceptance or native-fidelity evidence',
+    mode: prepared ?? 'retirement',
     runAt: new Date().toISOString(), userAgent: navigator.userAgent, casesPerTheme: cases.length, compared: 0,
     limitations: ['owned loader only', 'no declared cinf environments', 'no diagnostic transcript comparison',
-      'no base inheritance or caller mutation cases', 'no performance claim'], outcomes: {}, rows: [], differences: [] };
+      'no base inheritance or caller mutation cases', 'foreground overrides in synthetic inputs only',
+      'fonts and untracked runtime files not pinned', 'no performance claim'], outcomes: {}, rows: [], differences: [] };
+  const record = (slug, options, a, b, row, group) => {
+    const difference = compare(a, b), kind = difference.kind;
+    row.outcomes[kind] = (row.outcomes[kind] ?? 0) + 1;
+    report.outcomes[kind] = (report.outcomes[kind] ?? 0) + 1;
+    for (const observation of b.observations ?? []) if (observation.stage === 'prepared-compatibility') {
+      row.recipes ??= {};
+      row.recipes[observation.kind] = (row.recipes[observation.kind] ?? 0) + 1;
+    }
+    if (kind.endsWith('-change')) report.differences.push({ slug, group, options, ...difference });
+    report.compared++;
+  };
   const pixel = { width: 1, height: 1, data: new Uint8ClampedArray([1, 2, 3, 255]) };
   for (const [candidate, expected] of [
     [{ output: { ...pixel, data: new Uint8ClampedArray([2, 2, 3, 255]) } }, 'pixels-change'],
@@ -54,7 +70,8 @@ async function run() {
     const raw = await bytes(slug);
     const original = await reference.loadOwnedKaleidoscopeScheme(raw);
     let candidate;
-    const row = { slug, outcomes: {} };
+    const inputSha256 = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', raw)), byte => byte.toString(16).padStart(2, '0')).join('');
+    const row = { slug, inputSha256, outcomes: {} };
     report.rows.push(row);
     try {
       candidate = await loadOwnedKaleidoscopeScheme(raw, {
@@ -63,17 +80,40 @@ async function run() {
       });
       for (const options of cases) {
         const a = await capture(reference.composeBevelButton, original, options);
-        const b = await capture(composeCandidate, candidate, options);
-        const difference = compare(a, b), kind = difference.kind;
-        row.outcomes[kind] = (row.outcomes[kind] ?? 0) + 1;
-        report.outcomes[kind] = (report.outcomes[kind] ?? 0) + 1;
-        if (kind.endsWith('-change')) report.differences.push({ slug, options, ...difference });
-        report.compared++;
+        const b = await capture((theme, opts, observe) => composeCandidate(theme, opts, observe, prepared), candidate, options);
+        record(slug, options, a, b, row, 'corpus');
       }
     } finally { original.dispose(); candidate?.dispose(); }
+  }
+  report.corpusCompared = report.compared;
+  if (prepared) {
+    const syntheticOptions = syntheticCases();
+    report.syntheticCasesPerFixture = syntheticOptions.length;
+    for (const { name, theme } of syntheticThemes()) {
+      const slug = `synthetic:${name}`, row = { slug, outcomes: {} };
+      report.rows.push(row);
+      try {
+        for (const options of syntheticOptions) {
+          const a = await capture(reference.composeBevelButton, theme, options);
+          const b = await capture((input, opts, observe) => composeCandidate(input, opts, observe, prepared), theme, options);
+          record(slug, options, a, b, row, 'synthetic');
+        }
+      } finally { theme.dispose(); }
+    }
+    report.boundaryProbes = [];
+    for (const { name, theme, guard } of syntheticThemes(true)) {
+      try {
+        const options = { minWidth: 32, height: 20 };
+        const a = await capture(reference.composeBevelButton, theme, options);
+        const b = await capture((input, opts, observe) => composeCandidate(input, opts, observe, prepared), theme, options);
+        report.boundaryProbes.push({ name, referencePainted: !!a.output, candidateError: b.error,
+          guarded: typeof b.error === 'string' && b.error.includes(guard) });
+        if (!report.boundaryProbes.at(-1).guarded) throw new Error(`Boundary was not guarded: ${name}`);
+      } finally { theme.dispose(); }
+    }
   }
   report.status = 'measured';
   return report;
 }
 run().then(report => { window.spikeReport = report; document.querySelector('#result').textContent = JSON.stringify(report, null, 2); })
-  .catch(error => { window.spikeReport = { status: 'error', error: `${error.stack ?? error}` }; });
+  .catch(error => { window.spikeReport = { ...activeReport, status: 'error', error: `${error.stack ?? error}` }; });

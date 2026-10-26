@@ -1,5 +1,10 @@
 # Bevel renderer retirement proposal
 
+Recommendation superseded by the [appearance-preserving experiment](bevel-compatibility-results.md).
+Its prepared rectangular recipe restores all six themes in the measured cases.
+Do not implement the six-theme fallback loss or the 150-line minimum proposed below.
+The original experiment remains here as a record of the rejected tradeoff.
+
 Decision requested: accept losing authored bevel rendering in six bundled themes
 in favor of the caller's procedural/native fallback, so the existing cinf engine
 can replace bevel's separate renderer. The spike loses 864 of 2,592 current
