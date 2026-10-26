@@ -709,7 +709,7 @@ async function composeFaceButton(
   opts.trace?.composition({ context, originalPortState: 'unverified',
     faceRect: { x: context.controlOrigin[0], y: context.controlOrigin[1], w: innerW, h: innerH },
     appliedUnknownPatternOffset: context.patternOrigin.status === 'unknown' });
-  const id = -Math.abs(faceEl.sourceCicnId!);
+  const id = faceEl.sourceCicnId!;
   const declared = resolved.consumedCinf;
   const point = (anchor: readonly number[] | null | undefined) => ({ x: anchor?.[0] ?? -1, y: anchor?.[1] ?? -1 });
   const record: CinfRecord | undefined = declared && faceEl.slice && faceEl.bodyRequest ? {
@@ -718,7 +718,7 @@ async function composeFaceButton(
     bgPixel: point(bg), textPixel: point(ta), embossPixel: faceEl.embossAnchor ? point(faceEl.embossAnchor) : { x: 0, y: 0 },
   } : undefined;
   const chain = await themeResourceChain(resolved.theme, [{ type: 'cinf', id }, { type: 'cinf', id: 0 }], {
-    cinfBodies: declared ? [] : [id, 0], traceProvenance: !!opts.trace,
+    cinfBodies: declared ? [] : [id, 0], traceProvenance: !!opts.trace, ownerDepth: resolved.chainDepth,
     ...(declared ? { cinfProviders: [{ ...mapProvider('declared:bevel', 'cinf', [[`cinf:${declared.selected!.signedId}`, record]]),
       selection: () => ({ cinfLookup: declared }) }] } : {}),
     bodyEnvironment: { owner: resolved.theme, face: faceEl, width: innerW, height: innerH, ...(clip ? { clip } : {}),

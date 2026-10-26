@@ -115,7 +115,7 @@ async function run() {
         const a = await capture(reference.composeBevelButton, theme, options);
         const b = await capture(delivery ? composeBevelButton : (input, opts, observe) => composeCandidate(input, opts, observe, prepared), theme, options);
         report.boundaryProbes.push({ name, referencePainted: !!a.output, candidateError: b.error,
-          guarded: typeof b.error === 'string' && b.error.includes(guard) });
+          ...(delivery ? { difference: compare(a, b).kind } : { guarded: typeof b.error === 'string' && b.error.includes(guard) }) });
         if (!delivery && !report.boundaryProbes.at(-1).guarded) throw new Error(`Boundary was not guarded: ${name}`);
       } finally { theme.dispose(); }
     }
