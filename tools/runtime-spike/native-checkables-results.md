@@ -1,5 +1,8 @@
 # Native checkable retirement prototype
 
+**Superseded delivery status:** see [current PR 484 results](native-form-results.md).
+This document records the first narrower experiment, not the final runtime.
+
 Status: implementation draft. Public API retirement has not been approved for
 release. The diagnostic demo still imports the retired APIs; delivery is blocked
 on its separate consumer migration and independent contract review.

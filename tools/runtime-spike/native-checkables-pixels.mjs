@@ -10,7 +10,7 @@ for (const file of receipt.files) assert.equal(createHash('sha256').update(readF
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage();
 try {
-  await page.goto(`${process.env.SCRIPTOSCOPE_PROBE_ORIGIN ?? 'http://127.0.0.1:5193'}/package.json`);
+  await page.goto(`${process.env.SCRIPTOSCOPE_PROBE_ORIGIN ?? 'http://127.0.0.1:5193'}/@fs${process.cwd()}/package.json`);
   const result = await page.evaluate(async root => {
     const old = await import(`${root}/tools/runtime-spike/.artifacts/native-controls-baseline/compiled/scriptoscope.js`);
     const { promoteControl, restoreControl } = await import(`${root}/src/declarative/control.ts`);
@@ -21,7 +21,7 @@ try {
       const canvas = el.querySelector('canvas');
       if (canvas) return `${canvas.width}x${canvas.height}:` + canvas.toDataURL();
       // Missing art uses the same baseline layout, without the old nested label wrapper.
-      const wrapper = el.querySelector('label') ?? el.firstElementChild;
+      const wrapper = el.querySelector('label') ?? el.querySelector('[aria-hidden=true]')?.firstElementChild ?? el.firstElementChild;
       return `baseline:${el.textContent}:${wrapper?.getAttribute('style')}:` +
         [...wrapper.querySelectorAll('span')].map(span => span.getAttribute('style')).join('|');
     };

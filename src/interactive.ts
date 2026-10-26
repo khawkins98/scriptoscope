@@ -139,50 +139,32 @@ export async function interactiveButton(
   const { onClick, scale = 1, ...bo } = opts;
   const painter = await prepareButtonPainter(theme, bo, scale, signal);
   current();
-  if (!painter) {
-    // Missing art or face metadata uses the existing visible, labelled native
-    // baseline. Low-level art admission and composition pixels remain separate.
-    const b = baselineButton(bo.label ?? '', bo);
-    // Activation belongs to the callback; the presentation must not submit its form.
-    b.type = 'button';
-    const events = new AbortController();
-    controlDisposers.set(b, () => events.abort());
-    if (onClick && !bo.disabled) listenUntilAborted(events.signal, b, 'click', onClick);
-    return b;
+  const el = painter ? document.createElement('button') : baselineButton(bo.label ?? '', bo);
+  el.type = 'button';
+  el.disabled = !!bo.disabled;
+  if (painter) {
+    el.className = 'scriptoscope-button';
+    if (bo.label) el.setAttribute('aria-label', bo.label);
+    Object.assign(el.style, {
+      display: 'inline-block', lineHeight: '0', userSelect: 'none', margin: '0',
+      padding: '0', border: '0', background: 'transparent', appearance: 'none',
+      cursor: bo.disabled ? 'default' : 'pointer', outlineOffset: '2px',
+    } satisfies Partial<CSSStyleDeclaration>);
+    el.appendChild(painter.canvas);
+    registerButtonPainter(el, painter);
   }
-  const el = document.createElement('span');
-  el.className = 'scriptoscope-button';
-  el.setAttribute('role', 'button');
-  el.tabIndex = bo.disabled ? -1 : 0;
-  if (bo.label) el.setAttribute('aria-label', bo.label);
-  if (bo.disabled) el.setAttribute('aria-disabled', 'true');
-  Object.assign(el.style, {
-    display: 'inline-block', lineHeight: '0', userSelect: 'none',
-    cursor: bo.disabled ? 'default' : 'pointer', outlineOffset: '2px',
-  } satisfies Partial<CSSStyleDeclaration>);
-  el.appendChild(painter.canvas);
-  registerButtonPainter(el, painter);
   const events = new AbortController();
-  controlDisposers.set(el, () => { painter.dispose(); unregisterButtonPainter(el); events.abort(); });
-  if (bo.disabled) return el;
-  let down = false;
-  const press = (): void => { down = true; painter.press(true); };
-  const release = (fire: boolean): void => {
-    if (!down) return;
-    down = false;
-    painter.press(false);
-    if (fire && onClick) onClick();
-  };
-  // Pointer events cover mouse + touch + pen in one path. pointerleave releases without firing the
-  // click (canceled drag-away); only the primary button can press or activate.
-  listenUntilAborted(events.signal, el, 'pointerdown', (e) => {
-    if (e.button !== 0) return;
-    e.preventDefault(); press();
-  });
-  listenUntilAborted(events.signal, el, 'pointerup', (e) => { if (e.button === 0) release(true); });
-  listenUntilAborted(events.signal, el, 'pointerleave', () => release(false));
-  listenUntilAborted(events.signal, el, 'keydown', (e) => { if (KEY_ACTIVATE(e)) { e.preventDefault(); press(); } });
-  listenUntilAborted(events.signal, el, 'keyup', (e) => { if (KEY_ACTIVATE(e)) { e.preventDefault(); release(true); } });
+  controlDisposers.set(el, () => { painter?.dispose(); unregisterButtonPainter(el); events.abort(); });
+  if (onClick) listenUntilAborted(events.signal, el, 'click', () => { if (!el.matches(':disabled')) onClick(); });
+  if (painter) {
+    // These handlers paint feedback only. The native button owns activation,
+    // canceled presses, keyboard defaults, focus and disabled/form semantics.
+    listenUntilAborted(events.signal, el, 'pointerdown', e => { if (e.button === 0 && !el.matches(':disabled')) painter.press(true); });
+    for (const type of ['pointerup', 'pointerleave', 'pointercancel', 'blur'] as const)
+      listenUntilAborted(events.signal, el, type, () => painter.press(false));
+    listenUntilAborted(events.signal, el, 'keydown', e => { if (KEY_ACTIVATE(e) && !el.matches(':disabled')) painter.press(true); });
+    listenUntilAborted(events.signal, el, 'keyup', e => { if (KEY_ACTIVATE(e)) painter.press(false); });
+  }
   return el;
 }
 

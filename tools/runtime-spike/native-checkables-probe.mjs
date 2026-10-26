@@ -6,7 +6,7 @@ const engine = process.env.SCRIPTOSCOPE_PROBE_BROWSER ?? 'chromium';
 const browser = await ({ chromium, firefox, webkit })[engine].launch({ headless: true });
 const page = await browser.newPage();
 try {
-  await page.goto(`${origin}/package.json`);
+  await page.goto(`${origin}/@fs${process.cwd()}/package.json`);
   await page.setContent(`<form id="one"><label><input id="c" type="checkbox" name="c" value="yes">Check</label>
     <input id="r1" type="radio" name="r" value="a" checked><label for="r1">Alpha</label>
     <input id="r2" type="radio" name="r" value="b"><label for="r2">Beta</label>
@@ -36,7 +36,7 @@ try {
   assert.ok(setup.generated);
   assert.equal(await page.getByRole('checkbox', { name: 'Check', exact: true }).count(), 1);
   const clickFace = id => page.locator(`label.scriptoscope-checkbox[for="${id}"], label.scriptoscope-radio[for="${id}"]`).click();
-  await clickFace('c');
+  await page.getByRole('checkbox', { name: 'Check', exact: true }).click();
   assert.deepEqual(await page.evaluate(() => window.probe.events.filter(e => e.id === 'c').map(e => [e.name, e.target, e.checked])),
     [['click', 'c', true], ['input', 'c', true], ['change', 'c', true]]);
   // WebKit follows macOS mouse-focus policy; keyboard checks focus the native input explicitly.
@@ -72,7 +72,7 @@ try {
     const old = faces.r1; faces.r1 = await promoteControl(input, theme);
     return { removed: !old.isConnected, forId: faces.r1.htmlFor, role: faces.r1.getAttribute('role'), hidden: faces.r1.getAttribute('aria-hidden') };
   });
-  assert.deepEqual(retheme, { removed: true, forId: 'r1', role: null, hidden: 'true' });
+  assert.deepEqual(retheme, { removed: true, forId: 'r1', role: null, hidden: null });
   if (process.env.SCRIPTOSCOPE_PROBE_BUILT !== '1') {
     const lifecycle = await page.evaluate(async () => {
       const { promoteControl, restoreControl, theme } = window.probe;
@@ -85,9 +85,9 @@ try {
       const face = await promoteControl(input, theme);
       input.id = 'consumer-changed-id';
       await new Promise(resolve => setTimeout(resolve, 0));
-      const retargeted = face.htmlFor === input.id;
+      const retargeted = face.htmlFor === input.id && wrap.htmlFor === input.id;
       restoreControl(input);
-      const preserved = input.id === 'consumer-changed-id';
+      const preserved = input.id === 'consumer-changed-id' && !wrap.hasAttribute('for') && input.parentNode === wrap;
       const movedFace = await promoteControl(input, theme);
       const host = document.createElement('div'); document.body.append(host);
       host.attachShadow({ mode: 'open' }).append(input);

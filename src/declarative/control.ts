@@ -1,9 +1,10 @@
+import { prepareButtonPainter } from '../buttonComposition.js';
 // A mount owns each replacement face and only the native properties it changes.
 // Prepare off-DOM; commit only while the source location and mount are still valid.
 import { listenUntilAborted } from '../listenUntilAborted.js';
-import { composeCheckable, bufferToCanvas, baselineCheckable } from '../controls.js';
+import { composeCheckable, bufferToCanvas, baselineCheckable, baselineButton } from '../controls.js';
 import type { ThemeInput } from '../ownedTheme.js';
-import { interactiveNativeSlider, interactiveButton, disposeInteractiveControl } from '../interactive.js';
+import { interactiveNativeSlider, disposeInteractiveControl } from '../interactive.js';
 
 type Promotable = HTMLInputElement | HTMLSelectElement;
 type Kind = 'checkbox' | 'radio' | 'range' | 'select';
@@ -16,6 +17,8 @@ const hiddenStyle = {
 interface Promotion {
   face: HTMLElement;
   disposeFace(): void;
+  location?: { parent: ParentNode; next: ChildNode | null };
+  updateLabelFor?: (id: string) => void;
   restore: (() => void)[];
 }
 const promotions = new WeakMap<Promotable, Promotion>();
@@ -23,13 +26,17 @@ const pending = new WeakMap<Promotable, AbortController>();
 
 // Restore the attributes/properties we own, preserving unrelated consumer edits.
 // If the consumer changes an owned property after promotion, their newer value wins.
-function setAttributeOwned(el: HTMLElement, name: string, value: string, restore: (() => void)[]): void {
+function setAttributeOwned(el: HTMLElement, name: string, value: string, restore: (() => void)[]): (next: string) => void {
   const before = el.getAttribute(name);
-  el.setAttribute(name, value);
+  let applied = value;
+  el.setAttribute(name, applied);
   restore.push(() => {
-    if (el.getAttribute(name) !== value) return;
+    if (el.getAttribute(name) !== applied) return;
     if (before === null) el.removeAttribute(name); else el.setAttribute(name, before);
   });
+  return next => {
+    if (next !== applied && el.getAttribute(name) === applied) { el.setAttribute(name, next); applied = next; }
+  };
 }
 function setStyleOwned(el: HTMLElement, values: Partial<CSSStyleDeclaration>, restore: (() => void)[]): void {
   const before = el.getAttribute('style');
@@ -60,10 +67,13 @@ export function restoreControl(el: Promotable): void {
   if (!promotion) return;
   promotions.delete(el);
   promotion.disposeFace();
-  // Only unwrap a native select still inside our wrapper. Never steal a source
+  // Only unwrap a source still inside our carrier. Never steal a source
   // that the consumer removed or reparented while it was mounted.
   if (el.parentNode === promotion.face) {
-    if (promotion.face.parentNode) promotion.face.replaceWith(el); else el.remove();
+    const location = promotion.location;
+    if (location && (location.parent as Node).isConnected === el.isConnected) {
+      location.parent.insertBefore(el, location.next?.parentNode === location.parent ? location.next : null);
+    } else if (promotion.face.parentNode) promotion.face.replaceWith(el); else el.remove();
   }
   promotion.face.remove();
   for (const restore of promotion.restore.reverse()) restore();
@@ -84,6 +94,8 @@ export async function promoteControl(el: Promotable, theme: ThemeInput, signal?:
   const parent = el.parentNode, connected = el.isConnected;
   const label = kind === 'checkbox' || kind === 'radio' ? associatedLabel(el) : null;
   const labelParent = label?.parentNode;
+  const checkable = kind === 'checkbox' || kind === 'radio';
+  const location = previous?.location ?? (checkable ? { parent, next: el.nextSibling } : undefined);
   let committed = false;
   const active = (): boolean => committed && !events.signal.aborted;
   let face: HTMLElement | undefined;
@@ -95,6 +107,7 @@ export async function promoteControl(el: Promotable, theme: ThemeInput, signal?:
     if (events.signal.aborted || el.parentNode !== parent || el.isConnected !== connected
       || (label && label.parentNode !== labelParent)) return null;
     const restore = previous?.restore ?? [];
+    let updateLabelFor = previous?.updateLabelFor;
     if (!previous) {
       setAttributeOwned(el, 'data-scriptoscope-promoted', '', restore);
       if ((kind === 'checkbox' || kind === 'radio') && !el.id) {
@@ -103,30 +116,31 @@ export async function promoteControl(el: Promotable, theme: ThemeInput, signal?:
         setAttributeOwned(el, 'id', id, restore);
       }
       if (!el.hasAttribute('autocomplete')) setAttributeOwned(el, 'autocomplete', 'off', restore);
-      if (kind === 'select') {
+      if (kind === 'select' || checkable) {
         setStyleOwned(el, {
           position: 'absolute', inset: '0', opacity: '0', cursor: el.disabled ? 'default' : 'pointer',
           zIndex: '2', width: '100%', height: '100%', font: 'inherit', margin: '0', padding: '0',
           border: '0', appearance: 'none',
         }, restore);
-      } else {
-        setStyleOwned(el, hiddenStyle, restore);
-        if (label?.textContent?.trim()) setStyleOwned(label, hiddenStyle, restore);
+      } else setStyleOwned(el, hiddenStyle, restore);
+      if (label?.textContent?.trim()) {
+        setStyleOwned(label, hiddenStyle, restore);
+        if (label.contains(el)) updateLabelFor = setAttributeOwned(label, 'for', el.id, restore);
       }
     }
     if (kind === 'checkbox' || kind === 'radio') (face as HTMLLabelElement).htmlFor = el.id;
     const focusedNative = document.activeElement === el;
     const focusedFace = !!previous?.face.contains(document.activeElement);
-    if (kind === 'select') {
+    if (kind === 'select' || checkable) {
       const anchor = previous?.face === parent ? previous.face : el;
-      anchor.before(face);
+      if (checkable && label?.contains(el)) label.after(face); else anchor.before(face);
       face.prepend(el);
     } else if (label?.contains(el)) label.after(face);
     else el.after(face);
     previous?.disposeFace();
     previous?.face.remove();
     const currentFace = face;
-    promotions.set(el, { face, restore, disposeFace: () => {
+    promotions.set(el, { face, restore, ...(location ? { location } : {}), ...(updateLabelFor ? { updateLabelFor } : {}), disposeFace: () => {
       events.abort(); disposeInteractiveControl(currentFace);
     } });
     committed = true;
@@ -165,8 +179,10 @@ async function prepareCheckable(input: HTMLInputElement, kind: 'checkbox' | 'rad
   const label = associatedLabel(input)?.textContent?.trim() ?? '';
   const face = document.createElement('label');
   face.className = `scriptoscope-${kind}`;
-  face.setAttribute('aria-hidden', 'true');
-  Object.assign(face.style, { display: 'inline-flex', lineHeight: '0', outlineOffset: '2px' });
+  Object.assign(face.style, { display: 'inline-flex', position: 'relative', lineHeight: '0', outlineOffset: '2px' });
+  const visual = document.createElement('span');
+  visual.setAttribute('aria-hidden', 'true');
+  face.append(visual);
   const states = await Promise.all([false, true].flatMap(disabled => [false, true].map(async checked => {
     const buffer = await composeCheckable(theme, kind, { label, disabled, checked });
     if (buffer) return bufferToCanvas(buffer);
@@ -179,9 +195,10 @@ async function prepareCheckable(input: HTMLInputElement, kind: 'checkbox' | 'rad
   const sync = (): void => {
     if (events.signal.aborted) return;
     face.htmlFor = input.id;
+    promotions.get(input)?.updateLabelFor?.(input.id);
     const disabled = input.matches(':disabled');
     const state = Number(disabled) * 2 + Number(input.checked);
-    if (state !== painted) { face.replaceChildren(states[state]!); painted = state; }
+    if (state !== painted) { visual.replaceChildren(states[state]!); painted = state; }
     face.style.cursor = disabled ? 'default' : 'pointer';
     face.style.outline = input.matches(':focus') ? '2px solid currentColor' : '';
   };
@@ -191,7 +208,7 @@ async function prepareCheckable(input: HTMLInputElement, kind: 'checkbox' | 'rad
   listenUntilAborted(events.signal, input, 'blur', sync);
   listenUntilAborted(events.signal, window, 'pageshow', sync);
   const observer = new MutationObserver(() => {
-    if (face.isConnected && face.getRootNode() !== input.getRootNode()) { restoreControl(input); return; }
+    if (face.isConnected && input.parentNode !== face) { restoreControl(input); return; }
     observe(); sync();
   });
   const observe = (): void => {
@@ -221,28 +238,37 @@ async function prepareSelect(el: HTMLSelectElement, theme: ThemeInput, events: A
     cursor: el.disabled ? 'default' : 'pointer' });
   let version = 0;
   let displayed: HTMLElement | undefined;
-  events.signal.addEventListener('abort', () => { if (displayed) disposeInteractiveControl(displayed); }, { once: true });
   const render = async (): Promise<void> => {
     const request = ++version;
     while (!events.signal.aborted) {
       const text = (el.selectedOptions[0]?.textContent ?? '').trim();
       const disabled = el.disabled;
       let button: HTMLElement;
-      try { button = await interactiveButton(theme, { label: `${text}  ▾`, disabled }, events.signal); }
-      catch (error) {
+      try {
+        const painter = await prepareButtonPainter(theme, { label: `${text}  ▾`, disabled }, 1, events.signal);
+        if (painter) {
+          button = document.createElement('span');
+          button.className = 'scriptoscope-button';
+          Object.assign(button.style, { display: 'inline-block', lineHeight: '0', userSelect: 'none', outlineOffset: '2px' });
+          button.append(painter.canvas);
+        } else button = baselineButton(`${text}  ▾`, { disabled });
+        painter?.dispose(); // The closed select owns a static face, not a second interactive button.
+        if (button instanceof HTMLButtonElement) button.type = 'button';
+      } catch (error) {
         if (events.signal.aborted || request !== version) return;
         throw error;
       }
-      if (events.signal.aborted || request !== version) { disposeInteractiveControl(button); return; }
+      if (events.signal.aborted || request !== version) return;
       // Native state can change while the first face is preparing, before
       // listeners are installed. Commit only a face for the current selection.
       if (text !== (el.selectedOptions[0]?.textContent ?? '').trim() || disabled !== el.disabled) {
-        disposeInteractiveControl(button); continue;
+        continue;
       }
+      button.setAttribute('aria-label', `${text}  ▾`);
       button.tabIndex = -1;
       button.setAttribute('aria-hidden', 'true');
       button.style.pointerEvents = 'none';
-      if (displayed) { disposeInteractiveControl(displayed); displayed.replaceWith(button); } else wrap.append(button);
+      if (displayed) displayed.replaceWith(button); else wrap.append(button);
       displayed = button;
       return;
     }
