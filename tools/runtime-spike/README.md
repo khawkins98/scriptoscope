@@ -30,6 +30,10 @@ the historical public renderers and compares layout, pixels and diagnostic metad
 excluding transport URL identities. It performs 29,736 renderer and 1,836 diagnostic
 comparisons; record each new run's outcome and fingerprints separately. Window
 layouts compare structural values, not object-key serialization order.
+CSS-image comparisons allow image-load callbacks to settle after decoding. Initial
+background-size differences remain recorded separately: an opaque historical probe
+observed an empty value at return and the matching scaled value after decoding and
+frame delivery. This is a readiness difference, not a settled scaling regression.
 
 The focus probe also checks content/selection and canvas identity, notifications
 and already-active clicks. Six held-preparation units cover focus/removal/retheme

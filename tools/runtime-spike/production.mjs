@@ -84,6 +84,7 @@ for (const mutation of [{ layout: 'changed' }, { pixels: changed }, { tile: chan
 async function windowSnapshot(runtime, theme, options) {
   const win = await runtime.renderWindow(theme, options);
   const content = win.querySelector('.scriptoscope-content');
+  const backgroundSizeAtReturn = content.style.backgroundSize;
   const composed = win._scriptoscopeComposed;
   const background = content.style.backgroundImage;
   let tile = null;
@@ -93,8 +94,11 @@ async function windowSnapshot(runtime, theme, options) {
     const url = match[1];
     if (url.startsWith('scriptoscope-raster:')) throw new Error('Window CSS exposed a private raster reference');
     tile = await runtime.loadCicnBuffer(url);
+    // Historical custom factories apply CSS dimensions from image-load callbacks.
+    // Compare settled appearance, retaining return-time readiness separately.
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
   }
-  return { pixels: composed?.buffer ?? null, tile,
+  return { pixels: composed?.buffer ?? null, tile, backgroundSizeAtReturn,
     layout: { frame: composed?.frame, placement: composed?.placement, widgets: composed?.widgets,
       width: win.style.width, height: win.style.height, content: content.style.cssText.replace(/background-image:[^;]+;?/, ''),
       hidden: content.hidden, inert: content.inert, role: win.getAttribute('role'), label: win.getAttribute('aria-label') } };
@@ -113,6 +117,8 @@ async function compareWindows(runtime, old, current, report, transport, slug, pr
         const options = { windowType, state, scale, title: 'Transport window', width: 97, height: 53 };
         window.spikeContext = { transport, slug, environment, options };
         const A = await windowSnapshot(previous, a, options), B = await windowSnapshot(runtime, b, options);
+        if (A.backgroundSizeAtReturn !== B.backgroundSizeAtReturn)
+          report.windowReadinessDifferences.push({ transport, slug, environment, options, reference: A.backgroundSizeAtReturn, current: B.backgroundSizeAtReturn });
         const difference = compareWindow(A, B);
         report.windows++;
         if (A.pixels && B.pixels) report.paintedWindows++; else report.baselineWindows++;
@@ -218,7 +224,7 @@ let progress;
 async function run() {
   const report = { runAt: new Date().toISOString(), userAgent: navigator.userAgent,
     comparison: reference ? 'historical-public-renderers' : 'current-eager-versus-owned', diagnosticComparisons: 0, rows: [], mismatches: [], errors: [], compared: 0, painted: 0, equalMissing: 0, equalErrors: 0, rasters: 0, referenceRasters: 0, disposedLoads: 0,
-    families: {}, familyDiagnostics: 0, baselinePatterns: 0, pendingWindows: 0, scrollbars: 0, paintedScrollbars: 0, missingScrollbars: 0, windows: 0, paintedWindows: 0, baselineWindows: 0, lazyWindows: 0, disposedWindows: 0, managedWindows: 0, diagnostics: 0, interactions: 0, zeroPngRenders: 0, bitmapPaints: 0 };
+    families: {}, familyDiagnostics: 0, baselinePatterns: 0, pendingWindows: 0, scrollbars: 0, paintedScrollbars: 0, missingScrollbars: 0, windows: 0, windowReadinessDifferences: [], paintedWindows: 0, baselineWindows: 0, lazyWindows: 0, disposedWindows: 0, managedWindows: 0, diagnostics: 0, interactions: 0, zeroPngRenders: 0, bitmapPaints: 0 };
   progress = report;
   for (const [transport, runtime] of [['source', source], ['built', built]]) for (const slug of slugs) {
     const input = await bytes(slug);
