@@ -11,6 +11,7 @@
 
 import { copyBits } from './engine/qd/transfer.js';
 import { rectXYWH } from './engine/qd/rect.js';
+import { pixelIndex, setPixel as writePixel } from './engine/qd/pixel.js';
 
 /** A rectangle in pixel coordinates: top-left origin, width/height. */
 export interface PixRect {
@@ -36,24 +37,15 @@ export class PixelBuffer {
     return new PixelBuffer(width, height);
   }
 
-  private idx(x: number, y: number): number {
-    return (y * this.width + x) * 4;
-  }
-
   /** Read a pixel as [r,g,b,a]. Out-of-bounds returns transparent black. */
   getPixel(x: number, y: number): [number, number, number, number] {
-    if (x < 0 || y < 0 || x >= this.width || y >= this.height) return [0, 0, 0, 0];
-    const i = this.idx(x, y);
+    const i = pixelIndex(this, x, y);
+    if (i < 0) return [0, 0, 0, 0];
     return [this.data[i]!, this.data[i + 1]!, this.data[i + 2]!, this.data[i + 3]!];
   }
 
   setPixel(x: number, y: number, r: number, g: number, b: number, a: number): void {
-    if (x < 0 || y < 0 || x >= this.width || y >= this.height) return;
-    const i = this.idx(x, y);
-    this.data[i] = r;
-    this.data[i + 1] = g;
-    this.data[i + 2] = b;
-    this.data[i + 3] = a;
+    writePixel(this, x, y, r, g, b, a);
   }
 
   /**

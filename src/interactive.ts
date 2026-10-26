@@ -1318,7 +1318,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     // still detached. The ch===0 retry below catches that pre-layout case; staleness is what
     // this check covers (a NEWER render replaced win).
     const currentChrome = entry.host.shadowRoot?.firstChild ?? entry.host.firstChild;
-    if (currentChrome !== win) {
+    if (!this.windows.includes(entry) || currentChrome !== win) {
       debug('scrollbar', `${entry.opts.title ?? ''} — stale win, bailing`);
       return;
     }
@@ -1394,6 +1394,9 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     signal: AbortSignal,
     flags: { needV: boolean; needH: boolean },
   ): void {
+    const current = (): boolean => !signal.aborted && this.windows.includes(entry)
+      && (entry.host.shadowRoot?.firstChild ?? entry.host.firstChild) === win;
+    if (!current()) return;
     const vertical = axis === 'vertical';
     // Per-axis dimensions (against the layout-complete scrollEl after gutter applied).
     const trackLen = vertical ? scrollEl.clientHeight : scrollEl.clientWidth;
@@ -1424,18 +1427,27 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     bar.setAttribute('aria-label', vertical ? 'Scroll content vertically' : 'Scroll content horizontally');
     bar.tabIndex = 0;
 
-    let raf = 0;
+    let raf = 0, paintEpoch = 0;
+    signal.addEventListener('abort', () => { if (raf) cancelAnimationFrame(raf); raf = 0; }, { once: true });
     const repaint = async (): Promise<void> => {
-      const opts = { orientation: axis, length: Math.round(barLenCss / scale), value };
-      // thumbExtent only shapes the procedural Platinum fallback; the engine sizes
-      // the thumb from its cicn (scrollbar §5.6) and ignores it.
-      const buf = (await composeScrollbar(entry.theme, opts)) ?? platinumScrollbar({ ...opts, thumbExtent });
-      // Staleness check (see LEARNINGS 2026-05-28 — shadowRoot.firstChild not host.firstChild).
-      if (buf && (entry.host.shadowRoot?.firstChild ?? entry.host.firstChild) === win) bar.replaceChildren(bufferToCanvas(buf, scale));
-      bar.setAttribute('aria-valuenow', String(Math.round(value * 100)));
+      if (!current()) return;
+      const epoch = paintEpoch;
+      try {
+        const opts = { orientation: axis, length: Math.round(barLenCss / scale), value };
+        const themed = await composeScrollbar(entry.theme, opts);
+        if (!current() || epoch !== paintEpoch) return;
+        // thumbExtent shapes only the procedural fallback, never the engine thumb.
+        const buf = themed ?? platinumScrollbar({ ...opts, thumbExtent });
+        bar.replaceChildren(bufferToCanvas(buf, scale));
+        bar.setAttribute('aria-valuenow', String(Math.round(opts.value * 100)));
+      } catch (error) {
+        if (current() && epoch === paintEpoch && !(error instanceof DOMException && error.name === 'AbortError'))
+          console.error('[scriptoscope] scrollbar paint failed:', error);
+      }
     };
-    const scheduleRepaint = (): void => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; void repaint(); }); };
+    const scheduleRepaint = (): void => { if (current() && !raf) raf = requestAnimationFrame(() => { raf = 0; void repaint(); }); };
     const setValue = (v: number): void => {
+      paintEpoch++;
       value = clamp01(v);
       if (vertical) scrollEl.scrollTop = value * maxScroll;
       else scrollEl.scrollLeft = value * maxScroll;
