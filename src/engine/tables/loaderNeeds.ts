@@ -35,10 +35,6 @@ export const ENGINE_LOADER_NEEDS: readonly FamilyLoaderNeeds[] = [
   { family: 'push-button', iconBlitCicns: [PUSH_IDS],
     cinfs: [PUSH_IDS, { bases: [PUSH_BUTTON.PB9.fallback, PUSH_BUTTON.DR5.fallback], terms: [] }],
     lineSampledCicns: [PUSH_IDS], source: 'push-button PB5–PB10, DR2–DR6; qd B2, E3/E4, S2/S4' },
-  { family: 'bevel-button', iconBlitCicns: [],
-    cinfs: [{ bases: [-10162, -10171], terms: [[0, -1, -2, -3, -4, -5]] }, { bases: [0], terms: [] }],
-    lineSampledCicns: [{ bases: [-10162, -10171], terms: [[0, -1, -2, -3, -4, -5]] }],
-    source: 'bevel-button prepared cinf recipe; rectangular compatibility otherwise' },
   { family: 'scrollbar', iconBlitCicns: [SCROLLBAR_TRACK_IDS.horizontal, SCROLLBAR_TRACK_IDS.vertical], source: 'scrollbar AC5 (composite arrow cells, icon blit)' },
   {
     family: 'proceduralFrame',

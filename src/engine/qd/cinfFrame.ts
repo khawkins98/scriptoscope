@@ -4,6 +4,8 @@
 import type { Pixmap, QdPoint, QdRect, Rgba } from './types.js';
 import type { ControlBandPaint, ControlResolutionStep } from '../../controlDiagnostics.js';
 import type { EngineTrace, ResourceSelection } from '../trace.js';
+import type { ResourceProvider } from '../resources/chain.js';
+import { PixelBuffer } from '../../pixelBuffer.js';
 import type { ResourceChain } from '../resources/chain.js';
 import { CINF_BODY, CINF_BODY_SKIP, CINF_BORDER_ORDER, CINF_EDGE, CINF_EMBOSS_ABSENT,
   CINF_PHASE, CINF_REQUEST, CINF_RETRY, CINF_SKIP, CINF_SAMPLE, CINF_HEADER, type CinfPhaseRow } from '../tables/cinfFrame.js';
@@ -72,6 +74,14 @@ export interface CinfUnknownIconSource {
   readonly reason?: string;
   readonly pixmap?: never;
 }
+/** Modern prepared operation, independent of serialized cinf/sample admission. */
+export interface PreparedCinfFrame {
+  geometry: { cornerSize: number; sideThickness: number; tileSides: boolean };
+  bodyMode: number; bodyId: number; bodyProvider: ResourceProvider;
+  background: Rgba | null; rawBackground: boolean;
+  /** Earlier observed compatibility selection, enriched only after successful paint. */
+  step?: ControlResolutionStep;
+}
 export interface CinfFrameInput {
   id: number; cicn: Pixmap | undefined; dstRect: QdRect; bodyFill: boolean;
   icon?: CinfIconSource | CinfUnknownIconSource;
@@ -79,6 +89,7 @@ export interface CinfFrameInput {
   requireRawSamples?: boolean;
   /** Captured face attribution for facades that select art before preparing dependencies. */
   selection?: ResourceSelection;
+  prepared?: PreparedCinfFrame;
   realize?: (rgb: CinfRgb16) => Rgba;
   /** Added to the decoded anchor; browser logical-port allocation policy. */
   patternOffset?: QdPoint;
@@ -176,12 +187,12 @@ export function bandVisible(port: Pick<Pixmap, 'width' | 'height'>, cicn: Pixmap
 /** Public preparation policy only: resolve actual art/metadata without publishing requests. */
 export async function prepareCinfFrameSamples(chain: ResourceChain, id: number, bodyFill: boolean, dst: QdRect,
   port: Pick<Pixmap, 'width' | 'height'>, clip?: QdRect, declared?: CinfRecord | null,
-  capturedIcon?: CinfIconSource): Promise<void> {
+  capturedIcon?: CinfIconSource, geometry?: PreparedCinfFrame['geometry']): Promise<void> {
   const icon = capturedIcon ?? chain.getResource<CinfIconSource | CinfUnknownIconSource>('cicn', id)?.value;
   if (!icon || icon.status === 'unknown' || !icon.prepareSampled) return;
   const retry = CINF_RETRY.find(r => r.bodyFill === bodyFill)!;
   const value = declared !== undefined ? declared : chain.probe<unknown>(CINF_REQUEST.type, [id, retry.retryId])?.value;
-  const cinf = admitCinf(value);
+  const cinf = geometry ?? admitCinf(value);
   if (typeof cinf === 'string') return;
   for (const { src, dst: destination, fast } of cinfBorderPlan(icon.pixmap, cinf, dst)) {
     if (fast && bandVisible(port, icon.pixmap, src, destination, fast === 'T1' ? 'horizontal-lines' : 'vertical-lines', clip)) {
@@ -203,26 +214,30 @@ export function drawCinfFrame(port: Pixmap, chain: ResourceChain, input: CinfFra
     return { ...none(), unsupported };
   }
   const retry = CINF_RETRY.find(r => r.bodyFill === bodyFill)!;
-  const hit = chain.probe<unknown>(CINF_REQUEST.type, [id, retry.retryId],
+  const hit = input.prepared ? null : chain.probe<unknown>(CINF_REQUEST.type, [id, retry.retryId],
     { row: `${CINF_REQUEST.id},${retry.id}`, ...(trace ? { trace } : {}) });
-  if (!hit) { trace?.drawOps.push({ op: 'cinfFrame', row: CINF_SKIP.id, dst: D }); return none(); }
+  if (!hit && !input.prepared) { trace?.drawOps.push({ op: 'cinfFrame', row: CINF_SKIP.id, dst: D }); return none(); }
   // Modern admission policy: a present but unusable record is not a native
   // NULL. Stop without retrying metadata or claiming a completed paint stage.
   const unsupported = (reason: string): CinfFrameResult => {
-    trace?.drawOps.push({ op: 'cinfFrame', dst: D, status: 'unknown', cinfId: hit.id,
-      provider: hit.provider.name, unsupported: reason });
-    return { ...none(), cinfId: hit.id, unsupported: reason };
+    trace?.drawOps.push({ op: 'cinfFrame', dst: D, status: 'unknown', cinfId: hit?.id ?? null,
+      provider: hit?.provider.name, unsupported: reason });
+    return { ...none(), cinfId: hit?.id ?? null, unsupported: reason };
   };
-  const admitted = admitCinf(hit.value);
+  const admitted = hit ? admitCinf(hit.value) : undefined;
   if (typeof admitted === 'string') return unsupported(admitted);
   const cinf = admitted;
-  const consumedCinf = trace?.controlPaint ? hit.provider.selection?.('cinf', hit.id)?.cinfLookup : undefined;
+  const consumedCinf = trace?.controlPaint ? hit?.provider.selection?.('cinf', hit.id)?.cinfLookup ?? art?.resource?.consumedCinf : undefined;
   const artResource = art?.resource && { ...art.resource, ...(consumedCinf ? { consumedCinf } : {}) };
-  const c = cinf.cornerSize, s = cinf.sideThickness;
+  const prepared = input.prepared, geometry = prepared?.geometry ?? cinf!;
+  const c = geometry.cornerSize, s = geometry.sideThickness;
+  const mode = prepared?.bodyMode ?? cinf!.patternAnchor, bodyId = prepared?.bodyId ?? cinf!.bgPatternId;
+  const bodyProvider = prepared?.bodyProvider ?? chain.bodyProvider;
   let backgroundRGB: Rgba | null = null, textRGB: Rgba | null = null, embossRGB: Rgba | null = null;
   let backgroundRGB16: CinfRgb16 | null = null, textRGB16: CinfRgb16 | null = null, embossRGB16: CinfRgb16 | null = null;
   let colorsAvailable = false;
   if (bodyFill) {
+    if (cinf) {
     const raw = icon?.sampleRgb16;
     backgroundRGB16 = raw?.(cinf.bgPixel) ?? null;
     textRGB16 = raw?.(cinf.textPixel) ?? null;
@@ -243,22 +258,23 @@ export function drawCinfFrame(port: Pixmap, chain: ResourceChain, input: CinfFra
     colorsAvailable = textRGB !== null && (input.requireRawSamples
       ? textRGB16 !== null && embossKnown : absent || !!same || sentinel || embossRGB !== null);
     if (!colorsAvailable) trace?.drawOps.push({ op: 'cinfSamples', row: 'S1,S2,S4,S5', unspecified: 'raw colour output unavailable' });
-    const body = CINF_BODY.find(r => r.mode === '*' || r.mode === cinf.patternAnchor)!;
+    } else backgroundRGB = prepared!.background;
+    const body = CINF_BODY.find(r => r.mode === '*' || r.mode === mode)!;
     const request = { row: body.id, ...(trace ? { trace } : {}) };
-    const res = chain.bodyProvider
-      ? chain.get1Resource<Pixmap | IconSource>(body.type, cinf.bgPatternId, chain.bodyProvider, request)
-      : chain.getResource<Pixmap | IconSource>(body.type, cinf.bgPatternId, request);
+    const res = bodyProvider
+      ? chain.get1Resource<Pixmap | IconSource>(body.type, bodyId, bodyProvider, request)
+      : chain.getResource<Pixmap | IconSource>(body.type, bodyId, request);
     if (res && 'status' in res.value && res.value.status === 'unknown')
       return unsupported('reason' in res.value && typeof res.value.reason === 'string' && res.value.reason
         ? res.value.reason : 'cinf body resource unknown');
     let patternPhase: QdPoint | undefined;
-    const clippedBody = !!chain.bodyProvider && res && 'status' in res.value && res.value.status === 'clipped';
+    const clippedBody = !!bodyProvider && res && 'status' in res.value && res.value.status === 'clipped';
     if (clippedBody) {
       // Public allocation policy: there are no visible body writes, and no
       // dependent decode was needed. Keep the resource observation only.
     } else if (res && body.found === 'B2') {
       const icon = 'pixmap' in res.value ? res.value : { pixmap: res.value, pixelSize: null, unmasked: null };
-      if (chain.bodyProvider) {
+      if (bodyProvider) {
         const dst = insetRect(D, s, s);
         if (emptyRect(dst) || icon.pixmap.width !== dst.right - dst.left || icon.pixmap.height !== dst.bottom - dst.top)
           return unsupported('cicn-body-scaling-unsupported');
@@ -272,7 +288,7 @@ export function drawCinfFrame(port: Pixmap, chain: ResourceChain, input: CinfFra
     } else if (res) {
       const pattern = 'pixmap' in res.value ? res.value.pixmap : res.value;
       const origin = input.allocationOrigin ?? { x: 0, y: 0 };
-      const { row, phase } = cinfPhase(offsetRect(D, origin.x, origin.y), cinf.patternAnchor), off = input.patternOffset;
+      const { row, phase } = cinfPhase(offsetRect(D, origin.x, origin.y), mode), off = input.patternOffset;
       const shifted = { x: phase.x - origin.x + (off?.x ?? 0), y: phase.y - origin.y + (off?.y ?? 0) };
       for (const r of cinfBodyRects(D, c, s)) fillPattern(port, r, pattern, shifted, trace, `B5,${row.id}`);
       if (trace?.controlPaint) patternPhase = shifted;
@@ -281,7 +297,7 @@ export function drawCinfFrame(port: Pixmap, chain: ResourceChain, input: CinfFra
     } else trace?.drawOps.push({ op: 'cinfBody', row: body.absent, dst: D, unspecified: 'background sample unavailable' });
     if (trace?.controlPaint) {
       const detail = trace.controlPaint;
-      const selected = res?.provider.selection?.(body.type, cinf.bgPatternId);
+      const selected = res?.provider.selection?.(body.type, bodyId);
       const owner = res ? selected?.owner : art?.owner;
       const box = (r: QdRect) => ({ x: r.left - D.left, y: r.top - D.top, w: r.right - r.left, h: r.bottom - r.top });
       const union = () => cinfBodyRects(D, c, s).map(r => rect(Math.max(D.top, r.top), Math.max(D.left, r.left),
@@ -293,7 +309,7 @@ export function drawCinfFrame(port: Pixmap, chain: ResourceChain, input: CinfFra
         const source = 'pixmap' in res.value ? res.value : { pixmap: res.value, pixelSize: null, unmasked: null };
         const dst = insetRect(D, s, s), pm = source.pixmap;
         const unmasked = source.pixelSize !== 1 && source.pixelSize !== null && !!source.unmasked;
-        const transport = unmasked ? res.provider.unmaskedSource?.(body.type, cinf.bgPatternId) : undefined;
+        const transport = unmasked ? res.provider.unmaskedSource?.(body.type, bodyId) : undefined;
         // Observe the actual aligned branch, including the masked fallback
         // when depth or opaque companion metadata is unavailable.
         if (!emptyRect(dst) && pm.width === dst.right - dst.left && pm.height === dst.bottom - dst.top
@@ -312,25 +328,29 @@ export function drawCinfFrame(port: Pixmap, chain: ResourceChain, input: CinfFra
           unionRects: boxes.map(box), paintedPixels, sourceAssetUrl: selected.resource.assetUrl,
           sourceSize: [pattern.width, pattern.height], context: detail.context,
           phase: { basis: 'modern-composition-policy', offset: [D.left - patternPhase.x, D.top - patternPhase.y], originalPatternPhase: 'unverified' } };
-      } else if (!res && body.found === 'B2' && backgroundRGB && backgroundRGB16) {
+      } else if (!res && body.found === 'B2' && backgroundRGB && (backgroundRGB16 || prepared?.rawBackground)) {
         const paintedPixels = bodyWriteCount(port, union(), detail.clip);
         if (paintedPixels) bodyPaint = { branch: 'missing-erase', destinationRect: box(D), paintedPixels };
       }
-      trace.controlPaint.bodies.push({ role: 'body-fill', requestedId: cinf.bgPatternId,
-        bodyMode: cinf.patternAnchor, requestedResourceType: body.type,
+      if (prepared) {
+        if (bodyPaint && prepared.step) detail.bodies.push({ ...prepared.step, bodyPaint });
+      } else {
+      trace.controlPaint.bodies.push({ role: 'body-fill', requestedId: bodyId,
+        bodyMode: mode, requestedResourceType: body.type,
         action: res ? 'selected' : 'missing', basis: 'source-dispatch', usage: 'paint',
         ...(owner ? { owner } : {}),
         ...(selected?.resource ? { resource: { ...selected.resource, ...(consumedCinf ? { consumedCinf } : {}) } } : {}),
         ...(consumedCinf ? { cinfLookup: consumedCinf } : {}),
         ...(bodyPaint ? { bodyPaint } : {}),
         reason: res ? 'resource-id' : 'same-face-owner-pattern-unavailable' });
-      if (!res && body.found === 'B2' && !backgroundRGB16) detail.bodies.push({ role: 'body-fill', requestedId: cinf.bgPatternId,
-        bodyMode: cinf.patternAnchor, requestedResourceType: body.type, action: 'fallback', basis: 'compatibility-policy',
+      if (!res && body.found === 'B2' && !backgroundRGB16) detail.bodies.push({ role: 'body-fill', requestedId: bodyId,
+        bodyMode: mode, requestedResourceType: body.type, action: 'fallback', basis: 'compatibility-policy',
         usage: 'paint', ...(owner ? { owner } : {}), reason: 'missing-cicn-body-background-unverified' });
+      }
     }
   } else trace?.drawOps.push({ op: 'cinfBody', row: CINF_BODY_SKIP.id, dst: D });
 
-  const edge = CINF_EDGE.find(r => r.tile === (cinf.tileSides ? 'nonzero' : 'zero'))!;
+  const edge = CINF_EDGE.find(r => r.tile === (geometry.tileSides ? 'nonzero' : 'zero'))!;
   // Observe only supported, completed operations with an opaque destination
   // inside the allocation and the facade's declared clip. This never paints.
   const completedBand = (piece: string, src: QdRect, dst: QdRect,
@@ -344,7 +364,30 @@ export function drawCinfFrame(port: Pixmap, chain: ResourceChain, input: CinfFra
       owner: art.owner, resource: artResource, sourceRect: box(src), destinationRect: box(dst),
       ...(policy === 'sampled-companion' && icon?.sampledSource ? { derived: icon.sampledSource } : {}) });
   };
-  for (const { piece, src, dst, fast } of cinfBorderPlan(cicn, cinf, D)) {
+  const border = prepared ? PixelBuffer.alloc(port.width, port.height) : null;
+  for (const [region, { piece, src, dst, fast, extents } ] of cinfBorderPlan(cicn, geometry, D).entries()) {
+    if (border) {
+      const [rw, rh, dw, dh] = extents, dx = dst.left, dy = dst.top;
+      if (rw <= 0 || rh <= 0 || dw <= 0 || dh <= 0) continue;
+      const x0 = Math.max(0, dx), y0 = Math.max(0, dy), x1 = Math.min(port.width, dx + dw), y1 = Math.min(port.height, dy + dh);
+      if (x1 <= x0 || y1 <= y0) continue;
+      const branch = rw === 1 && dw > 1 ? 'horizontal-lines' : rh === 1 && dh > 1 ? 'vertical-lines' : 'copy';
+      const colours = branch === 'copy' ? { pm: cicn, shortcut: true } : lineColourSource(icon!, 'prepared bevel');
+      const band = PixelBuffer.alloc(x1 - x0, y1 - y0), clip = trace?.controlPaint?.clip;
+      let painted = false;
+      for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) {
+        if (clip && (x < clip.left || x >= clip.right || y < clip.top || y >= clip.bottom)) continue;
+        const p = getPixel(colours.pm, src.left + (x - dx) % rw, src.top + (y - dy) % rh);
+        if (p) { band.setPixel(x - x0, y - y0, p.r, p.g, p.b, p.a); painted ||= p.a > 0; }
+      }
+      border.drawOver(band, x0, y0);
+      if (painted && trace?.controlPaint && art?.owner && artResource) trace.controlPaint.bands.push({
+        role: 'face', region, branch, policy: branch === 'copy' ? 'ordinary-raster' : colours.unspecified ? 'compatibility-raster'
+          : colours.shortcut ? 'equivalent-raster' : 'sampled-companion', owner: art.owner, resource: artResource,
+        ...(branch !== 'copy' && icon?.sampledSource ? { derived: icon.sampledSource } : {}),
+      });
+      continue;
+    }
     if (piece === 'TL' || piece === 'TR' || piece === 'BL' || piece === 'BR') {
       trace?.drawOps.push({ op: 'cinfCorner', row: 'E1', piece, src, dst, transfer: 'copyMask' });
       transferBits(port, cicn, src, dst, 'copyMask');
@@ -369,6 +412,7 @@ export function drawCinfFrame(port: Pixmap, chain: ResourceChain, input: CinfFra
       }
     }
   }
-  return { drawn: true, cinfId: hit.id, backgroundRGB, textRGB, embossRGB,
+  if (border) new PixelBuffer(port.width, port.height, port.data).drawOver(border, 0, 0);
+  return { drawn: true, cinfId: hit?.id ?? null, backgroundRGB, textRGB, embossRGB,
     backgroundRGB16, textRGB16, embossRGB16, colorsAvailable };
 }
