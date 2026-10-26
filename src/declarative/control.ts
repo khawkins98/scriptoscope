@@ -51,10 +51,6 @@ function setStyleOwned(el: HTMLElement, values: Partial<CSSStyleDeclaration>, re
   });
 }
 
-function disposeFace(face: HTMLElement): void {
-  disposeInteractiveControl(face);
-}
-
 /** Release this mount's form-control face and restore only its native mutations. */
 export function restoreControl(el: Promotable): void {
   pending.get(el)?.abort();
@@ -127,7 +123,7 @@ export async function promoteControl(el: Promotable, theme: ThemeInput, signal?:
     previous?.face.remove();
     const currentFace = face;
     promotions.set(el, { face, restore, disposeFace: () => {
-      events.abort(); disposeFace(currentFace);
+      events.abort(); disposeInteractiveControl(currentFace);
     } });
     committed = true;
     face.dataset.scriptoscopePromoted = '';
@@ -150,7 +146,7 @@ export async function promoteControl(el: Promotable, theme: ThemeInput, signal?:
   } finally {
     signal?.removeEventListener('abort', abort);
     if (pending.get(el) === events) pending.delete(el);
-    if (!committed) { events.abort(); if (face) disposeFace(face); }
+    if (!committed) { events.abort(); if (face) disposeInteractiveControl(face); }
   }
 }
 

@@ -647,6 +647,17 @@ async function composeSliderEnded(p: Promise<SliderFrame | null>): Promise<Slide
   }
 }
 
+/** Hit the last painted frame using the canvas's current CSS-to-raster mapping. */
+function paintedPartAt<T>(el: HTMLElement, e: PointerEvent,
+  frame: { buffer: PixelBuffer; partAt(x: number, y: number): T } | null): T | undefined {
+  const canvas = el.querySelector('canvas');
+  if (!frame || !canvas) return undefined;
+  const r = canvas.getBoundingClientRect();
+  if (!(r.width > 0 && r.height > 0)) return undefined;
+  return frame.partAt(Math.floor((e.clientX - r.left) * frame.buffer.width / r.width),
+    Math.floor((e.clientY - r.top) * frame.buffer.height / r.height));
+}
+
 /**
  * The pressed slider part is the part under the pointer at press time (slider
  * §4.9 hit test on the painted geometry; DECISIONS #9). A capture listener runs
@@ -660,13 +671,7 @@ function sliderPressTracker(el: HTMLElement): {
   let painted: SliderFrame | null = null;
   let part: SliderOptions['pressedPart'] | null = null;
   el.addEventListener('pointerdown', (e) => {
-    const canvas = el.querySelector('canvas');
-    if (!painted || !canvas) { part = undefined; return; }
-    const r = canvas.getBoundingClientRect();
-    if (!(r.width > 0 && r.height > 0)) { part = undefined; return; }
-    const x = Math.floor((e.clientX - r.left) * painted.buffer.width / r.width);
-    const y = Math.floor((e.clientY - r.top) * painted.buffer.height / r.height);
-    part = painted.partAt(x, y);
+    part = paintedPartAt(el, e, painted);
   }, { capture: true });
   return {
     painted: (frame, state) => { if (frame && state !== 'pressed') painted = frame; },
@@ -717,13 +722,7 @@ export async function interactiveScrollbar(theme: ThemeInput, opts: InteractiveS
   let painted: ScrollbarFrame | null = null;
   let pressedPart: ScrollbarOptions['pressedPart'];
   el.addEventListener('pointerdown', (e) => {
-    const canvas = el.querySelector('canvas');
-    if (!painted || !canvas) { pressedPart = undefined; return; }
-    const r = canvas.getBoundingClientRect();
-    if (!(r.width > 0 && r.height > 0)) { pressedPart = undefined; return; }
-    const x = Math.floor((e.clientX - r.left) * painted.buffer.width / r.width);
-    const y = Math.floor((e.clientY - r.top) * painted.buffer.height / r.height);
-    pressedPart = painted.partAt(x, y) ?? undefined;
+    pressedPart = paintedPartAt(el, e, painted) ?? undefined;
   }, { capture: true });
   await buildDraggable(el, orientation, value, scale,
     async (v, state) => {
@@ -1462,16 +1461,10 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     // deltaX (trackpad horizontal swipe) AND shift+deltaY (the convention for "wheel to scroll
     // horizontally"). Attach to the SAME scroll element — both listeners fire; each takes its axis.
     scrollEl.addEventListener('wheel', (e) => {
-      if (vertical) {
-        if (Math.abs(e.deltaY) < 0.5) return;
-        e.preventDefault();
-        setValue((scrollEl.scrollTop + e.deltaY) / maxScroll);
-      } else {
-        const dx = e.shiftKey ? e.deltaY : e.deltaX;
-        if (Math.abs(dx) < 0.5) return;
-        e.preventDefault();
-        setValue((scrollEl.scrollLeft + dx) / maxScroll);
-      }
+      const delta = vertical || e.shiftKey ? e.deltaY : e.deltaX;
+      if (Math.abs(delta) < 0.5) return;
+      e.preventDefault();
+      setValue(((vertical ? scrollEl.scrollTop : scrollEl.scrollLeft) + delta) / maxScroll);
     }, { passive: false, signal });
 
     // Arrow keys / page keys on the bar.
@@ -1479,23 +1472,13 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       const line = maxScroll > 0 ? 24 / maxScroll : 0;
       const page = trackLen / maxScroll;
       let next = value;
-      if (vertical) {
-        if (e.key === 'ArrowDown') next = value + line;
-        else if (e.key === 'ArrowUp') next = value - line;
-        else if (e.key === 'PageDown') next = value + page;
-        else if (e.key === 'PageUp') next = value - page;
-        else if (e.key === 'Home') next = 0;
-        else if (e.key === 'End') next = 1;
-        else return;
-      } else {
-        if (e.key === 'ArrowRight') next = value + line;
-        else if (e.key === 'ArrowLeft') next = value - line;
-        else if (e.key === 'PageDown') next = value + page;
-        else if (e.key === 'PageUp') next = value - page;
-        else if (e.key === 'Home') next = 0;
-        else if (e.key === 'End') next = 1;
-        else return;
-      }
+      if (e.key === (vertical ? 'ArrowDown' : 'ArrowRight')) next = value + line;
+      else if (e.key === (vertical ? 'ArrowUp' : 'ArrowLeft')) next = value - line;
+      else if (e.key === 'PageDown') next = value + page;
+      else if (e.key === 'PageUp') next = value - page;
+      else if (e.key === 'Home') next = 0;
+      else if (e.key === 'End') next = 1;
+      else return;
       e.preventDefault(); setValue(next);
     }, { signal });
 
