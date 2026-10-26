@@ -109,3 +109,47 @@ test('prepared body diagnostics retain depth relative to the original invocation
     assert.deepEqual(chain.bodyProvider.selection('ppat', 17).owner, { baseUrl: 'body-owner', chainDepth: 2 });
   } finally { input.dispose(); }
 });
+
+test('valid supplied solid metadata renders independently of absent or malformed raw cinf', async () => {
+  for (const raw of [undefined, [0]]) {
+    const theme = aliasTheme(-10163);
+    try {
+      theme.source.manifest.engineCinfs = raw ? { '-10163': raw } : {};
+      delete theme.source.manifest.chromeElements.face.bodyRequest;
+      const out = await composeBevelButton(theme, { on: true });
+      assert.deepEqual(out.getPixel(4, 4), [255, 255, 255, 255]);
+    } finally { theme.dispose(); }
+  }
+});
+
+test('prepared border retains both source-over stages for fractional alpha', () => {
+  const face = PixelBuffer.alloc(9, 9), out = PixelBuffer.alloc(22, 9);
+  face.fillRect({ x: 0, y: 0, w: 9, h: 9 }, 255, 255, 255, 128);
+  const result = drawCinfFrame(out, new ResourceChain([]), { id: -10163, cicn: face,
+    icon: { pixmap: face, pixelSize: null, unmasked: null }, dstRect: rect(0, 0, 9, 22), bodyFill: true,
+    prepared: { geometry: { cornerSize: 2, sideThickness: 1, tileSides: true }, bodyMode: 0, bodyId: 0,
+      background: null, rawBackground: false, bodyProvider: mapProvider('empty-body', 'archive', []) } });
+  assert.equal(result.drawn, true);
+  assert.deepEqual(out.getPixel(0, 0), [64, 64, 64, 128]);
+});
+
+test('prepared compatibility sampling needs no equivalence proof and exports only on visible demand', async () => {
+  const face = PixelBuffer.alloc(5, 5);
+  face.fillRect({ x: 0, y: 0, w: 5, h: 5 }, 30, 40, 50, 255);
+  const sentinel = new Error('sample-export-failure');
+  const counts = { decodes: 0, images: 0 };
+  const descriptor = { model: 'kaleidoscope-2.3.1-opaque-sampling-v1', comparison: 'opaque-current-display-rgb',
+    displayPolicy: LEGACY_DISPLAY_POLICY, width: 5, height: 5, asset: 'sampled', derivedPath: 'cicn-sampled/public.png' };
+  const theme = { manifest: {}, asset: () => ({ key: 'sampled',
+    async pixels() { counts.decodes++; return face; },
+    async imageUrl() { counts.images++; throw sentinel; } }) };
+  const prepared = await prepareThemeIcon(theme, -10166, { asset: 'face', sampledBandAsset: descriptor },
+    { key: 'face', async imageUrl() { return 'face-image'; } },
+    { pixels: face, traceProvenance: true, lazySamples: true, sampling: { equivalent: false, descriptor } });
+  const geometry = { cornerSize: 2, sideThickness: 1, tileSides: false }, out = PixelBuffer.alloc(16, 6), chain = new ResourceChain([]);
+  await prepareCinfFrameSamples(chain, -10166, true, rect(0, 0, 6, 16), out, rect(0, 0, 0, 0), undefined, prepared.icon, geometry);
+  assert.deepEqual(counts, { decodes: 0, images: 0 });
+  await assert.rejects(prepareCinfFrameSamples(chain, -10166, true, rect(0, 0, 6, 16), out,
+    undefined, undefined, prepared.icon, geometry), error => error === sentinel);
+  assert.deepEqual(counts, { decodes: 1, images: 1 });
+});

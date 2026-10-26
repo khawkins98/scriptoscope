@@ -54,7 +54,9 @@ function sampledDeclaration(element: ChromeElement, theme: ThemeView) {
 /** Prepare an already-selected raster. Selection/admission belongs to the caller;
  * both legacy and engine facades consume this same icon representation. */
 export async function prepareThemeIcon(theme: ThemeView, id: number, el: ChromeElement, art: RasterSource,
-  opts: { traceProvenance?: boolean; lazySamples?: boolean; pixels?: Pixmap; ended?: () => boolean } = {}) {
+  opts: { traceProvenance?: boolean; lazySamples?: boolean; pixels?: Pixmap; ended?: () => boolean;
+    /** Already admitted compatibility sampling; generic callers retain their stricter proof rules. */
+    sampling?: { equivalent: boolean; descriptor?: NonNullable<ChromeElement['sampledBandAsset']> } } = {}) {
   const sampleAsset = el.asset, status = el.samplingEquivalence?.status ?? null;
   // Preserve the actual preparation binding before copying the finite values.
   // Paths/dimensions and even equal census scalars cannot identify a provider.
@@ -75,7 +77,7 @@ export async function prepareThemeIcon(theme: ThemeView, id: number, el: ChromeE
   // Public push snapshots finite descriptors and URLs before ordinary decode.
   // Generic engine clients retain their existing eager sampling defaults.
   const proof = el.samplingEquivalence && { ...el.samplingEquivalence };
-  const admittedDescriptor = sampledDeclaration(el, theme);
+  const admittedDescriptor = opts.sampling ? opts.sampling.descriptor : sampledDeclaration(el, theme);
   const descriptor = admittedDescriptor && { ...admittedDescriptor };
   const validProof = finiteSampling(proof, theme);
   const matches = (a: typeof proof | typeof descriptor, pixmap: Pixmap) =>
@@ -91,13 +93,13 @@ export async function prepareThemeIcon(theme: ThemeView, id: number, el: ChromeE
     opts.pixels ?? art.pixels(), companionRaster ? companionRaster.pixels() : Promise.resolve(null),
     opts.traceProvenance ? art.imageUrl() : undefined,
     companionTransport ? companionRaster!.imageUrl() : undefined,
-    sampledSource ? sampledRaster!.imageUrl() : undefined,
+    sampledSource && !opts.sampling ? sampledRaster!.imageUrl() : undefined,
   ]);
   if (opts.ended?.()) throw abortError();
   if (companionTransport) companionTransport.assetUrl = companionImage!;
-  if (sampledSource) sampledSource.assetUrl = sampledImage!;
+  if (sampledSource && sampledImage !== undefined) sampledSource.assetUrl = sampledImage;
   let sampled: Pixmap | null = null;
-  const equivalent = validProof && matches(proof, pixmap) && proof?.status === 'equivalent' && proof.reason === 'all-opaque-display-rgb-equal';
+  const equivalent = opts.sampling?.equivalent ?? (validProof && matches(proof, pixmap) && proof?.status === 'equivalent' && proof.reason === 'all-opaque-display-rgb-equal');
   const eligible = !!descriptor && matches(descriptor, pixmap);
   let accepted = false;
   let pending: Promise<void> | undefined;
@@ -110,6 +112,7 @@ export async function prepareThemeIcon(theme: ThemeView, id: number, el: ChromeE
     for (let i = 3; i < pixmap.data.length; i += 4) if (decoded.data[i] !== pixmap.data[i]) return;
     sampled = decoded;
     accepted = true;
+    if (opts.sampling && sampledSource) sampledSource.assetUrl = await sampledRaster!.imageUrl();
   })();
   if (!opts.lazySamples && eligible && LINE_SAMPLED.has(id)) await prepareSampled();
   // Adapter policy, not a spec row (docs/v2/DECISIONS.md #7): the opaque
