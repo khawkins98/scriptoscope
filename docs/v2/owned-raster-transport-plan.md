@@ -8,8 +8,7 @@ The working branch is `refactor/runtime-streamlining`, starting from
 The [consumer inventory and ownership contract](raster-asset-consumers.md) records
 the first design decision. The owned loader and all low-level renderer families accept the explicit owned
 contract. Owner-local captured entries replace the global raster registry. The shared
-owned resolver/mount and main demo adoption are implemented. Diagnostic catalog adoption is implemented; final measurements and reduction
-remain open. The
+owned resolver/mount and main demo adoption are implemented. Diagnostic catalog adoption and final current-API application measurements are implemented; net reduction, historical-baseline comparison and eight older visual-check failures remain open. The
 [owned loading API](owned-theme-api.md) records the current supported boundary.
 
 Architecture review with Astra selected one owner implementation with two explicit
@@ -32,7 +31,7 @@ serialization and inspection would trigger broad encoding.
   where the sparse child lacks a declared census. None are counted as painted
   output. There are zero mismatches or unexpected errors. Another 108 completed
   tab, bevel and header diagnostic checks pass.
-- Current full gates pass: 1,131 Node tests pass, 2 skip and 12 remain TODO,
+- Current full gates pass: 1,134 Node tests pass, 2 skip and 12 remain TODO,
   with zero failures. This includes ownership, failure, diagnostic snapshot and
   duplicate-path occurrence checks. Typechecking includes negative public-source
   compatibility assertions.
@@ -60,8 +59,8 @@ serialization and inspection would trigger broad encoding.
   borrowed legacy registrations. Pending mixed-contract mounts reject and
   same-contract calls share one handle. All 69 targeted page/scanner/button
   lifecycle browser cases pass; fresh demo build and packed consumer pass.
-- Retained-heap/process measurements, final code
-  reduction and full final acceptance remain open.
+- Final six-trial current-API application measurements pass their harness checks; median startup is 2,602 ms eager / 340 ms owned. Owned live backing storage is higher, and timing/retention anomalies remain recorded.
+- Final required browser coverage passes across the 568-case initial success and isolated rerun of eight shared-output failures. All 36 Linux goldens, package checks and lane readiness pass on `f927ff5a`. Net reduction, matching historical-baseline evidence and the eight older visual-check failures remain open.
 
 ## Next vertical slice and compatibility boundary
 
@@ -174,14 +173,14 @@ from old-versus-new regression comparisons.
 ## Merge conditions
 
 - [x] Ownership and public URL compatibility decisions recorded and implemented.
-- [ ] Push/default and all migrated families pass exact behavior comparisons.
-- [ ] Public image consumers, browser lifecycles and package paths pass.
+- [x] Push/default and all migrated families pass exact behavior comparisons.
+- [x] Public image consumers, browser lifecycles and package paths pass.
 - [ ] Existing independent acceptance checks retain their meaning and pass.
-- [ ] Disposed owners release buffers, URLs and pending work without releasing bases.
-- [ ] Loading benefit reproduced on the actual delivered path; memory results recorded.
+- [x] Disposed owners release buffers, URLs and pending work without releasing bases.
+- [x] Loading benefit reproduced on the actual delivered path; memory results recorded.
 - [ ] Replaced plumbing deleted; net affected production logic decreases.
-- [ ] No indefinite experimental flag or duplicate implementation remains.
-- [ ] Final PR description names limitations, measurements and completed checks.
+- [x] No indefinite experimental flag or duplicate implementation remains.
+- [x] Final PR description names limitations, measurements and completed checks.
 
 If a stage cannot preserve behavior or reduce total complexity, narrow or revise
 that stage before merging. Keep the integration PR open until its outcome is
@@ -293,3 +292,43 @@ The header was used only as verifier input. The first lane-readiness run also
 rejected a moving HEAD/worktree while these changes were being committed; its
 runtime checks passed, but the aggregate is not a readiness pass. Rerun against
 the frozen committed worktree with `SCRIPTOSCOPE_TRAPS_H` set to the pinned file.
+
+
+### Final normal-mode measurement and acceptance status
+
+The current `application-results.json` records six normal-mode trials on cleaned
+production commit `f927ff5a`, with no concurrent task-started build/validation.
+The original six-trial result is retained byte-for-byte in
+`application-initial-results.json`. Eager startup is 2,602 / 2,514 / 4,649 ms;
+owned is 267 / 2,257 / 340 ms. Median startup is 2,602 / 340 ms, respectively.
+Both modes have slow trials and long switches. Tracked advertisement storage and
+URLs release at teardown, but post-GC heaps grow during repeated mounting. One
+eager trial retains 366 nodes / 17 listeners in its last two batches; other
+trials have 350/16. Neither uniform memory stabilization nor leak-free behavior
+is claimed. Astra's final measurement review found no evidenced production
+regression requiring a broader implementation change.
+
+All required 576 browser cases pass across the full run and isolated rerun of
+eight shared-output failures. The initial run had 568 passes; rebuilding once
+and rerunning its eight failures serially passed all eight. These included
+missing dist files/trace files and production-page setup/readiness failures
+while the pinned Linux job rebuilt shared outputs. All 36 pinned Linux goldens
+pass. Final lane readiness exits zero on the clean pushed `f927ff5a` after the
+feature branch upstream and exact pinned header prerequisite were corrected.
+Serialize build/browser/golden jobs to avoid repeating that output contention.
+
+The older optional visual suite still has 33 passes / 8 failures when run
+serially. A temporary runtime-only probe of the inherited-face failure observed
+Windows95 root owner/depth 0, requested cicn -10239 with raw index 238, but decoded
+`cicnSource` -10240/index 239. Fresh eager and owned loader results preserve
+matching identities for both entries. How the failing invocation prepared or
+changed its inputs still needs listing-free clarification. The diagnostic was
+restored byte-for-byte; no independent tests, fixtures or goldens were edited.
+Other ring, label, showcase-locator and shell-shadow failures remain unresolved;
+passing current own/eager comparisons do not prove that these predate migration.
+
+Production growth remains +326 lines. The original decrease condition is unmet;
+user clarification on transport scope versus a deeper simplification is pending.
+No compiled artifact matching the frozen starting revision was found, so the
+historical loading/shipped-byte comparison also remains unverified. The PR stays
+draft; those requirements are not waived by the passing current-API checks.

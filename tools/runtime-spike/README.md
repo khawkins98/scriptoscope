@@ -145,7 +145,7 @@ Each trial has a fresh Chromium profile; the two Vite servers and OS caches are
 shared across trials. Source and built input hashes must remain stable during a
 run. `--smoke` performs one trial per mode. The harness and hooks are not shipped.
 
-The six-trial run recorded in `application-results.json` passed its action,
+The initial six-trial run preserved in `application-initial-results.json` passed its action,
 window/theme assertions, URL cleanup and input-stability checks. Its timings
 were measured before the subsequent shared PNG encoder/tab snapshot cleanup;
 that cleanup requires separate output revalidation. Pass does not mean that a
@@ -211,3 +211,42 @@ payload. Package size is 1,004,082 compressed bytes / 3,321,567 unpacked bytes,
 including maps, declarations, CSS and documentation. No compiled artifact matching
 the frozen baseline was found, so this is a current size census, not a historical
 delta. The source-line comparison remains +326 production lines.
+
+
+### Final cleaned implementation: normal measurement
+
+The canonical `application-results.json` now records six normal-mode trials on
+`f927ff5a`, after the shared PNG encoder/tab snapshot cleanup. No other
+task-started validation or build ran concurrently. Browser profiles are fresh;
+Vite servers and OS caches remain shared. The initial artifact is preserved
+byte-for-byte as `application-initial-results.json`.
+
+| Measurement | Eager compatibility | Owned |
+| --- | ---: | ---: |
+| Startup trials, milliseconds | 2,602 / 2,514 / 4,649 | 267 / 2,257 / 340 |
+| Startup median, milliseconds | 2,602 | 340 |
+| Initial live blob URLs | 3,196 | 2 |
+| Ready backing storage, decimal MB | 4.87 | 13.84 |
+| Final mount-batch JS heap range, decimal MB | 6.80–7.42 | 7.23–7.30 |
+
+All six trials pass the harness's action, window/theme, URL-cleanup and
+input-stability assertions. Both modes have slow startup/switch trials; the
+slowest switches are approximately 1.84 seconds eager / 2.03 seconds owned.
+Those trials record twelve browser processes rather than eleven; this is a
+correlation, not an explanation. The median benefit is reproduced, but uniform
+latency improvement is not established.
+
+All recorded teardown and batch samples have zero live blob URLs, and tracked
+advertisement owners release their pixel storage. Owned live backing storage is
+still about 9 MB higher while themes are cached. Post-GC JS heap grows across
+mount batches in both modes. Eager repetition 1 ends batches 3 and 4 at 366 DOM
+nodes / 17 listeners, compared with 350/16 elsewhere. That persistent anomaly
+is retained in the report; it does not identify a production leak or attribute
+one to the migration. Memory stability, lower application-retained memory and
+absence of leaks are not claimed.
+
+Astra reviewed the final artifact and found no new harness failure or evidenced
+production regression. These measurements support sharply fewer PNG exports and
+better median startup in the current eager/owned comparison, with a decoded
+storage tradeoff and unresolved variability. They do not compare a frozen
+historical executable or establish additional original-engine fidelity.
