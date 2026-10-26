@@ -389,4 +389,5 @@ browsers have 574 passes / two extraction-hash failures; Node tests have
 Acceptance bindings separately report drift. No independent evidence or golden
 expectation was changed. The final reference comparator has zero mismatches.
 The proposed separate-owner process is in `independent-refresh-handoff.md`;
-a verifier assignment requires maintainer authorization.
+the maintainer has now authorized a separate verifier assignment, running in an
+isolated worktree.

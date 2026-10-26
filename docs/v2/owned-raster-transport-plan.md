@@ -260,5 +260,6 @@ gates can pass. See the exact hash delta in
 Astra recommends a fresh independently assigned verifier in an isolated worktree,
 with no inherited implementation conversation. The public task and permitted
 return boundary are in [the prepared handoff](../../tools/runtime-spike/independent-refresh-handoff.md).
-That separate assignment is awaiting maintainer authorization; the implementer
-will not inspect independent sources, evidence diffs or verifier review material.
+The maintainer authorized that separate assignment, now running in isolated
+branch `khawkins98/independent-extraction-refresh`. The implementer will not
+inspect independent sources, evidence diffs or verifier review material.

@@ -1,7 +1,9 @@
 # Proposed independent evidence-owner handoff
 
-Status: public factual handoff prepared; separate verifier assignment is awaiting
-maintainer authorization. This document does not authorize evidence edits.
+Status: the maintainer explicitly authorized the separate verifier assignment.
+A fresh verifier is working in isolated branch
+`khawkins98/independent-extraction-refresh`, based on the exact candidate below.
+The implementer remains excluded from independent evidence and review material.
 
 ## Assignment and return boundary
 
