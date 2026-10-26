@@ -1,5 +1,8 @@
 # Preserve bevel appearance with prepared compatibility inputs
 
+Superseded by the [compatibility-preserving revision](bevel-delivery-revision.md).
+The measurements and proposed losses below describe the earlier candidate.
+
 The better experiment preserves all measured themed renders. Its two paint
 recipes remain a useful comparison candidate, but the subsequent contract audit
 did not establish an exact-preserving production consolidation. A subsequent

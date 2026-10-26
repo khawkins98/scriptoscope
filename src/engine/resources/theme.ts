@@ -60,16 +60,16 @@ export async function prepareThemeIcon(theme: ThemeView, id: number, el: ChromeE
   const sampleAsset = el.asset, status = el.samplingEquivalence?.status ?? null;
   // Preserve the actual preparation binding before copying the finite values.
   // Paths/dimensions and even equal census scalars cannot identify a provider.
-  const sampleSource = el.engineColorSamples?.source;
-  const selectedSource = el.cicnSource;
+  const sampleSource = opts.sampling ? undefined : el.engineColorSamples?.source;
+  const selectedSource = opts.sampling ? undefined : el.cicnSource;
   const boundOccurrence = () => selectedSource != null
     && el.cicnSource === selectedSource && el.sourceCicnId === id && el.asset === sampleAsset
     && (!el.byteProvenance || el.byteProvenance.cicnResourceIndex === selectedSource.resourceIndex)
     && theme.inspector?.cicnResources?.filter(r => r.id === id).length === 1
     && theme.inspector.cicnResources.find(r => r.id === id) === selectedSource;
   const bounds = selectedSource?.bounds;
-  const finiteSamples = el.engineColorSamples ? structuredClone(el.engineColorSamples) : undefined;
-  const companionAsset = el.iconBlit?.unmaskedAsset;
+  const finiteSamples = !opts.sampling && el.engineColorSamples ? structuredClone(el.engineColorSamples) : undefined;
+  const companionAsset = opts.sampling ? undefined : el.iconBlit?.unmaskedAsset;
   const companionRaster = companionAsset ? theme.asset(companionAsset) : undefined;
   const companionTransport = opts.traceProvenance && companionAsset
     ? { assetUrl: theme.asset(companionAsset).key,
@@ -82,10 +82,10 @@ export async function prepareThemeIcon(theme: ThemeView, id: number, el: ChromeE
   const validProof = finiteSampling(proof, theme);
   const matches = (a: typeof proof | typeof descriptor, pixmap: Pixmap) =>
     a?.width === pixmap.width && a.height === pixmap.height;
-  const sampledRaster = descriptor ? theme.asset(descriptor.asset) : undefined;
+  let sampledRaster = !opts.sampling && descriptor ? theme.asset(descriptor.asset) : undefined;
   const sampledUrl = sampledRaster?.key;
   const sampledSource = opts.traceProvenance && (opts.lazySamples || status === 'different' && LINE_SAMPLED.has(id)) && descriptor
-    ? { path: descriptor.derivedPath, assetUrl: sampledUrl!, model: descriptor.model, displayPolicy: descriptor.displayPolicy } : undefined;
+    ? { path: descriptor.derivedPath, assetUrl: sampledUrl ?? '', model: descriptor.model, displayPolicy: descriptor.displayPolicy } : undefined;
   // All selected references and finite samples above are snapshotted before
   // image export can yield. Diagnostics must not select a mutated replacement.
   if (opts.ended?.()) throw abortError();
@@ -106,7 +106,8 @@ export async function prepareThemeIcon(theme: ThemeView, id: number, el: ChromeE
   const prepareSampled = (): Promise<void> => pending ??= (async () => {
     if (equivalent || !eligible) return;
     if (opts.ended?.()) throw abortError();
-    const decoded = await sampledRaster!.pixels();
+    sampledRaster ??= theme.asset(descriptor!.asset);
+    const decoded = await sampledRaster.pixels();
     if (opts.ended?.()) throw abortError();
     if (decoded.width !== pixmap.width || decoded.height !== pixmap.height || decoded.data.length !== pixmap.data.length) return;
     for (let i = 3; i < pixmap.data.length; i += 4) if (decoded.data[i] !== pixmap.data[i]) return;
@@ -121,7 +122,7 @@ export async function prepareThemeIcon(theme: ThemeView, id: number, el: ChromeE
   // a consumer replaced `asset`) the icon falls back to the masked copy of the
   // current asset, and the fallback is recorded in the trace (iconSource.ts).
   // Line-colour inputs (slider BL8/BL12) and the bounds origin (BL11) ride along.
-  const source = cicnIconSource(pixmap, el.iconBlit?.pixelSize ?? null, companion);
+  const source = cicnIconSource(pixmap, opts.sampling ? null : el.iconBlit?.pixelSize ?? null, companion);
 
   const icon: CinfIconSource = { ...source,
     ...(opts.lazySamples && (!opts.sampling || !equivalent && eligible) ? { prepareSampled } : {}),
