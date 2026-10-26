@@ -50,8 +50,8 @@ The current public source and built renderers, through both default eager and
 owned loaders, are compared with the frozen public renderer. Its receipt hashes
 are checked before use; no historical renderer source or maps are inspected.
 
-- 18 bundled themes ×144 cases ×4 source/build/transport variants: 10368 cases.
-- Six implementation-owned rectangular fixtures ×288 cases ×2 source/build
+- 18 bundled themes × 144 cases × 4 source/build/transport variants: 10368 cases.
+- Six implementation-owned rectangular fixtures × 288 cases × 2 source/build
   variants: 3456 cases.
 - Total: **12672 identical rendered results, 1152 matching nulls, zero ordinary
   pixel/dimension/availability/error changes** across 13824 comparisons.
@@ -61,7 +61,7 @@ are checked before use; no historical renderer source or maps are inspected.
 The separate exception probes are not included in that matching denominator.
 Missing-cinf solid and pattern declarations, and present short cinf, paint in the
 reference and reject in the candidate. A metadata-backed opaque pattern fixture
-matches; the same fixture at alpha128 changes103 pixels in each source/build
+matches; the same fixture at alpha 128 changes 103 pixels in each source/build
 comparison. The engine's transfer semantics deliberately replace the old
 successive alpha-over stages. Rectangular partial-alpha compatibility still
 matches in its ordinary matrix.
@@ -112,19 +112,41 @@ implementation defects, not proposed compatibility retirements.
 
 ## Validation status
 
-Build, typecheck and clean-room lint pass. The existing Node suite passed1154
-with0 failures,2 skipped and12 TODOs before the two retained-contract fixes;
-the five focused captured-face/alias/depth/lifetime regression tests pass afterward.
-The isolated redteam passed30 targeted implementation tests at the first candidate.
+Build, typecheck and clean-room lint pass. The existing Node suite passed 1154
+with 0 failures, 2 skipped and 12 TODOs before the two retained-contract fixes.
+The five focused captured-face/alias/depth/lifetime regression tests pass after
+those fixes. The implementation lane's final controls/owned/prepared regression
+run passed 22/22; clean-room lint reported 0 hits. The isolated redteam passed
+30 targeted implementation tests at the first candidate.
 
 The independent author keeps acceptance assertions, evidence and goldens frozen.
-At the first candidate, the new delivery suite was8 pass/18 fail and additional
-pattern/body-completion checks20 pass/2 fail. Relevant existing face-band, mode5,
-declared-environment, legacy-trace and callback/disposal checks passed48/48.
-Those early failures establish unapproved compatibility losses; admission-blocked
-cases do not separately prove later alpha/callback behavior defective. A full
-browser run and affected rerun after the retained-contract fixes are tracked by
-the independent author and must be reported before marking the PR ready.
+At the first candidate, the delivery suite was 8 pass / 18 fail and additional
+pattern/body-completion checks were 20 pass / 2 fail. Relevant existing face-band,
+mode5, declared-environment, legacy-trace and callback/disposal checks passed
+48/48.
+
+The full normal default browser suite then completed at runtime `bfc8858d`:
+**578 pass / 24 fail, 602 total**. Twenty failures exercise the announced raw-cinf
+admission losses (18 delivery cases and 2 existing finite-availability checks).
+Four existing pattern/solid-background failures exercise metadata diagnostic
+basis/attribution differences. No other-family regression appeared in that run;
+all 18 public option/source-built theme matrices passed. This is observed scope,
+not proof of every supported input or a full compatibility certificate.
+
+After runtime `c435389a`, the affected frozen delivery, pattern-body,
+solid-background and availability suites were rerun: **20 pass / 24 fail,
+44 total**. The delivery subset remains 8 pass / 18 fail. The inherited owner-depth
+mismatch is no longer observed; the proposed diagnostic basis differences remain.
+Separate public source and built probes with explicitly retained same-signed raw
+cinf confirm the positive-alias repair. No assertion was changed to obtain these
+results, and the full browser suite was not repeated for these targeted fixes.
+
+The remaining failures are not acceptance passes. Several delivery checks stop
+at the earlier new admission rejection, so they do not independently establish a
+later alpha-transfer or callback defect. The separate alpha exception measurement
+above establishes that pixel change. Callback/disposal/declared-environment checks
+that reached those mechanisms passed; that observation does not waive their
+retained contracts.
 
 Do not merge or update expectations merely to turn these changes green. Review
 and approve the compatibility package first, or reject this candidate and choose
