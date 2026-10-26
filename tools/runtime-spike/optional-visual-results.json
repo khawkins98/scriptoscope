@@ -1,0 +1,26 @@
+{
+  "recordedAt": "2026-10-26T10:40:27.011Z",
+  "implementationRevision": "6cfe9afda52825b848702aef942065f3daf6a647",
+  "integrationRevision": "c157454c",
+  "command": "node --test --test-concurrency=1 --experimental-strip-types tests/visual-baselines/boot-affordance.spec.mjs tests/visual-baselines/window-promotion.spec.mjs tests/visual-baselines/mobile-layout.spec.mjs tests/visual-baselines/control-template-size.spec.mjs tests/visual-baselines/control-background-sample.spec.mjs tests/visual-baselines/window-shell-style.spec.mjs tests/visual-baselines/control-ring.spec.mjs tests/visual-baselines/diagnostic-hash.spec.mjs",
+  "exitCode": 1,
+  "status": "fail",
+  "tests": 41,
+  "passed": 33,
+  "failed": 8,
+  "cancelled": 0,
+  "skipped": 0,
+  "todo": 0,
+  "failingCases": [
+    "fallback and inherited faces keep their own cinf metadata",
+    "all 18 ring footprints use controlRect expanded by four and preserve source corners",
+    "ring overlays face edges, omits source center, and selects pressed art",
+    "default rings preserve complete automatic and standard label ink across the corpus",
+    "square corners and overlapping ring bands follow original coordinates and masked painter order",
+    "Windows95 button templates contain the complete centered label across states",
+    "showcase buttons and closed select are readable and pointer interaction does not resize them",
+    "window shell shadow belongs to windows, not promoted control art"
+  ],
+  "qualification": "Normal unchanged optional command with serialized file execution. No independent source, fixture, oracle or review artifact was opened; only ordinary command results and diagnostics used. Same eight case labels as earlier stage; no proof that failures predate migration. Listing-free public inputs/intended contract are still needed.",
+  "publicClarificationHandoff": "older-visual-contract-questions.md"
+}

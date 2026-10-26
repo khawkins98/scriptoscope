@@ -1,7 +1,7 @@
 // A mount owns each replacement face and only the native properties it changes.
 // Prepare off-DOM; commit only while the source location and mount are still valid.
 import { listenUntilAborted } from '../listenUntilAborted.js';
-import type { LoadedTheme } from '../types.js';
+import type { ThemeInput } from '../ownedTheme.js';
 import { interactiveCheckbox, interactiveRadio, interactiveNativeSlider, interactiveButton, disposeInteractiveControl } from '../interactive.js';
 
 type Promotable = HTMLInputElement | HTMLSelectElement;
@@ -51,10 +51,6 @@ function setStyleOwned(el: HTMLElement, values: Partial<CSSStyleDeclaration>, re
   });
 }
 
-function disposeFace(face: HTMLElement): void {
-  disposeInteractiveControl(face);
-}
-
 /** Release this mount's form-control face and restore only its native mutations. */
 export function restoreControl(el: Promotable): void {
   pending.get(el)?.abort();
@@ -73,7 +69,7 @@ export function restoreControl(el: Promotable): void {
 }
 
 /** Prepare and atomically replace a checkbox/radio/range/select face. */
-export async function promoteControl(el: Promotable, theme: LoadedTheme, signal?: AbortSignal): Promise<HTMLElement | null> {
+export async function promoteControl(el: Promotable, theme: ThemeInput, signal?: AbortSignal): Promise<HTMLElement | null> {
   const previous = promotions.get(el);
   if (signal?.aborted || (el.dataset.scriptoscopePromoted != null && !previous)) return null;
   const kind: Kind | undefined = el.tagName === 'SELECT' ? 'select'
@@ -127,7 +123,7 @@ export async function promoteControl(el: Promotable, theme: LoadedTheme, signal?
     previous?.face.remove();
     const currentFace = face;
     promotions.set(el, { face, restore, disposeFace: () => {
-      events.abort(); disposeFace(currentFace);
+      events.abort(); disposeInteractiveControl(currentFace);
     } });
     committed = true;
     face.dataset.scriptoscopePromoted = '';
@@ -150,11 +146,11 @@ export async function promoteControl(el: Promotable, theme: LoadedTheme, signal?
   } finally {
     signal?.removeEventListener('abort', abort);
     if (pending.get(el) === events) pending.delete(el);
-    if (!committed) { events.abort(); if (face) disposeFace(face); }
+    if (!committed) { events.abort(); if (face) disposeInteractiveControl(face); }
   }
 }
 
-async function prepareInput(input: HTMLInputElement, kind: Exclude<Kind, 'select'>, theme: LoadedTheme,
+async function prepareInput(input: HTMLInputElement, kind: Exclude<Kind, 'select'>, theme: ThemeInput,
   active: () => boolean): Promise<HTMLElement> {
   const label = labelTextFor(input);
   let skinned: HTMLElement;
@@ -204,7 +200,7 @@ function syncInput(input: HTMLInputElement, kind: Exclude<Kind, 'select'>, face:
 
 // The native select remains the sole keyboard/AT target. Prepare its decorative
 // button before moving the source; refreshes are scoped to this face's lifetime.
-async function prepareSelect(el: HTMLSelectElement, theme: LoadedTheme, events: AbortController): Promise<HTMLElement> {
+async function prepareSelect(el: HTMLSelectElement, theme: ThemeInput, events: AbortController): Promise<HTMLElement> {
   const wrap = document.createElement('span');
   wrap.className = 'scriptoscope-select';
   Object.assign(wrap.style, { position: 'relative', display: 'inline-block', verticalAlign: 'middle',

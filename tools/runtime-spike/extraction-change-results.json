@@ -1,0 +1,65 @@
+{
+  "baseRevision": "68a97a30311d80a013c91824e3c1cc4afdebdebf",
+  "status": "independent-refresh-completed",
+  "reason": "Separately authorized verifier regenerated and committed evidence; integration public checks are being rerun. Implementer did not inspect independent sources, evidence diffs or review material.",
+  "changedRuntimeInputs": [
+    {
+      "path": "tools/theme-loader/buildThemeJson.js",
+      "beforeSha256": "0173d9601e07d43d8e0b55a2bf93c006a57f70bf0e3a3c880d9d1303ab511dce",
+      "afterSha256": "dcb2785a8963083133c57947bd6c39cf3a436941bff26220e41584a043da1d86",
+      "beforeLines": 583,
+      "afterLines": 579
+    },
+    {
+      "path": "tools/theme-loader/convert.js",
+      "beforeSha256": "6b795864fd2aecb0181ca90a8fca928965524e3fca337b6dddd58a49e89b1cf9",
+      "afterSha256": "05601ef8f6eec3b465930d8590a4c8289c7e5945b472740b5adb33d4326acd26",
+      "beforeLines": 535,
+      "afterLines": 514
+    },
+    {
+      "path": "tools/theme-loader/decoders/cicn.js",
+      "beforeSha256": "35cc33ca8eae4181ab10d40e1c72afdccd7429977b62f99fb5f62f0bda314b7e",
+      "afterSha256": "f3171f93025127e2f6c2a8b98393ab6909f279a4f49236b006f0e50630a1121e",
+      "beforeLines": 179,
+      "afterLines": 173
+    },
+    {
+      "path": "tools/theme-loader/decoders/ppat.js",
+      "beforeSha256": "2b4dc9158ac63fa776333a63282b8264bf6afab8d11a662e3574b7452bcf1bbb",
+      "afterSha256": "5ff62a44eca9ecbcf99b7a4adb938f13efb3178d256a0c5d864f075368f3d908",
+      "beforeLines": 180,
+      "afterLines": 171
+    },
+    {
+      "path": "tools/theme-loader/decoders/shared.js",
+      "beforeSha256": "706dc51b01571efdaca7eb674a90cc643c28b7995500f5b1a0394a0a35e9e8a5",
+      "afterSha256": "b69cd652074d6016ae48c57267e114654c07e0e8bf2fe12ce060ea945660bcbf",
+      "beforeLines": 212,
+      "afterLines": 164
+    }
+  ],
+  "validation": {
+    "loaderUnitTests": 164,
+    "packageConsumer": "pass",
+    "engineDiff": {
+      "status": "pass",
+      "cells": 12902,
+      "changed": 0
+    },
+    "independentAvailability": "pass in isolated verifier worktree",
+    "independentAcceptanceBindings": "pass in isolated verifier worktree",
+    "productionReferenceReport": "production-reference-results.json",
+    "qualification": "Original implementation hash delta is retained. Independent refresh was authored separately; primary did not inspect the evidence diff. Reference pixels support regression equivalence, not original fidelity.",
+    "productionReference": {
+      "status": "pass",
+      "rasters": 18704,
+      "mismatches": 0,
+      "revision": "6cfe9afda52825b848702aef942065f3daf6a647"
+    }
+  },
+  "independentRefresh": {
+    "verifierCommit": "7e5029c61892f4a41c05e478030f6d0c58d2e1d0",
+    "integrationCommit": "c157454c"
+  }
+}

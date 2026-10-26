@@ -3,7 +3,7 @@
 // directly. Drop a `<div data-scriptoscope-window>` on a page, call mountDeclarative(), get Mac windows.
 
 export {
-  mountDeclarative,
+  mountDeclarative, mountOwnedDeclarative,
   type MountOptions, type MountHandle, type MountStats, type PromoteError, type MountEventMap,
 } from './scanner.js';
 export {
@@ -12,14 +12,14 @@ export {
 } from './markers.js';
 export { ScriptoscopeWindow, type ScriptoscopeWindowDeps } from './ScriptoscopeWindow.js';
 export {
-  createThemeResolver,
+  createThemeResolver, createOwnedThemeResolver,
   type ThemeResolver, type ThemeBootstrapOpts,
   type ThemeEntry,
   /** @deprecated use {@link ThemeEntry} */ type ThemeHint,
 } from './theme.js';
 export { promoteButton } from './button.js';
 export { promoteField, isFieldEligible } from './field.js';
-export { promoteIcon, ICON_NAMES } from './icon.js';
+export { promoteIcon, promoteIconAsync, ICON_NAMES } from './icon.js';
 export {
   promoteThemePicker, syncThemePickerActive,
   type PickerThemeEntry, type PickerDeps,

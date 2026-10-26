@@ -417,9 +417,21 @@ npm run dev        # http://localhost:5173/
 
 Two surfaces, same engine.
 
+### Owned raster loading (feature PR #480)
+
+`loadOwnedTheme()` and `loadOwnedKaleidoscopeScheme()` return a distinct
+`OwnedTheme`. `mountOwnedDeclarative()` and `createOwnedThemeResolver()` provide
+owned loading over the shared scanner and lifecycle. Window/control composition
+and interactive promotion accept owned inputs;
+selected images export asynchronously through `themeImageUrl()`. Its `source`
+fields contain local resource paths, including fields historically named `url`.
+Existing loaders retain ready image URLs. See the [owned API and lifecycle
+contract](docs/v2/owned-theme-api.md) for examples and the current adoption boundary.
+The integration PR remains in progress; the default `mountDeclarative` keeps its existing ready-image loader.
+
 ### Imperative — `loadTheme()` + `renderWindow()`
 
-A scheme bundle is a directory containing the **original Kaleidoscope archive** (`scheme.sit` preferred, `scheme.rsrc` fallback) plus `meta.json` + `PROVENANCE.md`. `loadTheme()` fetches the archive and decodes it in-browser via the bundled StuffIt + Kaleidoscope decoders; `renderWindow()` composites a window from the result. First per-bundle load is ~234 ms on a fast machine (browser decode + 500 OffscreenCanvas PNG encodes); subsequent calls hit the in-page cache.
+A scheme bundle is a directory containing the **original Kaleidoscope archive** (`scheme.sit` preferred, `scheme.rsrc` fallback) plus `meta.json` + `PROVENANCE.md`. `loadTheme()` fetches the archive and decodes it in-browser via the bundled StuffIt + Kaleidoscope decoders; `renderWindow()` composites a window from the result. The ready-image path eagerly encodes its image assets. The declarative resolver caches bundle loads; direct calls load independently.
 
 ```ts
 import { loadTheme, renderWindow } from 'https://khawkins98.github.io/scriptoscope/scriptoscope.js';

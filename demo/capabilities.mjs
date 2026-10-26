@@ -1,19 +1,20 @@
 import {
-  createThemeResolver, mountDeclarative, renderWindow, bufferToCanvas,
+  createOwnedThemeResolver, mountOwnedDeclarative, renderWindow, bufferToCanvas,
   composeButton, composeBevelButton, composeCheckable, composeTab,
   composeSlider, composeScrollbar, composeDisclosure, composeProgressFrame,
   composeHeaderSurface, composeListHeader, platinumListHeader,
-  platinumMenuBar, platinumMenu, platinumPopupMenu, rasterizeText, assetUrl,
+  platinumMenuBar, platinumMenu, platinumPopupMenu, rasterizeText, themeImageUrl,
 } from 'scriptoscope';
 import themes from './themes-manifest.json';
 
 const $ = id => document.getElementById(id);
 const json = value => JSON.stringify(value, null, 2);
 const baseUrl = `${import.meta.env.BASE_URL}themes`;
-const resolver = createThemeResolver({ themeBaseUrl: baseUrl, themes });
+const resolver = createOwnedThemeResolver({ themeBaseUrl: baseUrl, themes });
 const initial = new URL(location.href).searchParams.get('theme');
 let slug = themes.some(t => t.slug === initial) ? initial : '1138';
 let theme;
+let source;
 let mount;
 let disposed = false;
 let work = Promise.resolve();
@@ -169,22 +170,23 @@ async function headers() {
     trace, columns: { api: 'composeListHeader', options: columns, fallback: composed ? null : 'platinumListHeader' } });
 }
 
-function assets() {
+async function assets() {
   $('type-samples').replaceChildren(...[10, 12, 16].map(size => sample(`${size} CSS px`, rasterizeText('Hello, Kaleidoscope', size, '#28251f'), 'rasterizeText · browser font policy')));
-  const icons = theme.inspector?.iconIndex;
+  const icons = source.inspector?.iconIndex;
   $('icon-count').textContent = icons ? `${icons.length} decoded entries · showing up to 8. A catalog entry is an asset, not an implemented control.` : 'Inspector icon catalog unavailable; absence is unknown.';
   $('icons').replaceChildren();
   for (const entry of (icons ?? []).slice(0, 8)) {
     const figure = document.createElement('figure');
     const image = document.createElement('img');
-    image.src = entry.url ?? assetUrl(theme, entry.file);
+    image.src = await themeImageUrl(theme, entry.url ?? `icons/${entry.file}`);
+    if (disposed) return;
     image.alt = `${entry.type} icon ${entry.id}`;
     const caption = document.createElement('figcaption');
     caption.textContent = `${entry.type} ${entry.id}`;
     figure.append(image, caption);
     $('icons').append(figure);
   }
-  const patterns = Object.entries(theme.manifest.patterns ?? {});
+  const patterns = Object.entries(source.manifest.patterns ?? {});
   $('pattern-count').textContent = `${patterns.length} decoded patterns · showing up to 6, tiled as provided.`;
   $('patterns').replaceChildren();
   for (const [name, entry] of patterns.slice(0, 6)) {
@@ -193,15 +195,17 @@ function assets() {
     swatch.className = 'cap-pattern';
     swatch.setAttribute('role', 'img');
     swatch.setAttribute('aria-label', `Tiled pattern: ${name}`);
-    swatch.style.backgroundImage = `url(${JSON.stringify(assetUrl(theme, entry.asset))})`;
+    const url = await themeImageUrl(theme, entry.asset);
+    if (disposed) return;
+    swatch.style.backgroundImage = `url(${JSON.stringify(url)})`;
     const caption = document.createElement('figcaption');
     caption.textContent = name;
     figure.append(swatch, caption);
     $('patterns').append(figure);
   }
   $('asset-evidence').textContent = json({ source: themes.find(t => t.slug === slug)?.source,
-    baseChain: theme.base ? 'Present' : 'None', displayPolicy: theme.manifest.displayProfile?.policy ?? 'Default loader policy (no explicit displayProfile supplied)',
-    windowKinds: Object.keys(theme.manifest.windowTypes), chromeCatalogEntries: Object.keys(theme.manifest.chromeElements).length,
+    baseChain: theme.base ? 'Present' : 'None', displayPolicy: source.manifest.displayProfile?.policy ?? 'Default loader policy (no explicit displayProfile supplied)',
+    windowKinds: Object.keys(source.manifest.windowTypes), chromeCatalogEntries: Object.keys(source.manifest.chromeElements).length,
     decodedIcons: icons?.length ?? 'unknown', decodedPatterns: patterns.map(([key]) => key),
     note: 'Catalog counts are availability observations, not implemented-family or native-fidelity counts.' });
 }
@@ -217,8 +221,9 @@ async function selectTheme(next) {
   const loaded = await resolver.load(next);
   if (disposed) return;
   theme = loaded;
+  source = loaded.source ?? loaded;
   slug = next;
-  if (!mount) mount = await mountDeclarative(mountOptions());
+  if (!mount) mount = await mountOwnedDeclarative(mountOptions());
   else await mount.retheme(slug);
   const url = new URL(location.href);
   url.searchParams.set('theme', slug);
@@ -226,14 +231,14 @@ async function selectTheme(next) {
   const entry = themes.find(t => t.slug === slug);
   $('credit').textContent = [entry.name, entry.author ? `by ${entry.author}` : '', entry.year].filter(Boolean).join(' · ');
   const previousKind = $('window-kind').value;
-  $('window-kind').replaceChildren(...Object.keys(theme.manifest.windowTypes).map(kind => new Option(kind.replaceAll('-', ' '), kind)));
+  $('window-kind').replaceChildren(...Object.keys(source.manifest.windowTypes).map(kind => new Option(kind.replaceAll('-', ' '), kind)));
   if ([...$('window-kind').options].some(o => o.value === previousKind)) $('window-kind').value = previousKind;
   else if ([...$('window-kind').options].some(o => o.value === 'document-window')) $('window-kind').value = 'document-window';
   await windowPreview();
   await states();
   await headers();
-  assets();
-  $('integration-config').textContent = `const handle = await mountDeclarative({\n  themeBaseUrl: ${JSON.stringify(baseUrl)},\n  pageThemeDefault: ${JSON.stringify(slug)},\n  themes, // Your catalog, including source filenames\n  root: document.querySelector('#your-content'),\n});\nawait handle.retheme(${JSON.stringify(slug)});\n// After the last consumer unmounts:\nhandle.disconnect();`;
+  await assets();
+  $('integration-config').textContent = `const handle = await mountOwnedDeclarative({\n  themeBaseUrl: ${JSON.stringify(baseUrl)},\n  pageThemeDefault: ${JSON.stringify(slug)},\n  themes, // Your catalog, including source filenames\n  root: document.querySelector('#your-content'),\n});\nawait handle.retheme(${JSON.stringify(slug)});\n// After the last consumer unmounts:\nhandle.disconnect();`;
 }
 
 $('scheme').addEventListener('change', event => { const next = event.target.value; void schedule(() => selectTheme(next)); });

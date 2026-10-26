@@ -120,9 +120,9 @@
 </div>
 
 <script type="module">
-  import { mountDeclarative } from '../src/declarative/index.ts';
+  import { mountOwnedDeclarative } from '../src/declarative/index.ts';
   import { wireSchemeDrop } from './_theme-drop.mjs';
-  const handle = await mountDeclarative({
+  const handle = await mountOwnedDeclarative({
     themeBaseUrl: `${import.meta.env.BASE_URL}themes`,
     pageThemeDefault: '1138',
   });

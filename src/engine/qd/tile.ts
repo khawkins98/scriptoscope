@@ -27,6 +27,7 @@
 import type { Pixmap, QdRect, TileDirection, Transfer } from './types.js';
 import type { EngineTrace } from '../trace.js';
 import { emptyRect } from './rect.js';
+import { axis } from './axis.js';
 import { transferBits } from './transfer.js';
 
 /**
@@ -79,37 +80,14 @@ export function tileBlit(
     op: 'tile', row: `T3,T4,${stepRow}`, src: srcRect, dst: dstRect, direction, transfer,
     axis: vertical ? 'vertical' : 'horizontal', ...(fastPath ? { fastPathDeferred: fastPath } : {}),
   });
-  if (!vertical) {
-    if (direction === 1) {
-      for (let left = dstRect.left; left < dstRect.right; left += sw) {
-        const seg = Math.min(sw, dstRect.right - left);
-        transferBits(port, source,
-          { top: srcRect.top, left: srcRect.left, bottom: srcRect.bottom, right: srcRect.left + seg },
-          { top: dstRect.top, left, bottom: dstRect.bottom, right: left + seg }, transfer);
-      }
-    } else {
-      for (let right = dstRect.right; right > dstRect.left; right -= sw) {
-        const seg = Math.min(sw, right - dstRect.left);
-        transferBits(port, source,
-          { top: srcRect.top, left: srcRect.right - seg, bottom: srcRect.bottom, right: srcRect.right },
-          { top: dstRect.top, left: right - seg, bottom: dstRect.bottom, right }, transfer);
-      }
-    }
-    return;
-  }
-  if (direction === 1) {
-    for (let top = dstRect.top; top < dstRect.bottom; top += sh) {
-      const seg = Math.min(sh, dstRect.bottom - top);
-      transferBits(port, source,
-        { top: srcRect.top, left: srcRect.left, bottom: srcRect.top + seg, right: srcRect.right },
-        { top, left: dstRect.left, bottom: top + seg, right: dstRect.right }, transfer);
-    }
-  } else {
-    for (let bottom = dstRect.bottom; bottom > dstRect.top; bottom -= sh) {
-      const seg = Math.min(sh, bottom - dstRect.top);
-      transferBits(port, source,
-        { top: srcRect.bottom - seg, left: srcRect.left, bottom: srcRect.bottom, right: srcRect.right },
-        { top: bottom - seg, left: dstRect.left, bottom, right: dstRect.right }, transfer);
-    }
+  const ax = axis(!vertical), step = vertical ? sh : sw, forward = direction === 1;
+  const start = ax.a0(dstRect), end = ax.a1(dstRect);
+  for (let cursor = forward ? start : end; forward ? cursor < end : cursor > start; cursor += forward ? step : -step) {
+    const size = Math.min(step, forward ? end - cursor : cursor - start);
+    const sourceStart = forward ? ax.a0(srcRect) : ax.a1(srcRect) - size;
+    const destinationStart = forward ? cursor : cursor - size;
+    transferBits(port, source,
+      ax.mk(sourceStart, sourceStart + size, ax.c0(srcRect), ax.c1(srcRect)),
+      ax.mk(destinationStart, destinationStart + size, ax.c0(dstRect), ax.c1(dstRect)), transfer);
   }
 }

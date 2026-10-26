@@ -11,6 +11,7 @@
 
 import { copyBits } from './engine/qd/transfer.js';
 import { rectXYWH } from './engine/qd/rect.js';
+import { pixelIndex, setPixel as writePixel } from './engine/qd/pixel.js';
 
 /** A rectangle in pixel coordinates: top-left origin, width/height. */
 export interface PixRect {
@@ -36,24 +37,15 @@ export class PixelBuffer {
     return new PixelBuffer(width, height);
   }
 
-  private idx(x: number, y: number): number {
-    return (y * this.width + x) * 4;
-  }
-
   /** Read a pixel as [r,g,b,a]. Out-of-bounds returns transparent black. */
   getPixel(x: number, y: number): [number, number, number, number] {
-    if (x < 0 || y < 0 || x >= this.width || y >= this.height) return [0, 0, 0, 0];
-    const i = this.idx(x, y);
+    const i = pixelIndex(this, x, y);
+    if (i < 0) return [0, 0, 0, 0];
     return [this.data[i]!, this.data[i + 1]!, this.data[i + 2]!, this.data[i + 3]!];
   }
 
   setPixel(x: number, y: number, r: number, g: number, b: number, a: number): void {
-    if (x < 0 || y < 0 || x >= this.width || y >= this.height) return;
-    const i = this.idx(x, y);
-    this.data[i] = r;
-    this.data[i + 1] = g;
-    this.data[i + 2] = b;
-    this.data[i + 3] = a;
+    writePixel(this, x, y, r, g, b, a);
   }
 
   /**
@@ -82,7 +74,7 @@ export class PixelBuffer {
    *     for (apple-lisa rings, windows-31 rings, crayon-os faces — they all
    *     bake the border thickness into the pixel pattern; stretching it
    *     blurs the artist's intent).
-   * See docs/spec/kdef231-reference.md §5.
+   * See docs/spec/engine/bevel.md BV05 for retained rectangular nine-slice compatibility behavior.
    */
   nineSlice(
     src: PixelBuffer,
@@ -152,9 +144,10 @@ export class PixelBuffer {
    * source-over blending. Used for glyphs: transparent pixels leave the
    * destination untouched, opaque pixels overwrite.
    */
-  drawOver(src: PixelBuffer, dx: number, dy: number): void {
+  drawOver(src: PixelBuffer, dx: number, dy: number, clip?: PixRect): void {
     for (let y = 0; y < src.height; y++) {
       for (let x = 0; x < src.width; x++) {
+        if (clip && (dx + x < clip.x || dy + y < clip.y || dx + x >= clip.x + clip.w || dy + y >= clip.y + clip.h)) continue;
         const [r, g, b, a] = src.getPixel(x, y);
         if (a === 0) continue;
         if (a === 255) {

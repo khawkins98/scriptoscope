@@ -1,15 +1,14 @@
 import { composeEngineCheckable, type CheckableOptions } from './checkableFacade.js';
+import { withThemeView, type ThemeInput, type ThemeView, type RasterSource } from './ownedTheme.js';
 import { composeEnginePush, loadEnginePushFace } from './pushButtonFacade.js';
 import { CinfEnvironmentError, snapshotBodyCinfFace, type CinfLookupView } from '../tools/theme-loader/cinf-environment.js';
 import type { PreparedBitmapFont } from './preparedBitmapFont.js';
-import { cinfBorderPlan } from './engine/qd/cinfFrame.js';
+import { cinfBorderPlan, cinfBodyRects, bodyWriteCount } from './engine/qd/cinfFrame.js';
 import { ownerDisplayPolicyMatches, realizeRgb16 } from '../tools/theme-loader/display-profile.js';
 import { snapshotControlComposition, bodyPatternPhase, controlPointVisible, type ControlCompositionContext, type ControlCompositionSnapshot, type ButtonComposition } from './controlComposition.js';
 import type { SliderComposition } from './sliderLayout.js';
-import type { LoadedTheme, ChromeElement } from './types.js';
+import type { ChromeElement } from './types.js';
 import { resolveInChain } from './baseChain.js';
-import { assetUrl } from './loadTheme.js';
-import { loadCicnBuffer } from './cicnImage.js';
 import { PixelBuffer } from './pixelBuffer.js';
 import { rasterizeText } from './textRaster.js';
 import { controlTextColors } from './controlTextColors.js';
@@ -18,6 +17,7 @@ import type { HeaderSurfaceOptions, HeaderSurfaceResult } from './headerSurface.
 import { composeEngineHeaderSurface, composeEngineHeaderColumns } from './headerFacade.js';
 import { createTrace, type EngineTrace } from './engine/trace.js';
 import { rect } from './engine/qd/rect.js';
+import { fillPattern } from './engine/qd/pattern.js';
 import { normalizeControlState } from './engine/state/control.js';
 import { SCROLLBAR_PRESSED_PARTS, SLIDER_PRESSED_PARTS } from './engine/tables/controlState.js';
 import { SCROLLBAR_FACADE_RANGE, SCROLLBAR_FACADE_THICKNESS } from './engine/tables/scrollbar.js';
@@ -47,30 +47,24 @@ function sliceInset(w: number, h: number): number {
  * matches its absolute value for compatibility with signed corpus aliases;
  * diagnostics preserve the actual sign instead of claiming an original alias.
  */
-interface ResolvedFaceMetadata { consumedCinf?: CinfLookupView; theme: LoadedTheme; element: ChromeElement; key: string; chainDepth: number; }
+interface ResolvedFaceMetadata { consumedCinf?: CinfLookupView; theme: ThemeView; element: ChromeElement; key: string; chainDepth: number; }
 interface ResolvedControlFace extends ResolvedFaceMetadata { declaredCinf?: NonNullable<ReturnType<typeof snapshotBodyCinfFace>>; buffer: PixelBuffer; loadedIdentity?: Pick<LegacyFacePaint, 'owner' | 'resource'>; }
 type TraceLookup = Pick<ControlResolutionStep, 'role' | 'basis' | 'usage'>;
 const FACE_LOOKUP: TraceLookup = { role: 'face', basis: 'source-dispatch', usage: 'paint' };
 
-function resourceIdentity(hit: ResolvedFaceMetadata): Extract<NonNullable<ControlResolutionStep['resource']>, { type: 'cicn' }> {
+function resourceIdentity(hit: ResolvedFaceMetadata, assetUrl: string): Extract<NonNullable<ControlResolutionStep['resource']>, { type: 'cicn' }> {
   return { type: 'cicn', signedId: Number.isInteger(hit.element.sourceCicnId) ? hit.element.sourceCicnId! : null,
     sourceCinfId: Number.isInteger(hit.element.sourceCinfId) ? hit.element.sourceCinfId! : null, manifestKey: hit.key,
-    assetUrl: assetUrl(hit.theme, hit.element.asset),
+    assetUrl,
     ...(hit.consumedCinf ? { consumedCinf: hit.consumedCinf } : {}),
-    ...(hit.element.byteProvenance ? { byteProvenance: hit.element.byteProvenance } : {}) };
-}
-
-function traceHit(trace: ControlTraceCollector | undefined, lookup: TraceLookup, id: number,
-  hit: ResolvedFaceMetadata, action: 'selected' | 'rejected', reason: string): void {
-  trace?.record({ ...lookup, requestedId: -Math.abs(id), action, reason,
-    owner: { baseUrl: hit.theme.baseUrl, chainDepth: hit.chainDepth }, resource: resourceIdentity(hit) });
+    ...(hit.element.byteProvenance ? { byteProvenance: { ...hit.element.byteProvenance } } : {}) };
 }
 
 function traceOwner(trace: ControlTraceCollector | undefined, lookup: TraceLookup, id: number,
-  theme: LoadedTheme, chainDepth: number, action: 'missing' | 'fallback', reason: string): void {
+  theme: ThemeView, chainDepth: number, action: 'missing' | 'fallback', reason: string): void {
   trace?.record({ ...lookup, requestedId: -Math.abs(id), action, reason,
     ...(action === 'fallback' ? { basis: 'compatibility-policy' as const } : {}),
-    owner: { baseUrl: theme.baseUrl, chainDepth } });
+    owner: { baseUrl: theme.origin, chainDepth } });
 }
 
 function traceFallback(trace: ControlTraceCollector | undefined, id: number, reason: string,
@@ -78,7 +72,7 @@ function traceFallback(trace: ControlTraceCollector | undefined, id: number, rea
   trace?.record({ ...lookup, requestedId: -Math.abs(id), action: 'fallback', reason });
 }
 
-function resolveFaceById(theme: LoadedTheme, id: number, trace?: ControlTraceCollector,
+function resolveFaceById(theme: ThemeView, id: number, trace?: ControlTraceCollector,
   lookup: TraceLookup = FACE_LOOKUP): ResolvedFaceMetadata | undefined {
   let chainDepth = -1;
   return resolveInChain(theme, (t) => {
@@ -87,28 +81,26 @@ function resolveFaceById(theme: LoadedTheme, id: number, trace?: ControlTraceCol
     const entry = elementEntryById(t, id);
     if (!entry) { traceOwner(trace, lookup, id, t, chainDepth, 'missing', 'missing-resource'); return null; }
     const hit = { theme: t, element: entry[1], key: entry[0], chainDepth };
-    traceHit(trace, hit.element.sourceCicnId! > 0 ? { ...lookup, basis: 'compatibility-policy' } : lookup,
-      id, hit, 'selected', hit.element.sourceCicnId! > 0 ? 'positive-id-alias' : 'resource-id');
     return hit;
   });
 }
 
 /** Capture the actual requested asset and scalar identity before its decode
  * await. Diagnostics must not relabel that buffer after consumer metadata edits. */
-async function loadResolvedFace(hit: ResolvedFaceMetadata, trace?: ControlTraceCollector): Promise<ResolvedControlFace> {
+async function loadResolvedFace(hit: ResolvedFaceMetadata, id: number, lookup: TraceLookup, trace?: ControlTraceCollector): Promise<ResolvedControlFace> {
   const declaredCinf = snapshotBodyCinfFace(hit.theme.manifest, hit.element);
   if (declaredCinf) hit = { ...hit, element: { ...hit.element } };
-  const url = assetUrl(hit.theme, hit.element.asset);
-  const resource = trace ? resourceIdentity(hit) : undefined;
-  const loadedIdentity = resource ? {
-    owner: { baseUrl: hit.theme.baseUrl, chainDepth: hit.chainDepth },
-    resource: { ...resource, assetUrl: url, ...(resource.byteProvenance ? { byteProvenance: { ...resource.byteProvenance } } : {}) },
-  } : undefined;
-  return { ...hit, ...(declaredCinf ? { declaredCinf } : {}), buffer: await loadCicnBuffer(url), ...(loadedIdentity ? { loadedIdentity } : {}) };
+  const raster = hit.theme.asset(hit.element.asset), selectedId = hit.element.sourceCicnId!;
+  const resource = trace ? resourceIdentity(hit, raster.key) : undefined;
+  const owner = { baseUrl: hit.theme.origin, chainDepth: hit.chainDepth };
+  const loadedIdentity = resource ? { owner, resource: { ...resource, assetUrl: await raster.imageUrl() } } : undefined;
+  if (loadedIdentity) trace?.record({ ...lookup, requestedId: -Math.abs(id), action: 'selected', ...loadedIdentity,
+    ...(selectedId > 0 ? { basis: 'compatibility-policy' as const } : {}), reason: selectedId > 0 ? 'positive-id-alias' : 'resource-id' });
+  return { ...hit, ...(declaredCinf ? { declaredCinf } : {}), buffer: await raster.pixels(), ...(loadedIdentity ? { loadedIdentity } : {}) };
 }
 
 /** Select a prepared role view without mutating common element/local pair facts. */
-function declaredBodyFace(root: LoadedTheme, face: ResolvedControlFace, requestedId: number, label: string,
+function declaredBodyFace(root: ThemeView, face: ResolvedControlFace, requestedId: number, label: string,
   trace?: ControlTraceCollector): ResolvedControlFace {
   const environment = face.declaredCinf?.environment ?? root.manifest.cinfEnvironment;
   if (!environment) return face;
@@ -135,40 +127,42 @@ function declaredBodyFace(root: LoadedTheme, face: ResolvedControlFace, requeste
   }
   trace?.record({ role: 'face', usage: 'admission', basis: 'compatibility-policy', action: view!.status === 'ready' ? 'selected' : 'missing',
     requestedId, reason: view!.status === 'ready' ? 'declared-cinf-role-view' : 'declared-cinf-two-null-skip',
-    owner: { baseUrl: face.theme.baseUrl, chainDepth: 0 }, cinfLookup: consumed });
-  return { ...face, consumedCinf: consumed, element: view!.status === 'ready' ? { ...face.element, ...view!.metadata } : face.element };
+    owner: { baseUrl: face.theme.origin, chainDepth: 0 }, cinfLookup: consumed });
+  const loadedIdentity = face.loadedIdentity && { ...face.loadedIdentity, resource: { ...face.loadedIdentity.resource, consumedCinf: consumed } };
+  return { ...face, consumedCinf: consumed, ...(loadedIdentity ? { loadedIdentity } : {}),
+    element: view!.status === 'ready' ? { ...face.element, ...view!.metadata } : face.element };
 }
 function lookupOnly(view: NonNullable<ChromeElement['bodyCinf']>): CinfLookupView {
   const { metadata: _metadata, ...lookup } = view;
   return lookup;
 }
 
-async function loadFaceById(theme: LoadedTheme, id: number, trace?: ControlTraceCollector,
+async function loadFaceById(theme: ThemeView, id: number, trace?: ControlTraceCollector,
   lookup: TraceLookup = FACE_LOOKUP): Promise<ResolvedControlFace | null> {
   const hit = resolveFaceById(theme, id, trace, lookup);
-  return hit ? loadResolvedFace(hit, trace) : null;
+  return hit ? loadResolvedFace(hit, id, lookup, trace) : null;
 }
 
-async function loadById(theme: LoadedTheme, id: number): Promise<PixelBuffer | null> {
+async function loadById(theme: ThemeView, id: number): Promise<PixelBuffer | null> {
   return (await loadFaceById(theme, id))?.buffer ?? null;
 }
 
 /** Self-only art lookup retained by the disclosure compatibility path. */
-async function loadByIdSelf(theme: LoadedTheme, id: number): Promise<PixelBuffer | null> {
+async function loadByIdSelf(theme: ThemeView, id: number): Promise<PixelBuffer | null> {
   const el = elementById(theme, id);
-  return el ? loadCicnBuffer(assetUrl(theme, el.asset)) : null;
+  return el ? theme.asset(el.asset).pixels() : null;
 }
 
-async function loadGlyphByIdSelf(theme: LoadedTheme, id: number): Promise<PixelBuffer | null> {
+async function loadGlyphByIdSelf(theme: ThemeView, id: number): Promise<PixelBuffer | null> {
   const asset = theme.glyphs?.[String(id)];
-  return asset ? loadCicnBuffer(assetUrl(theme, asset)) : null;
+  return asset ? theme.asset(asset).pixels() : null;
 }
 
 /** Load a scheme's own chromeElement by key for disclosure compatibility,
  *  without walking the base chain. */
-async function loadByKeySelf(theme: LoadedTheme, key: string): Promise<PixelBuffer | null> {
+async function loadByKeySelf(theme: ThemeView, key: string): Promise<PixelBuffer | null> {
   const asset = theme.manifest.chromeElements?.[key]?.asset;
-  return asset ? loadCicnBuffer(assetUrl(theme, asset)) : null;
+  return asset ? theme.asset(asset).pixels() : null;
 }
 
 /** Apple's documented push-button standard height. Per `docs/spec/apple-primary-source.md`
@@ -199,8 +193,8 @@ function resolveControlHeight(face: PixelBuffer, optsHeight?: number): number {
 }
 
 /** Exact signed push art selected by the engine's state table. */
-export async function loadPushButtonFace(theme: LoadedTheme, state: 'active' | 'pressed' | 'inactive'): Promise<PixelBuffer | null> {
-  return loadEnginePushFace(theme, state);
+export async function loadPushButtonFace(theme: ThemeInput, state: 'active' | 'pressed' | 'inactive'): Promise<PixelBuffer | null> {
+  return withThemeView(theme, view => loadEnginePushFace(view, state));
 }
 
 /** The chromeElement whose asset encodes resource `id` (for textAnchor etc).
@@ -212,11 +206,11 @@ export async function loadPushButtonFace(theme: LoadedTheme, state: 'active' | '
  *  blob URL → every elementById call returned null → buttons / default-rings /
  *  textAnchors silently un-themed). `sourceCicnId` is the decoder's own field, lives
  *  in `theme.json`, survives the URL rewrite, and is what `lint-themes` reads too. */
-function elementById(theme: LoadedTheme, id: number) {
+function elementById(theme: Pick<ThemeView, 'manifest'>, id: number) {
   return elementEntryById(theme, id)?.[1];
 }
 
-function elementEntryById(theme: LoadedTheme, id: number): [string, ChromeElement] | undefined {
+function elementEntryById(theme: Pick<ThemeView, 'manifest'>, id: number): [string, ChromeElement] | undefined {
   const abs = Math.abs(id);
   const elements = theme.manifest.chromeElements ?? {};
   for (const key of Object.keys(elements)) {
@@ -271,7 +265,7 @@ export interface ScrollbarFrame {
  * a compatibility policy for art-less themes.
  */
 export async function composeScrollbar(
-  theme: LoadedTheme,
+  theme: ThemeInput,
   opts: ScrollbarOptions = {},
 ): Promise<PixelBuffer | null> {
   return (await composeScrollbarFrame(theme, opts))?.buffer ?? null;
@@ -279,34 +273,36 @@ export async function composeScrollbar(
 
 /** @internal Shared draw path for the interactive scroll bar's hit test. */
 export async function composeScrollbarFrame(
-  theme: LoadedTheme,
+  inputTheme: ThemeInput,
   opts: ScrollbarOptions & { trace?: boolean } = {},
 ): Promise<ScrollbarFrame | null> {
-  const horizontal = (opts.orientation ?? 'vertical') === 'horizontal';
-  const length = Math.max(16, opts.length ?? 120);
-  const value = Math.min(1, Math.max(0, opts.value ?? 0));
-  const { hilite } = normalizeControlState({ state: opts.state ?? 'normal', ...(opts.pressedPart ? { pressedPart: opts.pressedPart } : {}) },
-    SCROLLBAR_PRESSED_PARTS);
-  const t = SCROLLBAR_FACADE_THICKNESS.thickness;
-  const range = SCROLLBAR_FACADE_RANGE;
-  const input: ScrollbarInput = {
-    rect: horizontal ? rect(0, 0, t, length) : rect(0, 0, length, t),
-    hilite, min: range.min, max: range.max, value: range.min + Math.round(value * (range.max - range.min)),
-  };
-  const chain = await themeResourceChain(theme, scrollbarResourceIds(horizontal));
-  const trace = opts.trace ? createTrace('scrollbar', { ...input }) : undefined;
-  const out = PixelBuffer.alloc(input.rect.right, input.rect.bottom);
-  const { geometry } = drawScrollbar(out, chain, input, trace);
-  if (!geometry.trackCicn) return null;
-  const names = Object.entries(SCROLLBAR_PRESSED_PARTS.parts);
-  return {
-    buffer: out,
-    partAt: (x, y) => {
-      const { part } = scrollbarPartAt(geometry, { x, y });
-      return (names.find(([, code]) => code === part)?.[0] ?? null) as NonNullable<ScrollbarOptions['pressedPart']> | null;
-    },
-    ...(trace ? { trace } : {}),
-  };
+  return withThemeView(inputTheme, async theme => {
+    const horizontal = (opts.orientation ?? 'vertical') === 'horizontal';
+    const length = Math.max(16, opts.length ?? 120);
+    const value = Math.min(1, Math.max(0, opts.value ?? 0));
+    const { hilite } = normalizeControlState({ state: opts.state ?? 'normal', ...(opts.pressedPart ? { pressedPart: opts.pressedPart } : {}) },
+      SCROLLBAR_PRESSED_PARTS);
+    const t = SCROLLBAR_FACADE_THICKNESS.thickness;
+    const range = SCROLLBAR_FACADE_RANGE;
+    const input: ScrollbarInput = {
+      rect: horizontal ? rect(0, 0, t, length) : rect(0, 0, length, t),
+      hilite, min: range.min, max: range.max, value: range.min + Math.round(value * (range.max - range.min)),
+    };
+    const chain = await themeResourceChain(theme, scrollbarResourceIds(horizontal));
+    const trace = opts.trace ? createTrace('scrollbar', { ...input }) : undefined;
+    const out = PixelBuffer.alloc(input.rect.right, input.rect.bottom);
+    const { geometry } = drawScrollbar(out, chain, input, trace);
+    if (!geometry.trackCicn) return null;
+    const names = Object.entries(SCROLLBAR_PRESSED_PARTS.parts);
+    return {
+      buffer: out,
+      partAt: (x, y) => {
+        const { part } = scrollbarPartAt(geometry, { x, y });
+        return (names.find(([, code]) => code === part)?.[0] ?? null) as NonNullable<ScrollbarOptions['pressedPart']> | null;
+      },
+      ...(trace ? { trace } : {}),
+    };
+  });
 }
 
 export interface SliderOptions {
@@ -361,7 +357,7 @@ export interface SliderFrame extends SliderComposition {
  * Platinum slider, the declared substitute (slider §6 item 3).
  */
 export async function composeSlider(
-  theme: LoadedTheme,
+  theme: ThemeInput,
   opts: SliderOptions = {},
 ): Promise<PixelBuffer | null> {
   return (await composeSliderWithLayout(theme, opts))?.buffer ?? null;
@@ -369,64 +365,66 @@ export async function composeSlider(
 
 /** @internal Shared draw path for native-backed slider hit testing. */
 export async function composeSliderWithLayout(
-  theme: LoadedTheme,
+  inputTheme: ThemeInput,
   opts: SliderOptions & { trace?: boolean } = {},
   signal?: AbortSignal,
 ): Promise<SliderFrame | null> {
-  const orientation = opts.orientation ?? 'horizontal';
-  const horiz = orientation === 'horizontal';
-  const length = Math.max(32, opts.length ?? 120);
-  const value = Math.min(1, Math.max(0, opts.value ?? 0.5));
-  // Declared group2 layout environment (slider-layout-cinf.md): its admission
-  // rules still apply; the geometry itself now comes from the engine (§5.2).
-  const endpoint = snapshotSliderEnvironment(theme, orientation);
-  const unsupported = unsupportedSliderEnvironment;
+  return withThemeView(inputTheme, async theme => {
+    const orientation = opts.orientation ?? 'horizontal';
+    const horiz = orientation === 'horizontal';
+    const length = Math.max(32, opts.length ?? 120);
+    const value = Math.min(1, Math.max(0, opts.value ?? 0.5));
+    // Declared group2 layout environment (slider-layout-cinf.md): its admission
+    // rules still apply; the geometry itself now comes from the engine (§5.2).
+    const endpoint = snapshotSliderEnvironment(theme, orientation);
+    const unsupported = unsupportedSliderEnvironment;
 
-  const V = SLIDER_VARIATION;
-  const variant = opts.variant ?? 'nonDirectional';
-  const ticks = variant !== 'nonDirectional' && (opts.tickMarks ?? 0) > 1 ? Math.trunc(opts.tickMarks!) : 0;
-  const variation = (variant === 'nonDirectional' ? V.nonDirectional : variant === 'pointsUpOrLeft' ? V.reverse : 0) | (ticks ? V.tickMarks : 0);
-  const cross = Math.max(1, Math.trunc(opts.thickness ?? (ticks ? SLIDER_FACADE_THICKNESS.withTicks : SLIDER_FACADE_THICKNESS.plain)));
-  // The engine reads a square or taller rect as vertical (§2): keep the axis the caller asked for.
-  const along = Math.max(length, cross + 1);
-  const { hilite } = normalizeControlState({ state: opts.state ?? 'normal', ...(opts.pressedPart ? { pressedPart: opts.pressedPart } : {}) },
-    SLIDER_PRESSED_PARTS);
-  const range = SLIDER_FACADE_RANGE;
-  const native = range.min + Math.round(value * (range.max - range.min));
-  const R = horiz ? rect(0, 0, cross, along) : rect(0, 0, along, cross);
-  const input: SliderInput = { rect: R, hilite, min: range.min, max: range.max, value: native, variation };
-  admitSliderGeometry(endpoint, { length, along, cross, value, variant });
-  if (signal?.aborted) return null;
-  const chain = await themeResourceChain(theme, sliderResourceIds(horiz), { ...(signal ? { signal } : {}), ...(endpoint ? { cinfProviders: endpoint.providers } : {}) });
-  if (signal?.aborted) return null;
-  const trace = opts.trace ? createTrace('slider', { ...input, ticks }) : undefined;
-  // Message 3 (init) creates the record and sets the tick count; the host then sets the value.
-  const init = sliderInit(chain, { ...input, value: range.min }, ticks, trace);
-  if (!init) return endpoint ? unsupported('handed off (no slider cinf)') : null;
-  const out = PixelBuffer.alloc(R.right, R.bottom);
-  const bg = opts.background ?? SLIDER_FACADE_BACKGROUND;
-  const { state } = drawSlider(out, chain, init.record, input, { background: { r: bg.r, g: bg.g, b: bg.b, a: 255 } }, trace);
-  if (!state) return endpoint ? unsupported('handed off (no slider cinf)') : null;
-  const Th = state.Th && !(state.Th.right <= state.Th.left || state.Th.bottom <= state.Th.top) ? state.Th : null;
-  const c = state.c ?? 0, travel = Math.max(0, init.record.travel ?? 0);
-  admitSliderState(endpoint, state);
-  const names = Object.entries(SLIDER_PRESSED_PARTS.parts);
-  return {
-    buffer: out,
-    layout: {
-      orientation, axisLength: along,
-      thumb: Th ? { x: Th.left, y: Th.top, w: Th.right - Th.left, h: Th.bottom - Th.top } : null,
-      // TRK4 (modern pointer policy): with a thumb the travel is [c, c + T); without one the
-      // whole axis, with no corner inset (a track click maps over the full length).
-      travelStart: Th ? c : 0, travelEnd: Th ? c + travel : along, value,
-      valueDirection: horiz ? 1 : -1,
-    },
-    partAt: (x, y) => {
-      const { part } = sliderPartAt(state, { x, y });
-      return (names.find(([, code]) => code === part)?.[0] ?? null) as NonNullable<SliderOptions['pressedPart']> | null;
-    },
-    ...(trace ? { trace } : {}),
-  };
+    const V = SLIDER_VARIATION;
+    const variant = opts.variant ?? 'nonDirectional';
+    const ticks = variant !== 'nonDirectional' && (opts.tickMarks ?? 0) > 1 ? Math.trunc(opts.tickMarks!) : 0;
+    const variation = (variant === 'nonDirectional' ? V.nonDirectional : variant === 'pointsUpOrLeft' ? V.reverse : 0) | (ticks ? V.tickMarks : 0);
+    const cross = Math.max(1, Math.trunc(opts.thickness ?? (ticks ? SLIDER_FACADE_THICKNESS.withTicks : SLIDER_FACADE_THICKNESS.plain)));
+    // The engine reads a square or taller rect as vertical (§2): keep the axis the caller asked for.
+    const along = Math.max(length, cross + 1);
+    const { hilite } = normalizeControlState({ state: opts.state ?? 'normal', ...(opts.pressedPart ? { pressedPart: opts.pressedPart } : {}) },
+      SLIDER_PRESSED_PARTS);
+    const range = SLIDER_FACADE_RANGE;
+    const native = range.min + Math.round(value * (range.max - range.min));
+    const R = horiz ? rect(0, 0, cross, along) : rect(0, 0, along, cross);
+    const input: SliderInput = { rect: R, hilite, min: range.min, max: range.max, value: native, variation };
+    admitSliderGeometry(endpoint, { length, along, cross, value, variant });
+    if (signal?.aborted) return null;
+    const chain = await themeResourceChain(theme, sliderResourceIds(horiz), { ...(signal ? { signal } : {}), ...(endpoint ? { cinfProviders: endpoint.providers } : {}) });
+    if (signal?.aborted) return null;
+    const trace = opts.trace ? createTrace('slider', { ...input, ticks }) : undefined;
+    // Message 3 (init) creates the record and sets the tick count; the host then sets the value.
+    const init = sliderInit(chain, { ...input, value: range.min }, ticks, trace);
+    if (!init) return endpoint ? unsupported('handed off (no slider cinf)') : null;
+    const out = PixelBuffer.alloc(R.right, R.bottom);
+    const bg = opts.background ?? SLIDER_FACADE_BACKGROUND;
+    const { state } = drawSlider(out, chain, init.record, input, { background: { r: bg.r, g: bg.g, b: bg.b, a: 255 } }, trace);
+    if (!state) return endpoint ? unsupported('handed off (no slider cinf)') : null;
+    const Th = state.Th && !(state.Th.right <= state.Th.left || state.Th.bottom <= state.Th.top) ? state.Th : null;
+    const c = state.c ?? 0, travel = Math.max(0, init.record.travel ?? 0);
+    admitSliderState(endpoint, state);
+    const names = Object.entries(SLIDER_PRESSED_PARTS.parts);
+    return {
+      buffer: out,
+      layout: {
+        orientation, axisLength: along,
+        thumb: Th ? { x: Th.left, y: Th.top, w: Th.right - Th.left, h: Th.bottom - Th.top } : null,
+        // TRK4 (modern pointer policy): with a thumb the travel is [c, c + T); without one the
+        // whole axis, with no corner inset (a track click maps over the full length).
+        travelStart: Th ? c : 0, travelEnd: Th ? c + travel : along, value,
+        valueDirection: horiz ? 1 : -1,
+      },
+      partAt: (x, y) => {
+        const { part } = sliderPartAt(state, { x, y });
+        return (names.find(([, code]) => code === part)?.[0] ?? null) as NonNullable<SliderOptions['pressedPart']> | null;
+      },
+      ...(trace ? { trace } : {}),
+    };
+  });
 }
 
 export interface DisclosureOptions {
@@ -451,32 +449,34 @@ export interface DisclosureOptions {
  * none → procedural Platinum.
  */
 export async function composeDisclosure(
-  theme: LoadedTheme,
+  inputTheme: ThemeInput,
   opts: DisclosureOptions = {},
 ): Promise<PixelBuffer | null> {
-  const dir = opts.direction ?? 'right';
-  const state = opts.state ?? 'normal';
-  const prefix = state === 'pressed' ? 'pressed-' : state === 'disabled' || state === 'inactive' ? 'inactive-' : '';
-  // note: the bundle has a typo "tringle" for inactive-right
-  const keys = [
-    `${prefix}${dir}-pointing-disclosure-triangle`,
-    `${prefix}${dir}-pointing-disclosure-tringle`,
-    `${dir}-pointing-disclosure-triangle`,
-  ];
-  for (const k of keys) {
-    const g = await loadByKeySelf(theme, k);
-    if (g) return g;
-  }
-  // Canonical kDEF disclosure-triangle id family (docs/spec/kdef231-reference.md
-  // §2.6): -10102..-10112, right/down × normal/pressed/inactive (rows of 5 per
-  // the period doc; we map only the normal right/down here, which is all the
-  // renderer needs). Resolved self-only as a cicn, then as an ics4 glyph.
-  const canonical = dir === 'right' ? 10102 : 10103;
-  const byId = (await loadByIdSelf(theme, canonical)) ?? (await loadGlyphByIdSelf(theme, -canonical));
-  if (byId) return byId;
-  // apple-platinum-2's pixel-verified own triangles (non-canonical positive ics4
-  // ids — see the doc-comment). 3060 = right/collapsed, 3061 = down/expanded.
-  return loadGlyphByIdSelf(theme, dir === 'right' ? 3060 : 3061);
+  return withThemeView(inputTheme, async theme => {
+    const dir = opts.direction ?? 'right';
+    const state = opts.state ?? 'normal';
+    const prefix = state === 'pressed' ? 'pressed-' : state === 'disabled' || state === 'inactive' ? 'inactive-' : '';
+    // note: the bundle has a typo "tringle" for inactive-right
+    const keys = [
+      `${prefix}${dir}-pointing-disclosure-triangle`,
+      `${prefix}${dir}-pointing-disclosure-tringle`,
+      `${dir}-pointing-disclosure-triangle`,
+    ];
+    for (const k of keys) {
+      const g = await loadByKeySelf(theme, k);
+      if (g) return g;
+    }
+    // Canonical kDEF disclosure-triangle id family (docs/spec/kdef231-reference.md
+    // §2.6): -10102..-10112, right/down × normal/pressed/inactive (rows of 5 per
+    // the period doc; we map only the normal right/down here, which is all the
+    // renderer needs). Resolved self-only as a cicn, then as an ics4 glyph.
+    const canonical = dir === 'right' ? 10102 : 10103;
+    const byId = (await loadByIdSelf(theme, canonical)) ?? (await loadGlyphByIdSelf(theme, -canonical));
+    if (byId) return byId;
+    // apple-platinum-2's pixel-verified own triangles (non-canonical positive ics4
+    // ids — see the doc-comment). 3060 = right/collapsed, 3061 = down/expanded.
+    return loadGlyphByIdSelf(theme, dir === 'right' ? 3060 : 3061);
+  });
 }
 
 export interface TabOptions {
@@ -489,7 +489,7 @@ export interface TabOptions {
 }
 
 /** Compose one resting enabled segmented tab (engine/tab.md modern facade). */
-export async function composeTab(theme: LoadedTheme, opts: TabOptions = {}): Promise<PixelBuffer | null> {
+export async function composeTab(theme: ThemeInput, opts: TabOptions = {}): Promise<PixelBuffer | null> {
   return composeEngineTab(theme, opts);
 }
 
@@ -500,12 +500,14 @@ export async function composeTab(theme: LoadedTheme, opts: TabOptions = {}): Pro
  * Returns null when the scheme ships no grow box (→ caller's CSS fallback).
  */
 export async function composeGrowBox(
-  theme: LoadedTheme,
+  inputTheme: ThemeInput,
   opts: { state?: ControlState } = {},
 ): Promise<PixelBuffer | null> {
-  const inactive = opts.state === 'inactive';
-  if (inactive) return loadById(theme, 14334);
-  return (await loadById(theme, 14333)) ?? (await loadById(theme, 14330));
+  return withThemeView(inputTheme, async theme => {
+    const inactive = opts.state === 'inactive';
+    if (inactive) return loadById(theme, 14334);
+    return (await loadById(theme, 14333)) ?? (await loadById(theme, 14330));
+  });
 }
 
 export interface ProgressOptions {
@@ -547,7 +549,7 @@ export interface ProgressFrame {
  * CDEF 5 always draws: the scheme's art when it ships `cinf`/`cicn −10080`, else
  * its own procedural bar. Pixels no step covers stay transparent (ERASE3).
  */
-export async function composeProgress(theme: LoadedTheme, opts: ProgressOptions = {}): Promise<PixelBuffer> {
+export async function composeProgress(theme: ThemeInput, opts: ProgressOptions = {}): Promise<PixelBuffer> {
   return (await composeProgressFrame(theme, opts)).buffer;
 }
 
@@ -558,32 +560,34 @@ const int16 = (name: string, v: number): number => {
 };
 
 /** Compose one progress frame (DECISIONS #11): draws once and reports the phase after the draw. */
-export async function composeProgressFrame(theme: LoadedTheme, opts: ProgressOptions & { trace?: boolean } = {}): Promise<ProgressFrame> {
-  const length = Math.max(PROGRESS_FACADE_LENGTH.min, Math.trunc(opts.length ?? PROGRESS_FACADE_LENGTH.default));
-  const phase = opts.phase ?? 0;
-  if (!Number.isInteger(phase) || phase < 0 || phase >= PROGRESS_IDLE.phaseModulo) throw new RangeError('composeProgress: phase must be an integer 0..255');
-  let native: { value: number; min: number; max: number };
-  if (opts.range && opts.value !== undefined) throw new TypeError('composeProgress: pass either value or range, not both (DECISIONS #10)');
-  if (opts.range) native = { value: int16('value', opts.range.value), min: int16('min', opts.range.min), max: int16('max', opts.range.max) };
-  else {
-    const F = PROGRESS_FACADE_RANGE, v = Math.min(1, Math.max(0, opts.value ?? PROGRESS_FACADE_VALUE.default));
-    native = { value: F.min + Math.trunc(v * (F.max - F.min)), min: F.min, max: F.max };
-  }
-  const state = opts.state ?? 'normal';
-  const row = PROGRESS_STATE.find(r => r.state === state);
-  if (!row) throw new TypeError(`composeProgress: unknown state ${String(state)}`);
-  const input: ProgressInput = { rect: rect(0, 0, PROGRESS_RECT.RECT1.height, length), hilite: row.hilite, ...native };
-  const chain = await themeResourceChain(theme, progressResourceIds());
-  const trace = opts.trace ? createTrace('progress', { ...input, indeterminate: !!opts.indeterminate, phase }) : undefined;
-  const record = newProgressRecord(trace);
-  progressSetData(record, PROGRESS_DATA.tag, [opts.indeterminate ? 1 : 0]);
-  record.phase = phase;
-  const out = PixelBuffer.alloc(length, PROGRESS_RECT.RECT1.height);
-  const profile = theme.manifest.displayProfile;
-  const realize = (rgb: readonly number[]) => { const [r, g, b] = realizeRgb16(rgb, profile); return { r: r!, g: g!, b: b!, a: 255 }; };
-  const res = drawProgress(out, chain, record, input, { realize }, trace);
-  if (res.path === null) throw new Error('composeProgress: engine skipped a visible, nonempty progress bar');
-  return { buffer: out, phase: res.phase, path: res.path, ...(trace ? { trace } : {}) };
+export async function composeProgressFrame(inputTheme: ThemeInput, opts: ProgressOptions & { trace?: boolean } = {}): Promise<ProgressFrame> {
+  return withThemeView(inputTheme, async theme => {
+    const length = Math.max(PROGRESS_FACADE_LENGTH.min, Math.trunc(opts.length ?? PROGRESS_FACADE_LENGTH.default));
+    const phase = opts.phase ?? 0;
+    if (!Number.isInteger(phase) || phase < 0 || phase >= PROGRESS_IDLE.phaseModulo) throw new RangeError('composeProgress: phase must be an integer 0..255');
+    let native: { value: number; min: number; max: number };
+    if (opts.range && opts.value !== undefined) throw new TypeError('composeProgress: pass either value or range, not both (DECISIONS #10)');
+    if (opts.range) native = { value: int16('value', opts.range.value), min: int16('min', opts.range.min), max: int16('max', opts.range.max) };
+    else {
+      const F = PROGRESS_FACADE_RANGE, v = Math.min(1, Math.max(0, opts.value ?? PROGRESS_FACADE_VALUE.default));
+      native = { value: F.min + Math.trunc(v * (F.max - F.min)), min: F.min, max: F.max };
+    }
+    const state = opts.state ?? 'normal';
+    const row = PROGRESS_STATE.find(r => r.state === state);
+    if (!row) throw new TypeError(`composeProgress: unknown state ${String(state)}`);
+    const input: ProgressInput = { rect: rect(0, 0, PROGRESS_RECT.RECT1.height, length), hilite: row.hilite, ...native };
+    const chain = await themeResourceChain(theme, progressResourceIds());
+    const trace = opts.trace ? createTrace('progress', { ...input, indeterminate: !!opts.indeterminate, phase }) : undefined;
+    const record = newProgressRecord(trace);
+    progressSetData(record, PROGRESS_DATA.tag, [opts.indeterminate ? 1 : 0]);
+    record.phase = phase;
+    const out = PixelBuffer.alloc(length, PROGRESS_RECT.RECT1.height);
+    const profile = theme.manifest.displayProfile;
+    const realize = (rgb: readonly number[]) => { const [r, g, b] = realizeRgb16(rgb, profile); return { r: r!, g: g!, b: b!, a: 255 }; };
+    const res = drawProgress(out, chain, record, input, { realize }, trace);
+    if (res.path === null) throw new Error('composeProgress: engine skipped a visible, nonempty progress bar');
+    return { buffer: out, phase: res.phase, path: res.path, ...(trace ? { trace } : {}) };
+  });
 }
 
 export interface ButtonOptions {
@@ -646,7 +650,7 @@ async function loadCicnBody(face: ResolvedControlFace, opts: FaceOptions, width:
   const request = face.element.bodyRequest!, binding = face.element.cicnBody;
   const common = { role: 'body-fill' as const, requestedId: request.resourceId, bodyMode: 5,
     requestedResourceType: 'cicn' as const, basis: 'compatibility-policy' as const, usage: 'paint' as const,
-    owner: { baseUrl: face.theme.baseUrl, chainDepth: face.chainDepth } };
+    owner: { baseUrl: face.theme.origin, chainDepth: face.chainDepth } };
   const reject = (reason: string): PreparedCicnBody => {
     opts.trace?.record({ ...common, action: 'fallback', reason }); return { kind: 'unsupported' };
   };
@@ -678,14 +682,17 @@ async function loadCicnBody(face: ResolvedControlFace, opts: FaceOptions, width:
   if (!visible) return reject('cicn-body-outside-clip');
   // Snapshot the actual target, owner and URL before awaiting dependent decoding.
   const step: ControlResolutionStep = { ...common, action: 'selected', reason: 'same-owner-cicn-body-paint',
-    resource: resourceIdentity({ theme: face.theme, element: target, key: binding.manifestKey, chainDepth: face.chainDepth }) };
-  const url = assetUrl(face.theme, binding.asset), copy = binding.copy, derivedPath = binding.derivedPath;
-  const buffer = await loadCicnBuffer(url);
+    resource: resourceIdentity({ theme: face.theme, element: target, key: binding.manifestKey, chainDepth: face.chainDepth }, '') };
+  const raster = face.theme.asset(binding.asset), targetRaster = face.theme.asset(target.asset);
+  const copy = binding.copy, derivedPath = binding.derivedPath;
+  const buffer = await raster.pixels();
   if (buffer.width !== sourceRect.w || buffer.height !== sourceRect.h) return reject('cicn-body-decoded-size-mismatch');
   for (let i = 3; i < buffer.data.length; i += 4)
     if (copy === 'unmasked' ? buffer.data[i] !== 255 : buffer.data[i] !== 0 && buffer.data[i] !== 255)
       return reject('cicn-body-alpha-mismatch');
-  return { kind: 'ready', buffer, sourceRect, side: inset, step, copy, sourceAssetUrl: url, ...(derivedPath ? { derivedPath } : {}) };
+  const [url, targetUrl] = opts.trace ? await Promise.all([raster.imageUrl(), targetRaster.imageUrl()]) : [raster.key, targetRaster.key];
+  const selected = { ...step, resource: { ...step.resource!, assetUrl: targetUrl! } };
+  return { kind: 'ready', buffer, sourceRect, side: inset, step: selected, copy, sourceAssetUrl: url!, ...(derivedPath ? { derivedPath } : {}) };
 }
 
 async function loadBodyPattern(face: ResolvedControlFace, opts: FaceOptions): Promise<{ buffer: PixelBuffer | null; solidFallback: boolean; selection?: ControlResolutionStep }> {
@@ -694,12 +701,19 @@ async function loadBodyPattern(face: ResolvedControlFace, opts: FaceOptions): Pr
   const common = { role: 'body-fill' as const, requestedId: request.resourceId, bodyMode: request.mode,
     requestedResourceType: request.mode === 5 ? 'cicn' as const : 'ppat' as const,
     basis: 'compatibility-policy' as const, usage: 'paint' as const,
-    owner: { baseUrl: face.theme.baseUrl, chainDepth: face.chainDepth } };
+    owner: { baseUrl: face.theme.origin, chainDepth: face.chainDepth } };
   if (!Number.isInteger(request.mode) || request.mode < 0 || request.mode > 255 || request.mode === 5 || !face.element.slice) {
     opts.trace?.record({ ...common, action: 'fallback', reason: request.mode === 5 ? 'cicn-body-not-implemented' : 'body-mode-or-geometry-not-implemented' });
     return { buffer: null, solidFallback: false };
   }
   const patterns = face.theme.manifest.patterns ?? {};
+  const rejected: { step: ControlResolutionStep; raster: RasterSource | undefined }[] = [];
+  const reportRejected = async () => {
+    for (const { step, raster } of rejected) {
+      const resource = step.resource && raster ? { ...step.resource, assetUrl: await raster.imageUrl() } : undefined;
+      opts.trace?.record({ ...step, ...(resource ? { resource } : {}) });
+    }
+  };
   let key: string | null = null;
   let selectionReason = 'unique-id-pattern-paint';
   // The loader carries its last decoded occurrence before numeric catalog keys
@@ -715,15 +729,16 @@ async function loadBodyPattern(face: ResolvedControlFace, opts: FaceOptions): Pr
     visited.add(candidate);
     const linked = patterns[candidate];
     if (linked?.sourcePpatId === request.resourceId) { key = candidate; selectionReason = reason; break; }
-    opts.trace?.record({ ...common, action: 'rejected', reason: 'linked-pattern-id-mismatch', ...(linked ? { resource: {
-      type: 'ppat' as const, signedId: linked.sourcePpatId ?? null, sourceCinfId: null, manifestKey: candidate,
-      assetUrl: assetUrl(face.theme, linked.asset), ...(linked.byteProvenance ? { byteProvenance: linked.byteProvenance } : {}),
-    } } : {}) });
+    if (opts.trace) rejected.push({ raster: linked ? face.theme.asset(linked.asset) : undefined, step: { ...common, action: 'rejected', reason: 'linked-pattern-id-mismatch', ...(linked ? { resource: {
+      type: 'ppat', signedId: linked.sourcePpatId ?? null, sourceCinfId: null, manifestKey: candidate,
+      assetUrl: '', ...(linked.byteProvenance ? { byteProvenance: { ...linked.byteProvenance } } : {}),
+    } } : {}) } });
   }
   if (!key) {
     for (const candidate of Object.keys(patterns)) {
       if (patterns[candidate]!.sourcePpatId !== request.resourceId) continue;
       if (key !== null) {
+        await reportRejected();
         opts.trace?.record({ ...common, action: 'missing', reason: 'ambiguous-legacy-pattern-order' });
         return { buffer: null, solidFallback: false };
       }
@@ -731,6 +746,10 @@ async function loadBodyPattern(face: ResolvedControlFace, opts: FaceOptions): Pr
     }
   }
   const pattern = key ? patterns[key] : undefined;
+  const raster = pattern ? face.theme.asset(pattern.asset) : undefined;
+  const resource = pattern && opts.trace ? { type: 'ppat' as const, signedId: pattern.sourcePpatId ?? null, sourceCinfId: null, manifestKey: key!,
+    assetUrl: '', ...(pattern.byteProvenance ? { byteProvenance: { ...pattern.byteProvenance } } : {}) } : undefined;
+  await reportRejected();
   if (!pattern) {
     opts.trace?.record({ ...common, action: 'missing', reason: 'same-face-owner-pattern-unavailable' });
     // Current same-owner lookup miss corresponds to the full-color solid path.
@@ -739,14 +758,9 @@ async function loadBodyPattern(face: ResolvedControlFace, opts: FaceOptions): Pr
       && [face.element.slice.corner, face.element.slice.side].every(value => Number.isInteger(value) && value >= 0 && value <= 255);
     return { buffer: null, solidFallback };
   }
-  const url = assetUrl(face.theme, pattern.asset);
-  // Capture actual owner/occurrence at the load boundary for completed header
-  // paint reporting, without repeating resolution after asynchronous decoding.
-  const selection: ControlResolutionStep | undefined = opts.trace ? { ...common, action: 'selected',
-    reason: selectionReason,
-    resource: { type: 'ppat', signedId: pattern.sourcePpatId ?? null, sourceCinfId: null, manifestKey: key!, assetUrl: url,
-      ...(pattern.byteProvenance ? { byteProvenance: { ...pattern.byteProvenance } } : {}) } } : undefined;
-  const buffer = await loadCicnBuffer(url);
+  const buffer = await raster!.pixels();
+  const selection: ControlResolutionStep | undefined = resource ? { ...common, action: 'selected', reason: selectionReason,
+    resource: { ...resource, assetUrl: await raster!.imageUrl() } } : undefined;
   if (selection) opts.trace?.record(selection);
   return { buffer, solidFallback: false, ...(selection ? { selection } : {}) };
 }
@@ -816,6 +830,11 @@ async function composeFaceButton(
   const innerH = lineH;
   const out = PixelBuffer.alloc(innerW, innerH);
   const context = opts.composition ?? snapshotControlComposition();
+  const bodyRects = cinfBodyRects(rect(0, 0, innerH, innerW), fIns, fSide);
+  const pixelBodyRects = bodyRects.map(r => rect(Math.ceil(r.top), Math.ceil(r.left), Math.ceil(r.bottom), Math.ceil(r.right)));
+  const clip = context.clip.kind === 'rect' ? rect(context.clip.rect.y - context.controlOrigin[1],
+    context.clip.rect.x - context.controlOrigin[0], context.clip.rect.y + context.clip.rect.h - context.controlOrigin[1],
+    context.clip.rect.x + context.clip.rect.w - context.controlOrigin[0]) : undefined;
   // A completed body dependency describes a published composition, not an
   // intermediate offscreen write. Borders can still decode asynchronously.
   let mode5PaintStep: ControlResolutionStep | undefined;
@@ -851,7 +870,7 @@ async function composeFaceButton(
     throw new CinfEnvironmentError('Declared cinf raw background sample unavailable', 'UNSUPPORTED_CINF_ENVIRONMENT');
   if (cicnBody?.kind === 'missing' && !sourceBg) opts.trace?.record({
     role: 'body-fill', requestedId: faceEl.bodyRequest!.resourceId, bodyMode: 5, requestedResourceType: 'cicn',
-    basis: 'compatibility-policy', usage: 'paint', owner: { baseUrl: resolved.theme.baseUrl, chainDepth: resolved.chainDepth },
+    basis: 'compatibility-policy', usage: 'paint', owner: { baseUrl: resolved.theme.origin, chainDepth: resolved.chainDepth },
     action: 'fallback', reason: 'missing-cicn-body-background-unverified',
   });
   if (cicnBody?.kind === 'ready') {
@@ -875,28 +894,14 @@ async function composeFaceButton(
     out.drawOver(await composeControlBorder(resolved, innerW, innerH, opts, (x, y) => controlPointVisible(context, x, y)), 0, 0);
   } else if (pattern && faceEl.slice && faceEl.bodyRequest) {
     const [phaseX, phaseY] = bodyPatternPhase(context, faceEl.bodyRequest.mode, innerW, innerH);
-    let paintedPixels = 0;
-    // Full-color f7cc/FillCRect: both inset rectangles share the original D/P
-    // phase. Their union is filled before the masked border; do not tile each
-    // inset from its own origin or alpha-mask the body by the face raster.
-    for (let y = 0; y < innerH; y++) for (let x = 0; x < innerW; x++) {
-      const inBody = (x >= fIns && x < innerW - fIns && y >= fSide && y < innerH - fSide)
-        || (x >= fSide && x < innerW - fSide && y >= fIns && y < innerH - fIns);
-      if (!inBody || !controlPointVisible(context, x, y)) continue;
-      const px = ((phaseX + x) % pattern.width + pattern.width) % pattern.width;
-      const py = ((phaseY + y) % pattern.height + pattern.height) % pattern.height;
-      out.setPixel(x, y, ...pattern.getPixel(px, py));
-      // Count writes, including transparent samples, once across the overlapping union.
-      paintedPixels++;
-    }
+    // Both insets share the original phase. The final face clip clears writes
+    // outside the declared port; coverage counts the overlapping union once.
+    for (const box of pixelBodyRects) fillPattern(out, box, pattern, { x: -phaseX, y: -phaseY });
+    const paintedPixels = pattern.width > 0 && pattern.height > 0 ? bodyWriteCount(out, pixelBodyRects, clip) : 0;
     if (opts.trace && body.selection && paintedPixels) {
-      const rect = (x: number, y: number) => {
-        const left = Math.max(0, x), top = Math.max(0, y);
-        return { x: left, y: top, w: Math.max(0, Math.min(innerW, innerW - x) - left),
-          h: Math.max(0, Math.min(innerH, innerH - y) - top) };
-      };
-      const unionRects = [rect(fIns, fSide), ...(fIns === fSide ? [] : [rect(fSide, fIns)])]
-        .filter(r => r.w > 0 && r.h > 0);
+      const unionRects = bodyRects.map(r => ({ x: Math.max(0, r.left), y: Math.max(0, r.top),
+        w: Math.max(0, Math.min(innerW, r.right) - Math.max(0, r.left)),
+        h: Math.max(0, Math.min(innerH, r.bottom) - Math.max(0, r.top)) })).filter(r => r.w > 0 && r.h > 0);
       patternPaint = { branch: 'pattern-fill-union', coordinateSpace: 'face-local-before-ring',
         unionRects, paintedPixels, sourceAssetUrl: body.selection.resource!.assetUrl,
         sourceSize: [pattern.width, pattern.height], context,
@@ -909,16 +914,12 @@ async function composeFaceButton(
     // Their union is a cross when corner != side. Fill precedes the border,
     // so transparent edge samples reveal the body without erasing earlier art.
     const [br, bgc, bb] = sourceBg ?? [cr, cg, cb];
-    out.fillRect({ x: fIns, y: fSide, w: innerW - fIns * 2, h: innerH - fSide * 2 }, br!, bgc!, bb!, 255);
-    if (fIns !== fSide) out.fillRect({ x: fSide, y: fIns, w: innerW - fSide * 2, h: innerH - fIns * 2 }, br!, bgc!, bb!, 255);
+    for (const r of bodyRects) out.fillRect({ x: r.left, y: r.top, w: r.right - r.left, h: r.bottom - r.top }, br!, bgc!, bb!, 255);
     if (cicnBody?.kind === 'missing' && sourceBg) {
-      let paintedPixels = 0;
-      for (let y = 0; y < innerH; y++) for (let x = 0; x < innerW; x++)
-        if (controlPointVisible(context, x, y) && ((x >= fIns && x < innerW - fIns && y >= fSide && y < innerH - fSide)
-          || (x >= fSide && x < innerW - fSide && y >= fIns && y < innerH - fIns))) paintedPixels++;
+      const paintedPixels = bodyWriteCount(out, pixelBodyRects, clip);
       if (paintedPixels) mode5PaintStep = { role: 'body-fill', requestedId: faceEl.bodyRequest!.resourceId, bodyMode: 5,
         requestedResourceType: 'cicn', basis: 'source-dispatch', usage: 'paint', action: 'missing',
-        owner: { baseUrl: resolved.theme.baseUrl, chainDepth: resolved.chainDepth }, reason: 'missing-cicn-body-erase-union',
+        owner: { baseUrl: resolved.theme.origin, chainDepth: resolved.chainDepth }, reason: 'missing-cicn-body-erase-union',
         bodyPaint: { branch: 'missing-erase', destinationRect: { x: 0, y: 0, w: innerW, h: innerH }, paintedPixels } };
     }
     out.drawOver(await composeControlBorder(resolved, innerW, innerH, opts, (x, y) => controlPointVisible(context, x, y)), 0, 0);
@@ -994,6 +995,7 @@ async function composeControlBorder(resolved: ResolvedControlFace, width: number
     && /^cicn-sampled\/[^/]+\.png$/.test(companion.derivedPath);
   let sampled: PixelBuffer | null = null;
   let attempted = false;
+  let sampledRaster: RasterSource | undefined, sampledImage: string | undefined;
   for (const [regionIndex, region] of regions.entries()) {
     const { src: { left: sx, top: sy }, dst: { left: dx, top: dy }, extents: [rw, rh, dw, dh] } = region;
     if (rw <= 0 || rh <= 0 || dw <= 0 || dh <= 0) continue;
@@ -1011,7 +1013,8 @@ async function composeControlBorder(resolved: ResolvedControlFace, width: number
     if (!paints) continue;
     if (branch !== 'copy' && !equivalent && eligible && !attempted) {
       attempted = true;
-      const decoded = await loadCicnBuffer(assetUrl(resolved.theme, companion.asset));
+      sampledRaster = resolved.theme.asset(companion.asset);
+      const decoded = await sampledRaster.pixels();
       if (decoded.width === source.width && decoded.height === source.height) {
         let sameMask = true;
         for (let i = 3; i < source.data.length; i += 4) if (decoded.data[i] !== source.data[i]) { sameMask = false; break; }
@@ -1031,23 +1034,24 @@ async function composeControlBorder(resolved: ResolvedControlFace, width: number
     }
     // FEAE's masked blits preserve earlier bands below transparent samples.
     out.drawOver(band, x0, y0);
+    if (opaqueUsed && opts.trace && policy === 'sampled-companion') sampledImage ??= await sampledRaster!.imageUrl();
     if (opaqueUsed) opts.trace?.bandPaint({ role: 'face', region: regionIndex, branch, policy,
-      owner: { baseUrl: resolved.theme.baseUrl, chainDepth: resolved.chainDepth }, resource: resourceIdentity(resolved),
+      owner: { baseUrl: resolved.theme.origin, chainDepth: resolved.chainDepth }, resource: resolved.loadedIdentity!.resource,
       ...(policy === 'sampled-companion' && companion ? { derived: { path: companion.derivedPath,
-        assetUrl: assetUrl(resolved.theme, companion.asset), model: companion.model, displayPolicy: companion.displayPolicy } } : {}) });
+        assetUrl: sampledImage!, model: companion.model, displayPolicy: companion.displayPolicy } } : {}) });
   }
   return out;
 }
 
 /** Compose a push face, label and optional default ring with the v2 engine. */
-export async function composeButton(theme: LoadedTheme, opts: ButtonOptions = {}, signal?: AbortSignal): Promise<PixelBuffer | null> {
+export async function composeButton(theme: ThemeInput, opts: ButtonOptions = {}, signal?: AbortSignal): Promise<PixelBuffer | null> {
   return (await composeButtonWithLayout(theme, opts, signal))?.buffer ?? null;
 }
 
 /** Internal adapter seam: actual face placement, never a second ring resolver. */
-export async function composeButtonWithLayout(theme: LoadedTheme, opts: ButtonOptions = {}, signal?: AbortSignal,
+export async function composeButtonWithLayout(theme: ThemeInput, opts: ButtonOptions = {}, signal?: AbortSignal,
   preparedContext?: ControlCompositionSnapshot): Promise<ButtonComposition | null> {
-  return composeEnginePush(theme, opts, signal, preparedContext);
+  return withThemeView(theme, view => composeEnginePush(view, opts, signal, preparedContext));
 }
 
 /**
@@ -1058,18 +1062,20 @@ export async function composeButtonWithLayout(theme: LoadedTheme, opts: ButtonOp
  * bundle (exact → same-value unpressed → -10163) and returns null (→
  * platinumBevelButton) when the scheme ships no bevel-button cicn for this state.
  */
-export async function composeBevelButton(theme: LoadedTheme, opts: BevelButtonOptions = {}): Promise<PixelBuffer | null> {
-  const state = opts.pressed ? 'pressed' : opts.disabled ? 'inactive' : 'active';
-  return withControlDiagnostics(opts.diagnostics, 'bevel-button', {
-    state, pressed: !!opts.pressed, disabled: !!opts.disabled, on: !!opts.on, small: !!opts.small,
-  }, async trace => {
-    const composition = snapshotControlComposition(opts.compositionContext);
-    const preparedOptions = { ...opts, fontSize: buttonFontSize(opts.fontSize) };
-    return composeBevelButtonWithTrace(theme, preparedOptions, composition, trace);
+export async function composeBevelButton(inputTheme: ThemeInput, opts: BevelButtonOptions = {}): Promise<PixelBuffer | null> {
+  return withThemeView(inputTheme, async theme => {
+    const state = opts.pressed ? 'pressed' : opts.disabled ? 'inactive' : 'active';
+    return withControlDiagnostics(opts.diagnostics, 'bevel-button', {
+      state, pressed: !!opts.pressed, disabled: !!opts.disabled, on: !!opts.on, small: !!opts.small,
+    }, async trace => {
+      const composition = snapshotControlComposition(opts.compositionContext);
+      const preparedOptions = { ...opts, fontSize: buttonFontSize(opts.fontSize) };
+      return composeBevelButtonWithTrace(theme, preparedOptions, composition, trace);
+    });
   });
 }
 
-async function composeBevelButtonWithTrace(theme: LoadedTheme, opts: BevelButtonOptions, composition: ControlCompositionSnapshot,
+async function composeBevelButtonWithTrace(theme: ThemeView, opts: BevelButtonOptions, composition: ControlCompositionSnapshot,
   trace?: ControlTraceCollector): Promise<PixelBuffer | null> {
   const sizeBase = opts.small ? 10171 : 10162;
   const valueOff = opts.on ? 0 : 3;                          // set/on group, then clear/off (+3)
@@ -1095,7 +1101,7 @@ async function composeBevelButtonWithTrace(theme: LoadedTheme, opts: BevelButton
 
 /** Whole Appearance header surface with explicit Rect/state/clip and finite
  * source admission. Existing composeListHeader remains a column compatibility API. */
-export async function composeHeaderSurface(theme: LoadedTheme, opts: HeaderSurfaceOptions): Promise<HeaderSurfaceResult> {
+export async function composeHeaderSurface(theme: ThemeInput, opts: HeaderSurfaceOptions): Promise<HeaderSurfaceResult> {
   return composeEngineHeaderSurface(theme, opts);
 }
 
@@ -1108,13 +1114,13 @@ export interface ListHeaderOptions { columns?: ListHeaderColumn[]; height?: numb
  * This is not the original whole-header call. See composeHeaderSurface for the
  * separately admitted Rect/state model. Returns null when the scheme ships none.
  */
-export async function composeListHeader(theme: LoadedTheme, opts: ListHeaderOptions = {}): Promise<PixelBuffer | null> {
+export async function composeListHeader(theme: ThemeInput, opts: ListHeaderOptions = {}): Promise<PixelBuffer | null> {
   return composeEngineHeaderColumns(theme, opts);
 }
 
 /** Checkable Boolean mapping, browser fonts and archive/base environment are
  * declared public policies. The engine owns typed state selection and paint order. */
-export async function composeCheckable(theme: LoadedTheme, kind: 'checkbox' | 'radio', opts: CheckableOptions = {}): Promise<PixelBuffer | null> {
+export async function composeCheckable(theme: ThemeInput, kind: 'checkbox' | 'radio', opts: CheckableOptions = {}): Promise<PixelBuffer | null> {
   return composeEngineCheckable(theme, kind, opts);
 }
 

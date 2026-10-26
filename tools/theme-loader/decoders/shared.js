@@ -126,26 +126,6 @@ export function readColorTable(r) {
 }
 
 /**
- * Resolve an indexed pixel to RGB.
- *
- * Legacy compatibility helper: prefer record position, then match value if
- * that position is absent. This is not a general ColorTable rule. Both cicn
- * and ppat now use local flag-aware mappings with independent format fixtures;
- * this exported helper retains its prior behavior for other callers.
- */
-export function indexToRgb(index, colorTable) {
-  if (index >= 0 && index < colorTable.entries.length) {
-    const e = colorTable.entries[index];
-    return [e.r >> 8, e.g >> 8, e.b >> 8];
-  }
-  // Fallback: search by value field.
-  const hit = colorTable.entries.find(e => e.value === index);
-  if (hit) return [hit.r >> 8, hit.g >> 8, hit.b >> 8];
-  // Last resort: black (visible-bug colour so we notice).
-  return [0, 0, 0];
-}
-
-/**
  * Expand packed indexed pixel data into a flat array of indices.
  *
  *  - 1 bpp: 1 bit per pixel, MSB-first within each byte
@@ -158,36 +138,16 @@ export function indexToRgb(index, colorTable) {
  */
 export function expandIndexedPixels(packed, width, height, pixelSize, rowBytes) {
   const out = new Uint8Array(width * height);
+  const supported = [1, 2, 4, 8].includes(pixelSize);
+  const perByte = supported ? 8 / pixelSize : 0, mask = supported ? (1 << pixelSize) - 1 : 0;
+  const byteShift = pixelSize === 1 ? 3 : pixelSize === 2 ? 2 : 1;
   for (let y = 0; y < height; y++) {
     const rowStart = y * rowBytes;
     for (let x = 0; x < width; x++) {
-      let value;
-      switch (pixelSize) {
-        case 8: {
-          value = packed[rowStart + x];
-          break;
-        }
-        case 4: {
-          const byte = packed[rowStart + (x >> 1)];
-          value = (x & 1) ? (byte & 0x0F) : (byte >> 4);
-          break;
-        }
-        case 2: {
-          const byte = packed[rowStart + (x >> 2)];
-          const shift = 6 - ((x & 3) * 2);
-          value = (byte >> shift) & 0x03;
-          break;
-        }
-        case 1: {
-          const byte = packed[rowStart + (x >> 3)];
-          const shift = 7 - (x & 7);
-          value = (byte >> shift) & 0x01;
-          break;
-        }
-        default:
-          throw new Error(`Unsupported pixelSize: ${pixelSize}`);
-      }
-      out[y * width + x] = value;
+      if (!supported) throw new Error(`Unsupported pixelSize: ${pixelSize}`);
+      const byte = packed[rowStart + (pixelSize === 8 ? x : x >> byteShift)];
+      const shift = (perByte - 1 - (x & (perByte - 1))) * pixelSize; // leftmost sample first
+      out[y * width + x] = (byte >> shift) & mask;
     }
   }
   return out;
@@ -198,15 +158,7 @@ export function expandIndexedPixels(packed, width, height, pixelSize, rowBytes) 
  * Same row-byte alignment story as expandIndexedPixels.
  */
 export function expandMask(packed, width, height, rowBytes) {
-  const out = new Uint8Array(width * height);
-  for (let y = 0; y < height; y++) {
-    const rowStart = y * rowBytes;
-    for (let x = 0; x < width; x++) {
-      const byte = packed[rowStart + (x >> 3)];
-      const shift = 7 - (x & 7);
-      const bit = (byte >> shift) & 0x01;
-      out[y * width + x] = bit ? 255 : 0;
-    }
-  }
+  const out = expandIndexedPixels(packed, width, height, 1, rowBytes);
+  for (let i = 0; i < out.length; i++) out[i] *= 255;
   return out;
 }

@@ -1,22 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
-import ts from 'typescript';
-
-// Inline the two DOM-free dependencies so Node can run the TS module's .js
-// imports without a build or browser dependency.
-const moduleUrl = async (path) => 'data:text/javascript;base64,' + Buffer.from(
-  ts.transpileModule(await readFile(new URL(path, import.meta.url), 'utf8'), {
-    compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext },
-  }).outputText.replace('../tools/theme-loader/display-profile.js',
-    new URL('../../tools/theme-loader/display-profile.js', import.meta.url).href),
-).toString('base64');
-let source = ts.transpileModule(await readFile(new URL('./themePicker.ts', import.meta.url), 'utf8'), {
-  compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext },
-}).outputText;
-source = source.replace('../baseChain.js', await moduleUrl('../baseChain.ts'))
-  .replace('./icon.js', await moduleUrl('./icon.ts'));
-const { promoteThemePicker } = await import('data:text/javascript;base64,' + Buffer.from(source).toString('base64'));
+import '../../tests/helpers/registerTs.mjs';
+const { promoteThemePicker } = await import('./themePicker.ts');
 
 class Element extends EventTarget {
   dataset = {};
@@ -142,4 +127,21 @@ test('activating a failed background tile retries its icon and updates busy stat
   assert.equal(calls, 2);
   assert.equal(tile.getAttribute('aria-busy'), 'false');
   assert.equal(tile.children[0].src, 'data:image/png;base64,recovered');
+});
+
+test('owned active preview captures its base owner and exports only the selected icon', async t => {
+  const { createRasterAssetOwner, bindRasterOwner } = await import('../../tools/theme-loader/rasterAssets.js');
+  const owner = createRasterAssetOwner(['folder', 'unused'].map(path => ({ path, width: 1, height: 1,
+    rgba: new Uint8Array([1, 2, 3, 255]) })), (_rgba, _w, _h, path) => `blob:${path}`);
+  t.after(owner.dispose);
+  const source = { manifest: {}, inspector: { iconIndex: [{ id: -3983, size: 32, url: 'folder' }] } };
+  bindRasterOwner(source, owner);
+  const base = { kind: 'owned-theme', source, origin: '', imageUrl: owner.imageUrl, dispose: owner.dispose };
+  const child = { kind: 'owned-theme', source: { manifest: {} }, base, origin: '/child', imageUrl() { throw new Error('Wrong image owner'); }, dispose() {} };
+  const el = setup(t);
+  const picker = await promoteThemePicker(el, [{ slug: 'one' }], { initialSlug: 'one', loadTheme: async () => child, switchTheme() {} });
+  t.after(picker.teardown);
+  await flush();
+  assert.equal(el.children[0].children[0].src, 'blob:folder');
+  assert.equal(owner.usage().images, 1);
 });

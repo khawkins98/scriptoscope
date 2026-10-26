@@ -118,7 +118,6 @@ function composeRgba(indices, maskAlpha, pmap, mask, colorTable, realizeRgb16) {
   const realized = new Map();
   const w = pmap.width, h = pmap.height;
   const rgba = new Uint8Array(w * h * 4);
-  const sameDims = (mask.width === w && mask.height === h);
 
   for (let y = 0; y < h; y++) {
     for (let x = 0; x < w; x++) {
@@ -133,12 +132,7 @@ function composeRgba(indices, maskAlpha, pmap, mask, colorTable, realizeRgb16) {
       }
       const [r, g, b] = rgb;
 
-      let alpha = 255;
-      if (sameDims) {
-        alpha = maskAlpha[i];
-      } else if (x < mask.width && y < mask.height) {
-        alpha = maskAlpha[y * mask.width + x];
-      }
+      const alpha = x < mask.width && y < mask.height ? maskAlpha[y * mask.width + x] : 255;
 
       const o = i * 4;
       rgba[o] = r;

@@ -195,3 +195,9 @@ test('ADM16 ignores mask-set sample lines outside clip without restarting source
   assert.equal(result.lineSampling, 'not-required'); assert.equal(result.unsupported, undefined);
   assert.equal(out.getPixel(1, 1)[3], 0); assert.deepEqual(out.getPixel(2, 1), [10, 20, 30, 255]);
 });
+
+test('shared cinf geometry preserves the two published equal-inset body rectangles', () => {
+  const geometry = planHeaderGeometry({ width: 3, height: 3 }, { corner: 1, side: 1, tile: false }, plan());
+  assert.deepEqual(geometry.bodyRects, [{ x: 1, y: 1, w: 6, h: 6 }, { x: 1, y: 1, w: 6, h: 6 }]);
+  assert.notEqual(geometry.bodyRects[0], geometry.bodyRects[1]);
+});

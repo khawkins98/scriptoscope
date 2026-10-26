@@ -92,9 +92,9 @@ export interface CinfFrameResult {
   colorsAvailable?: boolean;
 }
 
-export function cinfBodyRects(D: QdRect, c: number, s: number): QdRect[] {
+export function cinfBodyRects(D: QdRect, c: number, s: number, retainDuplicate = false): QdRect[] {
   const boxes = [rect(D.top + s, D.left + c, D.bottom - s, D.right - c)];
-  if (c !== s) boxes.push(rect(D.top + c, D.left + s, D.bottom - c, D.right - s));
+  if (c !== s || retainDuplicate) boxes.push(rect(D.top + c, D.left + s, D.bottom - c, D.right - s));
   return boxes.filter(r => !emptyRect(r));
 }
 export function cinfPhase(D: QdRect, mode: number): { row: CinfPhaseRow; phase: QdPoint } {
@@ -105,7 +105,7 @@ export function cinfPhase(D: QdRect, mode: number): { row: CinfPhaseRow; phase: 
 const none = (): CinfFrameResult => ({ drawn: false, cinfId: null, backgroundRGB: null, textRGB: null, embossRGB: null, colorsAvailable: false });
 
 /** Count the completed operation's visible write coverage, never the final raster. */
-function bodyWriteCount(port: Pixmap, boxes: readonly QdRect[], clip?: QdRect,
+export function bodyWriteCount(port: Pick<Pixmap, 'width' | 'height'>, boxes: readonly QdRect[], clip?: QdRect,
   mask?: { pixmap: Pixmap; destination: QdRect }): number {
   let count = 0;
   for (const [index, r] of boxes.entries()) {
@@ -156,7 +156,7 @@ export function cinfBorderPlan(cicn: Pick<Pixmap, 'width' | 'height'>,
   });
 }
 
-function bandVisible(port: Pick<Pixmap, 'width' | 'height'>, cicn: Pixmap, src: QdRect, dst: QdRect,
+export function bandVisible(port: Pick<Pixmap, 'width' | 'height'>, cicn: Pixmap, src: QdRect, dst: QdRect,
   branch: ControlBandPaint['branch'], clip?: QdRect): boolean {
   if (emptyRect(src) || emptyRect(dst) || !insideBounds(cicn, src)) return false;
   for (let y = Math.max(0, dst.top, clip?.top ?? 0); y < Math.min(port.height, dst.bottom, clip?.bottom ?? port.height); y++) {

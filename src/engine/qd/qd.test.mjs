@@ -174,3 +174,14 @@ test('pen: LineTo covers both endpoints and moves the pen; diagonals are refused
 test('rectXYWH converts the legacy box form', () => {
   assert.deepEqual(rectXYWH(2, 3, 4, 5), rect(3, 2, 8, 6));
 });
+
+test('tile traversal preserves in-place transfer order on both axes', () => {
+  for (const vertical of [false, true]) for (const direction of [0, 1]) {
+    const port = labelled(vertical ? 1 : 8, vertical ? 8 : 1);
+    const source = vertical ? rect(0, 0, 2, 1) : rect(0, 0, 1, 2);
+    const destination = vertical ? rect(1, 0, 8, 1) : rect(0, 1, 1, 8);
+    tileBlit(port, port, source, destination, direction, 'copyBits');
+    const labels = vertical ? colLabels(port, 0, 0, 8) : rowLabels(port, 0, 0, 8);
+    assert.deepEqual(labels, direction ? [0, 0, 0, 0, 0, 0, 0, 0] : [0, 1, 0, 1, 0, 1, 0, 1]);
+  }
+});

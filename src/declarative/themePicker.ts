@@ -21,7 +21,7 @@
 // to mountDeclarative({ themes }) — same shape as the existing
 // themes-manifest.json ({ slug, name, author?, year? }).
 
-import type { LoadedTheme } from '../types.js';
+import { themeView, type ThemeInput, type ThemeView } from '../ownedTheme.js';
 import type { ThemeEntry } from './theme.js';
 import { resolveInChain } from '../baseChain.js';
 import { ICON_NAMES } from './icon.js';
@@ -36,7 +36,7 @@ export type PickerThemeEntry = ThemeEntry;
 export interface PickerDeps {
   /** Load a theme by slug — used to harvest each scheme's folder icon for
    *  the tile. Same shape as the resolver's `load` method. */
-  loadTheme(slug: string): Promise<LoadedTheme>;
+  loadTheme(slug: string): Promise<ThemeInput>;
   /** Optional folder-only decoder. Other tiles avoid full theme conversion. */
   loadIcon?(slug: string, primaryId: number, fallbackId: number): Promise<string | null>;
   /** Switch the page to a scheme. Same shape as handle.retheme. */
@@ -196,17 +196,20 @@ export async function promoteThemePicker(
   // now; re-expose if a real consumer hits a perf cliff that needs it.
   const concurrencyCap = 2;
   // Shared lookup: 32px preferred, else any size with the requested id.
-  const pickIn = (t: LoadedTheme, id: number) => {
+  const pickIn = (t: ThemeView, id: number) => {
     const idx = t.inspector?.iconIndex ?? [];
     return idx.find((i) => i.id === id && i.size === 32) ?? idx.find((i) => i.id === id);
   };
-  const pickInChain = (t: LoadedTheme) =>
-    resolveInChain(t, (x) => pickIn(x, primaryId) ?? pickIn(x, fallbackId));
+  const pickInChain = (t: ThemeView) => resolveInChain(t, (owner) => {
+    const hit = pickIn(owner, primaryId) ?? pickIn(owner, fallbackId);
+    return hit ? { source: hit.url ? owner.asset(hit.url) : undefined } : undefined;
+  });
   const iconFor = async (slug: string): Promise<string | null> => {
     // Reuse the active theme already loaded for page chrome. Background tiles
     // need only their folder icon, not hundreds of chrome/inspector assets.
     if (deps.loadIcon && slug !== deps.initialSlug) return deps.loadIcon(slug, primaryId, fallbackId);
-    return pickInChain(await deps.loadTheme(slug))?.url ?? null;
+    const source = pickInChain(themeView(await deps.loadTheme(slug)))?.source;
+    return source ? source.imageUrl() : null;
   };
   // Memoised fallback URL — the first valid folder icon found among
   // initialSlug / themes[]. Single search, reused for every sparse tile.

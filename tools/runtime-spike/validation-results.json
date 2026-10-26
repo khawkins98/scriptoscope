@@ -1,0 +1,149 @@
+{
+  "recordedAt": "2026-10-26T10:40:27.012Z",
+  "implementationRevision": "6cfe9afda52825b848702aef942065f3daf6a647",
+  "status": "required-checks-pass-optional-visual-unresolved",
+  "checks": {
+    "loaderUnits": {
+      "command": "node --experimental-strip-types --test tools/theme-loader/*.test.mjs",
+      "passed": 164,
+      "failed": 0
+    },
+    "packageConsumer": {
+      "command": "npm run test:package",
+      "status": "pass"
+    },
+    "gates": {
+      "command": "npm run gates",
+      "status": "pass",
+      "execution": "Integration branch after independent commit cherry-pick",
+      "nodePassed": 1147,
+      "nodeFailed": 0,
+      "nodeSkipped": 2,
+      "nodeTodo": 12
+    },
+    "requiredBrowsers": {
+      "command": "npm run test:rendering",
+      "status": "pass",
+      "execution": "Complete integration suite after independent commit cherry-pick",
+      "passed": 576,
+      "failed": 0
+    },
+    "engineDiff": {
+      "command": "npm run engine-diff",
+      "status": "pass",
+      "cells": 12902,
+      "changed": 0
+    },
+    "themeLint": {
+      "command": "npm run lint:themes -- --strict",
+      "status": "pass"
+    },
+    "sceneAudit": {
+      "command": "npm run audit:scenes -- --check",
+      "status": "pass"
+    },
+    "requirements": {
+      "command": "npm run test:requirements",
+      "status": "pass"
+    },
+    "references": {
+      "command": "npm run test:references",
+      "status": "pass"
+    },
+    "sourceInputs": {
+      "command": "npm run test:source-inputs",
+      "status": "pass"
+    },
+    "acceptanceBindings": {
+      "command": "npm run test:acceptance:bindings",
+      "status": "pass",
+      "execution": "Full integration gates",
+      "sources": 18,
+      "cells": 594
+    },
+    "productionReference": {
+      "command": "SCRIPTOSCOPE_RUNTIME_REFERENCE_ENTRY=<verified compiled f905de9d entry> node tools/runtime-spike/run.mjs --production",
+      "status": "pass",
+      "report": "production-reference-results.json",
+      "qualification": "Run concurrently with browser contracts; use as output-equivalence evidence, not isolated timing evidence."
+    },
+    "linuxGoldens": {
+      "command": "npm run test:rendering:container -- verify",
+      "status": "pass",
+      "passed": 36
+    },
+    "finalHistoricalApplication": {
+      "command": "SCRIPTOSCOPE_EAGER_ENTRY=<verified reconstructed de942c63 entry> node tools/runtime-spike/application.mjs",
+      "status": "pass",
+      "trials": 6,
+      "report": "application-historical-results.json",
+      "startupMs": {
+        "eager": [
+          5546,
+          8036,
+          8493
+        ],
+        "owned": [
+          619,
+          1230,
+          788
+        ]
+      },
+      "medianStartupMs": {
+        "eager": 8036,
+        "owned": 788
+      },
+      "qualification": "Current application and controlled styles; reconstructed frozen eager API versus final owned build. Fresh profiles, shared OS/Vite caches. No concurrent task-started validation/build jobs. Slower in both modes than prior stage; cause unestablished. Not a portable budget."
+    },
+    "libraryOnlyPackageCensus": {
+      "command": "npm run build; npm pack --dry-run --json",
+      "status": "pass",
+      "report": "shipped-size-results.json",
+      "compressedBytes": 996635,
+      "unpackedBytes": 3288067,
+      "entries": 116
+    },
+    "laneReadiness": {
+      "command": "SCRIPTOSCOPE_TRAPS_H=<pinned UI 3.0.1 Traps.h> npm run lane:ready",
+      "status": "exact-head-result-reported-in-pr",
+      "qualification": "Runs after this report commit is pushed; outcome recorded in PR #480 without mutating the tested head."
+    }
+  },
+  "independentEvidenceModified": true,
+  "olderOptionalVisualSuite": {
+    "status": "fail",
+    "passed": 33,
+    "failed": 8,
+    "report": "optional-visual-results.json",
+    "publicClarificationHandoff": "older-visual-contract-questions.md",
+    "qualification": "Normal unchanged optional command with serialized file execution. No independent source, fixture, oracle or review artifact was opened; only ordinary command results and diagnostics used. Same eight case labels as earlier stage; no proof that failures predate migration. Listing-free public inputs/intended contract are still needed."
+  },
+  "integrationRevision": "c157454c",
+  "independentEvidenceModifiedByImplementer": false,
+  "independentRefresh": {
+    "status": "completed",
+    "authorization": "Maintainer explicitly authorized a separate independent verifier/evidence-owner assignment.",
+    "isolatedCandidate": "6cfe9afda52825b848702aef942065f3daf6a647",
+    "verifierCommit": "7e5029c61892f4a41c05e478030f6d0c58d2e1d0",
+    "integrationCommit": "c157454c",
+    "returnBoundary": "Only completion, commit identity and public command results returned. Implementer did not inspect independent sources, diffs or verifier review material.",
+    "publicResults": {
+      "nodePassed": 1147,
+      "nodeFailed": 0,
+      "nodeSkipped": 2,
+      "nodeTodo": 12,
+      "build": "pass",
+      "remainingGateCommands": "pass",
+      "sourceValidation": {
+        "archives": 18,
+        "candidateThemes": 4,
+        "cases": 27
+      },
+      "bindings": {
+        "sources": 18,
+        "cells": 594
+      },
+      "generatorTestsPassed": 4
+    }
+  }
+}

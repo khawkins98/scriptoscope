@@ -1,3 +1,4 @@
+import { encodeRasterPng } from './encodeRasterPng.js';
 import { snapshotCicnTransfer, bindCicnTransfer } from './cicn-transfer-results.js';
 // Runtime Kaleidoscope scheme loader — the BROWSER shell over the portable
 // conversion core (convert.js). A single in-browser call instead of the Node
@@ -12,7 +13,7 @@ import { snapshotCicnTransfer, bindCicnTransfer } from './cicn-transfer-results.
 
 import { assertCinfEnvironment, bindCinfEnvironment, finalizeCinfTheme, finalizeCinfResourceOwner } from './cinf-environment.js';
 import { beginLoadProvenance } from './loadProvenance.js';
-import { notifyAssetUrlReleased } from './assetLifecycle.js';
+import { createRasterAssetOwner, bindRasterOwner } from './rasterAssets.js';
 import { convertScheme } from './convert.js';
 import { displayRealizer } from './display-profile.js';
 import { unwrapToResourceFork, detectContainer } from './containers.js';
@@ -45,7 +46,7 @@ import { buildResourceRoles, parseCicnFilename, parsePpatFilename } from './clas
  *   whose asset refs are blob: URLs (assetUrl passes them through); otherwise the raw
  *   `{ manifest, assets, iconIndex }`.
  */
-export async function loadKaleidoscopeScheme(input, options = {}) {
+async function decodeScheme(input, options) {
   const displayProfile = options.displayProfile;
   const cicnTransfer = snapshotCicnTransfer(options.cicnTransfer, displayProfile);
   const cinfEnvironment = options.cinfEnvironment;
@@ -97,93 +98,66 @@ export async function loadKaleidoscopeScheme(input, options = {}) {
     if (evidence) await evidence.settle();
     throw error;
   }
-  const { theme, assets, iconIndex, iconMaskResources, iconMaskPlanes, iconColorResources, cicnResources, ppatResources, colorTables } = converted;
   // Complete or reject all hashing before any encoder can allocate asset URLs.
   const byteProvenance = evidence ? await evidence.finish() : undefined;
-  // convertScheme already validated the theme (convertChrome → validateTheme).
+  return { converted, byteProvenance, sliderLayoutBinding };
+}
 
-  // Default: encode if EITHER OffscreenCanvas (fast path) OR document/HTMLCanvasElement
-  // (main-thread fallback for Safari 16.0–16.3) is reachable. A bare Node environment
-  // hits the else-branch (raw assets), which is what convert.test.mjs and the lint
-  // pipeline want.
+export async function loadKaleidoscopeScheme(input, options = {}) {
+  const { converted, byteProvenance, sliderLayoutBinding } = await decodeScheme(input, options);
+  const { theme, assets, ...catalog } = converted;
   const canEncode = typeof OffscreenCanvas !== 'undefined'
     || (typeof document !== 'undefined' && typeof HTMLCanvasElement !== 'undefined');
   const encodeAssets = options.encodeAssets ?? canEncode;
   if (!encodeAssets) {
     finalizeCinfTheme(theme);
     finalizeCinfResourceOwner(theme, sliderLayoutBinding, 'sliderLayoutEnvironment');
-    // Raw mode: hand back the contract + the un-encoded RGBA assets.
+    const { iconIndex, iconMaskResources, iconMaskPlanes, iconColorResources, cicnResources, ppatResources, colorTables } = catalog;
     return { manifest: theme, assets, iconIndex, iconMaskResources, iconMaskPlanes, iconColorResources, cicnResources, ppatResources, colorTables, ...(byteProvenance ? { byteProvenance } : {}) };
   }
 
-  const urlFor = options.assetUrlFactory ?? defaultAssetUrlFactory;
-  // Encode every decoded asset → a URL, keyed by its bundle path. Parallel: each
-  // OffscreenCanvas convertToBlob call is its own task; with ~500 assets per scheme
-  // a serial await-loop spent 30–50 ms × N = a 15–25 s freeze. Promise.all hands the
-  // pool off to the browser's encode workers and reduces wall time to a few seconds.
-  const urlByPath = new Map();
-  // Wait for every encoder to settle before cleaning up: Promise.all rejects
-  // early while other workers can still mint URLs. Defer factory invocation so
-  // synchronous exceptions participate in the same cleanup path.
-  const encoded = await Promise.allSettled(
-    assets.map((a) => Promise.resolve().then(() => urlFor(a.rgba, a.width, a.height, a.path))
-      .then((url) => [a.path, url])),
-  );
-  for (const result of encoded) {
-    if (result.status === 'fulfilled') urlByPath.set(...result.value);
-  }
-  const failed = encoded.find((result) => result.status === 'rejected');
-  if (failed) {
-    revokeAssetUrls(urlByPath);
-    throw failed.reason;
-  }
-
-  // Rewrite every asset-path ref in the manifest to its URL (chrome, sprites, frame
-  // proxy, patterns, body pattern — all stored as path strings that match an asset).
-  rewriteAssetRefs(theme, urlByPath);
-  finalizeCinfTheme(theme);
-  finalizeCinfResourceOwner(theme, sliderLayoutBinding, 'sliderLayoutEnvironment');
-
-  // Glyph map (id → URL), highest depth per id — mirrors src/loadTheme.loadGlyphMap.
-  const glyphs = buildGlyphMap(iconIndex, urlByPath);
-
-  // Inspector catalog — the data the demo's diagnostic foldouts (icon inventory,
-  // raster inventory, resource-roles viewer) used to fetch from per-bundle JSON
-  // files (themes/<slug>/{icons/index.json,rasters.json,resource-roles.json}).
-  // Synthesising them here instead of shipping pre-extracted JSONs is what makes
-  // Option A (source-of-truth bundles, decode at runtime) compatible with the
-  // diagnostic UI. The catalog mirrors the legacy JSON shape exactly so the demo
-  // can swap fetch() → theme.inspector.* with no other change.
-  const inspector = buildInspector(theme, assets, iconIndex, urlByPath, options.meta?.name);
-  inspector.iconMaskResources = iconMaskResources;
-  inspector.iconMaskPlanes = iconMaskPlanes;
-  inspector.iconColorResources = iconColorResources;
-  inspector.cicnResources = cicnResources;
-  inspector.ppatResources = ppatResources;
-  inspector.colorTables = colorTables;
-
-  // dispose() revokes every blob: URL this decode minted (~500 per scheme). Without
-  // it, an app that switches themes 50× across a session leaks 25k blob URLs — each
-  // pins a decoded ImageBitmap in WebKit until the tab unloads. Idempotent + safe
-  // to call before the theme is rendered (the consumer accepts the references go bad).
-  const dispose = () => revokeAssetUrls(urlByPath);
-
-  return {
-    manifest: theme, baseUrl: '', inspector, dispose,
-    ...(byteProvenance ? { byteProvenance } : {}),
-    ...(Object.keys(glyphs).length ? { glyphs } : {}),
-  };
+  const owner = makeOwner(assets, options);
+  try {
+    const result = assembleTheme(converted, await owner.imageUrls(), sliderLayoutBinding, byteProvenance, options, owner);
+    owner.releasePixels();
+    return result;
+  } catch (error) { owner.dispose(); throw error; }
 }
 
-/** Release the URLs owned by one decode, once even if an encoder reused a URL. */
-function revokeAssetUrls(urlByPath) {
-  for (const url of new Set(urlByPath.values())) {
-    if (typeof url === 'string' && url.startsWith('blob:')) {
-      URL.revokeObjectURL(url);
-      notifyAssetUrlReleased(url);
-    }
+/** Render-focused contract: resource references and pixels, with lazy image exports. */
+export async function loadOwnedKaleidoscopeScheme(input, options = {}) {
+  const { converted, byteProvenance, sliderLayoutBinding } = await decodeScheme(input, options);
+  const owner = makeOwner(converted.assets, options);
+  const source = assembleTheme(converted, undefined, sliderLayoutBinding, byteProvenance, options, owner);
+  delete source.baseUrl;
+  delete source.dispose;
+  bindRasterOwner(source, owner);
+  return { kind: 'owned-theme', origin: '', source, imageUrl: owner.imageUrl, dispose: owner.dispose };
+}
+
+function makeOwner(assets, options) {
+  const custom = options.assetUrlFactory;
+  return createRasterAssetOwner(assets, custom ?? defaultAssetUrlFactory, !!custom);
+}
+
+function assembleTheme(converted, urlByPath, sliderLayoutBinding, byteProvenance, options, owner) {
+  const { theme, assets, iconIndex, iconMaskResources, iconMaskPlanes, iconColorResources, cicnResources, ppatResources, colorTables } = converted;
+  try {
+    if (urlByPath) rewriteAssetRefs(theme, urlByPath);
+    finalizeCinfTheme(theme);
+    finalizeCinfResourceOwner(theme, sliderLayoutBinding, 'sliderLayoutEnvironment');
+    const glyphs = buildGlyphMap(iconIndex, urlByPath);
+    const inspector = { ...buildInspector(theme, assets, iconIndex, urlByPath, options.meta?.name),
+      iconMaskResources, iconMaskPlanes, iconColorResources, cicnResources, ppatResources, colorTables };
+    return {
+      manifest: theme, baseUrl: '', inspector, dispose: owner.dispose,
+      ...(byteProvenance ? { byteProvenance } : {}),
+      ...(Object.keys(glyphs).length ? { glyphs } : {}),
+    };
+  } catch (error) {
+    owner.dispose();
+    throw error;
   }
-  urlByPath.clear();
 }
 
 /** Build the inspector catalog from the decode output. Mirrors the on-disk JSON
@@ -200,18 +174,18 @@ function buildInspector(manifest, assets, iconIndex, urlByPath, slugHint) {
     if (a.path.startsWith('cicns/')) {
       const file = a.path.slice('cicns/'.length);
       const parsed = parseCicnFilename(file);
-      cicns.push({ ...parsed, url: urlByPath.get(a.path) });
+      cicns.push({ ...parsed, url: urlByPath ? urlByPath.get(a.path) : a.path });
     } else if (a.path.startsWith('ppats/')) {
       const file = a.path.slice('ppats/'.length);
       const parsed = parsePpatFilename(file);
-      ppats.push({ ...parsed, url: urlByPath.get(a.path) });
+      ppats.push({ ...parsed, url: urlByPath ? urlByPath.get(a.path) : a.path });
     }
   }
   // Icon entries get a URL too (panel rendering happens off `i.url`, not a path).
   const enrichedIcons = iconIndex.map((e) => ({
     ...e,
-    url: urlByPath.get(`icons/${e.file}`),
-    ...(e.unmaskedFile ? { unmaskedUrl: urlByPath.get(`icons/${e.unmaskedFile}`) } : {}),
+    url: urlByPath ? urlByPath.get(`icons/${e.file}`) : `icons/${e.file}`,
+    ...(e.unmaskedFile ? { unmaskedUrl: urlByPath ? urlByPath.get(`icons/${e.unmaskedFile}`) : `icons/${e.unmaskedFile}` } : {}),
   }));
 
   const themeSlug = (slugHint || manifest?.name || 'theme').toString();
@@ -247,7 +221,7 @@ function buildGlyphMap(iconIndex, urlByPath) {
     if (e.size !== 16 && e.type !== 'ics4' && e.type !== 'ics8') continue;
     const id = String(e.id);
     const d = e.depth ?? (e.type === 'ics8' ? 8 : 4);
-    if (d > (depthAt[id] ?? 0)) { glyphs[id] = urlByPath.get(`icons/${e.file}`); depthAt[id] = d; }
+    if (d > (depthAt[id] ?? 0)) { glyphs[id] = urlByPath ? urlByPath.get(`icons/${e.file}`) : `icons/${e.file}`; depthAt[id] = d; }
   }
   return glyphs;
 }
@@ -268,40 +242,10 @@ async function toUint8Array(input) {
   throw new Error(`loadKaleidoscopeScheme: unsupported input type ${typeof input}`);
 }
 
-/** Default RGBA→URL encoder: a PNG blob URL via OffscreenCanvas. Browser-only; Node
- *  callers pass their own assetUrlFactory (or encodeAssets:false). */
-/** Default RGBA→URL encoder. `OffscreenCanvas` is the fast path (parallel + off the
- *  main thread); a fallback to the main-thread `<canvas>` covers Safari 16.0–16.3 +
- *  iOS WebView pre-16.4, where `OffscreenCanvas` is undefined. Without the fallback,
- *  loadTheme would have silently produced a broken theme on a meaningful slice of
- *  iOS traffic — every render fetched `bundleUrl/<bundle-relative-path>` and 404'd.
- *  Node callers without DOM globals still need to pass `assetUrlFactory` or
- *  `encodeAssets:false`. */
+/** Browser PNG URL adapter; portable callers provide assetUrlFactory. */
 async function defaultAssetUrlFactory(rgba, width, height) {
-  if (typeof OffscreenCanvas !== 'undefined') {
-    const canvas = new OffscreenCanvas(width, height);
-    const ctx = canvas.getContext('2d');
-    const imgData = ctx.createImageData(width, height);
-    imgData.data.set(rgba);
-    ctx.putImageData(imgData, 0, 0);
-    const blob = await canvas.convertToBlob({ type: 'image/png' });
-    return URL.createObjectURL(blob);
-  }
-  if (typeof document !== 'undefined' && typeof HTMLCanvasElement !== 'undefined') {
-    // Main-thread <canvas> fallback. The detached element is GC'd as soon as the
-    // returned Promise resolves; the encoded blob URL owns its own bytes.
-    const canvas = document.createElement('canvas');
-    canvas.width = width; canvas.height = height;
-    const ctx = canvas.getContext('2d');
-    const imgData = ctx.createImageData(width, height);
-    imgData.data.set(rgba);
-    ctx.putImageData(imgData, 0, 0);
-    return await new Promise((resolve, reject) => {
-      canvas.toBlob((blob) => {
-        if (!blob) return reject(new Error('canvas.toBlob returned null'));
-        resolve(URL.createObjectURL(blob));
-      }, 'image/png');
-    });
-  }
-  throw new Error('defaultAssetUrlFactory: no canvas API available (need OffscreenCanvas or document.createElement) — pass assetUrlFactory or encodeAssets:false');
+  const canvas = typeof OffscreenCanvas !== 'undefined' ? new OffscreenCanvas(width, height)
+    : typeof document !== 'undefined' && typeof HTMLCanvasElement !== 'undefined' ? document.createElement('canvas') : null;
+  if (!canvas) throw new Error('defaultAssetUrlFactory: no canvas API available (need OffscreenCanvas or document.createElement) — pass assetUrlFactory or encodeAssets:false');
+  return URL.createObjectURL(await encodeRasterPng(canvas, rgba, width, height));
 }

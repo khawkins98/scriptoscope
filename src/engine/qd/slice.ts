@@ -15,9 +15,8 @@
 import type { Pixmap, QdRect } from './types.js';
 import type { EngineTrace } from '../trace.js';
 import { emptyRect } from './rect.js';
-import { getPixel } from './pixel.js';
 import { scaleBlit } from './scale.js';
-import { newPen, moveTo, lineTo } from './pen.js';
+import { sourceLines } from './lines.js';
 import { regionAddMappedMask, type Region } from './region.js';
 import { axis, alongLength } from './axis.js';
 
@@ -72,7 +71,6 @@ export interface SliceOptions {
 /** Draw the pieces of `src`'s S into D of `port`. */
 export function drawSlices(port: Pixmap, horizontal: boolean, src: Pixmap, S: QdRect, D: QdRect, mode: number, opts: SliceOptions): void {
   const { row, region, trace } = opts;
-  const ax = axis(horizontal);
   for (const pc of slicePieces(horizontal, S, D, mode, opts.modeZeroCap)) {
     if (emptyRect(pc.dst) || emptyRect(pc.src)) continue;
     if (region) regionAddMappedMask(region, src, pc.src, pc.dst);
@@ -82,15 +80,6 @@ export function drawSlices(port: Pixmap, horizontal: boolean, src: Pixmap, S: Qd
       continue;
     }
     trace?.drawOps.push({ op: 'sliceLines', row: `${row},L1,L2`, piece: pc.piece, src: pc.src, dst: pc.dst });
-    const n = ax.c1(pc.src) - ax.c0(pc.src);
-    for (let j = 0; j < n; j++) {
-      const sx = horizontal ? pc.src.left : pc.src.left + j, sy = horizontal ? pc.src.top + j : pc.src.top;
-      const px = getPixel(src, sx, sy);
-      if (!px || px.a === 0) continue; // L1
-      const pen = newPen(px);
-      const cy = ax.c0(pc.dst) + j;
-      if (horizontal) { moveTo(pen, pc.dst.left, cy); lineTo(port, pen, pc.dst.right - 1, cy); }
-      else { moveTo(pen, cy, pc.dst.top); lineTo(port, pen, cy, pc.dst.bottom - 1); }
-    }
+    sourceLines(port, src, src, pc.src, pc.dst, horizontal);
   }
 }

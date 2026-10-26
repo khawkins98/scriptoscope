@@ -1,5 +1,5 @@
-// Shared demo wiring: connect attachThemeDropZone() + loadKaleidoscopeScheme + the page's
-// [data-scriptoscope-theme-switcher] <select> + the mountDeclarative handle.
+// Shared demo wiring: connect attachThemeDropZone() + loadOwnedKaleidoscopeScheme + the page's
+// [data-scriptoscope-theme-switcher] <select> + the mountOwnedDeclarative handle.
 //
 // Layer separation: this lives in demo/ on purpose. The runtime ships attachThemeDropZone (UX
 // glue, no decoder dep) and handle.registerTheme (resolver-cache seed). The decoder is the
@@ -11,7 +11,7 @@
 // Usage:
 //
 //   import { wireSchemeDrop } from './_theme-drop.mjs';
-//   const handle = await mountDeclarative({ ... });
+//   const handle = await mountOwnedDeclarative({ ... });
 //   wireSchemeDrop({
 //     handle,
 //     dropTarget: document.querySelector('#scheme-drop'),
@@ -20,7 +20,7 @@
 //   });
 
 import { attachThemeDropZone } from '../src/declarative/index.ts';
-import { loadKaleidoscopeScheme } from '../src/loadKaleidoscopeScheme.ts';
+import { loadOwnedKaleidoscopeScheme } from '../src/loadKaleidoscopeScheme.ts';
 
 const REF_PREFIX = 'dropped:';
 
@@ -33,7 +33,7 @@ const REF_PREFIX = 'dropped:';
  */
 export function wireSchemeDrop({ handle, dropTarget, switcher, statusEl }) {
   if (!dropTarget) throw new Error('wireSchemeDrop: dropTarget is required');
-  if (!handle?.registerTheme) throw new Error('wireSchemeDrop: handle.registerTheme is required (call mountDeclarative first)');
+  if (!handle?.registerTheme) throw new Error('wireSchemeDrop: handle.registerTheme is required (call mountOwnedDeclarative first)');
 
   const setStatus = (kind, text) => {
     if (!statusEl) return;
@@ -47,7 +47,7 @@ export function wireSchemeDrop({ handle, dropTarget, switcher, statusEl }) {
       setStatus('busy', `Decoding ${file.name}…`);
       let theme;
       try {
-        theme = await loadKaleidoscopeScheme(file, { meta: { name }, source: file.name });
+        theme = await loadOwnedKaleidoscopeScheme(file, { meta: { name }, source: file.name });
       } catch (err) {
         setStatus('err', `Couldn't read “${file.name}” — ${err?.message ?? err}`);
         console.error('[demo] decode failed:', err);

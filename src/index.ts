@@ -32,7 +32,8 @@ export type {
   ThemeInspector,
   ThemeScrollArrowMap,
 } from './types.js';
-export { loadTheme, assetUrl, findChromeElement, type ThemeMeta } from './loadTheme.js';
+export { loadTheme, loadOwnedTheme, assetUrl, findChromeElement, type ThemeMeta, type ThemeLoadOptions } from './loadTheme.js';
+export { themeImageUrl, type OwnedTheme, type ThemeInput } from './ownedTheme.js';
 // In-browser .sit/.rsrc decoder — exposed so consumers can decode a dropped File / fetched
 // bytes (the BYO theme path) without going through `loadTheme(url)`. Same code `loadTheme`
 // runs internally; surfaced here so an npm consumer can reach it without importing a
@@ -40,7 +41,7 @@ export { loadTheme, assetUrl, findChromeElement, type ThemeMeta } from './loadTh
 // (raw mode, when `encodeAssets: false` is set). Typing comes from the sibling
 // `tools/theme-loader/loadKaleidoscopeScheme.d.ts` shim; src/loadKaleidoscopeScheme.ts
 // adds the engine's default loader inputs (engine cinf ids).
-export { loadKaleidoscopeScheme } from './loadKaleidoscopeScheme.js';
+export { loadKaleidoscopeScheme, loadOwnedKaleidoscopeScheme } from './loadKaleidoscopeScheme.js';
 export { renderWindow, type RenderWindowOptions } from './renderWindow.js';
 export type { ControlDiagnostics, ControlRenderTrace, ControlResolutionStep, TabBodyTrace } from './controlDiagnostics.js';
 export type { HeaderSurfaceOptions, HeaderSurfaceResult, HeaderSurfaceUnsupportedReason, HeaderSurfaceTrace } from './headerSurface.js';
@@ -121,10 +122,10 @@ export {
 // are the stable internal API surface, treated like Lodash's `_` namespace. Renaming them is a
 // future API-break-eligible change tracked separately, not coupled to the package rebrand.
 export {
-  mountDeclarative, type MountOptions,
+  mountDeclarative, mountOwnedDeclarative, type MountOptions,
   ScriptoscopeWindow, type ScriptoscopeWindowDeps,
   // Theme resolver — exposed so consumers can pre-load themes outside mountDeclarative.
-  createThemeResolver, type ThemeResolver, type ThemeBootstrapOpts,
+  createThemeResolver, createOwnedThemeResolver, type ThemeResolver, type ThemeBootstrapOpts,
   promoteButton,
   promoteField, isFieldEligible,
   promoteTabs,

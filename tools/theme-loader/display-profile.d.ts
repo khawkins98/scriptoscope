@@ -30,4 +30,5 @@ export function directRgb8Realizer(profile?: DisplayProfile): ((rgb8: readonly n
 export function displayPolicy(profile?: DisplayProfile): DisplayPolicy;
 export function realizeRgb16(rgb16: readonly number[], profile?: DisplayProfile): number[];
 export function ownerDisplayPolicyMatches(owner: { readonly displayProfile?: DisplayProfile } | undefined, policy: unknown): boolean;
-export function assertDisplayProfileChain(theme: import('../../src/types.js').LoadedTheme | undefined, profile?: DisplayProfile): void;
+interface ProfileChain { readonly manifest: { displayProfile?: DisplayProfile }; readonly base?: ProfileChain | undefined }
+export function assertDisplayProfileChain(theme: ProfileChain | undefined, profile?: DisplayProfile): void;

@@ -1,4 +1,4 @@
-import { mountDeclarative } from 'scriptoscope';
+import { mountOwnedDeclarative } from 'scriptoscope';
 
 // The renderer's width is its content width: real scheme borders add to it.
 // Re-measure the authored example layout when its viewport changes, reserving
@@ -69,7 +69,7 @@ export async function mountResponsiveExample(options, prepare = () => {}) {
       measureBorders();
       handle.disconnect();
       fitWidths();
-      handle = await mountDeclarative(options);
+      handle = await mountOwnedDeclarative(options);
       wire();
       if (focused instanceof HTMLElement && focused.isConnected) focused.focus({ preventScroll: true });
     } catch (error) {
@@ -96,7 +96,7 @@ export async function mountResponsiveExample(options, prepare = () => {}) {
   window.addEventListener('resize', resize);
   prepare();
   try {
-    handle = await mountDeclarative(options);
+    handle = await mountOwnedDeclarative(options);
   } catch (error) {
     disposed = true;
     clearTimeout(timer);
