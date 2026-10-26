@@ -227,7 +227,7 @@
       baselineButton, bufferToCanvas,
       platinumCheckable, platinumSlider, platinumButton, platinumScrollbar, platinumDisclosure,
       platinumBevelButton, platinumMenuBar, platinumMenu, platinumPopupMenu, platinumListHeader,
-      interactiveButton, interactiveCheckbox, radioGroup, interactiveDisclosure,
+      interactiveButton, interactiveDisclosure, mountOwnedDeclarative,
       interactiveSlider, interactiveScrollbar, WindowManager,
       promoteField,
       setDebug,
@@ -1776,7 +1776,7 @@
     // ── Interactive playground (Phase 1) ─────────────────────────────────────
     // Live interaction on the themed chrome: buttons depress on press,
     // checkbox/radio toggle, disclosure expands, and clicking a window focuses
-    // it (active↔inactive chrome). All from src/interactive.ts.
+    // it (active↔inactive chrome). Native checkables use declarative mounting.
     {
       const section = document.createElement('div'); section.className = 'theme-row';
       const h2 = document.createElement('h2'); h2.textContent = 'Interactive playground — live';
@@ -1787,7 +1787,10 @@
       section.append(h2, intro, host);
       rows.appendChild(section);
 
+      let toggleMount;
       async function buildInteractive(slug) {
+        toggleMount?.disconnect();
+        toggleMount = undefined;
         host.replaceChildren();
         const status = document.createElement('div');
         status.style.cssText = 'font:12px Charcoal,Geneva,sans-serif;min-height:16px;margin:0 0 10px;color:#333';
@@ -1807,10 +1810,27 @@
         );
 
         const toggles = document.createElement('div'); toggles.style.cssText = 'display:flex;flex-direction:column;gap:8px';
-        toggles.append(
-          await interactiveCheckbox(theme, { label: 'Show invisibles', checked: true, onChange: (c) => say('Show invisibles: ' + c) }),
-          await radioGroup(theme, { items: [{ label: 'On', value: 'on' }, { label: 'Off', value: 'off' }], value: 'on', onChange: (v) => say('radio → ' + v) }),
-        );
+        ctrls.append(toggles); host.append(ctrls);
+        toggleMount = await mountOwnedDeclarative({
+          root: toggles, pageThemeDefault: 'playground', bootAffordance: 'none',
+        });
+        toggleMount.registerTheme('playground', theme);
+        const checkLabel = document.createElement('label');
+        checkLabel.style.cssText = 'display:inline-flex;align-items:center;gap:5px;font:12px Charcoal,Geneva,sans-serif';
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox'; checkbox.name = 'show-invisibles'; checkbox.defaultChecked = true;
+        checkbox.addEventListener('change', () => say('Show invisibles: ' + checkbox.checked));
+        checkLabel.append(checkbox, 'Show invisibles');
+        const radios = document.createElement('div'); radios.style.cssText = 'display:flex;gap:12px';
+        for (const [label, value] of [['On', 'on'], ['Off', 'off']]) {
+          const radioLabel = document.createElement('label');
+          radioLabel.style.cssText = checkLabel.style.cssText;
+          const radio = document.createElement('input');
+          radio.type = 'radio'; radio.name = 'playground-mode'; radio.value = value; radio.defaultChecked = value === 'on';
+          radio.addEventListener('change', () => { if (radio.checked) say('radio → ' + radio.value); });
+          radioLabel.append(radio, label); radios.append(radioLabel);
+        }
+        toggles.append(checkLabel, radios);
 
         const discWrap = document.createElement('div');
         const discRow = document.createElement('div'); discRow.style.cssText = 'display:flex;gap:6px;align-items:center;font:12px Charcoal,Geneva,sans-serif';
