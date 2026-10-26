@@ -73,7 +73,7 @@ export function verifyShowcaseShape(shape,kind) {
  assert.equal(shape.length,2,'exactly one replacement per original');
  for(const [i,row]of shape.entries()){
   assert.equal(row.same,true);assert.equal(row.visible,true);assert.equal(row.label,['OK','Cancel'][i]);
-  assert.equal(row.tag,kind==='themed'?'SPAN':'BUTTON');assert.equal(row.sourceHidden,true);
+  assert.equal(row.tag,'BUTTON');assert.equal(row.sourceHidden,true);
   assert.equal(row.canvas,kind==='themed'?1:0);
   if(kind==='themed')assert.ok(row.opaque>0,'replacement must contain painted pixels');
   else assert.equal(row.type,'button');

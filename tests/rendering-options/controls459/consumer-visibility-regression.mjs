@@ -44,8 +44,8 @@ try {
    const help=page.getByRole('button',{name:'Help',exact:true});assert(await help.evaluate(e=>e.disabled===true||e.getAttribute('aria-disabled')==='true'),'disabled semantics');
    const b=await help.boundingBox();await page.mouse.click(b.x+b.width/2,b.y+b.height/2);assert.equal(await statusText(),'Cancel clicked','disabled pointer must not activate');
    const tab=await help.getAttribute('tabindex');assert(await help.evaluate(e=>e.disabled===true)||tab==='-1','disabled must not enter keyboard tab sequence');row.interactions.push('disabled Help rejected pointer and excluded from tab sequence');
-   const cb=page.getByRole('checkbox',{name:'Show invisibles',exact:true});await cb.click();await cb.focus();await page.keyboard.press('Space');assert.equal(await cb.getAttribute('aria-checked'),'true');row.interactions.push('checkbox pointer/Space roundtrip');
-   await page.getByRole('radio',{name:'Off',exact:true}).click();const on=page.getByRole('radio',{name:'On',exact:true});await on.focus();await page.keyboard.press('Space');assert.equal(await on.getAttribute('aria-checked'),'true');assert.equal(await page.getByRole('radio',{name:'Off',exact:true}).getAttribute('aria-checked'),'false');row.interactions.push('radio pointer/Space exclusivity');
+   const cb=page.getByRole('checkbox',{name:'Show invisibles',exact:true});await cb.click();await cb.focus();await page.keyboard.press('Space');assert.equal(await cb.isChecked(),true);row.interactions.push('checkbox pointer/Space roundtrip');
+   await page.getByRole('radio',{name:'Off',exact:true}).click();const on=page.getByRole('radio',{name:'On',exact:true});await on.focus();await page.keyboard.press('Space');assert.equal(await on.isChecked(),true);assert.equal(await page.getByRole('radio',{name:'Off',exact:true}).isChecked(),false);row.interactions.push('radio pointer/Space exclusivity');
    assert.deepEqual(errors,[],'runtime page errors');await page.screenshot({path:resolve(output,theme+'.png')});
   } catch(error) {result.setupFailures.push({theme,message:error.message,stack:error.stack});}
   await page.close();

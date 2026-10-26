@@ -17,6 +17,19 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ### Changed
 
+- **Draft compatibility proposal, pending independent final review:** retire
+  `interactiveCheckbox`, `radioGroup` and their corresponding option types in
+  favor of native inputs, labels and `change` listeners through declarative
+  mounting. Standalone owned-theme consumers can mount an empty attached root,
+  register a borrowed theme, then append controls; disconnect before replacement.
+  Disconnect does not dispose registered borrowed themes. See the README migration
+  example.
+- In the same proposal, retain `interactiveButton` and its options while returning
+  a native `type="button"` element. Native activation, focus, disabled fieldsets
+  and `.click()` apply; Enter may activate on keydown. Former wrapper/ARIA markup
+  and pointerup/keyup callback timing are not guaranteed. Closed selects retain
+  native interaction with passive themed art. Low-level composition/raster APIs,
+  managed button binding and standalone sliders/scrollbars remain available.
 - Whole-header and list-column composition use typed engine drivers while
   keeping their public signatures and separate rendering contracts. Native
   window/list-view geometry stays distinct from modern column layout and labels;

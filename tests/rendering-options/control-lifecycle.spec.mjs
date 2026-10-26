@@ -1,7 +1,7 @@
 import { test, expect, openHarness } from './fixtures.mjs';
 
 for (const mode of ['source', 'built']) {
-  for (const insideWindow of [false, true]) test(`${mode}: form controls restore live state and release faces (${insideWindow ? 'window' : 'standalone'})`, async ({ page, servers }) => {
+  for (const insideWindow of [false, true]) test(`${mode}: form controls restore live state and release faces (${insideWindow ? 'window' : 'standalone'})`, async ({ page, servers, browserName }) => {
     await openHarness(page, servers, mode);
     await page.evaluate(async ({ mode, insideWindow }) => {
       // Exercise the declared browser floor: older engines ignore listener.signal.
@@ -108,13 +108,14 @@ for (const mode of ['source', 'built']) {
     // Remount the same original nodes. One face / keyboard target per control.
     await page.evaluate(async () => { const f = window.lifecycle; f.content.remove(); await f.mount(); });
     await expect(faces).toHaveCount(5);
-    await expect(page.getByRole('checkbox', { name: 'Check', exact: true })).toHaveAttribute('aria-checked', 'true');
-    await expect(page.getByRole('radio', { name: 'Radio B', exact: true })).toHaveAttribute('aria-checked', 'true');
+    await expect(page.getByRole('checkbox', { name: 'Check', exact: true })).toBeChecked();
+    await expect(page.getByRole('radio', { name: 'Radio B', exact: true })).toBeChecked();
+    // macOS WebKit uses Option+Tab for full-control navigation.
+    const tabKey = process.platform === 'darwin' && browserName === 'webkit' ? 'Alt+Tab' : 'Tab';
     await page.getByRole('checkbox', { name: 'Check', exact: true }).focus();
-    await page.keyboard.press('Tab'); await expect(page.getByRole('radio', { name: 'Radio A', exact: true })).toBeFocused();
-    await page.keyboard.press('Tab'); await expect(page.getByRole('radio', { name: 'Radio B', exact: true })).toBeFocused();
-    await page.keyboard.press('Tab'); await expect(page.getByRole('slider')).toBeFocused();
-    await page.keyboard.press('Tab'); await expect(page.locator('#select')).toBeFocused();
+    await page.keyboard.press(tabKey); await expect(page.getByRole('radio', { name: 'Radio B', exact: true })).toBeFocused();
+    await page.keyboard.press(tabKey); await expect(page.getByRole('slider')).toBeFocused();
+    await page.keyboard.press(tabKey); await expect(page.locator('#select')).toBeFocused();
     await page.evaluate(() => { const f = window.lifecycle; f.handle.disconnect(); f.root.remove(); f.themes.forEach(t => t.dispose?.()); });
   });
 

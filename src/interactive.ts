@@ -15,7 +15,7 @@ import { ManagedContentPort, type ManagedControlPort } from './managedContentPor
 // ─────────────────────────────────────────────────────────────────────────────
 // This file ships TWO related layers in one module:
 //
-//   1) INTERACTIVE CONTROL PRIMITIVES — buttons, checkboxes, radio groups,
+//   1) INTERACTIVE CONTROL PRIMITIVES — buttons,
 //      disclosure triangles, sliders, scrollbars. Pure DOM widgets that wrap a
 //      composed cicn canvas with role/tabIndex/aria + keyboard handlers. Used
 //      both by the WindowManager (for its internal controls) and by consumer
@@ -23,7 +23,6 @@ import { ManagedContentPort, type ManagedControlPort } from './managedContentPor
 //
 //      KEY PRIMITIVES:
 //        interactiveButton              — focusable cicn-faced button
-//        interactiveCheckbox / radioGroup — toggle widgets with aria-checked
 //        interactiveDisclosure          — twisty widget with aria-expanded
 //        interactiveSlider              — role=slider with arrow-key support
 //        interactiveScrollbar           — role=scrollbar (used by WindowManager
@@ -88,9 +87,9 @@ import { ManagedContentPort, type ManagedControlPort } from './managedContentPor
 import { resolveWindowSelection, resolveCollapsedWindowTypeSlug } from './resolveWindowType.js';
 import { listenUntilAborted } from './listenUntilAborted.js';
 import {
-  composeCheckable, composeDisclosure, composeSliderWithLayout, composeScrollbar, composeScrollbarFrame, type SliderFrame, type SliderOptions,
+  composeDisclosure, composeSliderWithLayout, composeScrollbar, composeScrollbarFrame, type SliderFrame, type SliderOptions,
   type ScrollbarFrame, type ScrollbarOptions,
-  baselineButton, baselineCheckable, bufferToCanvas,
+  baselineButton, bufferToCanvas,
   type ButtonOptions, type ControlState, composeProgressFrame, type ProgressOptions,
 } from './controls.js';
 import { newProgressRecord, progressIdleAdvance, progressSetData, type ProgressRecord } from './engine/families/progress.js';
@@ -140,179 +139,33 @@ export async function interactiveButton(
   const { onClick, scale = 1, ...bo } = opts;
   const painter = await prepareButtonPainter(theme, bo, scale, signal);
   current();
-  if (!painter) {
-    // Missing art or face metadata uses the existing visible, labelled native
-    // baseline. Low-level art admission and composition pixels remain separate.
-    const b = baselineButton(bo.label ?? '', bo);
-    // Activation belongs to the callback; the presentation must not submit its form.
-    b.type = 'button';
-    const events = new AbortController();
-    controlDisposers.set(b, () => events.abort());
-    if (onClick && !bo.disabled) listenUntilAborted(events.signal, b, 'click', onClick);
-    return b;
+  const el = painter ? document.createElement('button') : baselineButton(bo.label ?? '', bo);
+  el.type = 'button';
+  el.disabled = !!bo.disabled;
+  if (painter) {
+    el.className = 'scriptoscope-button';
+    if (bo.label) el.setAttribute('aria-label', bo.label);
+    Object.assign(el.style, {
+      display: 'inline-block', lineHeight: '0', userSelect: 'none', margin: '0',
+      padding: '0', border: '0', background: 'transparent', appearance: 'none',
+      cursor: bo.disabled ? 'default' : 'pointer', outlineOffset: '2px',
+    } satisfies Partial<CSSStyleDeclaration>);
+    el.appendChild(painter.canvas);
+    registerButtonPainter(el, painter);
   }
-  const el = document.createElement('span');
-  el.className = 'scriptoscope-button';
-  el.setAttribute('role', 'button');
-  el.tabIndex = bo.disabled ? -1 : 0;
-  if (bo.label) el.setAttribute('aria-label', bo.label);
-  if (bo.disabled) el.setAttribute('aria-disabled', 'true');
-  Object.assign(el.style, {
-    display: 'inline-block', lineHeight: '0', userSelect: 'none',
-    cursor: bo.disabled ? 'default' : 'pointer', outlineOffset: '2px',
-  } satisfies Partial<CSSStyleDeclaration>);
-  el.appendChild(painter.canvas);
-  registerButtonPainter(el, painter);
   const events = new AbortController();
-  controlDisposers.set(el, () => { painter.dispose(); unregisterButtonPainter(el); events.abort(); });
-  if (bo.disabled) return el;
-  let down = false;
-  const press = (): void => { down = true; painter.press(true); };
-  const release = (fire: boolean): void => {
-    if (!down) return;
-    down = false;
-    painter.press(false);
-    if (fire && onClick) onClick();
-  };
-  // Pointer events cover mouse + touch + pen in one path. pointerleave releases without firing the
-  // click (canceled drag-away); only the primary button can press or activate.
-  listenUntilAborted(events.signal, el, 'pointerdown', (e) => {
-    if (e.button !== 0) return;
-    e.preventDefault(); press();
-  });
-  listenUntilAborted(events.signal, el, 'pointerup', (e) => { if (e.button === 0) release(true); });
-  listenUntilAborted(events.signal, el, 'pointerleave', () => release(false));
-  listenUntilAborted(events.signal, el, 'keydown', (e) => { if (KEY_ACTIVATE(e)) { e.preventDefault(); press(); } });
-  listenUntilAborted(events.signal, el, 'keyup', (e) => { if (KEY_ACTIVATE(e)) { e.preventDefault(); release(true); } });
+  controlDisposers.set(el, () => { painter?.dispose(); unregisterButtonPainter(el); events.abort(); });
+  if (onClick) listenUntilAborted(events.signal, el, 'click', () => { if (!el.matches(':disabled')) onClick(); });
+  if (painter) {
+    // These handlers paint feedback only. The native button owns activation,
+    // canceled presses, keyboard defaults, focus and disabled/form semantics.
+    listenUntilAborted(events.signal, el, 'pointerdown', e => { if (e.button === 0 && !el.matches(':disabled')) painter.press(true); });
+    for (const type of ['pointerup', 'pointerleave', 'pointercancel', 'blur'] as const)
+      listenUntilAborted(events.signal, el, type, () => painter.press(false));
+    listenUntilAborted(events.signal, el, 'keydown', e => { if (KEY_ACTIVATE(e) && !el.matches(':disabled')) painter.press(true); });
+    listenUntilAborted(events.signal, el, 'keyup', e => { if (KEY_ACTIVATE(e)) painter.press(false); });
+  }
   return el;
-}
-
-// ── Checkbox / Radio ──────────────────────────────────────────────────────────
-export interface InteractiveCheckableOptions {
-  label?: string;
-  checked?: boolean;
-  disabled?: boolean;
-  fg?: string;
-  scale?: number;
-  onChange?: (checked: boolean) => void;
-}
-
-/** A live checkable: holds {checked, unchecked} canvases and swaps on toggle. */
-interface Toggle {
-  /** The focusable element to mount. */
-  el: HTMLElement;
-  /** Current checked state. */
-  get(): boolean;
-  /** Set state programmatically (no event); used by radio-group exclusivity. */
-  set(checked: boolean): void;
-}
-
-async function buildToggle(
-  theme: ThemeInput,
-  kind: 'checkbox' | 'radio',
-  opts: InteractiveCheckableOptions,
-): Promise<Toggle> {
-  const { label, disabled = false, fg, scale = 1, onChange } = opts;
-  let checked = opts.checked ?? false;
-  // exactOptionalPropertyTypes: only include label/fg when actually set.
-  const base = { disabled, ...(label !== undefined ? { label } : {}), ...(fg !== undefined ? { fg } : {}) };
-  const onBuf = await composeCheckable(theme, kind, { ...base, checked: true });
-  const offBuf = await composeCheckable(theme, kind, { ...base, checked: false });
-
-  const el = document.createElement('span');
-  el.className = `scriptoscope-${kind}`;
-  el.setAttribute('role', kind);
-  el.tabIndex = disabled ? -1 : 0;
-  if (label) el.setAttribute('aria-label', label);
-  el.setAttribute('aria-checked', String(checked));
-  if (disabled) el.setAttribute('aria-disabled', 'true');
-  Object.assign(el.style, {
-    display: 'inline-flex', alignItems: 'center', gap: '5px', lineHeight: '0',
-    userSelect: 'none', cursor: disabled ? 'default' : 'pointer', outlineOffset: '2px',
-    font: '12px Charcoal, Geneva, sans-serif', color: disabled ? '#9a9a9a' : '#000',
-  } satisfies Partial<CSSStyleDeclaration>);
-
-  const paint = (): void => {
-    const buf = checked ? onBuf : offBuf;
-    el.replaceChildren();
-    if (buf) el.appendChild(bufferToCanvas(buf, scale)); // themed cicn (label baked in)
-    else el.appendChild(baselineCheckable(kind, label ?? '', { checked, disabled })); // baseline box + label
-    el.setAttribute('aria-checked', String(checked));
-  };
-  paint();
-
-  const events = new AbortController();
-  controlDisposers.set(el, () => events.abort());
-  const set = (next: boolean): void => { if (events.signal.aborted || next === checked) return; checked = next; paint(); };
-  if (!disabled) {
-    const toggle = (): void => {
-      // Radios don't un-check on self-click; checkboxes flip.
-      const next = kind === 'radio' ? true : !checked;
-      if (next === checked) return;
-      checked = next;
-      paint();
-      if (onChange) onChange(checked);
-    };
-    listenUntilAborted(events.signal, el, 'click', toggle);
-    listenUntilAborted(events.signal, el, 'keydown', (e) => { if (KEY_ACTIVATE(e)) { e.preventDefault(); toggle(); } });
-  }
-  // Attach the setter on the element so callers (e.g. the declarative layer's radio-group sync) can
-  // drive the visual state from the outside without an internal-API leak.
-  (el as unknown as { _scriptoscopeSetChecked: (v: boolean) => void })._scriptoscopeSetChecked = set;
-  return { el, get: () => checked, set };
-}
-
-/** A standalone interactive checkbox. */
-export async function interactiveCheckbox(
-  theme: ThemeInput,
-  opts: InteractiveCheckableOptions = {},
-): Promise<HTMLElement> {
-  return (await buildToggle(theme, 'checkbox', opts)).el;
-}
-
-/** A standalone interactive radio (group exclusivity is the consumer's job — when wrapping native
- *  inputs, the browser handles it via shared `name`; the visual sync is via `_scriptoscopeSetChecked`). */
-export async function interactiveRadio(
-  theme: ThemeInput,
-  opts: InteractiveCheckableOptions = {},
-): Promise<HTMLElement> {
-  return (await buildToggle(theme, 'radio', opts)).el;
-}
-
-export interface RadioGroupOptions {
-  items: { label?: string; value: string }[];
-  value?: string;
-  disabled?: boolean;
-  scale?: number;
-  onChange?: (value: string) => void;
-}
-
-/**
- * A radio group with single-selection: selecting one clears its siblings (the
- * exclusivity the kind='radio' toggle can't enforce alone). Returns a container
- * `role=radiogroup` of the rendered radios.
- */
-export async function radioGroup(theme: ThemeInput, opts: RadioGroupOptions): Promise<HTMLElement> {
-  const { items, value, disabled = false, scale = 1, onChange } = opts;
-  const group = document.createElement('div');
-  group.setAttribute('role', 'radiogroup');
-  Object.assign(group.style, { display: 'inline-flex', flexDirection: 'column', gap: '6px' });
-
-  const toggles: { value: string; t: Toggle }[] = [];
-  for (const item of items) {
-    const t = await buildToggle(theme, 'radio', {
-      ...(item.label !== undefined ? { label: item.label } : {}),
-      disabled, scale, checked: item.value === value,
-      onChange: (checked) => {
-        if (!checked) return;
-        for (const other of toggles) if (other.value !== item.value) other.t.set(false);
-        if (onChange) onChange(item.value);
-      },
-    });
-    toggles.push({ value: item.value, t });
-    group.appendChild(t.el);
-  }
-  return group;
 }
 
 // ── Disclosure triangle ───────────────────────────────────────────────────────
