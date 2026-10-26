@@ -3,8 +3,8 @@
 [draft PR #480](https://github.com/khawkins98/scriptoscope/pull/480) targets `v2`.
 Runtime implementation: `6cfe9afd`; independently refreshed integration:
 `c157454c`; pre-packaging validation/report head: `23183525`. The current PR records
-exact-head lane readiness. The older optional visual-contract failures keep the
-feature draft.
+exact-head lane readiness. Independent contract triage has resolved the applicability
+of the older optional failures; faithful test maintenance is tracked in issue #481.
 
 ## Outcome and implemented boundary
 
@@ -60,26 +60,33 @@ available in the hash-verified archive.
 | --- | --- |
 | Integration gates | 1,147 Node passes, zero failures, two skips, twelve TODOs; all remaining gate commands pass |
 | Required browsers | All 576 pass after independent provenance/binding refresh |
-| Production comparator | 18 themes; 8,424 button paints, 1,728 windows, 432 scrollbars, zero mismatches |
+| Earlier transport comparator | Historical inputs through the current renderer: 18 themes; 8,424 button paints, 1,728 windows, 432 scrollbars, zero mismatches |
 | Public raster checks | 18,704 current and 18,704 additional compiled-reference comparisons, zero mismatches |
 | Other families | 19,152 cases, including separately reported missing/unsupported outcomes |
 | Focus | 288 cases / 4,608 outputs; cache had 1,312 mismatches, full guarded renders zero |
 | Regression/package | 12,902 unchanged engine-diff cells; 36 Linux goldens; packed consumer and 164 loader units pass |
-| Optional visuals | Final serialized run: 33 pass / the same eight case labels fail |
+| Optional visuals | Serialized run: 33 pass / eight fail; independently classified stale fixture/consumer expectations, tracked in #481 |
+
+Review corrected the historical comparison: it now invokes the historical public
+renderers, checks structural layout and compares diagnostic metadata excluding
+transport URL identities. Earlier production captures certify transport parity;
+new renderer comparisons have their own fingerprints and outcomes in PR #480.
+Seven new scrollbar units cover removal, cancellation, live errors and overlapping
+paint ordering. Shared pixel-access primitives remove duplicate facade logic.
 
 ## Size and performance limits
 
 | Production physical lines | Frozen start | Candidate | Delta |
 | --- | ---: | ---: | ---: |
-| Source logic excluding cited tables | 17,477 | 17,491 | +14 |
+| Source logic excluding cited tables | 17,477 | 17,495 | +18 |
 | Cited source tables | 2,323 | 2,323 | 0 |
 | Loader non-test JavaScript | 4,139 | 4,117 | −22 |
-| Combined logic and loader | 21,616 | 21,608 | −8 |
+| Combined logic and loader | 21,616 | 21,612 | −4 |
 
 Tests, declarations and the unshipped harness/reports are excluded from loader
 counts. This is a small net physical-line decrease; line counts alone do not
-quantify complexity. Equivalent compiler-recipe JavaScript increases by 3,017
-bytes and separate level-9 gzip by 467. Smaller source does not imply a smaller
+quantify complexity. Equivalent compiler-recipe JavaScript increases by 3,314
+bytes and separate level-9 gzip by 516 at runtime `60d14678`. Smaller source does not imply a smaller
 bundle.
 
 The frozen `de942c63` baseline is an isolated compiler-only reconstruction using
@@ -104,13 +111,14 @@ check results returned; independent sources, evidence diffs and verifier review
 material stayed outside implementer context. See the
 [public verifier handoff](../../tools/runtime-spike/independent-refresh-handoff.md).
 
-The eight older optional failures remain unresolved. Current eager/owned parity
-and required checks do not prove that they predate migration. A frozen compiled
-replay stopped at fixture readiness before assertions. Local/Forgejo maintainer
-metadata and available handoff searches did not identify their public contract;
-that search is not exhaustive. The
+The eight older optional failures remain failing, but their public contracts are
+now independently clarified. Their fixtures/expectations conflict with current
+signed selection, metadata admission, typography or consumer/CSS setup. The verifier
+recommends merge after mandatory checks pass and tracks restored coverage in
+[issue #481](https://github.com/khawkins98/scriptoscope/issues/481). Current eager/owned
+parity does not establish historical preexistence; no such claim is made. The
 [listing-free questions](../../tools/runtime-spike/older-visual-contract-questions.md)
-name permitted diagnostics and the public inputs/intended behavior still needed.
+record the permitted diagnostics and listing-free independent classifications.
 Do not modify expectations to pass these cases.
 
 Merge requires preserved public/lifecycle behavior, justified independent evidence,

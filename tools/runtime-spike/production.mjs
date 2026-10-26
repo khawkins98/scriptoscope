@@ -1,4 +1,4 @@
-// Compare the production owner with explicit historical PNG transport. The
+// Compare eager/owned transport and, when supplied, opaque historical renderers. The
 // custom encoder deliberately opts out of the known-encoder pixel shortcut.
 import { compareMounts } from './mounts.mjs';
 import { rasterOwner, createRasterAssetOwner, bindRasterOwner } from '../theme-loader/rasterAssets.js';
@@ -42,10 +42,18 @@ function assetPaths(value, owner, found = new Set()) {
   }
   return found;
 }
+function stable(value, key = '') {
+  if (['assetUrl', 'sourceAssetUrl'].includes(key) && typeof value === 'string' && value) return '<image-export>';
+  if (Array.isArray(value)) return value.map(child => stable(child));
+  if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value)
+    .filter(([, child]) => child !== undefined).sort(([a], [b]) => a.localeCompare(b)).map(([name, child]) => [name, stable(child, name)]));
+  return value;
+}
+const same = (a, b) => JSON.stringify(stable(a)) === JSON.stringify(stable(b));
 function compare(a, b) {
   if (!a || !b) return a === b ? null : 'availability';
   const A = a.buffer ?? a, B = b.buffer ?? b;
-  if (JSON.stringify(a.layout) !== JSON.stringify(b.layout)) return 'layout';
+  if (!same(a.layout, b.layout)) return 'layout';
   if (A.width !== B.width || A.height !== B.height) return 'dimensions';
   for (let i = 0; i < A.data.length; i++) if (A.data[i] !== B.data[i]) return `byte ${i}: ${A.data[i]} != ${B.data[i]}`;
   return null;
@@ -65,7 +73,7 @@ function privateImage(value, key = '') {
   return value && typeof value === 'object' && Object.entries(value).some(([name, child]) => privateImage(child, name));
 }
 function compareWindow(a, b) {
-  return a.layout !== b.layout ? 'window layout' : compare(a.pixels, b.pixels) ?? compare(a.tile, b.tile);
+  return !same(a.layout, b.layout) ? 'window layout' : compare(a.pixels, b.pixels) ?? compare(a.tile, b.tile);
 }
 const probe = { width: 1, height: 1, data: new Uint8ClampedArray([1, 2, 3, 255]) };
 const changed = { ...probe, data: new Uint8ClampedArray([2, 2, 3, 255]) };
@@ -87,11 +95,11 @@ async function windowSnapshot(runtime, theme, options) {
     tile = await runtime.loadCicnBuffer(url);
   }
   return { pixels: composed?.buffer ?? null, tile,
-    layout: JSON.stringify({ frame: composed?.frame, placement: composed?.placement, widgets: composed?.widgets,
+    layout: { frame: composed?.frame, placement: composed?.placement, widgets: composed?.widgets,
       width: win.style.width, height: win.style.height, content: content.style.cssText.replace(/background-image:[^;]+;?/, ''),
-      hidden: content.hidden, inert: content.inert, role: win.getAttribute('role'), label: win.getAttribute('aria-label') }) };
+      hidden: content.hidden, inert: content.inert, role: win.getAttribute('role'), label: win.getAttribute('aria-label') } };
 }
-async function compareWindows(runtime, old, current, report, transport, slug) {
+async function compareWindows(runtime, old, current, report, transport, slug, previous = runtime) {
   // Include child-first resolution with no window art in the child, retaining
   // the selected base owner for both chrome pixels and its CSS body image.
   const sparse = theme => {
@@ -104,11 +112,12 @@ async function compareWindows(runtime, old, current, report, transport, slug) {
       for (const state of ['active', 'inactive']) for (const scale of [1, 2]) {
         const options = { windowType, state, scale, title: 'Transport window', width: 97, height: 53 };
         window.spikeContext = { transport, slug, environment, options };
-        const A = await windowSnapshot(runtime, a, options), B = await windowSnapshot(runtime, b, options);
+        const A = await windowSnapshot(previous, a, options), B = await windowSnapshot(runtime, b, options);
         const difference = compareWindow(A, B);
         report.windows++;
         if (A.pixels && B.pixels) report.paintedWindows++; else report.baselineWindows++;
-        if (difference) report.mismatches.push({ transport, slug, environment, options, difference });
+        if (difference) report.mismatches.push({ transport, slug, environment, options, difference,
+          ...(difference === 'window layout' ? { referenceLayout: A.layout, currentLayout: B.layout } : {}) });
       }
 }
 
@@ -145,7 +154,7 @@ async function windowLifetimeProbe(runtime, report) {
   report.pendingWindows++;
 }
 
-async function compareFamilies(runtime, old, current, report, transport, slug) {
+async function compareFamilies(runtime, old, current, report, transport, slug, previous = runtime) {
   const cases = [];
   for (const orientation of ['horizontal', 'vertical']) for (const length of [32, 121])
     for (const state of ['normal', 'pressed', 'disabled']) for (const value of [0, 0.37, 1])
@@ -175,8 +184,8 @@ async function compareFamilies(runtime, old, current, report, transport, slug) {
     source.inspector = { cicnResources: [], iconMaskResources: [], iconColorResources: [] };
     return out;
   };
-  const capture = async (theme, method, options, kind) => {
-    try { return { pixels: await (kind ? runtime[method](theme, kind, options) : runtime[method](theme, options)) }; }
+  const capture = async (api, theme, method, options, kind) => {
+    try { return { pixels: await (kind ? api[method](theme, kind, options) : api[method](theme, options)) }; }
     catch (error) { return { error: `${error.name}: ${error.message}` }; }
   };
   for (const [environment, a, b] of [['own', old, current], ['base', child(old), child(current)], ['mixed', child(old), { ...child(current), base: old }],
@@ -184,7 +193,7 @@ async function compareFamilies(runtime, old, current, report, transport, slug) {
     for (const [family, method, options, kind] of cases) {
       if (environment.startsWith('declared') && family !== 'checkable') continue;
       const row = report.families[family] ??= { compared: 0, painted: 0, missing: 0, errors: 0, unsupported: 0, outcomes: {}, errorOutcomes: {} };
-      const A = await capture(a, method, options, kind), B = await capture(b, method, options, kind);
+      const A = await capture(previous, a, method, options, kind), B = await capture(runtime, b, method, options, kind);
       let difference = A.error || B.error ? (A.error === B.error ? null : { old: A.error, current: B.error })
         : family === 'headerSurface' && (A.pixels.status !== B.pixels.status || A.pixels.reason !== B.pixels.reason) ? 'header admission'
         : family === 'headerSurface' && A.pixels.status !== 'rendered' ? null : compare(A.pixels, B.pixels);
@@ -207,17 +216,24 @@ async function compareFamilies(runtime, old, current, report, transport, slug) {
 
 async function run() {
   const report = { runAt: new Date().toISOString(), userAgent: navigator.userAgent,
-    rows: [], mismatches: [], errors: [], compared: 0, painted: 0, equalMissing: 0, equalErrors: 0, rasters: 0, referenceRasters: 0, disposedLoads: 0,
+    comparison: reference ? 'historical-public-renderers' : 'current-eager-versus-owned', diagnosticComparisons: 0, rows: [], mismatches: [], errors: [], compared: 0, painted: 0, equalMissing: 0, equalErrors: 0, rasters: 0, referenceRasters: 0, disposedLoads: 0,
     families: {}, familyDiagnostics: 0, baselinePatterns: 0, pendingWindows: 0, scrollbars: 0, paintedScrollbars: 0, missingScrollbars: 0, windows: 0, paintedWindows: 0, baselineWindows: 0, lazyWindows: 0, disposedWindows: 0, managedWindows: 0, diagnostics: 0, interactions: 0, zeroPngRenders: 0, bitmapPaints: 0 };
   for (const [transport, runtime] of [['source', source], ['built', built]]) for (const slug of slugs) {
     const input = await bytes(slug);
-    const old = await (reference ?? runtime).loadKaleidoscopeScheme(input, { assetUrlFactory: encode });
+    const previous = reference ?? runtime;
+    const referenceImages = [];
+    const referenceEncoder = async (...args) => {
+      const item = { path: args[3] }; referenceImages.push(item);
+      item.url = await encode(...args); return item.url;
+    };
+    const old = await previous.loadKaleidoscopeScheme(input, { assetUrlFactory: reference ? referenceEncoder : encode });
+    const referenceImageByPath = new Map(referenceImages.map(item => [item.path, item.url]));
     const current = await runtime.loadOwnedKaleidoscopeScheme(input);
-    const referenceOwned = reference ? await reference.loadOwnedKaleidoscopeScheme(input) : null;
     const before = report.rasters;
     const ownedUrls = assetPaths(current.source, rasterOwner(current.source));
     const disposedSource = themeView(current).asset(ownedUrls.values().next().value);
     const bitmapFont = await runtime.prepareBitmapFont(fontData);
+    const previousFont = reference ? await previous.prepareBitmapFont(fontData) : bitmapFont;
     const bitmapCases = [];
     for (const state of ['normal', 'pressed', 'disabled']) for (const clipped of [false, true])
       bitmapCases.push({ minWidth: 80, height: 20, default: true, label: 'A A', bitmapFont,
@@ -225,7 +241,8 @@ async function run() {
     try {
       for (const [environment, a, b] of [['own', old, current], ['base', child(old), child(current)], ['mixed', child(old), { ...child(current), base: old }]])
         for (const options of [...ordinaryCases, ...bitmapCases]) {
-            const A = await capture(runtime, a, options), B = await capture(runtime, b, options);
+            const beforeOptions = options.bitmapFont ? { ...options, bitmapFont: previousFont } : options;
+            const A = await capture(previous, a, beforeOptions), B = await capture(runtime, b, options);
             const difference = A.error || B.error ? (A.error === B.error ? null : { old: A.error, current: B.error }) : compare(A.pixels, B.pixels);
             report.compared++;
             if (difference) report.mismatches.push({ transport, slug, environment, options, difference });
@@ -248,17 +265,17 @@ async function run() {
       for (const orientation of ['horizontal', 'vertical']) for (const state of ['normal', 'pressed', 'disabled'])
         for (const length of [32, 121]) {
           const options = { orientation, state, length, value: 0.37 };
-          const A = await runtime.composeScrollbar(old, options), B = await runtime.composeScrollbar(current, options);
+          const A = await previous.composeScrollbar(old, options), B = await runtime.composeScrollbar(current, options);
           const difference = compare(A, B);
           report.scrollbars++;
           if (difference) report.mismatches.push({ transport, slug, family: 'scrollbar', options, difference });
           else if (A && B) report.paintedScrollbars++; else report.missingScrollbars++;
         }
       if (rasterOwner(current.source).usage().images !== 0) throw new Error('Owned scrollbar rendering unexpectedly encoded PNGs');
-      await compareFamilies(runtime, old, current, report, transport, slug);
+      await compareFamilies(runtime, old, current, report, transport, slug, previous);
       if (rasterOwner(current.source).usage().images !== 0) throw new Error('Owned family rendering unexpectedly encoded PNGs');
       report.zeroPngRenders++;
-      await compareWindows(runtime, old, current, report, transport, slug);
+      await compareWindows(runtime, old, current, report, transport, slug, previous);
       if (rasterOwner(current.source).usage().images > 2) throw new Error('Window rendering exported unrelated raster images');
       report.lazyWindows++;
       const manager = new runtime.WindowManager();
@@ -275,14 +292,22 @@ async function run() {
       if (slug === slugs[0]) await windowLifetimeProbe(runtime, report);
       const priorImages = rasterOwner(current.source).usage().images;
       const firstRef = [...ownedUrls].find(ref => !ref.includes('/ppat')) ?? ownedUrls.values().next().value;
-      const first = current.imageUrl(firstRef), same = current.imageUrl(firstRef);
-      if (first !== same) throw new Error('Image exports did not share pending work');
+      const first = current.imageUrl(firstRef), shared = current.imageUrl(firstRef);
+      if (first !== shared) throw new Error('Image exports did not share pending work');
       await first;
       if (rasterOwner(current.source).usage().images !== priorImages + 1) throw new Error('One image request encoded unrelated assets');
-      let diagnostic;
-      await runtime.composeButton(current, { default: true, label: 'OK', diagnostics: { onComplete: trace => { diagnostic = trace; } } });
-      if (!diagnostic || privateImage(diagnostic)) throw new Error('Diagnostic image fields exposed private references');
-      report.diagnostics++;
+      for (const state of ['normal', 'pressed', 'disabled']) for (const ring of [false, true])
+        for (const clipped of [false, true]) for (const minWidth of [32, 180]) for (const bitmap of [false, true]) {
+          const options = { minWidth, height: 20, default: ring, label: bitmap ? 'A A' : 'OK',
+            pressed: state === 'pressed', disabled: state === 'disabled', ...(clipped ? { compositionContext: clip } : {}) };
+          let diagnostic, expected; let completed = 0, beforeCompleted = 0;
+          await runtime.composeButton(current, { ...options, ...(bitmap ? { bitmapFont } : {}), diagnostics: { onComplete(trace) { completed++; diagnostic = trace; } } });
+          await previous.composeButton(old, { ...options, ...(bitmap ? { bitmapFont: previousFont } : {}), diagnostics: { onComplete(trace) { beforeCompleted++; expected = trace; } } });
+          if (!diagnostic || privateImage(diagnostic)) throw new Error('Diagnostic image fields exposed private references');
+          report.diagnostics++; report.diagnosticComparisons++;
+          if (completed !== 1 || beforeCompleted !== 1 || !same(diagnostic, expected))
+            report.mismatches.push({ transport, slug, family: 'button-diagnostics', options, difference: { current: stable(diagnostic), reference: stable(expected) } });
+        }
       for (const [method, options] of [['composeTab', { selected: true, label: 'Ag' }], ['composeBevelButton', { label: 'Ag' }],
         ['composeHeaderSurface', { kind: 'window-header', width: 97, height: 30, drawState: 1,
           compositionContext: { controlOrigin: [0, 0], portOrigin: [0, 0], patternOrigin: { status: 'known', offset: [0, 0] },
@@ -290,6 +315,10 @@ async function run() {
         let completed = 0, trace;
         await runtime[method](current, { ...options, diagnostics: { onComplete(value) { completed++; trace = value; } } });
         if (completed !== 1 || !trace || privateImage(trace)) throw new Error(`Invalid owned diagnostics: ${method}`);
+        let expected, beforeCompleted = 0;
+        await previous[method](old, { ...options, diagnostics: { onComplete(value) { beforeCompleted++; expected = value; } } });
+        report.diagnosticComparisons++;
+        if (beforeCompleted !== 1 || !same(trace, expected)) report.mismatches.push({ transport, slug, family: method + '-diagnostics', difference: { current: stable(trace), reference: stable(expected) } });
         report.familyDiagnostics++;
       }
       // Materialize the exhaustive image comparison concurrently, matching the
@@ -307,14 +336,15 @@ async function run() {
         const difference = compare(png, raw);
         report.rasters++;
         if (difference) report.mismatches.push({ transport, slug, raster: ref, difference });
-        if (referenceOwned) {
-          const expected = await runtime.loadCicnBuffer(await referenceOwned.imageUrl(ref));
+        if (reference) {
+          if (!referenceImageByPath.has(ref)) throw new Error('Reference export path missing: ' + ref);
+          const expected = await runtime.loadCicnBuffer(referenceImageByPath.get(ref));
           const difference = compare(expected, raw);
           report.referenceRasters++;
           if (difference) report.mismatches.push({ transport, slug, referenceRaster: ref, difference });
         }
       }
-    } finally { old.dispose(); current.dispose(); referenceOwned?.dispose(); }
+    } finally { old.dispose(); current.dispose(); }
     // Cache and store must release the same owned identities in source and built copies.
     try {
       await disposedSource.pixels();
@@ -328,6 +358,7 @@ async function run() {
     document.querySelector('#result').textContent = JSON.stringify(report, null, 2);
   }
   for (const runtime of [source, built]) await compareMounts(runtime, slugs, report, compare);
+  report.rendererComparisons = reference ? report.compared + report.windows + report.scrollbars + Object.values(report.families).reduce((sum, row) => sum + row.compared, 0) : 0;
   report.status = report.mismatches.length || report.painted !== report.compared || report.compared === 0 || Object.values(report.families).some(row => row.errors || !row.compared) || report.windows !== slugs.length * 2 * 3 * 4 * 2 * 2 ? 'mismatch' : 'pass';
   return report;
 }

@@ -15,13 +15,21 @@ inputs. Results from different stages must not be pooled.
 
 | Check | Recorded outcome |
 | --- | --- |
-| Production reference | 18 themes; 8,424 button paints, 1,728 windows, 432 scrollbars; zero mismatches |
+| Earlier transport reference | 18 themes; 8,424 button paints, 1,728 windows, 432 scrollbars; zero mismatches through the current renderer |
 | Public rasters | 18,704 current checks and 18,704 additional compiled-reference checks; zero mismatches |
 | Renderer families | 19,152 cases: 15,278 paints, 3,474 matching missing and 400 explicitly unsupported outcomes |
 | Focus consistency | 288 cases / 4,608 outputs; removed cache had 1,312 mismatches, guarded full renders have zero |
 | Independent refresh integration | 1,147 Node tests and all 576 required browsers pass |
 | Other validation | 12,902 unchanged engine-diff cells; 36 Linux goldens; packed consumer passes |
-| Optional visual suite | 33 pass / eight unresolved failures; see [public questions](older-visual-contract-questions.md) |
+| Optional visual suite | 33 pass / eight stale fixture/consumer expectations; independent contract triage and follow-up #481 in the [public handoff](older-visual-contract-questions.md) |
+
+Red-team review found that earlier production reference captures loaded historical
+inputs but rendered both sides with the current renderer. They establish transport
+equivalence, not historical renderer equivalence. The revised reference mode calls
+the historical public renderers and compares layout, pixels and diagnostic metadata
+excluding transport URL identities. It performs 29,736 renderer and 1,836 diagnostic
+comparisons; record each new run's outcome and fingerprints separately. Window
+layouts compare structural values, not object-key serialization order.
 
 The focus probe also checks content/selection and canvas identity, notifications
 and already-active clicks. Six held-preparation units cover focus/removal/retheme
@@ -43,10 +51,14 @@ URLs and tracked advertisement-owner pixel bytes reach zero; final batches have
 retention anomaly remains unexplained. No portable latency budget, lower retained
 memory or leak-free behavior is claimed.
 
-Production source logic plus loader JavaScript decreases from 21,616 to 21,608
-physical lines (−8; source alone +14). Equivalent compiler-recipe JavaScript grows
-by 3,017 bytes; separate level-9 gzip totals grow by 467. The normal library package
-is 996,635 compressed / 3,288,067 unpacked bytes, 116 entries. See
+After the review fixes, production source logic plus loader JavaScript decreases
+from 21,616 to 21,612 physical lines (−4; source alone +18). Equivalent compiler-recipe
+JavaScript grows by 3,314 bytes; separate level-9 gzip totals grow by 516. Scrollbar
+lifetime and value epochs prevent late paints, stale ARIA values and rejected
+disposal work from escaping; seven implementation-owned regressions cover these
+races. PixelBuffer delegates duplicate access logic to the existing engine primitives.
+The earlier normal package capture is 996,635 compressed / 3,288,067 unpacked bytes,
+116 entries; it predates these review fixes. See
 [production-size-results.json](production-size-results.json) and
 [shipped-size-results.json](shipped-size-results.json).
 
@@ -81,7 +93,7 @@ Point these variables at a compiled `scriptoscope.js` with its adjacent build
 manifest; each runner verifies the artifact hashes:
 
 - `SCRIPTOSCOPE_EAGER_ENTRY`: reconstructed eager library for the application run.
-- `SCRIPTOSCOPE_RUNTIME_REFERENCE_ENTRY`: reference loader/rasters for production.
+- `SCRIPTOSCOPE_RUNTIME_REFERENCE_ENTRY`: historical public loaders/renderers for production.
 - `SCRIPTOSCOPE_FOCUS_ENTRY`: implementation under the focus probe.
 - `SCRIPTOSCOPE_EXPECTED_ENTRY`: separate fresh renderer for focus comparisons.
 

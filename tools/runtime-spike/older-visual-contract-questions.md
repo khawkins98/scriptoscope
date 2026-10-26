@@ -44,3 +44,30 @@ searches did not identify this public contract. That search is not proof that no
 handoff exists. The separately authorized extraction-provenance/binding verifier
 assignment excludes these visual cases; its completed refresh does not resolve
 them or grant the implementer access to their independent sources.
+
+## Independent contract triage (2026-10-26)
+
+A separately assigned independent verifier inspected these cases in an isolated
+worktree at `7e5029c6`. Only ordinary results and listing-free contract
+classifications returned. No expectations, goldens or runtime files changed.
+The focused command reproduced eight failures (six passes); this is a subset of
+the serialized 41-case run above, not a new full-suite total.
+
+| Case | Applicable current public contract and setup conflict |
+| --- | --- |
+| Inherited face metadata | The fixture relabels inactive art as active while retaining contradictory raw occurrence identity and assumes cross-state fallback. Push PB5–PB9 and the migrated-family interpretation in `docs/spec/control-resolution-diagnostics.md` exclude that fallback. |
+| Apple Platinum 2 ring corners | Standalone input lacks required ring cinf/default metadata. Art presence alone does not admit border paint (push DR5–DR6 and §6). |
+| Ring overlay | Pressed output requires the pressed face, which the synthetic input omits. Ring art cannot supply the missing face (PB6/PB8). |
+| Ring label ink | The expectation assumes height-derived font size and raster-box placement. Push §5 and the prepared-bitmap-font compatibility default use explicit/default 12px size and actual metrics. Supplementary public probes found no existing foreground ink erased by enabling default for 1138 and Windows95. |
+| Overlapping ring bands | The fixture edits derived slice geometry while retaining raw engine cinf, which remains authoritative (PB9/DR5, raw-cinf compatibility policy and QD E1–E4). |
+| Windows95 label ink | The contract centers text advance and computes a metric-derived baseline; it does not promise rasterizeText box placement (push §5). |
+| Showcase copy button | The control is absent from the current showcase. The showcase links to the installation guide; installation copying belongs to install.html. |
+| Window shell shadow | The CSS property `--scriptoscope-window-shadow` defaults to none. A public probe confirmed the requested shadow when explicitly enabled. |
+
+The verifier recommends merging after final mandatory checks pass, with faithful
+optional coverage restored separately in [issue #481](https://github.com/khawkins98/scriptoscope/issues/481).
+These findings resolve the outstanding contract questions; they neither turn the
+suite green nor establish that failures historically predate this PR. No inspected
+case demonstrated a violation of the current public contracts. The follow-up
+tracks consistent resource fixtures, consumed cinf geometry, metadata-conditioned
+corners, metric-based labels and current consumer/CSS setup.

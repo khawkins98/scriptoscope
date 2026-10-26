@@ -61,7 +61,7 @@ try {
   if (JSON.stringify(inputs) !== JSON.stringify(finalInputs)) { report.status = 'unstable-inputs'; report.error = 'Runtime, built output or driver changed during the run'; }
   await writeReport(referenceEntry ? 'production-reference-results.json' : production ? 'production-results.json' : 'results.json', report);
   console.log(JSON.stringify({ status: report.status, themes: report.rows ? new Set(report.rows.map(row => row.slug)).size : 0,
-    compared: report.compared, painted: report.painted, windows: report.windows, rasters: report.rasters, referenceRasters: report.referenceRasters, mismatches: report.mismatches?.length }, null, 2));
+    compared: report.compared, painted: report.painted, windows: report.windows, rasters: report.rasters, referenceRasters: report.referenceRasters, rendererComparisons: report.rendererComparisons, diagnosticComparisons: report.diagnosticComparisons, mismatches: report.mismatches?.length }, null, 2));
   if (report.status !== 'pass') process.exitCode = 1;
 } finally {
   await browser('close').catch(() => {});
