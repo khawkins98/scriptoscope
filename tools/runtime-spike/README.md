@@ -180,3 +180,34 @@ browser infrastructure, allocator retention and potentially shared pages. Its
 lower observed owned values do not establish lower application-retained memory.
 A separate phase/long-task diagnostic run is needed before stronger performance
 claims; the existing measurements should remain available unchanged.
+
+
+`--diagnostic` records startup and completed-run traces in the separate
+`application-diagnostic-results.json` artifact; combine it with `--smoke` for a
+single trial per mode. It wraps font loading, theme resolution, promotion and
+retheming with phase spans and observes main-thread long tasks and HTTP resource
+timings. Phase durations overlap; retheming includes theme loading, so do not sum
+them. These wrappers change promise scheduling, and retained trace arrays/resource
+buffers change heap measurements. Diagnostic timing/heap figures must not replace
+normal-mode measurements. Long tasks do not explain worker/network/scheduling
+waits. The trace is intended to localize future delays, not retrospectively explain
+the earlier outlier without evidence.
+
+
+The separate diagnostic smoke run passes both modes on the cleaned production
+implementation. It overlaps the local full browser suite and is not an isolated
+benchmark. Eager startup is 3,570 ms, with five overlapping resolution spans of
+2,790–3,320 ms and two startup main-thread long tasks of 375/1,924 ms. Owned
+startup is 364 ms, resolution spans are 46–219 ms, and its startup long task is
+186 ms. Window promotion spans are 8–31 ms eager / 4–23 ms owned. These spans
+locate work in this run; they do not explain the earlier slow owned trial, which
+did not recur. The artifact retains both startup snapshots and full-run traces.
+
+`shipped-size-results.json` records the current `npm pack --dry-run` surface and
+hashes of each built JavaScript file. JavaScript totals 713,285 bytes, or 225,215
+bytes when each file is gzipped separately at level 9. This includes the lazy
+archive decoder and procedural-frame chunk; it is not the initial network
+payload. Package size is 1,004,082 compressed bytes / 3,321,567 unpacked bytes,
+including maps, declarations, CSS and documentation. No compiled artifact matching
+the frozen baseline was found, so this is a current size census, not a historical
+delta. The source-line comparison remains +326 production lines.

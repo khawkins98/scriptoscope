@@ -1,0 +1,40 @@
+{
+  "recordedAt": "2026-10-26T01:14:17.130Z",
+  "revision": "915873b18878e424664b3f53267b48b29a66faee",
+  "methodology": "Current packed publish surface; JavaScript gzip level 9 per file, not HTTP transfer negotiation. No frozen-baseline compiled artifact was available, so no historical size delta is claimed.",
+  "package": {
+    "compressedBytes": 1004082,
+    "unpackedBytes": 3321567,
+    "entries": 116
+  },
+  "javascript": {
+    "bytes": 713285,
+    "gzipBytes": 225215,
+    "files": [
+      {
+        "path": "dist/index-BlEZVh45.js",
+        "bytes": 105021,
+        "gzipBytes": 44767,
+        "sha256": "b70dce8a62d5367dc74cf11363679fd648296f42ece09856ddc9c89255adf842"
+      },
+      {
+        "path": "dist/index-D4s1oiP8.js",
+        "bytes": 565189,
+        "gzipBytes": 166734,
+        "sha256": "67af1747cc17ed7749ff5bd52858a65bf30fb94bfa7ba104fa787508be545445"
+      },
+      {
+        "path": "dist/proceduralFrameChrome-DWjbYRyo.js",
+        "bytes": 40336,
+        "gzipBytes": 12546,
+        "sha256": "06b11babb0445d7f0b5820945aad5ca49b8932b70ff78a494bc5c86a19d27f6f"
+      },
+      {
+        "path": "dist/scriptoscope.js",
+        "bytes": 2739,
+        "gzipBytes": 1168,
+        "sha256": "2e80b26f65667a1f7031984520f46479c1befb6ba291c57e9e7ce8cb82e8d605"
+      }
+    ]
+  }
+}

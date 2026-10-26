@@ -16,6 +16,7 @@ async function fingerprint() {
   for (const path of paths.sort()) digest.update(path).update(await readFile(resolve(root, path)));
   return digest.digest('hex');
 }
+const diagnostic = process.argv.includes('--diagnostic');
 const initial = await fingerprint();
 const telemetry = `(() => {
   const live = new Map(), create = URL.createObjectURL.bind(URL), revoke = URL.revokeObjectURL.bind(URL);
@@ -24,9 +25,29 @@ const telemetry = `(() => {
   URL.revokeObjectURL = url => { revoked++; live.delete(url); return revoke(url); };
   window.__urls = () => ({ created, revoked, live: live.size, blobBytes: [...live.values()].reduce((a,b)=>a+b,0) });
 })();`;
+const diagnosticTelemetry = `(() => {
+  const phases = [], longTasks = [];
+  const supported = PerformanceObserver.supportedEntryTypes.includes('longtask');
+  const observe = entries => { for (const e of entries) longTasks.push({start:e.startTime,duration:e.duration,name:e.name}); };
+  const observer = supported ? new PerformanceObserver(list => observe(list.getEntries())) : null;
+  observer?.observe({type:'longtask',buffered:true});
+  performance.setResourceTimingBufferSize(5000);
+  window.__recordPhase = async (name, work) => {
+    const start = performance.now();
+    try { return await work(); } finally { phases.push({name,start,duration:performance.now()-start}); }
+  };
+  window.__trace = () => {
+    if (observer) observe(observer.takeRecords());
+    return {longTasksSupported:supported,phases:[...phases],longTasks:[...longTasks],
+      navigation:performance.getEntriesByType('navigation').map(e=>e.toJSON()),
+      resources:performance.getEntriesByType('resource').filter(e=>/^https?:/.test(e.name)).map(e=>({
+        path:new URL(e.name).pathname,start:e.startTime,duration:e.duration,transferSize:e.transferSize,initiatorType:e.initiatorType,
+      }))};
+  };
+})();`;
 const probe = `
   const themeRefs = [], seenThemes = new WeakSet(), originalLoad = resolver.load;
-  resolver.load = (...args) => { const promise = originalLoad(...args); promise.then(theme => { if (!seenThemes.has(theme)) { seenThemes.add(theme); themeRefs.push(new WeakRef(theme)); } }, () => {}); return promise; };
+  resolver.load = (...args) => { const promise = ${diagnostic ? 'window.__recordPhase(\'load:\'+args[0], () => originalLoad(...args))' : 'originalLoad(...args)'}; promise.then(theme => { if (!seenThemes.has(theme)) { seenThemes.add(theme); themeRefs.push(new WeakRef(theme)); } }, () => {}); return promise; };
 `;
 const hooks = `
   window.__appProbe = {
@@ -59,7 +80,7 @@ function replaceOne(source, needle, replacement) {
 function instrument(mode) {
   return {
     name: 'owned-app-measurement', enforce: 'pre',
-    transformIndexHtml: { order: 'pre', handler: () => [{ tag: 'script', children: telemetry, injectTo: 'head-prepend' }] },
+    transformIndexHtml: { order: 'pre', handler: () => [{ tag: 'script', children: telemetry + (diagnostic ? diagnosticTelemetry : ''), injectTo: 'head-prepend' }] },
     transform(source, id) {
       if (!id.split('?')[0].endsWith('/demo/advertisement.mjs')) return;
       if (mode === 'eager') {
@@ -67,6 +88,17 @@ function instrument(mode) {
         source = replaceOne(source, 'const resolver = createOwnedThemeResolver(', 'const resolver = createThemeResolver(');
       }
       source = `import * as runtime from 'scriptoscope';\n` + source;
+      if (diagnostic) {
+        source = replaceOne(source, '    await resolver.preloadFonts();', "    await window.__recordPhase('fonts', () => resolver.preloadFonts());");
+        source = replaceOne(source, `const window = await ScriptoscopeWindow.promote(panel.el, {
+          manager, theme: resolved[index],
+        });`, `const window = await windowGlobal.__recordPhase('promote:'+index, () => ScriptoscopeWindow.promote(panel.el, {
+          manager, theme: resolved[index],
+        }));`);
+        source = 'const windowGlobal = window;\n' + source;
+        source = replaceOne(source, 'await manager.retheme(await resolver.load(slug));', "await window.__recordPhase('retheme:'+slug, async () => manager.retheme(await resolver.load(slug)));");
+      }
+
       source = replaceOne(source, '  const panels =', probe + '  const panels =');
       source = replaceOne(source, '  new ResizeObserver(', '  const resizeObserver = new ResizeObserver(');
       source = replaceOne(source, '  }).observe(space);', '  });\n  resizeObserver.observe(space);');
@@ -163,6 +195,7 @@ async function trial(serverUrl, mode, repetition) {
     const startup = await browser('eval', '({readyMs:__appProbe.readyMs,urls:__urls(),usage:__appProbe.usage(),windows:document.querySelectorAll("[data-scriptoscope-window-host]").length})');
     console.log(JSON.stringify({mode,repetition,phase:'startup',startup}));
     await browser('eval', '__appProbe.check()');
+    const startupTrace = diagnostic ? await browser('eval', '__trace()') : undefined;
     const samples = [baseline, await memory('ready')];
     console.log(JSON.stringify({mode,repetition,phase:'ready',startup}));
     const switches = [];
@@ -194,7 +227,7 @@ async function trial(serverUrl, mode, repetition) {
       if (sample.counters.urls.live) throw new Error('Mount/disconnect retained blob URLs');
       samples.push(sample);
     }
-    return { mode, repetition, browser: version.Browser, startup, switches, samples };
+    return { mode, repetition, browser: version.Browser, startup, switches, samples, ...(diagnostic ? {startupTrace, trace:await browser('eval', '__trace()')} : {}) };
   } finally {
     if (cdp) cdp.socket.close();
     await exec('agent-browser', ['--session', session, 'close'], { timeout: 15_000 }).catch(() => {});
@@ -205,7 +238,8 @@ async function trial(serverUrl, mode, repetition) {
   }
 }
 const servers = new Map();
-const report = { recordedAt: new Date().toISOString(), status: 'running', methodology: 'Real advertisement app and UI switch buttons, built library, fresh Chromium profile per trial. Current eager compatibility API versus owned API; not a historical executable. Loopback network/module/font startup included. Owned-store counters observe only advertisement themes (eager results are not bound to that registry), not mount-cycle owners. Blob counters are global to the page. Two frame boundaries and one task precede consistent post-GC sampling. Post-GC CDP heap/backing-storage and sum of browser-process RSS are recorded separately from asset counters. Twenty public mount/disconnect cycles follow app teardown. Telemetry and hooks exist only in this local server.', trials: [] };
+const report = { context: process.env.SCRIPTOSCOPE_APPLICATION_NOTE ?? null, recordedAt: new Date().toISOString(), status: 'running', methodology: 'Real advertisement app and UI switch buttons, built library, fresh Chromium profile per trial. Current eager compatibility API versus owned API; not a historical executable. Loopback network/module/font startup included. Owned-store counters observe only advertisement themes (eager results are not bound to that registry), not mount-cycle owners. Blob counters are global to the page. Two frame boundaries and one task precede consistent post-GC sampling. Post-GC CDP heap/backing-storage and sum of browser-process RSS are recorded separately from asset counters. Twenty public mount/disconnect cycles follow app teardown. Telemetry and hooks exist only in this local server.', trials: [] };
+if (diagnostic) report.methodology += ' Diagnostic run adds phase wrappers and long-task/resource observers. Phase durations overlap and must not be summed; retheme includes load. Retained trace arrays and resource buffers make its heap figures incomparable with normal-mode results. Long tasks cover the main thread only. This run is recorded separately.';
 try {
   for (const mode of ['eager', 'owned']) {
     const server = await createServer({ configFile: resolve(root, 'vite.config.js'), root: resolve(root, 'demo'), plugins: [instrument(mode)], server: { host: '127.0.0.1', port: 0, open: false, hmr: false }, resolve: { alias: { scriptoscope: resolve(root, 'dist/scriptoscope.js') } } });
@@ -224,7 +258,7 @@ try {
 } catch (error) { report.status = 'error'; report.error = String(error.stack ?? error); console.log(JSON.stringify({status:'error',error:report.error})); process.exitCode = 1; }
 finally {
   for (const server of servers.values()) await server.close();
-  await writeFile(resolve(import.meta.dirname, process.argv.includes('--smoke') ? 'application-smoke-results.json' : 'application-results.json'), JSON.stringify(report, null, 2) + '\n');
+  await writeFile(resolve(import.meta.dirname, diagnostic ? 'application-diagnostic-results.json' : process.argv.includes('--smoke') ? 'application-smoke-results.json' : 'application-results.json'), JSON.stringify(report, null, 2) + '\n');
   console.log(JSON.stringify({ status: report.status, trials: report.trials.length, error: report.error }));
   if (report.status !== 'pass') process.exitCode = 1;
 }

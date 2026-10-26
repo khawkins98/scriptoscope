@@ -263,3 +263,33 @@ is +326 lines. This cleanup removes 27 lines, but net reduction remains unmet.
 The draft PR also retains the eight unresolved additional visual-baseline
 failures. Lane readiness reported an unavailable `Traps.h` prerequisite; it is
 not recorded as passed. No golden expectations were changed.
+
+
+### Final checks and diagnostic follow-up
+
+All 36 pinned Linux Chromium golden checks pass unchanged. The full local browser
+contract run remains live. A stricter TypeScript unused-local/parameter audit
+passes and reveals no additional dead internal declarations to remove.
+
+The optional application `--diagnostic` mode now records phase spans, long tasks
+and HTTP resource timings in a separate artifact. Both smoke trials pass on the
+cleaned production code. They overlap browser validation and retain tracing data,
+so their timing and memory figures do not replace the six-trial measurement.
+The prior owned startup outlier did not recur and remains unexplained.
+
+The published JavaScript census is 713,285 bytes / 225,215 gzip bytes (per-file
+level 9), including lazy chunks. Full package size is 1,004,082 compressed bytes.
+`tools/runtime-spike/shipped-size-results.json` pins each JavaScript hash. A
+matching compiled frozen-baseline artifact remains unavailable; no historical
+shipped-size delta is claimed.
+
+The trap-table prerequisite is resolved: the check consumes the exact pinned
+Apple UI 3.0.1 header, SHA-256
+`b2d54498b8f790f6ca959bdfe5cfb2ef84bec8e0a565bd65c1a09dc7c3d34c7b`,
+from the public UniversalInterfaces mirror at revision
+`328d38f2b72b2d4ceda30170eea32ca6b9de218a`, path
+`3.0.1/Universal/Interfaces/CIncludes/Traps.h`. `gen-trap-table --check` passes.
+The header was used only as verifier input. The first lane-readiness run also
+rejected a moving HEAD/worktree while these changes were being committed; its
+runtime checks passed, but the aggregate is not a readiness pass. Rerun against
+the frozen committed worktree with `SCRIPTOSCOPE_TRAPS_H` set to the pinned file.
