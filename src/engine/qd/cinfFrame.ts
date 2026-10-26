@@ -78,6 +78,7 @@ export interface CinfUnknownIconSource {
 export interface PreparedCinfFrame {
   geometry: { cornerSize: number; sideThickness: number; tileSides: boolean };
   allocate: typeof PixelBuffer.alloc;
+  phase?: QdPoint;
   bodyMode: number; bodyId: number; bodyProvider: ResourceProvider;
   background: Rgba | null; rawBackground: boolean;
   /** Earlier observed compatibility selection, enriched only after successful paint. */
@@ -294,7 +295,7 @@ function drawFrame(port: Pixmap, chain: ResourceChain, input: CinfFrameInput, tr
       const pattern = 'pixmap' in res.value ? res.value.pixmap : res.value;
       const origin = input.allocationOrigin ?? { x: 0, y: 0 };
       const { row, phase } = cinfPhase(offsetRect(D, origin.x, origin.y), mode), off = input.patternOffset;
-      const shifted = { x: phase.x - origin.x + (off?.x ?? 0), y: phase.y - origin.y + (off?.y ?? 0) };
+      const shifted = prepared?.phase ?? { x: phase.x - origin.x + (off?.x ?? 0), y: phase.y - origin.y + (off?.y ?? 0) };
       for (const r of cinfBodyRects(D, c, s)) fillPattern(port,
         prepared ? rect(Math.ceil(r.top), Math.ceil(r.left), Math.ceil(r.bottom), Math.ceil(r.right)) : r,
         pattern, shifted, trace, `B5,${row.id}`);

@@ -5,7 +5,7 @@ import { CinfEnvironmentError, snapshotBodyCinfFace, type CinfLookupView } from 
 import type { PreparedBitmapFont } from './preparedBitmapFont.js';
 import { drawPreparedCinfFrame, type PreparedCinfFrame } from './engine/qd/cinfFrame.js';
 import { ownerDisplayPolicyMatches, realizeRgb16 } from '../tools/theme-loader/display-profile.js';
-import { snapshotControlComposition, controlPointVisible, type ControlCompositionContext, type ControlCompositionSnapshot, type ButtonComposition } from './controlComposition.js';
+import { snapshotControlComposition, controlPointVisible, bodyPatternPhase, type ControlCompositionContext, type ControlCompositionSnapshot, type ButtonComposition } from './controlComposition.js';
 import type { SliderComposition } from './sliderLayout.js';
 import type { ChromeElement } from './types.js';
 import { resolveInChain } from './baseChain.js';
@@ -746,7 +746,8 @@ async function prepareBevelFrame(face: ResolvedControlFace, opts: FaceOptions, w
   const rgb = rawBg ?? (validBg ? sampled : null);
   const bodyProvider = { ...mapProvider('prepared:bevel-body', 'archive', value ? [[`${common.requestedResourceType}:${common.requestedId}`, value]] : []),
     selection: () => step, ...(transport ? { unmaskedSource: () => transport } : {}) };
-  return { allocate: PixelBuffer.alloc, geometry: { cornerSize: slice.corner, sideThickness: slice.side, tileSides: slice.tile },
+  const phase = value && request && request.mode !== 5 ? bodyPatternPhase(opts.composition, request.mode, width, height) : undefined;
+  return { ...(phase ? { phase: { x: -phase[0], y: -phase[1] } } : {}), allocate: PixelBuffer.alloc, geometry: { cornerSize: slice.corner, sideThickness: slice.side, tileSides: slice.tile },
     bodyMode: request?.mode ?? 0, bodyId: request?.resourceId ?? 0, bodyProvider,
     background: rgb ? { r: rgb[0]!, g: rgb[1]!, b: rgb[2]!, a: 255 } : null, rawBackground: !!rawBg,
     ...(step ? { step } : {}) };

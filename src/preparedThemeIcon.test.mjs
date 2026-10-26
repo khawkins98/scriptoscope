@@ -174,3 +174,35 @@ test('prepared borders normalize negative corners independently of raw body inse
     assert.equal(fractional.height, 5.5);
   } finally { theme.dispose(); }
 });
+
+test('a wholly clipped prepared border never captures an unused companion reference', async () => {
+  const face = PixelBuffer.alloc(5, 5);
+  face.fillRect({ x: 0, y: 0, w: 5, h: 5 }, 30, 40, 50, 255);
+  let captures = 0;
+  const sentinel = new Error('unknown-owned-raster');
+  const descriptor = { model: 'kaleidoscope-2.3.1-opaque-sampling-v1', comparison: 'opaque-current-display-rgb',
+    displayPolicy: LEGACY_DISPLAY_POLICY, width: 5, height: 5, asset: 'missing', derivedPath: 'cicn-sampled/public.png' };
+  const prepared = await prepareThemeIcon({ manifest: {}, asset() { captures++; throw sentinel; } }, -10166,
+    { asset: 'face', sampledBandAsset: descriptor }, { key: 'face' },
+    { pixels: face, lazySamples: true, sampling: { equivalent: false, descriptor } });
+  const frame = { allocate: PixelBuffer.alloc, geometry: { cornerSize: 2, sideThickness: 1, tileSides: false },
+    bodyMode: 0, bodyId: 0, background: null, rawBackground: false, bodyProvider: mapProvider('empty-body', 'archive', []) };
+  const input = { id: -10166, cicn: face, icon: prepared.icon, dstRect: rect(0, 0, 6, 16), bodyFill: true };
+  await drawPreparedCinfFrame(PixelBuffer.alloc(16, 6), input, frame, undefined, rect(0, 0, 0, 0));
+  assert.equal(captures, 0);
+  await assert.rejects(drawPreparedCinfFrame(PixelBuffer.alloc(16, 6), input, frame), error => error === sentinel);
+  assert.equal(captures, 1);
+});
+
+test('legacy pattern preparation retains signed control-edge validation even for mode zero', async () => {
+  const theme = aliasTheme(-10163);
+  try {
+    const face = theme.source.manifest.chromeElements.face;
+    face.bodyRequest = { mode: 0, resourceId: 17 };
+    face.bodyPattern = 'pattern';
+    theme.source.manifest.patterns = { pattern: { asset: 'face', sourcePpatId: 17 } };
+    await assert.rejects(composeBevelButton(theme, { on: true, minWidth: 16, height: 6,
+      compositionContext: { controlOrigin: [32760, 0], portOrigin: [0, 0], patternOrigin: { status: 'known', offset: [0, 0] },
+        clip: { kind: 'unbounded' } } }), { name: 'RangeError' });
+  } finally { theme.dispose(); }
+});
