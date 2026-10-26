@@ -348,10 +348,9 @@ Thus net source reduction does not imply smaller compiled output. Current
 published-package measurements are recorded separately in
 `shipped-size-results.json`; reconstructed artifacts omit maps and declarations.
 
-Decoder edits invalidate independently pinned extraction toolchain hashes.
-`extraction-change-results.json` lists the exact implementation hash delta.
-Independent evidence remains unchanged; its owner must review and refresh
-provenance, then rerun full gates. Matching pixels do not waive that requirement.
+Decoder edits invalidated independently pinned extraction toolchain hashes.
+`extraction-change-results.json` retains the exact implementation hash delta and
+now records a separately authorized verifier refresh. Full integration gates and all 576 required browser tests pass; matching pixels alone did not waive provenance review.
 The eight older optional visual failures still require listing-free public input
 and intended-behavior clarification. Maintainer-asset metadata, archive indexes
 and available handoff searches did not identify that handoff. An attempted frozen
@@ -382,12 +381,21 @@ The clean library-only package contains 116 entries, 996,635 compressed bytes /
 level-9 gzip 223,126 bytes. These differ from the common-recipe comparison above;
 the package includes maps and declarations.
 
-`validation-results.json` records final status: 164 loader units, packed consumer,
-all 12,902 unchanged engine-diff cells and all 36 Linux goldens pass. Required
-browsers have 574 passes / two extraction-hash failures; Node tests have
-1,139 passes / eight extraction-hash failures, two skips and twelve TODOs.
-Acceptance bindings separately report drift. No independent evidence or golden
-expectation was changed. The final reference comparator has zero mismatches.
-The proposed separate-owner process is in `independent-refresh-handoff.md`;
-the maintainer has now authorized a separate verifier assignment, running in an
-isolated worktree.
+`validation-before-evidence-refresh-results.json` preserves the earlier blocked
+check results: 574 browser passes / two extraction-hash failures and 1,139 Node
+passes / eight extraction-hash failures, plus binding drift. Goldens were not
+changed. The separate verifier subsequently refreshed provenance and bindings
+under explicit maintainer authorization, committing `7e5029c6`, integrated as
+`c157454c`. Their Node suite passes 1,147 tests with zero failures; build and
+remaining gate commands pass. The implementer did not inspect the evidence diff
+or receive verifier review material. `validation-results.json` now records the
+passing full integration rerun: 1,147 Node tests and all 576 required browser tests,
+including both formerly blocked availability cases.
+The process and return boundary are in `independent-refresh-handoff.md`.
+
+The final serialized optional visual run is recorded in
+`optional-visual-results.json`: 33 pass / eight fail, with the same failing case
+labels as the earlier stage. Those failures are not waived or established as
+pre-migration failures by current parity. Public input/expected-contract questions
+are in `older-visual-contract-questions.md`. Exact-head lane readiness is recorded
+in PR #480 after the report commit is pushed, avoiding changes to the tested head.

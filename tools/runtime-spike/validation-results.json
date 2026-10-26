@@ -1,7 +1,7 @@
 {
-  "recordedAt": "2026-10-26T09:20:10.962Z",
+  "recordedAt": "2026-10-26T10:40:27.012Z",
   "implementationRevision": "6cfe9afda52825b848702aef942065f3daf6a647",
-  "status": "independent-review-required",
+  "status": "required-checks-pass-optional-visual-unresolved",
   "checks": {
     "loaderUnits": {
       "command": "node --experimental-strip-types --test tools/theme-loader/*.test.mjs",
@@ -14,19 +14,19 @@
     },
     "gates": {
       "command": "npm run gates",
-      "status": "fail",
-      "nodePassed": 1139,
-      "nodeFailed": 8,
+      "status": "pass",
+      "execution": "Integration branch after independent commit cherry-pick",
+      "nodePassed": 1147,
+      "nodeFailed": 0,
       "nodeSkipped": 2,
-      "nodeTodo": 12,
-      "diagnostic": "tools/theme-loader/decoders/cicn.js: extraction toolchain hash drift",
-      "qualification": "Typecheck and clean-room pass. Subsequent umbrella checks stop after npm test; checks listed below were also run separately."
+      "nodeTodo": 12
     },
     "requiredBrowsers": {
       "command": "npm run test:rendering",
-      "passed": 574,
-      "failed": 2,
-      "diagnostic": "Both failures: extraction toolchain hash drift"
+      "status": "pass",
+      "execution": "Complete integration suite after independent commit cherry-pick",
+      "passed": 576,
+      "failed": 0
     },
     "engineDiff": {
       "command": "npm run engine-diff",
@@ -56,8 +56,10 @@
     },
     "acceptanceBindings": {
       "command": "npm run test:acceptance:bindings",
-      "status": "fail",
-      "diagnostic": "Binding artifact drift; regenerate and review"
+      "status": "pass",
+      "execution": "Full integration gates",
+      "sources": 18,
+      "cells": 594
     },
     "productionReference": {
       "command": "SCRIPTOSCOPE_RUNTIME_REFERENCE_ENTRY=<verified compiled f905de9d entry> node tools/runtime-spike/run.mjs --production",
@@ -102,15 +104,46 @@
       "entries": 116
     },
     "laneReadiness": {
-      "status": "blocked",
-      "qualification": "Not repeated: full gates and acceptance bindings have unresolved independent provenance/binding failures."
+      "command": "SCRIPTOSCOPE_TRAPS_H=<pinned UI 3.0.1 Traps.h> npm run lane:ready",
+      "status": "exact-head-result-reported-in-pr",
+      "qualification": "Runs after this report commit is pushed; outcome recorded in PR #480 without mutating the tested head."
     }
   },
-  "independentEvidenceModified": false,
+  "independentEvidenceModified": true,
   "olderOptionalVisualSuite": {
-    "status": "unresolved",
-    "lastRecordedPassed": 33,
-    "lastRecordedFailed": 8,
-    "qualification": "Earlier stage-specific run, not rerun for this candidate. Listing-free inputs/intended contract remain needed. Frozen compiled-entry replay did not reach assertions."
+    "status": "fail",
+    "passed": 33,
+    "failed": 8,
+    "report": "optional-visual-results.json",
+    "publicClarificationHandoff": "older-visual-contract-questions.md",
+    "qualification": "Normal unchanged optional command with serialized file execution. No independent source, fixture, oracle or review artifact was opened; only ordinary command results and diagnostics used. Same eight case labels as earlier stage; no proof that failures predate migration. Listing-free public inputs/intended contract are still needed."
+  },
+  "integrationRevision": "c157454c",
+  "independentEvidenceModifiedByImplementer": false,
+  "independentRefresh": {
+    "status": "completed",
+    "authorization": "Maintainer explicitly authorized a separate independent verifier/evidence-owner assignment.",
+    "isolatedCandidate": "6cfe9afda52825b848702aef942065f3daf6a647",
+    "verifierCommit": "7e5029c61892f4a41c05e478030f6d0c58d2e1d0",
+    "integrationCommit": "c157454c",
+    "returnBoundary": "Only completion, commit identity and public command results returned. Implementer did not inspect independent sources, diffs or verifier review material.",
+    "publicResults": {
+      "nodePassed": 1147,
+      "nodeFailed": 0,
+      "nodeSkipped": 2,
+      "nodeTodo": 12,
+      "build": "pass",
+      "remainingGateCommands": "pass",
+      "sourceValidation": {
+        "archives": 18,
+        "candidateThemes": 4,
+        "cases": 27
+      },
+      "bindings": {
+        "sources": 18,
+        "cells": 594
+      },
+      "generatorTestsPassed": 4
+    }
   }
 }

@@ -1,9 +1,13 @@
-# Proposed independent evidence-owner handoff
+# Independent evidence-owner handoff
 
-Status: the maintainer explicitly authorized the separate verifier assignment.
-A fresh verifier is working in isolated branch
-`khawkins98/independent-extraction-refresh`, based on the exact candidate below.
-The implementer remains excluded from independent evidence and review material.
+Status: completed under the maintainer's explicit separate verifier assignment.
+The fresh verifier worked in isolated branch
+`khawkins98/independent-extraction-refresh` at the exact candidate below.
+Verifier commit: `7e5029c61892f4a41c05e478030f6d0c58d2e1d0`.
+Integration commit: `c157454c`. Only completion, commit identity and permitted
+public command results returned; independent sources, diffs and review material
+stayed outside implementer context. Full integration gates now pass; the
+complete required browser suite passes all 576 tests.
 
 ## Assignment and return boundary
 
@@ -70,7 +74,7 @@ independently pinned. The verifier must establish the actual pinned scope.
 | `tools/theme-loader/decoders/ppat.js` | `2b4dc9158ac63fa776333a63282b8264bf6afab8d11a662e3574b7452bcf1bbb` | `5ff62a44eca9ecbcf99b7a4adb938f13efb3178d256a0c5d864f075368f3d908` |
 | `tools/theme-loader/decoders/shared.js` | `706dc51b01571efdaca7eb674a90cc643c28b7995500f5b1a0394a0a35e9e8a5` | `b69cd652074d6016ae48c57267e114654c07e0e8bf2fe12ce060ea945660bcbf` |
 
-## Observed public checks
+## Public checks observed before refresh
 
 - `npm run gates`: typecheck and clean-room pass; Node suite has 1,139 passes,
   eight failures, two skips and twelve TODOs. All eight failures report extraction
@@ -92,3 +96,13 @@ commit/review. Keep the integration draft until the independent process complete
 
 The eight older optional visual failures are a separate unresolved spec handoff;
 this refresh must not rewrite their expected behavior or imply they are resolved.
+
+## Verifier public check results
+
+- Node: 1,147 pass / zero fail / two skip / twelve TODO.
+- Build and all remaining gate commands pass after building the isolated bundle.
+- Extraction validation: 18 archives / four candidate themes / 27 cases.
+- Acceptance bindings: 18 sources / 594 cells; generator tests four passes.
+- Whitespace validation passes; isolated worktree is clean.
+- Full required browser suite is assigned to the integration branch after the
+  independently authored commit was integrated. All 576 browser tests pass, including both formerly blocked availability cases.

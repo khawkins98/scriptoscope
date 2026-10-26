@@ -1,7 +1,7 @@
 {
   "baseRevision": "68a97a30311d80a013c91824e3c1cc4afdebdebf",
-  "status": "independent-refresh-required",
-  "reason": "Availability checks reject extraction toolchain hash drift. Independent evidence remains unchanged.",
+  "status": "independent-refresh-completed",
+  "reason": "Separately authorized verifier regenerated and committed evidence; integration public checks are being rerun. Implementer did not inspect independent sources, evidence diffs or review material.",
   "changedRuntimeInputs": [
     {
       "path": "tools/theme-loader/buildThemeJson.js",
@@ -47,15 +47,19 @@
       "cells": 12902,
       "changed": 0
     },
-    "independentAvailability": "blocked: extraction toolchain hash drift",
-    "independentAcceptanceBindings": "blocked: Binding artifact drift; regenerate and review",
+    "independentAvailability": "pass in isolated verifier worktree",
+    "independentAcceptanceBindings": "pass in isolated verifier worktree",
     "productionReferenceReport": "production-reference-results.json",
-    "qualification": "Independent evidence remains unchanged. The final reference run includes the committed runtime and built fingerprints; its pixel-equivalence results do not replace provenance review.",
+    "qualification": "Original implementation hash delta is retained. Independent refresh was authored separately; primary did not inspect the evidence diff. Reference pixels support regression equivalence, not original fidelity.",
     "productionReference": {
       "status": "pass",
       "rasters": 18704,
       "mismatches": 0,
       "revision": "6cfe9afda52825b848702aef942065f3daf6a647"
     }
+  },
+  "independentRefresh": {
+    "verifierCommit": "7e5029c61892f4a41c05e478030f6d0c58d2e1d0",
+    "integrationCommit": "c157454c"
   }
 }

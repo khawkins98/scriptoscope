@@ -1,6 +1,6 @@
 # Owned raster transport feature PR
 
-Status: implemented draft; final validation and independent evidence refresh remain open. One integration PR with optional stacked
+Status: implemented draft; independent evidence refresh completed; full gates and required browsers pass. One integration PR with optional stacked
 sub-PRs. The integration branch targets `v2`: [draft PR #480](https://github.com/khawkins98/scriptoscope/pull/480).
 
 The working branch is `refactor/runtime-streamlining`, starting from
@@ -8,7 +8,7 @@ The working branch is `refactor/runtime-streamlining`, starting from
 The [consumer inventory and ownership contract](raster-asset-consumers.md) records
 the first design decision. The owned loader and all low-level renderer families accept the explicit owned
 contract. Owner-local captured entries replace the global raster registry. The shared
-owned resolver/mount and main demo adoption are implemented. Diagnostic catalog adoption and current-API application measurements are implemented. Combined runtime and loader code now decreases; a compiler-only historical baseline has been reconstructed. Independent extraction provenance and eight older optional visual-check failures remain open. The
+owned resolver/mount and main demo adoption are implemented. Diagnostic catalog adoption and current-API application measurements are implemented. Combined runtime and loader code now decreases; a compiler-only historical baseline has been reconstructed. Independent extraction provenance has been refreshed by its separately authorized verifier; older optional visual-contract questions remain open. Exact-head lane readiness is reported in the PR. The
 [owned loading API](owned-theme-api.md) records the current supported boundary.
 
 Architecture review with Astra selected one owner implementation with two explicit
@@ -31,26 +31,28 @@ older report is stage-specific evidence, not a claim about an untested final hea
 - Focus comparison against the separate compiled fresh renderer passes 4,608
   exact outputs across 288 cases. Six held-preparation tests cover rapid focus,
   removal and retheme races. Three compositing units cover clipping and aliasing.
-- Required browser contracts finish with 574 passes and two availability failures,
-  both reporting extraction toolchain hash drift. No other browser failure appears.
-  Previous transport-head CI was green; it does not certify this expanded head.
-- Full gates stop at the Node suite with 1,139 passes, two skips and twelve TODOs,
-  plus eight failing availability tests because decoder changes
-  invalidate independently pinned extraction toolchain hashes. The implementer
-  has not edited independent evidence. `extraction-change-results.json` records
-  exact before/after hashes for the review owner. Output equivalence does not
-  waive this provenance requirement.
-- All 12,902 engine-diff cells remain unchanged on the final candidate. Strict
-  theme lint, scene audit, requirements, reference and source-input checks pass.
-  Acceptance bindings separately report artifact drift and require independent
-  regeneration/review.
+- The separately authorized verifier completed extraction-provenance and binding
+  regeneration in an isolated worktree. Their Node suite has 1,147 passes,
+  zero failures, two skips and twelve TODOs; build and remaining gate commands
+  pass. Source validation covers 18 archives / 27 cases; bindings verify
+  18 sources / 594 cells, and all four generator tests pass.
+- Verifier commit `7e5029c6` was integrated as `c157454c` without opening the
+  independent sources, evidence diff or verifier review material. Full integration
+  gates pass (1,147 Node passes, zero failures); all 576 required browser tests
+  pass, including both formerly blocked availability checks. Earlier failed-run results are preserved in
+  `validation-before-evidence-refresh-results.json`.
+- All 12,902 engine-diff cells remain unchanged on the implementation candidate.
+  Strict theme lint, scene audit, requirements, references and source-input checks
+  also pass in the full integration gates after the metadata refresh.
 - All 36 pinned Linux goldens pass. The final six-trial historical application
   comparison passes; startup medians are 8,036 ms reconstructed eager / 788 ms
   owned, with substantial variation. The clean library package census is 996,635
   compressed bytes / 3,288,067 unpacked bytes, 116 entries. Earlier reports retain
-  their own stage-specific hashes. Lane readiness remains blocked by the same
-  independent provenance/binding failures. The older optional suite has 33 passes and eight
-  unresolved failures; public input/expectation clarification is still needed.
+  their own stage-specific hashes. Exact-head lane readiness is reported in
+  PR #480. The older optional suite was
+  rerun serially on this candidate: 33 pass and the same eight case labels fail.
+  Public input/expectation clarification is still needed; see
+  `optional-visual-results.json` and the listing-free clarification handoff.
 
 | Production physical lines | Frozen start | Candidate | Delta |
 | --- | ---: | ---: | ---: |
@@ -241,7 +243,8 @@ Earlier current-API reports retain timing outliers, higher owned live backing
 storage, heap growth in both modes and one eager DOM/listener retention anomaly.
 No portable latency budget, leak-free behavior or lower retained memory is claimed.
 
-The eight older optional visual failures remain unresolved. A runtime-only probe
+The final serialized optional run confirms the same eight older visual cases
+remain unresolved (33 pass / eight fail). A runtime-only probe
 of the inherited-face invocation requested cicn −10239/raw index238 while its
 decoded occurrence identified −10240/index239; fresh eager/owned loads agree on
 both identities. The intended input preparation and contract require listing-free
@@ -252,14 +255,19 @@ assertions and supplies no historical failure evidence.
 
 Local and Forgejo maintainer-asset metadata, archive indexes and available handoff
 searches did not identify the missing public reproducer. Original/private verifier
-content was not opened. Independent extraction hashes and acceptance bindings
-remain unchanged; their owner must review and refresh provenance before full
-gates can pass. See the exact hash delta in
+content was not opened. A separately authorized verifier has now refreshed
+independent extraction identities and acceptance bindings. The original runtime
+hash delta and verifier/integration commit identities are recorded in
 `tools/runtime-spike/extraction-change-results.json`.
 
 Astra recommends a fresh independently assigned verifier in an isolated worktree,
 with no inherited implementation conversation. The public task and permitted
 return boundary are in [the prepared handoff](../../tools/runtime-spike/independent-refresh-handoff.md).
-The maintainer authorized that separate assignment, now running in isolated
-branch `khawkins98/independent-extraction-refresh`. The implementer will not
-inspect independent sources, evidence diffs or verifier review material.
+The maintainer authorized that separate assignment, completed in isolated
+branch `khawkins98/independent-extraction-refresh`. Only status, commit identity
+and public check results returned to the implementer. Independent sources,
+evidence diffs and verifier review material stayed outside implementer context.
+
+The current listing-free questions and permitted diagnostics are in
+[the visual clarification handoff](../../tools/runtime-spike/older-visual-contract-questions.md).
+The optional failure receipt is `tools/runtime-spike/optional-visual-results.json`.
