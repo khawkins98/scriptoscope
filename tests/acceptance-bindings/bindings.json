@@ -57,7 +57,7 @@
     },
     {
       "path": "tools/theme-loader/buildThemeJson.js",
-      "sha256": "0173d9601e07d43d8e0b55a2bf93c006a57f70bf0e3a3c880d9d1303ab511dce"
+      "sha256": "dcb2785a8963083133c57947bd6c39cf3a436941bff26220e41584a043da1d86"
     },
     {
       "path": "tools/theme-loader/cicn-body.js",
@@ -81,11 +81,11 @@
     },
     {
       "path": "tools/theme-loader/convert.js",
-      "sha256": "6b795864fd2aecb0181ca90a8fca928965524e3fca337b6dddd58a49e89b1cf9"
+      "sha256": "05601ef8f6eec3b465930d8590a4c8289c7e5945b472740b5adb33d4326acd26"
     },
     {
       "path": "tools/theme-loader/decoders/cicn.js",
-      "sha256": "35cc33ca8eae4181ab10d40e1c72afdccd7429977b62f99fb5f62f0bda314b7e"
+      "sha256": "f3171f93025127e2f6c2a8b98393ab6909f279a4f49236b006f0e50630a1121e"
     },
     {
       "path": "tools/theme-loader/decoders/cinf.js",
@@ -101,11 +101,11 @@
     },
     {
       "path": "tools/theme-loader/decoders/ppat.js",
-      "sha256": "2b4dc9158ac63fa776333a63282b8264bf6afab8d11a662e3574b7452bcf1bbb"
+      "sha256": "5ff62a44eca9ecbcf99b7a4adb938f13efb3178d256a0c5d864f075368f3d908"
     },
     {
       "path": "tools/theme-loader/decoders/shared.js",
-      "sha256": "706dc51b01571efdaca7eb674a90cc643c28b7995500f5b1a0394a0a35e9e8a5"
+      "sha256": "b69cd652074d6016ae48c57267e114654c07e0e8bf2fe12ce060ea945660bcbf"
     },
     {
       "path": "tools/theme-loader/decoders/wnd.js",
