@@ -124,7 +124,7 @@ export async function prepareThemeIcon(theme: ThemeView, id: number, el: ChromeE
   const source = cicnIconSource(pixmap, el.iconBlit?.pixelSize ?? null, companion);
 
   const icon: CinfIconSource = { ...source,
-    ...(opts.lazySamples ? { prepareSampled } : {}),
+    ...(opts.lazySamples && (!opts.sampling || !equivalent && eligible) ? { prepareSampled } : {}),
     get sampledSource() { return accepted ? sampledSource : undefined; },
     origin: selectedSource ? (boundOccurrence() && bounds
       && bounds.right - bounds.left === pixmap.width && bounds.bottom - bounds.top === pixmap.height

@@ -3,7 +3,7 @@ import { withThemeView, type ThemeInput, type ThemeView, type RasterSource } fro
 import { composeEnginePush, loadEnginePushFace } from './pushButtonFacade.js';
 import { CinfEnvironmentError, snapshotBodyCinfFace, type CinfLookupView } from '../tools/theme-loader/cinf-environment.js';
 import type { PreparedBitmapFont } from './preparedBitmapFont.js';
-import { drawCinfFrame, prepareCinfFrameSamples, type PreparedCinfFrame } from './engine/qd/cinfFrame.js';
+import { drawPreparedCinfFrame, type PreparedCinfFrame } from './engine/qd/cinfFrame.js';
 import { ownerDisplayPolicyMatches, realizeRgb16 } from '../tools/theme-loader/display-profile.js';
 import { snapshotControlComposition, controlPointVisible, type ControlCompositionContext, type ControlCompositionSnapshot, type ButtonComposition } from './controlComposition.js';
 import type { SliderComposition } from './sliderLayout.js';
@@ -28,7 +28,7 @@ import { PROGRESS_DATA, PROGRESS_FACADE_LENGTH, PROGRESS_FACADE_RANGE, PROGRESS_
 import { drawProgress, newProgressRecord, progressResourceIds, progressSetData, type ProgressInput } from './engine/families/progress.js';
 import { snapshotSliderEnvironment, unsupportedSliderEnvironment, admitSliderGeometry, admitSliderState } from './engine/resources/sliderEnvironment.js';
 import { themeResourceChain, prepareThemeIcon } from './engine/resources/theme.js';
-import { ResourceChain, mapProvider } from './engine/resources/chain.js';
+import { mapProvider } from './engine/resources/chain.js';
 import { withControlDiagnostics, type ControlDiagnostics, type ControlTraceCollector, type ControlResolutionStep, type LegacyFacePaint } from './controlDiagnostics.js';
 
 /** 9-slice corner inset for a control cicn — matches the kDEF's ~6px for
@@ -746,7 +746,7 @@ async function prepareBevelFrame(face: ResolvedControlFace, opts: FaceOptions, w
   const rgb = rawBg ?? (validBg ? sampled : null);
   const bodyProvider = { ...mapProvider('prepared:bevel-body', 'archive', value ? [[`${common.requestedResourceType}:${common.requestedId}`, value]] : []),
     selection: () => step, ...(transport ? { unmaskedSource: () => transport } : {}) };
-  return { geometry: { cornerSize: slice.corner, sideThickness: slice.side, tileSides: slice.tile },
+  return { allocate: PixelBuffer.alloc, geometry: { cornerSize: slice.corner, sideThickness: slice.side, tileSides: slice.tile },
     bodyMode: request?.mode ?? 0, bodyId: request?.resourceId ?? 0, bodyProvider,
     background: rgb ? { r: rgb[0]!, g: rgb[1]!, b: rgb[2]!, a: 255 } : null, rawBackground: !!rawBg,
     ...(step ? { step } : {}) };
@@ -808,8 +808,6 @@ async function composeFaceButton(
   }
   const innerW = Math.max(opts.minWidth, (glyphs ? glyphs.width : 0) + 16);
   const innerH = lineH;
-  if (![innerW, innerH].every(n => Number.isInteger(n) && n > 0 && n <= 32767))
-    throw new RangeError('Bevel allocation dimensions must be positive bounded integers');
   const out = PixelBuffer.alloc(innerW, innerH);
   const context = opts.composition ?? snapshotControlComposition();
   const D = rect(0, 0, innerH, innerW);
@@ -832,16 +830,14 @@ async function composeFaceButton(
       ? companion : undefined;
     const prepared = await prepareThemeIcon(resolved.theme, faceEl.sourceCicnId!, faceEl, resolved.raster,
       { pixels: face, lazySamples: true, traceProvenance: !!opts.trace, sampling: { equivalent, ...(descriptor ? { descriptor } : {}) } });
-    const chain = new ResourceChain([]);
-    await prepareCinfFrameSamples(chain, faceEl.sourceCicnId!, true, D, out, clip, undefined, prepared.icon, frame.geometry);
     engineTrace = opts.trace ? createTrace('bevel-button') : undefined;
     if (engineTrace) engineTrace.controlPaint = { bodies: [], bands: [], context, ...(clip ? { clip } : {}) };
-    const result = drawCinfFrame(out, chain, { id: faceEl.sourceCicnId!, cicn: face, icon: prepared.icon, dstRect: D,
-      bodyFill: true, prepared: frame, ...(resolved.loadedIdentity ? { selection: resolved.loadedIdentity } : {}),
+    const result = await drawPreparedCinfFrame(out, { id: faceEl.sourceCicnId!, cicn: face, icon: prepared.icon, dstRect: D,
+      bodyFill: true, ...(resolved.loadedIdentity ? { selection: resolved.loadedIdentity } : {}),
       allocationOrigin: { x: context.controlOrigin[0], y: context.controlOrigin[1] },
       patternOffset: context.patternOrigin.status === 'known'
         ? { x: -context.patternOrigin.offset[0], y: -context.patternOrigin.offset[1] } : { x: 0, y: 0 },
-    }, engineTrace);
+    }, frame, engineTrace, clip, opts.trace);
     if (result.unsupported) throw new Error(`Unsupported bevel output: ${result.unsupported}`);
   } else {
     // Explicit rectangular compatibility recipe; no historical body claim.
@@ -893,7 +889,6 @@ async function composeFaceButton(
     if (body.bodyPaint?.branch === 'pattern-fill-union' && frame?.step) opts.trace?.completeBodyPaint(frame.step, body.bodyPaint);
     else opts.trace?.record(body);
   }
-  for (const band of engineTrace?.controlPaint?.bands ?? []) opts.trace?.bandPaint(band);
   if (legacyFacePaint) opts.trace?.legacyFacePaint(legacyFacePaint);
   return out;
 }
