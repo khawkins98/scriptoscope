@@ -1,3 +1,4 @@
+import { encodeRasterPng } from './encodeRasterPng.js';
 import { snapshotCicnTransfer, bindCicnTransfer } from './cicn-transfer-results.js';
 // Runtime Kaleidoscope scheme loader — the BROWSER shell over the portable
 // conversion core (convert.js). A single in-browser call instead of the Node
@@ -241,40 +242,10 @@ async function toUint8Array(input) {
   throw new Error(`loadKaleidoscopeScheme: unsupported input type ${typeof input}`);
 }
 
-/** Default RGBA→URL encoder: a PNG blob URL via OffscreenCanvas. Browser-only; Node
- *  callers pass their own assetUrlFactory (or encodeAssets:false). */
-/** Default RGBA→URL encoder. `OffscreenCanvas` is the fast path (parallel + off the
- *  main thread); a fallback to the main-thread `<canvas>` covers Safari 16.0–16.3 +
- *  iOS WebView pre-16.4, where `OffscreenCanvas` is undefined. Without the fallback,
- *  loadTheme would have silently produced a broken theme on a meaningful slice of
- *  iOS traffic — every render fetched `bundleUrl/<bundle-relative-path>` and 404'd.
- *  Node callers without DOM globals still need to pass `assetUrlFactory` or
- *  `encodeAssets:false`. */
+/** Browser PNG URL adapter; portable callers provide assetUrlFactory. */
 async function defaultAssetUrlFactory(rgba, width, height) {
-  if (typeof OffscreenCanvas !== 'undefined') {
-    const canvas = new OffscreenCanvas(width, height);
-    const ctx = canvas.getContext('2d');
-    const imgData = ctx.createImageData(width, height);
-    imgData.data.set(rgba);
-    ctx.putImageData(imgData, 0, 0);
-    const blob = await canvas.convertToBlob({ type: 'image/png' });
-    return URL.createObjectURL(blob);
-  }
-  if (typeof document !== 'undefined' && typeof HTMLCanvasElement !== 'undefined') {
-    // Main-thread <canvas> fallback. The detached element is GC'd as soon as the
-    // returned Promise resolves; the encoded blob URL owns its own bytes.
-    const canvas = document.createElement('canvas');
-    canvas.width = width; canvas.height = height;
-    const ctx = canvas.getContext('2d');
-    const imgData = ctx.createImageData(width, height);
-    imgData.data.set(rgba);
-    ctx.putImageData(imgData, 0, 0);
-    return await new Promise((resolve, reject) => {
-      canvas.toBlob((blob) => {
-        if (!blob) return reject(new Error('canvas.toBlob returned null'));
-        resolve(URL.createObjectURL(blob));
-      }, 'image/png');
-    });
-  }
-  throw new Error('defaultAssetUrlFactory: no canvas API available (need OffscreenCanvas or document.createElement) — pass assetUrlFactory or encodeAssets:false');
+  const canvas = typeof OffscreenCanvas !== 'undefined' ? new OffscreenCanvas(width, height)
+    : typeof document !== 'undefined' && typeof HTMLCanvasElement !== 'undefined' ? document.createElement('canvas') : null;
+  if (!canvas) throw new Error('defaultAssetUrlFactory: no canvas API available (need OffscreenCanvas or document.createElement) — pass assetUrlFactory or encodeAssets:false');
+  return URL.createObjectURL(await encodeRasterPng(canvas, rgba, width, height));
 }

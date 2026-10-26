@@ -1,3 +1,4 @@
+import { encodeRasterPng } from './encodeRasterPng.js';
 import { displayRealizer } from './display-profile.js';
 // Narrow browser path for picker previews: decode requested icon families only,
 // then encode one chosen icon. Full chrome/inspector conversion waits for selection.
@@ -29,19 +30,7 @@ export async function loadKaleidoscopeIcon(bytes, ids, assetUrlFactory = iconDat
 async function iconDataUrl(rgba, width, height) {
   const canvas = typeof OffscreenCanvas !== 'undefined'
     ? new OffscreenCanvas(width, height) : document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) throw new Error('loadKaleidoscopeIcon: no 2d context');
-  const image = ctx.createImageData(width, height);
-  image.data.set(rgba);
-  ctx.putImageData(image, 0, 0);
-  const blob = typeof canvas.convertToBlob === 'function'
-    ? await canvas.convertToBlob({ type: 'image/png' })
-    : await new Promise((resolve, reject) => canvas.toBlob(
-      (result) => result ? resolve(result) : reject(new Error('canvas.toBlob returned null')),
-      'image/png',
-    ));
+  const blob = await encodeRasterPng(canvas, rgba, width, height);
   const encoded = btoa(String.fromCharCode(...new Uint8Array(await blob.arrayBuffer())));
   return `data:image/png;base64,${encoded}`;
 }

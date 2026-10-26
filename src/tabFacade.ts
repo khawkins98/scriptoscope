@@ -61,13 +61,13 @@ function finiteRgb(values: readonly number[] | undefined, maximum: number): valu
   return Array.isArray(values) && values.length === 3 && Array.from(values).every(v => Number.isInteger(v) && v >= 0 && v <= maximum);
 }
 /** A matching-size/owner-display record is a finite declaration, not device proof. */
-function samplingEquivalent(el: ChromeElement, owner: ThemeView, source: PixelBuffer): boolean {
+function samplingEquivalent(el: ChromeElement, owner: { manifest: Pick<LoadedTheme['manifest'], 'displayProfile'> }, source: PixelBuffer): boolean {
   const proof = el.samplingEquivalence;
   return proof?.model === 'kaleidoscope-2.3.1-opaque-sampling-v1' && proof.comparison === 'opaque-current-display-rgb'
     && proof.status === 'equivalent' && proof.width === source.width && proof.height === source.height
     && ownerDisplayPolicyMatches(owner.manifest, proof.displayPolicy);
 }
-async function sampledCompanion(el: ChromeElement, owner: ThemeView, source: PixelBuffer, raster: RasterSource | undefined): Promise<PixelBuffer | null> {
+async function sampledCompanion(el: ChromeElement, owner: { manifest: Pick<LoadedTheme['manifest'], 'displayProfile'> }, source: PixelBuffer, raster: RasterSource | undefined): Promise<PixelBuffer | null> {
   const descriptor = el.sampledBandAsset;
   if (!descriptor || descriptor.model !== 'kaleidoscope-2.3.1-opaque-sampling-v1'
     || descriptor.comparison !== 'opaque-current-display-rgb' || descriptor.width !== source.width || descriptor.height !== source.height
@@ -163,7 +163,7 @@ function admitOrigin(el: ChromeElement, source: PixelBuffer): string {
   if (supplied('boundsOrigin') && (!el.boundsOrigin || el.boundsOrigin.left !== 0 || el.boundsOrigin.top !== 0)) return 'invalid-source-origin';
   return 'declared-zero-origin';
 }
-export function tabBodyColors(el: ChromeElement, owner: Pick<LoadedTheme, 'manifest'>, source: PixelBuffer, equivalent: boolean, strongValid: boolean, backgroundNeeded: boolean) {
+export function tabBodyColors(el: ChromeElement, owner: { manifest: Pick<LoadedTheme['manifest'], 'displayProfile'> }, source: PixelBuffer, equivalent: boolean, strongValid: boolean, backgroundNeeded: boolean) {
   let backgroundPolicy: 'none' | 'raw-sample' | 'decoded-anchor' = 'none';
   let failure: string | undefined;
   const read = (): Rgba | null => {
@@ -227,17 +227,14 @@ export async function composeEngineTab(inputTheme: ThemeInput | ThemeView, opts:
         && occurrence.id === original.sourceCicnId && (!original.byteProvenance || original.byteProvenance.cicnResourceIndex === occurrence.resourceIndex)
         && hit.theme.inspector?.cicnResources?.filter(r => r.id === occurrence.id).length === 1
         && hit.theme.inspector.cicnResources.find(r => r.id === occurrence.id) === occurrence;
-      const owner: ThemeView = { ...hit.theme, manifest: { ...hit.theme.manifest,
-        ...(hit.theme.manifest.displayProfile ? { displayProfile: hit.theme.manifest.displayProfile } : {}),
-        patterns: structuredClone(hit.theme.manifest.patterns ?? {}) },
-        ...(hit.theme.inspector ? { inspector: { ...hit.theme.inspector, ...(hit.theme.inspector.ppatResources ? { ppatResources: structuredClone(hit.theme.inspector.ppatResources) } : {}) } } : {}) };
+      const owner = { manifest: hit.theme.manifest.displayProfile ? { displayProfile: hit.theme.manifest.displayProfile } : {} };
       const frozen = structuredClone(original);
-      const bytes = owner.manifest.engineCinfs?.[String(frozen.sourceCicnId)];
+      const bytes = hit.theme.manifest.engineCinfs?.[String(frozen.sourceCicnId)];
       const prepared = prepareMetadata(frozen, bytes === undefined ? undefined : structuredClone(bytes));
       const raster = hit.theme.asset(frozen.asset);
       const companion = typeof frozen.sampledBandAsset?.asset === 'string' ? hit.theme.asset(frozen.sampledBandAsset.asset) : undefined;
       const boundPattern = typeof prepared !== 'string' && prepared.bodyRequest
-        ? bindPattern(owner, prepared, prepared.bodyRequest.resourceId) : { status: 'missing' as const };
+        ? bindPattern(hit.theme, prepared, prepared.bodyRequest.resourceId) : { status: 'missing' as const };
       if (trace) {
         const assetUrl = await raster.imageUrl();
         chosen = { ...chosen, resource: { ...chosen.resource!, assetUrl } };

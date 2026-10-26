@@ -120,6 +120,10 @@
       "sha256": "0aa7f3a58eb88b5faa38f5380401ba09ef5d46080f20711466c015dce0f49222"
     },
     {
+      "path": "tools/theme-loader/encodeRasterPng.js",
+      "sha256": "c5ece43eb1f0812170b157b06484dc996d32ded291ec32537d312a60f7ca61c5"
+    },
+    {
       "path": "tools/theme-loader/index.js",
       "sha256": "e45ce0ee3a526e6f5889418afb55cd483a3becbebf3091166f16ae6dab3399be"
     },
@@ -129,11 +133,11 @@
     },
     {
       "path": "tools/theme-loader/loadKaleidoscopeIcon.js",
-      "sha256": "c0cb9b7d0becefe7195208d82b1de2ac2db768f9c1362899ae537303e353891f"
+      "sha256": "1bab71712d7191e31427e7f35c24c9949a1a87641f2761568133be24fa9954e9"
     },
     {
       "path": "tools/theme-loader/loadKaleidoscopeScheme.js",
-      "sha256": "ce1aaa855345b27515043e2832e6ad1a2877d81e991831c336be7951f4400aa9"
+      "sha256": "0d1c7b1f8d6c90500716351111ef480d1924a7812a0ce32b743e21d042e2bbe0"
     },
     {
       "path": "tools/theme-loader/loadProvenance.js",
