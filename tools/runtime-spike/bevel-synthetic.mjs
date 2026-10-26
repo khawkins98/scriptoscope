@@ -9,7 +9,11 @@ async function encode(rgba, width, height) {
 }
 
 export function syntheticThemes(guards = false) {
-  return (guards ? [
+  return (guards === 'metadata' ? [
+    ...[255, 128].map(alpha => ({ name: `metadata-pattern-alpha-${alpha}`, alpha,
+      slice: { corner: 2, side: 1, tile: true }, bgAnchor: [2, 2], bodyRequest: { mode: 1, resourceId: 42 },
+      engineCinfs: { '-10166': [2, 1, 1, 1, 0, 42, 0, 2, 0, 2, 0, 2, 0, 2, 0, 0, 0, 0] } })),
+  ] : guards ? [
     { name: 'solid-body-without-cinf', slice: { corner: 2, side: 1 }, bgAnchor: [2, 2], guard: 'body branch requires separate preparation' },
     { name: 'pattern-body-without-cinf', slice: { corner: 2, side: 1 }, bodyRequest: { mode: 1, resourceId: 42 }, guard: 'body branch requires separate preparation' },
     { name: 'present-short-cinf', engineCinfs: { '-10166': [0] }, guard: 'short cinf header' },

@@ -120,6 +120,17 @@ async function run() {
       } finally { theme.dispose(); }
     }
   }
+  if (delivery) {
+    report.metadataProbes = [];
+    for (const variant of variants.filter(v => !v.name.endsWith(':eager'))) for (const { name, theme } of syntheticThemes('metadata')) {
+      try {
+        const options = { minWidth: 32, height: 20 };
+        const a = await capture(reference.composeBevelButton, theme, options);
+        const b = await capture(variant.render, theme, options);
+        report.metadataProbes.push({ name, variant: variant.name, ...compare(a, b) });
+      } finally { theme.dispose(); }
+    }
+  }
   report.status = 'measured';
   return report;
 }
