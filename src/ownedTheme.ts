@@ -1,8 +1,8 @@
 import type { LoadedTheme } from './types.js';
 import { loadCicnBuffer, rasterDimensions } from './cicnImage.js';
-import type { PixelBuffer } from './pixelBuffer.js';
+import { PixelBuffer } from './pixelBuffer.js';
 import { assetUrl } from './loadTheme.js';
-import { materializeRasterImage, rasterOwner } from '../tools/theme-loader/rasterAssets.js';
+import { rasterOwner } from '../tools/theme-loader/rasterAssets.js';
 
 /** Render-focused source. Asset strings under source are references, not image URLs. */
 export interface OwnedTheme {
@@ -18,6 +18,7 @@ const viewTag = Symbol('ThemeView');
 /** Captured transport identity. key is internal identity, never a public image URL. */
 export interface RasterSource {
   readonly key: string;
+  readonly path?: string;
   pixels(): Promise<PixelBuffer>;
   imageUrl(): Promise<string>;
   dimensions(): Promise<{ width: number; height: number }>;
@@ -64,18 +65,27 @@ export function themeView(input: ThemeInput | ThemeView): ThemeView {
       get lifetime() { return rasterOwner(source()); },
       asset(ref) {
         const owner = rasterOwner(source());
-        const key = owned ? owner?.references.get(ref) ?? ref : assetUrl(input, ref);
-        const exportImage = owned ? input.imageUrl.bind(input) : undefined;
+        const external = /^(?:blob:|https?:|data:)/.test(ref);
+        const entry = owner && !external ? owner.capture(ref) : undefined;
+        const key = entry?.key ?? (owned ? ref : assetUrl(input, ref));
+        const exportImage = owned && !entry && !external ? input.imageUrl.bind(input, ref) : () => Promise.resolve(key);
         const current = () => { if (owner?.disposed) throw new DOMException('Raster owner disposed', 'AbortError'); };
         return {
           key,
-          async pixels() { current(); return loadCicnBuffer(key); },
-          async dimensions() { current(); return rasterDimensions(key); },
-          async imageUrl() {
+          ...(!external ? { path: ref } : {}),
+          async pixels() {
             current();
-            return exportImage && !/^(?:scriptoscope-raster:|blob:|https?:|data:)/.test(key)
-              ? exportImage(key) : materializeRasterImage(key);
+            const decoded = entry?.decoded();
+            if (decoded) return new PixelBuffer(decoded.width, decoded.height, decoded.data);
+            return loadCicnBuffer(entry ? await entry.imageUrl() : owned && !external ? await exportImage() : key);
           },
+          async dimensions() {
+            current();
+            const decoded = entry?.decoded();
+            if (decoded) return { width: decoded.width, height: decoded.height };
+            return rasterDimensions(entry ? await entry.imageUrl() : owned && !external ? await exportImage() : key);
+          },
+          async imageUrl() { current(); return entry ? entry.imageUrl() : exportImage(); },
         };
       },
     };
@@ -94,6 +104,6 @@ export async function withThemeView<T>(input: ThemeInput | ThemeView, render: (v
 }
 
 /** Explicit image boundary for an owned reference or an existing image URL. */
-export function themeImageUrl(input: ThemeInput, ref: string): Promise<string> {
+export async function themeImageUrl(input: ThemeInput, ref: string): Promise<string> {
   return themeView(input).asset(ref).imageUrl();
 }

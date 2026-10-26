@@ -95,12 +95,13 @@ test('diagnostic image export cannot replace the selected pixel snapshot during 
     { path: 'replacement', width: 1, height: 1, rgba: new Uint8Array([200, 201, 202, 255]) },
   ], () => { started(); return held; });
   t.after(owner.dispose);
-  const face = { sourceCicnId: -1, asset: owner.references.get('first') };
-  const theme = { baseUrl: '', manifest: { chromeElements: { face }, patterns: {} } };
-  bindRasterOwner(theme, owner);
+  const face = { sourceCicnId: -1, asset: 'first' };
+  const source = { manifest: { chromeElements: { face }, patterns: {} } };
+  const theme = { kind: 'owned-theme', origin: '', source, imageUrl: owner.imageUrl, dispose: owner.dispose };
+  bindRasterOwner(source, owner);
   const pending = themeResourceChain(theme, [{ type: 'cicn', id: -1 }], { traceProvenance: true, signal: new AbortController().signal });
   await entered;
-  face.asset = owner.references.get('replacement');
+  face.asset = 'replacement';
   release('blob:initial-selected-image');
   const chain = await pending;
   const trace = createTrace('snapshot');
@@ -157,7 +158,7 @@ test('captured raster sources keep transport identity without starting work', as
   const theme = { kind: 'owned-theme', origin: '', source, imageUrl: owner.imageUrl, dispose: owner.dispose };
   const first = themeView(theme).asset('first');
   assert.equal(owner.usage().images, 0);
-  owner.references.set('first', owner.references.get('replacement'));
+  theme.source = { manifest: { chromeElements: {} } }; // captured owner survives source replacement
   assert.equal(await first.imageUrl(), 'https://example.test/first.png');
   assert.deepEqual([...(await first.pixels()).data], [21, 34, 55, 255]);
   owner.dispose();
@@ -182,7 +183,7 @@ const diagnosticFamilies = [
 function diagnosticTheme(id, encoder) {
   const owner = createRasterAssetOwner(['first', 'replacement'].map((path, i) => ({ path, width: 3, height: 3,
     rgba: new Uint8Array(Array.from({ length: 9 }, () => i ? [200, 201, 202, 255] : [21, 34, 55, 255]).flat()) })), encoder);
-  const face = { sourceCicnId: id, sourceCinfId: null, asset: owner.references.get('first'), width: 3, height: 3 };
+  const face = { sourceCicnId: id, sourceCinfId: null, asset: 'first', width: 3, height: 3 };
   const source = { manifest: { chromeElements: { face }, patterns: {} } };
   bindRasterOwner(source, owner);
   return { owner, face, theme: { kind: 'owned-theme', origin: '/diagnostic', source, imageUrl: owner.imageUrl, dispose: owner.dispose } };
@@ -210,7 +211,7 @@ for (const [family, id, render] of diagnosticFamilies) {
       let completed = 0, observed;
       const pending = render(theme, { onComplete(trace) { completed++; observed = trace; } });
       await entered;
-      face.asset = owner.references.get('replacement');
+      face.asset = 'replacement';
       if (dispose) theme.dispose();
       release();
       if (dispose) await assert.rejects(pending, { name: 'AbortError' }); else await pending;
@@ -228,3 +229,26 @@ for (const [family, id, render] of diagnosticFamilies) {
     }
   });
 }
+
+test('clipped owned body diagnostics export a real image without decoding skipped pixels', async t => {
+  const { CINF_HEADER, CINF_SAMPLE } = await import('./engine/tables/cinfFrame.ts');
+  const header = new Uint8Array(CINF_SAMPLE.headerLength);
+  header[CINF_HEADER.mode] = 5;
+  new DataView(header.buffer).setInt16(CINF_HEADER.backgroundId, 42);
+  const owner = createRasterAssetOwner([{ path: 'body', width: 1, height: 1,
+    rgba: new Uint8Array([1, 2, 3, 255]) }], () => 'blob:clipped-body');
+  t.after(owner.dispose);
+  const previous = globalThis.Image;
+  globalThis.Image = class { constructor() { throw new Error('Clipped pixels must not decode'); } };
+  t.after(() => { globalThis.Image = previous; });
+  const source = { manifest: { chromeElements: { body: { sourceCicnId: 42, asset: 'body' } },
+    engineCinfs: { 1: [...header] } } };
+  bindRasterOwner(source, owner);
+  const theme = { kind: 'owned-theme', source, origin: '', imageUrl: owner.imageUrl, dispose: owner.dispose };
+  const chain = await themeResourceChain(theme, [], { cinfBodies: [1], traceProvenance: true,
+    bodyEnvironment: { owner: theme, face: {}, width: 0, height: 0 } });
+  const trace = createTrace('clipped-transport');
+  assert.equal(chain.getResource('cicn', 42, { trace }).value.status, 'clipped');
+  assert.equal(trace.resolved[0].selection.resource.assetUrl, 'blob:clipped-body');
+  assert.equal(owner.usage().images, 1);
+});

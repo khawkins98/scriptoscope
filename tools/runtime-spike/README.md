@@ -13,19 +13,20 @@ measurements, not a portable performance budget.
 
 ## Recorded result
 
-The 2026-10-25 22:51 UTC local Chromium 153 run in `results.json`, using
-the public owned API at `9e95fbdc`, passed all **1,944
+The 2026-10-26 00:04 UTC local Chromium 153 run in `results.json`, using
+the owner-local capture implementation (runtime hashes recorded), passed all **1,944
 painted comparisons**, with zero missing faces, errors or mismatches. All 54
 direct-load disposal checks passed, as did the comparator mutation probes.
 
 | Measurement | PNG transport | Direct buffers |
 | --- | ---: | ---: |
-| Load | 415.5 ms | 20.8 ms |
-| First narrow render | 1.8 ms | 0.2 ms |
-| Warm render | 0.3 ms | 0.2 ms |
+| Load | 661.7 ms | 23.1 ms |
+| First narrow render | 2.4 ms | 0.3 ms |
+| Warm render | 0.5 ms | 0.3 ms |
 
 Each figure is the median of the 18 per-theme medians, rather than a combined
-page-load measurement. This supports removing serialization from the loading
+page-load measurement. Repository validation ran concurrently; this is a local
+transport probe, not an isolated application benchmark. This supports removing serialization from the loading
 path; it shows no material warm-render improvement. Process memory was not
 measured. The normal repository gates, library build and engine-diff also pass;
 the latter retains all 12,902 committed cells unchanged.
@@ -90,15 +91,15 @@ The same source facade renders both transports. Comparisons check availability,
 errors, layout, dimensions and every RGBA byte, including transparent RGB. Matching
 errors and missing faces are reported separately from successful painted output.
 Mutation probes require the comparator to detect a changed pixel, layout and
-availability. Every direct theme disposal must evict a previously registered URL.
+availability. Every direct theme disposal must reject subsequent access through a captured source.
 
 The first render is a narrow unlabeled normal button. Before warm measurements,
 every case is rendered once on both transports; subsequent per-call timings
 alternate transport order between repetitions. Very short calls are close to the
 browser timer's resolution. Inspect loading and warm rendering separately.
 
-`rawBytes` records registered pixel storage, not total process memory or retained
-heap. Views share the decoded arrays instead of copying them. Eager registration
+`rawBytes` records owned pixel storage, not total process memory or retained
+heap. Views share the decoded arrays instead of copying them. Decoded ownership
 also retains unpainted assets until theme disposal, so this experiment does not
 establish a memory improvement.
 
@@ -111,8 +112,8 @@ all destination composition, independent original captures, complete DOM
 lifecycles or other browsers. Window regression coverage is described above; complete
 application adoption and lifecycle validation remain open.
 
-The next change retires the global private-reference registry, then migrates
-first-party loading/image consumers onto this owner. Resource indexing and
+The global private-reference registry is retired. The next change migrates
+first-party loading/image consumers onto the same owner-local boundary. Resource indexing and
 diagnostic redesign remain separate experiments.
 
 New runner reports pin runtime, built and harness hashes, and reject changed inputs

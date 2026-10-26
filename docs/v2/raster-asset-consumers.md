@@ -18,7 +18,7 @@ Starting revision: `de942c6399c81d1f15d23247dfd62a36e11a64bc` on
 | Public manifest, glyph and inspector fields | `types.ts` exposes image URLs; `assetUrl` synchronously resolves relative or absolute references | External consumers may assign these strings to images, CSS or fetch. Do not silently substitute handles. |
 | Custom factories and raw conversion | Loader options expose `assetUrlFactory` and `encodeAssets:false` | A custom factory may transform pixels; its returned image remains authoritative. Raw output is caller-owned and is not registered. |
 | Legacy/pre-extracted or externally constructed themes | Relative, HTTP and data URLs reach `loadCicnBuffer` | Retain image decoding on cache misses; borrowing does not transfer disposal ownership. |
-| Separately bundled loader/runtime copies | Shared asset release notifications | Decoded pixel lookup must share realm-wide identities too. |
+| Separately bundled loader/runtime copies | Shared asset release notifications | Share source-to-owner lookup; captured descriptors carry the actual owner. |
 
 External consumers cannot be exhaustively enumerated. The public URL string
 contract is the compatibility boundary, regardless of whether an in-repository
@@ -28,8 +28,8 @@ consumer happens to use a field today.
 
 Each decoded theme owns only the URLs it creates and the pixel arrays transferred
 from its conversion. A base theme is borrowed. Disposing a child must not dispose
-its base. Repeated disposal has no further effect. Release notifications evict
-both source-pixel registration and derived runtime caches across module copies.
+its base. Repeated disposal has no further effect. Owner disposal invalidates captured sources and clears private storage. Blob-release
+notifications evict derived image caches across module copies.
 
 The built-in image encoder has known pixel semantics. Its binary-alpha rasters
 can be read directly, with transparent RGB zeroed to match historical Canvas
@@ -82,20 +82,21 @@ disconnect before adopting prepared DOM.
 default remains `LoadedTheme`. A supported owned mount must use the same scanner
 and resolver through this boundary, then replace ordinary demo startup and drops.
 
-Private URI registration and prefix recognition are still transitional. Retire
-them together only after auditing every cross-owner glyph, sampled-resource and
-pattern handoff. Local paths alone cannot identify an asset across owners.
+## Owner-local transport retirement
+
+Captured entries replace the global raw-reference registry. Owned manifests keep
+local paths; only capture against the selected owner identifies pixels. The
+realm-wide state contains a source-to-owner WeakMap and monotonic identity counter.
+The image decoder accepts real image URLs only; private-prefix recognition,
+per-reference cache invalidation and the exported global lookup helpers are removed.
+Owner lifetime notifications and actual blob-release notifications remain.
+
+Capture rejects unknown local paths, retains custom encoder and fractional-alpha
+semantics, and invalidates later access after disposal or eager pixel release.
+Clearing an entry removes raw arrays, normalized pixels and settled image promises
+even if callers retain its descriptor. Pending encoders keep their temporary input
+accounted for until settlement and revoke late blobs. Buffers already borrowed by
+callers and external URL caches remain outside that reclamation promise.
+
 Compatibility adapters remain; a second engine or permanent experiment flag does
 not. Net runtime reduction and retained-memory measurements remain merge conditions.
-
-The next retirement uses owner-local captured entries instead of the global raw
-reference map. Capture must reject unknown local references, retain custom encoder
-and fractional-alpha semantics, and invalidate later access after disposal.
-Retained descriptors must not retain raw arrays or settled image promises after
-disposal; pending encoder inputs remain accounted for until settlement. Borrowed
-buffers already returned to callers and external URL caches stay outside that
-reclamation promise. Keep the shared source-to-owner WeakMap for separate bundles,
-owner lifetime notifications and actual blob-release notifications. Remove raw
-reference registration, namespace parsing and per-reference cache invalidation
-together; do not introduce another global source cache. Measure the actual net
-change immediately after retirement, before claiming simplification.

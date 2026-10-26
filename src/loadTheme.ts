@@ -200,7 +200,7 @@ function looksLikeArchiveOrFork(b: Uint8Array): boolean {
  *  asset ref (and glyph) to an OffscreenCanvas `blob:` URL, so the runtime renders it
  *  with no `baseUrl` fetch. A bundle-relative path is resolved against `baseUrl` as before. */
 export function assetUrl(theme: LoadedTheme, relativePath: string): string {
-  if (/^(?:scriptoscope-raster:|blob:|https?:|data:)/.test(relativePath)) return relativePath;
+  if (/^(?:blob:|https?:|data:)/.test(relativePath)) return relativePath;
   return `${theme.baseUrl}/${relativePath}`;
 }
 

@@ -1,7 +1,7 @@
 // Compare the production owned loader against explicit historical PNG transport.
 import { loadKaleidoscopeScheme, loadOwnedKaleidoscopeScheme } from '../../src/loadKaleidoscopeScheme.ts';
 import { composeButtonWithLayout as composeEnginePush } from '../../src/controls.ts';
-import { loadCicnBuffer } from '../../src/cicnImage.ts';
+import { themeView } from '../../src/ownedTheme.ts';
 import { rasterOwner } from '../theme-loader/rasterAssets.js';
 import { PixelBuffer } from '../../src/pixelBuffer.ts';
 
@@ -45,7 +45,7 @@ async function load(bytes, direct) {
   const owner = direct ? rasterOwner(theme.source) : undefined;
   const usage = owner?.usage();
   return { theme, ms: performance.now() - start, assets: usage?.rasters ?? 0,
-    rawBytes: usage?.pixelBytes ?? 0, urls: owner ? [...owner.references.values()] : [] };
+    rawBytes: usage?.pixelBytes ?? 0, captured: direct ? themeView(theme).asset(Object.values(theme.source.manifest.chromeElements).find(el => el.asset)?.asset) : undefined };
 }
 // Explicit custom factory keeps the comparison on the historical image-decode
 // path even when the production loader also retains its built-in encoder pixels.
@@ -107,7 +107,7 @@ async function run() {
       }
       // A released identity must no longer resolve to the retained raw buffer.
       let rejected = false;
-      try { await loadCicnBuffer(pair.direct.urls[0]); } catch { rejected = true; }
+      try { await pair.direct.captured.pixels(); } catch { rejected = true; }
       if (!rejected) throw new Error('Disposed direct raster remained cached');
       report.disposedLoads++;
     }

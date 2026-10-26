@@ -46,7 +46,6 @@ test('successful decode retains URLs until idempotent dispose, without revoking 
 });
 
 test('post-encoding assembly failure releases registered pixels and every owned URL', async (t) => {
-  const { decodedRaster } = await import('./rasterAssets.js');
   const previous = globalThis.OffscreenCanvas;
   t.after(() => { globalThis.OffscreenCanvas = previous; });
   globalThis.OffscreenCanvas = class {
@@ -64,5 +63,4 @@ test('post-encoding assembly failure releases registered pixels and every owned 
   }), error => error === failure);
   assert.ok(minted.length > 100);
   assert.deepEqual(new Set(revoked), new Set(minted));
-  for (const url of minted) assert.equal(decodedRaster(url), undefined);
 });

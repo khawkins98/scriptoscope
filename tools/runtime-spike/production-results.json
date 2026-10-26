@@ -420,16 +420,16 @@
       "transport": "built"
     }
   ],
-  "runAt": "2026-10-25T23:52:16.687Z",
+  "runAt": "2026-10-26T00:01:18.332Z",
   "scrollbars": 432,
   "status": "pass",
   "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
   "windows": 1728,
   "zeroPngRenders": 36,
   "provenance": {
-    "revision": "eb349df0c16a065295ca0d8896fd6043b86db055",
-    "runtime": "c9e85826f06d713383a038149494b7b932d4eb2ae4d9b323914de6c1e8122b76",
-    "built": "f1e3f815b9a69f2273a0322275ad8d6d0c2226d3fc335047e817d7d924c1c099",
-    "driver": "1bece05730b378d77f0f7905b4f49a886c9be4148e21e84435c138085cc81e08"
+    "revision": "3725e478101363f2024ac07e9332c2b8eced80a3",
+    "runtime": "9a2bf65a73e57ec6c2649689fae8f4f461d40d71be4d90704ff48d0863dc6ee2",
+    "built": "f7b11fd014d7a2c7d54f84909db251302f368528152e98b0144008b34dc86e64",
+    "driver": "b9bce8050624aa6f37ccfc989f2c2f3f5846dabc19d83d56d8d0c9c57109cfef"
   }
 }

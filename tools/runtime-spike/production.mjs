@@ -3,6 +3,7 @@
 import { rasterOwner, createRasterAssetOwner, bindRasterOwner } from '../theme-loader/rasterAssets.js';
 const source = await import('../../src/index.ts');
 const built = await import('/dist/scriptoscope.js');
+const { themeView } = await import('../../src/ownedTheme.ts');
 const slugs = Object.keys(import.meta.glob('../../themes/*/meta.json')).map(p => p.split('/')[3]).sort();
 const clip = { controlOrigin: [23, 41], portOrigin: [5, -7], patternOrigin: { status: 'known', offset: [3, 5] },
   clip: { kind: 'rect', rect: { x: 25, y: 43, w: 20, h: 10 } } };
@@ -31,9 +32,12 @@ async function bytes(slug) {
   }
   throw new Error(`Missing source: ${slug}`);
 }
-function urls(value, found = new Set()) {
-  if (typeof value === 'string' && value.startsWith('scriptoscope-raster:')) found.add(value);
-  else if (value && typeof value === 'object') for (const child of Object.values(value)) urls(child, found);
+function assetPaths(value, owner, found = new Set()) {
+  if (typeof value === 'string') {
+    try { owner.capture(value); found.add(value); } catch {}
+  } else if (value && typeof value === 'object') {
+    for (const child of Object.values(value)) assetPaths(child, owner, found);
+  }
   return found;
 }
 function compare(a, b) {
@@ -113,8 +117,8 @@ async function windowLifetimeProbe(runtime, report) {
       { path: 'utility', width: 5, height: 7, rgba: new Uint8Array(5 * 7 * 4).fill(255) },
     ], encoder);
     const source = { manifest: { windowTypes: {}, chromeElements: {},
-      patterns: { utility: { sourcePpatId: 42, asset: owner.references.get('utility') } },
-      bodyBackground: { pattern: owner.references.get('document') } } };
+      patterns: { utility: { sourcePpatId: 42, asset: 'utility' } },
+      bodyBackground: { pattern: 'document' } } };
     bindRasterOwner(source, owner);
     return { owner, theme: { kind: 'owned-theme', origin: '/synthetic', source, imageUrl: owner.imageUrl, dispose: owner.dispose } };
   }
@@ -208,7 +212,8 @@ async function run() {
     const old = await runtime.loadKaleidoscopeScheme(input, { assetUrlFactory: encode });
     const current = await runtime.loadOwnedKaleidoscopeScheme(input);
     const before = report.rasters;
-    const ownedUrls = urls(current.source);
+    const ownedUrls = assetPaths(current.source, rasterOwner(current.source));
+    const disposedSource = themeView(current).asset(ownedUrls.values().next().value);
     const bitmapFont = await runtime.prepareBitmapFont(fontData);
     const bitmapCases = [];
     for (const state of ['normal', 'pressed', 'disabled']) for (const clipped of [false, true])
@@ -295,7 +300,7 @@ async function run() {
         const canvas = new OffscreenCanvas(image.naturalWidth, image.naturalHeight), context = canvas.getContext('2d');
         context.drawImage(image, 0, 0);
         const png = { width: canvas.width, height: canvas.height, data: context.getImageData(0, 0, canvas.width, canvas.height).data };
-        const raw = await runtime.loadCicnBuffer(ref);
+        const raw = await themeView(current).asset(ref).pixels();
         const difference = compare(png, raw);
         report.rasters++;
         if (difference) report.mismatches.push({ transport, slug, raster: ref, difference });
@@ -303,7 +308,7 @@ async function run() {
     } finally { old.dispose(); current.dispose(); }
     // Cache and store must release the same owned identities in source and built copies.
     try {
-      await runtime.loadCicnBuffer(ownedUrls.values().next().value);
+      await disposedSource.pixels();
       throw new Error('Disposed raster remained available');
     } catch (error) { if (error.message === 'Disposed raster remained available') throw error; }
     report.disposedLoads++;

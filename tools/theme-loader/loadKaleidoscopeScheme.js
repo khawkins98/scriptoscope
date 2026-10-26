@@ -127,7 +127,7 @@ export async function loadKaleidoscopeScheme(input, options = {}) {
 export async function loadOwnedKaleidoscopeScheme(input, options = {}) {
   const { converted, byteProvenance, sliderLayoutBinding } = await decodeScheme(input, options);
   const owner = makeOwner(converted.assets, options);
-  const source = assembleTheme(converted, owner.references, sliderLayoutBinding, byteProvenance, options, owner);
+  const source = assembleTheme(converted, undefined, sliderLayoutBinding, byteProvenance, options, owner);
   delete source.baseUrl;
   delete source.dispose;
   bindRasterOwner(source, owner);
@@ -142,7 +142,7 @@ function makeOwner(assets, options) {
 function assembleTheme(converted, urlByPath, sliderLayoutBinding, byteProvenance, options, owner) {
   const { theme, assets, iconIndex, iconMaskResources, iconMaskPlanes, iconColorResources, cicnResources, ppatResources, colorTables } = converted;
   try {
-    rewriteAssetRefs(theme, urlByPath);
+    if (urlByPath) rewriteAssetRefs(theme, urlByPath);
     finalizeCinfTheme(theme);
     finalizeCinfResourceOwner(theme, sliderLayoutBinding, 'sliderLayoutEnvironment');
     const glyphs = buildGlyphMap(iconIndex, urlByPath);
@@ -173,18 +173,18 @@ function buildInspector(manifest, assets, iconIndex, urlByPath, slugHint) {
     if (a.path.startsWith('cicns/')) {
       const file = a.path.slice('cicns/'.length);
       const parsed = parseCicnFilename(file);
-      cicns.push({ ...parsed, url: urlByPath.get(a.path) });
+      cicns.push({ ...parsed, url: urlByPath ? urlByPath.get(a.path) : a.path });
     } else if (a.path.startsWith('ppats/')) {
       const file = a.path.slice('ppats/'.length);
       const parsed = parsePpatFilename(file);
-      ppats.push({ ...parsed, url: urlByPath.get(a.path) });
+      ppats.push({ ...parsed, url: urlByPath ? urlByPath.get(a.path) : a.path });
     }
   }
   // Icon entries get a URL too (panel rendering happens off `i.url`, not a path).
   const enrichedIcons = iconIndex.map((e) => ({
     ...e,
-    url: urlByPath.get(`icons/${e.file}`),
-    ...(e.unmaskedFile ? { unmaskedUrl: urlByPath.get(`icons/${e.unmaskedFile}`) } : {}),
+    url: urlByPath ? urlByPath.get(`icons/${e.file}`) : `icons/${e.file}`,
+    ...(e.unmaskedFile ? { unmaskedUrl: urlByPath ? urlByPath.get(`icons/${e.unmaskedFile}`) : `icons/${e.unmaskedFile}` } : {}),
   }));
 
   const themeSlug = (slugHint || manifest?.name || 'theme').toString();
@@ -220,7 +220,7 @@ function buildGlyphMap(iconIndex, urlByPath) {
     if (e.size !== 16 && e.type !== 'ics4' && e.type !== 'ics8') continue;
     const id = String(e.id);
     const d = e.depth ?? (e.type === 'ics8' ? 8 : 4);
-    if (d > (depthAt[id] ?? 0)) { glyphs[id] = urlByPath.get(`icons/${e.file}`); depthAt[id] = d; }
+    if (d > (depthAt[id] ?? 0)) { glyphs[id] = urlByPath ? urlByPath.get(`icons/${e.file}`) : `icons/${e.file}`; depthAt[id] = d; }
   }
   return glyphs;
 }

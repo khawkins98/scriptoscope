@@ -119,7 +119,12 @@ async function themeProvider(theme: ThemeView, tier: 'archive' | 'base', name: s
         sourceCinfId: Number.isInteger(el.sourceCinfId) ? el.sourceCinfId! : null,
         manifestKey: selected![0], assetUrl: theme.asset(el.asset).key,
         ...(el.byteProvenance ? { byteProvenance: { ...el.byteProvenance } } : {}) } });
-      if (id === clippedBodyId) return [key, { status: 'clipped' }];
+      if (id === clippedBodyId) {
+        const selection = selections.get(key);
+        if (selection?.resource) selections.set(key, { ...selection,
+          resource: { ...selection.resource, assetUrl: await theme.asset(el.asset).imageUrl() } });
+        return [key, { status: 'clipped' }];
+      }
       const sampleAsset = el.asset, art = theme.asset(sampleAsset);
       // Preserve the actual preparation binding before copying the finite values.
       // Paths/dimensions and even equal census scalars cannot identify a provider.
@@ -136,7 +141,7 @@ async function themeProvider(theme: ThemeView, tier: 'archive' | 'base', name: s
       const companionRaster = companionAsset ? theme.asset(companionAsset) : undefined;
       const companionTransport = unmaskedSources && companionAsset
         ? { assetUrl: theme.asset(companionAsset).key,
-          ...(/^(?:scriptoscope-raster:|blob:|https?:|data:)/.test(companionAsset) ? {} : { derivedPath: companionAsset }) } : undefined;
+          ...(companionRaster?.path ? { derivedPath: companionRaster.path } : {}) } : undefined;
       // Public push snapshots finite descriptors and URLs before ordinary decode.
       // Generic engine clients retain their existing eager sampling defaults.
       const proof = el.samplingEquivalence && { ...el.samplingEquivalence };

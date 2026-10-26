@@ -40,8 +40,8 @@ the required `baseUrl` of `LoadedTheme`, so TypeScript rejects passing it to
 synchronous ready-image APIs such as `assetUrl` or `promoteIcon`.
 
 Use `theme.imageUrl(ref)` or `themeImageUrl(theme, ref)` at an actual image boundary.
-Both accept returned owned references; owned original asset paths are also
-supported. Repeated requests share image work. A failed request can retry while
+Owned references are local asset paths, interpreted only by their selected
+owner. Unknown local paths reject; explicit HTTP, data and blob URLs stay borrowed. Repeated requests share image work. A failed request can retry while
 the owner lives. Generated blob URLs remain owned by the theme and are revoked
 at disposal, including URLs completed by encoders after disposal.
 
@@ -71,7 +71,7 @@ mount loading remains unchanged in this slice.
 Disposed composition does not publish a completed buffer. Shared renderer
 preparation checks theme and base lifetimes before and after asynchronous work. Renderers borrow source arrays; callers must not mutate those arrays.
 
-The owner tracks registered backing buffers, in-flight encoding buffers, image
+The owner tracks transferred backing buffers, in-flight encoding buffers, image
 exports and pending work. These counters do not include externally borrowed
 buffers or total browser/process memory; final migration measurements must cover
 those separately. An in-flight encoder can retain pixels until it settles even

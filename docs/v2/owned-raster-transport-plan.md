@@ -7,7 +7,8 @@ The working branch is `refactor/runtime-streamlining`, starting from
 `de942c6399c81d1f15d23247dfd62a36e11a64bc` with upstream `origin/v2`.
 The [consumer inventory and ownership contract](raster-asset-consumers.md) records
 the first design decision. The owned loader and all low-level renderer families accept the explicit owned
-contract. Shared declarative adoption and transport retirement remain open. The
+contract. Owner-local captured entries replace the global raster registry. Shared
+declarative adoption and final reduction remain open. The
 [owned loading API](owned-theme-api.md) records the current supported boundary.
 
 Architecture review with Astra selected one owner implementation with two explicit
@@ -41,6 +42,10 @@ serialization and inspection would trigger broad encoding.
   again; the distinct owned path has its own abort/disposal and snapshot tests.
   The 56-case window/managed-context browser suite passes on the final slice;
   full final browser/golden validation remains required.
+  The family migration full run passed 562 cases and found 14 consumed-cinf
+  diagnostic failures; the correction passed all 38 affected border/cinf cases.
+  Registry retirement then passed 90 targeted browser cases, with another 24
+  lifecycle/transport cases passing after the final owner-state version change.
 - Shared lazy image exports and bundle loading are implemented, with pending
   image reuse, failure retry and late disposal cleanup. The transitional
   pixel-registration-behind-PNG-URLs path has been removed.
@@ -62,18 +67,17 @@ diagnostic URLs cannot redirect the pixels subsequently loaded. The prototype
 view and owner rebinding are removed. The generic `WindowManager` preserves
 original public input identity and defaults to its existing `LoadedTheme` contract.
 
-Retire the global private-reference registry next, replacing its indirect lookup
-with owner-local captured entries and retaining the ordinary external image
-cache. Then migrate image consumers and the shared declarative scanner/resolver.
+The global private-reference registry and decoder prefix branches are removed;
+owner-local entries supply captured pixels, and the ordinary external image cache
+remains. Migrate image consumers and the shared declarative scanner/resolver next.
 Existing `ThemeResolver.load()` defaults to `LoadedTheme`; an owned resolver
 accepting registered legacy themes returns `ThemeInput`. Introduce a supported
 owned mount over the same scanner/lifecycle. Use generics only where original
 public theme identity is stored or returned, without duplicating UI lifecycles.
 
 The first-party demo's ordinary startup and dropped-theme flow must use owned
-loading before completion. Audit every selected owner/reference handoff before
-removing the private URI registry and private-prefix handling in public `assetUrl`.
-Those remain temporary until the other consumers migrate.
+loading before completion. Selected owner/reference handoffs now capture actual owner entries. Public
+`assetUrl` no longer recognizes the private identity prefix.
 
 ## Outcome
 
