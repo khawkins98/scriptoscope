@@ -1,7 +1,8 @@
 # Bevel engine consolidation: compatibility package for review
 
-Status: proposal only. Snapshot timing is approved; the other changes below are
-not approved or implemented. This replaces the unsupported exact-preservation
+Status: implemented draft candidate. Snapshot timing is approved; the other
+changes below are staged for review and remain unapproved. See the
+[measured delivery results](bevel-delivery-results.md). This replaces the unsupported exact-preservation
 deletion estimate in the experiment report. Astra reviewed the current public
 implementation and proposed this package.
 
