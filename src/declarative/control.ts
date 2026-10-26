@@ -18,6 +18,8 @@ interface Promotion {
   face: HTMLElement;
   disposeFace(): void;
   location?: { parent: ParentNode; next: ChildNode | null };
+  positionChanged?: () => boolean;
+  moved?: boolean;
   updateLabelFor?: (id: string) => void;
   restore: (() => void)[];
 }
@@ -59,6 +61,16 @@ function setStyleOwned(el: HTMLElement, values: Partial<CSSStyleDeclaration>, re
   });
 }
 
+// Observe removals of this carrier, not changes to its neighbors. Flush before
+// owned replacement/teardown so synchronous caller moves are preserved too.
+function watchPosition(face: HTMLElement): () => boolean {
+  let moved = false;
+  const record = (records: MutationRecord[]): void => { moved ||= records.some(r => Array.from(r.removedNodes).includes(face)); };
+  const observer = new MutationObserver(record);
+  if (face.parentNode) observer.observe(face.parentNode, { childList: true });
+  return () => { record(observer.takeRecords()); observer.disconnect(); return moved; };
+}
+
 /** Release this mount's form-control face and restore only its native mutations. */
 export function restoreControl(el: Promotable): void {
   pending.get(el)?.abort();
@@ -66,12 +78,13 @@ export function restoreControl(el: Promotable): void {
   const promotion = promotions.get(el);
   if (!promotion) return;
   promotions.delete(el);
+  const moved = promotion.positionChanged?.() || promotion.moved;
   promotion.disposeFace();
   // Only unwrap a source still inside our carrier. Never steal a source
   // that the consumer removed or reparented while it was mounted.
   if (el.parentNode === promotion.face) {
     const location = promotion.location;
-    if (location && (location.parent as Node).isConnected === el.isConnected) {
+    if (location && !moved && (location.parent as Node).isConnected === el.isConnected) {
       location.parent.insertBefore(el, location.next?.parentNode === location.parent ? location.next : null);
     } else if (promotion.face.parentNode) promotion.face.replaceWith(el); else el.remove();
   }
@@ -95,7 +108,7 @@ export async function promoteControl(el: Promotable, theme: ThemeInput, signal?:
   const label = kind === 'checkbox' || kind === 'radio' ? associatedLabel(el) : null;
   const labelParent = label?.parentNode;
   const checkable = kind === 'checkbox' || kind === 'radio';
-  const location = previous?.location ?? (checkable ? { parent, next: el.nextSibling } : undefined);
+  const location: Promotion['location'] = previous?.location ?? (checkable ? { parent, next: el.nextSibling } : undefined);
   let committed = false;
   const active = (): boolean => committed && !events.signal.aborted;
   let face: HTMLElement | undefined;
@@ -137,10 +150,11 @@ export async function promoteControl(el: Promotable, theme: ThemeInput, signal?:
       face.prepend(el);
     } else if (label?.contains(el)) label.after(face);
     else el.after(face);
+    const moved = previous?.positionChanged?.() || previous?.moved;
     previous?.disposeFace();
     previous?.face.remove();
     const currentFace = face;
-    promotions.set(el, { face, restore, ...(location ? { location } : {}), ...(updateLabelFor ? { updateLabelFor } : {}), disposeFace: () => {
+    promotions.set(el, { face, restore, ...(location ? { location, positionChanged: watchPosition(face), moved: !!moved } : {}), ...(updateLabelFor ? { updateLabelFor } : {}), disposeFace: () => {
       events.abort(); disposeInteractiveControl(currentFace);
     } });
     committed = true;

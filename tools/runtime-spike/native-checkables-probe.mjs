@@ -94,9 +94,32 @@ try {
       await new Promise(resolve => setTimeout(resolve, 0));
       const moved = !movedFace.isConnected && !input.hasAttribute('style');
       wrap.remove(); host.remove();
-      return { canceled, untouched, retargeted, preserved, moved };
+      const carrierMoves = [];
+      for (const mode of ['parent', 'sibling', 'retheme']) {
+        const original = document.createElement('div'), destination = document.createElement('div');
+        const source = document.createElement('input'), marker = document.createElement('span');
+        source.type = 'checkbox'; original.append(source, marker); document.body.append(original, destination);
+        let carrier = await promoteControl(source, theme);
+        const target = mode === 'sibling' ? original : destination;
+        target.append(carrier);
+        if (mode === 'retheme') carrier = await promoteControl(source, theme);
+        restoreControl(source);
+        carrierMoves.push(source.parentNode === target && target.lastChild === source && !carrier.isConnected);
+        original.remove(); destination.remove();
+      }
+      const neighbors = document.createElement('div'), label = document.createElement('label');
+      const first = document.createElement('input'), second = document.createElement('input');
+      first.type = second.type = 'checkbox'; label.append(first, 'Neighbor');
+      neighbors.append(label, second); document.body.append(neighbors);
+      const firstFace = await promoteControl(first, theme);
+      await promoteControl(second, theme);
+      firstFace.after(document.createElement('span'));
+      restoreControl(first); restoreControl(second);
+      const neighborsPreserved = first.parentNode === label && second.parentNode === neighbors;
+      neighbors.remove();
+      return { canceled, untouched, retargeted, preserved, moved, carrierMoves, neighborsPreserved };
     });
-    assert.deepEqual(lifecycle, { canceled: null, untouched: true, retargeted: true, preserved: true, moved: true });
+    assert.deepEqual(lifecycle, { canceled: null, untouched: true, retargeted: true, preserved: true, moved: true, carrierMoves: [true, true, true], neighborsPreserved: true });
   }
   const restore = await page.evaluate(() => {
     for (const input of document.querySelectorAll('input')) window.probe.restoreControl(input);
