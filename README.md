@@ -429,6 +429,61 @@ Existing loaders retain ready image URLs. See the [owned API and lifecycle
 contract](docs/v2/owned-theme-api.md) for examples and the current adoption boundary.
 The integration PR remains in progress; the default `mountDeclarative` keeps its existing ready-image loader.
 
+### Proposed native form-control migration (unreleased)
+
+These compatibility changes are a draft proposal pending independent final review.
+`interactiveCheckbox`, `radioGroup` and their corresponding option types are
+retired in the proposal. Replace those factories with native checkbox/radio
+inputs, labels, initial `checked` state and native `change` listeners. Shared
+radio `name` values give the browser ownership of group selection and keyboard
+behavior. Existing declarative mounts skin these inputs automatically.
+
+For standalone controls using an already loaded `OwnedTheme` named `theme`,
+mount an empty attached container, register the borrowed theme, then append the
+controls. This reuses the theme without another load:
+
+```js
+import { mountOwnedDeclarative } from 'scriptoscope';
+
+const root = document.createElement('div');
+document.body.append(root);
+const handle = await mountOwnedDeclarative({
+  root, pageThemeDefault: 'session', bootAffordance: 'none',
+});
+handle.registerTheme('session', theme);
+root.addEventListener('change', event => {
+  const input = event.target;
+  if (!(input instanceof HTMLInputElement)) return;
+  console.log(input.name, input.type === 'checkbox' ? input.checked : input.value);
+});
+root.insertAdjacentHTML('beforeend', `
+  <label><input type="checkbox" name="invisibles" checked>Show invisibles</label>
+  <label><input type="radio" name="mode" value="on" checked>On</label>
+  <label><input type="radio" name="mode" value="off">Off</label>
+`);
+
+// Before replacing the container or its controls:
+handle.disconnect();
+root.replaceChildren();
+```
+
+The native inputs retain their form association and values. `disconnect()` does
+not dispose a registered borrowed theme; its owner releases it after its last
+consumer finishes.
+
+`interactiveButton(theme, options)` and its `onClick` option remain available,
+but the returned themed element is now an actual `HTMLButtonElement` with
+`type="button"`. Native click, Space, Enter, focus and disabled-fieldset behavior
+apply, including programmatic `.click()`. Enter activation can occur on keydown;
+do not depend on the former pointerup/keyup callback timing, wrapper spans or
+internal ARIA structure. Decorative pointer/key handlers only update paint feedback;
+activation follows the native button.
+
+Closed selects keep the native `<select>` as their sole interaction surface;
+themed art is passive. Low-level `composeCheckable`, `composeButton` and raster
+APIs, the managed button binder, and standalone `interactiveSlider` and
+`interactiveScrollbar` APIs (including vertical scrollbars) remain available.
+
 ### Imperative — `loadTheme()` + `renderWindow()`
 
 A scheme bundle is a directory containing the **original Kaleidoscope archive** (`scheme.sit` preferred, `scheme.rsrc` fallback) plus `meta.json` + `PROVENANCE.md`. `loadTheme()` fetches the archive and decodes it in-browser via the bundled StuffIt + Kaleidoscope decoders; `renderWindow()` composites a window from the result. The ready-image path eagerly encodes its image assets. The declarative resolver caches bundle loads; direct calls load independently.
