@@ -88,7 +88,7 @@ for (const mode of ['source', 'built']) for (const barrierKind of ['preparation'
     await page.evaluate(async () => { const f = window.queuedScan; f.second = f.add('Second queued'); await new Promise(resolve => requestAnimationFrame(resolve)); f.root.append(document.createElement('aside')); });
     if (barrierKind === 'theme') releaseArchive(); else await page.evaluate(() => window.queuedScan.release());
     await expect(page.locator('#queued-roots [data-scriptoscope-window-host]')).toHaveCount(2);
-    await expect.poll(()=>page.evaluate(()=>window.queuedScan.originals.map(source=>{const face=source.nextElementSibling;return{sourceConnected:source.isConnected,tag:face?.tagName,label:face?.getAttribute('aria-label')??face?.textContent,visible:!!face&&getComputedStyle(face).display!=='none',canvas:!!face?.querySelector('canvas')};}))).toEqual(['First queued','Second queued'].map(label=>({sourceConnected:true,tag:barrierKind==='theme'?'BUTTON':'SPAN',label,visible:true,canvas:barrierKind!=='theme'})));
+    await expect.poll(()=>page.evaluate(()=>window.queuedScan.originals.map(source=>{const face=source.nextElementSibling;return{sourceConnected:source.isConnected,tag:face?.tagName,label:face?.getAttribute('aria-label')??face?.textContent,visible:!!face&&getComputedStyle(face).display!=='none',canvas:!!face?.querySelector('canvas')};}))).toEqual(['First queued','Second queued'].map(label=>({sourceConnected:true,tag:'BUTTON',label,visible:true,canvas:barrierKind!=='theme'})));
     // Repeated consumer additions and real chrome mutations must not duplicate
     // faces/listeners. Additions inside an existing promoted content slot remain
     // outside this scanner's declared boundary.

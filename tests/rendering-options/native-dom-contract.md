@@ -57,3 +57,27 @@ shared reporter/fixture path was not executed in this assignment; final full-sui
 validation remains an integration obligation. The clean suite is additional
 independent semantic coverage, not a claim that all thirteen previous failures or
 the full browser suite now pass.
+
+## Final CI public DOM follow-up
+
+The production diagnostic's checkbox and radio assertions now inspect native
+checked state after the existing pointer/Space sequences. Accessible names,
+radio exclusivity, disabled-control behavior, visible-label rules and all other
+probe bytes are preserved. Requiring a redundant aria-checked attribute would
+contradict the authoritative native-input contract established above.
+
+Added-root preparation-barrier coverage now requires a native button face, just
+as the existing theme-barrier branch does. This is an exact native element
+requirement, not permission to accept arbitrary presentation shapes. Queued
+root discovery, preparation completion, source connection, label, visibility,
+paint presence/absence, scoped scans, late-child exclusion, exact-once callbacks
+and cleanup checks remain intact. No production source or non-DOM assertion was
+changed for either follow-up.
+
+Validation: the two focused files pass 19/19 after reproducing the original
+16 pass / 3 fail result. The independent native DOM suite passes 30/30 across
+Chromium, Firefox and WebKit. Temporary test-only perturbations of native checked
+state, change-event count, forwarded-click count and click cancellation each
+fail their corresponding source and built assertions (8 intended failures,
+8 unaffected cases pass). The existing fallback-neutrality mutation detects
+unwanted form submission in all three browsers. Temporary variants were removed.
