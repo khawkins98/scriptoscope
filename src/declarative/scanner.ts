@@ -390,10 +390,19 @@ async function mountRoot(opts: MountOptions, root: Document | Element, key: Elem
     return resolveThemeRef(chain, fallback) ?? fallback;
   };
 
+  // Common attempt lifetime; family guards and preparation/commit policies stay local.
+  const trackedPromotion = async (kind: PromoteError['kind'], el: Element, prepare: () => Promise<void>): Promise<void> => {
+    inFlight.add(el);
+    try { await prepare(); }
+    catch (error) {
+      if (!lifetime.signal.aborted && !(kind === 'window' && error instanceof DOMException && error.name === 'AbortError'))
+        reportPromoteError(kind, el, error);
+    } finally { inFlight.delete(el); }
+  };
+
   const promoteWindow = async (el: HTMLElement): Promise<void> => {
     if (lifetime.signal.aborted || isPromoted(el) || el.closest('.scriptoscope-window')) return; // skip done / nested-in-chrome
-    inFlight.add(el);
-    try {
+    return trackedPromotion('window', el, async () => {
       const ref = refForEl(el);
       const theme = await resolver.load(ref);
       if (lifetime.signal.aborted || !root.contains(el)) return;
@@ -434,13 +443,7 @@ async function mountRoot(opts: MountOptions, root: Document | Element, key: Elem
       // on the HOST (the still-attached node post-promote) since the
       // original `el` was just removed from DOM by ScriptoscopeWindow.
       aw.host.dispatchEvent(new CustomEvent('scriptoscope:promoted', { bubbles: true, detail: { kind: 'window', host: aw.host } }));
-    } catch (err) {
-      if (!lifetime.signal.aborted && !(err instanceof DOMException && err.name === 'AbortError')) {
-        reportPromoteError('window', el, err);
-      }
-    } finally {
-      inFlight.delete(el);
-    }
+    });
   };
 
   const buttonRetryFrame = (): Promise<void> => new Promise(resolve => {
@@ -483,9 +486,8 @@ async function mountRoot(opts: MountOptions, root: Document | Element, key: Elem
   const promoteBtn = async (el: HTMLElement): Promise<void> => {
     if (lifetime.signal.aborted || !root.contains(el) || isPromoted(el)) return; // buttons inside window content ARE wanted
     ownedButtonSources.add(el);
-    inFlight.add(el);
     const eligible = (): boolean => !lifetime.signal.aborted && el.isConnected && root.contains(el);
-    try {
+    return trackedPromotion('button', el, async () => {
       // Keep one owned attempt across coalesced consumer moves. A finite series
       // must eventually settle, while repeated movement gets at most one retry
       // per animation frame instead of a hot microtask loop.
@@ -510,17 +512,12 @@ async function mountRoot(opts: MountOptions, root: Document | Element, key: Elem
         debug('promote', `button: ${el.textContent?.trim().slice(0, 30) ?? ''}`);
         return;
       }
-    } catch (err) {
-      if (!lifetime.signal.aborted) reportPromoteError('button', el, err);
-    } finally {
-      inFlight.delete(el);
-    }
+    });
   };
 
   const promoteTabsEl = async (el: HTMLElement): Promise<void> => {
     if (lifetime.signal.aborted || !root.contains(el) || inFlight.has(el) || el.dataset.scriptoscopeTabsPromoted != null) return;
-    inFlight.add(el);
-    try {
+    return trackedPromotion('tabs', el, async () => {
       const theme = await resolver.load(refForEl(el));
       if (lifetime.signal.aborted || !root.contains(el)) return;
       await promoteTabs(el, theme, { signal: lifetime.signal });
@@ -528,32 +525,22 @@ async function mountRoot(opts: MountOptions, root: Document | Element, key: Elem
       skinnedTabs.push(el);
       markInertIfWiping(el);
       stats.tabs += 1;
-    } catch (err) {
-      if (!lifetime.signal.aborted) reportPromoteError('tabs', el, err);
-    } finally {
-      inFlight.delete(el);
-    }
+    });
   };
 
   const promoteFld = async (el: HTMLInputElement | HTMLTextAreaElement): Promise<void> => {
     if (lifetime.signal.aborted || !root.contains(el) || inFlight.has(el) || el.dataset.scriptoscopeFieldPromoted != null) return;
-    inFlight.add(el);
-    try {
+    return trackedPromotion('field', el, async () => {
       const theme = await resolver.load(refForEl(el));
       if (lifetime.signal.aborted || !root.contains(el)) return;
       promoteField(el, theme);
       stats.fields += 1;
-    } catch (err) {
-      if (!lifetime.signal.aborted) reportPromoteError('field', el, err);
-    } finally {
-      inFlight.delete(el);
-    }
+    });
   };
 
   const promoteIco = async (el: HTMLImageElement | HTMLElement): Promise<void> => {
     if (lifetime.signal.aborted || !root.contains(el) || inFlight.has(el) || el.dataset.scriptoscopeIconPromoted != null) return;
-    inFlight.add(el);
-    try {
+    return trackedPromotion('icon', el, async () => {
       while (!lifetime.signal.aborted && root.contains(el)) {
         const ref = refForEl(el), theme = await resolver.load(ref);
         if (lifetime.signal.aborted || !root.contains(el)) return;
@@ -564,9 +551,7 @@ async function mountRoot(opts: MountOptions, root: Document | Element, key: Elem
         if (promoted) { skinnedIcons.push(el); markInertIfWiping(el); }
         return;
       }
-    } catch (err) {
-      if (!lifetime.signal.aborted) reportPromoteError('icon', el, err);
-    } finally { inFlight.delete(el); }
+    });
   };
 
   const promotePicker = async (el: HTMLElement): Promise<void> => {
@@ -592,9 +577,8 @@ async function mountRoot(opts: MountOptions, root: Document | Element, key: Elem
 
   const promoteCtl = async (el: HTMLInputElement | HTMLSelectElement): Promise<void> => {
     if (lifetime.signal.aborted || !root.contains(el) || isPromoted(el)) return;
-    inFlight.add(el);
     const parent = el.parentNode, connected = el.isConnected;
-    try {
+    return trackedPromotion('control', el, async () => {
       const theme = await resolver.load(refForEl(el));
       if (lifetime.signal.aborted || el.parentNode !== parent || el.isConnected !== connected) return;
       const skinned = await promoteControl(el, theme, lifetime.signal);
@@ -605,11 +589,18 @@ async function mountRoot(opts: MountOptions, root: Document | Element, key: Elem
         stats.controls += 1;
       }
       debug('promote', `control: ${el.tagName.toLowerCase()}${el.type ? `[type=${el.type}]` : ''}`);
-    } catch (err) {
-      if (!lifetime.signal.aborted) reportPromoteError('control', el, err);
-    } finally {
-      inFlight.delete(el);
+    });
+  };
+
+  const reskinTracked = async <T>(entries: T[], keep: (entry: T) => boolean, paint: (entry: T) => Promise<void>,
+    onError: (cause: unknown) => void, current: () => boolean): Promise<boolean> => {
+    if (!current()) return false;
+    entries.splice(0, entries.length, ...entries.filter(keep));
+    for (const entry of entries) {
+      if (!current()) return false;
+      try { await paint(entry); } catch (error) { onError(error); }
     }
+    return current();
   };
 
   // Runtime theme switch: re-skin the whole desktop AND every promoted button with one scheme — a
@@ -638,64 +629,36 @@ async function mountRoot(opts: MountOptions, root: Document | Element, key: Elem
       // out of any .scriptoscope-window, so re-skinning them would re-inject a face into the restored consumer DOM.
       // `isConnected` (not `.closest('.scriptoscope-window')`) is the load-bearing filter: `closest` walks even
       // detached subtrees and would keep entries whose window was removed via `.scriptoscope-window.remove()`.
-      const live = skinnedButtons.filter((b) => b.skinned.isConnected);
-      skinnedButtons.length = 0; skinnedButtons.push(...live);
-      for (const b of skinnedButtons) {
-        if (!current()) return;
-        try {
-          const fresh = await promoteOwnedButton(b.el, theme, replacing.signal,
-            () => current() && root.contains(b.el));
-          if (!current()) {
-            // Insertion can synchronously queue a consumer MutationObserver which
-            // requests another theme before this continuation owns the new face.
-            if (fresh) disposePromotedButtonFace(b.el, fresh);
-            return;
-          }
-          if (!fresh) continue; // source removed during preparation
-          const focused = b.skinned.contains(document.activeElement);
-          disposePromotedButtonFace(b.el, b.skinned); // replacement is already inserted after the source
-          b.skinned = fresh;
-          bindManagedButton(fresh);
-          if (focused) fresh.focus({ preventScroll: true });
-        } catch (err) { if (current()) console.error('[scriptoscope] button re-skin failed:', err); }
-      }
-      // Re-skin tabs: drop orphans (whose wrapper was closed/removed), then re-promote each in
-      // place with forceRescan so the canvas faces are rebuilt against the new theme. The native
-      // <button>s and panels stay put — only the skinned spans + ARIA + tabindex are rewritten.
-      const liveTabs = skinnedTabs.filter((el) => el.isConnected);
-      skinnedTabs.length = 0; skinnedTabs.push(...liveTabs);
-      for (const tabsEl of skinnedTabs) {
-        try {
-          if (!current()) return;
-          await promoteTabs(tabsEl, theme, { forceRescan: true, signal: replacing.signal });
-        } catch (err) { console.error('[scriptoscope] tabs re-skin failed:', err); }
-      }
-      if (!current()) return;
-      // Replace form-control faces atomically; release removed sources and their listeners.
-      const liveCtls = skinnedControls.filter((c) => {
+      if (!await reskinTracked(skinnedButtons, b => b.skinned.isConnected, async b => {
+        const fresh = await promoteOwnedButton(b.el, theme, replacing.signal,
+          () => current() && root.contains(b.el));
+        if (!current()) {
+          // A consumer observer may supersede this request after insertion.
+          if (fresh) disposePromotedButtonFace(b.el, fresh);
+          return;
+        }
+        if (!fresh) return;
+        const focused = b.skinned.contains(document.activeElement);
+        disposePromotedButtonFace(b.el, b.skinned);
+        b.skinned = fresh;
+        bindManagedButton(fresh);
+        if (focused) fresh.focus({ preventScroll: true });
+      }, err => { if (current()) console.error('[scriptoscope] button re-skin failed:', err); }, current) || !current()) return;
+      // Native tab buttons and panels stay put; only faces/ARIA/tabindex refresh.
+      if (!await reskinTracked(skinnedTabs, el => el.isConnected,
+        async el => { await promoteTabs(el, theme, { forceRescan: true, signal: replacing.signal }); },
+        err => console.error('[scriptoscope] tabs re-skin failed:', err), current) || !current()) return;
+      // Release disconnected native sources and their listeners before replacement.
+      if (!await reskinTracked(skinnedControls, c => {
         if (c.el.isConnected && c.skinned.isConnected) return true;
         restoreControl(c.el); return false;
-      });
-      skinnedControls.length = 0; skinnedControls.push(...liveCtls);
-      for (const c of skinnedControls) {
-        if (!current()) return;
-        try {
-          const fresh = await promoteControl(c.el, theme, replacing.signal);
-          if (fresh) c.skinned = fresh;
-        } catch (err) { console.error('[scriptoscope] control re-skin failed:', err); }
-      }
-      if (!current()) return;
-      // Re-resolve every promoted icon's src from the new theme's iconIndex.
-      // Filter orphans (icon removed from DOM during retheme) before re-running.
-      const liveIcons = skinnedIcons.filter((el) => el.isConnected);
-      skinnedIcons.length = 0; skinnedIcons.push(...liveIcons);
-      for (const el of skinnedIcons) {
-        try {
-          if (!current()) return;
-          await promoteIconAsync(el, theme, replacing.signal, () => current() && root.contains(el));
-        }
-        catch (err) { console.error('[scriptoscope] icon re-resolve failed:', err); }
-      }
+      }, async c => {
+        const fresh = await promoteControl(c.el, theme, replacing.signal);
+        if (fresh) c.skinned = fresh;
+      }, err => console.error('[scriptoscope] control re-skin failed:', err), current) || !current()) return;
+      if (!await reskinTracked(skinnedIcons, el => el.isConnected,
+        async el => { await promoteIconAsync(el, theme, replacing.signal, () => current() && root.contains(el)); },
+        err => console.error('[scriptoscope] icon re-resolve failed:', err), current) || !current()) return;
       // Sync every promoted theme picker's active-tile state. The picker
       // itself didn't trigger the retheme (it could have been triggered by
       // a different control or by handle.retheme directly) — this keeps

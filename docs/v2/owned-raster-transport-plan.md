@@ -398,3 +398,11 @@ renderer: 4,608 outputs across 288 cases match, independently of the stale cache
 Three pure compositing tests preserve rounding, hidden destination RGB, in-place
 source order and negative glyph origins. The production transport comparator
 continues to pass with zero mismatches. This does not satisfy net reduction yet.
+
+Scanner orchestration now shares the in-flight/error/finally attempt boundary and
+prune/current-check/retheme traversal. Family-specific movement retries,
+snapshots, commit/disposal and error policies remain explicit in their callbacks;
+buttons, tabs, controls and icons retain their order. Currency is rechecked at
+helper entry and after every helper await, before cleanup or picker mutation.
+This deletes another 37 source lines. Repository gates and the complete production
+comparator pass with these changes, including mounted eager/owned scanning.
