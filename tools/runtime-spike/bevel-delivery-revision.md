@@ -1,6 +1,6 @@
 # Preserve legacy inputs in the prepared bevel runtime
 
-Revision of draft PR483, runtime `0f8ea230`, against frozen merged `f7d93afb`.
+Revision of draft PR #483, runtime `0f8ea230`, against frozen merged `f7d93afb`.
 This supersedes the initial candidate's proposed raw-cinf requirement, changed
 partial-alpha rendering, integer-only allocation gate and diagnostic differences.
 Those compatibility losses are not being requested for approval by this revision.
@@ -34,7 +34,7 @@ the ordinary synchronous engine has no new runtime dependency on the browser
 facade or PixelBuffer module. Registered resources are captured only when needed.
 Compatibility sampler admission remains independent of an equivalence proof;
 wholly clipped bands do not even resolve an unused companion reference. Pattern
-phase still validates signed control edges before painting, including mode0.
+phase still validates signed control edges before painting, including mode 0.
 The experimental integer-only allocation guard has been removed.
 
 ## Honest reduction
@@ -65,7 +65,7 @@ loading, match all 13824 ordinary comparisons: 12672 identical rendered results 
 1152 matching nulls across 18 bundled themes and six rectangular synthetic fixtures.
 The three separate probes formerly rejected by the candidate—missing-cinf solid,
 missing-cinf pattern and present short cinf—now match reference pixels.
-Metadata-backed opaque and alpha128 pattern probes also match in both source and
+Metadata-backed opaque and alpha 128 pattern probes also match in both source and
 built code; the earlier 103-pixel partial-alpha difference has been eliminated.
 These seven additional probes are not included in the 13824 matching denominator.
 
@@ -91,8 +91,24 @@ runtime PixelBuffer dependency. An earlier full Node run exposed that module
 resolution regression; the fresh stable final run passes 1165 with 0 failures,
 2 skipped and 12 TODOs.
 
-At `4ee529a9`, all 54 unchanged independent affected checks pass, including frozen
-delivery 26/26 and existing affected 28/28. The full browser run at that revision
-and final affected/edge-case rerun at `0f8ea230` are being completed by the isolated
-independent author. Acceptance assertions, evidence and goldens remain unchanged.
-Final public counts must be recorded before treating this revision as validated.
+At runtime `4ee529a9`, all 54 unchanged independent affected checks passed,
+including frozen delivery 26/26 and existing affected 28/28. The full normal
+default browser suite then passed **602/602, with 0 failures** in Chromium DPR1.
+All 18 public option/source-built theme matrices passed; no other-family
+regression appeared in that run.
+
+After merging final runtime `0f8ea230` and documentation `6f333816`, the isolated
+independent author rebuilt and reran the affected suites: **54/54 pass**, retaining
+frozen delivery 26/26 and existing affected 28/28. Eight additional public probes
+pass across source and built code: signed pattern-edge bounds, an unused clipped
+companion reference, negative-corner border normalization, and fractional pattern
+geometry. The full browser suite was not repeated for these final targeted fixes.
+Final build, typecheck and clean-room lint pass; the latter reports 0 hits.
+
+Acceptance assertions, evidence and goldens remain unchanged. Earlier prototype
+failures remain recorded in the superseded candidate report; they are not final
+revision failures and were not removed by changing expectations. These are bounded
+compatibility checks, not exhaustive input coverage, native-fidelity certification
+or a performance benchmark. Chromium default-profile results do not establish
+all-browser or all-platform output identity. The approved metadata timing amendment
+and the modest consolidation assessment remain as stated above.
