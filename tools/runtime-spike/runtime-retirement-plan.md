@@ -90,7 +90,7 @@ do not invent a second wrapper API to preserve that usage without measuring it.
 Existing declarative markup remains the intended front door, but wrapper CSS
 and focus assumptions require consumer review.
 
-Before removal, obtain an independent author's public consumer inventory and
+Before approving removals for delivery, obtain an independent author's public consumer inventory and
 behavioral handoff, including demo/package consumers and dynamic uses. The
 implementer cannot inspect excluded independent acceptance material. Internal
 caller search is not a substitute for that inventory.

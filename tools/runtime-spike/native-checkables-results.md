@@ -72,8 +72,7 @@ and timed out; the test now sends an actual mouse click at its bounds to check
 that native activation stays disabled. A proposed missing-art fixture omitted
 its resource census and correctly rejected; it is now a separate rejection case,
 while the absent-art fixture explicitly declares empty resource censuses. The
-first WebKit run exposed the mouse-focus assumption described above. No runtime
-expectation, independent assertion or golden was weakened to obtain these results.
+first WebKit run exposed the mouse-focus assumption described above. No independent assertion or golden was changed to obtain these results.
 
 Run the local Vite server on port 5193, then:
 
@@ -96,3 +95,6 @@ migration, release notes and final finished-tree gates are still required.
 Accessibility coverage here is a focused browser check, not an independent
 assistive-technology review. Live arbitrary label/form mutations and mixed-state
 art are not established by this experiment.
+
+Official `npm run loc:src -- HEAD --base origin/v2` agrees: runtime logic
+17,498 → 17,360 (−138); tables remain 2,323; total `src/` 19,821 → 19,683.
