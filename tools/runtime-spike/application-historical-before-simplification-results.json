@@ -1,0 +1,2416 @@
+{
+  "comparison": {
+    "kind": "reconstructed-frozen-baseline",
+    "build": {
+      "revision": "de942c6399c81d1f15d23247dfd62a36e11a64bc",
+      "createdAt": "2026-10-26T06:06:02.839Z",
+      "toolchainLockSha256": "2d10f2c59a71894453a9abb20ea6ddb6a87fdb75e296c92c3f035ac2c55af0be",
+      "buildRecipeSha256": "7a7b6dce46a6f29f244c20b152c62d9ff990f5e05cadb661913bfb56117ca0c5",
+      "status": "pass",
+      "node": "v24.18.0",
+      "vite": "7.3.7",
+      "method": "Isolated compiler-only reconstruction using the current pinned toolchain and explicit library configuration; historical source/configuration/logs are not inspected. Source maps and legal comments disabled. Not an original release artifact.",
+      "files": [
+        {
+          "path": "index-7AwbN99Q.js",
+          "bytes": 550675,
+          "gzipBytes": 163060,
+          "sha256": "c7e359c85fe9134d03aefa7c3e39eb52911c444aef0239670dae2b791bfd7566"
+        },
+        {
+          "path": "index-BwlcbHqn.js",
+          "bytes": 104976,
+          "gzipBytes": 44732,
+          "sha256": "eba1d417ebb0638b0c51eb23fbfc3c782b4e302922a5095aea0f4714fb8d384b"
+        },
+        {
+          "path": "proceduralFrameChrome-DoUaGQWm.js",
+          "bytes": 40246,
+          "gzipBytes": 12491,
+          "sha256": "d48c958849a996da07fa7b1469f7e264082ddddcb4d79300b3652ed49fbd9323"
+        },
+        {
+          "path": "scriptoscope.css",
+          "bytes": 13956,
+          "gzipBytes": 5418,
+          "sha256": "f675b1e9af7e6c337a58f5af8199444227605d4c9973474cf4ead2a85e04b087"
+        },
+        {
+          "path": "scriptoscope.js",
+          "bytes": 2499,
+          "gzipBytes": 1081,
+          "sha256": "b8ba10b85fd0493eac961dca242da1ecadb050fe9c341b9e570d66d49d9f4f06"
+        }
+      ],
+      "inputArchiveSha256": "92df4391ba5dfc38f9bc4235540e6025e63f204db9be94f378d77f923e5ddbe3"
+    }
+  },
+  "context": null,
+  "recordedAt": "2026-10-26T07:12:47.395Z",
+  "status": "pass",
+  "methodology": "Real advertisement app and UI switch buttons, built library, fresh Chromium profile per trial. Compiler-reconstructed frozen eager API versus current owned API; current page and styles are controlled inputs, not a historical application release. Loopback network/module/font startup included. Owned-store counters observe only advertisement themes (eager results are not bound to that registry), not mount-cycle owners. Blob counters are global to the page. Two frame boundaries and one task precede consistent post-GC sampling. Post-GC CDP heap/backing-storage and sum of browser-process RSS are recorded separately from asset counters. Twenty public mount/disconnect cycles follow app teardown. Telemetry and hooks exist only in this local server.",
+  "trials": [
+    {
+      "mode": "eager",
+      "repetition": 0,
+      "browser": "Chrome/153.0.8010.47",
+      "startup": {
+        "readyMs": 2730.099999964237,
+        "urls": {
+          "blobBytes": 2067486,
+          "created": 3196,
+          "live": 3196,
+          "revoked": 0
+        },
+        "usage": {
+          "images": 0,
+          "pending": 0,
+          "pixelBytes": 0,
+          "rasters": 0
+        },
+        "windows": 5
+      },
+      "switches": [
+        [
+          {
+            "ms": 30,
+            "slug": "1138"
+          },
+          {
+            "ms": 43.10000002384186,
+            "slug": "crayon-os"
+          },
+          {
+            "ms": 33.19999998807907,
+            "slug": "beos-r503"
+          },
+          {
+            "ms": 33.299999952316284,
+            "slug": "windows-95"
+          },
+          {
+            "ms": 33.40000003576279,
+            "slug": "1984"
+          },
+          {
+            "ms": 33.19999998807907,
+            "slug": "mix"
+          }
+        ],
+        [
+          {
+            "ms": 15.899999976158142,
+            "slug": "1138"
+          },
+          {
+            "ms": 21.399999976158146,
+            "slug": "crayon-os"
+          },
+          {
+            "ms": 33.30000001192093,
+            "slug": "beos-r503"
+          },
+          {
+            "ms": 33.30000001192093,
+            "slug": "windows-95"
+          },
+          {
+            "ms": 33.39999997615814,
+            "slug": "1984"
+          },
+          {
+            "ms": 33.30000001192093,
+            "slug": "mix"
+          }
+        ],
+        [
+          {
+            "ms": 15.199999988079073,
+            "slug": "1138"
+          },
+          {
+            "ms": 26.100000023841854,
+            "slug": "crayon-os"
+          },
+          {
+            "ms": 33.5,
+            "slug": "beos-r503"
+          },
+          {
+            "ms": 33.19999998807907,
+            "slug": "windows-95"
+          },
+          {
+            "ms": 33.40000003576279,
+            "slug": "1984"
+          },
+          {
+            "ms": 33.299999952316284,
+            "slug": "mix"
+          }
+        ]
+      ],
+      "samples": [
+        {
+          "label": "blank",
+          "heap": {
+            "usedSize": 428048,
+            "totalSize": 1048576,
+            "embedderHeapUsedSize": 297904,
+            "backingStorageSize": 6
+          },
+          "dom": {
+            "documents": 1,
+            "nodes": 4,
+            "jsEventListeners": 0
+          },
+          "rssBytes": 1585610752,
+          "processCount": 11,
+          "counters": {
+            "ownedAdvertisementStore": null,
+            "urls": null
+          }
+        },
+        {
+          "label": "ready",
+          "heap": {
+            "usedSize": 7864320,
+            "totalSize": 8306688,
+            "embedderHeapUsedSize": 1256464,
+            "backingStorageSize": 5503891
+          },
+          "dom": {
+            "documents": 2,
+            "nodes": 413,
+            "jsEventListeners": 112
+          },
+          "rssBytes": 1714798592,
+          "processCount": 11,
+          "counters": {
+            "ownedAdvertisementStore": {
+              "images": 0,
+              "pending": 0,
+              "pixelBytes": 0,
+              "rasters": 0
+            },
+            "urls": {
+              "blobBytes": 2067486,
+              "created": 3196,
+              "live": 3196,
+              "revoked": 0
+            }
+          }
+        },
+        {
+          "label": "switch-round-1",
+          "heap": {
+            "usedSize": 8030380,
+            "totalSize": 8568832,
+            "embedderHeapUsedSize": 1239424,
+            "backingStorageSize": 5503953
+          },
+          "dom": {
+            "documents": 2,
+            "nodes": 414,
+            "jsEventListeners": 112
+          },
+          "rssBytes": 1660616704,
+          "processCount": 11,
+          "counters": {
+            "ownedAdvertisementStore": {
+              "images": 0,
+              "pending": 0,
+              "pixelBytes": 0,
+              "rasters": 0
+            },
+            "urls": {
+              "blobBytes": 2067486,
+              "created": 3196,
+              "live": 3196,
+              "revoked": 0
+            }
+          }
+        },
+        {
+          "label": "switch-round-2",
+          "heap": {
+            "usedSize": 8059292,
+            "totalSize": 8568832,
+            "embedderHeapUsedSize": 1230248,
+            "backingStorageSize": 5503953
+          },
+          "dom": {
+            "documents": 2,
+            "nodes": 414,
+            "jsEventListeners": 112
+          },
+          "rssBytes": 1662877696,
+          "processCount": 11,
+          "counters": {
+            "ownedAdvertisementStore": {
+              "images": 0,
+              "pending": 0,
+              "pixelBytes": 0,
+              "rasters": 0
+            },
+            "urls": {
+              "blobBytes": 2067486,
+              "created": 3196,
+              "live": 3196,
+              "revoked": 0
+            }
+          }
+        },
+        {
+          "label": "switch-round-3",
+          "heap": {
+            "usedSize": 8098804,
+            "totalSize": 8568832,
+            "embedderHeapUsedSize": 1242256,
+            "backingStorageSize": 5503953
+          },
+          "dom": {
+            "documents": 2,
+            "nodes": 414,
+            "jsEventListeners": 112
+          },
+          "rssBytes": 1665810432,
+          "processCount": 11,
+          "counters": {
+            "ownedAdvertisementStore": {
+              "images": 0,
+              "pending": 0,
+              "pixelBytes": 0,
+              "rasters": 0
+            },
+            "urls": {
+              "blobBytes": 2067486,
+              "created": 3196,
+              "live": 3196,
+              "revoked": 0
+            }
+          }
+        },
+        {
+          "label": "disposed",
+          "heap": {
+            "usedSize": 6577520,
+            "totalSize": 6995968,
+            "embedderHeapUsedSize": 983968,
+            "backingStorageSize": 4313537
+          },
+          "dom": {
+            "documents": 2,
+            "nodes": 345,
+            "jsEventListeners": 16
+          },
+          "rssBytes": 1684832256,
+          "processCount": 11,
+          "counters": {
+            "ownedAdvertisementStore": {
+              "images": 0,
+              "pending": 0,
+              "pixelBytes": 0,
+              "rasters": 0
+            },
+            "urls": {
+              "blobBytes": 0,
+              "created": 3196,
+              "live": 0,
+              "revoked": 3196
+            }
+          }
+        },
+        {
+          "label": "five-cycle-batch-1",
+          "heap": {
+            "usedSize": 7018312,
+            "totalSize": 7520256,
+            "embedderHeapUsedSize": 1442664,
+            "backingStorageSize": 4275744
+          },
+          "dom": {
+            "documents": 2,
+            "nodes": 350,
+            "jsEventListeners": 16
+          },
+          "rssBytes": 1753595904,
+          "processCount": 11,
+          "counters": {
+            "ownedAdvertisementStore": {
+              "images": 0,
+              "pending": 0,
+              "pixelBytes": 0,
+              "rasters": 0
+            },
+            "urls": {
+              "blobBytes": 0,
+              "created": 6236,
+              "live": 0,
+              "revoked": 6236
+            }
+          }
+        },
+        {
+          "label": "five-cycle-batch-2",
+          "heap": {
+            "usedSize": 7228592,
+            "totalSize": 7782400,
+            "embedderHeapUsedSize": 1422504,
+            "backingStorageSize": 4275744
+          },
+          "dom": {
+            "documents": 2,
+            "nodes": 350,
+            "jsEventListeners": 16
+          },
+          "rssBytes": 1742651392,
+          "processCount": 11,
+          "counters": {
+            "ownedAdvertisementStore": {
+              "images": 0,
+              "pending": 0,
+              "pixelBytes": 0,
+              "rasters": 0
+            },
+            "urls": {
+              "blobBytes": 0,
+              "created": 9276,
+              "live": 0,
+              "revoked": 9276
+            }
+          }
+        },
+        {
+          "label": "five-cycle-batch-3",
+          "heap": {
+            "usedSize": 7249792,
+            "totalSize": 7782400,
+            "embedderHeapUsedSize": 1462528,
+            "backingStorageSize": 4275744
+          },
+          "dom": {
+            "documents": 2,
+            "nodes": 350,
+            "jsEventListeners": 16
+          },
+          "rssBytes": 1743831040,
+          "processCount": 11,
+          "counters": {
+            "ownedAdvertisementStore": {
+              "images": 0,
+              "pending": 0,
+              "pixelBytes": 0,
+              "rasters": 0
+            },
+            "urls": {
+              "blobBytes": 0,
+              "created": 12316,
+              "live": 0,
+              "revoked": 12316
+            }
+          }
+        },
+        {
+          "label": "five-cycle-batch-4",
+          "heap": {
+            "usedSize": 7285820,
+            "totalSize": 7782400,
+            "embedderHeapUsedSize": 1603288,
+            "backingStorageSize": 4275744
+          },
+          "dom": {
+            "documents": 2,
+            "nodes": 350,
+            "jsEventListeners": 16
+          },
+          "rssBytes": 1747140608,
+          "processCount": 11,
+          "counters": {
+            "ownedAdvertisementStore": {
+              "images": 0,
+              "pending": 0,
+              "pixelBytes": 0,
+              "rasters": 0
+            },
+            "urls": {
+              "blobBytes": 0,
+              "created": 15356,
+              "live": 0,
+              "revoked": 15356
+            }
+          }
+        }
+      ]
+    },
+    {
+      "mode": "owned",
+      "repetition": 0,
+      "browser": "Chrome/153.0.8010.47",
+      "startup": {
+        "readyMs": 240.80000001192093,
+        "urls": {
+          "blobBytes": 8089,
+          "created": 2,
+          "live": 2,
+          "revoked": 0
+        },
+        "usage": {
+          "images": 2,
+          "pending": 0,
+          "pixelBytes": 9360204,
+          "rasters": 3196
+        },
+        "windows": 5
+      },
+      "switches": [
+        [
+          {
+            "ms": 21,
+            "slug": "1138"
+          },
+          {
+            "ms": 18.600000023841854,
+            "slug": "crayon-os"
+          },
+          {
+            "ms": 34.30000001192093,
+            "slug": "beos-r503"
+          },
+          {
+            "ms": 32.80000001192093,
+            "slug": "windows-95"
+          },
+          {
+            "ms": 33.299999952316284,
+            "slug": "1984"
+          },
+          {
+            "ms": 33.700000047683716,
+            "slug": "mix"
+          }
+        ],
+        [
+          {
+            "ms": 16.400000035762787,
+            "slug": "1138"
+          },
+          {
+            "ms": 18.400000035762787,
+            "slug": "crayon-os"
+          },
+          {
+            "ms": 34.299999952316284,
+            "slug": "beos-r503"
+          },
+          {
+            "ms": 33.30000001192093,
+            "slug": "windows-95"
+          },
+          {
+            "ms": 33.30000001192093,
+            "slug": "1984"
+          },
+          {
+            "ms": 33.30000001192093,
+            "slug": "mix"
+          }
+        ],
+        [
+          {
+            "ms": 16.30000001192093,
+            "slug": "1138"
+          },
+          {
+            "ms": 25.100000023841854,
+            "slug": "crayon-os"
+          },
+          {
+            "ms": 33.39999997615814,
+            "slug": "beos-r503"
+          },
+          {
+            "ms": 32.69999998807907,
+            "slug": "windows-95"
+          },
+          {
+            "ms": 33.90000003576279,
+            "slug": "1984"
+          },
+          {
+            "ms": 32.59999996423721,
+            "slug": "mix"
+          }
+        ]
+      ],
+      "samples": [
+        {
+          "label": "blank",
+          "heap": {
+            "usedSize": 428048,
+            "totalSize": 1048576,
+            "embedderHeapUsedSize": 297904,
+            "backingStorageSize": 6
+          },
+          "dom": {
+            "documents": 1,
+            "nodes": 4,
+            "jsEventListeners": 0
+          },
+          "rssBytes": 1635368960,
+          "processCount": 11,
+          "counters": {
+            "ownedAdvertisementStore": null,
+            "urls": null
+          }
+        },
+        {
+          "label": "ready",
+          "heap": {
+            "usedSize": 8011332,
+            "totalSize": 8404992,
+            "embedderHeapUsedSize": 1134920,
+            "backingStorageSize": 13828858
+          },
+          "dom": {
+            "documents": 2,
+            "nodes": 413,
+            "jsEventListeners": 112
+          },
+          "rssBytes": 1799061504,
+          "processCount": 11,
+          "counters": {
+            "ownedAdvertisementStore": {
+              "images": 2,
+              "pending": 0,
+              "pixelBytes": 9360204,
+              "rasters": 3196
+            },
+            "urls": {
+              "blobBytes": 8089,
+              "created": 2,
+              "live": 2,
+              "revoked": 0
+            }
+          }
+        },
+        {
+          "label": "switch-round-1",
+          "heap": {
+            "usedSize": 8182416,
+            "totalSize": 8667136,
+            "embedderHeapUsedSize": 1212656,
+            "backingStorageSize": 13828920
+          },
+          "dom": {
+            "documents": 2,
+            "nodes": 414,
+            "jsEventListeners": 112
+          },
+          "rssBytes": 1838317568,
+          "processCount": 11,
+          "counters": {
+            "ownedAdvertisementStore": {
+              "images": 2,
+              "pending": 0,
+              "pixelBytes": 9360204,
+              "rasters": 3196
+            },
+            "urls": {
+              "blobBytes": 8089,
+              "created": 2,
+              "live": 2,
+              "revoked": 0
+            }
+          }
+        },
+        {
+          "label": "switch-round-2",
+          "heap": {
+            "usedSize": 8209840,
+            "totalSize": 8667136,
+            "embedderHeapUsedSize": 1222776,
+            "backingStorageSize": 13828920
+          },
+          "dom": {
+            "documents": 2,
+            "nodes": 414,
+            "jsEventListeners": 112
+          },
+          "rssBytes": 1841070080,
+          "processCount": 11,
+          "counters": {
+            "ownedAdvertisementStore": {
+              "images": 2,
+              "pending": 0,
+              "pixelBytes": 9360204,
+              "rasters": 3196
+            },
+            "urls": {
+              "blobBytes": 8089,
+              "created": 2,
+              "live": 2,
+              "revoked": 0
+            }
+          }
+        },
+        {
+          "label": "switch-round-3",
+          "heap": {
+            "usedSize": 8241472,
+            "totalSize": 8667136,
+            "embedderHeapUsedSize": 1223520,
+            "backingStorageSize": 13828920
+          },
+          "dom": {
+            "documents": 2,
+            "nodes": 414,
+            "jsEventListeners": 112
+          },
+          "rssBytes": 1842593792,
+          "processCount": 11,
+          "counters": {
+            "ownedAdvertisementStore": {
+              "images": 2,
+              "pending": 0,
+              "pixelBytes": 9360204,
+              "rasters": 3196
+            },
+            "urls": {
+              "blobBytes": 8089,
+              "created": 2,
+              "live": 2,
+              "revoked": 0
+            }
+          }
+        },
+        {
+          "label": "disposed",
+          "heap": {
+            "usedSize": 5495040,
+            "totalSize": 6045696,
+            "embedderHeapUsedSize": 965616,
+            "backingStorageSize": 3631252
+          },
+          "dom": {
+            "documents": 2,
+            "nodes": 345,
+            "jsEventListeners": 16
+          },
+          "rssBytes": 1705426944,
+          "processCount": 11,
+          "counters": {
+            "ownedAdvertisementStore": {
+              "images": 0,
+              "pending": 0,
+              "pixelBytes": 0,
+              "rasters": 0
+            },
+            "urls": {
+              "blobBytes": 0,
+              "created": 2,
+              "live": 0,
+              "revoked": 2
+            }
+          }
+        },
+        {
+          "label": "five-cycle-batch-1",
+          "heap": {
+            "usedSize": 6979984,
+            "totalSize": 7356416,
+            "embedderHeapUsedSize": 996160,
+            "backingStorageSize": 3633241
+          },
+          "dom": {
+            "documents": 2,
+            "nodes": 350,
+            "jsEventListeners": 16
+          },
+          "rssBytes": 1684340736,
+          "processCount": 12,
+          "counters": {
+            "ownedAdvertisementStore": {
+              "images": 0,
+              "pending": 0,
+              "pixelBytes": 0,
+              "rasters": 0
+            },
+            "urls": {
+              "blobBytes": 0,
+              "created": 2,
+              "live": 0,
+              "revoked": 2
+            }
+          }
+        },
+        {
+          "label": "five-cycle-batch-2",
+          "heap": {
+            "usedSize": 7140220,
+            "totalSize": 7356416,
+            "embedderHeapUsedSize": 1000440,
+            "backingStorageSize": 3633241
+          },
+          "dom": {
+            "documents": 2,
+            "nodes": 350,
+            "jsEventListeners": 16
+          },
+          "rssBytes": 1636188160,
+          "processCount": 12,
+          "counters": {
+            "ownedAdvertisementStore": {
+              "images": 0,
+              "pending": 0,
+              "pixelBytes": 0,
+              "rasters": 0
+            },
+            "urls": {
+              "blobBytes": 0,
+              "created": 2,
+              "live": 0,
+              "revoked": 2
+            }
+          }
+        },
+        {
+          "label": "five-cycle-batch-3",
+          "heap": {
+            "usedSize": 7247916,
+            "totalSize": 7880704,
+            "embedderHeapUsedSize": 1004776,
+            "backingStorageSize": 3633241
+          },
+          "dom": {
+            "documents": 2,
+            "nodes": 350,
+            "jsEventListeners": 16
+          },
+          "rssBytes": 1632059392,
+          "processCount": 12,
+          "counters": {
+            "ownedAdvertisementStore": {
+              "images": 0,
+              "pending": 0,
+              "pixelBytes": 0,
+              "rasters": 0
+            },
+            "urls": {
+              "blobBytes": 0,
+              "created": 2,
+              "live": 0,
+              "revoked": 2
+            }
+          }
+        },
+        {
+          "label": "five-cycle-batch-4",
+          "heap": {
+            "usedSize": 6654880,
+            "totalSize": 7356416,
+            "embedderHeapUsedSize": 1013736,
+            "backingStorageSize": 3632473
+          },
+          "dom": {
+            "documents": 2,
+            "nodes": 350,
+            "jsEventListeners": 16
+          },
+          "rssBytes": 1611186176,
+          "processCount": 12,
+          "counters": {
+            "ownedAdvertisementStore": {
+              "images": 0,
+              "pending": 0,
+              "pixelBytes": 0,
+              "rasters": 0
+            },
+            "urls": {
+              "blobBytes": 0,
+              "created": 2,
+              "live": 0,
+              "revoked": 2
+            }
+          }
+        }
+      ]
+    },
+    {
+      "mode": "owned",
+      "repetition": 1,
+      "browser": "Chrome/153.0.8010.47",
+      "startup": {
+        "readyMs": 223.39999997615817,
+        "urls": {
+          "blobBytes": 8089,
+          "created": 2,
+          "live": 2,
+          "revoked": 0
+        },
+        "usage": {
+          "images": 2,
+          "pending": 0,
+          "pixelBytes": 9360204,
+          "rasters": 3196
+        },
+        "windows": 5
+      },
+      "switches": [
+        [
+          {
+            "ms": 25.5,
+            "slug": "1138"
+          },
+          {
+            "ms": 34.59999996423721,
+            "slug": "crayon-os"
+          },
+          {
+            "ms": 34.10000002384186,
+            "slug": "beos-r503"
+          },
+          {
+            "ms": 49.39999997615814,
+            "slug": "windows-95"
+          },
+          {
+            "ms": 33.80000001192093,
+            "slug": "1984"
+          },
+          {
+            "ms": 33.39999997615814,
+            "slug": "mix"
+          }
+        ],
+        [
+          {
+            "ms": 16.599999964237213,
+            "slug": "1138"
+          },
+          {
+            "ms": 24.80000001192093,
+            "slug": "crayon-os"
+          },
+          {
+            "ms": 33.40000003576279,
+            "slug": "beos-r503"
+          },
+          {
+            "ms": 32.89999997615814,
+            "slug": "windows-95"
+          },
+          {
+            "ms": 33.60000002384186,
+            "slug": "1984"
+          },
+          {
+            "ms": 32.799999952316284,
+            "slug": "mix"
+          }
+        ],
+        [
+          {
+            "ms": 16.80000001192093,
+            "slug": "1138"
+          },
+          {
+            "ms": 30.80000001192093,
+            "slug": "crayon-os"
+          },
+          {
+            "ms": 32.89999997615814,
+            "slug": "beos-r503"
+          },
+          {
+            "ms": 33.90000003576279,
+            "slug": "windows-95"
+          },
+          {
+            "ms": 33,
+            "slug": "1984"
+          },
+          {
+            "ms": 32.799999952316284,
+            "slug": "mix"
+          }
+        ]
+      ],
+      "samples": [
+        {
+          "label": "blank",
+          "heap": {
+            "usedSize": 428048,
+            "totalSize": 1048576,
+            "embedderHeapUsedSize": 297904,
+            "backingStorageSize": 6
+          },
+          "dom": {
+            "documents": 1,
+            "nodes": 4,
+            "jsEventListeners": 0
+          },
+          "rssBytes": 1640120320,
+          "processCount": 11,
+          "counters": {
+            "ownedAdvertisementStore": null,
+            "urls": null
+          }
+        },
+        {
+          "label": "ready",
+          "heap": {
+            "usedSize": 8012580,
+            "totalSize": 8667136,
+            "embedderHeapUsedSize": 1136600,
+            "backingStorageSize": 13828858
+          },
+          "dom": {
+            "documents": 2,
+            "nodes": 413,
+            "jsEventListeners": 112
+          },
+          "rssBytes": 1772109824,
+          "processCount": 11,
+          "counters": {
+            "ownedAdvertisementStore": {
+              "images": 2,
+              "pending": 0,
+              "pixelBytes": 9360204,
+              "rasters": 3196
+            },
+            "urls": {
+              "blobBytes": 8089,
+              "created": 2,
+              "live": 2,
+              "revoked": 0
+            }
+          }
+        },
+        {
+          "label": "switch-round-1",
+          "heap": {
+            "usedSize": 8179672,
+            "totalSize": 8667136,
+            "embedderHeapUsedSize": 1214304,
+            "backingStorageSize": 13828920
+          },
+          "dom": {
+            "documents": 2,
+            "nodes": 414,
+            "jsEventListeners": 112
+          },
+          "rssBytes": 1811398656,
+          "processCount": 11,
+          "counters": {
+            "ownedAdvertisementStore": {
+              "images": 2,
+              "pending": 0,
+              "pixelBytes": 9360204,
+              "rasters": 3196
+            },
+            "urls": {
+              "blobBytes": 8089,
+              "created": 2,
+              "live": 2,
+              "revoked": 0
+            }
+          }
+        },
+        {
+          "label": "switch-round-2",
+          "heap": {
+            "usedSize": 8207080,
+            "totalSize": 8667136,
+            "embedderHeapUsedSize": 1224424,
+            "backingStorageSize": 13828920
+          },
+          "dom": {
+            "documents": 2,
+            "nodes": 414,
+            "jsEventListeners": 112
+          },
+          "rssBytes": 1812938752,
+          "processCount": 11,
+          "counters": {
+            "ownedAdvertisementStore": {
+              "images": 2,
+              "pending": 0,
+              "pixelBytes": 9360204,
+              "rasters": 3196
+            },
+            "urls": {
+              "blobBytes": 8089,
+              "created": 2,
+              "live": 2,
+              "revoked": 0
+            }
+          }
+        },
+        {
+          "label": "switch-round-3",
+          "heap": {
+            "usedSize": 8238276,
+            "totalSize": 8667136,
+            "embedderHeapUsedSize": 1225208,
+            "backingStorageSize": 13828920
+          },
+          "dom": {
+            "documents": 2,
+            "nodes": 414,
+            "jsEventListeners": 112
+          },
+          "rssBytes": 1815199744,
+          "processCount": 11,
+          "counters": {
+            "ownedAdvertisementStore": {
+              "images": 2,
+              "pending": 0,
+              "pixelBytes": 9360204,
+              "rasters": 3196
+            },
+            "urls": {
+              "blobBytes": 8089,
+              "created": 2,
+              "live": 2,
+              "revoked": 0
+            }
+          }
+        },
+        {
+          "label": "disposed",
+          "heap": {
+            "usedSize": 5495220,
+            "totalSize": 6045696,
+            "embedderHeapUsedSize": 967448,
+            "backingStorageSize": 3631252
+          },
+          "dom": {
+            "documents": 2,
+            "nodes": 345,
+            "jsEventListeners": 16
+          },
+          "rssBytes": 1812742144,
+          "processCount": 11,
+          "counters": {
+            "ownedAdvertisementStore": {
+              "images": 0,
+              "pending": 0,
+              "pixelBytes": 0,
+              "rasters": 0
+            },
+            "urls": {
+              "blobBytes": 0,
+              "created": 2,
+              "live": 0,
+              "revoked": 2
+            }
+          }
+        },
+        {
+          "label": "five-cycle-batch-1",
+          "heap": {
+            "usedSize": 6480764,
+            "totalSize": 7094272,
+            "embedderHeapUsedSize": 996280,
+            "backingStorageSize": 3632473
+          },
+          "dom": {
+            "documents": 2,
+            "nodes": 350,
+            "jsEventListeners": 16
+          },
+          "rssBytes": 1826766848,
+          "processCount": 11,
+          "counters": {
+            "ownedAdvertisementStore": {
+              "images": 0,
+              "pending": 0,
+              "pixelBytes": 0,
+              "rasters": 0
+            },
+            "urls": {
+              "blobBytes": 0,
+              "created": 2,
+              "live": 0,
+              "revoked": 2
+            }
+          }
+        },
+        {
+          "label": "five-cycle-batch-2",
+          "heap": {
+            "usedSize": 6650076,
+            "totalSize": 7356416,
+            "embedderHeapUsedSize": 1000560,
+            "backingStorageSize": 3632473
+          },
+          "dom": {
+            "documents": 2,
+            "nodes": 350,
+            "jsEventListeners": 16
+          },
+          "rssBytes": 1851392000,
+          "processCount": 11,
+          "counters": {
+            "ownedAdvertisementStore": {
+              "images": 0,
+              "pending": 0,
+              "pixelBytes": 0,
+              "rasters": 0
+            },
+            "urls": {
+              "blobBytes": 0,
+              "created": 2,
+              "live": 0,
+              "revoked": 2
+            }
+          }
+        },
+        {
+          "label": "five-cycle-batch-3",
+          "heap": {
+            "usedSize": 7214416,
+            "totalSize": 7880704,
+            "embedderHeapUsedSize": 1006568,
+            "backingStorageSize": 3633241
+          },
+          "dom": {
+            "documents": 2,
+            "nodes": 350,
+            "jsEventListeners": 16
+          },
+          "rssBytes": 1776140288,
+          "processCount": 11,
+          "counters": {
+            "ownedAdvertisementStore": {
+              "images": 0,
+              "pending": 0,
+              "pixelBytes": 0,
+              "rasters": 0
+            },
+            "urls": {
+              "blobBytes": 0,
+              "created": 2,
+              "live": 0,
+              "revoked": 2
+            }
+          }
+        },
+        {
+          "label": "five-cycle-batch-4",
+          "heap": {
+            "usedSize": 6722864,
+            "totalSize": 7356416,
+            "embedderHeapUsedSize": 1015696,
+            "backingStorageSize": 3632473
+          },
+          "dom": {
+            "documents": 2,
+            "nodes": 350,
+            "jsEventListeners": 16
+          },
+          "rssBytes": 1631223808,
+          "processCount": 11,
+          "counters": {
+            "ownedAdvertisementStore": {
+              "images": 0,
+              "pending": 0,
+              "pixelBytes": 0,
+              "rasters": 0
+            },
+            "urls": {
+              "blobBytes": 0,
+              "created": 2,
+              "live": 0,
+              "revoked": 2
+            }
+          }
+        }
+      ]
+    },
+    {
+      "mode": "eager",
+      "repetition": 1,
+      "browser": "Chrome/153.0.8010.47",
+      "startup": {
+        "readyMs": 2501.199999988079,
+        "urls": {
+          "blobBytes": 2067486,
+          "created": 3196,
+          "live": 3196,
+          "revoked": 0
+        },
+        "usage": {
+          "images": 0,
+          "pending": 0,
+          "pixelBytes": 0,
+          "rasters": 0
+        },
+        "windows": 5
+      },
+      "switches": [
+        [
+          {
+            "ms": 19,
+            "slug": "1138"
+          },
+          {
+            "ms": 32.799999952316284,
+            "slug": "crayon-os"
+          },
+          {
+            "ms": 33.30000001192093,
+            "slug": "beos-r503"
+          },
+          {
+            "ms": 33.5,
+            "slug": "windows-95"
+          },
+          {
+            "ms": 33.09999996423721,
+            "slug": "1984"
+          },
+          {
+            "ms": 33.40000003576279,
+            "slug": "mix"
+          }
+        ],
+        [
+          {
+            "ms": 15.300000011920927,
+            "slug": "1138"
+          },
+          {
+            "ms": 28.600000023841854,
+            "slug": "crayon-os"
+          },
+          {
+            "ms": 33.39999997615814,
+            "slug": "beos-r503"
+          },
+          {
+            "ms": 33.30000001192093,
+            "slug": "windows-95"
+          },
+          {
+            "ms": 33.30000001192093,
+            "slug": "1984"
+          },
+          {
+            "ms": 33.30000001192093,
+            "slug": "mix"
+          }
+        ],
+        [
+          {
+            "ms": 15.700000047683716,
+            "slug": "1138"
+          },
+          {
+            "ms": 30.299999952316284,
+            "slug": "crayon-os"
+          },
+          {
+            "ms": 33.40000003576279,
+            "slug": "beos-r503"
+          },
+          {
+            "ms": 33.30000001192093,
+            "slug": "windows-95"
+          },
+          {
+            "ms": 33.19999998807907,
+            "slug": "1984"
+          },
+          {
+            "ms": 33.5,
+            "slug": "mix"
+          }
+        ]
+      ],
+      "samples": [
+        {
+          "label": "blank",
+          "heap": {
+            "usedSize": 428048,
+            "totalSize": 1048576,
+            "embedderHeapUsedSize": 297904,
+            "backingStorageSize": 6
+          },
+          "dom": {
+            "documents": 1,
+            "nodes": 4,
+            "jsEventListeners": 0
+          },
+          "rssBytes": 1635303424,
+          "processCount": 11,
+          "counters": {
+            "ownedAdvertisementStore": null,
+            "urls": null
+          }
+        },
+        {
+          "label": "ready",
+          "heap": {
+            "usedSize": 7824344,
+            "totalSize": 8306688,
+            "embedderHeapUsedSize": 1246056,
+            "backingStorageSize": 5503891
+          },
+          "dom": {
+            "documents": 2,
+            "nodes": 413,
+            "jsEventListeners": 112
+          },
+          "rssBytes": 1773125632,
+          "processCount": 11,
+          "counters": {
+            "ownedAdvertisementStore": {
+              "images": 0,
+              "pending": 0,
+              "pixelBytes": 0,
+              "rasters": 0
+            },
+            "urls": {
+              "blobBytes": 2067486,
+              "created": 3196,
+              "live": 3196,
+              "revoked": 0
+            }
+          }
+        },
+        {
+          "label": "switch-round-1",
+          "heap": {
+            "usedSize": 7986656,
+            "totalSize": 8568832,
+            "embedderHeapUsedSize": 1223080,
+            "backingStorageSize": 5503953
+          },
+          "dom": {
+            "documents": 2,
+            "nodes": 414,
+            "jsEventListeners": 112
+          },
+          "rssBytes": 1786511360,
+          "processCount": 11,
+          "counters": {
+            "ownedAdvertisementStore": {
+              "images": 0,
+              "pending": 0,
+              "pixelBytes": 0,
+              "rasters": 0
+            },
+            "urls": {
+              "blobBytes": 2067486,
+              "created": 3196,
+              "live": 3196,
+              "revoked": 0
+            }
+          }
+        },
+        {
+          "label": "switch-round-2",
+          "heap": {
+            "usedSize": 8015520,
+            "totalSize": 8568832,
+            "embedderHeapUsedSize": 1219880,
+            "backingStorageSize": 5503953
+          },
+          "dom": {
+            "documents": 2,
+            "nodes": 414,
+            "jsEventListeners": 112
+          },
+          "rssBytes": 1780842496,
+          "processCount": 11,
+          "counters": {
+            "ownedAdvertisementStore": {
+              "images": 0,
+              "pending": 0,
+              "pixelBytes": 0,
+              "rasters": 0
+            },
+            "urls": {
+              "blobBytes": 2067486,
+              "created": 3196,
+              "live": 3196,
+              "revoked": 0
+            }
+          }
+        },
+        {
+          "label": "switch-round-3",
+          "heap": {
+            "usedSize": 8054636,
+            "totalSize": 8568832,
+            "embedderHeapUsedSize": 1231904,
+            "backingStorageSize": 5503953
+          },
+          "dom": {
+            "documents": 2,
+            "nodes": 414,
+            "jsEventListeners": 112
+          },
+          "rssBytes": 1772929024,
+          "processCount": 11,
+          "counters": {
+            "ownedAdvertisementStore": {
+              "images": 0,
+              "pending": 0,
+              "pixelBytes": 0,
+              "rasters": 0
+            },
+            "urls": {
+              "blobBytes": 2067486,
+              "created": 3196,
+              "live": 3196,
+              "revoked": 0
+            }
+          }
+        },
+        {
+          "label": "disposed",
+          "heap": {
+            "usedSize": 6533408,
+            "totalSize": 6995968,
+            "embedderHeapUsedSize": 972664,
+            "backingStorageSize": 4313537
+          },
+          "dom": {
+            "documents": 2,
+            "nodes": 345,
+            "jsEventListeners": 16
+          },
+          "rssBytes": 1783529472,
+          "processCount": 11,
+          "counters": {
+            "ownedAdvertisementStore": {
+              "images": 0,
+              "pending": 0,
+              "pixelBytes": 0,
+              "rasters": 0
+            },
+            "urls": {
+              "blobBytes": 0,
+              "created": 3196,
+              "live": 0,
+              "revoked": 3196
+            }
+          }
+        },
+        {
+          "label": "five-cycle-batch-1",
+          "heap": {
+            "usedSize": 7036540,
+            "totalSize": 7782400,
+            "embedderHeapUsedSize": 1425520,
+            "backingStorageSize": 4275710
+          },
+          "dom": {
+            "documents": 2,
+            "nodes": 350,
+            "jsEventListeners": 16
+          },
+          "rssBytes": 1614692352,
+          "processCount": 11,
+          "counters": {
+            "ownedAdvertisementStore": {
+              "images": 0,
+              "pending": 0,
+              "pixelBytes": 0,
+              "rasters": 0
+            },
+            "urls": {
+              "blobBytes": 0,
+              "created": 6236,
+              "live": 0,
+              "revoked": 6236
+            }
+          }
+        },
+        {
+          "label": "five-cycle-batch-2",
+          "heap": {
+            "usedSize": 7227932,
+            "totalSize": 7782400,
+            "embedderHeapUsedSize": 1418968,
+            "backingStorageSize": 4275744
+          },
+          "dom": {
+            "documents": 2,
+            "nodes": 350,
+            "jsEventListeners": 16
+          },
+          "rssBytes": 1561378816,
+          "processCount": 11,
+          "counters": {
+            "ownedAdvertisementStore": {
+              "images": 0,
+              "pending": 0,
+              "pixelBytes": 0,
+              "rasters": 0
+            },
+            "urls": {
+              "blobBytes": 0,
+              "created": 9276,
+              "live": 0,
+              "revoked": 9276
+            }
+          }
+        },
+        {
+          "label": "five-cycle-batch-3",
+          "heap": {
+            "usedSize": 7295048,
+            "totalSize": 7782400,
+            "embedderHeapUsedSize": 1541544,
+            "backingStorageSize": 4275744
+          },
+          "dom": {
+            "documents": 2,
+            "nodes": 350,
+            "jsEventListeners": 16
+          },
+          "rssBytes": 1587363840,
+          "processCount": 11,
+          "counters": {
+            "ownedAdvertisementStore": {
+              "images": 0,
+              "pending": 0,
+              "pixelBytes": 0,
+              "rasters": 0
+            },
+            "urls": {
+              "blobBytes": 0,
+              "created": 12316,
+              "live": 0,
+              "revoked": 12316
+            }
+          }
+        },
+        {
+          "label": "five-cycle-batch-4",
+          "heap": {
+            "usedSize": 7339408,
+            "totalSize": 7782400,
+            "embedderHeapUsedSize": 1524072,
+            "backingStorageSize": 4275744
+          },
+          "dom": {
+            "documents": 2,
+            "nodes": 350,
+            "jsEventListeners": 16
+          },
+          "rssBytes": 1600913408,
+          "processCount": 11,
+          "counters": {
+            "ownedAdvertisementStore": {
+              "images": 0,
+              "pending": 0,
+              "pixelBytes": 0,
+              "rasters": 0
+            },
+            "urls": {
+              "blobBytes": 0,
+              "created": 15356,
+              "live": 0,
+              "revoked": 15356
+            }
+          }
+        }
+      ]
+    },
+    {
+      "mode": "eager",
+      "repetition": 2,
+      "browser": "Chrome/153.0.8010.47",
+      "startup": {
+        "readyMs": 2482.199999988079,
+        "urls": {
+          "blobBytes": 2067486,
+          "created": 3196,
+          "live": 3196,
+          "revoked": 0
+        },
+        "usage": {
+          "images": 0,
+          "pending": 0,
+          "pixelBytes": 0,
+          "rasters": 0
+        },
+        "windows": 5
+      },
+      "switches": [
+        [
+          {
+            "ms": 18.900000035762787,
+            "slug": "1138"
+          },
+          {
+            "ms": 19.399999976158146,
+            "slug": "crayon-os"
+          },
+          {
+            "ms": 33.30000001192093,
+            "slug": "beos-r503"
+          },
+          {
+            "ms": 50.5,
+            "slug": "windows-95"
+          },
+          {
+            "ms": 33.799999952316284,
+            "slug": "1984"
+          },
+          {
+            "ms": 33,
+            "slug": "mix"
+          }
+        ],
+        [
+          {
+            "ms": 13.699999988079073,
+            "slug": "1138"
+          },
+          {
+            "ms": 34.10000002384186,
+            "slug": "crayon-os"
+          },
+          {
+            "ms": 33.39999997615814,
+            "slug": "beos-r503"
+          },
+          {
+            "ms": 33.30000001192093,
+            "slug": "windows-95"
+          },
+          {
+            "ms": 32.90000003576279,
+            "slug": "1984"
+          },
+          {
+            "ms": 33.799999952316284,
+            "slug": "mix"
+          }
+        ],
+        [
+          {
+            "ms": 15.300000011920927,
+            "slug": "1138"
+          },
+          {
+            "ms": 33.5,
+            "slug": "crayon-os"
+          },
+          {
+            "ms": 34,
+            "slug": "beos-r503"
+          },
+          {
+            "ms": 32.89999997615814,
+            "slug": "windows-95"
+          },
+          {
+            "ms": 33.60000002384186,
+            "slug": "1984"
+          },
+          {
+            "ms": 33.39999997615814,
+            "slug": "mix"
+          }
+        ]
+      ],
+      "samples": [
+        {
+          "label": "blank",
+          "heap": {
+            "usedSize": 428048,
+            "totalSize": 1048576,
+            "embedderHeapUsedSize": 297904,
+            "backingStorageSize": 6
+          },
+          "dom": {
+            "documents": 1,
+            "nodes": 4,
+            "jsEventListeners": 0
+          },
+          "rssBytes": 1637728256,
+          "processCount": 11,
+          "counters": {
+            "ownedAdvertisementStore": null,
+            "urls": null
+          }
+        },
+        {
+          "label": "ready",
+          "heap": {
+            "usedSize": 7868000,
+            "totalSize": 8306688,
+            "embedderHeapUsedSize": 1246560,
+            "backingStorageSize": 5503891
+          },
+          "dom": {
+            "documents": 2,
+            "nodes": 413,
+            "jsEventListeners": 112
+          },
+          "rssBytes": 2046427136,
+          "processCount": 11,
+          "counters": {
+            "ownedAdvertisementStore": {
+              "images": 0,
+              "pending": 0,
+              "pixelBytes": 0,
+              "rasters": 0
+            },
+            "urls": {
+              "blobBytes": 2067486,
+              "created": 3196,
+              "live": 3196,
+              "revoked": 0
+            }
+          }
+        },
+        {
+          "label": "switch-round-1",
+          "heap": {
+            "usedSize": 8029724,
+            "totalSize": 8568832,
+            "embedderHeapUsedSize": 1229168,
+            "backingStorageSize": 5503953
+          },
+          "dom": {
+            "documents": 2,
+            "nodes": 414,
+            "jsEventListeners": 112
+          },
+          "rssBytes": 2062860288,
+          "processCount": 11,
+          "counters": {
+            "ownedAdvertisementStore": {
+              "images": 0,
+              "pending": 0,
+              "pixelBytes": 0,
+              "rasters": 0
+            },
+            "urls": {
+              "blobBytes": 2067486,
+              "created": 3196,
+              "live": 3196,
+              "revoked": 0
+            }
+          }
+        },
+        {
+          "label": "switch-round-2",
+          "heap": {
+            "usedSize": 8059884,
+            "totalSize": 8568832,
+            "embedderHeapUsedSize": 1220424,
+            "backingStorageSize": 5503953
+          },
+          "dom": {
+            "documents": 2,
+            "nodes": 414,
+            "jsEventListeners": 112
+          },
+          "rssBytes": 2064203776,
+          "processCount": 11,
+          "counters": {
+            "ownedAdvertisementStore": {
+              "images": 0,
+              "pending": 0,
+              "pixelBytes": 0,
+              "rasters": 0
+            },
+            "urls": {
+              "blobBytes": 2067486,
+              "created": 3196,
+              "live": 3196,
+              "revoked": 0
+            }
+          }
+        },
+        {
+          "label": "switch-round-3",
+          "heap": {
+            "usedSize": 8099192,
+            "totalSize": 8568832,
+            "embedderHeapUsedSize": 1232424,
+            "backingStorageSize": 5503953
+          },
+          "dom": {
+            "documents": 2,
+            "nodes": 414,
+            "jsEventListeners": 112
+          },
+          "rssBytes": 2065842176,
+          "processCount": 11,
+          "counters": {
+            "ownedAdvertisementStore": {
+              "images": 0,
+              "pending": 0,
+              "pixelBytes": 0,
+              "rasters": 0
+            },
+            "urls": {
+              "blobBytes": 2067486,
+              "created": 3196,
+              "live": 3196,
+              "revoked": 0
+            }
+          }
+        },
+        {
+          "label": "disposed",
+          "heap": {
+            "usedSize": 6579852,
+            "totalSize": 6995968,
+            "embedderHeapUsedSize": 974208,
+            "backingStorageSize": 4313537
+          },
+          "dom": {
+            "documents": 2,
+            "nodes": 345,
+            "jsEventListeners": 16
+          },
+          "rssBytes": 2072641536,
+          "processCount": 11,
+          "counters": {
+            "ownedAdvertisementStore": {
+              "images": 0,
+              "pending": 0,
+              "pixelBytes": 0,
+              "rasters": 0
+            },
+            "urls": {
+              "blobBytes": 0,
+              "created": 3196,
+              "live": 0,
+              "revoked": 3196
+            }
+          }
+        },
+        {
+          "label": "five-cycle-batch-1",
+          "heap": {
+            "usedSize": 7016940,
+            "totalSize": 7520256,
+            "embedderHeapUsedSize": 1446544,
+            "backingStorageSize": 4275744
+          },
+          "dom": {
+            "documents": 2,
+            "nodes": 350,
+            "jsEventListeners": 16
+          },
+          "rssBytes": 1996734464,
+          "processCount": 11,
+          "counters": {
+            "ownedAdvertisementStore": {
+              "images": 0,
+              "pending": 0,
+              "pixelBytes": 0,
+              "rasters": 0
+            },
+            "urls": {
+              "blobBytes": 0,
+              "created": 6236,
+              "live": 0,
+              "revoked": 6236
+            }
+          }
+        },
+        {
+          "label": "five-cycle-batch-2",
+          "heap": {
+            "usedSize": 7282600,
+            "totalSize": 7782400,
+            "embedderHeapUsedSize": 1421992,
+            "backingStorageSize": 4275744
+          },
+          "dom": {
+            "documents": 2,
+            "nodes": 350,
+            "jsEventListeners": 16
+          },
+          "rssBytes": 1774780416,
+          "processCount": 11,
+          "counters": {
+            "ownedAdvertisementStore": {
+              "images": 0,
+              "pending": 0,
+              "pixelBytes": 0,
+              "rasters": 0
+            },
+            "urls": {
+              "blobBytes": 0,
+              "created": 9276,
+              "live": 0,
+              "revoked": 9276
+            }
+          }
+        },
+        {
+          "label": "five-cycle-batch-3",
+          "heap": {
+            "usedSize": 7316864,
+            "totalSize": 7782400,
+            "embedderHeapUsedSize": 1463136,
+            "backingStorageSize": 4275744
+          },
+          "dom": {
+            "documents": 2,
+            "nodes": 350,
+            "jsEventListeners": 16
+          },
+          "rssBytes": 1690812416,
+          "processCount": 11,
+          "counters": {
+            "ownedAdvertisementStore": {
+              "images": 0,
+              "pending": 0,
+              "pixelBytes": 0,
+              "rasters": 0
+            },
+            "urls": {
+              "blobBytes": 0,
+              "created": 12316,
+              "live": 0,
+              "revoked": 12316
+            }
+          }
+        },
+        {
+          "label": "five-cycle-batch-4",
+          "heap": {
+            "usedSize": 7357432,
+            "totalSize": 7782400,
+            "embedderHeapUsedSize": 1515648,
+            "backingStorageSize": 4275744
+          },
+          "dom": {
+            "documents": 2,
+            "nodes": 350,
+            "jsEventListeners": 16
+          },
+          "rssBytes": 1560723456,
+          "processCount": 11,
+          "counters": {
+            "ownedAdvertisementStore": {
+              "images": 0,
+              "pending": 0,
+              "pixelBytes": 0,
+              "rasters": 0
+            },
+            "urls": {
+              "blobBytes": 0,
+              "created": 15356,
+              "live": 0,
+              "revoked": 15356
+            }
+          }
+        }
+      ]
+    },
+    {
+      "mode": "owned",
+      "repetition": 2,
+      "browser": "Chrome/153.0.8010.47",
+      "startup": {
+        "readyMs": 1236.600000023842,
+        "urls": {
+          "blobBytes": 8089,
+          "created": 2,
+          "live": 2,
+          "revoked": 0
+        },
+        "usage": {
+          "images": 2,
+          "pending": 0,
+          "pixelBytes": 9360204,
+          "rasters": 3196
+        },
+        "windows": 5
+      },
+      "switches": [
+        [
+          {
+            "ms": 1869.800000011921,
+            "slug": "1138"
+          },
+          {
+            "ms": 2032.2000000476835,
+            "slug": "crayon-os"
+          },
+          {
+            "ms": 2034.199999988079,
+            "slug": "beos-r503"
+          },
+          {
+            "ms": 99.69999998807909,
+            "slug": "windows-95"
+          },
+          {
+            "ms": 33.19999998807907,
+            "slug": "1984"
+          },
+          {
+            "ms": 32.60000002384186,
+            "slug": "mix"
+          }
+        ],
+        [
+          {
+            "ms": 19.30000001192093,
+            "slug": "1138"
+          },
+          {
+            "ms": 28.099999964237213,
+            "slug": "crayon-os"
+          },
+          {
+            "ms": 33.10000002384186,
+            "slug": "beos-r503"
+          },
+          {
+            "ms": 34.39999997615814,
+            "slug": "windows-95"
+          },
+          {
+            "ms": 32.90000003576279,
+            "slug": "1984"
+          },
+          {
+            "ms": 32.69999998807907,
+            "slug": "mix"
+          }
+        ],
+        [
+          {
+            "ms": 15.800000011920927,
+            "slug": "1138"
+          },
+          {
+            "ms": 26.900000035762787,
+            "slug": "crayon-os"
+          },
+          {
+            "ms": 33.299999952316284,
+            "slug": "beos-r503"
+          },
+          {
+            "ms": 32.40000003576279,
+            "slug": "windows-95"
+          },
+          {
+            "ms": 34.39999997615814,
+            "slug": "1984"
+          },
+          {
+            "ms": 32.60000002384186,
+            "slug": "mix"
+          }
+        ]
+      ],
+      "samples": [
+        {
+          "label": "blank",
+          "heap": {
+            "usedSize": 428048,
+            "totalSize": 1048576,
+            "embedderHeapUsedSize": 297904,
+            "backingStorageSize": 6
+          },
+          "dom": {
+            "documents": 1,
+            "nodes": 4,
+            "jsEventListeners": 0
+          },
+          "rssBytes": 1614626816,
+          "processCount": 11,
+          "counters": {
+            "ownedAdvertisementStore": null,
+            "urls": null
+          }
+        },
+        {
+          "label": "ready",
+          "heap": {
+            "usedSize": 8022364,
+            "totalSize": 8404992,
+            "embedderHeapUsedSize": 1147976,
+            "backingStorageSize": 13828858
+          },
+          "dom": {
+            "documents": 2,
+            "nodes": 413,
+            "jsEventListeners": 112
+          },
+          "rssBytes": 1421983744,
+          "processCount": 12,
+          "counters": {
+            "ownedAdvertisementStore": {
+              "images": 2,
+              "pending": 0,
+              "pixelBytes": 9360204,
+              "rasters": 3196
+            },
+            "urls": {
+              "blobBytes": 8089,
+              "created": 2,
+              "live": 2,
+              "revoked": 0
+            }
+          }
+        },
+        {
+          "label": "switch-round-1",
+          "heap": {
+            "usedSize": 8189864,
+            "totalSize": 8667136,
+            "embedderHeapUsedSize": 1221464,
+            "backingStorageSize": 13828920
+          },
+          "dom": {
+            "documents": 2,
+            "nodes": 414,
+            "jsEventListeners": 112
+          },
+          "rssBytes": 1398112256,
+          "processCount": 12,
+          "counters": {
+            "ownedAdvertisementStore": {
+              "images": 2,
+              "pending": 0,
+              "pixelBytes": 9360204,
+              "rasters": 3196
+            },
+            "urls": {
+              "blobBytes": 8089,
+              "created": 2,
+              "live": 2,
+              "revoked": 0
+            }
+          }
+        },
+        {
+          "label": "switch-round-2",
+          "heap": {
+            "usedSize": 8217924,
+            "totalSize": 8667136,
+            "embedderHeapUsedSize": 1221232,
+            "backingStorageSize": 13828920
+          },
+          "dom": {
+            "documents": 2,
+            "nodes": 414,
+            "jsEventListeners": 112
+          },
+          "rssBytes": 1400061952,
+          "processCount": 12,
+          "counters": {
+            "ownedAdvertisementStore": {
+              "images": 2,
+              "pending": 0,
+              "pixelBytes": 9360204,
+              "rasters": 3196
+            },
+            "urls": {
+              "blobBytes": 8089,
+              "created": 2,
+              "live": 2,
+              "revoked": 0
+            }
+          }
+        },
+        {
+          "label": "switch-round-3",
+          "heap": {
+            "usedSize": 8249628,
+            "totalSize": 8667136,
+            "embedderHeapUsedSize": 1203816,
+            "backingStorageSize": 13828920
+          },
+          "dom": {
+            "documents": 2,
+            "nodes": 414,
+            "jsEventListeners": 112
+          },
+          "rssBytes": 1407303680,
+          "processCount": 12,
+          "counters": {
+            "ownedAdvertisementStore": {
+              "images": 2,
+              "pending": 0,
+              "pixelBytes": 9360204,
+              "rasters": 3196
+            },
+            "urls": {
+              "blobBytes": 8089,
+              "created": 2,
+              "live": 2,
+              "revoked": 0
+            }
+          }
+        },
+        {
+          "label": "disposed",
+          "heap": {
+            "usedSize": 5509232,
+            "totalSize": 6045696,
+            "embedderHeapUsedSize": 948624,
+            "backingStorageSize": 3631252
+          },
+          "dom": {
+            "documents": 2,
+            "nodes": 345,
+            "jsEventListeners": 16
+          },
+          "rssBytes": 1415938048,
+          "processCount": 12,
+          "counters": {
+            "ownedAdvertisementStore": {
+              "images": 0,
+              "pending": 0,
+              "pixelBytes": 0,
+              "rasters": 0
+            },
+            "urls": {
+              "blobBytes": 0,
+              "created": 2,
+              "live": 0,
+              "revoked": 2
+            }
+          }
+        },
+        {
+          "label": "five-cycle-batch-1",
+          "heap": {
+            "usedSize": 6421112,
+            "totalSize": 7094272,
+            "embedderHeapUsedSize": 986528,
+            "backingStorageSize": 3632473
+          },
+          "dom": {
+            "documents": 2,
+            "nodes": 350,
+            "jsEventListeners": 16
+          },
+          "rssBytes": 1440317440,
+          "processCount": 12,
+          "counters": {
+            "ownedAdvertisementStore": {
+              "images": 0,
+              "pending": 0,
+              "pixelBytes": 0,
+              "rasters": 0
+            },
+            "urls": {
+              "blobBytes": 0,
+              "created": 2,
+              "live": 0,
+              "revoked": 2
+            }
+          }
+        },
+        {
+          "label": "five-cycle-batch-2",
+          "heap": {
+            "usedSize": 7154884,
+            "totalSize": 7618560,
+            "embedderHeapUsedSize": 992296,
+            "backingStorageSize": 3633241
+          },
+          "dom": {
+            "documents": 2,
+            "nodes": 350,
+            "jsEventListeners": 16
+          },
+          "rssBytes": 1450590208,
+          "processCount": 12,
+          "counters": {
+            "ownedAdvertisementStore": {
+              "images": 0,
+              "pending": 0,
+              "pixelBytes": 0,
+              "rasters": 0
+            },
+            "urls": {
+              "blobBytes": 0,
+              "created": 2,
+              "live": 0,
+              "revoked": 2
+            }
+          }
+        },
+        {
+          "label": "five-cycle-batch-3",
+          "heap": {
+            "usedSize": 7220060,
+            "totalSize": 7618560,
+            "embedderHeapUsedSize": 996600,
+            "backingStorageSize": 3633241
+          },
+          "dom": {
+            "documents": 2,
+            "nodes": 350,
+            "jsEventListeners": 16
+          },
+          "rssBytes": 1455996928,
+          "processCount": 12,
+          "counters": {
+            "ownedAdvertisementStore": {
+              "images": 0,
+              "pending": 0,
+              "pixelBytes": 0,
+              "rasters": 0
+            },
+            "urls": {
+              "blobBytes": 0,
+              "created": 2,
+              "live": 0,
+              "revoked": 2
+            }
+          }
+        },
+        {
+          "label": "five-cycle-batch-4",
+          "heap": {
+            "usedSize": 7260636,
+            "totalSize": 7880704,
+            "embedderHeapUsedSize": 1002952,
+            "backingStorageSize": 3633241
+          },
+          "dom": {
+            "documents": 2,
+            "nodes": 350,
+            "jsEventListeners": 16
+          },
+          "rssBytes": 1461796864,
+          "processCount": 12,
+          "counters": {
+            "ownedAdvertisementStore": {
+              "images": 0,
+              "pending": 0,
+              "pixelBytes": 0,
+              "rasters": 0
+            },
+            "urls": {
+              "blobBytes": 0,
+              "created": 2,
+              "live": 0,
+              "revoked": 2
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "provenance": {
+    "revision": "f905de9d240a89b29bfa745588b5e0f7f7a90d7e",
+    "inputs": "b4c0986ac261db950a14d08e893651327ecf211978b688fa2b52fcb8913cefea"
+  }
+}

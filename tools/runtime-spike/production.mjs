@@ -4,6 +4,7 @@ import { compareMounts } from './mounts.mjs';
 import { rasterOwner, createRasterAssetOwner, bindRasterOwner } from '../theme-loader/rasterAssets.js';
 const source = await import('../../src/index.ts');
 const built = await import('/dist/scriptoscope.js');
+const reference = new URLSearchParams(location.search).has('reference') ? await import('/runtime-reference.js') : null;
 const { themeView } = await import('../../src/ownedTheme.ts');
 const slugs = Object.keys(import.meta.glob('../../themes/*/meta.json')).map(p => p.split('/')[3]).sort();
 const clip = { controlOrigin: [23, 41], portOrigin: [5, -7], patternOrigin: { status: 'known', offset: [3, 5] },
@@ -206,12 +207,13 @@ async function compareFamilies(runtime, old, current, report, transport, slug) {
 
 async function run() {
   const report = { runAt: new Date().toISOString(), userAgent: navigator.userAgent,
-    rows: [], mismatches: [], errors: [], compared: 0, painted: 0, equalMissing: 0, equalErrors: 0, rasters: 0, disposedLoads: 0,
+    rows: [], mismatches: [], errors: [], compared: 0, painted: 0, equalMissing: 0, equalErrors: 0, rasters: 0, referenceRasters: 0, disposedLoads: 0,
     families: {}, familyDiagnostics: 0, baselinePatterns: 0, pendingWindows: 0, scrollbars: 0, paintedScrollbars: 0, missingScrollbars: 0, windows: 0, paintedWindows: 0, baselineWindows: 0, lazyWindows: 0, disposedWindows: 0, managedWindows: 0, diagnostics: 0, interactions: 0, zeroPngRenders: 0, bitmapPaints: 0 };
   for (const [transport, runtime] of [['source', source], ['built', built]]) for (const slug of slugs) {
     const input = await bytes(slug);
-    const old = await runtime.loadKaleidoscopeScheme(input, { assetUrlFactory: encode });
+    const old = await (reference ?? runtime).loadKaleidoscopeScheme(input, { assetUrlFactory: encode });
     const current = await runtime.loadOwnedKaleidoscopeScheme(input);
+    const referenceOwned = reference ? await reference.loadOwnedKaleidoscopeScheme(input) : null;
     const before = report.rasters;
     const ownedUrls = assetPaths(current.source, rasterOwner(current.source));
     const disposedSource = themeView(current).asset(ownedUrls.values().next().value);
@@ -305,8 +307,14 @@ async function run() {
         const difference = compare(png, raw);
         report.rasters++;
         if (difference) report.mismatches.push({ transport, slug, raster: ref, difference });
+        if (referenceOwned) {
+          const expected = await runtime.loadCicnBuffer(await referenceOwned.imageUrl(ref));
+          const difference = compare(expected, raw);
+          report.referenceRasters++;
+          if (difference) report.mismatches.push({ transport, slug, referenceRaster: ref, difference });
+        }
       }
-    } finally { old.dispose(); current.dispose(); }
+    } finally { old.dispose(); current.dispose(); referenceOwned?.dispose(); }
     // Cache and store must release the same owned identities in source and built copies.
     try {
       await disposedSource.pixels();

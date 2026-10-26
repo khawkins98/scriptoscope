@@ -1,0 +1,21 @@
+{
+  "recordedAt": "2026-10-26T08:42:01.557Z",
+  "baselineRevision": "de942c6399c81d1f15d23247dfd62a36e11a64bc",
+  "revision": "6cfe9afda52825b848702aef942065f3daf6a647",
+  "method": "Physical newline count of committed non-test src .ts excluding declarations and cited tables; loader .js excluding tests/specs/rules. Tables reported separately. No historical source content is exposed.",
+  "baseline": {
+    "sourceLogic": 17477,
+    "loaderJavaScript": 4139,
+    "citedTables": 2323
+  },
+  "current": {
+    "sourceLogic": 17491,
+    "loaderJavaScript": 4117,
+    "citedTables": 2323
+  },
+  "delta": {
+    "sourceLogic": 14,
+    "loaderJavaScript": -22,
+    "combined": -8
+  }
+}

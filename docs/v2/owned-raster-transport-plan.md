@@ -1,6 +1,6 @@
 # Owned raster transport feature PR
 
-Status: in progress; delivery goal active. One integration PR with optional stacked
+Status: implemented draft; final validation and independent evidence refresh remain open. One integration PR with optional stacked
 sub-PRs. The integration branch targets `v2`: [draft PR #480](https://github.com/khawkins98/scriptoscope/pull/480).
 
 The working branch is `refactor/runtime-streamlining`, starting from
@@ -8,7 +8,7 @@ The working branch is `refactor/runtime-streamlining`, starting from
 The [consumer inventory and ownership contract](raster-asset-consumers.md) records
 the first design decision. The owned loader and all low-level renderer families accept the explicit owned
 contract. Owner-local captured entries replace the global raster registry. The shared
-owned resolver/mount and main demo adoption are implemented. Diagnostic catalog adoption and final current-API application measurements are implemented; net reduction, historical-baseline comparison and eight older visual-check failures remain open. The
+owned resolver/mount and main demo adoption are implemented. Diagnostic catalog adoption and current-API application measurements are implemented. Combined runtime and loader code now decreases; a compiler-only historical baseline has been reconstructed. Independent extraction provenance and eight older optional visual-check failures remain open. The
 [owned loading API](owned-theme-api.md) records the current supported boundary.
 
 Architecture review with Astra selected one owner implementation with two explicit
@@ -19,50 +19,52 @@ serialization and inspection would trigger broad encoding.
 
 ## Current validation
 
-- Production comparator: 8,424 painted push/default cases and 18,704 raster image
-  comparisons pass across all 18 themes, source and built entries. An additional
-  1,728 window paints and 432 scrollbar paints match exactly. This includes
-  mixed owned/legacy bases and 648 prepared bitmap label cases. Thirty-six each
-  of zero-PNG rendering, interactive activation, diagnostic URL and disposal
-  checks pass. Public button dimensions and pixels are compared; internal face
-  layout is separately compared by the source-only benchmark.
-- The renderer-family slice adds 19,152 comparisons: 15,278 paints, 3,474
-  matching missing outcomes and 400 explicitly unsupported checkable outcomes
-  where the sparse child lacks a declared census. None are counted as painted
-  output. There are zero mismatches or unexpected errors. Another 108 completed
-  tab, bevel and header diagnostic checks pass.
-- Current full gates pass: 1,134 Node tests pass, 2 skip and 12 remain TODO,
-  with zero failures. This includes ownership, failure, diagnostic snapshot and
-  duplicate-path occurrence checks. Typechecking includes negative public-source
-  compatibility assertions.
-- Current library build and packed-consumer validation pass. Acceptance bindings
-  have been refreshed and verified for the loader changes.
-- The six previously failing/interrupted source/built image-decode lifecycle
-  cases now pass unchanged. Existing loaders are eager compatibility adapters
-  again; the distinct owned path has its own abort/disposal and snapshot tests.
-  The 56-case window/managed-context browser suite passes on the final slice;
-  full final browser/golden validation remains required.
-  The family migration full run passed 562 cases and found 14 consumed-cinf
-  diagnostic failures; the correction passed all 38 affected border/cinf cases.
-  Registry retirement then passed 90 targeted browser cases, with another 24
-  lifecycle/transport cases passing after the final owner-state version change.
-- Shared lazy image exports and bundle loading are implemented, with pending
-  image reuse, failure retry and late disposal cleanup. The transitional
-  pixel-registration-behind-PNG-URLs path has been removed.
-- Thirty-six mounted owned windows preserve input identity and interactive content
-  through retheming. Selected-only CSS export/disposal checks pass, as do two
-  baseline sizing and two pending-CSS disposal probes. The final transport report
-  records runtime, built and harness hashes and rejects changed inputs.
-- All 12,902 engine-diff cells remain unchanged.
-- Shared scanner comparison passes 36 eager/owned mounted cases across all 18
-  themes and source/built exports, plus two dropped File registrations and two
-  borrowed legacy registrations. Pending mixed-contract mounts reject and
-  same-contract calls share one handle. All 69 targeted page/scanner/button
-  lifecycle browser cases pass; fresh demo build and packed consumer pass.
-- Final six-trial current-API application measurements pass their harness checks; median startup is 2,602 ms eager / 340 ms owned. Owned live backing storage is higher, and timing/retention anomalies remain recorded.
-- Final required browser coverage passes across the 568-case initial success and isolated rerun of eight shared-output failures. All 36 Linux goldens, package checks and lane readiness pass on `f927ff5a`. Net reduction, matching historical-baseline evidence and the eight older visual-check failures remain open.
+The final implementation revision is `6cfe9afd`. Reports in
+`tools/runtime-spike/` retain their individual revision and input hashes; an
+older report is stage-specific evidence, not a claim about an untested final head.
 
-## Next vertical slice and compatibility boundary
+- All 164 loader units and the packed-package consumer pass on this candidate.
+- The production reference comparator checks all 18 themes, 8,424 push/default
+  paints, 1,728 windows, 432 scrollbars and the 19,152-case family matrix.
+  It additionally compares 18,704 public rasters against the separately compiled
+  pre-simplification implementation. The final input-pinned run has zero differences after the last decoder edit.
+- Focus comparison against the separate compiled fresh renderer passes 4,608
+  exact outputs across 288 cases. Six held-preparation tests cover rapid focus,
+  removal and retheme races. Three compositing units cover clipping and aliasing.
+- Required browser contracts finish with 574 passes and two availability failures,
+  both reporting extraction toolchain hash drift. No other browser failure appears.
+  Previous transport-head CI was green; it does not certify this expanded head.
+- Full gates stop at the Node suite with 1,139 passes, two skips and twelve TODOs,
+  plus eight failing availability tests because decoder changes
+  invalidate independently pinned extraction toolchain hashes. The implementer
+  has not edited independent evidence. `extraction-change-results.json` records
+  exact before/after hashes for the review owner. Output equivalence does not
+  waive this provenance requirement.
+- All 12,902 engine-diff cells remain unchanged on the final candidate. Strict
+  theme lint, scene audit, requirements, reference and source-input checks pass.
+  Acceptance bindings separately report artifact drift and require independent
+  regeneration/review.
+- All 36 pinned Linux goldens pass. The final six-trial historical application
+  comparison passes; startup medians are 8,036 ms reconstructed eager / 788 ms
+  owned, with substantial variation. The clean library package census is 996,635
+  compressed bytes / 3,288,067 unpacked bytes, 116 entries. Earlier reports retain
+  their own stage-specific hashes. Lane readiness remains blocked by the same
+  independent provenance/binding failures. The older optional suite has 33 passes and eight
+  unresolved failures; public input/expectation clarification is still needed.
+
+| Production physical lines | Frozen start | Candidate | Delta |
+| --- | ---: | ---: | ---: |
+| Source logic, excluding cited tables | 17,477 | 17,491 | +14 |
+| Cited source tables | 2,323 | 2,323 | 0 |
+| Loader non-test JavaScript | 4,139 | 4,117 | −22 |
+| Combined logic and loader | 21,616 | 21,608 | −8 |
+
+Tests, declarations, benchmark harness and reports are excluded from the loader
+count. This is a small net physical-line reduction. The structural changes remove
+redundant decoding, title-strip cache/invalidation, repeated geometry/transfer
+loops and orchestration; the line count alone does not quantify complexity.
+
+## Implementation boundary
 
 The explicit internal `ThemeView` now serves every low-level control family and
 window chrome/body patterns. `asset(ref)` captures one transport identity before
@@ -173,236 +175,90 @@ from old-versus-new regression comparisons.
 
 - [x] Ownership and public URL compatibility decisions recorded and implemented.
 - [x] Push/default and all migrated families pass exact behavior comparisons.
-- [x] Public image consumers, browser lifecycles and package paths pass.
+- [x] Public image consumers, lifecycle cases and package paths pass; two independent browser availability checks remain blocked below.
 - [ ] Existing independent acceptance checks retain their meaning and pass.
 - [x] Disposed owners release buffers, URLs and pending work without releasing bases.
-- [x] Loading benefit reproduced on the actual delivered path; memory results recorded.
-- [ ] Replaced plumbing deleted; net affected production logic decreases.
+- [x] Loading benefit and memory results rerun on the final candidate; limitations recorded.
+- [x] Replaced plumbing deleted; net affected production logic decreases across source and loader.
 - [x] No indefinite experimental flag or duplicate implementation remains.
-- [x] Final PR description names limitations, measurements and completed checks.
+- [x] Draft PR description names limitations, measurements and completed checks on the delivered implementation.
 
 If a stage cannot preserve behavior or reduce total complexity, narrow or revise
 that stage before merging. Keep the integration PR open until its outcome is
 supported by the measurements, rather than declaring completion after the store
 has merely been added.
 
-## Intermediate size after owner-local retirement
+## Simplification and reference evidence
 
-At `5989db59`, `src/` non-test logic is 17,663 lines versus the frozen 17,477
-(+186); cited engine tables remain 2,323. Loader non-test JavaScript is 4,229
-versus 4,139 (+90). Combined affected production growth is +276 lines. Removing
-the registry simplifies ownership but does not yet meet the net reduction condition.
-At that stage, shared mount/image-consumer adoption and further deletion were
-still required.
+Shared cinf/header geometry, body fills and union coverage replace repeated
+geometry branches. Ordered axis traversal preserves reverse partial tiles,
+source/destination aliasing and painter order. PixelBuffer and both window title
+painters share clipped alpha-over; pure units preserve rounding, hidden RGB,
+source aliasing and negative glyph origins. Window shell identity/accessibility
+and scanner promotion/retheme traversal are shared while family admission,
+retry, cleanup and error policies remain explicit. Currency is checked before
+pruning and after every helper await.
 
-Astra identified bounded follow-up simplifications: remove the tab facade's
-obsolete copied ThemeView snapshot after binding finite selected patterns;
-consolidate captured decoded-or-image preparation without delaying legacy decode
-start; and avoid declared-cinf/diagnostic metadata preparation for pixel-only
-control lookups where it adds no validation. Preserve family admission and trace
-ordering; do not introduce a generic diagnostic framework to meet a line count.
+The removed title-strip focus cache disagreed with fresh complete public renders
+in 1,312 of 4,608 comparisons across 288 cases. Full guarded renders remove its
+retained ImageData and invalidation state. Focus flags publish synchronously;
+all changed renders start before awaiting completion, and per-window epochs
+suppress stale commits. Six held-preparation units cover rapid two/three-window
+focus, removal, already-active clicks and completed retheme. Full rerendering is
+more expensive than partial caching; this is a correctness and simplicity change,
+not a focus-speed improvement. The recorded warm owned large-window work is
+4.9 ms median / 9.2 ms p95, ending at render completion rather than presentation.
 
-## Diagnostic consumer validation
+One MSB-first packed-pixel primitive now serves indexed images, masks and icon
+planes. Arithmetic unit cases cover 84 depth/width/padding layouts, truncated
+reads and empty unsupported-depth inputs. Redundant alpha writes, repeated slug
+allocation, painted hit mapping and scrollbar axis branches are removed. Icon
+conversion adds a small temporary index plane; memory reduction is not claimed.
+The unused internal `indexToRgb` export is removed; package exports are unchanged.
 
-The owned diagnostic page passes all 18 targeted page/history browser cases.
-A local source-browser probe records 312 closed inventory images with no image
-exports assigned. Opening the 1138 raster panel exports all 542 thumbnails as
-blob URLs while the separate icon inventory remains deferred. Holding 473 new
-1984 image exports, switching themes and releasing them publishes none into the
-detached panel. See `tools/runtime-spike/diagnostic-results.json`.
+The exact frozen `de942c63` revision was reconstructed in an isolated compiler-only
+build, using explicit settings and the current pinned toolchain. Historical source,
+configuration and diagnostics are not inspected; extracted inputs are deleted.
+Only compiled artifacts and build metadata remain. This is a reconstruction,
+not a recovered release or a comparison with the original Mac program.
+Equivalent-build JavaScript is 698,396 bytes frozen / 701,413 current (+3,017);
+separate level-9 gzip totals are 221,364 / 221,831 (+467). Net source reduction
+therefore does not establish a compiled-size reduction.
 
-An additional `npm run test:visual-baselines` run has 33 passes and 8 failures
-(ring/label expectations, inherited-face census, a showcase locator and shell
-shadow). Their relation to this migration remains unproven; do not claim those
-checks pass or change their fixtures to accommodate the transport. Triage remains
-part of the final verification audit. Required final browser/pinned-golden checks,
-actual mounted loading/memory measurements and net reduction are still open.
+The earlier six-trial application report is preserved as
+`application-historical-before-simplification-results.json`: frozen eager startup
+median 2,501 ms / owned 241 ms at `f905de9d`. It uses the current application and
+controlled styles with the reconstructed library, not a historical application
+release. The final candidate report is `application-historical-results.json`: eager startup
+5,546 / 8,036 / 8,493 ms, owned 619 / 1,230 / 788 ms. Both modes are slower
+than the earlier stage; the cause is unestablished. These are fresh browser
+profiles with shared OS/Vite caches, and no concurrent task-started validation or
+build jobs. Ready backing storage is about 5.50 MB eager / 13.71 MB owned. All
+recorded teardown/batch URL and advertisement-owner pixel counts are zero; final
+batch DOM/listener samples are 350/16 in all six trials. Post-GC heap still grows
+in both modes. This run does not resolve the earlier retention anomaly.
+Earlier current-API reports retain timing outliers, higher owned live backing
+storage, heap growth in both modes and one eager DOM/listener retention anomaly.
+No portable latency budget, leak-free behavior or lower retained memory is claimed.
 
-## Intermediate size after consumer adoption
+The eight older optional visual failures remain unresolved. A runtime-only probe
+of the inherited-face invocation requested cicn −10239/raw index238 while its
+decoded occurrence identified −10240/index239; fresh eager/owned loads agree on
+both identities. The intended input preparation and contract require listing-free
+clarification. Other failures concern ring/label behavior, showcase lookup and
+shell shadow. Passing own/eager comparisons do not prove those failures predate
+the migration. A frozen compiled-entry replay stopped at fixture readiness before
+assertions and supplies no historical failure evidence.
 
-At `47ec08d0`, `src/` non-test logic is 17,740 lines (+263 over the frozen
-17,477), with cited tables unchanged at 2,323. Loader non-test JavaScript remains
-4,229 (+90), for combined affected production growth of +353 lines. The owned
-mount and image consumers are adopted; actual code reduction remains unmet.
-The next slice measures real mounted startup/switching and retained memory, then
-removes obsolete preparation/adapters where the measurements and source audit
-support it. Docker is available for final pinned-golden verification.
+Local and Forgejo maintainer-asset metadata, archive indexes and available handoff
+searches did not identify the missing public reproducer. Original/private verifier
+content was not opened. Independent extraction hashes and acceptance bindings
+remain unchanged; their owner must review and refresh provenance before full
+gates can pass. See the exact hash delta in
+`tools/runtime-spike/extraction-change-results.json`.
 
-
-### Application measurement and bounded cleanup, 2026-10-26
-
-`0a3ffc89` records six fresh-browser trials of the actual advertisement app,
-including real theme switches and twenty public mount/disconnect cycles per
-trial. See `tools/runtime-spike/application-results.json` and its README for raw
-samples, hashes and limitations. This compares current eager/owned APIs rather
-than a frozen historical executable; Vite servers and OS caches are shared.
-
-Eager startup is 2,512 / 2,557 / 2,759 ms; owned is 4,160 / 277 / 335 ms. The
-promising owned median must be read alongside the unexplained slow trial and its
-two slow first-round switches. Initial PNG URLs drop from 3,196 to 2. Owned
-caches retain 9,360,204 decoded pixel bytes; ready backing storage rises from
-4.87 MB to 13.84 MB. Observed advertisement storage and global URLs release on
-teardown; after cycle batches DOM nodes/listeners stabilize, but JS heap grows.
-This is bounded lifecycle evidence, not proof of lower retained memory or no
-leaks. Timing and memory acceptance remain unresolved.
-
-`42f0f4c9` consolidates the two PNG encoding shells and removes copied tab
-catalogs, retaining selected resource captures and display capabilities. Astra
-reviewed the cleanup and measurement methodology without finding a correctness
-or ownership blocker. Typecheck/build, seven encoder/failure tests, eleven tab
-tests and all 12,902 engine-diff cells pass. The full source/built transport matrix
-passes again with zero mismatches. All 1,134 Node tests pass; the final gate
-required refreshing generated loader acceptance bindings, which now validate.
-Packed-consumer validation passes. Full browser/pinned Linux checks are running.
-
-Production source is now 17,737 logic lines plus 2,323 cited-table lines; loader
-JavaScript is 4,205 lines. Against the same baseline, combined production growth
-is +326 lines. This cleanup removes 27 lines, but net reduction remains unmet.
-The draft PR also retains the eight unresolved additional visual-baseline
-failures. Lane readiness reported an unavailable `Traps.h` prerequisite; it is
-not recorded as passed. No golden expectations were changed.
-
-
-### Final checks and diagnostic follow-up
-
-All 36 pinned Linux Chromium golden checks pass unchanged. The full local browser
-contract run remains live. A stricter TypeScript unused-local/parameter audit
-passes and reveals no additional dead internal declarations to remove.
-
-The optional application `--diagnostic` mode now records phase spans, long tasks
-and HTTP resource timings in a separate artifact. Both smoke trials pass on the
-cleaned production code. They overlap browser validation and retain tracing data,
-so their timing and memory figures do not replace the six-trial measurement.
-The prior owned startup outlier did not recur and remains unexplained.
-
-The published JavaScript census is 713,285 bytes / 225,215 gzip bytes (per-file
-level 9), including lazy chunks. Full package size is 1,004,082 compressed bytes.
-`tools/runtime-spike/shipped-size-results.json` pins each JavaScript hash. A
-matching compiled frozen-baseline artifact remains unavailable; no historical
-shipped-size delta is claimed.
-
-The trap-table prerequisite is resolved: the check consumes the exact pinned
-Apple UI 3.0.1 header, SHA-256
-`b2d54498b8f790f6ca959bdfe5cfb2ef84bec8e0a565bd65c1a09dc7c3d34c7b`,
-from the public UniversalInterfaces mirror at revision
-`328d38f2b72b2d4ceda30170eea32ca6b9de218a`, path
-`3.0.1/Universal/Interfaces/CIncludes/Traps.h`. `gen-trap-table --check` passes.
-The header was used only as verifier input. The first lane-readiness run also
-rejected a moving HEAD/worktree while these changes were being committed; its
-runtime checks passed, but the aggregate is not a readiness pass. Rerun against
-the frozen committed worktree with `SCRIPTOSCOPE_TRAPS_H` set to the pinned file.
-
-
-### Final normal-mode measurement and acceptance status
-
-The current `application-results.json` records six normal-mode trials on cleaned
-production commit `f927ff5a`, with no concurrent task-started build/validation.
-The original six-trial result is retained byte-for-byte in
-`application-initial-results.json`. Eager startup is 2,602 / 2,514 / 4,649 ms;
-owned is 267 / 2,257 / 340 ms. Median startup is 2,602 / 340 ms, respectively.
-Both modes have slow trials and long switches. Tracked advertisement storage and
-URLs release at teardown, but post-GC heaps grow during repeated mounting. One
-eager trial retains 366 nodes / 17 listeners in its last two batches; other
-trials have 350/16. Neither uniform memory stabilization nor leak-free behavior
-is claimed. Astra's final measurement review found no evidenced production
-regression requiring a broader implementation change.
-
-All required 576 browser cases pass across the full run and isolated rerun of
-eight shared-output failures. The initial run had 568 passes; rebuilding once
-and rerunning its eight failures serially passed all eight. These included
-missing dist files/trace files and production-page setup/readiness failures
-while the pinned Linux job rebuilt shared outputs. All 36 pinned Linux goldens
-pass. Final lane readiness exits zero on the clean pushed `f927ff5a` after the
-feature branch upstream and exact pinned header prerequisite were corrected.
-Serialize build/browser/golden jobs to avoid repeating that output contention.
-
-The older optional visual suite still has 33 passes / 8 failures when run
-serially. A temporary runtime-only probe of the inherited-face failure observed
-Windows95 root owner/depth 0, requested cicn -10239 with raw index 238, but decoded
-`cicnSource` -10240/index 239. Fresh eager and owned loader results preserve
-matching identities for both entries. How the failing invocation prepared or
-changed its inputs still needs listing-free clarification. The diagnostic was
-restored byte-for-byte; no independent tests, fixtures or goldens were edited.
-Other ring, label, showcase-locator and shell-shadow failures remain unresolved;
-passing current own/eager comparisons do not prove that these predate migration.
-
-Production growth remains +326 lines. The original decrease condition is unmet;
-user clarification on transport scope versus a deeper simplification is pending.
-No compiled artifact matching the frozen starting revision was found, so the
-historical loading/shipped-byte comparison also remains unverified. The PR stays
-draft; those requirements are not waived by the passing current-API checks.
-
-
-### Scope expansion authorized by maintainer
-
-The maintainer chose deeper simplification to require a net code reduction, rather
-than accepting the transport migration's +326-line production growth. Start with
-shared cinf/header geometry and visibility, then consolidate axis traversal while
-preserving transfer semantics, masks, clipped phase, painter order and diagnostic
-identities. Retire each duplicate implementation in the same slice; report actual
-source/loader totals rather than projected savings. Keep supported public APIs.
-
-The maintainer also authorized locating or remaking a compiled frozen baseline.
-Any remake uses an isolated automated build of the pinned implementation and
-exposes only compiled output and build metadata to the implementer. Do not inspect
-historical source, original listings, independent acceptance sources or private
-verifier material. Existing independent CI is green on `82e7d9f3`; its verified
-behavior remains the regression harness for the expanded work.
-
-### Expanded implementation: measured removals and recovered baseline
-
-The first deeper slice shares header/cinf geometry, band visibility, body-write
-coverage and ordered axis traversal. The slicer now uses the existing sampled-line
-painter. This deletes 49 source lines while preserving duplicate header body
-rectangles, reverse partial tiles, source/destination aliasing and transfer order.
-Typecheck, focused units, 129 browser cases, repository gates and all 12,902 engine
-diff cells pass. The following bevel body-fill slice reuses cinf body rectangles,
-pattern writes and visible union counting, deleting another 12 lines. The full
-production comparator passes without mismatches on that slice.
-
-A compiler-only reconstruction of the exact frozen `de942c63` implementation is
-now available. The isolated builder deletes extracted historical inputs and keeps
-compiled output and provenance only. `frozen-build-results.json` records 698,396
-JavaScript bytes with the explicit common build recipe. This is a reconstruction,
-not a recovered release. `application-historical-results.json` compares that eager
-API with the owned API at `f905de9d` in the current real app. All six trials pass.
-Startup is 2,730 / 2,501 / 2,482 ms frozen and 241 / 223 / 1,237 ms owned; medians
-are 2,501 / 241 ms. Recorded teardown and mount-batch URL counts are zero. This
-stage-specific run precedes the focus-cache removal; timing variability and the
-previous retention limitations remain visible.
-
-The focus spike finds a concrete redundant optimization with incorrect output:
-title-strip cache flips disagree with fresh complete public renders in 1,312
-comparisons across 288 cases (both loaders, 18 themes, four window kinds, two
-sizes). Removing the strip cache restores complete chrome consistency and removes
-its retained ImageData and invalidation machinery. Focus flags are published
-before yielding, and all changed guarded renders start before awaiting completion.
-Six held-preparation tests cover two/three-window supersession, removed hosts,
-already-active clicks and a completed retheme. Change callbacks follow commit
-completion order. Whole chrome/content geometry, canvas identity, selection and
-notification probes pass. Performance is measured separately in `focus-*-results`;
-full recomposition costs more than the old partial cache. This is a correctness
-and complexity improvement, not a focus speedup.
-
-The expanded PR still requires a net decrease, updated shipped-size/application
-measurements and final independent checks. Neither the baseline reconstruction
-nor current-API parity resolves the older optional suite's eight failures. A
-search of available handoff metadata did not identify their listing-free input
-and expectation contract; no independent acceptance material was changed.
-
-The next compositor slice shares clipped alpha-over between PixelBuffer and both
-window title painters, and shares baseline/raster window shell identity and
-accessibility setup. It deletes 29 production source lines. Focus renders also
-compare byte-for-byte against the compiled pre-removal implementation's fresh
-renderer: 4,608 outputs across 288 cases match, independently of the stale cache.
-Three pure compositing tests preserve rounding, hidden destination RGB, in-place
-source order and negative glyph origins. The production transport comparator
-continues to pass with zero mismatches. This does not satisfy net reduction yet.
-
-Scanner orchestration now shares the in-flight/error/finally attempt boundary and
-prune/current-check/retheme traversal. Family-specific movement retries,
-snapshots, commit/disposal and error policies remain explicit in their callbacks;
-buttons, tabs, controls and icons retain their order. Currency is rechecked at
-helper entry and after every helper await, before cleanup or picker mutation.
-This deletes another 37 source lines. Repository gates and the complete production
-comparator pass with these changes, including mounted eager/owned scanning.
+Astra recommends a fresh independently assigned verifier in an isolated worktree,
+with no inherited implementation conversation. The public task and permitted
+return boundary are in [the prepared handoff](../../tools/runtime-spike/independent-refresh-handoff.md).
+That separate assignment is awaiting maintainer authorization; the implementer
+will not inspect independent sources, evidence diffs or verifier review material.

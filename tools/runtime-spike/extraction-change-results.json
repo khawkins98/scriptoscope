@@ -41,7 +41,21 @@
   ],
   "validation": {
     "loaderUnitTests": 164,
+    "packageConsumer": "pass",
+    "engineDiff": {
+      "status": "pass",
+      "cells": 12902,
+      "changed": 0
+    },
+    "independentAvailability": "blocked: extraction toolchain hash drift",
+    "independentAcceptanceBindings": "blocked: Binding artifact drift; regenerate and review",
     "productionReferenceReport": "production-reference-results.json",
-    "qualification": "Independent extraction evidence remains unchanged. Reference report predates only a semantics-preserving named shift temporary in shared.js; final report will be rerun before delivery."
+    "qualification": "Independent evidence remains unchanged. The final reference run includes the committed runtime and built fingerprints; its pixel-equivalence results do not replace provenance review.",
+    "productionReference": {
+      "status": "pass",
+      "rasters": 18704,
+      "mismatches": 0,
+      "revision": "6cfe9afda52825b848702aef942065f3daf6a647"
+    }
   }
 }

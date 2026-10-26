@@ -203,17 +203,14 @@ startup is 364 ms, resolution spans are 46–219 ms, and its startup long task i
 locate work in this run; they do not explain the earlier slow owned trial, which
 did not recur. The artifact retains both startup snapshots and full-run traces.
 
-`shipped-size-results.json` records the current `npm pack --dry-run` surface and
-hashes of each built JavaScript file. JavaScript totals 713,285 bytes, or 225,215
-bytes when each file is gzipped separately at level 9. This includes the lazy
-archive decoder and procedural-frame chunk; it is not the initial network
-payload. Package size is 1,004,082 compressed bytes / 3,321,567 unpacked bytes,
-including maps, declarations, CSS and documentation. No compiled artifact matching
-the frozen baseline was found, so this is a current size census, not a historical
-delta. The source-line comparison remains +326 production lines.
+The earlier transport-only census at `915873b1` measured 713,285 JavaScript bytes
+and +326 production source/loader lines. No compiled baseline was available at
+that stage. These figures are historical; the final consolidation and equivalent
+compiler-recipe comparison below supersede them. The current library-only package
+census is recorded in `shipped-size-results.json` after a clean library build.
 
 
-### Final cleaned implementation: normal measurement
+### Historical transport implementation: normal measurement
 
 The canonical `application-results.json` now records six normal-mode trials on
 `f927ff5a`, after the shared PNG encoder/tab snapshot cleanup. No other
@@ -320,3 +317,76 @@ The final focus-cache removal measurement in `focus-current-results.json` has
 The first four switches per case are excluded from these warm aggregates.
 Timings end at render completion, before the browser presents the next frame.
 These local figures are not a portable frame-time guarantee.
+
+## Final consolidation and reference comparison
+
+The expanded PR removes repeated packed-pixel decoders, mask and icon unpacking,
+redundant alpha writes, repeated control hit mapping and scrollbar input branches.
+A single MSB-first indexed primitive retains row padding, truncated-read zeroes
+and empty unsupported-depth behavior. Arithmetic unit cases cover 84 packed
+layouts. Icon conversion adds a small temporary index plane; this is a code
+simplification, not a decoder-memory reduction. The unused internal
+`decoders/shared.js` export `indexToRgb` is removed; package exports are unchanged.
+
+`SCRIPTOSCOPE_RUNTIME_REFERENCE_ENTRY=/path/to/compiled/scriptoscope.js node
+ tools/runtime-spike/run.mjs --production` loads the reference through its public
+API, verifies all compiled artifact hashes, and compares current owned buffers
+with the reference's PNG exports. It also renders current code with reference
+and current decoded inputs. Reports go to `production-reference-results.json`,
+separate from the ordinary eager/owned report. This checks implementation
+regression equivalence and does not certify original-engine fidelity.
+
+The final source/loader totals are 17,491 / 4,117 physical lines, versus frozen
+17,477 / 4,139: combined −8, source alone +14. Cited tables remain 2,323 lines.
+Tests, declarations and this unshipped harness are excluded from loader totals.
+The net count is small; the structural removals are the useful result.
+
+`current-build-results.json` uses the same compiler-only recipe as
+`frozen-build-results.json`. Across all JavaScript chunks, current/frozen sizes
+are 701,413 / 698,396 bytes; separate level-9 gzip totals are 221,831 / 221,364.
+Thus net source reduction does not imply smaller compiled output. Current
+published-package measurements are recorded separately in
+`shipped-size-results.json`; reconstructed artifacts omit maps and declarations.
+
+Decoder edits invalidate independently pinned extraction toolchain hashes.
+`extraction-change-results.json` lists the exact implementation hash delta.
+Independent evidence remains unchanged; its owner must review and refresh
+provenance, then rerun full gates. Matching pixels do not waive that requirement.
+The eight older optional visual failures still require listing-free public input
+and intended-behavior clarification. Maintainer-asset metadata, archive indexes
+and available handoff searches did not identify that handoff. An attempted frozen
+compiled-entry replay stopped at fixture readiness, before the assertions, and
+provides no evidence that those failures predate the migration.
+
+## Final candidate application and checks
+
+At `6cfe9afd`, `application-historical-results.json` records all six final
+normal-mode trials: eager startup 5,546 / 8,036 / 8,493 ms, owned
+619 / 1,230 / 788 ms; medians 8,036 / 788 ms. Both modes are slower than the
+earlier stage, whose exact report is preserved as
+`application-historical-before-simplification-results.json`. The cause of this
+variation is not established; keep all trials rather than pooling stages. Fresh
+profiles are used, with shared OS/Vite caches. No other task-started validation
+or build job ran concurrently. No portable latency guarantee is established.
+
+All trials mount five windows, switch themes and complete twenty mount/disconnect
+cycles. Ready backing storage is about 5.50 MB eager / 13.71 MB owned. All recorded
+teardown/batch live URLs and tracked advertisement-owner pixel bytes are zero.
+All final batch DOM/listener samples are 350/16 in this run. Post-GC heap still
+grows across batches in both modes; the earlier eager retention anomaly is not
+explained by its absence here. RSS/process counts vary and do not establish lower
+application-retained memory or absence of leaks.
+
+The clean library-only package contains 116 entries, 996,635 compressed bytes /
+3,288,067 unpacked bytes. Normal-build JavaScript totals 704,544 bytes and separate
+level-9 gzip 223,126 bytes. These differ from the common-recipe comparison above;
+the package includes maps and declarations.
+
+`validation-results.json` records final status: 164 loader units, packed consumer,
+all 12,902 unchanged engine-diff cells and all 36 Linux goldens pass. Required
+browsers have 574 passes / two extraction-hash failures; Node tests have
+1,139 passes / eight extraction-hash failures, two skips and twelve TODOs.
+Acceptance bindings separately report drift. No independent evidence or golden
+expectation was changed. The final reference comparator has zero mismatches.
+The proposed separate-owner process is in `independent-refresh-handoff.md`;
+a verifier assignment requires maintainer authorization.

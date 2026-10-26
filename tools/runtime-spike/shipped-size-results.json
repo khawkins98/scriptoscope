@@ -1,15 +1,15 @@
 {
-  "recordedAt": "2026-10-26T01:14:17.130Z",
-  "revision": "915873b18878e424664b3f53267b48b29a66faee",
-  "methodology": "Current packed publish surface; JavaScript gzip level 9 per file, not HTTP transfer negotiation. No frozen-baseline compiled artifact was available, so no historical size delta is claimed.",
+  "recordedAt": "2026-10-26T09:15:11.215Z",
+  "revision": "6cfe9afda52825b848702aef942065f3daf6a647",
+  "methodology": "Current npm pack dry-run after clean library-only npm run build. JavaScript gzip level 9 independently per file. Historical comparison uses identical explicit compiler-only recipe and pinned toolchain on both revisions; this is not a recovered release or original Mac program comparison.",
   "package": {
-    "compressedBytes": 1004082,
-    "unpackedBytes": 3321567,
+    "compressedBytes": 996635,
+    "unpackedBytes": 3288067,
     "entries": 116
   },
   "javascript": {
-    "bytes": 713285,
-    "gzipBytes": 225215,
+    "bytes": 704544,
+    "gzipBytes": 223126,
     "files": [
       {
         "path": "dist/index-BlEZVh45.js",
@@ -18,23 +18,41 @@
         "sha256": "b70dce8a62d5367dc74cf11363679fd648296f42ece09856ddc9c89255adf842"
       },
       {
-        "path": "dist/index-D4s1oiP8.js",
-        "bytes": 565189,
-        "gzipBytes": 166734,
-        "sha256": "67af1747cc17ed7749ff5bd52858a65bf30fb94bfa7ba104fa787508be545445"
+        "path": "dist/index-D6Y83TlM.js",
+        "bytes": 556896,
+        "gzipBytes": 164789,
+        "sha256": "4cfd8fe5bde18a17d3ff172a64765c1fdb8f5d94e3868bd4cabe6de43b87612f"
       },
       {
-        "path": "dist/proceduralFrameChrome-DWjbYRyo.js",
-        "bytes": 40336,
-        "gzipBytes": 12546,
-        "sha256": "06b11babb0445d7f0b5820945aad5ca49b8932b70ff78a494bc5c86a19d27f6f"
+        "path": "dist/proceduralFrameChrome-COj-9wOI.js",
+        "bytes": 39888,
+        "gzipBytes": 12401,
+        "sha256": "083db46eff0bae8a37028336458f0667c009fea1a660a48229318f45544fc5ae"
       },
       {
         "path": "dist/scriptoscope.js",
         "bytes": 2739,
-        "gzipBytes": 1168,
-        "sha256": "2e80b26f65667a1f7031984520f46479c1befb6ba291c57e9e7ce8cb82e8d605"
+        "gzipBytes": 1169,
+        "sha256": "e75c856e160d79286f0aac770caa379b184f14a8c50829de44f0fdacafd09218"
       }
     ]
+  },
+  "equivalentBuilds": {
+    "baselineRevision": "de942c6399c81d1f15d23247dfd62a36e11a64bc",
+    "currentRevision": "6cfe9afda52825b848702aef942065f3daf6a647",
+    "baseline": {
+      "bytes": 698396,
+      "gzipBytes": 221364
+    },
+    "current": {
+      "bytes": 701413,
+      "gzipBytes": 221831
+    },
+    "delta": {
+      "bytes": 3017,
+      "gzipBytes": 467
+    },
+    "baselineReport": "frozen-build-results.json",
+    "currentReport": "current-build-results.json"
   }
 }
