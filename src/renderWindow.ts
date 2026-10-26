@@ -200,8 +200,7 @@ export async function renderWindow(
       // rect, the baseline moves down by exactly that overflow, so every glyph stays inside.
       const baseline = Math.max(t4p.y + t4p.h - TITLE_TEXT.TX8.baselineAbove, t4p.y + base.ascent);
       const x0 = t4p.x, y0 = baseline - base.ascent;
-      const clip = { l: Math.max(0, t4p.x), t: Math.max(0, t4p.y), r: Math.min(fullWidth, t4p.x + t4p.w + TITLE_TEXT.TX4.widenRight), b: Math.min(fullHeight, t4p.y + t4p.h) };
-      const inClip = (x: number, y: number): boolean => x >= clip.l && x < clip.r && y >= clip.t && y < clip.b;
+      const clip = { x: t4p.x, y: t4p.y, w: t4p.w + TITLE_TEXT.TX4.widenRight, h: t4p.h };
       // TC1–TC5: samples belong to the selected template, before remapping or PNG
       // transport. Compare full RGB16, even when display conversion merges colours.
       const sampleState = wt.chrome[state] ? state : 'active';
@@ -212,16 +211,7 @@ export async function renderWindow(
         const glyph = raster(dispTitle, hex);
         // Substitute-font policy: transparent coverage, alpha-over (control-text-colors
         // Runtime painting). Native TX6 TextMode srcOr is not a bitwise RGB operation here.
-        for (let y = 0; y < glyph.buffer.height; y++) for (let x = 0; x < glyph.buffer.width; x++) {
-          const px = x0 + x + dx, py = y0 + y + dy;
-          if (!inClip(px, py)) continue;
-          const [r, g, b, a] = glyph.buffer.getPixel(x, y);
-          if (a === 0) continue;
-          const [dr, dg, db, da] = composed.buffer.getPixel(px, py);
-          const coverage = a / 255;
-          composed.buffer.setPixel(px, py, Math.round(r * coverage + dr * (1 - coverage)),
-            Math.round(g * coverage + dg * (1 - coverage)), Math.round(b * coverage + db * (1 - coverage)), Math.max(a, da));
-        }
+        composed.buffer.drawOver(glyph.buffer, x0 + dx, y0 + dy, clip);
       };
       if (samples?.text && samples.shadow && samples.text.rgb16.some((v, i) => v !== samples.shadow!.rgb16[i])) {
         paint(samples.shadow, TITLE_TEXT.TX7.offsetX, TITLE_TEXT.TX7.offsetY);
@@ -235,23 +225,7 @@ export async function renderWindow(
   // 0,0 and the content is INSET by the frame thickness. ──
   const background = await bodyBackgroundStyle(owner, scale, slug);
   assertThemeAlive(theme);
-  const win = document.createElement('div');
-  win.className = 'scriptoscope-window';
-  // Optional shell CSS targets the actual frame, not a grid-stretched host.
-  win.setAttribute('part', 'window');
-  win.dataset.scriptoscopeCurrentState = state;
-  // The title is always exposed to assistive tech, even when it isn't drawn
-  // (utility/mini windows show no visible label in a modern context).
-  // For modal-class window-types we add aria-modal="true" so SRs constrain
-  // virtual-cursor navigation (the keyboard focus trap in handle.openModal
-  // is the keyboard side; this is the AT side). UTILITY_SLUG_RE includes
-  // dialog/alert/modal/popup which all reasonably benefit from modal semantics
-  // when wrapped in handle.openModal — a11y reviewer 2026-05-31.
-  if (title) {
-    win.setAttribute('role', isUtility ? 'dialog' : 'group');
-    win.setAttribute('aria-label', title);
-    if (isUtility && /modal|alert|dialog/.test(slug)) win.setAttribute('aria-modal', 'true');
-  }
+  const win = windowRoot(title, state, isUtility, slug);
   Object.assign(win.style, {
     position: 'relative',
     // touch-action: none — block the browser's default touch gestures
@@ -358,6 +332,21 @@ export async function renderWindow(
   return win;
 }
 
+/** Common shell identity and accessible title for raster and baseline windows.
+ * Modal classes expose aria-modal alongside openModal's keyboard focus trap. */
+function windowRoot(title: string, state: WindowState, utility: boolean, slug: string): HTMLDivElement {
+  const win = document.createElement('div');
+  win.className = 'scriptoscope-window';
+  win.setAttribute('part', 'window');
+  win.dataset.scriptoscopeCurrentState = state;
+  if (title) {
+    win.setAttribute('role', utility ? 'dialog' : 'group');
+    win.setAttribute('aria-label', title);
+    if (utility && /modal|alert|dialog/.test(slug)) win.setAttribute('aria-modal', 'true');
+  }
+  return win;
+}
+
 /**
  * Procedural DEFAULT window for schemes that ship no window-frame chrome
  * (they inherit the OS-default Platinum window). DOM/CSS only — analogous
@@ -402,18 +391,7 @@ async function buildBaselineWindow(
     : fill;
   const titleH = 19;
 
-  const win = document.createElement('div');
-  win.className = 'scriptoscope-window';
-  // Optional shell CSS targets the actual frame, not a grid-stretched host.
-  win.setAttribute('part', 'window');
-  win.dataset.scriptoscopeCurrentState = state;
-  if (title) {
-    win.setAttribute('role', utility ? 'dialog' : 'group');
-    win.setAttribute('aria-label', title);
-    // aria-modal for modal-class window-types — see the parallel block in the
-    // cicn-recipe path above for the rationale (a11y reviewer 2026-05-31).
-    if (utility && /modal|alert|dialog/.test(slug)) win.setAttribute('aria-modal', 'true');
-  }
+  const win = windowRoot(title, state, !!utility, slug);
   // Explicit footprint (border-box) so callers can read the window's full size
   // — `width`/`height` match the cicn path, e.g. the scene sizes its desk to it.
   const fullW = contentW + 2; // 1px frame each side

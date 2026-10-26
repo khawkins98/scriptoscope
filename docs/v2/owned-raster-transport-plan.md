@@ -389,3 +389,12 @@ measurements and final independent checks. Neither the baseline reconstruction
 nor current-API parity resolves the older optional suite's eight failures. A
 search of available handoff metadata did not identify their listing-free input
 and expectation contract; no independent acceptance material was changed.
+
+The next compositor slice shares clipped alpha-over between PixelBuffer and both
+window title painters, and shares baseline/raster window shell identity and
+accessibility setup. It deletes 29 production source lines. Focus renders also
+compare byte-for-byte against the compiled pre-removal implementation's fresh
+renderer: 4,608 outputs across 288 cases match, independently of the stale cache.
+Three pure compositing tests preserve rounding, hidden destination RGB, in-place
+source order and negative glyph origins. The production transport comparator
+continues to pass with zero mismatches. This does not satisfy net reduction yet.

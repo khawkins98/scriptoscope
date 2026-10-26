@@ -120,17 +120,9 @@ export async function composeProceduralFrameChrome(theme: ThemeInput | ThemeView
     if (!colored.has(k)) colored.set(k, raster(text, hex(pass.rgb)));
     const g = colored.get(k);
     if (!g) return;
-    const ox = pass.x, oy = pass.y - g.ascent;
-    const pb = port as PixelBuffer;
-    for (let y = 0; y < g.buffer.height; y++) for (let x = 0; x < g.buffer.width; x++) {
-      const px = ox + x, py = oy + y;
-      if (px < pass.clip.left || px >= pass.clip.right || py < pass.clip.top || py >= pass.clip.bottom) continue;
-      const [r, gg, b, a] = g.buffer.getPixel(x, y);
-      if (a === 0) continue;
-      const [dr, dg, db, da] = pb.getPixel(px, py);
-      const sa = a / 255;
-      pb.setPixel(px, py, Math.round(r * sa + dr * (1 - sa)), Math.round(gg * sa + dg * (1 - sa)), Math.round(b * sa + db * (1 - sa)), Math.max(a, da));
-    }
+    (port as PixelBuffer).drawOver(g.buffer, pass.x, pass.y - g.ascent, {
+      x: pass.clip.left, y: pass.clip.top, w: pass.clip.right - pass.clip.left, h: pass.clip.bottom - pass.clip.top,
+    });
   };
   const { geometry: g } = drawProceduralFrame(buffer, chain, input, { renderTitle }, trace);
   if (utility && g.state.grow && !g.state.smallGrow) drawProceduralFrameGrowIcon(buffer, chain, input, trace);

@@ -152,9 +152,10 @@ export class PixelBuffer {
    * source-over blending. Used for glyphs: transparent pixels leave the
    * destination untouched, opaque pixels overwrite.
    */
-  drawOver(src: PixelBuffer, dx: number, dy: number): void {
+  drawOver(src: PixelBuffer, dx: number, dy: number, clip?: PixRect): void {
     for (let y = 0; y < src.height; y++) {
       for (let x = 0; x < src.width; x++) {
+        if (clip && (dx + x < clip.x || dy + y < clip.y || dx + x >= clip.x + clip.w || dy + y >= clip.y + clip.h)) continue;
         const [r, g, b, a] = src.getPixel(x, y);
         if (a === 0) continue;
         if (a === 255) {

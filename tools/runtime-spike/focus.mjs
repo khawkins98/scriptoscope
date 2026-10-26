@@ -9,19 +9,26 @@ const exec = promisify(execFile), root = resolve(import.meta.dirname, '../..');
 const label = process.argv[2] ?? 'current';
 const entry = process.env.SCRIPTOSCOPE_FOCUS_ENTRY ? resolve(process.env.SCRIPTOSCOPE_FOCUS_ENTRY) : resolve(root, 'dist/scriptoscope.js');
 const directory = dirname(entry);
-const compiledBuild = process.env.SCRIPTOSCOPE_FOCUS_ENTRY ? JSON.parse(await readFile(resolve(directory, '../build.json'), 'utf8')) : null;
-if (compiledBuild) {
-  if (compiledBuild.status !== 'pass') throw new Error('Reference build did not pass');
-  for (const file of compiledBuild.files) {
+const expectedEntry = process.env.SCRIPTOSCOPE_EXPECTED_ENTRY ? resolve(process.env.SCRIPTOSCOPE_EXPECTED_ENTRY) : null;
+async function checkedBuild(entry) {
+  const result = JSON.parse(await readFile(resolve(dirname(entry), '../build.json'), 'utf8'));
+  if (result.status !== 'pass') throw new Error('Reference build did not pass');
+  for (const file of result.files) {
     if (!/^[a-zA-Z0-9._-]+$/.test(file.path)) throw new Error('Invalid reference artifact filename');
-    const digest = createHash('sha256').update(await readFile(resolve(directory, file.path))).digest('hex');
+    const digest = createHash('sha256').update(await readFile(resolve(dirname(entry), file.path))).digest('hex');
     if (digest !== file.sha256) throw new Error('Reference artifact differs from build manifest');
   }
+  return result;
 }
+const compiledBuild = process.env.SCRIPTOSCOPE_FOCUS_ENTRY ? await checkedBuild(entry) : null;
+const expectedBuild = expectedEntry ? await checkedBuild(expectedEntry) : null;
 if (!/^[a-z-]+$/.test(label)) throw new Error('Use a lowercase report label');
 const fingerprint = async () => {
   const paths = (await readdir(directory)).filter(p => p.endsWith('.js')).map(p => resolve(directory, p));
-  paths.push('tools/runtime-spike/focus.mjs');
+  if (expectedEntry) paths.push(...(await readdir(dirname(expectedEntry))).filter(p => p.endsWith('.js')).map(p => resolve(dirname(expectedEntry), p)));
+  paths.push('tools/runtime-spike/focus.mjs', 'src/scriptoscope.css', 'demo/themes-manifest.json');
+  const { stdout } = await exec('git', ['ls-files', 'themes'], { cwd: root });
+  paths.push(...stdout.trim().split('\n').filter(p => /\/(?:meta\.json|scheme\.(?:sit|rsrc))$/.test(p)));
   const hash = createHash('sha256');
   for (const path of paths.sort()) hash.update(path).update(await readFile(resolve(root, path)));
   return hash.digest('hex');
@@ -37,11 +44,13 @@ import {loadTheme, loadOwnedTheme, WindowManager, renderWindow} from '/@fs/${ent
 window.focusReport = {status:'running',cases:[],mismatches:[]};
 (async()=>{
  const report=window.focusReport;
+ const reference=${expectedEntry ? "await import('/@fs/" + expectedEntry + "')" : 'null'};
  const manifest=await (await fetch('/demo/themes-manifest.json')).json();
  const themes=Array.isArray(manifest)?manifest:manifest.themes;
  const pixels=canvas=>canvas?.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data;
  for(const mode of ['eager','owned'])for(const item of themes){
   const theme=await (mode==='owned'?loadOwnedTheme:loadTheme)('/themes/'+item.slug,{source:item.source});
+  const expectedTheme=reference?await (mode==='owned'?reference.loadOwnedTheme:reference.loadTheme)('/themes/'+item.slug,{source:item.source}):theme;
   try{
    for(const windowType of ['document-window','titled-utility-window','side-floating-utility-window','collapsed-document-window'])for(const large of [false,true]){
     const manager=new WindowManager(), options={windowType,width:large?900:180,height:large?600:90,title:'Focus probe'};
@@ -61,7 +70,7 @@ window.focusReport = {status:'running',cases:[],mismatches:[]};
      await Promise.all(calls.splice(0));timings.push(performance.now()-start);
      for(let i=0;i<2;i++){
       const actual=hosts[i].shadowRoot.querySelector('canvas.scriptoscope-chrome');
-      const expected=(await renderWindow(theme,{...options,state:i===index?'active':'inactive'})).querySelector('canvas.scriptoscope-chrome');
+      const expected=(await (reference?.renderWindow??renderWindow)(expectedTheme,{...options,state:i===index?'active':'inactive'})).querySelector('canvas.scriptoscope-chrome');
       const a=pixels(actual),b=pixels(expected);
       let difference=a?.length!==b?.length?-1:0,hash=2166136261;
       if(a&&b&&difference===0)for(let p=0;p<a.length;p++){if(a[p]!==b[p])difference++;hash=Math.imul(hash^a[p],16777619);}
@@ -76,7 +85,7 @@ window.focusReport = {status:'running',cases:[],mismatches:[]};
     report.cases.push({mode,slug:item.slug,windowType,large,timings,hashes,fullRenders,fastFlips,notifications});
     for(const host of hosts){manager.remove(host);host.remove();}
    }
-  }finally{theme.dispose();}
+  }finally{theme.dispose();if(expectedTheme!==theme)expectedTheme.dispose();}
  }
  report.status=report.mismatches.length?'mismatch':'pass';
 })().catch(error=>{window.focusReport.status='error';window.focusReport.error=String(error.stack??error)});
@@ -84,7 +93,7 @@ window.focusReport = {status:'running',cases:[],mismatches:[]};
 const server = await createServer({ configFile: resolve(root, 'vite.config.js'), root,
   plugins: [{name:'focus-probe',configureServer(server){server.middlewares.use((req,res,next)=>{
     if(req.url!=='/focus-probe.html')return next();res.setHeader('Content-Type','text/html');res.end(html);
-  });}}], server:{host:'127.0.0.1',port:0,strictPort:false,open:false,hmr:false,fs:{allow:[root,directory]}} });
+  });}}], server:{host:'127.0.0.1',port:0,strictPort:false,open:false,hmr:false,fs:{allow:[root,directory,...(expectedEntry?[dirname(expectedEntry)]:[])]}} });
 try {
  await server.listen();await browser('open',server.resolvedUrls.local[0]+'focus-probe.html');
  let report;
@@ -94,7 +103,7 @@ try {
   await new Promise(resolve=>setTimeout(resolve,1000));
  }
  if(!report||report.status==='running')throw new Error('Focus probe timed out');
- report.compiledBuild=compiledBuild;
+ report.compiledBuild=compiledBuild;report.expectedBuild=expectedBuild;report.recordedAt=new Date().toISOString();
  report.provenance={revision:(await exec('git',['rev-parse','HEAD'],{cwd:root})).stdout.trim(),inputs:initial};
  if(await fingerprint()!==initial)report.status='unstable-inputs';
  await writeFile(resolve(import.meta.dirname,`focus-${label}-results.json`),JSON.stringify(report,null,2)+'\n');

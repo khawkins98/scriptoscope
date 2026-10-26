@@ -304,3 +304,19 @@ focus, removal, already-active clicks and retheming. All changed renders start
 before focus awaits completion; per-window render epochs suppress stale commits.
 Post-render change callbacks follow completion order. The tests do not certify
 all scrollbar interactions or all asynchronous browser interleavings.
+
+`SCRIPTOSCOPE_EXPECTED_ENTRY=/path/to/reconstructed/compiled/scriptoscope.js node
+ tools/runtime-spike/focus.mjs compositor` compares the current committed window
+chrome with fresh renders from a separate compiled implementation. It verifies
+that implementation's artifact manifest and fingerprints both bundles, theme
+archives, metadata and the stylesheet. `focus-compositor-results.json` records
+288 cases / 4,608 exact byte comparisons with no mismatch against the pre-removal
+`f905de9d` fresh renderer after the clipped glyph painters were consolidated.
+This comparison avoids using the old focus cache as the expected raster.
+
+The final focus-cache removal measurement in `focus-current-results.json` has
+4.9 ms median / 9.2 ms p95 warm focus work for two large owned windows, with a
+16.9 ms maximum. Eager large windows measure 4.9 / 12.1 ms, maximum 31.1 ms.
+The first four switches per case are excluded from these warm aggregates.
+Timings end at render completion, before the browser presents the next frame.
+These local figures are not a portable frame-time guarantee.
