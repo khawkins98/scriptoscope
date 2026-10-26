@@ -3,9 +3,9 @@ import { withThemeView, type ThemeInput, type ThemeView, type RasterSource } fro
 import { composeEnginePush, loadEnginePushFace } from './pushButtonFacade.js';
 import { CinfEnvironmentError, snapshotBodyCinfFace, type CinfLookupView } from '../tools/theme-loader/cinf-environment.js';
 import type { PreparedBitmapFont } from './preparedBitmapFont.js';
-import { cinfBorderPlan, cinfBodyRects, bodyWriteCount } from './engine/qd/cinfFrame.js';
+import { drawCinfFrame, prepareCinfFrameSamples, type CinfRecord } from './engine/qd/cinfFrame.js';
 import { ownerDisplayPolicyMatches, realizeRgb16 } from '../tools/theme-loader/display-profile.js';
-import { snapshotControlComposition, bodyPatternPhase, controlPointVisible, type ControlCompositionContext, type ControlCompositionSnapshot, type ButtonComposition } from './controlComposition.js';
+import { snapshotControlComposition, controlPointVisible, type ControlCompositionContext, type ControlCompositionSnapshot, type ButtonComposition } from './controlComposition.js';
 import type { SliderComposition } from './sliderLayout.js';
 import type { ChromeElement } from './types.js';
 import { resolveInChain } from './baseChain.js';
@@ -17,7 +17,6 @@ import type { HeaderSurfaceOptions, HeaderSurfaceResult } from './headerSurface.
 import { composeEngineHeaderSurface, composeEngineHeaderColumns } from './headerFacade.js';
 import { createTrace, type EngineTrace } from './engine/trace.js';
 import { rect } from './engine/qd/rect.js';
-import { fillPattern } from './engine/qd/pattern.js';
 import { normalizeControlState } from './engine/state/control.js';
 import { SCROLLBAR_PRESSED_PARTS, SLIDER_PRESSED_PARTS } from './engine/tables/controlState.js';
 import { SCROLLBAR_FACADE_RANGE, SCROLLBAR_FACADE_THICKNESS } from './engine/tables/scrollbar.js';
@@ -28,7 +27,8 @@ import { PROGRESS_DATA, PROGRESS_FACADE_LENGTH, PROGRESS_FACADE_RANGE, PROGRESS_
   PROGRESS_VALUE_DOMAIN } from './engine/tables/progress.js';
 import { drawProgress, newProgressRecord, progressResourceIds, progressSetData, type ProgressInput } from './engine/families/progress.js';
 import { snapshotSliderEnvironment, unsupportedSliderEnvironment, admitSliderGeometry, admitSliderState } from './engine/resources/sliderEnvironment.js';
-import { themeResourceChain } from './engine/resources/theme.js';
+import { themeResourceChain, prepareThemeIcon } from './engine/resources/theme.js';
+import { mapProvider } from './engine/resources/chain.js';
 import { withControlDiagnostics, type ControlDiagnostics, type ControlTraceCollector, type ControlResolutionStep, type LegacyFacePaint } from './controlDiagnostics.js';
 
 /** 9-slice corner inset for a control cicn — matches the kDEF's ~6px for
@@ -48,7 +48,7 @@ function sliceInset(w: number, h: number): number {
  * diagnostics preserve the actual sign instead of claiming an original alias.
  */
 interface ResolvedFaceMetadata { consumedCinf?: CinfLookupView; theme: ThemeView; element: ChromeElement; key: string; chainDepth: number; }
-interface ResolvedControlFace extends ResolvedFaceMetadata { declaredCinf?: NonNullable<ReturnType<typeof snapshotBodyCinfFace>>; buffer: PixelBuffer; loadedIdentity?: Pick<LegacyFacePaint, 'owner' | 'resource'>; }
+interface ResolvedControlFace extends ResolvedFaceMetadata { declaredCinf?: NonNullable<ReturnType<typeof snapshotBodyCinfFace>>; buffer: PixelBuffer; raster: RasterSource; loadedIdentity?: Pick<LegacyFacePaint, 'owner' | 'resource'>; }
 type TraceLookup = Pick<ControlResolutionStep, 'role' | 'basis' | 'usage'>;
 const FACE_LOOKUP: TraceLookup = { role: 'face', basis: 'source-dispatch', usage: 'paint' };
 
@@ -96,7 +96,7 @@ async function loadResolvedFace(hit: ResolvedFaceMetadata, id: number, lookup: T
   const loadedIdentity = resource ? { owner, resource: { ...resource, assetUrl: await raster.imageUrl() } } : undefined;
   if (loadedIdentity) trace?.record({ ...lookup, requestedId: -Math.abs(id), action: 'selected', ...loadedIdentity,
     ...(selectedId > 0 ? { basis: 'compatibility-policy' as const } : {}), reason: selectedId > 0 ? 'positive-id-alias' : 'resource-id' });
-  return { ...hit, ...(declaredCinf ? { declaredCinf } : {}), buffer: await raster.pixels(), ...(loadedIdentity ? { loadedIdentity } : {}) };
+  return { ...hit, ...(declaredCinf ? { declaredCinf } : {}), buffer: await raster.pixels(), raster, ...(loadedIdentity ? { loadedIdentity } : {}) };
 }
 
 /** Select a prepared role view without mutating common element/local pair facts. */
@@ -641,138 +641,7 @@ function buttonFontSize(value: number | undefined): number {
   return size;
 }
 
-type PreparedCicnBody = { kind: 'missing' | 'unsupported' } | { kind: 'ready'; buffer: PixelBuffer;
-  sourceRect: { x: number; y: number; w: number; h: number }; side: number;
-  step: ControlResolutionStep; copy: 'masked' | 'unmasked'; sourceAssetUrl: string; derivedPath?: string };
-
-async function loadCicnBody(face: ResolvedControlFace, opts: FaceOptions, width: number, height: number,
-  context: ControlCompositionSnapshot): Promise<PreparedCicnBody> {
-  const request = face.element.bodyRequest!, binding = face.element.cicnBody;
-  const common = { role: 'body-fill' as const, requestedId: request.resourceId, bodyMode: 5,
-    requestedResourceType: 'cicn' as const, basis: 'compatibility-policy' as const, usage: 'paint' as const,
-    owner: { baseUrl: face.theme.origin, chainDepth: face.chainDepth } };
-  const reject = (reason: string): PreparedCicnBody => {
-    opts.trace?.record({ ...common, action: 'fallback', reason }); return { kind: 'unsupported' };
-  };
-  if (!Number.isInteger(request.resourceId) || request.resourceId < -32768 || request.resourceId > 32767
-      || !face.element.slice || ![face.element.slice.corner, face.element.slice.side].every(v => Number.isInteger(v) && v >= 0 && v <= 255))
-    return reject('cicn-body-invalid-request-or-slice');
-  if (!binding || binding.model !== 'kaleidoscope-2.3.1-cicn-body-v1' || binding.selectionPolicy !== 'unique-same-face-owner'
-      || binding.requestedId !== request.resourceId) return reject('cicn-body-binding-unavailable');
-  if (binding.status === 'missing' && binding.reason === 'same-owner-resource-absent') {
-    opts.trace?.record({ ...common, action: 'missing', reason: binding.reason }); return { kind: 'missing' };
-  }
-  if (binding.status !== 'ready') return reject(`cicn-body-${binding.status}:${binding.reason}`);
-  const target = face.theme.manifest.chromeElements?.[binding.manifestKey], rect = binding.sourceRect;
-  const side = face.element.slice?.side, corner = face.element.slice?.corner;
-  if (!target || target.sourceCicnId !== request.resourceId || binding.reason !== 'unique-source-occurrence'
-      || !ownerDisplayPolicyMatches(face.theme.manifest, binding.displayPolicy) || ![1, 2, 4, 8].includes(binding.pixelSize)
-      || !rect || rect.x !== 0 || rect.y !== 0 || !Number.isInteger(rect.w) || rect.w <= 0 || rect.w !== target.width
-      || !Number.isInteger(rect.h) || rect.h <= 0 || rect.h !== target.height
-      || typeof binding.asset !== 'string' || !binding.asset
-      || (binding.pixelSize === 1 ? binding.copy !== 'masked' || binding.asset !== target.asset || binding.derivedPath !== undefined
-        : binding.copy !== 'unmasked' || !/^cicn-body\/[^/]+\.png$/.test(binding.derivedPath ?? ''))
-      || !Number.isInteger(side) || side! < 0 || side! > 255 || !Number.isInteger(corner) || corner! < 0 || corner! > 255)
-    return reject('cicn-body-invalid-source-binding');
-  if (width - 2 * side! !== rect.w || height - 2 * side! !== rect.h) return reject('cicn-body-scaling-unsupported');
-  const sourceRect = { ...rect }, inset = side!;
-  let visible = false;
-  for (let y = inset; y < height - inset && !visible; y++) for (let x = inset; x < width - inset; x++)
-    if (controlPointVisible(context, x, y)) { visible = true; break; }
-  if (!visible) return reject('cicn-body-outside-clip');
-  // Snapshot the actual target, owner and URL before awaiting dependent decoding.
-  const step: ControlResolutionStep = { ...common, action: 'selected', reason: 'same-owner-cicn-body-paint',
-    resource: resourceIdentity({ theme: face.theme, element: target, key: binding.manifestKey, chainDepth: face.chainDepth }, '') };
-  const raster = face.theme.asset(binding.asset), targetRaster = face.theme.asset(target.asset);
-  const copy = binding.copy, derivedPath = binding.derivedPath;
-  const buffer = await raster.pixels();
-  if (buffer.width !== sourceRect.w || buffer.height !== sourceRect.h) return reject('cicn-body-decoded-size-mismatch');
-  for (let i = 3; i < buffer.data.length; i += 4)
-    if (copy === 'unmasked' ? buffer.data[i] !== 255 : buffer.data[i] !== 0 && buffer.data[i] !== 255)
-      return reject('cicn-body-alpha-mismatch');
-  const [url, targetUrl] = opts.trace ? await Promise.all([raster.imageUrl(), targetRaster.imageUrl()]) : [raster.key, targetRaster.key];
-  const selected = { ...step, resource: { ...step.resource!, assetUrl: targetUrl! } };
-  return { kind: 'ready', buffer, sourceRect, side: inset, step: selected, copy, sourceAssetUrl: url!, ...(derivedPath ? { derivedPath } : {}) };
-}
-
-async function loadBodyPattern(face: ResolvedControlFace, opts: FaceOptions): Promise<{ buffer: PixelBuffer | null; solidFallback: boolean; selection?: ControlResolutionStep }> {
-  const request = face.element.bodyRequest;
-  if (!request) return { buffer: null, solidFallback: false }; // Legacy manifests have no observed raw request.
-  const common = { role: 'body-fill' as const, requestedId: request.resourceId, bodyMode: request.mode,
-    requestedResourceType: request.mode === 5 ? 'cicn' as const : 'ppat' as const,
-    basis: 'compatibility-policy' as const, usage: 'paint' as const,
-    owner: { baseUrl: face.theme.origin, chainDepth: face.chainDepth } };
-  if (!Number.isInteger(request.mode) || request.mode < 0 || request.mode > 255 || request.mode === 5 || !face.element.slice) {
-    opts.trace?.record({ ...common, action: 'fallback', reason: request.mode === 5 ? 'cicn-body-not-implemented' : 'body-mode-or-geometry-not-implemented' });
-    return { buffer: null, solidFallback: false };
-  }
-  const patterns = face.theme.manifest.patterns ?? {};
-  const rejected: { step: ControlResolutionStep; raster: RasterSource | undefined }[] = [];
-  const reportRejected = async () => {
-    for (const { step, raster } of rejected) {
-      const resource = step.resource && raster ? { ...step.resource, assetUrl: await raster.imageUrl() } : undefined;
-      opts.trace?.record({ ...step, ...(resource ? { resource } : {}) });
-    }
-  };
-  let key: string | null = null;
-  let selectionReason = 'unique-id-pattern-paint';
-  // The loader carries its last decoded occurrence before numeric catalog keys
-  // can reorder. Legacy links remain supported, but enumeration cannot recover
-  // occurrence order for multiple otherwise-unbound candidates.
-  const links = [
-    [face.element.bodyPattern, 'carried-body-pattern-paint'],
-    [face.element.bgPattern, 'legacy-linked-pattern-paint'],
-  ] as const;
-  const visited = new Set<string>();
-  for (const [candidate, reason] of links) {
-    if (!candidate || visited.has(candidate)) continue;
-    visited.add(candidate);
-    const linked = patterns[candidate];
-    if (linked?.sourcePpatId === request.resourceId) { key = candidate; selectionReason = reason; break; }
-    if (opts.trace) rejected.push({ raster: linked ? face.theme.asset(linked.asset) : undefined, step: { ...common, action: 'rejected', reason: 'linked-pattern-id-mismatch', ...(linked ? { resource: {
-      type: 'ppat', signedId: linked.sourcePpatId ?? null, sourceCinfId: null, manifestKey: candidate,
-      assetUrl: '', ...(linked.byteProvenance ? { byteProvenance: { ...linked.byteProvenance } } : {}),
-    } } : {}) } });
-  }
-  if (!key) {
-    for (const candidate of Object.keys(patterns)) {
-      if (patterns[candidate]!.sourcePpatId !== request.resourceId) continue;
-      if (key !== null) {
-        await reportRejected();
-        opts.trace?.record({ ...common, action: 'missing', reason: 'ambiguous-legacy-pattern-order' });
-        return { buffer: null, solidFallback: false };
-      }
-      key = candidate;
-    }
-  }
-  const pattern = key ? patterns[key] : undefined;
-  const raster = pattern ? face.theme.asset(pattern.asset) : undefined;
-  const resource = pattern && opts.trace ? { type: 'ppat' as const, signedId: pattern.sourcePpatId ?? null, sourceCinfId: null, manifestKey: key!,
-    assetUrl: '', ...(pattern.byteProvenance ? { byteProvenance: { ...pattern.byteProvenance } } : {}) } : undefined;
-  await reportRejected();
-  if (!pattern) {
-    opts.trace?.record({ ...common, action: 'missing', reason: 'same-face-owner-pattern-unavailable' });
-    // Current same-owner lookup miss corresponds to the full-color solid path.
-    // This is not proof of historical Resource Manager search ownership.
-    const solidFallback = Number.isInteger(request.resourceId) && request.resourceId >= -32768 && request.resourceId <= 32767
-      && [face.element.slice.corner, face.element.slice.side].every(value => Number.isInteger(value) && value >= 0 && value <= 255);
-    return { buffer: null, solidFallback };
-  }
-  const buffer = await raster!.pixels();
-  const selection: ControlResolutionStep | undefined = resource ? { ...common, action: 'selected', reason: selectionReason,
-    resource: { ...resource, assetUrl: await raster!.imageUrl() } } : undefined;
-  if (selection) opts.trace?.record(selection);
-  return { buffer, solidFallback: false, ...(selection ? { selection } : {}) };
-}
-
-/**
- * Compose a button face and its label. For explicit cinf metadata with a valid
- * solid background sample, use kDEF 0x10fc0 → 0x107fe: fill the inset cross,
- * then paint square corners and independent masked edge bands. Full-color pattern bodies use the same
- * inset union with explicit port phase. Unsupported button body modes
- * retain their compatibility approximation. Text RGB/emboss use preserved samples
- * from 0x10922–0x10990; font metrics and browser alpha-over remain policies.
- */
+/** One facade over prepared engine icons or rectangular legacy artwork. */
 async function composeFaceButton(
   resolved: ResolvedControlFace,
   opts: FaceOptions,
@@ -828,104 +697,61 @@ async function composeFaceButton(
   }
   const innerW = Math.max(opts.minWidth, (glyphs ? glyphs.width : 0) + 16);
   const innerH = lineH;
+  if (![innerW, innerH].every(n => Number.isInteger(n) && n > 0 && n <= 32767))
+    throw new RangeError('Bevel allocation dimensions must be positive bounded integers');
   const out = PixelBuffer.alloc(innerW, innerH);
   const context = opts.composition ?? snapshotControlComposition();
-  const bodyRects = cinfBodyRects(rect(0, 0, innerH, innerW), fIns, fSide);
-  const pixelBodyRects = bodyRects.map(r => rect(Math.ceil(r.top), Math.ceil(r.left), Math.ceil(r.bottom), Math.ceil(r.right)));
+  const D = rect(0, 0, innerH, innerW);
   const clip = context.clip.kind === 'rect' ? rect(context.clip.rect.y - context.controlOrigin[1],
     context.clip.rect.x - context.controlOrigin[0], context.clip.rect.y + context.clip.rect.h - context.controlOrigin[1],
     context.clip.rect.x + context.clip.rect.w - context.controlOrigin[0]) : undefined;
-  // A completed body dependency describes a published composition, not an
-  // intermediate offscreen write. Borders can still decode asynchronously.
-  let mode5PaintStep: ControlResolutionStep | undefined;
-  let patternPaint: NonNullable<ControlResolutionStep['bodyPaint']> | undefined;
   let legacyFacePaint: LegacyFacePaint | undefined;
   opts.trace?.composition({ context, originalPortState: 'unverified',
     faceRect: { x: context.controlOrigin[0], y: context.controlOrigin[1], w: innerW, h: innerH },
     appliedUnknownPatternOffset: context.patternOrigin.status === 'unknown' });
-  const mode5 = faceEl.bodyRequest?.mode === 5;
-  const cicnBody = mode5 ? await loadCicnBody(resolved, opts, innerW, innerH, context) : null;
-  const body = mode5 ? { buffer: null, solidFallback: cicnBody?.kind === 'missing' }
-    : await loadBodyPattern(resolved, opts);
-  const pattern = body.buffer;
-  if (resolved.consumedCinf && !pattern && !body.solidFallback)
-    throw new CinfEnvironmentError('Declared cinf body pattern lookup is ambiguous or unsupported', 'UNSUPPORTED_CINF_ENVIRONMENT');
-  const samples = faceEl.colorSamples;
-  const rawBg = samples?.background;
-  const triple = (values: readonly number[] | undefined, max: number): boolean =>
-    Array.isArray(values) && values.length === 3 && values.every(value => Number.isInteger(value) && value >= 0 && value <= max);
-  // 10904..1091a samples source RGB independently of the mask; 109b2..109b6
-  // applies it before a NULL pattern result reaches solid fill at10b72.
-  // Prefer its already-transformed display triple even for opaque raster pixels:
-  // source palette lookup can differ from the ordinary raster decoder's policy.
-  // Loader validation binds RGB16/display consistency. Direct hand-built theme
-  // metadata remains caller-declared; do not apply or duplicate that LUT here.
-  const sourceBg = body.solidFallback && faceEl.slice && !faceEl.colorSamplesUnavailableReason
-    && samples?.model === 'kdef-2.3.1-color' && ownerDisplayPolicyMatches(resolved.theme.manifest, samples.displayPolicy)
-    && rawBg && triple(rawBg.rgb16, 65535) && triple(rawBg.displayRgb, 255)
-    && bg && Number.isInteger(bg[0]) && Number.isInteger(bg[1])
-    && bg[0] >= 0 && bg[0] < face.width && bg[1] >= 0 && bg[1] < face.height
-    ? rawBg.displayRgb : null;
-  if (resolved.consumedCinf && !pattern && !sourceBg)
-    throw new CinfEnvironmentError('Declared cinf raw background sample unavailable', 'UNSUPPORTED_CINF_ENVIRONMENT');
-  if (cicnBody?.kind === 'missing' && !sourceBg) opts.trace?.record({
-    role: 'body-fill', requestedId: faceEl.bodyRequest!.resourceId, bodyMode: 5, requestedResourceType: 'cicn',
-    basis: 'compatibility-policy', usage: 'paint', owner: { baseUrl: resolved.theme.origin, chainDepth: resolved.chainDepth },
-    action: 'fallback', reason: 'missing-cicn-body-background-unverified',
+  const id = -Math.abs(faceEl.sourceCicnId!);
+  const declared = resolved.consumedCinf;
+  const point = (anchor: readonly number[] | null | undefined) => ({ x: anchor?.[0] ?? -1, y: anchor?.[1] ?? -1 });
+  const record: CinfRecord | undefined = declared && faceEl.slice && faceEl.bodyRequest ? {
+    cornerSize: fIns, sideThickness: fSide, tileSides: faceEl.slice.tile ? 1 : 0,
+    patternAnchor: faceEl.bodyRequest.mode, bgPatternId: faceEl.bodyRequest.resourceId,
+    bgPixel: point(bg), textPixel: point(ta), embossPixel: faceEl.embossAnchor ? point(faceEl.embossAnchor) : { x: 0, y: 0 },
+  } : undefined;
+  const chain = await themeResourceChain(resolved.theme, [{ type: 'cinf', id }, { type: 'cinf', id: 0 }], {
+    cinfBodies: declared ? [] : [id, 0], traceProvenance: !!opts.trace,
+    ...(declared ? { cinfProviders: [{ ...mapProvider('declared:bevel', 'cinf', [[`cinf:${declared.selected!.signedId}`, record]]),
+      selection: () => ({ cinfLookup: declared }) }] } : {}),
+    bodyEnvironment: { owner: resolved.theme, face: faceEl, width: innerW, height: innerH, ...(clip ? { clip } : {}),
+      ...(declared && faceEl.bodyRequest ? { requests: [{ type: 'ppat', id: faceEl.bodyRequest.resourceId }] } : {}) },
   });
-  if (cicnBody?.kind === 'ready') {
-    let paintedPixels = 0;
-    const { buffer, side, sourceRect, copy } = cicnBody;
-    for (let y = 0; y < sourceRect.h; y++) for (let x = 0; x < sourceRect.w; x++) {
-      if (!controlPointVisible(context, x + side, y + side)) continue;
-      const pixel = buffer.getPixel(x, y);
-      if (copy === 'masked' && pixel[3] === 0) continue;
-      out.setPixel(x + side, y + side, ...pixel); paintedPixels++;
-    }
-    if (paintedPixels) mode5PaintStep = { ...cicnBody.step, bodyPaint: {
-      branch: copy === 'masked' ? 'masked-copy' : 'unmasked-copy', sourceRect, sourceAssetUrl: cicnBody.sourceAssetUrl,
-      destinationRect: { x: side, y: side, w: sourceRect.w, h: sourceRect.h }, paintedPixels,
-      ...(cicnBody.derivedPath ? { derivedPath: cicnBody.derivedPath } : {}),
-    } };
-    else {
-      const unpainted = { ...cicnBody.step }; delete unpainted.resource;
-      opts.trace?.record({ ...unpainted, action: 'fallback', reason: 'cicn-body-no-visible-source-pixels' });
-    }
-    out.drawOver(await composeControlBorder(resolved, innerW, innerH, opts, (x, y) => controlPointVisible(context, x, y)), 0, 0);
-  } else if (pattern && faceEl.slice && faceEl.bodyRequest) {
-    const [phaseX, phaseY] = bodyPatternPhase(context, faceEl.bodyRequest.mode, innerW, innerH);
-    // Both insets share the original phase. The final face clip clears writes
-    // outside the declared port; coverage counts the overlapping union once.
-    for (const box of pixelBodyRects) fillPattern(out, box, pattern, { x: -phaseX, y: -phaseY });
-    const paintedPixels = pattern.width > 0 && pattern.height > 0 ? bodyWriteCount(out, pixelBodyRects, clip) : 0;
-    if (opts.trace && body.selection && paintedPixels) {
-      const unionRects = bodyRects.map(r => ({ x: Math.max(0, r.left), y: Math.max(0, r.top),
-        w: Math.max(0, Math.min(innerW, r.right) - Math.max(0, r.left)),
-        h: Math.max(0, Math.min(innerH, r.bottom) - Math.max(0, r.top)) })).filter(r => r.w > 0 && r.h > 0);
-      patternPaint = { branch: 'pattern-fill-union', coordinateSpace: 'face-local-before-ring',
-        unionRects, paintedPixels, sourceAssetUrl: body.selection.resource!.assetUrl,
-        sourceSize: [pattern.width, pattern.height], context,
-        phase: { basis: 'modern-composition-policy', offset: [phaseX, phaseY], originalPatternPhase: 'unverified' } };
-    }
-    out.drawOver(await composeControlBorder(resolved, innerW, innerH, opts, (x, y) => controlPointVisible(context, x, y)), 0, 0);
-  } else if (faceEl.slice && (sourceBg || validBg)) {
-    // 0x10b72–0x10bb8 erases two rectangles using the sampled background:
-    // inset(horizontal=corner, vertical=side), then the transposed insets.
-    // Their union is a cross when corner != side. Fill precedes the border,
-    // so transparent edge samples reveal the body without erasing earlier art.
-    const [br, bgc, bb] = sourceBg ?? [cr, cg, cb];
-    for (const r of bodyRects) out.fillRect({ x: r.left, y: r.top, w: r.right - r.left, h: r.bottom - r.top }, br!, bgc!, bb!, 255);
-    if (cicnBody?.kind === 'missing' && sourceBg) {
-      const paintedPixels = bodyWriteCount(out, pixelBodyRects, clip);
-      if (paintedPixels) mode5PaintStep = { role: 'body-fill', requestedId: faceEl.bodyRequest!.resourceId, bodyMode: 5,
-        requestedResourceType: 'cicn', basis: 'source-dispatch', usage: 'paint', action: 'missing',
-        owner: { baseUrl: resolved.theme.origin, chainDepth: resolved.chainDepth }, reason: 'missing-cicn-body-erase-union',
-        bodyPaint: { branch: 'missing-erase', destinationRect: { x: 0, y: 0, w: innerW, h: innerH }, paintedPixels } };
-    }
-    out.drawOver(await composeControlBorder(resolved, innerW, innerH, opts, (x, y) => controlPointVisible(context, x, y)), 0, 0);
+  const metadata = chain.probe('cinf', [id, 0]);
+  let engineTrace: EngineTrace | undefined;
+  if (metadata) {
+    // No second face lookup: the same captured pixels/owner feed shared preparation.
+    const prepared = await prepareThemeIcon(resolved.theme, faceEl.sourceCicnId!, faceEl, resolved.raster,
+      { pixels: face, lazySamples: true, traceProvenance: !!opts.trace });
+    const icon = prepared.icon;
+    if (declared) Object.defineProperty(icon, 'sampleRgb16', { value: (p: { x: number; y: number }) => {
+      for (const [anchor, sample] of [[bg, faceEl.colorSamples?.background], [ta, faceEl.colorSamples?.text],
+        [faceEl.embossAnchor, faceEl.colorSamples?.emboss]] as const)
+        if (anchor && anchor[0] === p.x && anchor[1] === p.y) return sample?.rgb16 ?? null;
+      return null;
+    } });
+    await prepareCinfFrameSamples(chain, id, true, D, out, clip, record, icon);
+    engineTrace = opts.trace ? createTrace('bevel-button') : undefined;
+    if (engineTrace) engineTrace.controlPaint = { bodies: [], bands: [], context, ...(clip ? { clip } : {}) };
+    const result = drawCinfFrame(out, chain, { id, cicn: face, icon, dstRect: D, bodyFill: true,
+      requireRawSamples: true, ...(resolved.loadedIdentity ? { selection: resolved.loadedIdentity } : {}),
+      allocationOrigin: { x: context.controlOrigin[0], y: context.controlOrigin[1] },
+      patternOffset: context.patternOrigin.status === 'known'
+        ? { x: -context.patternOrigin.offset[0], y: -context.patternOrigin.offset[1] } : { x: 0, y: 0 },
+    }, engineTrace);
+    if (result.unsupported) throw new Error(`Unsupported bevel output: ${result.unsupported}`);
+    if (!result.drawn) throw new Error('Prepared bevel cinf was not painted');
   } else {
-    // Retained approximation for unsupported pattern modes, unresolved legacy
-    // metadata and list headers; no historical body claim for these paths.
+    if (faceEl.bodyRequest || faceEl.slice && validBg)
+      throw new Error('Unsupported bevel output: body declaration requires prepared cinf metadata');
+    // Explicit rectangular compatibility recipe; no historical body claim.
     const faceIns = { l: fIns, t: fSide, r: fIns, b: fSide };
     const faceMode = faceEl?.slice?.tile ? 'tile' : 'stretch';
     out.nineSlice(face, { x: 0, y: 0, w: face.width, h: face.height }, faceIns, { x: 0, y: 0, w: innerW, h: innerH }, faceMode);
@@ -970,76 +796,9 @@ async function composeFaceButton(
     for (let y = 0; y < innerH; y++) for (let x = 0; x < innerW; x++)
       if (!controlPointVisible(context, x, y)) out.setPixel(x, y, 0, 0, 0, 0);
   }
-  if (patternPaint && body.selection) opts.trace?.completeBodyPaint(body.selection, patternPaint);
-  if (mode5PaintStep) opts.trace?.record(mode5PaintStep);
+  for (const body of engineTrace?.controlPaint?.bodies ?? []) opts.trace?.record(body);
+  for (const band of engineTrace?.controlPaint?.bands ?? []) opts.trace?.bandPaint(band);
   if (legacyFacePaint) opts.trace?.legacyFacePaint(legacyFacePaint);
-  return out;
-}
-
-/** Bevel compatibility transfers consume shared cinf geometry in painter order. */
-async function composeControlBorder(resolved: ResolvedControlFace, width: number, height: number,
-  opts: Pick<FaceOptions, 'trace'>, visible: (x: number, y: number) => boolean): Promise<PixelBuffer> {
-  const { buffer: source, element } = resolved;
-  const out = PixelBuffer.alloc(width, height);
-  const c = Math.max(0, element.slice?.corner ?? sliceInset(source.width, source.height));
-  const side = Math.max(0, element.slice?.side ?? c);
-  const repeat = element.slice?.tile ?? false;
-  const regions = cinfBorderPlan(source, { cornerSize: c, sideThickness: side, tileSides: repeat }, rect(0, 0, height, width));
-  const proof = element.samplingEquivalence;
-  const identityMatches = (a: { model: string; comparison: string; displayPolicy: string; width: number; height: number } | undefined | null) =>
-    a?.model === 'kaleidoscope-2.3.1-opaque-sampling-v1' && a.comparison === 'opaque-current-display-rgb'
-      && ownerDisplayPolicyMatches(resolved.theme.manifest, a.displayPolicy) && a.width === source.width && a.height === source.height;
-  const equivalent = identityMatches(proof) && proof?.status === 'equivalent' && proof.reason === 'all-opaque-display-rgb-equal';
-  const companion = element.sampledBandAsset;
-  const eligible = identityMatches(companion) && companion && typeof companion.asset === 'string'
-    && /^cicn-sampled\/[^/]+\.png$/.test(companion.derivedPath);
-  let sampled: PixelBuffer | null = null;
-  let attempted = false;
-  let sampledRaster: RasterSource | undefined, sampledImage: string | undefined;
-  for (const [regionIndex, region] of regions.entries()) {
-    const { src: { left: sx, top: sy }, dst: { left: dx, top: dy }, extents: [rw, rh, dw, dh] } = region;
-    if (rw <= 0 || rh <= 0 || dw <= 0 || dh <= 0) continue;
-    // Clip allocation to the output, while retaining the original tile phase.
-    const x0 = Math.max(0, dx), y0 = Math.max(0, dy);
-    const x1 = Math.min(width, dx + dw), y1 = Math.min(height, dy + dh);
-    if (x1 <= x0 || y1 <= y0) continue;
-    // FEAE branch uses original source/destination dimensions before clipping,
-    // width expansion first. tile=true does not bypass a one-pixel sampler.
-    const branch = rw === 1 && dw > 1 ? 'horizontal-lines' : rh === 1 && dh > 1 ? 'vertical-lines' : 'copy';
-    let paints = false;
-    for (let y = y0; y < y1 && !paints; y++) for (let x = x0; x < x1; x++) {
-      if (visible(x, y) && source.getPixel(sx + (x - dx) % rw, sy + (y - dy) % rh)[3] > 0) { paints = true; break; }
-    }
-    if (!paints) continue;
-    if (branch !== 'copy' && !equivalent && eligible && !attempted) {
-      attempted = true;
-      sampledRaster = resolved.theme.asset(companion.asset);
-      const decoded = await sampledRaster.pixels();
-      if (decoded.width === source.width && decoded.height === source.height) {
-        let sameMask = true;
-        for (let i = 3; i < source.data.length; i += 4) if (decoded.data[i] !== source.data[i]) { sameMask = false; break; }
-        if (sameMask) sampled = decoded;
-      }
-    }
-    const pixels = branch !== 'copy' && !equivalent && sampled ? sampled : source;
-    const policy = branch === 'copy' ? 'ordinary-raster' : equivalent ? 'equivalent-raster'
-      : pixels === sampled ? 'sampled-companion' : 'compatibility-raster';
-    const band = PixelBuffer.alloc(x1 - x0, y1 - y0);
-    let opaqueUsed = false;
-    for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) {
-      if (!visible(x, y)) continue;
-      const pixel = pixels.getPixel(sx + (x - dx) % rw, sy + (y - dy) % rh);
-      if (pixel[3] > 0) opaqueUsed = true;
-      band.setPixel(x - x0, y - y0, ...pixel);
-    }
-    // FEAE's masked blits preserve earlier bands below transparent samples.
-    out.drawOver(band, x0, y0);
-    if (opaqueUsed && opts.trace && policy === 'sampled-companion') sampledImage ??= await sampledRaster!.imageUrl();
-    if (opaqueUsed) opts.trace?.bandPaint({ role: 'face', region: regionIndex, branch, policy,
-      owner: { baseUrl: resolved.theme.origin, chainDepth: resolved.chainDepth }, resource: resolved.loadedIdentity!.resource,
-      ...(policy === 'sampled-companion' && companion ? { derived: { path: companion.derivedPath,
-        assetUrl: sampledImage!, model: companion.model, displayPolicy: companion.displayPolicy } } : {}) });
-  }
   return out;
 }
 
