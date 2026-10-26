@@ -76,8 +76,9 @@ The owned resolver/mount now share the existing scanner and lifecycle. Declarati
 icons and active picker previews await selected image exports; cancellation,
 changed icon attributes and scope changes cannot publish stale results. Existing
 synchronous `assetUrl` and `promoteIcon` contracts remain intact. Main demo startup
-and drops use owned loading. The diagnostic inspector still needs explicit image
-adoption; final mounted performance and retained-memory measurements remain open.
+and drops use owned loading. The diagnostic inspector exports images at scene/sprite boundaries and opens
+inventory images lazily. Detached panels ignore late image results. Final mounted
+performance and retained-memory measurements remain open.
 
 `WindowManager<Theme>` now stores and returns the original input identity; its
 default remains `LoadedTheme`. `mountOwnedDeclarative` uses the same scanner

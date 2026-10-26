@@ -112,8 +112,8 @@ all destination composition, independent original captures, complete DOM
 lifecycles or other browsers. Window regression coverage is described above; complete
 application adoption and lifecycle validation remain open.
 
-The global private-reference registry is retired. Main demo loading and drops use the owner-local boundary; diagnostic catalog
-image adoption and final application measurements remain open. Resource indexing and
+The global private-reference registry is retired. Main demo loading and drops use the owner-local boundary; diagnostic inventories now export on open and ignore detached completions. Final
+application measurements remain open. Resource indexing and
 diagnostic redesign remain separate experiments.
 
 New runner reports pin runtime, built and harness hashes, and reject changed inputs
@@ -129,3 +129,8 @@ CSS tile pixels, native input state and promotion counts, then checks activation
 retheming and disconnect. Pending-root reservation probes reject mixed loading
 contracts and share same-contract handles. A real File decode exercises dropped
 owned registration, legacy registration and borrowed-theme survival after teardown.
+
+`diagnostic-results.json` records a local source-browser inventory probe: closed
+images remain unexported, opening the raster inventory produces real blob images,
+and detached images ignore held export completions. It also records the separate
+visual-baseline command's eight unresolved failures; those checks are not green.

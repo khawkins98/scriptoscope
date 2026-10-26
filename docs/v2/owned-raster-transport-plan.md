@@ -8,8 +8,8 @@ The working branch is `refactor/runtime-streamlining`, starting from
 The [consumer inventory and ownership contract](raster-asset-consumers.md) records
 the first design decision. The owned loader and all low-level renderer families accept the explicit owned
 contract. Owner-local captured entries replace the global raster registry. The shared
-owned resolver/mount and main demo adoption are implemented. Diagnostic catalog
-adoption, final measurements and reduction remain open. The
+owned resolver/mount and main demo adoption are implemented. Diagnostic catalog adoption is implemented; final measurements and reduction
+remain open. The
 [owned loading API](owned-theme-api.md) records the current supported boundary.
 
 Architecture review with Astra selected one owner implementation with two explicit
@@ -60,7 +60,7 @@ serialization and inspection would trigger broad encoding.
   borrowed legacy registrations. Pending mixed-contract mounts reject and
   same-contract calls share one handle. All 69 targeted page/scanner/button
   lifecycle browser cases pass; fresh demo build and packed consumer pass.
-- Diagnostic catalog adoption, retained-heap/process measurements, final code
+- Retained-heap/process measurements, final code
   reduction and full final acceptance remain open.
 
 ## Next vertical slice and compatibility boundary
@@ -85,7 +85,8 @@ scope and cancellation; picker previews retain the selected base owner.
 
 The advertisement, showcase, responsive examples, capabilities page and hostile
 CSS demo now use owned loading; showcase and shared helper drops decode owned
-themes. The diagnostic inspector still needs explicit async image adoption. Selected owner/reference handoffs now capture actual owner entries. Public
+themes. The diagnostic inspector now exports selected scene/sprite images and defers
+closed inventories until opened, guarding detached panels against late results. Selected owner/reference handoffs now capture actual owner entries. Public
 `assetUrl` no longer recognizes the private identity prefix.
 
 ## Outcome
@@ -201,3 +202,19 @@ consolidate captured decoded-or-image preparation without delaying legacy decode
 start; and avoid declared-cinf/diagnostic metadata preparation for pixel-only
 control lookups where it adds no validation. Preserve family admission and trace
 ordering; do not introduce a generic diagnostic framework to meet a line count.
+
+## Diagnostic consumer validation
+
+The owned diagnostic page passes all 18 targeted page/history browser cases.
+A local source-browser probe records 312 closed inventory images with no image
+exports assigned. Opening the 1138 raster panel exports all 542 thumbnails as
+blob URLs while the separate icon inventory remains deferred. Holding 473 new
+1984 image exports, switching themes and releasing them publishes none into the
+detached panel. See `tools/runtime-spike/diagnostic-results.json`.
+
+An additional `npm run test:visual-baselines` run has 33 passes and 8 failures
+(ring/label expectations, inherited-face census, a showcase locator and shell
+shadow). Their relation to this migration remains unproven; do not claim those
+checks pass or change their fixtures to accommodate the transport. Triage remains
+part of the final verification audit. Required final browser/pinned-golden checks,
+actual mounted loading/memory measurements and net reduction are still open.

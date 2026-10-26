@@ -1,0 +1,41 @@
+{
+  "recordedAt": "2026-10-26T00:32:06.310Z",
+  "status": "pass",
+  "method": "Named agent-browser session, source Vite page; manual UI actions and DOM assertions",
+  "scope": "Image export and detached inventory publication, not historical rendering fidelity or retained process memory",
+  "diagnosticSha256": "3b7920f785f903dfebea78550b305598cd5e83e4908988163a3062965131b9c2",
+  "theme1138": {
+    "closedInventoryImages": 312,
+    "closedExportedImages": 0,
+    "openedRasterImages": 542,
+    "exportedRasterImages": 542,
+    "nonBlobRasterImages": 0,
+    "stillClosedIconExports": 0
+  },
+  "pendingTheme1984": {
+    "heldImages": 473,
+    "detachedBeforeRelease": true,
+    "lateImagePublications": 0
+  },
+  "browserChecks": {
+    "cases": 18,
+    "passed": 18,
+    "command": "playwright test site-pages.spec.mjs diagnostic-history.spec.mjs"
+  },
+  "additionalVisualBaseline": {
+    "cases": 41,
+    "passed": 33,
+    "failed": 8,
+    "status": "unresolved",
+    "failures": [
+      "fallback/inherited face cinf census",
+      "ring footprints",
+      "ring overlays",
+      "ring label ink",
+      "overlapping ring bands",
+      "Windows95 label templates",
+      "showcase copy-button locator",
+      "window shell shadow"
+    ]
+  }
+}

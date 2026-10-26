@@ -5,7 +5,7 @@ ready-image `LoadedTheme`. All low-level window and control composition entry po
 contract. Interactive sliders, checkables and disclosure controls, and button,
 form-control and tab promotion, use the same owned path. The additive owned
 resolver and mount share the existing scanner and lifecycle. The main demo startup
-and drop flows use them; diagnostic catalog migration remains open in feature PR #480.
+and drop flows use them; diagnostic catalog images now export asynchronously in feature PR #480.
 
 ```ts
 import { loadOwnedTheme, interactiveButton, WindowManager, themeImageUrl, type OwnedTheme } from 'scriptoscope';
