@@ -250,3 +250,28 @@ production regression. These measurements support sharply fewer PNG exports and
 better median startup in the current eager/owned comparison, with a decoded
 storage tradeoff and unresolved variability. They do not compare a frozen
 historical executable or establish additional original-engine fidelity.
+
+## Reconstructed starting revision
+
+`node tools/runtime-spike/build-frozen.mjs` rebuilds the exact frozen revision
+`de942c6399c81d1f15d23247dfd62a36e11a64bc` in an isolated temporary directory.
+The current pinned compiler consumes historical implementation inputs with an
+explicit configuration; the runner does not inspect historical source or execute
+historical build scripts. Extracted inputs are removed, and only compiled JS,
+CSS and `build.json` remain. This is a reconstruction, not a recovered release.
+`frozen-build-results.json` records the recipe, toolchain and artifact hashes.
+
+Set `SCRIPTOSCOPE_EAGER_ENTRY` to the printed compiled `scriptoscope.js` path,
+then run `node tools/runtime-spike/application.mjs --smoke` (or omit `--smoke`
+for three trials per mode). The harness verifies every frozen artifact hash and
+compares its eager API with the current built owned API in the same current
+application and controlled styles. It writes separate `application-historical-*`
+reports, preserving current-API reports. This does not recreate the historical
+application release.
+
+`application-historical-smoke-results.json` verifies that both compiled APIs
+mount all five windows, switch themes and complete twenty mount cycles per mode.
+Its single startup trial per mode is an integration check, not a performance
+budget or final historical comparison. The reconstructed baseline contains
+698,396 JavaScript bytes across all chunks; final current-build comparisons must
+use equivalent compiler settings and include every lazy chunk.

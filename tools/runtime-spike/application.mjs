@@ -3,15 +3,29 @@
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { readFile, readdir, rm, writeFile } from 'node:fs/promises';
-import { resolve } from 'node:path';
+import { resolve, dirname } from 'node:path';
 import { createHash } from 'node:crypto';
 import { createServer } from 'vite';
 const exec = promisify(execFile), root = resolve(import.meta.dirname, '../..');
+const eagerEntry = process.env.SCRIPTOSCOPE_EAGER_ENTRY ? resolve(process.env.SCRIPTOSCOPE_EAGER_ENTRY) : null;
+const frozenBuild = eagerEntry ? JSON.parse(await readFile(resolve(dirname(eagerEntry), '../build.json'), 'utf8')) : null;
+if (frozenBuild && frozenBuild.status !== 'pass') throw new Error('Frozen baseline build did not pass');
+if (frozenBuild) {
+  if (!frozenBuild.files.some(file => file.path === 'scriptoscope.js')) throw new Error('Frozen entry is absent from its manifest');
+  for (const file of frozenBuild.files) {
+    if (!/^[a-zA-Z0-9._-]+$/.test(file.path)) throw new Error('Invalid compiled artifact filename');
+    const actual = createHash('sha256').update(await readFile(resolve(dirname(eagerEntry), file.path))).digest('hex');
+    if (actual !== file.sha256) throw new Error('Frozen compiled artifact differs from its build manifest');
+  }
+}
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 async function fingerprint() {
   const { stdout } = await exec('git', ['ls-files', '--cached', '--others', '--exclude-standard', 'src', 'tools/theme-loader', 'demo', 'themes'], { cwd: root });
   const paths = stdout.trim().split('\n').filter(p => !/\.test\.|\.d\.ts$/.test(p) && (/\.(ts|js|mjs|html|css|json)$/.test(p) || p.startsWith('demo/assets/') || /^themes\/[^/]+\/scheme\.(sit|rsrc)$/.test(p)));
   paths.push('tools/runtime-spike/application.mjs', ...(await readdir(resolve(root, 'dist'))).filter(p => p.endsWith('.js')).map(p => `dist/${p}`));
+  if (eagerEntry) {
+    paths.push(resolve(dirname(eagerEntry), '../build.json'), ...(await readdir(dirname(eagerEntry))).filter(p => p.endsWith('.js')).map(p => resolve(dirname(eagerEntry), p)));
+  }
   const digest = createHash('sha256');
   for (const path of paths.sort()) digest.update(path).update(await readFile(resolve(root, path)));
   return digest.digest('hex');
@@ -238,11 +252,12 @@ async function trial(serverUrl, mode, repetition) {
   }
 }
 const servers = new Map();
-const report = { context: process.env.SCRIPTOSCOPE_APPLICATION_NOTE ?? null, recordedAt: new Date().toISOString(), status: 'running', methodology: 'Real advertisement app and UI switch buttons, built library, fresh Chromium profile per trial. Current eager compatibility API versus owned API; not a historical executable. Loopback network/module/font startup included. Owned-store counters observe only advertisement themes (eager results are not bound to that registry), not mount-cycle owners. Blob counters are global to the page. Two frame boundaries and one task precede consistent post-GC sampling. Post-GC CDP heap/backing-storage and sum of browser-process RSS are recorded separately from asset counters. Twenty public mount/disconnect cycles follow app teardown. Telemetry and hooks exist only in this local server.', trials: [] };
+const report = { comparison: frozenBuild ? { kind: 'reconstructed-frozen-baseline', build: frozenBuild } : { kind: 'current-APIs' }, context: process.env.SCRIPTOSCOPE_APPLICATION_NOTE ?? null, recordedAt: new Date().toISOString(), status: 'running', methodology: 'Real advertisement app and UI switch buttons, built library, fresh Chromium profile per trial. Current eager compatibility API versus owned API; not a historical executable. Loopback network/module/font startup included. Owned-store counters observe only advertisement themes (eager results are not bound to that registry), not mount-cycle owners. Blob counters are global to the page. Two frame boundaries and one task precede consistent post-GC sampling. Post-GC CDP heap/backing-storage and sum of browser-process RSS are recorded separately from asset counters. Twenty public mount/disconnect cycles follow app teardown. Telemetry and hooks exist only in this local server.', trials: [] };
+if (frozenBuild) report.methodology = report.methodology.replace('Current eager compatibility API versus owned API; not a historical executable.', 'Compiler-reconstructed frozen eager API versus current owned API; current page and styles are controlled inputs, not a historical application release.');
 if (diagnostic) report.methodology += ' Diagnostic run adds phase wrappers and long-task/resource observers. Phase durations overlap and must not be summed; retheme includes load. Retained trace arrays and resource buffers make its heap figures incomparable with normal-mode results. Long tasks cover the main thread only. This run is recorded separately.';
 try {
   for (const mode of ['eager', 'owned']) {
-    const server = await createServer({ configFile: resolve(root, 'vite.config.js'), root: resolve(root, 'demo'), plugins: [instrument(mode)], server: { host: '127.0.0.1', port: 0, open: false, hmr: false }, resolve: { alias: { scriptoscope: resolve(root, 'dist/scriptoscope.js') } } });
+    const server = await createServer({ configFile: resolve(root, 'vite.config.js'), root: resolve(root, 'demo'), plugins: [instrument(mode)], server: { host: '127.0.0.1', port: 0, open: false, hmr: false, fs: { allow: [root, ...(eagerEntry ? [dirname(eagerEntry)] : [])] } }, resolve: { alias: { scriptoscope: mode === 'eager' && eagerEntry ? eagerEntry : resolve(root, 'dist/scriptoscope.js') } } });
     await server.listen(); servers.set(mode, server);
     const response = await fetch(server.resolvedUrls.local[0], { signal: AbortSignal.timeout(10_000) });
     const html = await response.text();
@@ -258,7 +273,7 @@ try {
 } catch (error) { report.status = 'error'; report.error = String(error.stack ?? error); console.log(JSON.stringify({status:'error',error:report.error})); process.exitCode = 1; }
 finally {
   for (const server of servers.values()) await server.close();
-  await writeFile(resolve(import.meta.dirname, diagnostic ? 'application-diagnostic-results.json' : process.argv.includes('--smoke') ? 'application-smoke-results.json' : 'application-results.json'), JSON.stringify(report, null, 2) + '\n');
+  await writeFile(resolve(import.meta.dirname, frozenBuild ? diagnostic ? 'application-historical-diagnostic-results.json' : process.argv.includes('--smoke') ? 'application-historical-smoke-results.json' : 'application-historical-results.json' : diagnostic ? 'application-diagnostic-results.json' : process.argv.includes('--smoke') ? 'application-smoke-results.json' : 'application-results.json'), JSON.stringify(report, null, 2) + '\n');
   console.log(JSON.stringify({ status: report.status, trials: report.trials.length, error: report.error }));
   if (report.status !== 'pass') process.exitCode = 1;
 }
