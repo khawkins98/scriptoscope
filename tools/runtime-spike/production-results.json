@@ -6,6 +6,7 @@
   "diagnostics": 36,
   "disposedLoads": 36,
   "disposedWindows": 36,
+  "droppedMounts": 2,
   "equalErrors": 0,
   "equalMissing": 0,
   "errors": [
@@ -230,9 +231,11 @@
   "familyDiagnostics": 108,
   "interactions": 36,
   "lazyWindows": 36,
+  "legacyRegistrations": 2,
   "managedWindows": 36,
   "mismatches": [],
   "missingScrollbars": 0,
+  "mounts": 36,
   "painted": 8424,
   "paintedScrollbars": 432,
   "paintedWindows": 1728,
@@ -420,16 +423,16 @@
       "transport": "built"
     }
   ],
-  "runAt": "2026-10-26T00:01:18.332Z",
+  "runAt": "2026-10-26T00:20:36.719Z",
   "scrollbars": 432,
   "status": "pass",
   "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
   "windows": 1728,
   "zeroPngRenders": 36,
   "provenance": {
-    "revision": "3725e478101363f2024ac07e9332c2b8eced80a3",
-    "runtime": "9a2bf65a73e57ec6c2649689fae8f4f461d40d71be4d90704ff48d0863dc6ee2",
-    "built": "f7b11fd014d7a2c7d54f84909db251302f368528152e98b0144008b34dc86e64",
-    "driver": "b9bce8050624aa6f37ccfc989f2c2f3f5846dabc19d83d56d8d0c9c57109cfef"
+    "revision": "90dc675e33aa67cac5263a2988381cc167382081",
+    "runtime": "43cd0097a67030b09085f27b0a9ba44805117a4d6fd250de5c9a656bd0f1d881",
+    "built": "433e210a368ef2560902d7fc2ce73e2aa3483dfab5b15720585e4a8a79de59c2",
+    "driver": "c09031068030c18c3d2b07c441f0227650070b6cbe7a45589e8c87f7a578a5db"
   }
 }

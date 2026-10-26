@@ -352,6 +352,9 @@ or CSS background. Do not pass `theme.source` to APIs expecting ready-image
 Window/control composition and interactive promotion accept owned inputs. A
 `WindowManager<OwnedTheme>` preserves that input in `describe()`; the default
 manager and declarative mount retain their existing loaded-theme contract.
+`mountOwnedDeclarative` shares the scanner and lifecycle with owned loading and
+accepts registered legacy or owned inputs. Disconnect before changing loading
+contracts on a root, including when its first mount is still pending.
 
 Dispose only after unmounting consumers. A child borrows its base, and disposal
 does not release that base. Captured sources reject future reads after disposal,

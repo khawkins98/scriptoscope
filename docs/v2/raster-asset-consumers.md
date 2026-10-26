@@ -72,15 +72,16 @@ remain supported. Requested public diagnostic image fields materialize valid URL
 
 ## Remaining consumers and retirement
 
-Migrate declarative icon/catalog consumers, picker/inspector and first-party
-loading onto this boundary through the shared scanner/resolver. Preserve synchronous `assetUrl` and
-`promoteIcon` contracts for existing loaded themes. An asynchronous owned mount
-must share their selection and lifecycle implementation and check generation and
-disconnect before adopting prepared DOM.
+The owned resolver/mount now share the existing scanner and lifecycle. Declarative
+icons and active picker previews await selected image exports; cancellation,
+changed icon attributes and scope changes cannot publish stale results. Existing
+synchronous `assetUrl` and `promoteIcon` contracts remain intact. Main demo startup
+and drops use owned loading. The diagnostic inspector still needs explicit image
+adoption; final mounted performance and retained-memory measurements remain open.
 
 `WindowManager<Theme>` now stores and returns the original input identity; its
-default remains `LoadedTheme`. A supported owned mount must use the same scanner
-and resolver through this boundary, then replace ordinary demo startup and drops.
+default remains `LoadedTheme`. `mountOwnedDeclarative` uses the same scanner
+and resolver lifecycle through this boundary.
 
 ## Owner-local transport retirement
 

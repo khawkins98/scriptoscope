@@ -235,7 +235,7 @@
        Finder-window-y container without faking Mac chrome. Selector uses
        `:not(:has(.scriptoscope-slot))` instead of a custom `.skinned` class
        — that way the off/on state is tied to the RUNTIME's structural
-       marker (added by mountDeclarative at promotion), not to a separate
+       marker (added by mountOwnedDeclarative at promotion), not to a separate
        layout-affecting class our boot would have to manage carefully. */
     #powers .powers-picker:not(:has(.scriptoscope-slot)) {
       border: 1px solid #b8b8b8; background: #ffffff;
@@ -528,7 +528,7 @@
           <!-- The folder strip — one attribute. The library renders one tile
                per registered theme (icon + name + author/year credit) with
                full ARIA tab pattern + keyboard nav + retheme on click.
-               Themes come from the `themes` array passed to mountDeclarative.
+               Themes come from the `themes` array passed to mountOwnedDeclarative.
                The two `.powers-picker-special-tile` buttons pre-seeded
                inside are demo-side extras (No theme + Load your own); CSS
                `order` puts No theme first and Load your own last, theme
@@ -637,7 +637,7 @@
 
       <!-- CARD GRID — 1+1 heavy row up top (the two cards a developer
            actually reads), 2-up minor row below (footnotes). NO explicit
-           x/y/width/height on any card: mountDeclarative reads each card's
+           x/y/width/height on any card: mountOwnedDeclarative reads each card's
            getBoundingClientRect() at promotion time, so the chrome wraps
            IN PLACE — bare HTML and skinned chrome occupy IDENTICAL
            positions. The "wait, that's HTML?" disbelief beat lands as a
@@ -723,13 +723,13 @@
     // Imports use the bare `scriptoscope` specifier — same string a third-
     // party consumer would write. Vite (dev + prod) aliases it to
     // src/index.ts so the landing is a faithful consumer example.
-    import { mountDeclarative, attachThemeDropZone, loadKaleidoscopeScheme } from 'scriptoscope';
+    import { mountOwnedDeclarative, attachThemeDropZone, loadOwnedKaleidoscopeScheme } from 'scriptoscope';
     import THEMES from './themes-manifest.json';
 
     // (Removed: the inline `await Promise.all(document.fonts.load(...))`
     // that used to gate this whole module — perf agent caught ~700ms of
     // wasted blocking on Fast 3G because the library's own preloadFonts()
-    // gate runs inside mountDeclarative anyway. The script-tag preload
+    // gate runs inside mountOwnedDeclarative anyway. The script-tag preload
     // links in <head> below let the browser start the woff fetches in
     // parallel with the JS download instead of after it.)
 
@@ -738,7 +738,7 @@
     const BASE = import.meta.env.BASE_URL;
     const themeBaseUrl = `${BASE}themes`.replace(/\/+$/, '');
     // (The loadOnce theme cache, themesBySlug map, and loadTheme import
-    // are GONE — the library's createThemeResolver caches per-mount
+    // are GONE — the library's createOwnedThemeResolver caches per-mount
     // internally; declarative theme-picker / icon promotions both use it.)
 
     // ── DOM handles ─────────────────────────────────────────────────────────
@@ -758,7 +758,7 @@
     // mirrors slug back to URL via history.replaceState.
     // The library now owns ?theme= reading + auto-cycle's first-interaction
     // detector — we just pass `syncToUrlParam: 'theme'` + `autoCycle: 4000`
-    // and `themes: THEMES` to mountDeclarative below.
+    // and `themes: THEMES` to mountOwnedDeclarative below.
     let mountToken = 0;
     let handle = null;
     let mountingPowers = null;
@@ -770,7 +770,7 @@
     }
 
     // Single state setter — toggle button only. The library auto-adds
-    // `.scriptoscope-ready` to the root (#powers) when mountDeclarative
+    // `.scriptoscope-ready` to the root (#powers) when mountOwnedDeclarative
     // resolves and removes it on disconnect, so any consumer CSS that
     // wants "is the runtime live?" scopes off `#powers.scriptoscope-ready`
     // instead of a class our code juggles. Keeps boot + library state in
@@ -808,7 +808,7 @@
       const my = ++mountToken;
       let h;
       try {
-        h = await mountDeclarative({
+        h = await mountOwnedDeclarative({
           root: powersSection,
           themeBaseUrl,
           pageThemeDefault: THEMES.some(t => t.slug === activeRef) ? activeRef : randomDefaultSlug,
@@ -830,7 +830,7 @@
         });
       } catch (err) {
         if (my === mountToken) syncToggleUI(false);
-        console.warn('[scriptoscope] mountDeclarative failed:', err);
+        console.warn('[scriptoscope] mountOwnedDeclarative failed:', err);
         return;
       }
       const wantsSkinned = toggleBtn.getAttribute('aria-pressed') === 'true';
@@ -910,7 +910,7 @@
     // bubbled scriptoscope:close listener (so the chrome close widget
     // also closes the wrap). The demo just OPENS and lets the library
     // do the rest. The drop zone INSIDE the modal is wired via
-    // attachThemeDropZone. onFile decodes via loadKaleidoscopeScheme (no
+    // attachThemeDropZone. onFile decodes via loadOwnedKaleidoscopeScheme (no
     // upload), registers under a synthetic ref, and rethemes the page.
     // Modal stays open after a successful load so the user sees the
     // status; they close it via backdrop / Esc / close widget.
@@ -977,7 +977,7 @@
             return;
           }
           try {
-            const theme = await loadKaleidoscopeScheme(file, { meta: { name }, source: file.name });
+            const theme = await loadOwnedKaleidoscopeScheme(file, { meta: { name }, source: file.name });
             const ref = `dropped:${file.name}`;
             registeredThemes.set(ref, theme);
             handle.registerTheme(ref, theme);
@@ -1064,14 +1064,14 @@
 
     // (The 40-line folder-strip-with-ARIA-keyboard-nav boot is GONE —
     // `<div data-scriptoscope-theme-picker>` in the markup + `themes: THEMES`
-    // passed to mountDeclarative covers it. The library handles tile
+    // passed to mountOwnedDeclarative covers it. The library handles tile
     // building, name + author/year, ARIA tab pattern, keyboard nav,
     // active-state sync on retheme. Pointerdown still counts as
     // engagement (auto-cycle stops below), which the section-wide
     // first-interaction listener picks up.)
 
     // (Auto-cycle, URL-sync, and the switchTheme orchestrator are GONE —
-    // all three are now mountDeclarative options:
+    // all three are now mountOwnedDeclarative options:
     //   - autoCycle: 4000        — library handles the timer + interaction
     //                              stop + reduced-motion + deep-link suppress
     //   - syncToUrlParam: 'theme'— library reads at boot + replaceState

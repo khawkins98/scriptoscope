@@ -7,8 +7,9 @@ The working branch is `refactor/runtime-streamlining`, starting from
 `de942c6399c81d1f15d23247dfd62a36e11a64bc` with upstream `origin/v2`.
 The [consumer inventory and ownership contract](raster-asset-consumers.md) records
 the first design decision. The owned loader and all low-level renderer families accept the explicit owned
-contract. Owner-local captured entries replace the global raster registry. Shared
-declarative adoption and final reduction remain open. The
+contract. Owner-local captured entries replace the global raster registry. The shared
+owned resolver/mount and main demo adoption are implemented. Diagnostic catalog
+adoption, final measurements and reduction remain open. The
 [owned loading API](owned-theme-api.md) records the current supported boundary.
 
 Architecture review with Astra selected one owner implementation with two explicit
@@ -31,7 +32,7 @@ serialization and inspection would trigger broad encoding.
   where the sparse child lacks a declared census. None are counted as painted
   output. There are zero mismatches or unexpected errors. Another 108 completed
   tab, bevel and header diagnostic checks pass.
-- Current full gates pass: 1,122 Node tests pass, 2 skip and 12 remain TODO,
+- Current full gates pass: 1,131 Node tests pass, 2 skip and 12 remain TODO,
   with zero failures. This includes ownership, failure, diagnostic snapshot and
   duplicate-path occurrence checks. Typechecking includes negative public-source
   compatibility assertions.
@@ -54,8 +55,13 @@ serialization and inspection would trigger broad encoding.
   baseline sizing and two pending-CSS disposal probes. The final transport report
   records runtime, built and harness hashes and rejects changed inputs.
 - All 12,902 engine-diff cells remain unchanged.
-- Default first-party adoption, registry retirement, retained-heap/process
-  measurements, final code reduction and full final acceptance remain open.
+- Shared scanner comparison passes 36 eager/owned mounted cases across all 18
+  themes and source/built exports, plus two dropped File registrations and two
+  borrowed legacy registrations. Pending mixed-contract mounts reject and
+  same-contract calls share one handle. All 69 targeted page/scanner/button
+  lifecycle browser cases pass; fresh demo build and packed consumer pass.
+- Diagnostic catalog adoption, retained-heap/process measurements, final code
+  reduction and full final acceptance remain open.
 
 ## Next vertical slice and compatibility boundary
 
@@ -69,14 +75,17 @@ original public input identity and defaults to its existing `LoadedTheme` contra
 
 The global private-reference registry and decoder prefix branches are removed;
 owner-local entries supply captured pixels, and the ordinary external image cache
-remains. Migrate image consumers and the shared declarative scanner/resolver next.
-Existing `ThemeResolver.load()` defaults to `LoadedTheme`; an owned resolver
-accepting registered legacy themes returns `ThemeInput`. Introduce a supported
-owned mount over the same scanner/lifecycle. Use generics only where original
-public theme identity is stored or returned, without duplicating UI lifecycles.
+remains. The shared scanner now accepts either resolver through an additive
+`mountOwnedDeclarative` entry. `createThemeResolver` and `mountDeclarative` preserve
+their existing eager contracts; owned registrations may borrow legacy or owned
+inputs. Generic `ScriptoscopeWindow` dependencies preserve the supplied theme and
+manager types. A pending root reservation prevents competing mount contracts from
+promoting the same DOM. Icons await selected exports and recheck attributes,
+scope and cancellation; picker previews retain the selected base owner.
 
-The first-party demo's ordinary startup and dropped-theme flow must use owned
-loading before completion. Selected owner/reference handoffs now capture actual owner entries. Public
+The advertisement, showcase, responsive examples, capabilities page and hostile
+CSS demo now use owned loading; showcase and shared helper drops decode owned
+themes. The diagnostic inspector still needs explicit async image adoption. Selected owner/reference handoffs now capture actual owner entries. Public
 `assetUrl` no longer recognizes the private identity prefix.
 
 ## Outcome

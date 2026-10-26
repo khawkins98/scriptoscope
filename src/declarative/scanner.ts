@@ -8,18 +8,19 @@ import type { ManagedControlPort } from '../managedContentPort.js';
 import { listenUntilAborted } from '../listenUntilAborted.js';
 import { WindowManager } from '../interactive.js';
 import type { LoadedTheme } from '../types.js';
+import type { ThemeInput } from '../ownedTheme.js';
 import { ScriptoscopeWindow } from './ScriptoscopeWindow.js';
 import { promoteOwnedButton, disposePromotedButtonFace, restoreButton } from './button.js';
 import { promoteControl, restoreControl } from './control.js';
 import { promoteField } from './field.js';
-import { promoteIcon } from './icon.js';
+import { promoteIconAsync } from './icon.js';
 import { promoteThemePicker, syncThemePickerActive } from './themePicker.js';
 import { createPickerIconLoader } from './pickerIcons.js';
 import type { ThemeEntry } from './theme.js';
 import { promoteTabs } from './tabs.js';
 import { openModal, type OpenModalOptions, type OpenModalHandle } from './openModal.js';
 import { applyCascadeLayout } from './cascade.js';
-import { createThemeResolver, type ThemeBootstrapOpts } from './theme.js';
+import { createThemeResolver, createOwnedThemeResolver, type ThemeResolver, type ThemeBootstrapOpts } from './theme.js';
 import { resolveThemeRef } from './parse.js';
 import { debug } from '../debug.js';
 import { SCRIPTOSCOPE_READY_CLASS, SCRIPTOSCOPE_LOADING_ATTR } from './markers.js';
@@ -142,10 +143,10 @@ export type MountEventMap = {
  *  EventTarget so consumers can subscribe to lifecycle events via the standard
  *  addEventListener / removeEventListener; cast the CustomEvent.detail per
  *  the MountEventMap above. */
-export interface MountHandle extends EventTarget {
+export interface MountHandle<Theme extends ThemeInput = LoadedTheme> extends EventTarget {
   disconnect(): void;
   retheme(ref: string): Promise<void>;
-  registerTheme(ref: string, theme: LoadedTheme): void;
+  registerTheme(ref: string, theme: Theme): void;
   /** Open `wrap` as a themed modal. Owns visibility toggle
    *  (`data-scriptoscope-modal-open` attribute), backdrop click, Esc key,
    *  focus trap (Tab/Shift+Tab cycles inside the wrap, including the
@@ -178,7 +179,7 @@ export interface MountHandle extends EventTarget {
  * React StrictMode (double-invocation in dev) won't get a noisy error.
  * Cleared in disconnect() so a remount after teardown works.
  */
-const mountedRoots = new WeakMap<Element, MountHandle>();
+const mountedRoots = new WeakMap<Element, { factory: (opts: ThemeBootstrapOpts) => ThemeResolver<ThemeInput>; promise: Promise<MountHandle<ThemeInput>> }>();
 const rootKey = (r: Document | Element): Element | null =>
   r instanceof Document ? r.documentElement : r;
 
@@ -212,21 +213,40 @@ const ICON_SEL = '[data-scriptoscope-icon], [data-scriptoscope-icon-id]';
 const THEME_PICKER_SEL = '[data-scriptoscope-theme-picker]';
 
 /** Scan `root` and promote every declarative element; watch for more. Returns a handle to stop. */
-export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHandle> {
+export function mountDeclarative(opts: MountOptions = {}): Promise<MountHandle> {
+  return mount(opts, createThemeResolver);
+}
+
+/** Owned loading over the same scanner, promotion and teardown implementation. */
+export function mountOwnedDeclarative(opts: MountOptions = {}): Promise<MountHandle<ThemeInput>> {
+  return mount(opts, createOwnedThemeResolver);
+}
+
+async function mount(opts: MountOptions,
+  factory: (opts: ThemeBootstrapOpts) => ThemeResolver<ThemeInput>): Promise<MountHandle<ThemeInput>> {
   const root: Document | Element = opts.root ?? document;
-  // Re-entrant mount guard (see mountedRoots above). Return the existing
-  // handle instead of double-mounting; warn once so the consumer notices
-  // in dev but doesn't get console-spammed (React StrictMode etc).
   const key = rootKey(root);
-  if (key) {
-    const existing = mountedRoots.get(key);
-    if (existing) {
-      console.warn('[scriptoscope] mountDeclarative called on a root that is already mounted; returning the existing handle. Call handle.disconnect() before remounting.');
-      return existing;
-    }
+  const existing = key && mountedRoots.get(key);
+  if (existing) {
+    if (existing.factory !== factory) throw new Error('Disconnect the existing mount before changing its loading contract');
+    console.warn('[scriptoscope] mountDeclarative called on a root that is already mounted; returning the existing handle. Call handle.disconnect() before remounting.');
+    return existing.promise;
   }
-  const manager = new WindowManager();
-  const resolver = createThemeResolver(opts);
+  let resolve!: (handle: MountHandle<ThemeInput>) => void, reject!: (error: unknown) => void;
+  const promise = new Promise<MountHandle<ThemeInput>>((yes, no) => { resolve = yes; reject = no; });
+  const reservation = { factory, promise };
+  if (key) mountedRoots.set(key, reservation);
+  void mountRoot(opts, root, key, factory).then(resolve, error => {
+    if (key && mountedRoots.get(key) === reservation) mountedRoots.delete(key);
+    reject(error);
+  });
+  return promise;
+}
+
+async function mountRoot(opts: MountOptions, root: Document | Element, key: Element | null,
+  factory: (opts: ThemeBootstrapOpts) => ThemeResolver<ThemeInput>): Promise<MountHandle<ThemeInput>> {
+  const manager = new WindowManager<ThemeInput>();
+  const resolver = factory(opts);
   // syncToUrlParam (T2.3): if the URL carries ?<param>=<slug> AND it matches
   // a registered theme, that's the initial theme. Falls back to
   // pageThemeDefault → baseSlug → '1138' otherwise. Deep-link awareness
@@ -268,7 +288,7 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
     console.error(`[scriptoscope] ${kind} promote failed:`, cause);
   };
   const lifetime = new AbortController();
-  const mounted: ScriptoscopeWindow[] = []; // tracked so disconnect() can fully tear down (unmount + ROs)
+  const mounted: ScriptoscopeWindow<ThemeInput>[] = []; // tracked so disconnect() can fully tear down (unmount + ROs)
   const ownedButtonSources = new Set<HTMLElement>(); // includes pending insertion/async-caller gaps
   const skinnedButtons: { el: HTMLElement; skinned: HTMLElement }[] = []; // tracked so retheme() re-skins them
   const skinnedControls: { el: HTMLInputElement | HTMLSelectElement; skinned: HTMLElement }[] = []; // checkbox/radio/slider/select
@@ -534,9 +554,16 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
     if (lifetime.signal.aborted || !root.contains(el) || inFlight.has(el) || el.dataset.scriptoscopeIconPromoted != null) return;
     inFlight.add(el);
     try {
-      const theme = await resolver.load(refForEl(el));
-      if (lifetime.signal.aborted || !root.contains(el)) return;
-      if (promoteIcon(el, theme)) { skinnedIcons.push(el); markInertIfWiping(el); }
+      while (!lifetime.signal.aborted && root.contains(el)) {
+        const ref = refForEl(el), theme = await resolver.load(ref);
+        if (lifetime.signal.aborted || !root.contains(el)) return;
+        if (refForEl(el) !== ref) continue;
+        const promoted = await promoteIconAsync(el, theme, lifetime.signal,
+          () => root.contains(el) && refForEl(el) === ref);
+        if (refForEl(el) !== ref) continue;
+        if (promoted) { skinnedIcons.push(el); markInertIfWiping(el); }
+        return;
+      }
     } catch (err) {
       if (!lifetime.signal.aborted) reportPromoteError('icon', el, err);
     } finally { inFlight.delete(el); }
@@ -663,7 +690,10 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
       const liveIcons = skinnedIcons.filter((el) => el.isConnected);
       skinnedIcons.length = 0; skinnedIcons.push(...liveIcons);
       for (const el of skinnedIcons) {
-        try { promoteIcon(el, theme); }
+        try {
+          if (!current()) return;
+          await promoteIconAsync(el, theme, replacing.signal, () => current() && root.contains(el));
+        }
         catch (err) { console.error('[scriptoscope] icon re-resolve failed:', err); }
       }
       // Sync every promoted theme picker's active-tile state. The picker
@@ -988,7 +1018,7 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
   // onto it. Cleaner than Object.create + proto juggling — the addEventListener
   // / dispatchEvent already exist on `events`; we add disconnect/retheme/etc.
   // and cast. Consumers can `handle.addEventListener('ready', cb)` directly.
-  const handle = events as unknown as MountHandle;
+  const handle = events as unknown as MountHandle<ThemeInput>;
   Object.assign(handle, {
     disconnect: () => {
       if (lifetime.signal.aborted) return;
@@ -1042,10 +1072,9 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
     /** Pre-seed the resolver cache so a subsequent `retheme(ref)` (incl. via
      *  `<select data-scriptoscope-theme-switcher>`) finds the pre-loaded theme. Used by drop-zones
      *  to make a decoded `.sit`/`.rsrc` switchable as if it were a bundle on disk. */
-    registerTheme: (ref: string, theme: LoadedTheme) => resolver.register(ref, theme),
+    registerTheme: (ref: string, theme: ThemeInput) => resolver.register(ref, theme),
     openModal,
     stats,
   });
-  if (key) mountedRoots.set(key, handle);
   return handle;
 }

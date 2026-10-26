@@ -1,5 +1,6 @@
 // Compare the production owner with explicit historical PNG transport. The
 // custom encoder deliberately opts out of the known-encoder pixel shortcut.
+import { compareMounts } from './mounts.mjs';
 import { rasterOwner, createRasterAssetOwner, bindRasterOwner } from '../theme-loader/rasterAssets.js';
 const source = await import('../../src/index.ts');
 const built = await import('/dist/scriptoscope.js');
@@ -318,6 +319,7 @@ async function run() {
     report.rows.push({ transport, slug, rasters: report.rasters - before });
     document.querySelector('#result').textContent = JSON.stringify(report, null, 2);
   }
+  for (const runtime of [source, built]) await compareMounts(runtime, slugs, report, compare);
   report.status = report.mismatches.length || report.painted !== report.compared || report.compared === 0 || Object.values(report.families).some(row => row.errors || !row.compared) || report.windows !== slugs.length * 2 * 3 * 4 * 2 * 2 ? 'mismatch' : 'pass';
   return report;
 }

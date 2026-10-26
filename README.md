@@ -420,13 +420,14 @@ Two surfaces, same engine.
 ### Owned raster loading (feature PR #480)
 
 `loadOwnedTheme()` and `loadOwnedKaleidoscopeScheme()` return a distinct
-`OwnedTheme`. Window/control composition and interactive promotion accept it;
+`OwnedTheme`. `mountOwnedDeclarative()` and `createOwnedThemeResolver()` provide
+owned loading over the shared scanner and lifecycle. Window/control composition
+and interactive promotion accept owned inputs;
 selected images export asynchronously through `themeImageUrl()`. Its `source`
 fields contain local resource paths, including fields historically named `url`.
 Existing loaders retain ready image URLs. See the [owned API and lifecycle
 contract](docs/v2/owned-theme-api.md) for examples and the current adoption boundary.
-The integration PR remains in progress; the default declarative mount still uses
-its existing loader.
+The integration PR remains in progress; the default `mountDeclarative` keeps its existing ready-image loader.
 
 ### Imperative — `loadTheme()` + `renderWindow()`
 

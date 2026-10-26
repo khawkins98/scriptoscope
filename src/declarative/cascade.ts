@@ -44,7 +44,7 @@ function intAttr(el: Element, name: string, fallback: number): number {
  *  instances; we filter to those whose source element was inside a
  *  given cascade container. Idempotent: a window already cascaded in
  *  a prior call won't be re-cascaded (stamped via host dataset). */
-export function applyCascadeLayout(within: Document | Element, mounted: ScriptoscopeWindow[]): void {
+export function applyCascadeLayout(within: Document | Element, mounted: readonly Pick<ScriptoscopeWindow, 'host'>[]): void {
   const root: ParentNode = within instanceof Document ? within : within;
   const containers = Array.from(
     (root as Element).querySelectorAll?.('[data-scriptoscope-cascade]') ?? [],

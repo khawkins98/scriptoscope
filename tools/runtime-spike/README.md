@@ -112,8 +112,8 @@ all destination composition, independent original captures, complete DOM
 lifecycles or other browsers. Window regression coverage is described above; complete
 application adoption and lifecycle validation remain open.
 
-The global private-reference registry is retired. The next change migrates
-first-party loading/image consumers onto the same owner-local boundary. Resource indexing and
+The global private-reference registry is retired. Main demo loading and drops use the owner-local boundary; diagnostic catalog
+image adoption and final application measurements remain open. Resource indexing and
 diagnostic redesign remain separate experiments.
 
 New runner reports pin runtime, built and harness hashes, and reject changed inputs
@@ -122,3 +122,10 @@ during measurement. Older reports predate that provenance guard.
 The recorded revision is checkout HEAD at run start; runtime hashes also identify
 uncommitted source changes included in that run. Reports are excluded from the
 fingerprint so saving measurement output does not invalidate it.
+
+The production matrix now also mounts eager and owned themes through the public
+scanner for all 18 themes and source/built exports. It compares canvases, icon and
+CSS tile pixels, native input state and promotion counts, then checks activation,
+retheming and disconnect. Pending-root reservation probes reject mixed loading
+contracts and share same-contract handles. A real File decode exercises dropped
+owned registration, legacy registration and borrowed-theme survival after teardown.

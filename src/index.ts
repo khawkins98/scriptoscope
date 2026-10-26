@@ -122,10 +122,10 @@ export {
 // are the stable internal API surface, treated like Lodash's `_` namespace. Renaming them is a
 // future API-break-eligible change tracked separately, not coupled to the package rebrand.
 export {
-  mountDeclarative, type MountOptions,
+  mountDeclarative, mountOwnedDeclarative, type MountOptions,
   ScriptoscopeWindow, type ScriptoscopeWindowDeps,
   // Theme resolver — exposed so consumers can pre-load themes outside mountDeclarative.
-  createThemeResolver, type ThemeResolver, type ThemeBootstrapOpts,
+  createThemeResolver, createOwnedThemeResolver, type ThemeResolver, type ThemeBootstrapOpts,
   promoteButton,
   promoteField, isFieldEligible,
   promoteTabs,

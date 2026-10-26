@@ -20,7 +20,7 @@ async function fingerprints() {
   const { stdout } = await exec('git', ['ls-files', 'src', 'tools/theme-loader'], { cwd: root });
   const runtime = stdout.trim().split('\n').filter(p => /\.(?:ts|js)$/.test(p) && !/\.test\.|\.d\.ts$/.test(p));
   const built = (await readdir(new URL('../../dist/', import.meta.url))).filter(p => p.endsWith('.js')).map(p => `dist/${p}`);
-  const driver = ['tools/runtime-spike/run.mjs', `tools/runtime-spike/${production ? 'production' : 'spike'}.mjs`];
+  const driver = [...(production ? ['tools/runtime-spike/mounts.mjs'] : []), 'tools/runtime-spike/run.mjs', `tools/runtime-spike/${production ? 'production' : 'spike'}.mjs`];
   const hash = async files => {
     const digest = createHash('sha256');
     for (const file of files.sort()) { digest.update(file); digest.update(await readFile(new URL(`../../${file}`, import.meta.url))); }

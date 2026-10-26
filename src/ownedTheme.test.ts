@@ -2,9 +2,23 @@ import { assetUrl } from './loadTheme.js';
 import { WindowManager } from './interactive.js';
 import { composeButton, composeCheckable, composeSlider, composeProgress, composeDisclosure, composeTab, composeBevelButton, composeListHeader, composeGrowBox } from './controls.js';
 import type { LoadedTheme } from './types.js';
-import { themeView, type OwnedTheme } from './ownedTheme.js';
+import { createThemeResolver, createOwnedThemeResolver } from './declarative/theme.js';
+import { mountDeclarative, mountOwnedDeclarative, type MountHandle } from './declarative/scanner.js';
+import { ScriptoscopeWindow } from './declarative/ScriptoscopeWindow.js';
+import { themeView, type ThemeInput, type OwnedTheme } from './ownedTheme.js';
 
 function contracts(owned: OwnedTheme, loaded: LoadedTheme): void {
+  createThemeResolver().register('legacy', loaded);
+  createOwnedThemeResolver().register('owned', owned);
+  createOwnedThemeResolver().register('legacy', loaded);
+  const legacyLoad: Promise<LoadedTheme> = createThemeResolver().load('legacy');
+  const ownedLoad: Promise<ThemeInput> = createOwnedThemeResolver().load('owned');
+  const legacyMount: Promise<MountHandle> = mountDeclarative();
+  const ownedMount: Promise<MountHandle<ThemeInput>> = mountOwnedDeclarative();
+  void legacyLoad; void ownedLoad; void legacyMount; void ownedMount;
+  // @ts-expect-error Legacy resolvers retain their ready-image registration contract.
+  createThemeResolver().register('owned', owned);
+  void ScriptoscopeWindow.promote(document.createElement('div'), { manager: new WindowManager<OwnedTheme>(), theme: owned });
   assetUrl(loaded, 'image.png');
   void composeButton(owned);
   void composeCheckable(owned, 'checkbox');

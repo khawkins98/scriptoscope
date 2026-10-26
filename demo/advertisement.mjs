@@ -1,4 +1,4 @@
-import { createThemeResolver, ScriptoscopeWindow, WindowManager } from 'scriptoscope';
+import { createOwnedThemeResolver, ScriptoscopeWindow, WindowManager } from 'scriptoscope';
 import themes from './themes-manifest.json';
 
 // Keep existing shared demo links working after moving the showcase.
@@ -15,7 +15,7 @@ if (params.has('theme')) {
   const caption = document.querySelector('figcaption > .art-caption');
   const schemeButtons = [...document.querySelectorAll('[data-portrait-theme]')];
   const manager = new WindowManager();
-  const resolver = createThemeResolver({
+  const resolver = createOwnedThemeResolver({
     themeBaseUrl: `${import.meta.env.BASE_URL}themes`,
     themes,
   });

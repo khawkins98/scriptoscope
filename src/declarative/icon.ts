@@ -14,6 +14,7 @@
 // Apple `Appearance.h` / `IconsCore.h` enum tables. Add more as schemes ship them.
 
 import type { LoadedTheme } from '../types.js';
+import { themeView, assertThemeAlive, type ThemeInput } from '../ownedTheme.js';
 
 /** Named-key → Apple Finder icon resource id. The keys are the consumer-facing
  *  vocabulary; the ids are what gets looked up in the scheme's iconIndex.
@@ -47,21 +48,53 @@ export const ICON_NAMES: Readonly<Record<string, number>> = {
 /** Promote an icon element. Idempotent (stamped via data-scriptoscope-icon-promoted).
  *  Returns true if a src was set (icon found); false otherwise so the consumer's
  *  fallback (img's existing src or alt text) stays visible. */
+const pending = new WeakMap<HTMLElement, object>();
 export function promoteIcon(el: HTMLImageElement | HTMLElement, theme: LoadedTheme): boolean {
+  pending.delete(el);
+  const url = iconReference(el, theme);
+  return url ? applyIcon(el, url) : false;
+}
+
+/** Async image boundary for either theme contract; superseded preparations cannot publish. */
+export async function promoteIconAsync(el: HTMLElement, theme: ThemeInput,
+  signal?: AbortSignal, current: () => boolean = () => true): Promise<boolean> {
+  const token = {};
+  pending.set(el, token);
+  const alive = () => !signal?.aborted && pending.get(el) === token && current();
+  try {
+    if (!alive()) return false;
+    const view = themeView(theme);
+    const request = () => [el.dataset.scriptoscopeIcon, el.dataset.scriptoscopeIconId, el.dataset.scriptoscopeIconSize].join('\0');
+    while (alive()) {
+      const before = request(), ref = iconReference(el, view);
+      if (!ref) return false;
+      const url = await view.asset(ref).imageUrl();
+      if (!alive()) return false;
+      if (request() !== before) continue;
+      assertThemeAlive(view);
+      return applyIcon(el, url);
+    }
+    return false;
+  } finally { if (pending.get(el) === token) pending.delete(el); }
+}
+
+function iconReference(el: HTMLElement, theme: { readonly inspector?: LoadedTheme['inspector'] }): string | undefined {
   // Resolve the requested id: explicit data-scriptoscope-icon-id wins, else the named key.
   const rawId = el.dataset.scriptoscopeIconId;
   const id = rawId != null
     ? parseInt(rawId, 10)
     : (el.dataset.scriptoscopeIcon ? ICON_NAMES[el.dataset.scriptoscopeIcon] : undefined);
-  if (id == null || Number.isNaN(id)) return false;
+  if (id == null || Number.isNaN(id)) return undefined;
   // Preferred size: explicit data-scriptoscope-icon-size, default 32 (the
   // canonical Finder thumbnail size). Falls back through to any size if the
   // exact one isn't shipped — better a 16px icon than a missing one.
   const wantSize = el.dataset.scriptoscopeIconSize ? parseInt(el.dataset.scriptoscopeIconSize, 10) : 32;
   const idx = theme.inspector?.iconIndex ?? [];
   const hit = idx.find((i) => i.id === id && i.size === wantSize) ?? idx.find((i) => i.id === id);
-  if (!hit?.url) return false;
-  const url = hit.url;
+  return hit?.url;
+}
+
+function applyIcon(el: HTMLElement, url: string): boolean {
   // Render: <img> gets src directly; other elements get an inner <img> created/replaced.
   if (el.tagName === 'IMG') {
     (el as HTMLImageElement).src = url;
