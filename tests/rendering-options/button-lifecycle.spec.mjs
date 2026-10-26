@@ -204,8 +204,10 @@ for (const mode of ['source', 'built']) {
     }, mode);
     await expect(page.locator('.scriptoscope-button')).toHaveCount(2);
     for (const name of ['Disabled', 'Declared']) {
-      await expect(page.getByRole('button', { name, exact: true })).toHaveAttribute('aria-disabled', 'true');
-      await expect(page.getByRole('button', { name, exact: true })).toHaveAttribute('tabindex', '-1');
+      const disabled = page.getByRole('button', { name, exact: true });
+      await expect(disabled).toBeDisabled();
+      await disabled.evaluate(el => el.focus());
+      await expect(disabled).not.toBeFocused();
     }
     expect(await page.evaluate(async () => {
       const f = window.buttonDisabled, face = f.natives[0].nextElementSibling;
@@ -219,7 +221,7 @@ for (const mode of ['source', 'built']) {
         samePixels: bytes.every((n, i) => n === expected.data[i]), clicks: f.clicks };
     })).toEqual({ sameGeometry: true, samePixels: true, clicks: 0 });
     await page.evaluate(async () => { const f = window.buttonDisabled; f.natives[0].disabled = false; await f.handle.retheme('theme'); });
-    await expect(page.getByRole('button', { name: 'Disabled', exact: true })).not.toHaveAttribute('aria-disabled');
+    await expect(page.getByRole('button', { name: 'Disabled', exact: true })).toBeEnabled();
     await page.getByRole('button', { name: 'Disabled', exact: true }).focus(); await page.keyboard.press('Enter');
     expect(await page.evaluate(() => window.buttonDisabled.clicks)).toBe(1);
     await page.evaluate(() => window.buttonDisabled.handle.disconnect());

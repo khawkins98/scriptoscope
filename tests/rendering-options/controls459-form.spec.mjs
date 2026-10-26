@@ -24,7 +24,7 @@ test('source: process-only reverted neutral property fails named fallback form s
   const reservation=reservePort();await new Promise(r=>reservation.listen(0,'127.0.0.1',r));
   const port=reservation.address().port;await new Promise((r,j)=>reservation.close(e=>e?j(e):r()));
   let transforms=0;
-  const server=await createViteServer({root,configFile:false,publicDir:false,server:{host:'127.0.0.1',port,strictPort:true,open:false},plugins:[{name:'form-neutral-property-semantic-mutant',enforce:'pre',transform(code,id){if(id===root+'/src/interactive.ts'){assert(code.includes("b.type = 'button';"));transforms++;return code.replace("b.type = 'button';",'/* process-only reverted guard */');}}}]});
+  const server=await createViteServer({root,configFile:false,publicDir:false,server:{host:'127.0.0.1',port,strictPort:true,open:false},plugins:[{name:'form-neutral-property-semantic-mutant',enforce:'pre',transform(code,id){if(id===root+'/src/interactive.ts'){assert.equal(code.split("el.type = 'button';").length,2);transforms++;return code.replace("el.type = 'button';", "el.type = painter ? 'button' : 'submit'; /* process-only reverted fallback neutrality */");}}}]});
   try{
     await server.listen();await openHarness(page,{source:`http://127.0.0.1:${port}`},'source');
     const result=await formReview(page,'source');

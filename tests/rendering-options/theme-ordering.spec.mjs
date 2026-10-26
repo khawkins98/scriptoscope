@@ -293,12 +293,14 @@ for (const mode of ['source', 'built']) {
       document.body.append(fragment);
       face?.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
       face?.dispatchEvent(new KeyboardEvent('keyup', { key: 'Enter' }));
+      const syntheticClicks = clicks; // untrusted keys do not activate a native button
+      face?.click();
       tabs.querySelectorAll('[data-scriptoscope-tab-skinned]')[1]?.dispatchEvent(new PointerEvent('pointerdown'));
       // Wait for real selection rendering, not a timer or a mocked tab implementation.
       await runtime.composeTab(theme, { label: 'Two', selected: true });
-      const result = { ...prepared, clicks, secondSelected: tabs.querySelector('[data-scriptoscope-tab="two"]').getAttribute('aria-selected') };
+      const result = { ...prepared, syntheticClicks, clicks, secondSelected: tabs.querySelector('[data-scriptoscope-tab="two"]').getAttribute('aria-selected') };
       root.remove(); theme.dispose?.(); return result;
-    }, mode)).toEqual({ face: true, sibling: true, tabs: 2, connected: false, clicks: 1, secondSelected: 'true' });
+    }, mode)).toEqual({ face: true, sibling: true, tabs: 2, connected: false, syntheticClicks: 0, clicks: 1, secondSelected: 'true' });
   });
 
   test(`${mode}: button insertion reentry leaves one registered latest face and disposes the superseded face`, async ({ page, servers }) => {
@@ -323,17 +325,20 @@ for (const mode of ['source', 'built']) {
       const sameArt = faces.length === 1 && faces[0].querySelector('canvas').toDataURL() === expected.querySelector('canvas').toDataURL();
       discarded.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
       discarded.dispatchEvent(new KeyboardEvent('keyup', { key: 'Enter' }));
+      discarded.click(); // disposed native presentation must no longer forward
       const staleClicks = clicks;
       await handle.retheme('windows-95');
       const countAfterNext = root.querySelectorAll('.scriptoscope-button').length;
       const finalFace = root.querySelector('.scriptoscope-button');
       finalFace.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
       finalFace.dispatchEvent(new KeyboardEvent('keyup', { key: 'Enter' }));
+      const syntheticClicks = clicks;
+      finalFace.click();
       const discardedConnected = discarded.isConnected;
       handle.disconnect(); root.remove(); expectedTheme.dispose?.();
-      return { count: faces.length, sameArt, discardedConnected, staleClicks, countAfterNext, clicks };
+      return { count: faces.length, sameArt, discardedConnected, staleClicks, countAfterNext, syntheticClicks, clicks };
     }, mode);
-    expect(result).toEqual({ count: 1, sameArt: true, discardedConnected: false, staleClicks: 0, countAfterNext: 1, clicks: 1 });
+    expect(result).toEqual({ count: 1, sameArt: true, discardedConnected: false, staleClicks: 0, countAfterNext: 1, syntheticClicks: 0, clicks: 1 });
   });
 
 }
