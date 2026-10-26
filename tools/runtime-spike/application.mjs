@@ -2,10 +2,11 @@
 // Telemetry and teardown hooks are injected by this local-only server plugin.
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { readFile, readdir, rm } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 import { createHash } from 'node:crypto';
 import { createServer } from 'vite';
+import { writeReport } from './report.mjs';
 const exec = promisify(execFile), root = resolve(import.meta.dirname, '../..');
 const eagerEntry = process.env.SCRIPTOSCOPE_EAGER_ENTRY ? resolve(process.env.SCRIPTOSCOPE_EAGER_ENTRY) : null;
 const frozenBuild = eagerEntry ? JSON.parse(await readFile(resolve(dirname(eagerEntry), '../build.json'), 'utf8')) : null;
@@ -22,7 +23,7 @@ const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 async function fingerprint() {
   const { stdout } = await exec('git', ['ls-files', '--cached', '--others', '--exclude-standard', 'src', 'tools/theme-loader', 'demo', 'themes'], { cwd: root });
   const paths = stdout.trim().split('\n').filter(p => !/\.test\.|\.d\.ts$/.test(p) && (/\.(ts|js|mjs|html|css|json)$/.test(p) || p.startsWith('demo/assets/') || /^themes\/[^/]+\/scheme\.(sit|rsrc)$/.test(p)));
-  paths.push('tools/runtime-spike/application.mjs', ...(await readdir(resolve(root, 'dist'))).filter(p => p.endsWith('.js')).map(p => `dist/${p}`));
+  paths.push('tools/runtime-spike/report.mjs', 'tools/runtime-spike/application.mjs', ...(await readdir(resolve(root, 'dist'))).filter(p => p.endsWith('.js')).map(p => `dist/${p}`));
   if (eagerEntry) {
     paths.push(resolve(dirname(eagerEntry), '../build.json'), ...(await readdir(dirname(eagerEntry))).filter(p => p.endsWith('.js')).map(p => resolve(dirname(eagerEntry), p)));
   }
@@ -273,7 +274,7 @@ try {
 } catch (error) { report.status = 'error'; report.error = String(error.stack ?? error); console.log(JSON.stringify({status:'error',error:report.error})); process.exitCode = 1; }
 finally {
   for (const server of servers.values()) await server.close();
-  await writeFile(resolve(import.meta.dirname, frozenBuild ? diagnostic ? 'application-historical-diagnostic-results.json' : process.argv.includes('--smoke') ? 'application-historical-smoke-results.json' : 'application-historical-results.json' : diagnostic ? 'application-diagnostic-results.json' : process.argv.includes('--smoke') ? 'application-smoke-results.json' : 'application-results.json'), JSON.stringify(report, null, 2) + '\n');
+  await writeReport(frozenBuild ? diagnostic ? 'application-historical-diagnostic-results.json' : process.argv.includes('--smoke') ? 'application-historical-smoke-results.json' : 'application-historical-results.json' : diagnostic ? 'application-diagnostic-results.json' : process.argv.includes('--smoke') ? 'application-smoke-results.json' : 'application-results.json', report);
   console.log(JSON.stringify({ status: report.status, trials: report.trials.length, error: report.error }));
   if (report.status !== 'pass') process.exitCode = 1;
 }

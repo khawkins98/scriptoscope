@@ -1,401 +1,103 @@
-# Decoded raster transport spike
-
-This experiment asks whether the existing push-button renderer can consume decoded
-RGBA directly, avoiding RGBA → PNG → Image → Canvas → RGBA. It does not replace the
-renderer or change resource lookup policy. The experiment now drives the
-production owned loader introduced in feature PR #480.
-
-Run `npm run spike:runtime` from the repository root. It requires the installed
-`agent-browser` CLI and its Chromium browser. The runner starts a temporary Vite
-server and an isolated browser session, writes `results.json`, and closes both.
-An error or output mismatch returns a nonzero exit code. Results are local
-measurements, not a portable performance budget.
-
-## Recorded result
-
-The 2026-10-26 00:04 UTC local Chromium 153 run in `results.json`, using
-the owner-local capture implementation (runtime hashes recorded), passed all **1,944
-painted comparisons**, with zero missing faces, errors or mismatches. All 54
-direct-load disposal checks passed, as did the comparator mutation probes.
-
-| Measurement | PNG transport | Direct buffers |
-| --- | ---: | ---: |
-| Load | 661.7 ms | 23.1 ms |
-| First narrow render | 2.4 ms | 0.3 ms |
-| Warm render | 0.5 ms | 0.3 ms |
-
-Each figure is the median of the 18 per-theme medians, rather than a combined
-page-load measurement. Repository validation ran concurrently; this is a local
-transport probe, not an isolated application benchmark. This supports removing serialization from the loading
-path; it shows no material warm-render improvement. Process memory was not
-measured. The normal repository gates, library build and engine-diff also pass;
-the latter retains all 12,902 committed cells unchanged.
-
-## Implementation
-
-The original empty-blob spike and pixel registration behind PNG URLs have been
-replaced by the production owned loader. The benchmark now calls
-`loadOwnedKaleidoscopeScheme` and the same button facade used by public APIs. Its
-baseline uses an explicit PNG encoder and the existing ready-image loader.
-Owned references are private resource identities; actual image requests export
-valid URLs lazily. Existing loaders remain eager compatibility adapters over the
-same owner. The public loading boundary is documented in
-[`owned-theme-api.md`](../../docs/v2/owned-theme-api.md).
-
-Custom factories and external images retain authoritative browser decoding.
-No net code-size saving is claimed at this stage.
-The experimental harness is under `tools/runtime-spike/`; it is not shipped.
-
-`node tools/runtime-spike/run.mjs --production` compares the production owner
-against explicit PNG transport through source and built entries. It additionally
-decodes public image URLs and compares their pixels with direct buffer access,
-and exercises push/default buttons through own/base and clipped contexts.
-Results go to `production-results.json`; this requires a current `npm run build`.
-
-The current production run passed **8,424 painted push/default comparisons**
-across source and built public entries, with own, sparse-base and mixed
-owned/legacy themes, clipped/unclipped composition and 648 synthetic prepared
-bitmap label cases. All **18,704 public raster image comparisons** matched direct
-access exactly. The expanded window matrix compares 1,728 cases across document, dialog,
-titled and untitled utility requests, active/inactive states, 1×/2× scale,
-and own/base/mixed ownership. It compares chrome pixels, layout and CSS tile
-pixels; comparator probes reject pixel, tile and layout mutations. All 1,728
-cases paint, with zero baseline fallbacks. All 432 scrollbar comparisons paint
-exactly. Thirty-six mounted owned windows retain original input identity and
-interactive content through retheming. Two baseline sizing and two pending-CSS
-disposal probes pass across source and built entries.
-Thirty-six each of interactive activation, diagnostic URL,
-zero-PNG rendering and post-disposal source/built checks passed. One requested
-image shares work and does not encode unrelated assets.
-The family matrix adds **19,152 cases** through public source and built APIs:
-15,278 painted outputs, 3,474 matching missing outcomes and 400 explicitly
-unsupported checkable outcomes for sparse children without a declared census.
-Slider, progress, checkable, disclosure, grow, tab, bevel and both header APIs
-participate; checkable also distinguishes unknown from explicitly empty census.
-There are zero mismatches or unexpected errors. Another 108 completed tab,
-bevel and header diagnostic checks verify real image URLs and one completion.
-Missing and unsupported outcomes are reported separately from successful paint.
-Public button output is a pixel buffer; its dimensions and bytes are compared.
-The internal face-layout assertion remains in the original source-only spike.
-
-## Comparison and timing
-
-All discovered bundled themes are loaded from their existing archives through the
-public loader wrapper. For each transport, three fresh decodes are measured, with
-alternating load order. Source bytes are fetched before timing; network and module
-startup are excluded. Decode, conversion and asset transport are included.
-
-Each theme exercises 36 push-button combinations: minimum widths 32/80/180,
-normal/pressed/disabled, default ring off/on, empty/AgjpQy label, at height 20.
-The same source facade renders both transports. Comparisons check availability,
-errors, layout, dimensions and every RGBA byte, including transparent RGB. Matching
-errors and missing faces are reported separately from successful painted output.
-Mutation probes require the comparator to detect a changed pixel, layout and
-availability. Every direct theme disposal must reject subsequent access through a captured source.
-
-The first render is a narrow unlabeled normal button. Before warm measurements,
-every case is rendered once on both transports; subsequent per-call timings
-alternate transport order between repetitions. Very short calls are close to the
-browser timer's resolution. Inspect loading and warm rendering separately.
-
-`rawBytes` records owned pixel storage, not total process memory or retained
-heap. Views share the decoded arrays instead of copying them. Decoded ownership
-also retains unpainted assets until theme disposal, so this experiment does not
-establish a memory improvement.
-
-## Decision boundary
-
-A successful run supports migrating raster transport incrementally, while keeping
-the existing family engine and acceptance harness. The bounded push/base/bitmap/
-diagnostic/activation cases do not establish parity for other control families,
-all destination composition, independent original captures, complete DOM
-lifecycles or other browsers. Window regression coverage is described above; complete
-application lifecycle and retained-memory limits are recorded below.
-
-The global private-reference registry is retired. Main demo loading and drops use the owner-local boundary; diagnostic inventories now export on open and ignore detached completions. Application measurements are recorded below. Resource indexing and
-diagnostic redesign remain separate experiments.
-
-New runner reports pin runtime, built and harness hashes, and reject changed inputs
-during measurement. Older reports predate that provenance guard.
-
-The recorded revision is checkout HEAD at run start; runtime hashes also identify
-uncommitted source changes included in that run. Reports are excluded from the
-fingerprint so saving measurement output does not invalidate it.
-
-The production matrix now also mounts eager and owned themes through the public
-scanner for all 18 themes and source/built exports. It compares canvases, icon and
-CSS tile pixels, native input state and promotion counts, then checks activation,
-retheming and disconnect. Pending-root reservation probes reject mixed loading
-contracts and share same-contract handles. A real File decode exercises dropped
-owned registration, legacy registration and borrowed-theme survival after teardown.
-
-`diagnostic-results.json` records a local source-browser inventory probe: closed
-images remain unexported, opening the raster inventory produces real blob images,
-and detached images ignore held export completions. It also records the separate
-visual-baseline command's eight unresolved failures; those checks are not green.
-
-
-## Real application measurement
-
-Run `node tools/runtime-spike/application.mjs` after `npm run build`. It serves the
-existing advertisement app with local instrumentation and uses its real switch
-buttons, five windows, and public declarative mount/disconnect APIs. It compares
-the current eager compatibility API with the owned API, not a historical binary.
-Each trial has a fresh Chromium profile; the two Vite servers and OS caches are
-shared across trials. Source and built input hashes must remain stable during a
-run. `--smoke` performs one trial per mode. The harness and hooks are not shipped.
-
-The initial six-trial run preserved in `application-initial-results.json` passed its action,
-window/theme assertions, URL cleanup and input-stability checks. Its timings
-were measured before the subsequent shared PNG encoder/tab snapshot cleanup;
-that cleanup requires separate output revalidation. Pass does not mean that a
-performance or memory budget was met.
-
-| Measurement | Eager compatibility | Owned |
-| --- | ---: | ---: |
-| Startup trials, milliseconds | 2,512 / 2,557 / 2,759 | 4,160 / 277 / 335 |
-| Startup median, milliseconds | 2,557 | 335 |
-| Initial live blob URLs | 3,196 | 2 |
-| Ready backing storage, decimal MB | 4.87 | 13.84 |
-| Ready JavaScript heap, approximately MB | 7.2 | 8.0 |
-| After 20 mount cycles, JS heap, approximately MB | 6.8 | 7.25 |
-
-The owned 4,160 ms trial also has 1,898 ms and 1,150 ms first-round theme
-switches. No phase trace was captured to explain these delays. Keep that trial
-when assessing the promising median; this run does not establish a uniform
-startup improvement. Subsequent switches cluster near 33 ms, including two
-animation frames, so they do not resolve underlying composition-time differences.
-
-Owned advertisement themes retain 9,360,204 decoded pixel bytes while cached.
-Their observed counters return to zero on teardown; global live blob URLs also
-return to zero in both modes. Post-GC backing storage converges to approximately
-3.645 MB. After the mount batches, DOM nodes/listeners stabilize at 350/16 in
-both modes, but JavaScript heap grows across batches. Twenty cycles do not prove
-absence of leaks. Advertisement owner telemetry does not observe mount-cycle
-owners; their retention evidence is heap/backing storage, DOM and global URL
-counts. Frame/task settling does not prove all asynchronous work is complete.
-
-The artifact separately records the sum of browser-process RSS, which includes
-browser infrastructure, allocator retention and potentially shared pages. Its
-lower observed owned values do not establish lower application-retained memory.
-A separate phase/long-task diagnostic run is needed before stronger performance
-claims; the existing measurements should remain available unchanged.
-
-
-`--diagnostic` records startup and completed-run traces in the separate
-`application-diagnostic-results.json` artifact; combine it with `--smoke` for a
-single trial per mode. It wraps font loading, theme resolution, promotion and
-retheming with phase spans and observes main-thread long tasks and HTTP resource
-timings. Phase durations overlap; retheming includes theme loading, so do not sum
-them. These wrappers change promise scheduling, and retained trace arrays/resource
-buffers change heap measurements. Diagnostic timing/heap figures must not replace
-normal-mode measurements. Long tasks do not explain worker/network/scheduling
-waits. The trace is intended to localize future delays, not retrospectively explain
-the earlier outlier without evidence.
-
-
-The separate diagnostic smoke run passes both modes on the cleaned production
-implementation. It overlaps the local full browser suite and is not an isolated
-benchmark. Eager startup is 3,570 ms, with five overlapping resolution spans of
-2,790–3,320 ms and two startup main-thread long tasks of 375/1,924 ms. Owned
-startup is 364 ms, resolution spans are 46–219 ms, and its startup long task is
-186 ms. Window promotion spans are 8–31 ms eager / 4–23 ms owned. These spans
-locate work in this run; they do not explain the earlier slow owned trial, which
-did not recur. The artifact retains both startup snapshots and full-run traces.
-
-The earlier transport-only census at `915873b1` measured 713,285 JavaScript bytes
-and +326 production source/loader lines. No compiled baseline was available at
-that stage. These figures are historical; the final consolidation and equivalent
-compiler-recipe comparison below supersede them. The current library-only package
-census is recorded in `shipped-size-results.json` after a clean library build.
-
-
-### Historical transport implementation: normal measurement
-
-The canonical `application-results.json` now records six normal-mode trials on
-`f927ff5a`, after the shared PNG encoder/tab snapshot cleanup. No other
-task-started validation or build ran concurrently. Browser profiles are fresh;
-Vite servers and OS caches remain shared. The initial artifact is preserved
-byte-for-byte as `application-initial-results.json`.
-
-| Measurement | Eager compatibility | Owned |
-| --- | ---: | ---: |
-| Startup trials, milliseconds | 2,602 / 2,514 / 4,649 | 267 / 2,257 / 340 |
-| Startup median, milliseconds | 2,602 | 340 |
-| Initial live blob URLs | 3,196 | 2 |
-| Ready backing storage, decimal MB | 4.87 | 13.84 |
-| Final mount-batch JS heap range, decimal MB | 6.80–7.42 | 7.23–7.30 |
-
-All six trials pass the harness's action, window/theme, URL-cleanup and
-input-stability assertions. Both modes have slow startup/switch trials; the
-slowest switches are approximately 1.84 seconds eager / 2.03 seconds owned.
-Those trials record twelve browser processes rather than eleven; this is a
-correlation, not an explanation. The median benefit is reproduced, but uniform
-latency improvement is not established.
-
-All recorded teardown and batch samples have zero live blob URLs, and tracked
-advertisement owners release their pixel storage. Owned live backing storage is
-still about 9 MB higher while themes are cached. Post-GC JS heap grows across
-mount batches in both modes. Eager repetition 1 ends batches 3 and 4 at 366 DOM
-nodes / 17 listeners, compared with 350/16 elsewhere. That persistent anomaly
-is retained in the report; it does not identify a production leak or attribute
-one to the migration. Memory stability, lower application-retained memory and
-absence of leaks are not claimed.
-
-Astra reviewed the final artifact and found no new harness failure or evidenced
-production regression. These measurements support sharply fewer PNG exports and
-better median startup in the current eager/owned comparison, with a decoded
-storage tradeoff and unresolved variability. They do not compare a frozen
-historical executable or establish additional original-engine fidelity.
-
-## Reconstructed starting revision
-
-`node tools/runtime-spike/build-frozen.mjs` rebuilds the exact frozen revision
-`de942c6399c81d1f15d23247dfd62a36e11a64bc` in an isolated temporary directory.
-The current pinned compiler consumes historical implementation inputs with an
-explicit configuration; the runner does not inspect historical source or execute
-historical build scripts. Extracted inputs are removed, and only compiled JS,
-CSS and `build.json` remain. This is a reconstruction, not a recovered release.
-`frozen-build-results.json` records the recipe, toolchain and artifact hashes.
-
-Set `SCRIPTOSCOPE_EAGER_ENTRY` to the printed compiled `scriptoscope.js` path,
-then run `node tools/runtime-spike/application.mjs --smoke` (or omit `--smoke`
-for three trials per mode). The harness verifies every frozen artifact hash and
-compares its eager API with the current built owned API in the same current
-application and controlled styles. It writes separate `application-historical-*`
-reports, preserving current-API reports. This does not recreate the historical
-application release.
-
-`application-historical-smoke-results.json` verifies that both compiled APIs
-mount all five windows, switch themes and complete twenty mount cycles per mode.
-Its single startup trial per mode is an integration check, not a performance
-budget or final historical comparison. The reconstructed baseline contains
-698,396 JavaScript bytes across all chunks; final current-build comparisons must
-use equivalent compiler settings and include every lazy chunk.
-
-## Focus-cache simplification
-
-`node tools/runtime-spike/focus.mjs current` exercises both public loaders, all
-18 themes, document/titled utility/side utility/collapsed document windows and
-180×90 / 900×600 content sizes. Each case alternates two windows eight times.
-The probe compares every committed full chrome raster with a fresh public render
-of its declared state, checks persistent content/selection and pooled canvas
-identity, checks two post-commit notifications per settled switch, and verifies
-that clicking an already active window performs no render. It uses its own local
-server and browser session. It does not read independent expectations or original
-engine outputs; consistency with the public render is the checked contract.
-
-To reproduce the earlier cache implementation, rebuild revision
-`f905de9d` using `build-frozen.mjs` with its full SHA from
-`focus-cache-build-results.json`, set `SCRIPTOSCOPE_FOCUS_ENTRY` to the compiled
-entry, and run `node tools/runtime-spike/focus.mjs cache`. The runner verifies
-reference artifact hashes. Reports retain all timings and input fingerprints.
-The pre-removal cache produces 1,312 mismatching raster comparisons across the
-288 cases. Cache removal repaints complete chrome through the guarded render
-path; it also removes retained title-strip ImageData. Eager decoding already had
-its own pixel cache, so direct raster transport alone does not explain the cost
-of recomposition. Compare focus latency separately from startup latency.
-
-`src/windowFocus.test.mjs` holds preparations to check rapid two/three-window
-focus, removal, already-active clicks and retheming. All changed renders start
-before focus awaits completion; per-window render epochs suppress stale commits.
-Post-render change callbacks follow completion order. The tests do not certify
-all scrollbar interactions or all asynchronous browser interleavings.
-
-`SCRIPTOSCOPE_EXPECTED_ENTRY=/path/to/reconstructed/compiled/scriptoscope.js node
- tools/runtime-spike/focus.mjs compositor` compares the current committed window
-chrome with fresh renders from a separate compiled implementation. It verifies
-that implementation's artifact manifest and fingerprints both bundles, theme
-archives, metadata and the stylesheet. `focus-compositor-results.json` records
-288 cases / 4,608 exact byte comparisons with no mismatch against the pre-removal
-`f905de9d` fresh renderer after the clipped glyph painters were consolidated.
-This comparison avoids using the old focus cache as the expected raster.
-
-The final focus-cache removal measurement in `focus-current-results.json` has
-4.9 ms median / 9.2 ms p95 warm focus work for two large owned windows, with a
-16.9 ms maximum. Eager large windows measure 4.9 / 12.1 ms, maximum 31.1 ms.
-The first four switches per case are excluded from these warm aggregates.
-Timings end at render completion, before the browser presents the next frame.
-These local figures are not a portable frame-time guarantee.
-
-## Final consolidation and reference comparison
-
-The expanded PR removes repeated packed-pixel decoders, mask and icon unpacking,
-redundant alpha writes, repeated control hit mapping and scrollbar input branches.
-A single MSB-first indexed primitive retains row padding, truncated-read zeroes
-and empty unsupported-depth behavior. Arithmetic unit cases cover 84 packed
-layouts. Icon conversion adds a small temporary index plane; this is a code
-simplification, not a decoder-memory reduction. The unused internal
-`decoders/shared.js` export `indexToRgb` is removed; package exports are unchanged.
-
-`SCRIPTOSCOPE_RUNTIME_REFERENCE_ENTRY=/path/to/compiled/scriptoscope.js node
- tools/runtime-spike/run.mjs --production` loads the reference through its public
-API, verifies all compiled artifact hashes, and compares current owned buffers
-with the reference's PNG exports. It also renders current code with reference
-and current decoded inputs. Reports go to `production-reference-results.json`,
-separate from the ordinary eager/owned report. This checks implementation
-regression equivalence and does not certify original-engine fidelity.
-
-The final source/loader totals are 17,491 / 4,117 physical lines, versus frozen
-17,477 / 4,139: combined −8, source alone +14. Cited tables remain 2,323 lines.
-Tests, declarations and this unshipped harness are excluded from loader totals.
-The net count is small; the structural removals are the useful result.
-
-`current-build-results.json` uses the same compiler-only recipe as
-`frozen-build-results.json`. Across all JavaScript chunks, current/frozen sizes
-are 701,413 / 698,396 bytes; separate level-9 gzip totals are 221,831 / 221,364.
-Thus net source reduction does not imply smaller compiled output. Current
-published-package measurements are recorded separately in
-`shipped-size-results.json`; reconstructed artifacts omit maps and declarations.
-
-Decoder edits invalidated independently pinned extraction toolchain hashes.
-`extraction-change-results.json` retains the exact implementation hash delta and
-now records a separately authorized verifier refresh. Full integration gates and all 576 required browser tests pass; matching pixels alone did not waive provenance review.
-The eight older optional visual failures still require listing-free public input
-and intended-behavior clarification. Maintainer-asset metadata, archive indexes
-and available handoff searches did not identify that handoff. An attempted frozen
-compiled-entry replay stopped at fixture readiness, before the assertions, and
-provides no evidence that those failures predate the migration.
-
-## Final candidate application and checks
-
-At `6cfe9afd`, `application-historical-results.json` records all six final
-normal-mode trials: eager startup 5,546 / 8,036 / 8,493 ms, owned
-619 / 1,230 / 788 ms; medians 8,036 / 788 ms. Both modes are slower than the
-earlier stage, whose exact report is preserved as
-`application-historical-before-simplification-results.json`. The cause of this
-variation is not established; keep all trials rather than pooling stages. Fresh
-profiles are used, with shared OS/Vite caches. No other task-started validation
-or build job ran concurrently. No portable latency guarantee is established.
-
-All trials mount five windows, switch themes and complete twenty mount/disconnect
-cycles. Ready backing storage is about 5.50 MB eager / 13.71 MB owned. All recorded
-teardown/batch live URLs and tracked advertisement-owner pixel bytes are zero.
-All final batch DOM/listener samples are 350/16 in this run. Post-GC heap still
-grows across batches in both modes; the earlier eager retention anomaly is not
-explained by its absence here. RSS/process counts vary and do not establish lower
-application-retained memory or absence of leaks.
-
-The clean library-only package contains 116 entries, 996,635 compressed bytes /
-3,288,067 unpacked bytes. Normal-build JavaScript totals 704,544 bytes and separate
-level-9 gzip 223,126 bytes. These differ from the common-recipe comparison above;
-the package includes maps and declarations.
-
-`validation-before-evidence-refresh-results.json` preserves the earlier blocked
-check results: 574 browser passes / two extraction-hash failures and 1,139 Node
-passes / eight extraction-hash failures, plus binding drift. Goldens were not
-changed. The separate verifier subsequently refreshed provenance and bindings
-under explicit maintainer authorization, committing `7e5029c6`, integrated as
-`c157454c`. Their Node suite passes 1,147 tests with zero failures; build and
-remaining gate commands pass. The implementer did not inspect the evidence diff
-or receive verifier review material. `validation-results.json` now records the
-passing full integration rerun: 1,147 Node tests and all 576 required browser tests,
-including both formerly blocked availability cases.
-The process and return boundary are in `independent-refresh-handoff.md`.
-
-The final serialized optional visual run is recorded in
-`optional-visual-results.json`: 33 pass / eight fail, with the same failing case
-labels as the earlier stage. Those failures are not waived or established as
-pre-migration failures by current parity. Public input/expected-contract questions
-are in `older-visual-contract-questions.md`. Exact-head lane readiness is recorded
-in PR #480 after the report commit is pushed, avoiding changes to the tested head.
+# Owned raster regression harness
+
+This local, unshipped harness compares decoded-buffer rendering with eager image
+transport and separately compiled implementations. It checks regression
+consistency; it does not certify original Kaleidoscope fidelity.
+
+## Recorded evidence
+
+The compact snapshots in this directory retain production size, published size,
+build provenance, validation status and unresolved optional cases. Large per-case
+traces live outside the source tree. [evidence-index.json](evidence-index.json)
+records their exact byte counts, SHA-256 hashes, capture provenance and key totals.
+Revisions identify HEAD at capture; recorded input hashes also pin working-tree
+inputs. Results from different stages must not be pooled.
+
+| Check | Recorded outcome |
+| --- | --- |
+| Production reference | 18 themes; 8,424 button paints, 1,728 windows, 432 scrollbars; zero mismatches |
+| Public rasters | 18,704 current checks and 18,704 additional compiled-reference checks; zero mismatches |
+| Renderer families | 19,152 cases: 15,278 paints, 3,474 matching missing and 400 explicitly unsupported outcomes |
+| Focus consistency | 288 cases / 4,608 outputs; removed cache had 1,312 mismatches, guarded full renders have zero |
+| Independent refresh integration | 1,147 Node tests and all 576 required browsers pass |
+| Other validation | 12,902 unchanged engine-diff cells; 36 Linux goldens; packed consumer passes |
+| Optional visual suite | 33 pass / eight unresolved failures; see [public questions](older-visual-contract-questions.md) |
+
+The focus probe also checks content/selection and canvas identity, notifications
+and already-active clicks. Six held-preparation units cover focus/removal/retheme
+races. Recorded warm large-window owned focus work is 4.9 ms median / 9.2 ms p95,
+ending at render completion, before presentation. Full recomposition is more
+expensive than partial caching; cache removal fixes correctness and complexity.
+
+The final six application trials compare a reconstructed frozen eager library
+with the current owned API in the current advertisement app. Startup is
+5,546 / 8,036 / 8,493 ms eager and 619 / 1,230 / 788 ms owned; medians
+8,036 / 788 ms. Both modes are slower than the preserved earlier stage
+(2,501 / 241 ms medians); the cause is unestablished. Fresh profiles share OS/Vite
+caches. No other task-started validation/build ran alongside the final trials.
+Diagnostic traces and normal trials remain separate in the archive.
+
+Ready backing storage is about 5.50 MB eager / 13.71 MB owned. Teardown/batch live
+URLs and tracked advertisement-owner pixel bytes reach zero; final batches have
+350 DOM nodes / 16 listeners. Heap grows in both modes, and an earlier eager
+retention anomaly remains unexplained. No portable latency budget, lower retained
+memory or leak-free behavior is claimed.
+
+Production source logic plus loader JavaScript decreases from 21,616 to 21,608
+physical lines (−8; source alone +14). Equivalent compiler-recipe JavaScript grows
+by 3,017 bytes; separate level-9 gzip totals grow by 467. The normal library package
+is 996,635 compressed / 3,288,067 unpacked bytes, 116 entries. See
+[production-size-results.json](production-size-results.json) and
+[shipped-size-results.json](shipped-size-results.json).
+
+## Reproduce
+
+Requires installed dependencies, the `agent-browser` CLI and its Chromium browser.
+Run from the repository root with a current library build:
+
+```sh
+npm run build
+node tools/runtime-spike/run.mjs
+node tools/runtime-spike/run.mjs --production
+node tools/runtime-spike/application.mjs --smoke
+node tools/runtime-spike/focus.mjs current
+```
+
+Runners write raw JSON into ignored `tools/runtime-spike/.artifacts/`, leaving
+curated committed snapshots untouched. Set `SCRIPTOSCOPE_ARTIFACT_DIR` to a fresh
+external run directory for captures you intend to retain. Application runs omit
+`--smoke` for three trials per mode; `--diagnostic` writes a separate instrumented
+report whose timings and retained trace memory must not replace normal results.
+Servers and task-owned browser sessions close after each run. Serialize builds
+and measurements; do not change inputs during a capture.
+
+`build-frozen.mjs` rebuilds the exact frozen starting revision by default, or an
+explicit full SHA, with a common pinned compiler recipe. It does not inspect old
+source/configuration or run old build scripts; extracted inputs are deleted.
+Only compiled JS, CSS and build metadata remain. This is a reconstruction, not a
+recovered release or original Mac executable.
+
+Point these variables at a compiled `scriptoscope.js` with its adjacent build
+manifest; each runner verifies the artifact hashes:
+
+- `SCRIPTOSCOPE_EAGER_ENTRY`: reconstructed eager library for the application run.
+- `SCRIPTOSCOPE_RUNTIME_REFERENCE_ENTRY`: reference loader/rasters for production.
+- `SCRIPTOSCOPE_FOCUS_ENTRY`: implementation under the focus probe.
+- `SCRIPTOSCOPE_EXPECTED_ENTRY`: separate fresh renderer for focus comparisons.
+
+## Archive and review boundary
+
+The hash-verified local archive is under `Scriptoscope-maintainer-assets` at the
+relative directory recorded in `evidence-index.json`. It contains all 22 original
+JSON snapshots, plus verified frozen/pre-simplification/current compiled builds.
+It has not been uploaded; it is not a public download link. Removed reports also
+exist at the index's pre-cleanup Git revision. Archive folders are immutable;
+keep new captures in a new folder. Use a squash merge to keep the earlier bulky
+feature commits out of the target branch's history.
+
+Independent acceptance sources, fixtures, goldens and verifier review material
+are outside this packaging change. The separately authorized provenance/binding
+refresh and its return boundary are recorded in
+[independent-refresh-handoff.md](independent-refresh-handoff.md).
+[validation-results.json](validation-results.json) records the prior runtime
+candidate; current exact-head lane results are reported in PR #480.

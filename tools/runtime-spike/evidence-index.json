@@ -1,0 +1,369 @@
+{
+  "schemaVersion": 1,
+  "sourceRevision": "23183525808d8f834031f4b0b93bc1c2fd525b73",
+  "archive": {
+    "store": "Scriptoscope-maintainer-assets (local; not uploaded)",
+    "directory": "runtime-streamlining/pr-480/23183525808d8f834031f4b0b93bc1c2fd525b73",
+    "reportDirectory": "reports",
+    "availability": "Raw reports are outside the source repository. The sourceRevision also identifies their pre-cleanup Git snapshot."
+  },
+  "qualification": "Recorded revisions identify HEAD at capture; input fingerprints in each raw report also identify any working-tree inputs. Status and metrics are stage-specific; archived failures and outliers are preserved.",
+  "reports": [
+    {
+      "name": "application-diagnostic-results.json",
+      "storage": "archive",
+      "bytes": 96761,
+      "sha256": "9a7f43d06a434b3474a94748019bd4d58c6fdd2f6871586b04e7956bcc70f255",
+      "status": "pass",
+      "provenance": {
+        "revision": "915873b18878e424664b3f53267b48b29a66faee",
+        "inputs": "c3a21b348afcb333c4f81c605f99c642bac6255ebc01441beff4665c817e67ee"
+      },
+      "metrics": {
+        "trials": 2,
+        "startupMs": {
+          "eager": [
+            3570
+          ],
+          "owned": [
+            364
+          ]
+        }
+      }
+    },
+    {
+      "name": "application-historical-before-simplification-results.json",
+      "storage": "archive",
+      "bytes": 61725,
+      "sha256": "cd4dfc2b296411de87e8dc045c85ff8cf70b8302fb537c091dc37911a9713d11",
+      "status": "pass",
+      "provenance": {
+        "revision": "f905de9d240a89b29bfa745588b5e0f7f7a90d7e",
+        "inputs": "b4c0986ac261db950a14d08e893651327ecf211978b688fa2b52fcb8913cefea"
+      },
+      "metrics": {
+        "trials": 6,
+        "startupMs": {
+          "eager": [
+            2730,
+            2501,
+            2482
+          ],
+          "owned": [
+            241,
+            223,
+            1237
+          ]
+        }
+      }
+    },
+    {
+      "name": "application-historical-results.json",
+      "storage": "archive",
+      "bytes": 61561,
+      "sha256": "e04198d038983858b944b6067aa077e1894c53f77a6656d59c62c7fb419cd211",
+      "status": "pass",
+      "provenance": {
+        "revision": "6cfe9afda52825b848702aef942065f3daf6a647",
+        "inputs": "a0a49c09db3773fbe531e44c85921c3ddd7546e2b4b49eb04e36621429e43a29"
+      },
+      "metrics": {
+        "trials": 6,
+        "startupMs": {
+          "eager": [
+            5546,
+            8036,
+            8493
+          ],
+          "owned": [
+            619,
+            1230,
+            788
+          ]
+        }
+      }
+    },
+    {
+      "name": "application-historical-smoke-results.json",
+      "storage": "archive",
+      "bytes": 22656,
+      "sha256": "83d3033e0c1f5d2b968e4fb7284f1db4628b34643e62f06961ddfdff4f443139",
+      "status": "pass",
+      "provenance": {
+        "revision": "82e7d9f3b6a8b50c76f763190b6dbd07f3ada464",
+        "inputs": "af93382d877efd8601e2740d2b3ddfa4e648037e3cf299c85dce846b3013a966"
+      },
+      "metrics": {
+        "trials": 2,
+        "startupMs": {
+          "eager": [
+            2590
+          ],
+          "owned": [
+            326
+          ]
+        }
+      }
+    },
+    {
+      "name": "application-initial-results.json",
+      "storage": "archive",
+      "bytes": 59787,
+      "sha256": "4b8a32ed65459933a61bac78878f3c16c88a624a140376b948a2095927205bd4",
+      "status": "pass",
+      "provenance": {
+        "revision": "3fd593ed091cdfb0efcc71a0c906005fa611f7de",
+        "inputs": "b2e1b2ecf9ca2ddf21c2063e6448c10e8d94e8e2c4c6f74db5ae61d20cdaa4e7"
+      },
+      "metrics": {
+        "trials": 6,
+        "startupMs": {
+          "eager": [
+            2512,
+            2557,
+            2759
+          ],
+          "owned": [
+            4160,
+            277,
+            335
+          ]
+        }
+      }
+    },
+    {
+      "name": "application-results.json",
+      "storage": "archive",
+      "bytes": 59926,
+      "sha256": "f38f6aa9776a58348e1fee6ebfd3ecafb21ce78fe92dc94bf1fb7e0c01eaf680",
+      "status": "pass",
+      "provenance": {
+        "revision": "f927ff5ad4b0655b3042fbd0439ca47b7392a46c",
+        "inputs": "c3a21b348afcb333c4f81c605f99c642bac6255ebc01441beff4665c817e67ee"
+      },
+      "metrics": {
+        "trials": 6,
+        "startupMs": {
+          "eager": [
+            2602,
+            2514,
+            4649
+          ],
+          "owned": [
+            267,
+            2257,
+            340
+          ]
+        }
+      }
+    },
+    {
+      "name": "current-build-results.json",
+      "storage": "repository-and-archive",
+      "bytes": 1621,
+      "sha256": "131bd2ad4b4632c6939ad29e4a2e2d47dd077576f684ec1083660493ce18631a",
+      "status": "pass",
+      "revision": "6cfe9afda52825b848702aef942065f3daf6a647"
+    },
+    {
+      "name": "diagnostic-results.json",
+      "storage": "archive",
+      "bytes": 1244,
+      "sha256": "20a66d5d9404940a5202a4279724e5aeda37e52f2463d247ab25975994a9a523",
+      "status": "pass"
+    },
+    {
+      "name": "extraction-change-results.json",
+      "storage": "repository-and-archive",
+      "bytes": 2743,
+      "sha256": "9ab5bd0b4bd623cabe8934f902910bc4d9300cd6460949fac2972ecf5020dd8c",
+      "status": "independent-refresh-completed"
+    },
+    {
+      "name": "focus-cache-build-results.json",
+      "storage": "repository-and-archive",
+      "bytes": 1621,
+      "sha256": "14f4060dd036f36385b22859c4b04f65b438edef9109dc2fec623a86e3610898",
+      "status": "pass",
+      "revision": "f905de9d240a89b29bfa745588b5e0f7f7a90d7e"
+    },
+    {
+      "name": "focus-cache-results.json",
+      "storage": "archive",
+      "bytes": 466663,
+      "sha256": "2d1912cc60ca96c49c101e64f284148883575a461529c4804f44037fe82a021e",
+      "status": "mismatch",
+      "provenance": {
+        "revision": "f905de9d240a89b29bfa745588b5e0f7f7a90d7e",
+        "inputs": "81400f339c3480cc88471399c93851d715063a92b7fe4ce0ae1acc6759816ac9"
+      },
+      "metrics": {
+        "cases": 288,
+        "rasterComparisons": 4608,
+        "mismatches": 1312
+      }
+    },
+    {
+      "name": "focus-compositor-results.json",
+      "storage": "archive",
+      "bytes": 221909,
+      "sha256": "31e714f9ee331e04b9c1c7fbe9b8b7a37294f50b801469a4e2f12608f4f23bdd",
+      "status": "pass",
+      "provenance": {
+        "revision": "46ad728859536506fde20d5bf5e72a46bdf405ef",
+        "inputs": "e990ed62d428db01ccaadb21c93798b996258e4647b73adb80c84a7939272da8"
+      },
+      "metrics": {
+        "cases": 288,
+        "rasterComparisons": 4608,
+        "mismatches": 0
+      }
+    },
+    {
+      "name": "focus-current-results.json",
+      "storage": "archive",
+      "bytes": 220157,
+      "sha256": "b5aa60f8096fe8b73c97ab78976186f6a0d93265d3db7d9e7caf4941b3568e61",
+      "status": "pass",
+      "provenance": {
+        "revision": "f905de9d240a89b29bfa745588b5e0f7f7a90d7e",
+        "inputs": "925574886bc1cb5171b584e22985a2052a06cc651d306e57b084b82edbe9939f"
+      },
+      "metrics": {
+        "cases": 288,
+        "rasterComparisons": 4608,
+        "mismatches": 0
+      }
+    },
+    {
+      "name": "frozen-build-results.json",
+      "storage": "repository-and-archive",
+      "bytes": 1621,
+      "sha256": "0bbda956845a0a2395298db1821432895ae4ba9a92c4998d20e836377a1d96e0",
+      "status": "pass",
+      "revision": "de942c6399c81d1f15d23247dfd62a36e11a64bc"
+    },
+    {
+      "name": "optional-visual-results.json",
+      "storage": "repository-and-archive",
+      "bytes": 1893,
+      "sha256": "fbf5b57845ed59179af13f9a66e3518a754240df031be405db523f7230847959",
+      "status": "fail",
+      "revision": "6cfe9afda52825b848702aef942065f3daf6a647"
+    },
+    {
+      "name": "production-reference-results.json",
+      "storage": "archive",
+      "bytes": 11340,
+      "sha256": "8db9df8a70662e0006b51a0bf9cdd2e1a23c79e2c4a9e381da2e794c933e71c4",
+      "status": "pass",
+      "provenance": {
+        "revision": "6cfe9afda52825b848702aef942065f3daf6a647",
+        "runtime": "93ee1493bff1773cf0cb7bd27f38d050d08de810504ea07a6940ac1cde7c26a2",
+        "built": "9b0f99f551d42775f710182003d0420328f53914b4993f13134300eb4efe7098",
+        "driver": "371a186355c61440173cd08320e84134f1f834eea44d7e65a70bf01b8cc4cbc1"
+      },
+      "metrics": {
+        "compared": 8424,
+        "painted": 8424,
+        "windows": 1728,
+        "scrollbars": 432,
+        "rasters": 18704,
+        "referenceRasters": 18704,
+        "mismatches": 0
+      }
+    },
+    {
+      "name": "production-results.json",
+      "storage": "archive",
+      "bytes": 9585,
+      "sha256": "cc28f1f4874c2720491b951e222b8faa4d6a255e2e4b6caeca2be8413f128dd7",
+      "status": "pass",
+      "provenance": {
+        "revision": "283d10a9f3483f792a49cc45688e1f4c073251a5",
+        "runtime": "cff0583984ff20ceb30ae14029ca12a20bf619d070f299569752b2e39735a296",
+        "built": "d062e2b1c8b5e627169750a29d36bc40152efada8bc3872b51d78dbc49aa95ea",
+        "driver": "c09031068030c18c3d2b07c441f0227650070b6cbe7a45589e8c87f7a578a5db"
+      },
+      "metrics": {
+        "compared": 8424,
+        "painted": 8424,
+        "windows": 1728,
+        "scrollbars": 432,
+        "rasters": 18704,
+        "mismatches": 0
+      }
+    },
+    {
+      "name": "production-size-results.json",
+      "storage": "repository-and-archive",
+      "bytes": 679,
+      "sha256": "f2da1fe84e3e8a4a602a42ca719aa657319e7eb1c0f26d52d3e453796b557fee",
+      "revision": "6cfe9afda52825b848702aef942065f3daf6a647"
+    },
+    {
+      "name": "results.json",
+      "storage": "archive",
+      "bytes": 16055,
+      "sha256": "6e3eb445d50718b6f19fbab86cccb062f1af78b9811384262953c985ffddb84f",
+      "status": "pass",
+      "provenance": {
+        "revision": "3725e478101363f2024ac07e9332c2b8eced80a3",
+        "runtime": "9a2bf65a73e57ec6c2649689fae8f4f461d40d71be4d90704ff48d0863dc6ee2",
+        "built": "f7b11fd014d7a2c7d54f84909db251302f368528152e98b0144008b34dc86e64",
+        "driver": "633cb70a6017077e1236ba171c0985283d97ebdc649a898a967341aee189a836"
+      },
+      "metrics": {
+        "compared": 1944,
+        "painted": 1944,
+        "mismatches": 0
+      }
+    },
+    {
+      "name": "shipped-size-results.json",
+      "storage": "repository-and-archive",
+      "bytes": 1879,
+      "sha256": "b248c4888f7d91603c2d26dd84e0909124c88a5c3f302151846db5f3ac61d42c",
+      "revision": "6cfe9afda52825b848702aef942065f3daf6a647"
+    },
+    {
+      "name": "validation-before-evidence-refresh-results.json",
+      "storage": "archive",
+      "bytes": 3981,
+      "sha256": "3440b70d51c00ee6a15f594ff6e03a177e382467abcb240e5cf231b94940cdf0",
+      "status": "independent-review-required",
+      "revision": "6cfe9afda52825b848702aef942065f3daf6a647"
+    },
+    {
+      "name": "validation-results.json",
+      "storage": "repository-and-archive",
+      "bytes": 5273,
+      "sha256": "f1ce4e1a8cbdfb3f11db617b5605210d7a30e099aa88a102a23f11a61e3b5bf5",
+      "status": "required-checks-pass-optional-visual-unresolved",
+      "revision": "6cfe9afda52825b848702aef942065f3daf6a647"
+    }
+  ],
+  "compiledReferences": [
+    {
+      "label": "frozen",
+      "revision": "de942c6399c81d1f15d23247dfd62a36e11a64bc",
+      "manifestSha256": "0bbda956845a0a2395298db1821432895ae4ba9a92c4998d20e836377a1d96e0",
+      "directory": "compiled/frozen",
+      "status": "archived-and-verified"
+    },
+    {
+      "label": "pre-simplification",
+      "revision": "f905de9d240a89b29bfa745588b5e0f7f7a90d7e",
+      "manifestSha256": "14f4060dd036f36385b22859c4b04f65b438edef9109dc2fec623a86e3610898",
+      "directory": "compiled/pre-simplification",
+      "status": "archived-and-verified"
+    },
+    {
+      "label": "current",
+      "revision": "6cfe9afda52825b848702aef942065f3daf6a647",
+      "manifestSha256": "131bd2ad4b4632c6939ad29e4a2e2d47dd077576f684ec1083660493ce18631a",
+      "directory": "compiled/current",
+      "status": "archived-and-verified"
+    }
+  ]
+}

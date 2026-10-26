@@ -1,10 +1,11 @@
 // Local-only focus probe: compare every committed chrome with a fresh public render.
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { readFile, readdir, writeFile } from 'node:fs/promises';
+import { readFile, readdir } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { resolve, dirname } from 'node:path';
 import { createServer } from 'vite';
+import { writeReport } from './report.mjs';
 const exec = promisify(execFile), root = resolve(import.meta.dirname, '../..');
 const label = process.argv[2] ?? 'current';
 const entry = process.env.SCRIPTOSCOPE_FOCUS_ENTRY ? resolve(process.env.SCRIPTOSCOPE_FOCUS_ENTRY) : resolve(root, 'dist/scriptoscope.js');
@@ -26,7 +27,7 @@ if (!/^[a-z-]+$/.test(label)) throw new Error('Use a lowercase report label');
 const fingerprint = async () => {
   const paths = (await readdir(directory)).filter(p => p.endsWith('.js')).map(p => resolve(directory, p));
   if (expectedEntry) paths.push(...(await readdir(dirname(expectedEntry))).filter(p => p.endsWith('.js')).map(p => resolve(dirname(expectedEntry), p)));
-  paths.push('tools/runtime-spike/focus.mjs', 'src/scriptoscope.css', 'demo/themes-manifest.json');
+  paths.push('tools/runtime-spike/report.mjs', 'tools/runtime-spike/focus.mjs', 'src/scriptoscope.css', 'demo/themes-manifest.json');
   const { stdout } = await exec('git', ['ls-files', 'themes'], { cwd: root });
   paths.push(...stdout.trim().split('\n').filter(p => /\/(?:meta\.json|scheme\.(?:sit|rsrc))$/.test(p)));
   const hash = createHash('sha256');
@@ -106,7 +107,7 @@ try {
  report.compiledBuild=compiledBuild;report.expectedBuild=expectedBuild;report.recordedAt=new Date().toISOString();
  report.provenance={revision:(await exec('git',['rev-parse','HEAD'],{cwd:root})).stdout.trim(),inputs:initial};
  if(await fingerprint()!==initial)report.status='unstable-inputs';
- await writeFile(resolve(import.meta.dirname,`focus-${label}-results.json`),JSON.stringify(report,null,2)+'\n');
+ await writeReport(`focus-${label}-results.json`,report);
  console.log(JSON.stringify({status:report.status,cases:report.cases.length,mismatches:report.mismatches.length,error:report.error}));
  if(report.status!=='pass')process.exitCode=1;
 }finally{await browser('close').catch(()=>{});await server.close();}

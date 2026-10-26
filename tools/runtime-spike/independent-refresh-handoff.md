@@ -9,6 +9,10 @@ public command results returned; independent sources, diffs and review material
 stayed outside implementer context. Full integration gates now pass; the
 complete required browser suite passes all 576 tests.
 
+Archived report names below resolve through `evidence-index.json`; compact
+validation/build/hash snapshots remain in this directory. The archive packaging
+did not change independent acceptance evidence or this completed assignment.
+
 ## Assignment and return boundary
 
 Assign a fresh independent verifier, in a separate isolated worktree with no
