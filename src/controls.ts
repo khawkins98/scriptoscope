@@ -686,9 +686,11 @@ async function prepareBevelFrame(face: ResolvedControlFace, opts: FaceOptions, w
           const raster = face.theme.asset(binding.asset), targetRaster = face.theme.asset(target.asset);
           const copy = binding.copy, derivedPath = binding.derivedPath;
           const pixels = await raster.pixels();
+          let validAlpha = true;
+          for (let i = 3; validAlpha && i < pixels.data.length; i += 4)
+            validAlpha = copy === 'unmasked' ? pixels.data[i] === 255 : pixels.data[i] === 0 || pixels.data[i] === 255;
           if (pixels.width !== r.w || pixels.height !== r.h) reject('cicn-body-decoded-size-mismatch');
-          else if (Array.from(pixels.data).some((a, i) => i % 4 === 3 && (copy === 'unmasked' ? a !== 255 : a !== 0 && a !== 255)))
-            reject('cicn-body-alpha-mismatch');
+          else if (!validAlpha) reject('cicn-body-alpha-mismatch');
           else {
             const [assetUrl, targetUrl] = opts.trace ? await Promise.all([raster.imageUrl(), targetRaster.imageUrl()]) : [raster.key, targetRaster.key];
             value = { pixmap: pixels, pixelSize: binding.pixelSize, unmasked: copy === 'unmasked' ? pixels : null };
@@ -821,8 +823,15 @@ async function composeFaceButton(
   const frame = await prepareBevelFrame(resolved, opts, innerW, innerH, !!validBg, [cr, cg, cb]);
   let engineTrace: EngineTrace | undefined;
   if (frame) {
+    const matches = (a: ChromeElement['samplingEquivalence'] | ChromeElement['sampledBandAsset']) =>
+      a?.model === 'kaleidoscope-2.3.1-opaque-sampling-v1' && a.comparison === 'opaque-current-display-rgb'
+        && ownerDisplayPolicyMatches(resolved.theme.manifest, a.displayPolicy) && a.width === face.width && a.height === face.height;
+    const proof = faceEl.samplingEquivalence, companion = faceEl.sampledBandAsset;
+    const equivalent = !!matches(proof) && proof?.status === 'equivalent' && proof.reason === 'all-opaque-display-rgb-equal';
+    const descriptor = matches(companion) && companion && typeof companion.asset === 'string' && /^cicn-sampled\/[^/]+\.png$/.test(companion.derivedPath)
+      ? companion : undefined;
     const prepared = await prepareThemeIcon(resolved.theme, faceEl.sourceCicnId!, faceEl, resolved.raster,
-      { pixels: face, lazySamples: true, traceProvenance: !!opts.trace });
+      { pixels: face, lazySamples: true, traceProvenance: !!opts.trace, sampling: { equivalent, ...(descriptor ? { descriptor } : {}) } });
     const chain = new ResourceChain([]);
     await prepareCinfFrameSamples(chain, faceEl.sourceCicnId!, true, D, out, clip, undefined, prepared.icon, frame.geometry);
     engineTrace = opts.trace ? createTrace('bevel-button') : undefined;
