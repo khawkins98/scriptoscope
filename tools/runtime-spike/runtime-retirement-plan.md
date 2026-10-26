@@ -148,3 +148,13 @@ promotion alone cannot justify claiming the shared old implementation deleted.
 `npm run lint:cleanroom` passed (0 clean-room hits). Repeated audit runs
 produce identical output on the frozen source tree. Runtime tests were not
 run for this tooling/proposal-only change; no production code was changed.
+
+A current-production compiled baseline has also been frozen locally at
+`tools/runtime-spike/.artifacts/native-controls-baseline/`: `compiled/` contains
+the JS chunks and stylesheet; `receipt.json` binds each file's SHA-256 and size
+to the source fingerprint, build head and Node/TypeScript/Vite versions. It is
+ignored and not committed as generated reference bulk. `npm run build` passed.
+The baseline has 704,891 JS bytes and 223,651 bytes summed over individually
+gzipped JS chunks. These are baseline measurements, not optimization results.
+Use it opaquely to compare public behavior; it does not establish original
+Kaleidoscope fidelity. Archive this local baseline before deleting the worktree.
