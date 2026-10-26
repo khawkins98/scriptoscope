@@ -1,5 +1,8 @@
 # Bevel engine consolidation: compatibility package for review
 
+Superseded by the [compatibility-preserving revision](bevel-delivery-revision.md).
+The measurements and proposed losses below describe the earlier candidate.
+
 Status: implemented draft candidate. Snapshot timing is approved; the other
 changes below are staged for review and remain unapproved. See the
 [measured delivery results](bevel-delivery-results.md). This replaces the unsupported exact-preservation

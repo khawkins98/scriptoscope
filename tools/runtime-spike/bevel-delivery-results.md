@@ -1,5 +1,8 @@
 # Prepared bevel runtime candidate
 
+Superseded by the [compatibility-preserving revision](bevel-delivery-revision.md).
+The measurements and proposed losses below describe the earlier candidate.
+
 This branch contains an implementation for review, not an approved compatibility
 change or a merge-ready release. It replaces bevel's independent body resolvers
 and border painter with the existing cinf engine and retains rectangular legacy
