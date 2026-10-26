@@ -177,3 +177,18 @@ If a stage cannot preserve behavior or reduce total complexity, narrow or revise
 that stage before merging. Keep the integration PR open until its outcome is
 supported by the measurements, rather than declaring completion after the store
 has merely been added.
+
+## Intermediate size after owner-local retirement
+
+At `5989db59`, `src/` non-test logic is 17,663 lines versus the frozen 17,477
+(+186); cited engine tables remain 2,323. Loader non-test JavaScript is 4,229
+versus 4,139 (+90). Combined affected production growth is +276 lines. Removing
+the registry simplifies ownership but does not yet meet the net reduction condition.
+Shared mount/image-consumer adoption and further deletion remain required.
+
+Astra identified bounded follow-up simplifications: remove the tab facade's
+obsolete copied ThemeView snapshot after binding finite selected patterns;
+consolidate captured decoded-or-image preparation without delaying legacy decode
+start; and avoid declared-cinf/diagnostic metadata preparation for pixel-only
+control lookups where it adds no validation. Preserve family admission and trace
+ordering; do not introduce a generic diagnostic framework to meet a line count.
