@@ -51,6 +51,97 @@ function sampledDeclaration(element: ChromeElement, theme: ThemeView) {
     ? descriptor : undefined;
 }
 
+/** Prepare an already-selected raster. Selection/admission belongs to the caller;
+ * both legacy and engine facades consume this same icon representation. */
+export async function prepareThemeIcon(theme: ThemeView, id: number, el: ChromeElement, art: RasterSource,
+  opts: { traceProvenance?: boolean; lazySamples?: boolean; pixels?: Pixmap; ended?: () => boolean } = {}) {
+  const sampleAsset = el.asset, status = el.samplingEquivalence?.status ?? null;
+  // Preserve the actual preparation binding before copying the finite values.
+  // Paths/dimensions and even equal census scalars cannot identify a provider.
+  const sampleSource = el.engineColorSamples?.source;
+  const selectedSource = el.cicnSource;
+  const boundOccurrence = () => selectedSource != null
+    && el.cicnSource === selectedSource && el.sourceCicnId === id && el.asset === sampleAsset
+    && (!el.byteProvenance || el.byteProvenance.cicnResourceIndex === selectedSource.resourceIndex)
+    && theme.inspector?.cicnResources?.filter(r => r.id === id).length === 1
+    && theme.inspector.cicnResources.find(r => r.id === id) === selectedSource;
+  const bounds = selectedSource?.bounds;
+  const finiteSamples = el.engineColorSamples ? structuredClone(el.engineColorSamples) : undefined;
+  const companionAsset = el.iconBlit?.unmaskedAsset;
+  const companionRaster = companionAsset ? theme.asset(companionAsset) : undefined;
+  const companionTransport = opts.traceProvenance && companionAsset
+    ? { assetUrl: theme.asset(companionAsset).key,
+      ...(companionRaster?.path ? { derivedPath: companionRaster.path } : {}) } : undefined;
+  // Public push snapshots finite descriptors and URLs before ordinary decode.
+  // Generic engine clients retain their existing eager sampling defaults.
+  const proof = el.samplingEquivalence && { ...el.samplingEquivalence };
+  const admittedDescriptor = sampledDeclaration(el, theme);
+  const descriptor = admittedDescriptor && { ...admittedDescriptor };
+  const validProof = finiteSampling(proof, theme);
+  const matches = (a: typeof proof | typeof descriptor, pixmap: Pixmap) =>
+    a?.width === pixmap.width && a.height === pixmap.height;
+  const sampledRaster = descriptor ? theme.asset(descriptor.asset) : undefined;
+  const sampledUrl = sampledRaster?.key;
+  const sampledSource = opts.traceProvenance && (opts.lazySamples || status === 'different' && LINE_SAMPLED.has(id)) && descriptor
+    ? { path: descriptor.derivedPath, assetUrl: sampledUrl!, model: descriptor.model, displayPolicy: descriptor.displayPolicy } : undefined;
+  // All selected references and finite samples above are snapshotted before
+  // image export can yield. Diagnostics must not select a mutated replacement.
+  if (opts.ended?.()) throw abortError();
+  const [pixmap, companion, artImage, companionImage, sampledImage] = await Promise.all([
+    opts.pixels ?? art.pixels(), companionRaster ? companionRaster.pixels() : Promise.resolve(null),
+    opts.traceProvenance ? art.imageUrl() : undefined,
+    companionTransport ? companionRaster!.imageUrl() : undefined,
+    sampledSource ? sampledRaster!.imageUrl() : undefined,
+  ]);
+  if (opts.ended?.()) throw abortError();
+  if (companionTransport) companionTransport.assetUrl = companionImage!;
+  if (sampledSource) sampledSource.assetUrl = sampledImage!;
+  let sampled: Pixmap | null = null;
+  const equivalent = validProof && matches(proof, pixmap) && proof?.status === 'equivalent' && proof.reason === 'all-opaque-display-rgb-equal';
+  const eligible = !!descriptor && matches(descriptor, pixmap);
+  let accepted = false;
+  let pending: Promise<void> | undefined;
+  const prepareSampled = (): Promise<void> => pending ??= (async () => {
+    if (equivalent || !eligible) return;
+    if (opts.ended?.()) throw abortError();
+    const decoded = await sampledRaster!.pixels();
+    if (opts.ended?.()) throw abortError();
+    if (decoded.width !== pixmap.width || decoded.height !== pixmap.height || decoded.data.length !== pixmap.data.length) return;
+    for (let i = 3; i < pixmap.data.length; i += 4) if (decoded.data[i] !== pixmap.data[i]) return;
+    sampled = decoded;
+    accepted = true;
+  })();
+  if (!opts.lazySamples && eligible && LINE_SAMPLED.has(id)) await prepareSampled();
+  // Adapter policy, not a spec row (docs/v2/DECISIONS.md #7): the opaque
+  // companion is used only when it is the same occurrence as the element's
+  // asset (equal size, equal colour wherever the mask is set). Otherwise (e.g.
+  // a consumer replaced `asset`) the icon falls back to the masked copy of the
+  // current asset, and the fallback is recorded in the trace (iconSource.ts).
+  // Line-colour inputs (slider BL8/BL12) and the bounds origin (BL11) ride along.
+  const source = cicnIconSource(pixmap, el.iconBlit?.pixelSize ?? null, companion);
+
+  const icon: CinfIconSource = { ...source,
+    ...(opts.lazySamples ? { prepareSampled } : {}),
+    get sampledSource() { return accepted ? sampledSource : undefined; },
+    origin: selectedSource ? (boundOccurrence() && bounds
+      && bounds.right - bounds.left === pixmap.width && bounds.bottom - bounds.top === pixmap.height
+      ? { top: bounds.top, left: bounds.left } : null) : el.boundsOrigin ?? null,
+    sampling: opts.lazySamples ? equivalent ? 'equivalent' : 'unknown' : status,
+    get sampled() { return sampled; },
+    realizeRgb16: (rgb: readonly [number, number, number]) => {
+      const [r, g, b] = realizeRgb16(rgb, theme.manifest.displayProfile);
+      return { r: r!, g: g!, b: b!, a: CINF_SAMPLE.opaque };
+    },
+    sampleRgb16: (point: QdPoint) => {
+      const samples = finiteSamples;
+      if (!boundOccurrence() || sampleSource !== selectedSource || !samples || samples.model !== 'kdef-2.3.1-engine-points' || samples.asset !== sampleAsset
+        || samples.width !== pixmap.width || samples.height !== pixmap.height
+        || !ownerDisplayPolicyMatches(theme.manifest, samples.displayPolicy)) return null;
+      return samples.points[`${point.x},${point.y}`]?.rgb16 ?? null;
+    } };
+  return { icon, assetUrl: artImage ?? art.key, unmaskedSource: source.unmasked ? companionTransport : undefined };
+}
+
 type PreparedPattern = { source: RasterSource; selection: ResourceSelection } | { status: 'unknown'; reason: string } | null;
 /** Modern same-face-owner binding; generic resource lookup retains its policy. */
 function prepareBodyPattern(theme: ThemeView, face: Pick<ChromeElement, 'bodyPattern' | 'bgPattern'>, id: number): PreparedPattern {
@@ -114,7 +205,6 @@ async function themeProvider(theme: ThemeView, tier: 'archive' | 'base', name: s
         if (checkables && elements.some(e => e.sourceCicnId === id)) return unknown('cicn occurrence has no decoded asset');
         return null;
       }
-      const status = el.samplingEquivalence?.status ?? null;
       if (traceProvenance) selections.set(key, { owner, resource: { type: 'cicn', signedId: el.sourceCicnId!,
         sourceCinfId: Number.isInteger(el.sourceCinfId) ? el.sourceCinfId! : null,
         manifestKey: selected![0], assetUrl: theme.asset(el.asset).key,
@@ -125,93 +215,13 @@ async function themeProvider(theme: ThemeView, tier: 'archive' | 'base', name: s
           resource: { ...selection.resource, assetUrl: await theme.asset(el.asset).imageUrl() } });
         return [key, { status: 'clipped' }];
       }
-      const sampleAsset = el.asset, art = theme.asset(sampleAsset);
-      // Preserve the actual preparation binding before copying the finite values.
-      // Paths/dimensions and even equal census scalars cannot identify a provider.
-      const sampleSource = el.engineColorSamples?.source;
-      const selectedSource = el.cicnSource;
-      const boundOccurrence = () => selectedSource != null
-        && el.cicnSource === selectedSource && el.sourceCicnId === id && el.asset === sampleAsset
-        && (!el.byteProvenance || el.byteProvenance.cicnResourceIndex === selectedSource.resourceIndex)
-        && theme.inspector?.cicnResources?.filter(r => r.id === id).length === 1
-        && theme.inspector.cicnResources.find(r => r.id === id) === selectedSource;
-      const bounds = selectedSource?.bounds;
-      const finiteSamples = el.engineColorSamples ? structuredClone(el.engineColorSamples) : undefined;
-      const companionAsset = el.iconBlit?.unmaskedAsset;
-      const companionRaster = companionAsset ? theme.asset(companionAsset) : undefined;
-      const companionTransport = unmaskedSources && companionAsset
-        ? { assetUrl: theme.asset(companionAsset).key,
-          ...(companionRaster?.path ? { derivedPath: companionRaster.path } : {}) } : undefined;
-      // Public push snapshots finite descriptors and URLs before ordinary decode.
-      // Generic engine clients retain their existing eager sampling defaults.
-      const proof = el.samplingEquivalence && { ...el.samplingEquivalence };
-      const admittedDescriptor = sampledDeclaration(el, theme);
-      const descriptor = admittedDescriptor && { ...admittedDescriptor };
-      const validProof = finiteSampling(proof, theme);
-      const matches = (a: typeof proof | typeof descriptor, pixmap: Pixmap) =>
-        a?.width === pixmap.width && a.height === pixmap.height;
-      const sampledRaster = descriptor ? theme.asset(descriptor.asset) : undefined;
-      const sampledUrl = sampledRaster?.key;
-      const sampledSource = traceProvenance && (lazySamples || status === 'different' && LINE_SAMPLED.has(id)) && descriptor
-        ? { path: descriptor.derivedPath, assetUrl: sampledUrl!, model: descriptor.model, displayPolicy: descriptor.displayPolicy } : undefined;
-      // All selected references and finite samples above are snapshotted before
-      // image export can yield. Diagnostics must not select a mutated replacement.
-      if (life?.ended()) throw abortError();
+      const prepared = await prepareThemeIcon(theme, id, el, theme.asset(el.asset), {
+        traceProvenance: !!selections.get(key)?.resource, lazySamples, ...(life ? { ended: life.ended } : {}),
+      });
       const selection = selections.get(key);
-      const [pixmap, companion, artImage, companionImage, sampledImage] = await Promise.all([
-        art.pixels(), companionRaster ? companionRaster.pixels() : Promise.resolve(null),
-        selection?.resource ? art.imageUrl() : undefined,
-        companionTransport ? companionRaster!.imageUrl() : undefined,
-        sampledSource ? sampledRaster!.imageUrl() : undefined,
-      ]);
-      if (life?.ended()) throw abortError();
-      if (selection?.resource) selections.set(key, { ...selection, resource: { ...selection.resource, assetUrl: artImage! } });
-      if (companionTransport) companionTransport.assetUrl = companionImage!;
-      if (sampledSource) sampledSource.assetUrl = sampledImage!;
-      let sampled: Pixmap | null = null;
-      const equivalent = validProof && matches(proof, pixmap) && proof?.status === 'equivalent' && proof.reason === 'all-opaque-display-rgb-equal';
-      const eligible = !!descriptor && matches(descriptor, pixmap);
-      let accepted = false;
-      let pending: Promise<void> | undefined;
-      const prepareSampled = (): Promise<void> => pending ??= (async () => {
-        if (equivalent || !eligible) return;
-        if (life?.ended()) throw abortError();
-        const decoded = await sampledRaster!.pixels();
-        if (life?.ended()) throw abortError();
-        if (decoded.width !== pixmap.width || decoded.height !== pixmap.height || decoded.data.length !== pixmap.data.length) return;
-        for (let i = 3; i < pixmap.data.length; i += 4) if (decoded.data[i] !== pixmap.data[i]) return;
-        sampled = decoded;
-        accepted = true;
-      })();
-      if (!lazySamples && eligible && LINE_SAMPLED.has(id)) await prepareSampled();
-      // Adapter policy, not a spec row (docs/v2/DECISIONS.md #7): the opaque
-      // companion is used only when it is the same occurrence as the element's
-      // asset (equal size, equal colour wherever the mask is set). Otherwise (e.g.
-      // a consumer replaced `asset`) the icon falls back to the masked copy of the
-      // current asset, and the fallback is recorded in the trace (iconSource.ts).
-      // Line-colour inputs (slider BL8/BL12) and the bounds origin (BL11) ride along.
-      const source = cicnIconSource(pixmap, el.iconBlit?.pixelSize ?? null, companion);
-      if (source.unmasked && companionTransport) unmaskedSources!.set(key, companionTransport);
-      const icon: CinfIconSource = { ...source,
-        ...(lazySamples ? { prepareSampled } : {}),
-        get sampledSource() { return accepted ? sampledSource : undefined; },
-        origin: selectedSource ? (boundOccurrence() && bounds
-          && bounds.right - bounds.left === pixmap.width && bounds.bottom - bounds.top === pixmap.height
-          ? { top: bounds.top, left: bounds.left } : null) : el.boundsOrigin ?? null,
-        sampling: lazySamples ? equivalent ? 'equivalent' : 'unknown' : status,
-        get sampled() { return sampled; },
-        realizeRgb16: (rgb: readonly [number, number, number]) => {
-          const [r, g, b] = realizeRgb16(rgb, theme.manifest.displayProfile);
-          return { r: r!, g: g!, b: b!, a: CINF_SAMPLE.opaque };
-        },
-        sampleRgb16: (point: QdPoint) => {
-          const samples = finiteSamples;
-          if (!boundOccurrence() || sampleSource !== selectedSource || !samples || samples.model !== 'kdef-2.3.1-engine-points' || samples.asset !== sampleAsset
-            || samples.width !== pixmap.width || samples.height !== pixmap.height
-            || !ownerDisplayPolicyMatches(theme.manifest, samples.displayPolicy)) return null;
-          return samples.points[`${point.x},${point.y}`]?.rgb16 ?? null;
-        } };
-      return [key, icon];
+      if (selection?.resource) selections.set(key, { ...selection, resource: { ...selection.resource, assetUrl: prepared.assetUrl } });
+      if (prepared.unmaskedSource) unmaskedSources!.set(key, prepared.unmaskedSource);
+      return [key, prepared.icon];
     }
     if (type === 'cinf') {
       if (declaredCinfs) return null;

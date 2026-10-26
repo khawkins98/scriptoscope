@@ -1,9 +1,17 @@
 // Measures architecture changes. A completed measurement is NOT acceptance evidence.
 import * as reference from '/runtime-reference.js';
-import { loadOwnedKaleidoscopeScheme } from '../../src/loadKaleidoscopeScheme.ts';
+import { loadOwnedKaleidoscopeScheme, loadKaleidoscopeScheme } from '../../src/loadKaleidoscopeScheme.ts';
 import { engineCinfIds, engineIconBlitCicnIds } from '../../src/engine/resources/ids.ts';
 import { composeCandidate, bevelIds } from './bevel-candidate.mjs';
 import { syntheticThemes, syntheticCases } from './bevel-synthetic.mjs';
+import { composeBevelButton } from '../../src/controls.ts';
+const delivery = new URLSearchParams(location.search).has('delivery');
+const built = delivery ? await import('../../dist/scriptoscope.js') : null;
+const variants = delivery ? [{ name: 'source:owned', render: composeBevelButton, load: loadOwnedKaleidoscopeScheme },
+  { name: 'built:owned', render: built.composeBevelButton, load: built.loadOwnedKaleidoscopeScheme },
+  { name: 'source:eager', render: composeBevelButton, load: loadKaleidoscopeScheme },
+  { name: 'built:eager', render: built.composeBevelButton, load: built.loadKaleidoscopeScheme }] :
+  [{ name: 'prototype:owned', render: (theme, opts, observe) => composeCandidate(theme, opts, observe, prepared), load: loadOwnedKaleidoscopeScheme }];
 const prepared = new URLSearchParams(location.search).get('prepared');
 
 const slugs = Object.keys(import.meta.glob('../../themes/*/meta.json')).map(p => p.split('/')[3]).sort();
@@ -43,9 +51,9 @@ function compare(a, b) {
 let activeReport;
 async function run() {
   const report = activeReport = { status: 'running', purpose: 'Bevel architecture feasibility measurement; not acceptance or native-fidelity evidence',
-    mode: prepared ?? 'retirement',
+    mode: delivery ? 'delivery' : prepared ?? 'retirement',
     runAt: new Date().toISOString(), userAgent: navigator.userAgent, casesPerTheme: cases.length, compared: 0,
-    limitations: ['owned loader only', 'no declared cinf environments', 'no diagnostic transcript comparison',
+    limitations: [...(delivery ? [] : ['owned loader only']), 'no declared cinf environments', 'no diagnostic transcript comparison',
       'no base inheritance or caller mutation cases', 'foreground overrides in synthetic inputs only',
       'fonts and untracked runtime files not pinned', 'no performance claim'], outcomes: {}, rows: [], differences: [] };
   const record = (slug, options, a, b, row, group) => {
@@ -66,22 +74,22 @@ async function run() {
     [{ error: 'probe' }, 'error-change'],
   ]) if (compare({ output: pixel }, candidate).kind !== expected) throw new Error(`Comparator missed ${expected}`);
   report.comparatorProbes = 4;
-  for (const slug of slugs) {
+  for (const variant of variants) for (const slug of slugs) {
     const raw = await bytes(slug);
     const original = await reference.loadOwnedKaleidoscopeScheme(raw);
     let candidate;
     const inputSha256 = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', raw)), byte => byte.toString(16).padStart(2, '0')).join('');
-    const row = { slug, inputSha256, outcomes: {} };
+    const row = { slug, variant: variant.name, inputSha256, outcomes: {} };
     report.rows.push(row);
     try {
-      candidate = await loadOwnedKaleidoscopeScheme(raw, {
+      candidate = await variant.load(raw, delivery ? {} : {
         engineCinfIds: [...new Set([...engineCinfIds(), ...bevelIds, 0])],
         iconBlitCicnIds: [...new Set([...engineIconBlitCicnIds(), ...bevelIds])],
       });
       for (const options of cases) {
         const a = await capture(reference.composeBevelButton, original, options);
-        const b = await capture((theme, opts, observe) => composeCandidate(theme, opts, observe, prepared), candidate, options);
-        record(slug, options, a, b, row, 'corpus');
+        const b = await capture(variant.render, candidate, options);
+        record(slug, options, a, b, row, `corpus:${variant.name}`);
       }
     } finally { original.dispose(); candidate?.dispose(); }
   }
@@ -89,14 +97,14 @@ async function run() {
   if (prepared) {
     const syntheticOptions = syntheticCases();
     report.syntheticCasesPerFixture = syntheticOptions.length;
-    for (const { name, theme } of syntheticThemes()) {
-      const slug = `synthetic:${name}`, row = { slug, outcomes: {} };
+    for (const variant of variants.filter(v => !v.name.endsWith(':eager'))) for (const { name, theme } of syntheticThemes()) {
+      const slug = `synthetic:${name}`, row = { slug, variant: variant.name, outcomes: {} };
       report.rows.push(row);
       try {
         for (const options of syntheticOptions) {
           const a = await capture(reference.composeBevelButton, theme, options);
-          const b = await capture((input, opts, observe) => composeCandidate(input, opts, observe, prepared), theme, options);
-          record(slug, options, a, b, row, 'synthetic');
+          const b = await capture(variant.render, theme, options);
+          record(slug, options, a, b, row, `synthetic:${variant.name}`);
         }
       } finally { theme.dispose(); }
     }
@@ -105,10 +113,10 @@ async function run() {
       try {
         const options = { minWidth: 32, height: 20 };
         const a = await capture(reference.composeBevelButton, theme, options);
-        const b = await capture((input, opts, observe) => composeCandidate(input, opts, observe, prepared), theme, options);
+        const b = await capture(delivery ? composeBevelButton : (input, opts, observe) => composeCandidate(input, opts, observe, prepared), theme, options);
         report.boundaryProbes.push({ name, referencePainted: !!a.output, candidateError: b.error,
           guarded: typeof b.error === 'string' && b.error.includes(guard) });
-        if (!report.boundaryProbes.at(-1).guarded) throw new Error(`Boundary was not guarded: ${name}`);
+        if (!delivery && !report.boundaryProbes.at(-1).guarded) throw new Error(`Boundary was not guarded: ${name}`);
       } finally { theme.dispose(); }
     }
   }

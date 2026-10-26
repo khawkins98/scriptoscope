@@ -1,9 +1,10 @@
 # Preserve bevel appearance with prepared compatibility inputs
 
-The better experiment preserves all measured themed renders. Recommend one bevel
-facade with two explicit paint recipes over existing pixel primitives, rather
-than dropping six themes or pretending rectangular resizing is a cinf operation.
-This replaces the earlier retirement recommendation; production is unchanged.
+The better experiment preserves all measured themed renders. Its two paint
+recipes remain a useful comparison candidate, but the subsequent contract audit
+has not established a production consolidation that preserves the remaining
+contracts and removes code. Production is unchanged. Do not ship the earlier
+six-theme retirement recommendation.
 
 The frozen reference is the normal compiled build of `f7d93afb`, executed only
 through its public loader/render exports. The candidate is an internal prototype,
@@ -84,14 +85,24 @@ immutable per-theme caching is valid or that startup/painting is faster.
 
 ## Code-reduction implication
 
-The prior gross replacement surface remains 408 physical lines in `controls.ts`.
-The rectangular recipe is approximately 25–45 additional production lines beyond
-the earlier 160–255-line facade estimate. This suggests roughly **108–223 net
-lines removed**, before remaining diagnostic and shared changes are counted.
-Missing-cinf solid, pattern and mode-5 preparation is also unbudgeted; finishing
-those branches could materially reduce the saving.
-These are estimates, not a delivered reduction. The current patch adds spike
-tooling and documentation only; it has removed no production code.
+The gross replacement surface is 408 physical lines in `controls.ts`. Withdraw
+both the earlier 160–255-line replacement estimate and the suggested 108–223-line
+net reduction. They did not budget for the actual compatibility contract. The
+engine and bevel renderer differ in body-resource admission, staged alpha
+blending, scalar geometry and diagnostic publication. Retaining these behaviors
+has not produced a credible deletion budget; introducing another policy layer
+could increase production code.
+
+The user approved snapshotting selected metadata on 2026-10-26, including a change
+to observable getter counts and mutations during asynchronous rendering. That
+approval does not authorize different resource selection, admission, pixels,
+geometry, diagnostic completion, callback behavior or owner disposal protection.
+Snapshotting alone does not resolve the other differences. It is approved for the
+future implementation, not implemented by this spike.
+
+The current patch adds spike tooling and documentation only; it has removed no
+production code. The independent test author has added boundary coverage in a
+separate lane; that coverage does not certify a candidate that has not been built.
 
 Withdraw the earlier arbitrary 150-line minimum: preserving themed output is
 more valuable than choosing semantics to hit a line target. Require a measured
@@ -130,15 +141,17 @@ produce expected warnings; no historical maps or renderer source are inspected.
 
 ## Next delivery gate
 
-Implement the typed facade and delete replaced orchestration in one feature PR.
-Retain declared-environment behavior and decide how existing diagnostic completion
-and `legacyFacePaint` are carried before claiming API preservation. Exact signed
-selection, live-mutation timing and unusual input policies in the earlier proposal
-remain unresolved compatibility decisions, not changes approved by this result.
+Before committing to the typed facade, establish a concrete deletion sketch
+against the retained contracts or present one coherent compatibility proposal for
+review. Do not implement the prototype's rejected inputs as production errors or
+quietly adopt the engine's different blending and admission rules. Snapshot timing
+is approved; the other behavioral differences remain unapproved.
 
-Have the independent specification/test owner validate the proposed boundary, then
-run the frozen renderer matrix and relevant existing independent checks. Add eager
-transport, base inheritance, missing/unknown dependencies, declared environments,
-diagnostics, failures and disposal coverage. Preserve unchanged families exactly.
-The present result supports a bounded consolidation; it does not establish complete
-public compatibility, original-engine fidelity, package shrinkage or a speedup.
+Once a viable boundary is agreed, implement and delete the replaced orchestration
+in the same feature PR. Have the independent specification/test owner validate
+that boundary, then run the frozen renderer matrix and relevant independent
+checks. Include eager transport, base inheritance, missing/unknown dependencies,
+declared environments, diagnostics, failures and disposal. Report actual net
+production lines and built/gzip bytes separately. The current result establishes
+bounded pixel matches, not complete public compatibility, original-engine
+fidelity, package shrinkage or a speedup.

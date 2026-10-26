@@ -3,7 +3,7 @@
 // Source: `0x107fe..0x10fbe`; wrappers `0x10fc0`, `0x107a4..0x107f6`.
 import type { Pixmap, QdPoint, QdRect, Rgba } from './types.js';
 import type { ControlBandPaint, ControlResolutionStep } from '../../controlDiagnostics.js';
-import type { EngineTrace } from '../trace.js';
+import type { EngineTrace, ResourceSelection } from '../trace.js';
 import type { ResourceChain } from '../resources/chain.js';
 import { CINF_BODY, CINF_BODY_SKIP, CINF_BORDER_ORDER, CINF_EDGE, CINF_EMBOSS_ABSENT,
   CINF_PHASE, CINF_REQUEST, CINF_RETRY, CINF_SKIP, CINF_SAMPLE, CINF_HEADER, type CinfPhaseRow } from '../tables/cinfFrame.js';
@@ -77,6 +77,8 @@ export interface CinfFrameInput {
   icon?: CinfIconSource | CinfUnknownIconSource;
   /** Requires raw samples for colour outputs; absent keeps older callers' display-pixel policy. */
   requireRawSamples?: boolean;
+  /** Captured face attribution for facades that select art before preparing dependencies. */
+  selection?: ResourceSelection;
   realize?: (rgb: CinfRgb16) => Rgba;
   /** Added to the decoded anchor; browser logical-port allocation policy. */
   patternOffset?: QdPoint;
@@ -173,8 +175,9 @@ export function bandVisible(port: Pick<Pixmap, 'width' | 'height'>, cicn: Pixmap
 
 /** Public preparation policy only: resolve actual art/metadata without publishing requests. */
 export async function prepareCinfFrameSamples(chain: ResourceChain, id: number, bodyFill: boolean, dst: QdRect,
-  port: Pick<Pixmap, 'width' | 'height'>, clip?: QdRect, declared?: CinfRecord | null): Promise<void> {
-  const icon = chain.getResource<CinfIconSource | CinfUnknownIconSource>('cicn', id)?.value;
+  port: Pick<Pixmap, 'width' | 'height'>, clip?: QdRect, declared?: CinfRecord | null,
+  capturedIcon?: CinfIconSource): Promise<void> {
+  const icon = capturedIcon ?? chain.getResource<CinfIconSource | CinfUnknownIconSource>('cicn', id)?.value;
   if (!icon || icon.status === 'unknown' || !icon.prepareSampled) return;
   const retry = CINF_RETRY.find(r => r.bodyFill === bodyFill)!;
   const value = declared !== undefined ? declared : chain.probe<unknown>(CINF_REQUEST.type, [id, retry.retryId])?.value;
@@ -192,7 +195,7 @@ export function drawCinfFrame(port: Pixmap, chain: ResourceChain, input: CinfFra
   const { id, cicn, dstRect: D, bodyFill } = input;
   const icon = input.icon;
   // Captured before metadata/body requests: this is the actual art admission.
-  const art = trace?.controlPaint ? trace.resolved.at(-1)?.selection : undefined;
+  const art = trace?.controlPaint ? input.selection ?? trace.resolved.at(-1)?.selection : undefined;
   // Diagnostic propagation only; UNKNOWN is not a native NULL or a painting rule.
   if (icon?.status === 'unknown' || !cicn) {
     const unsupported = icon?.status === 'unknown' ? icon.reason || 'cicn resource unknown' : 'cicn pixmap unavailable';
