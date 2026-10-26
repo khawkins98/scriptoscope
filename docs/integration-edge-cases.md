@@ -342,3 +342,19 @@ containers are not re-laid out by this change. See the
 - **Astro / 11ty / static-render**: works perfectly — the bare HTML is what the static render produces; the script runs and promotes on client hydrate.
 - **Server-rendered HTML with sticky elements**: if your server emits any of the "internal stamps" above (you shouldn't), the scanner skips those elements as already-promoted. Strip them in your render layer.
 - **Modal patterns**: if you're building a "click this button → show a themed window in an overlay" flow, use `handle.openModal(wrap, { returnFocusTo: triggerButton })`. It handles focus trap (including shadow-DOM chrome focusables via the `focusin` redirect pattern), Esc, backdrop-click dismissal, and listens for `scriptoscope:close` so the chrome's close widget closes the overlay. Pass `returnFocusTo` explicitly — `document.activeElement` at the moment a mouse click opens the modal is BODY, not the trigger button. The wrap is your `position: fixed` container; the runtime toggles `data-scriptoscope-modal-open` on it, your CSS scopes visibility/opacity/pointer-events off the attribute.
+
+## Owned theme inputs during the transport migration
+
+The additive owned loaders return `OwnedTheme`, whose `source` fields are local
+resource paths. Use `await themeImageUrl(theme, ref)` before assigning an image
+or CSS background. Do not pass `theme.source` to APIs expecting ready-image
+`LoadedTheme`; its missing `baseUrl` deliberately prevents that substitution.
+Window/control composition and interactive promotion accept owned inputs. A
+`WindowManager<OwnedTheme>` preserves that input in `describe()`; the default
+manager and declarative mount retain their existing loaded-theme contract.
+
+Dispose only after unmounting consumers. A child borrows its base, and disposal
+does not release that base. Captured sources reject future reads after disposal,
+and pending encoders revoke late images. Already returned pixel arrays are
+borrowed and must remain immutable. See the [owned API](v2/owned-theme-api.md)
+for the supported boundary while feature PR #480 is in progress.
