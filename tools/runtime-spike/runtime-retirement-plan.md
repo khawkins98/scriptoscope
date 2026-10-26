@@ -1,6 +1,7 @@
 # Runtime retirement pivot
 
-Status: implementation proposal; no public API retirement approved or applied.
+Status: local implementation draft; public API retirement is proposed for review,
+not approved for release. See [prototype results](native-checkables-results.md).
 Audit base: current production `f7d93afb37e08491da30f69fdc30dcd774ec72ee`.
 PR #483 remains a separate draft experiment. This branch does not contain it.
 

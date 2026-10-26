@@ -47,10 +47,10 @@ export type { ControlDiagnostics, ControlRenderTrace, ControlResolutionStep, Tab
 export type { HeaderSurfaceOptions, HeaderSurfaceResult, HeaderSurfaceUnsupportedReason, HeaderSurfaceTrace } from './headerSurface.js';
 
 export {
-  interactiveButton, interactiveCheckbox, radioGroup, interactiveDisclosure,
+  interactiveButton, interactiveDisclosure,
   interactiveSlider, interactiveScrollbar, WindowManager, titleWidgetHits, ProgressIdle, progressTickCount,
-  type InteractiveButtonOptions, type InteractiveCheckableOptions,
-  type RadioGroupOptions, type InteractiveDisclosureOptions,
+  type InteractiveButtonOptions,
+  type InteractiveDisclosureOptions,
   type InteractiveSliderOptions, type InteractiveScrollbarOptions,
   type TitleWidget, type TitleWidgetHandlers, type TitleWidgetHit,
 } from './interactive.js';

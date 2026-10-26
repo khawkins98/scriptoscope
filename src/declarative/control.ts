@@ -1,13 +1,14 @@
 // A mount owns each replacement face and only the native properties it changes.
 // Prepare off-DOM; commit only while the source location and mount are still valid.
 import { listenUntilAborted } from '../listenUntilAborted.js';
+import { composeCheckable, bufferToCanvas, baselineCheckable } from '../controls.js';
 import type { ThemeInput } from '../ownedTheme.js';
-import { interactiveCheckbox, interactiveRadio, interactiveNativeSlider, interactiveButton, disposeInteractiveControl } from '../interactive.js';
+import { interactiveNativeSlider, interactiveButton, disposeInteractiveControl } from '../interactive.js';
 
 type Promotable = HTMLInputElement | HTMLSelectElement;
 type Kind = 'checkbox' | 'radio' | 'range' | 'select';
 const INPUT_KIND_RE = /^(checkbox|radio|range)$/;
-const SETTER = '_scriptoscopeSetChecked';
+let nextControlId = 0;
 const hiddenStyle = {
   position: 'absolute', width: '1px', height: '1px', margin: '-1px', padding: '0', border: '0',
   overflow: 'hidden', clip: 'rect(0,0,0,0)', whiteSpace: 'nowrap',
@@ -89,12 +90,18 @@ export async function promoteControl(el: Promotable, theme: ThemeInput, signal?:
   try {
     face = kind === 'select'
       ? await prepareSelect(el as HTMLSelectElement, theme, events)
-      : await prepareInput(el as HTMLInputElement, kind, theme, active);
+      : kind === 'range' ? await interactiveNativeSlider(theme, el as HTMLInputElement, active)
+        : await prepareCheckable(el as HTMLInputElement, kind, theme, events);
     if (events.signal.aborted || el.parentNode !== parent || el.isConnected !== connected
       || (label && label.parentNode !== labelParent)) return null;
     const restore = previous?.restore ?? [];
     if (!previous) {
       setAttributeOwned(el, 'data-scriptoscope-promoted', '', restore);
+      if ((kind === 'checkbox' || kind === 'radio') && !el.id) {
+        let id: string;
+        do { id = `scriptoscope-native-${++nextControlId}`; } while ((el.getRootNode() as ParentNode).querySelector(`#${id}`));
+        setAttributeOwned(el, 'id', id, restore);
+      }
       if (!el.hasAttribute('autocomplete')) setAttributeOwned(el, 'autocomplete', 'off', restore);
       if (kind === 'select') {
         setStyleOwned(el, {
@@ -104,13 +111,10 @@ export async function promoteControl(el: Promotable, theme: ThemeInput, signal?:
         }, restore);
       } else {
         setStyleOwned(el, hiddenStyle, restore);
-        if (kind !== 'range') {
-          setAttributeOwned(el, 'tabindex', '-1', restore);
-          setAttributeOwned(el, 'aria-hidden', 'true', restore);
-        }
         if (label?.textContent?.trim()) setStyleOwned(label, hiddenStyle, restore);
       }
     }
+    if (kind === 'checkbox' || kind === 'radio') (face as HTMLLabelElement).htmlFor = el.id;
     const focusedNative = document.activeElement === el;
     const focusedFace = !!previous?.face.contains(document.activeElement);
     if (kind === 'select') {
@@ -129,9 +133,13 @@ export async function promoteControl(el: Promotable, theme: ThemeInput, signal?:
     face.dataset.scriptoscopePromoted = '';
     if (focusedNative) el.focus({ preventScroll: true });
     else if (focusedFace) face.focus({ preventScroll: true });
-    if (kind !== 'select') {
+    if (kind === 'range') {
       const input = el as HTMLInputElement;
-      const sync = (): void => syncInput(input, kind, currentFace);
+      const sync = (): void => {
+        const min = numOr(input.min, 0), max = numOr(input.max, 100);
+        (currentFace as HTMLElement & { _scriptoscopeSetValue?: (v: number) => void })
+          ._scriptoscopeSetValue?.(max > min ? clamp01((numOr(input.value, min) - min) / (max - min)) : 0);
+      };
       // Native label clicks and consumer input/change events use the same
       // state path as bfcache restoration. All listeners end with this face.
       listenUntilAborted(events.signal, input, 'change', sync);
@@ -150,52 +158,58 @@ export async function promoteControl(el: Promotable, theme: ThemeInput, signal?:
   }
 }
 
-async function prepareInput(input: HTMLInputElement, kind: Exclude<Kind, 'select'>, theme: ThemeInput,
-  active: () => boolean): Promise<HTMLElement> {
-  const label = labelTextFor(input);
-  let skinned: HTMLElement;
-  if (kind === 'checkbox') {
-    skinned = await interactiveCheckbox(theme, {
-      checked: input.checked,
-      disabled: input.disabled,
-      ...(label ? { label } : {}),
-      onChange: (checked) => {
-        if (!active()) return;
-        input.checked = checked;
-        input.dispatchEvent(new Event('change', { bubbles: true }));
-      },
-    });
-  } else if (kind === 'radio') {
-    skinned = await interactiveRadio(theme, {
-      checked: input.checked,
-      disabled: input.disabled,
-      ...(label ? { label } : {}),
-      onChange: () => {
-        if (!active()) return;
-        if (!input.checked) input.click();
-        syncRadioGroup(input.name);
-      },
-    });
-    if (input.name) skinned.dataset.scriptoscopeRadioGroup = input.name;
-    (skinned as unknown as { _scriptoscopeNative: HTMLInputElement })._scriptoscopeNative = input;
-  } else {
-    // Keep the native range as the sole keyboard/AT surface. Its browser-owned
-    // steps, names, numeric bounds and effective disabled state remain live.
-    skinned = await interactiveNativeSlider(theme, input, active);
-  }
-
-  return skinned;
-}
-
-function syncInput(input: HTMLInputElement, kind: Exclude<Kind, 'select'>, face: HTMLElement): void {
-  const setters = face as unknown as { _scriptoscopeSetChecked?: (v: boolean) => void; _scriptoscopeSetValue?: (v: number) => void };
-  if (kind !== 'range') {
-    setters._scriptoscopeSetChecked?.(input.checked);
-    if (kind === 'radio') syncRadioGroup(input.name);
-  } else {
-    const min = numOr(input.min, 0), max = numOr(input.max, 100);
-    setters._scriptoscopeSetValue?.(max > min ? clamp01((numOr(input.value, min) - min) / (max - min)) : 0);
-  }
+// Labels activate the original input through the browser. The face only reads
+// native state: no synthetic clicks, keyboard handlers or radio selection model.
+async function prepareCheckable(input: HTMLInputElement, kind: 'checkbox' | 'radio',
+  theme: ThemeInput, events: AbortController): Promise<HTMLLabelElement> {
+  const label = associatedLabel(input)?.textContent?.trim() ?? '';
+  const face = document.createElement('label');
+  face.className = `scriptoscope-${kind}`;
+  face.setAttribute('aria-hidden', 'true');
+  Object.assign(face.style, { display: 'inline-flex', lineHeight: '0', outlineOffset: '2px' });
+  const states = await Promise.all([false, true].flatMap(disabled => [false, true].map(async checked => {
+    const buffer = await composeCheckable(theme, kind, { label, disabled, checked });
+    if (buffer) return bufferToCanvas(buffer);
+    // baselineCheckable's label is presentation here, not a nested label.
+    const baseline = baselineCheckable(kind, label, { checked, disabled });
+    const span = document.createElement('span'); span.style.cssText = baseline.style.cssText;
+    span.append(...Array.from(baseline.childNodes)); return span;
+  })));
+  let painted = -1;
+  const sync = (): void => {
+    if (events.signal.aborted) return;
+    face.htmlFor = input.id;
+    const disabled = input.matches(':disabled');
+    const state = Number(disabled) * 2 + Number(input.checked);
+    if (state !== painted) { face.replaceChildren(states[state]!); painted = state; }
+    face.style.cursor = disabled ? 'default' : 'pointer';
+    face.style.outline = input.matches(':focus') ? '2px solid currentColor' : '';
+  };
+  let root: Node | undefined;
+  let unlisten: (() => void)[] = [];
+  listenUntilAborted(events.signal, input, 'focus', sync);
+  listenUntilAborted(events.signal, input, 'blur', sync);
+  listenUntilAborted(events.signal, window, 'pageshow', sync);
+  const observer = new MutationObserver(() => {
+    if (face.isConnected && face.getRootNode() !== input.getRootNode()) { restoreControl(input); return; }
+    observe(); sync();
+  });
+  const observe = (): void => {
+    if (root !== input.getRootNode()) {
+      unlisten.forEach(remove => remove()); root = input.getRootNode();
+      unlisten = [listenUntilAborted(events.signal, root, 'input', sync, true),
+        listenUntilAborted(events.signal, root, 'change', sync, true),
+        listenUntilAborted(events.signal, root, 'reset', () => queueMicrotask(sync), true)];
+    }
+    observer.disconnect(); observer.observe(input, { attributes: true, attributeFilter: ['checked', 'disabled', 'id'] });
+    for (let parent = input.parentElement; parent; parent = parent.parentElement) {
+      observer.observe(parent, { childList: true,
+        ...(parent instanceof HTMLFieldSetElement ? { attributes: true, attributeFilter: ['disabled'] } : {}) });
+    }
+  };
+  if (!events.signal.aborted) { observe(); sync(); }
+  events.signal.addEventListener('abort', () => observer.disconnect(), { once: true });
+  return face;
 }
 
 // The native select remains the sole keyboard/AT target. Prepare its decorative
@@ -241,34 +255,11 @@ async function prepareSelect(el: HTMLSelectElement, theme: ThemeInput, events: A
   return wrap;
 }
 
-function labelTextFor(el: Promotable): string | undefined {
-  const lbl = associatedLabel(el);
-  return lbl?.textContent?.trim() || undefined;
-}
-
 function associatedLabel(el: Promotable): HTMLLabelElement | null {
-  if (el.id) {
-    const lbl = document.querySelector(`label[for="${CSS.escape(el.id)}"]`);
-    if (lbl instanceof HTMLLabelElement) return lbl;
-  }
-  const wrap = el.closest('label');
-  return wrap instanceof HTMLLabelElement ? wrap : null;
+  return el instanceof HTMLInputElement ? Array.from(el.labels ?? []).find(label => label !== promotions.get(el)?.face) ?? null : null;
 }
 
 function numOr(s: string, fallback: number): number {
   const n = parseFloat(s); return Number.isFinite(n) ? n : fallback;
 }
 function clamp01(n: number): number { return n < 0 ? 0 : n > 1 ? 1 : n; }
-
-/** Re-paint every themed radio in `name` to match its native input's current `.checked` state.
- *  Used after a click flips one — the browser updates siblings' `.checked` natively, but we own
- *  their themed visuals. */
-function syncRadioGroup(name: string): void {
-  if (!name) return;
-  const sel = `.scriptoscope-radio[data-scriptoscope-radio-group="${CSS.escape(name)}"]`;
-  for (const node of Array.from(document.querySelectorAll<HTMLElement>(sel))) {
-    const native = (node as unknown as { _scriptoscopeNative?: HTMLInputElement })._scriptoscopeNative;
-    const setVisual = (node as unknown as Record<string, ((v: boolean) => void) | undefined>)[SETTER];
-    if (native && setVisual) setVisual(native.checked);
-  }
-}
