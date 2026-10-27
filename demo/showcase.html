@@ -713,128 +713,79 @@
     </div>
   </main>
 
-  <script type="module">
-    // ── The standalone landing-page boot ────────────────────────────────────
-    // Minimal vs the dev/diagnostic page: no ribbon, no #detail, no syncHooks,
-    // no per-scheme inspectors. Just enough to (a) mount the #powers section's
-    // chrome, (b) light up the folder strip with each theme's authentic folder
-    // icon, (c) re-skin everything on folder click, (d) wire the toggle.
-    //
-    // Imports use the bare `scriptoscope` specifier — same string a third-
-    // party consumer would write. Vite (dev + prod) aliases it to
-    // src/index.ts so the landing is a faithful consumer example.
-    import { attachThemeDropZone, loadOwnedKaleidoscopeScheme } from 'scriptoscope';
-    import { mountShowcase } from './explicit-host.mjs';
+  <script type="module">    import { attachThemeDropZone, loadOwnedKaleidoscopeScheme } from 'scriptoscope';
+    import { createOwnedThemeResolver, promoteThemePicker, syncThemePickerActive } from '../src/declarative/index.ts';
+    import { mountShowcase, selectPageSources } from './explicit-host.mjs';
     import THEMES from './themes-manifest.json';
-
-    // (Removed: the inline `await Promise.all(document.fonts.load(...))`
-    // that used to gate this whole module — perf agent caught ~700ms of
-    // wasted blocking on Fast 3G because the library's own preloadFonts()
-    // gate runs inside mountShowcase anyway. The script-tag preload
-    // links in <head> below let the browser start the woff fetches in
-    // parallel with the JS download instead of after it.)
-
-    // Theme bundles live under the deploy base: `/` in dev, `/scriptoscope/` on
-    // GH Pages. BASE_URL carries the prefix + trailing slash.
     const BASE = import.meta.env.BASE_URL;
     const themeBaseUrl = `${BASE}themes`.replace(/\/+$/, '');
-    // (The loadOnce theme cache, themesBySlug map, and loadTheme import
-    // are GONE — the library's createOwnedThemeResolver caches per-mount
-    // internally; declarative theme-picker / icon promotions both use it.)
-
-    // ── DOM handles ─────────────────────────────────────────────────────────
     const powersSection = document.getElementById('powers');
     const toggleBtn = document.getElementById('powers-skin-toggle');
     const foldersEl = document.querySelector('[data-scriptoscope-theme-picker]');
-    // ── Skinning state ──────────────────────────────────────────────────────
-    // The toggle is a real button with aria-pressed (was a checkbox before
-    // the 2026-05-30 90s-designer pass — disbelief beat needs an INVITATION
-    // to flip, not a state report). Two visible states with explicit action
-    // labels: "See the bare HTML →" (when skinned) and "Restore the chrome ←"
-    // (when bare). The class .powers-bare on #powers tracks the visible state
-    // so the auto-cycle logic can suspend itself when the page is unskinned.
-    //
-    // ?theme= URL param: the landing is the shareable URL. Default 1138 if
-    // absent or unknown. Source-of-truth flow: URL → activeSlug → switchTheme
-    // mirrors slug back to URL via history.replaceState.
-    // The library now owns ?theme= reading + auto-cycle's first-interaction
-    // detector — we just pass `syncToUrlParam: 'theme'` + `autoCycle: 4000`
-    // and `themes: THEMES` to mountShowcase below.
     let mountToken = 0;
     let handle = null;
     let mountingPowers = null;
+    let mountFocus = null;
     const registeredThemes = new Map();
     const ownedDroppedThemes = new Set();
     let dropGeneration = 0;
     let leaving = false;
     let dropZone;
     let activeRef = null;
+    let requestedTheme = null;
+    const appLife = new AbortController();
+    const appEvents = { signal: appLife.signal };
+    const pickerResolver = createOwnedThemeResolver({ themeBaseUrl, themes: THEMES });
+    let picker;
+    const pickerNodes = new Set();
     let userInteracted = false;
     for (const type of ['pointerdown', 'keydown', 'wheel']) {
-      window.addEventListener(type, () => { userInteracted = true; }, { once: true, passive: true });
+      window.addEventListener(type, () => { userInteracted = true; }, { once: true, passive: true, signal: appLife.signal });
     }
-
-    // Single state setter — toggle button only. The library auto-adds
-    // `.scriptoscope-ready` to the root (#powers) when mountShowcase
-    // resolves and removes it on disconnect, so any consumer CSS that
-    // wants "is the runtime live?" scopes off `#powers.scriptoscope-ready`
-    // instead of a class our code juggles. Keeps boot + library state in
-    // lockstep without needing a separate setter.
     const syncToggleUI = (skinned) => {
       toggleBtn.setAttribute('aria-pressed', String(skinned));
       toggleBtn.firstChild.textContent = 'Restore the chrome ';
       const arrow = toggleBtn.querySelector('.arrow');
       if (arrow) arrow.textContent = '←';
-      // Show the toolbar button ONLY when un-skinned — when skinned, the
-      // picker's 'No theme' tile is the un-skin path. Toolbar button
-      // re-appears in OFF mode as the 'Restore the chrome' affordance.
       toggleBtn.hidden = skinned;
     };
-
-    // Random default theme per page load — landing-page only. Picked
-    // ONCE per mount so it's stable across the various windows on the
-    // page (Read Me, Schemes Folder, cards, BYO modal all wear the
-    // same scheme). Overridden by `?theme=<slug>` via syncToUrlParam
-    // when the URL carries a deep-link. User direction 2026-05-31:
-    // the demo should surface different schemes on every visit, not
-    // park on 1138 as a permanent default.
     const randomDefaultSlug = THEMES[Math.floor(Math.random() * THEMES.length)]?.slug ?? '1138';
 
-    const mountPowers = () => {
-      if (handle) return Promise.resolve();
-      if (mountingPowers) return mountingPowers;
-      mountingPowers = mountPowersOnce().finally(() => { mountingPowers = null; });
-      return mountingPowers;
+    const mountPowers = async () => {
+      mountFocus ??= document.activeElement;
+      while (!leaving && !handle && toggleBtn.getAttribute('aria-pressed') === 'true') {
+        if (!mountingPowers) {
+          mountingPowers = mountPowersOnce().finally(() => { mountingPowers = null; });
+        }
+        await mountingPowers;
+      }
     };
     const mountPowersOnce = async () => {
       const grid = document.getElementById('powers-grid');
       grid.setAttribute('data-scriptoscope-cascade-step-x',
         getComputedStyle(grid).getPropertyValue('--powers-cascade-step-x').trim() || '24');
       const my = ++mountToken;
+      const requestedRef = requestedTheme;
+      const focused = mountFocus;
       let h;
       try {
         h = await mountShowcase({
           root: powersSection,
           themeBaseUrl,
-          pageThemeDefault: THEMES.some(t => t.slug === activeRef) ? activeRef : randomDefaultSlug,
+          pageThemeDefault: requestedRef,
+          registeredThemes,
           themes: THEMES,
-          // syncToUrlParam: '?theme=animals' on the URL sets the initial
-          // theme + history.replaceState mirrors every retheme back. The
-          // landing IS the shareable URL.
-          syncToUrlParam: 'theme',
-          // autoCycle: step through `themes` every 4s until first
-          // pointerdown/keydown/wheel. Suppressed if syncToUrlParam came
-          // in with a deep-link (the user chose a scheme) or if
-          // prefers-reduced-motion. Library owns all the bookkeeping.
-          autoCycle: userInteracted ? 0 : 4000,
-          // No persistKey: layout is dictated by CSS. Drag + resize work
-          // (WindowManager owns those); reload resets to CSS defaults.
-          // rejectOnEmptyMount catches theme-bundle 404s / decoder errors
-          // in ONE place — was a 16-line post-mount canvas probe before.
+          sources: { ...selectPageSources(powersSection), picker: null },
+          syncToUrlParam: false,
+          autoCycle: userInteracted || THEMES.some(t => t.slug === new URL(location.href).searchParams.get('theme')) ? 0 : 4000,
           rejectOnEmptyMount: true,
         });
       } catch (err) {
-        if (my === mountToken) syncToggleUI(false);
+        if (my === mountToken) {
+          requestedTheme = activeRef;
+          mountFocus = null;
+          syncToggleUI(false);
+        }
         console.warn('[scriptoscope] mountShowcase failed:', err);
         return;
       }
@@ -843,101 +794,72 @@
         try { h.disconnect(); } catch {}
         return;
       }
-      try {
-        for (const [ref, theme] of registeredThemes) h.registerTheme(ref, theme);
-        if (registeredThemes.has(activeRef)) await h.retheme(activeRef);
-      } catch (err) {
-        h.disconnect();
-        if (my === mountToken) syncToggleUI(false);
-        console.warn('[scriptoscope] Could not restore the dropped scheme:', err);
-        return;
-      }
-      if (my !== mountToken) { h.disconnect(); return; }
       handle = h;
       syncToggleUI(true);
-      // AUTHOR CREDIT — listen for retheme to update the in-place byline
-      // in the Schemes Folder window. The `ready` event fires once on
-      // initial promote BEFORE retheme fires for the boot theme, so we
-      // also seed off the resolved initial slug. Aligns with the period
-      // convention that the AUTHOR of a Mac scheme was visible — every
-      // Read Me's first line was the credit (P0-5, 2026-05-31).
-      const creditEl = document.getElementById('powers-credit');
-      const findEntry = (ref) => {
-        // The retheme ref may be a slug, a URL, or `dropped:<filename>`.
-        // Strip the dropped prefix; otherwise match by slug suffix.
-        if (typeof ref !== 'string') return null;
-        if (ref.startsWith('dropped:')) {
-          return { slug: ref.slice(8), name: ref.slice(8), author: null, year: null };
-        }
-        return THEMES.find((t) => t.slug === ref || ref.endsWith('/' + t.slug)) ?? null;
-      };
-      const renderCredit = (entry) => {
-        if (!creditEl) return;
-        if (!entry) { creditEl.textContent = ''; return; }
-        const bits = [];
-        bits.push(`Now wearing <strong>${entry.name ?? entry.slug}</strong>`);
-        if (entry.author) bits.push(`by ${entry.author}`);
-        if (entry.year) bits.push(`· ${entry.year}`);
-        creditEl.innerHTML = bits.join(' ');
-      };
-      // Seed off the URL param / page default — covers the boot render
-      // before the first retheme event fires.
-      const url = new URL(window.location.href);
-      const initialSlug = url.searchParams.get('theme') ?? randomDefaultSlug;
-      activeRef = initialSlug;
-      renderCredit(findEntry(initialSlug));
+      if (focused instanceof HTMLElement && focused.isConnected) focused.focus({ preventScroll: true });
+      mountFocus = null;
+      commitTheme(h.activeRef);
       h.addEventListener('retheme', (e) => {
-        activeRef = e.detail.ref;
-        renderCredit(findEntry(e.detail.ref));
+        if (handle === h && !leaving) commitTheme(e.detail.ref);
       });
+    };
+
+    const commitTheme = (ref) => {
+      activeRef = ref;
+      requestedTheme = ref;
+      syncThemePickerActive(foldersEl, ref);
+      const url = new URL(location.href);
+      url.searchParams.set('theme', ref);
+      history.replaceState(history.state, '', url);
+      const entry = THEMES.find(t => t.slug === ref);
+      const credit = document.getElementById('powers-credit');
+      if (credit) {
+        credit.replaceChildren();
+        credit.append('Now wearing ');
+        const name = document.createElement('strong');
+        name.textContent = entry?.name ?? ref.replace(/^dropped:/, '');
+        credit.append(name);
+        if (entry?.author) credit.append(` by ${entry.author}`);
+        if (entry?.year) credit.append(` · ${entry.year}`);
+      }
+    };
+    const switchTheme = async (slug) => {
+      if (leaving) return;
+      try {
+        if (handle) await handle.retheme(slug);
+        else {
+          requestedTheme = slug;
+          ++mountToken;
+          toggleBtn.setAttribute('aria-pressed', 'true');
+          await mountPowers();
+        }
+      } catch (error) { console.warn('[scriptoscope] Theme selection failed:', error); }
     };
 
     const unmountPowers = () => {
       mountToken++;
+      requestedTheme = activeRef;
+      mountFocus = null;
       if (handle) { try { handle.disconnect(); } catch {} handle = null; }
       syncToggleUI(false);
       const credit = document.getElementById('powers-credit');
       if (credit) credit.textContent = '';
     };
     toggleBtn.addEventListener('click', () => {
-      // Toolbar button is only visible when un-skinned (syncToggleUI hides
-      // it otherwise). One job: restore the chrome.
+      requestedTheme = activeRef;
       toggleBtn.setAttribute('aria-pressed', 'true');
       mountPowers();
-    });
-
-    // BYO MODAL — opened by the picker's 'Load your own' tile, hidden by
-    // backdrop click OR the modal's own close widget. The library's
-    // `handle.openModal(wrap)` (architect-reviewer 2026-05-31) owns:
-    // visibility toggle (data-scriptoscope-modal-open attribute),
-    // backdrop click, Esc key, focus trap (cycles Tab/Shift+Tab inside
-    // including the shadow-DOM chrome buttons), focus restore on close,
-    // bubbled scriptoscope:close listener (so the chrome close widget
-    // also closes the wrap). The demo just OPENS and lets the library
-    // do the rest. The drop zone INSIDE the modal is wired via
-    // attachThemeDropZone. onFile decodes via loadOwnedKaleidoscopeScheme (no
-    // upload), registers under a synthetic ref, and rethemes the page.
-    // Modal stays open after a successful load so the user sees the
-    // status; they close it via backdrop / Esc / close widget.
+    }, appEvents);
     const modalWrap = document.getElementById('powers-byo-modal-wrap');
     const modalDrop = document.getElementById('powers-byo-modal-drop');
     const modalOut = document.getElementById('powers-byo-modal-out');
     let modalHandle = null;
     let modalTrigger = null; // captured by the picker click handler before openModal
     const openModal = () => {
-      // Library helper needs a live mount handle. If we're in OFF mode,
-      // skip (the picker click handler awaits mountPowers first).
       if (!handle || !modalWrap) return;
-      // Pass the trigger explicitly: mouse clicks on buttons don't reliably
-      // focus the button (Safari especially), so the library's
-      // activeElement-at-open-time auto-capture often catches BODY. The
-      // caller knows the trigger; pass it for accurate focus restore on
-      // close. Falls back to library auto-capture if undefined.
       modalHandle = handle.openModal(modalWrap, modalTrigger ? { returnFocusTo: modalTrigger } : {});
     };
     const closeModal = () => { modalHandle?.close(); modalHandle = null; };
-    // Natural HTML is measured at mount time. Re-mount on width changes so
-    // native pixels fit the new layout; retain decoded BYO themes and form DOM.
     let viewportWidth = innerWidth;
     let resizeTimer;
     let resizing = false;
@@ -964,7 +886,7 @@
       viewportWidth = innerWidth;
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(() => void reflowPowers(), 160);
-    });
+    }, appEvents);
 
     if (modalDrop && modalOut) {
       dropZone = attachThemeDropZone(modalDrop, {
@@ -974,8 +896,6 @@
           const name = file.name.replace(/\.[^.]+$/, '') || file.name;
           modalOut.className = 'powers-byo-modal-out';
           modalOut.textContent = `Decoding ${file.name}…`;
-          // If currently in OFF mode, mount first so we have a handle
-          // to register against (and to render the dropped theme).
           if (!handle) await mountPowers();
           if (!handle) {
             modalOut.className = 'powers-byo-modal-out err';
@@ -1010,37 +930,19 @@
     addEventListener('pagehide', event => {
       if (event.persisted) return;
       leaving = true; ++dropGeneration;
+      appLife.abort();
+      clearTimeout(pulseTimer);
+      picker?.teardown();
+      for (const node of pickerNodes) node.remove();
+      pickerNodes.clear();
+      pickerResolver.dispose();
+      dropPulse();
       clearTimeout(resizeTimer); dropZone?.detach(); closeModal(); unmountPowers();
       for (const theme of ownedDroppedThemes) theme.dispose();
       ownedDroppedThemes.clear(); registeredThemes.clear();
-    }, {once:true});
-    // (No backdrop / Esc / scriptoscope:close listeners here — the library's
-    // handle.openModal owns all three, plus the focus trap. That's why the
-    // helper exists: the demo's previous hand-rolled version was ~20 LoC of
-    // wiring AND was missing the focus trap, a real a11y gap.)
-
-    // PICKER CLICK HANDLER — delegated, capture phase. Three cases:
-    //   1. Special tile ('No theme' / 'Load your own') → demo-side action.
-    //      These tiles aren't promoted through the library's tile wiring
-    //      (deliberately — they're demo-side extras, not real themes), so
-    //      this delegation IS the wiring.
-    //   2. Theme tile clicked WHILE IN OFF MODE → re-mount + retheme to
-    //      that slug. The picker article is restored to the DOM after
-    //      unmount with all its tiles + library-wired click handlers, but
-    //      the handlers now close over a dead scanner closure and silently
-    //      no-op. Without this intercept, clicking BeOS in OFF mode does
-    //      nothing — the user-reported 2026-06-01 P0 (after the No-theme
-    //      tile unmount path landed and surfaced the symmetry gap).
-    //   3. Theme tile clicked WHILE MOUNTED → let the library's per-tile
-    //      handler take it. We don't stopPropagation; event continues to
-    //      target phase normally.
-    //
-    // Capture-phase (third arg = true) so we intercept BEFORE the
-    // library's per-tile handlers fire. stopPropagation prevents them in
-    // cases 1 + 2; case 3 falls through.
+    }, appEvents);
     foldersEl?.addEventListener('click', async (e) => {
       const target = e.target;
-      // CASE 1 — special tiles
       const special = target.closest('.powers-picker-special-tile');
       if (special) {
         e.stopPropagation();
@@ -1048,10 +950,6 @@
         if (kind === 'none') {
           unmountPowers();
         } else if (kind === 'load') {
-          // Defensive: only open the modal if the runtime is mounted (the
-          // modal article needs to be a promoted themed window, not bare
-          // HTML). If pre-mount or post-disconnect, await first. Same
-          // aria-pressed flip pattern as the theme-tile case below.
           if (!handle) {
             toggleBtn.setAttribute('aria-pressed', 'true');
             await mountPowers();
@@ -1063,78 +961,26 @@
         }
         return;
       }
-      // CASE 2 — theme tile clicked while OFF
-      if (!handle) {
-        const themeTile = target.closest('.scriptoscope-theme-picker-tile');
-        const slug = themeTile?.dataset?.slug;
-        if (slug) {
-          e.stopPropagation();
-          // mountPowers bails if toggleBtn.aria-pressed === 'false' (the
-          // 'consumer toggled off mid-mount' guard). The click here IS the
-          // consumer toggling back on, so flip the intent first.
-          toggleBtn.setAttribute('aria-pressed', 'true');
-          await mountPowers();
-          if (handle) await handle.retheme(slug);
-        }
-      }
-      // CASE 3 — theme tile clicked while ON: no stopPropagation,
-      // event proceeds to the tile's own library-wired handler.
-    }, true);
-
-    // (The 40-line folder-strip-with-ARIA-keyboard-nav boot is GONE —
-    // `<div data-scriptoscope-theme-picker>` in the markup + `themes: THEMES`
-    // passed to mountShowcase covers it. The library handles tile
-    // building, name + author/year, ARIA tab pattern, keyboard nav,
-    // active-state sync on retheme. Pointerdown still counts as
-    // engagement (auto-cycle stops below), which the section-wide
-    // first-interaction listener picks up.)
-
-    // (Auto-cycle, URL-sync, and the switchTheme orchestrator are GONE —
-    // all three are now mountShowcase options:
-    //   - autoCycle: 4000        — library handles the timer + interaction
-    //                              stop + reduced-motion + deep-link suppress
-    //   - syncToUrlParam: 'theme'— library reads at boot + replaceState
-    //                              on every retheme
-    //   - themes: THEMES         — drives both autoCycle + the theme-picker
-    // Click handlers on the picker tiles call handle.retheme(slug)
-    // internally. No consumer-side switchTheme orchestrator needed.)
-
-    // (The parallel folder-icon preload Promise.allSettled is GONE — the
-    // library's promoteThemePicker fills tile icons concurrently on its
-    // own, harvesting each theme's -3983/-3999 from its iconIndex.)
-
-    // (slider wire-up moved into the boot-init block below — needs to run
-    // alongside syncToggleUI so the readout sync defends against the same
-    // form-state-cache restore class as the toggle.)
-
-    // First-load pulse on the folder strip — directs the eye, cancellable on
-    // hover OR keyboard focus, respects prefers-reduced-motion (CSS @media).
+    }, { capture: true, signal: appLife.signal });
     foldersEl.classList.add('powers-pulse');
     const dropPulse = () => foldersEl.classList.remove('powers-pulse');
-    foldersEl.addEventListener('mouseenter', dropPulse, { once: true });
-    foldersEl.addEventListener('focusin', dropPulse, { once: true });
-    setTimeout(dropPulse, 1600 * 2 + 200);
-
-    // Force the toggle state at boot — defends against Firefox/Safari
-    // bfcache restoring aria-pressed='false' even when HTML says true.
-    // Safe to call any time now that .scriptoscope-mounted is a decorative
-    // class with no layout-affecting CSS rules tied to it.
+    foldersEl.addEventListener('mouseenter', dropPulse, { once: true, signal: appLife.signal });
+    foldersEl.addEventListener('focusin', dropPulse, { once: true, signal: appLife.signal });
+    const pulseTimer = setTimeout(dropPulse, 1600 * 2 + 200);
     syncToggleUI(true);
-    // Slider readout — just mirror the live value to the % span. The
-    // library auto-resyncs the slider's themed face from native state on
-    // pageshow.persisted (T1.4), and the input event fires whenever the
-    // user moves either the themed face OR the native input — so no
-    // boot-time sync is needed for the readout to stay honest.
     const slider = document.getElementById('powers-hero-vol');
     const sliderOut = document.getElementById('powers-hero-vol-out');
-    slider?.addEventListener('input', () => { if (sliderOut) sliderOut.textContent = `${slider.value}%`; });
+    slider?.addEventListener('input', () => { if (sliderOut) sliderOut.textContent = `${slider.value}%`; }, appEvents);
     queueMicrotask(async () => {
-      // (The runtime now auto-reserves min-height on positioned ancestors
-      // before lifting children out of flow — was a manual ~12-line dance
-      // before T1.5. Layout-shift-free OFF↔ON toggle is now the default,
-      // no consumer code needed. Per-card glyph resolution happens via
-      // <div data-scriptoscope-icon="..."> automatically — no boot-time
-      // refreshCardGlyphs call needed.)
+      const slug = new URL(location.href).searchParams.get('theme');
+      activeRef = requestedTheme = THEMES.some(t => t.slug === slug) ? slug : randomDefaultSlug;
+      const before = new Set(foldersEl.childNodes);
+      const promotion = promoteThemePicker(foldersEl, THEMES, {
+        loadTheme: slug => pickerResolver.load(slug), switchTheme, initialSlug: activeRef,
+      });
+      for (const node of foldersEl.childNodes) if (!before.has(node)) pickerNodes.add(node);
+      picker = await promotion;
+      if (leaving) { picker?.teardown(); return; }
       await mountPowers();
       if (location.hash === '#bring-your-own') openModal();
     });

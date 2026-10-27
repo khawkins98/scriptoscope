@@ -24,6 +24,8 @@ export async function mountExplicitPage(opts) {
   const mountingViewport=innerWidth;
   const events = new EventTarget();
   const resolver = createOwnedThemeResolver(opts);
+  // Application-owned decoded themes are borrowed before the initial paint.
+  for (const [ref, theme] of opts.registeredThemes ?? []) resolver.register(ref, theme);
   const manager = new WindowManager();
   const life = new AbortController();
   const layout = ownLayout(opts,life.signal);
