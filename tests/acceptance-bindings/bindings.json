@@ -25,7 +25,7 @@
     },
     {
       "path": "src/wndCascade.ts",
-      "sha256": "e428cd4ba41e7295d9a574299e5c1dabf645e5683d518d92528f74ac4b3cfadd"
+      "sha256": "b34a0465ae2a656f1135da7bda0921cbdbe5e2085b9a23aa8ae007e84157e961"
     },
     {
       "path": "tests/acceptance-bindings/generate.mjs",
