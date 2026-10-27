@@ -132,7 +132,7 @@ export function decodePpat(bytes, { realizeRgb16, realizeDirectRgb8 } = {}) {
   const indices = expandIndexedPixels(
     pixelBytes, pmap.width, pmap.height, pmap.pixelSize, pmap.rowBytes,
   );
-  expandIndexedRgba(indices, rgba, colorTable, realizeRgb16, 'Missing pattern palette index');
+  expandIndexedRgba(indices, rgba, colorTable, realizeRgb16, 'Missing pattern palette index', w, h);
 
   return {
     width: w,

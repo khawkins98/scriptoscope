@@ -38,3 +38,28 @@ for (const [kind, decode] of [['cicn', decodeCicn], ['ppat', decodePpat]]) {
     });
   });
 }
+
+test('cicn: finite-transfer fallthrough retains changed raster dimensions', () => {
+  for (const width of [0, 4]) {
+    let calls = 0;
+    const run = () => decodeCicn(indexedArt('cicn'), {
+      finiteTransfer(parsed) { parsed.pmap.width = width; return null; },
+      realizeRgb16(rgb) { calls++; return rgb.map(value => value >> 8); },
+    });
+    if (width === 0) { assert.equal(run().rgba.length, 0); assert.equal(calls, 0); }
+    else assert.throws(run, { name: 'DisplayProfileError', code: 'UNSUPPORTED_SOURCE_COLOR', message: 'Missing ordinary palette index' });
+  }
+});
+
+test('cicn: realization observes masks in pixel order', () => {
+  const bytes = new Uint8Array(109), view = new DataView(bytes.buffer);
+  for (const [offset, value] of [[4,0x8002],[10,1],[12,2],[32,8],[34,1],[36,8],[54,1],[60,1],[62,2],[89,1],[99,1]]) view.setUint16(offset, value);
+  bytes[82] = 255; bytes[108] = 1;
+  let parsed, calls = 0;
+  const decoded = decodeCicn(bytes, {
+    finiteTransfer(value) { parsed = value; return null; },
+    realizeRgb16(rgb) { if (++calls === 2) parsed.maskAlpha[0] = 0; return rgb.map(value => value >> 8); },
+  });
+  assert.equal(decoded.rgba[3], 255);
+  assert.equal(calls, 4);
+});

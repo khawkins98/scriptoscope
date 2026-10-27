@@ -164,8 +164,8 @@ export function expandMask(packed, width, height, rowBytes) {
   return out;
 }
 
-/** Expand ordinary indexed art; caller-specific masks are applied separately. */
-export function expandIndexedRgba(indices, rgba, colorTable, realizeRgb16, missingMessage) {
+/** Expand ordinary indexed art, retaining per-pixel mask observation order. */
+export function expandIndexedRgba(indices, rgba, colorTable, realizeRgb16, missingMessage, width, height, mask, maskAlpha) {
   // Bit15 selects positional entries; otherwise use the first matching value.
   const palette = new Map();
   colorTable.entries.forEach((entry, position) => {
@@ -173,7 +173,8 @@ export function expandIndexedRgba(indices, rgba, colorTable, realizeRgb16, missi
     if (!palette.has(index)) palette.set(index, [entry.r, entry.g, entry.b]);
   });
   const realized = new Map();
-  for (let i = 0; i < indices.length; i++) {
+  for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
+    const i = y * width + x;
     const index = indices[i];
     let rgb = realized.get(index);
     if (!rgb) {
@@ -187,7 +188,7 @@ export function expandIndexedRgba(indices, rgba, colorTable, realizeRgb16, missi
     rgba[offset] = r;
     rgba[offset + 1] = g;
     rgba[offset + 2] = b;
-    rgba[offset + 3] = 255;
+    rgba[offset + 3] = mask ? (x < mask.width && y < mask.height ? maskAlpha[y * mask.width + x] : 255) : 255;
   }
   return rgba;
 }

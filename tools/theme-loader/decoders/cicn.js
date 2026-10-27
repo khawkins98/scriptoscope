@@ -108,12 +108,7 @@ export function decodeCicn(bytes, { retainKdefColorSampler = false, realizeRgb16
 function composeRgba(indices, maskAlpha, pmap, mask, colorTable, realizeRgb16) {
   const w = pmap.width, h = pmap.height;
   const rgba = new Uint8Array(w * h * 4);
-  expandIndexedRgba(indices, rgba, colorTable, realizeRgb16, 'Missing ordinary palette index');
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-      rgba[(y * w + x) * 4 + 3] = x < mask.width && y < mask.height ? maskAlpha[y * mask.width + x] : 255;
-    }
-  }
+  expandIndexedRgba(indices, rgba, colorTable, realizeRgb16, 'Missing ordinary palette index', w, h, mask, maskAlpha);
   return rgba;
 }
 
