@@ -7,7 +7,7 @@ for (const mode of ['source', 'built']) for (const wrapped of [false, true]) {
       const api = await import(mode === 'source' ? '/src/index.ts' : '/dist/scriptoscope.js');
       const theme = await api.loadTheme('/themes/windows-95');
       const root = document.createElement('section'); root.id = 'added-root'; document.body.append(root);
-      const handle = await api.mountDeclarative({ root, pageThemeDefault: 'fixture', bootAffordance: 'none' });
+      const handle = await (await import('/tests/rendering-options/contract-host.mjs')).createContractHost(api, { root, pageThemeDefault: 'fixture', bootAffordance: 'none' });
       handle.registerTheme('fixture', theme);
       const windowSource = document.createElement('article'); windowSource.dataset.scriptoscopeWindow = '';
       windowSource.dataset.scriptoscopeTitle = 'Added window'; windowSource.style.width = '260px';
@@ -15,7 +15,7 @@ for (const mode of ['source', 'built']) for (const wrapped of [false, true]) {
       const f = window.addedScan = { root, handle, theme, windowSource, native, clicks: 0 };
       native.addEventListener('click', () => f.clicks++);
       const container = document.createElement('div'); if (wrapped) container.append(windowSource);
-      root.append(wrapped ? container : windowSource);
+      root.append(wrapped ? container : windowSource); void handle.attach(wrapped ? container : windowSource);
     }, { mode, wrapped });
     await expect(page.locator('#added-root [data-scriptoscope-window-host]')).toHaveCount(1);
     await expect(page.locator('#added-root .scriptoscope-button')).toHaveCount(1);
@@ -32,13 +32,13 @@ for (const mode of ['source', 'built']) for (const wrapped of [false, true]) {
   });
 }
 
-for (const mode of ['source', 'built']) test(`${mode}: directly added standalone families are discovered once`, async ({ page, servers }, info) => {
+for (const mode of ['source', 'built']) test(`${mode}: explicitly attached standalone families promote once`, async ({ page, servers }, info) => {
   await openHarness(page, servers, mode);
   await page.evaluate(async mode => {
     const api = await import(mode === 'source' ? '/src/index.ts' : '/dist/scriptoscope.js');
     const theme = await api.loadTheme('/themes/windows-95');
     const root = document.createElement('section'); root.id = 'added-families'; document.body.append(root);
-    const handle = await api.mountDeclarative({ root, pageThemeDefault: 'fixture', themes: [{ slug: 'fixture', name: 'Fixture' }], bootAffordance: 'none' });
+    const handle = await (await import('/tests/rendering-options/contract-host.mjs')).createContractHost(api, { root, pageThemeDefault: 'fixture', themes: [{ slug: 'fixture', name: 'Fixture' }], bootAffordance: 'none' });
     handle.registerTheme('fixture', theme);
     const template = document.createElement('template');
     template.innerHTML = `<button data-scriptoscope-button type="button">Standalone</button><input type="checkbox" aria-label="Check"><input type="radio" aria-label="Radio"><input type="range" aria-label="Range"><select aria-label="Select"><option>One</option><option>Two</option></select><input data-scriptoscope-field value="Original"><div data-scriptoscope-tabs><button data-scriptoscope-tab="first">First</button><button data-scriptoscope-tab="second">Second</button><section data-scriptoscope-panel="first">First panel</section><section data-scriptoscope-panel="second">Second panel</section></div><img alt="Icon"><div data-scriptoscope-theme-picker></div>`;
@@ -47,7 +47,7 @@ for (const mode of ['source', 'built']) test(`${mode}: directly added standalone
     const f = window.familyScan = { root, handle, theme, nodes, clicks: 0, changes: 0 };
     nodes[0].addEventListener('click', () => f.clicks++); nodes[1].addEventListener('change', () => f.changes++);
     const label = document.createElement('label'); label.htmlFor = nodes[1].id = 'standalone-check'; label.textContent = 'Check';
-    root.append(label, ...nodes);
+    root.append(label, ...nodes); for (const node of nodes) void handle.attach(node);
   }, mode);
   await expect.poll(() => page.evaluate(() => ({ ...window.familyScan.handle.stats }))).toEqual({ windows: 0, buttons: 1, controls: 4, tabs: 1, fields: 1 });
   await expect(page.locator('#added-families [data-scriptoscope-icon-promoted]')).toHaveCount(1);
@@ -73,10 +73,10 @@ for (const mode of ['source', 'built']) for (const barrierKind of ['preparation'
       const api = await import(mode === 'source' ? '/src/index.ts' : '/dist/scriptoscope.js');
       const theme = await api.loadTheme('/themes/windows-95');
       const root = document.createElement('section'); root.id = 'queued-roots'; document.body.append(root);
-      const handle = await api.mountDeclarative({ root, themeBaseUrl: '/themes', pageThemeDefault: 'fixture', bootAffordance: 'none' }); handle.registerTheme('fixture', theme);
+      const handle = await (await import('/tests/rendering-options/contract-host.mjs')).createContractHost(api, { root, themeBaseUrl: '/themes', pageThemeDefault: 'fixture', bootAffordance: 'none' }); handle.registerTheme('fixture', theme);
       const f = window.queuedScan = { api, root, handle, theme, held: false, clicks: 0, broadScans: 0, originals:[] };
       const query = root.querySelectorAll.bind(root); root.querySelectorAll = selector => { if (selector.includes('[data-scriptoscope-window]')) f.broadScans++; return query(selector); };
-      f.add = title => { const el = document.createElement('article'); el.dataset.scriptoscopeWindow = ''; el.dataset.scriptoscopeTitle = title; el.style.width = '240px'; const button = document.createElement('button'); button.dataset.scriptoscopeButton = ''; button.textContent = title; button.type = 'button'; button.addEventListener('click', () => f.clicks++); f.originals.push(button);el.append(button); root.append(el); return el; };
+      f.add = title => { const el = document.createElement('article'); el.dataset.scriptoscopeWindow = ''; el.dataset.scriptoscopeTitle = title; el.style.width = '240px'; const button = document.createElement('button'); button.dataset.scriptoscopeButton = ''; button.textContent = title; button.type = 'button'; button.addEventListener('click', () => f.clicks++); f.originals.push(button);el.append(button); root.append(el); void handle.attach(el); return el; };
       if (barrierKind === 'preparation') {
         const decode = HTMLImageElement.prototype.decode; const gate = new Promise(resolve => f.release = resolve);
         HTMLImageElement.prototype.decode = async function () { HTMLImageElement.prototype.decode = decode; const result = await decode.call(this); f.held = true; await gate; return result; };
@@ -109,13 +109,13 @@ for (const mode of ['source', 'built']) test(`${mode}: disconnect during added-f
   await page.evaluate(async mode => {
     const api = await import(mode === 'source' ? '/src/index.ts' : '/dist/scriptoscope.js');
     const root = document.createElement('section'); document.body.append(root);
-    const errors = [], handle = await api.mountDeclarative({ root, pageThemeDefault: 'windows-95', themeBaseUrl: '/themes', bootAffordance: 'none', onPromoteError: e => { errors.push(e.kind); return false; } });
+    const errors = [], handle = await (await import('/tests/rendering-options/contract-host.mjs')).createContractHost(api, { root, pageThemeDefault: 'windows-95', themeBaseUrl: '/themes', bootAffordance: 'none', onPromoteError: e => { errors.push(e.kind); return false; } });
     const t = document.createElement('template'); t.innerHTML = '<button data-scriptoscope-button>Pending</button><input type="range" value="25"><input data-scriptoscope-field value="Native"><img data-scriptoscope-icon="folder"><div data-scriptoscope-tabs><button data-scriptoscope-tab="panel">Tab</button><section data-scriptoscope-panel="panel">Panel</section></div>';
     const nodes = [...t.content.children]; const f = window.abortedScan = { root, handle, nodes, errors, minted: new Set(), revoked: new Set() };
     const create = URL.createObjectURL, revoke = URL.revokeObjectURL;
     URL.createObjectURL = function (blob) { const url = create.call(URL, blob); f.minted.add(url); return url; };
     URL.revokeObjectURL = function (url) { if (f.minted.has(url)) f.revoked.add(url); return revoke.call(URL, url); };
-    f.restore = () => { URL.createObjectURL = create; URL.revokeObjectURL = revoke; }; root.append(...nodes);
+    f.restore = () => { URL.createObjectURL = create; URL.revokeObjectURL = revoke; }; root.append(...nodes); for (const node of nodes) void handle.attach(node);
   }, mode);
   await expect.poll(() => held).toBe(true);
   await page.evaluate(() => window.abortedScan.handle.disconnect()); release();
@@ -133,25 +133,25 @@ for (const mode of ['source', 'built']) test(`${mode}: initial mount root remain
   const result = await page.evaluate(async mode => {
     const api = await import(mode === 'source' ? '/src/index.ts' : '/dist/scriptoscope.js');
     const root = document.createElement('article'); root.dataset.scriptoscopeWindow = ''; root.innerHTML = '<button data-scriptoscope-button type="button">Initial child</button>'; document.body.append(root);
-    const handle = await api.mountDeclarative({ root, themeBaseUrl: '/themes', pageThemeDefault: 'windows-95', bootAffordance: 'none' });
+    const handle = await (await import('/tests/rendering-options/contract-host.mjs')).createContractHost(api, { root, themeBaseUrl: '/themes', pageThemeDefault: 'windows-95', bootAffordance: 'none' });
     const result = { windows: handle.stats.windows, buttons: handle.stats.buttons, rootSame: root.isConnected, host: !!root.querySelector('[data-scriptoscope-window-host]') }; handle.disconnect(); root.remove(); return result;
   }, mode);
   expect(result).toEqual({ windows: 0, buttons: 1, rootSame: true, host: false });
 });
 
-for (const mode of ['source', 'built']) test(`${mode}: initial window preparation retains later standalone child discovery`, async ({ page, servers }) => {
+for (const mode of ['source', 'built']) test(`${mode}: initial window preparation accepts explicit later standalone attachment`, async ({ page, servers }) => {
   await openHarness(page, servers, mode);
   await page.evaluate(async mode => {
     const api = await import(mode === 'source' ? '/src/index.ts' : '/dist/scriptoscope.js');
     const root = document.createElement('section'); root.id = 'initial-late'; root.innerHTML = '<article data-scriptoscope-window style="width:240px"><button data-scriptoscope-button type="button">Early child</button></article>'; document.body.append(root);
     const f = window.initialScan = { root, held: false }; const decode = HTMLImageElement.prototype.decode, gate = new Promise(resolve => f.release = resolve);
     HTMLImageElement.prototype.decode = async function () { HTMLImageElement.prototype.decode = decode; const result = await decode.call(this); f.held = true; await gate; return result; };
-    f.pending = api.mountDeclarative({ root, themeBaseUrl: '/themes', pageThemeDefault: 'windows-95', bootAffordance: 'none' });
+    f.pending = (await import('/tests/rendering-options/contract-host.mjs')).createContractHost(api, { root, themeBaseUrl: '/themes', pageThemeDefault: 'windows-95', bootAffordance: 'none' });
   }, mode);
   await page.waitForFunction(() => window.initialScan.held);
   const result = await page.evaluate(async () => {
     const f = window.initialScan, late = document.createElement('button'); late.dataset.scriptoscopeButton = ''; late.type = 'button'; late.textContent = 'Late initial child'; f.root.append(late);
-    f.release(); f.handle = await f.pending; return { stats: { ...f.handle.stats }, latePromoted: late.dataset.scriptoscopePromoted != null };
+    f.release(); f.handle = await f.pending; await f.handle.attach(late); return { stats: { ...f.handle.stats }, latePromoted: late.dataset.scriptoscopePromoted != null };
   });
   expect(result).toMatchObject({ stats: { windows: 1, buttons: 2 }, latePromoted: true });
   await expect(page.locator('#initial-late .scriptoscope-button')).toHaveCount(2);
@@ -163,7 +163,7 @@ for (const mode of ['source', 'built']) test(`${mode}: existing hosts exclude la
   const observed = await page.evaluate(async mode => {
     const api = await import(mode === 'source' ? '/src/index.ts' : '/dist/scriptoscope.js');
     const root = document.createElement('section'); root.innerHTML = '<article data-scriptoscope-window style="width:240px">Original content</article>'; document.body.append(root);
-    const handle = await api.mountDeclarative({ root, themeBaseUrl: '/themes', pageThemeDefault: 'windows-95', bootAffordance: 'none' });
+    const handle = await (await import('/tests/rendering-options/contract-host.mjs')).createContractHost(api, { root, themeBaseUrl: '/themes', pageThemeDefault: 'windows-95', bootAffordance: 'none' });
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     const wrap = document.createElement('div'); wrap.innerHTML = '<button data-scriptoscope-button>Later wrapped</button>'; root.querySelector('.scriptoscope-fit').append(wrap);
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));

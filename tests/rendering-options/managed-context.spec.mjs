@@ -175,7 +175,7 @@ for(const mode of ['source','built']) test(`${mode}: declared buttons follow own
   await page.evaluate(async()=>{
     const f=window.managed;await Promise.all(f.bindings.map(b=>b.dispose()));f.manager.remove(f.host);f.host.remove();
     const root=document.createElement('section');root.style.setProperty('--scriptoscope-content-padding','0px');document.body.append(root);
-    const handle=await f.api.mountDeclarative({root,pageThemeDefault:'pattern',displayProfile:f.theme.manifest.displayProfile,bootAffordance:'none'});handle.registerTheme('pattern',f.theme);
+    const handle=await (await import('/tests/rendering-options/contract-host.mjs')).createContractHost(f.api, {root,pageThemeDefault:'pattern',displayProfile:f.theme.manifest.displayProfile,bootAffordance:'none'});handle.registerTheme('pattern',f.theme);
     const make=(name,x,y)=>{
       const holder=document.createElement('div');holder.style.cssText=`position:absolute;left:${x}px;top:${y}px;font-size:0;line-height:0`;
       const native=document.createElement('button');native.dataset.scriptoscopeButton='';native.dataset.scriptoscopeDefault='';native.type='button';native.setAttribute('aria-label',name);holder.append(native);return{holder,native};
@@ -186,7 +186,7 @@ for(const mode of ['source','built']) test(`${mode}: declared buttons follow own
       const content=document.createElement('div');content.style.cssText='position:relative;width:100%;height:130px';source.append(content);windows.push({source,content});
     }
     const moved=make('Moved',20,30),stationary=make('Stationary',23,35),standalone=make('Standalone',0,0);
-    windows[0].content.append(moved.holder);windows[1].content.append(stationary.holder);const additions=document.createElement('div');additions.append(...windows.map(w=>w.source),standalone.holder);root.append(additions);
+    windows[0].content.append(moved.holder);windows[1].content.append(stationary.holder);const additions=document.createElement('div');additions.append(...windows.map(w=>w.source),standalone.holder);root.append(additions); void handle.attach(additions);
     let clicks=0;moved.native.addEventListener('click',()=>clicks++);
     const state=()=>[moved,stationary,standalone].map(({native})=>{
       const face=native.nextElementSibling,canvas=face?.querySelector('canvas');return canvas?{pixel:[...canvas.getContext('2d').getImageData(8,6,1,1).data],scale:canvas.getBoundingClientRect().width/canvas.width}:null;
@@ -198,9 +198,9 @@ for(const mode of ['source','built']) test(`${mode}: declared buttons follow own
   await expect.poll(()=>page.evaluate(()=>window.declared.state().map(s=>s?.pixel))).toEqual([[40,0,0,255],[120,0,0,255],[150,0,0,255]]);
   const initial=await page.evaluate(()=>window.declared.state());
   expect(initial.map(s=>s.scale)).toEqual([1,1,1]);
-  await page.evaluate(()=>{
+  await page.evaluate(async()=>{
     const f=window.declared;f.face=f.moved.native.nextElementSibling;f.canvas=f.face.querySelector('canvas');
-    f.moved.holder.style.left='24px';f.moved.holder.style.top='35px';f.windows[1].content.append(f.moved.holder);
+    f.moved.holder.style.left='24px';f.moved.holder.style.top='35px';f.windows[1].content.append(f.moved.holder); await f.handle.refreshContext(f.moved.native);
   });
   await expect.poll(()=>page.evaluate(()=>window.declared.state()[0]?.pixel)).toEqual([130,0,0,255]);
   expect(await page.evaluate(()=>{const f=window.declared;return f.moved.native.nextElementSibling===f.face&&f.face.querySelector('canvas')===f.canvas;})).toBe(true);
