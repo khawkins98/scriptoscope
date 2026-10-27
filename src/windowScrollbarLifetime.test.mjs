@@ -11,9 +11,19 @@ class Element extends EventTarget {
   style = {};
   attributes = new Map();
   children = [];
+  parentNode = null;
   setAttribute(key, value) { this.attributes.set(key, value); }
-  appendChild(child) { this.children.push(child); }
-  replaceChildren(...children) { this.children = children; this.paints = (this.paints ?? 0) + 1; }
+  appendChild(child) { child.remove(); child.parentNode = this; this.children.push(child); return child; }
+  remove() {
+    if (!this.parentNode) return;
+    this.parentNode.children.splice(this.parentNode.children.indexOf(this), 1);
+    this.parentNode = null;
+  }
+  replaceChildren(...children) {
+    for (const child of [...this.children]) child.remove();
+    for (const child of children) this.appendChild(child);
+    this.paints = (this.paints ?? 0) + 1;
+  }
 }
 function fixture(t, encoder) {
   const frames = new Map(), canceled = [], errors = [];
@@ -54,22 +64,34 @@ function fixture(t, encoder) {
 
 test('remove and owner disposal settle a held initial scrollbar paint without publishing or unhandled rejection', async t => {
   const f = fixture(t); f.wire(); await f.started;
+  const bar = f.win.children[0], sibling = new Element();
+  assert.equal(bar.parentNode, f.win);
+  f.win.appendChild(sibling);
   f.manager.remove(f.host); f.owner.dispose(); f.release('https://example.test/canceled.png');
   await settle();
-  assert.equal(f.win.children[0].paints ?? 0, 0);
+  assert.equal(bar.paints ?? 0, 0);
+  assert.equal(bar.parentNode, null);
+  assert.deepEqual(f.win.children, [sibling]);
+  assert.equal(sibling.parentNode, f.win);
+  bar.remove();
+  assert.deepEqual(f.win.children, [sibling]);
   assert.deepEqual(f.errors, []);
   assert.equal(f.owner.usage().pending, 0);
 });
 
 test('aborting a scrollbar cancels scheduled paint and a raced callback cannot restart work', async t => {
   const f = fixture(t); f.wire(); await f.started; f.wheel();
+  const bar = f.win.children[0];
+  assert.equal(bar.parentNode, f.win);
   assert.equal(f.frames.size, 1);
   const [id, callback] = [...f.frames][0];
   f.manager.remove(f.host);
   assert.deepEqual(f.canceled, [id]); assert.equal(f.frames.size, 0);
   callback(); f.owner.dispose(); f.release('https://example.test/canceled.png'); await settle();
   assert.equal(f.encodes(), 1); assert.deepEqual(f.errors, []);
-  assert.equal(f.win.children[0].paints ?? 0, 0);
+  assert.equal(bar.paints ?? 0, 0);
+  assert.equal(bar.parentNode, null);
+  assert.deepEqual(f.win.children, []);
 });
 
 test('a layout retry cannot rewire a removed host even when its chrome remains connected', async t => {
