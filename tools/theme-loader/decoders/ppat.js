@@ -21,7 +21,7 @@ import { DisplayProfileError } from '../display-profile.js';
 
 import {
   Reader, readPixMap, readColorTable,
-  expandIndexedPixels,
+  expandIndexedPixels, expandIndexedRgba,
 } from './shared.js';
 
 /**
@@ -129,33 +129,10 @@ export function decodePpat(bytes, { realizeRgb16, realizeDirectRgb8 } = {}) {
   // Apple TN QD13: bit14 redirects ColorSpec.value into a destination-window
   // palette and ignores RGB. A standalone decoder has no such palette.
   if (colorTable.flags & 0x4000) return null;
-  // Bit15 set means positional device entries; otherwise ColorSpec.value is
-  // the actual pixel value, including sparse/permuted tables. Keep this local
-  // to ppat: the shared cicn lookup has not earned the same source contract.
-  const colors = new Map();
-  colorTable.entries.forEach((entry, position) => {
-    const index = colorTable.flags & 0x8000 ? position : entry.value;
-    if (!colors.has(index)) colors.set(index, [entry.r, entry.g, entry.b]);
-  });
-
   const indices = expandIndexedPixels(
     pixelBytes, pmap.width, pmap.height, pmap.pixelSize, pmap.rowBytes,
   );
-
-  const realized = new Map();
-  for (let i = 0; i < indices.length; i++) {
-    // Preserve the existing visible black fallback for missing values. The
-    // original foreground/background interpolation is not implemented here.
-    let rgb = realized.get(indices[i]);
-    if (realizeRgb16 && !colors.has(indices[i])) throw new DisplayProfileError('Missing pattern palette index', 'UNSUPPORTED_SOURCE_COLOR');
-    if (!rgb) { const raw = colors.get(indices[i]) ?? [0,0,0]; rgb = realizeRgb16 ? realizeRgb16(raw) : raw.map(v => v >> 8); realized.set(indices[i],rgb); }
-    const [rR,gR,bR] = rgb;
-    const o = i * 4;
-    rgba[o] = rR;
-    rgba[o + 1] = gR;
-    rgba[o + 2] = bR;
-    rgba[o + 3] = 255; // patterns are fully opaque
-  }
+  expandIndexedRgba(indices, rgba, colorTable, realizeRgb16, 'Missing pattern palette index', w, h);
 
   return {
     width: w,

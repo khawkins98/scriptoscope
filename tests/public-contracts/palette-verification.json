@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 1,
+  "kind": "independent-indexed-palette-parity",
+  "status": "PASS",
+  "candidateCommit": "e8e34035727fe07945158318548ea2947d19d9e0",
+  "supersededCandidateCommit": "c20b18ac97370a373c4834129e5797aa07e21534",
+  "sourceBindings": [
+    {
+      "path": "tools/theme-loader/decoders/cicn.js",
+      "sha256": "b78ae05509723a246d64d6f0b2b147c29c5b7fc7ed6c1214303942c43415bb73"
+    },
+    {
+      "path": "tools/theme-loader/decoders/ppat.js",
+      "sha256": "861ca23caf3ef90f78a0ec429bda301125f0411fc1466d89819b2faf6cece583"
+    },
+    {
+      "path": "tools/theme-loader/decoders/shared.js",
+      "sha256": "901d248c4dd5de46ea46ade936d7ce8021400a6f04c820926cae4d90094efba4"
+    }
+  ],
+  "artifactDirectory": "/tmp/scriptoscope-palette-c20b18ac",
+  "executionOnlyArtifacts": [
+    {
+      "role": "baseline",
+      "file": "baseline.mjs",
+      "sha256": "b1d3677257fec2b9c300b1a82e90587d37dc35c982d2dc42cf2ec87eebb00697"
+    },
+    {
+      "role": "corrected-candidate",
+      "file": "candidate-fixed.mjs",
+      "sha256": "1e1e616f9c4a432495898b8ab82c2412467ae19a54663295a23bacad17b74331"
+    },
+    {
+      "role": "rejected-candidate-negative-control",
+      "file": "candidate.mjs",
+      "sha256": "1557c9a2822e4c17019c85ef3f5bd2a8a8f5dd0985b37120272907f629216d5c"
+    }
+  ],
+  "testSources": [
+    {
+      "path": "tests/public-contracts/palette-parity.test.mjs",
+      "sha256": "d59b8a09e1c463e839737d3fa0ce23d0f84b0510969571a47c1adf3111fe635e"
+    },
+    {
+      "path": "tests/public-contracts/palette-corpus.test.mjs",
+      "sha256": "1c878c33db07da276721fce351e6d9286bf2446728faaacddb0210b0dd97b4cd"
+    }
+  ],
+  "commands": [
+    {
+      "command": "node --test tests/public-contracts/palette-parity.test.mjs tests/public-contracts/palette-corpus.test.mjs",
+      "pass": 36,
+      "fail": 0
+    },
+    {
+      "command": "node --experimental-strip-types --test tests/control-availability/validate-source.test.mjs tests/acceptance-bindings/generate.test.mjs",
+      "pass": 12,
+      "fail": 0
+    },
+    {
+      "command": "npm run test:availability:sources",
+      "sources": 18,
+      "candidateThemes": 4,
+      "cases": 27,
+      "result": "PASS"
+    },
+    {
+      "command": "npm run test:acceptance:bindings",
+      "sources": 18,
+      "envelopeCells": 594,
+      "result": "PASS"
+    }
+  ],
+  "retainedLicensedCorpus": {
+    "sources": 18,
+    "resourceOccurrences": 13577,
+    "cicn": 3325,
+    "ppat": 218,
+    "options": [
+      "default",
+      "strict RGB16 high-byte realizer"
+    ],
+    "comparison": "Every ordered resource occurrence, payload identity, normalized decoder output/error and complete pixel-plane hash matches.",
+    "normalizedObservationSha256": "aafeee7dc5cbe822060f777ab6b9df8e1abfb07d6799baf63ffb82c4fa79d2c4",
+    "transientOutputs": [
+      "independent-baseline-normalized.json",
+      "independent-candidate-normalized.json"
+    ]
+  },
+  "contracts": [
+    "1/2/4/8bpp independent scalar RGBA; padded rows and mask strides; mask dimension overlap; source subviews",
+    "sparse/permuted/duplicate and positional/reserved/destination-palette flags; default missing-index black and exact strict errors",
+    "every fixture truncation; malformed header errors and callback precedence",
+    "realizer mutation, throwing-value identity, reentrancy, lazy unused entries, scalar samples",
+    "finite-transfer dimension changes, fractional dimensions, initial/mid-realizer dimensions, mask mutation/replacement, index mutation, transfer return/throw ordering"
+  ],
+  "negativeControls": [
+    "Rejected c20 artifact disagrees on both width-zero callbacks and later mask mutation.",
+    "Deliberate pixel and callback trace changes fail equality assertions.",
+    "All eight pre-refresh source tests failed on stale CICN extraction hash; after narrow pin refresh all eight pass with their original negative expectations."
+  ],
+  "generatedRefresh": {
+    "tests/control-availability/source-candidates.json": {
+      "retainedFacts": "all deeply equal",
+      "changedFields": [
+        "toolchain.tools/theme-loader/decoders/cicn.js"
+      ]
+    },
+    "tests/acceptance-bindings/bindings.json": {
+      "retainedObservations": "all deeply equal including complete source inventories, raw occurrences, conversion outcomes, assets, resource joins and envelope cells",
+      "changedToolchainPaths": [
+        "tools/theme-loader/decoders/cicn.js",
+        "tools/theme-loader/decoders/ppat.js",
+        "tools/theme-loader/decoders/shared.js"
+      ]
+    }
+  },
+  "limits": [
+    "Behavioral regression evidence and bounded independent scalar format checks; no historical rendering or complete decoder certificate.",
+    "Opaque artifacts were only hashed and imported/executed, never inspected as implementation or oracle.",
+    "No private/original application sources, engine binaries, assembly, decompiles, maintainer assets or other checkouts were accessed.",
+    "Temporary opaque artifacts and normalized outputs must remain available until accepted release; they are intentionally excluded from this compact commit.",
+    "No performance or whole-CI/readiness assertion."
+  ]
+}

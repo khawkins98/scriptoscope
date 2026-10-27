@@ -1,3 +1,4 @@
+import { DisplayProfileError } from '../display-profile.js';
 // Shared big-endian binary reader and classic Mac Toolbox struct parsers
 // used by both cicn and ppat decoders. Per Inside Macintosh: Imaging with
 // QuickDraw (chapter 4), every Toolbox numeric field is big-endian.
@@ -161,4 +162,33 @@ export function expandMask(packed, width, height, rowBytes) {
   const out = expandIndexedPixels(packed, width, height, 1, rowBytes);
   for (let i = 0; i < out.length; i++) out[i] *= 255;
   return out;
+}
+
+/** Expand ordinary indexed art, retaining per-pixel mask observation order. */
+export function expandIndexedRgba(indices, rgba, colorTable, realizeRgb16, missingMessage, width, height, mask, maskAlpha) {
+  // Bit15 selects positional entries; otherwise use the first matching value.
+  const palette = new Map();
+  colorTable.entries.forEach((entry, position) => {
+    const index = colorTable.flags & 0x8000 ? position : entry.value;
+    if (!palette.has(index)) palette.set(index, [entry.r, entry.g, entry.b]);
+  });
+  const realized = new Map();
+  for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
+    const i = y * width + x;
+    const index = indices[i];
+    let rgb = realized.get(index);
+    if (!rgb) {
+      if (realizeRgb16 && !palette.has(index)) throw new DisplayProfileError(missingMessage, 'UNSUPPORTED_SOURCE_COLOR');
+      const raw = palette.get(index) ?? [0, 0, 0];
+      rgb = realizeRgb16 ? realizeRgb16(raw) : raw.map(value => value >> 8);
+      realized.set(index, rgb);
+    }
+    const [r, g, b] = rgb;
+    const offset = i * 4;
+    rgba[offset] = r;
+    rgba[offset + 1] = g;
+    rgba[offset + 2] = b;
+    rgba[offset + 3] = mask ? (x < mask.width && y < mask.height ? maskAlpha[y * mask.width + x] : 255) : 255;
+  }
+  return rgba;
 }
