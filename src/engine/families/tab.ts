@@ -3,10 +3,10 @@
 import type { Pixmap, QdPoint, QdRect, Rgba } from '../qd/types.js';
 import type { EngineTrace } from '../trace.js';
 import { rect, emptyRect } from '../qd/rect.js';
-import { tileBlit } from '../qd/tile.js';
-import { transferBits } from '../qd/transfer.js';
-import { sourceLines } from '../qd/lines.js';
-import { eraseRect, fillPattern } from '../qd/pattern.js';
+import { tileBlit } from '../../raster.js';
+import { transferBits } from '../../raster.js';
+import { sourceLines } from '../../raster.js';
+import { eraseRect, fillPattern } from '../../raster.js';
 import { TAB_BODY, TAB_DOMAIN, TAB_PHASE, TAB_STATE, TAB_VARIANTS } from '../tables/tab.js';
 
 /** Original resting/tracking context only; public composeTab keeps F1/F2. */

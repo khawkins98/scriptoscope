@@ -14,7 +14,9 @@
 //     LS9): the content behind the window shows through there;
 //   - the title text is drawn by renderWindow in `titleRect` (TX rows).
 import { PixelBuffer } from './pixelBuffer.js';
-import { rect, rectXYWH, scaleBlit, tileBlit, type Pixmap, type QdRect, type Transfer } from './engine/qd/index.js';
+import { rect, rectXYWH } from './engine/qd/rect.js';
+import type { Pixmap, QdRect, Transfer } from './engine/qd/types.js';
+import { scaleBlit, tileBlit } from './raster.js';
 import { windowBlitRow } from './engine/tables/windowBlit.js';
 import { CELL_WIDTH, WINDOW_SIDES } from './engine/tables/window.js';
 import {

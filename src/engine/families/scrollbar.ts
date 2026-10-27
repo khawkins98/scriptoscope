@@ -15,13 +15,13 @@ import type { Pixmap, QdPoint, QdRect } from '../qd/types.js';
 import type { EngineTrace } from '../trace.js';
 import type { ResourceChain, ResourceHit } from '../resources/chain.js';
 import { emptyRect, rect } from '../qd/rect.js';
-import { scaleBlit } from '../qd/scale.js';
-import { transferBits } from '../qd/transfer.js';
-import { fillPattern } from '../qd/pattern.js';
+import { scaleBlit } from '../../raster.js';
+import { transferBits } from '../../raster.js';
+import { fillPattern } from '../../raster.js';
 import {
   copyClipped, fillMaskClearRegion, iconBlit, insideBounds, newRegion, regionAddRect, regionHas,
   type IconSource,
-} from '../qd/region.js';
+} from '../../raster.js';
 import { axis, alongLength, pixmapBounds } from '../qd/axis.js';
 import { drawSlices } from '../qd/slice.js';
 import { expandIdGrid } from '../resources/ids.js';
