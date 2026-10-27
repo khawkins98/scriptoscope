@@ -690,6 +690,8 @@ interface ManagedWindow<Theme extends ThemeInput> {
   contentPort: ManagedContentPort;
   /** Invalidates asynchronous paints when geometry/state changes or the entry is removed. */
   renderEpoch: number;
+  /** Authority of mounted chrome, independent of pending render preparations. */
+  commitEpoch: number;
   applyStateEpoch: number;
   initializing: boolean;
   theme: Theme;
@@ -889,7 +891,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     // Initial focus: the first window added is active — UNLESS it explicitly requests inactive
     // (so a declarative `data-scriptoscope-state="inactive"` is honored; then no window starts focused).
     const entry: ManagedWindow<Theme> = {
-      theme, opts, handlers, host, renderEpoch: 0, applyStateEpoch: 0, initializing: true, contentPort: new ManagedContentPort(),
+      theme, opts, handlers, host, renderEpoch: 0, commitEpoch: 0, applyStateEpoch: 0, initializing: true, contentPort: new ManagedContentPort(),
       ...(opts.reuseCanvas ? { chromeCanvas: opts.reuseCanvas } : {}),
       active: this.windows.length === 0 && opts.state !== 'inactive',
       // Declared z (data-scriptoscope-z) wins; else take the next stacking-clock tick. We still bump the
@@ -1157,6 +1159,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
   }
 
   private commitRender(entry: ManagedWindow<Theme>, { win, collapsed }: { win: HTMLElement; collapsed: boolean }, notify = true): void {
+    entry.commitEpoch++;
     const fresh = win.querySelector<HTMLCanvasElement>('canvas.scriptoscope-chrome');
     const pooled = entry.chromeCanvas;
     if (fresh && pooled) {
@@ -1231,7 +1234,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
    * the host isn't in the document yet so nothing has layout. Detects + wires BOTH axes — vertical and
    * horizontal — independently, so a long-and-wide content gets both bars + a clear bottom-right corner.
    */
-  private async wireScrollbars(entry: ManagedWindow<Theme>, win: HTMLElement, attempt: number, epoch = entry.renderEpoch): Promise<void> {
+  private async wireScrollbars(entry: ManagedWindow<Theme>, win: HTMLElement, attempt: number, epoch = entry.commitEpoch): Promise<void> {
     // Staleness check: is `win` still the current chrome? See LEARNINGS 2026-05-28 "Shadow DOM
     // gotchas" — host.firstChild is the slotted .scriptoscope-slot now, not win. We resolve via shadowRoot.
     // We deliberately do NOT use win.isConnected: ScriptoscopeWindow.promote inserts the host into the
@@ -1239,7 +1242,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     // still detached. The ch===0 retry below catches that pre-layout case; staleness is what
     // this check covers, including retries from an older commit on the retained root.
     const currentChrome = entry.host.shadowRoot?.firstChild ?? entry.host.firstChild;
-    if (!this.windows.includes(entry) || currentChrome !== win || entry.renderEpoch !== epoch) {
+    if (!this.windows.includes(entry) || currentChrome !== win || entry.commitEpoch !== epoch) {
       debug('scrollbar', `${entry.opts.title ?? ''} — stale win, bailing`);
       return;
     }
