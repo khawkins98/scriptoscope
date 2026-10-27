@@ -22,17 +22,20 @@ export default {root: join(root, 'web'), server: {host:'127.0.0.1', port, strict
     try {fd=openSync(disk,'r+');} catch(error) {unlinkSync(lock);throw error;}
     const size = lstatSync(disk).size;
     let closed = false;
-    const cleanup=()=>{if (!closed) {closed=true;closeSync(fd);unlinkSync(lock);process.removeListener('exit',cleanup);}};
+    const cleanup=()=>{if (!closed) {closed=true;closeSync(fd);unlinkSync(lock);process.removeListener('exit',cleanup);process.removeListener('SIGINT',interrupt);process.removeListener('SIGTERM',terminate);}};
+    const interrupt=()=>{cleanup();process.exit(130);}, terminate=()=>{cleanup();process.exit(143);};
     process.once('exit',cleanup);
+    process.once('SIGINT',interrupt);
+    process.once('SIGTERM',terminate);
     server.httpServer?.once('close',cleanup);
     server.httpServer?.once('error',cleanup);
     server.middlewares.use('/transfer.dsk', (_req,res) => {res.setHeader('Content-Type','application/octet-stream'); res.end(readFileSync(transfer));});
     server.middlewares.use('/__disk', (req,res) => {
       const url = new URL(req.url, 'http://127.0.0.1'), offset = Number(url.searchParams.get('offset'));
-      if (!Number.isSafeInteger(offset) || offset < 0 || offset > size) {res.statusCode=400;res.end();return;}
+      if (!url.searchParams.has('offset') || !url.searchParams.get('offset')?.trim() || !Number.isSafeInteger(offset) || offset < 0 || offset > size) {res.statusCode=400;res.end();return;}
       if (req.method==='GET') {
         const length = Number(url.searchParams.get('length'));
-        if (!Number.isSafeInteger(length) || length<0 || length>262144 || offset+length>size) {res.statusCode=400;res.end();return;}
+        if (!url.searchParams.has('length') || !url.searchParams.get('length')?.trim() || !Number.isSafeInteger(length) || length<0 || length>262144 || offset+length>size) {res.statusCode=400;res.end();return;}
         const b=Buffer.alloc(length);const n=readSync(fd,b,0,length,offset);if(n!==length){res.statusCode=500;res.end();return;}res.end(b);
       } else if (req.method==='POST') {
         const chunks=[];let count=0;

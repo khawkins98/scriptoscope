@@ -1,5 +1,10 @@
 # Bounded first-pair acquisition: 2026-10-27
 
+**Historical first-stage record, superseded by**
+[the owned-guest continuation](ACQUISITION-2026-10-27.md): one condition-complete
+matched-pair candidate, one earlier partial pair, zero admitted pixel references.
+The zero-launch/zero-pair statements below describe that earlier stage only.
+
 Actual acquired pairs: **0**. No emulator, browser, guest or listening server was
 started. Native execution, activation drawing and titlebar pixels remain unverified.
 No existing acceptance record, expected pixel, source binding or production file changed.

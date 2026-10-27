@@ -1,0 +1,180 @@
+{
+  "schema": 1,
+  "status": "QUARANTINED_CONDITION_COMPLETE_CANDIDATE_PENDING_INDEPENDENT_REVIEW",
+  "observedConditionCompletePairs": 1,
+  "fullyAdmittedPixelReferencePairs": 0,
+  "earlierPartialPairs": 1,
+  "sourceForkSha256": "07d544814769dcfb935873c96a5fcf6f07d8716d2590a97b8322aa2e144f6999",
+  "engineForkSha256": "cb903bef4410feb096d65b5a4c9383fa2a3c943e6afef6d3c13463b48267d333",
+  "records": [
+    {
+      "state": "active",
+      "nativeTelemetry": {
+        "path": "captures/TBP-e70657c2-1.txt",
+        "bytes": 16715,
+        "sha256": "b70ae6f15601dcd7eb59d203d2a0a2eb26983635659d8cd980edf5e04ca32dcc"
+      },
+      "fullFrame": {
+        "path": "captures/titlebar-conditions-active-frame.png",
+        "bytes": 26446,
+        "sha256": "981775485aef791fe8fff77076800110f0fcede5070812e26247da72624cf67b"
+      },
+      "rawProducer": {
+        "path": "captures/titlebar-conditions-active-producer.rgba",
+        "bytes": 1228800,
+        "sha256": "fe58f512c1de9ad2931b1b84ae6fe0bec9324328a80ab08d17d12c1cdc7a7cfb"
+      },
+      "producerRecord": {
+        "path": "captures/titlebar-conditions-active-frame.json",
+        "bytes": 1996,
+        "sha256": "644cebb6884548565dabac04a0527adb7c9ccf51076ce30a1de03eee62493cad"
+      },
+      "topBandCrop": {
+        "path": "captures/titlebar-conditions-active-top-band.png",
+        "bytes": 561,
+        "sha256": "344703ab7c88a5420047d0b827988d96922ed64406a075c1cff2782c0f79c8c6"
+      },
+      "cropLTRB": [
+        74,
+        64,
+        326,
+        90
+      ]
+    },
+    {
+      "state": "inactive",
+      "nativeTelemetry": {
+        "path": "captures/TBP-e70657c2-2.txt",
+        "bytes": 16715,
+        "sha256": "8322362c8f9e76061123bbd0a5c704fff71b27617632ea9f63740d96df8cba98"
+      },
+      "fullFrame": {
+        "path": "captures/titlebar-conditions-inactive-frame.png",
+        "bytes": 26469,
+        "sha256": "2bd58bbff66861c3f6dabcec462a2eddd6b717f6a098837d1b4bd22e73baa21b"
+      },
+      "rawProducer": {
+        "path": "captures/titlebar-conditions-inactive-producer.rgba",
+        "bytes": 1228800,
+        "sha256": "a7e8e263ddef6e414e978195ec48f5c52012205ace48d873dd1d0ef24f9cf7c3"
+      },
+      "producerRecord": {
+        "path": "captures/titlebar-conditions-inactive-frame.json",
+        "bytes": 2000,
+        "sha256": "bc45a01f53e56f7607122cec8d43d5086ce32ddb14e39eb2295bf430b2141df2"
+      },
+      "topBandCrop": {
+        "path": "captures/titlebar-conditions-inactive-top-band.png",
+        "bytes": 553,
+        "sha256": "757dd073280057c8ba6cfedfd71390e9b1c0973bfa21d176b8e209a34082c436"
+      },
+      "cropLTRB": [
+        74,
+        64,
+        326,
+        90
+      ]
+    }
+  ],
+  "limits": [
+    "No independent approval",
+    "Top-band crop from observed structure/content bounds; title glyph clip and widget rectangles unknown",
+    "Title font identity/provider/metrics unknown; empty-title companion absent",
+    "Palette/gamma observations and 256 index roundtrips do not establish general historical display conversion",
+    "No candidate renderer pixels used",
+    "Initial modified whole-disk preboot hashes not separately captured; immutable seed lineage and stopped identities retained"
+  ],
+  "privateRetention": "titlebar-capture-e744d49d-20261027/titlebar-pair-e744d49d-conditions-20261027",
+  "condition": {
+    "system": "7.5.5",
+    "engineProgramVersion": "2.3.1",
+    "schemeVersion": "UNKNOWN",
+    "framebuffer": [
+      640,
+      480
+    ],
+    "depth": 8,
+    "producerScale": [
+      1,
+      1
+    ],
+    "sound": "nosound true",
+    "paletteBytes": 2056,
+    "gammaBytes": 268,
+    "conversionCoverage": "256 native index queries; all 307200 producer pixels per frame belong to the gamma-mapped native palette color set; finite membership only"
+  },
+  "finiteProducerRelation": {
+    "status": "FINITE_OBSERVATION_ONLY",
+    "relation": "observed producer RGB belongs to the set gammaTable[Index2Color(index).RGB16 high byte] for 256 queried indices",
+    "limits": [
+      "Color-set membership does not identify each source framebuffer index",
+      "No causal gamma/display proof or general conversion rule",
+      "No candidate pixels used"
+    ],
+    "results": [
+      {
+        "state": "active",
+        "pixels": 307200,
+        "observedColors": 19,
+        "pixelsOutsideFiniteGammaMappedIndexColors": 0,
+        "gammaSha256": "c2eeb81da5ffc2bd502834d80d850f6f085813ab1cec8d9fb89ca36c2474125b",
+        "paletteSha256": "6987f8e5bc61a7da95ed03f229cc3ecbee463bb6245965fdc2eddbd86a31ef9b"
+      },
+      {
+        "state": "inactive",
+        "pixels": 307200,
+        "observedColors": 19,
+        "pixelsOutsideFiniteGammaMappedIndexColors": 0,
+        "gammaSha256": "c2eeb81da5ffc2bd502834d80d850f6f085813ab1cec8d9fb89ca36c2474125b",
+        "paletteSha256": "6987f8e5bc61a7da95ed03f229cc3ecbee463bb6245965fdc2eddbd86a31ef9b"
+      }
+    ]
+  },
+  "captureTimeBindings": [
+    {
+      "path": "work/TitlebarPair-at-capture.c",
+      "bytes": 8998,
+      "sha256": "e563c6d2e7ec5a164b893a851226c2592b7eb5edbb5ca9bf84ac6fbe507cc5d5"
+    },
+    {
+      "path": "work/TitlebarPair-conditions-with-size.bin",
+      "bytes": 62720,
+      "sha256": "78a76270e97931925dc86c3306c4c1da5d821318b3bcf41fbd172e7525a24599"
+    },
+    {
+      "path": "work/isolated-vite-at-capture.mjs",
+      "bytes": 3280,
+      "sha256": "9cb242a972a6b49f613eccac5ba5233d9853572fa0072411245d8a2c2812c1cb"
+    },
+    {
+      "path": "work/capture-frame-at-capture.mjs",
+      "bytes": 3052,
+      "sha256": "992a1fa88ee18105c9551f0c2fa45cea77458c2345e6f41d094a54854c7d3329"
+    },
+    {
+      "path": "web/reference-v17.ts",
+      "bytes": 2245,
+      "sha256": "d15caeebcdf989bb65cc0ca5a61bb0969fc143ab63447a38f1f37a9ac3dc8601"
+    },
+    {
+      "path": "web/src/emulator-worker.ts",
+      "bytes": 37924,
+      "sha256": "1806f57569e4e9ecce7f82557e110cf516d161bb6cfd0e193948680ab983264d"
+    },
+    {
+      "path": "web/src/emulator-input.ts",
+      "bytes": 14561,
+      "sha256": "b69f0527aabd322e8cf0d0840d6faef769cd53a717a6d3d6e7cf36118a1dc0c5"
+    },
+    {
+      "path": "work/system755-run.dsk",
+      "bytes": 25165824,
+      "sha256": "c66cf82fb3e6c8482349971e5f74f6ec830b76986529c75a06206a02ba6c9efc"
+    },
+    {
+      "path": "work/transfer-run.dsk",
+      "bytes": 8388608,
+      "sha256": "0c03ecf688d82a76a971ab203a3953c88f30ef7e51ac3c13986528da75930b4a"
+    }
+  ]
+}
