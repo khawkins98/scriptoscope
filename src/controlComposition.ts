@@ -82,17 +82,6 @@ export function bodyPatternAnchor(mode: number, rect: ControlRect): ControlPoint
   }
 }
 
-const modulo = (value: number, size: number): number => ((value % size) + size) % size;
-/** Pattern sampling adds the signed pattern-origin offset to the selected anchor phase.
- * Unknown state uses zero offset for compatibility; mode 5 requires cicn art. */
-export function bodyPatternSample(context: ControlCompositionSnapshot, mode: number, width: number, height: number,
-  x: number, y: number, tileWidth: number, tileHeight: number): ControlPoint {
-  if (mode === 5) throw new RangeError('Body mode5 requests cicn, not ppat');
-  if (!Number.isInteger(tileWidth) || !Number.isInteger(tileHeight) || tileWidth <= 0 || tileHeight <= 0) throw new RangeError('Pattern dimensions must be positive integers');
-  const [phaseX, phaseY] = bodyPatternPhase(context, mode, width, height);
-  return [modulo(phaseX + x, tileWidth), modulo(phaseY + y, tileHeight)];
-}
-
 /** Clip coordinates share the original port space; clipping never changes sampling. */
 export function controlPointVisible(context: ControlCompositionSnapshot, x: number, y: number): boolean {
   if (context.clip.kind !== 'rect') return true;
