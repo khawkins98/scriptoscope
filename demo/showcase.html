@@ -735,6 +735,9 @@
     let requestedTheme = null;
     const appLife = new AbortController();
     const appEvents = { signal: appLife.signal };
+    document.addEventListener('focusin', (event) => {
+      if (mountingPowers && event.target instanceof HTMLElement) mountFocus = event.target;
+    }, appEvents);
     const pickerResolver = createOwnedThemeResolver({ themeBaseUrl, themes: THEMES });
     let picker;
     const pickerNodes = new Set();
@@ -766,7 +769,6 @@
         getComputedStyle(grid).getPropertyValue('--powers-cascade-step-x').trim() || '24');
       const my = ++mountToken;
       const requestedRef = requestedTheme;
-      const focused = mountFocus;
       let h;
       try {
         h = await mountShowcase({
@@ -791,11 +793,15 @@
       }
       const wantsSkinned = toggleBtn.getAttribute('aria-pressed') === 'true';
       if (my !== mountToken || !wantsSkinned) {
+        const focused = mountFocus;
         try { h.disconnect(); } catch {}
+        mountFocus = focused;
+        if (focused instanceof HTMLElement && focused.isConnected) focused.focus({ preventScroll: true });
         return;
       }
       handle = h;
       syncToggleUI(true);
+      const focused = mountFocus;
       if (focused instanceof HTMLElement && focused.isConnected) focused.focus({ preventScroll: true });
       mountFocus = null;
       commitTheme(h.activeRef);
@@ -943,6 +949,9 @@
     }, appEvents);
     foldersEl?.addEventListener('click', async (e) => {
       const target = e.target;
+      // The chrome's preparation can make the section inert before native focus lands.
+      const choice = target.closest('[data-slug]');
+      if (!handle && choice) mountFocus = choice;
       const special = target.closest('.powers-picker-special-tile');
       if (special) {
         e.stopPropagation();
