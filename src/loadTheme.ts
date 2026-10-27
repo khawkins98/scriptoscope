@@ -1,7 +1,7 @@
 import { snapshotCicnTransfer, type CicnTransferOption } from '../tools/theme-loader/cicn-transfer-results.js';
 import { assertCinfEnvironment, CinfEnvironmentError, type PreparedCinfEnvironment } from '../tools/theme-loader/cinf-environment.js';
 import { displayRealizer, assertDisplayProfileChain, type DisplayProfile } from '../tools/theme-loader/display-profile.js';
-import type { LoadedTheme, ChromeElement } from './types.js';
+import type { LoadedTheme } from './types.js';
 import { loadKaleidoscopeScheme, loadOwnedKaleidoscopeScheme } from './loadKaleidoscopeScheme.js';
 import { themeView, type ThemeInput, type OwnedTheme } from './ownedTheme.js';
 
@@ -194,27 +194,4 @@ function looksLikeArchiveOrFork(b: Uint8Array): boolean {
   return false;
 }
 
-/** Resolve a manifest asset ref to a fetchable URL. A ref that's ALREADY an absolute
- *  URL (`blob:`/`http(s):`/`data:`) passes through unchanged — that's how an IN-MEMORY
- *  theme works: `loadKaleidoscopeScheme` converts a dropped scheme and rewrites every
- *  asset ref (and glyph) to an OffscreenCanvas `blob:` URL, so the runtime renders it
- *  with no `baseUrl` fetch. A bundle-relative path is resolved against `baseUrl` as before. */
-export function assetUrl(theme: LoadedTheme, relativePath: string): string {
-  if (/^(?:blob:|https?:|data:)/.test(relativePath)) return relativePath;
-  return `${theme.baseUrl}/${relativePath}`;
-}
-
-/** Look up the chromeElement whose `asset` matches a path or URL. Compares strings —
- *  works for both legacy relative paths (`cicns/cicn-….png`) and the in-memory blob:
- *  URLs (both `chromeElement.asset` AND a windowType's `chrome.active` get rewritten
- *  to the same blob URL when they reference the same resource, so string equality
- *  still resolves correctly). For id-based lookup, see `elementById` in controls.ts. */
-export function findChromeElement(
-  theme: LoadedTheme,
-  assetRefOrUrl: string,
-): ChromeElement | undefined {
-  for (const el of Object.values(theme.manifest.chromeElements)) {
-    if (el.asset === assetRefOrUrl) return el;
-  }
-  return undefined;
-}
+export { assetUrl, findChromeElement } from './ownedTheme.js';
