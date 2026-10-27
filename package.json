@@ -43,7 +43,11 @@
       "import": "./dist/scriptoscope.js"
     },
     "./scriptoscope.css": "./dist/scriptoscope.css",
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./renderer": {
+      "types": "./dist/types/renderer.d.ts",
+      "import": "./dist/renderer.js"
+    }
   },
   "sideEffects": [
     "./dist/scriptoscope.css"

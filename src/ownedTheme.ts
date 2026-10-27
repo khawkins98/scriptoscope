@@ -1,7 +1,6 @@
-import type { LoadedTheme } from './types.js';
+import type { LoadedTheme, ChromeElement } from './types.js';
 import { loadCicnBuffer, rasterDimensions } from './cicnImage.js';
 import { PixelBuffer } from './pixelBuffer.js';
-import { assetUrl } from './loadTheme.js';
 import { rasterOwner } from '../tools/theme-loader/rasterAssets.js';
 
 /** Render-focused source. Asset strings under source are references, not image URLs. */
@@ -106,4 +105,29 @@ export async function withThemeView<T>(input: ThemeInput | ThemeView, render: (v
 /** Explicit image boundary for an owned reference or an existing image URL. */
 export async function themeImageUrl(input: ThemeInput, ref: string): Promise<string> {
   return themeView(input).asset(ref).imageUrl();
+}
+
+/** Resolve a manifest asset ref to a fetchable URL. A ref that's ALREADY an absolute
+ *  URL (`blob:`/`http(s):`/`data:`) passes through unchanged — that's how an IN-MEMORY
+ *  theme works: `loadKaleidoscopeScheme` converts a dropped scheme and rewrites every
+ *  asset ref (and glyph) to an OffscreenCanvas `blob:` URL, so the runtime renders it
+ *  with no `baseUrl` fetch. A bundle-relative path is resolved against `baseUrl` as before. */
+export function assetUrl(theme: LoadedTheme, relativePath: string): string {
+  if (/^(?:blob:|https?:|data:)/.test(relativePath)) return relativePath;
+  return `${theme.baseUrl}/${relativePath}`;
+}
+
+/** Look up the chromeElement whose `asset` matches a path or URL. Compares strings —
+ *  works for both legacy relative paths (`cicns/cicn-….png`) and the in-memory blob:
+ *  URLs (both `chromeElement.asset` AND a windowType's `chrome.active` get rewritten
+ *  to the same blob URL when they reference the same resource, so string equality
+ *  still resolves correctly). For id-based lookup, see `elementById` in controls.ts. */
+export function findChromeElement(
+  theme: LoadedTheme,
+  assetRefOrUrl: string,
+): ChromeElement | undefined {
+  for (const el of Object.values(theme.manifest.chromeElements)) {
+    if (el.asset === assetRefOrUrl) return el;
+  }
+  return undefined;
 }

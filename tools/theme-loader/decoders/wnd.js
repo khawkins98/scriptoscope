@@ -21,7 +21,7 @@
 // The recipe-walking rules + rendering model (how these side-lists are drawn)
 // are in docs/spec/kdef231-recipe-walk.md + docs/spec/compositor-spec.md.
 
-import { Reader } from './shared.js';
+import { Reader, readRect } from './shared.js';
 
 /**
  * @param {Uint8Array} bytes  Raw wnd# resource bytes
@@ -49,11 +49,7 @@ function readRectList(r) {
   const out = [];
   for (let i = 0; i < cnt; i++) {
     const part = r.readInt16();
-    const top = r.readInt16();
-    const left = r.readInt16();
-    const bottom = r.readInt16();
-    const right = r.readInt16();
-    out.push({ part, rect: { top, left, bottom, right } });
+    out.push({ part, rect: readRect(r) });
   }
   return out;
 }

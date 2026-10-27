@@ -417,6 +417,23 @@ npm run dev        # http://localhost:5173/
 
 Two surfaces, same engine.
 
+### Renderer-only entry
+
+Renderer-only consumers that already have a `LoadedTheme` or `OwnedTheme` can
+import the shared rendering API from `scriptoscope/renderer`. The full
+`scriptoscope` entry continues to support theme loaders and declarative DOM
+integration; use it when your application needs those features.
+
+```ts
+import { renderWindow, type ThemeInput } from 'scriptoscope/renderer';
+
+async function showWindow(theme: ThemeInput, container: HTMLElement) {
+  container.append(await renderWindow(theme, {
+    title: 'Hello', width: 240, height: 120,
+  }));
+}
+```
+
 ### Owned raster loading (feature PR #480)
 
 `loadOwnedTheme()` and `loadOwnedKaleidoscopeScheme()` return a distinct
