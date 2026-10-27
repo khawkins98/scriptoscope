@@ -559,7 +559,7 @@ export class ScriptoscopeWindow<Theme extends ThemeInput = LoadedTheme> {
   }
 
   /** Shared rollback/unmount cleanup; failed promotion must not dispatch close. */
-  private restoreOriginalElement(): void {
+  restoreOriginalElement(): void {
     if (this.unmounted) return;
     this.unmounted = true;
     if (this.rafId) cancelAnimationFrame(this.rafId);

@@ -13,13 +13,13 @@ export {
 } from './theme.js';
 export { promoteButton, promoteOwnedButton as promoteGuardedButton, restoreButton, disposePromotedButtonFace } from './button.js';
 export { promoteControl, promoteGuardedControl, restoreControl } from './control.js';
-export { promoteField, isFieldEligible } from './field.js';
+export { promoteField, restoreField, isFieldEligible } from './field.js';
 export { promoteIcon, promoteIconAsync, ICON_NAMES } from './icon.js';
 export {
   promoteThemePicker, syncThemePickerActive,
   type PickerThemeEntry, type PickerDeps,
 } from './themePicker.js';
-export { promoteTabs } from './tabs.js';
+export { promoteTabs, restoreTabs } from './tabs.js';
 export {
   attachThemeDropZone,
   type ThemeDropZoneOptions, type ThemeDropZoneHandle,
