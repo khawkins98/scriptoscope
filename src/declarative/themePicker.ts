@@ -24,6 +24,7 @@
 import { themeView, type ThemeInput, type ThemeView } from '../ownedTheme.js';
 import type { ThemeEntry } from './theme.js';
 import { resolveInChain } from '../baseChain.js';
+import { listenUntilAborted } from '../listenUntilAborted.js';
 import { ICON_NAMES } from './icon.js';
 
 /** @deprecated 2026-05-30 — use {@link ThemeEntry} from `./theme.js` (now
@@ -69,14 +70,7 @@ export async function promoteThemePicker(
   el.dataset.scriptoscopeThemePickerPromoted = '';
   let disposed = false;
   let busyTimeout: ReturnType<typeof setTimeout> | undefined;
-  const removeListeners: Array<() => void> = [];
-  const listen = <K extends keyof HTMLElementEventMap>(
-    target: HTMLElement, type: K, listener: (event: HTMLElementEventMap[K]) => void,
-    options?: AddEventListenerOptions,
-  ): void => {
-    target.addEventListener(type, listener, options);
-    removeListeners.push(() => target.removeEventListener(type, listener, options));
-  };
+  const events = new AbortController();
   // Remove any STALE library-added tiles from a previous mount cycle.
   // The teardown clears the stamp but intentionally leaves the tile DOM
   // in place (consumer OFF-mode delegated handlers need the tiles
@@ -144,14 +138,14 @@ export async function promoteThemePicker(
       author.textContent = t.year ? `${t.author}, ${t.year}` : t.author;
       tile.append(author);
     }
-    listen(tile, 'click', () => { void deps.switchTheme(t.slug); });
+    listenUntilAborted(events.signal, tile, 'click', () => { void deps.switchTheme(t.slug); });
     el.appendChild(tile);
     tiles.set(t.slug, tile);
   }
 
   // Keyboard nav — the ARIA APG tablist pattern. Arrow/Home/End move focus +
   // activate the tile (consumers expect a single key to switch themes).
-  listen(el, 'keydown', (e) => {
+  listenUntilAborted(events.signal, el, 'keydown', (e) => {
     const all = [...el.querySelectorAll<HTMLButtonElement>('.scriptoscope-theme-picker-tile')];
     if (!all.length) return;
     const i = all.findIndex((t) => t === document.activeElement);
@@ -331,8 +325,8 @@ export async function promoteThemePicker(
     // No IntersectionObserver (very old browsers) — decode on hover/focus
     // instead of preloading everything.
     for (const [slug, tile] of tiles) {
-      listen(tile, 'mouseenter', () => requestDecode(slug), { once: true });
-      listen(tile, 'focus', () => requestDecode(slug), { once: true });
+      listenUntilAborted(events.signal, tile, 'mouseenter', () => requestDecode(slug), { once: true });
+      listenUntilAborted(events.signal, tile, 'focus', () => requestDecode(slug), { once: true });
     }
   }
   // Click is the universal fallback — even with IntersectionObserver, a
@@ -340,7 +334,7 @@ export async function promoteThemePicker(
   // the IO fires. This ensures its icon paints independently of full chrome
   // loading; theme selection itself still uses the resolver's full-theme cache.
   for (const [slug, tile] of tiles) {
-    listen(tile, 'click', () => requestDecode(slug));
+    listenUntilAborted(events.signal, tile, 'click', () => requestDecode(slug));
   }
 
   // Retain tiles for consumer OFF-mode delegation, but release this mount's
@@ -349,8 +343,7 @@ export async function promoteThemePicker(
     if (disposed) return;
     disposed = true;
     clearTimeout(busyTimeout);
-    for (const remove of removeListeners) remove();
-    removeListeners.length = 0;
+    events.abort();
     if (io) { io.disconnect(); io = null; }
     queued.clear();
     // Clear the promoted stamp so a subsequent mountDeclarative cycle
