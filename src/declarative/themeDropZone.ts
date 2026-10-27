@@ -23,6 +23,7 @@
 // + keyboard activation needs care) that a documented helper saves re-derivation.
 
 import { debug } from '../debug.js';
+import { listenUntilAborted } from '../listenUntilAborted.js';
 
 export interface ThemeDropZoneOptions {
   /** Called for each successfully picked / dropped file. Receives the raw File; you decide
@@ -99,25 +100,19 @@ export function attachThemeDropZone(
     void handleFile(file);
   };
 
-  target.addEventListener('click', onClick);
-  target.addEventListener('keydown', onKeydown);
-  input.addEventListener('change', onChange);
-  target.addEventListener('dragenter', onDragEnter);
-  target.addEventListener('dragover', onDragOver);
-  target.addEventListener('dragleave', onDragLeave);
-  target.addEventListener('drop', onDrop);
+  const events = new AbortController();
+  listenUntilAborted(events.signal, target, 'click', onClick);
+  listenUntilAborted(events.signal, target, 'keydown', onKeydown);
+  listenUntilAborted(events.signal, input, 'change', onChange);
+  listenUntilAborted(events.signal, target, 'dragenter', onDragEnter);
+  listenUntilAborted(events.signal, target, 'dragover', onDragOver);
+  listenUntilAborted(events.signal, target, 'dragleave', onDragLeave);
+  listenUntilAborted(events.signal, target, 'drop', onDrop);
 
-  let detached = false;
   return {
     detach: () => {
-      if (detached) return; detached = true;
-      target.removeEventListener('click', onClick);
-      target.removeEventListener('keydown', onKeydown);
-      input.removeEventListener('change', onChange);
-      target.removeEventListener('dragenter', onDragEnter);
-      target.removeEventListener('dragover', onDragOver);
-      target.removeEventListener('dragleave', onDragLeave);
-      target.removeEventListener('drop', onDrop);
+      if (events.signal.aborted) return;
+      events.abort();
       target.classList.remove(activeClass);
       input.remove();
     },
