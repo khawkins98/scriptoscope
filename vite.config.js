@@ -89,6 +89,7 @@ export default defineConfig(({ command }) => {
       // teaches a relative-path pattern nobody outside this repo can write.
       resolve: {
         alias: {
+          'scriptoscope/declarative': resolve(import.meta.dirname, 'src/declarative/index.ts'),
           'scriptoscope/renderer': resolve(import.meta.dirname, 'src/renderer.ts'),
           scriptoscope: resolve(import.meta.dirname, 'src/index.ts'),
         },
@@ -108,6 +109,7 @@ export default defineConfig(({ command }) => {
         entry: {
           'scriptoscope': resolve(import.meta.dirname, 'src/index.ts'),
           'renderer': resolve(import.meta.dirname, 'src/renderer.ts'),
+          'declarative': resolve(import.meta.dirname, 'src/declarative/index.ts'),
         },
         formats: ['es'],
         fileName: (_format, entryName) => `${entryName}.js`,

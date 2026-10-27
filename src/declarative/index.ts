@@ -1,11 +1,5 @@
-// Public entry for the DECLARATIVE consumption layer — the `data-scriptoscope-*` front door. Separate from
-// the runtime entry (`src/index.ts`), which is left untouched; this imports the runtime pieces
-// directly. Drop a `<div data-scriptoscope-window>` on a page, call mountDeclarative(), get Mac windows.
+// Explicit promotion primitives. The caller owns attachment and lifetime.
 
-export {
-  mountDeclarative, mountOwnedDeclarative,
-  type MountOptions, type MountHandle, type MountStats, type PromoteError, type MountEventMap,
-} from './scanner.js';
 export {
   SCRIPTOSCOPE_SLOT_CLASS, SCRIPTOSCOPE_READY_CLASS,
   SCRIPTOSCOPE_PROMOTED_ATTR, SCRIPTOSCOPE_LOADING_ATTR,
@@ -17,7 +11,8 @@ export {
   type ThemeEntry,
   /** @deprecated use {@link ThemeEntry} */ type ThemeHint,
 } from './theme.js';
-export { promoteButton } from './button.js';
+export { promoteButton, promoteOwnedButton as promoteGuardedButton, restoreButton, disposePromotedButtonFace } from './button.js';
+export { promoteControl, promoteGuardedControl, restoreControl } from './control.js';
 export { promoteField, isFieldEligible } from './field.js';
 export { promoteIcon, promoteIconAsync, ICON_NAMES } from './icon.js';
 export {
