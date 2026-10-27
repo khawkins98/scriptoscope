@@ -85,7 +85,7 @@
     },
     {
       "path": "tools/theme-loader/decoders/cicn.js",
-      "sha256": "f3171f93025127e2f6c2a8b98393ab6909f279a4f49236b006f0e50630a1121e"
+      "sha256": "b78ae05509723a246d64d6f0b2b147c29c5b7fc7ed6c1214303942c43415bb73"
     },
     {
       "path": "tools/theme-loader/decoders/cinf.js",
@@ -101,11 +101,11 @@
     },
     {
       "path": "tools/theme-loader/decoders/ppat.js",
-      "sha256": "5ff62a44eca9ecbcf99b7a4adb938f13efb3178d256a0c5d864f075368f3d908"
+      "sha256": "861ca23caf3ef90f78a0ec429bda301125f0411fc1466d89819b2faf6cece583"
     },
     {
       "path": "tools/theme-loader/decoders/shared.js",
-      "sha256": "b69cd652074d6016ae48c57267e114654c07e0e8bf2fe12ce060ea945660bcbf"
+      "sha256": "901d248c4dd5de46ea46ade936d7ce8021400a6f04c820926cae4d90094efba4"
     },
     {
       "path": "tools/theme-loader/decoders/wnd.js",
