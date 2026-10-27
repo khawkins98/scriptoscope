@@ -227,7 +227,7 @@
       baselineButton, bufferToCanvas,
       platinumCheckable, platinumSlider, platinumButton, platinumScrollbar, platinumDisclosure,
       platinumBevelButton, platinumMenuBar, platinumMenu, platinumPopupMenu, platinumListHeader,
-      interactiveButton, interactiveDisclosure, mountOwnedDeclarative,
+      interactiveButton, interactiveDisclosure,
       interactiveSlider, interactiveScrollbar, WindowManager,
       promoteField,
       setDebug,
@@ -267,6 +267,7 @@
     // an owned in-memory theme, exporting images only at UI boundaries.
     // The public src wrapper, not the tools/theme-loader core: it passes the engine cinf
     // ids by default, so dropped archives draw engine sliders rather than Platinum.
+    import { mountExplicitPage } from './explicit-host.mjs';
     import { loadOwnedKaleidoscopeScheme } from '../src/loadKaleidoscopeScheme.ts';
     document.getElementById('ver').textContent = `v${VERSION}`;
     const rows = document.getElementById('rows');
@@ -1811,7 +1812,7 @@
 
         const toggles = document.createElement('div'); toggles.style.cssText = 'display:flex;flex-direction:column;gap:8px';
         ctrls.append(toggles); host.append(ctrls);
-        toggleMount = await mountOwnedDeclarative({
+        toggleMount = await mountExplicitPage({
           root: toggles, pageThemeDefault: 'playground', bootAffordance: 'none',
         });
         toggleMount.registerTheme('playground', theme);
@@ -1831,6 +1832,7 @@
           radioLabel.append(radio, label); radios.append(radioLabel);
         }
         toggles.append(checkLabel, radios);
+        await toggleMount.attach({controls:[checkbox,...radios.querySelectorAll("input")]});
 
         const discWrap = document.createElement('div');
         const discRow = document.createElement('div'); discRow.style.cssText = 'display:flex;gap:6px;align-items:center;font:12px Charcoal,Geneva,sans-serif';

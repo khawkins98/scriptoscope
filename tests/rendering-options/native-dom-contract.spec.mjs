@@ -12,6 +12,7 @@ async function setup(page, servers, mode) {
   await page.evaluate(async mode => {
     window.api = await import(mode === 'source' ? '/src/index.ts' : '/dist/scriptoscope.js');
     window.theme = await api.loadTheme('/themes/windows-95');
+    window.attachNativeSources = (await import('/tests/rendering-options/explicit-native-host.mjs')).attachNativeSources;
     const css = document.createElement('link'); css.rel = 'stylesheet';
     css.href = mode === 'source' ? '/src/scriptoscope.css' : '/dist/scriptoscope.css'; document.head.append(css);
   }, mode);
@@ -30,7 +31,7 @@ for (const mode of ['source', 'built']) {
       window.originals = [...content.querySelectorAll('input')].map(el => ({ el, parent: el.parentNode, next: el.nextSibling, attrs: el.getAttributeNames().map(k => [k, el.getAttribute(k)]) }));
       window.events = { input: 0, change: 0 };
       for (const type of ['input', 'change']) content.querySelector('form').addEventListener(type, () => events[type]++);
-      window.mount = async () => { window.handle = await api.mountDeclarative({ root: document.body, pageThemeDefault: 'borrowed', bootAffordance: 'none' }); handle.registerTheme('borrowed', theme); document.body.append(content); };
+      window.mount = async () => { document.body.append(content); window.handle = await attachNativeSources(api, { root: document.body, theme, controls: originals.map(o => o.el) }); };
       await mount();
     });
     await expect(page.locator('.scriptoscope-checkbox,.scriptoscope-radio')).toHaveCount(3);
@@ -86,8 +87,8 @@ for (const mode of ['source', 'built']) {
         original.addEventListener('click', () => counts.click++);
         owner.addEventListener('submit', e => { e.preventDefault(); counts.submit++; });
         owner.addEventListener('reset', () => counts.reset++);
-        window.handle = await api.mountDeclarative({ root, pageThemeDefault: 'borrowed', bootAffordance: 'none' });
-        handle.registerTheme('borrowed', theme); root.append(original);
+        root.append(original);
+        window.handle = await attachNativeSources(api, { root, theme, buttons: [original] });
       }, type);
       await expect(page.locator('#root .scriptoscope-button')).toHaveCount(1);
       await page.evaluate(() => { field.value = 'edited'; });

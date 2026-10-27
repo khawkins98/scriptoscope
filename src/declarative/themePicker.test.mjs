@@ -6,12 +6,18 @@ const { promoteThemePicker } = await import('./themePicker.ts');
 class Element extends EventTarget {
   dataset = {};
   children = [];
+  parentNode = null;
   attributes = new Map();
   classList = { add() {}, toggle() {} };
-  append(...children) { for (const child of children) { child.parent = this; this.children.push(child); } }
-  appendChild(child) { this.append(child); }
-  remove() { this.parent.children = this.parent.children.filter((child) => child !== this); }
+  append(...children) { for (const child of children) { child.remove(); child.parentNode = this; this.children.push(child); } }
+  appendChild(child) { this.append(child); return child; }
+  remove() {
+    if (!this.parentNode) return;
+    this.parentNode.children.splice(this.parentNode.children.indexOf(this), 1);
+    this.parentNode = null;
+  }
   setAttribute(key, value) { this.attributes.set(key, value); }
+  removeAttribute(key) { this.attributes.delete(key); }
   getAttribute(key) { return this.attributes.get(key) ?? null; }
   hasAttribute(key) { return this.attributes.has(key); }
   querySelectorAll(selector) {
@@ -35,11 +41,16 @@ const setup = (t) => {
 
 test('teardown preserves tiles but removes old handlers; remount switches once', async (t) => {
   const el = setup(t);
+  el.setAttribute('aria-busy', 'application-before');
   const switches = [];
   const deps = { initialSlug: 'one', loadTheme: async () => iconTheme, switchTheme: (slug) => switches.push(slug) };
   const first = await promoteThemePicker(el, themes, deps);
+  const tiles = [...el.children];
   first.teardown();
   first.teardown();
+  assert.equal(el.getAttribute('aria-busy'), 'application-before');
+  assert.deepEqual(el.children, tiles);
+  for (const tile of tiles) assert.equal(tile.parentNode, el);
   el.children[0].dispatchEvent(new Event('click'));
   assert.deepEqual(switches, []);
   const second = await promoteThemePicker(el, themes, deps);
@@ -49,6 +60,9 @@ test('teardown preserves tiles but removes old handlers; remount switches once',
   Object.defineProperty(right, 'key', { value: 'ArrowRight' });
   el.dispatchEvent(right);
   assert.deepEqual(switches, ['two']);
+  el.setAttribute('aria-busy', 'application-after');
+  second.teardown();
+  assert.equal(el.getAttribute('aria-busy'), 'application-after');
 });
 
 test('failed icon loads settle both tile and container busy state', async (t) => {
@@ -60,6 +74,9 @@ test('failed icon loads settle both tile and container busy state', async (t) =>
   await flush();
   assert.equal(el.children[0].getAttribute('aria-busy'), 'false');
   assert.equal(el.getAttribute('aria-busy'), 'false');
+  picker.teardown();
+  assert.equal(el.hasAttribute('aria-busy'), false);
+  assert.equal(el.getAttribute('aria-busy'), null);
 });
 
 test('old decode completion cannot paint retained tiles or settle a new mount', async (t) => {

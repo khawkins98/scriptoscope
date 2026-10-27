@@ -270,8 +270,9 @@ for(const mode of ['source','built']) test(`${mode}: declared native values and 
     const {api,f,load}=window.declaredSlider;
     const theme=await load([f.provider('layout',f.declaredEntries())]);
     const root=document.createElement('section');document.body.append(root);
-    const handle=await api.mountDeclarative({root,pageThemeDefault:'declared',bootAffordance:'none'});handle.registerTheme('declared',theme);
     root.innerHTML='<form><input type="range" min="10" max="20" step=".25" value="12.5" aria-label="Declared native"></form>';
+    const {attachNativeSources}=await import('/tests/rendering-options/explicit-native-host.mjs');
+    const handle=await attachNativeSources(api,{root,theme,controls:[root.querySelector('input')]});
     for(let i=0;i<120&&!root.querySelector('.scriptoscope-slider canvas');i++)await new Promise(requestAnimationFrame);
     const face=root.querySelector('.scriptoscope-slider'),native=root.querySelector('input'),events=[];
     if(!face?.querySelector('canvas'))throw new Error('Native declared positive setup failed');

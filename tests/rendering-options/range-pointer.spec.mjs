@@ -47,16 +47,16 @@ async function setup(page, servers, mode, kind = 'windows-95') {
       theme = await api.loadKaleidoscopeScheme(forkOf(entries));
     }
     const root = document.createElement('section'); root.id = 'pointer-root'; document.body.append(root);
-    const handle = await api.mountDeclarative({ root, pageThemeDefault: 'fixture', bootAffordance: 'none' });
-    handle.registerTheme('fixture', theme);
     const form = document.createElement('form'); form.style.cssText = 'display:grid;justify-items:start';
     form.innerHTML = '<input id="pointer-native" type="range" name="range" aria-label="Pointer range" min="0" max="100" step="1" value="25">';
     const events = [];
     for (const type of ['input', 'change']) form.addEventListener(type, e => events.push({ type, value: e.target.value }));
     form.addEventListener('pointerdown', e => { window.pointerFixture.pointerId = e.pointerId; });
+    root.append(form);
+    const { attachNativeSources } = await import('/tests/rendering-options/explicit-native-host.mjs');
+    const handle = await attachNativeSources(api, { root, theme, controls: [form.querySelector('input')] });
     window.pointerFixture = { api, theme, root, handle, events, kind, pointerSamples: [], pointerEvents: new AbortController() };
     for (const type of ['pointerdown', 'pointermove']) window.addEventListener(type, e => { window.pointerFixture.pointerSamples.push({ type, x: e.clientX, y: e.clientY }); }, { signal: window.pointerFixture.pointerEvents.signal });
-    root.append(form);
   }, { mode, kind });
   await expect(page.locator('#pointer-root .scriptoscope-slider canvas')).toHaveCount(1);
 }

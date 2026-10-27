@@ -15,6 +15,15 @@
 
 import type { ThemeInput } from '../ownedTheme.js';
 import { debug } from '../debug.js';
+import { OwnedMutations } from './restoration.js';
+
+const restorations = new WeakMap<HTMLElement, OwnedMutations>();
+
+/** Release field chrome while preserving the live native field. */
+export function restoreField(el: HTMLInputElement | HTMLTextAreaElement): void {
+  restorations.get(el)?.restore();
+  restorations.delete(el);
+}
 
 /** The input types we'll style. Excludes the ones already handled by data-scriptoscope-control
  *  (checkbox/radio/range) and the ones we shouldn't touch (file/submit/reset/button/color/
@@ -95,11 +104,13 @@ export function promoteField(el: HTMLInputElement | HTMLTextAreaElement, _theme:
   if (el.dataset.scriptoscopeFieldPromoted != null) return;
   if (!isFieldEligible(el)) return;
   ensureFieldCSS();
-  el.classList.add('scriptoscope-field');
-  el.dataset.scriptoscopeFieldPromoted = '';
+  const mutations = new OwnedMutations();
+  restorations.set(el, mutations);
+  mutations.classToken(el, 'scriptoscope-field', true);
+  mutations.attribute(el, 'data-scriptoscope-field-promoted', '');
   // Mirror aria-disabled for AT consistency when the disabled attribute is dynamically toggled
   // (the CSS selector covers the static case; this side handles consumers that prefer aria).
-  if (el.disabled) el.setAttribute('aria-disabled', 'true');
+  if (el.disabled) mutations.attribute(el, 'aria-disabled', 'true');
   const tag = el.tagName.toLowerCase();
   const typeSuffix = tag === 'input' ? `[type=${(el as HTMLInputElement).type ?? 'text'}]` : '';
   debug('promote', `field: ${tag}${typeSuffix}`);

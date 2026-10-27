@@ -26,6 +26,7 @@ import type { ThemeEntry } from './theme.js';
 import { resolveInChain } from '../baseChain.js';
 import { listenUntilAborted } from '../listenUntilAborted.js';
 import { ICON_NAMES } from './icon.js';
+import { OwnedMutations } from './restoration.js';
 
 /** @deprecated 2026-05-30 — use {@link ThemeEntry} from `./theme.js` (now
  *  the single shape both the loader and the picker consume). Kept as a
@@ -67,7 +68,9 @@ export async function promoteThemePicker(
 ): Promise<PromotedPicker | null> {
   if (el.dataset.scriptoscopeThemePickerPromoted != null) return null;
   if (!themes.length) return null;
-  el.dataset.scriptoscopeThemePickerPromoted = '';
+  const mutations = new OwnedMutations();
+  const setAttribute = (name: string, value: string): void => mutations.attribute(el, name, value);
+  setAttribute('data-scriptoscope-theme-picker-promoted', '');
   let disposed = false;
   let busyTimeout: ReturnType<typeof setTimeout> | undefined;
   const events = new AbortController();
@@ -82,8 +85,8 @@ export async function promoteThemePicker(
   for (const stale of Array.from(el.querySelectorAll('.scriptoscope-theme-picker-tile'))) {
     stale.remove();
   }
-  el.setAttribute('role', 'tablist');
-  if (!el.hasAttribute('aria-label')) el.setAttribute('aria-label', `Theme picker, ${themes.length} themes`);
+  setAttribute('role', 'tablist');
+  if (!el.hasAttribute('aria-label')) setAttribute('aria-label', `Theme picker, ${themes.length} themes`);
   // Per-tile aria-busy lifecycle (already in place 2026-05-30) tells AT
   // when an individual tile's icon has decoded. The CONTAINER aria-busy
   // is the complementary signal — flipped false once the initial active
@@ -92,7 +95,7 @@ export async function promoteThemePicker(
   // now ready to interact with"; without it, an SR user reading the
   // strip during the picker's first ~600ms boot saw inconsistent state.
   // A11y reviewer P1 2026-05-30.
-  el.setAttribute('aria-busy', 'true');
+  setAttribute('aria-busy', 'true');
 
   // Per-tile icon: default 'system-folder' → -3983 (the warm-beige System
   // Folder), fall back to 'folder' → -3999 if a scheme doesn't ship it.
@@ -274,7 +277,7 @@ export async function promoteThemePicker(
           tiles.get(slug)?.setAttribute('aria-busy', 'false');
           if (slug === deps.initialSlug) {
             clearTimeout(busyTimeout);
-            el.setAttribute('aria-busy', 'false');
+            setAttribute('aria-busy', 'false');
           }
           // Yield to the main thread between decodes — requestIdleCallback
           // when available (Chrome/Firefox), setTimeout fallback (Safari).
@@ -301,11 +304,11 @@ export async function promoteThemePicker(
     // Bound the busy signal even if a loader never settles. Teardown owns
     // this timer so an earlier mount cannot mark a later mount ready.
     busyTimeout = setTimeout(() => {
-      if (!disposed) el.setAttribute('aria-busy', 'false');
+      if (!disposed) setAttribute('aria-busy', 'false');
     }, 3000);
     requestDecode(deps.initialSlug);
   } else {
-    el.setAttribute('aria-busy', 'false'); // no active tile to wait on
+    setAttribute('aria-busy', 'false'); // no active tile to wait on
   }
   // The other 17: decode on intersection (tile scrolls into view) OR on
   // click (keyboard nav / direct interaction). IntersectionObserver is
@@ -356,7 +359,7 @@ export async function promoteThemePicker(
     // pointing at the dead handle's retheme — picker active class +
     // URL would update but the WindowManager wouldn't retheme. The
     // 2026-05-31 "half-stuck" bug.
-    delete el.dataset.scriptoscopeThemePickerPromoted;
+    mutations.restore();
   };
   return { el, teardown };
 }

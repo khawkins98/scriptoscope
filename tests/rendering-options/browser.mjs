@@ -180,23 +180,31 @@ function nativeMarkup(c) {
 }
 
 async function promote(theme, c, output, record) {
-  // Mount an empty root, then register the already-loaded theme as borrowed
-  // before inserting targets. This exercises real scanner/observer promotion
-  // without re-decoding the archive for every matrix row.
-  const errors = [];
-  const handle = await runtime.mountDeclarative({ root: output, pageThemeDefault: 'matrix-theme', bootAffordance: 'none',
-    onPromoteError: e => { errors.push(String(e.cause)); return false; } });
-  record.handle = handle;
-  handle.registerTheme('matrix-theme', theme);
+  // Select each source explicitly; this fixture owns its borrowed theme lifetime.
+  const life = new AbortController();
+  let explicitWindow;
+  record.handle = { disconnect() {
+    life.abort();
+    if (record.native) {
+      if (c.family === 'tab') runtime.restoreTabs(record.native);
+      else if (['push', 'default'].includes(c.family)) runtime.restoreButton(record.native);
+      else runtime.restoreControl(record.native);
+    }
+    explicitWindow?.restoreOriginalElement();
+  } };
   const { root, native } = nativeMarkup(c);
   const win = document.createElement('article'); win.className = 'matrix-window';
   win.dataset.scriptoscopeWindow = ''; win.dataset.scriptoscopeTitle = 'Window shadow reference';
   win.style.width = '180px'; win.style.minHeight = '40px'; win.textContent = 'Consumer window host';
   const targets = document.createElement('div'); targets.append(root, win);
   output.append(targets); record.native = native; record.controlRoot = root;
-  await until(() => errors.length || (handle.stats.windows === 1 &&
-    (c.family === 'tab' ? handle.stats.tabs === 1 : ['push', 'default'].includes(c.family) ? handle.stats.buttons === 1 : handle.stats.controls === 1)), 'Declarative promotion');
-  if (errors.length) throw new Error(errors.join('; '));
+  explicitWindow = await runtime.ScriptoscopeWindow.promote(win, { manager: new runtime.WindowManager(), theme, signal: life.signal });
+  if (c.family === 'tab') await runtime.promoteTabs(native, theme, { signal: life.signal });
+  else {
+    const promoter = ['push', 'default'].includes(c.family) ? runtime.promoteGuardedButton : runtime.promoteGuardedControl;
+    const face = await promoter(native, theme, life.signal, () => !life.signal.aborted && output.contains(native));
+    if (!face) throw new Error('Selected matrix source did not attach');
+  }
   const manager = new runtime.WindowManager();
   const host = await manager.add(theme, { title: 'Imperative shadow reference', width: 180, height: 40, scale: record.windowScale ?? 1 });
   host.classList.add('matrix-window'); host.style.position = 'relative';

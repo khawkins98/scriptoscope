@@ -1,11 +1,12 @@
-import { test, expect, openHarness, attachCase } from './fixtures.mjs';
+import { test, expect, attachCase } from './fixtures.mjs';
 
 for (const mode of ['source', 'built']) for (const family of ['select', 'button']) for (const holdAt of [1, 2]) test(`${mode}: owned ${family} pattern preparation cancels at decoded dependency ${holdAt}`, async ({ page, servers }, info) => {
   const errors = [];
   page.on('pageerror', error => errors.push(String(error)));
   page.on('requestfailed', request => errors.push(`${request.url()}: ${request.failure()?.errorText}`));
   try {
-    await openHarness(page, servers, mode);
+    await page.goto(`${servers[mode]}/tests/rendering-options/native-dom-page.html`);
+      await page.addStyleTag({ url: `${servers[mode]}${mode === 'source' ? '/src/scriptoscope.css' : '/dist/scriptoscope.css'}` });
     await page.evaluate(async ({ mode, holdAt, family }) => {
       const api = await import(mode === 'source' ? '/src/index.ts' : '/dist/scriptoscope.js');
       const root = document.createElement('section'); document.body.append(root);
@@ -13,8 +14,20 @@ for (const mode of ['source', 'built']) for (const family of ['select', 'button'
         ? '<label for="owned-select">Pattern choice</label><select id="owned-select"><option>One</option><option>Two</option></select>'
         : '<button data-scriptoscope-button type="button">Pattern action</button>';
       const native = root.querySelector(family);
-      const handle = await api.mountDeclarative({ root, pageThemeDefault: 'windows-95', themeBaseUrl: '/themes',
-        themes: [{ slug: 'windows-95', source: 'scheme.sit' }, { slug: 'crayon-os', source: 'scheme.sit' }], bootAffordance: 'none', rejectOnEmptyMount: true });
+      const resolver = api.createThemeResolver({ themeBaseUrl: '/themes',
+        themes: [{ slug: 'windows-95', source: 'scheme.sit' }, { slug: 'crayon-os', source: 'scheme.sit' }] });
+      const life = new AbortController();
+      const initial = await resolver.load('windows-95');
+      const promote = family === 'button' ? api.promoteGuardedButton : api.promoteGuardedControl;
+      const restore = family === 'button' ? api.restoreButton : api.restoreControl;
+      let oldFace = await promote(native, initial, life.signal, () => root.contains(native));
+      const handle = { disconnect() { life.abort(); restore(native); resolver.dispose(); },
+        async retheme(ref) {
+          const theme = await resolver.load(ref);
+          const face = await promote(native, theme, life.signal, () => !life.signal.aborted && root.contains(native));
+          if (face && family === 'button') api.disposePromotedButtonFace(native, oldFace);
+          if (face) oldFace = face;
+        } };
       const descriptor = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'src');
       const decode = HTMLImageElement.prototype.decode, revoke = URL.revokeObjectURL;
       const f = window.patternLifetime = { root, native, family, handle, descriptor, decode, revoke, phase: 'prepare', loads: 0, lateStarts: [], revoked: new Set() };

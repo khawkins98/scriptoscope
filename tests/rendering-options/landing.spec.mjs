@@ -8,8 +8,8 @@ import { root } from './servers.mjs';
 async function routePublicAssets(page) {
   await page.route('https://khawkins98.github.io/scriptoscope/**', async route => {
     const suffix = new URL(route.request().url()).pathname.replace('/scriptoscope/', '');
-    const path = resolve(root, suffix === 'themes-manifest.json' ? 'demo/themes-manifest.json' : suffix.startsWith('themes/') ? suffix : `dist/${suffix}`);
-    const contentType = suffix.endsWith('.js') ? 'text/javascript'
+    const path = resolve(root, suffix === 'themes-manifest.json' ? 'demo/themes-manifest.json' : suffix.startsWith('themes/') ? suffix : suffix.endsWith('.mjs') ? `dist/demo/${suffix}` : `dist/${suffix}`);
+    const contentType = (/\.m?js$/.test(suffix)) ? 'text/javascript'
       : suffix.endsWith('.css') ? 'text/css' : 'application/octet-stream';
     const headers = { 'Access-Control-Allow-Origin': '*' };
     try { await route.fulfill({ body: await readFile(path), contentType, headers }); }
@@ -159,7 +159,7 @@ test('the printed desktop options populate and switch the catalog', async ({ pag
   const markup = await page.locator('#install-switcher').textContent();
   const options = await page.locator('#install-options').textContent();
   const snippet = starter.replace(/<article[\s\S]*?<\/article>/, markup)
-    .replace(/const handle = await mountDeclarative\(\{[\s\S]*?\}\);/, options);
+    .replace(/const handle = await mountExplicitPage\(\{[\s\S]*?\}\);/, options);
   await routePublicAssets(page);
   await page.setContent(snippet);
   await expect(page.locator('#desktop [data-scriptoscope-window-host]')).toHaveCount(1);

@@ -1,4 +1,4 @@
-import { test, expect, openHarness, attachCase } from './fixtures.mjs';
+import { test, expect, attachCase } from './fixtures.mjs';
 
 // Native slider lifetime (docs/spec/slider-interaction.md, "The native control
 // lifetime also reaches the internal composer ... a track completing after
@@ -28,7 +28,8 @@ for (const mode of ['source', 'built']) for (const chain of ['own', 'base']) {
     page.on('pageerror', error => errors.push(String(error)));
     page.on('requestfailed', request => errors.push(`${request.url()}: ${request.failure()?.errorText}`));
     try {
-      await openHarness(page, servers, mode);
+      await page.goto(`${servers[mode]}/tests/rendering-options/native-dom-page.html`);
+      await page.addStyleTag({ url: `${servers[mode]}${mode === 'source' ? '/src/scriptoscope.css' : '/dist/scriptoscope.css'}` });
       await page.evaluate(async ({ mode, chain }) => {
         const api = await import(mode === 'source' ? '/src/index.ts' : '/dist/scriptoscope.js');
         const root = document.createElement('section'); document.body.append(root);
@@ -62,11 +63,15 @@ for (const mode of ['source', 'built']) for (const chain of ['own', 'base']) {
           return f.replaceChildren.apply(this, nodes);
         };
         // These themes belong to the resolver, not registerTheme's borrowed set.
-        f.handle = await api.mountDeclarative({ root, pageThemeDefault: 'windows-95', themeBaseUrl: '/themes',
-          themes: [{ slug: 'windows-95', source: 'scheme.sit' }], ...(chain === 'base' ? { baseSlug: 'animals' } : {}), bootAffordance: 'none' });
+        const resolver = api.createThemeResolver({ themeBaseUrl: '/themes',
+          themes: [{ slug: 'windows-95', source: 'scheme.sit' }], ...(chain === 'base' ? { baseSlug: 'animals' } : {}) });
+        const theme = await resolver.load('windows-95');
+        const life = new AbortController();
+        f.handle = { disconnect() { life.abort(); if (f.native) api.restoreControl(f.native); resolver.dispose(); } };
         f.phase = 'hold';
         root.insertAdjacentHTML('beforeend', '<label for="owned-range">Owned volume</label><input id="owned-range" type="range" min="0" max="100" value="50">');
         f.native = root.querySelector('input');
+        f.pending = api.promoteGuardedControl(f.native, theme, life.signal, () => !life.signal.aborted && root.contains(f.native));
       }, { mode, chain });
       await page.waitForFunction(() => window.rangeDecodeLifetime.trackReady === true);
       const result = await page.evaluate(async () => {
@@ -79,7 +84,7 @@ for (const mode of ['source', 'built']) for (const chain of ['own', 'base']) {
           nativeVisible: !f.native.hasAttribute('aria-hidden') && !f.native.hasAttribute('style'),
           heldRevoked: f.revoked.has(f.held.src), revokedCount: f.revoked.size, faceHadCanvas: !!f.face?.querySelector('canvas') };
         const faceBeforeRelease = f.face?.innerHTML;
-        f.release(); await f.heldPromise;
+        f.release(); await f.heldPromise; await f.pending;
         for (let i = 0; i < 4; i++) await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
         return { synchronous, startsBeforeDispose, lateStarts: f.lateStarts, faceUnchanged: f.face?.innerHTML === faceBeforeRelease,
           faceCanvasAfterRelease: !!f.face?.querySelector('canvas'), commits: f.commits.slice() };

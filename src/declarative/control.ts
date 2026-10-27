@@ -93,7 +93,13 @@ export function restoreControl(el: Promotable): void {
 }
 
 /** Prepare and atomically replace a checkbox/radio/range/select face. */
-export async function promoteControl(el: Promotable, theme: ThemeInput, signal?: AbortSignal): Promise<HTMLElement | null> {
+export function promoteControl(el: Promotable, theme: ThemeInput, signal?: AbortSignal): Promise<HTMLElement | null> {
+  return prepareControl(el, theme, signal);
+}
+export function promoteGuardedControl(el: Promotable, theme: ThemeInput, signal: AbortSignal, canCommit: () => boolean): Promise<HTMLElement | null> {
+  return prepareControl(el, theme, signal, canCommit);
+}
+async function prepareControl(el: Promotable, theme: ThemeInput, signal?: AbortSignal, canCommit?: () => boolean): Promise<HTMLElement | null> {
   const previous = promotions.get(el);
   if (signal?.aborted || (el.dataset.scriptoscopePromoted != null && !previous)) return null;
   const kind: Kind | undefined = el.tagName === 'SELECT' ? 'select'
@@ -111,14 +117,17 @@ export async function promoteControl(el: Promotable, theme: ThemeInput, signal?:
   const location: Promotion['location'] = previous?.location ?? (checkable ? { parent, next: el.nextSibling } : undefined);
   let committed = false;
   const active = (): boolean => committed && !events.signal.aborted;
+  // The generation predicate owns preparation, not the committed face's lifetime.
+  const mayPaint = (): boolean => committed || canCommit?.() !== false;
   let face: HTMLElement | undefined;
   try {
     face = kind === 'select'
-      ? await prepareSelect(el as HTMLSelectElement, theme, events)
+      ? await prepareSelect(el as HTMLSelectElement, theme, events, mayPaint)
       : kind === 'range' ? await interactiveNativeSlider(theme, el as HTMLInputElement, active)
-        : await prepareCheckable(el as HTMLInputElement, kind, theme, events);
+        : await prepareCheckable(el as HTMLInputElement, kind, theme, events, mayPaint);
     if (events.signal.aborted || el.parentNode !== parent || el.isConnected !== connected
       || (label && label.parentNode !== labelParent)) return null;
+    if (canCommit?.() === false) return null;
     const restore = previous?.restore ?? [];
     let updateLabelFor = previous?.updateLabelFor;
     if (!previous) {
@@ -164,6 +173,7 @@ export async function promoteControl(el: Promotable, theme: ThemeInput, signal?:
     if (kind === 'range') {
       const input = el as HTMLInputElement;
       const sync = (): void => {
+        if (!active()) return;
         const min = numOr(input.min, 0), max = numOr(input.max, 100);
         (currentFace as HTMLElement & { _scriptoscopeSetValue?: (v: number) => void })
           ._scriptoscopeSetValue?.(max > min ? clamp01((numOr(input.value, min) - min) / (max - min)) : 0);
@@ -189,7 +199,7 @@ export async function promoteControl(el: Promotable, theme: ThemeInput, signal?:
 // Labels activate the original input through the browser. The face only reads
 // native state: no synthetic clicks, keyboard handlers or radio selection model.
 async function prepareCheckable(input: HTMLInputElement, kind: 'checkbox' | 'radio',
-  theme: ThemeInput, events: AbortController): Promise<HTMLLabelElement> {
+  theme: ThemeInput, events: AbortController, canCommit?: () => boolean): Promise<HTMLLabelElement> {
   const label = associatedLabel(input)?.textContent?.trim() ?? '';
   const face = document.createElement('label');
   face.className = `scriptoscope-${kind}`;
@@ -207,7 +217,7 @@ async function prepareCheckable(input: HTMLInputElement, kind: 'checkbox' | 'rad
   })));
   let painted = -1;
   const sync = (): void => {
-    if (events.signal.aborted) return;
+    if (events.signal.aborted || (face.isConnected && canCommit?.() === false)) return;
     face.htmlFor = input.id;
     promotions.get(input)?.updateLabelFor?.(input.id);
     const disabled = input.matches(':disabled');
@@ -245,7 +255,7 @@ async function prepareCheckable(input: HTMLInputElement, kind: 'checkbox' | 'rad
 
 // The native select remains the sole keyboard/AT target. Prepare its decorative
 // button before moving the source; refreshes are scoped to this face's lifetime.
-async function prepareSelect(el: HTMLSelectElement, theme: ThemeInput, events: AbortController): Promise<HTMLElement> {
+async function prepareSelect(el: HTMLSelectElement, theme: ThemeInput, events: AbortController, canCommit?: () => boolean): Promise<HTMLElement> {
   const wrap = document.createElement('span');
   wrap.className = 'scriptoscope-select';
   Object.assign(wrap.style, { position: 'relative', display: 'inline-block', verticalAlign: 'middle',
@@ -278,6 +288,7 @@ async function prepareSelect(el: HTMLSelectElement, theme: ThemeInput, events: A
       if (text !== (el.selectedOptions[0]?.textContent ?? '').trim() || disabled !== el.disabled) {
         continue;
       }
+      if (displayed && canCommit?.() === false) return;
       button.setAttribute('aria-label', `${text}  ▾`);
       button.tabIndex = -1;
       button.setAttribute('aria-hidden', 'true');

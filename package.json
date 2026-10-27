@@ -40,7 +40,7 @@
     },
     "./declarative": {
       "types": "./dist/types/declarative/index.d.ts",
-      "import": "./dist/scriptoscope.js"
+      "import": "./dist/declarative.js"
     },
     "./scriptoscope.css": "./dist/scriptoscope.css",
     "./package.json": "./package.json",

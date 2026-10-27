@@ -1,5 +1,6 @@
+import { mountExplicitPage } from './explicit-host.mjs';
 import {
-  createOwnedThemeResolver, mountOwnedDeclarative, renderWindow, bufferToCanvas,
+  createOwnedThemeResolver, renderWindow, bufferToCanvas,
   composeButton, composeBevelButton, composeCheckable, composeTab,
   composeSlider, composeScrollbar, composeDisclosure, composeProgressFrame,
   composeHeaderSurface, composeListHeader, platinumListHeader,
@@ -223,7 +224,7 @@ async function selectTheme(next) {
   theme = loaded;
   source = loaded.source ?? loaded;
   slug = next;
-  if (!mount) mount = await mountOwnedDeclarative(mountOptions());
+  if (!mount) mount = await mountExplicitPage(mountOptions());
   else await mount.retheme(slug);
   const url = new URL(location.href);
   url.searchParams.set('theme', slug);
@@ -238,7 +239,7 @@ async function selectTheme(next) {
   await states();
   await headers();
   await assets();
-  $('integration-config').textContent = `const handle = await mountOwnedDeclarative({\n  themeBaseUrl: ${JSON.stringify(baseUrl)},\n  pageThemeDefault: ${JSON.stringify(slug)},\n  themes, // Your catalog, including source filenames\n  root: document.querySelector('#your-content'),\n});\nawait handle.retheme(${JSON.stringify(slug)});\n// After the last consumer unmounts:\nhandle.disconnect();`;
+  $('integration-config').textContent = `const handle = await mountExplicitPage({\n  themeBaseUrl: ${JSON.stringify(baseUrl)},\n  pageThemeDefault: ${JSON.stringify(slug)},\n  themes, // Your catalog, including source filenames\n  root: document.querySelector('#your-content'),\n});\nawait handle.retheme(${JSON.stringify(slug)});\n// After the last consumer unmounts:\nhandle.disconnect();`;
 }
 
 $('scheme').addEventListener('change', event => { const next = event.target.value; void schedule(() => selectTheme(next)); });

@@ -75,9 +75,6 @@ import { ManagedContentPort, type ManagedControlPort } from './managedContentPor
 //   declarative/ScriptoscopeWindow.ts           → the consumer-facing wrapper that
 //                                          calls manager.add() with light-DOM
 //                                          slotted content
-//   declarative/scanner.ts               → mountDeclarative() — promotes
-//                                          [data-scriptoscope-window] / -button /
-//                                          -control + drives retheme()
 //
 // RENDER FREQUENCY CONTRACT: see the comment block above WindowManager.render().
 // Locked in 2026-05-28 audit (commit 6f9b285); don't introduce per-mousemove
@@ -693,6 +690,7 @@ interface ManagedWindow<Theme extends ThemeInput> {
   contentPort: ManagedContentPort;
   /** Invalidates asynchronous paints when geometry/state changes or the entry is removed. */
   renderEpoch: number;
+  applyStateEpoch: number;
   initializing: boolean;
   theme: Theme;
   opts: RenderWindowOptions;
@@ -763,6 +761,14 @@ const shadowFocusSheet: CSSStyleSheet = (() => {
   return sheet;
 })();
 
+/** Explicit live state. Omitted fields retain their current values. */
+export interface ManagedWindowState {
+  width?: number;
+  height?: number;
+  z?: number;
+  collapsed?: boolean;
+}
+
 export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
   private windows: ManagedWindow<Theme>[] = [];
   /** Monotonic stacking clock — each add/focus takes the next value so the most-recently-touched
@@ -789,6 +795,44 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       z: entry.z,
       theme: entry.theme,
     };
+  }
+
+  /** Apply persisted state without invoking title widgets or moving native content.
+   * Resolves after the chrome commit; cancellation, supersession and removed hosts are no-ops.
+   * Preparation failure rejects and leaves the previously committed state intact. */
+  async applyState(host: HTMLElement, state: ManagedWindowState, signal?: AbortSignal): Promise<void> {
+    const entry = this.windows.find(w => w.host === host);
+    if (!entry || signal?.aborted) return;
+    for (const value of [state.width, state.height, state.z]) {
+      if (value !== undefined && !Number.isFinite(value)) throw new TypeError('Window state must be finite');
+    }
+    const opts = { ...entry.opts,
+      ...(state.width !== undefined ? { width: state.width } : {}),
+      ...(state.height !== undefined ? { height: state.height } : {}),
+    };
+    const collapsed = state.collapsed ?? (entry.collapsed === true);
+    const z = state.z ?? entry.z;
+    const repaint = opts.width !== entry.opts.width || opts.height !== entry.opts.height
+      || collapsed !== (entry.collapsed === true);
+    const application = ++entry.applyStateEpoch;
+    if (!repaint && z === entry.z) return;
+    const epoch = ++entry.renderEpoch;
+    const current = (): boolean => !signal?.aborted && application === entry.applyStateEpoch
+      && epoch === entry.renderEpoch && this.windows.includes(entry);
+    let prepared;
+    try {
+      if (repaint) prepared = await this.prepareRender({ ...entry, opts, collapsed, z }, entry.theme);
+    } catch (error) {
+      if (!current()) return;
+      throw error;
+    }
+    if (!current()) return;
+    entry.opts = opts;
+    entry.collapsed = collapsed;
+    entry.z = z;
+    this.zClock = Math.max(this.zClock, z);
+    if (prepared) this.commitRender(entry, prepared);
+    else { host.style.zIndex = this.zIndexFor(entry); this.notifyChange(entry); }
   }
 
   /** Read-only browser coordinate authority for this manager's committed window. */
@@ -845,7 +889,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     // Initial focus: the first window added is active — UNLESS it explicitly requests inactive
     // (so a declarative `data-scriptoscope-state="inactive"` is honored; then no window starts focused).
     const entry: ManagedWindow<Theme> = {
-      theme, opts, handlers, host, renderEpoch: 0, initializing: true, contentPort: new ManagedContentPort(),
+      theme, opts, handlers, host, renderEpoch: 0, applyStateEpoch: 0, initializing: true, contentPort: new ManagedContentPort(),
       ...(opts.reuseCanvas ? { chromeCanvas: opts.reuseCanvas } : {}),
       active: this.windows.length === 0 && opts.state !== 'inactive',
       // Declared z (data-scriptoscope-z) wins; else take the next stacking-clock tick. We still bump the
@@ -1284,7 +1328,11 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     bar.tabIndex = 0;
 
     let raf = 0, paintEpoch = 0;
-    signal.addEventListener('abort', () => { if (raf) cancelAnimationFrame(raf); raf = 0; }, { once: true });
+    signal.addEventListener('abort', () => {
+      if (raf) cancelAnimationFrame(raf);
+      raf = 0;
+      bar.remove();
+    }, { once: true });
     const repaint = async (): Promise<void> => {
       if (!current()) return;
       const epoch = paintEpoch;

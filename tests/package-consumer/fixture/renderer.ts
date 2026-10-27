@@ -1,6 +1,15 @@
+import * as declarative from 'scriptoscope/declarative';
+import { rootExports, rendererExports, declarativeExports, sharedHostExports } from './public-exports.mjs';
 import * as root from 'scriptoscope';
 import * as renderer from 'scriptoscope/renderer';
 import type { ThemeInput, DisplayProfileData, CinfEnvironmentInput, ButtonOptions } from 'scriptoscope/renderer';
+
+// @ts-expect-error Automatic mounts are retired from the package root.
+type NoRootMount = typeof root.mountDeclarative;
+// @ts-expect-error Automatic owned mounts are retired from declarative.
+type NoOwnedMount = typeof declarative.mountOwnedDeclarative;
+// @ts-expect-error Mount lifetime types are retired.
+type NoMountHandle = import('scriptoscope/declarative').MountHandle;
 
 // @ts-expect-error The focused entry does not include the package manager API.
 type NoLoader = typeof renderer.loadOwnedTheme;
@@ -10,7 +19,9 @@ type NoUnknownExport = typeof renderer.nonexistentRendererExport;
 export async function verifyRendererEntry() {
   const check = (ok: boolean, message: string) => { if (!ok) throw new Error(message); };
   const full = root as unknown as Record<string, unknown>;
-  check(Object.keys(root).length === 75 && Object.keys(renderer).length === 44, 'Public namespace changed');
+  for (const [entry, names] of [[root, rootExports], [renderer, rendererExports], [declarative, declarativeExports]] as const)
+    check(JSON.stringify(Object.keys(entry).sort()) === JSON.stringify(names), 'Explicit public namespace changed');
+  for (const key of sharedHostExports) check((declarative as unknown as Record<string, unknown>)[key] === full[key], `Host alias: ${key}`);
   for (const [key, value] of Object.entries(renderer)) check(value === full[key], `Renderer alias: ${key}`);
   check(await import('scriptoscope/renderer') === renderer, 'Repeated renderer import changed identity');
   const pixel = new renderer.PixelBuffer(2, 2);

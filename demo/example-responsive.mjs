@@ -1,4 +1,4 @@
-import { mountOwnedDeclarative } from 'scriptoscope';
+import { mountExplicitPage } from './explicit-host.mjs';
 
 // The renderer's width is its content width: real scheme borders add to it.
 // Re-measure the authored example layout when its viewport changes, reserving
@@ -69,7 +69,8 @@ export async function mountResponsiveExample(options, prepare = () => {}) {
       measureBorders();
       handle.disconnect();
       fitWidths();
-      handle = await mountOwnedDeclarative(options);
+      handle = await mountExplicitPage({...options, measureReusedSources:true});
+      if (disposed) { handle.disconnect(); return; }
       wire();
       if (focused instanceof HTMLElement && focused.isConnected) focused.focus({ preventScroll: true });
     } catch (error) {
@@ -96,7 +97,7 @@ export async function mountResponsiveExample(options, prepare = () => {}) {
   window.addEventListener('resize', resize);
   prepare();
   try {
-    handle = await mountOwnedDeclarative(options);
+    handle = await mountExplicitPage({...options, measureReusedSources:true});
   } catch (error) {
     disposed = true;
     clearTimeout(timer);
@@ -105,6 +106,7 @@ export async function mountResponsiveExample(options, prepare = () => {}) {
   } finally {
     running = false;
   }
+  if (disposed) { handle.disconnect(); return; }
   wire();
   measureBorders();
   if (pending || overflows()) {
