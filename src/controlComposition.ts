@@ -70,7 +70,7 @@ export function snapshotControlComposition(context?: ControlCompositionContext):
     clip: copiedClip });
 }
 
-/** kDEF 10ac8..10af6 uses the ORIGINAL Rect edges, including exclusive right/bottom. */
+/** Anchor modes select rectangle corners, including exclusive right and bottom edges. */
 export function bodyPatternAnchor(mode: number, rect: ControlRect): ControlPoint {
   const right = coordinate(rect.x + rect.w, 'control.right'), bottom = coordinate(rect.y + rect.h, 'control.bottom');
   switch (mode) {
@@ -83,9 +83,8 @@ export function bodyPatternAnchor(mode: number, rect: ControlRect): ControlPoint
 }
 
 const modulo = (value: number, size: number): number => ((value % size) + size) % size;
-/** Full-color source model: f930 translates D/clip by -P; QDSetPatternOrigin's
- * signed offset adds to sampling (UI3.4.1's +10 origin/-10 offset example).
- * Unknown state explicitly applies zero as compatibility policy. Mode5 is NOT ppat. */
+/** Pattern sampling adds the signed pattern-origin offset to the selected anchor phase.
+ * Unknown state uses zero offset for compatibility; mode 5 requires cicn art. */
 export function bodyPatternSample(context: ControlCompositionSnapshot, mode: number, width: number, height: number,
   x: number, y: number, tileWidth: number, tileHeight: number): ControlPoint {
   if (mode === 5) throw new RangeError('Body mode5 requests cicn, not ppat');
