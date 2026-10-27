@@ -120,18 +120,19 @@
 </div>
 
 <script type="module">
-  import { mountOwnedDeclarative } from '../src/declarative/index.ts';
+  import { mountExplicitPage } from './explicit-host.mjs';
   import { wireSchemeDrop } from './_theme-drop.mjs';
-  const handle = await mountOwnedDeclarative({
+  const handle = await mountExplicitPage({
     themeBaseUrl: `${import.meta.env.BASE_URL}themes`,
     pageThemeDefault: '1138',
   });
   // No theme switcher in this demo — wireSchemeDrop falls back to handle.retheme(ref) directly.
-  wireSchemeDrop({
+  const drop = wireSchemeDrop({
     handle,
     dropTarget: document.getElementById('scheme-drop'),
     statusEl:   document.getElementById('scheme-drop-status'),
   });
+  addEventListener("pagehide",()=>{handle.disconnect();drop.detach();drop.disposeThemes();},{once:true});
 </script>
 </body>
 </html>

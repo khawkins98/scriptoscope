@@ -55,8 +55,8 @@ Scriptoscope is a hobby project — there's no npm package. The runtime + the 18
 ```html
 <link rel="stylesheet" href="https://khawkins98.github.io/scriptoscope/scriptoscope.css">
 <script type="module">
-  import { mountDeclarative } from 'https://khawkins98.github.io/scriptoscope/scriptoscope.js';
-  await mountDeclarative({
+  import { mountExplicitPage } from 'https://khawkins98.github.io/scriptoscope/explicit-host.mjs';
+  await mountExplicitPage({
     themeBaseUrl: 'https://khawkins98.github.io/scriptoscope/themes',
     pageThemeDefault: '1138',
   });
@@ -98,11 +98,11 @@ A more complete page with the script wired in, one window, and a button:
     <button data-scriptoscope-button data-scriptoscope-default>OK</button>
   </div>
 
-  <!-- 3. Bootstrap. mountDeclarative() scans the page once, then watches
-       MutationObserver-style for new data-scriptoscope-* elements. -->
+  <!-- 3. The example host captures this page’s sources once.
+       Application code explicitly attaches later controls. -->
   <script type="module">
-    import { mountDeclarative } from 'https://khawkins98.github.io/scriptoscope/scriptoscope.js';
-    await mountDeclarative({
+    import { mountExplicitPage } from 'https://khawkins98.github.io/scriptoscope/explicit-host.mjs';
+    await mountExplicitPage({
       themeBaseUrl: 'https://khawkins98.github.io/scriptoscope/themes',
       pageThemeDefault: '1138',
     });
@@ -114,11 +114,13 @@ A more complete page with the script wired in, one window, and a button:
 
 **That's it.** The bundled themes (`1138`, `beos-r503`, `apple-platinum-2`, `crayon-os`, `windows-95`, etc. — see [`themes/`](./themes/)) are served from the same URL, so `themeBaseUrl` resolves them transparently.
 
-New declared windows and controls can be appended directly or inside a container
-after mounting. An initial Element `root` remains a scan scope, and later additions
-inside an already-promoted window are excluded. See the
-[scoped insertion boundary](docs/spec/scanner-insertion.md), including the
-previous accidental wrapped-control path now excluded.
+The runtime exports explicit window/control promotion primitives. The published
+`explicit-host.mjs` example owns a finite set of sources, theme replacement, URL
+state and teardown. It has no automatic discovery, move service or retry loop.
+After inserting a new native control call `await handle.attach({controls:[input]})`;
+before removing or replacing it call `handle.detach({controls:[input]})`. Buttons
+use the equivalent `buttons` array. Reflow is an application-controlled teardown
+and fresh selection; native source nodes and handlers survive it.
 
 ### Three things to know up front
 
@@ -126,7 +128,7 @@ If you only need it to work, you can skip this section. If something looks sligh
 
 1. **Your element stays where you put it.** No `-x`/`-y` attributes = the runtime host sits in normal flow at the source element's DOM position (CSS Grid / Flex / normal flow all respected). Set `data-scriptoscope-x="N"` / `-y="N"` (px only, no `%` / `em` / `vh`) to opt into a floating overlay. Dragging an in-flow window converts it to a floater on the first drag.
 2. **Your `.my-class { display: grid }` won't reach the host.** Ten CSS properties (`display`, `box-sizing`, `padding`, `border`, `background`, `overflow`, `margin`, `transform`, `filter`, `contain`) are locked down inline on the runtime host so consumer-class CSS can't break the host ↔ chrome-canvas correspondence. Everything else — color, font, custom properties, your `position: relative` for stacking — still applies.
-3. **Promotion is destructive.** The runtime moves your element's children into its slot and removes the original element. Framework refs to the wrapper become detached. Mount Scriptoscope AFTER your framework's first paint (`useEffect(() => mountDeclarative(...), [])` in React; `onMounted` in Vue).
+3. **Promotion is destructive.** The runtime moves your element's children into its slot and removes the original element. Framework refs to the wrapper become detached. Mount Scriptoscope AFTER your framework's first paint (`useEffect(() => mountExplicitPage(...), [])` in React; `onMounted` in Vue).
 
 The full set of behaviours, with the gotchas + framework integration notes + known incompatibilities ([`* { transform: translateZ(0) }`, `box-sizing: content-box`, `body { overflow: hidden }`, etc.), lives in **[docs/integration-edge-cases.md](./docs/integration-edge-cases.md)**. Open it when you hit a weird CSS issue and the cause isn't obvious; you don't need to read it first.
 
@@ -188,15 +190,15 @@ Want more? Drop any `.sit`/`.rsrc` you've grabbed from [Mac Themes Garden](https
 | `data-scriptoscope-icon="<name>"` | `<img>` or `<span>` | Render a scheme-resolved Finder icon by named key (`folder`, `system-folder`, `document`, `prefs`, etc.). Re-resolves on every retheme so the icon follows the active scheme. |
 | `data-scriptoscope-icon-id="<id>"` | `<img>` or `<span>` | Raw Apple resource id (e.g. `-3999`) — bypasses the named-key lookup for power users. |
 
-### `mountDeclarative()` options
+### Explicit page host options
 
 ```ts
-await mountDeclarative({
+await mountExplicitPage({
   themeBaseUrl: 'https://khawkins98.github.io/scriptoscope/themes', // where bundles live
   pageThemeDefault: '1138',         // theme slug or URL for windows w/o explicit data-scriptoscope-theme
   persistKey: 'my-app-layout',      // optional: save window positions to localStorage.scriptoscope:layout:<key>
   baseSlug: 'apple-platinum-2',     // optional: base scheme to inherit from (any slug in your themeBaseUrl)
-  root: document,                   // optional: scan a subtree instead of the whole page
+  root: document.body,              // optional: application-owned source-selection boundary
   themes: THEMES,                   // optional: catalog for <div data-scriptoscope-theme-picker> tiles + autoCycle.
                                     //   ThemeEntry[] — { slug, name?, author?, year?, source?, meta? }. Imported from
                                     //   your themes-manifest.json or hand-built. (Pre-2026-05 manifests used a
@@ -205,9 +207,9 @@ await mountDeclarative({
                                     //   syncToUrlParam restored a deep-link or first user interaction fired).
   syncToUrlParam: 'theme',          // optional: mirror current theme to ?theme=<slug>; restored on load.
                                     //   Makes the landing the shareable URL.
-  rejectOnEmptyMount: true,         // optional: throw if scan found data-scriptoscope-* targets but
+  rejectOnEmptyMount: true,         // optional: throw PagePromotionError if selected sources exist but
                                     //   ZERO promoted (catches theme-bundle 404s + decoder errors in one place).
-  onPromoteError: (err, ctx) => {…},// optional: hook per-target promotion failures (vs the rejectOnEmpty above).
+  onPromoteError: detail => {…},// optional: hook per-target promotion failures (vs the rejectOnEmpty above).
   bootAffordance: 'auto',           // optional: chrome wipe-in animation + boot-state CSS hook
                                     //   (data-scriptoscope-loading on the root + .scriptoscope-ready class
                                     //   on the root once promotion settles). 'auto' (default) picks per
@@ -216,13 +218,24 @@ await mountDeclarative({
 });
 ```
 
-The call returns a `MountHandle` which extends `EventTarget`. Full API:
+This is a public example helper, not a package runtime mount export. The call
+returns an `EventTarget` handle after selected promotions and scrollbar refreshes
+settle. Boot load errors reject; with `rejectOnEmptyMount`, an all-failed boot
+rejects with `PagePromotionError` and its `failures`. Partial target errors call
+`onPromoteError(detail)`, bubble `scriptoscope:promoteError`, and remain available
+in `handle.failures`; other sources remain usable. Retheme load errors reject and
+retain previous faces. Superseded work cannot publish a completion event.
+
+The handle API:
 
 ```ts
-const handle = await mountDeclarative({…});
+const handle = await mountExplicitPage({…});
+await handle.attach({controls: [newInput]});
+handle.detach({controls: [newInput]});
+await handle.whenReady(); // latest requested explicit work
 
 // Event API — four events on the handle
-handle.addEventListener('ready', (e) => { /* initial scan complete; e.detail.stats has counts */ });
+handle.addEventListener('ready', (e) => { /* initial selected sources complete; e.detail.stats has counts */ });
 handle.addEventListener('retheme', (e) => { /* theme just switched; e.detail.ref is the slug or URL */ });
 handle.addEventListener('promoteError', (e) => { /* a promotion failed; e.detail = { kind, el, cause } */ });
 handle.addEventListener('unmounted', () => { /* disconnect() finished */ });
@@ -246,7 +259,7 @@ document.body.addEventListener('scriptoscope:userresize', (e) => { /* user finis
 document.body.addEventListener('scriptoscope:promoteError', (e) => { /* e.detail = { kind, el, cause } */ });
 
 // Methods
-handle.disconnect();                       // tear down mount observers + restore windows and native form controls
+handle.disconnect();                       // abort selected source lifetimes + restore windows and native form controls
 handle.retheme(slugOrUrl);                 // programmatic theme switch ('retheme' after current request succeeds)
 handle.registerTheme(ref, loadedTheme);    // register a runtime-decoded theme (used by drop-zones)
 handle.openModal(wrap, { returnFocusTo }); // themed modal helper: focus trap (including shadow-DOM chrome
@@ -265,8 +278,8 @@ event; a current load/window-preparation failure rejects. Window chrome prepares
 as a batch before it commits, so such a failure leaves existing windows intact.
 The completed theme URL/default and picker selection advance only on success.
 Controls replace after the window batch; this is not a rollback transaction for
-the entire desktop. New declarative scans wait for the current request to settle;
-already-started scans finish before its window snapshot.
+the entire desktop. Explicit attach calls wait for the current request to settle;
+`whenReady()` includes their promotion and post-attachment scrollbar work.
 
 `disconnect()` releases themes loaded internally by that mount and their decoded
 raster caches. Pending loads release their assets when they finish. Themes passed
@@ -311,7 +324,7 @@ The `promoteError` event is the per-target failure hook; pair with `rejectOnEmpt
 
 ### CSS classes (fallback if `data-scriptoscope-*` isn't an option)
 
-For environments that strip data attributes (some CMSes, some CSP setups), use the class equivalents: `.scriptoscope-window-fallback`, `.scriptoscope-button-fallback` — the scanner picks both. The data-attribute path is preferred.
+For environments that strip data attributes (some CMSes, some CSP setups), use the class equivalents: `.scriptoscope-window-fallback`, `.scriptoscope-button-fallback` — the example host can select both during its initial capture. The data-attribute path is preferred.
 
 ### Theme switching at runtime
 
@@ -331,41 +344,45 @@ Selecting an option fires the existing `retheme()` flow; every promoted window f
 Two ways to wire it. The simpler one is a button or any element that doubles as a drop target:
 
 ```html
-<button id="byo">📂 Drop or pick a theme</button>
-<span id="byo-status" aria-live="polite"></span>
-
+<link rel="stylesheet" href="https://khawkins98.github.io/scriptoscope/scriptoscope.css">
+<article data-scriptoscope-window data-scriptoscope-title="Your page">
+  <p>Pick a scheme to change this window.</p>
+</article>
+<button id="pick-theme" type="button">Pick or drop a Kaleidoscope theme</button>
+<p id="theme-status" role="status"></p>
 <script type="module">
-  // mountDeclarative + attachThemeDropZone + loadKaleidoscopeScheme are all
-  // exported from the same module entry. The GH Pages URL below is the install
-  // path (no npm package — see the Install section above). The public decoder
-  // wrapper enables engine loader inputs by default. StuffIt WASM loads lazily
-  // when a .sit is decoded.
   import {
-    mountDeclarative, attachThemeDropZone, loadKaleidoscopeScheme,
+    attachThemeDropZone, loadOwnedKaleidoscopeScheme,
   } from 'https://khawkins98.github.io/scriptoscope/scriptoscope.js';
-
-  const handle = await mountDeclarative({
+  import { mountExplicitPage } from 'https://khawkins98.github.io/scriptoscope/explicit-host.mjs';
+  const handle = await mountExplicitPage({
     themeBaseUrl: 'https://khawkins98.github.io/scriptoscope/themes',
     pageThemeDefault: '1138',
   });
-
-  attachThemeDropZone(document.getElementById('byo'), {
-    onFile: async (file) => {
-      const status = document.getElementById('byo-status');
+  const themes = new Set();
+  let active = true;
+  let generation = 0;
+  const drop = attachThemeDropZone(document.getElementById('pick-theme'), {
+    onFile: async file => {
+      const token = ++generation;
+      const status = document.getElementById('theme-status');
       status.textContent = `Decoding ${file.name}…`;
       try {
-        // Decode the .sit / .rsrc / .hqx / .bin / .as / .adf / .cpt entirely in the browser.
-        // StuffIt unpack uses a 70 KB WASM blob loaded lazily from the same CDN.
-        const theme = await loadKaleidoscopeScheme(file, { source: file.name });
-        const ref = `dropped:${file.name}`;
-        handle.registerTheme(ref, theme);
-        await handle.retheme(ref); // applies to every promoted window on the page
-        status.textContent = `✓ ${file.name} loaded`;
-      } catch (err) {
-        status.textContent = `Couldn't read ${file.name}: ${err?.message ?? err}`;
+        const theme = await loadOwnedKaleidoscopeScheme(file, { source: file.name });
+        if (!active || token !== generation) { theme.dispose(); return; }
+        themes.add(theme);
+        handle.registerTheme('my-scheme', theme);
+        await handle.retheme('my-scheme');
+        if (active && token === generation) status.textContent = `Loaded ${file.name}`;
+      } catch (error) {
+        if (active && token === generation) status.textContent = `Could not load this scheme: ${error.message}`;
       }
     },
   });
+  addEventListener('pagehide', () => {
+    active = false; ++generation; drop.detach(); handle.disconnect();
+    for (const theme of themes) theme.dispose();
+  }, { once: true });
 </script>
 ```
 
@@ -437,14 +454,14 @@ async function showWindow(theme: ThemeInput, container: HTMLElement) {
 ### Owned raster loading (feature PR #480)
 
 `loadOwnedTheme()` and `loadOwnedKaleidoscopeScheme()` return a distinct
-`OwnedTheme`. `mountOwnedDeclarative()` and `createOwnedThemeResolver()` provide
-owned loading over the shared scanner and lifecycle. Window/control composition
+`OwnedTheme`. `createOwnedThemeResolver()` provides owned loading. The explicit page host
+uses that resolver and owns its selected source lifetimes. Window/control composition
 and interactive promotion accept owned inputs;
 selected images export asynchronously through `themeImageUrl()`. Its `source`
 fields contain local resource paths, including fields historically named `url`.
 Existing loaders retain ready image URLs. See the [owned API and lifecycle
 contract](docs/v2/owned-theme-api.md) for examples and the current adoption boundary.
-The integration PR remains in progress; the default `mountDeclarative` keeps its existing ready-image loader.
+Existing raw loading and factory APIs remain available. Registered themes are borrowed; release them only after host dependents are disconnected.
 
 ### Proposed native form-control migration (unreleased)
 
@@ -453,18 +470,18 @@ These compatibility changes are a draft proposal pending independent final revie
 retired in the proposal. Replace those factories with native checkbox/radio
 inputs, labels, initial `checked` state and native `change` listeners. Shared
 radio `name` values give the browser ownership of group selection and keyboard
-behavior. Existing declarative mounts skin these inputs automatically.
+behavior. Explicit hosts promote the native inputs selected by the application.
 
 For standalone controls using an already loaded `OwnedTheme` named `theme`,
 mount an empty attached container, register the borrowed theme, then append the
 controls. This reuses the theme without another load:
 
 ```js
-import { mountOwnedDeclarative } from 'scriptoscope';
+import { mountExplicitPage } from './demo/explicit-host.mjs';
 
 const root = document.createElement('div');
 document.body.append(root);
-const handle = await mountOwnedDeclarative({
+const handle = await mountExplicitPage({
   root, pageThemeDefault: 'session', bootAffordance: 'none',
 });
 handle.registerTheme('session', theme);
@@ -478,6 +495,8 @@ root.insertAdjacentHTML('beforeend', `
   <label><input type="radio" name="mode" value="on" checked>On</label>
   <label><input type="radio" name="mode" value="off">Off</label>
 `);
+
+await handle.attach({controls: [...root.querySelectorAll("input")]});
 
 // Before replacing the container or its controls:
 handle.disconnect();
@@ -553,7 +572,7 @@ const displayProfile = await prepareDisplayProfile(data);
 const theme = await loadTheme('/themes/windows-95', { displayProfile });
 ```
 
-The same option is available to `loadKaleidoscopeScheme` and `mountDeclarative`.
+The same option is available to `loadKaleidoscopeScheme` and the example host resolver.
 Missing exact RGB16 mappings reject the load before asset URLs are allocated;
 base themes must use the same profile. Omitting the option preserves the default
 colors and reviewed goldens. A profile is finite environment data, not a general
@@ -632,9 +651,9 @@ coordinates do not establish original GrafPort state. See the
 [managed-context contract](docs/spec/managed-control-context.md) for lifetimes,
 coordinate limits and automatic/foreign-manager boundaries.
 
-### Declarative — `mountDeclarative()` + `data-scriptoscope-*`
+### Explicit hosts and `data-scriptoscope-*`
 
-The same runtime exposed as markup. Put `data-scriptoscope-window` on a plain `<div>` and one bootstrap line promotes it into a faithful Mac window wrapping the live HTML content — no per-window JS:
+The same runtime exposed as markup. Put `data-scriptoscope-window` on a plain `<div>` and an explicit application host promotes it into a faithful Mac window wrapping the live HTML content — no per-window JS:
 
 ```html
 <body>
@@ -648,8 +667,8 @@ The same runtime exposed as markup. Put `data-scriptoscope-window` on a plain `<
   </div>
 
   <script type="module">
-    import { mountDeclarative } from 'https://khawkins98.github.io/scriptoscope/scriptoscope.js';
-    await mountDeclarative({
+    import { mountExplicitPage } from 'https://khawkins98.github.io/scriptoscope/explicit-host.mjs';
+    await mountExplicitPage({
       themeBaseUrl: 'https://khawkins98.github.io/scriptoscope/themes',
       baseSlug: 'apple-platinum-2',
     });
@@ -659,7 +678,7 @@ The same runtime exposed as markup. Put `data-scriptoscope-window` on a plain `<
 
 **Window attributes** (all `data-scriptoscope-*`): `window`, `title`, `window-type` (`document-window` / `movable-modal` / `dialog` / `titled-utility-window` / `side-floating-utility-window` / …), `x` / `y`, `width` / `height` (omit both → content-fit with a `ResizeObserver`), `state` (`active`/`inactive`), `z` (initial stacking order), `collapsed` (boot pre-shaded), `theme` (per-window scheme override, nearest-ancestor wins).
 
-**Promoted children**: `<button data-scriptoscope-button>` (with `data-scriptoscope-default` for the OK ring), and `<input type=checkbox|radio|range>` are auto-promoted to themed art (opt-out per-input with `data-scriptoscope-control="off"`). The native input remains the form, event and accessibility control beneath the themed art.
+**Promoted children**: `<button data-scriptoscope-button>` (with `data-scriptoscope-default` for the OK ring), and `<input type=checkbox|radio|range>` are selected once by the example host and promoted to themed art (opt-out per-input with `data-scriptoscope-control="off"`). The native input remains the form, event and accessibility control beneath the themed art.
 
 **Runtime theme switching**: any `<select data-scriptoscope-theme-switcher>` re-skins every window + control live, the Kaleidoscope way.
 
@@ -688,11 +707,11 @@ Beyond the bundled corpus, the demo has a **drop-zone**: drag a Kaleidoscope the
 
 A web window manager that **any** project — built with any framework, or no framework at all — can drop in by adding **data attributes to plain HTML**, and that ships a **Kaleidoscope-style theme engine** capable of loading freeware-licensed period theme bundles and rendering them faithfully on the modern web.
 
-The declarative front door (principle 2 below) is **now built** — `mountDeclarative()` + the `data-scriptoscope-*` contract, with the demo pages exercising it (see "Trying it" above). Three principles do the load-bearing work:
+The public promotion primitives and the `data-scriptoscope-*` parsers support explicit application hosts; the demo pages exercise the example host (see "Trying it" above). Three principles do the load-bearing work:
 
 1. **Framework-agnostic by default.** No React peer dep, no Vue plugin, no Solid integration layer. Scriptoscope is plain TypeScript + CSS that works wherever HTML works — vanilla DOM, htmx, server-rendered Rails/Django/Laravel, every JS framework, and a `<script>` tag on a static page.
 
-2. **Declarative-first integration via data attributes.** The primary integration path is markup-only: add `data-scriptoscope-window` (with `data-scriptoscope-title`, `data-scriptoscope-x`, etc.) to any element and Scriptoscope promotes it into a draggable window on load. Native form controls inside (`<button data-scriptoscope-button>`, `<input type=checkbox|radio|range>`) are auto-skinned to the current theme while staying real accessible inputs. An imperative `mountDeclarative()` exists for dynamic cases, but no one should *need* to write more than one bootstrap line to use the library. CSS class hooks (`.scriptoscope-window-fallback`, etc.) are accepted as a fallback for environments where data attributes are awkward. See the full attribute contract in "The runtime API → Declarative" above.
+2. **Explicit integration with ordinary HTML.** Data attributes describe window and control options; application code chooses source identities and owns their lifetimes. The example page host captures sources once. Later additions and removals use explicit attach/detach calls; theme replacements await current work. The runtime does not scan, move or retry newly discovered DOM. Native controls retain browser form and accessibility behavior.
 
 3. **A Kaleidoscope-compatibility runtime, clean-room from Kaleidoscope's code.** Scriptoscope is a *runtime for an existing corpus*, not a new theme-authoring project. It reads Kaleidoscope resource bundles (`cicn`, `ppat`, `cinf`, `wnd#`, `Colr`) directly — decoded by [`tools/theme-loader/`](./tools/theme-loader/) via [`scripts/extract-scheme.mjs`](./scripts/extract-scheme.mjs) — and re-implements the rendering entirely in our own compositor (see [`docs/spec/compositor-spec.md`](./docs/spec/compositor-spec.md)). The corpus is the community-authored schemes archived on [Macintosh Garden](https://macintoshgarden.org/apps/kaleidoscope) and [Mac Themes Garden](https://macthemes.garden/), prioritizing those with explicit freeware-with-redistribution readmes. **We extract compiled assets from individual schemes** (with the author's stated permission) and **re-implement the rendering entirely in our own code** — Scriptoscope never uses Kaleidoscope's source code. Apple's own themes (Hi-Tech, Drawing Board, Gizmo) are deliberately out of scope, and **Scriptoscope does not hand-author chrome from the HIG** — it renders whatever scheme is loaded. Every extracted theme bundle carries provenance metadata (original author, source URL, license-of-origin); the only first-party visual artifacts Scriptoscope produces are the un-themed engine fallbacks needed when no scheme has loaded yet.
 
@@ -806,7 +825,7 @@ A non-binding "things that would be cool to build next" list, organized by theme
 
 ### Adopter-facing extras
 
-- **`<scriptoscope-window>` Custom Element** alongside the data-attribute scanner ([#29](https://github.com/khawkins98/scriptoscope/issues/29) — open decision).
+- **`<scriptoscope-window>` Custom Element** alongside explicit data-attribute promotion ([#29](https://github.com/khawkins98/scriptoscope/issues/29) — open decision).
 - ~~**CSS `border-image` emitter** for the body-frame chrome~~ — **retired 2026-05-28** after three spike rounds couldn't reach fidelity on exotic schemes (BeOS asymmetric title bar, evolution, etc.). The architecture is now explicitly "DOM structure + canvas decoration" — see [`docs/adr/0001-consumption-architecture.md`](./docs/adr/0001-consumption-architecture.md) §Spike result.
 - **High-contrast / accessibility variants** — auto-generate a high-contrast pair from each scheme (override headerColors, force pinstripe density) so accessibility-mode users can still pick a theme they like.
 - **VS Code / editor theme generation** — export a scheme's palette + chrome accents as a `vscode-theme.json` so developers can match their editor to their windowing chrome.

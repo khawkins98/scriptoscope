@@ -9,7 +9,7 @@
 // just to copy them verbatim after the build. This keeps the relative
 // `assets/themes/<name>/<file>` URLs the demo's CSS uses working as-is.
 
-import { cp, mkdir, readdir, access } from 'node:fs/promises';
+import { cp, mkdir, readdir, access, readFile, writeFile } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -161,3 +161,12 @@ if (await exists(resolve(root, 'tools/sit-wasm/index.mjs'))) {
 }
 
 console.log('Demo assets copied.');
+
+// Published application host examples use the same copied runtime graph.
+// Keep these source modules readable and stable for copied installation pages.
+for (const name of ['explicit-host.mjs', 'explicit-layout.mjs']) {
+  const source = await readFile(resolve(root, 'demo', name), 'utf8');
+  const hosted = source.replaceAll("from 'scriptoscope'", "from './scriptoscope.js'")
+    .replaceAll("from '../src/declarative/index.ts'", "from './declarative.js'");
+  await writeFile(resolve(root, 'dist/demo', name), hosted);
+}

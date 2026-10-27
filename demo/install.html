@@ -41,7 +41,7 @@
     <section class="site-install-section" aria-labelledby="starter-title">
       <p class="site-section-label">01 / START WITH A PAGE</p>
       <h2 id="starter-title">Copy. Save. Try it.</h2>
-      <p>Copy this into an HTML page and serve it through your usual web server or local dev server. The stylesheet, runtime, and bundled themes come from this project’s GitHub Pages; there’s no build step or npm install required.</p>
+      <p>Copy this into an HTML page and serve it through your usual web server or local dev server. The stylesheet, runtime, and bundled themes come from this project’s GitHub Pages; there’s no build step or npm install required. The page imports the published example host as well as the runtime; the host owns finite source selection and teardown.</p>
       <p>The starter uses <code id="install-scheme-name">1138</code>. Choose a scheme in the <a href="./showcase.html">showcase</a> and follow its Install link to carry that choice here.</p>
 <div class="site-code-frame"><div class="site-code-example" data-scriptoscope-window data-scriptoscope-title="Complete starter" data-example-compact-title="Starter" data-scriptoscope-window-type="document-window" data-scriptoscope-widgets="zoom,collapse"><div class="site-code-bar"><span>complete starter</span><button type="button" data-copy-snippet="powers-install-snippet" aria-label="Copy complete starter">Copy</button></div><pre id="powers-install-snippet" tabindex="0" data-install-default>&lt;link rel=&quot;stylesheet&quot; href=&quot;https://khawkins98.github.io/scriptoscope/scriptoscope.css&quot;&gt;
 &lt;article data-scriptoscope-window data-scriptoscope-title=&quot;Hello&quot;&gt;
@@ -52,11 +52,12 @@
           data-scriptoscope-default&gt;Save&lt;/button&gt;
 &lt;/article&gt;
 &lt;script type=&quot;module&quot;&gt;
-  import { mountDeclarative } from &#x27;https://khawkins98.github.io/scriptoscope/scriptoscope.js&#x27;;
-  const handle = await mountDeclarative({
+  import { mountExplicitPage } from &#x27;https://khawkins98.github.io/scriptoscope/explicit-host.mjs&#x27;;
+  const handle = await mountExplicitPage({
     themeBaseUrl: &#x27;https://khawkins98.github.io/scriptoscope/themes&#x27;,
     pageThemeDefault: &#x27;1138&#x27;,
   });
+  addEventListener(&#x27;pagehide&#x27;, () =&gt; handle.disconnect(), { once: true });
 &lt;/script&gt;</pre></div></div>
       <p class="site-install-aside">Use an HTTP URL for local development: a <code>file://</code> tab cannot reliably load modules or WebAssembly. Keep your layout CSS; native borders extend beyond the content dimensions.</p>
     </section>
@@ -83,7 +84,7 @@
 <tr><th scope="row"><code>data-scriptoscope-theme=&quot;monkey-paradise&quot;</code></th><td>Override the page scheme on a window or an ancestor. A theme bundle URL also works.</td></tr>
 <tr><th scope="row"><code>data-scriptoscope-button / data-scriptoscope-default</code></th><td>Theme a real button; add default for the default-button ring. Your click handler still belongs on the button.</td></tr>
 <tr><th scope="row"><code>data-scriptoscope-field</code></th><td>Opt a text input or textarea into the themed field treatment. Keep ordinary labels, names, and values.</td></tr>
-<tr><th scope="row"><code>data-scriptoscope-control=&quot;off&quot;</code></th><td>Checkboxes, radios, range inputs, and selects are themed automatically inside the mounted root. Use off to keep one native.</td></tr>
+<tr><th scope="row"><code>data-scriptoscope-control=&quot;off&quot;</code></th><td>Checkboxes, radios, range inputs, and selects are selected once inside the application root. Call handle.attach({controls: [input]}) after later insertions and handle.detach before removal. Use off to keep one native.</td></tr>
 <tr><th scope="row"><code>data-scriptoscope-theme-switcher</code></th><td>Put this on a select whose option values are theme slugs. A selection rethemes the mounted page.</td></tr>
 <tr><th scope="row"><code>data-scriptoscope-window-id=&quot;notes&quot;</code></th><td>Give a window a stable identity when using layout persistence.</td></tr></tbody></table></div>
       <p>For tabs, icons, cascades, initial states, and the complete vocabulary, see the <a href="https://github.com/khawkins98/scriptoscope#the-full-data-scriptoscope--vocabulary">attribute reference</a>.</p>
@@ -91,7 +92,7 @@
     <section class="site-install-section" id="options" aria-labelledby="options-title">
       <p class="site-section-label">03 / CONFIGURE THE RUNTIME</p>
       <h2 id="options-title">A small set of options.</h2>
-      <p>Pass these JavaScript options to <code>mountDeclarative()</code>. Replace the starter’s article with the desktop markup below, then replace its mount call with these options. This adds a theme selector, shares its selection in the URL, and remembers window layout.</p>
+      <p>Pass these JavaScript options to <code>mountExplicitPage()</code>. Replace the starter’s article with the desktop markup below, then replace its mount call with these options. This adds a theme selector, shares its selection in the URL, and remembers window layout.</p>
 <div class="site-code-frame"><div class="site-code-example" data-scriptoscope-window data-scriptoscope-title="Desktop markup" data-example-compact-title="Desktop" data-scriptoscope-window-type="document-window" data-scriptoscope-widgets="zoom,collapse"><div class="site-code-bar"><span>desktop markup</span><button type="button" data-copy-snippet="install-switcher" aria-label="Copy desktop markup">Copy</button></div><pre id="install-switcher" tabindex="0">&lt;main id=&quot;desktop&quot;&gt;
   &lt;select id=&quot;scheme&quot; data-scriptoscope-theme-switcher
           data-scriptoscope-control=&quot;off&quot; aria-label=&quot;Choose a scheme&quot;&gt;
@@ -100,7 +101,7 @@
            data-scriptoscope-title=&quot;Notes&quot;&gt;
     My notes stay real HTML.
   &lt;/article&gt;
-&lt;/main&gt;</pre></div></div><div class="site-code-frame"><div class="site-code-example" data-scriptoscope-window data-scriptoscope-title="Mount options" data-example-compact-title="Options" data-scriptoscope-window-type="document-window" data-scriptoscope-widgets="zoom,collapse"><div class="site-code-bar"><span>mount options</span><button type="button" data-copy-snippet="install-options" aria-label="Copy mount options">Copy</button></div><pre id="install-options" tabindex="0" data-install-default>// Replace the mount call in the starter with this setup.
+&lt;/main&gt;</pre></div></div><div class="site-code-frame"><div class="site-code-example" data-scriptoscope-window data-scriptoscope-title="Mount options" data-example-compact-title="Options" data-scriptoscope-window-type="document-window" data-scriptoscope-widgets="zoom,collapse"><div class="site-code-bar"><span>mount options</span><button type="button" data-copy-snippet="install-options" aria-label="Copy mount options">Copy</button></div><pre id="install-options" tabindex="0" data-install-default>// Keep the starter import of mountExplicitPage and replace its setup with this.
 const themes = await fetch(&#x27;https://khawkins98.github.io/scriptoscope/themes-manifest.json&#x27;)
   .then(response =&gt; {
     if (!response.ok) throw new Error(&#x27;Could not load the theme catalog&#x27;);
@@ -114,21 +115,22 @@ for (const theme of themes) {
   option.selected = theme.slug === selected;
   switcher.add(option);
 }
-const handle = await mountDeclarative({
+const handle = await mountExplicitPage({
   root: document.getElementById(&#x27;desktop&#x27;),
   themeBaseUrl: &#x27;https://khawkins98.github.io/scriptoscope/themes&#x27;,
   pageThemeDefault: selected,
   themes,
   syncToUrlParam: &#x27;theme&#x27;,
   persistKey: &#x27;my-desktop&#x27;,
-});</pre></div></div>
-      <div class="site-reference-wrap"><table class="site-reference"><caption>Common mount options</caption><thead><tr><th scope="col">Option</th><th scope="col">Purpose</th></tr></thead><tbody><tr><th scope="row"><code>root</code></th><td>The element to scan; defaults to document. Scope it to your app or desktop to leave surrounding navigation untouched.</td></tr>
+});
+addEventListener(&#x27;pagehide&#x27;, () =&gt; handle.disconnect(), { once: true });</pre></div></div>
+      <div class="site-reference-wrap"><table class="site-reference"><caption>Common mount options</caption><thead><tr><th scope="col">Option</th><th scope="col">Purpose</th></tr></thead><tbody><tr><th scope="row"><code>root</code></th><td>The application root; defaults to document.body. Initial source selection is captured once. Scope it to your app or desktop to leave surrounding navigation untouched.</td></tr>
 <tr><th scope="row"><code>themeBaseUrl</code></th><td>Where the bundled theme directories live. Each slug resolves underneath this URL.</td></tr>
 <tr><th scope="row"><code>pageThemeDefault</code></th><td>The starting scheme slug or theme bundle URL, used where no element overrides it.</td></tr>
 <tr><th scope="row"><code>themes</code></th><td>The catalog array. It supplies folder-picker entries and the registered slugs used for URL deep links.</td></tr>
 <tr><th scope="row"><code>syncToUrlParam</code></th><td>Use a query parameter such as theme to read and share the selected registered scheme.</td></tr>
 <tr><th scope="row"><code>persistKey</code></th><td>Opt into saving window layout in localStorage. Pair it with stable window IDs; omit it to start fresh on reload.</td></tr></tbody></table></div>
-      <p>The returned <code>handle</code> lets you call <code>await handle.retheme('monkey-paradise')</code> to switch schemes. Call <code>handle.disconnect()</code> when removing the integration; it restores the ordinary HTML. <a href="https://github.com/khawkins98/scriptoscope#mountdeclarative-options">Read the full runtime reference →</a></p>
+      <p>The returned <code>handle</code> lets you call <code>await handle.retheme('monkey-paradise')</code> to switch schemes. Call <code>handle.disconnect()</code> when removing the integration; it restores the ordinary HTML. <a href="https://github.com/khawkins98/scriptoscope#explicit-page-host-options">Read the full runtime reference →</a></p>
     </section>
     <section class="site-install-section" id="own-theme" aria-labelledby="own-theme-title">
       <p class="site-section-label">04 / BRING YOUR OWN KALEIDOSCOPE SCHEME</p>
@@ -145,38 +147,58 @@ const handle = await mountDeclarative({
 &lt;p id=&quot;theme-status&quot; role=&quot;status&quot;&gt;&lt;/p&gt;
 &lt;script type=&quot;module&quot;&gt;
   import {
-    mountDeclarative, attachThemeDropZone, loadKaleidoscopeScheme,
+    attachThemeDropZone, loadOwnedKaleidoscopeScheme,
   } from &#x27;https://khawkins98.github.io/scriptoscope/scriptoscope.js&#x27;;
-  const handle = await mountDeclarative({
+  import { mountExplicitPage } from &#x27;https://khawkins98.github.io/scriptoscope/explicit-host.mjs&#x27;;
+  const handle = await mountExplicitPage({
     themeBaseUrl: &#x27;https://khawkins98.github.io/scriptoscope/themes&#x27;,
     pageThemeDefault: &#x27;1138&#x27;,
   });
-  attachThemeDropZone(document.getElementById(&#x27;pick-theme&#x27;), {
+  const themes = new Set();
+  let active = true;
+  let generation = 0;
+  const drop = attachThemeDropZone(document.getElementById(&#x27;pick-theme&#x27;), {
     onFile: async file =&gt; {
+      const token = ++generation;
       const status = document.getElementById(&#x27;theme-status&#x27;);
       status.textContent = `Decoding ${file.name}…`;
       try {
-        const theme = await loadKaleidoscopeScheme(file, { source: file.name });
+        const theme = await loadOwnedKaleidoscopeScheme(file, { source: file.name });
+        if (!active || token !== generation) { theme.dispose(); return; }
+        themes.add(theme);
         handle.registerTheme(&#x27;my-scheme&#x27;, theme);
         await handle.retheme(&#x27;my-scheme&#x27;);
-        status.textContent = `Loaded ${file.name}`;
+        if (active &amp;&amp; token === generation) status.textContent = `Loaded ${file.name}`;
       } catch (error) {
-        status.textContent = `Could not load this scheme: ${error.message}`;
+        if (active &amp;&amp; token === generation) status.textContent = `Could not load this scheme: ${error.message}`;
       }
     },
   });
+  addEventListener(&#x27;pagehide&#x27;, () =&gt; {
+    active = false; ++generation; drop.detach(); handle.disconnect();
+    for (const theme of themes) theme.dispose();
+  }, { once: true });
 &lt;/script&gt;</pre></div></div>
       <h3>Or serve a scheme from your own site.</h3>
       <p>Keep the starter’s <code>handle</code> and add this in the same module. Host the archive at the example path, or change the URL to match your files. Cross-origin hosts must allow your page to fetch the file.</p>
-<div class="site-code-frame"><div class="site-code-example" data-scriptoscope-window data-scriptoscope-title="Hosted scheme" data-example-compact-title="Hosted scheme" data-scriptoscope-window-type="document-window" data-scriptoscope-widgets="zoom,collapse"><div class="site-code-bar"><span>hosted scheme</span><button type="button" data-copy-snippet="install-self-hosted" aria-label="Copy hosted scheme">Copy</button></div><pre id="install-self-hosted" tabindex="0">// In the starter&#x27;s module, import this alongside mountDeclarative:
-import { loadKaleidoscopeScheme } from &#x27;https://khawkins98.github.io/scriptoscope/scriptoscope.js&#x27;;
+<div class="site-code-frame"><div class="site-code-example" data-scriptoscope-window data-scriptoscope-title="Hosted scheme" data-example-compact-title="Hosted scheme" data-scriptoscope-window-type="document-window" data-scriptoscope-widgets="zoom,collapse"><div class="site-code-bar"><span>hosted scheme</span><button type="button" data-copy-snippet="install-self-hosted" aria-label="Copy hosted scheme">Copy</button></div><pre id="install-self-hosted" tabindex="0">// In the starter&#x27;s module, import this alongside mountExplicitPage:
+import { loadOwnedKaleidoscopeScheme } from &#x27;https://khawkins98.github.io/scriptoscope/scriptoscope.js&#x27;;
 
-// After creating handle, load an archive from your own site:
-const theme = await loadKaleidoscopeScheme(
+// After creating handle, own the archive&#x27;s complete lifetime:
+let hostedActive = true;
+let hostedTheme;
+addEventListener(&#x27;pagehide&#x27;, () =&gt; {
+  hostedActive = false; handle.disconnect(); hostedTheme?.dispose();
+}, { once: true });
+const loaded = await loadOwnedKaleidoscopeScheme(
   new URL(&#x27;./themes/My Scheme.sit&#x27;, location.href).href,
 );
-handle.registerTheme(&#x27;my-scheme&#x27;, theme);
-await handle.retheme(&#x27;my-scheme&#x27;);</pre></div></div>
+if (!hostedActive) loaded.dispose();
+else {
+  hostedTheme = loaded;
+  handle.registerTheme(&#x27;my-scheme&#x27;, hostedTheme);
+  await handle.retheme(&#x27;my-scheme&#x27;);
+}</pre></div></div>
       <p class="site-install-aside">A local picked file is a temporary preview. To use it after reload, serve it from your site and load it again. Retain the scheme author’s credits and original terms when sharing a theme.</p>
       <p>Find preserved schemes at <a href="https://macthemes.garden/">Mac Themes Garden</a> and the <a href="https://kaleidoscope.hryjksn.com/">Kaleidoscope Scheme Archive</a>. For a deployed site, you can also <a href="https://github.com/khawkins98/scriptoscope#vendoring-if-you-dont-want-a-third-party-cdn-dependency">self-host the runtime and its decoder assets</a>.</p>
     </section>
