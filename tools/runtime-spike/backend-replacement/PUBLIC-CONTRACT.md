@@ -1,6 +1,6 @@
-# Selected public compatibility delta — isolated prototype only
+# Adopted public compatibility contract — PR493
 
-The coordinator selected a newly implemented thin PixelBuffer surface for the executable trial. The earlier raw-Raster/class-removal proposal is not selected. No shipping approval is implied for extension-observation changes.
+PR493 adopts a thin PixelBuffer surface and the two approved extension-observation changes below: nested method/internal buffer interception and stable pixel/rectangle/inset getter-read counts and order. The earlier raw-Raster/class-removal proposal and other parked candidates are excluded from PR493.
 
 ## Preserved ordinary API
 
@@ -10,9 +10,9 @@ Width/height/data remain readonly-typed public fields; records are not frozen an
 
 Normal numeric pixel addressing, fractional coordinates, alpha, hidden RGB, self-copy write order, clipping and blend arithmetic remain required. All product window/control geometry/state, resource choice, metadata/resource errors, unknown branches, native form ownership, accessibility, host integration, callbacks/events and lifetime remain required.
 
-## Exact proposed extension-observation changes
+## Exact approved extension-observation changes
 
-These are experimental changes for review, not claims that current extensions are unimportant:
+The approved scope is limited to these observations:
 
 | Operation | Observation retired by direct painting |
 | --- | --- |
@@ -23,6 +23,8 @@ These are experimental changes for review, not claims that current extensions ar
 | PixelBuffer.fillRect and nineSlice input rectangles/insets | Exact coordinate/inset getter-read count/order is unspecified; values are captured for immediate painting and must remain stable during the operation |
 | Internally created rendering intermediates | Replaced prototype methods are not guaranteed to intercept all internal painting; internal header source-plane wrappers and pen-state callbacks have been removed |
 
-An explicit external call to an overridden method still resolves that method normally. This proposal does not remove methods or subclasses as ordinary JavaScript constructs. Pixel storage values changing through accessor side effects during one primitive operation are unsupported under this trial boundary; ordinary typed-array mutation and write-through aliases remain supported. No freezing or byte snapshot substitutes for the latter.
+An explicit external call to an overridden method still resolves that method normally. This contract does not remove methods or subclasses as ordinary JavaScript constructs. Pixel storage values changing through accessor side effects during one primitive operation are unsupported under this contract boundary; ordinary typed-array mutation and write-through aliases remain supported. No freezing or byte snapshot substitutes for the latter.
+
+Only exact getter-read counts/order for stable input values are retired; this does not approve arbitrary changes to mutating-getter results or private Region/span behavior. Callers observing nested composites or internal painting must move those observations to explicit public operation boundaries. Callers relying on getter-read counts/order must use ordinary plain stable input values; no new API is required.
 
 Public diagnostic callbacks retain values and ordering. Live content-port callback mutation, metadata getter observation, resource provider/error ordering and Canvas factory observation remain required. Already approved mount/service retirements and bevel metadata entry snapshots are separate.
