@@ -1,0 +1,80 @@
+{
+  "schema": 1,
+  "status": "PROVENANCED_PAIR_CANDIDATE_PENDING_INDEPENDENT_REVIEW",
+  "actualMatchedPairs": 1,
+  "requests": [
+    {
+      "id": "titlebar/windows-95/document/active/v1",
+      "activation": "active"
+    },
+    {
+      "id": "titlebar/windows-95/document/inactive/v1",
+      "activation": "inactive"
+    }
+  ],
+  "source": {
+    "registry": "tests/control-availability/source-choices.json",
+    "slug": "windows-95",
+    "archiveSha256": "57a00943640bf92f1b8dd2482ee22f96b625bbca45032a1284442756770d8622",
+    "entryIndex": 2,
+    "entryName": "Windows 95/Windows 95",
+    "forkSha256": "07d544814769dcfb935873c96a5fcf6f07d8716d2590a97b8322aa2e144f6999"
+  },
+  "requested": {
+    "os": "System 7.5.5",
+    "engine": "Kaleidoscope 2.3.1",
+    "windowProcedure": 0,
+    "title": "Agjpqy 0123",
+    "contentPixels": [
+      240,
+      120
+    ],
+    "framebufferPixels": [
+      640,
+      480
+    ],
+    "displayDepth": 8,
+    "producerScale": [
+      1,
+      1
+    ],
+    "pairSequence": [
+      "A selects target",
+      "C records active; retain native file and producer frame",
+      "I selects witness",
+      "C records inactive; retain native file and producer frame"
+    ],
+    "emptyTitleCompanionRequired": true
+  },
+  "admissionStillRequired": [
+    "fresh independent review of tooling and acquisition bindings",
+    "review precise pixel/state/geometry dimensions eligible for admission",
+    "empty-title companion and title font/clip/widget measurements before those additional dimensions are claimed",
+    "retain finite producer-colour membership limits; no general display-conversion inference"
+  ],
+  "forbiddenSubstitutes": [
+    "disabled control in active window",
+    "incidental prior chrome",
+    "candidate renderer pixels",
+    "unrelated existing emulator session"
+  ],
+  "unknown": [
+    "title font identity/provider/metrics",
+    "title clip",
+    "widget rectangles",
+    "empty-title companion",
+    "private provider/cache/patch ordering",
+    "historical physical display behavior"
+  ],
+  "note": "This dedicated independent request does not mutate existing button requests or acceptance bindings.",
+  "fullyAdmittedPixelReferencePairs": 0,
+  "earlierPartialPairs": 1,
+  "candidateManifest": "first-pair-candidate.json",
+  "observedForCandidate": [
+    "same-run target/witness activation and unchanged geometry",
+    "same-run 8bpp main-device, palette, bounded gamma and 256 index conversion observations",
+    "Copl/FCB scheme identity joined to requested stopped fork hash",
+    "stable repeated raw plane, canvas equality, lossless full frame and top-band crop",
+    "successful displayed native I/O statuses with byte-exact stopped exports"
+  ]
+}
