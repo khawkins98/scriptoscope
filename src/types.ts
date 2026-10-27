@@ -21,7 +21,7 @@ export interface WindowPart {
 /**
  * One step of an edge recipe: `at` is a cicn-pixel border, `part` its
  * frame-piece slug (`part-N`, where N is the true wnd# part code — structural
- * pieces, not widget refs). Association is END-BASED (kDEF `0x5356`): the entry
+ * pieces, not widget refs). Association is END-BASED: the entry
  * describes the cell that ENDS at `at`, spanning from the PREVIOUS border —
  * segment i is `[border[i-1], border[i])` tagged `part[i]`. See
  * docs/spec/kdef231-recipe-walk.md Q2 and `recipeCells` in composeChrome.ts.
@@ -220,8 +220,8 @@ export interface ChromeElement {
   height: number;
   /**
    * 9-slice geometry from the element's cinf (TMPL 129): `corner` = cinf
-   * `cornerSize` (byte 0) — the kDEF reads THIS as the 9-slice corner inset
-   * (`0x107fe`), not a value derived from the bitmap; `side` = `sideThickness`
+   * `cornerSize` (byte 0) — the 9-slice corner inset,
+   * not a value derived from the bitmap; `side` = `sideThickness`
    * (byte 1); `tile` = the cinf `tileSides` flag (center/edges repeat rather
    * than stretch — e.g. 1990's default-button ring). Null when the scheme
    * ships no cinf for this element (→ fall back to a derived inset).
@@ -287,7 +287,7 @@ export interface ChromeElement {
   bgPattern?: string | null;
   /**
    * The cinf-declared `(x, y)` source pixel used to sample the background RGB
-   * (TMPL 129 `bgPixel`; kDEF 0x10904 / 0x117c0). Despite the historical property
+   * (TMPL 129 `bgPixel`). Despite the historical property
    * name this is a color-sample coordinate, not a background-pattern tile origin.
    */
   bgAnchor?: [number, number] | null;
@@ -461,7 +461,7 @@ export interface ThemeInspector {
   };
 }
 
-/** The universal kDEF231 CDEF scroll-arrow mapping (per the asm 9f0e-9f38 decode). */
+/** The universal kDEF231 CDEF scroll-arrow mapping. */
 export interface ThemeScrollArrowMap {
   note: string;
   raised: { right: number | null; left: number | null; down: number | null; up: number | null };
