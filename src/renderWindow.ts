@@ -8,7 +8,7 @@ import type { IconSource } from './engine/qd/region.js';
 // wnd# recipe) draws through the v2 engine family proceduralFrame, dynamically
 // imported so the 13 wnd# themes don't load it on first paint.
 import { rasterizeText } from './textRaster.js';
-import { rasterizeTitle, truncateTitle } from './titleFont.js';
+import { measureTitle, rasterizeTitle, truncateTitle } from './titleFont.js';
 import { TITLE_TEXT } from './engine/tables/window.js';
 import { PixelBuffer } from './pixelBuffer.js';
 import { resolveWindowSelection } from './resolveWindowType.js';
@@ -130,7 +130,13 @@ export async function renderWindow(
     const b = rasterizeText(text, textH, hex);
     return { buffer: b, ascent: b.height, advance: b.width };
   };
-  let measured: ReturnType<typeof raster> | null = null;
+  const measure = (text: string): { ascent: number; advance: number } => {
+    const measured = measureTitle(text, textH);
+    if (measured) return measured;
+    const b = rasterizeText(text, textH, '#000000');
+    return { ascent: b.height, advance: b.width };
+  };
+  let measured: ReturnType<typeof measure> | null = null;
   if (showTitle && frameTop > 6 && !builtInFrame) {
     textH = Math.max(8, Math.min(13, frameTop - 6)); // ~Chicago 12px, never frame-scaled
     // Canvas text only uses a font that's ALREADY loaded — so ensure the
@@ -142,7 +148,7 @@ export async function renderWindow(
     }
     // Title in the "Charcoal" font (period anti-aliased type); pixel rasterizer
     // is the fallback (non-DOM contexts). Width pass; recoloured below.
-    measured = raster(title, '#000000');
+    measured = measure(title);
   }
   // Built-in frame windows (no wnd# recipe: apple-platinum-2, black-platinum,
   // platinum-8, slimes, system7-nostalgia-silver) draw through the v2 engine
@@ -192,8 +198,8 @@ export async function renderWindow(
     // width (floppies and 1138's titled utility have plates 1-2 px narrower than the rect).
     const plateRight = composed.titleRegion.x + composed.titleRegion.w;
     const room = Math.min(t4p.w + TITLE_TEXT.TX4.widenRight, Math.max(plateRight - t4p.x, t4p.w));
-    const dispTitle = truncateTitle(title, room, text => text === title ? measured.advance : raster(text, '#000000').advance);
-    const base = dispTitle === title ? measured : dispTitle ? raster(dispTitle, '#000000') : null;
+    const dispTitle = truncateTitle(title, room, text => text === title ? measured.advance : measure(text).advance);
+    const base = dispTitle === title ? measured : dispTitle ? measure(dispTitle) : null;
     if (base) {
       // DECISIONS #13 (2): the decoded baseline (TX8) and clip (TX4) are kept, except that our
       // title font is taller than the original's: when its ascent would start above the title

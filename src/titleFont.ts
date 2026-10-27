@@ -28,7 +28,15 @@ export function rasterizeTitleFont(text: string, px: number, hex: string): Pixel
 }
 
 /** As {@link rasterizeTitleFont}, also returning the baseline row and advance. */
+export function measureTitle(text: string, px: number, opts: { exactPx?: boolean } = {}): Pick<TitleRaster, 'ascent' | 'advance'> | null {
+  return prepareTitle(text, px, '#000000', opts, true);
+}
+
 export function rasterizeTitle(text: string, px: number, hex: string, opts: { exactPx?: boolean } = {}): TitleRaster | null {
+  return prepareTitle(text, px, hex, opts, false) as TitleRaster | null;
+}
+
+function prepareTitle(text: string, px: number, hex: string, opts: { exactPx?: boolean }, measureOnly: boolean): TitleRaster | Pick<TitleRaster, 'ascent' | 'advance'> | null {
   if (typeof document === 'undefined' || !text) return null;
   // Charcoal 12 (Jeremy Sachs, CC BY-SA — a bitmap clone of Mac OS 8/9 Charcoal) is
   // crisp ONLY at its grid-native 16px: the finest design step (125 of 2000 em
@@ -59,6 +67,7 @@ export function rasterizeTitle(text: string, px: number, hex: string, opts: { ex
   const asc = Math.max(1, Math.ceil(tm.actualBoundingBoxAscent || size * 0.72));
   const desc = Math.max(0, Math.ceil(tm.actualBoundingBoxDescent || 0));
   const h = Math.max(1, asc + desc);
+  if (measureOnly) return { ascent: asc, advance: Math.ceil(tm.width) };
   const c = document.createElement('canvas');
   c.width = w; c.height = h;
   const ctx = c.getContext('2d');
