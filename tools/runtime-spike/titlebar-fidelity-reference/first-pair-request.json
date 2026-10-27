@@ -1,0 +1,72 @@
+{
+  "schema": 1,
+  "status": "PLANNED_NOT_ACQUIRED",
+  "actualMatchedPairs": 0,
+  "requests": [
+    {
+      "id": "titlebar/windows-95/document/active/v1",
+      "activation": "active"
+    },
+    {
+      "id": "titlebar/windows-95/document/inactive/v1",
+      "activation": "inactive"
+    }
+  ],
+  "source": {
+    "registry": "tests/control-availability/source-choices.json",
+    "slug": "windows-95",
+    "archiveSha256": "57a00943640bf92f1b8dd2482ee22f96b625bbca45032a1284442756770d8622",
+    "entryIndex": 2,
+    "entryName": "Windows 95/Windows 95",
+    "forkSha256": "07d544814769dcfb935873c96a5fcf6f07d8716d2590a97b8322aa2e144f6999"
+  },
+  "requested": {
+    "os": "System 7.5.5",
+    "engine": "Kaleidoscope 2.3.1",
+    "windowProcedure": 0,
+    "title": "Agjpqy 0123",
+    "contentPixels": [
+      240,
+      120
+    ],
+    "framebufferPixels": [
+      640,
+      480
+    ],
+    "displayDepth": 8,
+    "producerScale": [
+      1,
+      1
+    ],
+    "pairSequence": [
+      "A selects target",
+      "C records active; retain native file and producer frame",
+      "I selects witness",
+      "C records inactive; retain native file and producer frame"
+    ],
+    "emptyTitleCompanionRequired": true
+  },
+  "admissionStillRequired": [
+    "actual installed engine and loaded scheme fork hashes from stopped copies joined to public same-run identity",
+    "actual framebuffer/depth/palette/gamma and producer identities",
+    "unchanged target geometry/title with front/hilited observations in both states",
+    "full raw producer, stable repeated plane, lossless full frame and crop byte hashes",
+    "actual titlebar crop, title/font/clip/widget metrics or explicit dimension claim limits",
+    "successful write/close/flush/reopen/EOF statuses and stopped telemetry export",
+    "independent review before reference registry admission"
+  ],
+  "forbiddenSubstitutes": [
+    "disabled control in active window",
+    "incidental prior chrome",
+    "candidate renderer pixels",
+    "unrelated existing emulator session"
+  ],
+  "unknown": [
+    "title font identity/provider/metrics",
+    "title clip",
+    "widget rectangles",
+    "native titlebar crop",
+    "same-run original palette and loaded scheme identity"
+  ],
+  "note": "This dedicated independent request does not mutate existing button requests or acceptance bindings."
+}
