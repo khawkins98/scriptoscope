@@ -31,8 +31,14 @@ test(`${mode}: tabs keep semantic ownership, native identity and keyboard select
     const native = [...root.querySelectorAll('button')];
     let clicks = 0;
     native[0].addEventListener('click', () => { clicks += 1; });
-    const handle = await api.mountDeclarative({ root, pageThemeDefault: themeUrl,
-      themes: [{ slug: '1138', source: 'scheme.rsrc' }], bootAffordance: 'none', rejectOnEmptyMount: true });
+    const theme = await api.loadTheme(themeUrl, { source: 'scheme.rsrc' });
+    const lifetime = new AbortController();
+    const wrapper = root.querySelector('[data-scriptoscope-tabs]');
+    await api.promoteTabs(wrapper, theme, { signal: lifetime.signal });
+    const registrations = new Map();
+    const handle = { registerTheme(ref, value) { registrations.set(ref, value); },
+      async retheme(ref) { await api.promoteTabs(wrapper, registrations.get(ref) ?? theme, { forceRescan: true, signal: lifetime.signal }); },
+      disconnect() { lifetime.abort(); api.restoreTabs(wrapper); theme.dispose(); } };
     const empty = { baseUrl: new URL('no-tab-assets/', location.href).href,
       manifest: { name: 'Explicit empty theme', windowTypes: {}, chromeElements: {}, patterns: {} } };
     handle.registerTheme('empty-tabs', empty);
@@ -92,9 +98,12 @@ test(`${mode}: tabs keep semantic ownership, native identity and keyboard select
     window.tabsFixture.handle.disconnect();
     window.tabsFixture.handle.disconnect();
   });
-  // Existing disconnect retains promoted tabs; this test claims no new teardown
-  // contract, but requires native nodes and valid ownership to survive.
-  await assertStructure();
+  // Explicit teardown restores the same native controls and removes owned semantics.
+  expect(await page.evaluate(() => {
+    const { root, native } = window.tabsFixture;
+    return native.every(node => node.isConnected && !node.hasAttribute('role') && !node.style.display)
+      && root.querySelectorAll('[role=tab],[role=tablist],[role=tabpanel]').length === 0;
+  })).toBe(true);
   expect(errors).toEqual([]);
 });
 }

@@ -6,13 +6,14 @@ async function setup(page, servers, mode, markup = '') {
     const runtime = await import(mode === 'source' ? '/src/index.ts' : '/dist/scriptoscope.js');
     const themes = await Promise.all(['windows-95', 'system7-nostalgia-silver'].map(s => runtime.loadTheme(`/themes/${s}`)));
     const root = document.createElement('section'); document.body.append(root);
-    const handle = await runtime.mountDeclarative({ root, pageThemeDefault: 'first', bootAffordance: 'none' });
-    handle.registerTheme('first', themes[0]); handle.registerTheme('next', themes[1]);
     const form = document.createElement('form'); form.innerHTML = markup || '<button type="button" id="before">Before</button><input id="native" type="range" data-scriptoscope-control="off" aria-label="Reference"><input id="themed" name="value" type="range" aria-label="Themed"><button type="button" id="after">After</button>';
     // Integer-aligned canvas origins keep exact pointer fractions meaningful
     // in engines that quantize trusted mouse coordinates to CSS pixels.
     form.style.display = 'grid'; form.style.justifyItems = 'start';
     root.append(form);
+    const { attachNativeSources } = await import('/tests/rendering-options/explicit-native-host.mjs');
+    const handle = await attachNativeSources(runtime, { root, theme: themes[0], controls: [form.querySelector('#themed')] });
+    handle.retheme = () => handle.replace(themes[1]);
     const events = [];
     for (const type of ['input', 'change']) form.addEventListener(type, e => events.push({ id: e.target.id, type, value: e.target.value, bubbles: e.bubbles, composed: e.composed }));
     window.ranges = { runtime, themes, root, handle, form, events };

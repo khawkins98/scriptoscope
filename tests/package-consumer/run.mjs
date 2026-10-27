@@ -1,3 +1,4 @@
+import { rootExports, rendererExports, declarativeExports, sharedHostExports } from './fixture/public-exports.mjs';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -59,8 +60,12 @@ async function prepareConsumer(tarball, name) {
       import assert from 'node:assert/strict';
       import * as root from 'scriptoscope';
       import * as renderer from 'scriptoscope/renderer';
-      assert.equal(Object.keys(root).length, 75);
-      assert.equal(Object.keys(renderer).length, 44);
+      import * as declarative from 'scriptoscope/declarative';
+      assert.deepEqual(Object.keys(root).sort(), ${JSON.stringify(rootExports)});
+      assert.deepEqual(Object.keys(renderer).sort(), ${JSON.stringify(rendererExports)});
+      assert.deepEqual(Object.keys(declarative).sort(), ${JSON.stringify(declarativeExports)});
+      for (const key of ${JSON.stringify(sharedHostExports)}) assert.equal(declarative[key], root[key], key);
+      for (const entry of [root, declarative]) for (const name of ['mountDeclarative', 'mountOwnedDeclarative']) assert.equal(name in entry, false);
       for (const [key, value] of Object.entries(renderer)) assert.equal(value, root[key], key);
       assert.equal(await import('scriptoscope/renderer'), renderer);
     `], consumer);
