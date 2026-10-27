@@ -18,10 +18,16 @@ publish completion. The source nodes remain native form and accessibility owners
 
 Each preparation has a guard and lifetime. A successful button replacement
 transfers focus and disposes its previous face. A failed or stale replacement
-retains the prior committed face. Detach/disconnect abort before restoration;
+retains the prior committed face, including native-state synchronization and
+interaction. Generation predicates gate pending preparation; a new attempt does
+not revoke committed ownership. Detach/disconnect abort before restoration;
 window, field, tab and control dependents release before the resolver. Registered
 themes and their base chains remain borrowed. Drop owners release their themes
 only after disconnecting the consuming host.
+
+Disconnect rolls back only still-owned picker attributes, generated picker nodes,
+cascade styles and root inert state. Later application attributes, added native
+nodes and their live values remain intact; an empty theme picker owns no changes.
 
 Boot failures reject with `PagePromotionError`, retaining the underlying `cause`
 and collected `failures`. With `rejectOnEmptyMount`, a nonempty selection with no

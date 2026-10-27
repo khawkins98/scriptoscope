@@ -116,13 +116,15 @@ async function prepareControl(el: Promotable, theme: ThemeInput, signal?: AbortS
   const checkable = kind === 'checkbox' || kind === 'radio';
   const location: Promotion['location'] = previous?.location ?? (checkable ? { parent, next: el.nextSibling } : undefined);
   let committed = false;
-  const active = (): boolean => committed && !events.signal.aborted && canCommit?.() !== false;
+  const active = (): boolean => committed && !events.signal.aborted;
+  // The generation predicate owns preparation, not the committed face's lifetime.
+  const mayPaint = (): boolean => committed || canCommit?.() !== false;
   let face: HTMLElement | undefined;
   try {
     face = kind === 'select'
-      ? await prepareSelect(el as HTMLSelectElement, theme, events, canCommit)
+      ? await prepareSelect(el as HTMLSelectElement, theme, events, mayPaint)
       : kind === 'range' ? await interactiveNativeSlider(theme, el as HTMLInputElement, active)
-        : await prepareCheckable(el as HTMLInputElement, kind, theme, events, canCommit);
+        : await prepareCheckable(el as HTMLInputElement, kind, theme, events, mayPaint);
     if (events.signal.aborted || el.parentNode !== parent || el.isConnected !== connected
       || (label && label.parentNode !== labelParent)) return null;
     if (canCommit?.() === false) return null;

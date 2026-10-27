@@ -1328,7 +1328,11 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     bar.tabIndex = 0;
 
     let raf = 0, paintEpoch = 0;
-    signal.addEventListener('abort', () => { if (raf) cancelAnimationFrame(raf); raf = 0; }, { once: true });
+    signal.addEventListener('abort', () => {
+      if (raf) cancelAnimationFrame(raf);
+      raf = 0;
+      bar.remove();
+    }, { once: true });
     const repaint = async (): Promise<void> => {
       if (!current()) return;
       const epoch = paintEpoch;

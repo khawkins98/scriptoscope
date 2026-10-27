@@ -38,7 +38,7 @@ export async function mountExplicitPage(opts) {
     [el, { nodes:[...el.childNodes], attrs:new Map([...el.attributes].map(a=>[a.name,a.value])), owned:new Map() }]));
   const sources = [...selected.windows];
   const pickerEl = selected.picker;
-  const pickerOriginal = pickerEl ? {nodes:[...pickerEl.childNodes], attrs:new Map([...pickerEl.attributes].map(a=>[a.name,a.value]))} : null;
+  const pickerNodes = new Set();
   const bindings = new Map();
   const buttonFaces = new Map();
   const pendingFaces = new Map();
@@ -85,6 +85,11 @@ export async function mountExplicitPage(opts) {
   if (opts.bootAffordance!=='none' && opts.bootAffordance!==false) root.setAttribute('data-scriptoscope-loading','');
   const wasInert = root.inert;
   root.inert = true;
+  let ownedInert = root.inert;
+  function restoreInert() {
+    if (root.inert === ownedInert) root.inert = wasInert;
+    ownedInert = wasInert;
+  }
   const mark = (kind, host) => host.dispatchEvent(new CustomEvent('scriptoscope:promoted',
     {bubbles:true,detail:{kind,host}}));
   function fail(kind, el, cause) {
@@ -117,7 +122,7 @@ export async function mountExplicitPage(opts) {
       if (button) {
         const previous = buttonFaces.get(el);
         const focused = previous && (document.activeElement === previous || previous.contains(document.activeElement));
-        const face = await promoteGuardedButton(el,theme,lifetime,()=>owned(el,owner) && current(token));
+        const face = await promoteGuardedButton(el,theme,lifetime,()=>owned(el,owner) && current(token) && pendingFaces.get(el)===preparation);
         if (!face || !owned(el,owner)) return;
         const previousBinding=bindings.get(el);
         bindings.delete(el);
@@ -132,7 +137,7 @@ export async function mountExplicitPage(opts) {
         if (owned(el,owner) && buttonFaces.get(el)===face) await bind(el,face);
         if (current(token) && owned(el,owner)) success('buttons',el,face);
       } else {
-        const face = await promoteGuardedControl(el,theme,lifetime,()=>owned(el,owner) && current(token));
+        const face = await promoteGuardedControl(el,theme,lifetime,()=>owned(el,owner) && current(token) && pendingFaces.get(el)===preparation);
         if (!face || !owned(el,owner)) return;
         committedFaces.get(el)?.abort();
         committedFaces.set(el,preparation);
@@ -184,6 +189,8 @@ export async function mountExplicitPage(opts) {
     if (disposed) return;
     const token = ++epoch;
     attempt?.abort();
+    for (const pending of pendingFaces.values()) pending.abort();
+    pendingFaces.clear();
     // Guards invalidate pending source paints. Committed faces keep their own
     // lifetime until successful replacement, explicit detach or disconnect.
     attempt = new AbortController();
@@ -231,6 +238,7 @@ export async function mountExplicitPage(opts) {
         win.consumerManager.setPosition(win.host,x,y);
       });
       container.style.minHeight = `${tallest+lastY+8}px`;
+      Object.assign(cascade.get(container),{ownedHeight:container.style.minHeight,ownedPosition:container.style.position});
     }
   }
   function inheritedRef(el) {
@@ -308,13 +316,8 @@ export async function mountExplicitPage(opts) {
     bootAnimations.clear();
     for (const modal of modals) modal.close();
     picker?.teardown();
-    if (pickerEl && pickerOriginal) {
-      pickerEl.replaceChildren(...pickerOriginal.nodes);
-      for(const name of ['data-scriptoscope-theme-picker-promoted','role','tabindex','aria-label','aria-busy']) {
-        const value=pickerOriginal.attrs.get(name);
-        if(value===undefined)pickerEl.removeAttribute(name);else pickerEl.setAttribute(name,value);
-      }
-    }
+    for (const node of pickerNodes) node.remove();
+    pickerNodes.clear();
     for (const binding of bindings.values()) void binding.dispose();
     bindings.clear();
     const focus = [...buttons].filter(el => restoreButton(el));
@@ -333,12 +336,13 @@ export async function mountExplicitPage(opts) {
       }
     }
     for (const [el,original] of cascade) {
-      el.style.minHeight=original.height; el.style.position=original.position;
+      if(el.style.minHeight===original.ownedHeight)el.style.minHeight=original.height;
+      if(el.style.position===original.ownedPosition)el.style.position=original.position;
     }
     resolver.dispose();
     root.classList.remove('scriptoscope-ready');
     root.removeAttribute('data-scriptoscope-loading');
-    root.inert = wasInert;
+    restoreInert();
     // Sample only at this explicit teardown boundary. Any later natural size
     // or font change invalidates same-width reuse; no content observer is used.
     for(const [source,record] of reusable)mountedSources.set(source,{...record,shape:nativeShape(source)});
@@ -377,12 +381,17 @@ export async function mountExplicitPage(opts) {
     prepareCascade();
     if (hasTargets) await paintTargets(theme,attempt.signal,token);
     ref=initial;
-    if (pickerEl) picker = await promoteThemePicker(pickerEl,opts.themes,{
-      loadTheme:slug => resolver.load(slug),switchTheme:retheme,initialSlug:initial
-    });
+    if (pickerEl) {
+      const before=new Set(pickerEl.childNodes);
+      const promotion=promoteThemePicker(pickerEl,opts.themes,{
+        loadTheme:slug => resolver.load(slug),switchTheme:retheme,initialSlug:initial
+      });
+      for(const node of pickerEl.childNodes)if(!before.has(node))pickerNodes.add(node);
+      picker = await promotion;
+    }
     for (const win of windows.values()) await win.consumerManager.refreshScrollbars(win.host);
     if (opts.rejectOnEmptyMount && hasTargets && !successes) throw new PagePromotionError('No selected source could be promoted', failures); 
-    root.inert=wasInert;
+    restoreInert();
     root.removeAttribute('data-scriptoscope-loading');
     root.classList.add('scriptoscope-ready');
     syncUrl(initial);
