@@ -1,6 +1,22 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { snapshotControlComposition, bodyPatternAnchor, bodyPatternSample, controlPointVisible } from './controlComposition.ts';
+import { snapshotControlComposition, bodyPatternAnchor, bodyPatternPhase, controlPointVisible } from './controlComposition.ts';
+import '../tests/helpers/registerTs.mjs';
+const { fillPattern } = await import('./engine/qd/pattern.ts');
+
+// Exercise the phase/fill combination used by production composition. Encoding
+// tile coordinates as pixel channels lets the existing samples inspect its output.
+function bodyPatternSample(context, mode, width, height, x, y, tileWidth, tileHeight) {
+  const [phaseX, phaseY] = bodyPatternPhase(context, mode, width, height);
+  const pattern = { width: tileWidth, height: tileHeight, data: new Uint8ClampedArray(tileWidth * tileHeight * 4) };
+  for (let sy = 0; sy < tileHeight; sy++) for (let sx = 0; sx < tileWidth; sx++) {
+    pattern.data.set([sx, sy, 0, 255], (sy * tileWidth + sx) * 4);
+  }
+  const port = { width: width, height: height, data: new Uint8ClampedArray(width * height * 4) };
+  fillPattern(port, { left: x, top: y, right: x + 1, bottom: y + 1 }, pattern, { x: -phaseX, y: -phaseY });
+  const offset = (y * width + x) * 4;
+  return [port.data[offset], port.data[offset + 1]];
+}
 const context = (controlOrigin = [0, 0], portOrigin = [0, 0], offset = [0, 0]) => snapshotControlComposition({
   controlOrigin, portOrigin, patternOrigin: { status: 'known', offset }, clip: { kind: 'unbounded' },
 });

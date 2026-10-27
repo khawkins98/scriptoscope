@@ -1,67 +1,9 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// wnd# fallback ladder — clean-room replay of Kaleidoscope 2.3.1 kDEF
-// ─────────────────────────────────────────────────────────────────────────────
+// wnd# fallback lookup.
 //
-// The 2.3.1 kDEF (file `id-0-680x0_DefProcs.bin`, 107,726 B) carries a 12-step
-// `wnd#` ID-degradation cascade at `0x356c..0x367e`. When the scheme's resource
-// fork doesn't ship the requested wnd# id, the kDEF re-attempts with a series
-// of bitwise-AND'd ids that strip "variant" bits until one resolves. The cascade
-// terminates at the canonical document-window id (`-14336`) for the document
-// family and at the titled-utility id (`-14304`) for the utility family.
-//
-// This is a 2.3.1-only enhancement — the 1.8.2 kDEF
-// has NO `'wnd#'` FourCC anywhere in `kDEF 0`; cross-checked by `grep -c 'wnd#'`
-// on both binaries. 1.8.2 used a different resource model; 2.3.1 introduced
-// the wnd# slice-list + this cascade as its degradation strategy.
-//
-// Decoded request sequence (each step is one `GetResource('wnd#', id & mask)`;
-// the address is the step's call site, the mask is applied to the requested id):
-//
-//   0x356a  raw          id
-//   0x357c  AND -2       id & 0xFFFE  (strip bit 0)
-//   0x3594  AND -3       id & 0xFFFD  (strip bit 1)
-//   0x35ac  AND -4       id & 0xFFFC  (strip bits 0-1)
-//   0x35c4  AND -5       id & 0xFFFB  (strip bit 2)
-//   0x35dc  AND -6       id & 0xFFFA  (strip bits 0+2)
-//   0x35f4  AND -15      id & 0xFFF1  (strip bits 1-3)
-//   0x360c  AND -16      id & 0xFFF0  (strip bits 0-3)
-//   0x3624  AND -17      id & 0xFFEF  (strip bit 4)
-//   0x363c  AND -18      id & 0xFFEE  (strip bits 0+4)
-//   0x3654  AND -21      id & 0xFFEB  (strip bits 2+4)
-//   0x366c  AND -22      id & 0xFFEA  (strip bits 0+2+4)
-//
-// The first non-NULL handle ends the sequence; the remaining attempts are
-// skipped and control joins at `0x3680`. Address trace and verification
-// record: docs/spec/engine/code-comments.evidence.md (wndCascade.ts).
-// (`'wnd#'` = FourCC 0x776e6423 = decimal 2003723299; `_GetResource` = 0xA9A0.)
-//
-// HOW IT MAPS ONTO THE CANONICAL ID GRID (`-14336..-14284, -12320`):
-//
-//   ID      SLUG                              CASCADE LANDING (unique steps)
-//   -14336  document-window                   (terminal)
-//   -14332  collapsed-document-window         → -14336
-//   -14328  dialog                            → -14336
-//   -14326  alert                             → -14328 → -14336
-//   -14324  movable-modal                     → -14328 → -14336
-//   -14322  movable-alert                     → -14324 → -14326 → -14336
-//   -14304  titled-utility-window             (terminal — utility family)
-//   -14300  collapsed-titled-utility-window   → -14304
-//   -14296  side-floating-utility-window      → -14304
-//   -14292  collapsed-side-floating-utility-window → -14296 → -14304
-//   -14288  no-title-utility-window           → -14304
-//   -14284  collapsed-no-title-utility-window → -14288 → -14300 → -14304
-//   -12320  popup-window                      (terminal — no fallback in mask grid)
-//
-// Compatibility aliases must resolve BEFORE this mask ladder. The loader's
-// emitted keys and runtime canonical names share one portable identity table;
-// missing names alone are not evidence that authored resources are absent.
-// This replay does not establish original Resource Manager base-chain ownership.
-//
-// CITATIONS:
-//   docs/spec/kdef-binary-inventory.md §4              (the finding)
-//   docs/spec/kdef231-reference.md §3.4                (the cascade table)
-//   kDEF 2.3.1 0x356c..0x367e                           (the ground truth)
-// ─────────────────────────────────────────────────────────────────────────────
+// Supports canonical window-type names, compatibility aliases and raw resource keys.
+// Compatibility aliases resolve before the ordered variant-bit fallback ladder.
+// Resource lookup stops at the first available candidate.
+// This helper does not define Resource Manager base-chain ownership.
 
 import { WINDOW_TYPE_IDENTITIES } from '../tools/theme-loader/window-type-identities.js';
 

@@ -70,7 +70,7 @@ export function snapshotControlComposition(context?: ControlCompositionContext):
     clip: copiedClip });
 }
 
-/** kDEF 10ac8..10af6 uses the ORIGINAL Rect edges, including exclusive right/bottom. */
+/** Anchor modes select rectangle corners, including exclusive right and bottom edges. */
 export function bodyPatternAnchor(mode: number, rect: ControlRect): ControlPoint {
   const right = coordinate(rect.x + rect.w, 'control.right'), bottom = coordinate(rect.y + rect.h, 'control.bottom');
   switch (mode) {
@@ -80,18 +80,6 @@ export function bodyPatternAnchor(mode: number, rect: ControlRect): ControlPoint
     case 4: return [right, bottom];
     default: return [0, 0];
   }
-}
-
-const modulo = (value: number, size: number): number => ((value % size) + size) % size;
-/** Full-color source model: f930 translates D/clip by -P; QDSetPatternOrigin's
- * signed offset adds to sampling (UI3.4.1's +10 origin/-10 offset example).
- * Unknown state explicitly applies zero as compatibility policy. Mode5 is NOT ppat. */
-export function bodyPatternSample(context: ControlCompositionSnapshot, mode: number, width: number, height: number,
-  x: number, y: number, tileWidth: number, tileHeight: number): ControlPoint {
-  if (mode === 5) throw new RangeError('Body mode5 requests cicn, not ppat');
-  if (!Number.isInteger(tileWidth) || !Number.isInteger(tileHeight) || tileWidth <= 0 || tileHeight <= 0) throw new RangeError('Pattern dimensions must be positive integers');
-  const [phaseX, phaseY] = bodyPatternPhase(context, mode, width, height);
-  return [modulo(phaseX + x, tileWidth), modulo(phaseY + y, tileHeight)];
 }
 
 /** Clip coordinates share the original port space; clipping never changes sampling. */
