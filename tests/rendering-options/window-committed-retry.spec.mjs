@@ -6,15 +6,14 @@ const test = base.extend({ servers: [async ({}, use) => {
   try { await use(servers); } finally { await servers.close(); }
 }, { scope: 'worker' }] });
 
-// A fixed layout/paint checkpoint, never a poll for missing scrollbars. The host
-// is appended in the same continuation as the completed public state update.
-const layoutFrames = 6;
+// Public state commits and asynchronous scrollbar paint have different readiness.
+// Each trigger runs once; web-first assertions retain the configured finite timeout.
 for (const mode of ['source', 'built']) for (const action of ['z-only', 'aborted', 'replaced', 'removed']) {
   test(`${mode}: detached committed window retry survives ${action}`, async ({ page, servers, browser }, info) => {
-    await info.attach('runtime.json', { body: JSON.stringify({ mode, action, layoutFrames, browser: browser.version() }), contentType: 'application/json' });
+    await info.attach('runtime.json', { body: JSON.stringify({ mode, action, browser: browser.version() }), contentType: 'application/json' });
     await page.goto(`${servers[mode]}/tests/rendering-options/native-dom-page.html`);
     try {
-      const result = await page.evaluate(async ({ mode, action, layoutFrames }) => {
+      const result = await page.evaluate(async ({ mode, action }) => {
         const css = document.createElement('link'); css.rel = 'stylesheet';
         css.href = mode === 'source' ? '/src/scriptoscope.css' : '/dist/scriptoscope.css';
         await new Promise((resolve, reject) => { css.onload = resolve; css.onerror = reject; document.head.append(css); });
@@ -29,7 +28,6 @@ for (const mode of ['source', 'built']) for (const action of ['z-only', 'aborted
           const host = await f.manager.add(theme, { title: 'Committed retry', width: 240, height: 130 }, {}, { contentEl: content });
           f.hosts.push(host); return { host, content };
         };
-        const frames = async () => { for (let i = 0; i < layoutFrames; i++) await new Promise(resolve => requestAnimationFrame(resolve)); };
         const observe = ({ host, content }) => ({
           state: (() => { const s = f.manager.describe(host); return s && { width: s.width, height: s.height, z: s.z, collapsed: s.collapsed }; })(),
           contentSame: host.contains(content),
@@ -58,13 +56,39 @@ for (const mode of ['source', 'built']) for (const action of ['z-only', 'aborted
         if (action === 'removed') f.manager.remove(subject.host);
         document.body.append(subject.host);
         const appendedBeforeFrame = !firstLayoutFrame;
-        await frames();
-        const actual = observe(subject);
-        // An unmodified committed window grounds the expected overflow and paint.
-        const control = await make(); document.body.append(control.host); await frames();
+        // Construct both windows before waiting on browser font/layout readiness.
+        const control = await make(); document.body.append(control.host);
+        await document.fonts.ready;
+        f.observe = () => ({ actual: observe(subject), control: observe(control) });
         return { detached, appendedBeforeFrame, initial: { width: initial.width, height: initial.height, z: initial.z, collapsed: initial.collapsed },
-          actual, control: observe(control) };
-      }, { mode, action, layoutFrames });
+          };
+      }, { mode, action });
+      // Exact live paint is the readiness postcondition, including cold subjects.
+      // A missing axis never satisfies this assertion, regardless of the control.
+      const readyBars = bars => bars.length === 2 &&
+        bars[0].axis === 'horizontal' && bars[1].axis === 'vertical' &&
+        bars.every(bar => bar.max > 0 && bar.visible && bar.painted);
+      await expect.poll(async () => readyBars((await page.evaluate(() => window.committedRetry.observe())).control.bars),
+        { message: 'control has exactly two visible painted overflow bars' }).toBe(true);
+      if (action === 'z-only' || action === 'aborted') {
+        await expect.poll(async () => {
+          const { actual, control } = await page.evaluate(() => window.committedRetry.observe());
+          return readyBars(actual.bars) && JSON.stringify(actual.bars) === JSON.stringify(control.bars);
+        }, { message: 'committed subject has the exact painted control bars' }).toBe(true);
+      }
+      // After positive control paint, settle fonts initiated by construction and
+      // cross a browser rendering update and subsequent task. Negative assertions
+      // below are finite observations at this public checkpoint, not a promise
+      // that no arbitrary future task could ever attach stale work.
+      await page.evaluate(async () => {
+        await document.fonts.ready;
+        await new Promise(resolve => requestAnimationFrame(() => {
+          const channel = new MessageChannel();
+          channel.port1.onmessage = () => { channel.port1.close(); channel.port2.close(); resolve(); };
+          channel.port2.postMessage(null);
+        }));
+      });
+      Object.assign(result, await page.evaluate(() => window.committedRetry.observe()));
       expect(result.detached).toBe(true);
       expect(result.appendedBeforeFrame).toBe(true);
       expect(result.control.bars.map(bar => bar.axis)).toEqual(['horizontal', 'vertical']);
