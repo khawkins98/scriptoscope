@@ -6,7 +6,7 @@ import type { HeaderSurfaceUnsupportedReason } from '../../headerSurface.js';
 import { bodyPatternPhase } from '../../controlComposition.js';
 import { rectXYWH } from '../qd/rect.js';
 import type { QdRect } from '../qd/types.js';
-import { cinfBorderPlan, cinfBodyRects, bandVisible, bodyWriteCount } from '../qd/cinfFrame.js';
+import { cinfBorderPlan, cinfBodyRects, bandVisible } from '../qd/cinfFrame.js';
 import { getPixel } from '../../raster.js';
 import { copyBits } from '../../raster.js';
 import { tileBlit } from '../../raster.js';
@@ -81,6 +81,13 @@ function intersect(a: ControlRect, b: ControlRect): ControlRect {
 }
 const qd = (r: ControlRect) => rectXYWH(r.x, r.y, r.w, r.h);
 const xywh = (r: QdRect): ControlRect => box(r.left, r.top, r.right - r.left, r.bottom - r.top);
+/** Prepared unmasked integer insets: clipped union coverage before border writes. */
+function headerBodyPixels(rects: readonly ControlRect[], clip: ControlRect): number {
+  const first = rects[0] ? intersect(rects[0], clip) : box(0, 0, 0, 0);
+  const second = rects[1] ? intersect(rects[1], clip) : box(0, 0, 0, 0);
+  const overlap = intersect(first, second);
+  return first.w * first.h + second.w * second.h - overlap.w * overlap.h;
+}
 function localClip(plan: HeaderSurfacePlan): ControlRect {
   const r = plan.effectiveClip;
   return r ? box(r.x - plan.requestedRect.x, r.y - plan.requestedRect.y, r.w, r.h) : box(0, 0, 0, 0);
@@ -157,7 +164,7 @@ export function drawHeaderSurface(port: Pixmap, input: HeaderSurfacePaintInput):
   // publish only the declared clip, preserving source phase and caller pixels.
   const work: Pixmap = { width: port.width, height: port.height, data: new Uint8ClampedArray(port.data) };
   const phase = pattern && geometry.bodyVisible ? bodyPatternPhase(plan.context, mode, plan.paintRect.w, plan.paintRect.h) : null;
-  const bodyPixels = bodyWriteCount({ width: clip.x + clip.w, height: clip.y + clip.h }, geometry.bodyRects.map(qd), qd(clip));
+  const bodyPixels = headerBodyPixels(geometry.bodyRects, clip);
   for (const body of geometry.bodyRects) {
     const r = intersect(body, clip);
     if (!nonempty(r)) continue;
