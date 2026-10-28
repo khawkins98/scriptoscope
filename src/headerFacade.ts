@@ -11,7 +11,7 @@ import { withThemeView, type ThemeInput, type ThemeView, type RasterSource } fro
 import { PixelBuffer } from './pixelBuffer.js';
 import { rasterizeText } from './textRaster.js';
 import { assertDisplayProfileChain, ownerDisplayPolicyMatches, realizeRgb16 } from '../tools/theme-loader/display-profile.js';
-import { headerResourceId, planHeaderSurface, planHeaderGeometry, headerMetadataRejection, drawHeaderSurface,
+import { headerResourceId, planHeaderSurface, planHeaderGeometry, headerMetadataRejection, drawPreparedHeaderSurface,
   planHeaderColumns, drawHeaderColumns, headerSourceRejection, type HeaderSurfacePlan } from './engine/families/header.js';
 
 type Identity = Required<Pick<ControlResolutionStep, 'owner' | 'resource'>>;
@@ -152,7 +152,7 @@ export async function composeEngineHeaderSurface(inputTheme: ThemeInput | ThemeV
           sampled = await face.companion!.pixels();
         }
         const out = PixelBuffer.alloc(plan.requestedRect.w, plan.requestedRect.h);
-        const painted = drawHeaderSurface(out, { source, plan, slice: el.slice!, mode: el.bodyRequest!.mode,
+        const painted = drawPreparedHeaderSurface(out, { source, plan, slice: el.slice!, mode: el.bodyRequest!.mode,
           background, pattern: body.buffer, sampled, samplingEquivalent: !!equivalent });
         if (painted.unsupported) return finish({ status: 'unsupported', reason: painted.unsupported }, { lineSampling: painted.lineSampling });
         // Publish completed observations only after the pure driver admitted every dependency.

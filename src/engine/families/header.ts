@@ -11,7 +11,7 @@ import { getPixel } from '../../raster.js';
 import { copyBits } from '../../raster.js';
 import { tileBlit } from '../../raster.js';
 import { sourceLines } from '../../raster.js';
-import { eraseRect } from '../../raster.js';
+import { eraseRect, fillPattern } from '../../raster.js';
 import { PixelBuffer } from '../../pixelBuffer.js';
 import { nineSlice, drawOver } from '../../raster.js';
 import { HEADER_STATE, HEADER_BANDS, HEADER_COLUMNS as C, HEADER_DOMAIN as D } from '../tables/header.js';
@@ -137,6 +137,13 @@ export function headerSourceRejection(source: Pixmap, geometry: HeaderGeometry):
 
 /** All admission precedes writes; dependencies have already been realized by the adapter. */
 export function drawHeaderSurface(port: Pixmap, input: HeaderSurfacePaintInput): HeaderSurfacePaintResult {
+  return paintHeaderSurface(port, input, false);
+}
+/** Facade-only: validated integer geometry, ordinary pixels, requested-size allocation. */
+export function drawPreparedHeaderSurface(port: Pixmap, input: HeaderSurfacePaintInput): HeaderSurfacePaintResult {
+  return paintHeaderSurface(port, input, true);
+}
+function paintHeaderSurface(port: Pixmap, input: HeaderSurfacePaintInput, prepared: boolean): HeaderSurfacePaintResult {
   const { source, plan, slice, mode, background, pattern, sampled, samplingEquivalent } = input;
   const geometry = planHeaderGeometry(source, slice, plan), clip = localClip(plan);
   let lineSampling: HeaderSurfacePaintResult['lineSampling'] = !geometry.needsSampling ? 'not-required'
@@ -168,7 +175,7 @@ export function drawHeaderSurface(port: Pixmap, input: HeaderSurfacePaintInput):
   for (const body of geometry.bodyRects) {
     const r = intersect(body, clip);
     if (!nonempty(r)) continue;
-    if (pattern && phase) {
+    if (pattern && phase && prepared) {
       // Admitted integer, opaque pixels; work is detached from every source.
       const pw = pattern.width, ph = pattern.height;
       const start = ((r.x + phase[0]) % pw + pw) % pw, seed = Math.min(pw, r.w);
@@ -184,6 +191,7 @@ export function drawHeaderSurface(port: Pixmap, input: HeaderSurfacePaintInput):
           work.data.set(work.data.subarray(at, at + Math.min(n, r.w * 4 - n)), at + n);
       }
     }
+    else if (pattern && phase) fillPattern(work, qd(r), pattern, { x: -phase[0], y: -phase[1] });
     else eraseRect(work, qd(r), background!);
   }
   let painted = bodyPixels > 0;
