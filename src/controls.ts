@@ -17,7 +17,7 @@ import type { HeaderSurfaceOptions, HeaderSurfaceResult } from './headerSurface.
 import { composeEngineHeaderSurface, composeEngineHeaderColumns } from './headerFacade.js';
 import { createTrace, type EngineTrace } from './engine/trace.js';
 import { rect } from './engine/qd/rect.js';
-import { fillPattern } from './engine/qd/pattern.js';
+import { fillPattern } from './raster.js';
 import { normalizeControlState } from './engine/state/control.js';
 import { SCROLLBAR_PRESSED_PARTS, SLIDER_PRESSED_PARTS } from './engine/tables/controlState.js';
 import { SCROLLBAR_FACADE_RANGE, SCROLLBAR_FACADE_THICKNESS } from './engine/tables/scrollbar.js';

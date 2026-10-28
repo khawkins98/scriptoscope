@@ -1,15 +1,7 @@
 // Implementation-owned unit checks derived only from docs/spec/engine/tab.md.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { registerHooks } from 'node:module';
-registerHooks({ resolve(specifier, context, nextResolve) {
-  try { return nextResolve(specifier, context); }
-  catch (error) {
-    if (error.code === 'ERR_MODULE_NOT_FOUND' && specifier.endsWith('.js'))
-      return nextResolve(specifier.slice(0, -3) + '.ts', context);
-    throw error;
-  }
-} });
+import '../../../tests/helpers/registerTs.mjs';
 const { drawTab, tabOriginalResourceIds, tabOriginalState } = await import('./tab.ts');
 const { PixelBuffer } = await import('../../pixelBuffer.ts');
 

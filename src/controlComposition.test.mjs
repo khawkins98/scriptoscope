@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { snapshotControlComposition, bodyPatternAnchor, bodyPatternPhase, controlPointVisible } from './controlComposition.ts';
 import '../tests/helpers/registerTs.mjs';
-const { fillPattern } = await import('./engine/qd/pattern.ts');
+const { fillPattern } = await import('./raster.ts');
 
 // Exercise the phase/fill combination used by production composition. Encoding
 // tile coordinates as pixel channels lets the existing samples inspect its output.

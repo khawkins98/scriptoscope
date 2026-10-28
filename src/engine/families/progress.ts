@@ -25,17 +25,17 @@
 import type { Pixmap, QdRect, Rgba } from '../qd/types.js';
 import type { EngineTrace } from '../trace.js';
 import type { ResourceChain, ResourceHit } from '../resources/chain.js';
-import type { IconSource } from '../qd/region.js';
+import type { IconSource } from '../../raster.js';
 import { emptyRect, insetRect, rect } from '../qd/rect.js';
-import { transferBits } from '../qd/transfer.js';
-import { tileBlit } from '../qd/tile.js';
-import { fillPattern } from '../qd/pattern.js';
-import { getPixel, setPixel } from '../qd/pixel.js';
-import { newPen, moveTo, lineTo, type Pen } from '../qd/pen.js';
+import { transferBits } from '../../raster.js';
+import { tileBlit } from '../../raster.js';
+import { fillPattern } from '../../raster.js';
+import { getPixel } from '../../raster.js';
+import { axisLine, solidRect } from '../../raster.js';
 import { pixmapBounds } from '../qd/axis.js';
 import { expandIdGrid } from '../resources/ids.js';
 import { lineColourSource } from '../resources/iconSource.js';
-import { sourceLines } from '../qd/lines.js';
+import { sourceLines } from '../../raster.js';
 import {
   PROGRESS_BLIT, PROGRESS_CHAIN, PROGRESS_CINF, PROGRESS_COL, PROGRESS_COLOURS, PROGRESS_DATA, PROGRESS_DECLARED_DEFAULTS,
   PROGRESS_DET, PROGRESS_DRAW, PROGRESS_DRAW_ORDER, PROGRESS_ERASE, PROGRESS_FALLBACK, PROGRESS_FRAME,
@@ -378,14 +378,13 @@ function sampleColour(icon: IconSource, at: { x: number; y: number }, row: strin
   return out;
 }
 
-function line(port: Pixmap, pen: Pen, x0: number, y0: number, x1: number, y1: number): void {
-  moveTo(pen, x0, y0);
-  lineTo(port, pen, x1, y1);
+function line(port: Pixmap, pen: { fore: Rgba }, x0: number, y0: number, x1: number, y1: number): void {
+  axisLine(port, pen.fore, x0, y0, x1, y1);
 }
 
 /** PaintRect in `fore` (ERASE4: opaque). */
 function paintRect(port: Pixmap, r: QdRect, fore: Rgba): void {
-  for (let y = r.top; y < r.bottom; y++) for (let x = r.left; x < r.right; x++) setPixel(port, x, y, fore.r, fore.g, fore.b, 255);
+  solidRect(port, r, fore);
 }
 
 /** O5: the procedural bar (§4.9 FB1–FB10). Hilite is never read (FB10). */
@@ -393,7 +392,7 @@ function drawProcedural(port: Pixmap, chain: ResourceChain, record: ProgressReco
   opts: ProgressDrawOptions, trace?: EngineTrace): void {
   const P = PROGRESS_FALLBACK, C = PROGRESS_COLOURS;
   trace?.drawOps.push({ op: 'procedural', row: P.FB10.id });
-  const pen = newPen(opts.realize(C.black)); // O2
+  const pen = { fore: opts.realize(C.black) }; // O2
   const icon = chain.getResource<IconSource>('cicn', P.cicn, req(trace, `${P.FB1.id},${PROGRESS_CHAIN.CHAIN1.id},${PROGRESS_CHAIN.CHAIN3.id}`));
   if (icon) {
     pen.fore = sampleColour(icon.value, P.samples.bottomRight, P.FB1.id, trace) ?? pen.fore;

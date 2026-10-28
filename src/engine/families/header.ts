@@ -4,14 +4,16 @@ import type { Pixmap, Rgba } from '../qd/types.js';
 import type { ControlCompositionSnapshot, ControlRect } from '../../controlComposition.js';
 import type { HeaderSurfaceUnsupportedReason } from '../../headerSurface.js';
 import { bodyPatternPhase } from '../../controlComposition.js';
-import { rectXYWH, type QdRect } from '../qd/index.js';
+import { rectXYWH } from '../qd/rect.js';
+import type { QdRect } from '../qd/types.js';
 import { cinfBorderPlan, cinfBodyRects, bandVisible, bodyWriteCount } from '../qd/cinfFrame.js';
-import { getPixel } from '../qd/pixel.js';
-import { copyBits } from '../qd/transfer.js';
-import { tileBlit } from '../qd/tile.js';
-import { sourceLines } from '../qd/lines.js';
-import { eraseRect, fillPattern } from '../qd/pattern.js';
+import { getPixel } from '../../raster.js';
+import { copyBits } from '../../raster.js';
+import { tileBlit } from '../../raster.js';
+import { sourceLines } from '../../raster.js';
+import { eraseRect, fillPattern } from '../../raster.js';
 import { PixelBuffer } from '../../pixelBuffer.js';
+import { nineSlice, drawOver } from '../../raster.js';
 import { HEADER_STATE, HEADER_BANDS, HEADER_COLUMNS as C, HEADER_DOMAIN as D } from '../tables/header.js';
 
 export type HeaderKind = 'window-header' | 'list-view-header';
@@ -197,8 +199,7 @@ export function planHeaderColumns(input: HeaderColumnsInput): HeaderColumnsPlan 
 }
 /** Modern C4–C7 use the existing generic rectangular transfer/alpha helpers. */
 function drawColumnCell(port: PixelBuffer, source: Pixmap, plan: HeaderColumnsPlan): void {
-  const pixels = new PixelBuffer(source.width, source.height, source.data);
-  port.nineSlice(pixels, { x: 0, y: 0, w: source.width, h: source.height },
+  nineSlice(port, source, { x: 0, y: 0, w: source.width, h: source.height },
     { l: plan.corner, r: plan.corner, t: plan.side, b: plan.side },
     { x: 0, y: 0, w: port.width, h: port.height }, plan.tile ? 'tile' : 'stretch');
   if (plan.background.a > 0) eraseRect(port, rectXYWH(plan.corner, plan.side, port.width - 2 * plan.corner, port.height - 2 * plan.side), plan.background);
@@ -209,8 +210,8 @@ export function drawHeaderColumns(port: Pixmap, input: HeaderColumnsPaintInput):
     const cell = PixelBuffer.alloc(column.width, input.plan.height);
     drawColumnCell(cell, input.source, input.plan);
     const glyph = input.glyphs[index];
-    if (glyph) cell.drawOver(new PixelBuffer(glyph.width, glyph.height, glyph.data), C.labelX, Math.round((cell.height - glyph.height) / 2));
-    new PixelBuffer(port.width, port.height, port.data).drawOver(cell, x, 0);
+    if (glyph) drawOver(cell, glyph, C.labelX, Math.round((cell.height - glyph.height) / 2));
+    drawOver(port, cell, x, 0);
     x += column.width;
   }
 }

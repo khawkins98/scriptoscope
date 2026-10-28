@@ -3,7 +3,7 @@ import { themeView, assertThemeAlive, type ThemeInput, type ThemeView } from './
 import { composeWindowChrome, type ComposedChrome, type TitleWidgetRole } from './composeChrome.js';
 import { themeResourceChain } from './engine/resources/theme.js';
 import { widgetCicnIds } from './engine/families/window.js';
-import type { IconSource } from './engine/qd/region.js';
+import type { IconSource } from './raster.js';
 // The built-in frame (the `wt.model === 'corner-sprite'` branch: schemes with no
 // wnd# recipe) draws through the v2 engine family proceduralFrame, dynamically
 // imported so the 13 wnd# themes don't load it on first paint.

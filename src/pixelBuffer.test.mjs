@@ -27,3 +27,27 @@ test('negative glyph origins clip in destination coordinates', () => {
   assert.deepEqual(target.getPixel(0, 0), [9, 8, 7, 255]);
   assert.deepEqual(target.getPixel(1, 1), [0, 0, 0, 0]);
 });
+
+test('constructor retains supplied data and instances share ordinary prototype methods', () => {
+  const data = new Uint8ClampedArray(8), a = new PixelBuffer(2, 1, data), b = PixelBuffer.alloc(2, 1);
+  assert.equal(a.data, data);
+  assert.equal(Object.getPrototypeOf(a), PixelBuffer.prototype);
+  for (const name of ['getPixel', 'setPixel', 'copyBits', 'drawOver', 'fillRect', 'nineSlice', 'toImageData']) {
+    assert.equal(a[name], b[name]);
+    assert.equal(a[name], PixelBuffer.prototype[name]);
+  }
+  data[0] = 17;
+  assert.deepEqual(a.getPixel(0, 0), [17, 0, 0, 0]);
+});
+
+for (const method of ['copyBits', 'drawOver']) test(`${method} preserves traversal with shifted aliased typed-array views`, () => {
+  for (const forward of [true, false]) {
+    const data = new Uint8ClampedArray(20);
+    for (let x = 0; x < 5; x++) data.set([x + 1, 0, 0, 255], x * 4);
+    const source = new PixelBuffer(4, 1, data.subarray(forward ? 0 : 4, forward ? 16 : 20));
+    const target = new PixelBuffer(4, 1, data.subarray(forward ? 4 : 0, forward ? 20 : 16));
+    if (method === 'copyBits') target.copyBits(source, { x: 0, y: 0, w: 4, h: 1 }, { x: 0, y: 0, w: 4, h: 1 });
+    else target.drawOver(source, 0, 0);
+    assert.deepEqual([0, 1, 2, 3, 4].map(x => data[x * 4]), forward ? [1, 1, 1, 1, 1] : [2, 3, 4, 5, 5]);
+  }
+});

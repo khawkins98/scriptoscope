@@ -1,16 +1,7 @@
 // Implementation-owned probes derived solely from engine/checkables.md.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { registerHooks } from 'node:module';
-import { existsSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-registerHooks({ resolve(specifier, context, next) {
- if (specifier.endsWith('.js') && context.parentURL?.includes('/src/engine/')) {
- const target = new URL(specifier.replace(/\.js$/, '.ts'), context.parentURL);
- if (target.protocol === 'file:' && existsSync(fileURLToPath(target))) return next(target.href, context);
- }
- return next(specifier, context);
-} });
+import '../../../tests/helpers/registerTs.mjs';
 const { drawCheckable, checkableLabelLines } = await import('./checkables.ts');
 const { ResourceChain, mapProvider } = await import('../resources/chain.ts');
 const { createTrace } = await import('../trace.ts');

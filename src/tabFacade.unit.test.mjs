@@ -1,15 +1,7 @@
 // Implementation-owned CS4/AD5 checks from engine/tab.md §6.1 and display-profile.md.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { registerHooks } from 'node:module';
-registerHooks({ resolve(specifier, context, nextResolve) {
-  try { return nextResolve(specifier, context); }
-  catch (error) {
-    if (error.code === 'ERR_MODULE_NOT_FOUND' && specifier.endsWith('.js'))
-      return nextResolve(specifier.slice(0, -3) + '.ts', context);
-    throw error;
-  }
-} });
+import '../tests/helpers/registerTs.mjs';
 const { tabBodyColors, composeEngineTab } = await import('./tabFacade.ts');
 const { PixelBuffer } = await import('./pixelBuffer.ts');
 const { prepareDisplayProfile } = await import('../tools/theme-loader/display-profile.js');

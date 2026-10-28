@@ -690,6 +690,8 @@ interface ManagedWindow<Theme extends ThemeInput> {
   contentPort: ManagedContentPort;
   /** Invalidates asynchronous paints when geometry/state changes or the entry is removed. */
   renderEpoch: number;
+  /** Authority of mounted chrome, independent of pending render preparations. */
+  commitEpoch: number;
   applyStateEpoch: number;
   initializing: boolean;
   theme: Theme;
@@ -722,14 +724,14 @@ interface ManagedWindow<Theme extends ThemeInput> {
    *  scroll container (the slot survives re-slotting), so without this it would accumulate one per
    *  render — multiplying scroll speed and leaking. Re-created each time the bar is (re)wired. */
   scrollAbort?: AbortController;
+  /** Root handlers are rebound without ending an already active document-level drag. */
+  frameAbort?: AbortController;
   /** Pooled chrome canvas — keeps its DOM identity across state changes (see #171 and
    *  the 2026-05-28 perf review + LEARNINGS "Classic Mac OS lessons"
    *  entry pattern #5). Async preparation uses a staging canvas; only the guarded synchronous
    *  commit copies its pixels into this live canvas and moves it into the new chrome. */
   chromeCanvas?: HTMLCanvasElement;
-  /** Optional persistent content node (the declarative layer's slotted consumer DOM). Re-attached
-   *  into the freshly-built `.scriptoscope-content` after every render() — `renderWindow` rebuilds the window
-   *  subtree, so without this the slotted content would be destroyed on focus/resize. */
+  /** Persistent light-DOM consumer content, projected through the continuously mounted slot. */
   contentEl?: HTMLElement;
 }
 
@@ -889,7 +891,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     // Initial focus: the first window added is active — UNLESS it explicitly requests inactive
     // (so a declarative `data-scriptoscope-state="inactive"` is honored; then no window starts focused).
     const entry: ManagedWindow<Theme> = {
-      theme, opts, handlers, host, renderEpoch: 0, applyStateEpoch: 0, initializing: true, contentPort: new ManagedContentPort(),
+      theme, opts, handlers, host, renderEpoch: 0, commitEpoch: 0, applyStateEpoch: 0, initializing: true, contentPort: new ManagedContentPort(),
       ...(opts.reuseCanvas ? { chromeCanvas: opts.reuseCanvas } : {}),
       active: this.windows.length === 0 && opts.state !== 'inactive',
       // Declared z (data-scriptoscope-z) wins; else take the next stacking-clock tick. We still bump the
@@ -925,6 +927,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     this.windows[i]!.renderEpoch++;
     this.windows[i]!.contentPort.dispose();
     this.windows[i]?.scrollAbort?.abort();
+    this.windows[i]?.frameAbort?.abort();
     this.windows.splice(i, 1);
     // Drag-handoff placeholder cleanup (toAbsolute inserts one to keep the
     // page from shifting when an in-flow host lifts to absolute). Removed
@@ -1156,6 +1159,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
   }
 
   private commitRender(entry: ManagedWindow<Theme>, { win, collapsed }: { win: HTMLElement; collapsed: boolean }, notify = true): void {
+    entry.commitEpoch++;
     const fresh = win.querySelector<HTMLCanvasElement>('canvas.scriptoscope-chrome');
     const pooled = entry.chromeCanvas;
     if (fresh && pooled) {
@@ -1168,8 +1172,6 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     if (fresh) entry.chromeCanvas = pooled ?? fresh;
     else delete entry.chromeCanvas;
     entry.host.style.zIndex = this.zIndexFor(entry);
-    this.overlayWidgets(entry, win);
-    this.wireMoveResize(entry, win);
     // Consumer content lives in the host's LIGHT DOM (placed there once in add()); renderWindow's
     // <slot> inside .scriptoscope-content auto-renders it. No per-render re-slotting needed — the slot
     // shows whatever's in light DOM, and the same DOM node persists across re-renders so
@@ -1179,11 +1181,33 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       const hole = win.querySelector('.scriptoscope-content') as HTMLElement | null;
       if (hole) hole.style.display = 'none';
     }
-    // Mount the chrome into the SHADOW ROOT (attached in add()). Host CSS can't reach in;
-    // light-DOM children (consumer content) are slotted via renderWindow's <slot>.
-    const shadow = entry.host.shadowRoot;
-    if (shadow) shadow.replaceChildren(win);
-    else entry.host.replaceChildren(win);  // defensive fallback (host without shadow — shouldn't happen)
+    // Keep the rendered projection continuously mounted: replacing its ancestors cancels
+    // a browser's pending native Space activation even when light-DOM focus survives.
+    const mount = entry.host.shadowRoot ?? entry.host;
+    const live = mount.firstChild as HTMLElement | null;
+    const content = live?.querySelector<HTMLElement>('.scriptoscope-content');
+    const preparedContent = win.querySelector<HTMLElement>('.scriptoscope-content');
+    if (live && content && preparedContent) {
+      const syncAttributes = (target: HTMLElement, source: HTMLElement): void => {
+        for (const attr of Array.from(target.attributes))
+          if (!source.hasAttribute(attr.name)) target.removeAttribute(attr.name);
+        for (const attr of Array.from(source.attributes))
+          if (target.getAttribute(attr.name) !== attr.value) target.setAttribute(attr.name, attr.value);
+      };
+      syncAttributes(live, win);
+      syncAttributes(content, preparedContent);
+      Object.assign(live, { _scriptoscopeComposed:
+        (win as unknown as { _scriptoscopeComposed?: ComposedChrome })._scriptoscopeComposed });
+      for (const child of Array.from(live.childNodes)) if (child !== content) child.remove();
+      let beforeContent = true;
+      for (const child of Array.from(win.childNodes)) {
+        if (child === preparedContent) { beforeContent = false; continue; }
+        live.insertBefore(child, beforeContent ? content : null);
+      }
+      win = live;
+    } else mount.replaceChildren(win);
+    this.overlayWidgets(entry, win);
+    this.wireMoveResize(entry, win);
     const viewport = win.querySelector<HTMLElement>('.scriptoscope-content');
     if (viewport) entry.contentPort.commit(entry.host, viewport, Math.max(1, Math.round(entry.opts.scale ?? 1)));
     else entry.contentPort.clear();
@@ -1210,15 +1234,15 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
    * the host isn't in the document yet so nothing has layout. Detects + wires BOTH axes — vertical and
    * horizontal — independently, so a long-and-wide content gets both bars + a clear bottom-right corner.
    */
-  private async wireScrollbars(entry: ManagedWindow<Theme>, win: HTMLElement, attempt: number): Promise<void> {
+  private async wireScrollbars(entry: ManagedWindow<Theme>, win: HTMLElement, attempt: number, epoch = entry.commitEpoch): Promise<void> {
     // Staleness check: is `win` still the current chrome? See LEARNINGS 2026-05-28 "Shadow DOM
     // gotchas" — host.firstChild is the slotted .scriptoscope-slot now, not win. We resolve via shadowRoot.
     // We deliberately do NOT use win.isConnected: ScriptoscopeWindow.promote inserts the host into the
     // document AFTER manager.add returns, so the initial wireScrollbars fires while host is
     // still detached. The ch===0 retry below catches that pre-layout case; staleness is what
-    // this check covers (a NEWER render replaced win).
+    // this check covers, including retries from an older commit on the retained root.
     const currentChrome = entry.host.shadowRoot?.firstChild ?? entry.host.firstChild;
-    if (!this.windows.includes(entry) || currentChrome !== win) {
+    if (!this.windows.includes(entry) || currentChrome !== win || entry.commitEpoch !== epoch) {
       debug('scrollbar', `${entry.opts.title ?? ''} — stale win, bailing`);
       return;
     }
@@ -1246,7 +1270,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     const ch = scrollEl.clientHeight;
     const cw = scrollEl.clientWidth;
     if (ch === 0 || cw === 0) {                           // not laid out yet (first render, pre-insert)
-      if (attempt < 4) requestAnimationFrame(() => { void this.wireScrollbars(entry, win, attempt + 1); });
+      if (attempt < 4) requestAnimationFrame(() => { void this.wireScrollbars(entry, win, attempt + 1, epoch); });
       return;
     }
     const needV = scrollEl.scrollHeight > ch + 1;
@@ -1446,6 +1470,8 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
    * re-render per mouse-move). Re-attached on every render(), so it tracks the current chrome.
    */
   private wireMoveResize(entry: ManagedWindow<Theme>, win: HTMLElement): void {
+    entry.frameAbort?.abort();
+    const signal = (entry.frameAbort = new AbortController()).signal;
     const composed = (win as unknown as { _scriptoscopeComposed?: ComposedChrome })._scriptoscopeComposed;
     if (!composed) return;
     const scale = Math.max(1, Math.round(entry.opts.scale ?? 1));
@@ -1494,7 +1520,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
         this.setPosition(host, x0 + ev.clientX - sx, y0 + ev.clientY - sy);
       };
       document.addEventListener('pointermove', mv); document.addEventListener('pointerup', up);
-    });
+    }, { signal });
 
     // KEYBOARD MOVE HANDLE — focusable transparent button overlaying the title region. Closes the
     // a11y gap from the 2026-05-28 DOM-twin audit: pointer-drag was the only way to move a window
@@ -1550,7 +1576,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       if (!inFrame(e)) return;
       e.preventDefault();
       void this.toggleCollapse(entry);
-    });
+    }, { signal });
 
     // A shaded window has no content area to resize. Its bottom-right resize
     // overlay would cover the title widgets (and intercept the restore click).
@@ -1681,7 +1707,8 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     const chrome = win.querySelector('.scriptoscope-chrome') as HTMLCanvasElement | null;
     const cctx = chrome?.getContext('2d') ?? null;
     const currentChrome = (): boolean => this.windows.includes(entry)
-      && entry.host.shadowRoot?.firstChild === win;
+      && entry.host.shadowRoot?.firstChild === win
+      && (win as unknown as { _scriptoscopeComposed?: ComposedChrome })._scriptoscopeComposed === composed;
     for (const hit of titleWidgetHits(entry.theme, slug, composed, scale, entry.active ? 'active' : 'inactive')) {
       const handler = cb[hit.role];
       if (!handler) continue;

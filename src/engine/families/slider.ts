@@ -20,14 +20,14 @@
 import type { Pixmap, QdPoint, QdRect, Rgba } from '../qd/types.js';
 import type { EngineTrace } from '../trace.js';
 import type { ResourceChain, ResourceHit } from '../resources/chain.js';
-import type { IconSource } from '../qd/region.js';
+import type { IconSource } from '../../raster.js';
 import { emptyRect, insetRect, offsetRect, rect } from '../qd/rect.js';
-import { transferBits } from '../qd/transfer.js';
-import { tileBlit } from '../qd/tile.js';
+import { transferBits } from '../../raster.js';
+import { tileBlit } from '../../raster.js';
 import { axis, alongLength, pixmapBounds, type Axis } from '../qd/axis.js';
 import { expandIdGrid } from '../resources/ids.js';
 import { lineColourSource } from '../resources/iconSource.js';
-import { sourceLines } from '../qd/lines.js';
+import { sourceLines } from '../../raster.js';
 import {
   SLIDER_BAND, SLIDER_BASE, SLIDER_BLIT, SLIDER_CORNER, SLIDER_DECLARED_DEFAULTS, SLIDER_DRAW_GUARD, SLIDER_DRAW_ORDER,
   SLIDER_FEATURES, SLIDER_GATE, SLIDER_GROUP, SLIDER_GROUP_STRIDE, SLIDER_HILITE, SLIDER_HIT_TEST, SLIDER_IDS,

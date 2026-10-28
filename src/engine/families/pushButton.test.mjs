@@ -1,17 +1,8 @@
 // Implementation-owned smoke checks, derived from push-button.md PB/DR rows.
 // The independent acceptance oracle is maintained and run separately.
-import { registerHooks } from 'node:module';
-import { existsSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-registerHooks({ resolve(specifier, context, next) {
-  if (specifier.endsWith('.js') && context.parentURL?.includes('/src/engine/')) {
-    const target = new URL(specifier.replace(/\.js$/, '.ts'), context.parentURL);
-    if (target.protocol === 'file:' && existsSync(fileURLToPath(target))) return next(target.href, context);
-  }
-  return next(specifier, context);
-} });
+import '../../../tests/helpers/registerTs.mjs';
 const { drawPushButton, pushLabelLines, pushButtonTextMode } = await import('./pushButton.ts');
 const { PUSH_BUTTON: P } = await import('../tables/pushButton.ts');
 const { ResourceChain, mapProvider } = await import('../resources/chain.ts');

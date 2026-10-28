@@ -15,9 +15,9 @@
 import type { Pixmap, QdRect } from './types.js';
 import type { EngineTrace } from '../trace.js';
 import { emptyRect } from './rect.js';
-import { scaleBlit } from './scale.js';
-import { sourceLines } from './lines.js';
-import { regionAddMappedMask, type Region } from './region.js';
+import { scaleBlit } from '../../raster.js';
+import { sourceLines } from '../../raster.js';
+import { regionAddMappedMask, type Region } from '../../raster.js';
 import { axis, alongLength } from './axis.js';
 
 export interface SlicePiece {

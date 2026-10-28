@@ -8,12 +8,12 @@ import type { ResourceChain } from '../resources/chain.js';
 import { CINF_BODY, CINF_BODY_SKIP, CINF_BORDER_ORDER, CINF_EDGE, CINF_EMBOSS_ABSENT,
   CINF_PHASE, CINF_REQUEST, CINF_RETRY, CINF_SKIP, CINF_SAMPLE, CINF_HEADER, type CinfPhaseRow } from '../tables/cinfFrame.js';
 import { emptyRect, rect, insetRect, offsetRect } from './rect.js';
-import { getPixel } from './pixel.js';
-import { eraseRect, fillPattern } from './pattern.js';
-import { tileBlit, tileFastPathRow } from './tile.js';
-import { transferBits } from './transfer.js';
-import { iconBlit, insideBounds, type IconSource } from './region.js';
-import { sourceLines } from './lines.js';
+import { getPixel } from '../../raster.js';
+import { eraseRect, fillPattern } from '../../raster.js';
+import { tileBlit, tileFastPathRow } from '../../raster.js';
+import { transferBits } from '../../raster.js';
+import { iconBlit, insideBounds, type IconSource } from '../../raster.js';
+import { sourceLines } from '../../raster.js';
 import { lineColourSource } from '../resources/iconSource.js';
 
 export interface CinfRecord {
