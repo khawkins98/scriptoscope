@@ -62,6 +62,33 @@ Park the prototype. Separate producer allocation sampling suggested less tempora
 
 A source-owned emitted-consumer census found no additional saving for a named progress import from the default package entry: both default and renderer consumers already emitted 57,729 raw / 18,380 Node gzip9 bytes. URL loading plus window rendering retained more conversion code, but the inspected dynamic-import cut would add an observable suspension and import-failure behavior at a mutable-input boundary. No production prototype, emitted saving or timing gain was established for that cut. It remains an unapproved compatibility proposal, not a completed optimization.
 
+## Policy and publication audits: no substantial deletion established
+
+A further source-only audit found resource construction already shared across seven callers and the diagnostic transaction across four. Four private pattern selectors form a real 108-noncomment-line / 8,094-byte replacement envelope, but their linked-asset usability, ambiguity, raw-resource presence and diagnostic policies differ. The estimated selector, result types and four adapters cost 95–130 lines: approximately 13 saved through 22 added, without a prototype or emitted-size claim. A 344-line bevel envelope includes legacy painting, labels, mode admission, clipping and diagnostics; it is touched code, not proven deletable duplication. No new orchestration framework is justified by this budget.
+
+Window publication already allocates fresh ImageData and uses native typed-array set. There is no JavaScript channel-copy loop to replace. Wrapping the source plane changes observable isolation, storage validation and canvas-hook behavior; allocating that plane before painting moves errors and adds ownership machinery while retaining the public fresh-copy route. The faithful gross/net deletion established by this audit is zero. Native readback or copy samples alone do not prove dispensable work.
+
+## Optional bevel coverage count: unapproved proposal, mixed timing
+
+Complete-call CPU sampling identified a coverage traversal whose numeric result has no consumer without a diagnostic collector. A collector-only guard nevertheless omits observable dimension reads on the public allocation result and errors or side effects attached to those reads. The fixed-contract version stopped before implementation. A separate review-only proposal preserves the original pattern-dimension conditions and enabled diagnostic records, and skips only that unmasked count when the collector is absent. Its observation retirement is unapproved; no production change has landed.
+
+The frozen prototype adds 14 source bytes / four contextual tokens / zero lines and 11 raw shipped JS bytes; summed per-file Node gzip9 changes by −4 bytes. It deletes no maintained helper. Separate source review reproduced all seven runtime files, 101 declarations and CSS and passed 190 retained synthetic comparisons in each of three browsers. Independent public checks positively admitted successful clipping, pattern and label pixels and browser package consumers. A corrected fixed 19,754-case getter sweep used one verified common serialized input with fresh per-case state: enabled diagnostics and other-allocation semantics matched; 9,499 absent-diagnostics rows differed, including explicitly characterized sentinel, mutation and changed-dimension cases on the counted output buffer. Those differences are the proposed contract change, not equivalence passes.
+
+An earlier 16,050-case incomplete attempt generated inputs separately and encountered unequal image assets. Its available evidence is preserved but is input-invalid; complete original inputs were not retained. The corrected attempt bound common input before comparisons and preserved the same target map. Independent mode-5 masked-body admission remained a coverage gap; matching fallback results do not certify that branch. Existing alpha-oracle and strict distribution-assembly type limits remain disclosed separately.
+
+Exactly six fresh balanced BC/CB browser processes then retained all 2,160 warm samples. Each process measured both variants; uncertainty uses paired process mean log-ratios with a Student-t 95% interval, without treating batches as independent processes. Negative percentages mean less candidate time.
+
+| Complete public workload | Candidate time change | 95% interval |
+| --- | ---: | ---: |
+| Patterned small bevel | −2.87% | −19.00% to +16.47% |
+| Patterned ordinary bevel | −9.23% | −25.54% to +10.64% |
+| Patterned large bevel | −18.81% | −34.07% to −0.02% |
+| Patterned bevel, diagnostics enabled | +11.57% | −2.83% to +28.11% |
+| Unpatterned ordinary control | +15.53% | +0.73% to +32.52% |
+| Unaffected progress control | +12.85% | −1.93% to +29.85% |
+
+The large-case observation is promising, but slower unaffected controls prevent an isolated performance-win claim. Cold setup, first calls and warm calls remain separate; no memory or whole-application gain is established. No samples were excluded or timing rerun to obtain a preferred result. The candidate remains frozen and unapproved while the timing method is reviewed; neither profiling share nor this mixed trial justifies landing it.
+
 ## Rules for the next theory
 
 - Start with exact responsibilities and statements that can be deleted; distinguish repeated execution from duplicate implementation.
