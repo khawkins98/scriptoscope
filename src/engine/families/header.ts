@@ -137,6 +137,13 @@ export function headerSourceRejection(source: Pixmap, geometry: HeaderGeometry):
 
 /** All admission precedes writes; dependencies have already been realized by the adapter. */
 export function drawHeaderSurface(port: Pixmap, input: HeaderSurfacePaintInput): HeaderSurfacePaintResult {
+  return paintHeaderSurface(port, input, false);
+}
+/** Facade-only: validated integer geometry, ordinary pixels, requested-size allocation. */
+export function drawPreparedHeaderSurface(port: Pixmap, input: HeaderSurfacePaintInput): HeaderSurfacePaintResult {
+  return paintHeaderSurface(port, input, true);
+}
+function paintHeaderSurface(port: Pixmap, input: HeaderSurfacePaintInput, prepared: boolean): HeaderSurfacePaintResult {
   const { source, plan, slice, mode, background, pattern, sampled, samplingEquivalent } = input;
   const geometry = planHeaderGeometry(source, slice, plan), clip = localClip(plan);
   let lineSampling: HeaderSurfacePaintResult['lineSampling'] = !geometry.needsSampling ? 'not-required'
@@ -168,7 +175,23 @@ export function drawHeaderSurface(port: Pixmap, input: HeaderSurfacePaintInput):
   for (const body of geometry.bodyRects) {
     const r = intersect(body, clip);
     if (!nonempty(r)) continue;
-    if (pattern && phase) fillPattern(work, qd(r), pattern, { x: -phase[0], y: -phase[1] });
+    if (pattern && phase && prepared) {
+      // Admitted integer, opaque pixels; work is detached from every source.
+      const pw = pattern.width, ph = pattern.height;
+      const start = ((r.x + phase[0]) % pw + pw) % pw, seed = Math.min(pw, r.w);
+      for (let y = r.y; y < r.y + r.h; y++) {
+        const row = ((y + phase[1]) % ph + ph) % ph * pw;
+        for (let x = r.x, sx = start; x < r.x + seed; sx = 0) {
+          const n = Math.min(pw - sx, r.x + seed - x);
+          work.data.set(pattern.data.subarray((row + sx) * 4, (row + sx + n) * 4), (y * work.width + x) * 4);
+          x += n;
+        }
+        const at = (y * work.width + r.x) * 4;
+        for (let n = seed * 4; n < r.w * 4; n *= 2)
+          work.data.set(work.data.subarray(at, at + Math.min(n, r.w * 4 - n)), at + n);
+      }
+    }
+    else if (pattern && phase) fillPattern(work, qd(r), pattern, { x: -phase[0], y: -phase[1] });
     else eraseRect(work, qd(r), background!);
   }
   let painted = bodyPixels > 0;

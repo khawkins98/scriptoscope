@@ -692,6 +692,8 @@ Beyond the bundled corpus, the demo has a **drop-zone**: drag a Kaleidoscope the
 
 ## Documents
 
+- **[Measured simplification](./docs/measured-simplification.md)** — our approach to reducing runtime complexity and execution cost through consolidation, prepared inputs and differential validation; includes a reusable optimization prompt.
+
 - **[`llms.txt`](./llms.txt)** ([live](https://khawkins98.github.io/scriptoscope/llms.txt)) — discovery file for LLM agents helping a consumer integrate. Curates pointers to README + integration docs + recipes + API surface so an agent has one canonical entry point. Follows the [llmstxt.org](https://llmstxt.org/) standard. Drop the live URL into your AI assistant's context if you're integrating Scriptoscope and want better answers.
 - **Runtime implementers: [`docs/spec/engine/IMPLEMENTER-BRIEF.md`](./docs/spec/engine/IMPLEMENTER-BRIEF.md) first**, then the assigned safe family spec under [`docs/spec/engine/`](./docs/spec/engine/). Ask spec questions rather than inspecting original evidence, independent test sources or verifier material. The brief's exhaustive read scope overrides general reading suggestions here.
 - **[`docs/v2/DECISIONS.md`](./docs/v2/DECISIONS.md)** — current October integration and compatibility decisions. Integration owners/spec writers also use the amended [`PLAN.md`](./docs/v2/PLAN.md); implementers use their brief and lane assignment.
