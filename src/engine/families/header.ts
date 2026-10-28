@@ -144,7 +144,14 @@ export function drawHeaderSurface(port: Pixmap, input: HeaderSurfacePaintInput):
 export function drawPreparedHeaderSurface(port: Pixmap, input: HeaderSurfacePaintInput): HeaderSurfacePaintResult {
   return paintHeaderSurface(port, input, true);
 }
-function paintHeaderSurface(port: Pixmap, input: HeaderSurfacePaintInput, prepared: boolean): HeaderSurfacePaintResult {
+/** Allocate and paint before any caller can retain the output plane. */
+export function composePreparedHeaderSurface(input: HeaderSurfacePaintInput): { buffer: PixelBuffer; painted: HeaderSurfacePaintResult } {
+  const { plan } = input, clip = localClip(plan), { w, h } = plan.requestedRect;
+  const full = clip.x === 0 && clip.y === 0 && clip.w === w && clip.h === h;
+  const buffer = full ? new PixelBuffer(w, h) : PixelBuffer.alloc(w, h);
+  return { buffer, painted: paintHeaderSurface(buffer, input, true, full) };
+}
+function paintHeaderSurface(port: Pixmap, input: HeaderSurfacePaintInput, prepared: boolean, privateOutput = false): HeaderSurfacePaintResult {
   const { source, plan, slice, mode, background, pattern, sampled, samplingEquivalent } = input;
   const geometry = planHeaderGeometry(source, slice, plan), clip = localClip(plan);
   let lineSampling: HeaderSurfacePaintResult['lineSampling'] = !geometry.needsSampling ? 'not-required'
@@ -170,7 +177,8 @@ function paintHeaderSurface(port: Pixmap, input: HeaderSurfacePaintInput, prepar
   }
   // Shared primitives have allocation clipping. Paint to a detached plane, then
   // publish only the declared clip, preserving source phase and caller pixels.
-  const work: Pixmap = { width: port.width, height: port.height, data: new Uint8ClampedArray(port.data) };
+  const direct = privateOutput && clip.x === 0 && clip.y === 0 && clip.w === port.width && clip.h === port.height;
+  const work: Pixmap = direct ? port : { width: port.width, height: port.height, data: new Uint8ClampedArray(port.data) };
   const phase = pattern && geometry.bodyVisible ? bodyPatternPhase(plan.context, mode, plan.paintRect.w, plan.paintRect.h) : null;
   const bodyPixels = headerBodyPixels(geometry.bodyRects, clip);
   for (const body of geometry.bodyRects) {
@@ -195,7 +203,7 @@ function paintHeaderSurface(port: Pixmap, input: HeaderSurfacePaintInput, prepar
       if (!samplingEquivalent) sampledRegions.push({ region: band.region, branch: band.branch });
     }
   }
-  copyBits(port, work, qd(clip), qd(clip));
+  if (!direct) copyBits(port, work, qd(clip), qd(clip));
   return { painted, lineSampling, sampledRegions,
     ...(phase && pattern && bodyPixels ? { patternBody: { phase, width: pattern.width, height: pattern.height, paintedPixels: bodyPixels } } : {}) };
 }
