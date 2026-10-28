@@ -38,6 +38,16 @@ A source-only responsibility census of the #497 baseline counted 92 admitted Typ
 
 This census established no larger compatible graph deletion from a new display-list interpreter. Such a representation would still need resource-selection policy, mutable-provider barriers, immediate alias semantics, diagnostics and public result adapters. Removing corner-sprite rendering could delete a concentrated graph but would withdraw supported fidelity, so it is not recommended under the faithful-core goal. Continue measuring removable complete-render work; do not interpret a small shared raster kernel as proof that surrounding contracts are free or unnecessary.
 
+## Preserve the existing lazy frame boundary
+
+The loader registry needs four procedural-frame art constant groups. Importing them from the full frame table kept that table eager even though frame painting already used a dynamic import. Moving the exact groups into a shared module and reexporting the original bindings lets the remaining table follow that existing lazy edge. Source review checked mutation/import ordering and preserved the existing eager loader captures and live scrollbar-plane alias.
+
+Independent module-request accounting measured renderer initial JS at 352,555 → 331,549 raw bytes, while the existing frame chunk grows 39,790 → 59,742. The first-frame closure therefore saves only 1,054 raw bytes; all seven shipped JS files together save 1,063 raw / 530 summed Node gzip9 bytes. No extra production fetch is added. Progress-only consumers already shake out the table and gain effectively nothing.
+
+The production cost is +272 source bytes, +6 physical lines and +1 noncomment line under the source review's contextual-token census. This removes an eager dependency, not a maintained rendering mechanism. Public synthetic comparisons, loader checks, consumer execution and alias/import-order checks passed within their stated scopes. Six fresh-process timings establish no broad startup, CPU or memory gain.
+
+Strict consumer compilation reports the same three TS2307 references to missing dist/src companions in both supplied distribution assemblies. This is an existing assembly verification limit, not a new candidate error or proof about unexamined complete npm publications. No shim or skipLibCheck was added to hide it.
+
 ## Rules for the next theory
 
 - Start with exact responsibilities and statements that can be deleted; distinguish repeated execution from duplicate implementation.

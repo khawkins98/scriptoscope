@@ -6,7 +6,7 @@ import { CHECKABLE_IDS, CHECKABLE_ICON_ROWS } from './checkables.js';
 // An id grid lists resource ids as every `base + t1 + t2 + …`, one term from
 // each `terms` array (src/engine/resources/ids.ts expands it).
 import { SCROLLBAR_TRACK_IDS } from './scrollbar.js';
-import { PF_ART, PF_UTILITY_ART, PF_UTILITY_GROW, PF_UTILITY_STRIPES } from './proceduralFrame.js';
+import { PF_ART, PF_UTILITY_ART, PF_UTILITY_GROW, PF_UTILITY_STRIPES } from './proceduralFrameArt.js';
 import { SLIDER_IDS } from './slider.js';
 import { PROGRESS_FALLBACK, PROGRESS_IDS } from './progress.js';
 import { PUSH_IDS, PUSH_BUTTON } from './pushButton.js';
