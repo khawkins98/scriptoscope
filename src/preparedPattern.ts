@@ -7,6 +7,7 @@ const typedArrayPrototype = Object.getPrototypeOf(Uint8ClampedArray.prototype);
 const arrayLength = Object.getOwnPropertyDescriptor(typedArrayPrototype, 'length')!.get!;
 const arrayKind = Object.getOwnPropertyDescriptor(typedArrayPrototype, Symbol.toStringTag)!.get!;
 const arrayBuffer = Object.getOwnPropertyDescriptor(typedArrayPrototype, 'buffer')!.get!;
+const bufferLength = Object.getOwnPropertyDescriptor(ArrayBuffer.prototype, 'byteLength')!.get!;
 const repeatBytes = Uint8ClampedArray.prototype.copyWithin;
 
 export function preparedPatternRect(work: Pixmap, r: { x: number; y: number; w: number; h: number }, pattern: Pixmap, phase: readonly number[], indexedSeed = false): void {
@@ -39,6 +40,9 @@ export function tryPreparedPattern(port: Pixmap, box: QdRect, pattern: Pixmap, p
       || !ArrayBuffer.isView(p.data) || arrayKind.call(p.data) !== 'Uint8ClampedArray' || arrayLength.call(p.data) !== p.width * p.height * 4) return false;
   }
   if (arrayBuffer.call(port.data) === arrayBuffer.call(pattern.data) || ![box.top, box.left, box.bottom, box.right, phase.x, phase.y].every(Number.isSafeInteger)) return false;
+  // Distinct shared-buffer wrappers can still alias the same storage.
+  try { bufferLength.call(arrayBuffer.call(port.data)); bufferLength.call(arrayBuffer.call(pattern.data)); }
+  catch { return false; }
   const x = Math.max(0, box.left), y = Math.max(0, box.top), right = Math.min(port.width, box.right), bottom = Math.min(port.height, box.bottom);
   if (right > x && bottom > y) preparedPatternRect(port, { x, y, w: right - x, h: bottom - y }, pattern, [-phase.x, -phase.y], true);
   return true;
