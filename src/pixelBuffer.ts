@@ -1,3 +1,4 @@
+import { registerPixelBuffer } from './preparedPattern.js';
 import type { Pixmap } from './engine/qd/types.js';
 import { readPixel, setPixel, copyBits, nineSlice, fillRect, drawOver, rasterToImageData, type PixRect } from './raster.js';
 import { rectXYWH } from './engine/qd/rect.js';
@@ -8,6 +9,7 @@ export class PixelBuffer implements Pixmap {
   readonly data: Uint8ClampedArray;
   constructor(readonly width: number, readonly height: number, data?: Uint8ClampedArray) {
     this.data = data ?? new Uint8ClampedArray(width * height * 4);
+    registerPixelBuffer(this);
   }
   static alloc(width: number, height: number): PixelBuffer { return new PixelBuffer(width, height); }
   getPixel(x: number, y: number): [number, number, number, number] { return readPixel(this, x, y); }

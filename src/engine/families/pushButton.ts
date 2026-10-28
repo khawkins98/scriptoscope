@@ -4,7 +4,7 @@
 import type { Pixmap, QdPoint, QdRect, Rgba } from '../qd/types.js';
 import type { EngineTrace } from '../trace.js';
 import type { ResourceChain } from '../resources/chain.js';
-import { drawCinfFrame, type CinfIconSource, type CinfUnknownIconSource, type CinfFrameResult, type CinfRgb16 } from '../qd/cinfFrame.js';
+import { drawPreparedCinfFrame, drawCinfFrame, type CinfIconSource, type CinfUnknownIconSource, type CinfFrameResult, type CinfRgb16 } from '../qd/cinfFrame.js';
 import { insetRect, offsetRect } from '../qd/rect.js';
 import { PUSH_BUTTON as P, PUSH_IDS, PUSH_LABEL } from '../tables/pushButton.js';
 
@@ -59,6 +59,14 @@ export function pushButtonResourceIds(): { type: string; id: number }[] {
 /** PB1–PB13 then DR1–DR6. The cicn's existence defines success, independently of metadata. */
 export function drawPushButton(port: Pixmap, chain: ResourceChain, input: PushButtonInput,
   env: PushButtonEnvironment = {}, trace?: EngineTrace): PushButtonResult {
+  return paintPushButton(port, chain, input, env, false, trace);
+}
+export function drawPreparedPushButton(port: Pixmap, chain: ResourceChain, input: PushButtonInput,
+  env: PushButtonEnvironment = {}, trace?: EngineTrace): PushButtonResult {
+  return paintPushButton(port, chain, input, env, true, trace);
+}
+function paintPushButton(port: Pixmap, chain: ResourceChain, input: PushButtonInput,
+  env: PushButtonEnvironment, prepared: boolean, trace?: EngineTrace): PushButtonResult {
   const result: PushButtonResult = { faceFound: false, face: null, ringAttempted: false, ringFound: false };
   if (input.visible === false) { trace?.drawOps.push({ op: 'skip', row: P.PB1.id }); return result; }
   const D = input.rect;
@@ -80,7 +88,7 @@ export function drawPushButton(port: Pixmap, chain: ResourceChain, input: PushBu
   const attempt = (id: number, bodyFill: boolean, dstRect: QdRect, row: string): CinfFrameResult | null => {
     const art = chain.getResource<CinfIconSource | CinfUnknownIconSource>('cicn', id, { row, ...(trace ? { trace } : {}) });
     if (!art) return null;
-    return drawCinfFrame(port, chain, { id, cicn: art.value.pixmap, icon: art.value, dstRect, bodyFill,
+    return (prepared ? drawPreparedCinfFrame : drawCinfFrame)(port, chain, { id, cicn: art.value.pixmap, icon: art.value, dstRect, bodyFill,
       requireRawSamples: true, ...(env.realize ? { realize: env.realize } : {}),
       ...(env.allocationOrigin ? { allocationOrigin: env.allocationOrigin } : {}),
       ...(env.patternOffset ? { patternOffset: env.patternOffset } : {}) }, trace);
