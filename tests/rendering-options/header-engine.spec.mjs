@@ -2,6 +2,65 @@ import { test, expect, openHarness, attachObservations } from './fixtures.mjs';
 import { HEADER_NATIVE_LITERALS, HEADER_COLUMN_LITERALS, HEADER_MASK_CLEAR_LITERALS, HEADER_STATE_DECISIONS, literalPixels } from './header-engine-oracle.mjs';
 
 for (const mode of ['source', 'built']) {
+  test(`${mode}: header full clips privately own output and snapshot allocator selection`, async ({ page, servers }) => {
+    await openHarness(page, servers, mode);
+    const observed = await page.evaluate(async ({ mode, fixtures }) => {
+      const api = await import(mode === 'source' ? '/src/index.ts' : '/dist/scriptoscope.js');
+      const { headerTheme, headerOptions } = await import('/tests/rendering-options/header-engine-inputs.mjs');
+      const out = [], original = api.PixelBuffer.alloc, sentinel = new Error('header-output-allocator');
+      try {
+        for (const fixture of fixtures) {
+          const owner = headerTheme(api, fixture);
+          await api.composeHeaderSurface(owner, headerOptions(fixture));
+          const source = await api.loadCicnBuffer(api.assetUrl(owner, owner.manifest.chromeElements.face.asset));
+          const sourceBefore = Array.from(source.data);
+          for (const [name, clip, full] of [['unbounded', null, true], ['exact', [0, 0, 11, 9], true],
+            ['containing', [-2, -3, 15, 15], true], ['partial', [1, 0, 10, 9], false], ['empty', [0, 0, 0, 0], false]]) {
+            const options = () => headerOptions({ ...fixture, origin: [-8, 11], clip });
+            const calls = [];
+            api.PixelBuffer.alloc = (w, h) => { calls.push([w, h]); throw sentinel; };
+            const opts = options(), pending = api.composeHeaderSurface(owner, opts);
+            if (opts.compositionContext.clip.kind === 'rect') opts.compositionContext.clip.rect.w = full ? 0 : 100;
+            opts.compositionContext.clip = full ? { kind: 'rect', rect: { x: 0, y: 0, w: 0, h: 0 } } : { kind: 'unbounded' };
+            let status, sameError = false, unexpected;
+            try { status = (await pending).status; } catch (error) { sameError = error === sentinel; unexpected = sameError ? undefined : String(error); }
+            const custom = new api.PixelBuffer(12, 10, new Uint8ClampedArray(480));
+            api.PixelBuffer.alloc = (w, h) => { calls.push([w, h]); return custom; };
+            const first = await api.composeHeaderSurface(owner, options());
+            const pixels = Array.from(first.buffer.data), dimensions = [first.buffer.width, first.buffer.height];
+            const customIdentity = first.buffer === custom;
+            api.PixelBuffer.alloc = () => source;
+            let independent = true;
+            if (full && !customIdentity && calls.length === 0) {
+              const second = await api.composeHeaderSurface(owner, options());
+              independent = first.buffer !== second.buffer && first.buffer.data !== second.buffer.data && second.buffer !== source && second.buffer.data !== source.data;
+              first.buffer.data.fill(0);
+              independent &&= JSON.stringify(Array.from(second.buffer.data)) === JSON.stringify(pixels);
+              second.buffer.data.fill(0);
+              independent &&= JSON.stringify(Array.from(source.data)) === JSON.stringify(sourceBefore);
+            }
+            if (full && customIdentity) independent = false;
+            out.push({ kind: fixture.kind, name, full, calls, status, sameError, unexpected, pixels, dimensions, customIdentity, independent });
+            api.PixelBuffer.alloc = original;
+          }
+        }
+      } finally { api.PixelBuffer.alloc = original; }
+      return out;
+    }, { mode, fixtures: HEADER_NATIVE_LITERALS.slice(0, 2) });
+    expect(observed).toHaveLength(10);
+    for (const row of observed) {
+      const label = `${row.kind}/${row.name}`;
+      expect(row.unexpected, label).toBeUndefined();
+      expect(row.calls, label).toEqual(row.full ? [] : [[11, 9], [11, 9]]);
+      expect(row.sameError, label).toBe(!row.full);
+      expect(row.status, label).toBe(row.full ? 'rendered' : undefined);
+      expect(row.customIdentity, label).toBe(!row.full);
+      expect(row.dimensions, label).toEqual(row.full ? [11, 9] : [12, 10]);
+      expect(row.independent, label).toBe(true);
+      if (row.full) expect(row.pixels, label).toEqual(literalPixels(HEADER_NATIVE_LITERALS.find(f => f.kind === row.kind).rows));
+    }
+  });
+
   test(`${mode}: header omits only mask-clear or offclip sampled color dependencies`, async ({ page, servers }, info) => {
     await openHarness(page, servers, mode);
     const observed = await page.evaluate(async ({ mode, fixtures }) => {
