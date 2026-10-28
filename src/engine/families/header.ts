@@ -11,7 +11,7 @@ import { getPixel } from '../../raster.js';
 import { copyBits } from '../../raster.js';
 import { tileBlit } from '../../raster.js';
 import { sourceLines } from '../../raster.js';
-import { eraseRect, fillPattern } from '../../raster.js';
+import { eraseRect } from '../../raster.js';
 import { PixelBuffer } from '../../pixelBuffer.js';
 import { nineSlice, drawOver } from '../../raster.js';
 import { HEADER_STATE, HEADER_BANDS, HEADER_COLUMNS as C, HEADER_DOMAIN as D } from '../tables/header.js';
@@ -168,7 +168,22 @@ export function drawHeaderSurface(port: Pixmap, input: HeaderSurfacePaintInput):
   for (const body of geometry.bodyRects) {
     const r = intersect(body, clip);
     if (!nonempty(r)) continue;
-    if (pattern && phase) fillPattern(work, qd(r), pattern, { x: -phase[0], y: -phase[1] });
+    if (pattern && phase) {
+      // Admitted integer, opaque pixels; work is detached from every source.
+      const pw = pattern.width, ph = pattern.height;
+      const start = ((r.x + phase[0]) % pw + pw) % pw, seed = Math.min(pw, r.w);
+      for (let y = r.y; y < r.y + r.h; y++) {
+        const row = ((y + phase[1]) % ph + ph) % ph * pw;
+        for (let x = r.x, sx = start; x < r.x + seed; sx = 0) {
+          const n = Math.min(pw - sx, r.x + seed - x);
+          work.data.set(pattern.data.subarray((row + sx) * 4, (row + sx + n) * 4), (y * work.width + x) * 4);
+          x += n;
+        }
+        const at = (y * work.width + r.x) * 4;
+        for (let n = seed * 4; n < r.w * 4; n *= 2)
+          work.data.set(work.data.subarray(at, at + Math.min(n, r.w * 4 - n)), at + n);
+      }
+    }
     else eraseRect(work, qd(r), background!);
   }
   let painted = bodyPixels > 0;
