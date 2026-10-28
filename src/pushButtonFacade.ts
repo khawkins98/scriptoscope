@@ -265,8 +265,10 @@ export async function composeEnginePush(theme: ThemeView, opts: ButtonOptions = 
           sampleFallbackReason: null, labelPainted: !!label && !label.endsWith('\r'), deviceMode: 'full-color-policy',
           sourceManifestKey: entry.key, sourceOwnerDepth: entry.chainDepth });
       }
-      for (let y = 0; y < out.height; y++) for (let x = 0; x < out.width; x++)
-        if (!controlPointVisible(composition, x - outset, y - outset)) out.setPixel(x, y, 0, 0, 0, 0);
+      if (composition.clip.kind === 'rect') {
+        for (let y = 0; y < out.height; y++) for (let x = 0; x < out.width; x++)
+          if (!controlPointVisible(composition, x - outset, y - outset)) out.setPixel(x, y, 0, 0, 0, 0);
+      }
       current();
       result = { buffer: out, layout: { faceRect: { x: outset, y: outset, w: width, h: height } } };
       recordButtonFaceStage(result, drawn.face?.drawn === true);
