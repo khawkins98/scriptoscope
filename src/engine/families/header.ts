@@ -1,3 +1,4 @@
+import { preparedPatternRect } from '../../preparedPattern.js';
 /** header.drawSurface / header.drawColumns, engine/header.md N1–N15 and C1–C8.
  * Native surface geometry and modern rectangular columns are separate drivers. */
 import type { Pixmap, Rgba } from '../qd/types.js';
@@ -176,20 +177,7 @@ function paintHeaderSurface(port: Pixmap, input: HeaderSurfacePaintInput, prepar
     const r = intersect(body, clip);
     if (!nonempty(r)) continue;
     if (pattern && phase && prepared) {
-      // Admitted integer, opaque pixels; work is detached from every source.
-      const pw = pattern.width, ph = pattern.height;
-      const start = ((r.x + phase[0]) % pw + pw) % pw, seed = Math.min(pw, r.w);
-      for (let y = r.y; y < r.y + r.h; y++) {
-        const row = ((y + phase[1]) % ph + ph) % ph * pw;
-        for (let x = r.x, sx = start; x < r.x + seed; sx = 0) {
-          const n = Math.min(pw - sx, r.x + seed - x);
-          work.data.set(pattern.data.subarray((row + sx) * 4, (row + sx + n) * 4), (y * work.width + x) * 4);
-          x += n;
-        }
-        const at = (y * work.width + r.x) * 4;
-        for (let n = seed * 4; n < r.w * 4; n *= 2)
-          work.data.set(work.data.subarray(at, at + Math.min(n, r.w * 4 - n)), at + n);
-      }
+      preparedPatternRect(work, r, pattern, phase);
     }
     else if (pattern && phase) fillPattern(work, qd(r), pattern, { x: -phase[0], y: -phase[1] });
     else eraseRect(work, qd(r), background!);

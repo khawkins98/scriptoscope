@@ -1,3 +1,4 @@
+import { tryPreparedPattern } from '../../preparedPattern.js';
 // Shared cinf painter, docs/spec/engine/qd-primitives.md B/P/E/S tables.
 // Face/ring drivers request cicn first; this primitive requests metadata only.
 // Source: `0x107fe..0x10fbe`; wrappers `0x10fc0`, `0x107a4..0x107f6`.
@@ -189,6 +190,12 @@ export async function prepareCinfFrameSamples(chain: ResourceChain, id: number, 
 }
 
 export function drawCinfFrame(port: Pixmap, chain: ResourceChain, input: CinfFrameInput, trace?: EngineTrace): CinfFrameResult {
+  return paintCinfFrame(port, chain, input, false, trace);
+}
+export function drawPreparedCinfFrame(port: Pixmap, chain: ResourceChain, input: CinfFrameInput, trace?: EngineTrace): CinfFrameResult {
+  return paintCinfFrame(port, chain, input, true, trace);
+}
+function paintCinfFrame(port: Pixmap, chain: ResourceChain, input: CinfFrameInput, prepared: boolean, trace?: EngineTrace): CinfFrameResult {
   const { id, cicn, dstRect: D, bodyFill } = input;
   const icon = input.icon;
   // Captured before metadata/body requests: this is the actual art admission.
@@ -271,7 +278,12 @@ export function drawCinfFrame(port: Pixmap, chain: ResourceChain, input: CinfFra
       const origin = input.allocationOrigin ?? { x: 0, y: 0 };
       const { row, phase } = cinfPhase(offsetRect(D, origin.x, origin.y), cinf.patternAnchor), off = input.patternOffset;
       const shifted = { x: phase.x - origin.x + (off?.x ?? 0), y: phase.y - origin.y + (off?.y ?? 0) };
-      for (const r of cinfBodyRects(D, c, s)) fillPattern(port, r, pattern, shifted, trace, `B5,${row.id}`);
+      for (const r of cinfBodyRects(D, c, s)) {
+        if (prepared && tryPreparedPattern(port, r, pattern, shifted)) {
+          if (!emptyRect(r) && pattern.width > 0 && pattern.height > 0)
+            trace?.drawOps.push({ op: 'fillPattern', row: `B5,${row.id}`, dst: r, phase: { x: shifted.x, y: shifted.y }, pattern: { width: pattern.width, height: pattern.height } });
+        } else fillPattern(port, r, pattern, shifted, trace, `B5,${row.id}`);
+      }
       if (trace?.controlPaint) patternPhase = shifted;
     } else if (backgroundRGB) {
       for (const r of cinfBodyRects(D, c, s)) eraseRect(port, r, backgroundRGB, trace, body.absent);

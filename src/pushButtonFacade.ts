@@ -18,7 +18,7 @@ import { rect } from './engine/qd/rect.js';
 import { prepareCinfFrameSamples, type CinfIconSource, type CinfRecord } from './engine/qd/cinfFrame.js';
 import type { Rgba } from './engine/qd/types.js';
 import { normalizeControlState } from './engine/state/control.js';
-import { drawPushButton, type PushLabelPass } from './engine/families/pushButton.js';
+import { drawPreparedPushButton, type PushLabelPass } from './engine/families/pushButton.js';
 import { PUSH_BUTTON as P, PUSH_FACADE as F, PUSH_PRESSED_PARTS } from './engine/tables/pushButton.js';
 
 const alive = (signal?: AbortSignal): void => { if (signal?.aborted) throw new DOMException('Control preparation aborted', 'AbortError'); };
@@ -243,7 +243,7 @@ export async function composeEnginePush(theme: ThemeView, opts: ButtonOptions = 
       } else if (browser) browserPass(out, pass, browser.font, opts.fg);
     };
     try {
-      const drawn = drawPushButton(out, chain, { rect: D, hilite: native.hilite, visible: true, defaultDataValid: true,
+      const drawn = drawPreparedPushButton(out, chain, { rect: D, hilite: native.hilite, visible: true, defaultDataValid: true,
         defaultFlag: opts.default ? 1 : 0, depth: 32, lowDepth: false, label }, {
         ...(labelOverride ? { labelOverride } : {}),
         ...(metrics ? { fontMetrics: metrics } : {}), textWidth: text => run ? run.advance : browser?.width(text) ?? 0, drawLabel,
