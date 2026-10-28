@@ -212,14 +212,23 @@ for (const mode of ['source', 'built']) {
     await setup(page, servers, mode);
     await page.evaluate(async () => {
       const f = window.ordering;
+      f.initial = f.snapshot(); f.observerCalls = 0;
+      const nativeIntact = () => f.root.querySelector('#ordering-range') === f.range && f.root.querySelector('#ordering-text') === f.text;
+      f.nativeIntact = nativeIntact;
       const observer = new MutationObserver(() => {
         observer.disconnect();
+        f.observerCalls++;
+        f.observed = f.snapshot(); f.observedNative = nativeIntact();
         f.latest = f.handle.retheme('missing-ordering-theme').then(() => 'resolved', () => 'rejected');
       });
-      observer.observe(f.root.querySelector('[data-scriptoscope-window-host]').shadowRoot, { childList: true });
+      // Chrome can be replaced inside a retained window root.
+      observer.observe(f.root.querySelector('[data-scriptoscope-window-host]').shadowRoot, { childList: true, subtree: true });
       await f.handle.retheme('system7-nostalgia-silver');
       f.latestResult = await f.latest;
     });
+    expect(await page.evaluate(() => window.ordering.observerCalls)).toBe(1);
+    expect(await page.evaluate(() => window.ordering.observed.map(w => w.ref))).toEqual(['system7-nostalgia-silver', 'system7-nostalgia-silver']);
+    expect(await page.evaluate(() => { const f = window.ordering; return { coherent: JSON.stringify(f.observed) === JSON.stringify(f.snapshot()), changed: f.observed.every((w, i) => JSON.stringify(w.pixels) !== JSON.stringify(f.initial[i].pixels)), observedNative: f.observedNative, native: f.nativeIntact() }; })).toEqual({ coherent: true, changed: true, observedNative: true, native: true });
     expect(await page.evaluate(() => { const f = window.ordering; return { refs: f.snapshot().map(w => w.ref), events: f.events, latest: f.latestResult }; })).toEqual({ refs: ['system7-nostalgia-silver', 'system7-nostalgia-silver'], events: [], latest: 'rejected' });
     await page.evaluate(() => window.ordering.handle.disconnect());
   });
