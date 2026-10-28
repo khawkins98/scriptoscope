@@ -38,15 +38,29 @@ A source-only responsibility census of the #497 baseline counted 92 admitted Typ
 
 This census established no larger compatible graph deletion from a new display-list interpreter. Such a representation would still need resource-selection policy, mutable-provider barriers, immediate alias semantics, diagnostics and public result adapters. Removing corner-sprite rendering could delete a concentrated graph but would withdraw supported fidelity, so it is not recommended under the faithful-core goal. Continue measuring removable complete-render work; do not interpret a small shared raster kernel as proof that surrounding contracts are free or unnecessary.
 
-## Preserve the existing lazy frame boundary
+## Preserve the existing lazy frame boundary (#501)
 
-The loader registry needs four procedural-frame art constant groups. Importing them from the full frame table kept that table eager even though frame painting already used a dynamic import. Moving the exact groups into a shared module and reexporting the original bindings lets the remaining table follow that existing lazy edge. Source review checked mutation/import ordering and preserved the existing eager loader captures and live scrollbar-plane alias.
+Landed in [#501](https://github.com/khawkins98/scriptoscope/pull/501) after exact-head browser/build and documentation gates passed. The loader registry needs four procedural-frame art constant groups. Importing them from the full frame table kept that table eager even though frame painting already used a dynamic import. Moving the exact groups into a shared module and reexporting the original bindings lets the remaining table follow that existing lazy edge. Source review checked mutation/import ordering and preserved the existing eager loader captures and live scrollbar-plane alias.
 
 Independent module-request accounting measured renderer initial JS at 352,555 → 331,549 raw bytes, while the existing frame chunk grows 39,790 → 59,742. The first-frame closure therefore saves only 1,054 raw bytes; all seven shipped JS files together save 1,063 raw / 530 summed Node gzip9 bytes. No extra production fetch is added. Progress-only consumers already shake out the table and gain effectively nothing.
 
 The production cost is +272 source bytes, +6 physical lines and +1 noncomment line under the source review's contextual-token census. This removes an eager dependency, not a maintained rendering mechanism. Public synthetic comparisons, loader checks, consumer execution and alias/import-order checks passed within their stated scopes. Six fresh-process timings establish no broad startup, CPU or memory gain.
 
 Strict consumer compilation reports the same three TS2307 references to missing dist/src companions in both supplied distribution assemblies. This is an existing assembly verification limit, not a new candidate error or proof about unexamined complete npm publications. No shim or skipLibCheck was added to hide it.
+
+## Scalar compositor reads: rejected execution theory
+
+The reviewed #501 runtime was the baseline. A prototype replaced two private per-pixel tuple reads with scalar channel snapshots, retaining the public tuple-returning helper. This duplicates a little read logic: +8 noncomment production lines, +261 source bytes, +231 raw shipped JS bytes and +73 summed Node gzip9 bytes. All seven runtime files and all 101 declaration files were bound to immutable artifacts and reproduced by a separate source reviewer.
+
+Source-owned dynamic-read, thrown-prefix and alias controls passed. Independent comparison retained 4,864 matrix cases plus observer, lifetime, provider and pattern checks without a candidate pixel/behavior mismatch. Exact reflection still failed: incidental minification changed the Function.name values of two public bindings, CicnTransferError and isDebug. No exception was approved. An ideal straight-alpha oracle also failed on translucent destinations equally in both versions; that baseline limitation is distinct from candidate parity and was not relabeled a pass.
+
+Six fresh browser processes retained 30 warm samples per workload and variant, with balanced order across eight complete public operations. No workload established a speed benefit. Geometric means of candidate/baseline paired process-median ratios were 1.114 (interval 1.010–1.253) for small bevels and 1.117 (1.029–1.219) for large frames; the other six intervals crossed no change. These descriptive 95% bootstrap intervals resample six process pairs and are unadjusted for eight comparisons. Cold/setup observations were separate. These are synthetic workload results, not whole-application or historical-fidelity measurements.
+
+Park the prototype. Separate producer allocation sampling suggested less temporary heap traffic, but was not independently confirmed in this timing trial; allocation reduction does not establish faster complete rendering. This trial adds source and shipped code while showing slowdown signals. No independent memory benefit is claimed. Do not repeat the same scalar rewrite or add hard-coded generated-name compatibility shims to rescue it without a new, concrete hypothesis.
+
+## Default-loader boundary census: no compatible cut established
+
+A source-owned emitted-consumer census found no additional saving for a named progress import from the default package entry: both default and renderer consumers already emitted 57,729 raw / 18,380 Node gzip9 bytes. URL loading plus window rendering retained more conversion code, but the inspected dynamic-import cut would add an observable suspension and import-failure behavior at a mutable-input boundary. No production prototype, emitted saving or timing gain was established for that cut. It remains an unapproved compatibility proposal, not a completed optimization.
 
 ## Rules for the next theory
 
