@@ -18,6 +18,8 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   resize step no longer makes screen readers re-announce the control. A
   pointer drag or resize of another window moves keyboard focus into that
   window, so the next arrow key no longer moves the previous one (#533).
+- Showcase picker tile labels reach WCAG AA contrast on the evolution and
+  monkey-paradise body patterns (#527).
 
 ## [0.7.0] — 2026-10-29
 
