@@ -202,6 +202,8 @@ body.site-support {
    paper so every scheme, including the dark ones, keeps the text readable. */
 @font-face { font-family: 'Charcoal 12'; src: url('./assets/fonts/charcoal-12.woff') format('woff'); font-display: swap; }
 .site-desk-window { --scriptoscope-content-padding: 14px 18px; min-width: 0; }
+/* Measure the source with the same padding and wrapping as its promoted content. */
+.site-desk-window[data-scriptoscope-window] { padding: var(--scriptoscope-content-padding); box-sizing: border-box; }
 .site-desk-window .scriptoscope-fit { background: #fcfaf5; color: var(--site-ink); }
 .site-story-layout { display: grid; grid-template-columns: minmax(0, 70ch) minmax(0, 360px); justify-content: space-between; column-gap: 56px; align-items: start; }
 .site-story-layout > * { max-width: none; }
