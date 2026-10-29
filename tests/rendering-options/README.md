@@ -59,6 +59,20 @@ No Theme → System 7 → No Theme flow is covered by `button-showcase.spec.mjs`
 These are web lifecycle assertions; they do not certify historical button pixels
 or add tab/text-field restoration to the contract.
 
+## Grow-box hit zone (#524)
+
+`growbox-zone.spec.mjs` drives the showcase Schemes Folder window in source
+(Vite demo) and production (`dist/demo`) modes for windows-95 and beos-r503,
+which ship no grow-box resource, and apple-platinum-2, which does (control).
+It locates the vertical scrollbar's down arrow only from the visible scrollbar
+element (arrow at its end, length equal to bar thickness) and never reads the
+grow-box button. A click at the arrow centre must scroll the content without
+resizing the window, handing the in-flow host off to absolute positioning or
+dispatching `scriptoscope:userresize`. A drag from the window's bottom-right
+corner pixel must still resize it. The showcase has no horizontal window
+scrollbar, so the right arrow is not covered. These are interaction checks
+and make no fidelity claim.
+
 ## Coverage inventory
 
 The smoke profile contains 70 cases per theme (1,260 renders per transport/browser
