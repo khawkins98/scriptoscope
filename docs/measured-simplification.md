@@ -37,7 +37,7 @@ On admission failure, preserve partial records and stop that registration. A lau
 | Faster runtime | Measured complete operations on named workloads, with baseline/candidate identity, warm-up, paired sampling, variation and uncertainty. Fewer calls or a faster private kernel alone is insufficient. |
 | Preserved behavior | Differential checks for the retained contract, plus required regression and fidelity checks. A passing baseline comparison does not independently prove fidelity to the original program. |
 
-Use the same counting method and compressor for each before/after pair. Distinguish physical lines from noncomment lines, scanner tokens from contextual syntax tokens, and raw JavaScript from summed per-file gzip sizes. Do not combine unlike measures.
+Use the same counting method and compressor for each before/after pair. Distinguish physical lines from noncomment lines, scanner tokens from contextual syntax tokens, and raw JavaScript from summed per-file gzip sizes. Do not combine unlike measures. A long instruction string counts as one literal token; that does not make its encoded operations simpler. Review the maintained data grammar, decoder, geometry and editing workflow as well as the numeric delta. Fixed-result specialization must earn its maintenance cost.
 
 Moving logic into generated data, another package or an adapter does not erase its production cost. Minification may reduce shipped bytes, but it is not deletion of runtime logic. Static resources and fonts remain visible in the accounting.
 
