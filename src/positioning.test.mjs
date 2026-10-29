@@ -10,7 +10,7 @@ const root = {
 globalThis.document = { documentElement: root };
 globalThis.getComputedStyle = el => (el === root ? rootStyle : el.computed ?? {});
 globalThis.window = { scrollX: 0, scrollY: 0 };
-const { offsetInContainingBlock, visualScale, viewportFrame } = await import('./positioning.ts');
+const { offsetInContainingBlock, visualScale, viewportFrame, pointInElement } = await import('./positioning.ts');
 
 test('page-level absolute positions include the page scroll', () => {
   window.scrollX = 12; window.scrollY = 1800;
@@ -22,6 +22,7 @@ test('page-level absolute positions include the page scroll', () => {
 test('positioned ancestors use their padding box and own scroll offset', () => {
   window.scrollX = 0; window.scrollY = 900;
   const ancestor = {
+    computed: { transform: 'matrix(0.8, 0, 0, 0.8, 0, 0)' },
     getBoundingClientRect: () => ({ left: 100, top: -50 }),
     clientLeft: 2, clientTop: 3, scrollLeft: 0, scrollTop: 40,
   };
@@ -40,6 +41,7 @@ test('a scaled ancestor converts viewport distances back to its CSS pixels (#515
   window.scrollX = 0; window.scrollY = 0;
   // A 1000x500 box shown at scale(0.8): 800x400 on screen, top-left at (100, 50).
   const ancestor = {
+    computed: { transform: 'matrix(0.8, 0, 0, 0.8, 0, 0)' },
     getBoundingClientRect: () => ({ left: 100, top: 50, width: 800, height: 400 }),
     offsetWidth: 1000, offsetHeight: 500,
     clientLeft: 0, clientTop: 0, scrollLeft: 0, scrollTop: 0,
@@ -97,4 +99,19 @@ test('a skewed ancestor undoes the shear (#519)', () => {
 test('a pure scale keeps the bounding-rect ratio path', () => {
   const scaled = box({ transform: 'matrix(0.5, 0, 0, 0.5, 0, 0)' }, { left: 10, top: 20, width: 100, height: 50 });
   near(viewportFrame(scaled).toLocal(60, 45), { x: 100, y: 50 });
+});
+
+test('pointInElement reports fractions along the element\'s own axes (#519)', () => {
+  // The rotated box from above: a point 50 px down the screen is a quarter of
+  // the way along its 200 px x axis, whatever its 100x200 screen bounds say.
+  const rotated = box({ transform: 'matrix(0, 1, -1, 0, 0, 0)' }, { left: 400, top: 50, width: 100, height: 200 });
+  const p = pointInElement(rotated, 500, 100);
+  near(p, { x: 50, y: 0, width: 200, height: 100 });
+});
+
+test('an untransformed element maps by its rect exactly, fractional widths included', () => {
+  const plain = { ...box({}, { left: 10, top: 20, width: 300.4, height: 99.6 }), offsetWidth: 300, offsetHeight: 100 };
+  const f = viewportFrame(plain);
+  near(f.size, { width: 300.4, height: 99.6 });
+  near(f.toLocal(160.2, 69.8), { x: 150.2, y: 49.8 });
 });
