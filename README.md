@@ -50,7 +50,15 @@ Nobody's authored a new Kaleidoscope scheme in roughly twenty years. The corpus 
 
 ## Install
 
-Scriptoscope is a hobby project — there's no npm package. The runtime + the 18 themes are hosted on the project's own GitHub Pages and that **is** the install path. Two URLs, no build step:
+> **`v2` integration candidate:** these branch docs describe unreleased changes,
+> including explicit host ownership. The public Pages deployment still serves the
+> October 24 `main` build and may not supply the helper/API shown here. Use a
+> matching local build for this candidate. See the [installation and migration
+> guide](docs/v2/integration-release-notes.md); package metadata remains 0.6.0 and
+> does not select the next release version.
+
+The runtime and the 18 themes are hosted on the project's GitHub Pages. For a
+matching deployed build, the page integration uses two URLs and no build step:
 
 ```html
 <link rel="stylesheet" href="https://khawkins98.github.io/scriptoscope/scriptoscope.css">
@@ -451,7 +459,7 @@ async function showWindow(theme: ThemeInput, container: HTMLElement) {
 }
 ```
 
-### Owned raster loading (feature PR #480)
+### Owned raster loading
 
 `loadOwnedTheme()` and `loadOwnedKaleidoscopeScheme()` return a distinct
 `OwnedTheme`. `createOwnedThemeResolver()` provides owned loading. The explicit page host
@@ -463,11 +471,11 @@ Existing loaders retain ready image URLs. See the [owned API and lifecycle
 contract](docs/v2/owned-theme-api.md) for examples and the current adoption boundary.
 Existing raw loading and factory APIs remain available. Registered themes are borrowed; release them only after host dependents are disconnected.
 
-### Proposed native form-control migration (unreleased)
+### Native form-control migration (unreleased, merged in #484)
 
-These compatibility changes are a draft proposal pending independent final review.
+These compatibility changes have landed on `v2`.
 `interactiveCheckbox`, `radioGroup` and their corresponding option types are
-retired in the proposal. Replace those factories with native checkbox/radio
+removed from the public exports. Replace those factories with native checkbox/radio
 inputs, labels, initial `checked` state and native `change` listeners. Shared
 radio `name` values give the browser ownership of group selection and keyboard
 behavior. Explicit hosts promote the native inputs selected by the application.

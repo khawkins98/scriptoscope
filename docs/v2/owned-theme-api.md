@@ -2,10 +2,10 @@
 
 The render-focused loaders return an `OwnedTheme`, distinct from the existing
 ready-image `LoadedTheme`. All low-level window and control composition entry points accept either
-contract. Interactive sliders, checkables and disclosure controls, and button,
-form-control and tab promotion, use the same owned path. The additive owned
-resolver and mount share the existing scanner and lifecycle. The main demo startup
-and drop flows use them; diagnostic catalog images now export asynchronously in feature PR #480.
+contract. Interactive sliders and disclosure controls, and button,
+form-control and tab promotion, use the same owned path. The main demo startup
+and drop flows use owned loading; diagnostic catalog images export asynchronously.
+Native checkbox/radio inputs replace the retired interactive checkable factories.
 
 ```ts
 import { loadOwnedTheme, interactiveButton, WindowManager, themeImageUrl, type OwnedTheme } from 'scriptoscope';
@@ -32,12 +32,14 @@ theme.dispose();
 already fetched archives. Both loaders use the existing converter and family
 renderer; they do not introduce another rendering engine.
 
-## Declarative loading
+## Explicit host loading
 
 ```ts
-import { mountOwnedDeclarative, loadOwnedKaleidoscopeScheme } from 'scriptoscope';
+import { loadOwnedKaleidoscopeScheme } from 'scriptoscope';
+// Application example helper, separate from the package exports.
+import { mountExplicitPage } from './explicit-host.mjs'; // copy/adapt demo helper into your app
 
-const handle = await mountOwnedDeclarative({ root, themeBaseUrl: '/themes', pageThemeDefault: '1138' });
+const handle = await mountExplicitPage({ root, themeBaseUrl: '/themes', pageThemeDefault: '1138' });
 const dropped = await loadOwnedKaleidoscopeScheme(file);
 handle.registerTheme('dropped:example', dropped);
 await handle.retheme('dropped:example');
@@ -47,12 +49,16 @@ dropped.dispose();
 ```
 
 `createOwnedThemeResolver()` caches owned loads and supports registered legacy or
-owned inputs through `ThemeResolver<ThemeInput>`. `createThemeResolver()` and
-`mountDeclarative()` retain their existing `LoadedTheme` contracts. Both mounts
-share the same scanner, controls, picker and teardown. Concurrent calls on one
-root reserve one pending mount; switching loading contracts requires disconnect.
+owned inputs through `ThemeResolver<ThemeInput>`. `createThemeResolver()` retains
+its `LoadedTheme` contract. `mountDeclarative` and `mountOwnedDeclarative` are
+removed; use public promotion/restoration primitives or the separate example
+helper above. The helper owns selected sources and uses owned loading. Later
+controls require `await handle.attach({controls: [input]})`; detach before moving
+or removing them, and disconnect before replacing the root. See the
+[public migration contract](../../EXPLICIT-HOST-API.md) and
+[example host guide](../../demo/EXPLICIT-HOST.md).
 
-Icons in the owned mount export selected images asynchronously and ignore stale
+Icons in the explicit host export selected images asynchronously and ignore stale
 completion after cancellation, changed attributes or movement into another theme
 scope. The existing synchronous `promoteIcon` remains supported for ready-image
 themes; `promoteIconAsync` in `scriptoscope/declarative` accepts either contract.
@@ -93,8 +99,8 @@ its private pixel references. Existing synchronous image consumers stay supporte
 An owned theme borrows its configured base. Disposing a child does not dispose
 that base. `WindowManager` defaults to its existing `LoadedTheme` contract;
 parameterize it with `OwnedTheme` or `ThemeInput` for the owned path. Its
-`describe()` result preserves the original input identity. The default declarative
-mount retains its eager contract; `mountOwnedDeclarative` uses owned loading.
+`describe()` result preserves the original input identity. The example
+`mountExplicitPage` host uses owned loading; neither retired mount is exported.
 
 Disposed composition does not publish a completed buffer. Shared renderer
 preparation checks theme and base lifetimes before and after asynchronous work. Renderers borrow source arrays; callers must not mutate those arrays.
