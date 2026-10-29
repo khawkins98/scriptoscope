@@ -192,3 +192,46 @@ test('reading pages wear real scheme windows', async ({ page, demo }) => {
     await expect(page.locator('main [data-scriptoscope-window-host]').first()).toBeVisible();
   }
 });
+
+test('windows inside a scaled ancestor track the pointer when dragged and resized (#515)', async ({ page, demo }) => {
+  await page.setViewportSize({ width: 1280, height: 1000 });
+  await page.goto(`${demo}/install.html`);
+  await expect(page.locator('#install[data-code-windows-ready]')).toBeVisible();
+  await page.addStyleTag({ content: 'body { transform: scale(0.8); transform-origin: 0 0; }' });
+  const host = page.locator('#install .site-code-example[data-scriptoscope-window-host]').first();
+  const frameRect = () => host.evaluate(el => {
+    const r = el.shadowRoot.querySelector('.scriptoscope-window').getBoundingClientRect();
+    return { x: r.left, y: r.top, width: r.width, height: r.height };
+  });
+  await host.scrollIntoViewIfNeeded();
+  await expect.poll(async () => {
+    const a = await frameRect();
+    await page.waitForTimeout(250);
+    const b = await frameRect();
+    return a.x === b.x && a.y === b.y;
+  }, { timeout: 10_000 }).toBe(true);
+
+  const drag = async (fromX, fromY, dx, dy) => {
+    await page.mouse.move(fromX, fromY);
+    await page.mouse.down();
+    await page.mouse.move(fromX + dx, fromY + dy, { steps: 4 });
+    await page.mouse.up();
+  };
+  // Move: the painted frame follows the pointer in viewport pixels.
+  const before = await frameRect();
+  await drag(before.x + 120, before.y + 5, 50, 40);
+  const moved = await frameRect();
+  expect(Math.abs(moved.x - before.x - 50)).toBeLessThanOrEqual(1);
+  expect(Math.abs(moved.y - before.y - 40)).toBeLessThanOrEqual(1);
+
+  // Resize: the grow box follows the pointer too.
+  const corner = await host.evaluate(el => {
+    const r = el.shadowRoot.querySelector('.scriptoscope-growbox').getBoundingClientRect();
+    return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+  });
+  await drag(corner.x, corner.y, -80, 40);
+  await expect.poll(async () => {
+    const r = await frameRect();
+    return [Math.round(r.width - moved.width), Math.round(r.height - moved.height)];
+  }).toEqual([-80, 40]);
+});

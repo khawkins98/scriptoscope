@@ -92,7 +92,7 @@ import {
 import { newProgressRecord, progressIdleAdvance, progressSetData, type ProgressRecord } from './engine/families/progress.js';
 import { PROGRESS_DATA, PROGRESS_FACADE_TICKS } from './engine/tables/progress.js';
 import { platinumSliderWithLayout, platinumScrollbar } from './platinum.js';
-import { findPositionedAncestor, offsetInContainingBlock } from './positioning.js';
+import { findPositionedAncestor, offsetInContainingBlock, visualScale } from './positioning.js';
 import { debug } from './debug.js';
 import { renderWindow, resolveTitleWidgetRects, type RenderWindowOptions } from './renderWindow.js';
 import type { PixelBuffer } from './pixelBuffer.js';
@@ -1481,11 +1481,14 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     // Widgets (title boxes) and the grow-box corner stopPropagation, so they don't trigger drag; the
     // themed scrollbar (when present) also stopPropagation on pointerdown for the same reason.
     const inFrame = (e: MouseEvent): boolean => {
+      // Work in the window's own CSS pixels so a scaled ancestor (#515)
+      // doesn't shift the frame strip against the pointer.
       const r = win.getBoundingClientRect();
-      const dx = e.clientX - r.left, dy = e.clientY - r.top;
+      const vs = visualScale(win, r);
+      const dx = (e.clientX - r.left) / vs.x, dy = (e.clientY - r.top) / vs.y;
       const cx = composed.frame.left * scale, cy = composed.frame.top * scale;
-      const cw = r.width - (composed.frame.left + composed.frame.right) * scale;
-      const ch = r.height - (composed.frame.top + composed.frame.bottom) * scale;
+      const cw = r.width / vs.x - (composed.frame.left + composed.frame.right) * scale;
+      const ch = r.height / vs.y - (composed.frame.top + composed.frame.bottom) * scale;
       return !(dx >= cx && dx < cx + cw && dy >= cy && dy < cy + ch);
     };
     win.addEventListener('pointerdown', (e) => {
@@ -1503,19 +1506,25 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       // returns the now-applied (x, y). No visual jump.
       const { x: x0, y: y0 } = this.toAbsolute(host);
       const sx = e.clientX, sy = e.clientY;
+      // Pointer deltas are viewport pixels; left/top are the containing
+      // block's CSS pixels. They differ inside a scaled ancestor (#515).
+      const vs = visualScale(host);
+      const at = (ev: PointerEvent): { x: number; y: number } =>
+        ({ x: x0 + (ev.clientX - sx) / vs.x, y: y0 + (ev.clientY - sy) / vs.y });
       // Hot-loop bypass: pointermove writes left/top directly at 60Hz for
       // smoothness. Calling setPosition() per move would fire onChange on
       // every frame and thrash persistence + consumer listeners. Acceptable
       // because pointerup commits through setPosition once below — the
       // chokepoint's contract is "every COMMITTED move", not every frame.
-      const mv = (ev: PointerEvent): void => { host.style.left = `${x0 + ev.clientX - sx}px`; host.style.top = `${y0 + ev.clientY - sy}px`; };
+      const mv = (ev: PointerEvent): void => { const p = at(ev); host.style.left = `${p.x}px`; host.style.top = `${p.y}px`; };
       const up = (ev: PointerEvent): void => {
         document.removeEventListener('pointermove', mv);
         document.removeEventListener('pointerup', up);
         // Commit through the chokepoint so persistence + future v2 reflow
         // features (snap-to-grid, collision) see the move. setPosition
         // fires onChange for us; no explicit call needed.
-        this.setPosition(host, x0 + ev.clientX - sx, y0 + ev.clientY - sy);
+        const p = at(ev);
+        this.setPosition(host, p.x, p.y);
       };
       document.addEventListener('pointermove', mv); document.addEventListener('pointerup', up);
     }, { signal });
@@ -1642,6 +1651,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       // resizes work naturally. 2026-05-31 user fix follow-up.
       this.toAbsolute(host);
       const sx = e.clientX, sy = e.clientY;
+      const vs = visualScale(host); // viewport px per CSS px under a scaled ancestor (#515)
       const w0 = entry.opts.width ?? 240, h0 = entry.opts.height ?? 120;
       const hw0 = host.offsetWidth, hh0 = host.offsetHeight;
       const outline = document.createElement('div');
@@ -1652,8 +1662,8 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       host.appendChild(outline);
       let nw = w0, nh = h0;
       const mv = (ev: PointerEvent): void => {
-        nw = Math.max(minContentW, w0 + Math.round((ev.clientX - sx) / scale));
-        nh = Math.max(40, h0 + Math.round((ev.clientY - sy) / scale));
+        nw = Math.max(minContentW, w0 + Math.round((ev.clientX - sx) / vs.x / scale));
+        nh = Math.max(40, h0 + Math.round((ev.clientY - sy) / vs.y / scale));
         outline.style.width = `${hw0 + (nw - w0) * scale}px`;
         outline.style.height = `${hh0 + (nh - h0) * scale}px`;
       };
