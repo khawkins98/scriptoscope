@@ -17,7 +17,7 @@ Our optimization approach is **consolidation and specialization, guided by measu
 7. **Measure the complete operation.** Keep fixture generation, decoding warm-up and correctness assertions outside timed samples. Include ordinary preparation, allocation, drawing and publication inside the measured public call. Alternate baseline/candidate order, use multiple processes, retain the planned samples, and report variation and uncertainty.
 8. **Account and land.** Review the source and independent evidence, then run the required build, package contracts, browser matrix and exact goldens on the release revision. Ship one coherent change with its concrete benefits and limits.
 
-Preparation is not permission to move validation, change asynchronous snapshot timing or reorder errors. If a needed contract change is intentional, propose its exact behavior and migration for review.
+Preparation is not permission to move validation, change asynchronous snapshot timing or reorder errors. If a needed contract change is intentional, propose its exact behavior and migration for review. The adopted [generated-name policy](generated-name-compatibility.md) permits independently classified minifier-generated function/constructor names to vary; it does not waive other API or error behavior.
 
 ## Validate the measurement method
 
