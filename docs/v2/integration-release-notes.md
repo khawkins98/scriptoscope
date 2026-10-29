@@ -1,13 +1,10 @@
 # 0.7.0 pre-launch: installation and migration
 
-The approved next pre-launch target is **0.7.0**. This integration stays
-**Unreleased** until the release cut. `v2` is an internal development branch
-label, not public release 2.0 or a 1.0 threshold. Reviewed source baseline:
-`v2` at `de7c3bcc82870c0b257b6af7fb9c6db024f3f1a8`, including #510 and #516, compared
-with `v0.6.0` at `fa727e1f4edb9a83f48d25a50d78e5d20c887e62` (37 commits
-ahead, zero behind). Package metadata remains **0.6.0**. The version bump, tag,
-publishing and deployment remain separate release steps under
-[#168](https://github.com/khawkins98/scriptoscope/issues/168).
+**0.7.0** is a pre-launch release (GitHub release `v0.7.0`; no npm
+publication). `v2` is an internal development branch label, not public release
+2.0 or a 1.0 threshold, which [#168](https://github.com/khawkins98/scriptoscope/issues/168)
+still has to define. It compares with `v0.6.0` at
+`fa727e1f4edb9a83f48d25a50d78e5d20c887e62`.
 
 ## Try a matching build
 
@@ -20,16 +17,14 @@ npm run build:demo
 npm run preview:demo
 ```
 
-Open the printed local `/scriptoscope/` URL. The public Pages site still serves
-the October 24 `main` build as of this draft; it does not validate these branch
-examples. For self-hosting, copy the runtime chunks, CSS, helper modules and themes
+Open the printed local `/scriptoscope/` URL. The public Pages site serves the
+`main` build, which matches 0.7.0 at release. For self-hosting, copy the runtime chunks, CSS, helper modules and themes
 from the **same demo build**, following [vendoring](../../README.md#vendoring-if-you-dont-want-a-third-party-cdn-dependency).
 Do not mix the old deployment with the new example helper.
 
 To try the library in a separate npm consumer, run `npm run build`, then
 `npm pack --ignore-scripts` in this checkout and install the resulting tarball
-by local path. Its current filename/version is `scriptoscope-0.6.0.tgz`; keep it
-separate from any released artifact. This does not publish a package.
+by local path. Its filename is `scriptoscope-0.7.0.tgz`. This does not publish a package.
 
 | Import | Intended use |
 |---|---|
@@ -47,7 +42,7 @@ application example code**, not an export from any package entry. Copy/adapt the
 
 ## Delivered behavior and migration
 
-The [Unreleased changelog](../../CHANGELOG.md#unreleased) records the integrated
+The [0.7.0 changelog](../../CHANGELOG.md#070--2026-10-29) records the delivered
 changes. The following compatibility actions follow the adopted public contracts:
 
 | Before | After on this candidate |
@@ -76,7 +71,7 @@ disposes them after the last consumer disconnects. Native source identity, form
 association and live values remain owned by the browser/application. Checkables
 may move into a carrier while promoted; do not depend on their parent markup.
 See [explicit host migration](../../EXPLICIT-HOST-API.md), the
-[native-control example](../../README.md#native-form-control-migration-unreleased-merged-in-484)
+[native-control example](../../README.md#native-form-control-migration-070-484)
 and [owned-theme lifecycle](owned-theme-api.md).
 
 Tabs and whole-header/list-column composition now use engine drivers
@@ -134,15 +129,12 @@ The optimization audit records do not turn rejected prototypes into delivered
 features or establish application-wide performance. A small raster kernel is
 only one part of the runtime.
 
-## Remaining release steps and gates
+## Release gates and remaining work
 
-- Cut the approved 0.7.0 pre-launch release under #168 after integration checks;
-  until then keep these notes Unreleased and package metadata unchanged.
-- Full required checks on the final integration candidate, followed by deployment
-  and an actual deployment smoke check. Component PR checks and readiness receipts
-  certify their own exact heads; the final integration candidate needs its own
-  required check results. Coordinator build/package and bounded showcase smoke
-  reports are not exact-head release CI or universal fidelity certification.
+- 0.7.0 is tagged only after the release candidate's own required checks pass
+  and a smoke check of the deployed Pages site. Component PR checks certify
+  their own exact heads; neither they nor the smoke check are universal fidelity
+  certification.
 - Fidelity-first stabilization continues under
   [#509](https://github.com/khawkins98/scriptoscope/issues/509) / #221. #209 remains
   canonical deferred scope, #472 remains parked authoring, and #190/#218/#277

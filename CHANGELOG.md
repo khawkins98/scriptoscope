@@ -7,13 +7,15 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
-The approved next pre-launch target is **0.7.0**; these changes remain
-**Unreleased** until the release cut. `v2` is an internal development branch
-label, not public release 2.0 or a 1.0 threshold. Package metadata remains
-**0.6.0**; version bumps, tags, publishing and deployment are separate release
-steps tracked under [#168](https://github.com/khawkins98/scriptoscope/issues/168). See the
-[integration and migration guide](docs/v2/integration-release-notes.md) for source
-identity, installation, compatibility actions and remaining release gates.
+## [0.7.0] — 2026-10-29
+
+Pre-launch release from the `v2` integration branch, continuing 0.y.z initial
+development from 0.6.0 ([#168](https://github.com/khawkins98/scriptoscope/issues/168)).
+`v2` is an internal development branch label, not public release 2.0 or the 1.0
+threshold, which #168 still has to define. Applications now own attachment and
+lifetime through explicit promotion primitives; see the
+[integration and migration guide](docs/v2/integration-release-notes.md) for
+installation and compatibility actions. GitHub release only; no npm publication.
 
 ### Added
 
@@ -84,6 +86,16 @@ identity, installation, compatibility actions and remaining release gates.
 
 ### Fixed
 
+- Windows inside a `transform: scale()` ancestor follow the pointer when
+  dragged and resized, and land in the right place on the first drag (#515, #518).
+- The same holds under rotated, skewed or general 2D `matrix()` ancestors,
+  including the individual `rotate`/`scale` properties: pointer positions are
+  mapped into the containing block's own CSS pixels (#519, #521). 3D transforms
+  are flattened to their 2D part; a `rotate` about an axis other than z is ignored.
+- Under those ancestors, promotion sizes an unsized window from its layout size
+  rather than its tilted screen bounds. Slider, scrollbar-thumb and painted-part
+  pointer mapping follow the control's own axis (#522). Managed content ports
+  still report transformed geometry as unsupported.
 - Story desk windows account for their authored padding before promotion,
   avoiding initial growth and changed wrapping (#516). Runtime behavior is unchanged.
 - Demo loading states and reading-page windows are integrated, and window
@@ -109,15 +121,29 @@ identity, installation, compatibility actions and remaining release gates.
 - PRs #475 (Studio), #483 (bevel experiment) and #500 (header/allocator prototype)
   are closed **unmerged**. They are not delivered features. Later optimization
   audit records do not establish additional runtime savings.
-- Required checks on the final integration candidate and an actual deployment
-  smoke check remain release gates. Earlier branch checks certify their own
-  revisions; the public Pages site does not yet represent this candidate.
+- The release candidate's own required checks and a smoke check of the deployed
+  Pages site gate the tag. Earlier branch checks certify only their own revisions.
 
 ### Contributor workflow
 
 - Document focused reproduction and spec checks, a small stable team, reviewer
   continuity, provenance preflight, targeted iteration and one final integrated
   validation chain. Required CI and independent evidence/review gates remain.
+
+### Runtime size (0.6.0 → 0.7.0)
+
+`npm run loc:src -- HEAD --base v0.6.0`:
+
+| non-test source | 0.6.0 | 0.7.0 | delta |
+|---|---:|---:|---:|
+| logic | 17094 | 16081 | −1013 |
+| cited engine tables | 2237 | 2329 | +92 |
+| total | 19331 | 18410 | −921 |
+
+Removing the declarative mount's scanner, persistence and cascade (#491), the
+retired checkbox/radio wrappers (#484) and the replaced header, tab and
+`controls.ts` painters outweighs the new drivers, QuickDraw region/tile/transfer
+primitives, owned loading and transformed-ancestor mapping.
 
 ## [0.6.0] — 2026-10-23
 

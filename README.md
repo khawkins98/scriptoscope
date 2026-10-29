@@ -40,7 +40,7 @@ Want more? Two community archives where Scriptoscope's drop-zone can read scheme
 
 Both let you grab a `.sit` and drop it on the demo to see it render live without a build step.
 
-> **Status (pre-1.0, 2026-10-23):** The package version is **0.6.0**. The current **incremental decode-first v2** milestone moves families onto `src/engine/` through the long-lived `v2` integration branch and per-family releases ([decision #8](./docs/v2/DECISIONS.md)). Scroll bars, sliders, progress, procedural frames, window recipe/widgets, push/default-ring buttons and checkboxes/radios have engine drivers; follow-up work and review state are tracked in [issue #459](https://github.com/khawkins98/scriptoscope/issues/459). This is not an all-family cutover. `src/composeChrome.ts` is now a facade over `src/engine/families/window.ts`; the engine holds the decoded layout/widget rules. The May “v2 clean-break” and “v3 reset” names describe earlier architecture generations, not this branch or package versions. Runtime contributors start with the [implementer brief](./docs/spec/engine/IMPLEMENTER-BRIEF.md) and assigned safe family spec; unresolved rules become spec questions. Consumers can use the imperative and declarative examples below.
+> **Status (pre-1.0, 2026-10-29):** The package version is **0.7.0**. The current **incremental decode-first v2** milestone moves families onto `src/engine/` through the long-lived `v2` integration branch and per-family releases ([decision #8](./docs/v2/DECISIONS.md)). Scroll bars, sliders, progress, procedural frames, window recipe/widgets, push/default-ring buttons and checkboxes/radios have engine drivers; follow-up work and review state are tracked in [issue #459](https://github.com/khawkins98/scriptoscope/issues/459). This is not an all-family cutover. `src/composeChrome.ts` is now a facade over `src/engine/families/window.ts`; the engine holds the decoded layout/widget rules. The May “v2 clean-break” and “v3 reset” names describe earlier architecture generations, not this branch or package versions. Runtime contributors start with the [implementer brief](./docs/spec/engine/IMPLEMENTER-BRIEF.md) and assigned safe family spec; unresolved rules become spec questions. Consumers can use the imperative and declarative examples below.
 
 ## If you build a scheme
 
@@ -50,14 +50,11 @@ Nobody's authored a new Kaleidoscope scheme in roughly twenty years. The corpus 
 
 ## Install
 
-> **`v2` integration candidate:** these branch docs describe unreleased changes,
-> including explicit host ownership. The public Pages deployment still serves the
-> October 24 `main` build and may not supply the helper/API shown here. Use a
-> matching local build for this candidate. See the [installation and migration
-> guide](docs/v2/integration-release-notes.md). The approved next pre-launch target
-> is **0.7.0**, kept **Unreleased** until the release cut; package metadata remains
-> 0.6.0. `v2` is an internal development branch label, not public release 2.0 or a
-> 1.0 threshold. Versioning and publishing are separate release steps.
+> **0.7.0:** applications own window/control attachment and lifetime through
+> explicit promotion primitives; the old `mountDeclarative` front door is gone. See
+> the [installation and migration guide](docs/v2/integration-release-notes.md).
+> `v2` is an internal development branch label, not public release 2.0 or a
+> 1.0 threshold.
 
 The runtime and the 18 themes are hosted on the project's GitHub Pages. For a
 matching deployed build, the page integration uses two URLs and no build step:
@@ -473,7 +470,7 @@ Existing loaders retain ready image URLs. See the [owned API and lifecycle
 contract](docs/v2/owned-theme-api.md) for examples and the current adoption boundary.
 Existing raw loading and factory APIs remain available. Registered themes are borrowed; release them only after host dependents are disconnected.
 
-### Native form-control migration (unreleased, merged in #484)
+### Native form-control migration (0.7.0, #484)
 
 These compatibility changes have landed on `v2`.
 `interactiveCheckbox`, `radioGroup` and their corresponding option types are

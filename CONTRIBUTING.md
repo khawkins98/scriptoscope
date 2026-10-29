@@ -2,7 +2,7 @@
 
 Thanks for your interest in contributing to Scriptoscope.
 
-> **Status (2026-10-24):** the current milestone is **incremental decode-first v2**, integrated on the long-lived `v2` branch and released to `main` per family. The package version is **0.6.0**. Migration work is tracked in [issue #378](https://github.com/khawkins98/scriptoscope/issues/378); the [#459 batch](https://github.com/khawkins98/scriptoscope/issues/459) is complete. Not every family has migrated. The May “v2 clean-break” and “v3 part-code reset” are historical architecture names, distinct from this October `v2` branch and from package versions.
+> **Status (2026-10-29):** the current milestone is **incremental decode-first v2**, integrated on the long-lived `v2` branch and released to `main` per family. The package version is **0.7.0**. Migration work is tracked in [issue #378](https://github.com/khawkins98/scriptoscope/issues/378); the [#459 batch](https://github.com/khawkins98/scriptoscope/issues/459) is complete. Not every family has migrated. The May “v2 clean-break” and “v3 part-code reset” are historical architecture names, distinct from this October `v2` branch and from package versions.
 
 ## Start with your role
 
