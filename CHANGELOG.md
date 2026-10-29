@@ -7,9 +7,11 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
-Integration candidate from `v2`, **not a published release**. Package metadata
-remains **0.6.0**; [#168](https://github.com/khawkins98/scriptoscope/issues/168)
-owns the release version/milestone decision. See the
+The approved next pre-launch target is **0.7.0**; these changes remain
+**Unreleased** until the release cut. `v2` is an internal development branch
+label, not public release 2.0 or a 1.0 threshold. Package metadata remains
+**0.6.0**; version bumps, tags, publishing and deployment are separate release
+steps tracked under [#168](https://github.com/khawkins98/scriptoscope/issues/168). See the
 [integration and migration guide](docs/v2/integration-release-notes.md) for source
 identity, installation, compatibility actions and remaining release gates.
 
@@ -82,6 +84,8 @@ identity, installation, compatibility actions and remaining release gates.
 
 ### Fixed
 
+- Demo loading states and reading-page windows are integrated, and window
+  dragging uses correct coordinates when the page is scrolled (#510).
 - Secondary and auxiliary clicks no longer invoke themed button primary actions
   through the imperative or promoted path; primary clicks, Space and Enter retain
   activation.
@@ -96,6 +100,9 @@ identity, installation, compatibility actions and remaining release gates.
 
 ### Coverage and remaining limits
 
+- #516's two-line Story initial-padding CSS fix is pending, replacing the closed
+  #514 attempt. It changes demo layout only, with no runtime change; it is not
+  counted as delivered until merged.
 - Optional visual contract maintenance (#482, completing #481) adds coverage,
   not runtime behavior or full native fidelity. The Windows 95 titlebar reference
   (#492) adds a bounded original-condition reference, with **zero exact browser
@@ -112,20 +119,6 @@ identity, installation, compatibility actions and remaining release gates.
 - Document focused reproduction and spec checks, a small stable team, reviewer
   continuity, provenance preflight, targeted iteration and one final integrated
   validation chain. Required CI and independent evidence/review gates remain.
-
-### Runtime size (candidate versus v0.6.0)
-
-`npm run loc:src -- HEAD --base v0.6.0` at source
-`1a372fcea2869c5d72c5aa8349db70dafb7c1b7f`. This counts non-test TypeScript under
-`src/`; it excludes loaders, demo helpers, tests and shipped bundle cost. It does
-not establish a speed or whole-project complexity improvement. Refresh for the
-final integration candidate.
-
-| src/ lines (non-test .ts) | v0.6.0 | candidate | delta |
-|---|---:|---:|---:|
-| logic (all src except engine tables) | 17094 | 15882 | -1212 |
-| engine tables (cited data) | 2237 | 2329 | +92 |
-| total | 19331 | 18211 | -1120 |
 
 ## [0.6.0] — 2026-10-23
 

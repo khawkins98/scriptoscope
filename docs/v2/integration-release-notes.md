@@ -1,10 +1,12 @@
 # v2 integration candidate: installation and migration
 
-This is an **unreleased integration draft**, not a version announcement. Reviewed
-source baseline: `v2` at `1a372fcea2869c5d72c5aa8349db70dafb7c1b7f`, compared with
-`main` / `v0.6.0` at `fa727e1f4edb9a83f48d25a50d78e5d20c887e62` (35 commits
-ahead, zero behind). Package metadata remains **0.6.0**. The branch name does not
-select npm 2.0 or establish a 1.0 threshold; that decision belongs to
+The approved next pre-launch target is **0.7.0**. This integration stays
+**Unreleased** until the release cut. `v2` is an internal development branch
+label, not public release 2.0 or a 1.0 threshold. Reviewed source baseline:
+`v2` at `b4d8678693652a389664f8bd0bfee7c424f5cb48`, including #510, compared
+with `v0.6.0` at `fa727e1f4edb9a83f48d25a50d78e5d20c887e62` (36 commits
+ahead, zero behind). Package metadata remains **0.6.0**. The version bump, tag,
+publishing and deployment remain separate release steps under
 [#168](https://github.com/khawkins98/scriptoscope/issues/168).
 
 ## Try a matching build
@@ -86,6 +88,15 @@ native input interaction during resize
 ([#493](https://github.com/khawkins98/scriptoscope/pull/493)). These do not require
 consumers to adopt the optional renderer entry or owned loaders.
 
+The demo now includes loading states and reading-page windows, and dragging
+windows on a scrolled page uses corrected coordinates
+([#510](https://github.com/khawkins98/scriptoscope/pull/510), merged into `v2`).
+The separate two-line Story initial-padding CSS fix
+([#516](https://github.com/khawkins98/scriptoscope/pull/516), replacing the closed
+#514 attempt) is **pending**, with full integration CI still running at this
+documentation checkpoint. Its scope is `demo/site-shell.css` only; runtime
+behavior is unchanged. Count it as delivered only after merge.
+
 Custom push allocators should provide dimensions without side effects tied to
 incidental read counts: a removed no-op scan no longer triggers those getter
 reads. See the [precise allocator change](../push-allocator-compatibility.md).
@@ -102,9 +113,9 @@ selected-owner and prepared-profile snapshots across decoding. Renderers borrow
 source arrays; callers must not mutate those arrays. These statements do **not**
 establish a general load-time metadata freeze or a new mutation protocol.
 The [current consumer boundary](raster-asset-consumers.md#implemented-compatibility-boundary)
-states that live manifest/base reads are preserved. Any broader metadata snapshot
-timing change needs maintainer clarification against an adopted public contract
-before release; no before/after migration is asserted for it here.
+states that live manifest/base reads are preserved. Consumers should retain that
+contract; any proposed broader metadata freeze requires a separate adopted public
+contract and migration guidance.
 
 Optional visual coverage restored by
 [#482](https://github.com/khawkins98/scriptoscope/pull/482) completes #481; it does
@@ -123,13 +134,15 @@ The optimization audit records do not turn rejected prototypes into delivered
 features or establish application-wide performance. A small raster kernel is
 only one part of the runtime.
 
-## Remaining release decisions and gates
+## Remaining release steps and gates
 
-- Maintainer selection of release version and milestone under #168.
-- Clarification of any intended broader metadata snapshot timing change.
+- Cut the approved 0.7.0 pre-launch release under #168 after integration checks;
+  until then keep these notes Unreleased and package metadata unchanged.
+- Resolve #516's pending CI/merge status before including its Story layout fix
+  in the delivered release summary.
 - Full required checks on the final integration candidate, followed by deployment
   and an actual deployment smoke check. The current baseline has a successful
-  docs-specific check; earlier full CI runs certify their own heads. Coordinator
+  docs-specific validation; earlier full CI runs certify their own heads. Coordinator
   build/package and bounded showcase smoke reports are not exact-head release CI
   or universal fidelity certification.
 - Fidelity-first stabilization continues under

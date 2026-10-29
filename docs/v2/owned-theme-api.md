@@ -1,5 +1,10 @@
 # Owned theme loading
 
+This API is integrated on the internal `v2` development branch for the approved
+**0.7.0 pre-launch target**. It remains **Unreleased** until the release cut;
+package metadata is still 0.6.0. See the [integration and migration guide](integration-release-notes.md)
+for installation and release gates.
+
 The render-focused loaders return an `OwnedTheme`, distinct from the existing
 ready-image `LoadedTheme`. All low-level window and control composition entry points accept either
 contract. Interactive sliders and disclosure controls, and button,
@@ -84,7 +89,10 @@ only their selected CSS body tiles; their native dimensions come from the shared
 pixel source. Internal render views expose neither synchronous image URLs nor
 theme disposal. A captured asset binds its owner and transport identity before
 awaiting pixels or a diagnostic image; later edits to a manifest or legacy bundle
-URL do not redirect that prepared source. Fractional-alpha
+URL do not redirect that prepared source. This selected-owner/transport capture
+does not freeze all metadata at load time: live manifest and base reads remain
+part of the [current consumer contract](raster-asset-consumers.md#implemented-compatibility-boundary).
+Fractional-alpha
 inputs retain browser readback to preserve channel rounding. A custom
 `assetUrlFactory` remains authoritative: drawing must export and decode its image,
 because the factory may transform the supplied pixels. Requested public control

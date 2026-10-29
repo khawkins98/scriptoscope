@@ -54,8 +54,10 @@ Nobody's authored a new Kaleidoscope scheme in roughly twenty years. The corpus 
 > including explicit host ownership. The public Pages deployment still serves the
 > October 24 `main` build and may not supply the helper/API shown here. Use a
 > matching local build for this candidate. See the [installation and migration
-> guide](docs/v2/integration-release-notes.md); package metadata remains 0.6.0 and
-> does not select the next release version.
+> guide](docs/v2/integration-release-notes.md). The approved next pre-launch target
+> is **0.7.0**, kept **Unreleased** until the release cut; package metadata remains
+> 0.6.0. `v2` is an internal development branch label, not public release 2.0 or a
+> 1.0 threshold. Versioning and publishing are separate release steps.
 
 The runtime and the 18 themes are hosted on the project's GitHub Pages. For a
 matching deployed build, the page integration uses two URLs and no build step:
