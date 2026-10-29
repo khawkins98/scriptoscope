@@ -725,6 +725,8 @@ interface ManagedWindow<Theme extends ThemeInput> {
   scrollAbort?: AbortController;
   /** Root handlers are rebound without ending an already active document-level drag. */
   frameAbort?: AbortController;
+  /** Chrome scrollbar class awaiting focus after a commit rebuilt it (#525); see restoreChromeFocus. */
+  pendingScrollbarFocus?: string;
   /** Pooled chrome canvas — keeps its DOM identity across state changes (see #171 and
    *  the 2026-05-28 perf review + LEARNINGS "Classic Mac OS lessons"
    *  entry pattern #5). Async preparation uses a staging canvas; only the guarded synchronous
@@ -1158,6 +1160,8 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
 
   private commitRender(entry: ManagedWindow<Theme>, { win, collapsed }: { win: HTMLElement; collapsed: boolean }, notify = true): void {
     entry.commitEpoch++;
+    // Captured before the chrome controls are rebuilt below; restored once they exist again (#525).
+    const focusKey = this.focusedChromeControl(entry);
     const fresh = win.querySelector<HTMLCanvasElement>('canvas.scriptoscope-chrome');
     const pooled = entry.chromeCanvas;
     if (fresh && pooled) {
@@ -1206,6 +1210,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     } else mount.replaceChildren(win);
     this.overlayWidgets(entry, win);
     this.wireMoveResize(entry, win);
+    this.restoreChromeFocus(entry, focusKey);
     const viewport = win.querySelector<HTMLElement>('.scriptoscope-content');
     if (viewport) entry.contentPort.commit(entry.host, viewport, Math.max(1, Math.round(entry.opts.scale ?? 1)));
     else entry.contentPort.clear();
@@ -1216,6 +1221,44 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     // render-affecting state is now committed. Fired after the DOM is updated so callers see the
     // final state. Cheap branch if no listener is registered.
     if (notify) this.notifyChange(entry);
+  }
+
+  /**
+   * Keyboard focus across re-renders (#525). Every commit rebuilds the shadow-DOM chrome controls
+   * (title widgets, move handle, grow box, scrollbars), so the focused one is detached and focus
+   * falls to <body>: later arrows scroll the page, a second Enter on Collapse does nothing. The one
+   * commit path records which control had focus, by its role class, and refocuses the equivalent new
+   * control. Only a window whose chrome already held focus is touched, so a retheme or another
+   * window's activation never steals focus. Consumer content is light DOM and keeps its own focus.
+   */
+  private static readonly FOCUS_KEYS = [
+    'scriptoscope-movehandle', 'scriptoscope-growbox',
+    'scriptoscope-titlewidget-close', 'scriptoscope-titlewidget-zoom', 'scriptoscope-titlewidget-collapse',
+    'scriptoscope-window-scrollbar-vertical', 'scriptoscope-window-scrollbar-horizontal',
+  ];
+
+  private focusedChromeControl(entry: ManagedWindow<Theme>): string | undefined {
+    const root = entry.host.shadowRoot;
+    const active = root ? root.activeElement
+      : entry.host.contains(document.activeElement) ? document.activeElement : null;
+    // A scrollbar still waiting for its async rewire keeps its claim while focus sits on the fallback.
+    if (entry.pendingScrollbarFocus && active?.classList.contains('scriptoscope-movehandle')) return entry.pendingScrollbarFocus;
+    return active ? WindowManager.FOCUS_KEYS.find(k => active.classList.contains(k)) : undefined;
+  }
+
+  private restoreChromeFocus(entry: ManagedWindow<Theme>, key: string | undefined): void {
+    delete entry.pendingScrollbarFocus;
+    if (!key) return;
+    const mount = entry.host.shadowRoot ?? entry.host;
+    const same = mount.querySelector<HTMLElement>(`.${key}`);
+    // Scrollbars are rewired asynchronously after layout (wireScrollbars), so they are never present
+    // yet; wireScrollbarAxis takes focus back if its bar returns. A control that no longer exists
+    // (the grow box while collapsed, a scrollbar whose overflow is gone, a widget absent from the
+    // collapsed variant) falls back to the always-present move handle, so focus stays in this window
+    // and on a control whose arrow keys still act on it, instead of dropping to <body>.
+    const target = same ?? mount.querySelector<HTMLElement>('.scriptoscope-movehandle');
+    if (!same && key.startsWith('scriptoscope-window-scrollbar')) entry.pendingScrollbarFocus = key;
+    target?.focus({ preventScroll: true });
   }
 
   private notifyChange(entry: ManagedWindow<Theme>): void {
@@ -1381,6 +1424,13 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     };
 
     win.appendChild(bar);
+    // #525: reclaim focus held by this bar before the commit, unless the user has moved on since.
+    if (entry.pendingScrollbarFocus === `scriptoscope-window-scrollbar-${axis}`) {
+      const root = entry.host.shadowRoot;
+      const active = root ? root.activeElement : document.activeElement;
+      delete entry.pendingScrollbarFocus;
+      if (active?.classList.contains('scriptoscope-movehandle')) bar.focus({ preventScroll: true });
+    }
 
     // Drag the thumb (pointer = touch + mouse + pen).
     const valueAtPointer = (e: PointerEvent): number => {
@@ -1560,6 +1610,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       else if (e.key === 'ArrowUp')    dy = -step;
       else return;
       e.preventDefault();
+      delete entry.pendingScrollbarFocus;   // the user is now operating the handle itself (#525)
       void this.focus(entry);
       // Posture B handoff: same as pointer-drag above — `toAbsolute` is the
       // chokepoint that converts an in-flow host on first move. After the
