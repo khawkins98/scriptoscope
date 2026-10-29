@@ -154,3 +154,29 @@ for (const theme of ['1138', 'evolution']) {
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBe(320);
   });
 }
+
+test('dragging an in-flow window on a scrolled page moves it with the pointer', async ({ page, demo }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto(`${demo}/install.html`);
+  await expect(page.locator('#install[data-code-windows-ready]')).toBeVisible();
+  const host = page.locator('#install .site-code-example[data-scriptoscope-window-host]').nth(2);
+  await host.scrollIntoViewIfNeeded();
+  await page.evaluate(() => scrollBy(0, 200));
+  expect(await page.evaluate(() => scrollY)).toBeGreaterThan(1000);
+  const before = await host.boundingBox();
+  const x = before.x + before.width / 2, y = before.y + 3;
+  await page.mouse.move(x, y);
+  await page.mouse.down();
+  await page.mouse.move(x + 30, y + 20, { steps: 4 });
+  await page.mouse.up();
+  const after = await host.boundingBox();
+  expect(Math.round(after.x - before.x)).toBe(30);
+  expect(Math.round(after.y - before.y)).toBe(20);
+});
+
+test('reading pages wear real scheme windows', async ({ page, demo }) => {
+  for (const name of ['story', 'acknowledgements', 'inspiration']) {
+    await page.goto(`${demo}/${name}.html`);
+    await expect(page.locator('main [data-scriptoscope-window-host]').first()).toBeVisible();
+  }
+});

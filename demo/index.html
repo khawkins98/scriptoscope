@@ -71,12 +71,26 @@
     .crop-mouth { height: calc(160px * var(--portrait-scale, 1)); background-size: calc(480px * var(--portrait-scale, 1)); background-position: calc(-210px * var(--portrait-scale, 1)) calc(-282px * var(--portrait-scale, 1)); filter: sepia(1) saturate(3.5) hue-rotate(332deg); }
     /* Keep the unpromoted crops visible while the original schemes decode. */
     .fragment:not([data-scriptoscope-window-host]) { border: 1px solid #aba89f; }
-    .collage-controls { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 0 14px; margin-top: 4px; }
-    .reset-collage { min-height: 40px; padding: 8px 3px; border: 0; background: transparent; color: #f4f1e8; font: italic 13px 'Times New Roman', Times, serif; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+    /* One centred column: the reset link gets its own line so the instructions
+       never shift sideways when it appears. Its slot is reserved while hidden. */
+    .collage-controls { display: flex; flex-direction: column; align-items: center; margin-top: 2px; }
+    .collage-controls .art-caption { margin-top: 6px; }
+    .reset-collage { min-height: 32px; padding: 4px 3px; border: 0; background: transparent; color: #f4f1e8; font: italic 13px 'Times New Roman', Times, serif; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
     .reset-collage:hover { color: #e8c975; }
     .reset-collage:focus-visible { outline: 2px solid #e8c975; outline-offset: 3px; }
     .reset-collage:disabled { opacity: .5; cursor: wait; }
     .reset-collage[hidden] { display: none; }
+    .collage-controls .reset-collage[hidden] { display: inline-block; visibility: hidden; }
+    /* Loading: the crops wait quietly while the original archives decode. */
+    .collage-loading { display: none; flex-direction: column; align-items: center; gap: 7px; margin-top: 6px; color: #b8b4ab; font: italic 13px/1.4 'Times New Roman', Times, serif; }
+    .collage-loading .bar { position: relative; width: 132px; height: 7px; border: 1px solid #8f8b82; overflow: hidden; }
+    .collage-loading .bar i { position: absolute; inset: 0; transform-origin: left; transform: scaleX(var(--collage-progress, 0)); background: repeating-linear-gradient(-45deg, #e8c975 0 4px, #b49543 4px 8px); transition: transform 240ms ease-out; }
+    .portrait[data-loading] .collage-loading { display: flex; }
+    .portrait[data-loading] .collage-controls { display: none; }
+    .portrait[data-loading] .fragment { animation: collage-wait 1.4s ease-in-out infinite alternate; }
+    .collage [data-scriptoscope-window-host] { animation: collage-reveal 380ms ease-out both; }
+    @keyframes collage-wait { from { opacity: .45; } to { opacity: .75; } }
+    @keyframes collage-reveal { from { opacity: 0; } to { opacity: 1; } }
     .art-caption { margin: 8px 0 0; color: #b8b4ab; font: italic 13px/1.4 'Times New Roman', Times, serif; }
     h1 { margin: 33px -12px 0; font-family: 'Instrument Serif', 'Cormorant Garamond', serif; font-size: clamp(48px, 7.5vw, 88px); font-weight: 400; font-kerning: normal; line-height: .98; letter-spacing: -.04em; word-spacing: -.025em; text-wrap: balance; }
     h1 span { display: block; }
@@ -126,7 +140,11 @@
     .example-pages a { display: inline-flex; align-items: center; min-height: 40px; font-size: 15px; }
     .colophon { margin-top: 28px; }
     }
-    @media (prefers-reduced-motion: reduce) { .experience .arrow { transition: none; } }
+    @media (prefers-reduced-motion: reduce) {
+      .experience .arrow, .collage-loading .bar i { transition: none; }
+      .portrait[data-loading] .fragment { animation: none; opacity: .6; }
+      .collage [data-scriptoscope-window-host] { animation: none; }
+    }
   </style>
   <link rel="stylesheet" href="./site-shell.css">
   <script type="module" src="./site-shell.mjs"></script>
@@ -150,7 +168,7 @@
   </header>
   <main class="advertisement">
     <p class="edition">Original Mac schemes. A new life on the web.</p>
-    <figure class="portrait">
+    <figure class="portrait" data-loading>
       <div class="collage-space">
         <div class="collage" id="collage" role="group" aria-label="Interactive portrait windows" aria-describedby="collage-instructions">
           <div class="fragment" data-scriptoscope-window data-scriptoscope-title="Portrait" data-scriptoscope-theme="1984" data-scriptoscope-window-type="document-window" data-scriptoscope-widgets="close,zoom,collapse" data-scriptoscope-state="inactive" data-scriptoscope-x="140" data-scriptoscope-y="76" data-scriptoscope-width="235" data-scriptoscope-height="293" data-scriptoscope-z="1" style="left:140px;top:76px;width:235px;height:293px">
@@ -176,6 +194,7 @@
       </noscript>
       <figcaption>
         <p class="art-caption">Five original schemes. One very expressive face.</p>
+        <div class="collage-loading" aria-hidden="true"><span id="collage-loading-label">Unpacking the original schemes…</span><span class="bar"><i></i></span></div>
         <div class="collage-controls">
           <p class="art-caption" id="collage-instructions">Real Scriptoscope windows. Drag the frames. Resize the corners.</p>
           <button class="reset-collage" id="reset-collage" type="button" hidden>Reassemble the face</button>

@@ -92,7 +92,7 @@ import {
 import { newProgressRecord, progressIdleAdvance, progressSetData, type ProgressRecord } from './engine/families/progress.js';
 import { PROGRESS_DATA, PROGRESS_FACADE_TICKS } from './engine/tables/progress.js';
 import { platinumSliderWithLayout, platinumScrollbar } from './platinum.js';
-import { findPositionedAncestor } from './positioning.js';
+import { findPositionedAncestor, offsetInContainingBlock } from './positioning.js';
 import { debug } from './debug.js';
 import { renderWindow, resolveTitleWidgetRects, type RenderWindowOptions } from './renderWindow.js';
 import type { PixelBuffer } from './pixelBuffer.js';
@@ -972,11 +972,9 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     }
     const hr = host.getBoundingClientRect();
     const anc = host.parentElement ? findPositionedAncestor(host) : null;
-    const ancRect = anc && anc !== document.documentElement
-      ? anc.getBoundingClientRect()
-      : { left: 0, top: 0 };
-    const x = Math.round(hr.left - ancRect.left);
-    const y = Math.round(hr.top - ancRect.top);
+    const offset = offsetInContainingBlock(hr, anc);
+    const x = Math.round(offset.x);
+    const y = Math.round(offset.y);
     // Reserve the static slot BEFORE flipping position. Insert as a sibling
     // immediately before the host so it sits in the same flow position.
     // Block element matching the host's outer width/height; invisible +

@@ -30,3 +30,25 @@ export function findPositionedAncestor(el: HTMLElement): HTMLElement | null {
   }
   return node; // <html> when nothing positioned along the chain
 }
+
+/** Convert a viewport rect's top-left into the `left`/`top` an absolutely
+ *  positioned element needs to sit at that spot inside `ancestor` (the result
+ *  of `findPositionedAncestor`). `getBoundingClientRect` is viewport-relative,
+ *  but `left`/`top` resolve against the containing block's padding box:
+ *  - `<html>`/none: the initial containing block sits at the document origin
+ *    and scrolls with the page, so add the page scroll. Without this, an
+ *    in-flow window dragged on a scrolled page jumped up by the scroll offset.
+ *  - a positioned element: subtract its border, add its own scroll offset. */
+export function offsetInContainingBlock(
+  rect: { left: number; top: number },
+  ancestor: HTMLElement | null,
+): { x: number; y: number } {
+  if (!ancestor || ancestor === document.documentElement) {
+    return { x: rect.left + window.scrollX, y: rect.top + window.scrollY };
+  }
+  const a = ancestor.getBoundingClientRect();
+  return {
+    x: rect.left - a.left - ancestor.clientLeft + ancestor.scrollLeft,
+    y: rect.top - a.top - ancestor.clientTop + ancestor.scrollTop,
+  };
+}

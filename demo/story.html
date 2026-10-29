@@ -5,8 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>The story behind the schemes — Scriptoscope</title>
   <meta name="description" content="A little computing archaeology: the classic Mac schemes behind Scriptoscope.">
+  <link rel="stylesheet" href="scriptoscope.css">
   <link rel="stylesheet" href="./site-shell.css">
   <script type="module" src="./site-shell.mjs"></script>
+  <script type="module" src="./site-windows.mjs"></script>
 </head>
 <body class="site-support site-story-page">
   <a class="site-skip" href="#page-content">Skip to content</a>
@@ -30,7 +32,8 @@
     <h1 id="site-page-title">The story behind the schemes.</h1>
     <p class="site-deck">Original Mac schemes. A new life on the web.</p>
   </section>
-  <main class="site-story-article" id="page-content">
+  <main class="site-story-article site-story-layout page" id="page-content" data-site-windows="system7-nostalgia-silver">
+    <div class="site-story-body">
 
         <h2>Twenty-five years too late.</h2>
         <p class="powers-lede"><a href="https://en.wikipedia.org/wiki/Kaleidoscope_(software)">Kaleidoscope</a> was a classic Mac OS themer many of us remember fondly. Greg Landweber and Arlo Rose wrote it, and a community of authors filled it out with 4,400-plus schemes from 900-plus people, preserved today by <a href="https://macthemes.garden/">Mac Themes Garden</a> and the <a href="https://kaleidoscope.hryjksn.com/">Kaleidoscope Scheme Archive</a>. Then OS X arrived in 2001 and the whole format went quiet.</p>
@@ -48,6 +51,26 @@
         <p class="powers-meta-aaron">P.S. This project was originally <em>Aaron UI</em> — <strong>Aaron</strong> was Landweber's <em>earlier</em> extension, the one that faked the Mac OS 8 Platinum look on System 7 before Kaleidoscope existed. Three people would have caught that. Hello, three people. Renamed to Scriptoscope once the project pivoted to a Kaleidoscope-compatibility runtime + the etymology stopped paying rent.</p>
       
     <p>Meet the people behind the schemes, fonts, and archives on the <a href="./acknowledgements.html">Acknowledgements page</a>.</p>
+    </div>
+    <aside class="site-story-desk" aria-label="Kaleidoscope at a glance">
+      <div class="site-desk-window" data-scriptoscope-window data-scriptoscope-title="Kaleidoscope Info" data-example-compact-title="Info" data-scriptoscope-window-type="document-window" data-scriptoscope-widgets="collapse">
+        <dl class="site-info">
+          <div><dt>Kind</dt><dd>Control panel</dd></div>
+          <div><dt>Created by</dt><dd>Greg Landweber &amp; Arlo Rose</dd></div>
+          <div><dt>Schemes</dt><dd>4,400-plus</dd></div>
+          <div><dt>Scheme authors</dt><dd>900-plus</dd></div>
+          <div><dt>Went quiet</dt><dd>2001, with Mac OS X</dd></div>
+        </dl>
+      </div>
+      <div class="site-desk-window" data-scriptoscope-window data-scriptoscope-title="Inside a scheme" data-example-compact-title="Scheme" data-scriptoscope-window-type="document-window" data-scriptoscope-widgets="collapse">
+        <ul class="site-info-list">
+          <li><code>cicn</code> color icons</li>
+          <li><code>ppat</code> fill patterns</li>
+          <li><code>wnd#</code> window frame recipes</li>
+        </ul>
+        <p class="site-info-note">The same records, read in your browser and painted around this window.</p>
+      </div>
+    </aside>
   </main>
   <section class="site-next" aria-label="Continue exploring">
     <div><h2>Give your page a little character.</h2><p>Try a scheme. Add a few attributes. Keep your HTML.</p></div>
