@@ -134,7 +134,8 @@ test('showcase buttons and closed select are readable and pointer interaction do
     value: { writeText: async text => { window.copiedSnippet = text; } } }));
   const snippet = (await page.locator('#powers-install-snippet').textContent()).trim();
   assert.ok(snippet.includes("pageThemeDefault: 'windows-95'"));
-  assert.ok(snippet.includes('mountDeclarative'));
+  assert.ok(snippet.includes('mountExplicitPage'));
+  assert.ok(snippet.includes('explicit-host.mjs'));
   await page.getByRole('button', { name: 'Copy complete starter', exact: true }).click();
   await page.waitForFunction(() => window.copiedSnippet !== undefined);
   assert.equal(await page.evaluate(() => window.copiedSnippet), snippet);
