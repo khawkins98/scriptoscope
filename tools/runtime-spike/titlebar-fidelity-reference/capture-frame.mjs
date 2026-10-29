@@ -1,0 +1,24 @@
+// Private producer export only; does not admit a reference or infer native depth.
+import {execFileSync} from 'node:child_process';
+import {readFileSync,writeFileSync,realpathSync,lstatSync} from 'node:fs';
+import {join,resolve} from 'node:path';
+import {createHash} from 'node:crypto';
+const [supplied,session,stem,nativeFile]=process.argv.slice(2);
+const root=realpathSync(supplied);
+if(root!==resolve(supplied)||JSON.parse(readFileSync(join(root,'titlebar-owned-run.json'))).purpose!=='titlebar-pair-v1')throw Error('Owned canonical run required');
+if(!/^[a-z0-9-]+$/.test(session)||!/^titlebar-[a-z0-9-]+$/.test(stem)||!/^TBP-[a-f0-9]{8}-[12]\.txt$/.test(nativeFile))throw Error('Explicit session, stem and observed telemetry filename required');
+const captures=join(root,'captures');
+if(realpathSync(captures)!==captures||!lstatSync(captures).isDirectory())throw Error('Owned capture directory required');
+const js=`(()=>{const c=document.querySelector('canvas'),ctx=c.getContext('2d');const first=window.reference.rawSnapshot(),pixels=ctx.getImageData(0,0,c.width,c.height).data,second=window.reference.rawSnapshot();const b64=bytes=>{let text='';for(let n=0;n<bytes.length;n+=8192)text+=String.fromCharCode(...bytes.subarray(n,n+8192));return btoa(text)};let changing=0,mismatch=0;for(let n=0;n<first.rgba.length;n++){if(first.rgba[n]!==second.rgba[n])changing++;if(first.rgba[n]!==pixels[n])mismatch++}return{frame:c.toDataURL('image/png'),rawBase64:b64(first.rgba),canvasSize:[c.width,c.height],rawDimensions:[first.width,first.height],rawMode:first.mode,rawRepeatedChangedBytes:changing,rawCanvasMismatchedBytes:mismatch,at:new Date().toISOString(),userAgent:navigator.userAgent,devicePixelRatio,workerEvents:window.reference.log.filter(e=>e.type!=='emulator_audio_data')}})()`;
+const response=JSON.parse(execFileSync('agent-browser',['--session',session,'--json','eval',js],{maxBuffer:30e6}));
+if(response.success===false)throw Error('Browser export failed');
+const data=response.data.result??response.data;
+const hash=b=>createHash('sha256').update(b).digest('hex');
+const exportBytes=(suffix,bytes)=>{const path=join(captures,stem+suffix);writeFileSync(path,bytes,{flag:'wx'});return{path,bytes:bytes.length,sha256:hash(bytes)}};
+const frame=exportBytes('-frame.png',Buffer.from(data.frame.split(',')[1],'base64'));
+const rawProducer=exportBytes('-producer.rgba',Buffer.from(data.rawBase64,'base64'));
+delete data.frame;delete data.rawBase64;
+const record={status:'QUARANTINED_PARTIAL',nativeFileObserved:nativeFile,telemetryExportPending:true,frame,rawProducer,capture:data,limits:['Native depth/palette/gamma and loaded scheme require same-run guest telemetry','No title/font/geometry expectation or reference admission inferred']};
+exportBytes('-frame.json',Buffer.from(JSON.stringify(record,null,2)+'\n'));
+console.log(JSON.stringify({stem,rawRepeatedChangedBytes:data.rawRepeatedChangedBytes,rawCanvasMismatchedBytes:data.rawCanvasMismatchedBytes}));
+if(data.rawRepeatedChangedBytes||data.rawCanvasMismatchedBytes)process.exitCode=2;

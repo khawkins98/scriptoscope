@@ -1,7 +1,9 @@
 import { verifyFiniteTransfer } from './finite-transfer.js';
+import { verifyRendererEntry } from './renderer.js';
 import { VERSION, prepareCinfEnvironment, type CinfEnvironmentInput, type PreparedCinfEnvironment, prepareBitmapFont, type BitmapFontData, type PreparedBitmapFont, type BitmapTextPaint, prepareDisplayProfile, DisplayProfileError, type DisplayProfileData, loadKaleidoscopeScheme, loadTheme, renderWindow, composeTab, composeHeaderSurface,
   type ThemeInspector, type WindowByteProvenance, type ButtonOptions, type BevelButtonOptions, type ControlDiagnostics, type TabBodyTrace, type CicnSamplingEquivalence, type CicnSampledBandAsset, type CicnBodyBinding, type HeaderSurfaceOptions, type HeaderSurfaceResult, type HeaderSurfaceTrace } from 'scriptoscope';
-import { mountDeclarative, type MountHandle } from 'scriptoscope/declarative';
+import { createOwnedThemeResolver, ScriptoscopeWindow, promoteGuardedControl, restoreControl } from 'scriptoscope/declarative';
+import { WindowManager, type ThemeInput, type ManagedWindowState } from 'scriptoscope';
 import 'scriptoscope/scriptoscope.css';
 
 const iconMaskDeclaration: ThemeInspector['iconMaskResources'] = [{ id: -10234, resourceIndex: 0, byteLength: 64 }];
@@ -55,12 +57,13 @@ const consumer = {
   directProfilePixels: [] as number[],
   builtInFrame: null as HTMLElement | null,
   root, article, inputs, events,
-  handle: null as MountHandle | null,
+  handle: null as { disconnect(): void } | null,
   ready: Promise.resolve(),
 };
 declare global { interface Window { packedConsumer: typeof consumer } }
 window.packedConsumer = consumer;
 consumer.ready = (async () => {
+  await verifyRendererEntry();
   await verifyFiniteTransfer();
   const bitmapData: BitmapFontData = { version: 1, strikeSize: 12,
     metrics: { ascent: 8, descent: 2, leading: 1 },
@@ -129,10 +132,24 @@ consumer.ready = (async () => {
   const builtInTheme = await loadTheme(`${import.meta.env.BASE_URL}themes/platinum-8`, { source: 'scheme.sit' });
   consumer.builtInFrame = await renderWindow(builtInTheme, { title: 'Built-in frame', width: 160, height: 60 });
   document.querySelector('#consumer-builtin-frame')!.append(consumer.builtInFrame);
-  consumer.handle = await mountDeclarative({
-    root, pageThemeDefault: 'windows-95',
-    themeBaseUrl: `${import.meta.env.BASE_URL}themes`,
-    themes: [{ slug: 'windows-95', source: 'scheme.sit' }],
-    bootAffordance: 'none', rejectOnEmptyMount: true,
-  });
+  const resolver = createOwnedThemeResolver({ themeBaseUrl: `${import.meta.env.BASE_URL}themes`,
+    themes: [{ slug: 'windows-95', source: 'scheme.sit' }] });
+  const lifetime = new AbortController();
+  const theme = await resolver.load('windows-95');
+  const manager = new WindowManager<ThemeInput>();
+  const promoted = await ScriptoscopeWindow.promote(article, { manager, theme, signal: lifetime.signal });
+  for (const input of inputs) {
+    const face = await promoteGuardedControl(input, theme, lifetime.signal,
+      () => !lifetime.signal.aborted && root.contains(input));
+    if (!face) throw new Error('Selected package control did not attach');
+  }
+  const state: ManagedWindowState = { z: 850 };
+  await manager.applyState(promoted.host, state, lifetime.signal);
+  await manager.refreshScrollbars(promoted.host);
+  consumer.handle = { disconnect() {
+    lifetime.abort();
+    inputs.forEach(restoreControl);
+    promoted.restoreOriginalElement();
+    resolver.dispose();
+  } };
 })();

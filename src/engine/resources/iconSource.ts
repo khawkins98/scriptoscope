@@ -6,7 +6,7 @@
 // current asset, and `fallback` says so; iconBlit records it in the trace. Stale
 // hidden pixels are never drawn, and the icon is never dropped.
 import type { Pixmap } from '../qd/types.js';
-import type { IconSource } from '../qd/region.js';
+import type { IconSource } from '../../raster.js';
 
 /** Reason recorded when the companion is rejected (DECISIONS #7). */
 export const OPAQUE_COMPANION_MISMATCH = 'opaque companion is not the same occurrence as the asset; masked copy of the current asset (DECISIONS #7)';

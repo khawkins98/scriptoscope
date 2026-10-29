@@ -1,26 +1,6 @@
-// Shared demo wiring: connect attachThemeDropZone() + loadKaleidoscopeScheme + the page's
-// [data-scriptoscope-theme-switcher] <select> + the mountDeclarative handle.
-//
-// Layer separation: this lives in demo/ on purpose. The runtime ships attachThemeDropZone (UX
-// glue, no decoder dep) and handle.registerTheme (resolver-cache seed). The decoder is the
-// public src wrapper (`src/loadKaleidoscopeScheme.ts`), not the conversion core in
-// tools/theme-loader/: the wrapper passes the engine cinf ids by default, so a dropped archive
-// answers the engine slider's cinf requests instead of handing every slider to the Platinum
-// fallback. Same import the diagnostic page (demo/diagnostic.html #byo-drop) uses.
-//
-// Usage:
-//
-//   import { wireSchemeDrop } from './_theme-drop.mjs';
-//   const handle = await mountDeclarative({ ... });
-//   wireSchemeDrop({
-//     handle,
-//     dropTarget: document.querySelector('#scheme-drop'),
-//     switcher:   document.querySelector('[data-scriptoscope-theme-switcher]'),
-//     statusEl:   document.querySelector('#scheme-drop-status'), // optional
-//   });
-
+// Application-owned drop lifecycle; registered themes are borrowed by the host.
 import { attachThemeDropZone } from '../src/declarative/index.ts';
-import { loadKaleidoscopeScheme } from '../src/loadKaleidoscopeScheme.ts';
+import { loadOwnedKaleidoscopeScheme } from '../src/loadKaleidoscopeScheme.ts';
 
 const REF_PREFIX = 'dropped:';
 
@@ -33,7 +13,7 @@ const REF_PREFIX = 'dropped:';
  */
 export function wireSchemeDrop({ handle, dropTarget, switcher, statusEl }) {
   if (!dropTarget) throw new Error('wireSchemeDrop: dropTarget is required');
-  if (!handle?.registerTheme) throw new Error('wireSchemeDrop: handle.registerTheme is required (call mountDeclarative first)');
+  if (!handle?.registerTheme) throw new Error('wireSchemeDrop: handle.registerTheme is required (call mountExplicitPage first)');
 
   const setStatus = (kind, text) => {
     if (!statusEl) return;
@@ -41,19 +21,26 @@ export function wireSchemeDrop({ handle, dropTarget, switcher, statusEl }) {
     statusEl.textContent = text ?? '';
   };
 
-  return attachThemeDropZone(dropTarget, {
+  let active = true;
+  let generation = 0;
+  const owners = new Set();
+  const zone = attachThemeDropZone(dropTarget, {
     onFile: async (file) => {
+      const token = ++generation;
       const name = file.name.replace(/\.[^.]+$/, '') || file.name;
       setStatus('busy', `Decoding ${file.name}…`);
       let theme;
       try {
-        theme = await loadKaleidoscopeScheme(file, { meta: { name }, source: file.name });
+        theme = await loadOwnedKaleidoscopeScheme(file, { meta: { name }, source: file.name });
       } catch (err) {
+        if (!active || token !== generation) return;
         setStatus('err', `Couldn't read “${file.name}” — ${err?.message ?? err}`);
         console.error('[demo] decode failed:', err);
         return;
       }
 
+      if (!active || token !== generation) { theme.dispose(); return; }
+      owners.add(theme);
       const ref = `${REF_PREFIX}${file.name}`;
       handle.registerTheme(ref, theme);
 
@@ -68,16 +55,24 @@ export function wireSchemeDrop({ handle, dropTarget, switcher, statusEl }) {
         }
         opt.textContent = `📂 ${file.name}`;
         switcher.value = ref;
-        switcher.dispatchEvent(new Event('change', { bubbles: true }));
+        switcher.dispatchEvent(new Event('change', { bubbles:true }));
+        await handle.whenReady();
       } else {
         // No switcher in this page — apply directly via the handle's retheme.
         await handle.retheme(ref);
       }
 
+      if (!active || token !== generation) return;
       setStatus('ok', `✓ ${file.name} loaded`);
     },
     onError: (err) => {
+      if (!active) return;
       setStatus('err', `Drop failed: ${err?.message ?? err}`);
     },
   });
+  return {
+    detach() { active=false; ++generation; zone.detach(); },
+    // Call only after the host has released its dependent faces.
+    disposeThemes() { for(const theme of owners)theme.dispose(); owners.clear(); },
+  };
 }

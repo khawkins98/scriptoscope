@@ -15,7 +15,7 @@ import { ManagedContentPort, type ManagedControlPort } from './managedContentPor
 // ─────────────────────────────────────────────────────────────────────────────
 // This file ships TWO related layers in one module:
 //
-//   1) INTERACTIVE CONTROL PRIMITIVES — buttons, checkboxes, radio groups,
+//   1) INTERACTIVE CONTROL PRIMITIVES — buttons,
 //      disclosure triangles, sliders, scrollbars. Pure DOM widgets that wrap a
 //      composed cicn canvas with role/tabIndex/aria + keyboard handlers. Used
 //      both by the WindowManager (for its internal controls) and by consumer
@@ -23,7 +23,6 @@ import { ManagedContentPort, type ManagedControlPort } from './managedContentPor
 //
 //      KEY PRIMITIVES:
 //        interactiveButton              — focusable cicn-faced button
-//        interactiveCheckbox / radioGroup — toggle widgets with aria-checked
 //        interactiveDisclosure          — twisty widget with aria-expanded
 //        interactiveSlider              — role=slider with arrow-key support
 //        interactiveScrollbar           — role=scrollbar (used by WindowManager
@@ -76,9 +75,6 @@ import { ManagedContentPort, type ManagedControlPort } from './managedContentPor
 //   declarative/ScriptoscopeWindow.ts           → the consumer-facing wrapper that
 //                                          calls manager.add() with light-DOM
 //                                          slotted content
-//   declarative/scanner.ts               → mountDeclarative() — promotes
-//                                          [data-scriptoscope-window] / -button /
-//                                          -control + drives retheme()
 //
 // RENDER FREQUENCY CONTRACT: see the comment block above WindowManager.render().
 // Locked in 2026-05-28 audit (commit 6f9b285); don't introduce per-mousemove
@@ -88,21 +84,22 @@ import { ManagedContentPort, type ManagedControlPort } from './managedContentPor
 import { resolveWindowSelection, resolveCollapsedWindowTypeSlug } from './resolveWindowType.js';
 import { listenUntilAborted } from './listenUntilAborted.js';
 import {
-  composeCheckable, composeDisclosure, composeSliderWithLayout, composeScrollbar, composeScrollbarFrame, type SliderFrame, type SliderOptions,
+  composeDisclosure, composeSliderWithLayout, composeScrollbar, composeScrollbarFrame, type SliderFrame, type SliderOptions,
   type ScrollbarFrame, type ScrollbarOptions,
-  baselineButton, baselineCheckable, bufferToCanvas,
+  baselineButton, bufferToCanvas,
   type ButtonOptions, type ControlState, composeProgressFrame, type ProgressOptions,
 } from './controls.js';
 import { newProgressRecord, progressIdleAdvance, progressSetData, type ProgressRecord } from './engine/families/progress.js';
 import { PROGRESS_DATA, PROGRESS_FACADE_TICKS } from './engine/tables/progress.js';
 import { platinumSliderWithLayout, platinumScrollbar } from './platinum.js';
-import { findPositionedAncestor } from './positioning.js';
+import { findPositionedAncestor, offsetInContainingBlock } from './positioning.js';
 import { debug } from './debug.js';
 import { renderWindow, resolveTitleWidgetRects, type RenderWindowOptions } from './renderWindow.js';
 import type { PixelBuffer } from './pixelBuffer.js';
 import type { SliderComposition, SliderLayout } from './sliderLayout.js';
 import type { ComposedChrome } from './composeChrome.js';
 import type { LoadedTheme, WindowState } from './types.js';
+import { themeView, type ThemeInput } from './ownedTheme.js';
 
 type Orientation = 'horizontal' | 'vertical';
 const clamp01 = (n: number): number => Math.min(1, Math.max(0, n));
@@ -129,7 +126,7 @@ export interface InteractiveButtonOptions extends ButtonOptions {
  * baseline button when either required face lacks an admitted paint stage.
  */
 export async function interactiveButton(
-  theme: LoadedTheme,
+  theme: ThemeInput,
   opts: InteractiveButtonOptions = {},
   /** Internal promotion lifetime; omitted for detached imperative preparation. */
   signal?: AbortSignal,
@@ -139,176 +136,33 @@ export async function interactiveButton(
   const { onClick, scale = 1, ...bo } = opts;
   const painter = await prepareButtonPainter(theme, bo, scale, signal);
   current();
-  if (!painter) {
-    // Missing art or face metadata uses the existing visible, labelled native
-    // baseline. Low-level art admission and composition pixels remain separate.
-    const b = baselineButton(bo.label ?? '', bo);
-    // Activation belongs to the callback; the presentation must not submit its form.
-    b.type = 'button';
-    const events = new AbortController();
-    controlDisposers.set(b, () => events.abort());
-    if (onClick && !bo.disabled) listenUntilAborted(events.signal, b, 'click', onClick);
-    return b;
+  const el = painter ? document.createElement('button') : baselineButton(bo.label ?? '', bo);
+  el.type = 'button';
+  el.disabled = !!bo.disabled;
+  if (painter) {
+    el.className = 'scriptoscope-button';
+    if (bo.label) el.setAttribute('aria-label', bo.label);
+    Object.assign(el.style, {
+      display: 'inline-block', lineHeight: '0', userSelect: 'none', margin: '0',
+      padding: '0', border: '0', background: 'transparent', appearance: 'none',
+      cursor: bo.disabled ? 'default' : 'pointer', outlineOffset: '2px',
+    } satisfies Partial<CSSStyleDeclaration>);
+    el.appendChild(painter.canvas);
+    registerButtonPainter(el, painter);
   }
-  const el = document.createElement('span');
-  el.className = 'scriptoscope-button';
-  el.setAttribute('role', 'button');
-  el.tabIndex = bo.disabled ? -1 : 0;
-  if (bo.label) el.setAttribute('aria-label', bo.label);
-  if (bo.disabled) el.setAttribute('aria-disabled', 'true');
-  Object.assign(el.style, {
-    display: 'inline-block', lineHeight: '0', userSelect: 'none',
-    cursor: bo.disabled ? 'default' : 'pointer', outlineOffset: '2px',
-  } satisfies Partial<CSSStyleDeclaration>);
-  el.appendChild(painter.canvas);
-  registerButtonPainter(el, painter);
   const events = new AbortController();
-  controlDisposers.set(el, () => { painter.dispose(); unregisterButtonPainter(el); events.abort(); });
-  if (bo.disabled) return el;
-  let down = false;
-  const press = (): void => { down = true; painter.press(true); };
-  const release = (fire: boolean): void => {
-    if (!down) return;
-    down = false;
-    painter.press(false);
-    if (fire && onClick) onClick();
-  };
-  // Pointer events cover mouse + touch + pen in one path. pointerleave releases without firing the
-  // click (canceled drag-away); pointerup fires it.
-  listenUntilAborted(events.signal, el, 'pointerdown', (e) => { e.preventDefault(); press(); });
-  listenUntilAborted(events.signal, el, 'pointerup', () => release(true));
-  listenUntilAborted(events.signal, el, 'pointerleave', () => release(false));
-  listenUntilAborted(events.signal, el, 'keydown', (e) => { if (KEY_ACTIVATE(e)) { e.preventDefault(); press(); } });
-  listenUntilAborted(events.signal, el, 'keyup', (e) => { if (KEY_ACTIVATE(e)) { e.preventDefault(); release(true); } });
+  controlDisposers.set(el, () => { painter?.dispose(); unregisterButtonPainter(el); events.abort(); });
+  if (onClick) listenUntilAborted(events.signal, el, 'click', () => { if (!el.matches(':disabled')) onClick(); });
+  if (painter) {
+    // These handlers paint feedback only. The native button owns activation,
+    // canceled presses, keyboard defaults, focus and disabled/form semantics.
+    listenUntilAborted(events.signal, el, 'pointerdown', e => { if (e.button === 0 && !el.matches(':disabled')) painter.press(true); });
+    for (const type of ['pointerup', 'pointerleave', 'pointercancel', 'blur'] as const)
+      listenUntilAborted(events.signal, el, type, () => painter.press(false));
+    listenUntilAborted(events.signal, el, 'keydown', e => { if (KEY_ACTIVATE(e) && !el.matches(':disabled')) painter.press(true); });
+    listenUntilAborted(events.signal, el, 'keyup', e => { if (KEY_ACTIVATE(e)) painter.press(false); });
+  }
   return el;
-}
-
-// ── Checkbox / Radio ──────────────────────────────────────────────────────────
-export interface InteractiveCheckableOptions {
-  label?: string;
-  checked?: boolean;
-  disabled?: boolean;
-  fg?: string;
-  scale?: number;
-  onChange?: (checked: boolean) => void;
-}
-
-/** A live checkable: holds {checked, unchecked} canvases and swaps on toggle. */
-interface Toggle {
-  /** The focusable element to mount. */
-  el: HTMLElement;
-  /** Current checked state. */
-  get(): boolean;
-  /** Set state programmatically (no event); used by radio-group exclusivity. */
-  set(checked: boolean): void;
-}
-
-async function buildToggle(
-  theme: LoadedTheme,
-  kind: 'checkbox' | 'radio',
-  opts: InteractiveCheckableOptions,
-): Promise<Toggle> {
-  const { label, disabled = false, fg, scale = 1, onChange } = opts;
-  let checked = opts.checked ?? false;
-  // exactOptionalPropertyTypes: only include label/fg when actually set.
-  const base = { disabled, ...(label !== undefined ? { label } : {}), ...(fg !== undefined ? { fg } : {}) };
-  const onBuf = await composeCheckable(theme, kind, { ...base, checked: true });
-  const offBuf = await composeCheckable(theme, kind, { ...base, checked: false });
-
-  const el = document.createElement('span');
-  el.className = `scriptoscope-${kind}`;
-  el.setAttribute('role', kind);
-  el.tabIndex = disabled ? -1 : 0;
-  if (label) el.setAttribute('aria-label', label);
-  el.setAttribute('aria-checked', String(checked));
-  if (disabled) el.setAttribute('aria-disabled', 'true');
-  Object.assign(el.style, {
-    display: 'inline-flex', alignItems: 'center', gap: '5px', lineHeight: '0',
-    userSelect: 'none', cursor: disabled ? 'default' : 'pointer', outlineOffset: '2px',
-    font: '12px Charcoal, Geneva, sans-serif', color: disabled ? '#9a9a9a' : '#000',
-  } satisfies Partial<CSSStyleDeclaration>);
-
-  const paint = (): void => {
-    const buf = checked ? onBuf : offBuf;
-    el.replaceChildren();
-    if (buf) el.appendChild(bufferToCanvas(buf, scale)); // themed cicn (label baked in)
-    else el.appendChild(baselineCheckable(kind, label ?? '', { checked, disabled })); // baseline box + label
-    el.setAttribute('aria-checked', String(checked));
-  };
-  paint();
-
-  const events = new AbortController();
-  controlDisposers.set(el, () => events.abort());
-  const set = (next: boolean): void => { if (events.signal.aborted || next === checked) return; checked = next; paint(); };
-  if (!disabled) {
-    const toggle = (): void => {
-      // Radios don't un-check on self-click; checkboxes flip.
-      const next = kind === 'radio' ? true : !checked;
-      if (next === checked) return;
-      checked = next;
-      paint();
-      if (onChange) onChange(checked);
-    };
-    listenUntilAborted(events.signal, el, 'click', toggle);
-    listenUntilAborted(events.signal, el, 'keydown', (e) => { if (KEY_ACTIVATE(e)) { e.preventDefault(); toggle(); } });
-  }
-  // Attach the setter on the element so callers (e.g. the declarative layer's radio-group sync) can
-  // drive the visual state from the outside without an internal-API leak.
-  (el as unknown as { _scriptoscopeSetChecked: (v: boolean) => void })._scriptoscopeSetChecked = set;
-  return { el, get: () => checked, set };
-}
-
-/** A standalone interactive checkbox. */
-export async function interactiveCheckbox(
-  theme: LoadedTheme,
-  opts: InteractiveCheckableOptions = {},
-): Promise<HTMLElement> {
-  return (await buildToggle(theme, 'checkbox', opts)).el;
-}
-
-/** A standalone interactive radio (group exclusivity is the consumer's job — when wrapping native
- *  inputs, the browser handles it via shared `name`; the visual sync is via `_scriptoscopeSetChecked`). */
-export async function interactiveRadio(
-  theme: LoadedTheme,
-  opts: InteractiveCheckableOptions = {},
-): Promise<HTMLElement> {
-  return (await buildToggle(theme, 'radio', opts)).el;
-}
-
-export interface RadioGroupOptions {
-  items: { label?: string; value: string }[];
-  value?: string;
-  disabled?: boolean;
-  scale?: number;
-  onChange?: (value: string) => void;
-}
-
-/**
- * A radio group with single-selection: selecting one clears its siblings (the
- * exclusivity the kind='radio' toggle can't enforce alone). Returns a container
- * `role=radiogroup` of the rendered radios.
- */
-export async function radioGroup(theme: LoadedTheme, opts: RadioGroupOptions): Promise<HTMLElement> {
-  const { items, value, disabled = false, scale = 1, onChange } = opts;
-  const group = document.createElement('div');
-  group.setAttribute('role', 'radiogroup');
-  Object.assign(group.style, { display: 'inline-flex', flexDirection: 'column', gap: '6px' });
-
-  const toggles: { value: string; t: Toggle }[] = [];
-  for (const item of items) {
-    const t = await buildToggle(theme, 'radio', {
-      ...(item.label !== undefined ? { label: item.label } : {}),
-      disabled, scale, checked: item.value === value,
-      onChange: (checked) => {
-        if (!checked) return;
-        for (const other of toggles) if (other.value !== item.value) other.t.set(false);
-        if (onChange) onChange(item.value);
-      },
-    });
-    toggles.push({ value: item.value, t });
-    group.appendChild(t.el);
-  }
-  return group;
 }
 
 // ── Disclosure triangle ───────────────────────────────────────────────────────
@@ -324,7 +178,7 @@ export interface InteractiveDisclosureOptions {
  * open state via `onToggle` (wire it to show/hide content).
  */
 export async function interactiveDisclosure(
-  theme: LoadedTheme,
+  theme: ThemeInput,
   opts: InteractiveDisclosureOptions = {},
 ): Promise<HTMLElement> {
   const { scale = 1, onToggle } = opts;
@@ -646,6 +500,17 @@ async function composeSliderEnded(p: Promise<SliderFrame | null>): Promise<Slide
   }
 }
 
+/** Hit the last painted frame using the canvas's current CSS-to-raster mapping. */
+function paintedPartAt<T>(el: HTMLElement, e: PointerEvent,
+  frame: { buffer: PixelBuffer; partAt(x: number, y: number): T } | null): T | undefined {
+  const canvas = el.querySelector('canvas');
+  if (!frame || !canvas) return undefined;
+  const r = canvas.getBoundingClientRect();
+  if (!(r.width > 0 && r.height > 0)) return undefined;
+  return frame.partAt(Math.floor((e.clientX - r.left) * frame.buffer.width / r.width),
+    Math.floor((e.clientY - r.top) * frame.buffer.height / r.height));
+}
+
 /**
  * The pressed slider part is the part under the pointer at press time (slider
  * §4.9 hit test on the painted geometry; DECISIONS #9). A capture listener runs
@@ -659,13 +524,7 @@ function sliderPressTracker(el: HTMLElement): {
   let painted: SliderFrame | null = null;
   let part: SliderOptions['pressedPart'] | null = null;
   el.addEventListener('pointerdown', (e) => {
-    const canvas = el.querySelector('canvas');
-    if (!painted || !canvas) { part = undefined; return; }
-    const r = canvas.getBoundingClientRect();
-    if (!(r.width > 0 && r.height > 0)) { part = undefined; return; }
-    const x = Math.floor((e.clientX - r.left) * painted.buffer.width / r.width);
-    const y = Math.floor((e.clientY - r.top) * painted.buffer.height / r.height);
-    part = painted.partAt(x, y);
+    part = paintedPartAt(el, e, painted);
   }, { capture: true });
   return {
     painted: (frame, state) => { if (frame && state !== 'pressed') painted = frame; },
@@ -673,7 +532,7 @@ function sliderPressTracker(el: HTMLElement): {
   };
 }
 
-export async function interactiveNativeSlider(theme: LoadedTheme, input: HTMLInputElement,
+export async function interactiveNativeSlider(theme: ThemeInput, input: HTMLInputElement,
   active: () => boolean): Promise<HTMLElement> {
   const el = document.createElement('span'); el.className = 'scriptoscope-slider';
   const press = sliderPressTracker(el);
@@ -689,7 +548,7 @@ export async function interactiveNativeSlider(theme: LoadedTheme, input: HTMLInp
 }
 
 /** A draggable slider (themed where the scheme's slider CDEF draws, else procedural). */
-export async function interactiveSlider(theme: LoadedTheme, opts: InteractiveSliderOptions = {}): Promise<HTMLElement> {
+export async function interactiveSlider(theme: ThemeInput, opts: InteractiveSliderOptions = {}): Promise<HTMLElement> {
   const { orientation = 'horizontal', length = 120, value = 0.5, scale = 1, onChange } = opts;
   const el = document.createElement('span');
   el.className = 'scriptoscope-slider';
@@ -706,7 +565,7 @@ export async function interactiveSlider(theme: LoadedTheme, opts: InteractiveSli
 }
 
 /** A draggable scrollbar thumb (drag along the track sets the position). */
-export async function interactiveScrollbar(theme: LoadedTheme, opts: InteractiveScrollbarOptions = {}): Promise<HTMLElement> {
+export async function interactiveScrollbar(theme: ThemeInput, opts: InteractiveScrollbarOptions = {}): Promise<HTMLElement> {
   const { orientation = 'vertical', length = 120, value = 0.3, thumbExtent = 0.3, scale = 1, onChange } = opts;
   const el = document.createElement('span');
   el.className = 'scriptoscope-scrollbar';
@@ -716,13 +575,7 @@ export async function interactiveScrollbar(theme: LoadedTheme, opts: Interactive
   let painted: ScrollbarFrame | null = null;
   let pressedPart: ScrollbarOptions['pressedPart'];
   el.addEventListener('pointerdown', (e) => {
-    const canvas = el.querySelector('canvas');
-    if (!painted || !canvas) { pressedPart = undefined; return; }
-    const r = canvas.getBoundingClientRect();
-    if (!(r.width > 0 && r.height > 0)) { pressedPart = undefined; return; }
-    const x = Math.floor((e.clientX - r.left) * painted.buffer.width / r.width);
-    const y = Math.floor((e.clientY - r.top) * painted.buffer.height / r.height);
-    pressedPart = painted.partAt(x, y) ?? undefined;
+    pressedPart = paintedPartAt(el, e, painted) ?? undefined;
   }, { capture: true });
   await buildDraggable(el, orientation, value, scale,
     async (v, state) => {
@@ -771,7 +624,7 @@ export class ProgressIdle {
   }
 
   /** Draw the current phase (one frame) and keep the phase the draw reports. */
-  async compose(theme: LoadedTheme, opts: Omit<ProgressOptions, 'indeterminate' | 'phase'> = {}): Promise<PixelBuffer> {
+  async compose(theme: ThemeInput, opts: Omit<ProgressOptions, 'indeterminate' | 'phase'> = {}): Promise<PixelBuffer> {
     const frame = await composeProgressFrame(theme, { ...opts, indeterminate: this.indeterminate, phase: this.record.phase });
     this.record.phase = frame.phase;
     return frame.buffer;
@@ -809,7 +662,7 @@ export interface TitleWidgetHit {
  * their positions; corner-sprite placements carry explicit roles.
  */
 export function titleWidgetHits(
-  theme: LoadedTheme,
+  theme: ThemeInput,
   windowType: string,
   composed: ComposedChrome,
   scale: number,
@@ -822,7 +675,7 @@ export function titleWidgetHits(
   // chaining, not an index into undefined.)
   // Without an explicit state, retain public lookup of either chrome state.
   // The manager supplies its actual state to match the rendered owner.
-  const wt = resolveWindowSelection(theme, windowType, state ?? 'inactive')?.wt;
+  const wt = resolveWindowSelection(themeView(theme), windowType, state ?? 'inactive')?.wt;
   if (!wt) return [];
   // Single source of truth (renderWindow.resolveTitleWidgetRects) — gives UNSCALED rects + roles;
   // the hit zones are those ×scale (the window element's own scaled pixel space).
@@ -833,12 +686,15 @@ export function titleWidgetHits(
 }
 
 // ── Window focus manager ────────────────────────────────────────────────────
-interface ManagedWindow {
+interface ManagedWindow<Theme extends ThemeInput> {
   contentPort: ManagedContentPort;
   /** Invalidates asynchronous paints when geometry/state changes or the entry is removed. */
   renderEpoch: number;
+  /** Authority of mounted chrome, independent of pending render preparations. */
+  commitEpoch: number;
+  applyStateEpoch: number;
   initializing: boolean;
-  theme: LoadedTheme;
+  theme: Theme;
   opts: RenderWindowOptions;
   handlers: TitleWidgetHandlers;
   host: HTMLElement;
@@ -868,31 +724,14 @@ interface ManagedWindow {
    *  scroll container (the slot survives re-slotting), so without this it would accumulate one per
    *  render — multiplying scroll speed and leaking. Re-created each time the bar is (re)wired. */
   scrollAbort?: AbortController;
+  /** Root handlers are rebound without ending an already active document-level drag. */
+  frameAbort?: AbortController;
   /** Pooled chrome canvas — keeps its DOM identity across state changes (see #171 and
    *  the 2026-05-28 perf review + LEARNINGS "Classic Mac OS lessons"
    *  entry pattern #5). Async preparation uses a staging canvas; only the guarded synchronous
    *  commit copies its pixels into this live canvas and moves it into the new chrome. */
   chromeCanvas?: HTMLCanvasElement;
-  /** Cached active/inactive title-bar strips for fast focus-flip rendering (closes #173; classic
-   *  Mac OS lessons pattern #2 — active/inactive flip only repainted the title bar). At every
-   *  render() the just-painted title strip is captured here for the CURRENT state; on a focus flip
-   *  where the OPPOSITE state's strip is cached AND no other render-affecting state changed, we
-   *  putImageData the cached strip into the existing chromeCanvas instead of recomposing. Key
-   *  encodes (theme identity, slug, width, height); any change invalidates. Optimization is
-   *  intentionally skipped for side-titled palettes (frame.top < 10px — the "title" lives on a
-   *  vertical strip those windows don't expose as a horizontal block). */
-  titleStripCache?: {
-    theme: LoadedTheme;
-    slug: string;
-    width: number;
-    height: number;
-    stripHeight: number;
-    activeStrip?: ImageData;
-    inactiveStrip?: ImageData;
-  };
-  /** Optional persistent content node (the declarative layer's slotted consumer DOM). Re-attached
-   *  into the freshly-built `.scriptoscope-content` after every render() — `renderWindow` rebuilds the window
-   *  subtree, so without this the slotted content would be destroyed on focus/resize. */
+  /** Persistent light-DOM consumer content, projected through the continuously mounted slot. */
   contentEl?: HTMLElement;
 }
 
@@ -924,8 +763,16 @@ const shadowFocusSheet: CSSStyleSheet = (() => {
   return sheet;
 })();
 
-export class WindowManager {
-  private windows: ManagedWindow[] = [];
+/** Explicit live state. Omitted fields retain their current values. */
+export interface ManagedWindowState {
+  width?: number;
+  height?: number;
+  z?: number;
+  collapsed?: boolean;
+}
+
+export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
+  private windows: ManagedWindow<Theme>[] = [];
   /** Monotonic stacking clock — each add/focus takes the next value so the most-recently-touched
    *  window is frontmost. render() adds a large offset for the active window so it sits above all
    *  inactive ones (classic "active window on top", with inactive windows in recency order beneath). */
@@ -940,7 +787,7 @@ export class WindowManager {
 
   /** Public read access to a managed window's current state (size, collapsed, z). Used by the
    *  persistence layer to snapshot. Returns null if the host isn't managed. */
-  describe(host: HTMLElement): { width?: number; height?: number; collapsed: boolean; z: number; theme: LoadedTheme } | null {
+  describe(host: HTMLElement): { width?: number; height?: number; collapsed: boolean; z: number; theme: Theme } | null {
     const entry = this.windows.find((w) => w.host === host);
     if (!entry) return null;
     return {
@@ -950,6 +797,44 @@ export class WindowManager {
       z: entry.z,
       theme: entry.theme,
     };
+  }
+
+  /** Apply persisted state without invoking title widgets or moving native content.
+   * Resolves after the chrome commit; cancellation, supersession and removed hosts are no-ops.
+   * Preparation failure rejects and leaves the previously committed state intact. */
+  async applyState(host: HTMLElement, state: ManagedWindowState, signal?: AbortSignal): Promise<void> {
+    const entry = this.windows.find(w => w.host === host);
+    if (!entry || signal?.aborted) return;
+    for (const value of [state.width, state.height, state.z]) {
+      if (value !== undefined && !Number.isFinite(value)) throw new TypeError('Window state must be finite');
+    }
+    const opts = { ...entry.opts,
+      ...(state.width !== undefined ? { width: state.width } : {}),
+      ...(state.height !== undefined ? { height: state.height } : {}),
+    };
+    const collapsed = state.collapsed ?? (entry.collapsed === true);
+    const z = state.z ?? entry.z;
+    const repaint = opts.width !== entry.opts.width || opts.height !== entry.opts.height
+      || collapsed !== (entry.collapsed === true);
+    const application = ++entry.applyStateEpoch;
+    if (!repaint && z === entry.z) return;
+    const epoch = ++entry.renderEpoch;
+    const current = (): boolean => !signal?.aborted && application === entry.applyStateEpoch
+      && epoch === entry.renderEpoch && this.windows.includes(entry);
+    let prepared;
+    try {
+      if (repaint) prepared = await this.prepareRender({ ...entry, opts, collapsed, z }, entry.theme);
+    } catch (error) {
+      if (!current()) return;
+      throw error;
+    }
+    if (!current()) return;
+    entry.opts = opts;
+    entry.collapsed = collapsed;
+    entry.z = z;
+    this.zClock = Math.max(this.zClock, z);
+    if (prepared) this.commitRender(entry, prepared);
+    else { host.style.zIndex = this.zIndexFor(entry); this.notifyChange(entry); }
   }
 
   /** Read-only browser coordinate authority for this manager's committed window. */
@@ -964,14 +849,14 @@ export class WindowManager {
    * a handler (the widget art itself lives in the chrome cicn).
    */
   async add(
-    theme: LoadedTheme,
+    theme: Theme,
     opts: RenderWindowOptions = {},
     handlers: TitleWidgetHandlers = {},
     extra: {
       contentEl?: HTMLElement;
       z?: number;
       collapsed?: boolean;
-      /** See ManagedWindow.enabledWidgets — opt-in widget subset. Plumbed
+      /** See ManagedWindow<Theme>.enabledWidgets — opt-in widget subset. Plumbed
        *  from `data-scriptoscope-widgets` for the declarative path. */
       enabledWidgets?: ReadonlySet<TitleWidget>;
     } = {},
@@ -1005,8 +890,8 @@ export class WindowManager {
     // them on the host — double-labelling makes screen readers announce the window twice.
     // Initial focus: the first window added is active — UNLESS it explicitly requests inactive
     // (so a declarative `data-scriptoscope-state="inactive"` is honored; then no window starts focused).
-    const entry: ManagedWindow = {
-      theme, opts, handlers, host, renderEpoch: 0, initializing: true, contentPort: new ManagedContentPort(),
+    const entry: ManagedWindow<Theme> = {
+      theme, opts, handlers, host, renderEpoch: 0, commitEpoch: 0, applyStateEpoch: 0, initializing: true, contentPort: new ManagedContentPort(),
       ...(opts.reuseCanvas ? { chromeCanvas: opts.reuseCanvas } : {}),
       active: this.windows.length === 0 && opts.state !== 'inactive',
       // Declared z (data-scriptoscope-z) wins; else take the next stacking-clock tick. We still bump the
@@ -1042,6 +927,7 @@ export class WindowManager {
     this.windows[i]!.renderEpoch++;
     this.windows[i]!.contentPort.dispose();
     this.windows[i]?.scrollAbort?.abort();
+    this.windows[i]?.frameAbort?.abort();
     this.windows.splice(i, 1);
     // Drag-handoff placeholder cleanup (toAbsolute inserts one to keep the
     // page from shifting when an in-flow host lifts to absolute). Removed
@@ -1086,11 +972,9 @@ export class WindowManager {
     }
     const hr = host.getBoundingClientRect();
     const anc = host.parentElement ? findPositionedAncestor(host) : null;
-    const ancRect = anc && anc !== document.documentElement
-      ? anc.getBoundingClientRect()
-      : { left: 0, top: 0 };
-    const x = Math.round(hr.left - ancRect.left);
-    const y = Math.round(hr.top - ancRect.top);
+    const offset = offsetInContainingBlock(hr, anc);
+    const x = Math.round(offset.x);
+    const y = Math.round(offset.y);
     // Reserve the static slot BEFORE flipping position. Insert as a sibling
     // immediately before the host so it sits in the same flow position.
     // Block element matching the host's outer width/height; invisible +
@@ -1149,7 +1033,7 @@ export class WindowManager {
    *  whole desktop changes scheme at runtime, the Kaleidoscope way. Public for imperative consumers.
    *  `themeRef` is the declarative mount's host metadata (not loaded asset identity);
    *  imperative callers normally omit it. It commits with the pixels, before onChange. */
-  async retheme(theme: LoadedTheme, signal?: AbortSignal, themeRef?: string): Promise<void> {
+  async retheme(theme: Theme, signal?: AbortSignal, themeRef?: string): Promise<void> {
     const epoch = ++this.themeEpoch;
     // Preserve the existing detached-host cleanup, but do not steal an add()
     // still preparing its initial off-DOM host.
@@ -1159,7 +1043,7 @@ export class WindowManager {
     const current = (): boolean => epoch === this.themeEpoch && !signal?.aborted;
     // Preparation never touches a live canvas. Failed/superseded batches leave
     // every current window intact; commit below contains no asynchronous work.
-    const prepared = new Map<ManagedWindow, { epoch: number; win: HTMLElement; slug: string; collapsed: boolean }>();
+    const prepared = new Map<ManagedWindow<Theme>, { epoch: number; win: HTMLElement; collapsed: boolean }>();
     while (current()) {
       const entries = this.windows.filter(w => w.host.isConnected);
       try {
@@ -1191,7 +1075,8 @@ export class WindowManager {
     }
   }
 
-  private async focus(entry: ManagedWindow): Promise<void> {
+  private async focus(entry: ManagedWindow<Theme>): Promise<void> {
+    if (!this.windows.includes(entry)) return;
     entry.z = ++this.zClock; // raise above all (even if already active — re-clicking a window fronts it)
     if (entry.active) {
       debug('focus', `${entry.opts.title ?? '(untitled)'} — already active, z=${entry.z}`);
@@ -1199,106 +1084,29 @@ export class WindowManager {
       return;
     }
     debug('focus', `${entry.opts.title ?? '(untitled)'} — gaining active`, { z: entry.z, total: this.windows.length });
+    const changed: ManagedWindow<Theme>[] = [];
+    // Publish the whole focus state before preparation can yield, then start
+    // every changed render so a later click cannot strand unpainted state.
     for (const w of this.windows) {
       const was = w.active;
       w.active = w === entry;
-      if (w.active !== was) {
-        w.renderEpoch++;
-        // Fast path (issue #173): if the OTHER state's title strip is cached under matching keys,
-        // putImageData it into the existing canvas + update z-index. Skips the full chrome
-        // recomposition + widget/scrollbar re-wiring. Falls back to render() on cache miss; the
-        // fallback render then populates this state's strip for next time.
-        if (this.tryFastFocusFlip(w)) {
-          debug('focus', `${w.opts.title ?? ''} — fast strip swap (active=${w.active})`);
-          if (this.onChange) try { this.onChange(w.host); } catch (err) { console.error('[scriptoscope] onChange threw:', err); }
-        } else {
-          await this.render(w);
-        }
-      } else {
-        w.host.style.zIndex = this.zIndexFor(w); // refresh the loser's z without a full re-render
-      }
+      if (w.active !== was) { w.renderEpoch++; changed.push(w); }
+      else w.host.style.zIndex = this.zIndexFor(w);
     }
-  }
-
-  /** Title-strip cache helper — capture the just-painted title region after a full render() and
-   *  store it under the current state. Subsequent focus flips that match all the other state keys
-   *  can fast-path via tryFastFocusFlip() instead of recomposing. See ManagedWindow.titleStripCache
-   *  for the cache shape + invalidation rules. */
-  private captureTitleStrip(entry: ManagedWindow, slug: string): void {
-    const canvas = entry.chromeCanvas;
-    if (!canvas) return;
-    const composed = (canvas.parentElement as unknown as { _scriptoscopeComposed?: ComposedChrome })._scriptoscopeComposed;
-    if (!composed) return;
-    const stripHeight = composed.frame.top;
-    // Skip side-titled palettes (title lives on a vertical strip the cache can't represent as a
-    // single horizontal block). The full render() path still applies for those — just no fast-path.
-    if (stripHeight < 10) return;
-    const theme = entry.theme;
-    const width = composed.fullWidth;
-    const height = composed.fullHeight;
-    // If any key changed, reset the cache for the new key (the previous state's strips no longer
-    // apply — different theme or different dimensions render different pixels).
-    const c = entry.titleStripCache;
-    const sameKey = c && c.theme === theme && c.slug === slug && c.width === width && c.height === height;
-    if (!sameKey) {
-      entry.titleStripCache = { theme, slug, width, height, stripHeight };
-    }
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    // Strip extends from y=0 to y=stripHeight; full width. ImageData is independent of the canvas.
-    try {
-      const strip = ctx.getImageData(0, 0, width, stripHeight);
-      if (entry.active) entry.titleStripCache!.activeStrip = strip;
-      else entry.titleStripCache!.inactiveStrip = strip;
-    } catch (err) {
-      // getImageData can throw for a tainted canvas (cross-origin images). Our canvases are
-      // always same-origin, but a misconfigured CSP could trigger this. Silently fall back to
-      // full-render path — no fast path, no crash.
-      debug('render', `title-strip cache capture failed`, { err: String(err) });
-    }
-  }
-
-  /** Try the title-strip fast-path for an active-state flip. Returns true iff the cache had the
-   *  target state's strip under matching keys AND the optimization is applicable (a chromeCanvas
-   *  exists; the target strip is present). On success, putImageData the cached strip into the
-   *  existing canvas, update data-scriptoscope-current-state on .scriptoscope-window, and update z-index — the chrome's body
-   *  frame + widget overlays + scrollbars all stay in place (active state doesn't change those,
-   *  only the title-bar tinting). */
-  private tryFastFocusFlip(entry: ManagedWindow): boolean {
-    const c = entry.titleStripCache;
-    if (!c || c.theme !== entry.theme) return false;
-    const canvas = entry.chromeCanvas;
-    if (!canvas) return false;
-    // Canvas dims are the source-of-truth gate (any size mismatch means the strip is the wrong
-    // size). Theme + slug invalidation is handled in captureTitleStrip via sameKey reset; if
-    // we're here without going through render() first, the cache is fresh from the most recent
-    // render(), which is what we want.
-    if (canvas.width !== c.width || canvas.height !== c.height) return false;
-    const targetStrip = entry.active ? c.activeStrip : c.inactiveStrip;
-    if (!targetStrip) return false;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return false;
-    ctx.putImageData(targetStrip, 0, 0);
-    // Update data-scriptoscope-current-state on .scriptoscope-window so CSS selectors / AT see the new state. Without this,
-    // visual chrome would flip but the attribute would stay stale, breaking any [data-scriptoscope-current-state]
-    // styling the consumer or theme might have. Find via the canvas's parent (the .scriptoscope-window).
-    const win = canvas.parentElement as HTMLElement | null;
-    if (win) win.dataset.scriptoscopeCurrentState = entry.active ? 'active' : 'inactive';
-    entry.host.style.zIndex = this.zIndexFor(entry);
-    return true;
+    await Promise.all(changed.map(w => this.render(w)));
   }
 
   /** Active windows float above inactive ones; within each group, higher zClock (more recent) wins. */
-  private zIndexFor(entry: ManagedWindow): string {
+  private zIndexFor(entry: ManagedWindow<Theme>): string {
     return String((entry.active ? 100_000 : 0) + entry.z);
   }
 
   /** The window-type slug actually rendered: the collapsed variant when shaded, else the base type. */
-  private effectiveSlug(entry: ManagedWindow, theme = entry.theme): string {
+  private effectiveSlug(entry: ManagedWindow<Theme>, theme = entry.theme): string {
     const base = entry.opts.windowType ?? 'document-window';
     // Window-shade: render the collapsed chrome variant (title-bar-only art) if the theme ships one,
     // else fall back to the same type at zero body height — both roll the window up to the title bar.
-    return entry.collapsed ? (resolveCollapsedWindowTypeSlug(theme, base, entry.active ? 'active' : 'inactive') ?? base) : base;
+    return entry.collapsed ? (resolveCollapsedWindowTypeSlug(themeView(theme), base, entry.active ? 'active' : 'inactive') ?? base) : base;
   }
 
   /**
@@ -1322,7 +1130,7 @@ export class WindowManager {
    * to introduce — measured baseline is 2 renders on focus-change between two
    * windows, N renders on a theme switch (one per window). Don't regress this.
    */
-  private async render(entry: ManagedWindow): Promise<void> {
+  private async render(entry: ManagedWindow<Theme>): Promise<void> {
     const epoch = ++entry.renderEpoch;
     let prepared;
     try { prepared = await this.prepareRender(entry, entry.theme); }
@@ -1334,7 +1142,7 @@ export class WindowManager {
     this.commitRender(entry, prepared);
   }
 
-  private async prepareRender(entry: ManagedWindow, theme: LoadedTheme): Promise<{ win: HTMLElement; slug: string; collapsed: boolean }> {
+  private async prepareRender(entry: ManagedWindow<Theme>, theme: Theme): Promise<{ win: HTMLElement; collapsed: boolean }> {
     const collapsed = entry.collapsed === true;
     const slug = this.effectiveSlug(entry, theme);
     const { reuseCanvas: _callerCanvas, ...options } = entry.opts;
@@ -1345,10 +1153,11 @@ export class WindowManager {
       state: entry.active ? 'active' : 'inactive',
       // Never lend a live pooled canvas to an asynchronous preparation.
     });
-    return { win, slug, collapsed };
+    return { win, collapsed };
   }
 
-  private commitRender(entry: ManagedWindow, { win, slug, collapsed }: { win: HTMLElement; slug: string; collapsed: boolean }, notify = true): void {
+  private commitRender(entry: ManagedWindow<Theme>, { win, collapsed }: { win: HTMLElement; collapsed: boolean }, notify = true): void {
+    entry.commitEpoch++;
     const fresh = win.querySelector<HTMLCanvasElement>('canvas.scriptoscope-chrome');
     const pooled = entry.chromeCanvas;
     if (fresh && pooled) {
@@ -1360,14 +1169,7 @@ export class WindowManager {
     }
     if (fresh) entry.chromeCanvas = pooled ?? fresh;
     else delete entry.chromeCanvas;
-    // Title-strip cache (closes #173) — capture the just-painted title region for the CURRENT
-    // active state. On the next focus flip in the opposite direction (with cache key matching),
-    // tryFastFocusFlip() can putImageData this strip into the existing canvas instead of doing a
-    // full render. Skip for side-titled palettes (frame.top too small to be a meaningful strip).
-    this.captureTitleStrip(entry, slug);
     entry.host.style.zIndex = this.zIndexFor(entry);
-    this.overlayWidgets(entry, win);
-    this.wireMoveResize(entry, win);
     // Consumer content lives in the host's LIGHT DOM (placed there once in add()); renderWindow's
     // <slot> inside .scriptoscope-content auto-renders it. No per-render re-slotting needed — the slot
     // shows whatever's in light DOM, and the same DOM node persists across re-renders so
@@ -1377,11 +1179,33 @@ export class WindowManager {
       const hole = win.querySelector('.scriptoscope-content') as HTMLElement | null;
       if (hole) hole.style.display = 'none';
     }
-    // Mount the chrome into the SHADOW ROOT (attached in add()). Host CSS can't reach in;
-    // light-DOM children (consumer content) are slotted via renderWindow's <slot>.
-    const shadow = entry.host.shadowRoot;
-    if (shadow) shadow.replaceChildren(win);
-    else entry.host.replaceChildren(win);  // defensive fallback (host without shadow — shouldn't happen)
+    // Keep the rendered projection continuously mounted: replacing its ancestors cancels
+    // a browser's pending native Space activation even when light-DOM focus survives.
+    const mount = entry.host.shadowRoot ?? entry.host;
+    const live = mount.firstChild as HTMLElement | null;
+    const content = live?.querySelector<HTMLElement>('.scriptoscope-content');
+    const preparedContent = win.querySelector<HTMLElement>('.scriptoscope-content');
+    if (live && content && preparedContent) {
+      const syncAttributes = (target: HTMLElement, source: HTMLElement): void => {
+        for (const attr of Array.from(target.attributes))
+          if (!source.hasAttribute(attr.name)) target.removeAttribute(attr.name);
+        for (const attr of Array.from(source.attributes))
+          if (target.getAttribute(attr.name) !== attr.value) target.setAttribute(attr.name, attr.value);
+      };
+      syncAttributes(live, win);
+      syncAttributes(content, preparedContent);
+      Object.assign(live, { _scriptoscopeComposed:
+        (win as unknown as { _scriptoscopeComposed?: ComposedChrome })._scriptoscopeComposed });
+      for (const child of Array.from(live.childNodes)) if (child !== content) child.remove();
+      let beforeContent = true;
+      for (const child of Array.from(win.childNodes)) {
+        if (child === preparedContent) { beforeContent = false; continue; }
+        live.insertBefore(child, beforeContent ? content : null);
+      }
+      win = live;
+    } else mount.replaceChildren(win);
+    this.overlayWidgets(entry, win);
+    this.wireMoveResize(entry, win);
     const viewport = win.querySelector<HTMLElement>('.scriptoscope-content');
     if (viewport) entry.contentPort.commit(entry.host, viewport, Math.max(1, Math.round(entry.opts.scale ?? 1)));
     else entry.contentPort.clear();
@@ -1394,7 +1218,7 @@ export class WindowManager {
     if (notify) this.notifyChange(entry);
   }
 
-  private notifyChange(entry: ManagedWindow): void {
+  private notifyChange(entry: ManagedWindow<Theme>): void {
     if (this.onChange) try { this.onChange(entry.host); } catch (err) { console.error('[scriptoscope] onChange threw:', err); }
   }
 
@@ -1408,15 +1232,15 @@ export class WindowManager {
    * the host isn't in the document yet so nothing has layout. Detects + wires BOTH axes — vertical and
    * horizontal — independently, so a long-and-wide content gets both bars + a clear bottom-right corner.
    */
-  private async wireScrollbars(entry: ManagedWindow, win: HTMLElement, attempt: number): Promise<void> {
+  private async wireScrollbars(entry: ManagedWindow<Theme>, win: HTMLElement, attempt: number, epoch = entry.commitEpoch): Promise<void> {
     // Staleness check: is `win` still the current chrome? See LEARNINGS 2026-05-28 "Shadow DOM
     // gotchas" — host.firstChild is the slotted .scriptoscope-slot now, not win. We resolve via shadowRoot.
     // We deliberately do NOT use win.isConnected: ScriptoscopeWindow.promote inserts the host into the
     // document AFTER manager.add returns, so the initial wireScrollbars fires while host is
     // still detached. The ch===0 retry below catches that pre-layout case; staleness is what
-    // this check covers (a NEWER render replaced win).
+    // this check covers, including retries from an older commit on the retained root.
     const currentChrome = entry.host.shadowRoot?.firstChild ?? entry.host.firstChild;
-    if (currentChrome !== win) {
+    if (!this.windows.includes(entry) || currentChrome !== win || entry.commitEpoch !== epoch) {
       debug('scrollbar', `${entry.opts.title ?? ''} — stale win, bailing`);
       return;
     }
@@ -1444,7 +1268,7 @@ export class WindowManager {
     const ch = scrollEl.clientHeight;
     const cw = scrollEl.clientWidth;
     if (ch === 0 || cw === 0) {                           // not laid out yet (first render, pre-insert)
-      if (attempt < 4) requestAnimationFrame(() => { void this.wireScrollbars(entry, win, attempt + 1); });
+      if (attempt < 4) requestAnimationFrame(() => { void this.wireScrollbars(entry, win, attempt + 1, epoch); });
       return;
     }
     const needV = scrollEl.scrollHeight > ch + 1;
@@ -1484,7 +1308,7 @@ export class WindowManager {
    */
   private wireScrollbarAxis(
     axis: 'vertical' | 'horizontal',
-    entry: ManagedWindow,
+    entry: ManagedWindow<Theme>,
     win: HTMLElement,
     scrollEl: HTMLElement,
     composed: ComposedChrome,
@@ -1492,6 +1316,9 @@ export class WindowManager {
     signal: AbortSignal,
     flags: { needV: boolean; needH: boolean },
   ): void {
+    const current = (): boolean => !signal.aborted && this.windows.includes(entry)
+      && (entry.host.shadowRoot?.firstChild ?? entry.host.firstChild) === win;
+    if (!current()) return;
     const vertical = axis === 'vertical';
     // Per-axis dimensions (against the layout-complete scrollEl after gutter applied).
     const trackLen = vertical ? scrollEl.clientHeight : scrollEl.clientWidth;
@@ -1522,18 +1349,31 @@ export class WindowManager {
     bar.setAttribute('aria-label', vertical ? 'Scroll content vertically' : 'Scroll content horizontally');
     bar.tabIndex = 0;
 
-    let raf = 0;
+    let raf = 0, paintEpoch = 0;
+    signal.addEventListener('abort', () => {
+      if (raf) cancelAnimationFrame(raf);
+      raf = 0;
+      bar.remove();
+    }, { once: true });
     const repaint = async (): Promise<void> => {
-      const opts = { orientation: axis, length: Math.round(barLenCss / scale), value };
-      // thumbExtent only shapes the procedural Platinum fallback; the engine sizes
-      // the thumb from its cicn (scrollbar §5.6) and ignores it.
-      const buf = (await composeScrollbar(entry.theme, opts)) ?? platinumScrollbar({ ...opts, thumbExtent });
-      // Staleness check (see LEARNINGS 2026-05-28 — shadowRoot.firstChild not host.firstChild).
-      if (buf && (entry.host.shadowRoot?.firstChild ?? entry.host.firstChild) === win) bar.replaceChildren(bufferToCanvas(buf, scale));
-      bar.setAttribute('aria-valuenow', String(Math.round(value * 100)));
+      if (!current()) return;
+      const epoch = paintEpoch;
+      try {
+        const opts = { orientation: axis, length: Math.round(barLenCss / scale), value };
+        const themed = await composeScrollbar(entry.theme, opts);
+        if (!current() || epoch !== paintEpoch) return;
+        // thumbExtent shapes only the procedural fallback, never the engine thumb.
+        const buf = themed ?? platinumScrollbar({ ...opts, thumbExtent });
+        bar.replaceChildren(bufferToCanvas(buf, scale));
+        bar.setAttribute('aria-valuenow', String(Math.round(opts.value * 100)));
+      } catch (error) {
+        if (current() && epoch === paintEpoch && !(error instanceof DOMException && error.name === 'AbortError'))
+          console.error('[scriptoscope] scrollbar paint failed:', error);
+      }
     };
-    const scheduleRepaint = (): void => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; void repaint(); }); };
+    const scheduleRepaint = (): void => { if (current() && !raf) raf = requestAnimationFrame(() => { raf = 0; void repaint(); }); };
     const setValue = (v: number): void => {
+      paintEpoch++;
       value = clamp01(v);
       if (vertical) scrollEl.scrollTop = value * maxScroll;
       else scrollEl.scrollLeft = value * maxScroll;
@@ -1559,16 +1399,10 @@ export class WindowManager {
     // deltaX (trackpad horizontal swipe) AND shift+deltaY (the convention for "wheel to scroll
     // horizontally"). Attach to the SAME scroll element — both listeners fire; each takes its axis.
     scrollEl.addEventListener('wheel', (e) => {
-      if (vertical) {
-        if (Math.abs(e.deltaY) < 0.5) return;
-        e.preventDefault();
-        setValue((scrollEl.scrollTop + e.deltaY) / maxScroll);
-      } else {
-        const dx = e.shiftKey ? e.deltaY : e.deltaX;
-        if (Math.abs(dx) < 0.5) return;
-        e.preventDefault();
-        setValue((scrollEl.scrollLeft + dx) / maxScroll);
-      }
+      const delta = vertical || e.shiftKey ? e.deltaY : e.deltaX;
+      if (Math.abs(delta) < 0.5) return;
+      e.preventDefault();
+      setValue(((vertical ? scrollEl.scrollTop : scrollEl.scrollLeft) + delta) / maxScroll);
     }, { passive: false, signal });
 
     // Arrow keys / page keys on the bar.
@@ -1576,23 +1410,13 @@ export class WindowManager {
       const line = maxScroll > 0 ? 24 / maxScroll : 0;
       const page = trackLen / maxScroll;
       let next = value;
-      if (vertical) {
-        if (e.key === 'ArrowDown') next = value + line;
-        else if (e.key === 'ArrowUp') next = value - line;
-        else if (e.key === 'PageDown') next = value + page;
-        else if (e.key === 'PageUp') next = value - page;
-        else if (e.key === 'Home') next = 0;
-        else if (e.key === 'End') next = 1;
-        else return;
-      } else {
-        if (e.key === 'ArrowRight') next = value + line;
-        else if (e.key === 'ArrowLeft') next = value - line;
-        else if (e.key === 'PageDown') next = value + page;
-        else if (e.key === 'PageUp') next = value - page;
-        else if (e.key === 'Home') next = 0;
-        else if (e.key === 'End') next = 1;
-        else return;
-      }
+      if (e.key === (vertical ? 'ArrowDown' : 'ArrowRight')) next = value + line;
+      else if (e.key === (vertical ? 'ArrowUp' : 'ArrowLeft')) next = value - line;
+      else if (e.key === 'PageDown') next = value + page;
+      else if (e.key === 'PageUp') next = value - page;
+      else if (e.key === 'Home') next = 0;
+      else if (e.key === 'End') next = 1;
+      else return;
       e.preventDefault(); setValue(next);
     }, { signal });
 
@@ -1600,7 +1424,7 @@ export class WindowManager {
   }
 
   /** Toggle window-shade. Built-in for windows whose collapse widget has no explicit handler. */
-  private async toggleCollapse(entry: ManagedWindow): Promise<void> {
+  private async toggleCollapse(entry: ManagedWindow<Theme>): Promise<void> {
     entry.collapsed = !entry.collapsed;
     debug('drag', `toggleCollapse ${entry.opts.title ?? ''} → collapsed=${entry.collapsed}`);
     await this.render(entry);
@@ -1610,7 +1434,7 @@ export class WindowManager {
   /** Toggle zoom: grow to fit the content (capped), or restore the user/declared size.
    *  Bumps z-order so a background window zoomed-to-fit comes to the front (otherwise it'd
    *  re-render at the new size but stay buried — UX bug surfaced by 2026-05-28 review). */
-  private async toggleZoom(entry: ManagedWindow): Promise<void> {
+  private async toggleZoom(entry: ManagedWindow<Theme>): Promise<void> {
     if (entry.collapsed) entry.collapsed = false; // zooming an un-shades first
     entry.z = ++this.zClock;                       // raise to front (fix from 2026-05-28 review)
     if (!entry.zoomed) {
@@ -1643,7 +1467,9 @@ export class WindowManager {
    * window at the new content size on release (faithful to the Mac grow-box, and avoids an async
    * re-render per mouse-move). Re-attached on every render(), so it tracks the current chrome.
    */
-  private wireMoveResize(entry: ManagedWindow, win: HTMLElement): void {
+  private wireMoveResize(entry: ManagedWindow<Theme>, win: HTMLElement): void {
+    entry.frameAbort?.abort();
+    const signal = (entry.frameAbort = new AbortController()).signal;
     const composed = (win as unknown as { _scriptoscopeComposed?: ComposedChrome })._scriptoscopeComposed;
     if (!composed) return;
     const scale = Math.max(1, Math.round(entry.opts.scale ?? 1));
@@ -1692,7 +1518,7 @@ export class WindowManager {
         this.setPosition(host, x0 + ev.clientX - sx, y0 + ev.clientY - sy);
       };
       document.addEventListener('pointermove', mv); document.addEventListener('pointerup', up);
-    });
+    }, { signal });
 
     // KEYBOARD MOVE HANDLE — focusable transparent button overlaying the title region. Closes the
     // a11y gap from the 2026-05-28 DOM-twin audit: pointer-drag was the only way to move a window
@@ -1748,7 +1574,7 @@ export class WindowManager {
       if (!inFrame(e)) return;
       e.preventDefault();
       void this.toggleCollapse(entry);
-    });
+    }, { signal });
 
     // A shaded window has no content area to resize. Its bottom-right resize
     // overlay would cover the title widgets (and intercept the restore click).
@@ -1848,7 +1674,7 @@ export class WindowManager {
   }
 
   /** Overlay transparent hit buttons for any title-bar widget with a handler. */
-  private overlayWidgets(entry: ManagedWindow, win: HTMLElement): void {
+  private overlayWidgets(entry: ManagedWindow<Theme>, win: HTMLElement): void {
     const composed = (win as unknown as { _scriptoscopeComposed?: ComposedChrome })._scriptoscopeComposed;
     if (!composed) return; // baseline (procedural) window — no cicn widget rects
     const slug = this.effectiveSlug(entry);
@@ -1879,7 +1705,8 @@ export class WindowManager {
     const chrome = win.querySelector('.scriptoscope-chrome') as HTMLCanvasElement | null;
     const cctx = chrome?.getContext('2d') ?? null;
     const currentChrome = (): boolean => this.windows.includes(entry)
-      && entry.host.shadowRoot?.firstChild === win;
+      && entry.host.shadowRoot?.firstChild === win
+      && (win as unknown as { _scriptoscopeComposed?: ComposedChrome })._scriptoscopeComposed === composed;
     for (const hit of titleWidgetHits(entry.theme, slug, composed, scale, entry.active ? 'active' : 'inactive')) {
       const handler = cb[hit.role];
       if (!handler) continue;
@@ -1901,7 +1728,8 @@ export class WindowManager {
         position: 'absolute', left: `${hit.rect.x}px`, top: `${hit.rect.y}px`,
         width: `${hit.rect.w}px`, height: `${hit.rect.h}px`,
         padding: '0', margin: '0', border: '0', background: 'transparent',
-        cursor: 'default', zIndex: '2',
+        // WM381 modern policy: title buttons take priority over enlarged resize overlays.
+        cursor: 'default', zIndex: '5',
       } satisfies Partial<CSSStyleDeclaration>);
       // HT7: inside the rect, only the pressed strip's mask hits; elsewhere the event passes to the window.
       const onWidget = (e: MouseEvent): boolean => !composed.hitWidget

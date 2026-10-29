@@ -95,3 +95,40 @@ test('disposal during a pending base load prevents starting the child decode', a
   assert.ok(requested.every((url) => url.startsWith('/themes/1138/')));
   assert.deepEqual(revoked, minted);
 });
+
+test('owned resolver shares raw loads, borrows registered mixed base graphs and disposes only its loads', async t => {
+  const { createOwnedThemeResolver } = await import('./theme.ts');
+  const { rasterOwner } = await import('../../tools/theme-loader/rasterAssets.js');
+  const { minted } = setup(t);
+  const resolver = createOwnedThemeResolver({ ...hints, baseSlug: '1138' });
+  const first = resolver.load('child');
+  assert.equal(resolver.load('child'), first);
+  const child = await first, base = child.base;
+  assert.equal(child.kind, 'owned-theme');
+  assert.equal(base.kind, 'owned-theme');
+  assert.equal(minted.length, 0, 'resolver loading alone exports no images');
+  let externalDisposals = 0;
+  const external = { manifest: {}, baseUrl: 'external', base, dispose() { externalDisposals++; } };
+  resolver.register('external', external);
+  assert.equal(await resolver.load('external'), external);
+  resolver.dispose();
+  assert.equal(rasterOwner(child.source).disposed, true);
+  assert.equal(rasterOwner(child.source).usage().pixelBytes, 0);
+  assert.equal(rasterOwner(base.source).disposed, false, 'registered bases are borrowed');
+  assert.equal(externalDisposals, 0);
+  base.dispose();
+});
+
+test('owned resolver rejects a pending load after disposal without encoding images', async t => {
+  const { createOwnedThemeResolver } = await import('./theme.ts');
+  const { minted } = setup(t);
+  let finish;
+  t.mock.method(globalThis, 'fetch', url => String(url).endsWith('meta.json')
+    ? Promise.resolve(new Response('{}')) : new Promise(resolve => { finish = () => resolve(new Response(bytes)); }));
+  const resolver = createOwnedThemeResolver(hints);
+  const pending = resolver.load('1138');
+  resolver.dispose();
+  finish();
+  await assert.rejects(pending, /disposed/);
+  assert.equal(minted.length, 0);
+});

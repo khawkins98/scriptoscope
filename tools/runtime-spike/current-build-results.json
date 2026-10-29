@@ -1,0 +1,43 @@
+{
+  "revision": "6cfe9afda52825b848702aef942065f3daf6a647",
+  "createdAt": "2026-10-26T08:35:35.500Z",
+  "toolchainLockSha256": "2d10f2c59a71894453a9abb20ea6ddb6a87fdb75e296c92c3f035ac2c55af0be",
+  "buildRecipeSha256": "7a7b6dce46a6f29f244c20b152c62d9ff990f5e05cadb661913bfb56117ca0c5",
+  "status": "pass",
+  "node": "v24.18.0",
+  "vite": "7.3.7",
+  "method": "Isolated compiler-only reconstruction using the current pinned toolchain and explicit library configuration; historical source/configuration/logs are not inspected. Source maps and legal comments disabled. Not an original release artifact.",
+  "files": [
+    {
+      "path": "index-BwlcbHqn.js",
+      "bytes": 104976,
+      "gzipBytes": 44732,
+      "sha256": "eba1d417ebb0638b0c51eb23fbfc3c782b4e302922a5095aea0f4714fb8d384b"
+    },
+    {
+      "path": "index-BxLKwMgJ.js",
+      "bytes": 553910,
+      "gzipBytes": 163598,
+      "sha256": "90d51eb299fbd6e7aee37e4fc3c5667ab301d9191f1f0221b797cc5421a5420a"
+    },
+    {
+      "path": "proceduralFrameChrome-vsF5sIXd.js",
+      "bytes": 39829,
+      "gzipBytes": 12365,
+      "sha256": "c19410b45a45331d526005055d9b5ae5609b404cbe09a4da481e825dee67ecf4"
+    },
+    {
+      "path": "scriptoscope.css",
+      "bytes": 13956,
+      "gzipBytes": 5418,
+      "sha256": "f675b1e9af7e6c337a58f5af8199444227605d4c9973474cf4ead2a85e04b087"
+    },
+    {
+      "path": "scriptoscope.js",
+      "bytes": 2698,
+      "gzipBytes": 1136,
+      "sha256": "ec7097366b3463d02c0e4fa6645e1ace1dc4f3b50d8780dd51621f804a284e37"
+    }
+  ],
+  "inputArchiveSha256": "9c5360872178c60adbe53f941d5a0591f04541561a39a432d82501f3ecbdedcd"
+}

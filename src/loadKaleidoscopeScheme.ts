@@ -8,8 +8,10 @@
 // (including []) overrides the default.
 import {
   loadKaleidoscopeScheme as loadKaleidoscopeSchemeCore, type LoadKaleidoscopeSchemeOptions,
+  loadOwnedKaleidoscopeScheme as loadOwnedCore,
 } from '../tools/theme-loader/loadKaleidoscopeScheme.js';
 import type { LoadedTheme } from './types.js';
+import type { OwnedTheme } from './ownedTheme.js';
 import { engineCinfIds, engineIconBlitCicnIds, engineCheckableIconIds } from './engine/resources/ids.js';
 
 const ENGINE_CINF_IDS = engineCinfIds();
@@ -21,4 +23,11 @@ export function loadKaleidoscopeScheme(
   options: LoadKaleidoscopeSchemeOptions = {},
 ): Promise<LoadedTheme> {
   return loadKaleidoscopeSchemeCore(input, { iconBlitCicnIds: ICON_BLIT_CICN_IDS, unmaskedIconIds: CHECKABLE_ICON_IDS, engineCinfIds: ENGINE_CINF_IDS, ...options });
+}
+
+export function loadOwnedKaleidoscopeScheme(
+  input: Uint8Array | ArrayBuffer | Blob | string,
+  options: Omit<LoadKaleidoscopeSchemeOptions, 'encodeAssets'> = {},
+): Promise<OwnedTheme> {
+  return loadOwnedCore(input, { iconBlitCicnIds: ICON_BLIT_CICN_IDS, unmaskedIconIds: CHECKABLE_ICON_IDS, engineCinfIds: ENGINE_CINF_IDS, ...options });
 }

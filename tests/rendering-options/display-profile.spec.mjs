@@ -225,15 +225,25 @@ for(const mode of ['source','built']) {
   const expected=Array.from({length:24*6},(_,i)=>{const x=i%24,y=Math.floor(i/24);return x>=2&&x<22&&y===2?[21,30,40,255]:x>=2&&x<22&&y===3?[7,9,11,255]:[0,0,0,0];}).flat();
   expect(result.rgba).toEqual(expected);expect(result.policy).toBe(result.profile);expect(result.paint,'completed profiled mode5 operation must publish bodyPaint').toBeDefined();expect(result.paint.branch).toBe('unmasked-copy');expect(result.paint.paintedPixels).toBe(40);
  });
- test(`${mode}: declarative resolver snapshots profile and rejects incompatible borrowed themes`,async({page,servers})=>{
+ test(`${mode}: explicit resolver snapshots profile and rejects incompatible borrowed themes`,async({page,servers})=>{
   await openHarness(page,servers,mode);const result=await page.evaluate(async mode=>{
    const api=await import(mode==='built'?'/dist/scriptoscope.js':'/src/index.ts');const profile=await api.prepareDisplayProfile(await(await fetch('/tests/decoder-fixtures/measured-display-profile.json')).json());
    const root=document.createElement('section');document.body.append(root);root.innerHTML='<div data-scriptoscope-window data-scriptoscope-title="Profile" style="width:320px"><button data-scriptoscope-button>OK</button><label>Value<input type="range" value="37"></label></div>';
-   const opts={root,themeBaseUrl:'/themes',pageThemeDefault:'windows-95',displayProfile:profile,bootAffordance:'none',syncToUrlParam:false};
-   const pending=api.mountDeclarative(opts);delete opts.displayProfile;const handle=await pending;
-   const original=root.querySelector('input'),legacy=await api.loadTheme('/themes/windows-95');let mismatch;try{handle.registerTheme('wrong',legacy);}catch(e){mismatch=e.code;}
-   await handle.retheme('system7-nostalgia-silver');const stats={...handle.stats},same=original===root.querySelector('input'),value=original.value;
-   handle.disconnect();legacy.dispose();const restored=root.querySelector('button').style.display;root.remove();return{mismatch,stats,same,value,restored};
+   const opts={themeBaseUrl:'/themes',displayProfile:profile};
+   const resolver=api.createThemeResolver(opts),pending=resolver.load('windows-95');delete opts.displayProfile;const theme=await pending;
+   const source=root.firstElementChild,button=source.querySelector('button'),original=source.querySelector('input');
+   const life=new AbortController(),manager=new api.WindowManager();
+   const instance=await api.ScriptoscopeWindow.promote(source,{manager,theme,signal:life.signal});
+   let oldFace=await api.promoteGuardedButton(button,theme,life.signal,()=>root.contains(button));
+   await api.promoteGuardedControl(original,theme,life.signal,()=>root.contains(original));
+   const legacy=await api.loadTheme('/themes/windows-95');let mismatch;try{resolver.register('wrong',legacy);}catch(e){mismatch=e.code;}
+   const replacement=await resolver.load('system7-nostalgia-silver');await manager.retheme(replacement,life.signal);
+   const nextFace=await api.promoteGuardedButton(button,replacement,life.signal,()=>root.contains(button));
+   if(nextFace){api.disposePromotedButtonFace(button,oldFace);oldFace=nextFace;}
+   await api.promoteGuardedControl(original,replacement,life.signal,()=>root.contains(original));
+   const stats={windows:manager.describe(instance.host)?1:0,buttons:oldFace?.isConnected?1:0},same=original===root.querySelector('input'),value=original.value;
+   life.abort();api.restoreButton(button);api.restoreControl(original);instance.restoreOriginalElement();resolver.dispose();legacy.dispose();
+   const restored=root.querySelector('button').style.display;root.remove();return{mismatch,stats,same,value,restored};
   },mode);
   expect(result.mismatch).toBe('PROFILE_MISMATCH');expect(result.stats.windows).toBe(1);expect(result.stats.buttons).toBe(1);expect(result.same).toBe(true);expect(result.value).toBe('37');expect(result.restored).toBe('');
  });

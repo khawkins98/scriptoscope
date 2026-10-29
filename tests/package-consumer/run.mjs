@@ -1,3 +1,4 @@
+import { rootExports, rendererExports, declarativeExports, sharedHostExports } from './fixture/public-exports.mjs';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -47,7 +48,7 @@ async function prepareConsumer(tarball, name) {
   // different condition set, and verify actual files rather than resolution alone.
   let phase = 'exports';
   try {
-    const specifiers = ['scriptoscope', 'scriptoscope/declarative', 'scriptoscope/scriptoscope.css', 'scriptoscope/package.json'];
+    const specifiers = ['scriptoscope', 'scriptoscope/renderer', 'scriptoscope/declarative', 'scriptoscope/scriptoscope.css', 'scriptoscope/package.json'];
     const paths = JSON.parse(command(process.execPath, ['--input-type=module', '-e',
       `console.log(JSON.stringify(${JSON.stringify(specifiers)}.map(id => import.meta.resolve(id))))`], consumer));
     for (const [index, url] of paths.entries()) {
@@ -55,6 +56,19 @@ async function prepareConsumer(tarball, name) {
       assert(inside(installed, path), `${specifiers[index]} resolved outside the installed tarball`);
       assert((await stat(path)).isFile(), `Missing packed export: ${specifiers[index]}`);
     }
+    command(process.execPath, ['--input-type=module', '-e', `
+      import assert from 'node:assert/strict';
+      import * as root from 'scriptoscope';
+      import * as renderer from 'scriptoscope/renderer';
+      import * as declarative from 'scriptoscope/declarative';
+      assert.deepEqual(Object.keys(root).sort(), ${JSON.stringify(rootExports)});
+      assert.deepEqual(Object.keys(renderer).sort(), ${JSON.stringify(rendererExports)});
+      assert.deepEqual(Object.keys(declarative).sort(), ${JSON.stringify(declarativeExports)});
+      for (const key of ${JSON.stringify(sharedHostExports)}) assert.equal(declarative[key], root[key], key);
+      for (const entry of [root, declarative]) for (const name of ['mountDeclarative', 'mountOwnedDeclarative']) assert.equal(name in entry, false);
+      for (const [key, value] of Object.entries(renderer)) assert.equal(value, root[key], key);
+      assert.equal(await import('scriptoscope/renderer'), renderer);
+    `], consumer);
     phase = 'types';
     // Deliberately do not skip library checking: repository compilation can hide
     // declaration references to files omitted from npm's files whitelist.
@@ -240,6 +254,8 @@ try {
   await new Promise(resolve => server.close(resolve)); server = null;
 
   await negativeTarball(tarball, 'dist/scriptoscope.css', 'exports', 'missing-css');
+  await negativeTarball(tarball, 'dist/renderer.js', 'exports', 'missing-renderer');
+  await negativeTarball(tarball, 'dist/types/renderer.d.ts', 'types', 'missing-renderer-types', undefined, 'scriptoscope/renderer');
   // The entry may be a re-export facade over shared chunks, so follow its static
   // import graph and take the first dynamic import found (the archive decoder).
   const lazyImports = [], seen = new Set(), pending = ['scriptoscope.js'];
@@ -264,7 +280,7 @@ try {
     return declaration.replace(target, `from ${JSON.stringify(join(root, 'src/types.js'))}`);
   }, 'Declaration import escaped the installed consumer');
   record.complete = true;
-  console.log('Packed consumer passed: exports, strict declarations, isolated production build, archive decoding, native interaction/teardown and three package-boundary negatives.');
+  console.log('Packed consumer passed: exports, strict declarations, renderer interoperability, isolated production build, archive decoding, native interaction/teardown and five package-boundary negatives.');
 } catch (error) {
   record.error = `${error.stack}\n${error.stdout ?? ''}\n${error.stderr ?? ''}`;
   throw error;

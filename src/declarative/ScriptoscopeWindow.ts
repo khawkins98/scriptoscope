@@ -5,15 +5,16 @@
 // when the content reflows). Built on the WindowManager's contentEl re-slot hook.
 
 import type { LoadedTheme } from '../types.js';
+import type { ThemeInput } from '../ownedTheme.js';
 import type { TitleWidget, WindowManager } from '../interactive.js';
 import { parseWindowAttrs } from './parse.js';
 import { debug } from '../debug.js';
 import { sharedRO } from './sharedResizeObserver.js';
 import { SCRIPTOSCOPE_SLOT_CLASS } from './markers.js';
 
-export interface ScriptoscopeWindowDeps {
-  manager: WindowManager;
-  theme: LoadedTheme;
+export interface ScriptoscopeWindowDeps<Theme extends ThemeInput = LoadedTheme> {
+  manager: WindowManager<Theme>;
+  theme: Theme;
   /** Cancels pending preparation when its declarative mount disconnects. */
   signal?: AbortSignal;
 }
@@ -31,13 +32,13 @@ const pendingPromotions = new WeakMap<HTMLElement, object>();
 // without crossing into the declarative layer. The old re-export from this
 // module was never part of the public entry (src/declarative/index.ts) and had
 // no importers, so it was removed.
-import { findPositionedAncestor } from '../positioning.js';
+import { findPositionedAncestor, offsetInContainingBlock } from '../positioning.js';
 
-export class ScriptoscopeWindow {
+export class ScriptoscopeWindow<Theme extends ThemeInput = LoadedTheme> {
   /** The positioned WindowManager host element (lives in the document). */
   readonly host: HTMLElement;
   private readonly fit: HTMLElement; // max-content wrapper inside the slot; the resize-observe target
-  private readonly deps: ScriptoscopeWindowDeps;
+  private readonly deps: ScriptoscopeWindowDeps<Theme>;
   private readonly restore: { parent: ParentNode | null; next: Node | null; el: HTMLElement };
   /** True once this window is registered with the shared ResizeObserver. We track this rather
    *  than holding a per-window ResizeObserver — sharedRO handles a single browser-side observer
@@ -65,7 +66,7 @@ export class ScriptoscopeWindow {
   private readonly declaredH?: number;
 
   private constructor(
-    host: HTMLElement, fit: HTMLElement, deps: ScriptoscopeWindowDeps,
+    host: HTMLElement, fit: HTMLElement, deps: ScriptoscopeWindowDeps<Theme>,
     restore: { parent: ParentNode | null; next: Node | null; el: HTMLElement },
     declared: { w?: number; h?: number } = {},
     initial: { w: number; h: number } = { w: 0, h: 0 },
@@ -83,9 +84,9 @@ export class ScriptoscopeWindow {
    *  the window appears where the element naturally sat in the page. When size attrs are omitted,
    *  the window inherits the element's rendered width/height. `fallbackPos` is only used when
    *  the element has no bounding rect (e.g. `display:none` at promotion time). */
-  static async promote(
-    el: HTMLElement, deps: ScriptoscopeWindowDeps, fallbackPos: { x: number; y: number } = { x: 24, y: 24 },
-  ): Promise<ScriptoscopeWindow> {
+  static async promote<Theme extends ThemeInput = LoadedTheme>(
+    el: HTMLElement, deps: ScriptoscopeWindowDeps<Theme>, fallbackPos: { x: number; y: number } = { x: 24, y: 24 },
+  ): Promise<ScriptoscopeWindow<Theme>> {
     if (deps.signal?.aborted) throw new DOMException('Window promotion cancelled', 'AbortError');
     const parsed = parseWindowAttrs(el.dataset as Record<string, string | undefined>);
     // ── POSTURE B: in-flow host by default; absolute opt-in via -x/-y ─────────
@@ -116,10 +117,9 @@ export class ScriptoscopeWindow {
     // needs them. Default in-flow positioning is the browser's job.
     let naturalX = 0, naturalY = 0;
     if (wantsAbsolute) {
-      const ancestor = findPositionedAncestor(el);
-      const ancRect = ancestor?.getBoundingClientRect() ?? { left: 0, top: 0 };
-      naturalX = Math.round(elRect.left - ancRect.left);
-      naturalY = Math.round(elRect.top - ancRect.top);
+      const offset = offsetInContainingBlock(elRect, findPositionedAncestor(el));
+      naturalX = Math.round(offset.x);
+      naturalY = Math.round(offset.y);
     }
     const preparation = {};
     pendingPromotions.set(el, preparation);
@@ -182,7 +182,7 @@ export class ScriptoscopeWindow {
     const h0 = Math.max(MIN_H,
       parsed.height ?? ((hasNaturalRect ? naturalH : FIT_DEFAULT.h) + (parsed.extraHeight ?? 0)));
 
-    let inst: ScriptoscopeWindow | undefined;
+    let inst: ScriptoscopeWindow<Theme> | undefined;
     // Close is universal in semantics: WHEN the close widget is wired (i.e.
     // 'close' is in the enabled-widgets set), clicking it always restores
     // the bare HTML — the runtime's standard 'close = unmount this window'
@@ -558,7 +558,7 @@ export class ScriptoscopeWindow {
   }
 
   /** Shared rollback/unmount cleanup; failed promotion must not dispatch close. */
-  private restoreOriginalElement(): void {
+  restoreOriginalElement(): void {
     if (this.unmounted) return;
     this.unmounted = true;
     if (this.rafId) cancelAnimationFrame(this.rafId);

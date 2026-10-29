@@ -1,7 +1,7 @@
 import { test, expect, openHarness } from './fixtures.mjs';
 
 for (const mode of ['source', 'built']) {
-  for (const insideWindow of [false, true]) test(`${mode}: form controls restore live state and release faces (${insideWindow ? 'window' : 'standalone'})`, async ({ page, servers }) => {
+  for (const insideWindow of [false, true]) test(`${mode}: form controls restore live state and release faces (${insideWindow ? 'window' : 'standalone'})`, async ({ page, servers, browserName }) => {
     await openHarness(page, servers, mode);
     await page.evaluate(async ({ mode, insideWindow }) => {
       // Exercise the declared browser floor: older engines ignore listener.signal.
@@ -39,9 +39,9 @@ for (const mode of ['source', 'built']) {
       content.addEventListener('change', () => f.events++);
       content.addEventListener('input', () => f.events++);
       f.mount = async () => {
-        f.handle = await runtime.mountDeclarative({ root, pageThemeDefault: 'first', bootAffordance: 'none' });
+        f.handle = await (await import('/tests/rendering-options/contract-host.mjs')).createContractHost(runtime, { root, pageThemeDefault: 'first', bootAffordance: 'none' });
         f.handle.registerTheme('first', themes[0]); f.handle.registerTheme('next', themes[1]);
-        root.append(content);
+        root.append(content); void f.handle.attach(content);
       };
       await f.mount();
     }, { mode, insideWindow });
@@ -108,13 +108,14 @@ for (const mode of ['source', 'built']) {
     // Remount the same original nodes. One face / keyboard target per control.
     await page.evaluate(async () => { const f = window.lifecycle; f.content.remove(); await f.mount(); });
     await expect(faces).toHaveCount(5);
-    await expect(page.getByRole('checkbox', { name: 'Check', exact: true })).toHaveAttribute('aria-checked', 'true');
-    await expect(page.getByRole('radio', { name: 'Radio B', exact: true })).toHaveAttribute('aria-checked', 'true');
+    await expect(page.getByRole('checkbox', { name: 'Check', exact: true })).toBeChecked();
+    await expect(page.getByRole('radio', { name: 'Radio B', exact: true })).toBeChecked();
+    // macOS WebKit uses Option+Tab for full-control navigation.
+    const tabKey = process.platform === 'darwin' && browserName === 'webkit' ? 'Alt+Tab' : 'Tab';
     await page.getByRole('checkbox', { name: 'Check', exact: true }).focus();
-    await page.keyboard.press('Tab'); await expect(page.getByRole('radio', { name: 'Radio A', exact: true })).toBeFocused();
-    await page.keyboard.press('Tab'); await expect(page.getByRole('radio', { name: 'Radio B', exact: true })).toBeFocused();
-    await page.keyboard.press('Tab'); await expect(page.getByRole('slider')).toBeFocused();
-    await page.keyboard.press('Tab'); await expect(page.locator('#select')).toBeFocused();
+    await page.keyboard.press(tabKey); await expect(page.getByRole('radio', { name: 'Radio B', exact: true })).toBeFocused();
+    await page.keyboard.press(tabKey); await expect(page.getByRole('slider')).toBeFocused();
+    await page.keyboard.press(tabKey); await expect(page.locator('#select')).toBeFocused();
     await page.evaluate(() => { const f = window.lifecycle; f.handle.disconnect(); f.root.remove(); f.themes.forEach(t => t.dispose?.()); });
   });
 
@@ -125,7 +126,7 @@ for (const mode of ['source', 'built']) {
         const runtime = await import(mode === 'source' ? '/src/index.ts' : '/dist/scriptoscope.js');
         const theme = await runtime.loadTheme('/themes/windows-95');
         const root = document.createElement('section'), other = document.createElement('div'), holder = document.createElement('div'); document.body.append(root, other);
-        const handle = await runtime.mountDeclarative({ root, pageThemeDefault: 'held', bootAffordance: 'none' }); handle.registerTheme('held', theme);
+        const handle = await (await import('/tests/rendering-options/contract-host.mjs')).createContractHost(runtime, { root, pageThemeDefault: 'held', bootAffordance: 'none' }); handle.registerTheme('held', theme);
         const native = kind === 'select' ? document.createElement('select') : Object.assign(document.createElement('input'), { type: kind });
         if (kind === 'select') native.innerHTML = '<option>A</option><option>B</option>';
         native.setAttribute('style', 'color: red'); native.setAttribute('aria-label', 'Held');
@@ -137,7 +138,7 @@ for (const mode of ['source', 'built']) {
           f.held++; await barrier; const result = await decode.call(this); f.resumed++; return result;
         };
         f.restoreDecode = () => { HTMLImageElement.prototype.decode = decode; };
-        holder.append(native); root.append(holder);
+        holder.append(native); root.append(holder); void handle.attach(holder);
       }, { mode, kind });
       await page.waitForFunction(() => window.pendingControl.held > 0);
       expect(await page.evaluate(() => window.pendingControl.native.outerHTML === window.pendingControl.original)).toBe(true);
@@ -168,11 +169,11 @@ for (const mode of ['source', 'built']) {
       const runtime = await import(mode === 'source' ? '/src/index.ts' : '/dist/scriptoscope.js');
       const themes = await Promise.all(['windows-95', 'system7-nostalgia-silver'].map(s => runtime.loadTheme(`/themes/${s}`)));
       const root = document.createElement('section'); document.body.append(root);
-      const handle = await runtime.mountDeclarative({ root, pageThemeDefault: 'first', bootAffordance: 'none' });
+      const handle = await (await import('/tests/rendering-options/contract-host.mjs')).createContractHost(runtime, { root, pageThemeDefault: 'first', bootAffordance: 'none' });
       handle.registerTheme('first', themes[0]); handle.registerTheme('next', themes[1]);
       const content = document.createElement('div');
       content.innerHTML = '<input type="checkbox"><input type="radio"><input type="range"><select><option>A</option><option>B</option></select>';
-      const originals = [...content.children].map(el => ({ el, html: el.outerHTML })); root.append(content);
+      const originals = [...content.children].map(el => ({ el, html: el.outerHTML })); root.append(content); void handle.attach(content);
       window.rethemeLifecycle = { themes, root, handle, content, originals };
     }, mode);
     // Promotion counts advance after the DOM commit's mutation microtask.
@@ -211,9 +212,9 @@ for (const mode of ['source', 'built']) {
       const f = window.switcherLifecycle = { root, content, themes, runtime, changes: 0, oldRethemes: 0, newRethemes: 0 };
       content.querySelector('#owned-switcher').addEventListener('change', () => f.changes++);
       f.mount = async counter => {
-        f.handle = await runtime.mountDeclarative({ root, pageThemeDefault: 'first', bootAffordance: 'none' });
+        f.handle = await (await import('/tests/rendering-options/contract-host.mjs')).createContractHost(runtime, { root, pageThemeDefault: 'first', bootAffordance: 'none' });
         f.handle.registerTheme('first', themes[0]); f.handle.registerTheme('next', themes[1]);
-        f.handle.addEventListener('retheme', () => f[counter]++); root.append(content);
+        f.handle.addEventListener('retheme', () => f[counter]++); root.append(content); void f.handle.attach(content);
       };
       await f.mount('oldRethemes');
     }, mode);
@@ -240,22 +241,22 @@ for (const mode of ['source', 'built']) {
       const runtime = await import(mode === 'source' ? '/src/index.ts' : '/dist/scriptoscope.js');
       const theme = await runtime.loadTheme('/themes/windows-95');
       const root = document.createElement('section'); document.body.append(root);
-      const handle = await runtime.mountDeclarative({ root, pageThemeDefault: 'first', bootAffordance: 'none' }); handle.registerTheme('first', theme);
+      const handle = await (await import('/tests/rendering-options/contract-host.mjs')).createContractHost(runtime, { root, pageThemeDefault: 'first', bootAffordance: 'none' }); handle.registerTheme('first', theme);
       const holder = document.createElement('div');
       holder.innerHTML = '<select style="width: 123px" aria-label="Choice"><option value="a">A</option><option value="b">Long current selection</option></select>';
       const native = holder.firstElementChild, original = native.outerHTML;
       const decode = HTMLImageElement.prototype.decode;
       HTMLImageElement.prototype.decode = async function () { throw new Error('deliberate decode failure'); };
       const failed = new Promise(resolve => handle.addEventListener('promoteError', resolve, { once: true }));
-      root.append(holder); await failed;
+      root.append(holder); void handle.attach(holder); await failed;
       const afterFailure = native.outerHTML === original && native.parentNode === holder && holder.children.length === 1;
       HTMLImageElement.prototype.decode = decode;
       await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-      holder.remove();
+      handle.detach(holder); holder.remove();
       let release, held;
       const barrier = new Promise(resolve => release = resolve), started = new Promise(resolve => held = resolve);
       HTMLImageElement.prototype.decode = async function () { held(); await barrier; return decode.call(this); };
-      root.append(holder); await started;
+      root.append(holder); void handle.attach(holder); await started;
       native.value = 'b'; native.dispatchEvent(new Event('change', { bubbles: true }));
       HTMLImageElement.prototype.decode = decode; release();
       await new Promise(resolve => {
@@ -277,9 +278,9 @@ for (const mode of ['source', 'built']) {
       const runtime = await import(mode === 'source' ? '/src/index.ts' : '/dist/scriptoscope.js');
       const themes = await Promise.all(['windows-95', 'system7-nostalgia-silver'].map(s => runtime.loadTheme(`/themes/${s}`)));
       const root = document.createElement('section'); document.body.append(root);
-      const handle = await runtime.mountDeclarative({ root, pageThemeDefault: 'first', bootAffordance: 'none' });
+      const handle = await (await import('/tests/rendering-options/contract-host.mjs')).createContractHost(runtime, { root, pageThemeDefault: 'first', bootAffordance: 'none' });
       handle.registerTheme('first', themes[0]); handle.registerTheme('next', themes[1]);
-      const holder = document.createElement('div'); holder.innerHTML = '<input type="checkbox"><input type="radio"><input type="range"><select><option>A</option></select>'; root.append(holder);
+      const holder = document.createElement('div'); holder.innerHTML = '<input type="checkbox"><input type="radio"><input type="range"><select><option>A</option></select>'; root.append(holder); void handle.attach(holder);
       window.overlapLifecycle = { themes, root, handle, holder };
     }, mode);
     await expect.poll(() => page.evaluate(() => window.overlapLifecycle.handle.stats.controls)).toBe(4);
@@ -306,10 +307,10 @@ for (const mode of ['source', 'built']) {
     await page.evaluate(async mode => {
       const runtime = await import(mode === 'source' ? '/src/index.ts' : '/dist/scriptoscope.js');
       const root = document.createElement('section'); document.body.append(root);
-      const handle = await runtime.mountDeclarative({ root, pageThemeDefault: 'empty', bootAffordance: 'none' });
+      const handle = await (await import('/tests/rendering-options/contract-host.mjs')).createContractHost(runtime, { root, pageThemeDefault: 'empty', bootAffordance: 'none' });
       handle.registerTheme('empty', { baseUrl: '', manifest: { name: 'No control art', chromeElements: {} } });
       const holder = document.createElement('div'); holder.innerHTML = '<select><option>A</option><option>B</option></select>';
-      window.fallbackLifecycle = { root, holder, handle }; root.append(holder);
+      window.fallbackLifecycle = { root, holder, handle }; root.append(holder); void handle.attach(holder);
     }, mode);
     const wrap = page.locator('.scriptoscope-select');
     await expect(wrap.locator('button')).toHaveCount(1);
@@ -327,8 +328,8 @@ for (const mode of ['source', 'built']) {
     await page.evaluate(async mode => {
       const runtime = await import(mode === 'source' ? '/src/index.ts' : '/dist/scriptoscope.js');
       const root = document.createElement('section'); document.body.append(root);
-      const handle = await runtime.mountDeclarative({ root, pageThemeDefault: '/themes/windows-95', bootAffordance: 'none' });
-      const holder = document.createElement('div'); holder.innerHTML = '<input type="range" value="50">'; root.append(holder);
+      const handle = await (await import('/tests/rendering-options/contract-host.mjs')).createContractHost(runtime, { root, pageThemeDefault: '/themes/windows-95', bootAffordance: 'none' });
+      const holder = document.createElement('div'); holder.innerHTML = '<input type="range" value="50">'; root.append(holder); void handle.attach(holder);
       window.reentrantControl = { root, handle, holder };
     }, mode);
     await expect(page.locator('.scriptoscope-slider')).toHaveCount(1);

@@ -15,7 +15,7 @@
 import type { Pixmap, QdRect } from '../qd/types.js';
 import type { EngineTrace } from '../trace.js';
 import { emptyRect, rect } from '../qd/rect.js';
-import { scaleBlit } from '../qd/scale.js';
+import { scaleBlit } from '../../raster.js';
 import {
   ALLOCATION, ALLOCATION_PATH, CELL_RECT, CELL_WIDTH, LAYOUT_SUMS, PART_VERDICT, POPUP_PLACEMENT, TITLED_SIDE, TOO_SHORT,
   WIDGET_DRAW, WIDGET_HIT, WIDGET_PARTS, WINDOW_DECLARED_DEFAULTS, WINDOW_RECT_TYPE, WINDOW_SIDES,

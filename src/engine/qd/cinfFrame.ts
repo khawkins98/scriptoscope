@@ -1,3 +1,4 @@
+import { tryPreparedPattern } from '../../preparedPattern.js';
 // Shared cinf painter, docs/spec/engine/qd-primitives.md B/P/E/S tables.
 // Face/ring drivers request cicn first; this primitive requests metadata only.
 // Source: `0x107fe..0x10fbe`; wrappers `0x10fc0`, `0x107a4..0x107f6`.
@@ -8,12 +9,12 @@ import type { ResourceChain } from '../resources/chain.js';
 import { CINF_BODY, CINF_BODY_SKIP, CINF_BORDER_ORDER, CINF_EDGE, CINF_EMBOSS_ABSENT,
   CINF_PHASE, CINF_REQUEST, CINF_RETRY, CINF_SKIP, CINF_SAMPLE, CINF_HEADER, type CinfPhaseRow } from '../tables/cinfFrame.js';
 import { emptyRect, rect, insetRect, offsetRect } from './rect.js';
-import { getPixel } from './pixel.js';
-import { eraseRect, fillPattern } from './pattern.js';
-import { tileBlit, tileFastPathRow } from './tile.js';
-import { transferBits } from './transfer.js';
-import { iconBlit, insideBounds, type IconSource } from './region.js';
-import { sourceLines } from './lines.js';
+import { getPixel } from '../../raster.js';
+import { eraseRect, fillPattern } from '../../raster.js';
+import { tileBlit, tileFastPathRow } from '../../raster.js';
+import { transferBits } from '../../raster.js';
+import { iconBlit, insideBounds, type IconSource } from '../../raster.js';
+import { sourceLines } from '../../raster.js';
 import { lineColourSource } from '../resources/iconSource.js';
 
 export interface CinfRecord {
@@ -92,9 +93,9 @@ export interface CinfFrameResult {
   colorsAvailable?: boolean;
 }
 
-export function cinfBodyRects(D: QdRect, c: number, s: number): QdRect[] {
+export function cinfBodyRects(D: QdRect, c: number, s: number, retainDuplicate = false): QdRect[] {
   const boxes = [rect(D.top + s, D.left + c, D.bottom - s, D.right - c)];
-  if (c !== s) boxes.push(rect(D.top + c, D.left + s, D.bottom - c, D.right - s));
+  if (c !== s || retainDuplicate) boxes.push(rect(D.top + c, D.left + s, D.bottom - c, D.right - s));
   return boxes.filter(r => !emptyRect(r));
 }
 export function cinfPhase(D: QdRect, mode: number): { row: CinfPhaseRow; phase: QdPoint } {
@@ -105,7 +106,7 @@ export function cinfPhase(D: QdRect, mode: number): { row: CinfPhaseRow; phase: 
 const none = (): CinfFrameResult => ({ drawn: false, cinfId: null, backgroundRGB: null, textRGB: null, embossRGB: null, colorsAvailable: false });
 
 /** Count the completed operation's visible write coverage, never the final raster. */
-function bodyWriteCount(port: Pixmap, boxes: readonly QdRect[], clip?: QdRect,
+export function bodyWriteCount(port: Pick<Pixmap, 'width' | 'height'>, boxes: readonly QdRect[], clip?: QdRect,
   mask?: { pixmap: Pixmap; destination: QdRect }): number {
   let count = 0;
   for (const [index, r] of boxes.entries()) {
@@ -121,11 +122,18 @@ function bodyWriteCount(port: Pixmap, boxes: readonly QdRect[], clip?: QdRect,
   return count;
 }
 
-/** One border plan is shared by preparation and paint; clipping never changes its phase. */
-function cinfBorderPlan(cicn: Pixmap, cinf: CinfRecord, D: QdRect) {
+export interface CinfBorderPiece {
+  piece: typeof CINF_BORDER_ORDER.pieces[number]; src: QdRect; dst: QdRect; fast: 'T1' | 'T2' | null;
+  extents: readonly [sourceWidth: number, sourceHeight: number, destinationWidth: number, destinationHeight: number];
+}
+/** Shared geometry; scalar extents retain bevel arithmetic independently of engine Rects. */
+export function cinfBorderPlan(cicn: Pick<Pixmap, 'width' | 'height'>,
+  cinf: { cornerSize: number; sideThickness: number; tileSides: number | boolean }, D: QdRect): CinfBorderPiece[] {
   const c = cinf.cornerSize, s = cinf.sideThickness;
   const W = cicn.width, H = cicn.height, cw = Math.min(c, W), ch = Math.min(c, H), sw = Math.min(s, W), sh = Math.min(s, H);
   const bw = cinf.tileSides ? W - 2 * c : 1, bh = cinf.tileSides ? H - 2 * c : 1;
+  const scalarW = cinf.tileSides ? Math.max(0, W - c * 2) : c < W ? 1 : 0;
+  const scalarH = cinf.tileSides ? Math.max(0, H - c * 2) : c < H ? 1 : 0;
   const band = (piece: 'top' | 'bottom' | 'left' | 'right'): [QdRect, QdRect] => {
     switch (piece) {
       case 'top': return [rect(0, c, sh, c + bw), rect(D.top, D.left + c, D.top + sh, D.right - c)];
@@ -134,19 +142,22 @@ function cinfBorderPlan(cicn: Pixmap, cinf: CinfRecord, D: QdRect) {
       case 'right': return [rect(c, W - sw, c + bh, W), rect(D.top + c, D.right - sw, D.bottom - c, D.right)];
     }
   };
-  return CINF_BORDER_ORDER.pieces.map(piece => {
+  return CINF_BORDER_ORDER.pieces.map((piece): CinfBorderPiece => {
     if (piece === 'TL' || piece === 'TR' || piece === 'BL' || piece === 'BR') {
       const right = piece === 'TR' || piece === 'BR', bottom = piece === 'BL' || piece === 'BR';
       const x = right ? W - cw : 0, y = bottom ? H - ch : 0;
       const dx = right ? D.right - cw : D.left, dy = bottom ? D.bottom - ch : D.top;
-      return { piece, src: rect(y, x, y + ch, x + cw), dst: rect(dy, dx, dy + ch, dx + cw), fast: null };
+      return { piece, src: rect(y, x, y + ch, x + cw), dst: rect(dy, dx, dy + ch, dx + cw), fast: null,
+        extents: [cw, ch, cw, ch] };
     }
     const [src, dst] = band(piece);
-    return { piece, src, dst, fast: tileFastPathRow(src, dst) };
+    const extents: CinfBorderPiece['extents'] = piece === 'top' || piece === 'bottom'
+      ? [scalarW, sh, (D.right - D.left) - c * 2, sh] : [sw, scalarH, sw, (D.bottom - D.top) - c * 2];
+    return { piece, src, dst, fast: tileFastPathRow(src, dst), extents };
   });
 }
 
-function bandVisible(port: Pick<Pixmap, 'width' | 'height'>, cicn: Pixmap, src: QdRect, dst: QdRect,
+export function bandVisible(port: Pick<Pixmap, 'width' | 'height'>, cicn: Pixmap, src: QdRect, dst: QdRect,
   branch: ControlBandPaint['branch'], clip?: QdRect): boolean {
   if (emptyRect(src) || emptyRect(dst) || !insideBounds(cicn, src)) return false;
   for (let y = Math.max(0, dst.top, clip?.top ?? 0); y < Math.min(port.height, dst.bottom, clip?.bottom ?? port.height); y++) {
@@ -179,6 +190,12 @@ export async function prepareCinfFrameSamples(chain: ResourceChain, id: number, 
 }
 
 export function drawCinfFrame(port: Pixmap, chain: ResourceChain, input: CinfFrameInput, trace?: EngineTrace): CinfFrameResult {
+  return paintCinfFrame(port, chain, input, false, trace);
+}
+export function drawPreparedCinfFrame(port: Pixmap, chain: ResourceChain, input: CinfFrameInput, trace?: EngineTrace): CinfFrameResult {
+  return paintCinfFrame(port, chain, input, true, trace);
+}
+function paintCinfFrame(port: Pixmap, chain: ResourceChain, input: CinfFrameInput, prepared: boolean, trace?: EngineTrace): CinfFrameResult {
   const { id, cicn, dstRect: D, bodyFill } = input;
   const icon = input.icon;
   // Captured before metadata/body requests: this is the actual art admission.
@@ -261,7 +278,12 @@ export function drawCinfFrame(port: Pixmap, chain: ResourceChain, input: CinfFra
       const origin = input.allocationOrigin ?? { x: 0, y: 0 };
       const { row, phase } = cinfPhase(offsetRect(D, origin.x, origin.y), cinf.patternAnchor), off = input.patternOffset;
       const shifted = { x: phase.x - origin.x + (off?.x ?? 0), y: phase.y - origin.y + (off?.y ?? 0) };
-      for (const r of cinfBodyRects(D, c, s)) fillPattern(port, r, pattern, shifted, trace, `B5,${row.id}`);
+      for (const r of cinfBodyRects(D, c, s)) {
+        if (prepared && tryPreparedPattern(port, r, pattern, shifted)) {
+          if (!emptyRect(r) && pattern.width > 0 && pattern.height > 0)
+            trace?.drawOps.push({ op: 'fillPattern', row: `B5,${row.id}`, dst: r, phase: { x: shifted.x, y: shifted.y }, pattern: { width: pattern.width, height: pattern.height } });
+        } else fillPattern(port, r, pattern, shifted, trace, `B5,${row.id}`);
+      }
       if (trace?.controlPaint) patternPhase = shifted;
     } else if (backgroundRGB) {
       for (const r of cinfBodyRects(D, c, s)) eraseRect(port, r, backgroundRGB, trace, body.absent);

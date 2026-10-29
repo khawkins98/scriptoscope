@@ -33,11 +33,10 @@ for (const mode of ['source', 'built']) for (const slug of ['windows-95', 'syste
       await expect(page.locator('#range-0')).toBeFocused();
       await page.evaluate(async () => {
         const f = window.rangeNames;
-        // Register borrowed themes before the observer sees the original inputs.
-        const rows = [...f.root.children]; f.root.replaceChildren();
-        f.handle = await f.runtime.mountDeclarative({ root: f.root, pageThemeDefault: 'range-first', bootAffordance: 'none' });
-        f.handle.registerTheme('range-first', f.themes[0]); f.handle.registerTheme('range-next', f.themes[1]);
-        f.root.append(...rows);
+        const { attachNativeSources } = await import('/tests/rendering-options/explicit-native-host.mjs');
+        f.handle = await attachNativeSources(f.runtime, { root: f.root, theme: f.themes[0],
+          controls: [...f.root.querySelectorAll('input[type=range]')] });
+        f.handle.retheme = () => f.handle.replace(f.themes[1]);
       });
       const sliders = page.locator('#range-names .scriptoscope-slider');
       await expect(sliders).toHaveCount(names.length);

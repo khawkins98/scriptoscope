@@ -13,6 +13,7 @@ import { finiteCicnTransfer, CicnTransferError } from './cicn-transfer-results.j
 
 import { parseResourceFork } from './resource-fork.js';
 import { decodeCicn } from './decoders/cicn.js';
+import { expandIndexedPixels } from './decoders/shared.js';
 import { decodePpat } from './decoders/ppat.js';
 import { decodeCinf } from './decoders/cinf.js';
 import { realizeRgb16 as mapEngineRgb16 } from './display-profile.js';
@@ -361,37 +362,13 @@ function colorTablesOf(entries, realizeRgb16) {
 
 // ── Icon decode (moved verbatim from extract-icons.mjs) ─────────────────────
 
-/** 1-bit mask bitmap (rowBytes per row, MSB first) → Uint8Array(size²) of 0/1. */
-function decodeMaskBits(buf, off, size) {
-  const rowBytes = size / 8;
-  const out = new Uint8Array(size * size);
-  for (let y = 0; y < size; y++) {
-    for (let x = 0; x < size; x++) {
-      const byte = buf[off + y * rowBytes + (x >> 3)] ?? 0;
-      out[y * size + x] = (byte >> (7 - (x & 7))) & 1;
-    }
-  }
-  return out;
-}
-/** 4-bit icon → RGBA via PALETTE16, alpha from `mask` (null → opaque). */
-function decodeIcon4(data, size, mask) {
-  const rgba = new Uint8Array(size * size * 4);
-  for (let i = 0; i < size * size; i++) {
-    const byte = data[i >> 1] ?? 0;
-    const idx = (i & 1) === 0 ? byte >> 4 : byte & 0x0f;
-    const [r, g, b] = PALETTE16[idx];
-    const a = mask ? (mask[i] ? 255 : 0) : 255;
-    rgba[i * 4] = r; rgba[i * 4 + 1] = g; rgba[i * 4 + 2] = b; rgba[i * 4 + 3] = a;
-  }
-  return rgba;
-}
-/** 8-bit icon → RGBA via PALETTE256, alpha from `mask` (null → opaque). */
-function decodeIcon8(data, size, mask) {
-  const rgba = new Uint8Array(size * size * 4);
-  for (let i = 0; i < size * size; i++) {
-    const [r, g, b] = PALETTE256[data[i] ?? 0];
-    const a = mask ? (mask[i] ? 255 : 0) : 255;
-    rgba[i * 4] = r; rgba[i * 4 + 1] = g; rgba[i * 4 + 2] = b; rgba[i * 4 + 3] = a;
+/** Icon palettes retain their existing display policy; packed indices share the raster decoder. */
+function decodeIcon(indices, palette, mask) {
+  const rgba = new Uint8Array(indices.length * 4);
+  for (let i = 0; i < indices.length; i++) {
+    const [r, g, b] = palette[indices[i]];
+    rgba[i * 4] = r; rgba[i * 4 + 1] = g; rgba[i * 4 + 2] = b;
+    rgba[i * 4 + 3] = !mask || mask[i] ? 255 : 0;
   }
   return rgba;
 }
@@ -456,14 +433,16 @@ export function convertIcons(fork, { ids, displayProfile, unmaskedIconIds = [] }
       if (done.has(key)) continue;
       if (e.data.length < need) continue;
       const maskData = maskOf(cfg.maskType, e.id);
-      const mask = maskData && maskData.length >= cfg.maskOff * 2 ? decodeMaskBits(maskData, cfg.maskOff, cfg.size) : null;
-      const rgba = cfg.depth === 4 ? decodeIcon4(e.data, cfg.size, mask) : decodeIcon8(e.data, cfg.size, mask);
+      const mask = maskData && maskData.length >= cfg.maskOff * 2
+        ? expandIndexedPixels(maskData.subarray(cfg.maskOff), cfg.size, cfg.size, 1, cfg.size / 8) : null;
+      const indices = expandIndexedPixels(e.data, cfg.size, cfg.size, cfg.depth, cfg.size * cfg.depth / 8);
+      const rgba = decodeIcon(indices, cfg.depth === 4 ? PALETTE16 : PALETTE256, mask);
       if (!mask) cornerFloodTransparency(rgba, cfg.size);
       // Keep legacy palette/flood decisions unchanged; realize only RGB afterward.
       if (realizeRgb16) {
         const memo = new Map(), palette = cfg.depth === 4 ? RAW_PALETTE16 : RAW_PALETTE256;
         for (let i=0; i<cfg.size*cfg.size; i++) {
-          const index = cfg.depth === 4 ? (i&1 ? e.data[i>>1]&15 : e.data[i>>1]>>4) : e.data[i];
+          const index = indices[i];
           if (!memo.has(index)) memo.set(index, realizeRgb16(palette[index].map(v => v*257)));
           rgba.set(memo.get(index), i*4);
         }

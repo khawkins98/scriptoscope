@@ -1,15 +1,14 @@
-import type { LoadedTheme, WindowState, WindowType } from './types.js';
-import { assetUrl, findChromeElement } from './loadTheme.js';
-import { loadCicnBuffer } from './cicnImage.js';
+import type { WindowState, WindowType } from './types.js';
+import { themeView, assertThemeAlive, type ThemeInput, type ThemeView } from './ownedTheme.js';
 import { composeWindowChrome, type ComposedChrome, type TitleWidgetRole } from './composeChrome.js';
 import { themeResourceChain } from './engine/resources/theme.js';
 import { widgetCicnIds } from './engine/families/window.js';
-import type { IconSource } from './engine/qd/region.js';
+import type { IconSource } from './raster.js';
 // The built-in frame (the `wt.model === 'corner-sprite'` branch: schemes with no
 // wnd# recipe) draws through the v2 engine family proceduralFrame, dynamically
 // imported so the 13 wnd# themes don't load it on first paint.
 import { rasterizeText } from './textRaster.js';
-import { rasterizeTitle, truncateTitle } from './titleFont.js';
+import { measureTitle, rasterizeTitle, truncateTitle } from './titleFont.js';
 import { TITLE_TEXT } from './engine/tables/window.js';
 import { PixelBuffer } from './pixelBuffer.js';
 import { resolveWindowSelection } from './resolveWindowType.js';
@@ -76,9 +75,11 @@ export function resolveTitleWidgetRects(
  * width/height is the CONTENT rect; chrome extends outside it.
  */
 export async function renderWindow(
-  theme: LoadedTheme,
+  input: ThemeInput,
   opts: RenderWindowOptions = {},
 ): Promise<HTMLElement> {
+  const theme = themeView(input);
+  assertThemeAlive(theme);
   const requestedSlug = opts.windowType ?? 'document-window';
   const slug = canonicalWindowTypeSlug(requestedSlug);
   const state: WindowState = opts.state ?? 'active';
@@ -100,11 +101,9 @@ export async function renderWindow(
     return buildBaselineWindow(theme, { title, state, contentW, contentH, scale, utility, slug });
   }
   const { owner, wt, cicnPath } = resolved;
-  // (chromeElement lookup kept for validation / future metadata use)
-  findChromeElement(owner, cicnPath);
 
   // The sliced path walks the chrome cicn; the built-in frame loads its own art by id.
-  const cicn = wt.model === 'corner-sprite' ? null : await loadCicnBuffer(assetUrl(owner, cicnPath));
+  const cicn = wt.model === 'corner-sprite' ? null : await owner.asset(cicnPath).pixels();
 
   // Utility / mini / floating / palette windows usually carry NO visible title — the label is
   // screen-reader-only via aria-label. EXCEPT `titled-utility-window` (literally named for having
@@ -131,7 +130,13 @@ export async function renderWindow(
     const b = rasterizeText(text, textH, hex);
     return { buffer: b, ascent: b.height, advance: b.width };
   };
-  let measured: ReturnType<typeof raster> | null = null;
+  const measure = (text: string): { ascent: number; advance: number } => {
+    const measured = measureTitle(text, textH);
+    if (measured) return measured;
+    const b = rasterizeText(text, textH, '#000000');
+    return { ascent: b.height, advance: b.width };
+  };
+  let measured: ReturnType<typeof measure> | null = null;
   if (showTitle && frameTop > 6 && !builtInFrame) {
     textH = Math.max(8, Math.min(13, frameTop - 6)); // ~Chicago 12px, never frame-scaled
     // Canvas text only uses a font that's ALREADY loaded — so ensure the
@@ -143,7 +148,7 @@ export async function renderWindow(
     }
     // Title in the "Charcoal" font (period anti-aliased type); pixel rasterizer
     // is the fallback (non-DOM contexts). Width pass; recoloured below.
-    measured = raster(title, '#000000');
+    measured = measure(title);
   }
   // Built-in frame windows (no wnd# recipe: apple-platinum-2, black-platinum,
   // platinum-8, slimes, system7-nostalgia-silver) draw through the v2 engine
@@ -193,16 +198,15 @@ export async function renderWindow(
     // width (floppies and 1138's titled utility have plates 1-2 px narrower than the rect).
     const plateRight = composed.titleRegion.x + composed.titleRegion.w;
     const room = Math.min(t4p.w + TITLE_TEXT.TX4.widenRight, Math.max(plateRight - t4p.x, t4p.w));
-    const dispTitle = truncateTitle(title, room, text => text === title ? measured.advance : raster(text, '#000000').advance);
-    const base = dispTitle === title ? measured : dispTitle ? raster(dispTitle, '#000000') : null;
+    const dispTitle = truncateTitle(title, room, text => text === title ? measured.advance : measure(text).advance);
+    const base = dispTitle === title ? measured : dispTitle ? measure(dispTitle) : null;
     if (base) {
       // DECISIONS #13 (2): the decoded baseline (TX8) and clip (TX4) are kept, except that our
       // title font is taller than the original's: when its ascent would start above the title
       // rect, the baseline moves down by exactly that overflow, so every glyph stays inside.
       const baseline = Math.max(t4p.y + t4p.h - TITLE_TEXT.TX8.baselineAbove, t4p.y + base.ascent);
       const x0 = t4p.x, y0 = baseline - base.ascent;
-      const clip = { l: Math.max(0, t4p.x), t: Math.max(0, t4p.y), r: Math.min(fullWidth, t4p.x + t4p.w + TITLE_TEXT.TX4.widenRight), b: Math.min(fullHeight, t4p.y + t4p.h) };
-      const inClip = (x: number, y: number): boolean => x >= clip.l && x < clip.r && y >= clip.t && y < clip.b;
+      const clip = { x: t4p.x, y: t4p.y, w: t4p.w + TITLE_TEXT.TX4.widenRight, h: t4p.h };
       // TC1–TC5: samples belong to the selected template, before remapping or PNG
       // transport. Compare full RGB16, even when display conversion merges colours.
       const sampleState = wt.chrome[state] ? state : 'active';
@@ -213,16 +217,7 @@ export async function renderWindow(
         const glyph = raster(dispTitle, hex);
         // Substitute-font policy: transparent coverage, alpha-over (control-text-colors
         // Runtime painting). Native TX6 TextMode srcOr is not a bitwise RGB operation here.
-        for (let y = 0; y < glyph.buffer.height; y++) for (let x = 0; x < glyph.buffer.width; x++) {
-          const px = x0 + x + dx, py = y0 + y + dy;
-          if (!inClip(px, py)) continue;
-          const [r, g, b, a] = glyph.buffer.getPixel(x, y);
-          if (a === 0) continue;
-          const [dr, dg, db, da] = composed.buffer.getPixel(px, py);
-          const coverage = a / 255;
-          composed.buffer.setPixel(px, py, Math.round(r * coverage + dr * (1 - coverage)),
-            Math.round(g * coverage + dg * (1 - coverage)), Math.round(b * coverage + db * (1 - coverage)), Math.max(a, da));
-        }
+        composed.buffer.drawOver(glyph.buffer, x0 + dx, y0 + dy, clip);
       };
       if (samples?.text && samples.shadow && samples.text.rgb16.some((v, i) => v !== samples.shadow!.rgb16[i])) {
         paint(samples.shadow, TITLE_TEXT.TX7.offsetX, TITLE_TEXT.TX7.offsetY);
@@ -234,23 +229,9 @@ export async function renderWindow(
   // ── window root: bounds the FULL window footprint (chrome included), so the
   // element's box encloses everything it draws. The canvas fills the root at
   // 0,0 and the content is INSET by the frame thickness. ──
-  const win = document.createElement('div');
-  win.className = 'scriptoscope-window';
-  // Optional shell CSS targets the actual frame, not a grid-stretched host.
-  win.setAttribute('part', 'window');
-  win.dataset.scriptoscopeCurrentState = state;
-  // The title is always exposed to assistive tech, even when it isn't drawn
-  // (utility/mini windows show no visible label in a modern context).
-  // For modal-class window-types we add aria-modal="true" so SRs constrain
-  // virtual-cursor navigation (the keyboard focus trap in handle.openModal
-  // is the keyboard side; this is the AT side). UTILITY_SLUG_RE includes
-  // dialog/alert/modal/popup which all reasonably benefit from modal semantics
-  // when wrapped in handle.openModal — a11y reviewer 2026-05-31.
-  if (title) {
-    win.setAttribute('role', isUtility ? 'dialog' : 'group');
-    win.setAttribute('aria-label', title);
-    if (isUtility && /modal|alert|dialog/.test(slug)) win.setAttribute('aria-modal', 'true');
-  }
+  const background = await bodyBackgroundStyle(owner, scale, slug);
+  assertThemeAlive(theme);
+  const win = windowRoot(title, state, isUtility, slug);
   Object.assign(win.style, {
     position: 'relative',
     // touch-action: none — block the browser's default touch gestures
@@ -319,9 +300,8 @@ export async function renderWindow(
     // iOS gestures during chrome drag, but content (consumer prose,
     // forms, scrollable lists) needs normal touch scrolling back.
     touchAction: 'auto',
-    ...bodyBackgroundStyle(owner, slug),
+    ...background,
   } satisfies Partial<CSSStyleDeclaration>);
-  scaleBodyPattern(content, owner, scale, slug);
   content.appendChild(document.createElement('slot'));
 
   win.append(canvas, content);
@@ -358,6 +338,21 @@ export async function renderWindow(
   return win;
 }
 
+/** Common shell identity and accessible title for raster and baseline windows.
+ * Modal classes expose aria-modal alongside openModal's keyboard focus trap. */
+function windowRoot(title: string, state: WindowState, utility: boolean, slug: string): HTMLDivElement {
+  const win = document.createElement('div');
+  win.className = 'scriptoscope-window';
+  win.setAttribute('part', 'window');
+  win.dataset.scriptoscopeCurrentState = state;
+  if (title) {
+    win.setAttribute('role', utility ? 'dialog' : 'group');
+    win.setAttribute('aria-label', title);
+    if (utility && /modal|alert|dialog/.test(slug)) win.setAttribute('aria-modal', 'true');
+  }
+  return win;
+}
+
 /**
  * Procedural DEFAULT window for schemes that ship no window-frame chrome
  * (they inherit the OS-default Platinum window). DOM/CSS only — analogous
@@ -365,11 +360,13 @@ export async function renderWindow(
  * the titlebar fill/text so it still reads as that scheme. Returns the same
  * `.scriptoscope-window` / `.scriptoscope-content` structure consumers expect.
  */
-function buildBaselineWindow(
-  theme: LoadedTheme,
+async function buildBaselineWindow(
+  theme: ThemeView,
   opts: { title: string; state: WindowState; contentW: number; contentH: number; scale: number; utility?: boolean; slug?: string },
-): HTMLElement {
+): Promise<HTMLElement> {
   const { title, state, contentW, contentH, scale, utility, slug = '' } = opts;
+  const background = await bodyBackgroundStyle(theme, scale, utility ? 'utility' : undefined, theme.manifest.bodyBackground?.pattern ?? null);
+  assertThemeAlive(theme);
   const hc = (state === 'inactive' ? theme.manifest.headerColors?.inactive : theme.manifest.headerColors?.active) ?? {};
   const fill = hc.fill ?? '#cccccc';
   // Title text contrasts with the bar (white on a dark fill, else black). NOT
@@ -400,18 +397,7 @@ function buildBaselineWindow(
     : fill;
   const titleH = 19;
 
-  const win = document.createElement('div');
-  win.className = 'scriptoscope-window';
-  // Optional shell CSS targets the actual frame, not a grid-stretched host.
-  win.setAttribute('part', 'window');
-  win.dataset.scriptoscopeCurrentState = state;
-  if (title) {
-    win.setAttribute('role', utility ? 'dialog' : 'group');
-    win.setAttribute('aria-label', title);
-    // aria-modal for modal-class window-types — see the parallel block in the
-    // cicn-recipe path above for the rationale (a11y reviewer 2026-05-31).
-    if (utility && /modal|alert|dialog/.test(slug)) win.setAttribute('aria-modal', 'true');
-  }
+  const win = windowRoot(title, state, !!utility, slug);
   // Explicit footprint (border-box) so callers can read the window's full size
   // — `width`/`height` match the cicn path, e.g. the scene sizes its desk to it.
   const fullW = contentW + 2; // 1px frame each side
@@ -467,9 +453,8 @@ function buildBaselineWindow(
   Object.assign(content.style, {
     position: 'relative', width: `${contentW * scale}px`, height: `${contentH * scale}px`,
     overflow: 'hidden', boxSizing: 'border-box',
-    ...bodyBackgroundStyle(theme, utility ? 'utility' : undefined),
+    ...background,
   } satisfies Partial<CSSStyleDeclaration>);
-  scaleBodyPattern(content, theme, scale);
   content.appendChild(document.createElement('slot'));
   win.appendChild(content);
   return win;
@@ -519,7 +504,7 @@ const UTILITY_SLUG_RE = /utility|mini|floating|palette|dialog|alert|modal|popup/
  *  uses for chromeElements — it survives the Option-A blob-URL rewrite that
  *  replaces `asset` paths with `blob:` URLs at runtime (the alternative,
  *  parsing the id out of the asset path, breaks once `asset` becomes a blob URL). */
-function patternByResourceId(theme: LoadedTheme, id: number): string | null {
+function patternByResourceId(theme: ThemeView, id: number): string | null {
   const patterns = theme.manifest.patterns ?? {};
   const abs = Math.abs(id);
   for (const v of Object.values(patterns)) {
@@ -528,58 +513,24 @@ function patternByResourceId(theme: LoadedTheme, id: number): string | null {
   return null;
 }
 
-function bodyBackgroundStyle(theme: LoadedTheme, slug?: string): Partial<CSSStyleDeclaration> {
+async function bodyBackgroundStyle(theme: ThemeView, scale: number, slug?: string, sizingPattern?: string | null): Promise<Partial<CSSStyleDeclaration>> {
   const isUtility = !!slug && UTILITY_SLUG_RE.test(slug);
-  if (isUtility) {
-    // Walk by canonical resource id rather than friendly key — `ppat-42` is the
-    // kDEF's utility-window pattern slot, but each bundle author picked a
-    // different friendly name (1984="blue utility", monkey-paradise="utility
-    // pattern", crayon-os="utility pattern"). The id is the structured truth.
-    const utilPat = patternByResourceId(theme, 42)
-      ?? patternByResourceId(theme, -9568) // canonical kDEF cinf slot for utility-window
-      ?? null;
-    if (!utilPat) return { background: '#ffffff' };
-    return {
-      backgroundColor: '#ffffff',
-      backgroundImage: `url("${assetUrl(theme, utilPat)}")`,
-      backgroundRepeat: 'repeat',
-      imageRendering: 'pixelated',
-    };
-  }
-  const pat = theme.manifest.bodyBackground?.pattern;
-  if (!pat) return { background: '#ffffff' };
+  const ref = isUtility
+    ? patternByResourceId(theme, 42) ?? patternByResourceId(theme, -9568)
+    : theme.manifest.bodyBackground?.pattern;
+  if (!ref) return { background: '#ffffff' };
+  // Baseline windows historically size from the document pattern, including
+  // utility windows. Preserve that policy separately from CSS tile selection.
+  const sizeRef = sizingPattern === undefined ? ref : sizingPattern;
+  const [url, tile] = await Promise.all([theme.asset(ref).imageUrl(),
+    scale > 1 && sizeRef ? theme.asset(sizeRef).dimensions().catch(() => undefined) : undefined]);
   return {
     backgroundColor: '#ffffff',
-    backgroundImage: `url("${assetUrl(theme, pat)}")`,
+    backgroundImage: `url("${url}")`,
     backgroundRepeat: 'repeat',
     imageRendering: 'pixelated',
+    ...(tile ? { backgroundSize: `${tile.width * scale}px ${tile.height * scale}px` } : {}),
   };
-}
-
-/**
- * Match the tiled body ppat to the display scale. The chrome canvas is a
- * native-resolution raster CSS-upscaled by `scale` (pixelated), but a CSS
- * `background-repeat` tile otherwise repeats at *native* px — so at 2× the
- * pattern reads half-size against the chrome. The ppat's native dimensions
- * aren't in theme.json, so read them off the decoded image and pin
- * `background-size` to native × scale (still pixelated, so it stays crisp).
- * No-op at 1× (native tiling already matches) and outside the browser.
- */
-function scaleBodyPattern(el: HTMLElement, theme: LoadedTheme, scale: number, slug?: string): void {
-  // For utility-style slugs, use the same hierarchy bodyBackgroundStyle picked
-  // (utility-pattern → -9568) so the scale-fix tracks the resolved asset, not
-  // the document-window default.
-  const isUtility = !!slug && UTILITY_SLUG_RE.test(slug);
-  const pat = isUtility
-    ? (patternByResourceId(theme, 42) ?? patternByResourceId(theme, -9568) ?? null)
-    : (theme.manifest.bodyBackground?.pattern ?? null);
-  if (!pat || scale <= 1 || typeof Image === 'undefined') return;
-  const img = new Image();
-  img.onload = () => {
-    if (!img.naturalWidth) return;
-    el.style.backgroundSize = `${img.naturalWidth * scale}px ${img.naturalHeight * scale}px`;
-  };
-  img.src = assetUrl(theme, pat);
 }
 
 /** Darken a hex color by `amt` (0..1). Used for the baseline pinstripe. */

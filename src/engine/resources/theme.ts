@@ -19,16 +19,15 @@
 //   ics8  the glyph map's raster for the id, when inspector.iconIndex lists an
 //         `ics8` at that id (decoded with the ics# mask applied by the loader).
 //   actb / clut  inspector.colorTables[`type:id`] (entries in index order).
-import type { ChromeElement, LoadedTheme } from '../../types.js';
+import type { ChromeElement } from '../../types.js';
 import type { Pixmap } from '../qd/types.js';
 import type { ResourceSelection } from '../trace.js';
 import { ResourceChain, mapProvider, type ResourceProvider } from './chain.js';
-import { loadCicnBuffer } from '../../cicnImage.js';
+import { themeView, type ThemeInput, type ThemeView, type RasterSource } from '../../ownedTheme.js';
 import { ownerDisplayPolicyMatches, realizeRgb16 } from '../../../tools/theme-loader/display-profile.js';
 import { decodeCinfHeader, type CinfIconSource } from '../qd/cinfFrame.js';
 import { CINF_SAMPLE } from '../tables/cinfFrame.js';
 import type { QdPoint, QdRect } from '../qd/types.js';
-import { assetUrl } from '../../loadTheme.js';
 import { onAssetUrlReleased } from '../../../tools/theme-loader/assetLifecycle.js';
 import { engineLineSampledCicnIds } from './ids.js';
 
@@ -37,13 +36,13 @@ const LINE_SAMPLED = new Set(engineLineSampledCicnIds());
 import { cicnIconSource } from './iconSource.js';
 
 // Optional finite declarations must never reach string coercion or URL work.
-function finiteSampling(value: ChromeElement['samplingEquivalence'] | ChromeElement['sampledBandAsset'], theme: LoadedTheme): boolean {
+function finiteSampling(value: ChromeElement['samplingEquivalence'] | ChromeElement['sampledBandAsset'], theme: ThemeView): boolean {
   return !!value && value.model === 'kaleidoscope-2.3.1-opaque-sampling-v1'
     && value.comparison === 'opaque-current-display-rgb' && typeof value.displayPolicy === 'string'
     && ownerDisplayPolicyMatches(theme.manifest, value.displayPolicy)
     && Number.isInteger(value.width) && value.width > 0 && Number.isInteger(value.height) && value.height > 0;
 }
-function sampledDeclaration(element: ChromeElement, theme: LoadedTheme) {
+function sampledDeclaration(element: ChromeElement, theme: ThemeView) {
   const proof = element.samplingEquivalence, descriptor = element.sampledBandAsset;
   return finiteSampling(proof, theme) && proof?.status === 'different' && proof.reason === 'opaque-display-mismatch'
     && finiteSampling(descriptor, theme) && descriptor && descriptor.width === proof.width && descriptor.height === proof.height
@@ -52,9 +51,9 @@ function sampledDeclaration(element: ChromeElement, theme: LoadedTheme) {
     ? descriptor : undefined;
 }
 
-type PreparedPattern = { url: string; selection: ResourceSelection } | { status: 'unknown'; reason: string } | null;
+type PreparedPattern = { source: RasterSource; selection: ResourceSelection } | { status: 'unknown'; reason: string } | null;
 /** Modern same-face-owner binding; generic resource lookup retains its policy. */
-function prepareBodyPattern(theme: LoadedTheme, face: Pick<ChromeElement, 'bodyPattern' | 'bgPattern'>, id: number): PreparedPattern {
+function prepareBodyPattern(theme: ThemeView, face: Pick<ChromeElement, 'bodyPattern' | 'bgPattern'>, id: number): PreparedPattern {
   const entries = Object.entries(theme.manifest.patterns ?? {});
   const usable = ([, p]: typeof entries[number]) => p.sourcePpatId === id && typeof p.asset === 'string' && !!p.asset.trim();
   const linked = [face.bodyPattern, face.bgPattern].map(key => typeof key === 'string'
@@ -62,20 +61,20 @@ function prepareBodyPattern(theme: LoadedTheme, face: Pick<ChromeElement, 'bodyP
   const candidates = linked ? [linked] : entries.filter(usable);
   if (candidates.length === 1) {
     const [manifestKey, pattern] = candidates[0]!;
-    const url = assetUrl(theme, pattern.asset);
-    return { url, selection: { resource: { type: 'ppat', signedId: id, sourceCinfId: null, manifestKey, assetUrl: url,
+    const source = theme.asset(pattern.asset), url = source.key;
+    return { source, selection: { resource: { type: 'ppat', signedId: id, sourceCinfId: null, manifestKey, assetUrl: url,
       ...(pattern.byteProvenance ? { byteProvenance: { ...pattern.byteProvenance } } : {}) } } };
   }
   return candidates.length || entries.some(([, p]) => p.sourcePpatId === id) || theme.inspector?.ppatResources?.some(r => r.id === id)
     ? { status: 'unknown', reason: 'ambiguous or undecoded same-face-owner ppat' } : null;
 }
 
-async function themeProvider(theme: LoadedTheme, tier: 'archive' | 'base', name: string,
+async function themeProvider(theme: ThemeView, tier: 'archive' | 'base', name: string,
   wanted: readonly { type: string; id: number }[], chainDepth: number, life?: ChainLife, checkables = false, traceProvenance = false, declaredCinfs = false,
   clippedBodyId?: number, lazySamples = false, bodyPatterns?: ReadonlyMap<number, PreparedPattern>, bodyOwnerUrl?: string): Promise<ResourceProvider> {
   const selections = new Map<string, ResourceSelection>();
   const unmaskedSources = traceProvenance ? new Map<string, { assetUrl: string; derivedPath?: string }>() : undefined;
-  const owner = { baseUrl: theme.baseUrl, chainDepth };
+  const owner = { baseUrl: theme.origin, chainDepth };
   const elementEntries = Object.entries(theme.manifest.chromeElements ?? {});
   const elements = elementEntries.map(([, element]) => element);
   const patternEntries = Object.entries(theme.manifest.patterns ?? {});
@@ -86,7 +85,7 @@ async function themeProvider(theme: LoadedTheme, tier: 'archive' | 'base', name:
   // aborted, or the owner released one of this chain's asset URLs).
   const load = (asset: string): Promise<Pixmap> => {
     if (life?.ended()) return Promise.reject(abortError());
-    return loadCicnBuffer(assetUrl(theme, asset));
+    return theme.asset(asset).pixels();
   };
   const entry = async ({ type, id }: { type: string; id: number }): Promise<[string, unknown] | null> => {
     const key = `${type}:${id}`;
@@ -118,10 +117,15 @@ async function themeProvider(theme: LoadedTheme, tier: 'archive' | 'base', name:
       const status = el.samplingEquivalence?.status ?? null;
       if (traceProvenance) selections.set(key, { owner, resource: { type: 'cicn', signedId: el.sourceCicnId!,
         sourceCinfId: Number.isInteger(el.sourceCinfId) ? el.sourceCinfId! : null,
-        manifestKey: selected![0], assetUrl: assetUrl(theme, el.asset),
+        manifestKey: selected![0], assetUrl: theme.asset(el.asset).key,
         ...(el.byteProvenance ? { byteProvenance: { ...el.byteProvenance } } : {}) } });
-      if (id === clippedBodyId) return [key, { status: 'clipped' }];
-      const sampleAsset = el.asset;
+      if (id === clippedBodyId) {
+        const selection = selections.get(key);
+        if (selection?.resource) selections.set(key, { ...selection,
+          resource: { ...selection.resource, assetUrl: await theme.asset(el.asset).imageUrl() } });
+        return [key, { status: 'clipped' }];
+      }
+      const sampleAsset = el.asset, art = theme.asset(sampleAsset);
       // Preserve the actual preparation binding before copying the finite values.
       // Paths/dimensions and even equal census scalars cannot identify a provider.
       const sampleSource = el.engineColorSamples?.source;
@@ -134,9 +138,10 @@ async function themeProvider(theme: LoadedTheme, tier: 'archive' | 'base', name:
       const bounds = selectedSource?.bounds;
       const finiteSamples = el.engineColorSamples ? structuredClone(el.engineColorSamples) : undefined;
       const companionAsset = el.iconBlit?.unmaskedAsset;
+      const companionRaster = companionAsset ? theme.asset(companionAsset) : undefined;
       const companionTransport = unmaskedSources && companionAsset
-        ? { assetUrl: assetUrl(theme, companionAsset),
-          ...(/^(?:blob:|https?:|data:)/.test(companionAsset) ? {} : { derivedPath: companionAsset }) } : undefined;
+        ? { assetUrl: theme.asset(companionAsset).key,
+          ...(companionRaster?.path ? { derivedPath: companionRaster.path } : {}) } : undefined;
       // Public push snapshots finite descriptors and URLs before ordinary decode.
       // Generic engine clients retain their existing eager sampling defaults.
       const proof = el.samplingEquivalence && { ...el.samplingEquivalence };
@@ -145,11 +150,24 @@ async function themeProvider(theme: LoadedTheme, tier: 'archive' | 'base', name:
       const validProof = finiteSampling(proof, theme);
       const matches = (a: typeof proof | typeof descriptor, pixmap: Pixmap) =>
         a?.width === pixmap.width && a.height === pixmap.height;
-      const sampledUrl = descriptor ? assetUrl(theme, descriptor.asset) : undefined;
+      const sampledRaster = descriptor ? theme.asset(descriptor.asset) : undefined;
+      const sampledUrl = sampledRaster?.key;
       const sampledSource = traceProvenance && (lazySamples || status === 'different' && LINE_SAMPLED.has(id)) && descriptor
         ? { path: descriptor.derivedPath, assetUrl: sampledUrl!, model: descriptor.model, displayPolicy: descriptor.displayPolicy } : undefined;
-      const [pixmap, companion] = await Promise.all([load(sampleAsset),
-        companionAsset ? load(companionAsset) : Promise.resolve(null)]);
+      // All selected references and finite samples above are snapshotted before
+      // image export can yield. Diagnostics must not select a mutated replacement.
+      if (life?.ended()) throw abortError();
+      const selection = selections.get(key);
+      const [pixmap, companion, artImage, companionImage, sampledImage] = await Promise.all([
+        art.pixels(), companionRaster ? companionRaster.pixels() : Promise.resolve(null),
+        selection?.resource ? art.imageUrl() : undefined,
+        companionTransport ? companionRaster!.imageUrl() : undefined,
+        sampledSource ? sampledRaster!.imageUrl() : undefined,
+      ]);
+      if (life?.ended()) throw abortError();
+      if (selection?.resource) selections.set(key, { ...selection, resource: { ...selection.resource, assetUrl: artImage! } });
+      if (companionTransport) companionTransport.assetUrl = companionImage!;
+      if (sampledSource) sampledSource.assetUrl = sampledImage!;
       let sampled: Pixmap | null = null;
       const equivalent = validProof && matches(proof, pixmap) && proof?.status === 'equivalent' && proof.reason === 'all-opaque-display-rgb-equal';
       const eligible = !!descriptor && matches(descriptor, pixmap);
@@ -158,7 +176,7 @@ async function themeProvider(theme: LoadedTheme, tier: 'archive' | 'base', name:
       const prepareSampled = (): Promise<void> => pending ??= (async () => {
         if (equivalent || !eligible) return;
         if (life?.ended()) throw abortError();
-        const decoded = await loadCicnBuffer(sampledUrl!);
+        const decoded = await sampledRaster!.pixels();
         if (life?.ended()) throw abortError();
         if (decoded.width !== pixmap.width || decoded.height !== pixmap.height || decoded.data.length !== pixmap.data.length) return;
         for (let i = 3; i < pixmap.data.length; i += 4) if (decoded.data[i] !== pixmap.data[i]) return;
@@ -208,16 +226,24 @@ async function themeProvider(theme: LoadedTheme, tier: 'archive' | 'base', name:
       if (bodyPatterns?.has(id)) {
         const binding = bodyPatterns.get(id)!;
         if (!binding || 'status' in binding) return binding ? [key, binding] : null;
-        if (traceProvenance) selections.set(key, { ...binding.selection, owner: { baseUrl: bodyOwnerUrl!, chainDepth } });
         if (life?.ended()) throw abortError();
-        return [key, await loadCicnBuffer(binding.url)];
+        if (traceProvenance) selections.set(key, { ...binding.selection, owner: { baseUrl: bodyOwnerUrl!, chainDepth },
+          ...(binding.selection.resource ? { resource: { ...binding.selection.resource, assetUrl: await binding.source.imageUrl() } } : {}) });
+        if (life?.ended()) throw abortError();
+        return [key, await binding.source.pixels()];
       }
       const selected = patternEntries.find(([, e]) => e.sourcePpatId === id && e.asset);
       const p = selected?.[1];
-      if (traceProvenance && p) selections.set(key, { owner, resource: { type: 'ppat', signedId: p.sourcePpatId!, sourceCinfId: null,
-        manifestKey: selected![0], assetUrl: assetUrl(theme, p.asset),
-        ...(p.byteProvenance ? { byteProvenance: { ...p.byteProvenance } } : {}) } });
-      return p ? [key, await load(p.asset)] : null;
+      const patternAsset = p?.asset, patternRaster = patternAsset ? theme.asset(patternAsset) : undefined;
+      if (traceProvenance && p) {
+        const resource = { type: 'ppat' as const, signedId: p.sourcePpatId!, sourceCinfId: null,
+          manifestKey: selected![0], assetUrl: theme.asset(patternAsset!).key,
+          ...(p.byteProvenance ? { byteProvenance: { ...p.byteProvenance } } : {}) };
+        if (life?.ended()) throw abortError();
+        resource.assetUrl = await patternRaster!.imageUrl();
+        selections.set(key, { owner, resource });
+      }
+      return patternRaster ? [key, await patternRaster.pixels()] : null;
     }
     if (checkables && type === 'ics#') {
       const census = theme.inspector?.iconMaskResources;
@@ -278,19 +304,21 @@ const abortError = (): Error => new DOMException('slider composition ended', 'Ab
  * owner releases any asset URL of `theme` or its bases (a disposed theme revokes
  * them all at once). Adapter policy, no spec row.
  */
-function chainLife(theme: LoadedTheme, signal?: AbortSignal): ChainLife {
+function chainLife(theme: ThemeView, signal?: AbortSignal): ChainLife {
   const urls = new Set<string>();
-  const seen = new Set<LoadedTheme>();
-  for (let t: LoadedTheme | undefined = theme; t && !seen.has(t); t = t.base) {
-    seen.add(t);
-    for (const e of Object.values(t.manifest.chromeElements ?? {})) {
-      for (const a of [e.asset, e.iconBlit?.unmaskedAsset, sampledDeclaration(e, t)?.asset]) if (a) urls.add(assetUrl(t, a));
-    }
-    for (const p of Object.values(t.manifest.patterns ?? {})) if (p.asset) urls.add(assetUrl(t, p.asset));
-    for (const g of Object.values(t.glyphs ?? {})) if (g) urls.add(g);
-    for (const icon of t.inspector?.iconIndex ?? []) if (icon.unmaskedUrl) urls.add(assetUrl(t, icon.unmaskedUrl));
-  }
   let released = false;
+  const seen = new Set<ThemeView>();
+  for (let t: ThemeView | undefined = theme; t && !seen.has(t); t = t.base) {
+    seen.add(t);
+    const owner = t.lifetime;
+    if (owner) { urls.add(owner.lifetime); released ||= owner.disposed; continue; }
+    for (const e of Object.values(t.manifest.chromeElements ?? {})) {
+      for (const a of [e.asset, e.iconBlit?.unmaskedAsset, sampledDeclaration(e, t)?.asset]) if (a) urls.add(t.asset(a).key);
+    }
+    for (const p of Object.values(t.manifest.patterns ?? {})) if (p.asset) urls.add(t.asset(p.asset).key);
+    for (const g of Object.values(t.glyphs ?? {})) if (g) urls.add(g);
+    for (const icon of t.inspector?.iconIndex ?? []) if (icon.unmaskedUrl) urls.add(t.asset(icon.unmaskedUrl).key);
+  }
   const stop = onAssetUrlReleased(url => { if (urls.has(url)) released = true; });
   return { ended: () => !!signal?.aborted || released, close: stop };
 }
@@ -302,14 +330,16 @@ function chainLife(theme: LoadedTheme, signal?: AbortSignal): ChainLife {
  * rejects with an `AbortError`. Without it (scroll bar, built-in frame) nothing
  * changes.
  */
-export async function themeResourceChain(theme: LoadedTheme, wanted: readonly { type: string; id: number }[],
+export async function themeResourceChain(input: ThemeInput | ThemeView, wanted: readonly { type: string; id: number }[],
   opts: { signal?: AbortSignal; cinfProviders?: readonly ResourceProvider[]; cinfBodies?: readonly number[]; checkables?: boolean; traceProvenance?: boolean;
     /** Public push dependency planning; generic adapters retain eager defaults. */
     prepareSamples?: (chain: ResourceChain) => Promise<void>;
-    bodyEnvironment?: { owner: LoadedTheme; face: Pick<ChromeElement, 'bodyPattern' | 'bgPattern'>; width: number; height: number; clip?: QdRect;
+    bodyEnvironment?: { owner: ThemeInput | ThemeView; face: Pick<ChromeElement, 'bodyPattern' | 'bgPattern'>; width: number; height: number; clip?: QdRect;
       requests?: readonly { type: string; id: number }[] } } = {}): Promise<ResourceChain> {
+  const theme = themeView(input);
+  const bodyEnvironment = opts.bodyEnvironment && { ...opts.bodyEnvironment, owner: themeView(opts.bodyEnvironment.owner) };
   const providers: ResourceProvider[] = [];
-  const bodyRequests = opts.bodyEnvironment ? new Map(opts.bodyEnvironment.requests?.map(r => [`${r.type}:${r.id}`, r])) : undefined;
+  const bodyRequests = bodyEnvironment ? new Map(bodyEnvironment.requests?.map(r => [`${r.type}:${r.id}`, r])) : undefined;
   let bodyProvider: ResourceProvider | undefined;
   let clippedBodyId: number | undefined;
   // Preload typed body dependencies without issuing engine requests. Resource
@@ -318,8 +348,8 @@ export async function themeResourceChain(theme: LoadedTheme, wanted: readonly { 
     const dependencies = new Map(wanted.map(r => [`${r.type}:${r.id}`, r]));
     let selected = null, headerFound = false;
     for (const id of opts.cinfBodies) {
-      const seenBodies = new Set<LoadedTheme>();
-      for (let t: LoadedTheme | undefined = theme; t && !seenBodies.has(t); t = t.base) {
+      const seenBodies = new Set<ThemeView>();
+      for (let t: ThemeView | undefined = theme; t && !seenBodies.has(t); t = t.base) {
         seenBodies.add(t);
         const bytes = t.manifest.engineCinfs?.[String(id)];
         if (bytes) { selected = decodeCinfHeader(bytes); headerFound = true; break; }
@@ -329,27 +359,27 @@ export async function themeResourceChain(theme: LoadedTheme, wanted: readonly { 
     if (selected) {
       const type = selected.patternAnchor === 5 ? 'cicn' : 'ppat', id = selected.bgPatternId;
       (bodyRequests ?? dependencies).set(`${type}:${id}`, { type, id });
-      if (opts.bodyEnvironment && type === 'cicn') {
-        const { width, height, clip } = opts.bodyEnvironment, side = selected.sideThickness;
+      if (bodyEnvironment && type === 'cicn') {
+        const { width, height, clip } = bodyEnvironment, side = selected.sideThickness;
         if (Math.max(0, side, clip?.left ?? 0) >= Math.min(width, width - side, clip?.right ?? width)
           || Math.max(0, side, clip?.top ?? 0) >= Math.min(height, height - side, clip?.bottom ?? height)) clippedBodyId = id;
       }
     }
     wanted = [...dependencies.values()];
   }
-  const bodyOwnerUrl = opts.bodyEnvironment?.owner.baseUrl;
-  const bodyPatterns = opts.bodyEnvironment ? new Map([...bodyRequests!.values()].filter(r => r.type === 'ppat')
-    .map(r => [r.id, prepareBodyPattern(opts.bodyEnvironment!.owner, opts.bodyEnvironment!.face, r.id)])) : undefined;
-  const seen = new Set<LoadedTheme>();
+  const bodyOwnerUrl = bodyEnvironment?.owner.origin;
+  const bodyPatterns = bodyEnvironment ? new Map([...bodyRequests!.values()].filter(r => r.type === 'ppat')
+    .map(r => [r.id, prepareBodyPattern(bodyEnvironment!.owner, bodyEnvironment!.face, r.id)])) : undefined;
+  const seen = new Set<ThemeView>();
   const life = opts.signal || opts.prepareSamples ? chainLife(theme, opts.signal) : undefined;
   let depth = 0;
   try {
-  for (let t: LoadedTheme | undefined = theme; t && !seen.has(t); t = t.base, depth++) {
+  for (let t: ThemeView | undefined = theme; t && !seen.has(t); t = t.base, depth++) {
     // A caller lifetime that ended stops before the next tier starts decoding.
     if (life?.ended()) throw abortError();
     seen.add(t);
     const name = t.manifest.name ? String(t.manifest.name) : `theme-${depth}`;
-    const ownsBody = t === opts.bodyEnvironment?.owner;
+    const ownsBody = t === bodyEnvironment?.owner;
     const requests = ownsBody ? [...new Map([...wanted, ...bodyRequests!.values()].map(r => [`${r.type}:${r.id}`, r])).values()] : wanted;
     const provider = await themeProvider(t, depth === 0 ? 'archive' : 'base', depth === 0 ? name : `${name}#base${depth}`,
       requests, depth, life, opts.checkables, opts.traceProvenance, opts.cinfProviders !== undefined,
@@ -359,7 +389,7 @@ export async function themeResourceChain(theme: LoadedTheme, wanted: readonly { 
     if (ownsBody) bodyProvider = provider;
   }
   if (life?.ended()) throw abortError();
-  if (opts.bodyEnvironment && !bodyProvider) throw new Error('Selected push face owner unavailable');
+  if (bodyEnvironment && !bodyProvider) throw new Error('Selected push face owner unavailable');
   if (opts.prepareSamples) {
     await opts.prepareSamples(new ResourceChain(providers, bodyProvider));
     if (life?.ended()) throw abortError();

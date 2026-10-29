@@ -36,10 +36,8 @@ for (const mode of ['source', 'built']) test(`${mode}: raw RGB16 title equality 
         if (!tf) throw new Error('text-free chrome not found');
         const rect = c.titleRect;
         const passes = channel < 0 ? [[text, 0]] : [[shadow, 1], [text, 0]];
-        const paints = glyphs.slice(1); // initial black glyph measures the title
-        const styles = paints.map(g => g.style);
         const wantedStyles = passes.map(([s]) => '#' + s.displayRgb.map(n => n.toString(16).padStart(2, '0')).join(''));
-        const replay = (order, { opaque = false, unshifted = false } = {}) => {
+        const replay = (order, { opaque = false, unshifted = false, paints } = {}) => {
         const expected = new Uint8ClampedArray(tf.buffer.data);
         let fractional = 0, overlap = 0;
         const touched = new Set();
@@ -65,10 +63,28 @@ for (const mode of ['source', 'built']) test(`${mode}: raw RGB16 title equality 
         return { mismatches, fractional, overlap };
         };
         const order = passes.map((_, i) => i);
-        out.push({ state, channel, styles, wantedStyles, ...replay(order),
-          opaqueMutation: replay(order, { opaque: true }).mismatches,
-          offsetMutation: channel >= 0 ? replay(order, { unshifted: true }).mismatches : null,
-          reverseMutation: channel === 3 ? replay([...order].reverse()).mismatches : null });
+        // A discarded measurement raster may precede painting, but is not a
+        // required canvas call. Identify paints by their complete framebuffer
+        // contribution, never by ordinal or by accepting only wanted colours.
+        // Every candidate retains the required pass count and native call order;
+        // missing paints, wrong styles and ambiguous explanations still fail.
+        const candidates = [];
+        const choose = (start, paints) => {
+          if (paints.length === passes.length) {
+            if (replay(order, { paints }).mismatches === 0) candidates.push(paints);
+            return;
+          }
+          for (let i = start; i < glyphs.length; i++) choose(i + 1, [...paints, glyphs[i]]);
+        };
+        choose(0, []);
+        if (candidates.length !== 1) throw new Error(JSON.stringify({ state, channel,
+          captured: glyphs.length, matchingPaintSequences: candidates.length }));
+        const paints = candidates[0], styles = paints.map(g => g.style);
+        out.push({ state, channel, capturedGlyphs: glyphs.length, styles, wantedStyles, ...replay(order, { paints }),
+          missingPaintMutations: order.map(i => replay(order.filter(j => j !== i), { paints }).mismatches),
+          opaqueMutation: replay(order, { paints, opaque: true }).mismatches,
+          offsetMutation: channel >= 0 ? replay(order, { paints, unshifted: true }).mismatches : null,
+          reverseMutation: channel === 3 ? replay([...order].reverse(), { paints }).mismatches : null });
       }
     } finally { CanvasRenderingContext2D.prototype.fillText = original; theme.dispose?.(); }
     return out;
@@ -80,6 +96,7 @@ for (const mode of ['source', 'built']) test(`${mode}: raw RGB16 title equality 
     expect(row.mismatches, JSON.stringify(row)).toBe(0);
     expect(row.fractional).toBeGreaterThan(0);
     expect(row.opaqueMutation).toBeGreaterThan(0);
+    for (const mismatches of row.missingPaintMutations) expect(mismatches).toBeGreaterThan(0);
     if (row.channel >= 0) { expect(row.overlap).toBeGreaterThan(0); expect(row.offsetMutation).toBeGreaterThan(0); }
     if (row.channel === 3) expect(row.reverseMutation).toBeGreaterThan(0);
   }

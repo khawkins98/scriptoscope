@@ -7,7 +7,9 @@ import assert from 'node:assert/strict';
 
 const qd = await import('./index.ts');
 const { createTrace } = await import('../trace.ts');
-const { rect, rectXYWH, tileBlit, scaleBlit, cornerBlit, copyBits, copyMask, fillPattern, eraseRect, getPixel, setPixel, newPen, moveTo, lineTo, tileSourceOffset, transferForPort, tileFastPathRow } = qd;
+const { rect, rectXYWH, tileBlit, scaleBlit, cornerBlit, copyBits, copyMask, fillPattern, eraseRect, getPixel, setPixel, tileFastPathRow, axisLine } = qd;
+
+const { tileSourceOffset } = await import('../../../tests/helpers/qd-operation-adapters.mjs');
 
 const pm = (w, h) => ({ width: w, height: h, data: new Uint8ClampedArray(w * h * 4) });
 /** A pixmap whose pixel (x, y) is r = 10·(x+1), g = 10·(y+1), opaque. */
@@ -104,8 +106,7 @@ test('transfer: CopyBits overwrites with transparent source pixels; CopyMask lea
   assert.deepEqual(getPixel(a, 1, 0), { r: 0, g: 0, b: 0, a: 0 });
   assert.deepEqual(getPixel(b, 1, 0), under);
   assert.deepEqual(getPixel(b, 0, 0), { r: 10, g: 10, b: 0, a: 255 }, 'mask edge: the set pixel next to the clear one is copied');
-  assert.equal(transferForPort({ customBottlenecks: true }), 'copyBits');
-  assert.equal(transferForPort({ customBottlenecks: false }), 'copyMask');
+  // Retired private transferForPort policy is now an explicit mode at the call site.
 });
 
 test('tile blit honours the transfer per tile (masked tiles keep what is underneath)', () => {
@@ -161,16 +162,27 @@ test('GetPixel: in-range RGBA, null outside; setPixel clips', () => {
   assert.equal(p.data.length, 16);
 });
 
-test('pen: LineTo covers both endpoints and moves the pen; diagonals are refused', () => {
-  const p = pm(6, 6), pen = newPen({ r: 5, g: 6, b: 7, a: 255 });
-  moveTo(pen, 1, 2); lineTo(p, pen, 4, 2);
+test('axisLine covers both endpoints; diagonals are refused', () => {
+  const p = pm(6, 6), color = { r: 5, g: 6, b: 7, a: 255 };
+  axisLine(p, color, 1, 2, 4, 2);
   assert.deepEqual([0, 1, 2, 3, 4, 5].map(x => getPixel(p, x, 2).a), [0, 255, 255, 255, 255, 0]);
-  lineTo(p, pen, 4, 0);
+  axisLine(p, color, 4, 2, 4, 0);
   assert.deepEqual([0, 1, 2].map(y => getPixel(p, 4, y).r), [5, 5, 5]);
-  assert.deepEqual([pen.x, pen.y], [4, 0]);
-  assert.throws(() => lineTo(p, pen, 5, 5), /diagonal/);
+  // Retired private pen-position bookkeeping has no current runtime contract.
+  assert.throws(() => axisLine(p, color, 4, 0, 5, 5), /diagonal/);
 });
 
 test('rectXYWH converts the legacy box form', () => {
   assert.deepEqual(rectXYWH(2, 3, 4, 5), rect(3, 2, 8, 6));
+});
+
+test('tile traversal preserves in-place transfer order on both axes', () => {
+  for (const vertical of [false, true]) for (const direction of [0, 1]) {
+    const port = labelled(vertical ? 1 : 8, vertical ? 8 : 1);
+    const source = vertical ? rect(0, 0, 2, 1) : rect(0, 0, 1, 2);
+    const destination = vertical ? rect(1, 0, 8, 1) : rect(0, 1, 1, 8);
+    tileBlit(port, port, source, destination, direction, 'copyBits');
+    const labels = vertical ? colLabels(port, 0, 0, 8) : rowLabels(port, 0, 0, 8);
+    assert.deepEqual(labels, direction ? [0, 0, 0, 0, 0, 0, 0, 0] : [0, 1, 0, 1, 0, 1, 0, 1]);
+  }
 });

@@ -1,4 +1,3 @@
-import { DisplayProfileError } from '../display-profile.js';
 // Decode a 'cicn' (color icon) resource into an RGBA pixel buffer.
 //
 // Serialized layout (per Inside Macintosh: Imaging With QuickDraw, ch. 4):
@@ -18,7 +17,7 @@ import { DisplayProfileError } from '../display-profile.js';
 
 import {
   Reader, readPixMap, readBitMap, readColorTable,
-  expandIndexedPixels, expandMask,
+  expandIndexedPixels, expandMask, expandIndexedRgba,
 } from './shared.js';
 import { compareOpaqueSampling, sampledBandPixels } from '../sampling-equivalence.js';
 import { inspectCicnBody } from '../cicn-body.js';
@@ -107,46 +106,9 @@ export function decodeCicn(bytes, { retainKdefColorSampler = false, realizeRgb16
 }
 
 function composeRgba(indices, maskAlpha, pmap, mask, colorTable, realizeRgb16) {
-  // Apple TN QD13: bit15 clear uses ColorSpec.value; set uses position.
-  // Resolve once per decode. Duplicate values use an explicit first-entry compatibility policy;
-  // missing values retain black. Neither policy claims historical semantics.
-  const palette = new Map();
-  colorTable.entries.forEach((entry, position) => {
-    const index = colorTable.flags & 0x8000 ? position : entry.value;
-    if (!palette.has(index)) palette.set(index, [entry.r, entry.g, entry.b]);
-  });
-  const realized = new Map();
   const w = pmap.width, h = pmap.height;
   const rgba = new Uint8Array(w * h * 4);
-  const sameDims = (mask.width === w && mask.height === h);
-
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-      const i = y * w + x;
-      const idx = indices[i];
-      let rgb = realized.get(idx);
-      if (!rgb) {
-        if (realizeRgb16 && !palette.has(idx)) throw new DisplayProfileError('Missing ordinary palette index', 'UNSUPPORTED_SOURCE_COLOR');
-        const raw = palette.get(idx) ?? [0, 0, 0];
-        rgb = realizeRgb16 ? realizeRgb16(raw) : raw.map(v => v >> 8);
-        realized.set(idx, rgb);
-      }
-      const [r, g, b] = rgb;
-
-      let alpha = 255;
-      if (sameDims) {
-        alpha = maskAlpha[i];
-      } else if (x < mask.width && y < mask.height) {
-        alpha = maskAlpha[y * mask.width + x];
-      }
-
-      const o = i * 4;
-      rgba[o] = r;
-      rgba[o + 1] = g;
-      rgba[o + 2] = b;
-      rgba[o + 3] = alpha;
-    }
-  }
+  expandIndexedRgba(indices, rgba, colorTable, realizeRgb16, 'Missing ordinary palette index', w, h, mask, maskAlpha);
   return rgba;
 }
 

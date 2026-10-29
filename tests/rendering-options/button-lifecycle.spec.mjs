@@ -18,9 +18,9 @@ for (const mode of ['source', 'built']) for (const insideWindow of [false, true]
       content.querySelector('form').addEventListener('submit', e => { e.preventDefault(); f.submits++; });
       content.querySelector('form').addEventListener('reset', () => f.resets++);
       f.mount = async () => {
-        f.handle = await runtime.mountDeclarative({ root, pageThemeDefault: 'first', bootAffordance: 'none' });
+        f.handle = await (await import('/tests/rendering-options/contract-host.mjs')).createContractHost(runtime, { root, pageThemeDefault: 'first', bootAffordance: 'none' });
         f.handle.registerTheme('first', themes[0]); f.handle.registerTheme('next', themes[1]);
-        root.append(content);
+        root.append(content); void f.handle.attach(content);
       };
       await f.mount();
     }, { mode, insideWindow });
@@ -88,12 +88,12 @@ for (const mode of ['source', 'built']) {
         const themes = await Promise.all(['windows-95', 'windows-31'].map(slug => runtime.loadTheme(`/themes/${slug}`)));
         const root = document.createElement('section'), holder = document.createElement('div'), native = document.createElement('button');
         native.textContent = 'Original'; native.dataset.scriptoscopeButton = ''; native.style.display = 'inline-flex'; holder.append(native); document.body.append(root);
-        const handle = await runtime.mountDeclarative({ root, pageThemeDefault: 'first', bootAffordance: 'none' });
+        const handle = await (await import('/tests/rendering-options/contract-host.mjs')).createContractHost(runtime, { root, pageThemeDefault: 'first', bootAffordance: 'none' });
         handle.registerTheme('first', themes[0]); handle.registerTheme('next', themes[1]);
         const f = window.buttonRace = { root, holder, native, handle, themes, calls: 0, done: false };
         native.addEventListener('click', () => f.calls++);
         if (retheme) {
-          root.append(holder);
+          root.append(holder); void handle.attach(holder);
           await new Promise(resolve => {
             const observer = new MutationObserver(() => { if (root.querySelector('.scriptoscope-button')) { observer.disconnect(); resolve(); } });
             observer.observe(root, { childList: true, subtree: true });
@@ -105,7 +105,8 @@ for (const mode of ['source', 'built']) {
           observer.disconnect(); f.fresh = fresh; handle.disconnect(); f.done = true;
         });
         observer.observe(root, { childList: true, subtree: true });
-        if (retheme) f.pending = handle.retheme('next'); else root.append(holder);
+        if (retheme) f.pending = handle.retheme('next');
+        else { root.append(holder); f.pending = handle.attach(holder); }
       }, { mode, retheme });
       await page.waitForFunction(() => window.buttonRace.done);
       const result = await page.evaluate(async () => {
@@ -126,7 +127,7 @@ for (const mode of ['source', 'built']) {
       const runtime = await import(mode === 'source' ? '/src/index.ts' : '/dist/scriptoscope.js');
       const root = document.createElement('section'), holder = document.createElement('div'), native = document.createElement('button');
       native.dataset.scriptoscopeButton = ''; native.dataset.scriptoscopeDefault = ''; native.textContent = 'OK'; holder.append(native); document.body.append(root);
-      const handle = await runtime.mountDeclarative({ root, themeBaseUrl: '/themes', pageThemeDefault: 'windows-95', bootAffordance: 'none' });
+      const handle = await (await import('/tests/rendering-options/contract-host.mjs')).createContractHost(runtime, { root, themeBaseUrl: '/themes', pageThemeDefault: 'windows-95', bootAffordance: 'none' });
       const f = window.buttonHeld = { root, native, handle, held: false, decodes: [], errors: [] };
       const decode = HTMLImageElement.prototype.decode;
       let release; const barrier = new Promise(resolve => release = resolve); f.release = release;
@@ -140,13 +141,13 @@ for (const mode of ['source', 'built']) {
       };
       f.restore = () => { HTMLImageElement.prototype.decode = decode; };
       handle.addEventListener('promoteError', event => f.errors.push(String(event.detail)));
-      root.append(holder);
+      root.append(holder); void handle.attach(holder);
     }, mode);
     await page.waitForFunction(() => window.buttonHeld.held);
     const result = await page.evaluate(async () => {
       const f = window.buttonHeld;
       const started = f.decodes.slice(); // normal preparation may load multiple same-art companions concurrently
-      const settled = f.handle.retheme('windows-95'); // waits for the already-started scan
+      const settled = f.handle.retheme('windows-95'); // starts replacement of the explicitly attached source
       f.handle.disconnect(); f.release(); await settled;
       f.restore();
       const result = { started, decodes: f.decodes.slice(), faces: f.root.querySelectorAll('.scriptoscope-button').length,
@@ -167,11 +168,11 @@ for (const mode of ['source', 'built']) {
         const theme = await runtime.loadTheme('/themes/windows-95');
         const root = document.createElement('section'), holder = document.createElement('div'), other = document.createElement('div'), native = document.createElement('button');
         native.dataset.scriptoscopeButton = ''; native.textContent = 'Move'; holder.append(native); document.body.append(root, other);
-        const handle = await runtime.mountDeclarative({ root, pageThemeDefault: 'borrowed', bootAffordance: 'none' }); handle.registerTheme('borrowed', theme);
+        const handle = await (await import('/tests/rendering-options/contract-host.mjs')).createContractHost(runtime, { root, pageThemeDefault: 'borrowed', bootAffordance: 'none' }); handle.registerTheme('borrowed', theme);
         const f = window.buttonMoved = { runtime, theme, root, other, native, handle, movement, held: false };
         const decode = HTMLImageElement.prototype.decode; const barrier = new Promise(resolve => f.release = resolve);
         HTMLImageElement.prototype.decode = async function () { HTMLImageElement.prototype.decode = decode; const result = await decode.call(this); f.held = true; await barrier; return result; };
-        root.append(holder);
+        root.append(holder); void handle.attach(holder);
       }, { mode, movement });
       await page.waitForFunction(() => window.buttonMoved.held);
       const result = await page.evaluate(async () => {
@@ -197,15 +198,17 @@ for (const mode of ['source', 'built']) {
     await page.evaluate(async mode => {
       const runtime = await import(mode === 'source' ? '/src/index.ts' : '/dist/scriptoscope.js');
       const theme = await runtime.loadTheme('/themes/windows-95'), root = document.createElement('section'); document.body.append(root);
-      const handle = await runtime.mountDeclarative({ root, pageThemeDefault: 'theme', bootAffordance: 'none' }); handle.registerTheme('theme', theme);
+      const handle = await (await import('/tests/rendering-options/contract-host.mjs')).createContractHost(runtime, { root, pageThemeDefault: 'theme', bootAffordance: 'none' }); handle.registerTheme('theme', theme);
       const holder = document.createElement('div'); holder.innerHTML = '<button data-scriptoscope-button data-scriptoscope-default disabled type="button">Disabled</button><button data-scriptoscope-button data-scriptoscope-disabled type="button">Declared</button>';
       const natives = [...holder.querySelectorAll('button')], f = window.buttonDisabled = { runtime, theme, root, handle, natives, clicks: 0 };
-      natives.forEach(el => el.addEventListener('click', () => f.clicks++)); root.append(holder);
+      natives.forEach(el => el.addEventListener('click', () => f.clicks++)); root.append(holder); void handle.attach(holder);
     }, mode);
     await expect(page.locator('.scriptoscope-button')).toHaveCount(2);
     for (const name of ['Disabled', 'Declared']) {
-      await expect(page.getByRole('button', { name, exact: true })).toHaveAttribute('aria-disabled', 'true');
-      await expect(page.getByRole('button', { name, exact: true })).toHaveAttribute('tabindex', '-1');
+      const disabled = page.getByRole('button', { name, exact: true });
+      await expect(disabled).toBeDisabled();
+      await disabled.evaluate(el => el.focus());
+      await expect(disabled).not.toBeFocused();
     }
     expect(await page.evaluate(async () => {
       const f = window.buttonDisabled, face = f.natives[0].nextElementSibling;
@@ -219,7 +222,7 @@ for (const mode of ['source', 'built']) {
         samePixels: bytes.every((n, i) => n === expected.data[i]), clicks: f.clicks };
     })).toEqual({ sameGeometry: true, samePixels: true, clicks: 0 });
     await page.evaluate(async () => { const f = window.buttonDisabled; f.natives[0].disabled = false; await f.handle.retheme('theme'); });
-    await expect(page.getByRole('button', { name: 'Disabled', exact: true })).not.toHaveAttribute('aria-disabled');
+    await expect(page.getByRole('button', { name: 'Disabled', exact: true })).toBeEnabled();
     await page.getByRole('button', { name: 'Disabled', exact: true }).focus(); await page.keyboard.press('Enter');
     expect(await page.evaluate(() => window.buttonDisabled.clicks)).toBe(1);
     await page.evaluate(() => window.buttonDisabled.handle.disconnect());
@@ -242,15 +245,16 @@ for (const mode of ['source', 'built']) for (const movement of ['source', 'paren
     const runtime = await import(mode === 'source' ? '/src/index.ts' : '/dist/scriptoscope.js');
     const root = document.createElement('section'), holder = document.createElement('div'), other = document.createElement('div'), native = document.createElement('button');
     native.textContent = 'Moved during archive load'; native.dataset.scriptoscopeButton = ''; holder.append(native); document.body.append(root, other);
-    const handle = await runtime.mountDeclarative({ root, themeBaseUrl: '/themes', pageThemeDefault: 'windows-95', bootAffordance: 'none' });
+    const handle = await (await import('/tests/rendering-options/contract-host.mjs')).createContractHost(runtime, { root, themeBaseUrl: '/themes', pageThemeDefault: 'windows-95', bootAffordance: 'none' });
     window.buttonThemeLoad = { root, holder, other, native, handle, movement, runtime };
     if (movement === 'within') { other.dataset.scriptoscopeTheme = 'windows-31'; root.append(other); }
-    root.append(holder);
+    root.append(holder); void handle.attach(holder);
   }, { mode, movement });
   await expect.poll(() => held).toBe(true);
   await page.evaluate(() => {
     const f = window.buttonThemeLoad;
-    f.other.append(f.movement === 'parent' ? f.holder : f.native);
+    f.handle.detach(f.holder); f.other.append(f.movement === 'parent' ? f.holder : f.native);
+    if (f.movement === 'within') void f.handle.attach(f.other);
     if (f.movement !== 'within') f.settled = f.handle.retheme('windows-95');
   });
   release();
@@ -288,7 +292,7 @@ for (const mode of ['source', 'built']) for (const movement of ['outside', 'new-
     const themes = await Promise.all(['windows-95', 'windows-31'].map(slug => runtime.loadTheme(`/themes/${slug}`)));
     const root = document.createElement('section'), holder = document.createElement('div'), other = document.createElement('div'), native = document.createElement('button');
     native.textContent = 'Ancestor move'; native.dataset.scriptoscopeButton = ''; holder.append(native); document.body.append(root, other);
-    const handle = await runtime.mountDeclarative({ root, pageThemeDefault: 'win', bootAffordance: 'none' });
+    const handle = await (await import('/tests/rendering-options/contract-host.mjs')).createContractHost(runtime, { root, pageThemeDefault: 'win', bootAffordance: 'none' });
     handle.registerTheme('win', themes[0]); handle.registerTheme('silver', themes[1]);
     if (movement === 'new-theme') { other.dataset.scriptoscopeTheme = 'silver'; root.append(other); }
     const f = window.buttonAncestor = { runtime, themes, root, holder, other, native, handle, held: false, commits: 0 };
@@ -297,10 +301,10 @@ for (const mode of ['source', 'built']) for (const movement of ['outside', 'new-
       HTMLImageElement.prototype.decode = decode; const result = await decode.call(this); f.held = true; await barrier; return result;
     };
     f.observer = new MutationObserver(records => { for (const r of records) for (const n of r.addedNodes) if (n instanceof Element && n.classList.contains('scriptoscope-button')) f.commits++; });
-    f.observer.observe(holder, { childList: true }); root.append(holder);
+    f.observer.observe(holder, { childList: true }); root.append(holder); void handle.attach(holder);
   }, { mode, movement });
   await page.waitForFunction(() => window.buttonAncestor.held);
-  await page.evaluate(() => { const f = window.buttonAncestor; f.other.append(f.holder); f.release(); });
+  await page.evaluate(() => { const f = window.buttonAncestor; f.handle.detach(f.holder); f.other.append(f.holder); if (f.root.contains(f.holder)) void f.handle.attach(f.holder); f.release(); });
   if (movement === 'outside') await page.evaluate(() => window.buttonAncestor.handle.retheme('win'));
   else await expect.poll(() => page.evaluate(() => window.buttonAncestor.handle.stats.buttons)).toBe(1);
   const result = await page.evaluate(async movement => {
@@ -331,14 +335,14 @@ for (const mode of ['source', 'built']) test(`${mode}: successive held-theme rel
     const runtime = await import(mode === 'source' ? '/src/index.ts' : '/dist/scriptoscope.js');
     const root = document.createElement('section'), native = document.createElement('button');
     native.dataset.scriptoscopeButton = ''; native.textContent = 'Final parent'; document.body.append(root);
-    const handle = await runtime.mountDeclarative({ root, themeBaseUrl: '/themes', pageThemeDefault: slugs[0], bootAffordance: 'none' });
+    const handle = await (await import('/tests/rendering-options/contract-host.mjs')).createContractHost(runtime, { root, themeBaseUrl: '/themes', pageThemeDefault: slugs[0], bootAffordance: 'none' });
     const parents = slugs.map(slug => { const el = document.createElement('div'); el.dataset.scriptoscopeTheme = slug; return el; });
-    parents[0].append(native); root.append(...parents);
+    parents[0].append(native); root.append(...parents); void handle.attach(parents[0]);
     window.buttonRelocations = { runtime, root, native, handle, parents };
   }, { mode, slugs });
   for (let index = 0; index < 2; index++) {
     await expect.poll(() => holds[index].held).toBe(true);
-    await page.evaluate(index => { const f = window.buttonRelocations; f.parents[index + 1].append(f.native); }, index);
+    await page.evaluate(index => { const f = window.buttonRelocations; f.handle.detach(f.native); f.parents[index + 1].append(f.native); void f.handle.attach(f.native); }, index);
     holds[index].release();
   }
   try { await expect.poll(() => holds[2].held).toBe(true); }
@@ -361,7 +365,7 @@ for (const mode of ['source', 'built']) test(`${mode}: successive held-theme rel
   expect(result).toEqual({ faces: 1, width: true, height: true, pixels: true });
 });
 
-for (const mode of ['source', 'built']) test(`${mode}: disconnect cancels an ownership retry waiting for its animation frame`, async ({ page, servers }, testInfo) => {
+for (const mode of ['source', 'built']) test(`${mode}: disconnect cancels an explicit attachment scheduled for its animation frame`, async ({ page, servers }, testInfo) => {
   await openHarness(page, servers, mode);
   let release, held = false, secondLoads = 0;
   const barrier = new Promise(resolve => release = resolve);
@@ -371,8 +375,8 @@ for (const mode of ['source', 'built']) test(`${mode}: disconnect cancels an own
     const runtime = await import(mode === 'source' ? '/src/index.ts' : '/dist/scriptoscope.js');
     const root = document.createElement('section'), first = document.createElement('div'), second = document.createElement('div'), native = document.createElement('button');
     native.dataset.scriptoscopeButton = ''; native.textContent = 'Cancel frame'; first.append(native); second.dataset.scriptoscopeTheme = '1138'; document.body.append(root);
-    const handle = await runtime.mountDeclarative({ root, themeBaseUrl: '/themes', pageThemeDefault: 'windows-95', bootAffordance: 'none' });
-    window.buttonRetry = { root, first, second, native, handle }; root.append(first, second);
+    const handle = await (await import('/tests/rendering-options/contract-host.mjs')).createContractHost(runtime, { root, themeBaseUrl: '/themes', pageThemeDefault: 'windows-95', bootAffordance: 'none' });
+    window.buttonRetry = { root, first, second, native, handle }; root.append(first, second); void handle.attach(first);
   }, mode);
   await expect.poll(() => held).toBe(true);
   await page.evaluate(() => {
@@ -381,12 +385,13 @@ for (const mode of ['source', 'built']) test(`${mode}: disconnect cancels an own
     window.requestAnimationFrame = callback => { const id = 900000 + ++f.scheduled; f.callbacks.set(id, callback); return id; };
     window.cancelAnimationFrame = id => { if (f.callbacks.delete(id)) f.cancelled++; else cancel(id); };
     f.restore = () => { window.requestAnimationFrame = raf; window.cancelAnimationFrame = cancel; };
-    f.second.append(f.native);
+    f.handle.detach(f.native); f.second.append(f.native);
+    f.frame = requestAnimationFrame(() => { f.callbacks.delete(f.frame); void f.handle.attach(f.native); });
   });
   release(); await page.waitForFunction(() => window.buttonRetry.scheduled > 0);
   const result = await page.evaluate(async () => {
-    const f = window.buttonRetry, settled = f.handle.retheme('1138');
-    f.handle.disconnect(); await settled; f.restore();
+    const f = window.buttonRetry, settled = f.handle.settled();
+    cancelAnimationFrame(f.frame); f.handle.disconnect(); await settled; f.restore();
     const result = { scheduled: f.scheduled, cancelled: f.cancelled, pendingFrames: f.callbacks.size,
       faces: f.root.querySelectorAll('.scriptoscope-button').length, display: f.native.style.display, stamp: f.native.getAttribute('data-scriptoscope-promoted') };
     f.root.remove(); return result;
@@ -406,7 +411,7 @@ for (const mode of ['source','built']) test(`${mode}: no-cinf retheme preserves 
   });document.body.append(root);
   const f=window.nativeRoundtrip={root,sources,styles:sources.map(e=>e.getAttribute('style')),clicks:[0,0],snapshots:[]};
   sources.forEach((el,i)=>el.addEventListener('click',()=>f.clicks[i]++));
-  f.handle=await api.mountDeclarative({root,themeBaseUrl:'/themes',pageThemeDefault:'windows-95',bootAffordance:'none'});
+  f.handle=await (await import('/tests/rendering-options/contract-host.mjs')).createContractHost(api, {root,themeBaseUrl:'/themes',pageThemeDefault:'windows-95',bootAffordance:'none'});
  },mode);
  const root=page.locator('#native-roundtrip'),snapshots=[];
  try {

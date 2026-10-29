@@ -16,15 +16,22 @@ your reference work. Use original evidence to write or verify listing-free famil
 specs; send implementers spec clarifications through the spec author, never
 verifier reports or original listings. Keep independent test authorship separate.
 
-**Current orientation (2026-10-23):** October’s incremental decode-first `v2`
-integration branch is distinct from May’s v2/v3 resets. the package version is 0.5.0;
-not every family has migrated. Follow-up work and review state are tracked in [issue #459](https://github.com/khawkins98/scriptoscope/issues/459). See
+**Current orientation (2026-10-24):** October’s incremental decode-first `v2`
+integration branch is distinct from May’s v2/v3 resets. The package version is 0.6.0;
+not every family has migrated. Migration work is tracked in [issue #378](https://github.com/khawkins98/scriptoscope/issues/378);
+the [#459 batch](https://github.com/khawkins98/scriptoscope/issues/459) is complete. See
 [DECISIONS #8](../v2/DECISIONS.md) and, for integration owners/spec writers,
 the [amended PLAN](../v2/PLAN.md). The current implementation surface is
 `src/engine/qd/`, `resources/`, `state/`, `tables/`, `families/` and `trace.ts`
 under `src/engine/`; `composeChrome.ts` wraps the window driver. The tables below retain the
 source-reference catalogue; they are not an implementer reading list or an
 exhaustive current-family inventory.
+
+The current bounded tab migration contract is
+[`engine/tab.md`](./engine/tab.md): source-derived body/pattern rules and explicit
+modern facade/transport policies. Its separate evidence appendix is for spec
+writers and verifiers only. The earlier tab-body investigations retain their
+historical bounded scope; whole native tab typography/device fidelity remains open.
 
 The **citation chain** (highest authority first):
 

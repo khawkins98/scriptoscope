@@ -21,10 +21,12 @@
 // to mountDeclarative({ themes }) — same shape as the existing
 // themes-manifest.json ({ slug, name, author?, year? }).
 
-import type { LoadedTheme } from '../types.js';
+import { themeView, type ThemeInput, type ThemeView } from '../ownedTheme.js';
 import type { ThemeEntry } from './theme.js';
 import { resolveInChain } from '../baseChain.js';
+import { listenUntilAborted } from '../listenUntilAborted.js';
 import { ICON_NAMES } from './icon.js';
+import { OwnedMutations } from './restoration.js';
 
 /** @deprecated 2026-05-30 — use {@link ThemeEntry} from `./theme.js` (now
  *  the single shape both the loader and the picker consume). Kept as a
@@ -36,7 +38,7 @@ export type PickerThemeEntry = ThemeEntry;
 export interface PickerDeps {
   /** Load a theme by slug — used to harvest each scheme's folder icon for
    *  the tile. Same shape as the resolver's `load` method. */
-  loadTheme(slug: string): Promise<LoadedTheme>;
+  loadTheme(slug: string): Promise<ThemeInput>;
   /** Optional folder-only decoder. Other tiles avoid full theme conversion. */
   loadIcon?(slug: string, primaryId: number, fallbackId: number): Promise<string | null>;
   /** Switch the page to a scheme. Same shape as handle.retheme. */
@@ -66,17 +68,12 @@ export async function promoteThemePicker(
 ): Promise<PromotedPicker | null> {
   if (el.dataset.scriptoscopeThemePickerPromoted != null) return null;
   if (!themes.length) return null;
-  el.dataset.scriptoscopeThemePickerPromoted = '';
+  const mutations = new OwnedMutations();
+  const setAttribute = (name: string, value: string): void => mutations.attribute(el, name, value);
+  setAttribute('data-scriptoscope-theme-picker-promoted', '');
   let disposed = false;
   let busyTimeout: ReturnType<typeof setTimeout> | undefined;
-  const removeListeners: Array<() => void> = [];
-  const listen = <K extends keyof HTMLElementEventMap>(
-    target: HTMLElement, type: K, listener: (event: HTMLElementEventMap[K]) => void,
-    options?: AddEventListenerOptions,
-  ): void => {
-    target.addEventListener(type, listener, options);
-    removeListeners.push(() => target.removeEventListener(type, listener, options));
-  };
+  const events = new AbortController();
   // Remove any STALE library-added tiles from a previous mount cycle.
   // The teardown clears the stamp but intentionally leaves the tile DOM
   // in place (consumer OFF-mode delegated handlers need the tiles
@@ -88,8 +85,8 @@ export async function promoteThemePicker(
   for (const stale of Array.from(el.querySelectorAll('.scriptoscope-theme-picker-tile'))) {
     stale.remove();
   }
-  el.setAttribute('role', 'tablist');
-  if (!el.hasAttribute('aria-label')) el.setAttribute('aria-label', `Theme picker, ${themes.length} themes`);
+  setAttribute('role', 'tablist');
+  if (!el.hasAttribute('aria-label')) setAttribute('aria-label', `Theme picker, ${themes.length} themes`);
   // Per-tile aria-busy lifecycle (already in place 2026-05-30) tells AT
   // when an individual tile's icon has decoded. The CONTAINER aria-busy
   // is the complementary signal — flipped false once the initial active
@@ -98,7 +95,7 @@ export async function promoteThemePicker(
   // now ready to interact with"; without it, an SR user reading the
   // strip during the picker's first ~600ms boot saw inconsistent state.
   // A11y reviewer P1 2026-05-30.
-  el.setAttribute('aria-busy', 'true');
+  setAttribute('aria-busy', 'true');
 
   // Per-tile icon: default 'system-folder' → -3983 (the warm-beige System
   // Folder), fall back to 'folder' → -3999 if a scheme doesn't ship it.
@@ -144,14 +141,14 @@ export async function promoteThemePicker(
       author.textContent = t.year ? `${t.author}, ${t.year}` : t.author;
       tile.append(author);
     }
-    listen(tile, 'click', () => { void deps.switchTheme(t.slug); });
+    listenUntilAborted(events.signal, tile, 'click', () => { void deps.switchTheme(t.slug); });
     el.appendChild(tile);
     tiles.set(t.slug, tile);
   }
 
   // Keyboard nav — the ARIA APG tablist pattern. Arrow/Home/End move focus +
   // activate the tile (consumers expect a single key to switch themes).
-  listen(el, 'keydown', (e) => {
+  listenUntilAborted(events.signal, el, 'keydown', (e) => {
     const all = [...el.querySelectorAll<HTMLButtonElement>('.scriptoscope-theme-picker-tile')];
     if (!all.length) return;
     const i = all.findIndex((t) => t === document.activeElement);
@@ -196,17 +193,20 @@ export async function promoteThemePicker(
   // now; re-expose if a real consumer hits a perf cliff that needs it.
   const concurrencyCap = 2;
   // Shared lookup: 32px preferred, else any size with the requested id.
-  const pickIn = (t: LoadedTheme, id: number) => {
+  const pickIn = (t: ThemeView, id: number) => {
     const idx = t.inspector?.iconIndex ?? [];
     return idx.find((i) => i.id === id && i.size === 32) ?? idx.find((i) => i.id === id);
   };
-  const pickInChain = (t: LoadedTheme) =>
-    resolveInChain(t, (x) => pickIn(x, primaryId) ?? pickIn(x, fallbackId));
+  const pickInChain = (t: ThemeView) => resolveInChain(t, (owner) => {
+    const hit = pickIn(owner, primaryId) ?? pickIn(owner, fallbackId);
+    return hit ? { source: hit.url ? owner.asset(hit.url) : undefined } : undefined;
+  });
   const iconFor = async (slug: string): Promise<string | null> => {
     // Reuse the active theme already loaded for page chrome. Background tiles
     // need only their folder icon, not hundreds of chrome/inspector assets.
     if (deps.loadIcon && slug !== deps.initialSlug) return deps.loadIcon(slug, primaryId, fallbackId);
-    return pickInChain(await deps.loadTheme(slug))?.url ?? null;
+    const source = pickInChain(themeView(await deps.loadTheme(slug)))?.source;
+    return source ? source.imageUrl() : null;
   };
   // Memoised fallback URL — the first valid folder icon found among
   // initialSlug / themes[]. Single search, reused for every sparse tile.
@@ -277,7 +277,7 @@ export async function promoteThemePicker(
           tiles.get(slug)?.setAttribute('aria-busy', 'false');
           if (slug === deps.initialSlug) {
             clearTimeout(busyTimeout);
-            el.setAttribute('aria-busy', 'false');
+            setAttribute('aria-busy', 'false');
           }
           // Yield to the main thread between decodes — requestIdleCallback
           // when available (Chrome/Firefox), setTimeout fallback (Safari).
@@ -304,11 +304,11 @@ export async function promoteThemePicker(
     // Bound the busy signal even if a loader never settles. Teardown owns
     // this timer so an earlier mount cannot mark a later mount ready.
     busyTimeout = setTimeout(() => {
-      if (!disposed) el.setAttribute('aria-busy', 'false');
+      if (!disposed) setAttribute('aria-busy', 'false');
     }, 3000);
     requestDecode(deps.initialSlug);
   } else {
-    el.setAttribute('aria-busy', 'false'); // no active tile to wait on
+    setAttribute('aria-busy', 'false'); // no active tile to wait on
   }
   // The other 17: decode on intersection (tile scrolls into view) OR on
   // click (keyboard nav / direct interaction). IntersectionObserver is
@@ -328,8 +328,8 @@ export async function promoteThemePicker(
     // No IntersectionObserver (very old browsers) — decode on hover/focus
     // instead of preloading everything.
     for (const [slug, tile] of tiles) {
-      listen(tile, 'mouseenter', () => requestDecode(slug), { once: true });
-      listen(tile, 'focus', () => requestDecode(slug), { once: true });
+      listenUntilAborted(events.signal, tile, 'mouseenter', () => requestDecode(slug), { once: true });
+      listenUntilAborted(events.signal, tile, 'focus', () => requestDecode(slug), { once: true });
     }
   }
   // Click is the universal fallback — even with IntersectionObserver, a
@@ -337,7 +337,7 @@ export async function promoteThemePicker(
   // the IO fires. This ensures its icon paints independently of full chrome
   // loading; theme selection itself still uses the resolver's full-theme cache.
   for (const [slug, tile] of tiles) {
-    listen(tile, 'click', () => requestDecode(slug));
+    listenUntilAborted(events.signal, tile, 'click', () => requestDecode(slug));
   }
 
   // Retain tiles for consumer OFF-mode delegation, but release this mount's
@@ -346,8 +346,7 @@ export async function promoteThemePicker(
     if (disposed) return;
     disposed = true;
     clearTimeout(busyTimeout);
-    for (const remove of removeListeners) remove();
-    removeListeners.length = 0;
+    events.abort();
     if (io) { io.disconnect(); io = null; }
     queued.clear();
     // Clear the promoted stamp so a subsequent mountDeclarative cycle
@@ -360,7 +359,7 @@ export async function promoteThemePicker(
     // pointing at the dead handle's retheme — picker active class +
     // URL would update but the WindowManager wouldn't retheme. The
     // 2026-05-31 "half-stuck" bug.
-    delete el.dataset.scriptoscopeThemePickerPromoted;
+    mutations.restore();
   };
   return { el, teardown };
 }

@@ -6,7 +6,8 @@ import { displayRealizer, assertDisplayProfileChain, type DisplayProfile } from 
 // passing `baseSlug` (e.g. `'apple-platinum-2'`) if they want a specific scheme as the backstop.
 
 import type { LoadedTheme } from '../types.js';
-import { loadTheme, type ThemeMeta } from '../loadTheme.js';
+import { loadTheme, loadOwnedTheme, type ThemeLoadOptions, type ThemeMeta } from '../loadTheme.js';
+import { themeView, type ThemeInput } from '../ownedTheme.js';
 import { themeRefToUrl } from './parse.js';
 
 /** One theme as both the picker and the loader need it. Single source of
@@ -62,14 +63,14 @@ export interface ThemeBootstrapOpts {
   themes?: readonly ThemeEntry[];
 }
 
-export interface ThemeResolver {
+export interface ThemeResolver<Theme extends ThemeInput = LoadedTheme> {
   /** Load a theme by ref (slug or url), with the universal base wired in if configured (cached). */
-  load(ref: string): Promise<LoadedTheme>;
+  load(ref: string): Promise<Theme>;
   /** Pre-seed the cache with an already-loaded theme under a synthetic ref. Used by drop-zones:
    *  decode a `.sit`/`.rsrc` in the browser → call `register(ref, theme)` → subsequent `load(ref)`
    *  hits the cache without ever fetching. The ref doesn't need to correspond to a real URL.
    *  An existing entry under the same key is overwritten (drop-newer-wins). */
-  register(ref: string, theme: LoadedTheme): void;
+  register(ref: string, theme: Theme): void;
   /** Release only internally loaded themes. Registered themes and their base
    * chains are borrowed. Idempotent; subsequent load/register calls fail and
    * pending loads clean up their own results before rejecting. */
@@ -79,21 +80,31 @@ export interface ThemeResolver {
 }
 
 export function createThemeResolver(opts: ThemeBootstrapOpts = {}): ThemeResolver {
+  return createResolver(opts, loadTheme);
+}
+
+/** Owned loads with borrowed legacy registrations supported by the same lifecycle. */
+export function createOwnedThemeResolver(opts: ThemeBootstrapOpts = {}): ThemeResolver<ThemeInput> {
+  return createResolver<ThemeInput>(opts, loadOwnedTheme);
+}
+
+function createResolver<Theme extends ThemeInput>(opts: ThemeBootstrapOpts,
+  load: (url: string, opts: ThemeLoadOptions & { base?: Theme }) => Promise<Theme>): ThemeResolver<Theme> {
   const displayProfile = opts.displayProfile;
   displayRealizer(displayProfile);
   const themeBaseUrl = opts.themeBaseUrl ?? '/themes';
   const baseSlug = opts.baseSlug; // undefined = no base
   const baseUrl = baseSlug ? themeRefToUrl(baseSlug, themeBaseUrl) : null;
-  const cache = new Map<string, Promise<LoadedTheme>>(); // keyed by resolved bundle URL
-  const owned = new Set<LoadedTheme>();
-  const borrowed = new WeakSet<LoadedTheme>();
+  const cache = new Map<string, Promise<Theme>>(); // keyed by resolved bundle URL
+  const owned = new Set<ThemeInput>();
+  const borrowed = new WeakSet<ThemeInput>();
   let disposed = false;
   const disposedError = () => new Error('ThemeResolver: disposed');
   // Registration borrows the whole graph, including a base that this resolver
   // previously loaded. The caller may keep rendering it after this mount ends.
-  const borrowChain = (theme: LoadedTheme): void => {
-    const seen = new Set<LoadedTheme>();
-    for (let t: LoadedTheme | undefined = theme; t && !seen.has(t); t = t.base) {
+  const borrowChain = (theme: ThemeInput): void => {
+    const seen = new Set<ThemeInput>();
+    for (let t: ThemeInput | undefined = theme; t && !seen.has(t); t = t.base) {
       seen.add(t);
       borrowed.add(t);
       owned.delete(t);
@@ -108,21 +119,21 @@ export function createThemeResolver(opts: ThemeBootstrapOpts = {}): ThemeResolve
   // slashes stripped. Works for both `/themes/1138` and `/themes/1138/`.
   const slugOfUrl = (url: string): string => url.replace(/\/+$/, '').split('/').pop() ?? '';
 
-  const loadByUrl = (url: string): Promise<LoadedTheme> => {
+  const loadByUrl = (url: string): Promise<Theme> => {
     if (disposed) return Promise.reject(disposedError());
     const cached = cache.get(url);
     if (cached) return cached;
-    const p = (async (): Promise<LoadedTheme> => {
+    const p = (async (): Promise<Theme> => {
       const base = (baseUrl && url !== baseUrl) ? await loadByUrl(baseUrl) : undefined;
       if (disposed) throw disposedError();
       // Source hints and complete sidecars are independent of picker labels.
       const hint = hintBySlug.get(slugOfUrl(url));
-      const loadOpts: Parameters<typeof loadTheme>[1] = {};
+      const loadOpts: ThemeLoadOptions & { base?: Theme } = {};
       if (base) loadOpts.base = base;
       if (displayProfile) loadOpts.displayProfile = displayProfile;
       if (hint?.source) loadOpts.source = hint.source;
       if (hint?.meta) loadOpts.meta = hint.meta;
-      const theme = await loadTheme(url, loadOpts);
+      const theme = await load(url, loadOpts);
       if (disposed) {
         if (!borrowed.has(theme)) theme.dispose?.();
         throw disposedError();
@@ -142,7 +153,7 @@ export function createThemeResolver(opts: ThemeBootstrapOpts = {}): ThemeResolve
     load: (ref) => loadByUrl(themeRefToUrl(ref, themeBaseUrl)),
     register: (ref, theme) => {
       if (disposed) throw disposedError();
-      assertDisplayProfileChain(theme, displayProfile);
+      assertDisplayProfileChain(themeView(theme), displayProfile);
       borrowChain(theme);
       cache.set(themeRefToUrl(ref, themeBaseUrl), Promise.resolve(theme));
     },

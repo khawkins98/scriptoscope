@@ -2,7 +2,7 @@
 // element is HIDDEN in place (not detached) so its form association — submit/reset, `<form>` wiring —
 // and its listeners all keep working; the skinned control simply forwards clicks to it.
 
-import type { LoadedTheme } from '../types.js';
+import type { ThemeInput } from '../ownedTheme.js';
 import { interactiveButton, disposeInteractiveControl } from '../interactive.js';
 import { parseButtonAttrs } from './parse.js';
 
@@ -34,7 +34,7 @@ function hideSourceOwned(el: HTMLElement): () => void {
   };
 }
 
-/** Internal scanner ownership: discard only this prepared/replaced face. */
+/** Release one replaced face while preserving the source and its current face. */
 export function disposePromotedButtonFace(el: HTMLElement, face: HTMLElement): void {
   ownedButtons.get(el)?.faces.delete(face);
   disposeInteractiveControl(face);
@@ -42,7 +42,7 @@ export function disposePromotedButtonFace(el: HTMLElement, face: HTMLElement): v
 }
 
 /** Release all committed faces, including one whose insertion queued an observer
- * before its async scanner caller resumed. Returns whether owned focus needs
+ * before its async caller resumed. Returns whether owned focus needs
  * restoring after enclosing windows have restored their consumer content. */
 export function restoreButton(el: HTMLElement): boolean {
   const owned = ownedButtons.get(el);
@@ -55,24 +55,23 @@ export function restoreButton(el: HTMLElement): boolean {
   return focused;
 }
 
-// Direct callers may prepare a disconnected fragment. Scanner-owned promotion supplies
+// Direct callers may prepare a disconnected fragment. Lifetime-bound promotion supplies
 // a lifetime signal and additionally requires a connected source at commit.
-export function promoteButton(el: HTMLElement, theme: LoadedTheme): Promise<HTMLElement>;
-export function promoteButton(el: HTMLElement, theme: LoadedTheme, signal: AbortSignal): Promise<HTMLElement | null>;
-export async function promoteButton(el: HTMLElement, theme: LoadedTheme, signal?: AbortSignal): Promise<HTMLElement | null> {
+export function promoteButton(el: HTMLElement, theme: ThemeInput): Promise<HTMLElement>;
+export function promoteButton(el: HTMLElement, theme: ThemeInput, signal: AbortSignal): Promise<HTMLElement | null>;
+export async function promoteButton(el: HTMLElement, theme: ThemeInput, signal?: AbortSignal): Promise<HTMLElement | null> {
   return prepareButton(el, theme, signal);
 }
 
-/** Internal scanner entry: validate mount/theme ownership at the synchronous
- * commit boundary. This is not re-exported from the public entry point. */
+/** Validate host/theme ownership at the synchronous commit boundary. */
 export function promoteOwnedButton(
-  el: HTMLElement, theme: LoadedTheme, signal: AbortSignal, canCommit: () => boolean,
+  el: HTMLElement, theme: ThemeInput, signal: AbortSignal, canCommit: () => boolean,
 ): Promise<HTMLElement | null> {
   return prepareButton(el, theme, signal, canCommit);
 }
 
 async function prepareButton(
-  el: HTMLElement, theme: LoadedTheme, signal?: AbortSignal, canCommit?: () => boolean,
+  el: HTMLElement, theme: ThemeInput, signal?: AbortSignal, canCommit?: () => boolean,
 ): Promise<HTMLElement | null> {
   if (signal?.aborted) return null;
   const parent = el.parentNode;
@@ -93,9 +92,14 @@ async function prepareButton(
     if (signal?.aborted) return null;
     throw error;
   }
-  if (signal && (signal.aborted || !el.isConnected || el.parentNode !== parent || canCommit?.() === false)) {
+  try {
+    if (signal && (signal.aborted || !el.isConnected || el.parentNode !== parent || canCommit?.() === false)) {
+      disposeInteractiveControl(skinned);
+      return null;
+    }
+  } catch (error) {
     disposeInteractiveControl(skinned);
-    return null;
+    throw error;
   }
   const aria = el.getAttribute('aria-label') ?? parsed.label;
   if (aria) skinned.setAttribute('aria-label', aria);

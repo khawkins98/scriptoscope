@@ -18,11 +18,46 @@
 // canvas-faced span sits as a sibling and takes focus + clicks, forwarding selection.
 // Without `data-scriptoscope-selected`, the first tab is the initial selection.
 
-import type { LoadedTheme } from '../types.js';
+import type { ThemeInput } from '../ownedTheme.js';
 import { composeTab, bufferToCanvas } from '../controls.js';
 import { debug } from '../debug.js';
+import { OwnedMutations } from './restoration.js';
 
 const generations = new WeakMap<HTMLElement, object>();
+const lifetimes = new WeakMap<HTMLElement, object>();
+const restorations = new WeakMap<HTMLElement, {
+  mutations: OwnedMutations;
+  positions: { tab: HTMLElement; parent: Node; next: Node | null; ownedNext: Node | null; ownedPrevious: Node | null }[];
+  tablist: HTMLElement;
+  generated: boolean;
+  faces: { tab: HTMLElement; face: HTMLElement }[];
+  listeners: AbortController;
+}>();
+
+/** Release tab promotion, callbacks and pending preparation without replacing native nodes. */
+export function restoreTabs(el: HTMLElement): void {
+  lifetimes.delete(el);
+  generations.delete(el);
+  const state = restorations.get(el);
+  if (!state) return;
+  restorations.delete(el);
+  state.listeners.abort();
+  const active = document.activeElement;
+  const focused = state.faces.find(({ face }) => face === active)?.tab;
+  const movable = new Set(state.positions.filter(({ tab, ownedNext, ownedPrevious }) =>
+    tab.parentNode === state.tablist && tab.nextSibling === ownedNext && tab.previousSibling === ownedPrevious));
+  for (const { tab, face } of state.faces) if (face !== tab) face.remove();
+  for (const position of [...state.positions].reverse()) {
+    const { tab, parent, next } = position;
+    if (movable.has(position) && parent !== state.tablist) {
+      parent.insertBefore(tab, next?.parentNode === parent ? next : null);
+    }
+  }
+  state.mutations.restore();
+  if (state.generated && !state.tablist.childNodes.length) state.tablist.remove();
+  focused?.focus({ preventScroll: true });
+}
+
 const STYLE_ID = 'scriptoscope-tabs-css';
 
 /** One-time stylesheet: layout for the tab strip + CSS fallback styling for the case where
@@ -36,7 +71,7 @@ function ensureTabsCSS(): void {
   // skinned span sibling carries the visual + focus.
   style.textContent = `
     [data-scriptoscope-tabs] { display: block; }
-    [data-scriptoscope-tabs][role="tablist"] > [role="tab"][data-scriptoscope-tab-skinned] {
+    [data-scriptoscope-tabs] > [data-scriptoscope-tablist] > [role="tab"][data-scriptoscope-tab-skinned] {
       display: inline-block; vertical-align: bottom; cursor: pointer; user-select: none;
       line-height: 0; outline-offset: 2px; margin-right: -2px; /* tabs visually overlap their bevels */
     }
@@ -68,12 +103,14 @@ function panelIdFor(tab: HTMLElement): string {
 /** Promote a [data-scriptoscope-tabs] wrapper. Idempotent — re-promoting a promoted wrapper is a no-op
  *  unless `forceRescan` is true (used by retheme to swap the canvas faces in-place). */
 export async function promoteTabs(
-  el: HTMLElement, theme: LoadedTheme, opts: { forceRescan?: boolean; signal?: AbortSignal } = {},
+  el: HTMLElement, theme: ThemeInput, opts: { forceRescan?: boolean; signal?: AbortSignal } = {},
 ): Promise<void> {
   if (!opts.forceRescan && el.dataset.scriptoscopeTabsPromoted != null) return;
   ensureTabsCSS();
+  let lifetime = lifetimes.get(el);
+  if (!lifetime) lifetimes.set(el, lifetime = {});
 
-  const tabs = Array.from(el.querySelectorAll<HTMLElement>(':scope > [data-scriptoscope-tab]'));
+  const tabs = Array.from(el.querySelectorAll<HTMLElement>(':scope > [data-scriptoscope-tab], :scope > [data-scriptoscope-tablist] > [data-scriptoscope-tab]'));
   const panels = Array.from(el.querySelectorAll<HTMLElement>(':scope > [data-scriptoscope-panel]'));
   if (tabs.length === 0) return;
 
@@ -88,25 +125,53 @@ export async function promoteTabs(
     buffers = await Promise.all(tabs.map(tab => composeTab(theme, {
       label: tab.textContent ?? '', selected: panelIdFor(tab) === selectedId,
     })));
-    if (opts.signal?.aborted) return;
+    if (opts.signal?.aborted || lifetimes.get(el) !== lifetime) return;
     if (!opts.forceRescan || selectedNow() === selectedId) break;
     selectedId = selectedNow();
   }
   if (opts.signal && (opts.signal.aborted || !el.isConnected)) return;
   const generation = {};
   generations.set(el, generation);
-  const oldFaces = Array.from(el.querySelectorAll<HTMLElement>(':scope > [data-scriptoscope-tab-skinned]'));
+  const oldFaces = Array.from(el.querySelectorAll<HTMLElement>(':scope > [data-scriptoscope-tablist] > [data-scriptoscope-tab-skinned]'));
   const focusedIndex = tabs.findIndex((tab, i) => document.activeElement === tab || document.activeElement === oldFaces[i]);
+  let state = restorations.get(el);
+  state?.listeners.abort();
+  const mutations = state?.mutations ?? new OwnedMutations();
+  const set = (node: HTMLElement, name: string, value: string | null): void => mutations.attribute(node, name, value);
   if (opts.forceRescan) {
-    for (const old of el.querySelectorAll(':scope > [data-scriptoscope-tab-skinned]')) old.remove();
+    for (const old of oldFaces) old.remove();
     for (const tab of tabs) {
-      tab.style.display = '';
-      delete tab.dataset.scriptoscopePromoted;
-      delete tab.dataset.scriptoscopeTabFallback;
+      mutations.display(tab, '');
+      set(tab, 'data-scriptoscope-promoted', null);
+      set(tab, 'data-scriptoscope-tab-fallback', null);
     }
   }
-  el.setAttribute('role', 'tablist');
-  el.setAttribute('aria-orientation', 'horizontal');
+  // A tablist owns only tab controls, never tabpanels. Keep the authored
+  // wrapper/panels and native button identities; generate the semantic strip.
+  let tablist = el.querySelector<HTMLElement>(':scope > [data-scriptoscope-tablist]');
+  const generated = !tablist;
+  if (!tablist) {
+    tablist = document.createElement('div');
+    tablist.dataset.scriptoscopeTablist = '';
+    el.insertBefore(tablist, tabs[0]!);
+  }
+  if (!state) {
+    state = { mutations, tablist, generated,
+      positions: tabs.map(tab => ({ tab, parent: tab.parentNode!, next: tab.nextSibling,
+        ownedNext: null, ownedPrevious: null })),
+      faces: [], listeners: new AbortController() };
+    restorations.set(el, state);
+  } else state.listeners = new AbortController();
+  const listenerOptions = { signal: state.listeners.signal };
+  set(el, 'role', 'group');
+  set(el, 'aria-orientation', null);
+  set(tablist, 'role', 'tablist');
+  set(tablist, 'aria-orientation', 'horizontal');
+  for (const name of ['aria-label', 'aria-labelledby']) {
+    const value = el.getAttribute(name);
+    set(tablist, name, value);
+  }
+  for (const tab of tabs) tablist.appendChild(tab);
 
   // Stamp ids onto tabs + panels so aria-labelledby / aria-controls can cross-reference. We use
   // explicit IDs derived from data-scriptoscope-tab so multiple tablists on a page don't collide.
@@ -115,10 +180,10 @@ export async function promoteTabs(
   const panelElId = (panelId: string): string => `${localPrefix}panel-${panelId}`;
   for (const panel of panels) {
     const id = panel.dataset.scriptoscopePanel ?? '';
-    panel.setAttribute('role', 'tabpanel');
-    panel.setAttribute('aria-labelledby', tabElId(id));
-    if (!panel.id) panel.id = panelElId(id);
-    panel.hidden = id !== selectedId;
+    set(panel, 'role', 'tabpanel');
+    set(panel, 'aria-labelledby', tabElId(id));
+    if (!panel.id) set(panel, 'id', panelElId(id));
+    set(panel, 'hidden', id !== selectedId ? '' : null);
   }
 
   // Track the skinned faces so we can swap them on selection change + re-skin on retheme.
@@ -131,10 +196,12 @@ export async function promoteTabs(
     selectedId = newId;
     for (const s of skinned) {
       const isSel = s.panelId === newId;
-      s.tab.setAttribute('aria-selected', isSel ? 'true' : 'false');
-      s.tab.setAttribute('tabindex', isSel ? '0' : '-1');
-      s.face.setAttribute('aria-selected', isSel ? 'true' : 'false');
-      s.face.setAttribute('tabindex', isSel ? '0' : '-1');
+      set(s.tab, 'aria-selected', isSel ? 'true' : 'false');
+      set(s.tab, 'tabindex', isSel ? '0' : '-1');
+      if (s.face !== s.tab) {
+        s.face.setAttribute('aria-selected', isSel ? 'true' : 'false');
+        s.face.setAttribute('tabindex', isSel ? '0' : '-1');
+      }
       // Swap the canvas face if we're using the themed path. CSS fallback uses [aria-selected]
       // selectors on the native button, so no canvas swap needed there.
       if (s.face.tagName === 'SPAN') {
@@ -144,7 +211,7 @@ export async function promoteTabs(
       }
     }
     for (const panel of panels) {
-      panel.hidden = (panel.dataset.scriptoscopePanel ?? '') !== newId;
+      set(panel, 'hidden', (panel.dataset.scriptoscopePanel ?? '') !== newId ? '' : null);
     }
   };
 
@@ -153,8 +220,8 @@ export async function promoteTabs(
     const tab = tabs[i] as HTMLElement;
     const panelId = panelIdFor(tab);
     const isSel = panelId === selectedId;
-    tab.id = tab.id || tabElId(panelId);
-    tab.setAttribute('aria-controls', panelElId(panelId));
+    if (!tab.id) set(tab, 'id', tabElId(panelId));
+    set(tab, 'aria-controls', panelElId(panelId));
     const buf = buffers[i];
 
     let face: HTMLElement;
@@ -170,19 +237,25 @@ export async function promoteTabs(
       const aria = tab.getAttribute('aria-label') ?? tab.textContent ?? '';
       if (aria) face.setAttribute('aria-label', aria);
       face.append(bufferToCanvas(buf, 1));
-      tab.style.display = 'none';
-      tab.dataset.scriptoscopePromoted = ''; // mark so the button scanner skips it
+      mutations.display(tab, 'none');
+      set(tab, 'data-scriptoscope-promoted', ''); // mark so the button scanner skips it
       tab.after(face);
     } else {
       // CSS fallback: stay on the native button, mark it for the fallback stylesheet.
-      tab.dataset.scriptoscopeTabFallback = '';
-      tab.setAttribute('role', 'tab');
-      tab.setAttribute('aria-selected', isSel ? 'true' : 'false');
-      tab.setAttribute('tabindex', isSel ? '0' : '-1');
+      set(tab, 'data-scriptoscope-tab-fallback', '');
+      set(tab, 'role', 'tab');
+      set(tab, 'aria-selected', isSel ? 'true' : 'false');
+      set(tab, 'tabindex', isSel ? '0' : '-1');
       face = tab; // the native button IS the face in fallback
     }
 
     skinned.push({ tab, face, panelId });
+  }
+
+  state.faces = skinned;
+  for (const position of state.positions) {
+    position.ownedNext = position.tab.nextSibling;
+    position.ownedPrevious = position.tab.previousSibling;
   }
 
   // Wire click + keyboard on every face. Roving tabindex: only the selected face has tabindex=0,
@@ -203,7 +276,7 @@ export async function promoteTabs(
       e.preventDefault();
       void setSelected(panelId);
       face.focus();
-    });
+    }, listenerOptions);
     face.addEventListener('keydown', (e) => {
       switch (e.key) {
         case 'ArrowLeft':  e.preventDefault(); focusTabAt(myIndex - 1); break;
@@ -214,10 +287,10 @@ export async function promoteTabs(
         case 'Enter':      e.preventDefault(); void setSelected(panelId); break;
         default: break;
       }
-    });
+    }, listenerOptions);
   }
 
   if (focusedIndex >= 0) skinned[focusedIndex]?.face.focus({ preventScroll: true });
-  el.dataset.scriptoscopeTabsPromoted = '';
+  set(el, 'data-scriptoscope-tabs-promoted', '');
   debug('promote', `tabs: ${tabs.length} tabs, selected=${selectedId}`);
 }

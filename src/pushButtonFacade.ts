@@ -1,10 +1,9 @@
 // Public push adapter: browser allocation, declared context and font/display
 // policies around the source-backed engine callback (push-button.md §2/§5/§6).
 import type { ButtonOptions } from './controls.js';
-import type { LoadedTheme, ChromeElement } from './types.js';
+import { assertThemeAlive, type ThemeView } from './ownedTheme.js';
+import type { ChromeElement } from './types.js';
 import { PixelBuffer } from './pixelBuffer.js';
-import { assetUrl } from './loadTheme.js';
-import { loadCicnBuffer } from './cicnImage.js';
 import { resolveInChain } from './baseChain.js';
 import { snapshotControlComposition, controlPointVisible, recordButtonFaceStage, type ButtonComposition, type ControlCompositionSnapshot } from './controlComposition.js';
 import { prepareBitmapGlyphRun, type BitmapGlyphRun } from './preparedBitmapFont.js';
@@ -19,11 +18,11 @@ import { rect } from './engine/qd/rect.js';
 import { prepareCinfFrameSamples, type CinfIconSource, type CinfRecord } from './engine/qd/cinfFrame.js';
 import type { Rgba } from './engine/qd/types.js';
 import { normalizeControlState } from './engine/state/control.js';
-import { drawPushButton, type PushLabelPass } from './engine/families/pushButton.js';
+import { drawPreparedPushButton, type PushLabelPass } from './engine/families/pushButton.js';
 import { PUSH_BUTTON as P, PUSH_FACADE as F, PUSH_PRESSED_PARTS } from './engine/tables/pushButton.js';
 
 const alive = (signal?: AbortSignal): void => { if (signal?.aborted) throw new DOMException('Control preparation aborted', 'AbortError'); };
-function faceEntry(theme: LoadedTheme, id: number): { theme: LoadedTheme; element: ChromeElement; key: string; chainDepth: number } | undefined {
+function faceEntry(theme: ThemeView, id: number): { theme: ThemeView; element: ChromeElement; key: string; chainDepth: number } | undefined {
   let chainDepth = -1;
   return resolveInChain(theme, t => {
     chainDepth++;
@@ -32,10 +31,10 @@ function faceEntry(theme: LoadedTheme, id: number): { theme: LoadedTheme; elemen
   });
 }
 /** Exact signed identity; no author-label, alias or different-state art inference. */
-export async function loadEnginePushFace(theme: LoadedTheme, state: 'active' | 'pressed' | 'inactive'): Promise<PixelBuffer | null> {
+export async function loadEnginePushFace(theme: ThemeView, state: 'active' | 'pressed' | 'inactive'): Promise<PixelBuffer | null> {
   const id = state === 'inactive' ? P.PB5.resource : state === 'pressed' ? P.PB6.resource : P.PB7.resource;
   const entry = faceEntry(theme, id);
-  return entry ? loadCicnBuffer(assetUrl(entry.theme, entry.element.asset)) : null;
+  return entry ? entry.theme.asset(entry.element.asset).pixels() : null;
 }
 const css = (p: Rgba): string => `rgb(${p.r}, ${p.g}, ${p.b})`;
 
@@ -54,7 +53,7 @@ function browserFont(size: number, label: string) {
 
 /** Preserve the admitted standalone cinf-only environment. It is a caller
  * declaration, never a claim about the historical cicn file or search chain. */
-function declaredEnvironment(theme: LoadedTheme, element: ChromeElement, id: number, opts: ButtonOptions,
+function declaredEnvironment(theme: ThemeView, element: ChromeElement, id: number, opts: ButtonOptions,
   diagnostics?: ControlTraceCollector) {
   const prepared = snapshotBodyCinfFace(theme.manifest, element);
   if (!prepared && !theme.manifest.cinfEnvironment) return undefined;
@@ -72,7 +71,7 @@ function declaredEnvironment(theme: LoadedTheme, element: ChromeElement, id: num
     reject('cinf-environment-text-outputs-unavailable');
   diagnostics?.record({ role: 'face', requestedId: id, action: view!.status === 'ready' ? 'selected' : 'missing',
     reason: 'declared-cinf-role-view', basis: 'compatibility-policy', usage: 'admission',
-    owner: { baseUrl: theme.baseUrl, chainDepth: 0 }, cinfLookup: lookup });
+    owner: { baseUrl: theme.origin, chainDepth: 0 }, cinfLookup: lookup });
   let record: CinfRecord | null = null;
   if (metadata?.slice && metadata.bodyRequest && metadata.bgAnchor && metadata.textAnchor && metadata.embossAnchor) {
     record = { cornerSize: metadata.slice.corner, sideThickness: metadata.slice.side, tileSides: metadata.slice.tile ? 1 : 0,
@@ -136,13 +135,14 @@ function publishEngineTrace(trace: EngineTrace, collector?: ControlTraceCollecto
     reason: op.unsupported ? `${op.unsupported}` : `${op.row}: ${op.unspecified ?? op.unimplemented}` });
 }
 
-export async function composeEnginePush(theme: LoadedTheme, opts: ButtonOptions = {}, signal?: AbortSignal,
+export async function composeEnginePush(theme: ThemeView, opts: ButtonOptions = {}, signal?: AbortSignal,
   preparedContext?: ControlCompositionSnapshot): Promise<ButtonComposition | null> {
+  const current = (): void => { alive(signal); assertThemeAlive(theme); };
   let result: ButtonComposition | null = null;
   const state = opts.disabled ? 'disabled' : opts.pressed ? 'pressed' : 'normal';
   await withControlDiagnostics(opts.diagnostics, 'push-button', { state: state === 'normal' ? 'active' : state === 'disabled' ? 'inactive' : state,
     pressed: !!opts.pressed, disabled: !!opts.disabled, default: !!opts.default }, async diagnostics => {
-    alive(signal);
+    current();
     let composition = preparedContext ?? snapshotControlComposition(opts.compositionContext);
     if (opts.bitmapFont && composition.basis === 'compatibility-default') composition = Object.freeze({ ...composition, clip: Object.freeze({ kind: 'unbounded' as const }) });
     const run: BitmapGlyphRun | undefined = opts.bitmapFont ? prepareBitmapGlyphRun(opts.bitmapFont, opts.label ?? '', opts.fontSize, composition) : undefined;
@@ -196,7 +196,7 @@ export async function composeEnginePush(theme: LoadedTheme, opts: ButtonOptions 
           composition.clip.rect.x + composition.clip.rect.w - composition.controlOrigin[0]) } : {}),
         ...(declared?.metadata?.bodyRequest
         ? { requests: [{ type: 'ppat', id: declared.metadata.bodyRequest.resourceId }] } : {}) } });
-    alive(signal);
+    current();
     if (declared) {
       const parent = chain.providers[0]!;
       chain = new ResourceChain([{ name: `declared:${declared.view.bindingId}`, tier: 'archive',
@@ -243,7 +243,7 @@ export async function composeEnginePush(theme: LoadedTheme, opts: ButtonOptions 
       } else if (browser) browserPass(out, pass, browser.font, opts.fg);
     };
     try {
-      const drawn = drawPushButton(out, chain, { rect: D, hilite: native.hilite, visible: true, defaultDataValid: true,
+      const drawn = drawPreparedPushButton(out, chain, { rect: D, hilite: native.hilite, visible: true, defaultDataValid: true,
         defaultFlag: opts.default ? 1 : 0, depth: 32, lowDepth: false, label }, {
         ...(labelOverride ? { labelOverride } : {}),
         ...(metrics ? { fontMetrics: metrics } : {}), textWidth: text => run ? run.advance : browser?.width(text) ?? 0, drawLabel,
@@ -265,9 +265,11 @@ export async function composeEnginePush(theme: LoadedTheme, opts: ButtonOptions 
           sampleFallbackReason: null, labelPainted: !!label && !label.endsWith('\r'), deviceMode: 'full-color-policy',
           sourceManifestKey: entry.key, sourceOwnerDepth: entry.chainDepth });
       }
-      for (let y = 0; y < out.height; y++) for (let x = 0; x < out.width; x++)
-        if (!controlPointVisible(composition, x - outset, y - outset)) out.setPixel(x, y, 0, 0, 0, 0);
-      alive(signal);
+      if (composition.clip.kind === 'rect') {
+        for (let y = 0; y < out.height; y++) for (let x = 0; x < out.width; x++)
+          if (!controlPointVisible(composition, x - outset, y - outset)) out.setPixel(x, y, 0, 0, 0, 0);
+      }
+      current();
       result = { buffer: out, layout: { faceRect: { x: outset, y: outset, w: width, h: height } } };
       recordButtonFaceStage(result, drawn.face?.drawn === true);
       return out;

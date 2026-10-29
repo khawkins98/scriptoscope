@@ -1,0 +1,9 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Decoded raster transport spike</title>
+<p>Running push-button transport comparison…</p>
+<pre id="result"></pre>
+<script type="module">
+if (new URLSearchParams(location.search).has('production')) import('./production.mjs');
+else import('./spike.mjs');
+</script>

@@ -1,6 +1,6 @@
 import { composeButtonWithLayout, bufferToCanvas, type ButtonOptions } from './controls.js';
 import { snapshotControlComposition, buttonFaceStageUnavailable, type ButtonComposition, type ControlCompositionContext, type ControlCompositionSnapshot } from './controlComposition.js';
-import type { LoadedTheme } from './types.js';
+import type { ThemeInput } from './ownedTheme.js';
 import type { ManagedControlPort, ManagedPortMeasurement } from './managedContentPort.js';
 
 interface Pair { normal: ButtonComposition; pressed: ButtonComposition; }
@@ -24,7 +24,7 @@ const alive = (signal?: AbortSignal): void => {
 };
 
 /** Internal preparation seam; public detached interactiveButton remains supported. */
-export async function prepareButtonPainter(theme: LoadedTheme, options: ButtonOptions, scale: number, signal?: AbortSignal): Promise<ButtonPainter | null> {
+export async function prepareButtonPainter(theme: ThemeInput, options: ButtonOptions, scale: number, signal?: AbortSignal): Promise<ButtonPainter | null> {
   const initial = snapshotControlComposition(options.compositionContext);
   const prepare = async (context: ControlCompositionSnapshot, lifetime?: AbortSignal): Promise<Pair | null> => {
     alive(lifetime);

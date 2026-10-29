@@ -1,14 +1,9 @@
 import { snapshotCicnTransfer, type CicnTransferOption } from '../tools/theme-loader/cicn-transfer-results.js';
 import { assertCinfEnvironment, CinfEnvironmentError, type PreparedCinfEnvironment } from '../tools/theme-loader/cinf-environment.js';
 import { displayRealizer, assertDisplayProfileChain, type DisplayProfile } from '../tools/theme-loader/display-profile.js';
-import type { LoadedTheme, ChromeElement } from './types.js';
-import { loadKaleidoscopeScheme } from '../tools/theme-loader/loadKaleidoscopeScheme.js';
-import { engineCinfIds, engineIconBlitCicnIds, engineCheckableIconIds } from './engine/resources/ids.js';
-
-/** cicns any engine family draws with the icon blit (registered in src/engine/tables/loaderNeeds.ts). */
-const ICON_BLIT_CICN_IDS = engineIconBlitCicnIds();
-const ENGINE_CINF_IDS = engineCinfIds();
-const CHECKABLE_ICON_IDS = engineCheckableIconIds();
+import type { LoadedTheme } from './types.js';
+import { loadKaleidoscopeScheme, loadOwnedKaleidoscopeScheme } from './loadKaleidoscopeScheme.js';
+import { themeView, type ThemeInput, type OwnedTheme } from './ownedTheme.js';
 
 /**
  * The shape of `themes/<slug>/meta.json` — author + provenance metadata
@@ -54,10 +49,22 @@ export interface ThemeMeta {
  * for community authors whose redistribution terms specify "keep the
  * original archive intact." Now the bundle IS the original archive.
  */
-export async function loadTheme(
+export interface ThemeLoadOptions {
+  source?: string; meta?: ThemeMeta; provenance?: boolean; cicnTransfer?: CicnTransferOption;
+  displayProfile?: DisplayProfile; cinfEnvironment?: PreparedCinfEnvironment; sliderLayoutEnvironment?: PreparedCinfEnvironment;
+}
+export function loadTheme(bundleUrl: string, opts: ThemeLoadOptions & { base?: LoadedTheme } = {}): Promise<LoadedTheme> {
+  return loadBundle(bundleUrl, opts, false) as Promise<LoadedTheme>;
+}
+export function loadOwnedTheme(bundleUrl: string, opts: ThemeLoadOptions & { base?: ThemeInput } = {}): Promise<OwnedTheme> {
+  return loadBundle(bundleUrl, opts, true) as Promise<OwnedTheme>;
+}
+
+async function loadBundle(
   bundleUrl: string,
-  opts: { base?: LoadedTheme; source?: string; meta?: ThemeMeta; provenance?: boolean; cicnTransfer?: CicnTransferOption; displayProfile?: DisplayProfile; cinfEnvironment?: PreparedCinfEnvironment; sliderLayoutEnvironment?: PreparedCinfEnvironment } = {},
-): Promise<LoadedTheme> {
+  opts: ThemeLoadOptions & { base?: ThemeInput },
+  owned: boolean,
+): Promise<LoadedTheme | OwnedTheme> {
   const displayProfile = opts.displayProfile;
   const cicnTransfer = snapshotCicnTransfer(opts.cicnTransfer, displayProfile);
   const cinfEnvironment = opts.cinfEnvironment;
@@ -67,7 +74,7 @@ export async function loadTheme(
   if ((cinfEnvironment || sliderLayoutEnvironment) && opts.base) throw new CinfEnvironmentError('Cinf environment requires standalone load', 'UNSUPPORTED_CINF_ENVIRONMENT');
   const base = opts.base;
   displayRealizer(displayProfile);
-  assertDisplayProfileChain(base, displayProfile);
+  assertDisplayProfileChain(base ? themeView(base) : undefined, displayProfile);
   const baseUrl = bundleUrl.replace(/\/$/, '');
 
   // Try the StuffIt archive first (the original `.sit` the author published — the
@@ -92,7 +99,7 @@ export async function loadTheme(
   }
 
   const slug = baseUrl.split('/').filter(Boolean).pop() ?? 'theme';
-  const loaded = await loadKaleidoscopeScheme(fileBytes.bytes, {
+  const loaded = await (owned ? loadOwnedKaleidoscopeScheme : loadKaleidoscopeScheme)(fileBytes.bytes, {
     meta: { name: meta.name ?? slug, ...meta },
     source: `${slug}/${fileBytes.filename}`,
     ...(cinfEnvironment ? { cinfEnvironment } : {}),
@@ -100,11 +107,9 @@ export async function loadTheme(
     ...(opts.provenance ? { provenance: true } : {}),
     ...(displayProfile ? { displayProfile } : {}),
     ...(cicnTransfer ? { cicnTransfer } : {}),
-    iconBlitCicnIds: ICON_BLIT_CICN_IDS, unmaskedIconIds: CHECKABLE_ICON_IDS,
-    engineCinfIds: ENGINE_CINF_IDS,
   });
 
-  try { assertDisplayProfileChain(base, displayProfile); } catch (error) { loaded.dispose?.(); throw error; }
+  try { assertDisplayProfileChain(base ? themeView(base) : undefined, displayProfile); } catch (error) { loaded.dispose?.(); throw error; }
 
   // Preserve the bundle URL as the LoadedTheme's `baseUrl`. The decoder default is
   // `''` (asset refs are already blob: URLs — assetUrl() passes them through
@@ -112,10 +117,15 @@ export async function loadTheme(
   // (the demo's icon / desktop-pattern memoisation, the WindowManager's theme tag).
   // Leaving it `''` meant every theme shared the same key → the FIRST theme's icons
   // leaked into every other theme's Scene preview (the 1138-folders-in-1984 bug).
+  if ('kind' in loaded && loaded.kind === 'owned-theme') {
+    loaded.origin = baseUrl;
+    if (base) loaded.base = base;
+    return loaded;
+  }
   return {
-    ...loaded,
+    ...loaded as LoadedTheme,
     baseUrl,
-    ...(base ? { base } : {}),
+    ...(base ? { base: base as LoadedTheme } : {}),
   };
 }
 
@@ -184,27 +194,4 @@ function looksLikeArchiveOrFork(b: Uint8Array): boolean {
   return false;
 }
 
-/** Resolve a manifest asset ref to a fetchable URL. A ref that's ALREADY an absolute
- *  URL (`blob:`/`http(s):`/`data:`) passes through unchanged — that's how an IN-MEMORY
- *  theme works: `loadKaleidoscopeScheme` converts a dropped scheme and rewrites every
- *  asset ref (and glyph) to an OffscreenCanvas `blob:` URL, so the runtime renders it
- *  with no `baseUrl` fetch. A bundle-relative path is resolved against `baseUrl` as before. */
-export function assetUrl(theme: LoadedTheme, relativePath: string): string {
-  if (/^(?:blob:|https?:|data:)/.test(relativePath)) return relativePath;
-  return `${theme.baseUrl}/${relativePath}`;
-}
-
-/** Look up the chromeElement whose `asset` matches a path or URL. Compares strings —
- *  works for both legacy relative paths (`cicns/cicn-….png`) and the in-memory blob:
- *  URLs (both `chromeElement.asset` AND a windowType's `chrome.active` get rewritten
- *  to the same blob URL when they reference the same resource, so string equality
- *  still resolves correctly). For id-based lookup, see `elementById` in controls.ts. */
-export function findChromeElement(
-  theme: LoadedTheme,
-  assetRefOrUrl: string,
-): ChromeElement | undefined {
-  for (const el of Object.values(theme.manifest.chromeElements)) {
-    if (el.asset === assetRefOrUrl) return el;
-  }
-  return undefined;
-}
+export { assetUrl, findChromeElement } from './ownedTheme.js';

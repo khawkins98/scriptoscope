@@ -7,6 +7,118 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+The approved next pre-launch target is **0.7.0**; these changes remain
+**Unreleased** until the release cut. `v2` is an internal development branch
+label, not public release 2.0 or a 1.0 threshold. Package metadata remains
+**0.6.0**; version bumps, tags, publishing and deployment are separate release
+steps tracked under [#168](https://github.com/khawkins98/scriptoscope/issues/168). See the
+[integration and migration guide](docs/v2/integration-release-notes.md) for source
+identity, installation, compatibility actions and remaining release gates.
+
+### Added
+
+- An integrated capability collection demonstrates live windows, controls and
+  keyboard tabs, whole-header results, column helpers, decoded assets and
+  reproducible runtime traces across schemes. Procedural menu samples, missing
+  theme resources and the absence of a scheme-cursor API are labeled explicitly;
+  the coverage map records example and diagnostic gaps.
+
+- Owned decoded-raster loading through `loadOwnedTheme` and
+  `loadOwnedKaleidoscopeScheme`, with asynchronous image export and explicit
+  disposal (#480). Existing eager `LoadedTheme` loaders remain supported.
+- Optional `scriptoscope/renderer` package entry for consumers that already have
+  a theme; it shares rendering identities with the full root entry (#489).
+
+### Changed
+
+- **Breaking, merged in #484:** retire `interactiveCheckbox`, `radioGroup` and
+  their corresponding option types in favor of native inputs, labels and
+  `change` listeners through explicit promotion. Standalone owned-theme consumers
+  can mount an empty attached root,
+  register a borrowed theme, then append and explicitly attach controls; disconnect
+  before replacement. Disconnect does not dispose registered borrowed themes. See the README migration
+  example.
+- In the same change, retain `interactiveButton` and its options while returning
+  a native `type="button"` element. Native activation, focus, disabled fieldsets
+  and `.click()` apply; Enter may activate on keydown. Former wrapper/ARIA markup
+  and pointerup/keyup callback timing are not guaranteed. Closed selects retain
+  native interaction with passive themed art. Low-level composition/raster APIs,
+  managed button binding and standalone sliders/scrollbars remain available.
+- **Breaking, merged in #491:** remove `mountDeclarative`,
+  `mountOwnedDeclarative` and their mount-specific types. Applications now own
+  source selection, attachment, theme replacement and teardown. Use public
+  promotion/restoration primitives or the separate `mountExplicitPage` example
+  helper; detach before source moves/removal and disconnect before root replacement.
+  See [explicit host migration](EXPLICIT-HOST-API.md).
+- Shared raster execution and redraw preserve native content interaction during
+  resize (#493). Prepared header/push paths and title measurement were consolidated
+  (#490, #494–#497); procedural frame data follows its existing lazy boundary
+  (#501). These are bounded changes, not a whole-application performance claim.
+- Custom push allocators must not rely on incidental dimension getter reads
+  removed with a no-op scan (#497); see [allocator compatibility](docs/push-allocator-compatibility.md).
+- Incidental minifier-generated function/constructor name strings may vary under
+  the narrow [generated-name policy](docs/generated-name-compatibility.md) (#507).
+  Export identifiers, import paths, identity relationships and explicit errors
+  remain protected; no broader metadata-timing retirement is granted.
+- Whole-header and list-column composition use typed engine drivers while
+  keeping their public signatures and separate rendering contracts. Native
+  window/list-view geometry stays distinct from modern column layout and labels;
+  the replaced header painters are removed. Input snapshots retain their selected
+  owner and prepared display-profile capability across asset decoding.
+- Header diagnostics attribute completed writes, and empty clips or fully clear
+  sampled bands avoid unused color/companion realization. Profile-chain checks,
+  structural validation and real decode failures remain visible. Original fonts,
+  resource-manager fallback, device state and sort interaction remain outside
+  the supported header contract.
+- Segmented tabs use a cited engine driver for full-source end strips, sampled
+  bands and separate solid or patterned centers (#378). Pattern phase follows
+  the incoming outer tab rectangle; the replaced three-slice fallback and
+  tab-body helper are removed. Public selection, label sizing and contrast stay
+  explicit modern policies; control-panel fallback artwork remains excluded.
+- Unsupported tab metadata, sampling or patterns return null with distinct
+  diagnostics instead of drawing the legacy body. Declared no-cinf inputs,
+  unknown metadata and missing art remain distinguishable. Older manifests use
+  the documented tab-only transport conventions in `docs/spec/engine/tab.md`;
+  these declarations do not establish original resource or mask provenance.
+  Native typography, device rendering and whole-control fidelity remain unknown.
+
+### Fixed
+
+- Story desk windows account for their authored padding before promotion,
+  avoiding initial growth and changed wrapping (#516). Runtime behavior is unchanged.
+- Demo loading states and reading-page windows are integrated, and window
+  dragging uses correct coordinates when the page is scrolled (#510).
+- Secondary and auxiliary clicks no longer invoke themed button primary actions
+  through the imperative or promoted path; primary clicks, Space and Enter retain
+  activation.
+- Keep declarative tab panels outside the semantic tab list. The generated strip
+  preserves native button identity, keyboard selection and retheme behavior while
+  giving assistive technology the correct tab/panel structure.
+- Keep visible title-widget buttons reachable when an enlarged WindowManager
+  resize target overlaps them, including 1138's template-width side-floating
+  utility window (#381). This is a modern web interaction policy; decoded
+  original grow-before-widget precedence is unchanged. Ordinary pointer and
+  keyboard resize remain available.
+
+### Coverage and remaining limits
+
+- Optional visual contract maintenance (#482, completing #481) adds coverage,
+  not runtime behavior or full native fidelity. The Windows 95 titlebar reference
+  (#492) adds a bounded original-condition reference, with **zero exact browser
+  pixel oracles**; font/provider/metrics and geometry questions remain unresolved.
+- PRs #475 (Studio), #483 (bevel experiment) and #500 (header/allocator prototype)
+  are closed **unmerged**. They are not delivered features. Later optimization
+  audit records do not establish additional runtime savings.
+- Required checks on the final integration candidate and an actual deployment
+  smoke check remain release gates. Earlier branch checks certify their own
+  revisions; the public Pages site does not yet represent this candidate.
+
+### Contributor workflow
+
+- Document focused reproduction and spec checks, a small stable team, reviewer
+  continuity, provenance preflight, targeted iteration and one final integrated
+  validation chain. Required CI and independent evidence/review gates remain.
+
 ## [0.6.0] — 2026-10-23
 
 Fifth incremental release from the `v2` integration branch (#459), moving push

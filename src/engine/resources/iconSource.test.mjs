@@ -6,7 +6,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 const { cicnIconSource, sameOccurrence, OPAQUE_COMPANION_MISMATCH } = await import('./iconSource.ts');
-const { iconBlit } = await import('../qd/region.ts');
+const { iconBlit } = await import('../../raster.ts');
 const { createTrace } = await import('../trace.ts');
 
 // 2 x 1 icon: pixel 0 mask set (red), pixel 1 mask clear with stored colour green.

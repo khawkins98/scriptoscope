@@ -2,9 +2,9 @@
 // Sources: 0x66e8..0x7420, 0xf4ba..0xf68a. Native font/device outputs
 // remain provider inputs; archive/base selection is a separate caller policy.
 import type { Pixmap, QdRect, Rgba } from '../qd/types.js';
-import type { IconSource } from '../qd/region.js';
-import { cornerBlit } from '../qd/scale.js';
-import { transferBits } from '../qd/transfer.js';
+import type { IconSource } from '../../raster.js';
+import { cornerBlit } from '../../raster.js';
+import { transferBits } from '../../raster.js';
 import type { ResourceChain, ResourceHit } from '../resources/chain.js';
 import type { EngineTrace } from '../trace.js';
 import type { PushFontMetrics, PushLabelLine } from './pushButton.js';

@@ -11,7 +11,7 @@ const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const selected = trace => trace?.steps.find(s => s.action === 'selected' && s.role === 'face');
 
 for (const mode of ['source', 'built']) {
-  test(`${mode}: tab traces report actual source-band and legacy branches without changing pixels or decodes`, async ({ page, servers }, info) => {
+  test(`${mode}: tab traces report admitted and unsupported branches without changing pixels or decodes`, async ({ page, servers }, info) => {
     await openHarness(page, servers, mode);
     const rows = await page.evaluate(async mode => {
       const api = await import(mode === 'built' ? '/dist/scriptoscope.js' : '/src/index.ts');
@@ -21,9 +21,10 @@ for (const mode of ['source', 'built']) {
       const encoded = api.bufferToCanvas(source).toDataURL();
       const sample = { rgb16: [0x2121, 0x2121, 0x2121], displayRgb: [48, 48, 48] };
       const element = { width: 7, height: 7, sourceCicnId: -9975, sourceCinfId: -9975,
-        slice: { corner: 2, side: 1, tile: false }, bodyRequest: { mode: 0, resourceId: 0 }, bgAnchor: [2, 2] };
+        slice: { corner: 2, side: 1, tile: false }, bodyRequest: { mode: 0, resourceId: 0 }, bgAnchor: [2, 2],
+        samplingEquivalence: { model: 'kaleidoscope-2.3.1-opaque-sampling-v1', comparison: 'opaque-current-display-rgb', displayPolicy: 'mac-1.8-to-2.2-high-byte', width: 7, height: 7, status: 'equivalent', reason: 'all-opaque-display-rgb-equal' } };
       const cases = {
-        empty: { ...element, slice: { corner: 2, side: 4, tile: false }, bodyRequest: undefined },
+        empty: { ...element, slice: { corner: 2, side: 4, tile: false } },
         raw: { ...element, bgAnchor: [3, 3], colorSamples: { model: 'kdef-2.3.1-color', displayPolicy: 'mac-1.8-to-2.2-high-byte', background: sample, text: null, emboss: null, embossDecision: 'unknown' } },
         opaque: element,
         noSlice: { ...element, slice: undefined },
@@ -45,23 +46,24 @@ for (const mode of ['source', 'built']) {
           trace = value; frozen = Object.isFrozen(value) && Object.isFrozen(value.steps) && Object.isFrozen(value.tabBody) && value.steps.every(step => Object.isFrozen(step) && (!step.owner || Object.isFrozen(step.owner)) && (!step.resource || Object.isFrozen(step.resource)));
         } } });
         rows.push({ name, trace, frozen, plainDecodes, observedDecodes: decodes,
-          same: plain.width === observed.width && plain.height === observed.height && plain.data.every((v, i) => v === observed.data[i]) });
+          same: plain === null || observed === null ? plain === observed : plain.width === observed.width && plain.height === observed.height && plain.data.every((v, i) => v === observed.data[i]) });
       } } finally { HTMLImageElement.prototype.decode = decode; }
       return rows;
     }, mode);
     await attachObservations(info, 'tab-trace', `${mode}-branches`, { mode, rows });
-    const paths = { empty: ['source-bands', 'empty', 'none'], raw: ['source-bands', 'solid', 'raw-sample'], opaque: ['source-bands', 'solid', 'decoded-anchor'] };
-    const reasons = { noSlice: 'missing-slice', malformed: 'invalid-slice-or-size', noRequest: 'missing-body-request', invalidRequest: 'invalid-body-request', pattern: 'pattern-center', noAnchor: 'missing-or-invalid-background-anchor', masked: 'masked-background' };
+    const paths = { empty: ['source-bands', 'empty', 'none'], raw: ['source-bands', 'solid', 'raw-sample'], opaque: ['source-bands', 'solid', 'decoded-anchor'], pattern: ['source-bands', 'solid', 'decoded-anchor'] };
+    // AD4/AD5 replace legacy output; P2 missing pattern is admitted solid erase.
+    const reasons = { noSlice: 'missing-slice', malformed: 'invalid-slice-or-size', noRequest: 'missing-body-request', invalidRequest: 'invalid-body-request', noAnchor: 'background-sample-unavailable-or-invalid', masked: 'background-sample-unavailable-or-invalid' };
     for (const row of rows) {
       expect(row.same, row.name).toBe(true);
       expect([row.plainDecodes, row.observedDecodes], row.name).toEqual([1, 1]);
-      expect(row.trace, row.name).toMatchObject({ version: 1, family: 'tab', requested: { selected: false }, outcome: { status: 'themed' } });
+      expect(row.trace, row.name).toMatchObject({ version: 1, family: 'tab', requested: { selected: false }, outcome: { status: paths[row.name] ? 'themed' : 'unavailable' } });
       expect(row.frozen).toBe(true);
       expect(selected(row.trace)).toMatchObject({ resource: { signedId: -9975, manifestKey: 'chosen' }, basis: 'compatibility-policy' });
       if (paths[row.name]) {
         const [path, center, backgroundPolicy] = paths[row.name];
         expect(row.trace.tabBody).toMatchObject({ path, center, backgroundPolicy });
-      } else expect(row.trace.tabBody).toMatchObject({ path: 'legacy-three-slice', reason: reasons[row.name], basis: 'compatibility-policy' });
+      } else expect(row.trace.tabBody).toMatchObject({ path: 'unavailable', outcome: ['noAnchor', 'masked'].includes(row.name) ? 'unsupported-sampling' : 'unsupported-metadata', reason: reasons[row.name], basis: 'compatibility-policy' });
     }
   });
 }
@@ -172,14 +174,14 @@ for (const mode of ['source', 'built']) {
       const bytes = forkOf([{ type: 'cicn', id, name: 'actual', data: onePixelCicn([0xffff, 0x7777, 0x5555][row.index]) }, { type: 'cinf', id, data: cinf() }]);
       expect(row.owner.byteProvenance.input.sha256).toBe(hash(bytes));
       expect(row.owner.byteProvenance.resources.find(r => r.resourceIndex === 0).sha256).toBe(hash(onePixelCicn([0xffff, 0x7777, 0x5555][row.index])));
-      expect(row.trace.tabBody).toMatchObject({ path: 'legacy-three-slice', reason: 'invalid-slice-or-size' });
+      expect(row.trace.tabBody).toMatchObject({ path: 'unavailable', outcome: 'unsupported-metadata', reason: 'invalid-slice-or-size' });
       if (row.index === 2) {
         expect(row.trace.requested.selected).toBe(true);
         expect(row.trace.steps.some(s => s.action === 'missing' && s.requestedId === -9972)).toBe(true);
         expect(row.trace.steps.find(s => s.reason === 'tab-small-to-large')).toMatchObject({ requestedId: -9980, basis: 'compatibility-policy' });
       }
     }
-    expect(result.missing.outcome).toEqual({ status: 'unavailable' }); expect(result.missing.tabBody).toBeUndefined();
+    expect(result.missing.outcome).toEqual({ status: 'unavailable' }); expect(result.missing.tabBody).toMatchObject({ path: 'unavailable', outcome: 'missing-art' });
     expect(result.ambiguousError).toMatch(/ambiguous|duplicate/i);
     await attachObservations(info, 'tab-trace', `${mode}-invocation-identity`, { mode, result });
   });

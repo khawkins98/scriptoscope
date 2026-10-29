@@ -63,3 +63,15 @@ test('theme disposal evicts only its raster URLs, including pending entries', as
   assert.notEqual(await loadCicnBuffer('blob:completed'), completed, 'completed raster is evicted too');
   assert.equal(decodes, 5);
 });
+
+test('size-only raster consumers do not require canvas-readable image pixels', async t => {
+  const { rasterDimensions } = await import('./cicnImage.ts');
+  const previous = { Image: globalThis.Image, document: globalThis.document };
+  t.after(() => Object.assign(globalThis, previous));
+  globalThis.Image = class {
+    naturalWidth = 7; naturalHeight = 5;
+    async decode() { assert.equal(this.src, 'https://external.test/pattern.png'); }
+  };
+  globalThis.document = { createElement() { throw new Error('Cross-origin pixels cannot be read'); } };
+  assert.deepEqual(await rasterDimensions('https://external.test/pattern.png'), { width: 7, height: 5 });
+});

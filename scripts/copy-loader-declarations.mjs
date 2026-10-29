@@ -1,25 +1,25 @@
 // tsc preserves the public re-export's ../tools path but does not copy input
 // declaration files. Keep the authoritative browser-loader shim in the tarball
-// and rebase its single source-type import to the emitted public declarations.
+// and rebase its source-type imports to the emitted public declarations.
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
-const declaration = await readFile(resolve(root, 'tools/theme-loader/loadKaleidoscopeScheme.d.ts'), 'utf8');
-const sourceImport = "from '../../src/types.js'";
-if (declaration.split(sourceImport).length !== 2) throw new Error('Loader declaration import changed; review its packed type dependencies');
+let declaration = await readFile(resolve(root, 'tools/theme-loader/loadKaleidoscopeScheme.d.ts'), 'utf8');
+for (const name of ['types', 'ownedTheme']) {
+  const sourceImport = `from '../../src/${name}.js'`;
+  if (declaration.split(sourceImport).length !== 2) throw new Error('Loader declaration import changed; review its packed type dependencies');
+  declaration = declaration.replace(sourceImport, `from '../../types/${name}.js'`);
+}
 const target = resolve(root, 'dist/tools/theme-loader/loadKaleidoscopeScheme.d.ts');
 await mkdir(dirname(target), { recursive: true });
-await writeFile(target, declaration.replace(sourceImport, "from '../../types/types.js'"));
+await writeFile(target, declaration);
 console.log('copied browser-loader declaration into packed public type graph');
-// The additive profile factory/types share one authoritative declaration with
-// the portable converter. Preserve its reference back to public LoadedTheme.
+// Profile validation consumes only a structural manifest/base chain.
 const profile = await readFile(resolve(root, 'tools/theme-loader/display-profile.d.ts'), 'utf8');
-const profileImport = "import('../../src/types.js')";
-if (profile.split(profileImport).length !== 2) throw new Error('Profile declaration dependencies changed');
-await writeFile(resolve(root, 'dist/tools/theme-loader/display-profile.d.ts'),
-  profile.replace(profileImport, "import('../../types/types.js')"));
+if (profile.includes('../../src/')) throw new Error('Profile declaration gained an unpacked source dependency');
+await writeFile(resolve(root, 'dist/tools/theme-loader/display-profile.d.ts'), profile);
 
 const cinf = await readFile(resolve(root, 'tools/theme-loader/cinf-environment.d.ts'), 'utf8');
 await writeFile(resolve(root, 'dist/tools/theme-loader/cinf-environment.d.ts'),

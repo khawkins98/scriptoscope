@@ -89,12 +89,14 @@ export default defineConfig(({ command }) => {
       // teaches a relative-path pattern nobody outside this repo can write.
       resolve: {
         alias: {
+          'scriptoscope/declarative': resolve(import.meta.dirname, 'src/declarative/index.ts'),
+          'scriptoscope/renderer': resolve(import.meta.dirname, 'src/renderer.ts'),
           scriptoscope: resolve(import.meta.dirname, 'src/index.ts'),
         },
       },
     };
   }
-  // Library build mode — single ESM entry from src/index.ts.
+  // Library entries share rendering implementations and preparation registries.
   return {
     build: {
       // Preserve the Vite 5 library target when upgrading the build tooling.
@@ -106,6 +108,8 @@ export default defineConfig(({ command }) => {
       lib: {
         entry: {
           'scriptoscope': resolve(import.meta.dirname, 'src/index.ts'),
+          'renderer': resolve(import.meta.dirname, 'src/renderer.ts'),
+          'declarative': resolve(import.meta.dirname, 'src/declarative/index.ts'),
         },
         formats: ['es'],
         fileName: (_format, entryName) => `${entryName}.js`,

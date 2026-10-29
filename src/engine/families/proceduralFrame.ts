@@ -17,13 +17,13 @@
 import type { Pixmap, QdPoint, QdRect, Rgba } from '../qd/types.js';
 import type { EngineTrace } from '../trace.js';
 import type { ResourceChain, ResourceHit } from '../resources/chain.js';
-import type { IconSource } from '../qd/region.js';
+import type { IconSource } from '../../raster.js';
 import { emptyRect, insetRect, rect, rectHeight, rectWidth } from '../qd/rect.js';
-import { getPixel, setPixel } from '../qd/pixel.js';
-import { transferBits } from '../qd/transfer.js';
-import { fillPattern } from '../qd/pattern.js';
-import { iconBlit, newRegion, regionAddRect, regionSubtractRect, type Region } from '../qd/region.js';
-import { newPen, moveTo, lineTo } from '../qd/pen.js';
+import { getPixel, setPixel } from '../../raster.js';
+import { transferBits } from '../../raster.js';
+import { fillPattern } from '../../raster.js';
+import { iconBlit, newRegion, regionAddRect, regionSubtractRect, type Region } from '../../raster.js';
+import { axisLine, solidRect } from '../../raster.js';
 import { drawSlices } from '../qd/slice.js';
 import { pixmapBounds } from '../qd/axis.js';
 import { icsImagePixmap } from './scrollbar.js';
@@ -568,16 +568,14 @@ function sample(icon: IconSource, x: number, y: number): Rgba | null {
 
 function line(port: Pixmap, c: Rgba | null, x0: number, y0: number, x1: number, y1: number, trace: EngineTrace | undefined, row: string): void {
   if (!c) { trace?.drawOps.push({ op: 'line', row, unspecified: 'sample point outside the cicn (qd-primitives S5); line not drawn' }); return; }
-  const pen = newPen(c);
   trace?.drawOps.push({ op: 'line', row, from: { x: x0, y: y0 }, to: { x: x1, y: y1 }, rgb: { r: c.r, g: c.g, b: c.b } });
-  moveTo(pen, x0, y0);
-  lineTo(port, pen, x1, y1);
+  axisLine(port, c, x0, y0, x1, y1);
 }
 
 function paintRect(port: Pixmap, r: QdRect, c: { r: number; g: number; b: number }, trace: EngineTrace | undefined, row: string): void {
   if (emptyRect(r)) return;
   trace?.drawOps.push({ op: 'paintRect', row, dst: r, rgb: { r: c.r, g: c.g, b: c.b } });
-  for (let y = r.top; y < r.bottom; y++) for (let x = r.left; x < r.right; x++) setPixel(port, x, y, c.r, c.g, c.b, 255);
+  solidRect(port, r, c);
 }
 
 function copy1to1(port: Pixmap, icon: IconSource, src: { top: number; left: number; bottom: number; right: number }, x: number, y: number,

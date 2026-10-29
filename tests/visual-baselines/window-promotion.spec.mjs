@@ -239,13 +239,9 @@ test('disconnect cancels pending chrome and old completion cannot disturb an imm
   const page = await fixture(t);
   await page.evaluate(async (root) => {
     const f = window.fixture;
-    const { mountDeclarative } = await import(`/@fs${root}/src/declarative/scanner.ts`);
-    f.mountDeclarative = mountDeclarative;
     f.root = document.createElement('main'); document.body.append(f.root);
-    f.opts = { root: f.root, themeBaseUrl: '/themes', pageThemeDefault: '1138',
-      themes: [{ slug: '1138', source: 'scheme.rsrc' }], bootAffordance: false };
-    f.handle = await mountDeclarative(f.opts);
-    f.handle.registerTheme('1138', f.theme);
+    f.life = new AbortController();
+    f.handle = { disconnect() { f.life.abort(); f.oldInstance?.restoreOriginalElement(); } };
     const prototype = f.manager.constructor.prototype;
     f.originalAdd = prototype.add;
     f.started = new Promise((resolve) => { f.markStarted = resolve; });
@@ -260,6 +256,8 @@ test('disconnect cancels pending chrome and old completion cannot disturb an imm
     f.source.dataset.scriptoscopeWindow = '';
     f.source.dataset.scriptoscopeWidth = '200'; f.source.dataset.scriptoscopeHeight = '100';
     const wrapper = document.createElement('section'); wrapper.append(f.source); f.root.append(wrapper);
+    f.pending = f.ScriptoscopeWindow.promote(f.source, { manager: f.manager, theme: f.theme, signal: f.life.signal })
+      .then(instance => { f.oldInstance = instance; }, error => { if (error.name !== 'AbortError') throw error; });
     await f.started;
   }, root);
   const result = await page.evaluate(async () => {
@@ -268,11 +266,14 @@ test('disconnect cancels pending chrome and old completion cannot disturb an imm
     const cancelled = { connected: f.source.isConnected, sameInput: f.source.querySelector('input') === f.input,
       promoted: f.source.hasAttribute('data-scriptoscope-promoted') };
     f.manager.constructor.prototype.add = f.originalAdd;
-    const next = await f.mountDeclarative(f.opts);
+    const nextLife = new AbortController();
+    const nextManager = new f.manager.constructor();
+    const instance = await f.ScriptoscopeWindow.promote(f.source, { manager: nextManager, theme: f.theme, signal: nextLife.signal });
+    const next = { disconnect() { nextLife.abort(); instance.restoreOriginalElement(); } };
     const host = f.input.closest('.scriptoscope-slot').parentElement;
-    f.release(); await f.prepared;
+    f.release(); await f.prepared; await f.pending;
     await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-    const completed = { oldWindows: f.handle.stats.windows, newWindows: next.stats.windows,
+    const completed = { oldWindows: f.oldInstance ? 1 : 0, newWindows: nextManager.describe(instance.host) ? 1 : 0,
       hosts: f.root.querySelectorAll('.scriptoscope-slot').length,
       sameHost: f.input.closest('.scriptoscope-slot').parentElement === host,
       stillPromoted: f.source.hasAttribute('data-scriptoscope-promoted'),

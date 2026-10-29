@@ -1,4 +1,4 @@
-import { createThemeResolver, ScriptoscopeWindow, WindowManager } from 'scriptoscope';
+import { createOwnedThemeResolver, ScriptoscopeWindow, WindowManager } from 'scriptoscope';
 import themes from './themes-manifest.json';
 
 // Keep existing shared demo links working after moving the showcase.
@@ -13,9 +13,11 @@ if (params.has('theme')) {
   const status = document.getElementById('collage-status');
   const errorMessage = document.getElementById('collage-error');
   const caption = document.querySelector('figcaption > .art-caption');
+  const portrait = document.querySelector('.portrait');
+  const loadingLabel = document.getElementById('collage-loading-label');
   const schemeButtons = [...document.querySelectorAll('[data-portrait-theme]')];
   const manager = new WindowManager();
-  const resolver = createThemeResolver({
+  const resolver = createOwnedThemeResolver({
     themeBaseUrl: `${import.meta.env.BASE_URL}themes`,
     themes,
   });
@@ -108,7 +110,16 @@ if (params.has('theme')) {
       });
     }
     // Resolve before teardown: a failed fetch must leave the current face intact.
-    const resolved = await Promise.all(panels.map(panel => resolver.load(nextTheme ?? panel.theme)));
+    // Report progress per scheme while the first load decodes archives.
+    const slugs = [...new Set(panels.map(panel => nextTheme ?? panel.theme))];
+    let decoded = 0;
+    const loads = new Map(slugs.map(slug => [slug, resolver.load(slug).then(theme => {
+      decoded += 1;
+      portrait.style.setProperty('--collage-progress', String(decoded / slugs.length));
+      if (loadingLabel) loadingLabel.textContent = `Unpacking the original schemes… ${decoded} of ${slugs.length}`;
+      return theme;
+    })]));
+    const resolved = await Promise.all(panels.map(panel => loads.get(nextTheme ?? panel.theme)));
     rebuilding = true;
     try {
       for (const window of windows) window.unmount();
@@ -140,10 +151,15 @@ if (params.has('theme')) {
     }
   }
 
+  status.textContent = 'Loading the original schemes.';
   await run(async () => {
     await resolver.preloadFonts();
     await reassemble();
+    status.textContent = 'Portrait windows ready.';
   });
+  portrait.dataset.revealing = '';
+  delete portrait.dataset.loading;
+  setTimeout(() => { delete portrait.dataset.revealing; }, 500);
   collage.addEventListener('scriptoscope:close', (event) => {
     if (rebuilding) return;
     status.textContent = hasMoved

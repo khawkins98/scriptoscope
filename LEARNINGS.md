@@ -4738,3 +4738,28 @@ completion payload now enriches that same selection only after face/border
 composition succeeds; later failure strips completion while preserving lookup.
 Transparent samples count as writes, overlapping insets count once, and neither
 count proves final surviving pixels or native pattern phase/provider.
+
+### 2026-10-26 — Capture the selected owner instead of disguising a lazy theme
+
+Replacing synchronous image strings with lazy work requires a distinct public
+contract. A prototype-backed LoadedTheme disguise and wrapper-owner rebinding
+made selection and lifetime identity harder to reason about. The explicit
+OwnedTheme keeps reference-bearing metadata under source; cached internal views
+capture one asset before any asynchronous image export. Renderers consume that
+captured source, never a URL emitted only for diagnostics. All low-level families
+now use it; shared declarative adoption remains separate work in PR #480.
+
+Owner-local descriptors replace the global private-reference lookup. Disposal
+must clear raw arrays, normalized pixels and settled image promises inside each
+entry before dropping collections, because consumers can retain descriptors.
+Pending encoders still account for their inputs, reject and revoke late images.
+Keep actual blob-cache release and cross-bundle source-to-owner lookup; remove
+private URI recognition and per-reference cache invalidation together. Eager
+exports still visit duplicate path occurrences in order, selecting the last.
+
+Capturing transport metadata does not replace separately consumed resource
+metadata. Reusing a captured bevel face identity initially dropped its consumed
+cinf role view from completed bands. The independent browser suite caught it;
+overlay the consumed lookup on the captured identity without re-reading mutable
+asset metadata. Exact transport parity and deletion of a registry do not establish
+net code reduction or retained-memory improvement; record those independently.

@@ -46,31 +46,39 @@ async function fixture(t) {
 
 test('Windows95 button templates contain the complete centered label across states', async (t) => {
   const page = await fixture(t);
-  const result = await page.evaluate(async () => {
-    const { controls, loadTheme, rasterizeText } = window.controlFixture;
+  const result = await page.evaluate(async (root) => {
+    const { controls, loadTheme } = window.controlFixture;
+    const { prepareBitmapFont } = await import(`/@fs${root}/src/index.ts`);
+    const { labelStrike, labelInk } = await import(`/@fs${root}/tests/visual-baselines/optional-control-fixtures.mjs`);
     const theme = await loadTheme('/themes/windows-95', { source: 'scheme.sit' });
+    const strike = labelStrike(), bitmapFont = await prepareBitmapFont(strike);
     const outputs = await Promise.all([{}, { pressed: true }, { disabled: true }, { default: true }]
-      .map(opts => controls.composeButton(theme, { label: 'Ag', ...opts })));
+      .map(opts => controls.composeButton(theme, { label: 'Ag', bitmapFont, fg: '#ff00ff', ...opts })));
     const normal = outputs[0];
-    const glyph = rasterizeText('Ag', 12, '#000000');
-    const x = Math.round((normal.width - glyph.width) / 2);
-    const y = Math.round((normal.height - glyph.height) / 2);
-    let expectedInk = 0, presentInk = 0, top = Infinity, bottom = -1;
-    for (let gy = 0; gy < glyph.height; gy++) for (let gx = 0; gx < glyph.width; gx++) {
-      if (glyph.getPixel(gx, gy)[3] < 192) continue;
-      expectedInk++;
-      const p = normal.getPixel(x + gx, y + gy);
-      if (p[0] < 64 && p[1] < 64 && p[2] < 64 && p[3] === 255) presentInk++;
-      top = Math.min(top, y + gy); bottom = Math.max(bottom, y + gy);
+    const points = labelInk(normal.width, normal.height, strike);
+    const expectedInk = points.length;
+    const presentInk = outputs.map(output => points.filter(([x,y]) => {
+      const p = output.getPixel(x,y); return p[0] === 255 && p[1] === 0 && p[2] === 255 && p[3] === 255;
+    }).length);
+    const top = Math.min(...points.map(p => p[1])), bottom = Math.max(...points.map(p => p[1]));
+    // Browser compatibility default is explicitly 12px, independent of height.
+    const browserDefaults = [];
+    for (const height of [20, 29]) {
+      const implicit = await controls.composeButton(theme, { label: 'Ag', height });
+      const explicit12 = await controls.composeButton(theme, { label: 'Ag', height, fontSize: 12 });
+      const explicit16 = await controls.composeButton(theme, { label: 'Ag', height, fontSize: 16 });
+      browserDefaults.push({ equal12: implicit.data.every((v,i) => v === explicit12.data[i]),
+        differs16: implicit.data.some((v,i) => v !== explicit16.data[i]) });
     }
     // Explicit sizing remains the caller's choice, even if intentionally tiny.
     const explicit = await controls.composeButton(theme, { label: 'Ag', height: 6 });
     return { dimensions: outputs.map(b => [b.width, b.height]), expectedInk, presentInk,
-      top, bottom, explicit: [explicit.width, explicit.height] };
-  });
+      top, bottom, browserDefaults, explicit: [explicit.width, explicit.height] };
+  }, root);
   assert.deepEqual(result.dimensions, Array(4).fill([64, 28]));
   assert.ok(result.expectedInk > 20, 'reference label contains a meaningful pixel sample');
-  assert.equal(result.presentInk, result.expectedInk, 'all glyph ink, including ascenders/descenders, is present');
+  assert.deepEqual(result.presentInk, Array(4).fill(result.expectedInk), 'all glyph ink, including ascenders/descenders, is present');
+  assert.deepEqual(result.browserDefaults, Array(2).fill({ equal12: true, differs16: true }));
   assert.ok(result.top >= 8 && result.bottom <= 23, 'label is inside the 20px face with vertical clearance');
   assert.deepEqual(result.explicit, [64, 14]);
 });
@@ -110,7 +118,7 @@ test('showcase buttons and closed select are readable and pointer interaction do
   const pressed = await button.boundingBox();
   await button.dispatchEvent('pointerleave');
   assert.deepEqual(pressed, before);
-  for (const label of ['OK', 'Cancel', 'Copy install snippet to clipboard']) {
+  for (const label of ['OK', 'Cancel']) {
     assert.equal(await page.locator(`.scriptoscope-button[aria-label="${label}"] canvas`).evaluate(c => c.height), 28);
   }
   const select = page.getByRole('combobox', { name: 'Format' });
@@ -118,6 +126,26 @@ test('showcase buttons and closed select are readable and pointer interaction do
   await page.waitForFunction(() => document.querySelector('.scriptoscope-select .scriptoscope-button')?.getAttribute('aria-label') === '.rsrc  ▾');
   assert.equal(await page.locator('.scriptoscope-select canvas').evaluate(c => c.height), 28);
   assert.equal(await select.inputValue(), '.rsrc');
+  await page.getByRole('link', { name: 'Open the installation guide →' }).click();
+  await page.waitForURL('**/install.html?theme=windows-95');
+  assert.equal(await page.locator('#install-scheme-name').textContent(), 'windows-95');
+  // Capture the clipboard boundary without depending on OS clipboard permissions.
+  await page.evaluate(() => Object.defineProperty(navigator, 'clipboard', { configurable: true,
+    value: { writeText: async text => { window.copiedSnippet = text; } } }));
+  const snippet = (await page.locator('#powers-install-snippet').textContent()).trim();
+  assert.ok(snippet.includes("pageThemeDefault: 'windows-95'"));
+  assert.ok(snippet.includes('mountExplicitPage'));
+  assert.ok(snippet.includes('explicit-host.mjs'));
+  await page.getByRole('button', { name: 'Copy complete starter', exact: true }).click();
+  await page.waitForFunction(() => window.copiedSnippet !== undefined);
+  assert.equal(await page.evaluate(() => window.copiedSnippet), snippet);
+  assert.equal(await page.locator('#install-copy-status').textContent(), 'Example copied. Paste it into your HTML or module as described above.');
+  await page.evaluate(() => Object.defineProperty(navigator, 'clipboard', { configurable: true,
+    value: { writeText: async () => { throw new Error('Fixture clipboard denied'); } } }));
+  await page.getByRole('button', { name: 'Copy window and controls', exact: true }).click();
+  await page.waitForFunction(() => document.querySelector('#install-copy-status').textContent.startsWith('Clipboard unavailable.'));
+  assert.equal(await page.evaluate(() => getSelection().toString()), await page.locator('#install-markup').textContent());
+
 });
 
 test('small bevel templates preserve full labels while explicit and empty sizes stay authored', async (t) => {

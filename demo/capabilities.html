@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Capabilities & examples — Scriptoscope</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="./scriptoscope.css">
+  <link rel="stylesheet" href="./site-shell.css">
+  <link rel="stylesheet" href="./capabilities.css">
+  <script type="module" src="./site-shell.mjs"></script>
+  <script type="module" src="./capabilities.mjs"></script>
+</head>
+<body class="site-support site-capabilities">
+  <a class="site-skip" href="#main">Skip to content</a>
+  <header class="site-header"><div class="site-header-inner">
+    <a class="site-brand" href="./"><span class="site-mark" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>Scriptoscope</a>
+    <nav class="site-primary-nav" aria-label="Main navigation">
+      <a href="./">Home</a><a href="./showcase.html">Showcase</a><a href="./install.html">Install</a><a href="./capabilities.html" aria-current="page">Capabilities</a><a href="./showcase.html#examples">Examples</a><a href="./diagnostic.html">Diagnostics</a>
+    </nav>
+  </div></header>
+  <main id="main">
+    <div class="site-intro">
+      <p class="site-eyebrow">THE EXAMPLE COLLECTION</p>
+      <h1>See what you can build.</h1>
+      <p class="site-deck">Working controls, window chrome and small experiments. Choose a scheme, explore the states, and see where support ends.</p>
+    </div>
+    <div class="cap-toolbar">
+      <label class="site-theme-control" for="scheme">Scheme <select id="scheme"></select></label>
+      <p id="credit"></p>
+      <p id="load-status" role="status" aria-live="polite">Loading examples…</p>
+    </div>
+    <div class="cap-layout">
+      <nav class="cap-index" aria-label="Capability sections">
+        <a href="#windows"><span>01</span> Windows</a><a href="#controls"><span>02</span> Controls</a><a href="#tabs"><span>03</span> Tabs</a><a href="#headers"><span>04</span> Headers</a><a href="#menus"><span>05</span> Menus & cursors</a><a href="#assets"><span>06</span> Type & assets</a><a href="#integration"><span>07</span> Use it on a page</a>
+      </nav>
+      <div class="cap-sections">
+        <section id="windows" class="cap-section" aria-labelledby="windows-title">
+          <div class="cap-heading"><p class="site-section-label">01 / WINDOW CHROME</p><span class="cap-badge">Interactive + raster</span></div>
+          <h2 id="windows-title">A window is still a place to work.</h2>
+          <p>Move the live window by its title. Resize at the lower right, try its title widgets, or use their keyboard focus targets. The content stays selectable HTML. This essential window enables zoom and collapse; try closing windows in the <a href="./showcase.html">showcase</a>. Widget availability depends on the kind and scheme.</p>
+          <div id="live-root">
+            <div class="cap-desktop" id="desktop">
+              <div data-scriptoscope-window data-scriptoscope-title="A working window" data-scriptoscope-window-type="document-window" data-scriptoscope-width="260" data-scriptoscope-height="112" data-scriptoscope-widgets="zoom,collapse" data-scriptoscope-window-id="cap-live">
+                <div class="cap-window-content"><strong>Make yourself at home.</strong><p>Real HTML, movable chrome.<br>Try the keyboard focus targets, too.</p></div>
+              </div>
+            </div>
+            <button type="button" id="reset-examples" title="Reload examples in the current scheme">Reset examples</button>
+            <details><summary>Live window configuration</summary><pre>&lt;div data-scriptoscope-window
+  data-scriptoscope-title="A working window"
+  data-scriptoscope-window-type="document-window"
+  data-scriptoscope-width="260"
+  data-scriptoscope-height="112"
+  data-scriptoscope-widgets="zoom,collapse"&gt;
+  Your real HTML content
+&lt;/div&gt;</pre></details>
+            <div id="controls" class="cap-subsection">
+              <div class="cap-heading"><p class="site-section-label">02 / LIVE CONTROLS</p><span class="cap-badge">Interactive</span></div>
+              <h2>Keep the browser’s good habits.</h2>
+              <p>Click, type or use the keyboard. Form values and feedback come from real HTML controls; their faces are themed. A disabled control stays disabled.</p>
+              <form id="example-form" class="cap-form">
+                <label for="project-name">Project name <input id="project-name" name="project" value="My Kaleidoscope page" data-scriptoscope-field></label>
+                <div class="cap-form-row"><label><input id="notifications" type="checkbox" checked> Notifications</label><label><input type="checkbox" disabled> Unavailable</label></div>
+                <fieldset><legend>Layout</legend><label><input type="radio" name="layout" value="compact" checked> Compact</label> <label><input type="radio" name="layout" value="roomy"> Roomy</label></fieldset>
+                <label for="volume">Level <input id="volume" name="level" type="range" min="0" max="100" value="40"> <output id="volume-value" for="volume">40</output></label>
+                <div class="cap-form-row"><button type="submit" data-scriptoscope-button data-scriptoscope-default>Apply settings</button><button type="button" disabled data-scriptoscope-button>Disabled</button></div>
+                <p id="form-feedback" role="status">Ready to apply your settings.</p>
+              </form>
+            </div>
+            <div id="tabs" class="cap-subsection">
+              <div class="cap-heading"><p class="site-section-label">03 / TABS</p><span class="cap-badge">Interactive</span></div>
+              <h2>Three panels. One small space.</h2>
+              <p>Click a tab, or focus the strip and use Left / Right, Home / End. Selection changes the visible panel and its accessible state.</p>
+              <div id="example-tabs" data-scriptoscope-tabs aria-label="Project settings">
+                <button type="button" data-scriptoscope-tab="overview" data-scriptoscope-selected>Overview</button>
+                <button type="button" data-scriptoscope-tab="details">Details</button>
+                <button type="button" data-scriptoscope-tab="limits">Limits</button>
+                <div data-scriptoscope-panel="overview"><h3>Content stays yours.</h3><p>This is a live panel with ordinary HTML. <a href="./docs.html">Visit a complete documentation example →</a></p></div>
+                <div data-scriptoscope-panel="details"><h3>Selection is real.</h3><p>The public declarative layer wires tab roles, roving focus and panel visibility. Switching schemes preserves the selected panel.</p></div>
+                <div data-scriptoscope-panel="limits"><h3>A bounded visual surface.</h3><p>The raster API paints enabled, resting selected/unselected tabs. Disabled and pressed tab artwork are not public options. When tab art cannot be used, the declarative layer uses its CSS fallback.</p></div>
+              </div>
+            </div>
+          </div>
+          <div class="cap-subsection"><h3>Explore the window kinds</h3><p class="cap-note">The preview below is window chrome output. Use the live window above for dragging and resizing.</p>
+            <div class="cap-options"><label for="window-kind">Kind <select id="window-kind"></select></label><label for="window-state">State <select id="window-state"><option>active</option><option>inactive</option></select></label><label for="window-width">Content width <select id="window-width"><option value="180">180 px</option><option value="260" selected>260 px</option><option value="360">360 px</option></select></label></div>
+            <div id="window-preview" class="cap-raster cap-window-preview"></div><details><summary>Reproduce window preview</summary><pre id="window-config"></pre></details>
+          </div>
+        </section>
+        <section class="cap-section" aria-labelledby="states-title">
+          <div class="cap-heading"><p class="site-section-label">CONTROL STATES</p><span class="cap-badge">Raster samples</span></div>
+          <h2 id="states-title">The small things, side by side.</h2>
+          <p>Public composition APIs return pixels. These samples are labeled images, not clickable controls. Each reports its actual result; an unavailable themed face is left visible as a gap.</p>
+          <div id="state-samples" class="cap-samples"></div>
+          <p class="cap-note">Scrollbars use the engine’s fixed thumb policy; proportional / thumbExtent options have no effect. Progress uses a normalized value or a native signed range, never both. Browser labels do not establish original font or device fidelity.</p>
+          <details><summary>Resource decisions and reproducible control calls</summary><p>Traces describe this runtime’s selection and paint decisions. They are not independent native comparisons.</p><pre id="control-evidence"></pre></details>
+        </section>
+        <section id="headers" class="cap-section" aria-labelledby="headers-title">
+          <div class="cap-heading"><p class="site-section-label">04 / HEADERS</p><span class="cap-badge cap-partial">Bounded support</span></div>
+          <h2 id="headers-title">A surface and a set of columns.</h2>
+          <p>Whole-header surfaces draw a rectangle without labels. The separate column helper adds labels and per-cell sizing as a compatibility policy. Neither API adds sorting or column-resize interaction.</p>
+          <div class="cap-options"><label for="header-kind">Surface <select id="header-kind"><option value="window-header">Window header</option><option value="list-view-header">List-view header</option></select></label><label for="header-state">Draw state <select id="header-state"><option value="1">Nonzero (1)</option><option value="0">Zero (0)</option><option value="2">Nonzero (2)</option></select></label><label for="header-width">Width <select id="header-width"><option value="180">180 px</option><option value="280" selected>280 px</option></select></label></div>
+          <details><summary>Try a different clipping context</summary><p>The whole-surface API needs a known clip declaration. An unknown clip returns an explicit unsupported result.</p><label for="header-clip">Clip declaration <select id="header-clip"><option value="unbounded">Known, unbounded</option><option value="unknown">Unknown (unsupported)</option></select></label></details>
+          <div class="cap-pair"><div><h3>Whole surface</h3><div id="header-preview" class="cap-raster"></div><p id="header-result" class="cap-result"></p></div><div><h3>Column helper</h3><div id="columns-preview" class="cap-raster"></div><p id="columns-result" class="cap-result"></p></div></div>
+          <p class="cap-note">Missing art means unavailable. An unsupported result means this request is outside the admitted subset; it does not mean the scheme lacks all header resources. Unknown clipping, special window origins and some source bodies/sampling remain outside the supported surface.</p>
+          <details><summary>Header configuration and actual trace</summary><pre id="header-evidence"></pre></details>
+        </section>
+        <section id="menus" class="cap-section" aria-labelledby="menus-title">
+          <div class="cap-heading"><p class="site-section-label">05 / MENUS & CURSORS</p><span class="cap-badge cap-partial">Partial / absent</span></div>
+          <h2 id="menus-title">Know the edges before you build.</h2>
+          <p>The public Platinum helpers draw menu bars, dropdown panels and closed popup faces. These procedural appearance samples do not change with the scheme and have no menu interaction, command dispatch or scheme-resource selection.</p>
+          <div id="menu-samples" class="cap-menu-samples"></div>
+          <div class="cap-limit"><h3>Scheme mouse cursors: no public API</h3><p>The runtime uses ordinary browser cursors for pointer and resize affordances. There is no public API here to decode, select or install a scheme cursor. Menu-like resources in a theme catalog do not establish an interactive menu implementation either.</p></div>
+          <details><summary>Reproduce procedural menu samples</summary><pre>bufferToCanvas(platinumMenuBar({ titles: ['File', 'Edit', 'View'], activeIdx: 0, width: 280 }))
+bufferToCanvas(platinumMenu({ items: ['New', 'Open…', '-', 'Close'], highlightIdx: 1, width: 140 }))
+bufferToCanvas(platinumPopupMenu({ label: 'Choose a view', minWidth: 160 }))</pre></details>
+        </section>
+        <section id="assets" class="cap-section" aria-labelledby="assets-title">
+          <div class="cap-heading"><p class="site-section-label">06 / TYPE & DECODED ASSETS</p><span class="cap-badge">Public data + raster</span></div>
+          <h2 id="assets-title">Look inside the chosen scheme.</h2>
+          <p>These are decoded assets from the loaded theme, not promises that every resource family has an implemented widget. Empty or unavailable catalogs are reported explicitly.</p>
+          <h3>Browser-rasterized type</h3><div id="type-samples" class="cap-samples"></div>
+          <p class="cap-note">Button fontSize is explicit CSS-pixel sizing. prepareBitmapFont supports caller-supplied single-strike glyph data; this page does not supply a historical strike. Scheme font import and original text-device fidelity are not demonstrated.</p>
+          <div class="cap-pair"><div><h3>Decoded icons</h3><p id="icon-count" class="cap-note"></p><div id="icons" class="cap-assets"></div></div><div><h3>Decoded patterns</h3><p id="pattern-count" class="cap-note"></p><div id="patterns" class="cap-assets"></div></div></div>
+          <details><summary>Availability and display policy</summary><pre id="asset-evidence"></pre></details>
+        </section>
+        <section id="integration" class="cap-section" aria-labelledby="integration-title">
+          <p class="site-section-label">07 / PUT IT TO WORK</p><h2 id="integration-title">Choose your next experiment.</h2>
+          <div class="cap-link-grid"><article><h3>Build with HTML</h3><p>Windows, inputs, fields, theme switching and tabs through the declarative front door.</p><a href="./install.html">Installation guide →</a></article><article><h3>Bring a scheme</h3><p>The existing local-file drop zone decodes supported archives entirely in your browser.</p><a href="./showcase.html">Open the showcase →</a></article><article><h3>Inspect a result</h3><p>Window geometry, slices, icons, rasters and resource roles for the selected theme.</p><a href="./diagnostic.html?dev=1">Runtime diagnostics →</a></article></div>
+          <details><summary>Theme loading and advanced integration boundaries</summary><p>loadTheme loads a bundle URL; loadKaleidoscopeScheme accepts archive bytes. createThemeResolver caches loads; dispose after the last consumer. attachThemeDropZone and registerTheme connect local files to an existing mount. This page uses standalone themes with no injected base scheme, so base inheritance cannot hide a missing resource.</p><p>prepareDisplayProfile accepts validated caller-supplied display tables. This page uses the loader’s default display policy and does not fabricate an indexed-device profile. Preparing a profile, a CINF environment or CICN transfers is an advanced data path, not a one-click emulation mode.</p><pre id="integration-config"></pre></details>
+        </section>
+        <footer class="cap-footer"><p>Examples show current public behavior. Rendered output and runtime traces do not establish native fidelity.</p><a href="./showcase.html#examples">See complete example sites →</a></footer>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

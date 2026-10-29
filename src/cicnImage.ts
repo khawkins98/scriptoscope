@@ -6,6 +6,19 @@ const cache = new Map<string, Promise<PixelBuffer>>();
 // disposed theme alive in this shared cache. Completion never reinserts it.
 onAssetUrlReleased((url) => { cache.delete(url); });
 
+async function loadImage(url: string): Promise<HTMLImageElement> {
+  const image = new Image();
+  image.src = url;
+  await image.decode();
+  return image;
+}
+
+/** Size-only consumers must also work when cross-origin pixels are unreadable. */
+export async function rasterDimensions(url: string): Promise<{ width: number; height: number }> {
+  const image = await loadImage(url);
+  return { width: image.naturalWidth, height: image.naturalHeight };
+}
+
 /**
  * Load a cicn PNG into a PixelBuffer. Canvas is used ONLY to decode the
  * source image into raw RGBA — all compositing happens in PixelBuffer.
@@ -15,9 +28,7 @@ export function loadCicnBuffer(url: string): Promise<PixelBuffer> {
   const hit = cache.get(url);
   if (hit) return hit;
   const p = (async () => {
-    const img = new Image();
-    img.src = url;
-    await img.decode();
+    const img = await loadImage(url);
     const w = img.naturalWidth;
     const h = img.naturalHeight;
     const canvas = document.createElement('canvas');

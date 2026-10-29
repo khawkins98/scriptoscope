@@ -221,13 +221,13 @@
   <script type="module">
     import { revealHash } from './site-shell.mjs';
     import {
-      VERSION, loadTheme, assetUrl, renderWindow,
+      VERSION, loadOwnedTheme, themeImageUrl, renderWindow,
       composeScrollbar, composeSlider, composeDisclosure, composeProgress, composeTab,
       composeButton, composeBevelButton, composeListHeader, composeCheckable, composeGrowBox,
       baselineButton, bufferToCanvas,
       platinumCheckable, platinumSlider, platinumButton, platinumScrollbar, platinumDisclosure,
       platinumBevelButton, platinumMenuBar, platinumMenu, platinumPopupMenu, platinumListHeader,
-      interactiveButton, interactiveCheckbox, radioGroup, interactiveDisclosure,
+      interactiveButton, interactiveDisclosure,
       interactiveSlider, interactiveScrollbar, WindowManager,
       promoteField,
       setDebug,
@@ -264,12 +264,30 @@
     import { resolveSceneInfoBar } from '../scripts/lib/scene-info-bar.mjs';
     import THEMES from './themes-manifest.json'; // auto-generated gallery list (gen-themes-manifest.mjs)
     // The BROWSER conversion shell over the portable core: a dropped resource fork →
-    // a render-ready in-memory LoadedTheme (blob-URL assets + glyphs), no build step.
+    // an owned in-memory theme, exporting images only at UI boundaries.
     // The public src wrapper, not the tools/theme-loader core: it passes the engine cinf
     // ids by default, so dropped archives draw engine sliders rather than Platinum.
-    import { loadKaleidoscopeScheme } from '../src/loadKaleidoscopeScheme.ts';
+    import { mountExplicitPage } from './explicit-host.mjs';
+    import { loadOwnedKaleidoscopeScheme } from '../src/loadKaleidoscopeScheme.ts';
     document.getElementById('ver').textContent = `v${VERSION}`;
     const rows = document.getElementById('rows');
+    const metadata = theme => theme.source ?? theme;
+    const origin = theme => theme.origin ?? theme.baseUrl;
+
+    // Closed inventories do not export their images. A detached/replaced panel
+    // cannot publish a late URL; reopening reuses the owner's pending export.
+    function inventoryImage(img, theme, ref, panel) {
+      img.loading = 'lazy';
+      const show = async () => {
+        if (!panel.open || !panel.isConnected || !panel.contains(img)) return;
+        try {
+          const url = await themeImageUrl(theme, ref);
+          if (panel.open && panel.isConnected && panel.contains(img)) img.src = url;
+        } catch (error) { if (panel.isConnected) img.title = `Image unavailable: ${error.message ?? error}`; }
+      };
+      panel.addEventListener('toggle', show);
+      queueMicrotask(show);
+    }
 
     // Preload the bundled Charcoal faces before any rendering. rasterizeText (control
     // labels) + rasterizeTitleFont are sync canvas draws — if the face isn't loaded
@@ -295,14 +313,14 @@
     // already covered every control kind procedurally.)
     const themeCache = new Map();
     // themesBySlug carries the catalog metadata (source filename, label, ref image…).
-    // We pass `source` into loadTheme so the runtime can skip the .sit ↔ .rsrc cascade
+    // We pass `source` into loadOwnedTheme so the runtime can skip the .sit ↔ .rsrc cascade
     // and avoid the dev-console 404 noise on bundles whose first-try is missing.
     const themesBySlugForLoad = new Map(THEMES.map((t) => [t.slug, t]));
     const loadWithBase = (slug) => {
       if (!themeCache.has(slug)) {
         const meta = themesBySlugForLoad.get(slug);
         const opts = meta?.source ? { source: meta.source } : undefined;
-        themeCache.set(slug, loadTheme(themeUrl(slug), opts));
+        themeCache.set(slug, loadOwnedTheme(themeUrl(slug), opts));
       }
       return themeCache.get(slug);
     };
@@ -382,14 +400,14 @@
     // fetch of icons/index.json for legacy/pre-extracted bundles. Returns rows
     // shaped { id, type, size, depth, file, url, name, coverage }.
     async function getIcons(theme) {
-      if (theme.inspector?.iconIndex) return theme.inspector.iconIndex;
+      if (metadata(theme).inspector?.iconIndex) return metadata(theme).inspector.iconIndex;
       try {
-        const r = await fetch(`${theme.baseUrl}/icons/index.json`);
+        const r = await fetch(`${origin(theme)}/icons/index.json`);
         if (r.ok) {
           const idx = await r.json();
           // Synthesise the `url` field the inspector path provides so panels
           // can do `i.url` uniformly.
-          return idx.map((i) => ({ ...i, url: `${theme.baseUrl}/icons/${i.file}` }));
+          return idx.map((i) => ({ ...i, url: `${origin(theme)}/icons/${i.file}` }));
         }
       } catch {}
       return [];
@@ -413,20 +431,20 @@
     // widget (drawn at title-bar widget positions, not in the header-badge slot).
     // Verified 18/18 by scripts/probe-reference-slot.mjs: every corner-sprite
     // reference shows the system-default grid in this slot.
-    const _gridCache = new Map();
+    const _gridCache = new WeakMap();
     async function gridProxyIcon(theme) {
-      if (!_gridCache.has(theme.baseUrl)) {
-        _gridCache.set(theme.baseUrl, (async () => {
+      if (!_gridCache.has(theme)) {
+        _gridCache.set(theme, (async () => {
           const icons = await getIcons(theme);
           const at = (id) => icons.find((i) => i.id === id && i.size === 16);
           const e = at(-3790);
           return e ? { url: e.url, id: e.id } : null;
         })());
       }
-      const hit = await _gridCache.get(theme.baseUrl);
+      const hit = await _gridCache.get(theme);
       if (hit) {
         const img = document.createElement('img');
-        img.src = hit.url;
+        img.src = await themeImageUrl(theme, hit.url);
         img.title = `${hit.id} (scheme Finder-header badge)`;
         Object.assign(img.style, { width: '16px', height: '16px', imageRendering: 'pixelated', display: 'block', flex: '0 0 auto' }); // 1x native (ics4/ics8 16px)
         return img;
@@ -474,10 +492,10 @@
       -3994, // Generic/Private Folder
       -3976, // Control Panels Folder
     ];
-    const _iconCache = new Map();
+    const _iconCache = new WeakMap();
     async function schemeIcons(theme, n) {
-      if (!_iconCache.has(theme.baseUrl)) {
-        _iconCache.set(theme.baseUrl, (async () => {
+      if (!_iconCache.has(theme)) {
+        _iconCache.set(theme, (async () => {
           const idx = await getIcons(theme);
           if (!idx.length) return [];
           const all32 = idx.filter((i) => i.size === 32); // 32px scene icons (icl4 + icl8)
@@ -510,14 +528,14 @@
           return picked.concat(cov).slice(0, 8);
         })());
       }
-      const list = await _iconCache.get(theme.baseUrl);
-      return list.slice(0, n).map((i) => {
+      const list = await _iconCache.get(theme);
+      return Promise.all(list.slice(0, n).map(async (i) => {
         const img = document.createElement('img');
-        img.src = i.url;
+        img.src = await themeImageUrl(theme, i.url);
         img.title = `${i.type} ${i.id} — scheme icon`;
         Object.assign(img.style, { width: '32px', height: '32px', imageRendering: 'pixelated', display: 'block' }); // 1x native (icl4/icl8 32px)
         return img;
-      });
+      }));
     }
 
     // DIAGNOSTIC: a collapsible inventory of EVERY decoded icon a theme ships —
@@ -541,7 +559,7 @@
       const ics4 = bySize(16); // 16px pictograms (ics4 + ics8)
       const fam = (list) => [...new Set(list.map((i) => i.type))].join('+');
       sum.textContent = `Icon inventory — ${all.length} icons (${icl4.length} ${fam(icl4) || '32px'} · ${ics4.length} ${fam(ics4) || '16px'}) — click to expand`;
-      const slug = (theme.baseUrl || '').split('/').pop();
+      const slug = (origin(theme) || '').split('/').pop();
       // Pictogram ID rubric — the canonical Kaleidoscope control/widget id map,
       // verified against the actual cicn/ics4 pixels + docs/spec/kdef231-reference.md.
       // The "glyphs" column shows THIS scheme's real ics4 per range. KEY GOTCHA: a
@@ -584,7 +602,7 @@
         strip.style.cssText = 'display:flex; flex-wrap:wrap; gap:2px; max-width:220px';
         for (const m of matches.slice(0, 16)) {
           const im = document.createElement('img');
-          im.src = m.url; im.loading = 'lazy';
+          inventoryImage(im, theme, m.url, rdet);
           im.title = `${m.type} ${m.id} @ ${slug}`;
           Object.assign(im.style, { width: '16px', height: '16px', imageRendering: 'pixelated', background: '#fff', border: '1px solid #ddd' });
           strip.appendChild(im);
@@ -618,7 +636,7 @@
           cell.style.cssText = 'width:86px; text-align:center; font:9px/1.15 system-ui; color:#555; cursor:pointer';
           cell.title = `Click to copy:\n${copyText}`;
           const img = document.createElement('img');
-          img.src = i.url; img.loading = 'lazy';
+          inventoryImage(img, theme, i.url, det);
           // Render at 2× native with pixelated scaling: a dense 8-bit icon is unreadable
           // at 16px (reads as "corrupted" noise); 2× makes the real detail legible with no
           // distortion (each source pixel = a crisp 2×2 block).
@@ -669,14 +687,14 @@
       const sum = document.createElement('summary');
       sum.style.cssText = 'cursor:pointer; color:#555; font-weight:600; padding:4px 0';
       det.appendChild(sum);
-      const slug = (theme.baseUrl || '').split('/').pop() || (theme.manifest?.name ?? 'theme');
+      const slug = (origin(theme) || '').split('/').pop() || (metadata(theme).manifest?.name ?? 'theme');
       // Inspector data (Option A: in-memory decode) is preferred; fall back to fetched
       // rasters.json + icons/index.json for legacy/pre-extracted bundles.
       let rasters = { cicns: [], ppats: [] };
-      if (theme.inspector?.cicns) {
-        rasters = { cicns: theme.inspector.cicns, ppats: theme.inspector.ppats ?? [] };
+      if (metadata(theme).inspector?.cicns) {
+        rasters = { cicns: metadata(theme).inspector.cicns, ppats: metadata(theme).inspector.ppats ?? [] };
       } else {
-        try { const r = await fetch(`${theme.baseUrl}/rasters.json`); if (r.ok) rasters = await r.json(); } catch {}
+        try { const r = await fetch(`${origin(theme)}/rasters.json`); if (r.ok) rasters = await r.json(); } catch {}
       }
       const icons = await getIcons(theme);
       sum.textContent = `All rasters — ${rasters.cicns.length} cicns · ${icons.length} icons · ${rasters.ppats.length} patterns — click to expand`;
@@ -687,7 +705,7 @@
         c.style.cssText = 'width:96px; text-align:center; font:9px/1.15 system-ui; color:#555; cursor:pointer';
         c.title = `Click to copy:\n${copyText}`;
         const img = document.createElement('img');
-        img.src = urlOverride || `${theme.baseUrl}/${dir}/${file}`; img.loading = 'lazy';
+        inventoryImage(img, theme, urlOverride || `${dir}/${file}`, det);
         Object.assign(img.style, { maxWidth: '88px', maxHeight: '72px', imageRendering: 'pixelated', display: 'block', margin: '0 auto', background: '#fff', border: '1px solid #ddd' });
         const lab = document.createElement('div');
         lab.textContent = label;
@@ -752,7 +770,7 @@
     }
 
     function segmentedTabs(theme, labels, selectedIdx) {
-      const hc = theme.manifest?.headerColors?.active ?? {};
+      const hc = metadata(theme).manifest?.headerColors?.active ?? {};
       const frame = hc.frame ?? '#555555';
       // Selected tab is the depressed/active one: the scheme's (dark) frame
       // color with light text — matches the classic Mac tab look and stays
@@ -815,16 +833,12 @@
       //       themes ship this (1990, animals, monkey-paradise, evolution,
       //       crayon-os); before this pickup they fell to the CSS checkerboard.
       //   T3. CSS checkerboard fallback.
-      const _pats = theme.manifest.patterns || {};
+      const _pats = metadata(theme).manifest.patterns || {};
       const _deskKey = Object.keys(_pats).find((k) => /desktop/i.test(k))
         ?? (_pats['ppat-17'] ? 'ppat-17' : null);
-      // In Option A the asset is already an absolute blob: URL (rewritten by
-      // loadKaleidoscopeScheme); for legacy bundles it's a relative path the
-      // baseUrl resolves. The /^(?:blob|https?|data):/ check mirrors assetUrl().
+      // Export only the selected desktop tile at this CSS image boundary.
       const _deskRef = _deskKey ? _pats[_deskKey].asset : null;
-      const _deskUrl = !_deskRef ? null
-        : /^(?:blob:|https?:|data:)/.test(_deskRef) ? _deskRef
-        : `${theme.baseUrl.replace(/\/$/, '')}/${_deskRef}`;
+      const _deskUrl = _deskRef ? await themeImageUrl(theme, _deskRef) : null;
       Object.assign(desk.style, {
         position: 'relative', overflow: 'hidden', background: '#9d9d9d',
         ...(_deskUrl
@@ -874,11 +888,9 @@
         //      10 of 18 corpus themes land here.
         //   4. Flat #e6e6e6 — no theme currently lands here; kept as a safety net.
         const info = document.createElement('div');
-        const _infoBar = resolveSceneInfoBar(theme.manifest);
+        const _infoBar = resolveSceneInfoBar(metadata(theme).manifest);
         const _infoPat = _infoBar.pattern;
-        const _infoPatUrl = !_infoPat ? null
-          : /^(?:blob:|https?:|data:)/.test(_infoPat) ? _infoPat
-          : `${theme.baseUrl.replace(/\/$/, '')}/${_infoPat}`;
+        const _infoPatUrl = _infoPat ? await themeImageUrl(theme, _infoPat) : null;
         const _infoFillColor = _infoBar.fill;
         Object.assign(info.style, {
           position: 'absolute', left: '0', top: '0', right: '0', height: '18px',
@@ -892,7 +904,7 @@
         });
         info.appendChild(await gridProxyIcon(theme));
         const vol = document.createElement('span');
-        vol.textContent = theme.manifest?.name ?? '';
+        vol.textContent = metadata(theme).manifest?.name ?? '';
         // Contrast-pick the label colour against the resolved info-bar bg. When the
         // bar resolves to a dark headerColors.active.fill (slimes' #d6ff76 is light,
         // but black-platinum / windows-31 / monkey-paradise's headerFill is dark
@@ -1018,7 +1030,7 @@
       const pc = (s) => { const m = /^part-(\d+)$/.exec(s || ''); return m ? +m[1] : -1; };
       const wrap = document.createElement('div');
       Object.assign(wrap.style, { margin: '8px 0 0', font: '10px ui-monospace, Menlo, monospace', color: '#333' });
-      const wts = theme.manifest.windowTypes || {};
+      const wts = metadata(theme).manifest.windowTypes || {};
       const wt = wts['document-window'] || Object.values(wts).find((w) => w.edges && w.edges.top && w.edges.top.length);
       const hd = document.createElement('div'); hd.style.cssText = 'opacity:.6;text-transform:uppercase;letter-spacing:.05em;font-size:9px;font-weight:700';
       hd.textContent = 'window geometry — top-edge recipe (part roles)';
@@ -1075,7 +1087,7 @@
         wrap.appendChild(note);
         return wrap;
       }
-      const ce = Object.values(theme.manifest.chromeElements || {}).find((v) => v.asset === wt.chrome.active);
+      const ce = Object.values(metadata(theme).manifest.chromeElements || {}).find((v) => v.asset === wt.chrome.active);
       const cicnW = ce ? ce.width : 100;
       const SC = 3;
       const top = [...wt.edges.top].sort((a, b) => a.at - b.at);
@@ -1089,10 +1101,8 @@
         const artWrap = document.createElement('div');
         Object.assign(artWrap.style, { width: `${cicnW * SC}px`, height: `${ftop * SC}px`, overflow: 'hidden', border: '1px solid #888', boxSizing: 'border-box', background: '#fff', marginTop: '3px' });
         const img = document.createElement('img');
-        // ce.asset is already an absolute URL under the in-memory load path (rewritten
-        // to a blob: by loadKaleidoscopeScheme). assetUrl() passes those through, only
-        // prefixing baseUrl for legacy relative paths.
-        img.src = assetUrl(theme, ce.asset);
+        // Export the selected sprite only when the inspector displays it.
+        img.src = await themeImageUrl(theme, ce.asset);
         img.title = `${ce.asset} (${ce.width}×${ce.height}) — active document window cicn`;
         Object.assign(img.style, { width: `${cicnW * SC}px`, imageRendering: 'pixelated', display: 'block' });
         artWrap.appendChild(img);
@@ -1118,7 +1128,7 @@
     }
 
     function docWindowCicn(theme) {
-      const wts = theme.manifest.windowTypes || {};
+      const wts = metadata(theme).manifest.windowTypes || {};
       const wt = wts['document-window'] || Object.values(wts).find((w) => w.edges && w.edges.top && w.edges.top.length);
       return wt && wt.chrome ? wt.chrome.active : null;
     }
@@ -1126,7 +1136,7 @@
 
     // The chrome cicn asset for a given window-type key (for slice thumbnails).
     function windowCicn(theme, key) {
-      const wt = (theme.manifest.windowTypes || {})[key];
+      const wt = (metadata(theme).manifest.windowTypes || {})[key];
       return wt && wt.chrome ? (wt.chrome.active || wt.chrome.inactive) : null;
     }
     // Load with a few retries: the dev server can briefly 404 an asset during
@@ -1135,10 +1145,10 @@
     // The `?retry=` query busts a cached failure so the re-fetch actually hits.
     async function loadImgSafe(theme, asset) {
       if (!asset) return null;
-      // assetUrl handles both legacy relative paths and the in-memory blob: URLs.
+      // Resolve the selected owned reference or legacy image URL explicitly.
       // The `?retry=` cache-bust only makes sense for fetched URLs (http(s)); blob:
       // URLs are content-stable and don't need busting.
-      const url = assetUrl(theme, asset);
+      const url = await themeImageUrl(theme, asset);
       const isBlob = /^blob:/.test(url);
       for (let attempt = 0; attempt < 3; attempt++) {
         try { return await loadImg(attempt && !isBlob ? `${url}?retry=${attempt}` : url); }
@@ -1347,8 +1357,8 @@
         const d = document.createElement('div'); d.textContent = '(no wnd# recipe — baseline window has no slices)'; d.style.cssText = 'opacity:.6;margin-top:6px'; details.appendChild(d); return details;
       }
       const cicnImg = await loadImgSafe(theme, docWindowCicn(theme));
-      const slug = (theme.baseUrl || '').split('/').pop();
-      const ctx = { themeName: theme.manifest.name || slug, slug, windowType: 'document-window', w: 172, h: 88, scale: 2, state: 'active' };
+      const slug = (origin(theme) || '').split('/').pop();
+      const ctx = { themeName: metadata(theme).manifest.name || slug, slug, windowType: 'document-window', w: 172, h: 88, scale: 2, state: 'active' };
       details.appendChild(buildSliceView(win, cicnImg, 2, undefined, ctx));
       return details;
     }
@@ -1426,7 +1436,7 @@
       // same convention.
       const WT_ORDER = ['document-window', 'dialog', 'alert', 'movable-modal', 'movable-alert', 'titled-utility-window', 'side-floating-utility-window', 'no-title-utility-window', 'popup-window', 'collapsed-document-window', 'collapsed-titled-utility-window', 'collapsed-side-floating-utility-window', 'collapsed-no-title-utility-window'];
       const populateWindowTypes = (theme) => {
-        const wts = theme.manifest.windowTypes || {};
+        const wts = metadata(theme).manifest.windowTypes || {};
         wtypeSel.innerHTML = '';
         const keys = Object.keys(wts).sort((a, b) => {
           const ia = WT_ORDER.indexOf(canonSlug(a)), ib = WT_ORDER.indexOf(canonSlug(b));
@@ -1556,9 +1566,9 @@
       det.appendChild(sum);
       // Inspector data (Option A: in-memory decode) is preferred; fall back to the
       // pre-extracted resource-roles.json for legacy/pre-extracted bundles.
-      let data = theme.inspector?.resourceRoles ?? null;
+      let data = metadata(theme).inspector?.resourceRoles ?? null;
       if (!data) {
-        try { const r = await fetch(`${theme.baseUrl}/resource-roles.json`); if (r.ok) data = await r.json(); } catch { /* */ }
+        try { const r = await fetch(`${origin(theme)}/resource-roles.json`); if (r.ok) data = await r.json(); } catch { /* */ }
       }
       if (!data) { sum.textContent = 'Resource roles — (manifest not found)'; return det; }
       sum.textContent = `Resource roles — ${data.resources.length} resources${data.scrollArrows ? ' · scroll-arrows mapped' : ''} — click to expand`;
@@ -1593,7 +1603,7 @@
     // ── buildThemeDetail: every diagnostic for ONE theme, in jump-linked sections.
     async function buildThemeDetail(theme, meta) {
       const frag = document.createElement('div');
-      const m = theme.manifest || {};
+      const m = metadata(theme).manifest || {};
 
       const head = document.createElement('div'); head.className = 'detail-head';
       const h2 = document.createElement('h2'); h2.textContent = meta.label;
@@ -1767,7 +1777,7 @@
     // ── Interactive playground (Phase 1) ─────────────────────────────────────
     // Live interaction on the themed chrome: buttons depress on press,
     // checkbox/radio toggle, disclosure expands, and clicking a window focuses
-    // it (active↔inactive chrome). All from src/interactive.ts.
+    // it (active↔inactive chrome). Native checkables use declarative mounting.
     {
       const section = document.createElement('div'); section.className = 'theme-row';
       const h2 = document.createElement('h2'); h2.textContent = 'Interactive playground — live';
@@ -1778,7 +1788,10 @@
       section.append(h2, intro, host);
       rows.appendChild(section);
 
+      let toggleMount;
       async function buildInteractive(slug) {
+        toggleMount?.disconnect();
+        toggleMount = undefined;
         host.replaceChildren();
         const status = document.createElement('div');
         status.style.cssText = 'font:12px Charcoal,Geneva,sans-serif;min-height:16px;margin:0 0 10px;color:#333';
@@ -1798,10 +1811,28 @@
         );
 
         const toggles = document.createElement('div'); toggles.style.cssText = 'display:flex;flex-direction:column;gap:8px';
-        toggles.append(
-          await interactiveCheckbox(theme, { label: 'Show invisibles', checked: true, onChange: (c) => say('Show invisibles: ' + c) }),
-          await radioGroup(theme, { items: [{ label: 'On', value: 'on' }, { label: 'Off', value: 'off' }], value: 'on', onChange: (v) => say('radio → ' + v) }),
-        );
+        ctrls.append(toggles); host.append(ctrls);
+        toggleMount = await mountExplicitPage({
+          root: toggles, pageThemeDefault: 'playground', bootAffordance: 'none',
+        });
+        toggleMount.registerTheme('playground', theme);
+        const checkLabel = document.createElement('label');
+        checkLabel.style.cssText = 'display:inline-flex;align-items:center;gap:5px;font:12px Charcoal,Geneva,sans-serif';
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox'; checkbox.name = 'show-invisibles'; checkbox.defaultChecked = true;
+        checkbox.addEventListener('change', () => say('Show invisibles: ' + checkbox.checked));
+        checkLabel.append(checkbox, 'Show invisibles');
+        const radios = document.createElement('div'); radios.style.cssText = 'display:flex;gap:12px';
+        for (const [label, value] of [['On', 'on'], ['Off', 'off']]) {
+          const radioLabel = document.createElement('label');
+          radioLabel.style.cssText = checkLabel.style.cssText;
+          const radio = document.createElement('input');
+          radio.type = 'radio'; radio.name = 'playground-mode'; radio.value = value; radio.defaultChecked = value === 'on';
+          radio.addEventListener('change', () => { if (radio.checked) say('radio → ' + radio.value); });
+          radioLabel.append(radio, label); radios.append(radioLabel);
+        }
+        toggles.append(checkLabel, radios);
+        await toggleMount.attach({controls:[checkbox,...radios.querySelectorAll("input")]});
 
         const discWrap = document.createElement('div');
         const discRow = document.createElement('div'); discRow.style.cssText = 'display:flex;gap:6px;align-items:center;font:12px Charcoal,Geneva,sans-serif';
@@ -1906,7 +1937,7 @@
           // The whole conversion runs HERE in the browser (OffscreenCanvas encodes the
           // RGBA assets to blob: URLs); anything the scheme doesn't ship falls through
           // to the procedural Platinum fallback in src/platinum.ts.
-          loaded = await loadKaleidoscopeScheme(file, { meta: { name }, source: file.name });
+          loaded = await loadOwnedKaleidoscopeScheme(file, { meta: { name }, source: file.name });
         } catch (err) {
           if (my !== token) return;
           zone.removeAttribute('aria-busy');
@@ -1926,9 +1957,9 @@
         if (my !== token) return;
         zone.removeAttribute('aria-busy');
 
-        const wtypes = Object.keys(loaded.manifest.windowTypes || {});
-        const glyphCount = Object.keys(loaded.glyphs || {}).length;
-        const fill = loaded.manifest.headerColors && loaded.manifest.headerColors.active && loaded.manifest.headerColors.active.fill;
+        const wtypes = Object.keys(metadata(loaded).manifest.windowTypes || {});
+        const glyphCount = Object.keys(metadata(loaded).glyphs || {}).length;
+        const fill = metadata(loaded).manifest.headerColors && metadata(loaded).manifest.headerColors.active && metadata(loaded).manifest.headerColors.active.fill;
 
         status.className = 'byo-report';
         status.innerHTML = '';

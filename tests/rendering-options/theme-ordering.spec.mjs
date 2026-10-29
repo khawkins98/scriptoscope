@@ -7,7 +7,7 @@ async function setup(page, servers, mode) {
     const root = document.createElement('section'); document.body.append(root);
     root.innerHTML = `<div data-scriptoscope-window data-scriptoscope-title="First" data-scriptoscope-width="320" data-scriptoscope-height="200" style="width:320px"><label>Volume<input id="ordering-range" type="range" value="37"></label><input id="ordering-text" value="consumer"><select><option>A</option><option selected>B</option></select></div><div data-scriptoscope-window data-scriptoscope-title="Second" data-scriptoscope-width="320" data-scriptoscope-height="90" style="width:320px">Second</div>`;
     const range = root.querySelector('input[type=range]'), text = root.querySelector('input:not([type])');
-    const handle = await runtime.mountDeclarative({ root, themeBaseUrl: '/themes', pageThemeDefault: 'windows-95', bootAffordance: 'none', syncToUrlParam: 'ordering-theme', persistKey: 'ordering-test' });
+    const handle = await (await import('/tests/rendering-options/contract-host.mjs')).createContractHost(runtime, { root, themeBaseUrl: '/themes', pageThemeDefault: 'windows-95', bootAffordance: 'none', syncToUrlParam: 'ordering-theme', persistKey: 'ordering-test' });
     const f = window.ordering = { runtime, root, handle, range, text, events: [] };
     handle.addEventListener('retheme', event => f.events.push(event.detail.ref));
     f.snapshot = () => [...root.querySelectorAll('[data-scriptoscope-window-host]')].map(host => ({ ref: host.dataset.scriptoscopeTheme, state: host.shadowRoot.querySelector('.scriptoscope-window')?.dataset.scriptoscopeCurrentState, pixels: [...host.shadowRoot.querySelectorAll('canvas.scriptoscope-chrome')].map(c => { let hash = 2166136261; for (const b of c.getContext('2d').getImageData(0, 0, c.width, c.height).data) hash = Math.imul(hash ^ b, 16777619); return [c.width, c.height, hash >>> 0]; }) }));
@@ -63,7 +63,7 @@ for (const mode of ['source', 'built']) {
     await page.evaluate(async () => { const f = window.ordering; f.release(); await f.old; });
     expect(await page.evaluate(() => { const f = window.ordering; return { same: JSON.stringify(f.snapshot()) === JSON.stringify(f.initial), events: f.events, url: new URL(location.href).searchParams.get('ordering-theme') }; })).toEqual({ same: true, events: [], url: null });
     // A newly inserted source follows the completed theme, never the failed slug.
-    await page.evaluate(() => { const wrap = document.createElement('div'); wrap.innerHTML = '<div data-scriptoscope-window data-scriptoscope-title="After failure" style="width:200px">New</div>'; window.ordering.root.append(wrap); });
+    await page.evaluate(() => { const wrap = document.createElement('div'); wrap.innerHTML = '<div data-scriptoscope-window data-scriptoscope-title="After failure" style="width:200px">New</div>'; window.ordering.root.append(wrap); void window.ordering.handle.attach(wrap); });
     await expect.poll(() => page.evaluate(() => window.ordering.handle.stats.windows)).toBe(3);
     expect(await page.evaluate(() => window.ordering.snapshot().map(w => w.ref))).toEqual(['windows-95', 'windows-95', 'windows-95']);
     await page.unroute('**/themes/beos-r503/scheme.*');
@@ -131,19 +131,19 @@ for (const mode of ['source', 'built']) {
     await page.evaluate(() => { const f = window.ordering; f.manager.remove(f.hosts[0]); f.root.remove(); [...f.themes, f.next].forEach(t => t.dispose?.()); });
   });
 
-  test(`${mode}: scans started before or during a switch join its completed window theme`, async ({ page, servers }) => {
+  test(`${mode}: explicit attachments started before or during a switch join its completed window theme`, async ({ page, servers }) => {
     await setup(page, servers, mode);
     await page.evaluate(() => {
       const f = window.ordering;
       f.holdDecode();
       const wrap = document.createElement('div'); wrap.innerHTML = '<div data-scriptoscope-window data-scriptoscope-theme="1990" data-scriptoscope-width="200" data-scriptoscope-height="80">Already preparing</div>';
-      f.root.append(wrap);
+      f.root.append(wrap); void f.handle.attach(wrap);
     });
     await page.waitForFunction(() => window.ordering.held === 1);
     await page.evaluate(() => {
       const f = window.ordering; f.next = f.handle.retheme('beos-r503');
       const wrap = document.createElement('div'); wrap.innerHTML = '<div data-scriptoscope-window data-scriptoscope-width="200" data-scriptoscope-height="80">Arrived during switch</div>';
-      f.root.append(wrap); f.release();
+      f.root.append(wrap); void f.handle.attach(wrap); f.release();
     });
     await page.evaluate(() => window.ordering.next);
     await expect.poll(() => page.evaluate(() => window.ordering.handle.stats.windows)).toBe(4);
@@ -181,7 +181,7 @@ for (const mode of ['source', 'built']) {
       await page.evaluate(async heldKind => {
         const f = window.ordering; f.handle.disconnect();
         f.root.innerHTML = `${heldKind === 'button' ? '<button data-scriptoscope-button>Action</button>' : ''}<div data-scriptoscope-tabs><button data-scriptoscope-tab="one" data-scriptoscope-selected>One</button><button data-scriptoscope-tab="two">Two</button><section data-scriptoscope-panel="one">First</section><section data-scriptoscope-panel="two">Second</section></div><label>Volume<input type="range" value="43"></label>`;
-        f.handle = await f.runtime.mountDeclarative({ root: f.root, pageThemeDefault: 'windows-95', bootAffordance: 'none' });
+        f.handle = await (await import('/tests/rendering-options/contract-host.mjs')).createContractHost(f.runtime, { root: f.root, pageThemeDefault: 'windows-95', bootAffordance: 'none' });
         f.events = []; f.handle.addEventListener('retheme', e => f.events.push(e.detail.ref));
         f.faceSnapshot = () => [...f.root.querySelectorAll('canvas')].map(c => c.toDataURL());
         f.holdDecode(); f.old = f.handle.retheme(heldKind === 'tabs' ? 'windows-31' : 'system7-nostalgia-silver');
@@ -212,14 +212,23 @@ for (const mode of ['source', 'built']) {
     await setup(page, servers, mode);
     await page.evaluate(async () => {
       const f = window.ordering;
+      f.initial = f.snapshot(); f.observerCalls = 0;
+      const nativeIntact = () => f.root.querySelector('#ordering-range') === f.range && f.root.querySelector('#ordering-text') === f.text;
+      f.nativeIntact = nativeIntact;
       const observer = new MutationObserver(() => {
         observer.disconnect();
+        f.observerCalls++;
+        f.observed = f.snapshot(); f.observedNative = nativeIntact();
         f.latest = f.handle.retheme('missing-ordering-theme').then(() => 'resolved', () => 'rejected');
       });
-      observer.observe(f.root.querySelector('[data-scriptoscope-window-host]').shadowRoot, { childList: true });
+      // Chrome can be replaced inside a retained window root.
+      observer.observe(f.root.querySelector('[data-scriptoscope-window-host]').shadowRoot, { childList: true, subtree: true });
       await f.handle.retheme('system7-nostalgia-silver');
       f.latestResult = await f.latest;
     });
+    expect(await page.evaluate(() => window.ordering.observerCalls)).toBe(1);
+    expect(await page.evaluate(() => window.ordering.observed.map(w => w.ref))).toEqual(['system7-nostalgia-silver', 'system7-nostalgia-silver']);
+    expect(await page.evaluate(() => { const f = window.ordering; return { coherent: JSON.stringify(f.observed) === JSON.stringify(f.snapshot()), changed: f.observed.every((w, i) => JSON.stringify(w.pixels) !== JSON.stringify(f.initial[i].pixels)), observedNative: f.observedNative, native: f.nativeIntact() }; })).toEqual({ coherent: true, changed: true, observedNative: true, native: true });
     expect(await page.evaluate(() => { const f = window.ordering; return { refs: f.snapshot().map(w => w.ref), events: f.events, latest: f.latestResult }; })).toEqual({ refs: ['system7-nostalgia-silver', 'system7-nostalgia-silver'], events: [], latest: 'rejected' });
     await page.evaluate(() => window.ordering.handle.disconnect());
   });
@@ -293,12 +302,14 @@ for (const mode of ['source', 'built']) {
       document.body.append(fragment);
       face?.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
       face?.dispatchEvent(new KeyboardEvent('keyup', { key: 'Enter' }));
+      const syntheticClicks = clicks; // untrusted keys do not activate a native button
+      face?.click();
       tabs.querySelectorAll('[data-scriptoscope-tab-skinned]')[1]?.dispatchEvent(new PointerEvent('pointerdown'));
       // Wait for real selection rendering, not a timer or a mocked tab implementation.
       await runtime.composeTab(theme, { label: 'Two', selected: true });
-      const result = { ...prepared, clicks, secondSelected: tabs.querySelector('[data-scriptoscope-tab="two"]').getAttribute('aria-selected') };
+      const result = { ...prepared, syntheticClicks, clicks, secondSelected: tabs.querySelector('[data-scriptoscope-tab="two"]').getAttribute('aria-selected') };
       root.remove(); theme.dispose?.(); return result;
-    }, mode)).toEqual({ face: true, sibling: true, tabs: 2, connected: false, clicks: 1, secondSelected: 'true' });
+    }, mode)).toEqual({ face: true, sibling: true, tabs: 2, connected: false, syntheticClicks: 0, clicks: 1, secondSelected: 'true' });
   });
 
   test(`${mode}: button insertion reentry leaves one registered latest face and disposes the superseded face`, async ({ page, servers }) => {
@@ -307,7 +318,7 @@ for (const mode of ['source', 'built']) {
       const runtime = await import(mode === 'source' ? '/src/index.ts' : '/dist/scriptoscope.js');
       const root = document.createElement('div'); root.innerHTML = '<button data-scriptoscope-button>Apply</button>'; document.body.append(root);
       const source = root.querySelector('button'); let clicks = 0; source.addEventListener('click', () => clicks++);
-      const handle = await runtime.mountDeclarative({ root, themeBaseUrl: '/themes', pageThemeDefault: 'windows-95', bootAffordance: 'none' });
+      const handle = await (await import('/tests/rendering-options/contract-host.mjs')).createContractHost(runtime, { root, themeBaseUrl: '/themes', pageThemeDefault: 'windows-95', bootAffordance: 'none' });
       let newer, discarded;
       const observer = new MutationObserver(records => {
         const inserted = records.flatMap(r => [...r.addedNodes]).find(n => n instanceof HTMLElement && n===source.nextElementSibling&&n.tagName==='BUTTON'&&n.textContent==='Apply'&&getComputedStyle(n).display!=='none');
@@ -323,17 +334,20 @@ for (const mode of ['source', 'built']) {
       const sameArt = faces.length === 1 && faces[0].querySelector('canvas').toDataURL() === expected.querySelector('canvas').toDataURL();
       discarded.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
       discarded.dispatchEvent(new KeyboardEvent('keyup', { key: 'Enter' }));
+      discarded.click(); // disposed native presentation must no longer forward
       const staleClicks = clicks;
       await handle.retheme('windows-95');
       const countAfterNext = root.querySelectorAll('.scriptoscope-button').length;
       const finalFace = root.querySelector('.scriptoscope-button');
       finalFace.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
       finalFace.dispatchEvent(new KeyboardEvent('keyup', { key: 'Enter' }));
+      const syntheticClicks = clicks;
+      finalFace.click();
       const discardedConnected = discarded.isConnected;
       handle.disconnect(); root.remove(); expectedTheme.dispose?.();
-      return { count: faces.length, sameArt, discardedConnected, staleClicks, countAfterNext, clicks };
+      return { count: faces.length, sameArt, discardedConnected, staleClicks, countAfterNext, syntheticClicks, clicks };
     }, mode);
-    expect(result).toEqual({ count: 1, sameArt: true, discardedConnected: false, staleClicks: 0, countAfterNext: 1, clicks: 1 });
+    expect(result).toEqual({ count: 1, sameArt: true, discardedConnected: false, staleClicks: 0, countAfterNext: 1, syntheticClicks: 0, clicks: 1 });
   });
 
 }

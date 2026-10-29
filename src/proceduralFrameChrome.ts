@@ -11,8 +11,9 @@
 // message 6 (§9.8 UM4); the grow box is returned as an overlay because the
 // content region excludes it (§3.3) while the runtime's content is DOM stacked
 // over the chrome canvas.
-import type { LoadedTheme, WindowState } from './types.js';
+import type { WindowState } from './types.js';
 import type { ComposedChrome, PlacementSlice } from './composeChrome.js';
+import { themeView, type ThemeInput, type ThemeView } from './ownedTheme.js';
 import { PixelBuffer } from './pixelBuffer.js';
 import { rasterizeTitle } from './titleFont.js';
 import { themeResourceChain } from './engine/resources/theme.js';
@@ -68,8 +69,9 @@ export function proceduralFrameRecord(key: string): (typeof PF_WINDOW_SLUGS)[num
  * Compose a built-in frame window at native resolution. `key` is the resolved
  * window-type key; `contentW`/`contentH` the content rect C.
  */
-export async function composeProceduralFrameChrome(owner: LoadedTheme, key: string, state: WindowState, contentW: number, contentH: number,
+export async function composeProceduralFrameChrome(theme: ThemeInput | ThemeView, key: string, state: WindowState, contentW: number, contentH: number,
   opts: ProceduralFrameChromeOptions = {}): Promise<ComposedChrome & { contentCollapsed: boolean; trace?: EngineTrace }> {
+  const owner = themeView(theme);
   const record = proceduralFrameRecordFor(key);
   const row = record.row;
   const hilited = !/inactive/.test(state);
@@ -118,17 +120,9 @@ export async function composeProceduralFrameChrome(owner: LoadedTheme, key: stri
     if (!colored.has(k)) colored.set(k, raster(text, hex(pass.rgb)));
     const g = colored.get(k);
     if (!g) return;
-    const ox = pass.x, oy = pass.y - g.ascent;
-    const pb = port as PixelBuffer;
-    for (let y = 0; y < g.buffer.height; y++) for (let x = 0; x < g.buffer.width; x++) {
-      const px = ox + x, py = oy + y;
-      if (px < pass.clip.left || px >= pass.clip.right || py < pass.clip.top || py >= pass.clip.bottom) continue;
-      const [r, gg, b, a] = g.buffer.getPixel(x, y);
-      if (a === 0) continue;
-      const [dr, dg, db, da] = pb.getPixel(px, py);
-      const sa = a / 255;
-      pb.setPixel(px, py, Math.round(r * sa + dr * (1 - sa)), Math.round(gg * sa + dg * (1 - sa)), Math.round(b * sa + db * (1 - sa)), Math.max(a, da));
-    }
+    (port as PixelBuffer).drawOver(g.buffer, pass.x, pass.y - g.ascent, {
+      x: pass.clip.left, y: pass.clip.top, w: pass.clip.right - pass.clip.left, h: pass.clip.bottom - pass.clip.top,
+    });
   };
   const { geometry: g } = drawProceduralFrame(buffer, chain, input, { renderTitle }, trace);
   if (utility && g.state.grow && !g.state.smallGrow) drawProceduralFrameGrowIcon(buffer, chain, input, trace);

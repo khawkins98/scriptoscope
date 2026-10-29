@@ -44,3 +44,23 @@ test('successful decode retains URLs until idempotent dispose, without revoking 
   assert.deepEqual(revoked, ['blob:owned']);
   assert.equal(baseDisposals, 0);
 });
+
+test('post-encoding assembly failure releases registered pixels and every owned URL', async (t) => {
+  const previous = globalThis.OffscreenCanvas;
+  t.after(() => { globalThis.OffscreenCanvas = previous; });
+  globalThis.OffscreenCanvas = class {
+    getContext() { return { createImageData: (w, h) => ({ data: new Uint8ClampedArray(w * h * 4) }), putImageData() {} }; }
+    async convertToBlob() { return new Blob([]); }
+  };
+  const minted = [], revoked = [];
+  t.mock.method(URL, 'createObjectURL', () => { const url = `blob:assembly-${minted.length}`; minted.push(url); return url; });
+  t.mock.method(URL, 'revokeObjectURL', url => revoked.push(url));
+  let reads = 0;
+  const failure = new Error('assembly failed after encoding');
+  await assert.rejects(loadKaleidoscopeScheme(bytes, {
+    encodeAssets: true,
+    get meta() { if (++reads > 1) throw failure; return {}; },
+  }), error => error === failure);
+  assert.ok(minted.length > 100);
+  assert.deepEqual(new Set(revoked), new Set(minted));
+});

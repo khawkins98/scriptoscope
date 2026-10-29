@@ -5,8 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Acknowledgements — Scriptoscope</title>
   <meta name="description" content="The people, schemes, archives, typefaces, and visual inspiration behind Scriptoscope.">
+  <link rel="stylesheet" href="scriptoscope.css">
   <link rel="stylesheet" href="./site-shell.css">
   <script type="module" src="./site-shell.mjs"></script>
+  <script type="module" src="./site-windows.mjs"></script>
 </head>
 <body class="site-support site-acknowledgements">
   <a class="site-skip" href="#page-content">Skip to content</a>
@@ -31,7 +33,7 @@
     <p class="site-deck">Scriptoscope owes its character to the people who made the schemes, preserved the archives, and shared their work.</p>
     <div class="site-intro-links"><a href="#schemes">Scheme authors</a><a href="#inspiration">Art &amp; inspiration</a><a href="#type">Type &amp; tools</a><a href="#ai-agents">Building with AI</a></div>
   </section>
-  <main class="site-story-article site-acknowledgements-copy" id="page-content">
+  <main class="site-story-article site-acknowledgements-copy page" id="page-content" data-site-windows="crayon-os">
     <section aria-labelledby="kaleidoscope-credit">
       <h2 id="kaleidoscope-credit">The original idea.</h2>
       <p>Greg Landweber and Arlo Rose created <a href="https://en.wikipedia.org/wiki/Kaleidoscope_(software)">Kaleidoscope</a>, the classic Mac OS theming software that made this world of schemes possible. Scriptoscope reads the community’s original scheme files and renders them on the web.</p>
@@ -40,6 +42,7 @@
     <section aria-labelledby="schemes">
       <h2 id="schemes">The scheme authors.</h2>
       <p>These are the creators credited in the bundled scheme catalog. Each scheme links to its original archive, provenance, and recorded terms in the repository. Where an author or year is absent from the available records, we leave it unassigned.</p>
+      <div class="site-desk-window site-credit-window" data-scriptoscope-window data-scriptoscope-title="Scheme authors" data-example-compact-title="Authors" data-scriptoscope-window-type="document-window" data-scriptoscope-widgets="collapse">
       <ul class="site-credit-list">
         <li><a href="https://github.com/khawkins98/scriptoscope/tree/main/themes/1138">1138</a><span>Erik Ekengren, 1998</span></li>
         <li><a href="https://github.com/khawkins98/scriptoscope/tree/main/themes/1984">1984</a><span>Geoffrey Hamilton, 1999</span></li>
@@ -60,6 +63,7 @@
         <li><a href="https://github.com/khawkins98/scriptoscope/tree/main/themes/windows-31">Windows 3.1</a><span>Scott Naness</span></li>
         <li><a href="https://github.com/khawkins98/scriptoscope/tree/main/themes/windows-95">Windows 95</a><span>Scott Naness</span></li>
       </ul>
+      </div>
     </section>
     <section aria-labelledby="inspiration">
       <h2 id="inspiration">Art &amp; inspiration.</h2>
