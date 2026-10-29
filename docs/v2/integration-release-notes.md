@@ -1,10 +1,10 @@
-# v2 integration candidate: installation and migration
+# 0.7.0 pre-launch: installation and migration
 
 The approved next pre-launch target is **0.7.0**. This integration stays
 **Unreleased** until the release cut. `v2` is an internal development branch
 label, not public release 2.0 or a 1.0 threshold. Reviewed source baseline:
-`v2` at `b4d8678693652a389664f8bd0bfee7c424f5cb48`, including #510, compared
-with `v0.6.0` at `fa727e1f4edb9a83f48d25a50d78e5d20c887e62` (36 commits
+`v2` at `de7c3bcc82870c0b257b6af7fb9c6db024f3f1a8`, including #510 and #516, compared
+with `v0.6.0` at `fa727e1f4edb9a83f48d25a50d78e5d20c887e62` (37 commits
 ahead, zero behind). Package metadata remains **0.6.0**. The version bump, tag,
 publishing and deployment remain separate release steps under
 [#168](https://github.com/khawkins98/scriptoscope/issues/168).
@@ -91,11 +91,11 @@ consumers to adopt the optional renderer entry or owned loaders.
 The demo now includes loading states and reading-page windows, and dragging
 windows on a scrolled page uses corrected coordinates
 ([#510](https://github.com/khawkins98/scriptoscope/pull/510), merged into `v2`).
-The separate two-line Story initial-padding CSS fix
-([#516](https://github.com/khawkins98/scriptoscope/pull/516), replacing the closed
-#514 attempt) is **pending**, with full integration CI still running at this
-documentation checkpoint. Its scope is `demo/site-shell.css` only; runtime
-behavior is unchanged. Count it as delivered only after merge.
+Story desk windows also account for their authored padding before promotion,
+avoiding post-mount growth and changed wrapping
+([#516](https://github.com/khawkins98/scriptoscope/pull/516), merged into `v2`).
+Its two-line consumer CSS correction replaces the automatically closed #514
+attempt; runtime behavior is unchanged.
 
 Custom push allocators should provide dimensions without side effects tied to
 incidental read counts: a removed no-op scan no longer triggers those getter
@@ -138,13 +138,11 @@ only one part of the runtime.
 
 - Cut the approved 0.7.0 pre-launch release under #168 after integration checks;
   until then keep these notes Unreleased and package metadata unchanged.
-- Resolve #516's pending CI/merge status before including its Story layout fix
-  in the delivered release summary.
 - Full required checks on the final integration candidate, followed by deployment
-  and an actual deployment smoke check. The current baseline has a successful
-  docs-specific validation; earlier full CI runs certify their own heads. Coordinator
-  build/package and bounded showcase smoke reports are not exact-head release CI
-  or universal fidelity certification.
+  and an actual deployment smoke check. Component PR checks and readiness receipts
+  certify their own exact heads; the final integration candidate needs its own
+  required check results. Coordinator build/package and bounded showcase smoke
+  reports are not exact-head release CI or universal fidelity certification.
 - Fidelity-first stabilization continues under
   [#509](https://github.com/khawkins98/scriptoscope/issues/509) / #221. #209 remains
   canonical deferred scope, #472 remains parked authoring, and #190/#218/#277

@@ -84,6 +84,8 @@ identity, installation, compatibility actions and remaining release gates.
 
 ### Fixed
 
+- Story desk windows account for their authored padding before promotion,
+  avoiding initial growth and changed wrapping (#516). Runtime behavior is unchanged.
 - Demo loading states and reading-page windows are integrated, and window
   dragging uses correct coordinates when the page is scrolled (#510).
 - Secondary and auxiliary clicks no longer invoke themed button primary actions
@@ -100,9 +102,6 @@ identity, installation, compatibility actions and remaining release gates.
 
 ### Coverage and remaining limits
 
-- #516's two-line Story initial-padding CSS fix is pending, replacing the closed
-  #514 attempt. It changes demo layout only, with no runtime change; it is not
-  counted as delivered until merged.
 - Optional visual contract maintenance (#482, completing #481) adds coverage,
   not runtime behavior or full native fidelity. The Windows 95 titlebar reference
   (#492) adds a bounded original-condition reference, with **zero exact browser
