@@ -92,7 +92,7 @@ import {
 import { newProgressRecord, progressIdleAdvance, progressSetData, type ProgressRecord } from './engine/families/progress.js';
 import { PROGRESS_DATA, PROGRESS_FACADE_TICKS } from './engine/tables/progress.js';
 import { platinumSliderWithLayout, platinumScrollbar } from './platinum.js';
-import { findPositionedAncestor, offsetInContainingBlock, viewportFrame } from './positioning.js';
+import { findPositionedAncestor, offsetInContainingBlock, pointInElement, viewportFrame } from './positioning.js';
 import { debug } from './debug.js';
 import { renderWindow, resolveTitleWidgetRects, type RenderWindowOptions } from './renderWindow.js';
 import type { PixelBuffer } from './pixelBuffer.js';
@@ -309,10 +309,11 @@ async function buildDraggable(
 
   // Map pointer→value against the CANVAS rect (the actual visual surface), not the element rect.
   // The element can be stretched by a parent layout; the canvas always reflects what the user sees.
+  // Local CSS pixels, not the bounding rect, so a rotated ancestor (#519) keeps the axis.
   const valueAt = (e: PointerEvent): number => {
     const canvas = el.querySelector('canvas');
-    const r = (canvas ?? el).getBoundingClientRect();
-    const t = orientation === 'horizontal' ? (e.clientX - r.left) / r.width : (e.clientY - r.top) / r.height;
+    const p = pointInElement(canvas ?? el, e.clientX, e.clientY);
+    const t = orientation === 'horizontal' ? p.x / p.width : p.y / p.height;
     return clamp01(t);
   };
   // A painted layout whose value runs against the axis (the engine slider's
@@ -321,14 +322,12 @@ async function buildDraggable(
   const nativePoint = (e: PointerEvent, axisLength: number): { axis: number; x: number; y: number; inside: boolean } | null => {
     const canvas = el.querySelector('canvas');
     if (!canvas) return null;
-    const rect = canvas.getBoundingClientRect();
-    if (!(rect.width > 0 && rect.height > 0)) return null;
-    const x = (e.clientX - rect.left) * canvas.width / rect.width;
-    const y = (e.clientY - rect.top) * canvas.height / rect.height;
-    return { x, y, axis: orientation === 'horizontal'
-      ? (e.clientX - rect.left) * axisLength / rect.width
-      : (e.clientY - rect.top) * axisLength / rect.height,
-      inside: e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom };
+    const p = pointInElement(canvas, e.clientX, e.clientY);
+    if (!(p.width > 0 && p.height > 0)) return null;
+    const x = p.x * canvas.width / p.width;
+    const y = p.y * canvas.height / p.height;
+    return { x, y, axis: orientation === 'horizontal' ? p.x * axisLength / p.width : p.y * axisLength / p.height,
+      inside: p.x >= 0 && p.x <= p.width && p.y >= 0 && p.y <= p.height };
   };
   const schedule = (): void => { if (!events.signal.aborted && !raf) raf = requestAnimationFrame(() => { raf = 0; void repaint(); }); };
   const update = (position: number, exact?: string): void => {
@@ -505,10 +504,10 @@ function paintedPartAt<T>(el: HTMLElement, e: PointerEvent,
   frame: { buffer: PixelBuffer; partAt(x: number, y: number): T } | null): T | undefined {
   const canvas = el.querySelector('canvas');
   if (!frame || !canvas) return undefined;
-  const r = canvas.getBoundingClientRect();
-  if (!(r.width > 0 && r.height > 0)) return undefined;
-  return frame.partAt(Math.floor((e.clientX - r.left) * frame.buffer.width / r.width),
-    Math.floor((e.clientY - r.top) * frame.buffer.height / r.height));
+  const p = pointInElement(canvas, e.clientX, e.clientY);
+  if (!(p.width > 0 && p.height > 0)) return undefined;
+  return frame.partAt(Math.floor(p.x * frame.buffer.width / p.width),
+    Math.floor(p.y * frame.buffer.height / p.height));
 }
 
 /**
@@ -1385,8 +1384,8 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
 
     // Drag the thumb (pointer = touch + mouse + pen).
     const valueAtPointer = (e: PointerEvent): number => {
-      const r = bar.getBoundingClientRect();
-      return clamp01(vertical ? (e.clientY - r.top) / r.height : (e.clientX - r.left) / r.width);
+      const p = pointInElement(bar, e.clientX, e.clientY);
+      return clamp01(vertical ? p.y / p.height : p.x / p.width);
     };
     bar.addEventListener('pointerdown', (e) => {
       e.preventDefault(); e.stopPropagation();

@@ -391,3 +391,34 @@ for (const mode of ['source', 'built']) {
   });
 
 }
+
+for (const mode of ['source', 'built']) {
+  test(`${mode}: thumb dragging follows the slider's own axis under a rotated ancestor (#519)`, async ({ page, servers }, info) => {
+    const rows = [];
+    try {
+      await setup(page, servers, mode, 'windows-95');
+      const { extent } = GEOMETRY['windows-95'], travel = travelOf('windows-95');
+      await page.addStyleTag({ content: '#pointer-root { transform: rotate(30deg); transform-origin: 0 0; margin: 80px; }' });
+      const current = await setValue(page, { min: '0', max: '1', step: 'any', value: '0.25' });
+      // A local canvas point (backing px) in viewport coordinates: an affine
+      // map keeps the bounding box centred on the box, then rotate about it.
+      const toScreen = await page.evaluate(() => {
+        const c = document.querySelector('#pointer-root .scriptoscope-slider canvas'), r = c.getBoundingClientRect();
+        return { cx: r.left + r.width / 2, cy: r.top + r.height / 2, w: c.offsetWidth, h: c.offsetHeight, bw: c.width, bh: c.height };
+      });
+      const at = (lx, ly) => {
+        const t = Math.PI / 6, u = toScreen.w / toScreen.bw;
+        const dx = lx * u - toScreen.w / 2, dy = ly * (toScreen.h / toScreen.bh) - toScreen.h / 2;
+        return { x: toScreen.cx + dx * Math.cos(t) - dy * Math.sin(t), y: toScreen.cy + dx * Math.sin(t) + dy * Math.cos(t) };
+      };
+      const grab = at(startOf('windows-95', current.normalized) + extent / 2, toScreen.bh / 2);
+      const drop = at(startOf('windows-95', current.normalized) + extent / 2 + travel / 2, toScreen.bh / 2);
+      await page.mouse.move(grab.x, grab.y); await page.mouse.down();
+      await page.mouse.move(drop.x, drop.y, { steps: 4 }); await page.mouse.up();
+      const result = await read(page); rows.push({ grab, drop, result });
+      // Integer pointer coordinates leave about a backing pixel of slack.
+      expect(Math.abs(Number(result.value) - 0.75)).toBeLessThanOrEqual(1.5 / travel);
+    } catch (error) { await attachCase(page, info, { mode, rows }, error); throw error; }
+    finally { await cleanup(page); }
+  });
+}

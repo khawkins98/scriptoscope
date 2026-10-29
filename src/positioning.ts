@@ -81,6 +81,8 @@ export function visualScale(
 export interface ViewportFrame {
   /** Where the element's local (0, 0) sits in the viewport. */
   readonly origin: { left: number; top: number };
+  /** The element's border-box size in its own CSS pixels. */
+  readonly size: { width: number; height: number };
   toLocal(x: number, y: number): { x: number; y: number };
 }
 
@@ -93,17 +95,20 @@ export interface ViewportFrame {
  *  The linear part (scale, rotation, skew) is the product of the 2D parts of
  *  every `transform`, `rotate` and `scale` from `el` up to the root. The
  *  translation comes from the bounding rect, which is the axis-aligned bounds
- *  of the transformed border box. When that product is a plain positive scale
- *  (or nothing), the rect-to-layout ratio is used instead, as before. 3D
+ *  of the transformed border box. With no transform the rect is used as is;
+ *  a plain positive scale divides by the rect-to-layout ratio, as before. 3D
  *  transforms are flattened to their 2D part. */
 export function viewportFrame(el: HTMLElement, rect: DOMRectReadOnly | ClientRectLike = el.getBoundingClientRect()): ViewportFrame {
   const m = cumulativeLinear(el);
   const [a, b, c, d] = m;
   const det = a * d - b * c;
   if ((b === 0 && c === 0 && a > 0 && d > 0) || Math.abs(det) < 1e-9) {
-    const s = visualScale(el, rect);
+    // Untransformed: exactly 1, so integer offsetWidth can't skew a
+    // fractional-width element's mapping.
+    const s = a === 1 && d === 1 && b === 0 && c === 0 ? { x: 1, y: 1 } : visualScale(el, rect);
     return {
       origin: { left: rect.left, top: rect.top },
+      size: { width: rect.width / s.x, height: rect.height / s.y },
       toLocal: (x, y) => ({ x: (x - rect.left) / s.x, y: (y - rect.top) / s.y }),
     };
   }
@@ -114,11 +119,21 @@ export function viewportFrame(el: HTMLElement, rect: DOMRectReadOnly | ClientRec
   const top = rect.top - Math.min(0, b * w, d * h, b * w + d * h);
   return {
     origin: { left, top },
+    size: { width: w, height: h },
     toLocal: (x, y) => {
       const dx = x - left, dy = y - top;
       return { x: (d * dx - c * dy) / det, y: (a * dy - b * dx) / det };
     },
   };
+}
+
+/** A pointer position inside `el`: local CSS pixels plus `el`'s own size, so
+ *  `x / width` is the fraction along its x axis under any 2D transform. Use
+ *  this instead of `(clientX - rect.left) / rect.width`, which only holds when
+ *  nothing above `el` rotates or skews it (#519). */
+export function pointInElement(el: HTMLElement, clientX: number, clientY: number): { x: number; y: number; width: number; height: number } {
+  const frame = viewportFrame(el);
+  return { ...frame.toLocal(clientX, clientY), ...frame.size };
 }
 
 interface ClientRectLike { left: number; top: number; width: number; height: number }

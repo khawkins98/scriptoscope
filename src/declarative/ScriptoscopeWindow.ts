@@ -110,14 +110,17 @@ export class ScriptoscopeWindow<Theme extends ThemeInput = LoadedTheme> {
     // or 0-rect falls through to FIT_DEFAULT.
     const wantsAbsolute = parsed.x !== undefined || parsed.y !== undefined;
     const elRect = el.getBoundingClientRect();
-    const naturalW = Math.round(elRect.width);
-    const naturalH = Math.round(elRect.height);
+    // The element's own CSS size: under a scaled or rotated ancestor the
+    // bounding rect is its transformed screen bounds (#519).
+    const elFrame = viewportFrame(el, elRect);
+    const naturalW = Math.round(elFrame.size.width);
+    const naturalH = Math.round(elFrame.size.height);
     const hasNaturalRect = naturalW > 0 && naturalH > 0;
     // Only computed when absolute mode is requested — it's the only path that
     // needs them. Default in-flow positioning is the browser's job.
     let naturalX = 0, naturalY = 0;
     if (wantsAbsolute) {
-      const offset = offsetInContainingBlock(viewportFrame(el, elRect).origin, findPositionedAncestor(el));
+      const offset = offsetInContainingBlock(elFrame.origin, findPositionedAncestor(el));
       naturalX = Math.round(offset.x);
       naturalY = Math.round(offset.y);
     }
