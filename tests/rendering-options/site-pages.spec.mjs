@@ -163,13 +163,25 @@ test('dragging an in-flow window on a scrolled page moves it with the pointer', 
   await host.scrollIntoViewIfNeeded();
   await page.evaluate(() => scrollBy(0, 200));
   expect(await page.evaluate(() => scrollY)).toBeGreaterThan(1000);
-  const before = await host.boundingBox();
-  const x = before.x + before.width / 2, y = before.y + 3;
+  const frameRect = () => host.evaluate(el => {
+    const r = el.shadowRoot.querySelector('.scriptoscope-window').getBoundingClientRect();
+    return { x: r.left, y: r.top, width: r.width };
+  });
+  // The responsive layer may remount once after ready; wait for a settled frame.
+  await expect.poll(async () => {
+    const a = await frameRect();
+    await page.waitForTimeout(250);
+    const b = await frameRect();
+    return a.x === b.x && a.y === b.y && await host.evaluate(el => el.isConnected);
+  }, { timeout: 10_000 }).toBe(true);
+  const before = await frameRect();
+  // Grab the title bar's frame strip, clear of the title widgets.
+  const x = before.x + 120, y = before.y + 6;
   await page.mouse.move(x, y);
   await page.mouse.down();
   await page.mouse.move(x + 30, y + 20, { steps: 4 });
   await page.mouse.up();
-  const after = await host.boundingBox();
+  const after = await frameRect();
   expect(Math.round(after.x - before.x)).toBe(30);
   expect(Math.round(after.y - before.y)).toBe(20);
 });
