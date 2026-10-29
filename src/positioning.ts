@@ -47,16 +47,30 @@ export function offsetInContainingBlock(
   if (!ancestor || (ancestor === root && establishesNoContainingBlock(root))) {
     return { x: rect.left + window.scrollX, y: rect.top + window.scrollY };
   }
-  // TODO: a scaled ancestor (transform: scale) mixes scaled viewport pixels
-  // with unscaled CSS pixels here; divide by rect.width / offsetWidth to fix.
   const a = ancestor.getBoundingClientRect();
+  // Viewport distances inside a scaled ancestor are scaled; left/top are not.
+  const s = visualScale(ancestor, a);
   // A positioned <html> already moves with the page, and its scrollTop is the
   // page scroll, so only other ancestors add their own scroll offset.
   const scroll = ancestor === root ? { left: 0, top: 0 } : { left: ancestor.scrollLeft, top: ancestor.scrollTop };
   return {
-    x: rect.left - a.left - ancestor.clientLeft + scroll.left,
-    y: rect.top - a.top - ancestor.clientTop + scroll.top,
+    x: (rect.left - a.left) / s.x - ancestor.clientLeft + scroll.left,
+    y: (rect.top - a.top) / s.y - ancestor.clientTop + scroll.top,
   };
+}
+
+/** How many viewport pixels one of `el`'s CSS pixels covers on each axis:
+ *  the product of every `transform: scale()` on it and its ancestors. Divide
+ *  pointer deltas by this before writing them as CSS lengths (issue #515).
+ *  Axis-aligned scales only; rotation and skew aren't supported. Returns 1
+ *  for an element with no layout box. */
+export function visualScale(
+  el: HTMLElement,
+  rect: { width: number; height: number } = el.getBoundingClientRect(),
+): { x: number; y: number } {
+  const ratio = (shown: number, layout: number): number =>
+    layout > 0 && shown > 0 ? shown / layout : 1;
+  return { x: ratio(rect.width, el.offsetWidth), y: ratio(rect.height, el.offsetHeight) };
 }
 
 function establishesNoContainingBlock(el: HTMLElement): boolean {
