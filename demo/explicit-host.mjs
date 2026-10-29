@@ -302,7 +302,7 @@ export async function mountExplicitPage(opts) {
     const reusable=[];
     for(const [source,win] of windows) {
       const state=win.consumerManager.describe(win.host);
-      if(state)reusable.push([source,{viewport:mountingViewport,height:state.height,theme:fixedRefs.get(source)??ref}]);
+      if(state)reusable.push([source,{viewport:mountingViewport,height:state.height,theme:fixedRefs.get(source)??ref,width:source.getAttribute('data-scriptoscope-width')}]);
     }
     ++epoch;
     attempt?.abort();
@@ -368,6 +368,9 @@ export async function mountExplicitPage(opts) {
         const previous=mountedSources.get(source);
         const useMeasurement=opts.measureReusedSources && previous?.viewport===innerWidth &&
           previous.theme===(fixedRefs.get(source)??initial) && previous.shape===nativeShapes.get(source) &&
+          // A responsive reflow narrows the declared width; content then wraps
+          // taller, so the old height must not be reused.
+          previous.width===source.getAttribute('data-scriptoscope-width') &&
           Number.isFinite(previous.height) && explicitHeight===null;
         if (useMeasurement) source.dataset.scriptoscopeHeight=String(previous.height);
         let win;

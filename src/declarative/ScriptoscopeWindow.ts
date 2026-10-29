@@ -32,7 +32,7 @@ const pendingPromotions = new WeakMap<HTMLElement, object>();
 // without crossing into the declarative layer. The old re-export from this
 // module was never part of the public entry (src/declarative/index.ts) and had
 // no importers, so it was removed.
-import { findPositionedAncestor } from '../positioning.js';
+import { findPositionedAncestor, offsetInContainingBlock } from '../positioning.js';
 
 export class ScriptoscopeWindow<Theme extends ThemeInput = LoadedTheme> {
   /** The positioned WindowManager host element (lives in the document). */
@@ -117,10 +117,9 @@ export class ScriptoscopeWindow<Theme extends ThemeInput = LoadedTheme> {
     // needs them. Default in-flow positioning is the browser's job.
     let naturalX = 0, naturalY = 0;
     if (wantsAbsolute) {
-      const ancestor = findPositionedAncestor(el);
-      const ancRect = ancestor?.getBoundingClientRect() ?? { left: 0, top: 0 };
-      naturalX = Math.round(elRect.left - ancRect.left);
-      naturalY = Math.round(elRect.top - ancRect.top);
+      const offset = offsetInContainingBlock(elRect, findPositionedAncestor(el));
+      naturalX = Math.round(offset.x);
+      naturalY = Math.round(offset.y);
     }
     const preparation = {};
     pendingPromotions.set(el, preparation);
