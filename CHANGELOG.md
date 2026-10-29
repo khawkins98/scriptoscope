@@ -84,6 +84,16 @@ identity, installation, compatibility actions and remaining release gates.
 
 ### Fixed
 
+- Windows inside a `transform: scale()` ancestor follow the pointer when
+  dragged and resized, and land in the right place on the first drag (#515, #518).
+- The same holds under rotated, skewed or general 2D `matrix()` ancestors,
+  including the individual `rotate`/`scale` properties: pointer positions are
+  mapped into the containing block's own CSS pixels (#519, #521). 3D transforms
+  are flattened to their 2D part; a `rotate` about an axis other than z is ignored.
+- Under those ancestors, promotion sizes an unsized window from its layout size
+  rather than its tilted screen bounds. Slider, scrollbar-thumb and painted-part
+  pointer mapping follow the control's own axis (#522). Managed content ports
+  still report transformed geometry as unsupported.
 - Story desk windows account for their authored padding before promotion,
   avoiding initial growth and changed wrapping (#516). Runtime behavior is unchanged.
 - Demo loading states and reading-page windows are integrated, and window
