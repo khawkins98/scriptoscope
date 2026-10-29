@@ -43,12 +43,23 @@ export function offsetInContainingBlock(
   rect: { left: number; top: number },
   ancestor: HTMLElement | null,
 ): { x: number; y: number } {
-  if (!ancestor || ancestor === document.documentElement) {
+  const root = document.documentElement;
+  if (!ancestor || (ancestor === root && establishesNoContainingBlock(root))) {
     return { x: rect.left + window.scrollX, y: rect.top + window.scrollY };
   }
+  // TODO: a scaled ancestor (transform: scale) mixes scaled viewport pixels
+  // with unscaled CSS pixels here; divide by rect.width / offsetWidth to fix.
   const a = ancestor.getBoundingClientRect();
+  // A positioned <html> already moves with the page, and its scrollTop is the
+  // page scroll, so only other ancestors add their own scroll offset.
+  const scroll = ancestor === root ? { left: 0, top: 0 } : { left: ancestor.scrollLeft, top: ancestor.scrollTop };
   return {
-    x: rect.left - a.left - ancestor.clientLeft + ancestor.scrollLeft,
-    y: rect.top - a.top - ancestor.clientTop + ancestor.scrollTop,
+    x: rect.left - a.left - ancestor.clientLeft + scroll.left,
+    y: rect.top - a.top - ancestor.clientTop + scroll.top,
   };
+}
+
+function establishesNoContainingBlock(el: HTMLElement): boolean {
+  const cs = getComputedStyle(el);
+  return cs.position === 'static' && cs.transform === 'none' && cs.filter === 'none' && cs.perspective === 'none';
 }

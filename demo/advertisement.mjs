@@ -157,7 +157,9 @@ if (params.has('theme')) {
     await reassemble();
     status.textContent = 'Portrait windows ready.';
   });
+  portrait.dataset.revealing = '';
   delete portrait.dataset.loading;
+  setTimeout(() => { delete portrait.dataset.revealing; }, 500);
   collage.addEventListener('scriptoscope:close', (event) => {
     if (rebuilding) return;
     status.textContent = hasMoved

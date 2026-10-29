@@ -87,8 +87,9 @@
     .collage-loading .bar i { position: absolute; inset: 0; transform-origin: left; transform: scaleX(var(--collage-progress, 0)); background: repeating-linear-gradient(-45deg, #e8c975 0 4px, #b49543 4px 8px); transition: transform 240ms ease-out; }
     .portrait[data-loading] .collage-loading { display: flex; }
     .portrait[data-loading] .collage-controls { display: none; }
-    .portrait[data-loading] .fragment { animation: collage-wait 1.4s ease-in-out infinite alternate; }
-    .collage [data-scriptoscope-window-host] { animation: collage-reveal 380ms ease-out both; }
+    .portrait[data-loading] .fragment:not([data-scriptoscope-window-host]) { animation: collage-wait 1.4s ease-in-out infinite alternate; }
+    /* Fade in once, on the first build only; reflows and resets don't blink. */
+    .portrait:is([data-loading], [data-revealing]) .collage [data-scriptoscope-window-host] { animation: collage-reveal 380ms ease-out both; }
     @keyframes collage-wait { from { opacity: .45; } to { opacity: .75; } }
     @keyframes collage-reveal { from { opacity: 0; } to { opacity: 1; } }
     .art-caption { margin: 8px 0 0; color: #b8b4ab; font: italic 13px/1.4 'Times New Roman', Times, serif; }
@@ -142,8 +143,8 @@
     }
     @media (prefers-reduced-motion: reduce) {
       .experience .arrow, .collage-loading .bar i { transition: none; }
-      .portrait[data-loading] .fragment { animation: none; opacity: .6; }
-      .collage [data-scriptoscope-window-host] { animation: none; }
+      .portrait[data-loading] .fragment:not([data-scriptoscope-window-host]) { animation: none; opacity: .6; }
+      .portrait:is([data-loading], [data-revealing]) .collage [data-scriptoscope-window-host] { animation: none; }
     }
   </style>
   <link rel="stylesheet" href="./site-shell.css">
@@ -189,7 +190,7 @@
         </div>
       </div>
       <noscript>
-        <style>.collage-space { display: none; }</style>
+        <style>.collage-space, .portrait[data-loading] .collage-loading { display: none; } .portrait[data-loading] .collage-controls { display: flex; }</style>
         <img src="assets/landing/portrait.jpg" width="240" height="240" alt="An expressive black-and-white portrait" style="max-width:100%;height:auto">
       </noscript>
       <figcaption>
