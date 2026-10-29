@@ -87,7 +87,17 @@ Exactly six fresh balanced BC/CB browser processes then retained all 2,160 warm 
 | Unpatterned ordinary control | +15.53% | +0.73% to +32.52% |
 | Unaffected progress control | +12.85% | −1.93% to +29.85% |
 
-The large-case observation is promising, but slower unaffected controls prevent an isolated performance-win claim. Cold setup, first calls and warm calls remain separate; no memory or whole-application gain is established. No samples were excluded or timing rerun to obtain a preferred result. The candidate remains frozen and unapproved while the timing method is reviewed; neither profiling share nor this mixed trial justifies landing it.
+The large-case observation is promising, but slower unaffected controls prevent an isolated performance-win claim. Cold setup, first calls and warm calls remain separate; no memory or whole-application gain is established. No samples were excluded or timing rerun to obtain a preferred result. The candidate remains frozen and unapproved. Neither profiling share nor this mixed trial justifies landing it; the subsequent identical-artifact audit below identifies a material period effect without establishing a candidate effect.
+
+## Identical-baseline timing audit: material position effect
+
+The same seven-file, 688,856-byte baseline graph was served under both original module roots, with every opaque member hash verified. The active measurement functions, common serialized input, six workloads, twenty warmup calls, thirty samples per workload and slot, and fixed batch counts were unchanged. After registration, 24 fresh measured processes completed twelve balanced blocks, retaining all 8,640 warm batches, 288 first-call values and 48 setup values. No processes, batches or outliers were excluded.
+
+For patterned ordinary rendering, the second/first period ratio was **0.820685**, with simultaneous interval **[0.727976, 0.925200]**, wholly below the preregistered reciprocal five-percent bound 0.952381. Inference used twelve block units, Student t11 and Bonferroni coverage across twelve slot/period endpoints. The remaining eleven intervals were inconclusive; none established bounded neutrality. This is material position asymmetry on that host and protocol, not an optimization of the identical code. It does not identify an engine mechanism or prove the earlier counterbalanced candidate estimate biased; all candidate claims remain parked.
+
+Two earlier registrations ended in admission failure and supplied no inference: an invalid outer launch expression before any harness import, then an expected-user-agent mismatch after one unadmitted process. Those records remain preserved. Identity preflight established that the tool actually launched managed Chrome for Testing 153.0.8010.47; a separate installed Chrome 156 application had supplied the mistaken metadata. The valid audit bound live UA, CDP product and the actual owned executable separately, used syntax-checked launch payloads, and added pre-data structural admission guards to the numerical analyzer after synthetic validation. Its one identity-only blank-page probe is separate from the 24 measured processes.
+
+All measured browsers, daemons and the static server closed positively. Full command-line flags were not exposed; the observed default launch policy was bound without changing it. Approximate independent-block/normal-contrast assumptions and single-host ambient activity limit interpretation. The next methodological hypothesis is isolating each artifact in its own browser process and validating that new protocol before another candidate comparison. This completed audit authorizes no extension, rerun or compatibility change.
 
 ## Rules for the next theory
 

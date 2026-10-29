@@ -19,6 +19,16 @@ Our optimization approach is **consolidation and specialization, guided by measu
 
 Preparation is not permission to move validation, change asynchronous snapshot timing or reorder errors. If a needed contract change is intentional, propose its exact behavior and migration for review.
 
+## Validate the measurement method
+
+Bind actual serialized fixture and asset bytes before comparing builds; a hash of the generator alone does not prove its outputs identical. Use fresh logically equivalent mutable state for each variant. Verify the actual owned browser executable, product/version and live user-agent separately; the installed browser application may not be the browser the tool launches. Syntax-check the exact browser evaluation payload, and check numerical admission and analysis against synthetic known contrasts before freezing the experiment.
+
+Counterbalanced order and multiple processes do not by themselves establish that two variants measured in one page have independent execution histories. An identical-baseline audit of the bevel protocol found a patterned ordinary workload second/first ratio of 0.820685, with simultaneous interval [0.727976, 0.925200], despite identical runtime bytes. That exceeded its preregistered reciprocal five-percent neutrality band. Slot contrasts remained inconclusive: a period effect alone does not prove an earlier counterbalanced candidate estimate biased or identify a JIT, cache or host mechanism.
+
+If controls drift or a method changes, preregister a bounded identical-artifact audit before making a new speed claim. Keep process/block units separate from batch counts, fix practical resolution and multiple-endpoint inference before data, and retain all planned records. Wide nonsignificant intervals are inconclusive, not evidence of neutrality. A fresh process per artifact is a next isolation hypothesis to validate, not a demonstrated cure.
+
+On admission failure, preserve partial records and stop that registration. A launch-wrapper repair or browser-identity correction needs a fresh binding before further measurement; failed attempts do not become accepted evidence retrospectively. Do not extend or repeat an audit merely to obtain a preferred result. Record the named workloads, actual browser/host scope, exposed configuration limits and positive resource cleanup.
+
 ## Keep the two scorecards separate
 
 | Outcome | Evidence required |
