@@ -92,7 +92,7 @@ import {
 import { newProgressRecord, progressIdleAdvance, progressSetData, type ProgressRecord } from './engine/families/progress.js';
 import { PROGRESS_DATA, PROGRESS_FACADE_TICKS } from './engine/tables/progress.js';
 import { platinumSliderWithLayout, platinumScrollbar } from './platinum.js';
-import { findPositionedAncestor, offsetInContainingBlock, visualScale } from './positioning.js';
+import { findPositionedAncestor, offsetInContainingBlock, viewportFrame } from './positioning.js';
 import { debug } from './debug.js';
 import { renderWindow, resolveTitleWidgetRects, type RenderWindowOptions } from './renderWindow.js';
 import type { PixelBuffer } from './pixelBuffer.js';
@@ -970,9 +970,8 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     if (host.style.position === 'absolute' || host.style.position === 'fixed') {
       return { x: parseFloat(host.style.left) || 0, y: parseFloat(host.style.top) || 0 };
     }
-    const hr = host.getBoundingClientRect();
     const anc = host.parentElement ? findPositionedAncestor(host) : null;
-    const offset = offsetInContainingBlock(hr, anc);
+    const offset = offsetInContainingBlock(viewportFrame(host).origin, anc);
     const x = Math.round(offset.x);
     const y = Math.round(offset.y);
     // Reserve the static slot BEFORE flipping position. Insert as a sibling
@@ -987,7 +986,9 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       placeholder.setAttribute('aria-hidden', 'true');
       placeholder.dataset.scriptoscopePlaceholder = '';
       Object.assign(placeholder.style, {
-        display: 'block', width: `${Math.round(hr.width)}px`, height: `${Math.round(hr.height)}px`,
+        // Layout size, not the bounding rect: under a scaled or rotated
+        // ancestor the rect is the transformed box's screen bounds.
+        display: 'block', width: `${host.offsetWidth}px`, height: `${host.offsetHeight}px`,
         margin: '0', padding: '0', border: '0', background: 'transparent',
         pointerEvents: 'none', visibility: 'hidden',
       } satisfies Partial<CSSStyleDeclaration>);
@@ -1481,14 +1482,12 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     // Widgets (title boxes) and the grow-box corner stopPropagation, so they don't trigger drag; the
     // themed scrollbar (when present) also stopPropagation on pointerdown for the same reason.
     const inFrame = (e: MouseEvent): boolean => {
-      // Work in the window's own CSS pixels so a scaled ancestor (#515)
-      // doesn't shift the frame strip against the pointer.
-      const r = win.getBoundingClientRect();
-      const vs = visualScale(win, r);
-      const dx = (e.clientX - r.left) / vs.x, dy = (e.clientY - r.top) / vs.y;
+      // Work in the window's own CSS pixels so a scaled or rotated ancestor
+      // (#515, #519) doesn't shift the frame strip against the pointer.
+      const { x: dx, y: dy } = viewportFrame(win).toLocal(e.clientX, e.clientY);
       const cx = composed.frame.left * scale, cy = composed.frame.top * scale;
-      const cw = r.width / vs.x - (composed.frame.left + composed.frame.right) * scale;
-      const ch = r.height / vs.y - (composed.frame.top + composed.frame.bottom) * scale;
+      const cw = win.offsetWidth - (composed.frame.left + composed.frame.right) * scale;
+      const ch = win.offsetHeight - (composed.frame.top + composed.frame.bottom) * scale;
       return !(dx >= cx && dx < cx + cw && dy >= cy && dy < cy + ch);
     };
     win.addEventListener('pointerdown', (e) => {
@@ -1505,12 +1504,15 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       // walker that lived here pre-2026-05-31 missed those cases),
       // returns the now-applied (x, y). No visual jump.
       const { x: x0, y: y0 } = this.toAbsolute(host);
-      const sx = e.clientX, sy = e.clientY;
-      // Pointer deltas are viewport pixels; left/top are the containing
-      // block's CSS pixels. They differ inside a scaled ancestor (#515).
-      const vs = visualScale(host);
-      const at = (ev: PointerEvent): { x: number; y: number } =>
-        ({ x: x0 + (ev.clientX - sx) / vs.x, y: y0 + (ev.clientY - sy) / vs.y });
+      // Pointer positions are viewport pixels; left/top are the containing
+      // block's CSS pixels. They differ inside a scaled (#515), rotated or
+      // skewed (#519) ancestor, so map each position and subtract.
+      const frame = viewportFrame(host);
+      const start = frame.toLocal(e.clientX, e.clientY);
+      const at = (ev: PointerEvent): { x: number; y: number } => {
+        const p = frame.toLocal(ev.clientX, ev.clientY);
+        return { x: x0 + p.x - start.x, y: y0 + p.y - start.y };
+      };
       // Hot-loop bypass: pointermove writes left/top directly at 60Hz for
       // smoothness. Calling setPosition() per move would fire onChange on
       // every frame and thrash persistence + consumer listeners. Acceptable
@@ -1650,8 +1652,9 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       // slot so the page doesn't shift. Once absolute, all subsequent
       // resizes work naturally. 2026-05-31 user fix follow-up.
       this.toAbsolute(host);
-      const sx = e.clientX, sy = e.clientY;
-      const vs = visualScale(host); // viewport px per CSS px under a scaled ancestor (#515)
+      // Viewport to the host's CSS pixels under a transformed ancestor (#515, #519).
+      const frame = viewportFrame(host);
+      const start = frame.toLocal(e.clientX, e.clientY);
       const w0 = entry.opts.width ?? 240, h0 = entry.opts.height ?? 120;
       const hw0 = host.offsetWidth, hh0 = host.offsetHeight;
       const outline = document.createElement('div');
@@ -1662,8 +1665,9 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       host.appendChild(outline);
       let nw = w0, nh = h0;
       const mv = (ev: PointerEvent): void => {
-        nw = Math.max(minContentW, w0 + Math.round((ev.clientX - sx) / vs.x / scale));
-        nh = Math.max(40, h0 + Math.round((ev.clientY - sy) / vs.y / scale));
+        const p = frame.toLocal(ev.clientX, ev.clientY);
+        nw = Math.max(minContentW, w0 + Math.round((p.x - start.x) / scale));
+        nh = Math.max(40, h0 + Math.round((p.y - start.y) / scale));
         outline.style.width = `${hw0 + (nw - w0) * scale}px`;
         outline.style.height = `${hh0 + (nh - h0) * scale}px`;
       };
