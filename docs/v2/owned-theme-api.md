@@ -1,8 +1,6 @@
 # Owned theme loading
 
-This API is integrated on the internal `v2` development branch for the approved
-**0.7.0 pre-launch target**. It remains **Unreleased** until the release cut;
-package metadata is still 0.6.0. See the [integration and migration guide](integration-release-notes.md)
+This API shipped in **0.7.0**. See the [integration and migration guide](integration-release-notes.md)
 for installation and release gates.
 
 The render-focused loaders return an `OwnedTheme`, distinct from the existing
