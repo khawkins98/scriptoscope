@@ -50,6 +50,9 @@ test('window shell shadow belongs to windows, not promoted control art', async (
     await page.goto(`${base}?theme=${slug}`);
     await page.waitForSelector('.scriptoscope-ready');
     const result = await page.evaluate(async (root) => {
+      const hostsBefore = [...document.querySelectorAll('[data-scriptoscope-window-host]')];
+      const defaults = hostsBefore.map(el => getComputedStyle(el.shadowRoot.querySelector('[part=window]')).boxShadow);
+      document.documentElement.style.setProperty('--scriptoscope-window-shadow', '2px 2px 0 rgba(0, 0, 0, 0.35)');
       const controls = [...document.querySelectorAll('.scriptoscope-button, .scriptoscope-select, .scriptoscope-checkbox, .scriptoscope-radio')];
       const shadows = controls.map(el => ({ name: el.className, shadow: getComputedStyle(el).boxShadow }));
       const hosts = [...document.querySelectorAll('[data-scriptoscope-window-host]')];
@@ -73,9 +76,13 @@ test('window shell shadow belongs to windows, not promoted control art', async (
 
       manager.remove(host);
       flex.remove();
-      return { shadows, windows: hosts.map(el => { const frame = el.shadowRoot.querySelector('[part=window]'); return { root: !!el.shadowRoot, shadow: getComputedStyle(frame).boxShadow, frame: bounds(frame), canvas: bounds(frame.querySelector('canvas')) }; }), imperative, flexBounds };
+      return { defaults, nativeCount: document.querySelectorAll('.powers-hero-strip button, .powers-hero-strip input, .powers-hero-strip select').length, shadows, windows: hosts.map(el => { const frame = el.shadowRoot.querySelector('[part=window]'); return { root: !!el.shadowRoot, shadow: getComputedStyle(frame).boxShadow, frame: bounds(frame), canvas: bounds(frame.querySelector('canvas')) }; }), imperative, flexBounds };
     }, root);
-    assert.ok(result.shadows.length >= 6, `${slug}: meaningful promoted controls`);
+    assert.ok(result.defaults.length >= 3);
+    assert.deepEqual(result.defaults, result.defaults.map(() => 'none'), `${slug}: default shadow is none`);
+    assert.ok(result.nativeCount >= 6, `${slug}: live consumer controls remain present`);
+    assert.ok(result.shadows.some(c => c.name.includes('scriptoscope-checkbox')), `${slug}: themed checkbox art`);
+    assert.ok(result.shadows.some(c => c.name.includes('scriptoscope-radio')), `${slug}: themed radio art`);
     for (const control of result.shadows) assert.equal(control.shadow, 'none', `${slug}: ${control.name}`);
     assert.ok(result.windows.length >= 3, `${slug}: real window hosts`);
     for (const host of result.windows) {
