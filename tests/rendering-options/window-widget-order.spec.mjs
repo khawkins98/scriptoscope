@@ -67,6 +67,9 @@ for (const mode of ['source', 'built']) {
     expect(by('1984', 'document-window')).toEqual(['Close', 'Zoom', 'Collapse']);
     expect(by('1984', 'collapsed-document-window')).toEqual(['Close', 'Zoom', 'Collapse']);
     expect(by('monkey-paradise', 'floating-utility-window')).toEqual(['Close', 'Zoom', 'Collapse']);
+    // Side-titled windows: a stack read top-down, and monkey-paradise's tall far-right sprite on close's row.
+    expect(by('windows-31', 'side-floating-utility-window')).toEqual(['Collapse', 'Zoom', 'Close']);
+    expect(by('monkey-paradise', 'side-floating-utility-window')).toEqual(['Close', 'Collapse', 'Zoom']);
     const mismatched = rows.filter(r => r.dom.join() !== r.reading.join()).map(r => `${r.slug} ${r.windowType}: dom ${r.dom} reading ${r.reading}`);
     expect(mismatched).toEqual([]);
   });
