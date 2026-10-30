@@ -32,6 +32,7 @@
 import { Raster, verticalGradient, mix, encodeCicn, encodeCinf, encodePpat } from '../../../../tools/theme-author/index.js';
 import { encodeIconFamily } from '../../../../tools/theme-author/encode-icons.js';
 import { encodeClut, encodeHeaderClut } from '../../../../tools/theme-author/encode-clut.js';
+import { C } from '../palette.mjs';
 
 // Family colours (what you see on screen).
 const M = {
@@ -97,7 +98,7 @@ function grabber(pressed) {
   const r = barArt(6);
   if (pressed) r.fillRoundRectSmooth(0, 2, 6, 16, 2.5, '#d7e9ef');
   for (let y = 5; y <= 14; y += 3) {
-    r.set(2, y, pressed ? '#0f6a83' : M.grip).set(3, y, pressed ? '#0f6a83' : M.grip);
+    r.set(2, y, pressed ? C.accentPressed : M.grip).set(3, y, pressed ? C.accentPressed : M.grip);
     r.set(3, y + 1, M.gripLight);
   }
   return r;
@@ -135,9 +136,8 @@ const ITEM_C = 6;
 function menuSelected() {
   const n = 2 * ITEM_C;
   const art = new Raster(n, n).fillRect(0, 0, n, n, M.menuBody);
-  art.fillRoundRectSmooth(2, 1, n - 4, n - 2, 4, '#13809e');
-  art.fillRoundRectSmooth(3, 2, n - 6, n - 4, 3, '#1689a8');
-  return samples(opened(art, ITEM_C), ITEM_C, '#1689a8', '#ffffff');
+  art.fillRoundRectSmooth(2, 1, n - 4, n - 2, 4, C.accent);
+  return samples(opened(art, ITEM_C), ITEM_C, C.accent, '#ffffff');
 }
 
 // Divider: a hairline with 4 px margins, drawn at its own 2 px height.
@@ -209,7 +209,7 @@ function schemeIcon(size) {
     r.strokeLineSmooth(px, py, x, y, Math.max(1, 1.2 * k), '#e6f6fa');
     px = x; py = y;
   }
-  r.fillCircleSmooth(x0 + 5 * k, y0 + 4 * k + 0.5, Math.max(1.4, 2.2 * k), '#1689a8');
+  r.fillCircleSmooth(x0 + 5 * k, y0 + 4 * k + 0.5, Math.max(1.4, 2.2 * k), C.accent);
   return r;
 }
 

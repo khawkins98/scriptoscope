@@ -44,6 +44,7 @@
 // (bottom / right) end where it meets the corner. The other two sides are
 // open, which avoids doubled lines against the frame.
 import { Raster, verticalGradient, encodeCicn } from '../../../../tools/theme-author/index.js';
+import { C } from '../palette.mjs';
 
 const SB = {
   line: '#cbd2dc',        // hairline facing the content, and between arrow and track
@@ -69,8 +70,11 @@ function barRaster(horizontal, cross, along) {
   return {
     r,
     fill: (u, v, w, h, c) => r.fillRect(...box(u, v, w, h), c),
+    // Pixel art in (u, v): rows[j][i] is the pixel at u = u0 + i, v = v0 + j.
+    sprite: (u0, v0, rows, c) => rows.forEach((row, j) => [...row].forEach((ch, i) => {
+      if (ch === '#') r.set(...pt(u0 + i, v0 + j), c);
+    })),
     round: (u, v, w, h, rad, c, opts) => r.fillRoundRectSmooth(...box(u, v, w, h), rad, c, opts),
-    stroke: (u0, v0, u1, v1, wd, c) => r.strokeLineSmooth(...pt(u0, v0), ...pt(u1, v1), wd, c),
     gradient: (u, v, w, h, top, bottom) => {
       const [, y, , hh] = box(u, v, w, h);
       return verticalGradient(y, hh, [[0, top], [1, bottom]]);
@@ -85,13 +89,20 @@ function paintTrack(b, cross, along, look = SB) {
   b.fill(1, 0, 1, along, look.trackShade);
 }
 
+// Arrow glyphs on whole pixels (no anti-aliased strokes under 2px,
+// docs/authoring-visual-design.md §2.2): a bold chevron, drawn pointing to the
+// low end (up / left); rows run along the bar.
+const CHEVRONS = {
+  big: ['...#...', '..###..', '.##.##.', '##...##'],
+  small: ['..#..', '.###.', '##.##'],
+};
+
 /** A chevron pointing toward the low (-1) or high (+1) end, centred at (cu, cv). */
-function chevron(b, cu, cv, dir, size, color) {
-  // 45° arms on half-pixel centres stay crisp: each arm steps one pixel per row.
-  const half = size, depth = size / 2;
-  cv = Math.floor(cv) + 0.5;
-  b.stroke(cu - half, cv + dir * -depth, cu, cv + dir * depth, 1.5, color);
-  b.stroke(cu, cv + dir * depth, cu + half, cv + dir * -depth, 1.5, color);
+function chevron(b, cu, cv, dir, big, color) {
+  const rows = big ? CHEVRONS.big : CHEVRONS.small;
+  const w = rows[0].length, h = rows.length;
+  const u0 = Math.round(cu - w / 2), v0 = Math.round(cv - h / 2);
+  b.sprite(u0, v0, dir < 0 ? rows : [...rows].reverse(), color);
 }
 
 /**
@@ -104,14 +115,15 @@ function paintArrow(b, t, v0, d, end, cap, dir, look) {
   const faceV0 = end === 'low' ? v0 : v0 + 1;
   const faceV1 = v0 + d - (end === 'low' || cap ? 1 : 0); // exclusive
   const pressed = look === 'pressed';
-  const top = pressed ? '#1d93b3' : '#ffffff';
-  const bottom = pressed ? '#127a95' : '#e4e9ef';
+  // Pressed is the flat accent (one system-palette entry at 8 bpp, no ramp to band).
+  const top = pressed ? C.accent : '#ffffff';
+  const bottom = pressed ? C.accent : '#e4e9ef';
   b.fill(1, faceV0, t - 1, faceV1 - faceV0, b.gradient(1, faceV0, t - 1, faceV1 - faceV0, top, bottom));
   b.fill(0, v0, 1, d, SB.line);
   b.fill(0, divider, t, 1, SB.line);
   if (cap) b.fill(0, v0 + d - 1, t, 1, SB.line);
   const ink = pressed ? '#ffffff' : look === 'off' ? SB.glyphOff : SB.glyph;
-  chevron(b, (1 + t) / 2, (faceV0 + faceV1) / 2, dir, t >= 14 ? 3 : 2, ink);
+  chevron(b, (1 + t) / 2, (faceV0 + faceV1) / 2, dir, t >= 14, ink);
 }
 
 /**
@@ -149,19 +161,21 @@ function thumbImage(horizontal, t, pressed, ghost = false) {
   const w = t - 1 - 2 * (inset - 1), h = along - 2, rad = w / 2;
   if (ghost) {
     // Drag outline: a translucent-looking pill; everything around it stays clear.
-    b.round(inset, 1, w, h, rad, pressed ? '#0f6a83' : '#1689a8', { matte: SB.track });
+    b.round(inset, 1, w, h, rad, pressed ? C.accentPressed : C.accent, { matte: SB.track });
     b.round(inset + 1, 2, w - 2, h - 2, rad - 1, '#cfe7ef');
     return b.r;
   }
   paintTrack(b, t, along);
-  b.round(inset, 1, w, h, rad, pressed ? '#0f6a83' : SB.thumbEdge);
+  b.round(inset, 1, w, h, rad, pressed ? C.accentPressed : SB.thumbEdge);
   b.round(inset + 1, 2, w - 2, h - 2, rad - 1,
-    b.gradient(inset + 1, 2, w - 2, h - 2, pressed ? '#1d93b3' : '#ffffff', pressed ? '#127a95' : '#e2e7ee'));
-  // Grip: three hairlines across the middle, on half-pixel centres so they stay crisp.
+    b.gradient(inset + 1, 2, w - 2, h - 2, pressed ? C.accent : '#ffffff', pressed ? C.accent : '#e2e7ee'));
+  // Grip: 1px lines on whole rows, two pixels apart, centred on the pill
+  // (pill pixels u = inset … inset + w − 1, v = 1 … along − 2).
   const grip = pressed ? '#d7edf3' : SB.grip;
-  const cv = along / 2, span = small ? 1.5 : 2.5;
+  const gw = small ? 4 : 5, gu = inset + Math.floor((w - gw) / 2);
+  const cv = Math.floor((along - 1) / 2);
   const lines = small ? [-1, 1] : [-2, 0, 2];
-  for (const k of lines) b.stroke(t / 2 + 0.5 - span, Math.floor(cv + k) + 0.5, t / 2 + 0.5 + span, Math.floor(cv + k) + 0.5, 1, grip);
+  for (const k of lines) b.fill(gu, cv + k, gw, 1, grip);
   return b.r;
 }
 
@@ -174,13 +188,13 @@ function littleArrows(look, part = 'both') {
   const half = (y0, y1, dir, isPressed) => {
     const h = y1 - y0;
     r.fillRoundRectSmooth(0, y0, W, h, 4, edge, { matte: '#ffffff' });
-    const top = isPressed ? '#1d93b3' : look === 'inactive' ? '#f6f7f9' : '#ffffff';
-    const bottom = isPressed ? '#127a95' : look === 'inactive' ? '#f0f2f5' : '#e2e7ee';
+    const top = isPressed ? C.accent : look === 'inactive' ? '#f6f7f9' : '#ffffff';
+    const bottom = isPressed ? C.accent : look === 'inactive' ? '#f0f2f5' : '#e2e7ee';
     r.fillRoundRectSmooth(1, y0 + 1, W - 2, h - 2, 3, verticalGradient(y0 + 1, h - 2, [[0, top], [1, bottom]]));
     const ink = isPressed ? '#ffffff' : look === 'inactive' ? '#c3c9d1' : SB.glyph;
-    const cx = W / 2, cy = (y0 + y1) / 2;
-    r.strokeLineSmooth(cx - 3, cy - dir * 1.6, cx, cy + dir * 1.6, 1.5, ink);
-    r.strokeLineSmooth(cx, cy + dir * 1.6, cx + 3, cy - dir * 1.6, 1.5, ink);
+    // A 5px pixel chevron, centred on the half's middle pixel (W is odd).
+    const rows = dir < 0 ? CHEVRONS.small : [...CHEVRONS.small].reverse();
+    r.sprite((W - 5) / 2, Math.round((y0 + y1) / 2 - 1.5), rows, { '#': ink });
   };
   // The halves share row `split`: the up half is rows 0..11, the down half 11..22.
   if (part !== 'down') half(0, split + 1, -1, pressed && part === 'up');

@@ -1,7 +1,7 @@
 // Halcyon — an original first-party Kaleidoscope scheme, authored in code.
 //
 // Look: a light, frosted 2020s desktop. Soft vertical gradient title bars,
-// large rounded corners, a hairline border, slate glyph buttons and one
+// large rounded corners, a 1px slate outline, slate glyph buttons and one
 // kingfisher-teal accent. It deliberately avoids copying any shipping OS
 // (no traffic-light buttons, no Apple artwork or names).
 //
@@ -12,7 +12,7 @@
 // drop the new scheme.rsrc onto the showcase page to see it.
 
 import {
-  Raster, verticalGradient, ditheredGradient, windowLayout,
+  Raster, verticalGradient, ditheredGradient, windowLayout, stripLayout, pressedStripFrom,
   encodeCicn, encodeWnd, encodeCinf, encodeColr, encodeVers,
 } from '../../../tools/theme-author/index.js';
 
@@ -24,27 +24,38 @@ import { C } from './palette.mjs';
 // Each window type is described once with windowLayout(); the same numbers
 // drive both the art (paintFrame) and the wnd# recipe.
 
+// Title-bar glyphs, 5×5 on whole pixels (1-bit friendly: no anti-aliased
+// strokes under 2px, docs/authoring-visual-design.md §2.2). The disc is 11px
+// (odd), so the glyph's centre pixel is the disc's centre pixel.
+const GLYPHS = {
+  close: ['#...#', '.#.#.', '..#..', '.#.#.', '#...#'],
+  zoom: ['..#..', '..#..', '#####', '..#..', '..#..'],
+  collapse: ['.....', '.....', '#####', '.....', '.....'],
+};
+const DISC = 11;
+
 /**
  * Draw a round title-bar button straight onto the frame, so its smooth edge
  * blends with the real title-bar pixels underneath (a separate raster blitted
- * on top would have nothing to blend with).
+ * on top would have nothing to blend with). The disc keeps its smooth edge;
+ * only the glyph is pixel art.
+ *
+ * Pressed inverts rather than darkens (§2.6): the teal close becomes a white
+ * disc with a teal ×, and the slate-glyph buttons become slate discs with a
+ * white glyph.
  */
-function drawGlyphButton(r, { x, y, w: size }, state, glyph, accent = false, pressed = false, matte) {
+function drawGlyphButton(r, { x, y }, state, glyph, accent = false, pressed = false, matte) {
   const p = C[state];
   const lit = accent && state === 'active';
-  const cx = x + size / 2, cy = y + size / 2;
-  const [top, bottom] = pressed
-    ? (lit ? [C.accentPressed, C.accentPressed] : ['#cfd6df', '#bcc5d1'])
-    : (lit ? [C.accent, C.accent] : [p.buttonTop, p.buttonBottom]);
-  r.fillCircleSmooth(cx, cy, size / 2, lit ? (pressed ? '#0b5568' : C.accentPressed) : p.buttonEdge, matte ? { matte } : undefined);
-  r.fillCircleSmooth(cx, cy, size / 2 - 1, verticalGradient(y, size, [[0, top], [1, bottom]]));
+  const c = DISC / 2, opts = matte ? { matte } : undefined;
+  let edge, fill, ink;
+  if (lit) [edge, fill, ink] = pressed ? [C.accent, '#ffffff', C.accent] : [C.accent, C.accent, '#ffffff'];
+  else if (pressed) [edge, fill, ink] = [p.glyph, p.glyph, '#ffffff'];
+  else [edge, fill, ink] = [p.buttonEdge, verticalGradient(y, DISC, [[0, p.buttonTop], [1, p.buttonBottom]]), p.glyph];
+  r.fillCircleSmooth(x + c, y + c, c, edge, opts);
+  r.fillCircleSmooth(x + c, y + c, c - 1, fill);
   if (!p.glyph) return; // inactive windows show plain buttons, like most desktops do
-  const ink = lit ? '#ffffff' : p.glyph;
-  const a = size * 0.32, b = size - size * 0.32; // glyph box inside the button
-  const stroke = (x0, y0, x1, y1) => r.strokeLineSmooth(x + x0, y + y0, x + x1, y + y1, 1.25, ink);
-  if (glyph === 'close') { stroke(a, a, b, b); stroke(b, a, a, b); }
-  if (glyph === 'collapse' || glyph === 'zoom') stroke(a, size / 2, b, size / 2);
-  if (glyph === 'zoom') stroke(size / 2, a, size / 2, b);
+  r.sprite(x + 3, y + 3, GLYPHS[glyph], { '#': ink });
 }
 
 /**
@@ -111,14 +122,18 @@ function windowTypes() {
     };
   };
   const utility = (collapsed) => {
-    // Widgets match the document window's 12px: the web reads every window's
-    // pressed art from the document strip (cicn -14330), at offsets taken from
-    // that window's own widget widths (docs/authoring-exotic-frames.md R24).
-    const T = 16, L = 20, R = 22, s = 12, y = 2;
+    // Utility windows carry the document's widget SET at the document's 12px
+    // (close, zoom, collapse; ledger X3). The web reads every window's pressed
+    // art from the document strip (cicn -14330), at offsets summed from that
+    // window's own widget widths (docs/authoring-exotic-frames.md R24). With
+    // close + collapse only, a pressed utility collapse box showed the
+    // document's pressed zoom (+) piece. Same set, same sizes = same offsets.
+    const T = 16, L = 20, R = 38, s = 12, y = 2;
+    const zoomX = L + 3 + 3;
     return {
       layout: windowLayout({
         titleBar: T, leftFixed: L, rightFixed: R, bottom: 4, collapsed,
-        widgets: { close: { x: 6, y, w: s, h: s }, collapse: { x: L + 3 + 5, y, w: s, h: s } },
+        widgets: { close: { x: 6, y, w: s, h: s }, zoom: { x: zoomX, y, w: s, h: s }, collapse: { x: zoomX + 18, y, w: s, h: s } },
       }),
       art: { radiusTop: 6, radiusBottom: 5 },
     };
@@ -152,19 +167,25 @@ function widgetBoxes(wnd) {
 }
 
 /**
- * The pressed-widget strip (cicn -14330). The web only makes close, zoom and
- * collapse clickable when this exists, and its mask is the click area. Pieces
- * sit side by side in rect-list order (close, zoom, collapse), each the size of
- * its widget rect; a second row is used for collapsed windows.
+ * A pressed-widget strip, laid out from one window type's own widgets
+ * (stripLayout) and built on that window's active frame (pressedStripFrom), so
+ * each piece's smooth edge blends with the real bar pixels under the widget
+ * and its mask (the click area) is exactly the disc. Pieces sit side by side
+ * in rect-list order (close, zoom, collapse); the second row is used for
+ * collapsed windows (same widget rows, so the same pixels).
+ *
+ * The web makes close, zoom and collapse clickable only when -14330 exists,
+ * and reads it for every window type; classic reads -14330 for documents and
+ * -14298 for utility windows (R24).
  */
-function pressedStrip(size) {
-  const r = new Raster(size * 3, size * 2);
-  for (let row = 0; row < 2; row++) {
-    ['close', 'zoom', 'collapse'].forEach((glyph, i) => {
-      drawGlyphButton(r, { x: i * size, y: row * size, w: size }, 'active', glyph, glyph === 'close', true, C.active.barBottom);
-    });
-  }
-  return r;
+function pressedStrip(type) {
+  const art = { ...type.art, widgets: widgetBoxes(type.layout.wnd) };
+  return pressedStripFrom({
+    strip: stripLayout({ widgets: art.widgets }),
+    activeFrame: paintFrame(type.layout, 'active', art),
+    draw: (role, raster, box) => drawGlyphButton(raster, box, 'active', role, role === 'close', true),
+    rows: 2,
+  });
 }
 
 // ── 3. Push buttons ───────────────────────────────────────────────────────
@@ -218,7 +239,7 @@ function checkable(kind, value, tier) {
   const on = value > 0;
   const disabled = tier === 0, pressed = tier === 2;
   const fill = !on ? (pressed ? '#e3e8ef' : '#ffffff') : disabled ? '#b9c7cf' : pressed ? C.accentPressed : C.accent;
-  const edge = disabled ? '#d0d4da' : on ? (pressed ? '#0b5568' : C.accentPressed) : pressed ? '#6f7b8c' : '#8d98a8';
+  const edge = disabled ? '#d0d4da' : on ? C.accentPressed : pressed ? '#6f7b8c' : '#8d98a8';
   const radius = kind === 0 ? 4 : CHECK / 2;
   // Outer edge blends with the window body; inner edges blend with what's under them.
   const r = new Raster(CHECK, CHECK)
@@ -247,9 +268,13 @@ export async function buildScheme() {
     add('cicn', t.id + 1, encodeCicn(paintFrame(t.layout, 'active', art)), `Active ${t.name}`);
   }
   // Pressed widgets: -14330 for every window in the web (and documents in
-  // classic), -14298 for utility windows in classic.
-  add('cicn', -14330, encodeCicn(pressedStrip(12)), 'Pressed Window Widgets');
-  add('cicn', -14298, encodeCicn(pressedStrip(12)), 'Pressed Utility Window Widgets');
+  // classic), -14298 for utility windows in classic. Each is laid out from
+  // its own window's widgets; both windows have the same widget set and
+  // sizes, so the web's single strip also lines up for utility windows.
+  const types = windowTypes();
+  const byId = (id) => types.find((t) => t.id === id);
+  add('cicn', -14330, encodeCicn(pressedStrip(byId(-14336))), 'Pressed Window Widgets');
+  add('cicn', -14298, encodeCicn(pressedStrip(byId(-14304))), 'Pressed Utility Window Widgets');
 
   const faces = [
     [-10240, 'Inactive Push Button', { face: '#f5f6f8', edge: '#d0d5dc', text: '#a3aab4' }],
