@@ -115,6 +115,23 @@ const growZone = (c: ComposedChrome): { w: number; h: number } => c.growBox
   ? { w: c.fullWidth - c.growBox.x, h: c.fullHeight - c.growBox.y }
   : { w: c.frame.right + 15, h: c.frame.bottom + 15 };
 
+// One window drag (title bar or grow box) from pointerdown to release (#563). Capturing the pointer on
+// `el` keeps moves arriving from outside the window, even over elements that swallow them. A
+// pointercancel or lost capture ends the drag through `cancel`, so nothing is left to commit later.
+function trackDrag(el: HTMLElement, down: PointerEvent, move: (e: PointerEvent) => void,
+  up: (e: PointerEvent) => void, cancel: () => void): void {
+  const id = down.pointerId;
+  const on = (f: (e: PointerEvent) => void) => (e: PointerEvent): void => {
+    if (e.pointerId !== id) return;
+    if (e.type !== 'pointermove') for (const [t, l] of listeners) document.removeEventListener(t, l);
+    f(e);
+  };
+  const listeners = [['pointermove', on(move)], ['pointerup', on(up)],
+    ['pointercancel', on(cancel)], ['lostpointercapture', on(cancel)]] as const;
+  for (const [t, l] of listeners) document.addEventListener(t, l);
+  try { el.setPointerCapture(id); } catch { /* the pointer is already gone: document tracking still ends it */ }
+}
+
 // Internal ownership hook used by declarative promotion. Not part of the package exports.
 const controlDisposers = new WeakMap<HTMLElement, () => void>();
 export function disposeInteractiveControl(el: HTMLElement): void {
@@ -1715,43 +1732,48 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     win.addEventListener('pointerdown', (e) => {
       if (!inFrame(e)) return; // inside the content body — not a drag handle
       if (e.pointerType === 'mouse' && e.button !== 0) return; // only primary mouse button initiates drag
+      if (!e.isPrimary) return; // a second touch or pen contact doesn't start a second drag
       e.preventDefault();
       this.claimFocus(entry, moveBtn);
       void this.focus(entry);
-      // Posture B handoff: in-flow hosts (the Posture-B default) need to
-      // flip to `position: absolute` before drag math can write top/left.
-      // `toAbsolute` is the chokepoint — captures the host's current
-      // visible page position, computes coords relative to its positioned
-      // ancestor (using the canonical containing-block walker that handles
-      // transformed/filtered ancestors correctly — the duplicated ad-hoc
-      // walker that lived here pre-2026-05-31 missed those cases),
-      // returns the now-applied (x, y). No visual jump.
-      const { x: x0, y: y0 } = this.toAbsolute(host);
       // Pointer positions are viewport pixels; left/top are the containing
       // block's CSS pixels. They differ inside a scaled (#515), rotated or
       // skewed (#519) ancestor, so map each position and subtract.
       const frame = viewportFrame(host);
       const start = frame.toLocal(e.clientX, e.clientY);
-      const at = (ev: PointerEvent): { x: number; y: number } => {
+      const delta = (ev: PointerEvent): { x: number; y: number } => {
         const p = frame.toLocal(ev.clientX, ev.clientY);
-        return { x: x0 + p.x - start.x, y: y0 + p.y - start.y };
+        return { x: Math.round(p.x - start.x), y: Math.round(p.y - start.y) };
       };
+      // Like DragWindow, a press that never changes the window's position is no move (#561):
+      // the Posture-B handoff waits for the first move of at least 0.5 CSS px. `toAbsolute`
+      // is the chokepoint — it lifts an in-flow host to `position: absolute` at its current
+      // page position (canonical containing-block walker, so transformed/filtered ancestors
+      // are handled) behind a same-size placeholder. No visual jump.
+      let origin: { x: number; y: number } | undefined;
       // Hot-loop bypass: pointermove writes left/top directly at 60Hz for
       // smoothness. Calling setPosition() per move would fire onChange on
       // every frame and thrash persistence + consumer listeners. Acceptable
       // because pointerup commits through setPosition once below — the
       // chokepoint's contract is "every COMMITTED move", not every frame.
-      const mv = (ev: PointerEvent): void => { const p = at(ev); host.style.left = `${p.x}px`; host.style.top = `${p.y}px`; };
-      const up = (ev: PointerEvent): void => {
-        document.removeEventListener('pointermove', mv);
-        document.removeEventListener('pointerup', up);
+      const place = (d: { x: number; y: number }): void => {
+        if (!origin) { if (!d.x && !d.y) return; origin = this.toAbsolute(host); }
+        host.style.left = `${origin.x + d.x}px`; host.style.top = `${origin.y + d.y}px`;
+      };
+      trackDrag(win, e, ev => place(delta(ev)), (ev) => {
+        const d = delta(ev);
+        place(d);
+        // Never moved, or released back at the start: nothing to commit, no onChange.
+        if (!origin || (!d.x && !d.y)) return;
         // Commit through the chokepoint so persistence + future v2 reflow
         // features (snap-to-grid, collision) see the move. setPosition
         // fires onChange for us; no explicit call needed.
-        const p = at(ev);
-        this.setPosition(host, p.x, p.y);
-      };
-      document.addEventListener('pointermove', mv); document.addEventListener('pointerup', up);
+        this.setPosition(host, origin.x + d.x, origin.y + d.y);
+      }, () => {
+        // Cancelled (#563): back to the start, uncommitted. Reuses the hot-loop writer, so the
+        // setPosition chokepoint still sees every committed move.
+        place({ x: 0, y: 0 });
+      });
     }, { signal });
 
     // KEYBOARD MOVE HANDLE — focusable transparent button overlaying the title region. Closes the
@@ -1865,7 +1887,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     // Swallow dblclick on the gripper too, else "inFrame at the bottom-right" would shade-on-dblclick.
     corner.addEventListener('dblclick', (e) => { e.stopPropagation(); }, { signal });
     corner.addEventListener('pointerdown', (e) => {
-      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      if ((e.pointerType === 'mouse' && e.button !== 0) || !e.isPrimary) return;
       e.preventDefault(); e.stopPropagation();
       this.claimFocus(entry, corner);
       void this.focus(entry);
@@ -1899,8 +1921,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
         outline.style.width = `${hw0 + (nw - w0) * scale}px`;
         outline.style.height = `${hh0 + (nh - h0) * scale}px`;
       };
-      const up = (): void => {
-        document.removeEventListener('pointermove', mv); document.removeEventListener('pointerup', up);
+      trackDrag(corner, e, mv, () => {
         outline?.remove();
         // Unchanged size (never moved, or dragged back to the start): no commit, no event.
         if (nw === w0 && nh === h0) return;
@@ -1912,8 +1933,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
         host.dispatchEvent(new CustomEvent('scriptoscope:userresize', {
           detail: { w: nw, h: nh }, bubbles: true,
         }));
-      };
-      document.addEventListener('pointermove', mv); document.addEventListener('pointerup', up);
+      }, () => outline?.remove()); // cancelled (#563): no commit, no event
     }, { signal });
   }
 

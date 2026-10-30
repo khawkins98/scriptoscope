@@ -106,6 +106,17 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   it reuses the procedural `sunkenFace` palette because the original pressed
   pixels are unresolved (#218) (#551).
 - Outer-box sizing follow-ups ([#542](https://github.com/khawkins98/scriptoscope/issues/542)). A collapsed window keeps its outer width bound, so a window that starts collapsed, or is rethemed to a thicker frame while collapsed, no longer widens past its element (513 px in a 400 px column on dolphin-som). Content growth while a window is zoomed now updates the size unzoom returns to, instead of resizing the zoomed window and being discarded on unzoom. The demo's persisted layout (`persistKey`) saves each window's outer width, so a window restored from another tab on a thicker scheme stays inside its column.
+- Clicking a window's title bar without moving the pointer now only activates
+  the window (#561). It used to switch an in-flow window to absolute
+  positioning, insert the drag placeholder and fire `onChange`. Like the
+  classic Mac `DragWindow`, the hand-off now waits for the first move that
+  changes the position (half a CSS pixel or more), and a drag released where it
+  started commits nothing.
+- A cancelled window drag or grow-box resize now reverts (#563). Both capture
+  the pointer, so a drag keeps tracking outside the window. A `pointercancel`
+  or a lost capture puts the window back where it started, removes the resize
+  outline and commits nothing, so no `onChange` or `scriptoscope:userresize`
+  fires and a later unrelated release no longer moves or resizes the window.
 
 ## [0.7.0] — 2026-10-29
 
