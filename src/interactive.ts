@@ -1158,6 +1158,8 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
 
   private commitRender(entry: ManagedWindow<Theme>, { win, collapsed }: { win: HTMLElement; collapsed: boolean }, notify = true): void {
     entry.commitEpoch++;
+    // Captured before the chrome controls are rebuilt below; restored once they exist again (#525).
+    const focusKey = this.focusedChromeControl(entry);
     const fresh = win.querySelector<HTMLCanvasElement>('canvas.scriptoscope-chrome');
     const pooled = entry.chromeCanvas;
     if (fresh && pooled) {
@@ -1212,10 +1214,44 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     // Themed scrollbar (replaces the native one) when the content overflows. Must run AFTER the window
     // is in the DOM — overflow can only be measured once the content is laid out.
     void this.wireScrollbars(entry, win, 0);
+    this.restoreChromeFocus(entry, focusKey);
     // Notify the persistence layer (or any other state-change consumer) that this window's
     // render-affecting state is now committed. Fired after the DOM is updated so callers see the
     // final state. Cheap branch if no listener is registered.
     if (notify) this.notifyChange(entry);
+  }
+
+  /**
+   * Keyboard focus across re-renders (#525). Every commit rebuilds the shadow-DOM chrome controls
+   * (title widgets, move handle, grow box, scrollbars), so the focused one is detached and focus
+   * falls to <body>: later arrows scroll the page, a second Enter on Collapse does nothing. The one
+   * commit path records which control had focus, by its role class, and refocuses the equivalent new
+   * control. Only a window whose chrome already held focus is touched, so a retheme or another
+   * window's activation never steals focus. Consumer content is light DOM and keeps its own focus.
+   */
+  private static readonly FOCUS_KEYS = [
+    'scriptoscope-movehandle', 'scriptoscope-growbox',
+    'scriptoscope-titlewidget-close', 'scriptoscope-titlewidget-zoom', 'scriptoscope-titlewidget-collapse',
+    'scriptoscope-window-scrollbar-vertical', 'scriptoscope-window-scrollbar-horizontal',
+  ];
+
+  private focusedChromeControl(entry: ManagedWindow<Theme>): string | undefined {
+    const active = entry.host.shadowRoot?.activeElement;
+    return active ? WindowManager.FOCUS_KEYS.find(k => active.classList.contains(k)) : undefined;
+  }
+
+  private restoreChromeFocus(entry: ManagedWindow<Theme>, key: string | undefined): void {
+    const mount = entry.host.shadowRoot;
+    if (!key || !mount) return;
+    // `:not(canvas)`: the procedural-frame grow-box art canvas shares the growbox class (renderWindow).
+    const same = mount.querySelector<HTMLElement>(`.${key}:not(canvas)`);
+    // Runs after wireScrollbars, which rebuilds the bars synchronously once the content is laid out
+    // (only a pre-layout first render defers them to a later frame). A control that no longer exists
+    // (the grow box while collapsed, a scrollbar whose overflow is gone, a widget absent from the
+    // collapsed variant) falls back to the always-present move handle, so focus stays in this window
+    // and on a control whose arrow keys still act on it, instead of dropping to <body>.
+    const target = same ?? mount.querySelector<HTMLElement>('.scriptoscope-movehandle');
+    target?.focus({ preventScroll: true });
   }
 
   private notifyChange(entry: ManagedWindow<Theme>): void {

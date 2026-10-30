@@ -7,6 +7,13 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+### Fixed
+
+- Keyboard focus stays on the operated window control (move handle, grow box,
+  title widgets, scrollbars) when the window re-renders on activation, collapse
+  or keyboard resize; it no longer drops to `<body>`. Re-renders of windows
+  that did not hold focus never move it (#525).
+
 ## [0.7.0] — 2026-10-29
 
 Pre-launch release from the `v2` integration branch, continuing 0.y.z initial
