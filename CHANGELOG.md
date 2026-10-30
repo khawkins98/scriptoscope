@@ -9,6 +9,16 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ### Fixed
 
+- Showcase links keep WCAG AA contrast when hovered, pressed and focused. The
+  browser's default focus ring put a light halo against 1990's and Evolution's
+  light link text (1.3-2.0:1), so focused links now draw a solid 2px ring in
+  the link's own colour, 1px clear of the text. That ring reaches 3:1 against
+  the window body on every scheme. On the dark-body schemes it is paired
+  with a 1px black line so it still shows next to white icon plates. The
+  hover and press red is darkened from #cc0000 to #b00000, which raises
+  Dolphin SOM's yellow body from 4.11:1 to 5.15:1. The new ring also
+  replaces the gold `#b98942` focus ring from `demo/site-shell.css` on the
+  four example-card links inside the showcase, which measured 2.75:1 (#548).
 - Keyboard focus stays on the operated window control (move handle, grow box,
   title widgets, scrollbars) when the window re-renders on activation, collapse
   or keyboard resize; it no longer drops to `<body>`. Re-renders of windows
