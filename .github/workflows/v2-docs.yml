@@ -21,9 +21,14 @@ on:
   push:
     branches: [main]
 
+# A newer PR run supersedes an older one (cancel it). Pushes to main must never be
+# cancelled: each push run checks the ledger history delta from the previous main
+# head (github.event.before), so a cancelled push run would leave that delta
+# unchecked. Each push gets its own group (by sha), which also stops GitHub
+# replacing a queued push run with a newer one in the same group.
 concurrency:
-  group: v2-docs-${{ github.ref }}
-  cancel-in-progress: true
+  group: v2-docs-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
