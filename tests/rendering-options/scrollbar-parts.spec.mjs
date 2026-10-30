@@ -280,7 +280,7 @@ async function setup(page, servers, mode, slug) {
     const host = await manager.add(theme, { title: 'Parts', width: 220, height: 160 }, {}, { contentEl: content });
     document.body.append(host);
     manager.setPosition(host, 40, 40);
-    Object.assign(window.__sp, { manager, host, scrollEl: content });
+    Object.assign(window.__sp, { api, manager, host, scrollEl: content });
     await window.__sp.frames(6);
   }, { mode, slug });
   await expect.poll(() => page.evaluate(() => ['vertical', 'horizontal'].every(a => window.__sp.bar(a)?.querySelector('canvas')))).toBe(true);
@@ -329,5 +329,96 @@ for (const mode of ['source', 'built']) for (const slug of SLUGS) {
     })).toBe(true);
     await page.evaluate(() => window.__sp.frames(4));
     await exercise(page, 'vertical', { why: `${mode} showcase ${slug}` });
+  });
+}
+
+/** Bar repaints (canvas swaps) during `ms` of the current press. */
+const paintsDuring = (page, axis, ms) => page.evaluate(([axis, ms]) => new Promise(r => {
+  let n = 0;
+  const mo = new MutationObserver(list => { n += list.filter(m => m.type === 'childList').length; });
+  mo.observe(window.__sp.bar(axis), { childList: true });
+  setTimeout(() => { mo.disconnect(); r(n); }, ms);
+}), [axis, ms]);
+
+/** Hold the down arrow at the top until it draws pressed; returns its point. */
+async function holdDown(page, axis, why) {
+  await home(page, axis);
+  await page.evaluate(axis => window.__sp.watchPointer(axis), axis);
+  const p = await point(page, axis, 'down', 0);
+  await page.mouse.move(p.x, p.y); await page.mouse.down();
+  await expect.poll(() => paintedAs(page, axis, 'down'), `${why}: pressed`).toBe(true);
+  return p;
+}
+
+for (const mode of ['source', 'built']) for (const slug of SLUGS) {
+  test(`${mode} ${slug}: window scrollbar press edges: re-wire, lost release, second pointer, retheme, idle ends (#567)`, async ({ page, servers }) => {
+    test.slow();
+    await setup(page, servers, mode, slug);
+    const axis = 'vertical', why = `${mode} ${slug}`;
+
+    // A press right after a re-wire, before the re-wired bar's first paint lands, still
+    // hits the part on screen: one line, not a jump to the pointer fraction.
+    await home(page, axis);
+    const arrow = await point(page, axis, 'down', 0);
+    const after = await page.evaluate(async ({ x, y }) => {
+      const { manager, host } = window.__sp;
+      await manager.refreshScrollbars(host);
+      const init = { pointerId: 1, pointerType: 'mouse', isPrimary: true, button: 0, buttons: 1, clientX: x, clientY: y, bubbles: true, composed: true, cancelable: true };
+      window.__sp.canvas('vertical').dispatchEvent(new PointerEvent('pointerdown', init));
+      window.dispatchEvent(new PointerEvent('pointerup', { ...init, buttons: 0 }));
+      return Math.round(window.__sp.scrollEl.scrollTop);
+    }, arrow);
+    expect(after, `${why}: an arrow press straight after a re-wire steps one line`).toBe(LINE);
+    await expectReleased(page, axis, `${why} press after re-wire`);
+
+    // A lost pointerup: window blur, the page hidden, or a move with no button down end the hold.
+    for (const how of ['blur', 'hidden', 'buttonless move']) {
+      const p = await holdDown(page, axis, `${why} before ${how}`);
+      await page.evaluate(([how, p]) => {
+        if (how === 'blur') window.dispatchEvent(new Event('blur'));
+        else if (how === 'hidden') {
+          Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'hidden' });
+          document.dispatchEvent(new Event('visibilitychange'));
+          delete document.visibilityState;
+        // Still over the arrow, so only the missing button can end the hold.
+        } else window.dispatchEvent(new PointerEvent('pointermove', { pointerId: window.__sp.pointerId, buttons: 0, clientX: p.x, clientY: p.y }));
+      }, [how, p]);
+      await expectReleased(page, axis, `${why} ${how} while held`);
+      await page.mouse.up();
+    }
+
+    // Another pointer lifting or cancelling mid-hold leaves this press held and repeating.
+    await holdDown(page, axis, `${why} before a second pointer`);
+    await page.evaluate(() => {
+      const other = { pointerId: window.__sp.pointerId + 7, pointerType: 'touch', buttons: 0, bubbles: true, composed: true };
+      for (const type of ['pointerup', 'pointercancel']) window.dispatchEvent(new PointerEvent(type, other));
+    });
+    const held = (await state(page, axis)).pos;
+    await expect.poll(async () => (await state(page, axis)).pos, `${why}: still repeating after another pointer lifts`).toBeGreaterThan(held + LINE);
+    expect(await paintedAs(page, axis, 'down'), `${why}: still pressed after another pointer lifts`).toBe(true);
+    await page.mouse.up();
+    await expectReleased(page, axis, `${why} after a second pointer`);
+
+    // Holding an arrow at the end of the range changes nothing, so it repaints nothing.
+    await page.evaluate(axis => window.__sp.key(axis, 'End'), axis);
+    const end = await state(page, axis);
+    const down = await point(page, axis, 'down', end.pos);
+    await page.mouse.move(down.x, down.y); await page.mouse.down();
+    await expect.poll(() => paintedAs(page, axis, 'down'), `${why}: pressed at the end`).toBe(true);
+    expect(await paintsDuring(page, axis, 600), `${why}: no repaints while held at the end`).toBe(0);
+    await page.mouse.up();
+    await expectReleased(page, axis, `${why} held at the end`);
+
+    // A retheme mid-hold (the bars re-wire) ends the press: no ghost scrolling afterwards.
+    await holdDown(page, axis, `${why} before a retheme`);
+    await page.evaluate(async other => {
+      const { manager, api } = window.__sp;
+      await manager.retheme(await api.loadTheme(`/themes/${other}`));
+      await window.__sp.frames(6);
+    }, slug === 'windows-95' ? 'beos-r503' : 'windows-95');
+    const at = (await state(page, axis)).pos;
+    await settle(page, 700);
+    expect((await state(page, axis)).pos, `${why}: no scrolling after a retheme mid-hold`).toBe(at);
+    await page.mouse.up();
   });
 }

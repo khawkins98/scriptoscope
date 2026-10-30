@@ -129,9 +129,12 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   line of overlap, the classic application convention), both shared with the
   bar's keys, and the 400 ms / 50 ms repeat are compatibility policy: the
   original left them to the application. PageUp/PageDown on the focused bar
-  therefore now move one line less than before. Bar steps from keys, arrows, the
-  track and the wheel now add whole pixels to the scroll position. This fixes
-  WebKit, where a step could land a pixel short (#556).
+  therefore now move one line less than before. Right and middle clicks no
+  longer act on the bar. A press ends on window blur, when the page is hidden,
+  and on a move with no button down, so a lost release can't leave a hold
+  repeating. Bar steps from keys, arrows and the track now add whole pixels to
+  the scroll position, and wheel deltas are rounded to whole pixels. This
+  fixes WebKit, where a step could land a pixel short (#556).
 
 ## [0.7.0] — 2026-10-29
 

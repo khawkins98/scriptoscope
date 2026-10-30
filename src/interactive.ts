@@ -110,6 +110,10 @@ type ScrollbarPart = NonNullable<ScrollbarOptions['pressedPart']>;
 // delay or rate. These approximate the classic keyboard repeat defaults: a pause, then ~20 steps/s.
 const REPEAT_DELAY_MS = 400;
 const REPEAT_INTERVAL_MS = 50;
+// The frame each window scrollbar last painted (null: the procedural fallback), keyed by its
+// persistent bar element (#535). A re-wire keeps hit-testing the canvas still on screen until
+// its own first paint lands, instead of treating a press as a drag (#567).
+const paintedScrollbars = new WeakMap<HTMLElement, ScrollbarFrame | null>();
 
 // The bottom-right resize zone, measured inward from the window's right/bottom edges (unscaled px).
 // One rect shared by the grow-box button and the scrollbars' corner clearance, so a drawn arrow is
@@ -1591,7 +1595,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     let raf = 0, paintEpoch = 0;
     // The held part (#567) draws pressed; `painted` is the engine frame on screen, whose §4.8 part
     // test a press hit-tests. The procedural fallback has no part geometry (painted stays null).
-    let pressed: ScrollbarPart | null = null, painted: ScrollbarFrame | null = null;
+    let pressed: ScrollbarPart | null = null, painted = paintedScrollbars.get(bar) ?? null;
     let endPress: (() => void) | null = null;
     signal.addEventListener('abort', () => {
       if (raf) cancelAnimationFrame(raf);
@@ -1606,6 +1610,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
         const themed = await composeScrollbarFrame(entry.theme, pressed ? { ...opts, state: 'pressed', pressedPart: pressed } : opts);
         if (!current() || epoch !== paintEpoch) return;
         painted = themed;
+        paintedScrollbars.set(bar, themed);
         // thumbExtent shapes only the procedural fallback, never the engine thumb.
         const buf = themed?.buffer ?? platinumScrollbar({ ...opts, thumbExtent });
         bar.replaceChildren(bufferToCanvas(buf, scale));
@@ -1657,7 +1662,8 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       e.preventDefault(); e.stopPropagation();
       if (e.pointerType === 'mouse' && e.button !== 0) return;
       endPress?.();
-      const part = painted ? paintedPartAt(bar, e, painted) : 'thumb';
+      // Nothing painted yet: no part to press. The procedural fallback (no frame) drags.
+      const part = painted ? paintedPartAt(bar, e, painted) : bar.querySelector('canvas') ? 'thumb' : null;
       if (!part) return;                                   // part 0: outside the control
       const id = e.pointerId, step = PART_STEP[part];
       const live = new AbortController();
@@ -1671,15 +1677,24 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       endPress = end;
       try { bar.setPointerCapture(id); } catch { /* not an active pointer: the window listeners below still end it */ }
       const mine = (fn: (ev: PointerEvent) => void) => (ev: Event): void => { if ((ev as PointerEvent).pointerId === id) fn(ev as PointerEvent); };
-      window.addEventListener('pointermove', mine(ev => { at = ev; if (step === undefined) setValue(valueAtPointer(ev)); }), { signal: live.signal });
+      // A move with no button down means the pointerup was lost (released outside the page).
+      window.addEventListener('pointermove', mine(ev => {
+        if (!ev.buttons) return end();
+        at = ev; if (step === undefined) setValue(valueAtPointer(ev));
+      }), { signal: live.signal });
       for (const type of ['pointerup', 'pointercancel']) window.addEventListener(type, mine(end), { signal: live.signal });
       bar.addEventListener('lostpointercapture', mine(end), { signal: live.signal });
+      // The page losing focus or visibility can swallow the pointerup: end rather than hold on.
+      window.addEventListener('blur', end, { signal: live.signal });
+      document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') end(); }, { signal: live.signal });
       if (step === undefined) { setValue(valueAtPointer(e)); return; }
       const tick = async (first: boolean): Promise<void> => {
         const over = first || paintedPartAt(bar, at, painted) === part;
+        const from = pos(), was = pressed;
         if (over) move(step);
-        if (over || pressed) {
-          pressed = over ? part : null;
+        pressed = over ? part : null;
+        // Repaint only on a change (a held arrow at either end changes nothing).
+        if (pos() !== from || pressed !== was) {
           // Paint now, not next frame, so the next tick hit-tests the thumb where this step left it.
           if (raf) { cancelAnimationFrame(raf); raf = 0; }
           paintEpoch++;
@@ -1697,7 +1712,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       const delta = vertical || e.shiftKey ? e.deltaY : e.deltaX;
       if (Math.abs(delta) < 0.5) return;
       e.preventDefault();
-      move(delta);
+      move(Math.round(delta));                             // whole pixels, as every bar step (#556)
     }, { passive: false, signal });
 
     // Arrow keys / page keys on the bar.
