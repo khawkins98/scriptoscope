@@ -1,5 +1,20 @@
 # Learnings
 
+## 2026-10-30 — Measured sizes are outer bounds; the host box is the chrome (#526)
+
+The declarative layer passed every size it handled to `WindowManager.add` as a CONTENT size: the auto-captured rect, `extra-*`, px `max-*` caps and declared width/height alike. The renderer then drew the frame outside it (`fullWidth = content + frame`). An in-flow host takes its container's width, so the chrome overhung it by exactly frame left + right: 104 px on evolution and 116 px on dolphin-som. On the 1280 px showcase the page scrolled sideways, and the `max-height: 280px` cards overlapped the footer. The comments and docs said the overhang was "2-6 px". That figure dated from 2026-05-31, when the same frames were already in the corpus, so it was never measured on a thick theme.
+
+Maintainer decision (option a): measured and capped sizes are OUTER bounds and declared sizes stay content, as `install.html` and the `RenderWindowOptions` JSDoc already published.
+
+- **One conversion site.** `WindowManager` keeps a per-axis `outer` bound per window. `prepareRender` derives content = bound − frame from the frame the prepared window actually composed: it reads the window root's full footprint minus the content it was given (both renderWindow paths set that footprint). It re-prepares if the guess was wrong. A per-theme/variant extent cache makes the usual case one preparation. Because the bound, not the content, is stored, a retheme re-resolves it against the new scheme's frame. Content reflows by design.
+- **Explicit content sizes clear the bound for their axis**: `setContentSize`, the grow box (pointer and keyboard), zoom (which saves and restores the bound) and `applyState`. A collapsed render keeps the last expanded content size, and the next expanded render resolves the bound.
+- **Host = canvas everywhere.** `commitRender` copies the window root's width/height onto the host inline. In-flow hosts wrap the chrome instead of spanning the container, and `toAbsolute`'s placeholder (`host.offsetWidth/Height`) is chrome-sized. `max-width`/`max-height` stay unlocked because auto-fit reads them as caps. The `overflow: visible` lock remains as a guard for a consumer cap smaller than a declared size plus its frame.
+- **Auto-fit lives in outer space.** `fit.scrollWidth/Height` is a content measurement, so `measureOuter()` adds `chromeExtent(host)` before comparing it with the outer `last` baseline and caps. The stable state is then exact (content + frame = bound), and the grow-only rule is unchanged. `acceptUserSize` converts the grow box's content size to outer, cancels any queued re-fit and latches `userSized`. Without that, a re-fit queued in the same frame could re-impose a bound over the user's choice.
+
+- **Demo follow-ups.** The showcase's ≤720 px CSS padded `#powers` (64 px) and `.powers-grid` (72 px) to leave room for the overhang. Under the new contract that padding was subtracted twice: the uncapped cascade card got about 128 px of content, reflowed taller after `prepareCascade` had reserved the cascade's height once, and overlapped the footer at 320/390 px. The padding now reserves only the cascade offset (24 px), and `explicit-host.mjs` re-reserves the cascade height whenever a placed host resizes.
+
+Lesson: a size contract needs one named space per value. "Width" meant content in the renderer, outer in the consumer's head, and both in the docs. The fix was to name the space at every boundary (`outerSize` vs `width`), not to pad the demo.
+
 ## 2026-10-23 — October incremental v2 is distinct from the May reset names
 
 **Current orientation supersedes the May renderer pointers below.** the package
@@ -3127,7 +3142,7 @@ Follow-on (`2026-06-01`): the FE reviewer caught that the chokepoint had three r
 
 ### The lockdown set grew from 5 to 9 properties over 36 hours
 
-The Posture B entry predicted: *"extend it when a sixth property bites."* The sixth was `overflow` (`2fbe0b3`) — a consumer-class `overflow: auto` on a card row was clipping the chrome canvas's outer 2-6px edge. The FE reviewer then predicted the next bleeds: `margin`, `transform`, `filter`. All three landed in the lockdown set defensively. The current set is `display, box-sizing, padding, border, background, overflow, margin, transform, filter` — nine properties.
+The Posture B entry predicted: *"extend it when a sixth property bites."* The sixth was `overflow` (`2fbe0b3`) — a consumer-class `overflow: auto` on a card row was clipping the chrome canvas's outer 2-6px edge. **Superseded 2026-10-30 by "Measured sizes are outer bounds" (#526):** the overhang was never 2-6 px. It was the frame's full thickness (up to 116 px on dolphin-som), because measured sizes were treated as content sizes. Hosts are now pinned to the chrome. The FE reviewer then predicted the next bleeds: `margin`, `transform`, `filter`. All three landed in the lockdown set defensively. The current set is `display, box-sizing, padding, border, background, overflow, margin, transform, filter` — nine properties.
 
 Lesson: the prediction was right and the prediction's lead time was hours, not weeks. Layout-affecting consumer CSS bites in a long tail. The lockdown set is "current," not "complete." The next bleed will surface in real-consumer-CSS, not in our demo.
 

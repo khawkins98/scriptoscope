@@ -7,6 +7,15 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+### Changed
+
+- **Auto-sized windows now fit their chrome inside the element's box** ([#526](https://github.com/khawkins98/scriptoscope/issues/526)). The size measured from the source element, `data-scriptoscope-extra-width/-height` and px `max-width`/`max-height` caps now bound the whole window, frame included. Previously they sized the content area, and the frame (up to 116 px wide on dolphin-som) overhung the element. Full-width windows no longer push the page sideways, and capped cards no longer overlap what follows them. Thick-framed schemes therefore get a smaller content area, and content reflows when a theme switch changes the frame. Declared `data-scriptoscope-width/-height` are unchanged: they are content dimensions, with the frame drawn outside them.
+- Every window host's inline `width`/`height` is now pinned to the full chrome size. In-flow hosts wrap the chrome instead of spanning their container, and the drag placeholder matches the window.
+
+### Added
+
+- `WindowManager.setOuterSize(host, { width?, height? })`, an `outerSize` option on `WindowManager.add`, and `WindowManager.chromeExtent(host)`, for imperative callers that size windows by their outer box. `setContentSize` keeps its content-size meaning.
+
 ## [0.7.0] — 2026-10-29
 
 Pre-launch release from the `v2` integration branch, continuing 0.y.z initial

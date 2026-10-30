@@ -19,9 +19,14 @@ export interface ScriptoscopeWindowDeps<Theme extends ThemeInput = LoadedTheme> 
   signal?: AbortSignal;
 }
 
-const FIT_DEFAULT = { w: 260, h: 150 }; // provisional first-render size for content-fit (corrected after measure)
-const FIT_MAX_W = 720; // cap so a wide content block doesn't yield a monster window
-const MIN_W = 80, MIN_H = 40;
+// SIZE SPACES (#526). Every measured or capped size here is an OUTER-box bound (chrome
+// included): the auto-captured rect, `extra-*`, px `max-*` caps and the auto-fit
+// baselines in `last`. The manager derives content = bound - frame for the current
+// scheme (WindowManager.setOuterSize). Only declared `data-scriptoscope-width/-height`
+// are CONTENT sizes, as published.
+const FIT_DEFAULT = { w: 260, h: 150 }; // provisional first-render outer size for content-fit (corrected after measure)
+const FIT_MAX_W = 720; // outer cap so a wide content block doesn't yield a monster window
+const MIN_W = 80, MIN_H = 40; // outer floors
 // A cancelled mount may be replaced before its async render finishes. Only the
 // current preparation owns the source's stamp; old completions cannot clear it.
 const pendingPromotions = new WeakMap<HTMLElement, object>();
@@ -51,13 +56,15 @@ export class ScriptoscopeWindow<Theme extends ThemeInput = LoadedTheme> {
    *  instance. */
   private growthTimer: ReturnType<typeof setTimeout> | 0 = 0;
   private rendering = false;
-  /** Most-recent content size set on the chrome — also the FLOOR for the
-   *  observer-driven auto-resize. Re-fits only grow past `last`, never
+  /** Most-recent OUTER size requested for the chrome (undeclared axes) — also the
+   *  FLOOR for the observer-driven auto-resize. Re-fits only grow past `last`, never
    *  shrink below it: stops transient layout collapses (e.g. image
    *  flicker during reflow) from yanking the chrome smaller mid-life,
    *  and preserves `data-scriptoscope-extra-height` baselines. */
   private last = { w: 0, h: 0 };
   private unmounted = false;
+  /** Set by acceptUserSize: the user owns the size, so auto-fit never runs again. */
+  private userSized = false;
 
   /** Consumer-declared dimensions, preserved across observer-driven re-fits so
    *  a `data-scriptoscope-width="400"` window doesn't shrink to its content
@@ -106,8 +113,9 @@ export class ScriptoscopeWindow<Theme extends ThemeInput = LoadedTheme> {
     //
     // Width/height still come from the source element's bounding rect (JIT
     // measure — no scanner pre-capture needed because we're not racing absolute
-    // positioning of siblings any more). Edge case: an element with display:none
-    // or 0-rect falls through to FIT_DEFAULT.
+    // positioning of siblings any more). That rect is the window's OUTER box: the
+    // chrome is fitted inside it, never added around it (#526). Edge case: an
+    // element with display:none or 0-rect falls through to FIT_DEFAULT.
     const wantsAbsolute = parsed.x !== undefined || parsed.y !== undefined;
     const elRect = el.getBoundingClientRect();
     // The element's own CSS size: under a scaled or rotated ancestor the
@@ -173,6 +181,8 @@ export class ScriptoscopeWindow<Theme extends ThemeInput = LoadedTheme> {
     const restore = { parent: el.parentNode, next: el.nextSibling, el };
     const wasConnected = el.isConnected;
     // Initial size: declared > inherited from DOM rect > content-fit default.
+    // A declared size is the CONTENT size (chrome drawn around it); the other
+    // two are OUTER bounds the chrome fits inside (#526).
     // `extraWidth` / `extraHeight` pad the auto-captured rect for the
     // "runtime adds content after promote" case (e.g. a theme-picker whose
     // tiles are populated by the runtime itself — bare-HTML rect doesn't
@@ -184,6 +194,10 @@ export class ScriptoscopeWindow<Theme extends ThemeInput = LoadedTheme> {
       parsed.width ?? ((hasNaturalRect ? naturalW : FIT_DEFAULT.w) + (parsed.extraWidth ?? 0)));
     const h0 = Math.max(MIN_H,
       parsed.height ?? ((hasNaturalRect ? naturalH : FIT_DEFAULT.h) + (parsed.extraHeight ?? 0)));
+    const outerSize = {
+      ...(parsed.width === undefined ? { width: w0 } : {}),
+      ...(parsed.height === undefined ? { height: h0 } : {}),
+    };
 
     let inst: ScriptoscopeWindow<Theme> | undefined;
     // Close is universal in semantics: WHEN the close widget is wired (i.e.
@@ -218,12 +232,14 @@ export class ScriptoscopeWindow<Theme extends ThemeInput = LoadedTheme> {
       host = await deps.manager.add(
         deps.theme,
         {
-          windowType: parsed.windowType, width: w0, height: h0, state: parsed.state,
+          windowType: parsed.windowType, state: parsed.state,
+          ...(parsed.width !== undefined ? { width: w0 } : {}),
+          ...(parsed.height !== undefined ? { height: h0 } : {}),
           ...(parsed.title != null ? { title: parsed.title } : {}),
         },
         { onClose: () => inst?.unmount() },
         {
-          contentEl: slot,
+          contentEl: slot, outerSize,
           ...(parsed.z != null ? { z: parsed.z } : {}),
           ...(parsed.collapsed ? { collapsed: true } : {}),
           ...(enabledWidgets !== undefined ? { enabledWidgets } : {}),
@@ -323,15 +339,13 @@ export class ScriptoscopeWindow<Theme extends ThemeInput = LoadedTheme> {
         padding: '0',
         border: '0',
         background: 'transparent',
-        // The chrome canvas's outer dimensions can extend a pixel or two
-        // past the host's CSS box (chrome adds a frame; w0 vs fullWidth
-        // diverge by 2-6px depending on theme). A consumer-class
-        // `overflow: auto` (e.g. `.powers-card-row.heavy .powers-card`
-        // sets it for slot-scroll behaviour) would clip those edge
-        // pixels — visible as the chrome's right/bottom edge being
-        // 'sliced off' on the demo's heavy-row cards. Force visible so
-        // the canvas paints fully. The slot inside still has its own
-        // overflow:auto for actual content scrolling.
+        // The WindowManager pins the host's width/height to the full chrome
+        // on every render (#526), so the box and canvas match. A consumer-
+        // class `overflow: auto/hidden` could still clip the canvas if a
+        // consumer `max-width`/`max-height` (not locked: auto-fit reads
+        // them as caps) squeezed the box below a declared size plus its
+        // frame. Force visible so the canvas always paints fully. The slot
+        // inside still has its own overflow:auto for content scrolling.
         overflow: 'visible',
         // The next-to-bite predictions from the 2026-06-01 FE review.
         // `margin` on the consumer's source class would shift the host
@@ -459,7 +473,12 @@ export class ScriptoscopeWindow<Theme extends ThemeInput = LoadedTheme> {
    *  window narrows). Idempotent: subsequent calls update last to the
    *  newest user size. */
   acceptUserSize(w: number, h: number): void {
-    this.last = { w, h };
+    // `w`/`h` are the grow box's CONTENT size; `last` holds outer sizes (#526).
+    const ext = this.deps.manager.chromeExtent(this.host) ?? { x: 0, y: 0 };
+    this.last = { w: w + ext.x, h: h + ext.y };
+    this.userSized = true;
+    // A re-fit already queued for the next frame would re-impose an outer bound.
+    if (this.rafId) { cancelAnimationFrame(this.rafId); this.rafId = 0; }
     if (this.observing) {
       sharedRO.unobserve(this.fit);
       this.observing = false;
@@ -472,12 +491,11 @@ export class ScriptoscopeWindow<Theme extends ThemeInput = LoadedTheme> {
    *  `width="400"` but no declared height keeps its width and only fits the height. */
   private async fitToContent(startObserving: boolean): Promise<void> {
     this.rendering = true;
-    const measuredW = Math.min(FIT_MAX_W, Math.max(MIN_W, this.fit.scrollWidth));
-    const measuredH = Math.max(MIN_H, this.fit.scrollHeight);
+    const { w: measuredW, h: measuredH } = this.measureOuter();
     const w = this.declaredW ?? measuredW;
     const h = this.declaredH ?? measuredH;
     this.last = { w, h };
-    await this.deps.manager.setContentSize(this.host, w, h);
+    await this.applySize(w, h);
     this.rendering = false;
     if (this.unmounted) return;
     if (startObserving && !this.observing) {
@@ -493,16 +511,15 @@ export class ScriptoscopeWindow<Theme extends ThemeInput = LoadedTheme> {
    *  collapses (e.g. images flickering during reflow) don't yank the chrome smaller.
    *  Respects consumer-imposed CSS max-width / max-height on the host: when the
    *  consumer set those (e.g. `.powers-card-row.heavy .powers-card { max-height: 280px }`),
-   *  they explicitly opted in to slot-scrolling for overflow — auto-grow would fight
-   *  the intent and visually overflow the host's box. */
+   *  they explicitly opted in to slot-scrolling for overflow. The cap bounds the OUTER
+   *  box (chrome included, #526), so the window never paints past it. */
   private scheduleFit(): void {
-    if (this.rendering || this.rafId) return;
+    if (this.rendering || this.rafId || this.userSized) return;
     this.rafId = requestAnimationFrame(() => {
       void (async () => {
         this.rafId = 0;
-        if (this.unmounted) return;
-        const measuredW = Math.min(FIT_MAX_W, Math.max(MIN_W, this.fit.scrollWidth));
-        const measuredH = Math.max(MIN_H, this.fit.scrollHeight);
+        if (this.unmounted || this.userSized) return;
+        const { w: measuredW, h: measuredH } = this.measureOuter();
         // Cap grow by consumer-imposed PIXEL max-width / max-height. Only px
         // values cap — percentages, em, vh/vw, calc(), none, etc. all leave
         // the cap at Infinity. (parseFloat('100%') returns 100, not NaN, so
@@ -536,10 +553,28 @@ export class ScriptoscopeWindow<Theme extends ThemeInput = LoadedTheme> {
         // size-change can't re-trigger fitToContent. Other windows' observations continue.
         if (this.observing) sharedRO.unobserve(this.fit);
         this.last = { w, h };
-        await this.deps.manager.setContentSize(this.host, w, h);
+        await this.applySize(w, h);
         if (this.observing) sharedRO.observe(this.fit, () => this.scheduleFit());
         this.rendering = false;
       })();
+    });
+  }
+
+  /** The fit wrapper's scroll size is a CONTENT measurement; add the current frame so
+   *  it compares against outer baselines and caps (#526). */
+  private measureOuter(): { w: number; h: number } {
+    const ext = this.deps.manager.chromeExtent(this.host) ?? { x: 0, y: 0 };
+    return {
+      w: Math.min(FIT_MAX_W, Math.max(MIN_W, this.fit.scrollWidth + ext.x)),
+      h: Math.max(MIN_H, this.fit.scrollHeight + ext.y),
+    };
+  }
+
+  /** Re-render with the undeclared axes as outer bounds; declared axes keep their content size. */
+  private applySize(w: number, h: number): Promise<void> {
+    return this.deps.manager.setOuterSize(this.host, {
+      ...(this.declaredW === undefined ? { width: w } : {}),
+      ...(this.declaredH === undefined ? { height: h } : {}),
     });
   }
 
