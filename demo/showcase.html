@@ -140,13 +140,16 @@
     #powers .powers-byo-out { margin-top: 6px; font: italic 12.5px "Times New Roman", Times, serif; color: #5a5a5a; min-height: 1em; }
     #powers .powers-byo-out .ok { color: #1c5d1c; }
     #powers .powers-byo-out .err { color: #a01818; }
-    /* Active-theme contrast defense — dark schemes (evolution, black-platinum)
-       paint a near-black body fill behind the slot's prose, dropping our
-       default #1c1c1c text to ~1.5:1 contrast. This isn't a library-side
-       concern (each scheme's body fill is faithful by design); it's a
-       page-author responsibility. We override locally inside #powers when
-       the runtime stamps one of those slugs onto a window host. UX review
-       2026-05-31. */
+    /* Active-theme contrast defense — evolution paints a near-black body
+       fill behind the slot's prose, dropping our default #1c1c1c text to
+       ~1.5:1 contrast. This isn't a library-side concern (each scheme's
+       body fill is faithful by design); it's a page-author responsibility.
+       We override locally inside #powers when the runtime stamps that slug
+       onto a window host. UX review 2026-05-31.
+       Only list schemes whose window bodies are actually dark. Black
+       Platinum used to be here, but its procedural frame paints white
+       document and modal bodies, so light text measured 1.1-1.7:1 there
+       (#528). Its default dark text already passes AA. */
     /* Override every element that hard-codes its own color in the demo's
        page CSS (h1-h3, .powers-meta-aaron, .powers-meta-aaron strong, etc.).
        The bare `.scriptoscope-fit { color: ... }` rule alone doesn't reach
@@ -164,22 +167,10 @@
     #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit em,
     #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit strong,
     #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit .powers-meta-aaron,
-    #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit .powers-meta-aaron strong,
-    #powers [data-scriptoscope-theme="black-platinum"] .scriptoscope-fit,
-    #powers [data-scriptoscope-theme="black-platinum"] .scriptoscope-fit h1,
-    #powers [data-scriptoscope-theme="black-platinum"] .scriptoscope-fit h2,
-    #powers [data-scriptoscope-theme="black-platinum"] .scriptoscope-fit h3,
-    #powers [data-scriptoscope-theme="black-platinum"] .scriptoscope-fit p,
-    #powers [data-scriptoscope-theme="black-platinum"] .scriptoscope-fit em,
-    #powers [data-scriptoscope-theme="black-platinum"] .scriptoscope-fit strong,
-    #powers [data-scriptoscope-theme="black-platinum"] .scriptoscope-fit .powers-meta-aaron,
-    #powers [data-scriptoscope-theme="black-platinum"] .scriptoscope-fit .powers-meta-aaron strong { color: #f0f0f0 !important; }
-    #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit a,
-    #powers [data-scriptoscope-theme="black-platinum"] .scriptoscope-fit a { color: #87CEEB !important; }
-    #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit a:visited,
-    #powers [data-scriptoscope-theme="black-platinum"] .scriptoscope-fit a:visited { color: #C8A2D8 !important; }
-    #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit code,
-    #powers [data-scriptoscope-theme="black-platinum"] .scriptoscope-fit code { color: #ffce88 !important; }
+    #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit .powers-meta-aaron strong { color: #f0f0f0 !important; }
+    #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit a { color: #87CEEB !important; }
+    #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit a:visited { color: #C8A2D8 !important; }
+    #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit code { color: #ffce88 !important; }
     /* Picker tile labels (#527). The tile .name/.author/.glyph rules below
        hard-code dark greys, so the light-text override above never reaches
        them. Same per-slug hook, scoped to the picker body each scheme
@@ -456,6 +447,9 @@
     .powers-byo-zone-modal.scriptoscope-drop-active { background: #fff5d6; border-color: #5a5a5a; border-style: solid; }
     .powers-byo-zone-modal strong { font: 600 14px serif; }
     .powers-byo-zone-modal .subhint { font: italic 12px serif; color: #5a5a5a; }
+    /* The drop zone is a light plate on every scheme, so keep its label dark
+       even inside a dark-bodied window's light-text override. */
+    #powers [data-scriptoscope-theme] .powers-byo-zone-modal strong { color: #1c1c1c !important; }
     .powers-byo-modal-out { margin-top: 8px; min-height: 1em; font: italic 12px serif; color: #5a5a5a; }
     .powers-byo-modal-out .ok { color: #1c5d1c; }
     .powers-byo-modal-out .err { color: #a01818; }
