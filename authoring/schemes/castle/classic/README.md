@@ -8,3 +8,5 @@ engine; they are **not** admitted fidelity evidence. The real-Kaleidoscope findi
 from this run (click-through on transparent frame pixels, the menu bar covering
 art above the title bar, narrow-window behaviour, 8 bpp colour shifts) are in
 [`docs/authoring-exotic-frames.md`](../../../../docs/authoring-exotic-frames.md) R16.
+
+**Updated 2026-10-30** after the visual design pass (`docs/authoring-visual-design.md`): these screenshots show the redesigned art, from one clean boot per scheme. Files named `*-before-redesign*` show the earlier build for comparison.

@@ -36,3 +36,5 @@ How the runs went:
 These are illustrations that the generated file is a valid, complete scheme.
 They are **not** admitted fidelity evidence (no reference-intake review, 8 bpp
 palette condition), and no golden or ledger row depends on them.
+
+**Updated 2026-10-30** after the visual design pass (`docs/authoring-visual-design.md`): these screenshots show the redesigned art, from one clean boot per scheme. Files named `*-before-redesign*` show the earlier build for comparison. `popup-menu@2x.png` is still from the earlier build.
