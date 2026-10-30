@@ -138,6 +138,14 @@ export function checkScheme(resources, theme) {
     }
   }
 
+  // ── Pressed-widget strip: without it the web makes no widget clickable ──
+  // (docs/authoring-exotic-frames.md R24: widgetHittable requires the strip.)
+  const hasWidgets = resources.some((r) => r.type === 'wnd#' && decodeWnd(r.data).rectangles
+    .some((x) => x.part >= 1 && x.part <= 3 && x.rect.right > x.rect.left));
+  if (hasWidgets && !find('cicn', -14330)) {
+    warnings.push('no pressed-widget strip (cicn -14330): the web runtime makes close/zoom/collapse clickable only when it exists');
+  }
+
   // ── Push buttons: a face without a same-id cinf silently becomes Platinum ──
   const faces = Object.keys(PUSH_FACES).map(Number).filter((id) => find('cicn', id));
   for (const id of faces) {

@@ -105,7 +105,8 @@ function scheme(mutate = (l) => l) {
 test('windowLayout output passes the checks', () => {
   const { errors, warnings } = checkScheme(scheme());
   assert.deepEqual(errors, []);
-  assert.deepEqual(warnings, []);
+  // The fixture has a close box but no pressed strip; only that warning is expected.
+  assert.deepEqual(warnings.filter((w) => !/cicn -14330/.test(w)), []);
 });
 
 test('check: widget inside a growing cell is an error', () => {
@@ -363,4 +364,12 @@ test('check: a cinf whose text and background sample the same colour is flagged'
   const pane = encodeCicn(new Raster(13, 13).fillRect(0, 0, 13, 13, '#ffffff'));
   const same = checkScheme([{ type: 'cicn', id: -9977, data: pane }, { type: 'cinf', id: -9977, data: encodeCinf({ cornerSize: 4, sideThickness: 4, bgPixel: { x: 4, y: 4 }, textPixel: { x: 6, y: 6 } }) }]);
   assert.ok(same.warnings.some((w) => /cinf -9977: textPixel and bgPixel both sample/.test(w)), same.warnings.join('\n'));
+});
+
+test('check: windows with widgets but no pressed-widget strip are flagged', () => {
+  const without = checkScheme(scheme());
+  assert.ok(without.warnings.some((w) => /cicn -14330/.test(w)));
+  const strip = encodeCicn(new Raster(30, 10).fillRect(0, 0, 30, 10, '#888888'));
+  const withStrip = checkScheme([...scheme(), { type: 'cicn', id: -14330, data: strip }]);
+  assert.ok(!withStrip.warnings.some((w) => /cicn -14330/.test(w)));
 });

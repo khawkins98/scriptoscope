@@ -162,6 +162,12 @@ const layout = windowLayout({
 // layout.wnd                                  → pass to encodeWnd()
 ```
 
+**Frames that aren't rounded rectangles** (battlements, towers above the bar,
+wavy edges, a tab-shaped title) are covered in
+[`authoring-exotic-frames.md`](./authoring-exotic-frames.md): multi-pixel tiles,
+where partial tiles land, code 12 and its fillers, title end caps, per-edge art,
+transparency and clicks, and body textures. Each rule there has a corpus precedent.
+
 ### 4.2 The content area is a hole
 
 The recipe's **part 0 rectangle** marks the content area. The page's real HTML
@@ -292,6 +298,7 @@ look smooth:
 | `-14328`, `-14326` | | dialog, alert (no title bar) |
 | `-14324`, `-14322` | | movable modal, movable alert |
 | `-14304`, `-14300` | | titled utility window, and its collapsed form |
+| `-14330`, `-14298` | `cicn` | pressed close / zoom / collapse, side by side (second row for collapsed windows); document and utility. **The web makes widgets clickable only when `-14330` exists**, and reads it for every window type, so give all windows the same widget sizes |
 | `-10240` / `-10239` / `-10238` | `cicn` + `cinf` | push button: inactive / normal / pressed |
 | `-10232` / `-10231` | `cicn` + `cinf` | default-button ring: inactive / normal |
 | `-9504 … -9496` | `cicn` | checkbox: value (off, on, mixed) × tier (disabled, normal, pressed) |
@@ -343,6 +350,7 @@ fires on an original scheme is at most a warning.
 | warning | an edge recipe that ends past the edge of the frame image |
 | warning | visible pixels outside an edge's recipe span (they are never drawn) |
 | warning | an edge with no growing cell (the window can't resize that way) |
+| warning | windows with widgets but no pressed-widget strip (`cicn -14330`): the widgets aren't clickable on the web |
 | warning | a push face with no same-id `cinf` (the runtime silently draws Platinum instead) |
 | warning | a face or ring `cinf` whose sample pixels fall outside its image, or whose `cornerSize` is more than half the image |
 | warning | no pressed push face; an incomplete checkbox/radio set |

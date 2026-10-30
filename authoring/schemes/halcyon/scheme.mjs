@@ -29,13 +29,15 @@ import { C } from './palette.mjs';
  * blends with the real title-bar pixels underneath (a separate raster blitted
  * on top would have nothing to blend with).
  */
-function drawGlyphButton(r, { x, y, w: size }, state, glyph, accent = false) {
+function drawGlyphButton(r, { x, y, w: size }, state, glyph, accent = false, pressed = false, matte) {
   const p = C[state];
   const lit = accent && state === 'active';
   const cx = x + size / 2, cy = y + size / 2;
-  r.fillCircleSmooth(cx, cy, size / 2, lit ? C.accentPressed : p.buttonEdge);
-  r.fillCircleSmooth(cx, cy, size / 2 - 1,
-    verticalGradient(y, size, [[0, lit ? C.accent : p.buttonTop], [1, lit ? C.accent : p.buttonBottom]]));
+  const [top, bottom] = pressed
+    ? (lit ? [C.accentPressed, C.accentPressed] : ['#cfd6df', '#bcc5d1'])
+    : (lit ? [C.accent, C.accent] : [p.buttonTop, p.buttonBottom]);
+  r.fillCircleSmooth(cx, cy, size / 2, lit ? (pressed ? '#0b5568' : C.accentPressed) : p.buttonEdge, matte ? { matte } : undefined);
+  r.fillCircleSmooth(cx, cy, size / 2 - 1, verticalGradient(y, size, [[0, top], [1, bottom]]));
   if (!p.glyph) return; // inactive windows show plain buttons, like most desktops do
   const ink = lit ? '#ffffff' : p.glyph;
   const a = size * 0.32, b = size - size * 0.32; // glyph box inside the button
@@ -109,7 +111,10 @@ function windowTypes() {
     };
   };
   const utility = (collapsed) => {
-    const T = 16, L = 20, R = 22, s = 10, y = 3;
+    // Widgets match the document window's 12px: the web reads every window's
+    // pressed art from the document strip (cicn -14330), at offsets taken from
+    // that window's own widget widths (docs/authoring-exotic-frames.md R24).
+    const T = 16, L = 20, R = 22, s = 12, y = 2;
     return {
       layout: windowLayout({
         titleBar: T, leftFixed: L, rightFixed: R, bottom: 4, collapsed,
@@ -144,6 +149,22 @@ function widgetBoxes(wnd) {
     return r && r.right > r.left ? { x: r.left, y: r.top, w: r.right - r.left, h: r.bottom - r.top } : null;
   };
   return Object.fromEntries([['close', box(1)], ['zoom', box(2)], ['collapse', box(3)]].filter(([, b]) => b));
+}
+
+/**
+ * The pressed-widget strip (cicn -14330). The web only makes close, zoom and
+ * collapse clickable when this exists, and its mask is the click area. Pieces
+ * sit side by side in rect-list order (close, zoom, collapse), each the size of
+ * its widget rect; a second row is used for collapsed windows.
+ */
+function pressedStrip(size) {
+  const r = new Raster(size * 3, size * 2);
+  for (let row = 0; row < 2; row++) {
+    ['close', 'zoom', 'collapse'].forEach((glyph, i) => {
+      drawGlyphButton(r, { x: i * size, y: row * size, w: size }, 'active', glyph, glyph === 'close', true, C.active.barBottom);
+    });
+  }
+  return r;
 }
 
 // ── 3. Push buttons ───────────────────────────────────────────────────────
@@ -225,6 +246,10 @@ export async function buildScheme() {
     add('cicn', t.id, encodeCicn(paintFrame(t.layout, 'inactive', art)), `Inactive ${t.name}`);
     add('cicn', t.id + 1, encodeCicn(paintFrame(t.layout, 'active', art)), `Active ${t.name}`);
   }
+  // Pressed widgets: -14330 for every window in the web (and documents in
+  // classic), -14298 for utility windows in classic.
+  add('cicn', -14330, encodeCicn(pressedStrip(12)), 'Pressed Window Widgets');
+  add('cicn', -14298, encodeCicn(pressedStrip(12)), 'Pressed Utility Window Widgets');
 
   const faces = [
     [-10240, 'Inactive Push Button', { face: '#f5f6f8', edge: '#d0d5dc', text: '#a3aab4' }],
