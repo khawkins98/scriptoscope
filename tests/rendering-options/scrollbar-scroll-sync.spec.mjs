@@ -132,7 +132,7 @@ async function expectSyncedAt(page, axis, why) {
 
 // The issue's reproduction: the showcase's ResourceForkLib card, Tab-driven focus scroll.
 for (const mode of ['source', 'built']) for (const slug of SLUGS) {
-  test(`${mode} showcase ${slug}: Tab-driven scroll moves the ResourceForkLib scrollbar (#549)`, async ({ page, demo, production }) => {
+  test(`${mode} showcase ${slug}: Tab-driven scroll moves the ResourceForkLib scrollbar (#549)`, async ({ page, demo, production, browserName }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
     await page.goto(`${mode === 'source' ? demo : production}/showcase.html?theme=${slug}`);
     await expect(page.locator('#powers.scriptoscope-ready')).toBeVisible();
@@ -161,7 +161,8 @@ for (const mode of ['source', 'built']) for (const slug of SLUGS) {
     await host.getByRole('link', { name: 'Bring your own scheme' }).focus();
     for (let i = 0; i < 8; i++) {
       if (await page.evaluate(() => document.activeElement?.textContent?.trim()) === 'Kaleidoscope Scheme Archive') break;
-      await page.keyboard.press('Tab');
+      // WebKit's Tab skips links by default (macOS keyboard navigation); Alt+Tab reaches them.
+      await page.keyboard.press(browserName === 'webkit' ? 'Alt+Tab' : 'Tab');
     }
     expect(await page.evaluate(() => document.activeElement?.textContent?.trim())).toBe('Kaleidoscope Scheme Archive');
     await page.evaluate(() => window.__sb.frames());
@@ -280,7 +281,8 @@ for (const mode of ['source', 'built']) for (const slug of SLUGS) {
     expect((await state(page, 'vertical')).pos).toBe(300 + LINE);
   });
 
-  test(`${mode} ${slug}: re-renders and remove() leave no stale scroll listeners (#549)`, async ({ page, servers }) => {
+  test(`${mode} ${slug}: re-renders and remove() leave no stale scroll listeners (#549)`, async ({ page, servers, browserName }) => {
+    test.skip(browserName !== 'chromium', 'counts listeners through CDP (Chromium only)');
     await setup(page, servers, mode, slug);
     expect(await scrollListeners(page), 'one per axis after the first render').toBe(2);
     for (let i = 0; i < 5; i++) await page.evaluate(async i => {

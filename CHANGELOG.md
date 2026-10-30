@@ -117,6 +117,19 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   or a lost capture puts the window back where it started, removes the resize
   outline and commits nothing, so no `onChange` or `scriptoscope:userresize`
   fires and a later unrelated release no longer moves or resizes the window.
+- Window scrollbar clicks now act on the part under the pointer, as the classic
+  Control Manager does (#567). Before, any click jumped the content to the
+  pointer's fraction of the bar, so the down arrow could scroll most of the
+  way to the end. Now an arrow steps one line and the track one page, and
+  holding either repeats; a held track stops once the thumb reaches the
+  pointer. The held part draws pressed through the engine's existing
+  pressed-part state (scrollbar §4.8 part test, parts 20–23), and returns to
+  normal on pointer up, pointer cancel or lost pointer capture. Dragging the
+  thumb is unchanged. The 24 px line, the client-height page (both shared with
+  the bar's keys) and the 400 ms / 50 ms repeat are compatibility policy: the
+  original left them to the application. Bar steps from keys, arrows, the
+  track and the wheel now add whole pixels to the scroll position. This fixes
+  WebKit, where a step could land a pixel short (#556).
 
 ## [0.7.0] — 2026-10-29
 
