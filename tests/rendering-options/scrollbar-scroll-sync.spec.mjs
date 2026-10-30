@@ -147,6 +147,11 @@ for (const mode of ['source', 'built']) for (const slug of SLUGS) {
       return { x: r.x + 40, y: r.y + r.height / 2 };
     });
     await page.mouse.click(grip.x, grip.y);
+    // #557: the activation render re-wires the scrollbar, and the re-wire reads the current
+    // scrollTop. If it landed after the focus scroll below, an unsynced bar would look synced.
+    // The committed window carries its state, and the re-wire runs in the same commit.
+    await expect.poll(() => host.evaluate(h => h.shadowRoot.querySelector('.scriptoscope-window')?.dataset.scriptoscopeCurrentState),
+      'activation render committed before focusing').toBe('active');
     expect((await state(page, 'vertical')).pos).toBe(0);
     await host.getByRole('link', { name: 'Bring your own scheme' }).focus();
     for (let i = 0; i < 8; i++) {

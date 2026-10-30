@@ -38,6 +38,7 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 - Movable-modal, movable-alert, popup and collapsed titled-utility windows
   show their title text again (#540).
+- A press on the grow box that doesn't change the window's size is no longer a resize (#552). Releasing without moving, or after sub-pixel jitter under half a content pixel, used to switch an in-flow window to absolute positioning, insert the drag placeholder, re-render it at a different width and fire `scriptoscope:userresize`, which permanently turned auto-fit off. Like the classic Mac `GrowWindow`, which returns 0 when the size is unchanged, the window now stays in flow and no event fires. The hand-off waits for the first move that changes the size, and a drag released at its starting size commits nothing. A keyboard resize step that is clamped at the minimum size no longer hands off or fires the event either.
 - Showcase links keep WCAG AA contrast when hovered, pressed and focused. The
   browser's default focus ring put a light halo against 1990's and Evolution's
   light link text (1.3-2.0:1), so focused links now draw a solid 2px ring in
