@@ -244,3 +244,50 @@ for (const mode of ['source', 'built']) {
     }
   });
 }
+
+// Since #533 the resize button and scrollbars are kept across renders, so the
+// corner rect must be re-applied on every render, not only when the controls
+// are created. One live window is rethemed between a grow-box scheme and one
+// without, and its scale is changed. Expected sizes are the reviewer's
+// independent measurements of fresh windows (200 × 140 content, scale 1):
+// the button is 22 × 22 on apple-platinum-2 and 21 × 40 on windows-95, and a
+// single-axis bar stops 15 px short of the content corner. Scale 2 doubles.
+const BUTTON = { 'apple-platinum-2': [22, 22], 'windows-95': [21, 40] };
+const STEPS = [['apple-platinum-2', 1], ['windows-95', 1], ['windows-95', 2], ['apple-platinum-2', 2], ['apple-platinum-2', 1], ['windows-95', 1]];
+
+for (const mode of ['source', 'built']) {
+  harnessTest(`${mode}: retheme and rescale of a live window keep the resize zone and arrows in step (#524)`, async ({ page, servers }) => {
+    await openHarness(page, servers, mode);
+    for (const axis of ['vertical', 'horizontal']) {
+      await addWindow(page, mode, STEPS[0][0], axis, STEPS[0][1]);
+      await page.evaluate(() => { window.__growZone.corner = window.__growZone.host.shadowRoot.querySelector('button.scriptoscope-growbox'); });
+      for (const [slug, scale] of STEPS) {
+        await page.evaluate(async ({ mode, slug, scale }) => {
+          const api = await import(mode === 'source' ? '/src/index.ts' : '/dist/scriptoscope.js');
+          const { manager, host, content } = window.__growZone;
+          // No public API changes a live window's scale; set the entry's
+          // option (test-only) and let the retheme render apply it.
+          manager.windows.find(w => w.host === host).opts.scale = scale;
+          await manager.retheme(await api.loadTheme(`/themes/${slug}`));
+          content.scrollTop = content.scrollLeft = 0;
+          await new Promise(resolve => setTimeout(resolve, 300));
+        }, { mode, slug, scale });
+        const label = `${axis}-only after ${slug} scale ${scale}`;
+        const state = await page.evaluate(() => {
+          const { host, corner } = window.__growZone;
+          const button = host.shadowRoot.querySelector('button.scriptoscope-growbox');
+          const r = button.getBoundingClientRect();
+          return { reused: button === corner, button: [r.width, r.height] };
+        });
+        expect(state.reused, `${label}: resize button reused`).toBe(true);
+        expect(state.button, `${label}: resize button size`).toEqual(BUTTON[slug].map(n => n * scale));
+        const { bar } = await zoneState(page, axis);
+        expect(axis === 'vertical' ? bar.h : bar.w, `${label}: bar length`).toBe((axis === 'vertical' ? 125 : 185) * scale);
+        const thickness = axis === 'vertical' ? bar.w : bar.h;
+        await expectArrowScrolls(page, axis, 2, label);
+        await page.evaluate(axis => { window.__growZone.content[axis === 'vertical' ? 'scrollTop' : 'scrollLeft'] = 0; }, axis);
+        await expectArrowScrolls(page, axis, thickness / 2, label);
+      }
+    }
+  });
+}

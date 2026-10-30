@@ -25,10 +25,6 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   and modal bodies, so the picker credit line, the cards and the upload modal
   measured 1.1-1.7:1. The override now covers only Evolution, the scheme with
   a dark body. The upload drop zone keeps its dark label on every scheme (#528).
-- Window scrollbar arrows are no longer covered by the grow-box resize zone on
-  schemes without a grow-box resource (windows-95, beos-r503, evolution and
-  others), so clicking the down or right arrow scrolls instead of resizing. The
-  grow-box button and both scrollbars now share one corner rect (#524).
 - Window scrollbar end arrows are no longer covered by the bottom-right resize
   zone, so clicking the down or right arrow scrolls instead of resizing (#524).
   On base this hit the resize button for a single-axis bar on all 13 schemes
