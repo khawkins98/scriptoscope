@@ -20,6 +20,11 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   window, so the next arrow key no longer moves the previous one (#533).
 - Showcase picker tile labels reach WCAG AA contrast on the evolution and
   monkey-paradise body patterns (#527).
+- Showcase text stays readable under Black Platinum. The demo's light-text
+  override assumed a dark window body, but Black Platinum paints white document
+  and modal bodies, so the picker credit line, the cards and the upload modal
+  measured 1.1-1.7:1. The override now covers only Evolution, the scheme with
+  a dark body. The upload drop zone keeps its dark label on every scheme (#528).
 
 ## [0.7.0] — 2026-10-29
 
