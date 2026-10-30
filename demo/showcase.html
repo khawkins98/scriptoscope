@@ -92,7 +92,19 @@
        webpage" so the SKINNED state is the dramatic transformation. */
     #powers a { color: #0000EE; text-decoration: underline; }
     #powers a:visited { color: #551A8B; } /* the default period :visited mauve */
-    #powers a:hover { color: #cc0000; }   /* the default period :hover red */
+    /* Period :hover red, darkened from #cc0000 (#548): #cc0000 was 4.11:1
+       on dolphin-som's #ffd400 body; #b00000 is 5.15:1 there and >= 5.7:1
+       on every other light body. The dark and mid-tone slug groups below
+       override link colour with !important, so hover never reaches them. */
+    #powers a:hover { color: #b00000; }
+    /* Link focus ring (#548). The browser default `auto` ring paints a
+       light halo tight against the glyphs, which dropped 1990/evolution's
+       light link text to 1.3-2.0:1 and gave a 1.0-2.4:1 indicator on the
+       dark and mid-tone bodies. A solid ring in the link's own colour,
+       offset 1px clear of the text, inherits whatever colour the slug
+       groups below pick for links (each >= 4.5:1 on its body), so the
+       indicator clears 3:1 on every scheme without a per-slug rule. */
+    #powers a:focus-visible { outline: 2px solid currentColor; outline-offset: 1px; }
     /* Tools row: Controls palette + installation guide palette tiled
        side-by-side on wider viewports. Both are titled-utility-window
        chromes. On narrow viewports (<700px) they stack. The grid
@@ -179,6 +191,11 @@
     #powers :is([data-scriptoscope-theme="evolution"], [data-scriptoscope-theme="1990"]) .scriptoscope-fit .powers-meta-aaron strong { color: #f0f0f0 !important; }
     #powers :is([data-scriptoscope-theme="evolution"], [data-scriptoscope-theme="1990"]) .scriptoscope-fit a { color: #d0f0ff !important; }
     #powers :is([data-scriptoscope-theme="evolution"], [data-scriptoscope-theme="1990"]) .scriptoscope-fit a:visited { color: #f4e4ff !important; }
+    /* The light link ring above sits next to the white icon plates on these
+       bodies (1.14:1 there), so pair it with a 1px black line in the
+       offset gap: a two-tone indicator (WCAG technique C40) with one tone
+       >= 3:1 against either neighbour. */
+    #powers :is([data-scriptoscope-theme="evolution"], [data-scriptoscope-theme="1990"]) .scriptoscope-fit a:focus-visible { box-shadow: 0 0 0 1px #000; }
     #powers :is([data-scriptoscope-theme="evolution"], [data-scriptoscope-theme="1990"]) .scriptoscope-fit code { color: #ffecc8 !important; }
     /* Mid-tone bodies (#546). 1984's blue stripe, animals' tan, floppies'
        light blue and monkey-paradise's olive/green speckle sit between the
@@ -240,6 +257,7 @@
     #powers .powers-paper .scriptoscope-fit :is(h1,h2,h3,p,em,strong,label,output,code) { color: #28251f !important; }
     #powers .powers-paper .scriptoscope-fit a { color: #0000ee !important; }
     #powers .powers-paper .scriptoscope-fit a:visited { color: #551a8b !important; }
+    #powers .powers-paper .scriptoscope-fit a:focus-visible { box-shadow: none; } /* drop the dark-body ring companion (#548) */
     /* READ ME window — the lede wears chrome. Custom content padding
        (Apple HIG Read Me's typically used ~16-20px inside the frame).
        Sits in flow automatically (Posture B 2026-05-30: hosts default
