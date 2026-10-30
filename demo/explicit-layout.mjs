@@ -29,7 +29,11 @@ export function ownLayout(options,signal) {
   const windows={};
   for(const [id,{win,manager}]of records){
    const state=manager.describe(win.host);if(!state)continue;
-   const row={w:state.width,h:state.height,collapsed:state.collapsed,z:state.z};
+   // ow: the OUTER width (content + this theme's frame). Another tab may use a
+   // thicker scheme, so it restores the footprint its container bounds, not the
+   // content width, and the content height, which flow and scrolling absorb (#542).
+   const ext=manager.chromeExtent(win.host);
+   const row={w:state.width,h:state.height,ow:ext&&state.width+ext.x,collapsed:state.collapsed,z:state.z};
    if(getComputedStyle(win.host).position==='absolute'){row.x=parseFloat(win.host.style.left);row.y=parseFloat(win.host.style.top);}
    windows[id]=row;
   }
@@ -51,9 +55,11 @@ export function ownLayout(options,signal) {
     const row=value.windows[id];if(!row||signal.aborted)continue;
     if(Number.isFinite(row.x)&&Number.isFinite(row.y))manager.setPosition(win.host,row.x,row.y);
     const state={};
-    for(const [input,output]of [['w','width'],['h','height'],['z','z']])if(Number.isFinite(row[input]))state[output]=row[input];
+    const outer=Number.isFinite(row.ow);
+    for(const [input,output]of [['w','width'],['h','height'],['z','z']])if(Number.isFinite(row[input])&&!(outer&&input==='w'))state[output]=row[input];
     if(typeof row.collapsed==='boolean')state.collapsed=row.collapsed;
     await manager.applyState(win.host,state,signal);
+    if(outer&&!signal.aborted)await manager.setOuterSize(win.host,{width:row.ow});
     // Persisted dimensions are an explicit user size, so content-fit must not
     // later grow them back when a collapsed window becomes visible.
     if (Number.isFinite(row.w)||Number.isFinite(row.h)) {
