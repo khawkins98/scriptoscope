@@ -35,8 +35,16 @@ never forced us to state:
   active frame) fired on original schemes. They were dropped or became warnings:
   the originals define what is valid.
 
-Not yet done: loading Halcyon in real Kaleidoscope 2.3.1 in the reference
-emulator; encoders for `ppat`, scrollbars, sliders, progress, tabs and menus.
+**Confirmed in the original engine (2026-10-30):** the generated `scheme.bin`
+(MacBinary, type `Colr` / creator `Acid`) loads in real Kaleidoscope 2.3.1 on
+System 7.5.5 in the reference emulator. It took one boot with no errors, and a
+Windows 95 control run behaved the same. The raw `.rsrc` alone was not enough
+for classic Mac OS: the Finder type and creator are what make it a scheme.
+One fidelity finding came out of it: with no utility pattern, native dialog and
+alert bodies are the system dialog grey (`#E7E7E7`), while the web runtime
+paints them white. Screenshots: `authoring/schemes/halcyon/classic/`.
+
+Not yet done: encoders for `ppat`, scrollbars, sliders, progress, tabs and menus.
 
 ## 2026-10-23 — October incremental v2 is distinct from the May reset names
 

@@ -281,10 +281,37 @@ Each of these is documented from the reading side under `docs/spec/`. Adding
 one usually means an encoder (if the type is new), a painting function, and a
 checker rule, following the same pattern.
 
-A stronger test than our own decoder is loading `scheme.rsrc` in real
-Kaleidoscope 2.3.1 inside the reference emulator
-([`maintainer-reference-environment.md`](./maintainer-reference-environment.md)).
-That has not been done for Halcyon yet.
+## 8a. Testing in real Kaleidoscope
+
+Halcyon has been loaded in the original Kaleidoscope 2.3.1 on System 7.5.5
+(screenshots and notes: [`authoring/schemes/halcyon/classic/`](../authoring/schemes/halcyon/classic/)).
+It loaded on the first boot with no errors, and its frames, widgets, default
+ring and checkboxes were drawn by the original engine.
+
+![Halcyon Finder windows in real Kaleidoscope](../authoring/schemes/halcyon/classic/finder-windows@2x.png)
+
+Maintainers with the private reference emulator
+([`maintainer-reference-environment.md`](./maintainer-reference-environment.md))
+can repeat it:
+
+1. Make fresh copies of the known-working system and transfer seeds (never boot the originals).
+2. Copy the scheme onto the system disk with hfsutils, which unpacks MacBinary:
+   `HOME=<scratch> hcopy -m scheme.bin :Halcyon`. Setting `HOME` keeps hfsutils'
+   mount state out of your real home directory. Confirm type `Colr` / creator `Acid` with `hls -l`.
+3. Boot with sound off, open the Kaleidoscope control panel, click **Select
+   Scheme…**, pick the file, and click **Open**.
+
+What real Kaleidoscope showed that the web preview doesn't:
+
+- Halcyon has a blank icon in the scheme picker, and the panel greys out
+  Finder Icons, Arrow Cursor, WindowShade Sounds, Finder Colors, Desktop
+  Pattern, Accent Color and About This Scheme. The scheme ships none of them.
+- Menus, scrollbars and the desktop stay on the system defaults.
+- A plain dialog or alert body is the system dialog grey (`#E7E7E7`) under the
+  frame's white top band; Scriptoscope's web runtime fills it white. That is
+  a runtime fidelity finding, not an authoring bug.
+- The title is drawn in bitmap Chicago 12, and the 8 bpp screen palette
+  turns the title-bar gradient into flat bands.
 
 ## 9. Getting help from an AI assistant
 
