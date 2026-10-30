@@ -231,3 +231,96 @@ for (const mode of ['source', 'built']) {
     });
   }
 }
+
+// #566: the built-in frame hides the content box of a collapsed DOCUMENT
+// window, but its title bar still spans the full width, so the collapsed
+// window must fit the outer bound from the theme's expanded frame extent rather
+// than keep the last expanded content width. Collapsed at promote and collapsed
+// on apple-lisa then rethemed both used to overhang a 400px column (413/410).
+// Preparations: an uncached theme costs one hidden expanded preparation, which
+// the next expand reuses (one preparation instead of a guess plus a correction);
+// a collapse after an expanded render on the same theme prepares once.
+for (const mode of ['source', 'built']) {
+  for (const slug of ['apple-platinum-2', 'platinum-8', 'black-platinum', 'slimes', 'system7-nostalgia-silver']) {
+    test(`${mode}: ${slug} collapsed document stays inside its outer bound (#566)`, async ({ page, servers }) => {
+      await openHarness(page, servers, mode);
+      await boot(page, mode);
+      const r = await page.evaluate(async ({ slug }) => {
+        const h = window.__obf;
+        // Each preparation names its root .scriptoscope-window once (a titled document
+        // window also creates title and widget canvases, so canvases are not a count).
+        const counted = async run => {
+          const desc = Object.getOwnPropertyDescriptor(Element.prototype, 'className');
+          let n = 0;
+          Object.defineProperty(Element.prototype, 'className', { ...desc, set(v) { if (v === 'scriptoscope-window') n++; desc.set.call(this, v); } });
+          try { await run(); } finally { Object.defineProperty(Element.prototype, 'className', desc); }
+          return n;
+        };
+        const body = '<p>Short body text.</p>';
+        const shut = await h.promote(slug, `<article data-scriptoscope-window data-scriptoscope-collapsed data-scriptoscope-title="Shut">${body}</article>`);
+        const atPromote = h.measure(shut.win);
+        const direct = h.measure((await h.promote(slug, `<article data-scriptoscope-window data-scriptoscope-title="Shade">${body}</article>`)).win);
+        const { win, manager } = await h.promote('apple-lisa', `<article data-scriptoscope-window data-scriptoscope-title="Shade">${body}</article>`);
+        await manager.applyState(win.host, { collapsed: true });
+        const target = await h.theme(slug);
+        const retheme = await counted(() => manager.retheme(target));
+        await h.settle();
+        const rethemed = h.measure(win);
+        const expand = await counted(() => manager.applyState(win.host, { collapsed: false }));
+        await h.settle();
+        const expanded = h.measure(win);
+        const recollapse = await counted(() => manager.applyState(win.host, { collapsed: true }));
+        await h.settle();
+        return { atPromote, direct, rethemed, expanded, retheme, expand, recollapse, recollapsed: h.measure(win) };
+      }, { slug });
+      expectWithin(r.atPromote, 400, `${slug} collapsed at promote`);
+      expectHostIsChrome(r.atPromote, `${slug} collapsed at promote`);
+      expectWithin(r.rethemed, 400, `${slug} collapsed after retheme`);
+      expectHostIsChrome(r.rethemed, `${slug} collapsed after retheme`);
+      for (const [label, m] of [['at promote', r.atPromote], ['after retheme', r.rethemed], ['recollapsed', r.recollapsed]]) {
+        expect.soft(Math.abs(m.canvas.width - r.direct.canvas.width), `${slug} collapsed ${label} width ${m.canvas.width} vs expanded ${r.direct.canvas.width}`).toBeLessThanOrEqual(TOL);
+      }
+      for (const k of ['width', 'height']) {
+        expect.soft(Math.abs(r.expanded.canvas[k] - r.direct.canvas[k]), `${slug} expanded ${k} ${r.expanded.canvas[k]} vs direct ${r.direct.canvas[k]}`).toBeLessThanOrEqual(TOL);
+      }
+      expect.soft(r.retheme, `${slug}: collapsed retheme preparations (collapsed, one expanded measure, refit)`).toBe(3);
+      expect.soft(r.expand, `${slug}: the expand reuses the measured extent and prepares once`).toBe(1);
+      expect.soft(r.recollapse, `${slug}: collapse with the extent cached prepares once`).toBe(1);
+    });
+  }
+
+  // #566 guard: a side utility rethemed from a wnd# scheme while collapsed is a
+  // bare bar whose footprint does not follow its content width, so the refit
+  // must not touch it: it keeps its last expanded content width (describe())
+  // and costs only the collapsed preparation plus the one expanded measure.
+  for (const slug of ['platinum-8', 'slimes']) {
+    test(`${mode}: ${slug} collapsed side utility rethemed from evolution keeps its content width (#566)`, async ({ page, servers }) => {
+      await openHarness(page, servers, mode);
+      await boot(page, mode);
+      const r = await page.evaluate(async ({ slug }) => {
+        const h = window.__obf;
+        const counted = async run => {
+          const desc = Object.getOwnPropertyDescriptor(Element.prototype, 'className');
+          let n = 0;
+          Object.defineProperty(Element.prototype, 'className', { ...desc, set(v) { if (v === 'scriptoscope-window') n++; desc.set.call(this, v); } });
+          try { await run(); } finally { Object.defineProperty(Element.prototype, 'className', desc); }
+          return n;
+        };
+        const { win, manager } = await h.promote('evolution', `<article data-scriptoscope-window data-scriptoscope-window-type="side-floating-utility-window" data-scriptoscope-title="Side">${'<p>Utility body.</p>'.repeat(3)}</article>`);
+        await manager.applyState(win.host, { collapsed: true });
+        const before = manager.describe(win.host).width;
+        const target = await h.theme(slug);
+        const retheme = await counted(() => manager.retheme(target));
+        await h.settle();
+        const after = manager.describe(win.host).width;
+        await manager.applyState(win.host, { collapsed: false });
+        await h.settle();
+        return { before, after, retheme, expanded: h.measure(win) };
+      }, { slug });
+      expect.soft(r.after, `${slug}: describe().width across the collapsed retheme`).toBe(r.before);
+      expect.soft(r.retheme, `${slug}: collapsed side-utility retheme preparations (collapsed, one expanded measure)`).toBe(2);
+      expectWithin(r.expanded, 400, `${slug} side utility expanded after retheme`);
+      expectHostIsChrome(r.expanded, `${slug} side utility expanded after retheme`);
+    });
+  }
+}

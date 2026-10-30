@@ -1298,37 +1298,49 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
   private async prepareRender(entry: ManagedWindow<Theme>, theme: Theme): Promise<PreparedRender> {
     const collapsed = entry.collapsed === true;
     const slug = this.effectiveSlug(entry, theme);
+    const base = entry.opts.windowType ?? 'document-window';
     const state = entry.active ? 'active' : 'inactive';
-    const prepare = (opts: RenderWindowOptions): Promise<HTMLElement> => {
+    const prepare = (opts: RenderWindowOptions, shut = collapsed): Promise<HTMLElement> => {
       const { reuseCanvas: _callerCanvas, ...options } = opts;
       return renderWindow(theme, {
         ...options,
-        windowType: slug,
-        ...(collapsed ? { height: 0 } : {}),
+        windowType: shut ? slug : base,
+        ...(shut ? { height: 0 } : {}),
         state,
         // Never lend a live pooled canvas to an asynchronous preparation.
       });
     };
     const outer = entry.outer;
+    // Outer bounds (#526): content = bound - frame, where the frame is whatever this
+    // theme/variant actually composes. The key is the expanded type and leaves out the
+    // title and active state: the verify pass corrects any variant whose frame differs,
+    // so every window of one type in a scheme shares one guess.
+    const cacheKey = `${base}|${entry.opts.scale ?? 1}`;
+    let byTheme = this.extentCache.get(theme as object);
+    if (!byTheme) this.extentCache.set(theme as object, byTheme = new Map());
     if (collapsed || !outer) {
       const win = await prepare(entry.opts);
       if (!collapsed) return { win, collapsed, opts: entry.opts, extent: measureExtent(win, entry.opts) };
-      // A collapsed render has no content height to resolve, and the built-in frame hides
-      // the content (a side utility is a bare bar), so only a visible content box says
-      // what the frame's width is. Fit that to the width bound, re-preparing at most
-      // once; otherwise keep the last expanded content size (#542).
-      const opts = outer?.width === undefined || win.querySelector<HTMLElement>('.scriptoscope-content')!.hidden
-        ? entry.opts : contentFor(entry.opts, { width: outer.width }, measureExtent(win, entry.opts));
+      if (outer?.width === undefined) return { win, collapsed, opts: entry.opts };
+      // A collapsed render has no content height to resolve. A visible content box gives
+      // the frame's width directly (wnd# frames). The built-in frame hides it, so take the
+      // theme's expanded extent (one hidden expanded preparation if none is cached yet,
+      // which the next expand then reuses) and refit only if the collapsed footprint
+      // tracks the content width (a document title bar). A side utility's bare bar does
+      // not, so it keeps the last expanded content size (#542, #566).
+      let ext: ChromeExtent | undefined;
+      if (!win.querySelector<HTMLElement>('.scriptoscope-content')!.hidden) ext = measureExtent(win, entry.opts);
+      else {
+        ext = byTheme.get(cacheKey);
+        if (!ext) byTheme.set(cacheKey, ext = measureExtent(await prepare(entry.opts, false), entry.opts));
+        const footprint = Math.round(parseFloat(win.style.width) / Math.max(1, Math.round(entry.opts.scale ?? 1)));
+        if (footprint !== (entry.opts.width ?? 240) + ext.x) ext = undefined;
+      }
+      const opts = ext ? contentFor(entry.opts, { width: outer.width }, ext) : entry.opts;
       return { win: opts.width === entry.opts.width ? win : await prepare(opts), collapsed, opts };
     }
-    // Outer bounds (#526): content = bound - frame, where the frame is whatever this
-    // theme/variant actually composes. Guess from the cache, then verify against the
-    // prepared footprint and re-prepare if the guess was wrong. The key leaves out the
-    // title and active state: the verify pass corrects any variant whose frame differs,
-    // so every window of one type in a scheme shares one guess.
-    const cacheKey = `${slug}|${entry.opts.scale ?? 1}`;
-    let byTheme = this.extentCache.get(theme as object);
-    if (!byTheme) this.extentCache.set(theme as object, byTheme = new Map());
+    // Guess from the cache, then verify against the prepared footprint and re-prepare
+    // if the guess was wrong.
     let opts = contentFor(entry.opts, outer, byTheme.get(cacheKey) ?? entry.extent ?? { x: 0, y: 0 });
     for (let pass = 0; ; pass++) {
       const win = await prepare(opts);
