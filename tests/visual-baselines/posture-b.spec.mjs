@@ -248,11 +248,14 @@ test('posture-b: card grid honours its consumer max-height (no auto-grow past CS
   await page.goto(BASE, { waitUntil: 'networkidle', timeout: 30000 });
   await page.waitForFunction(() => document.querySelectorAll('.powers-card-row.heavy .powers-card').length >= 2, { timeout: 15000 });
   await page.waitForTimeout(2500);
+  // #526: the px cap bounds the OUTER chrome, so measure the painted canvas,
+  // not the host box (which used to hide a frame-sized overhang).
   const heavyCardHeights = await page.evaluate(() =>
-    [...document.querySelectorAll('.powers-card-row.heavy .powers-card')].map((c) => Math.round(c.getBoundingClientRect().height))
+    [...document.querySelectorAll('.powers-card-row.heavy .powers-card')].map((c) =>
+      Math.round(c.shadowRoot.querySelector('canvas.scriptoscope-chrome').getBoundingClientRect().height))
   );
   for (const h of heavyCardHeights) {
-    assert.ok(h <= 290, `Heavy-row card height ${h}px exceeds its CSS max-height: 280px (with 10px tolerance) — see ba984fe's px-only max-cap`);
+    assert.ok(h <= 281, `Heavy-row card chrome height ${h}px exceeds its CSS max-height: 280px — see ba984fe's px-only max-cap and #526`);
   }
   await browser.close();
 });

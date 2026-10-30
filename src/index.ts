@@ -15,7 +15,7 @@ export { loadKaleidoscopeScheme, loadOwnedKaleidoscopeScheme } from './loadKalei
 export {
   interactiveButton, interactiveDisclosure,
   interactiveSlider, interactiveScrollbar, WindowManager, titleWidgetHits, ProgressIdle, progressTickCount,
-  type ManagedWindowState,
+  type ManagedWindowState, type OuterSize, type ChromeExtent,
   type InteractiveButtonOptions,
   type InteractiveDisclosureOptions,
   type InteractiveSliderOptions, type InteractiveScrollbarOptions,
