@@ -104,6 +104,25 @@ reload, and that a dragged window is restored as absolute at its position. A
 companion `test.fail` pins #558: a reload grows short auto-sized windows. Remove
 the marker when #558 is fixed.
 
+## Showcase settle signal (#565)
+
+Showcase specs wait for `#powers.scriptoscope-ready` and may act at once; no
+spec needs its own animation wait. `mountExplicitPage` (`demo/explicit-host.mjs`)
+adds the class, removes `data-scriptoscope-loading`, lifts the boot `inert` and
+fires `ready` only after every window's boot reveal (a 180 ms clip-path
+animation) has finished. A reveal cancelled by other code ends the wait, a
+hidden document finishes the reveals at once, and with
+`prefers-reduced-motion: reduce` no reveal starts. A retheme does not replay
+the reveal.
+
+`showcase-ready-settled.spec.mjs` guards this in source and built modes. Its init
+script stretches the reveal tenfold, so a ready signal that does not wait fails
+on every run. When the class lands, no window animation may be running, the
+bottom of every on-screen window must hit what it hits once the page is
+settled, and a real click right away must land on a window. A reduced-motion
+case checks that no reveal starts. These are interaction checks on demo code
+and make no fidelity claim.
+
 ## Coverage inventory
 
 The smoke profile contains 70 cases per theme (1,260 renders per transport/browser

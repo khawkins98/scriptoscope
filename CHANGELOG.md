@@ -143,6 +143,17 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   used to start from (0, 0), so it jumped. The move now starts from the used
   `left`/`top`, also inside a scaled ancestor, and a host made absolute or
   fixed by a consumer class no longer gets the in-flow drag placeholder.
+- The demo's `mountExplicitPage` (`demo/explicit-host.mjs`) now adds
+  `.scriptoscope-ready`, removes `data-scriptoscope-loading`, lifts the root's
+  boot `inert`, fires `ready` and resolves only after every boot reveal has
+  finished ([#565](https://github.com/khawkins98/scriptoscope/issues/565)).
+  Before, ready came about 30 ms after the last 180 ms clip-path reveal began,
+  and a click on the still-clipped lower part of a window fell through to the
+  page behind it. Boot now takes up to 360 ms longer. If the reveals aren't
+  running, for example in a hidden tab, an off-screen iframe or because
+  other code paused them, they are finished at once when the page is or
+  becomes hidden, and otherwise after twice their 180 ms duration. A
+  cancelled reveal ends the wait, and reduced motion still plays no reveal.
 
 ## [0.7.0] — 2026-10-29
 

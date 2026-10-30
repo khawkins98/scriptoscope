@@ -412,7 +412,16 @@ export async function mountExplicitPage(opts) {
       picker = await promotion;
     }
     for (const win of windows.values()) await win.consumerManager.refreshScrollbars(win.host);
-    if (opts.rejectOnEmptyMount && hasTargets && !successes) throw new PagePromotionError('No selected source could be promoted', failures); 
+    if (opts.rejectOnEmptyMount && hasTargets && !successes) throw new PagePromotionError('No selected source could be promoted', failures);
+    // #565: `.scriptoscope-ready` (and the `ready` event) mean "interactive". While a reveal
+    // runs, its clip-path hides the lower part of the window and a click there falls through
+    // to the page, so wait for every boot reveal to end. A reveal cancelled by other page
+    // code rejects `finished`; that is caught, so it ends the wait instead of blocking it.
+    // A hidden document does not advance animations; nobody sees the reveal there, so
+    // finish it at once. Reduced motion never starts a reveal (see success()).
+    if (document.visibilityState === 'hidden') for (const animation of bootAnimations) animation.finish();
+    await Promise.all([...bootAnimations].map(animation => animation.finished.catch(() => {})));
+    if (disposed) throw new Error('Disconnected during load');
     restoreInert();
     root.removeAttribute('data-scriptoscope-loading');
     root.classList.add('scriptoscope-ready');
