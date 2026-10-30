@@ -22,8 +22,8 @@
 //   - Two code-8 growers either side of the skyline share the right half
 //     equally, so the skyline floats midway between the pennant and the
 //     right-hand widgets as the window widens ("many growers", §1 end).
-//   - The wave is a 16px tile (one period, a multiple of 4 so the 4×4 dither
-//     wraps, guide §4.5). Code 11 before the bridge and 8 after it phase-lock
+//   - The wave is a 16px tile (one period of the wavy edge and the foam
+//     dashes). Code 11 before the bridge and 8 after it phase-lock
 //     the wave to the bridge; the cut tiles land against the piers (R3).
 //   - The bottom only needs ~90px of fixed + tile art, but the top is wider,
 //     so a code-0 cell skips the spare template columns (R9). It sits next to
@@ -31,7 +31,7 @@
 //   - The top band is the sky (transparent) plus the bar; the skyline and the
 //     top of the pennant are the only things above the bar (R13). The title
 //     rect sits on the bar rows and is 18px tall (R28).
-import { Raster, verticalGradient, ditheredGradient, mix, bayer, frameLayout } from '../../../tools/theme-author/index.js';
+import { Raster, verticalGradient, mix, bayer, frameLayout } from '../../../tools/theme-author/index.js';
 import { C } from './palette.mjs';
 import { DRAW, WIDGET } from './widgets.mjs';
 import { fitPalette } from '../../../tools/theme-author/index.js';
@@ -123,8 +123,10 @@ function paintBar(r, W, y0, y1, p, { closed }) {
   r.fillRect(0, y0, W, y1 - y0, (x, y) => {
     if (y === y0) return p.outline;
     if (y === y1 - 1) return closed ? p.outline : p.barLine;
-    if (y === y1 - 3 && !closed) return p.red;
-    if (y === y1 - 2 && !closed) return p.yellow;
+    // The city rule: yellow over red, then barLine. Light next to the light
+    // bar, dark next to the dark line, so it reads as a two-colour stripe.
+    if (y === y1 - 3 && !closed) return p.yellow;
+    if (y === y1 - 2 && !closed) return p.red;
     return grad(x, y);
   });
   // Side outline down the bar.
@@ -196,18 +198,16 @@ function paintBottom(r, layout, kind, p) {
     r.set(x, y0 + 3, p.stoneLo);
     r.set(x, y0 + 4, p.outline);
   }
-  // Water, dithered down the rows (period 4 in x; the wave tile is 16 wide).
-  const water = ditheredGradient(y0 + 5, 8, [[0, p.water[0]], [0.4, p.water[1]], [0.8, p.water[2]], [1, p.water[3]]], { levels: 5 });
+  // Water: two flat bands (a dither striped as checkerboard at 8 bpp), the
+  // wavy lower edge, and foam dashes on whole pixels.
   for (let x = 0; x < W; x++) {
     const e = y0 + waveEdge(x);
-    for (let y = y0 + 5; y < e; y++) r.set(x, y, water(x, y));
+    for (let y = y0 + 5; y < e; y++) r.set(x, y, y < y0 + 9 ? p.water[0] : p.water[1]);
     r.set(x, e, p.waterEdge);
-    // Foam on the crests: a light ripple two rows above the lower edge, and a
-    // second, offset ripple higher up.
+    // Foam on the crests, and a lighter ripple offset on the deep band.
     const ph = ((x % WAVE) + WAVE) % WAVE;
     if (ph >= 6 && ph <= 9) r.set(x, y0 + 7, p.foam);
-    if (ph === 5 || ph === 10) r.set(x, y0 + 8, mix(p.foam, p.water[1], 0.4));
-    if (ph >= 13 || ph <= 1) r.set(x, y0 + 10, mix(p.foam, p.water[2], 0.25));
+    if (ph >= 14 || ph <= 1) r.set(x, y0 + 10, p.water[0]);
   }
   // Embankment piers at both corners: sandstone down to the bottom row, with
   // the side wall above. Their inner face is a vertical wall, so the cut wave
@@ -294,7 +294,7 @@ export function paintFrame(t, state) {
   // Hidden swatches: title text at (A.left, A.top), shadow at the pixel to its right (TC2).
   r.swatch(A.left, A.top, p.title);
   r.swatch(A.left + 1, A.top, p.titleShadow);
-  // Smooth widget edges + the bar gradient + the dithered river can pass the
+  // Smooth widget edges + the bar gradient can pass the
   // 256-colour cicn limit; merge the rarest blends (the toolkit's fitPalette).
   return fitPalette(r);
 }

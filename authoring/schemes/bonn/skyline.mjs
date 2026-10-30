@@ -36,41 +36,59 @@ const fillPoly = (r, pts, color) => {
   r.paintCoverage(x, y, Math.ceil(Math.max(...xs)) - x, Math.ceil(Math.max(...ys)) - y, poly(pts), color);
 };
 
-/** A cherry tree in blossom: a short trunk and three overlapping pink puffs. */
+/**
+ * A cherry tree in blossom, hand-placed on whole pixels: a 5×5 blob lit from
+ * the top left (pale tips, mid pink, a deeper lower right) on a 2px trunk.
+ * `size` < 0.8 picks the 4×4 sapling. Stands on `base`, `x` is its left column.
+ */
+const TREE = [
+  '.cbb.',
+  'cbbba',
+  'bbbaa',
+  'bbaaa',
+  '.aaa.',
+  '..t..',
+  '..t..',
+];
+const SAPLING = [
+  '.cb.',
+  'cbba',
+  'baaa',
+  '.aa.',
+  '.t..',
+  '.t..',
+];
 function tree(r, x, base, p, size = 1) {
-  r.fillRect(x + Math.round(2 * size), base - Math.round(3 * size), 1, Math.round(3 * size), p.trunk);
-  const puffs = [[1.2, -4.6, 2.2], [3.6, -5.6, 2.4], [2.4, -7.4, 2.0]];
-  for (const [dx, dy, rad] of puffs) r.fillCircleSmooth(x + dx * size, base + dy * size, rad * size, p.tree[1]);
-  for (const [dx, dy, rad] of puffs) r.fillCircleSmooth(x + dx * size - 0.4, base + dy * size - 0.5, rad * size * 0.55, p.tree[0]);
-  r.set(Math.round(x + 2.6 * size), Math.round(base - 7.8 * size), p.tree[2]);
-  r.set(Math.round(x + 3.8 * size), Math.round(base - 6.2 * size), p.tree[2]);
+  const rows = size < 0.8 ? SAPLING : TREE;
+  r.sprite(x, base - rows.length, rows, { a: p.tree[1], b: p.tree[0], c: p.tree[2], t: p.trunk });
 }
 
-/** Lit windows: a column of yellow dots. */
-function windows(r, xs, y0, y1, color, step = 2) {
-  for (const x of xs) for (let y = y0; y < y1; y += step) r.set(x, y, color);
-}
-
+/**
+ * The Minster, drawn like the Town Hall: flat silhouette masses, a 1px skyHi
+ * edge on each lit (left) face and on the nave ridge, and lit windows as 1×2
+ * yellow blocks on a 3px rhythm. 30 wide, 17 tall.
+ */
 function minster(r, x, base, p) {
   const s = p.sky, hi = p.skyHi, lit = p.yellow;
-  // Nave with a gable roof.
-  fillPoly(r, [[x, base], [x, base - 7], [x + 4, base - 10], [x + 25, base - 10], [x + 29, base - 7], [x + 29, base]], s);
+  const top = base - 17;
+  const R = (cx, ry, w, h, c) => r.fillRect(x + cx, top + ry, w, h, c);
+  // Nave with a stepped gable roof.
+  R(6, 7, 18, 1, s); R(5, 8, 20, 1, s); R(4, 9, 22, 1, s); R(0, 10, 30, 7, s);
   // West tower with a pointed cap.
-  r.fillRect(x + 1, base - 13, 5, 13, s);
-  fillPoly(r, [[x + 0.5, base - 13], [x + 3.5, base - 18.5], [x + 6.5, base - 13]], s);
-  // Crossing tower: an octagonal drum and a tall spire.
-  r.fillRect(x + 12, base - 15, 7, 15, s);
-  fillPoly(r, [[x + 11.5, base - 15], [x + 15.5, base - 20.5], [x + 19.5, base - 15]], s);
-  // Two slim east towers.
-  for (const tx of [x + 22, x + 26]) {
-    r.fillRect(tx, base - 13, 3, 13, s);
-    fillPoly(r, [[tx - 0.3, base - 13], [tx + 1.5, base - 17.5], [tx + 3.3, base - 13]], s);
-  }
-  // Roof ridge highlight and arched windows.
-  r.hline(x + 5, base - 10, 6, hi).hline(x + 20, base - 10, 2, hi);
-  r.vline(x + 12, base - 14, 14, hi);
-  windows(r, [x + 3, x + 9, x + 15, x + 23, x + 27], base - 5, base - 2, lit);
-  r.set(x + 15, base - 12, lit).set(x + 3, base - 10, lit);
+  R(1, 6, 5, 11, s); R(2, 5, 3, 1, s); R(3, 3, 1, 2, s);
+  // Crossing tower and its tall spire.
+  R(12, 5, 7, 12, s); R(13, 4, 5, 1, s); R(14, 2, 3, 2, s); R(15, 0, 1, 2, s);
+  // Two slim east towers with needle caps.
+  for (const tx of [21, 26]) { R(tx, 7, 3, 10, s); R(tx + 1, 5, 1, 2, s); }
+  // Lit faces: the left column of each tower above the roof, the cap's left
+  // step, and the nave ridge between the towers.
+  R(1, 6, 1, 4, hi); R(2, 5, 1, 1, hi);
+  R(12, 5, 1, 5, hi); R(13, 4, 1, 1, hi); R(14, 2, 1, 2, hi);
+  R(21, 7, 1, 3, hi); R(26, 7, 1, 3, hi);
+  R(6, 7, 6, 1, hi); R(19, 7, 2, 1, hi); R(24, 7, 2, 1, hi);
+  // Windows: one row along the nave on a 3px rhythm, and one in each tower.
+  for (const wx of [3, 7, 10, 15, 22, 27]) R(wx, 12, 1, 2, lit);
+  R(3, 8, 1, 2, lit); R(15, 7, 1, 2, lit);
 }
 
 function townHall(r, x, base, p) {
@@ -98,18 +116,20 @@ function beethoven(r, x, base, p) {
   r.fillCircleSmooth(x + 3, base - 11.2, 1.3, s);
 }
 
+/**
+ * The Post Tower: two offset glass halves, the eastern one taller, in flat
+ * glass tones (lit west column, darker east face), floors every third row in
+ * the next tone down, and a sky-coloured slot between the halves.
+ */
 function postTower(r, x, base, p, h = 20) {
   const [g0, g1, g2] = p.glass;
   const lo = Math.round(h * 0.85);
-  // Two offset glass halves, the eastern one taller.
-  const half = (x0, top, w, tint) => r.fillRect(x0, top, w, base - top, (px, py) => {
-    const t = (px - x0) / (w - 1);
-    const c = t < 0.34 ? g0 : t < 0.67 ? g1 : g2;
-    return (base - py) % 2 === 0 ? mix(c, tint, 0.35) : c;         // floor lines
+  const half = (x0, top, cols) => cols.forEach((c, i) => {
+    for (let y = top + 1; y < base; y++) r.set(x0 + i, y, (base - y) % 3 === 0 ? c[1] : c[0]);
   });
-  half(x, base - lo, 4, p.sky);
-  half(x + 4, base - h, 4, p.sky);
-  r.vline(x + 4, base - h, h, p.sky);                            // the gap between the halves
+  half(x, base - lo, [[g0, g1], [g1, g2], [g1, g2], [g1, g2]]);
+  half(x + 5, base - h, [[g1, g2], [g2, p.sky], [g2, p.sky]]);
+  r.vline(x + 4, base - h, h, p.sky);                            // the slot between the halves
   r.hline(x, base - lo, 4, p.sky).hline(x + 4, base - h, 4, p.sky);
 }
 

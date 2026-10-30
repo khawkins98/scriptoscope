@@ -7,10 +7,12 @@
 // pennant in the city colours, red with yellow trim. Along the bottom runs the
 // Rhine: a promenade, rolling water with a wavy lower edge that repeats as the
 // window widens, embankment piers at the corners and the Kennedy Bridge in the
-// middle. Widgets are a cherry blossom (close), a red-over-yellow badge (zoom)
-// and a Rhine wave (collapse), all clickable on the web through the pressed
-// strip (cicn -14330). Document bodies are cream with faint blossom petals;
-// dialogs and palettes have a faint Altstadt cobblestone.
+// middle. Widgets are one family of 13px discs with a dark rim, carrying a
+// cherry blossom (close), the city colours with a square (zoom) and a Rhine
+// wave (collapse), all clickable on the web through the pressed strip (cicn
+// -14330; classic utility windows read -14298). Light comes from the top
+// left. Document bodies are cream with faint blossom petals; dialogs and
+// palettes have a faint Altstadt cobblestone.
 // Original art; no photos, coat of arms or logos.
 //
 // Build:   npm run author -- authoring/schemes/bonn
@@ -49,19 +51,25 @@ export async function buildScheme() {
   add('vers', 1, encodeVers({ major: 0, minor: 1, short: '0.1', long: '0.1 Bonn (Scriptoscope authoring)' }));
   add('Colr', 129, encodeColr());
 
-  let activeDoc = null;
+  let activeDoc = null, activeUtil = null;
   for (const t of windowTypes()) {
     const active = paintFrame(t, 'active');
     if (t.id === -14336) activeDoc = { frame: active, layout: t.layout };
+    if (t.id === -14304) activeUtil = { frame: active, layout: t.layout };
     add('wnd#', t.id, encodeWnd(t.layout.wnd), t.name);
     add('cicn', t.id, encodeCicn(paintFrame(t, 'inactive')), `Inactive ${t.name}`);
     add('cicn', t.id + 1, encodeCicn(active), `Active ${t.name}`);
   }
 
   // Pressed widgets (R24): one strip, close | zoom | collapse, from the
-  // document window's rects. The utility window has a close box only, at the
-  // same size, so its close piece is the same x = 0 column.
+  // document window's rects. The web reads it for every window; the utility
+  // window has a close box only, at the same size, so its close piece is the
+  // same x = 0 column.
   add('cicn', -14330, encodeCicn(pressedStrip(stripLayout(activeDoc.layout), activeDoc.frame)), 'Pressed Widgets');
+  // Classic reads utility windows' pressed widgets from -14298 instead, at the
+  // utility window's own offsets, so lay it out from the utility window and
+  // cut it from the utility frame (its close box sits on that frame's pixels).
+  add('cicn', -14298, encodeCicn(pressedStrip(stripLayout(activeUtil.layout), activeUtil.frame)), 'Pressed Utility Window Widgets');
 
   // BONN_PARTS=controls,scrollbars builds only some families while you work on one.
   const only = process.env.BONN_PARTS?.split(',');
