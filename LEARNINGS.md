@@ -1,5 +1,43 @@
 # Learnings
 
+## 2026-10-30 — Authoring a scheme from scratch exposed rules the reading side never needed
+
+We wrote a scheme writer (`tools/theme-author/`) and a first-party scheme,
+Halcyon (`authoring/schemes/halcyon/`), to test whether the decode is complete
+enough to *produce* schemes. It is: the runtime loads the generated file
+through the same `convertChrome` path as any corpus scheme. As proof that the
+writers are correct, all 18 corpus forks re-serialize byte for byte, and all
+3,325 corpus `cicn`s re-encode to identical pixels. Things the reading side
+never forced us to state:
+
+- **Nothing outside `[first border, last border)` is painted** (window-widgets
+  LS9). Corpus recipes start at 0 and close with explicit code-1 corner cells.
+  Our first frames started their recipe at the corner's end and lost the corners.
+  `checkScheme` now warns about visible art outside the span.
+- **Title text colour is a hidden swatch** at `(part0.left, part0.top)`, read
+  ignoring the mask (TC1–TC5). `kdef231-reference.md` §1.4 still says the
+  runtime uses black. That file is hash-pinned by `tests/control-availability`,
+  so the correction lives in `docs/tracking/title-text-color.md` until a re-pin.
+- **The default ring's corners are copied after the face**, so the ring's
+  interior must be transparent or it erases the face's corners.
+- **A push face without a same-id `cinf` silently becomes Platinum.** Authors
+  get no signal; `checkScheme` warns.
+- **Authors must pre-compensate gamma.** The loader brightens stored colours
+  (1.8 → 2.2), so the encoder stores the inverse. Halcyon's title text renders
+  at exactly the typed `#1d2430`.
+- **Runtime regression found:** 7ef7c373 merged the title gate with the
+  body-background slug regex, so movable-modal, movable-alert and popup windows
+  lost their titles. The decode draws a title whenever there is one (TX2), and
+  corpus movable-modal recipes carry a title rect and plate. The two predicates
+  are separate again (`HEADLESS_TITLE_SLUG_RE` in `src/renderWindow.ts`).
+- **Authoring checks have to be calibrated against the corpus.** Three first-draft
+  rules (recipe running past the image, title marker ≤ 2px, mandatory N+1
+  active frame) fired on original schemes. They were dropped or became warnings:
+  the originals define what is valid.
+
+Not yet done: loading Halcyon in real Kaleidoscope 2.3.1 in the reference
+emulator; encoders for `ppat`, scrollbars, sliders, progress, tabs and menus.
+
 ## 2026-10-23 — October incremental v2 is distinct from the May reset names
 
 **Current orientation supersedes the May renderer pointers below.** the package

@@ -2,6 +2,19 @@
 
 *Listing-level narrative (registers, frame offsets, instruction excerpts) for this document lives in [`spec/engine/title-text-color.evidence.md`](../spec/engine/title-text-color.evidence.md) — spec writers and verifiers only.*
 
+
+> **Update 2026-10-30 (authoring).** The runtime now samples the title colour
+> rather than using black: text = the frame cicn pixel at the content rect's
+> top-left `(part0.left, part0.top)`, shadow = its right neighbour, read through
+> the palette with the mask ignored (`docs/spec/engine/window-widgets.md`
+> TC1–TC5, `tools/theme-loader/buildThemeJson.js` `windowTitleSamples`). The
+> first-party authored scheme `authoring/schemes/halcyon` is a
+> colour-customising test case: it stores slate `#1d2430` (active) and
+> `#9aa1ab` (inactive) on hidden swatches, and both render exactly. The
+> "Scriptoscope shipped decision: use black" paragraph in
+> `docs/spec/kdef231-reference.md` §1.4 is stale; that file is hash-pinned
+> evidence (`tests/control-availability`), so it is left for a re-pin.
+
 ## Symptom
 Rendered window-title text colour doesn't match the period references:
 

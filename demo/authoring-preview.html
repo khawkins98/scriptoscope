@@ -1,0 +1,106 @@
+<!doctype html>
+<!--
+  Dev-only authoring preview. Not part of the GitHub Pages build.
+
+  npm run author -- authoring/schemes/halcyon
+  npm run dev
+  open http://localhost:5173/authoring-preview.html?scheme=/authoring/schemes/halcyon/scheme.rsrc
+
+  Shows every window type the scheme defines, plus push buttons and
+  checkboxes, through the same explicit host the showcase uses. Reload after
+  rebuilding the scheme. See docs/authoring-a-scheme.md.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Scheme authoring preview</title>
+  <link rel="stylesheet" href="scriptoscope.css">
+  <style>
+    body { margin: 0; background: #7f8fa3; font: 13px/1.4 system-ui, sans-serif; color: #111; }
+    #status { position: fixed; right: 8px; top: 4px; color: #fff; font: 12px ui-monospace, monospace; }
+    #desk { position: relative; min-height: 900px; }
+    .pad { padding: 10px 14px; }
+    .row { display: flex; gap: 10px; align-items: center; margin: 8px 0; }
+    label { display: inline-flex; gap: 6px; align-items: center; }
+  </style>
+</head>
+<body>
+  <div id="desk">
+    <article data-scriptoscope-window data-scriptoscope-title="Document Window" data-scriptoscope-x="24" data-scriptoscope-y="24"
+      data-scriptoscope-width="380" data-scriptoscope-height="210">
+      <div class="pad">
+        <p>An active document window with live HTML inside.</p>
+        <div class="row">
+          <button data-scriptoscope-button>Cancel</button>
+          <button data-scriptoscope-button data-scriptoscope-default>OK</button>
+          <button data-scriptoscope-button data-scriptoscope-disabled disabled>Disabled</button>
+        </div>
+        <div class="row">
+          <label><input type="checkbox" checked> Checked</label>
+          <label><input type="checkbox"> Unchecked</label>
+          <label><input type="checkbox" disabled> Disabled</label>
+        </div>
+        <div class="row">
+          <label><input type="radio" name="r" checked> On</label>
+          <label><input type="radio" name="r"> Off</label>
+        </div>
+      </div>
+    </article>
+
+    <!-- Double-click a title bar to see the collapsed (window-shade) frame. -->
+    <article data-scriptoscope-window data-scriptoscope-title="Inactive Window" data-scriptoscope-x="430" data-scriptoscope-y="24"
+      data-scriptoscope-width="260" data-scriptoscope-height="120" data-scriptoscope-state="inactive">
+      <div class="pad"><p>Behind the active window.</p></div>
+    </article>
+
+    <article data-scriptoscope-window data-scriptoscope-title="Movable Modal" data-scriptoscope-window-type="movable-modal"
+      data-scriptoscope-x="24" data-scriptoscope-y="290" data-scriptoscope-width="300" data-scriptoscope-height="110">
+      <div class="pad"><p>Save changes before closing?</p>
+        <div class="row"><button data-scriptoscope-button>Don’t Save</button><button data-scriptoscope-button data-scriptoscope-default>Save</button></div>
+      </div>
+    </article>
+
+    <article data-scriptoscope-window data-scriptoscope-window-type="dialog"
+      data-scriptoscope-x="360" data-scriptoscope-y="290" data-scriptoscope-width="260" data-scriptoscope-height="90">
+      <div class="pad"><p>A plain dialog has no title bar.</p></div>
+    </article>
+
+    <article data-scriptoscope-window data-scriptoscope-title="Tools" data-scriptoscope-window-type="titled-utility-window"
+      data-scriptoscope-x="650" data-scriptoscope-y="290" data-scriptoscope-width="150" data-scriptoscope-height="90">
+      <div class="pad"><p>Utility palette</p></div>
+    </article>
+
+    <article data-scriptoscope-window data-scriptoscope-window-type="alert"
+      data-scriptoscope-x="360" data-scriptoscope-y="450" data-scriptoscope-width="260" data-scriptoscope-height="80">
+      <div class="pad"><p>An alert.</p></div>
+    </article>
+  </div>
+  <div id="status">loading…</div>
+
+  <script type="module">
+    import { loadOwnedKaleidoscopeScheme } from '../src/loadKaleidoscopeScheme.ts';
+    import { mountExplicitPage } from './explicit-host.mjs';
+
+    const status = document.getElementById('status');
+    const url = new URL(location.href).searchParams.get('scheme') ?? '/authoring/schemes/halcyon/scheme.rsrc';
+    try {
+      const res = await fetch(url, { cache: 'no-store' });
+      if (!res.ok) throw new Error(`${res.status} fetching ${url}`);
+      const blob = await res.blob();
+      const theme = await loadOwnedKaleidoscopeScheme(blob, { meta: { name: url.split('/').slice(-2, -1)[0] }, source: url });
+      await mountExplicitPage({
+        root: document.getElementById('desk'),
+        registeredThemes: [['authored', theme]],
+        pageThemeDefault: 'authored',
+        bootAffordance: 'none',
+      });
+      status.textContent = `Loaded ${url}`;
+      document.documentElement.dataset.previewReady = 'true';
+    } catch (err) {
+      status.textContent = `Could not load ${url}: ${err?.message ?? err}`;
+      console.error(err);
+      document.documentElement.dataset.previewReady = 'error';
+    }
+  </script>
+</body>
+</html>
