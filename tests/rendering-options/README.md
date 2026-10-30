@@ -81,6 +81,29 @@ must hit the scrollbar and scroll. These are interaction checks for a
 compatibility policy (the window scrollbars are an app-layer overlay) and
 make no fidelity claim.
 
+## Posture B on the showcase (#536)
+
+`posture-b.spec.mjs` checks the in-flow layout contract (CLAUDE.md "Declarative
+layout model", `docs/integration-edge-cases.md` "How positioning works") on the
+real showcase, in source (Vite demo) and production (`dist/demo`) modes. In-flow
+hosts (Schemes Folder, Controls, "Use it on your page") have their inline
+`position` cleared, so the Controls window keeps its consumer
+`position: relative`. Host equals outer chrome, there is no ancestor `min-height`
+pin, and the heavy cards' `max-height: 280px` bounds the painted chrome (#541).
+A real pointer drag on Controls hands it off to absolute: the chrome follows the
+pointer exactly, and one chrome-sized `[data-scriptoscope-placeholder]` holds its
+grid cell, so the sibling window and the section below do not move. Choosing
+No theme, then a tile, remounts the runtime, and a second tile repaints every
+window.
+
+The showcase's card cascade is opt-in demo code and positions the cards
+absolutely, so the in-flow checks skip them. Layout persistence is demo consumer
+code (`demo/explicit-layout.mjs`, after #491), so its round trip runs in source
+mode only. It checks that in-flow windows persist no `x`/`y` and stay in flow on
+reload, and that a dragged window is restored as absolute at its position. A
+companion `test.fail` pins #558: a reload grows short auto-sized windows. Remove
+the marker when #558 is fixed.
+
 ## Coverage inventory
 
 The smoke profile contains 70 cases per theme (1,260 renders per transport/browser

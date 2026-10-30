@@ -80,10 +80,9 @@ waiting for the "Copy install snippet" button canvas), `window-shell-style` (win
 failures are preserved, not relaxed; they need diagnosis as either a runtime
 regression or a stale assertion.
 
-`posture-b.spec.mjs` is excluded from the script: it spawns `npx vite --port
-5188` and never closes it, so `node --test` hangs; several of its assertions
-also fail today. Convert it to the isolated-server pattern used by
-`boot-affordance.spec.mjs` before wiring it in.
+`posture-b.spec.mjs` moved to `tests/rendering-options/` (#536). It is now a
+Playwright Test spec on the showcase, run by `npm run test:rendering` in source
+and built modes.
 
 ## Boot-affordance smoke test
 
