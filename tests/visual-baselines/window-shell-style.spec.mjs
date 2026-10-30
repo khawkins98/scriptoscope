@@ -68,6 +68,9 @@ test('window shell shadow belongs to windows, not promoted control art', async (
       flex.style.cssText = 'display:flex;height:500px';
       document.body.append(flex);
       host.style.position = 'relative';
+      // Hosts are pinned to the chrome size (#526); a consumer that clears the
+      // pinned height lets the flex container stretch the host again.
+      host.style.height = '';
       flex.append(host);
       const frame = host.shadowRoot.querySelector('[part=window]');
       const canvas = frame.querySelector('canvas');

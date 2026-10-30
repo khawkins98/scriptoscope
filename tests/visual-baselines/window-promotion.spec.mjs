@@ -189,7 +189,8 @@ test('failed content-fit render rolls back committed content without a close eve
     let closes = 0;
     document.addEventListener('scriptoscope:close', () => closes++);
     let failedHost;
-    f.manager.setContentSize = async (host) => { failedHost = host; throw new Error('fit failed'); };
+    // The content-fit render resolves an outer bound (#526).
+    f.manager.setOuterSize = async (host) => { failedHost = host; throw new Error('fit failed'); };
     let message;
     try { await f.ScriptoscopeWindow.promote(f.source, f); } catch (error) { message = error.message; }
     f.button.click();
@@ -293,7 +294,7 @@ test('abort during initial content fitting restores committed content immediatel
     f.source.style.display = 'none';
     let release, entered, host;
     const fitting = new Promise((resolve) => { entered = resolve; });
-    f.manager.setContentSize = async (target) => {
+    f.manager.setOuterSize = async (target) => { // the content-fit render (#526)
       host = target; entered();
       await new Promise((resolve) => { release = resolve; });
     };
