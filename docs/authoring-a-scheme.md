@@ -387,7 +387,7 @@ Halcyon has been loaded in the original Kaleidoscope 2.3.1 on System 7.5.5
 It loaded on the first boot with no errors, and its frames, widgets, default
 ring and checkboxes were drawn by the original engine.
 
-![Halcyon Finder windows in real Kaleidoscope](../authoring/schemes/halcyon/classic/finder-windows@2x.png)
+![Halcyon in real Kaleidoscope: Finder list view, scroll bars, menu bar and desktop pattern](../authoring/schemes/halcyon/classic/desktop@2x.png)
 
 Maintainers with the private reference emulator
 ([`maintainer-reference-environment.md`](./maintainer-reference-environment.md))
