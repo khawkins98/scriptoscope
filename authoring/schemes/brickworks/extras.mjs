@@ -1,61 +1,70 @@
 // Brickworks extra control families: progress bar (+ indeterminate steps),
-// sliders and tabs. Geometry, ids and cinf layouts are Halcyon's
-// (authoring/schemes/halcyon/parts/progress.mjs and controls.mjs carry the
-// engine notes and spec citations); only the art differs.
+// sliders, tabs, list headers, disclosure triangles and the grow box.
+// Geometry, ids and cinf layouts are Halcyon's (authoring/schemes/halcyon/
+// parts/progress.mjs and controls.mjs carry the engine notes and spec
+// citations); only the art differs. Flat colours, whole pixels.
 //
-//   progress  a grey baseplate channel filled with a red brick (one colour
-//             per row in the stretched middle column), and yellow/red
-//             diagonal stripes for the indeterminate steps.
-//   sliders   a grey channel; the thumb is a round yellow stud seen from
-//             above (non-directional) or a stud with a point (directional).
-//   tabs      brick-coloured tabs: rear tabs grey plastic, the front tab
-//             yellow, with a stud standing on each top corner.
-//   headers   Finder list headers: a white tile with a grey seam.
-//   disclosure triangles in dark brick-outline brown, red when pressed.
-//   grow box  a yellow 1×1 brick corner with a stud (classic only: the web
-//             doesn't draw grow boxes on wnd# windows).
-import { Raster, verticalGradient, mix, bayer, encodeCicn, encodeCinf, encodePpat } from '../../../tools/theme-author/index.js';
-import { BRICK, BODY } from './palette.mjs';
+//   progress  a grey channel filled with a row of green 1×1 bricks: the fill's
+//             slice cinf tiles its whole middle (byte 2, SLICE6), so every
+//             8px brick and its seam repeat. Indeterminate: green and yellow
+//             bricks walking along the channel.
+//   sliders   a grey plate track; the thumb is a yellow round stud (the
+//             title-bar widget's disc) or a stud with a point.
+//   tabs      1×2 bricks with a stud standing on each top corner: the front
+//             tab yellow, rear tabs grey.
+//   headers   Finder list headers: white tiles with a grey seam.
+//   disclosure triangles in the outline brown, red when pressed.
+//   grow box  the grey wheel (classic only: the web draws the frame's own wheel).
+import { Raster, encodeCicn, encodeCinf, encodePpat } from '../../../tools/theme-author/index.js';
+import { BRICK, BODY, OUTLINE, INK } from './palette.mjs';
+import { DISC, WHEEL } from './sprites.mjs';
 
-const R = BRICK.red, Y = BRICK.yellow;
+const R = BRICK.red, Y = BRICK.yellow, GR = BRICK.green;
+const QUIET_GREEN = { hi: '#99cc99', base: '#669966', lo: '#336633' };
 
 // ── 1. Progress bar (14 rows; frame c = s = 3; inner 8 rows) ──────────────
-const BAR = { width: 8, height: 14, corner: 3, inner: 8, cap: 3 };
+const BAR = { width: 8, height: 14, corner: 3, inner: 8, brick: 8 };
 const LOOK = {
-  active: { outline: '#2a1f19', troughShade: '#a9a69f', trough: '#c9c6bf', fill: R, stripeA: Y.base, stripeB: R.base },
-  inactive: { outline: '#9d9a93', troughShade: '#cfccc5', trough: '#dad8d2', fill: { hi: '#dcd2cf', base: '#cfc3c0', lo: '#bfb3b0', gloss: '#e9e2e0' }, stripeA: '#e1ddd1', stripeB: '#d3cbc8' },
+  active: { outline: OUTLINE, sunk: '#999999', channel: '#cccccc', fill: GR, seam: GR.deep, walk: [GR, Y] },
+  inactive: { outline: '#999999', sunk: '#cccccc', channel: '#eeeeee', fill: QUIET_GREEN, seam: '#336633', walk: [QUIET_GREEN, { hi: '#ffffcc', base: '#cccc66', lo: '#999966' }] },
 };
 
 function progressFrame(p) {
-  const { width: W, height: H, corner } = BAR;
-  return new Raster(W, H)
-    .fillRoundRectSmooth(0, 0, W, H, corner, p.outline, { matte: BODY })
-    .fillRoundRectSmooth(1, 1, W - 2, H - 2, corner - 1, (_x, y) => (y === 1 ? p.troughShade : p.trough));
+  const { width: W, height: H } = BAR;
+  const r = new Raster(W, H).fillRect(0, 0, W, H, p.channel);
+  r.hline(1, 1, W - 2, p.sunk).vline(1, 1, H - 2, p.sunk);
+  r.strokeRect(0, 0, W, H, p.outline);
+  for (const [x, y] of [[0, 0], [W - 1, 0], [0, H - 1], [W - 1, H - 1]]) r.set(x, y, null);
+  return r;
 }
 
-// The fill's middle column is stretched: one colour per row, no dither.
+/** One brick row, 8 rows tall: a lit top row, a shaded bottom row and right column, a dark seam. */
+function brickRow(r, x0, w, b, seam) {
+  r.fillRect(x0, 0, w - 1, BAR.inner, b.base).hline(x0, 0, w - 1, b.hi).hline(x0, BAR.inner - 1, w - 1, b.lo).vline(x0 + w - 2, 1, BAR.inner - 1, b.lo);
+  return r.vline(x0 + w - 1, 0, BAR.inner, seam);
+}
+
+// The fill: 1px cap | one 8px brick (tiled) | 1px cap.
 function progressFill(p) {
-  const w = 2 * BAR.cap + 1, h = BAR.inner, f = p.fill;
-  const row = (_x, y) => [f.gloss, f.hi, f.base, f.base, f.base, f.lo, f.lo, f.lo][y];
-  return new Raster(w, h).fillRect(0, 0, w, h, p.trough).fillRoundRectSmooth(0, 0, w, h, 2, row);
+  const r = new Raster(BAR.brick + 2, BAR.inner);
+  r.vline(0, 0, BAR.inner, p.seam);
+  brickRow(r, 1, BAR.brick, p.fill, p.seam);
+  return r.vline(BAR.brick + 1, 0, BAR.inner, p.seam);
 }
-const progressTrack = (p) => new Raster(3, BAR.inner).fillRect(0, 0, 3, BAR.inner, p.trough);
+const progressTrack = (p) => new Raster(3, BAR.inner).fillRect(0, 0, 3, BAR.inner, p.channel);
 const frameCinf = () => encodeCinf({ cornerSize: BAR.corner, sideThickness: BAR.corner, tileSides: 1 });
-const sliceCinf = (cap) => encodeCinf({ cornerSize: cap, sideThickness: 0, tileSides: 0, patternAnchor: 0 });
+// Slice cinf bytes: cap, -, middle (1 = tile the whole middle), anchor (0 = from the start).
+const sliceCinf = (cap, middle) => encodeCinf({ cornerSize: cap, sideThickness: 0, tileSides: middle, patternAnchor: 0 });
 
-// Indeterminate: 45° stripes, period 16, rolled 2px per step for 8 steps, so
-// step 7 → step 0 is the same move. ppats tile both ways, so the 4×4 dither
-// sheen is fine (16 is a multiple of 4).
+// Indeterminate: green and yellow bricks (period 16) walking 2px per step for
+// 8 steps, so step 7 → step 0 is the same move.
 const STEPS = 8, PAT = 16;
-function stripes(p) {
+function walkers(p) {
+  const row = new Raster(PAT, BAR.inner);
+  brickRow(row, 0, 8, p.walk[0], p.seam);
+  brickRow(row, 8, 8, p.walk[1], p.seam);
   const r = new Raster(PAT, PAT);
-  for (let y = 0; y < PAT; y++) for (let x = 0; x < PAT; x++) {
-    let a = 0;
-    for (let sy = 0; sy < 4; sy++) for (let sx = 0; sx < 4; sx++) if ((x + (sx + 0.5) / 4 + y + (sy + 0.5) / 4) % PAT < PAT / 2) a++;
-    const base = mix(p.stripeB, p.stripeA, a / 16);
-    const t = (7 - (y % 8)) / 7;
-    r.set(x, y, bayer(x, y) < 0.35 * t ? mix(base, '#ffffff', 0.25) : base);
-  }
+  for (let y = 0; y < PAT; y++) for (let x = 0; x < PAT; x++) r.set(x, y, row.get(x, y % BAR.inner));
   return r;
 }
 function rolled(src, dx) {
@@ -70,12 +79,12 @@ function buildProgress(add) {
     add('cicn', base, encodeCicn(progressFrame(p)), `${label}Progress Indicator Frame`);
     add('cinf', base, frameCinf(), `${label}Progress Indicator Frame`);
     add('cicn', base + 1, encodeCicn(progressFill(p)), `${label}Full Progress Indicator Section`);
-    add('cinf', base + 1, sliceCinf(BAR.cap), `${label}Progress Indicator Fill`);
+    add('cinf', base + 1, sliceCinf(1, 1), `${label}Progress Indicator Fill`);
     add('cicn', base + 2, encodeCicn(progressTrack(p)), `${label}Progress Indicator Track`);
-    add('cinf', base + 2, sliceCinf(1), `${label}Progress Indicator Track`);
+    add('cinf', base + 2, sliceCinf(1, 0), `${label}Progress Indicator Track`);
   }
   for (const [state, base, label] of [['active', -10080, ''], ['inactive', -10072, 'Inactive ']]) {
-    const s0 = stripes(LOOK[state]);
+    const s0 = walkers(LOOK[state]);
     for (let k = 0; k < STEPS; k++) add('ppat', base + k, encodePpat(rolled(s0, (k * PAT) / STEPS)), `${label}Indeterminate Progress Step ${k + 1}`);
   }
 }
@@ -83,66 +92,44 @@ function buildProgress(add) {
 // ── 2. Sliders (CDEF 3; Halcyon parts/controls.mjs §1 for the rules) ──────
 // Track: caps of k copied 1:1, ONE middle column stretched (flat along it).
 // Thumb strip: 4 cells of 16 rows (inactive, normal, pressed, ghost), copied
-// 1:1 over the track, so each cell is painted on a copy of what lies under
-// it (white body + track rows) and masked back to the thumb's silhouette.
-const SLIDER = { k: 2, trackH: 5, thumbW: 15, cell: 16, band: 16 };
-const TRACK_ROW0 = Math.trunc((SLIDER.band - SLIDER.trackH) / 2);
+// 1:1 over the track; each thumb is a hard-edged sprite, so its mask is
+// exactly its silhouette.
+const SLIDER = { k: 2, trackH: 5, thumbW: 15, cell: 16 };
 const TRACK = {
-  inactive: { edge: '#b5b2ab', fill: '#e2e0da' },
-  normal: { edge: '#2a1f19', fill: '#a9a69f' },
-  pressed: { edge: '#2a1f19', fill: '#96938c' },
+  inactive: { edge: '#999999', hi: '#eeeeee', base: '#eeeeee', lo: '#cccccc' },
+  normal: { edge: OUTLINE, hi: '#cccccc', base: '#999999', lo: '#666666' },
+  pressed: { edge: OUTLINE, hi: '#999999', base: '#666666', lo: '#666666' },
 };
 const KNOB = {
-  inactive: { edge: '#b0ada6', face: '#ebe7da', hi: '#f6f3ea', lo: '#dcd7c8' },
-  normal: { edge: Y.seam, face: Y.base, hi: Y.gloss, lo: Y.deep },
-  pressed: { edge: Y.seam, face: Y.lo, hi: Y.base, lo: Y.seam },
+  inactive: { o: '#999999', h: '#ffffff', b: '#eeeeee', l: '#cccccc' },
+  normal: { o: OUTLINE, h: Y.hi, b: Y.base, l: Y.lo },
+  pressed: { o: OUTLINE, h: Y.lo, b: Y.lo, l: Y.base },
 };
+// A stud with a point, pointing down into the tick band.
+const POINTER = [...DISC.slice(0, 9),
+  '.obbbbbbbblo.',
+  '..obbbbbblo..',
+  '...obbbblo...',
+  '....obblo....',
+  '.....olo.....',
+  '......o......',
+  '.............'];
 
 function trackArt(t) {
   const { k, trackH } = SLIDER, w = 2 * k + 1;
-  return new Raster(w, trackH)
-    .fillRoundRectSmooth(0, 0, w, trackH, 2, t.edge, { matte: '#ffffff' })
-    .fillRect(1, 1, w - 2, trackH - 2, (_x, y) => (y === 1 ? mix(t.fill, '#000000', 0.15) : t.fill));
-}
-
-function inThumb(kind, px, py) {
-  const { thumbW: w, cell: h } = SLIDER;
-  const cx = w / 2, cy = kind === 'round' ? h / 2 : 6.5;
-  if (Math.hypot(px - cx, py - cy) <= 6.5) return true;
-  if (kind !== 'pointer') return false;
-  // A point down into the tick band: a triangle under the stud.
-  const t = (py - cy) / (h - 0.5 - cy);
-  return t >= 0 && t <= 1 && Math.abs(px - cx) <= 5.5 * (1 - t);
+  const r = new Raster(w, trackH).fillRect(0, 0, w, trackH, t.base);
+  r.hline(0, 1, w, t.hi).hline(0, trackH - 2, w, t.lo);
+  r.hline(0, 0, w, t.edge).hline(0, trackH - 1, w, t.edge).vline(0, 0, trackH, t.edge).vline(w - 1, 0, trackH, t.edge);
+  return r.set(0, 0, null).set(w - 1, 0, null).set(0, trackH - 1, null).set(w - 1, trackH - 1, null);
 }
 
 function thumbCell(kind, cell) {
   const { thumbW: w, cell: h } = SLIDER;
-  const tier = ['inactive', 'normal', 'pressed', 'normal'][cell];
-  const under = new Raster(w, h).fillRect(0, 0, w, h, '#ffffff');
-  const track = trackArt(TRACK[tier]);
-  for (let y = 0; y < track.height; y++) under.hline(0, TRACK_ROW0 + y, w, track.get(SLIDER.k, y));
-  const touched = new Raster(w, h).paintCoverage(0, 0, w, h, (x, y) => inThumb(kind, x, y), '#000000', { matte: '#ffffff' });
   const out = new Raster(w, h);
-  if (cell === 3) {
-    // Ghost: a yellow outline ring; its inside stays clear so the track shows.
-    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
-      if (touched.get(x, y) && !inThumbInset(kind, x + 0.5, y + 0.5, 1.6)) out.set(x, y, Y.lo);
-    }
-    return out;
-  }
-  const k = KNOB[tier];
-  const cx = w / 2, cy = kind === 'round' ? h / 2 : 6.5;
-  under.paintCoverage(0, 0, w, h, (x, y) => inThumb(kind, x, y), k.edge);
-  under.paintCoverage(0, 0, w, h, (x, y) => inThumbInset(kind, x, y, 1), verticalGradient(1, h - 2, [[0, k.hi], [0.5, k.face], [1, k.lo]]));
-  // The stud's top ring, seen from above.
-  under.paintCoverage(0, 0, w, h, (x, y) => { const d = Math.hypot(x - cx, y - cy); return d <= 3.8 && d >= 2.8; }, k.lo);
-  if (tier !== 'inactive') under.fillCircleSmooth(cx - 1.5, cy - 1.6, 1, k.hi);
-  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (touched.get(x, y)) out.set(x, y, under.get(x, y));
-  return out;
-}
-function inThumbInset(kind, px, py, inset) {
-  // Shrink the silhouette: a point is inside if every neighbour `inset` away is.
-  return [[0, 0], [inset, 0], [-inset, 0], [0, inset], [0, -inset]].every(([dx, dy]) => inThumb(kind, px + dx, py + dy));
+  const art = kind === 'round' ? DISC : POINTER, y = kind === 'round' ? 1 : 0;
+  if (cell === 3) return out.sprite(1, y, art.map((row) => row.replace(/[hbl]/g, '.')), { o: Y.lo });
+  const tier = ['inactive', 'normal', 'pressed'][cell];
+  return out.sprite(1, y, art, KNOB[tier]);
 }
 
 function transpose(src) {
@@ -198,35 +185,33 @@ const TAB = {
   small: { base: -9976, c: 7, s: 6, rear: 21, front: 22, name: 'SSF' },
   large: { base: -9984, c: 8, s: 7, rear: 23, front: 24, name: 'LSF' },
 };
-const STUD_ROWS = 3;
+const STUD_ROWS = 4;
+const TAB_STUD = ['.oooo.', 'ohhhho', 'ohbbbo', 'ohbblo'];
 
 function tabFace(size, look) {
   const { c } = size, w = 2 * c + 1, h = look.front ? size.front : size.rear;
   const top = STUD_ROWS;
-  const r = new Raster(w, h).fillRoundRectSmooth(0, top, w, h - top + 4, 3, look.edge, { matte: '#ffffff' });
-  r.fillRoundRectSmooth(1, top + 1, w - 2, h - top + 2, 2, (x, y) => (y === top + 1 ? look.gloss : x === 1 ? look.hi : look.face));
-  for (const sx of [2, w - 7]) {
-    r.fillRect(sx, 0, 5, top + 1, look.edge);
-    r.fillRect(sx + 1, 1, 3, top, look.hi).set(sx + 1, 1, look.gloss);
-    r.set(sx, 0, null).set(sx + 4, 0, null);
-  }
+  const r = new Raster(w, h).fillRect(0, top, w, h - top, look.base);
+  r.hline(1, top + 1, w - 2, look.hi).vline(w - 2, top + 1, h - top - 1, look.lo);
+  r.hline(0, top, w, look.edge).vline(0, top, h - top, look.edge).vline(w - 1, top, h - top, look.edge);
+  r.set(0, top, null).set(w - 1, top, null);
+  for (const sx of [1, w - 7]) r.sprite(sx, 0, TAB_STUD, { o: look.edge, h: look.hi, b: look.base, l: look.lo });
   // Hidden label colour on the first transparent pixel in column 0.
-  let ty = 1;
+  let ty = 0;
   while (r.get(0, ty)) ty++;
   r.swatch(0, ty, look.text);
   return { art: r, text: { x: 0, y: ty } };
 }
 
 function buildTabs(add) {
-  const G = BRICK.grey, W = BRICK.white;
   const looks = (front) => [
-    { tag: 'Disabled', face: '#eeece6', gloss: '#f7f6f2', hi: '#f3f1ec', edge: '#bcb9b1', text: '#a19e96' },
+    { tag: 'Disabled', hi: '#ffffff', base: '#eeeeee', lo: '#cccccc', edge: '#999999', text: '#999999' },
     front
-      ? { tag: '', face: Y.base, gloss: Y.gloss, hi: Y.hi, edge: Y.seam, text: '#1c1a17' }
-      : { tag: '', face: W.lo, gloss: W.gloss, hi: W.base, edge: G.seam, text: '#1c1a17' },
+      ? { tag: '', hi: Y.hi, base: Y.base, lo: Y.lo, edge: OUTLINE, text: INK }
+      : { tag: '', hi: '#eeeeee', base: '#cccccc', lo: '#999999', edge: OUTLINE, text: INK },
     front
-      ? { tag: 'Pressed', face: Y.lo, gloss: Y.base, hi: Y.lo, edge: Y.seam, text: '#1c1a17' }
-      : { tag: 'Pressed', face: G.hi, gloss: W.lo, hi: G.hi, edge: G.seam, text: '#1c1a17' },
+      ? { tag: 'Pressed', hi: Y.base, base: Y.lo, lo: Y.deep, edge: OUTLINE, text: INK }
+      : { tag: 'Pressed', hi: '#cccccc', base: '#999999', lo: '#666666', edge: OUTLINE, text: INK },
   ];
   for (const size of Object.values(TAB)) {
     for (const front of [false, true]) {
@@ -243,9 +228,8 @@ function buildTabs(add) {
     }
     // Tab pane (classic only): text and background on different pixels.
     const paneBase = size.base + 6;
-    for (const [off, tag, edge, text] of [[0, 'Inactive ', '#bcb9b1', '#a19e96'], [1, 'Active ', '#2a1f19', '#1c1a17']]) {
-      const pane = new Raster(13, 13).fillRoundRectSmooth(0, 0, 13, 13, 3, edge, { matte: '#ffffff' })
-        .fillRoundRectSmooth(1, 1, 11, 11, 2, BODY).set(6, 6, text);
+    for (const [off, tag, edge, text] of [[0, 'Inactive ', '#999999', '#999999'], [1, 'Active ', OUTLINE, INK]]) {
+      const pane = new Raster(13, 13).fillRect(0, 0, 13, 13, BODY).strokeRect(0, 0, 13, 13, edge).set(6, 6, text);
       add('cicn', paneBase + off, encodeCicn(pane), `${size.name} ${tag}Tab Pane`);
       add('cinf', paneBase + off, encodeCinf({ cornerSize: 4, sideThickness: 4, bgPixel: { x: 4, y: 4 }, textPixel: { x: 6, y: 6 }, embossPixel: { x: 0, y: 0 } }), `${size.name} ${tag}Tab Pane`);
     }
@@ -261,43 +245,46 @@ function header(h) {
 }
 const headerCinf = () => encodeCinf({ cornerSize: 2, sideThickness: 2, tileSides: 0, patternAnchor: 0, bgPatternId: 0, bgPixel: { x: 3, y: 3 }, textPixel: { x: 5, y: 5 } });
 
-// ── 5. Disclosure triangles (right -10112.., down -10104..; 12×12, Halcyon's layout) ──
+// ── 5. Disclosure triangles (right -10112.., down -10104..; 12×12) ─────────
+// The resting and open triangles are hand-placed; the three in-between
+// animation frames are rotated, hard-edged (no blend).
+const RIGHT = ['X...', 'XX..', 'XXX.', 'XXXX', 'XXX.', 'XX..', 'X...'];
+const DOWN = ['XXXXXXX', '.XXXXX.', '..XXX..', '...X...'];
 function disclosure(angleDeg, color) {
-  const S = 12, th = (angleDeg * Math.PI) / 180, cos = Math.cos(th), sin = Math.sin(th);
-  const tri = [[3.4, 0], [-2.6, -4], [-2.6, 4]].map(([x, y]) => [x * cos - y * sin, x * sin + y * cos]);
-  const mid = (i) => (Math.min(...tri.map((p) => p[i])) + Math.max(...tri.map((p) => p[i]))) / 2;
-  const pts = tri.map(([x, y]) => [6 + x - mid(0), 6 + y - mid(1)]);
+  const S = 12;
+  if (angleDeg === 0) return new Raster(S, S).sprite(4, 2, RIGHT, { X: color });
+  if (angleDeg === 90) return new Raster(S, S).sprite(2, 4, DOWN, { X: color });
+  const th = (angleDeg * Math.PI) / 180, cos = Math.cos(th), sin = Math.sin(th);
+  const tri = [[3.5, 0], [-2.5, -3.5], [-2.5, 3.5]].map(([x, y]) => [6 + x * cos - y * sin, 6 + x * sin + y * cos]);
   const inside = (px, py) => {
-    const s = pts.map(([ax, ay], i) => { const [bx, by] = pts[(i + 1) % 3]; return (bx - ax) * (py - ay) - (by - ay) * (px - ax); });
+    const s = tri.map(([ax, ay], i) => { const [bx, by] = tri[(i + 1) % 3]; return (bx - ax) * (py - ay) - (by - ay) * (px - ax); });
     return s.every((v) => v >= 0) || s.every((v) => v <= 0);
   };
-  return new Raster(S, S).paintCoverage(0, 0, S, S, inside, color, { matte: BODY });
+  return new Raster(S, S).paintCoverage(0, 0, S, S, inside, color);
 }
 
 // ── 6. Grow box (-14334 inactive / -14333 active; classic only on wnd# windows) ──
 function growBox(active) {
-  const b = active ? Y : { base: '#e9e5d8', hi: '#f4f1e8', lo: '#d6d1c1', seam: '#aaa69e', gloss: '#f8f6ef' };
-  const r = new Raster(16, 16).fillRect(0, 0, 16, 16, b.base);
-  r.hline(0, 0, 16, active ? '#2a1f19' : b.seam).vline(0, 0, 16, active ? '#2a1f19' : b.seam);
-  r.hline(1, 1, 15, b.gloss).vline(1, 1, 15, b.hi).hline(1, 15, 15, b.lo).vline(15, 1, 15, b.lo);
-  r.fillCircleSmooth(8.5, 8.5, 3.6, b.seam).fillCircleSmooth(8.5, 8.5, 2.7, b.hi).fillCircleSmooth(7.6, 7.6, 0.9, b.gloss);
-  return r;
+  const look = active
+    ? { o: OUTLINE, T: '#999999', t: '#666666', s: '#999999', U: '#ffffff', u: '#cccccc', a: '#333333' }
+    : { o: '#999999', T: '#cccccc', t: '#cccccc', s: '#cccccc', U: '#ffffff', u: '#eeeeee', a: '#999999' };
+  return new Raster(16, 16).sprite(0, 0, WHEEL, look);
 }
 
 function buildFinderBits(add) {
-  add('cicn', -9568, encodeCicn(header({ bg: '#f2f1ec', hi: '#fbfaf7', divider: '#e2e0d9', bottom: '#d6d3cb', text: '#a19e96' })), 'Inactive Finder Header');
+  add('cicn', -9568, encodeCicn(header({ bg: '#eeeeee', hi: '#ffffff', divider: '#cccccc', bottom: '#cccccc', text: '#999999' })), 'Inactive Finder Header');
   add('cinf', -9568, headerCinf(), 'Inactive Header');
-  add('cicn', -9567, encodeCicn(header({ bg: '#f6f5ef', hi: '#ffffff', divider: '#c9c6bf', bottom: '#2a1f19', text: '#1c1a17' })), 'Finder Header');
+  add('cicn', -9567, encodeCicn(header({ bg: '#eeeeee', hi: '#ffffff', divider: '#cccccc', bottom: OUTLINE, text: INK })), 'Finder Header');
   add('cinf', -9567, headerCinf(), 'Active Header');
   const families = [
     [-10112, 0, 'Right Pointing Disclosure Triangle', [22.5, 45, 67.5], 'Opening'],
     [-10104, 90, 'Down Pointing Disclosure Triangle', [67.5, 45, 22.5], 'Closing'],
   ];
   for (const [base, angle, name, frames, verb] of families) {
-    add('cicn', base, encodeCicn(disclosure(angle, '#bcb9b1')), `Inactive ${name}`);
-    add('cicn', base + 1, encodeCicn(disclosure(angle, '#3a2b20')), name);
+    add('cicn', base, encodeCicn(disclosure(angle, '#999999')), `Inactive ${name}`);
+    add('cicn', base + 1, encodeCicn(disclosure(angle, OUTLINE)), name);
     add('cicn', base + 2, encodeCicn(disclosure(angle, R.base)), `Pressed ${name}`);
-    frames.forEach((a, i) => add('cicn', base + 3 + i, encodeCicn(disclosure(a, '#3a2b20')), `Disclosure Triangle ${verb} Frame ${['One', 'Two', 'Three'][i]}`));
+    frames.forEach((a, i) => add('cicn', base + 3 + i, encodeCicn(disclosure(a, OUTLINE)), `Disclosure Triangle ${verb} Frame ${['One', 'Two', 'Three'][i]}`));
   }
   add('cicn', -14334, encodeCicn(growBox(false)), 'Inactive Grow Box');
   add('cicn', -14333, encodeCicn(growBox(true)), 'Active Grow Box');

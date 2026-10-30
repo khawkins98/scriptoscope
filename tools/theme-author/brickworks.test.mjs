@@ -35,11 +35,13 @@ test('pressed strip -14330 is close | zoom | collapse at the document widget siz
   for (const part of [2, 3]) assert.equal(width(util, part), 0);
 });
 
-test('stud runs are whole-tile code-12 cells, each with a code-13 filler in its allocation', () => {
+test('stud runs tile one brick from the title outward (code 11 left, code 8 right), and the document crane is a droppable code-10 cell', () => {
   for (const id of [-14336, -14328, -14304]) {
     const top = decodeWnd(find('wnd#', id).data).topSide.map((e) => e.part);
-    assert.ok(top.includes(12) && top.includes(13), `wnd# ${id} top recipe ${top}`);
+    assert.ok(top.includes(11) && top.includes(8), `wnd# ${id} top recipe ${top}`);
   }
+  const doc = decodeWnd(find('wnd#', -14336).data).topSide.map((e) => e.part);
+  assert.equal(doc.filter((p) => p === 10).length, 1, `document top recipe ${doc}`);
 });
 
 test('committed brickworks scheme.rsrc and scheme.bin match a fresh build (run `npm run author -- authoring/schemes/brickworks`)', () => {

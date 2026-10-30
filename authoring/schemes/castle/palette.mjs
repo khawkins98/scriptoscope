@@ -1,53 +1,66 @@
 // Castle's palette. Colours are what you want to see on screen (sRGB); the
 // encoder applies the classic-Mac gamma pre-compensation.
 //
-// Warm grey stone, moss, a deep red banner with gold trim, royal blue
-// heraldry, wood-brown buttons and iron fittings, on a parchment body.
+// Every colour is a step of the 6×6×6 cube (multiples of 0x33) or of the
+// System grey ramp (#bbbbbb, #aaaaaa, #888888, #777777 …), so an 8 bpp screen
+// keeps each ramp step on its own entry. The first Castle used warm greys
+// 10–20 units off the axis; at 8 bpp they went pink and olive (exotic-frames
+// R16). Stone is therefore plain grey: the warmth comes from the roofs, the
+// banner, the oak and the parchment around it.
 //
-// The stone and moss are picked so that their STORED values (after the gamma
-// pre-compensation) sit a few units from one SYSTEM_PALETTE_256 grey/green
-// each, every step on its own entry. A warm grey that falls between cube cells
-// snaps to pink or olive at 8 bpp (design review §1.2), so the warmth here is
-// kept under ~10 units and there are no mixes between the named steps:
-//
-//   active    stoneHi #bbbbbb  stone #999999 / #888888  stoneLo #777777  mortar #666666
-//   inactive  stoneHi #cccccc  stone #bbbbbb / #aaaaaa  stoneLo #999999  mortar #888888
-//   moss      #336633 / #669966 (active), greys (inactive)
-//
-// (Checked in both the stored values and the on-screen ones, which is what the
-// design-review sim8.py prototype quantises.)
+// Ramps (light from the upper left on everything):
+//   stone   lit #cccccc · A #aaaaaa · B #999999 · shade #777777 · mortar #666666 · outline #333333
+//   roof    lit #cc6666 · tile #993333 · shade #660000
+//   cloth   lit #cc3333 · cloth #990000 · fold #660000 ;  gold #ffcc33 / #cc9900
+//   oak     grain #cc9966 · face #996633 · shade #663300
+//   water   #6699cc / #336699 ;  moss #669966 ;  parchment #ffffcc / fleck #cccc99
 export const C = {
-  // The colour controls normally sit on: the parchment body.
-  // Used as the smooth-edge matte for buttons and checkboxes.
-  body: '#eae2cf',
-  parchment: '#ece4d1',
+  // What controls sit on: the parchment body (mattes and hidden swatches).
+  body: '#ffffcc',
   active: {
-    stone: ['#aba79f', '#9b978f'],                      // two block tones, 16 apart
-    stoneHi: '#cac5bb', stoneLo: '#8d8981', mortar: '#7b776f', outline: '#2b2824',
-    moss: ['#4a7848', '#78a878'],
-    banner: ['#9b2630', '#8a1d26', '#76161f'],          // top → bottom of the fabric
-    bannerLo: '#4f0d13', trim: '#d4a943', trimLo: '#8d6b20',
-    title: '#f7e7b6', titleShadow: '#3d0a0f',
-    iron: '#34373d', ironHi: '#737882',
-    field: '#2b4b97', fieldHi: '#4266b8', gold: '#ddb54a',
-    dark: '#1a1816', lit: '#e0822c', litHi: '#f6c14f',
-    crestAlert: '#a12a2a',
+    stone: ['#aaaaaa', '#999999'], stoneHi: '#cccccc', stoneLo: '#777777', mortar: '#666666', outline: '#333333',
+    roof: '#993333', roofHi: '#cc6666', roofLo: '#660000',
+    flag: '#cc3333', flagLo: '#990000',
+    cloth: '#990000', clothHi: '#cc3333', clothLo: '#660000',
+    gold: '#ffcc33', goldLo: '#cc9900',
+    pole: '#cc9966', poleLo: '#663300',
+    title: '#ffffcc', titleShadow: '#660000',
+    field: '#336699', alertField: '#990000',
+    moss: '#669966', water: '#336699', waterHi: '#6699cc',
+    iron: '#333333', ironHi: '#666666',
+    plate: '#aaaaaa', plateHi: '#cccccc', plateLo: '#777777', glyph: '#333333', window: '#ffffcc',
+    oak: '#996633',
   },
+  // Inactive: the same objects, quieter. Stone lifts a step, everything
+  // coloured goes to the grey ramp (a desaturated red would snap pink at 8 bpp),
+  // glyphs drop, the title is dark on the grey banner (no shadow).
   inactive: {
-    stone: ['#c8c5be', '#bab7b0'],
-    stoneHi: '#dcd8d0', stoneLo: '#aeaba4', mortar: '#a19e97', outline: '#6f6b66',
-    moss: ['#a2a6a0', '#b4b8b0'],
-    banner: ['#8f807c', '#857673', '#7b6d6a'],
-    bannerLo: '#6c605d', trim: '#c8bfae', trimLo: '#a39a8a',
-    title: '#efe8de', titleShadow: '#efe8de',            // same colour = no shadow
-    iron: '#8d8b88', ironHi: '#a9a7a4',
-    field: '#9fa3ad', fieldHi: '#aeb2bb', gold: '#cfcbc2',
-    dark: '#8c8883', lit: '#8c8883', litHi: '#8c8883',
-    crestAlert: '#a9a19c',
+    stone: ['#bbbbbb', '#aaaaaa'], stoneHi: '#dddddd', stoneLo: '#999999', mortar: '#888888', outline: '#666666',
+    roof: '#999999', roofHi: '#aaaaaa', roofLo: '#777777',
+    flag: '#aaaaaa', flagLo: '#888888',
+    cloth: '#999999', clothHi: '#aaaaaa', clothLo: '#777777',
+    gold: '#cccccc', goldLo: '#aaaaaa',
+    pole: '#aaaaaa', poleLo: '#777777',
+    title: '#333333', titleShadow: '#333333',
+    field: '#999999', alertField: '#999999',
+    moss: '#aaaaaa', water: '#999999', waterHi: '#bbbbbb',
+    iron: '#777777', ironHi: '#999999',
+    plate: '#bbbbbb', plateHi: '#dddddd', plateLo: '#999999', glyph: null, window: null,
+    oak: '#aaaaaa',
   },
   wood: {
-    face: '#8a5a2e', hi: '#a9773f', lo: '#6a431f', edge: '#3a2312', grain: '#7c5028', text: '#f8eac4', emboss: '#2e1a0c',
-    pressedFace: '#6c4421', pressedHi: '#583718', pressedLo: '#82552b',
-    disabledFace: '#b2a08a', disabledEdge: '#8e7f6e', disabledText: '#e0d6c8',
+    face: '#996633', grain: '#cc9966', lo: '#663300', edge: '#333333', text: '#ffffcc', emboss: '#663300',
+    pressedFace: '#663300', pressedGrain: '#996633', pressedText: '#ffffcc',
+    disabledFace: '#cc9966', disabledGrain: '#ffcc99', disabledLo: '#996633', disabledEdge: '#996633', disabledText: '#eeeeee',
+    band: '#333333', bandHi: '#666666', disabledBand: '#999999',
   },
+  ring: { gold: '#ffcc33', lo: '#cc9900', edge: '#663300', inactive: '#cccccc', inactiveLo: '#aaaaaa', inactiveEdge: '#888888' },
 };
+
+// Extra pairs for `npm run author -- … --palette` (fg, bg, label, floor).
+export const CONTRAST = [
+  ['#333333', '#ffffcc', 'outline on parchment', 3],
+  ['#333333', '#aaaaaa', 'widget glyph on plate', 3],
+  ['#ffcc33', '#336699', 'shield chevron on field', 3],
+  ['#333333', '#aaaaaa', 'tab label on front tab', 4.5],
+];

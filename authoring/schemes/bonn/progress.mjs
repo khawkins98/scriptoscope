@@ -1,7 +1,9 @@
 // Bonn — progress bars, Finder/list headers, disclosure triangles and grow boxes.
-// A recoloured copy of Halcyon's parts/progress.mjs: geometry and every
-// engine rule below are Halcyon's; only the family() colours are Bonn's.
-//
+// Geometry and every engine rule below are Halcyon's (parts/progress.mjs);
+// the art is Bonn's: a sandstone channel filled with the Rhine, a barge
+// moving along it for the indeterminate bar, sandstone list headers with
+// mortar separators, and a mooring bollard for the grow box.
+
 // Ids, sizes and cinf layouts follow the corpus (1138, windows-95, 1984,
 // evolution; author labels in docs/spec/corpus-corroborated-ids.md) and the
 // runtime consumers named in each section. Not shipped: placards (no corpus
@@ -9,31 +11,32 @@
 // "Placards are truly dead") and the utility-window grow boxes -14317/-14313
 // (corroborated only on corner-sprite schemes).
 
-import { Raster, verticalGradient, mix, encodeCicn, encodeCinf, encodePpat } from '../../../tools/theme-author/index.js';
+import { Raster, encodeCicn, encodeCinf, encodePpat } from '../../../tools/theme-author/index.js';
+import { C as PAL } from './palette.mjs';
+import { roundRect, bevel } from './pixels.mjs';
 
-// Family colours, Bonn: a sandstone trough, a city-red fill, and a barber pole
-// in red and yellow; cream list headers; Rhine-teal disclosure triangles.
+const A = PAL.active;
+
+// Family colours, Bonn.
 const family = (C) => ({
   active: {
-    outline: '#3a2c26', troughShade: '#e2cca7', trough: '#f0e2c8',
-    fillTop: '#d84a50', fillBottom: '#a81e26', fillSheen: '#ec8a8e',
-    stripeDark: C.accent, stripeLight: '#f4c430',
+    outline: A.outline, troughShade: A.stoneLo, trough: A.stone, troughLit: A.stoneHi,
+    water: A.water, waterLo: A.waterLo, foam: A.foam, barge: A.sky, bargeLit: A.lamp,
   },
   inactive: {
-    outline: '#b9ada1', troughShade: '#ece6dc', trough: '#f4f0e9',
-    fillTop: '#d5c8c3', fillBottom: '#c4b5b0', fillSheen: '#e3d8d4',
-    stripeDark: '#cfc2bd', stripeLight: '#e9e1cf',
+    outline: '#999999', troughShade: '#cccccc', trough: '#dddddd', troughLit: '#eeeeee',
+    water: '#aaaaaa', waterLo: '#999999', foam: '#dddddd', barge: '#777777', bargeLit: '#cccccc',
   },
   header: {
-    active: { highlight: '#fffaf0', bg: '#f3e6cf', divider: '#e2cca7', bottom: '#b7966a', text: '#2a211d' },
-    inactive: { highlight: '#f8f4ee', bg: '#f3ece0', divider: '#e6ddd0', bottom: '#d8cfc2', text: '#a99d91' },
+    active: { highlight: A.stoneHi, bg: A.stone, divider: A.mortar, bottom: A.stoneLo, text: A.outline },
+    inactive: { highlight: '#ffffff', bg: '#eeeeee', divider: '#cccccc', bottom: '#dddddd', text: '#999999' },
   },
-  disclosure: { normal: '#2b6a72', pressed: C.accent, inactive: '#b9c3c4' },
+  disclosure: { normal: A.sky, pressed: A.mortar, inactive: '#bbbbbb' },
   grow: {
-    active: { edge: '#b7966a', face: '#f0e2c8', grip: '#7e5f3a' },
-    inactive: { edge: '#d8cfc2', face: '#f3ece0', grip: null },
+    active: { edge: A.outline, face: A.stone, hi: A.stoneHi, lo: A.stoneLo, rope: A.mortar },
+    inactive: { edge: '#999999', face: '#eeeeee', hi: '#ffffff', lo: '#dddddd', rope: null },
   },
-  matte: C.body, // what these controls normally sit on, for smooth outer edges
+  matte: C.body,
 });
 let P;
 
@@ -52,23 +55,17 @@ const BAR = { width: 8, height: 14, corner: 3, inner: 8, cap: 3 };
 
 function progressFrame(p) {
   const { width: W, height: H, corner } = BAR;
-  // Outline outside, a slightly shaded top row inside: an inset trough.
-  // The frame's middle (rows 3..10) is never drawn; painting it keeps the
-  // image readable in ResEdit-style tools.
-  return new Raster(W, H)
-    .fillRoundRectSmooth(0, 0, W, H, corner, p.outline, { matte: P.matte })
-    .fillRoundRectSmooth(1, 1, W - 2, H - 2, corner - 1, (_x, y) => (y === 1 ? p.troughShade : p.trough));
+  // A sunk sandstone channel: shade on the top and left inside the outline, lit at the bottom and right.
+  return bevel(new Raster(W, H), 0, 0, W, H, roundRect(W, H, corner), { outline: p.outline, hi: p.troughShade, lo: p.troughLit, face: p.trough });
 }
 
-// Fill: a rounded capsule end on both caps, sitting on trough colour, so the
-// art is fully opaque and blends with the frame band and the track beside it.
-// The middle column carries a vertical gradient; it is stretched, so never dither it.
+// Fill: the Rhine, square-ended so it meets the channel flush. Rows only (the
+// middle column is stretched): a foam line on the river, then the deep band.
 function progressFill(p) {
   const w = 2 * BAR.cap + 1, h = BAR.inner;
-  const shade = verticalGradient(0, h, [[0, p.fillTop], [1, p.fillBottom]]);
-  return new Raster(w, h)
-    .fillRect(0, 0, w, h, p.trough)
-    .fillRoundRectSmooth(0, 0, w, h, 3, (x, y) => (y === 0 ? mix(p.fillSheen, shade(x, y), 0.35) : shade(x, y)));
+  const r = new Raster(w, h);
+  for (let y = 0; y < h; y++) r.hline(0, y, w, y === 1 ? p.foam : y < 5 ? p.water : p.waterLo);
+  return r;
 }
 
 const progressTrack = (p) => new Raster(3, BAR.inner).fillRect(0, 0, 3, BAR.inner, p.trough);
@@ -78,33 +75,27 @@ const frameCinf = () => encodeCinf({ cornerSize: BAR.corner, sideThickness: BAR.
 const sliceCinf = (cap) => encodeCinf({ cornerSize: cap, sideThickness: 0, tileSides: 0, patternAnchor: 0 });
 
 // Indeterminate (§4.7 IND1–IND4): ppat id = base + phase, base -10080 active /
-// -10072 inactive. When ppat base+1 exists the bar cycles through the steps
-// that exist (phase ≥ 8, or a missing step, resets to 0), one step per idle
-// advance (3 ticks). The pattern is phased at I's top-left, so rows 0..7 show.
-// 45° stripes, period 16 → each of the 8 steps rolls the base pattern 2px
-// right, so step 7 → step 0 is the same 2px move. The stripe edges are
-// anti-aliased (4×4 samples of a wrapping function); the sheen is a 4×4
-// Bayer dither between two shade levels, period 8 down, so the pattern tiles
-// cleanly both ways and every step has identical dither (it is rolled with it).
-const STEPS = 8, PAT = 16;
-const BAYER4 = [[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]];
+// -10072 inactive. The bar cycles through the steps that exist, one step per
+// idle advance; the pattern is phased at I's top-left, so its 8 rows show.
+// Bonn: a barge on the Rhine. A 32×8 tile (power-of-two sides), each of the
+// 8 steps rolling it 4px right, so the barge sails along and step 7 → 0 is
+// the same 4px move.
+const STEPS = 8, PAT = 32;
+const BARGE = [
+  '......bb....',
+  '.....bLLb...',
+  'bbbbbbbbbbbb',
+  '.bbbLbbLbbb.',
+  '..bbbbbbbb..',
+];
 
-function barberBase(p) {
-  const r = new Raster(PAT, PAT);
-  for (let y = 0; y < PAT; y++) for (let x = 0; x < PAT; x++) {
-    let dark = 0;
-    for (let sy = 0; sy < 4; sy++) for (let sx = 0; sx < 4; sx++) {
-      const u = (x + (sx + 0.5) / 4 + y + (sy + 0.5) / 4) % PAT;
-      if (u < PAT / 2) dark++;
-    }
-    const base = mix(p.stripeLight, p.stripeDark, dark / 16);
-    // Sheen: lighter towards the top of the 8 visible rows, ordered-dithered.
-    const row = y % 8, t = (7 - row) / 7;                       // 1 at the top, 0 at the bottom
-    const lift = 0.22 * t, step = 0.11;                          // two dither levels: 0.11 apart
-    const lo = Math.floor(lift / step) * step, frac = (lift - lo) / step;
-    const amount = frac > (BAYER4[y & 3][x & 3] + 0.5) / 16 ? lo + step : lo;
-    r.set(x, y, mix(base, '#ffffff', amount));
-  }
+function bargeBase(p) {
+  const r = new Raster(PAT, 8);
+  for (let y = 0; y < 8; y++) r.hline(0, y, PAT, y < 6 ? p.water : p.waterLo);
+  for (const x of [18, 26]) r.hline(x, 6, 3, p.water);
+  r.hline(20, 3, 4, p.foam);
+  r.sprite(3, 1, BARGE, { b: p.barge, L: p.bargeLit });
+  r.hline(1, 5, 2, p.foam);                    // the wake
   return r;
 }
 
@@ -125,9 +116,9 @@ function rolled(src, dx) {
 // body is erased) and carries the Finder's header text colour.
 function header(h) {
   const r = new Raster(12, 12).fillRect(0, 0, 12, 12, h.bg);
-  r.hline(0, 0, 11, h.highlight);  // 1px top sheen
-  r.vline(11, 0, 11, h.divider);   // right edge = column divider in list headers
-  r.hline(0, 11, 12, h.bottom);    // separator under the header
+  r.hline(0, 0, 11, h.highlight);  // lit top row
+  r.vline(11, 0, 11, h.divider);   // right edge = mortar column divider in list headers
+  r.hline(0, 11, 12, h.bottom);    // shade row under the header
   r.set(5, 5, h.text);
   return r;
 }
@@ -177,13 +168,15 @@ function disclosure(angleDeg, color) {
 // grow-box sprite); classic Kaleidoscope draws it in the content corner.
 // 16×16 (1138's 17×17 has a transparent last row and column).
 function growBox(g) {
+  // A sandstone corner block with a bollard: the frame's grow-box corner, small.
   const r = new Raster(16, 16).fillRect(0, 0, 16, 16, g.face);
-  r.hline(0, 0, 16, g.edge).vline(0, 0, 16, g.edge);
-  if (g.grip) for (const o of [10, 6, 2]) r.strokeLineSmooth(13 - o, 13, 13, 13 - o, 1, g.grip);
+  r.hline(0, 0, 16, g.edge).vline(0, 0, 16, g.edge).hline(1, 1, 15, g.hi).vline(1, 1, 15, g.hi);
+  const B = ['.oooooo.', 'oLssssDo', 'oDDDDDDo', '.oLssDo.', g.rope ? 'rrrrrrrr' : '.oLssDo.', '.oLssDo.', 'oLssssDo', 'oooooooo'];
+  r.sprite(5, 5, B, { o: g.edge, L: g.hi, s: g.face, D: g.lo, r: g.rope ?? g.face });
   return r;
 }
 
-export function build(add, { C } = { C: { accent: '#c0262d', body: '#fbf5ea' } }) {
+export function build(add, { C } = { C: PAL }) {
   P = family(C);
   // Progress bar.
   for (const [state, base, label] of [['active', -10080, ''], ['inactive', -10077, 'Inactive ']]) {
@@ -196,7 +189,7 @@ export function build(add, { C } = { C: { accent: '#c0262d', body: '#fbf5ea' } }
     add('cinf', base + 2, sliceCinf(1), `${label}Progress Indicator Track`);
   }
   for (const [state, base, label] of [['active', -10080, ''], ['inactive', -10072, 'Inactive ']]) {
-    const step0 = barberBase(P[state]);
+    const step0 = bargeBase(P[state]);
     for (let k = 0; k < STEPS; k++) {
       add('ppat', base + k, encodePpat(rolled(step0, (k * PAT) / STEPS)), `${label}Indeterminate Progress Step ${k + 1}`);
     }

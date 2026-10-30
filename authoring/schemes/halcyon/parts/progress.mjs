@@ -7,30 +7,30 @@
 // "Placards are truly dead") and the utility-window grow boxes -14317/-14313
 // (corroborated only on corner-sprite schemes).
 
-import { Raster, verticalGradient, mix, encodeCicn, encodeCinf, encodePpat } from '../../../../tools/theme-author/index.js';
+import { Raster, encodeCicn, encodeCinf, encodePpat } from '../../../../tools/theme-author/index.js';
 
-// Family colours (palette.mjs holds only the shared ones: C.body, C.accent).
+// Family colours, from the shared palette (palette.mjs). Progress is the
+// bottom band's water in a sunk white channel; everything is hard-edged.
 const family = (C) => ({
   active: {
-    outline: '#97a2b2', troughShade: '#dce2e9', trough: '#e8ecf1',
-    fillTop: '#3aa7c4', fillBottom: '#147f9c', fillSheen: '#6cc1d7',
-    stripeDark: C.accent, stripeLight: '#62b9d0',
+    outline: C.outline, troughShade: C.shade, trough: C.white,
+    fill: C.water, fillSheen: C.accentLight, fillEdge: C.accentDeep,
+    foam: C.white, foamLo: C.accentLight,
   },
   inactive: {
-    outline: '#c4c9d0', troughShade: '#e9ecf0', trough: '#f1f3f6',
-    fillTop: '#c3ccd5', fillBottom: '#b3bdc8', fillSheen: '#d3dae1',
-    stripeDark: '#c7cfd8', stripeLight: '#e3e7ec',
+    outline: C.deep, troughShade: C.glass, trough: C.white,
+    fill: C.shade, fillSheen: C.glass, fillEdge: C.deep,
+    foam: C.white, foamLo: C.glass,
   },
   header: {
-    active: { highlight: '#ffffff', bg: '#f3f5f8', divider: '#dde2e9', bottom: '#cdd4de', text: '#4a5566' },
-    inactive: { highlight: '#fdfdfe', bg: '#f8f9fb', divider: '#eceef1', bottom: '#e3e6ea', text: '#a3aab4' },
+    active: { highlight: C.white, bg: C.glass, divider: C.shade, bottom: C.shade, text: C.text },
+    inactive: { highlight: C.white, bg: C.glass, divider: C.glass, bottom: C.shade, text: C.textOff },
   },
-  disclosure: { normal: '#4a5566', pressed: C.accent, inactive: '#b9c0ca' },
+  disclosure: { normal: C.outline, pressed: C.accent, inactive: C.shade },
   grow: {
-    active: { edge: '#d2d8e1', face: '#f6f8fa', grip: '#8d98a8' },
-    inactive: { edge: '#e3e6ea', face: '#f9fafb', grip: null },
+    active: { ...C.active.pebble, ground: C.glass, edge: C.shade, water: C.active.water },
+    inactive: { ...C.inactive.pebble, ground: C.glass, edge: C.glass, water: C.inactive.water },
   },
-  matte: C.body, // what these controls normally sit on, for smooth outer edges
 });
 let P;
 
@@ -47,25 +47,31 @@ let P;
 // uncovered columns between the side band and I). I is then 8 rows tall.
 const BAR = { width: 8, height: 14, corner: 3, inner: 8, cap: 3 };
 
-function progressFrame(p) {
-  const { width: W, height: H, corner } = BAR;
-  // Outline outside, a slightly shaded top row inside: an inset trough.
-  // The frame's middle (rows 3..10) is never drawn; painting it keeps the
-  // image readable in ResEdit-style tools.
-  return new Raster(W, H)
-    .fillRoundRectSmooth(0, 0, W, H, corner, p.outline, { matte: P.matte })
-    .fillRoundRectSmooth(1, 1, W - 2, H - 2, corner - 1, (_x, y) => (y === 1 ? p.troughShade : p.trough));
+/** Cut the 2-1 stair off all four corners of a w×h raster. */
+function stair(r) {
+  const { width: w, height: h } = r;
+  for (const [x, y] of [[0, 0], [1, 0], [0, 1]]) {
+    r.set(x, y, null).set(w - 1 - x, y, null).set(x, h - 1 - y, null).set(w - 1 - x, h - 1 - y, null);
+  }
+  return r;
 }
 
-// Fill: a rounded capsule end on both caps, sitting on trough colour, so the
-// art is fully opaque and blends with the frame band and the track beside it.
-// The middle column carries a vertical gradient; it is stretched, so never dither it.
+function progressFrame(p) {
+  // A sunk channel: outline, then the shade on the inner top and left, white trough.
+  // The frame's middle (rows 3..10) is never drawn; painting it keeps the
+  // image readable in ResEdit-style tools.
+  const { width: W, height: H } = BAR;
+  const r = stair(new Raster(W, H).fillRect(0, 0, W, H, p.trough)).outlineEdges(0, 0, W, H, p.outline);
+  return r.hline(2, 1, W - 4, p.troughShade).vline(1, 2, H - 4, p.troughShade).set(1, 1, null);
+}
+
+// Fill: water, a 1px light top row, a deep bottom row; square-stair ends.
+// The middle column is stretched, so it is one colour per row.
 function progressFill(p) {
   const w = 2 * BAR.cap + 1, h = BAR.inner;
-  const shade = verticalGradient(0, h, [[0, p.fillTop], [1, p.fillBottom]]);
-  return new Raster(w, h)
-    .fillRect(0, 0, w, h, p.trough)
-    .fillRoundRectSmooth(0, 0, w, h, 3, (x, y) => (y === 0 ? mix(p.fillSheen, shade(x, y), 0.35) : shade(x, y)));
+  const r = new Raster(w, h).fillRect(0, 0, w, h, p.fill).hline(0, 0, w, p.fillSheen).hline(0, h - 1, w, p.fillEdge);
+  for (const x of [0, w - 1]) r.set(x, 0, p.trough).set(x, h - 1, p.trough);
+  return r;
 }
 
 const progressTrack = (p) => new Raster(3, BAR.inner).fillRect(0, 0, 3, BAR.inner, p.trough);
@@ -78,29 +84,22 @@ const sliceCinf = (cap) => encodeCinf({ cornerSize: cap, sideThickness: 0, tileS
 // -10072 inactive. When ppat base+1 exists the bar cycles through the steps
 // that exist (phase ≥ 8, or a missing step, resets to 0), one step per idle
 // advance (3 ticks). The pattern is phased at I's top-left, so rows 0..7 show.
-// 45° stripes, period 16 → each of the 8 steps rolls the base pattern 2px
-// right, so step 7 → step 0 is the same 2px move. The stripe edges are
-// anti-aliased (4×4 samples of a wrapping function); the sheen is a 4×4
-// Bayer dither between two shade levels, period 8 down, so the pattern tiles
-// cleanly both ways and every step has identical dither (it is rolled with it).
+// Period 16 → each of the 8 steps rolls the base pattern 2px right, so step
+// 7 → step 0 is the same 2px move. The pattern is the bottom band's water
+// with its foam dashes, so the dashes flow along. Rows 0..7 show; rows 8..15
+// repeat them (16px tile). Determinate fills can't carry the dashes: their
+// middle is one stretched column.
 const STEPS = 8, PAT = 16;
-const BAYER4 = [[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]];
-
 function barberBase(p) {
   const r = new Raster(PAT, PAT);
   for (let y = 0; y < PAT; y++) for (let x = 0; x < PAT; x++) {
-    let dark = 0;
-    for (let sy = 0; sy < 4; sy++) for (let sx = 0; sx < 4; sx++) {
-      const u = (x + (sx + 0.5) / 4 + y + (sy + 0.5) / 4) % PAT;
-      if (u < PAT / 2) dark++;
-    }
-    const base = mix(p.stripeLight, p.stripeDark, dark / 16);
-    // Sheen: lighter towards the top of the 8 visible rows, ordered-dithered.
-    const row = y % 8, t = (7 - row) / 7;                       // 1 at the top, 0 at the bottom
-    const lift = 0.22 * t, step = 0.11;                          // two dither levels: 0.11 apart
-    const lo = Math.floor(lift / step) * step, frac = (lift - lo) / step;
-    const amount = frac > (BAYER4[y & 3][x & 3] + 0.5) / 16 ? lo + step : lo;
-    r.set(x, y, mix(base, '#ffffff', amount));
+    const row = y % 8;
+    let c = row === 0 ? p.fillSheen : row === 7 ? p.fillEdge : p.fill;
+    if (row === 0 && x < 3) c = p.foam;                  // a glint on the surface
+    if (row === 2 && x >= 4 && x < 8) c = p.foam;        // foam dashes, offset per row
+    if (row === 4 && x >= 11 && x < 14) c = p.foamLo;
+    if (row === 5 && x >= 1 && x < 3) c = p.foamLo;
+    r.set(x, y, c);
   }
   return r;
 }
@@ -121,6 +120,7 @@ function rolled(src, dx) {
 // 12×12, c = s = 2, like 1138. textPixel sits in the body (never drawn; the
 // body is erased) and carries the Finder's header text colour.
 function header(h) {
+  // Frosted plate: white sheen on top, #cccccc divider on the right and below.
   const r = new Raster(12, 12).fillRect(0, 0, 12, 12, h.bg);
   r.hline(0, 0, 11, h.highlight);  // 1px top sheen
   r.vline(11, 0, 11, h.divider);   // right edge = column divider in list headers
@@ -140,44 +140,49 @@ const headerCinf = () => encodeCinf({ cornerSize: 2, sideThickness: 2, tileSides
 // -10102 pressed, -10101..-10099 the closing frames (back towards right).
 // 12×12 like most of the corpus. The runtime finds them by their author
 // names (the corpus spelling, e.g. 1138's), so keep those names.
-function sdTriangle(px, py, [a, b, c]) {
-  // Signed distance to a triangle (negative inside).
-  const edge = (p0, p1) => {
-    const ex = p1[0] - p0[0], ey = p1[1] - p0[1], vx = px - p0[0], vy = py - p0[1];
-    const t = Math.max(0, Math.min(1, (vx * ex + vy * ey) / (ex * ex + ey * ey)));
-    const dx = vx - ex * t, dy = vy - ey * t;
-    return { d: dx * dx + dy * dy, s: ex * vy - ey * vx };
-  };
-  const es = [edge(a, b), edge(b, c), edge(c, a)];
-  const d = Math.sqrt(Math.min(...es.map((e) => e.d)));
-  const inside = es.every((e) => e.s >= 0) || es.every((e) => e.s <= 0);
-  return inside ? -d : d;
+// Pixel triangles: right-pointing and down-pointing are hand placed; the
+// three in-between frames are the rotated triangle sampled once per pixel
+// centre (hard edges, no blends).
+const TRI_RIGHT = ['...#........', '...##.......', '...###......', '...####.....', '...#####....', '...######...',
+  '...#####....', '...####.....', '...###......', '...##.......', '...#........', '............'];
+function rotateGrid(rows) { // 90° clockwise: right → down
+  const n = rows.length;
+  return rows.map((_, y) => rows.map((row) => row[y]).reverse().join('')).map((r) => r.slice(0, n));
 }
-
 function disclosure(angleDeg, color) {
-  const S = 12, cx = 6, cy = 6, round = 0.7;
-  // Right-pointing, centred on its bounding box so every rotation stays put;
-  // shrunk by `round` and re-grown by it for softly rounded corners.
-  const tri = [[3.1 - round * 1.6, 0], [-3.1 + round, -4 + round * 1.4], [-3.1 + round, 4 - round * 1.4]];
+  const S = 12;
+  if (angleDeg === 0) return new Raster(S, S).sprite(0, 0, TRI_RIGHT, { '#': color });
+  if (angleDeg === 90) return new Raster(S, S).sprite(0, 0, rotateGrid(TRI_RIGHT), { '#': color });
   const th = (angleDeg * Math.PI) / 180, cos = Math.cos(th), sin = Math.sin(th);
-  const rot = tri.map(([x, y]) => [x * cos - y * sin, x * sin + y * cos]);
-  // Centre each frame on its own bounding box (grown by `round`), so the
-  // in-between frames don't drift towards a corner while rotating.
-  const mid = (i) => (Math.min(...rot.map((p) => p[i])) + Math.max(...rot.map((p) => p[i]))) / 2;
-  const [mx, my] = [mid(0), mid(1)];
-  const pts = rot.map(([x, y]) => [cx + x - mx, cy + y - my]);
-  return new Raster(S, S).paintCoverage(0, 0, S, S, (x, y) => sdTriangle(x, y, pts) <= round, color, { matte: P.matte });
+  const tri = [[3, 0], [-3, -5], [-3, 5]].map(([x, y]) => [6 + x * cos - y * sin, 5.5 + x * sin + y * cos]);
+  const inside = (px, py) => {
+    const s = (a, b) => (b[0] - a[0]) * (py - a[1]) - (b[1] - a[1]) * (px - a[0]);
+    const d = [s(tri[0], tri[1]), s(tri[1], tri[2]), s(tri[2], tri[0])];
+    return d.every((v) => v >= 0) || d.every((v) => v <= 0);
+  };
+  return new Raster(S, S).paintCoverage(0, 0, S, S, inside, color, { samples: 1 });
 }
 
 // ── 4. Grow box (src/controls.ts composeGrowBox: -14333 active, -14334 inactive) ──
 // The wnd# compositor does not draw it (only the built-in frame returns a
 // grow-box sprite); classic Kaleidoscope draws it in the content corner.
 // 16×16 (1138's 17×17 has a transparent last row and column).
+// The grow box is the bottom band's river pebble, sitting in a little water.
+const PEBBLE = [
+  '....OOOOO....',
+  '..OOhhfffOO..',
+  '.OhhfffffflO.',
+  'OhffffffffllO',
+  'OfffffffllllO',
+  '.OlllllllllO.',
+  '...OOOOOOO...',
+];
 function growBox(g) {
-  const r = new Raster(16, 16).fillRect(0, 0, 16, 16, g.face);
+  const r = new Raster(16, 16).fillRect(0, 0, 16, 16, g.ground);
   r.hline(0, 0, 16, g.edge).vline(0, 0, 16, g.edge);
-  if (g.grip) for (const o of [10, 6, 2]) r.strokeLineSmooth(13 - o, 13, 13, 13 - o, 1, g.grip);
-  return r;
+  r.fillRect(1, 11, 15, 5, g.water.lo).hline(1, 11, 15, g.water.hi).hline(2, 13, 3, g.water.foamLo);
+  r.sprite(2, 6, PEBBLE, { O: g.line, h: g.hi, f: g.face, l: g.lo });
+  return r.set(1, 10, g.water.foam).set(15, 10, g.water.foam);
 }
 
 export function build(add, { C }) {

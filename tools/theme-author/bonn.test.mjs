@@ -51,17 +51,18 @@ test('committed bonn scheme.rsrc and scheme.bin match a fresh build (run `npm ru
   assert.ok(Buffer.from(bin).equals(readFileSync(new URL('scheme.bin', dir))), 'scheme.bin is stale; rebuild it');
 });
 
-test('layout.lint catches both stray-art bugs Bonn hit while building (a tree in a bar grower, a grommet in the plate)', async () => {
+test('layout.lint catches stray art in either bar grower beside the skyline', async () => {
   const { windowTypes, paintFrame } = await import('../../authoring/schemes/bonn/frames.mjs');
   const doc = windowTypes().find((t) => t.id === -14336);
   const fresh = () => paintFrame(doc, 'active');
   doc.layout.lint(fresh());
   const sky = doc.layout.named('skyline');
   const tree = fresh();
-  // A blossom puff 1px left of the skyline lands in the 1px code-8 grower barM, in a bar row.
+  // A stray pixel 1px left of the skyline lands in the 1px code-8 grower barM, in a bar row, so it no longer matches barR.
   tree.set(sky.x0 - 1, doc.layout.top - 6, '#e8a0b8');
-  assert.throws(() => doc.layout.lint(tree), /cell barM doesn't match barL/);
-  const grommet = fresh();
-  grommet.set(doc.layout.named('plate').x0 + 1, doc.layout.top - 10, '#f0d040');
-  assert.throws(() => doc.layout.lint(grommet), /cell plate column \d+ differs/);
+  assert.throws(() => doc.layout.lint(tree), /cell barR doesn't match barM/);
+  // The title plate is a 1px column now (trivially uniform), so the other risk is the right-hand grower.
+  const stray = fresh();
+  stray.set(doc.layout.named('barR').x0, doc.layout.top - 10, '#f0d040');
+  assert.throws(() => doc.layout.lint(stray), /cell barR doesn't match barM/);
 });

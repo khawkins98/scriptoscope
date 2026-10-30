@@ -1,194 +1,281 @@
-// Bonn's skyline, drawn once on the title bar (a fixed code-10 cell), plus
-// the smaller motifs for utility windows and the ornaments of untitled
-// dialogs and alerts. Original, deliberately simple silhouettes:
+// Bonn's skyline and the small ornaments above the bar. Original, stylised
+// silhouettes on whole pixels (no smooth strokes):
 //
-//   - the Minster: a Romanesque basilica with a tall crossing spire, a west
-//     tower and two slim east towers;
-//   - the Old Town Hall: a rose-coloured rococo front with a mansard roof and
-//     a little lantern;
-//   - the Beethoven monument: a standing figure on a plinth;
-//   - the Post Tower: a tall glass slab in two offset halves;
-//   - cherry trees in blossom between them.
+//   - the Minster: a crossing tower with a capped spire, four flanking
+//     towers and a low nave;
+//   - the pink Old Town Hall: three floors of white windows, a slate mansard
+//     with a pediment and ridge turret, the outside stair at its foot;
+//   - the Post Tower: two glass slabs split by a dark slot, lit floor lines.
 //
-// Everything stands on the bar's top outline row (`base`), so the silhouette
-// rises out of the bar. Above the bar the frame is transparent: edges against
-// it are hard (no matte, exotic-frames R17); edges against the bar or another
-// building blend with real pixels.
-import { mix } from '../../../tools/theme-author/index.js';
+// A dark hedge (the riverside trees) links the bases along the bar's top
+// edge, and the whole group carries ONE 1px outline, so it reads as a single
+// figure against any page (R17). Light comes from the upper left: roofs are
+// lit on their left slope, the plaster and glass on their left column.
+//
+// The group is built on a material grid (one letter per pixel), outlined by
+// rule, then painted with the state's palette, so the active and inactive
+// skylines are the same drawing.
 
-// Widths are a trade: every px here is a px less room for the title.
-export const SKYLINE_W = 72;  // document top
-export const TOWER_W = 32;    // movable modal / alert and utility tops
-export const ORNAMENT_W = 42; // dialog / alert tops
+export const SKYLINE_W = 72;   // document top: the whole group (code 10)
+export const MINSTER_W = 29;   // movable modal top: the Minster alone (code 10)
+export const SPRIG_W = 24;     // dialog top ornament
+export const ALERT_W = 24;     // alert top ornament
+export const SKY_ROWS = 24;    // rows above the bar the skyline may use
 
-/** Even-odd point-in-polygon, for paintCoverage. */
-export const poly = (pts) => (px, py) => {
-  let inside = false;
-  for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
-    const [xi, yi] = pts[i], [xj, yj] = pts[j];
-    if ((yi > py) !== (yj > py) && px < ((xj - xi) * (py - yi)) / (yj - yi) + xi) inside = !inside;
+class Grid {
+  constructor(w, h) { this.w = w; this.h = h; this.m = Array.from({ length: h }, () => Array(w).fill(null)); }
+  in(x, y) { return x >= 0 && y >= 0 && x < this.w && y < this.h; }
+  get(x, y) { return this.in(x, y) ? this.m[y][x] : null; }
+  set(x, y, v) { if (this.in(x, y)) this.m[y][x] = v; return this; }
+  rect(x, y, w, h, v) { for (let j = y; j < y + h; j++) for (let i = x; i < x + w; i++) this.set(i, j, v); return this; }
+  /** A pointed roof: tip at (cx, y0), widening one px each side every `every` rows, down to row y1 (inclusive). */
+  spire(cx, y0, y1, every, v, maxHalf = 99) {
+    for (let y = y0; y <= y1; y++) { const k = Math.min(maxHalf, Math.floor((y - y0) / every)); this.rect(cx - k, y, 2 * k + 1, 1, v); }
+    return this;
   }
-  return inside;
-};
-const fillPoly = (r, pts, color) => {
-  const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1]);
-  const x = Math.floor(Math.min(...xs)), y = Math.floor(Math.min(...ys));
-  r.paintCoverage(x, y, Math.ceil(Math.max(...xs)) - x, Math.ceil(Math.max(...ys)) - y, poly(pts), color);
-};
+  /** 4-neighbour outline: every empty pixel touching the figure becomes 'o' (not below the base). */
+  outline() {
+    const add = [];
+    for (let y = 0; y < this.h; y++) for (let x = 0; x < this.w; x++) {
+      if (this.get(x, y)) continue;
+      const n = [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => { const v = this.get(x + dx, y + dy); return v && v !== 'o'; });
+      if (n) add.push([x, y]);
+    }
+    for (const [x, y] of add) this.set(x, y, 'o');
+    return this;
+  }
+  /** Light from the upper left: roof pixels with the outline to their left or above-left become lit. */
+  lightRoofs() {
+    const lit = [];
+    for (let y = 0; y < this.h; y++) for (let x = 0; x < this.w; x++) {
+      if (this.get(x, y) !== 'R') continue;
+      const l = this.get(x - 1, y);
+      if (l === 'o' || l === null) lit.push([x, y]);
+    }
+    for (const [x, y] of lit) this.set(x, y, 'L');
+    return this;
+  }
+  paint(r, x0, y0, p) {
+    const map = {
+      o: p.outline, S: p.sky, R: p.sky, L: p.skyHi, T: p.sky, t: p.skyHi, Y: p.lamp,
+      H: p.hall, h: p.hallLo, W: p.trim, G: p.glass, g: p.glassHi,
+    };
+    for (let y = 0; y < this.h; y++) for (let x = 0; x < this.w; x++) {
+      const v = this.m[y][x];
+      if (v) r.set(x0 + x, y0 + y, map[v]);
+    }
+  }
+}
+
+// Windows: 1×2 lamp blocks (yellow on the Minster, white on the Town Hall).
+const windows = (g, xs, ys, v) => { for (const x of xs) for (const y of ys) g.set(x, y, v).set(x, y + 1, v); };
 
 /**
- * A cherry tree in blossom, hand-placed on whole pixels: a 5×5 blob lit from
- * the top left (pale tips, mid pink, a deeper lower right) on a 2px trunk.
- * `size` < 0.8 picks the 4×4 sapling. Stands on `base`, `x` is its left column.
+ * Draw one component on its own grid, outline it and light its roofs, then
+ * lay it over `g` (back to front), so every tower keeps its own outline in
+ * front of what stands behind it.
  */
-const TREE = [
-  '.cbb.',
-  'cbbba',
-  'bbbaa',
-  'bbaaa',
-  '.aaa.',
-  '..t..',
-  '..t..',
-];
-const SAPLING = [
-  '.cb.',
-  'cbba',
-  'baaa',
-  '.aa.',
-  '.t..',
-  '.t..',
-];
-function tree(r, x, base, p, size = 1) {
-  const rows = size < 0.8 ? SAPLING : TREE;
-  r.sprite(x, base - rows.length, rows, { a: p.tree[1], b: p.tree[0], c: p.tree[2], t: p.trunk });
+function layer(g, draw) {
+  const part = new Grid(g.w, g.h);
+  draw(part);
+  part.outline().lightRoofs();
+  for (let y = 0; y < g.h; y++) for (let x = 0; x < g.w; x++) if (part.m[y][x]) g.m[y][x] = part.m[y][x];
 }
 
-/**
- * The Minster, drawn like the Town Hall: flat silhouette masses, a 1px skyHi
- * edge on each lit (left) face and on the nave ridge, and lit windows as 1×2
- * yellow blocks on a 3px rhythm. 30 wide, 17 tall.
- */
-function minster(r, x, base, p) {
-  const s = p.sky, hi = p.skyHi, lit = p.yellow;
-  const top = base - 17;
-  const R = (cx, ry, w, h, c) => r.fillRect(x + cx, top + ry, w, h, c);
-  // Nave with a stepped gable roof.
-  R(6, 7, 18, 1, s); R(5, 8, 20, 1, s); R(4, 9, 22, 1, s); R(0, 10, 30, 7, s);
-  // West tower with a pointed cap.
-  R(1, 6, 5, 11, s); R(2, 5, 3, 1, s); R(3, 3, 1, 2, s);
-  // Crossing tower and its tall spire.
-  R(12, 5, 7, 12, s); R(13, 4, 5, 1, s); R(14, 2, 3, 2, s); R(15, 0, 1, 2, s);
-  // Two slim east towers with needle caps.
-  for (const tx of [21, 26]) { R(tx, 7, 3, 10, s); R(tx + 1, 5, 1, 2, s); }
-  // Lit faces: the left column of each tower above the roof, the cap's left
-  // step, and the nave ridge between the towers.
-  R(1, 6, 1, 4, hi); R(2, 5, 1, 1, hi);
-  R(12, 5, 1, 5, hi); R(13, 4, 1, 1, hi); R(14, 2, 1, 2, hi);
-  R(21, 7, 1, 3, hi); R(26, 7, 1, 3, hi);
-  R(6, 7, 6, 1, hi); R(19, 7, 2, 1, hi); R(24, 7, 2, 1, hi);
-  // Windows: one row along the nave on a 3px rhythm, and one in each tower.
-  for (const wx of [3, 7, 10, 15, 22, 27]) R(wx, 12, 1, 2, lit);
-  R(3, 8, 1, 2, lit); R(15, 7, 1, 2, lit);
-}
-
-function townHall(r, x, base, p) {
-  const front = mix(p.pink, p.red, 0.25), trim = p.pinkHi;
-  // Main block.
-  r.fillRect(x, base - 7, 20, 7, front);
-  r.hline(x, base - 7, 20, trim);
-  // Mansard roof and a lantern on top.
-  fillPoly(r, [[x - 0.5, base - 7], [x + 2, base - 10], [x + 18, base - 10], [x + 20.5, base - 7]], p.sky);
-  r.fillRect(x + 8, base - 13, 4, 3, p.sky);
-  fillPoly(r, [[x + 7.5, base - 13], [x + 10, base - 15.5], [x + 12.5, base - 13]], p.sky);
-  r.set(x + 10, base - 16, p.yellow);
-  // Windows (white) and a doorway with the double stair.
-  for (const wx of [2, 5, 8, 11, 14, 17]) r.fillRect(x + wx, base - 5, 1, 2, '#fffaf0');
-  r.fillRect(x + 9, base - 3, 2, 3, p.sky);
-  r.set(x + 7, base - 1, trim).set(x + 12, base - 1, trim);
-}
-
-function beethoven(r, x, base, p) {
-  const s = p.sky;
-  r.fillRect(x, base - 4, 6, 4, s);              // plinth
-  r.hline(x, base - 4, 6, p.skyHi);
-  // A standing, cloaked figure: wider at the hem, a head.
-  fillPoly(r, [[x + 1, base - 4], [x + 2, base - 10], [x + 4, base - 10], [x + 5, base - 4]], s);
-  r.fillCircleSmooth(x + 3, base - 11.2, 1.3, s);
-}
-
-/**
- * The Post Tower: two offset glass halves, the eastern one taller, in flat
- * glass tones (lit west column, darker east face), floors every third row in
- * the next tone down, and a sky-coloured slot between the halves.
- */
-function postTower(r, x, base, p, h = 20) {
-  const [g0, g1, g2] = p.glass;
-  const lo = Math.round(h * 0.85);
-  const half = (x0, top, cols) => cols.forEach((c, i) => {
-    for (let y = top + 1; y < base; y++) r.set(x0 + i, y, (base - y) % 3 === 0 ? c[1] : c[0]);
+/** The Minster, centred on column c; its base is the grid's bottom row. */
+function minster(g, c) {
+  const B = g.h - 1;
+  // Nave behind everything: a low gabled roof over the whole width.
+  layer(g, (q) => { q.rect(c - 11, 17, 23, B - 16, 'S'); q.rect(c - 10, 16, 21, 1, 'R'); });
+  // Outer towers, low; inner towers, slender with tall caps.
+  for (const cx of [c - 10, c + 10]) layer(g, (q) => { q.rect(cx, 13, 1, 1, 'R').rect(cx - 1, 14, 3, 1, 'R'); q.rect(cx - 1, 15, 3, B - 14, 'S'); });
+  for (const cx of [c - 6, c + 6]) layer(g, (q) => { q.rect(cx, 7, 1, 2, 'R').rect(cx - 1, 9, 3, 2, 'R'); q.rect(cx - 1, 11, 3, B - 10, 'S'); });
+  // Crossing tower: the spire (tip on row 1, so the outline is row 0) on a gallery.
+  layer(g, (q) => {
+    q.rect(c, 1, 1, 3, 'R').rect(c - 1, 4, 3, 3, 'R').rect(c - 2, 7, 5, 1, 'R');
+    q.rect(c - 3, 8, 7, 1, 'R');
+    q.rect(c - 3, 9, 7, B - 8, 'S');
   });
-  half(x, base - lo, [[g0, g1], [g1, g2], [g1, g2], [g1, g2]]);
-  half(x + 5, base - h, [[g1, g2], [g2, p.sky], [g2, p.sky]]);
-  r.vline(x + 4, base - h, h, p.sky);                            // the slot between the halves
-  r.hline(x, base - lo, 4, p.sky).hline(x + 4, base - h, 4, p.sky);
+  windows(g, [c - 2, c, c + 2], [10], 'Y');           // belfry
+  windows(g, [c - 6, c + 6], [12], 'Y');              // one high in each inner tower
+  windows(g, [c - 1, c + 1], [14], 'Y');
+  windows(g, [c - 10, c + 10], [17], 'Y');            // outer towers
+  g.rect(c - 1, 19, 3, 4, 'Y').set(c - 1, 19, 'S').set(c + 1, 19, 'S');   // the lit west door, round-headed
 }
 
-/** The document skyline, SKYLINE_W wide, at (x, base). */
+/** The Old Town Hall, x = left column, 26 wide. */
+function townHall(g, x) {
+  const B = g.h - 1, w = 26, c = x + 12;              // turret over columns c, c+1
+  // Ridge turret behind the roof.
+  layer(g, (q) => { q.rect(c, 3, 2, 2, 'R').rect(c - 1, 5, 4, 4, 'R'); });
+  layer(g, (q) => {
+    q.rect(x, 12, w, B - 11, 'H');                    // plaster front
+    // Slate mansard, stepped in at the ends.
+    q.rect(x + 3, 8, w - 6, 1, 'R').rect(x + 2, 9, w - 4, 1, 'R').rect(x + 1, 10, w - 2, 2, 'R');
+  });
+  // Pediment over the centre bay, white cornice under the roof.
+  g.set(c, 9, 'H').set(c + 1, 9, 'H').rect(c - 1, 10, 4, 1, 'H').rect(c - 2, 11, 6, 1, 'H');
+  g.rect(x, 12, w, 1, 'W');
+  g.rect(x + w - 1, 13, 1, B - 12, 'h');              // shade on the right
+  // Three floors of windows, 3px rhythm, symmetric about the centre bay.
+  windows(g, [x + 2, x + 5, x + 8, x + 17, x + 20, x + 23], [14, 17, 20], 'W');
+  windows(g, [c, c + 1], [14, 17], 'W');
+  // The outside stair: two flights climbing to the door in the centre bay.
+  g.rect(c - 2, 20, 6, 1, 'h').rect(c - 4, 21, 10, 1, 'h').rect(c - 6, 22, 14, 1, 'h');
+  g.rect(c - 6, 22, 1, 1, 'W').rect(c + 7, 22, 1, 1, 'W').rect(c - 4, 21, 1, 1, 'W').rect(c + 5, 21, 1, 1, 'W');
+  g.rect(c, 19, 2, 1, 'S').rect(c, 20, 2, 1, 'S');    // the doorway
+}
+
+/** The Post Tower, x = left column, 12 wide. */
+function postTower(g, x) {
+  const B = g.h - 1;
+  layer(g, (q) => q.rect(x + 7, 5, 5, B - 4, 'G'));
+  layer(g, (q) => q.rect(x, 2, 6, B - 1, 'G'));
+  g.rect(x, 2, 1, B - 1, 'g').rect(x + 7, 5, 1, B - 4, 'g');   // lit left edges
+  for (let y = 5; y < B - 1; y += 4) { g.rect(x + 1, y, 5, 1, 'g'); g.rect(x + 8, y + 2, 4, 1, 'g'); }
+}
+
+/** The riverside trees, BEHIND the buildings: a 3px band along the base with rounded crowns. */
+function hedge(g, x0, x1, crowns) {
+  const B = g.h - 1;
+  const put = (x, y) => { if (!g.get(x, y)) g.set(x, y, 'T'); };
+  for (let x = x0; x < x1; x++) for (let y = B - 2; y <= B; y++) if (!((x === x0 || x === x1 - 1) && y === B - 2)) put(x, y);
+  for (const [cx, w, h] of crowns) for (let k = 0; k < h; k++) {
+    const inset = k === h - 1 ? 1 : 0;
+    for (let x = cx + inset; x < cx + w - inset; x++) put(x, B - 3 - k);
+  }
+}
+
+function litHedge(g) {
+  // One lit pixel at the upper left of each crown and hedge run.
+  for (let y = 0; y < g.h; y++) for (let x = 0; x < g.w; x++) {
+    if (g.get(x, y) === 'T' && g.get(x, y - 1) === 'o' && (g.get(x - 1, y) === 'o' || g.get(x - 1, y - 1) === 'o') && g.get(x + 1, y) === 'T') g.set(x, y, 't');
+  }
+}
+
+/** The whole skyline group, standing on the bar's top outline row (`base` = bar top). */
 export function drawSkyline(r, x, base, p) {
-  // Everything stays 1px inside the cell: a pixel in the neighbouring 1px
-  // grower column would be tiled into a line (exotic-frames R8).
-  tree(r, x + 1, base, p, 0.8);
-  minster(r, x + 6, base, p);
-  townHall(r, x + 37, base, p);
-  postTower(r, x + 59, base, p);
-  tree(r, x + 66, base, p, 0.85);
+  const g = new Grid(SKYLINE_W, SKY_ROWS);
+  minster(g, 14);
+  townHall(g, 32);
+  postTower(g, 59);
+  hedge(g, 0, SKYLINE_W, [[0, 4, 2], [27, 5, 3], [56, 4, 2], [70, 2, 2]]);
+  g.outline();
+  litHedge(g);
+  g.paint(r, x, base - SKY_ROWS, p);
+}
+
+/** The Minster alone, for movable modals. */
+export function drawMinster(r, x, base, p) {
+  const g = new Grid(MINSTER_W, SKY_ROWS);
+  minster(g, 14);
+  hedge(g, 0, MINSTER_W, [[0, 3, 2], [26, 3, 2]]);
+  g.outline();
+  litHedge(g);
+  g.paint(r, x, base - SKY_ROWS, p);
+}
+
+// ── Blossom ────────────────────────────────────────────────────────────────
+
+/** A 5px cherry rosette: lit petals upper left, shaded lower right, dark heart. */
+export const ROSETTE = [
+  '.l.a.',
+  'llaaa',
+  '.aca.',
+  'aaadd',
+  '.a.d.',
+];
+const blossomLegend = (p) => ({ l: p.blossomHi, a: p.blossom, d: p.blossomLo, c: p.blossomLo, b: p.branch, k: p.mortar ?? p.branch });
+
+export function rosette(r, x, y, p) { r.sprite(x, y, ROSETTE, blossomLegend(p)); }
+
+/**
+ * One 48px period of the branch along the bar's top edge (the code-8 tile).
+ * The 2px branch (lit top row) rises and falls on a one-pixel stair; blossom
+ * is placed irregularly so the repeat doesn't read as a fence: a pair of
+ * rosettes high on twigs, a single low one, two hanging below the branch over
+ * the bar's top edge, and two buds. `yb` = the bar's top row. The branch is on
+ * rows yb−3/yb−2 at both ends of the tile, as in the corner piece, so the tile
+ * continues the bough and repeats seamlessly.
+ */
+export const BRANCH_TILE_W = 48;
+// How far the branch's top row is lifted above yb−3, per column.
+const LIFT = Array.from({ length: BRANCH_TILE_W }, (_, i) => (i < 9 ? 0 : i < 17 ? 1 : i < 26 ? 2 : i < 35 ? 1 : 0));
+
+export function drawBranchTile(r, x, yb, p) {
+  const L = blossomLegend(p);
+  const top = (i) => yb - 3 - LIFT[i];
+  for (let i = 0; i < BRANCH_TILE_W; i++) r.set(x + i, top(i), L.k).set(x + i, top(i) + 1, L.b);
+  const twig = (pts) => { for (const [i, dy] of pts) r.set(x + i, top(i) - dy, L.b); };
+  // A low rosette near the start.
+  twig([[5, 1]]);
+  rosette(r, x + 3, top(5) - 6, p);
+  // A bud.
+  twig([[12, 1], [13, 2]]);
+  r.set(x + 13, top(13) - 3, L.a).set(x + 14, top(13) - 3, L.l).set(x + 13, top(13) - 4, L.l);
+  // Hanging below the branch.
+  rosette(r, x + 16, top(17) + 1, p);
+  // The high pair on a forked twig.
+  twig([[24, 1], [24, 2], [23, 3], [25, 3], [26, 4]]);
+  rosette(r, x + 20, top(24) - 9, p);
+  rosette(r, x + 25, top(24) - 7, p);
+  // Hanging below again, then a bud near the end.
+  rosette(r, x + 33, top(34) + 1, p);
+  twig([[42, 1]]);
+  r.set(x + 42, top(42) - 2, L.d).set(x + 41, top(42) - 2, L.a).set(x + 41, top(42) - 3, L.l);
 }
 
 /**
- * Modal and utility windows: the Post Tower among blossom trees, TOWER_W wide;
- * with room (h ≥ 14) the Beethoven monument stands beside it.
+ * The corner where the branch starts (left corner cell, `w` wide): a thicker
+ * bough coming in from the frame's edge with a cluster of rosettes. Ends on
+ * the tile's branch rows so the tile continues it.
  */
-export function drawTowerMotif(r, x, base, p, h) {
-  if (h >= 14) {
-    tree(r, x + 1, base, p, 0.8);
-    beethoven(r, x + 7, base, p);
-    postTower(r, x + 15, base, p, h);
-    tree(r, x + 24, base, p, 0.9);
-    return;
+export function drawBranchCorner(r, x, yb, w, p, { cluster = true } = {}) {
+  const L = blossomLegend(p);
+  for (let i = 0; i < w; i++) {
+    r.set(x + i, yb - 3, L.k).set(x + i, yb - 2, L.b);
+    if (i < 7) r.set(x + i, yb - 1, L.b);
+    if (i < 3) r.set(x + i, yb - 4, L.k).set(x + i, yb - 3, L.b);
   }
-  tree(r, x + 3, base, p, 0.8);
-  tree(r, x + 9, base, p, 0.7);
-  postTower(r, x + 16, base, p, h);
-  tree(r, x + 25, base, p, 0.8);
+  if (!cluster) return;
+  // Twigs up to a cluster of four rosettes (about 12px across) and a bud.
+  r.set(x + 8, yb - 4, L.b).set(x + 9, yb - 5, L.b).set(x + 15, yb - 4, L.b).set(x + 16, yb - 5, L.b);
+  rosette(r, x + 5, yb - 11, p);
+  rosette(r, x + 10, yb - 13, p);
+  rosette(r, x + 13, yb - 9, p);
+  rosette(r, x + 8, yb - 8, p);
+  r.set(x + 19, yb - 7, L.a).set(x + 20, yb - 7, L.l).set(x + 19, yb - 6, L.d).set(x + 18, yb - 5, L.b);
 }
 
-/**
- * Untitled windows: a centred ornament rising above the band. Dialogs get a
- * cherry branch in blossom; alerts get a yellow disc with a red "!" between
- * two blossom sprays.
- */
-export function drawOrnament(r, cell, base, p, kind) {
-  const { x0, w } = cell, cx = x0 + w / 2;
-  if (kind === 'alert') {
-    tree(r, x0 + 4, base + 1, p, 1);
-    tree(r, x0 + w - 10, base + 1, p, 1);
-    r.fillCircleSmooth(cx, base - 2, 7, p.redLo);
-    r.fillCircleSmooth(cx, base - 2, 6, p.yellow);
-    r.strokeLineSmooth(cx, base - 6, cx, base - 1, 2, p.red);
-    r.fillCircleSmooth(cx, base + 1.5, 1.1, p.red);
-    return;
-  }
-  // A cherry branch arching across the cell, with blossoms.
-  const branch = (t) => [x0 + 3 + t * (w - 6), base - 1 - Math.sin(t * Math.PI) * 9];
-  for (let i = 0; i < 24; i++) {
-    const [ax, ay] = branch(i / 24), [bx, by] = branch((i + 1) / 24);
-    r.strokeLineSmooth(ax, ay, bx, by, 2, p.trunk);
-  }
-  for (const t of [0.12, 0.3, 0.46, 0.62, 0.8, 0.92]) {
-    const [bx, by] = branch(t);
-    const up = (t * 7) % 2 > 1 ? -2.5 : 1.5;
-    r.fillCircleSmooth(bx, by + up, 3.2, p.tree[1]);
-    r.fillCircleSmooth(bx - 0.6, by + up - 0.6, 1.8, p.tree[0]);
-    r.set(Math.round(bx), Math.round(by + up), p.yellow);
-  }
+/** A sprig of three rosettes for the dialog's top ornament (centred in SPRIG_W, standing on the bar). */
+export function drawSprig(r, x, yb, p) {
+  const L = blossomLegend(p);
+  for (let i = 2; i < SPRIG_W - 2; i++) r.set(x + i, yb - 2, L.b).set(x + i, yb - 3, L.k);
+  r.set(x + 1, yb - 2, L.b).set(x + SPRIG_W - 2, yb - 2, L.b);
+  r.set(x + 7, yb - 4, L.b).set(x + 12, yb - 4, L.b).set(x + 12, yb - 5, L.b).set(x + 17, yb - 4, L.b);
+  rosette(r, x + 3, yb - 9, p);
+  rosette(r, x + 10, yb - 10, p);
+  rosette(r, x + 16, yb - 9, p);
+  rosette(r, x + 7, yb - 1, p);
+}
+
+/** The alert's ornament: a yellow caution disc with a dark "!", on a short branch. */
+const ALERT_DISC = [
+  '...oooo...',
+  '.ooyyyyoo.',
+  '.oyyddyyo.',
+  'oyyyddyyyo',
+  'oyyyddyyyo',
+  'oyyyddyyyo',
+  'oyyyyyyyyo',
+  '.oyyddyyo.',
+  '.ooyyyyoo.',
+  '...oooo...',
+];
+export function drawAlertDisc(r, x, yb, p) {
+  const L = blossomLegend(p);
+  for (let i = 1; i < ALERT_W - 1; i++) r.set(x + i, yb - 2, L.b).set(x + i, yb - 3, L.k);
+  rosette(r, x + 1, yb - 8, p);
+  rosette(r, x + ALERT_W - 6, yb - 8, p);
+  r.sprite(x + 7, yb - 10, ALERT_DISC, { o: p.outline, y: p.yellow, d: p.outline });
 }

@@ -1,227 +1,81 @@
 // Halcyon — an original first-party Kaleidoscope scheme, authored in code.
 //
-// Look: a light, frosted 2020s desktop. Soft vertical gradient title bars,
-// large rounded corners, a 1px slate outline, slate glyph buttons and one
-// kingfisher-teal accent. It deliberately avoids copying any shipping OS
-// (no traffic-light buttons, no Apple artwork or names).
+// Look (concept/brief.md): a kingfisher has landed on a frosted modern
+// window. The chrome stays calm and light (white bodies, flat frosted-glass
+// bars, one teal accent) with a hard slate outline, and carries one bold
+// pixel-art ornament in the Animals manner: a kingfisher perched on a branch
+// that runs along the whole top as the bar's upper rim, two leaves at the
+// branch tip, and a band of still water along the bottom with one ripple and
+// a river pebble as the grow box. It copies no shipping OS.
+//
+// Light: one source, upper left. Every raised part (bar, discs, buttons,
+// thumbs, tabs) has a 1px white sheen on its top/left inside the outline and
+// a 1px shade on its bottom/right; sunk parts (tracks, grooves, boxes)
+// reverse it. Everything is placed on whole pixels in system-palette colours
+// (palette.mjs), so 8 bpp looks like the web.
 //
 // Build:   npm run author -- authoring/schemes/halcyon
-// Guide:   docs/authoring-a-scheme.md walks through this file section by section.
+// Guides:  docs/authoring-a-scheme.md, docs/authoring-exotic-frames.md
 //
-// Everything here is ordinary code. Change a colour or a size, rebuild, and
-// drop the new scheme.rsrc onto the showcase page to see it.
+// Files:
+//   palette.mjs     every colour (system-palette entries) and contrast pairs
+//   parts/frames.mjs          window types (frameLayout), the frame painter,
+//                             title-bar discs and the pressed-widget strips
+//   parts/sprites/bird.mjs    the kingfisher sprites, pixel by pixel
+//   parts/*.mjs     other control families: controls (sliders, tabs, bevels, popups),
+//                   menus (menus, desktop, Finder colours, icon), progress
+//                   (progress, headers, triangles, grow boxes), scrollbars
 
-import {
-  Raster, verticalGradient, ditheredGradient, windowLayout, stripLayout, pressedStripFrom,
-  encodeCicn, encodeWnd, encodeCinf, encodeColr, encodeVers,
-} from '../../../tools/theme-author/index.js';
-
-// ── 1. Palette ────────────────────────────────────────────────────────────
-// Every colour lives in palette.mjs, shared with the control families in parts/.
+import { Raster, encodeCicn, encodeCinf, encodeColr, encodeVers } from '../../../tools/theme-author/index.js';
 import { C } from './palette.mjs';
 
-// ── 2. Window frames ──────────────────────────────────────────────────────
-// Each window type is described once with windowLayout(); the same numbers
-// drive both the art (paintFrame) and the wnd# recipe.
+// ── Push buttons ──────────────────────────────────────────────────────────
+// Three faces (inactive -10240, normal -10239, pressed -10238), each with a
+// same-id cinf. The engine copies the four c×c corners 1:1, stretches the
+// s-thick edge bands from one column/row, and fills the middle with ONE
+// colour read at bgPixel. s = 2 keeps the sheen row and the bottom shade row.
+// Corners are a hard 3px pixel stair, the same as the window's.
+const BUTTON = { size: 20, corner: 4, side: 2 };
 
-// Title-bar glyphs, 5×5 on whole pixels (1-bit friendly: no anti-aliased
-// strokes under 2px, docs/authoring-visual-design.md §2.2). The disc is 11px
-// (odd), so the glyph's centre pixel is the disc's centre pixel.
-const GLYPHS = {
-  close: ['#...#', '.#.#.', '..#..', '.#.#.', '#...#'],
-  zoom: ['..#..', '..#..', '#####', '..#..', '..#..'],
-  collapse: ['.....', '.....', '#####', '.....', '.....'],
-};
-const DISC = 11;
-
-/**
- * Draw a round title-bar button straight onto the frame, so its smooth edge
- * blends with the real title-bar pixels underneath (a separate raster blitted
- * on top would have nothing to blend with). The disc keeps its smooth edge;
- * only the glyph is pixel art.
- *
- * Pressed inverts rather than darkens (§2.6): the teal close becomes a white
- * disc with a teal ×, and the slate-glyph buttons become slate discs with a
- * white glyph.
- */
-function drawGlyphButton(r, { x, y }, state, glyph, accent = false, pressed = false, matte) {
-  const p = C[state];
-  const lit = accent && state === 'active';
-  const c = DISC / 2, opts = matte ? { matte } : undefined;
-  let edge, fill, ink;
-  if (lit) [edge, fill, ink] = pressed ? [C.accent, '#ffffff', C.accent] : [C.accent, C.accent, '#ffffff'];
-  else if (pressed) [edge, fill, ink] = [p.glyph, p.glyph, '#ffffff'];
-  else [edge, fill, ink] = [p.buttonEdge, verticalGradient(y, DISC, [[0, p.buttonTop], [1, p.buttonBottom]]), p.glyph];
-  r.fillCircleSmooth(x + c, y + c, c, edge, opts);
-  r.fillCircleSmooth(x + c, y + c, c - 1, fill);
-  if (!p.glyph) return; // inactive windows show plain buttons, like most desktops do
-  r.sprite(x + 3, y + 3, GLYPHS[glyph], { '#': ink });
-}
-
-/**
- * Paint one frame image for `layout` in `state` ('active' | 'inactive').
- * Order matters: fill, round the corners, outline, smooth the inside of the
- * outline, add the bar details, punch the content hole, then the widgets.
- */
-function paintFrame(layout, state, { radiusTop, radiusBottom, widgets = {} }) {
-  const p = C[state];
-  const { width: W, height: H, top: T, content } = layout;
-  const r = new Raster(W, H);
-  const shapeH = layout.bottom === 0 ? T : H; // collapsed: only the bar is visible
-  const bar = verticalGradient(0, T, [[0, p.barTop], [1, p.barBottom]]);
-  const surface = (x, y) => (layout.titled && y < T ? bar(x, y) : C.body);
-  const bottomRadius = layout.bottom === 0 ? radiusTop : radiusBottom;
-
-  // The outer edge stays hard: the window can sit on any background, so there
-  // is no colour to blend it with.
-  r.fillRect(0, 0, W, shapeH, surface);
-  r.clipRounded(0, 0, W, shapeH, radiusTop, ['tl', 'tr']);
-  r.clipRounded(0, 0, W, shapeH, bottomRadius, ['bl', 'br']);
-  r.outlineEdges(0, 0, W, shapeH, p.border);
-  // The inner edge of the outline can be smooth: repaint the surface 1px in,
-  // blended over the outline. Each half is drawn with its own corner radius.
-  const inner = (y, h, rad, corners) => r.paintCoverage(1, y, W - 2, h, (px, py) => {
-    const top = corners === 'top';
-    const cy = top ? 1 + (rad - 1) : shapeH - 1 - (rad - 1);
-    const dx = Math.max(Math.abs(px - W / 2) - (W / 2 - 1 - (rad - 1)), 0);
-    const dy = top ? Math.max(cy - py, 0) : Math.max(py - cy, 0);
-    return dx * dx + dy * dy <= (rad - 1) ** 2;
-  }, surface);
-  inner(1, Math.ceil(shapeH / 2) - 1, radiusTop, 'top');
-  inner(Math.ceil(shapeH / 2), shapeH - 1 - Math.ceil(shapeH / 2), bottomRadius, 'bottom');
-
-  if (layout.titled) {
-    r.hline(radiusTop, 1, W - 2 * radiusTop, p.highlight);               // a 1px sheen under the top edge
-    if (layout.bottom > 0) r.hline(1, T - 1, W - 2, p.separator);      // bar / content divider
+/** A rectangle with 2-1 stair corners: rows 0 and h−1 lose 2px at each end, rows 1 and h−2 lose 1. */
+function stairRect(w, h, fill) {
+  const r = new Raster(w, h).fillRect(0, 0, w, h, fill);
+  for (const [y, n] of [[0, 2], [1, 1], [h - 2, 1], [h - 1, 2]]) {
+    for (let k = 0; k < n; k++) r.set(k, y, null).set(w - 1 - k, y, null);
   }
-
-  // The content area is a hole: the page's own DOM shows through it.
-  r.fillRect(content.left, content.top, content.right - content.left, content.bottom - content.top, null);
-
-  // Hidden swatches: the engine reads the title colour from the content
-  // rectangle's top-left pixel, and a drop shadow colour from the pixel to its
-  // right. Same colour on both = no shadow.
-  r.swatch(content.left, content.top, p.title);
-  r.swatch(content.left + 1, content.top, p.title);
-
-  for (const [kind, box] of Object.entries(widgets)) drawGlyphButton(r, box, state, kind, kind === 'close');
   return r;
 }
 
-/** Window type table: wnd# id → description. Active frame = id + 1. */
-function windowTypes() {
-  const doc = (collapsed) => {
-    const T = 22, L = 30, R = 48, s = 12, y = 5;
-    const zoomX = L + 3 + 8;
-    return {
-      layout: windowLayout({
-        titleBar: T, leftFixed: L, rightFixed: R, bottom: 6, collapsed,
-        widgets: { close: { x: 10, y, w: s, h: s }, zoom: { x: zoomX, y, w: s, h: s }, collapse: { x: zoomX + 18, y, w: s, h: s } },
-      }),
-      art: { radiusTop: 9, radiusBottom: 7 },
-    };
-  };
-  const utility = (collapsed) => {
-    // Utility windows carry the document's widget SET at the document's 12px
-    // (close, zoom, collapse; ledger X3). The web reads every window's pressed
-    // art from the document strip (cicn -14330), at offsets summed from that
-    // window's own widget widths (docs/authoring-exotic-frames.md R24). With
-    // close + collapse only, a pressed utility collapse box showed the
-    // document's pressed zoom (+) piece. Same set, same sizes = same offsets.
-    const T = 16, L = 20, R = 38, s = 12, y = 2;
-    const zoomX = L + 3 + 3;
-    return {
-      layout: windowLayout({
-        titleBar: T, leftFixed: L, rightFixed: R, bottom: 4, collapsed,
-        widgets: { close: { x: 6, y, w: s, h: s }, zoom: { x: zoomX, y, w: s, h: s }, collapse: { x: zoomX + 18, y, w: s, h: s } },
-      }),
-      art: { radiusTop: 6, radiusBottom: 5 },
-    };
-  };
-  const modal = () => ({
-    layout: windowLayout({ titleBar: 22, leftFixed: 12, rightFixed: 12, bottom: 8 }),
-    art: { radiusTop: 9, radiusBottom: 9 },
-  });
-  const plain = () => ({
-    layout: windowLayout({ titleBar: 0, leftFixed: 12, rightFixed: 12, top: 10, bottom: 10 }),
-    art: { radiusTop: 10, radiusBottom: 10 },
-  });
-  return [
-    { id: -14336, name: 'Document Window', ...doc(false) },
-    { id: -14332, name: 'Collapsed Document Window', ...doc(true) },
-    { id: -14328, name: 'Dialog', ...plain() },
-    { id: -14326, name: 'Alert', ...plain() },
-    { id: -14324, name: 'Movable Modal', ...modal() },
-    { id: -14322, name: 'Movable Alert', ...modal() },
-    { id: -14304, name: 'Titled Utility Window', ...utility(false) },
-    { id: -14300, name: 'Collapsed Titled Utility Window', ...utility(true) },
-  ];
-}
-
-function widgetBoxes(wnd) {
-  const box = (part) => {
-    const r = wnd.rectangles.find((x) => x.part === part)?.rect;
-    return r && r.right > r.left ? { x: r.left, y: r.top, w: r.right - r.left, h: r.bottom - r.top } : null;
-  };
-  return Object.fromEntries([['close', box(1)], ['zoom', box(2)], ['collapse', box(3)]].filter(([, b]) => b));
-}
-
-/**
- * A pressed-widget strip, laid out from one window type's own widgets
- * (stripLayout) and built on that window's active frame (pressedStripFrom), so
- * each piece's smooth edge blends with the real bar pixels under the widget
- * and its mask (the click area) is exactly the disc. Pieces sit side by side
- * in rect-list order (close, zoom, collapse); the second row is used for
- * collapsed windows (same widget rows, so the same pixels).
- *
- * The web makes close, zoom and collapse clickable only when -14330 exists,
- * and reads it for every window type; classic reads -14330 for documents and
- * -14298 for utility windows (R24).
- */
-function pressedStrip(type) {
-  const art = { ...type.art, widgets: widgetBoxes(type.layout.wnd) };
-  return pressedStripFrom({
-    strip: stripLayout({ widgets: art.widgets }),
-    activeFrame: paintFrame(type.layout, 'active', art),
-    draw: (role, raster, box) => drawGlyphButton(raster, box, 'active', role, role === 'close', true),
-    rows: 2,
-  });
-}
-
-// ── 3. Push buttons ───────────────────────────────────────────────────────
-// Three faces (inactive -10240, normal -10239, pressed -10238), each with a
-// same-id cinf. Without that cinf the runtime ignores the face entirely.
-//
-// The engine copies the four c×c corners 1:1, stretches the s-thick edges,
-// and fills the middle with ONE colour read at the cinf's bgPixel. So a face
-// is a rounded outline around a flat colour; gradients would be lost.
-const BUTTON = { size: 20, corner: 6, side: 1, radius: 5 };
-
-function pushFace({ face, edge, text }) {
-  const { size, radius } = BUTTON;
-  // Smooth corners: the outer edge blends with the window body (the colour a
-  // button normally sits on), the inner edge with the outline.
-  const r = new Raster(size, size)
-    .fillRoundRectSmooth(0, 0, size, size, radius, edge, { matte: C.body })
-    .fillRoundRectSmooth(1, 1, size - 2, size - 2, radius - 1, face);
-  r.swatch(0, 1, text); // hidden: a transparent corner pixel carries the label colour
+function pushFace({ face, edge, text, top, bottom }) {
+  const { size } = BUTTON;
+  const r = stairRect(size, size, face);
+  r.hline(2, 1, size - 4, top).vline(1, 2, size - 4, top);            // sheen
+  r.hline(2, size - 2, size - 4, bottom).vline(size - 2, 2, size - 4, bottom); // shade
+  r.outlineEdges(0, 0, size, size, edge);
+  r.swatch(0, 0, text); // hidden: a transparent corner pixel carries the label colour
   return r;
 }
 
 const pushCinf = () => encodeCinf({
   cornerSize: BUTTON.corner, sideThickness: BUTTON.side, tileSides: 0, patternAnchor: 0, bgPatternId: 0,
-  bgPixel: { x: 10, y: 10 }, textPixel: { x: 0, y: 1 }, embossPixel: { x: 0, y: 0 }, // (0,0) = no emboss
+  bgPixel: { x: 10, y: 10 }, textPixel: { x: 0, y: 0 }, embossPixel: { x: 0, y: 0 },
 });
 
-// Default-button ring: drawn 4px outside the face, AFTER it, with its corners
-// copied 1:1. So everything inside the accent line must be transparent, or the
-// ring's corners paint over the face's corners. The 2px gap and the face
-// share one centre (9, 9), so the curves stay parallel.
+// Default ring: drawn outset round the face and AFTER it, corners copied 1:1,
+// so everything inside the 2px teal line is transparent. Its stair is the
+// face's stair grown by the gap, so the two stay parallel.
 function ringFace(color) {
-  const size = 24;
-  return new Raster(size, size)
-    .fillRoundRectSmooth(0, 0, size, size, 9, color, { matte: C.body }) // smooth outside
-    .fillRoundRect(2, 2, size - 4, size - 4, 7, null);                  // hard, fully transparent inside
+  const size = 24, r = new Raster(size, size);
+  const outer = (x, y) => {
+    const dx = Math.min(x, size - 1 - x), dy = Math.min(y, size - 1 - y);
+    return dx + dy >= 3 || (dx >= 1 && dy >= 1);
+  };
+  const inner = (x, y) => {
+    const dx = Math.min(x, size - 1 - x) - 2, dy = Math.min(y, size - 1 - y) - 2;
+    return dx >= 0 && dy >= 0 && (dx + dy >= 3 || (dx >= 1 && dy >= 1));
+  };
+  for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) if (outer(x, y) && !inner(x, y)) r.set(x, y, color);
+  return r;
 }
 
 const ringCinf = () => encodeCinf({
@@ -229,63 +83,82 @@ const ringCinf = () => encodeCinf({
   bgPixel: { x: 12, y: 12 }, textPixel: { x: 12, y: 12 }, embossPixel: { x: 0, y: 0 },
 });
 
-// ── 4. Checkboxes and radio buttons ───────────────────────────────────────
+// ── Checkboxes and radio buttons ──────────────────────────────────────────
 // id = -9504 + 12·kind + 3·value + tier
-//   kind  0 checkbox, 1 radio      value 0 off, 1 on, 2 mixed
-//   tier  0 disabled, 1 normal, 2 pressed
-const CHECK = 14;
+//   kind 0 checkbox, 1 radio · value 0 off, 1 on, 2 mixed · tier 0 disabled, 1 normal, 2 pressed
+// 13px (odd, so the radio dot and the dash have a centre pixel). Boxes are
+// sunk: the shade is on the top/left inside the outline. On = a teal fill
+// with a white glyph on whole pixels.
+const CHECK = 13;
+const RADIO = [
+  '....#####....',
+  '..##.....##..',
+  '.#.........#.',
+  '.#.........#.',
+  '#...........#',
+  '#...........#',
+  '#...........#',
+  '#...........#',
+  '#...........#',
+  '.#.........#.',
+  '.#.........#.',
+  '..##.....##..',
+  '....#####....',
+];
+const MARKS = {
+  check: ['......#', '.....##', '#...##.', '##.##..', '.###...', '..#....'],
+  dot: ['.###.', '#####', '#####', '#####', '.###.'],
+  dash: ['#####', '#####'],
+};
 
 function checkable(kind, value, tier) {
-  const on = value > 0;
-  const disabled = tier === 0, pressed = tier === 2;
-  const fill = !on ? (pressed ? '#e3e8ef' : '#ffffff') : disabled ? '#b9c7cf' : pressed ? C.accentPressed : C.accent;
-  const edge = disabled ? '#d0d4da' : on ? C.accentPressed : pressed ? '#6f7b8c' : '#8d98a8';
-  const radius = kind === 0 ? 4 : CHECK / 2;
-  // Outer edge blends with the window body; inner edges blend with what's under them.
-  const r = new Raster(CHECK, CHECK)
-    .fillRoundRectSmooth(0, 0, CHECK, CHECK, radius, edge, { matte: C.body })
-    .fillRoundRectSmooth(1, 1, CHECK - 2, CHECK - 2, radius - 1, fill);
+  const on = value > 0, disabled = tier === 0, pressed = tier === 2;
+  const edge = disabled ? C.shade : C.outline;
+  const fill = !on ? (pressed ? C.shade : disabled ? C.glass : C.white) : disabled ? C.shade : pressed ? C.accentDeep : C.accent;
+  const sunk = !on ? (disabled ? C.glass : C.shade) : disabled ? C.shade : C.accentDeep;
+  const r = new Raster(CHECK, CHECK);
+  if (kind === 0) {
+    r.fillRect(0, 0, CHECK, CHECK, fill).set(0, 0, null).set(CHECK - 1, 0, null).set(0, CHECK - 1, null).set(CHECK - 1, CHECK - 1, null);
+    r.outlineEdges(0, 0, CHECK, CHECK, edge);
+    r.hline(1, 1, CHECK - 2, sunk).vline(1, 1, CHECK - 2, sunk);
+  } else {
+    for (let y = 0; y < CHECK; y++) {
+      const a = RADIO[y].indexOf('#'), b = RADIO[y].lastIndexOf('#');
+      for (let x = a; x <= b; x++) r.set(x, y, RADIO[y][x] === '#' ? edge : fill);
+    }
+    // Sunk: shade the inner ring on the upper left.
+    for (let y = 1; y < CHECK - 1; y++) for (let x = 1; x < CHECK - 1; x++) {
+      const c = r.get(x, y);
+      if (!c || RADIO[y][x] === '#') continue;
+      const nearRim = RADIO[y - 1][x] === '#' || RADIO[y][x - 1] === '#';
+      if (nearRim && x + y < CHECK - 1) r.set(x, y, sunk);
+    }
+  }
   if (!on) return r;
-  const ink = disabled ? '#f4f6f8' : '#ffffff';
-  if (value === 2) return r.strokeLineSmooth(4.25, 7, 9.75, 7, 2, ink);   // mixed: a dash
-  if (kind === 1) return r.fillCircleSmooth(7, 7, 2.4, ink);               // radio: a dot
-  return r.strokeLineSmooth(3.6, 7.2, 6, 9.6, 1.7, ink)                   // checkmark
-    .strokeLineSmooth(6, 9.6, 10.6, 4.4, 1.7, ink);
+  const ink = disabled ? C.glass : C.white;
+  if (value === 2) return r.sprite(4, 6, MARKS.dash, { '#': ink });
+  if (kind === 1) return r.sprite(4, 4, MARKS.dot, { '#': ink });
+  return r.sprite(3, 3, MARKS.check, { '#': ink });
 }
 
-// ── 5. Assemble ───────────────────────────────────────────────────────────
+// ── Assemble ──────────────────────────────────────────────────────────────
 export async function buildScheme() {
   const resources = [];
   const add = (type, id, data, name) => resources.push({ type, id, data, ...(name ? { name } : {}) });
 
-  add('vers', 1, encodeVers({ major: 0, minor: 1, short: '0.1', long: '0.1 Halcyon (Scriptoscope authoring proof of concept)' }));
+  add('vers', 1, encodeVers({ major: 0, minor: 2, short: '0.2', long: '0.2 Halcyon (Scriptoscope authoring)' }));
   add('Colr', 129, encodeColr());
 
-  for (const t of windowTypes()) {
-    const art = { ...t.art, widgets: widgetBoxes(t.layout.wnd) };
-    add('wnd#', t.id, encodeWnd(t.layout.wnd), t.name);
-    add('cicn', t.id, encodeCicn(paintFrame(t.layout, 'inactive', art)), `Inactive ${t.name}`);
-    add('cicn', t.id + 1, encodeCicn(paintFrame(t.layout, 'active', art)), `Active ${t.name}`);
-  }
-  // Pressed widgets: -14330 for every window in the web (and documents in
-  // classic), -14298 for utility windows in classic. Each is laid out from
-  // its own window's widgets; both windows have the same widget set and
-  // sizes, so the web's single strip also lines up for utility windows.
-  const types = windowTypes();
-  const byId = (id) => types.find((t) => t.id === id);
-  add('cicn', -14330, encodeCicn(pressedStrip(byId(-14336))), 'Pressed Window Widgets');
-  add('cicn', -14298, encodeCicn(pressedStrip(byId(-14304))), 'Pressed Utility Window Widgets');
-
   const faces = [
-    [-10240, 'Inactive Push Button', { face: '#f5f6f8', edge: '#d0d5dc', text: '#a3aab4' }],
-    [-10239, 'Push Button', { face: '#ffffff', edge: '#97a2b2', text: '#1d2430' }],
-    [-10238, 'Pressed Push Button', { face: '#dde4ec', edge: '#7d8899', text: '#1d2430' }],
+    [-10240, 'Inactive Push Button', { face: C.glass, edge: C.shade, text: C.textOff, top: C.glass, bottom: C.glass }],
+    [-10239, 'Push Button', { face: C.white, edge: C.outline, text: C.text, top: C.white, bottom: C.glass }],
+    [-10238, 'Pressed Push Button', { face: C.shade, edge: C.outline, text: C.text, top: C.deep, bottom: C.shade }],
   ];
   for (const [id, name, look] of faces) {
     add('cicn', id, encodeCicn(pushFace(look)), name);
     add('cinf', id, pushCinf(), name);
   }
-  add('cicn', -10232, encodeCicn(ringFace('#c4ced6')), 'Inactive Default Ring');
+  add('cicn', -10232, encodeCicn(ringFace(C.shade)), 'Inactive Default Ring');
   add('cinf', -10232, ringCinf(), 'Inactive Default Ring');
   add('cicn', -10231, encodeCicn(ringFace(C.accent)), 'Default Ring');
   add('cinf', -10231, ringCinf(), 'Default Ring');
@@ -295,10 +168,9 @@ export async function buildScheme() {
     add('cicn', -9504 + 12 * kind + 3 * value + tier, encodeCicn(checkable(kind, value, tier)),
       `${tiers[tier]} ${values[value]} ${kinds[kind]}`);
   }
-  // ── 6. Control families (parts/*.mjs) ──
-  // Each file exports `build(add, { C })` and adds its own resources. They are
-  // loaded in name order. HALCYON_PARTS=scrollbars,menus builds only those
-  // (handy while working on one family); unset builds all of them.
+
+  // Window frames and control families (parts/*.mjs). Each exports `build(add, { C })`; they
+  // load in name order. HALCYON_PARTS=scrollbars,menus builds only those.
   // Each resource remembers which file added it, so a clash names both files.
   const owner = new Map(resources.map((r) => [`${r.type}:${r.id}`, 'scheme.mjs']));
   for (const { file, module } of await loadParts()) {

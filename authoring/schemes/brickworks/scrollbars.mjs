@@ -1,79 +1,63 @@
-// Brickworks scroll bars: a grey baseplate channel, yellow brick arrow
-// buttons with dark arrowheads, and a red 1×N brick thumb seen from above
-// (round studs in a row). Adapted from Castle's scrollbars.mjs.
+// Brickworks scroll bars: a grey channel sunk on its top/left, blue 1×1 plate
+// arrow buttons with white arrowheads, and a red 2×1 brick thumb seen from
+// above with its two studs. Flat colours and whole-pixel glyphs only.
 //
 // The engine rules are the ones Halcyon's parts/scrollbars.mjs documents
 // (docs/spec/engine/scrollbar.md): one TRACK cicn per tier holds both arrows
 // and a 3px track source whose middle is stretched, so the track may only vary
-// ACROSS the bar (no dithering, no stone joints along it); every image is
-// opaque; the pressed track's middle equals the normal one; thumbs are copied
-// 1:1 and must be opaque with the track painted into their sides.
-import { Raster, verticalGradient, encodeCicn } from '../../../tools/theme-author/index.js';
+// ACROSS the bar; every image is opaque; the pressed track's middle equals the
+// normal one; thumbs are copied 1:1 and must be opaque with the track painted
+// into their sides.
+import { Raster, encodeCicn } from '../../../tools/theme-author/index.js';
+import { BRICK, OUTLINE } from './palette.mjs';
 
+const B = BRICK.blue, RED = BRICK.red;
 const SB = {
-  line: '#2a1f19',      // hairline facing the content, and the arrow dividers
-  track: '#c9c6bf',
-  groove: '#a9a69f',    // shade next to the hairline: the channel is sunk
-  far: '#dcdad4',       // lit far lip of the channel
-  ink: '#2a1f19', inkOff: '#b9a35a',
-  woodTop: '#ffe066', woodBottom: '#d6a400', pressedTop: '#d6a400', pressedBottom: '#a87e00',
-  iron: '#5a0a06', ironHi: '#ff8f84',
-  inactive: { line: '#9d9a93', track: '#dad8d2', groove: '#cfccc5', far: '#e4e2dc' },
+  line: OUTLINE,        // hairline facing the content, and the arrow dividers
+  sunk: '#999999',      // the channel's sunk top/left line
+  track: '#cccccc',
+  inactive: { line: '#999999', sunk: '#cccccc', track: '#eeeeee' },
 };
-const RED = { edge: '#5a0a06', top: '#f2554a', bottom: '#b0180f', pressedTop: '#b0180f', pressedBottom: '#86100a', stud: '#d8261c', studHi: '#ff8f84', studLo: '#86100a' };
 
-/** A raster addressed as (u across the bar, v along it). */
+/** A raster addressed as (u across the bar, v along it). Light comes from low u and low v. */
 function barRaster(horizontal, cross, along) {
   const r = horizontal ? new Raster(along, cross) : new Raster(cross, along);
   const box = (u, v, w, h) => (horizontal ? [v, u, h, w] : [u, v, w, h]);
-  const pt = (u, v) => (horizontal ? [v, u] : [u, v]);
-  return {
+  const b = {
     r,
-    fill: (u, v, w, h, c) => r.fillRect(...box(u, v, w, h), c),
-    round: (u, v, w, h, rad, c, opts) => r.fillRoundRectSmooth(...box(u, v, w, h), rad, c, opts),
-    stroke: (u0, v0, u1, v1, wd, c) => r.strokeLineSmooth(...pt(u0, v0), ...pt(u1, v1), wd, c),
-    cover: (u, v, w, h, inside, c) => {
-      // paintCoverage wants a whole-pixel box; grow it to cover the shape.
-      const [fx, fy, fw, fh] = box(u, v, w, h);
-      const x = Math.floor(fx), y = Math.floor(fy), ww = Math.ceil(fx + fw) - x, hh = Math.ceil(fy + fh) - y;
-      return r.paintCoverage(x, y, ww, hh, horizontal ? (px, py) => inside(py, px) : inside, c);
-    },
-    gradient: (u, v, w, h, top, bottom) => {
-      const [, y, , hh] = box(u, v, w, h);
-      return verticalGradient(y, hh, [[0, top], [1, bottom]]);
-    },
+    fill: (u, v, w, h, c) => { r.fillRect(...box(u, v, w, h), c); return b; },
+    px: (u, v, c) => { if (horizontal) r.set(v, u, c); else r.set(u, v, c); return b; },
   };
+  return b;
 }
 
 function paintTrack(b, cross, along, look = SB) {
   b.fill(0, 0, cross, along, look.track);
   b.fill(0, 0, 1, along, look.line);
-  b.fill(1, 0, 1, along, look.groove);
-  b.fill(cross - 1, 0, 1, along, look.far);
+  b.fill(1, 0, 1, along, look.sunk);
 }
 
-/** A filled iron arrowhead (a barbed triangle) pointing to the low (-1) or high (+1) end. */
-function arrowhead(b, cu, cv, dir, size, color) {
-  const tip = cv + dir * size * 0.75, back = cv - dir * size * 0.55;
-  b.cover(cu - size, Math.min(tip, back) - 1, 2 * size + 1, Math.abs(tip - back) + 2, (pu, pv) => {
-    const t = (pv - back) / (tip - back);             // 0 at the back, 1 at the tip
-    if (t < 0 || t > 1) return false;
-    return Math.abs(pu - cu) <= size * (1 - t);
-  }, color);
+/** A whole-pixel arrowhead centred on (cu, cv) pointing to low v (dir -1) or high v (+1). */
+function arrowhead(b, cu, cv, dir, big, color) {
+  const rows = big ? [1, 3, 5, 7] : [1, 3, 5];
+  const v0 = cv + Math.floor(rows.length / 2) * dir; // the tip
+  rows.forEach((w, i) => b.fill(cu - (w - 1) / 2, v0 - i * dir, w, 1, color));
 }
 
+/** A blue 1×1 plate arrow button over v0..v0+d. `end` low: divider after it; high: divider before it. */
 function paintArrow(b, t, v0, d, end, cap, dir, look) {
-  const divider = end === 'low' ? v0 + d - 1 : v0;
-  const faceV0 = end === 'low' ? v0 : v0 + 1;
-  const faceV1 = v0 + d - (end === 'low' || cap ? 1 : 0);
+  const fv0 = end === 'low' ? v0 : v0 + 1;
+  const fv1 = v0 + d - (end === 'low' || cap ? 1 : 0); // exclusive
   const pressed = look === 'pressed';
-  b.fill(1, faceV0, t - 1, faceV1 - faceV0, b.gradient(1, faceV0, t - 1, faceV1 - faceV0,
-    pressed ? SB.pressedTop : SB.woodTop, pressed ? SB.pressedBottom : SB.woodBottom));
+  const face = pressed ? { hi: B.deep, base: B.deep, lo: B.lo } : B;
+  b.fill(1, fv0, t - 1, fv1 - fv0, face.base);
+  b.fill(1, fv0, t - 1, 1, face.hi).fill(1, fv0, 1, fv1 - fv0, face.hi);
+  b.fill(t - 1, fv0, 1, fv1 - fv0, face.lo).fill(1, fv1 - 1, t - 1, 1, face.lo);
   b.fill(0, v0, 1, d, SB.line);
-  b.fill(0, divider, t, 1, SB.line);
+  b.fill(0, end === 'low' ? v0 + d - 1 : v0, t, 1, SB.line);
   if (cap) b.fill(0, v0 + d - 1, t, 1, SB.line);
-  const ink = look === 'off' ? SB.inkOff : pressed ? '#fff3b0' : SB.ink;
-  arrowhead(b, (1 + t) / 2, (faceV0 + faceV1) / 2, dir, t >= 14 ? 4 : 2.6, ink);
+  const ink = look === 'off' ? B.hi : pressed ? B.hi : '#ffffff';
+  arrowhead(b, Math.floor((1 + t) / 2), Math.floor((fv0 + fv1 - 1) / 2), dir, t >= 14, ink);
 }
 
 function trackImage(horizontal, t, look, double) {
@@ -96,53 +80,53 @@ function inactiveImage(horizontal, t) {
   return b.r;
 }
 
-/** A red brick seen from above: opaque, track painted into its sides, a row of round studs along it. */
+// A stud on the thumb, seen from above: lit upper-left arc, shaded lower-right.
+const THUMB_STUD = ['.oooo.', 'ohhhbo', 'ohbbdo', 'ohbbdo', 'obdddo', '.oooo.'];
+const THUMB_STUD_SMALL = ['.oo.', 'ohbo', 'obdo', '.oo.'];
+
+/** A red 2×1 brick seen from above: opaque, the track painted into its sides, two studs on its face. */
 function thumbImage(horizontal, t, pressed, ghost = false) {
   const small = t <= 11;
   const along = small ? 16 : 24;
   const b = barRaster(horizontal, t, along);
-  const inset = 2;
-  const w = t - 1 - 2 * (inset - 1), h = along - 2;
+  const u0 = 2, u1 = t - 2; // brick columns across (inclusive)
+  const w = u1 - u0 + 1, h = along - 2;
   if (ghost) {
-    b.round(inset, 1, w, h, 2, RED.edge, { matte: SB.track });
-    b.round(inset + 1, 2, w - 2, h - 2, 1.5, '#f4c9c4');
+    b.fill(u0, 1, w, h, RED.hi);
+    b.fill(u0, 1, w, 1, RED.base).fill(u0, along - 2, w, 1, RED.base).fill(u0, 1, 1, h, RED.base).fill(u1, 1, 1, h, RED.base);
     return b.r;
   }
   paintTrack(b, t, along);
-  b.round(inset, 1, w, h, 2.5, RED.edge);
-  b.round(inset + 1, 2, w - 2, h - 2, 1.5, b.gradient(inset + 1, 2, w - 2, h - 2, pressed ? RED.pressedTop : RED.top, pressed ? RED.pressedBottom : RED.bottom));
-  // Studs from above: a dark foot ring, the lit cap, a glint.
-  const cu = inset + w / 2, studs = small ? [along / 2] : [7, along - 7];
-  const rad = small ? 2.6 : 3.6;
-  for (const cv of studs) {
-    b.cover(cu - rad - 1, cv - rad - 1, 2 * rad + 2, 2 * rad + 2, (pu, pv) => (pu - cu) ** 2 + (pv - cv) ** 2 <= (rad + 0.6) ** 2, RED.studLo);
-    b.cover(cu - rad, cv - rad, 2 * rad, 2 * rad, (pu, pv) => (pu - cu) ** 2 + (pv - cv) ** 2 <= (rad - 0.5) ** 2, pressed ? RED.bottom : RED.stud);
-    b.cover(cu - 2, cv - 2, 2, 2, (pu, pv) => (pu - (cu - 1.1)) ** 2 + (pv - (cv - 1.1)) ** 2 <= 0.9, RED.studHi);
-  }
+  const face = pressed ? { hi: RED.lo, base: RED.lo, lo: RED.deep } : RED;
+  b.fill(u0, 1, w, h, face.base);
+  b.fill(u0 + 1, 2, w - 2, 1, face.hi).fill(u0 + 1, 2, 1, h - 2, face.hi);
+  b.fill(u1 - 1, 2, 1, h - 2, face.lo).fill(u0 + 1, along - 3, w - 2, 1, face.lo);
+  b.fill(u0, 1, w, 1, OUTLINE).fill(u0, along - 2, w, 1, OUTLINE).fill(u0, 1, 1, h, OUTLINE).fill(u1, 1, 1, h, OUTLINE);
+  const sprite = small ? THUMB_STUD_SMALL : THUMB_STUD, sw = sprite.length;
+  const cu = u0 + Math.floor((w - sw) / 2);
+  const studs = small ? [3, 9] : [4, 14];
+  const look = { o: OUTLINE, h: pressed ? RED.base : RED.hi, b: face.base, d: RED.deep };
+  for (const v of studs) sprite.forEach((row, dv) => [...row].forEach((ch, du) => { if (ch !== '.') b.px(cu + du, v + dv, look[ch]); }));
   return b.r;
 }
 
 function littleArrows(look, part = 'both') {
   const W = 13, H = 23, split = 11;
   const r = new Raster(W, H);
-  const pressed = look === 'pressed';
-  const edge = look === 'inactive' ? '#b0ada6' : '#3a2b00';
-  const half = (y0, y1, dir, isPressed) => {
-    const h = y1 - y0;
-    r.fillRoundRectSmooth(0, y0, W, h, 3, edge, { matte: '#f3f1ea' });
-    const top = isPressed ? SB.pressedTop : look === 'inactive' ? '#ebe6d2' : SB.woodTop;
-    const bottom = isPressed ? SB.pressedBottom : look === 'inactive' ? '#ddd8c3' : SB.woodBottom;
-    r.fillRoundRectSmooth(1, y0 + 1, W - 2, h - 2, 2, verticalGradient(y0 + 1, h - 2, [[0, top], [1, bottom]]));
-    const ink = isPressed ? '#fff3b0' : look === 'inactive' ? '#f0ecdf' : SB.ink;
-    const cx = W / 2, cy = (y0 + y1) / 2;
-    r.paintCoverage(0, y0, W, h, (px, py) => {
-      const tip = cy + dir * 2.4, back = cy - dir * 1.8, tt = (py - back) / (tip - back);
-      return tt >= 0 && tt <= 1 && Math.abs(px - cx) <= 3.2 * (1 - tt);
-    }, ink);
+  const inactive = look === 'inactive';
+  const half = (y0, y1, up, isPressed) => {
+    const face = inactive ? { hi: '#ffffff', base: '#eeeeee', lo: '#cccccc' } : isPressed ? { hi: B.deep, base: B.deep, lo: B.lo } : B;
+    r.fillRect(0, y0, W, y1 - y0, face.base);
+    r.hline(1, y0 + 1, W - 2, face.hi).vline(1, y0 + 1, y1 - y0 - 2, face.hi);
+    r.vline(W - 2, y0 + 1, y1 - y0 - 2, face.lo).hline(1, y1 - 2, W - 2, face.lo);
+    r.strokeRect(0, y0, W, y1 - y0, inactive ? '#999999' : OUTLINE);
+    const ink = inactive ? '#cccccc' : isPressed ? B.hi : '#ffffff';
+    const cy = Math.floor((y0 + y1 - 1) / 2);
+    [1, 3, 5].forEach((w, i) => r.hline(6 - (w - 1) / 2, up ? cy - 1 + i : cy + 1 - i, w, ink));
   };
-  if (part !== 'down') half(0, split + 1, -1, pressed && part === 'up');
-  if (part !== 'up') half(split, H, 1, pressed && part === 'down');
-  if (part === 'both') r.hline(1, split, W - 2, edge);
+  if (part !== 'down') half(0, split + 1, true, look === 'pressed' && part === 'up');
+  if (part !== 'up') half(split, H, false, look === 'pressed' && part === 'down');
+  r.set(0, 0, null).set(W - 1, 0, null).set(0, H - 1, null).set(W - 1, H - 1, null);
   return r;
 }
 

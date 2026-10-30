@@ -1,265 +1,287 @@
-// Brickworks window frames: chunky plastic bricks.
+// Brickworks window frames: a window snapped together from toy bricks on a
+// building site (concept/brief.md).
 //
-//   - The title bar is a course of 2-stud bricks. Their round studs stand up
-//     above the bar, and are only ever drawn whole: one 24px brick (two studs
-//     and a seam) is a code-12 tile, with a 1px code-13 filler at each end of
-//     the run to take the leftover pixels (exotic-frames R4, R8, and the
-//     "which code for which effect" table).
-//   - Document, utility and modal windows carry the title on a smooth white
-//     "tile" piece (no studs) laid on the bar: code-6 end caps around a code-5
-//     plate (R10). Above the tile the stud rows are transparent.
-//   - Document windows have raised corner bricks (fixed code-1 cells, taller
-//     than the bar: R13) in a contrasting colour; the widgets are round 1×1
-//     tiles pressed into them.
-//   - Untitled dialogs and alerts centre a raised 2-stud brick between two
-//     stud runs: 13 | 12 | 13 | centre | 13 | 12 | 13 in one allocation, so the
-//     four fillers share the remainder and the centre stays centred (R8 table).
-//   - Side walls are offset brick courses (a 12-row, two-course code-8 tile).
-//   - The bottom is a green baseplate with small studs on its top face (an
-//     8px code-12 tile with code-13 fillers).
+//   - The title bar is one course of red 2-stud bricks. Studs are 6px
+//     cylinders standing proud of the bar (hand-placed sprite, sprites.mjs).
+//     One 24px brick is the tile of a code-11 run left of the title and a
+//     code-8 run right of it, so studs show at every width and partial
+//     bricks tuck in against the raised corner blocks (exotic-frames R3).
+//     (Whole-only code-12 runs left a 260px window with a bare bar.)
+//   - Titled windows carry the title on a smooth white tile laid on the bar:
+//     code-6 end caps around a 1px code-5 plate (R10).
+//   - Document and modal windows have raised yellow 2×2 corner blocks (fixed
+//     code-1 cells taller than the bar, R13); the widgets are round studs on
+//     their front faces.
+//   - The document's right corner carries a yellow lattice crane on its own
+//     yellow base brick, lowering a red brick toward a gap in the bar. The
+//     crane is a code-10 cell, so a window too narrow for it sheds it and
+//     keeps the plain corner block (R6, R12).
+//   - Side walls are courses of two colours (red and blue on a document),
+//     one 46-row code-8 tile holding a whole period (R2).
+//   - The bottom is a green baseplate whose studs stand inside the box (the
+//     ground behind them is the body colour). The document adds a loose
+//     brick stack on its bottom-left corner and a grey wheel as the grow box.
+//     A code-0 skip lets the bottom drop template columns the top needs (R9).
 //
-// Colour rule (authoring guide §4.5): the 1px code-13 fillers and the code-5
-// plate repeat one column, so the bar and the tile are ONE colour per row;
-// texture (studs, seams, lit columns) lives only in code-12 tiles whose
-// width is a multiple of 4, and in fixed cells.
-import { Raster, mix, frameLayout } from '../../../tools/theme-author/index.js';
-import { pal, SCHEME_COLOURS } from './palette.mjs';
-import { drawWidget } from './widgets.mjs';
+// Flat plastic only: base face + one `hi` row on top + one `lo` column on the
+// right + the warm near-black outline. No dither, no gradients.
+import { Raster, frameLayout } from '../../../tools/theme-author/index.js';
+import { pal, SCHEME_COLOURS, BODY } from './palette.mjs';
+import { drawWidget, WIDGET } from './widgets.mjs';
+import { STUD, STUD_W, STACK, WHEEL, legend } from './sprites.mjs';
 
-const STUD = { w: 8, h: 5 };
-const RUN = 24;        // one 2-stud brick: seam + two studs
-const PLATE_RUN = 8;   // one baseplate stud
-const WIDGET = 14;
+const RUN = 24;        // one 2-stud brick
+const PLATE_RUN = 10;  // one baseplate stud and its gap
+const WALL = 46;       // two wall courses (23 rows each, seam included)
 
 // ── Geometry per family ────────────────────────────────────────────────────
-// T: top band (studs included). barTop: first row of the bar brick body.
-// cornerTop: first body row of the corner bricks (< barTop = raised).
+// T: top band. barTop: the bar's top-edge row (studs stand on it, rows
+// barTop-4..barTop). blockTop: the corner blocks' top-edge row. tile: first
+// and last row of the white title tile. title: the title rect rows (≥ 17).
+// wy: widget row. side: wall width. B: bottom band height.
 const G = {
-  doc: { T: 32, barTop: 11, cornerTop: 5, plate: [13, 29], titleRows: [13, 31], side: 8, bottomH: 10, cornerL: 32, cornerR: 48, cap: 10, plateW: 4 },
-  modal: { T: 32, barTop: 11, cornerTop: 5, plate: [13, 29], titleRows: [13, 31], side: 8, bottomH: 10, cornerL: 22, cornerR: 22, cap: 10, plateW: 4 },
-  util: { T: 25, barTop: 5, cornerTop: 5, plate: [6, 22], titleRows: [6, 25], side: 6, bottomH: 8, cornerL: 22, cornerR: 14, cap: 9, plateW: 4 },
-  plain: { T: 16, barTop: 9, cornerTop: 9, centreTop: 0, side: 8, bottomH: 10, corner: 14, centre: 28 },
+  doc: { T: 46, barTop: 24, blockTop: 14, tile: [26, 43], title: [26, 44], wy: 28, side: 10, B: 20, cornerL: 28, cornerR: 36, crane: 36 },
+  modal: { T: 36, barTop: 14, blockTop: 4, tile: [16, 33], title: [16, 34], wy: 18, side: 10, B: 12, cornerL: 28, cornerR: 28 },
+  util: { T: 25, barTop: 4, blockTop: 4, tile: [6, 22], title: [6, 23], wy: 8, side: 8, B: 12, cornerL: 22, cornerR: 16 },
+  plain: { T: 22, barTop: 10, blockTop: 10, centreTop: 4, side: 8, B: 12, cornerL: 16, cornerR: 16, centre: 28 },
 };
+const CAP = 3; // code-6 bezel width
 
-function spec(geom, { collapsed = false, widgets = 'none' } = {}) {
+function spec(geom, { collapsed = false, widgets = 'none', crane = false } = {}) {
   const g = G[geom];
-  // Every filler of one edge shows the same column (uniform groups), so layout.lint
-  // catches stray art reaching into one of them.
-  const filler = (name, uniform = name.startsWith('base') ? 'base' : 'bar') => ({ name, code: 13, w: 1, uniform });
-  const top = geom === 'plain'
-    ? [
-      { name: 'cornerL', code: 1, w: g.corner }, filler('fillA'), { name: 'runL', code: 12, w: RUN }, filler('fillB'),
-      { name: 'centre', code: 1, w: g.centre },
-      filler('fillC'), { name: 'runR', code: 12, w: RUN }, filler('fillD'), { name: 'cornerR', code: 1, w: g.corner },
-    ]
-    : [
-      { name: 'cornerL', code: 1, w: g.cornerL }, filler('fillA'), { name: 'runL', code: 12, w: RUN }, filler('fillB'),
-      { name: 'capL', code: 6, w: g.cap }, { name: 'plate', code: 5, w: g.plateW }, { name: 'capR', code: 6, w: g.cap },
-      filler('fillC'), { name: 'runR', code: 12, w: RUN }, filler('fillD'), { name: 'cornerR', code: 1, w: g.cornerR },
-    ];
-  const W = top.reduce((s, c) => s + c.w, 0);
-  const edge = W - 2 - PLATE_RUN;
-  const bottom = [
-    { name: 'baseL', code: 1, w: Math.floor(edge / 2) }, filler('baseFillL'), { name: 'baseRun', code: 12, w: PLATE_RUN },
-    filler('baseFillR'), { name: 'baseR', code: 1, w: Math.ceil(edge / 2) },
+  // Stud runs grow by tiling one 24px brick: code 11 left of the centre piece
+  // (tiles from its far end, so it phase-locks to the centre) and code 8 right
+  // of it (tiles from its near end). Partial bricks land against the raised
+  // corner blocks, where a cut stud reads as standing behind the block (R3).
+  const middle = geom === 'plain'
+    ? [{ name: 'centre', code: 1, w: g.centre }]
+    : [{ name: 'capL', code: 6, w: CAP }, { name: 'plate', code: 5, w: 1 }, { name: 'capR', code: 6, w: CAP }];
+  const top = [
+    { name: 'cornerL', code: 1, w: g.cornerL }, { name: 'runL', code: 11, w: RUN },
+    ...middle,
+    { name: 'runR', code: 8, w: RUN },
+    ...(crane ? [{ name: 'crane', code: 10, w: g.crane }] : []),
+    { name: 'cornerR', code: 1, w: g.cornerR },
   ];
-  const wall = (name) => [{ name, code: 8, w: 12 }];
+  const W = top.reduce((s, c) => s + c.w, 0);
+  const baseL = crane ? STACK[0].length : g.side + 2;
+  const baseR = crane ? g.side + WHEEL[0].length + 2 : g.side + 2;
+  // The baseplate: one stud period tiled from the left (code 8), a code-0
+  // skip for the template columns only the top needs (R9).
+  const bottom = [
+    { name: 'baseL', code: 1, w: baseL }, { name: 'skip', code: 0, w: W - baseL - baseR - PLATE_RUN },
+    { name: 'baseRun', code: 8, w: PLATE_RUN },
+    { name: 'baseR', code: 1, w: baseR },
+  ];
   const wset = {};
-  const wy = geom === 'util' ? 8 : 15;
-  if (widgets !== 'none') wset.close = { x: Math.floor((g.cornerL - WIDGET) / 2), y: wy, w: WIDGET, h: WIDGET };
+  const box = (x) => ({ x, y: g.wy, w: WIDGET, h: WIDGET });
+  if (widgets !== 'none') wset.close = box(Math.floor((g.cornerL - WIDGET) / 2));
   if (widgets === 'all') {
     const x0 = W - g.cornerR;
-    wset.zoom = { x: x0 + 6, y: wy, w: WIDGET, h: WIDGET };
-    wset.collapse = { x: x0 + 28, y: wy, w: WIDGET, h: WIDGET };
+    wset.zoom = box(x0 + 4);
+    wset.collapse = box(x0 + 4 + WIDGET + 2);
   }
   return {
-    topH: g.T, sideL: g.side, sideR: g.side, bottomH: g.bottomH, collapsed,
-    top, bottom, left: wall('wallL'), right: wall('wallR'),
-    ...(geom === 'plain' ? {} : { title: { cell: 'plate', top: g.titleRows[0], bottom: g.titleRows[1] } }),
+    topH: g.T, sideL: g.side, sideR: g.side, bottomH: g.B, collapsed,
+    top, bottom, left: [{ name: 'wallL', code: 8, w: WALL }], right: [{ name: 'wallR', code: 8, w: WALL }],
+    ...(geom === 'plain' ? {} : { title: { cell: 'plate', top: g.title[0], bottom: g.title[1] } }),
     widgets: wset,
   };
 }
 
 // ── Brick painting ─────────────────────────────────────────────────────────
 
-/** One colour per row for a brick body from `top` to `last` (inclusive): a lit top edge, a flat body, a shaded foot and a seam on the last row. */
-function bodyRows(b, top, last) {
-  return (_x, y) => {
-    if (y === top) return b.hi;
-    if (y === top + 1) return b.gloss;
-    if (y === top + 2) return b.hi;
-    if (y === last) return b.seam;
-    if (y === last - 1) return b.deep;
-    if (y === last - 2) return b.lo;
-    return b.base;
-  };
-}
+const stud = (r, x, y0, b, p) => r.sprite(x, y0, STUD, legend(b, p));
 
 /**
- * A stud standing on a brick: rows [y0, y0 + h), a cylinder lit from the upper
- * left. Flat colours only (visual-design review §1.3): the silhouette outline
- * takes the outer ring of pixels, so inside it the stud is a `hi` top row, a
- * 2px `gloss` left side, a `base` body and a 1px `deep` right side.
+ * A brick face over columns [x0, x0 + w) and rows [top, last]: the top edge
+ * row is outline (studs stand on it), then one `hi` row, then the base. A
+ * seam (outline) on the left when `seamL`, and a `lo` column on the right
+ * (or a seam there when `seamR`). The last row is left as base: the content
+ * hole or the raster edge outlines it.
  */
-function drawStud(r, x0, y0, b, h = STUD.h) {
-  r.fillRect(x0, y0, STUD.w, h, b.base);
-  r.fillRect(x0 + 1, y0 + 1, 2, h - 1, b.gloss);
-  r.vline(x0 + STUD.w - 2, y0 + 1, h - 1, b.deep);
-  r.hline(x0 + 1, y0 + 1, STUD.w - 2, b.hi); // the stud's lit top edge
-  r.set(x0, y0, null).set(x0 + STUD.w - 1, y0, null); // rounded top corners
+function brick(r, x0, w, top, last, b, p, { seamL = false, seamR = false, lo = true } = {}) {
+  r.hline(x0, top, w, p.outline);
+  r.hline(x0, top + 1, w, b.hi);
+  r.fillRect(x0, top + 2, w, last - top - 1, b.base);
+  if (lo) r.vline(x0 + w - 1 - (seamR ? 1 : 0), top + 1, last - top, b.lo);
+  if (seamL) r.vline(x0, top, last - top + 1, p.outline);
+  if (seamR) r.vline(x0 + w - 1, top, last - top + 1, p.outline);
   return r;
 }
 
-/**
- * A fixed brick (corner or centre): body rows [top, last], studs on top, a
- * seam on its inner side(s). Lit like the walls: one `gloss` column inside the
- * left edge and one `lo` column inside the right, no dither.
- */
-function drawBlock(r, x0, w, top, last, b, { studs, seamL = false, seamR = false }) {
-  const rows = bodyRows(b, top, last);
-  r.fillRect(x0, top, w, last - top + 1, rows);
-  const h = last - top - 5; // the flat body rows between the lit top and the shaded foot
-  if (h > 0) {
-    r.vline(x0 + 1, top + 3, h, b.gloss);
-    r.vline(x0 + w - 2, top + 3, h, b.lo);
-  }
-  if (seamL) r.vline(x0, top, last - top + 1, b.seam);
-  if (seamR) r.vline(x0 + w - 1, top, last - top + 1, b.seam);
-  if (studs > 0) {
-    const span = studs * STUD.w + (studs - 1) * 4;
-    const sx = x0 + Math.floor((w - span) / 2);
-    for (let k = 0; k < studs; k++) drawStud(r, sx + k * (STUD.w + 4), top - STUD.h, b);
-  }
+/** n studs evenly spread over a block's top edge. */
+function studsOn(r, x0, w, top, n, b, p) {
+  const gap = (w - n * STUD_W) / (n + 1);
+  for (let k = 0; k < n; k++) stud(r, x0 + Math.round(gap + k * (STUD_W + gap)), top - 4, b, p);
 }
+const studCount = (w) => Math.max(1, Math.floor((w + 2) / 12));
 
-function paintTop(r, layout, geom, colours, p, kind) {
-  const g = G[geom];
-  const T = layout.top, last = T - 1;
+function paintTop(r, layout, g, colours, p, kind) {
+  const last = layout.top - 1;
   const bar = p[colours.bar];
-  const rows = bodyRows(bar, g.barTop, last);
   for (const cell of layout.cells.top) {
     const { name, x0, w } = cell;
-    if (name.startsWith('fill') || name === 'capL' || name === 'capR' || name === 'plate') {
-      r.fillRect(x0, g.barTop, w, T - g.barTop, rows); // plain bar: one colour per row
+    if (name === 'capL' || name === 'capR' || name === 'plate') {
+      brick(r, x0, w, g.barTop, last, bar, p, { lo: false });
     } else if (name.startsWith('run')) {
-      r.fillRect(x0, g.barTop, w, T - g.barTop, rows);
-      r.vline(x0, g.barTop, T - g.barTop, bar.seam);   // the seam between two bricks
-      r.vline(x0 + 1, g.barTop + 1, T - g.barTop - 3, bar.hi);
-      drawStud(r, x0 + 2, g.barTop - STUD.h, bar);
-      drawStud(r, x0 + 14, g.barTop - STUD.h, bar);
+      brick(r, x0, w, g.barTop, last, bar, p, { seamL: true });
+      stud(r, x0 + 3, g.barTop - 4, bar, p);
+      stud(r, x0 + 15, g.barTop - 4, bar, p);
+    } else if (name === 'crane') {
+      // Two bar bricks under the crane: a red one with no stud (the gap the
+      // hanging brick is headed for) and the crane's yellow base brick.
+      brick(r, x0, 18, g.barTop, last, bar, p, { seamL: true });
+      brick(r, x0 + 18, w - 18, g.barTop, last, p.yellow, p, { seamL: true });
+    }
+  }
+  const corner = p[colours.corner];
+  const cl = layout.named('cornerL'), cr = layout.named('cornerR');
+  // Corner blocks sit on the walls: a seam along their foot, and seams on both sides.
+  brick(r, cl.x0, cl.w, g.blockTop, last, corner, p, { seamL: true, seamR: true }).hline(cl.x0, last, cl.w, p.outline);
+  studsOn(r, cl.x0, cl.w, g.blockTop, studCount(cl.w), corner, p);
+  brick(r, cr.x0, cr.w, g.blockTop, last, corner, p, { seamL: true, seamR: true }).hline(cr.x0, last, cr.w, p.outline);
+  studsOn(r, cr.x0, cr.w, g.blockTop, studCount(cr.w), corner, p);
+  if (kind === 'dialog' || kind === 'alert') {
+    const c = layout.named('centre'), cb = p[colours.centre];
+    brick(r, c.x0, c.w, g.centreTop, last, cb, p, { seamL: true, seamR: true });
+    studsOn(r, c.x0, c.w, g.centreTop, 2, cb, p);
+    if (kind === 'alert') {
+      // A printed exclamation mark on the alert's centre brick: whole pixels.
+      const cx = c.x0 + Math.floor(c.w / 2) - 1, ink = p.glyph ?? p.white.base;
+      r.fillRect(cx, g.centreTop + 3, 2, 9, ink).fillRect(cx, g.centreTop + 14, 2, 2, ink);
     }
   }
   if (layout.titled) paintTile(r, layout, g, p, bar);
-  const cornerB = p[colours.corner];
-  const cl = layout.named('cornerL'), cr = layout.named('cornerR');
-  const studsFor = (w) => Math.max(1, Math.floor((w + 4) / 12));
-  drawBlock(r, cl.x0, cl.w, g.cornerTop, last, geom === 'plain' ? bar : cornerB, { studs: studsFor(cl.w), seamR: true });
-  drawBlock(r, cr.x0, cr.w, g.cornerTop, last, geom === 'plain' ? bar : cornerB, { studs: studsFor(cr.w), seamL: true });
-  if (geom === 'plain') {
-    const c = layout.named('centre'), cb = p[colours.centre];
-    drawBlock(r, c.x0, c.w, g.centreTop + STUD.h, last, cb, { studs: 2, seamL: true, seamR: true });
-    if (kind === 'alert') {
-      // A printed exclamation mark on the alert's centre brick: whole pixels,
-      // a 2px bar and a 2×2 dot, centred on the brick.
-      const cx = c.x0 + Math.floor(c.w / 2) - 1, y0 = g.centreTop + STUD.h + 2;
-      const ink = p.glyph ?? p.white.base;
-      r.fillRect(cx, y0, 2, last - 4 - y0, ink);
-      r.fillRect(cx, last - 3, 2, 2, ink);
-    }
-  }
 }
 
-/** The smooth white title tile across capL | plate | capR; uniform along x on the plate (it tiles). */
+/** The smooth white title tile across capL | plate | capR; one colour per row on the plate (it tiles). */
 function paintTile(r, layout, g, p, bar) {
   const capL = layout.named('capL'), capR = layout.named('capR');
-  const [t0, t1] = g.plate;
-  const x0 = capL.x0 + 2, x1 = capR.x1 - 2; // exclusive
+  const [t0, t1] = g.tile;
   const tile = p.white;
-  const row = (y) => {
-    if (y === t0 || y === t1) return p.outline;
-    if (y === t0 + 1) return tile.gloss;
-    if (y === t1 - 1) return tile.deep;
-    if (y === t1 - 2) return tile.lo;
-    return tile.base;
-  };
-  for (let y = t0; y <= t1; y++) r.hline(x0, y, x1 - x0, row(y));
-  // A shadow under the tile, on the bar (one colour per row).
-  r.hline(x0 + 1, t1 + 1, x1 - x0, bar.deep);
-  // Ends: outline columns, rounded corners, a lit left edge and a shaded right edge.
-  for (let y = t0; y <= t1; y++) { r.set(x0, y, p.outline); r.set(x1 - 1, y, p.outline); }
-  for (let y = t0 + 1; y < t1 - 1; y++) { r.set(x0 + 1, y, tile.gloss); r.set(x1 - 2, y, tile.lo); }
-  r.vline(x1, t0 + 1, t1 - t0 + 1, bar.deep);
-  const barRows = bodyRows(bar, g.barTop, layout.top - 1);
-  for (const [x, y] of [[x0, t0], [x1 - 1, t0], [x0, t1], [x1 - 1, t1]]) r.set(x, y, barRows(x, y));
-  r.set(x1, t0, barRows(x1, t0));
+  const row = (y) => (y === t0 || y === t1 ? p.outline : y === t0 + 1 ? tile.hi : y === t1 - 1 ? tile.lo : tile.base);
+  for (let y = t0; y <= t1; y++) r.hline(capL.x0, y, capR.x1 - capL.x0, row(y));
+  // Ends: an outline column, a lit left edge and a shaded right edge, square
+  // corners nicked by one pixel.
+  r.vline(capL.x0, t0, t1 - t0 + 1, p.outline).vline(capR.x1 - 1, t0, t1 - t0 + 1, p.outline);
+  r.vline(capL.x0 + 1, t0 + 1, t1 - t0 - 2, tile.hi).vline(capR.x1 - 2, t0 + 1, t1 - t0 - 1, tile.lo);
+  for (const x of [capL.x0, capR.x1 - 1]) r.set(x, t0, bar.base).set(x, t1, bar.base);
 }
 
-/** Offset brick courses down a wall: two 6-row courses per 12-row tile; the second course has a head joint mid-wall. */
+/**
+ * The crane (document only), drawn after the outline pass so every pixel of
+ * it is placed here. Rows 0..23 of the 36px crane cell: a yellow lattice jib
+ * rising up-left at 45° from behind the cab, a cable to a grey hook, and a
+ * red 1×1 brick hanging over the stud-less brick in the bar below. The cab
+ * stands on a grey turntable on the crane's yellow base brick.
+ */
+function paintCrane(r, cell, g, p) {
+  const x0 = cell.x0, Y = p.yellow, grey = p.grey, o = p.outline;
+  if (g.barTop !== 24) throw new Error('brickworks: the crane is drawn for a 24-row sky');
+  // Jib: rows 0..18, 7px across, stepping right one pixel per row. Rails are
+  // hi (upper) and lo (lower); between them yellow rungs cross a dark gap
+  // every third row, so it reads as a lattice.
+  for (let y = 1; y <= 19; y++) {
+    const L = x0 + 3 + y;
+    const rung = (u) => ((2 * y + u) % 6 < 2 ? Y.base : o);
+    r.set(L, y, o).set(L + 1, y, Y.hi).set(L + 2, y, rung(2)).set(L + 3, y, rung(3)).set(L + 4, y, rung(4))
+      .set(L + 5, y, Y.lo).set(L + 6, y, o);
+  }
+  // The jib head: a rounded cap with a grey sheave.
+  r.hline(x0 + 4, 0, 5, o).set(x0 + 3, 1, o).hline(x0 + 4, 1, 4, Y.hi).set(x0 + 5, 2, grey.hi).set(x0 + 6, 2, grey.base);
+  // Cab: rows 12..21 with a grey pivot pin, on a turntable (rows 22..23).
+  const cx0 = x0 + 22, cx1 = x0 + 33;
+  r.hline(cx0, 12, cx1 - cx0 + 1, o);
+  for (let y = 13; y <= 20; y++) {
+    r.set(cx0, y, o).hline(cx0 + 1, y, cx1 - cx0 - 2, y === 13 ? Y.hi : Y.base).set(cx1 - 1, y, Y.lo).set(cx1, y, o);
+  }
+  r.hline(cx0, 21, cx1 - cx0 + 1, o);
+  r.sprite(cx0 + 2, 15, ['.oo.', 'oGgo', 'ogko', '.oo.'], { o, G: grey.hi, g: grey.base, k: grey.lo });
+  r.set(cx0 - 1, 22, o).hline(cx0, 22, cx1 - cx0 + 1, grey.hi).set(cx1 + 1, 22, o);
+  r.set(cx0 - 1, 23, o).hline(cx0, 23, cx1 - cx0 + 1, grey.base).set(cx1 + 1, 23, o);
+  // Cable and hook.
+  const hx = x0 + 6;
+  r.vline(hx, 3, 3, p.cable);
+  r.sprite(hx - 1, 6, ['.o.', 'oGo', 'g.k'], { o, G: grey.hi, g: grey.base, k: grey.lo });
+  // The hanging red 1×1 brick: stud rows 9..13, body rows 13..19.
+  const red = p.red, bx = hx - 5;
+  stud(r, bx + 2, 9, red, p);
+  r.hline(bx, 13, 2, o).hline(bx + 8, 13, 2, o);
+  for (let y = 14; y <= 18; y++) r.set(bx, y, o).hline(bx + 1, y, 7, y === 14 ? red.hi : red.base).set(bx + 8, y, red.lo).set(bx + 9, y, o);
+  r.hline(bx, 19, 10, o);
+}
+
+/**
+ * Two-colour wall courses, one 46-row period from the content's top. The
+ * right wall swaps the colours and is staggered half a course, so the seams
+ * of the two walls never line up.
+ */
 function paintSides(r, layout, colours, p) {
-  const b = p[colours.wall], A = layout.content;
-  const course = 6;
-  for (const [cells, x0, w] of [[layout.cells.left, 0, A.left], [layout.cells.right, A.right, layout.width - A.right]]) {
-    for (const cell of cells) {
-      r.fillRect(x0, cell.x0, w, cell.w, (x, y) => {
-        const ly = (y - A.top) % (2 * course), c = Math.floor(ly / course), ry = ly % course;
+  const A = layout.content;
+  const sides = [[0, A.left, colours.walls, 0], [A.right, layout.width - A.right, [colours.walls[1], colours.walls[0]], 11]];
+  for (const [x0, w, walls, shift] of sides) {
+    for (let y = A.top; y < A.bottom; y++) {
+      const ly = (y - A.top + shift) % WALL, c = ly < WALL / 2 ? 0 : 1, ry = ly % (WALL / 2);
+      const b = p[walls[c]];
+      for (let x = x0; x < x0 + w; x++) {
         const lx = x - x0;
-        if (ry === course - 1) return b.seam;
-        if (c === 1 && lx === Math.floor(w / 2)) return b.seam;              // head joint
-        if (c === 1 && lx === Math.floor(w / 2) + 1) return b.hi;
-        if (ry === 0) return b.hi;
-        if (ry === course - 2) return b.lo;
-        return lx === 1 ? mix(b.base, b.gloss, 0.4) : b.base;
-      });
+        let col = b.base;
+        if (ry === WALL / 2 - 1) col = p.outline;                  // the seam under each brick
+        else if (lx === w - 2) col = b.lo;                         // shaded right column
+        else if (ry === 0) col = b.hi;                             // lit top row
+        r.set(x, y, col);
+      }
     }
   }
 }
 
-/** The baseplate: a seam row, the plate's studded top face, a lit edge and the front face. */
-function paintBottom(r, layout, colours, p) {
-  const b = p[colours.base];
-  const y0 = layout.content.bottom, H = layout.height, n = H - y0;
-  const faceTop = n - 4; // first row of the front face's lit edge
-  const topFace = mix(b.base, b.hi, 0.5);
-  r.fillRect(0, y0, layout.width, n, (x, y) => {
-    const ry = y - y0;
-    if (ry === 0) return b.seam;
-    if (ry < faceTop) return topFace;
-    if (ry === faceTop) return b.gloss;
-    if (ry === n - 1) return p.outline;
-    return ry === n - 2 ? b.lo : b.base;
-  });
-  // Studs on the top face, seen from slightly above: a 6×3 lit cap with a dark
-  // foot shadow. Every 8px, phased from each cell's own edge (the left corner
-  // from its right end, so it meets the code-12 run seamlessly).
-  const studAt = (x) => {
-    const y = y0 + 1;
-    r.fillRect(x + 1, y, 4, 1, b.gloss);
-    r.fillRect(x, y + 1, 6, 1, b.hi).set(x, y + 1, b.gloss);
-    r.fillRect(x, y + 2, 6, 1, b.lo).set(x + 5, y + 2, b.deep);
-    r.fillRect(x + 1, y + 3, 5, 1, b.deep);
-  };
-  for (const cell of layout.cells.bottom) {
-    if (cell.code === 13) continue;
-    if (cell.name === 'baseL') { for (let x = cell.x1 - PLATE_RUN + 1; x >= cell.x0 + 1; x -= PLATE_RUN) studAt(x); continue; }
-    for (let x = cell.x0 + 1; x + 7 <= cell.x1; x += PLATE_RUN) studAt(x);
+/** The green baseplate: ground behind the studs, the studs, then the plate. */
+function paintBottom(r, layout, g, colours, p, kind) {
+  const plate = p[colours.base];
+  const y0 = layout.content.bottom, W = layout.width, B = layout.bottom;
+  const pt = y0 + B - 6; // the plate's top edge row
+  r.fillRect(0, y0, W, pt - y0, BODY);
+  r.hline(0, pt, W, p.outline).hline(0, pt + 1, W, plate.hi);
+  r.fillRect(0, pt + 2, W, 3, plate.base).hline(0, pt + 4, W, plate.lo).hline(0, pt + 5, W, p.outline);
+  const run = layout.named('baseRun');
+  stud(r, run.x0 + 2, pt - 4, plate, p);
+  // Wall feet: the last course of each wall stands on the plate.
+  const walls = colours.walls;
+  for (const [x0, w, c] of [[0, g.side, walls[1]], [W - g.side, g.side, walls[0]]]) {
+    brick(r, x0, w, y0, pt - 1, p[c], p, { seamL: true, seamR: true });
   }
-  r.set(0, H - 1, null).set(layout.width - 1, H - 1, null); // rounded bottom corners
+}
+
+/** The document's bottom corners: the loose brick stack and the wheel. */
+function paintBottomCorners(r, layout, p) {
+  const y0 = layout.content.bottom, W = layout.width;
+  const blue = p.blue, green = p.green;
+  r.sprite(0, y0, STACK, { o: p.outline, B: blue.hi, c: blue.base, L: blue.lo, E: green.hi, e: green.base, F: green.lo });
+  const grey = p.grey;
+  const wx = W - G.doc.side - WHEEL[0].length - 1;
+  r.sprite(wx, y0 + layout.bottom - WHEEL.length, WHEEL, {
+    o: p.outline, T: grey.base, t: grey.lo, s: grey.base, U: '#ffffff', u: grey.hi, a: grey.deep,
+  });
 }
 
 /** Paint one frame image for a window type in a state ('active' | 'inactive'). */
 export function paintFrame(t, state) {
-  const { layout, geom, kind } = t;
+  const { layout, geom, kind, crane } = t;
+  const g = G[geom];
   const p = pal(state);
   const colours = SCHEME_COLOURS[kind];
   const r = new Raster(layout.width, layout.height);
-  paintTop(r, layout, geom, colours, p, kind);
+  paintTop(r, layout, g, colours, p, kind);
   if (!layout.collapsed) {
     paintSides(r, layout, colours, p);
-    paintBottom(r, layout, colours, p);
+    paintBottom(r, layout, g, colours, p, kind);
   }
   const A = layout.content;
   r.fillRect(A.left, A.top, A.right - A.left, A.bottom - A.top, null); // the content area is a hole
   r.outlineEdges(0, 0, r.width, r.height, p.outline); // 1px outline round the whole silhouette
+  if (crane) paintCrane(r, layout.named('crane'), g, p);
+  if (crane && !layout.collapsed) paintBottomCorners(r, layout, p);
   for (const [role, box] of Object.entries(layout.widgets)) drawWidget(r, box, role, state);
   // Hidden swatches: title text at (A.left, A.top), its shadow one pixel right (TC2).
   r.swatch(A.left, A.top, p.title);
@@ -270,10 +292,10 @@ export function paintFrame(t, state) {
 
 /** Window type table: wnd# id → description. Active frame = id + 1. */
 export function windowTypes() {
-  const t = (id, name, kind, geom, opts) => ({ id, name, kind, geom, layout: frameLayout(spec(geom, opts)) });
+  const t = (id, name, kind, geom, opts = {}) => ({ id, name, kind, geom, crane: !!opts.crane, layout: frameLayout(spec(geom, opts)) });
   return [
-    t(-14336, 'Document Window', 'doc', 'doc', { widgets: 'all' }),
-    t(-14332, 'Collapsed Document Window', 'doc', 'doc', { widgets: 'all', collapsed: true }),
+    t(-14336, 'Document Window', 'doc', 'doc', { widgets: 'all', crane: true }),
+    t(-14332, 'Collapsed Document Window', 'doc', 'doc', { widgets: 'all', crane: true, collapsed: true }),
     t(-14328, 'Dialog', 'dialog', 'plain'),
     t(-14326, 'Alert', 'alert', 'plain'),
     t(-14324, 'Movable Modal', 'modal', 'modal'),

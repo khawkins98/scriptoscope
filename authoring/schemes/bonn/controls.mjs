@@ -1,7 +1,7 @@
-// Bonn push buttons (a cream enamel street-sign plate with a dark rim; pressed
-// turns cherry-blossom pink), the default-button ring (a yellow band with a red
-// edge: the city colours), and checkboxes / radio buttons (cream boxes, red
-// marks).
+// Bonn push buttons (sandstone blocks with a dark outline, a lit top row and a
+// shaded bottom row; pressed sinks to the shade colour), the default ring
+// (the city colours: red with a yellow inner line) and checkboxes / radio
+// buttons (cream boxes, red marks). Every edge is whole pixels.
 //
 // Push faces (docs/authoring-a-scheme.md §5 item 3): the engine copies the four
 // cornerSize corners 1:1, stretches the sideThickness bands, and fills the
@@ -9,23 +9,20 @@
 // bands (uniform along them) and the corners.
 import { Raster, encodeCicn, encodeCinf } from '../../../tools/theme-author/index.js';
 import { C } from './palette.mjs';
+import { roundRect, disc, bevel } from './pixels.mjs';
 
-const BTN = { size: 20, corner: 6, side: 2, radius: 5 };
+const A = C.active;
+const BTN = { size: 20, corner: 6, side: 2, radius: 4 };
 
 const LOOKS = {
-  inactive: { face: '#efe9df', edge: '#b9ada1', hi: '#f7f3ec', lo: '#ddd4c7', text: '#a99d91' },
-  normal: { face: '#fbf1de', edge: '#3a2c26', hi: '#ffffff', lo: '#e2cca7', text: '#2a211d' },
-  pressed: { face: '#f6c4d2', edge: '#7e1f3d', hi: '#e7a3b7', lo: '#fbd9e3', text: '#4a0f22' },
+  inactive: { face: '#eeeeee', outline: '#999999', hi: '#ffffff', lo: '#dddddd', text: '#999999' },
+  normal: { face: A.stone, outline: A.outline, hi: A.stoneHi, lo: A.stoneLo, text: A.outline },
+  pressed: { face: A.stoneLo, outline: A.outline, hi: A.mortar, lo: A.stone, text: A.titleShadow },
 };
 
 function pushFace(look) {
   const { size, radius } = BTN;
-  const r = new Raster(size, size)
-    .fillRoundRectSmooth(0, 0, size, size, radius, look.edge, { matte: C.body })
-    .fillRoundRectSmooth(1, 1, size - 2, size - 2, radius - 1, look.face);
-  // Bevel in the 2px side band: row/col 1 lit, the far row/col shaded.
-  r.fillRect(4, 1, size - 8, 1, look.hi).fillRect(1, 4, 1, size - 8, look.hi);
-  r.fillRect(4, size - 2, size - 8, 1, look.lo).fillRect(size - 2, 4, 1, size - 8, look.lo);
+  const r = bevel(new Raster(size, size), 0, 0, size, size, roundRect(size, size, radius), look);
   // Hidden swatch for the label colour, on a corner pixel that stays transparent.
   r.swatch(size - 1, 0, look.text);
   return r;
@@ -37,14 +34,23 @@ const pushCinf = () => encodeCinf({
 });
 
 // Default ring: drawn 4px outside the face, after it; corners copied 1:1, so
-// everything inside the band must be transparent. Its curve shares the face's
-// corner centre (radius 5 + 4).
-function ringFace(band, edge) {
-  const size = 28;
-  return new Raster(size, size)
-    .fillRoundRectSmooth(0, 0, size, size, 9, edge, { matte: C.body })
-    .fillRoundRectSmooth(1, 1, size - 2, size - 2, 8, band)
-    .fillRoundRect(3, 3, size - 6, size - 6, 6, null);
+// everything inside the band must be transparent. From the outside in: dark
+// red edge, red, the yellow inner line, a 1px gap. Its corner is concentric
+// with the face's (radius 4 + 4).
+function ringFace(outer, band, inner) {
+  const size = 28, R = 8;
+  const out = roundRect(size, size, R), hole = roundRect(size - 6, size - 6, R - 3);
+  const gap = roundRect(size - 4, size - 4, R - 2), lineIn = roundRect(size - 2, size - 2, R - 1);
+  const r = new Raster(size, size);
+  for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+    if (!out(x, y)) continue;
+    if (hole(x - 3, y - 3)) continue;
+    let c = outer;
+    if (gap(x - 2, y - 2)) c = inner;
+    else if (lineIn(x - 1, y - 1)) c = band;
+    r.set(x, y, c);
+  }
+  return r;
 }
 const ringCinf = () => encodeCinf({
   cornerSize: 10, sideThickness: 4, tileSides: 0, patternAnchor: 0, bgPatternId: 0,
@@ -52,25 +58,36 @@ const ringCinf = () => encodeCinf({
 });
 
 // Checkboxes and radios: id = -9504 + 12·kind + 3·value + tier.
-const CHECK = 14;
+const CHECK = 12;
+const TICK = [
+  '......#',
+  '.....##',
+  '#...##.',
+  '##.##..',
+  '.###...',
+  '..#....',
+];
+const DOT = [
+  '..yyy..',
+  '.y###y.',
+  'y#####y',
+  'y#####y',
+  'y#####y',
+  '.y###y.',
+  '..yyy..',
+];
 function checkable(kind, value, tier) {
   const on = value > 0, disabled = tier === 0, pressed = tier === 2;
-  const edge = disabled ? '#b9ada1' : '#3a2c26';
-  const fill = disabled ? '#f1ece4' : pressed ? '#f6c4d2' : '#fffaf0';
-  const ink = disabled ? '#c9b7b3' : pressed ? C.redLo : C.red;
-  const radius = kind === 0 ? 3 : CHECK / 2;
-  const r = new Raster(CHECK, CHECK)
-    .fillRoundRectSmooth(0, 0, CHECK, CHECK, radius, edge, { matte: C.body })
-    .fillRoundRectSmooth(1, 1, CHECK - 2, CHECK - 2, radius - 1, fill);
-  // A soft sandstone inner shadow along the top: the box is set into the page.
-  if (!disabled) r.strokeLineSmooth(3.5, 2.5, CHECK - 3.5, 2.5, 0.8, pressed ? '#e7a3b7' : '#eadbc0');
+  const outline = disabled ? '#999999' : A.outline;
+  const face = disabled ? '#eeeeee' : pressed ? A.stone : A.stoneHi;
+  const inset = disabled ? '#dddddd' : pressed ? A.stoneLo : A.stone;      // the box is set into the page: shade top-left
+  const ink = disabled ? '#999999' : pressed ? A.redLo : A.red;
+  const mask = kind === 0 ? roundRect(CHECK, CHECK, 2) : disc(CHECK);
+  const r = bevel(new Raster(CHECK, CHECK), 0, 0, CHECK, CHECK, mask, { outline, hi: inset, lo: null, face });
   if (!on) return r;
-  if (value === 2) return r.strokeLineSmooth(4, 7, 10, 7, 2.2, ink);
-  if (kind === 1) {
-    r.fillCircleSmooth(7, 7, 3.2, ink);
-    return disabled ? r : r.fillCircleSmooth(6, 6, 1, C.yellow); // a yellow glint
-  }
-  return r.strokeLineSmooth(3.4, 7.2, 5.9, 10, 2, ink).strokeLineSmooth(5.9, 10, 10.8, 3.6, 2, ink);
+  if (value === 2) return r.fillRect(3, 5, 6, 2, ink);
+  if (kind === 1) return r.sprite(2, 2, DOT, { '#': ink, y: disabled ? face : A.yellow });
+  return r.sprite(3, 3, TICK, { '#': ink });
 }
 
 export function build(add) {
@@ -83,9 +100,9 @@ export function build(add) {
     add('cicn', id, encodeCicn(pushFace(look)), name);
     add('cinf', id, pushCinf(), name);
   }
-  add('cicn', -10232, encodeCicn(ringFace('#e6dccb', '#b9ada1')), 'Inactive Default Ring');
+  add('cicn', -10232, encodeCicn(ringFace('#888888', '#aaaaaa', '#dddddd')), 'Inactive Default Ring');
   add('cinf', -10232, ringCinf(), 'Inactive Default Ring');
-  add('cicn', -10231, encodeCicn(ringFace(C.yellow, C.redLo)), 'Default Ring');
+  add('cicn', -10231, encodeCicn(ringFace(A.redLo, A.red, A.yellow)), 'Default Ring');
   add('cinf', -10231, ringCinf(), 'Default Ring');
 
   const kinds = ['Checkbox', 'Radio Button'], values = ['Off', 'On', 'Mixed'], tiers = ['Disabled', 'Normal', 'Pressed'];

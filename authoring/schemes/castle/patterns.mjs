@@ -10,19 +10,22 @@
 //
 // ppats tile in both directions, so the ordered dither (period 4) is fine as
 // long as the tile size is a multiple of 4 (authoring guide §4.5).
-import { Raster, encodePpat, encodeCicn, encodeCinf, bayer } from '../../../tools/theme-author/index.js';
-import { hash } from './stone.mjs';
+import { Raster, encodePpat, encodeCicn, encodeCinf } from '../../../tools/theme-author/index.js';
 import { C } from './palette.mjs';
 
 export const PARCHMENT_PPAT = 42;
 
-/** 16×16 parchment for every body: a faint ordered-dither mottle, about 1.05:1, too faint to fight letter stems. */
+/**
+ * 64×64 parchment for every body: flat #ffffcc with eight #cccc99 flecks
+ * scattered by hand: the brief's one per 16×16, on a grid, read as graph
+ * paper at 2x, so they are sparser and off-grid. Single pixels far apart, so nothing aliases with letter
+ * stems (visual design §2.4); both colours are system-palette entries, so
+ * 8 bpp keeps the page flat.
+ */
+const FLECKS = [[5, 3], [41, 11], [22, 24], [58, 30], [9, 44], [35, 50], [50, 61], [27, 37]];
 function parchment() {
-  const N = 16, r = new Raster(N, N);
-  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
-    const n = hash(x >> 2, y >> 2, 8);
-    r.set(x, y, n > bayer(x, y) * 1.6 ? '#ede6d4' : '#e8e0cc');
-  }
+  const N = 64, r = new Raster(N, N).fillRect(0, 0, N, N, C.body);
+  for (const [x, y] of FLECKS) r.set(x, y, '#cccc99');
   return r;
 }
 
@@ -36,13 +39,13 @@ const finderCinf = (bgPatternId = 0) => encodeCinf({
 
 export function build(add) {
   add('ppat', PARCHMENT_PPAT, encodePpat(parchment()), 'Parchment');
-  const ink = '#2b2824';
+  const ink = '#333333';
   const finder = [
     [-9552, 'Desktop Text Color And Background', '#ffffff', ink, 0],
     [-9551, 'Icon View Background', C.body, ink, PARCHMENT_PPAT],
     [-9550, 'List View Background', C.body, ink, PARCHMENT_PPAT],
-    [-9549, 'List View Sort Color', '#ddd3bd', ink, 0],
-    [-9548, 'List View Divider Line', '#c9bfa9', ink, 0],
+    [-9549, 'List View Sort Color', '#ffff99', ink, 0],
+    [-9548, 'List View Divider Line', '#cccc99', ink, 0],
   ];
   for (const [id, name, fill, text, ppat] of finder) {
     add('cicn', id, encodeCicn(finderSwatch(fill, text)), name);

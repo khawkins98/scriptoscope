@@ -1,32 +1,77 @@
-// Halcyon's palette. Colours are what you want to see on screen (sRGB); the
-// encoder handles the classic-Mac gamma difference.
+// Halcyon's palette: a kingfisher has landed on a frosted modern window
+// (concept/brief.md §1).
 //
-// Add a family's colours under its own key rather than reusing unrelated ones,
-// so one family can be retuned without moving another.
+// Every colour here is chosen as an entry of the classic 8-bit system palette
+// (the 6×6×6 cube or the grey ramp) and written through `sys()`, which gives
+// the colour the loader shows for that stored entry. The encoder stores it
+// back as the entry (±1), so an 8 bpp Mac and the web show the same colours:
+// nothing snaps, nothing drifts to a neighbouring hue. Write colours as
+// sys('#rrggbb') with cube digits (00 33 66 99 cc ff) or grey-ramp greys.
 //
-// Contrast floors (WCAG, on these on-screen colours; docs/authoring-visual-design.md §2.3):
-// frame border vs white body ≥ 3:1 (active 4.4, inactive 3.0), inactive title
-// vs inactive bar ≥ 4.5:1 (4.5), white glyph on the accent 4.9:1.
+// Light comes from the upper left: a 1px white sheen on the top/left inside
+// every raised outline, a 1px shade on the bottom/right. Sunk parts (tracks,
+// grooves, channels) reverse it.
 //
-// The two accent colours sit on classic 8-bit system-palette entries (they are
-// macRgbToSrgb of cube entries #006699 and #003366; the encoder stores them
-// within one unit of the entry), so an
-// 8 bpp screen shows the same teal as the web instead of snapping it to a
-// greener #006666. The greys are allowed to collapse to the grey ramp at
-// 8 bpp: every step still lands on a distinct grey, and nothing turns colour.
+// Teal is spent only on glyphs, checked/on states, the default ring, the
+// active tab edge and the water (brief §4.5).
+import { gammaCorrectHex } from '../../../tools/theme-loader/mac-gamma.js';
+
+/** The on-screen colour of a stored system-palette entry. */
+export const sys = (hex) => gammaCorrectHex(hex);
+
+const white = '#ffffff';
+
 export const C = {
-  accent: '#0078a8',        // system entry #006699
-  accentPressed: '#004478', // system entry #003366
-  body: '#ffffff',
+  body: white,
+  white,
+  black: sys('#000000'),
+  glass: sys('#eeeeee'),        // frosted face: bar, sides, button bottoms
+  shade: sys('#cccccc'),        // 1px shade rows, pressed faces, inactive rims
+  deep: sys('#999999'),         // sunk channels, disabled text
+  outline: sys('#336699'),      // the window's edge, every rim
+  accent: sys('#0099cc'),       // glyphs, checked, default ring, active tab, water
+  accentDeep: sys('#006699'),   // pressed faces, groove edges
+  accentLight: sys('#66ccff'),  // sheen on teal, thumb grips, upper water
+  water: sys('#3399cc'),        // lower water, slider groove, progress fill
+  text: sys('#000000'),
+  textOff: sys('#999999'),
+
   active: {
-    barTop: '#fbfcfe', barBottom: '#e6ebf2', highlight: '#ffffff',
-    separator: '#d2d8e1', border: '#6f7a8a', title: '#1d2430',
-    glyph: '#4a5566', buttonTop: '#ffffff', buttonBottom: '#e2e7ee', buttonEdge: '#8d98a8',
+    outline: sys('#336699'), sheen: white, face: sys('#eeeeee'), shade: sys('#cccccc'),
+    plate: white, plateShade: sys('#cccccc'), title: sys('#000000'),
+    rim: sys('#336699'), disc: sys('#eeeeee'), glyph: sys('#006699'),
+    branch: { line: sys('#333300'), hi: sys('#99cc33'), mid: sys('#669933'), lo: sys('#336600'), cut: sys('#cc9966'), ring: sys('#996633') },
+    leaf: { hi: sys('#99cc33'), mid: sys('#669933'), lo: sys('#336600') },
+    bird: {
+      line: sys('#003366'), back: sys('#0099cc'), deep: sys('#006699'), light: sys('#33cccc'), spark: sys('#66ffff'),
+      breast: sys('#ff9933'), breastLo: sys('#cc6600'), cheek: white, eye: sys('#000000'),
+      beak: sys('#333333'), beakLo: sys('#666666'), feet: sys('#ff6633'),
+    },
+    water: { hi: sys('#66ccff'), lo: sys('#3399cc'), foam: white, foamLo: sys('#66ccff'), ripple: white },
+    pebble: { line: sys('#666666'), face: sys('#cccccc'), lo: sys('#999999'), hi: white },
   },
   inactive: {
-    barTop: '#f6f7f9', barBottom: '#f6f7f9', highlight: '#fbfbfc',
-    separator: '#e3e6ea', border: '#8c95a3', title: '#6a727f',
-    glyph: null, buttonTop: '#eef0f3', buttonBottom: '#eef0f3', buttonEdge: '#d0d4da',
+    outline: sys('#777777'), sheen: white, face: sys('#dddddd'), shade: sys('#bbbbbb'),
+    plate: sys('#eeeeee'), plateShade: sys('#cccccc'), title: sys('#555555'),
+    rim: sys('#999999'), disc: sys('#dddddd'), glyph: null,
+    branch: { line: sys('#666633'), hi: sys('#cccc99'), mid: sys('#999966'), lo: sys('#666633'), cut: sys('#cccc99'), ring: sys('#999966') },
+    leaf: { hi: sys('#cccc99'), mid: sys('#999966'), lo: sys('#666633') },
+    bird: {
+      line: sys('#336666'), back: sys('#669999'), deep: sys('#336666'), light: sys('#99cccc'), spark: sys('#ccffff'),
+      breast: sys('#cc9966'), breastLo: sys('#996666'), cheek: sys('#eeeeee'), eye: sys('#333333'),
+      beak: sys('#555555'), beakLo: sys('#777777'), feet: sys('#cc9999'),
+    },
+    water: { hi: sys('#99cccc'), lo: sys('#669999'), foam: sys('#eeeeee'), foamLo: sys('#99cccc'), ripple: sys('#eeeeee') },
+    pebble: { line: sys('#888888'), face: sys('#dddddd'), lo: sys('#bbbbbb'), hi: sys('#eeeeee') },
   },
 };
 
+// Extra pairs for the palette report (npm run author -- … --palette).
+export const CONTRAST = [
+  [C.active.outline, C.body, 'outline'],
+  [C.inactive.outline, C.body, 'outline'],
+  [C.active.glyph, C.active.disc, 'glyph'],
+  ['#ffffff', C.accentDeep, 'glyph'],
+  [C.inactive.title, C.inactive.plate, 'inactive title'],
+  [C.text, C.glass, 'label'],
+];

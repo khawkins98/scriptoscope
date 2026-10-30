@@ -1,32 +1,40 @@
-// Bonn scroll bars: a sandstone channel, sandstone arrow buttons (lit top
-// and left, shaded bottom and right) with whole-pixel city-red arrowheads, and
-// a Rhine-teal thumb with a whole-pixel wave grip. Red is the title colour, so
-// it appears only in the arrowheads; pressed buttons invert to a red face with
-// a cream arrowhead. Structure from Castle's scrollbars.mjs (same engine
-// rules, new art).
+// Bonn scroll bars: the track is the Rhine (a channel of two flat teals
+// with a foam line), the arrows are sandstone plates with whole-pixel red
+// arrowheads (red stays small: it is the title's colour), and the thumb is a
+// sandstone block with three white foam dots. Pressed arrows sink to the
+// shade colour. Structure from Castle's scrollbars.mjs (same engine rules,
+// new art).
 //
 // The engine rules are the ones Halcyon's parts/scrollbars.mjs documents
 // (docs/spec/engine/scrollbar.md): one TRACK cicn per tier holds both arrows
 // and a 3px track source whose middle is stretched, so the track may only vary
-// ACROSS the bar (no dithering, no stone joints along it); every image is
+// ACROSS the bar (no foam dashes along it: a line instead); every image is
 // opaque; the pressed track's middle equals the normal one; thumbs are copied
 // 1:1 and must be opaque with the track painted into their sides.
 import { Raster, encodeCicn } from '../../../tools/theme-author/index.js';
+import { C } from './palette.mjs';
+import { roundRect, bevel } from './pixels.mjs';
 
-// Classic shows these as the nearest system colours: face and track share
-// one entry (#d4d4a8), so the bevel and the dividers do the separating.
+const A = C.active;
 const SB = {
-  line: '#3a2c26',      // hairline facing the content, and the arrow dividers
-  track: '#e6d3b1',
-  groove: '#cdb68f',    // shade next to the hairline: the channel is sunk
-  far: '#f3e6cd',       // lit far lip of the channel
-  face: '#e2c9a0', faceHi: '#f8f0d6', faceLo: '#b99a70',
-  arrow: '#c0262d', arrowOff: '#c9b089',
-  pressedFace: '#c0262d', pressedHi: '#d9585d', pressedLo: '#7e1419', pressedArrow: '#fff6de',
-  thumb: '#44a8a8', thumbHi: '#99cccc', thumbLo: '#447878',
-  thumbPressed: '#447878', thumbPressedHi: '#44a8a8', thumbPressedLo: '#2b5a5e',
-  thumbEdge: '#173f46', grip: '#d9f0ec', gripPressed: '#f4c430',
-  inactive: { line: '#a59b91', track: '#ece6dc', groove: '#e0d8cc', far: '#f4f0e9' },
+  line: A.outline,      // hairline facing the content, and the arrow dividers
+  // The channel across the bar: sandstone lips (shaded on the near side, lit
+  // on the far side) holding a strip of the river with a foam line.
+  channel: (u, t) => {
+    const lip = t >= 14 ? 2 : 1;
+    if (u <= lip) return u === 1 ? A.stoneLo : A.stone;
+    if (u >= t - lip) return u === t - 1 ? A.stone : A.stoneHi;
+    if (u === lip + 1) return A.waterLo;
+    if (u === lip + 3) return A.foam;
+    return A.water;
+  },
+  face: A.stone, faceHi: A.stoneHi, faceLo: A.stoneLo,
+  arrow: A.red, arrowOff: A.stoneLo,
+  pressedFace: A.stoneLo, pressedHi: A.mortar, pressedLo: A.stone, pressedArrow: A.redLo,
+  thumb: A.stone, thumbHi: A.stoneHi, thumbLo: A.stoneLo,
+  thumbPressed: A.stoneLo, thumbPressedHi: A.mortar, thumbPressedLo: A.stone,
+  thumbEdge: A.outline, grip: A.foam, gripPressed: A.stoneHi,
+  inactive: { line: '#999999', channel: (u) => (u === 1 ? '#cccccc' : '#eeeeee') },
 };
 
 /** A raster addressed as (u across the bar, v along it). */
@@ -41,10 +49,7 @@ function barRaster(horizontal, cross, along) {
 }
 
 function paintTrack(b, cross, along, look = SB) {
-  b.fill(0, 0, cross, along, look.track);
-  b.fill(0, 0, 1, along, look.line);
-  b.fill(1, 0, 1, along, look.groove);
-  b.fill(cross - 1, 0, 1, along, look.far);
+  for (let u = 0; u < cross; u++) b.fill(u, 0, 1, along, u === 0 ? look.line : look.channel(u, cross));
 }
 
 /**
@@ -76,7 +81,7 @@ function paintArrow(b, t, v0, d, end, cap, dir, look) {
   if (cap) b.fill(0, v0 + d - 1, t, 1, SB.line);
   const ink = look === 'off' ? SB.arrowOff : pressed ? SB.pressedArrow : SB.arrow;
   // Centre on the face inside the bevel (u 2 … t-2).
-  arrowhead(b, (t >> 1), faceV0 + 1, faceV1 - 1, dir, t >= 14 ? 4 : 3, ink);
+  arrowhead(b, (t >> 1), faceV0 + 1, faceV1 - 1, dir, t >= 14 ? 3 : 2, ink);
 }
 
 function trackImage(horizontal, t, look, double) {
@@ -99,60 +104,50 @@ function inactiveImage(horizontal, t) {
   return b.r;
 }
 
-// The grip: a two-period wave across the thumb, on whole pixels (u across, v along).
-const GRIP = { big: ['.##..##.', '#..##..#'], small: ['.##.', '#..#'] };
-
-/** Rhine-teal thumb with a wave grip; opaque, with the track painted into its sides. */
+/** Sandstone thumb with three foam dots; opaque, with the track painted into its sides. */
 function thumbImage(horizontal, t, pressed, ghost = false) {
   const small = t <= 11;
   const along = small ? 16 : 23;
   const b = barRaster(horizontal, t, along);
-  const inset = 2;
-  const w = t - 1 - 2 * (inset - 1), h = along - 2;
-  if (ghost) {
-    b.round(inset, 1, w, h, 3, SB.thumbEdge, { matte: SB.track });
-    b.round(inset + 1, 2, w - 2, h - 2, 2, '#bfdcd8');
-    return b.r;
-  }
   paintTrack(b, t, along);
+  // The block, across u 2 … t-2, along v 1 … along-2 (drawn in bar coordinates via a scratch raster).
+  const w = t - 3, h = along - 2;
+  const block = new Raster(w, h);
   const [face, hi, lo] = pressed ? [SB.thumbPressed, SB.thumbPressedHi, SB.thumbPressedLo] : [SB.thumb, SB.thumbHi, SB.thumbLo];
-  const rad = small ? 3 : 4;
-  b.round(inset, 1, w, h, rad, SB.thumbEdge);
-  // Flat face with a 1px lit top/left and a shaded bottom/right inside the edge.
-  b.round(inset + 1, 2, w - 2, h - 2, rad - 1, lo);
-  b.round(inset + 1, 2, w - 3, h - 3, rad - 1, hi);
-  b.round(inset + 2, 3, w - 4, h - 4, rad - 2, face);
-  const grip = small ? GRIP.small : GRIP.big;
-  const ink = pressed ? SB.gripPressed : SB.grip;
-  const u0 = inset + ((w - grip[0].length) >> 1), v0 = (along >> 1) - 1;
-  grip.forEach((row, dv) => [...row].forEach((ch, du) => { if (ch === '#') b.fill(u0 + du, v0 + dv, 1, 1, ink); }));
+  if (ghost) bevel(block, 0, 0, w, h, roundRect(w, h, 3), { outline: SB.thumbEdge, hi: null, lo: null, face: null });
+  else bevel(block, 0, 0, w, h, roundRect(w, h, 3), { outline: SB.thumbEdge, hi, lo, face });
+  for (let v = 0; v < h; v++) for (let u = 0; u < w; u++) { const c = block.get(u, v); if (c) b.fill(2 + u, 1 + v, 1, 1, c); }
+  if (!ghost) {
+    const cu = 2 + (w >> 1), cv = 1 + (h >> 1);
+    // Three foam dots, each with a mortar shadow below right so it reads on sandstone.
+    for (const dv of [-3, 0, 3]) {
+      b.fill(cu, cv + dv, 1, 1, pressed ? SB.gripPressed : SB.grip);
+      b.fill(cu + 1, cv + dv + 1, 1, 1, pressed ? SB.pressedHi : A.mortar);
+    }
+  }
   return b.r;
 }
 
-/** Little arrows: two sandstone half-buttons with whole-pixel red arrowheads. */
+/** Little arrows: two sandstone half-plates with whole-pixel red arrowheads. */
 function littleArrows(look, part = 'both') {
   const W = 13, H = 23, split = 11;
   const r = new Raster(W, H);
   const pressed = look === 'pressed', inactive = look === 'inactive';
-  const edge = inactive ? '#b9ada1' : SB.line;
-  const half = (y0, y1, dir, isPressed) => {
+  const edge = inactive ? '#999999' : SB.line;
+  const half = (y0, y1, dir, isPressed, corners) => {
     const h = y1 - y0;
-    r.fillRoundRectSmooth(0, y0, W, h, 3, edge, { matte: '#fbf5ea' });
     const [face, hi, lo] = isPressed ? [SB.pressedFace, SB.pressedHi, SB.pressedLo]
-      : inactive ? ['#ece6dc', '#f4f0e9', '#d8ccb8'] : [SB.face, SB.faceHi, SB.faceLo];
-    r.fillRoundRectSmooth(1, y0 + 1, W - 2, h - 2, 2, lo);
-    r.fillRoundRectSmooth(1, y0 + 1, W - 3, h - 3, 2, hi);
-    r.fillRoundRectSmooth(2, y0 + 2, W - 4, h - 4, 1, face);
-    const ink = isPressed ? SB.pressedArrow : inactive ? '#c9bfb2' : SB.arrow;
+      : inactive ? ['#eeeeee', '#ffffff', '#dddddd'] : [SB.face, SB.faceHi, SB.faceLo];
+    bevel(r, 0, y0, W, h, roundRect(W, h, 3, corners), { outline: edge, hi, lo, face });
+    const ink = isPressed ? SB.pressedArrow : inactive ? '#bbbbbb' : SB.arrow;
     const rows = 3, top = y0 + ((h - rows) >> 1);
     for (let i = 0; i < rows; i++) {
       const k = dir < 0 ? i : rows - 1 - i;
       r.fillRect(6 - k, top + i, 2 * k + 1, 1, ink);
     }
   };
-  if (part !== 'down') half(0, split + 1, -1, pressed && part === 'up');
-  if (part !== 'up') half(split, H, 1, pressed && part === 'down');
-  if (part === 'both') r.hline(1, split, W - 2, edge);
+  if (part !== 'down') half(0, split + 1, -1, pressed && part === 'up', 'tl tr');
+  if (part !== 'up') half(split, H, 1, pressed && part === 'down', 'bl br');
   return r;
 }
 

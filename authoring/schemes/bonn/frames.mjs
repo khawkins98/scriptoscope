@@ -1,314 +1,339 @@
-// Bonn window frames: a sandstone title bar with the city's skyline standing
-// on it, a red-and-yellow city pennant carrying the title, sandstone side
-// walls, and the Rhine along the bottom: a promenade, rolling water with a
-// wavy lower edge, embankment piers at the corners and the Kennedy Bridge in
-// the middle.
+// Bonn window frames: a sandstone title bar with the Bonn skyline standing on
+// it and a cherry branch running along its top edge from the left corner, a
+// red city pennant carrying the title, sandstone ashlar piers down both sides,
+// and the Rhine along the bottom: an embankment, two flat teal bands with foam
+// dashes, a stone arch bridge in the middle and a mooring bollard on the
+// bottom-right pier where the grow box would be.
 //
 // Geometry comes from the toolkit's frameLayout (per-edge cell lists). Recipes:
 //
-//   top (document)  cornerL 1 | bar 11 | capL 6 | plate 5 | capR 6 | bar 8 | skyline 10 | bar 8 | cornerR 1
-//   top (utility,   cornerL 1 | bar 11 | capL 6 | plate 5 | capR 6 | bar 8 | tower 10  | bar 8 | cornerR 1
-//        modal)
-//   top (untitled)  cornerL 1 | bar 11 | ornament 1 | bar 8 | cornerR 1
-//   left / right    wall 8                                   (rows A.top … A.bottom only)
-//   bottom          pierL 1 | skip 0 | wave 11 | bridge 1 | wave 8 | pierR 1
-//                   (modal/utility/untitled: no bridge, the two wave cells meet)
+//   top (document)  cornerL 1 | branch 8 | capL 6 | plate 5 | capR 6 | bar 8 | skyline 10 | bar 8 | cornerR 1
+//   top (modal)     cornerL 1 | branch 8 | capL 6 | plate 5 | capR 6 | bar 8 | minster 10 | bar 8 | cornerR 1
+//   top (utility)   cornerL 1 | branch 8 | capL 6 | plate 5 | capR 6 | bar 8 | cornerR 1
+//   top (untitled)  cornerL 1 | bar 11 | ornament 1 | bar 8 | cornerR 1   (a centred sprig or alert disc)
+//   left / right    pier 8 (one 20-row period: two courses of ashlar)
+//   bottom          pierL 1 | skip 0 | water 11 | bridge 1 | water 8 | pierR 1
+//                   (no bridge on modal / utility / untitled: the two water cells meet)
 //
 // Why these codes (docs/authoring-exotic-frames.md):
-//   - The skyline must be drawn once, so it is a fixed cell (R6), and it is
-//     code 10 rather than 1: below the top edge's fixed sum the title drops
-//     anyway (TS1), and code 10 then drops the skyline too, so a very narrow
-//     window keeps a clean bar instead of overlapping cells (R12, AW8).
-//   - Two code-8 growers either side of the skyline share the right half
-//     equally, so the skyline floats midway between the pennant and the
-//     right-hand widgets as the window widens ("many growers", §1 end).
-//   - The wave is a 16px tile (one period of the wavy edge and the foam
-//     dashes). Code 11 before the bridge and 8 after it phase-lock
-//     the wave to the bridge; the cut tiles land against the piers (R3).
-//   - The bottom only needs ~90px of fixed + tile art, but the top is wider,
-//     so a code-0 cell skips the spare template columns (R9). It sits next to
-//     a pier, where a cut tile lands anyway, so its width doesn't matter.
-//   - The top band is the sky (transparent) plus the bar; the skyline and the
-//     top of the pennant are the only things above the bar (R13). The title
-//     rect sits on the bar rows and is 18px tall (R28).
-import { Raster, verticalGradient, mix, bayer, frameLayout } from '../../../tools/theme-author/index.js';
+//   - The skyline is drawn once, so it is a fixed cell, and code 10 rather
+//     than 1: below the edge's fixed sum the title drops anyway (TS1) and
+//     code 10 then drops the skyline too, so a tiny window keeps a clean bar
+//     (R6, R12, AW8). Two 1px code-8 growers either side make it float midway
+//     between the pennant and the right-hand widgets as the window widens.
+//   - The branch is a 48px code-8 tile (a long period, so its blossom doesn't
+//     read as a fence): it tiles from the near end, so it continues the bough
+//     in the corner cell, and its cut tile lands against the pennant (R2, R3).
+//   - The water is one 12px period (foam dash pitch). Code 11 before the
+//     bridge and 8 after it phase-lock it to the bridge; the cut tiles land
+//     against the piers (R3).
+//   - The bottom needs less width than the top, so a code-0 cell next to the
+//     left pier skips the spare columns (R9).
+//   - Above the bar the band is transparent except the skyline and the
+//     blossom (R13). The title rect is on the bar rows and 18px tall (R28).
+import { Raster, frameLayout, fitPalette } from '../../../tools/theme-author/index.js';
 import { C } from './palette.mjs';
 import { DRAW, WIDGET } from './widgets.mjs';
-import { fitPalette } from '../../../tools/theme-author/index.js';
-import { drawSkyline, drawTowerMotif, drawOrnament, SKYLINE_W, TOWER_W, ORNAMENT_W } from './skyline.mjs';
+import {
+  drawSkyline, drawMinster, drawBranchTile, drawBranchCorner, drawSprig, drawAlertDisc,
+  SKYLINE_W, MINSTER_W, SPRIG_W, ALERT_W, BRANCH_TILE_W, SKY_ROWS,
+} from './skyline.mjs';
 
-const WAVE = 16;          // wave tile period
-const SIDE = 5;           // side wall thickness
-const BOTTOM = 16;        // bottom band: promenade + river
-const PIER = 10;          // fixed embankment pier at each bottom corner
-const BRIDGE = 32;        // fixed Kennedy Bridge piece
+const SIDE = 8;           // pier: outline + 6px ashlar + inner line
+const COURSE = 10;        // ashlar course height; the side tile is two courses
+const BOTTOM = 18;        // embankment 4 + water 12 + 2
+const WATER = 12;         // water tile period (foam dash pitch)
+const PIER_L = 14, PIER_R = 22;
+const BRIDGE = 32;
+const CAP = 6;            // pennant end caps
 
-// Per family: sky = rows above the bar; T = whole top band.
-// Every fixed px on a titled top edge comes out of the title's room
-// (room = width − fixed cells − caps; the title drops at room ≤ 2, TT3), so
-// corners and ornaments are kept as narrow as their widgets allow.
+// Per family: sky = rows above the bar, bar = bar rows, corners, ornament.
 const G = {
-  doc: { sky: 20, T: 40, cornerL: 20, cornerR: 36, cap: 10, plate: 4, title: [21, 39], ornament: 'skyline', bridge: true },
-  modal: { sky: 20, T: 40, cornerL: 9, cornerR: 9, cap: 10, plate: 4, title: [21, 39], ornament: 'tower', towerH: 18 },
-  util: { sky: 10, T: 29, cornerL: 20, cornerR: 9, cap: 8, plate: 4, title: [11, 28], ornament: 'tower', towerH: 10 },
-  plain: { sky: 14, T: 24, cornerL: 12, cornerR: 12 },
+  doc: { sky: SKY_ROWS, bar: 22, cornerL: 24, cornerR: 36, ornament: 'skyline', bridge: true },
+  modal: { sky: SKY_ROWS, bar: 22, cornerL: 12, cornerR: 12, ornament: 'minster' },
+  util: { sky: 13, bar: 21, cornerL: 24, cornerR: 12 },
+  plain: { sky: 11, bar: 10, cornerL: 18, cornerR: 18 },
 };
 
 /** Build the frameLayout spec for one window type. */
-function spec(kind, { collapsed = false, widgets = 'none', ornament } = {}) {
-  const g = G[kind];
-  const titled = kind !== 'plain';
-  const orn = titled
-    ? (g.ornament === 'skyline' ? { name: 'skyline', code: 10, w: SKYLINE_W } : { name: 'skyline', code: 10, w: TOWER_W })
-    : { name: 'ornament', code: 1, w: ORNAMENT_W };
-  const top = titled
-    ? [
-      { name: 'cornerL', code: 1, w: g.cornerL },
-      { name: 'barL', code: 11, w: 1, uniform: 'bar' },
-      { name: 'capL', code: 6, w: g.cap },
-      { name: 'plate', code: 5, w: g.plate },
-      { name: 'capR', code: 6, w: g.cap },
+function spec(geom, kind, { collapsed = false, widgets = 'none' } = {}) {
+  const g = G[geom];
+  const titled = geom !== 'plain';
+  const T = g.sky + g.bar, yb = g.sky;
+  const branch = { name: 'branch', code: 8, w: BRANCH_TILE_W };
+  let top;
+  if (titled) {
+    const orn = g.ornament === 'skyline' ? { name: 'skyline', code: 10, w: SKYLINE_W }
+      : g.ornament === 'minster' ? { name: 'skyline', code: 10, w: MINSTER_W } : null;
+    top = [
+      { name: 'cornerL', code: 1, w: g.cornerL }, branch,
+      { name: 'capL', code: 6, w: CAP }, { name: 'plate', code: 5, w: 1 }, { name: 'capR', code: 6, w: CAP },
       { name: 'barM', code: 8, w: 1, uniform: 'bar' },
-      orn,
-      { name: 'barR', code: 8, w: 1, uniform: 'bar' },
+      ...(orn ? [orn, { name: 'barR', code: 8, w: 1, uniform: 'bar' }] : []),
       { name: 'cornerR', code: 1, w: g.cornerR },
-    ]
-    : [
+    ];
+  } else {
+    // Untitled: a plain bar with one ornament, centred (11 | fixed | 8, R3).
+    top = [
       { name: 'cornerL', code: 1, w: g.cornerL },
       { name: 'barL', code: 11, w: 1, uniform: 'bar' },
-      orn,
+      { name: 'ornament', code: 1, w: kind === 'alert' ? ALERT_W : SPRIG_W },
       { name: 'barR', code: 8, w: 1, uniform: 'bar' },
       { name: 'cornerR', code: 1, w: g.cornerR },
     ];
+  }
   const W = top.reduce((s, c) => s + c.w, 0);
-  const bridge = !!g.bridge;
-  const used = 2 * PIER + 2 * WAVE + (bridge ? BRIDGE : 0);
-  // Any width works: each wave cell is exactly one period, and the cells the
-  // wave must join seamlessly (wave | bridge | wave) are adjacent.
+  const used = PIER_L + PIER_R + 2 * WATER + (g.bridge ? BRIDGE : 0);
   const skip = W - used;
-  if (skip < 0) throw new Error(`bonn: the ${kind} top is ${W}px but the bottom needs ${used}px`);
+  if (skip < 0) throw new Error(`bonn: the ${geom} top is ${W}px but the bottom needs ${used}px`);
   const bottom = [
-    { name: 'pierL', code: 1, w: PIER },
+    { name: 'pierL', code: 1, w: PIER_L },
     { name: 'skip', code: 0, w: skip },
-    { name: 'waveL', code: 11, w: WAVE },
-    ...(bridge ? [{ name: 'bridge', code: 1, w: BRIDGE }] : []),
-    { name: 'waveR', code: 8, w: WAVE },
-    { name: 'pierR', code: 1, w: PIER },
+    { name: 'waterL', code: 11, w: WATER },
+    ...(g.bridge ? [{ name: 'bridge', code: 1, w: BRIDGE }] : []),
+    { name: 'waterR', code: 8, w: WATER },
+    { name: 'pierR', code: 1, w: PIER_R },
   ];
-  // Widgets on the bar rows: close in the left corner; zoom + collapse in the right corner.
-  const wy = titled ? g.sky + 3 : 0;
+  // Widgets centred on the bar's face rows: close in the left corner, zoom + collapse in the right.
+  const wy = yb + Math.floor((g.bar - 3 - WIDGET) / 2) + 1;
   const box = (x) => ({ x, y: wy, w: WIDGET, h: WIDGET });
   const wset = {};
-  if (widgets !== 'none') wset.close = box(g.cornerL - WIDGET - 3);
+  if (widgets !== 'none') wset.close = box(Math.floor((g.cornerL - WIDGET) / 2));
   if (widgets === 'all') {
-    wset.zoom = box(W - g.cornerR + 4);
-    wset.collapse = box(W - g.cornerR + 4 + WIDGET + 3);
+    wset.zoom = box(W - g.cornerR + 3);
+    wset.collapse = box(W - g.cornerR + 3 + WIDGET + 1);
   }
   return {
-    topH: g.T, sideL: SIDE, sideR: SIDE, bottomH: BOTTOM, collapsed,
+    topH: T, sideL: SIDE, sideR: SIDE, bottomH: BOTTOM, collapsed,
     top, bottom,
-    left: [{ name: 'wallL', code: 8, w: 2 }],
-    right: [{ name: 'wallR', code: 8, w: 2 }],
-    ...(titled ? { title: { cell: 'plate', top: g.title[0], bottom: g.title[1] } } : {}),
+    left: [{ name: 'pierL', code: 8, w: 2 * COURSE }],
+    right: [{ name: 'pierR', code: 8, w: 2 * COURSE }],
+    ...(titled ? { title: { cell: 'plate', top: yb + 1, bottom: yb + pennantRows(g) + 1 } } : {}),
     widgets: wset,
   };
 }
 
+/** Pennant height: the bar's face rows (everything but the outline, lit row and the rule). */
+const pennantRows = (g) => g.bar - 4;
+
 // ── Painting ───────────────────────────────────────────────────────────────
 
-/** The sandstone bar: rows [y0, y1) across the full width, rounded top corners. */
+/**
+ * The sandstone bar, rows [y0, y1): outline, lit row, flat face, a shade row,
+ * the city rule (yellow over red), outline. One colour per row, so every
+ * 1px grower repeats cleanly. Top corners on a 1-2 stair.
+ */
 function paintBar(r, W, y0, y1, p, { closed }) {
-  const grad = verticalGradient(y0 + 1, y1 - y0 - 2, [[0, p.barTop], [1, p.barBottom]]);
-  // One colour per row: the 1px growers repeat a column (guide §4.5).
-  r.fillRect(0, y0, W, y1 - y0, (x, y) => {
-    if (y === y0) return p.outline;
-    if (y === y1 - 1) return closed ? p.outline : p.barLine;
-    // The city rule: yellow over red, then barLine. Light next to the light
-    // bar, dark next to the dark line, so it reads as a two-colour stripe.
-    if (y === y1 - 3 && !closed) return p.yellow;
-    if (y === y1 - 2 && !closed) return p.red;
-    return grad(x, y);
-  });
-  // Side outline down the bar.
+  const rows = [p.outline, p.stoneHi];
+  while (rows.length < y1 - y0 - 4) rows.push(p.stone);
+  rows.push(p.stoneLo, p.yellow, p.red, p.outline);
+  rows.forEach((c, i) => r.hline(0, y0 + i, W, c));
   r.vline(0, y0, y1 - y0, p.outline).vline(W - 1, y0, y1 - y0, p.outline);
-  r.vline(1, y0 + 1, y1 - y0 - (closed ? 2 : 1), p.stoneHi);
-  // Rounded top corners (radius 5), smooth over the transparent sky = hard outer edge.
-  for (const [cx, dir] of [[0, 1], [W - 1, -1]]) {
-    const rad = 5;
-    for (let dy = 0; dy < rad; dy++) for (let dx = 0; dx < rad; dx++) {
-      const ex = rad - (dx + 0.5), ey = rad - (dy + 0.5);
-      const d = Math.hypot(ex, ey);
-      const x = cx + dir * dx, y = y0 + dy;
-      if (d > rad) r.set(x, y, null);
-      else if (d > rad - 1.2) r.set(x, y, p.outline);
+  r.vline(1, y0 + 1, y1 - y0 - 5, p.stoneHi);
+  r.vline(W - 2, y0 + 2, y1 - y0 - 6, p.stoneLo);
+  // Rounded top corners: a 1-2 stair.
+  for (const [x, d] of [[0, 1], [W - 1, -1]]) {
+    r.set(x, y0, null).set(x + d, y0, null).set(x + 2 * d, y0, null).set(x, y0 + 1, null);
+    r.set(x + d, y0 + 1, p.outline).set(x + 2 * d, y0 + 1, p.outline).set(x, y0 + 2, p.outline);
+    r.set(x + 2 * d, y0 + 2, d > 0 ? p.stoneHi : p.stone).set(x + d, y0 + 2, d > 0 ? p.stoneHi : p.stoneLo);
+    if (closed) {
+      r.set(x, y1 - 1, null).set(x + d, y1 - 1, p.outline).set(x, y1 - 2, p.outline);
     }
-    if (closed) for (let dy = 0; dy < 3; dy++) for (let dx = 0; dx < 3; dx++) {
-      const ex = 3 - (dx + 0.5), ey = 3 - (dy + 0.5), d = Math.hypot(ex, ey);
-      const x = cx + dir * dx, y = y1 - 1 - dy;
-      if (d > 3) r.set(x, y, null); else if (d > 1.8) r.set(x, y, p.outline);
-    }
+  }
+  if (!closed) {
+    // Where the bar meets the piers, the rule stops at the pier's outline.
+    r.set(0, y1 - 1, p.outline).set(W - 1, y1 - 1, p.outline);
   }
 }
 
-/** The red-and-yellow city pennant across capL, plate and capR (uniform along x on the plate: it tiles). */
-function paintPennant(r, layout, g, p) {
+/**
+ * The red pennant: a swallow-tail notch in each end cap,
+ * the 1px plate between. Built as a cloth mask, then outlined; the next ring
+ * in is the hem, yellow where it faces the light (top, left) and dark red
+ * where it doesn't (bottom, right).
+ */
+function paintPennant(r, layout, yb, rows, p) {
   const capL = layout.named('capL'), capR = layout.named('capR');
-  const y0 = g.sky - 1, y1 = layout.top;                // rises 1px above the bar
-  const x0 = capL.x0, x1 = capR.x1;
-  const mid = (y0 + y1 - 1) / 2, half = (y1 - y0) / 2, point = capL.w - 3;
-  const field = verticalGradient(y0 + 2, y1 - y0 - 4, [[0, mix(p.red, '#ffffff', 0.12)], [1, p.red]]);
-  const shape = (inset) => (px, py) => {
-    if (py < y0 + inset || py > y1 - inset) return false;
-    // Pointed ends: the pennant narrows to a point over `point` px at each end.
-    const t = Math.abs(py - (mid + 0.5)) / half;     // 0 at the centre line, 1 at the edge
-    const left = x0 + inset * 1.4 + point * t, right = x1 - inset * 1.4 - point * t;
-    return px >= left && px <= right;
-  };
-  r.paintCoverage(x0, y0, x1 - x0, y1 - y0, shape(0), p.redLo);
-  r.paintCoverage(x0, y0, x1 - x0, y1 - y0, shape(1), p.yellow);
-  r.paintCoverage(x0, y0, x1 - x0, y1 - y0, shape(2.2), field);
-  // Yellow grommets where the pennant is tied off.
-  for (const cx of [x0 + point + 1, x1 - point - 2]) // inside the caps, clear of the tiled plate
-    r.fillCircleSmooth(cx + 0.5, mid + 0.5, 1.3, p.yellow);
+  const y0 = yb + 1, y1 = y0 + rows;                       // rows [y0, y1)
+  const mid = (y0 + y1 - 1) / 2, half = (rows - 1) / 2;
+  const t = (y) => Math.abs(y - mid) / half;              // 0 middle … 1 edge
+  // Swallow-tail notches at both ends: the cloth is cut in up to 4px at the middle rows.
+  const cut = (y) => Math.round(4 * Math.max(0, 1 - t(y) * 1.15));
+  const left = (y) => capL.x0 + 1 + cut(y);
+  const right = (y) => capR.x1 - 2 - cut(y);
+  const cloth = (x, y) => y >= y0 && y < y1 && x >= left(y) && x <= right(y);
+  const edge = (x, y) => cloth(x, y) && !(cloth(x - 1, y) && cloth(x + 1, y) && cloth(x, y - 1) && cloth(x, y + 1));
+  for (let y = y0; y < y1; y++) for (let x = left(y); x <= right(y); x++) {
+    let c = p.red;
+    if (edge(x, y)) c = p.outline;
+    else if (edge(x, y + 1) || edge(x + 1, y)) c = p.redLo;
+    else if (edge(x, y - 1) || edge(x - 1, y)) c = p.yellow;
+    r.set(x, y, c);
+  }
 }
 
+/** Sandstone ashlar piers down both sides: two courses per 20-row tile, offset joints. */
 function paintSides(r, layout, p) {
   const A = layout.content, W = layout.width;
-  const col = (x, c) => r.fillRect(x, A.top, 1, A.bottom - A.top, c);
-  for (const [x0, dir] of [[0, 1], [W - 1, -1]]) {
-    col(x0, p.outline);
-    col(x0 + dir, p.stoneHi);
-    col(x0 + 2 * dir, p.stone);
-    col(x0 + 3 * dir, p.stone);
-    col(x0 + 4 * dir, p.barLine);
+  for (let y = A.top; y < A.bottom; y++) {
+    const k = (y - A.top) % (2 * COURSE), course = k < COURSE ? 0 : 1, row = k % COURSE;
+    for (const [x0, d] of [[0, 1], [W - 1, -1]]) {
+      r.set(x0, y, p.outline);
+      for (let i = 1; i <= 6; i++) {
+        // Course 0 is one long block; course 1 has a joint 3px in from the outer edge.
+        const joint = course === 1 && i === 3;
+        let c = p.stone;
+        if (row === COURSE - 1 || joint) c = p.mortar;
+        else if (row === 0 || (course === 1 && i === 4)) c = p.stoneHi;     // lit top, lit left of the inner block
+        else if (i === 1 && d > 0) c = p.stoneHi;                             // the left pier's outer face catches the light
+        else if (i === 1 && d < 0) c = p.stoneLo;                             // the right pier's outer face is in shade
+        r.set(x0 + d * i, y, c);
+      }
+      r.set(x0 + d * 7, y, d > 0 ? p.stoneLo : p.stoneHi);                   // inner line: shade left, lit right
+    }
   }
 }
 
-/** The wavy lower edge of the river, relative to the band top; periodic in WAVE. */
-const waveEdge = (x) => Math.round(13 + 2 * Math.cos((2 * Math.PI * x) / WAVE));
-
-function paintBottom(r, layout, kind, p) {
-  const { width: W, content: A } = layout;
+/** The Rhine along the bottom band. */
+function paintBottom(r, layout, geom, p) {
+  const { width: W, content: A, height: H } = layout;
   const y0 = A.bottom;
-  // Promenade (rows 0–3) and the quay edge (row 4); one colour per row.
+  // Embankment: lit row, two face rows, kerb.
+  r.hline(0, y0, W, p.stoneHi).hline(0, y0 + 1, W, p.stone).hline(0, y0 + 2, W, p.stone).hline(0, y0 + 3, W, p.mortar);
+  // Water: two flat bands, foam dashes 4px long on a 12px pitch, offset between the bands.
   for (let x = 0; x < W; x++) {
-    r.set(x, y0, p.barLine);
-    r.set(x, y0 + 1, p.stoneHi);
-    r.set(x, y0 + 2, p.stone);
-    r.set(x, y0 + 3, p.stoneLo);
-    r.set(x, y0 + 4, p.outline);
+    for (let y = y0 + 4; y < H - 1; y++) r.set(x, y, y < y0 + 10 ? p.water : p.waterLo);
+    const ph = ((x % WATER) + WATER) % WATER;
+    if (ph < 4) r.set(x, y0 + 6, p.foam);
+    if (ph >= 6 && ph < 10) r.set(x, y0 + 12, p.water);           // a lighter ripple on the deep band
   }
-  // Water: two flat bands (a dither striped as checkerboard at 8 bpp), the
-  // wavy lower edge, and foam dashes on whole pixels.
-  for (let x = 0; x < W; x++) {
-    const e = y0 + waveEdge(x);
-    for (let y = y0 + 5; y < e; y++) r.set(x, y, y < y0 + 9 ? p.water[0] : p.water[1]);
-    r.set(x, e, p.waterEdge);
-    // Foam on the crests, and a lighter ripple offset on the deep band.
-    const ph = ((x % WAVE) + WAVE) % WAVE;
-    if (ph >= 6 && ph <= 9) r.set(x, y0 + 7, p.foam);
-    if (ph >= 14 || ph <= 1) r.set(x, y0 + 10, p.water[0]);
-  }
-  // Embankment piers at both corners: sandstone down to the bottom row, with
-  // the side wall above. Their inner face is a vertical wall, so the cut wave
-  // tile beside them reads as water meeting the quay.
-  for (const cell of [layout.named('pierL'), layout.named('pierR')]) {
-    const left = cell.name === 'pierL';
-    const w = 7, x0 = left ? 0 : W - w;
-    r.fillRect(x0, y0 + 1, w, BOTTOM - 1, (x, y) => {
-      const k = left ? x - x0 : x0 + w - 1 - x;           // 0 at the outer edge
-      if (k === 0 || k === w - 1) return p.outline;
-      if ((y - y0) % 5 === 0) return p.stoneLo;           // block courses
-      return k === 1 ? p.stoneHi : p.stone;
-    });
-    r.hline(x0, y0 + BOTTOM - 1, w, p.outline);
-    // A tuft of riverbank grass at the foot of the pier.
-    const gx = left ? x0 + w : x0 - 3;
-    for (let i = 0; i < 3; i++) r.set(gx + i, y0 + 5, i === 1 ? p.bankLo : p.bank);
-  }
-  if (G[kind].bridge) paintBridge(r, layout.named('bridge'), y0, p);
+  r.hline(0, H - 1, W, p.outline);
+  paintPier(r, layout.named('pierL'), y0, H, p, 'left');
+  paintPier(r, layout.named('pierR'), y0, H, p, 'right');
+  if (G[geom].bridge) paintBridge(r, layout.named('bridge'), y0, p);
 }
 
-/** The Kennedy Bridge: a steel deck at the quay edge on a shallow arch, piers in the river. */
+/** A corner pier foot: the side pier carried down, a quay block meeting the water, the bollard on the right. */
+function paintPier(r, cell, y0, H, p, side) {
+  const { x0, w } = cell;
+  const left = side === 'left';
+  for (let y = y0; y < H; y++) for (let x = x0; x < x0 + w; x++) {
+    const k = y - y0, i = left ? x - x0 : x0 + w - 1 - x;        // i: 0 at the outer edge
+    let c;
+    if (i === 0 || y === H - 1) c = p.outline;
+    else if (i === w - 1 && k >= 4) c = p.outline;                 // face meeting the water
+    else if (k === 0) c = p.stoneHi;
+    else if (k === 3 || k === 10) c = p.mortar;                    // course joints
+    else if (k === 4 || k === 11) c = i === w - 2 ? p.stone : p.stoneHi;
+    else if (i === 1) c = left ? p.stoneHi : p.stoneLo;
+    else if (i === w - 2 && k >= 4) c = left ? p.stoneLo : p.stoneHi;
+    else c = p.stone;
+    if (k > 3 && k < 10 && i === Math.floor(w / 2)) c = p.mortar;  // a vertical joint in the middle course
+    r.set(x, y, c);
+  }
+  if (!left) {
+    // The bollard (the grow-box corner): a sandstone post with a rope ring.
+    const BOLLARD = [
+      '..oooooooo..',
+      '.oLLLssssDo.',
+      'oLssssssssDo',
+      'oDDDDDDDDDDo',
+      '.ooLsssDoo..',
+      '..oLsssDo...',
+      '.rrrrrrrrr..',
+      '..oLsssDo...',
+      '..oLsssDo...',
+      '.oLssssDDo..',
+      'oooooooooooo',
+    ];
+    const bx = x0 + 3, by = y0 + 4;
+    r.sprite(bx, by, BOLLARD, { o: p.outline, L: p.stoneHi, s: p.stone, D: p.stoneLo, r: p.mortar });
+  }
+}
+
+/** The stone arch bridge: deck on the embankment, spandrels, a round arch with water through it. */
 function paintBridge(r, cell, y0, p) {
   const { x0, w } = cell;
-  const steel = p.sky, steelHi = p.skyHi;
-  // Railing along the promenade: a top rail and posts.
-  r.hline(x0, y0 + 1, w, steel);
-  for (let x = x0 + 1; x < x0 + w; x += 3) r.set(x, y0 + 2, steel);
-  // Deck: two rows over the quay edge.
-  r.hline(x0, y0 + 3, w, steelHi).hline(x0, y0 + 4, w, steel);
-  // The arch: a thick curve from pier to pier, under the deck.
-  const cx = x0 + w / 2, span = w / 2 - 2.5;
-  const archY = (t) => y0 + 5 + 6 * t * t;
-  r.paintCoverage(x0, y0 + 5, w, BOTTOM - 5, (px, py) => {
-    const t = (px - cx) / span;
-    if (Math.abs(t) > 1) return false;
-    return py >= archY(t) && py <= archY(t) + 1.8;
-  }, steel);
-  // Hangers between the deck and the arch.
-  for (const dx of [-10, -6, 6, 10]) {
-    const yA = Math.round(archY(dx / span));
-    r.vline(Math.round(cx + dx), y0 + 5, Math.max(0, yA - (y0 + 5)), steelHi);
-  }
-  // River piers down to the water's edge.
-  for (const px of [x0 + 1, x0 + w - 4]) {
-    for (let y = y0 + 5; y < y0 + BOTTOM; y++) for (let x = px; x < px + 3; x++) {
-      if (y > y0 + waveEdge(x)) continue;
-      r.set(x, y, x === px ? steelHi : steel);
-    }
+  const span = [[6, 13, 18], [7, 10, 21], [8, 8, 23], [9, 7, 24]];  // [row, first, last] of the opening's stair
+  const opening = (k, i) => {
+    if (k >= 10) return i >= 7 && i <= 24;
+    const s = span.find(([row]) => row === k);
+    return s ? i >= s[1] && i <= s[2] : false;
+  };
+  for (let k = 0; k < BOTTOM - 1; k++) for (let i = 0; i < w; i++) {
+    const x = x0 + i, y = y0 + k;
+    let c;
+    if (opening(k, i)) {
+      // Under the arch: shadow at the top, then the water seen through it.
+      c = k < 10 ? p.waterLo : k < 13 ? p.water : p.waterLo;
+      if (k === 11 && i >= 12 && i <= 15) c = p.foam;
+    } else if (opening(k + 1, i) || opening(k, i - 1) || opening(k, i + 1)) {
+      c = p.outline;                                             // the arch ring's inner edge
+    } else if (i === 0 || i === w - 1) {
+      c = k < 4 ? (k === 0 ? p.stoneHi : p.stone) : p.outline;   // abutments meet the water
+    } else if (k === 0) c = p.stoneHi;
+    else if (k === 1 || k === 2) c = p.stone;
+    else if (k === 3) c = p.mortar;
+    else if (opening(k + 2, i) || opening(k, i - 2) || opening(k, i + 2)) {
+      c = (i + k) % 3 === 0 ? p.mortar : p.stone;                // voussoirs: joints across the ring
+    } else if (k === 4) c = p.stoneHi;
+    else if (i === 1) c = p.stoneHi;
+    else if (i === w - 2) c = p.stoneLo;
+    else if (k === 10 && (i < 7 || i > 24)) c = p.mortar;        // a course joint on the abutments
+    else c = p.stone;
+    r.set(x, y, c);
   }
 }
 
 /** Paint one frame image for a window type in a state ('active' | 'inactive'). */
 export function paintFrame(t, state) {
-  const { layout, kind } = t;
-  const geomKind = t.geom;
-  const g = G[geomKind];
+  const { layout, geom, kind } = t;
+  const g = G[geom];
   const p = C[state];
   const r = new Raster(layout.width, layout.height);
-  const W = layout.width;
-  paintBar(r, W, g.sky, layout.top, p, { closed: layout.collapsed });
+  const W = layout.width, yb = g.sky;
+  paintBar(r, W, yb, layout.top, p, { closed: layout.collapsed });
+  // The branch: bough and cluster in the left corner, then the tile.
   if (layout.titled) {
-    paintPennant(r, layout, g, p);
-    const sk = layout.named('skyline');
-    if (g.ornament === 'skyline') drawSkyline(r, sk.x0, g.sky, p);
-    else drawTowerMotif(r, sk.x0, g.sky, p, g.towerH);
+    const corner = layout.named('cornerL'), br = layout.named('branch');
+    drawBranchCorner(r, corner.x0, yb, corner.w, p, { cluster: g.sky >= 13 });
+    drawBranchTile(r, br.x0, yb, p);
+  }
+  if (layout.titled) {
+    paintPennant(r, layout, yb, pennantRows(g), p);
+    if (g.ornament === 'skyline') drawSkyline(r, layout.named('skyline').x0, yb, p);
+    if (g.ornament === 'minster') drawMinster(r, layout.named('skyline').x0, yb, p);
   } else {
-    drawOrnament(r, layout.named('ornament'), g.sky, p, kind);
+    const o = layout.named('ornament');
+    if (kind === 'alert') drawAlertDisc(r, o.x0, yb, p); else drawSprig(r, o.x0, yb, p);
   }
   if (!layout.collapsed) {
     paintSides(r, layout, p);
-    paintBottom(r, layout, geomKind, p);
+    paintBottom(r, layout, geom, p);
   }
-  // Guard for exotic-frames R2/R8: a tiled cell repeats its source as drawn, so
-  // stray art in it becomes a line or a dotted row (seen twice while building:
-  // a tree in a 1px grower, a pennant grommet in the plate). The plate must be
-  // one column repeated, and the 1px bar growers (uniform: 'bar') must match
-  // each other; layout.lint fails the build otherwise.
-  try { layout.lint(r); } catch (err) { throw new Error(`bonn: ${t.name} (${state}): ${err.message}`); }
   for (const [role, box] of Object.entries(layout.widgets)) DRAW[role](r, box, state);
+  // The guard for exotic-frames R2/R8: the plate must be one column repeated
+  // and the 1px bar growers must match each other; lint fails the build otherwise.
+  try { layout.lint(r); } catch (err) { throw new Error(`bonn: ${t.name} (${state}): ${err.message}`); }
   // The content area is a hole.
   const A = layout.content;
   r.fillRect(A.left, A.top, A.right - A.left, A.bottom - A.top, null);
   // Hidden swatches: title text at (A.left, A.top), shadow at the pixel to its right (TC2).
   r.swatch(A.left, A.top, p.title);
   r.swatch(A.left + 1, A.top, p.titleShadow);
-  // Smooth widget edges + the bar gradient can pass the
-  // 256-colour cicn limit; merge the rarest blends (the toolkit's fitPalette).
   return fitPalette(r);
 }
 
 /** Window type table: wnd# id → description. Active frame = id + 1. */
 export function windowTypes() {
   const t = (id, name, kind, opts) => {
-    const geom = kind === 'alert' ? 'plain' : kind;
-    return { id, name, kind, geom, layout: frameLayout(spec(geom, opts)) };
+    const geom = kind === 'alert' || kind === 'dialog' ? 'plain' : kind;
+    return { id, name, kind, geom, layout: frameLayout(spec(geom, kind, opts)) };
   };
   return [
     t(-14336, 'Document Window', 'doc', { widgets: 'all' }),
     t(-14332, 'Collapsed Document Window', 'doc', { widgets: 'all', collapsed: true }),
-    t(-14328, 'Dialog', 'plain'),
+    t(-14328, 'Dialog', 'dialog'),
     t(-14326, 'Alert', 'alert'),
     t(-14324, 'Movable Modal', 'modal'),
     t(-14322, 'Movable Alert', 'modal'),
@@ -316,5 +341,3 @@ export function windowTypes() {
     t(-14300, 'Collapsed Titled Utility Window', 'util', { widgets: 'close', collapsed: true }),
   ];
 }
-
-export { bayer };

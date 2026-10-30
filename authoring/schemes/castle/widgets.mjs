@@ -1,108 +1,102 @@
-// Title-bar widgets, drawn straight onto the frame (so smooth edges blend with
-// the real stone under them), plus the pressed-widget strip (cicn -14330).
+// Title-bar widgets, drawn straight onto the frame, plus the pressed-widget
+// strip (cicn -14330).
 //
-//   close     a heater shield, iron rim, royal-blue field, gold saltire
-//   zoom      a dressed-stone plate with a window-in-window glyph (bigger)
-//   collapse  the same plate with a bar under a chevron (a drawbridge going up)
+// One family: every widget is the same 14×14 dressed-stone plate (dark rim,
+// corners stepped off, lit top/left bevel, shaded bottom/right) with a
+// whole-pixel emblem on it (authoring-visual-design §2.6):
 //
-// Glyphs are whole pixels (Raster.sprite), not smooth strokes: a 1–1.5px
-// anti-aliased stroke is a grey smear at 1x (design review §2.2). Pressed is
-// inverted, not darkened: the shield goes gold-on-blue, the plates go to iron
-// with a gold glyph. Inactive keeps the silhouette and drops the plate glyphs.
+//   close     a heater shield, blue field, gold chevron
+//   zoom      a window opening: a 2px dark frame round a lit parchment pane
+//   collapse  a drawbridge raised: a chevron over an oak plank
 //
-// The pressed strip's mask is the hit region (R24, HT7), so every widget has
-// a near-square silhouette and the pressed art keeps exactly that silhouette.
-import { verticalGradient, pressedStripFrom } from '../../../tools/theme-author/index.js';
+// Pressed is inverted, not darkened: the plate sinks (#777777, bevel flipped)
+// and the emblem lights up gold (the shield goes gold with a blue chevron, the
+// window glows, the chevron turns gold). Inactive keeps the plate and drops
+// the emblem.
+//
+// The pressed strip's mask is the hit region (R24), so the pressed art keeps
+// exactly the plate's silhouette.
+import { pressedStripFrom } from '../../../tools/theme-author/index.js';
 import { C } from './palette.mjs';
 
-/** Heater-shield coverage inside a w×h box at (x, y): straight sides, rounded point. */
-function shieldShape(x, y, w, h, inset = 0) {
-  const cx = x + w / 2, half = w / 2 - inset, top = y + inset, shoulder = y + h * 0.42;
-  const bottom = y + h - inset;
-  return (px, py) => {
-    if (py < top || py > bottom) return false;
-    if (py <= shoulder) return Math.abs(px - cx) <= half;
-    const t = (py - shoulder) / (bottom - shoulder);           // 0 at the shoulder, 1 at the point
-    return Math.abs(px - cx) <= half * Math.sqrt(Math.max(0, 1 - t * t));
-  };
-}
+export const WIDGET = 14;
 
-const SALTIRE = [
-  '##...##',
-  '.##.##.',
-  '..###..',
-  '.##.##.',
-  '##...##',
+// 10×11 heater shield. o rim, h lit field, f field, g chevron (apex on the two centre columns).
+const SHIELD = [
+  'oooooooooo',
+  'ohhhhhhhfo',
+  'ohffggfffo',
+  'ohfggggffo',
+  'ohggffggfo',
+  'oggffffggo',
+  'ogffffffgo',
+  '.offffffo.',
+  '..offffo..',
+  '...offo...',
+  '....oo....',
 ];
+
+// 10×10 window opening: 2px frame, 6×6 pane with a lit sill.
+const WINDOW = [
+  '##########',
+  '##########',
+  '##wwwwww##',
+  '##wwwwww##',
+  '##wwwwww##',
+  '##wwwwww##',
+  '##wwwwww##',
+  '##wwwwww##',
+  '##########',
+  '##########',
+];
+// 10×8 raised drawbridge: chevron, then an oak plank in an iron rim.
+const BRIDGE = [
+  '....##....',
+  '...####...',
+  '..##..##..',
+  '.##....##.',
+  '..........',
+  '##########',
+  '#pppppppp#',
+  '##########',
+];
+
+/** The 14×14 stone plate: rim with stepped corners, flat face, 1px bevel. */
+function plate(r, b, p, pressed) {
+  const { x, y, w, h } = b;
+  r.fillRect(x + 1, y, w - 2, h, p.outline).fillRect(x, y + 1, w, h - 2, p.outline);
+  const face = pressed ? '#777777' : p.plate;
+  const hi = pressed ? '#666666' : p.plateHi, lo = pressed ? '#999999' : p.plateLo;
+  r.fillRect(x + 1, y + 1, w - 2, h - 2, face);
+  r.hline(x + 1, y + 1, w - 2, hi).vline(x + 1, y + 1, h - 2, hi);
+  r.hline(x + 2, y + h - 2, w - 3, lo).vline(x + w - 2, y + 2, h - 3, lo);
+}
 
 export function drawClose(r, b, state, pressed = false) {
   const p = C[state];
-  const lit = pressed && state === 'active';
-  r.paintCoverage(b.x, b.y, b.w, b.h, shieldShape(b.x, b.y, b.w, b.h), p.iron);
-  const field = lit ? verticalGradient(b.y, b.h, [[0, p.litHi], [1, p.gold]])
-    : verticalGradient(b.y, b.h, [[0, p.fieldHi], [1, p.field]]);
-  r.paintCoverage(b.x, b.y, b.w, b.h, shieldShape(b.x, b.y, b.w, b.h, 1.4), field);
-  // A whole-pixel saltire on the shield's centre column.
-  r.sprite(b.x + Math.floor(b.w / 2) - 3, b.y + 3, SALTIRE, { '#': lit ? p.field : p.gold });
-  // Iron studs on the shoulders.
-  r.fillCircleSmooth(b.x + 2.6, b.y + 2.6, 0.9, p.ironHi);
-  r.fillCircleSmooth(b.x + b.w - 2.6, b.y + 2.6, 0.9, p.ironHi);
+  plate(r, b, p, pressed);
+  if (state !== 'active') return r;
+  const field = pressed ? p.gold : p.field, lit = pressed ? '#ffff99' : '#6699cc', ink = pressed ? p.field : p.gold;
+  r.sprite(b.x + 2, b.y + 2, SHIELD, { o: p.outline, h: lit, f: field, g: ink });
   return r;
 }
 
-// 9×9 glyphs for the stone plates, centred in the 13px box.
-const ZOOM = [
-  '#########',
-  '#...#...#',
-  '#...#...#',
-  '#...#...#',
-  '#####...#',
-  '#.......#',
-  '#.......#',
-  '#.......#',
-  '#########',
-];
-const COLLAPSE = [
-  '.........',
-  '....#....',
-  '...###...',
-  '..##.##..',
-  '.##...##.',
-  '.........',
-  '#########',
-  '#########',
-  '.........',
-];
-
-/**
- * A dressed-stone plate: iron-dark rim with its four corner pixels left to the
- * frame (a 1-px stair, not a blended arc), a flat face, and a 1px bevel lit
- * from the upper left. Pressed: an iron face, sunk (the bevel flips).
- */
-function plate(r, b, p, pressed) {
-  r.fillRect(b.x + 1, b.y, b.w - 2, b.h, p.outline).fillRect(b.x, b.y + 1, b.w, b.h - 2, p.outline);
-  const face = pressed ? p.iron : p.stone[0];
-  const hi = pressed ? p.outline : p.stoneHi, lo = pressed ? p.ironHi : p.stoneLo;
-  r.fillRect(b.x + 1, b.y + 1, b.w - 2, b.h - 2, face);
-  r.hline(b.x + 1, b.y + 1, b.w - 2, hi).vline(b.x + 1, b.y + 1, b.h - 2, hi);
-  r.hline(b.x + 2, b.y + b.h - 2, b.w - 3, lo).vline(b.x + b.w - 2, b.y + 2, b.h - 3, lo);
+export function drawZoom(r, b, state, pressed = false) {
+  const p = C[state];
+  plate(r, b, p, pressed);
+  if (state !== 'active') return r;
+  r.sprite(b.x + 2, b.y + 2, WINDOW, { '#': p.glyph, w: pressed ? p.gold : p.window });
+  return r;
 }
 
-function plateWidget(glyph) {
-  return (r, b, state, pressed = false) => {
-    const p = C[state];
-    const lit = pressed && state === 'active';
-    plate(r, b, p, lit);
-    if (state === 'active') {
-      const gx = b.x + Math.floor((b.w - 9) / 2), gy = b.y + Math.floor((b.h - 9) / 2);
-      r.sprite(gx, gy, glyph, { '#': lit ? p.litHi : p.dark });
-    }
-    return r;
-  };
+export function drawCollapse(r, b, state, pressed = false) {
+  const p = C[state];
+  plate(r, b, p, pressed);
+  if (state !== 'active') return r;
+  r.sprite(b.x + 2, b.y + 3, BRIDGE, { '#': pressed ? p.gold : p.glyph, p: p.oak });
+  if (pressed) r.sprite(b.x + 2, b.y + 8, ['##########', '#........#', '##########'], { '#': p.glyph });
+  return r;
 }
-
-export const drawZoom = plateWidget(ZOOM);
-export const drawCollapse = plateWidget(COLLAPSE);
 
 export const DRAW = { close: drawClose, zoom: drawZoom, collapse: drawCollapse };
 

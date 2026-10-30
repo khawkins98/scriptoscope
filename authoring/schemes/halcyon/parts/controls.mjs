@@ -4,30 +4,31 @@
 // How each piece is drawn decides how it may be painted (see the notes per
 // section). In short: anything the engine stretches from ONE source column or
 // row, or fills with one sampled colour, must be flat along that axis — no
-// dither, no gradient across it. Pieces copied 1:1 (caps, thumbs, ticks,
-// glyphs) can be fully anti-aliased.
+// dither, no gradient across it. Everything is hard pixel art anyway, in the
+// frames' style: 2-1 stair corners, slate outlines, the pebble as thumb.
 //
 // Text fields are deliberately absent: no corpus scheme ships edit-text art and
 // the runtime draws fields with CSS (src/declarative/field.ts header comment);
 // classic Kaleidoscope leaves them to the Appearance Manager.
 
-import { Raster, verticalGradient, encodeCicn, encodeCinf } from '../../../../tools/theme-author/index.js';
+import { Raster, encodeCicn, encodeCinf } from '../../../../tools/theme-author/index.js';
 
-// Family colours. Slate outlines and the teal accent come from the shared palette.
+// Family colours, all from the shared palette (palette.mjs). Everything here
+// is drawn on whole pixels with hard edges, like the frames: the slider groove
+// is sunk water, its thumb is the grow box's river pebble.
 const K = (C) => ({
-  ink: C.active.title, inkOff: '#a3aab4',
-  track: {
-    normal: { edge: '#a1abb9', top: '#d9dfe6', bottom: '#e8ecf0' },
-    pressed: { edge: '#8d98a8', top: '#cdd4dd', bottom: '#dde3ea' },
-    inactive: { edge: '#d3d8de', top: '#eef0f3', bottom: '#f2f4f6' },
+  groove: {
+    normal: { top: C.accentDeep, fill: C.water },
+    pressed: { top: C.accentDeep, fill: C.water },
+    inactive: { top: C.deep, fill: C.shade },
   },
-  knob: {
-    normal: { edge: C.active.buttonEdge, top: '#ffffff', bottom: C.active.buttonBottom, dot: C.accent },
-    pressed: { edge: '#7d8899', top: '#e6ebf0', bottom: '#d3dae3', dot: C.accentPressed },
-    inactive: { edge: '#ccd2d9', top: '#f7f8fa', bottom: '#f1f3f5', dot: null },
+  pebble: {
+    normal: { rim: C.active.pebble.line, hi: C.white, face: C.glass, lo: C.shade },
+    pressed: { rim: C.active.pebble.line, hi: C.glass, face: C.shade, lo: C.deep },
+    inactive: { rim: C.shade, hi: C.glass, face: C.glass, lo: C.glass },
   },
-  ghost: '#8fc9d8',
-  tick: { normal: '#a1abb9', inactive: '#d3d8de' },
+  ghost: C.accent,
+  tick: { normal: C.deep, inactive: C.shade },
 });
 
 // ── helpers ────────────────────────────────────────────────────────────────
@@ -57,28 +58,12 @@ function hiddenPixel(r, x = 0) {
   throw new Error(`controls: no transparent pixel in column ${x} for a hidden swatch`);
 }
 
-// Signed distances (negative inside) for the shapes below.
+// Signed distance to a rounded rectangle (negative inside), for the popup pieces.
 const sdRoundRect = (x0, y0, x1, y1, rad) => (px, py) => {
   const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
   const qx = Math.abs(px - cx) - ((x1 - x0) / 2 - rad), qy = Math.abs(py - cy) - ((y1 - y0) / 2 - rad);
   return Math.hypot(Math.max(qx, 0), Math.max(qy, 0)) + Math.min(Math.max(qx, qy), 0) - rad;
 };
-const sdCircle = (cx, cy, rad) => (px, py) => Math.hypot(px - cx, py - cy) - rad;
-/** Convex polygon, points clockwise in screen space (y down). */
-const sdPolygon = (pts) => (px, py) => {
-  let d = -Infinity;
-  for (let i = 0; i < pts.length; i++) {
-    const [ax, ay] = pts[i], [bx, by] = pts[(i + 1) % pts.length];
-    const len = Math.hypot(bx - ax, by - ay);
-    d = Math.max(d, ((px - ax) * (by - ay) - (py - ay) * (bx - ax)) / len);
-  }
-  return d;
-};
-const union = (...fs) => (px, py) => Math.min(...fs.map((f) => f(px, py)));
-
-/** Paint the shape `sd`, shrunk by `inset` px, with smooth edges. */
-const layer = (r, sd, inset, color, opts) =>
-  r.paintCoverage(0, 0, r.width, r.height, (px, py) => sd(px, py) <= -inset, color, opts);
 
 // ── 1. Sliders ─────────────────────────────────────────────────────────────
 // docs/spec/engine/slider.md (CDEF 3), src/engine/tables/slider.ts.
@@ -98,59 +83,45 @@ const layer = (r, sd, inset, color, opts) =>
 // edge pixels are blended with what lies under them in that row.
 // c = byte 0 of cinf gb also insets the thumb's travel (ID6, §5.2).
 const SLIDER = { k: 2, trackH: 4, thumbW: 15, cell: 16, band: 16 };
-const TRACK_ROW0 = Math.trunc((SLIDER.band - SLIDER.trackH) / 2); // SL1: centred in the 16px band
 
-function trackArt(t, matte) {
+/** Groove: a 4px sunk channel of water, its top row the deep edge, ends cut square-round. */
+function trackArt(t) {
   const { k, trackH } = SLIDER, w = 2 * k + 1;
-  return new Raster(w, trackH)
-    .fillRoundRectSmooth(0, 0, w, trackH, trackH / 2, t.edge, { matte })
-    .fillRoundRectSmooth(1, 1, w - 2, trackH - 2, (trackH - 2) / 2,
-      verticalGradient(1, trackH - 2, [[0, t.top], [1, t.bottom]]));
+  const r = new Raster(w, trackH).fillRect(0, 0, w, trackH, t.fill).hline(0, 0, w, t.top);
+  return r.set(0, 0, null).set(w - 1, 0, null).set(0, trackH - 1, null).set(w - 1, trackH - 1, null)
+    .set(0, 1, t.top).set(w - 1, 1, t.top);
 }
 
-/** Thumb outline shapes for one 15×16 cell: round knob, or a pointer whose tip is at the bottom. */
-function thumbShape(kind) {
-  const { thumbW: w, cell: h } = SLIDER;
-  if (kind === 'round') return { sd: sdCircle(w / 2, h / 2, 7), dot: [w / 2, h / 2] };
-  // Pointer: a rounded body plus a short point down into the tick band.
-  return {
-    sd: union(sdRoundRect(1, 1, w - 1, 11, 3.5), sdPolygon([[1.6, 8], [w - 1.6, 8], [w / 2, h - 0.6]])),
-    dot: [w / 2, 6],
-  };
-}
+// The pebble: the same 13px pixel disc as the title-bar widgets.
+const DISC13 = [
+  '....#####....', '..##.....##..', '.#.........#.', '.#.........#.', '#...........#', '#...........#',
+  '#...........#', '#...........#', '#...........#', '.#.........#.', '.#.........#.', '..##.....##..', '....#####....',
+];
 
+/** One 15×16 thumb cell: the pebble, with a 3px point under it for directional sliders. */
 function thumbCell(kind, cell, k) {
   const { thumbW: w, cell: h } = SLIDER;
-  const { sd, dot } = thumbShape(kind);
-  // Underlay: what the thumb sits on in this cell's state (white body + the
-  // track's middle-column rows), so the knob's edge blends with the real pixels.
-  const tier = cell === 0 ? 'inactive' : cell === 1 ? 'normal' : 'pressed';
-  const under = new Raster(w, h).fillRect(0, 0, w, h, '#ffffff');
-  const track = trackArt(k.track[tier], '#ffffff');
-  for (let y = 0; y < track.height; y++) under.hline(0, TRACK_ROW0 + y, w, track.get(SLIDER.k, y));
-  // Which pixels the thumb touches at all (any coverage → part of the mask).
-  const touched = layer(new Raster(w, h), sd, 0, '#000000', { matte: '#ffffff' });
-
-  if (cell === 3) {
-    // Ghost (TH5, drawn where the thumb is being dragged to): a soft teal ring.
-    // Its inside is left transparent so the track shows through.
-    const bare = new Raster(w, h);
-    bare.rgba.set(under.rgba);
-    layer(under, sd, 0, k.ghost);
-    layer(under, sd, 1.2, (x, y) => bare.get(x, y));
-    const out = new Raster(w, h);
-    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
-      const a = under.get(x, y), b = bare.get(x, y);
-      if (touched.get(x, y) && a.some((v, i) => v !== b[i])) out.set(x, y, a);
-    }
-    return out;
-  }
-  const look = k.knob[tier];
-  layer(under, sd, 0, look.edge);
-  layer(under, sd, 1, verticalGradient(1, h - 2, [[0, look.top], [1, look.bottom]]));
-  if (look.dot) under.fillCircleSmooth(dot[0], dot[1], 2.1, look.dot);
   const out = new Raster(w, h);
-  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (touched.get(x, y)) out.set(x, y, under.get(x, y));
+  const tier = cell === 0 ? 'inactive' : cell === 1 ? 'normal' : 'pressed';
+  const look = cell === 3 ? null : k.pebble[tier];
+  const x0 = 1, y0 = kind === 'round' ? 1 : 0;
+  for (let y = 0; y < 13; y++) {
+    const row = DISC13[y], a = row.indexOf('#'), b = row.lastIndexOf('#');
+    for (let x = a; x <= b; x++) {
+      const rim = row[x] === '#';
+      if (!look) { if (rim) out.set(x0 + x, y0 + y, k.ghost); continue; } // ghost: a teal ring, clear inside
+      let c = look.face;
+      if (rim) c = look.rim;
+      else if ((DISC13[y - 1]?.[x] === '#' || row[x - 1] === '#') && x + y < 12) c = look.hi;
+      else if ((DISC13[y + 1]?.[x] === '#' || row[x + 1] === '#') && x + y > 12) c = look.lo;
+      out.set(x0 + x, y0 + y, c);
+    }
+  }
+  if (kind === 'pointer') {
+    const c = look ? look.rim : k.ghost;
+    out.set(x0 + 5, 13, c).set(x0 + 6, 13, look ? look.lo : null).set(x0 + 7, 13, c).set(x0 + 6, 14, c);
+    if (look) out.set(x0 + 6, 12, look.lo);
+  }
   return out;
 }
 
@@ -177,7 +148,7 @@ function buildSliders(add, k) {
     for (const grp of groups) {
       const gb = base + 6 * grp.g, label = grp[axis];
       tiers.forEach(([tier, prefix], t) => {
-        add('cicn', gb + t, encodeCicn(orient(trackArt(k.track[tier], '#ffffff'))), `${prefix}${label} Slider Track`);
+        add('cicn', gb + t, encodeCicn(orient(trackArt(k.groove[tier]))), `${prefix}${label} Slider Track`);
         add('cinf', gb + t, trackCinf(), `${prefix}${label} Slider Track`);
       });
       const strip = thumbStrip(grp.kind, k);
@@ -222,24 +193,32 @@ const TAB = {
 };
 
 function tabFace(size, look) {
-  const { c, radius } = size, w = 2 * c + 1, h = look.front ? size.front : size.rear;
-  // A rounded-top shape that runs off the bottom edge (open bottom).
-  const r = new Raster(w, h).fillRoundRectSmooth(0, 0, w, h + radius + 1, radius, look.edge, { matte: '#ffffff' });
-  r.fillRoundRectSmooth(1, 1, w - 2, h + radius, radius - 1, look.face);
-  if (look.accent) {
-    // A 2px accent bar inside the top edge, following the corner curve.
-    r.paintCoverage(1, 1, w - 2, 2, (px, py) => sdRoundRect(1, 1, w - 1, h + radius + 1, radius - 1)(px, py) <= 0 && py < 3, look.accent);
+  const { c } = size, w = 2 * c + 1, h = look.front ? size.front : size.rear;
+  // A square tab with 2-1 stair top corners; the bottom stays open (it rests on the pane).
+  const r = new Raster(w, h).fillRect(0, 0, w, h, look.face);
+  r.set(0, 0, null).set(1, 0, null).set(w - 1, 0, null).set(w - 2, 0, null).set(0, 1, null).set(w - 1, 1, null);
+  const edge = [];
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    if (!r.get(x, y)) continue;
+    const out = (px, py) => px < 0 || px >= w || py < 0 || (py < h && !r.get(px, py));
+    if (out(x - 1, y) || out(x + 1, y) || out(x, y - 1)) edge.push([x, y]);
   }
+  for (const [x, y] of edge) r.set(x, y, look.edge);
+  // Light from the top left: the inner top row(s) carry the accent or the sheen.
+  const band = look.accent ? [[1, look.accent], [2, look.accent]] : [[1, look.top]];
+  for (const [y, col] of band) for (let x = 1; x < w - 1; x++) if (!edge.some(([ex, ey]) => ex === x && ey === y)) r.set(x, y, col);
   const t = hiddenPixel(r);
   r.swatch(t.x, t.y, look.text); // label colour for classic Kaleidoscope (C3)
   return { art: r, text: t };
 }
 
 function buildTabs(add, C) {
+  // Front (selected) tab: white glass with a 2px teal top edge. Rear: #eeeeee
+  // glass with a 1px #cccccc top row, so it reads as set back.
   const looks = (front) => [
-    { tag: 'Disabled', face: front ? '#ffffff' : '#f6f7f9', edge: '#d6dae0', accent: front ? '#c4ced6' : null, text: '#a3aab4' },
-    { tag: '', face: front ? '#ffffff' : '#edf0f4', edge: front ? C.active.border : '#a7b1be', accent: front ? C.accent : null, text: C.active.title },
-    { tag: 'Pressed', face: front ? '#f1f4f7' : '#dfe5ec', edge: '#8d98a8', accent: front ? C.accentPressed : null, text: C.active.title },
+    { tag: 'Disabled', face: front ? C.white : C.glass, edge: C.shade, accent: front ? C.shade : null, top: C.shade, text: C.textOff },
+    { tag: '', face: front ? C.white : C.glass, edge: C.outline, accent: front ? C.accent : null, top: C.shade, text: C.text },
+    { tag: 'Pressed', face: C.shade, edge: C.outline, accent: front ? C.accentDeep : null, top: C.deep, text: C.text },
   ];
   for (const size of Object.values(TAB)) {
     for (const front of [false, true]) {
@@ -263,10 +242,10 @@ function buildTabs(add, C) {
     // (1138: bg (4,4), text (6,6)). Sampling both from one pixel draws the
     // pane's labels in the background colour, which made them vanish in real
     // Kaleidoscope (its control panel puts group titles on a tab pane).
-    for (const [off, tag, edge, text] of [[0, 'Inactive ', '#d0d5dc', '#a3aab4'], [1, 'Active ', C.active.border, C.active.title]]) {
-      const pane = new Raster(13, 13).fillRoundRectSmooth(0, 0, 13, 13, 4, edge, { matte: '#ffffff' })
-        .fillRoundRectSmooth(1, 1, 11, 11, 3, C.body)
-        .set(6, 6, text);
+    for (const [off, tag, edge, text] of [[0, 'Inactive ', C.shade, C.textOff], [1, 'Active ', C.outline, C.text]]) {
+      const pane = new Raster(13, 13).fillRect(0, 0, 13, 13, C.body);
+      for (const [x, y] of [[0, 0], [1, 0], [0, 1], [12, 0], [11, 0], [12, 1], [0, 12], [1, 12], [0, 11], [12, 12], [11, 12], [12, 11]]) pane.set(x, y, null);
+      pane.outlineEdges(0, 0, 13, 13, edge).set(6, 6, text);
       add('cicn', paneBase + off, encodeCicn(pane), `${size.name} ${tag}Tab Pane`);
       add('cinf', paneBase + off, encodeCinf({
         cornerSize: 4, sideThickness: 4, bgPixel: { x: 4, y: 4 }, textPixel: { x: 6, y: 6 }, embossPixel: { x: 0, y: 0 },
@@ -291,21 +270,24 @@ const BEVEL = [
 
 function buildBevels(add, C) {
   // [value offset, state offset, label, face, edge, text]
+  // On = the teal accent (the one place a bevel button spends it), off = white glass.
   const states = [
-    [0, 0, 'On Pressed', '#bfe0e9', '#0b5568', '#0b3f4d'],
-    [0, 1, 'On', '#d7edf3', C.accentPressed, '#0f4f61'],
-    [0, 2, 'On Disabled', '#eaf1f4', '#c4d3d9', '#9fb3ba'],
-    [3, 0, 'Off Pressed', '#dde4ec', '#7d8899', C.active.title],
-    [3, 1, 'Off', '#ffffff', '#97a2b2', C.active.title],
-    [3, 2, 'Off Disabled', '#f5f6f8', '#d0d5dc', '#a3aab4'],
+    [0, 0, 'On Pressed', C.accentDeep, C.outline, C.white],
+    [0, 1, 'On', C.accent, C.outline, C.white],
+    [0, 2, 'On Disabled', C.shade, C.deep, C.glass],
+    [3, 0, 'Off Pressed', C.shade, C.outline, C.text],
+    [3, 1, 'Off', C.white, C.outline, C.text],
+    [3, 2, 'Off Disabled', C.glass, C.shade, C.textOff],
   ];
   for (const b of BEVEL) {
     const c = Math.ceil(b.radius) + 1, mid = Math.floor(b.size / 2);
     for (const [value, state, tag, face, edge, text] of states) {
       const id = -(b.base + value + state);
-      const r = new Raster(b.size, b.size)
-        .fillRoundRectSmooth(0, 0, b.size, b.size, b.radius, edge, { matte: C.body })
-        .fillRoundRectSmooth(1, 1, b.size - 2, b.size - 2, b.radius - 1, face);
+      const r = new Raster(b.size, b.size).fillRect(0, 0, b.size, b.size, face);
+      for (const [x, y] of [[0, 0], [1, 0], [0, 1]]) {
+        r.set(x, y, null).set(b.size - 1 - x, y, null).set(x, b.size - 1 - y, null).set(b.size - 1 - x, b.size - 1 - y, null);
+      }
+      r.outlineEdges(0, 0, b.size, b.size, edge);
       const t = hiddenPixel(r);
       r.swatch(t.x, t.y, text);
       const name = `${b.name} Bevel Button ${tag}`;
@@ -337,26 +319,28 @@ function popupPiece({ side, face, edge, text, width = POPUP.w }) {
   // side: 'text' (left end rounded), 'arrow' (right end rounded), 'both'.
   const x0 = side === 'arrow' ? -radius - 2 : 2, x1 = side === 'text' ? width + radius + 2 : width - 2;
   const r = new Raster(width, h)
-    .paintCoverage(0, 0, width, h, (px, py) => sdRoundRect(x0, top, x1, bottom, radius)(px, py) <= 0, edge, { matte: '#ffffff' });
-  r.paintCoverage(0, 0, width, h, (px, py) => sdRoundRect(x0, top, x1, bottom, radius)(px, py) <= -1, face);
+    .paintCoverage(0, 0, width, h, (px, py) => sdRoundRect(x0, top, x1, bottom, radius)(px, py) <= 0, edge, { samples: 1 });
+  r.paintCoverage(0, 0, width, h, (px, py) => sdRoundRect(x0, top, x1, bottom, radius)(px, py) <= -1, face, { samples: 1 });
   r.swatch(side === 'arrow' ? width - 1 : 0, 8, text);
   return r;
 }
 
-function popupGlyph(w, h, ink, matte) {
-  // Up and down triangles (the corpus glyph shape), centred, smooth-edged.
-  // Matte = the arrow box colour they sit on.
-  const cx = w / 2, cy = h / 2, a = w * 0.3, gap = 0.9, d = h * 0.3;
-  const up = sdPolygon([[cx - a, cy - gap], [cx, cy - gap - d], [cx + a, cy - gap]]);
-  const down = sdPolygon([[cx + a, cy + gap], [cx, cy + gap + d], [cx - a, cy + gap]]);
-  return layer(new Raster(w, h), union(up, down), 0, ink, { matte });
+// Up and down pixel triangles (the corpus glyph shape), centred, on whole pixels.
+const POPUP_GLYPHS = {
+  large: ['...........', '.....#.....', '....###....', '...#####...', '..#######..', '...........',
+    '...........', '..#######..', '...#####...', '....###....', '.....#.....', '...........'],
+  small: ['.........', '....#....', '...###...', '..#####..', '.........', '.........',
+    '..#####..', '...###...', '....#....', '.........'],
+};
+function popupGlyph(w, h, ink) {
+  return new Raster(w, h).sprite(0, 0, POPUP_GLYPHS[w === 11 ? 'large' : 'small'], { '#': ink });
 }
 
 function buildPopups(add, C) {
   const tiers = [
-    { tag: 'Disabled', face: '#f5f6f8', edge: '#d0d5dc', text: '#a3aab4', box: '#c4ced6', boxEdge: '#b6c2cb', glyph: '#f4f6f8' },
-    { tag: 'Normal', face: '#ffffff', edge: '#97a2b2', text: C.active.title, box: C.accent, boxEdge: C.accentPressed, glyph: '#ffffff' },
-    { tag: 'Pressed', face: '#dde4ec', edge: '#7d8899', text: C.active.title, box: C.accentPressed, boxEdge: '#0b5568', glyph: '#ffffff' },
+    { tag: 'Disabled', face: C.glass, edge: C.shade, text: C.textOff, box: C.shade, boxEdge: C.deep, glyph: C.glass },
+    { tag: 'Normal', face: C.white, edge: C.outline, text: C.text, box: C.accent, boxEdge: C.outline, glyph: C.white },
+    { tag: 'Pressed', face: C.shade, edge: C.outline, text: C.text, box: C.accentDeep, boxEdge: C.outline, glyph: C.white },
   ];
   const cinf = (s, bg, t) => encodeCinf({ cornerSize: 6, sideThickness: s, tileSides: 0, patternAnchor: 0, bgPixel: bg, textPixel: t, embossPixel: { x: 0, y: 0 } });
   tiers.forEach((t, i) => {
@@ -370,8 +354,8 @@ function buildPopups(add, C) {
   });
   // Glyph ids run inactive, active, pressed (corpus labels), i.e. tiers 0, 1, 2.
   tiers.forEach((t, i) => {
-    add('cicn', -8199 + i, encodeCicn(popupGlyph(11, 12, t.glyph, t.box)), `${['Inactive', 'Active', 'Pressed'][i]} Large Popup Arrow Glyph`);
-    add('cicn', -8196 + i, encodeCicn(popupGlyph(9, 10, t.glyph, t.box)), `${['Inactive', 'Active', 'Pressed'][i]} Small Popup Arrow Glyph`);
+    add('cicn', -8199 + i, encodeCicn(popupGlyph(11, 12, t.glyph)), `${['Inactive', 'Active', 'Pressed'][i]} Large Popup Arrow Glyph`);
+    add('cicn', -8196 + i, encodeCicn(popupGlyph(9, 10, t.glyph)), `${['Inactive', 'Active', 'Pressed'][i]} Small Popup Arrow Glyph`);
   });
 }
 

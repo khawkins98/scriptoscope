@@ -1,18 +1,21 @@
 // Bonn — an original first-party Kaleidoscope scheme, authored in code.
 //
-// Look: the city of Bonn on the Rhine. Every titled window carries a small,
-// original skyline silhouette standing on a sandstone title bar (the Minster,
-// the Old Town Hall, the Beethoven monument, the Post Tower and cherry trees
-// in blossom), drawn once whatever the window's width. The title sits on a
-// pennant in the city colours, red with yellow trim. Along the bottom runs the
-// Rhine: a promenade, rolling water with a wavy lower edge that repeats as the
-// window widens, embankment piers at the corners and the Kennedy Bridge in the
-// middle. Widgets are one family of 13px discs with a dark rim, carrying a
-// cherry blossom (close), the city colours with a square (zoom) and a Rhine
-// wave (collapse), all clickable on the web through the pressed strip (cicn
-// -14330; classic utility windows read -14298). Light comes from the top
-// left. Document bodies are cream with faint blossom petals; dialogs and
-// palettes have a faint Altstadt cobblestone.
+// Look: a window on the Rhine in blossom season. Every document window carries
+// the Bonn skyline as one outlined silhouette standing on a sandstone title
+// bar (the Minster with its spire and four flanking towers, the pink Old Town
+// Hall with its outside stair, the glass Post Tower), drawn once whatever the
+// window's width (a droppable code-10 cell). A cherry branch with five-pixel
+// rosettes runs along the bar's top edge from the left corner. The title hangs
+// on a red city pennant. Sandstone ashlar piers run down both sides, and the
+// Rhine runs along the bottom: an embankment, two flat teal bands with foam
+// dashes, a stone arch bridge in the middle and a mooring bollard on the
+// bottom-right pier. Widgets are one family of 14px sandstone discs carrying a
+// rosette (close), the city colours with a square (zoom) and a wave
+// (collapse), clickable on the web through the pressed strip (cicn -14330;
+// classic utility windows read -14298). Red is the title's colour: the
+// pennant, the default ring, checked marks and arrowheads only. Light comes
+// from the upper left. Everything is drawn on whole pixels with colours of the
+// 8-bit system palette, so classic and web look alike.
 // Original art; no photos, coat of arms or logos.
 //
 // Build:   npm run author -- authoring/schemes/bonn
@@ -20,22 +23,23 @@
 //
 // Files:
 //   frames.mjs      window types (frameLayout) and the frame painter
-//   skyline.mjs     the skyline, the utility motif, the dialog/alert ornaments
+//   skyline.mjs     the skyline, the blossom branch, the dialog/alert ornaments
 //   widgets.mjs     close / zoom / collapse art and the pressed strip
+//   pixels.mjs      whole-pixel rounded shapes with outline and bevel rings
 //   controls.mjs    push buttons, default ring, checkboxes, radios
 //   scrollbars.mjs  scroll bars, thumbs, ghosts, little arrows
-//   patterns.mjs    blossom document body, cobblestone utility body, Rhine desktop, Finder colours
-//   families.mjs    sliders, tabs + panes, bevel buttons, popup pieces (recoloured Halcyon)
-//   progress.mjs    progress bar + barber pole, list headers, disclosure, grow boxes (recoloured Halcyon)
-//   (fitPalette, promoted to the toolkit, keeps big smooth frames under the 256-colour limit)
+//   patterns.mjs    white bodies, the Rhine desktop, Finder colours
+//   families.mjs    sliders, tabs + panes, bevel buttons, popup pieces
+//   progress.mjs    progress bar + barge, list headers, disclosure, grow boxes
+//   menus.mjs       menu bar, pull-down and pop-up menus, the grabber
 //
-// Not themed (falls back): menus and the menu bar, the scheme's picker icon,
-// popup / side-floating / no-title utility windows, text fields (CSS on the web).
+// Not themed (falls back): the scheme's picker icon, popup / side-floating /
+// no-title utility windows, text fields (CSS on the web).
 import { encodeCicn, encodeWnd, encodeColr, encodeVers, stripLayout } from '../../../tools/theme-author/index.js';
 import { windowTypes, paintFrame } from './frames.mjs';
 import { pressedStrip } from './widgets.mjs';
 
-const PARTS = ['controls', 'scrollbars', 'patterns', 'families', 'progress'];
+const PARTS = ['controls', 'scrollbars', 'patterns', 'families', 'progress', 'menus'];
 
 export async function buildScheme() {
   const resources = [];

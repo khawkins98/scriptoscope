@@ -1,88 +1,107 @@
-// Title-bar widgets, drawn straight onto the frame (so their smooth edges blend
-// with the real sandstone under them), plus the pressed-widget strip (cicn -14330).
+// Title-bar widgets, drawn straight onto the frame, plus the pressed-widget
+// strip (cicn -14330, and -14298 for classic utility windows).
 //
-// One family: every widget is the same 13px disc with the same dark rim
-// (p.outline), and the picture sits inside it on whole pixels:
+// One family: every widget is the same 14px sandstone disc with a dark
+// 1-2-1 stair rim, a lit arc on the upper left and a shaded arc on the lower
+// right. The glyph sits inside on whole pixels:
 //
-//   close     a five-petal cherry blossom on a pink disc
-//   zoom      a small square on a disc in the city colours, red over yellow
-//   collapse  a Rhine wave on a teal disc
+//   close     a cherry rosette
+//   zoom      the disc halved, red over yellow, with a cream square
+//   collapse  a teal wave
 //
-// Pressed: the fill steps down and the glyph turns yellow. Inactive: the same
-// disc and glyph in the quiet inactive colours. The pressed strip's mask is
-// the hit region (exotic-frames R24), so each pressed piece keeps exactly its
-// widget's silhouette.
+// Pressed: the face drops to the shade colour and the lit and shaded arcs swap
+// (the disc is pushed in). Inactive: a grey disc, no glyph. The pressed
+// strip's mask is the hit region (exotic-frames R24), so each pressed piece
+// keeps exactly the disc's silhouette.
 import { pressedStripFrom } from '../../../tools/theme-author/index.js';
 import { C } from './palette.mjs';
-import { fitPalette } from '../../../tools/theme-author/index.js';
 
-export const WIDGET = 13;
-const RIM = 1.1;
+export const WIDGET = 14;
 
-/** The shared silhouette: a 13px disc with a 1px rim, filled with `fill`. */
-function disc(r, b, p, fill) {
-  const cx = b.x + b.w / 2, cy = b.y + b.h / 2, rad = b.w / 2;
-  r.fillCircleSmooth(cx, cy, rad, p.outline);
-  r.paintCoverage(b.x, b.y, b.w, b.h, (px, py) => Math.hypot(px - cx, py - cy) <= rad - RIM, fill);
+// o rim, f face, L lit arc, D shaded arc.
+const DISC = [
+  '.....oooo.....',
+  '...ooLLLLoo...',
+  '..oLLffffffo..',
+  '.oLffffffffDo.',
+  '.oLffffffffDo.',
+  'oLffffffffffDo',
+  'oLffffffffffDo',
+  'oLffffffffffDo',
+  'oLffffffffffDo',
+  '.oLffffffffDo.',
+  '.offffffffDDo.',
+  '..offfffDDDo..',
+  '...ooDDDDoo...',
+  '.....oooo.....',
+];
+
+function disc(r, b, p, { face, lit, shade, top, bottom }) {
+  const half = (y) => (top && bottom ? (y < 7 ? top : bottom) : face);
+  DISC.forEach((row, y) => [...row].forEach((ch, x) => {
+    if (ch === '.') return;
+    const c = ch === 'o' ? p.outline : ch === 'L' ? (top ? half(y) : lit) : ch === 'D' ? (bottom ? half(y) : shade) : half(y);
+    r.set(b.x + x, b.y + y, c);
+  }));
 }
 
-// Glyphs on whole pixels, centred in the 13px box (the blossom is 9×9 at
-// +2, the others 7×7 at +3).
-const BLOSSOM = [
-  '...###...',
-  '...###...',
-  '##..#..##',
-  '###.y.###',
-  '.##yyy##.',
-  '..#.y.#..',
-  '.###.###.',
-  '.###.###.',
-  '..#...#..',
+// Glyphs, centred in the 14px disc (offset (14 − size) / 2).
+const ROSE = [
+  '..l.a..',
+  '.llaaa.',
+  'laaaaad',
+  '.aacad.',
+  'aaaaadd',
+  '.aaddd.',
+  '..a.d..',
 ];
 const SQUARE = [
-  '.......',
-  '.#####.',
-  '.#ooo#.',
-  '.#ooo#.',
-  '.#ooo#.',
-  '.#####.',
-  '.......',
+  'ooooo',
+  'oyyyo',
+  'oyyyo',
+  'oyyyo',
+  'ooooo',
 ];
 const WAVE = [
-  '.......',
-  '.......',
-  '.##....',
-  '#..#..#',
-  '....##.',
-  '.......',
-  '.......',
+  '.ww.....',
+  'w..w..w.',
+  '....ww..',
 ];
-const glyph = (r, b, rows, legend) => {
-  const o = (b.w - rows.length) >> 1;
-  r.sprite(b.x + o, b.y + o, rows, legend);
+const glyph = (r, b, rows, legend, dy = 0) => {
+  const ox = Math.floor((WIDGET - rows[0].length) / 2), oy = Math.floor((WIDGET - rows.length) / 2) + dy;
+  r.sprite(b.x + ox, b.y + oy, rows, legend);
 };
 
-export function drawClose(r, b, state, pressed = false) {
+function look(state, pressed) {
   const p = C[state];
-  disc(r, b, p, pressed ? C.red : p.pinkLo);
-  const active = state === 'active';
-  glyph(r, b, BLOSSOM, { '#': pressed ? C.pink : p.pinkHi, y: active ? C.yellow : p.pink });
+  if (state !== 'active') return { p, face: '#cccccc', lit: '#dddddd', shade: '#bbbbbb' };
+  return pressed ? { p, face: p.stoneLo, lit: p.mortar, shade: p.stone } : { p, face: p.stone, lit: p.stoneHi, shade: p.stoneLo };
+}
+
+export function drawClose(r, b, state, pressed = false) {
+  const k = look(state, pressed);
+  disc(r, b, k.p, k);
+  if (state !== 'active') return;
+  const a = C.active;
+  glyph(r, b, ROSE, { l: a.blossomHi, a: a.blossom, d: a.blossomLo, c: pressed ? a.yellow : a.blossomLo });
 }
 
 export function drawZoom(r, b, state, pressed = false) {
-  const p = C[state];
-  const cy = b.y + b.h / 2;
-  const top = pressed ? p.redLo : p.red, bottom = pressed ? p.yellowLo : p.yellow;
-  disc(r, b, p, (x, y) => (y < cy ? top : bottom));
-  const ink = state === 'active' ? (pressed ? C.yellow : C.active.title) : p.barTop;
-  glyph(r, b, SQUARE, { '#': ink, o: pressed ? top : p.outline });
+  const k = look(state, pressed);
+  if (state !== 'active') { disc(r, b, k.p, k); return; }
+  const a = C.active;
+  disc(r, b, k.p, { top: pressed ? a.redLo : a.red, bottom: pressed ? a.stoneLo : a.yellow });
+  glyph(r, b, SQUARE, { o: a.outline, y: pressed ? a.yellow : a.stoneHi });
 }
 
 export function drawCollapse(r, b, state, pressed = false) {
-  const p = C[state];
-  disc(r, b, p, pressed ? p.water[1] : p.water[0]);
-  const ink = state === 'active' ? (pressed ? C.yellow : p.foam) : p.barTop;
-  glyph(r, b, WAVE, { '#': ink });
+  const k = look(state, pressed);
+  disc(r, b, k.p, k);
+  if (state !== 'active') return;
+  const a = C.active;
+  glyph(r, b, WAVE, { w: pressed ? a.foam : a.water });
+  // A second, darker wave under the first: two flat teals, as in the river.
+  glyph(r, b, WAVE, { w: a.waterLo }, 3);
 }
 
 export const DRAW = { close: drawClose, zoom: drawZoom, collapse: drawCollapse };
@@ -93,5 +112,5 @@ export const DRAW = { close: drawClose, zoom: drawZoom, collapse: drawCollapse }
  * silhouette is the click area.
  */
 export function pressedStrip(strip, activeFrame) {
-  return fitPalette(pressedStripFrom({ strip, activeFrame, draw: (role, raster, box) => DRAW[role](raster, box, 'active', true) }));
+  return pressedStripFrom({ strip, activeFrame, draw: (role, raster, box) => DRAW[role](raster, box, 'active', true) });
 }

@@ -1,40 +1,38 @@
 // Bonn control families: sliders, tabs (+ tab panes), bevel buttons and popup
-// button pieces. A recoloured copy of Halcyon's parts/controls.mjs (the
-// geometry and every engine rule documented below are Halcyon's): slate
-// becomes sandstone, the teal accent becomes the city red, pressed states
-// turn blossom pink. Mattes are the cream body colour instead of white.
+// button pieces. Geometry and every engine rule are Halcyon's
+// (authoring/schemes/halcyon/parts/controls.mjs, notes per section below);
+// the art is Bonn's and drawn on whole pixels: the slider track is a strip of
+// the Rhine and its thumb a mooring bollard seen from above, tabs and bevel
+// buttons are sandstone blocks (the selected tab carries the city rule, red
+// over yellow), popups are sandstone with a red arrow glyph.
 //
-// --- Halcyon's original header follows ---
-// Halcyon control family: sliders, tabs (+ tab panes), bevel / small-button-bar
-// buttons and popup menu buttons.
+// How each piece is drawn decides how it may be painted. Anything the engine
+// stretches from ONE source column or row, or fills with one sampled colour,
+// must be flat along that axis. Pieces copied 1:1 (caps, thumbs, glyphs) may
+// carry detail.
 //
-// How each piece is drawn decides how it may be painted (see the notes per
-// section). In short: anything the engine stretches from ONE source column or
-// row, or fills with one sampled colour, must be flat along that axis — no
-// dither, no gradient across it. Pieces copied 1:1 (caps, thumbs, ticks,
-// glyphs) can be fully anti-aliased.
-//
-// Text fields are deliberately absent: no corpus scheme ships edit-text art and
-// the runtime draws fields with CSS (src/declarative/field.ts header comment);
-// classic Kaleidoscope leaves them to the Appearance Manager.
+// Text fields are deliberately absent: the runtime draws fields with CSS.
 
-import { Raster, verticalGradient, encodeCicn, encodeCinf } from '../../../tools/theme-author/index.js';
+import { Raster, encodeCicn, encodeCinf } from '../../../tools/theme-author/index.js';
+import { C as P } from './palette.mjs';
+import { roundRect, bevel } from './pixels.mjs';
 
-// Family colours. Slate outlines and the teal accent come from the shared palette.
-const K = (C) => ({
-  ink: C.active.title, inkOff: '#a99d91',
+const A = P.active;
+
+// Family colours.
+const K = () => ({
   track: {
-    normal: { edge: '#b7966a', top: '#e2cca7', bottom: '#f0e2c8' },
-    pressed: { edge: '#9c7c52', top: '#d6bd94', bottom: '#e6d3b1' },
-    inactive: { edge: '#d8cfc2', top: '#efe9df', bottom: '#f4f0e9' },
+    normal: { edge: A.outline, top: A.water, bottom: A.waterLo },
+    pressed: { edge: A.outline, top: A.waterLo, bottom: A.waterLo },
+    inactive: { edge: '#999999', top: '#dddddd', bottom: '#cccccc' },
   },
   knob: {
-    normal: { edge: C.active.buttonEdge, top: '#fbf5ea', bottom: C.active.buttonBottom, dot: C.accent },
-    pressed: { edge: '#7e1f3d', top: '#fbd9e3', bottom: '#f6c4d2', dot: C.accentPressed },
-    inactive: { edge: '#cfc5b8', top: '#f8f4ee', bottom: '#efe9df', dot: null },
+    normal: { edge: A.outline, hi: A.stoneHi, face: A.stone, lo: A.stoneLo, ring: A.mortar },
+    pressed: { edge: A.outline, hi: A.mortar, face: A.stoneLo, lo: A.stone, ring: A.outline },
+    inactive: { edge: '#999999', hi: '#ffffff', face: '#eeeeee', lo: '#dddddd', ring: null },
   },
-  ghost: '#f6c4d2',
-  tick: { normal: '#b7966a', inactive: '#d8cfc2' },
+  ghost: A.stoneLo,
+  tick: { normal: A.mortar, inactive: '#cccccc' },
 });
 
 // ── helpers ────────────────────────────────────────────────────────────────
@@ -83,10 +81,6 @@ const sdPolygon = (pts) => (px, py) => {
 };
 const union = (...fs) => (px, py) => Math.min(...fs.map((f) => f(px, py)));
 
-/** Paint the shape `sd`, shrunk by `inset` px, with smooth edges. */
-const layer = (r, sd, inset, color, opts) =>
-  r.paintCoverage(0, 0, r.width, r.height, (px, py) => sd(px, py) <= -inset, color, opts);
-
 // ── 1. Sliders ─────────────────────────────────────────────────────────────
 // docs/spec/engine/slider.md (CDEF 3), src/engine/tables/slider.ts.
 //   base −10144 horizontal / −10128 vertical; group g = 0 points down/right,
@@ -104,61 +98,38 @@ const layer = (r, sd, inset, color, opts) =>
 // 1 normal, 2 pressed, 3 ghost. Copied 1:1, masked, over the track, so its
 // edge pixels are blended with what lies under them in that row.
 // c = byte 0 of cinf gb also insets the thumb's travel (ID6, §5.2).
-const SLIDER = { k: 2, trackH: 4, thumbW: 15, cell: 16, band: 16 };
-const TRACK_ROW0 = Math.trunc((SLIDER.band - SLIDER.trackH) / 2); // SL1: centred in the 16px band
+const SLIDER = { k: 2, trackH: 5, thumbW: 15, cell: 16, band: 16 };
 
-function trackArt(t, matte) {
+/** The river strip: outline, river, river, deep, outline; rounded ends on a 1px cut. */
+function trackArt(t) {
   const { k, trackH } = SLIDER, w = 2 * k + 1;
-  return new Raster(w, trackH)
-    .fillRoundRectSmooth(0, 0, w, trackH, trackH / 2, t.edge, { matte })
-    .fillRoundRectSmooth(1, 1, w - 2, trackH - 2, (trackH - 2) / 2,
-      verticalGradient(1, trackH - 2, [[0, t.top], [1, t.bottom]]));
+  return bevel(new Raster(w, trackH), 0, 0, w, trackH, roundRect(w, trackH, 2), { outline: t.edge, hi: null, lo: t.bottom, face: t.top });
 }
 
-/** Thumb outline shapes for one 15×16 cell: round knob, or a pointer whose tip is at the bottom. */
-function thumbShape(kind) {
+/** Thumb masks for one 15×16 cell: the round bollard, or a pointer whose tip is at the bottom. */
+function thumbMask(kind) {
   const { thumbW: w, cell: h } = SLIDER;
-  if (kind === 'round') return { sd: sdCircle(w / 2, h / 2, 7), dot: [w / 2, h / 2] };
-  // Pointer: a rounded body plus a short point down into the tick band.
-  return {
-    sd: union(sdRoundRect(1, 1, w - 1, 11, 3.5), sdPolygon([[1.6, 8], [w - 1.6, 8], [w / 2, h - 0.6]])),
-    dot: [w / 2, 6],
-  };
+  if (kind === 'round') return (x, y) => (x + 0.5 - w / 2) ** 2 + (y + 0.5 - h / 2) ** 2 <= 6.6 ** 2;
+  const sd = union(sdRoundRect(1, 1, w - 1, 11, 3), sdPolygon([[1.6, 8], [w - 1.6, 8], [w / 2, h - 0.6]]));
+  return (x, y) => sd(x + 0.5, y + 0.5) <= 0;
 }
 
 function thumbCell(kind, cell, k) {
   const { thumbW: w, cell: h } = SLIDER;
-  const { sd, dot } = thumbShape(kind);
-  // Underlay: what the thumb sits on in this cell's state (white body + the
-  // track's middle-column rows), so the knob's edge blends with the real pixels.
-  const tier = cell === 0 ? 'inactive' : cell === 1 ? 'normal' : 'pressed';
-  const under = new Raster(w, h).fillRect(0, 0, w, h, '#fbf5ea');
-  const track = trackArt(k.track[tier], '#fbf5ea');
-  for (let y = 0; y < track.height; y++) under.hline(0, TRACK_ROW0 + y, w, track.get(SLIDER.k, y));
-  // Which pixels the thumb touches at all (any coverage → part of the mask).
-  const touched = layer(new Raster(w, h), sd, 0, '#000000', { matte: '#fbf5ea' });
-
+  const mask = thumbMask(kind);
+  const r = new Raster(w, h);
   if (cell === 3) {
-    // Ghost (TH5, drawn where the thumb is being dragged to): a soft teal ring.
-    // Its inside is left transparent so the track shows through.
-    const bare = new Raster(w, h);
-    bare.rgba.set(under.rgba);
-    layer(under, sd, 0, k.ghost);
-    layer(under, sd, 1.2, (x, y) => bare.get(x, y));
-    const out = new Raster(w, h);
-    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
-      const a = under.get(x, y), b = bare.get(x, y);
-      if (touched.get(x, y) && a.some((v, i) => v !== b[i])) out.set(x, y, a);
-    }
-    return out;
+    // Ghost (where the thumb is being dragged to): the outline alone, in the shade colour.
+    return bevel(r, 0, 0, w, h, (x, y) => mask(x, y) && !(mask(x - 1, y) && mask(x + 1, y) && mask(x, y - 1) && mask(x, y + 1)), { outline: k.ghost, face: k.ghost });
   }
-  const look = k.knob[tier];
-  layer(under, sd, 0, look.edge);
-  layer(under, sd, 1, verticalGradient(1, h - 2, [[0, look.top], [1, look.bottom]]));
-  if (look.dot) under.fillCircleSmooth(dot[0], dot[1], 2.1, look.dot);
-  const out = new Raster(w, h);
-  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (touched.get(x, y)) out.set(x, y, under.get(x, y));
-  return out;
+  const look = k.knob[cell === 0 ? 'inactive' : cell === 1 ? 'normal' : 'pressed'];
+  bevel(r, 0, 0, w, h, mask, { outline: look.edge, hi: look.hi, lo: look.lo, face: look.face });
+  if (look.ring) {
+    // The bollard's head seen from above: a rope ring round a lit cap.
+    const cx = 7, cy = kind === 'round' ? 7 : 5;
+    r.sprite(cx - 2, cy - 2, ['.rrr.', 'rhhfr', 'rhffr', 'rfffr', '.rrr.'], { r: look.ring, h: look.hi, f: look.face });
+  }
+  return r;
 }
 
 /** The 15×64 thumb strip: cells 0–3 stacked (TH3). */
@@ -184,7 +155,7 @@ function buildSliders(add, k) {
     for (const grp of groups) {
       const gb = base + 6 * grp.g, label = grp[axis];
       tiers.forEach(([tier, prefix], t) => {
-        add('cicn', gb + t, encodeCicn(orient(trackArt(k.track[tier], '#fbf5ea'))), `${prefix}${label} Slider Track`);
+        add('cicn', gb + t, encodeCicn(orient(trackArt(k.track[tier]))), `${prefix}${label} Slider Track`);
         add('cinf', gb + t, trackCinf(), `${prefix}${label} Slider Track`);
       });
       const strip = thumbStrip(grp.kind, k);
@@ -229,24 +200,28 @@ const TAB = {
 };
 
 function tabFace(size, look) {
-  const { c, radius } = size, w = 2 * c + 1, h = look.front ? size.front : size.rear;
-  // A rounded-top shape that runs off the bottom edge (open bottom).
-  const r = new Raster(w, h).fillRoundRectSmooth(0, 0, w, h + radius + 1, radius, look.edge, { matte: '#fbf5ea' });
-  r.fillRoundRectSmooth(1, 1, w - 2, h + radius, radius - 1, look.face);
+  const { c } = size, w = 2 * c + 1, h = look.front ? size.front : size.rear;
+  // A rounded-top block that runs off the bottom edge (open bottom).
+  const mask = roundRect(w, h + 4, 4, 'tl tr');
+  const r = bevel(new Raster(w, h), 0, 0, w, h + 4, mask, { outline: look.edge, hi: look.hi, lo: null, face: look.face });
   if (look.accent) {
-    // A 2px accent bar inside the top edge, following the corner curve.
-    r.paintCoverage(1, 1, w - 2, 2, (px, py) => sdRoundRect(1, 1, w - 1, h + radius + 1, radius - 1)(px, py) <= 0 && py < 3, look.accent);
+    // The city rule inside the top edge: red, then yellow.
+    for (let x = 1; x < w - 1; x++) {
+      if (mask(x, 0) && r.get(x, 1)) r.set(x, 1, look.accent[0]);
+      if (r.get(x, 2)) r.set(x, 2, look.accent[1]);
+    }
+    r.set(1, 2, look.edge).set(w - 2, 2, look.edge);
   }
   const t = hiddenPixel(r);
   r.swatch(t.x, t.y, look.text); // label colour for classic Kaleidoscope (C3)
   return { art: r, text: t };
 }
 
-function buildTabs(add, C) {
+function buildTabs(add) {
   const looks = (front) => [
-    { tag: 'Disabled', face: front ? '#fbf5ea' : '#f3ece0', edge: '#d8cfc2', accent: front ? '#e2cca7' : null, text: '#a99d91' },
-    { tag: '', face: front ? '#fbf5ea' : '#efe2c9', edge: front ? C.active.border : '#b7966a', accent: front ? C.accent : null, text: C.active.title },
-    { tag: 'Pressed', face: front ? '#fbe3ea' : '#f6c4d2', edge: '#9c7c52', accent: front ? C.accentPressed : null, text: C.active.title },
+    { tag: 'Disabled', face: '#eeeeee', hi: '#ffffff', edge: '#aaaaaa', accent: null, text: '#999999' },
+    { tag: '', face: front ? A.stone : '#eeeeee', hi: front ? A.stoneHi : '#ffffff', edge: A.outline, accent: front ? [A.red, A.yellow] : null, text: A.outline },
+    { tag: 'Pressed', face: A.stoneLo, hi: A.mortar, edge: A.outline, accent: front ? [A.redLo, A.yellow] : null, text: A.outline },
   ];
   for (const size of Object.values(TAB)) {
     for (const front of [false, true]) {
@@ -262,18 +237,12 @@ function buildTabs(add, C) {
       });
     }
     // Tab pane (the body the tabs sit on): classic Kaleidoscope only; the web
-    // runtime draws panels with CSS. Geometry as the corpus (13×13, c 4, s 4).
-    // Ids: SSF −9970 inactive / −9969 active, LSF −9978 / −9977.
+    // draws panels with CSS. 13×13, c 4, s 4. The label colour lives on a
+    // middle pixel (the middle is filled from bgPixel, never copied), apart
+    // from the fill sample, or the pane's labels vanish (they did once).
     const paneBase = size.base + 6;
-    // The pane's middle is filled with the bgPixel colour and never copied, so
-    // the label colour can live on a middle pixel too, as in the corpus
-    // (1138: bg (4,4), text (6,6)). Sampling both from one pixel draws the
-    // pane's labels in the background colour, which made them vanish in real
-    // Kaleidoscope (its control panel puts group titles on a tab pane).
-    for (const [off, tag, edge, text] of [[0, 'Inactive ', '#cfc5b8', '#a99d91'], [1, 'Active ', C.active.border, C.active.title]]) {
-      const pane = new Raster(13, 13).fillRoundRectSmooth(0, 0, 13, 13, 4, edge, { matte: '#fbf5ea' })
-        .fillRoundRectSmooth(1, 1, 11, 11, 3, C.body)
-        .set(6, 6, text);
+    for (const [off, tag, edge, text] of [[0, 'Inactive ', '#999999', '#999999'], [1, 'Active ', A.outline, '#000000']]) {
+      const pane = bevel(new Raster(13, 13), 0, 0, 13, 13, roundRect(13, 13, 3), { outline: edge, hi: null, lo: null, face: P.body }).set(6, 6, text);
       add('cicn', paneBase + off, encodeCicn(pane), `${size.name} ${tag}Tab Pane`);
       add('cinf', paneBase + off, encodeCinf({
         cornerSize: 4, sideThickness: 4, bgPixel: { x: 4, y: 4 }, textPixel: { x: 6, y: 6 }, embossPixel: { x: 0, y: 0 },
@@ -296,29 +265,27 @@ const BEVEL = [
   { base: 10153, size: 24, radius: 4.5, name: 'Large' },
 ];
 
-function buildBevels(add, C) {
-  // [value offset, state offset, label, face, edge, text]
+function buildBevels(add) {
+  // [value offset, state offset, label, face, hi, lo, edge, text]: "on" is a block pushed in.
   const states = [
-    [0, 0, 'On Pressed', '#f6c4d2', '#7e1419', '#5b0d12'],
-    [0, 1, 'On', '#fbd9e3', C.accentPressed, '#5b0d12'],
-    [0, 2, 'On Disabled', '#f4ece9', '#d8c3c3', '#b9a3a3'],
-    [3, 0, 'Off Pressed', '#efe2c9', '#7e1f3d', C.active.title],
-    [3, 1, 'Off', '#fbf5ea', '#3a2c26', C.active.title],
-    [3, 2, 'Off Disabled', '#f3ece0', '#cfc5b8', '#a99d91'],
+    [0, 0, 'On Pressed', A.mortar, A.stoneLo, A.stone, A.outline, A.stoneHi],
+    [0, 1, 'On', A.stoneLo, A.mortar, A.stone, A.outline, A.outline],
+    [0, 2, 'On Disabled', '#dddddd', '#cccccc', '#eeeeee', '#999999', '#999999'],
+    [3, 0, 'Off Pressed', A.stoneLo, A.mortar, A.stone, A.outline, A.outline],
+    [3, 1, 'Off', A.stone, A.stoneHi, A.stoneLo, A.outline, A.outline],
+    [3, 2, 'Off Disabled', '#eeeeee', '#ffffff', '#dddddd', '#999999', '#999999'],
   ];
   for (const b of BEVEL) {
     const c = Math.ceil(b.radius) + 1, mid = Math.floor(b.size / 2);
-    for (const [value, state, tag, face, edge, text] of states) {
+    for (const [value, state, tag, face, hi, lo, edge, text] of states) {
       const id = -(b.base + value + state);
-      const r = new Raster(b.size, b.size)
-        .fillRoundRectSmooth(0, 0, b.size, b.size, b.radius, edge, { matte: C.body })
-        .fillRoundRectSmooth(1, 1, b.size - 2, b.size - 2, b.radius - 1, face);
+      const r = bevel(new Raster(b.size, b.size), 0, 0, b.size, b.size, roundRect(b.size, b.size, 3), { outline: edge, hi, lo, face });
       const t = hiddenPixel(r);
       r.swatch(t.x, t.y, text);
       const name = `${b.name} Bevel Button ${tag}`;
       add('cicn', id, encodeCicn(r), name);
       add('cinf', id, encodeCinf({
-        cornerSize: c, sideThickness: 1, tileSides: 0, patternAnchor: 0, bgPatternId: 0,
+        cornerSize: c, sideThickness: 2, tileSides: 0, patternAnchor: 0, bgPatternId: 0,
         bgPixel: { x: mid, y: mid }, textPixel: t, embossPixel: { x: 0, y: 0 },
       }), name);
     }
@@ -339,59 +306,58 @@ function buildBevels(add, C) {
 // composes these pieces is not decoded, so treat the layout as best-evidence.
 const POPUP = { w: 14, h: 16, top: 2, bottom: 14, radius: 5 };
 
-function popupPiece({ side, face, edge, text, width = POPUP.w }) {
-  const { h, top, bottom, radius } = POPUP;
-  // side: 'text' (left end rounded), 'arrow' (right end rounded), 'both'.
-  const x0 = side === 'arrow' ? -radius - 2 : 2, x1 = side === 'text' ? width + radius + 2 : width - 2;
-  const r = new Raster(width, h)
-    .paintCoverage(0, 0, width, h, (px, py) => sdRoundRect(x0, top, x1, bottom, radius)(px, py) <= 0, edge, { matte: '#fbf5ea' });
-  r.paintCoverage(0, 0, width, h, (px, py) => sdRoundRect(x0, top, x1, bottom, radius)(px, py) <= -1, face);
+function popupPiece({ side, face, hi, lo, edge, text, width = POPUP.w }) {
+  const { h, top, bottom } = POPUP;
+  // side: 'text' (left end rounded, open right), 'arrow' (right end rounded, open left), 'both'.
+  const ext = 6;
+  const x0 = side === 'arrow' ? -ext : 2, x1 = side === 'text' ? width + ext : width - 2;
+  const bw = x1 - x0, bh = bottom - top;
+  const m = roundRect(bw, bh, 4);
+  const r = new Raster(width, h);
+  const full = new Raster(bw, bh);
+  bevel(full, 0, 0, bw, bh, m, { outline: edge, hi, lo, face });
+  for (let y = 0; y < bh; y++) for (let x = 0; x < bw; x++) { const c = full.get(x, y); if (c) r.set(x + x0, y + top, c); }
   r.swatch(side === 'arrow' ? width - 1 : 0, 8, text);
   return r;
 }
 
-function popupGlyph(w, h, ink, matte) {
-  // Up and down triangles (the corpus glyph shape), centred, smooth-edged.
-  // Matte = the arrow box colour they sit on.
-  const cx = w / 2, cy = h / 2, a = w * 0.3, gap = 0.9, d = h * 0.3;
-  const up = sdPolygon([[cx - a, cy - gap], [cx, cy - gap - d], [cx + a, cy - gap]]);
-  const down = sdPolygon([[cx + a, cy + gap], [cx, cy + gap + d], [cx - a, cy + gap]]);
-  return layer(new Raster(w, h), union(up, down), 0, ink, { matte });
+/** Up and down arrowheads on whole pixels, 5px wide (3px small), centred. */
+function popupGlyph(w, h, ink) {
+  const r = new Raster(w, h);
+  const n = w >= 11 ? 3 : 2, cx = Math.floor(w / 2), cy = Math.floor(h / 2);
+  for (let i = 0; i < n; i++) {
+    r.fillRect(cx - i, cy - n + i - 1, 2 * i + 1, 1, ink);          // up: tip first
+    r.fillRect(cx - (n - 1 - i), cy + 1 + i, 2 * (n - 1 - i) + 1, 1, ink);
+  }
+  return r;
 }
 
-function buildPopups(add, C) {
+function buildPopups(add) {
   const tiers = [
-    { tag: 'Disabled', face: '#f3ece0', edge: '#cfc5b8', text: '#a99d91', box: '#e2cca7', boxEdge: '#cdb8a0', glyph: '#f8f4ee' },
-    { tag: 'Normal', face: '#fbf5ea', edge: '#3a2c26', text: C.active.title, box: C.accent, boxEdge: C.accentPressed, glyph: '#fbf5ea' },
-    { tag: 'Pressed', face: '#efe2c9', edge: '#7e1f3d', text: C.active.title, box: C.accentPressed, boxEdge: '#7e1419', glyph: '#fbf5ea' },
+    { tag: 'Disabled', face: '#eeeeee', hi: '#ffffff', lo: '#dddddd', edge: '#999999', text: '#999999', box: '#eeeeee', boxHi: '#ffffff', boxLo: '#dddddd', glyph: '#bbbbbb' },
+    { tag: 'Normal', face: A.stone, hi: A.stoneHi, lo: A.stoneLo, edge: A.outline, text: A.outline, box: A.stone, boxHi: A.stoneHi, boxLo: A.stoneLo, glyph: A.red },
+    { tag: 'Pressed', face: A.stoneLo, hi: A.mortar, lo: A.stone, edge: A.outline, text: A.outline, box: A.stoneLo, boxHi: A.mortar, boxLo: A.stone, glyph: A.redLo },
   ];
   const cinf = (s, bg, t) => encodeCinf({ cornerSize: 6, sideThickness: s, tileSides: 0, patternAnchor: 0, bgPixel: bg, textPixel: t, embossPixel: { x: 0, y: 0 } });
   tiers.forEach((t, i) => {
     const textName = `${t.tag} Popup Button Text`, arrowName = `${t.tag} Popup Button Arrow`, onlyName = `${t.tag} Arrow Only Popup`;
-    add('cicn', -8208 + i, encodeCicn(popupPiece({ side: 'text', face: t.face, edge: t.edge, text: t.text })), textName);
+    add('cicn', -8208 + i, encodeCicn(popupPiece({ side: 'text', face: t.face, hi: t.hi, lo: t.lo, edge: t.edge, text: t.text })), textName);
     add('cinf', -8208 + i, cinf(4, { x: 7, y: 8 }, { x: 0, y: 8 }), textName);
-    add('cicn', -8205 + i, encodeCicn(popupPiece({ side: 'arrow', face: t.box, edge: t.boxEdge, text: t.glyph })), arrowName);
+    add('cicn', -8205 + i, encodeCicn(popupPiece({ side: 'arrow', face: t.box, hi: t.boxHi, lo: t.boxLo, edge: t.edge, text: t.glyph })), arrowName);
     add('cinf', -8205 + i, cinf(6, { x: 5, y: 8 }, { x: 13, y: 8 }), arrowName);
-    add('cicn', -8202 + i, encodeCicn(popupPiece({ side: 'both', face: t.box, edge: t.boxEdge, text: t.glyph, width: 16 })), onlyName);
+    add('cicn', -8202 + i, encodeCicn(popupPiece({ side: 'both', face: t.box, hi: t.boxHi, lo: t.boxLo, edge: t.edge, text: t.glyph, width: 16 })), onlyName);
     add('cinf', -8202 + i, cinf(6, { x: 8, y: 8 }, { x: 0, y: 0 }), onlyName);
   });
-  // Glyph ids run inactive, active, pressed (corpus labels), i.e. tiers 0, 1, 2.
   tiers.forEach((t, i) => {
-    add('cicn', -8199 + i, encodeCicn(popupGlyph(11, 12, t.glyph, t.box)), `${['Inactive', 'Active', 'Pressed'][i]} Large Popup Arrow Glyph`);
-    add('cicn', -8196 + i, encodeCicn(popupGlyph(9, 10, t.glyph, t.box)), `${['Inactive', 'Active', 'Pressed'][i]} Small Popup Arrow Glyph`);
+    add('cicn', -8199 + i, encodeCicn(popupGlyph(11, 12, t.glyph)), `${['Inactive', 'Active', 'Pressed'][i]} Large Popup Arrow Glyph`);
+    add('cicn', -8196 + i, encodeCicn(popupGlyph(9, 10, t.glyph)), `${['Inactive', 'Active', 'Pressed'][i]} Small Popup Arrow Glyph`);
   });
 }
 
-// The Halcyon palette keys this file reads, filled with Bonn colours.
-const BONN = {
-  accent: '#c0262d', accentPressed: '#7e1419', body: '#fbf5ea',
-  active: { title: '#2a211d', buttonEdge: '#3a2c26', buttonBottom: '#efe2c9', border: '#3a2c26' },
-};
-
-export function build(add, { C } = { C: BONN }) {
-  const k = K(C);
+export function build(add) {
+  const k = K();
   buildSliders(add, k);
-  buildTabs(add, C);
-  buildBevels(add, C);
-  buildPopups(add, C);
+  buildTabs(add);
+  buildBevels(add);
+  buildPopups(add);
 }

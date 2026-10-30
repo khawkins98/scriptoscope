@@ -1,379 +1,466 @@
-// Castle window frames: curtain walls with whole-merlon battlements, corner
-// towers that rise above the title bar, a gatehouse carrying a hanging banner
-// (the title plate and its end caps), stone side walls with arrow loops, and
-// a heavier plinth with a little gate along the bottom.
+// Castle window frames: the window is a stone keep. Two round corner towers
+// with conical red roofs and pennants rise above a crenellated curtain wall;
+// the wall IS the title bar, and the title is a red banner with a gold fringe
+// hung from it. Arrow slits run down the side walls, a plinth over a narrow
+// moat runs along the bottom, and a portcullis in the lower-right corner
+// marks the grow box.
 //
-// Geometry comes from the toolkit's frameLayout (tools/theme-author/frame-layout.js: per-edge cell lists). The recipes, per edge:
+// Geometry comes from the toolkit's frameLayout (per-edge cell lists). The
+// recipes, per edge:
 //
-//   top (titled)   towerL 1 | filler 13 | merlons 12 | cap 6 | plate 5 | cap 6 | merlons 12 | filler 13 | [wall 1] | towerR 1
-//   top (untitled) turretL 1 | filler 13 | merlons 12 | crest 1 | merlons 12 | filler 13 | turretR 1
-//   left / right   stone 11 | arrow loop 1 | stone 8            (rows A.top … A.bottom only)
-//   bottom         corner 1 | filler 13 | plinth 12 | gate 1 | plinth 12 | filler 13 | corner 1
+//   top (document)   towerL 1 | fill 13 | merlons 12 | bezel 6 | banner 5 | bezel 6 | merlons 12 | fill 13 | zoom wall 1 | towerR 1
+//   top (modal)      the same without the zoom wall
+//   top (utility)    turretL 1 | fill 13 | merlons 12 | bezel 6 | banner 5 | bezel 6 | merlons 12 | fill 13 | turretR 1
+//   top (untitled)   turretL 1 | fill 13 | merlons 12 | fill 13 | crest 1 | fill 13 | merlons 12 | fill 13 | turretR 1
+//   left / right     wall 8 | slit 1 | wall 8 [| slit 1 | wall 8]        (body rows only)
+//   bottom           corner 1 | plinth 11 | plinth 1 | plinth 8 | portcullis 1   (document)
+//                    corner 1 | plinth 11 | gate 1 | plinth 8 | corner 1       (dialog, alert)
 //
 // Why these codes (docs/authoring-exotic-frames.md):
-//   - 12 tiles whole copies only (R4), so a merlon is never cut in half; its
-//     leftover pixels go to the 1px code-13 filler beside the tower, which
-//     reads as a slightly wider crenel (R8). One 12 width per allocation (R5).
-//   - The top halves are allocated independently either side of the plate
-//     (R10), so each half has its own 12 + 13 pair.
-//   - Sides use 11 above the loop and 8 below it, so both stone runs
-//     phase-lock to the loop and the cut course lands at the ends (R3).
-//   - The tower and turret cells are fixed (code 1) and taller than the bar:
-//     the top band includes everything above the bar (R13).
-import { Raster, verticalGradient, mix, frameLayout } from '../../../tools/theme-author/index.js';
+//   - The merlon cell (14px: one merlon, one crenel) is code 12, so a merlon
+//     is never cut (R4). Its leftover goes to the 1px code-13 filler at the
+//     tower end of the same half, which reads as a slightly wider crenel (R8).
+//   - The banner (code 5) is a 2px source, one colour per row (lint checks
+//     it): the cloth, the pole and the fringe are horizontal bands, so it
+//     tiles to any title width with no seam. Its ends (finials, hems,
+//     tassels) live in the code-6 bezels, which vanish with the title.
+//   - Towers are fixed corner cells taller than the bar (R13); the wall rows
+//     carry the widgets. The essential look (wall, banner, widgets, tower
+//     drums) is all in the bar rows, because the classic menu bar can cover
+//     the roofs and pennants above them (R16).
+//   - Sides have several equal growers between fixed arrow slits, so the
+//     slits spread out evenly as a window grows (§1, "many growers").
+//   - Bottom: 11 before the fixed plinth and 8 after it, painted in one
+//     phase, so the partial tiles land at the corners (R3).
+//
+// Light: one source, upper left. Towers have a lit column on the left and a
+// 3px shade band on the right; roofs are lit on the left half and dark on the
+// right third; every block, merlon and plate has its lit top/left and
+// shaded right edge on the same sides.
+import { Raster, frameLayout } from '../../../tools/theme-author/index.js';
 import { C } from './palette.mjs';
-import { ashlar, coursed, moss, hash, mod } from './stone.mjs';
-import { DRAW } from './widgets.mjs';
-
-const TILE_CODES = new Set([5, 8, 11, 12]);
+import { MERLON, MERLON_X, wallAt, merlonAt, sideAt, SIDE_PERIOD, drumAt, mod } from './stone.mjs';
+import { DRAW, WIDGET } from './widgets.mjs';
 
 // ── Geometry per window family ─────────────────────────────────────────────
+// T: top band. Rows inside it: pennants from 0, the roof down to `eave`
+// (its slope: how much the half-width shrinks per row going up, cycled), the drum
+// below the eave, merlons merlonTop..wallTop−1, the wall (= title bar)
+// wallTop..T−1. bezel: banner end caps. side/bottomH: band sizes.
 const G = {
-  doc: {
-    T: 36, tower: 26, crenH: 4, parH: 7, merlonTop: 9, wallTop: 16, gateTop: 5, pinTop: 1,
-    bannerTop: 18, bannerBot: 35, titleRows: [18, 35], merl: { w: 12, gapL: 2, m: 7 }, cap: 10, plate: 12, course: 6,
-    side: 11, gutter: 3, sideCourse: 6, sideCell: 12, bottomH: 17, plinth: 16, gate: 24, towerSlit: true,
-  },
-  util: {
-    T: 30, tower: 20, crenH: 3, parH: 5, merlonTop: 7, wallTop: 12, gateTop: 4, pinTop: 1,
-    bannerTop: 13, bannerBot: 29, titleRows: [12, 29], merl: { w: 10, gapL: 2, m: 5 }, cap: 8, plate: 10, course: 6,
-    side: 8, gutter: 2, sideCourse: 5, sideCell: 10, bottomH: 10, plinth: 16, gate: 8, towerSlit: false,
-  },
-  plain: {
-    T: 22, tower: 22, crenH: 4, parH: 6, merlonTop: 9, wallTop: 15, gateTop: 9, pinTop: 3,
-    merl: { w: 12, gapL: 2, m: 7 }, course: 6, crest: 20,
-    side: 11, gutter: 3, sideCourse: 6, sideCell: 12, bottomH: 14, plinth: 16, gate: 24, towerSlit: true,
-  },
+  doc: { T: 66, tower: 36, eave: 27, roofSteps: [1, 1, 1, 0], merlonTop: 35, wallTop: 42, bezel: 8, zoomWall: 16, side: 10, bottomH: 18, slits: 2 },
+  util: { T: 45, tower: 22, eave: 15, roofSteps: [1], merlonTop: 18, wallTop: 24, bezel: 8, side: 8, bottomH: 10, slits: 1 },
+  plain: { T: 33, tower: 22, eave: 15, roofSteps: [1], merlonTop: 18, wallTop: 24, crest: 24, side: 10, bottomH: 18, slits: 1 },
 };
 
-const WIDGET = 13;
-
 /** Build the frameLayout spec for one window type. */
-function spec(kind, { collapsed = false, widgets = 'none' } = {}) {
+function spec(kind, { collapsed = false, widgets = 'none', grow = false } = {}) {
   const g = G[kind];
   const titled = kind !== 'plain';
-  const wallR = widgets === 'all' ? 16 : 0; // a fixed wall section carrying the zoom box
-  const top = titled
-    ? [
-      { name: 'towerL', code: 1, w: g.tower },
-      { name: 'fillL', code: 13, w: 1 },
-      { name: 'crenL', code: 12, w: g.merl.w },
-      { name: 'capL', code: 6, w: g.cap },
-      { name: 'plate', code: 5, w: g.plate },
-      { name: 'capR', code: 6, w: g.cap },
-      { name: 'crenR', code: 12, w: g.merl.w },
-      { name: 'fillR', code: 13, w: 1 },
-      ...(wallR ? [{ name: 'wallR', code: 1, w: wallR }] : []),
-      { name: 'towerR', code: 1, w: g.tower },
-    ]
-    : [
-      { name: 'towerL', code: 1, w: g.tower },
-      { name: 'fillL', code: 13, w: 1 },
-      { name: 'crenL', code: 12, w: g.merl.w },
-      { name: 'crest', code: 1, w: g.crest },
-      { name: 'crenR', code: 12, w: g.merl.w },
-      { name: 'fillR', code: 13, w: 1 },
-      { name: 'towerR', code: 1, w: g.tower },
-    ];
+  const zoomWall = widgets === 'all' ? g.zoomWall : 0;
+  const top = [
+    { name: 'towerL', code: 1, w: g.tower },
+    { name: 'fillL', code: 13, w: 1, uniform: 'fill' },
+    { name: 'crenL', code: 12, w: MERLON },
+    ...(titled
+      ? [{ name: 'capL', code: 6, w: g.bezel }, { name: 'plate', code: 5, w: 2 }, { name: 'capR', code: 6, w: g.bezel }]
+      : [{ name: 'fillCL', code: 13, w: 1, uniform: 'fill' }, { name: 'crest', code: 1, w: g.crest }, { name: 'fillCR', code: 13, w: 1, uniform: 'fill' }]),
+    { name: 'crenR', code: 12, w: MERLON },
+    { name: 'fillR', code: 13, w: 1, uniform: 'fill' },
+    ...(zoomWall ? [{ name: 'zoomWall', code: 1, w: zoomWall }] : []),
+    { name: 'towerR', code: 1, w: g.tower },
+  ];
   const W = top.reduce((s, c) => s + c.w, 0);
-  const sideCells = (pfx) => [
-    { name: `${pfx}Upper`, code: 11, w: g.sideCell },
-    { name: `${pfx}Loop`, code: 1, w: g.sideCell },
-    { name: `${pfx}Lower`, code: 8, w: g.sideCell },
-  ];
-  const corner = (W - 2 - 2 * g.plinth - g.gate) / 2;
-  const bottom = [
-    { name: 'cornerBL', code: 1, w: Math.floor(corner) },
-    { name: 'fillBL', code: 13, w: 1 },
-    { name: 'plinthL', code: 12, w: g.plinth },
-    { name: 'gate', code: 1, w: g.gate },
-    { name: 'plinthR', code: 12, w: g.plinth },
-    { name: 'fillBR', code: 13, w: 1 },
-    { name: 'cornerBR', code: 1, w: Math.ceil(corner) },
-  ];
-  // Widgets: close on the left tower face; zoom on the right wall section,
-  // collapse on the right tower face. All on the bar rows.
-  const wy = titled ? g.bannerTop + 2 : 0;
-  const wx = Math.floor((g.tower - WIDGET) / 2);
-  const box = (x) => ({ x, y: wy, w: WIDGET, h: WIDGET });
-  const wset = {};
-  if (widgets !== 'none') wset.close = box(wx);
-  if (widgets === 'all') {
-    wset.zoom = box(W - g.tower - wallR + Math.floor((wallR - WIDGET) / 2));
-    wset.collapse = box(W - g.tower + wx);
+  const side = (pfx) => {
+    const cells = [{ name: `${pfx}0`, code: 8, w: SIDE_PERIOD }];
+    for (let i = 1; i <= g.slits; i++) cells.push({ name: `${pfx}Slit${i}`, code: 1, w: SIDE_PERIOD }, { name: `${pfx}${i}`, code: 8, w: SIDE_PERIOD });
+    return cells;
+  };
+  let bottom;
+  if (kind === 'util') {
+    const corner = 10;
+    bottom = [
+      { name: 'cornerBL', code: 1, w: corner }, { name: 'plinthL', code: 11, w: MERLON },
+      { name: 'mid', code: 1, w: W - 2 * corner - 2 * MERLON }, { name: 'plinthR', code: 8, w: MERLON },
+      { name: 'cornerBR', code: 1, w: corner },
+    ];
+  } else if (kind === 'plain') {
+    const corner = (W - 2 * MERLON - 24) / 2;
+    bottom = [
+      { name: 'cornerBL', code: 1, w: corner }, { name: 'plinthL', code: 11, w: MERLON },
+      { name: 'gate', code: 1, w: 24 }, { name: 'plinthR', code: 8, w: MERLON },
+      { name: 'cornerBR', code: 1, w: corner },
+    ];
+  } else {
+    const corner = 12, end = 24;
+    bottom = [
+      { name: 'cornerBL', code: 1, w: corner }, { name: 'plinthL', code: 11, w: MERLON },
+      { name: 'mid', code: 1, w: W - corner - end - 2 * MERLON }, { name: 'plinthR', code: 8, w: MERLON },
+      { name: grow ? 'portcullis' : 'cornerBR', code: 1, w: end },
+    ];
   }
+  // Widgets: on the wall rows, centred on the lower courses. Close on the left
+  // tower, collapse on the right tower, zoom on the fixed wall section beside it.
+  const wy = g.wallTop + 3 + Math.floor((g.T - g.wallTop - 3 - WIDGET) / 2);
+  const onTower = (x0) => ({ x: x0 + Math.floor((g.tower - WIDGET) / 2), y: wy, w: WIDGET, h: WIDGET });
+  const wset = {};
+  if (widgets !== 'none') wset.close = onTower(0);
+  if (widgets === 'all') {
+    wset.zoom = { x: W - g.tower - zoomWall + Math.floor((zoomWall - WIDGET) / 2), y: wy, w: WIDGET, h: WIDGET };
+    wset.collapse = onTower(W - g.tower);
+  }
+  const clothBot = g.T - 6;
   return {
     topH: g.T, sideL: g.side, sideR: g.side, bottomH: g.bottomH, collapsed,
-    top, bottom, left: sideCells('L'), right: sideCells('R'),
-    ...(titled ? { title: { cell: 'plate', top: g.titleRows[0], bottom: g.titleRows[1] } } : {}),
+    top, bottom, left: side('L'), right: side('R'),
+    // The title sits on the cloth: baseline at bottom − 4, descenders inside the cloth.
+    ...(titled ? { title: { cell: 'plate', top: clothBot + 1 - 18, bottom: clothBot + 1 } } : {}),
     widgets: wset,
   };
 }
 
-// ── Painting ───────────────────────────────────────────────────────────────
+// ── Painting: the top band ───────────────────────────────────────────────
 
-/** The texture function for wall rows in a top or bottom cell (periodic in tiled cells). */
-function cellStone(cell, y0, course, p, seed) {
-  // The title plate tiles along x (R2) and must be one colour per row, so it
-  // and the bezels either side (which must meet it seamlessly) are plain courses.
-  if (cell.code === 5 || cell.code === 6) return coursed({ y0, course, pal: p });
-  if (cell.code === 13) return ashlar({ x0: cell.x0, y0, course, block: 10000, pal: p, seed });
-  const tiled = TILE_CODES.has(cell.code);
-  const block = tiled ? cell.w : 14;
-  return ashlar({ x0: cell.x0, y0, course, block, stagger: Math.floor(block / 2), periodX: tiled ? cell.w : undefined, pal: p, seed });
+/** Tile phase of a top cell's column x (which merlon column / course joint it shows). */
+function phaseOf(cell, x) {
+  if (cell.code === 13 || cell.code === 5) return 0;              // uniform columns: plain wall
+  if (cell.name === 'zoomWall') return mod(x - cell.x0 - 1, MERLON); // its merlon sits 1px further in
+  return mod(x - cell.x0, MERLON);
+}
+
+function paintWall(r, layout, g, p) {
+  for (const cell of layout.cells.top) {
+    for (let x = cell.x0; x < cell.x1; x++) {
+      // Behind a tower only its inner side shows wall; its outer side is sky
+      // down to the battered foot (which meets the side wall).
+      if (cell.name === 'towerL' && x < cell.x0 + 2) continue;
+      if (cell.name === 'towerR' && x >= cell.x1 - 2) continue;
+      const ph = phaseOf(cell, x);
+      for (let y = g.wallTop; y < g.T; y++) r.set(x, y, wallAt(ph, y - g.wallTop, p));
+      // Merlons on the battlement cells and the zoom wall; crenels stay open.
+      if ((cell.code === 12 || cell.name === 'zoomWall') && ph >= MERLON_X[0] && ph < MERLON_X[1]) {
+        const h = g.wallTop - g.merlonTop;
+        for (let y = g.merlonTop; y < g.wallTop; y++) r.set(x, y, merlonAt(ph - MERLON_X[0], y - g.merlonTop, MERLON_X[1] - MERLON_X[0], h, p));
+      }
+    }
+  }
+}
+
+/** The solid parapet over the banner (bezels + plate): one long merlon, uniform over the plate. */
+function paintParapet(r, layout, g, p) {
+  const capL = layout.named('capL'), capR = layout.named('capR');
+  const w = capR.x1 - capL.x0, h = g.wallTop - g.merlonTop;
+  for (let x = capL.x0; x < capR.x1; x++) {
+    // Inside the plate every column must match (R2): only the bezels see the ends.
+    const plate = layout.named('plate');
+    const mx = x >= plate.x0 && x < plate.x1 ? 3 : x - capL.x0;
+    for (let y = g.merlonTop; y < g.wallTop; y++) r.set(x, y, merlonAt(mx, y - g.merlonTop, w, h, p));
+    r.set(x, g.wallTop, p.mortar);
+  }
 }
 
 /**
- * Light from the upper left on a round tower, in solid bands (no dither, which
- * reads as a dirty edge at 1x): a 1px highlight column just inside the left
- * edge and a 3px shade band inside the right edge, over the stone. `lo`/`hi`
- * are the opaque span's columns [lo, hi); its edge columns are outline.
- * Mortar joints run through the shade band.
+ * Roof half-width per row, top to bottom. From the eave up the half-width
+ * shrinks by roofSteps (cycled: [1, 1, 1, 0] is a 3:4 slope, a regular
+ * 1-1-1-2 pixel stair), down to 2, then a 2px spire two rows tall.
  */
-function towerLight(lo, hi, p, base) {
-  return (x, y) => {
-    if (x === lo + 1) return p.stoneHi;
-    const c = base(x, y);
-    if (c !== p.mortar && x >= hi - 4 && x < hi - 1) return p.stoneLo;
-    return c;
-  };
+function roofRows(g) {
+  const rows = [];
+  let hw = g.tower / 2, i = 0;
+  while (hw >= 2) { rows.unshift(hw); hw -= g.roofSteps[i++ % g.roofSteps.length]; }
+  rows.unshift(1, 1);
+  return rows;
+}
+const roofTop = (g) => g.eave - roofRows(g).length + 1;
+
+/**
+ * A round tower: conical tiled roof, a corbelled drum with an arrow slit, a
+ * battered foot. Drawn before the outline pass, so its silhouette edges become
+ * outline; the pennant and pole are drawn after it (see paintPennant).
+ */
+function paintTower(r, cell, g, p, seed) {
+  const { x0 } = cell, W = g.tower, cx = x0 + W / 2;
+  // Drum: inset 2px under the eave (the roof overhangs it), widening to the
+  // full cell over the last rows (a battered foot that meets the side wall).
+  const inset = (y) => (y >= g.T - 3 ? 0 : y === g.T - 4 ? 1 : 2);
+  for (let y = g.eave + 1; y < g.T; y++) {
+    const a = x0 + inset(y), b = x0 + W - inset(y); // [a, b)
+    for (let x = a; x < b; x++) {
+      let c = drumAt(x, y - g.eave - 1, a, p, seed);
+      if (y === g.eave + 1) c = p.mortar;                                       // shadow under the eave
+      else if (y === g.eave + 2) c = (x - x0) % 2 ? p.stoneLo : p.mortar;       // corbel teeth
+      else if (x === a + 1) c = p.stoneHi;                                      // lit flank
+      else if (x >= b - 4 && x < b - 1 && c !== p.mortar) c = p.stoneLo;       // shaded flank
+      r.set(x, y, c);
+    }
+    // Where the drum stands in front of the wall, draw its edges (the outline
+    // pass only sees edges against transparent pixels).
+    if (y >= g.wallTop && inset(y) > 0) { r.set(a, y, p.outline); r.set(b - 1, y, p.outline); }
+    if (y === g.T - 4) { r.set(a, y, p.outline); r.set(b - 1, y, p.outline); }
+  }
+  // Batter: lit top edge on the step.
+  r.set(x0 + 1, g.T - 4, p.stoneHi); r.set(x0, g.T - 3, p.stoneHi);
+  // Arrow slit high on the drum: dark, with a lit lip on its left.
+  const sx = Math.floor(cx) - 1, sy = g.eave + 4, sh = Math.min(W > 24 ? 7 : 5, g.wallTop - sy);
+  if (sh >= 4) {
+    r.fillRect(sx, sy, 2, sh, p.outline);
+    r.vline(sx - 1, sy, sh, p.stoneHi);
+    r.set(sx, sy - 1, p.mortar).set(sx + 1, sy - 1, p.mortar);
+  }
+  // Roof: rows of tiles. Left part lit, right third in shade, a dark tile
+  // seam every third row with staggered joints.
+  const rows = roofRows(g), top = roofTop(g);
+  rows.forEach((hw, i) => {
+    const y = top + i, a = Math.floor(cx - hw), b = Math.ceil(cx + hw);
+    const fromEave = g.eave - y;
+    for (let x = a; x < b; x++) {
+      const u = (x - a) / (b - a);
+      let c = u >= 0.66 ? p.roofLo : p.roof;
+      const seam = fromEave % 3 === 0;
+      if (seam) c = (x + Math.floor(fromEave / 3) * 2) % 4 === 0 ? p.roofLo : (u >= 0.66 ? p.roofLo : p.roof);
+      else if (fromEave % 3 === 2 && u < 0.45) c = p.roofHi;
+      if (x === a + 1 && u < 0.5) c = p.roofHi;
+      r.set(x, y, c);
+    }
+    if (y === g.eave) r.hline(a, y, b - a, p.roofLo); // the drip edge
+  });
 }
 
-/** Three merlons along the top of a tower of width w. */
-function towerCrenels(w) {
-  const gap = w >= 24 ? 4 : 3, a = Math.floor((w - 2 * gap) / 3);
-  return [[0, a], [a + gap, w - a - gap], [w - a, w]];
+/** Pennant and pole above a tower (after the outline pass: too thin to outline). Flags fly right. */
+const FLAGS = {
+  big: ['ffffff..', 'fffffffF', 'FFFFFFF.', 'FFFF....', 'F.......'],
+  small: ['fffff', 'FFFFFF', 'FFF..'],
+};
+function paintPennant(r, cell, g, p) {
+  const px = cell.x0 + g.tower / 2 - 1, top = roofTop(g);
+  r.vline(px, 1, top - 1, p.outline);
+  r.set(px, 0, p.gold);
+  const flag = g.tower >= 28 ? FLAGS.big : FLAGS.small;
+  flag.forEach((row, i) => {
+    for (let k = 0; k < row.length; k++) if (row[k] !== '.') r.set(px + 1 + k, 1 + i, row[k] === 'f' ? p.flag : p.flagLo);
+  });
 }
 
-function paintTower(r, cell, g, p, seed, side) {
-  const { x0, w } = cell;
-  // One block tone (the lighter one): the tower stands forward of the wall, and
-  // a flat face is what lets the light bands read.
-  const stone = ashlar({ x0, y0: 0, course: g.course, block: 9, stagger: 4, pal: { ...p, stone: [p.stone[0], p.stone[0]] }, seed, shaded: 0 });
-  // Crenellated parapet, projecting 1px over the shaft on corbels.
-  const parapet = towerLight(x0, x0 + w, p, stone);
-  for (const [a, b] of towerCrenels(w)) r.fillRect(x0 + a, 0, b - a, g.crenH, parapet);
-  r.fillRect(x0, g.crenH, w, g.parH - g.crenH, parapet);
-  r.hline(x0, g.crenH, w, p.stoneHi); // the wall-walk line
-  // The shaft is inset 1px on its OUTER side only: its inner side meets the
-  // wall, and a transparent column there would outline the 1px code-13 filler
-  // next to it, which then repeats as a dark block (seen in the first render).
-  const s0 = x0 + (side === 'L' ? 1 : 0), s1 = s0 + w - 1;
-  // On the inner side, a dark line where the tower stands in front of the wall
-  // (the outline does this above the wall top); the light bands sit inside it.
-  r.fillRect(s0, g.parH, w - 1, g.T - g.parH, towerLight(s0, s1, p, stone));
-  r.vline(side === 'L' ? x0 + w - 1 : x0, g.wallTop, g.T - g.wallTop, p.outline);
-  // Corbels under the parapet: little dark notches.
-  for (let x = x0 + 2; x < x0 + w - 2; x += 3) r.set(x, g.parH, p.mortar);
-  // Chipped crenel corners (irregular edge).
-  for (const [a, b] of towerCrenels(w)) {
-    if (hash(a, seed, 11) < 0.6) r.set(x0 + a + (side === 'L' ? 0 : b - a - 1), 0, null);
-  }
-  if (g.towerSlit) {
-    const cx = x0 + Math.floor(w / 2), y = g.parH + 3;
-    r.fillRect(cx, y, 1, 6, p.dark).fillRect(cx - 1, y + 2, 3, 1, p.dark);
-  }
+/** The banner: pole across the top, cloth, gold fringe; uniform rows on the plate. */
+function bannerRows(g) {
+  const pole = g.wallTop + 1, clothTop = g.wallTop + 3, clothBot = g.T - 6;
+  return { pole, clothTop, clothBot, fringe: clothBot + 1, shadow: clothBot + 4 };
 }
 
-function paintMerlons(r, cell, g, p, seed) {
-  const { x0, w } = cell;
-  const tex = ashlar({ x0, y0: g.merlonTop, course: g.wallTop - g.merlonTop + 1, block: 100, pal: p, seed });
-  const tiled = cell.code === 12;
-  const reps = tiled ? 1 : Math.ceil(w / g.merl.w);
-  for (let k = 0; k < reps; k++) {
-    const mx = tiled ? x0 + g.merl.gapL : x0 + k * g.merl.w; // a fixed wall section starts flush with a merlon
-    const mw = Math.min(g.merl.m, x0 + w - mx);
-    if (mw <= 0) continue;
-    r.fillRect(mx, g.merlonTop, mw, g.wallTop - g.merlonTop, tex);
-    r.hline(mx, g.merlonTop, mw, p.stoneHi);
-    if (mw === g.merl.m) r.vline(mx + mw - 1, g.merlonTop + 1, g.wallTop - g.merlonTop - 1, p.stoneLo); // shaded right face
-    if (hash(k, seed, 5) < 0.5) r.set(mx + mw - 1, g.merlonTop, null); // a chipped corner
-  }
-}
-
-function paintGatehouse(r, layout, g, p) {
-  const capL = layout.named('capL'), capR = layout.named('capR'), plate = layout.named('plate');
-  for (const [cell, seed] of [[capL, 21], [plate, 22], [capR, 23]]) {
-    r.fillRect(cell.x0, g.gateTop, cell.w, g.wallTop - g.gateTop, cellStone(cell, g.gateTop, g.course, p, seed));
-  }
-  r.hline(capL.x0, g.gateTop, capR.x1 - capL.x0, p.stoneHi); // coping
-  // Corner pinnacles at the outer ends of the gatehouse.
-  const pin = 4;
-  for (const [x, seed] of [[capL.x0, 1], [capR.x1 - pin, 2]]) {
-    r.fillRect(x, g.pinTop, pin, g.gateTop - g.pinTop + 1, ashlar({ x0: x, y0: g.pinTop, course: 4, block: 100, pal: p, seed }));
-    r.hline(x, g.pinTop, pin, p.stoneHi);
-  }
-}
-
-/** The hanging banner across both caps and the plate. Uniform along x on the plate (it tiles). */
 function paintBanner(r, layout, g, p) {
   const capL = layout.named('capL'), capR = layout.named('capR');
-  const y0 = g.bannerTop, y1 = g.bannerBot; // exclusive
-  const fabric = verticalGradient(y0 + 2, y1 - y0 - 4, [[0, p.banner[0]], [0.5, p.banner[1]], [1, p.banner[2]]]);
-  const row = (y) => (y === y0 || y === y1 - 1 ? p.trim : y === y0 + 1 || y === y1 - 2 ? p.trimLo : fabric(0, y));
-  const x0 = capL.x0 + 1, x1 = capR.x1 - 1;
-  for (let y = y0; y < y1; y++) r.hline(x0, y, x1 - x0, row(y));
-  // Swallowtail ends: a V notch cut into each outer end, and a fold line
-  // where the tail turns behind the banner.
-  const mid = (y0 + y1 - 1) / 2, depth = Math.min(5, capL.w - 4), halfH = (y1 - y0) / 2;
-  for (const [outer, dir] of [[x0, 1], [x1 - 1, -1]]) {
-    for (let j = 0; j < depth; j++) {
-      const reach = (depth - j) / depth * (halfH - 2);
-      for (let y = y0; y < y1; y++) if (Math.abs(y - mid) < reach) r.set(outer + dir * j, y, null);
-    }
-    const fold = outer + dir * (depth + 1);
-    for (let y = y0; y < y1; y++) r.set(fold, y, p.bannerLo);
-    // The tail is the banner's back: a shade darker.
-    for (let j = 0; j <= depth; j++) for (let y = y0 + 2; y < y1 - 2; y++) {
-      const c = r.get(outer + dir * j, y);
-      if (c) r.set(outer + dir * j, y, mix(c, p.bannerLo, 0.35));
-    }
-    // An iron ring on the coping holds each end. It and its highlight stay
-    // inside the cap: the plate next to it tiles, so a pixel there repeats
-    // every plate width along the coping (lessons ledger X1; layout.lint).
-    const ring = dir > 0 ? Math.min(fold + 2, capL.x1 - 1) : Math.max(fold - 2, capR.x0);
-    r.set(ring, g.wallTop, p.iron).set(ring, g.wallTop + 1, p.iron).set(ring - dir, g.wallTop, p.ironHi);
+  const { pole, clothTop, clothBot, fringe, shadow } = bannerRows(g);
+  const B = capL.w;
+  // Cloth columns: from the left hem (bezel col 3) to the right hem (mirror).
+  const x0 = capL.x0 + 3, x1 = capR.x1 - 3; // [x0, x1)
+  for (let x = x0; x < x1; x++) {
+    r.set(x, clothTop, p.clothLo);                                    // shade under the pole
+    for (let y = clothTop + 1; y <= clothBot; y++) r.set(x, y, p.cloth);
+    r.set(x, fringe, p.gold).set(x, fringe + 1, p.gold).set(x, fringe + 2, p.goldLo);
+    r.set(x, shadow, p.stoneLo);                                      // its shadow on the wall
   }
+  // Hems: a dark fold at each end, lit just inside on the left (light from the left).
+  for (let y = clothTop; y <= clothBot; y++) {
+    r.set(x0, y, p.clothLo).set(x0 + 1, y, p.clothHi);
+    r.set(x1 - 1, y, p.clothLo);
+  }
+  // Fringe tassels hanging from each corner.
+  r.set(x0, fringe + 3, p.gold).set(x1 - 1, fringe + 3, p.goldLo);
+  // The banner's shadow falls right of it on the wall.
+  for (let y = clothTop + 1; y <= fringe + 3; y++) r.set(x1, y, p.stoneLo);
+  r.set(x1, fringe + 3, p.stoneLo);
+  // Pole: two rows across, from finial to finial.
+  const pa = capL.x0 + 1, pb = capR.x1 - 1;
+  r.hline(pa, pole, pb - pa, p.pole).hline(pa, pole + 1, pb - pa, p.poleLo);
+  // Brass finials: a little diamond knob at each end of the pole.
+  for (const fx of [capL.x0 + 1, capR.x1 - 2]) {
+    r.set(fx, pole - 1, p.goldLo);
+    r.set(fx - 1, pole, p.gold).set(fx, pole, p.gold).set(fx + 1, pole, p.gold);
+    r.set(fx - 1, pole + 1, p.goldLo).set(fx, pole + 1, p.goldLo).set(fx + 1, pole + 1, p.goldLo);
+    r.set(fx, pole + 2, p.goldLo);
+  }
+  void B;
 }
 
-function paintTopBand(r, layout, geomKind, state, kind) {
-  const g = G[geomKind], p = C[state];
-  const T = g.T;
-  // Curtain wall face behind everything: coping row, then coursed stone.
-  layout.cells.top.forEach((cell, i) => {
-    if (cell.name.startsWith('tower')) return;
-    r.fillRect(cell.x0, g.wallTop + 1, cell.w, T - g.wallTop - 1, cellStone(cell, g.wallTop + 1, g.course, p, 40 + i));
-    r.hline(cell.x0, g.wallTop, cell.w, p.stoneHi);
+// ── The crest on untitled windows (dialog, alert) ─────────────────────────
+// A heraldic shield standing on a solid stretch of parapet, rising over the
+// battlements: blue with a gold chevron (dialog), red with a gold "!" (alert).
+// 16×18 shield: straight sides for ten rows, then a stepped point. Rim o,
+// lit row and left column h, shaded right column k, field f.
+const CREST = (() => {
+  const span = (y) => (y < 10 ? [0, 15] : [[1, 14], [1, 14], [2, 13], [3, 12], [4, 11], [5, 10], [6, 9], [7, 8]][y - 10]);
+  return Array.from({ length: 18 }, (_, y) => {
+    const [a, b] = span(y);
+    return Array.from({ length: 16 }, (_, x) => {
+      if (x < a || x > b) return '.';
+      if (x === a || x === b || y === 0 || y === 17) return 'o';
+      if (y === 1 || x === a + 1) return 'h';
+      if (x === b - 1) return 'k';
+      return 'f';
+    }).join('');
   });
-  layout.cells.top.forEach((cell, i) => {
-    if (cell.name.startsWith('cren') || cell.name === 'wallR') paintMerlons(r, cell, g, p, 60 + i);
-  });
-  if (layout.titled) {
-    paintGatehouse(r, layout, g, p);
-    paintBanner(r, layout, g, p);
-  } else {
-    paintCrest(r, layout.named('crest'), g, p, kind);
+})();
+const CHEVRON = ['.......##.......', '......####......', '.....##..##.....', '....##....##....', '...##......##...', '..##........##..'];
+const BANG = ['......##', '......##', '......##', '......##', '......##', '......##', '........', '......##', '......##'];
+
+function paintCrest(r, cell, g, p, kind, state) {
+  // The parapet block behind it (a solid, wider merlon).
+  const h = g.wallTop - g.merlonTop;
+  for (let x = cell.x0 + 2; x < cell.x1 - 2; x++) {
+    for (let y = g.merlonTop; y < g.wallTop; y++) r.set(x, y, merlonAt(x - cell.x0 - 2, y - g.merlonTop, cell.w - 4, h, p));
   }
-  paintTower(r, layout.named('towerL'), g, p, 7, 'L');
-  paintTower(r, layout.named('towerR'), g, p, 8, 'R');
+  const sx = cell.x0 + Math.floor((cell.w - 16) / 2), sy = 1;
+  const field = kind === 'alert' ? p.alertField : p.field;
+  const lit = kind === 'alert' ? p.clothHi : p.waterHi;
+  const shade = state === 'active' ? (kind === 'alert' ? p.clothLo : '#003366') : p.stoneLo;
+  r.sprite(sx, sy, CREST, { o: p.outline, h: lit, f: field, k: shade });
+  if (kind === 'alert') r.sprite(sx + 1, sy + 3, BANG, { '#': p.gold });
+  else r.sprite(sx, sy + 4, CHEVRON, { '#': p.gold });
 }
 
-/** Untitled windows: a heraldic shield on a raised block between the battlements. */
-function paintCrest(r, cell, g, p, kind) {
-  r.fillRect(cell.x0, g.merlonTop, cell.w, g.wallTop - g.merlonTop, ashlar({ x0: cell.x0, y0: g.merlonTop, course: 7, block: 10, pal: p, seed: 5 }));
-  r.hline(cell.x0, g.merlonTop, cell.w, p.stoneHi);
-  const w = 14, h = 17, x = cell.x0 + Math.floor((cell.w - w) / 2), y = 2;
-  const shape = (inset) => {
-    const cx = x + w / 2, half = w / 2 - inset, top = y + inset, sh = y + h * 0.45, bot = y + h - inset;
-    return (px, py) => {
-      if (py < top || py > bot) return false;
-      if (py <= sh) return Math.abs(px - cx) <= half;
-      const t = (py - sh) / (bot - sh);
-      return Math.abs(px - cx) <= half * Math.sqrt(Math.max(0, 1 - t * t));
-    };
-  };
-  const field = kind === 'alert' ? p.crestAlert : p.field;
-  r.paintCoverage(x, y, w, h, shape(0), p.iron);
-  r.paintCoverage(x, y, w, h, shape(1.3), verticalGradient(y, h, [[0, mix(field, '#ffffff', 0.18)], [1, field]]));
-  if (kind === 'alert') {
-    // A gold exclamation mark.
-    r.strokeLineSmooth(x + w / 2, y + 4, x + w / 2, y + 10, 2, p.gold);
-    r.fillCircleSmooth(x + w / 2, y + 13, 1.1, p.gold);
-  } else {
-    // A gold chevron.
-    r.strokeLineSmooth(x + 3, y + 11, x + w / 2, y + 6, 1.8, p.gold);
-    r.strokeLineSmooth(x + w / 2, y + 6, x + w - 3, y + 11, 1.8, p.gold);
-  }
+function paintTopBand(r, layout, kind, state, typeKind) {
+  const g = G[kind], p = C[state];
+  paintWall(r, layout, g, p);
+  if (layout.titled) paintParapet(r, layout, g, p);
+  else paintCrest(r, layout.named('crest'), g, p, typeKind, state);
+  paintTower(r, layout.named('towerL'), g, p, 7);
+  paintTower(r, layout.named('towerR'), g, p, 8);
+  if (layout.titled) paintBanner(r, layout, g, p);
 }
+
+// ── Sides and bottom ─────────────────────────────────────────────────────
 
 function paintSides(r, layout, kind, state) {
   const g = G[kind], p = C[state];
-  const { width: W, content: A } = layout;
-  for (const [cells, x0, seedBase] of [[layout.cells.left, g.gutter, 80], [layout.cells.right, A.right, 90]]) {
-    const wallW = g.side - g.gutter;
-    cells.forEach((cell, i) => {
-      const tex = ashlar({ x0, y0: cell.x0, course: g.sideCourse, block: wallW, stagger: Math.floor(wallW / 2), periodY: 2 * g.sideCourse, pal: p, seed: seedBase + (cell.code === 1 ? i : 0) });
-      r.fillRect(x0, cell.x0, wallW, cell.w, tex);
-      if (cell.code === 1) {
-        // A cross-shaped arrow loop in the middle of the fixed cell.
-        const cx = x0 + Math.floor(wallW / 2) - (x0 === g.gutter ? 0 : 1), cy = cell.x0 + Math.floor(cell.w / 2);
-        const len = Math.min(8, cell.w - 3);
-        r.fillRect(cx, cy - Math.floor(len / 2), 1, len, p.dark);
-        r.fillRect(cx - 1, cy - 1, 3, 1, p.dark);
+  const { content: A, width: W } = layout;
+  for (const [cells, bx] of [[layout.cells.left, 0], [layout.cells.right, A.right]]) {
+    const inner = g.side - 2;
+    for (const cell of cells) {
+      for (let y = cell.x0; y < cell.x1; y++) {
+        r.set(bx, y, p.outline).set(bx + g.side - 1, y, p.outline);
+        for (let sx = 0; sx < inner; sx++) r.set(bx + 1 + sx, y, sideAt(sx, y - cell.x0, inner, p));
       }
-    });
+      if (cell.code !== 1) continue;
+      // Arrow slit: a dark 2px slot with a lit lip on its left, and a splayed
+      // sill/lintel one shade down.
+      const sx = bx + Math.floor(g.side / 2) - 1, len = g.side >= 10 ? 7 : 5, sy = cell.x0 + Math.floor((cell.w - len) / 2);
+      r.fillRect(sx - 1, sy - 1, 4, len + 2, p.stoneLo);
+      r.fillRect(sx, sy, 2, len, p.outline);
+      r.vline(sx - 1, sy, len, p.stoneHi);
+    }
   }
   void W;
+}
+
+/** Plinth + moat bottom (document, dialog): rows 0 rim, 1 lit ledge, 2–10 two courses, 11 waterline, 12–15 moat, 16 bank, 17 outline. */
+function bottomAt(x, by, p, H) {
+  if (H < 14) {
+    // Utility: a shorter plinth, no moat.
+    if (by <= 1) return p.stoneHi;
+    if (by === H - 2) return p.stoneLo;
+    if (by >= H - 1) return p.outline;
+    if (by === 5) return p.mortar;
+    const k = by < 5 ? 0 : 1, px = mod(x + (k ? 7 : 0), MERLON);
+    if (px === 0) return p.mortar;
+    return p.stone[k];
+  }
+  // Two plinth courses, period 14 along x (the growers hold one period):
+  // course 0 one long block, course 1 two blocks, one with a lit top.
+  const px = mod(x, MERLON);
+  if (by === 1) return p.stoneHi;
+  if (by === 2) return p.stoneLo;
+  if (by === 6) return p.mortar;
+  if (by < 6) return px === 0 ? p.mortar : p.stone[0];
+  if (by <= 10) {
+    if (px === 4 || px === 11) return p.mortar;
+    const right = px > 4 && px < 11;
+    if (by === 7 && right) return p.stoneHi;
+    return p.stone[right ? 0 : 1];
+  }
+  if (by === 11) return p.outline;
+  if (by <= 15) {
+    if (by === 13 && mod(x, MERLON) >= 2 && mod(x, MERLON) < 5) return p.waterHi;
+    if (by === 15 && mod(x, MERLON) >= 9 && mod(x, MERLON) < 11) return p.waterHi;
+    return p.water;
+  }
+  if (by === 16) return p.stoneLo;
+  return p.outline;
+}
+
+/** Arch with a lowered portcullis, 18 columns wide, over the bottom band. */
+function paintGate(r, cell, layout, p) {
+  const H = layout.height, y0 = layout.content.bottom;
+  const ox = cell.x0 + Math.floor((cell.w - 14) / 2), ow = 14, top = y0 + 2, spring = top + 6;
+  const inArch = (x, y, grow) => {
+    const cx = ox + ow / 2 - 0.5, rad = ow / 2 + grow;
+    if (x < ox - grow || x > ox + ow - 1 + grow || y >= H - 1) return false;
+    return y >= spring || (x - cx) ** 2 + (y - spring) ** 2 <= rad * rad;
+  };
+  // Voussoirs: a 2px ring of dressed stone, lit on the left, shaded on the right.
+  for (let y = y0 + 1; y < H - 1; y++) for (let x = ox - 2; x < ox + ow + 2; x++) {
+    if (!inArch(x, y, 2) || inArch(x, y, 0)) continue;
+    const left = x < ox + ow / 2;
+    r.set(x, y, inArch(x, y, 1) ? (left ? p.stoneHi : p.stoneLo) : p.mortar);
+  }
+  // The passage behind: dark. The portcullis: iron bars on a 4px grid, lit on
+  // their left, ending in spikes above the threshold.
+  for (let y = top; y < H - 1; y++) for (let x = ox; x < ox + ow; x++) {
+    if (!inArch(x, y, 0)) continue;
+    const gx = mod(x - ox - 1, 4), gy = mod(y - (spring - 1), 4);
+    let c = p.outline;
+    if (gx === 0) c = p.ironHi;
+    if (gy === 0 && y < H - 3) c = gx === 0 ? p.stoneLo : p.ironHi;
+    if (y === H - 3 && gx !== 0) c = p.outline;
+    if (y === H - 2) c = gx === 0 ? p.ironHi : p.stoneLo; // threshold with the spike tips on it
+    r.set(x, y, c);
+  }
+}
+
+/** Flat moss tufts on the plinth (fixed cells only, so they never repeat). */
+function moss(r, x, y, p) {
+  r.set(x, y, p.moss).set(x + 1, y, p.moss).set(x + 2, y, p.moss).set(x + 1, y - 1, p.moss).set(x + 3, y, p.moss);
 }
 
 function paintBottom(r, layout, kind, state) {
   const g = G[kind], p = C[state];
   const { width: W, content: A, height: H } = layout;
-  const y0 = A.bottom;
-  // String course under the content, as wide as the walls.
-  r.fillRect(g.gutter, y0, W - 2 * g.gutter, 2, (x, y) => (y === y0 ? p.stoneHi : p.stone[1]));
-  // Chamfered plinth top, then the plinth, full width.
-  const top = y0 + 2, chamfer = 2;
-  r.fillRect(g.gutter - 1, top, W - 2 * (g.gutter - 1), chamfer, (x, y) => (y === top ? p.stoneHi : p.stone[0]));
-  const base = top + chamfer;
-  const course = Math.max(4, Math.ceil((H - base) / 2));
-  layout.cells.bottom.forEach((cell, i) => {
-    const tex = cell.code === 13
-      ? ashlar({ x0: cell.x0, y0: base, course, block: 10000, pal: p, seed: 100 })
-      : ashlar({ x0: cell.x0, y0: base, course, block: g.plinth, stagger: g.plinth / 2, periodX: cell.code === 12 ? cell.w : undefined, pal: p, seed: 100 + (cell.code === 12 ? 0 : i) });
-    r.fillRect(cell.x0, base, cell.w, H - base, tex);
-  });
-  // Moss along the plinth top (periodic inside the code-12 cells).
-  for (const cell of layout.cells.bottom) {
-    moss(r, cell.x0, top, cell.w, H - top, p, { density: 0.22, periodX: cell.code === 12 || cell.code === 13 ? cell.w : undefined, seed: cell.code === 12 ? 9 : 30 + cell.x0 });
+  for (let y = A.bottom; y < H; y++) for (let x = 0; x < W; x++) r.set(x, y, bottomAt(x, y - A.bottom, p, g.bottomH));
+  const bl = layout.named('cornerBL');
+  if (g.bottomH >= 14) {
+    moss(r, bl.x0 + 3, A.bottom + 2, p);
+    const mid = layout.cells.bottom.find((c) => c.name === 'mid');
+    if (mid) moss(r, mid.x0 + Math.floor(mid.w / 2) - 2, A.bottom + 2, p);
   }
-  const gate = layout.named('gate');
-  if (kind === 'util') {
-    // A keystone block.
-    r.fillRect(gate.x0 + 1, top - 1, gate.w - 2, H - top, ashlar({ x0: gate.x0 + 1, y0: top - 1, course: 100, block: 100, pal: p, seed: 4 }));
-    r.hline(gate.x0 + 1, top - 1, gate.w - 2, p.stoneHi);
-    return;
+  for (const name of ['portcullis', 'gate']) {
+    const cell = layout.cells.bottom.find((c) => c.name === name);
+    if (cell) paintGate(r, cell, layout, p);
   }
-  // A little arched sally port with its portcullis down.
-  const ow = 10, ox = gate.x0 + Math.floor((gate.w - ow) / 2), spring = top + 5, rad = ow / 2;
-  const opening = (inset) => (px, py) => {
-    const l = ox - inset, rr = ox + ow + inset, cx = (l + rr) / 2, rd = rad + inset;
-    if (px < l || px > rr || py > H) return false;
-    return py >= spring || (px - cx) ** 2 + (py - spring) ** 2 <= rd * rd;
-  };
-  r.paintCoverage(ox - 3, y0, ow + 6, H - y0, opening(2), p.stoneHi); // voussoirs
-  r.paintCoverage(ox - 3, y0, ow + 6, H - y0, opening(0), p.dark);
-  for (let x = ox + 2; x < ox + ow; x += 3) r.vline(x, spring - rad + 1, H - (spring - rad + 1) - 1, p.ironHi);
-  r.hline(ox + 1, spring, ow - 2, p.ironHi).hline(ox + 1, spring + 3, ow - 2, p.ironHi);
 }
+
+// ── Assemble ─────────────────────────────────────────────────────────────
 
 /** Paint one frame image for a window type in a state ('active' | 'inactive'). */
 export function paintFrame(t, state) {
   const { layout, kind } = t;
-  const geomKind = kind === 'alert' ? 'plain' : kind;
-  const g = G[geomKind];
-  const p = C[state];
+  const geom = kind === 'alert' || kind === 'dialog' ? 'plain' : kind;
+  const g = G[geom], p = C[state];
   const r = new Raster(layout.width, layout.height);
-  paintTopBand(r, layout, geomKind, state, kind);
+  paintTopBand(r, layout, geom, state, kind);
   if (!layout.collapsed) {
-    paintSides(r, layout, geomKind, state);
-    paintBottom(r, layout, geomKind, state);
+    paintSides(r, layout, geom, state);
+    paintBottom(r, layout, geom, state);
   }
   for (const [role, box] of Object.entries(layout.widgets)) DRAW[role](r, box, state);
-  // The content area is a hole.
+  // The content area is a hole; outline the whole silhouette (outer edge,
+  // merlon tops, roofs, and the rim round the content).
   const A = layout.content;
   r.fillRect(A.left, A.top, A.right - A.left, A.bottom - A.top, null);
-  r.outlineEdges(0, 0, r.width, r.height, p.outline); // 1px outline round the whole silhouette
-  // Moss on the merlon tops, over the outline so it reads as growing over the
-  // edge (periodic inside code-12 cells, so every tiled copy matches).
-  for (const cell of layout.cells.top) {
-    if (!cell.name.startsWith('cren') && cell.name !== 'wallR') continue;
-    moss(r, cell.x0, g.merlonTop, cell.w, 3, p, { density: 0.3, periodX: cell.code === 12 ? cell.w : undefined, seed: cell.code === 12 ? 2 : 50 });
-  }
-  // Guard for exotic-frames R2/R8: a tiled cell repeats its source as drawn,
-  // so stray art in the code-5 plate becomes a dotted line along the window
-  // (lessons ledger X1: a banner-ring pixel, every 12px along the coping).
-  // layout.lint fails the build if the plate isn't one colour per row.
+  r.outlineEdges(0, 0, r.width, r.height, p.outline);
+  // Too thin to outline: pennants and poles, drawn after.
+  paintPennant(r, layout.named('towerL'), g, p);
+  paintPennant(r, layout.named('towerR'), g, p);
+  // Guard for exotic-frames R2/R8 and R18: a tiled cell repeats its source as
+  // drawn, so stray art in the banner or a filler would repeat along the window.
   try { layout.lint(r); } catch (err) { throw new Error(`castle: ${t.name} (${state}): ${err.message}`); }
   // Hidden swatches: title text at (A.left, A.top), shadow at the pixel to its right (TC2).
   r.swatch(A.left, A.top, p.title);
@@ -384,13 +471,13 @@ export function paintFrame(t, state) {
 /** Window type table: wnd# id → description. Active frame = id + 1. */
 export function windowTypes() {
   const t = (id, name, kind, opts) => {
-    const geom = kind === 'alert' ? 'plain' : kind;
+    const geom = kind === 'alert' || kind === 'dialog' ? 'plain' : kind;
     return { id, name, kind, layout: frameLayout(spec(geom, opts)) };
   };
   return [
-    t(-14336, 'Document Window', 'doc', { widgets: 'all' }),
+    t(-14336, 'Document Window', 'doc', { widgets: 'all', grow: true }),
     t(-14332, 'Collapsed Document Window', 'doc', { widgets: 'all', collapsed: true }),
-    t(-14328, 'Dialog', 'plain'),
+    t(-14328, 'Dialog', 'dialog'),
     t(-14326, 'Alert', 'alert'),
     t(-14324, 'Movable Modal', 'doc'),
     t(-14322, 'Movable Alert', 'doc'),
@@ -399,4 +486,4 @@ export function windowTypes() {
   ];
 }
 
-export { mod };
+export { G };

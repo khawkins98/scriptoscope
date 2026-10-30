@@ -1,52 +1,76 @@
 // Brickworks palette. Colours are what you want to SEE (sRGB); the encoder
 // applies the classic-Mac gamma pre-compensation (authoring guide §4.4).
 //
-// Bright primary plastic: each brick colour has a gloss, highlight, base,
-// shade and a dark seam/outline tone. Inactive windows keep their plastic:
-// each brick is lifted 38% toward a light grey (per hue, so the window-type
-// colour coding survives) and the title stays dark enough to read (≥ 4.5:1
-// on the white tile). Visual-design review §1.3.
-import { mix } from '../../../tools/theme-author/index.js';
+// Flat glossy plastic, four steps per brick and nothing in between: `hi` (the
+// lit top row, the lit left arc of a stud), `base` (the face), `lo` (the
+// shaded right column) and `deep` (pressed faces, stud shade, cast shadow).
+// Every step is an exact 6×6×6 cube entry, so the scheme looks the same on an
+// 8-bit Mac as on the web (concept brief §1; visual-design guide §2.3).
+//
+// Inactive windows keep their hue and lift the value (red → #cc6666 and so
+// on), so the window-type colour coding survives in the background.
 
-const brick = (base, { gloss, hi, lo, deep, seam }) => ({ base, gloss, hi, lo, deep, seam });
+const brick = (hi, base, lo, deep) => ({ hi, base, lo, deep });
 
 export const BRICK = {
-  red: brick('#d8261c', { gloss: '#ff8f84', hi: '#f2554a', lo: '#b0180f', deep: '#86100a', seam: '#5a0a06' }),
-  yellow: brick('#f7c51a', { gloss: '#fff3b0', hi: '#ffe066', lo: '#d6a400', deep: '#a87e00', seam: '#634a00' }),
-  blue: brick('#1f63c6', { gloss: '#9cc3ff', hi: '#4f8ae6', lo: '#174fa0', deep: '#103a78', seam: '#0a234a' }),
-  green: brick('#2a9a3c', { gloss: '#a6ecb0', hi: '#56c266', lo: '#1f7a2e', deep: '#165c22', seam: '#0c3814' }),
-  white: brick('#f6f5ef', { gloss: '#ffffff', hi: '#ffffff', lo: '#dcdbd2', deep: '#bdbcb2', seam: '#5b5a55' }),
-  grey: brick('#a5a29b', { gloss: '#e2e0da', hi: '#c3c0b9', lo: '#8c8982', deep: '#73706a', seam: '#45433f' }),
+  red: brick('#ff6666', '#cc0000', '#990000', '#660000'),
+  yellow: brick('#ffff99', '#ffcc00', '#cc9900', '#996600'),
+  blue: brick('#6699ff', '#3366cc', '#003399', '#003366'),
+  green: brick('#66cc66', '#339933', '#006600', '#003300'),
+  white: brick('#ffffff', '#eeeeee', '#cccccc', '#999999'),
+  grey: brick('#cccccc', '#999999', '#666666', '#333333'),
 };
 
-const FADE = '#e4e2dc';
-const fade = (b, t = 0.38) => Object.fromEntries(Object.entries(b).map(([k, v]) => [k, mix(v, FADE, t)]));
+// Lifted plastic for inactive windows: same hue, lighter and greyer.
+const QUIET = {
+  red: brick('#ff9999', '#cc6666', '#996666', '#663333'),
+  yellow: brick('#ffff99', '#cccc66', '#999966', '#666633'),
+  blue: brick('#99ccff', '#6699cc', '#336699', '#003366'),
+  green: brick('#99cc99', '#669966', '#336633', '#003300'),
+  white: BRICK.white,
+  grey: brick('#cccccc', '#999999', '#666666', '#333333'),
+};
 
-/** Palette for one state. Inactive bricks are lifted; outline and title soften but keep contrast. */
+/** The warm near-black outline every piece shares. */
+export const OUTLINE = '#330000';
+export const INK = '#330000';
+
+/** Palette for one window state. */
 export function pal(state) {
   const active = state === 'active';
-  const b = active ? BRICK : Object.fromEntries(Object.entries(BRICK).map(([k, v]) => [k, fade(v, k === 'white' ? 0.25 : 0.38)]));
   return {
-    ...b,
-    outline: active ? '#1e1712' : '#6e6a63',
-    title: active ? '#1c1a17' : '#5e5b55',
-    titleShadow: active ? '#1c1a17' : '#5e5b55', // same colour = no shadow
+    ...(active ? BRICK : QUIET),
+    outline: active ? OUTLINE : '#663333',
+    cable: active ? OUTLINE : '#663333',
+    title: active ? INK : '#666666',
+    titleShadow: active ? INK : '#666666', // same colour = no shadow
     glyph: active ? '#ffffff' : null,
   };
 }
 
-// Which bricks each window type is built from ("plates of different
-// colours per window type").
+// Which bricks each window type is built from: bar, corner blocks, the two
+// wall colours (left wall starts with walls[0], right wall with walls[1]),
+// and the centre brick of untitled dialogs and alerts.
 export const SCHEME_COLOURS = {
-  doc: { bar: 'red', corner: 'yellow', wall: 'red', base: 'green' },
-  modal: { bar: 'green', corner: 'yellow', wall: 'green', base: 'green' },
-  movableAlert: { bar: 'yellow', corner: 'red', wall: 'yellow', base: 'green' },
-  util: { bar: 'blue', corner: 'yellow', wall: 'blue', base: 'green' },
-  dialog: { bar: 'blue', corner: 'blue', centre: 'yellow', wall: 'blue', base: 'green' },
-  alert: { bar: 'yellow', corner: 'yellow', centre: 'red', wall: 'yellow', base: 'green' },
+  doc: { bar: 'red', corner: 'yellow', walls: ['red', 'blue'], base: 'green' },
+  modal: { bar: 'green', corner: 'yellow', walls: ['green', 'blue'], base: 'green' },
+  movableAlert: { bar: 'yellow', corner: 'red', walls: ['yellow', 'red'], base: 'green' },
+  util: { bar: 'blue', corner: 'yellow', walls: ['blue', 'yellow'], base: 'green' },
+  dialog: { bar: 'blue', corner: 'blue', centre: 'yellow', walls: ['blue', 'red'], base: 'green' },
+  alert: { bar: 'yellow', corner: 'yellow', centre: 'red', walls: ['yellow', 'red'], base: 'green' },
 };
 
-// The colour controls normally sit on: the baseplate body's middle tone.
-// Used as the smooth-edge matte for buttons and checkboxes.
-export const BODY = '#f3f1ea';
-export const UTIL_BODY = '#eef1f6';
+// The plain body every window shows (and the ground behind the baseplate
+// studs, so the studs stand inside the box).
+export const BODY = '#eeeeee';
+export const UTIL_BODY = '#eeeeee';
+
+// Extra pairs for `npm run author -- --palette`: [fg, bg, label, floor].
+export const CONTRAST = [
+  [INK, BRICK.yellow.base, 'button label on yellow brick', 4.5],
+  ['#666666', BRICK.white.base, 'inactive title on the tile', 3],
+  [OUTLINE, '#ffffff', 'outline on white', 3],
+  ['#ffffff', BRICK.red.base, 'close glyph on red stud', 3],
+  ['#ffffff', BRICK.green.base, 'zoom glyph on green stud', 3],
+  ['#ffffff', BRICK.blue.base, 'collapse glyph on blue stud', 3],
+];

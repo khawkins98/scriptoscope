@@ -1,43 +1,53 @@
 // Bonn's palette. Colours are what you want to see on screen (sRGB); the
 // encoder applies the classic-Mac gamma pre-compensation.
 //
-// Warm Rhine sandstone for the frame, the city's red and yellow as accents,
-// Altstadt cherry-blossom pink, and Rhine blue-greens for the water and the
-// skyline silhouette.
+// Every colour here is an entry of the 6×6×6 cube (or the system palette's
+// grey ramp), so a 256-colour classic screen shows what the web shows
+// (docs/authoring-visual-design.md §2.3). The ramps are short and flat:
+// sandstone face / lit / shade / mortar, the city red and yellow, two Rhine
+// teals, slate-teal for the skyline, pink plaster for the Old Town Hall, glass
+// blues for the Post Tower and blossom pinks on a brown branch.
+//
+// Red is the title's colour: the pennant, the default ring, checked marks and
+// the scroll arrowheads, nothing else.
 export const C = {
-  // The colour controls normally sit on: the cream document body. Used as the
-  // smooth-edge matte for buttons and checkboxes.
-  body: '#fbf5ea',
-  utilBody: '#f3ece0',
-  red: '#c0262d', redLo: '#7e1419', yellow: '#f4c430', yellowLo: '#b98c12',
-  pink: '#f4a9c0', pinkHi: '#fcd6e2', pinkLo: '#d9708f',
+  // The colour controls normally sit on (the white document body); the smooth
+  // matte for buttons and checkboxes.
+  body: '#ffffff',
+  red: '#cc0000', redLo: '#990000', yellow: '#ffcc00',
   active: {
-    outline: '#3a2c26',
-    // barTop and stoneHi are picked to land on the system palette's cream
-    // (#ffffcc stored) at 8 bpp; the earlier #f4e4c7 / #f2e2c4 turned pink.
-    barTop: '#f8eccc', barBottom: '#dcc196', barLine: '#b7966a',
-    stone: '#e2c9a0', stoneHi: '#f8f0d6', stoneLo: '#b99a70',
-    red: '#c0262d', redLo: '#7e1419', yellow: '#f4c430', yellowLo: '#b98c12',
-    title: '#fff6de', titleShadow: '#5b0d12',
-    // Skyline: a deep Rhine teal silhouette, glass for the Post Tower, blossom trees.
-    sky: '#24484f', skyHi: '#3e6a70', glass: ['#7fb1bd', '#4f8795', '#2e5b66'],
-    tree: ['#f7b7ca', '#ee93ae', '#fcd9e4'], trunk: '#4a3326',
-    // The river is two flat bands (no dither: it striped at 8 bpp). Both are
-    // exact system-palette colours, so classic shows what the web shows.
-    water: ['#44a8a8', '#447878'], foam: '#d9f0ec', waterEdge: '#173f46',
-    bank: '#8fae5e', bankLo: '#5f7f3c',
-    pink: '#f4a9c0', pinkHi: '#fcd6e2', pinkLo: '#d9708f',
+    outline: '#663333',
+    stone: '#ffcc99', stoneHi: '#ffffcc', stoneLo: '#cc9966', mortar: '#996633',
+    red: '#cc0000', redLo: '#990000', yellow: '#ffcc00',
+    title: '#ffffcc', titleShadow: '#660000',
+    // Skyline: slate-teal masses with a lit roof edge and yellow windows.
+    sky: '#336666', skyHi: '#669999', lamp: '#ffcc00',
+    hall: '#ffcccc', hallLo: '#cc9999', trim: '#ffffff',
+    glass: '#6699cc', glassHi: '#99ccff',
+    // The Rhine: two flat bands and white foam (no dither: it striped at 8 bpp).
+    water: '#339999', waterLo: '#336666', foam: '#ffffff',
+    blossom: '#ff99cc', blossomLo: '#cc6699', blossomHi: '#ffcccc', branch: '#663300',
   },
   inactive: {
-    outline: '#7d736c',
-    barTop: '#efe9df', barBottom: '#ddd5c8', barLine: '#c2b8a9',
-    stone: '#ddd6ca', stoneHi: '#ece7de', stoneLo: '#bfb6a8',
-    red: '#b7a8a3', redLo: '#9a8c87', yellow: '#d9d0bd', yellowLo: '#b8af9c',
-    title: '#4a423d', titleShadow: '#4a423d',               // same colour = no shadow
-    sky: '#8a9a9c', skyHi: '#9fadaf', glass: ['#c2cdd0', '#aab8bc', '#95a5a9'],
-    tree: ['#e3cfd5', '#d8c0c7', '#ece0e4'], trunk: '#8f857f',
-    water: ['#b9c9c9', '#9db2b4'], foam: '#e8eeed', waterEdge: '#7d8f91',
-    bank: '#b8bfa9', bankLo: '#9fa78f',
-    pink: '#ddc7ce', pinkHi: '#ece0e4', pinkLo: '#c2a9b1',
+    outline: '#777777',
+    stone: '#dddddd', stoneHi: '#eeeeee', stoneLo: '#bbbbbb', mortar: '#aaaaaa',
+    red: '#999999', redLo: '#888888', yellow: '#bbbbbb',
+    title: '#222222', titleShadow: '#222222',                 // same colour = no shadow
+    sky: '#999999', skyHi: '#bbbbbb', lamp: '#cccccc',
+    hall: '#cccccc', hallLo: '#aaaaaa', trim: '#eeeeee',
+    glass: '#aaaaaa', glassHi: '#cccccc',
+    water: '#aaaaaa', waterLo: '#999999', foam: '#eeeeee',
+    blossom: '#cccccc', blossomLo: '#aaaaaa', blossomHi: '#eeeeee', branch: '#888888',
   },
 };
+
+// Pairs the palette report checks besides the sampled title and button colours.
+export const CONTRAST = [
+  ['#663333', '#ffffff', 'frame outline on the white body', 'outline'],
+  ['#777777', '#ffffff', 'inactive frame outline on white', 'outline'],
+  ['#ffffcc', '#cc0000', 'menu highlight text on red', 'text'],
+  ['#663333', '#ffcc99', 'button label on sandstone', 'label'],
+  ['#ffffcc', '#cc0000', 'zoom square on the red half', 'glyph'],
+  ['#336666', '#ffcc99', 'collapse wave (deep band) on the sandstone disc', 'glyph'],
+  ['#663333', '#ffcc00', 'zoom square outline on the yellow half', 'glyph'],
+];

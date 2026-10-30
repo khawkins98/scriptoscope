@@ -43,18 +43,22 @@
 // only the side facing the content gets a hairline, plus one across the far
 // (bottom / right) end where it meets the corner. The other two sides are
 // open, which avoids doubled lines against the frame.
-import { Raster, verticalGradient, encodeCicn } from '../../../../tools/theme-author/index.js';
+import { Raster, encodeCicn } from '../../../../tools/theme-author/index.js';
 import { C } from '../palette.mjs';
 
+// Frosted glass, lit from the upper left (palette.mjs): a sunk #eeeeee track
+// with a #cccccc shade on its content-facing side, white arrow plates with
+// teal pixel triangles, and a frosted pill thumb with three teal grip lines.
 const SB = {
-  line: '#cbd2dc',        // hairline facing the content, and between arrow and track
-  track: '#f0f2f5',
-  trackShade: '#e6e9ee',  // 1px inner shade next to the hairline
-  glyph: '#4a5566',
-  glyphOff: '#b7bfca',    // nothing-to-scroll arrows
-  thumbEdge: '#97a2b2',
-  grip: '#a7b0bd',
-  inactive: { line: '#e3e6ea', track: '#f6f7f9', trackShade: '#f1f3f5' },
+  line: C.outline,        // hairline facing the content, and between arrow and track
+  track: C.glass,
+  trackShade: C.shade,    // 1px sunk shade next to the hairline
+  plate: C.white, plateShade: C.glass,
+  glyph: C.accentDeep,
+  glyphOff: C.shade,      // nothing-to-scroll arrows
+  thumbEdge: C.outline,
+  grip: C.accentDeep,
+  inactive: { line: C.deep, track: C.glass, trackShade: C.glass },
 };
 
 /**
@@ -74,11 +78,7 @@ function barRaster(horizontal, cross, along) {
     sprite: (u0, v0, rows, c) => rows.forEach((row, j) => [...row].forEach((ch, i) => {
       if (ch === '#') r.set(...pt(u0 + i, v0 + j), c);
     })),
-    round: (u, v, w, h, rad, c, opts) => r.fillRoundRectSmooth(...box(u, v, w, h), rad, c, opts),
-    gradient: (u, v, w, h, top, bottom) => {
-      const [, y, , hh] = box(u, v, w, h);
-      return verticalGradient(y, hh, [[0, top], [1, bottom]]);
-    },
+    round: (u, v, w, h, rad, c) => r.fillRoundRect(...box(u, v, w, h), rad, c), // hard pixel corners
   };
 }
 
@@ -93,8 +93,8 @@ function paintTrack(b, cross, along, look = SB) {
 // docs/authoring-visual-design.md §2.2): a bold chevron, drawn pointing to the
 // low end (up / left); rows run along the bar.
 const CHEVRONS = {
-  big: ['...#...', '..###..', '.##.##.', '##...##'],
-  small: ['..#..', '.###.', '##.##'],
+  big: ['..#..', '.###.', '#####'],
+  small: ['.#.', '###'],
 };
 
 /** A chevron pointing toward the low (-1) or high (+1) end, centred at (cu, cv). */
@@ -116,9 +116,9 @@ function paintArrow(b, t, v0, d, end, cap, dir, look) {
   const faceV1 = v0 + d - (end === 'low' || cap ? 1 : 0); // exclusive
   const pressed = look === 'pressed';
   // Pressed is the flat accent (one system-palette entry at 8 bpp, no ramp to band).
-  const top = pressed ? C.accent : '#ffffff';
-  const bottom = pressed ? C.accent : '#e4e9ef';
-  b.fill(1, faceV0, t - 1, faceV1 - faceV0, b.gradient(1, faceV0, t - 1, faceV1 - faceV0, top, bottom));
+  // A white plate with a 1px glass shade on its far side (lit from the top left); pressed is the flat accent.
+  b.fill(1, faceV0, t - 1, faceV1 - faceV0, pressed ? C.accentDeep : SB.plate);
+  if (!pressed) b.fill(t - 1, faceV0, 1, faceV1 - faceV0, SB.plateShade);
   b.fill(0, v0, 1, d, SB.line);
   b.fill(0, divider, t, 1, SB.line);
   if (cap) b.fill(0, v0 + d - 1, t, 1, SB.line);
@@ -161,17 +161,18 @@ function thumbImage(horizontal, t, pressed, ghost = false) {
   const w = t - 1 - 2 * (inset - 1), h = along - 2, rad = w / 2;
   if (ghost) {
     // Drag outline: a translucent-looking pill; everything around it stays clear.
-    b.round(inset, 1, w, h, rad, pressed ? C.accentPressed : C.accent, { matte: SB.track });
-    b.round(inset + 1, 2, w - 2, h - 2, rad - 1, '#cfe7ef');
+    b.round(inset, 1, w, h, rad, pressed ? C.accentDeep : C.accent);
+    b.round(inset + 1, 2, w - 2, h - 2, rad - 1, C.accentLight);
     return b.r;
   }
   paintTrack(b, t, along);
-  b.round(inset, 1, w, h, rad, pressed ? C.accentPressed : SB.thumbEdge);
-  b.round(inset + 1, 2, w - 2, h - 2, rad - 1,
-    b.gradient(inset + 1, 2, w - 2, h - 2, pressed ? C.accent : '#ffffff', pressed ? C.accent : '#e2e7ee'));
+  // A frosted pill: outline, white sheen ring on the upper left, glass face.
+  b.round(inset, 1, w, h, Math.min(rad, 3), pressed ? C.accentDeep : SB.thumbEdge);
+  b.round(inset + 1, 2, w - 2, h - 2, Math.min(rad, 3) - 1, pressed ? C.accentLight : C.white);
+  b.round(inset + 2, 3, w - 3, h - 3, Math.min(rad, 3) - 1, pressed ? C.accent : C.glass);
   // Grip: 1px lines on whole rows, two pixels apart, centred on the pill
   // (pill pixels u = inset … inset + w − 1, v = 1 … along − 2).
-  const grip = pressed ? '#d7edf3' : SB.grip;
+  const grip = pressed ? C.white : SB.grip;
   const gw = small ? 4 : 5, gu = inset + Math.floor((w - gw) / 2);
   const cv = Math.floor((along - 1) / 2);
   const lines = small ? [-1, 1] : [-2, 0, 2];
@@ -184,16 +185,16 @@ function littleArrows(look, part = 'both') {
   const W = 13, H = 23, split = 11;
   const r = new Raster(W, H);
   const pressed = look === 'pressed';
-  const edge = look === 'inactive' ? '#d0d4da' : '#8d98a8';
+  const edge = look === 'inactive' ? C.shade : C.outline;
   const half = (y0, y1, dir, isPressed) => {
     const h = y1 - y0;
-    r.fillRoundRectSmooth(0, y0, W, h, 4, edge, { matte: '#ffffff' });
-    const top = isPressed ? C.accent : look === 'inactive' ? '#f6f7f9' : '#ffffff';
-    const bottom = isPressed ? C.accent : look === 'inactive' ? '#f0f2f5' : '#e2e7ee';
-    r.fillRoundRectSmooth(1, y0 + 1, W - 2, h - 2, 3, verticalGradient(y0 + 1, h - 2, [[0, top], [1, bottom]]));
-    const ink = isPressed ? '#ffffff' : look === 'inactive' ? '#c3c9d1' : SB.glyph;
+    r.fillRoundRect(0, y0, W, h, 3, edge);
+    const face = isPressed ? C.accentDeep : look === 'inactive' ? C.glass : C.white;
+    r.fillRoundRect(1, y0 + 1, W - 2, h - 2, 2, face);
+    if (!isPressed && look !== 'inactive') r.hline(2, y0 + h - 2, W - 4, C.glass);
+    const ink = isPressed ? C.white : look === 'inactive' ? C.shade : SB.glyph;
     // A 5px pixel chevron, centred on the half's middle pixel (W is odd).
-    const rows = dir < 0 ? CHEVRONS.small : [...CHEVRONS.small].reverse();
+    const rows = dir < 0 ? CHEVRONS.big : [...CHEVRONS.big].reverse();
     r.sprite((W - 5) / 2, Math.round((y0 + y1) / 2 - 1.5), rows, { '#': ink });
   };
   // The halves share row `split`: the up half is rows 0..11, the down half 11..22.
