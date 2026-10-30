@@ -9,11 +9,10 @@ const test = base.extend({ servers: [async ({}, use) => {
 // #537 (WCAG 2.4.3): title-widget overlay buttons sit in the shadow DOM, and so
 // in tab order, in visual reading order, not a fixed close/zoom/collapse
 // sequence. Reading order is computed here from each button's bounding rect:
-// rows top to bottom, left to right within a row. Two buttons share a row when
-// their vertical centres are less than half the shorter button's height apart
-// (each centre inside the other's vertical span). That keeps monkey-paradise's
-// taller collapse sprite (top 0 against 5, centres 2 px apart) on the title
-// row, while 1984's document close, 6 px lower with 11 px buttons, reads last.
+// rows top to bottom (by centre), left to right within a row, where a button
+// joins the row whose lead's vertical span it overlaps. 1984's document close
+// (y 16-27 against 10-21) stays on the title row at the far left, and
+// monkey-paradise's taller collapse sprite (top 0 against 5) stays on its row.
 const SLUGS = ['1138', '1984', '1990', 'animals', 'apple-lisa', 'apple-platinum-2', 'beos-r503',
   'black-platinum', 'crayon-os', 'dolphin-som', 'evolution', 'floppies', 'monkey-paradise',
   'platinum-8', 'slimes', 'system7-nostalgia-silver', 'windows-31', 'windows-95'];
@@ -25,11 +24,11 @@ const install = (page, servers, mode) => page.goto(`${servers[mode]}/tests/rende
   const name = el => el?.getAttribute('aria-label')?.split(' ')[0] ?? null;
   const widgets = host => [...host.shadowRoot.querySelectorAll('.scriptoscope-titlewidget')];
   const reading = host => {
-    const boxes = widgets(host).map(el => { const r = el.getBoundingClientRect(); return { el, x: r.left, cy: r.top + r.height / 2, h: r.height }; });
+    const boxes = widgets(host).map(el => { const r = el.getBoundingClientRect(); return { el, x: r.left, top: r.top, cy: r.top + r.height / 2, h: r.height }; });
     const rows = [];
     for (const b of boxes.sort((a, c) => a.cy - c.cy)) {
       const row = rows.at(-1);
-      if (row && Math.abs(b.cy - row[0].cy) < Math.min(b.h, row[0].h) / 2) row.push(b); else rows.push([b]);
+      if (row && b.top < row[0].top + row[0].h && row[0].top < b.top + b.h) row.push(b); else rows.push([b]);
     }
     return rows.flatMap(row => row.sort((a, c) => a.x - c.x)).map(b => name(b.el));
   };
@@ -65,7 +64,8 @@ for (const mode of ['source', 'built']) {
     // The issue's cases, pinned so a changed row rule cannot silently pass them.
     expect(by('windows-95', 'document-window')).toEqual(['Collapse', 'Zoom', 'Close']);
     expect(by('windows-95', 'floating-utility-window')).toEqual(['Collapse', 'Zoom', 'Close']);
-    expect(by('1984', 'document-window')).toEqual(['Zoom', 'Collapse', 'Close']);
+    expect(by('1984', 'document-window')).toEqual(['Close', 'Zoom', 'Collapse']);
+    expect(by('1984', 'collapsed-document-window')).toEqual(['Close', 'Zoom', 'Collapse']);
     expect(by('monkey-paradise', 'floating-utility-window')).toEqual(['Close', 'Zoom', 'Collapse']);
     const mismatched = rows.filter(r => r.dom.join() !== r.reading.join()).map(r => `${r.slug} ${r.windowType}: dom ${r.dom} reading ${r.reading}`);
     expect(mismatched).toEqual([]);

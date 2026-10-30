@@ -695,19 +695,13 @@ export function titleWidgetHits(
   }));
 }
 
-/**
- * Title widgets in visual reading order (#537, WCAG 2.4.3): rows top to bottom, left to right within
- * a row. Two widgets share a row when their vertical centres are less than half the shorter one's
- * height apart, i.e. each centre lies inside the other's span. Monkey-paradise's taller collapse
- * sprite (top 0 against 5) stays on its row; 1984's document close, 6 px lower with 11 px widgets,
- * reads after zoom and collapse. Scale-invariant, since it compares the widgets to themselves.
- */
+/** Title widgets in reading order (#537, WCAG 2.4.3): rows top to bottom (by centre), left to right
+ *  within a row. A widget joins the row whose lead's vertical span it overlaps. */
 function readingOrder(hits: TitleWidgetHit[]): TitleWidgetHit[] {
-  const cy = (hit: TitleWidgetHit): number => hit.rect.y + hit.rect.h / 2;
   const rows: TitleWidgetHit[][] = [];
-  for (const hit of [...hits].sort((a, b) => cy(a) - cy(b))) {
+  for (const hit of [...hits].sort((a, b) => (2 * a.rect.y + a.rect.h) - (2 * b.rect.y + b.rect.h))) {
     const lead = rows.at(-1)?.[0];
-    if (lead && Math.abs(cy(hit) - cy(lead)) < Math.min(hit.rect.h, lead.rect.h) / 2) rows.at(-1)!.push(hit);
+    if (lead && hit.rect.y < lead.rect.y + lead.rect.h && lead.rect.y < hit.rect.y + hit.rect.h) rows.at(-1)!.push(hit);
     else rows.push([hit]);
   }
   return rows.flatMap(row => row.sort((a, b) => a.rect.x - b.rect.x));
@@ -1258,8 +1252,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     if (notify) this.notifyChange(entry);
   }
 
-  /** Overlay keys in tab order: title widgets (then put in reading order by overlayWidgets), move
-   *  handle, grow box, scrollbars. */
+  /** Overlay keys in tab order: title widgets (reading order, see overlayWidgets), move handle, grow box, scrollbars. */
   private static readonly OVERLAYS = ['titlewidget-close', 'titlewidget-zoom', 'titlewidget-collapse',
     'movehandle', 'growbox', 'window-scrollbar-vertical', 'window-scrollbar-horizontal'];
 
