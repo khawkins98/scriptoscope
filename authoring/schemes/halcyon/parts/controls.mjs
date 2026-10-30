@@ -258,12 +258,18 @@ function buildTabs(add, C) {
     // runtime draws panels with CSS. Geometry as the corpus (13×13, c 4, s 4).
     // Ids: SSF −9970 inactive / −9969 active, LSF −9978 / −9977.
     const paneBase = size.base + 6;
-    for (const [off, tag, edge] of [[0, 'Inactive ', '#d0d5dc'], [1, 'Active ', C.active.border]]) {
+    // The pane's middle is filled with the bgPixel colour and never copied, so
+    // the label colour can live on a middle pixel too, as in the corpus
+    // (1138: bg (4,4), text (6,6)). Sampling both from one pixel draws the
+    // pane's labels in the background colour, which made them vanish in real
+    // Kaleidoscope (its control panel puts group titles on a tab pane).
+    for (const [off, tag, edge, text] of [[0, 'Inactive ', '#d0d5dc', '#a3aab4'], [1, 'Active ', C.active.border, C.active.title]]) {
       const pane = new Raster(13, 13).fillRoundRectSmooth(0, 0, 13, 13, 4, edge, { matte: '#ffffff' })
-        .fillRoundRectSmooth(1, 1, 11, 11, 3, C.body);
+        .fillRoundRectSmooth(1, 1, 11, 11, 3, C.body)
+        .set(6, 6, text);
       add('cicn', paneBase + off, encodeCicn(pane), `${size.name} ${tag}Tab Pane`);
       add('cinf', paneBase + off, encodeCinf({
-        cornerSize: 4, sideThickness: 4, bgPixel: { x: 6, y: 6 }, textPixel: { x: 6, y: 6 }, embossPixel: { x: 0, y: 0 },
+        cornerSize: 4, sideThickness: 4, bgPixel: { x: 4, y: 4 }, textPixel: { x: 6, y: 6 }, embossPixel: { x: 0, y: 0 },
       }), `${size.name} ${tag}Tab Pane`);
     }
   }

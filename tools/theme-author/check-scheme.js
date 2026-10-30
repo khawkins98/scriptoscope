@@ -169,6 +169,17 @@ export function checkScheme(resources, theme) {
   // (Scrollbar transparency is a guide gotcha, not a rule: 12 of 18 corpus
   // schemes ship scroll pieces with transparent pixels and still render.)
 
+  // ── Text that samples the same colour as its background is invisible ──
+  for (const r of resources.filter((x) => x.type === 'cinf')) {
+    const c = cicn(r.id);
+    if (!c) continue;
+    const d = decodeCinf(r.data);
+    // Default-button rings (-10232…-10230) never draw text.
+    if ((!d.textPixel.x && !d.textPixel.y) || (r.id >= -10232 && r.id <= -10230)) continue;
+    const text = hexAt(c, d.textPixel.x, d.textPixel.y), bg = hexAt(c, d.bgPixel.x, d.bgPixel.y);
+    if (text === bg && text.startsWith('#')) warnings.push(`cinf ${r.id}: textPixel and bgPixel both sample ${text}, so any text drawn on this piece is invisible`);
+  }
+
   // ── Progress frame: corner > side leaves columns unpainted (docs/spec/engine/progress.md) ──
   for (const id of [-10080, -10077]) {
     const res = find('cinf', id);

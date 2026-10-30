@@ -358,3 +358,9 @@ test('two Halcyon parts adding the same id is an error naming both files', async
     await assert.rejects(build(), /Colr 129 is added by both scheme\.mjs and parts\/zz-clash\.mjs/);
   } finally { rmSync(dir, { recursive: true, force: true }); }
 });
+
+test('check: a cinf whose text and background sample the same colour is flagged', () => {
+  const pane = encodeCicn(new Raster(13, 13).fillRect(0, 0, 13, 13, '#ffffff'));
+  const same = checkScheme([{ type: 'cicn', id: -9977, data: pane }, { type: 'cinf', id: -9977, data: encodeCinf({ cornerSize: 4, sideThickness: 4, bgPixel: { x: 4, y: 4 }, textPixel: { x: 6, y: 6 } }) }]);
+  assert.ok(same.warnings.some((w) => /cinf -9977: textPixel and bgPixel both sample/.test(w)), same.warnings.join('\n'));
+});
