@@ -80,6 +80,14 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
     (apple-platinum-2 and the other grow-box schemes 24 → 22 square,
     apple-lisa 22 → 17, 1984 22 → 17 wide, beos-r503 22 → 20, windows-31
     22 → 19, windows-95 22 → 21 wide). Other schemes keep their size.
+- Procedural Platinum push buttons (`baselineButton`, used by apple-platinum-2,
+  platinum-8, black-platinum, slimes and system7-nostalgia-silver, and by any
+  scheme without an admitted push face) now show a held state. Pointer, Space
+  or Enter sinks the face, and it returns to normal on release, pointer leave
+  or cancel, blur and keyup. Normal-state pixels and cicn-themed buttons are
+  unchanged. This is an interim compatibility override, not decoded behaviour:
+  it reuses the procedural `sunkenFace` palette because the original pressed
+  pixels are unresolved (#218) (#551).
 
 ## [0.7.0] — 2026-10-29
 
