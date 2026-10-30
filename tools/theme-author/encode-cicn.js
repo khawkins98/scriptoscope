@@ -94,7 +94,10 @@ export function buildPalette(raster, { gamma = true, label = 'encode' } = {}) {
     const key = stored.join(',');
     if (!indexOf.has(key)) {
       if (palette.length === 256) {
-        throw new Error(`${label}: more than 256 colours in a ${width}x${height} image; reduce gradient steps or dither`);
+        const total = new Set();
+        for (let j = 0; j < width * height; j++) if (rgba[j * 4 + 3]) total.add(`${rgba[j * 4]},${rgba[j * 4 + 1]},${rgba[j * 4 + 2]}`);
+        throw new Error(`${label}: ${total.size} colours in a ${width}x${height} image, but the limit is 256. ` +
+          'Smooth edges and gradients add colours fast: call fitPalette(raster) (tools/theme-author/fit-palette.js) before encoding, or use fewer gradient steps');
       }
       indexOf.set(key, palette.length);
       palette.push(stored);

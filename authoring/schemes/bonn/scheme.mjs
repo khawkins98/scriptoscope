@@ -25,7 +25,7 @@
 //   patterns.mjs    blossom document body, cobblestone utility body, Rhine desktop, Finder colours
 //   families.mjs    sliders, tabs + panes, bevel buttons, popup pieces (recoloured Halcyon)
 //   progress.mjs    progress bar + barber pole, list headers, disclosure, grow boxes (recoloured Halcyon)
-//   quantize.mjs    fitPalette: keeps big smooth frames under the 256-colour cicn limit
+//   (fitPalette, promoted to the toolkit, keeps big smooth frames under the 256-colour limit)
 //
 // Not themed (falls back): menus and the menu bar, the scheme's picker icon,
 // popup / side-floating / no-title utility windows, text fields (CSS on the web).

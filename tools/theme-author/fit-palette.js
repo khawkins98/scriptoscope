@@ -1,4 +1,5 @@
-// Colour budget helper. A cicn is indexed (256 colours at most, encode-cicn.js),
+// fitPalette: keep an image inside the 256-colour limit (promoted from the Bonn
+// scheme, which hit 290 colours on its first build). A cicn is indexed (256 colours at most, encode-cicn.js),
 // and a big frame with smooth (anti-aliased) shapes, gradients and a dithered
 // river easily makes more. `fitPalette` merges the rarest colours into their
 // nearest remaining neighbour until the image fits. Hidden swatches (alpha 1)
@@ -43,7 +44,8 @@ export function fitPalette(raster, max = 254) {
   return raster;
 }
 
-export const colourCount = (raster) => {
+/** Number of distinct opaque or swatch colours in a raster. */
+export const colorCount = (raster) => {
   const s = new Set();
   for (let i = 0; i < raster.rgba.length; i += 4) if (raster.rgba[i + 3]) s.add(key(raster.rgba[i], raster.rgba[i + 1], raster.rgba[i + 2]));
   return s.size;

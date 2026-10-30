@@ -11,7 +11,14 @@
     ?layout=<url>    replace the windows below with an HTML fragment, e.g.
                      /authoring/preview-layouts/sizes.html (small, large, long
                      titles, an active scroller)
-    ?active=<title>  make the window with this title the active one
+    ?active=<title or window type>
+                     make that window the active one, e.g. ?active=Tools or
+                     ?active=dialog (untitled dialogs and alerts match by type)
+
+  Widgets are <button aria-label="Close window"> (etc.) inside each window's
+  shadow root, if you want to press them from a test. Progress bars, menus and
+  the desktop pattern aren't shown here; render them with the public compose
+  functions, or check them in real Kaleidoscope.
 
   Shows every window type the scheme defines, plus push buttons, checkboxes,
   sliders, popup menus, text fields, tabs and scrollbars, through the same explicit host the showcase uses. Reload after
@@ -123,9 +130,14 @@
         desk.innerHTML = await res.text();
       }
       if (params.get('active')) {
-        for (const w of desk.querySelectorAll('[data-scriptoscope-window]')) {
-          w.dataset.scriptoscopeState = w.dataset.scriptoscopeTitle === params.get('active') ? 'active' : 'inactive';
-        }
+        // The window manager activates the first window it mounts, so the
+        // chosen window moves to the front of the page as well.
+        const want = params.get('active');
+        const windows = [...desk.querySelectorAll('[data-scriptoscope-window]')];
+        const match = windows.find((w) => w.dataset.scriptoscopeTitle === want)
+          ?? windows.find((w) => (w.dataset.scriptoscopeWindowType ?? 'document-window') === want);
+        for (const w of windows) w.dataset.scriptoscopeState = w === match ? 'active' : 'inactive';
+        if (match) desk.prepend(match);
       }
       const res = await fetch(url, { cache: 'no-store' });
       if (!res.ok) throw new Error(`${res.status} fetching ${url}`);

@@ -34,7 +34,7 @@
 import { Raster, verticalGradient, ditheredGradient, mix, bayer, frameLayout } from '../../../tools/theme-author/index.js';
 import { C } from './palette.mjs';
 import { DRAW, WIDGET } from './widgets.mjs';
-import { fitPalette } from './quantize.mjs';
+import { fitPalette } from '../../../tools/theme-author/index.js';
 import { drawSkyline, drawTowerMotif, drawOrnament, SKYLINE_W, TOWER_W, ORNAMENT_W } from './skyline.mjs';
 
 const WAVE = 16;          // wave tile period
@@ -308,7 +308,7 @@ export function paintFrame(t, state) {
   r.swatch(A.left, A.top, p.title);
   r.swatch(A.left + 1, A.top, p.titleShadow);
   // Smooth widget edges + the bar gradient + the dithered river can pass the
-  // 256-colour cicn limit; merge the rarest blends (quantize.mjs).
+  // 256-colour cicn limit; merge the rarest blends (the toolkit's fitPalette).
   return fitPalette(r);
 }
 

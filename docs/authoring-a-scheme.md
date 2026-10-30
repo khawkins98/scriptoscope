@@ -82,7 +82,8 @@ encoder is the inverse of a decoder there, and the tests prove the round trip.
 
 | File | What it does |
 |---|---|
-| `raster.js` | `Raster`: an RGBA drawing surface with `fillRect`, `fillRoundRect`, `clipRounded`, `outlineEdges`, `sprite` (ASCII art), `blit`, `swatch`, the smooth shapes (§4.5) and `Raster.fromRgba` for imported art; plus `verticalGradient` and `ditheredGradient` |
+| `raster.js` | `Raster`: an RGBA drawing surface with `fillRect`, `fillRoundRect`, `clipRounded`, `sprite` (ASCII art), `blit`, `swatch`, the smooth shapes (§4.5) and `Raster.fromRgba` for imported art; plus `verticalGradient`, `ditheredGradient` and `bayer`. **`outlineEdges(0, 0, w, h, colour)` outlines a whole silhouette**; two builders wrote their own before finding it |
+| `fit-palette.js` | `fitPalette(raster)`: merges the rarest colours until an image fits the 256-colour limit, keeping hidden swatches exact; `colorCount(raster)` |
 | `encode-cicn.js` | `encodeCicn(raster)`: builds the palette, picks the bit depth, writes mask, B/W fallback and pixels |
 | `encode-ppat.js` | `encodePpat(raster)`: tiling patterns (desktop, window backgrounds, progress stripes) |
 | `encode-icons.js` | `encodeIconFamily`, `encodeIconPlane`, `encodeIconList`: Finder-style icons (`ICN#`, `icl8`, `icl4`, `ics#`, `ics8`, `ics4`) in the system palettes |
@@ -240,6 +241,11 @@ look smooth:
     `bayer(x, y)` gives the raw threshold for your own patterns.
   - **Patterns (`ppat`) tile in both directions**, so a dither that wraps at
     the tile size is fine there. Halcyon's desktop and progress stripes use it.
+- **Mind the colour budget.** A `cicn` holds at most 256 colours, and smooth
+  edges, gradients and dithering add colours fast: Brickworks' and Bonn's first
+  builds both went over. The encoder's error gives the actual count. Call
+  `fitPalette(raster)` before encoding a big frame. It merges the rarest colours
+  (usually edge blends) first, and never touches hidden swatches.
 - **Hidden swatches and mattes interact.** A matte makes every partly covered
   edge pixel opaque, so put swatches on pixels you know stay fully transparent.
 
@@ -297,7 +303,12 @@ look smooth:
      copies. Kaleidoscope adds its own 2px black shadow on the right of an
      open menu.
    - **8 bpp:** subtle tints become palette colours on a 256-colour screen, so
-     the desktop pattern uses colours that are exactly in the system palette.
+     the desktop pattern uses colours that are exactly in the system palette
+     (`SYSTEM_PALETTE_256`, exported from the toolkit).
+   - **Reusing a family:** Halcyon's `parts/progress.mjs` keeps every colour in
+     one `family()` block, so it re-themes by changing that block. Its
+     `parts/controls.mjs` hard-codes about 30 colours, so copying it means
+     recolouring by hand (Bonn did; it took about 10 minutes).
 
 ## 6. Id cheat-sheet (what Halcyon ships)
 

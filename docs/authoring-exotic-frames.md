@@ -100,8 +100,16 @@ window is big enough for a second copy).**
 - *Corpus:* animals' titled-utility top is one 154px code-12 cell, a whale
   that rises 55px above the bar. At content width 300 it draws once. At 520
   it draws **three whales** (`png/animals-util.png`, `png/animals-util-wide.png`).
-- For art that must appear exactly once (Bonn's skyline), use a **fixed code-1
-  cell** with growers beside it (R12), not 12.
+- For art that must appear exactly once on a **titled** edge, use a **code-10
+  cell** between growers (R12). Bonn's skyline does this, and code 10 is
+  dropped when the side gets too short. A fixed code-1 cell also works, but
+  never gives way.
+- **Every fixed pixel on a titled edge is taken from the title's room.** The
+  narrowest window that still shows a title is about the sum of the top edge's
+  non-growing cells plus the title's width. `frameLayout` reports it as
+  `fixedTop` and `minWidthForTitle(px)`. Bonn's first 91px skyline made a 260px
+  window truncate its title and a 150px window lose it. The engine drops the
+  title before it drops a code-10 cell, so keep big ornaments narrow.
 
 **R7. Code 18 = one scaled blit** (`0x10320`, nearest-neighbour
 `floor(k·sw/dw)`, declared modern policy, `qd-primitives.md` Q4).
@@ -132,6 +140,8 @@ rules are in `allocate()`, `src/engine/families/window.ts`):
 | an ornament that must only ever appear whole (merlons, studs) | code 12 + a 1px code-13 filler at the outer end of the same allocation; leftover width becomes a slightly wider gap |
 | a texture where a cut copy looks fine (stone courses, planks, a wave) | code 11 before the fixed piece, code 8 after it, so partial tiles land at the corners (R3) |
 | a fixed ornament centred on an untitled edge | 12 \| 13 … fixed … 13 \| 12, or 11 \| fixed \| 8. Two code-13 cells share the remainder evenly, so the ornament stays centred to ±1px |
+| a large ornament drawn once on a titled edge (a skyline) | a code-10 cell between code-8 growers, kept narrow, because it takes the title's room (R6) |
+| a bottom edge narrower than the top (piers, a bridge) | a code-0 skip next to the fixed corner (R9) |
 
 **R9. Code 0 collapses to zero.** It lets one edge skip template columns that
 exist only for the other edge's sake.
@@ -364,6 +374,9 @@ there** (`src/renderWindow.ts:477-548`).
   background `-9774`, which no web path draws).
 - A busy body pattern sits behind live DOM text. Keep contrast low (a stud
   baseplate tint, faint stone).
+- The web's slider clears its control area to white before drawing, so a
+  slider on a patterned body sits in a white box (Brickworks). Other controls
+  draw over the pattern.
 
 ---
 
@@ -535,6 +548,23 @@ web.**
 ## 8. What `windowLayout()` (`tools/theme-author/window-layout.js`) can't express
 
 **Use `frameLayout()` (`tools/theme-author/frame-layout.js`) for all of these.**
+
+```js
+const layout = frameLayout({
+  topH: 36, sideL: 8, sideR: 8, bottomH: 10,          // band sizes (A.top, A.left, W − A.right, H − A.bottom)
+  top: [{ code: 1, w: 24, name: 'towerL' }, { code: 12, w: 8 }, { code: 13, w: 1 },
+        { code: 6, w: 6 }, { code: 5, w: 12, name: 'plate' }, { code: 6, w: 6 },
+        { code: 13, w: 1 }, { code: 12, w: 8 }, { code: 1, w: 24, name: 'towerR' }],
+  bottom: [ /* must add up to the same width */ ],
+  left: [ /* run down the body rows only; heights add up the same on both sides */ ], right: [ ],
+  title: { cell: 'plate', top: 16, bottom: 34 },      // the title rect: that cell's columns, these rows (≥ 17px)
+  widgets: { close: { x: 6, y: 18, w: 13, h: 13 } },  // template coordinates, inside fixed cells
+});
+layout.width; layout.height; layout.content; layout.wnd;  // → paint a Raster this size, encodeWnd(layout.wnd)
+layout.named('plate');            // { code, w, x0, x1 }; for left/right cells, x0/x1 are rows
+layout.fixedTop;                  // width taken from the title's room (R6)
+layout.lint(raster);              // after painting: stray art in uniform cells or the plate
+```
 It was written for Castle from the proposal at the end of this section, and is
 now part of the toolkit. You give it explicit cell lists per edge
 (`{ code, w, name }`), the band sizes, the title cell and rows, and the widget

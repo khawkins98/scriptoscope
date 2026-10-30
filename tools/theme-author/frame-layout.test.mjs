@@ -50,3 +50,28 @@ test('stripLayout and pressedStripFrom lay pieces out across and keep the silhou
   assert.deepEqual(r.get(6, 6), [255, 0, 0]);
   assert.deepEqual(r.get(6, 18), [255, 0, 0], 'second row for collapsed windows');
 });
+
+test('frameLayout reports the title room and lints stray art in uniform cells', () => {
+  const s = spec();
+  s.top[2] = { code: 13, w: 1 };
+  s.top[3] = { code: 6, w: 4 };
+  const l = frameLayout(s);
+  // fixed: towers 16 + 16, caps 4 + 4 (the plate and the growers don't count)
+  assert.equal(l.fixedTop, 40);
+  assert.equal(l.minWidthForTitle(60), 100);
+  const r = new Raster(l.width, l.height).fillRect(0, 0, l.width, l.height, '#888888');
+  l.lint(r); // a flat plate passes
+  r.set(l.named('plate').x0 + 2, 12, '#ff0000');
+  assert.throws(() => l.lint(r), /cell plate column 31 differs/);
+});
+
+test('fitPalette brings an image under the limit and keeps swatches exact', async () => {
+  const { fitPalette, colorCount } = await import('./fit-palette.js');
+  const r = new Raster(20, 20);
+  for (let i = 0; i < 400; i++) r.set(i % 20, Math.floor(i / 20), [i % 256, (i * 7) % 256, 90]);
+  r.swatch(0, 0, '#123456');
+  assert.ok(colorCount(r) > 256);
+  fitPalette(r, 200);
+  assert.ok(colorCount(r) <= 200);
+  assert.deepEqual([...r.rgba.subarray(0, 4)], [0x12, 0x34, 0x56, 1]);
+});

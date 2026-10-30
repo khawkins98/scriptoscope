@@ -58,7 +58,7 @@ test('cicn depth grows with palette size and rejects > 256 colours', () => {
   assert.equal(readCicnIndexed(encodeCicn(r)).pmap.pixelSize, 8);
   const big = new Raster(300, 1);
   for (let x = 0; x < 300; x++) big.set(x, 0, [x & 0xff, x >> 8, 7]);
-  assert.throws(() => encodeCicn(big, { gamma: false }), /more than 256/);
+  assert.throws(() => encodeCicn(big, { gamma: false }), /300 colours .* the limit is 256.*fitPalette/);
 });
 
 test('gamma pre-compensation survives the loader brightening within ±1', () => {

@@ -9,7 +9,7 @@
 // pressed piece keeps exactly its widget's silhouette.
 import { verticalGradient, pressedStripFrom } from '../../../tools/theme-author/index.js';
 import { C } from './palette.mjs';
-import { fitPalette } from './quantize.mjs';
+import { fitPalette } from '../../../tools/theme-author/index.js';
 
 export const WIDGET = 13;
 

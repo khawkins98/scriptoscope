@@ -12,3 +12,4 @@ export { encodePpat } from './encode-ppat.js';
 export { encodeIconPlane, encodeIconList, encodeIconFamily, SYSTEM_PALETTE_16, SYSTEM_PALETTE_256 } from './encode-icons.js';
 export { encodeClut, encodeHeaderClut } from './encode-clut.js';
 export { frameLayout, stripLayout, pressedStripFrom } from './frame-layout.js';
+export { fitPalette, colorCount } from './fit-palette.js';

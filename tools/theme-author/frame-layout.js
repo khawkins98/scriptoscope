@@ -11,7 +11,17 @@
 // Promoted from the Castle scheme (authoring/schemes/castle/), where it was
 // first written; windowLayout() stays as the simple path.
 //
-// A cell is { code, w, name? }. Top and bottom cells run across the full width
+// A cell is { code, w, name?, uniform? }. Mark a cell `uniform: true` when every
+// column of it should look the same (a plain bar grower, a one-colour-per-row
+// plate); `layout.lint(raster)` then fails if stray art reaches into it, which
+// would be tiled across the window. Code-5 plates are always checked.
+//
+// The returned layout also reports `fixedTop`, the width of every top cell that
+// doesn't grow. On a titled edge all of it comes out of the title's room:
+// `layout.minWidthForTitle(px)` is the narrowest window that still shows a
+// title `px` wide. Bonn's first 91px skyline cost a 260px window its title.
+//
+// For left and right cells, x0/x1 are rows (y), not columns. Top and bottom cells run across the full width
 // (their widths must add up to the same W). Left and right cells run down the
 // body rows [A.top, A.bottom) only, because the top and bottom bands already
 // cover the corners (R1); their heights must add up to the same body height.
@@ -98,8 +108,24 @@ export function frameLayout(spec) {
 
   validate({ spec, cells, T, W, fail });
 
+  // Every top cell that doesn't grow takes room the title can't use.
+  const GROWS = new Set([0, 8, 11, 12, 13, 14, 18]);
+  const fixedTop = cells.top.filter((c) => !GROWS.has(c.code) && c.code !== 5).reduce((n, c) => n + c.w, 0);
+  const minWidthForTitle = (titlePx) => fixedTop + titlePx;
+  const lint = (raster) => {
+    const column = (x, y0, y1) => Array.from({ length: y1 - y0 }, (_, i) => JSON.stringify(raster.get(x, y0 + i))).join();
+    for (const c of cells.top) {
+      if (!(c.uniform || c.code === 5) || c.w < 2) continue;
+      const ref = column(c.x0, 0, T);
+      for (let x = c.x0 + 1; x < c.x1; x++) {
+        if (column(x, 0, T) !== ref) fail(`cell ${c.name ?? c.code} column ${x} differs from its first column; stray art there is tiled across the window`);
+      }
+    }
+  };
+
   return {
     width: W, height: H, top: T, bottom: B, sideL: L, sideR: R, content, collapsed, titled: !!spec.title, cells, named,
+    fixedTop, minWidthForTitle, lint,
     widgets: Object.fromEntries(Object.entries(w).filter(([, b]) => b)),
     wnd: {
       rectangles,
