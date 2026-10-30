@@ -6,6 +6,8 @@ First-party Kaleidoscope schemes written in code with
 - `scheme.mjs`: the source. It exports `buildScheme()`, which returns the list of resources.
 - `scheme.rsrc`: the built scheme, committed so you can drop it on the demo
   without building. A unit test fails if it falls out of date.
+- `scheme.bin`: the same scheme as MacBinary (type `Colr`, creator `Acid`),
+  for copying onto a classic Mac or an emulator disk.
 - `meta.json`: name, author and license, in the same shape as `themes/<slug>/meta.json`.
 - `preview.png`: a screenshot from the authoring preview page.
 

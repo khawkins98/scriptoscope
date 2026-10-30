@@ -242,3 +242,24 @@ test('Raster: corner radius is capped at half the shape', () => {
   assert.ok(opaque(huge) > 8, 'a pill, not just the middle rows');
   assert.deepEqual(new Raster(6, 4).fillRoundRect(0, 0, 6, 4, 50, '#fff').rgba, new Raster(6, 4).fillRoundRect(0, 0, 6, 4, 2, '#fff').rgba);
 });
+
+test('MacBinary output carries type/creator and unwraps to the same fork', async () => {
+  const { writeMacBinary, crc16xmodem } = await import('./macbinary.js');
+  const { detectContainer, unwrapToResourceFork } = await import('../theme-loader/containers.js');
+  const fork = writeResourceFork([{ type: 'Colr', id: 129, data: encodeColr() }]);
+  const bin = writeMacBinary({ name: 'Halcyon', resourceFork: fork });
+  assert.equal(detectContainer(bin), 'macbinary');
+  assert.deepEqual([...unwrapToResourceFork(bin)], [...fork]);
+  assert.equal(String.fromCharCode(...bin.subarray(65, 73)), 'ColrAcid');
+  assert.equal((bin[124] << 8) | bin[125], crc16xmodem(bin.subarray(0, 124)));
+  assert.equal(crc16xmodem(new TextEncoder().encode('123456789')), 0x31c3); // CRC-16/XMODEM check value
+  assert.throws(() => writeMacBinary({ name: 'a:b', resourceFork: fork }), /file name/);
+});
+
+test('committed halcyon scheme.bin matches a fresh build', async () => {
+  const { readFileSync } = await import('node:fs');
+  const { writeMacBinary } = await import('./macbinary.js');
+  const committed = readFileSync(new URL('../../authoring/schemes/halcyon/scheme.bin', import.meta.url));
+  const { resources } = await buildScheme();
+  assert.ok(Buffer.from(writeMacBinary({ name: 'Halcyon', resourceFork: writeResourceFork(resources) })).equals(committed), 'scheme.bin is stale; rebuild it');
+});

@@ -11,13 +11,16 @@
 //      uses (convertChrome), so anything the runtime would reject fails here first;
 //   3. checks the authoring rules in tools/theme-author/check-scheme.js and
 //      prints a short report;
-//   4. only if there are no errors, writes <dir>/scheme.rsrc.
-// Exit code 1 on any error (scheme.rsrc is left untouched). Warnings do not fail the build.
+//   4. only if there are no errors, writes <dir>/scheme.rsrc (the raw resource
+//      fork, what Scriptoscope loads) and <dir>/scheme.bin (the same fork as a
+//      MacBinary file with type 'Colr' / creator 'Acid', for a classic Mac).
+// Exit code 1 on any error (nothing is written). Warnings do not fail the build.
 
 import { writeFileSync, readFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { writeResourceFork } from '../tools/theme-author/resource-fork-writer.js';
+import { writeMacBinary } from '../tools/theme-author/macbinary.js';
 import { checkScheme } from '../tools/theme-author/check-scheme.js';
 import { convertChrome } from '../tools/theme-loader/convert.js';
 
@@ -66,4 +69,9 @@ for (const e of errors) console.log(`  ✗ ${e}`);
 if (errors.length) { console.error(`✗ ${errors.length} error(s); ${out} was not written.`); process.exit(1); }
 writeFileSync(out, fork);
 console.log(`Wrote ${out} (${fork.length.toLocaleString()} bytes, ${resources.length} resources)`);
+// The classic Mac file name comes from meta.json (max 31 characters).
+const macName = String(meta.name ?? 'Untitled Scheme').slice(0, 31);
+const bin = resolve(schemeDir, 'scheme.bin');
+writeFileSync(bin, writeMacBinary({ name: macName, resourceFork: fork }));
+console.log(`Wrote ${bin} (MacBinary "${macName}", type Colr, creator Acid)`);
 console.log('✓ Loads through the runtime converter. Preview: npm run dev, then open /authoring-preview.html (or drop scheme.rsrc on the showcase).');

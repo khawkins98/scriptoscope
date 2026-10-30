@@ -7,3 +7,4 @@ export { Raster, mix, verticalGradient } from './raster.js';
 export { parseColor, srgbToStored } from './color.js';
 export { windowLayout } from './window-layout.js';
 export { checkScheme } from './check-scheme.js';
+export { writeMacBinary } from './macbinary.js';

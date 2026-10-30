@@ -48,12 +48,25 @@ npm run dev
 2. packs them into resource-fork bytes and loads those bytes back through
    **the same converter the browser uses**;
 3. runs the authoring checks (section 7) and prints what it found;
-4. writes `scheme.rsrc` only if there were no errors. On an error the old file
-   is left as it was and the command exits with status 1, so a problem shows up
-   here, not later in the browser. Warnings are printed but don't stop the build.
+4. writes two files, only if there were no errors:
+   - `scheme.rsrc`: the raw resource fork, which Scriptoscope loads;
+   - `scheme.bin`: the same fork as a **MacBinary** file, for a classic Mac (below).
 
-If you edit Halcyon itself, rebuild before running `npm test`: a test checks
-that the committed `scheme.rsrc` matches a fresh build.
+   On an error the old files are left as they were and the command exits with
+   status 1, so a problem shows up here, not later in the browser. Warnings are
+   printed but don't stop the build.
+
+If you edit Halcyon itself, rebuild before running `npm test`: tests check
+that the committed `scheme.rsrc` and `scheme.bin` match a fresh build.
+
+**Why two files?** On a classic Mac a file has two parts (a data fork and a
+resource fork) plus Finder info: a 4-letter file *type* and *creator*. Every
+Kaleidoscope scheme has type `Colr` and creator `Acid`, and the resources live
+in the resource fork. Modern file systems and git keep only one stream per
+file, so `scheme.rsrc` holds just the resource bytes, with no type or creator.
+MacBinary packs both forks and the Finder info into one ordinary file.
+StuffIt Expander, MacBinary utilities and hfsutils (`hcopy -m`) turn it back
+into a real scheme file on a classic Mac or an emulator disk.
 
 Try it: change `accent` in the palette at the top of
 `authoring/schemes/halcyon/scheme.mjs`, rebuild, and reload the preview.
