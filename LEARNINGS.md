@@ -44,6 +44,14 @@ One fidelity finding came out of it: with no utility pattern, native dialog and
 alert bodies are the system dialog grey (`#E7E7E7`), while the web runtime
 paints them white. Screenshots: `authoring/schemes/halcyon/classic/`.
 
+**AI-drawn art (2026-10-30, `docs/authoring-art-with-ai.md`):** ask models for
+code or text grids, never pictures. The best zero-key route was claude-pxl,
+with the model writing the `.px.js` file; its PNGs round-tripped exactly into
+cicns. Image generators (agy's included) drew on their own grid with fake
+transparency, and grid-recovery cleanup couldn't put the art back at the
+requested size. One trap found: the encoder reads alpha 1–127 as a hidden
+swatch, so imported art must have its alpha snapped first (`Raster.fromRgba`).
+
 Not yet done: encoders for `ppat`, scrollbars, sliders, progress, tabs and menus.
 
 ## 2026-10-23 — October incremental v2 is distinct from the May reset names

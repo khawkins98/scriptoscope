@@ -315,9 +315,12 @@ What real Kaleidoscope showed that the web preview doesn't:
 
 ## 9. Getting help from an AI assistant
 
-[`authoring-with-agy.md`](./authoring-with-agy.md) records an experiment with
-Google's Antigravity CLI. In short: ask for `Raster` code or ASCII sprite rows
-with a JSON schema; image generation gives the wrong size and format.
+[`authoring-art-with-ai.md`](./authoring-art-with-ai.md) records what we
+tried. In short: ask a model for code or text grids, not pictures. The best
+zero-key route is [claude-pxl](https://github.com/crsolver/claude-pxl): the
+model writes a pixel-art file and claude-pxl builds exact-size PNGs, which
+`scripts/lib/png-decode.mjs` and `Raster.fromRgba()` bring into a scheme. Image
+generators give the wrong size and format.
 
 ## 10. Where the rules come from
 

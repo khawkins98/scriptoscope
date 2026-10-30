@@ -28,6 +28,26 @@ export class Raster {
     this.rgba = new Uint8Array(width * height * 4); // starts fully transparent
   }
 
+  /**
+   * Wrap RGBA pixels drawn elsewhere (e.g. a PNG from claude-pxl or Aseprite,
+   * via scripts/lib/png-decode.mjs). Alpha is snapped to 0 or 255 at 128,
+   * because the encoder reads alpha 1–127 as a hidden swatch: an anti-aliased
+   * edge would otherwise turn into invisible palette pixels. `snapped` counts
+   * the pixels whose alpha changed, so you can tell soft-edged art apart.
+   * @returns {{ raster: Raster, snapped: number }}
+   */
+  static fromRgba(width, height, rgba) {
+    if (rgba.length !== width * height * 4) throw new Error(`Raster.fromRgba: expected ${width * height * 4} bytes, got ${rgba.length}`);
+    const raster = new Raster(width, height);
+    raster.rgba.set(rgba);
+    let snapped = 0;
+    for (let i = 3; i < raster.rgba.length; i += 4) {
+      const a = raster.rgba[i];
+      if (a !== 0 && a !== 255) { raster.rgba[i] = a >= 128 ? 255 : 0; snapped++; }
+    }
+    return { raster, snapped };
+  }
+
   inBounds(x, y) { return x >= 0 && y >= 0 && x < this.width && y < this.height; }
 
   /**

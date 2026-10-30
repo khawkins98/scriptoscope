@@ -1,0 +1,170 @@
+[
+ {
+  "model": "gemini-3.8-flash-medium",
+  "status": "SUCCESS",
+  "error": null,
+  "secs": "196.6",
+  "valid": true,
+  "edges": [
+   6,
+   6,
+   6,
+   6
+  ],
+  "white": 18,
+  "rules": {
+   "14x14": true,
+   "legend": true,
+   "edges>=6": true,
+   "check": true,
+   "symCorners": true
+  }
+ },
+ {
+  "model": "gemini-3.8-flash-high",
+  "status": "SUCCESS",
+  "error": null,
+  "secs": "205.9",
+  "valid": true,
+  "edges": [
+   8,
+   8,
+   8,
+   8
+  ],
+  "white": 16,
+  "rules": {
+   "14x14": true,
+   "legend": true,
+   "edges>=6": true,
+   "check": true,
+   "symCorners": true
+  }
+ },
+ {
+  "model": "gemini-4-argon-medium",
+  "status": "SUCCESS",
+  "error": null,
+  "secs": "45.0",
+  "valid": true,
+  "edges": [
+   8,
+   8,
+   8,
+   8
+  ],
+  "white": 25,
+  "rules": {
+   "14x14": true,
+   "legend": true,
+   "edges>=6": true,
+   "check": true,
+   "symCorners": true
+  }
+ },
+ {
+  "model": "gemini-4-argon-high",
+  "status": "SUCCESS",
+  "error": null,
+  "secs": "233.6",
+  "valid": true,
+  "edges": [
+   6,
+   6,
+   6,
+   6
+  ],
+  "white": 16,
+  "rules": {
+   "14x14": true,
+   "legend": true,
+   "edges>=6": true,
+   "check": true,
+   "symCorners": true
+  }
+ },
+ {
+  "model": "claude-sonnet-5-5-medium",
+  "status": "SUCCESS",
+  "error": null,
+  "secs": "20.3",
+  "valid": true,
+  "edges": [
+   6,
+   6,
+   6,
+   6
+  ],
+  "white": 18,
+  "rules": {
+   "14x14": true,
+   "legend": true,
+   "edges>=6": true,
+   "check": true,
+   "symCorners": true
+  }
+ },
+ {
+  "model": "claude-opus-5-5-medium",
+  "status": "SUCCESS",
+  "error": null,
+  "secs": "33.1",
+  "valid": true,
+  "edges": [
+   8,
+   8,
+   8,
+   8
+  ],
+  "white": 16,
+  "rules": {
+   "14x14": true,
+   "legend": true,
+   "edges>=6": true,
+   "check": true,
+   "symCorners": true
+  }
+ },
+ {
+  "model": "gpt-oss-120b-medium.try1",
+  "status": "ERROR",
+  "error": "Our servers are experiencing high traffic right now, please try again in a minute. (UNAVAILABLE (code 503): No capacity available for model gpt-oss-120b-medium on the server)",
+  "secs": "130.6",
+  "valid": true,
+  "edges": [
+   8,
+   8,
+   7,
+   7
+  ],
+  "white": 8,
+  "rules": {
+   "14x14": true,
+   "legend": true,
+   "edges>=6": true,
+   "check": true,
+   "symCorners": false
+  }
+ },
+ {
+  "model": "gpt-oss-120b-medium",
+  "status": "SUCCESS",
+  "error": null,
+  "secs": "199.4",
+  "valid": true,
+  "edges": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "white": 5,
+  "rules": {
+   "14x14": true,
+   "legend": true,
+   "edges>=6": false,
+   "check": true,
+   "symCorners": true
+  }
+ }
+]

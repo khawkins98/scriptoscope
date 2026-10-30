@@ -14,7 +14,9 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   `cicn`, `wnd#`, `cinf`, `Colr` and `vers`, a `windowLayout()` helper, and
   authoring checks for mistakes that load but render wrong. The build also
   writes a MacBinary file (type `Colr`, creator `Acid`) for classic Mac OS.
-  Guide: `docs/authoring-a-scheme.md` (#540).
+  Sprites drawn in other tools can be imported with `scripts/lib/png-decode.mjs`
+  and `Raster.fromRgba()`. Guides: `docs/authoring-a-scheme.md`, and
+  `docs/authoring-art-with-ai.md` for getting art from AI tools (#540).
 - Halcyon (`authoring/schemes/halcyon/`), a first-party proof-of-concept
   scheme made with the toolkit. It loads in Scriptoscope and in the original
   Kaleidoscope 2.3.1 on System 7.5.5. It is not part of the bundled corpus (#540).

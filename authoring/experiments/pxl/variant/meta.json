@@ -1,0 +1,10 @@
+{
+  "name": "Halcyon pxl",
+  "author": { "name": "Scriptoscope contributors" },
+  "origin": {
+    "kind": "first-party-authored",
+    "originalFormat": "rsrc",
+    "originalLicense": "Same license as the Scriptoscope repository. Experiment: Halcyon with claude-pxl sprites.",
+    "sourceUrl": "https://github.com/khawkins98/scriptoscope/tree/main/authoring/experiments/pxl"
+  }
+}

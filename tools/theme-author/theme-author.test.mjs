@@ -263,3 +263,37 @@ test('committed halcyon scheme.bin matches a fresh build', async () => {
   const { resources } = await buildScheme();
   assert.ok(Buffer.from(writeMacBinary({ name: 'Halcyon', resourceFork: writeResourceFork(resources) })).equals(committed), 'scheme.bin is stale; rebuild it');
 });
+
+test('png-decode reads what png-encode writes, and palette PNGs from claude-pxl', async () => {
+  const { encodePng } = await import('../../scripts/lib/png-encode.mjs');
+  const { decodePng } = await import('../../scripts/lib/png-decode.mjs');
+  const { readFileSync } = await import('node:fs');
+  const rgba = new Uint8Array(5 * 3 * 4).map((_, i) => (i * 37) & 0xff);
+  const back = decodePng(encodePng(5, 3, rgba));
+  assert.equal(back.width, 5);
+  assert.deepEqual([...back.rgba], [...rgba]);
+  // A committed claude-pxl sprite: an indexed (colour type 3) PNG with tRNS.
+  const sprite = decodePng(readFileSync(new URL('../../authoring/experiments/pxl/sprites/checkbox_on.png', import.meta.url)));
+  assert.deepEqual([sprite.width, sprite.height], [14, 14]);
+  assert.equal(sprite.rgba[3], 0, 'corner pixel is transparent');
+  assert.throws(() => decodePng(Buffer.from('not a png')), /not a PNG/);
+});
+
+test('Raster.fromRgba snaps soft alpha so edges never become hidden swatches', () => {
+  const rgba = Uint8Array.from([10, 20, 30, 255, 10, 20, 30, 40, 10, 20, 30, 200, 0, 0, 0, 0]);
+  const { raster, snapped } = Raster.fromRgba(4, 1, rgba);
+  assert.equal(snapped, 2);
+  assert.deepEqual([3, 7, 11, 15].map((i) => raster.rgba[i]), [255, 0, 255, 0]);
+  assert.throws(() => Raster.fromRgba(3, 1, rgba), /expected 12 bytes/);
+});
+
+test('Halcyon-pxl experiment builds cleanly and its committed scheme.rsrc is current', async () => {
+  const { readFileSync } = await import('node:fs');
+  const { buildScheme: buildPxl } = await import('../../authoring/experiments/pxl/variant/scheme.mjs');
+  const { resources } = await buildPxl();
+  const { errors, warnings } = checkScheme(resources);
+  assert.deepEqual(errors, []);
+  assert.deepEqual(warnings, []);
+  const committed = readFileSync(new URL('../../authoring/experiments/pxl/variant/scheme.rsrc', import.meta.url));
+  assert.ok(Buffer.from(writeResourceFork(resources)).equals(committed), 'variant scheme.rsrc is stale; rebuild it');
+});
