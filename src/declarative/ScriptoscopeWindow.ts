@@ -65,6 +65,12 @@ export class ScriptoscopeWindow<Theme extends ThemeInput = LoadedTheme> {
   private unmounted = false;
   /** Set by acceptUserSize: the user owns the size, so auto-fit never runs again. */
   private userSized = false;
+  /** The captured outer box the window started from, and whether it was content-fitted
+   *  (no natural rect). A retheme that changes the frame re-baselines from these (#526). */
+  private readonly initial: { w: number; h: number };
+  private contentFit = false;
+  /** Theme the current `last` was fitted under. */
+  private fitTheme: Theme | undefined;
 
   /** Consumer-declared dimensions, preserved across observer-driven re-fits so
    *  a `data-scriptoscope-width="400"` window doesn't shrink to its content
@@ -85,6 +91,8 @@ export class ScriptoscopeWindow<Theme extends ThemeInput = LoadedTheme> {
     // manager just rendered. Without this seed, `last={0,0}` and the first
     // scheduleFit would happily shrink the chrome to the inner content size.
     this.last = { w: initial.w, h: initial.h };
+    this.initial = initial;
+    this.fitTheme = deps.manager.describe(host)?.theme;
   }
 
   /** Promote `el` into a window. When position attrs (`data-scriptoscope-x`/`-y`) are omitted,
@@ -399,6 +407,7 @@ export class ScriptoscopeWindow<Theme extends ThemeInput = LoadedTheme> {
       // visually-occupied element). When the natural rect is missing (display:none, etc.),
       // fall back to content-fit so the window at least picks up the body's intrinsic size.
       if (parsed.sizeMode === 'fit' && !hasNaturalRect) {
+        inst.contentFit = true;
         await inst.fitToContent(true);
       } else if (parsed.width === undefined || parsed.height === undefined) {
         // The window was sized from a natural rect (or partly-declared), AND
@@ -518,7 +527,19 @@ export class ScriptoscopeWindow<Theme extends ThemeInput = LoadedTheme> {
       void (async () => {
         this.rafId = 0;
         if (this.unmounted || this.userSized) return;
-        const { w: measuredW, h: measuredH } = this.measureOuter();
+        const theme = this.deps.manager.describe(this.host)?.theme;
+        const rethemed = theme !== this.fitTheme;
+        this.fitTheme = theme;
+        let { w: measuredW, h: measuredH } = this.measureOuter();
+        if (rethemed) {
+          // A retheme can change the frame (#526). Re-baseline exactly as a direct load of
+          // the new scheme would: from the captured box (the observer re-fires after this
+          // render and grows it if the reflowed content needs more), or from the intrinsic
+          // measure for a content-fitted window. Without this, the grow-only floor keeps
+          // the previous scheme's size, and `fit`'s min-height:100% tracks that old bound.
+          if (!this.contentFit) ({ w: measuredW, h: measuredH } = this.initial);
+          this.last = { w: 0, h: 0 };
+        }
         // Cap grow by consumer-imposed PIXEL max-width / max-height. Only px
         // values cap — percentages, em, vh/vw, calc(), none, etc. all leave
         // the cap at Infinity. (parseFloat('100%') returns 100, not NaN, so
