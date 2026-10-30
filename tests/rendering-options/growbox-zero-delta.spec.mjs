@@ -188,6 +188,16 @@ for (const mode of ['source', 'built']) {
           expect.soft(after.changes, `${why}: onChange`).toBe(0);
         }
         const x = before.corner.x + before.corner.w / 2, y = before.corner.y + before.corner.h / 2;
+        // 0.6 content px rounds to 1: just over the threshold, so it is a resize.
+        await page.mouse.move(x, y);
+        await page.mouse.down();
+        await page.mouse.move(x + 0.6 * scale, y);
+        await page.mouse.up();
+        await page.waitForTimeout(300);
+        const nudged = await state(page);
+        expect.soft(nudged.resized, `${label}: 0.6 x scale move userresize count`).toBe(1);
+        expect.soft(nudged.detail, `${label}: 0.6 x scale move content size`).toEqual({ w: 201, h: 140 });
+        await addWindow(page, mode, slug, scale);
         await page.mouse.move(x, y);
         await page.mouse.down();
         await page.mouse.move(x + 15 * scale, y + 10 * scale, { steps: 3 });
@@ -200,6 +210,35 @@ for (const mode of ['source', 'built']) {
         expect(Math.round(dragged.host.w - before.host.w)).toBe(30 * scale);
         expect(Math.round(dragged.host.h - before.host.h)).toBe(20 * scale);
       }
+    }
+  });
+
+  harnessTest(`${mode}: dragging inward at the minimum size is no resize (#552)`, async ({ page, servers }) => {
+    await openHarness(page, servers, mode);
+    for (const slug of SLUGS) {
+      await addWindow(page, mode, slug, 1);
+      // At the minimum content height, then back in flow so a handoff is observable.
+      await page.evaluate(async () => {
+        const { host, manager } = window.__zd;
+        await manager.setContentSize(host, 200, 40);
+        host.style.position = 'static'; host.style.left = host.style.top = '';
+        window.__zd.changes = 0;
+        await new Promise(resolve => setTimeout(resolve, 200));
+      });
+      const before = await state(page);
+      expect(before.position, `${slug}: in flow`).toBe('static');
+      const x = before.corner.x + before.corner.w / 2, y = before.corner.y + before.corner.h / 2;
+      await page.mouse.move(x, y);
+      await page.mouse.down();
+      await page.mouse.move(x, y - 10, { steps: 2 });
+      await page.mouse.move(x, y - 20, { steps: 2 });
+      await page.mouse.up();
+      await page.waitForTimeout(300);
+      const after = await state(page);
+      expect.soft(after.resized, `${slug}: userresize`).toBe(0);
+      expect.soft(after.position, `${slug}: handed off`).toBe('static');
+      expect.soft(after.placeholders, `${slug}: placeholder`).toBe(before.placeholders);
+      expect.soft(after.host, `${slug}: host box`).toEqual(before.host);
     }
   });
 

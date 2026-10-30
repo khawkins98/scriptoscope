@@ -1860,22 +1860,17 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       const w0 = entry.opts.width ?? 240, h0 = entry.opts.height ?? 120;
       let nw = w0, nh = h0;
       let outline: HTMLElement | undefined, hw0 = 0, hh0 = 0;
-      // Like GrowWindow, a click that never changes the integer content size is no
-      // resize (#552). The handoff, outline, commit and userresize all wait for the
-      // first pointer move whose rounded delta is non-zero, i.e. at least half a
-      // content pixel (0.5 * scale CSS px); sub-pixel jitter stays a plain click.
+      // Like GrowWindow, a press that never changes the integer content size is no resize
+      // (#552): handoff, outline, commit and event wait for it (>= 0.5 * scale CSS px).
       const mv = (ev: PointerEvent): void => {
         const p = frame.toLocal(ev.clientX, ev.clientY);
-        const dw = Math.round((p.x - start.x) / scale), dh = Math.round((p.y - start.y) / scale);
+        // A window already under a minimum is not snapped up to it: the floor is the smaller.
+        nw = Math.max(Math.min(w0, minContentW), w0 + Math.round((p.x - start.x) / scale));
+        nh = Math.max(Math.min(h0, 40), h0 + Math.round((p.y - start.y) / scale));
         if (!outline) {
-          if (dw === 0 && dh === 0) return;
-          // Posture-B handoff: an in-flow host stays at parent block width
-          // even after the chrome canvas inside it shrinks — visually the
-          // window doesn't appear smaller (the canvas just doesn't fill).
-          // toAbsolute flips the host to position:absolute (so it sizes to
-          // its content) AND inserts a same-size placeholder in the static
-          // slot so the page doesn't shift. Once absolute, all subsequent
-          // resizes work naturally. 2026-05-31 user fix follow-up.
+          if (nw === w0 && nh === h0) return;
+          // Posture-B handoff: lift an in-flow host to absolute so it sizes to the chrome;
+          // toAbsolute leaves a same-size placeholder so the page doesn't shift.
           this.toAbsolute(host);
           hw0 = host.offsetWidth; hh0 = host.offsetHeight;
           outline = document.createElement('div');
@@ -1885,8 +1880,6 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
           } satisfies Partial<CSSStyleDeclaration>);
           host.appendChild(outline);
         }
-        nw = Math.max(minContentW, w0 + dw);
-        nh = Math.max(40, h0 + dh);
         outline.style.width = `${hw0 + (nw - w0) * scale}px`;
         outline.style.height = `${hh0 + (nh - h0) * scale}px`;
       };
