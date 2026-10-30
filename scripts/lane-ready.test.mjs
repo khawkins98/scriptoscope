@@ -5,7 +5,7 @@ import { mkdtempSync, mkdirSync, writeFileSync, rmSync, readFileSync } from 'nod
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { laneReady, defaultCommands, isHashOnlyBump, findReverts } from './lane-ready.mjs';
 
 const repo = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -413,6 +413,24 @@ test('the default checks are the required set; a missing Traps.h fails instead o
   } finally { t.done(); }
 });
 
+test('CLI: without --base the gate compares against origin/main (v2 is retired, #534)', () => {
+  const t = lane();
+  try {
+    // The real CLI, run from a copy inside the fixture (its repo root is the script's
+    // parent). The copy and a stub package.json are git-excluded, so the tree stays clean
+    // and the diff docs-only, which lets --skip-tests skip typecheck and npm test.
+    mkdirSync(join(t.root, 'scripts'), { recursive: true });
+    writeFileSync(join(t.root, 'scripts/lane-ready.mjs'), readFileSync(join(repo, 'scripts/lane-ready.mjs')));
+    writeFileSync(join(t.root, 'package.json'), '{"scripts":{"test":""}}\n');
+    writeFileSync(join(t.root, '.git/info/exclude'), 'scripts/\npackage.json\n');
+    const env = { ...process.env }; delete env.SCRIPTOSCOPE_TRAPS_H;
+    const r = spawnSync(node, ['scripts/lane-ready.mjs', '--skip-tests'], { cwd: t.root, encoding: 'utf8', env });
+    const mergeBase = t.g('merge-base', 'HEAD', 'origin/main');
+    assert.ok(r.stdout.includes(`- base: \`origin/main\` merge-base \`${mergeBase}\``), r.stdout + r.stderr);
+    assert.doesNotMatch(r.stdout, /origin\/v2/);
+  } finally { t.done(); }
+});
+
 test('package.json wires lane:ready and ledger:sync, and gates keeps lint:cleanroom', () => {
   const { scripts } = JSON.parse(readFileSync(join(repo, 'package.json'), 'utf8'));
   assert.equal(scripts['lane:ready'], 'node scripts/lane-ready.mjs');
@@ -426,6 +444,8 @@ test('the docs + ledger workflow runs on every main PR and push (no paths filter
   assert.doesNotMatch(wf, /paths(-ignore)?:/);
   assert.match(wf, /pull_request:\n\s+branches: \[main\]/);
   assert.match(wf, /push:\n\s+branches: \[main\]/);
+  // Push runs each check one ledger-history delta (event.before..sha): never cancel or queue-replace them.
+  assert.match(wf, /concurrency:\n\s+group: v2-docs-\$\{\{ github\.event_name == 'pull_request' && github\.ref \|\| github\.sha \}\}\n\s+cancel-in-progress: \$\{\{ github\.event_name == 'pull_request' \}\}/);
   for (const cmd of ['node scripts/check-cleanroom.mjs', 'node scripts/gen-trap-table.mjs', 'node scripts/report-coverage.mjs', 'node tests/rendering-requirements/build-ledger.mjs --check', 'node scripts/check-ledger-history.mjs --base-commit', 'npm run ledger:sync', 'node tests/engine-diff/run.mjs --check --base-commit "$BASE_SHA"', 'node tests/control-availability/validate-source.mjs', 'npm test', 'node tests/engine-diff/run.mjs --check --base-commit "$BASE_SHA"', '--root "$GITHUB_WORKSPACE"', 'git fetch --no-tags origin "$BEFORE"', '0000000000000000000000000000000000000000'])
     assert.ok(wf.includes(cmd), cmd);
   assert.match(wf, /permissions:\n\s+contents: read/, 'read-only token: CI never commits the regenerated ledger');
