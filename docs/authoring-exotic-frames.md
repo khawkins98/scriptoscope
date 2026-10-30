@@ -117,7 +117,21 @@ window is big enough for a second copy).**
 - A 13/14 cell's template width is not kept: at template size it has width 0.
 - Its source still tiles, so make it a flat 1px "filler" column whose look
   survives being 0 to (tile−1) px wide.
+- **A grower or filler column is repeated exactly as drawn, outline pixels
+  included.** If you run an outline pass over the template, make sure no 1px
+  grower or filler column sits next to a transparent pixel. Otherwise the
+  outline colour fills the column and gets tiled into a solid bar. (Castle's
+  first render had a dark block beside each tower for this reason.)
 - *Corpus:* animals, monkey-paradise.
+
+**Which code for which effect** (worked out building Castle; the allocation
+rules are in `allocate()`, `src/engine/families/window.ts`):
+
+| You want | Use |
+|---|---|
+| an ornament that must only ever appear whole (merlons, studs) | code 12 + a 1px code-13 filler at the outer end of the same allocation; leftover width becomes a slightly wider gap |
+| a texture where a cut copy looks fine (stone courses, planks, a wave) | code 11 before the fixed piece, code 8 after it, so partial tiles land at the corners (R3) |
+| a fixed ornament centred on an untitled edge | 12 \| 13 … fixed … 13 \| 12, or 11 \| fixed \| 8. Two code-13 cells share the remainder evenly, so the ornament stays centred to ±1px |
 
 **R9. Code 0 collapses to zero.** It lets one edge skip template columns that
 exist only for the other edge's sake.
@@ -369,8 +383,18 @@ web.**
   makes a widget hittable **only if the strip exists**
   (`widgetHittable … && !!strip`), and `overlayWidgets` creates buttons only
   for hittable widgets.
-- Halcyon ships no `-14330`, so its widgets have no buttons in the web.
-  `checkScheme` doesn't warn about this.
+- `checkScheme` warns when a scheme has widgets but no `-14330` (Halcyon
+  shipped none at first, and its widgets were dead in the web).
+- **Offsets are summed from the pressing window's own rects.** A utility window
+  with close + collapse but no zoom reads its collapse piece at
+  `x = width(close)`, which is the document strip's *zoom* piece. Give every
+  window the document's widget set and sizes, or give utilities close only
+  (Castle does), or make the zoom and collapse pressed art interchangeable.
+  This is a web gap: classic reads utility windows' own `-14298`. It affects
+  12 of 18 corpus schemes too, so it isn't a checker rule.
+- `pressedStripFrom` (`tools/theme-author/frame-layout.js`) builds the strip
+  from the active frame. Each piece is the widget's own frame pixels with the
+  pressed art on top, so its edges match and its mask equals the visible widget.
 - Corpus sizes:
 
   | scheme | strip size | widget rects |
@@ -462,9 +486,13 @@ web.**
   centring does the centring.
 - The web moves the baseline down to `t4p.top + ascent` when the font is too
   tall (`src/renderWindow.ts:214`; F11).
-- **Put T4 on the bar's rows only, and make it at least ~17px tall.**
-  Otherwise descenders clip, and in a tower band T4 would float in the sky.
-- The ≤2px marker rect gives `titleRegion.midY` (`composeChrome.ts:211-221`).
+- **Put T4 on the bar's rows only, and make it at least ~17px tall** (about
+  title size + 4). Otherwise descenders clip, and in a tower band T4 would float
+  in the sky. `frameLayout` enforces 17px. It isn't a checker rule, because most
+  corpus title rects are shorter and their authors accepted the clipping.
+- The ≤2px marker rect gives `titleRegion.midY` (`composeChrome.ts:211-221`),
+  but nothing in the web runtime reads `midY` today. A T4 wider than 2px (e.g.
+  spanning a 12px plate source) only loses that field.
 
 **R29. Window types, and which ones the web titles.**
 - Each `wnd#` id N pairs with cicn N (inactive) and N+1 (active), and both
@@ -505,6 +533,16 @@ web.**
 ---
 
 ## 8. What `windowLayout()` (`tools/theme-author/window-layout.js`) can't express
+
+**Use `frameLayout()` (`tools/theme-author/frame-layout.js`) for all of these.**
+It was written for Castle from the proposal at the end of this section, and is
+now part of the toolkit. You give it explicit cell lists per edge
+(`{ code, w, name }`), the band sizes, the title cell and rows, and the widget
+boxes. It returns the template size, the content rect, the `wnd#`, and the
+named cell positions to paint by. It enforces: widgets in fixed cells; every
+code 12 with a same-allocation recipient; one code-12 width per allocation; a
+title rect of at least 17px. `stripLayout()` and `pressedStripFrom()` lay out
+and build the `-14330` strip. The table below is what `windowLayout()` lacks.
 
 | Limit in the helper | Needed by | Format feature |
 |---|---|---|

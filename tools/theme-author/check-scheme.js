@@ -138,6 +138,10 @@ export function checkScheme(resources, theme) {
     }
   }
 
+  // (Not checked, on purpose: a title-rect height rule and a per-window
+  // pressed-strip offset rule both fired on 12 of 18 corpus schemes. The
+  // guidance for both is in docs/authoring-exotic-frames.md R24 and R28.)
+
   // ── Pressed-widget strip: without it the web makes no widget clickable ──
   // (docs/authoring-exotic-frames.md R24: widgetHittable requires the strip.)
   const hasWidgets = resources.some((r) => r.type === 'wnd#' && decodeWnd(r.data).rectangles

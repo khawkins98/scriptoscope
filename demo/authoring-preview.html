@@ -6,6 +6,13 @@
   npm run dev
   open http://localhost:5173/authoring-preview.html?scheme=/authoring/schemes/halcyon/scheme.rsrc
 
+  Options:
+    ?scheme=<url>    the scheme to load (default Halcyon)
+    ?layout=<url>    replace the windows below with an HTML fragment, e.g.
+                     /authoring/preview-layouts/sizes.html (small, large, long
+                     titles, an active scroller)
+    ?active=<title>  make the window with this title the active one
+
   Shows every window type the scheme defines, plus push buttons, checkboxes,
   sliders, popup menus, text fields, tabs and scrollbars, through the same explicit host the showcase uses. Reload after
   rebuilding the scheme. See docs/authoring-a-scheme.md.
@@ -106,8 +113,20 @@
     import { mountExplicitPage } from './explicit-host.mjs';
 
     const status = document.getElementById('status');
-    const url = new URL(location.href).searchParams.get('scheme') ?? '/authoring/schemes/halcyon/scheme.rsrc';
+    const params = new URL(location.href).searchParams;
+    const url = params.get('scheme') ?? '/authoring/schemes/halcyon/scheme.rsrc';
     try {
+      const desk = document.getElementById('desk');
+      if (params.get('layout')) {
+        const res = await fetch(params.get('layout'), { cache: 'no-store' });
+        if (!res.ok) throw new Error(`${res.status} fetching layout ${params.get('layout')}`);
+        desk.innerHTML = await res.text();
+      }
+      if (params.get('active')) {
+        for (const w of desk.querySelectorAll('[data-scriptoscope-window]')) {
+          w.dataset.scriptoscopeState = w.dataset.scriptoscopeTitle === params.get('active') ? 'active' : 'inactive';
+        }
+      }
       const res = await fetch(url, { cache: 'no-store' });
       if (!res.ok) throw new Error(`${res.status} fetching ${url}`);
       const blob = await res.blob();

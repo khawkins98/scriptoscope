@@ -1,0 +1,52 @@
+// frameLayout / stripLayout / pressedStripFrom: the per-edge cell-list helpers.
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { frameLayout, stripLayout, pressedStripFrom } from './frame-layout.js';
+import { Raster } from './raster.js';
+import { encodeWnd } from './encode-records.js';
+import { decodeWnd } from '../theme-loader/decoders/wnd.js';
+
+const spec = () => ({
+  topH: 30, sideL: 4, sideR: 4, bottomH: 6,
+  // tower | merlons (12) + filler (13) | cap plate cap | filler + merlons | tower
+  top: [
+    { code: 1, w: 16, name: 'towerL' }, { code: 12, w: 8, name: 'merlonsL' }, { code: 13, w: 1 },
+    { code: 6, w: 4 }, { code: 5, w: 4, name: 'plate' }, { code: 6, w: 4 },
+    { code: 13, w: 1 }, { code: 12, w: 8 }, { code: 1, w: 16, name: 'towerR' },
+  ],
+  bottom: [{ code: 1, w: 20 }, { code: 11, w: 6 }, { code: 1, w: 10, name: 'gate' }, { code: 8, w: 6 }, { code: 1, w: 20 }],
+  left: [{ code: 11, w: 4 }], right: [{ code: 11, w: 4 }],
+  title: { cell: 'plate', top: 10, bottom: 28 },
+  widgets: { close: { x: 2, y: 14, w: 12, h: 12 } },
+});
+
+test('frameLayout derives size, content rect and a recipe that round-trips', () => {
+  const l = frameLayout(spec());
+  assert.deepEqual([l.width, l.height], [62, 40]);
+  assert.deepEqual(l.content, { top: 30, left: 4, bottom: 34, right: 58 });
+  assert.deepEqual(l.named('plate'), { code: 5, w: 4, name: 'plate', x0: 29, x1: 33 });
+  assert.deepEqual(decodeWnd(encodeWnd(l.wnd)), l.wnd);
+  assert.equal(l.wnd.topSide.at(-1).border, 62, 'top recipe ends at the full width');
+});
+
+test('frameLayout rejects the mistakes it knows about', () => {
+  const bad = (mutate, re) => { const s = spec(); mutate(s); assert.throws(() => frameLayout(s), re); };
+  bad((s) => { s.bottom[0].w = 19; }, /bottom cells add up/);
+  bad((s) => { s.widgets.close.x = 16; }, /overlaps a code-12 cell/);
+  bad((s) => { s.top[2] = { code: 1, w: 1 }; }, /needs a code 8\/11\/13\/14\/18 cell/);
+  bad((s) => { s.top[7] = { code: 12, w: 6 }; s.top.splice(8, 0, { code: 12, w: 2 }); s.top[6] = { code: 13, w: 1 }; }, /different widths/);
+  bad((s) => { s.title.top = 14; }, /under 17px/);
+});
+
+test('stripLayout and pressedStripFrom lay pieces out across and keep the silhouette as the mask', () => {
+  const l = frameLayout(spec());
+  const strip = stripLayout(l);
+  assert.deepEqual([strip.width, strip.height], [12, 12]);
+  const frame = new Raster(l.width, l.height).fillRect(0, 0, l.width, l.height, '#777777');
+  const draw = (role, r, b) => r.fillCircleSmooth(b.x + b.w / 2, b.y + b.h / 2, b.w / 2, '#ff0000');
+  const r = pressedStripFrom({ strip, activeFrame: frame, draw, rows: 2 });
+  assert.deepEqual([r.width, r.height], [12, 24]);
+  assert.equal(r.get(0, 0), null, 'corner outside the round widget stays transparent (not clickable)');
+  assert.deepEqual(r.get(6, 6), [255, 0, 0]);
+  assert.deepEqual(r.get(6, 18), [255, 0, 0], 'second row for collapsed windows');
+});

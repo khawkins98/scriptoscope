@@ -89,7 +89,8 @@ encoder is the inverse of a decoder there, and the tests prove the round trip.
 | `encode-clut.js` | `encodeClut`, `encodeHeaderClut`: colour tables, e.g. the window header colours |
 | `macbinary.js` | `writeMacBinary`: packs the fork with type `Colr` / creator `Acid` for a classic Mac (§2) |
 | `encode-records.js` | `encodeWnd`, `encodeCinf`, `encodeColr`, `encodeVers` |
-| `window-layout.js` | `windowLayout(spec)`: one description gives both the frame geometry and a matching `wnd#` recipe |
+| `window-layout.js` | `windowLayout(spec)`: one description gives both the frame geometry and a matching `wnd#` recipe, for simple rounded frames |
+| `frame-layout.js` | `frameLayout(spec)`: explicit cell lists per edge, for frames that aren't rectangles (tiles, towers above the bar, end caps, per-edge art), with named cells to paint by; `stripLayout` and `pressedStripFrom` for the pressed-widget strip |
 | `resource-fork-writer.js` | `writeResourceFork(resources)`: builds the binary file |
 | `check-scheme.js` | `checkScheme(resources)`: authoring checks (section 7) |
 | `color.js` | colour parsing and the gamma pre-compensation (section 4.4) |
@@ -163,7 +164,9 @@ const layout = windowLayout({
 ```
 
 **Frames that aren't rounded rectangles** (battlements, towers above the bar,
-wavy edges, a tab-shaped title) are covered in
+wavy edges, a tab-shaped title) use `frameLayout()` instead of
+`windowLayout()`. The worked example is `authoring/schemes/castle/frames.mjs`.
+The rules are in
 [`authoring-exotic-frames.md`](./authoring-exotic-frames.md): multi-pixel tiles,
 where partial tiles land, code 12 and its fillers, title end caps, per-edge art,
 transparency and clicks, and body textures. Each rule there has a corpus precedent.
@@ -225,9 +228,16 @@ look smooth:
   pixels underneath.
 - **`ditheredGradient`** mixes a few evenly spaced colours in the classic 4×4
   pattern, so a gradient looks smooth in few colours. Two rules:
-  - **Never dither art the engine stretches or tiles along one axis.** Stretch
-    cells repeat one column or row, and a repeated dithered column becomes
-    stripes. Frames, track middles and tab middles use one colour per row.
+  - **Never dither a 1px stretch cell.** A 1px grower repeats one column (or
+    row), and a repeated dithered column becomes stripes. Halcyon's frames,
+    track middles and tab middles use one colour per row.
+  - **A multi-pixel tile repeats whole**, so texture inside it is fine if it
+    wraps at the tile size. For the 4×4 dither, the tile must be a multiple of 4
+    along that axis. The title plate (code 5) is the exception: it ends on a
+    partial tile, so a dither there shows a seam at the right end cap. Keep the
+    plate one colour per row.
+  - `ditheredGradient(start, length, stops, { axis: 'x' })` runs left to right;
+    `bayer(x, y)` gives the raw threshold for your own patterns.
   - **Patterns (`ppat`) tile in both directions**, so a dither that wraps at
     the tile size is fine there. Halcyon's desktop and progress stripes use it.
 - **Hidden swatches and mattes interact.** A matte makes every partly covered

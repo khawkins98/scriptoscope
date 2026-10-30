@@ -178,6 +178,7 @@ export class Raster {
   //     opaque if at least half covered. With no matte the edge stays hard.
   // Coordinates are continuous here: (0, 0) is the top-left corner of the
   // top-left pixel, so a circle of radius 6 centred at (6, 6) fills 12×12.
+  // Boxes may be fractional too: they are widened to whole pixels.
 
   /**
    * Paint `color` wherever coverage(px, py) (a point in pixel space → true/false)
@@ -185,7 +186,9 @@ export class Raster {
    * @param {{ matte?: string|number[], samples?: number }} [opts]
    */
   paintCoverage(x, y, w, h, inside, color, { matte, samples = 4 } = {}) {
-    if (![x, y, w, h].every(Number.isInteger)) throw new Error('Raster.paintCoverage: the box must use whole numbers');
+    // Widen a fractional box to whole pixels; `inside` is tested in continuous space anyway.
+    const x0 = Math.floor(x), y0 = Math.floor(y);
+    w = Math.ceil(x + w) - x0; h = Math.ceil(y + h) - y0; x = x0; y = y0;
     const n = samples, paint = typeof color === 'function' ? color : () => color;
     for (let py = y; py < y + h; py++) for (let px = x; px < x + w; px++) {
       if (!this.inBounds(px, py)) continue;
@@ -256,6 +259,9 @@ export function mix(a, b, t) {
 // 4×4 Bayer matrix: the classic ordered-dither threshold pattern.
 const BAYER4 = [[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]];
 
+/** Ordered-dither threshold for a pixel, in (0, 1). It repeats every 4 pixels. */
+export const bayer = (x, y) => (BAYER4[((y % 4) + 4) % 4][((x % 4) + 4) % 4] + 0.5) / 16;
+
 /**
  * Ordered-dithered vertical gradient for fillRect / paintCoverage. Instead of
  * one colour per row, it uses `levels` evenly spaced colours and mixes
@@ -263,15 +269,19 @@ const BAYER4 = [[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]];
  * few colours (and never hits the 256-colour limit). This is the period
  * technique; classic Mac art dithered the same way.
  */
-export function ditheredGradient(y0, h, stops, { levels = 6 } = {}) {
-  const smooth = verticalGradient(y0, h, stops);
+/**
+ * `axis: 'x'` runs the ramp left to right instead: then `y0` and `h` are the
+ * start column and the width.
+ */
+export function ditheredGradient(y0, h, stops, { levels = 6, axis = 'y' } = {}) {
+  const smooth = verticalGradient(0, h, stops);
   const steps = Math.max(2, levels);
-  const at = (k) => smooth(0, y0 + (k / (steps - 1)) * (h - 1));
+  const at = (k) => smooth(0, (k / (steps - 1)) * (h - 1));
   return (x, y) => {
-    const t = h <= 1 ? 0 : Math.min(1, Math.max(0, (y - y0) / (h - 1))) * (steps - 1);
+    const along = axis === 'x' ? x : y;
+    const t = h <= 1 ? 0 : Math.min(1, Math.max(0, (along - y0) / (h - 1))) * (steps - 1);
     const base = Math.floor(t), frac = t - base;
-    const threshold = (BAYER4[y & 3][x & 3] + 0.5) / 16;
-    return at(Math.min(steps - 1, frac > threshold ? base + 1 : base));
+    return at(Math.min(steps - 1, frac > bayer(x, y) ? base + 1 : base));
   };
 }
 
