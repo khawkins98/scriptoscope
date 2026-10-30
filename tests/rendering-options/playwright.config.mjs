@@ -10,7 +10,11 @@ export default defineConfig({
   timeout: extended ? 180_000 : 90_000, expect: { timeout: 10_000 }, retries: 0,
   outputDir: '../../test-results/rendering-options',
   reporter: [['./failure-reporter.mjs'], ...(goldens ? [] : [['../rendering-requirements/reporter.mjs']]), ['list'], ['html', { outputFolder: '../../playwright-report/rendering-options', open: 'never' }]],
-  use: { viewport: { width: 1280, height: 960 }, screenshot: 'only-on-failure', trace: 'retain-on-failure' },
+  // Goldens disable Chromium partial raster: re-rastering only an invalidated
+  // part of a tile left the CSS fallback buttons' rounded anti-aliased edges
+  // ±1-2 levels apart between runs (#526). Full-tile raster is reproducible.
+  use: { viewport: { width: 1280, height: 960 }, screenshot: 'only-on-failure', trace: 'retain-on-failure',
+    ...(goldens ? { launchOptions: { args: ['--disable-partial-raster'] } } : {}) },
   projects: browsers.flatMap(browserName => (extended && browserName === 'chromium' ? [1, 2] : [1]).map(deviceScaleFactor => ({
     name: `${browserName}-dpr${deviceScaleFactor}`, metadata: { caseProfile: extended && browserName === 'chromium' && deviceScaleFactor === 1 ? 'extended' : 'smoke' }, use: { browserName, deviceScaleFactor },
   }))),

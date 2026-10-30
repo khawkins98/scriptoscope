@@ -6,7 +6,6 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { test, expect, openHarness, attachCase, attachObservations } from './fixtures.mjs';
 import { goldenCasePages } from './golden-cases.mjs';
-import { compareGoldenWithDisabledCssEdge } from './disabled-css-edge-oracle.mjs';
 const directory = new URL('./goldens/', import.meta.url);
 const manifestPath = new URL('manifest.json', directory);
 const catalog = JSON.parse(readFileSync(new URL('../../demo/themes-manifest.json', import.meta.url)));
@@ -34,7 +33,7 @@ for (const { slug } of catalog) for (const [pageIndex, cases] of pages.entries()
     requiredContainerImage: 'mcr.microsoft.com/playwright:v1.64.0-noble@sha256:06a9939e57531807f8d5fd76ce44b53165ffb7d7501d87ab10e285c20b1e971f',
     fonts: Object.fromEntries(['virtue.woff', 'charcoal-12.woff'].map(name => [name, createHash('sha256').update(readFileSync(new URL(`../../demo/assets/fonts/${name}`, import.meta.url))).digest('hex')])),
     sourceArchives: Object.fromEntries(catalog.map(({ slug, source }) => [slug, createHash('sha256').update(readFileSync(new URL(`../../themes/${slug}/${source}`, import.meta.url))).digest('hex')])),
-    sourceZoom: 4, labelZoom: 1, runtime: 'built-public-entry' };
+    sourceZoom: 4, labelZoom: 1, runtime: 'built-public-entry', browserArgs: testInfo.project.use.launchOptions?.args ?? [] };
   if (update) {
     mkdirSync(directory, { recursive: true });
     writeFileSync(manifestPath, JSON.stringify({ environment, provenance: executionProvenance }, null, 2)+'\n');
@@ -66,13 +65,10 @@ for (const { slug } of catalog) for (const [pageIndex, cases] of pages.entries()
     // Hide transient server URLs; the cases, labels, dimensions and native DOM
     // stay visible. Backing font binaries and viewport are pinned above.
     await page.locator('#status').evaluate(el => el.remove());
-    const compareCanonical = () => expect(page.locator('#matrix')).toHaveScreenshot(`${slug}-page-${pageIndex + 1}.png`, {
+    await expect(page.locator('#matrix')).toHaveScreenshot(`${slug}-page-${pageIndex + 1}.png`, {
       animations: 'disabled', caret: 'hide', threshold: 0, maxDiffPixels: 0,
     });
-    if (update) { await compareCanonical(); comparison = { branch: 'record-candidates' }; }
-    else comparison = await compareGoldenWithDisabledCssEdge(compareCanonical, testInfo, {
-      slug, page: pageIndex + 1, caseIndex: 8, caseId: cases[8]?.id, environment,
-    });
+    comparison = { branch: update ? 'record-candidates' : 'canonical-stock' };
     await attachObserved(true);
   } catch (error) {
     await attachObserved(false).catch(() => {});
