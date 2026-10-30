@@ -27,6 +27,13 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   and encoders for `ppat`, icon families and `clut`, each round-tripping the
   whole corpus (#540).
 
+- `WindowManager.setOuterSize(host, { width?, height? })`, an `outerSize` option on `WindowManager.add`, and `WindowManager.chromeExtent(host)`, for imperative callers that size windows by their outer box. `setContentSize` keeps its content-size meaning.
+
+### Changed
+
+- **Auto-sized windows now fit their chrome inside the element's box** ([#526](https://github.com/khawkins98/scriptoscope/issues/526)). The size measured from the source element, `data-scriptoscope-extra-width/-height` and px `max-width`/`max-height` caps now bound the whole window, frame included. Previously they sized the content area, and the frame (up to 116 px wide on dolphin-som) overhung the element. Full-width windows no longer push the page sideways, and capped cards no longer overlap what follows them. Thick-framed schemes therefore get a smaller content area, and content reflows when a theme switch changes the frame. Declared `data-scriptoscope-width/-height` are unchanged: they are content dimensions, with the frame drawn outside them.
+- Every window host's inline `width`/`height` is now pinned to the full chrome size. In-flow hosts wrap the chrome instead of spanning their container, and the drag placeholder matches the window.
+
 ### Fixed
 
 - Movable-modal, movable-alert, popup and collapsed titled-utility windows
@@ -41,6 +48,11 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   Dolphin SOM's yellow body from 4.11:1 to 5.15:1. The new ring also
   replaces the gold `#b98942` focus ring from `demo/site-shell.css` on the
   four example-card links inside the showcase, which measured 2.75:1 (#548).
+- A themed window scrollbar now follows its content when something other than
+  the bar scrolls it: focus moving to an off-screen link, `scrollIntoView`,
+  find-in-page or a script setting `scrollTop`/`scrollLeft`. The thumb and
+  `aria-valuenow` update, and the next arrow key steps from the real position
+  instead of jumping the content back to the bar's old value. Both axes (#549).
 - Keyboard focus stays on the operated window control (move handle, grow box,
   title widgets, scrollbars) when the window re-renders on activation, collapse
   or keyboard resize; it no longer drops to `<body>`. Re-renders of windows
@@ -102,6 +114,14 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
     (apple-platinum-2 and the other grow-box schemes 24 → 22 square,
     apple-lisa 22 → 17, 1984 22 → 17 wide, beos-r503 22 → 20, windows-31
     22 → 19, windows-95 22 → 21 wide). Other schemes keep their size.
+- Procedural Platinum push buttons (`baselineButton`, used by apple-platinum-2,
+  platinum-8, black-platinum, slimes and system7-nostalgia-silver, and by any
+  scheme without an admitted push face) now show a held state. Pointer, Space
+  or Enter sinks the face, and it returns to normal on release, pointer leave
+  or cancel, blur and keyup. Normal-state pixels and cicn-themed buttons are
+  unchanged. This is an interim compatibility override, not decoded behaviour:
+  it reuses the procedural `sunkenFace` palette because the original pressed
+  pixels are unresolved (#218) (#551).
 
 ## [0.7.0] — 2026-10-29
 

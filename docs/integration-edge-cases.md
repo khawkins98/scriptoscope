@@ -178,7 +178,7 @@ window preparation, so a late completion cannot attach chrome after teardown or
 interfere with a newer mount. The final frame dimensions can still change the page layout;
 this avoids an intermediate empty source element, not every possible layout shift.
 
-Width/height inherit from the source element's bounding rect either way. The drag handler converts a static host to absolute on the first drag, keyboard-arrow move, or grow-box resize. When the handoff happens, the runtime inserts an invisible `<div data-scriptoscope-placeholder>` in the host's original static slot so siblings don't collapse upward — the page stays put while the window floats out. The placeholder persists until the window is unmounted (cleaned up by `WindowManager.remove`). Once converted, the host stays a floater for the rest of its life. Reload restores the in-flow default unless you pass `persistKey` (persisted absolute positions also restore as absolute).
+Width/height inherit from the source element's bounding rect either way, and that rect bounds the WHOLE window: the scheme's frame is fitted inside it, so a full-width card stays inside its container whatever the frame thickness (0 px on some schemes, over 100 px horizontally on dolphin-som and evolution). Content therefore reflows when a retheme changes the frame. Declared `data-scriptoscope-width`/`-height` are the exception: they size the content area, and the frame is drawn outside them. The host's box always matches the chrome (#526). The drag handler converts a static host to absolute on the first drag, keyboard-arrow move, or grow-box resize. When the handoff happens, the runtime inserts an invisible `<div data-scriptoscope-placeholder>` in the host's original static slot so siblings don't collapse upward — the page stays put while the window floats out. The placeholder persists until the window is unmounted (cleaned up by `WindowManager.remove`). Once converted, the host stays a floater for the rest of its life. Reload restores the in-flow default unless you pass `persistKey` (persisted absolute positions also restore as absolute).
 
 ## Auto-resize: content growing after promote
 
@@ -188,7 +188,7 @@ Auto-fit also terminates the first time the user grow-box-resizes the window. Th
 
 Past a 30 px / 500 ms growth threshold the runtime emits a one-shot `console.warn` suggesting you pre-declare via `data-scriptoscope-extra-width="N"` / `-extra-height="N"` to skip the visual pop on initial load. **To suppress the warning**: either set the suggested `-extra-*` attribute, or declare absolute `-width`/`-height` (auto-resize is suppressed entirely for declared dimensions).
 
-If you set a px-valued `max-width` / `max-height` on the host via CSS, the auto-resize respects it as a hard cap and the slot scrolls instead. Percentage / em / vh-based caps are ignored (treated as no cap) — if you need a viewport-relative max you'll need to convert to px in JS and re-apply on resize.
+If you set a px-valued `max-width` / `max-height` on the host via CSS (a class or id rule the host inherits; an inline `style` on the source element is not carried over), the auto-resize respects it as a hard cap on the whole window, chrome included, and the slot scrolls instead. Percentage / em / vh-based caps are ignored (treated as no cap) — if you need a viewport-relative max you'll need to convert to px in JS and re-apply on resize.
 
 ## Class inheritance and the locked-down properties
 
@@ -199,7 +199,7 @@ The runtime copies the source element's `id`, classes, ARIA attributes, non-`dat
 - `padding: 0` — padding pushes the canvas inside the host's box and leaves stripes of host-background showing around the chrome edges.
 - `border: 0` — your border was for the bare HTML; the chrome IS the intended frame.
 - `background: transparent` — paints under the chrome (invisible if chrome is opaque, ugly if chrome has transparent corners).
-- `overflow: visible` — the chrome canvas can extend 2-6 px past the host's CSS box (depends on theme); a consumer `overflow: auto` would clip those edge pixels. The slot inside still has its own `overflow: auto` for content scrolling.
+- `overflow: visible` — the runtime pins the host's `width`/`height` to the full chrome, so normally nothing overhangs. A consumer `max-width`/`max-height` smaller than a declared size plus its frame would squeeze the box, and a consumer `overflow: auto` would then clip the chrome. The slot inside still has its own `overflow: auto` for content scrolling.
 - `margin: 0` — would shift the host away from its source DOM position.
 - `transform: none` / `filter: none` / `contain: none` — would silently turn the host into the positioned ancestor for its own absolute descendants (CSS containing-block rule — the same iOS scroll-perf hack pattern that breaks naive `findPositionedAncestor` walks). `contain: layout` / `contain: paint` create a containing block the same way; modern utility CSS frameworks (Material, Tailwind v4) ship `contain` rules.
 

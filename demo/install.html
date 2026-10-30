@@ -59,7 +59,7 @@
   });
   addEventListener(&#x27;pagehide&#x27;, () =&gt; handle.disconnect(), { once: true });
 &lt;/script&gt;</pre></div></div>
-      <p class="site-install-aside">Use an HTTP URL for local development: a <code>file://</code> tab cannot reliably load modules or WebAssembly. Keep your layout CSS; native borders extend beyond the content dimensions.</p>
+      <p class="site-install-aside">Use an HTTP URL for local development: a <code>file://</code> tab cannot reliably load modules or WebAssembly. Keep your layout CSS. An auto-sized window fits its native borders inside the element’s box; only declared width and height are content dimensions, with borders drawn outside them.</p>
     </section>
     <section class="site-install-section" id="attributes" aria-labelledby="attributes-title">
       <p class="site-section-label">02 / MARK UP YOUR HTML</p>
@@ -79,7 +79,7 @@
 <tr><th scope="row"><code>data-scriptoscope-title=&quot;Notes&quot;</code></th><td>Set the title-bar label.</td></tr>
 <tr><th scope="row"><code>data-scriptoscope-window-type=&quot;titled-utility-window&quot;</code></th><td>Choose a frame. The default is document-window; try titled-utility-window for a palette or dialog for a dialog.</td></tr>
 <tr><th scope="row"><code>data-scriptoscope-widgets=&quot;zoom,collapse&quot;</code></th><td>Wire only these title-bar actions. Other widgets may remain in the original artwork; their actions are disabled.</td></tr>
-<tr><th scope="row"><code>data-scriptoscope-width=&quot;320&quot; / data-scriptoscope-height=&quot;200&quot;</code></th><td>Set content dimensions in pixels. Without them, the initial size comes from your HTML. Leave room around the element for the scheme’s native borders.</td></tr>
+<tr><th scope="row"><code>data-scriptoscope-width=&quot;320&quot; / data-scriptoscope-height=&quot;200&quot;</code></th><td>Set content dimensions in pixels; the scheme’s native borders are drawn outside them, so leave room around the element. Without them, the whole window, borders included, fits the box your HTML gives the element.</td></tr>
 <tr><th scope="row"><code>data-scriptoscope-x=&quot;24&quot; / data-scriptoscope-y=&quot;40&quot;</code></th><td>Opt into absolute positioning relative to the nearest positioned ancestor. Omit both to keep the window in your normal Grid, Flex, or document layout.</td></tr>
 <tr><th scope="row"><code>data-scriptoscope-theme=&quot;monkey-paradise&quot;</code></th><td>Override the page scheme on a window or an ancestor. A theme bundle URL also works.</td></tr>
 <tr><th scope="row"><code>data-scriptoscope-button / data-scriptoscope-default</code></th><td>Theme a real button; add default for the default-button ring. Your click handler still belongs on the button.</td></tr>

@@ -86,7 +86,7 @@ import { listenUntilAborted } from './listenUntilAborted.js';
 import {
   composeDisclosure, composeSliderWithLayout, composeScrollbar, composeScrollbarFrame, type SliderFrame, type SliderOptions,
   type ScrollbarFrame, type ScrollbarOptions,
-  baselineButton, bufferToCanvas,
+  baselineButton, bufferToCanvas, KEY_ACTIVATE,
   type ButtonOptions, type ControlState, composeProgressFrame, type ProgressOptions,
 } from './controls.js';
 import { newProgressRecord, progressIdleAdvance, progressSetData, type ProgressRecord } from './engine/families/progress.js';
@@ -114,8 +114,6 @@ const clamp01 = (n: number): number => Math.min(1, Math.max(0, n));
 const growZone = (c: ComposedChrome): { w: number; h: number } => c.growBox
   ? { w: c.fullWidth - c.growBox.x, h: c.fullHeight - c.growBox.y }
   : { w: c.frame.right + 15, h: c.frame.bottom + 15 };
-
-const KEY_ACTIVATE = (e: KeyboardEvent): boolean => e.key === ' ' || e.key === 'Enter' || e.key === 'Spacebar';
 
 // Internal ownership hook used by declarative promotion. Not part of the package exports.
 const controlDisposers = new WeakMap<HTMLElement, () => void>();
@@ -708,6 +706,9 @@ function readingOrder(hits: TitleWidgetHit[]): TitleWidgetHit[] {
 }
 
 // ── Window focus manager ────────────────────────────────────────────────────
+/** A prepared, not yet committed render; `opts` carries the resolved content size. */
+interface PreparedRender { win: HTMLElement; collapsed: boolean; opts: RenderWindowOptions; extent?: ChromeExtent }
+
 interface ManagedWindow<Theme extends ThemeInput> {
   contentPort: ManagedContentPort;
   /** Invalidates asynchronous paints when geometry/state changes or the entry is removed. */
@@ -741,7 +742,7 @@ interface ManagedWindow<Theme extends ThemeInput> {
    *  Captures width/height INCLUDING undefined, so un-zooming a size-less window correctly restores it
    *  to size-less (not stuck at the zoomed size). */
   zoomed?: boolean;
-  userSize?: { width: number | undefined; height: number | undefined };
+  userSize?: { width: number | undefined; height: number | undefined; outer: OuterSize | undefined };
   /** Aborts the previous render's scrollbar listeners. The wheel listener lives on the PERSISTENT
    *  scroll container (the slot survives re-slotting), so without this it would accumulate one per
    *  render — multiplying scroll speed and leaking. Re-created each time the bar is (re)wired. */
@@ -757,6 +758,48 @@ interface ManagedWindow<Theme extends ThemeInput> {
   chromeCanvas?: HTMLCanvasElement;
   /** Persistent light-DOM consumer content, projected through the continuously mounted slot. */
   contentEl?: HTMLElement;
+  /** Outer-box bounds (chrome included, unscaled px) per axis (#526). A bounded axis's
+   *  content size is re-derived as `bound - frame` on every expanded render, so it follows
+   *  the scheme's frame through retheme. Unbounded axes use `opts` as the content size.
+   *  Explicit content sizes (setContentSize, grow box, zoom, applyState) clear the axis. */
+  outer?: OuterSize | undefined;
+  /** Frame totals of the last expanded commit; see chromeExtent(). */
+  extent?: ChromeExtent;
+}
+
+/** Outer-box size request per axis (chrome included, unscaled px). */
+export interface OuterSize { width?: number; height?: number }
+/** A window's frame totals: `x` = left + right, `y` = top + bottom (unscaled px). */
+export interface ChromeExtent { x: number; y: number }
+
+/** The outer/content conversion's one source of truth: the frame totals of a
+ *  prepared window, read from its full footprint (both renderWindow paths set the
+ *  root's width/height to the full chrome size) minus the content it was given. */
+function measureExtent(win: HTMLElement, opts: RenderWindowOptions): ChromeExtent {
+  const scale = Math.max(1, Math.round(opts.scale ?? 1));
+  return {
+    x: Math.round(parseFloat(win.style.width) / scale) - (opts.width ?? 240),
+    y: Math.round(parseFloat(win.style.height) / scale) - (opts.height ?? 120),
+  };
+}
+
+/** Content options for an outer bound given a frame extent. Unbounded axes are unchanged. */
+function contentFor(opts: RenderWindowOptions, outer: OuterSize, ext: ChromeExtent): RenderWindowOptions {
+  return {
+    ...opts,
+    ...(outer.width !== undefined ? { width: Math.max(1, outer.width - ext.x) } : {}),
+    ...(outer.height !== undefined ? { height: Math.max(1, outer.height - ext.y) } : {}),
+  };
+}
+
+/** Drop the given axes from an outer bound; undefined when no axis remains. */
+function withoutAxes(outer: OuterSize | undefined, width: boolean, height: boolean): OuterSize | undefined {
+  if (!outer) return outer;
+  const next: OuterSize = {
+    ...(!width && outer.width !== undefined ? { width: outer.width } : {}),
+    ...(!height && outer.height !== undefined ? { height: outer.height } : {}),
+  };
+  return next.width === undefined && next.height === undefined ? undefined : next;
 }
 
 /**
@@ -838,8 +881,11 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     };
     const collapsed = state.collapsed ?? (entry.collapsed === true);
     const z = state.z ?? entry.z;
+    // A restored width/height is an explicit content size: it replaces that axis's outer bound.
+    const outer = withoutAxes(entry.outer, state.width !== undefined, state.height !== undefined);
     const repaint = opts.width !== entry.opts.width || opts.height !== entry.opts.height
-      || collapsed !== (entry.collapsed === true);
+      || collapsed !== (entry.collapsed === true)
+      || outer?.width !== entry.outer?.width || outer?.height !== entry.outer?.height;
     const application = ++entry.applyStateEpoch;
     if (!repaint && z === entry.z) return;
     const epoch = ++entry.renderEpoch;
@@ -847,13 +893,16 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       && epoch === entry.renderEpoch && this.windows.includes(entry);
     let prepared;
     try {
-      if (repaint) prepared = await this.prepareRender({ ...entry, opts, collapsed, z }, entry.theme);
+      if (repaint) {
+        prepared = await this.prepareRender({ ...entry, opts, collapsed, z, outer }, entry.theme);
+      }
     } catch (error) {
       if (!current()) return;
       throw error;
     }
     if (!current()) return;
     entry.opts = opts;
+    entry.outer = outer;
     entry.collapsed = collapsed;
     entry.z = z;
     this.zClock = Math.max(this.zClock, z);
@@ -883,6 +932,9 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       /** See ManagedWindow<Theme>.enabledWidgets — opt-in widget subset. Plumbed
        *  from `data-scriptoscope-widgets` for the declarative path. */
       enabledWidgets?: ReadonlySet<TitleWidget>;
+      /** Outer-box bounds per axis (chrome included); see setOuterSize. A bounded axis
+       *  ignores `opts.width`/`opts.height`. */
+      outerSize?: OuterSize;
     } = {},
   ): Promise<HTMLElement> {
     const host = document.createElement('div');
@@ -924,6 +976,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       ...(extra.collapsed ? { collapsed: true } : {}),
       ...(extra.contentEl ? { contentEl: extra.contentEl } : {}),
       ...(extra.enabledWidgets !== undefined ? { enabledWidgets: extra.enabledWidgets } : {}),
+      outer: withoutAxes(extra.outerSize, false, false),
     };
     if (extra.z != null && extra.z > this.zClock) this.zClock = extra.z; // keep clock above declared
     this.windows.push(entry);
@@ -1048,9 +1101,31 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
   async setContentSize(host: HTMLElement, width: number, height: number): Promise<void> {
     const entry = this.windows.find((w) => w.host === host);
     if (!entry) return;
-    if (entry.opts.width === width && entry.opts.height === height) return;
+    if (entry.opts.width === width && entry.opts.height === height && !entry.outer) return;
+    delete entry.outer;
     entry.opts = { ...entry.opts, width, height };
     await this.render(entry);
+  }
+
+  /** Re-render at OUTER-box bounds (chrome included, unscaled px) for the given axes; an
+   *  omitted axis keeps its current size and mode. The content size of a bounded axis is
+   *  `bound - frame`, re-derived for each scheme's frame on retheme, so the window's
+   *  footprint stays inside the bound (#526). No-op if the host isn't managed or unchanged. */
+  async setOuterSize(host: HTMLElement, size: OuterSize): Promise<void> {
+    const entry = this.windows.find((w) => w.host === host);
+    if (!entry) return;
+    const outer: OuterSize = { ...entry.outer };
+    if (size.width !== undefined) outer.width = size.width;
+    if (size.height !== undefined) outer.height = size.height;
+    if (outer.width === entry.outer?.width && outer.height === entry.outer?.height) return;
+    entry.outer = outer;
+    await this.render(entry);
+  }
+
+  /** Frame totals of the window's last expanded render (`x` = left + right, `y` = top +
+   *  bottom, unscaled px): outer = content + extent. Null until the first render commits. */
+  chromeExtent(host: HTMLElement): ChromeExtent | null {
+    return this.windows.find((w) => w.host === host)?.extent ?? null;
   }
 
   private themeEpoch = 0;
@@ -1070,7 +1145,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     const current = (): boolean => epoch === this.themeEpoch && !signal?.aborted;
     // Preparation never touches a live canvas. Failed/superseded batches leave
     // every current window intact; commit below contains no asynchronous work.
-    const prepared = new Map<ManagedWindow<Theme>, { epoch: number; win: HTMLElement; collapsed: boolean }>();
+    const prepared = new Map<ManagedWindow<Theme>, { epoch: number } & PreparedRender>();
     while (current()) {
       const entries = this.windows.filter(w => w.host.isConnected);
       try {
@@ -1169,22 +1244,59 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     this.commitRender(entry, prepared);
   }
 
-  private async prepareRender(entry: ManagedWindow<Theme>, theme: Theme): Promise<{ win: HTMLElement; collapsed: boolean }> {
+  /** Frame extents already observed, per theme and chrome variant, so a bounded window
+   *  normally prepares once. A wrong or missing entry costs one corrective pass. */
+  private extentCache = new WeakMap<object, Map<string, ChromeExtent>>();
+
+  private async prepareRender(entry: ManagedWindow<Theme>, theme: Theme): Promise<PreparedRender> {
     const collapsed = entry.collapsed === true;
     const slug = this.effectiveSlug(entry, theme);
-    const { reuseCanvas: _callerCanvas, ...options } = entry.opts;
-    const win = await renderWindow(theme, {
-      ...options,
-      windowType: slug,
-      ...(collapsed ? { height: 0 } : {}),
-      state: entry.active ? 'active' : 'inactive',
-      // Never lend a live pooled canvas to an asynchronous preparation.
-    });
-    return { win, collapsed };
+    const state = entry.active ? 'active' : 'inactive';
+    const prepare = (opts: RenderWindowOptions): Promise<HTMLElement> => {
+      const { reuseCanvas: _callerCanvas, ...options } = opts;
+      return renderWindow(theme, {
+        ...options,
+        windowType: slug,
+        ...(collapsed ? { height: 0 } : {}),
+        state,
+        // Never lend a live pooled canvas to an asynchronous preparation.
+      });
+    };
+    // A collapsed render has no content rect to resolve; it keeps the last expanded
+    // content size, and the next expanded render resolves the bound for its theme.
+    const outer = collapsed ? undefined : entry.outer;
+    if (!outer) {
+      const win = await prepare(entry.opts);
+      return { win, collapsed, opts: entry.opts, ...(collapsed ? {} : { extent: measureExtent(win, entry.opts) }) };
+    }
+    // Outer bounds (#526): content = bound - frame, where the frame is whatever this
+    // theme/variant actually composes. Guess from the cache, then verify against the
+    // prepared footprint and re-prepare if the guess was wrong. The key leaves out the
+    // title and active state: the verify pass corrects any variant whose frame differs,
+    // so every window of one type in a scheme shares one guess.
+    const cacheKey = `${slug}|${entry.opts.scale ?? 1}`;
+    let byTheme = this.extentCache.get(theme as object);
+    if (!byTheme) this.extentCache.set(theme as object, byTheme = new Map());
+    let opts = contentFor(entry.opts, outer, byTheme.get(cacheKey) ?? entry.extent ?? { x: 0, y: 0 });
+    for (let pass = 0; ; pass++) {
+      const win = await prepare(opts);
+      const extent = measureExtent(win, opts);
+      byTheme.set(cacheKey, extent);
+      const next = contentFor(opts, outer, extent);
+      if (pass >= 2 || (next.width === opts.width && next.height === opts.height)) return { win, collapsed, opts, extent };
+      opts = next;
+    }
   }
 
-  private commitRender(entry: ManagedWindow<Theme>, { win, collapsed }: { win: HTMLElement; collapsed: boolean }, notify = true): void {
+  private commitRender(entry: ManagedWindow<Theme>, { win, collapsed, opts, extent }: PreparedRender, notify = true): void {
     entry.commitEpoch++;
+    entry.opts = opts;
+    if (extent) entry.extent = extent;
+    // Host box = full chrome in every mode (#526). An absolute host already shrink-wraps
+    // the window; an in-flow block would otherwise take its container's width, leaving
+    // the chrome overhanging it and the drag placeholder (toAbsolute) the wrong size.
+    entry.host.style.width = win.style.width;
+    entry.host.style.height = win.style.height;
     const fresh = win.querySelector<HTMLCanvasElement>('canvas.scriptoscope-chrome');
     const pooled = entry.chromeCanvas;
     if (fresh && pooled) {
@@ -1414,7 +1526,11 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     const cornerClearance = Math.max(oppositeGutter, vertical ? zone.h - composed.frame.bottom : zone.w - composed.frame.right);
     const barLenCss = Math.max(32, trackLen - cornerClearance * scale);
 
-    let value = maxScroll > 0 ? clamp01((vertical ? scrollEl.scrollTop : scrollEl.scrollLeft) / maxScroll) : 0;
+    // The value is always derived from scrollEl's real position (#549): content also scrolls by
+    // focus, scrollIntoView, find-in-page or script, never only through this bar.
+    const pos = (): number => vertical ? scrollEl.scrollTop : scrollEl.scrollLeft;
+    const read = (): number => maxScroll > 0 ? clamp01(pos() / maxScroll) : 0;
+    let value = read();
 
     const bar = this.overlay(entry, win, `window-scrollbar-${axis}`, 'div');
     bar.className = `scriptoscope-window-scrollbar scriptoscope-window-scrollbar-${axis}`;
@@ -1454,13 +1570,23 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       }
     };
     const scheduleRepaint = (): void => { if (current() && !raf) raf = requestAnimationFrame(() => { raf = 0; void repaint(); }); };
-    const setValue = (v: number): void => {
+    // Repaint only when the position moved. The bar's own writes sync at once, so the
+    // scroll event they cause finds nothing new (no feedback loop).
+    const sync = (): void => {
+      const v = read();
+      if (v === value) return;
       paintEpoch++;
-      value = clamp01(v);
-      if (vertical) scrollEl.scrollTop = value * maxScroll;
-      else scrollEl.scrollLeft = value * maxScroll;
+      value = v;
       scheduleRepaint();
     };
+    // 'instant' overrides a consumer's `scroll-behavior: smooth`, so the next step reads the
+    // target, not the start of an animation. Syncing at once (not on the scroll event)
+    // invalidates a paint still in flight for the old value.
+    const setValue = (v: number): void => {
+      scrollEl.scrollTo({ [vertical ? 'top' : 'left']: clamp01(v) * maxScroll, behavior: 'instant' });
+      sync();
+    };
+    scrollEl.addEventListener('scroll', sync, { passive: true, signal });
 
     // Drag the thumb (pointer = touch + mouse + pen).
     const valueAtPointer = (e: PointerEvent): number => {
@@ -1482,13 +1608,14 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       const delta = vertical || e.shiftKey ? e.deltaY : e.deltaX;
       if (Math.abs(delta) < 0.5) return;
       e.preventDefault();
-      setValue(((vertical ? scrollEl.scrollTop : scrollEl.scrollLeft) + delta) / maxScroll);
+      setValue((pos() + delta) / maxScroll);
     }, { passive: false, signal });
 
     // Arrow keys / page keys on the bar.
     bar.addEventListener('keydown', (e) => {
       const line = maxScroll > 0 ? 24 / maxScroll : 0;
       const page = trackLen / maxScroll;
+      sync(); // step from the real position, even before its scroll event fires
       let next = value;
       if (e.key === (vertical ? 'ArrowDown' : 'ArrowRight')) next = value + line;
       else if (e.key === (vertical ? 'ArrowUp' : 'ArrowLeft')) next = value - line;
@@ -1518,7 +1645,8 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     if (entry.collapsed) entry.collapsed = false; // zooming an un-shades first
     entry.z = ++this.zClock;                       // raise to front (fix from 2026-05-28 review)
     if (!entry.zoomed) {
-      entry.userSize = { width: entry.opts.width, height: entry.opts.height }; // may be undefined — preserved
+      entry.userSize = { width: entry.opts.width, height: entry.opts.height, outer: entry.outer }; // may be undefined — preserved
+      delete entry.outer; // the zoomed size is an explicit content size
       const c = entry.contentEl;
       // Zoom-to-fit: show all content (classic "ideal size"), capped so it can't swallow the screen.
       const w = c ? Math.min(Math.max(c.scrollWidth, entry.opts.width ?? 0), 760) : Math.round((entry.opts.width ?? 240) * 1.5);
@@ -1532,6 +1660,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       if (entry.userSize?.width != null) opts.width = entry.userSize.width; else delete opts.width;
       if (entry.userSize?.height != null) opts.height = entry.userSize.height; else delete opts.height;
       entry.opts = opts;
+      entry.outer = entry.userSize?.outer;
       entry.zoomed = false;
     }
     debug('drag', `toggleZoom ${entry.opts.title ?? ''} → zoomed=${entry.zoomed}`, {
@@ -1704,6 +1833,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       const w0 = entry.opts.width ?? 240, h0 = entry.opts.height ?? 120;
       const nw = Math.max(minContentW, w0 + dw), nh = Math.max(40, h0 + dh);
       entry.opts = { ...entry.opts, width: nw, height: nh };
+      delete entry.outer; // the user's grow-box size is an explicit content size
       void this.render(entry);
       // Signal to the declarative layer that the user owns the size now.
       // ScriptoscopeWindow's auto-fit ResizeObserver disconnects on this
@@ -1752,6 +1882,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
         document.removeEventListener('pointermove', mv); document.removeEventListener('pointerup', up);
         outline.remove();
         entry.opts = { ...entry.opts, width: nw, height: nh };
+        delete entry.outer; // the user's grow-box size is an explicit content size
         void this.render(entry);
         // Same userresize signal as the keyboard path — the declarative
         // layer's auto-fit disconnects on this event.

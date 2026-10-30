@@ -48,6 +48,7 @@ export async function mountExplicitPage(opts) {
   const ownership = new Map([...buttons,...controls].map(el => [el,new AbortController()]));
   const modals = new Set();
   const cascade = new Map();
+  let cascadeObserver;
   let picker;
   let disposed = false;
   let epoch = 0;
@@ -230,17 +231,31 @@ export async function mountExplicitPage(opts) {
       const baseX = Number(container.dataset.scriptoscopeCascadeBaseX ?? 0);
       const baseY = Number(container.dataset.scriptoscopeCascadeBaseY ?? 0);
       container.style.position = 'relative';
-      let tallest = 0;
+      const placed = [];
       let lastY = 0;
       children.forEach(([source,win],i) => {
         if (source.hasAttribute('data-scriptoscope-x') || source.hasAttribute('data-scriptoscope-y')) return;
         const x=baseX+i*stepX, y=baseY+i*stepY;
-        tallest = Math.max(tallest,win.host.getBoundingClientRect().height);
+        placed.push(win.host);
         lastY = Math.max(lastY,y);
         win.consumerManager.setPosition(win.host,x,y);
       });
-      container.style.minHeight = `${tallest+lastY+8}px`;
+      // Auto-sized cards can grow after promotion (#526: their content area
+      // is the measured box minus the frame, so it may reflow taller), so the
+      // reservation follows the hosts rather than a one-time measurement.
+      const reserve = () => {
+        const record = cascade.get(container);
+        if (!record || container.style.minHeight !== record.ownedHeight) return;
+        const tallest = Math.max(0, ...placed.map(host => host.offsetHeight));
+        container.style.minHeight = record.ownedHeight = `${tallest+lastY+8}px`;
+      };
       Object.assign(cascade.get(container),{ownedHeight:container.style.minHeight,ownedPosition:container.style.position});
+      reserve();
+      cascadeObserver ??= new ResizeObserver(entries => {
+        for (const [el,record] of cascade) if (entries.some(entry => el.contains(entry.target))) record.reserve?.();
+      });
+      cascade.get(container).reserve = reserve;
+      for (const host of placed) cascadeObserver.observe(host);
     }
   }
   function inheritedRef(el) {
@@ -337,6 +352,8 @@ export async function mountExplicitPage(opts) {
         if(value===undefined)el.removeAttribute(name);else el.setAttribute(name,value);
       }
     }
+    cascadeObserver?.disconnect();
+    cascadeObserver = undefined;
     for (const [el,original] of cascade) {
       if(el.style.minHeight===original.ownedHeight)el.style.minHeight=original.height;
       if(el.style.position===original.ownedPosition)el.style.position=original.position;
