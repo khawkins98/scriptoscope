@@ -13,10 +13,12 @@ const test = base.extend({ servers: [async ({}, use) => {
 // larger than the viewport in both axes, so an arrow key that reaches <body>
 // after a focus drop scrolls the page and the scroll assertion can fail.
 // Two windows keep one inactive (#169 design: arrows keep nudging/resizing).
+// windows-95 is a wnd#-recipe scheme; platinum-8 draws the procedural kDEF 0
+// frame (proceduralFrameChrome), whose grow box is built on a different path.
 const STEP = 8;
-const SLUG = 'windows-95';
+const SLUGS = ['windows-95', 'platinum-8'];
 
-async function setup(page, servers, mode) {
+async function setup(page, servers, mode, slug) {
   await page.goto(`${servers[mode]}/tests/rendering-options/native-dom-page.html`);
   await page.evaluate(async ({ mode, slug }) => {
     const css = document.createElement('link'); css.rel = 'stylesheet';
@@ -38,7 +40,7 @@ async function setup(page, servers, mode) {
     const A = await add('A', 20), B = await add('B', 320);
     window.focusFixture = { api, theme, manager, hosts: { A, B } };
     await document.fonts.ready;
-  }, { mode, slug: SLUG });
+  }, { mode, slug });
   await page.evaluate(() => window.scrollTo(0, 0));
 }
 
@@ -68,9 +70,9 @@ const focusControl = async (page, name, label) => {
   expect(ok, `${name}: "${label}" exists and takes focus`).toBe(true);
 };
 
-for (const mode of ['source', 'built']) {
-  test(`${mode}: ArrowRight ×3 on an inactive window's move handle keeps focus and moves 3 steps`, async ({ page, servers }) => {
-    await setup(page, servers, mode);
+for (const mode of ['source', 'built']) for (const slug of SLUGS) {
+  test(`${mode} ${slug}: ArrowRight ×3 on an inactive window's move handle keeps focus and moves 3 steps`, async ({ page, servers }) => {
+    await setup(page, servers, mode, slug);
     const start = await snapshot(page, 'B');
     expect(start.state, 'B starts inactive').toEqual({ A: 'active', B: 'inactive' });
     await focusControl(page, 'B', 'Move window');
@@ -86,8 +88,8 @@ for (const mode of ['source', 'built']) {
     }
   });
 
-  test(`${mode}: ArrowRight ×3 on the grow box keeps focus and resizes 3 steps`, async ({ page, servers }) => {
-    await setup(page, servers, mode);
+  test(`${mode} ${slug}: ArrowRight ×3 on the grow box keeps focus and resizes 3 steps`, async ({ page, servers }) => {
+    await setup(page, servers, mode, slug);
     const start = await snapshot(page, 'A');
     const chromeWidth = () => page.evaluate(() =>
       window.focusFixture.hosts.A.shadowRoot.querySelector('canvas.scriptoscope-chrome')?.width ?? 0);
@@ -106,8 +108,8 @@ for (const mode of ['source', 'built']) {
     }
   });
 
-  test(`${mode}: Enter ×2 on Collapse collapses then re-expands and keeps focus`, async ({ page, servers }) => {
-    await setup(page, servers, mode);
+  test(`${mode} ${slug}: Enter ×2 on Collapse collapses then re-expands and keeps focus`, async ({ page, servers }) => {
+    await setup(page, servers, mode, slug);
     const start = await snapshot(page, 'A');
     expect(start.collapsed).toBe(false);
     await focusControl(page, 'A', 'Collapse window');
@@ -123,8 +125,8 @@ for (const mode of ['source', 'built']) {
 
   // Negative guard: a fix must restore focus only where it was. Re-rendering a
   // window that does not contain focus must leave focus where it is.
-  test(`${mode}: re-rendering a window without focus does not move focus`, async ({ page, servers }) => {
-    await setup(page, servers, mode);
+  test(`${mode} ${slug}: re-rendering a window without focus does not move focus`, async ({ page, servers }) => {
+    await setup(page, servers, mode, slug);
     await page.locator('#outside').focus();
     const where = () => page.evaluate(() => {
       const f = window.focusFixture, a = document.activeElement;
@@ -148,4 +150,29 @@ for (const mode of ['source', 'built']) {
     expect(await where(), 'A focus after setContentSize(B)').toBe('A:Move window');
     expect(await page.evaluate(() => ({ x: scrollX, y: scrollY }))).toEqual({ x: 0, y: 0 });
   });
+
+  // preventScroll: restoring focus onto a rebuilt control must not scroll a
+  // window that is out of view back into it. Scroll the page well away from
+  // both windows, then re-render the focused window through the public API.
+  for (const [label, rerender] of [
+    ['setContentSize', async () => { const f = window.focusFixture; await f.manager.setContentSize(f.hosts.A, 264, 136); }],
+    ['retheme', async () => {
+      const f = window.focusFixture, next = await f.api.loadTheme('/themes/1138');
+      await f.manager.retheme(next); await f.manager.retheme(f.theme); next.dispose?.();
+    }],
+  ]) {
+    test(`${mode} ${slug}: ${label} on an off-screen focused window keeps focus without scrolling`, async ({ page, servers }) => {
+      await setup(page, servers, mode, slug);
+      await focusControl(page, 'A', 'Move window');
+      await page.evaluate(() => window.scrollTo(1500, 1500));
+      const before = await snapshot(page, 'A');
+      expect(before.scroll, 'page scrolled away from the windows').toEqual({ x: 1500, y: 1500 });
+      expect(before.shadowActive).toBe('button:Move window');
+      await page.evaluate(rerender);
+      const s = await snapshot(page, 'A');
+      expect(s.scroll, `after ${label}: page scroll`).toEqual(before.scroll);
+      expect({ documentActive: s.documentActive, shadowActive: s.shadowActive }, `after ${label}`)
+        .toEqual({ documentActive: 'host A', shadowActive: 'button:Move window' });
+    });
+  }
 }
