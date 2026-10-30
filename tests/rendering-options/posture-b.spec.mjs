@@ -172,16 +172,17 @@ async function openPersisted(page, demo) {
   await page.goto(`${demo}/install.html`);
   await page.evaluate(k => localStorage.removeItem(`scriptoscope:layout:${k}`), LAYOUT_KEY);
 }
-const mountPersisted = page => page.evaluate(async key => {
+const TWO_IN_FLOW = '<article data-scriptoscope-window data-scriptoscope-window-id="a" data-scriptoscope-title="A">In flow A</article>'
+  + '<article data-scriptoscope-window data-scriptoscope-window-id="b" data-scriptoscope-title="B">In flow B</article>';
+const mountPersisted = (page, { html = TWO_IN_FLOW, theme = 'windows-95', width = 600 } = {}) => page.evaluate(async ({ key, html, theme, width }) => {
   const { mountExplicitPage } = await import('/explicit-host.mjs');
   const root = document.createElement('section');
   root.id = 'pb-root';
-  root.style.cssText = 'position:relative;width:600px;margin:40px';
-  root.innerHTML = '<article data-scriptoscope-window data-scriptoscope-window-id="a" data-scriptoscope-title="A">In flow A</article>'
-    + '<article data-scriptoscope-window data-scriptoscope-window-id="b" data-scriptoscope-title="B">In flow B</article>';
+  root.style.cssText = `position:relative;width:${width}px;margin:40px`;
+  root.innerHTML = html;
   document.body.prepend(root);
-  window.__pb = await mountExplicitPage({ root, themeBaseUrl: '/themes', pageThemeDefault: 'windows-95', themes: [], bootAffordance: false, persistKey: key });
-}, LAYOUT_KEY);
+  window.__pb = await mountExplicitPage({ root, themeBaseUrl: '/themes', pageThemeDefault: theme, themes: [], bootAffordance: false, persistKey: key });
+}, { key: LAYOUT_KEY, html, theme, width });
 const persisted = page => page.evaluate(key => ({
   stored: JSON.parse(localStorage.getItem(`scriptoscope:layout:${key}`) ?? 'null'),
   hosts: [...document.querySelectorAll('#pb-root [data-scriptoscope-window-host]')].map(h => {
@@ -189,12 +190,19 @@ const persisted = page => page.evaluate(key => ({
     return { inline: h.style.position, left: h.style.left, top: h.style.top, x: Math.round(r.x), y: Math.round(r.y), width: Math.round(r.width), height: Math.round(r.height) };
   }),
 }), LAYOUT_KEY);
-async function reloadPersisted(page) {
+async function reloadPersisted(page, mount = {}) {
   await page.reload();
-  await mountPersisted(page);
-  await expect.poll(async () => (await persisted(page)).hosts.length).toBe(2);
+  await mountPersisted(page, mount);
+  const count = (mount.html ?? TWO_IN_FLOW).match(/data-scriptoscope-window /g).length;
+  await expect.poll(async () => (await persisted(page)).hosts.length).toBe(count);
   return persisted(page);
 }
+/** Each window's content box (its light-DOM slot) and frame extent (chrome canvas minus slot). */
+const described = page => page.evaluate(() => [...document.querySelectorAll('#pb-root [data-scriptoscope-window-host]')].map(host => {
+  const slot = host.querySelector(':scope > .scriptoscope-slot').getBoundingClientRect();
+  const chrome = host.shadowRoot.querySelector('canvas.scriptoscope-chrome').getBoundingClientRect();
+  return { width: Math.round(slot.width), height: Math.round(slot.height), ext: { x: Math.round(chrome.width - slot.width), y: Math.round(chrome.height - slot.height) } };
+}));
 
 test('source: persistKey round trip keeps in-flow windows in flow and restores a dragged one as absolute (#536)', async ({ page, demo }) => {
   await openPersisted(page, demo);
@@ -232,17 +240,53 @@ test('source: persistKey round trip keeps in-flow windows in flow and restores a
   expect([restored.hosts[0].x, restored.hosts[0].y], 'A unmoved').toEqual([first.hosts[0].x, first.hosts[0].y]);
 });
 
-// Known failure (#558): the layout layer persists an auto-sized window's CONTENT size and
-// restores it as a declared size, where ScriptoscopeWindow's 40 px outer floor (MIN_H) is
-// applied to it as if it were outer. A 30 px content area comes back as 40 px, so every
-// reload after the first grows short in-flow windows and pushes later siblings down.
-// Remove test.fail when that is fixed.
+// #558: the layout layer persists an auto-sized window's CONTENT size and restores it as a
+// declared size. ScriptoscopeWindow's 40 px outer floor (MIN_H) used to be applied to it as if
+// it were outer, so a 30 px content area came back as 40 px and every reload grew short windows.
 test('source: persistKey reload keeps in-flow window sizes (#558)', async ({ page, demo }) => {
-  test.fail(true, 'known: restored content height floored to the 40 px outer minimum (#558)');
   await openPersisted(page, demo);
   await mountPersisted(page);
   await expect.poll(async () => (await persisted(page)).stored?.windows?.b, 'layout written after the first render').toBeTruthy();
   const first = await persisted(page);
   const reloaded = await reloadPersisted(page);
   expect(reloaded.hosts.map(h => [h.width, h.height]), 'reload restores the same window boxes').toEqual(first.hosts.map(h => [h.width, h.height]));
+});
+
+// #558, width and declared cases: a window in a 70 px column is raised to the 80 px OUTER floor
+// and persists a content width below 80; a declared 60x20 content window persists below both
+// floors. Reload must restore the same content and outer sizes, not re-floor them as outer.
+test('source: persistKey reload keeps small declared and floored sizes (#558)', async ({ page, demo }) => {
+  const mount = {
+    width: 70,
+    html: '<article data-scriptoscope-window data-scriptoscope-window-id="narrow" data-scriptoscope-title="N">n</article>'
+      + '<article data-scriptoscope-window data-scriptoscope-window-id="small" data-scriptoscope-width="60" data-scriptoscope-height="20" data-scriptoscope-title="S">s</article>',
+  };
+  await openPersisted(page, demo);
+  await mountPersisted(page, mount);
+  await expect.poll(async () => (await persisted(page)).stored?.windows?.small, 'layout written after the first render').toBeTruthy();
+  const first = await persisted(page);
+  const firstState = await described(page);
+  expect(first.hosts[0].width, 'narrow window raised to the 80 px outer floor').toBe(80);
+  expect([firstState[1].width, firstState[1].height], 'declared content size kept').toEqual([60, 20]);
+  const reloaded = await reloadPersisted(page, mount);
+  expect(reloaded.hosts.map(h => [h.width, h.height]), 'reload restores the same window boxes').toEqual(first.hosts.map(h => [h.width, h.height]));
+  expect((await described(page)).map(s => [s.width, s.height]), 'reload restores the same content sizes').toEqual(firstState.map(s => [s.width, s.height]));
+});
+
+// #558 / #542: a reload restores the saved OUTER width (`ow`) the way the cross-tab restore
+// does, so a layout saved under a thin frame and reloaded under a thicker one keeps its
+// footprint. Height stays a content size (flow absorbs it), matching the cross-tab path.
+test('source: persistKey reload under a thicker scheme keeps the saved outer width (#558)', async ({ page, demo }) => {
+  const mount = { html: TWO_IN_FLOW, width: 400 };
+  await openPersisted(page, demo);
+  await mountPersisted(page, { ...mount, theme: 'apple-lisa' });
+  await expect.poll(async () => (await persisted(page)).stored?.windows?.b, 'layout written after the first render').toBeTruthy();
+  const first = await persisted(page);
+  const firstState = await described(page);
+  const reloaded = await reloadPersisted(page, { ...mount, theme: 'dolphin-som' });
+  const state = await described(page);
+  expect(state[0].ext.x, 'dolphin-som has a different side frame than apple-lisa').not.toBe(firstState[0].ext.x);
+  await expect.poll(async () => (await persisted(page)).hosts.map(h => h.width), 'saved outer widths restored').toEqual(first.hosts.map(h => h.width));
+  expect((await described(page)).map(s => s.height), 'content heights restored').toEqual(firstState.map(s => s.height));
+  expect(reloaded.hosts.map(h => h.inline), 'still in flow').toEqual(['', '']);
 });

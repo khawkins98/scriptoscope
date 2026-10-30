@@ -174,6 +174,24 @@ for (const mode of ['source', 'built']) {
     expectHostIsChrome(r.restored, 'restored');
   });
 
+  // #558: MIN_W/MIN_H are OUTER floors for measured boxes. A declared
+  // data-scriptoscope-width/-height is a CONTENT size, so a small declared
+  // size renders as declared instead of being raised to the outer floor.
+  test(`${mode}: small declared content sizes are not raised to the outer floor (#558)`, async ({ page, servers }) => {
+    await openHarness(page, servers, mode);
+    await boot(page, mode);
+    const r = await page.evaluate(async () => {
+      const h = window.__obf;
+      const { win, manager } = await h.promote('windows-95', '<article data-scriptoscope-window data-scriptoscope-width="50" data-scriptoscope-height="20" data-scriptoscope-title="Small">x</article>');
+      const { width, height } = manager.describe(win.host);
+      return { width, height, ext: manager.chromeExtent(win.host), box: h.measure(win) };
+    });
+    expect.soft([r.width, r.height], 'declared content size is kept').toEqual([50, 20]);
+    expect.soft(Math.abs(r.box.canvas.width - (50 + r.ext.x)), `chrome width ${r.box.canvas.width} = 50 + frame ${r.ext.x}`).toBeLessThanOrEqual(TOL);
+    expect.soft(Math.abs(r.box.canvas.height - (20 + r.ext.y)), `chrome height ${r.box.canvas.height} = 20 + frame ${r.ext.y}`).toBeLessThanOrEqual(TOL);
+    expectHostIsChrome(r.box, 'small declared');
+  });
+
   // Review of #564: the built-in frame draws a collapsed side utility as a bare
   // bar with no content width, so its footprint says nothing about the bound.
   // Collapsing must keep the last expanded content width (public describe()),

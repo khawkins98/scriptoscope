@@ -11,11 +11,14 @@ export function ownLayout(options,signal) {
   catch {return null;}
  }
  let initial=null;
+ // Saved OUTER widths awaiting their window: the attributes can only declare content.
+ const pendingOuter=new Map();
  try { initial=key?parse(localStorage.getItem(key)):null; } catch(error) { status.enabled=false; console.error('Consumer layout read failed',error); }
  function initialAttrs(source,index) {
   const id=source.dataset.scriptoscopeWindowId||String(index);
   const state=initial?.windows[id];
   if(!state)return ()=>{};
+  if(Number.isFinite(state.ow)&&Number.isFinite(state.w))pendingOuter.set(id,state.ow);
   const before=new Map();
   for(const [field,attr]of [['x','x'],['y','y'],['w','width'],['h','height'],['z','z'],['collapsed','collapsed']]){
    if(state[field]===undefined)continue;
@@ -44,8 +47,14 @@ export function ownLayout(options,signal) {
   clearTimeout(timer);timer=setTimeout(()=>{try{localStorage.setItem(key,JSON.stringify(snapshot()));}catch(error){console.error('Consumer layout write failed',error);}},250);
  }
  function add(source,index,win,manager) {
-  records.set(source.dataset.scriptoscopeWindowId||String(index),{win,manager});
+  const id=source.dataset.scriptoscopeWindowId||String(index);
+  records.set(id,{win,manager});
   manager.setChangeListener(schedule);
+  // A reload declares the saved CONTENT width, which carries the saving scheme's frame
+  // difference into a different scheme. Re-bound it to the saved OUTER width, as the
+  // cross-tab restore does (#542, #558); on the same scheme this is a no-op size.
+  const ow=pendingOuter.get(id);pendingOuter.delete(id);
+  if(ow!==undefined)latest=latest.catch(()=>{}).then(()=>signal.aborted?undefined:manager.setOuterSize(win.host,{width:ow})).catch(error=>console.error('Consumer layout restore failed',error));
  }
  async function update(value) {
   if(!value||signal.aborted)return;
