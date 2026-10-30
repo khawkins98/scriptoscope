@@ -56,8 +56,10 @@ npm run dev
    status 1, so a problem shows up here, not later in the browser. Warnings are
    printed but don't stop the build.
 
-If you edit Halcyon itself, rebuild before running `npm test`: tests check
-that the committed `scheme.rsrc` and `scheme.bin` match a fresh build.
+If you edit a first-party scheme (Halcyon, Castle, Brickworks, Bonn, or the
+claude-pxl variant in `authoring/experiments/pxl/variant/`), rebuild it before
+running `npm test`: tests check that the committed `scheme.rsrc` and
+`scheme.bin` match a fresh build.
 
 **Why two files?** On a classic Mac a file has two parts (a data fork and a
 resource fork) plus Finder info: a 4-letter file *type* and *creator*. Every
@@ -123,13 +125,14 @@ part code:              1      11  5  8      1
 | Part code | Behaviour | Use it for |
 |---|---|---|
 | 1 | fixed: drawn once, 1:1 | corners and anything containing a widget |
-| 8, 11 | grow: the source column repeats (tiles) to fill extra space | plain stretches of border or title bar |
+| 8, 11 | grow: the source column repeats (tiles) to fill extra space; 11 tiles from the far end | plain stretches of border or title bar |
 | 5 | title plate: widened to the title's width and centred | the strip behind the title text |
 | 6 | title bezel: fixed, hidden when the title doesn't fit | end caps around the plate |
-| 0 | collapse: zero width | (rarely needed) |
+| 0 | collapse: zero width | skipping template columns on one edge, e.g. a bottom with less art than the top |
 | 2, 3, 4 | fixed while the window has a close / zoom / collapse box; zero width when it doesn't | space that belongs to that widget |
-| 10 | fixed, but dropped when the window is narrower than the template | optional decoration |
-| 12 | tile in whole copies only | patterned borders |
+| 10 | fixed, but dropped (with the title) when the window is narrower than the edge's fixed cells | optional decoration |
+| 12 | tile in whole copies only; the leftover pixels go to a 13/14 (or 8/11) cell in the same half | patterned borders |
+| 13, 14 | filler: gets only the leftover pixels, so it is 0px at template size | the gap next to a code-12 run |
 | 15, 16, 17 | collapse to zero when their widget is present | never put a widget in these |
 | 18 | scale once | rare |
 
@@ -166,7 +169,14 @@ const layout = windowLayout({
 
 **Frames that aren't rounded rectangles** (battlements, towers above the bar,
 wavy edges, a tab-shaped title) use `frameLayout()` instead of
-`windowLayout()`. The worked example is `authoring/schemes/castle/frames.mjs`.
+`windowLayout()`. There are three worked examples, each with its recipes in a
+one-line-per-edge comment at the top of `frames.mjs`:
+- `authoring/schemes/castle/`: towers above the bar, whole merlons, a banner
+  title, walls with fixed arrow loops;
+- `authoring/schemes/brickworks/`: whole studs (13 | 12 | 13), a centred
+  ornament on untitled windows, `layout.lint` with uniform groups;
+- `authoring/schemes/bonn/`: a draw-once code-10 skyline and its title-room
+  cost, a code-0 skip on the bottom, `fitPalette` on every frame.
 The rules are in
 [`authoring-exotic-frames.md`](./authoring-exotic-frames.md): multi-pixel tiles,
 where partial tiles land, code 12 and its fillers, title end caps, per-edge art,
@@ -241,11 +251,14 @@ look smooth:
     `bayer(x, y)` gives the raw threshold for your own patterns.
   - **Patterns (`ppat`) tile in both directions**, so a dither that wraps at
     the tile size is fine there. Halcyon's desktop and progress stripes use it.
-- **Mind the colour budget.** A `cicn` holds at most 256 colours, and smooth
-  edges, gradients and dithering add colours fast: Brickworks' and Bonn's first
-  builds both went over. The encoder's error gives the actual count. Call
+- **Mind the colour budget.** A `cicn` holds at most 256 colours. Smooth
+  edges add a colour per blended pixel, and `mix()` against a per-row colour
+  adds one per row: Brickworks' and Bonn's first builds both went over. A
+  `ditheredGradient` costs only its `levels` colours, so dithering is the
+  cheap way to a gradient. The encoder's error gives the actual count. Call
   `fitPalette(raster)` before encoding a big frame. It merges the rarest colours
-  (usually edge blends) first, and never touches hidden swatches.
+  (usually edge blends) first, and never touches hidden swatches. Mix against
+  a few fixed colours rather than against per-row ones.
 - **Hidden swatches and mattes interact.** A matte makes every partly covered
   edge pixel opaque, so put swatches on pixels you know stay fully transparent.
 
@@ -305,10 +318,20 @@ look smooth:
    - **8 bpp:** subtle tints become palette colours on a 256-colour screen, so
      the desktop pattern uses colours that are exactly in the system palette
      (`SYSTEM_PALETTE_256`, exported from the toolkit).
-   - **Reusing a family:** Halcyon's `parts/progress.mjs` keeps every colour in
-     one `family()` block, so it re-themes by changing that block. Its
-     `parts/controls.mjs` hard-codes about 30 colours, so copying it means
-     recolouring by hand (Bonn did; it took about 10 minutes).
+   - **Reusing a family:** every first-party scheme so far copied its control
+     families from an earlier one and repainted them, and the engine rules
+     came along in the comments. Start from these:
+
+     | Family | Copy | Why |
+     |---|---|---|
+     | scroll bars | `castle/scrollbars.mjs` | every colour is in one `SB` object at the top; Brickworks and Bonn both re-themed it (Bonn: about 15 replacements) |
+     | push buttons, ring, checkboxes, radios | `castle/controls.mjs` or `bonn/controls.mjs` | the same pieces as sections 3–4 of Halcyon's `scheme.mjs`, in a file of their own |
+     | progress, headers, disclosure, grow box | Halcyon's `parts/progress.mjs` | every colour is in one `family()` block |
+     | sliders, tabs | `bonn/families.mjs` (also bevels and popups) or `brickworks/extras.mjs` | re-themed copies of Halcyon's `parts/controls.mjs`, which hard-codes about 30 colours (recolouring it by hand took Bonn about 10 minutes) |
+     | body patterns, Finder colours | `castle/patterns.mjs` | small; the header says which `ppat` feeds which body |
+
+     The pressed strip comes from the toolkit (`stripLayout`,
+     `pressedStripFrom`), so there is nothing to copy for it.
 
 ## 6. Id cheat-sheet (what Halcyon ships)
 
@@ -319,7 +342,7 @@ look smooth:
 | `-14328`, `-14326` | | dialog, alert (no title bar) |
 | `-14324`, `-14322` | | movable modal, movable alert |
 | `-14304`, `-14300` | | titled utility window, and its collapsed form |
-| `-14330`, `-14298` | `cicn` | pressed close / zoom / collapse, side by side (second row for collapsed windows); document and utility. **The web makes widgets clickable only when `-14330` exists**, and reads it for every window type, so give all windows the same widget sizes |
+| `-14330`, `-14298` | `cicn` | pressed close / zoom / collapse, side by side (second row for collapsed windows); document and utility. **The web makes widgets clickable only when `-14330` exists**, and reads it for every window type, at offsets summed from that window's own widget rects. Give all windows the same widget sizes, and utility windows either the document's widget set or close only ([R24](./authoring-exotic-frames.md#5-pressed-widgets-r24)) |
 | `-10240` / `-10239` / `-10238` | `cicn` + `cinf` | push button: inactive / normal / pressed |
 | `-10232` / `-10231` | `cicn` + `cinf` | default-button ring: inactive / normal |
 | `-9504 … -9496` | `cicn` | checkbox: value (off, on, mixed) × tier (disabled, normal, pressed) |
@@ -381,7 +404,18 @@ fires on an original scheme is at most a warning.
 | warning | a `cinf` whose text and background sample the same colour (text on that piece is invisible) |
 
 It also prints the colours the engine *will* sample, such as title text and
-button labels, so you can confirm your hidden swatches.
+button labels, so you can confirm your hidden swatches. A "classic extras"
+line says which things real Kaleidoscope shows beyond the windows the scheme
+ships: the desktop pattern, the picker icon, menus, and pressed utility
+widgets (`-14298`) when utility windows have widgets. They aren't warnings,
+because plenty of corpus schemes skip them, but Castle's and Brickworks'
+builders only found out in the emulator.
+
+Frames built with `frameLayout` get more checks of their own when they're
+built: widgets in fixed cells, code-12 recipients, the 17px title rect, and,
+if you call `layout.lint(raster)`, stray art in tiled cells and a transparent
+last row or column
+([`authoring-exotic-frames.md`](./authoring-exotic-frames.md) §8).
 
 ## 8. Not covered yet
 
@@ -409,6 +443,12 @@ runtime doesn't draw that family from the scheme:
 - grow boxes on `wnd#` windows;
 - disclosure rotation frames.
 
+Progress bars sit in between: the runtime draws them from the scheme
+(`composeProgress`, exported from the renderer entry), but the declarative
+layer has no progress element, so `authoring-preview.html` can't show them.
+Check them by calling `composeProgress` from a page or script, or in real
+Kaleidoscope.
+
 ## 8a. Testing in real Kaleidoscope
 
 Halcyon has been loaded in the original Kaleidoscope 2.3.1 on System 7.5.5
@@ -431,17 +471,27 @@ can repeat it:
 
 What real Kaleidoscope showed that the web preview doesn't:
 
-- Halcyon has a blank icon in the scheme picker, and the panel greys out
-  Finder Icons, Arrow Cursor, WindowShade Sounds, Finder Colors, Desktop
-  Pattern, Accent Color and About This Scheme. The scheme ships none of them.
-- In the first test, menus, scrollbars and the desktop stayed on the system
-  defaults. Halcyon now themes them (§5, item 6), and real Kaleidoscope draws
-  its menu bar, menus, desktop pattern and scheme icon.
+- In the first test, Halcyon had a blank icon in the scheme picker, and the
+  panel greyed out Finder Icons, Arrow Cursor, WindowShade Sounds, Finder
+  Colors, Desktop Pattern, Accent Color and About This Scheme, because the
+  scheme shipped none of them. Menus, scrollbars and the desktop stayed on the
+  system defaults. Halcyon now themes them (§5, item 6), and real Kaleidoscope
+  draws its menu bar, menus, desktop pattern and scheme icon. Finder icons,
+  cursors, sounds and the Finder Colors and Accent Color options still stay
+  on the system defaults (the classic README).
+  `npm run author` prints what a scheme ships of these ("classic extras", §7).
 - A plain dialog or alert body is the system dialog grey (`#E7E7E7`) under the
   frame's white top band; Scriptoscope's web runtime fills it white. That is
   a runtime fidelity finding, not an authoring bug.
 - The title is drawn in bitmap Chicago 12, and the 8 bpp screen palette
   turns the title-bar gradient into flat bands.
+
+Castle, Brickworks and Bonn have been run the same way (one clean boot each;
+screenshots in each scheme's `classic/`). What that run taught about tall and
+irregular frames is in
+[`authoring-exotic-frames.md`](./authoring-exotic-frames.md) R16: clicks pass
+through transparent frame pixels, the menu bar covers art above the title bar,
+narrow windows lose the title first, and 8 bpp shifts subtle colours.
 
 ## 9. Getting help from an AI assistant
 

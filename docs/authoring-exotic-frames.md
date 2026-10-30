@@ -101,15 +101,21 @@ window is big enough for a second copy).**
   that rises 55px above the bar. At content width 300 it draws once. At 520
   it draws **three whales** (`png/animals-util.png`, `png/animals-util-wide.png`).
 - For art that must appear exactly once on a **titled** edge, use a **code-10
-  cell** between growers (R12). Bonn's skyline does this, and code 10 is
-  dropped when the side gets too short. A fixed code-1 cell also works, but
-  never gives way.
+  cell** between growers (R12). Bonn's skyline does this. Code 10 is dropped
+  when the window is narrower than the edge's fixed sum `F` (TS1: every code
+  1/2/3/4/10 cell; bezels, plate and growers don't count), together with the
+  title and bezels. Bonn's document template is 155px wide and `F` is 128px.
+  A fixed code-1 cell also works, but never gives way: below `F` its
+  neighbours overlap (AW8).
 - **Every fixed pixel on a titled edge is taken from the title's room.** The
   narrowest window that still shows a title is about the sum of the top edge's
   non-growing cells plus the title's width. `frameLayout` reports it as
   `fixedTop` and `minWidthForTitle(px)`. Bonn's first 91px skyline made a 260px
   window truncate its title and a 150px window lose it. The engine drops the
-  title before it drops a code-10 cell, so keep big ornaments narrow.
+  title before it drops a code-10 cell, so keep big ornaments narrow. Bonn's
+  document, as shipped, shows a whole 90px title from 238px, the skyline
+  alone (no title, TT3) between 128 and 150px, and neither below 128px
+  (checked with the runtime's `layoutWindow`).
 
 **R7. Code 18 = one scaled blit** (`0x10320`, nearest-neighbour
 `floor(k·sw/dw)`, declared modern policy, `qd-primitives.md` Q4).
@@ -129,15 +135,18 @@ window is big enough for a second copy).**
   included.** If you run an outline pass over the template, make sure no 1px
   grower or filler column sits next to a transparent pixel. Otherwise the
   outline colour fills the column and gets tiled into a solid bar. (Castle's
-  first render had a dark block beside each tower for this reason.)
+  first render had a dark block beside each tower for this reason.) The
+  toolkit's outliner is `raster.outlineEdges(0, 0, w, h, colour)`. To catch
+  it, give the 1px growers that should look alike one `uniform` group
+  (`frameLayout`, §8): `layout.lint` fails when one of them stops matching.
 - *Corpus:* animals, monkey-paradise.
 
-**Which code for which effect** (worked out building Castle; the allocation
-rules are in `allocate()`, `src/engine/families/window.ts`):
+**Which code for which effect** (worked out building Castle, Brickworks and
+Bonn; the allocation rules are in `allocate()`, `src/engine/families/window.ts`):
 
 | You want | Use |
 |---|---|
-| an ornament that must only ever appear whole (merlons, studs) | code 12 + a 1px code-13 filler at the outer end of the same allocation; leftover width becomes a slightly wider gap |
+| an ornament that must only ever appear whole (merlons, studs) | code 12 + a 1px code-13 filler at the outer end of the same allocation; leftover width becomes a slightly wider gap. For a wide tile, put a 13 at *both* ends of each 12 run (13 \| 12 \| 13), so the leftover (up to tile − 1 px) is split in two (Brickworks' 24px bricks). Below about template width + one tile, a half can show no ornament at all: "never a part tile" working as designed |
 | a texture where a cut copy looks fine (stone courses, planks, a wave) | code 11 before the fixed piece, code 8 after it, so partial tiles land at the corners (R3) |
 | a fixed ornament centred on an untitled edge | 12 \| 13 … fixed … 13 \| 12, or 11 \| fixed \| 8. Two code-13 cells share the remainder evenly, so the ornament stays centred to ±1px |
 | a large ornament drawn once on a titled edge (a skyline) | a code-10 cell between code-8 growers, kept narrow, because it takes the title's room (R6) |
@@ -145,6 +154,11 @@ rules are in `allocate()`, `src/engine/families/window.ts`):
 
 **R9. Code 0 collapses to zero.** It lets one edge skip template columns that
 exist only for the other edge's sake.
+- Put the skip next to a fixed corner, where a cut tile lands anyway. A
+  tile that is exactly one period of a pattern painted in template
+  coordinates repeats seamlessly wherever it sits, so the skip's width
+  doesn't have to match the period. Only cells **adjacent in the recipe**
+  need to join (Bonn first sized its skip to the wave period for nothing).
 - *Corpus:* apple-lisa's bottom is `1@2 0@50 8@51 0@121 1@123`. Monkey's
   bottom (`0@139`) and animals' alert bottom (`0@43 … 0@97`) do the same.
 - This is the main tool for **a bottom edge different from the top** with
@@ -184,8 +198,9 @@ exist only for the other edge's sake.
   `glitch-punchlist.md`.
 
 **R12. Code 10: fixed, dropped when the side is too short.**
-- It only matters below template size: when `E < F` (TS1). At or above the
-  template size it is a plain fixed cell.
+- It only matters when the window is narrower than the side's fixed sum,
+  `E < F` (TS1), which is less than the template width (R6 has Bonn's
+  numbers). Otherwise it is a plain fixed cell.
 - A widget wholly inside a dropped cell becomes an empty rect, so it is not
   drawn and not hit (RM6).
 - *Corpus:* 1138 and apple-lisa collapse boxes; the animals bottom `10@44`.
@@ -243,7 +258,7 @@ left/right band.**
 (`src/composeChrome.ts:28-29`, WD4/WD13). The canvas is transparent there and
 the page shows through. **But the window still owns those pixels.**
 - The drag handle is "window rect minus content rect", purely rectangular
-  (`src/interactive.ts:1549-1557`).
+  (`inFrame`, `src/interactive.ts:1561-1569`).
 - A click between merlons or beside the BeOS tab starts a window drag. It does
   not reach the page underneath.
 - Title-widget hits are the only mask-shaped hit test (R24).
@@ -253,10 +268,10 @@ through** (confirmed 2026-10-30, below).
 - Halcyon's real-Kaleidoscope capture (`authoring/schemes/halcyon/classic/desktop@2x.png`)
   shows its rounded-corner mask pixels displaying the desktop pattern
   (`#E7E7E7`/`#DADAFF`) and the window behind. I sampled the pixels.
-- The original `wCalcRgns` (structure region) is **not traced**
-  (`window-widgets.md` §1 out-of-scope, §6 Q3). We can't say whether those
-  pixels belong to the window's region for clicks.
-- That capture is an illustration, not admitted fidelity evidence (its README).
+- The original `wCalcRgns` (structure region) is still **not traced**
+  (`window-widgets.md` §1 out-of-scope, §6 Q3), so the click behaviour below
+  is an observation, not a decode.
+- The captures are illustrations, not admitted fidelity evidence (their READMEs).
 - **Click-through confirmed in real Kaleidoscope 2.3.1** (Castle and Brickworks,
   2026-10-30). A single click on a gap between merlons or studs, where the
   desktop disk icon showed through, selected the icon and made the window
@@ -268,10 +283,14 @@ through** (confirmed 2026-10-30, below).
     the menu bar loses its tower tops or skyline beneath it
     (`authoring/schemes/bonn/classic/menubar-clips-skyline@3x.png`). Keep the
     essential look in the bar rows, and treat art above them as decoration.
-  - **Narrow windows behave differently from the web.** In classic, Bonn's
-    narrow window loses its title, pennant and skyline together; the web keeps
-    the skyline and shows "…". Castle keeps "Sys…", and Brickworks only "…".
-    Leave plenty of title room (R6).
+  - **Narrow windows lose the title first.** In classic, Bonn's narrow
+    window (about 105px wide, `narrow-zoom@4x.png`) lost its title, pennant and
+    skyline together. That is TS1: it is narrower than Bonn's fixed sum
+    (128px), and the web's `layoutWindow` drops the same cells at that width.
+    The web preview's "narrow" window is wider (160px), so it keeps the
+    skyline and shows "…" (R6). The two runs weren't at equal widths, so they
+    show no divergence. Castle kept "Sys…", and Brickworks only "…". Leave
+    plenty of title room (R6).
   - **8 bpp shifts subtle colours.** Castle's warm beige stone came out grey with
     pink mortar and yellow flecks, while Brickworks' saturated primaries and
     Bonn held up. Pick key colours from `SYSTEM_PALETTE_256`, or at least check
@@ -295,6 +314,8 @@ the template.**
   bottom/right recipe can then fall short.
 - *Corpus:* beos-r503's 92px cicn is drawn as 75px.
 - A wavy bottom edge is fine as long as some pixel in the last row is opaque.
+- `frameLayout`'s `layout.lint(raster)` fails a wholly transparent last
+  column, or last row on a non-collapsed frame.
 
 **R19. Drop shadows: bake them yourself, and keep the CSS shadow off.**
 - The `wnd#` kDEF adds no window shadow. Only the built-in procedural frame
@@ -413,19 +434,28 @@ web.**
   collapsed windows when the strip is at least twice as tall.
 - The strip's **mask is the hit region**: offset 1:1, not scaled (HT7/HT8).
 - The web draws it on press (`src/composeChrome.ts:202-208`;
-  `src/engine/families/window.ts:321-348`; `src/interactive.ts:1837`). It
-  makes a widget hittable **only if the strip exists**
-  (`widgetHittable … && !!strip`), and `overlayWidgets` creates buttons only
-  for hittable widgets.
+  `src/engine/families/window.ts:321-348`). It makes a widget hittable **only
+  if the strip exists** (`widgetHittable … && !!strip`,
+  `src/engine/families/window.ts:344-348`), and `overlayWidgets`
+  (`src/interactive.ts:1767`) creates buttons only for hittable widgets.
 - `checkScheme` warns when a scheme has widgets but no `-14330` (Halcyon
   shipped none at first, and its widgets were dead in the web).
-- **Offsets are summed from the pressing window's own rects.** A utility window
-  with close + collapse but no zoom reads its collapse piece at
-  `x = width(close)`, which is the document strip's *zoom* piece. Give every
-  window the document's widget set and sizes, or give utilities close only
-  (Castle does), or make the zoom and collapse pressed art interchangeable.
-  This is a web gap: classic reads utility windows' own `-14298`. It affects
-  12 of 18 corpus schemes too, so it isn't a checker rule.
+- **Offsets are summed from the pressing window's own rects** (WD9/HT7,
+  `stripSource`). This is the decoded kDEF rule, so it holds in classic too.
+  A utility window with close + collapse but no zoom reads its collapse piece
+  at `x = width(close)`, which in the document strip is the *zoom* piece.
+  - On the web this can't be laid out away, because the web reads `-14330`
+    for every window (below). Give every window the document's widget set
+    and sizes, or give utilities close only (Castle, Brickworks and Bonn do),
+    or make the zoom and collapse pressed art interchangeable.
+  - In classic, utility windows read `-14298`, at the same per-window
+    offsets. So lay `-14298` out from the **utility** window:
+    `stripLayout(utilityLayout)`. For a close-only utility at the document's
+    close size, the document strip is already right (Brickworks ships it).
+  - Halcyon is caught by this: its utility windows have close + collapse, and
+    its `-14298` is the three-piece document strip, so its pressed utility
+    collapse box shows the zoom glyph on the web and, by the decode, in classic.
+  - It affects 12 of 18 corpus schemes too, so it isn't a checker rule.
 - `pressedStripFrom` (`tools/theme-author/frame-layout.js`) builds the strip
   from the active frame. Each piece is the widget's own frame pixels with the
   pressed art on top, so its edges match and its mask equals the visible widget.
@@ -447,6 +477,8 @@ web.**
   windows therefore use the document strip.
 - Ship `-14298`/`-14290` for classic, but give utility widgets the same rect
   sizes as the document widgets, so `-14330` also reads right on them.
+  `npm run author` prints whether a scheme with utility widgets ships
+  `-14298` ("classic extras"). Castle and Bonn don't.
 - At rest, widget art is the frame's own pixels (WD10); there is no separate
   rollover art.
 
@@ -491,7 +523,7 @@ web.**
   `src/renderWindow.ts:483`).
 - **Web limits:**
   - `sideTitle` is never set, so the pressed strip is `-14330`, not `-14290`;
-  - collapse always zeroes **height** (`src/interactive.ts:1167`), where the
+  - collapse always zeroes **height** (`src/interactive.ts:1179`), where the
     decode zeroes **width** for side-titled windows (§2.2 `sideTitle`). The
     collapsed side window renders wrong.
   - Drag works on any frame pixel.
@@ -524,6 +556,12 @@ web.**
   title size + 4). Otherwise descenders clip, and in a tower band T4 would float
   in the sky. `frameLayout` enforces 17px. It isn't a checker rule, because most
   corpus title rects are shorter and their authors accepted the clipping.
+  - So with `frameLayout` a titled utility's top band is at least 17px plus
+    whatever rises above the bar. Halcyon's 16px utility bar (title rect rows
+    2..14) is only possible through `windowLayout()`, which doesn't apply the
+    rule.
+  - Make the *visible* plate art at least title size + 4 rows too, not just
+    the rect. Brickworks' first 14-row utility tile clipped "Tools".
 - The ≤2px marker rect gives `titleRegion.midY` (`composeChrome.ts:211-221`),
   but nothing in the web runtime reads `midY` today. A T4 wider than 2px (e.g.
   spanning a 12px plate source) only loses that field.
@@ -561,7 +599,8 @@ web.**
 | Side-titled collapse zeroes height | collapsed side windows render wrong | R26 |
 | `altWidgets`/`sideTitle` never set | only `-14330` is used | R24 |
 | Big baked ornament split across a grower | the ornament repeats | 1984 V1(b), `glitch-punchlist.md` |
-| Classic structure region (click shape) untraced | click-through in classic unknown | Q3 |
+| Classic structure region (click shape) untraced | classic lets clicks through transparent frame pixels (observed, R16); the web keeps them in the window | Q3, R15, R16 |
+| Grow box not drawn, but the resize overlay is live | the bottom-right corner of every `wnd#` window resizes with no visual cue | authoring guide §8 |
 | No golden reference diff | eyeball your classic test boot | ledger "What no automated net catches" |
 
 ---
@@ -573,27 +612,41 @@ web.**
 ```js
 const layout = frameLayout({
   topH: 36, sideL: 8, sideR: 8, bottomH: 10,          // band sizes (A.top, A.left, W − A.right, H − A.bottom)
-  top: [{ code: 1, w: 24, name: 'towerL' }, { code: 12, w: 8 }, { code: 13, w: 1 },
+  top: [{ code: 1, w: 24, name: 'towerL' }, { code: 12, w: 8 }, { code: 13, w: 1, uniform: 'gap' },
         { code: 6, w: 6 }, { code: 5, w: 12, name: 'plate' }, { code: 6, w: 6 },
-        { code: 13, w: 1 }, { code: 12, w: 8 }, { code: 1, w: 24, name: 'towerR' }],
-  bottom: [ /* must add up to the same width */ ],
-  left: [ /* run down the body rows only; heights add up the same on both sides */ ], right: [ ],
+        { code: 13, w: 1, uniform: 'gap' }, { code: 12, w: 8 }, { code: 1, w: 24, name: 'towerR' }],
+  bottom: [{ code: 1, w: 8 }, { code: 8, w: 74 }, { code: 1, w: 8 }],  // must add up to the same width
+  left: [{ code: 8, w: 4 }], right: [{ code: 8, w: 4 }],  // body rows only; same total height both sides
   title: { cell: 'plate', top: 16, bottom: 34 },      // the title rect: that cell's columns, these rows (≥ 17px)
   widgets: { close: { x: 6, y: 18, w: 13, h: 13 } },  // template coordinates, inside fixed cells
 });
 layout.width; layout.height; layout.content; layout.wnd;  // → paint a Raster this size, encodeWnd(layout.wnd)
 layout.named('plate');            // { code, w, x0, x1 }; for left/right cells, x0/x1 are rows
 layout.fixedTop;                  // width taken from the title's room (R6)
-layout.lint(raster);              // after painting: stray art in uniform cells or the plate
+layout.minWidthForTitle(90);      // narrowest window (whole width) that shows a 90px title
+layout.lint(raster);              // after painting: throws on stray art (below) and on R18
+stripLayout(layout);              // where each pressed piece goes in -14330 (R24)
 ```
+`uniform: true` makes `lint` check that every column of the cell (every row,
+on the left and right) is the same. A 1px cell always passes that, so give 1px
+growers that should match each other one group name (`uniform: 'gap'`, `'bar'`)
+and `lint` compares them. Code-5 plates are always checked. Bonn and
+Brickworks run `lint` on every frame. Castle can't: its gatehouse plate
+carries stone texture.
 It was written for Castle from the proposal at the end of this section, and is
 now part of the toolkit. You give it explicit cell lists per edge
 (`{ code, w, name }`), the band sizes, the title cell and rows, and the widget
 boxes. It returns the template size, the content rect, the `wnd#`, and the
-named cell positions to paint by. It enforces: widgets in fixed cells; every
-code 12 with a same-allocation recipient; one code-12 width per allocation; a
-title rect of at least 17px. `stripLayout()` and `pressedStripFrom()` lay out
-and build the `-14330` strip. The table below is what `windowLayout()` lacks.
+named cell positions to paint by. It enforces:
+- top and bottom cells of equal total width, and left and right of equal height;
+- widgets in fixed top cells, inside the top band;
+- every code 12 with a same-allocation recipient, and one code-12 width per allocation;
+- a growing cell on every edge but the top halves;
+- a title rect of at least 17px, inside the top band, on the code-5 cell.
+
+`stripLayout()` and `pressedStripFrom()` lay out and build the `-14330` strip
+(and `-14298`, from the utility layout). The table below is what
+`windowLayout()` lacks.
 
 | Limit in the helper | Needed by | Format feature |
 |---|---|---|
@@ -611,14 +664,10 @@ and build the `-14330` strip. The table below is what `windowLayout()` lacks.
 | No popup or side-floating forms | those window types | R25, R26 |
 | No pressed-strip layout | working widgets in the web | `-14330` strip derived from the widget rects (R24) |
 
-The simplest extension:
-- let the spec take explicit per-edge cell lists
-  (`[{ code, width, paint? }]`);
-- derive the template size, the borders and `A` from them;
-- keep the existing validators (widgets in fixed cells; T4 inside the code-5
-  cell's row band);
-- add new ones:
-  - every 12 has a same-half 13/14/8/11 recipient;
-  - one 12 width per allocation;
-  - a last opaque column and row (R18);
-  - `-14330` present, with widths `close + zoom + collapse`.
+That table was the proposal `frameLayout` was built from. What it still
+leaves to you:
+- the colour budget: call `fitPalette` on big frames (authoring guide §4.5);
+- the title room: print `minWidthForTitle` and size ornaments by it (R6);
+- the strip offsets of windows with a different widget set (R24);
+- popup and side-floating forms (R25, R26), and the classic-only 2/3/4 and
+  15/16/17 branches (R11).

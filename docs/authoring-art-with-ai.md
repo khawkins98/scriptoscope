@@ -13,7 +13,7 @@ rules:
 
 - exact pixel sizes;
 - a 1-bit mask;
-- at most 256 colours;
+- at most 256 colours (`fitPalette` merges the rarest ones, authoring guide §4.5);
 - hidden swatch pixels at exact coordinates ([authoring guide §4](./authoring-a-scheme.md#4-five-ideas-you-need)).
 
 Text output lets the model commit to each pixel, and the result stays editable.
@@ -208,8 +208,12 @@ Agent Skills we found:
   image model propose the art".
 - **A feedback loop:** feeding `checkScheme` errors or `pxl ascii` output back
   to the model and asking it to fix its own sprite.
-- **Whole window frames or `windowLayout` specs from a brief.** Frames have the
-  tightest rules, so they need the checker in the loop.
+- **Whole window frames from an image model or claude-pxl.** Frames have the
+  tightest rules, so they need the checker in the loop. (Agents *have* written
+  whole frames as drawing code: Castle, Brickworks and Bonn were each built by
+  a fresh agent from the guides, with `frameLayout`'s checks and `checkScheme`
+  in the loop. Their friction logs are in
+  [`authoring/experiments/round-logs/`](../authoring/experiments/round-logs/).)
 - **More states and sizes through claude-pxl:** pressed and disabled sprites,
   and larger art such as icons or frames.
 - **More drawing-code models:** beyond the two best row models, and more than
@@ -218,5 +222,5 @@ Agent Skills we found:
   images; giving it a template sprite or a palette strip might pull it onto the
   right grid.
 - **Aseprite's command line** for indexed conversion, since it isn't installed here.
-- **Loading the claude-pxl variant in real Kaleidoscope.** Only Halcyon itself
-  has been run in the emulator.
+- **Loading the claude-pxl variant in real Kaleidoscope.** Halcyon, Castle,
+  Brickworks and Bonn have been run in the emulator; the variant hasn't.

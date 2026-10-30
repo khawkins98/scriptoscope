@@ -1,5 +1,43 @@
 # Learnings
 
+## 2026-10-30 — Dogfooding the authoring guides: a lesson isn't learned until it's adopted and backported
+
+Three schemes (Castle, then Brickworks and Bonn) were built by fresh agents
+from the guides alone, each keeping a friction log
+(`authoring/experiments/round-logs/`), with fixes folded in between rounds.
+`lessons-ledger.md` there tracks every proposed fix and what became of it.
+What the rounds established:
+
+- **Exotic frames need explicit cell lists.** `frameLayout()` (per-edge
+  `{ code, w, name }` lists with named cells to paint by) was written for
+  Castle and promoted unchanged. No builder hit an art/recipe off-by-one
+  after it existed.
+- **Every fixed pixel on a titled edge comes out of the title's room** (TT1,
+  TT3). The engine drops the title long before a code-10 ornament (TS1).
+  `minWidthForTitle` matches the runtime's plate width exactly.
+- **Stray art in a tiled cell was the bug that kept coming back.** Bonn hit it
+  twice, and Castle shipped one: its left banner ring's highlight sits in
+  plate column 0 and is tiled every 12px along the coping
+  (`castle/preview.png`). `layout.lint` with `uniform` groups catches all
+  three, but it didn't exist when Castle was built.
+- **Pressed-strip offsets are per window, in the decode itself** (WD9
+  `stripSource`), not just on the web. Halcyon's utility windows have
+  close + collapse without zoom, so their pressed collapse box reads the zoom
+  piece of both `-14330` (web) and its three-piece `-14298` (classic).
+- **Real Kaleidoscope 2.3.1** lets clicks through transparent frame pixels
+  (the web doesn't: R15/R16), hides art above the bar under the menu bar, and
+  shifts subtle colours at 8 bpp. The narrow-window "difference" recorded at
+  first was two different window widths. At 105px, Bonn is below TS1 in both
+  engines.
+
+The meta-lesson came from red-teaming the rounds. Three fixes had been
+"incorporated" without taking effect: `layout.lint` was promoted from Bonn
+but no scheme called it (and it skipped the 1px cells Bonn's bug was in);
+the R24 rule from round 1 was never applied back to Halcyon; and both
+Castle and Brickworks kept private copies of `outlineEdges`. When a lesson
+lands, apply it to the earlier schemes too, and make the toolkit check run
+by default where it can.
+
 ## 2026-10-30 — Authoring a scheme from scratch exposed rules the reading side never needed
 
 We wrote a scheme writer (`tools/theme-author/`) and a first-party scheme,
