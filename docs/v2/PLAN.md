@@ -39,7 +39,9 @@ Reviewed: #378, #221 exit criteria, RE-ADVISORY.md + re-routine-inventory.json, 
 
 ## 2. Branch and integration strategy
 
-> **Amended 2026-10-22 (DECISIONS #8):** cutover is incremental. v2 merges into main through per-family minor releases (0.2.0 first), and the "v2 → main release criteria" below now define **1.0** rather than the first release. The `main` freeze applies between releases; the Monday main → v2 sync still holds.
+> **Superseded 2026-10-30 ([DECISIONS #1](./DECISIONS.md)).** The branch and integration rules in this section no longer apply: `v2` is retired as an integration target (frozen at 0.7.0, `c5c09a20`), `main` is not frozen, there is no main → v2 sync, CI runs on `main` only, and every PR (engine-family work included) targets `main` under [CONTRIBUTING](../../CONTRIBUTING.md). The release criteria below still define the **1.0** milestone per DECISIONS #8. The section is kept as the record of the original plan.
+
+> **Amended 2026-10-22 (DECISIONS #8):** cutover is incremental. v2 merges into main through per-family minor releases (0.2.0 first), and the "v2 → main release criteria" below now define **1.0** rather than the first release. The `main` freeze applies between releases; the Monday main → v2 sync still holds. *(Both superseded 2026-10-30; see the note above.)*
 
 **Long-lived `v2` integration branch**, not trunk-with-flag. Reasons: the public type changes (manifest roles, trace shape, `pressedPart`) cannot be flagged; a shipped flag doubles the bundle; and `main` must keep deploying GH Pages from reviewed goldens while v2 goldens churn.
 

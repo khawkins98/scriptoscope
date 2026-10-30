@@ -23,7 +23,8 @@ integration branch was retired on 2026-10-30; all work now lands on `main`
 not every family has migrated. Migration work is tracked in [issue #378](https://github.com/khawkins98/scriptoscope/issues/378);
 the [#459 batch](https://github.com/khawkins98/scriptoscope/issues/459) is complete. See
 [DECISIONS #8](../v2/DECISIONS.md) and, for integration owners/spec writers,
-the [amended PLAN](../v2/PLAN.md). The current implementation surface is
+the [amended PLAN](../v2/PLAN.md) (its §2 branch and integration rules are
+superseded by DECISIONS #1). The current implementation surface is
 `src/engine/qd/`, `resources/`, `state/`, `tables/`, `families/` and `trace.ts`
 under `src/engine/`; `composeChrome.ts` wraps the window driver. The tables below retain the
 source-reference catalogue; they are not an implementer reading list or an
