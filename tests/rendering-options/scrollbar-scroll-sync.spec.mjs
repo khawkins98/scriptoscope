@@ -140,6 +140,11 @@ for (const mode of ['source', 'built']) for (const slug of SLUGS) {
     await expect(host).toHaveCount(1);
     await expect.poll(() => host.evaluate(h => !!h.shadowRoot?.querySelector('[role=scrollbar][aria-orientation=vertical] canvas'))).toBe(true);
     await host.evaluate(h => { h.scrollIntoView({ block: 'center' }); });
+    // The showcase marks itself ready before its boot wipe (a clip-path animation on every
+    // window host, demo/explicit-host.mjs) ends, and a click during the wipe can hit-test
+    // through the card to the page. Click only once every window's wipe has finished.
+    await page.evaluate(() => Promise.all([...document.querySelectorAll('[data-scriptoscope-window-host]')]
+      .flatMap(h => h.getAnimations()).map(a => a.finished.catch(() => {}))));
     await installHelpers(page);
     await host.evaluate(h => { window.__sb.host = h; window.__sb.scrollEl = h.querySelector('.scriptoscope-slot'); });
     const grip = await host.evaluate(h => {

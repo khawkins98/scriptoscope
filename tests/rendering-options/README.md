@@ -345,6 +345,17 @@ or grow-box resize on another window moves keyboard focus into that window,
 with no focus-visible ring in Chromium. `window-focus-rerender.spec.mjs` keeps
 the #525 focus contract.
 
+Keyboard focus entering a window activates and raises it (#550, WCAG 2.2 SC
+2.4.11 Focus Not Obscured). `window-focus-raise.spec.mjs` (source/built,
+windows-95 and evolution) stacks active window A over inactive B in the same
+rect, then walks Tab and Shift+Tab across both: every stop must hit-test (centre
+or a corner) to its own window, which must be active and frontmost, with host
+geometry unchanged. Shift+Tab into B's themed scrollbar keeps focus there
+through exactly one render per flipped window and one focusin. Internal
+activation and a synthetic host pointerdown leave page focus alone. The same
+hit-test runs on every Tab stop of the source and built showcase at 1280 and
+390 px.
+
 `window-widget-order.spec.mjs` (source/built) checks that title-widget buttons
 sit in the DOM, and so in tab order, in visual reading order on every window
 type of all 18 themes (#537). Reading order comes from bounding rects: rows top
