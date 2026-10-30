@@ -24,6 +24,15 @@ const GROW_CODES = new Set([8, 11, 12, 18]);
 // Every other code (1–7, 9, 10, and unknown codes, which default to fixed) is drawn 1:1.
 const NOT_FOR_WIDGETS = new Set([0, 8, 11, 12, 13, 14, 15, 16, 17, 18]);
 const WIDGET_NAMES = { 1: 'close box', 2: 'zoom box', 3: 'collapse box' };
+// Families whose images are only used together with a same-id cinf (corner,
+// side and sample points). Sources: docs/spec/engine/{tab,progress,header}.md,
+// the menu dumps recorded in authoring/schemes/halcyon/parts/menus.mjs.
+const SAME_ID_CINF = [
+  { from: -12240, to: -12232, label: 'menu image', why: 'Kaleidoscope needs it to stretch the image and read the text colour', skip: [] },
+  { from: -9984, to: -9971, label: 'tab', why: 'the tab engine paints nothing without it (tab V3)' },
+  { from: -9568, to: -9567, label: 'Finder header', why: 'the header body colour is read at its bgPixel' },
+  { from: -10080, to: -10075, label: 'progress bar piece', why: 'the progress engine reads its corner and side sizes from it' },
+];
 const PUSH_FACES = { [-10240]: 'inactive push button', [-10239]: 'push button', [-10238]: 'pressed push button' };
 
 /**
@@ -147,6 +156,25 @@ export function checkScheme(resources, theme) {
   for (const id of [-10232, -10231]) {
     const cinfRes = find('cinf', id), c = cicn(id);
     if (cinfRes && c) checkFaceCinf(`default ring (cinf ${id})`, decodeCinf(cinfRes.data), c, warnings);
+  }
+
+  // ── Families the engine skips (or hands to Platinum) without a same-id cinf ──
+  for (const { from, to, label, why, skip = [] } of SAME_ID_CINF) {
+    for (const r of resources) {
+      if (r.type !== 'cicn' || r.id < from || r.id > to || skip.includes(r.id) || find('cinf', r.id)) continue;
+      warnings.push(`cicn ${r.id} (${label}) has no cinf ${r.id}; ${why}, so check how it renders (several Platinum-based corpus schemes rely on a base scheme here)`);
+    }
+  }
+
+  // (Scrollbar transparency is a guide gotcha, not a rule: 12 of 18 corpus
+  // schemes ship scroll pieces with transparent pixels and still render.)
+
+  // ── Progress frame: corner > side leaves columns unpainted (docs/spec/engine/progress.md) ──
+  for (const id of [-10080, -10077]) {
+    const res = find('cinf', id);
+    if (!res || !find('cicn', id)) continue;
+    const d = decodeCinf(res.data);
+    if (d.cornerSize > d.sideThickness) warnings.push(`cinf ${id} (progress frame): cornerSize ${d.cornerSize} > sideThickness ${d.sideThickness} leaves columns between the side band and the fill unpainted`);
   }
 
   // ── Checkboxes and radios: id = -9504 + 12·kind + 3·value + tier ──

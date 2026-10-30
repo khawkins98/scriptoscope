@@ -52,7 +52,22 @@ transparency, and grid-recovery cleanup couldn't put the art back at the
 requested size. One trap found: the encoder reads alpha 1–127 as a hidden
 swatch, so imported art must have its alpha snapped first (`Raster.fromRgba`).
 
-Not yet done: encoders for `ppat`, scrollbars, sliders, progress, tabs and menus.
+**Holistic Halcyon (2026-10-30):** four family modules (`parts/`), each
+written by a separate agent against the decoded specs: scrollbars, sliders/tabs/
+bevels/popups, progress/headers/disclosure/grow box, and menus/patterns/
+icons. That's 329 resources. New encoders (`ppat`, icon families, `clut`)
+round-trip the whole corpus. Real Kaleidoscope draws the menu bar, menus,
+desktop pattern and scheme icon from them. Rules found while building them
+are in the guide §4.5 and §5 item 6. Calibration again mattered: a "scroll
+pieces must be opaque" rule fired on 12 of 18 originals, so it's a guide
+note, not a check. Runtime findings, not fixed here:
+- the web runtime never passes inactive or pressed states to window
+  scrollbars;
+- `composeDisclosure`'s id fallback maps right → -10102 and down → -10103,
+  ignoring state. In the corpus -10111 is the normal right triangle, so
+  Windows 95 draws the same box for all six states.
+
+Not yet done: text fields (CSS only), Finder icons, cursors, sounds, the About box, accent colours.
 
 ## 2026-10-23 — October incremental v2 is distinct from the May reset names
 

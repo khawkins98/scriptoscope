@@ -14,7 +14,7 @@ rules:
 - exact pixel sizes;
 - a 1-bit mask;
 - at most 256 colours;
-- hidden swatch pixels at exact coordinates ([authoring guide §4](./authoring-a-scheme.md#4-four-ideas-you-need)).
+- hidden swatch pixels at exact coordinates ([authoring guide §4](./authoring-a-scheme.md#4-five-ideas-you-need)).
 
 Text output lets the model commit to each pixel, and the result stays editable.
 Image models aim for a picture *of* pixel art, and their output can't be

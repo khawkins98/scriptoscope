@@ -82,8 +82,12 @@ encoder is the inverse of a decoder there, and the tests prove the round trip.
 
 | File | What it does |
 |---|---|
-| `raster.js` | `Raster`: an RGBA drawing surface with `fillRect`, `fillRoundRect`, `clipRounded`, `outlineEdges`, `sprite` (ASCII art), `blit`, `swatch` |
+| `raster.js` | `Raster`: an RGBA drawing surface with `fillRect`, `fillRoundRect`, `clipRounded`, `outlineEdges`, `sprite` (ASCII art), `blit`, `swatch`, the smooth shapes (§4.5) and `Raster.fromRgba` for imported art; plus `verticalGradient` and `ditheredGradient` |
 | `encode-cicn.js` | `encodeCicn(raster)`: builds the palette, picks the bit depth, writes mask, B/W fallback and pixels |
+| `encode-ppat.js` | `encodePpat(raster)`: tiling patterns (desktop, window backgrounds, progress stripes) |
+| `encode-icons.js` | `encodeIconFamily`, `encodeIconPlane`, `encodeIconList`: Finder-style icons (`ICN#`, `icl8`, `icl4`, `ics#`, `ics8`, `ics4`) in the system palettes |
+| `encode-clut.js` | `encodeClut`, `encodeHeaderClut`: colour tables, e.g. the window header colours |
+| `macbinary.js` | `writeMacBinary`: packs the fork with type `Colr` / creator `Acid` for a classic Mac (§2) |
 | `encode-records.js` | `encodeWnd`, `encodeCinf`, `encodeColr`, `encodeVers` |
 | `window-layout.js` | `windowLayout(spec)`: one description gives both the frame geometry and a matching `wnd#` recipe |
 | `resource-fork-writer.js` | `writeResourceFork(resources)`: builds the binary file |
@@ -93,8 +97,10 @@ encoder is the inverse of a decoder there, and the tests prove the round trip.
 The writers are checked against the real corpus. Re-writing all 18 bundled
 schemes with `writeResourceFork` returns every resource byte for byte, and
 re-encoding all 3,325 corpus `cicn`s with `encodeCicn` gives identical pixels.
+The same holds for all 217 indexed corpus `ppat`s, 4,937 colour icon planes,
+2,803 black-and-white icon planes and 60 `clut`s.
 
-## 4. Four ideas you need
+## 4. Five ideas you need
 
 ### 4.1 A window is one small image plus a stretching recipe
 
@@ -193,6 +199,34 @@ Classic Macs displayed colours darker than modern screens (gamma 1.8 against
 as `#1d2430` in the browser (measured exactly in Halcyon's title text). Pass
 `{ gamma: false }` only if you need raw stored values.
 
+### 4.5 Smooth edges and dithering
+
+A 1-bit mask means a pixel can't be half transparent, but edges can still
+look smooth:
+
+- **Smooth shapes** (`fillRoundRectSmooth`, `fillCircleSmooth`,
+  `strokeLineSmooth`, and the general `paintCoverage`) measure how much of each
+  edge pixel the shape covers, then blend:
+  - over a pixel that's already opaque, with that pixel (a fill meeting its
+    outline, a glyph on a button);
+  - over a transparent pixel, with `matte`, the colour the art normally sits
+    on. A checkbox on the white window body uses `{ matte: '#ffffff' }`.
+    Without a matte, the outer edge stays hard; that's right for window
+    corners, which can sit on any background.
+
+  Draw small pieces straight onto the bigger image they sit on (Halcyon draws
+  its title-bar buttons onto the frame), so their edges blend with the real
+  pixels underneath.
+- **`ditheredGradient`** mixes a few evenly spaced colours in the classic 4×4
+  pattern, so a gradient looks smooth in few colours. Two rules:
+  - **Never dither art the engine stretches or tiles along one axis.** Stretch
+    cells repeat one column or row, and a repeated dithered column becomes
+    stripes. Frames, track middles and tab middles use one colour per row.
+  - **Patterns (`ppat`) tile in both directions**, so a dither that wraps at
+    the tile size is fine there. Halcyon's desktop and progress stripes use it.
+- **Hidden swatches and mattes interact.** A matte makes every partly covered
+  edge pixel opaque, so put swatches on pixels you know stay fully transparent.
+
 ## 5. Walking through Halcyon
 
 `authoring/schemes/halcyon/scheme.mjs` has five numbered sections.
@@ -214,6 +248,35 @@ as `#1d2430` in the browser (measured exactly in Halcyon's title text). Pass
    Section 6 has the table.
 5. **Assemble.** Everything goes into one `resources` array. Resource names
    are optional, but they make the file readable in classic tools such as ResEdit.
+6. **Control families** live in `parts/`, one file per family. Each exports
+   `build(add, { C })`, and `scheme.mjs` loads them all; two parts adding the
+   same id is an error that names both files. Set `HALCYON_PARTS=scrollbars`
+   to build only some of them while you work on one.
+
+   | File | Family |
+   |---|---|
+   | `parts/scrollbars.mjs` | scroll bars (normal, small, double-headed, every state), thumbs, drag ghosts, little arrows |
+   | `parts/controls.mjs` | sliders, tabs and tab panes, bevel buttons, popup-button pieces |
+   | `parts/progress.mjs` | progress bars and the barber-pole patterns, Finder list headers, disclosure triangles, grow boxes |
+   | `parts/menus.mjs` | menu bar and menus, desktop and utility patterns, Finder colours, header colour tables, the scheme icon |
+
+   Family lessons, all found by building Halcyon:
+   - **Scrollbars:** the track only reaches 1px under each end of the thumb,
+     so thumbs must be fully opaque. Paint the track into the thumb's sides and
+     draw the pill on top. A track's middle is stretched, so it may only vary
+     across the bar, and the pressed track's middle must match the normal one.
+   - **Sliders:** the thumb is copied over the track, so paint the track under
+     the thumb's edges and cut the mask back, so its smooth edge blends with
+     real track pixels.
+   - **Progress:** keep the frame's `cinf` corner equal to its side, or columns
+     between the side band and the fill stay unpainted. The barber-pole steps
+     are one pattern shifted by the same amount each step, so the cycle loops.
+   - **Menus:** each menu image has a same-id `cinf`. The fill and text
+     colours are sampled from the image's middle, which the engine never
+     copies. Kaleidoscope adds its own 2px black shadow on the right of an
+     open menu.
+   - **8 bpp:** subtle tints become palette colours on a 256-colour screen, so
+     the desktop pattern uses colours that are exactly in the system palette.
 
 ## 6. Id cheat-sheet (what Halcyon ships)
 
@@ -228,6 +291,24 @@ as `#1d2430` in the browser (measured exactly in Halcyon's title text). Pass
 | `-10232` / `-10231` | `cicn` + `cinf` | default-button ring: inactive / normal |
 | `-9504 … -9496` | `cicn` | checkbox: value (off, on, mixed) × tier (disabled, normal, pressed) |
 | `-9492 … -9484` | `cicn` | radio button, same layout |
+| `-8288 … -8255` | `cicn` | scroll bar tracks: horizontal / vertical × inactive, nothing-to-scroll, normal, pressed; +4 double-headed, +18 small, +22 small double-headed |
+| `-10208 … -10205`, `-8252 … -8249` | `cicn` | scroll thumbs (normal / pressed), small thumbs |
+| `-8272 / -8271`, `-8254 / -8253` | `cicn` | drag ghosts |
+| `-10048 … -10045` | `cicn` | little arrows (stepper) |
+| `-10144 …`, `-10128 …` | `cicn` + `cinf` | horizontal / vertical sliders: tracks, thumb strips, ticks ([`spec/engine/slider.md`](./spec/engine/slider.md)) |
+| `-9984 … -9969` | `cicn` + `cinf` | tabs (large and small, rear and front × disabled, normal, pressed) and tab panes |
+| `-10176 … -10153` | `cicn` + `cinf` | bevel buttons, small / normal / large |
+| `-8208 … -8194` | `cicn` (+ `cinf`) | popup button pieces (classic Kaleidoscope only; the web draws a select as a push button) |
+| `-10080 … -10075` | `cicn` + `cinf` | progress frame, fill, track (active, inactive) |
+| `-10080 … -10065` | `ppat` | indeterminate progress steps (active, inactive) |
+| `-9568 / -9567` | `cicn` + `cinf` | Finder list header |
+| `-10112 …`, `-10104 …` | `cicn` | disclosure triangles, right / down |
+| `-14334 / -14333` | `cicn` | grow box |
+| `-12240 … -12230` | `cicn` + `cinf` | menu bar, menu titles, pull-down and popup menus, selected item, divider, application grabber |
+| `17`, `42` | `ppat` | desktop pattern, utility window background |
+| `-9552 … -9548` | `cicn` + `cinf` | Finder colours |
+| `-14336 / -14335`, `300` | `clut` | window header colours; slider and focus-ring colours |
+| `-16455` | `ICN#`, `icl8`, `icl4`, `ics#`, `ics8`, `ics4` | the scheme's icon in Kaleidoscope's picker |
 | `129` | `Colr` | scheme flags |
 | `1` | `vers` | version |
 
@@ -261,25 +342,37 @@ fires on an original scheme is at most a warning.
 | warning | a face or ring `cinf` whose sample pixels fall outside its image, or whose `cornerSize` is more than half the image |
 | warning | no pressed push face; an incomplete checkbox/radio set |
 | warning | a title bar too short for the title (title size is `clamp(content.top − 6, 8, 13)`) |
+| warning | a menu, tab, Finder header or progress image without its same-id `cinf` |
+| warning | a progress frame `cinf` whose corner is larger than its side |
 
 It also prints the colours the engine *will* sample, such as title text and
 button labels, so you can confirm your hidden swatches.
 
 ## 8. Not covered yet
 
-Halcyon covers window frames, push buttons, checkboxes and radios. Everything
-else falls back to the built-in Platinum look:
+Halcyon now covers every family above. What's left falls back to the system
+or the built-in Platinum look:
 
-- scrollbars, sliders, progress bars, tabs, popup menus, menus, list headers;
-- the popup, side-floating and no-title utility window types;
-- desktop and folder icons (`ics#`/`ics8`/`icl8`), cursors, sounds;
-- background patterns (`ppat`). The window body is plain white by default; to
-  tint it, ship an 8×8 `ppat` and point `cinf -9551`'s `bgPatternId` at it.
-  There is no `ppat` encoder yet.
+- **Text fields:** always drawn by CSS in the web runtime, and no corpus
+  scheme ships field art.
+- **Finder icons, cursors, sounds, the About box:** possible with the icon
+  encoder (Finder icons), or would need new encoders for `crsr`, `snd` and
+  `PICT`.
+- **Accent colours and "Finder Colors"** in the Kaleidoscope control panel:
+  accent colours need the `Colr` accent flag plus named accent `clut`s; the
+  trigger for Finder Colors isn't decoded.
+- **The popup, side-floating and no-title utility window types.**
+- **Placards:** no corpus scheme ships one, and their ids are unknown.
 
-Each of these is documented from the reading side under `docs/spec/`. Adding
-one usually means an encoder (if the type is new), a painting function, and a
-checker rule, following the same pattern.
+Some shipped art is only visible in real Kaleidoscope, because the web
+runtime doesn't draw that family from the scheme:
+
+- menus;
+- popup buttons;
+- small and double-headed scroll bars, ghosts and little arrows;
+- tab panes;
+- grow boxes on `wnd#` windows;
+- disclosure rotation frames.
 
 ## 8a. Testing in real Kaleidoscope
 
@@ -306,7 +399,9 @@ What real Kaleidoscope showed that the web preview doesn't:
 - Halcyon has a blank icon in the scheme picker, and the panel greys out
   Finder Icons, Arrow Cursor, WindowShade Sounds, Finder Colors, Desktop
   Pattern, Accent Color and About This Scheme. The scheme ships none of them.
-- Menus, scrollbars and the desktop stay on the system defaults.
+- In the first test, menus, scrollbars and the desktop stayed on the system
+  defaults. Halcyon now themes them (§5, item 6), and real Kaleidoscope draws
+  its menu bar, menus, desktop pattern and scheme icon.
 - A plain dialog or alert body is the system dialog grey (`#E7E7E7`) under the
   frame's white top band; Scriptoscope's web runtime fills it white. That is
   a runtime fidelity finding, not an authoring bug.

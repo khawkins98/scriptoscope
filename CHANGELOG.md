@@ -19,7 +19,13 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   `docs/authoring-art-with-ai.md` for getting art from AI tools (#540).
 - Halcyon (`authoring/schemes/halcyon/`), a first-party proof-of-concept
   scheme made with the toolkit. It loads in Scriptoscope and in the original
-  Kaleidoscope 2.3.1 on System 7.5.5. It is not part of the bundled corpus (#540).
+  Kaleidoscope 2.3.1 on System 7.5.5. It covers window frames, buttons,
+  checkboxes, scrollbars, sliders, tabs, bevel and popup buttons, progress bars,
+  list headers, disclosure triangles, menus, the desktop pattern and its own
+  scheme icon. It is not part of the bundled corpus (#540).
+- Authoring toolkit additions: smooth (anti-aliased) shapes, ordered dithering,
+  and encoders for `ppat`, icon families and `clut`, each round-tripping the
+  whole corpus (#540).
 
 ### Fixed
 

@@ -249,7 +249,16 @@ export async function buildScheme() {
   // Each file exports `build(add, { C })` and adds its own resources. They are
   // loaded in name order. HALCYON_PARTS=scrollbars,menus builds only those
   // (handy while working on one family); unset builds all of them.
-  for (const part of await loadParts()) part.build(add, { C });
+  // Each resource remembers which file added it, so a clash names both files.
+  const owner = new Map(resources.map((r) => [`${r.type}:${r.id}`, 'scheme.mjs']));
+  for (const { file, module } of await loadParts()) {
+    module.build((type, id, data, name) => {
+      const key = `${type}:${id}`;
+      if (owner.has(key)) throw new Error(`${type} ${id} is added by both ${owner.get(key)} and parts/${file}; each id belongs to one family`);
+      owner.set(key, `parts/${file}`);
+      add(type, id, data, name);
+    }, { C });
+  }
   return { resources };
 }
 
@@ -259,5 +268,5 @@ async function loadParts() {
   const files = readdirSync(new URL('./parts/', import.meta.url))
     .filter((f) => f.endsWith('.mjs') && (!only || only.includes(f.replace(/\.mjs$/, ''))))
     .sort();
-  return Promise.all(files.map((f) => import(new URL(`./parts/${f}`, import.meta.url).href)));
+  return Promise.all(files.map(async (file) => ({ file, module: await import(new URL(`./parts/${file}`, import.meta.url).href) })));
 }

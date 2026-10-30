@@ -333,3 +333,28 @@ test('ditheredGradient uses at most `levels` colours and both ends', async () =>
   assert.ok(seen.size <= 4, `${seen.size} colours`);
   assert.ok(seen.has(0) && seen.has(255));
 });
+
+test('check: same-id cinf families and progress geometry', () => {
+  const face = encodeCicn(new Raster(8, 8).fillRect(0, 0, 8, 8, '#ffffff'));
+  const { warnings } = checkScheme([{ type: 'cicn', id: -12240, data: face }, { type: 'cicn', id: -9984, data: face }]);
+  assert.ok(warnings.some((w) => /cicn -12240 \(menu image\) has no cinf/.test(w)));
+  assert.ok(warnings.some((w) => /cicn -9984 \(tab\) has no cinf/.test(w)));
+  const bad = checkScheme([{ type: 'cicn', id: -10080, data: face }, { type: 'cinf', id: -10080, data: encodeCinf({ cornerSize: 4, sideThickness: 2 }) }]);
+  assert.ok(bad.warnings.some((w) => /cornerSize 4 > sideThickness 2/.test(w)));
+});
+
+test('two Halcyon parts adding the same id is an error naming both files', async () => {
+  const { mkdtempSync, cpSync, writeFileSync, rmSync } = await import('node:fs');
+  const { join } = await import('node:path');
+  const { pathToFileURL } = await import('node:url');
+  // Copy the scheme next to the repo's toolkit so its relative imports still resolve.
+  const root = new URL('../../authoring/schemes/', import.meta.url);
+  const dir = mkdtempSync(join(root.pathname, '.clash-'));
+  try {
+    for (const f of ['scheme.mjs', 'palette.mjs']) cpSync(new URL(`halcyon/${f}`, root), join(dir, f));
+    cpSync(new URL('halcyon/parts', root), join(dir, 'parts'), { recursive: true });
+    writeFileSync(join(dir, 'parts', 'zz-clash.mjs'), "export function build(add) { add('Colr', 129, new Uint8Array(16)); }\n");
+    const { buildScheme: build } = await import(pathToFileURL(join(dir, 'scheme.mjs')).href);
+    await assert.rejects(build(), /Colr 129 is added by both scheme\.mjs and parts\/zz-clash\.mjs/);
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
