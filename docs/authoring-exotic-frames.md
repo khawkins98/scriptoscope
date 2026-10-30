@@ -284,7 +284,7 @@ through** (confirmed 2026-10-30, below).
     (`authoring/schemes/bonn/classic/menubar-clips-skyline@3x.png`). Keep the
     essential look in the bar rows, and treat art above them as decoration.
   - **Narrow windows lose the title first.** In classic, Bonn's narrow
-    window (about 105px wide, `narrow-zoom@4x.png`) lost its title, pennant and
+    window (about 105px wide; captured in the first run, before the redesign) lost its title, pennant and
     skyline together. That is TS1: it is narrower than Bonn's fixed sum
     (128px), and the web's `layoutWindow` drops the same cells at that width.
     The web preview's "narrow" window is wider (160px), so it keeps the
