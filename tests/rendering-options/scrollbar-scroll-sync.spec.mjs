@@ -101,6 +101,35 @@ async function expectAtEnd(page, axis, why) {
   expect((await state(page, axis)).pos, `${why}: ${back} steps one line back from max`).toBe(s.max - LINE);
 }
 
+/** After an external scroll to any position (not necessarily the end): the value
+ *  follows it, the thumb is painted where the bar itself paints that position, and
+ *  the next keys step from there. A focus scroll clamps at max only when the scroll
+ *  viewport happens to be tall enough, so this does not assume it (#526). */
+async function expectSyncedAt(page, axis, why) {
+  const [fwd, back] = axis === 'vertical' ? ['ArrowDown', 'ArrowUp'] : ['ArrowRight', 'ArrowLeft'];
+  const s = await state(page, axis);
+  expect(s.pos, `${why}: the external scroll moved the content`).toBeGreaterThan(LINE);
+  expect(s.pos, `${why}: by a substantial fraction of the range`).toBeGreaterThanOrEqual(s.max / 2);
+  const value = String(Math.round(100 * s.pos / s.max));
+  await expect.poll(async () => (await state(page, axis)).valuenow, `${why}: aria-valuenow`).toBe(value);
+  const external = await page.evaluate(axis => window.__sb.pixels(axis), axis);
+  // The first key after the external scroll steps back from the real position.
+  await page.evaluate(([axis, k]) => window.__sb.key(axis, k), [axis, back]);
+  expect((await state(page, axis)).pos, `${why}: ${back} steps one line back from the scrolled-to position`).toBe(s.pos - LINE);
+  // One step forward returns to it, painted by the bar itself: the external paint must match.
+  await page.evaluate(([axis, k]) => window.__sb.key(axis, k), [axis, fwd]);
+  expect((await state(page, axis)).pos, `${why}: ${fwd} returns to the scrolled-to position`).toBe(s.pos);
+  await expect.poll(async () => (await state(page, axis)).valuenow).toBe(value);
+  const own = await page.evaluate(axis => window.__sb.pixels(axis), axis);
+  expect(external === own, `${why}: thumb painted where the bar paints the same position`).toBe(true);
+  await page.evaluate(([axis, k]) => window.__sb.key(axis, k), [axis, fwd]);
+  expect((await state(page, axis)).pos, `${why}: ${fwd} steps on from there`).toBe(Math.min(s.pos + LINE, s.max));
+  // The pixel check can fail: the start position paints a different thumb.
+  await page.evaluate(axis => window.__sb.key(axis, 'Home'), axis);
+  await expect.poll(async () => (await state(page, axis)).valuenow).toBe('0');
+  expect(await page.evaluate(axis => window.__sb.pixels(axis), axis), `${why}: thumb moves between positions`).not.toBe(external);
+}
+
 // The issue's reproduction: the showcase's ResourceForkLib card, Tab-driven focus scroll.
 for (const mode of ['source', 'built']) for (const slug of SLUGS) {
   test(`${mode} showcase ${slug}: Tab-driven scroll moves the ResourceForkLib scrollbar (#549)`, async ({ page, demo, production }) => {
@@ -126,7 +155,7 @@ for (const mode of ['source', 'built']) for (const slug of SLUGS) {
     }
     expect(await page.evaluate(() => document.activeElement?.textContent?.trim())).toBe('Kaleidoscope Scheme Archive');
     await page.evaluate(() => window.__sb.frames());
-    await expectAtEnd(page, 'vertical', `${slug} after Tab`);
+    await expectSyncedAt(page, 'vertical', `${slug} after Tab`);
   });
 }
 
