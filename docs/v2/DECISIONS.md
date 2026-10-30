@@ -2,6 +2,8 @@
 
 Tracker: [#378](https://github.com/khawkins98/scriptoscope/issues/378). Plan: [PLAN.md](./PLAN.md) (architecture review, 2026-10-21).
 
+**Naming note (2026-10-30).** "v2" in these decisions names two things: the decode-first engine generation under `src/engine/`, and the former `v2` integration branch, retired on 2026-10-30 (#1). In #5, "re-cut per family on v2" means per family as it moves onto the decode-first engine; that work now lands on `main`. In #8, "v2 ships to main through per-family minor releases" means the engine's families ship per release; only the "v2 remains the integration branch" clause names the branch, and it is superseded. The decisions themselves are unchanged.
+
 | # | Decision | Status |
 |---|---|---|
 | 1 | Long-lived `v2` integration branch. `main` is frozen to hotfixes, docs, rule tables and evidence. main → v2 merge-sync every Monday and after any main runtime hotfix. | Adopted (PM default; maintainer may override). Superseded 2026-10-30 (maintainer): all work lands on `main` via focused PRs; `v2` is retired as an integration target and frozen at 0.7.0 (`c5c09a20`) |

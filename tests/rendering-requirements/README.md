@@ -856,7 +856,14 @@ transition go in a new `<family>-*.test.mjs` file, not in this shared test.
 
 ### Porting a main-branch ledger change into `families/`
 
-main keeps the single-file ledger (1.23.0 is #376, 1.24.0 is #377). Merging main
+> **Historical (2026-10-30).** This recipe served the main → v2 merge-syncs while
+> `v2` was the integration branch. `v2` is retired and all work lands on `main`
+> ([DECISIONS #1](../../docs/v2/DECISIONS.md)), so there is no longer a
+> single-file ledger to port from. It is kept as the record of how the 1.23.0 and
+> 1.24.0 rows reached `families/`. For a stale `ledger.json` today, use the
+> merge-and-regenerate steps above.
+
+main kept the single-file ledger (1.23.0 is #376, 1.24.0 is #377). Merging main
 into v2 brings in a new `ledger.json`, a `*-transition.json` and a
 `ledger.test.mjs` hunk. To port them:
 

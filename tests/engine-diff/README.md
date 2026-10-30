@@ -12,10 +12,15 @@ node tests/engine-diff/run.mjs --dump <family>/<slug>/<cell key>
 ```
 
 CI runs `--check --base-commit <merge-base>` for every pull request: `ci.yml`
-for PRs into `main` or `v2`, and `v2-docs.yml` also for docs-only PRs into `v2`. The PR body's `engine-diff: <family>[, ...]`
+for PRs into `main`, and `v2-docs.yml` also for docs-only PRs into `main`. The PR body's `engine-diff: <family>[, ...]`
 lines declare which families may change.
 
 ## What a v2 → main release PR must declare
+
+> **Historical (2026-10-30).** This section applied while `v2` was the
+> integration branch. `v2` is retired and every PR now targets `main` directly
+> ([DECISIONS #1](../../docs/v2/DECISIONS.md)), so each PR declares its own
+> `engine-diff:` families against its merge-base with `main`.
 
 A release PR is judged against its merge-base with `main`. `main` carries the
 window and scroll-bar baselines, so v2's changes since the last sync to main are
