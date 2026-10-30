@@ -90,7 +90,11 @@ test('wnd#, cinf and Colr round-trip', () => {
 
 // ── Authoring checks: each rule must be able to fire ──
 
-const frame = (w, h) => encodeCicn(new Raster(w, h).fillRect(0, 0, w, h, '#888888').fillRect(1, 20, w - 2, 1, null));
+// Grey frame, transparent content row, black title swatch at (1, 20).
+const frame = (w, h) => {
+  const r = new Raster(w, h).fillRect(0, 0, w, h, '#888888').fillRect(1, 20, w - 2, 1, null);
+  return encodeCicn(h > 20 ? r.swatch(1, 20, '#000000') : r);
+};
 const layout = () => windowLayout({ titleBar: 20, leftFixed: 20, rightFixed: 20, bottom: 4,
   widgets: { close: { x: 4, y: 4, w: 10, h: 10 } } });
 function scheme(mutate = (l) => l) {

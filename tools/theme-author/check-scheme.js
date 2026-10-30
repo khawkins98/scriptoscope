@@ -16,6 +16,7 @@ import { decodeWnd } from '../theme-loader/decoders/wnd.js';
 import { decodeCinf } from '../theme-loader/decoders/cinf.js';
 import { WINDOW_TYPE_IDENTITIES } from '../theme-loader/window-type-identities.js';
 import { macChannelToSrgb } from '../theme-loader/mac-gamma.js';
+import { contrastRatio } from './palette-report.js';
 
 // Part codes that absorb extra width/height when the window grows.
 const GROW_CODES = new Set([8, 11, 12, 18]);
@@ -33,6 +34,9 @@ const SAME_ID_CINF = [
   { from: -9568, to: -9567, label: 'Finder header', why: 'the header body colour is read at its bgPixel' },
   { from: -10080, to: -10075, label: 'progress bar piece', why: 'the progress engine reads its corner and side sizes from it' },
 ];
+// Contrast floors (WCAG) below which a warning fires; none fires on the corpus.
+const TITLE_FLOOR = { active: 2, inactive: 1.4 };
+const LABEL_FLOOR = 2; // normal and pressed push faces (inactive labels are dim by design)
 const PUSH_FACES = { [-10240]: 'inactive push button', [-10239]: 'push button', [-10238]: 'pressed push button' };
 
 /**
@@ -132,9 +136,16 @@ export function checkScheme(resources, theme) {
       // Title text colour = pixel (content.left, content.top) of each frame
       // (popup family: row content.bottom − 1), read from the palette even
       // though that pixel is usually transparent (window-widgets TC1–TC5).
-      const row = /popup/.test(slug ?? '') ? content.bottom - 1 : content.top;
-      const sample = (c) => hexAt(c, content.left, row);
-      summary.push(`${slug ?? r.id}: title text ${sample(active)} active / ${sample(inactive)} inactive`);
+      const a = titleSample(wnd, slug, active), i = titleSample(wnd, slug, inactive);
+      const on = a.bar && i.bar ? ` (${a.ratio}:1 / ${i.ratio}:1 on the bar)` : '';
+      summary.push(`${slug ?? r.id}: title text ${a.text} active / ${i.text} inactive${on}`);
+      // Title text against the bar (WCAG, on-screen colours). The floors are
+      // low on purpose: the design floors (4.5:1 active, 3:1 inactive,
+      // docs/authoring-visual-design.md §2.3) fire on 5 and 6 of the 18 corpus
+      // schemes; these fire on none. Below them the title is barely visible.
+      for (const [state, t, floor] of [['active', a, TITLE_FLOOR.active], ['inactive', i, TITLE_FLOOR.inactive]]) {
+        if (t.bar && t.ratio < floor) warnings.push(`${label}: ${state} title text ${t.text} on the ${t.bar} title bar is ${t.ratio}:1, below ${floor}:1, so the title is close to invisible; change the swatch at (${content.left}, ${content.top}) or the bar`);
+      }
     }
   }
 
@@ -161,7 +172,11 @@ export function checkScheme(resources, theme) {
     if (!cinfRes) continue;
     const d = decodeCinf(cinfRes.data), c = cicn(id);
     checkFaceCinf(`${PUSH_FACES[id]} (cinf ${id})`, d, c, warnings);
-    summary.push(`${PUSH_FACES[id]}: face ${hexAt(c, d.bgPixel.x, d.bgPixel.y)}, text ${hexAt(c, d.textPixel.x, d.textPixel.y)}`);
+    const face = hexAt(c, d.bgPixel.x, d.bgPixel.y), text = hexAt(c, d.textPixel.x, d.textPixel.y);
+    const ratio = face.startsWith('#') && text.startsWith('#') ? round2(contrastRatio(text, face)) : null;
+    summary.push(`${PUSH_FACES[id]}: face ${face}, text ${text}${ratio ? ` (${ratio}:1)` : ''}`);
+    // Lowest corpus normal/pressed label is 2.73:1 (Evolution, pressed).
+    if (id !== -10240 && ratio && ratio < LABEL_FLOOR) warnings.push(`${PUSH_FACES[id]} (cinf ${id}): label ${text} on face ${face} is ${ratio}:1, below ${LABEL_FLOOR}:1, so button labels are hard to read`);
   }
 
   // Default-button rings use the same corner/sample layout as the faces.
@@ -278,4 +293,64 @@ export function cellsOf(side) {
   for (let i = 1; i < side.length; i++) cells.push({ start: side[i - 1].border, end: side[i].border, part: side[i].part });
   cells.push({ start: side[side.length - 1].border, end: Infinity, part: null });
   return cells;
+}
+
+/**
+ * Title text against the title bar, per titled window and state, from the
+ * colours the engine uses: the text colour is the swatch pixel at
+ * (content.left, content.top) (popup windows: row content.bottom − 1), the
+ * bar colour is the most common opaque colour of the same frame in the rows
+ * the glyphs cover: the title rect (part 4) from 12px above its bottom to the
+ * baseline, 4px above it (window-widgets TX8). Ratios are WCAG, on the on-screen (gamma-corrected) colours.
+ * @returns {Array<{ window: string, state: 'active'|'inactive', text: string, bar: string, ratio: number }>}
+ */
+export function titleContrast(resources) {
+  const known = new Map(WINDOW_TYPE_IDENTITIES.map((w) => [w.id, w.canonicalSlug]));
+  const find = (type, id) => resources.find((r) => r.type === type && r.id === id);
+  const out = [];
+  for (const r of resources.filter((x) => x.type === 'wnd#')) {
+    let wnd;
+    try { wnd = decodeWnd(r.data); } catch { continue; }
+    const content = lastRect(wnd, 0), title = lastRect(wnd, 4);
+    if (!content || !title || title.right <= title.left || title.bottom <= title.top) continue;
+    const slug = known.get(r.id) ?? String(r.id);
+    const frames = { inactive: find('cicn', r.id), active: find('cicn', r.id + 1) ?? find('cicn', r.id) };
+    for (const [state, res] of Object.entries(frames)) {
+      if (!res) continue;
+      let c;
+      try { c = readCicnIndexed(res.data); } catch { continue; }
+      if (!c) continue;
+      const { text, bar, ratio } = titleSample(wnd, slug, c);
+      if (bar) out.push({ window: slug, state, text, bar, ratio });
+    }
+  }
+  return out;
+}
+
+/** Title text colour, bar colour and their contrast for one frame (see titleContrast). */
+function titleSample(wnd, slug, c) {
+  const content = lastRect(wnd, 0), title = lastRect(wnd, 4);
+  const row = /popup/.test(slug ?? '') ? content.bottom - 1 : content.top;
+  const text = hexAt(c, content.left, row);
+  if (!title || title.right <= title.left || title.bottom <= title.top || !text.startsWith('#')) return { text, bar: null, ratio: null };
+  const glyphRows = { ...title, top: Math.max(title.top, title.bottom - 12), bottom: title.bottom - 4 };
+  const bar = modeColour(c, glyphRows.bottom > glyphRows.top ? glyphRows : title);
+  return { text, bar, ratio: bar ? round2(contrastRatio(text, bar)) : null };
+}
+
+const round2 = (x) => Math.round(x * 100) / 100;
+
+/** Most common opaque on-screen colour inside a rect of a cicn. */
+function modeColour(c, rect) {
+  const W = c.pmap.width, H = c.pmap.height, counts = new Map();
+  for (let y = Math.max(0, rect.top); y < Math.min(H, rect.bottom); y++) {
+    for (let x = Math.max(0, rect.left); x < Math.min(W, rect.right); x++) {
+      if (x < c.mask.width && y < c.mask.height && !c.maskAlpha[y * c.mask.width + x]) continue;
+      const hex = hexAt(c, x, y);
+      if (hex.startsWith('#')) counts.set(hex, (counts.get(hex) ?? 0) + 1);
+    }
+  }
+  let best = null, n = 0;
+  for (const [hex, k] of counts) if (k > n) { best = hex; n = k; }
+  return best;
 }

@@ -76,3 +76,6 @@ tests/engine-diff/.cases-base-*.mjs
 
 # Local runtime-spike reports; tracked summaries are curated snapshots.
 /tools/runtime-spike/.artifacts/
+
+# Contact sheets from `npm run author -- <dir> --sheet` (generated; regenerate locally)
+authoring/schemes/*/sheet.png

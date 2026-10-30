@@ -66,8 +66,9 @@ bar gradient collapses to two greys and nothing is lost
   shows a white hairline under the bar when collapsed; the bottom corners are
   rounded with `radiusTop` but the outline row below them is not closed.
   Small, but it is the one state a classic user will see every day.
-- *The accent moves at 8 bpp.* `#1689a8` snaps to `#009999`, a greener,
-  louder teal than the web shows. Pick an accent that sits on a cube entry
+- *The accent moves at 8 bpp.* `#1689a8` snaps to `#006699` (shown on the
+  web as `#0078a8`), a darker, bluer accent than the web shows; the first
+  prototype said `#009999` because it skipped the gamma step (3.4). Pick an accent that sits on a cube entry
   (`#0099cc`, `#3399cc`, `#006699`) or accept the shift knowingly.
 
 | # | Change | Where | Why |
@@ -457,8 +458,8 @@ a ramp or a widget.
 - `crops-4x.png`: title bar left and right ends, a control row, the bottom
   edge, the scrollbar, at 4×.
 - `sim8.png`: the preview through the 8-bit simulation.
-- `cicn-sheet.png`: every image resource at 4× with its id and size.
-- `palette-report.txt`: the ramp/collapse/contrast table.
+- `sheet.png`: every image resource at 4× with its id and size (`--sheet`).
+- `palette-report.txt`: the ramp/collapse/contrast table (`--palette`).
 
 **Checklist** (copy into the PR description):
 
@@ -473,47 +474,82 @@ a ramp or a widget.
 - [ ] 8-bit simulation looks like the web preview, give or take a step.
 - [ ] Classic captures match the simulation.
 
-### 3.4 Tooling that would help (prototyped, not in the repo)
+### 3.4 The review tools
 
-The prototypes (`sim8.py`, `palette_report.py`) are in `authoring/experiments/design-review/` and are a few dozen lines
-each. If adopted they belong in `tools/theme-author/` (pure, no fs) with thin
-`scripts/` wrappers, matching the existing split.
+Three tools in `tools/theme-author/` (pure, no fs) with thin wrappers in
+`scripts/`. The Python prototypes they replace are still in
+`authoring/experiments/design-review/` for the record.
 
-**`sim8` — 8-bit simulation of a preview.**
-Prototype: `../authoring/experiments/design-review/sim8.py in.png out.png [--dpr 2] [--zoom 4]`.
-Maps every pixel to the nearest `SYSTEM_PALETTE_256` entry. The prototype
-quantises on-screen sRGB values; the repo version should first invert the
-display transform (`srgbToStored` in `tools/theme-author/color.js`), quantise
-the *stored* values (that is what classic does), then map back through
-`macRgbToSrgb` for display, so the simulation matches
-`classic/*.png` rather than approximating it. Output: the quantised PNG and a
-count of distinct colours before/after. Suggested home:
-`tools/theme-author/simulate-8bit.js` + `scripts/sim-8bit.mjs`. Proof of
-value: `../authoring/experiments/design-review/sim8-vs-classic.png` (web | simulation | classic)
-reproduces Castle's pink mortar, Bonn's striped water and Brickworks'
-checkerboard sheen from the preview alone.
+**`sim8`: 8-bit simulation of a preview.**
 
-**`palette-report` — ramp, collapse and contrast table.**
-Prototype: `../authoring/experiments/design-review/palette_report.py` (the colour lists are
-inlined; the repo version should import `palette.mjs` directly). For each
-named colour: nearest system entry, distance, and the other names that share
-the entry (marked `COLLAPSE`); for each declared pair, the WCAG ratio and a
-pass/fail against the floors in 2.3. A scheme would declare its pairs in
-`palette.mjs` (`export const CONTRAST = [[title, plate, 'title'], …]`) so the
-check runs under `npm run author`. Output from the prototype for all four
-schemes is in the appendix. Suggested home: `tools/theme-author/palette-report.js`,
-called from `check-scheme.js` as warnings.
+```sh
+npm run sim8 -- authoring/schemes/castle/preview.png /tmp/castle-sim8.png --dpr 2 [--zoom 4] [--capture] [--exact]
+```
 
-**`cicn-sheet` — contact sheet of every image at 4×.**
-Not prototyped (the decode path already exists in `tools/theme-loader/`;
-`scripts/render-window.mjs` shows how to drive it). Input: a `scheme.rsrc` or
-`scheme.bin`; output: one PNG, every `cicn` (and `ppat` tiled 3×3) at 4× on a
-checkerboard, labelled with id, size and colour count, grouped by family
-(frames, widgets strip, push, ring, check/radio, scroll, tabs, menus,
-progress). This is the single artefact that makes "do the widgets belong to
-one family" a five-second question. Suggested home: `scripts/cicn-sheet.mjs`.
+`simulate8bit` in `sim8.js` maps every pixel to a `SYSTEM_PALETTE_256`
+entry the way classic does it: it undoes the display transform
+(`srgbToStored`), picks the entry for the *stored* value, then shows that
+entry through the loader's gamma (`mac-gamma.js`), so the output sits next to
+the web preview. `--capture` shows the entries at the brighter levels the
+committed `classic/*.png` captures use, for a side-by-side with those, and
+`--dpr 2` takes every second pixel of a DPR-2 preview first. The command
+prints the colour count before and after.
 
-A fourth, smaller one: a **`pixelGlyph(r, x, y, rows)`** helper in
+The entry is picked like the Color Manager's inverse table: each stored
+channel cut to 4 bits, then the nearest entry. Against the classic captures
+(the fixed top-left corners of all four schemes' frames, 16,716 pixels,
+located in the captures by search) this picks the entry classic drew for 92%
+of pixels (Castle 85%, Halcyon 93%, Brickworks 94%, Bonn 95%). Exact nearest
+gets 59%, and quantising the on-screen values as the prototype did gets 56%
+(Castle 9%). Most misses are one grey step near a cell edge. Run over the
+web halves of `sim8-vs-classic.png`, it reproduces Castle's pink and yellow
+mortar flecks, Bonn's striped water, Brickworks' deep red and Halcyon's blue
+(not teal) close box. It is a simulation for review, not fidelity evidence.
+
+**Palette report: ramps, collapses and contrast.**
+
+```sh
+npm run author -- authoring/schemes/castle --palette
+```
+
+For each colour exported by the scheme's `palette.mjs` (objects, ramps and
+nested records are flattened to names like `active.stone[0]`): the 8-bit entry,
+the distance to it in stored values, and `COLLAPSE` when different colours
+share an entry. Then WCAG contrast, on the on-screen colours and (in
+brackets) after the 8-bit snap, against the floors in 2.3, for:
+
+- the title swatch on the title bar of every titled window, active and
+  inactive (identical pairs are listed once);
+- the push and pressed push labels on their faces;
+- any pairs `palette.mjs` declares as
+  `export const CONTRAST = [[fg, bg, 'label', floor?], …]` (the floor
+  defaults from the label: `title`, `inactive title`, `label`, `outline`,
+  `glyph`, else 4.5).
+
+What became a check: only near-invisible text. `checkScheme` warns when the
+title text is below 2:1 (active) or 1.4:1 (inactive) on its bar, or a push
+label is below 2:1 on its face; none of the 18 corpus schemes and none of the
+four authored ones triggers either. The design floors stay in the report
+because they would be noise as rules: an active title below 4.5:1 occurs in 5
+corpus schemes and an inactive one below 3:1 in 6, and 11 of the 18 corpus
+schemes have images that lose colours at 8 bpp. (Seven corpus schemes lose
+none, because their art was drawn in the system palette; the four authored
+schemes lose colours in 81–91% of their `cicn`s.)
+
+**Contact sheet: every image at 4×.**
+
+```sh
+npm run author -- authoring/schemes/castle --sheet   # writes authoring/schemes/castle/sheet.png
+```
+
+Every `cicn`, and every `ppat` tiled 2×2, at 4× nearest-neighbour on a
+checkerboard, grouped by family (windows, window widgets, push buttons,
+check and radio, scroll bars, tabs, bevel buttons, sliders, triangles,
+progress, little arrows, popup buttons, menus, Finder, patterns, other) and
+labelled with id and size. The right half is the same sheet through `sim8`.
+Don't commit sheets.
+
+A fourth, smaller one, not built yet: a **`pixelGlyph(r, x, y, rows)`** helper in
 `raster.js` that stamps a glyph from an array of strings (`'X...X'`), so
 authors stop reaching for `strokeLineSmooth` for 5 px glyphs. It is ten lines
 and would have prevented every soft glyph in this review.
@@ -547,8 +583,9 @@ strokes change. The 1× strip at the bottom is the comparison that matters.
 
 ## Appendix: numbers from the palette report
 
-Nearest system-palette entry per colour (display sRGB; the repo tool should
-use stored values, see 3.4). `COLLAPSE` marks names that land on one entry.
+Nearest system-palette entry per colour, from the prototype, which quantised
+the on-screen values; `npm run author -- <dir> --palette` works on stored
+values and can disagree (3.4). `COLLAPSE` marks names that land on one entry.
 
 ```
 Castle active:   stone0/1/2/4 -> #999999 COLLAPSE   stone3 -> #888888

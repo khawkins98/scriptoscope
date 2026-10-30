@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // Build an authored Kaleidoscope scheme from code.
 //
-// Usage: npm run author -- <scheme dir>        e.g. authoring/schemes/halcyon
+// Usage: npm run author -- <scheme dir> [--sheet] [--palette]
+//        e.g. npm run author -- authoring/schemes/halcyon --sheet
 //
 // The scheme dir holds a `scheme.mjs` that exports `buildScheme()`, returning
 // `{ resources }` (see tools/theme-author/ and docs/authoring-a-scheme.md).
@@ -15,18 +16,31 @@
 //      fork, what Scriptoscope loads) and <dir>/scheme.bin (the same fork as a
 //      MacBinary file with type 'Colr' / creator 'Acid', for a classic Mac).
 // Exit code 1 on any error (nothing is written). Warnings do not fail the build.
+//
+// Review aids (docs/authoring-visual-design.md §3.4), written even on errors:
+//   --sheet    <dir>/sheet.png: every cicn and ppat at 4× by family, with an
+//              8-bit simulation panel beside it (don't commit it)
+//   --palette  prints the palette report for <dir>/palette.mjs: where each
+//              colour lands at 8 bpp, collapses, and contrast for the title and
+//              button colours the engine samples plus any pairs the palette
+//              exports as CONTRAST = [[fg, bg, label, floor?], …]
 
 import { writeFileSync, readFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { writeResourceFork } from '../tools/theme-author/resource-fork-writer.js';
 import { writeMacBinary } from '../tools/theme-author/macbinary.js';
-import { checkScheme } from '../tools/theme-author/check-scheme.js';
+import { checkScheme, titleContrast } from '../tools/theme-author/check-scheme.js';
+import { contactSheet } from '../tools/theme-author/contact-sheet.js';
+import { paletteReport, formatPaletteReport } from '../tools/theme-author/palette-report.js';
+import { encodePng } from './lib/png-encode.mjs';
 import { convertChrome } from '../tools/theme-loader/convert.js';
 
-const dir = process.argv[2];
+const args = process.argv.slice(2);
+const dir = args.find((a) => !a.startsWith('--'));
+const wantSheet = args.includes('--sheet'), wantPalette = args.includes('--palette');
 if (!dir) {
-  console.error('Usage: npm run author -- <scheme dir containing scheme.mjs>');
+  console.error('Usage: npm run author -- <scheme dir containing scheme.mjs> [--sheet] [--palette]');
   process.exit(2);
 }
 const schemeDir = resolve(dir);
@@ -66,6 +80,13 @@ const { errors, warnings, summary } = checkScheme(resources, converted.theme);
 for (const line of summary) console.log(`  ${line}`);
 for (const w of warnings) console.log(`  ⚠ ${w}`);
 for (const e of errors) console.log(`  ✗ ${e}`);
+if (wantSheet) {
+  const sheet = contactSheet(resources, { sim8: true });
+  const sheetPath = resolve(schemeDir, 'sheet.png');
+  writeFileSync(sheetPath, encodePng(sheet.width, sheet.height, sheet.rgba));
+  console.log(`Wrote ${sheetPath} (${sheet.count} images, ${sheet.width}x${sheet.height}; web on the left, 8 bpp simulation on the right)`);
+}
+if (wantPalette) await printPaletteReport();
 if (errors.length) { console.error(`✗ ${errors.length} error(s); ${out} was not written.`); process.exit(1); }
 writeFileSync(out, fork);
 console.log(`Wrote ${out} (${fork.length.toLocaleString()} bytes, ${resources.length} resources)`);
@@ -75,3 +96,25 @@ const bin = resolve(schemeDir, 'scheme.bin');
 writeFileSync(bin, writeMacBinary({ name: macName, resourceFork: fork }));
 console.log(`Wrote ${bin} (MacBinary "${macName}", type Colr, creator Acid)`);
 console.log('✓ Loads through the runtime converter. Preview: npm run dev, then open /authoring-preview.html (or drop scheme.rsrc on the showcase).');
+
+async function printPaletteReport() {
+  const palettePath = resolve(schemeDir, 'palette.mjs');
+  const mod = existsSync(palettePath) ? await import(pathToFileURL(palettePath).href) : {};
+  const palette = Object.fromEntries(Object.entries(mod).filter(([k, v]) => k !== 'CONTRAST' && typeof v !== 'function'));
+  // The colours the engine samples (title swatch on the bar, push label on its face)…
+  // Windows that share a title pair are listed once.
+  const titles = new Map();
+  for (const t of titleContrast(resources)) {
+    const key = `${t.state} ${t.text} ${t.bar}`;
+    if (!titles.has(key)) titles.set(key, { ...t, others: 0 }); else titles.get(key).others++;
+  }
+  const pairs = [...titles.values()].map((t) => [t.text, t.bar, `${t.window}${t.others ? ` (+${t.others})` : ''} ${t.state} title`]);
+  for (const line of summary) {
+    const m = /^(push button|pressed push button): face (#\w+), text (#\w+)/.exec(line);
+    if (m) pairs.push([m[3], m[2], `${m[1]} label`, 'label']);
+  }
+  // …plus whatever the palette declares.
+  for (const p of mod.CONTRAST ?? []) pairs.push(p);
+  console.log(`Palette report (${existsSync(palettePath) ? 'palette.mjs' : 'no palette.mjs; sampled colours only'}):`);
+  for (const line of formatPaletteReport(paletteReport(palette, { pairs }))) console.log(`  ${line}`);
+}

@@ -96,7 +96,8 @@
     "test:acceptance:bindings": "node --experimental-strip-types tests/acceptance-bindings/generate.mjs",
     "loc:src": "node scripts/src-loc.mjs",
     "spike:runtime": "node tools/runtime-spike/run.mjs",
-    "author": "node scripts/author-scheme.mjs"
+    "author": "node scripts/author-scheme.mjs",
+    "sim8": "node scripts/sim8.mjs"
   },
   "engines": {
     "node": ">=20"

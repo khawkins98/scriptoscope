@@ -70,6 +70,21 @@ MacBinary packs both forks and the Finder info into one ordinary file.
 StuffIt Expander, MacBinary utilities and hfsutils (`hcopy -m`) turn it back
 into a real scheme file on a classic Mac or an emulator disk.
 
+Two flags add review aids, written even when the checks fail:
+
+- `--sheet` writes `<dir>/sheet.png`: every `cicn` (and every `ppat`, tiled
+  2×2) at 4× on a checkerboard, grouped by family and labelled with id and
+  size, with the same images through the 8-bit simulation beside them. Don't
+  commit it.
+- `--palette` prints the palette report for `<dir>/palette.mjs`: where each
+  colour lands on the 8-bit system palette, which colours collapse onto one
+  entry, and the contrast of the title and button colours the engine samples
+  (plus any pairs the palette exports as `CONTRAST = [[fg, bg, label], …]`).
+
+To see a whole preview the way an 8-bit classic screen would, run
+`npm run sim8 -- authoring/schemes/halcyon/preview.png /tmp/sim8.png --dpr 2`
+([`authoring-visual-design.md`](./authoring-visual-design.md) §3.4).
+
 Try it: change `accent` in the palette at the top of
 `authoring/schemes/halcyon/scheme.mjs`, rebuild, and reload the preview.
 
@@ -97,6 +112,9 @@ encoder is the inverse of a decoder there, and the tests prove the round trip.
 | `resource-fork-writer.js` | `writeResourceFork(resources)`: builds the binary file |
 | `check-scheme.js` | `checkScheme(resources)`: authoring checks (section 7) |
 | `color.js` | colour parsing and the gamma pre-compensation (section 4.4) |
+| `sim8.js` | `simulate8bit(image)`: quantises an image the way an 8 bpp classic screen would; `systemEntryFor(colour)` for one colour |
+| `palette-report.js` | `paletteReport(palette, { pairs })`: 8-bit entry and distance per colour, collapses, WCAG contrast; `contrastRatio` |
+| `contact-sheet.js` | `contactSheet(resources, { sim8 })`: the image behind `--sheet` |
 
 The writers are checked against the real corpus. Re-writing all 18 bundled
 schemes with `writeResourceFork` returns every resource byte for byte, and
@@ -402,9 +420,15 @@ fires on an original scheme is at most a warning.
 | warning | a menu, tab, Finder header or progress image without its same-id `cinf` |
 | warning | a progress frame `cinf` whose corner is larger than its side |
 | warning | a `cinf` whose text and background sample the same colour (text on that piece is invisible) |
+| warning | title text against the title bar below 2:1 (active) or 1.4:1 (inactive), from the swatch and the bar's commonest colour in the glyph rows |
+| warning | a push or pressed push label against its face below 2:1 |
 
 It also prints the colours the engine *will* sample, such as title text and
-button labels, so you can confirm your hidden swatches. A "classic extras"
+button labels, with their contrast against the bar or face, so you can
+confirm your hidden swatches. The two contrast warnings are set low on
+purpose: no corpus scheme goes below them, while the design floors (4.5:1
+for an active title, 3:1 inactive) would fire on 5 and 6 of the 18. Use the
+printed ratios and `--palette` for those. A "classic extras"
 line says which things real Kaleidoscope shows beyond the windows the scheme
 ships: the desktop pattern, the picker icon, menus, and pressed utility
 widgets (`-14298`) when utility windows have widgets. They aren't warnings,
