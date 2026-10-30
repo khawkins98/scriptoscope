@@ -1732,6 +1732,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     win.addEventListener('pointerdown', (e) => {
       if (!inFrame(e)) return; // inside the content body — not a drag handle
       if (e.pointerType === 'mouse' && e.button !== 0) return; // only primary mouse button initiates drag
+      if (!e.isPrimary) return; // a second touch or pen contact doesn't start a second drag
       e.preventDefault();
       this.claimFocus(entry, moveBtn);
       void this.focus(entry);
@@ -1768,7 +1769,11 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
         // features (snap-to-grid, collision) see the move. setPosition
         // fires onChange for us; no explicit call needed.
         this.setPosition(host, origin.x + d.x, origin.y + d.y);
-      }, () => place({ x: 0, y: 0 })); // cancelled (#563): back to the start, uncommitted
+      }, () => {
+        // Cancelled (#563): back to the start, uncommitted. Reuses the hot-loop writer, so the
+        // setPosition chokepoint still sees every committed move.
+        place({ x: 0, y: 0 });
+      });
     }, { signal });
 
     // KEYBOARD MOVE HANDLE — focusable transparent button overlaying the title region. Closes the
@@ -1882,7 +1887,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     // Swallow dblclick on the gripper too, else "inFrame at the bottom-right" would shade-on-dblclick.
     corner.addEventListener('dblclick', (e) => { e.stopPropagation(); }, { signal });
     corner.addEventListener('pointerdown', (e) => {
-      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      if ((e.pointerType === 'mouse' && e.button !== 0) || !e.isPrimary) return;
       e.preventDefault(); e.stopPropagation();
       this.claimFocus(entry, corner);
       void this.focus(entry);

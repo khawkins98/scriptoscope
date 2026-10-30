@@ -355,3 +355,129 @@ for (const mode of ['source', 'built']) {
     });
   }
 }
+
+// ── Other pointers, a second contact, and renders during a drag (#563 review) ─
+const outline = (page, which) => page.evaluate(w => {
+  const o = window.__h.hosts[w].querySelector(':scope > div[style*="dotted"]');
+  return o && { w: parseFloat(o.style.width), h: parseFloat(o.style.height) };
+}, which);
+// Another pointer's release, cancel and capture loss, sent where the drag listens.
+const foreign = page => page.evaluate(() => {
+  for (const type of ['pointerup', 'pointercancel', 'lostpointercapture'])
+    document.dispatchEvent(new PointerEvent(type, { pointerId: 999, pointerType: 'touch', bubbles: true, composed: true }));
+});
+
+for (const mode of ['source', 'built']) {
+  for (const slug of SLUGS) {
+    harnessTest(`${mode}: ${slug} another pointer's release, cancel or capture loss doesn't end or commit a drag (#563)`, async ({ page, servers }) => {
+      await setup(page, servers, mode, slug);
+      await activate(page, 'abs');
+      // Title bar: the drag keeps following the real pointer and commits once, on its release.
+      let before = await read(page, 'abs');
+      let p = centre(before.grip);
+      await page.mouse.move(p.x, p.y);
+      await page.mouse.down();
+      await page.mouse.move(p.x + 20, p.y + 10, { steps: 2 });
+      await foreign(page);
+      await settle(page);
+      let mid = await read(page, 'abs');
+      expect.soft(mid.changes, `${slug}: title drag committed by another pointer`).toBe(0);
+      await page.mouse.move(p.x + 40, p.y + 30, { steps: 2 });
+      mid = await read(page, 'abs');
+      expect.soft(Math.round(mid.chrome.x - before.chrome.x), `${slug}: title drag still tracking after another pointer ended`).toBe(40);
+      await page.mouse.up();
+      await settle(page);
+      let after = await read(page, 'abs');
+      expect.soft(Math.round(after.chrome.y - before.chrome.y), `${slug}: title drag committed at the real release`).toBe(30);
+      expect.soft(after.changes, `${slug}: title drag commits once`).toBe(1);
+
+      // Grow box: the outline keeps following, and the size commits once, on the real release.
+      await page.evaluate(() => window.__h.changes.clear());
+      before = await read(page, 'abs');
+      p = centre(before.corner);
+      await page.mouse.move(p.x, p.y);
+      await page.mouse.down();
+      await page.mouse.move(p.x + 10, p.y + 10, { steps: 2 });
+      await foreign(page);
+      await settle(page);
+      expect.soft((await read(page, 'abs')).userResize, `${slug}: grow committed by another pointer`).toBe(before.userResize);
+      await page.mouse.move(p.x + 30, p.y + 20, { steps: 2 });
+      const o = await outline(page, 'abs');
+      expect.soft(o, `${slug}: grow outline survives another pointer`).not.toBeNull();
+      expect.soft(o && Math.round(o.w - before.host.w), `${slug}: grow outline still tracking`).toBe(30);
+      await page.mouse.up();
+      await settle(page);
+      after = await read(page, 'abs');
+      expect.soft(after.userResize - before.userResize, `${slug}: grow commits once`).toBe(1);
+      expect.soft(Math.round(after.host.w - before.host.w), `${slug}: grow committed at the real release`).toBe(30);
+    });
+
+    harnessTest(`${mode}: ${slug} a second touch on the title bar or grow box starts no drag (#563)`, async ({ page, servers }) => {
+      await setup(page, servers, mode, slug);
+      for (const which of ['flow', 'abs']) {
+        await activate(page, which);
+        for (const part of ['title', 'grow']) {
+          const before = await read(page, which);
+          const p = centre(part === 'title' ? before.grip : before.corner);
+          await page.evaluate(({ w, part, p }) => {
+            const host = window.__h.hosts[w];
+            const target = part === 'grow' ? host.shadowRoot.querySelector('button.scriptoscope-growbox') : host.shadowRoot.querySelector('canvas.scriptoscope-chrome');
+            const ev = (type, dx, dy) => new PointerEvent(type, { pointerId: 7, pointerType: 'touch', isPrimary: false,
+              clientX: p.x + dx, clientY: p.y + dy, bubbles: true, composed: true, cancelable: true });
+            target.dispatchEvent(ev('pointerdown', 0, 0));
+            document.dispatchEvent(ev('pointermove', 20, 15));
+            document.dispatchEvent(ev('pointermove', 40, 30));
+            document.dispatchEvent(ev('pointerup', 40, 30));
+          }, { w: which, part, p });
+          await settle(page);
+          const after = await read(page, which);
+          const why = `${slug} ${which} non-primary ${part} contact`;
+          expectUnchanged(after, before, why);
+          expect.soft(after.changes, `${why}: onChange`).toBe(0);
+        }
+      }
+    });
+
+    harnessTest(`${mode}: ${slug} a title drag survives the activation render; a grow drag cancels when the window collapses (#563)`, async ({ page, servers }) => {
+      await setup(page, servers, mode, slug);
+      await activate(page, 'flow');
+      // Dragging the inactive window: pointerdown activates it, re-rendering under the captured drag.
+      let before = await read(page, 'abs');
+      expect(before.state).toBe('inactive');
+      let p = centre(before.grip);
+      await page.mouse.move(p.x, p.y);
+      await page.mouse.down();
+      await settle(page);
+      expect((await read(page, 'abs')).state, `${slug}: activated mid-drag`).toBe('active');
+      await page.mouse.move(p.x + 35, p.y + 25, { steps: 4 });
+      await page.mouse.up();
+      await settle(page);
+      const dragged = await read(page, 'abs');
+      expect(Math.round(dragged.chrome.x - before.chrome.x), `${slug}: drag tracked across the render`).toBe(35);
+      expect(Math.round(dragged.chrome.y - before.chrome.y)).toBe(25);
+      expect(dragged.left, `${slug}: position committed`).toBe(`${640 + 35}px`);
+
+      // Collapsing mid-grow drops the grow box: the drag cancels, no resize lands.
+      await page.evaluate(() => window.__h.changes.clear());
+      before = await read(page, 'abs');
+      p = centre(before.corner);
+      await page.mouse.move(p.x, p.y);
+      await page.mouse.down();
+      await page.mouse.move(p.x + 20, p.y + 20, { steps: 2 });
+      expect(await outline(page, 'abs'), `${slug}: outline before the collapse`).not.toBeNull();
+      await page.evaluate(async () => {
+        const { manager, hosts } = window.__h;
+        await manager.toggleCollapse(manager.windows.find(w => w.host === hosts.abs));
+      });
+      await settle(page);
+      await page.mouse.move(p.x + 40, p.y + 40, { steps: 2 });
+      await page.mouse.up();
+      await settle(page);
+      const collapsed = await read(page, 'abs');
+      expect.soft(collapsed.outlines, `${slug}: outline removed by the cancel`).toBe(0);
+      expect.soft(collapsed.userResize, `${slug}: no userresize after the collapse`).toBe(before.userResize);
+      const size = await page.evaluate(() => { const w = window.__h.manager.windows.find(w => w.host === window.__h.hosts.abs); return { w: w.opts.width, h: w.opts.height }; });
+      expect.soft(size, `${slug}: content size unchanged`).toEqual({ w: 220, h: 140 });
+    });
+  }
+}
