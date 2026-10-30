@@ -695,6 +695,24 @@ export function titleWidgetHits(
   }));
 }
 
+/**
+ * Title widgets in visual reading order (#537, WCAG 2.4.3): rows top to bottom, left to right within
+ * a row. Two widgets share a row when their vertical centres are less than half the shorter one's
+ * height apart, i.e. each centre lies inside the other's span. Monkey-paradise's taller collapse
+ * sprite (top 0 against 5) stays on its row; 1984's document close, 6 px lower with 11 px widgets,
+ * reads after zoom and collapse. Scale-invariant, since it compares the widgets to themselves.
+ */
+function readingOrder(hits: TitleWidgetHit[]): TitleWidgetHit[] {
+  const cy = (hit: TitleWidgetHit): number => hit.rect.y + hit.rect.h / 2;
+  const rows: TitleWidgetHit[][] = [];
+  for (const hit of [...hits].sort((a, b) => cy(a) - cy(b))) {
+    const lead = rows.at(-1)?.[0];
+    if (lead && Math.abs(cy(hit) - cy(lead)) < Math.min(hit.rect.h, lead.rect.h) / 2) rows.at(-1)!.push(hit);
+    else rows.push([hit]);
+  }
+  return rows.flatMap(row => row.sort((a, b) => a.rect.x - b.rect.x));
+}
+
 // ── Window focus manager ────────────────────────────────────────────────────
 interface ManagedWindow<Theme extends ThemeInput> {
   contentPort: ManagedContentPort;
@@ -1240,7 +1258,8 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     if (notify) this.notifyChange(entry);
   }
 
-  /** Overlay keys in tab order: title widgets, move handle, grow box, scrollbars. */
+  /** Overlay keys in tab order: title widgets (then put in reading order by overlayWidgets), move
+   *  handle, grow box, scrollbars. */
   private static readonly OVERLAYS = ['titlewidget-close', 'titlewidget-zoom', 'titlewidget-collapse',
     'movehandle', 'growbox', 'window-scrollbar-vertical', 'window-scrollbar-horizontal'];
 
@@ -1787,11 +1806,13 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       && entry.host.shadowRoot?.firstChild === win
       && (win as unknown as { _scriptoscopeComposed?: ComposedChrome })._scriptoscopeComposed === composed;
     // No composed chrome (baseline procedural window): no cicn widget rects.
-    for (const hit of composed ? titleWidgetHits(entry.theme, slug, composed, scale, entry.active ? 'active' : 'inactive') : []) {
+    const placed: HTMLElement[] = [];
+    for (const hit of readingOrder(composed ? titleWidgetHits(entry.theme, slug, composed, scale, entry.active ? 'active' : 'inactive') : [])) {
       const handler = cb[hit.role];
       if (!handler) continue;
       unwired.delete(hit.role);
       const btn = this.overlay(entry, win, `titlewidget-${hit.role}`, 'button');
+      placed.push(btn);
       btn.type = 'button';
       btn.className = `scriptoscope-titlewidget scriptoscope-titlewidget-${hit.role}`;
       // Friendlier labels than the bare role string ("close" → "Close window" etc.) so screen
@@ -1858,5 +1879,12 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       }
     }
     for (const role of unwired) this.dropOverlay(entry, `titlewidget-${role}`);
+    // Tab order follows reading order (#537). Move nodes only when the order changed (a retheme), and
+    // never the focused one: moving a focused node blurs it. The rest are placed around it.
+    if (placed.some((btn, i) => i > 0 && !(placed[i - 1]!.compareDocumentPosition(btn) & Node.DOCUMENT_POSITION_FOLLOWING))) {
+      const pivot = Math.max(0, placed.indexOf(entry.host.shadowRoot?.activeElement as HTMLElement));
+      for (const btn of placed.slice(0, pivot)) win.insertBefore(btn, placed[pivot]!);
+      placed.slice(pivot + 1).reduce((prev, btn) => { win.insertBefore(btn, prev.nextSibling); return btn; }, placed[pivot]!);
+    }
   }
 }
