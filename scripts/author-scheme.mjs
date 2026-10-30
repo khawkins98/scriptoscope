@@ -33,9 +33,19 @@ if (!existsSync(entry)) {
   process.exit(2);
 }
 
-const { buildScheme } = await import(pathToFileURL(entry).href);
-const { resources } = await buildScheme();
-const fork = writeResourceFork(resources);
+// Mistakes in scheme.mjs (a bad windowLayout spec, a fractional pixel, too
+// many colours) throw with a message that says what to change; show that
+// message rather than a stack trace. DEBUG=1 prints the stack too.
+let resources, fork;
+try {
+  const { buildScheme } = await import(pathToFileURL(entry).href);
+  ({ resources } = await buildScheme());
+  fork = writeResourceFork(resources);
+} catch (err) {
+  console.error(`✗ Building ${entry} failed: ${err instanceof Error ? err.message : err}`);
+  if (process.env.DEBUG && err instanceof Error) console.error(err.stack);
+  process.exit(1);
+}
 const out = resolve(schemeDir, 'scheme.rsrc');
 
 const metaPath = resolve(schemeDir, 'meta.json');

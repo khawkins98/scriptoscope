@@ -113,6 +113,10 @@ export function checkScheme(resources, theme) {
     // The engine uses the LAST rect of a part (rectOfType), so we do too.
     const content = lastRect(wnd, 0);
     if (!content) { errors.push(`${label}: no content rectangle (rect-list part 0); the runtime cannot place the window body`); continue; }
+    if (content.right <= content.left || content.bottom <= content.top) {
+      errors.push(`${label}: content rectangle ${JSON.stringify(content)} is empty or inside out; it needs right > left and bottom > top`);
+      continue;
+    }
     const titled = wnd.rectangles.some((x) => x.part === 4 && x.rect.right > x.rect.left);
     if (titled && content.top <= 6 && !collapsed) warnings.push(`${label}: content top is ${content.top}; titled windows need more than 6px of title bar (title size = clamp(top − 6, 8, 13))`);
     if (titled) {
@@ -135,7 +139,14 @@ export function checkScheme(resources, theme) {
     const cinfRes = find('cinf', id);
     if (!cinfRes) continue;
     const d = decodeCinf(cinfRes.data), c = cicn(id);
+    checkFaceCinf(`${PUSH_FACES[id]} (cinf ${id})`, d, c, warnings);
     summary.push(`${PUSH_FACES[id]}: face ${hexAt(c, d.bgPixel.x, d.bgPixel.y)}, text ${hexAt(c, d.textPixel.x, d.textPixel.y)}`);
+  }
+
+  // Default-button rings use the same corner/sample layout as the faces.
+  for (const id of [-10232, -10231]) {
+    const cinfRes = find('cinf', id), c = cicn(id);
+    if (cinfRes && c) checkFaceCinf(`default ring (cinf ${id})`, decodeCinf(cinfRes.data), c, warnings);
   }
 
   // ── Checkboxes and radios: id = -9504 + 12·kind + 3·value + tier ──
@@ -154,6 +165,20 @@ export function checkScheme(resources, theme) {
     summary.unshift(`window types: ${types.length ? types.join(', ') : 'none'}`);
   }
   return { errors, warnings, summary };
+}
+
+/**
+ * A button face's cinf points at pixels of its cicn and says how big the
+ * fixed corners are. Points outside the image read garbage; corners bigger
+ * than half the face overlap each other. (No corpus face does either.)
+ */
+function checkFaceCinf(label, d, c, warnings) {
+  const { width: W, height: H } = c.pmap;
+  for (const key of ['bgPixel', 'textPixel', 'embossPixel']) {
+    const { x, y } = d[key];
+    if (x < 0 || y < 0 || x >= W || y >= H) warnings.push(`${label}: ${key} (${x}, ${y}) is outside the ${W}x${H} image`);
+  }
+  if (2 * d.cornerSize > Math.min(W, H)) warnings.push(`${label}: cornerSize ${d.cornerSize} is more than half the ${W}x${H} image, so the corners overlap`);
 }
 
 function lastRect(wnd, part) {

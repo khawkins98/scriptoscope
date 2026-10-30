@@ -42,12 +42,18 @@ npm run dev
 # open http://localhost:5173/authoring-preview.html
 ```
 
-`npm run author` does three things:
+`npm run author` does four things:
 
 1. runs `buildScheme()` from the scheme's `scheme.mjs`, which returns a list of resources;
-2. writes them to `scheme.rsrc`;
-3. loads that file back through **the same converter the browser uses**, then
-   runs the authoring checks (section 7). A problem shows up here, not later in the browser.
+2. packs them into resource-fork bytes and loads those bytes back through
+   **the same converter the browser uses**;
+3. runs the authoring checks (section 7) and prints what it found;
+4. writes `scheme.rsrc` only if there were no errors. On an error the old file
+   is left as it was and the command exits with status 1, so a problem shows up
+   here, not later in the browser. Warnings are printed but don't stop the build.
+
+If you edit Halcyon itself, rebuild before running `npm test`: a test checks
+that the committed `scheme.rsrc` matches a fresh build.
 
 Try it: change `accent` in the palette at the top of
 `authoring/schemes/halcyon/scheme.mjs`, rebuild, and reload the preview.
@@ -100,6 +106,8 @@ part code:              1      11  5  8      1
 | 5 | title plate: widened to the title's width and centred | the strip behind the title text |
 | 6 | title bezel: fixed, hidden when the title doesn't fit | end caps around the plate |
 | 0 | collapse: zero width | (rarely needed) |
+| 2, 3, 4 | fixed while the window has a close / zoom / collapse box; zero width when it doesn't | space that belongs to that widget |
+| 10 | fixed, but dropped when the window is narrower than the template | optional decoration |
 | 12 | tile in whole copies only | patterned borders |
 | 15, 16, 17 | collapse to zero when their widget is present | never put a widget in these |
 | 18 | scale once | rare |
@@ -119,7 +127,9 @@ stored with border *i*. The first entry's part code is never used; write 0.
 > corner"; the newer window-widgets rows and the runtime are what you can rely on.)
 
 `windowLayout()` writes recipes that follow every rule here, so you only
-choose sizes:
+choose sizes. It throws a readable error if the sizes can't work: a title bar
+under 7px, a side border wider than the fixed corner region, or a widget box
+that isn't wholly inside the fixed left or right region of the title bar.
 
 ```js
 const layout = windowLayout({
@@ -156,6 +166,11 @@ invisible on screen:
 
 `raster.swatch(x, y, colour)` writes one of these hidden pixels: stored in the
 palette, transparent on screen.
+
+`Raster` coordinates are whole pixels. If you centre something with
+`(width - w) / 2`, wrap it in `Math.floor`; a fractional coordinate throws.
+Drawing past the edge of the raster is fine (those pixels are dropped), and a
+corner radius larger than half the shape is reduced to half.
 
 ### 4.4 Type the colour you want to see
 
@@ -200,10 +215,10 @@ as `#1d2430` in the browser (measured exactly in Halcyon's title text). Pass
 | `-10232` / `-10231` | `cicn` + `cinf` | default-button ring: inactive / normal |
 | `-9504 … -9496` | `cicn` | checkbox: value (off, on, mixed) × tier (disabled, normal, pressed) |
 | `-9492 … -9484` | `cicn` | radio button, same layout |
-
-(Value 3, "alternate", would use the next three ids of each kind; Halcyon doesn't ship it.)
 | `129` | `Colr` | scheme flags |
 | `1` | `vers` | version |
+
+(Value 3, "alternate", would use the next three ids of each kind; Halcyon doesn't ship it.)
 
 Every `wnd#` id N pairs with `cicn` N (inactive) and N + 1 (active). For the
 full id vocabulary, see
@@ -222,10 +237,15 @@ fires on an original scheme is at most a warning.
 |---|---|
 | error | a `wnd#` without its frame image; active and inactive frames of different sizes |
 | error | a widget overlapping a cell that stretches or collapses (codes 0, 8, 11–18) |
-| error | no content rectangle (part 0) |
+| error | no content rectangle (part 0), or one that is empty or inside out |
+| error | a rect-list rectangle that lies outside the frame image (warning on collapsed windows) |
+| warning | a `cicn` whose every pixel is transparent |
+| warning | no active frame (`cicn` id + 1), so the inactive frame is used for both states |
+| warning | an edge recipe that ends past the edge of the frame image |
 | warning | visible pixels outside an edge's recipe span (they are never drawn) |
 | warning | an edge with no growing cell (the window can't resize that way) |
 | warning | a push face with no same-id `cinf` (the runtime silently draws Platinum instead) |
+| warning | a face or ring `cinf` whose sample pixels fall outside its image, or whose `cornerSize` is more than half the image |
 | warning | no pressed push face; an incomplete checkbox/radio set |
 | warning | a title bar too short for the title (title size is `clamp(content.top − 6, 8, 13)`) |
 

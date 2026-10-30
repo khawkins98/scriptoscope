@@ -20,7 +20,9 @@ import { parseColor } from './color.js';
 export class Raster {
   /** @param {number} width @param {number} height */
   constructor(width, height) {
-    if (!(width > 0 && height > 0)) throw new Error(`Raster: invalid size ${width}x${height}`);
+    if (!(Number.isInteger(width) && Number.isInteger(height) && width > 0 && height > 0)) {
+      throw new Error(`Raster: invalid size ${width}x${height} (whole numbers above 0)`);
+    }
     this.width = width;
     this.height = height;
     this.rgba = new Uint8Array(width * height * 4); // starts fully transparent
@@ -28,8 +30,17 @@ export class Raster {
 
   inBounds(x, y) { return x >= 0 && y >= 0 && x < this.width && y < this.height; }
 
-  /** Set one pixel. `color` null/undefined makes it transparent. */
+  /**
+   * Set one pixel. `color` null/undefined makes it transparent. Pixels outside
+   * the raster are ignored, so shapes may hang off the edge. Coordinates must
+   * be whole numbers: wrap centring maths in Math.floor or Math.round.
+   */
   set(x, y, color) {
+    // A fractional x would land the write between pixels and corrupt the
+    // neighbours' channels (rgba is a flat byte array), so refuse it loudly.
+    if (!Number.isInteger(x) || !Number.isInteger(y)) {
+      throw new Error(`Raster: pixel (${x}, ${y}) is not on the grid; round coordinates with Math.floor or Math.round`);
+    }
     if (!this.inBounds(x, y)) return this;
     const i = (y * this.width + x) * 4;
     if (color == null) { this.rgba.fill(0, i, i + 4); return this; }
@@ -77,6 +88,7 @@ export class Raster {
    * transparent rounded hole, which is how you make rings and outlines.
    */
   fillRoundRect(x, y, w, h, radius, color) {
+    radius = Math.min(radius, w / 2, h / 2); // larger radii would cut into the straight edges
     for (let yy = y; yy < y + h; yy++) for (let xx = x; xx < x + w; xx++) {
       const dx = Math.min(xx - x, x + w - 1 - xx), dy = Math.min(yy - y, y + h - 1 - yy);
       if (dx < radius && dy < radius && !insideCircle(dx, dy, radius)) continue;
@@ -91,6 +103,7 @@ export class Raster {
    * The edge pixels that remain can be recoloured with `outlineEdges`.
    */
   clipRounded(x, y, w, h, radius, corners = ['tl', 'tr', 'bl', 'br']) {
+    radius = Math.min(radius, w / 2, h / 2); // radius w/2 on a square gives a circle; more is meaningless
     for (const c of corners) {
       for (let dy = 0; dy < radius; dy++) for (let dx = 0; dx < radius; dx++) {
         if (insideCircle(dx, dy, radius)) continue;
@@ -126,6 +139,7 @@ export class Raster {
    *   r.sprite(0, 0, ['.##.', '#..#'], { '#': '#334455' });
    */
   sprite(x, y, rows, legend) {
+    if (!Array.isArray(rows)) throw new Error('Raster.sprite: rows must be an array of strings, one per pixel row');
     rows.forEach((row, dy) => [...row].forEach((ch, dx) => {
       if (ch in legend) this.set(x + dx, y + dy, legend[ch]);
       else if (ch !== '.' && ch !== ' ') throw new Error(`Raster.sprite: no legend entry for '${ch}'`);

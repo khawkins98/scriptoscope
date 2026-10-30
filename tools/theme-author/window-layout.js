@@ -50,6 +50,7 @@ export function windowLayout(spec) {
   const middle = titled ? 3 : 1;
   const width = spec.leftFixed + middle + spec.rightFixed;
   const top = titled ? spec.titleBar : (spec.top ?? spec.bottom);
+  validate(spec, { side, top, titled, width });
   // One template row of content between the top region and the bottom corner.
   // A collapsed window keeps that row too: the content rectangle must exist
   // (the runtime needs it) and its first pixel stores the title colour.
@@ -87,4 +88,32 @@ export function windowLayout(spec) {
       rightSide: spec.collapsed ? [] : vertical,
     },
   };
+}
+
+// Reject specs that would encode but draw wrong. Each message says what to change.
+function validate(spec, { side, top, titled, width }) {
+  const fail = (msg) => { throw new Error(`windowLayout: ${msg}`); };
+  const sizes = { titleBar: spec.titleBar, leftFixed: spec.leftFixed, rightFixed: spec.rightFixed, side, top, bottom: spec.bottom };
+  for (const [name, v] of Object.entries(sizes)) {
+    if (!Number.isInteger(v) || v < 0) fail(`${name} must be a whole number of pixels ≥ 0 (got ${v})`);
+  }
+  // The title rectangle is rows 2..titleBar−2 and the engine samples its colour
+  // 4px above that rectangle's bottom; the title size is clamp(titleBar − 6, 8, 13).
+  if (titled && spec.titleBar < 7) fail(`titleBar ${spec.titleBar} is too short for a title; use 0 (no title bar) or at least 7`);
+  // The bottom edge's growing column is column leftFixed (and the same cell on
+  // the right). If the side border were thicker than the fixed corner, that
+  // column would be part of the side border and the corner art would smear.
+  if (side < 1 || side > spec.leftFixed || side > spec.rightFixed) {
+    fail(`side (${side}) must be at least 1 and no wider than leftFixed (${spec.leftFixed}) and rightFixed (${spec.rightFixed})`);
+  }
+  for (const [name, b] of Object.entries(spec.widgets ?? {})) {
+    if (!b) continue;
+    if (![b.x, b.y, b.w, b.h].every(Number.isInteger) || b.w <= 0 || b.h <= 0) fail(`widget ${name} needs whole-number x, y, w, h with w, h > 0`);
+    if (b.y < 0 || b.y + b.h > top) fail(`widget ${name} (y ${b.y}..${b.y + b.h}) must sit inside the ${top}px top frame (rows 0..${top})`);
+    const inLeft = b.x >= 0 && b.x + b.w <= spec.leftFixed;
+    const inRight = b.x >= width - spec.rightFixed && b.x + b.w <= width;
+    if (!inLeft && !inRight) {
+      fail(`widget ${name} (x ${b.x}..${b.x + b.w}) must sit wholly inside the fixed left region [0, ${spec.leftFixed}) or the fixed right region [${width - spec.rightFixed}, ${width}); otherwise it lands in a stretching cell`);
+    }
+  }
 }

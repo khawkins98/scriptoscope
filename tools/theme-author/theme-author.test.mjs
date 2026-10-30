@@ -171,3 +171,74 @@ test('Raster.blit keeps hidden swatches', () => {
   assert.equal(dst.rgba[2 * 4 + 3], 1);
   assert.deepEqual([...dst.rgba.subarray(8, 11)], [0x12, 0x34, 0x56]);
 });
+
+// ── Red-team regressions ──
+
+test('check: the remaining window rules can each fire', () => {
+  const blank = encodeCicn(new Raster(4, 4));
+  assert.ok(checkScheme([{ type: 'cicn', id: 1, data: blank }]).warnings.some((w) => /every pixel is transparent/.test(w)));
+  const noActive = scheme().filter((r) => !(r.type === 'cicn' && r.id === -14335));
+  assert.ok(checkScheme(noActive).warnings.some((w) => /no active frame cicn -14335/.test(w)));
+  const past = scheme((l) => { l.wnd.topSide.at(-1).border = l.width + 3; return l; });
+  assert.ok(checkScheme(past).warnings.some((w) => /top side ends at .* past the/.test(w)));
+  const outside = scheme((l) => { l.wnd.rectangles[1].rect = { top: 4, left: 4, bottom: 14, right: l.width + 9 }; return l; });
+  assert.ok(checkScheme(outside).errors.some((e) => /part 1 .* lies outside/.test(e)));
+  const shortBar = scheme((l) => { l.wnd.rectangles[0].rect.top = 5; return l; });
+  assert.ok(checkScheme(shortBar).warnings.some((w) => /content top is 5/.test(w)));
+  const oneCheckbox = [{ type: 'cicn', id: -9504, data: encodeCicn(new Raster(4, 4).fillRect(0, 0, 4, 4, '#000')) }];
+  assert.ok(checkScheme(oneCheckbox).warnings.some((w) => /17 of 18 checkbox\/radio cicns are missing/.test(w)));
+});
+
+test('check: an empty or inside-out content rectangle is an error', () => {
+  const { errors } = checkScheme(scheme((l) => { l.wnd.rectangles[0].rect = { top: 20, left: 5, bottom: 21, right: 4 }; return l; }));
+  assert.ok(errors.some((e) => /content rectangle .* empty or inside out/.test(e)), errors.join('\n'));
+});
+
+test('check: face and ring cinf sample points and corner size are validated', () => {
+  const face = encodeCicn(new Raster(10, 10).fillRect(0, 0, 10, 10, '#ffffff'));
+  const bad = encodeCinf({ cornerSize: 6, sideThickness: 1, bgPixel: { x: 12, y: 3 }, textPixel: { x: 1, y: 1 } });
+  const res = [-10240, -10239, -10238, -10231].flatMap((id) => [{ type: 'cicn', id, data: face }, { type: 'cinf', id, data: bad }]);
+  const { warnings } = checkScheme(res);
+  assert.ok(warnings.some((w) => /push button \(cinf -10239\): bgPixel \(12, 3\) is outside the 10x10 image/.test(w)), warnings.join('\n'));
+  assert.ok(warnings.some((w) => /push button \(cinf -10239\): cornerSize 6 is more than half/.test(w)));
+  assert.ok(warnings.some((w) => /default ring \(cinf -10231\): bgPixel/.test(w)));
+  const good = encodeCinf({ cornerSize: 4, sideThickness: 1, bgPixel: { x: 5, y: 5 }, textPixel: { x: 0, y: 1 } });
+  const ok = checkScheme(res.map((r) => (r.type === 'cinf' ? { ...r, data: good } : r))).warnings;
+  assert.ok(!ok.some((w) => /outside the|cornerSize/.test(w)), ok.join('\n'));
+});
+
+test('windowLayout rejects specs that encode but draw wrong', () => {
+  const base = { titleBar: 20, leftFixed: 20, rightFixed: 20, bottom: 4 };
+  assert.doesNotThrow(() => windowLayout(base));
+  // Title rect would be inside out and the colour sample above the image.
+  assert.throws(() => windowLayout({ ...base, titleBar: 4 }), /titleBar 4 is too short/);
+  // Content rect would be inside out (left 5, right 4).
+  assert.throws(() => windowLayout({ ...base, leftFixed: 3, rightFixed: 3, side: 5 }), /side \(5\) must be/);
+  assert.throws(() => windowLayout({ ...base, leftFixed: 0, rightFixed: 0 }), /side \(1\) must be/);
+  assert.throws(() => windowLayout({ ...base, titleBar: 16.5 }), /titleBar must be a whole number/);
+  assert.throws(() => windowLayout({ ...base, bottom: -1 }), /bottom must be/);
+  // A widget straddling the fixed region and the growing title cells.
+  assert.throws(() => windowLayout({ ...base, widgets: { close: { x: 14, y: 4, w: 10, h: 10 } } }), /widget close .* wholly inside/);
+  assert.throws(() => windowLayout({ ...base, widgets: { zoom: { x: 4, y: 14, w: 10, h: 10 } } }), /widget zoom .* top frame/);
+  assert.doesNotThrow(() => windowLayout({ ...base, widgets: { close: { x: 4, y: 4, w: 10, h: 10 }, zoom: { x: 30, y: 4, w: 10, h: 10 } } }));
+  // Untitled frames may carry widgets in their top frame band.
+  assert.doesNotThrow(() => windowLayout({ titleBar: 0, top: 14, leftFixed: 14, rightFixed: 14, bottom: 4, widgets: { close: { x: 3, y: 3, w: 8, h: 8 } } }));
+});
+
+test('Raster: fractional coordinates throw instead of corrupting neighbours', () => {
+  assert.throws(() => new Raster(5, 3).set(1.5, 1, '#fff'), /not on the grid/);
+  assert.throws(() => new Raster(5, 3).fillRect(0.5, 0, 2, 2, '#fff'), /not on the grid/);
+  assert.throws(() => new Raster(2.5, 3), /invalid size/);
+  assert.throws(() => new Raster(4, 4).sprite(0, 0, '##', { '#': '#fff' }), /rows must be an array/);
+  // Off-raster pixels are still silently dropped.
+  assert.doesNotThrow(() => new Raster(2, 2).fillRect(-3, -3, 10, 10, '#fff'));
+});
+
+test('Raster: corner radius is capped at half the shape', () => {
+  const opaque = (r) => { let n = 0; for (let i = 3; i < r.rgba.length; i += 4) n += r.rgba[i] ? 1 : 0; return n; };
+  const huge = new Raster(6, 4).fillRect(0, 0, 6, 4, '#fff').clipRounded(0, 0, 6, 4, 50);
+  const half = new Raster(6, 4).fillRect(0, 0, 6, 4, '#fff').clipRounded(0, 0, 6, 4, 2);
+  assert.deepEqual(huge.rgba, half.rgba);
+  assert.ok(opaque(huge) > 8, 'a pill, not just the middle rows');
+  assert.deepEqual(new Raster(6, 4).fillRoundRect(0, 0, 6, 4, 50, '#fff').rgba, new Raster(6, 4).fillRoundRect(0, 0, 6, 4, 2, '#fff').rgba);
+});
