@@ -7,8 +7,22 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+### Added
+
+- Scheme authoring toolkit (`tools/theme-author/`, `npm run author`): write
+  new Kaleidoscope schemes from code as real resource forks, with encoders for
+  `cicn`, `wnd#`, `cinf`, `Colr` and `vers`, a `windowLayout()` helper, and
+  authoring checks for mistakes that load but render wrong. The build also
+  writes a MacBinary file (type `Colr`, creator `Acid`) for classic Mac OS.
+  Guide: `docs/authoring-a-scheme.md` (#540).
+- Halcyon (`authoring/schemes/halcyon/`), a first-party proof-of-concept
+  scheme made with the toolkit. It loads in Scriptoscope and in the original
+  Kaleidoscope 2.3.1 on System 7.5.5. It is not part of the bundled corpus (#540).
+
 ### Fixed
 
+- Movable-modal, movable-alert, popup and collapsed titled-utility windows
+  show their title text again (#540).
 - Showcase links keep WCAG AA contrast when hovered, pressed and focused. The
   browser's default focus ring put a light halo against 1990's and Evolution's
   light link text (1.3-2.0:1), so focused links now draw a solid 2px ring in
