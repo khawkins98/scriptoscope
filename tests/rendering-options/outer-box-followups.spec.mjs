@@ -173,4 +173,61 @@ for (const mode of ['source', 'built']) {
     expect.soft(Math.abs(r.restored.slot.height - r.savedBox.slot.height), `restored content height ${r.restored.slot.height} vs saved ${r.savedBox.slot.height}`).toBeLessThanOrEqual(TOL);
     expectHostIsChrome(r.restored, 'restored');
   });
+
+  // Review of #564: the built-in frame draws a collapsed side utility as a bare
+  // bar with no content width, so its footprint says nothing about the bound.
+  // Collapsing must keep the last expanded content width (public describe()),
+  // prepare once like an unbounded collapse, expand back inside the column, and
+  // a persisted collapsed layout must restore inside it. evolution is the wnd# control.
+  for (const slug of ['platinum-8', 'apple-platinum-2', 'evolution']) {
+    test(`${mode}: ${slug} collapsed side utility keeps its content width and prepares once (#542)`, async ({ page, servers }) => {
+      await openHarness(page, servers, mode);
+      await boot(page, mode);
+      const r = await page.evaluate(async ({ slug }) => {
+        const h = window.__obf;
+        const src = (title, attrs = '') => `<article data-scriptoscope-window data-scriptoscope-window-type="side-floating-utility-window" data-scriptoscope-title="${title}" ${attrs}>${'<p>Utility body.</p>'.repeat(3)}</article>`;
+        // Prepared windows are detached; each preparation creates its chrome canvas.
+        const counted = async run => {
+          const create = document.createElement;
+          let n = 0;
+          document.createElement = function (tag, ...rest) { if (String(tag).toLowerCase() === 'canvas') n++; return create.call(this, tag, ...rest); };
+          try { await run(); } finally { document.createElement = create; }
+          return n;
+        };
+        const declared = await h.promote(slug, src('Declared', 'data-scriptoscope-width="300" data-scriptoscope-height="80"'));
+        const unbounded = await counted(() => declared.manager.applyState(declared.win.host, { collapsed: true }));
+        const { win, manager } = await h.promote(slug, src('Auto'));
+        const expanded = manager.describe(win.host).width;
+        const bounded = await counted(() => manager.applyState(win.host, { collapsed: true }));
+        await h.settle();
+        const collapsedWidth = manager.describe(win.host).width;
+        const { ownLayout } = await import('/demo/explicit-layout.mjs');
+        const tabA = new AbortController();
+        const layoutA = ownLayout({ persistKey: 'obf542u' }, tabA.signal);
+        layoutA.add(win.host, 0, win, manager);
+        const saved = layoutA.snapshot();
+        tabA.abort();
+        await manager.applyState(win.host, { collapsed: false });
+        await h.settle();
+        const reexpanded = h.measure(win);
+        const b = await h.promote(slug, src('Restored'));
+        const tabB = new AbortController();
+        const layoutB = ownLayout({ persistKey: 'obf542u' }, tabB.signal);
+        layoutB.add(b.win.host, 0, b.win, b.manager);
+        dispatchEvent(new StorageEvent('storage', { key: 'scriptoscope:layout:obf542u', newValue: JSON.stringify(saved) }));
+        await h.settle();
+        tabB.abort();
+        await b.manager.applyState(b.win.host, { collapsed: false });
+        await h.settle();
+        localStorage.removeItem('scriptoscope:layout:obf542u');
+        return { unbounded, bounded, expanded, collapsedWidth, saved: saved.windows['0'], reexpanded, restored: h.measure(b.win) };
+      }, { slug });
+      expect.soft(r.collapsedWidth, `${slug}: describe().width while collapsed`).toBe(r.expanded);
+      expect.soft(r.bounded, `${slug}: preparations for a bounded collapse vs an unbounded one (${r.unbounded})`).toBe(r.unbounded);
+      expect.soft(r.saved.w, `${slug}: persisted content width`).toBe(r.expanded);
+      expectWithin(r.reexpanded, 400, `${slug} re-expanded`);
+      expectWithin(r.restored, 400, `${slug} restored from a collapsed snapshot and expanded`);
+      expectHostIsChrome(r.restored, `${slug} restored`);
+    });
+  }
 }

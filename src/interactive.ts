@@ -1273,12 +1273,17 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
         // Never lend a live pooled canvas to an asynchronous preparation.
       });
     };
-    // A collapsed render has no content height to resolve: it keeps only the width bound
-    // (#542) and the last expanded height; the next expanded render resolves the height.
-    const outer = collapsed ? withoutAxes(entry.outer, false, true) : entry.outer;
-    if (!outer) {
+    const outer = entry.outer;
+    if (collapsed || !outer) {
       const win = await prepare(entry.opts);
-      return { win, collapsed, opts: entry.opts, ...(collapsed ? {} : { extent: measureExtent(win, entry.opts) }) };
+      if (!collapsed) return { win, collapsed, opts: entry.opts, extent: measureExtent(win, entry.opts) };
+      // A collapsed render has no content height to resolve, and the built-in frame hides
+      // the content (a side utility is a bare bar), so only a visible content box says
+      // what the frame's width is. Fit that to the width bound, re-preparing at most
+      // once; otherwise keep the last expanded content size (#542).
+      const opts = outer?.width === undefined || win.querySelector<HTMLElement>('.scriptoscope-content')!.hidden
+        ? entry.opts : contentFor(entry.opts, { width: outer.width }, measureExtent(win, entry.opts));
+      return { win: opts.width === entry.opts.width ? win : await prepare(opts), collapsed, opts };
     }
     // Outer bounds (#526): content = bound - frame, where the frame is whatever this
     // theme/variant actually composes. Guess from the cache, then verify against the
@@ -1291,11 +1296,10 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     let opts = contentFor(entry.opts, outer, byTheme.get(cacheKey) ?? entry.extent ?? { x: 0, y: 0 });
     for (let pass = 0; ; pass++) {
       const win = await prepare(opts);
-      const extent = measureExtent(win, opts); // collapsed: only `x` is a frame total
-      if (!collapsed) byTheme.set(cacheKey, extent);
+      const extent = measureExtent(win, opts);
+      byTheme.set(cacheKey, extent);
       const next = contentFor(opts, outer, extent);
-      const done = pass >= 2 || (next.width === opts.width && next.height === opts.height);
-      if (done) return { win, collapsed, opts, ...(collapsed ? {} : { extent }) };
+      if (pass >= 2 || (next.width === opts.width && next.height === opts.height)) return { win, collapsed, opts, extent };
       opts = next;
     }
   }
