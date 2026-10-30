@@ -248,8 +248,8 @@ the page shows through. **But the window still owns those pixels.**
   not reach the page underneath.
 - Title-widget hits are the only mask-shaped hit test (R24).
 
-**R16. Classic: transparent pixels show what's behind. Click-through is not
-known.**
+**R16. Classic: transparent pixels show what's behind, and clicks on them pass
+through** (confirmed 2026-10-30, below).
 - Halcyon's real-Kaleidoscope capture (`authoring/schemes/halcyon/classic/desktop@2x.png`)
   shows its rounded-corner mask pixels displaying the desktop pattern
   (`#E7E7E7`/`#DADAFF`) and the window behind. I sampled the pixels.
@@ -257,6 +257,27 @@ known.**
   (`window-widgets.md` §1 out-of-scope, §6 Q3). We can't say whether those
   pixels belong to the window's region for clicks.
 - That capture is an illustration, not admitted fidelity evidence (its README).
+- **Click-through confirmed in real Kaleidoscope 2.3.1** (Castle and Brickworks,
+  2026-10-30). A single click on a gap between merlons or studs, where the
+  desktop disk icon showed through, selected the icon and made the window
+  inactive. So classic leaves transparent frame pixels out of the window's
+  region, while **the web keeps them in the window (R15). This is a divergence.**
+- Real-Kaleidoscope findings from the Castle / Brickworks / Bonn runs, for
+  anyone designing tall or irregular frames:
+  - **The menu bar covers art above the title bar.** A window placed just under
+    the menu bar loses its tower tops or skyline beneath it
+    (`authoring/schemes/bonn/classic/menubar-clips-skyline@3x.png`). Keep the
+    essential look in the bar rows, and treat art above them as decoration.
+  - **Narrow windows behave differently from the web.** In classic, Bonn's
+    narrow window loses its title, pennant and skyline together; the web keeps
+    the skyline and shows "…". Castle keeps "Sys…", and Brickworks only "…".
+    Leave plenty of title room (R6).
+  - **8 bpp shifts subtle colours.** Castle's warm beige stone came out grey with
+    pink mortar and yellow flecks, while Brickworks' saturated primaries and
+    Bonn held up. Pick key colours from `SYSTEM_PALETTE_256`, or at least check
+    them against it.
+  - **Classic dialogs keep a flat grey body.** Kaleidoscope's own notices use the
+    plain-dialog frame, and the patterned bodies are web-only (R22).
 
 **R17. Silhouette edges are 1-bit.**
 - cicn masks are binary, so there is no alpha.

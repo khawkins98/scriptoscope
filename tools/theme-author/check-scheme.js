@@ -210,6 +210,13 @@ export function checkScheme(resources, theme) {
     warnings.push(`checkables: ${checkables.length - shipped.length} of ${checkables.length} checkbox/radio cicns are missing (${checkables.filter((id) => !find('cicn', id)).join(', ')})`);
   }
 
+  // What classic Kaleidoscope will show beyond the windows (not warnings:
+  // plenty of corpus schemes skip these). Castle and Brickworks shipped none
+  // of them and their builders didn't notice until the emulator run.
+  const has = (type, id) => !!find(type, id);
+  const yes = (b) => (b ? 'yes' : 'no (system default)');
+  summary.push(`classic extras: desktop pattern (ppat 17) ${yes(has('ppat', 17))}; picker icon (ICN# -16455) ${yes(has('ICN#', -16455))}; menus (cicn -12240) ${yes(has('cicn', -12240))}`);
+
   if (theme) {
     const types = Object.keys(theme.windowTypes ?? {});
     summary.unshift(`chrome elements: ${Object.keys(theme.chromeElements ?? {}).length}`);
