@@ -26,6 +26,13 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   darker grey (#333333) that clears AA on Dolphin SOM's yellow and the other
   light and mid-tone bodies except Monkey Paradise's darker green, instead of
   adding per-scheme lines (#539).
+- Window title widgets (close, zoom, collapse) are reached by Tab in the order
+  they appear on screen: top to bottom, then left to right. They were always
+  close, zoom, collapse, which disagreed with the visual order on 9 theme and
+  window combinations: the Windows 95 title bars (collapse, zoom, close) and
+  the side-titled utility windows of 1990, Dolphin SOM, Evolution,
+  Windows 3.1 and Monkey Paradise. A retheme that changes the order keeps the
+  same elements and keyboard focus (#537).
 - Showcase picker tile labels reach WCAG AA contrast on the evolution and
   monkey-paradise body patterns (#527).
 - Showcase text stays readable under Black Platinum. The demo's light-text

@@ -322,6 +322,14 @@ or grow-box resize on another window moves keyboard focus into that window,
 with no focus-visible ring in Chromium. `window-focus-rerender.spec.mjs` keeps
 the #525 focus contract.
 
+`window-widget-order.spec.mjs` (source/built) checks that title-widget buttons
+sit in the DOM, and so in tab order, in visual reading order on every window
+type of all 18 themes (#537). Reading order comes from bounding rects: rows top
+to bottom, left to right within a row, where a widget joins the row whose
+lead's vertical span it overlaps. A
+windows-95 to apple-platinum-2 retheme and back reverses the order, keeps every
+node and keyboard focus with no focusout/focusin, and Tab walks the new order.
+
 ### Checkable source rules
 
 `checkable-rules.mjs` transcribes the 2.3.1 checkbox/radio lanes from
