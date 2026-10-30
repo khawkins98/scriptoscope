@@ -4,6 +4,9 @@
 (Medium). Companion to [`authoring-a-scheme.md`](./authoring-a-scheme.md).*
 
 **Short version:** ask `agy` for **code or ASCII sprite rows**, not images.
+If you need an image model, Retro Diffusion's API is the best fit we found,
+followed by a grid-recovery and palette-lock cleanup (see "If you do want an
+image model").
 Both drop straight into `tools/theme-author/` and come out at the exact size
 you asked for. The built-in image generator makes attractive pictures, but
 they are 1024×1024 JPEGs with fake transparency, so it is only useful for
@@ -71,6 +74,33 @@ yourself.
 - `--mode auto` is not available on every account; `agy` warns and falls back.
 - The log shows "You are not logged into Antigravity" warnings while text
   turns still work. They didn't block anything we tried.
+
+## If you do want an image model (research, 2026-10-30)
+
+A follow-up search of the docs and the web, plus three more scratch runs, found:
+
+- **`agy` can't be configured for sprites.** Its image tool (`generate_image`, behind the `image-generator` subagent) takes only a prompt, a name, an aspect ratio (`1:1`, `2:3`, `3:2`, `3:4`, `4:3`, `9:16`, `16:9`) and optional reference images. There is no setting for pixel size, format, transparency or save path. That list comes from the subagent describing its own tool; the official [CLI reference](https://antigravity.google/docs/cli/reference) doesn't mention image generation at all.
+  - Output always lands in `~/.gemini/antigravity-cli/brain/<conversation-id>/`. Run with `--output-format json` so you can read `conversation_id` and copy the file out.
+  - Check the file's real format: we asked for PNG and got a JPEG.
+  - Reference images (`ImagePaths`) are the one useful lever: give it a template sprite or a palette strip.
+- **[Retro Diffusion API](https://github.com/Retro-Diffusion/api-examples)** is the only image model we found that meets the format's constraints in one call:
+  - an exact `width`/`height` down to 12 px;
+  - `remove_bg` for real transparency;
+  - `input_palette` to lock colours.
+
+  It's a plain REST call, roughly $0.03–$0.18 per image (the repo's prices). Untested here; we haven't confirmed the palette lock and background removal work together.
+- [PixelLab](https://api.pixellab.ai/v2/llms.txt) is a pixel-art model with no-background and palette options, but its tools mostly start at 32 px. The Gemini CLI [nanobanana extension](https://github.com/gemini-cli-extensions/nanobanana) has an `/icon` command with PNG and transparent-background flags. The [Gemini image API](https://ai.google.dev/gemini-api/docs/image-generation) gives PNG and an aspect ratio, but its smallest size is about 512 px and transparency isn't documented. Both need the cleanup below.
+
+**Cleanup for any generated image:**
+
+1. Recover the real pixel grid with [unfake](https://github.com/painebenjamin/unfake.py) or [proper-pixel-art](https://github.com/KennethJAllen/proper-pixel-art), e.g.
+   `unfake gen.png -o native.png -m dominant --transparent-background --alpha-threshold 128`.
+2. Fit the size, lock the palette and make the mask 1-bit with ImageMagick:
+   `magick native.png -fuzz 6% -transparent '#00FF00' -trim +repage -filter point -sample 16x16\! -dither None -remap palette.png -channel A -threshold 50% +channel PNG8:sprite.png`
+   (ask the model for a flat `#00FF00` background so it can be keyed out).
+3. Load it into a `Raster` and run `npm run author` as usual; `checkScheme` still applies.
+
+None of this fixes art drawn on the wrong grid. Our "16×16" request came back drawn on a 26-cell box. That's why the text routes stay first.
 
 ## Why code and rows beat images here
 
