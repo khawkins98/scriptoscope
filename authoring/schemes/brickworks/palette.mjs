@@ -2,8 +2,10 @@
 // applies the classic-Mac gamma pre-compensation (authoring guide §4.4).
 //
 // Bright primary plastic: each brick colour has a gloss, highlight, base,
-// shade and a dark seam/outline tone. Inactive windows use the same bricks
-// faded towards a warm grey, so the window type stays readable.
+// shade and a dark seam/outline tone. Inactive windows keep their plastic:
+// each brick is lifted 38% toward a light grey (per hue, so the window-type
+// colour coding survives) and the title stays dark enough to read (≥ 4.5:1
+// on the white tile). Visual-design review §1.3.
 import { mix } from '../../../tools/theme-author/index.js';
 
 const brick = (base, { gloss, hi, lo, deep, seam }) => ({ base, gloss, hi, lo, deep, seam });
@@ -17,18 +19,18 @@ export const BRICK = {
   grey: brick('#a5a29b', { gloss: '#e2e0da', hi: '#c3c0b9', lo: '#8c8982', deep: '#73706a', seam: '#45433f' }),
 };
 
-const FADE = '#c9c6bf';
-const fade = (b, t = 0.62) => Object.fromEntries(Object.entries(b).map(([k, v]) => [k, mix(v, FADE, t)]));
+const FADE = '#e4e2dc';
+const fade = (b, t = 0.38) => Object.fromEntries(Object.entries(b).map(([k, v]) => [k, mix(v, FADE, t)]));
 
-/** Palette for one state. Inactive bricks are faded; outline and text soften too. */
+/** Palette for one state. Inactive bricks are lifted; outline and title soften but keep contrast. */
 export function pal(state) {
   const active = state === 'active';
-  const b = active ? BRICK : Object.fromEntries(Object.entries(BRICK).map(([k, v]) => [k, fade(v, k === 'white' ? 0.25 : 0.62)]));
+  const b = active ? BRICK : Object.fromEntries(Object.entries(BRICK).map(([k, v]) => [k, fade(v, k === 'white' ? 0.25 : 0.38)]));
   return {
     ...b,
-    outline: active ? '#1e1712' : '#8d8a84',
-    title: active ? '#1c1a17' : '#8a877f',
-    titleShadow: active ? '#1c1a17' : '#8a877f', // same colour = no shadow
+    outline: active ? '#1e1712' : '#6e6a63',
+    title: active ? '#1c1a17' : '#5e5b55',
+    titleShadow: active ? '#1c1a17' : '#5e5b55', // same colour = no shadow
     glyph: active ? '#ffffff' : null,
   };
 }

@@ -20,9 +20,9 @@
 //
 // Colour rule (authoring guide §4.5): the 1px code-13 fillers and the code-5
 // plate repeat one column, so the bar and the tile are ONE colour per row;
-// texture (studs, seams, dithered sheen) lives only in code-12 tiles whose
+// texture (studs, seams, lit columns) lives only in code-12 tiles whose
 // width is a multiple of 4, and in fixed cells.
-import { Raster, verticalGradient, ditheredGradient, bayer, mix, frameLayout } from '../../../tools/theme-author/index.js';
+import { Raster, mix, frameLayout } from '../../../tools/theme-author/index.js';
 import { pal, SCHEME_COLOURS } from './palette.mjs';
 import { drawWidget } from './widgets.mjs';
 
@@ -82,9 +82,8 @@ function spec(geom, { collapsed = false, widgets = 'none' } = {}) {
 
 // ── Brick painting ─────────────────────────────────────────────────────────
 
-/** One colour per row for a brick body from `top` to `last` (inclusive): gloss near the top, shade at the bottom, seam on the last row. */
+/** One colour per row for a brick body from `top` to `last` (inclusive): a lit top edge, a flat body, a shaded foot and a seam on the last row. */
 function bodyRows(b, top, last) {
-  const mid = verticalGradient(top + 3, Math.max(1, last - top - 5), [[0, b.base], [1, mix(b.base, b.lo, 0.5)]]);
   return (_x, y) => {
     if (y === top) return b.hi;
     if (y === top + 1) return b.gloss;
@@ -92,36 +91,38 @@ function bodyRows(b, top, last) {
     if (y === last) return b.seam;
     if (y === last - 1) return b.deep;
     if (y === last - 2) return b.lo;
-    return mid(0, y);
+    return b.base;
   };
 }
 
-/** A stud standing on a brick: rows [y0, y0 + h), lit from the left (dithered: only in fixed cells or tiles that are a multiple of 4 wide). */
+/**
+ * A stud standing on a brick: rows [y0, y0 + h), a cylinder lit from the upper
+ * left. Flat colours only (visual-design review §1.3): the silhouette outline
+ * takes the outer ring of pixels, so inside it the stud is a `hi` top row, a
+ * 2px `gloss` left side, a `base` body and a 1px `deep` right side.
+ */
 function drawStud(r, x0, y0, b, h = STUD.h) {
-  const shade = ditheredGradient(x0 + 1, STUD.w - 2, [[0, b.gloss], [0.3, b.hi], [0.6, b.base], [1, b.deep]], { axis: 'x', levels: 5 });
-  r.fillRect(x0, y0, STUD.w, h, shade);
+  r.fillRect(x0, y0, STUD.w, h, b.base);
+  r.fillRect(x0 + 1, y0 + 1, 2, h - 1, b.gloss);
+  r.vline(x0 + STUD.w - 2, y0 + 1, h - 1, b.deep);
   r.hline(x0 + 1, y0 + 1, STUD.w - 2, b.hi); // the stud's lit top edge
   r.set(x0, y0, null).set(x0 + STUD.w - 1, y0, null); // rounded top corners
-  // Its foot casts a little shade on the brick top beside it.
   return r;
 }
 
-/** A fixed brick (corner or centre): body rows [top, last], studs on top, a left sheen and a seam on its inner side(s). */
+/**
+ * A fixed brick (corner or centre): body rows [top, last], studs on top, a
+ * seam on its inner side(s). Lit like the walls: one `gloss` column inside the
+ * left edge and one `lo` column inside the right, no dither.
+ */
 function drawBlock(r, x0, w, top, last, b, { studs, seamL = false, seamR = false }) {
   const rows = bodyRows(b, top, last);
-  // Mix against fixed colours only: a mix of the per-row colour would add one
-  // colour per row and blow the 256-colour budget.
-  const sheen = mix(b.base, b.gloss, 0.5);
-  r.fillRect(x0, top, w, last - top + 1, (x, y) => {
-    const c = rows(x, y);
-    const t = (x - x0) / Math.max(1, w - 1);
-    if (y > top + 2 && y < last - 2) {
-      // A dithered sheen on the left, shade on the right (fixed cell: dithering is fine).
-      if (t < 0.25 && bayer(x, y) < (0.25 - t) / 0.25 * 0.6) return sheen;
-      if (t > 0.8 && bayer(x, y) < (t - 0.8) / 0.2 * 0.7) return b.lo;
-    }
-    return c;
-  });
+  r.fillRect(x0, top, w, last - top + 1, rows);
+  const h = last - top - 5; // the flat body rows between the lit top and the shaded foot
+  if (h > 0) {
+    r.vline(x0 + 1, top + 3, h, b.gloss);
+    r.vline(x0 + w - 2, top + 3, h, b.lo);
+  }
   if (seamL) r.vline(x0, top, last - top + 1, b.seam);
   if (seamR) r.vline(x0 + w - 1, top, last - top + 1, b.seam);
   if (studs > 0) {
@@ -158,11 +159,12 @@ function paintTop(r, layout, geom, colours, p, kind) {
     const c = layout.named('centre'), cb = p[colours.centre];
     drawBlock(r, c.x0, c.w, g.centreTop + STUD.h, last, cb, { studs: 2, seamL: true, seamR: true });
     if (kind === 'alert') {
-      // A printed exclamation mark on the alert's centre brick.
-      const cx = c.x0 + c.w / 2, y0 = g.centreTop + STUD.h + 1;
+      // A printed exclamation mark on the alert's centre brick: whole pixels,
+      // a 2px bar and a 2×2 dot, centred on the brick.
+      const cx = c.x0 + Math.floor(c.w / 2) - 1, y0 = g.centreTop + STUD.h + 2;
       const ink = p.glyph ?? p.white.base;
-      r.strokeLineSmooth(cx, y0 + 1.5, cx, last - 4.5, 2.2, ink);
-      r.fillCircleSmooth(cx, last - 2.3, 1.2, ink);
+      r.fillRect(cx, y0, 2, last - 4 - y0, ink);
+      r.fillRect(cx, last - 3, 2, 2, ink);
     }
   }
 }

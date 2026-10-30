@@ -7,23 +7,17 @@
 // baseplate body is web-only decoration.
 //
 // Low contrast on purpose (R23): live DOM text sits on it. Each 8px cell is
-// one stud seen from above: a faint lit rim on the upper left and a faint
-// shade on the lower right, on a warm off-white plate.
+// one stud seen from far above: a single 2×2 dot on a warm off-white plate,
+// at most ~1.1:1 against it. No rings and nothing on a 1–2px rhythm, so the
+// texture never lines up with letter stems (visual-design review §1.3, §2.4).
 import { Raster, encodePpat, encodeCicn, encodeCinf } from '../../../tools/theme-author/index.js';
 import { BODY, UTIL_BODY } from './palette.mjs';
 
 export const BASEPLATE_PPAT = 128;
 
-function baseplate(plate, lit, shade, N = 16) {
+function baseplate(plate, dot, N = 16) {
   const r = new Raster(N, N).fillRect(0, 0, N, N, plate);
-  for (let cy = 0; cy < N; cy += 8) for (let cx = 0; cx < N; cx += 8) {
-    // A ring of radius ~2.6 centred in the cell: lit half up-left, shaded half down-right.
-    for (let y = 0; y < 8; y++) for (let x = 0; x < 8; x++) {
-      const dx = x + 0.5 - 4, dy = y + 0.5 - 4, d = Math.hypot(dx, dy);
-      if (d < 1.9 || d > 3.1) continue;
-      r.set(cx + x, cy + y, dx + dy < 0 ? lit : shade);
-    }
-  }
+  for (let cy = 0; cy < N; cy += 8) for (let cx = 0; cx < N; cx += 8) r.fillRect(cx + 3, cy + 3, 2, 2, dot);
   return r;
 }
 
@@ -36,8 +30,8 @@ const finderCinf = (bgPatternId = 0) => encodeCinf({
 });
 
 export function build(add) {
-  add('ppat', BASEPLATE_PPAT, encodePpat(baseplate(BODY, '#fbfaf6', '#e4e1d8')), 'Baseplate Body');
-  add('ppat', 42, encodePpat(baseplate(UTIL_BODY, '#f8f9fc', '#e1e5ed')), 'Utility Pattern');
+  add('ppat', BASEPLATE_PPAT, encodePpat(baseplate(BODY, '#e9e6dd')), 'Baseplate Body');
+  add('ppat', 42, encodePpat(baseplate(UTIL_BODY, '#e3e7ee')), 'Utility Pattern');
   const ink = '#1c1a17';
   const finder = [
     [-9552, 'Desktop Text Color And Background', '#ffffff', ink, 0],
