@@ -180,6 +180,21 @@
     #powers [data-scriptoscope-theme="black-platinum"] .scriptoscope-fit a:visited { color: #C8A2D8 !important; }
     #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit code,
     #powers [data-scriptoscope-theme="black-platinum"] .scriptoscope-fit code { color: #ffce88 !important; }
+    /* Picker tile labels (#527). The tile .name/.author/.glyph rules below
+       hard-code dark greys, so the light-text override above never reaches
+       them. Same per-slug hook, scoped to the picker body each scheme
+       actually paints (measured per pixel behind each label, built demo):
+       - evolution: near-black pinstripe -> light text (>= 11:1).
+       - monkey-paradise: mid-green speckle. No light colour passes, and
+         #6a6a6a author text bottoms out at 1.2:1; pure black is the only
+         colour that clears AA on the darkest speckle (4.57:1).
+       - black-platinum is deliberately absent: its document body is white,
+         so the default dark labels already pass and light text would fail.
+       Active and hovered tiles paint their own #efefef/#f0f0f0 plate, so
+       they keep the default dark labels. */
+    #powers [data-scriptoscope-theme="evolution"] :is(.scriptoscope-theme-picker-tile, .powers-picker-special-tile):not(.active):not(:hover) :is(.name, .glyph) { color: #f0f0f0; }
+    #powers [data-scriptoscope-theme="evolution"] :is(.scriptoscope-theme-picker-tile, .powers-picker-special-tile):not(.active):not(:hover) .author { color: #c8c8c8; }
+    #powers [data-scriptoscope-theme="monkey-paradise"] :is(.scriptoscope-theme-picker-tile, .powers-picker-special-tile):not(.active):not(:hover) :is(.name, .author, .glyph) { color: #000; }
     /* Utility palettes have light interiors even when a scheme's document
        windows are dark. Give their live HTML an explicit paper surface. */
     #powers .powers-paper .scriptoscope-fit {
