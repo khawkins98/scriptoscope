@@ -18,6 +18,14 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   resize step no longer makes screen readers re-announce the control. A
   pointer drag or resize of another window moves keyboard focus into that
   window, so the next arrow key no longer moves the previous one (#533).
+- Showcase text reaches WCAG AA contrast under 1984, Animals, Floppies and
+  Monkey Paradise. Their window bodies are mid-tone (blue, tan, light blue,
+  olive green), where the default near-black text, grey credit and hint lines
+  and #0000ee links measured 2.0-4.3:1. These four schemes now share one
+  mid-tone override, like the dark-body group: black text, labels and
+  decorative picker glyphs, navy links (#000080) and a dark visited purple.
+  Monkey Paradise's links are black, because no coloured link clears AA on
+  its olive speckle, and they stay underlined (#546).
 - Showcase text reaches WCAG AA contrast under 1990 and Dolphin SOM. 1990
   paints a dark striped body behind the picker, cards and upload modal, so it
   now shares Evolution's light-text override; the override's link, visited and

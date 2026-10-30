@@ -180,25 +180,58 @@
     #powers :is([data-scriptoscope-theme="evolution"], [data-scriptoscope-theme="1990"]) .scriptoscope-fit a { color: #d0f0ff !important; }
     #powers :is([data-scriptoscope-theme="evolution"], [data-scriptoscope-theme="1990"]) .scriptoscope-fit a:visited { color: #f4e4ff !important; }
     #powers :is([data-scriptoscope-theme="evolution"], [data-scriptoscope-theme="1990"]) .scriptoscope-fit code { color: #ffecc8 !important; }
+    /* Mid-tone bodies (#546). 1984's blue stripe, animals' tan, floppies'
+       light blue and monkey-paradise's olive/green speckle sit between the
+       light and dark bands: the default #1c1c1c text, #5a5a5a/#333333
+       greys and #0000ee links measured 2.0-4.3:1 on them. Same structure
+       as the dark group above: one :is() slug list (each argument is a
+       single attribute selector, so specificity is unchanged), element
+       list kept un-grouped so .powers-paper below still wins on source
+       order, and every colour picked against the DARKEST body pixel of
+       the listed schemes (worst pixel behind each run, built demo):
+       - text and greys #000: monkey-paradise's #787844 is the binding
+         pixel (4.57:1, and nothing lighter passes); >= 8.29:1 elsewhere.
+       - links #000080 (navy): >= 6.32:1 on 1984's #76a3f2, the darkest
+         pixel behind a link on the three non-monkey schemes; visited
+         #4b1470, >= 5.08:1.
+       - monkey-paradise links: no hue clears 4.5:1 on #787844 (#000080 is
+         3.48:1), so its links go black and stay distinguishable by the
+         underline #powers a already sets. That one slug line must follow
+         the group's link lines (same specificity, source order wins).
+       Adding a slug means re-measuring only that scheme. */
+    #powers :is([data-scriptoscope-theme="1984"], [data-scriptoscope-theme="animals"], [data-scriptoscope-theme="floppies"], [data-scriptoscope-theme="monkey-paradise"]) .scriptoscope-fit,
+    #powers :is([data-scriptoscope-theme="1984"], [data-scriptoscope-theme="animals"], [data-scriptoscope-theme="floppies"], [data-scriptoscope-theme="monkey-paradise"]) .scriptoscope-fit h1,
+    #powers :is([data-scriptoscope-theme="1984"], [data-scriptoscope-theme="animals"], [data-scriptoscope-theme="floppies"], [data-scriptoscope-theme="monkey-paradise"]) .scriptoscope-fit h2,
+    #powers :is([data-scriptoscope-theme="1984"], [data-scriptoscope-theme="animals"], [data-scriptoscope-theme="floppies"], [data-scriptoscope-theme="monkey-paradise"]) .scriptoscope-fit h3,
+    #powers :is([data-scriptoscope-theme="1984"], [data-scriptoscope-theme="animals"], [data-scriptoscope-theme="floppies"], [data-scriptoscope-theme="monkey-paradise"]) .scriptoscope-fit p,
+    #powers :is([data-scriptoscope-theme="1984"], [data-scriptoscope-theme="animals"], [data-scriptoscope-theme="floppies"], [data-scriptoscope-theme="monkey-paradise"]) .scriptoscope-fit em,
+    #powers :is([data-scriptoscope-theme="1984"], [data-scriptoscope-theme="animals"], [data-scriptoscope-theme="floppies"], [data-scriptoscope-theme="monkey-paradise"]) .scriptoscope-fit strong,
+    #powers :is([data-scriptoscope-theme="1984"], [data-scriptoscope-theme="animals"], [data-scriptoscope-theme="floppies"], [data-scriptoscope-theme="monkey-paradise"]) .scriptoscope-fit code,
+    #powers :is([data-scriptoscope-theme="1984"], [data-scriptoscope-theme="animals"], [data-scriptoscope-theme="floppies"], [data-scriptoscope-theme="monkey-paradise"]) .scriptoscope-fit .powers-meta-aaron,
+    #powers :is([data-scriptoscope-theme="1984"], [data-scriptoscope-theme="animals"], [data-scriptoscope-theme="floppies"], [data-scriptoscope-theme="monkey-paradise"]) .scriptoscope-fit .powers-meta-aaron strong { color: #000 !important; }
+    #powers :is([data-scriptoscope-theme="1984"], [data-scriptoscope-theme="animals"], [data-scriptoscope-theme="floppies"], [data-scriptoscope-theme="monkey-paradise"]) .scriptoscope-fit a { color: #000080 !important; }
+    #powers :is([data-scriptoscope-theme="1984"], [data-scriptoscope-theme="animals"], [data-scriptoscope-theme="floppies"], [data-scriptoscope-theme="monkey-paradise"]) .scriptoscope-fit a:visited { color: #4b1470 !important; }
+    #powers [data-scriptoscope-theme="monkey-paradise"] .scriptoscope-fit a,
+    #powers [data-scriptoscope-theme="monkey-paradise"] .scriptoscope-fit a:visited { color: #000 !important; }
     /* Picker tile labels (#527). The tile .name/.author/.glyph rules below
        hard-code dark greys, so the light-text override above never reaches
        them. Same per-slug hook, scoped to the picker body each scheme
        actually paints (measured per pixel behind each label, built demo):
        - evolution, 1990: dark body -> light text (>= 4.89:1 on 1990's
          lightest stripe, >= 11:1 on evolution).
-       - monkey-paradise: mid-green speckle. No light colour passes, and
-         the default grey author text bottoms out at 1.2:1; pure black is
-         the only colour that clears AA on the darkest speckle (4.57:1).
+       - mid-tone bodies (1984, animals, floppies, monkey-paradise): #000.
+         The default greys measured 2.3-3.8:1 there (#546), and the
+         decorative .glyph #666 measured 2.27:1 on 1984. Pure black is the
+         only colour that clears AA on monkey-paradise's darkest olive
+         speckle (#787844, 4.57:1); on the other three it is >= 8:1.
        - black-platinum is deliberately absent: its document body is white,
          so the default dark labels already pass and light text would fail.
-       Light and mid-tone bodies (dolphin-som's yellow, 1984's blue, etc.)
-       need no per-slug line: the default .author grey is dark enough to
-       clear AA on all of them except monkey-paradise, whose picker labels
-       have their own #000 line above (#539).
+       Light bodies (dolphin-som's yellow, crayon-os, etc.) need no per-slug
+       line: the default greys already clear AA there (#539).
        Active and hovered tiles paint their own #efefef/#f0f0f0 plate, so
        they keep the default dark labels. */
     #powers :is([data-scriptoscope-theme="evolution"], [data-scriptoscope-theme="1990"]) :is(.scriptoscope-theme-picker-tile, .powers-picker-special-tile):not(.active):not(:hover) :is(.name, .author, .glyph) { color: #f0f0f0; }
-    #powers [data-scriptoscope-theme="monkey-paradise"] :is(.scriptoscope-theme-picker-tile, .powers-picker-special-tile):not(.active):not(:hover) :is(.name, .author, .glyph) { color: #000; }
+    #powers :is([data-scriptoscope-theme="1984"], [data-scriptoscope-theme="animals"], [data-scriptoscope-theme="floppies"], [data-scriptoscope-theme="monkey-paradise"]) :is(.scriptoscope-theme-picker-tile, .powers-picker-special-tile):not(.active):not(:hover) :is(.name, .author, .glyph) { color: #000; }
     /* Utility palettes have light interiors even when a scheme's document
        windows are dark. Give their live HTML an explicit paper surface. */
     #powers .powers-paper .scriptoscope-fit {
