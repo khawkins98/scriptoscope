@@ -140,16 +140,25 @@
     #powers .powers-byo-out { margin-top: 6px; font: italic 12.5px "Times New Roman", Times, serif; color: #5a5a5a; min-height: 1em; }
     #powers .powers-byo-out .ok { color: #1c5d1c; }
     #powers .powers-byo-out .err { color: #a01818; }
-    /* Active-theme contrast defense — evolution paints a near-black body
-       fill behind the slot's prose, dropping our default #1c1c1c text to
-       ~1.5:1 contrast. This isn't a library-side concern (each scheme's
-       body fill is faithful by design); it's a page-author responsibility.
-       We override locally inside #powers when the runtime stamps that slug
-       onto a window host. UX review 2026-05-31.
+    /* Active-theme contrast defense — a few schemes paint a dark window
+       body (evolution's near-black pinstripe, 1990's #1c1c1c-#686868
+       stripes), dropping the default #1c1c1c text to ~1.0-1.5:1. This isn't
+       a library-side concern (each scheme's body fill is faithful by
+       design); it's a page-author responsibility. We override locally
+       inside #powers when the runtime stamps one of those slugs onto a
+       window host. UX review 2026-05-31; 1990 added in #539.
        Only list schemes whose window bodies are actually dark. Black
        Platinum used to be here, but its procedural frame paints white
        document and modal bodies, so light text measured 1.1-1.7:1 there
-       (#528). Its default dark text already passes AA. */
+       (#528). Its default dark text already passes AA.
+       Every colour below is chosen against the LIGHTEST body pixel of every
+       listed scheme (1990's #686868 stripe is the binding one: #f0f0f0
+       4.89:1, links #d0f0ff 4.67:1, visited #f4e4ff, code #ffecc8 4.80:1),
+       so adding a slug to the :is() lists means re-measuring only that
+       scheme. Specificity is unchanged by :is(): every argument is a single
+       attribute selector. Keep the element list below un-grouped so each
+       selector keeps its old specificity and the .powers-paper override
+       further down still wins on source order. */
     /* Override every element that hard-codes its own color in the demo's
        page CSS (h1-h3, .powers-meta-aaron, .powers-meta-aaron strong, etc.).
        The bare `.scriptoscope-fit { color: ... }` rule alone doesn't reach
@@ -159,32 +168,35 @@
        Set !important to win against the page's existing
        `#powers h2 { color: #1c1c1c }` (specificity tied; cascade order
        would otherwise depend on file position). */
-    #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit,
-    #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit h1,
-    #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit h2,
-    #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit h3,
-    #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit p,
-    #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit em,
-    #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit strong,
-    #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit .powers-meta-aaron,
-    #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit .powers-meta-aaron strong { color: #f0f0f0 !important; }
-    #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit a { color: #87CEEB !important; }
-    #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit a:visited { color: #C8A2D8 !important; }
-    #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit code { color: #ffce88 !important; }
+    #powers :is([data-scriptoscope-theme="evolution"], [data-scriptoscope-theme="1990"]) .scriptoscope-fit,
+    #powers :is([data-scriptoscope-theme="evolution"], [data-scriptoscope-theme="1990"]) .scriptoscope-fit h1,
+    #powers :is([data-scriptoscope-theme="evolution"], [data-scriptoscope-theme="1990"]) .scriptoscope-fit h2,
+    #powers :is([data-scriptoscope-theme="evolution"], [data-scriptoscope-theme="1990"]) .scriptoscope-fit h3,
+    #powers :is([data-scriptoscope-theme="evolution"], [data-scriptoscope-theme="1990"]) .scriptoscope-fit p,
+    #powers :is([data-scriptoscope-theme="evolution"], [data-scriptoscope-theme="1990"]) .scriptoscope-fit em,
+    #powers :is([data-scriptoscope-theme="evolution"], [data-scriptoscope-theme="1990"]) .scriptoscope-fit strong,
+    #powers :is([data-scriptoscope-theme="evolution"], [data-scriptoscope-theme="1990"]) .scriptoscope-fit .powers-meta-aaron,
+    #powers :is([data-scriptoscope-theme="evolution"], [data-scriptoscope-theme="1990"]) .scriptoscope-fit .powers-meta-aaron strong { color: #f0f0f0 !important; }
+    #powers :is([data-scriptoscope-theme="evolution"], [data-scriptoscope-theme="1990"]) .scriptoscope-fit a { color: #d0f0ff !important; }
+    #powers :is([data-scriptoscope-theme="evolution"], [data-scriptoscope-theme="1990"]) .scriptoscope-fit a:visited { color: #f4e4ff !important; }
+    #powers :is([data-scriptoscope-theme="evolution"], [data-scriptoscope-theme="1990"]) .scriptoscope-fit code { color: #ffecc8 !important; }
     /* Picker tile labels (#527). The tile .name/.author/.glyph rules below
        hard-code dark greys, so the light-text override above never reaches
        them. Same per-slug hook, scoped to the picker body each scheme
        actually paints (measured per pixel behind each label, built demo):
-       - evolution: near-black pinstripe -> light text (>= 11:1).
+       - evolution, 1990: dark body -> light text (>= 4.89:1 on 1990's
+         lightest stripe, >= 11:1 on evolution).
        - monkey-paradise: mid-green speckle. No light colour passes, and
-         #6a6a6a author text bottoms out at 1.2:1; pure black is the only
-         colour that clears AA on the darkest speckle (4.57:1).
+         the default grey author text bottoms out at 1.2:1; pure black is
+         the only colour that clears AA on the darkest speckle (4.57:1).
        - black-platinum is deliberately absent: its document body is white,
          so the default dark labels already pass and light text would fail.
+       Light and mid-tone bodies (dolphin-som's yellow, 1984's blue, etc.)
+       need no per-slug line: the default .author grey is dark enough to
+       clear AA on all of them (#539).
        Active and hovered tiles paint their own #efefef/#f0f0f0 plate, so
        they keep the default dark labels. */
-    #powers [data-scriptoscope-theme="evolution"] :is(.scriptoscope-theme-picker-tile, .powers-picker-special-tile):not(.active):not(:hover) :is(.name, .glyph) { color: #f0f0f0; }
-    #powers [data-scriptoscope-theme="evolution"] :is(.scriptoscope-theme-picker-tile, .powers-picker-special-tile):not(.active):not(:hover) .author { color: #c8c8c8; }
+    #powers :is([data-scriptoscope-theme="evolution"], [data-scriptoscope-theme="1990"]) :is(.scriptoscope-theme-picker-tile, .powers-picker-special-tile):not(.active):not(:hover) :is(.name, .author, .glyph) { color: #f0f0f0; }
     #powers [data-scriptoscope-theme="monkey-paradise"] :is(.scriptoscope-theme-picker-tile, .powers-picker-special-tile):not(.active):not(:hover) :is(.name, .author, .glyph) { color: #000; }
     /* Utility palettes have light interiors even when a scheme's document
        windows are dark. Give their live HTML an explicit paper surface. */
@@ -286,7 +298,7 @@
     #powers .scriptoscope-theme-picker-tile.active { border-color: #4a4a4a; background: #efefef; }
     #powers .scriptoscope-theme-picker-icon { image-rendering: pixelated; display: block; margin-bottom: 2px; }
     #powers .scriptoscope-theme-picker-tile .name { font: 700 10.5px/1.1 "Times New Roman", serif; color: #1c1c1c; text-align: center; max-width: 80px; }
-    #powers .scriptoscope-theme-picker-tile .author { font: italic 9px/1.15 "Times New Roman", serif; color: #6a6a6a; text-align: center; max-width: 80px; }
+    #powers .scriptoscope-theme-picker-tile .author { font: italic 9px/1.15 "Times New Roman", serif; color: #333333; text-align: center; max-width: 80px; }
     /* Keep a stable coordinate system for the opt-in card cascade. The
        runtime promotes cards in flow, then positions the cascade and
        reserves its vertical extent with a container min-height. */
@@ -453,7 +465,7 @@
     .powers-byo-modal-out { margin-top: 8px; min-height: 1em; font: italic 12px serif; color: #5a5a5a; }
     .powers-byo-modal-out .ok { color: #1c5d1c; }
     .powers-byo-modal-out .err { color: #a01818; }
-    .powers-byo-modal-meta { margin-top: 8px; font: italic 11.5px serif; color: #767676; }
+    .powers-byo-modal-meta { margin-top: 8px; font: italic 11.5px serif; color: #333333; }
     .powers-byo-modal-meta a { color: #0000EE; }
   </style>
   <link rel="stylesheet" href="./site-shell.css">

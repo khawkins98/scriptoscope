@@ -18,6 +18,13 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   resize step no longer makes screen readers re-announce the control. A
   pointer drag or resize of another window moves keyboard focus into that
   window, so the next arrow key no longer moves the previous one (#533).
+- Showcase text reaches WCAG AA contrast under 1990 and Dolphin SOM. 1990
+  paints a dark striped body behind the picker, cards and upload modal, so it
+  now shares Evolution's light-text override; the override's link, visited and
+  code colours were lightened so they also clear AA on 1990's lightest stripe.
+  The picker author line and the upload modal's "Don't have one?" line use a
+  darker grey (#333333) that clears AA on Dolphin SOM's yellow and the other
+  light and mid-tone bodies, instead of adding per-scheme lines (#539).
 - Showcase picker tile labels reach WCAG AA contrast on the evolution and
   monkey-paradise body patterns (#527).
 - Showcase text stays readable under Black Platinum. The demo's light-text
