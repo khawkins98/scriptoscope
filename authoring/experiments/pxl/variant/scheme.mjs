@@ -4,6 +4,7 @@
 //
 // Build:   npm run author -- authoring/experiments/pxl/variant
 // Preview: /authoring-preview.html?scheme=/authoring/experiments/pxl/variant/scheme.rsrc
+//          (build first; the output isn't committed)
 import { readFileSync } from 'node:fs';
 import { Raster, encodeCicn, encodeVers } from '../../../../tools/theme-author/index.js';
 import { decodePng } from '../../../../scripts/lib/png-decode.mjs';

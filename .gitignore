@@ -79,3 +79,6 @@ tests/engine-diff/.cases-base-*.mjs
 
 # Contact sheets from `npm run author -- <dir> --sheet` (generated; regenerate locally)
 authoring/schemes/*/sheet.png
+# Experiment builds (npm run author -- authoring/experiments/...): generated, so not committed
+authoring/experiments/**/scheme.rsrc
+authoring/experiments/**/scheme.bin

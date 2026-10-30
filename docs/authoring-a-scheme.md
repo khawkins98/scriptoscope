@@ -56,10 +56,10 @@ npm run dev
    status 1, so a problem shows up here, not later in the browser. Warnings are
    printed but don't stop the build.
 
-If you edit a first-party scheme (Halcyon, Castle, Brickworks, Bonn, or the
-claude-pxl variant in `authoring/experiments/pxl/variant/`), rebuild it before
-running `npm test`: tests check that the committed `scheme.rsrc` and
-`scheme.bin` match a fresh build.
+If you edit a first-party scheme (Halcyon, Castle, Brickworks or Bonn), rebuild
+it before running `npm test`: tests check that the committed `scheme.rsrc` and
+`scheme.bin` match a fresh build. Experiments under `authoring/experiments/`
+don't commit their builds; run `npm run author` on them before previewing.
 
 **Why two files?** On a classic Mac a file has two parts (a data fork and a
 resource fork) plus Finder info: a 4-letter file *type* and *creator*. Every

@@ -292,15 +292,15 @@ test('Raster.fromRgba snaps soft alpha so edges never become hidden swatches', (
   assert.throws(() => Raster.fromRgba(3, 1, rgba), /expected 12 bytes/);
 });
 
-test('Halcyon-pxl experiment builds cleanly and its committed scheme.rsrc is current', async () => {
-  const { readFileSync } = await import('node:fs');
+test('Halcyon-pxl experiment builds cleanly', async () => {
+  // The experiment's scheme.rsrc isn't committed (it's rebuilt from Halcyon on
+  // demand), so this only checks that it still builds and passes the checks.
   const { buildScheme: buildPxl } = await import('../../authoring/experiments/pxl/variant/scheme.mjs');
   const { resources } = await buildPxl();
   const { errors, warnings } = checkScheme(resources);
   assert.deepEqual(errors, []);
   assert.deepEqual(warnings, []);
-  const committed = readFileSync(new URL('../../authoring/experiments/pxl/variant/scheme.rsrc', import.meta.url));
-  assert.ok(Buffer.from(writeResourceFork(resources)).equals(committed), 'variant scheme.rsrc is stale (it is built on Halcyon, so rebuild it after Halcyon changes): npm run author -- authoring/experiments/pxl/variant');
+  assert.ok(writeResourceFork(resources).length > 0);
 });
 
 test('encodePpat round-trips an indexed pattern and rejects bad sizes and transparency', async () => {

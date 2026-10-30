@@ -10,7 +10,6 @@ on 2026-10-30.
 |---|---|
 | `desktop@2x.png` | Finder list view with Halcyon's frame, column headers, disclosure triangles, both scroll bars, grow box, the menu bar and the desktop pattern; an inactive window behind |
 | `menu-open@2x.png` | an open pull-down menu with the teal title and item highlight |
-| `popup-menu@2x.png` | an open popup menu |
 | `control-panel@2x.png` | the Kaleidoscope control panel with Halcyon selected: tabs, tab pane, checkboxes, popup button; "Desktop Pattern" enabled |
 | `dialog@2x.png` | a stock dialog with Halcyon's push buttons and default ring |
 | `windowshade@2x.png` | a window-shaded (collapsed) window |
@@ -37,4 +36,4 @@ These are illustrations that the generated file is a valid, complete scheme.
 They are **not** admitted fidelity evidence (no reference-intake review, 8 bpp
 palette condition), and no golden or ledger row depends on them.
 
-**Updated 2026-10-30** after the visual design pass (`docs/authoring-visual-design.md`): these screenshots show the redesigned art, from one clean boot per scheme. Files named `*-before-redesign*` show the earlier build for comparison. `popup-menu@2x.png` is still from the earlier build.
+**Updated 2026-10-30** after the visual design pass (`docs/authoring-visual-design.md`): these screenshots show the redesigned art, from one clean boot per scheme. Files named `*-before-redesign*` show the earlier build for comparison.
