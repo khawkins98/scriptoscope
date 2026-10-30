@@ -1,0 +1,12 @@
+{
+  "name": "Bonn",
+  "author": {
+    "name": "Scriptoscope contributors"
+  },
+  "origin": {
+    "kind": "first-party-authored",
+    "originalFormat": "rsrc",
+    "originalLicense": "Same license as the Scriptoscope repository. An original design celebrating the city of Bonn; stylised silhouettes drawn in code, no photographs, coat of arms or logos.",
+    "sourceUrl": "https://github.com/khawkins98/scriptoscope/tree/main/authoring/schemes/bonn"
+  }
+}
