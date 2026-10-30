@@ -131,15 +131,16 @@ for (const mode of ['source', 'built']) for (const slug of SLUGS) {
 }
 
 // Imperative windows on both runtime builds: programmatic, scrollIntoView, horizontal, listener reuse.
-async function setup(page, servers, mode, slug) {
+async function setup(page, servers, mode, slug, { smooth = false } = {}) {
   await page.goto(`${servers[mode]}/tests/rendering-options/native-dom-page.html`);
   await installHelpers(page);
-  await page.evaluate(async ({ mode, slug }) => {
+  await page.evaluate(async ({ mode, slug, smooth }) => {
     const api = await import(mode === 'source' ? '/src/index.ts' : '/dist/scriptoscope.js');
     const theme = await api.loadTheme(`/themes/${slug}`);
     const manager = new api.WindowManager();
     const content = document.createElement('div');
     content.style.cssText = 'width:100%;height:100%;overflow:auto;box-sizing:border-box';
+    if (smooth) content.style.scrollBehavior = 'smooth';
     content.innerHTML = '<div style="position:relative;width:900px;height:900px">'
       + '<a id="mid" href="#" style="position:absolute;left:10px;top:400px">middle</a>'
       + '<a id="far" href="#" style="position:absolute;right:0;bottom:0;scroll-margin:40px">far corner</a></div>';
@@ -148,7 +149,7 @@ async function setup(page, servers, mode, slug) {
     manager.setPosition(host, 40, 40);
     Object.assign(window.__sb, { api, manager, host, scrollEl: content });
     await window.__sb.frames(6);
-  }, { mode, slug });
+  }, { mode, slug, smooth });
   await expect.poll(() => page.evaluate(() => ['vertical', 'horizontal'].every(a => window.__sb.bar(a)?.querySelector('canvas')))).toBe(true);
 }
 
@@ -200,5 +201,56 @@ for (const mode of ['source', 'built']) for (const slug of SLUGS) {
       expect(painted, `${axis}: one key, one repaint (no scroll-event feedback loop)`).toBe(1);
       await expect.poll(async () => (await state(page, axis)).valuenow).toBe(String(Math.round((100 + LINE) / (await state(page, axis)).max * 100)));
     }
+  });
+}
+
+/** Scroll listeners on the scroll element, via CDP (sees listeners no DOM API exposes). */
+async function scrollListeners(page) {
+  const cdp = await page.context().newCDPSession(page);
+  try {
+    const { result } = await cdp.send('Runtime.evaluate', { expression: 'window.__sb.scrollEl' });
+    const { listeners } = await cdp.send('DOMDebugger.getEventListeners', { objectId: result.objectId });
+    return listeners.filter(l => l.type === 'scroll').length;
+  } finally { await cdp.detach(); }
+}
+
+for (const mode of ['source', 'built']) for (const slug of SLUGS) {
+  test(`${mode} ${slug}: key steps under consumer scroll-behavior: smooth start from the target (#549)`, async ({ page, servers }) => {
+    await setup(page, servers, mode, slug, { smooth: true });
+    expect(await page.evaluate(() => getComputedStyle(window.__sb.scrollEl).scrollBehavior)).toBe('smooth');
+    // Five presses in one task: each step must read the previous step's target.
+    await page.evaluate(() => {
+      const bar = window.__sb.bar('vertical');
+      for (let i = 0; i < 5; i++) bar.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true, cancelable: true }));
+      return window.__sb.frames();
+    });
+    expect((await state(page, 'vertical')).pos, 'five ArrowDowns in one task').toBe(5 * LINE);
+    await page.evaluate(() => { window.__sb.scrollEl.scrollTo({ top: 0, behavior: 'instant' }); return window.__sb.frames(); });
+    for (let i = 0; i < 5; i++) await page.evaluate(async () => { await window.__sb.key('vertical', 'ArrowDown'); });
+    expect((await state(page, 'vertical')).pos, 'five ArrowDowns two frames apart').toBe(5 * LINE);
+  });
+
+  test(`${mode} ${slug}: a key in the same task as an external scroll steps from the new position (#549)`, async ({ page, servers }) => {
+    await setup(page, servers, mode, slug);
+    // The scroll event for this write has not fired yet when the key arrives.
+    await page.evaluate(() => {
+      window.__sb.scrollEl.scrollTop = 300;
+      window.__sb.bar('vertical').dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true, cancelable: true }));
+      return window.__sb.frames();
+    });
+    expect((await state(page, 'vertical')).pos).toBe(300 + LINE);
+  });
+
+  test(`${mode} ${slug}: re-renders and remove() leave no stale scroll listeners (#549)`, async ({ page, servers }) => {
+    await setup(page, servers, mode, slug);
+    expect(await scrollListeners(page), 'one per axis after the first render').toBe(2);
+    for (let i = 0; i < 5; i++) await page.evaluate(async i => {
+      const { manager, host } = window.__sb;
+      await (i % 2 ? manager.refreshScrollbars(host) : manager.setContentSize(host, 220 + i * 2, 140 + i * 2));
+      await window.__sb.frames();
+    }, i);
+    expect.soft(await scrollListeners(page), 'one per axis after 5 re-renders').toBe(2);
+    await page.evaluate(() => { window.__sb.manager.remove(window.__sb.host); return window.__sb.frames(); });
+    expect(await scrollListeners(page), 'none after remove()').toBe(0);
   });
 }

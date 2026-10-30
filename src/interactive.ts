@@ -1465,9 +1465,11 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       value = v;
       scheduleRepaint();
     };
+    // 'instant' overrides a consumer's `scroll-behavior: smooth`, so the next step reads the
+    // target, not the start of an animation. Syncing at once (not on the scroll event)
+    // invalidates a paint still in flight for the old value.
     const setValue = (v: number): void => {
-      if (vertical) scrollEl.scrollTop = clamp01(v) * maxScroll;
-      else scrollEl.scrollLeft = clamp01(v) * maxScroll;
+      scrollEl.scrollTo({ [vertical ? 'top' : 'left']: clamp01(v) * maxScroll, behavior: 'instant' });
       sync();
     };
     scrollEl.addEventListener('scroll', sync, { passive: true, signal });
