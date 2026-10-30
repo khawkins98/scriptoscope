@@ -1636,12 +1636,14 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     scrollEl.addEventListener('scroll', sync, { passive: true, signal });
 
     // Line and page amounts, shared by keys and the arrows/track (#567). Compatibility policy: the
-    // original left them to the application's action procedure.
+    // original left them to the application's action procedure. A page keeps one line of overlap,
+    // the classic application convention, so the reader keeps context across the step.
     const LINE = 24;
+    const PAGE = Math.max(LINE, trackLen - LINE);
     // Steps add whole pixels to the real position (read even before its scroll event fires). Going
     // through the 0..1 value lands a hair short (123.99…), which WebKit truncates a pixel short (#556).
     const move = (px: number): void => scrollToPx(pos() + px);
-    const PART_STEP: Partial<Record<ScrollbarPart, number>> = { up: -LINE, down: LINE, pageUp: -trackLen, pageDown: trackLen };
+    const PART_STEP: Partial<Record<ScrollbarPart, number>> = { up: -LINE, down: LINE, pageUp: -PAGE, pageDown: PAGE };
 
     // Press a part (#567), as the classic Control Manager tracks one: an arrow steps a line and the
     // track a page at once, then repeat while the pointer stays in that part, which draws pressed

@@ -17,8 +17,8 @@ import { startServers } from './servers.mjs';
 // composeScrollbarFrame (scrollbar §4.8 hit test and the pressed-part draw),
 // loaded from the source server for every mode, for the bar's length and value.
 // Line and page amounts are compatibility policy (the original left them to
-// the application): the line is the keyboard's 24 px, and the page is whatever
-// PageDown moves on the same bar.
+// the application): a line is 24 px, and a page is the scroll element's client
+// height less one line of overlap, for both the keys and the track.
 const SLUGS = ['windows-95', 'beos-r503', 'apple-platinum-2', 'evolution'];
 const LINE = 24;
 
@@ -214,7 +214,9 @@ async function exercise(page, axis, { why, longContent }) {
   await home(page, axis);
   await page.evaluate(([axis, k]) => window.__sp.key(axis, k), [axis, fwdKey]);
   const pageStep = (await state(page, axis)).pos;
-  expect(pageStep, `${why}: PageDown moves more than a line`).toBeGreaterThan(LINE);
+  // Compatibility policy (#567): one visible page (the scroll element's client height) minus one line of overlap.
+  const client = await page.evaluate(() => window.__sp.scrollEl.clientHeight);
+  expect(pageStep, `${why}: PageDown moves one page less one line of overlap`).toBe(Math.min(client - LINE, max));
   await home(page, axis);
   p = await point(page, axis, 'pageDown', 0);
   await page.mouse.click(p.x, p.y);

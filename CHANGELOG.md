@@ -125,9 +125,11 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   pointer. The held part draws pressed through the engine's existing
   pressed-part state (scrollbar §4.8 part test, parts 20–23), and returns to
   normal on pointer up, pointer cancel or lost pointer capture. Dragging the
-  thumb is unchanged. The 24 px line, the client-height page (both shared with
-  the bar's keys) and the 400 ms / 50 ms repeat are compatibility policy: the
-  original left them to the application. Bar steps from keys, arrows, the
+  thumb is unchanged. The 24 px line, the page (the client height less one
+  line of overlap, the classic application convention), both shared with the
+  bar's keys, and the 400 ms / 50 ms repeat are compatibility policy: the
+  original left them to the application. PageUp/PageDown on the focused bar
+  therefore now move one line less than before. Bar steps from keys, arrows, the
   track and the wheel now add whole pixels to the scroll position. This fixes
   WebKit, where a step could land a pixel short (#556).
 
