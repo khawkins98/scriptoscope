@@ -2,16 +2,29 @@
 // encoder applies the classic-Mac gamma pre-compensation.
 //
 // Warm grey stone, moss, a deep red banner with gold trim, royal blue
-// heraldry, wood-brown buttons and iron fittings.
+// heraldry, wood-brown buttons and iron fittings, on a parchment body.
+//
+// The stone and moss are picked so that their STORED values (after the gamma
+// pre-compensation) sit a few units from one SYSTEM_PALETTE_256 grey/green
+// each, every step on its own entry. A warm grey that falls between cube cells
+// snaps to pink or olive at 8 bpp (design review §1.2), so the warmth here is
+// kept under ~10 units and there are no mixes between the named steps:
+//
+//   active    stoneHi #bbbbbb  stone #999999 / #888888  stoneLo #777777  mortar #666666
+//   inactive  stoneHi #cccccc  stone #bbbbbb / #aaaaaa  stoneLo #999999  mortar #888888
+//   moss      #336633 / #669966 (active), greys (inactive)
+//
+// (Checked in both the stored values and the on-screen ones, which is what the
+// design-review sim8.py prototype quantises.)
 export const C = {
-  // The colour controls normally sit on: the middle of the flagstone body.
+  // The colour controls normally sit on: the parchment body.
   // Used as the smooth-edge matte for buttons and checkboxes.
-  body: '#e0d9cb',
+  body: '#eae2cf',
   parchment: '#ece4d1',
   active: {
-    stone: ['#a59e91', '#9d968a', '#aaa396', '#979084', '#a19a8c'],
-    stoneHi: '#c4bdaf', stoneLo: '#7e786d', mortar: '#615b52', outline: '#2b2824',
-    moss: ['#5a6b33', '#6f8340', '#4b5a2b'],
+    stone: ['#aba79f', '#9b978f'],                      // two block tones, 16 apart
+    stoneHi: '#cac5bb', stoneLo: '#8d8981', mortar: '#7b776f', outline: '#2b2824',
+    moss: ['#4a7848', '#78a878'],
     banner: ['#9b2630', '#8a1d26', '#76161f'],          // top → bottom of the fabric
     bannerLo: '#4f0d13', trim: '#d4a943', trimLo: '#8d6b20',
     title: '#f7e7b6', titleShadow: '#3d0a0f',
@@ -21,9 +34,9 @@ export const C = {
     crestAlert: '#a12a2a',
   },
   inactive: {
-    stone: ['#bdb9b2', '#b8b4ad', '#c1bdb6', '#b4b0a9', '#bbb7b0'],
-    stoneHi: '#d2cec7', stoneLo: '#a29e97', mortar: '#94908a', outline: '#6f6b66',
-    moss: ['#a3a796', '#a9ad9c', '#9b9f8e'],
+    stone: ['#c8c5be', '#bab7b0'],
+    stoneHi: '#dcd8d0', stoneLo: '#aeaba4', mortar: '#a19e97', outline: '#6f6b66',
+    moss: ['#a2a6a0', '#b4b8b0'],
     banner: ['#8f807c', '#857673', '#7b6d6a'],
     bannerLo: '#6c605d', trim: '#c8bfae', trimLo: '#a39a8a',
     title: '#efe8de', titleShadow: '#efe8de',            // same colour = no shadow

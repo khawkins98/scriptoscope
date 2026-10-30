@@ -2,8 +2,13 @@
 // the real stone under them), plus the pressed-widget strip (cicn -14330).
 //
 //   close     a heater shield, iron rim, royal-blue field, gold saltire
-//   zoom      a portcullis in an arched gateway
-//   collapse  a cross-shaped arrow loop in a stone plate
+//   zoom      a dressed-stone plate with a window-in-window glyph (bigger)
+//   collapse  the same plate with a bar under a chevron (a drawbridge going up)
+//
+// Glyphs are whole pixels (Raster.sprite), not smooth strokes: a 1–1.5px
+// anti-aliased stroke is a grey smear at 1x (design review §2.2). Pressed is
+// inverted, not darkened: the shield goes gold-on-blue, the plates go to iron
+// with a gold glyph. Inactive keeps the silhouette and drops the plate glyphs.
 //
 // The pressed strip's mask is the hit region (R24, HT7), so every widget has
 // a near-square silhouette and the pressed art keeps exactly that silhouette.
@@ -22,6 +27,14 @@ function shieldShape(x, y, w, h, inset = 0) {
   };
 }
 
+const SALTIRE = [
+  '##...##',
+  '.##.##.',
+  '..###..',
+  '.##.##.',
+  '##...##',
+];
+
 export function drawClose(r, b, state, pressed = false) {
   const p = C[state];
   const lit = pressed && state === 'active';
@@ -29,54 +42,67 @@ export function drawClose(r, b, state, pressed = false) {
   const field = lit ? verticalGradient(b.y, b.h, [[0, p.litHi], [1, p.gold]])
     : verticalGradient(b.y, b.h, [[0, p.fieldHi], [1, p.field]]);
   r.paintCoverage(b.x, b.y, b.w, b.h, shieldShape(b.x, b.y, b.w, b.h, 1.4), field);
-  const ink = lit ? p.field : p.gold;
-  const a = 3.6, z = b.w - 3.6, top = b.y + 3.2, bot = b.y + b.h - 4.4;
-  r.strokeLineSmooth(b.x + a, top, b.x + z, bot, 1.4, ink);
-  r.strokeLineSmooth(b.x + z, top, b.x + a, bot, 1.4, ink);
+  // A whole-pixel saltire on the shield's centre column.
+  r.sprite(b.x + Math.floor(b.w / 2) - 3, b.y + 3, SALTIRE, { '#': lit ? p.field : p.gold });
   // Iron studs on the shoulders.
   r.fillCircleSmooth(b.x + 2.6, b.y + 2.6, 0.9, p.ironHi);
   r.fillCircleSmooth(b.x + b.w - 2.6, b.y + 2.6, 0.9, p.ironHi);
   return r;
 }
 
-export function drawZoom(r, b, state, pressed = false) {
-  const p = C[state];
-  const lit = pressed && state === 'active';
-  // Arched gateway: iron-dark surround, then the opening.
-  const arch = (inset) => (px, py) => {
-    const l = b.x + inset, rr = b.x + b.w - inset, top = b.y + inset, bot = b.y + b.h;
-    if (px < l || px > rr || py < top || py > bot) return false;
-    const cx = (l + rr) / 2, rad = (rr - l) / 2;
-    return py >= top + rad || (px - cx) ** 2 + (py - (top + rad)) ** 2 <= rad * rad;
-  };
-  r.paintCoverage(b.x, b.y, b.w, b.h, arch(0), p.outline);
-  r.paintCoverage(b.x, b.y, b.w, b.h, arch(1.2), lit ? verticalGradient(b.y, b.h, [[0, p.litHi], [1, p.lit]]) : p.dark);
-  // The portcullis grid: three uprights with spikes, two cross bars.
-  const bar = lit ? p.outline : p.ironHi;
-  const drop = pressed ? -2 : 0; // pressed: the gate is raised
-  for (const ux of [3, 6, 9]) {
-    r.fillRect(b.x + ux, b.y + 3, 1, b.h - 5 + drop, bar);
-    r.set(b.x + ux, b.y + b.h - 2 + drop, p.iron);
-  }
-  for (const uy of [5, 8]) r.fillRect(b.x + 2, b.y + uy + drop, b.w - 4, 1, bar);
-  return r;
+// 9×9 glyphs for the stone plates, centred in the 13px box.
+const ZOOM = [
+  '#########',
+  '#...#...#',
+  '#...#...#',
+  '#...#...#',
+  '#####...#',
+  '#.......#',
+  '#.......#',
+  '#.......#',
+  '#########',
+];
+const COLLAPSE = [
+  '.........',
+  '....#....',
+  '...###...',
+  '..##.##..',
+  '.##...##.',
+  '.........',
+  '#########',
+  '#########',
+  '.........',
+];
+
+/**
+ * A dressed-stone plate: iron-dark rim with its four corner pixels left to the
+ * frame (a 1-px stair, not a blended arc), a flat face, and a 1px bevel lit
+ * from the upper left. Pressed: an iron face, sunk (the bevel flips).
+ */
+function plate(r, b, p, pressed) {
+  r.fillRect(b.x + 1, b.y, b.w - 2, b.h, p.outline).fillRect(b.x, b.y + 1, b.w, b.h - 2, p.outline);
+  const face = pressed ? p.iron : p.stone[0];
+  const hi = pressed ? p.outline : p.stoneHi, lo = pressed ? p.ironHi : p.stoneLo;
+  r.fillRect(b.x + 1, b.y + 1, b.w - 2, b.h - 2, face);
+  r.hline(b.x + 1, b.y + 1, b.w - 2, hi).vline(b.x + 1, b.y + 1, b.h - 2, hi);
+  r.hline(b.x + 2, b.y + b.h - 2, b.w - 3, lo).vline(b.x + b.w - 2, b.y + 2, b.h - 3, lo);
 }
 
-export function drawCollapse(r, b, state, pressed = false) {
-  const p = C[state];
-  const lit = pressed && state === 'active';
-  r.fillRoundRectSmooth(b.x, b.y, b.w, b.h, 2, p.outline);
-  r.fillRoundRectSmooth(b.x + 1, b.y + 1, b.w - 2, b.h - 2, 1.5,
-    verticalGradient(b.y, b.h, [[0, p.stoneHi], [1, p.stone[3]]]));
-  // A cross-shaped arrow loop, with splayed (wider) ends.
-  const slit = lit ? p.lit : p.dark;
-  const cx = b.x + Math.floor(b.w / 2), cy = b.y + Math.floor(b.h / 2) - 1;
-  r.fillRect(cx, b.y + 2, 1, b.h - 4, slit);
-  r.fillRect(b.x + 3, cy, b.w - 6, 1, slit);
-  for (const [dx, dy] of [[-1, 2 - (cy - b.y)], [1, 2 - (cy - b.y)], [-1, b.h - 3 - (cy - b.y)], [1, b.h - 3 - (cy - b.y)]]) r.set(cx + dx, cy + dy, slit);
-  if (lit) { r.set(cx, cy, p.litHi); }
-  return r;
+function plateWidget(glyph) {
+  return (r, b, state, pressed = false) => {
+    const p = C[state];
+    const lit = pressed && state === 'active';
+    plate(r, b, p, lit);
+    if (state === 'active') {
+      const gx = b.x + Math.floor((b.w - 9) / 2), gy = b.y + Math.floor((b.h - 9) / 2);
+      r.sprite(gx, gy, glyph, { '#': lit ? p.litHi : p.dark });
+    }
+    return r;
+  };
 }
+
+export const drawZoom = plateWidget(ZOOM);
+export const drawCollapse = plateWidget(COLLAPSE);
 
 export const DRAW = { close: drawClose, zoom: drawZoom, collapse: drawCollapse };
 

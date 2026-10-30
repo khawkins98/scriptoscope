@@ -22,7 +22,7 @@
 //     the top band includes everything above the bar (R13).
 import { Raster, verticalGradient, mix, frameLayout } from '../../../tools/theme-author/index.js';
 import { C } from './palette.mjs';
-import { ashlar, moss, hash, bayer, mod } from './stone.mjs';
+import { ashlar, coursed, moss, hash, mod } from './stone.mjs';
 import { DRAW } from './widgets.mjs';
 
 const TILE_CODES = new Set([5, 8, 11, 12]);
@@ -31,17 +31,17 @@ const TILE_CODES = new Set([5, 8, 11, 12]);
 const G = {
   doc: {
     T: 36, tower: 26, crenH: 4, parH: 7, merlonTop: 9, wallTop: 16, gateTop: 5, pinTop: 1,
-    bannerTop: 18, bannerBot: 35, titleRows: [18, 35], merl: { w: 12, gapL: 2, m: 7 }, cap: 10, plate: 12, course: 5,
+    bannerTop: 18, bannerBot: 35, titleRows: [18, 35], merl: { w: 12, gapL: 2, m: 7 }, cap: 10, plate: 12, course: 6,
     side: 11, gutter: 3, sideCourse: 6, sideCell: 12, bottomH: 17, plinth: 16, gate: 24, towerSlit: true,
   },
   util: {
     T: 30, tower: 20, crenH: 3, parH: 5, merlonTop: 7, wallTop: 12, gateTop: 4, pinTop: 1,
-    bannerTop: 13, bannerBot: 29, titleRows: [12, 29], merl: { w: 10, gapL: 2, m: 5 }, cap: 8, plate: 10, course: 5,
+    bannerTop: 13, bannerBot: 29, titleRows: [12, 29], merl: { w: 10, gapL: 2, m: 5 }, cap: 8, plate: 10, course: 6,
     side: 8, gutter: 2, sideCourse: 5, sideCell: 10, bottomH: 10, plinth: 16, gate: 8, towerSlit: false,
   },
   plain: {
     T: 22, tower: 22, crenH: 4, parH: 6, merlonTop: 9, wallTop: 15, gateTop: 9, pinTop: 3,
-    merl: { w: 12, gapL: 2, m: 7 }, course: 5, crest: 20,
+    merl: { w: 12, gapL: 2, m: 7 }, course: 6, crest: 20,
     side: 11, gutter: 3, sideCourse: 6, sideCell: 12, bottomH: 14, plinth: 16, gate: 24, towerSlit: true,
   },
 };
@@ -114,19 +114,27 @@ function spec(kind, { collapsed = false, widgets = 'none' } = {}) {
 
 /** The texture function for wall rows in a top or bottom cell (periodic in tiled cells). */
 function cellStone(cell, y0, course, p, seed) {
-  if (cell.code === 13) return ashlar({ x0: cell.x0, y0, course, block: 10000, pal: p, seed, speckle: 0 });
+  // The title plate tiles along x (R2) and must be one colour per row, so it
+  // and the bezels either side (which must meet it seamlessly) are plain courses.
+  if (cell.code === 5 || cell.code === 6) return coursed({ y0, course, pal: p });
+  if (cell.code === 13) return ashlar({ x0: cell.x0, y0, course, block: 10000, pal: p, seed });
   const tiled = TILE_CODES.has(cell.code);
-  const block = tiled ? cell.w : 12;
+  const block = tiled ? cell.w : 14;
   return ashlar({ x0: cell.x0, y0, course, block, stagger: Math.floor(block / 2), periodX: tiled ? cell.w : undefined, pal: p, seed });
 }
 
-/** Light from the upper left on a fixed tower face: dithered highlight and shade bands (fixed cells only). */
-function towerLight(x0, w, p, base) {
+/**
+ * Light from the upper left on a round tower, in solid bands (no dither, which
+ * reads as a dirty edge at 1x): a 1px highlight column just inside the left
+ * edge and a 3px shade band inside the right edge, over the stone. `lo`/`hi`
+ * are the opaque span's columns [lo, hi); its edge columns are outline.
+ * Mortar joints run through the shade band.
+ */
+function towerLight(lo, hi, p, base) {
   return (x, y) => {
-    const c = base(x, y), t = (x - x0) / (w - 1);
-    if (c === p.mortar) return c;
-    if (t < 0.22 && bayer(x, y) < (0.22 - t) / 0.22 * 0.7) return mix(c, p.stoneHi, 0.45);
-    if (t > 0.72 && bayer(x, y) < (t - 0.72) / 0.28 * 0.8) return mix(c, p.stoneLo, 0.5);
+    if (x === lo + 1) return p.stoneHi;
+    const c = base(x, y);
+    if (c !== p.mortar && x >= hi - 4 && x < hi - 1) return p.stoneLo;
     return c;
   };
 }
@@ -139,15 +147,22 @@ function towerCrenels(w) {
 
 function paintTower(r, cell, g, p, seed, side) {
   const { x0, w } = cell;
-  const shaft = (x, y) => towerLight(x0, w, p, ashlar({ x0, y0: 0, course: g.course, block: 9, stagger: 4, pal: p, seed }))(x, y);
+  // One block tone (the lighter one): the tower stands forward of the wall, and
+  // a flat face is what lets the light bands read.
+  const stone = ashlar({ x0, y0: 0, course: g.course, block: 9, stagger: 4, pal: { ...p, stone: [p.stone[0], p.stone[0]] }, seed, shaded: 0 });
   // Crenellated parapet, projecting 1px over the shaft on corbels.
-  for (const [a, b] of towerCrenels(w)) r.fillRect(x0 + a, 0, b - a, g.crenH, shaft);
-  r.fillRect(x0, g.crenH, w, g.parH - g.crenH, shaft);
-  r.hline(x0, g.crenH, w, mix(p.stone[0], p.stoneHi, 0.6)); // the wall-walk line
+  const parapet = towerLight(x0, x0 + w, p, stone);
+  for (const [a, b] of towerCrenels(w)) r.fillRect(x0 + a, 0, b - a, g.crenH, parapet);
+  r.fillRect(x0, g.crenH, w, g.parH - g.crenH, parapet);
+  r.hline(x0, g.crenH, w, p.stoneHi); // the wall-walk line
   // The shaft is inset 1px on its OUTER side only: its inner side meets the
   // wall, and a transparent column there would outline the 1px code-13 filler
   // next to it, which then repeats as a dark block (seen in the first render).
-  r.fillRect(x0 + (side === 'L' ? 1 : 0), g.parH, w - 1, g.T - g.parH, shaft);
+  const s0 = x0 + (side === 'L' ? 1 : 0), s1 = s0 + w - 1;
+  // On the inner side, a dark line where the tower stands in front of the wall
+  // (the outline does this above the wall top); the light bands sit inside it.
+  r.fillRect(s0, g.parH, w - 1, g.T - g.parH, towerLight(s0, s1, p, stone));
+  r.vline(side === 'L' ? x0 + w - 1 : x0, g.wallTop, g.T - g.wallTop, p.outline);
   // Corbels under the parapet: little dark notches.
   for (let x = x0 + 2; x < x0 + w - 2; x += 3) r.set(x, g.parH, p.mortar);
   // Chipped crenel corners (irregular edge).
@@ -162,7 +177,7 @@ function paintTower(r, cell, g, p, seed, side) {
 
 function paintMerlons(r, cell, g, p, seed) {
   const { x0, w } = cell;
-  const tex = ashlar({ x0, y0: g.merlonTop, course: g.wallTop - g.merlonTop + 1, block: 100, pal: p, seed, speckle: 0.08 });
+  const tex = ashlar({ x0, y0: g.merlonTop, course: g.wallTop - g.merlonTop + 1, block: 100, pal: p, seed });
   const tiled = cell.code === 12;
   const reps = tiled ? 1 : Math.ceil(w / g.merl.w);
   for (let k = 0; k < reps; k++) {
@@ -170,7 +185,8 @@ function paintMerlons(r, cell, g, p, seed) {
     const mw = Math.min(g.merl.m, x0 + w - mx);
     if (mw <= 0) continue;
     r.fillRect(mx, g.merlonTop, mw, g.wallTop - g.merlonTop, tex);
-    r.hline(mx, g.merlonTop, mw, mix(p.stone[2], p.stoneHi, 0.7));
+    r.hline(mx, g.merlonTop, mw, p.stoneHi);
+    if (mw === g.merl.m) r.vline(mx + mw - 1, g.merlonTop + 1, g.wallTop - g.merlonTop - 1, p.stoneLo); // shaded right face
     if (hash(k, seed, 5) < 0.5) r.set(mx + mw - 1, g.merlonTop, null); // a chipped corner
   }
 }
@@ -180,7 +196,7 @@ function paintGatehouse(r, layout, g, p) {
   for (const [cell, seed] of [[capL, 21], [plate, 22], [capR, 23]]) {
     r.fillRect(cell.x0, g.gateTop, cell.w, g.wallTop - g.gateTop, cellStone(cell, g.gateTop, g.course, p, seed));
   }
-  r.hline(capL.x0, g.gateTop, capR.x1 - capL.x0, mix(p.stone[2], p.stoneHi, 0.7)); // coping
+  r.hline(capL.x0, g.gateTop, capR.x1 - capL.x0, p.stoneHi); // coping
   // Corner pinnacles at the outer ends of the gatehouse.
   const pin = 4;
   for (const [x, seed] of [[capL.x0, 1], [capR.x1 - pin, 2]]) {
@@ -212,9 +228,11 @@ function paintBanner(r, layout, g, p) {
       const c = r.get(outer + dir * j, y);
       if (c) r.set(outer + dir * j, y, mix(c, p.bannerLo, 0.35));
     }
-    // An iron ring on the coping holds each end.
-    const ring = fold + dir * 2;
-    r.set(ring, g.wallTop, p.iron).set(ring, g.wallTop + 1, p.iron).set(ring + 1, g.wallTop, p.ironHi);
+    // An iron ring on the coping holds each end. It and its highlight stay
+    // inside the cap: the plate next to it tiles, so a pixel there repeats
+    // every plate width along the coping (lessons ledger X1; layout.lint).
+    const ring = dir > 0 ? Math.min(fold + 2, capL.x1 - 1) : Math.max(fold - 2, capR.x0);
+    r.set(ring, g.wallTop, p.iron).set(ring, g.wallTop + 1, p.iron).set(ring - dir, g.wallTop, p.ironHi);
   }
 }
 
@@ -225,7 +243,7 @@ function paintTopBand(r, layout, geomKind, state, kind) {
   layout.cells.top.forEach((cell, i) => {
     if (cell.name.startsWith('tower')) return;
     r.fillRect(cell.x0, g.wallTop + 1, cell.w, T - g.wallTop - 1, cellStone(cell, g.wallTop + 1, g.course, p, 40 + i));
-    r.hline(cell.x0, g.wallTop, cell.w, mix(p.stone[2], p.stoneHi, 0.7));
+    r.hline(cell.x0, g.wallTop, cell.w, p.stoneHi);
   });
   layout.cells.top.forEach((cell, i) => {
     if (cell.name.startsWith('cren') || cell.name === 'wallR') paintMerlons(r, cell, g, p, 60 + i);
@@ -243,7 +261,7 @@ function paintTopBand(r, layout, geomKind, state, kind) {
 /** Untitled windows: a heraldic shield on a raised block between the battlements. */
 function paintCrest(r, cell, g, p, kind) {
   r.fillRect(cell.x0, g.merlonTop, cell.w, g.wallTop - g.merlonTop, ashlar({ x0: cell.x0, y0: g.merlonTop, course: 7, block: 10, pal: p, seed: 5 }));
-  r.hline(cell.x0, g.merlonTop, cell.w, mix(p.stone[2], p.stoneHi, 0.7));
+  r.hline(cell.x0, g.merlonTop, cell.w, p.stoneHi);
   const w = 14, h = 17, x = cell.x0 + Math.floor((cell.w - w) / 2), y = 2;
   const shape = (inset) => {
     const cx = x + w / 2, half = w / 2 - inset, top = y + inset, sh = y + h * 0.45, bot = y + h - inset;
@@ -293,15 +311,15 @@ function paintBottom(r, layout, kind, state) {
   const { width: W, content: A, height: H } = layout;
   const y0 = A.bottom;
   // String course under the content, as wide as the walls.
-  r.fillRect(g.gutter, y0, W - 2 * g.gutter, 2, (x, y) => (y === y0 ? mix(p.stone[1], p.stoneHi, 0.4) : p.stone[3]));
+  r.fillRect(g.gutter, y0, W - 2 * g.gutter, 2, (x, y) => (y === y0 ? p.stoneHi : p.stone[1]));
   // Chamfered plinth top, then the plinth, full width.
   const top = y0 + 2, chamfer = 2;
-  r.fillRect(g.gutter - 1, top, W - 2 * (g.gutter - 1), chamfer, (x, y) => (y === top ? p.stoneHi : mix(p.stone[0], p.stoneHi, 0.3)));
+  r.fillRect(g.gutter - 1, top, W - 2 * (g.gutter - 1), chamfer, (x, y) => (y === top ? p.stoneHi : p.stone[0]));
   const base = top + chamfer;
   const course = Math.max(4, Math.ceil((H - base) / 2));
   layout.cells.bottom.forEach((cell, i) => {
     const tex = cell.code === 13
-      ? ashlar({ x0: cell.x0, y0: base, course, block: 10000, pal: p, seed: 100, speckle: 0 })
+      ? ashlar({ x0: cell.x0, y0: base, course, block: 10000, pal: p, seed: 100 })
       : ashlar({ x0: cell.x0, y0: base, course, block: g.plinth, stagger: g.plinth / 2, periodX: cell.code === 12 ? cell.w : undefined, pal: p, seed: 100 + (cell.code === 12 ? 0 : i) });
     r.fillRect(cell.x0, base, cell.w, H - base, tex);
   });
@@ -323,7 +341,7 @@ function paintBottom(r, layout, kind, state) {
     if (px < l || px > rr || py > H) return false;
     return py >= spring || (px - cx) ** 2 + (py - spring) ** 2 <= rd * rd;
   };
-  r.paintCoverage(ox - 3, y0, ow + 6, H - y0, opening(2), (x, y) => mix(p.stone[2], p.stoneHi, 0.5)); // voussoirs
+  r.paintCoverage(ox - 3, y0, ow + 6, H - y0, opening(2), p.stoneHi); // voussoirs
   r.paintCoverage(ox - 3, y0, ow + 6, H - y0, opening(0), p.dark);
   for (let x = ox + 2; x < ox + ow; x += 3) r.vline(x, spring - rad + 1, H - (spring - rad + 1) - 1, p.ironHi);
   r.hline(ox + 1, spring, ow - 2, p.ironHi).hline(ox + 1, spring + 3, ow - 2, p.ironHi);
@@ -352,6 +370,11 @@ export function paintFrame(t, state) {
     if (!cell.name.startsWith('cren') && cell.name !== 'wallR') continue;
     moss(r, cell.x0, g.merlonTop, cell.w, 3, p, { density: 0.3, periodX: cell.code === 12 ? cell.w : undefined, seed: cell.code === 12 ? 2 : 50 });
   }
+  // Guard for exotic-frames R2/R8: a tiled cell repeats its source as drawn,
+  // so stray art in the code-5 plate becomes a dotted line along the window
+  // (lessons ledger X1: a banner-ring pixel, every 12px along the coping).
+  // layout.lint fails the build if the plate isn't one colour per row.
+  try { layout.lint(r); } catch (err) { throw new Error(`castle: ${t.name} (${state}): ${err.message}`); }
   // Hidden swatches: title text at (A.left, A.top), shadow at the pixel to its right (TC2).
   r.swatch(A.left, A.top, p.title);
   r.swatch(A.left + 1, A.top, p.titleShadow);
