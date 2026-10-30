@@ -121,7 +121,8 @@ export async function renderWindow(
   // a title only for aria-label, and 1984's alert title rect sits on its right
   // border (a visible title would draw a 1px-wide sliver there).
   const isUtility = UTILITY_SLUG_RE.test(slug);
-  const isTitledUtility = /^titled-utility-window/.test(slug);
+  // The shaded form keeps its title bar, so it keeps its title too.
+  const isTitledUtility = /^(collapsed-)?titled-utility/.test(slug);
   const showTitle = !!title && (!HEADLESS_TITLE_SLUG_RE.test(slug) || isTitledUtility);
 
   // ── title width: rasterize the title BEFORE composing; its width is the layout's
