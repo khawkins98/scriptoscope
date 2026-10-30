@@ -109,6 +109,8 @@ const clamp01 = (n: number): number => Math.min(1, Math.max(0, n));
 // never under the button. A scheme grow box sets it to its own gripper (built-in frame: 15 px inside
 // the content corner plus its outer lip). Without one, any gripper is frame art, so the zone is the
 // frame corner plus the classic 15 px square where the two scrollbar gutters meet.
+// Compatibility policy, not decoded kDEF behaviour: window scrollbars and this button are an
+// app-layer overlay (#524).
 const growZone = (c: ComposedChrome): { w: number; h: number } => c.growBox
   ? { w: c.fullWidth - c.growBox.x, h: c.fullHeight - c.growBox.y }
   : { w: c.frame.right + 15, h: c.frame.bottom + 15 };

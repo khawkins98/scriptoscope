@@ -66,12 +66,20 @@ or add tab/text-field restoration to the contract.
 which ship no grow-box resource, and apple-platinum-2, which does (control).
 It locates the vertical scrollbar's down arrow only from the visible scrollbar
 element (arrow at its end, length equal to bar thickness) and never reads the
-grow-box button. A click at the arrow centre must scroll the content without
-resizing the window, handing the in-flow host off to absolute positioning or
-dispatching `scriptoscope:userresize`. A drag from the window's bottom-right
-corner pixel must still resize it. The showcase has no horizontal window
-scrollbar, so the right arrow is not covered. These are interaction checks
-and make no fidelity claim.
+grow-box button. Clicks 2 px from the arrow's far end and at its centre must
+each scroll the content without resizing the window, handing the in-flow host
+off to absolute positioning or dispatching `scriptoscope:userresize`. The
+far-end click catches a corner clearance a few px short, which the centre
+click alone misses. A drag from the window's bottom-right corner pixel must
+still resize it.
+
+The showcase has no horizontal window scrollbar, so a second case drives
+imperative `WindowManager` windows on the harness page (source and built) with
+one overflowing axis: windows-95, beos-r503, evolution and apple-platinum-2,
+vertical-only and horizontal-only, at scale 1 and 2. Both end-arrow points
+must hit the scrollbar and scroll. These are interaction checks for a
+compatibility policy (the window scrollbars are an app-layer overlay) and
+make no fidelity claim.
 
 ## Coverage inventory
 

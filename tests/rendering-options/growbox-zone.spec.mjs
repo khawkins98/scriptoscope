@@ -4,6 +4,7 @@ import { stat } from 'node:fs/promises';
 import { resolve, extname, sep } from 'node:path';
 import { test as demoTest } from './demo-fixtures.mjs';
 import { expect } from '@playwright/test';
+import { test as harnessTest, openHarness } from './fixtures.mjs';
 
 // #524: on schemes without a grow-box resource, the resize hit zone must not
 // cover the window scrollbar's drawn end arrow. The arrow is located only from
@@ -88,7 +89,7 @@ for (const mode of ['source', 'production']) {
   // windows-95 and beos-r503 ship no grow-box resource; apple-platinum-2 does
   // (positive control for the method on the same page).
   for (const slug of ['windows-95', 'beos-r503', 'apple-platinum-2']) {
-    test(`${mode}: ${slug} vertical scrollbar down arrow scrolls and does not resize (#524)`, async ({ page, demo, production }) => {
+    test(`${mode}: ${slug} vertical scrollbar down arrow (centre and far end) scrolls and does not resize (#524)`, async ({ page, demo, production }) => {
       await openShowcase(page, mode === 'source' ? demo : production, slug);
       const before = await snapshot(page);
       expect(before.bar, 'visible vertical window scrollbar').not.toBeNull();
@@ -99,6 +100,25 @@ for (const mode of ['source', 'production']) {
       const thickness = before.bar.w;
       expect(before.bar.h).toBeGreaterThan(2 * thickness);
       const x = before.bar.x + thickness / 2;
+      // The far end first (2 px inside the bar's bottom edge): a clearance a
+      // few px short puts this point under the resize zone while the centre
+      // still lands on the bar.
+      const yEnd = before.bar.y + before.bar.h - 2;
+      const hitEnd = await hitAt(page, x, yEnd);
+      await page.mouse.click(x, yEnd);
+      await page.waitForTimeout(300);
+      const end = await snapshot(page);
+      const whyEnd = `${slug} down-arrow far end (${x.toFixed(1)}, ${yEnd.toFixed(1)}) hit ${hitEnd}`;
+      expect(end.scrollTop, `${whyEnd}: content did not scroll`).toBeGreaterThan(0);
+      expect(end.userResize, `${whyEnd}: dispatched scriptoscope:userresize`).toBe(0);
+      expect(end.position, `${whyEnd}: in-flow host was handed off to absolute`).toBe('static');
+      expect(end.chrome, `${whyEnd}: window chrome resized`).toEqual(before.chrome);
+      await page.evaluate(sel => {
+        const host = document.querySelector(sel);
+        for (const e of [...host.querySelectorAll('*'), ...host.shadowRoot.querySelectorAll('*')]) e.scrollTop = 0;
+      }, PICKER);
+      await expect.poll(async () => (await snapshot(page)).scrollTop).toBe(0);
+
       const y = before.bar.y + before.bar.h - thickness / 2;
       const hit = await hitAt(page, x, y);
       await page.mouse.click(x, y);
@@ -133,4 +153,94 @@ for (const mode of ['source', 'production']) {
       expect(after.chrome.w, `${why}: width unchanged`).toBeLessThan(before.chrome.w - 10);
     });
   }
+}
+
+// Imperative windows (harness page, source and built runtime) with a single
+// overflowing axis, so each bar runs the full content edge and its end arrow
+// sits next to the bottom-right corner. Covers the horizontal bar's right arrow
+// (the showcase has none) and a grow-box theme with a horizontal-only bar,
+// whose right arrow sat under the gripper before #524. Each arrow is clicked at
+// its centre and 2 px from its far end, so a corner clearance a few px short
+// (the bar running into the resize zone) fails here even when the centre
+// click still lands on the bar.
+async function addWindow(page, mode, slug, axis, scale) {
+  return page.evaluate(async ({ mode, slug, axis, scale }) => {
+    const api = await import(mode === 'source' ? '/src/index.ts' : '/dist/scriptoscope.js');
+    window.__growZone?.manager.remove(window.__growZone.host);
+    window.__growZone?.host.remove();
+    const theme = await api.loadTheme(`/themes/${slug}`);
+    const manager = new api.WindowManager();
+    const content = document.createElement('div');
+    content.style.cssText = 'width:100%;height:100%;overflow:auto;box-sizing:border-box';
+    const inner = document.createElement('div');
+    inner.style.cssText = `width:${axis === 'horizontal' ? 900 : 50}px;height:${axis === 'vertical' ? 900 : 20}px;background:linear-gradient(45deg,red,blue)`;
+    content.append(inner);
+    const host = await manager.add(theme, { title: 'Zone', width: 200, height: 140, scale }, {}, { contentEl: content });
+    document.body.append(host);
+    manager.setPosition(host, 40, 40);
+    host.style.zIndex = '1000';
+    window.__growZone = { manager, host, content, resized: 0 };
+    host.addEventListener('scriptoscope:userresize', () => window.__growZone.resized++);
+    await new Promise(resolve => setTimeout(resolve, 300));
+  }, { mode, slug, axis, scale });
+}
+
+function zoneState(page, axis) {
+  return page.evaluate(axis => {
+    const { host, content, resized } = window.__growZone;
+    const rect = e => { const r = e.getBoundingClientRect(); return { x: r.x, y: r.y, r: r.right, b: r.bottom, w: r.width, h: r.height }; };
+    const bar = host.shadowRoot.querySelector(`[role="scrollbar"][aria-orientation="${axis}"]`);
+    return {
+      bar: bar && getComputedStyle(bar).visibility === 'visible' ? rect(bar) : null,
+      chrome: rect(host.shadowRoot.querySelector('canvas.scriptoscope-chrome')),
+      scroll: axis === 'vertical' ? content.scrollTop : content.scrollLeft,
+      resized,
+    };
+  }, axis);
+}
+
+function zoneHit(page, x, y) {
+  return page.evaluate(({ x, y }) => {
+    const e = window.__growZone.host.shadowRoot.elementFromPoint(x, y);
+    return e?.closest('[role="scrollbar"]') ? 'scrollbar' : e ? `${e.tagName.toLowerCase()}.${String(e.className).split(' ').join('.')}` : null;
+  }, { x, y });
+}
+
+/** Click the end arrow of `axis` at `at` px from its far end and expect a scroll, not a resize. */
+async function expectArrowScrolls(page, axis, at, label) {
+  const before = await zoneState(page, axis);
+  expect(before.bar, `${label}: visible ${axis} scrollbar`).not.toBeNull();
+  const thickness = axis === 'vertical' ? before.bar.w : before.bar.h;
+  const x = axis === 'vertical' ? before.bar.x + thickness / 2 : before.bar.r - at;
+  const y = axis === 'vertical' ? before.bar.b - at : before.bar.y + thickness / 2;
+  const hit = await zoneHit(page, x, y);
+  await page.mouse.click(x, y);
+  await page.waitForTimeout(150);
+  const after = await zoneState(page, axis);
+  const why = `${label}: click ${at} px from the ${axis} arrow's end (${x.toFixed(1)}, ${y.toFixed(1)}) hit ${hit}`;
+  expect(hit, why).toBe('scrollbar');
+  expect(after.scroll, `${why}: did not scroll`).toBeGreaterThan(before.scroll);
+  expect(after.resized, `${why}: dispatched scriptoscope:userresize`).toBe(before.resized);
+  expect(after.chrome, `${why}: window resized`).toEqual(before.chrome);
+}
+
+for (const mode of ['source', 'built']) {
+  harnessTest(`${mode}: single-axis window scrollbar end arrows clear the resize zone (#524)`, async ({ page, servers }) => {
+    await openHarness(page, servers, mode);
+    // Thin frame + no grow box, thick frame + no grow box, thick bottom frame,
+    // and the built-in grow box (procedural frame).
+    for (const slug of ['windows-95', 'beos-r503', 'evolution', 'apple-platinum-2']) {
+      for (const axis of ['vertical', 'horizontal']) {
+        for (const scale of [1, 2]) {
+          await addWindow(page, mode, slug, axis, scale);
+          const label = `${slug} ${axis}-only scale ${scale}`;
+          const { bar } = await zoneState(page, axis);
+          const thickness = axis === 'vertical' ? bar.w : bar.h;
+          await expectArrowScrolls(page, axis, 2, label);
+          await page.evaluate(axis => { window.__growZone.content[axis === 'vertical' ? 'scrollTop' : 'scrollLeft'] = 0; }, axis);
+          await expectArrowScrolls(page, axis, thickness / 2, label);
+        }
+      }
+    }
+  });
 }
