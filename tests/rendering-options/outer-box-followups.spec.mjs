@@ -289,6 +289,35 @@ for (const mode of ['source', 'built']) {
     });
   }
 
+  // #566 at scale 2: the bound and the frame extent are unscaled px while the
+  // rendered footprint is scaled, so a collapsed document added at scale 2 with
+  // a stale content width must still match an expanded one inside the same bound.
+  for (const slug of ['platinum-8', 'black-platinum']) {
+    test(`${mode}: ${slug} collapsed document at scale 2 fits its outer bound (#566)`, async ({ page, servers }) => {
+      await openHarness(page, servers, mode);
+      await boot(page, mode);
+      const r = await page.evaluate(async ({ slug }) => {
+        const h = window.__obf;
+        const theme = await h.theme(slug);
+        const box = async collapsed => {
+          const manager = new h.api.WindowManager();
+          const host = await manager.add(theme, { title: 'Scaled', width: 300, height: 80, scale: 2 }, {}, { collapsed, outerSize: { width: 400 } });
+          document.body.append(host);
+          await h.settle();
+          const r = host.shadowRoot.querySelector('canvas.scriptoscope-chrome').getBoundingClientRect();
+          const out = { width: r.width, height: r.height, content: manager.describe(host).width };
+          host.remove();
+          return out;
+        };
+        return { collapsed: await box(true), expanded: await box(false) };
+      }, { slug });
+      expect.soft(r.expanded.width, `${slug}: expanded scale-2 chrome fills the 400px bound`).toBe(800);
+      expect.soft(r.collapsed.height, `${slug}: collapsed is only the title bar`).toBeLessThan(r.expanded.height);
+      expect.soft(r.collapsed.width, `${slug}: collapsed scale-2 width ${r.collapsed.width} vs expanded ${r.expanded.width}`).toBe(r.expanded.width);
+      expect.soft(r.collapsed.content, `${slug}: collapsed content width`).toBe(r.expanded.content);
+    });
+  }
+
   // #566 guard: a side utility rethemed from a wnd# scheme while collapsed is a
   // bare bar whose footprint does not follow its content width, so the refit
   // must not touch it: it keeps its last expanded content width (describe())

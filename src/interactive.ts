@@ -1323,18 +1323,16 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       if (!collapsed) return { win, collapsed, opts: entry.opts, extent: measureExtent(win, entry.opts) };
       if (outer?.width === undefined) return { win, collapsed, opts: entry.opts };
       // A collapsed render has no content height to resolve. A visible content box gives
-      // the frame's width directly (wnd# frames). The built-in frame hides it, so take the
-      // theme's expanded extent (one hidden expanded preparation if none is cached yet,
-      // which the next expand then reuses) and refit only if the collapsed footprint
-      // tracks the content width (a document title bar). A side utility's bare bar does
-      // not, so it keeps the last expanded content size (#542, #566).
-      let ext: ChromeExtent | undefined;
-      if (!win.querySelector<HTMLElement>('.scriptoscope-content')!.hidden) ext = measureExtent(win, entry.opts);
-      else {
-        ext = byTheme.get(cacheKey);
-        if (!ext) byTheme.set(cacheKey, ext = measureExtent(await prepare(entry.opts, false), entry.opts));
-        const footprint = Math.round(parseFloat(win.style.width) / Math.max(1, Math.round(entry.opts.scale ?? 1)));
-        if (footprint !== (entry.opts.width ?? 240) + ext.x) ext = undefined;
+      // the frame's width directly (wnd# frames). The built-in frame hides it, so compare
+      // with the theme's expanded extent (one hidden expanded preparation if none is cached
+      // yet, which the next expand then reuses): a document title bar keeps the expanded
+      // frame width and is refit; a side utility's bare bar does not follow its content
+      // width, so it keeps the last expanded content size (#542, #566).
+      let ext: ChromeExtent | undefined = measureExtent(win, entry.opts);
+      if (win.querySelector<HTMLElement>('.scriptoscope-content')!.hidden) {
+        let full = byTheme.get(cacheKey);
+        if (!full) byTheme.set(cacheKey, full = measureExtent(await prepare(entry.opts, false), entry.opts));
+        if (full.x !== ext.x) ext = undefined;
       }
       const opts = ext ? contentFor(entry.opts, { width: outer.width }, ext) : entry.opts;
       return { win: opts.width === entry.opts.width ? win : await prepare(opts), collapsed, opts };
