@@ -6,12 +6,12 @@
 // consistent, but a self-consistent chain can still be rewritten: drop a
 // transition, edit its summary or review and re-derive every digest after it.
 // This guard compares against the history already merged. For every family file
-// at the base (the PR's merge-base with v2), the head's `transitions` array must
+// at the base (the PR's merge-base with main), the head's `transitions` array must
 // start with the base's records, unchanged, in the same order. Appending new
 // transitions is the only allowed change. A family file may not disappear, and
 // families/_base.json (the frozen split interleave) must be byte-identical.
 //
-//   node scripts/check-ledger-history.mjs                  # base = merge-base(HEAD, origin/v2)
+//   node scripts/check-ledger-history.mjs                  # base = merge-base(HEAD, origin/main)
 //   node scripts/check-ledger-history.mjs --base <ref>     # base = merge-base(HEAD, <ref>)
 //   node scripts/check-ledger-history.mjs --base-commit <sha>  # compare against exactly <sha>
 //   --root <dir>   check another checkout (CI runs the base's copy of this script on the head)
@@ -92,7 +92,7 @@ export function familiesInTree(root) {
 export class BaseError extends Error {}
 export class HeadError extends Error {}
 
-export function checkLedgerHistory(root, { base = 'origin/v2', baseCommit = null } = {}) {
+export function checkLedgerHistory(root, { base = 'origin/main', baseCommit = null } = {}) {
   let commit = baseCommit;
   if (!commit) {
     try { commit = git(root, ['merge-base', 'HEAD', base]).trim(); }
@@ -115,7 +115,7 @@ if (process.argv[1] && realpathSync(fileURLToPath(import.meta.url)) === realpath
   const opt = n => { const i = args.indexOf(n); return i < 0 ? undefined : args[i + 1]; };
   const root = opt('--root') ? resolve(opt('--root')) : resolve(dirname(fileURLToPath(import.meta.url)), '..');
   let r;
-  try { r = checkLedgerHistory(root, { base: opt('--base') ?? 'origin/v2', baseCommit: opt('--base-commit') ?? null }); }
+  try { r = checkLedgerHistory(root, { base: opt('--base') ?? 'origin/main', baseCommit: opt('--base-commit') ?? null }); }
   catch (error) {
     if (error instanceof HeadError) { console.error(`check-ledger-history: ${error.message}`); process.exit(1); }
     console.error(`check-ledger-history: ${error instanceof BaseError ? error.message : `cannot read the base: ${error.message.split('\n')[0]}`}`);

@@ -1,6 +1,6 @@
-name: v2 docs + ledger
+name: docs + ledger
 
-# Lightweight checks for every PR into v2, including docs-only PRs. ci.yml keeps
+# Lightweight checks for every PR into main, including docs-only PRs. ci.yml keeps
 # its paths-ignore (docs/** and *.md skip the browser job), so without this
 # workflow a spec or ledger-prose PR would merge with no check at all. No browser:
 # the clean-room linter, the trap table's structure, the routine coverage pins,
@@ -11,11 +11,15 @@ name: v2 docs + ledger
 # commit's copy of the scripts against the head tree, so a PR cannot weaken the
 # check it is judged by. A PR that changes a judge must pass both copies; a
 # deliberate relaxation is a Tier 2 change the maintainer merges by hand.
+#
+# The file keeps its historical name (v2-docs.yml) so links and run history stay
+# stable; v2 was retired as an integration target on 2026-10-30 and all work now
+# lands on main (docs/v2/DECISIONS.md #1).
 on:
   pull_request:
-    branches: [v2]
+    branches: [main]
   push:
-    branches: [v2]
+    branches: [main]
 
 concurrency:
   group: v2-docs-${{ github.ref }}
@@ -41,7 +45,7 @@ jobs:
           cache: 'npm'
 
       # PR: the merge-base with the target branch, fetched explicitly.
-      # Push: the previous v2 head (github.event.before), fetched explicitly; an
+      # Push: the previous main head (github.event.before), fetched explicitly; an
       # all-zero `before` means the branch was just created and there is no prior
       # history. A base that cannot be fetched fails the job: after a force-push the
       # previous head is exactly what the history guard must see.
@@ -57,11 +61,11 @@ jobs:
             git fetch --no-tags origin "+refs/heads/$BASE_REF:refs/remotes/origin/$BASE_REF"
             base="$(git merge-base HEAD "origin/$BASE_REF")"
           elif [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
-            echo "::notice title=No prior v2 head::push created the branch; base-relative checks are skipped"
+            echo "::notice title=No prior main head::push created the branch; base-relative checks are skipped"
             echo "sha=" >> "$GITHUB_OUTPUT"; exit 0
           else
             if ! git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
-              git fetch --no-tags origin "$BEFORE" || { echo "::error title=Previous v2 head unreadable::cannot fetch $BEFORE (force-push?); the ledger history guard cannot run"; exit 1; }
+              git fetch --no-tags origin "$BEFORE" || { echo "::error title=Previous main head unreadable::cannot fetch $BEFORE (force-push?); the ledger history guard cannot run"; exit 1; }
             fi
             base="$BEFORE"
           fi
@@ -110,7 +114,7 @@ jobs:
       - name: Generated ledger is current (build-ledger --check)
         run: |
           if ! node tests/rendering-requirements/build-ledger.mjs --check; then
-            echo "::error title=ledger.json out of date::Merge the latest v2 into this branch, then run: npm run ledger:sync && git add tests/rendering-requirements/ledger.json && git commit -m 'test(ledger): regenerate ledger.json after merging v2'. Never hand-edit or hand-merge ledger.json."
+            echo "::error title=ledger.json out of date::Merge the latest main into this branch, then run: npm run ledger:sync && git add tests/rendering-requirements/ledger.json && git commit -m 'test(ledger): regenerate ledger.json after merging main'. Never hand-edit or hand-merge ledger.json."
             exit 1
           fi
 

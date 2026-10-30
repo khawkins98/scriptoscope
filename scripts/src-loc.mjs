@@ -2,7 +2,7 @@
 // Runtime size report for family migrations and releases (CONTRIBUTING: "Measure and
 // shrink the runtime"). Counts lines of non-test .ts files under src/ at a git ref,
 // split into engine tables (cited data rows) and logic (everything else). `--base <ref>`
-// also prints the delta from the merge-base with that ref, e.g. `--base origin/v2` in a
+// also prints the delta from the merge-base with that ref, e.g. `--base origin/main` in a
 // PR or `--base v0.2.0` for a release note.
 import { execFileSync } from 'node:child_process';
 

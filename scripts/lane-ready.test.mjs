@@ -21,14 +21,14 @@ const expectations = (over = {}) => JSON.stringify({
 /** A genuine hash-only bump to 1.0.1: new document hash, new digest, prior review archived verbatim. */
 const bump = (reviewers, over = {}) => expectations({ inventoryVersion: '1.0.1', cases: [{ id: 'a', documentSha256: H('b') }], inventorySha256: H('2'), review: { reviewers, inventoryVersion: '1.0.1', inventorySha256: H('2'), previousReview: BASE_REVIEW }, ...over });
 
-/** A lane worktree with a bare origin carrying `v2` and the lane branch, both at the same commit. */
+/** A lane worktree with a bare origin carrying `main` and the lane branch, both at the same commit. */
 function lane() {
   const dir = mkdtempSync(join(tmpdir(), 'lane-ready-'));
   const root = join(dir, 'work');
   const g = (...a) => execFileSync('git', a, { cwd: root, stdio: 'pipe', encoding: 'utf8' }).trim();
   execFileSync('git', ['init', '-q', '--bare', join(dir, 'origin.git')]);
   mkdirSync(root);
-  g('init', '-q', '-b', 'v2-L9-test');
+  g('init', '-q', '-b', 'lane-L9-test');
   g('config', 'user.email', 't@t'); g('config', 'user.name', 't'); g('config', 'commit.gpgsign', 'false');
   g('remote', 'add', 'origin', join(dir, 'origin.git'));
   const write = (path, body) => { mkdirSync(dirname(join(root, path)), { recursive: true }); writeFileSync(join(root, path), body); };
@@ -37,9 +37,9 @@ function lane() {
   write('tests/rendering-requirements/ledger.json', '{"scope":{"review":"reviewed"}}\n');
   write('docs/a.md', 'doc\n');
   g('add', '.'); g('commit', '-qm', 'base');
-  g('push', '-q', 'origin', 'HEAD:refs/heads/v2');
-  g('push', '-q', '-u', 'origin', 'HEAD:refs/heads/v2-L9-test');
-  const commitPush = (msg = 'change') => { g('add', '-A'); g('commit', '-qm', msg); g('push', '-q', 'origin', 'HEAD:refs/heads/v2-L9-test'); };
+  g('push', '-q', 'origin', 'HEAD:refs/heads/main');
+  g('push', '-q', '-u', 'origin', 'HEAD:refs/heads/lane-L9-test');
+  const commitPush = (msg = 'change') => { g('add', '-A'); g('commit', '-qm', msg); g('push', '-q', 'origin', 'HEAD:refs/heads/lane-L9-test'); };
   const run = (opts = {}) => laneReady({ root, commands: OK, ...opts });
   return { root, g, write, commitPush, run, done: () => rmSync(dir, { recursive: true, force: true }) };
 }
@@ -98,24 +98,24 @@ test('the pushed-head check uses the upstream (@{u}), and an upstream equal to t
     assert.ok(r.warnings.some(w => /has no upstream/.test(w)));
     // Local branch name differs from the remote branch it tracks.
     t.g('branch', '-m', 'local-name');
-    t.g('branch', '--set-upstream-to', 'origin/v2-L9-test');
+    t.g('branch', '--set-upstream-to', 'origin/lane-L9-test');
     r = t.run();
     assert.equal(rowOf(r, 'pushed head').ok, true, r.summary);
-    assert.match(rowOf(r, 'pushed head').name, /origin\/v2-L9-test\)/);
+    assert.match(rowOf(r, 'pushed head').name, /origin\/lane-L9-test\)/);
     t.write('docs/a.md', 'ahead\n'); t.g('commit', '-qam', 'ahead');
     assert.match(rowOf(t.run(), 'pushed head').note, /differs from HEAD/);
-    t.g('push', '-q', 'origin', 'HEAD:refs/heads/v2-L9-test');
+    t.g('push', '-q', 'origin', 'HEAD:refs/heads/lane-L9-test');
     assert.equal(rowOf(t.run(), 'pushed head').ok, true);
     // Tracking a local branch ('.' remote) falls back to origin/<branch> with a WARN.
     t.g('branch', 'local-base'); t.g('branch', '--set-upstream-to', 'local-base');
     r = t.run();
     assert.ok(r.warnings.some(w => /tracks a local branch \(refs\/heads\/local-base\)/.test(w)), r.summary);
     assert.match(rowOf(r, 'pushed head').name, /origin\/local-name, no upstream/);
-    // A worktree made with `-b x origin/v2` tracks v2 itself: that is not the lane branch.
-    t.g('fetch', '-q', 'origin'); t.g('branch', '--set-upstream-to', 'origin/v2');
+    // A worktree made with `-b x origin/main` tracks main itself: that is not the lane branch.
+    t.g('fetch', '-q', 'origin'); t.g('branch', '--set-upstream-to', 'origin/main');
     r = t.run();
     assert.equal(rowOf(r, 'pushed head').ok, false);
-    assert.match(rowOf(r, 'pushed head').note, /the upstream is the base branch v2/);
+    assert.match(rowOf(r, 'pushed head').note, /the upstream is the base branch main/);
   } finally { t.done(); }
 });
 
@@ -219,23 +219,23 @@ test('isHashOnlyBump ignores only sha256 values, inventoryVersion and the review
   assert.equal(isHashOnlyBump(null, base), false, 'a new file is never a hash-only bump');
 });
 
-/** Lane fixture helpers for the silent-revert check: advance origin/v2, rebuild the lane. */
+/** Lane fixture helpers for the silent-revert check: advance origin/main, rebuild the lane. */
 function withBase(t) {
   const src = lines => lines.map(l => `export const ${l} = '${l} value';\n`).join('');
   const advance = (path, body, msg) => {
-    t.g('fetch', '-q', 'origin'); t.g('checkout', '-q', '--detach', 'origin/v2');
-    t.write(path, body); t.g('add', '-A'); t.g('commit', '-qm', msg); t.g('push', '-q', 'origin', 'HEAD:refs/heads/v2');
+    t.g('fetch', '-q', 'origin'); t.g('checkout', '-q', '--detach', 'origin/main');
+    t.write(path, body); t.g('add', '-A'); t.g('commit', '-qm', msg); t.g('push', '-q', 'origin', 'HEAD:refs/heads/main');
     const sha = t.g('rev-parse', 'HEAD');
-    t.g('checkout', '-q', 'v2-L9-test');
+    t.g('checkout', '-q', 'lane-L9-test');
     return sha;
   };
-  /** Re-parent the lane head's tree onto origin/v2 (the #440 shape: old tree, new parent). */
+  /** Re-parent the lane head's tree onto origin/main (the #440 shape: old tree, new parent). */
   const reparent = (msg = 'stale tree, new parent') => {
     t.g('fetch', '-q', 'origin');
-    const c = t.g('commit-tree', t.g('rev-parse', 'HEAD^{tree}'), '-p', 'origin/v2', '-m', msg);
-    t.g('reset', '-q', '--hard', c); t.g('push', '-q', '-f', 'origin', 'HEAD:refs/heads/v2-L9-test');
+    const c = t.g('commit-tree', t.g('rev-parse', 'HEAD^{tree}'), '-p', 'origin/main', '-m', msg);
+    t.g('reset', '-q', '--hard', c); t.g('push', '-q', '-f', 'origin', 'HEAD:refs/heads/lane-L9-test');
   };
-  const rebase = () => { t.g('fetch', '-q', 'origin'); t.g('rebase', '-q', 'origin/v2'); t.g('push', '-q', '-f', 'origin', 'HEAD:refs/heads/v2-L9-test'); };
+  const rebase = () => { t.g('fetch', '-q', 'origin'); t.g('rebase', '-q', 'origin/main'); t.g('push', '-q', '-f', 'origin', 'HEAD:refs/heads/lane-L9-test'); };
   return { src, advance, reparent, rebase };
 }
 
@@ -244,7 +244,7 @@ test('a branch whose diff undoes a base commit fails and names the file and the 
   try {
     const { src, advance, reparent } = withBase(t);
     t.write('src/x.mjs', src(['alpha', 'bravo', 'charlie', 'delta'])); t.commitPush('add x');
-    t.g('push', '-q', 'origin', 'HEAD:refs/heads/v2');
+    t.g('push', '-q', 'origin', 'HEAD:refs/heads/main');
     // Lane work on its own file; meanwhile the base adds lines to src/x.mjs and a new file.
     t.write('src/lane.mjs', src(['lane'])); t.commitPush('lane work');
     const added = advance('src/x.mjs', src(['alpha', 'bravo', 'baseOnlyFeature', 'charlieV2', 'delta']), 'feat: base adds a line and renames one (#900)');
@@ -256,14 +256,14 @@ test('a branch whose diff undoes a base commit fails and names the file and the 
     const row = rowOf(r, 'no silent reverts');
     assert.equal(row.ok, false);
     assert.match(row.note, /^3 revert\(s\); first: /);
-    const found = findReverts(t.root, t.g('merge-base', 'HEAD', 'origin/v2'));
+    const found = findReverts(t.root, t.g('merge-base', 'HEAD', 'origin/main'));
     assert.deepEqual(found.map(f => [f.file, f.commit]).sort(), [['docs/a.md', newFile], ['src/new.mjs', newFile], ['src/x.mjs', added]]);
     assert.ok(found.every(f => /\(#90[01]\)/.test(f.subject)));
     // Hunk form: the stale file also carries the lane's own edit, so its blob matches nothing.
     t.write('src/x.mjs', src(['alphaEdited', 'bravo', 'charlie', 'delta'])); t.commitPush('edit a stale copy');
     r = t.run();
     assert.equal(rowOf(r, 'no silent reverts').ok, false);
-    const hunk = findReverts(t.root, t.g('merge-base', 'HEAD', 'origin/v2')).find(f => f.file === 'src/x.mjs');
+    const hunk = findReverts(t.root, t.g('merge-base', 'HEAD', 'origin/main')).find(f => f.file === 'src/x.mjs');
     assert.equal(hunk?.commit, added);
     assert.equal(hunk.how, 'undoes its 1 hunk(s)');
     // A deliberate revert passes when named.
@@ -276,7 +276,7 @@ test('stacked base commits on the same line are measured at the merge-base (the 
   try {
     const { src, advance, reparent } = withBase(t);
     const file = ['alpha', 'bravo', 'charlie', 'delta', 'echo', 'foxtrot'];
-    t.write('src/x.mjs', src(file)); t.commitPush('add x'); t.g('push', '-q', 'origin', 'HEAD:refs/heads/v2');
+    t.write('src/x.mjs', src(file)); t.commitPush('add x'); t.g('push', '-q', 'origin', 'HEAD:refs/heads/main');
     const c1 = advance('src/x.mjs', src(['alpha', 'bravoFirstWording', 'charlie', 'delta', 'echo', 'foxtrot']), 'docs: first wording (#935)');
     advance('src/x.mjs', src(['alpha', 'bravoSecondWording', 'charlie', 'delta', 'echo', 'foxtrot']), 'docs: reword (#938)');
     // The lane carries the pre-c1 file plus an unrelated edit, so no blob matches.
@@ -284,7 +284,7 @@ test('stacked base commits on the same line are measured at the merge-base (the 
     reparent();
     const r = t.run();
     assert.equal(rowOf(r, 'no silent reverts').ok, false, r.summary);
-    const found = findReverts(t.root, t.g('merge-base', 'HEAD', 'origin/v2'));
+    const found = findReverts(t.root, t.g('merge-base', 'HEAD', 'origin/main'));
     assert.ok(found.some(f => f.file === 'src/x.mjs' && f.commit === c1 && /undoes its 1 hunk/.test(f.how)), JSON.stringify(found));
   } finally { t.done(); }
 });
@@ -293,7 +293,7 @@ test('a lane line next to a restored hunk still counts as a revert', () => {
   const t = lane();
   try {
     const { src, advance, reparent } = withBase(t);
-    t.write('src/x.mjs', src(['alpha', 'bravo', 'charlie', 'delta', 'echo'])); t.commitPush('add x'); t.g('push', '-q', 'origin', 'HEAD:refs/heads/v2');
+    t.write('src/x.mjs', src(['alpha', 'bravo', 'charlie', 'delta', 'echo'])); t.commitPush('add x'); t.g('push', '-q', 'origin', 'HEAD:refs/heads/main');
     const c = advance('src/x.mjs', src(['alpha', 'bravo', 'charlieV2', 'delta', 'echo']), 'fix: base rewords charlie');
     // Stale charlie plus a new lane line right after it: git merges both into one hunk.
     t.write('src/x.mjs', src(['alpha', 'bravo', 'charlie', 'laneLine', 'delta', 'echo'])); t.commitPush('lane adds a line');
@@ -308,7 +308,7 @@ test('a normal branch rebased on the base passes the revert check', () => {
   const t = lane();
   try {
     const { src, advance, rebase } = withBase(t);
-    t.write('src/x.mjs', src(['alpha', 'bravo', 'charlie'])); t.commitPush('add x'); t.g('push', '-q', 'origin', 'HEAD:refs/heads/v2');
+    t.write('src/x.mjs', src(['alpha', 'bravo', 'charlie'])); t.commitPush('add x'); t.g('push', '-q', 'origin', 'HEAD:refs/heads/main');
     t.write('src/lane.mjs', src(['lane'])); t.write('src/x.mjs', src(['alpha', 'bravo', 'charlie', 'laneAddition'])); t.commitPush('lane work');
     advance('src/x.mjs', src(['alpha', 'baseOnlyFeature', 'bravo', 'charlie']), 'feat: base adds a line');
     advance('docs/a.md', 'doc\nmore base docs\n', 'docs: base');
@@ -325,7 +325,7 @@ test('editing a file the base also changed, without restoring its old lines, pas
   const t = lane();
   try {
     const { src, advance, rebase } = withBase(t);
-    t.write('src/x.mjs', src(['alpha', 'bravo', 'charlie', 'delta'])); t.commitPush('add x'); t.g('push', '-q', 'origin', 'HEAD:refs/heads/v2');
+    t.write('src/x.mjs', src(['alpha', 'bravo', 'charlie', 'delta'])); t.commitPush('add x'); t.g('push', '-q', 'origin', 'HEAD:refs/heads/main');
     advance('src/x.mjs', src(['alpha', 'bravoRenamed', 'charlie', 'baseOnlyFeature', 'delta']), 'refactor: base renames and adds');
     rebase();
     // Rewrites a line the base replaced (new text, not the pre-change text) and edits others.
@@ -342,7 +342,7 @@ test('editing a file the base also changed, without restoring its old lines, pas
     const addOnly = advance('src/z.mjs', src(['one', 'two', 'baseAddedBlock', 'baseAddedBlockToo', 'three', 'four']), 'feat: base adds a block');
     rebase();
     t.write('src/z.mjs', src(['one', 'two', 'three', 'fourEdited'])); t.commitPush('remove the block on purpose');
-    const why = findReverts(t.root, t.g('merge-base', 'HEAD', 'origin/v2'));
+    const why = findReverts(t.root, t.g('merge-base', 'HEAD', 'origin/main'));
     assert.ok(!why.some(f => f.commit === addOnly), 'pure deletion of added lines is not flagged alone');
   } finally { t.done(); }
 });
@@ -354,14 +354,14 @@ test('a branch commit saying "This reverts commit <sha>" makes that revert delib
     t.write('src/y.mjs', src(['oops', 'mistake']));
     const c = advance('docs/a.md', 'doc\nwiring for the mistaken module\n', 'feat: a mistake');
     rebase();
-    t.g('revert', '--no-edit', c); t.g('push', '-q', 'origin', 'HEAD:refs/heads/v2-L9-test');
+    t.g('revert', '--no-edit', c); t.g('push', '-q', 'origin', 'HEAD:refs/heads/lane-L9-test');
     assert.equal(rowOf(t.run(), 'no silent reverts').ok, true, t.run().summary);
     t.g('commit', '-q', '--amend', '-m', 'drop y');
-    t.g('push', '-q', '-f', 'origin', 'HEAD:refs/heads/v2-L9-test');
+    t.g('push', '-q', '-f', 'origin', 'HEAD:refs/heads/lane-L9-test');
     assert.equal(rowOf(t.run(), 'no silent reverts').ok, false, 'an unmarked revert fails');
     // A deleted file alone is not evidence (removing a recent file is often deliberate).
     t.write('docs/a.md', 'doc\nwiring for the mistaken module\n'); t.g('commit', '-q', '--amend', '-am', 'drop y only');
-    t.g('push', '-q', '-f', 'origin', 'HEAD:refs/heads/v2-L9-test');
+    t.g('push', '-q', '-f', 'origin', 'HEAD:refs/heads/lane-L9-test');
     assert.equal(rowOf(t.run(), 'no silent reverts').ok, true, 'an uncorroborated deletion passes');
   } finally { t.done(); }
 });
@@ -421,10 +421,11 @@ test('package.json wires lane:ready and ledger:sync, and gates keeps lint:cleanr
   assert.match(scripts.test, /scripts\/\*\.test\.mjs/);
 });
 
-test('the v2 docs workflow runs on every v2 PR (no paths filter) with the no-browser checks', () => {
+test('the docs + ledger workflow runs on every main PR and push (no paths filter) with the no-browser checks', () => {
   const wf = readFileSync(join(repo, '.github/workflows/v2-docs.yml'), 'utf8');
   assert.doesNotMatch(wf, /paths(-ignore)?:/);
-  assert.match(wf, /pull_request:\n\s+branches: \[v2\]/);
+  assert.match(wf, /pull_request:\n\s+branches: \[main\]/);
+  assert.match(wf, /push:\n\s+branches: \[main\]/);
   for (const cmd of ['node scripts/check-cleanroom.mjs', 'node scripts/gen-trap-table.mjs', 'node scripts/report-coverage.mjs', 'node tests/rendering-requirements/build-ledger.mjs --check', 'node scripts/check-ledger-history.mjs --base-commit', 'npm run ledger:sync', 'node tests/engine-diff/run.mjs --check --base-commit "$BASE_SHA"', 'node tests/control-availability/validate-source.mjs', 'npm test', 'node tests/engine-diff/run.mjs --check --base-commit "$BASE_SHA"', '--root "$GITHUB_WORKSPACE"', 'git fetch --no-tags origin "$BEFORE"', '0000000000000000000000000000000000000000'])
     assert.ok(wf.includes(cmd), cmd);
   assert.match(wf, /permissions:\n\s+contents: read/, 'read-only token: CI never commits the regenerated ledger');

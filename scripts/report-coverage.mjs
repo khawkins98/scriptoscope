@@ -55,7 +55,7 @@
 //   --root <dir>             report on another checkout (CI runs the base's copy of this script on the head)
 //   --base-commit <sha>      also require the pin if the inventory at <sha> was frozen (exit 2 if unreadable)
 //   --base-inventory <path>  the same, from a file (tests)
-// Without --base-*, and without --inventory, the base is merge-base(HEAD, origin/v2) when
+// Without --base-*, and without --inventory, the base is merge-base(HEAD, origin/main) when
 // that resolves; otherwise the base comparison is skipped with a note.
 
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
@@ -179,8 +179,8 @@ else if (argOf('--base-commit')) {
   try { gitOut(['cat-file', '-e', `${sha}^{commit}`]); } catch { console.error(`report-coverage: base commit ${sha} is not readable; fetch it first`); process.exit(2); }
   try { baseInv = JSON.parse(gitOut(['show', `${sha}:${INV_REL}`])); } catch { baseNote = `no ${INV_REL} at base ${sha.slice(0, 12)}`; }
 } else if (invArg < 0) {
-  try { const mb = gitOut(['merge-base', 'HEAD', 'origin/v2']).trim(); baseInv = JSON.parse(gitOut(['show', `${mb}:${INV_REL}`])); }
-  catch { baseNote = 'base comparison skipped (no origin/v2 merge-base or no inventory there)'; }
+  try { const mb = gitOut(['merge-base', 'HEAD', 'origin/main']).trim(); baseInv = JSON.parse(gitOut(['show', `${mb}:${INV_REL}`])); }
+  catch { baseNote = 'base comparison skipped (no origin/main merge-base or no inventory there)'; }
 }
 const baseFrozen = baseInv !== null && isFrozen(baseInv);
 const inScopeFrozen = isFrozen(inv) || baseFrozen;

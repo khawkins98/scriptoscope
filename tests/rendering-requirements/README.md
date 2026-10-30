@@ -831,22 +831,22 @@ merges second goes stale: its `ledger.json` no longer matches the generator. The
 second PR's author fixes it, never CI and never the PM:
 
 ```sh
-git fetch origin && git merge origin/v2          # family files merge cleanly
+git fetch origin && git merge origin/main        # family files merge cleanly
 npm run ledger:sync                              # build-ledger --write, then --check
 git add tests/rendering-requirements/ledger.json
-git commit -m "test(ledger): regenerate ledger.json after merging v2"
+git commit -m "test(ledger): regenerate ledger.json after merging main"
 ```
 
 `ledger:sync` only regenerates the derived file. If it fails, a family's own
 check failed (for example both PRs recorded a transition on the same family),
 and that is a real conflict to resolve by recording a fresh transition, not by
-editing `ledger.json`. The `v2 docs + ledger` workflow fails a stale
+editing `ledger.json`. The `docs + ledger` workflow (`v2-docs.yml`) fails a stale
 `ledger.json` with this exact command in the error, and it never commits.
 Regenerating `ledger.json` after a merge is a Tier 0 change (PM mechanical
 check, no agent review).
 
 **History is append-only.** `scripts/check-ledger-history.mjs`
-(`npm run lint:ledger-history`, also part of `lane:ready` and the v2 docs
+(`npm run lint:ledger-history`, also part of `lane:ready` and the docs + ledger
 workflow) compares every family file at the merge-base with the head. The
 merged `transitions` array must be an unchanged prefix of the head's: a
 transition that was edited, removed or reordered fails, and so does a removed
