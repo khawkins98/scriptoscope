@@ -135,12 +135,15 @@
     },
     "sourceZoom": 4,
     "labelZoom": 1,
-    "runtime": "built-public-entry"
+    "runtime": "built-public-entry",
+    "browserArgs": [
+      "--disable-partial-raster"
+    ]
   },
   "provenance": {
-    "gitCommit": "48cb7e1f6f2fd303609015cd8804a81d08a6424c",
-    "bundleSha256": "c677b433dfb4a6e3d8ae636ec99235338f2a92dc923ae19324c69063e695ef7f",
+    "gitCommit": null,
+    "bundleSha256": "2165128b72e9a119e6138f71d583cad2bdca2a108c7882611b73d0686e7bd1d1",
     "stylesheetSha256": "f675b1e9af7e6c337a58f5af8199444227605d4c9973474cf4ead2a85e04b087",
-    "packageLockSha256": "0551619d2b6d7d19c8e9bc0c5d6800ff7f7a5c35ecbee419eb84a123ced0ec77"
+    "packageLockSha256": "2ca4262d0293180368d884dcc5df9ec5f5fac065d1d4c84acebe1361bf0f1a9a"
   }
 }
