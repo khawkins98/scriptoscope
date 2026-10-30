@@ -12,10 +12,21 @@ node tests/engine-diff/run.mjs --dump <family>/<slug>/<cell key>
 ```
 
 CI runs `--check --base-commit <merge-base>` for every pull request: `ci.yml`
-for PRs into `main` or `v2`, and `v2-docs.yml` also for docs-only PRs into `v2`. The PR body's `engine-diff: <family>[, ...]`
+for PRs into `main` that touch code, and `v2-docs.yml` for every PR into `main`, docs-only PRs included. The PR body's `engine-diff: <family>[, ...]`
 lines declare which families may change.
 
 ## What a v2 → main release PR must declare
+
+> **Historical framing (2026-10-30).** This section was written for release PRs
+> from the `v2` integration branch. `v2` is retired and every PR now targets
+> `main` directly ([DECISIONS #1](../../docs/v2/DECISIONS.md)), so each PR
+> declares every changed family (rule 1) and blesses every changed, added or
+> removed cell in `expected/<family>.json` relative to its merge-base with
+> `main` (rule 2; see the header of `run.mjs`). Only rule 2's accumulation of
+> entries across v2 PRs, and the warning about pruning them before a release,
+> are historical. Rules 3 and 4 still apply to any PR: a family with no
+> baseline at the base takes the seed path and must be declared, and a changed
+> `cases.mjs` also runs the base's copy.
 
 A release PR is judged against its merge-base with `main`. `main` carries the
 window and scroll-bar baselines, so v2's changes since the last sync to main are

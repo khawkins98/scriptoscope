@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync, execFileSync } from 'node:child_process';
-import { compareHistories } from './check-ledger-history.mjs';
+import { compareHistories, checkLedgerHistory } from './check-ledger-history.mjs';
 import { readFamilies, recordTransition, assemble, formatFamily, baseFamily } from '../tests/rendering-requirements/build-ledger.mjs';
 
 const repo = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -114,5 +114,24 @@ test('CLI: compares the working tree against a git base commit', () => {
     r = spawnSync(process.execPath, [script, '--root', root, '--base-commit', empty], { encoding: 'utf8' });
     assert.equal(r.status, 0, r.stderr);
     assert.match(r.stdout, /nothing to guard/);
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test('without --base, the CLI and checkLedgerHistory compare against origin/main (v2 is retired, #534)', () => {
+  const root = mkdtempSync(join(tmpdir(), 'ledger-history-default-'));
+  try {
+    const famDir = join(root, 'tests/rendering-requirements/families');
+    cpSync(join(repo, 'tests/rendering-requirements/families'), famDir, { recursive: true });
+    const g = (...a) => execFileSync('git', ['-c', 'user.email=t@t', '-c', 'user.name=t', ...a], { cwd: root, stdio: 'pipe', encoding: 'utf8' }).trim();
+    g('init', '-q'); g('add', '.'); g('commit', '-qm', 'base');
+    // origin/main is the only base ref; there is no origin/v2. The head drops a family file.
+    g('update-ref', 'refs/remotes/origin/main', 'HEAD');
+    rmSync(join(famDir, 'tab.json'));
+    const r = spawnSync(process.execPath, [script, '--root', root], { encoding: 'utf8' });
+    assert.equal(r.status, 1, r.stdout + r.stderr);
+    assert.match(r.stderr, /tab: family file present at the base was removed/);
+    const lib = checkLedgerHistory(root);
+    assert.equal(lib.commit, g('rev-parse', 'origin/main'));
+    assert.match(lib.errors.join('\n'), /tab: family file present at the base was removed/);
   } finally { rmSync(root, { recursive: true, force: true }); }
 });

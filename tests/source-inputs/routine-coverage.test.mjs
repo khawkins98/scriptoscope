@@ -3,7 +3,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, writeFileSync, mkdtempSync, rmSync, mkdirSync } from 'node:fs';
-import { spawnSync } from 'node:child_process';
+import { spawnSync, execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { createHash } from 'node:crypto';
 import { join, resolve, dirname } from 'node:path';
@@ -205,4 +205,21 @@ test('one- and two-digit addresses (0xc, 0x28) are cited; struct offsets and zer
   // Low values in src/ comments never count (explicit files only).
   const r = runRoot({ ...files, 'src/x.ts': '// see 0xc\n' });
   assert.equal(JSON.parse(r.stdout).binaries.kDEF0.cited, 0);
+});
+
+test('without --base-*, the base is the merge-base with origin/main (v2 is retired, #534)', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'routine-cov-default-base-'));
+  try {
+    const invPath = join(dir, 'docs/spec/routine-inventory.json');
+    mkdirSync(dirname(invPath), { recursive: true });
+    const inv = (inScope) => JSON.stringify({ status: 'fixture', columns: ['start', 'end', 'class', 'reachedFrom', 'inScope'], inScope, binaries: {} });
+    const g = (...a) => execFileSync('git', ['-c', 'user.email=t@t', '-c', 'user.name=t', ...a], { cwd: dir, stdio: 'pipe' });
+    // origin/main carries a frozen inventory (and there is no origin/v2); the head drops the pin.
+    writeFileSync(invPath, inv({ frozen: true }));
+    g('init', '-q'); g('add', '.'); g('commit', '-qm', 'base'); g('update-ref', 'refs/remotes/origin/main', 'HEAD');
+    writeFileSync(invPath, inv({ rule: 'fixture' }));
+    const r = spawnSync(process.execPath, [script, '--json', '--root', dir], { encoding: 'utf8' });
+    assert.equal(r.status, 1, 'the frozen pin at origin/main must be enforced: ' + r.stdout + r.stderr);
+    assert.match(r.stderr, /the base inventory is frozen but inScope\.frozen is undefined/);
+  } finally { rmSync(dir, { recursive: true, force: true }); }
 });

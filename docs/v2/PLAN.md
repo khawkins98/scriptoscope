@@ -39,7 +39,9 @@ Reviewed: #378, #221 exit criteria, RE-ADVISORY.md + re-routine-inventory.json, 
 
 ## 2. Branch and integration strategy
 
-> **Amended 2026-10-22 (DECISIONS #8):** cutover is incremental. v2 merges into main through per-family minor releases (0.2.0 first), and the "v2 → main release criteria" below now define **1.0** rather than the first release. The `main` freeze applies between releases; the Monday main → v2 sync still holds.
+> **Superseded 2026-10-30 ([DECISIONS #1](./DECISIONS.md)).** The branch and integration rules in this section no longer apply: `v2` is retired as an integration target (frozen at 0.7.0, `c5c09a20`), `main` is not frozen, there is no main → v2 sync, CI runs on `main` only, and every PR (engine-family work included) targets `main` under [CONTRIBUTING](../../CONTRIBUTING.md). The release criteria below still define the **1.0** milestone per DECISIONS #8. The section is kept as the record of the original plan.
+
+> **Amended 2026-10-22 (DECISIONS #8):** cutover is incremental. v2 merges into main through per-family minor releases (0.2.0 first), and the "v2 → main release criteria" below now define **1.0** rather than the first release. The `main` freeze applies between releases; the Monday main → v2 sync still holds. *(Both superseded 2026-10-30; see the note above.)*
 
 **Long-lived `v2` integration branch**, not trunk-with-flag. Reasons: the public type changes (manifest roles, trace shape, `pressedPart`) cannot be flagged; a shipped flag doubles the bundle; and `main` must keep deploying GH Pages from reviewed goldens while v2 goldens churn.
 
@@ -79,6 +81,8 @@ Ownership: `engine/qd` and `engine/resources` are shared infrastructure (one own
 
 ## 4. Lanes for the first two weeks
 
+> *Where this section names the `v2` branch (its CI, nightlies or branch model), that part is superseded 2026-10-30; see the [§2 note](#2-branch-and-integration-strategy) and [DECISIONS #1](./DECISIONS.md).*
+
 | Lane | Role / clean-room | Owns (exclusive) | Depends on | Deliverable + acceptance |
 |---|---|---|---|---|
 | **L0 Integration (PM)** | no listings needed | `.github/workflows/*`, `package.json` scripts, `tests/engine-diff/*`, `scripts/check-rule-independence.mjs`, `scripts/check-cleanroom.mjs` (from L3), CHANGELOG | none; **start now** | `v2` branch cut from main; CI on v2 incl. docs job; weekly sync; diff-gate skeleton that runs legacy vs model trace for a named family and fails on an unexplained delta (prove with an injected mutation) |
@@ -110,12 +114,16 @@ Immediately parallel: L0, L1, L2, L3, L5, L7 (six agents). L4 starts day 2 after
 
 ## 6. Verification at scale
 
+> *Where this section names the `v2` branch (its CI, nightlies or branch model), that part is superseded 2026-10-30; see the [§2 note](#2-branch-and-integration-strategy) and [DECISIONS #1](./DECISIONS.md).*
+
 - **Diff gate (required check).** `tests/engine-diff/run.mjs` renders every matrix case (cases.mjs families × 18 themes × sampled states/sizes) under `legacy` and `model` *in Node* via `trace.ts` (no browser; theme-loader and PixelBuffer are pure), and compares `{resolved ids, rects, draw order}`. Each PR declares `engine-diff: <family>`; the gate runs that family and fails on any differing cell not listed in `tests/engine-diff/expected/<family>.json` with a `rule` id from the family's rules file. Pixel dual-run (full Playwright matrix both ways) runs nightly on v2 and on a `pixel-diff` label; its output is a per-family candidate sheet. Build-time switch: `SCRIPTOSCOPE_ENGINE=legacy|model` resolved in `vite.config`, never a runtime option; `dist/` carries one engine.
 - **Rule tables stay independent.** `scripts/check-rule-independence.mjs` fails CI if any `tests/**/*-rules.mjs` imports from `src/` or if `src/engine/tables/*` imports from `tests/`. Policy: the test author and the implementer are different agents from the same spec; the reviewer's mutation step (flip one table row → a rule row fails; flip one rule row → it disagrees with the engine) is what proves the two derivations are not one.
 - **Sentinel scheme: feasible, priority P1 after the first two families.** Author a resource fork (cicn/ppat/cinf/wnd#/ics#) where every resource of id *i* is a solid 8-bit index unique to *i*; read back **palette indices** from the framebuffer, not RGB, so no display-profile calibration is needed. Caveats: selection depends on *presence*, so build two variants (full ladder, sparse archive-only) and freeze predictions per variant before boot; it tests selection and geometry, not art or QuickDraw edge behaviour; sentinel has no PICT so the 32 bpp about-box hang does not apply. Budget: two boots per variant, one lane.
 - **CI time budget.** Required v2 CI ≤ 25 min: gates (~5) + build + rendering contracts (~14 today) + Node trace diff (<2). Nightly on v2: extended matrix + full pixel dual-run (≤40). Container golden verification stays on the per-family candidate workflow, not on every PR.
 
 ## 7. Decisions needed now
+
+> *Where this section names the `v2` branch (its CI, nightlies or branch model), that part is superseded 2026-10-30; see the [§2 note](#2-branch-and-integration-strategy) and [DECISIONS #1](./DECISIONS.md).*
 
 1. **Branch model.** Recommend: long-lived `v2`, main frozen to hotfix/docs/tests, Monday merge-syncs, release as `0.2.0`.
 2. **Driver unit and naming.** Recommend: per message × family drivers; addresses only in table rows, doc comments and `coverage.json`; reject address-named functions (overrides #378's "one function per routine").
