@@ -1828,10 +1828,12 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       else if (e.key === 'ArrowUp')    dh = -step;
       else return;
       e.preventDefault();
-      // Same Posture-B handoff as the pointer grow box — see comment below.
-      this.toAbsolute(host);
       const w0 = entry.opts.width ?? 240, h0 = entry.opts.height ?? 120;
       const nw = Math.max(minContentW, w0 + dw), nh = Math.max(40, h0 + dh);
+      // A step clamped to the current size is no resize (#552): no handoff, no latch.
+      if (nw === w0 && nh === h0) return;
+      // Same Posture-B handoff as the pointer grow box — see comment below.
+      this.toAbsolute(host);
       entry.opts = { ...entry.opts, width: nw, height: nh };
       delete entry.outer; // the user's grow-box size is an explicit content size
       void this.render(entry);
@@ -1851,36 +1853,48 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       e.preventDefault(); e.stopPropagation();
       this.claimFocus(entry, corner);
       void this.focus(entry);
-      // Posture-B handoff: an in-flow host stays at parent block width
-      // even after the chrome canvas inside it shrinks — visually the
-      // window doesn't appear smaller (the canvas just doesn't fill).
-      // toAbsolute flips the host to position:absolute (so it sizes to
-      // its content) AND inserts a same-size placeholder in the static
-      // slot so the page doesn't shift. Once absolute, all subsequent
-      // resizes work naturally. 2026-05-31 user fix follow-up.
-      this.toAbsolute(host);
       // Viewport to the host's CSS pixels under a transformed ancestor (#515, #519).
+      // Taken before any handoff: toAbsolute doesn't move the host, so the map holds.
       const frame = viewportFrame(host);
       const start = frame.toLocal(e.clientX, e.clientY);
       const w0 = entry.opts.width ?? 240, h0 = entry.opts.height ?? 120;
-      const hw0 = host.offsetWidth, hh0 = host.offsetHeight;
-      const outline = document.createElement('div');
-      Object.assign(outline.style, {
-        position: 'absolute', left: '0', top: '0', width: `${hw0}px`, height: `${hh0}px`,
-        border: '1px dotted #000', zIndex: '10', pointerEvents: 'none',
-      } satisfies Partial<CSSStyleDeclaration>);
-      host.appendChild(outline);
       let nw = w0, nh = h0;
+      let outline: HTMLElement | undefined, hw0 = 0, hh0 = 0;
+      // Like GrowWindow, a click that never changes the integer content size is no
+      // resize (#552). The handoff, outline, commit and userresize all wait for the
+      // first pointer move whose rounded delta is non-zero, i.e. at least half a
+      // content pixel (0.5 * scale CSS px); sub-pixel jitter stays a plain click.
       const mv = (ev: PointerEvent): void => {
         const p = frame.toLocal(ev.clientX, ev.clientY);
-        nw = Math.max(minContentW, w0 + Math.round((p.x - start.x) / scale));
-        nh = Math.max(40, h0 + Math.round((p.y - start.y) / scale));
+        const dw = Math.round((p.x - start.x) / scale), dh = Math.round((p.y - start.y) / scale);
+        if (!outline) {
+          if (dw === 0 && dh === 0) return;
+          // Posture-B handoff: an in-flow host stays at parent block width
+          // even after the chrome canvas inside it shrinks — visually the
+          // window doesn't appear smaller (the canvas just doesn't fill).
+          // toAbsolute flips the host to position:absolute (so it sizes to
+          // its content) AND inserts a same-size placeholder in the static
+          // slot so the page doesn't shift. Once absolute, all subsequent
+          // resizes work naturally. 2026-05-31 user fix follow-up.
+          this.toAbsolute(host);
+          hw0 = host.offsetWidth; hh0 = host.offsetHeight;
+          outline = document.createElement('div');
+          Object.assign(outline.style, {
+            position: 'absolute', left: '0', top: '0', width: `${hw0}px`, height: `${hh0}px`,
+            border: '1px dotted #000', zIndex: '10', pointerEvents: 'none',
+          } satisfies Partial<CSSStyleDeclaration>);
+          host.appendChild(outline);
+        }
+        nw = Math.max(minContentW, w0 + dw);
+        nh = Math.max(40, h0 + dh);
         outline.style.width = `${hw0 + (nw - w0) * scale}px`;
         outline.style.height = `${hh0 + (nh - h0) * scale}px`;
       };
       const up = (): void => {
         document.removeEventListener('pointermove', mv); document.removeEventListener('pointerup', up);
-        outline.remove();
+        outline?.remove();
+        // Unchanged size (never moved, or dragged back to the start): no commit, no event.
+        if (nw === w0 && nh === h0) return;
         entry.opts = { ...entry.opts, width: nw, height: nh };
         delete entry.outer; // the user's grow-box size is an explicit content size
         void this.render(entry);
