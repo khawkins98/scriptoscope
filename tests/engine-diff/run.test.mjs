@@ -277,11 +277,11 @@ test('CLI: a cases.mjs edit cannot hide a runtime regression; the base copy of t
   assert.deepEqual(readdirSync(join(wt, 'tests/engine-diff')).filter(n => n.startsWith('.cases-base-')), []);
 });
 
-test('CI: the engine diff step compares every PR (into main or v2) against its merge-base', () => {
+test('CI: the engine diff step compares every PR into main against its merge-base', () => {
   const wf = readFileSync(new URL('../../.github/workflows/ci.yml', import.meta.url), 'utf8');
   const step = wf.slice(wf.indexOf('- name: Engine diff gate (Node trace diff)'));
   const run = step.slice(0, step.indexOf('\n      - name:', 1));
-  assert.match(wf, /pull_request:\n\s+branches: \[main, v2\]/);
+  assert.match(wf, /pull_request:\n\s+branches: \[main\]/);
   assert.match(run, /if \[ "\$EVENT" = "pull_request" \] && \[ -n "\$BASE_REF" \]; then/);
   assert.doesNotMatch(run, /BASE_REF" = "v2"/, 'not only PRs into v2');
   assert.match(run, /base="\$\(git merge-base HEAD "origin\/\$BASE_REF"\)"\n\s+ENGINE_DIFF_PR_BODY="\$PR_BODY" node tests\/engine-diff\/run\.mjs --check --base-commit "\$base"/);

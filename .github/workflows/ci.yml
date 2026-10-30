@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main, v2]
+    branches: [main]
     paths-ignore:
       - '**/*.md'
       - 'docs/**'
@@ -11,7 +11,7 @@ on:
       - '.github/ISSUE_TEMPLATE/**'
       - '.github/PULL_REQUEST_TEMPLATE/**'
   pull_request:
-    branches: [main, v2]
+    branches: [main]
     paths-ignore:
       - '**/*.md'
       - 'docs/**'
@@ -68,9 +68,9 @@ jobs:
         run: |
           set -euo pipefail
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          # PRs into main and into v2 both compare against the merge-base with their
-          # base branch (a PR into a branch with no engine-diff baselines seeds them,
-          # which requires declaring each family in the PR body).
+          # PRs compare against the merge-base with their base branch (a PR into a
+          # branch with no engine-diff baselines seeds them, which requires declaring
+          # each family in the PR body).
           if [ "$EVENT" = "pull_request" ] && [ -n "$BASE_REF" ]; then
             git fetch --no-tags origin "+refs/heads/$BASE_REF:refs/remotes/origin/$BASE_REF"
             base="$(git merge-base HEAD "origin/$BASE_REF")"

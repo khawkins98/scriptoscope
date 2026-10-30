@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Pre-review gate for v2 lanes (`npm run lane:ready`).
+// Pre-review gate for lanes (`npm run lane:ready`).
 //
 // Run it on the exact head you are asking to have reviewed, then paste the
 // summary block it prints into the PR body. It fails when:
@@ -26,7 +26,7 @@
 //       validate-source (documentSha256 pins), typecheck,
 //       npm test;
 //   - the branch silently reverts a base commit (see findReverts). The window is the last
-//     50 first-parent base commits before the merge-base overall (about a day of v2),
+//     50 first-parent base commits before the merge-base overall (about a day of main),
 //     filtered to those that changed a file the PR changes. A commit counts when the PR's
 //     diff undoes every hunk it made, as those hunks stand at the merge-base (its added
 //     lines removed, its removed lines restored), or restores the file's pre-commit blob.
@@ -48,7 +48,7 @@
 //                     validate-source still runs, plus the docs-pinned tests (every
 //                     control-availability test and every test file naming docs/ or a
 //                     .md file), since a docs-only edit can break a document hash pin.
-//   --base <ref>      base branch ref (default origin/v2; fetched first, best effort)
+//   --base <ref>      base branch ref (default origin/main; fetched first, best effort)
 //   --remote <name>   remote the branch is pushed to (default origin)
 //   --traps-h <path>  Traps.h for gen-trap-table
 //   --allow-revert <sha>  a base commit the branch reverts on purpose (repeatable)
@@ -393,7 +393,7 @@ function runCommand(root, c, verbose) {
  * Run every check. `commands` overrides the default list (tests). Returns
  * { ok, rows, warnings, failures, summary, head }.
  */
-export function laneReady({ root, remote = 'origin', base = 'origin/v2', skipTests = false, trapsH = null, verbose = false, fetch = true, commands = null, allowRevert = [], log = () => {} }) {
+export function laneReady({ root, remote = 'origin', base = 'origin/main', skipTests = false, trapsH = null, verbose = false, fetch = true, commands = null, allowRevert = [], log = () => {} }) {
   const rows = [], warnings = [], failures = [];
   const row = (name, ok, exit = '–', note = '') => { rows.push({ name, ok, exit, note }); if (!ok) failures.push(note ? `${name}: ${note}` : name); };
   const head = git(root, ['rev-parse', 'HEAD']);
@@ -496,7 +496,7 @@ if (process.argv[1] && realpathSync(fileURLToPath(import.meta.url)) === realpath
   const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
   const trapsH = opt('--traps-h') ?? process.env.SCRIPTOSCOPE_TRAPS_H ?? null;
   const r = laneReady({
-    root, remote: opt('--remote') ?? 'origin', base: opt('--base') ?? 'origin/v2', skipTests: args.includes('--skip-tests'),
+    root, remote: opt('--remote') ?? 'origin', base: opt('--base') ?? 'origin/main', skipTests: args.includes('--skip-tests'),
     trapsH: trapsH ? resolve(trapsH) : null, verbose: args.includes('--verbose'), allowRevert, log: m => console.error(m),
   });
   console.log('\n<!-- lane:ready summary: paste into the PR body -->');

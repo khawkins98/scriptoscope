@@ -2,7 +2,7 @@
 
 Thanks for your interest in contributing to Scriptoscope.
 
-> **Status (2026-10-29):** the current milestone is **incremental decode-first v2**, integrated on the long-lived `v2` branch and released to `main` per family. The package version is **0.7.0**. Migration work is tracked in [issue #378](https://github.com/khawkins98/scriptoscope/issues/378); the [#459 batch](https://github.com/khawkins98/scriptoscope/issues/459) is complete. Not every family has migrated. The May “v2 clean-break” and “v3 part-code reset” are historical architecture names, distinct from this October `v2` branch and from package versions.
+> **Status (2026-10-30):** the current milestone is **incremental decode-first v2**, released per family. All work lands directly on `main` through focused PRs; the former `v2` integration branch is retired and frozen at 0.7.0 (`c5c09a20`, [DECISIONS](./docs/v2/DECISIONS.md) #1). The package version is **0.7.0**. Migration work is tracked in [issue #378](https://github.com/khawkins98/scriptoscope/issues/378); the [#459 batch](https://github.com/khawkins98/scriptoscope/issues/459) is complete. Not every family has migrated. The May “v2 clean-break” and “v3 part-code reset” are historical architecture names, distinct from the retired October `v2` branch and from package versions.
 
 ## Start with your role
 
@@ -10,7 +10,7 @@ Thanks for your interest in contributing to Scriptoscope.
 - **Spec writers and independent verifiers:** use the role-gated [`spec index`](./docs/spec/README.md) and original source evidence to establish or verify behavioural rules. Send implementers only listing-free spec clarifications through the spec author; never hand them verifier reports or oracle data. Spec, independent tests and implementation retain separate ownership.
 - **Consumers:** start with the [`README`](./README.md) integration examples. For code orientation, `src/composeChrome.ts` is a facade over `src/engine/families/window.ts`; the control facades delegate migrated scroll-bar, slider, progress, push/default, checkable and tab paths to engine drivers. The engine's `qd/`, `resources/`, `state/`, `tables/` and `trace.ts` support those drivers; remaining families still need incremental migration.
 
-For integration policy, use [`docs/v2/DECISIONS.md`](./docs/v2/DECISIONS.md), especially decision #8. Spec writers/verifiers and integration owners may consult [`PLAN.md`](./docs/v2/PLAN.md), reading its 2026-10-22 amendment before the original single-release proposal. Implementers use the brief and their assigned lane instead.
+For integration policy, use [`docs/v2/DECISIONS.md`](./docs/v2/DECISIONS.md), especially decisions #1 and #8 (both superseded on 2026-10-30 where they name `v2` as the integration branch). Spec writers/verifiers and integration owners may consult [`PLAN.md`](./docs/v2/PLAN.md), reading its 2026-10-22 amendment before the original single-release proposal. Implementers use the brief and their assigned lane instead.
 
 ## Your first code contribution
 
@@ -101,16 +101,16 @@ toolchain requirement.
    git push -u origin feat/my-first-change
    ```
 
-6. **Open a focused PR** against the assigned integration target (`v2` for engine-family work; `main` for release work, docs and hotfixes), with the required checks and independent review. Do not self-approve.
+6. **Open a focused PR** against `main` (engine-family work, release work, docs and hotfixes alike), with the required checks and independent review. Do not self-approve.
 
 ## Branching
 
-- Branch from the assigned target: `v2` for engine migrations; `main` for docs, release work and hotfixes. Follow DECISIONS #1 and #8 for integration and release sequencing.
+- Branch from `main` for all work: engine migrations, docs, release work and hotfixes. Follow DECISIONS #8 for release sequencing (#1, the `v2` integration branch, is superseded).
 - Use short, descriptive branch names. Conventional prefixes:
   `feat/<thing>`, `fix/<thing>`, `docs/<thing>`, `chore/<thing>`,
   `refactor/<thing>`, `test/<thing>`, `spike/<thing>` (research,
   do-not-merge).
-- Contributions come via focused PRs to that target with an independent review.
+- Contributions come via focused PRs to `main` with an independent review.
 
 ## Commit messages — Conventional Commits
 
@@ -175,7 +175,7 @@ feat(api)!: rename ScriptoscopeWindow constructor option `theme` to `themeId`
 
 - **Squash and merge** is the default for larger PRs or any branch with noisy work-in-progress commits. The squash commit message must itself follow Conventional Commits — this keeps `main`'s history clean and changelog-friendly.
 - For small PRs that already consist of a single well-formed Conventional Commit, a regular merge is fine.
-- Avoid merge commits from `main` into private feature branches; rebase instead. The shared `v2` integration branch is the exception: main → v2 syncs use merge commits, never a shared-branch rebase (DECISIONS #1).
+- Avoid merge commits from `main` into private feature branches; rebase instead. (The main → v2 merge-sync rule of DECISIONS #1 is retired with the `v2` branch.)
 
 ## Before opening a PR
 
@@ -318,7 +318,7 @@ existing clean-room boundaries, review tiers, exact-head readiness and required 
   a silent revert: a branch built on an old tree but given a new parent, so its diff
   undoes base commits that landed in between (#440 undid #434, #435 and #438 that
   way). The window is the last 50 first-parent base commits before the merge-base
-  (about a day of v2), filtered to those that changed a file the branch changes. A
+  (about a day of `main`), filtered to those that changed a file the branch changes. A
   commit counts as undone when the branch's copy of a file equals the copy before that
   commit, or when the branch's diff reverses every hunk the commit made, as those hunks
   stand at the merge-base (its new lines removed and its old lines restored, not
@@ -358,10 +358,10 @@ existing clean-room boundaries, review tiers, exact-head readiness and required 
     legacy path it replaces in the same PR. If something legacy must stay, the PR
     names it and the issue that will remove it.
   - **Report the size.** A PR that changes `src/` pastes the output of
-    `npm run loc:src -- HEAD --base origin/v2` into its body. It counts non-test `.ts`
+    `npm run loc:src -- HEAD --base origin/main` into its body. It counts non-test `.ts`
     lines under `src/` in two parts: engine tables (cited data rows) and logic
     (everything else). The base is measured at the merge-base, so commits that landed
-    on v2 after the branch forked don't count as the PR's own change.
+    on `main` after the branch forked don't count as the PR's own change.
   - **Reviewers flag growth.** The reviewer flags any increase in logic lines that the
     PR does not justify. Tables may grow with the decode; logic should not.
   - **Every release reports the trend.** Each release's CHANGELOG section ends with the
