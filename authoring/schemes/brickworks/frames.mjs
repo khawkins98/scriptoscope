@@ -43,7 +43,9 @@ const G = {
 
 function spec(geom, { collapsed = false, widgets = 'none' } = {}) {
   const g = G[geom];
-  const filler = (name) => ({ name, code: 13, w: 1 });
+  // Every filler of one edge shows the same column (uniform groups), so layout.lint
+  // catches stray art reaching into one of them.
+  const filler = (name, uniform = name.startsWith('base') ? 'base' : 'bar') => ({ name, code: 13, w: 1, uniform });
   const top = geom === 'plain'
     ? [
       { name: 'cornerL', code: 1, w: g.corner }, filler('fillA'), { name: 'runL', code: 12, w: RUN }, filler('fillB'),
@@ -242,16 +244,6 @@ function paintBottom(r, layout, colours, p) {
   r.set(0, H - 1, null).set(layout.width - 1, H - 1, null); // rounded bottom corners
 }
 
-/** Dark 1px outline on every opaque pixel that touches a transparent one or the raster edge. */
-function outline(r, color) {
-  const edge = [];
-  for (let y = 0; y < r.height; y++) for (let x = 0; x < r.width; x++) {
-    if (!r.get(x, y)) continue;
-    if (!r.get(x - 1, y) || !r.get(x + 1, y) || !r.get(x, y - 1) || !r.get(x, y + 1)) edge.push([x, y]);
-  }
-  for (const [x, y] of edge) r.set(x, y, color);
-}
-
 /** Paint one frame image for a window type in a state ('active' | 'inactive'). */
 export function paintFrame(t, state) {
   const { layout, geom, kind } = t;
@@ -265,11 +257,12 @@ export function paintFrame(t, state) {
   }
   const A = layout.content;
   r.fillRect(A.left, A.top, A.right - A.left, A.bottom - A.top, null); // the content area is a hole
-  outline(r, p.outline);
+  r.outlineEdges(0, 0, r.width, r.height, p.outline); // 1px outline round the whole silhouette
   for (const [role, box] of Object.entries(layout.widgets)) drawWidget(r, box, role, state);
   // Hidden swatches: title text at (A.left, A.top), its shadow one pixel right (TC2).
   r.swatch(A.left, A.top, p.title);
   r.swatch(A.left + 1, A.top, p.titleShadow);
+  try { layout.lint(r); } catch (err) { throw new Error(`brickworks: ${t.name} (${state}): ${err.message}`); }
   return r;
 }
 

@@ -7,19 +7,30 @@
 //   - code-6 end caps around the code-5 title plate (R10);
 //   - a top band taller than the bar (towers above it, R13), with the title rect on the bar rows (R28);
 //   - left/right recipes with fixed cells part-way down (R14, R20);
-//   - its own bottom cell list (a wave, a plinth, R20).
+//   - its own bottom cell list (a wave, a plinth, R20);
+//   - code-0 skips (R9) and droppable code-10 ornaments (R12): any code is
+//     accepted, these two are just the ones windowLayout() can't write.
 // Promoted from the Castle scheme (authoring/schemes/castle/), where it was
 // first written; windowLayout() stays as the simple path.
 //
 // A cell is { code, w, name?, uniform? }. Mark a cell `uniform: true` when every
-// column of it should look the same (a plain bar grower, a one-colour-per-row
-// plate); `layout.lint(raster)` then fails if stray art reaches into it, which
-// would be tiled across the window. Code-5 plates are always checked.
+// column of it (every row, on the left and right edges) should look the same:
+// a plain bar grower, a one-colour-per-row plate. `layout.lint(raster)` then
+// fails if stray art reaches into it, which would be tiled across the window.
+// Code-5 plates are always checked. A 1px cell is trivially uniform, so give
+// 1px growers that should match each other the same group name instead,
+// `uniform: 'bar'`: every cell of one edge in a group must then show the same
+// column as the others (Bonn's blossom tree reached 1px into a bar grower,
+// and the grower stopped matching its neighbours). lint also fails a wholly
+// transparent last column or (non-collapsed) last row, which the web trims
+// off the template (R18).
 //
 // The returned layout also reports `fixedTop`, the width of every top cell that
 // doesn't grow. On a titled edge all of it comes out of the title's room:
-// `layout.minWidthForTitle(px)` is the narrowest window that still shows a
-// title `px` wide. Bonn's first 91px skyline cost a 260px window its title.
+// `layout.minWidthForTitle(px)` is the narrowest window (whole width) that
+// still shows a title `px` wide; it matches the runtime's plate width exactly
+// (TT1, TT3). Bonn's first 91px skyline cost a 260px window its title. Codes
+// 15/16/17 don't count: the web always has every widget, so they are zero (F7).
 //
 // For left and right cells, x0/x1 are rows (y), not columns. Top and bottom cells run across the full width
 // (their widths must add up to the same W). Left and right cells run down the
@@ -44,7 +55,7 @@ const REMAINDER_RECIPIENTS = new Set([8, 11, 13, 14, 18]);
  *   title?: { cell: string, top: number, bottom: number },   // T4 = that cell's columns × these rows
  *   widgets?: { close?: Box, zoom?: Box, collapse?: Box },
  * }} spec
- * @typedef {{ code: number, w: number, name?: string }} Cell
+ * @typedef {{ code: number, w: number, name?: string, uniform?: boolean | string }} Cell
  * @typedef {{ x: number, y: number, w: number, h: number }} Box
  */
 export function frameLayout(spec) {
@@ -109,18 +120,36 @@ export function frameLayout(spec) {
   validate({ spec, cells, T, W, fail });
 
   // Every top cell that doesn't grow takes room the title can't use.
-  const GROWS = new Set([0, 8, 11, 12, 13, 14, 18]);
-  const fixedTop = cells.top.filter((c) => !GROWS.has(c.code) && c.code !== 5).reduce((n, c) => n + c.w, 0);
+  // (TT1 skips growers; 15/16/17 are zero whenever their widget is present, which on the web is always.)
+  const NO_ROOM = new Set([0, 5, 8, 11, 12, 13, 14, 15, 16, 17, 18]);
+  const fixedTop = cells.top.filter((c) => !NO_ROOM.has(c.code)).reduce((n, c) => n + c.w, 0);
   const minWidthForTitle = (titlePx) => fixedTop + titlePx;
+  // Each edge's band: top/bottom cells are columns over the band's rows, left/right cells rows over its columns.
+  const bands = { top: [0, T, 'column'], bottom: [T + bodyH, H, 'column'], left: [0, L, 'row'], right: [W - R, W, 'row'] };
   const lint = (raster) => {
-    const column = (x, y0, y1) => Array.from({ length: y1 - y0 }, (_, i) => JSON.stringify(raster.get(x, y0 + i))).join();
-    for (const c of cells.top) {
-      if (!(c.uniform || c.code === 5) || c.w < 2) continue;
-      const ref = column(c.x0, 0, T);
-      for (let x = c.x0 + 1; x < c.x1; x++) {
-        if (column(x, 0, T) !== ref) fail(`cell ${c.name ?? c.code} column ${x} differs from its first column; stray art there is tiled across the window`);
+    if (raster.width !== W || raster.height !== H) fail(`lint: the raster is ${raster.width}x${raster.height}, but the layout is ${W}x${H}`);
+    for (const [edge, list] of Object.entries(cells)) {
+      const [a0, a1, kind] = bands[edge];
+      const line = (p) => Array.from({ length: a1 - a0 }, (_, i) => JSON.stringify(kind === 'column' ? raster.get(p, a0 + i) : raster.get(a0 + i, p))).join();
+      const groups = new Map();
+      for (const c of list) {
+        if (!(c.uniform || (edge === 'top' && c.code === 5)) || c.w < 1) continue;
+        const label = `${edge === 'top' ? '' : `${edge} `}cell ${c.name ?? c.code}`;
+        const ref = line(c.x0);
+        for (let p = c.x0 + 1; p < c.x1; p++) {
+          if (line(p) !== ref) fail(`${label} ${kind} ${p} differs from its first ${kind}; stray art there is tiled across the window`);
+        }
+        if (typeof c.uniform !== 'string') continue;
+        const first = groups.get(c.uniform);
+        if (!first) groups.set(c.uniform, { ref, name: c.name ?? c.code });
+        else if (first.ref !== ref) fail(`${label} doesn't match ${first.name} (both uniform '${c.uniform}'); stray art in one of them is tiled across the window`);
       }
     }
+    // R18: the web sizes the window to the last opaque column/row of the template.
+    const opaqueCol = (x) => Array.from({ length: H }, (_, y) => raster.get(x, y)).some(Boolean);
+    const opaqueRow = (y) => Array.from({ length: W }, (_, x) => raster.get(x, y)).some(Boolean);
+    if (!opaqueCol(W - 1)) fail(`the last column (x ${W - 1}) is wholly transparent; the web trims it and the right edge falls short (R18)`);
+    if (!collapsed && !opaqueRow(H - 1)) fail(`the last row (y ${H - 1}) is wholly transparent; the web trims it and the bottom edge falls short (R18)`);
   };
 
   return {

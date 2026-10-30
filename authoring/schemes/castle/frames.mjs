@@ -22,7 +22,7 @@
 //     the top band includes everything above the bar (R13).
 import { Raster, verticalGradient, mix, frameLayout } from '../../../tools/theme-author/index.js';
 import { C } from './palette.mjs';
-import { ashlar, moss, outlineSilhouette, hash, bayer, mod } from './stone.mjs';
+import { ashlar, moss, hash, bayer, mod } from './stone.mjs';
 import { DRAW } from './widgets.mjs';
 
 const TILE_CODES = new Set([5, 8, 11, 12]);
@@ -345,7 +345,7 @@ export function paintFrame(t, state) {
   // The content area is a hole.
   const A = layout.content;
   r.fillRect(A.left, A.top, A.right - A.left, A.bottom - A.top, null);
-  outlineSilhouette(r, p.outline);
+  r.outlineEdges(0, 0, r.width, r.height, p.outline); // 1px outline round the whole silhouette
   // Moss on the merlon tops, over the outline so it reads as growing over the
   // edge (periodic inside code-12 cells, so every tiled copy matches).
   for (const cell of layout.cells.top) {

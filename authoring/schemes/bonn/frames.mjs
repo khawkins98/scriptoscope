@@ -64,20 +64,20 @@ function spec(kind, { collapsed = false, widgets = 'none', ornament } = {}) {
   const top = titled
     ? [
       { name: 'cornerL', code: 1, w: g.cornerL },
-      { name: 'barL', code: 11, w: 1 },
+      { name: 'barL', code: 11, w: 1, uniform: 'bar' },
       { name: 'capL', code: 6, w: g.cap },
       { name: 'plate', code: 5, w: g.plate },
       { name: 'capR', code: 6, w: g.cap },
-      { name: 'barM', code: 8, w: 1 },
+      { name: 'barM', code: 8, w: 1, uniform: 'bar' },
       orn,
-      { name: 'barR', code: 8, w: 1 },
+      { name: 'barR', code: 8, w: 1, uniform: 'bar' },
       { name: 'cornerR', code: 1, w: g.cornerR },
     ]
     : [
       { name: 'cornerL', code: 1, w: g.cornerL },
-      { name: 'barL', code: 11, w: 1 },
+      { name: 'barL', code: 11, w: 1, uniform: 'bar' },
       orn,
-      { name: 'barR', code: 8, w: 1 },
+      { name: 'barR', code: 8, w: 1, uniform: 'bar' },
       { name: 'cornerR', code: 1, w: g.cornerR },
     ];
   const W = top.reduce((s, c) => s + c.w, 0);
@@ -260,24 +260,6 @@ function paintBridge(r, cell, y0, p) {
   }
 }
 
-/**
- * Guard for exotic-frames R2/R8: a tiled cell repeats its source as drawn, so
- * stray art in it becomes a line or a dotted row (seen twice while building:
- * a tree in a 1px grower, a pennant grommet in the plate). Every column of a
- * top grower or plate cell must be identical, and the 1px bar growers must
- * match each other. Fails the build otherwise.
- */
-function checkTiles(r, layout, label) {
-  const col = (x) => Array.from({ length: layout.top }, (_, y) => JSON.stringify(r.get(x, y))).join();
-  let bar = null;
-  for (const c of layout.cells.top) {
-    if (![5, 8, 11].includes(c.code)) continue;
-    const ref = col(c.x0);
-    for (let x = c.x0 + 1; x < c.x1; x++) if (col(x) !== ref) throw new Error(`bonn: ${label}: column ${x} of tiled cell ${c.name} differs from its first column`);
-    if (c.code !== 5) { bar ??= ref; if (ref !== bar) throw new Error(`bonn: ${label}: grower ${c.name} differs from the other bar growers`); }
-  }
-}
-
 /** Paint one frame image for a window type in a state ('active' | 'inactive'). */
 export function paintFrame(t, state) {
   const { layout, kind } = t;
@@ -299,7 +281,12 @@ export function paintFrame(t, state) {
     paintSides(r, layout, p);
     paintBottom(r, layout, geomKind, p);
   }
-  checkTiles(r, layout, `${t.name} (${state})`);
+  // Guard for exotic-frames R2/R8: a tiled cell repeats its source as drawn, so
+  // stray art in it becomes a line or a dotted row (seen twice while building:
+  // a tree in a 1px grower, a pennant grommet in the plate). The plate must be
+  // one column repeated, and the 1px bar growers (uniform: 'bar') must match
+  // each other; layout.lint fails the build otherwise.
+  try { layout.lint(r); } catch (err) { throw new Error(`bonn: ${t.name} (${state}): ${err.message}`); }
   for (const [role, box] of Object.entries(layout.widgets)) DRAW[role](r, box, state);
   // The content area is a hole.
   const A = layout.content;

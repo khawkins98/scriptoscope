@@ -75,3 +75,33 @@ test('fitPalette brings an image under the limit and keeps swatches exact', asyn
   assert.ok(colorCount(r) <= 200);
   assert.deepEqual([...r.rgba.subarray(0, 4)], [0x12, 0x34, 0x56, 1]);
 });
+
+test('lint compares 1px growers in a uniform group, checks every edge, and enforces R18', () => {
+  const s = spec();
+  s.top[2] = { code: 13, w: 1, name: 'fillL', uniform: 'bar' };
+  s.top[6] = { code: 13, w: 1, name: 'fillR', uniform: 'bar' };
+  s.left = [{ code: 11, w: 4, name: 'wallL', uniform: true }];
+  const l = frameLayout(s);
+  const paint = () => new Raster(l.width, l.height).fillRect(0, 0, l.width, l.height, '#888888');
+  l.lint(paint());
+  // A 1px grower is trivially uniform on its own; only the group catches stray art in it (Bonn's tree).
+  const tree = paint().set(l.named('fillR').x0, 3, '#ff0000');
+  assert.throws(() => l.lint(tree), /cell fillR doesn't match fillL/);
+  // Left and right cells run down the side: compare rows.
+  const wall = paint().set(1, l.named('wallL').x0 + 2, '#ff0000');
+  assert.throws(() => l.lint(wall), /left cell wallL row 32 differs/);
+  // R18: a wholly transparent last column or row is trimmed by the web.
+  assert.throws(() => l.lint(paint().fillRect(l.width - 1, 0, 1, l.height, null)), /last column.*R18/);
+  assert.throws(() => l.lint(paint().fillRect(0, l.height - 1, l.width, 1, null)), /last row.*R18/);
+  assert.throws(() => l.lint(new Raster(4, 4)), /raster is 4x4/);
+});
+
+test('fixedTop leaves out codes the web always zeroes (15/16/17) and keeps 2/3/4 and 10', () => {
+  const s = spec();
+  s.top.splice(1, 0, { code: 15, w: 4 }, { code: 2, w: 4 });
+  s.top.splice(s.top.length - 1, 0, { code: 10, w: 6 });
+  s.bottom[0].w += 14; // keep the bottom as wide as the top
+  const l = frameLayout(s);
+  // towers 16 + 16, code 2 4, caps 4 + 4, code 10 6; code 15 doesn't count
+  assert.equal(l.fixedTop, 50);
+});

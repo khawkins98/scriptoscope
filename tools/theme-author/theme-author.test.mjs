@@ -373,3 +373,11 @@ test('check: windows with widgets but no pressed-widget strip are flagged', () =
   const withStrip = checkScheme([...scheme(), { type: 'cicn', id: -14330, data: strip }]);
   assert.ok(!withStrip.warnings.some((w) => /cicn -14330/.test(w)));
 });
+
+test('summary: classic extras say whether utility windows with widgets have a -14298 strip', () => {
+  const util = scheme().map((r) => ({ ...r, id: r.id === -14336 ? -14304 : r.id === -14335 ? -14303 : r.id }));
+  const extras = (res) => checkScheme(res).summary.find((l) => l.startsWith('classic extras'));
+  assert.match(extras(util), /cicn -14298\) no/);
+  assert.match(extras([...util, { type: 'cicn', id: -14298, data: frame(10, 10) }]), /cicn -14298\) yes/);
+  assert.doesNotMatch(extras(scheme()), /-14298/, 'no utility windows, no line');
+});

@@ -78,15 +78,4 @@ export function moss(r, x, y, w, h, pal, { density = 0.35, periodX, seed = 3 } =
   return r;
 }
 
-/** Dark 1px outline on every opaque pixel that touches a transparent one (or the raster edge). */
-export function outlineSilhouette(r, color) {
-  const edge = [];
-  for (let y = 0; y < r.height; y++) for (let x = 0; x < r.width; x++) {
-    if (!r.get(x, y)) continue;
-    if (!r.get(x - 1, y) || !r.get(x + 1, y) || !r.get(x, y - 1) || !r.get(x, y + 1)) edge.push([x, y]);
-  }
-  for (const [x, y] of edge) r.set(x, y, color);
-  return r;
-}
-
 export { mod };
