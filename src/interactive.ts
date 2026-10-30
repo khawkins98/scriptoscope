@@ -104,6 +104,17 @@ import { themeView, type ThemeInput } from './ownedTheme.js';
 type Orientation = 'horizontal' | 'vertical';
 const clamp01 = (n: number): number => Math.min(1, Math.max(0, n));
 
+// The bottom-right resize zone, measured inward from the window's right/bottom edges (unscaled px).
+// One rect shared by the grow-box button and the scrollbars' corner clearance, so a drawn arrow is
+// never under the button. A scheme grow box sets it to its own gripper (built-in frame: 15 px inside
+// the content corner plus its outer lip). Without one, any gripper is frame art, so the zone is the
+// frame corner plus the classic 15 px square where the two scrollbar gutters meet.
+// Compatibility policy, not decoded kDEF behaviour: window scrollbars and this button are an
+// app-layer overlay (#524).
+const growZone = (c: ComposedChrome): { w: number; h: number } => c.growBox
+  ? { w: c.fullWidth - c.growBox.x, h: c.fullHeight - c.growBox.y }
+  : { w: c.frame.right + 15, h: c.frame.bottom + 15 };
+
 const KEY_ACTIVATE = (e: KeyboardEvent): boolean => e.key === ' ' || e.key === 'Enter' || e.key === 'Spacebar';
 
 // Internal ownership hook used by declarative promotion. Not part of the package exports.
@@ -1384,11 +1395,12 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     const contentLen = vertical ? scrollEl.scrollHeight : scrollEl.scrollWidth;
     const maxScroll = contentLen - trackLen;
     const thumbExtent = Math.max(0.08, trackLen / contentLen);
-    // The OPPOSITE axis's gutter (when both bars present) eats into our track length so the bars
-    // don't visually meet at a corner. ~15px reserved gives the grow box room too.
-    const oppositeGutter = (vertical ? flags.needH : flags.needV) ? 15 * scale : 0;
-    const growBoxClearance = composed.growBox && vertical ? (composed.growBox.h + 1) * scale : 0;
-    const barLenCss = Math.max(32, trackLen - oppositeGutter - growBoxClearance);
+    // Stop short of the bottom-right corner: the OPPOSITE axis's gutter (when both bars present) or
+    // the grow zone's reach into the content, whichever is larger — so the end arrow clears it.
+    const oppositeGutter = (vertical ? flags.needH : flags.needV) ? 15 : 0;
+    const zone = growZone(composed);
+    const cornerClearance = Math.max(oppositeGutter, vertical ? zone.h - composed.frame.bottom : zone.w - composed.frame.right);
+    const barLenCss = Math.max(32, trackLen - cornerClearance * scale);
 
     let value = maxScroll > 0 ? clamp01((vertical ? scrollEl.scrollTop : scrollEl.scrollLeft) / maxScroll) : 0;
 
@@ -1646,14 +1658,13 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
 
     // RESIZE — drag ONLY the bottom-right corner (the grow-box gripper), like classic Mac. NOT the
     // right/bottom edges: those run the length of the borders where the scrollbar tracks sit, and a
-    // resize band there would steal their clicks. The corner square is safe — scrollbars stop above
-    // and left of the grow box. The zone reaches inward to cover the gripper (which sits at the INNER
-    // frame corner, over the content) plus the outer frame corner. Ghost outline; commit on release.
+    // resize band there would steal their clicks. The corner is safe because the scrollbars stop
+    // short of the same growZone rect. Ghost outline; commit on release.
     // Mac OS hard minimum window width is 110px (native): clamp the CONTENT width so the FULL window
     // (content + chrome, chrome being constant) never drops below it.
     const minContentW = Math.max(40, 110 - (composed.fullWidth - (entry.opts.width ?? 240)));
-    const cw = (Math.max(7, composed.frame.right) + (composed.growBox?.w ?? 15)) * scale;
-    const ch = (Math.max(7, composed.frame.bottom) + (composed.growBox?.h ?? 15)) * scale;
+    const zone = growZone(composed);
+    const cw = zone.w * scale, ch = zone.h * scale;
     const corner = this.overlay(entry, win, 'growbox', 'button');
     corner.type = 'button';
     corner.className = 'scriptoscope-growbox';

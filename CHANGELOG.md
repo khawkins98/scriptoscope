@@ -25,6 +25,28 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   and modal bodies, so the picker credit line, the cards and the upload modal
   measured 1.1-1.7:1. The override now covers only Evolution, the scheme with
   a dark body. The upload drop zone keeps its dark label on every scheme (#528).
+- Window scrollbar end arrows are no longer covered by the bottom-right resize
+  zone, so clicking the down or right arrow scrolls instead of resizing (#524).
+  On base this hit the resize button for a single-axis bar on all 13 schemes
+  without a grow-box resource. It also hit the button for the horizontal-only
+  right arrow on all 5 grow-box schemes (apple-platinum-2, black-platinum,
+  platinum-8, slimes, system7-nostalgia-silver). The resize button and both
+  scrollbars now share one corner rect. This is a modern compatibility policy,
+  not decoded kDEF behaviour: window scrollbars and the resize button are
+  Scriptoscope's app-layer overlay, and the scheme resources don't size them.
+  **Drawn scrollbar lengths change on every scheme** (unscaled px; double at
+  scale 2):
+  - Schemes without a grow box: a vertical-only or horizontal-only bar is
+    15 px shorter (e.g. windows-95 vertical 140 → 125 on a 200 × 140 content
+    area). Bars on a window with both scrollbars are unchanged.
+  - Grow-box schemes: vertical-only is 3 px longer (122 → 125), vertical with
+    both bars is 18 px longer (107 → 125), and horizontal-only is 15 px
+    shorter (200 → 185). The vertical bar now ends at the gripper's top
+    instead of leaving a 3 or 18 px gap above it.
+  - The resize button shrinks by 1–5 px per axis on several schemes
+    (apple-platinum-2 and the other grow-box schemes 24 → 22 square,
+    apple-lisa 22 → 17, 1984 22 → 17 wide, beos-r503 22 → 20, windows-31
+    22 → 19, windows-95 22 → 21 wide). Other schemes keep their size.
 
 ## [0.7.0] — 2026-10-29
 
