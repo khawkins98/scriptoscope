@@ -65,7 +65,7 @@ for (const mode of ['source', 'built']) {
     });
   }
 
-  test(`${mode}: a user grow-box size survives a retheme (#526)`, async ({ page, servers }) => {
+  test(`${mode}: a user grow-box size survives a retheme and later content growth (#526)`, async ({ page, servers }) => {
     await openHarness(page, servers, mode);
     await boot(page, mode);
     const { before, after } = await page.evaluate(async ({ source }) => {
@@ -77,6 +77,9 @@ for (const mode of ['source', 'built']) {
       await h.settle();
       const before = h.measure(win);
       await manager.retheme(await h.theme('windows-95'));
+      await h.settle();
+      // Later content growth must not re-impose auto-fit either: the user still owns the size.
+      win.host.querySelector('p').insertAdjacentHTML('afterend', `<p>${'More content after the retheme. '.repeat(20)}</p>`);
       await h.settle();
       return { before, after: h.measure(win) };
     }, { source: SOURCE });
