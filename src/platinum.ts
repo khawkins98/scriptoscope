@@ -296,12 +296,19 @@ export function platinumScrollbar(opts: PlatinumScrollbarOptions = {}): PixelBuf
 /** Sunken/recessed gray face (pressed or toggled-ON): dark top/left edge, light
  *  bottom/right, flat slightly-darker fill. The inverse bevel of raisedFace. */
 function sunkenFace(b: PixelBuffer, x: number, y: number, w: number, h: number, disabled = false): void {
-  const base = disabled ? 224 : 210;
+  const base = disabled ? 224 : 210; // 210 mirrored in SUNKEN_FACE_CSS
   for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) px(b, x + i, y + j, [base, base, base, 255]);
   strokeRect(b, x, y, w, h, disabled ? MARK_OFF : FRAME);
   for (let i = 1; i < w - 1; i++) { px(b, x + i, y + 1, SHADOW); px(b, x + i, y + h - 2, HILITE); }
   for (let i = 1; i < h - 1; i++) { px(b, x + 1, y + i, SHADOW); px(b, x + w - 2, y + i, HILITE); }
 }
+
+/** sunkenFace's fill and inner bevel as CSS, for the DOM baseline push button
+ *  (`baselineButton`). Same palette, one point of correction. */
+export const SUNKEN_FACE_CSS = {
+  background: 'rgb(210, 210, 210)',
+  bevel: `inset 1px 1px 0 rgb(${SHADOW.slice(0, 3).join(', ')}), inset -1px -1px 0 rgb(${HILITE.slice(0, 3).join(', ')})`,
+} as const;
 
 export interface PlatinumBevelButtonOptions {
   label?: string;

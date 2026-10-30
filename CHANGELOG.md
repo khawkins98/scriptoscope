@@ -19,6 +19,14 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   Dolphin SOM's yellow body from 4.11:1 to 5.15:1. The new ring also
   replaces the gold `#b98942` focus ring from `demo/site-shell.css` on the
   four example-card links inside the showcase, which measured 2.75:1 (#548).
+- Procedural Platinum push buttons (`baselineButton`, used by apple-platinum-2,
+  platinum-8, black-platinum, slimes and system7-nostalgia-silver, and by any
+  scheme without an admitted push face) now show a held state. Pointer, Space
+  or Enter sinks the face, and it returns to normal on release, pointer leave
+  or cancel, blur and keyup. Normal-state pixels and cicn-themed buttons are
+  unchanged. This is an interim compatibility override, not decoded behaviour:
+  it reuses the procedural `sunkenFace` palette because the original pressed
+  pixels are unresolved (#218) (#551).
 - Keyboard focus stays on the operated window control (move handle, grow box,
   title widgets, scrollbars) when the window re-renders on activation, collapse
   or keyboard resize; it no longer drops to `<body>`. Re-renders of windows
