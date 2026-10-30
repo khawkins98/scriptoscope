@@ -13,6 +13,11 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   title widgets, scrollbars) when the window re-renders on activation, collapse
   or keyboard resize; it no longer drops to `<body>`. Re-renders of windows
   that did not hold focus never move it (#525).
+- Window overlay controls (title widgets, move handle, grow box, scrollbars)
+  are reused across re-renders instead of rebuilt, so a keyboard move or
+  resize step no longer makes screen readers re-announce the control. A
+  pointer drag or resize of another window moves keyboard focus into that
+  window, so the next arrow key no longer moves the previous one (#533).
 
 ## [0.7.0] — 2026-10-29
 
