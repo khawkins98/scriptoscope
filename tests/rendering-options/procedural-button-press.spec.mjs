@@ -83,11 +83,25 @@ for (const mode of ['source', 'built']) {
       const focused = await shot();
       for (const key of ['Space', 'Enter']) {
         await page.keyboard.down(key);
+        await page.keyboard.down(key); // auto-repeat keydown
         record[`${key}HeldDiffers`] = !(await shot()).equals(focused);
         await page.keyboard.up(key);
         record[`${key}UpRestores`] = (await shot()).equals(focused);
         if (key === 'Space') await button.focus();
       }
+      // Space held, then a pointer press and release on top: one press, so the
+      // face is back at rest after both end. Compared as inline face styles,
+      // because the mouse press changes focus-visible modality.
+      await button.focus();
+      await page.keyboard.down('Space');
+      await page.mouse.move(cx, cy);
+      await page.mouse.down();
+      record.spacePointerHeld = (await faceStyle()) !== restStyle;
+      await page.mouse.up();
+      await page.keyboard.up('Space');
+      record.spacePointerRestores = (await faceStyle()) === restStyle;
+      await page.mouse.move(0, 0);
+      await button.focus();
       // Space held, then focus moves away before keyup: blur releases the face.
       const awayFocused = await (async () => { await page.locator('#press-away').focus(); return shot(); })();
       await button.focus();
@@ -104,7 +118,7 @@ for (const mode of ['source', 'built']) {
       pointerHeldDiffers: true, pointerUpRestores: true, rightClickDoesNotPress: true, rightClickLeavesNormal: true, pointerLeaveRestores: true,
       pointerCancelHeldDiffers: true, pointerCancelRestores: true,
       SpaceHeldDiffers: true, SpaceUpRestores: true, EnterHeldDiffers: true, EnterUpRestores: true,
-      blurHeldDiffers: true, blurRestores: true,
+      spacePointerHeld: true, spacePointerRestores: true, blurHeldDiffers: true, blurRestores: true,
     });
     // Controls: the cicn painter path keeps its own press/release behaviour.
     for (const slug of CICN) expect(observations[slug], slug).toEqual(expect.objectContaining({
@@ -143,5 +157,26 @@ for (const mode of ['source', 'built']) {
     expect(result.afterIdle).toEqual(result.consumer);
     expect(result.held).not.toEqual(result.consumer);
     expect(result.afterRelease).toEqual(result.consumer);
+  });
+}
+
+// Enter's native click fires on keydown, while the face is held. A consumer write
+// made then must survive the keyup release.
+for (const mode of ['source', 'built']) {
+  test(`${mode}: baselineButton keeps a consumer style written during an Enter press (#551)`, async ({ page, servers }) => {
+    await openHarness(page, servers, mode);
+    await page.evaluate(async mode => {
+      const runtime = await import(mode === 'source' ? '/src/index.ts' : '/dist/scriptoscope.js');
+      const b = runtime.baselineButton('OK');
+      b.id = 'consumer-write';
+      b.addEventListener('click', () => { b.style.background = 'blue'; });
+      document.body.append(b);
+    }, mode);
+    const button = page.locator('#consumer-write');
+    await button.focus();
+    await page.keyboard.down('Enter');
+    await page.keyboard.up('Enter');
+    expect(await button.evaluate(el => el.style.background)).toBe('blue');
+    await button.evaluate(el => el.remove());
   });
 }

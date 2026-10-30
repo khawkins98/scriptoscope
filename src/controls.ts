@@ -1168,20 +1168,23 @@ export function baselineButton(label: string, opts: BaselineButtonOptions = {}):
   // behaviour: no procedural push-button pressed paint is decoded (#218;
   // apple-cdef-button-vs-our-compose.md row 3), so this borrows sunkenFace's
   // palette. The inline background also hides the browser's native :active look.
-  // Release events mirror interactiveButton's painter path. The press saves the
-  // current inline values (which a consumer may have changed) and only an active
-  // press restores them.
-  let rest: [string, string] | null = null;
+  // Release events mirror interactiveButton's painter path. A press saves the
+  // current inline values (which a consumer may have changed). Release restores
+  // each one only if it still holds the sunken value, so a consumer write during
+  // the press (e.g. from an Enter click handler) is kept.
+  let held: { rest: [string, string]; wrote: [string, string] } | null = null;
   const press = (): void => {
-    if (rest || b.disabled) return;
-    rest = [b.style.background, b.style.boxShadow];
+    if (held || b.disabled) return; // auto-repeat or Space + pointer: one press
+    const rest: [string, string] = [b.style.background, b.style.boxShadow];
     b.style.background = SUNKEN_FACE_CSS.background;
     b.style.boxShadow = ring(SUNKEN_FACE_CSS.bevel);
+    held = { rest, wrote: [b.style.background, b.style.boxShadow] };
   };
   const release = (): void => {
-    if (!rest) return;
-    [b.style.background, b.style.boxShadow] = rest;
-    rest = null;
+    if (!held) return;
+    if (b.style.background === held.wrote[0]) b.style.background = held.rest[0];
+    if (b.style.boxShadow === held.wrote[1]) b.style.boxShadow = held.rest[1];
+    held = null;
   };
   b.addEventListener('pointerdown', e => { if (e.button === 0) press(); });
   for (const type of ['pointerup', 'pointerleave', 'pointercancel', 'blur'] as const) b.addEventListener(type, release);
