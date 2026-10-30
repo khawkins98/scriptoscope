@@ -1412,7 +1412,11 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     const cornerClearance = Math.max(oppositeGutter, vertical ? zone.h - composed.frame.bottom : zone.w - composed.frame.right);
     const barLenCss = Math.max(32, trackLen - cornerClearance * scale);
 
-    let value = maxScroll > 0 ? clamp01((vertical ? scrollEl.scrollTop : scrollEl.scrollLeft) / maxScroll) : 0;
+    // The value is always derived from scrollEl's real position (#549): content also scrolls by
+    // focus, scrollIntoView, find-in-page or script, never only through this bar.
+    const pos = (): number => vertical ? scrollEl.scrollTop : scrollEl.scrollLeft;
+    const read = (): number => maxScroll > 0 ? clamp01(pos() / maxScroll) : 0;
+    let value = read();
 
     const bar = this.overlay(entry, win, `window-scrollbar-${axis}`, 'div');
     bar.className = `scriptoscope-window-scrollbar scriptoscope-window-scrollbar-${axis}`;
@@ -1452,13 +1456,23 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       }
     };
     const scheduleRepaint = (): void => { if (current() && !raf) raf = requestAnimationFrame(() => { raf = 0; void repaint(); }); };
-    const setValue = (v: number): void => {
+    // Repaint only when the position moved. The bar's own writes sync at once, so the
+    // scroll event they cause finds nothing new (no feedback loop).
+    const sync = (): void => {
+      const v = read();
+      if (v === value) return;
       paintEpoch++;
-      value = clamp01(v);
-      if (vertical) scrollEl.scrollTop = value * maxScroll;
-      else scrollEl.scrollLeft = value * maxScroll;
+      value = v;
       scheduleRepaint();
     };
+    // 'instant' overrides a consumer's `scroll-behavior: smooth`, so the next step reads the
+    // target, not the start of an animation. Syncing at once (not on the scroll event)
+    // invalidates a paint still in flight for the old value.
+    const setValue = (v: number): void => {
+      scrollEl.scrollTo({ [vertical ? 'top' : 'left']: clamp01(v) * maxScroll, behavior: 'instant' });
+      sync();
+    };
+    scrollEl.addEventListener('scroll', sync, { passive: true, signal });
 
     // Drag the thumb (pointer = touch + mouse + pen).
     const valueAtPointer = (e: PointerEvent): number => {
@@ -1480,13 +1494,14 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       const delta = vertical || e.shiftKey ? e.deltaY : e.deltaX;
       if (Math.abs(delta) < 0.5) return;
       e.preventDefault();
-      setValue(((vertical ? scrollEl.scrollTop : scrollEl.scrollLeft) + delta) / maxScroll);
+      setValue((pos() + delta) / maxScroll);
     }, { passive: false, signal });
 
     // Arrow keys / page keys on the bar.
     bar.addEventListener('keydown', (e) => {
       const line = maxScroll > 0 ? 24 / maxScroll : 0;
       const page = trackLen / maxScroll;
+      sync(); // step from the real position, even before its scroll event fires
       let next = value;
       if (e.key === (vertical ? 'ArrowDown' : 'ArrowRight')) next = value + line;
       else if (e.key === (vertical ? 'ArrowUp' : 'ArrowLeft')) next = value - line;

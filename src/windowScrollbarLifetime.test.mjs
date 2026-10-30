@@ -13,6 +13,7 @@ class Element extends EventTarget {
   children = [];
   parentNode = null;
   setAttribute(key, value) { this.attributes.set(key, value); }
+  scrollTo({ top, left }) { if (top != null) this.scrollTop = top; if (left != null) this.scrollLeft = left; }
   appendChild(child) { child.remove(); child.parentNode = this; this.children.push(child); return child; }
   remove() {
     if (!this.parentNode) return;

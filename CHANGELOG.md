@@ -19,6 +19,11 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   Dolphin SOM's yellow body from 4.11:1 to 5.15:1. The new ring also
   replaces the gold `#b98942` focus ring from `demo/site-shell.css` on the
   four example-card links inside the showcase, which measured 2.75:1 (#548).
+- A themed window scrollbar now follows its content when something other than
+  the bar scrolls it: focus moving to an off-screen link, `scrollIntoView`,
+  find-in-page or a script setting `scrollTop`/`scrollLeft`. The thumb and
+  `aria-valuenow` update, and the next arrow key steps from the real position
+  instead of jumping the content back to the bar's old value. Both axes (#549).
 - Keyboard focus stays on the operated window control (move handle, grow box,
   title widgets, scrollbars) when the window re-renders on activation, collapse
   or keyboard resize; it no longer drops to `<body>`. Re-renders of windows
