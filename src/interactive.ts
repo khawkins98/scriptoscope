@@ -982,6 +982,12 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     this.windows.push(entry);
     // mousedown (not click) so focus lands before any inner control acts.
     host.addEventListener('pointerdown', () => { void this.focus(entry); });
+    // Keyboard focus entering a window (shadow chrome or slotted content) activates and raises it,
+    // as classic Mac keeps keyboard focus in the front window. Otherwise Tab can land on a control
+    // a higher window covers (WCAG 2.2 SC 2.4.11 Focus Not Obscured, #550). The active window is
+    // already frontmost, so moves within it cost nothing; the render keeps overlays mounted (#533),
+    // so focus stays put and no second focusin follows. z-order only: geometry is untouched.
+    host.addEventListener('focusin', () => { if (!entry.active) void this.focus(entry); });
     try {
       await this.render(entry);
       entry.initializing = false;
@@ -1220,7 +1226,8 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
    *   • setContentSize()           — width/height changed (guarded against equal)
    *   • retheme()                  — theme changed
    *   • focus()                    — only for windows whose `active` state actually flipped
-   *                                  (same-window re-click → 0 renders, just bumps z-index)
+   *                                  (same-window re-click → 0 renders, just bumps z-index;
+   *                                  focusin on an inactive window, #550, takes the same path)
    *   • toggleCollapse()           — shade state changed
    *   • toggleZoom()               — zoom dimensions changed
    *   • keyboard resize (line ~844)— size changed
