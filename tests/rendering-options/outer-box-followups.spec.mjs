@@ -192,6 +192,26 @@ for (const mode of ['source', 'built']) {
     expectHostIsChrome(r.box, 'small declared');
   });
 
+  // #558 review: a declared size is clamped to the renderer's 1 px content floor
+  // (as contentFor), so 0 or a negative never reaches the compositor and the
+  // chrome is never smaller than its own frame.
+  for (const value of ['0', '-5']) {
+    test(`${mode}: declared ${value} width and height clamp to 1 px content (#558)`, async ({ page, servers }) => {
+      await openHarness(page, servers, mode);
+      await boot(page, mode);
+      const r = await page.evaluate(async ({ value }) => {
+        const h = window.__obf;
+        const { win, manager } = await h.promote('windows-95', `<article data-scriptoscope-window data-scriptoscope-width="${value}" data-scriptoscope-height="${value}" data-scriptoscope-title="Tiny">x</article>`);
+        const { width, height } = manager.describe(win.host);
+        return { width, height, ext: manager.chromeExtent(win.host), box: h.measure(win) };
+      }, { value });
+      expect.soft([r.width, r.height], `declared ${value} clamps to 1x1 content`).toEqual([1, 1]);
+      expect.soft(Math.abs(r.box.canvas.width - (1 + r.ext.x)), `chrome width ${r.box.canvas.width} = 1 + frame ${r.ext.x}`).toBeLessThanOrEqual(TOL);
+      expect.soft(Math.abs(r.box.canvas.height - (1 + r.ext.y)), `chrome height ${r.box.canvas.height} = 1 + frame ${r.ext.y}`).toBeLessThanOrEqual(TOL);
+      expectHostIsChrome(r.box, `declared ${value}`);
+    });
+  }
+
   // Review of #564: the built-in frame draws a collapsed side utility as a bare
   // bar with no content width, so its footprint says nothing about the bound.
   // Collapsing must keep the last expanded content width (public describe()),
