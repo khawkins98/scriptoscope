@@ -24,7 +24,8 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   code colours were lightened so they also clear AA on 1990's lightest stripe.
   The picker author line and the upload modal's "Don't have one?" line use a
   darker grey (#333333) that clears AA on Dolphin SOM's yellow and the other
-  light and mid-tone bodies, instead of adding per-scheme lines (#539).
+  light and mid-tone bodies except Monkey Paradise's darker green, instead of
+  adding per-scheme lines (#539).
 - Showcase picker tile labels reach WCAG AA contrast on the evolution and
   monkey-paradise body patterns (#527).
 - Showcase text stays readable under Black Platinum. The demo's light-text

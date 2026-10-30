@@ -193,7 +193,8 @@
          so the default dark labels already pass and light text would fail.
        Light and mid-tone bodies (dolphin-som's yellow, 1984's blue, etc.)
        need no per-slug line: the default .author grey is dark enough to
-       clear AA on all of them (#539).
+       clear AA on all of them except monkey-paradise, whose picker labels
+       have their own #000 line above (#539).
        Active and hovered tiles paint their own #efefef/#f0f0f0 plate, so
        they keep the default dark labels. */
     #powers :is([data-scriptoscope-theme="evolution"], [data-scriptoscope-theme="1990"]) :is(.scriptoscope-theme-picker-tile, .powers-picker-special-tile):not(.active):not(:hover) :is(.name, .author, .glyph) { color: #f0f0f0; }
