@@ -1131,6 +1131,9 @@ export async function composeCheckable(theme: ThemeInput, kind: 'checkbox' | 'ra
 // Platinum default — DOM elements with procedural styling, not cicn
 // composites. Accessible + the faithful path for cicn-less schemes.
 
+/** Keys that activate a native button: Space and Enter. */
+export const KEY_ACTIVATE = (e: KeyboardEvent): boolean => e.key === ' ' || e.key === 'Enter';
+
 export interface BaselineButtonOptions {
   default?: boolean;
   disabled?: boolean;
@@ -1147,35 +1150,43 @@ export function baselineButton(label: string, opts: BaselineButtonOptions = {}):
   // outer frame, a white top-inner highlight + soft bottom-inner shadow.
   // The default button gets the classic black ring (1px light gap, then a
   // 2px black rounded outline) via stacked box-shadows.
-  const raised = 'inset 0 1px 0 #ffffff, inset 0 -1px 1px rgba(0,0,0,0.14)';
-  const ring = (bevel: string): string => opts.default ? `${bevel}, 0 0 0 1px #d4d4d4, 0 0 0 3px #000000` : bevel;
-  const background = opts.disabled ? '#e0e0e0' : 'linear-gradient(180deg, #fefefe 0%, #ececec 48%, #cdcdcd 100%)';
+  const bevel = 'inset 0 1px 0 #ffffff, inset 0 -1px 1px rgba(0,0,0,0.14)';
+  const ring = (inner: string): string => opts.default ? `${inner}, 0 0 0 1px #d4d4d4, 0 0 0 3px #000000` : inner;
   Object.assign(b.style, {
     font: '12px Charcoal, Chicago, Geneva, sans-serif',
     padding: '3px 16px',
     minWidth: `${opts.minWidth ?? 56}px`,
     margin: '3px',
     color: opts.disabled ? '#9a9a9a' : '#000',
-    background,
+    background: opts.disabled ? '#e0e0e0' : 'linear-gradient(180deg, #fefefe 0%, #ececec 48%, #cdcdcd 100%)',
     border: '1px solid #5a5a5a',
     borderRadius: '10px',
-    boxShadow: ring(raised),
+    boxShadow: ring(bevel),
     cursor: opts.disabled ? 'default' : 'pointer',
   } satisfies Partial<CSSStyleDeclaration>);
   // Held state. Interim compatibility override (#551), not decoded engine
   // behaviour: no procedural push-button pressed paint is decoded (#218;
   // apple-cdef-button-vs-our-compose.md row 3), so this borrows sunkenFace's
   // palette. The inline background also hides the browser's native :active look.
-  // Release events mirror interactiveButton's painter path.
-  const press = (on: boolean): void => {
-    b.style.background = on ? SUNKEN_FACE_CSS.background : background;
-    b.style.boxShadow = ring(on ? SUNKEN_FACE_CSS.bevel : raised);
+  // Release events mirror interactiveButton's painter path. The press saves the
+  // current inline values (which a consumer may have changed) and only an active
+  // press restores them.
+  let rest: [string, string] | null = null;
+  const press = (): void => {
+    if (rest || b.disabled) return;
+    rest = [b.style.background, b.style.boxShadow];
+    b.style.background = SUNKEN_FACE_CSS.background;
+    b.style.boxShadow = ring(SUNKEN_FACE_CSS.bevel);
   };
-  const activateKey = (e: KeyboardEvent): boolean => e.key === ' ' || e.key === 'Enter' || e.key === 'Spacebar';
-  b.addEventListener('pointerdown', e => { if (e.button === 0 && !b.disabled) press(true); });
-  for (const type of ['pointerup', 'pointerleave', 'pointercancel', 'blur'] as const) b.addEventListener(type, () => press(false));
-  b.addEventListener('keydown', e => { if (activateKey(e) && !b.disabled) press(true); });
-  b.addEventListener('keyup', e => { if (activateKey(e)) press(false); });
+  const release = (): void => {
+    if (!rest) return;
+    [b.style.background, b.style.boxShadow] = rest;
+    rest = null;
+  };
+  b.addEventListener('pointerdown', e => { if (e.button === 0) press(); });
+  for (const type of ['pointerup', 'pointerleave', 'pointercancel', 'blur'] as const) b.addEventListener(type, release);
+  b.addEventListener('keydown', e => { if (KEY_ACTIVATE(e)) press(); });
+  b.addEventListener('keyup', e => { if (KEY_ACTIVATE(e)) release(); });
   return b;
 }
 

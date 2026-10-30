@@ -86,7 +86,7 @@ import { listenUntilAborted } from './listenUntilAborted.js';
 import {
   composeDisclosure, composeSliderWithLayout, composeScrollbar, composeScrollbarFrame, type SliderFrame, type SliderOptions,
   type ScrollbarFrame, type ScrollbarOptions,
-  baselineButton, bufferToCanvas,
+  baselineButton, bufferToCanvas, KEY_ACTIVATE,
   type ButtonOptions, type ControlState, composeProgressFrame, type ProgressOptions,
 } from './controls.js';
 import { newProgressRecord, progressIdleAdvance, progressSetData, type ProgressRecord } from './engine/families/progress.js';
@@ -114,8 +114,6 @@ const clamp01 = (n: number): number => Math.min(1, Math.max(0, n));
 const growZone = (c: ComposedChrome): { w: number; h: number } => c.growBox
   ? { w: c.fullWidth - c.growBox.x, h: c.fullHeight - c.growBox.y }
   : { w: c.frame.right + 15, h: c.frame.bottom + 15 };
-
-const KEY_ACTIVATE = (e: KeyboardEvent): boolean => e.key === ' ' || e.key === 'Enter' || e.key === 'Spacebar';
 
 // Internal ownership hook used by declarative promotion. Not part of the package exports.
 const controlDisposers = new WeakMap<HTMLElement, () => void>();

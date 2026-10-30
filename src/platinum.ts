@@ -31,6 +31,7 @@ const FACE_TOP: RGBA = [246, 246, 246, 255];
 const FACE_BOT: RGBA = [205, 205, 205, 255]; // #cdcdcd raised-face gradient foot
 const MARK: RGBA = [0, 0, 0, 255];
 const MARK_OFF: RGBA = [136, 136, 136, 255]; // disabled mark / frame
+const SUNKEN: RGBA = [210, 210, 210, 255]; // sunkenFace flat fill
 
 const px = (b: PixelBuffer, x: number, y: number, c: RGBA) => b.setPixel(x, y, c[0], c[1], c[2], c[3]);
 
@@ -296,7 +297,7 @@ export function platinumScrollbar(opts: PlatinumScrollbarOptions = {}): PixelBuf
 /** Sunken/recessed gray face (pressed or toggled-ON): dark top/left edge, light
  *  bottom/right, flat slightly-darker fill. The inverse bevel of raisedFace. */
 function sunkenFace(b: PixelBuffer, x: number, y: number, w: number, h: number, disabled = false): void {
-  const base = disabled ? 224 : 210; // 210 mirrored in SUNKEN_FACE_CSS
+  const base = disabled ? 224 : SUNKEN[0];
   for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) px(b, x + i, y + j, [base, base, base, 255]);
   strokeRect(b, x, y, w, h, disabled ? MARK_OFF : FRAME);
   for (let i = 1; i < w - 1; i++) { px(b, x + i, y + 1, SHADOW); px(b, x + i, y + h - 2, HILITE); }
@@ -305,9 +306,10 @@ function sunkenFace(b: PixelBuffer, x: number, y: number, w: number, h: number, 
 
 /** sunkenFace's fill and inner bevel as CSS, for the DOM baseline push button
  *  (`baselineButton`). Same palette, one point of correction. */
+const cssRgb = (c: RGBA): string => `rgb(${c.slice(0, 3).join(', ')})`;
 export const SUNKEN_FACE_CSS = {
-  background: 'rgb(210, 210, 210)',
-  bevel: `inset 1px 1px 0 rgb(${SHADOW.slice(0, 3).join(', ')}), inset -1px -1px 0 rgb(${HILITE.slice(0, 3).join(', ')})`,
+  background: cssRgb(SUNKEN),
+  bevel: `inset 1px 1px 0 ${cssRgb(SHADOW)}, inset -1px -1px 0 ${cssRgb(HILITE)}`,
 } as const;
 
 export interface PlatinumBevelButtonOptions {

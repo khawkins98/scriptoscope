@@ -27,7 +27,7 @@ for (const mode of ['source', 'built']) {
         Object.assign(wrap.style, { position: 'fixed', left: '20px', top: '20px', padding: '10px', background: '#ddd', zIndex: '10' });
         const button = await runtime.interactiveButton(theme, { label: 'Apply settings', default: true });
         button.id = 'press-button';
-        wrap.append(button, Object.assign(document.createElement('span'), { id: 'press-away', textContent: 'away', style: 'margin-left:40px' }));
+        wrap.append(button, Object.assign(document.createElement('span'), { id: 'press-away', tabIndex: 0, textContent: 'away', style: 'margin-left:40px' }));
         document.body.append(wrap);
         return button.classList.contains('scriptoscope-button') ? 'painter' : 'baseline';
       }, { mode, slug });
@@ -47,6 +47,17 @@ for (const mode of ['source', 'built']) {
       await page.mouse.up();
       record.pointerHeldDiffers = !held.equals(normal);
       record.pointerUpRestores = (await shot()).equals(normal);
+
+      // A secondary-button press does not sink the face. Compared as inline face
+      // styles, not pixels: a right-click also selects the label text.
+      const faceStyle = () => button.evaluate(el => [el.style.background, el.style.boxShadow].join('|'));
+      const restStyle = await faceStyle();
+      await page.mouse.down({ button: 'right' });
+      record.rightClickDoesNotPress = (await faceStyle()) === restStyle;
+      await page.mouse.up({ button: 'right' });
+      await button.evaluate(el => { el.blur(); getSelection().removeAllRanges(); });
+      record.rightClickLeavesNormal = (await shot()).equals(normal);
+      await page.mouse.move(cx, cy);
 
       // Pointer press → leave while held.
       await page.mouse.move(cx, cy);
@@ -77,19 +88,60 @@ for (const mode of ['source', 'built']) {
         record[`${key}UpRestores`] = (await shot()).equals(focused);
         if (key === 'Space') await button.focus();
       }
+      // Space held, then focus moves away before keyup: blur releases the face.
+      const awayFocused = await (async () => { await page.locator('#press-away').focus(); return shot(); })();
+      await button.focus();
+      await page.keyboard.down('Space');
+      record.blurHeldDiffers = !(await shot()).equals(focused);
+      await page.locator('#press-away').focus();
+      record.blurRestores = (await shot()).equals(awayFocused);
+      await page.keyboard.up('Space');
       observations[slug] = record;
       pixels[slug] = { normal: sha(normal), held: sha(held) };
     }
     await attachObservations(testInfo, 'procedural-button-press', mode, { mode, observations, pixels });
     for (const slug of PROCEDURAL) expect(observations[slug], slug).toEqual({
-      pointerHeldDiffers: true, pointerUpRestores: true, pointerLeaveRestores: true,
+      pointerHeldDiffers: true, pointerUpRestores: true, rightClickDoesNotPress: true, rightClickLeavesNormal: true, pointerLeaveRestores: true,
       pointerCancelHeldDiffers: true, pointerCancelRestores: true,
       SpaceHeldDiffers: true, SpaceUpRestores: true, EnterHeldDiffers: true, EnterUpRestores: true,
+      blurHeldDiffers: true, blurRestores: true,
     });
     // Controls: the cicn painter path keeps its own press/release behaviour.
     for (const slug of CICN) expect(observations[slug], slug).toEqual(expect.objectContaining({
       pointerHeldDiffers: true, pointerUpRestores: true, pointerCancelRestores: true,
     }));
     await page.evaluate(() => { document.querySelector('#press-case')?.remove(); window.pressTheme?.dispose?.(); });
+  });
+}
+
+// The public baselineButton must not rewrite consumer inline styles unless a press
+// is active, and a release restores whatever was current when the press began.
+for (const mode of ['source', 'built']) {
+  test(`${mode}: baselineButton keeps consumer inline styles across hover, blur and press (#551)`, async ({ page, servers }) => {
+    await openHarness(page, servers, mode);
+    const result = await page.evaluate(async mode => {
+      const runtime = await import(mode === 'source' ? '/src/index.ts' : '/dist/scriptoscope.js');
+      const b = runtime.baselineButton('OK', { default: true });
+      document.body.append(b);
+      b.style.background = 'red';
+      b.style.boxShadow = 'none';
+      const styles = () => [b.style.background, b.style.boxShadow];
+      const consumer = styles();
+      b.dispatchEvent(new PointerEvent('pointerenter'));
+      b.dispatchEvent(new PointerEvent('pointerleave'));
+      b.dispatchEvent(new PointerEvent('pointerup'));
+      b.focus(); b.blur();
+      b.dispatchEvent(new KeyboardEvent('keyup', { key: ' ' }));
+      const afterIdle = styles();
+      b.dispatchEvent(new PointerEvent('pointerdown', { button: 0 }));
+      const held = styles();
+      b.dispatchEvent(new PointerEvent('pointerup', { button: 0 }));
+      const afterRelease = styles();
+      b.remove();
+      return { consumer, afterIdle, held, afterRelease };
+    }, mode);
+    expect(result.afterIdle).toEqual(result.consumer);
+    expect(result.held).not.toEqual(result.consumer);
+    expect(result.afterRelease).toEqual(result.consumer);
   });
 }

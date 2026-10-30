@@ -122,6 +122,11 @@ compatibility override: the push-button pressed pixels are not decoded, so it
 claims only that a held state is visible and released, not original-engine
 output (#218). The raster `platinumButton` still has no `pressed` flag.
 
+Also open under #218: neither the cicn path nor the procedural path re-highlights
+when the pointer is dragged back over a held button. Both release on
+`pointerleave` and stay released, whereas classic `TrackControl` re-highlights
+the part while the mouse is back inside it and the button is still down.
+
 ### Row 4 — disabled-state stipple vs per-state cicn
 
 The classic-Mac stipple-overlay rule (Inside Macintosh: Macintosh Toolbox
