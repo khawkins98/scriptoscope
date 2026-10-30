@@ -16,16 +16,16 @@ import { C } from './palette.mjs';
 export const PARCHMENT_PPAT = 42;
 
 /**
- * 64×64 parchment for every body: flat #ffffcc with eight #cccc99 flecks
+ * 64×64 parchment for every body: flat parchment (C.body) with eight barely darker flecks
  * scattered by hand: the brief's one per 16×16, on a grid, read as graph
- * paper at 2x, so they are sparser and off-grid. Single pixels far apart, so nothing aliases with letter
- * stems (visual design §2.4); both colours are system-palette entries, so
- * 8 bpp keeps the page flat.
+ * paper at 2x, so they are sparser and off-grid. Single pixels far apart,
+ * so nothing aliases with letter stems (visual design §2.4). Both colours map to neutral greys at 8 bpp
+ * (palette.mjs), so a classic screen shows a flat light grey.
  */
 const FLECKS = [[5, 3], [41, 11], [22, 24], [58, 30], [9, 44], [35, 50], [50, 61], [27, 37]];
 function parchment() {
   const N = 64, r = new Raster(N, N).fillRect(0, 0, N, N, C.body);
-  for (const [x, y] of FLECKS) r.set(x, y, '#cccc99');
+  for (const [x, y] of FLECKS) r.set(x, y, '#e3dccb');
   return r;
 }
 
@@ -44,8 +44,8 @@ export function build(add) {
     [-9552, 'Desktop Text Color And Background', '#ffffff', ink, 0],
     [-9551, 'Icon View Background', C.body, ink, PARCHMENT_PPAT],
     [-9550, 'List View Background', C.body, ink, PARCHMENT_PPAT],
-    [-9549, 'List View Sort Color', '#ffff99', ink, 0],
-    [-9548, 'List View Divider Line', '#cccc99', ink, 0],
+    [-9549, 'List View Sort Color', '#e3dccb', ink, 0],
+    [-9548, 'List View Divider Line', '#cccccc', ink, 0],
   ];
   for (const [id, name, fill, text, ppat] of finder) {
     add('cicn', id, encodeCicn(finderSwatch(fill, text)), name);

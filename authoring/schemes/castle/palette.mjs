@@ -13,10 +13,16 @@
 //   roof    lit #cc6666 · tile #993333 · shade #660000
 //   cloth   lit #cc3333 · cloth #990000 · fold #660000 ;  gold #ffcc33 / #cc9900
 //   oak     grain #cc9966 · face #996633 · shade #663300
-//   water   #6699cc / #336699 ;  moss #669966 ;  parchment #ffffcc / fleck #cccc99
+//   water   #6699cc / #336699 ;  moss #669966
+//
+// One deliberate exception: the body. No system-palette colour is a calm,
+// low-chroma parchment (#ffffcc is butter-yellow; the near-cube warm greys
+// snap PINK at 8 bpp). #efe8d8 is chosen because its nearest 8-bit entry is
+// the neutral #eeeeee, so a classic screen shows plain light grey, never
+// yellow or pink. The body is web-only anyway (exotic-frames R22).
 export const C = {
   // What controls sit on: the parchment body (mattes and hidden swatches).
-  body: '#ffffcc',
+  body: '#efe8d8',
   active: {
     stone: ['#aaaaaa', '#999999'], stoneHi: '#cccccc', stoneLo: '#777777', mortar: '#666666', outline: '#333333',
     roof: '#993333', roofHi: '#cc6666', roofLo: '#660000',
@@ -59,7 +65,8 @@ export const C = {
 
 // Extra pairs for `npm run author -- … --palette` (fg, bg, label, floor).
 export const CONTRAST = [
-  ['#333333', '#ffffcc', 'outline on parchment', 3],
+  ['#333333', '#efe8d8', 'outline on parchment', 3],
+  ['#333333', '#efe8d8', 'body text on parchment', 4.5],
   ['#333333', '#aaaaaa', 'widget glyph on plate', 3],
   ['#ffcc33', '#336699', 'shield chevron on field', 3],
   ['#333333', '#aaaaaa', 'tab label on front tab', 4.5],

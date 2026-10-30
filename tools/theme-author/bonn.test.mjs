@@ -35,13 +35,13 @@ test('pressed strip -14330 is close | zoom | collapse at the document widget siz
   for (const part of [2, 3]) assert.equal(width(util, part), 0);
 });
 
-test('the document skyline is one code-10 cell and the bottom wave tiles 11 | bridge | 8', () => {
+test('the document skyline is one code-10 cell and the bottom bridge is whole arches, 13 | 12 | 13', () => {
   const wnd = decodeWnd(find('wnd#', -14336).data);
   const codes = (side) => side.slice(1).map((e) => e.part ?? e.code);
   const top = codes(wnd.topSide);
   assert.equal(top.filter((c) => c === 10).length, 1);
   assert.equal(top.filter((c) => c === 12).length, 0, 'no code 12: it would repeat the skyline');
-  assert.deepEqual(codes(wnd.bottomSide), [1, 0, 11, 1, 8, 1]);
+  assert.deepEqual(codes(wnd.bottomSide), [1, 0, 13, 12, 13, 1]);
 });
 
 test('committed bonn scheme.rsrc and scheme.bin match a fresh build (run `npm run author -- authoring/schemes/bonn`)', () => {

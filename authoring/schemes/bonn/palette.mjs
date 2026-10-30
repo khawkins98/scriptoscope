@@ -21,9 +21,9 @@ export const C = {
     red: '#cc0000', redLo: '#990000', yellow: '#ffcc00',
     title: '#ffffcc', titleShadow: '#660000',
     // Skyline: slate-teal masses with a lit roof edge and yellow windows.
-    sky: '#336666', skyHi: '#669999', lamp: '#ffcc00',
+    sky: '#336666', skyHi: '#669999', skyLo: '#003333', lamp: '#ffcc00',
     hall: '#ffcccc', hallLo: '#cc9999', trim: '#ffffff',
-    glass: '#6699cc', glassHi: '#99ccff',
+    glass: '#6699cc', glassHi: '#99ccff', glassLo: '#336699',
     // The Rhine: two flat bands and white foam (no dither: it striped at 8 bpp).
     water: '#339999', waterLo: '#336666', foam: '#ffffff',
     blossom: '#ff99cc', blossomLo: '#cc6699', blossomHi: '#ffcccc', branch: '#663300',
@@ -33,9 +33,9 @@ export const C = {
     stone: '#dddddd', stoneHi: '#eeeeee', stoneLo: '#bbbbbb', mortar: '#aaaaaa',
     red: '#999999', redLo: '#888888', yellow: '#bbbbbb',
     title: '#222222', titleShadow: '#222222',                 // same colour = no shadow
-    sky: '#999999', skyHi: '#bbbbbb', lamp: '#cccccc',
+    sky: '#999999', skyHi: '#bbbbbb', skyLo: '#777777', lamp: '#cccccc',
     hall: '#cccccc', hallLo: '#aaaaaa', trim: '#eeeeee',
-    glass: '#aaaaaa', glassHi: '#cccccc',
+    glass: '#aaaaaa', glassHi: '#cccccc', glassLo: '#888888',
     water: '#aaaaaa', waterLo: '#999999', foam: '#eeeeee',
     blossom: '#cccccc', blossomLo: '#aaaaaa', blossomHi: '#eeeeee', branch: '#888888',
   },

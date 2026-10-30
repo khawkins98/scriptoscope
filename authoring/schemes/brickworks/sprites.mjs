@@ -14,13 +14,23 @@ export const legend = (b, p) => ({ o: p.outline, h: b.hi, b: b.base, l: b.lo, d:
 // side, a 1px shade on the right. The last row sits on the brick's top edge,
 // so the brick's outline doesn't run under it.
 export const STUD = [
+  '.oooooo.',
+  'ohhhhhho',
+  'ohbbbbdo',
+  'ohbbbbdo',
+  'ohbbbbdo',
+  'ohbbbbdo',
+];
+export const STUD_W = 8;
+export const STUD_H = STUD.length;
+// The smaller stud of push buttons and tabs (it has to fit a 9px corner).
+export const STUD_SMALL = [
   '.oooo.',
   'ohhhho',
   'ohbbdo',
   'ohbbdo',
   'ohbbdo',
 ];
-export const STUD_W = 6;
 
 // The round title-bar widget: a 13px stud seen from above. 1-2-1 stair rim,
 // a lit arc upper left, a 1px shade lower right.
@@ -41,37 +51,56 @@ export const DISC = [
 ];
 export const DISC_SIZE = 13;
 
-// 5×5 glyphs, whole pixels, centred on the disc's centre pixel (6, 6).
+// The 15px title-bar knob: the same stair rim, lit arc and shade, one size up.
+export const KNOB = [
+  '.....ooooo.....',
+  '...oohhhbboo...',
+  '..ohhbbbbbbbo..',
+  '.ohhbbbbbbbbbo.',
+  '.ohbbbbbbbbbbo.',
+  'ohbbbbbbbbbbbbo',
+  'ohbbbbbbbbbbbbo',
+  'obbbbbbbbbbbbbo',
+  'obbbbbbbbbbbblo',
+  'obbbbbbbbbbbblo',
+  '.obbbbbbbbbblo.',
+  '.obbbbbbbbbllo.',
+  '..obbbbbbbllo..',
+  '...oollllloo...',
+  '.....ooooo.....',
+];
+export const KNOB_SIZE = 15;
+
+// 7×7 glyphs, whole pixels, centred on the knob's centre pixel (7, 7). The ×
+// doubles its strokes on the stair steps so it weighs the same as the bars.
 export const GLYPH = {
-  close: ['X...X', '.X.X.', '..X..', '.X.X.', 'X...X'],
-  zoom: ['..X..', '..X..', 'XXXXX', '..X..', '..X..'],
-  collapse: ['.....', '.....', 'XXXXX', '.....', '.....'],
+  close: ['X.....X', 'XX...XX', '.XX.XX.', '..XXX..', '.XX.XX.', 'XX...XX', 'X.....X'],
+  zoom: ['...X...', '...X...', '...X...', 'XXXXXXX', '...X...', '...X...', '...X...'],
+  collapse: ['.......', '.......', '.......', 'XXXXXXX', '.......', '.......', '.......'],
 };
 
-// The loose brick stack on the document's bottom-left corner: a blue 2×2
-// brick standing on a green 1×4 brick, in front of the wall and the end of
-// the baseplate. 30 columns × 20 rows (the document's bottom band).
+// The loose bricks on the document's bottom-left corner: a tall blue 2×2
+// brick standing in front of the wall, and a low green 1×1 brick beside it on
+// the baseplate. 30 columns × 18 rows (the document's bottom band).
 // B/c/L = blue hi/base/lo, E/e/F = green hi/base/lo.
 export const STACK = [
-  '..............................',
-  '..............................',
-  '...oooo....oooo...............',
-  '..oBBBBo..oBBBBo..............',
-  '..oBccLo..oBccLo..............',
-  '..oBccLo..oBccLo..............',
-  'oooBccLooooBccLooo............',
-  'oBBBBBBBBBBBBBBBLo............',
-  'occcccccccccccccLo....oooo....',
-  'occcccccccccccccLo...oEEEEo...',
-  'occcccccccccccccLo...oEeeFo...',
-  'occcccccccccccccLo...oEeeFo...',
-  'ooooooooooooooooooooooEeeFoooo',
-  'oEEEEEEEEEEEEEEEEEEEEEEEEEEEFo',
-  'oeeeeeeeeeeeeeeeeeeeeeeeeeeeFo',
-  'oeeeeeeeeeeeeeeeeeeeeeeeeeeeFo',
-  'oeeeeeeeeeeeeeeeeeeeeeeeeeeeFo',
-  'oeeeeeeeeeeeeeeeeeeeeeeeeeeeFo',
-  'oeeeeeeeeeeeeeeeeeeeeeeeeeeeFo',
+  '..oooooo....oooooo............',
+  '.oBBBBBBo..oBBBBBBo...........',
+  '.oBccccLo..oBccccLo...........',
+  '.oBccccLo..oBccccLo...........',
+  '.oBccccLo..oBccccLo...........',
+  'ooBccccLooooBccccLoo..oooooo..',
+  'oBBBBBBBBBBBBBBBBBLo.oEEEEEEo.',
+  'oBccccccccccccccccLo.oEeeeeFo.',
+  'oBccccccccccccccccLo.oEeeeeFo.',
+  'oBccccccccccccccccLo.oEeeeeFo.',
+  'oBccccccccccccccccLoooEeeeeFoo',
+  'oBccccccccccccccccLoEEEEEEEEFo',
+  'oBccccccccccccccccLoEeeeeeeeFo',
+  'oBccccccccccccccccLoEeeeeeeeFo',
+  'oBccccccccccccccccLoEeeeeeeeFo',
+  'oBccccccccccccccccLoEeeeeeeeFo',
+  'oLLLLLLLLLLLLLLLLLLoFFFFFFFFFo',
   'oooooooooooooooooooooooooooooo',
 ];
 

@@ -474,6 +474,61 @@ a ramp or a widget.
 - [ ] 8-bit simulation looks like the web preview, give or take a step.
 - [ ] Classic captures match the simulation.
 
+### 3.3 Concept first, then pixels
+
+The first versions of the four authored schemes passed every check and
+still looked basic next to `animals` or `evolution`. Each was designed
+cell by cell, so nothing ever set the overall weight of the frame. What
+fixed that was painting a picture of the finished window first, and then
+redrawing it in code:
+
+1. **Brief.** An art-director agent writes `concept/brief.md`: the big idea
+   in one sentence, materials, a palette on exact `SYSTEM_PALETTE_256`
+   entries, and a table that maps each concept feature to a cell kind
+   (fixed, tiled, code 10 droppable) with a pixel size.
+2. **Concept image.** An image model renders the window as a mockup
+   (`concept/concept.jpg`; see `authoring-art-with-ai.md` for the `agy`
+   route). It is a target to look at, never a source of pixels.
+3. **Implementation.** An agent rebuilds the frames from the brief, keeping
+   every engine rule (title room, `layout.lint`, pressed strips, cinf
+   families).
+4. **Comparison.** Put pass N, pass N+1 and the concept side by side at
+   the same zoom (`authoring/experiments/design-review/concept-pass-*.jpg`).
+
+Lessons from running this on all four schemes:
+
+- **The first implementation copies the motifs and misses the scale.**
+  All four pass-1 rebuilds had the right objects (kingfisher, crane,
+  skyline, turrets) at sticker size on the old thin frame. A second pass
+  with **numeric targets measured off the concept** fixed it. Give the
+  implementer band thicknesses, ornament heights and overshoot in pixels,
+  not adjectives. The targets that worked at a ~400×260 document window:
+  side bands 14–18 px of real material (stacked bricks, ashlar courses,
+  sandstone piers); top band 34–44 px plus ornaments that stand 16–40 px
+  above the bar; bottom band 14–22 px with its own motif (baseplate,
+  plinth and moat, a bridge arcade). Halcyon, the restrained one, kept
+  7 px sides and put the weight into one 57×43 bird.
+- **Silhouette beats texture.** Castle's scale-up pass thickened the walls
+  but shrank the red conical roofs into pepper-pots, and the result read
+  less like a castle than pass 1. Name the one silhouette that carries
+  the theme in the brief, and check it survives every pass.
+- **Every px of ornament width comes out of the title.** Ornaments that
+  sit in the top edge's fixed cells raise the window width at which the
+  title appears (Bonn's 94 px skyline raised its fixed width from 144 to
+  166 px). The engine drops the title before it drops a code-10 cell, so
+  a narrow window shows the ornament and "…". Decide that trade-off on
+  purpose and look at `sizes.html` after every change.
+- **Concepts are drawn at about 2×.** A 1× preview next to a concept will
+  always look thinner. Compare at the same pixel scale (`DPR 2` crops)
+  before concluding a pass is under-scaled.
+- **Big frames need a roomier preview layout.** `preview.png`'s fixed
+  window positions were set for thin frames. With 60 px top bands the
+  windows overlap, which is the layout's fault, not the scheme's.
+- **Calm bodies.** Asked for "parchment", agents reach for a saturated
+  butter-yellow. Specify a low-chroma hex range and check it in the 8-bit
+  simulation (Castle's warm `#e8e0cc` snapped to pink at 8 bpp;
+  `#efe8d8` maps to a neutral grey).
+
 ### 3.4 The review tools
 
 Three tools in `tools/theme-author/` (pure, no fs) with thin wrappers in

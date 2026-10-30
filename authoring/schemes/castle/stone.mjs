@@ -67,17 +67,27 @@ export function merlonAt(mx, my, w, h, p, { ends = true } = {}) {
 }
 
 // ── Side walls ───────────────────────────────────────────────────────────
-// Two courses per 12-row period, so a 12-row grower holds exactly one period
-// (R2). Course A is one long block with a lit top; course B is two blocks.
+// Thick dressed-stone columns. Two 6-row courses per 12-row period (5 stone
+// rows + 1 mortar), so a 12-row grower holds exactly one period (R2). Course A
+// is two blocks, course B three, offset like real ashlar. Each block gets its
+// own light by hand: a lit top row on some, a shaded right end on others, two
+// tones; nothing is lit everywhere (visual design §2.2).
 export const SIDE_PERIOD = 12;
+const SIDE_COURSES = [
+  { cuts: (n) => [Math.floor(n / 2) - 1], blocks: [{ tone: 0, lit: true, shade: true }, { tone: 1, lit: false, shade: true }] },
+  { cuts: (n) => [Math.floor(n / 4), n - Math.floor(n / 4) - 1], blocks: [{ tone: 1, lit: true }, { tone: 0, lit: false, shade: true }, { tone: 1, lit: true }] },
+];
 export function sideAt(sx, sy, inner, p) {
   // sx: column inside the band's stone (0 = first stone column), inner: stone width.
-  const y = mod(sy, SIDE_PERIOD);
-  if (y === 5 || y === 11) return p.mortar;
-  if (y < 5) return y === 0 ? p.stoneHi : p.stone[0];
-  const j = Math.floor(inner / 2) - 1;
-  if (sx === j) return p.mortar;
-  return p.stone[sx < j ? 1 : 0];
+  const y = mod(sy, SIDE_PERIOD), k = y < 6 ? 0 : 1, ry = y % 6;
+  if (ry === 5) return p.mortar;
+  const course = SIDE_COURSES[k], cuts = course.cuts(inner);
+  if (cuts.includes(sx)) return p.mortar;
+  const n = cuts.filter((c) => c < sx).length, blk = course.blocks[n];
+  const end = n < cuts.length ? cuts[n] - 1 : inner - 1;
+  if (ry === 0 && blk.lit) return p.stoneHi;
+  if (sx === end && blk.shade) return p.stoneLo;
+  return p.stone[blk.tone];
 }
 
 // ── Round tower drum ─────────────────────────────────────────────────────

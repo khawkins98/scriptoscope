@@ -9,7 +9,7 @@
 // hi row on top, one lo column on the right, the warm outline.
 import { Raster, encodeCicn, encodeCinf } from '../../../tools/theme-author/index.js';
 import { BRICK, OUTLINE, INK } from './palette.mjs';
-import { STUD } from './sprites.mjs';
+import { STUD_SMALL as STUD } from './sprites.mjs';
 
 const BTN = { size: 24, corner: 9, side: 6, bodyTop: 4 };
 
