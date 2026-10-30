@@ -6,8 +6,8 @@
   npm run dev
   open http://localhost:5173/authoring-preview.html?scheme=/authoring/schemes/halcyon/scheme.rsrc
 
-  Shows every window type the scheme defines, plus push buttons and
-  checkboxes, through the same explicit host the showcase uses. Reload after
+  Shows every window type the scheme defines, plus push buttons, checkboxes,
+  sliders, popup menus, text fields, tabs and scrollbars, through the same explicit host the showcase uses. Reload after
   rebuilding the scheme. See docs/authoring-a-scheme.md.
 -->
 <html lang="en">
@@ -18,7 +18,7 @@
   <style>
     body { margin: 0; background: #7f8fa3; font: 13px/1.4 system-ui, sans-serif; color: #111; }
     #status { position: fixed; right: 8px; top: 4px; color: #fff; font: 12px ui-monospace, monospace; }
-    #desk { position: relative; min-height: 900px; }
+    #desk { position: relative; min-height: 840px; }
     .pad { padding: 10px 14px; }
     .row { display: flex; gap: 10px; align-items: center; margin: 8px 0; }
     label { display: inline-flex; gap: 6px; align-items: center; }
@@ -73,6 +73,30 @@
     <article data-scriptoscope-window data-scriptoscope-window-type="alert"
       data-scriptoscope-x="360" data-scriptoscope-y="450" data-scriptoscope-width="260" data-scriptoscope-height="80">
       <div class="pad"><p>An alert.</p></div>
+    </article>
+
+    <!-- Control families (sliders, popups, fields, tabs, scrollbars). -->
+    <article data-scriptoscope-window data-scriptoscope-title="Controls" data-scriptoscope-x="24" data-scriptoscope-y="560"
+      data-scriptoscope-width="420" data-scriptoscope-height="250" data-scriptoscope-state="inactive">
+      <div class="pad">
+        <div class="row"><label>Volume <input type="range" min="0" max="100" value="40"></label></div>
+        <div class="row"><label>Size <select><option>Small</option><option selected>Medium</option><option>Large</option></select></label>
+          <label>Name <input type="text" value="Halcyon" data-scriptoscope-field></label></div>
+        <div data-scriptoscope-tabs>
+          <button data-scriptoscope-tab="t1" data-scriptoscope-selected>General</button>
+          <button data-scriptoscope-tab="t2">Appearance</button>
+          <div data-scriptoscope-panel="t1"><p>General settings.</p></div>
+          <div data-scriptoscope-panel="t2"><p>Appearance settings.</p></div>
+        </div>
+      </div>
+    </article>
+
+    <article data-scriptoscope-window data-scriptoscope-title="Long document" data-scriptoscope-x="470" data-scriptoscope-y="560"
+      data-scriptoscope-width="300" data-scriptoscope-height="200" data-scriptoscope-state="inactive">
+      <div class="pad" style="width: 520px">
+        <p>This window's content is taller and wider than the window, so it scrolls with the scheme's scrollbars.</p>
+        <p>Line 2</p><p>Line 3</p><p>Line 4</p><p>Line 5</p><p>Line 6</p><p>Line 7</p><p>Line 8</p><p>Line 9</p><p>Line 10</p>
+      </div>
     </article>
   </div>
   <div id="status">loading…</div>

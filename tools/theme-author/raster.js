@@ -167,6 +167,68 @@ export class Raster {
     return this;
   }
 
+  // ── Smooth (anti-aliased) shapes ──────────────────────────────────────
+  // Kaleidoscope masks are 1-bit, so a pixel can't be half transparent. These
+  // shapes still get smooth edges by blending each edge pixel's colour by how
+  // much of the pixel the shape covers (measured with 4×4 sub-samples):
+  //   • over an already-opaque pixel: blend with that pixel (inner edges,
+  //     e.g. a fill meeting its border, a glyph on a button);
+  //   • over a transparent pixel: blend with `matte`, the colour the art will
+  //     sit on (e.g. the white window body under a checkbox), and make it
+  //     opaque if at least half covered. With no matte the edge stays hard.
+  // Coordinates are continuous here: (0, 0) is the top-left corner of the
+  // top-left pixel, so a circle of radius 6 centred at (6, 6) fills 12×12.
+
+  /**
+   * Paint `color` wherever coverage(px, py) (a point in pixel space → true/false)
+   * holds, with smoothed edges. The building block for the shapes below.
+   * @param {{ matte?: string|number[], samples?: number }} [opts]
+   */
+  paintCoverage(x, y, w, h, inside, color, { matte, samples = 4 } = {}) {
+    if (![x, y, w, h].every(Number.isInteger)) throw new Error('Raster.paintCoverage: the box must use whole numbers');
+    const n = samples, paint = typeof color === 'function' ? color : () => color;
+    for (let py = y; py < y + h; py++) for (let px = x; px < x + w; px++) {
+      if (!this.inBounds(px, py)) continue;
+      let hits = 0;
+      for (let sy = 0; sy < n; sy++) for (let sx = 0; sx < n; sx++) {
+        if (inside(px + (sx + 0.5) / n, py + (sy + 0.5) / n)) hits++;
+      }
+      if (!hits) continue;
+      const cov = hits / (n * n), c = paint(px, py);
+      if (cov === 1) { this.set(px, py, c); continue; }
+      const under = this.get(px, py) ?? (matte != null ? parseColor(matte) : null);
+      if (under) this.set(px, py, mix(under, c, cov));
+      else if (cov >= 0.5) this.set(px, py, c);
+    }
+    return this;
+  }
+
+  /** Smooth rounded rectangle (x, y, w, h in pixels; radius may be fractional). */
+  fillRoundRectSmooth(x, y, w, h, radius, color, opts) {
+    const r = Math.min(radius, w / 2, h / 2), cx = x + w / 2, cy = y + h / 2;
+    return this.paintCoverage(x, y, w, h, (px, py) => {
+      const dx = Math.max(Math.abs(px - cx) - (w / 2 - r), 0), dy = Math.max(Math.abs(py - cy) - (h / 2 - r), 0);
+      return dx * dx + dy * dy <= r * r;
+    }, color, opts);
+  }
+
+  /** Smooth filled circle centred at (cx, cy). */
+  fillCircleSmooth(cx, cy, radius, color, opts) {
+    const x = Math.floor(cx - radius), y = Math.floor(cy - radius), s = Math.ceil(cx + radius) - x;
+    return this.paintCoverage(x, y, s, Math.ceil(cy + radius) - y, (px, py) => (px - cx) ** 2 + (py - cy) ** 2 <= radius * radius, color, opts);
+  }
+
+  /** Smooth straight stroke from (x0, y0) to (x1, y1), `width` px thick, round ends. */
+  strokeLineSmooth(x0, y0, x1, y1, width, color, opts) {
+    const half = width / 2, dx = x1 - x0, dy = y1 - y0, len2 = dx * dx + dy * dy || 1;
+    const bx = Math.floor(Math.min(x0, x1) - half), by = Math.floor(Math.min(y0, y1) - half);
+    return this.paintCoverage(bx, by, Math.ceil(Math.max(x0, x1) + half) - bx, Math.ceil(Math.max(y0, y1) + half) - by, (px, py) => {
+      const t = Math.max(0, Math.min(1, ((px - x0) * dx + (py - y0) * dy) / len2));
+      const ex = px - (x0 + t * dx), ey = py - (y0 + t * dy);
+      return ex * ex + ey * ey <= half * half;
+    }, color, opts);
+  }
+
   /** Copy another raster in. Transparent source pixels are skipped; hidden swatches are kept. */
   blit(src, x, y) {
     for (let sy = 0; sy < src.height; sy++) for (let sx = 0; sx < src.width; sx++) {
@@ -189,6 +251,28 @@ function insideCircle(dx, dy, r) {
 export function mix(a, b, t) {
   const ca = parseColor(a), cb = parseColor(b);
   return ca.map((v, i) => Math.round(v + (cb[i] - v) * t));
+}
+
+// 4×4 Bayer matrix: the classic ordered-dither threshold pattern.
+const BAYER4 = [[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]];
+
+/**
+ * Ordered-dithered vertical gradient for fillRect / paintCoverage. Instead of
+ * one colour per row, it uses `levels` evenly spaced colours and mixes
+ * neighbouring levels in a fixed 4×4 pattern, so a gradient looks smooth with
+ * few colours (and never hits the 256-colour limit). This is the period
+ * technique; classic Mac art dithered the same way.
+ */
+export function ditheredGradient(y0, h, stops, { levels = 6 } = {}) {
+  const smooth = verticalGradient(y0, h, stops);
+  const steps = Math.max(2, levels);
+  const at = (k) => smooth(0, y0 + (k / (steps - 1)) * (h - 1));
+  return (x, y) => {
+    const t = h <= 1 ? 0 : Math.min(1, Math.max(0, (y - y0) / (h - 1))) * (steps - 1);
+    const base = Math.floor(t), frac = t - base;
+    const threshold = (BAYER4[y & 3][x & 3] + 0.5) / 16;
+    return at(Math.min(steps - 1, frac > threshold ? base + 1 : base));
+  };
 }
 
 /** Vertical gradient helper for fillRect: stops are [[t, colour], ...]. */

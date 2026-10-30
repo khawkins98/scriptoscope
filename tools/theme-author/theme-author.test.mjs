@@ -295,5 +295,41 @@ test('Halcyon-pxl experiment builds cleanly and its committed scheme.rsrc is cur
   assert.deepEqual(errors, []);
   assert.deepEqual(warnings, []);
   const committed = readFileSync(new URL('../../authoring/experiments/pxl/variant/scheme.rsrc', import.meta.url));
-  assert.ok(Buffer.from(writeResourceFork(resources)).equals(committed), 'variant scheme.rsrc is stale; rebuild it');
+  assert.ok(Buffer.from(writeResourceFork(resources)).equals(committed), 'variant scheme.rsrc is stale (it is built on Halcyon, so rebuild it after Halcyon changes): npm run author -- authoring/experiments/pxl/variant');
+});
+
+test('encodePpat round-trips an indexed pattern and rejects bad sizes and transparency', async () => {
+  const { encodePpat } = await import('./encode-ppat.js');
+  const { decodePpat } = await import('../theme-loader/decoders/ppat.js');
+  const r = new Raster(8, 8);
+  for (let y = 0; y < 8; y++) for (let x = 0; x < 8; x++) r.set(x, y, (x + y) % 2 ? '#e6ebf2' : '#ffffff');
+  const d = decodePpat(encodePpat(r, { gamma: false }));
+  assert.deepEqual([d.width, d.height], [8, 8]);
+  assert.deepEqual([...d.rgba.subarray(4, 8)], [0xe6, 0xeb, 0xf2, 255]);
+  assert.throws(() => encodePpat(new Raster(6, 8).fillRect(0, 0, 6, 8, '#fff')), /powers of two/);
+  assert.throws(() => encodePpat(new Raster(8, 8)), /transparent/);
+});
+
+test('smooth shapes blend edges with the pixel underneath or the matte, and stay 1-bit', () => {
+  const r = new Raster(12, 12).fillCircleSmooth(6, 6, 6, '#000000', { matte: '#ffffff' });
+  const alphas = new Set(); const greys = new Set();
+  for (let i = 0; i < r.rgba.length; i += 4) { alphas.add(r.rgba[i + 3]); if (r.rgba[i + 3]) greys.add(r.rgba[i]); }
+  assert.deepEqual([...alphas].sort((a, b) => a - b), [0, 255], 'mask stays 1-bit');
+  assert.ok([...greys].some((v) => v > 0 && v < 255), 'edge pixels are blended toward the matte');
+  assert.equal(r.rgba[(6 * 12 + 6) * 4], 0, 'the centre is solid');
+  // Without a matte an edge over transparency stays hard.
+  const hard = new Raster(12, 12).fillCircleSmooth(6, 6, 6, '#000000');
+  for (let i = 0; i < hard.rgba.length; i += 4) if (hard.rgba[i + 3]) assert.equal(hard.rgba[i], 0);
+  // Over an opaque pixel it blends with that pixel.
+  const over = new Raster(4, 4).fillRect(0, 0, 4, 4, '#ffffff').strokeLineSmooth(0, 2, 4, 2, 1, '#000000');
+  assert.ok(over.rgba[(1 * 4 + 1) * 4] < 255 && over.rgba[(1 * 4 + 1) * 4] > 0);
+});
+
+test('ditheredGradient uses at most `levels` colours and both ends', async () => {
+  const { ditheredGradient } = await import('./raster.js');
+  const r = new Raster(16, 16).fillRect(0, 0, 16, 16, ditheredGradient(0, 16, [[0, '#000000'], [1, '#ffffff']], { levels: 4 }));
+  const seen = new Set();
+  for (let i = 0; i < r.rgba.length; i += 4) seen.add(r.rgba[i]);
+  assert.ok(seen.size <= 4, `${seen.size} colours`);
+  assert.ok(seen.has(0) && seen.has(255));
 });

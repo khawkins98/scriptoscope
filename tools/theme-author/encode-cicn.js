@@ -35,28 +35,7 @@ export function encodeCicn(raster, { gamma = true } = {}) {
   // rowBytes keeps flag bits in its top two bits, so it must stay below 0x4000.
   if (rowBytesFor(width, 8) > 0x3ffe || height > 0x7fff) throw new Error('encodeCicn: raster too large');
 
-  // ── Palette ──
-  const indexOf = new Map();
-  const palette = [];
-  const indices = new Uint8Array(width * height);
-  const mask = new Uint8Array(width * height);
-  for (let i = 0; i < width * height; i++) {
-    const alpha = rgba[i * 4 + 3];
-    if (alpha === 0) continue;   // transparent, colour irrelevant (palette index 0)
-    mask[i] = alpha >= 128 ? 1 : 0;
-    const stored = srgbToStored([rgba[i * 4], rgba[i * 4 + 1], rgba[i * 4 + 2]], { gamma });
-    const key = stored.join(',');
-    if (!indexOf.has(key)) {
-      if (palette.length === 256) {
-        throw new Error(`encodeCicn: more than 256 colours in a ${width}x${height} image; reduce gradient steps`);
-      }
-      indexOf.set(key, palette.length);
-      palette.push(stored);
-    }
-    indices[i] = indexOf.get(key);
-  }
-  if (palette.length === 0) palette.push([255, 255, 255]); // fully transparent icon
-  const depth = [1, 2, 4, 8].find((d) => palette.length <= 1 << d);
+  const { palette, indices, mask, depth } = buildPalette(raster, { gamma, label: 'encodeCicn' });
 
   const pixRowBytes = rowBytesFor(width, depth);
   const bitRowBytes = rowBytesFor(width, 1);
@@ -93,6 +72,38 @@ export function encodeCicn(raster, { gamma = true } = {}) {
   // Colour pixel rows
   w.raw(packRows(indices, width, height, depth, pixRowBytes));
   return w.toUint8Array();
+}
+
+/**
+ * Index a raster's pixels into a palette of stored (gamma-inverted) colours.
+ * Shared by encodeCicn and encodePpat. Alpha 0 → index 0 and mask 0; alpha
+ * 1–127 → a hidden swatch (mask 0, colour kept); alpha ≥ 128 → opaque.
+ * @returns {{ palette: number[][], indices: Uint8Array, mask: Uint8Array, depth: number }}
+ */
+export function buildPalette(raster, { gamma = true, label = 'encode' } = {}) {
+  const { width, height, rgba } = raster;
+  const indexOf = new Map();
+  const palette = [];
+  const indices = new Uint8Array(width * height);
+  const mask = new Uint8Array(width * height);
+  for (let i = 0; i < width * height; i++) {
+    const alpha = rgba[i * 4 + 3];
+    if (alpha === 0) continue;   // transparent, colour irrelevant (palette index 0)
+    mask[i] = alpha >= 128 ? 1 : 0;
+    const stored = srgbToStored([rgba[i * 4], rgba[i * 4 + 1], rgba[i * 4 + 2]], { gamma });
+    const key = stored.join(',');
+    if (!indexOf.has(key)) {
+      if (palette.length === 256) {
+        throw new Error(`${label}: more than 256 colours in a ${width}x${height} image; reduce gradient steps or dither`);
+      }
+      indexOf.set(key, palette.length);
+      palette.push(stored);
+    }
+    indices[i] = indexOf.get(key);
+  }
+  if (palette.length === 0) palette.push([255, 255, 255]); // fully transparent image
+  const depth = [1, 2, 4, 8].find((d) => palette.length <= 1 << d);
+  return { palette, indices, mask, depth };
 }
 
 /** Pack per-pixel values (< 2^depth) into QuickDraw rows, leftmost pixel in the high bits. */

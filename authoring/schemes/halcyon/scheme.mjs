@@ -12,70 +12,75 @@
 // drop the new scheme.rsrc onto the showcase page to see it.
 
 import {
-  Raster, verticalGradient, windowLayout,
+  Raster, verticalGradient, ditheredGradient, windowLayout,
   encodeCicn, encodeWnd, encodeCinf, encodeColr, encodeVers,
 } from '../../../tools/theme-author/index.js';
 
 // ── 1. Palette ────────────────────────────────────────────────────────────
-// Colours are what you want to see on screen (sRGB). The encoder handles the
-// classic-Mac gamma difference for you.
-const C = {
-  accent: '#1689a8',
-  accentPressed: '#0f6a83',
-  body: '#ffffff',
-  active: {
-    barTop: '#fbfcfe', barBottom: '#e6ebf2', highlight: '#ffffff',
-    separator: '#d2d8e1', border: '#97a2b2', title: '#1d2430',
-    glyph: '#4a5566', buttonTop: '#ffffff', buttonBottom: '#e2e7ee', buttonEdge: '#8d98a8',
-  },
-  inactive: {
-    barTop: '#f6f7f9', barBottom: '#f6f7f9', highlight: '#fbfbfc',
-    separator: '#e3e6ea', border: '#c4c9d0', title: '#9aa1ab',
-    glyph: null, buttonTop: '#eef0f3', buttonBottom: '#eef0f3', buttonEdge: '#d0d4da',
-  },
-};
+// Every colour lives in palette.mjs, shared with the control families in parts/.
+import { C } from './palette.mjs';
 
 // ── 2. Window frames ──────────────────────────────────────────────────────
 // Each window type is described once with windowLayout(); the same numbers
 // drive both the art (paintFrame) and the wnd# recipe.
 
-/** A round glyph button, `size` px across. */
-function glyphButton(size, state, glyph, accent = false) {
+/**
+ * Draw a round title-bar button straight onto the frame, so its smooth edge
+ * blends with the real title-bar pixels underneath (a separate raster blitted
+ * on top would have nothing to blend with).
+ */
+function drawGlyphButton(r, { x, y, w: size }, state, glyph, accent = false) {
   const p = C[state];
-  const r = new Raster(size, size);
-  const top = accent && state === 'active' ? C.accent : p.buttonTop;
-  const bottom = accent && state === 'active' ? C.accent : p.buttonBottom;
-  r.fillRect(0, 0, size, size, verticalGradient(0, size, [[0, top], [1, bottom]]));
-  r.clipRounded(0, 0, size, size, size / 2);
-  r.outlineEdges(0, 0, size, size, accent && state === 'active' ? C.accentPressed : p.buttonEdge);
-  if (!p.glyph) return r; // inactive windows show plain buttons, like most desktops do
-  const ink = accent ? '#ffffff' : p.glyph;
-  const m = Math.floor(size / 2), a = Math.round(size * 0.3), b = size - 1 - a;
-  if (glyph === 'close') for (let i = a; i <= b; i++) { r.set(i, i, ink); r.set(size - 1 - i, i, ink); }
-  if (glyph === 'collapse' || glyph === 'zoom') r.hline(a, m, b - a + 1, ink);
-  if (glyph === 'zoom') r.vline(m, a, b - a + 1, ink);
-  return r;
+  const lit = accent && state === 'active';
+  const cx = x + size / 2, cy = y + size / 2;
+  r.fillCircleSmooth(cx, cy, size / 2, lit ? C.accentPressed : p.buttonEdge);
+  r.fillCircleSmooth(cx, cy, size / 2 - 1,
+    verticalGradient(y, size, [[0, lit ? C.accent : p.buttonTop], [1, lit ? C.accent : p.buttonBottom]]));
+  if (!p.glyph) return; // inactive windows show plain buttons, like most desktops do
+  const ink = lit ? '#ffffff' : p.glyph;
+  const a = size * 0.32, b = size - size * 0.32; // glyph box inside the button
+  const stroke = (x0, y0, x1, y1) => r.strokeLineSmooth(x + x0, y + y0, x + x1, y + y1, 1.25, ink);
+  if (glyph === 'close') { stroke(a, a, b, b); stroke(b, a, a, b); }
+  if (glyph === 'collapse' || glyph === 'zoom') stroke(a, size / 2, b, size / 2);
+  if (glyph === 'zoom') stroke(size / 2, a, size / 2, b);
 }
 
 /**
  * Paint one frame image for `layout` in `state` ('active' | 'inactive').
- * Order matters: fill, round the corners, outline, then punch the content hole.
+ * Order matters: fill, round the corners, outline, smooth the inside of the
+ * outline, add the bar details, punch the content hole, then the widgets.
  */
 function paintFrame(layout, state, { radiusTop, radiusBottom, widgets = {} }) {
   const p = C[state];
   const { width: W, height: H, top: T, content } = layout;
   const r = new Raster(W, H);
   const shapeH = layout.bottom === 0 ? T : H; // collapsed: only the bar is visible
+  const bar = verticalGradient(0, T, [[0, p.barTop], [1, p.barBottom]]);
+  const surface = (x, y) => (layout.titled && y < T ? bar(x, y) : C.body);
+  const bottomRadius = layout.bottom === 0 ? radiusTop : radiusBottom;
 
-  r.fillRect(0, 0, W, shapeH, C.body);
-  if (layout.titled) {
-    r.fillRect(0, 0, W, T, verticalGradient(0, T, [[0, p.barTop], [1, p.barBottom]]));
-    r.hline(1, 1, W - 2, p.highlight);                 // a 1px sheen under the top edge
-    if (layout.bottom > 0) r.hline(0, T - 1, W, p.separator); // bar / content divider
-  }
+  // The outer edge stays hard: the window can sit on any background, so there
+  // is no colour to blend it with.
+  r.fillRect(0, 0, W, shapeH, surface);
   r.clipRounded(0, 0, W, shapeH, radiusTop, ['tl', 'tr']);
-  r.clipRounded(0, 0, W, shapeH, layout.bottom === 0 ? radiusTop : radiusBottom, ['bl', 'br']);
+  r.clipRounded(0, 0, W, shapeH, bottomRadius, ['bl', 'br']);
   r.outlineEdges(0, 0, W, shapeH, p.border);
+  // The inner edge of the outline can be smooth: repaint the surface 1px in,
+  // blended over the outline. Each half is drawn with its own corner radius.
+  const inner = (y, h, rad, corners) => r.paintCoverage(1, y, W - 2, h, (px, py) => {
+    const top = corners === 'top';
+    const cy = top ? 1 + (rad - 1) : shapeH - 1 - (rad - 1);
+    const dx = Math.max(Math.abs(px - W / 2) - (W / 2 - 1 - (rad - 1)), 0);
+    const dy = top ? Math.max(cy - py, 0) : Math.max(py - cy, 0);
+    return dx * dx + dy * dy <= (rad - 1) ** 2;
+  }, surface);
+  inner(1, Math.ceil(shapeH / 2) - 1, radiusTop, 'top');
+  inner(Math.ceil(shapeH / 2), shapeH - 1 - Math.ceil(shapeH / 2), bottomRadius, 'bottom');
+
+  if (layout.titled) {
+    r.hline(radiusTop, 1, W - 2 * radiusTop, p.highlight);               // a 1px sheen under the top edge
+    if (layout.bottom > 0) r.hline(1, T - 1, W - 2, p.separator);      // bar / content divider
+  }
 
   // The content area is a hole: the page's own DOM shows through it.
   r.fillRect(content.left, content.top, content.right - content.left, content.bottom - content.top, null);
@@ -86,9 +91,7 @@ function paintFrame(layout, state, { radiusTop, radiusBottom, widgets = {} }) {
   r.swatch(content.left, content.top, p.title);
   r.swatch(content.left + 1, content.top, p.title);
 
-  for (const [kind, box] of Object.entries(widgets)) {
-    r.blit(glyphButton(box.w, state, kind, kind === 'close'), box.x, box.y);
-  }
+  for (const [kind, box] of Object.entries(widgets)) drawGlyphButton(r, box, state, kind, kind === 'close');
   return r;
 }
 
@@ -153,9 +156,12 @@ function widgetBoxes(wnd) {
 const BUTTON = { size: 20, corner: 6, side: 1, radius: 5 };
 
 function pushFace({ face, edge, text }) {
-  const { size } = BUTTON;
-  const r = new Raster(size, size).fillRect(0, 0, size, size, face);
-  r.clipRounded(0, 0, size, size, BUTTON.radius).outlineEdges(0, 0, size, size, edge);
+  const { size, radius } = BUTTON;
+  // Smooth corners: the outer edge blends with the window body (the colour a
+  // button normally sits on), the inner edge with the outline.
+  const r = new Raster(size, size)
+    .fillRoundRectSmooth(0, 0, size, size, radius, edge, { matte: C.body })
+    .fillRoundRectSmooth(1, 1, size - 2, size - 2, radius - 1, face);
   r.swatch(0, 1, text); // hidden: a transparent corner pixel carries the label colour
   return r;
 }
@@ -172,8 +178,8 @@ const pushCinf = () => encodeCinf({
 function ringFace(color) {
   const size = 24;
   return new Raster(size, size)
-    .fillRoundRect(0, 0, size, size, 9, color)
-    .fillRoundRect(2, 2, size - 4, size - 4, 7, null);
+    .fillRoundRectSmooth(0, 0, size, size, 9, color, { matte: C.body }) // smooth outside
+    .fillRoundRect(2, 2, size - 4, size - 4, 7, null);                  // hard, fully transparent inside
 }
 
 const ringCinf = () => encodeCinf({
@@ -192,24 +198,21 @@ function checkable(kind, value, tier) {
   const disabled = tier === 0, pressed = tier === 2;
   const fill = !on ? (pressed ? '#e3e8ef' : '#ffffff') : disabled ? '#b9c7cf' : pressed ? C.accentPressed : C.accent;
   const edge = disabled ? '#d0d4da' : on ? (pressed ? '#0b5568' : C.accentPressed) : pressed ? '#6f7b8c' : '#8d98a8';
-  const r = new Raster(CHECK, CHECK).fillRect(0, 0, CHECK, CHECK, fill);
-  r.clipRounded(0, 0, CHECK, CHECK, kind === 0 ? 4 : CHECK / 2).outlineEdges(0, 0, CHECK, CHECK, edge);
+  const radius = kind === 0 ? 4 : CHECK / 2;
+  // Outer edge blends with the window body; inner edges blend with what's under them.
+  const r = new Raster(CHECK, CHECK)
+    .fillRoundRectSmooth(0, 0, CHECK, CHECK, radius, edge, { matte: C.body })
+    .fillRoundRectSmooth(1, 1, CHECK - 2, CHECK - 2, radius - 1, fill);
   if (!on) return r;
   const ink = disabled ? '#f4f6f8' : '#ffffff';
-  if (value === 2) return r.fillRect(4, 6, 6, 2, ink); // mixed: a dash
-  if (kind === 1) return r.fillRect(5, 5, 4, 4, ink).set(5, 5, fill).set(8, 5, fill).set(5, 8, fill).set(8, 8, fill);
-  return r.sprite(3, 3, [
-    '.......#',
-    '......##',
-    '#....##.',
-    '##..##..',
-    '.####...',
-    '..##....',
-  ], { '#': ink });
+  if (value === 2) return r.strokeLineSmooth(4.25, 7, 9.75, 7, 2, ink);   // mixed: a dash
+  if (kind === 1) return r.fillCircleSmooth(7, 7, 2.4, ink);               // radio: a dot
+  return r.strokeLineSmooth(3.6, 7.2, 6, 9.6, 1.7, ink)                   // checkmark
+    .strokeLineSmooth(6, 9.6, 10.6, 4.4, 1.7, ink);
 }
 
 // ── 5. Assemble ───────────────────────────────────────────────────────────
-export function buildScheme() {
+export async function buildScheme() {
   const resources = [];
   const add = (type, id, data, name) => resources.push({ type, id, data, ...(name ? { name } : {}) });
 
@@ -242,5 +245,19 @@ export function buildScheme() {
     add('cicn', -9504 + 12 * kind + 3 * value + tier, encodeCicn(checkable(kind, value, tier)),
       `${tiers[tier]} ${values[value]} ${kinds[kind]}`);
   }
+  // ── 6. Control families (parts/*.mjs) ──
+  // Each file exports `build(add, { C })` and adds its own resources. They are
+  // loaded in name order. HALCYON_PARTS=scrollbars,menus builds only those
+  // (handy while working on one family); unset builds all of them.
+  for (const part of await loadParts()) part.build(add, { C });
   return { resources };
+}
+
+async function loadParts() {
+  const { readdirSync } = await import('node:fs');
+  const only = process.env.HALCYON_PARTS?.split(',').map((x) => x.trim()).filter(Boolean);
+  const files = readdirSync(new URL('./parts/', import.meta.url))
+    .filter((f) => f.endsWith('.mjs') && (!only || only.includes(f.replace(/\.mjs$/, ''))))
+    .sort();
+  return Promise.all(files.map((f) => import(new URL(`./parts/${f}`, import.meta.url).href)));
 }
