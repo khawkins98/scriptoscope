@@ -759,8 +759,8 @@ interface ManagedWindow<Theme extends ThemeInput> {
   /** Persistent light-DOM consumer content, projected through the continuously mounted slot. */
   contentEl?: HTMLElement;
   /** Outer-box bounds (chrome included, unscaled px) per axis (#526). A bounded axis's
-   *  content size is re-derived as `bound - frame` on every expanded render, so it follows
-   *  the scheme's frame through retheme. Unbounded axes use `opts` as the content size.
+   *  content size is re-derived as `bound - frame` on every render (width only while
+   *  collapsed), so it follows the scheme's frame through retheme. Unbounded axes use `opts`.
    *  Explicit content sizes (setContentSize, grow box, zoom, applyState) clear the axis. */
   outer?: OuterSize | undefined;
   /** Frame totals of the last expanded commit; see chromeExtent(). */
@@ -773,13 +773,14 @@ export interface OuterSize { width?: number; height?: number }
 export interface ChromeExtent { x: number; y: number }
 
 /** The outer/content conversion's one source of truth: the frame totals of a
- *  prepared window, read from its full footprint (both renderWindow paths set the
- *  root's width/height to the full chrome size) minus the content it was given. */
+ *  prepared window, read from its full footprint minus its content box (both
+ *  renderWindow paths size the root and `.scriptoscope-content` inline). */
 function measureExtent(win: HTMLElement, opts: RenderWindowOptions): ChromeExtent {
   const scale = Math.max(1, Math.round(opts.scale ?? 1));
+  const content = win.querySelector<HTMLElement>('.scriptoscope-content')!.style;
   return {
-    x: Math.round(parseFloat(win.style.width) / scale) - (opts.width ?? 240),
-    y: Math.round(parseFloat(win.style.height) / scale) - (opts.height ?? 120),
+    x: Math.round((parseFloat(win.style.width) - parseFloat(content.width)) / scale),
+    y: Math.round((parseFloat(win.style.height) - parseFloat(content.height)) / scale),
   };
 }
 
@@ -976,7 +977,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       ...(extra.collapsed ? { collapsed: true } : {}),
       ...(extra.contentEl ? { contentEl: extra.contentEl } : {}),
       ...(extra.enabledWidgets !== undefined ? { enabledWidgets: extra.enabledWidgets } : {}),
-      outer: withoutAxes(extra.outerSize, false, false),
+      outer: extra.outerSize,
     };
     if (extra.z != null && extra.z > this.zClock) this.zClock = extra.z; // keep clock above declared
     this.windows.push(entry);
@@ -1116,16 +1117,19 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
   /** Re-render at OUTER-box bounds (chrome included, unscaled px) for the given axes; an
    *  omitted axis keeps its current size and mode. The content size of a bounded axis is
    *  `bound - frame`, re-derived for each scheme's frame on retheme, so the window's
-   *  footprint stays inside the bound (#526). No-op if the host isn't managed or unchanged. */
+   *  footprint stays inside the bound (#526). No-op if the host isn't managed or unchanged.
+   *  While zoomed the window shows its standard (zoomed) state, so the bound updates the
+   *  saved user state that unzoom restores, as the Mac's userState/stdState pair (#542). */
   async setOuterSize(host: HTMLElement, size: OuterSize): Promise<void> {
     const entry = this.windows.find((w) => w.host === host);
-    if (!entry) return;
-    const outer: OuterSize = { ...entry.outer };
+    const target = entry?.zoomed ? entry.userSize : entry;
+    if (!entry || !target) return;
+    const outer: OuterSize = { ...target.outer };
     if (size.width !== undefined) outer.width = size.width;
     if (size.height !== undefined) outer.height = size.height;
-    if (outer.width === entry.outer?.width && outer.height === entry.outer?.height) return;
-    entry.outer = outer;
-    await this.render(entry);
+    if (outer.width === target.outer?.width && outer.height === target.outer?.height) return;
+    target.outer = outer;
+    if (!entry.zoomed) await this.render(entry);
   }
 
   /** Frame totals of the window's last expanded render (`x` = left + right, `y` = top +
@@ -1269,12 +1273,17 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
         // Never lend a live pooled canvas to an asynchronous preparation.
       });
     };
-    // A collapsed render has no content rect to resolve; it keeps the last expanded
-    // content size, and the next expanded render resolves the bound for its theme.
-    const outer = collapsed ? undefined : entry.outer;
-    if (!outer) {
+    const outer = entry.outer;
+    if (collapsed || !outer) {
       const win = await prepare(entry.opts);
-      return { win, collapsed, opts: entry.opts, ...(collapsed ? {} : { extent: measureExtent(win, entry.opts) }) };
+      if (!collapsed) return { win, collapsed, opts: entry.opts, extent: measureExtent(win, entry.opts) };
+      // A collapsed render has no content height to resolve, and the built-in frame hides
+      // the content (a side utility is a bare bar), so only a visible content box says
+      // what the frame's width is. Fit that to the width bound, re-preparing at most
+      // once; otherwise keep the last expanded content size (#542).
+      const opts = outer?.width === undefined || win.querySelector<HTMLElement>('.scriptoscope-content')!.hidden
+        ? entry.opts : contentFor(entry.opts, { width: outer.width }, measureExtent(win, entry.opts));
+      return { win: opts.width === entry.opts.width ? win : await prepare(opts), collapsed, opts };
     }
     // Outer bounds (#526): content = bound - frame, where the frame is whatever this
     // theme/variant actually composes. Guess from the cache, then verify against the
