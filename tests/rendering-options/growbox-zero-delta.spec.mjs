@@ -137,22 +137,22 @@ for (const mode of ['source', 'production']) {
 
 // Imperative windows (harness page, source and built runtime). manager.add
 // places them absolutely; scale 2 doubles the rounding threshold.
-async function addWindow(page, mode, slug, scale) {
-  return page.evaluate(async ({ mode, slug, scale }) => {
+async function addWindow(page, mode, slug, scale, height = 140) {
+  return page.evaluate(async ({ mode, slug, scale, height }) => {
     const api = await import(mode === 'source' ? '/src/index.ts' : '/dist/scriptoscope.js');
     if (window.__zd) { window.__zd.manager.remove(window.__zd.host); window.__zd.host.remove(); }
     const theme = await api.loadTheme(`/themes/${slug}`);
     const manager = new api.WindowManager();
     const content = document.createElement('div');
     content.textContent = 'Zero delta';
-    const host = await manager.add(theme, { title: 'Grow', width: 200, height: 140, scale }, {}, { contentEl: content });
+    const host = await manager.add(theme, { title: 'Grow', width: 200, height, scale }, {}, { contentEl: content });
     document.body.prepend(host);
     host.style.zIndex = '1000';
     window.__zd = { manager, host, resized: [], changes: 0 };
     manager.onChange = () => window.__zd.changes++;
     host.addEventListener('scriptoscope:userresize', e => window.__zd.resized.push(e.detail));
     await new Promise(resolve => setTimeout(resolve, 300));
-  }, { mode, slug, scale });
+  }, { mode, slug, scale, height });
 }
 
 function state(page) {
@@ -239,6 +239,37 @@ for (const mode of ['source', 'built']) {
       expect.soft(after.position, `${slug}: handed off`).toBe('static');
       expect.soft(after.placeholders, `${slug}: placeholder`).toBe(before.placeholders);
       expect.soft(after.host, `${slug}: host box`).toEqual(before.host);
+    }
+  });
+
+  harnessTest(`${mode}: a window declared below the minimum is not snapped up by the pointer (#552)`, async ({ page, servers }) => {
+    await openHarness(page, servers, mode);
+    for (const scale of [1, 2]) {
+      const label = `height 30 scale ${scale}`;
+      await addWindow(page, mode, 'windows-95', scale, 30);
+      const height = () => page.evaluate(() => window.__zd.manager.windows.find(w => w.host === window.__zd.host).opts.height);
+      expect(await height(), `${label}: declared height`).toBe(30);
+      const before = await state(page);
+      const x = before.corner.x + before.corner.w / 2, y = before.corner.y + before.corner.h / 2;
+      const drag = async dy => {
+        await page.mouse.move(x, y);
+        await page.mouse.down();
+        await page.mouse.move(x, y + dy / 2);
+        await page.mouse.move(x, y + dy);
+        await page.mouse.up();
+        await page.waitForTimeout(300);
+      };
+      await drag(0.4 * scale);
+      expect.soft((await state(page)).resized, `${label}: 0.4 x scale jitter userresize`).toBe(0);
+      expect.soft(await height(), `${label}: height after jitter`).toBe(30);
+      await drag(-10 * scale);
+      expect.soft((await state(page)).resized, `${label}: inward drag userresize`).toBe(0);
+      expect.soft(await height(), `${label}: height after inward drag`).toBe(30);
+      await drag(5 * scale);
+      const after = await state(page);
+      expect.soft(after.resized, `${label}: outward drag userresize count`).toBe(1);
+      expect.soft(after.detail?.h, `${label}: outward drag height`).toBe(35);
+      expect.soft(await height(), `${label}: height after outward drag`).toBe(35);
     }
   });
 
