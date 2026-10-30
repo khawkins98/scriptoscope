@@ -55,10 +55,10 @@ import { ManagedContentPort, type ManagedControlPort } from './managedContentPor
 //      INTERNAL HELPERS:
 //        render(entry)                  → calls renderWindow() + overlayWidgets()
 //                                         + wireMoveResize() + wireScrollbars()
-//        overlayWidgets(entry, win)     → transparent <button>s over the title
+//        overlayWidgets(entry, win, …)  → transparent <button>s over the title
 //                                         widgets (close/zoom/collapse + DOM
 //                                         twins for a11y)
-//        wireMoveResize(entry, win)     → title-bar drag (CSS-only, no render)
+//        wireMoveResize(entry, win, …)  → title-bar drag (CSS-only, no render)
 //                                         + grow-box resize (ghost outline during
 //                                         drag; render on mouseup)
 //        wireScrollbars(entry, win)     → themed scrollbar wiring per axis (see
@@ -725,6 +725,8 @@ interface ManagedWindow<Theme extends ThemeInput> {
   scrollAbort?: AbortController;
   /** Root handlers are rebound without ending an already active document-level drag. */
   frameAbort?: AbortController;
+  /** Overlay controls by role key, reused across renders (#533); see WindowManager.overlay. */
+  overlays?: Map<string, HTMLElement>;
   /** Pooled chrome canvas — keeps its DOM identity across state changes (see #171 and
    *  the 2026-05-28 perf review + LEARNINGS "Classic Mac OS lessons"
    *  entry pattern #5). Async preparation uses a staging canvas; only the guarded synchronous
@@ -927,6 +929,8 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     this.windows[i]!.contentPort.dispose();
     this.windows[i]?.scrollAbort?.abort();
     this.windows[i]?.frameAbort?.abort();
+    // The bars are reused across renders, so a removed window detaches them here.
+    for (const axis of ['vertical', 'horizontal']) this.dropOverlay(this.windows[i]!, `window-scrollbar-${axis}`);
     this.windows.splice(i, 1);
     // Drag-handoff placeholder cleanup (toAbsolute inserts one to keep the
     // page from shifting when an in-flow host lifts to absolute). Removed
@@ -1110,7 +1114,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
   }
 
   /**
-   * Re-render a window's chrome (rebuilds the canvas + overlays + scrollbars).
+   * Re-render a window's chrome. The canvas and overlay controls keep their DOM identity (#533).
    *
    * RENDER FREQUENCY CONTRACT (audited 2026-05-28, verified in browser):
    * render() fires only on state changes that affect the painted pixels:
@@ -1158,8 +1162,6 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
 
   private commitRender(entry: ManagedWindow<Theme>, { win, collapsed }: { win: HTMLElement; collapsed: boolean }, notify = true): void {
     entry.commitEpoch++;
-    // Captured before the chrome controls are rebuilt below; restored once they exist again (#525).
-    const focusKey = this.focusedChromeControl(entry);
     const fresh = win.querySelector<HTMLCanvasElement>('canvas.scriptoscope-chrome');
     const pooled = entry.chromeCanvas;
     if (fresh && pooled) {
@@ -1198,60 +1200,74 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       syncAttributes(content, preparedContent);
       Object.assign(live, { _scriptoscopeComposed:
         (win as unknown as { _scriptoscopeComposed?: ComposedChrome })._scriptoscopeComposed });
-      for (const child of Array.from(live.childNodes)) if (child !== content) child.remove();
+      // Overlay controls stay mounted (never detached, so focus and assistive-technology identity
+      // survive) and stay last; the wiring below updates them in place (#533).
+      const overlays = new Set<Node>(entry.overlays?.values());
+      for (const child of Array.from(live.childNodes)) if (child !== content && !overlays.has(child)) child.remove();
+      const tail = Array.from(live.childNodes).find(child => overlays.has(child)) ?? null;
       let beforeContent = true;
       for (const child of Array.from(win.childNodes)) {
         if (child === preparedContent) { beforeContent = false; continue; }
-        live.insertBefore(child, beforeContent ? content : null);
+        live.insertBefore(child, beforeContent ? content : tail);
       }
       win = live;
     } else mount.replaceChildren(win);
-    this.overlayWidgets(entry, win);
-    this.wireMoveResize(entry, win);
+    // One signal per commit rebinds every overlay and frame listener, so none accumulate.
+    entry.frameAbort?.abort();
+    const signal = (entry.frameAbort = new AbortController()).signal;
+    this.wireMoveResize(entry, win, signal);
+    this.overlayWidgets(entry, win, signal);
     const viewport = win.querySelector<HTMLElement>('.scriptoscope-content');
     if (viewport) entry.contentPort.commit(entry.host, viewport, Math.max(1, Math.round(entry.opts.scale ?? 1)));
     else entry.contentPort.clear();
     // Themed scrollbar (replaces the native one) when the content overflows. Must run AFTER the window
     // is in the DOM — overflow can only be measured once the content is laid out.
     void this.wireScrollbars(entry, win, 0);
-    this.restoreChromeFocus(entry, focusKey);
     // Notify the persistence layer (or any other state-change consumer) that this window's
     // render-affecting state is now committed. Fired after the DOM is updated so callers see the
     // final state. Cheap branch if no listener is registered.
     if (notify) this.notifyChange(entry);
   }
 
-  /**
-   * Keyboard focus across re-renders (#525). Every commit rebuilds the shadow-DOM chrome controls
-   * (title widgets, move handle, grow box, scrollbars), so the focused one is detached and focus
-   * falls to <body>: later arrows scroll the page, a second Enter on Collapse does nothing. The one
-   * commit path records which control had focus, by its role class, and refocuses the equivalent new
-   * control. Only a window whose chrome already held focus is touched, so a retheme or another
-   * window's activation never steals focus. Consumer content is light DOM and keeps its own focus.
-   */
-  private static readonly FOCUS_KEYS = [
-    'scriptoscope-movehandle', 'scriptoscope-growbox',
-    'scriptoscope-titlewidget-close', 'scriptoscope-titlewidget-zoom', 'scriptoscope-titlewidget-collapse',
-    'scriptoscope-window-scrollbar-vertical', 'scriptoscope-window-scrollbar-horizontal',
-  ];
+  /** Overlay keys in tab order: title widgets, move handle, grow box, scrollbars. */
+  private static readonly OVERLAYS = ['titlewidget-close', 'titlewidget-zoom', 'titlewidget-collapse',
+    'movehandle', 'growbox', 'window-scrollbar-vertical', 'window-scrollbar-horizontal'];
 
-  private focusedChromeControl(entry: ManagedWindow<Theme>): string | undefined {
-    const active = entry.host.shadowRoot?.activeElement;
-    return active ? WindowManager.FOCUS_KEYS.find(k => active.classList.contains(k)) : undefined;
+  /**
+   * The window's overlay control for `key`, kept across renders like the pooled chrome canvas
+   * (#533). Rebuilding it on each activation, collapse or keyboard step dropped keyboard focus to
+   * <body> (#525) and made screen readers re-announce it. Callers update geometry and listeners in
+   * place; a missing control is created at its tab-order slot.
+   */
+  private overlay<K extends 'button' | 'div'>(entry: ManagedWindow<Theme>, win: HTMLElement, key: string, tag: K): HTMLElementTagNameMap[K] {
+    const overlays = (entry.overlays ??= new Map());
+    const kept = overlays.get(key);
+    if (kept?.parentNode === win) return kept as HTMLElementTagNameMap[K];
+    const el = document.createElement(tag);
+    const later = WindowManager.OVERLAYS.slice(WindowManager.OVERLAYS.indexOf(key) + 1)
+      .map(k => overlays.get(k)).find(o => o?.parentNode === win);
+    if (later) win.insertBefore(el, later); else win.appendChild(el);
+    overlays.set(key, el);
+    return el;
   }
 
-  private restoreChromeFocus(entry: ManagedWindow<Theme>, key: string | undefined): void {
-    const mount = entry.host.shadowRoot;
-    if (!key || !mount) return;
-    // `:not(canvas)`: the procedural-frame grow-box art canvas shares the growbox class (renderWindow).
-    const same = mount.querySelector<HTMLElement>(`.${key}:not(canvas)`);
-    // Runs after wireScrollbars, which rebuilds the bars synchronously once the content is laid out
-    // (only a pre-layout first render defers them to a later frame). A control that no longer exists
-    // (the grow box while collapsed, a scrollbar whose overflow is gone, a widget absent from the
-    // collapsed variant) falls back to the always-present move handle, so focus stays in this window
-    // and on a control whose arrow keys still act on it, instead of dropping to <body>.
-    const target = same ?? mount.querySelector<HTMLElement>('.scriptoscope-movehandle');
-    target?.focus({ preventScroll: true });
+  /** Remove an overlay this render no longer has (the grow box while shaded, a scrollbar without
+   *  overflow). If it held focus, the always-present move handle takes it, never <body>. */
+  private dropOverlay(entry: ManagedWindow<Theme>, key: string): void {
+    const el = entry.overlays?.get(key);
+    if (!el) return;
+    entry.overlays!.delete(key);
+    const focused = entry.host.shadowRoot?.activeElement === el;
+    el.remove();
+    if (focused) entry.overlays!.get('movehandle')?.focus({ preventScroll: true });
+  }
+
+  /** Pointer activation suppresses the browser's focus move (preventDefault), so move keyboard
+   *  focus into this window ourselves unless it is already there (#533). A pointer-driven move
+   *  shows no focus ring (`focusVisible`, ignored where unsupported). */
+  private claimFocus(entry: ManagedWindow<Theme>, el: HTMLElement): void {
+    if (!entry.host.contains((entry.host.getRootNode() as Document | ShadowRoot).activeElement))
+      el.focus({ preventScroll: true, focusVisible: false } as FocusOptions);
   }
 
   private notifyChange(entry: ManagedWindow<Theme>): void {
@@ -1263,7 +1279,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
    * content overflows (content-fit windows grow to fit, so they never reach here). We own the scroll:
    * `.scriptoscope-content` goes `overflow:hidden`, a gutter is reserved on the relevant side(s), and themed
    * scrollbar(s) are overlaid — dragging the thumb, the wheel, and arrow keys all set scrollTop /
-   * scrollLeft and repaint the thumb (two-way). Re-run on every render() (which rebuilds the subtree),
+   * scrollLeft and repaint the thumb (two-way). Re-run on every render() (bars are reused in place),
    * guarded against stale wins. `attempt` retries across a couple of frames for the first render, when
    * the host isn't in the document yet so nothing has layout. Detects + wires BOTH axes — vertical and
    * horizontal — independently, so a long-and-wide content gets both bars + a clear bottom-right corner.
@@ -1284,58 +1300,65 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     // slot) BEFORE re-wiring, so they can't accumulate across renders/re-themes.
     if (entry.scrollAbort) debug('scrollbar', `${entry.opts.title ?? ''} — tearing down previous bars`);
     entry.scrollAbort?.abort();
-    if (entry.collapsed) return;                          // shaded: no body to scroll
-    const composed = (win as unknown as { _scriptoscopeComposed?: ComposedChrome })._scriptoscopeComposed;
-    const content = win.querySelector('.scriptoscope-content') as HTMLElement | null;
-    if (!composed || !content) return;
-    // Palettes / utility windows / modals / dialogs never scrolled in classic Mac — they're sized to
-    // their content. Hard-clip them so neither a native nor a themed scrollbar can appear.
-    const type = entry.opts.windowType ?? '';
-    if (/utility|palette|floating|modal|dialog/.test(type)) {
-      (entry.contentEl ?? content).style.overflow = 'hidden';
-      return;
-    }
-    // The real scroll container is the declarative layer's slot (entry.contentEl, overflow:auto inside
-    // .scriptoscope-content) when present, else .scriptoscope-content itself for plain WindowManager windows.
-    const scrollEl = entry.contentEl ?? content;
-    // Reset gutters from a previous wire so the natural-size measurement isn't inflated.
-    scrollEl.style.paddingRight = '';
-    scrollEl.style.paddingBottom = '';
-    const ch = scrollEl.clientHeight;
-    const cw = scrollEl.clientWidth;
-    if (ch === 0 || cw === 0) {                           // not laid out yet (first render, pre-insert)
-      if (attempt < 4) requestAnimationFrame(() => { void this.wireScrollbars(entry, win, attempt + 1, epoch); });
-      return;
-    }
-    const needV = scrollEl.scrollHeight > ch + 1;
-    const needH = scrollEl.scrollWidth > cw + 1;
-    if (!needV && !needH) {
-      scrollEl.style.overflowY = '';
-      scrollEl.style.overflowX = '';
-      debug('scrollbar', `${entry.opts.title ?? ''} — no overflow, native behavior`);
-      return;
-    }
-    // Reserve the gutters BEFORE creating the bars so post-gutter scrollHeight/scrollWidth are correct.
-    scrollEl.style.overflowY = needV ? 'hidden' : '';
-    scrollEl.style.overflowX = needH ? 'hidden' : '';
-    const scale = Math.max(1, Math.round(entry.opts.scale ?? 1));
-    const gutter = 15 * scale;
-    if (needV) scrollEl.style.paddingRight = `${gutter}px`;
-    if (needH) scrollEl.style.paddingBottom = `${gutter}px`;
+    // Bars this wire does not need are dropped on every exit; needed ones are reused in place.
+    let needV = false, needH = false;
+    try {
+      if (entry.collapsed) return;                          // shaded: no body to scroll
+      const composed = (win as unknown as { _scriptoscopeComposed?: ComposedChrome })._scriptoscopeComposed;
+      const content = win.querySelector('.scriptoscope-content') as HTMLElement | null;
+      if (!composed || !content) return;
+      // Palettes / utility windows / modals / dialogs never scrolled in classic Mac — they're sized to
+      // their content. Hard-clip them so neither a native nor a themed scrollbar can appear.
+      const type = entry.opts.windowType ?? '';
+      if (/utility|palette|floating|modal|dialog/.test(type)) {
+        (entry.contentEl ?? content).style.overflow = 'hidden';
+        return;
+      }
+      // The real scroll container is the declarative layer's slot (entry.contentEl, overflow:auto inside
+      // .scriptoscope-content) when present, else .scriptoscope-content itself for plain WindowManager windows.
+      const scrollEl = entry.contentEl ?? content;
+      // Reset gutters from a previous wire so the natural-size measurement isn't inflated.
+      scrollEl.style.paddingRight = '';
+      scrollEl.style.paddingBottom = '';
+      const ch = scrollEl.clientHeight;
+      const cw = scrollEl.clientWidth;
+      if (ch === 0 || cw === 0) {                           // not laid out yet (first render, pre-insert)
+        if (attempt < 4) requestAnimationFrame(() => { void this.wireScrollbars(entry, win, attempt + 1, epoch); });
+        return;
+      }
+      needV = scrollEl.scrollHeight > ch + 1;
+      needH = scrollEl.scrollWidth > cw + 1;
+      if (!needV && !needH) {
+        scrollEl.style.overflowY = '';
+        scrollEl.style.overflowX = '';
+        debug('scrollbar', `${entry.opts.title ?? ''} — no overflow, native behavior`);
+        return;
+      }
+      // Reserve the gutters BEFORE creating the bars so post-gutter scrollHeight/scrollWidth are correct.
+      scrollEl.style.overflowY = needV ? 'hidden' : '';
+      scrollEl.style.overflowX = needH ? 'hidden' : '';
+      const scale = Math.max(1, Math.round(entry.opts.scale ?? 1));
+      const gutter = 15 * scale;
+      if (needV) scrollEl.style.paddingRight = `${gutter}px`;
+      if (needH) scrollEl.style.paddingBottom = `${gutter}px`;
 
-    const ac = new AbortController();
-    entry.scrollAbort = ac;
+      const ac = new AbortController();
+      entry.scrollAbort = ac;
 
-    // Wire each axis independently. The two bars share the abort signal (re-render aborts both) +
-    // the scroll element (wheel listener attached by whichever fires first; the other axis still
-    // gets shift+wheel and its own thumb drag). Bottom-right corner left blank so the grow box
-    // sits clear — vertical bar stops above the H gutter, horizontal bar stops before the V gutter.
-    debug('scrollbar', `${entry.opts.title ?? ''} — wiring`, {
-      vertical: needV, horizontal: needH,
-      content: `${cw}×${ch}`, scroll: `${scrollEl.scrollWidth}×${scrollEl.scrollHeight}`,
-    });
-    if (needV) this.wireScrollbarAxis('vertical', entry, win, scrollEl, composed, scale, ac.signal, { needV, needH });
-    if (needH) this.wireScrollbarAxis('horizontal', entry, win, scrollEl, composed, scale, ac.signal, { needV, needH });
+      // Wire each axis independently. The two bars share the abort signal (re-render aborts both) +
+      // the scroll element (wheel listener attached by whichever fires first; the other axis still
+      // gets shift+wheel and its own thumb drag). Bottom-right corner left blank so the grow box
+      // sits clear — vertical bar stops above the H gutter, horizontal bar stops before the V gutter.
+      debug('scrollbar', `${entry.opts.title ?? ''} — wiring`, {
+        vertical: needV, horizontal: needH,
+        content: `${cw}×${ch}`, scroll: `${scrollEl.scrollWidth}×${scrollEl.scrollHeight}`,
+      });
+      if (needV) this.wireScrollbarAxis('vertical', entry, win, scrollEl, composed, scale, ac.signal, { needV, needH });
+      if (needH) this.wireScrollbarAxis('horizontal', entry, win, scrollEl, composed, scale, ac.signal, { needV, needH });
+    } finally {
+      if (!needV) this.dropOverlay(entry, 'window-scrollbar-vertical');
+      if (!needH) this.dropOverlay(entry, 'window-scrollbar-horizontal');
+    }
   }
 
   /**
@@ -1369,7 +1392,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
 
     let value = maxScroll > 0 ? clamp01((vertical ? scrollEl.scrollTop : scrollEl.scrollLeft) / maxScroll) : 0;
 
-    const bar = document.createElement('div');
+    const bar = this.overlay(entry, win, `window-scrollbar-${axis}`, 'div');
     bar.className = `scriptoscope-window-scrollbar scriptoscope-window-scrollbar-${axis}`;
     Object.assign(bar.style, {
       position: 'absolute', zIndex: '3', lineHeight: '0', touchAction: 'none', cursor: 'default',
@@ -1389,7 +1412,6 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     signal.addEventListener('abort', () => {
       if (raf) cancelAnimationFrame(raf);
       raf = 0;
-      bar.remove();
     }, { once: true });
     const repaint = async (): Promise<void> => {
       if (!current()) return;
@@ -1415,8 +1437,6 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       else scrollEl.scrollLeft = value * maxScroll;
       scheduleRepaint();
     };
-
-    win.appendChild(bar);
 
     // Drag the thumb (pointer = touch + mouse + pen).
     const valueAtPointer = (e: PointerEvent): number => {
@@ -1501,13 +1521,11 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
    * Make the window movable (drag the title bar) and resizable (drag the grow box). Move is live
    * (CSS left/top — cheap); resize draws a classic ghost OUTLINE during the drag and re-renders the
    * window at the new content size on release (faithful to the Mac grow-box, and avoids an async
-   * re-render per mouse-move). Re-attached on every render(), so it tracks the current chrome.
+   * re-render per mouse-move). Rebound on every render(), so it tracks the current chrome.
    */
-  private wireMoveResize(entry: ManagedWindow<Theme>, win: HTMLElement): void {
-    entry.frameAbort?.abort();
-    const signal = (entry.frameAbort = new AbortController()).signal;
+  private wireMoveResize(entry: ManagedWindow<Theme>, win: HTMLElement, signal: AbortSignal): void {
     const composed = (win as unknown as { _scriptoscopeComposed?: ComposedChrome })._scriptoscopeComposed;
-    if (!composed) return;
+    if (!composed) { this.dropOverlay(entry, 'growbox'); this.dropOverlay(entry, 'movehandle'); return; }
     const scale = Math.max(1, Math.round(entry.opts.scale ?? 1));
     const host = entry.host;
 
@@ -1529,6 +1547,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       if (!inFrame(e)) return; // inside the content body — not a drag handle
       if (e.pointerType === 'mouse' && e.button !== 0) return; // only primary mouse button initiates drag
       e.preventDefault();
+      this.claimFocus(entry, moveBtn);
       void this.focus(entry);
       // Posture B handoff: in-flow hosts (the Posture-B default) need to
       // flip to `position: absolute` before drag math can write top/left.
@@ -1574,7 +1593,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     // top strip is usually 1-2px (still reachable but visually subtle) and tab-discoverability still
     // works. A11y purists may want a side variant for those palettes later; first alpha consumer can
     // tell us if it matters. (closes #169)
-    const moveBtn = document.createElement('button');
+    const moveBtn = this.overlay(entry, win, 'movehandle', 'button');
     moveBtn.type = 'button';
     moveBtn.className = 'scriptoscope-movehandle';
     moveBtn.setAttribute('aria-label', 'Move window');
@@ -1608,8 +1627,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       // single commit point.
       this.setPosition(host, x0 + dx, Math.max(0, y0 + dy));
       debug('drag', `keyboard move ${entry.opts.title ?? ''}`, { dx, dy, x: x0 + dx, y: y0 + dy });
-    });
-    win.appendChild(moveBtn);
+    }, { signal });
 
     // Double-click any frame edge to window-shade (the classic Mac WindowShade gesture, side palettes
     // included — the side title strip is the natural target for a vertical title bar). Ignores
@@ -1624,7 +1642,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
 
     // A shaded window has no content area to resize. Its bottom-right resize
     // overlay would cover the title widgets (and intercept the restore click).
-    if (entry.collapsed) return;
+    if (entry.collapsed) { this.dropOverlay(entry, 'growbox'); return; }
 
     // RESIZE — drag ONLY the bottom-right corner (the grow-box gripper), like classic Mac. NOT the
     // right/bottom edges: those run the length of the borders where the scrollbar tracks sit, and a
@@ -1636,7 +1654,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     const minContentW = Math.max(40, 110 - (composed.fullWidth - (entry.opts.width ?? 240)));
     const cw = (Math.max(7, composed.frame.right) + (composed.growBox?.w ?? 15)) * scale;
     const ch = (Math.max(7, composed.frame.bottom) + (composed.growBox?.h ?? 15)) * scale;
-    const corner = document.createElement('button');
+    const corner = this.overlay(entry, win, 'growbox', 'button');
     corner.type = 'button';
     corner.className = 'scriptoscope-growbox';
     corner.setAttribute('aria-label', 'Resize window');
@@ -1672,12 +1690,13 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       host.dispatchEvent(new CustomEvent('scriptoscope:userresize', {
         detail: { w: nw, h: nh }, bubbles: true,
       }));
-    });
+    }, { signal });
     // Swallow dblclick on the gripper too, else "inFrame at the bottom-right" would shade-on-dblclick.
-    corner.addEventListener('dblclick', (e) => { e.stopPropagation(); });
+    corner.addEventListener('dblclick', (e) => { e.stopPropagation(); }, { signal });
     corner.addEventListener('pointerdown', (e) => {
       if (e.pointerType === 'mouse' && e.button !== 0) return;
       e.preventDefault(); e.stopPropagation();
+      this.claimFocus(entry, corner);
       void this.focus(entry);
       // Posture-B handoff: an in-flow host stays at parent block width
       // even after the chrome canvas inside it shrinks — visually the
@@ -1718,14 +1737,14 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
         }));
       };
       document.addEventListener('pointermove', mv); document.addEventListener('pointerup', up);
-    });
-    win.appendChild(corner);
+    }, { signal });
   }
 
   /** Overlay transparent hit buttons for any title-bar widget with a handler. */
-  private overlayWidgets(entry: ManagedWindow<Theme>, win: HTMLElement): void {
+  private overlayWidgets(entry: ManagedWindow<Theme>, win: HTMLElement, signal: AbortSignal): void {
     const composed = (win as unknown as { _scriptoscopeComposed?: ComposedChrome })._scriptoscopeComposed;
-    if (!composed) return; // baseline (procedural) window — no cicn widget rects
+    // Widgets this render has no button for (no handler, or absent from this chrome) are dropped below.
+    const unwired = new Set<TitleWidget>(['close', 'zoom', 'collapse']);
     const slug = this.effectiveSlug(entry);
     const scale = Math.max(1, Math.round(entry.opts.scale ?? 1));
     // Per-widget action: an explicit handler wins; otherwise collapse/zoom get a built-in (window-shade
@@ -1756,10 +1775,12 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     const currentChrome = (): boolean => this.windows.includes(entry)
       && entry.host.shadowRoot?.firstChild === win
       && (win as unknown as { _scriptoscopeComposed?: ComposedChrome })._scriptoscopeComposed === composed;
-    for (const hit of titleWidgetHits(entry.theme, slug, composed, scale, entry.active ? 'active' : 'inactive')) {
+    // No composed chrome (baseline procedural window): no cicn widget rects.
+    for (const hit of composed ? titleWidgetHits(entry.theme, slug, composed, scale, entry.active ? 'active' : 'inactive') : []) {
       const handler = cb[hit.role];
       if (!handler) continue;
-      const btn = document.createElement('button');
+      unwired.delete(hit.role);
+      const btn = this.overlay(entry, win, `titlewidget-${hit.role}`, 'button');
       btn.type = 'button';
       btn.className = `scriptoscope-titlewidget scriptoscope-titlewidget-${hit.role}`;
       // Friendlier labels than the bare role string ("close" → "Close window" etc.) so screen
@@ -1781,10 +1802,10 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
         cursor: 'default', zIndex: '5',
       } satisfies Partial<CSSStyleDeclaration>);
       // HT7: inside the rect, only the pressed strip's mask hits; elsewhere the event passes to the window.
-      const onWidget = (e: MouseEvent): boolean => !composed.hitWidget
+      const onWidget = (e: MouseEvent): boolean => !composed?.hitWidget
         || composed.hitWidget(Math.floor((hit.rect.x + e.offsetX) / scale), Math.floor((hit.rect.y + e.offsetY) / scale)) === hit.role;
       // A keyboard or assistive-technology click (detail 0) has no pointer position: it always acts (DECISIONS #12).
-      btn.addEventListener('click', (e) => { if (e.detail !== 0 && !onWidget(e)) return; e.stopPropagation(); if (currentChrome()) handler(); });
+      btn.addEventListener('click', (e) => { if (e.detail !== 0 && !onWidget(e)) return; e.stopPropagation(); if (currentChrome()) handler(); }, { signal });
       if (chrome && cctx) {
         let pressedCanvas: HTMLCanvasElement | null | undefined;
         let cacheEpoch = -1, pressEpoch = -1, pressGeneration = 0;
@@ -1819,12 +1840,12 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
           normalSnap = null;
         };
         // stopPropagation so the window's mousedown→focus handler doesn't re-render (which would
-        // destroy this button mid-press); a widget press shouldn't require focusing the window first.
-        btn.addEventListener('pointerdown', (e) => { if (!onWidget(e)) return; e.preventDefault(); e.stopPropagation(); void press(); });
-        btn.addEventListener('pointerup', release);
-        btn.addEventListener('pointerleave', release);
+        // rebind this button mid-press); a widget press shouldn't require focusing the window first.
+        btn.addEventListener('pointerdown', (e) => { if (!onWidget(e)) return; e.preventDefault(); e.stopPropagation(); void press(); }, { signal });
+        btn.addEventListener('pointerup', release, { signal });
+        btn.addEventListener('pointerleave', release, { signal });
       }
-      win.appendChild(btn);
     }
+    for (const role of unwired) this.dropOverlay(entry, `titlewidget-${role}`);
   }
 }

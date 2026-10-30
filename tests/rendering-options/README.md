@@ -288,6 +288,18 @@ remain outside these title rows. Keyboard activation of title widgets
 widget top-left strip pixels are mask-clear. No image
 or golden is added.
 
+Window overlay controls (title widgets, move handle, grow box, themed
+scrollbars) keep their DOM identity across re-renders (#533).
+`window-overlay-identity.spec.mjs` (source/built, windows-95 and platinum-8)
+marks each control, then checks it is still the same element after
+activation, resize, retheme, overlapping renders, keyboard move/resize steps,
+Collapse and Zoom, with no focusout/focusin. One arrow press still moves or
+resizes exactly one step, so listeners are not stacked across renders. A grow
+box that vanishes while shaded hands focus to the move handle. A pointer drag
+or grow-box resize on another window moves keyboard focus into that window,
+with no focus-visible ring in Chromium. `window-focus-rerender.spec.mjs` keeps
+the #525 focus contract.
+
 ### Checkable source rules
 
 `checkable-rules.mjs` transcribes the 2.3.1 checkbox/radio lanes from
