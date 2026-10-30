@@ -271,6 +271,11 @@ look smooth:
    - **Progress:** keep the frame's `cinf` corner equal to its side, or columns
      between the side band and the fill stay unpainted. The barber-pole steps
      are one pattern shifted by the same amount each step, so the cycle loops.
+   - **Tab panes:** Kaleidoscope's own control panel draws group titles and
+     labels on a tab pane in the colour at the pane's `textPixel`. Keep it on a
+     different pixel from `bgPixel` (the corpus uses (6,6) and (4,4)), or the
+     labels vanish. The checker now flags a `cinf` whose text and background
+     sample the same colour.
    - **Menus:** each menu image has a same-id `cinf`. The fill and text
      colours are sampled from the image's middle, which the engine never
      copies. Kaleidoscope adds its own 2px black shadow on the right of an
@@ -344,6 +349,7 @@ fires on an original scheme is at most a warning.
 | warning | a title bar too short for the title (title size is `clamp(content.top − 6, 8, 13)`) |
 | warning | a menu, tab, Finder header or progress image without its same-id `cinf` |
 | warning | a progress frame `cinf` whose corner is larger than its side |
+| warning | a `cinf` whose text and background sample the same colour (text on that piece is invisible) |
 
 It also prints the colours the engine *will* sample, such as title text and
 button labels, so you can confirm your hidden swatches.
