@@ -121,7 +121,8 @@ for(const mode of ['source','built']) test(`${mode}: sampled mask holes preserve
       const {sampledBandIcon,sampledBandInfo}=await import('/tests/decoder-fixtures/sampled-bands.mjs');
       const {greenBodySampleIcon,greenBodySampleInfo}=await import('/tests/rendering-options/sampled-body-input.mjs');const cinf=greenBodySampleInfo();
       // Ordinary face is a retained data URL; only the actual derived blob is
-      // revoked. A later public compose must attempt decode again, not retain it.
+      // revoked. A later public compose must reject at the theme lifetime (#589)
+      // before any decode, so no browser image cache can serve the revoked raster.
       const t=await api.loadKaleidoscopeScheme(forkOf([{type:'cicn',id:-10239,name:'face',data:greenBodySampleIcon()},{type:'cinf',id:-10239,data:cinf}]),{
         assetUrlFactory:async(rgba,w,h,path)=>{
           const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(rgba),w,h),0,0);
@@ -146,7 +147,7 @@ for(const mode of ['source','built']) test(`${mode}: sampled mask holes preserve
     },mode);
     expect(result.sourceBackground).toEqual({rgb16:[0,65535,0],displayRgb:[0,255,0]});expect(result.carriedOverride).toEqual([0,255,0,255]);
     expect(result.body).toEqual([0,255,0,255]);expect(result.band).toEqual([48,48,48,255]);expect(result.corner).toEqual([255,0,0,255]);
-    expect(result.cachedDecodes).toBe(1);expect(result.companionDecodes).toBe(2);expect(result.revokedCompanion).toBe(1); // Firefox may retain its own decoded blob after revocation
+    expect(result.cachedDecodes).toBe(1);expect(result.companionDecodes).toBe(1);expect(result.after).toEqual({resolved:false,name:'AbortError'});expect(result.revokedCompanion).toBe(1);
   }catch(error){await attachCase(page,info,{mode,result},error);throw error;}
   await attachObservations(info,'sampled-bands',`${mode}-mask-disposal`,{mode,result});
 });
