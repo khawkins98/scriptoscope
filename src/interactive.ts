@@ -1627,7 +1627,11 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       const epoch = paintEpoch;
       try {
         const opts = { orientation: axis, length: Math.round(barLenCss / scale), value };
-        const themed = await composeScrollbarFrame(entry.theme, pressed ? { ...opts, state: 'pressed', pressedPart: pressed } : opts);
+        // State tier (scrollbar §4.2 TR1-TR4): an inactive window's bars draw tier 0 (#594). Each
+        // activation flip re-renders and re-wires, repainting the bar in place. Inactive wins
+        // over a press, as in TR1, though an inactive window holds none (see pointerdown).
+        const themed = await composeScrollbarFrame(entry.theme, !entry.active ? { ...opts, state: 'inactive' }
+          : pressed ? { ...opts, state: 'pressed', pressedPart: pressed } : opts);
         if (!current() || epoch !== paintEpoch) return;
         painted = themed;
         paintedScrollbars.set(bar, themed);
@@ -1682,6 +1686,9 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       e.preventDefault(); e.stopPropagation();
       if (e.pointerType === 'mouse' && e.button !== 0) return;
       endPress?.();
+      // A first press on an inactive window only activates it, as a classic first click (#594).
+      // The inactive frame has no parts, and the activation re-wire would end a press anyway.
+      if (!entry.active) { this.claimFocus(entry, bar); void this.focus(entry); return; }
       // Nothing painted yet: no part to press. The procedural fallback (no frame) drags.
       const part = painted ? paintedPartAt(bar, e, painted) : bar.querySelector('canvas') ? 'thumb' : null;
       if (!part) return;                                   // part 0: outside the control
