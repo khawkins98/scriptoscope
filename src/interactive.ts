@@ -1081,8 +1081,17 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
    *  Period-Mac analogy: a dragged window leaves a visible 'origin' gap on the desktop.
    *  The placeholder is removed in WindowManager.remove (window unmount). */
   toAbsolute(host: HTMLElement): { x: number; y: number } {
-    if (host.style.position === 'absolute' || host.style.position === 'fixed') {
-      return { x: parseFloat(host.style.left) || 0, y: parseFloat(host.style.top) || 0 };
+    // Already out of flow, inline or by consumer CSS (#569): no handoff, no placeholder. Start
+    // from where it sits, not (0, 0): an absolute or fixed box resolves left/top to used px in its
+    // containing block's CSS pixels, also for %, auto (static position) and under a transform.
+    // Pin the position inline so setPosition doesn't turn a class-fixed host absolute.
+    const cs = getComputedStyle(host);
+    const inline = host.style.position;
+    if (inline === 'absolute' || inline === 'fixed' || cs.position === 'absolute' || cs.position === 'fixed') {
+      if (!inline) host.style.position = cs.position;
+      const at = (used: string, own: string, offset: number, margin: string): number =>
+        used.endsWith('px') ? parseFloat(used) : parseFloat(own) || offset - (parseFloat(margin) || 0);
+      return { x: at(cs.left, host.style.left, host.offsetLeft, cs.marginLeft), y: at(cs.top, host.style.top, host.offsetTop, cs.marginTop) };
     }
     const anc = host.parentElement ? findPositionedAncestor(host) : null;
     const offset = offsetInContainingBlock(viewportFrame(host).origin, anc);
