@@ -84,8 +84,11 @@ the diagnostic page restyle (#252, #280) moved the panel and grew it 13-18 px, a
 the engine-driver migrations since 2026-10-18 changed scrollbars, progress bars,
 checkables, push buttons, default rings and window frames. The PR records the
 per-scene review. These are regression fixtures of current output, not fidelity
-evidence; in particular the five built-in-frame schemes currently show a blank
-On/Off/OK row (see the #599 PR).
+evidence. In the five built-in-frame schemes (apple-platinum-2, black-platinum,
+platinum-8, slimes, system7-nostalgia-silver) the dialog's On/Off/OK row is the
+diagnostic page's own fallback (segmented toggle and baseline button), not
+scheme-rendered buttons: those schemes ship push faces without a cinf, which
+`composeButton` reports as unavailable (#608).
 
 The 2026-10-18 refresh used Chromium 156.0.8078.4 on macOS after the whole-tile
 allocation correction and migration of the scene to `diagnostic.html`.
