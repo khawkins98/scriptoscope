@@ -1,0 +1,267 @@
+name: Release gate
+# The release tier (#598, DECISIONS #14). ci.yml is the PR tier and runs on every
+# pull request; this workflow is the heavier set that must be green on the exact
+# commit before it is tagged (CONTRIBUTING "Cutting a release"). It reuses the
+# extended matrix through workflow_call instead of copying it.
+on:
+  workflow_dispatch:
+  # Weekly, Monday 05:00 UTC. A red scheduled run opens or updates one
+  # `release-gate` issue; the next green one closes it. It does not block merges.
+  schedule:
+    - cron: '0 5 * * 1'
+  # GitHub filters pull_request by base branch only; the `scope` job below
+  # limits PR runs to heads named release/*.
+  pull_request:
+    branches: [main]
+  # Final confirmation on the tagged commit.
+  push:
+    tags: ['v*']
+
+concurrency:
+  group: release-gate-${{ github.ref }}
+  # Only superseded PR pushes are cancelled; a scheduled, manual or tag run
+  # always finishes so its result can be cited.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+# Least privilege: nothing by default, each job asks for what it needs.
+permissions: {}
+
+jobs:
+  scope:
+    name: Release scope
+    if: ${{ github.event_name != 'pull_request' || startsWith(github.head_ref, 'release/') }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - run: echo "Release gate for ${{ github.event_name }} on ${{ github.ref }} at ${{ github.sha }}"
+
+  # Chromium DPR 1 and 2, Firefox and WebKit, every spec, 3 shards each, plus the
+  # coverage parity job (#583).
+  extended:
+    name: Extended
+    needs: [scope]
+    permissions:
+      contents: read
+    uses: ./.github/workflows/rendering-extended.yml
+    with:
+      browsers: all
+
+  goldens:
+    name: Pinned-container golden verify
+    needs: [scope]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    # The same image digest the goldens were recorded in. The goldens profile adds
+    # --disable-partial-raster itself (tests/rendering-options/playwright.config.mjs).
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble@sha256:06a9939e57531807f8d5fd76ce44b53165ffb7d7501d87ab10e285c20b1e971f
+      options: --ipc=host
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run build:themes
+      - run: npm run test:rendering:goldens
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: release-goldens-${{ github.run_attempt }}
+          path: |
+            test-results/rendering-options/
+            playwright-report/rendering-options/
+            test-results/rendering-failure-archive/
+          if-no-files-found: ignore
+          retention-days: 14
+
+  checks:
+    name: Decoded theme lint and package consumer
+    needs: [scope]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble@sha256:06a9939e57531807f8d5fd76ce44b53165ffb7d7501d87ab10e285c20b1e971f
+      options: --ipc=host
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      # The package evidence records the commit; the container user differs from
+      # the checkout owner.
+      - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+      - run: npm run build:themes
+      # lint:themes re-decodes with dist/, so build first.
+      - run: npm run build
+      - name: Theme lint, strict and re-decoded
+        run: npm run lint:themes -- --strict --decoded
+      - name: Installed package consumer contract
+        run: npm run test:package
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: release-package-consumer-${{ github.run_attempt }}
+          path: test-results/rendering-evidence/package-consumer/
+          if-no-files-found: ignore
+          retention-days: 14
+
+  # Report-only until #599: all 18 committed scene fixtures predate the
+  # diagnostic restyle and the engine migrations, so a fresh capture drifts on
+  # every theme. The job stays green but posts the drift count and a warning in
+  # every run. When #599 lands, drop continue-on-error and add `scenes` to the
+  # gate's required list.
+  scenes:
+    name: Scene fixtures (report-only, #599)
+    needs: [scope]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble@sha256:06a9939e57531807f8d5fd76ce44b53165ffb7d7501d87ab10e285c20b1e971f
+      options: --ipc=host
+    timeout-minutes: 20
+    outputs:
+      outcome: ${{ steps.verify.outcome }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run build:themes
+      - name: verify:scenes
+        id: verify
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          npm run verify:scenes 2>&1 | tee scenes.log
+      - name: Report
+        if: always()
+        shell: bash
+        env:
+          OUTCOME: ${{ steps.verify.outcome }}
+        run: |
+          {
+            echo "### verify:scenes (report-only, #599)"
+            echo
+            echo "Outcome: **$OUTCOME**. Not part of the gate until #599 regenerates the fixtures."
+            echo
+            echo '```'
+            grep -E 'drifted|changed|missing-|✗' scenes.log || echo 'no verify:scenes output'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "$OUTCOME" != success ]; then
+            echo "::warning title=verify:scenes drift (report-only)::verify:scenes failed; excluded from the release gate until #599"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: release-scenes-fresh-${{ github.run_attempt }}
+          path: .tmp/visual-baselines/fresh/
+          if-no-files-found: ignore
+          retention-days: 14
+
+  # CONTRIBUTING: every release reports the runtime size trend against the
+  # previous release tag.
+  trend:
+    name: Runtime size trend
+    needs: [scope]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: loc:src against the previous release tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --force --tags origin
+          # On a tag push, HEAD is the new release; measure against the one before.
+          from=HEAD
+          if [ "$GITHUB_REF_TYPE" = tag ]; then from=HEAD^; fi
+          prev="$(git describe --tags --abbrev=0 --match 'v[0-9]*' "$from")"
+          table="$(node scripts/src-loc.mjs HEAD --base "$prev")"
+          echo "$table"
+          {
+            echo "### Runtime size versus $prev"
+            echo
+            echo "\`npm run loc:src -- HEAD --base $prev\` at \`$(git rev-parse --short HEAD)\`:"
+            echo
+            echo "$table"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  gate:
+    name: Release gate
+    needs: [scope, extended, goldens, checks, scenes, trend]
+    if: ${{ always() && needs.scope.result == 'success' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: All required parts passed
+        shell: node {0}
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+          SHA: ${{ github.sha }}
+        run: |
+          const fs = require('node:fs');
+          const needs = JSON.parse(process.env.RESULTS);
+          // scenes is report-only until #599.
+          const required = ['extended', 'goldens', 'checks', 'trend'];
+          const failed = required.filter(name => needs[name].result !== 'success');
+          const rows = Object.entries(needs).filter(([name]) => name !== 'scope').map(([name, job]) =>
+            `| ${name} | ${job.result}${name === 'scenes' ? ` (report-only, #599; verify:scenes ${job.outputs?.outcome || 'not run'})` : ''} |`);
+          const summary = [`### Release gate: ${failed.length ? 'FAILED' : 'passed'} at \`${process.env.SHA}\``, '',
+            '| part | result |', '|---|---|', ...rows, ''].join('\n');
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary + '\n');
+          console.log(summary);
+          if (failed.length) { console.error(`not passed: ${failed.join(', ')}`); process.exit(1); }
+
+  # Scheduled runs (and manual runs on main) keep one tracking issue in step
+  # with the gate. Only this job can write issues.
+  track:
+    name: Track scheduled result
+    needs: [gate]
+    if: ${{ always() && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')) && (needs.gate.result == 'success' || needs.gate.result == 'failure') }}
+    runs-on: ubuntu-24.04
+    permissions:
+      issues: write
+    timeout-minutes: 5
+    steps:
+      - name: Open, update or close the release-gate issue
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RESULT: ${{ needs.gate.result }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          SHA: ${{ github.sha }}
+          EVENT: ${{ github.event_name }}
+        run: |
+          set -euo pipefail
+          open="$(gh issue list --label release-gate --state open --json number --jq '.[0].number // empty')"
+          if [ "$RESULT" = failure ]; then
+            body="The release gate failed on \`main\` at \`$SHA\` ($EVENT): $RUN_URL. The next release is blocked until a run is green; merges are not."
+            if [ -n "$open" ]; then
+              gh issue comment "$open" --body "$body"
+            else
+              gh issue create --title "Release gate failing on main" --label release-gate --body "$body"$'\n\n'"Part of #598. This issue closes itself on the next green scheduled run."
+            fi
+          elif [ -n "$open" ]; then
+            gh issue close "$open" --comment "Green again at \`$SHA\` ($EVENT): $RUN_URL"
+          fi
