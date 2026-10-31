@@ -4,6 +4,8 @@ This is the long-form companion to the README's quick-start. It exists for the t
 
 If you only want to drop Scriptoscope onto a static HTML page and not touch it again, you probably don't need this doc. The defaults are tuned for the common case.
 
+For what users can do with a window once it is mounted (activation, moving, resizing, widgets, scroll bars, controls, modals) and every event you can hook, see the [interaction reference](./interaction.md).
+
 **Contents**
 - [Mobile + responsive](#mobile--responsive)
 - [Content Security Policy](#content-security-policy)

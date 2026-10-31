@@ -207,6 +207,8 @@ Want more? Drop any `.sit`/`.rsrc` you've grabbed from [Mac Themes Garden](https
 | `data-scriptoscope-icon="<name>"` | `<img>` or `<span>` | Render a scheme-resolved Finder icon by named key (`folder`, `system-folder`, `document`, `prefs`, etc.). Re-resolves on every retheme so the icon follows the active scheme. |
 | `data-scriptoscope-icon-id="<id>"` | `<img>` or `<span>` | Raw Apple resource id (e.g. `-3999`) — bypasses the named-key lookup for power users. |
 
+For what each window and control does once promoted (pointer, keyboard and touch behaviour, and every event you can listen for), see the **[interaction reference](./docs/interaction.md)**.
+
 ### Explicit page host options
 
 ```ts
@@ -702,7 +704,7 @@ The same runtime exposed as markup. Put `data-scriptoscope-window` on a plain `<
 
 **Runtime theme switching**: any `<select data-scriptoscope-theme-switcher>` re-skins every window + control live, the Kaleidoscope way.
 
-**Gestures**: drag the title bar (or any frame edge for side-titled palettes); drag the gripper to resize; click the **collapse** box or **double-click** the title bar to window-shade; click the **zoom** box to grow-to-fit; click a window to focus it.
+**Gestures**: drag the title bar (or any frame edge for side-titled palettes); drag the gripper to resize; click the **collapse** box or **double-click** the title bar to window-shade; click the **zoom** box to grow-to-fit; click a window to focus it. Keyboard equivalents, scroll-bar behaviour and the full event list: [docs/interaction.md](./docs/interaction.md).
 
 Full design + the feature-rich pass: [`docs/superpowers/specs/2026-05-27-declarative-windows-design.md`](./docs/superpowers/specs/2026-05-27-declarative-windows-design.md). Live: <https://khawkins98.github.io/scriptoscope/>.
 
@@ -712,6 +714,7 @@ Beyond the bundled corpus, the demo has a **drop-zone**: drag a Kaleidoscope the
 
 ## Documents
 
+- **[Interaction reference](./docs/interaction.md)** — what users can do with a window and its controls (activation, focus, moving, resizing, title widgets, scroll bars, controls, modals), every `scriptoscope:*` event, keyboard equivalents, and touch and browser differences.
 - **[Measured simplification](./docs/measured-simplification.md)** — our approach to reducing runtime complexity and execution cost through consolidation, prepared inputs and differential validation; includes a reusable optimization prompt.
 
 - **[`llms.txt`](./llms.txt)** ([live](https://khawkins98.github.io/scriptoscope/llms.txt)) — discovery file for LLM agents helping a consumer integrate. Curates pointers to README + integration docs + recipes + API surface so an agent has one canonical entry point. Follows the [llmstxt.org](https://llmstxt.org/) standard. Drop the live URL into your AI assistant's context if you're integrating Scriptoscope and want better answers.
