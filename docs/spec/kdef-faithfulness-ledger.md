@@ -56,6 +56,7 @@ The behavioral reference is [window-widgets.md](engine/window-widgets.md).
 | `0x10320` | Code-18 scaled blit | `engine/qd/scale.ts` `scaleBlit` | Scaling policy is declared in qd-primitives; it does not establish original scaled-pixel fidelity. |
 | Structure rect from cicn | Frame/content extent | `frameFromBody`, `drawableExtent` in `composeChrome.ts` | Transparent-tail handling remains a runtime policy guarded by theme lint. |
 | Side without recipe | No cell draw | `layoutWindow` / `composeWindowChrome` skip absent sides | No invented seam fill; unpainted screen content is outside the decoded Q3 claim. |
+| `0x3df8`, `0x6390..0x6580`, `0x3f38..0x3f66` | Structure region and outer hit, SR5–SR12 / WH1 ([hit-regions](engine/hit-regions.md)) | None yet: the managed host's whole box takes every press | ✗ interim divergence: see `host→decode` below. The policy is [hit-regions §9](engine/hit-regions.md#9-web-host-policy-597). |
 
 ## Data-shape assumptions (enforced by `lint:themes`)
 
@@ -97,6 +98,16 @@ Each entry below tags its divergence direction explicitly:
   - **What we do:** the engine implements HT2 as decoded, and the trace records it. But `renderWindow` and the declarative layer keep each widget a real, focusable button on inactive windows too. It can be clicked, and reached and activated from the keyboard.
   - **Why:** on the web a window is a region of the page, not the frontmost app window. Making a background window's controls inert would take them out of the tab order and away from screen readers, for no visual gain. Keyboard and assistive-technology users would have to activate a window before they could close it.
   - **Scope:** this only covers whether the widget responds. What the widgets look like still follows the decode: at rest, close and collapse art is part of the window's own (active or inactive) template pixels; the only widget draw gated on the active state is the partial-zoom widget (WD5) (WD rows). Any visual or behavioural change beyond keeping the button operable needs its own entry here.
+
+### host→decode
+
+- **The `host→decode` direction:** the decode says X. The web runtime does Y because a browser page is not the Mac Window Manager. Each entry names the rule, what we do instead, why, and whether the divergence is temporary.
+- **Transparent frame pixels keep the click (temporary, until [hit-regions §9](engine/hit-regions.md#9-web-host-policy-597) ships)** ([#597](https://github.com/khawkins98/scriptoscope/issues/597)).
+  - **The decode:** in `engine/hit-regions.md`, SR10 and WH1 say a recipe window's structure region excludes frame pixels whose template mask bit is clear, and `wHit` answers `wNoHit` (0) there. In #540, real Kaleidoscope on System 7.5.5 passed such a click to the desktop beneath. That is the Window Manager half, U1.
+  - **What we do now:** the managed host's whole chrome box receives every press. A press on a transparent frame pixel activates or drags the window and never reaches the page beneath.
+  - **Measured impact (U7, issue #597, content 320 × 200):** 7 of the 13 recipe themes have document-window gaps large enough to click on purpose. Examples: dolphin-som 12.3% of the box, animals 12.6%, monkey-paradise 10.2%. `popup-window` has an 8–17% band in 10 of 13. Four of the five #540 schemes are affected, up to 18.4% (brickworks).
+  - **Status:** temporary. Maintainer decision 2026-10-31: pass-through is on by default for recipe windows, with an opt-out (`data-scriptoscope-hit="box"`), through a CSS `clip-path` built from the decoded region (hit-regions §9). When §9 ships, replace this entry with the permanent residue below.
+  - **Permanent residue once §9 ships (by design, hit-regions §9):** the built-in frame keeps its box, so its two 2-px shadow notches answer the window (HP4). A window whose chrome template is missing keeps its box, not an empty region (HP7). Consumers may opt out to the box (HP10, HP11). The region follows the drawn template on every activation flip, though U2 is open (HP23). A press that passes through to page content does not deactivate the active window (HP35). The bare `renderWindow()` element is not clipped (HP2).
 
 ### decode→reference
 

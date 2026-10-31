@@ -3,6 +3,7 @@
 Issue [#597](https://github.com/khawkins98/scriptoscope/issues/597), 2026-10-31.
 Spec writer: lane 597 (decode researcher). Independent review: Tier 1 REQUEST CHANGES at `5aba2b9a` (decode confirmed, five spot-checks matched; citation, propagation and test-hook asks addressed in revision 2, 2026-10-31); **APPROVED** at `6d02a4e0` (Tier 1 re-check of the changed claims, PR #610). `kdef231-reference.md` still awaits the pinned-hash correction (evidence E1).
 Evidence appendix: [`hit-regions.evidence.md`](./hit-regions.evidence.md). Implementers must not read it.
+Revision 3 (2026-10-31, spec writer lane 597p): adds §9, the web host policy, from the maintainer's #597 decisions. §0–§7 (decode) are unchanged except U7's status; §9 is policy, not decode.
 
 ## 0. Answer
 
@@ -25,6 +26,10 @@ Evidence appendix: [`hit-regions.evidence.md`](./hit-regions.evidence.md). Imple
    `strucRgn`, or with `wNoHit`, is Apple behaviour, not kDEF behaviour (OS1–OS4).
    The click-through observed in #540 is consistent with these rows. The Apple
    pages consulted do not state `FindWindow`'s search order (U1).
+5. **Web policy (not decode).** Recipe windows pass clicks on excluded frame
+   pixels through to the page by default, via a CSS `clip-path` built from the
+   structure region. Consumers can opt out with `data-scriptoscope-hit="box"`.
+   The built-in frame keeps its box (§9).
 
 ## 1. Unit id and scope
 
@@ -243,9 +248,11 @@ exclusive, global coordinates. "Outset 1" grows each side by 1.
   unverified). Settle by finding a load path that yields no template.
 - **U6.** The grow-box-in-frame predicate used by CN3 is only partly traced
   (`0x489c`). It affects the content region, not the structure region.
-- **U7.** Corpus impact is unmeasured: how many frame-cell pixels per recipe
-  scheme have a clear mask. Measure with a script over the 13 recipe bundles
-  (and the authored schemes in #540) before choosing a policy.
+- **U7.** *Measured 2026-10-31 (issue #597).* At content 320 × 200, 7 of the
+  13 recipe themes have document-window gaps large enough to click on purpose
+  (animals, monkey-paradise, dolphin-som, evolution, 1990, beos-r503, 1984).
+  `popup-window` has an 8–17% band in 10 of 13. Four of the five #540 schemes
+  are heavily affected. The built-in frame has 4 px. Policy: §9.
 - **U8.** A scheme-supplied `WDEF` −14330 code resource replaces both families'
   behaviour; its regions are whatever that code computes. The slot-3 gate checks
   `wnd#` first and the five recipe-less bundles ship no `WDEF`, so no corpus
@@ -285,8 +292,8 @@ Today the whole template box belongs to the window: a press on a transparent
 frame pixel starts a drag and never reaches the page (#597;
 `docs/authoring-exotic-frames.md` R15/R16 on the #540 branch). The decode says
 classic excludes those pixels from the window (SR10, WH1). This is now a decoded
-divergence, not an untraced one. Policy options (this lane does not choose; the
-implementation is a later lane with a PM decision and a ledger row):
+divergence, not an untraced one. Policy options. **Chosen 2026-10-31: option 3,
+with region mode on by default for recipe windows and a box opt-out; see §9.**
 
 1. **Status quo, documented.** Keep the rectangular hit box and record a ledger
    divergence citing SR10/WH1. Cheapest; the tall-ornament schemes keep blocking
@@ -328,3 +335,175 @@ Whichever option is chosen must keep: keyboard focus and keyboard move/resize
 unaffected; title widgets' existing mask hit (window-widgets HT8, authoring R24);
 the grow overlay (window-widgets WM381) with T9's order inside the original grow
 rect; `C` fully hittable (SR11); and an opt-out for consumers.
+
+## 9. Web host policy (#597)
+
+**This section is policy, not decode.** §0–§7 state what Kaleidoscope 2.3.1
+does. §9 states what the Scriptoscope web runtime does with that, and why.
+Every row cites the decode rows it implements or departs from. Row ids: `HP`
+(host policy rules), `HPT` (policy test hooks). They never reuse §4 or §7 ids.
+
+Basis: maintainer decisions on #597, 2026-10-31.
+
+1. Clicks on frame pixels outside the structure region pass through to the page.
+   This is on by default for recipe (`wnd#`) windows.
+2. Consumers can opt out to the box hit area.
+3. The mechanism is a CSS `clip-path` built from the decoded structure region
+   (§8 option 3).
+4. A ledger divergence records the gap until this ships
+   (`kdef-faithfulness-ledger.md`, `host→decode`).
+
+U7 is measured (issue #597): with the box hit area, 7 of the 13 recipe themes
+have frame gaps large enough to click on purpose in the document window, and
+`popup-window` has an 8–17% transparent band in 10 of 13.
+
+### 9.1 Modes and scope
+
+| id | rule | basis |
+|---|---|---|
+| HP1 | Every managed window has a requested hit mode and an effective hit mode, each `region` or `box`. **`box`**: the window's whole chrome box receives every press, as before #597. **`region`**: a point hits the window only if it lies in the structure region `S` (§4.2) built for the current commit. At any other point inside the box, the browser hit-tests whatever lies beneath (another window, page content or the document). | decision 1; SR10, WH1 |
+| HP2 | Scope: windows managed by `WindowManager`, both declarative (`data-scriptoscope-window`) and imperative (`WindowManager.add`). The bare `renderWindow()` element has no host, decoration layer or lifecycle, so it is never clipped (Q4). | policy |
+| HP3 | The requested mode defaults to `region`. The effective mode is decided at **each commit**. It is `region` iff the window type that actually rendered is a recipe window, i.e. after base-chain resolution (the resolved owner's window type, not the requested theme's slug), it has a `wnd#` recipe (model other than `corner-sprite`) and a loaded chrome template. Otherwise it is `box`. A `box` request always gives `box`. | decision 1; RT1, RT2, RT4 |
+| HP4 | **Built-in frame (no `wnd#`) is exempt:** the effective mode is `box`. This covers `apple-platinum-2`, `black-platinum`, `platinum-8`, `slimes` and `system7-nostalgia-silver`, plus any base chain that resolves to them. Why: PF1's only excluded pixels are the two 2-px notches at the ends of the shadow, 4 px per window. No 5 × 5 neighbourhood fits in them (U7), so nobody clicks there on purpose. Clipping would add a stacking context, the decoration layer (§9.5) and a per-commit path to five themes, for no usable gain. This is a permanent divergence, recorded in the ledger. | PF1, PF2; U7 |
+| HP5 | The rect-only procIDs 2, 3, 1040 and 1041 are unreachable: no public slug maps to them (WK5). If a mapping is added, they are recipe windows under HP3, and `S` is the SR1/SR2 rectangles. | SR1, SR2, WK2, WK5 |
+| HP6 | The no-chrome baseline window (nothing in the base chain ships window chrome) is `box`. It has no decoded structure region. | policy |
+| HP7 | No chrome template (SR3): `box`. **Departure:** the decode leaves `strucRgn` unchanged (empty after `NewWindow`, U5). An empty region would make the window unclickable, so the web keeps the box. | SR3, U5 |
+| HP8 | Collapsed recipe windows are in scope. `S` keeps only the title-axis sides and an empty `C`, so the former content area is not part of the window. | SR6, CN2, WK4 |
+| HP9 | `popup-window` is in scope. Its tab, corner rects and bottom-right square lie inside `S`, so they keep their WH5 answers. Only the band beside the tab passes through. | CN1, WH5 |
+
+### 9.2 Opt-out and API
+
+| id | rule | basis |
+|---|---|---|
+| HP10 | **Declarative:** `data-scriptoscope-hit` on the `data-scriptoscope-window` element. The value is trimmed and case-insensitive: `box` requests box; `region` requests region. Absent, empty or unknown values request `region`; an unknown value logs once through the runtime's `debug` channel. Like every window attribute, it is read at promotion. The host does not carry consumer `data-scriptoscope-*` attributes, so later edits to the source element are not observed; use HP11. | decision 2; `data-scriptoscope-*` surface (`parse.ts` conventions: trimmed, case-insensitive like `-widgets`; non-matching values fall back like `-state`) |
+| HP11 | **Imperative:** `WindowManager.add(theme, opts, handlers, { hit })` with `hit?: 'region' \| 'box'`. `applyState(host, { hit })` changes the request at runtime; omitted means unchanged, as for the other `ManagedWindowState` fields. `describe(host)` reports `hit` (requested) and `hitEffective`. A change of mode alone re-renders no chrome (render frequency contract): it switches the clip and `pointer-events` (HP26) in the same task. | decision 2 |
+| HP12 | **Reflection:** after every commit and every mode change, the host carries `data-scriptoscope-hit-effective="region"` or `"box"`. It is read-only output; writing it has no effect. | policy |
+| HP13 | **Retheme:** the requested mode persists across retheme and is never reset. The effective mode and `S` are recomputed for the new theme in the same commit as the new chrome (HP19). A window rethemed to a built-in frame theme becomes effective `box`. Rethemed back to a recipe theme, it becomes `region` again, unless the consumer requested `box`. | decision 2; HP3 |
+| HP14 | There is no page-wide default (for example a `mountDeclarative` option) in this policy (Q3). | policy |
+
+### 9.3 Region source, coordinates and representation
+
+| id | rule | basis |
+|---|---|---|
+| HP15 | `S` is built by SR5–SR12 from the chrome template used for this commit (SR14) and the placed cells of the **same** layout that drew this commit's frame. It is never derived from the composed canvas, from the chrome buffer's alpha after title or pressed-widget drawing, or from the grow-box sprite. U7 found `S` equal to the drawn chrome's alpha outside `C` at three sizes in all 18 themes. That is a cross-check, not a source. | SR5–SR14; T2, T14 |
+| HP16 | **Coordinates.** `S` is a bitmap in chrome-buffer pixels. Its origin is the buffer's top-left, which is the top-left of the clipped layer's border box (§9.5; host padding and border are locked to 0). Region pixel (x, y) covers the CSS-pixel rectangle [x·k, y·k, (x+1)·k, (y+1)·k], where `k` is the window's integer display scale (`RenderWindowOptions.scale`, default 1). `C` sits at the composed frame's (left, top) like the canvas. No other offset applies. | policy |
+| HP17 | **Local space.** The path uses CSS pixels in the clipped element's local coordinates. Device pixel ratio does not enter it: the canvas has chrome-buffer resolution and is CSS-scaled by `k`, and the browser maps the clip the same way. Browser zoom, CSS `zoom` and ancestor transforms (scale, rotate, skew; #515, #519) act on the clip exactly as on the canvas, and hit testing inverts them natively. So DPR, zoom and ancestor-transform changes do **not** trigger a recompute, and no viewport-space measurement (`getBoundingClientRect`, `viewportFrame`) enters `S`. | policy |
+| HP18 | **Edge tolerance.** The path hit test is geometric. At fractional device pixel ratios, the browser may rasterise the canvas edge and the clip edge to different device pixels, so up to one device pixel of disagreement along an edge of `S` is accepted. Tests sample only points whose surrounding 3 × 3 chrome pixels are all in `S` or all out of it. | policy |
+| HP19 | **Representation:** `clip-path: path("…")` with the default `nonzero` rule, on the clipped layer (§9.5). The string is the band decomposition of `S`: consecutive rows with identical run lists form a band, and each run of a band becomes one rectangle subpath `M l t H r V b H l Z`. Coordinates are integers times `k`. The rectangles are disjoint and drawn with the same orientation, so the path's fill is exactly their union. Rejected representations: `url(#id)` to an SVG `clipPath`, because references from inside a shadow root resolve inconsistently across engines; `polygon()`, which cannot express disjoint pieces without seams; `mask-image`, which does not change hit testing (§8 option 4). | decision 3; §8 option 3 |
+| HP20 | **Cost.** U7 measured band-rectangle counts for the active document window with a 48-px title. At content 320 × 200: dolphin-som 781, animals 415, monkey-paradise 257, evolution 193, 1990 117, 1984 35, floppies 30, 1138 27, beos-r503 2, and 1 for the other four. At 1280 × 800: dolphin-som 2449, animals 1500, monkey-paradise 601, the rest unchanged. Each rectangle takes about 19 characters, so the largest path is about 47 KB. The count grows with the window's perimeter, not its area. Rules: build `S` and its path once per commit, during render preparation, never per pointer move or per resize-outline frame. Reuse it when the template, layout, collapsed state, title width and `k` are unchanged. There is **no** size-based fallback to `box`: a silent fallback would make hit behaviour depend on window size. Any later budget is a new policy row. | U7; render frequency contract |
+
+### 9.4 When to recompute
+
+| id | rule | basis |
+|---|---|---|
+| HP21 | `S` is rebuilt during render preparation and applied in the **same synchronous commit** that puts the new chrome pixels on screen. No frame may show new chrome with an old region, or the reverse. While a render is pending, the old canvas and the old clip stay together. | policy |
+| HP22 | Every chrome commit recomputes `S`. Triggers, each of which already commits: (a) size changes, i.e. `setContentSize` and `setOuterSize`, declarative auto-fit growth, a user grow-box commit (pointer release, and each keyboard resize step), and zoom; (b) collapse and expand; (c) activation flips (SR14); (d) retheme (HP13); (e) a change of `k`; (f) a title change. The title width is the layout's `SW`, which sizes the title plate (window-widgets TT rows). No runtime title setter exists today; one added later must commit through `render`. | SR14; TT rows |
+| HP23 | **Activation, U2 policy:** `S` follows the template that is **drawn**. The decode leaves open whether the Window Manager recalculates regions on a hilite-only change (U2). The web recomputes on every activation flip, so the hit area always matches what the user sees. The active and inactive masks differ by at most 28 px per kind, and only in animals, crayon-os, floppies and monkey-paradise. | SR14, U2 |
+| HP24 | **Not triggers:** dragging (it changes position only; `S` is host-relative); a z-order raise without an activation flip; pressed-widget art and title text pixels (SR13); scrolling; content reflow that does not change the window size; the Posture B in-flow to absolute handoff. | SR13 |
+| HP25 | During a pointer resize, `S` stays the last commit's region. The ghost outline is decoration (HP31), not region. | policy |
+
+### 9.5 Layering: what is clipped
+
+The clip goes **inside** the host's shadow root, not on the host element
+(Q1). A `clip-path` on the host clips everything the host paints, including
+the shell shadow, the focus indicators and the resize outline. None of those
+could then escape without new light-DOM siblings next to the host, which
+in-flow (Posture B) hosts cannot position reliably. Clipping one level
+inside gives the same hit result, and everything stays inside the window's
+own shadow tree. The invariants below are normative; the exact DOM is the
+implementer's choice.
+
+| id | rule | basis |
+|---|---|---|
+| HP26 | **Layers.** (L1) The `part="window"` element stays the **unclipped** element that bounds the chrome box. It keeps today's role, label and `::part(window)` contract, including the shell shadow. (L2) A single **clipped layer** with the same box sits inside L1 and carries the HP19 path. It contains every element that takes pointer input for the window: the chrome canvas, the content box with its slot, the grow sprite and the overlay controls (title widgets, move handle, grow box, window scrollbars). (L3) An **unclipped decoration** part inside L1, outside L2, with `pointer-events: none`, holds the focus indicator (HP28) and the resize outline (HP31). (L4) **`pointer-events`** in `region` mode: `none` on the host and on L1, `auto` on L2. Slotted content inherits from L2. In `box` mode there is no clip and no `pointer-events` change, so hits are exactly as before #597. L2 exists in both modes, giving one DOM structure. | decision 3; Q1 |
+| HP27 | **Host lockdown.** `clip-path: none` joins the locked host properties in both modes, so a consumer class cannot clip the host's decoration. `pointer-events` is set inline to `none` in `region` mode and cleared in `box` mode, where consumer CSS applies as before. The locked set still only grows. | Posture B lockdown |
+| HP28 | **Focus ring.** In `region` mode, the outline of a focused shadow-root control (title widget, move handle, grow box, window scrollbar) is drawn by L3. It is a ring with the control's border box, outset by the same offset and drawn in the same style as `box` mode, visible iff the control matches `:focus-visible`. It is repositioned on every commit, because controls move on resize. The control's own outline is suppressed in `region` mode, so no clipped partial ring doubles it. The result looks the same in both modes, including ring segments outside `S` or outside the chrome box (for example, the move handle's ring above the top edge). | WCAG 2.4.7; §8 "keyboard focus unaffected" |
+| HP29 | **Host and content focus.** The host's own focus outline (`scriptoscope.css`, `[data-scriptoscope-promoted]:focus-visible`) is on the unclipped host and is unchanged. Light-DOM content lies in `C`, which is inside `S` (SR11). Its focus rings are already clipped by the content box's own `overflow`, so they are unchanged too. | SR11 |
+| HP30 | **Shell shadow.** It is unchanged. L1 paints it from `--scriptoscope-window-shadow` through `::part(window)`. It stays rectangular around the chrome box: pass-through changes hits, not pixels. The host's `filter` stays locked to `none`; no `drop-shadow` moves onto the host. A `box-shadow` is never a hit target, so the shadow never catches clicks. | `scriptoscope.css` shell policy |
+| HP31 | **Resize outline.** The grow-box ghost outline renders in L3, so it stays visible beyond the current `S` and the current box. | HP25 |
+| HP32 | **Overflowing descendants.** Content still scrolls inside `C`. Some consumer descendants escape the content box: `position: fixed` elements, or elements whose containing block lies outside it. In `region` mode they are clipped to `S`, because `clip-path` clips descendants whatever their containing block. Top-layer content is not clipped: native `<select>` pop-ups, `<dialog>.showModal()`, the Popover API and fullscreen. Consumer guidance: put menus and tooltips in the top layer or outside the window, or opt out with `box`. The runtime renders no pop-up inside L2 today. Any future runtime menu must use the top layer. | policy |
+| HP33 | **Posture B placeholder.** It is a light-DOM sibling of the host, `pointer-events: none` and hidden. It is never clipped and never a hit target. The handoff does not change `S` (HP24). | Posture B |
+| HP34 | **Drag, widgets and grow box.** A frame drag starts only from a point in `S`. The title-widget overlays keep their mask hit (window-widgets HT7, HT8) inside `S`. A widget-mask pixel outside `S` misses, because WH1 precedes the widget branch. The grow-box overlay, including WM381's enlarged overlay, keeps working at its points inside `S`. Points over excluded frame pixels miss, because WH1 precedes WH3 (T9). Every point of `C` hits (SR11). A drag or resize already in progress keeps pointer capture, so leaving `S` mid-gesture does not end it. | WH1, WH3, HT7, HT8, SR11; WM381 |
+| HP35 | **Activation on pass-through.** A press on an excluded pixel neither activates nor raises the window. Whatever receives it behaves as if the window were absent. Another managed window activates through its own handler. Page content gets trusted events with all default actions (focus, selection, links, form controls). Pressing page content does **not** deactivate the active window, the same as pressing page content outside the box before #597. In the #540 capture, a desktop click did deactivate the window (Q2). | OS3, OS4, U1; DECISIONS #12 unaffected |
+| HP36 | **Hover, cursor, wheel and touch** over excluded pixels go to the element beneath. Page scrolling and touch gestures work there; the window's `touch-action: none` applies only inside `S`. | policy |
+
+### 9.6 Accessibility
+
+| id | rule | basis |
+|---|---|---|
+| HP37 | `clip-path` changes painting and hit testing only. It does not change the accessibility tree, roles, names, focusability, tab order, keyboard move and resize, focus-in activation (#550) or DECISIONS #12's operable inactive-window widgets. Keyboard focus and screen-reader reading (virtual cursor, browse mode) are unaffected. Assistive technology that hit-tests the screen, such as touch exploration, reports what lies beneath at excluded pixels, as a pointer user sees it. Focus indicators stay fully visible (HP28, HP29). | §8 "keyboard focus unaffected" |
+
+### 9.7 Consumer documentation (implementation lane)
+
+The implementation commit documents these, without adding policy beyond §9:
+
+- `data-scriptoscope-hit` in the README attribute reference;
+- the `hit` option of `WindowManager.add`, `applyState` and `describe`;
+- `data-scriptoscope-hit-effective`;
+- a CHANGELOG entry noting that the default hit area changes for recipe windows, with the opt-out;
+- HP32's pop-up guidance;
+- a note that a consumer `box-shadow` on `::part(window)` keeps working.
+
+### 9.8 Test hooks
+
+**Fixtures.** The test author chooses every point from the **decode**: §4.2,
+applied to the template mask and placed cells for the exact window
+configuration (theme, kind, content size, title, active state, `k`). Points
+are never taken from the runtime's region, its canvas, its clip string, or
+`elementFromPoint` on the window. Each fixture records chrome-pixel
+coordinates for three points, each with a uniform 3 × 3 neighbourhood (HP18):
+
+- `p_out`, an excluded frame pixel;
+- `p_in`, an opaque frame pixel in `S`;
+- `p_c`, a content pixel.
+
+Page: a sentinel element lies beneath the whole window box and records
+`pointerdown` and `click`. The host records `pointerdown`.
+
+**Themes:**
+
+- dolphin-som `document-window`: jagged frame, all bands;
+- animals `document-window`: sky band, plus a pixel whose mask differs between the active and inactive templates, for HPT6;
+- 1984 `document-window`: the left column under the close knob;
+- 1984 `popup-window`: the band beside the tab;
+- windows-95 `document-window`: `S` is the whole box, the negative control;
+- platinum-8 `document-window`: built-in frame, exempt.
+
+**Matrix:** source and built modes; Chromium in the PR shards; Firefox and
+WebKit in the release tier. Register the spec in
+`tests/rendering-options/interaction-specs.mjs`. Observations claim "web host
+policy (hit-regions §9); the Window Manager half is U1".
+
+| hook | assertion | mutation that must fail it |
+|---|---|---|
+| HPT1 (HP1, HP3) | In `region` mode, for each recipe fixture: `elementFromPoint` at `p_out` returns the sentinel. A real mouse click at `p_out` reaches the sentinel. The host sees no `pointerdown`, and the window is not activated, raised or dragged. | default `box`; clip to the bounding box; build `S` relative to `C` instead of the buffer origin; clip only the canvas |
+| HPT2 (HP1, SR11) | `elementFromPoint` at `p_in` returns the host (shadow retargeting). At `p_c` it returns the content element or a descendant. A press-drag from a title-bar `p_in` moves the window. windows-95: every sampled box point hits the window. | invert the mask; leave `C` out of `S`; derive `S` from canvas alpha after the title (use a synthetic title over a mask-clear pixel, as in T14) |
+| HPT3 (HP10–HP12) | `data-scriptoscope-hit="box"` and `" BOX "`, and `add(…, { hit: 'box' })`: `p_out` returns the host, and the effective attribute reads `box`. `applyState({ hit: 'region' })`: `p_out` passes, with no chrome re-render (render count unchanged). `"boxed"`: `region`. | ignore the attribute; case-sensitive parse; `applyState` re-renders; reflection not updated |
+| HPT4 (HP22a) | After `setOuterSize` growth, auto-fit growth, and a user grow-box commit (pointer and keyboard), a point that is excluded only at the new size passes. A point that was excluded at the old size and is now in `C` hits. | compute `S` once at `add`; recompute on pointer resize only |
+| HPT5 (HP8, HP22b) | Collapsed: a point in the former content area passes. Expanded again: it hits. | keep the expanded `S` while collapsed |
+| HPT6 (HP23) | animals: the mask-difference pixel follows the drawn template in both activation states. | always use the active template; skip the recompute on an activation flip |
+| HPT7 (HP13) | Retheme dolphin-som → windows-95: dolphin's `p_out` now hits. → platinum-8: effective `box`. → dolphin-som: `p_out` passes again. A `box` opt-out survives every step. | no recompute on retheme; reset the requested mode on retheme |
+| HPT8 (HP28) | dolphin-som in `region` mode. Tab to the move handle and to a title widget. The ring pixels outside `S` and above the top edge show the ring colour and match a `box`-mode capture. | leave the outline on the clipped control |
+| HPT9 (HP30) | With `scriptoscope.css` and `--scriptoscope-window-shadow: 4px 5px 0 rgb(1, 2, 3)` in `region` mode, pixels just past the bottom-right edge show the shadow colour. The existing `window-shadow.spec.mjs` passes in both modes. | put the clip on L1 or on the host |
+| HPT10 (HP26) | At rest, screenshots of each fixture are identical in `region` and `box` modes. | erode `S` by 1 px; clip L1 instead of L2 |
+| HPT11 (HP16, HP17) | Under a scaled (#515), rotated and skewed (#519) ancestor, at `k` = 2, and at DPR 2: `p_out` passes and `p_in` hits (points mapped from local to viewport by the test). | omit `k`; build `S` from `getBoundingClientRect` |
+| HPT12 (HP32) | A content child with `position: fixed` that extends past the box is clipped outside `S` in `region` mode and not in `box` mode. A `popover` shown from the content displays fully in both modes. | render the pop-over in place, not in the top layer |
+| HPT13 (HP33) | An in-flow host is dragged (Posture B handoff). Then `p_out` at the new position passes, and the placeholder is never the hit target. | give the placeholder pointer events |
+| HPT14 (HP34) | If a fixture's grow overlay overlaps excluded frame pixels, a press there passes; otherwise this uses a synthetic case as in T9. A press in the overlay's part inside `C` resizes. | keep the grow overlay outside L2 |
+| HPT15 (HP37) | The accessibility snapshot and Tab order are identical in both modes. Keyboard move (move handle) and keyboard resize (grow box) work in `region` mode. | make L2 `inert`; set `aria-hidden` on L1 |
+| HPT16 (HP4) | platinum-8: the effective mode is `box`, and a PF1 notch pixel hits the window. | clip built-in frames by PF1 |
+| HPT17 (HP3) | Base chain: a requested theme whose window type resolves to a recipe owner is `region`, and one that resolves to a built-in-frame owner is `box` (corpus pair if the base chains provide one, else synthetic). | decide by the requested theme's slug |
+
+### 9.9 Open questions (maintainer)
+
+- **Q1.** Decision 3 says "clip-path of the host". §9.5 clips one level inside
+  the shadow root and makes the host pointer-transparent, which gives the same
+  hit result. A literal host clip would remove the shell shadow, the
+  shadow-root focus rings and the resize outline, unless those moved to
+  light-DOM siblings. Confirm the inner clip.
+- **Q2.** HP35: pressing page content through a gap does not deactivate the
+  active window, unlike the #540 capture. Confirm, or ask for deactivation on
+  pass-through presses.
+- **Q3.** HP14: no page-wide default. Add a `mountDeclarative` option?
+- **Q4.** HP2: the bare `renderWindow()` element is not clipped. Its callers
+  get no pass-through unless they build their own clip.
