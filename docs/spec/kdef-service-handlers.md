@@ -44,7 +44,7 @@ opcode — see slot 6 below. (Listing excerpt and line range in evidence.)
 > The table's structure is: **three CDEF dispatchers (slot 0 push-button
 > family, slot 1 scroll bar, slot 5 an undecoded CDEF answering `bevp` tags) +
 > one helper CDEF (slot 2) + three family-routed WDEF dispatchers (slots 3, 4,
-> 8) + one master compositor (slot 6) + one WDEF main (slot 7)**. The full
+> 8) + one master compositor (slot 6) + one CDEF-shaped dispatcher, family undecoded (slot 7; corrected 2026-10-31, #597, was "WDEF main")**. The full
 > slot-by-slot decode is below. *(Corrected 2026-10-21, v2 lane L5 verifier:
 > an earlier revision called slot 1 a tracking proc / re-entrant entry and
 > slot 5 the scroll-bar CDEF; the roles are the other way round.)*
@@ -59,8 +59,8 @@ opcode — see slot 6 below. (Listing excerpt and line range in evidence.)
 | 3 | `0x118b8` | **wnd# → WDEF gate (document-window family)** — `GetResource('wnd#', -14336)`; on hit → calls `0x28e0` (slot 6); on miss → loads system `'WDEF', -14330` and forwards. This is **NOT the cinf consumer** (that's `0x116f8`, see `kdef231-reference.md §1.6`) | — | corrects `kdef-binary-inventory.md §2` |
 | 4 | `0x1525a` | **wnd# → WDEF gate (utility-window family)** — same shape, id `-14304`, message base `+1984` (added at `0x15274`). On miss, falls into a 9-entry private dispatch (`0x152fc`) | — | new — adds row to §1.4; aligns with §2.1 `-14304..-14295` utility band |
 | 5 | `0x8d36` | **Separate CDEF, undecoded (likely bevel button)** — same dispatch shape as `0x6688`, allocates a 68-byte aux block (`_NewHandle`, trap `A122`, at `0x8df6`); its hit test returns part 10 and its message 34 (`0x98ca`) answers `bevp`-family tags. **Not** the scroll bar: nothing in `0x8d36..0x991e` reaches `0x9d84` or the scroll-bar drawers | 68 B | corrected 2026-10-21 (was "second CDEF main — scrollbar / slider") |
-| 6 | `0x28e0` | **Master compositor dispatcher** — receives `(param, msg, handle, varCode)`, stores them in the compositor's work struct, dispatches on `msg - 1001` via the `0x148` indexed-table helper. msg 1000 = INIT (hit at boot); messages 1001..1009 are the per-side recipe-walk + draw entry points calling into `0x356c`/`0x3680`/`0x3f2c` etc. **This is what the inventory labelled "wnd# dispatcher"** — but the wnd# load happens in slot 3; slot 6 walks the recipe AFTER it's loaded | — | covers §1.4 `0x3680..0x4138` block from above |
-| 7 | `0x1d3e` | **WDEF main** — 35-entry msg dispatcher at `0x1d68` (already documented in `kdef-binary-inventory.md §1`). Handles standard WDEF msgs 0..34 (wDraw, wHit, wCalcRgns, wNew, wDispose, wGrowIcon + Appearance/Carbon msgs 19/20/21/27/29/34) | — | `kdef-binary-inventory.md §1`; row already in `kdef231-reference.md §1.4` implicitly via `0x4138/0x4176/0x41d0` |
+| 6 | `0x28e0` | **Master compositor dispatcher** — receives `(param, msg, handle, varCode)`, stores them in the compositor's work struct, dispatches the standard WDEF messages 0..8 plus 1000 (INIT) and 1001, dispatched through the `0x148` switch table at `0x292e` (default `0x2ddc`): 0 draw `0x41ee`, 1 `wHit` `0x3f2c`, 2 `wCalcRgns` `0x3ac4`, 3 new `0x38fe`, 4 dispose `0x3aa8`, 5 grow outline `0x3e6c`, 6 grow icon `0x436c`, 7 features (`0x29be`, calls `0x4924`), 8 get region `0x2a5e`. msg 1000 = INIT (hit at boot). *(Corrected 2026-10-31, #597: was read as a `msg − 1001` dispatch over verbs 1001..1009; see `engine/hit-regions.evidence.md` E1.)* **This is what the inventory labelled "wnd# dispatcher"** — but the wnd# load happens in slot 3; slot 6 walks the recipe AFTER it's loaded | — | covers §1.4 `0x3680..0x4138` block from above |
+| 7 | `0x1d3e` | **CDEF-shaped dispatcher, family undecoded** — 35-entry message table at `0x1d68` (control messages 0..34: message 0 tests `contrlVis`, message 2 is `calcCRgns`, `_RectRgn(param, contrlRect)`). *(Corrected 2026-10-31, #597: was "WDEF main … wDraw, wHit, wCalcRgns …"; window messages go through slot 6.)* | — | `kdef-binary-inventory.md §1` (corrected); `engine/hit-regions.evidence.md` E1 |
 | 8 | `0x17452` | **wnd# → WDEF gate (popup / tab / menu family)** — `GetResource('wnd#', -12320)`; on hit loads `'WDEF', -14336`, locks the handle, and calls into the loaded resource's code with varCode `(var & 15) + 1008` (procID family 63; corrected 2026-10-21) — **period-faithful: it calls the real WDEF resource's code, not the kDEF's own renderer**. Used for the `-12320` popup-frame + `-12319` tab family from `kdef231-reference.md §2.6`. On miss → 9-entry private dispatch (`0x174e8`) | — | new — adds row to §1.4 |
 
 (The original table's per-slot listing line column is in evidence.)
@@ -206,46 +206,51 @@ section attributed the scroll bar to this slot.
 
 ### Slot 6 — `0x28e0` (master compositor dispatcher)
 
-> **Corrected 2026-10-31 (#597).** The `0x148` switch table at `0x2930` dispatches the **standard WDEF messages 0..8** plus 1000/1001, not verbs 1001..1009: 0 → `0x41ee`, 1 → `0x3f2c` (`wHit`), 2 → `0x3ac4` (`wCalcRgns`), 3 → `0x38fe`, 4 → `0x3aa8`, 5 → `0x3e6c`, 6 → `0x436c`, 7 → `0x29be`, 8 → `0x2a5e`. The document and utility gates pass the message through unchanged; the utility gate's +1984 is added to the variation code (procID family 124). The table below keeps the earlier labels. See `engine/hit-regions.evidence.md` E1.
+> **Corrected 2026-10-31 (#597).** The `0x148` switch table at `0x292e` (default `0x2ddc`) dispatches the **standard WDEF messages 0..8** plus 1000/1001, not verbs 1001..1009: 0 → `0x41ee`, 1 → `0x3f2c` (`wHit`), 2 → `0x3ac4` (`wCalcRgns`), 3 → `0x38fe`, 4 → `0x3aa8`, 5 → `0x3e6c`, 6 → `0x436c`, 7 → `0x29be`, 8 → `0x2a5e`. The document and utility gates pass the message through unchanged; the utility gate's +1984 is added to the variation code (procID family 124). The body and table below are corrected to match. See `engine/hit-regions.evidence.md` E1.
 
 Entry takes the handle / WindowPtr, message, varCode and param, runs the
 common init `0x104`, and installs all four arguments into the compositor's
 work struct (`0x28fc..0x290c`). Messages 1000 (INIT) and 1001 skip the
 precompute (`0x2910`/`0x2916` → `0x2926`); every other message first calls
 the PRECOMPUTE routine `0x2e02` with the message (`0x291c`), which touches
-the work struct. It then dispatches through `0x148` on `msg - 1001` into a
-9-entry table at `0x2936..0x295e` (msg 1001..1009):
+the work struct. It then dispatches through the `0x148` switch helper on the
+message itself; the table starts at the return address `0x292e` (default
+`0x2ddc`, the common exit), with 11 `(value, offset)` pairs from `0x2936`
+(corrected 2026-10-31, #597; was "on `msg - 1001` into a 9-entry table, msg
+1001..1009"):
 
 | Msg | Site | Callee | Note |
 |---:|---|---|---|
-| 1001 | `0x2962` | `0x41ee` | returns via `0x2ddc` |
-| 1002 | `0x296c` | `0x3f2c` (param, handle) | likely the wnd# recipe walker |
-| 1003 | `0x2980` | `0x3ac4` (handle) | recipe install (§1.4 `0x3680` area) |
-| 1004 | `0x298e` | `0x38fe` (handle) | |
-| 1005 | `0x299c` | `0x3aa8` (handle) | |
-| 1006 | `0x29aa` | `0x3e6c` | |
-| 1007 | `0x29b4` | `0x436c` | |
-| 1008 | `0x29be` | `0x4924` | a local flag is set to 1 first; zoom/grow path? |
+| 0 (`wDraw`) | `0x2962` | `0x41ee` | returns via `0x2ddc` |
+| 1 (`wHit`) | `0x296c` | `0x3f2c` (param, handle) | hit test (`engine/hit-regions.md` §4.5) |
+| 2 (`wCalcRgns`) | `0x2980` | `0x3ac4` (handle) | structure + content regions (`engine/hit-regions.md` §4.1) |
+| 3 (`wNew`) | `0x298e` | `0x38fe` (handle) | |
+| 4 (`wDispose`) | `0x299c` | `0x3aa8` (handle) | |
+| 5 (`wGrow`) | `0x29aa` | `0x3e6c` | grow outline |
+| 6 (`wDrawGIcon`) | `0x29b4` | `0x436c` | |
+| 7 (get features) | `0x29be` | `0x4924` | a local flag is set to 1 first |
+| 8 (get region) | `0x2a5e` | inline | region-code switch at `0x2a6c` |
+| 1000 | `0x2dbc` | `0xee7a`, `0xef8a` | INIT |
+| 1001 | `0x2dd0` | `0xeeb2`, `0xf010` | |
 
 (Listing detail in evidence.)
 
 
 **Diagnosis.** **The master window-chrome compositor.** Receives every
-themed-window operation routed through slots 3/4/8 as message codes
-1000..1009 (≈10 verbs: init, load-recipe, install, walk, draw, hit, layout,
-zoom/grow, …). The handler bodies are exactly the routines documented in
+themed-window operation routed through slots 3/4/8 as the standard WDEF
+message (0..8), plus 1000 (init) and 1001. The handler bodies are exactly the routines documented in
 `kdef231-reference.md §1.4` (`0x356c..0x4138`) — slot 6 is the umbrella
 that fans them out by message. The init call at `0x1d26` (slot 6 with
 msg 1000) sets up the compositor at boot.
 
-### Slot 7 — `0x1d3e` (WDEF main)
+### Slot 7 — `0x1d3e` (CDEF-shaped dispatcher; was "WDEF main")
 
 > **Corrected 2026-10-31 (#597).** Slot 7 is CDEF-shaped, not the WDEF main: message 0 dereferences a control handle and tests `contrlVis`, and message 2 is `calcCRgns` (`_RectRgn(param, contrlRect)`). Its family is undecoded. Window messages for recipe windows go through slot 6. See `engine/hit-regions.evidence.md` E1.
 
 Entry has the biggest local frame in the kDEF; it reads varCode, the
 WindowPtr / handle, param and message. Messages above 34 go to `0x28d2`
-(no-op); otherwise it jumps through the 35-entry WDEF dispatch table at
-`0x1d68` — fully decoded in `kdef-binary-inventory.md §1`. (Listing detail
+(no-op); otherwise it jumps through the 35-entry control-message table at
+`0x1d68` (`kdef-binary-inventory.md §1`, corrected). (Listing detail
 in evidence.)
 
 

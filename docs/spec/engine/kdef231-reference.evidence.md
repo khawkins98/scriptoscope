@@ -208,18 +208,16 @@ slot-by-slot trace: `docs/spec/kdef-service-handlers.md`.
 
 | gate | addr | family | wnd# id loaded | msg base into slot 6 |
 |---|---|---|---:|---:|
-| slot 3 | `0x118b8` | document windows | `-14336` | per `0x28e0` table (1001..1009) |
-| slot 4 | `0x1525a` | utility windows | `-14304` | varCode + 1984 |
+| slot 3 | `0x118b8` | document windows | `-14336` | message unchanged; varCode mod 16 (corrected 2026-10-31, #597; was "per `0x28e0` table (1001..1009)") |
+| slot 4 | `0x1525a` | utility windows | `-14304` | message unchanged; varCode + 1984 (procID family 124) |
 | slot 8 | `0x17452` | popup / tab / menu | `-12320` | varCode + 1008 (trampolined to a loaded `'WDEF', -14336` via `jsr a0@`) |
 
-Slot 6 `0x28e0` is the **master compositor dispatcher** — receives msg
-1000 = INIT (called once at table install) + msgs 1001..1009 (per-side
-recipe walk + draw). Its 9-entry dispatch fans out to the routines below
-(`0x356c`, `0x3680`, `0x3f2c`, `0x41ee`, ...).
+Slot 6 `0x28e0` is the **master compositor dispatcher** — it receives
+the standard WDEF messages 0..8 plus 1000 (INIT) and 1001, dispatched through the `0x148` switch table at `0x292e` (default `0x2ddc`): 0 draw `0x41ee`, 1 `wHit` `0x3f2c`, 2 `wCalcRgns` `0x3ac4`, 3 new `0x38fe`, 4 dispose `0x3aa8`, 5 grow outline `0x3e6c`, 6 grow icon `0x436c`, 7 features (`0x29be`, calls `0x4924`), 8 get region `0x2a5e`. *(Corrected 2026-10-31, #597: was read as a `msg − 1001` dispatch over verbs 1001..1009; see `engine/hit-regions.evidence.md` E1.)*
 
 | addr | name | purpose | key args / fields | callees | returns |
 |---|---|---|---|---|---|
-| `0x28e0` | **master compositor dispatcher** (service-handler slot 6) | window-chrome message router; writes args into `a4@(454/458/460/464)`, dispatches msg-1001 via `0x148` indexed table | `fp@(8)`=param, `fp@(12)`=msg (1000 init / 1001..1009 verbs), `fp@(14)`=handle, `fp@(18)`=varCode | `0x2e02` precompute, `0x41ee`, `0x3f2c`, `0x3ac4`, `0x38fe`, `0x3aa8`, `0x3e6c`, `0x436c`, `0x4924` | `rtd` |
+| `0x28e0` | **master compositor dispatcher** (service-handler slot 6) | window-chrome message router; writes args into `a4@(454/458/460/464)`, dispatches the WDEF message via the `0x148` switch table at `0x292e` (messages 0..8, 1000, 1001; default `0x2ddc`; corrected 2026-10-31, #597, was "msg-1001 … 1001..1009 verbs") | `fp@(8)`=param, `fp@(12)`=WDEF msg (0..8, or 1000 init / 1001), `fp@(14)`=handle, `fp@(18)`=varCode | `0x2e02` precompute, `0x41ee`, `0x3f2c`, `0x3ac4`, `0x38fe`, `0x3aa8`, `0x3e6c`, `0x436c`, `0x4924` | `rtd` |
 | `0x356c`-`0x367e` | **wnd# loader + 12-step fallback ladder** | `GetResource('wnd#', id)` then progressive low-bit masks (`&-2,-3,-4,-5,-6,-15,-16,-17,-18,-21,-22`) as fallbacks → loads the per-window-type recipe; full decode + landing table in §3.4.1 | `d3`=window variation code | `$A9A0` GetResource | recipe handle in `a2` |
 | `0x3680`-`0x38c8` | recipe install / resize | copy rect-list → `a4@(1938)`, 4 source side-lists → `a4@(2788/2950/3112/3274)` (162 B stride); loop `s=0..3` calling `0x4a64` | rect-list count `a4@(1938)`; stride = `10*count+12` bytes | `0x4a64` | — |
 | `0x487e` | zoom/grow widget predicate | "is there a usable zoom/grow widget" = `a4@(500) && a4@(0x1f9) && !a4@(0x1f0)` | cinf widget flags | — | bool in `d0` |

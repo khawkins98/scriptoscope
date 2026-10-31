@@ -1,7 +1,7 @@
 # `window.regions` + `window.hit` — Kaleidoscope 2.3.1 window structure regions and frame hit-testing
 
 Issue [#597](https://github.com/khawkins98/scriptoscope/issues/597), 2026-10-31.
-Spec writer: lane 597 (decode researcher). Independent review: pending.
+Spec writer: lane 597 (decode researcher). Independent review: Tier 1 REQUEST CHANGES at `5aba2b9a` (decode confirmed, five spot-checks matched; citation, propagation and test-hook asks addressed in revision 2, 2026-10-31); re-check of the changed claims pending.
 Evidence appendix: [`hit-regions.evidence.md`](./hit-regions.evidence.md). Implementers must not read it.
 
 ## 0. Answer
@@ -42,7 +42,7 @@ Evidence appendix: [`hit-regions.evidence.md`](./hit-regions.evidence.md). Imple
 |---|---|---|
 | RT1 | Document windows: when the scheme has `wnd#` −14336, every WDEF message goes to the recipe compositor **unchanged**, with the variation code reduced mod 16 | `0x118b8..0x11912` |
 | RT2 | Utility windows: when the scheme has `wnd#` −14304, the message goes to the same compositor unchanged; the procID passed is 1984 + (variation mod 16), family 124 (`floatProc` family) | `0x1525a..0x152ba` |
-| RT3 | The compositor dispatches the standard messages: 0 draw, 1 hit, 2 calc regions, 3 new, 4 dispose, 5 grow outline, 6 grow icon, 7 features, 8 get region | `0x2930..0x2962` |
+| RT3 | The compositor dispatches the standard messages: 0 draw, 1 hit, 2 calc regions, 3 new, 4 dispose, 5 grow outline, 6 grow icon, 7 features, 8 get region | `0x292e..0x2962` (switch table at `0x292e`, default `0x2ddc`) |
 | RT4 | Without the `wnd#`, the built-in frame handles the window (procedural-frame §1.1) | `0x11916`, `0x152be` |
 
 ## 2. Inputs
@@ -177,7 +177,7 @@ Thus, for a point that is in the window's placed frame cells:
 | OS1 | `wCalcRgns` must compute the structure and content regions, in global coordinates, into the window's `strucRgn` and `contRgn` | Inside Macintosh: Macintosh Toolbox Essentials, ch. 4, "Defining Your Own Windows" (`wCalcRgns`); `MacWindows.h` `wCalcRgns = 2` |
 | OS2 | `wNoHit` "might mean (but not necessarily) that the point isn't in the window" | same section, "Returning the Region of a Mouse-Down Event" |
 | OS3 | `FindWindow` maps a mouse-down to a screen area; it may return `inDesk` (0) for a press on a window frame outside the title bar and boxes, and then sets the window to NIL when the press was in no window | IM: Toolbox Essentials, ch. 4, "FindWindow"; `MacWindows.h` `inDesk = 0` |
-| OS4 | Which window `FindWindow` asks, in what order, and whether it tests `strucRgn` itself before sending `wHit`, is **not** stated in the pages consulted (U1). Other windows and the desktop draw where this window's `strucRgn` excludes pixels, which is consistent with the desktop showing through the gaps in #540 | U1 |
+| OS4 | Which window `FindWindow` asks, in what order, and whether it tests `strucRgn` itself before sending `wHit`, is **not** stated in the pages consulted (U1). Two sub-hypotheses: OS4a, `FindWindow` skips a window whose `strucRgn` excludes the point; OS4b, it sends `wHit` and continues behind after `wNoHit`. With this kDEF they predict the same outcomes (U1). Other windows and the desktop draw where this window's `strucRgn` excludes pixels, which is consistent with the desktop showing through the gaps in #540 | U1 |
 
 **Observation (not decode).** In #540, real Kaleidoscope 2.3.1 on System 7.5.5
 (Castle, Brickworks): a click between merlons or studs selected the desktop icon
@@ -198,16 +198,32 @@ exclusive, global coordinates. "Outset 1" grows each side by 1.
 ## 6. Not decoded / unknown; corpus impact
 
 - **U1** (Apple-side). `FindWindow`'s walk: whether it skips windows whose
-  `strucRgn` excludes the point before sending `wHit`, and whether a `wNoHit`
-  from a window that is asked makes it continue to the windows behind. Settle
-  with a native capture in the private reference environment
-  (`docs/maintainer-reference-environment.md`), predictions frozen first: two
-  overlapping windows of one application under Castle, the back window's opaque
-  frame or content directly behind a merlon gap of the front window. Prediction:
-  a click in the gap activates or hits the back window (not `inDesk`). A second
-  case: a gap over the desktop with no window behind; prediction `inDesk`/Finder
-  (already observed in #540). A System 7.5.5 Window Manager disassembly of
-  `FindWindow` would also settle it.
+  `strucRgn` excludes the point before sending `wHit` (OS4a), or sends `wHit`
+  and continues to the windows behind after a `wNoHit` (OS4b). **Neither capture
+  below can separate OS4a from OS4b**: for this kDEF `wNoHit` happens exactly
+  when the point is outside `strucRgn` (WH1, PF2), so both sub-hypotheses
+  predict the same outcome. Only a WDEF that answers 0 *inside* its `strucRgn`
+  could separate them, or a disassembly of the System 7.5.5 `FindWindow`. That
+  is enough for #597, which needs the outcome, not the mechanism.
+
+  **Capture plan** (private reference environment,
+  `docs/maintainer-reference-environment.md`; CONTRIBUTING "Fidelity acquisition
+  and implementation batches"). Predictions are frozen in this table before
+  boot.
+
+  | field | value |
+  |---|---|
+  | scheme archive | Castle `scheme.bin`, SHA-256 `5a22c49854fca78972e2f442ddb2cbdbf17e42ecdfca598322f83eac4b14291c` (PR #540 branch at `d98fe538`, `authoring/schemes/castle/classic/README.md`); re-hash before boot and stop on mismatch |
+  | capture condition | **8-bit calibrated** boot (the reference environment's default), `nosound true`. The outcome is which window or desktop object receives the click, which does not depend on pixel depth; depth is recorded, not varied, and no pixel comparison is made |
+  | windows | Finder windows of the transfer disk. Window F (front): a document window, content rect recorded from the native frame. Window B (back, case 1 only): placed so its opaque title bar or content lies directly under F's merlon row. Record both windows' frame rects in global coordinates from the native frame before clicking |
+  | click point rule | Before boot, decode the archive's document chrome template and placed top side for F's recorded width; choose the first pixel, left to right on the middle row of the merlon band, whose template mask bit is clear and which lies in a code-12 (merlon) cell outside `C`. Record its global (x, y) in the frozen table. For control, the nearest mask-set pixel in the same row |
+  | budget | **two boot attempts**. If neither yields both cases cleanly (window placement as recorded, a single click, the frame captured before and after), stop and report; do not iterate |
+
+  | case | point | prediction (frozen) | refutes |
+  |---|---|---|---|
+  | 1 | F's gap pixel, B's opaque pixel beneath | B is activated or receives the click (Finder brings B to the front); F is deactivated | WH1/SR10 if F keeps the click; "desktop only" pass-through if the desktop gets it |
+  | 2 | F's gap pixel, desktop beneath (a desktop icon placed there) | the desktop icon is selected and F is deactivated (as in #540) | WH1/SR10 if F starts a drag |
+  | 3 (control) | F's mask-set pixel next to the gap | F is dragged or activated (`wInDrag`); nothing beneath changes | the mask reading if the click passes through |
 - **U2** (Apple-side). Whether the Window Manager recalculates regions when only
   the hilite state changes. SR14 makes the region follow the template chosen at
   the last calc, so this matters only when a scheme's active and inactive
@@ -248,11 +264,11 @@ the hit result (§4.5).
 | hook | assertion | mutation that must fail it |
 |---|---|---|
 | T1 (SR10, WH1) | A recipe window with a template whose frame cell has a mask-clear pixel outside `C`: that pixel is not in the structure region and classifies to 0 | build the structure from the placed cell rects without the mask |
-| T2 (SR10) | A mask-set pixel of the same cell is in the region and classifies non-zero | invert the mask, or use the template's pixel alpha after title/widget drawing |
+| T2 (SR10) | A mask-set pixel of the same cell is in the region and classifies non-zero. Fixture: a mask-set pixel whose colour equals the window's background colour | invert the mask; derive membership from pixel colour ≠ background instead of the mask |
 | T3 (SR11) | A template whose body (type-0 rect) is fully transparent still has all of `C` in the region | union only cells, not `C` |
-| T4 (TR3, TR4, SR9) | In a tiled cell wider than its source, the mask repeats at the source pitch from the top-left for direction 1 and from the bottom-right for codes 11/14 | scale the cell; anchor codes 11/14 at the top-left |
-| T5 (SR8) | A code-18 cell's mask is scaled, not repeated | tile code 18 |
-| T6 (TR1) | A 1-px-wide source in a wider cell is stretched | repeat it (identical for a uniform column; use a 1-px source whose mask alternates along the other axis) |
+| T4 (TR3, TR4, SR9) | Fixture: a 3 × 2 source whose mask is not uniform along either axis (e.g. rows `110`, `100`), placed into 8 × 5 (neither size a multiple of the source). The mask repeats at the source pitch from the top-left for direction 1 and from the bottom-right for codes 11/14, clipped to the placed rect | scale the cell; anchor codes 11/14 at the top-left (or direction 1 at the bottom-right) |
+| T5 (SR8) | Fixture: a code-18 cell with a non-uniform mask (e.g. a 2 × 2 checker) placed at a larger size (e.g. 6 × 6). Its mask is scaled (3-px blocks), not repeated (2-px period) | tile code 18 |
+| T6 (TR1) | Fixture: a 1 × 4 source whose mask rows are 1, 0, 1, 0, placed into 8 × 8 (both axes differ). The region is the scaled source: 2-px horizontal bands | repeat it (that gives 1-px alternation); clip instead of scaling along the long axis |
 | T7 (SR1, SR2, WK2) | procIDs 2 and 1040 give `C` outset 1; 3 and 1041 add the (+2, +2) shadow; their transparent template pixels do not matter | mask-trace these procIDs |
 | T8 (SR12) | A pixel in a leading region reached by no crossing side classifies to 0 | fill the structure's bounding box |
 | T9 (WH1 before WH3) | A transparent frame pixel inside the grow rect classifies to 0, not 3 | test the grow rect before the structure region |
@@ -260,7 +276,7 @@ the hit result (§4.5).
 | T11 (WH6) | With `widgetFrame` clear, an opaque frame pixel classifies to 1 | return 2 |
 | T12 (SR6, CN2) | Collapsed: only the title-axis sides contribute; the bottom (or the far side) cells do not | walk four sides when collapsed |
 | T13 (PF1, PF3) | Built-in frame: a transparent widget-glyph pixel is in the structure and classifies non-zero | mask-trace the built-in frame |
-| T14 (SR13) | A pressed-state widget whose −14330 art paints outside the template mask does not extend the region | union the drawn canvas alpha |
+| T14 (SR13) | A pressed-state widget whose −14330 art paints outside the template mask, and title text over a mask-clear pixel, do not extend the region | union the drawn canvas alpha; use the template's pixel alpha after title/widget drawing |
 
 ## 8. Implications for the web runtime
 
@@ -274,19 +290,36 @@ implementation is a later lane with a PM decision and a ledger row):
 1. **Status quo, documented.** Keep the rectangular hit box and record a ledger
    divergence citing SR10/WH1. Cheapest; the tall-ornament schemes keep blocking
    clicks to the page behind.
-2. **Structure mask + `pointer-events` pass-through.** The engine emits a
-   structure bitmap built by SR1–SR13 (not from the canvas alpha, see T2/T14).
-   The chrome surface takes `pointer-events: none` on excluded pixels by a
-   per-event test: on `pointerdown`, if the point is outside the mask, hide the
-   host from hit testing, re-target with `document.elementFromPoint`, and
-   re-dispatch or let the event fall through. Needs care with pointer capture,
-   synthetic event trust (`isTrusted`), text selection and touch.
+2. **Structure mask + pass-through.** The engine emits a structure bitmap
+   built by SR1–SR13 (not from the canvas alpha, see T2/T14). `pointer-events`
+   is per element, not per pixel, and a `pointerdown` already dispatched to the
+   host keeps its target, so it cannot "fall through". Two real variants:
+   - **2a. Hover toggle.** On `pointermove` (and `pointerover`), test the point
+     against the bitmap and set `pointer-events: none` on the chrome layer while
+     the pointer is over an excluded pixel. The next native `pointerdown` then
+     targets the element beneath: trusted, with all default actions (focus,
+     text selection, link activation, form controls). Costs: it relies on a
+     hover move before the press, so it fails for touch and for pens without
+     hover, and for a press with no prior move; the state must be reset when
+     the pointer leaves or the window moves under a still pointer.
+   - **2b. Synthetic re-dispatch.** On the press over an excluded pixel, hide
+     the host from hit testing, find the target with `document.elementFromPoint`,
+     and dispatch a synthetic pointer/mouse event to it. Works for touch. Costs:
+     the event is `isTrusted: false`, so the browser runs no default actions (no
+     focus change, no text selection, no link activation, no native form-control
+     behaviour); pointer capture, click synthesis and `click`/`dblclick`
+     sequencing must be re-created by hand, and listeners that check
+     `isTrusted` ignore it.
 3. **CSS `clip-path` from the region.** Convert the region (a union of
    rectangles) to a `clip-path: path(...)` on the chrome layer. Hit testing
-   honours `clip-path` natively (CSS Masking), so no re-dispatch is needed.
+   honours `clip-path` natively (CSS Masking 1), so no re-dispatch is needed.
    Costs: a large path for detailed masks, recomputation on every resize, DPR
    and CSS-transform interplay, and the window shadow, which must be drawn
-   outside the clipped element.
+   outside the clipped element. `clip-path` also clips the clipped element's
+   focus outline/ring and any descendant overflow (menus, tooltips, the grow
+   overlay) that extends past the region, which conflicts with "keyboard focus
+   unaffected" below unless the focus ring and overflow live outside the
+   clipped element.
 4. **`mask-image` is not an option by itself**: CSS masks do not change hit
    testing.
 

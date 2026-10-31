@@ -19,7 +19,7 @@ inference from the shape of the code (stated reason); **U** unresolved.
 |---|---|---|
 | `0x118b8..0x11912` | document gate: varCode `&15`; `_GetResource('wnd#', -14336)` at `0x118ee`; non-null → `bsrl 0x28e0` with (param, **unchanged message**, window, varCode) | C |
 | `0x1525a..0x152ba` | utility gate: `_GetResource('wnd#', -14304)`; non-null → `0x28e0` with the message unchanged and **varCode `(v&15)+1984`** (`0x15270..0x15274`). The +1984 is a procID (family 124), not a message base | C |
-| `0x28e0..0x2960` | stores window/varCode/param/message at work-struct 454/458/460/464; runs precompute `0x2e02` unless message is 1000/1001; `0x148` switch, table at `0x2930`: default `+0x4ae` → `0x2dde`, range 0..1001, 11 pairs | C |
+| `0x28e0..0x2960` | stores window/varCode/param/message at work-struct 454/458/460/464; runs precompute `0x2e02` unless message is 1000/1001; `0x148` switch; the table starts at the return address `0x292e`: default `+0x4ae` → `0x2ddc` (the common exit every handler branches to), min 0, max 1001, count−1 = 10 (11 pairs from `0x2936`). *(Corrected 2026-10-31 after review: an earlier revision gave `0x2930`/`0x2dde`.)* | C |
 | table `0x2936..0x2962` | (0 → `0x2962` → `0x41ee` draw), (1 → `0x296c` → `0x3f2c` **hit**), (2 → `0x2980` → `0x3ac4` **calc regions**), (3 → `0x298e` → `0x38fe` new), (4 → `0x299c` → `0x3aa8` dispose), (5 → `0x29aa` → `0x3e6c` grow outline), (6 → `0x29b4` → `0x436c` grow icon), (7 → `0x29be` features), (8 → `0x2a5e` get region), (1000 → `0x2dbc`), (1001 → `0x2dd0`) | C |
 
 **Correction (to `kdef-service-handlers.md` slot 6 and `kdef-binary-inventory.md`
@@ -79,9 +79,14 @@ Cleared at `0x2e0a..0x2e4a`; `drawActive` ← `hilited` (`0x2e52`); `collapsed` 
 | family 124 (utility gate) | `0x31ae..0x3202` | altWidgets, collapseReq, widgetFrame; grow/zoom/sideTitle from variation bits 1/2/3; `drawActive` forced on when bit 0 clear | C |
 | family 63 | `0x3204..0x3216` | popupFamily; `collapsed` cleared | C |
 
-`rectFrame`/`rectShadow` are read only at `0x3e08..0x3e12` (grep of `a4@(497)`
-and `a4@(498)`: sets above, clear at `0x2e1a`/`0x2e1e`, reads at `0x3e08`,
-`0x3e0e`). **C**
+Reads (grep of `a4@(497)` and `a4@(498)`): sets above, clears at
+`0x2e1a`/`0x2e1e`. The **region builder** reads them only at `0x3e08` and
+`0x3e0e`. `rectShadow` is also read twice in a draw path, `0x42f2` (the
+structure bbox, from `strucRgn`, is shrunk by 2 at right and bottom before
+`_FrameRect` `$A8A1` at `0x4304`) and `0x4306` (then the shadow lines are drawn
+with `_MoveTo`/`_LineTo`, `0x430c..0x4368`). Those draw reads change no region
+rule. **C** *(Corrected 2026-10-31 after review: an earlier revision said
+"read only at `0x3e08..0x3e12`".)*
 
 ## E3. `wCalcRgns` (`0x3ac4..0x3bda`)
 
@@ -214,6 +219,9 @@ The only `moveq #0` results are `0x3f3e` and `0x3f64`. **C**
   calculate the window's structure and content regions … in global coordinates".
 - Same chapter summary (`Toolbox-296.html`): `wCalcRgns` "calculate strucRgn and
   contRgn".
+- Inside Macintosh Volume I, "The Window Manager" (FindWindow, window regions,
+  "Defining Your Own Windows"): listed as a source to consult for U1; **not
+  re-read in this lane**, so nothing in the spec rests on it.
 
 None of these pages states FindWindow's search order or whether it tests
 `strucRgn` before sending `wHit`.
