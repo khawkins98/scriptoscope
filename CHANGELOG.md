@@ -18,6 +18,20 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ### Fixed
 
+- The demo's `mountExplicitPage` (`demo/explicit-host.mjs`) now adds
+  `.scriptoscope-ready`, removes `data-scriptoscope-loading`, lifts the root's
+  boot `inert`, fires `ready` and resolves only after every boot reveal has
+  finished ([#565](https://github.com/khawkins98/scriptoscope/issues/565)).
+  Before, ready came about 30 ms after the last 180 ms clip-path reveal began,
+  and a click on the still-clipped lower part of a window fell through to the
+  page behind it. The wait starts after the last boot step and lasts until
+  the reveals end, normally under 180 ms and at most 360 ms. So ready arrives
+  at most 360 ms after the boot's own work is done. If the reveals aren't
+  running, for example in a hidden tab, an off-screen iframe or because
+  other code paused them, they are finished at once when the page is or
+  becomes hidden, and otherwise once the wait has lasted twice their 180 ms
+  duration. A cancelled reveal ends the wait, and reduced motion still plays
+  no reveal.
 - A press on the grow box that doesn't change the window's size is no longer a resize (#552). Releasing without moving, or after sub-pixel jitter under half a content pixel, used to switch an in-flow window to absolute positioning, insert the drag placeholder, re-render it at a different width and fire `scriptoscope:userresize`, which permanently turned auto-fit off. Like the classic Mac `GrowWindow`, which returns 0 when the size is unchanged, the window now stays in flow and no event fires. The hand-off waits for the first move that changes the size, and a drag released at its starting size commits nothing. A keyboard resize step that is clamped at the minimum size no longer hands off or fires the event either.
 - Keyboard focus entering a window now activates it and raises it to the front, as on the classic Mac, where keyboard focus is always in the front window ([#550](https://github.com/khawkins98/scriptoscope/issues/550)). Before, Tab could land on links and chrome controls (title widgets, move handle, grow box, scrollbars) of a background window that a higher window fully covered, so the focused control was invisible (WCAG 2.2 SC 2.4.11). Raising changes z-order only; the window does not move. Focus stays on the control through the activation render.
 
@@ -143,20 +157,6 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   used to start from (0, 0), so it jumped. The move now starts from the used
   `left`/`top`, also inside a scaled ancestor, and a host made absolute or
   fixed by a consumer class no longer gets the in-flow drag placeholder.
-- The demo's `mountExplicitPage` (`demo/explicit-host.mjs`) now adds
-  `.scriptoscope-ready`, removes `data-scriptoscope-loading`, lifts the root's
-  boot `inert`, fires `ready` and resolves only after every boot reveal has
-  finished ([#565](https://github.com/khawkins98/scriptoscope/issues/565)).
-  Before, ready came about 30 ms after the last 180 ms clip-path reveal began,
-  and a click on the still-clipped lower part of a window fell through to the
-  page behind it. The wait starts after the last boot step and lasts until
-  the reveals end, normally under 180 ms and at most 360 ms. So ready arrives
-  at most 360 ms after the boot's own work is done. If the reveals aren't
-  running, for example in a hidden tab, an off-screen iframe or because
-  other code paused them, they are finished at once when the page is or
-  becomes hidden, and otherwise once the wait has lasted twice their 180 ms
-  duration. A cancelled reveal ends the wait, and reduced motion still plays
-  no reveal.
 
 ## [0.7.0] — 2026-10-29
 
