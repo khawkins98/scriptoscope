@@ -187,6 +187,16 @@ for (const mode of ['source', 'built']) {
           expect.soft(after.changes, `${why}: onChange`).toBe(0);
         }
         const x = before.corner.x + before.corner.w / 2, y = before.corner.y + before.corner.h / 2;
+        // 0.4 content px rounds to 0 and the commit uses this last move: no resize. Ending on a
+        // sub-threshold positive move separates round from ceil on an already-absolute host.
+        await pressAt(page, { x, y });
+        await movePressed(page, { x, y }, [[0.4 * scale, 0]]);
+        await page.mouse.up();
+        await page.waitForTimeout(300);
+        const sub = await state(page);
+        expect.soft(sub.resized, `${label}: 0.4 x scale move userresize`).toBe(0);
+        expect.soft(sub.changes, `${label}: 0.4 x scale move onChange`).toBe(0);
+        expect.soft(sub.host, `${label}: 0.4 x scale move host box`).toEqual(before.host);
         // 0.6 content px rounds to 1: just over the threshold, so it is a resize.
         await pressAt(page, { x, y });
         await movePressed(page, { x, y }, [[0.6 * scale, 0]]);

@@ -5,29 +5,36 @@
 // px, so x + 0.4 arrives as x and x - 0.4 as x - 1: a real 1 px move. A spec
 // that means "jitter under the rounding threshold" would then test a 1 px drag.
 //
-// The capability is probed, not assumed from the browser name. Where the mouse
+// The capability is probed, not assumed from the browser name (Chromium must keep
+// fractions, so a probe that sends it down the synthetic path fails the test). Where the mouse
 // keeps the fraction, the moves go through page.mouse unchanged. Where it does
 // not, they are sent as the pressed pointer's own PointerEvents (its pointerId,
 // buttons 1) at the element it pressed, offset from its pointerdown position.
 // The product rounds whatever clientX it receives, so both paths exercise the
 // same threshold.
 
+import { expect } from '@playwright/test';
+
 const keepsFractions = new WeakMap();
 
-/** Whether page.mouse delivers fractional clientX. Probed once per page by hovering `p` and `p` + 0.4 px. */
+/** Whether page.mouse delivers fractional clientX. Probed once per page by hovering a whole px near `p`, then + 0.4 px. */
 export async function mouseKeepsFractions(page, p) {
   if (keepsFractions.has(page)) return keepsFractions.get(page);
-  await page.mouse.move(p.x, p.y);
+  // From a whole px, so a floored mouse can never land within tolerance of x + 0.4.
+  const x = Math.floor(p.x);
+  await page.mouse.move(x, p.y);
   await page.evaluate(() => {
     const xs = [], on = e => xs.push(e.clientX);
     addEventListener('pointermove', on, true);
     window.__subpixelProbe = () => { removeEventListener('pointermove', on, true); delete window.__subpixelProbe; return xs; };
   });
-  await page.mouse.move(p.x + 0.4, p.y);
+  await page.mouse.move(x + 0.4, p.y);
   const xs = await page.evaluate(() => window.__subpixelProbe());
   await page.mouse.move(p.x, p.y);
   // A floored mouse reports a whole px, or no move at all when the floors are equal.
-  const keeps = xs.some(x => Math.abs(x - (p.x + 0.4)) < 0.05);
+  const keeps = xs.some(cx => Math.abs(cx - (x + 0.4)) < 0.05);
+  if (page.context().browser()?.browserType().name() === 'chromium')
+    expect(keeps, 'Chromium mouse keeps fractional clientX (else sub-pixel moves would silently go synthetic)').toBe(true);
   keepsFractions.set(page, keeps);
   return keeps;
 }
