@@ -51,24 +51,46 @@ export function ownLayout(options,signal) {
    schedule();
   }
  },{capture:true,signal});
+ // One window's saved row, taken from the live window. Undefined fields are dropped by JSON.
+ function rowOf({win,manager}) {
+  const state=manager.describe(win.host);if(!state)return null;
+  // ow: the OUTER width (content + this theme's frame). Another tab may use a
+  // thicker scheme, so it restores the footprint its container bounds, not the
+  // content width, and the content height, which flow and scrolling absorb (#542).
+  const ext=manager.chromeExtent(win.host);
+  const r={w:state.width,h:state.height,ow:ext&&state.width+ext.x,collapsed:state.collapsed,z:state.z};
+  const at=held.has(win.host)?held.get(win.host).at:placed(win.host);
+  if(at){r.x=at.x;r.y=at.y;}
+  return r;
+ }
  function snapshot() {
   const windows={};
-  for(const [id,{win,manager}]of records){
-   const state=manager.describe(win.host);if(!state)continue;
-   // ow: the OUTER width (content + this theme's frame). Another tab may use a
-   // thicker scheme, so it restores the footprint its container bounds, not the
-   // content width, and the content height, which flow and scrolling absorb (#542).
-   const ext=manager.chromeExtent(win.host);
-   const row={w:state.width,h:state.height,ow:ext&&state.width+ext.x,collapsed:state.collapsed,z:state.z};
-   const at=held.has(win.host)?held.get(win.host).at:placed(win.host);
-   if(at){row.x=at.x;row.y=at.y;}
-   windows[id]=row;
-  }
+  for(const [id,record]of records){const r=rowOf(record);if(r)windows[id]=r;}
   return {version:1,windows};
  }
+ // Each tab both writes the layout and applies the other tabs' writes. Writing a whole local
+ // snapshot echoed state this tab never changed: a write scheduled before a remote update was
+ // applied (or by the mount's first render) carried the older rows and overwrote the other tab's
+ // newer ones, which then moved its windows back (#584). A write now replaces only the rows of
+ // windows that changed here since they were last in sync with storage, keeps every other stored
+ // row, and is skipped when nothing differs. `synced` holds each window's local row at its last
+ // sync: the stored row it mounted from, its last write, or the result of applying a remote row.
+ const synced=new Map();
+ if(initial)for(const [id,r]of Object.entries(initial.windows))synced.set(id,JSON.stringify(r));
  function write() {
   clearTimeout(timer);timer=undefined;
-  try{localStorage.setItem(key,JSON.stringify(snapshot()));}catch(error){console.error('Consumer layout write failed',error);}
+  try{
+   const raw=localStorage.getItem(key);
+   const windows={...parse(raw)?.windows};
+   for(const [id,record]of records){
+    const r=rowOf(record);if(!r)continue;
+    const json=JSON.stringify(r);
+    if(json===synced.get(id)&&windows[id])continue;
+    windows[id]=r;synced.set(id,json);
+   }
+   const value=JSON.stringify({version:1,windows});
+   if(value!==raw)localStorage.setItem(key,value);
+  }catch(error){console.error('Consumer layout write failed',error);}
  }
  // Writes are debounced, so a reload or navigation inside the 250 ms window would drop the
  // last commit and keep an older snapshot, such as one taken mid-drag from the hot loop's
@@ -95,6 +117,11 @@ export function ownLayout(options,signal) {
   // cross-tab restore does (#542, #558); on the same scheme this is a no-op size.
   const ow=pendingOuter.get(id);pendingOuter.delete(id);
   if(ow!==undefined)latest=latest.catch(()=>{}).then(()=>signal.aborted?undefined:manager.setOuterSize(win.host,{width:ow})).catch(error=>console.error('Consumer layout restore failed',error));
+  // Another tab's write that landed while this page was loading reached no window (update()
+  // applies only added ones), so apply the stored row now if it moved on from the mounted one (#584).
+  let stored;
+  try{stored=key&&parse(localStorage.getItem(key))?.windows[id];}catch{}
+  if(stored&&JSON.stringify(stored)!==synced.get(id))latest=latest.catch(()=>{}).then(()=>update({windows:{[id]:stored}})).catch(error=>console.error('Consumer layout restore failed',error));
  }
  async function update(value) {
   if(!value||signal.aborted)return;
@@ -115,6 +142,8 @@ export function ownLayout(options,signal) {
       const committed=manager.describe(win.host);
       if(committed?.width!==undefined&&committed.height!==undefined)win.acceptUserSize(committed.width,committed.height);
     }
+    // The window now matches storage: a later write keeps this stored row unless it changes here.
+    const applied=rowOf({win,manager});if(applied)synced.set(id,JSON.stringify(applied));
    }
   } finally {applying=false;}
  }
