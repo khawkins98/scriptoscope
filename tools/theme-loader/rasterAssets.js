@@ -102,6 +102,12 @@ function release(url) {
 }
 export function bindRasterOwner(source, owner) { state.owners.set(source, owner); }
 export function rasterOwner(source) { return state.owners.get(source); }
+// An eager result keeps only its lifetime: its pixels are released after export.
+// Keyed by the dispose capability, so copies that carry it ({...theme}) share it.
+export function bindRasterLifetime(dispose, owner) { (state.lifetimes ??= new WeakMap()).set(dispose, owner); }
+export function rasterLifetime(source) {
+  return state.owners.get(source) ?? (typeof source.dispose === 'function' ? state.lifetimes?.get(source.dispose) : undefined);
+}
 function decodedRaster(entry) {
   if (entry.authoritative || !entry.asset || entry.fractional) return undefined;
   if (entry.pixels) return entry.pixels;

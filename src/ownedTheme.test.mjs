@@ -252,3 +252,24 @@ test('clipped owned body diagnostics export a real image without decoding skippe
   assert.equal(trace.resolved[0].selection.resource.assetUrl, 'blob:clipped-body');
   assert.equal(owner.usage().images, 1);
 });
+
+test('eager results carry a pixel-free lifetime that disposal ends for every copy (#589)', async () => {
+  const { loadKaleidoscopeScheme } = await import('./loadKaleidoscopeScheme.ts');
+  const { assertThemeAlive } = await import('./ownedTheme.ts');
+  const copyModule = await import('../tools/theme-loader/rasterAssets.js?eager-lifetime-copy');
+  const theme = await loadKaleidoscopeScheme(bytes, { encodeAssets: true, assetUrlFactory: () => 'data:,never-revoked' });
+  const copy = { ...theme, baseUrl: '/copy' };
+  const life = copyModule.rasterLifetime(copy);
+  assert.equal(life?.disposed, false, 'module copies and spread copies share the eager lifetime');
+  assert.equal(rasterOwner(theme), undefined, 'eager results expose no private raster references');
+  assert.equal(life.usage().pixelBytes, 0, 'the marker retains no pixels');
+  assert.doesNotThrow(() => assertThemeAlive(themeView(copy)));
+  theme.dispose();
+  for (const input of [theme, copy]) {
+    assert.equal(themeView(input).lifetime.disposed, true);
+    assert.throws(() => assertThemeAlive(themeView(input)), { name: 'AbortError' });
+    await assert.rejects(composeButton(input, { label: 'OK', minWidth: 60, height: 20 }), { name: 'AbortError' });
+  }
+  const ref = Object.values(theme.manifest.chromeElements)[0].asset;
+  await assert.rejects(themeView({ ...theme }).asset(ref).pixels(), { name: 'AbortError' });
+});

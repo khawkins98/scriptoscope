@@ -17,3 +17,6 @@ export interface RasterAssetOwner {
 export function createRasterAssetOwner(assets: readonly DecodedRasterAsset[], encode: (rgba: Uint8Array, width: number, height: number, path: string) => string | Promise<string>, authoritative?: boolean): RasterAssetOwner;
 export function bindRasterOwner(source: object, owner: RasterAssetOwner): void;
 export function rasterOwner(source: object): RasterAssetOwner | undefined;
+export interface RasterLifetime { readonly lifetime: string; readonly disposed: boolean }
+export function bindRasterLifetime(dispose: () => void, owner: RasterLifetime): void;
+export function rasterLifetime(source: object & { dispose?: unknown }): RasterLifetime | undefined;

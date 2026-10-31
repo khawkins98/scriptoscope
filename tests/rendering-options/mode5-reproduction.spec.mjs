@@ -194,7 +194,7 @@ for(const mode of ['source','built']) test(`${mode}: mode5 disposal revokes and 
         return{before,calls,revoked,allocated,bodyUrl:bodyAsset,carriedUrl:binding.asset,after};
       }finally{HTMLImageElement.prototype.decode=decode;t.dispose();URL.revokeObjectURL=revoke;}
     },{mode,records:entries().map(r=>({...r,data:Array.from(r.data)}))});
-    expect(result.before).toBe(1);expect(result.calls).toBe(2);expect(result.after.resolved).toBe(false);expect(result.revoked).toEqual(expect.arrayContaining([result.bodyUrl,result.carriedUrl]));expect(new Set(result.revoked).size).toBe(result.revoked.length);expect([...result.revoked].sort()).toEqual([...result.allocated].sort());
+    expect(result.before).toBe(1);expect(result.calls).toBe(1);expect(result.after).toEqual({resolved:false,name:'AbortError'});expect(result.revoked).toEqual(expect.arrayContaining([result.bodyUrl,result.carriedUrl]));expect(new Set(result.revoked).size).toBe(result.revoked.length);expect([...result.revoked].sort()).toEqual([...result.allocated].sort());
   }catch(error){await attachCase(page,info,{mode,result},error);throw error;}
   await attachObservations(info,'mode5-reproduction',`${mode}-disposal`,{mode,result});
 });
