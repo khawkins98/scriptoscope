@@ -31,6 +31,20 @@ inference from the shape of the code (stated reason); **U** unresolved.
 standard WDEF messages 0..8 plus 1000/1001. `window-widgets.md` already uses
 `0x3f2c` for `wHit`; this is consistent.
 
+**Propagation status (2026-10-31).** Corrected in place: `kdef-service-handlers.md`
+(summary rows 6/7, the slot-6 body and table, the slot-7 heading),
+`kdef-binary-inventory.md` (§1 heading and rows 1/2, §2 rows 6/7), and the
+evidence twins (`kdef231-reference.evidence.md` gate table, slot-6 paragraph and
+`0x28e0` row; the other two twins' stale rows marked superseded).
+**Not yet corrected: `kdef231-reference.md`** (§1.4 gate table "per `0x28e0`
+table (1001..1009)", the slot-6 paragraph "msgs 1001..1009", and the `0x28e0`
+row "dispatches msg-1001"). That file is pinned by nine `documentSha256` values in
+`tests/control-availability/expectations.json`, and the frozen
+`tests/rendering-options/controls459-*.test.mjs` tests pin `inventoryVersion`
+1.0.17, so any byte change needs a test-owner bump (1.0.18 and the two frozen
+version pins). Until then its evidence twin and this appendix are authoritative
+for the slot-6 dispatch.
+
 **Correction (to `kdef-binary-inventory.md` §1 and `kdef-service-handlers.md`
 slot 7).** Slot 7 `0x1d3e` is CDEF-shaped, not the WDEF main:
 
