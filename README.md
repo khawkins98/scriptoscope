@@ -197,7 +197,7 @@ Want more? Drop any `.sit`/`.rsrc` you've grabbed from [Mac Themes Garden](https
 | `data-scriptoscope-disabled` | a `<button data-scriptoscope-button>` | Disabled state — flatten + grey. |
 | `data-scriptoscope-control` | `<input type=checkbox\|radio\|range>` or `<select>` | **Auto-applied** to every matching input — themed chrome over the native control. Opt out per-input with `data-scriptoscope-control="off"`. |
 | `data-scriptoscope-field` | `<input type=text\|email\|password\|…>` or `<textarea>` | Mac OS 8 sunken-bevel chrome over a native text input. Opt-in (consumer CSS can conflict). |
-| `data-scriptoscope-tabs` | a `<div>` containing `data-scriptoscope-tab` buttons + `data-scriptoscope-panel` siblings | Tab strip. Click cycles panels; ARIA + roving tabindex + keyboard nav wired. |
+| `data-scriptoscope-tabs` | a `<div>` containing `data-scriptoscope-tab` buttons + `data-scriptoscope-panel` siblings | Tab strip. Pressing a tab selects it and shows its panel; Arrow keys move and select (wrapping), Home/End jump; ARIA + roving tabindex wired. |
 | `data-scriptoscope-tab="<panel-id>"` | a `<button>` inside `data-scriptoscope-tabs` | One tab. Value references the panel id. |
 | `data-scriptoscope-panel="<id>"` | a `<div>` inside `data-scriptoscope-tabs` | A panel. Hidden unless its id matches the selected tab. |
 | `data-scriptoscope-selected` | a `<button data-scriptoscope-tab>` | Initial selected tab. Default: first tab. |
@@ -273,7 +273,7 @@ document.body.addEventListener('scriptoscope:promoted', (e) => { /* e.detail = {
 // On the runtime-inserted HOST element: bubbling + composed CustomEvents that cross
 // the shadow boundary into your consumer wraps (modal overlays, etc.). Same listener
 // rule as scriptoscope:promoted — listen on an ancestor, not the original element.
-document.body.addEventListener('scriptoscope:close', (e) => { /* runtime is about to restore bare HTML */ });
+document.body.addEventListener('scriptoscope:close', (e) => { /* the close widget is unmounting this window; fires before the bare HTML is restored. Not fired by handle.disconnect() */ });
 document.body.addEventListener('scriptoscope:userresize', (e) => { /* user finished grow-box drag; e.detail = { w, h } */ });
 
 // On the ORIGINAL consumer element (or any ancestor): a per-target failure event
@@ -704,7 +704,7 @@ The same runtime exposed as markup. Put `data-scriptoscope-window` on a plain `<
 
 **Runtime theme switching**: any `<select data-scriptoscope-theme-switcher>` re-skins every window + control live, the Kaleidoscope way.
 
-**Gestures**: drag the title bar (or any frame edge for side-titled palettes); drag the gripper to resize; click the **collapse** box or **double-click** the title bar to window-shade; click the **zoom** box to grow-to-fit; click a window to focus it. Keyboard equivalents, scroll-bar behaviour and the full event list: [docs/interaction.md](./docs/interaction.md).
+**Gestures**: drag the title bar or any other frame edge; drag the gripper to resize; click the **collapse** box or **double-click** any frame edge to window-shade; click the **zoom** box to grow-to-fit; click a window to focus it. Keyboard equivalents, scroll-bar behaviour and the full event list: [docs/interaction.md](./docs/interaction.md).
 
 Full design + the feature-rich pass: [`docs/superpowers/specs/2026-05-27-declarative-windows-design.md`](./docs/superpowers/specs/2026-05-27-declarative-windows-design.md). Live: <https://khawkins98.github.io/scriptoscope/>.
 

@@ -18,6 +18,7 @@ For layout, CSS and lifecycle gotchas see [integration-edge-cases.md](./integrat
 - [9. Accessibility notes](#9-accessibility-notes)
 - [10. Platform differences](#10-platform-differences)
 - [Not implemented](#not-implemented)
+- [Known issues](#known-issues)
 - [Upcoming: frame pass-through (#597)](#upcoming-frame-pass-through-597)
 
 ## Two ways in
@@ -38,11 +39,11 @@ Activation, z-order and focus are per `WindowManager`. The example host uses one
 | Pointer press anywhere on the window (frame or content) | The window becomes active and moves to the front. A press in the content is then delivered to the content as normal: one click both activates the window and presses the button under the pointer. |
 | Pointer press on the frame | Activates and starts a move in the same gesture (see [Moving](#2-moving)). A press that doesn't move only activates (#561). |
 | Pointer press on a scroll bar of an **inactive** window | Activates the window and does nothing else. The press doesn't scroll, and the next press acts as usual (#594, `scrollbar-inactive.spec.mjs`). This is the only part of the window where a first press is swallowed. |
-| Pointer click on a title widget of an inactive window | The widget acts (close, zoom, collapse) and the window **stays inactive**. The widget's press doesn't reach the window's activation handler. |
+| Pointer click on a title widget of an inactive window | The widget acts (close, zoom, collapse) and the window **stays inactive**. The widget's press doesn't reach the window's activation handler. Known issue: this differs from the classic first-click rule ([#614](https://github.com/khawkins98/scriptoscope/issues/614)). |
 | Keyboard focus entering the window (Tab, Shift+Tab, script `focus()`), in the chrome or the slotted content | Activates the window and raises it, without moving or resizing it (#550, `window-focus-raise.spec.mjs`). |
 | Wheel over an inactive window that shows themed scroll bars | Scrolls it without activating it. |
 
-The first window added to a manager starts active, unless it asks to start inactive (`data-scriptoscope-state="inactive"`, or `opts.state: 'inactive'`); in that case no window starts active. `data-scriptoscope-state="active"` on any later window has no effect, because only the first window can start active.
+The first window added to a manager starts active, unless it asks to start inactive (`data-scriptoscope-state="inactive"`, or `opts.state: 'inactive'`); in that case no window starts active. `data-scriptoscope-state="active"` on any later window has no effect, because only the first window can start active (known issue, [#614](https://github.com/khawkins98/scriptoscope/issues/614)).
 
 `WindowManager` has no public "activate" method. A `pointerdown` event dispatched on the host activates the window without moving keyboard focus (`window-focus-raise.spec.mjs`, "programmatic activation").
 
@@ -54,7 +55,7 @@ Each window has a stacking number `z` from a per-manager clock. Every activation
 
 - Declarative: `data-scriptoscope-z` seeds the initial value. Without it the clock follows document order.
 - Imperative: `extra.z` on `add`, and `applyState(host, { z })`.
-- Zooming an inactive window with the pointer gives it a new `z`, but it stays inactive, so it remains behind the active window.
+- Zooming an inactive window with the pointer gives it a new `z`, but it stays inactive, so it remains behind the active window (known issue, [#614](https://github.com/khawkins98/scriptoscope/issues/614)).
 
 ### Focus inside a window
 
@@ -184,7 +185,7 @@ The scheme's art decides which widgets a window type shows and where. A transpar
 - The action runs on `click`, so releasing outside the widget cancels it (native button behaviour).
 - On `wnd#` windows, only pixels inside the pressed widget art's mask count as the widget. A press on its transparent pixels falls through to the frame.
 - Enter and Space on a focused widget always act, on active and inactive windows (`window-widgets.spec.mjs`). Keyboard focus reaching an inactive window's widget activates the window first, as any focus does.
-- A pointer click on an inactive window's widget acts without activating the window (see [Activation](#1-activation-and-focus)).
+- A pointer click on an inactive window's widget acts without activating the window (see [Activation](#1-activation-and-focus); known issue, [#614](https://github.com/khawkins98/scriptoscope/issues/614)).
 
 ### Opting out: `data-scriptoscope-widgets`
 
@@ -194,7 +195,7 @@ A widget that isn't wired is still painted (the runtime never paints over the sc
 
 ### Built-in frame schemes
 
-The five schemes without a `wnd#` recipe (apple-platinum-2, black-platinum, platinum-8, slimes, system7-nostalgia-silver) draw their widgets only on the active window. The widget buttons stay in place on an inactive window, so a click where the invisible close box would be still closes it.
+The five schemes without a `wnd#` recipe (apple-platinum-2, black-platinum, platinum-8, slimes, system7-nostalgia-silver) draw their widgets only on the active window. The widget buttons stay in place on an inactive window, so a click where the invisible close box would be still closes it. Known issue: [#614](https://github.com/khawkins98/scriptoscope/issues/614).
 
 ## 5. Window scroll bars
 
@@ -225,7 +226,7 @@ A press acts on the part under the pointer, hit-tested on the bar as drawn:
 
 ### Wheel and trackpad
 
-- The vertical bar takes `deltaY`. The horizontal bar takes `deltaX`, and `deltaY` while Shift is held.
+- The vertical bar takes `deltaY`. The horizontal bar takes `deltaX`, and `deltaY` while Shift is held. The vertical bar doesn't check Shift, so in a browser that doesn't turn Shift+wheel into `deltaX`, Shift+wheel moves both bars (Chromium converts it; known issue, [#614](https://github.com/khawkins98/scriptoscope/issues/614)).
 - Deltas are applied in whole pixels. The fraction carries over to the next event, so slow trackpad scrolls add up to their true sum. A change of direction drops the carried fraction, so it never cancels the first step the other way. Deltas under 0.5 px are ignored. `deltaMode` isn't consulted: deltas are treated as pixels.
 - While a window shows a themed bar for an axis, the wheel event is consumed (`preventDefault`), so it doesn't scroll the page, even at the end of the content.
 - The wheel doesn't activate an inactive window.
@@ -409,6 +410,10 @@ These are absent on `main`. Don't rely on them.
 - Resizing from edges or other corners, and keyboard zoom other than the Zoom widget.
 - A declarative disclosure-triangle attribute.
 - Hover states.
+
+## Known issues
+
+[#614](https://github.com/khawkins98/scriptoscope/issues/614) tracks the inactive-window behaviours marked above: widget clicks that skip activation, live invisible widgets on built-in-frame schemes, zoom leaving a window behind, `data-scriptoscope-state="active"` on later windows, and Shift+wheel moving both scroll bars. This page will be updated when they're fixed.
 
 ## Upcoming: frame pass-through (#597)
 

@@ -32,9 +32,10 @@ Scriptoscope is **desktop windowing**. Classic Mac chrome assumes pointer + keyb
 **Choose a responsive layout or skip mounting below your breakpoint.** Consumer grids should allow tracks to shrink (`minmax(0, 1fr)` and `min-width: 0`) and reserve space for cascade offsets before promotion measures their content. Fixed-art chrome still has a minimum useful width, so test your selected themes at the narrowest supported viewport. If your layout cannot fit, conditional mounting keeps the bare HTML available. The chrome canvas and interactive overlays share a shadow root; hiding only the canvas leaves invisible click targets.
 
 ```js
-// Conditional mount — the cleanest pattern.
+// Conditional mount — the cleanest pattern. mountExplicitPage is the published
+// example host (demo/explicit-host.mjs); any application host works the same way.
 if (!window.matchMedia('(max-width: 600px)').matches) {
-  await mountDeclarative({ /* ... */ });
+  await mountExplicitPage({ /* ... */ });
 }
 // Bare HTML renders untouched below the breakpoint.
 ```
@@ -45,7 +46,7 @@ If you want chrome to appear/disappear on viewport changes (rotate to landscape,
 const mq = window.matchMedia('(min-width: 600px)');
 let handle;
 const sync = async () => {
-  if (mq.matches && !handle) handle = await mountDeclarative({ /* ... */ });
+  if (mq.matches && !handle) handle = await mountExplicitPage({ /* ... */ });
   else if (!mq.matches && handle) { handle.disconnect(); handle = undefined; }
 };
 mq.addEventListener('change', sync);
@@ -65,7 +66,7 @@ A CSS-only "hide chrome below the breakpoint" approach exists but has an asymmet
 
 The asymmetry: when promotion happens, the runtime MOVES your consumer content from the source element's children INTO the promoted host's slot, then removes the source element. So:
 
-  - **User loads on mobile**: viewport < 600px → if you used the conditional-mount JS pattern above, `mountDeclarative` doesn't run → bare HTML stays visible. ✅ Fine.
+  - **User loads on mobile**: viewport < 600px → if you used the conditional-mount JS pattern above, `mountExplicitPage` doesn't run → bare HTML stays visible. ✅ Fine.
   - **User loads on desktop, resizes to mobile**: promotion already ran → consumer content lives INSIDE the promoted hosts → CSS hides the hosts → **content disappears entirely**. ❌ Broken.
 
 The CSS-only fallback only works if you ship a duplicate mobile-only DOM tree:
