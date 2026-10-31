@@ -119,7 +119,7 @@ jobs:
   # every run. When #599 lands, drop continue-on-error and add `scenes` to the
   # gate's required list.
   scenes:
-    name: Scene fixtures (report-only, #599)
+    name: "Scene fixtures (report-only, #599)"
     needs: [scope]
     runs-on: ubuntu-24.04
     permissions:
