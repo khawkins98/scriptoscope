@@ -240,6 +240,29 @@ test('source: persistKey round trip keeps in-flow windows in flow and restores a
   expect([restored.hosts[0].x, restored.hosts[0].y], 'A unmoved').toEqual([first.hosts[0].x, first.hosts[0].y]);
 });
 
+// #578: layout writes are debounced 250 ms. A reload inside that window used to drop the drag's
+// commit and restore an older snapshot (in the flake, one taken mid-drag from the hot loop's
+// left/top, so B came back short of where it was dropped). The layer now flushes on pagehide,
+// so reloading straight after pointerup, with no wait for the write, must restore the drop.
+test('source: persistKey reload straight after a drag restores the dropped position (#578)', async ({ page, demo }) => {
+  await openPersisted(page, demo);
+  await mountPersisted(page);
+  await expect.poll(async () => (await persisted(page)).stored?.windows?.b, 'layout written after the first render').toBeTruthy();
+  const grip = await page.locator('#pb-root [data-scriptoscope-window-host]').nth(1).evaluate(h => {
+    const r = h.shadowRoot.querySelector('.scriptoscope-movehandle').getBoundingClientRect();
+    return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
+  });
+  await page.mouse.move(grip.x, grip.y);
+  await page.mouse.down();
+  await page.mouse.move(grip.x + 40, grip.y + 50, { steps: 5 });
+  await page.mouse.up();
+  const dropped = (await persisted(page)).hosts[1];
+  expect(dropped.inline).toBe('absolute');
+  const restored = await reloadPersisted(page);
+  expect(restored.hosts[1].inline, 'B restored absolute').toBe('absolute');
+  expect([restored.hosts[1].left, restored.hosts[1].top], 'B restored where it was dropped').toEqual([dropped.left, dropped.top]);
+});
+
 // #558: the layout layer persists an auto-sized window's CONTENT size and restores it as a
 // declared size. ScriptoscopeWindow's 40 px outer floor (MIN_H) used to be applied to it as if
 // it were outer, so a 30 px content area came back as 40 px and every reload grew short windows.

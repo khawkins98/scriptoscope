@@ -42,10 +42,18 @@ export function ownLayout(options,signal) {
   }
   return {version:1,windows};
  }
+ function write() {
+  clearTimeout(timer);timer=undefined;
+  try{localStorage.setItem(key,JSON.stringify(snapshot()));}catch(error){console.error('Consumer layout write failed',error);}
+ }
+ // Writes are debounced, so a reload or navigation inside the 250 ms window would drop the
+ // last commit and keep an older snapshot, such as one taken mid-drag from the hot loop's
+ // left/top (#578). pagehide flushes the pending write before the page goes away.
  function schedule() {
   if(!key||applying||signal.aborted)return;
-  clearTimeout(timer);timer=setTimeout(()=>{try{localStorage.setItem(key,JSON.stringify(snapshot()));}catch(error){console.error('Consumer layout write failed',error);}},250);
+  clearTimeout(timer);timer=setTimeout(write,250);
  }
+ if(key)addEventListener('pagehide',()=>{if(timer!==undefined&&!signal.aborted)write();},{signal});
  function add(source,index,win,manager) {
   const id=source.dataset.scriptoscopeWindowId||String(index);
   records.set(id,{win,manager});
