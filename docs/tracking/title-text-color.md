@@ -14,8 +14,9 @@
 > exactly (the repainted Kingfisher uses system-palette black; Castle's cream
 > `#ffffcc` title is a current example). The
 > "Scriptoscope shipped decision: use black" paragraph in
-> `docs/spec/kdef231-reference.md` §1.4 is stale; that file is hash-pinned
-> evidence (`tests/control-availability`), so it is left for a re-pin.
+> `docs/spec/kdef231-reference.md` §1.4 was stale; it was rewritten and
+> re-pinned on 2026-10-31 (`tests/control-availability` inventory 1.0.18,
+> hash-only, `ce33a576` -> `3efc5f35`; review label PENDING).
 
 ## Symptom
 Rendered window-title text colour doesn't match the period references:

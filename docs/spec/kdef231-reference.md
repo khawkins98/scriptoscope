@@ -197,12 +197,15 @@ recipe walk + draw). Its 9-entry dispatch fans out to the routines below
 > So a scheme encodes its title colour as a small marker SWATCH baked into the
 > window cicn — there is NO per-scheme title-colour clut/`wctb` (verified: the
 > `-14335`/`-14336` cluts are frame/bevel appearance only, and the `Colr`
-> resource is scheme metadata). **Scriptoscope shipped decision:** the exact marker
-> coordinate isn't reliably pinnable (the `0x6582(0)` body-rect corners don't
-> yield it; the decompile is truncated through `0x6582`/`0xfc5c`), AND every
-> corpus scheme draws the classic-Mac default anyway, so `renderWindow.ts` uses
-> black (grey when inactive) rather than sampling. The marker path is the
-> OVERRIDE for a colour-customising scheme; reopen with one as a test case. Full
+> resource is scheme metadata). **Scriptoscope implements the sample (updated
+> 2026-10-31):** the text colour is the template pixel at the content rect's
+> top-left `(part0.left, part0.top)` and the shadow colour its right neighbour
+> (the popup family samples `(part0.left, part0.bottom − 1)` instead), read
+> through the palette with the mask ignored (`docs/spec/engine/window-widgets.md`
+> TC1–TC5, `windowTitleSamples` in `tools/theme-loader/buildThemeJson.js`). The
+> first-party authored schemes (`authoring/schemes/`) were the
+> colour-customising test cases. (This replaces an earlier "use black"
+> decision, made when the marker coordinate was not yet pinned.) Full
 > write-up: `docs/tracking/title-text-color.md`.
 
 ### 1.5 Blit primitives + 9-slice
