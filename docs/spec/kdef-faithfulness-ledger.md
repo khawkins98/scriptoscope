@@ -145,6 +145,15 @@ Each entry below tags its divergence direction explicitly:
   original-engine fallback rules or proof of author intent. Actual selection
   diagnostics are tracked in [#226](https://github.com/khawkins98/scriptoscope/issues/226).
 
+- **Disclosure triangles: only the canonical state ids are evidence; the rest is compatibility policy**
+  ([#595](https://github.com/khawkins98/scriptoscope/issues/595)).
+  - **What the evidence supports:** `composeDisclosure` (`src/controls.ts`) resolves signed cicn ids first: right `-10111` normal, `-10110` pressed, `-10112` inactive; down `-10103` normal, `-10102` pressed, `-10104` inactive. The family range is in [kdef231-reference §2.6](./kdef231-reference.md). The per-state mapping comes from the corpus author labels (`corpus-author-labels.json`: 1138, animals, beos-r503, 1990, dolphin-som, evolution, 1984, floppies, crayon-os), not from a decoded disclosure dispatch.
+  - **Compatibility policy, not decode:**
+    - A missing pressed or inactive triangle reuses the same direction's normal triangle. crayon-os ships only `-10111`/`-10103`.
+    - Named keys and apple-platinum-2's positive ics4 ids 3060/3061 are tried next.
+    - With no triangle at all, the caller draws the Platinum one.
+  - **What remains unproven:** none of these fallbacks is a proven original-engine rule.
+
 - **Default-ring destination expansion is four pixels.** Original
   `InsetRect(-4,-4)` at `0x7698..0x76a2` expands the control rectangle before
   ring painting. #219 replaced the former ring/face-size heuristic with this
