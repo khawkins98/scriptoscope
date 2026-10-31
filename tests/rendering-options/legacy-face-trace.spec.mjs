@@ -78,7 +78,26 @@ for (const mode of ['source', 'built']) {
     await openHarness(page, servers, mode);
     const rows = await page.evaluate(async mode => {
       const api = await import(mode === 'built' ? '/dist/scriptoscope.js' : '/src/index.ts');
-      const source = api.PixelBuffer.alloc(7, 7); source.fillRect({ x: 0, y: 0, w: 7, h: 7 }, 131, 193, 255, 128);
+      // Oracle for the semi-transparent fixture pixel, built with plain canvas calls (no
+      // product code) along the fixture's own path: putImageData -> toDataURL PNG -> image
+      // decode -> drawImage -> getImageData. Canvas backing stores may be premultiplied, so
+      // a fractional-alpha colour is not guaranteed to survive that round trip: Linux WebKit
+      // returns [129,191,255,128] (131*128/255 floors to 65, 65*255/128 rounds to 129) where
+      // Firefox and macOS WebKit return the input. The engine's own readback is the expected
+      // sample; the product still has to sample, place, clip and fill it correctly.
+      const fixturePixel = [131, 193, 255, 128];
+      const oracle = await (async () => {
+        const first = document.createElement('canvas'); first.width = first.height = 7;
+        const fill = first.getContext('2d'), image = fill.createImageData(7, 7);
+        for (let i = 0; i < image.data.length; i += 4) image.data.set(fixturePixel, i);
+        fill.putImageData(image, 0, 0);
+        const img = new Image(); img.src = first.toDataURL(); await img.decode();
+        const second = document.createElement('canvas'); second.width = second.height = 7;
+        const read = second.getContext('2d', { willReadFrequently: true }); read.imageSmoothingEnabled = false;
+        read.drawImage(img, 0, 0);
+        return [...read.getImageData(2, 2, 1, 1).data];
+      })();
+      const source = api.PixelBuffer.alloc(7, 7); source.fillRect({ x: 0, y: 0, w: 7, h: 7 }, ...fixturePixel);
       const blank = api.PixelBuffer.alloc(7, 7);
       const context = rect => ({ controlOrigin: [10, 20], portOrigin: [0, 0], patternOrigin: { status: 'unknown' }, clip: { kind: 'rect', rect } });
       const cases = [
@@ -102,16 +121,25 @@ for (const mode of ['source', 'built']) {
           decodes = 0; const plain = await compose(theme('off'), options), offDecodes = decodes;
           let trace; decodes = 0; const out = await compose(theme('on'), { ...options, diagnostics: { onComplete: t => { trace = t; } } });
           rows.push({ name: c.name, trace, offDecodes, onDecodes: decodes, size: [out.width, out.height],
-            same: out.data.every((v, i) => v === plain.data[i]), rgba: [...out.data] });
+            same: out.data.every((v, i) => v === plain.data[i]), rgba: [...out.data], oracle });
         } return rows;
       } finally { HTMLImageElement.prototype.decode = decode; }
     }, mode);
     for (const row of rows) { expect(row.same).toBe(true); expect([row.offDecodes, row.onDecodes]).toEqual([1, 1]); }
     const clipped = rows.find(r => r.name === 'clipped');
+    // The oracle must stay a usable discriminator: alpha exact, colour within the
+    // premultiplied round-trip error at alpha 128 (at most 2 levels), and R, G, B distinct
+    // so a channel-order mutation cannot pass.
+    const [or, og, ob, oa] = clipped.oracle;
+    expect(oa, 'fixture alpha survives the canvas round trip').toBe(128);
+    [or, og, ob].forEach((v, i) => expect(Math.abs(v - [131, 193, 255][i]), `oracle channel ${i} near the fixture`).toBeLessThanOrEqual(2));
+    expect(new Set([or, og, ob]).size, 'oracle channels distinct').toBe(3);
     expect(clipped.trace.legacyFacePaint).toMatchObject({ retainedNonzeroAlphaPixels: 12, controlOrigin: [10, 20],
-      effectiveFaceClip: { x: 2, y: 1, w: 3, h: 4 }, centerFill: { sourcePoint: [2, 2], sampledDisplayRgba: [131, 193, 255, 128], outputAlpha: 255 } });
+      effectiveFaceClip: { x: 2, y: 1, w: 3, h: 4 }, centerFill: { sourcePoint: [2, 2], sampledDisplayRgba: [or, og, ob, oa], outputAlpha: 255 } });
+    // Row 1 is the face art itself (decoded sample, alpha 128); rows 2-4 are the centre
+    // fill, which repaints the decoded sample's RGB at alpha 255.
     const literal = Array.from({ length: 29 * 7 }, (_, i) => { const x = i % 29, y = Math.floor(i / 29);
-      return x >= 2 && x < 5 && y >= 1 && y < 5 ? [131, 193, 255, y >= 2 ? 255 : 128] : [0, 0, 0, 0]; }).flat();
+      return x >= 2 && x < 5 && y >= 1 && y < 5 ? [or, og, ob, y >= 2 ? 255 : oa] : [0, 0, 0, 0]; }).flat();
     expect(clipped.rgba).toEqual(literal);
     expect(rows.find(r => r.name === 'empty-clip').trace.legacyFacePaint).toBeUndefined();
     const text = rows.find(r => r.name === 'transparent-label'); expect(text.trace.legacyFacePaint).toBeUndefined(); expect(text.rgba.some((v, i) => i % 4 === 3 && v > 0)).toBe(true);
