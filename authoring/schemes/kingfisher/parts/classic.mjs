@@ -1,4 +1,4 @@
-// Halcyon's control-panel extras (classic Kaleidoscope only; the web runtime
+// Kingfisher's control-panel extras (classic Kaleidoscope only; the web runtime
 // draws none of them). Builders and ids: tools/theme-author/classic-extras.js,
 // docs/authoring-a-scheme.md §7.2.
 //
@@ -21,7 +21,7 @@ export function build(add) {
   const family = encodeIconFamily(-16455, { large: schemeIcon(32), small: schemeIcon(16), dither4: false });
   const resources = [
     ...aboutBox({
-      name: 'Halcyon',
+      name: 'Kingfisher',
       description: 'A kingfisher lands on frosted glass: lavender, navy and teal water.',
       year: 2026,
       icon: rasterFromIconFamily(family), iconGamma: false,

@@ -19,7 +19,7 @@ const plain = (color) => new Raster(8, 8).fillRect(0, 0, 8, 8, color);
  * brightnesses, two four-point twinkles and a few confetti flecks (2×1, gold,
  * pink, cyan), all placed by hand so nothing lines up into stripes when the
  * tile repeats. Every colour is an exact 8-bit system entry, stored raw
- * (gamma: false), as Halcyon's and Bonn's desktops are.
+ * (gamma: false), as Kingfisher's and Bonn's desktops are.
  */
 function desktop() {
   const N = 64, r = new Raster(N, N);
@@ -65,7 +65,7 @@ export function build(add) {
   }
 
   // Header colour tables (part codes: frame, fill, text, tinges, bevels) and
-  // the slider / focus-ring ramp (light → dark), as Halcyon ships them.
+  // the slider / focus-ring ramp (light → dark), as Kingfisher ships them.
   const A = C.active, I = C.inactive;
   add('clut', -14336, encodeHeaderClut({ frame: A.outline, fill: A.gold, text: A.title, lightTinge: A.goldHi, darkTinge: A.goldLo, lightBevel: A.goldHi, darkBevel: A.bronze }), 'Active Header');
   add('clut', -14335, encodeHeaderClut({ frame: I.outline, fill: I.gold, text: I.title, lightTinge: I.goldHi, darkTinge: I.goldLo, lightBevel: I.goldHi, darkBevel: I.bronze }), 'Inactive Header');

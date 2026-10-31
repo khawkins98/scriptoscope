@@ -1,5 +1,5 @@
 // Brickworks menus (classic Kaleidoscope only; the web runtime doesn't draw
-// menus). Ids and the face model follow Castle's menus.mjs and Halcyon's
+// menus). Ids and the face model follow Castle's menus.mjs and Kingfisher's
 // parts/menus.mjs (corpus author labels, docs/spec/corpus-corroborated-ids.md):
 //
 //   cicn+cinf -12240 menu bar · -12239 menu bar item · -12238 selected title

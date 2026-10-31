@@ -1,10 +1,10 @@
-// Halcyon's progress / header / disclosure / grow-box part
-// (authoring/schemes/halcyon/parts/progress.mjs): the resources exist, decode,
+// Kingfisher's progress / header / disclosure / grow-box part
+// (authoring/schemes/kingfisher/parts/progress.mjs): the resources exist, decode,
 // pass checkScheme, and the barber-pole steps are a clean cycle.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { build } from '../../authoring/schemes/halcyon/parts/progress.mjs';
-import { C } from '../../authoring/schemes/halcyon/palette.mjs';
+import { build } from '../../authoring/schemes/kingfisher/parts/progress.mjs';
+import { C } from '../../authoring/schemes/kingfisher/palette.mjs';
 import { checkScheme } from './check-scheme.js';
 import { writeResourceFork } from './resource-fork-writer.js';
 import { parseResourceFork } from '../theme-loader/resource-fork.js';

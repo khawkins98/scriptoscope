@@ -47,9 +47,9 @@ test('sim8: deterministic, keeps alpha, accepts a Raster, counts colours', () =>
 });
 
 test('sim8: known off-palette colours land on their documented entries', () => {
-  // Halcyon's first accent (design review §1.1). In stored values the 4-bit
+  // Kingfisher's first accent (design review §1.1). In stored values the 4-bit
   // inverse-table cell is (0x11, 0x77, 0x99), whose nearest entry is #006699;
-  // the web shows that entry as #0078a8 (Halcyon's palette now uses it).
+  // the web shows that entry as #0078a8 (Kingfisher's palette now uses it).
   const accent = systemEntryFor('#1689a8');
   assert.deepEqual(accent.stored, [13, 119, 153]);
   assert.deepEqual(accent.entry, [0, 102, 153]);

@@ -1,4 +1,4 @@
-// Halcyon: menus, desktop and Finder colours, header colour tables, the
+// Kingfisher: menus, desktop and Finder colours, header colour tables, the
 // scheme icon.
 //
 // Ids follow the corpus authors' own labels (docs/spec/corpus-corroborated-ids.md)
@@ -175,7 +175,7 @@ const finderCinf = () => encodeCinf({ cornerSize: 0, sideThickness: 0, tileSides
   bgPixel: { x: 3, y: 3 }, textPixel: { x: 1, y: 1 }, embossPixel: { x: 0, y: 0 } });
 
 // ── Scheme icon ───────────────────────────────────────────────────────────
-// A little Halcyon window: the kingfisher on the branch rim, a glass bar, a
+// A little Kingfisher window: the kingfisher on the branch rim, a glass bar, a
 // white body and the water band. Hand-placed pixels in palette colours.
 const ICON32 = [
   '................................',

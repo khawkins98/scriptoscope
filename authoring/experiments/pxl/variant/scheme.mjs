@@ -1,5 +1,5 @@
-// Halcyon-pxl: Halcyon with its normal-state checkboxes and radio buttons
-// replaced by sprites drawn in claude-pxl (../halcyon-agy.px.js, built to
+// Kingfisher-pxl: Kingfisher with its normal-state checkboxes and radio buttons
+// replaced by sprites drawn in claude-pxl (../kingfisher-agy.px.js, built to
 // ../sprites/). A trial of bringing art from another tool into a scheme.
 //
 // Build:   npm run author -- authoring/experiments/pxl/variant
@@ -8,7 +8,7 @@
 import { readFileSync } from 'node:fs';
 import { Raster, encodeCicn, encodeVers } from '../../../../tools/theme-author/index.js';
 import { decodePng } from '../../../../scripts/lib/png-decode.mjs';
-import { buildScheme as buildHalcyon } from '../../../schemes/halcyon/scheme.mjs';
+import { buildScheme as buildKingfisher } from '../../../schemes/kingfisher/scheme.mjs';
 
 /** Load a PNG as a Raster; fail if it has soft (partial-alpha) edges. */
 function sprite(name) {
@@ -29,11 +29,11 @@ const REPLACE = {
 };
 
 export async function buildScheme() {
-  const { resources } = await buildHalcyon();
+  const { resources } = await buildKingfisher();
   for (const r of resources) {
     if (r.type === 'cicn' && REPLACE[r.id]) r.data = encodeCicn(sprite(REPLACE[r.id]));
   }
   const vers = resources.find((r) => r.type === 'vers');
-  if (vers) vers.data = encodeVers({ major: 0, minor: 1, short: '0.1', long: '0.1 Halcyon-pxl (claude-pxl sprite trial)' });
+  if (vers) vers.data = encodeVers({ major: 0, minor: 1, short: '0.1', long: '0.1 Kingfisher-pxl (claude-pxl sprite trial)' });
   return { resources };
 }

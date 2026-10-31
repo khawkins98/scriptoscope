@@ -194,7 +194,7 @@ test('first-party schemes ship the control-panel extras: about box, panel string
   const { readFileSync } = await import('node:fs');
   const { SYSTEM_PALETTE_256 } = await import('./encode-icons.js');
   const system = new Set(SYSTEM_PALETTE_256.map((c) => c.map((v) => (v << 8) | v).join()));
-  const names = { halcyon: 'Halcyon', 'new-year-2027': 'Midnight 2027', castle: 'Castle', brickworks: 'Brickworks', bonn: 'Bonn' };
+  const names = { kingfisher: 'Kingfisher', 'new-year-2027': 'Midnight 2027', castle: 'Castle', brickworks: 'Brickworks', bonn: 'Bonn' };
   for (const [dir, name] of Object.entries(names)) {
     const res = parseResourceFork(new Uint8Array(readFileSync(new URL(`../../authoring/schemes/${dir}/scheme.rsrc`, import.meta.url))));
     const get = (t, id) => res.find((r) => r.type === t && r.id === id);

@@ -1,5 +1,5 @@
 {
-  "name": "Halcyon",
+  "name": "Kingfisher",
   "author": {
     "name": "Scriptoscope contributors"
   },
@@ -7,6 +7,6 @@
     "kind": "first-party-authored",
     "originalFormat": "rsrc",
     "originalLicense": "Same license as the Scriptoscope repository. An original design; not a reproduction of any shipping operating system.",
-    "sourceUrl": "https://github.com/khawkins98/scriptoscope/tree/main/authoring/schemes/halcyon"
+    "sourceUrl": "https://github.com/khawkins98/scriptoscope/tree/main/authoring/schemes/kingfisher"
   }
 }

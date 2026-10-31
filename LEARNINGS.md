@@ -2,6 +2,8 @@
 
 ## 2026-10-31 — Passing every check is not the same as looking good: design the window first
 
+*(Naming note: Halcyon was renamed Kingfisher, `authoring/schemes/kingfisher/`, on 2026-10-31. These entries keep the name it had at the time.)*
+
 The first versions of Halcyon, Castle, Brickworks and Bonn passed every
 authoring check and loaded in real Kaleidoscope, and still looked generated
 next to the best corpus schemes. Each had been designed cell by cell, so

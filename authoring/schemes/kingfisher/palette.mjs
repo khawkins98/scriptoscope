@@ -1,4 +1,4 @@
-// Halcyon's palette: a kingfisher has landed on a frosted modern window
+// Kingfisher's palette: a kingfisher has landed on a frosted modern window
 // (concept/brief.md §1).
 //
 // Every colour here is chosen as an entry of the classic 8-bit system palette

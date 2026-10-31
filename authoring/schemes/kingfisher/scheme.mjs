@@ -1,4 +1,4 @@
-// Halcyon — an original first-party Kaleidoscope scheme, authored in code.
+// Kingfisher — an original first-party Kaleidoscope scheme, authored in code.
 //
 // Look (concept/concept.jpg): a kingfisher has landed on a frosted window.
 // A rounded frame with a navy outline and a white inner rim round lavender
@@ -14,7 +14,7 @@
 // reverse it. Everything is placed on whole pixels in system-palette colours
 // (palette.mjs), so 8 bpp looks like the web.
 //
-// Build:   npm run author -- authoring/schemes/halcyon
+// Build:   npm run author -- authoring/schemes/kingfisher
 // Guides:  docs/authoring-a-scheme.md, docs/authoring-exotic-frames.md
 //
 // Files:
@@ -149,7 +149,7 @@ export async function buildScheme() {
   const resources = [];
   const add = (type, id, data, name) => resources.push({ type, id, data, ...(name ? { name } : {}) });
 
-  add('vers', 1, encodeVers({ major: 0, minor: 2, short: '0.2', long: '0.2 Halcyon (Scriptoscope authoring)' }));
+  add('vers', 1, encodeVers({ major: 0, minor: 2, short: '0.2', long: '0.2 Kingfisher (Scriptoscope authoring)' }));
   add('Colr', 129, encodeColr());
 
   const faces = [
@@ -173,7 +173,7 @@ export async function buildScheme() {
   }
 
   // Window frames and control families (parts/*.mjs). Each exports `build(add, { C })`; they
-  // load in name order. HALCYON_PARTS=scrollbars,menus builds only those.
+  // load in name order. KINGFISHER_PARTS=scrollbars,menus builds only those.
   // Each resource remembers which file added it, so a clash names both files.
   const owner = new Map(resources.map((r) => [`${r.type}:${r.id}`, 'scheme.mjs']));
   for (const { file, module } of await loadParts()) {
@@ -189,7 +189,7 @@ export async function buildScheme() {
 
 async function loadParts() {
   const { readdirSync } = await import('node:fs');
-  const only = process.env.HALCYON_PARTS?.split(',').map((x) => x.trim()).filter(Boolean);
+  const only = process.env.KINGFISHER_PARTS?.split(',').map((x) => x.trim()).filter(Boolean);
   const files = readdirSync(new URL('./parts/', import.meta.url))
     .filter((f) => f.endsWith('.mjs') && (!only || only.includes(f.replace(/\.mjs$/, ''))))
     .sort();

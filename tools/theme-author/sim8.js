@@ -20,7 +20,7 @@
 // entry by Euclidean RGB distance. Checked against the real Kaleidoscope
 // 2.3.1 captures in authoring/schemes/*/classic/ (8 bpp, Basilisk II): over
 // 16,716 pixels of the fixed top-left corners of Castle's, Bonn's, Brickworks'
-// and Halcyon's frames, located in the captures by search, 4-bit cells pick
+// and Kingfisher's frames, located in the captures by search, 4-bit cells pick
 // the entry classic drew for 92% of pixels (85–95% per scheme). Most misses
 // are one grey step near a cell edge, or pixels where something else is drawn
 // over the frame. Exact nearest (`itabRes: 0`) gets 59%, and quantising the

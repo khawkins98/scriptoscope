@@ -1,9 +1,9 @@
-// Halcyon's control family (authoring/schemes/halcyon/parts/controls.mjs):
+// Kingfisher's control family (authoring/schemes/kingfisher/parts/controls.mjs):
 // sliders, tabs + panes, bevel buttons and popup buttons.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { build } from '../../authoring/schemes/halcyon/parts/controls.mjs';
-import { C } from '../../authoring/schemes/halcyon/palette.mjs';
+import { build } from '../../authoring/schemes/kingfisher/parts/controls.mjs';
+import { C } from '../../authoring/schemes/kingfisher/palette.mjs';
 import { readCicnIndexed } from '../theme-loader/decoders/cicn.js';
 import { decodeCinf } from '../theme-loader/decoders/cinf.js';
 import { checkScheme } from './check-scheme.js';

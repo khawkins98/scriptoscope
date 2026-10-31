@@ -23,7 +23,7 @@ export const BASEPLATE_PPAT = 128;
 const plain = (fill, N = 8) => new Raster(N, N).fillRect(0, 0, N, N, fill);
 
 // Desktop colours: exact 8-bit system palette entries, stored raw
-// (gamma: false), as Halcyon's, Bonn's and Midnight 2027's desktops are.
+// (gamma: false), as Kingfisher's, Bonn's and Midnight 2027's desktops are.
 const PLATE = { face: '#669966', rim: '#99cc99', shade: '#336633' };
 const STUD = [
   '.lll.',

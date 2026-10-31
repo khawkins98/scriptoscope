@@ -2,7 +2,7 @@
 // arrow buttons with white arrowheads, and a red 2×1 brick thumb seen from
 // above with its two studs. Flat colours and whole-pixel glyphs only.
 //
-// The engine rules are the ones Halcyon's parts/scrollbars.mjs documents
+// The engine rules are the ones Kingfisher's parts/scrollbars.mjs documents
 // (docs/spec/engine/scrollbar.md): one TRACK cicn per tier holds both arrows
 // and a 3px track source whose middle is stretched, so the track may only vary
 // ACROSS the bar; every image is opaque; the pressed track's middle equals the

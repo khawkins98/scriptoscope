@@ -22,8 +22,8 @@ about tall frames are in
 ## 2026-10-31 (later): control-panel extras
 
 One clean boot (fresh copies of the v16l system and transfer seeds, sound off
-with `nosound true`, 8 bpp) loaded Halcyon, a test copy of Halcyon with the
-accent flag set (not committed), Halcyon again, Midnight 2027, Castle,
+with `nosound true`, 8 bpp) loaded Kingfisher, a test copy of Kingfisher with the
+accent flag set (not committed), Kingfisher again, Midnight 2027, Castle,
 Brickworks and Bonn in turn through **Select Scheme…**, from the transfer disk.
 A second clean boot loaded the rebuilt Bonn (its cursor was changed after the
 first).
@@ -38,7 +38,7 @@ view, over the starry desktop).
 - **Still greyed:** Finder Icons (not shipped), Finder Colors (the scheme ships
   the Finder colour records `cicn -9552…-9548`, but the panel's own help says
   the box is disabled under System 7, so it can't be checked on this disk),
-  Accent Color (not shipped, see Halcyon's README) and Alternate Checkboxes.
+  Accent Color (not shipped, see Kingfisher's README) and Alternate Checkboxes.
 - **About box** (`about@2x.png`): the scheme's dialog frame, the picker icon
   (`cicn 128`) and the text. A click anywhere closes it. The text is drawn in
   the panel's small application font, not the Chicago 12 the box was sized
@@ -57,7 +57,7 @@ view, over the starry desktop).
 
 ## 2026-10-31: first run
 
-One clean boot that switched Halcyon → Castle → Brickworks → Bonn → Midnight
+One clean boot that switched Kingfisher → Castle → Brickworks → Bonn → Midnight
 2027 through **Select Scheme…**. `scheme.bin` sha256
 `cec8c40473c811c321af14ac29a51def044c2edad9560661229b1c9661e18ee9`.
 

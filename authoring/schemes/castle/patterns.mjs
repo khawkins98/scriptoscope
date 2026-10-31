@@ -39,7 +39,7 @@ function parchment() {
  * scattered by hand like the parchment's flecks: off any grid and far apart,
  * so at 1x it reads as a still sky and the tile never shows as rows.
  * Both are exact 8-bit system palette entries, stored raw (gamma: false), as
- * Halcyon's, Bonn's and Midnight 2027's desktops are.
+ * Kingfisher's, Bonn's and Midnight 2027's desktops are.
  */
 const SKY = '#6699cc', WISP = '#99cccc';
 // [x, y, length]

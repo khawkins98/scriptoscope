@@ -4,7 +4,7 @@
 // at DPR 1), at the same viewport for every scheme so they compare side by side.
 //
 // Usage (with `npm run dev` running):
-//   npm run capture:authoring -- authoring/schemes/halcyon [--base http://localhost:5173]
+//   npm run capture:authoring -- authoring/schemes/kingfisher [--base http://localhost:5173]
 //
 // The viewport fits the widened layouts (frames with 60px+ top bands need
 // about 960px). Waits for the page's data-preview-ready flag and fails on a

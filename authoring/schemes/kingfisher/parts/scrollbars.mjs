@@ -1,4 +1,4 @@
-// Halcyon scroll bars: tracks with their arrows, thumbs, drag ghosts, and the
+// Kingfisher scroll bars: tracks with their arrows, thumbs, drag ghosts, and the
 // little-arrows stepper.
 //
 // How the Kaleidoscope 2.3.1 scroll-bar CDEF uses these images
@@ -23,7 +23,7 @@
 //   ends then blend with real track pixels.
 // - Arrows of a composite track are copied opaque, mask ignored (AC5), and
 //   track pixels the cicn leaves clear are undefined without a ppat (§6 item
-//   4), so every track image is opaque and Halcyon ships no track ppats.
+//   4), so every track image is opaque and Kingfisher ships no track ppats.
 // - Pressing an arrow selects the pressed track (tier 3) for the hit arrow and
 //   the track; the other arrow comes from the normal track (AC2). Pressing the
 //   thumb or the page area draws the pressed track with normal arrows. So the

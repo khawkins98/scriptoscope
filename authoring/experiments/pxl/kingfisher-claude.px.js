@@ -1,4 +1,4 @@
-// Halcyon controls drawn with claude-pxl.
+// Kingfisher controls drawn with claude-pxl.
 pal({ B: "#0f6a83", F: "#1689a8", W: "#ffffff", E: "#8d98a8", G: "#e2e7ee", S: "#4a5566", L: "#eef0f3", l: "#d0d4da" });
 
 const box = (fill, edge) => (c) => {
@@ -27,4 +27,4 @@ sprite("close_button", { w: 12, h: 12 }, (c) => {
   c.circ(5.5, 5.5, 5.5, "F"); c.ring(5.5, 5.5, 5.5, "B");
   c.line(4, 4, 7, 7, "W"); c.line(7, 4, 4, 7, "W");
 });
-sheet("halcyon", ["checkbox_*", "radio_*", "close_button"], { cols: 6, pad: 2 });
+sheet("kingfisher", ["checkbox_*", "radio_*", "close_button"], { cols: 6, pad: 2 });

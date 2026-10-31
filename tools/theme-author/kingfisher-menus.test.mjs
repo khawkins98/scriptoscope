@@ -1,9 +1,9 @@
-// Halcyon's menus part (authoring/schemes/halcyon/parts/menus.mjs): its
+// Kingfisher's menus part (authoring/schemes/kingfisher/parts/menus.mjs): its
 // resources exist, decode through the runtime's loader, and pass checkScheme.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { build } from '../../authoring/schemes/halcyon/parts/menus.mjs';
-import { C } from '../../authoring/schemes/halcyon/palette.mjs';
+import { build } from '../../authoring/schemes/kingfisher/parts/menus.mjs';
+import { C } from '../../authoring/schemes/kingfisher/palette.mjs';
 import { writeResourceFork } from './resource-fork-writer.js';
 import { checkScheme } from './check-scheme.js';
 import { readCicnIndexed } from '../theme-loader/decoders/cicn.js';

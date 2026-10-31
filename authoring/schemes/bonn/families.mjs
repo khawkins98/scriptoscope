@@ -1,6 +1,6 @@
 // Bonn control families: sliders, tabs (+ tab panes), bevel buttons and popup
-// button pieces. Geometry and every engine rule are Halcyon's
-// (authoring/schemes/halcyon/parts/controls.mjs, notes per section below);
+// button pieces. Geometry and every engine rule are Kingfisher's
+// (authoring/schemes/kingfisher/parts/controls.mjs, notes per section below);
 // the art is Bonn's and drawn on whole pixels: the slider track is a strip of
 // the Rhine and its thumb a mooring bollard seen from above, tabs and bevel
 // buttons are sandstone blocks (the selected tab carries the city rule, red

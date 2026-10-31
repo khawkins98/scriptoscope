@@ -1,5 +1,5 @@
 // Castle progress bars, Finder/list headers, disclosure triangles and grow
-// boxes. Engine geometry as in Halcyon's parts/progress.mjs (re-themed by
+// boxes. Engine geometry as in Kingfisher's parts/progress.mjs (re-themed by
 // Bonn); the art is Castle's:
 //
 //   progress      a sunk channel of dark stone; the fill is the banner

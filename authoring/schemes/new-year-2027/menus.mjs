@@ -1,6 +1,6 @@
 // Midnight 2027 menus (classic Kaleidoscope; the web runtime doesn't draw
 // menus) and the scheme's picker icon. Ids and the face model follow
-// Halcyon's parts/menus.mjs via Castle's menus.mjs:
+// Kingfisher's parts/menus.mjs via Castle's menus.mjs:
 //
 //   cicn+cinf -12240 menu bar · -12239 menu bar item · -12238 selected title
 //             -12237 pull-down background · -12236 selected item · -12235 divider

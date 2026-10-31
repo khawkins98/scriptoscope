@@ -1,6 +1,6 @@
 // Brickworks extra control families: progress bar (+ indeterminate steps),
 // sliders, tabs, list headers, disclosure triangles and the grow box.
-// Geometry, ids and cinf layouts are Halcyon's (authoring/schemes/halcyon/
+// Geometry, ids and cinf layouts are Kingfisher's (authoring/schemes/kingfisher/
 // parts/progress.mjs and controls.mjs carry the engine notes and spec
 // citations); only the art differs. Flat colours, whole pixels.
 //
@@ -89,7 +89,7 @@ function buildProgress(add) {
   }
 }
 
-// ── 2. Sliders (CDEF 3; Halcyon parts/controls.mjs §1 for the rules) ──────
+// ── 2. Sliders (CDEF 3; Kingfisher parts/controls.mjs §1 for the rules) ──────
 // Track: caps of k copied 1:1, ONE middle column stretched (flat along it).
 // Thumb strip: 4 cells of 16 rows (inactive, normal, pressed, ghost), copied
 // 1:1 over the track; each thumb is a hard-edged sprite, so its mask is
@@ -176,7 +176,7 @@ function buildSliders(add) {
   }
 }
 
-// ── 3. Tabs (CDEF 8; Halcyon parts/controls.mjs §2 for the rules) ─────────
+// ── 3. Tabs (CDEF 8; Kingfisher parts/controls.mjs §2 for the rules) ─────────
 // Left/right c columns copied 1:1 at full height; the top s rows are ONE
 // middle column repeated; the centre one colour at bgPixel. So the studs
 // live in the c-wide side columns (one stud per top corner) and the face is

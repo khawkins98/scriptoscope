@@ -26,7 +26,7 @@ over (`npm run paint-over`), never to ship as is.
 
 | Route | Result | Use it for |
 |---|---|---|
-| **claude-pxl + any good model** (model writes a `.px.js` file) | Exact sizes, alpha strictly 0/255, every sprite round-tripped exactly; a Halcyon variant rendered correctly | **Best zero-key route.** Control sprites, icons |
+| **claude-pxl + any good model** (model writes a `.px.js` file) | Exact sizes, alpha strictly 0/255, every sprite round-tripped exactly; a Kingfisher variant rendered correctly | **Best zero-key route.** Control sprites, icons |
 | `agy` → ASCII rows (`--json-schema`) | Exact size and palette on the first try | Single small sprites |
 | `agy` → `Raster` drawing code (`--json-schema`) | Correct slider thumb and title buttons on the first try | Shapes with gradients; anything parametric |
 | `agy` image generator | 1024×1024 JPEG, painted checkerboard, wrong grid, ignored path | **Concept images** (§3.1), which you then paint over |
@@ -50,21 +50,21 @@ What we found:
   and more exact feedback loop than reading the preview image. The enlarged
   preview's grid lines made a correct border look missing.
 - **A model can drive it with no extra setup.** We gave `agy`'s default model
-  claude-pxl's own `SKILL.md` and `reference.md` and asked for eight Halcyon
+  claude-pxl's own `SKILL.md` and `reference.md` and asked for eight Kingfisher
   sprites (checkboxes, radios, title buttons). It wrote a working file in one
-  go: [`halcyon-agy.px.js`](../authoring/experiments/pxl/halcyon-agy.px.js).
+  go: [`kingfisher-agy.px.js`](../authoring/experiments/pxl/kingfisher-agy.px.js).
   Our own hand-written version
-  ([`halcyon-claude.px.js`](../authoring/experiments/pxl/halcyon-claude.px.js))
+  ([`kingfisher-claude.px.js`](../authoring/experiments/pxl/kingfisher-claude.px.js))
   had an off-centre radio dot.
 - **Every sprite survives our pipeline exactly**: PNG, then `Raster`, then
   `encodeCicn`, then the runtime decoder
   ([`png-to-cicn-check.mjs`](../authoring/experiments/pxl/png-to-cicn-check.mjs)).
 - **It works in a real scheme.**
   [`authoring/experiments/pxl/variant/`](../authoring/experiments/pxl/variant/)
-  is Halcyon with its normal-state checkboxes and radios replaced by those
+  is Kingfisher with its normal-state checkboxes and radios replaced by those
   sprites. It builds with no checker warnings and renders in the browser:
 
-![Halcyon code-drawn vs claude-pxl sprites](../authoring/experiments/pxl/before-after.png)
+![Kingfisher code-drawn vs claude-pxl sprites](../authoring/experiments/pxl/before-after.png)
 
 ![claude-pxl sprites: Claude-written (top) and agy-written (bottom)](../authoring/experiments/pxl/comparison.png)
 

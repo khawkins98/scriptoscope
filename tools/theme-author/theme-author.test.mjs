@@ -15,7 +15,7 @@ import { decodeColr } from '../theme-loader/decoders/colr.js';
 import { macChannelToSrgb } from '../theme-loader/mac-gamma.js';
 import { checkScheme } from './check-scheme.js';
 import { windowLayout } from './window-layout.js';
-import { buildScheme } from '../../authoring/schemes/halcyon/scheme.mjs';
+import { buildScheme } from '../../authoring/schemes/kingfisher/scheme.mjs';
 
 test('resource fork round-trips types, ids, names and bytes', () => {
   const input = [
@@ -147,7 +147,7 @@ test('check: push face without a same-id cinf is flagged', () => {
   assert.ok(warnings.some((w) => /no pressed face/.test(w)));
 });
 
-test('Halcyon builds with no errors or warnings', async () => {
+test('Kingfisher builds with no errors or warnings', async () => {
   const { resources } = await buildScheme();
   const { errors, warnings } = checkScheme(resources);
   assert.deepEqual(errors, []);
@@ -155,9 +155,9 @@ test('Halcyon builds with no errors or warnings', async () => {
   assert.ok(parseResourceFork(writeResourceFork(resources)).length === resources.length);
 });
 
-test('committed halcyon scheme.rsrc matches a fresh build (run `npm run author -- authoring/schemes/halcyon`)', async () => {
+test('committed kingfisher scheme.rsrc matches a fresh build (run `npm run author -- authoring/schemes/kingfisher`)', async () => {
   const { readFileSync } = await import('node:fs');
-  const committed = readFileSync(new URL('../../authoring/schemes/halcyon/scheme.rsrc', import.meta.url));
+  const committed = readFileSync(new URL('../../authoring/schemes/kingfisher/scheme.rsrc', import.meta.url));
   const { resources } = await buildScheme();
   assert.ok(Buffer.from(writeResourceFork(resources)).equals(committed), 'scheme.rsrc is stale; rebuild it');
 });
@@ -252,7 +252,7 @@ test('MacBinary output carries type/creator and unwraps to the same fork', async
   const { writeMacBinary, crc16xmodem } = await import('./macbinary.js');
   const { detectContainer, unwrapToResourceFork } = await import('../theme-loader/containers.js');
   const fork = writeResourceFork([{ type: 'Colr', id: 129, data: encodeColr() }]);
-  const bin = writeMacBinary({ name: 'Halcyon', resourceFork: fork });
+  const bin = writeMacBinary({ name: 'Kingfisher', resourceFork: fork });
   assert.equal(detectContainer(bin), 'macbinary');
   assert.deepEqual([...unwrapToResourceFork(bin)], [...fork]);
   assert.equal(String.fromCharCode(...bin.subarray(65, 73)), 'ColrAcid');
@@ -261,12 +261,12 @@ test('MacBinary output carries type/creator and unwraps to the same fork', async
   assert.throws(() => writeMacBinary({ name: 'a:b', resourceFork: fork }), /file name/);
 });
 
-test('committed halcyon scheme.bin matches a fresh build', async () => {
+test('committed kingfisher scheme.bin matches a fresh build', async () => {
   const { readFileSync } = await import('node:fs');
   const { writeMacBinary } = await import('./macbinary.js');
-  const committed = readFileSync(new URL('../../authoring/schemes/halcyon/scheme.bin', import.meta.url));
+  const committed = readFileSync(new URL('../../authoring/schemes/kingfisher/scheme.bin', import.meta.url));
   const { resources } = await buildScheme();
-  assert.ok(Buffer.from(writeMacBinary({ name: 'Halcyon', resourceFork: writeResourceFork(resources) })).equals(committed), 'scheme.bin is stale; rebuild it');
+  assert.ok(Buffer.from(writeMacBinary({ name: 'Kingfisher', resourceFork: writeResourceFork(resources) })).equals(committed), 'scheme.bin is stale; rebuild it');
 });
 
 test('png-decode reads what png-encode writes, and palette PNGs from claude-pxl', async () => {
@@ -292,8 +292,8 @@ test('Raster.fromRgba snaps soft alpha so edges never become hidden swatches', (
   assert.throws(() => Raster.fromRgba(3, 1, rgba), /expected 12 bytes/);
 });
 
-test('Halcyon-pxl experiment builds cleanly', async () => {
-  // The experiment's scheme.rsrc isn't committed (it's rebuilt from Halcyon on
+test('Kingfisher-pxl experiment builds cleanly', async () => {
+  // The experiment's scheme.rsrc isn't committed (it's rebuilt from Kingfisher on
   // demand), so this only checks that it still builds and passes the checks.
   const { buildScheme: buildPxl } = await import('../../authoring/experiments/pxl/variant/scheme.mjs');
   const { resources } = await buildPxl();
@@ -348,7 +348,7 @@ test('check: same-id cinf families and progress geometry', () => {
   assert.ok(bad.warnings.some((w) => /cornerSize 4 > sideThickness 2/.test(w)));
 });
 
-test('two Halcyon parts adding the same id is an error naming both files', async () => {
+test('two Kingfisher parts adding the same id is an error naming both files', async () => {
   const { mkdtempSync, cpSync, writeFileSync, rmSync } = await import('node:fs');
   const { join } = await import('node:path');
   const { pathToFileURL } = await import('node:url');
@@ -356,8 +356,8 @@ test('two Halcyon parts adding the same id is an error naming both files', async
   const root = new URL('../../authoring/schemes/', import.meta.url);
   const dir = mkdtempSync(join(root.pathname, '.clash-'));
   try {
-    for (const f of ['scheme.mjs', 'palette.mjs']) cpSync(new URL(`halcyon/${f}`, root), join(dir, f));
-    cpSync(new URL('halcyon/parts', root), join(dir, 'parts'), { recursive: true });
+    for (const f of ['scheme.mjs', 'palette.mjs']) cpSync(new URL(`kingfisher/${f}`, root), join(dir, f));
+    cpSync(new URL('kingfisher/parts', root), join(dir, 'parts'), { recursive: true });
     writeFileSync(join(dir, 'parts', 'zz-clash.mjs'), "export function build(add) { add('Colr', 129, new Uint8Array(16)); }\n");
     const { buildScheme: build } = await import(pathToFileURL(join(dir, 'scheme.mjs')).href);
     await assert.rejects(build(), /Colr 129 is added by both scheme\.mjs and parts\/zz-clash\.mjs/);

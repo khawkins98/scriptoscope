@@ -11,13 +11,13 @@ made with the tools described here:
 
 | Scheme | Folder | Look at it for |
 |---|---|---|
-| Halcyon | `halcyon/` | the main worked example: a kingfisher on a frosted window; control families in `parts/`, one file each |
+| Kingfisher | `kingfisher/` | the main worked example: a kingfisher on a frosted window; control families in `parts/`, one file each |
 | Castle | `castle/` | towers above the title bar, whole merlons, stone drawn on a measured grid |
 | Brickworks | `brickworks/` | whole studs (`13 \| 12 \| 13`), a centred ornament on untitled windows |
 | Bonn | `bonn/` | a draw-once skyline (code 10) and what it costs the title, a narrower bottom edge (code 0) |
 | Midnight 2027 | `new-year-2027/` | the newest one, made concept-first from the start; its `concept/brief.md` is the best brief to copy |
 
-![Halcyon in the authoring preview](../authoring/schemes/halcyon/preview.png)
+![Kingfisher in the authoring preview](../authoring/schemes/kingfisher/preview.png)
 
 **The authoring docs:**
 
@@ -63,7 +63,7 @@ built-in gray Platinum look.
 
 ```sh
 npm install
-npm run author -- authoring/schemes/halcyon   # writes authoring/schemes/halcyon/scheme.rsrc and scheme.bin
+npm run author -- authoring/schemes/kingfisher   # writes authoring/schemes/kingfisher/scheme.rsrc and scheme.bin
 npm run dev
 # open http://localhost:5173/authoring-preview.html
 ```
@@ -95,7 +95,7 @@ check that the committed `scheme.rsrc` and `scheme.bin` match a fresh build.
 Experiments under `authoring/experiments/` don't commit their builds; run
 `npm run author` on them before previewing.
 
-Try it: change a colour in `authoring/schemes/halcyon/palette.mjs`, rebuild,
+Try it: change a colour in `authoring/schemes/kingfisher/palette.mjs`, rebuild,
 and reload the preview.
 
 To view any other scheme file, use
@@ -140,7 +140,7 @@ with border *i*. The first entry's code is never used; write 0.
 > **Rule: start every edge at 0 and end it at the full width or height, with
 > corners as explicit code-1 cells.** Only the region between the first and
 > last border is painted ([R1](./authoring-exotic-frames.md#1-cell-codes-rules-r1r12)).
-> Halcyon's first build started each recipe after the corner and lost its corners.
+> Kingfisher's first build started each recipe after the corner and lost its corners.
 
 Build the recipes with **`frameLayout()`**: you list the cells of each edge
 (`{ code, w, name }`), and it returns the template size, the content rect, the
@@ -200,7 +200,7 @@ plus the grey ramp. Then an 8 bpp classic screen picks the colour you meant
 instead of a neighbour of a different hue. The schemes write these colours in
 one of two ways; pick one per scheme and say which in `palette.mjs`'s header:
 
-- **`sys('#336699')`** (Halcyon): returns the colour the loader shows for that
+- **`sys('#336699')`** (Kingfisher): returns the colour the loader shows for that
   stored entry, so web and classic show exactly the same colour.
 - **Plain cube hex** (Castle, Brickworks, Bonn, Midnight 2027): the encoder
   pre-compensates it, and an 8 bpp screen snaps it back to the same entry. The
@@ -311,14 +311,14 @@ your palette:
 
 1. **Measure the scale**: how many concept pixels make one art pixel. Use the
    outline width or a widget's diameter. The concepts so far were 2.5×
-   (Brickworks), 3× (Halcyon, Castle, Bonn) and 3.7× (Midnight 2027).
+   (Brickworks), 3× (Kingfisher, Castle, Bonn) and 3.7× (Midnight 2027).
 2. **Convert the JPEG to PNG** (`sips -s format png concept.jpg --out /tmp/concept.png`
    on macOS, or `magick concept.jpg /tmp/concept.png`).
 3. **Run the paint-over** on one region at a time:
 
    ```sh
    npm run paint-over -- /tmp/concept.png --crop 40,10,300,190 --scale 3 \
-     --palette authoring/schemes/halcyon/palette.mjs --key '#c8d4e4' --out /tmp/bird.png
+     --palette authoring/schemes/kingfisher/palette.mjs --key '#c8d4e4' --out /tmp/bird.png
    ```
 
    Each output pixel takes the most common palette colour in its
@@ -334,7 +334,7 @@ size, count and colour, then redraw them.
 
 ### 4.4 Clean up by hand
 
-Put the cleaned art in a sprite module (Halcyon's is
+Put the cleaned art in a sprite module (Kingfisher's is
 `parts/sprites/ornament.mjs`, rows of characters with a legend) and paint the
 rest of the frame in code. Typical clean-up:
 
@@ -439,7 +439,7 @@ All five first-party schemes have been loaded in the original Kaleidoscope
 2.3.1 on System 7.5.5; screenshots and notes are in each scheme's
 `classic/README.md`.
 
-![Halcyon in real Kaleidoscope: Finder window, menu bar and desktop pattern](../authoring/schemes/halcyon/classic/desktop@2x.png)
+![Kingfisher in real Kaleidoscope: Finder window, menu bar and desktop pattern](../authoring/schemes/kingfisher/classic/desktop@2x.png)
 
 Maintainers with the private reference emulator
 ([`maintainer-reference-environment.md`](./maintainer-reference-environment.md))
@@ -447,7 +447,7 @@ can repeat it:
 
 1. Make fresh copies of the known-working system and transfer seeds (never boot the originals).
 2. Copy the scheme onto a disk copy with hfsutils, which unpacks MacBinary:
-   `HOME=<scratch> hcopy -m scheme.bin :Halcyon`. Setting `HOME` keeps
+   `HOME=<scratch> hcopy -m scheme.bin :Kingfisher`. Setting `HOME` keeps
    hfsutils' mount state out of your real home directory. Confirm type `Colr` /
    creator `Acid` with `hls -l`. The seed system disk has about 1.4 MB free; for
    more than one or two schemes, use the transfer-disk copy.
@@ -522,7 +522,7 @@ alpha to 0 or 255, because the encoder treats alpha 1–127 as a hidden swatch.
 ## 6. Control families
 
 Frames are the hard part; controls are mostly about rules the engine applies
-to every scheme. Halcyon has every family, so this section follows it.
+to every scheme. Kingfisher has every family, so this section follows it.
 
 ### 6.1 Push buttons and the default ring
 
@@ -580,9 +580,9 @@ repainted them; the engine rules came along in the comments. Start from these:
 | Family | Copy | Why |
 |---|---|---|
 | scroll bars | `castle/scrollbars.mjs` | every colour is in one `SB` object at the top (Bonn re-themed it with about 15 replacements) |
-| push buttons, ring, checkboxes, radios | `castle/controls.mjs` or `bonn/controls.mjs` | the same pieces as Halcyon's `scheme.mjs`, in a file of their own |
-| progress, headers, disclosure, grow box | Halcyon's `parts/progress.mjs` | every colour is in one `family()` block |
-| sliders, tabs | `bonn/families.mjs` (also bevels and popups) or `brickworks/extras.mjs` | re-themed copies of Halcyon's `parts/controls.mjs`, which hard-codes about 30 colours |
+| push buttons, ring, checkboxes, radios | `castle/controls.mjs` or `bonn/controls.mjs` | the same pieces as Kingfisher's `scheme.mjs`, in a file of their own |
+| progress, headers, disclosure, grow box | Kingfisher's `parts/progress.mjs` | every colour is in one `family()` block |
+| sliders, tabs | `bonn/families.mjs` (also bevels and popups) or `brickworks/extras.mjs` | re-themed copies of Kingfisher's `parts/controls.mjs`, which hard-codes about 30 colours |
 | body patterns, Finder colours | `castle/patterns.mjs` | small; the header says which `ppat` feeds which body |
 | menus | `castle/menus.mjs` or `brickworks/menus.mjs` | every colour in a few lines at the top |
 | control-panel extras | any scheme's `classic.mjs` | three builder calls (§4.9) |
@@ -590,7 +590,7 @@ repainted them; the engine rules came along in the comments. Start from these:
 The pressed strip comes from the toolkit (`stripLayout`, `pressedStripFrom`),
 so there is nothing to copy for it.
 
-### 6.5 How Halcyon is laid out
+### 6.5 How Kingfisher is laid out
 
 | File | Holds |
 |---|---|
@@ -605,7 +605,7 @@ so there is nothing to copy for it.
 | `parts/classic.mjs` | the control-panel extras |
 
 Each part exports `build(add, { C })`. Two parts adding the same id is an
-error that names both files. Set `HALCYON_PARTS=scrollbars` to build only some
+error that names both files. Set `KINGFISHER_PARTS=scrollbars` to build only some
 parts while you work on one.
 
 ## 7. Id cheat-sheet

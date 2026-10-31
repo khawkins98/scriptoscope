@@ -3,7 +3,7 @@
 // panels with the dark sandstone outline; the selected title and item are the
 // city red with cream text. Plus the application-menu grabber.
 //
-// The face model and ids are Halcyon's (authoring/schemes/halcyon/parts/menus.mjs
+// The face model and ids are Kingfisher's (authoring/schemes/kingfisher/parts/menus.mjs
 // documents both): corners copied 1:1, the edge bands repeat ONE middle
 // column/row, the middle is one colour read at bgPixel. So nothing here can
 // tile along the bar: the blossom branch the brief asks for on the menu bar
@@ -15,7 +15,7 @@ const A = C.active;
 const MENU_BAR = 20;
 const BAR_C = MENU_BAR / 2;
 
-/** Split a face drawn at 2c × 2c open by two middle rows and columns (Halcyon's `opened`). */
+/** Split a face drawn at 2c × 2c open by two middle rows and columns (Kingfisher's `opened`). */
 function opened(art, c) {
   const W = art.width + 2, H = art.height + 2;
   const from = (v) => (v < c ? v : v < c + 2 ? c - 1 : v - 2);

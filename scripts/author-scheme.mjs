@@ -2,7 +2,7 @@
 // Build an authored Kaleidoscope scheme from code.
 //
 // Usage: npm run author -- <scheme dir> [--sheet] [--palette]
-//        e.g. npm run author -- authoring/schemes/halcyon --sheet
+//        e.g. npm run author -- authoring/schemes/kingfisher --sheet
 //
 // The scheme dir holds a `scheme.mjs` that exports `buildScheme()`, returning
 // `{ resources }` (see tools/theme-author/ and docs/authoring-a-scheme.md).

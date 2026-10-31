@@ -1,5 +1,5 @@
 // Castle sliders and tabs (+ tab panes). The engine geometry is the one
-// Halcyon's parts/controls.mjs documents (and Bonn's families.mjs re-themed);
+// Kingfisher's parts/controls.mjs documents (and Bonn's families.mjs re-themed);
 // the art here is Castle's, hard-edged pixel work:
 //
 //   slider track  a 5px iron rail, lit on its top row

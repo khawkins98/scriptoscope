@@ -2,7 +2,7 @@
 // gold rim with gold arrowheads, and a gold pocket watch at midnight for the
 // thumb. Re-themed from Castle's scrollbars.mjs.
 //
-// The engine rules are the ones Halcyon's parts/scrollbars.mjs documents
+// The engine rules are the ones Kingfisher's parts/scrollbars.mjs documents
 // (docs/spec/engine/scrollbar.md): one TRACK cicn per tier holds both arrows
 // and a 3px track source whose middle is stretched, so the track may only vary
 // ACROSS the bar; every image is opaque; the pressed track's middle equals

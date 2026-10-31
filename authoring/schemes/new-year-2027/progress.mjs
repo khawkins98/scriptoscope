@@ -1,5 +1,5 @@
 // Midnight 2027 progress bars, Finder/list headers, disclosure triangles and
-// grow boxes. Engine geometry as in Halcyon's parts/progress.mjs (re-themed
+// grow boxes. Engine geometry as in Kingfisher's parts/progress.mjs (re-themed
 // by Bonn and Castle); the art is Midnight's:
 //
 //   progress      a sunk navy channel; the fill is champagne rising (gold

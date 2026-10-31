@@ -27,7 +27,7 @@ const NOT_FOR_WIDGETS = new Set([0, 8, 11, 12, 13, 14, 15, 16, 17, 18]);
 const WIDGET_NAMES = { 1: 'close box', 2: 'zoom box', 3: 'collapse box' };
 // Families whose images are only used together with a same-id cinf (corner,
 // side and sample points). Sources: docs/spec/engine/{tab,progress,header}.md,
-// the menu dumps recorded in authoring/schemes/halcyon/parts/menus.mjs.
+// the menu dumps recorded in authoring/schemes/kingfisher/parts/menus.mjs.
 const SAME_ID_CINF = [
   { from: -12240, to: -12232, label: 'menu image', why: 'Kaleidoscope needs it to stretch the image and read the text colour', skip: [] },
   { from: -9984, to: -9971, label: 'tab', why: 'the tab engine paints nothing without it (tab V3)' },

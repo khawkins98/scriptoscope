@@ -5,7 +5,7 @@
 //
 // Usage:
 //   npm run paint-over -- <concept.png> --crop x,y,w,h --scale 3 \
-//       --palette authoring/schemes/halcyon/palette.mjs [--key '#c8d4e4'] \
+//       --palette authoring/schemes/kingfisher/palette.mjs [--key '#c8d4e4'] \
 //       [--method mode|mean] [--out bird.png] [--zoom 8]
 //
 // The concept must be a PNG; convert a JPEG first with

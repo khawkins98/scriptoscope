@@ -263,7 +263,7 @@ the page shows through. **But the window still owns those pixels.**
 
 **R16. Classic: transparent pixels show what's behind, and clicks on them pass
 through.**
-- Halcyon's real-Kaleidoscope capture (`authoring/schemes/halcyon/classic/desktop@2x.png`)
+- Kingfisher's real-Kaleidoscope capture (`authoring/schemes/kingfisher/classic/desktop@2x.png`)
   shows its rounded-corner mask pixels displaying the desktop pattern and the
   window behind.
 - **Click-through, observed in real Kaleidoscope 2.3.1** (Castle and
@@ -388,7 +388,7 @@ there** (`src/renderWindow.ts:477-548`).
     and animals `→ -9551`;
   - utility: `ppat 42` in 1138, 1984, 1990, animals, apple-lisa, crayon-os,
     monkey-paradise, windows-31, windows-95.
-- Halcyon ships `cinf -9551`/`-9550` with `bgPatternId 0`, so its document
+- Kingfisher ships `cinf -9551`/`-9550` with `bgPatternId 0`, so its document
   bodies are white, plus `ppat 42` for utility bodies. To texture a document
   body, set `bgPatternId` and ship that ppat id.
 
@@ -444,7 +444,7 @@ web.**
   at `x = width(close)`, which in the document strip is the *zoom* piece.
   - On the web this can't be laid out away, because the web reads `-14330`
     for every window (below). Give every window the document's widget set
-    and sizes (Halcyon), or give utilities close only (Castle, Brickworks,
+    and sizes (Kingfisher), or give utilities close only (Castle, Brickworks,
     Bonn), or make the zoom and collapse pressed art interchangeable.
   - In classic, utility windows read `-14298`, at the same per-window
     offsets. So lay `-14298` out from the **utility** window:

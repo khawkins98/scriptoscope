@@ -44,10 +44,10 @@ npm run audit:scenes -- --check   # CI signal: exit 1 if any slot fell to its ha
 npm run gates              # umbrella pre-push gate: typecheck + test + lint --strict + audit --check (use this before pushing)
 
 # Scheme authoring (write side — workflow in docs/authoring-a-scheme.md §4)
-npm run author -- authoring/schemes/halcyon   # build scheme.mjs → scheme.rsrc + scheme.bin, reload through convertChrome, run checkScheme (--sheet, --palette)
+npm run author -- authoring/schemes/kingfisher   # build scheme.mjs → scheme.rsrc + scheme.bin, reload through convertChrome, run checkScheme (--sheet, --palette)
 # then npm run dev → http://localhost:5173/authoring-preview.html (dev-only page; ?scheme=<url> for another file)
 npm run paint-over -- concept.png --crop x,y,w,h --scale 3 --palette <dir>/palette.mjs   # concept crop → 1× palette-snapped raster
-npm run capture:authoring -- authoring/schemes/halcyon   # preview.png + preview-sizes.png (needs npm run dev)
+npm run capture:authoring -- authoring/schemes/kingfisher   # preview.png + preview-sizes.png (needs npm run dev)
 npm run sim8 -- <dir>/preview.png /tmp/sim8.png --dpr 2  # 8 bpp classic-screen simulation
 
 # Diagnostics (consume the locally-baked derivatives — run `build:themes` first if needed)
@@ -141,6 +141,6 @@ The corpus (18 bundles): `1138`, `1984`, `1990`, `animals`, `apple-lisa`, `apple
 - `docs/spec/apple-appearancelib-spike.md` + `apple-cdef-{geometry,button-geometry}.md` — Apple Mac OS 8.5 System file decompile. DrawThemeButton TVector decoded (thin dispatcher → theme-provider vtable +0xCC, data/drawer split).
 - `docs/theme-bundle-layout.md` — `theme.json` schema.
 - `docs/porting-a-kaleidoscope-scheme.md` — full porting walk-through.
-- `docs/authoring-a-scheme.md` — making a NEW scheme in code (`tools/theme-author/`); owns the workflow (brief → concept → paint-over → build → preview → 8-bit check → real Kaleidoscope). References it links to: `authoring-exotic-frames.md` (frame rules R1–R30), `authoring-visual-design.md` (pixel/design guidance, PR checklist), `authoring-art-with-ai.md` (AI tool routes). First-party authored schemes (Halcyon, Castle, Brickworks, Bonn, Midnight 2027) live under `authoring/schemes/`, NOT `themes/` — the 18-bundle corpus and its gates stay community-only.
+- `docs/authoring-a-scheme.md` — making a NEW scheme in code (`tools/theme-author/`); owns the workflow (brief → concept → paint-over → build → preview → 8-bit check → real Kaleidoscope). References it links to: `authoring-exotic-frames.md` (frame rules R1–R30), `authoring-visual-design.md` (pixel/design guidance, PR checklist), `authoring-art-with-ai.md` (AI tool routes). First-party authored schemes (Kingfisher, Castle, Brickworks, Bonn, Midnight 2027) live under `authoring/schemes/`, NOT `themes/` — the 18-bundle corpus and its gates stay community-only.
 - `docs/adr/0001` — the consumption-layer architecture decision. **Decision 1 RETIRED (2026-05-28)** after three CSS-emitter spike rounds couldn't reach fidelity on exotic schemes (BeOS asymmetric title bar, etc.); architecture is now explicitly "DOM structure + canvas decoration" — what already ships. Decisions 2 (Shadow DOM), 3 (`data-scriptoscope-*` front door), 4 (ingestion) all accepted/shipped.
 - `LEARNINGS.md` — running log of gotchas; the historical record matters, so mark superseded entries rather than deleting them.

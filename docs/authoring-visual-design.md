@@ -9,7 +9,7 @@ it can't do.*
 
 ## 1. What separates a good scheme
 
-The first versions of the four early schemes (Halcyon, Castle, Brickworks,
+The first versions of the four early schemes (Kingfisher, Castle, Brickworks,
 Bonn) were structurally sound and passed every check, and they still looked
 generated next to the best corpus schemes (`animals`, `evolution`, `1984`).
 A design review traced that to three habits, none of them a format limit:
@@ -207,7 +207,7 @@ paint-over, clean-up) on all five schemes. They belong in the brief.
   400×260: side bands 14–18 px of real material; a top band of 34–44 px plus
   ornaments that stand 16–40 px above the bar; a bottom band of 14–22 px with
   its own motif. A restrained scheme can keep thin sides and put the weight
-  into one ornament (Halcyon: 6 px sides and one big bird).
+  into one ornament (Kingfisher: 6 px sides and one big bird).
 - **Silhouette beats texture.** One scale-up pass of Castle thickened the
   walls but shrank the conical roofs into pepper-pots, and it read less like a
   castle than before. Name the one silhouette that carries the theme in the

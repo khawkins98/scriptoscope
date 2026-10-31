@@ -1,4 +1,4 @@
-// Halcyon — progress bars, Finder/list headers, disclosure triangles and grow boxes.
+// Kingfisher — progress bars, Finder/list headers, disclosure triangles and grow boxes.
 //
 // Ids, sizes and cinf layouts follow the corpus (1138, windows-95, 1984,
 // evolution; author labels in docs/spec/corpus-corroborated-ids.md) and the

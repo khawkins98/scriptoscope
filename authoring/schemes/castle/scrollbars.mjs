@@ -1,7 +1,7 @@
 // Castle scroll bars: a sunk stone channel, dressed-stone arrow plates with a
 // carved arrowhead, and a bound oak barrel for the thumb.
 //
-// The engine rules are the ones Halcyon's parts/scrollbars.mjs documents
+// The engine rules are the ones Kingfisher's parts/scrollbars.mjs documents
 // (docs/spec/engine/scrollbar.md): one TRACK cicn per tier holds both arrows
 // and a 3px track source whose middle is stretched, so the track may only vary
 // ACROSS the bar (no stone joints along it); every image is opaque; the

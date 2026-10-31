@@ -1,5 +1,5 @@
 // Midnight 2027 sliders and tabs (+ tab panes). Re-themed from Castle's
-// families.mjs (itself a re-theme of Halcyon's parts/controls.mjs); the
+// families.mjs (itself a re-theme of Kingfisher's parts/controls.mjs); the
 // engine geometry is unchanged:
 //
 //   slider track  a 5px navy rail with a gold top row

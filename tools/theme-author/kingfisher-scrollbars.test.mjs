@@ -1,10 +1,10 @@
-// Halcyon's scroll-bar part (authoring/schemes/halcyon/parts/scrollbars.mjs):
+// Kingfisher's scroll-bar part (authoring/schemes/kingfisher/parts/scrollbars.mjs):
 // every id the 2.3.1 scroll-bar CDEF reads is present, decodes, has the
 // geometry the engine expects, and passes the authoring checks.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { build } from '../../authoring/schemes/halcyon/parts/scrollbars.mjs';
-import { C } from '../../authoring/schemes/halcyon/palette.mjs';
+import { build } from '../../authoring/schemes/kingfisher/parts/scrollbars.mjs';
+import { C } from '../../authoring/schemes/kingfisher/palette.mjs';
 import { decodeCicn } from '../theme-loader/decoders/cicn.js';
 import { convertChrome } from '../theme-loader/convert.js';
 import { writeResourceFork } from './resource-fork-writer.js';

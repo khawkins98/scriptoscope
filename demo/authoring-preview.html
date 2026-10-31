@@ -2,12 +2,12 @@
 <!--
   Dev-only authoring preview. Not part of the GitHub Pages build.
 
-  npm run author -- authoring/schemes/halcyon
+  npm run author -- authoring/schemes/kingfisher
   npm run dev
-  open http://localhost:5173/authoring-preview.html?scheme=/authoring/schemes/halcyon/scheme.rsrc
+  open http://localhost:5173/authoring-preview.html?scheme=/authoring/schemes/kingfisher/scheme.rsrc
 
   Options:
-    ?scheme=<url>    the scheme to load (default Halcyon)
+    ?scheme=<url>    the scheme to load (default Kingfisher)
     ?layout=<url>    replace the windows below with an HTML fragment, e.g.
                      /authoring/preview-layouts/sizes.html (small, large, long
                      titles, an active scroller)
@@ -95,7 +95,7 @@
       <div class="pad">
         <div class="row"><label>Volume <input type="range" min="0" max="100" value="40"></label></div>
         <div class="row"><label>Size <select><option>Small</option><option selected>Medium</option><option>Large</option></select></label>
-          <label>Name <input type="text" value="Halcyon" data-scriptoscope-field></label></div>
+          <label>Name <input type="text" value="Kingfisher" data-scriptoscope-field></label></div>
         <div data-scriptoscope-tabs>
           <button data-scriptoscope-tab="t1" data-scriptoscope-selected>General</button>
           <button data-scriptoscope-tab="t2">Appearance</button>
@@ -121,7 +121,7 @@
 
     const status = document.getElementById('status');
     const params = new URL(location.href).searchParams;
-    const url = params.get('scheme') ?? '/authoring/schemes/halcyon/scheme.rsrc';
+    const url = params.get('scheme') ?? '/authoring/schemes/kingfisher/scheme.rsrc';
     try {
       const desk = document.getElementById('desk');
       if (params.get('layout')) {

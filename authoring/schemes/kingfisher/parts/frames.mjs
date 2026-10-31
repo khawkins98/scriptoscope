@@ -1,4 +1,4 @@
-// Halcyon window frames (concept/concept.jpg, paint-over pass): a rounded
+// Kingfisher window frames (concept/concept.jpg, paint-over pass): a rounded
 // frame with a navy outline, a slate ring and a white inner rim around
 // lavender glass; a tall glass header with the title capsule and three glass
 // beads along its top and the kingfisher on its branch in its lower left; a
@@ -243,7 +243,7 @@ export function paintFrame(t, state) {
   for (const [role, box] of Object.entries(layout.widgets)) drawDisc(r, box, state, role);
   const A = layout.content;
   r.fillRect(A.left, A.top, A.right - A.left, A.bottom - A.top, null);
-  try { layout.lint(r); } catch (err) { throw new Error(`halcyon: ${t.name} (${state}): ${err.message}`); }
+  try { layout.lint(r); } catch (err) { throw new Error(`kingfisher: ${t.name} (${state}): ${err.message}`); }
   // Hidden swatches: title text at (A.left, A.top), shadow at the pixel to its right (same = no shadow).
   r.swatch(A.left, A.top, p.title);
   r.swatch(A.left + 1, A.top, p.title);

@@ -1,8 +1,8 @@
-# Halcyon — concept brief (phase 1, art direction)
+# Kingfisher — concept brief (phase 1, art direction)
 
 ## 1. Art direction
 
-**Big idea: a kingfisher has landed on a frosted modern window.** Halcyon stays the
+**Big idea: a kingfisher has landed on a frosted modern window.** Kingfisher stays the
 calm, light, 2020s-style desktop it already is (white body, frosted glass chrome,
 one teal accent) but gets one bold illustrated ornament, in the Animals/Monkey
 Paradise manner: a chunky pixel-art kingfisher perched on a branch at the top-left

@@ -1,4 +1,4 @@
-// Halcyon control family: sliders, tabs (+ tab panes), bevel / small-button-bar
+// Kingfisher control family: sliders, tabs (+ tab panes), bevel / small-button-bar
 // buttons and popup menu buttons.
 //
 // How each piece is drawn decides how it may be painted (see the notes per

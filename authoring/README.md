@@ -4,7 +4,7 @@ First-party Kaleidoscope schemes written in code with
 [`tools/theme-author/`](../tools/theme-author/). Start with
 [`docs/authoring-a-scheme.md`](../docs/authoring-a-scheme.md).
 
-- `schemes/<name>/`: one folder per scheme (Halcyon, Castle, Brickworks, Bonn,
+- `schemes/<name>/`: one folder per scheme (Kingfisher, Castle, Brickworks, Bonn,
   and Midnight 2027 in `new-year-2027/`).
 - `preview-layouts/`: HTML fragments for the authoring preview's `?layout=`
   option; `sizes.html` is the stress layout.
@@ -15,7 +15,7 @@ Each scheme folder holds:
 
 - `scheme.mjs`: the source. It exports `buildScheme()`, which returns the list
   of resources. Bigger schemes split it into one file per family
-  (`frames.mjs`, `controls.mjs`, `classic.mjs` …; Halcyon keeps them in
+  (`frames.mjs`, `controls.mjs`, `classic.mjs` …; Kingfisher keeps them in
   `parts/`).
 - `palette.mjs`: every colour, all on 8-bit system-palette entries.
 - `concept/`: `brief.md` (the art direction and build numbers), the image
@@ -34,6 +34,6 @@ These are not part of the 18-scheme community corpus in `themes/`, and the
 corpus gates (`lint:themes`, scene audits, rendering goldens) don't cover them.
 
 ```sh
-npm run author -- authoring/schemes/halcyon
+npm run author -- authoring/schemes/kingfisher
 npm run dev   # then open /authoring-preview.html
 ```

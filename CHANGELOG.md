@@ -24,7 +24,7 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   scheme's review previews; `npm run author -- <dir> --sheet` and `--palette`
   write a contact sheet and a palette and contrast report. A dev-only page,
   `authoring-preview.html`, previews a scheme in the browser.
-- **Five first-party schemes** in `authoring/schemes/` (#540): Halcyon, Castle,
+- **Five first-party schemes** in `authoring/schemes/` (#540): Kingfisher, Castle,
   Brickworks, Bonn and Midnight 2027, each designed from a concept image and
   covering window frames, every themed control family, menus, the desktop
   pattern, a picker icon and the classic control-panel extras (about box,

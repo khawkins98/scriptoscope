@@ -1,5 +1,5 @@
 // Bonn — progress bars, Finder/list headers, disclosure triangles and grow boxes.
-// Geometry and every engine rule below are Halcyon's (parts/progress.mjs);
+// Geometry and every engine rule below are Kingfisher's (parts/progress.mjs);
 // the art is Bonn's: a sandstone channel filled with the Rhine, a barge
 // moving along it for the indeterminate bar, sandstone list headers with
 // mortar separators, and a mooring bollard for the grow box.
