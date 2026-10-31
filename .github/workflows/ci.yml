@@ -257,7 +257,7 @@ jobs:
     # The historical required check name; now the aggregate of the jobs above.
     name: Gates + build + browser contracts
     needs: [gates, rendering, goldens]
-    if: ${{ !cancelled() }}
+    if: ${{ always() }}
     runs-on: ubuntu-24.04
     timeout-minutes: 15
 

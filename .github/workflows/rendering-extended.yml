@@ -79,7 +79,7 @@ jobs:
   parity:
     name: Extended coverage parity
     needs: [rendering]
-    if: ${{ !cancelled() }}
+    if: ${{ always() }}
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
