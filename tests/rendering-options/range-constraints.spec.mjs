@@ -16,7 +16,11 @@ async function setup(page, servers, mode, markup = '') {
     handle.retheme = () => handle.replace(themes[1]);
     const events = [];
     for (const type of ['input', 'change']) form.addEventListener(type, e => events.push({ id: e.target.id, type, value: e.target.value, bubbles: e.bubbles, composed: e.composed }));
-    window.ranges = { runtime, themes, root, handle, form, events };
+    // The promoted range is a DOM slider path: its host supplies a fully transparent erase background, so R
+    // composites to the window body already drawn behind the canvas (slider.md §4.10 BG4; the host input of BG6;
+    // #596 compatibility policy). Standalone composeSlider keeps BG6's opaque-white default.
+    const hostBackground = { r: 0, g: 0, b: 0, a: 0 };
+    window.ranges = { runtime, themes, root, handle, form, events, hostBackground };
     form.addEventListener('pointerdown', e => { window.ranges.pointerId = e.pointerId; });
   }, { mode, markup });
   await expect(page.locator('.scriptoscope-slider')).toHaveCount(1);
@@ -99,7 +103,7 @@ for (const mode of ['source', 'built']) {
       await page.locator('#themed').evaluate(el => { el.min = '10px'; el.max = '20foo'; el.step = 'any'; });
       // Wait for the newly normalized .5/100 thumb to paint before clicking
       // the track. An already visible old thumb must preserve its exact value.
-      await page.evaluate(async () => { const f = window.ranges; f.invalidBoundsPixels = f.runtime.bufferToCanvas(await f.runtime.composeSlider(f.themes[0], { length: 120, value: 0.005 })).toDataURL(); });
+      await page.evaluate(async () => { const f = window.ranges; f.invalidBoundsPixels = f.runtime.bufferToCanvas(await f.runtime.composeSlider(f.themes[0], { length: 120, value: 0.005, background: f.hostBackground })).toDataURL(); });
       await expect.poll(() => page.locator('.scriptoscope-slider canvas').evaluate(el => el.toDataURL() === window.ranges.invalidBoundsPixels)).toBe(true);
       await page.mouse.click(rect.x + rect.width / 2, rect.y + rect.height / 2);
       await expect(page.locator('#themed')).toHaveValue('50');
@@ -165,7 +169,7 @@ for (const mode of ['source', 'built']) {
         const other = document.createElement('form'); other.id = 'other-form'; f.root.append(other);
         el.min = '0'; el.max = '100'; el.step = '1'; el.defaultValue = '25'; el.value = '80'; el.setAttribute('form', 'other-form');
         el.dispatchEvent(new Event('input', { bubbles: true }));
-        f.resetPixels = f.runtime.bufferToCanvas(await f.runtime.composeSlider(f.themes[0], { orientation: 'horizontal', length: 120, value: 0.25 })).toDataURL();
+        f.resetPixels = f.runtime.bufferToCanvas(await f.runtime.composeSlider(f.themes[0], { orientation: 'horizontal', length: 120, value: 0.25, background: f.hostBackground })).toDataURL();
         other.reset();
       });
       await expect(page.locator('#themed')).toHaveValue('25');

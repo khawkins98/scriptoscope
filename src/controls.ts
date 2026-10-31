@@ -335,10 +335,12 @@ export interface SliderOptions {
   /** Control rect cross size in px. Default 16, or 32 with tick marks on a directional variant (facade policy). */
   thickness?: number;
   /**
-   * The colour R is erased to before the art is drawn (slider O3/O4; the
-   * 2.3.1 CDEF repaints the whole control rect opaque). Default white.
+   * The colour R is erased to before the art is drawn (slider O3/O4, BG5; the
+   * 2.3.1 CDEF repaints the whole control rect). Default opaque white (BG6).
+   * `a` (default 255) lets a host that composites the window body behind the
+   * control pass its brush as transparency (BG6a; the DOM host passes 0).
    */
-  background?: { r: number; g: number; b: number };
+  background?: { r: number; g: number; b: number; a?: number };
 }
 
 /** @internal A composed slider plus its part test and tracking (slider §4.9, §5.6). */
@@ -403,7 +405,7 @@ export async function composeSliderWithLayout(
     if (!init) return endpoint ? unsupported('handed off (no slider cinf)') : null;
     const out = PixelBuffer.alloc(R.right, R.bottom);
     const bg = opts.background ?? SLIDER_FACADE_BACKGROUND;
-    const { state } = drawSlider(out, chain, init.record, input, { background: { r: bg.r, g: bg.g, b: bg.b, a: 255 } }, trace);
+    const { state } = drawSlider(out, chain, init.record, input, { background: { r: bg.r, g: bg.g, b: bg.b, a: bg.a ?? SLIDER_FACADE_BACKGROUND.a } }, trace);
     if (!state) return endpoint ? unsupported('handed off (no slider cinf)') : null;
     const Th = state.Th && !(state.Th.right <= state.Th.left || state.Th.bottom <= state.Th.top) ? state.Th : null;
     const c = state.c ?? 0, travel = Math.max(0, init.record.travel ?? 0);
