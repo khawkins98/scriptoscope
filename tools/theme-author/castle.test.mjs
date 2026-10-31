@@ -1,6 +1,7 @@
 // Castle (authoring/schemes/castle/): builds, passes the authoring checks,
 // loads through the runtime converter, ships a pressed strip that matches the
-// document widgets, and the committed scheme.rsrc / scheme.bin are current.
+// document widgets, and the committed scheme.rsrc matches a fresh build, and
+// MacBinary packaging unwraps cleanly.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';

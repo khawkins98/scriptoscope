@@ -155,9 +155,11 @@ export async function promoteThemePicker(
     const all = [...el.querySelectorAll<HTMLButtonElement>('.scriptoscope-theme-picker-tile')];
     if (!all.length) return;
     const i = all.findIndex((t) => t === document.activeElement);
-    let next = i;
-    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next = (i + 1 + all.length) % all.length;
-    else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') next = (i - 1 + all.length) % all.length;
+    const current = i >= 0 ? i : all.findIndex((t) => t.getAttribute('tabindex') === '0');
+    const start = current >= 0 ? current : 0;
+    let next = start;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next = (start + 1) % all.length;
+    else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') next = (start - 1 + all.length) % all.length;
     else if (e.key === 'Home') next = 0;
     else if (e.key === 'End') next = all.length - 1;
     else return;

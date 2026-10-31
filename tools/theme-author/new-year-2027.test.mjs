@@ -1,7 +1,7 @@
 // Midnight 2027 (authoring/schemes/new-year-2027/): builds, passes the authoring
 // checks, loads through the runtime converter, keeps its concept geometry
-// (droppable bursts, title plate, pressed strip), and the committed
-// scheme.rsrc / scheme.bin are current.
+// (droppable bursts, title plate, pressed strip), and the committed scheme.rsrc
+// matches a fresh build, and MacBinary packaging unwraps cleanly.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';

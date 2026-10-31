@@ -803,7 +803,8 @@
     const FIRST_PARTY = [['kingfisher', 'Kingfisher'], ['castle', 'Castle'], ['brickworks', 'Brickworks'], ['bonn', 'Bonn'], ['new-year-2027', 'Midnight 2027']]
       .map(([dir, name]) => ({ slug: `./authoring/schemes/${dir}`, name, author: 'Scriptoscope', year: 2026, source: 'scheme.rsrc' }));
     const ALL_THEMES = [...THEMES, ...FIRST_PARTY];
-    const strips = [[foldersEl, THEMES], [document.getElementById('powers-first-party'), FIRST_PARTY]];
+    const firstPartyEl = document.getElementById('powers-first-party');
+    const strips = [[foldersEl, THEMES], ...(firstPartyEl ? [[firstPartyEl, FIRST_PARTY]] : [])];
     let mountToken = 0;
     let handle = null;
     let mountingPowers = null;
@@ -1054,7 +1055,7 @@
         return;
       }
     }, { capture: true, signal: appLife.signal });
-    strips[1][0].addEventListener('click', (e) => {
+    firstPartyEl?.addEventListener('click', (e) => {
       const choice = e.target.closest('[data-slug]');
       if (!handle && choice) mountFocus = choice;
     }, { capture: true, signal: appLife.signal });

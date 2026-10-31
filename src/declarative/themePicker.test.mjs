@@ -182,6 +182,32 @@ test('multi-strip keyboard navigation: unselected strip retains tabindex="0" on 
   el.dispatchEvent(down);
   assert.deepEqual(switches, ['two']);
 
+  // ArrowUp wraps back to previous tile
+  const up = new Event('keydown', { cancelable: true });
+  Object.defineProperty(up, 'key', { value: 'ArrowUp' });
+  el.dispatchEvent(up);
+  assert.deepEqual(switches, ['two', 'one']);
+
+  // ArrowLeft wraps around to last tile
+  const left = new Event('keydown', { cancelable: true });
+  Object.defineProperty(left, 'key', { value: 'ArrowLeft' });
+  el.dispatchEvent(left);
+  assert.deepEqual(switches, ['two', 'one', 'two']);
+
+  // ArrowRight wraps around to first tile
+  const right = new Event('keydown', { cancelable: true });
+  Object.defineProperty(right, 'key', { value: 'ArrowRight' });
+  el.dispatchEvent(right);
+  assert.deepEqual(switches, ['two', 'one', 'two', 'one']);
+
+  // Keydown when activeElement is not a tile safely uses tabindex="0" tile
+  el.blur?.();
+  if (globalThis.document) Object.defineProperty(document, 'activeElement', { value: null, configurable: true });
+  const downFromNull = new Event('keydown', { cancelable: true });
+  Object.defineProperty(downFromNull, 'key', { value: 'ArrowDown' });
+  el.dispatchEvent(downFromNull);
+  assert.equal(switches[switches.length - 1], 'two');
+
   // Syncing to an external slug resets active tiles but keeps first tile tabindex="0"
   syncThemePickerActive(el, 'external-slug');
   assert.equal(el.children[0].getAttribute('tabindex'), '0');

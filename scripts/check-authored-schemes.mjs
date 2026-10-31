@@ -5,13 +5,16 @@
 // 2. The serialized fork passes convertChrome()
 // 3. checkScheme() finds no authoring errors
 // 4. The committed scheme.rsrc matches the fresh build byte-for-byte
+// 5. MacBinary packaging unwraps cleanly to the exact same bytes
 
 import { readdirSync, existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { writeResourceFork } from '../tools/theme-author/resource-fork-writer.js';
+import { writeMacBinary } from '../tools/theme-author/macbinary.js';
 import { checkScheme } from '../tools/theme-author/check-scheme.js';
 import { convertChrome } from '../tools/theme-loader/convert.js';
+import { unwrapToResourceFork } from '../tools/theme-loader/containers.js';
 
 const root = resolve(import.meta.dirname, '..');
 const authoredDir = resolve(root, 'authoring/schemes');
@@ -53,6 +56,14 @@ for (const slug of slugs) {
     const committed = readFileSync(rsrcPath);
     if (!Buffer.from(fork).equals(committed)) {
       console.error(`✗ ${slug}: committed scheme.rsrc is stale. Run 'npm run author -- authoring/schemes/${slug}'`);
+      hadErrors = true;
+      continue;
+    }
+
+    const bin = writeMacBinary({ name: meta.name ?? slug, resourceFork: fork });
+    const unwrapped = unwrapToResourceFork(bin);
+    if (!Buffer.from(unwrapped).equals(Buffer.from(fork))) {
+      console.error(`✗ ${slug}: MacBinary packaging failed to round-trip`);
       hadErrors = true;
       continue;
     }

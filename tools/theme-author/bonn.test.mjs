@@ -1,8 +1,8 @@
 // Bonn (authoring/schemes/bonn/): builds, passes the authoring checks, loads
 // through the runtime converter, ships a pressed strip that matches the
 // document widgets, stands the skyline over the title's code-6 caps, centres
-// one bridge on open water, and the
-// committed scheme.rsrc / scheme.bin are current.
+// one bridge on open water, and the committed scheme.rsrc matches a fresh
+// build, and MacBinary packaging unwraps cleanly.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';

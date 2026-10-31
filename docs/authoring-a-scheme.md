@@ -95,6 +95,9 @@ hfsutils (`hcopy -m`) turn back into a real scheme file.
 If you edit a first-party scheme, rebuild it before running `npm test`: tests
 check that the committed `scheme.rsrc` matches a fresh build (`scheme.bin` is
 generated for emulator use and untracked in git to keep the repository small).
+You can also run `npm run check:schemes` to validate all five authored schemes
+at once (rebuilding, convertChrome reload, authoring checks, byte comparison
+and MacBinary round-tripping).
 
 Try it: change a colour in `authoring/schemes/kingfisher/palette.mjs`, rebuild,
 and reload the preview.
