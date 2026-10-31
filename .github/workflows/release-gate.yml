@@ -57,7 +57,10 @@ jobs:
           TAG: ${{ github.ref_name }}
         run: |
           set -euo pipefail
-          runs="$(gh run list --workflow release-gate.yml --commit "$GITHUB_SHA" --status success --limit 20 --json databaseId,url,event,createdAt)"
+          # Only runs that tested this exact commit count: a release/* PR run tested the merge
+          # preview, not the PR head commit it is filed under.
+          runs="$(gh run list --workflow release-gate.yml --commit "$GITHUB_SHA" --status success --limit 20 --json databaseId,url,event,createdAt \
+            | jq '[.[] | select(.event == "workflow_dispatch" or .event == "schedule")]')"
           count="$(jq 'length' <<<"$runs")"
           if [ "$count" -gt 0 ]; then
             url="$(jq -r '.[0].url' <<<"$runs")"; event="$(jq -r '.[0].event' <<<"$runs")"
