@@ -91,6 +91,7 @@ import {
 } from './controls.js';
 import { newProgressRecord, progressIdleAdvance, progressSetData, type ProgressRecord } from './engine/families/progress.js';
 import { PROGRESS_DATA, PROGRESS_FACADE_TICKS } from './engine/tables/progress.js';
+import { SLIDER_HOST_BODY_BACKGROUND } from './engine/tables/slider.js';
 import { platinumSliderWithLayout, platinumScrollbar } from './platinum.js';
 import { findPositionedAncestor, offsetInContainingBlock, pointInElement, viewportFrame } from './positioning.js';
 import { debug } from './debug.js';
@@ -570,13 +571,17 @@ function sliderPressTracker(el: HTMLElement): {
   };
 }
 
+/** The DOM host's slider: R erased to the composited window body (slider BG4/BG6, #596). */
+const composeHostSlider = (theme: ThemeInput, opts: SliderOptions, signal: AbortSignal): Promise<SliderFrame | null | typeof ENDED> =>
+  composeSliderEnded(composeSliderWithLayout(theme, { ...opts, background: SLIDER_HOST_BODY_BACKGROUND }, signal));
+
 export async function interactiveNativeSlider(theme: ThemeInput, input: HTMLInputElement,
   active: () => boolean): Promise<HTMLElement> {
   const el = document.createElement('span'); el.className = 'scriptoscope-slider';
   const press = sliderPressTracker(el);
   await buildDraggable(el, 'horizontal', nativeRangeValue(input), 1,
     async (value, state, signal) => {
-      const frame = await composeSliderEnded(composeSliderWithLayout(theme, { orientation: 'horizontal', length: 120, value, ...press.pressed(state) }, signal));
+      const frame = await composeHostSlider(theme, { orientation: 'horizontal', length: 120, value, ...press.pressed(state) }, signal);
       if (signal.aborted || frame === ENDED) return null;
       press.painted(frame, state);
       return frame ?? platinumSliderWithLayout({ orientation: 'horizontal', length: 120, value });
@@ -593,7 +598,7 @@ export async function interactiveSlider(theme: ThemeInput, opts: InteractiveSlid
   const press = sliderPressTracker(el);
   await buildDraggable(el, orientation, value, scale,
     async (v, state, signal) => {
-      const frame = await composeSliderEnded(composeSliderWithLayout(theme, { orientation, length, value: v, ...press.pressed(state) }, signal));
+      const frame = await composeHostSlider(theme, { orientation, length, value: v, ...press.pressed(state) }, signal);
       if (signal.aborted || frame === ENDED) return null;
       press.painted(frame, state);
       return frame ?? platinumSliderWithLayout({ orientation, length, value: v });

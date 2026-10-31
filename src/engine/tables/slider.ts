@@ -304,3 +304,13 @@ export const SLIDER_FACADE_THICKNESS = { plain: 16, withTicks: 32, source: 'mode
  * "the background colour is white by default"); hosts pass their own.
  */
 export const SLIDER_FACADE_BACKGROUND = { r: 255, g: 255, b: 255, a: 255, source: 'modern policy; slider §4.10 BG6; IWQD default background white' } as const;
+
+/**
+ * DOM host background (modern policy, #596): a slider promoted onto a themed
+ * window erases R to the window's brush (BG4, the Control Manager's window
+ * background), which the host supplies (BG6). The DOM host already composites
+ * that body behind the control, so it passes a fully transparent background:
+ * the body shows through every pixel no masked art covers (BL1), aligned with
+ * the window as the body itself is drawn.
+ */
+export const SLIDER_HOST_BODY_BACKGROUND = { r: 0, g: 0, b: 0, a: 0, source: 'modern policy; slider §4.10 BG4, BG6 (#596)' } as const;
