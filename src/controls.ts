@@ -446,7 +446,10 @@ export interface DisclosureOptions {
  * inherit the base bundle's (the replica ships -9990/-9991 triangles that would
  * otherwise leak into every cicn-less scheme via the chain). Resolution order on
  * the scheme itself: (1) the canonical signed state id (DISCLOSURE_IDS), then
- * the same direction's normal id, (2) a named disclosure chromeElement with no
+ * the same direction's normal id — that missing-state reuse (crayon-os ships
+ * only the two normals) is COMPATIBILITY POLICY, not decode; only the state ids
+ * themselves are evidenced (author labels, kdef-faithfulness-ledger.md
+ * manifest→decode), (2) a named disclosure chromeElement with no
  * canonical id, (3) the scheme's OWN ics4 triangle pictogram. apple-platinum-2 is the only
  * corner-sprite scheme that ships a disclosure triangle: a pixel-VERIFIED clean
  * pair under the NON-canonical positive ics4 ids 3060 (right/collapsed) and 3061
