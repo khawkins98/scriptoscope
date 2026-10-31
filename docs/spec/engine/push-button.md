@@ -155,9 +155,10 @@ not native Resource Manager, provider-order or cache equivalence. A valid first
 record ignores later duplicate records, unused defaults and later providers.
 A present selected malformed header or typed UNKNOWN metadata/body result
 rejects explicitly with its reason; it is not NULL and does not authorize a
-default, later-provider or other-state retry. Two proven metadata NULLs retain
-the reviewed transparent admission extent without claiming completed paint.
-No loader schema expansion or blanket duplicate rejection is implied.
+default, later-provider or other-state retry. Two proven metadata NULLs are
+PB9/PB10 in the engine (no body, border or label paint). The public facade
+then reports the face unavailable (PF3 below); it does not return a transparent
+buffer. No loader schema expansion or blanket duplicate rejection is implied.
 
 `byteProvenance.cinfResourceIndex` identifies the builder's static image/metadata
 pair. With raw duplicate metadata that pair may identify a later occurrence
@@ -166,6 +167,77 @@ lookup-occurrence claim. A consumed raw duplicate-metadata join, uniqueness,
 and native provider/cache behavior remain unknown. The opt-in prepared cinf
 environment has its own explicit identity/completeness contract; it does not
 change this ordinary policy.
+
+### Public facade availability (modern policy, #608)
+
+PB/DR rows say what the decoded callback paints. PF rows say what the public
+`composeButton` facade returns, and what every internal caller sharing its push
+path returns. They are modern API policy, not decoded behaviour. They never
+change a PB/DR outcome. They apply to plain and default buttons in every state.
+
+| # | condition | facade result | trace outcome |
+|---|---|---|---|
+| PF1 | PB8: face cicn missing | `null` | `unavailable`; existing `engine:PB8:cicn:NULL` step |
+| PF2 | face cicn found and the face body/border paint stage completed from same-ID cinf, cinf 0, or an opt-in declared cinf environment | PixelBuffer | `themed` with the returned dimensions |
+| PF3 | face cicn found, same-ID cinf and cinf 0 both proven NULL in the selected theme chain, and no declared cinf environment supplies the face | `null`, never a buffer | `unavailable`. Terminal step: role `face`, action `missing`, basis `source-dispatch`, usage `paint`, reason `engine:PB9:cinf:NULL`. The earlier cicn admission step keeps its owner/resource identity |
+| PF4 | selected metadata typed UNKNOWN or malformed | explicit rejection as above; not PF3 | `error` |
+| PF5 | PF3 holds for any face a consumer requests (normal or pressed) | declarative buttons, `promoteButton`, `interactiveButton` and the themed `<select>` show the native Platinum baseline button. The internal face-stage gate stays as a second guard | unchanged |
+| PF6 | every call | a non-null return implies a completed face paint stage. `themed` is never reported without one, and `unavailable` always pairs with `null`. Neither the engine nor the facade paints a procedural, grey, heuristic nine-slice or contrast-derived face to avoid PF3 (§6) | invariant |
+
+Ring outcomes do not change face availability. A DR6 ring with no cinf on a
+face that reached PF2 stays `themed`; a PF3 face is `null` whatever the ring.
+
+Corpus impact: standalone loads of apple-platinum-2, black-platinum, platinum-8,
+slimes and system7-nostalgia-silver reach PF3 in every state (§6 census). A
+declared base whose chain supplies the cinf, for example base 1138, reaches PF2
+under DECISIONS #5 policy. PF3 is the interim outcome. It does not claim that
+the original drew nothing: the original reaches cinf through the control-panel
+file, which is not shipped. A reviewed default-cinf environment for these five
+schemes remains the census row's open option and is separate work.
+
+Pages that show `composeButton` output directly (the diagnostic Scene panel, the
+diagnostic controls row, the capabilities page) treat `null` as unavailable.
+They show the baseline button or an explicit unavailable state, never an empty
+tile labelled themed.
+
+PF3 supersedes the 2026-10-23 `push-no-cinf-admission` public disposition
+(PM msg_c9c64c28537d), which kept a transparent themed buffer. Its archived
+correction and receipts remain history. The affected reviewed availability rows
+need a new reviewed transition to `unavailable`; that belongs to the test author
+and an independent reviewer, not to this spec.
+
+### Facade test hooks (extends §7)
+
+Run source and built. Use standalone loads (no base) unless a row says
+otherwise. "Completed face paint" means a face `bodyPaint`, face `bandPaints` or
+face `legacyFacePaint` record in the trace.
+
+| hook | rows | assertion |
+|---|---|---|
+| PF-H1 | PF3, PF6 | each of the five schemes × {normal, pressed, disabled, default}: `composeButton` returns `null`; outcome status `unavailable`; an `engine:PB9:cinf:NULL` face step is present; no completed face paint record. Never a non-null buffer with 0 opaque pixels, never `themed` |
+| PF-H2 | PF2, PF6 | positive controls 1138 and windows-95 × the same four states: non-null, `themed`, outcome dimensions equal the buffer's, more than 0 opaque pixels, a completed face paint record |
+| PF-H3 | PF2 | slimes loaded with base 1138: `themed`, more than 0 opaque pixels, face cinf selected at chainDepth 1 |
+| PF-H4 | PF5 | five schemes: declarative, `promoteButton` and `interactiveButton` render the native baseline button (existing consumer-visibility contract). Separately, a unit check: a composition whose face stage is recorded unavailable makes internal button preparation return `null` |
+| PF-H5 | presentation | five schemes: in the diagnostic Scene panel the On/Off/OK push elements each have visible pixels or are baseline buttons; the controls row and capabilities page never show a `themed` tile with 0 opaque pixels |
+
+Mutations that must fail (record each result):
+
+1. Restore the guard that returns `null` only when no face cicn is found. PF-H1
+   fails (non-null transparent buffer, `themed`).
+2. Return `null` whenever a face cicn is found. PF-H2 and PF-H3 fail.
+3. Return `null` but report outcome `themed`. PF-H1 fails on outcome.
+4. Paint an invented grey or procedural face in the engine or the facade.
+   PF-H1 fails on the completed-face-paint and opaque-pixel checks (§6).
+5. Drop the Scene panel's baseline-button fallback. PF-H5 fails.
+6. Remove the consumer face-stage gate. The PF-H4 unit check fails. While PF3
+   holds, a black-box consumer check alone cannot detect this mutation, so do
+   not record it as the detecting check.
+
+The existing `button-showcase.spec.mjs` expectation of 0 opaque pixels for a
+System 7 `composeButton` result contradicts PF3 and must change to `null` and
+`unavailable`. Scene fixtures that captured the transparent buffer need
+regenerating.
+
 
 ## 7. Test hooks
 
