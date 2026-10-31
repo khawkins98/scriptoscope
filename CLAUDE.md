@@ -36,8 +36,9 @@ npm run lint:themes        # default: VERIFY each source archive's sha256 agains
 npm run lint:themes -- --update   # re-lint in-memory + refresh the baseline (slow path — after a renderer or rule change)
 npm run lint:themes -- --strict   # verify-mode + re-decode + check decodedSha256 fingerprint, exits 1 on any drift (CI signal)
 npm run lint:themes -- --decoded  # like default but ALSO re-decodes + checks decodedSha256 (catches tools/theme-loader regressions that don't change source bytes)
-npm run baseline:scenes    # re-capture per-theme Scene panel into tests/visual-baselines/scenes/<slug>.png (eyeball regression check)
-npm run verify:scenes      # capture fresh + byte-diff against committed baselines (exit 1 on drift; --diff-only skips the capture)
+npm run baseline:scenes:container  # re-capture per-theme Scene panel into tests/visual-baselines/scenes/<slug>.png in the pinned Playwright image (Docker; the only way to record committed fixtures)
+npm run verify:scenes:container    # capture fresh in the pinned image + byte-diff against committed fixtures (exit 1 on drift; required by the release gate)
+# Host `baseline:scenes` / `verify:scenes` still work for local iteration but their captures aren't comparable with the committed fixtures.
 npm run audit:scenes       # walk every bundle, audit per-slot tier resolution (10 slots), print per-theme table
 npm run audit:scenes -- --write   # regenerate docs/scene-codex.md from the audit
 npm run audit:scenes -- --check   # CI signal: exit 1 if any slot fell to its hard fallback (for slots where the floor is a regression candidate)
