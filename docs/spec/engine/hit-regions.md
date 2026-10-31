@@ -1,7 +1,7 @@
 # `window.regions` + `window.hit` — Kaleidoscope 2.3.1 window structure regions and frame hit-testing
 
 Issue [#597](https://github.com/khawkins98/scriptoscope/issues/597), 2026-10-31.
-Spec writer: lane 597 (decode researcher). Independent review: Tier 1 REQUEST CHANGES at `5aba2b9a` (decode confirmed, five spot-checks matched; citation, propagation and test-hook asks addressed in revision 2, 2026-10-31); re-check of the changed claims pending.
+Spec writer: lane 597 (decode researcher). Independent review: Tier 1 REQUEST CHANGES at `5aba2b9a` (decode confirmed, five spot-checks matched; citation, propagation and test-hook asks addressed in revision 2, 2026-10-31); **APPROVED** at `6d02a4e0` (Tier 1 re-check of the changed claims, PR #610). `kdef231-reference.md` still awaits the pinned-hash correction (evidence E1).
 Evidence appendix: [`hit-regions.evidence.md`](./hit-regions.evidence.md). Implementers must not read it.
 
 ## 0. Answer
@@ -213,9 +213,10 @@ exclusive, global coordinates. "Outset 1" grows each side by 1.
 
   | field | value |
   |---|---|
-  | scheme archive | Castle `scheme.bin`, SHA-256 `5a22c49854fca78972e2f442ddb2cbdbf17e42ecdfca598322f83eac4b14291c` (PR #540 branch at `d98fe538`, `authoring/schemes/castle/classic/README.md`); re-hash before boot and stop on mismatch |
+  | scheme archive | Castle `scheme.bin`, SHA-256 `5a22c49854fca78972e2f442ddb2cbdbf17e42ecdfca598322f83eac4b14291c` (PR #540 branch at `d98fe538`, `authoring/schemes/castle/classic/README.md`). The bytes are **not committed**; only the hash is. Take them from the private asset store copy used for the #540 boots, or regenerate them with the #540 authoring build at `d98fe538`. Either way, re-hash before boot and stop on mismatch |
   | capture condition | **8-bit calibrated** boot (the reference environment's default), `nosound true`. The outcome is which window or desktop object receives the click, which does not depend on pixel depth; depth is recorded, not varied, and no pixel comparison is made |
   | windows | Finder windows of the transfer disk. Window F (front): a document window, content rect recorded from the native frame. Window B (back, case 1 only): placed so its opaque title bar or content lies directly under F's merlon row. Record both windows' frame rects in global coordinates from the native frame before clicking |
+  | recipe check | Before boot, decode the archive's document `wnd#` top-side list and confirm that the merlon cells (`crenL`/`crenR` in `authoring/schemes/castle/frames.mjs`) carry part code 12. If they carry another code, correct this table (the click-point rule and the cases) and freeze the amended version before boot |
   | click point rule | Before boot, decode the archive's document chrome template and placed top side for F's recorded width; choose the first pixel, left to right on the middle row of the merlon band, whose template mask bit is clear and which lies in a code-12 (merlon) cell outside `C`. Record its global (x, y) in the frozen table. For control, the nearest mask-set pixel in the same row |
   | budget | **two boot attempts**. If neither yields both cases cleanly (window placement as recorded, a single click, the frame captured before and after), stop and report; do not iterate |
 
