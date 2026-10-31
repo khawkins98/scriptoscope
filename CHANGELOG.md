@@ -137,6 +137,12 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   event's fraction to the next, so slow trackpad scrolls add up to their sum
   in both directions. This fixes WebKit, where a step could land a pixel
   short (#556).
+- A window that is already absolute or fixed but has no inline `left`/`top`
+  now moves from where it sits (#569). Placed by consumer CSS (px, % or
+  `auto`) or its static position, its first title-bar drag or arrow-key move
+  used to start from (0, 0), so it jumped. The move now starts from the used
+  `left`/`top`, also inside a scaled ancestor, and a host made absolute or
+  fixed by a consumer class no longer gets the in-flow drag placeholder.
 
 ## [0.7.0] — 2026-10-29
 
