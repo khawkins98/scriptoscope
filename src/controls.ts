@@ -338,7 +338,7 @@ export interface SliderOptions {
    * The colour R is erased to before the art is drawn (slider O3/O4, BG5; the
    * 2.3.1 CDEF repaints the whole control rect). Default opaque white (BG6).
    * `a` (default 255) lets a host that composites the window body behind the
-   * control pass its brush as transparency (BG4; the DOM host passes 0).
+   * control pass its brush as transparency (BG6a; the DOM host passes 0).
    */
   background?: { r: number; g: number; b: number; a?: number };
 }

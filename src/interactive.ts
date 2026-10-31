@@ -571,7 +571,7 @@ function sliderPressTracker(el: HTMLElement): {
   };
 }
 
-/** The DOM host's slider: R erased to the composited window body (slider BG4/BG6, #596). */
+/** The DOM host's slider: R erased to the composited window body (slider BG6a, #596). */
 const composeHostSlider = (theme: ThemeInput, opts: SliderOptions, signal: AbortSignal): Promise<SliderFrame | null | typeof ENDED> =>
   composeSliderEnded(composeSliderWithLayout(theme, { ...opts, background: SLIDER_HOST_BODY_BACKGROUND }, signal));
 
