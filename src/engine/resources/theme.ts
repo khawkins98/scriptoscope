@@ -18,7 +18,7 @@
 //         16 × 16 image + mask record);
 //   ics8  the glyph map's raster for the id, when inspector.iconIndex lists an
 //         `ics8` at that id (decoded with the ics# mask applied by the loader).
-//   actb / clut  inspector.colorTables[`type:id`] (entries in index order).
+//   actb / dctb / clut  inspector.colorTables[`type:id`] (entries in index order).
 import type { ChromeElement } from '../../types.js';
 import type { Pixmap } from '../qd/types.js';
 import type { ResourceSelection } from '../trace.js';
@@ -277,7 +277,7 @@ async function themeProvider(theme: ThemeView, tier: 'archive' | 'base', name: s
       const url = icons.some(i => i.id === id && i.type === 'ics8') ? theme.glyphs?.[String(id)] : undefined;
       return url ? [key, await load(url)] : null;
     }
-    if (type === 'actb' || type === 'clut') {
+    if (type === 'actb' || type === 'dctb' || type === 'clut') {
       const table = theme.inspector?.colorTables?.[`${type}:${id}`];
       return table ? [key, table] : null;
     }

@@ -81,7 +81,7 @@
     },
     {
       "path": "tools/theme-loader/convert.js",
-      "sha256": "05601ef8f6eec3b465930d8590a4c8289c7e5945b472740b5adb33d4326acd26"
+      "sha256": "e652e2c231c126b73e7606e547968617f9ec582dd1a9c9cf7020e758297c2050"
     },
     {
       "path": "tools/theme-loader/decoders/cicn.js",

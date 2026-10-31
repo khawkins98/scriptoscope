@@ -51,6 +51,12 @@
      The runtime applies this directly via inline style on `.scriptoscope-fit`,
      reading the var at promotion time. */
   --scriptoscope-content-padding: 6px 8px;
+
+  /* --scriptoscope-dialog-background and --scriptoscope-dialog-text are
+     deliberately NOT set here. Dialog and alert window bodies use the scheme's
+     dialog colours (entries 0 and 2 of its dctb/actb -14336, else
+     Kaleidoscope's grey and black). Set them on :root or a window host to
+     override, e.g. --scriptoscope-dialog-background: #fff. */
 }
 
 /* ─── Drop shadow on window hosts ──────────────────────────────────────── */

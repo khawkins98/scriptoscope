@@ -331,10 +331,10 @@ export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourc
 }
 
 /**
- * Colour-table resources (`actb`, `clut`; Inside Macintosh: Imaging With
+ * Colour-table resources (`actb`, `dctb`, `clut`; Inside Macintosh: Imaging With
  * QuickDraw, "Color Manager" ColorTable layout) as plain entries in index
  * order, for engine families that read a table entry (procedural-frame §3.5
- * alert colouring, §5A gap colour). Keyed `type:id`, first occurrence wins.
+ * alert colouring, §3.6 dialog content colour, §5A gap colour). Keyed `type:id`, first occurrence wins.
  * Each entry keeps the stored 16-bit channels (for equality tests) and the
  * display colour under the same policy as the rasters (the measured profile
  * when supplied, else the Mac → sRGB high-byte gamma). Additive inspector
@@ -343,7 +343,7 @@ export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourc
 function colorTablesOf(entries, realizeRgb16) {
   const out = {};
   for (const e of entries) {
-    if ((e.type !== 'actb' && e.type !== 'clut') || `${e.type}:${e.id}` in out) continue;
+    if ((e.type !== 'actb' && e.type !== 'dctb' && e.type !== 'clut') || `${e.type}:${e.id}` in out) continue;
     try {
       const d = e.data, view = new DataView(d.buffer, d.byteOffset, d.byteLength);
       const last = view.getInt16(6, false);

@@ -80,6 +80,16 @@ edges. To opt in, set e.g. `--scriptoscope-window-shadow: 2px 2px 0 #0006` on
 with the frame when grid or flex stretches the outer host; theme-painted pixels
 are unchanged.
 
+Dialog and alert windows (`dialog`, `movable-modal`, `alert`, `movable-alert`)
+fill their body with the scheme's dialog colour, as Kaleidoscope does: entry 0
+of the scheme's `dctb`/`actb` -14336, or Kaleidoscope's own light grey when the
+scheme ships none. Document windows stay white or use the scheme's body
+pattern. The body's text colour comes from the same table (black, or white on
+1984's dark blue), so it replaces a `color` set on the window host. Your content
+sits on top of the fill, so a background or colour on your own elements wins. To
+change the defaults, set `--scriptoscope-dialog-background` (e.g. `#ffffff`) and
+`--scriptoscope-dialog-text` on `:root` or a window host.
+
 If you'd prefer to vendor it (no third-party CDN dependency), copy every top-level `dist/*.js` file (including lazy decoder chunks), `dist/scriptoscope.css`, and the deployed themes from a matching build (see [Vendoring](#vendoring-if-you-dont-want-a-third-party-cdn-dependency)), and host them yourself.
 
 ## Five-minute setup

@@ -202,6 +202,21 @@ test('§5A dialog ring: corners from D rows 5–7 / 8–10, edges P_D(5 + i, 7) 
   assert.deepEqual(at(236, 60), [0, 0, tag]); // shadow P_D(0, 0)
 });
 
+test('§3.6 dialog content colour: the caller entry 0 fills the gap and is the table alert colouring compares', () => {
+  const grey = { rgb16: [0xdddd, 0xdddd, 0xdddd], rgb: [0xe3, 0xe3, 0xe3] };
+  const p = port();
+  const input = { content: C, variation: 1, hilited: true, goAway: false, shadeOn: true, colorTable: 'default', windowContent: grey };
+  const { geometry: g } = drawProceduralFrame(p, fork(), input);
+  const at = (x, y) => [...p.data.subarray((y * p.width + x) * 4, (y * p.width + x) * 4 + 3)];
+  assert.deepEqual(at(28, 60), [0xe3, 0xe3, 0xe3], 'gap: the window colour table entry 0');
+  assert.equal(g.alert, false, '#DDDD differs from actb #DEDE');
+  const same = { rgb16: [0xdede, 0xdede, 0xdede], rgb: [0xde, 0xde, 0xde] };
+  assert.equal(proceduralFrameGeometry(fork(), { ...input, windowContent: same }).alert, true, 'equal stored channels: alert');
+  const q = port();
+  drawProceduralFrame(q, fork(), { ...input, windowContent: undefined });
+  assert.deepEqual([...q.data.subarray((60 * q.width + 28) * 4, (60 * q.width + 28) * 4 + 3)], [255, 255, 255], 'absent: the declared white default');
+});
+
 test('§5A movable modal (kind 5): title in box mode above the ring, no collapse, stripes -14325', () => {
   const { trace, geometry: g } = draw({ content: C, variation: 5, hilited: true, goAway: true, shadeOn: true, titleWidth: 40 });
   assert.deepEqual(g.T, rect(40 - 5 - 22, 24, 35, 236));
