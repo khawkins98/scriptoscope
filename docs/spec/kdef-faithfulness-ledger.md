@@ -108,13 +108,13 @@ Each entry below tags its divergence direction explicitly:
   - **Measured impact (U7, issue #597, content 320 × 200):** 7 of the 13 recipe themes have document-window gaps large enough to click on purpose. Examples: dolphin-som 12.3% of the box, animals 12.6%, monkey-paradise 10.2%. `popup-window` has an 8–17% band in 10 of 13. Four of the five #540 schemes are affected, up to 18.4% (brickworks).
   - **Status:** temporary. Maintainer decision 2026-10-31: pass-through is on by default for recipe windows, with an opt-out (`data-scriptoscope-hit="box"`, or a page-wide default on the `WindowManager`), through a CSS `clip-path` built from the decoded region (hit-regions §9). When §9 ships, replace this entry with the permanent residue below.
   - **Permanent residue once §9 ships (by design, hit-regions §9):**
-    - The built-in frame keeps its box, so its two 2-px shadow notches answer the window (HP4). Under the `box` rule, built-in-frame windows are also not deactivated by outside presses, unlike the #540 capture.
-    - Windows inside an open `openModal` wrap keep the box (HP42).
+    - The built-in frame keeps its box, so its two 2-px shadow notches answer the window (HP4). Their outside-press deactivation still follows the requested mode, as in the #540 capture (HP38).
+    - Windows inside an open `openModal` wrap keep the box and are not deactivated by outside presses (HP42).
     - A window whose chrome template is missing, or whose region build fails, keeps its box, not an empty region (HP7, HP44).
-    - Consumers may opt out to the full pre-#597 behaviour, per window or page-wide, with no pass-through and no outside-press deactivation (HP1, HP10, HP14).
+    - Consumers may opt out with an explicit `box` request, per window or page-wide, to the full pre-#597 behaviour: no pass-through and no outside-press deactivation (HP1, HP10, HP14).
     - The region follows the drawn template on every activation flip, though U2 is open (HP23).
     - The bare `renderWindow()` element is not clipped (HP2).
-    - In `region` mode, outside presses deactivate the active window as in #540, but touch deactivates only on a completed tap (HP38, HP39).
+    - Outside presses deactivate the active window as in #540 whenever it requests or inherits `region`, whatever its effective mode, but touch deactivates only on a completed tap (HP38, HP39).
     - Presses the document never sees (other applications, browser UI, cross-document iframes), the browser window losing focus, and windows inside closed shadow roots do not deactivate (HP40, HP47).
 
 ### decode→reference
