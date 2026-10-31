@@ -43,8 +43,13 @@ const SLUGS = ['windows-95', 'apple-platinum-2'];
 // The pointer id comes from the real pointerdown, so a cancel targets that pointer.
 const PROBE = () => {
   window.__pid = undefined;
+  window.__down = undefined;
+  window.__ended = 0;
   window.__userResize = [];
-  addEventListener('pointerdown', e => { window.__pid = e.pointerId; }, true);
+  addEventListener('pointerdown', e => { window.__pid = e.pointerId; window.__down = { x: e.clientX, y: e.clientY, target: e.composedPath()[0] }; }, true);
+  // Every cancel or capture loss of the pressed pointer that has reached the page (#577).
+  for (const type of ['pointercancel', 'lostpointercapture'])
+    addEventListener(type, e => { if (e.pointerId === window.__pid) window.__ended++; }, true);
   addEventListener('scriptoscope:userresize', e => window.__userResize.push(e.detail), true);
   window.__read = host => {
     const box = el => { const r = el.getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height }; };
@@ -68,6 +73,12 @@ const PROBE = () => {
     if (type === 'lostpointercapture') { target.releasePointerCapture?.(window.__pid); return; }
     target.dispatchEvent(new PointerEvent(type, { pointerId: window.__pid, pointerType: 'mouse', bubbles: true, composed: true }));
   };
+  // Sub-pixel moves of the pressed pointer, offset from its pointerdown, sent at the pressed element.
+  window.__jitter = moves => {
+    const { x, y, target } = window.__down;
+    for (const [dx, dy] of moves) target.dispatchEvent(new PointerEvent('pointermove', { pointerId: window.__pid, pointerType: 'mouse',
+      isPrimary: true, buttons: 1, clientX: x + dx, clientY: y + dy, bubbles: true, composed: true }));
+  };
 };
 
 const settle = page => page.evaluate(async () => {
@@ -76,13 +87,19 @@ const settle = page => page.evaluate(async () => {
 });
 const centre = b => ({ x: b.x + b.w / 2, y: b.y + b.h / 2 });
 
+const isWebKit = page => page.context().browser()?.browserType().name() === 'webkit';
+
 /** Press at `p`, optionally jitter by `jitter` px, release. */
 async function press(page, p, jitter = 0) {
   await page.mouse.move(p.x, p.y);
   await page.mouse.down();
   if (jitter) {
-    await page.mouse.move(p.x + jitter, p.y + jitter);
-    await page.mouse.move(p.x - jitter, p.y);
+    const moves = [[jitter, jitter], [-jitter, 0]];
+    // Playwright's WebKit mouse truncates to whole CSS px (#577): x + 0.4 arrives as x and x - 0.4
+    // as x - 1, a real 1 px move. There, send the same sub-pixel moves as the pressed pointer's own
+    // PointerEvents, offset from the pointerdown's integer position.
+    if (isWebKit(page)) await page.evaluate(m => window.__jitter(m), moves);
+    else for (const [dx, dy] of moves) await page.mouse.move(p.x + dx, p.y + dy);
   }
   await page.mouse.up();
   await settle(page);
@@ -109,8 +126,14 @@ async function cancelledDrag(page, read, cancel, p, { dx = 30, dy = 20, type = '
   await page.mouse.move(p.x + dx / 2, p.y + dy / 2, { steps: 2 });
   await page.mouse.move(p.x + dx, p.y + dy, { steps: 2 });
   const during = await read();
+  const ended = () => page.evaluate(() => window.__ended);
+  const before = await ended();
   await cancel(type);
   await settle(page);
+  // WebKit delivers lostpointercapture only before the pointer's next event (#577); Chromium already
+  // has. If it hasn't reached the page yet, send that event without moving, then wait for the signal.
+  if (await ended() === before) await page.mouse.move(p.x + dx, p.y + dy);
+  await expect.poll(ended, { message: `${type} reached the page` }).toBeGreaterThan(before);
   const cancelled = await read();
   // The browser still has the button down: this release, and an unrelated click, must do nothing.
   await page.mouse.move(p.x + dx + 10, p.y + dy + 10);
