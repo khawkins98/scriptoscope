@@ -1,7 +1,7 @@
 # `window.regions` + `window.hit` — Kaleidoscope 2.3.1 window structure regions and frame hit-testing
 
 Issue [#597](https://github.com/khawkins98/scriptoscope/issues/597), 2026-10-31.
-Spec writer: lane 597 (decode researcher). Independent review: Tier 1 REQUEST CHANGES at `5aba2b9a` (decode confirmed, five spot-checks matched; citation, propagation and test-hook asks addressed in revision 2, 2026-10-31); **APPROVED** at `6d02a4e0` (Tier 1 re-check of the changed claims, PR #610). `kdef231-reference.md` still awaits the pinned-hash correction (evidence E1).
+Spec writer: lane 597 (decode researcher). Independent review: Tier 1 REQUEST CHANGES at `5aba2b9a` (decode confirmed, five spot-checks matched; citation, propagation and test-hook asks addressed in revision 2, 2026-10-31); **APPROVED** at `6d02a4e0` (Tier 1 re-check of the changed claims, PR #610). `kdef231-reference.md` was corrected in #611 (evidence E1).
 Evidence appendix: [`hit-regions.evidence.md`](./hit-regions.evidence.md). Implementers must not read it.
 
 ## 0. Answer
