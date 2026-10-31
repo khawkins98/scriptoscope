@@ -9,13 +9,15 @@ Color Manager implementation or an original-fidelity certificate.
 ## Public use and ownership
 
 ```ts
-import { prepareDisplayProfile, loadTheme, mountDeclarative } from 'scriptoscope';
+import { prepareDisplayProfile, loadTheme } from 'scriptoscope';
+// The example page host (demo/explicit-host.mjs); not a package export.
+import { mountExplicitPage } from './explicit-host.mjs';
 
 const data = await fetch('/my-reviewed-display-profile.json').then(r => r.json());
 const displayProfile = await prepareDisplayProfile(data);
 const theme = await loadTheme('/themes/windows-95', { displayProfile });
 // Alternatively, one mount uses the same immutable policy for every theme:
-const handle = await mountDeclarative({
+const handle = await mountExplicitPage({
   root: document.querySelector('#desktop'),
   themeBaseUrl: '/themes', pageThemeDefault: 'windows-95', displayProfile,
 });

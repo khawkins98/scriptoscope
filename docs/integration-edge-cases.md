@@ -158,7 +158,7 @@ Defaults: `step-x="32"`, `step-y="28"` (matches the period Mac OS "new window st
 
 Precedence:
 - Per-window `data-scriptoscope-x` / `-y` always wins. Cascade skips any window that declared either coordinate explicitly.
-- Cascade is one-shot at mount time. After the user drags or grow-box-resizes a window, that window owns its position; subsequent scans don't re-cascade it (stamped via the internal `data-scriptoscope-cascaded` marker).
+- Cascade is one-shot at mount time (the example host places the windows once, after promoting them). After that, a window owns its position: dragging or resizing it is never undone by the cascade, and nothing re-scans the page.
 - Nested cascade containers cascade independently. Each container iterates its own descendant windows.
 
 The container is set to `position: relative` (only if it wasn't already positioned) so the absolute children resolve against it, and gets a `min-height` reserving the cascade's vertical span so siblings below don't overlap. The library answer to "scatter a bunch of windows without writing per-window position math."
@@ -216,7 +216,7 @@ After mount, drag + resize update the host's inline `style.left/top/width/height
 
 ## Common pitfall — don't change child layout after mount-class flips
 
-The runtime captures each window's `getBoundingClientRect()` at scan time. If your CSS reflows / hides / re-displays children based on a "mounted" or "ready" class your boot script adds, AND you add that class before `mountDeclarative()` runs, the runtime captures the **wrong** geometry — windows end up positioned and sized as if the page were already mid-mount.
+The runtime measures each window's source element when it promotes it. If your CSS reflows / hides / re-displays children based on a "mounted" or "ready" class your boot script adds, AND you add that class before your host (for example `mountExplicitPage()`) promotes the windows, the runtime captures the **wrong** geometry — windows end up positioned and sized as if the page were already mid-mount.
 
 Bad:
 ```css
@@ -225,7 +225,7 @@ Bad:
 ```
 ```js
 container.classList.add('ready');           // ← layout changes here
-await mountDeclarative({ root: container }); // ← runtime sees the WRONG geometry
+await mountExplicitPage({ root: container }); // ← runtime sees the WRONG geometry
 ```
 
 Good — scope CSS off the runtime's structural marker `.scriptoscope-slot` (added at promotion) instead of a custom class your code manages:
@@ -242,7 +242,7 @@ Each promoted window's CHROME (the canvas, the scrollbars, the title-bar widgets
 
 Practical rules:
 
-- Restyle the **host** (the runtime-created `<div>` mountDeclarative inserted): `.scriptoscope-ready [data-scriptoscope-window] { filter: drop-shadow(…) }`. The host is light-DOM and reachable.
+- Restyle the **host** (the `<div data-scriptoscope-window-host>` the runtime inserts in place of your source element): `.scriptoscope-ready [data-scriptoscope-window] { filter: drop-shadow(…) }`. The host is light-DOM and reachable.
 - Restyle your CONTENT (`h3`, `p`, your custom classes): works normally — content's in light DOM.
 - Do NOT try to style chrome (canvas, scrollbar art, title bar): the shadow root quarantines them by design (ADR-0001 Decision 2). If you need a chrome tweak, file an issue — the right answer is usually a runtime knob, not consumer CSS.
 
@@ -327,25 +327,21 @@ The runtime uses these DOM attributes as re-entrancy guards. Consumers should no
 
 ## Dynamically inserted declarative targets
 
-After mount, append a new declared window together with its child controls, or
-append supported standalone controls directly. Both the added Element and its
-descendants are scanned. Preparation/theme barriers retain later additions in a
-scoped queue; an initial Element mount root itself is still not a target.
-
-Later additions inside an existing window host are excluded for both direct and
-container-wrapped controls. Before #281, wrapped additions could accidentally
-promote because the shadow-DOM chrome was invisible to the ancestry check; this
-path is now excluded to enforce the documented ownership boundary. Initial
-children moved into a newly promoted window remain supported. Ancestor cascade
-containers are not re-laid out by this change. See the
-[scanner insertion contract](spec/scanner-insertion.md) for ordering and limits.
+Nothing scans for new DOM. The library only promotes what your host passes it, and
+the retired `mountDeclarative` scanner (#491) is gone. With the example host,
+`mountExplicitPage` captures its sources once; after inserting a native control or
+button call `await handle.attach({controls: [input]})` (or `{buttons: [...]}`), and
+call `handle.detach(...)` before moving or removing it. Disconnect before replacing
+the root. See the README's
+[explicit page host section](../README.md#explicit-page-host-options) and
+[`demo/EXPLICIT-HOST.md`](../demo/EXPLICIT-HOST.md).
 
 ## Framework integration notes
 
-- **React**: promote AFTER React's first render — wrap `mountDeclarative` in a `useEffect(() => { mountDeclarative(...) }, [])` that runs once. React's reconciler doesn't know the host's children were moved into a slot; treat the promoted host as managed by Scriptoscope, not React. If you need React state changes to drive content INSIDE a window, render that content normally (React still owns the slot's content) — just don't re-render the wrapper element.
+- **React**: promote AFTER React's first render — call your host (for example `mountExplicitPage`) in a `useEffect(() => { const p = mountExplicitPage(...); return () => { p.then(h => h.disconnect()); }; }, [])` that runs once. React's reconciler doesn't know the host's children were moved into a slot; treat the promoted host as managed by Scriptoscope, not React. If you need React state changes to drive content INSIDE a window, render that content normally (React still owns the slot's content) — just don't re-render the wrapper element.
 - **Vue / Svelte**: same shape. Mount Scriptoscope in `onMounted` / `onMount`, after the framework's first paint.
 - **Astro / 11ty / static-render**: works perfectly — the bare HTML is what the static render produces; the script runs and promotes on client hydrate.
-- **Server-rendered HTML with sticky elements**: if your server emits any of the "internal stamps" above (you shouldn't), the scanner skips those elements as already-promoted. Strip them in your render layer.
+- **Server-rendered HTML with sticky elements**: if your server emits any of the "internal stamps" above (you shouldn't), promotion skips those elements as already promoted. Strip them in your render layer.
 - **Modal patterns**: if you're building a "click this button → show a themed window in an overlay" flow, use `handle.openModal(wrap, { returnFocusTo: triggerButton })`. It handles focus trap (including shadow-DOM chrome focusables via the `focusin` redirect pattern), Esc, backdrop-click dismissal, and listens for `scriptoscope:close` so the chrome's close widget closes the overlay. Pass `returnFocusTo` explicitly — `document.activeElement` at the moment a mouse click opens the modal is BODY, not the trigger button. The wrap is your `position: fixed` container; the runtime toggles `data-scriptoscope-modal-open` on it, your CSS scopes visibility/opacity/pointer-events off the attribute.
 
 ## Owned theme inputs during the transport migration
@@ -357,7 +353,7 @@ or CSS background. Do not pass `theme.source` to APIs expecting ready-image
 Window/control composition and interactive promotion accept owned inputs. A
 `WindowManager<OwnedTheme>` preserves that input in `describe()`; the default
 manager and declarative mount retain their existing loaded-theme contract.
-`mountOwnedDeclarative` shares the scanner and lifecycle with owned loading and
+`createOwnedThemeResolver` (used by the example host) provides owned loading and
 accepts registered legacy or owned inputs. Disconnect before changing loading
 contracts on a root, including when its first mount is still pending.
 
