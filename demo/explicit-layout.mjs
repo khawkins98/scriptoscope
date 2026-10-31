@@ -39,7 +39,18 @@ export function ownLayout(options,signal) {
  // snapshots use the position it had when the capture began; the capture's end, by release,
  // cancel or loss, schedules a write of whatever the window then has. The capture begins on
  // pointerdown, before any move, so that position is the pre-drag one.
+ // Holds are keyed by pointerId and released by one document listener: when the capturing
+ // element is removed (a collapse drops the grow box mid-drag, a scrollbar goes away while its
+ // thumb is pressed), lostpointercapture goes to the document, not through the host, so a
+ // host-only listener would leave the window held at a stale position for good.
  const held=new Map();
+ document.addEventListener('lostpointercapture',e=>{
+  for(const [host,h]of held){
+   if(!h.ids.delete(e.pointerId))continue;
+   if(!h.ids.size)held.delete(host);
+   schedule();
+  }
+ },{capture:true,signal});
  function snapshot() {
   const windows={};
   for(const [id,{win,manager}]of records){
@@ -76,8 +87,8 @@ export function ownLayout(options,signal) {
   const id=source.dataset.scriptoscopeWindowId||String(index);
   records.set(id,{win,manager});
   const host=win.host;
-  host.addEventListener('gotpointercapture',()=>{const h=held.get(host);if(h)h.n++;else held.set(host,{at:placed(host),n:1});},{signal});
-  host.addEventListener('lostpointercapture',()=>{const h=held.get(host);if(!h)return;if(--h.n<=0)held.delete(host);schedule();},{signal});
+  // The capture is taken by trackDrag in src/interactive.ts; its comment points back here.
+  host.addEventListener('gotpointercapture',e=>{const h=held.get(host);if(h)h.ids.add(e.pointerId);else held.set(host,{at:placed(host),ids:new Set([e.pointerId])});},{signal});
   manager.setChangeListener(schedule);
   // A reload declares the saved CONTENT width, which carries the saving scheme's frame
   // difference into a different scheme. Re-bound it to the saved OUTER width, as the

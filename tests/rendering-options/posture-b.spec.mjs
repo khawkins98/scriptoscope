@@ -369,16 +369,17 @@ test('source: persistKey cancelled drag keeps the pre-drag position on reload an
   const other = await openWatcher(page, demo);
   const { before, during } = await pressBackgroundA(page);
   expect([during.stored.windows.a.x, during.stored.windows.a.y], 'the mid-drag write saved the pre-drag position').toEqual(xy(before));
-  // Cancel the drag (#563), then let the pointer go.
-  await page.evaluate(() => {
+  // Cancel the drag (#563), then let the pointer go. Storage is cleared in the same task as the
+  // cancel, so whatever lands next is the post-cancel write, however long the steps below take.
+  await page.evaluate(key => {
+    localStorage.removeItem(`scriptoscope:layout:${key}`);
     const host = document.querySelector('#pb-root [data-scriptoscope-window-host]');
     host.shadowRoot.firstElementChild.dispatchEvent(new PointerEvent('pointercancel', { pointerId: window.__pid, pointerType: 'mouse', bubbles: true, composed: true }));
-  });
+  }, LAYOUT_KEY);
   await page.mouse.up();
   const cancelled = (await persisted(page)).hosts[0];
   expect([cancelled.left, cancelled.top], 'the cancel put A back').toEqual([before.left, before.top]);
   // The capture's end schedules a write of the restored position.
-  await page.evaluate(key => localStorage.removeItem(`scriptoscope:layout:${key}`), LAYOUT_KEY);
   await expect.poll(async () => (await persisted(page)).stored?.windows?.a, 'a write landed after the cancel').toBeTruthy();
   expect([(await persisted(page)).stored.windows.a.x, (await persisted(page)).stored.windows.a.y], 'persisted at the pre-drag position').toEqual(xy(before));
   // The other tab heard every write and never moved A off its pre-drag place.
@@ -431,4 +432,46 @@ test('source: persistKey flushes a pending layout write when the page becomes hi
   }, LAYOUT_KEY);
   expect(result.pending, 'the write was still pending before the page hid').toBeNull();
   expect(result.stored, 'hiding the page flushed the moved position').toBe(parseFloat(result.left));
+});
+
+// #581 review: a collapse drops the grow box while it holds the capture (#563 cancels the grow).
+// lostpointercapture then goes to the document, not through the host, so a host-only release
+// left the window held for good and every later write saved the stale pre-grow position.
+test('source: persistKey a collapse during a grow drag does not pin later drags to a stale position (#581)', async ({ page, demo }) => {
+  await openPersisted(page, demo);
+  await mountPersisted(page, { html: TWO_PLACED });
+  await expect.poll(async () => (await persisted(page)).stored?.windows?.b, 'layout written after the first render').toBeTruthy();
+  // A bare second page: it only writes the key, so no layout of its own answers back.
+  const other = await page.context().newPage();
+  await other.goto(`${demo}/install.html`);
+  const hosts = page.locator('#pb-root [data-scriptoscope-window-host]');
+  const corner = await hosts.first().evaluate(h => {
+    const r = h.shadowRoot.querySelector('button.scriptoscope-growbox').getBoundingClientRect();
+    return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
+  });
+  await page.mouse.move(corner.x, corner.y);
+  await page.mouse.down();
+  await page.mouse.move(corner.x + 20, corner.y + 20, { steps: 2 });
+  // Another tab collapses A; the storage event applies it here mid-grow and drops the grow box.
+  await other.evaluate(key => {
+    const k = `scriptoscope:layout:${key}`;
+    const value = JSON.parse(localStorage.getItem(k));
+    value.windows.a.collapsed = true;
+    localStorage.setItem(k, JSON.stringify(value));
+  }, LAYOUT_KEY);
+  await expect.poll(() => hosts.first().evaluate(h => !!h.shadowRoot.querySelector('button.scriptoscope-growbox')), 'collapse dropped the grow box').toBe(false);
+  await page.mouse.up();
+  // Now drag A by its title bar and drop it.
+  const grip = await hosts.first().evaluate(h => {
+    const r = h.shadowRoot.querySelector('.scriptoscope-movehandle').getBoundingClientRect();
+    return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
+  });
+  await page.mouse.move(grip.x, grip.y);
+  await page.mouse.down();
+  await page.mouse.move(grip.x + 60, grip.y + 30, { steps: 5 });
+  await page.mouse.up();
+  const dropped = (await persisted(page)).hosts[0];
+  expect(xy(dropped), 'A moved').not.toEqual([0, 0]);
+  await expect.poll(async () => { const a = (await persisted(page)).stored?.windows?.a; return a && [a.x, a.y]; }, 'the drop persisted').toEqual(xy(dropped));
+  await other.close();
 });

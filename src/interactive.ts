@@ -140,6 +140,8 @@ function trackDrag(el: HTMLElement, down: PointerEvent, move: (e: PointerEvent) 
   const listeners = [['pointermove', on(move)], ['pointerup', on(up)],
     ['pointercancel', on(cancel)], ['lostpointercapture', on(cancel)]] as const;
   for (const [t, l] of listeners) document.addEventListener(t, l);
+  // demo/explicit-layout.mjs uses this capture (gotpointercapture / lostpointercapture) as
+  // its drag-active signal, so it never persists the hot loop's uncommitted left/top (#581).
   try { el.setPointerCapture(id); } catch { /* the pointer is already gone: document tracking still ends it */ }
 }
 
