@@ -78,12 +78,12 @@ for (const mode of ['source', 'built']) {
             outerCorners: [at(0, 0), at(output.width-1, 0), at(0, output.height-1), at(output.width-1, output.height-1)] });
         }
         const without=await loadOwnedControlFixture(api,{faces:declared.map(({cinf,...face})=>face)});const missing=await api.composeButton(without,{label:'',height:20,default:true});without.dispose();theme.dispose();
-        return { rows, cornerColors,sources,missing:[...missing.data] };
+        return { rows, cornerColors,sources,missing:missing?[...missing.data]:null };
       }, mode);
       const verifySource=source=>{const size=source.id===-10239?6:10;expect(source.bounds).toEqual({top:0,left:0,bottom:size,right:size});expect(source.sourceRef.loadId).toBe(source.loadId);expect(source.resource.signedId).toBe(source.id);expect(source.resource.sha256).toBe(createHash('sha256').update(indexedCicn(source.expected)).digest('hex'));expect(source.ordinary).toEqual(source.expected.flat(2));expect(source.opaque).toEqual(source.expected.flatMap(row=>row.flatMap(p=>[...p.slice(0,3),255])));};
       for(const source of results.sources)verifySource(source);
       const shifted=structuredClone(results.sources[0]);shifted.bounds.left=1;expect(()=>verifySource(shifted),'shifted full source bounds cannot pass zero-origin identity').toThrow();
-      expect(results.missing.every(v=>v===0),'missing raw cinf cannot invent original painted sentinels').toBe(true);
+      expect(results.missing,'missing raw cinf cannot invent painted sentinels; PF3 (#608) returns null, never a transparent buffer').toBeNull();
       const verifySlice=row=>{
         expect(row.width).toBe(64); // public minimum56 plus documented4px ring rect expansion
         expect(row.actualHeight).toBe(row.height + 8);

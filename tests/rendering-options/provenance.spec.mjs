@@ -45,7 +45,7 @@ for (const mode of ['source', 'built']) {
         expect(observed.absentByDefault).toBe(true);
         for (const result of observed.results) {
           const c = themeCases.find(c => c.id === result.id), comparisons = [];
-          expect(result.pixelsUnchanged).toBe(true); expect(result.trace.outcome.status).toBe('themed');
+          expect(result.pixelsUnchanged).toBe(true); expect(result.trace.outcome.status).toBe(c.proposed.outcome); // reviewed outcome (1.0.18: PF3 rows are unavailable)
           for (const expected of c.proposed.paint) {
             const steps = result.trace.steps.filter(s => s.action === 'selected' && s.usage === 'paint' && s.role === expected.role);
             expect(steps).toHaveLength(1);

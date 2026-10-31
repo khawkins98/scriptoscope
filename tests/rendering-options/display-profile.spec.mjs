@@ -116,7 +116,8 @@ for(const mode of ['source','built']) {
     let trace,completionCount=0;
     const normal=await api.composeButton(b,{...options,diagnostics:{onComplete:t=>{completionCount++;trace=t;}}}),legacy=a?await api.composeButton(a,options):null;
     const selected=trace.steps.find(s=>s.role==='face'&&s.action==='selected'),el=b.manifest.chromeElements[selected.resource.manifestKey];
-    const faceRgba=Uint8Array.from(Array.from({length:20},(_,y)=>Array.from({length:80},(_,x)=>normal.getPixel(x+4,y+4))).flat(2));
+    // PF3 (#608): the no-cinf gap cases return null; keep the row with a null plane.
+    const faceRgba=normal?Uint8Array.from(Array.from({length:20},(_,y)=>Array.from({length:80},(_,x)=>normal.getPixel(x+4,y+4))).flat(2)):new Uint8Array(1600*4);
     const reference=captures.find(c=>c.requestId===slug+'.'+state);
     if(reference?.kind!=='independent-original'||reference.reviewScope?.id!=='public-api-empty-face')throw Error('Missing scoped original '+slug);
     const bytes=await(await fetch('/tests/reference-captures/'+reference.image.path)).arrayBuffer();
@@ -138,12 +139,12 @@ for(const mode of ['source','built']) {
       patternEvidence={patternCatalog:{manifestKey:key,entry},patternLoad:b.byteProvenance,patternPlane:{size:[pc.width,pc.height],encoding:'base64-rgba8',rgba:btoa(String.fromCharCode(...rgba))}};
      }
     }
-    rows.push({slug,state,options,completionCount,metadataAttempts:trace.steps.filter(s=>s.role==='face'&&s.action==='missing'&&s.reason.includes('cinf')),selectedSourceBounds:el.cicnSource?.bounds,ownerPolicy:b.manifest.displayProfile.id,bodyFillSteps:trace.steps.filter(s=>s.role==='body-fill'),composition:trace.composition,recordedSourcePins,patternAsset:patternStep?b.manifest.patterns[patternStep.resource.manifestKey]?.asset:null,loadId:b.byteProvenance.loadId,profileFork:b.byteProvenance.fork.sha256,selectedKey:selected.resource.manifestKey,selectedAsset:el.asset,selectedCinfId:el.sourceCinfId??null,...(recordedSourcePins?{selectedBodyRequest:el.bodyRequest??null}:{}),outcome:trace.outcome,requested:trace.requested,profile:b.manifest.displayProfile.id,baseUrl:(a??b).baseUrl,profileBaseUrl:b.baseUrl,input:(a??b).byteProvenance.input.sha256,profileInput:b.byteProvenance.input.sha256,
+    rows.push({slug,state,options,completionCount,metadataAttempts:trace.steps.filter(s=>s.role==='face'&&s.action==='missing'&&s.usage==='admission'&&s.reason.includes('cinf')),terminalStep:trace.steps.at(-1),selectedSourceBounds:el.cicnSource?.bounds,ownerPolicy:b.manifest.displayProfile.id,bodyFillSteps:trace.steps.filter(s=>s.role==='body-fill'),composition:trace.composition,recordedSourcePins,patternAsset:patternStep?b.manifest.patterns[patternStep.resource.manifestKey]?.asset:null,loadId:b.byteProvenance.loadId,profileFork:b.byteProvenance.fork.sha256,selectedKey:selected.resource.manifestKey,selectedAsset:el.asset,selectedCinfId:el.sourceCinfId??null,...(recordedSourcePins?{selectedBodyRequest:el.bodyRequest??null}:{}),outcome:trace.outcome,requested:trace.requested,profile:b.manifest.displayProfile.id,baseUrl:(a??b).baseUrl,profileBaseUrl:b.baseUrl,input:(a??b).byteProvenance.input.sha256,profileInput:b.byteProvenance.input.sha256,
      ...patternEvidence,...retainRecordedTransfers(b,cicnTransfer),...(el.cicnTransfer?{selectedCicnTransfer:el.cicnTransfer}:{}),
      originalComparison:{binding:bindings.find(b=>b.captureId===reference.id),comparedPixels:1600,originalRgba:btoa(String.fromCharCode(...original)),captureId:reference.id,requestDigest:reference.requestDigest,imageSha256,imageSize:[canvas.width,canvas.height],sourceArchiveSha256:reference.source.archiveSha256,
       layer:'composited-face-pixels',background:[255,255,255],differentPixels,verifiedRequirementIds:[]},
-     source:el.byteProvenance,resources:b.byteProvenance.resources,selected,facePlane:{rect:[4,4,80,20],encoding:'base64-rgba8',rgba:btoa(String.fromCharCode(...faceRgba))},paintSelectionSteps:trace.steps.filter(s=>s.usage==='paint'&&s.action==='selected'),bandPaints:trace.bandPaints??[],legacyFacePaint:trace.legacyFacePaint??null,policy:el.colorSamples?.displayPolicy??el.samplingEquivalence?.displayPolicy,
-     different:legacy?normal.data.some((v,i)=>v!==legacy.data[i]):null,size:[normal.width,normal.height],body:[...normal.getPixel(44,14)],
+     source:el.byteProvenance,resources:b.byteProvenance.resources,selected,facePlane:normal?{rect:[4,4,80,20],encoding:'base64-rgba8',rgba:btoa(String.fromCharCode(...faceRgba))}:null,paintSelectionSteps:trace.steps.filter(s=>s.usage==='paint'&&s.action==='selected'),bandPaints:trace.bandPaints??[],legacyFacePaint:trace.legacyFacePaint??null,policy:el.colorSamples?.displayPolicy??el.samplingEquivalence?.displayPolicy,
+     different:legacy&&normal?normal.data.some((v,i)=>v!==legacy.data[i]):null,size:normal?[normal.width,normal.height]:null,body:normal?[...normal.getPixel(44,14)]:null,
      urlsDistinct:a?Object.keys(a.manifest.chromeElements).every(k=>a.manifest.chromeElements[k].asset!==b.manifest.chromeElements[k].asset):null});
     }
     } finally { a?.dispose();for(const theme of profileThemes.values())theme.dispose(); }
@@ -154,7 +155,8 @@ for(const mode of ['source','built']) {
   expect(gaps).toHaveLength(15);
   const assertGap=row=>{
     expect(gapSlugs).toContain(row.slug);expect(['normal','pressed','inactive']).toContain(row.state);
-    expect(row.outcome).toEqual({status:'themed',width:88,height:28});expect(row.completionCount).toBe(1);
+    // push-button.md PF3 (#608): null/unavailable with a terminal PB9 face step, never a transparent themed plane.
+    expect(row.outcome).toEqual({status:'unavailable'});expect(row.size).toBeNull();expect(row.terminalStep).toMatchObject({role:'face',action:'missing',basis:'source-dispatch',usage:'paint',reason:'engine:PB9:cinf:NULL'});expect(row.completionCount).toBe(1);
     const id=row.state==='normal'?-10239:row.state==='pressed'?-10238:-10240;
     expect(row.selected).toMatchObject({role:'face',action:'selected',usage:'admission',owner:{baseUrl:row.profileBaseUrl,chainDepth:0},resource:{type:'cicn',signedId:id,sourceCinfId:null,byteProvenance:row.source}});
     expect(row.source.loadId).toBe(row.loadId);expect(row.source.cinfResourceIndex).toBeNull();
@@ -164,15 +166,15 @@ for(const mode of ['source','built']) {
     expect(row.selectedSourceBounds).toEqual(pin.bounds);expect(pin.bounds).toEqual({top:0,left:0,bottom:16,right:16});
     expect(row.profileInput).toBe(pin.sourceArchiveSha256);expect(row.profileFork).toBe(pin.sourceForkSha256);expect(row.selected.resource.assetUrl).toBe(row.selectedAsset);expect(row.selected.resource.manifestKey).toBe(row.selectedKey);
     expect(row.paintSelectionSteps.filter(s=>s.role==='face'||s.role==='body-fill')).toEqual([]);expect(row.bandPaints).toEqual([]);expect(row.legacyFacePaint).toBeNull();expect(row.bodyFillSteps.some(s=>s.bodyPaint)).toBe(false);
-    expect(row.facePlane.rect).toEqual([4,4,80,20]);expect([...Buffer.from(row.facePlane.rgba,'base64')]).toEqual(Array(1600*4).fill(0));
+    expect(row.facePlane).toBeNull();
     expect(row.profile).toBe(row.ownerPolicy);expect(row.profile).toBe(row.originalComparison.binding.profile.id);
     expect(row.originalComparison.verifiedRequirementIds).toEqual([]);
   };
   const gapDiscriminations=[];
   for(const row of gaps){
     assertGap(row);
-    row.comparisonDisposition={status:'unassessed',reason:'PB9 two metadata NULLs admit art without completed face paint; native reference is retained but current paint dependency is absent'};
-    for(const [name,mutate]of [['invented-paint',r=>r.paintSelectionSteps.push({...r.selected,usage:'paint'})],['UNKNOWN-not-NULL',r=>r.metadataAttempts[0].action='unknown'],['nontransparent-plane',r=>{const data=Buffer.from(r.facePlane.rgba,'base64');data[3]=255;r.facePlane.rgba=data.toString('base64');}],['wrong-owner',r=>r.selected.owner.chainDepth=1]]){
+    row.comparisonDisposition={status:'unassessed',reason:'PB9 two metadata NULLs admit art without completed face paint; PF3 returns null/unavailable; native reference is retained but current paint dependency is absent'};
+    for(const [name,mutate]of [['invented-paint',r=>r.paintSelectionSteps.push({...r.selected,usage:'paint'})],['UNKNOWN-not-NULL',r=>r.metadataAttempts[0].action='unknown'],['transparent-themed-plane',r=>{r.outcome={status:'themed',width:88,height:28};r.size=[88,28];r.facePlane={rect:[4,4,80,20],encoding:'base64-rgba8',rgba:Buffer.alloc(1600*4).toString('base64')};}],['missing-PB9-step',r=>{r.terminalStep={...r.terminalStep,reason:'PB10: label colour outputs or font provider unavailable'};}],['wrong-owner',r=>r.selected.owner.chainDepth=1]]){
       const changed=structuredClone(row);mutate(changed);expect(()=>assertGap(changed),name).toThrow();gapDiscriminations.push({slug:row.slug,state:row.state,name});
     }
   }
@@ -192,7 +194,7 @@ for(const mode of ['source','built']) {
   }
   expect(result).toHaveLength(subjects.reduce((n,s)=>n+s.cases.length,0));
   expect(result.find(row=>row.slug==='windows-95'&&row.state==='normal').body).toEqual([218,218,218,255]);
-  await attachObservations(info,'display-profile',mode,{mode,rows:result,claim:'Exact recorded pixels only for comparable admitted cinf-painted faces; fifteen no-cinf cases retain explicit unassessed native comparison and current transparent planes. No mask/font/private-painter/whole-requirement promotion.'});
+  await attachObservations(info,'display-profile',mode,{mode,rows:result,claim:'Exact recorded pixels only for comparable admitted cinf-painted faces; fifteen no-cinf cases retain explicit unassessed native comparison and are PF3 null/unavailable (#608). No mask/font/private-painter/whole-requirement promotion.'});
  });
  test(`${mode}: joint profile reaches sampled bands and rejects missing maps before URL allocation`,async({page,servers},info)=>{
   await openHarness(page,servers,mode);const result=await page.evaluate(async mode=>{

@@ -50,7 +50,8 @@ export const expectedBorder=solidBackgroundRows.flatMap(row=>[...row].flatMap(c=
 export function verifyRawRow(row) {
  const error=['short-selected','short-default','mode5-unsupported','mode5-UNKNOWN','broken-pattern','unbound-ambiguous'].includes(row.variant);
  if(error){assert.ok(row.error&&row.error.name!=='TypeError','explicit unsupported rejection');assert.match(row.error.message,/short|malformed|unknown|unsupported|unavailable|decode/i);assert.equal(row.trace?.outcome.status,'error');assert.equal(row.pixels,null);assert.equal(row.trace.steps.some(s=>s.bodyPaint),false);return;}
- assert.equal(row.error,undefined);assert.equal(row.trace.outcome.status,'themed');
+ // push-button.md PF3 (#608): NULL (art, no cinf anywhere in the chain) is null/unavailable.
+ assert.equal(row.error,undefined);assert.equal(row.trace.outcome.status,row.variant==='NULL'?'unavailable':'themed');
  assert.deepEqual(row.ordinaryBackground,row.variant==='opaque-collision'?[255,0,0,255]:[0,0,0,0]);
  const face=row.trace.steps.filter(s=>s.role==='face'&&s.action==='selected'&&s.usage==='admission'&&s.resource?.type==='cicn'&&s.reason.startsWith('engine:'));
  assert.equal(face.length,1);assert.equal(face[0].resource.type,'cicn');assert.equal(face[0].resource.signedId,-10239);
@@ -59,7 +60,8 @@ export function verifyRawRow(row) {
  else assert.equal(face[0].resource.byteProvenance,undefined);
  if(row.variant!=='NULL'&&row.variant!=='raw-invalid-anchor'){assert.deepEqual(row.source?.points?.['3,3'],{rgb16:[8481,8481,8481],displayRgb:[48,48,48]});assert.equal(row.source.source.resourceIndex,0);}
  const paint=row.trace.steps.filter(s=>s.role==='face'&&s.action==='selected'&&s.usage==='paint');
- if(row.variant==='NULL'){assert.equal(paint.length,0);assert.ok(row.pixels.every(n=>n===0));assert.equal(row.trace.steps.some(s=>s.bodyPaint),false);return;}
+ if(row.variant==='NULL'){assert.equal(paint.length,0);assert.equal(row.pixels,null);assert.equal(row.size,null);assert.equal(row.trace.steps.some(s=>s.bodyPaint),false);
+  const last=row.trace.steps.at(-1);assert.deepEqual([last?.role,last?.action,last?.basis,last?.usage,last?.reason],['face','missing','source-dispatch','paint','engine:PB9:cinf:NULL']);return;}
  assert.equal(paint.length,1);assert.equal(paint[0].owner.baseUrl,row.owner);
  const bodies=row.trace.steps.filter(s=>s.bodyPaint);
  if(row.variant.startsWith('ppat')||['bound-bodyPattern','bound-bgPattern','unique-no-link','wrong-ID-links'].includes(row.variant)){assert.equal(bodies.length,1);assert.equal(bodies[0].resource.type,'ppat');assert.equal(bodies[0].resource.signedId,row.variant==='ppat17'?17:0);assert.equal(bodies[0].owner.baseUrl,row.owner);assert.equal(bodies[0].owner.chainDepth,1);assert.equal(bodies[0].bodyPaint.branch,'pattern-fill-union');assert.equal(bodies[0].resource.manifestKey,['bound-bodyPattern','bound-bgPattern'].includes(row.variant)?'2':['unique-no-link','wrong-ID-links'].includes(row.variant)?'green':row.variant==='ppat17'?'ppat-17':'ppat-0');if(row.observed)assert.equal(bodies[0].resource.byteProvenance.ppatResourceIndex,2);else assert.equal(bodies[0].resource.byteProvenance,undefined);assert.equal(bodies[0].bodyPaint.paintedPixels,173);assert.deepEqual(bodies[0].bodyPaint.unionRects,[{x:3,y:1,w:23,h:7},{x:1,y:3,w:27,h:3}]);}
