@@ -12,6 +12,9 @@ facade record lifetime (ID10), bounds origin and line colour (BL11, BL12),
 short `cinf` payloads (§4.11 CF1–CF3), tracking roles (§4.12 TRK1–TRK4) and a
 reachable example D (§5.9).*
 
+*Amended 2026-10-31 (#596, answering the spec questions in #603): BG6a
+records the DOM host's transparent `background` as policy, not decode.*
+
 **Every address in this file is a file offset into Kaleidoscope 2.3.1 `CDEF 3`**
 (not the kDEF). To keep the routine-coverage counter honest, every line that
 carries an address also names CDEF 3. Rect intervals are half-open
@@ -337,9 +340,11 @@ it as the declared input `background` (BG6).
 | BG4 | BG3, Control Manager side (Apple-documented, not in this binary) | the Control Manager sets the current port's (the offscreen's) background for the control: through the control's colour procedure if one is installed; otherwise by asking the nearest embedding ancestor that has a special background (`kControlHasSpecialBackground`, message `kControlMsgSetUpBackground`); otherwise from the theme brush associated with the owning window (SetThemeWindowBackground). With none of these the BG1/BG2 background stands. CDEF 3 never reports a special background itself (message 19 returns ghosting, bit 13 and live feedback only, §1.2) (Apple's Control Manager documentation for SetUpControlBackground and SetControlColorProc; not pinned here; the order is not engine-relevant because BG6 makes the result an input) | CDEF 3 `0xeb6..0xec8` (call site) |
 | BG5 | always | EraseRect `R` in the offscreen: every pixel of `R` takes the resulting background (a solid colour, or the background pattern under QuickDraw's pattern rules) before any art is drawn; then O5–O9 | CDEF 3 `0xeca..0xed0` |
 | BG6 | engine input (declared) | `background` is the outcome of BG1–BG4 for this control, supplied by the host as a solid RGB colour or a pattern. **Declared default: solid white**, which is QuickDraw's default port background, BG2's result, and BG1's result for a port with default colours where BG4 changes nothing (no colour procedure, no special-background parent, no window brush). Modern policy, not an original observation. A themed dialog or window behind the control would supply its theme brush instead (BG4); mapping brushes to scheme patterns is outside CDEF 3 ([apple-primary-source](../apple-primary-source.md)) | CDEF 3 `0xeb6..0xed0` |
+| BG6a | host policy (not decode), DOM host paths only: the interactive slider and a promoted `<input type="range">`, where the host has already drawn the window body behind the control canvas | the host supplies `background` as fully transparent (alpha 0), standing for "the window's brush, already composited behind". This is a compatibility policy (#596), not an original observation; BG1–BG5 and OS4/OS5 are unchanged (the engine still erases `R` and copies it with no mask, so every pixel of `R` that no masked art covers is alpha 0). It is equivalent to BG4's window-brush outcome: each such pixel composites to the body pixel the window drew at that position, which is what erasing `R` with the window's own brush would show. Scope: standalone `composeSlider` and any other caller that supplies no `background` keep BG6's opaque white default. Under BG6a the erase pattern's origin does not arise, because the body supplies its own alignment. **Unresolved:** for a future host that does not composite the window body behind the control and instead passes the body pattern as `background`, whether BG5's pattern aligns with the offscreen's origin (at `R.topLeft`) or with the window's local origin is not decoded here; the two differ by `R.topLeft` mod the pattern size. Such a host files a spec question | modern policy; no CDEF 3 address |
 
 Under the declared defaults every pixel of `R` that no masked art covers is
-the `background` input, fully opaque (O9 copies `R` with no mask). The art never
+the `background` input, fully opaque (O9 copies `R` with no mask; under
+BG6a's DOM host policy that input is alpha 0). The art never
 mixes with it: masked copies (BL1) leave it alone where the mask is clear and
 replace it where the mask is set.
 
