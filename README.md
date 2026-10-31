@@ -221,15 +221,18 @@ await mountExplicitPage({
   onPromoteError: detail => {…},// optional: hook per-target promotion failures (vs the rejectOnEmpty above).
   bootAffordance: 'auto',           // optional: chrome wipe-in animation + boot-state CSS hook
                                     //   (data-scriptoscope-loading on the root + .scriptoscope-ready class
-                                    //   on the root once promotion settles). 'auto' (default) picks per
+                                    //   on the root once promotion and the wipe-in finish, so the class
+                                    //   means "clickable"). 'auto' (default) picks per
                                     //   element; 'none' (alias false) suppresses entirely. Respects
                                     //   prefers-reduced-motion automatically.
 });
 ```
 
 This is a public example helper, not a package runtime mount export. The call
-returns an `EventTarget` handle after selected promotions and scrollbar refreshes
-settle. Boot load errors reject; with `rejectOnEmptyMount`, an all-failed boot
+returns an `EventTarget` handle after selected promotions, scrollbar refreshes and
+the boot wipe-in settle. A wipe-in that stops advancing (a hidden tab, an off-screen
+iframe) is finished at once when the page is or becomes hidden, and otherwise once
+the wait for it has lasted 360 ms. Boot load errors reject; with `rejectOnEmptyMount`, an all-failed boot
 rejects with `PagePromotionError` and its `failures`. Partial target errors call
 `onPromoteError(detail)`, bubble `scriptoscope:promoteError`, and remain available
 in `handle.failures`; other sources remain usable. Retheme load errors reject and

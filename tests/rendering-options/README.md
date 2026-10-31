@@ -104,6 +104,34 @@ reload, and that a dragged window is restored as absolute at its position. A
 companion `test.fail` pins #558: a reload grows short auto-sized windows. Remove
 the marker when #558 is fixed.
 
+## Showcase settle signal (#565)
+
+Showcase specs wait for `#powers.scriptoscope-ready` and may act at once; no
+spec needs its own animation wait. `mountExplicitPage` (`demo/explicit-host.mjs`)
+adds the class, removes `data-scriptoscope-loading`, lifts the boot `inert` and
+fires `ready` only after every window's boot reveal (a 180 ms clip-path
+animation) has finished. Reveals that stop advancing do not hold ready back. A
+document that is hidden when the wait starts, or becomes hidden during it,
+finishes them at once. Otherwise they are finished once the wait has lasted
+360 ms, twice the reveal. This covers a background tab, an off-screen iframe
+and a reveal paused by other code. A reveal cancelled by other code ends the
+wait. With `prefers-reduced-motion: reduce` no reveal starts, and a retheme
+does not replay the reveal.
+
+`showcase-ready-settled.spec.mjs` guards this in source and built modes. Its
+init script stretches the reveal tenfold, so a ready signal that does not wait
+fails on every run. When the class lands, no window animation may be
+unfinished, the bottom of every on-screen window must hit what it hits once
+the page is settled, and a real click right away must land on a window. Three
+cases stop the reveal's clock: they play it at 1 %, pause it, or set its
+playback rate to 0, which `finish()` rejects, so the boot cancels that reveal.
+They require ready within 1 s of the last reveal starting, every reveal
+finished or cancelled, and no window still clipped. A third case reports the document hidden only while a
+`visibilitychange` event is being dispatched, so it can pass only through the
+event handler, and requires that event to finish the reveals. A reduced-motion
+case checks that no reveal starts. These are interaction checks on demo code
+and make no fidelity claim.
+
 ## Coverage inventory
 
 The smoke profile contains 70 cases per theme (1,260 renders per transport/browser

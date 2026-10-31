@@ -132,7 +132,7 @@ async function expectSyncedAt(page, axis, why) {
 
 // The issue's reproduction: the showcase's ResourceForkLib card, Tab-driven focus scroll.
 for (const mode of ['source', 'built']) for (const slug of SLUGS) {
-  test(`${mode} showcase ${slug}: Tab-driven scroll moves the ResourceForkLib scrollbar (#549)`, async ({ page, demo, production }) => {
+  test(`${mode} showcase ${slug}: Tab-driven scroll moves the ResourceForkLib scrollbar (#549)`, async ({ page, demo, production, browserName }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
     await page.goto(`${mode === 'source' ? demo : production}/showcase.html?theme=${slug}`);
     await expect(page.locator('#powers.scriptoscope-ready')).toBeVisible();
@@ -140,11 +140,8 @@ for (const mode of ['source', 'built']) for (const slug of SLUGS) {
     await expect(host).toHaveCount(1);
     await expect.poll(() => host.evaluate(h => !!h.shadowRoot?.querySelector('[role=scrollbar][aria-orientation=vertical] canvas'))).toBe(true);
     await host.evaluate(h => { h.scrollIntoView({ block: 'center' }); });
-    // The showcase marks itself ready before its boot wipe (a clip-path animation on every
-    // window host, demo/explicit-host.mjs) ends, and a click during the wipe can hit-test
-    // through the card to the page. Click only once every window's wipe has finished.
-    await page.evaluate(() => Promise.all([...document.querySelectorAll('[data-scriptoscope-window-host]')]
-      .flatMap(h => h.getAnimations()).map(a => a.finished.catch(() => {}))));
+    // No wait for the boot reveal is needed: `.scriptoscope-ready` is added only after every
+    // window's reveal has finished (#565, guarded by showcase-ready-settled.spec.mjs).
     await installHelpers(page);
     await host.evaluate(h => { window.__sb.host = h; window.__sb.scrollEl = h.querySelector('.scriptoscope-slot'); });
     const grip = await host.evaluate(h => {
@@ -161,7 +158,8 @@ for (const mode of ['source', 'built']) for (const slug of SLUGS) {
     await host.getByRole('link', { name: 'Bring your own scheme' }).focus();
     for (let i = 0; i < 8; i++) {
       if (await page.evaluate(() => document.activeElement?.textContent?.trim()) === 'Kaleidoscope Scheme Archive') break;
-      await page.keyboard.press('Tab');
+      // WebKit's Tab skips links by default (macOS keyboard navigation); Alt+Tab reaches them.
+      await page.keyboard.press(browserName === 'webkit' ? 'Alt+Tab' : 'Tab');
     }
     expect(await page.evaluate(() => document.activeElement?.textContent?.trim())).toBe('Kaleidoscope Scheme Archive');
     await page.evaluate(() => window.__sb.frames());
@@ -280,7 +278,8 @@ for (const mode of ['source', 'built']) for (const slug of SLUGS) {
     expect((await state(page, 'vertical')).pos).toBe(300 + LINE);
   });
 
-  test(`${mode} ${slug}: re-renders and remove() leave no stale scroll listeners (#549)`, async ({ page, servers }) => {
+  test(`${mode} ${slug}: re-renders and remove() leave no stale scroll listeners (#549)`, async ({ page, servers, browserName }) => {
+    test.skip(browserName !== 'chromium', 'counts listeners through CDP (Chromium only)');
     await setup(page, servers, mode, slug);
     expect(await scrollListeners(page), 'one per axis after the first render').toBe(2);
     for (let i = 0; i < 5; i++) await page.evaluate(async i => {

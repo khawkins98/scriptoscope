@@ -26,7 +26,7 @@ export interface ScriptoscopeWindowDeps<Theme extends ThemeInput = LoadedTheme> 
 // are CONTENT sizes, as published.
 const FIT_DEFAULT = { w: 260, h: 150 }; // provisional first-render outer size for content-fit (corrected after measure)
 const FIT_MAX_W = 720; // outer cap so a wide content block doesn't yield a monster window
-const MIN_W = 80, MIN_H = 40; // outer floors
+const MIN_W = 80, MIN_H = 40; // OUTER floors: measured boxes only, never a declared content size (#558)
 // A cancelled mount may be replaced before its async render finishes. Only the
 // current preparation owns the source's stamp; old completions cannot clear it.
 const pendingPromotions = new WeakMap<HTMLElement, object>();
@@ -198,10 +198,13 @@ export class ScriptoscopeWindow<Theme extends ThemeInput = LoadedTheme> {
     // is set (declared dimensions are absolute by definition). Parse: see
     // `data-scriptoscope-extra-width` / `-extra-height` in parse.ts. Added
     // 2026-05-30 for the picker overlap / nested-scroll edge case.
-    const w0 = Math.max(MIN_W,
-      parsed.width ?? ((hasNaturalRect ? naturalW : FIT_DEFAULT.w) + (parsed.extraWidth ?? 0)));
-    const h0 = Math.max(MIN_H,
-      parsed.height ?? ((hasNaturalRect ? naturalH : FIT_DEFAULT.h) + (parsed.extraHeight ?? 0)));
+    // The outer floors apply to the outer bounds only. A declared axis is content and gets
+    // the renderer's own content clamp (1 px, as contentFor), so a persisted 30 px content
+    // height restores as 30, not as the 40 px outer floor (#558).
+    const w0 = parsed.width !== undefined ? Math.max(1, parsed.width)
+      : Math.max(MIN_W, (hasNaturalRect ? naturalW : FIT_DEFAULT.w) + (parsed.extraWidth ?? 0));
+    const h0 = parsed.height !== undefined ? Math.max(1, parsed.height)
+      : Math.max(MIN_H, (hasNaturalRect ? naturalH : FIT_DEFAULT.h) + (parsed.extraHeight ?? 0));
     const outerSize = {
       ...(parsed.width === undefined ? { width: w0 } : {}),
       ...(parsed.height === undefined ? { height: h0 } : {}),
@@ -256,8 +259,8 @@ export class ScriptoscopeWindow<Theme extends ThemeInput = LoadedTheme> {
         host, fit, deps, restore,
         // Spread to omit undefined fields — exactOptionalPropertyTypes:true.
         {
-          ...(parsed.width !== undefined ? { w: parsed.width } : {}),
-          ...(parsed.height !== undefined ? { h: parsed.height } : {}),
+          ...(parsed.width !== undefined ? { w: w0 } : {}),
+          ...(parsed.height !== undefined ? { h: h0 } : {}),
         },
         { w: w0, h: h0 },
       );

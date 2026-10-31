@@ -44,6 +44,20 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 - Movable-modal, movable-alert, popup and collapsed titled-utility windows
   show their title text again (#540).
+- The demo's `mountExplicitPage` (`demo/explicit-host.mjs`) now adds
+  `.scriptoscope-ready`, removes `data-scriptoscope-loading`, lifts the root's
+  boot `inert`, fires `ready` and resolves only after every boot reveal has
+  finished ([#565](https://github.com/khawkins98/scriptoscope/issues/565)).
+  Before, ready came about 30 ms after the last 180 ms clip-path reveal began,
+  and a click on the still-clipped lower part of a window fell through to the
+  page behind it. The wait starts after the last boot step and lasts until
+  the reveals end, normally under 180 ms and at most 360 ms. So ready arrives
+  at most 360 ms after the boot's own work is done. If the reveals aren't
+  running, for example in a hidden tab, an off-screen iframe or because
+  other code paused them, they are finished at once when the page is or
+  becomes hidden, and otherwise once the wait has lasted twice their 180 ms
+  duration. A cancelled reveal ends the wait, and reduced motion still plays
+  no reveal.
 - A press on the grow box that doesn't change the window's size is no longer a resize (#552). Releasing without moving, or after sub-pixel jitter under half a content pixel, used to switch an in-flow window to absolute positioning, insert the drag placeholder, re-render it at a different width and fire `scriptoscope:userresize`, which permanently turned auto-fit off. Like the classic Mac `GrowWindow`, which returns 0 when the size is unchanged, the window now stays in flow and no event fires. The hand-off waits for the first move that changes the size, and a drag released at its starting size commits nothing. A keyboard resize step that is clamped at the minimum size no longer hands off or fires the event either.
 - Keyboard focus entering a window now activates it and raises it to the front, as on the classic Mac, where keyboard focus is always in the front window ([#550](https://github.com/khawkins98/scriptoscope/issues/550)). Before, Tab could land on links and chrome controls (title widgets, move handle, grow box, scrollbars) of a background window that a higher window fully covered, so the focused control was invisible (WCAG 2.2 SC 2.4.11). Raising changes z-order only; the window does not move. Focus stays on the control through the activation render.
 
@@ -143,6 +157,35 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   or a lost capture puts the window back where it started, removes the resize
   outline and commits nothing, so no `onChange` or `scriptoscope:userresize`
   fires and a later unrelated release no longer moves or resizes the window.
+- Window scrollbar clicks now act on the part under the pointer, as the classic
+  Control Manager does (#567). Before, any click jumped the content to the
+  pointer's fraction of the bar, so the down arrow could scroll most of the
+  way to the end. Now an arrow steps one line and the track one page, and
+  holding either repeats; a held track stops once the thumb reaches the
+  pointer. The held part draws pressed through the engine's existing
+  pressed-part state (scrollbar §4.8 part test, parts 20–23), and returns to
+  normal on pointer up, pointer cancel or lost pointer capture. Dragging the
+  thumb is unchanged. The 24 px line, the page (the client height less one
+  line of overlap, the classic application convention), both shared with the
+  bar's keys, and the 400 ms / 50 ms repeat are compatibility policy: the
+  original left them to the application. PageUp/PageDown on the focused bar
+  therefore now move one line less than before. Right and middle clicks no
+  longer act on the bar. A press ends on window blur, when the page is hidden,
+  and on a move with no button down, so a lost release can't leave a hold
+  repeating. Bar steps from keys, arrows and the track now add whole pixels to
+  the scroll position. The wheel also moves in whole pixels, carrying each
+  event's fraction to the next, so slow trackpad scrolls add up to their sum
+  in both directions. This fixes WebKit, where a step could land a pixel
+  short (#556).
+- A window that is already absolute or fixed but has no inline `left`/`top`
+  now moves from where it sits (#569). Placed by consumer CSS (px, % or
+  `auto`) or its static position, its first title-bar drag or arrow-key move
+  used to start from (0, 0), so it jumped. The move now starts from the used
+  `left`/`top`, also inside a scaled ancestor, and a host made absolute or
+  fixed by a consumer class no longer gets the in-flow drag placeholder.
+- A collapsed document window on the five built-in-frame schemes (apple-platinum-2, black-platinum, platinum-8, slimes, system7-nostalgia-silver) now stays inside its outer width bound while collapsed. It used to keep its last expanded content width, so it overhung a 400 px column by the frame width (413 px collapsed at promote, 410 px collapsed on apple-lisa and rethemed). The built-in frame hides the content box of a collapsed window, so the width now comes from the theme's expanded frame extent; when none is cached yet, one hidden expanded preparation measures it, and the next expand reuses it. A collapsed side utility, whose bar does not follow its content width, keeps its last expanded width as before ([#566](https://github.com/khawkins98/scriptoscope/issues/566)).
+- A short auto-sized window no longer grows each time the demo's persisted layout (`persistKey`) restores it ([#558](https://github.com/khawkins98/scriptoscope/issues/558)). The 80 × 40 px minimum is an outer size, for windows measured from their element, but it was also applied to declared `data-scriptoscope-width/-height`, which are content sizes. A 30 px content area saved by the layout came back as 40 px, so the window grew 10 px on every reload and pushed the content below it down. If you declare sizes directly, a declared `data-scriptoscope-width="50"` used to render 80 px of content and now renders 50: declared sizes keep their value, down to 1 px. A reload also restores each window's saved outer width, as the cross-tab restore already did, so reloading under a scheme with a thicker frame keeps the window inside its column.
+- The demo's persisted layout (`persistKey`, `demo/explicit-layout.mjs`) no longer loses a drag when the page reloads or navigates within 250 ms of the drop ([#578](https://github.com/khawkins98/scriptoscope/issues/578)). Layout writes are debounced by 250 ms and a pending write was dropped on unload, so the reload restored the previous snapshot: the window came back in flow, or, if the activation re-render had triggered a write partway through a slow drag, at that mid-drag position. The pending write is now flushed on `pagehide`.
 
 ## [0.7.0] — 2026-10-29
 

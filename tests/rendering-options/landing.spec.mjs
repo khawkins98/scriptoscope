@@ -164,6 +164,9 @@ test('the printed desktop options populate and switch the catalog', async ({ pag
   await page.setContent(snippet);
   await expect(page.locator('#desktop [data-scriptoscope-window-host]')).toHaveCount(1);
   await expect(page.getByRole('combobox', { name: 'Choose a scheme' })).toHaveValue('monkey-paradise');
+  // The switcher sits inside the mount root, which stays inert (and its change listener
+  // unbound) until the root is marked ready, after the boot reveal (#565).
+  await expect(page.locator('#desktop.scriptoscope-ready')).toHaveCount(1);
   await page.getByRole('combobox', { name: 'Choose a scheme' }).selectOption('1984');
   await expect(page.locator('#desktop [data-scriptoscope-window-host]')).toHaveAttribute('data-scriptoscope-theme', '1984');
 });
