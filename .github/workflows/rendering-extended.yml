@@ -11,17 +11,33 @@ on:
 concurrency:
   group: rendering-extended-${{ github.ref }}
   cancel-in-progress: true
+# Sharded since #576: serially the four projects (3876 tests) ran far past the
+# former 40-minute limit. Each project is split into EXTENDED_SHARDS jobs by
+# Playwright's test-count sharding, which keeps a file's tests that share a
+# worker in one shard. The chromium-dpr1 extended matrix.spec.mjs (18 themes,
+# about 40 min in total) is one such group, so the shard holding it took about
+# 53 min in run 41182899675. Hence the 90-minute per-job limit. The parity job
+# proves that the union of the shards ran exactly the unsharded inventory for
+# the selected browsers.
+env:
+  EXTENDED_SHARDS: 3
+  SCRIPTOSCOPE_RENDERING_BROWSERS: ${{ inputs.browsers == 'all' && 'chromium,firefox,webkit' || inputs.browsers }}
 jobs:
   rendering:
+    name: Extended ${{ matrix.project }} (shard ${{ matrix.shard }}/3)
     runs-on: ubuntu-24.04
     container:
       image: mcr.microsoft.com/playwright:v1.64.0-noble@sha256:06a9939e57531807f8d5fd76ce44b53165ffb7d7501d87ab10e285c20b1e971f
       # Match the Actions-mounted home owner, as in Playwright's CI example.
       # Firefox refuses a root process with a non-root-owned home directory.
       options: --ipc=host --user 1001
-    timeout-minutes: 40
-    env:
-      SCRIPTOSCOPE_RENDERING_BROWSERS: ${{ inputs.browsers == 'all' && 'chromium,firefox,webkit' || inputs.browsers }}
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        project: ${{ fromJSON(inputs.browsers == 'all' && '["chromium-dpr1","chromium-dpr2","firefox-dpr1","webkit-dpr1"]' || inputs.browsers == 'chromium' && '["chromium-dpr1","chromium-dpr2"]' || format('["{0}-dpr1"]', inputs.browsers)) }}
+        # Keep in step with EXTENDED_SHARDS above.
+        shard: [1, 2, 3]
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
@@ -30,21 +46,60 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build:themes
-      - run: npm run test:rendering:extended
+      # Global setup still launches every selected browser before the slice runs.
+      - run: |
+          export SCRIPTOSCOPE_RENDERING_JSON_REPORT="$GITHUB_WORKSPACE/test-results/rendering-shard-report/report.json"
+          npm run test:rendering:extended -- --project=${{ matrix.project }} --shard=${{ matrix.shard }}/${{ env.EXTENDED_SHARDS }}
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: extended-rendering-observations-${{ github.run_attempt }}
+          name: extended-rendering-observations-${{ matrix.project }}-${{ matrix.shard }}-${{ github.run_attempt }}
           path: test-results/rendering-evidence/
           if-no-files-found: ignore
           retention-days: 14
       - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: extended-shard-report-${{ matrix.project }}-${{ matrix.shard }}
+          path: test-results/rendering-shard-report/report.json
+          if-no-files-found: ignore
+          overwrite: true
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: extended-rendering-${{ github.run_attempt }}
+          name: extended-rendering-${{ matrix.project }}-${{ matrix.shard }}-${{ github.run_attempt }}
           path: |
             test-results/rendering-options/
             playwright-report/rendering-options/
             test-results/rendering-failure-archive/
           if-no-files-found: ignore
           retention-days: 14
+
+  parity:
+    name: Extended coverage parity
+    needs: [rendering]
+    if: ${{ always() }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: extended-shard-report-*
+          path: test-results/shard-reports
+      - name: Shards vs unsharded list
+        shell: bash
+        run: |
+          set -euo pipefail
+          SCRIPTOSCOPE_RENDERING_PROFILE=extended npx playwright test --config tests/rendering-options/playwright.config.mjs --list --reporter=json > test-results/rendering-list.json
+          mapfile -t reports < <(find test-results/shard-reports -name report.json | sort)
+          node tests/rendering-options/shards.mjs parity --list test-results/rendering-list.json "${reports[@]}"
+      - name: All shards passed
+        if: always()
+        run: test "${{ needs.rendering.result }}" = success

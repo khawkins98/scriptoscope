@@ -9,7 +9,10 @@ export default defineConfig({
   snapshotPathTemplate: '{testDir}/goldens/{arg}{ext}', fullyParallel: false, workers: 1,
   timeout: extended ? 180_000 : 90_000, expect: { timeout: 10_000 }, retries: 0,
   outputDir: '../../test-results/rendering-options',
-  reporter: [['./failure-reporter.mjs'], ...(goldens ? [] : [['../rendering-requirements/reporter.mjs']]), ['list'], ['html', { outputFolder: '../../playwright-report/rendering-options', open: 'never' }]],
+  // CI shards (#576) also write a JSON report; tests/rendering-options/shards.mjs
+  // checks their union against the unsharded `--list` inventory.
+  reporter: [['./failure-reporter.mjs'], ...(goldens ? [] : [['../rendering-requirements/reporter.mjs']]), ['list'], ['html', { outputFolder: '../../playwright-report/rendering-options', open: 'never' }],
+    ...(process.env.SCRIPTOSCOPE_RENDERING_JSON_REPORT ? [['json', { outputFile: process.env.SCRIPTOSCOPE_RENDERING_JSON_REPORT }]] : [])],
   // Goldens disable Chromium partial raster: re-rastering only an invalidated
   // part of a tile left the CSS fallback buttons' rounded anti-aliased edges
   // ±1-2 levels apart between runs (#526). Full-tile raster is reproducible.

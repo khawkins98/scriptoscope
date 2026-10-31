@@ -475,3 +475,170 @@ test('source: persistKey a collapse during a grow drag does not pin later drags 
   await expect.poll(async () => { const a = (await persisted(page)).stored?.windows?.a; return a && [a.x, a.y]; }, 'the drop persisted').toEqual(xy(dropped));
   await other.close();
 });
+
+// #584: two pages with the same persistKey both mount the layout. Each tab used to save its whole
+// snapshot, so a write from a tab that had not yet applied another tab's change (its first write
+// after loading, or one pending when the change arrived) carried the older rows back over the
+// newer ones, and the first tab's window jumped back. A tab now writes only the windows it changed
+// since they were last in sync with storage, and a page that finishes loading applies any write
+// that landed while it loaded.
+const LAYOUT = `scriptoscope:layout:${LAYOUT_KEY}`;
+const GROW = h => !!h.shadowRoot.querySelector('button.scriptoscope-growbox');
+/** Counts each page's layout writes (setItem calls for the key) in window.__writes. */
+const countWrites = context => context.addInitScript(k => {
+  window.__writes = 0;
+  const set = Storage.prototype.setItem;
+  Storage.prototype.setItem = function (name, value) { if (name === k) window.__writes++; return set.call(this, name, value); };
+}, LAYOUT);
+/** A second page in the same context, navigated but not mounted. */
+async function openSecond(page, demo) {
+  const other = await page.context().newPage();
+  await other.setViewportSize({ width: 1280, height: 960 });
+  await other.goto(`${demo}/install.html`);
+  return other;
+}
+async function mountSecond(page, demo) {
+  const other = await openSecond(page, demo);
+  await mountPersisted(other, { html: TWO_PLACED });
+  await expect.poll(async () => (await persisted(other)).hosts.length).toBe(2);
+  return other;
+}
+/** Reads repeatedly for `ms`, several 250 ms debounces, and requires `expected` every time. */
+async function holds(read, expected, message, ms = 1000) {
+  const end = Date.now() + ms;
+  do expect(await read(), message).toEqual(expected); while (Date.now() < end);
+}
+const stored = (page, id = 'a') => page.evaluate(({ k, id }) => { const w = JSON.parse(localStorage.getItem(k) ?? 'null')?.windows?.[id]; return w && [w.x, w.y]; }, { k: LAYOUT, id });
+const hostAt = async (page, i = 0) => xy((await persisted(page)).hosts[i]);
+async function dragA(page, dx, dy) {
+  const grip = await page.locator('#pb-root [data-scriptoscope-window-host]').first().evaluate(h => {
+    const r = h.shadowRoot.querySelector('.scriptoscope-movehandle').getBoundingClientRect();
+    return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
+  });
+  await page.mouse.move(grip.x, grip.y);
+  await page.mouse.down();
+  await page.mouse.move(grip.x + dx, grip.y + dy, { steps: 5 });
+  await page.mouse.up();
+  return hostAt(page);
+}
+const settledAt = (pages, at, message) => holds(async () => [await stored(pages[0]), ...await Promise.all(pages.map(p => hostAt(p)))], [at, ...pages.map(() => at)], message);
+
+test('source: persistKey a drag reaches a second mounted tab and is not written back over (#584)', async ({ page, demo }) => {
+  await openPersisted(page, demo);
+  await mountPersisted(page, { html: TWO_PLACED });
+  await expect.poll(async () => (await persisted(page)).stored?.windows?.b, 'layout written after the first render').toBeTruthy();
+  // Page 2 reads the stored layout, then its theme load is held so that page 1's drop lands
+  // before page 2 has any window to apply it to.
+  const other = await openSecond(page, demo);
+  let release, requested = false;
+  const gate = new Promise(r => { release = r; });
+  await other.route('**/themes/**', async route => { requested = true; await gate; await route.continue(); });
+  const mounting = mountPersisted(other, { html: TWO_PLACED });
+  await expect.poll(() => requested, 'page 2 read the layout and started loading').toBe(true);
+  const dropped = await dragA(page, 60, 30);
+  expect(dropped, 'A moved').not.toEqual([0, 0]);
+  await expect.poll(() => stored(page), 'the drop persisted').toEqual(dropped);
+  release();
+  await mounting;
+  await other.unroute('**/themes/**');
+  await expect.poll(async () => (await persisted(other)).hosts.length).toBe(2);
+  await expect.poll(() => hostAt(other), 'page 2 shows the drop that landed while it loaded').toEqual(dropped);
+  await settledAt([page, other], dropped, 'page 2 does not write its loaded position back over the drop');
+  // A later drag in page 1 reaches page 2 and stays put in both.
+  const again = await dragA(page, 30, 20);
+  await expect.poll(() => hostAt(other), 'page 2 follows the next drop').toEqual(again);
+  await settledAt([page, other], again, 'no echo moves A afterwards');
+  await other.close();
+});
+
+test('source: persistKey a collapse from a mounted second tab during a grow drag keeps the later drop (#584)', async ({ page, demo }) => {
+  await openPersisted(page, demo);
+  await mountPersisted(page, { html: TWO_PLACED });
+  await expect.poll(async () => (await persisted(page)).stored?.windows?.b, 'layout written after the first render').toBeTruthy();
+  const other = await mountSecond(page, demo);
+  // A first drop that page 2 applies, so page 2's A is in sync with a row it did not mount from.
+  const first = await dragA(page, 20, 10);
+  await expect.poll(() => hostAt(other), 'page 2 follows the first drop').toEqual(first);
+  const hosts = page.locator('#pb-root [data-scriptoscope-window-host]');
+  const corner = await hosts.first().evaluate(h => {
+    const r = h.shadowRoot.querySelector('button.scriptoscope-growbox').getBoundingClientRect();
+    return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
+  });
+  await page.mouse.move(corner.x, corner.y);
+  await page.mouse.down();
+  await page.mouse.move(corner.x + 20, corner.y + 20, { steps: 2 });
+  // In one page-2 task: A is collapsed through storage (page 2 itself has not applied it), then
+  // page 2 moves B and its pending write is flushed by hiding the page. That write must keep A's
+  // stored collapse instead of saving page 2's expanded A.
+  const b = await other.evaluate(k => {
+    const v = JSON.parse(localStorage.getItem(k)); v.windows.a.collapsed = true; localStorage.setItem(k, JSON.stringify(v));
+    const host = document.querySelectorAll('#pb-root [data-scriptoscope-window-host]')[1];
+    host.shadowRoot.querySelector('.scriptoscope-movehandle').dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true, composed: true }));
+    Object.defineProperty(document, 'visibilityState', { value: 'hidden', configurable: true });
+    document.dispatchEvent(new Event('visibilitychange'));
+    delete document.visibilityState;
+    return [parseFloat(host.style.left), parseFloat(host.style.top)];
+  }, LAYOUT);
+  await expect.poll(() => stored(page, 'b'), 'page 2 saved its move of B').toEqual(b);
+  await expect.poll(() => hostAt(page, 1), 'page 1 follows B').toEqual(b);
+  await holds(() => hosts.first().evaluate(GROW), false, 'A stays collapsed in page 1: the grow box is gone');
+  await page.mouse.up();
+  const dropped = await dragA(page, 60, 30);
+  expect(dropped, 'A moved').not.toEqual(first);
+  await expect.poll(() => stored(page), 'the drop persisted').toEqual(dropped);
+  await expect.poll(() => hostAt(other), 'page 2 follows the drop').toEqual(dropped);
+  await settledAt([page, other], dropped, 'no echo moves A back');
+  expect(await page.evaluate(k => JSON.parse(localStorage.getItem(k)).windows.a.collapsed, LAYOUT), 'A is still stored collapsed').toBe(true);
+  await other.close();
+});
+
+// A window page 2 has neither changed nor re-synced since loading is in sync with the stored row
+// it loaded. Page 2's first write for another window must keep A's newer stored row, not save the
+// A it loaded, while the other tab's change to A has not reached it.
+test('source: persistKey a second tab\'s first write keeps another tab\'s newer row for a window it has not touched (#584)', async ({ page, demo }) => {
+  await openPersisted(page, demo);
+  await mountPersisted(page, { html: TWO_PLACED });
+  await expect.poll(async () => (await persisted(page)).stored?.windows?.b, 'layout written after the first render').toBeTruthy();
+  const other = await mountSecond(page, demo);
+  // In one page-2 task: A moves in storage (page 2 has not applied it, as with a storage event
+  // still in flight), then page 2 moves B and its pending write is flushed by hiding the page.
+  const b = await other.evaluate(k => {
+    const v = JSON.parse(localStorage.getItem(k)); Object.assign(v.windows.a, { x: 40, y: 120 }); localStorage.setItem(k, JSON.stringify(v));
+    const host = document.querySelectorAll('#pb-root [data-scriptoscope-window-host]')[1];
+    host.shadowRoot.querySelector('.scriptoscope-movehandle').dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true, composed: true }));
+    Object.defineProperty(document, 'visibilityState', { value: 'hidden', configurable: true });
+    document.dispatchEvent(new Event('visibilitychange'));
+    delete document.visibilityState;
+    return [parseFloat(host.style.left), parseFloat(host.style.top)];
+  }, LAYOUT);
+  await expect.poll(() => stored(page, 'b'), 'page 2 saved its move of B').toEqual(b);
+  await expect.poll(() => hostAt(page, 1), 'page 1 follows B').toEqual(b);
+  await holds(async () => [await stored(page), await hostAt(page)], [[40, 120], [40, 120]], 'A keeps the newer stored position in storage and in page 1');
+  await other.close();
+});
+
+test('source: persistKey applying the stored or another tab\'s layout writes nothing back (#584)', async ({ page, demo }) => {
+  await countWrites(page.context());
+  await openPersisted(page, demo);
+  await mountPersisted(page, { html: TWO_PLACED });
+  await expect.poll(async () => (await persisted(page)).stored?.windows?.b, 'layout written after the first render').toBeTruthy();
+  // Page 2 mounts from the stored layout; a bare third page then writes the key, and both mounted
+  // pages apply that as a remote update.
+  const other = await mountSecond(page, demo);
+  const writer = await openSecond(page, demo);
+  const count = p => p.evaluate(() => window.__writes);
+  const before = await count(page);
+  const written = await writer.evaluate(k => {
+    const v = JSON.parse(localStorage.getItem(k));
+    Object.assign(v.windows.a, { collapsed: true, x: 40, y: 120 });
+    const raw = JSON.stringify(v); localStorage.setItem(k, raw); return raw;
+  }, LAYOUT);
+  for (const p of [page, other]) {
+    await expect.poll(() => p.locator('#pb-root [data-scriptoscope-window-host]').first().evaluate(GROW), 'collapse applied').toBe(false);
+    await expect.poll(() => hostAt(p), 'position applied').toEqual([40, 120]);
+  }
+  await holds(async () => [await count(page), await count(other), await page.evaluate(k => localStorage.getItem(k), LAYOUT)],
+    [before, 0, written], 'neither mounted page saves the layout it applied');
+  await writer.close();
+  await other.close();
+});

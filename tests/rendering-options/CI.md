@@ -78,6 +78,26 @@ and traces under `test-results/rendering-options`, with an HTML report under
 expected/actual/diff images. Artifact failures never replace the original error.
 There are no automatic retries or baseline updates in verification.
 
+## CI sharding (#576)
+
+CI runs the bounded contracts as five parallel `--shard=i/5` jobs in the same
+container, with gates and goldens in their own jobs. The required check
+**Gates + build + browser contracts** is the aggregate. Each shard writes a
+Playwright JSON report (`SCRIPTOSCOPE_RENDERING_JSON_REPORT`) and its own
+`rendering-evidence` tree. The aggregate does three things:
+
+- `node tests/rendering-options/shards.mjs parity` checks that every test in the
+  unsharded `--list` inventory ran exactly once, and that nothing else ran.
+- `shards.mjs evidence` merges the observation trees in run order, with the later
+  writer winning as in a serial run. It also concatenates the shard
+  `requirements/execution.json` records under one commit identity.
+- `test:requirements --require-execution` then validates the merged record.
+
+The extended workflow shards each project three ways and runs the same parity
+check. Playwright shards by test count and keeps a file's tests that share a
+worker in one shard, so the balance between shards is approximate. Coverage
+does not depend on it.
+
 ## Current coverage boundaries
 
 Source/built parity uses the same semantic decoder, resolver, compositor and text
