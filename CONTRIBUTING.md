@@ -184,6 +184,31 @@ feat(api)!: rename ScriptoscopeWindow constructor option `theme` to `themeId`
 - Add a note to [`LEARNINGS.md`](./LEARNINGS.md) if you discovered something non-obvious along the way — Mac OS HIG quirks, browser quirks, theme-bundle format edge cases, accessibility tradeoffs, period-Mac trivia that informed a decision — future contributors will thank you.
 - Don't commit build artifacts (`dist/`, `node_modules/`, theme working files, etc.).
 
+## CI tiers
+
+CI runs in two tiers ([DECISIONS](./docs/v2/DECISIONS.md) #14, [#598](https://github.com/khawkins98/scriptoscope/issues/598)).
+
+- **PR tier** (`.github/workflows/ci.yml`, every pull request to `main`, required). It runs gates, the engine diff and the builds; the bounded Chromium rendering contracts, sharded; the exact Linux goldens; the installed package consumer contract; and the Firefox/WebKit interaction job, which reruns the pointer, focus and resize specs in those engines. The required check is the aggregate **Gates + build + browser contracts**. Pixel and trace contracts stay Chromium-only in this tier.
+- **Release tier** (`.github/workflows/release-gate.yml`). It runs the full extended matrix (`rendering-extended.yml` via `workflow_call`: Chromium at DPR 1 and 2, Firefox and WebKit, every spec, with shard parity), the pinned-container golden verify, `lint:themes -- --strict --decoded`, the installed package consumer contract and the `loc:src` trend against the previous release tag, which it posts to the job summary. `verify:scenes` runs report-only until [#599](https://github.com/khawkins98/scriptoscope/issues/599) refreshes the stale scene fixtures. The aggregate job is **Release gate**. Triggers:
+  - manual (`gh workflow run release-gate.yml --ref <branch>`);
+  - weekly (Monday 05:00 UTC) on `main`;
+  - pull requests from `release/*` branches;
+  - pushes of `v*` tags, as a final confirmation.
+
+  A red scheduled run opens or updates one issue labelled `release-gate`, and the next green scheduled run closes it. It does not block merges; it blocks the next release.
+
+## Cutting a release
+
+Releases are GitHub-only: a tag plus a GitHub release, with no npm publication.
+
+1. Branch `release/X.Y.Z` from `main`. Commit `chore(release): prepare X.Y.Z`: bump `package.json`, `package-lock.json` and `VERSION` in `src/renderer.ts`; date the CHANGELOG section and end it with `npm run loc:src -- HEAD --base <previous tag>`; leave an empty Unreleased heading; update docs that describe the release as unreleased.
+2. Open the release PR (`release: X.Y.Z`) against `main`. The PR tier and the release tier both run on it. Link the green **Release gate** run in the PR body.
+3. Merge after independent review.
+4. Identify the commit to tag (normally the merge commit on `main`). It needs its own green **Release gate** run: the PR run checked the merge preview, which is a different commit. Run `gh workflow run release-gate.yml --ref main`, then check that `gh run list --workflow release-gate.yml --branch main --json headSha,conclusion,url` shows `success` with `headSha` equal to that commit. Do not tag on red, and do not tag a commit whose run is still in progress. If `main` moves before the run finishes, start again on the new commit, or tag the commit that did pass.
+5. Tag `vX.Y.Z` on that commit and push the tag. The tag push runs the release gate again as a final confirmation; if it fails, fix it and cut a new patch release rather than moving the tag.
+6. Create the GitHub release. Its notes link the green release-gate run from step 4 (as 0.7.0 linked its release CI) and include the size trend.
+7. Smoke-check the deployed Pages site.
+
 ## Fidelity acquisition and implementation batches
 
 Evidence acquisition and original-source inspection below belong to spec writers
