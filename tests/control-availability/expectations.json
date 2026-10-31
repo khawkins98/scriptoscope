@@ -2227,7 +2227,7 @@
   "review": {
     "date": "2026-10-31",
     "reviewers": [
-      "PENDING independent review: #608 test-author draft (lane-608t), not self-approval. The independent reviewer replaces this entry with its receipt."
+      "Independent Tier-2 reviewer for PR #612 (agent session claude_7e9210a5_a449_4708_ac0d_4b096edd7547, worktree scriptoscope-lanes/rev-612), not the test author; APPROVE on frozen head 3afad8564bae97179c1317a2eab8288c5b36e904. Checked: push-button.md decoded sections byte-identical (frozen 7cc4a7e2... holds), modern-section re-pin 28a6a82d... and PF section 43b65577... match; the nine push-no-cinf-admission rows (System7 push x3, six synthetic fixtures) change only outcome/terminal/notes/status and every other row is exact (peel608 reproduces 1.0.17 file 8d85f2e9...); availability.spec 27 cases plus all changed specs pass source and built (122); PF-H1 and PF-H5 fail on origin/main; mutations 1 and 3 fail PF-H1/PF-H5, mutation 6 fails the PF-H4 unit gate; engine-diff 0 cells. No native, pixel, golden or release promotion."
     ],
     "inventoryVersion": "1.0.18",
     "inventorySha256": "4c22ce3be39816c3eb99346d817124361433e89fbba1188fe384af3a3f46852f",

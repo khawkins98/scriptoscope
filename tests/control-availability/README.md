@@ -187,5 +187,5 @@ changes only `proposed.outcome`, a new `proposed.terminal` and its notes; the ru
 keeps its id with an amended claim. `corrections/608-no-cinf-unavailable.json`
 archives the exact before/after rows, the prior review, the pinned PF section and
 the single `border-boundaries.spec.mjs` patch; `controls459/peel-608.mjs` lets the
-earlier correction proofs verify their own frozen state. The 1.0.18 review label is
-PENDING an independent review; the test author does not self-approve.
+earlier correction proofs verify their own frozen state. The 1.0.18 transition carries
+the independent Tier-2 review receipt of PR #612; the test author did not self-approve.
