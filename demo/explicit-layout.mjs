@@ -75,10 +75,16 @@ export function ownLayout(options,signal) {
  // windows that changed here since they were last in sync with storage, keeps every other stored
  // row, and is skipped when nothing differs. `synced` holds each window's local row at its last
  // sync: the stored row it mounted from, its last write, or the result of applying a remote row.
+ // Seeded from the layout the page loaded: a window not changed here or re-synced since then
+ // has that row, so a write for another window keeps a newer stored row for it instead of saving
+ // the loaded one over it while the other tab's update is still in flight.
  const synced=new Map();
  if(initial)for(const [id,r]of Object.entries(initial.windows))synced.set(id,JSON.stringify(r));
  function write() {
   clearTimeout(timer);timer=undefined;
+  // Known limit: localStorage has no transactions, so two tabs that flush changes to different
+  // windows within a few milliseconds can both read the same value and one change is lost. Main's
+  // whole-snapshot writes lost more; accepted for the demo (#584).
   try{
    const raw=localStorage.getItem(key);
    const windows={...parse(raw)?.windows};
@@ -121,7 +127,7 @@ export function ownLayout(options,signal) {
   // applies only added ones), so apply the stored row now if it moved on from the mounted one (#584).
   let stored;
   try{stored=key&&parse(localStorage.getItem(key))?.windows[id];}catch{}
-  if(stored&&JSON.stringify(stored)!==synced.get(id))latest=latest.catch(()=>{}).then(()=>update({windows:{[id]:stored}})).catch(error=>console.error('Consumer layout restore failed',error));
+  if(stored&&JSON.stringify(stored)!==JSON.stringify(initial?.windows[id]))latest=latest.catch(()=>{}).then(()=>update({windows:{[id]:stored}})).catch(error=>console.error('Consumer layout restore failed',error));
  }
  async function update(value) {
   if(!value||signal.aborted)return;

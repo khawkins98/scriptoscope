@@ -592,6 +592,31 @@ test('source: persistKey a collapse from a mounted second tab during a grow drag
   await other.close();
 });
 
+// A window page 2 has neither changed nor re-synced since loading is in sync with the stored row
+// it loaded. Page 2's first write for another window must keep A's newer stored row, not save the
+// A it loaded, while the other tab's change to A has not reached it.
+test('source: persistKey a second tab\'s first write keeps another tab\'s newer row for a window it has not touched (#584)', async ({ page, demo }) => {
+  await openPersisted(page, demo);
+  await mountPersisted(page, { html: TWO_PLACED });
+  await expect.poll(async () => (await persisted(page)).stored?.windows?.b, 'layout written after the first render').toBeTruthy();
+  const other = await mountSecond(page, demo);
+  // In one page-2 task: A moves in storage (page 2 has not applied it, as with a storage event
+  // still in flight), then page 2 moves B and its pending write is flushed by hiding the page.
+  const b = await other.evaluate(k => {
+    const v = JSON.parse(localStorage.getItem(k)); Object.assign(v.windows.a, { x: 40, y: 120 }); localStorage.setItem(k, JSON.stringify(v));
+    const host = document.querySelectorAll('#pb-root [data-scriptoscope-window-host]')[1];
+    host.shadowRoot.querySelector('.scriptoscope-movehandle').dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true, composed: true }));
+    Object.defineProperty(document, 'visibilityState', { value: 'hidden', configurable: true });
+    document.dispatchEvent(new Event('visibilitychange'));
+    delete document.visibilityState;
+    return [parseFloat(host.style.left), parseFloat(host.style.top)];
+  }, LAYOUT);
+  await expect.poll(() => stored(page, 'b'), 'page 2 saved its move of B').toEqual(b);
+  await expect.poll(() => hostAt(page, 1), 'page 1 follows B').toEqual(b);
+  await holds(async () => [await stored(page), await hostAt(page)], [[40, 120], [40, 120]], 'A keeps the newer stored position in storage and in page 1');
+  await other.close();
+});
+
 test('source: persistKey applying the stored or another tab\'s layout writes nothing back (#584)', async ({ page, demo }) => {
   await countWrites(page.context());
   await openPersisted(page, demo);
