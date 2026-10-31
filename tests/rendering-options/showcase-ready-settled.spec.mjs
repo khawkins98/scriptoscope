@@ -35,7 +35,8 @@ const test = demoTest.extend({
 // The reveal is stretched tenfold (180 ms -> 1.8 s) so that the race does not depend on how
 // long the boot's last steps take: a ready signal that does not wait for the reveal is
 // caught on every run, not one in ten. `stall` then stops the reveal's clock ('slow' plays it
-// at 1 %, 'paused' pauses it), as an off-screen iframe or other code would. `pulse` reports the
+// at 1 %, 'paused' pauses it, 'zero' sets its playback rate to 0, which `finish()` rejects),
+// as an off-screen iframe or other code would. `pulse` reports the
 // document hidden for the length of one synchronous `visibilitychange` dispatch every 40 ms;
 // `visibilityState` reads 'visible' at any other moment, so only a handler that reacts to
 // the event (not a one-off visibility check) can finish the reveals.
@@ -49,6 +50,7 @@ function probe({ stall = null, pulse = false } = {}) {
     const animation = animate.call(this, keyframes, stretched);
     if (stall === 'slow') animation.playbackRate = 0.01;
     if (stall === 'paused') animation.pause();
+    if (stall === 'zero') animation.playbackRate = 0;
     animations.push(animation);
     return animation;
   };
@@ -99,6 +101,8 @@ function probe({ stall = null, pulse = false } = {}) {
       running: hosts.flatMap(h => h.getAnimations()).filter(a => a.playState !== 'finished' && a.playState !== 'idle').length,
       sinceLastReveal: performance.now() - reveals.at(-1),
       finishedByHidden,
+      states: animations.map(a => a.playState),
+      clips: hosts.map(h => getComputedStyle(h).clipPath),
       hits: points().map(hit),
     };
   }).observe(document, { subtree: true, attributes: true, attributeFilter: ['class'] });
@@ -128,7 +132,7 @@ for (const mode of ['source', 'built']) {
   // A reveal whose clock stops (hidden tab, off-screen iframe, other code) must not hold
   // ready back: the boot finishes it once its wait has lasted twice the 180 ms reveal. The
   // bound allows for the boot steps between the last reveal starting and that wait.
-  for (const stall of ['slow', 'paused']) {
+  for (const stall of ['slow', 'paused', 'zero']) {
     test(`${mode} showcase: a ${stall} reveal is finished and ready still lands within the fallback bound (#565)`, async ({ page, demo, production }) => {
       await page.addInitScript(probe, { stall });
       await page.goto(`${mode === 'source' ? demo : production}/showcase.html?theme=windows-95`);
@@ -138,6 +142,8 @@ for (const mode of ['source', 'built']) {
       expect(result.reveals.length).toBeGreaterThan(0);
       expect(result.atReady.sinceLastReveal, 'ready within the 360 ms fallback (plus the boot tail)').toBeLessThan(1000);
       expect(result.atReady.running, 'every reveal finished at ready').toBe(0);
+      for (const state of result.atReady.states) expect(['finished', 'idle'], 'reveal finished or cancelled').toContain(state);
+      expect(new Set(result.atReady.clips), 'no window still clipped').toEqual(new Set(['none']));
       expect(result.atReady.hits.length).toBeGreaterThan(0);
       expect(result.atReady.hits).toEqual(settled);
       for (const h of result.atReady.hits) expect(h).toMatchObject({ onWindow: true });

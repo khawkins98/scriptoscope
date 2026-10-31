@@ -122,10 +122,11 @@ does not replay the reveal.
 init script stretches the reveal tenfold, so a ready signal that does not wait
 fails on every run. When the class lands, no window animation may be
 unfinished, the bottom of every on-screen window must hit what it hits once
-the page is settled, and a real click right away must land on a window. Two
-cases stop the reveal's clock, by playing it at 1 % and by pausing it. They
-require ready within 1 s of the last reveal starting, with every reveal
-finished. A third case reports the document hidden only while a
+the page is settled, and a real click right away must land on a window. Three
+cases stop the reveal's clock: they play it at 1 %, pause it, or set its
+playback rate to 0, which `finish()` rejects, so the boot cancels that reveal.
+They require ready within 1 s of the last reveal starting, every reveal
+finished or cancelled, and no window still clipped. A third case reports the document hidden only while a
 `visibilitychange` event is being dispatched, so it can pass only through the
 event handler, and requires that event to finish the reveals. A reduced-motion
 case checks that no reveal starts. These are interaction checks on demo code

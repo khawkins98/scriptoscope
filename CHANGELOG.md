@@ -149,11 +149,14 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   finished ([#565](https://github.com/khawkins98/scriptoscope/issues/565)).
   Before, ready came about 30 ms after the last 180 ms clip-path reveal began,
   and a click on the still-clipped lower part of a window fell through to the
-  page behind it. Boot now takes up to 360 ms longer. If the reveals aren't
+  page behind it. The wait starts after the last boot step and lasts until
+  the reveals end, normally under 180 ms and at most 360 ms. So ready arrives
+  at most 360 ms after the boot's own work is done. If the reveals aren't
   running, for example in a hidden tab, an off-screen iframe or because
   other code paused them, they are finished at once when the page is or
-  becomes hidden, and otherwise after twice their 180 ms duration. A
-  cancelled reveal ends the wait, and reduced motion still plays no reveal.
+  becomes hidden, and otherwise once the wait has lasted twice their 180 ms
+  duration. A cancelled reveal ends the wait, and reduced motion still plays
+  no reveal.
 
 ## [0.7.0] — 2026-10-29
 

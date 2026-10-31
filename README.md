@@ -229,8 +229,8 @@ await mountExplicitPage({
 This is a public example helper, not a package runtime mount export. The call
 returns an `EventTarget` handle after selected promotions, scrollbar refreshes and
 the boot wipe-in settle. A wipe-in that stops advancing (a hidden tab, an off-screen
-iframe) is finished at once when the page is or becomes hidden, and otherwise after
-360 ms. Boot load errors reject; with `rejectOnEmptyMount`, an all-failed boot
+iframe) is finished at once when the page is or becomes hidden, and otherwise once
+the wait for it has lasted 360 ms. Boot load errors reject; with `rejectOnEmptyMount`, an all-failed boot
 rejects with `PagePromotionError` and its `failures`. Partial target errors call
 `onPromoteError(detail)`, bubble `scriptoscope:promoteError`, and remain available
 in `handle.failures`; other sources remain usable. Retheme load errors reject and
