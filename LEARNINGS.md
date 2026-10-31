@@ -145,6 +145,8 @@ note, not a check. Runtime findings, not fixed here:
 - `composeDisclosure`'s id fallback maps right → -10102 and down → -10103,
   ignoring state. In the corpus -10111 is the normal right triangle, so
   Windows 95 draws the same box for all six states.
+*(Superseded 2026-10-31: both fixed on main, inactive scroll bars in #594/#605
+and disclosure ids in #595/#604; the slider white box in #596/#603.)*
 
 Not yet done: text fields (CSS only), Finder icons, cursors, sounds, the About box, accent colours.
 *(Superseded 2026-10-31: cursors, WindowShade sounds and the about box are

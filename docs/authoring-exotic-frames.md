@@ -415,9 +415,10 @@ there** (`src/renderWindow.ts:477-548`).
   background `-9774`, which no web path draws).
 - A busy body pattern sits behind live DOM text. Keep contrast low (a stud
   baseplate tint, faint stone).
-- The web's slider clears its control area to white before drawing, so a
-  slider on a patterned body sits in a white box (Brickworks). Other controls
-  draw over the pattern.
+- Sliders, like the other controls, leave everything outside their track and
+  thumb masks transparent, so the body pattern shows through. (Before #596
+  the web cleared a slider's area to white, which left a white box on
+  Brickworks' baseplate.)
 
 ---
 

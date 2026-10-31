@@ -562,8 +562,8 @@ pixel.
   across the bar, and the pressed track's middle must match the normal one.
 - **Sliders:** the thumb is copied over the track, so paint the track under
   the thumb's edges and cut the mask back, so its edge blends with real track
-  pixels. The web clears a slider's rect to white first, so on a patterned
-  body it sits in a white box ([R23](./authoring-exotic-frames.md#4-window-body-textures-r21r23)).
+  pixels. Pixels outside the track and thumb masks stay transparent, so a
+  patterned body shows through around a slider (#596; [R23](./authoring-exotic-frames.md#4-window-body-textures-r21r23)).
 - **Progress:** keep the frame's `cinf` corner equal to its side, or columns
   between the side band and the fill stay unpainted. The barber-pole steps
   are one pattern shifted by the same amount each step, so the cycle loops.
