@@ -5,6 +5,7 @@ import { resolve, extname, sep } from 'node:path';
 import { expect } from '@playwright/test';
 import { test as demoTest } from './demo-fixtures.mjs';
 import { test as harnessTest, openHarness } from './fixtures.mjs';
+import { pressAt, movePressed } from './subpixel-pointer.mjs';
 
 // #561: like the classic Mac DragWindow, a title-bar press that never changes
 // the window's position is no move. A zero-movement press, or jitter under half
@@ -43,10 +44,9 @@ const SLUGS = ['windows-95', 'apple-platinum-2'];
 // The pointer id comes from the real pointerdown, so a cancel targets that pointer.
 const PROBE = () => {
   window.__pid = undefined;
-  window.__down = undefined;
   window.__ended = 0;
   window.__userResize = [];
-  addEventListener('pointerdown', e => { window.__pid = e.pointerId; window.__down = { x: e.clientX, y: e.clientY, target: e.composedPath()[0] }; }, true);
+  addEventListener('pointerdown', e => { window.__pid = e.pointerId; }, true);
   // Every cancel or capture loss of the pressed pointer that has reached the page (#577).
   for (const type of ['pointercancel', 'lostpointercapture'])
     addEventListener(type, e => { if (e.pointerId === window.__pid) window.__ended++; }, true);
@@ -73,12 +73,6 @@ const PROBE = () => {
     if (type === 'lostpointercapture') { target.releasePointerCapture?.(window.__pid); return; }
     target.dispatchEvent(new PointerEvent(type, { pointerId: window.__pid, pointerType: 'mouse', bubbles: true, composed: true }));
   };
-  // Sub-pixel moves of the pressed pointer, offset from its pointerdown, sent at the pressed element.
-  window.__jitter = moves => {
-    const { x, y, target } = window.__down;
-    for (const [dx, dy] of moves) target.dispatchEvent(new PointerEvent('pointermove', { pointerId: window.__pid, pointerType: 'mouse',
-      isPrimary: true, buttons: 1, clientX: x + dx, clientY: y + dy, bubbles: true, composed: true }));
-  };
 };
 
 const settle = page => page.evaluate(async () => {
@@ -87,20 +81,12 @@ const settle = page => page.evaluate(async () => {
 });
 const centre = b => ({ x: b.x + b.w / 2, y: b.y + b.h / 2 });
 
-const isWebKit = page => page.context().browser()?.browserType().name() === 'webkit';
-
 /** Press at `p`, optionally jitter by `jitter` px, release. */
 async function press(page, p, jitter = 0) {
-  await page.mouse.move(p.x, p.y);
-  await page.mouse.down();
-  if (jitter) {
-    const moves = [[jitter, jitter], [-jitter, 0]];
-    // Playwright's WebKit mouse truncates to whole CSS px (#577): x + 0.4 arrives as x and x - 0.4
-    // as x - 1, a real 1 px move. There, send the same sub-pixel moves as the pressed pointer's own
-    // PointerEvents, offset from the pointerdown's integer position.
-    if (isWebKit(page)) await page.evaluate(m => window.__jitter(m), moves);
-    else for (const [dx, dy] of moves) await page.mouse.move(p.x + dx, p.y + dy);
-  }
+  await pressAt(page, p);
+  // Sub-pixel moves need a mouse that keeps fractional clientX; elsewhere they are the
+  // pressed pointer's own PointerEvents (#577, #588, subpixel-pointer.mjs).
+  if (jitter) await movePressed(page, p, [[jitter, jitter], [-jitter, 0]]);
   await page.mouse.up();
   await settle(page);
 }
