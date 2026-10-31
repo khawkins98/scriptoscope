@@ -95,7 +95,7 @@ async function states() {
     try {
       const buffer = await call({ ...options, ...(traced ? { diagnostics } : {}) });
       const result = trace ? trace.outcome.status === 'unavailable'
-        ? `Unavailable · ${trace.tabBody?.reason ?? 'see resource decisions'}`
+        ? `Unavailable · ${trace.tabBody?.reason ?? trace.steps.at(-1)?.reason ?? 'see resource decisions'}`
         : `${trace.outcome.status} · see resource decisions`
         : buffer ? 'Rendered · no per-call resource trace exposed' : 'Unavailable · themed art not usable';
       fragment.append(sample(label, trace?.outcome.status === 'unavailable' ? null : buffer, result));
