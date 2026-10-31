@@ -50,13 +50,13 @@ import { C } from '../palette.mjs';
 // with a #cccccc shade on its content-facing side, white arrow plates with
 // teal pixel triangles, and a frosted pill thumb with three teal grip lines.
 const SB = {
-  line: C.outline,        // hairline facing the content, and between arrow and track
+  line: C.active.frame.outline, // hairline facing the content, and between arrow and track
   track: C.glass,
   trackShade: C.shade,    // 1px sunk shade next to the hairline
   plate: C.white, plateShade: C.glass,
-  glyph: C.accentDeep,
+  glyph: C.active.frame.outline,
   glyphOff: C.shade,      // nothing-to-scroll arrows
-  thumbEdge: C.outline,
+  thumbEdge: C.active.frame.outline,
   grip: C.accentDeep,
   inactive: { line: C.deep, track: C.glass, trackShade: C.glass },
 };

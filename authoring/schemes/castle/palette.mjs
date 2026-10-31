@@ -9,7 +9,9 @@
 // banner, the oak and the parchment around it.
 //
 // Ramps (light from the upper left on everything):
-//   stone   lit #cccccc · A #aaaaaa · B #999999 · shade #777777 · mortar #666666 · outline #333333
+//   stone   lit #bbbbbb · A #999999 · B #888888 · shade #666666 · mortar #555555 · outline #222222
+//           (a step darker than pass 1, sampled from the concept: its stone is ~#878787
+//           with near-black outlines)
 //   roof    lit #cc6666 · tile #993333 · shade #660000
 //   cloth   lit #cc3333 · cloth #990000 · fold #660000 ;  gold #ffcc33 / #cc9900
 //   oak     grain #cc9966 · face #996633 · shade #663300
@@ -24,7 +26,7 @@ export const C = {
   // What controls sit on: the parchment body (mattes and hidden swatches).
   body: '#efe8d8',
   active: {
-    stone: ['#aaaaaa', '#999999'], stoneHi: '#cccccc', stoneLo: '#777777', mortar: '#666666', outline: '#333333',
+    stone: ['#999999', '#888888'], stoneHi: '#bbbbbb', stoneLo: '#666666', mortar: '#555555', outline: '#222222',
     roof: '#993333', roofHi: '#cc6666', roofLo: '#660000',
     flag: '#cc3333', flagLo: '#990000',
     cloth: '#990000', clothHi: '#cc3333', clothLo: '#660000',

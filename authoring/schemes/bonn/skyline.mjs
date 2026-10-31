@@ -1,31 +1,34 @@
-// Bonn's skyline and the small ornaments above the bar. Original, stylised
-// silhouettes on whole pixels (no smooth strokes, no tracing):
+// Bonn's skyline, the cherry bough and the small ornaments above the bar,
+// painted over the concept (concept/concept.jpg, measured at 3 concept px per
+// pixel with `npm run paint-over`) and redrawn by hand on whole pixels:
 //
-//   - the Minster: a crossing tower with an octagonal stage and spire, four
-//     flanking towers with pointed caps, a nave with a lit west door;
-//   - the pink Old Town Hall: three floors of white windows, a slate mansard,
-//     a pediment over the centre bay, a ridge turret, the outside stair;
-//   - the Post Tower: two glass slabs split by a dark slot, lit floor bands.
+//   - the Minster: a sandstone church with a tall teal spire on its crossing
+//     tower, two flanking towers with spires and a teal gable;
+//   - the pink Old Town Hall: a slate mansard with dormers, a pediment over
+//     the centre bay, a ridge turret, three floors of windows and the stair;
+//   - the Post Tower: a teal glass slab with a lit edge, floor bands and a mast;
+//   - dark riverside trees behind them, and the cherry bough in the corner.
 //
-// It is the window's main ornament: 44 rows tall, standing on the bar (a
-// droppable code-10 cell). Each building is a bold mass in three tones (lit
-// face on the left, body, shade face on the right; light from the upper
-// left), and each component carries its own 1px outline, so towers stand
-// clear of what is behind them and the group reads on any page (R17).
-// Riverside trees fill in behind the bases.
+// Each building is built on a material grid (one letter per pixel), toned in
+// three steps (lit face on the left, body, shade face on the right; light
+// from the upper left), given its own 1px dark outline, and laid back to
+// front. The state's palette paints it, so active and inactive are one drawing.
 //
-// The group is built on a material grid (one letter per pixel), outlined and
-// toned by rule, then painted with the state's palette, so the active and
-// inactive skylines are the same drawing.
+// Placement (frames.mjs): the Minster stands over the pennant's left cap and
+// the Town Hall over its right cap, so the skyline straddles the title and
+// moves with it, as in the concept; the Post Tower stands over the right
+// corner, above the zoom and collapse boxes.
 
-export const SKYLINE_W = 94;   // document top: the whole group (code 10)
-export const MINSTER_W = 39;   // movable modal top: the Minster alone (code 10)
+export const SKY_ROWS = 78;    // rows above the bar (the spire's tip is on row 1)
+export const MINSTER_W = 40;   // the left cap: Minster + trees
+export const HALL_W = 48;      // the right cap: Town Hall + trees
+export const TOWER_X = 8;      // the Post Tower's left column inside the right corner
+export const BOUGH_W = 40;     // the left corner: the cherry bough
 export const SPRIG_W = 24;     // dialog top ornament
 export const ALERT_W = 24;     // alert top ornament
-export const SKY_ROWS = 44;    // rows above the bar the skyline uses
 
-// Body materials and their lit / shade tones.
-const TONES = { S: ['L', 'D'], R: ['L', 'D'], G: ['g', 'q'], H: [null, 'h'], T: ['t', null] };
+// Body materials → [lit, shade] tone letters.
+const TONES = { A: ['a', 'z'], R: ['r', 'x'], H: ['h', 'y'], M: ['m', 'n'], G: ['g', 'q'], T: ['t', null] };
 
 class Grid {
   constructor(w, h) { this.w = w; this.h = h; this.m = Array.from({ length: h }, () => Array(w).fill(null)); }
@@ -33,33 +36,22 @@ class Grid {
   get(x, y) { return this.in(x, y) ? this.m[y][x] : null; }
   set(x, y, v) { if (this.in(x, y)) this.m[y][x] = v; return this; }
   rect(x, y, w, h, v) { for (let j = y; j < y + h; j++) for (let i = x; i < x + w; i++) this.set(i, j, v); return this; }
-  /** A pointed roof: tip at (cx, y0), widening one px each side every `every` rows, down to row y1 (inclusive). */
-  spire(cx, y0, y1, every, v, maxHalf = 99) {
-    for (let y = y0; y <= y1; y++) { const k = Math.min(maxHalf, Math.floor((y - y0) / every)); this.rect(cx - k, y, 2 * k + 1, 1, v); }
-    return this;
-  }
-  /** 4-neighbour outline: every empty pixel touching the figure becomes 'o'. */
+  /** A pointed roof: tip at (cx, y0), half-width from the `halves` table per row (last value repeats). */
+  spire(cx, y0, halves, v) { halves.forEach((k, i) => this.rect(cx - k, y0 + i, 2 * k + 1, 1, v)); return this; }
   outline() {
     const add = [];
     for (let y = 0; y < this.h; y++) for (let x = 0; x < this.w; x++) {
       if (this.get(x, y)) continue;
-      const n = [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => { const v = this.get(x + dx, y + dy); return v && v !== 'o'; });
-      if (n) add.push([x, y]);
+      if ([[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => { const v = this.get(x + dx, y + dy); return v && v !== 'o'; })) add.push([x, y]);
     }
     for (const [x, y] of add) this.set(x, y, 'o');
     return this;
   }
-  /**
-   * Three tones, light from the upper left. Along each row, inside a run of
-   * one material: spires split lit (left half) / shade (right half), long
-   * roofs get lit and shaded ends; walls get
-   * a lit column on the left and a `shade`-px shade face on the right.
-   */
+  /** Three tones along each row of a material run: spires split lit / shade, walls get a lit left column and a shade face. */
   tone(shade = 2) {
     const out = this.m.map((row) => row.slice());
     for (let y = 0; y < this.h; y++) {
-      let x = 0;
-      while (x < this.w) {
+      for (let x = 0; x < this.w;) {
         const v = this.m[y][x];
         if (!TONES[v]) { x++; continue; }
         let e = x; while (e < this.w && this.m[y][e] === v) e++;
@@ -67,8 +59,7 @@ class Grid {
         for (let i = 0; i < n; i++) {
           const dl = i, dr = n - 1 - i;
           let t = v;
-          if (v === 'R' && n <= 9) t = n < 2 ? v : dl < dr ? lit : dl > dr ? dark : v;   // spires: lit and shade halves
-          else if (v === 'R') t = dl < 2 ? lit : dr < 2 ? dark : v;                        // long roofs: lit and shade ends
+          if (v === 'R' && n <= 9) t = n < 2 ? v : dl < dr ? lit : dl > dr ? dark : v;
           else if (dark && dr < shade && n > 2) t = dark;
           else if (lit && dl === 0 && n > 2) t = lit;
           out[y][x + i] = t;
@@ -80,9 +71,15 @@ class Grid {
     return this;
   }
   paint(r, x0, y0, p) {
+    const S = p.sky3;
     const map = {
-      o: p.outline, S: p.sky, R: p.sky, L: p.skyHi, D: p.skyLo, T: p.sky, t: p.skyHi, Y: p.lamp,
-      H: p.hall, h: p.hallLo, W: p.trim, G: p.glass, g: p.glassHi, q: p.glassLo,
+      o: p.outline, w: p.window, W: p.trim, Y: p.lamp,
+      A: S.stone, a: S.stoneHi, z: S.stoneLo,
+      R: S.roof, r: S.roofHi, x: S.roofLo,
+      H: S.hall, h: S.hallHi, y: S.hallLo,
+      M: S.slate, m: S.slateHi, n: S.slateLo,
+      G: S.glass, g: S.glassHi, q: S.glassLo,
+      T: S.tree, t: S.treeHi,
     };
     for (let y = 0; y < this.h; y++) for (let x = 0; x < this.w; x++) {
       const v = this.m[y][x];
@@ -91,122 +88,148 @@ class Grid {
   }
 }
 
-/** Windows: w×h blocks at each (x, y). */
-const windows = (g, xs, ys, v, w = 1, h = 3) => { for (const x of xs) for (const y of ys) g.rect(x, y, w, h, v); };
-
-/**
- * Draw one component on its own grid, outline and tone it, then lay it over
- * `g` (back to front), so every tower keeps its own outline in front of what
- * stands behind it.
- */
+/** Draw one component on its own grid, tone and outline it, then lay it over `g` (back to front). */
 function layer(g, draw, shade) {
   const part = new Grid(g.w, g.h);
   draw(part);
   part.tone(shade).outline();
   for (let y = 0; y < g.h; y++) for (let x = 0; x < g.w; x++) if (part.m[y][x]) g.m[y][x] = part.m[y][x];
 }
+const windows = (g, xs, ys, v, w = 1, h = 3) => { for (const x of xs) for (const y of ys) g.rect(x, y, w, h, v); };
 
-/** The Minster, centred on column c (37 wide); its base is the grid's bottom row. */
+/**
+ * Riverside trees, laid first: each clump [x0, x1, top] is a run of rounded
+ * crowns about 7px wide whose tops step up and down by a few rows.
+ */
+function trees(g, clumps) {
+  layer(g, (q) => {
+    for (const [x0, x1, top] of clumps) {
+      for (let cx = x0, n = 0; cx < x1; cx += 6, n++) {
+        const t = top + [0, 3, 1, 4, 2][n % 5], w = Math.min(8, x1 - cx);
+        for (let y = t; y < g.h; y++) {
+          const k = y - t, inset = k === 0 ? 2 : k === 1 ? 1 : 0;
+          if (w - 2 * inset > 0) q.rect(cx + inset, y, w - 2 * inset, 1, 'T');
+        }
+      }
+    }
+  });
+  // A lit pixel on the upper left of each crown.
+  for (let y = 1; y < g.h; y++) for (let x = 1; x < g.w; x++) if (g.get(x, y) === 'T' && g.get(x, y - 1) === 'o' && g.get(x - 1, y) === 'o') g.set(x, y, 't');
+}
+
+/** The Minster, 37 wide, centred on column c; its base is the grid's bottom row (77). */
 function minster(g, c) {
   const B = g.h - 1;
-  // Nave behind everything, under a pitched roof.
-  layer(g, (q) => { q.rect(c - 17, 30, 35, B - 29, 'S'); q.rect(c - 15, 29, 31, 1, 'R').rect(c - 13, 28, 27, 1, 'R'); });
-  // Outer towers: 5 wide, low pyramid caps.
-  for (const cx of [c - 14, c + 14]) layer(g, (q) => { q.spire(cx, 18, 23, 2, 'R', 2); q.rect(cx - 2, 24, 5, B - 23, 'S'); });
-  // Inner towers: 5 wide, tall needle caps.
-  for (const cx of [c - 8, c + 8]) layer(g, (q) => { q.spire(cx, 7, 15, 4, 'R', 2); q.rect(cx - 2, 16, 5, B - 15, 'S'); });
-  // Crossing tower: body, gallery, octagonal stage, spire (tip on row 1, outline row 0).
-  layer(g, (q) => {
-    q.spire(c, 1, 9, 3, 'R', 2);
-    q.rect(c - 3, 10, 7, 4, 'S');
-    q.rect(c - 6, 14, 13, 1, 'R');
-    q.rect(c - 5, 15, 11, B - 14, 'S');
+  // The nave and west front behind the towers.
+  layer(g, (q) => q.rect(c - 10, 50, 21, B - 49, 'A'));
+  // Flanking towers: 7 wide, spires from row 37.
+  for (const cx of [c - 14, c + 14]) layer(g, (q) => {
+    q.spire(cx, 37, [0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3], 'R');
+    q.rect(cx - 3, 50, 7, B - 49, 'A');
   });
-  windows(g, [c - 1, c + 1], [11], 'Y', 1, 2);          // octagon lights
-  windows(g, [c - 3, c, c + 3], [18, 24], 'Y');         // belfry and stage, 3px rhythm
-  windows(g, [c - 8, c + 8], [19, 26], 'Y');            // inner towers
-  windows(g, [c - 14, c + 14], [27, 34], 'Y');          // outer towers
-  // Rose window and the lit west door, round-headed.
-  g.rect(c - 1, 30, 3, 3, 'Y').set(c - 1, 30, 'S').set(c + 1, 30, 'S').set(c - 1, 32, 'S').set(c + 1, 32, 'S');
-  g.rect(c - 2, 37, 5, B - 36, 'Y').set(c - 2, 37, 'S').set(c + 2, 37, 'S');
-  g.rect(c, 37, 1, B - 36, 'D');
-}
-
-/** The Old Town Hall, x = left column, 34 wide. */
-function townHall(g, x) {
-  const B = g.h - 1, w = 34, c = x + 16;                 // centre bay columns c, c+1
-  // Ridge turret behind the roof: lantern, cap, finial.
-  layer(g, (q) => { q.rect(c, 4, 2, 3, 'R'); q.spire(c, 7, 9, 1, 'R', 2).rect(c - 1, 7, 4, 1, 'R'); q.rect(c - 2, 10, 6, 7, 'S'); }, 1);
+  // The crossing tower and its long spire (tip on row 1, so the outline is row 0).
   layer(g, (q) => {
-    q.rect(x, 24, w, B - 23, 'H');                       // plaster front
-    // Slate mansard, stepped in at the ends.
-    q.rect(x + 5, 17, w - 10, 1, 'R').rect(x + 4, 18, w - 8, 1, 'R').rect(x + 3, 19, w - 6, 1, 'R').rect(x + 1, 20, w - 2, 4, 'R');
-  }, 2);
-  // Pediment over the centre bay (rows 19–23), white cornice, a shadow line under it.
-  for (let k = 0; k < 5; k++) g.rect(c - k, 19 + k, 2 + 2 * k, 1, 'H');
-  g.rect(c - 4, 23, 10, 1, 'W');
-  g.rect(x, 24, w, 1, 'W').rect(x, 25, w - 2, 1, 'h');
-  // Centre bay: pilasters in white, shade on its right.
-  g.rect(c - 5, 25, 1, B - 30, 'W').rect(c + 6, 25, 1, B - 30, 'h');
-  // Three floors of windows, 2×3 on a 4px rhythm, white with a shade sill.
-  const xs = [x + 2, x + 6, x + 25, x + 29], bay = [c - 3, c + 2];
-  for (const y of [27, 32]) { windows(g, [...xs, ...bay], [y], 'W', 2, 3); for (const wx of [...xs, ...bay]) g.rect(wx, y + 3, 2, 1, 'h'); }
-  windows(g, xs, [37], 'W', 2, 3);
-  windows(g, [c, c], [27, 32], 'W', 2, 3);
-  // The outside stair: two flights climbing to the door in the centre bay.
-  g.rect(c - 1, 36, 4, 3, 'S');                           // the door
-  g.rect(c - 3, 39, 8, 1, 'h').rect(c - 5, 40, 12, 1, 'h').rect(c - 7, 41, 16, 1, 'h').rect(c - 9, 42, 20, 2, 'h');
-  for (let k = 0; k < 4; k++) g.set(c - 3 - 2 * k, 39 + k, 'W').set(c + 4 + 2 * k, 39 + k, 'W');
+    q.spire(c, 1, [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4], 'R');
+    q.rect(c - 7, 34, 15, 29, 'A');
+  });
+  // The teal gable over the west front.
+  layer(g, (q) => q.spire(c, 55, [0, 1, 2, 3, 4, 5, 6, 7], 'R'));
+  // Cornice under the gable, then the west front.
+  layer(g, (q) => q.rect(c - 10, 63, 21, B - 62, 'A'));
+  // Windows: paired belfry lancets, tower lights, the rose and the portal.
+  windows(g, [c - 4, c - 2, c + 2, c + 4], [37, 44], 'w', 1, 4);
+  windows(g, [c - 14, c + 14], [53, 60, 67], 'w', 1, 3);
+  windows(g, [c - 7, c - 4, c + 4, c + 7], [66], 'w', 1, 3);
+  g.rect(c - 1, 65, 3, 3, 'w').set(c, 66, 'Y');
+  g.rect(c - 2, 71, 5, B - 70, 'w').set(c - 2, 71, 'A').set(c + 2, 71, 'A').rect(c, 72, 1, B - 71, 'Y');
+  for (const y of [57, 70]) for (const cx of [c - 14, c + 14]) g.rect(cx - 2, y, 5, 1, 'z');   // string courses
 }
 
-/** The Post Tower, x = left column, 16 wide. */
+/** The Old Town Hall, 46 wide, x = its left column. */
+function townHall(g, x) {
+  const B = g.h - 1, w = 46, c = x + 22;               // centre bay columns c, c+1
+  // The ridge turret: finial, lantern, slate drum.
+  layer(g, (q) => { q.rect(c, 29, 2, 4, 'M'); q.rect(c - 1, 33, 4, 4, 'M'); q.rect(c - 2, 37, 6, 11, 'M'); }, 1);
+  layer(g, (q) => {
+    q.rect(x + 4, 48, w - 8, 1, 'M').rect(x + 3, 49, w - 6, 1, 'M').rect(x + 2, 50, w - 4, 1, 'M').rect(x + 1, 51, w - 2, 7, 'M');
+    q.rect(x, 58, w, B - 57, 'H');
+  });
+  // Pediment over the centre bay, rising into the roof, with a clock.
+  for (let k = 0; k < 6; k++) g.rect(c - 1 - k, 49 + k, 4 + 2 * k, 1, 'H');
+  g.rect(c - 6, 55, 14, 3, 'H').rect(c, 51, 2, 2, 'W');
+  // Dormers in the roof.
+  for (const dx of [6, 13, 31, 38]) g.rect(x + dx, 52, 3, 4, 'H').rect(x + dx + 1, 53, 1, 2, 'w');
+  // White cornice, its shadow, and the centre bay's pilasters.
+  g.rect(x, 58, w, 1, 'W').rect(x, 59, w - 2, 1, 'y');
+  g.rect(c - 7, 60, 1, B - 66, 'W').rect(c + 8, 60, 1, B - 66, 'y');
+  // Three floors of windows, 2×3 on a 4px rhythm, with sills.
+  const xs = [x + 2, x + 6, x + 10, x + 32, x + 36, x + 40], bay = [c - 4, c, c + 4];
+  for (const y of [61, 66]) { windows(g, [...xs, ...bay], [y], 'w', 2, 3); for (const wx of [...xs, ...bay]) g.rect(wx, y + 3, 2, 1, 'W'); }
+  windows(g, xs, [71], 'w', 2, 3);
+  // The door and the outside stair: two flights climbing to it.
+  g.rect(c - 1, 70, 4, 3, 'w');
+  g.rect(c - 3, 73, 8, 1, 'A').rect(c - 5, 74, 12, 1, 'A').rect(c - 7, 75, 16, 1, 'A').rect(c - 9, 76, 20, 2, 'A');
+  for (let k = 0; k < 4; k++) g.set(c - 3 - 2 * k, 73 + k, 'a').set(c + 4 + 2 * k, 73 + k, 'z');
+}
+
+/** The Post Tower, 22 wide, x = its left column. */
 function postTower(g, x) {
   const B = g.h - 1;
-  layer(g, (q) => q.rect(x + 10, 9, 6, B - 8, 'G'), 1);
-  layer(g, (q) => q.rect(x, 3, 9, B - 2, 'G'), 2);
-  g.rect(x + 9, 9, 1, B - 8, 'D');                        // the slot between the halves
-  for (let y = 6; y < B - 1; y += 4) { g.rect(x + 1, y, 6, 1, 'g'); g.rect(x + 11, y + 2, 3, 1, 'g'); }
-  g.rect(x, 3, 9, 1, 'q').rect(x + 10, 9, 6, 1, 'q');     // dark crowns
+  layer(g, (q) => q.rect(x + 15, 20, 7, B - 19, 'G'), 2);
+  layer(g, (q) => { q.rect(x + 6, 10, 1, 5, 'M'); q.rect(x, 15, 14, B - 14, 'G'); }, 3);
+  g.rect(x + 14, 20, 1, B - 19, 'x');                    // the slot between the halves
+  for (let y = 18; y < B - 1; y += 4) { g.rect(x + 1, y, 10, 1, 'q'); g.rect(x + 16, y + 2, 4, 1, 'q'); }
+  g.rect(x + 1, 16, 2, B - 16, 'g');                    // the lit edge catching the sky
 }
 
-/** The riverside trees, BEHIND the buildings: a band along the base with rounded crowns. */
-function hedge(g, x0, x1, crowns) {
-  const B = g.h - 1;
-  const put = (x, y) => { if (!g.get(x, y)) g.set(x, y, 'T'); };
-  for (let x = x0; x < x1; x++) for (let y = B - 3; y <= B; y++) if (!((x === x0 || x === x1 - 1) && y === B - 3)) put(x, y);
-  for (const [cx, w, h] of crowns) for (let k = 0; k < h; k++) {
-    const inset = k >= h - 2 ? k - h + 3 : 0;
-    for (let x = cx + inset; x < cx + w - inset; x++) put(x, B - 4 - k);
-  }
-}
-
-function finishTrees(g) {
-  // A lit pixel at the upper left of each crown.
-  for (let y = 0; y < g.h; y++) for (let x = 0; x < g.w; x++) {
-    if (g.get(x, y) === 'T' && g.get(x, y - 1) === 'o' && g.get(x + 1, y) === 'T') g.set(x, y, 't');
-  }
-}
-
-/** The whole skyline group, standing on the bar's top outline row (`base` = bar top). */
-export function drawSkyline(r, x, base, p) {
-  const g = new Grid(SKYLINE_W, SKY_ROWS);
-  minster(g, 19);
-  townHall(g, 41);
-  postTower(g, 77);
-  hedge(g, 0, SKYLINE_W, [[0, 5, 3], [36, 6, 5], [74, 4, 4], [90, 4, 3]]);
-  g.outline();
-  finishTrees(g);
-  g.paint(r, x, base - SKY_ROWS, p);
-}
-
-/** The Minster alone, for movable modals. */
-export function drawMinster(r, x, base, p) {
+/** The left cap's sky: the Minster among trees. */
+export function drawMinsterCap(r, x, base, p) {
   const g = new Grid(MINSTER_W, SKY_ROWS);
-  minster(g, 19);
-  hedge(g, 0, MINSTER_W, [[0, 4, 3], [35, 4, 3]]);
-  g.outline();
-  finishTrees(g);
+  trees(g, [[0, 12, 54], [26, 40, 56]]);
+  minster(g, 20);
   g.paint(r, x, base - SKY_ROWS, p);
+}
+
+/** The right cap's sky: the Town Hall among trees. */
+export function drawHallCap(r, x, base, p) {
+  const g = new Grid(HALL_W, SKY_ROWS);
+  trees(g, [[0, 14, 55], [32, 48, 54]]);
+  townHall(g, 1);
+  g.paint(r, x, base - SKY_ROWS, p);
+}
+
+/** The right corner's sky: the Post Tower among trees (`w` = corner width). */
+export function drawTowerCorner(r, x, base, w, p) {
+  const g = new Grid(w, SKY_ROWS);
+  trees(g, [[1, w - 1, 57]]);
+  postTower(g, TOWER_X);
+  g.paint(r, x, base - SKY_ROWS, p);
+}
+
+/**
+ * The left corner's sky: the cherry bough rising from the corner up to the
+ * right, with clusters of rosettes, in front of a clump of trees.
+ */
+export function drawBough(r, x, yb, w, p) {
+  const g = new Grid(w, SKY_ROWS);
+  trees(g, [[6, w, 50]]);
+  g.paint(r, x, yb - SKY_ROWS, p);
+  const L = blossomLegend(p);
+  // The bough: 3px at the frame edge, a 2px limb up to the right, a twig off it.
+  const limb = (x0, y0, x1, y1, thick) => {
+    const n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0));
+    for (let i = 0; i <= n; i++) {
+      const px = Math.round(x0 + ((x1 - x0) * i) / n), py = Math.round(y0 + ((y1 - y0) * i) / n);
+      r.set(x + px, py, L.k);
+      for (let t = 1; t < thick; t++) r.set(x + px, py + t, L.b);
+    }
+  };
+  limb(0, yb - 4, 12, yb - 9, 3);
+  limb(12, yb - 9, 30, yb - 17, 2);
+  limb(30, yb - 17, 38, yb - 19, 2);
+  limb(14, yb - 10, 20, yb - 22, 2);
+  limb(24, yb - 14, 28, yb - 8, 1);
+  for (const [dx, dy] of [[2, -14], [8, -15], [13, -19], [17, -26], [21, -23], [25, -20], [30, -23], [34, -21], [27, -12], [20, -13], [5, -9], [33, -16]]) rosette(r, x + dx, yb + dy, p);
 }
 
 // ── Blossom ────────────────────────────────────────────────────────────────

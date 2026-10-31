@@ -6,7 +6,7 @@
 // whole-pixel emblem on it (authoring-visual-design §2.6):
 //
 //   close     a heater shield, blue field, gold chevron
-//   zoom      a window opening: a 2px dark frame round a lit parchment pane
+//   zoom      an arched opening: a 2px dark arch round a lit parchment pane
 //   collapse  a drawbridge raised: a chevron over an oak plank
 //
 // Pressed is inverted, not darkened: the plate sinks (#777777, bevel flipped)
@@ -36,11 +36,12 @@ const SHIELD = [
   '....oo....',
 ];
 
-// 10×10 window opening: 2px frame, 6×6 pane with a lit sill.
+// 10×10 arched opening (the concept's zoom emblem): a 2px dark arch round a
+// lit parchment pane.
 const WINDOW = [
-  '##########',
-  '##########',
-  '##wwwwww##',
+  '...####...',
+  '..######..',
+  '.##wwww##.',
   '##wwwwww##',
   '##wwwwww##',
   '##wwwwww##',

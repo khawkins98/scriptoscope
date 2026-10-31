@@ -1,14 +1,14 @@
-// Bonn scroll bars: the track is the Rhine (a channel of two flat teals
-// with a foam line), the arrows are sandstone plates with whole-pixel red
+// Bonn scroll bars, after the concept: a sandstone track with a mortar
+// groove, the arrows are sandstone plates with whole-pixel red
 // arrowheads (red stays small: it is the title's colour), and the thumb is a
-// sandstone block with three white foam dots. Pressed arrows sink to the
+// sandstone block with three carved grip dots. Pressed arrows sink to the
 // shade colour. Structure from Castle's scrollbars.mjs (same engine rules,
 // new art).
 //
 // The engine rules are the ones Halcyon's parts/scrollbars.mjs documents
 // (docs/spec/engine/scrollbar.md): one TRACK cicn per tier holds both arrows
 // and a 3px track source whose middle is stretched, so the track may only vary
-// ACROSS the bar (no foam dashes along it: a line instead); every image is
+// ACROSS the bar (no joints along it); every image is
 // opaque; the pressed track's middle equals the normal one; thumbs are copied
 // 1:1 and must be opaque with the track painted into their sides.
 import { Raster, encodeCicn } from '../../../tools/theme-author/index.js';
@@ -18,22 +18,15 @@ import { roundRect, bevel } from './pixels.mjs';
 const A = C.active;
 const SB = {
   line: A.outline,      // hairline facing the content, and the arrow dividers
-  // The channel across the bar: sandstone lips (shaded on the near side, lit
-  // on the far side) holding a strip of the river with a foam line.
-  channel: (u, t) => {
-    const lip = t >= 14 ? 2 : 1;
-    if (u <= lip) return u === 1 ? A.stoneLo : A.stone;
-    if (u >= t - lip) return u === t - 1 ? A.stone : A.stoneHi;
-    if (u === lip + 1) return A.waterLo;
-    if (u === lip + 3) return A.foam;
-    return A.water;
-  },
+  // The channel across the bar: sandstone, as in the concept, shaded on the
+  // side by the content and lit on the far side, with a mortar groove.
+  channel: (u, t) => (u === 1 ? A.stoneLo : u === 2 ? A.mortar : u === t - 1 ? A.stoneHi : A.stone),
   face: A.stone, faceHi: A.stoneHi, faceLo: A.stoneLo,
   arrow: A.red, arrowOff: A.stoneLo,
   pressedFace: A.stoneLo, pressedHi: A.mortar, pressedLo: A.stone, pressedArrow: A.redLo,
   thumb: A.stone, thumbHi: A.stoneHi, thumbLo: A.stoneLo,
   thumbPressed: A.stoneLo, thumbPressedHi: A.mortar, thumbPressedLo: A.stone,
-  thumbEdge: A.outline, grip: A.foam, gripPressed: A.stoneHi,
+  thumbEdge: A.outline, grip: A.mortar, gripPressed: A.outline,
   inactive: { line: '#999999', channel: (u) => (u === 1 ? '#cccccc' : '#eeeeee') },
 };
 
@@ -104,7 +97,7 @@ function inactiveImage(horizontal, t) {
   return b.r;
 }
 
-/** Sandstone thumb with three foam dots; opaque, with the track painted into its sides. */
+/** Sandstone thumb with three carved grip dots; opaque, with the track painted into its sides. */
 function thumbImage(horizontal, t, pressed, ghost = false) {
   const small = t <= 11;
   const along = small ? 16 : 23;
@@ -119,10 +112,10 @@ function thumbImage(horizontal, t, pressed, ghost = false) {
   for (let v = 0; v < h; v++) for (let u = 0; u < w; u++) { const c = block.get(u, v); if (c) b.fill(2 + u, 1 + v, 1, 1, c); }
   if (!ghost) {
     const cu = 2 + (w >> 1), cv = 1 + (h >> 1);
-    // Three foam dots, each with a mortar shadow below right so it reads on sandstone.
+    // Three dark grip dots, each with a lit pixel below right (a carved notch).
     for (const dv of [-3, 0, 3]) {
       b.fill(cu, cv + dv, 1, 1, pressed ? SB.gripPressed : SB.grip);
-      b.fill(cu + 1, cv + dv + 1, 1, 1, pressed ? SB.pressedHi : A.mortar);
+      b.fill(cu + 1, cv + dv + 1, 1, 1, pressed ? SB.pressedLo : A.stoneHi);
     }
   }
   return b.r;

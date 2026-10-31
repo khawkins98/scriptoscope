@@ -37,6 +37,14 @@ export const C = {
   textOff: sys('#999999'),
 
   active: {
+    // Frame rings, outside in (concept): navy outline, slate ring, white rim,
+    // lavender glass; a navy border round the content.
+    frame: { outline: sys('#003366'), ring: sys('#336699'), rim: white, glass: sys('#ccccff'), border: sys('#003366') },
+    // Header glass, top to bottom: pale sky, lavender, a deeper sky above the content border.
+    sky: [sys('#ccffff'), sys('#ccccff'), sys('#99ccff')],
+    pill: { face: white, shade: sys('#ccccff'), outline: sys('#003366') },
+    bead: { rim: sys('#336699'), inner: sys('#ccffff'), face: white, faceLo: sys('#eeeeee'), glyph: sys('#006699') },
+    lake: { top: sys('#99ccff'), body: sys('#6699cc'), low: sys('#99cccc'), deep: sys('#336699'), ripple: sys('#99ccff'), lilac: sys('#ccccff'), glint: white },
     outline: sys('#336699'), sheen: white, face: sys('#eeeeee'), faceLo: sys('#dddddd'), shade: sys('#cccccc'),
     plate: white, plateShade: sys('#cccccc'), title: sys('#000000'),
     rim: sys('#336699'), disc: sys('#eeeeee'), discLo: sys('#dddddd'), glyph: sys('#006699'),
@@ -52,6 +60,11 @@ export const C = {
     pebble: { line: sys('#666666'), face: sys('#cccccc'), lo: sys('#999999'), hi: white },
   },
   inactive: {
+    frame: { outline: sys('#666666'), ring: sys('#999999'), rim: sys('#eeeeee'), glass: sys('#dddddd'), border: sys('#777777') },
+    sky: [sys('#eeeeee'), sys('#dddddd'), sys('#cccccc')],
+    pill: { face: sys('#eeeeee'), shade: sys('#dddddd'), outline: sys('#777777') },
+    bead: { rim: sys('#999999'), inner: sys('#eeeeee'), face: sys('#dddddd'), faceLo: sys('#dddddd'), glyph: null },
+    lake: { top: sys('#dddddd'), body: sys('#bbbbbb'), low: sys('#cccccc'), deep: sys('#999999'), ripple: sys('#dddddd'), lilac: sys('#eeeeee'), glint: white },
     outline: sys('#777777'), sheen: white, face: sys('#eeeeee'), faceLo: sys('#dddddd'), shade: sys('#bbbbbb'),
     plate: sys('#eeeeee'), plateShade: sys('#cccccc'), title: sys('#555555'),
     rim: sys('#999999'), disc: sys('#dddddd'), discLo: sys('#dddddd'), glyph: null,

@@ -26,6 +26,12 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 - Authoring toolkit additions: smooth (anti-aliased) shapes, ordered dithering,
   and encoders for `ppat`, icon families and `clut`, each round-tripping the
   whole corpus (#540).
+- Concept-first authoring: `npm run paint-over` shrinks a crop of a concept
+  image to 1× and snaps it to a scheme's palette as a starting point for
+  hand-cleaned pixel art, and `npm run capture:authoring` captures a scheme's
+  review previews at a fixed size. Castle, Brickworks, Bonn and Halcyon were
+  repainted from their concepts, and Midnight 2027 (`authoring/schemes/new-year-2027/`)
+  is a new scheme made the same way (#540).
 
 - `WindowManager.setOuterSize(host, { width?, height? })`, an `outerSize` option on `WindowManager.add`, and `WindowManager.chromeExtent(host)`, for imperative callers that size windows by their outer box. `setContentSize` keeps its content-size meaning.
 

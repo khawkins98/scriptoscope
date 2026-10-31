@@ -1,12 +1,12 @@
 // Halcyon — an original first-party Kaleidoscope scheme, authored in code.
 //
-// Look (concept/brief.md): a kingfisher has landed on a frosted modern
-// window. The chrome stays calm and light (white bodies, flat frosted-glass
-// bars, one teal accent) with a hard slate outline, and carries one bold
-// pixel-art ornament in the Animals manner: a kingfisher perched on a branch
-// that runs along the whole top as the bar's upper rim, two leaves at the
-// branch tip, and a band of still water along the bottom with one ripple and
-// a river pebble as the grow box. It copies no shipping OS.
+// Look (concept/concept.jpg): a kingfisher has landed on a frosted window.
+// A rounded frame with a navy outline and a white inner rim round lavender
+// glass; a tall header with the title capsule and three glass beads along
+// its top and the kingfisher on its branch in its lower left; a blue-grey
+// water band with one ripple along the bottom. The bird, branch, ripple and
+// beads are painted over from the concept (npm run paint-over) and cleaned
+// by hand. It copies no shipping OS.
 //
 // Light: one source, upper left. Every raised part (bar, discs, buttons,
 // thumbs, tabs) has a 1px white sheen on its top/left inside the outline and
@@ -19,9 +19,10 @@
 //
 // Files:
 //   palette.mjs     every colour (system-palette entries) and contrast pairs
-//   parts/frames.mjs          window types (frameLayout), the frame painter,
-//                             title-bar discs and the pressed-widget strips
-//   parts/sprites/bird.mjs    the kingfisher sprites, pixel by pixel
+//   parts/frames.mjs            window types (frameLayout), the frame painter,
+//                               title-bar beads and the pressed-widget strips
+//   parts/sprites/ornament.mjs  the kingfisher on its branch and the ripple,
+//                               painted over from concept/concept.jpg
 //   parts/*.mjs     other control families: controls (sliders, tabs, bevels, popups),
 //                   menus (menus, desktop, Finder colours, icon), progress
 //                   (progress, headers, triangles, grow boxes), scrollbars
@@ -87,8 +88,8 @@ const ringCinf = () => encodeCinf({
 // id = -9504 + 12·kind + 3·value + tier
 //   kind 0 checkbox, 1 radio · value 0 off, 1 on, 2 mixed · tier 0 disabled, 1 normal, 2 pressed
 // 13px (odd, so the radio dot and the dash have a centre pixel). Boxes are
-// sunk: the shade is on the top/left inside the outline. On = a teal fill
-// with a white glyph on whole pixels.
+// sunk: the shade is on the top/left inside the outline. As in the concept,
+// the box stays white and the mark is navy, on whole pixels.
 const CHECK = 13;
 const RADIO = [
   '....#####....',
@@ -113,9 +114,10 @@ const MARKS = {
 
 function checkable(kind, value, tier) {
   const on = value > 0, disabled = tier === 0, pressed = tier === 2;
-  const edge = disabled ? C.shade : C.outline;
-  const fill = !on ? (pressed ? C.shade : disabled ? C.glass : C.white) : disabled ? C.shade : pressed ? C.accentDeep : C.accent;
-  const sunk = !on ? (disabled ? C.glass : C.shade) : disabled ? C.shade : C.accentDeep;
+  const navy = C.active.frame.outline;
+  const edge = disabled ? C.deep : navy;
+  const fill = pressed ? C.shade : disabled ? C.glass : C.white;
+  const sunk = disabled ? C.glass : pressed ? C.deep : C.shade;
   const r = new Raster(CHECK, CHECK);
   if (kind === 0) {
     r.fillRect(0, 0, CHECK, CHECK, fill).set(0, 0, null).set(CHECK - 1, 0, null).set(0, CHECK - 1, null).set(CHECK - 1, CHECK - 1, null);
@@ -135,7 +137,7 @@ function checkable(kind, value, tier) {
     }
   }
   if (!on) return r;
-  const ink = disabled ? C.glass : C.white;
+  const ink = disabled ? C.deep : navy;
   if (value === 2) return r.sprite(4, 6, MARKS.dash, { '#': ink });
   if (kind === 1) return r.sprite(4, 4, MARKS.dot, { '#': ink });
   return r.sprite(3, 3, MARKS.check, { '#': ink });
@@ -151,8 +153,8 @@ export async function buildScheme() {
 
   const faces = [
     [-10240, 'Inactive Push Button', { face: C.glass, edge: C.shade, text: C.textOff, top: C.glass, bottom: C.glass }],
-    [-10239, 'Push Button', { face: C.white, edge: C.outline, text: C.text, top: C.white, bottom: C.glass }],
-    [-10238, 'Pressed Push Button', { face: C.shade, edge: C.outline, text: C.text, top: C.deep, bottom: C.shade }],
+    [-10239, 'Push Button', { face: C.glass, edge: C.active.frame.outline, text: C.text, top: C.white, bottom: C.shade }],
+    [-10238, 'Pressed Push Button', { face: C.shade, edge: C.active.frame.outline, text: C.text, top: C.deep, bottom: C.shade }],
   ];
   for (const [id, name, look] of faces) {
     add('cicn', id, encodeCicn(pushFace(look)), name);
@@ -160,7 +162,7 @@ export async function buildScheme() {
   }
   add('cicn', -10232, encodeCicn(ringFace(C.shade)), 'Inactive Default Ring');
   add('cinf', -10232, ringCinf(), 'Inactive Default Ring');
-  add('cicn', -10231, encodeCicn(ringFace(C.accent)), 'Default Ring');
+  add('cicn', -10231, encodeCicn(ringFace(C.active.frame.outline)), 'Default Ring');
   add('cinf', -10231, ringCinf(), 'Default Ring');
 
   const kinds = ['Checkbox', 'Radio Button'], values = ['Off', 'On', 'Mixed'], tiers = ['Disabled', 'Normal', 'Pressed'];

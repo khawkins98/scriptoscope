@@ -16,15 +16,15 @@ export function hash(x, y, seed = 0) {
 // Everything on the wall rows repeats every MERLON px (one merlon + one
 // crenel), because the battlement cell tiles whole copies of itself (code 12,
 // exotic-frames R4). So the masonry is a hand-laid 14px course table, not a
-// hash: each course lists its head joints (x in 0..13), each block its tone
+// hash: each course lists its head joints (x in 0..14), each block its tone
 // (0 = A, 1 = B) and whether its top row catches the light. One joint per
 // course gives the brief's big 14px blocks in a running bond (staggered by
 // 7), the two tones alternate in pairs of courses so they don't stripe, and
 // no course has a joint at x = 0, which is
 // the column the 1px fillers and the title plate repeat (they must look like
 // plain wall).
-export const MERLON = 14;
-export const MERLON_X = [3, 11]; // the merlon's columns [3, 11) inside the tile; the crenel straddles the tile edge
+export const MERLON = 15; // the concept's merlon period: 45 concept px at its 3× scale
+export const MERLON_X = [3, 11]; // the merlon's columns [3, 11) inside the tile (8 wide); the 7px crenel straddles the tile edge
 const COURSES = [
   { joints: [3], tones: [0], lit: [true] },
   { joints: [10], tones: [1], lit: [false] },
@@ -33,7 +33,7 @@ const COURSES = [
 ];
 
 /**
- * Colour of the wall face at tile phase `px` (0..13) and wall row `wy`
+ * Colour of the wall face at tile phase `px` (0..14) and wall row `wy`
  * (0 = the top row of the wall, under the merlons). Rows: 0 the joint the
  * merlons stand on, 1 the lit coping, 2 the shade under it, then 6-row
  * courses (5 stone + 1 mortar).
@@ -49,6 +49,40 @@ export function wallAt(px, wy, p) {
   const n = c.joints.filter((j) => j < px).length % c.joints.length;
   if (ry === 0 && c.lit[n]) return p.stoneHi;
   return p.stone[c.tones[n]];
+}
+
+/**
+ * The document wall, 31 rows, traced from the concept (concept rows ÷ 3):
+ * the coping, two courses, a band of dark slot openings (one per merlon
+ * period, framed: lit lintel and left jamb, shaded sill and right jamb), a
+ * third course, a dark string course, and a last course of big blocks.
+ */
+export function wallAtTall(px, wy, p) {
+  if (wy === 0) return p.mortar;
+  if (wy === 1) return p.stoneHi;
+  if (wy === 2) return p.stoneLo;
+  const course = (joint, tone, litTop, y0) => {
+    if (px === joint) return p.mortar;
+    if (litTop && wy === y0 && px > joint) return p.stoneHi;
+    return p.stone[tone];
+  };
+  if (wy <= 6) return course(3, 0, true, 3);
+  if (wy === 7 || wy === 12 || wy === 19 || wy === 24) return p.mortar;
+  if (wy <= 11) return course(10, 1, false, 8);
+  if (wy <= 18) {
+    // Slot band: an opening at phases 5..9, rows 14..17.
+    const inSlot = px >= 4 && px <= 10;
+    if (wy === 13) return inSlot ? p.stoneHi : course(13, 0, false, 13);
+    if (wy === 18) return inSlot ? p.stoneLo : course(13, 0, false, 13);
+    if (px === 4) return p.stoneHi;
+    if (px === 10) return p.stoneLo;
+    if (px > 4 && px < 10) return wy === 14 ? p.mortar : p.outline;
+    return course(13, 0, false, 13);
+  }
+  if (wy <= 23) return course(3, 1, true, 20);
+  if (wy === 25) return p.outline;
+  if (wy === 26) return p.stoneHi;
+  return course(10, 0, false, 27);
 }
 
 /**

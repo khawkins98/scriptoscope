@@ -17,7 +17,12 @@
 // column of it (every row, on the left and right edges) should look the same:
 // a plain bar grower, a one-colour-per-row plate. `layout.lint(raster)` then
 // fails if stray art reaches into it, which would be tiled across the window.
-// Code-5 plates are always checked. A 1px cell is trivially uniform, so give
+// Code-5 plates are always checked. The engine tiles a plate's src across the
+// measured title width (compositor-spec "Title TEXT + plate"), so a plate wider
+// than 1px may carry a repeating motif above or below the text (Brickworks'
+// stud row): mark it `tiled: true` and lint checks only the title rows. The
+// repeat starts at the plate's left edge and is cut wherever the title ends,
+// so keep the motif small or accept a partial repeat at the right. A 1px cell is trivially uniform, so give
 // 1px growers that should match each other the same group name instead,
 // `uniform: 'bar'`: every cell of one edge in a group must then show the same
 // column as the others (Bonn's blossom tree reached 1px into a bar grower,
@@ -55,7 +60,7 @@ const REMAINDER_RECIPIENTS = new Set([8, 11, 13, 14, 18]);
  *   title?: { cell: string, top: number, bottom: number },   // T4 = that cell's columns × these rows
  *   widgets?: { close?: Box, zoom?: Box, collapse?: Box },
  * }} spec
- * @typedef {{ code: number, w: number, name?: string, uniform?: boolean | string }} Cell
+ * @typedef {{ code: number, w: number, name?: string, uniform?: boolean | string, tiled?: boolean }} Cell
  * @typedef {{ x: number, y: number, w: number, h: number }} Box
  */
 export function frameLayout(spec) {
@@ -135,9 +140,15 @@ export function frameLayout(spec) {
       for (const c of list) {
         if (!(c.uniform || (edge === 'top' && c.code === 5)) || c.w < 1) continue;
         const label = `${edge === 'top' ? '' : `${edge} `}cell ${c.name ?? c.code}`;
-        const ref = line(c.x0);
+        // A tiled plate only has to be uniform behind the title text; the rows
+        // above or below it (a stud row, a fringe) repeat across the plate.
+        const plateRows = edge === 'top' && c.code === 5 && c.tiled && titleRect;
+        const col = plateRows
+          ? (p) => Array.from({ length: titleRect.bottom - titleRect.top }, (_, i) => JSON.stringify(raster.get(p, titleRect.top + i))).join()
+          : line;
+        const ref = col(c.x0);
         for (let p = c.x0 + 1; p < c.x1; p++) {
-          if (line(p) !== ref) fail(`${label} ${kind} ${p} differs from its first ${kind}; stray art there is tiled across the window`);
+          if (col(p) !== ref) fail(`${label} ${kind} ${p} differs from its first ${kind}${plateRows ? ' in the title rows' : ''}; stray art there is tiled across the window`);
         }
         if (typeof c.uniform !== 'string') continue;
         const first = groups.get(c.uniform);

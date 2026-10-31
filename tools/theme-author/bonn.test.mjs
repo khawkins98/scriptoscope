@@ -1,6 +1,7 @@
 // Bonn (authoring/schemes/bonn/): builds, passes the authoring checks, loads
 // through the runtime converter, ships a pressed strip that matches the
-// document widgets, keeps the skyline a draw-once code-10 cell, and the
+// document widgets, stands the skyline over the title's code-6 caps, centres
+// one bridge on open water, and the
 // committed scheme.rsrc / scheme.bin are current.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -35,13 +36,16 @@ test('pressed strip -14330 is close | zoom | collapse at the document widget siz
   for (const part of [2, 3]) assert.equal(width(util, part), 0);
 });
 
-test('the document skyline is one code-10 cell and the bottom bridge is whole arches, 13 | 12 | 13', () => {
+test('the skyline stands over the title caps (code 6) and one bridge is centred on the water, 11 | bridge | 8', () => {
   const wnd = decodeWnd(find('wnd#', -14336).data);
   const codes = (side) => side.slice(1).map((e) => e.part ?? e.code);
+  const widths = (side) => side.slice(1).map((e, i) => e.border - side[i].border);
   const top = codes(wnd.topSide);
-  assert.equal(top.filter((c) => c === 10).length, 1);
+  assert.deepEqual(top, [1, 11, 6, 5, 6, 8, 1]);
   assert.equal(top.filter((c) => c === 12).length, 0, 'no code 12: it would repeat the skyline');
-  assert.deepEqual(codes(wnd.bottomSide), [1, 0, 13, 12, 13, 1]);
+  const w = widths(wnd.topSide);
+  assert.ok(w[2] > 30 && w[4] > 30, 'the caps are wide enough to carry the Minster and the Town Hall');
+  assert.deepEqual(codes(wnd.bottomSide), [1, 0, 11, 1, 8, 1]);
 });
 
 test('committed bonn scheme.rsrc and scheme.bin match a fresh build (run `npm run author -- authoring/schemes/bonn`)', () => {
@@ -51,18 +55,16 @@ test('committed bonn scheme.rsrc and scheme.bin match a fresh build (run `npm ru
   assert.ok(Buffer.from(bin).equals(readFileSync(new URL('scheme.bin', dir))), 'scheme.bin is stale; rebuild it');
 });
 
-test('layout.lint catches stray art in either bar grower beside the skyline', async () => {
+test('layout.lint catches stray art in either 1px bar grower beside the caps', async () => {
   const { windowTypes, paintFrame } = await import('../../authoring/schemes/bonn/frames.mjs');
   const doc = windowTypes().find((t) => t.id === -14336);
   const fresh = () => paintFrame(doc, 'active');
   doc.layout.lint(fresh());
-  const sky = doc.layout.named('skyline');
-  const tree = fresh();
-  // A stray pixel 1px left of the skyline lands in the 1px code-8 grower barM, in a bar row, so it no longer matches barR.
-  tree.set(sky.x0 - 1, doc.layout.top - 6, '#e8a0b8');
-  assert.throws(() => doc.layout.lint(tree), /cell barR doesn't match barM/);
-  // The title plate is a 1px column now (trivially uniform), so the other risk is the right-hand grower.
-  const stray = fresh();
-  stray.set(doc.layout.named('barR').x0, doc.layout.top - 10, '#f0d040');
-  assert.throws(() => doc.layout.lint(stray), /cell barR doesn't match barM/);
+  // A blossom 1px past the bough lands in the left grower; a stray pixel in the right one.
+  const left = fresh();
+  left.set(doc.layout.named('barL').x0, doc.layout.top - 20, '#e8a0b8');
+  assert.throws(() => doc.layout.lint(left), /cell barR doesn't match barL/);
+  const right = fresh();
+  right.set(doc.layout.named('barR').x0, doc.layout.top - 10, '#f0d040');
+  assert.throws(() => doc.layout.lint(right), /cell barR doesn't match barL/);
 });

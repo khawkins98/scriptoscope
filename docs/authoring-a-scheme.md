@@ -237,6 +237,19 @@ Classic Macs displayed colours darker than modern screens (gamma 1.8 against
 as `#1d2430` in the browser (measured exactly in Halcyon's title text). Pass
 `{ gamma: false }` only if you need raw stored values.
 
+"Use exact system-palette colours" (so an 8 bpp Mac shows what the web
+shows) can be written two ways, and the schemes use both:
+
+- **Name the stored entry** (Halcyon): write cube or grey-ramp hex
+  (`00 33 66 99 cc ff`) through `sys('#336699')`, which returns the colour the
+  loader shows for that entry. Easiest to check by eye against the palette.
+- **Type the on-screen colour** (Castle, Bonn, Midnight 2027): write the
+  brightened hex the browser shows for an entry. The palette report
+  (`npm run author -- <dir> --palette`) lists each colour's entry and flags
+  any that aren't exact.
+
+Pick one per scheme and say which in `palette.mjs`'s header.
+
 ### 4.5 Smooth edges and dithering
 
 A 1-bit mask means a pixel can't be half transparent, but edges can still

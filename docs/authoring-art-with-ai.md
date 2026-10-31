@@ -80,6 +80,13 @@ changed. This matters because the encoder treats alpha 1–127 as a hidden
 swatch, so an anti-aliased edge would otherwise turn into invisible palette
 pixels.
 
+**Unattended image runs are flaky.** Generating Midnight 2027's concept took
+five `agy` image runs; four ended "subagent cancelled" at the print timeout
+and produced nothing, two of them because runs overlapped. Run one image
+job at a time, give it a long `--print-timeout` (1500s), and expect to
+retry. Keep every prompt in the scheme's `concept/brief-*.txt` so a retry
+is one command.
+
 ## 2. Text routes in `agy`
 
 Run from a scratch directory, not the repo, and ask for structured output so

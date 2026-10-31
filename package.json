@@ -98,7 +98,8 @@
     "spike:runtime": "node tools/runtime-spike/run.mjs",
     "author": "node scripts/author-scheme.mjs",
     "sim8": "node scripts/sim8.mjs",
-    "paint-over": "node scripts/paint-over.mjs"
+    "paint-over": "node scripts/paint-over.mjs",
+    "capture:authoring": "node scripts/capture-authoring-preview.mjs"
   },
   "engines": {
     "node": ">=20"

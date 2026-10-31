@@ -6,13 +6,14 @@
 // cornerSize corners 1:1, stretches the sideThickness bands, and fills the
 // middle with ONE colour read at bgPixel. So the plank grain can only live in
 // the top/bottom bands (one row each, uniform along them) and the iron straps
-// in the left/right bands (uniform down them). Everything is hard-edged pixel
+// in the left/right bands (uniform down them); corner = side = 8 holds the
+// plank end and its strap. Everything is hard-edged pixel
 // art: corners are a 1-2 pixel stair, not a blended arc (visual design §2.2).
 import { Raster, encodeCicn, encodeCinf } from '../../../tools/theme-author/index.js';
 import { C } from './palette.mjs';
 
 const W = C.wood;
-const BTN = { size: 20, corner: 6, side: 6 };
+const BTN = { size: 20, corner: 8, side: 8 };
 
 /** Row colour of the plank (top band: lit edge, a grain row; bottom band: a grain row, shade). */
 function plankRow(y, look) {
@@ -34,9 +35,11 @@ function pushFace(look) {
     let c = plankRow(y, look);
     if (x === 1) c = look.grain;                         // lit left edge
     if (x === S - 2) c = look.lo;                        // shaded right edge
-    // Iron straps round each end of the plank, lit on their left.
-    if (x === 3 || x === S - 5) c = look.bandHi;
-    if (x === 4 || x === S - 4) c = look.band;
+    // Iron straps round each end of the plank (the concept's: 3px, set in
+    // from short plank ends), lit on their left, a rivet top and bottom.
+    if (x === 4 || x === S - 7) c = look.bandHi;
+    if (x === 5 || x === 6 || x === S - 6 || x === S - 5) c = look.band;
+    if ((x === 5 || x === S - 6) && (y === 3 || y === S - 4)) c = look.bandHi;
     r.set(x, y, c);
   }
   // Hidden swatches on corner pixels that stay transparent.

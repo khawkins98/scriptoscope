@@ -454,7 +454,7 @@ a ramp or a widget.
 **Review artefacts** (what to attach to a scheme PR or keep in
 `authoring/schemes/<slug>/review/` if the maintainer wants them):
 
-- `preview.png`, `preview-sizes.png` (already produced).
+- `preview.png`, `preview-sizes.png`: `npm run capture:authoring -- <dir>` with `npm run dev` running (`--base` for another port).
 - `crops-4x.png`: title bar left and right ends, a control row, the bottom
   edge, the scrollbar, at 4×.
 - `sim8.png`: the preview through the 8-bit simulation.
@@ -524,6 +524,29 @@ Lessons from running this on all four schemes:
 - **Big frames need a roomier preview layout.** `preview.png`'s fixed
   window positions were set for thin frames. With 60 px top bands the
   windows overlap, which is the layout's fault, not the scheme's.
+- **Paint over, don't redraw.** Redrawing from the concept, however
+  carefully, kept the motifs and lost the pose and proportions. The third
+  pass used `npm run paint-over` (`tools/theme-author/paint-over.js`). It
+  shrinks a crop of the concept back to 1× and snaps it to the palette by a
+  per-block vote, and the cleaned-up result matched the concepts far more
+  closely (Halcyon's kingfisher is the concept's own pixels, tidied).
+  - **Measure the scale first.** Measure the concept's pixels per art pixel
+    from the outline width or a widget's diameter. The concepts so far were
+    2.5× (Brickworks), 3× (Halcyon, Castle, Bonn) and 3.7× (Midnight 2027).
+    Then render your window at that scale beside the concept
+    (`/tmp/<slug>-concept/paint-over.png`), so you compare like with like.
+  - **What it keeps and what it loses.** It works best on outlined shapes:
+    birds, buildings, towers, buttons and widgets. Thin detail loses the
+    block vote: Castle's 1px mortar lines and Midnight 2027's firework rays
+    came out as noise. For those, use the paint-over to measure size, count
+    and colour, then redraw. Stone and brick are best redrawn procedurally on
+    the concept's measured block grid, so they tile.
+  - **Single-pixel sparks.** Draw them after the outline pass, or the outline
+    pass turns them into outline colour.
+- **A title plate can carry a repeat.** The engine tiles the code-5 plate's
+  src across the title width, so a stud row or fringe can run over the title.
+  Mark the cell `tiled: true` in `frameLayout` and lint checks only the title
+  rows.
 - **Calm bodies.** Asked for "parchment", agents reach for a saturated
   butter-yellow. Specify a low-chroma hex range and check it in the 8-bit
   simulation (Castle's warm `#e8e0cc` snapped to pink at 8 bpp;

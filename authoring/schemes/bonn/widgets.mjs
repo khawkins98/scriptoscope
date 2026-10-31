@@ -6,8 +6,8 @@
 // right. The glyph sits inside on whole pixels:
 //
 //   close     a cherry rosette
-//   zoom      the disc halved, red over yellow, with a cream square
-//   collapse  a teal wave
+//   zoom      a plain shield, red over yellow on the diagonal
+//   collapse  a breaking teal wave
 //
 // Pressed: the face drops to the shade colour and the lit and shaded arcs swap
 // (the disc is pushed in). Inactive: a grey disc, no glyph. The pressed
@@ -55,17 +55,26 @@ const ROSE = [
   '.aaddd.',
   '..a.d..',
 ];
-const SQUARE = [
-  'ooooo',
-  'oyyyo',
-  'oyyyo',
-  'oyyyo',
-  'ooooo',
+// A plain shield split on the diagonal, red over yellow (no charges: not a coat of arms).
+const SHIELD = [
+  'ooooooo',
+  'oRRRRYo',
+  'oRRRYYo',
+  'oRRYYYo',
+  'oRYYYYo',
+  '.oYYYo.',
+  '.oYYYo.',
+  '..oYo..',
+  '...o...',
 ];
+// A breaking wave: lit crest, teal body, deep base.
 const WAVE = [
-  '.ww.....',
-  'w..w..w.',
-  '....ww..',
+  '....ttt..',
+  '..ttTTTt.',
+  '.tTTt..t.',
+  'tTTt.....',
+  'tTTt..t..',
+  'ttttttt..',
 ];
 const glyph = (r, b, rows, legend, dy = 0) => {
   const ox = Math.floor((WIDGET - rows[0].length) / 2), oy = Math.floor((WIDGET - rows.length) / 2) + dy;
@@ -90,8 +99,8 @@ export function drawZoom(r, b, state, pressed = false) {
   const k = look(state, pressed);
   if (state !== 'active') { disc(r, b, k.p, k); return; }
   const a = C.active;
-  disc(r, b, k.p, { top: pressed ? a.redLo : a.red, bottom: pressed ? a.stoneLo : a.yellow });
-  glyph(r, b, SQUARE, { o: a.outline, y: pressed ? a.yellow : a.stoneHi });
+  disc(r, b, k.p, k);
+  glyph(r, b, SHIELD, { o: a.outline, R: pressed ? a.redLo : a.red, Y: pressed ? a.stoneLo : a.yellow });
 }
 
 export function drawCollapse(r, b, state, pressed = false) {
@@ -99,9 +108,7 @@ export function drawCollapse(r, b, state, pressed = false) {
   disc(r, b, k.p, k);
   if (state !== 'active') return;
   const a = C.active;
-  glyph(r, b, WAVE, { w: pressed ? a.foam : a.water });
-  // A second, darker wave under the first: two flat teals, as in the river.
-  glyph(r, b, WAVE, { w: a.waterLo }, 3);
+  glyph(r, b, WAVE, { t: a.waterLo, T: pressed ? a.foam : a.water });
 }
 
 export const DRAW = { close: drawClose, zoom: drawZoom, collapse: drawCollapse };
