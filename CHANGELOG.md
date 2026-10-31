@@ -9,6 +9,31 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ### Added
 
+- **Scheme authoring** (#540). `tools/theme-author/` writes new Kaleidoscope
+  schemes from code as real resource forks: encoders for `cicn`, `wnd#`,
+  `cinf`, `ppat`, `clut`, icon families, `STR#`, `DLOG`/`DITL`, `crsr`, `snd `,
+  `Colr` and `vers`, each round-tripping the whole corpus; `frameLayout()` and
+  `windowLayout()` for frame recipes; drawing helpers (smooth shapes, ordered
+  dithering, `fitPalette`); and `checkScheme`, which catches mistakes that load
+  but render wrong. `npm run author` builds a scheme, reloads it through the
+  browser's converter, runs the checks and writes both `scheme.rsrc` and a
+  MacBinary `scheme.bin` (type `Colr`, creator `Acid`) for classic Mac OS.
+- **Authoring workflow tools** (#540): `npm run paint-over` shrinks a crop of a
+  concept image to 1× and snaps it to a scheme's palette; `npm run sim8`
+  simulates an 8 bpp classic screen; `npm run capture:authoring` captures a
+  scheme's review previews; `npm run author -- <dir> --sheet` and `--palette`
+  write a contact sheet and a palette and contrast report. A dev-only page,
+  `authoring-preview.html`, previews a scheme in the browser.
+- **Five first-party schemes** in `authoring/schemes/` (#540): Kingfisher, Castle,
+  Brickworks, Bonn and Midnight 2027, each designed from a concept image and
+  covering window frames, every themed control family, menus, the desktop
+  pattern, a picker icon and the classic control-panel extras (about box,
+  arrow cursor, WindowShade sounds). All five load in Scriptoscope and in the
+  original Kaleidoscope 2.3.1 on System 7.5.5. They are not part of the
+  bundled corpus.
+- Authoring guides: `docs/authoring-a-scheme.md` (start here), with
+  `docs/authoring-exotic-frames.md`, `docs/authoring-visual-design.md` and
+  `docs/authoring-art-with-ai.md` as references (#540).
 - `WindowManager.setOuterSize(host, { width?, height? })`, an `outerSize` option on `WindowManager.add`, and `WindowManager.chromeExtent(host)`, for imperative callers that size windows by their outer box. `setContentSize` keeps its content-size meaning.
 
 ### Changed
@@ -18,6 +43,8 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ### Fixed
 
+- Movable-modal, movable-alert, popup and collapsed titled-utility windows
+  show their title text again (#540).
 - **Dialog and alert bodies use the scheme's dialog colour instead of white.** In real Kaleidoscope 2.3.1, an alert and a themed dialog get their content colour from the scheme's `actb`/`dctb` -14336 (entry 0), or from Kaleidoscope's own copies (`#DDDE`/`#DDDD` grey) when the scheme ships none; document windows stay white. Scriptoscope now fills the `dialog`, `movable-modal`, `alert` and `movable-alert` bodies the same way, and the built-in frame's 3 px gap around a dialog matches the body. For example, apple-platinum-2 and every scheme without the tables get the light grey (`#E3E3E3` under the default display policy), 1984 its dark blue. The body's default text colour is entry 2 of the same table (black, or white on 1984), so for these window types it replaces a `color` set on the host. Override them with `--scriptoscope-dialog-background` and `--scriptoscope-dialog-text`. Slotted content still paints over the fill. Source: Kaleidoscope's PACH 130 GetResource patch (docs/spec/engine/procedural-frame.md §3.6). Found while testing authored schemes in real Kaleidoscope ([#540](https://github.com/khawkins98/scriptoscope/issues/540)).
 - The demo's `mountExplicitPage` (`demo/explicit-host.mjs`) now adds
   `.scriptoscope-ready`, removes `data-scriptoscope-loading`, lifts the root's

@@ -176,3 +176,13 @@ corrected: -8288/-8280 are the scroll-bar track tier 0 (inactive), not pressed, 
 gone). No case-cited address line changed; all 27 case inputs, outcomes, payload pins
 and ring dispatch claims are unchanged. The 1.0.13 review is archived verbatim; the
 1.0.14 label is PENDING an independent hash-only review.
+
+Inventory 1.0.18 (title-text-colour note, PR #540) refreshes only the full
+`kdef231-reference.md` document hash (`ce33a576` -> `3efc5f35`) after the §1.4
+"Title text colour is SAMPLED" note replaced its stale "use black" decision with the
+implemented sample (`docs/spec/engine/window-widgets.md` TC1–TC5). No case-cited
+address line changed; all 27 case inputs, outcomes, payload pins and ring dispatch
+claims are unchanged. The 1.0.17 review is archived verbatim; 1.0.18 carries the Tier 0
+hash-only check of PR #540. The 459 lifecycle tests peel this bump
+(`tests/rendering-options/controls459/hash-only-bumps.mjs`) to recover the exact
+1.0.17 inventory they pin; a later hash-only bump adds its row there.

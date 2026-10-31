@@ -1,7 +1,8 @@
 import {frozenPushSource} from './controls459/frozen-push-source.mjs';
+import {peelHashOnlyBumps} from './controls459/hash-only-bumps.mjs';
 import test from 'node:test';import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';import {createHash} from 'node:crypto';
 const read=p=>JSON.parse(readFileSync(new URL(p,import.meta.url))),hash=b=>createHash('sha256').update(b).digest('hex');
-const delta=read('../control-availability/corrections/459-no-cinf-admission.json'),current=read('../control-availability/expectations.json');
+const delta=read('../control-availability/corrections/459-no-cinf-admission.json'),current=peelHashOnlyBumps(read('../control-availability/expectations.json'));
 test('no-cinf correction preserves exact frozen proposal, accepted rows, code and all prior inputs/joins',()=>{
  assert.equal(delta.status,'candidate-requires-different-tier2');const accepted=current.inventoryVersion===delta.candidateInventoryVersion;assert.equal(hash(readFileSync(new URL('../control-availability/corrections/459-no-cinf-admission.json',import.meta.url))),'8b1fc3b4c1e52e01de91aa47488d0539d7c854488d198dbbdcdfd1e67aa9051f');assert.equal(current.inventorySha256,hash(JSON.stringify(current.cases)));
  if(!accepted){assert.equal(current.inventoryVersion,delta.priorInventoryVersion);assert.equal(current.inventorySha256,delta.priorInventorySha256);assert.deepEqual(current.review,delta.priorReview);}

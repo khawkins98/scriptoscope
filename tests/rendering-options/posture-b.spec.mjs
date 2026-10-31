@@ -46,7 +46,8 @@ async function openShowcase(page, base, slug = SLUG) {
   await page.setViewportSize({ width: 1280, height: 960 });
   await page.goto(`${base}/showcase.html?theme=${slug}`);
   await expect(page.locator('#powers.scriptoscope-ready')).toBeVisible();
-  await expect(page.locator('#powers .scriptoscope-theme-picker-tile')).toHaveCount(18);
+  await expect(page.locator('#powers-folders .scriptoscope-theme-picker-tile')).toHaveCount(18);
+  await expect(page.locator('#powers-first-party .scriptoscope-theme-picker-tile')).toHaveCount(5);
   // Content-fit and the cascade may adjust boxes after ready: wait for two equal reads a frame pair apart.
   await expect.poll(async () => {
     const a = await boxes(page);
@@ -148,7 +149,7 @@ for (const mode of ['source', 'built']) {
     });
     await page.locator('[data-special="none"]').click();
     await expect(page.locator('#powers [data-scriptoscope-window-host]')).toHaveCount(0);
-    await expect(page.locator('.scriptoscope-theme-picker-tile')).toHaveCount(18);
+    await expect(page.locator('#powers-folders .scriptoscope-theme-picker-tile')).toHaveCount(18);
     // OFF-mode tile click remounts (the demo's capture listener).
     await page.locator('.scriptoscope-theme-picker-tile[data-slug="windows-31"]').click();
     await expect(page.locator('#powers.scriptoscope-ready')).toBeVisible();
@@ -160,6 +161,14 @@ for (const mode of ['source', 'built']) {
     await expect.poll(async () => (await chrome())?.theme, 'rethemed to evolution').toBe('evolution');
     await expect.poll(async () => (await chrome())?.pixels !== win31.pixels, 'chrome repainted after the second tile click').toBe(true);
     await expect(page.locator('#powers [data-scriptoscope-window-host]:not([data-scriptoscope-theme="evolution"])')).toHaveCount(0);
+  });
+
+  test(`${mode}: a first-party tile rethemes every window from authoring/schemes`, async ({ page, demo, production }) => {
+    await openShowcase(page, baseOf({ demo, production }));
+    const castle = './authoring/schemes/castle';
+    await page.locator(`#powers-first-party .scriptoscope-theme-picker-tile[data-slug="${castle}"]`).click();
+    await expect.poll(() => page.locator(`#powers [data-scriptoscope-window-host]:not([data-scriptoscope-theme="${castle}"])`).count()).toBe(0);
+    await expect(page.locator('#powers-credit')).toContainText('Castle');
   });
 }
 

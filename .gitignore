@@ -48,6 +48,9 @@ playwright/.cache/
 # Research scratch — period theme binaries kept locally for deconstruction.
 # See docs/RESEARCH-SPIKE-THEMES.md. Never committed to git.
 .scratch/
+
+# Generated MacBinary files for emulator use (built by `npm run author -- <dir>`)
+authoring/schemes/*/*.bin
 .gstack/
 
 # Generated diagnostic renders (regenerable via npm run diag:render)
@@ -76,3 +79,6 @@ tests/engine-diff/.cases-base-*.mjs
 
 # Local runtime-spike reports; tracked summaries are curated snapshots.
 /tools/runtime-spike/.artifacts/
+
+# Contact sheets from `npm run author -- <dir> --sheet` (generated; regenerate locally)
+authoring/schemes/*/sheet.png

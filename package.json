@@ -74,7 +74,7 @@
     "verify:scenes": "node scripts/verify-visual-baselines.mjs",
     "test:visual-baselines": "node --test --experimental-strip-types tests/visual-baselines/boot-affordance.spec.mjs tests/visual-baselines/window-promotion.spec.mjs tests/visual-baselines/mobile-layout.spec.mjs tests/visual-baselines/control-template-size.spec.mjs tests/visual-baselines/control-background-sample.spec.mjs tests/visual-baselines/window-shell-style.spec.mjs tests/visual-baselines/control-ring.spec.mjs tests/visual-baselines/diagnostic-hash.spec.mjs",
     "audit:scenes": "node scripts/scene-coverage-audit.mjs",
-    "test": "node --experimental-strip-types --test tools/theme-loader/*.test.mjs tools/sit-wasm/*.test.mjs src/declarative/*.test.mjs src/*.test.mjs src/engine/*.test.mjs src/engine/*/*.test.mjs tests/rendering-requirements/*.test.mjs tests/control-availability/*.test.mjs tests/reference-captures/*.test.mjs tests/source-inputs/*.test.mjs tests/research-observations/*.test.mjs tests/rendering-options/*.test.mjs tests/acceptance-bindings/*.test.mjs tests/engine-diff/*.test.mjs scripts/*.test.mjs",
+    "test": "node --experimental-strip-types --test tools/theme-loader/*.test.mjs tools/theme-author/*.test.mjs tools/sit-wasm/*.test.mjs src/declarative/*.test.mjs src/*.test.mjs src/engine/*.test.mjs src/engine/*/*.test.mjs tests/rendering-requirements/*.test.mjs tests/control-availability/*.test.mjs tests/reference-captures/*.test.mjs tests/source-inputs/*.test.mjs tests/research-observations/*.test.mjs tests/rendering-options/*.test.mjs tests/acceptance-bindings/*.test.mjs tests/engine-diff/*.test.mjs scripts/*.test.mjs",
     "import": "node scripts/import-scheme.mjs",
     "lint:cleanroom": "node scripts/check-cleanroom.mjs",
     "lint:ledger-history": "node scripts/check-ledger-history.mjs",
@@ -82,7 +82,7 @@
     "lane:ready": "node scripts/lane-ready.mjs",
     "engine-diff": "node tests/engine-diff/run.mjs --check",
     "engine-diff:write": "node tests/engine-diff/run.mjs --write",
-    "gates": "npm run typecheck && npm run lint:cleanroom && npm test && npm run lint:themes -- --strict && npm run audit:scenes -- --check && npm run test:requirements && npm run test:availability:sources && npm run test:references && npm run test:source-inputs && npm run test:acceptance:bindings",
+    "gates": "npm run typecheck && npm run lint:cleanroom && npm run check:schemes && npm test && npm run lint:themes -- --strict && npm run audit:scenes -- --check && npm run test:requirements && npm run test:availability:sources && npm run test:references && npm run test:source-inputs && npm run test:acceptance:bindings",
     "test:rendering": "npm run build:demo && playwright test --config tests/rendering-options/playwright.config.mjs",
     "test:rendering:extended": "npm run build:demo && SCRIPTOSCOPE_RENDERING_PROFILE=extended playwright test --config tests/rendering-options/playwright.config.mjs",
     "test:rendering:interaction": "npm run build:demo && SCRIPTOSCOPE_RENDERING_SUITE=interaction playwright test --config tests/rendering-options/playwright.config.mjs",
@@ -96,7 +96,12 @@
     "test:source-inputs": "node tests/source-inputs/validate.mjs",
     "test:acceptance:bindings": "node --experimental-strip-types tests/acceptance-bindings/generate.mjs",
     "loc:src": "node scripts/src-loc.mjs",
-    "spike:runtime": "node tools/runtime-spike/run.mjs"
+    "spike:runtime": "node tools/runtime-spike/run.mjs",
+    "author": "node scripts/author-scheme.mjs",
+    "check:schemes": "node scripts/check-authored-schemes.mjs",
+    "sim8": "node scripts/sim8.mjs",
+    "paint-over": "node scripts/paint-over.mjs",
+    "capture:authoring": "node scripts/capture-authoring-preview.mjs"
   },
   "engines": {
     "node": ">=20"
