@@ -25,14 +25,24 @@ concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Sharded since #576: the single serial job took 31-49 min, ~33 of them in the
+# browser contracts. The work is split into parallel jobs and the job named
+# "Gates + build + browser contracts" is kept as the aggregate: it fails unless
+# every part passed, the union of the contract shards ran exactly the unsharded
+# `--list` inventory, and the merged requirement execution evidence validates.
+# Shard count only changes balance (Playwright splits by test count, keeping a
+# file's same-worker tests together); tests/rendering-options/shards.mjs proves coverage parity every run.
+env:
+  RENDERING_SHARDS: 5
+
 jobs:
-  test:
-    name: Gates + build + browser contracts
+  gates:
+    name: Gates, engine diff and builds
     runs-on: ubuntu-24.04
     container:
       image: mcr.microsoft.com/playwright:v1.64.0-noble@sha256:06a9939e57531807f8d5fd76ce44b53165ffb7d7501d87ab10e285c20b1e971f
       options: --ipc=host
-    timeout-minutes: 75
+    timeout-minutes: 30
 
     steps:
       - uses: actions/checkout@v6
@@ -122,14 +132,181 @@ jobs:
       - name: Browser button activation regression
         run: node --test tests/visual-baselines/button-activation.spec.mjs
 
+  rendering:
+    name: Rendering contracts (shard ${{ matrix.shard }}/5)
+    runs-on: ubuntu-24.04
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble@sha256:06a9939e57531807f8d5fd76ce44b53165ffb7d7501d87ab10e285c20b1e971f
+      options: --ipc=host
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        # Keep in step with RENDERING_SHARDS above.
+        shard: [1, 2, 3, 4, 5]
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Seconds; rebuilding per shard is cheaper than sharing dist/ as an artifact.
+      - name: Bake theme derivatives
+        run: npm run build:themes
+
       # The immutable Linux image and exact Playwright package pin Chromium. Browser
       # coverage exercises real consumer DOM and the built public entry as well
       # as raw source pixels; gates alone cannot see CSS decoration regressions.
+      # test:rendering builds the library and demo, then runs this shard's slice.
       - name: Rendering option contracts (bounded corpus matrix)
-        run: npm run test:rendering
+        run: |
+          export SCRIPTOSCOPE_RENDERING_JSON_REPORT="$GITHUB_WORKSPACE/test-results/rendering-shard-report/report.json"
+          npm run test:rendering -- --shard=${{ matrix.shard }}/${{ env.RENDERING_SHARDS }}
+
+      # Fixed names (overwritten on re-run) so the aggregate sees exactly one per shard.
+      - name: Upload shard observations
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rendering-evidence-shard-${{ matrix.shard }}
+          path: test-results/rendering-evidence/
+          if-no-files-found: ignore
+          overwrite: true
+          retention-days: 14
+
+      - name: Upload shard test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rendering-shard-report-${{ matrix.shard }}
+          path: test-results/rendering-shard-report/report.json
+          if-no-files-found: ignore
+          overwrite: true
+          retention-days: 14
+
+      - name: Upload rendering failure evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rendering-options-shard-${{ matrix.shard }}-${{ github.run_attempt }}
+          path: |
+            test-results/rendering-options/
+            playwright-report/rendering-options/
+            test-results/rendering-failure-archive/
+          if-no-files-found: ignore
+          retention-days: 14
+
+  goldens:
+    name: Reviewed rendering goldens (exact Linux comparison)
+    runs-on: ubuntu-24.04
+    # The golden manifest gates the exact image, browser and launch flags (#541):
+    # keep this container identical to the one the goldens were recorded in.
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble@sha256:06a9939e57531807f8d5fd76ce44b53165ffb7d7501d87ab10e285c20b1e971f
+      options: --ipc=host
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Bake theme derivatives
+        run: npm run build:themes
 
       - name: Reviewed rendering goldens (exact Linux comparison)
         run: npm run test:rendering:goldens
+
+      - name: Upload golden observations
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rendering-evidence-goldens
+          path: test-results/rendering-evidence/
+          if-no-files-found: ignore
+          overwrite: true
+          retention-days: 14
+
+      - name: Upload golden failure evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rendering-goldens-${{ github.run_attempt }}
+          path: |
+            test-results/rendering-options/
+            playwright-report/rendering-options/
+            test-results/rendering-failure-archive/
+          if-no-files-found: ignore
+          retention-days: 14
+
+  test:
+    # The historical required check name; now the aggregate of the jobs above.
+    name: Gates + build + browser contracts
+    needs: [gates, rendering, goldens]
+    if: ${{ always() }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    steps:
+      # Same commit as the shards: execution evidence is only trusted when the
+      # checkout commit matches and the worktree is clean (downloads go under
+      # the gitignored test-results/).
+      - uses: actions/checkout@v6
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download shard observations
+        uses: actions/download-artifact@v4
+        with:
+          pattern: rendering-evidence-*
+          path: test-results/shard-evidence
+
+      - name: Download shard test reports
+        uses: actions/download-artifact@v4
+        with:
+          pattern: rendering-shard-report-*
+          path: test-results/shard-reports
+
+      # Every test in the unsharded inventory ran exactly once across the shards.
+      - name: Rendering contract coverage parity (shards vs unsharded list)
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx playwright test --config tests/rendering-options/playwright.config.mjs --list --reporter=json > test-results/rendering-list.json
+          reports=()
+          for i in $(seq 1 "$RENDERING_SHARDS"); do reports+=("test-results/shard-reports/rendering-shard-report-$i/report.json"); done
+          node tests/rendering-options/shards.mjs parity --list test-results/rendering-list.json --expect-reports "$RENDERING_SHARDS" "${reports[@]}"
+
+      # Shard order is run order, then goldens, as in the former serial job.
+      - name: Merge rendering observations
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          dirs=()
+          for i in $(seq 1 "$RENDERING_SHARDS"); do dirs+=("test-results/shard-evidence/rendering-evidence-shard-$i"); done
+          node tests/rendering-options/shards.mjs evidence --out test-results/rendering-evidence --expect-executions "$RENDERING_SHARDS" "${dirs[@]}" test-results/shard-evidence/rendering-evidence-goldens
 
       # Fidelity assessments are reviewed data; execution is a separate column.
       # Require the exact registered source/built assertions to have actually run.
@@ -151,14 +328,13 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
-      - name: Upload rendering failure evidence
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: rendering-options-${{ github.run_attempt }}
-          path: |
-            test-results/rendering-options/
-            playwright-report/rendering-options/
-            test-results/rendering-failure-archive/
-          if-no-files-found: ignore
-          retention-days: 14
+      - name: All parts passed
+        if: always()
+        shell: node {0}
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          const needs = JSON.parse(process.env.RESULTS);
+          for (const [name, job] of Object.entries(needs)) console.log(`${name}: ${job.result}`);
+          const failed = Object.keys(needs).filter(name => needs[name].result !== 'success');
+          if (failed.length) { console.error(`not passed: ${failed.join(', ')}`); process.exit(1); }
