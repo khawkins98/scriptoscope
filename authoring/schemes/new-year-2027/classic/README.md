@@ -10,9 +10,50 @@ about tall frames are in
 
 | File | What it shows |
 |---|---|
-| `desktop@2x.png` | System Folder list view (active, 414 px wide) over the inactive disk window: fireworks, gold title plate, "2027", clock grow box, navy menu bar and starry desktop |
-| `wide@2x.png` | the same window widened to 599 px |
+| `desktop@2x.png` | the transfer disk's window (icon view) over the desktop pattern, the arrow cursor on the desktop (2026-10-31, control-panel extras run) |
+| `wide@2x.png` | the System Folder list view widened to 599 px (the earlier 2026-10-31 run) |
 | `narrow-title-drop@3x.png` | left: 143 px wide, title, "2027" and both fireworks gone; right: 213 px wide, "Syste…", "2027" and the fireworks back |
+| `about@2x.png` | About This Scheme: the about box over the control panel |
+| `cursor@6x.png` | the arrow cursor over the desktop pattern (crop of `desktop@2x.png`) |
+| `scheme-picker@2x.png` | the Select Scheme list with the scheme icons |
+| `control-panel@2x.png` | the Kaleidoscope control panel with Midnight 2027 selected: which options are enabled |
+| `menu-open@2x.png` | the File menu held open: navy menu with the gold highlight |
+
+## 2026-10-31 (later): control-panel extras
+
+One clean boot (fresh copies of the v16l system and transfer seeds, sound off
+with `nosound true`, 8 bpp) loaded Halcyon, a test copy of Halcyon with the
+accent flag set (not committed), Halcyon again, Midnight 2027, Castle,
+Brickworks and Bonn in turn through **Select Scheme…**, from the transfer disk.
+A second clean boot loaded the rebuilt Bonn (its cursor was changed after the
+first).
+`scheme.bin` sha256 `74debc874b7a9b327b04a9c1f0e1e2b48d70798157d2a22d82b3d93e3995531e`.
+`desktop@2x.png` was retaken in this run (the transfer disk's window, icon
+view, over the starry desktop).
+
+- **Loading:** no errors. The panel reads "Midnight 2027 / An original
+  first-party scheme for Scriptoscope, 2026".
+- **Enabled now:** Arrow Cursor, WindowShade Sounds, Desktop Pattern and About
+  This Scheme (`control-panel@2x.png`).
+- **Still greyed:** Finder Icons (not shipped), Finder Colors (the scheme ships
+  the Finder colour records `cicn -9552…-9548`, but the panel's own help says
+  the box is disabled under System 7, so it can't be checked on this disk),
+  Accent Color (not shipped, see Halcyon's README) and Alternate Checkboxes.
+- **About box** (`about@2x.png`): the scheme's dialog frame, the picker icon
+  (`cicn 128`) and the text. A click anywhere closes it. The text is drawn in
+  the panel's small application font, not the Chicago 12 the box was sized
+  for, so there is spare room under the text.
+- **WindowShade sounds:** not audibly verified (sound off). Collapsing and
+  expanding a window with the sounds enabled ran without errors (tried on
+  Bonn).
+- **Scheme picker** (`scheme-picker@2x.png`): the Select Scheme list shows each
+  scheme's icon. A highlighted row is always drawn with the generic document
+  icon, for every scheme including Apple Lisa, so the shot highlights another
+  row.
+- **Cursor** (`cursor@6x.png`): on the night-sky desktop the navy fill merges
+  with the desktop and the arrow reads as its gold outline, as intended; on
+  white bodies the navy fill carries it.
+- **Not intended / different:** nothing beyond the above.
 
 ## 2026-10-31: first run
 

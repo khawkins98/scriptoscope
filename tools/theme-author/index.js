@@ -16,3 +16,8 @@ export { fitPalette, colorCount } from './fit-palette.js';
 export { simulate8bit, systemEntryFor, nearestSystemIndex } from './sim8.js';
 export { paletteReport, formatPaletteReport, flattenPalette, contrastRatio, relativeLuminance, CONTRAST_FLOORS } from './palette-report.js';
 export { contactSheet } from './contact-sheet.js';
+export { encodeStrList, toMacRoman, pascalString } from './encode-strings.js';
+export { encodeDlog, encodeDitl, DIALOG_POSITION, DITL_TYPE } from './encode-dialog.js';
+export { encodeCrsr, encodeCrsrRecord } from './encode-crsr.js';
+export { encodeSnd, synthesize, toOffsetBinary, SND_RATE } from './encode-snd.js';
+export { aboutBox, arrowCursors, shadeSounds, rasterFromIconFamily, ARROW, ABOUT_ID, ABOUT_ICON_ID } from './classic-extras.js';

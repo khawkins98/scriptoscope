@@ -105,6 +105,11 @@ encoder is the inverse of a decoder there, and the tests prove the round trip.
 | `encode-ppat.js` | `encodePpat(raster)`: tiling patterns (desktop, window backgrounds, progress stripes) |
 | `encode-icons.js` | `encodeIconFamily`, `encodeIconPlane`, `encodeIconList`: Finder-style icons (`ICN#`, `icl8`, `icl4`, `ics#`, `ics8`, `ics4`) in the system palettes |
 | `encode-clut.js` | `encodeClut`, `encodeHeaderClut`: colour tables, e.g. the window header colours |
+| `encode-strings.js` | `encodeStrList` (`STR#`), `toMacRoman`, `pascalString` |
+| `encode-dialog.js` | `encodeDlog`, `encodeDitl`: dialog templates (the about box) |
+| `encode-crsr.js` | `encodeCrsr`: a 16×16 colour cursor from a raster |
+| `encode-snd.js` | `encodeSnd`: an 8-bit sampled `snd `; `synthesize`: a small deterministic synthesizer for original sounds |
+| `classic-extras.js` | `aboutBox`, `arrowCursors`, `shadeSounds`: the control-panel extras in one call each (§6) |
 | `macbinary.js` | `writeMacBinary`: packs the fork with type `Colr` / creator `Acid` for a classic Mac (§2) |
 | `encode-records.js` | `encodeWnd`, `encodeCinf`, `encodeColr`, `encodeVers` |
 | `window-layout.js` | `windowLayout(spec)`: one description gives both the frame geometry and a matching `wnd#` recipe, for simple rounded frames |
@@ -120,7 +125,10 @@ The writers are checked against the real corpus. Re-writing all 18 bundled
 schemes with `writeResourceFork` returns every resource byte for byte, and
 re-encoding all 3,325 corpus `cicn`s with `encodeCicn` gives identical pixels.
 The same holds for all 217 indexed corpus `ppat`s, 4,937 colour icon planes,
-2,803 black-and-white icon planes and 60 `clut`s.
+2,803 black-and-white icon planes and 60 `clut`s, and for every corpus
+`STR#`, about-box `DLOG`/`DITL`, `crsr` and standard-header format-1 `snd `
+(`encode-classic.test.mjs`; the loader has no decoder for these, so the test
+reads them itself).
 
 ## 4. Five ideas you need
 
@@ -325,6 +333,7 @@ look smooth:
    | `parts/controls.mjs` | sliders, tabs and tab panes, bevel buttons, popup-button pieces |
    | `parts/progress.mjs` | progress bars and the barber-pole patterns, Finder list headers, disclosure triangles, grow boxes |
    | `parts/menus.mjs` | menu bar and menus, desktop and utility patterns, Finder colours, header colour tables, the scheme icon |
+   | `parts/classic.mjs` | the control-panel extras: about box, arrow cursors, WindowShade sounds (§6) |
 
    Family lessons, all found by building Halcyon:
    - **Scrollbars:** the track only reaches 1px under each end of the thumb,
@@ -346,6 +355,12 @@ look smooth:
      colours are sampled from the image's middle, which the engine never
      copies. Kaleidoscope adds its own 2px black shadow on the right of an
      open menu.
+   - **Control-panel extras:** each "Use This Scheme's" option and button in
+     Kaleidoscope's control panel is enabled by a resource the scheme ships
+     (§6). The builders in `classic-extras.js` write all of them; a
+     scheme's `classic.mjs` is three calls. Keep the cursor's fill and edge
+     far apart and test it on the scheme's own desktop: Bonn's first cursor
+     (teal on a teal desktop) all but vanished in real Kaleidoscope.
    - **8 bpp:** subtle tints become palette colours on a 256-colour screen, so
      the desktop pattern uses colours that are exactly in the system palette
      (`SYSTEM_PALETTE_256`, exported from the toolkit).
@@ -360,6 +375,8 @@ look smooth:
      | progress, headers, disclosure, grow box | Halcyon's `parts/progress.mjs` | every colour is in one `family()` block |
      | sliders, tabs | `bonn/families.mjs` (also bevels and popups) or `brickworks/extras.mjs` | re-themed copies of Halcyon's `parts/controls.mjs`, which hard-codes about 30 colours (recolouring it by hand took Bonn about 10 minutes) |
      | body patterns, Finder colours | `castle/patterns.mjs` | small; the header says which `ppat` feeds which body |
+     | menus | `castle/menus.mjs` or `brickworks/menus.mjs` | every colour in a few lines at the top |
+     | control-panel extras | any scheme's `classic.mjs` | three builder calls with the scheme's name, icon, cursor colours and sounds |
 
      The pressed strip comes from the toolkit (`stripLayout`,
      `pressedStripFrom`), so there is nothing to copy for it.
@@ -396,10 +413,34 @@ look smooth:
 | `-9552 … -9548` | `cicn` + `cinf` | Finder colours |
 | `-14336 / -14335`, `300` | `clut` | window header colours; slider and focus-ring colours |
 | `-16455` | `ICN#`, `icl8`, `icl4`, `ics#`, `ics8`, `ics4` | the scheme's icon in Kaleidoscope's picker |
+| `-14320` | `DLOG` + `DITL` | the about box (About This Scheme) |
+| `128` | `cicn` | the about box's icon (any id the `DITL` icon item names; first-party schemes use 128) |
+| `-14320` | `STR#` | control panel strings: the scheme's name, then its description |
+| `0`, `-20486 … -20488` | `crsr` | arrow cursor; the Finder's duplicate, make-alias and contextual-menu cursors |
+| `-14336` / `-14335` | `snd ` | WindowShade sounds: collapse / expand |
 | `129` | `Colr` | scheme flags |
 | `1` | `vers` | version |
 
 (Value 3, "alternate", would use the next three ids of each kind; Halcyon doesn't ship it.)
+
+**Control panel extras.** Kaleidoscope 2.3.1's control panel greys out each
+"Use This Scheme's" option, the Accent Color popup and the About This Scheme
+button unless the scheme ships what it needs. The rules come from the panel's
+own help (its `TEXT 1005` "Using the Control Panel": "This box is disabled if
+the scheme does not include …"), the corpus author labels
+([`spec/corpus-corroborated-ids.md`](./spec/corpus-corroborated-ids.md)) and
+the 2026-10-31 emulator runs (each scheme's `classic/README.md`).
+
+| Option | Enabled by | Format | First-party schemes |
+|---|---|---|---|
+| Desktop Pattern | `ppat 17` | power-of-two pattern (`encodePpat`) | all five |
+| About This Scheme | `DLOG -14320` naming `DITL -14320` | dialog template; items: static text, an icon (`cicn` with the item's id) or a `PICT`, and an enabled user item over the box so any click closes it (Windows 95's layout). `STR# -14320` (name, description) also replaces the `vers` line in the panel | all five (`aboutBox`) |
+| Arrow Cursor | `crsr 0` | 16×16 colour cursor, hot spot (1, 1) for the standard arrow shape; the corpus also ships the Finder's `-20486/-20487/-20488` | all five (`arrowCursors`) |
+| WindowShade Sounds | `snd -14336` (collapse) and `-14335` (expand) | format 1, one sampled sound, 8-bit offset binary; the user must also turn on "Use WindowShade Sounds" in General Options | all five (`shadeSounds`, synthesized) |
+| Finder Colors | `cicn` + `cinf -9552 … -9548` (desktop text, icon view, list view, sort column, divider) | colour records | all five ship them; the panel disables the box under System 7 whatever the scheme ships, so it can't be checked on the System 7.5.5 reference |
+| Finder Icons | Finder icon families at the system ids (`-3999` folder, `-3993` trash, `-4000` document …) | `ICN#`/`icl8`/… families (`encodeIconFamily`) | none (dozens of families each) |
+| Accent Color | `Colr 129` byte 3 ("Has accent colors") | the popup's names are fixed by the panel (`MENU -14334`, Lavender … Teal, `clut 300–318`); Apple Platinum-style schemes add per-accent art (`cicn -12287…` "Menu Highlight: Lavender", `-10223…` "Progress Bar: …", thumbs) | none: with the flag alone the popup enables but choosing an accent changes nothing on cicn-themed menus (Halcyon test, 2026-10-31) |
+| Alternate Checkboxes | the alternate checkbox set (value 3 above) | `cicn` | none |
 
 Every `wnd#` id N pairs with `cicn` N (inactive) and N + 1 (active). For the
 full id vocabulary, see
@@ -435,6 +476,7 @@ fires on an original scheme is at most a warning.
 | warning | a `cinf` whose text and background sample the same colour (text on that piece is invisible) |
 | warning | title text against the title bar below 2:1 (active) or 1.4:1 (inactive), from the swatch and the bar's commonest colour in the glyph rows |
 | warning | a push or pressed push label against its face below 2:1 |
+| warning | an about box (`DLOG -14320`) whose `DITL` is missing, or whose icon or picture item names a `cicn`/`ICON` or `PICT` the scheme doesn't ship |
 
 It also prints the colours the engine *will* sample, such as title text and
 button labels, with their contrast against the bar or face, so you can
@@ -443,8 +485,10 @@ purpose: no corpus scheme goes below them, while the design floors (4.5:1
 for an active title, 3:1 inactive) would fire on 5 and 6 of the 18. Use the
 printed ratios and `--palette` for those. A "classic extras"
 line says which things real Kaleidoscope shows beyond the windows the scheme
-ships: the desktop pattern, the picker icon, menus, and pressed utility
-widgets (`-14298`) when utility windows have widgets. They aren't warnings,
+ships: the desktop pattern, the picker icon, menus, pressed utility widgets
+(`-14298`) when utility windows have widgets, and each control-panel extra
+from §6 (about box, panel strings, arrow cursor, WindowShade sounds, Finder
+colours, Finder icons, accent colours). They aren't warnings,
 because plenty of corpus schemes skip them, but Castle's and Brickworks'
 builders only found out in the emulator.
 
@@ -461,12 +505,13 @@ or the built-in Platinum look:
 
 - **Text fields:** always drawn by CSS in the web runtime, and no corpus
   scheme ships field art.
-- **Finder icons, cursors, sounds, the About box:** possible with the icon
-  encoder (Finder icons), or would need new encoders for `crsr`, `snd` and
-  `PICT`.
-- **Accent colours and "Finder Colors"** in the Kaleidoscope control panel:
-  accent colours need the `Colr` accent flag plus named accent `clut`s; the
-  trigger for Finder Colors isn't decoded.
+- **Finder icons:** possible with the icon encoder, but a full set is dozens
+  of families (§6).
+- **Accent colours:** the flag alone gives a popup that does nothing for
+  cicn-themed menus; the per-accent art ids are only known for the older
+  Platinum-style menu family (§6).
+- **A picture in the about box:** there is no `PICT` encoder; the first-party
+  about boxes use an icon and text.
 - **The popup, side-floating and no-title utility window types.**
 - **Placards:** no corpus scheme ships one, and their ids are unknown.
 
@@ -506,6 +551,11 @@ can repeat it:
 3. Boot with sound off, open the Kaleidoscope control panel, click **Select
    Scheme…**, pick the file, and click **Open**.
 
+The seed system disk has about 1.4 MB free, which fits one or two schemes.
+For more, copy them onto the fresh transfer-disk copy instead and pick them
+from there in Select Scheme (the 2026-10-31 extras run did this for all five).
+With sound off, WindowShade sounds can be enabled and exercised but not heard.
+
 What real Kaleidoscope showed that the web preview doesn't:
 
 - In the first test, Halcyon had a blank icon in the scheme picker, and the
@@ -513,9 +563,10 @@ What real Kaleidoscope showed that the web preview doesn't:
   Colors, Desktop Pattern, Accent Color and About This Scheme, because the
   scheme shipped none of them. Menus, scrollbars and the desktop stayed on the
   system defaults. Halcyon now themes them (§5, item 6), and real Kaleidoscope
-  draws its menu bar, menus, desktop pattern and scheme icon. Finder icons,
-  cursors, sounds and the Finder Colors and Accent Color options still stay
-  on the system defaults (the classic README).
+  draws its menu bar, menus, desktop pattern and scheme icon, and enables
+  Arrow Cursor, WindowShade Sounds and About This Scheme (§6). Finder Icons,
+  Finder Colors (greyed on System 7) and Accent Color stay greyed (the
+  classic README).
   `npm run author` prints what a scheme ships of these ("classic extras", §7).
 - A plain dialog or alert body is the system dialog grey (`#E7E7E7`) under the
   frame's white top band; Scriptoscope's web runtime fills it white. That is

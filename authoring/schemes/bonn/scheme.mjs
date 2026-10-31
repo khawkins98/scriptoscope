@@ -33,6 +33,7 @@
 //   progress.mjs    progress bar + barge, list headers, disclosure, grow boxes
 //   menus.mjs       menu bar, pull-down and pop-up menus, the grabber
 //   icon.mjs        the scheme's picker icon (a cherry blossom)
+//   classic.mjs     control-panel extras (classic only): about box, arrow cursor, WindowShade sounds
 //
 // Not themed (falls back): popup / side-floating / no-title utility windows,
 // text fields (CSS on the web).
@@ -40,7 +41,7 @@ import { encodeCicn, encodeWnd, encodeColr, encodeVers, stripLayout } from '../.
 import { windowTypes, paintFrame } from './frames.mjs';
 import { pressedStrip } from './widgets.mjs';
 
-const PARTS = ['controls', 'scrollbars', 'patterns', 'families', 'progress', 'menus', 'icon'];
+const PARTS = ['controls', 'scrollbars', 'patterns', 'families', 'progress', 'menus', 'icon', 'classic'];
 
 export async function buildScheme() {
   const resources = [];

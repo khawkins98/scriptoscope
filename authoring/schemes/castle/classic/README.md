@@ -11,19 +11,68 @@ title bar, narrow-window behaviour, 8 bpp colour shifts) are in
 
 | File | What it shows |
 |---|---|
-| `desktop@2x.png` | System Folder list view (active) over the inactive disk window: towers, flags, crenellations, the red title plate |
-| `wide@2x.png` | the same window widened to 608 px |
+| `desktop@2x.png` | the transfer disk's window (icon view) over the desktop pattern, the arrow cursor on the desktop (2026-10-31, control-panel extras run) |
+| `wide@2x.png` | the System Folder list view widened to 608 px (the earlier 2026-10-31 run) |
 | `desktop-before-repaint@2x.png` | the 2026-10-30 build, before the paint-over from the concept art |
 | `desktop-before-redesign@2x.png` | the build before the visual design pass |
+| `about@2x.png` | About This Scheme: the about box over the control panel |
+| `cursor@6x.png` | the arrow cursor over the desktop pattern (crop of `desktop@2x.png`) |
+| `scheme-picker@2x.png` | the Select Scheme list with the scheme icons |
+| `control-panel@2x.png` | the Kaleidoscope control panel with Castle selected: which options are enabled |
+| `menu-open@2x.png` | the File menu held open: stone bar, banner-red highlight |
 
-## 2026-10-31: classic extras added, not yet verified in Kaleidoscope
+## 2026-10-31 (later): control-panel extras, and the desktop verified
+
+One clean boot (fresh copies of the v16l system and transfer seeds, sound off
+with `nosound true`, 8 bpp) loaded Halcyon, a test copy of Halcyon with the
+accent flag set (not committed), Halcyon again, Midnight 2027, Castle,
+Brickworks and Bonn in turn through **Select Scheme…**, from the transfer disk.
+A second clean boot loaded the rebuilt Bonn (its cursor was changed after the
+first).
+`scheme.bin` sha256 `ac6051f59f389d8aaac95e481baf835dc90c9e579d99f447e56cca646a00dac8`.
+`desktop@2x.png` was retaken in this run (the transfer disk's window, icon
+view).
+
+- **Loading:** no errors. The panel reads "Castle / An original first-party
+  scheme for Scriptoscope, 2026".
+- **Desktop pattern (added earlier today): verified.** The flat sky with pale
+  wisps tiles the whole desktop (`desktop@2x.png`), and the panel's Desktop
+  Pattern box is enabled.
+- **Enabled now:** Arrow Cursor, WindowShade Sounds, Desktop Pattern and About
+  This Scheme (`control-panel@2x.png`). The 2026-10-31 note below said About
+  This Scheme was enabled before Castle shipped an about box; the screenshots
+  from that run can't confirm it, so treat that line as unverified.
+- **Still greyed:** Finder Icons (not shipped), Finder Colors (the scheme ships
+  the Finder colour records `cicn -9552…-9548`, but the panel's own help says
+  the box is disabled under System 7, so it can't be checked on this disk),
+  Accent Color (not shipped, see Halcyon's README) and Alternate Checkboxes.
+- **About box** (`about@2x.png`): the scheme's dialog frame, the picker icon
+  (`cicn 128`) and the text. A click anywhere closes it. The text is drawn in
+  the panel's small application font, not the Chicago 12 the box was sized
+  for, so there is spare room under the text.
+- **WindowShade sounds:** not audibly verified (sound off). Collapsing and
+  expanding a window with the sounds enabled ran without errors (tried on
+  Bonn).
+- **Scheme picker** (`scheme-picker@2x.png`): the Select Scheme list shows each
+  scheme's icon. A highlighted row is always drawn with the generic document
+  icon, for every scheme including Apple Lisa, so the shot highlights another
+  row.
+- **Cursor** (`cursor@6x.png`): the banner-red arrow with a parchment edge,
+  clear on the sky and on window bodies.
+- **Picker icon flicker (not understood):** Castle's row in the Select Scheme
+  list was drawn with the generic document icon in every list opened right
+  after a scheme switch in the same panel session (4 of 4, in both boots,
+  including one where Castle was never loaded), and with the tower in every
+  list opened from a freshly opened panel (3 of 3). No other scheme's row did
+  this. `scheme-picker@2x.png` shows the tower.
+- **Not intended / different:** nothing else.
+
+## 2026-10-31: classic extras added (verified later the same day, above)
 
 Added after the run below: a desktop pattern (`ppat 17`, 64×64: flat sky
 `#6699cc` with a sparse grain of pale `#99cccc` wisps, exact system-palette
-entries stored raw). The picker icon was already there. Built with `npm run
-author` (no errors) and checked in the 8-bit simulation, but it has **not been
-verified in real Kaleidoscope yet**: the screenshots and notes below predate
-it.
+entries stored raw). The picker icon was already there. Verified in real
+Kaleidoscope in the control-panel-extras run above.
 
 ## 2026-10-31: after the paint-over
 

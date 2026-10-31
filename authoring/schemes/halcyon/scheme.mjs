@@ -25,7 +25,8 @@
 //                               painted over from concept/concept.jpg
 //   parts/*.mjs     other control families: controls (sliders, tabs, bevels, popups),
 //                   menus (menus, desktop, Finder colours, icon), progress
-//                   (progress, headers, triangles, grow boxes), scrollbars
+//                   (progress, headers, triangles, grow boxes), scrollbars, classic
+//                   (control-panel extras: about box, arrow cursor, WindowShade sounds)
 
 import { Raster, encodeCicn, encodeCinf, encodeColr, encodeVers } from '../../../tools/theme-author/index.js';
 import { C } from './palette.mjs';

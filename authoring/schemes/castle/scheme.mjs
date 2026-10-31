@@ -31,12 +31,13 @@
 //   progress.mjs    progress bar + fringe barber pole, list headers, disclosure, portcullis grow box
 //   menus.mjs       menu bar and menus (classic only), the scheme icon
 //   patterns.mjs    parchment body (every window type), the sky desktop, Finder colours
+//   classic.mjs     control-panel extras (classic only): about box, arrow cursor, WindowShade sounds
 import { encodeCicn, encodeWnd, encodeColr, encodeVers } from '../../../tools/theme-author/index.js';
 import { windowTypes, paintFrame } from './frames.mjs';
 import { stripLayout } from '../../../tools/theme-author/index.js';
 import { pressedStrip } from './widgets.mjs';
 
-const PARTS = ['controls', 'scrollbars', 'families', 'progress', 'menus', 'patterns'];
+const PARTS = ['controls', 'scrollbars', 'families', 'progress', 'menus', 'patterns', 'classic'];
 
 export async function buildScheme() {
   const resources = [];

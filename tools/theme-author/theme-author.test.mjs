@@ -385,3 +385,29 @@ test('summary: classic extras say whether utility windows with widgets have a -1
   assert.match(extras([...util, { type: 'cicn', id: -14298, data: frame(10, 10) }]), /cicn -14298\) yes/);
   assert.doesNotMatch(extras(scheme()), /-14298/, 'no utility windows, no line');
 });
+
+test('summary: classic extras report the control-panel options, and the about box must name what it shows', async () => {
+  const { aboutBox, arrowCursors, shadeSounds, synthesize } = await import('./index.js');
+  const check = (res) => checkScheme(res);
+  const extras = (res) => check(res).summary.find((l) => l.startsWith('classic extras'));
+  const none = extras(scheme());
+  for (const re of [/about box \(DLOG -14320\) no/, /panel strings \(STR# -14320\) no/, /arrow cursor \(crsr 0\) no/,
+    /WindowShade sounds \(snd -14336\/-14335\) no/, /Finder colours \(cicn -9552…-9548\) no/, /Finder icons no/, /accent colours \(Colr 129 flag\) no/]) {
+    assert.match(none, re);
+  }
+  const about = aboutBox({ name: 'T', description: 'd', year: 2026, icon: new Raster(32, 32).fillRect(0, 0, 32, 32, '#336699') });
+  const s = synthesize([{ from: 440 }], { seconds: 0.05 });
+  const all = [...scheme(), ...about, ...arrowCursors({ fill: '#000000', outline: '#ffffff' }), ...shadeSounds({ collapse: s, expand: s }),
+    { type: 'Colr', id: 129, data: encodeColr({ hasAccentColors: true }) }];
+  const full = extras(all);
+  for (const re of [/about box \(DLOG -14320\) yes/, /panel strings \(STR# -14320\) yes/, /arrow cursor \(crsr 0\) yes/,
+    /WindowShade sounds \(snd -14336\/-14335\) yes/, /accent colours \(Colr 129 flag\) yes/]) {
+    assert.match(full, re);
+  }
+  assert.match(extras([...scheme(), shadeSounds({ collapse: s, expand: s })[0]]), /only one of the pair/);
+  assert.ok(!check(all).warnings.some((w) => /DLOG|DITL/.test(w)));
+  const noIcon = all.filter((r) => !(r.type === 'cicn' && r.id === 128));
+  assert.ok(check(noIcon).warnings.some((w) => /DITL -14320 item 2: its icon \(cicn\/ICON\) 128 isn't in the scheme/.test(w)));
+  const noDitl = all.filter((r) => r.type !== 'DITL');
+  assert.ok(check(noDitl).warnings.some((w) => /names DITL -14320, which the scheme doesn't ship/.test(w)));
+});

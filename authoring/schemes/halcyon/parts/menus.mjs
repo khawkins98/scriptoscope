@@ -231,7 +231,7 @@ const ICON16 = [
   '................',
 ];
 
-function schemeIcon(size) {
+export function schemeIcon(size) {
   const a = C.active, b = a.bird;
   const legend = {
     O: b.line, T: b.back, L: b.light, D: b.deep, K: b.eye, W: b.cheek, R: b.breast, r: b.breastLo, B: b.beak, F: b.feet,

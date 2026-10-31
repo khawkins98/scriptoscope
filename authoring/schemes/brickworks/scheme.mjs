@@ -20,6 +20,8 @@
 //   extras.mjs      progress bar, sliders, tabs, list headers, disclosure triangles, grow box
 //   patterns.mjs    baseplate document body, utility body, the baseplate desktop, Finder colours
 //   icon.mjs        the scheme's picker icon (a red 2×2 brick)
+//   menus.mjs       menu bar and menus (classic only): a yellow plate, red selections
+//   classic.mjs     control-panel extras (classic only): about box, arrow cursor, WindowShade sounds
 import { encodeCicn, encodeWnd, encodeColr, encodeVers, stripLayout } from '../../../tools/theme-author/index.js';
 import { windowTypes, paintFrame } from './frames.mjs';
 import { pressedStrip } from './widgets.mjs';
@@ -28,8 +30,10 @@ import * as scrollbars from './scrollbars.mjs';
 import * as extras from './extras.mjs';
 import * as patterns from './patterns.mjs';
 import * as icon from './icon.mjs';
+import * as menus from './menus.mjs';
+import * as classic from './classic.mjs';
 
-const PARTS = { 'controls.mjs': controls, 'scrollbars.mjs': scrollbars, 'extras.mjs': extras, 'patterns.mjs': patterns, 'icon.mjs': icon };
+const PARTS = { 'controls.mjs': controls, 'scrollbars.mjs': scrollbars, 'extras.mjs': extras, 'patterns.mjs': patterns, 'icon.mjs': icon, 'menus.mjs': menus, 'classic.mjs': classic };
 
 export async function buildScheme() {
   const resources = [];

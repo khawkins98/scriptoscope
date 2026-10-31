@@ -9,23 +9,70 @@ fidelity evidence. The general findings about tall frames are in
 
 | File | What it shows |
 |---|---|
-| `desktop@2x.png` | System Folder list view (active, 434 px wide) over the inactive disk window: skyline, peach title bar, sandstone sides, bridge and river, themed menu bar and desktop |
-| `wide@2x.png` | the same window widened to 609 px |
+| `desktop@2x.png` | the transfer disk's window (icon view) over the desktop pattern, the arrow cursor on the desktop (2026-10-31, control-panel extras run) |
+| `wide@2x.png` | the System Folder list view widened to 609 px (the earlier 2026-10-31 run) |
 | `narrow-title-drop@3x.png` | left: 153 px wide, title, cathedral and palace all gone; right: 188 px wide, "Sy…" with both landmarks back |
 | `menubar-clips-skyline@3x.png` | the window dragged up to the menu bar: the whole skyline is under it |
 | `water-zoom@4x.png` | the bridge and river in the bottom band |
 | `desktop-before-repaint@2x.png` | the 2026-10-30 build, before the paint-over from the concept art |
 | `water-zoom-before-redesign@4x.png` | the build before the visual design pass |
+| `about@2x.png` | About This Scheme: the about box over the control panel |
+| `cursor@6x.png` | the arrow cursor over the desktop pattern (crop of `desktop@2x.png`) |
+| `scheme-picker@2x.png` | the Select Scheme list with the scheme icons |
+| `control-panel@2x.png` | the Kaleidoscope control panel with Bonn selected: which options are enabled |
+| `menu-open@2x.png` | the File menu held open: peach bar, city-red highlight |
 
-## 2026-10-31: classic extras added, not yet verified in Kaleidoscope
+## 2026-10-31 (later): control-panel extras, and the picker icon verified
+
+One clean boot (fresh copies of the v16l system and transfer seeds, sound off
+with `nosound true`, 8 bpp) loaded Halcyon, a test copy of Halcyon with the
+accent flag set (not committed), Halcyon again, Midnight 2027, Castle,
+Brickworks and Bonn in turn through **Select Scheme…**, from the transfer disk.
+A second clean boot loaded the rebuilt Bonn (its cursor was changed after the
+first).
+The screenshots are from the second boot, of the final build: `scheme.bin`
+sha256 `557faccc42dcd949596840d2fe8adaa65c0c659f31b6d32174301e0f434e1514`.
+(The first boot loaded `e63c30700969534700f77a38f1fcc28e62e9d6497217a7eb2fa26cefb318485d`,
+which differs only in the cursor colours.) `desktop@2x.png` was retaken (the
+transfer disk's window, icon view).
+
+- **Loading:** no errors in either boot. The panel reads "Bonn / An original
+  first-party scheme for Scriptoscope, 2026".
+- **Picker icon (added earlier today): verified.** The cherry blossom shows in
+  the Select Scheme list (`scheme-picker@2x.png`), where the first run showed
+  a blank icon.
+- **Enabled now:** Arrow Cursor, WindowShade Sounds, Desktop Pattern and About
+  This Scheme (`control-panel@2x.png`).
+- **Still greyed:** Finder Icons (not shipped), Finder Colors (the scheme ships
+  the Finder colour records `cicn -9552…-9548`, but the panel's own help says
+  the box is disabled under System 7, so it can't be checked on this disk),
+  Accent Color (not shipped, see Halcyon's README) and Alternate Checkboxes.
+- **About box** (`about@2x.png`): the scheme's dialog frame, the picker icon
+  (`cicn 128`) and the text. A click anywhere closes it. The text is drawn in
+  the panel's small application font, not the Chicago 12 the box was sized
+  for, so there is spare room under the text.
+- **WindowShade sounds:** not audibly verified (sound off). Collapsing and
+  expanding a window with the sounds enabled ran without errors (tried on
+  Bonn).
+- **Scheme picker** (`scheme-picker@2x.png`): the Select Scheme list shows each
+  scheme's icon. A highlighted row is always drawn with the generic document
+  icon, for every scheme including Apple Lisa, so the shot highlights another
+  row.
+- **Cursor: changed after the first boot.** The first build's Rhine-teal
+  arrow with a cream edge all but vanished on the teal blossom desktop. The
+  final cursor is the frame's near-black outline colour (`#330000`) with the
+  cream edge (`cursor@6x.png`), clear on the desktop and on window bodies.
+- **Collapse/expand:** clicking the collapse box shaded and restored the
+  transfer disk's window with the sounds enabled (first boot), no errors.
+- **Not intended / different:** the cursor, as above.
+
+## 2026-10-31: classic extras added (verified later the same day, above)
 
 Added after the run below: the scheme picker icon (`ICN#`/`icl8`/`icl4`/
 `ics#`/`ics8`/`ics4` -16455, a five-petal cherry blossom with a yellow heart,
 the close box's flower, drawn separately at 32×32 and 16×16). This reverses
 the earlier "blank by design" decision. The desktop pattern was already there.
-Built with `npm run author` (no errors) and checked in the 8-bit simulation,
-but these have **not been verified in real Kaleidoscope yet**: the screenshots
-and notes below predate them.
+Verified in real Kaleidoscope in the control-panel-extras run above.
 
 ## 2026-10-31: after the paint-over
 

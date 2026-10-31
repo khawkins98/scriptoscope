@@ -9,24 +9,69 @@ fidelity evidence. The general findings about tall frames are in
 
 | File | What it shows |
 |---|---|
-| `desktop@2x.png` | System Folder list view (active, 522 px wide) over the inactive disk window: corner bricks, stud row, crane, scroll bars |
-| `wide@2x.png` | the same window widened to 618 px |
-| `control-panel@2x.png` | the Kaleidoscope control panel with Brickworks selected |
+| `desktop@2x.png` | the transfer disk's window (icon view) over the desktop pattern, the arrow cursor on the desktop (2026-10-31, control-panel extras run) |
+| `wide@2x.png` | the System Folder list view widened to 618 px (the earlier 2026-10-31 run) |
+| `control-panel@2x.png` | the Kaleidoscope control panel with Brickworks selected: Arrow Cursor, WindowShade Sounds, Desktop Pattern and About This Scheme enabled |
 | `title-plate-tiling@4x.png` | the stud row over the title plate in `wide@2x.png`, showing the seams at both plate edges |
 | `corner-zoom@6x.png` | the zoom and collapse widgets at the right end of the title bar |
 | `desktop-before-repaint@2x.png` | the 2026-10-30 build, before the paint-over from the concept art |
 | `corner-zoom-before-redesign@6x.png` | the build before the visual design pass |
+| `about@2x.png` | About This Scheme: the about box over the control panel |
+| `cursor@6x.png` | the arrow cursor over the desktop pattern (crop of `desktop@2x.png`) |
+| `scheme-picker@2x.png` | the Select Scheme list with the scheme icons |
+| `menu-open@2x.png` | the File menu held open: the new yellow plate menu bar, red selection |
 
-## 2026-10-31: classic extras added, not yet verified in Kaleidoscope
+## 2026-10-31 (later): control-panel extras, menus, and the icon and desktop verified
+
+One clean boot (fresh copies of the v16l system and transfer seeds, sound off
+with `nosound true`, 8 bpp) loaded Halcyon, a test copy of Halcyon with the
+accent flag set (not committed), Halcyon again, Midnight 2027, Castle,
+Brickworks and Bonn in turn through **Select Scheme…**, from the transfer disk.
+A second clean boot loaded the rebuilt Bonn (its cursor was changed after the
+first).
+`scheme.bin` sha256 `bdb0a42cf6616d31aeeb356cd5d7ae04d4329637b1384d9f9a6dcccade7ee1cd`.
+`control-panel@2x.png` and `desktop@2x.png` were retaken in this run.
+
+- **Loading:** no errors. The panel reads "Brickworks / An original
+  first-party scheme for Scriptoscope, 2026".
+- **Picker icon (added earlier today): verified.** The red 2×2 brick shows in
+  the Select Scheme list (`scheme-picker@2x.png`), where the first run showed
+  a blank icon.
+- **Desktop pattern (added earlier today): verified.** The green baseplate
+  with one stud per tile covers the desktop (`desktop@2x.png`).
+- **Menus (new):** the menu bar is a yellow plate with a lit top row and the
+  warm near-black outline; the selected title and item are red brick with
+  white text; menus are white tiles in the outline (`menu-open@2x.png`).
+- **Enabled now:** Arrow Cursor, WindowShade Sounds, Desktop Pattern and About
+  This Scheme (`control-panel@2x.png`).
+- **Still greyed:** Finder Icons (not shipped), Finder Colors (the scheme ships
+  the Finder colour records `cicn -9552…-9548`, but the panel's own help says
+  the box is disabled under System 7, so it can't be checked on this disk),
+  Accent Color (not shipped, see Halcyon's README) and Alternate Checkboxes.
+- **About box** (`about@2x.png`): the scheme's dialog frame, the picker icon
+  (`cicn 128`) and the text. A click anywhere closes it. The text is drawn in
+  the panel's small application font, not the Chicago 12 the box was sized
+  for, so there is spare room under the text.
+- **WindowShade sounds:** not audibly verified (sound off). Collapsing and
+  expanding a window with the sounds enabled ran without errors (tried on
+  Bonn).
+- **Scheme picker** (`scheme-picker@2x.png`): the Select Scheme list shows each
+  scheme's icon. A highlighted row is always drawn with the generic document
+  icon, for every scheme including Apple Lisa, so the shot highlights another
+  row.
+- **Cursor** (`cursor@6x.png`): the red plastic arrow with a white edge, clear
+  on the green baseplate and on white bodies.
+- **Not intended / different:** nothing beyond the above.
+
+## 2026-10-31: classic extras added (verified later the same day, above)
 
 Added after the run below: the scheme picker icon (`ICN#`/`icl8`/`icl4`/
 `ics#`/`ics8`/`ics4` -16455, a red 2×2 brick with four studs in three-quarter
 view, drawn separately at 32×32 and 16×16) and a desktop pattern (`ppat 17`,
 16×16: a muted green baseplate `#669966` with one stud per tile, rims
-`#99cc99` / `#336633`, exact system-palette entries stored raw). Menus are
-still not themed. Built with `npm run author` (no errors) and checked in the
-8-bit simulation, but these have **not been verified in real Kaleidoscope
-yet**: the screenshots and notes below predate them.
+`#99cc99` / `#336633`, exact system-palette entries stored raw). Menus came
+later the same day. Both were verified in real Kaleidoscope in the
+control-panel-extras run above.
 
 ## 2026-10-31: after the paint-over
 

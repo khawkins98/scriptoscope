@@ -32,11 +32,12 @@
 //   progress.mjs    progress bar + confetti barber pole, list headers, disclosure, clock grow box
 //   menus.mjs       menu bar and menus (classic only), the scheme icon
 //   patterns.mjs    white bodies, the night-sky desktop, Finder colours, header cluts
+//   classic.mjs     control-panel extras (classic only): about box, arrow cursor, WindowShade sounds
 import { encodeCicn, encodeWnd, encodeColr, encodeVers, stripLayout, pressedStripFrom } from '../../../tools/theme-author/index.js';
 import { windowTypes, paintFrame } from './frames.mjs';
 import { disc } from './art.mjs';
 
-const PARTS = ['controls', 'scrollbars', 'families', 'progress', 'menus', 'patterns'];
+const PARTS = ['controls', 'scrollbars', 'families', 'progress', 'menus', 'patterns', 'classic'];
 
 /** The pressed strip: each piece is the widget's frame pixels with the pressed (inverted) disc on top. */
 const pressed = (strip, frame) => pressedStripFrom({ strip, activeFrame: frame, draw: (role, raster, box) => disc(raster, box, role, 'active', true) });

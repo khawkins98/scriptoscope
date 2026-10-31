@@ -235,7 +235,41 @@ export function checkScheme(resources, theme) {
   const utilityWidgets = resources.some((r) => r.type === 'wnd#' && /utility/.test(known.get(r.id) ?? '')
     && decodeWnd(r.data).rectangles.some((x) => x.part >= 1 && x.part <= 3 && x.rect.right > x.rect.left));
   const utilityStrip = utilityWidgets ? `; pressed utility widgets (cicn -14298) ${has('cicn', -14298) ? 'yes' : 'no (classic reads utility windows\' pressed art from it)'}` : '';
-  summary.push(`classic extras: desktop pattern (ppat 17) ${yes(has('ppat', 17))}; picker icon (ICN# -16455) ${yes(has('ICN#', -16455))}; menus (cicn -12240) ${yes(has('cicn', -12240))}${utilityStrip}`);
+  // The control panel's "Use This Scheme's" options and buttons, and what
+  // enables each (the panel's own help, TEXT 1005 "Using the Control Panel";
+  // docs/authoring-a-scheme.md §6). Finder Colors stays greyed on System 7
+  // whatever the scheme ships.
+  const finderColours = [-9552, -9551, -9550, -9549, -9548].every((id) => has('cicn', id));
+  const finderIcons = ['ICN#', 'icl8', 'ics#', 'ics8', 'icns'].some((t) => resources.some((r) => r.type === t && r.id >= -4000 && r.id <= -3700));
+  const colr = find('Colr', 129);
+  const accent = !!colr && colr.data.length > 3 && colr.data[3] !== 0;
+  const sounds = [has('snd ', -14336), has('snd ', -14335)];
+  summary.push(`classic extras: desktop pattern (ppat 17) ${yes(has('ppat', 17))}; picker icon (ICN# -16455) ${yes(has('ICN#', -16455))}; menus (cicn -12240) ${yes(has('cicn', -12240))}${utilityStrip}; ` +
+    `about box (DLOG -14320) ${yes(has('DLOG', -14320))}; panel strings (STR# -14320) ${yes(has('STR#', -14320))}; arrow cursor (crsr 0) ${yes(has('crsr', 0))}; ` +
+    `WindowShade sounds (snd -14336/-14335) ${sounds.every(Boolean) ? 'yes' : sounds.some(Boolean) ? 'only one of the pair' : 'no (system default)'}; ` +
+    `Finder colours (cicn -9552…-9548) ${finderColours ? 'yes (Mac OS 8 only)' : 'no (system default)'}; Finder icons ${yes(finderIcons)}; accent colours (Colr 129 flag) ${accent ? 'yes' : 'no'}`);
+
+  // The about box must hang together: the DLOG names its DITL, and a DITL icon
+  // or picture item names a cicn/ICON or PICT the scheme ships (the Dialog
+  // Manager draws nothing for a missing one).
+  const dlog = find('DLOG', -14320);
+  if (dlog && dlog.data.length >= 20) {
+    const ditlId = (dlog.data[18] << 24 >> 16) | dlog.data[19];
+    const ditl = find('DITL', ditlId);
+    if (!ditl) warnings.push(`DLOG -14320 (the about box) names DITL ${ditlId}, which the scheme doesn't ship`);
+    else {
+      const d = ditl.data;
+      for (let i = 0, o = 2, n = ((d[0] << 8) | d[1]) + 1; i < n && o + 14 <= d.length; i++) {
+        const type = d[o + 12] & 0x7f, len = d[o + 13];
+        if ((type === 32 || type === 64) && len === 2) {
+          const id = (d[o + 14] << 24 >> 16) | d[o + 15];
+          const ok = type === 32 ? has('cicn', id) || has('ICON', id) : has('PICT', id);
+          if (!ok) warnings.push(`DITL ${ditlId} item ${i + 1}: its ${type === 32 ? 'icon (cicn/ICON)' : 'picture (PICT)'} ${id} isn't in the scheme`);
+        }
+        o += 14 + len + (len & 1);
+      }
+    }
+  }
 
   if (theme) {
     const types = Object.keys(theme.windowTypes ?? {});

@@ -126,14 +126,14 @@ const ICON32 = [
   '.......oooooooooooooooooo.......',
   '................................',
 ];
-function icon32() {
+export function icon32() {
   const rows = ICON32.map((row) => row.replace(/(\w)\.o/, '$1$1o')); // the drum's right wall
   return new Raster(32, 32).sprite(0, 0, rows, {
     k: '#333333', F: '#cc3333', R: '#993333', r: '#660000', H: '#cc6666',
     o: '#333333', L: '#cccccc', a: '#aaaaaa', b: '#999999', s: '#777777', m: '#666666',
   });
 }
-function icon16() {
+export function icon16() {
   const rows = [
     '................',
     '.......kFF......',
