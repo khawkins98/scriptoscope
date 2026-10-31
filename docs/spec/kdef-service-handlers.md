@@ -206,6 +206,8 @@ section attributed the scroll bar to this slot.
 
 ### Slot 6 — `0x28e0` (master compositor dispatcher)
 
+> **Corrected 2026-10-31 (#597).** The `0x148` switch table at `0x2930` dispatches the **standard WDEF messages 0..8** plus 1000/1001, not verbs 1001..1009: 0 → `0x41ee`, 1 → `0x3f2c` (`wHit`), 2 → `0x3ac4` (`wCalcRgns`), 3 → `0x38fe`, 4 → `0x3aa8`, 5 → `0x3e6c`, 6 → `0x436c`, 7 → `0x29be`, 8 → `0x2a5e`. The document and utility gates pass the message through unchanged; the utility gate's +1984 is added to the variation code (procID family 124). The table below keeps the earlier labels. See `engine/hit-regions.evidence.md` E1.
+
 Entry takes the handle / WindowPtr, message, varCode and param, runs the
 common init `0x104`, and installs all four arguments into the compositor's
 work struct (`0x28fc..0x290c`). Messages 1000 (INIT) and 1001 skip the
@@ -237,6 +239,8 @@ that fans them out by message. The init call at `0x1d26` (slot 6 with
 msg 1000) sets up the compositor at boot.
 
 ### Slot 7 — `0x1d3e` (WDEF main)
+
+> **Corrected 2026-10-31 (#597).** Slot 7 is CDEF-shaped, not the WDEF main: message 0 dereferences a control handle and tests `contrlVis`, and message 2 is `calcCRgns` (`_RectRgn(param, contrlRect)`). Its family is undecoded. Window messages for recipe windows go through slot 6. See `engine/hit-regions.evidence.md` E1.
 
 Entry has the biggest local frame in the kDEF; it reads varCode, the
 WindowPtr / handle, param and message. Messages above 34 go to `0x28d2`

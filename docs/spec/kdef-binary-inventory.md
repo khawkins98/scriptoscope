@@ -77,6 +77,8 @@ tab body painter, justify erasing semantic source pixels or close #223.
 
 ### 1. WDEF message dispatch table
 
+> **Corrected 2026-10-31 (#597).** The table below is a CDEF-shaped dispatcher (slot 7, `0x1d3e`): its message 0 tests `contrlVis` and its message 2 is `calcCRgns` (`_RectRgn` of the param region to `contrlRect`). The window messages of recipe windows are dispatched by slot 6 (`0x28e0`, table at `0x2930`): 0 draw `0x41ee`, 1 hit `0x3f2c`, 2 calc regions `0x3ac4`, 3 new `0x38fe`, 4 dispose `0x3aa8`, 5 `0x3e6c`, 6 `0x436c`, 7 features, 8 get region `0x2a5e`. See `engine/hit-regions.evidence.md` E1.
+
 `kDEF 0` at `0x1d68` — 35-entry indexed-jump table. Decoded:
 
 | msg | handler addr | role |
