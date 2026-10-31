@@ -28,6 +28,18 @@ export function ownLayout(options,signal) {
   }
   return ()=>{for(const [name,value]of before)if(value===null)source.removeAttribute(name);else source.setAttribute(name,value);};
  }
+ // A window's committed position: absolute left/top, or none while it is in flow.
+ function placed(host) {
+  return getComputedStyle(host).position==='absolute'?{x:parseFloat(host.style.left),y:parseFloat(host.style.top)}:null;
+ }
+ // The title-bar drag and the grow box capture the pointer, and the drag's hot loop writes
+ // left/top without a commit. A write that lands mid-drag (the activation render schedules one)
+ // would save that uncommitted position, and a cancelled drag (#563) commits nothing to replace
+ // it, so it stayed persisted and reached other tabs (#581). While a window holds a capture,
+ // snapshots use the position it had when the capture began; the capture's end, by release,
+ // cancel or loss, schedules a write of whatever the window then has. The capture begins on
+ // pointerdown, before any move, so that position is the pre-drag one.
+ const held=new Map();
  function snapshot() {
   const windows={};
   for(const [id,{win,manager}]of records){
@@ -37,7 +49,8 @@ export function ownLayout(options,signal) {
    // content width, and the content height, which flow and scrolling absorb (#542).
    const ext=manager.chromeExtent(win.host);
    const row={w:state.width,h:state.height,ow:ext&&state.width+ext.x,collapsed:state.collapsed,z:state.z};
-   if(getComputedStyle(win.host).position==='absolute'){row.x=parseFloat(win.host.style.left);row.y=parseFloat(win.host.style.top);}
+   const at=held.has(win.host)?held.get(win.host).at:placed(win.host);
+   if(at){row.x=at.x;row.y=at.y;}
    windows[id]=row;
   }
   return {version:1,windows};
@@ -48,15 +61,23 @@ export function ownLayout(options,signal) {
  }
  // Writes are debounced, so a reload or navigation inside the 250 ms window would drop the
  // last commit and keep an older snapshot, such as one taken mid-drag from the hot loop's
- // left/top (#578). pagehide flushes the pending write before the page goes away.
+ // left/top (#578). pagehide flushes the pending write before the page goes away, and so does
+ // the page becoming hidden: mobile browsers can discard a background tab without pagehide (#581).
  function schedule() {
   if(!key||applying||signal.aborted)return;
   clearTimeout(timer);timer=setTimeout(write,250);
  }
- if(key)addEventListener('pagehide',()=>{if(timer!==undefined&&!signal.aborted)write();},{signal});
+ const flush=()=>{if(timer!==undefined&&!signal.aborted)write();};
+ if(key){
+  addEventListener('pagehide',flush,{signal});
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')flush();},{signal});
+ }
  function add(source,index,win,manager) {
   const id=source.dataset.scriptoscopeWindowId||String(index);
   records.set(id,{win,manager});
+  const host=win.host;
+  host.addEventListener('gotpointercapture',()=>{const h=held.get(host);if(h)h.n++;else held.set(host,{at:placed(host),n:1});},{signal});
+  host.addEventListener('lostpointercapture',()=>{const h=held.get(host);if(!h)return;if(--h.n<=0)held.delete(host);schedule();},{signal});
   manager.setChangeListener(schedule);
   // A reload declares the saved CONTENT width, which carries the saving scheme's frame
   // difference into a different scheme. Re-bound it to the saved OUTER width, as the
