@@ -11,8 +11,11 @@ for(const mode of ['source','built']) test(`${mode}: selected malformed metadata
   const row=name=>{const found=rows.filter(r=>r.variant===name);assert.equal(found.length,1,'setup: unique probe result');return found[0];};
   await test.step(`${mode} valid, true NULL, unselected-short and mode5 positive controls`,()=>{
    for(const name of ['valid','valid-fallback','base-fallback-valid','valid-selected-base-short','ring-valid','body-mode5-valid','valid-selected-short-fallback']){assert.equal(row(name).error,undefined,name);assert.equal(row(name).outcome.status,'themed',name);assert.ok(row(name).opaque>0,name);}
-   for(const name of ['NULL','pressed-ring-NULL']){assert.equal(row(name).error,undefined,name);assert.equal(row(name).outcome.status,'themed',name);}
-   assert.equal(row('NULL').opaque,0);
+   // push-button.md PF3 (#608): face art with exact cinf and cinf0 NULL is null/unavailable.
+   // DR6: a ring NULL on a face that reached PF2 stays themed.
+   assert.equal(row('pressed-ring-NULL').error,undefined);assert.equal(row('pressed-ring-NULL').outcome.status,'themed');assert.ok(row('pressed-ring-NULL').opaque>0);
+   assert.equal(row('NULL').error,undefined);assert.equal(row('NULL').outcome.status,'unavailable');assert.equal(row('NULL').size,null);
+   assert.deepEqual(row('NULL').trace.steps.at(-1),{...row('NULL').trace.steps.at(-1),role:'face',action:'missing',basis:'source-dispatch',usage:'paint',reason:'engine:PB9:cinf:NULL'});
    const requests=row('pressed-ring-NULL').trace.steps.filter(s=>/^engine:DR.*:cicn:/.test(s.reason));assert.deepEqual(requests.map(s=>s.requestedId),[-10230]);
   });
   await test.step(`${mode} aligned mode5 positive and scaled unsupported discriminate admission`,()=>{

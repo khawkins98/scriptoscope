@@ -17,7 +17,11 @@ const browser=await chromium.launch();
 try {
  for(const theme of ['windows-95','1138','slimes','apple-platinum-2']) {
   const page=await browser.newPage({viewport:{width:1280,height:960},deviceScaleFactor:1});const errors=[];page.on('pageerror',e=>errors.push(e.message));
-  const row={theme,positivePageAndBuild:false,controls:[],interactions:[]};result.rows.push(row);
+  const row={theme,positivePageAndBuild:false,controls:[],interactions:[]};
+  // #608: under PF3 the diagnostic controls row (#d-controls) also shows native
+  // baseline Cancel/OK/Help, and the Scene dialog a baseline OK. This contract
+  // targets the interactive panel's controls.
+  const button=options=>page.getByRole('button',options).and(page.locator(':not(#d-controls *, #d-scene *)'));result.rows.push(row);
   try {
    const response=await page.goto(new URL('diagnostic.html?theme='+theme,base).href,{waitUntil:'networkidle'});
    assert.equal(response.status(),200,'SETUP: actual production document');
@@ -27,7 +31,7 @@ try {
    await page.getByText('ready — interact with the controls',{exact:true}).waitFor();
    assert.deepEqual(errors,[],'SETUP: page/module errors cannot be counted as a visibility failure');row.positivePageAndBuild=true;
    for(const label of ['Cancel','OK','Help']) {
-    const el=page.getByRole('button',{name:label,exact:true});await el.waitFor();
+    const el=button({name:label,exact:true});await el.waitFor();
     const visible=await el.evaluate((e,label)=>{
      const r=e.getBoundingClientRect(),s=getComputedStyle(e);
      const text=(e.textContent??'').includes(label)&&Number.parseFloat(s.fontSize)>0&&s.color!=='rgba(0, 0, 0, 0)';
@@ -38,10 +42,10 @@ try {
    }
    const status=page.getByText('ready — interact with the controls',{exact:true});const handle=await status.elementHandle();
    const statusText=()=>handle.textContent();
-   const ok=page.getByRole('button',{name:'OK',exact:true});await ok.focus();await page.keyboard.press('Tab');await page.keyboard.press('Shift+Tab');assert.equal(await ok.evaluate(e=>document.activeElement===e),true,'keyboard focus returns to OK');
+   const ok=button({name:'OK',exact:true});await ok.focus();await page.keyboard.press('Tab');await page.keyboard.press('Shift+Tab');assert.equal(await ok.evaluate(e=>document.activeElement===e),true,'keyboard focus returns to OK');
    await page.keyboard.press('Space');assert.equal(await statusText(),'OK clicked');row.interactions.push('Space activated OK');
-   await page.getByRole('button',{name:'Cancel',exact:true}).click();assert.equal(await statusText(),'Cancel clicked');row.interactions.push('pointer activated Cancel');
-   const help=page.getByRole('button',{name:'Help',exact:true});assert(await help.evaluate(e=>e.disabled===true||e.getAttribute('aria-disabled')==='true'),'disabled semantics');
+   await button({name:'Cancel',exact:true}).click();assert.equal(await statusText(),'Cancel clicked');row.interactions.push('pointer activated Cancel');
+   const help=button({name:'Help',exact:true});assert(await help.evaluate(e=>e.disabled===true||e.getAttribute('aria-disabled')==='true'),'disabled semantics');
    const b=await help.boundingBox();await page.mouse.click(b.x+b.width/2,b.y+b.height/2);assert.equal(await statusText(),'Cancel clicked','disabled pointer must not activate');
    const tab=await help.getAttribute('tabindex');assert(await help.evaluate(e=>e.disabled===true)||tab==='-1','disabled must not enter keyboard tab sequence');row.interactions.push('disabled Help rejected pointer and excluded from tab sequence');
    const cb=page.getByRole('checkbox',{name:'Show invisibles',exact:true});await cb.click();await cb.focus();await page.keyboard.press('Space');assert.equal(await cb.isChecked(),true);row.interactions.push('checkbox pointer/Space roundtrip');

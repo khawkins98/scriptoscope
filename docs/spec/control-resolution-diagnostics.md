@@ -43,9 +43,12 @@ not be replaced with admission evidence. Resource preparation can fail before
 the driver selects anything, so an error trace may have no selection steps;
 completion/error identity and callback precedence still apply.
 
-For migrated push, present art with two metadata NULLs retains transparent
-admission and no completed legacy/body/border paint. Native consumer presentation
-is separately observable and operable. Legacy nine-slice occupancy remains an
+For migrated push, present art with two metadata NULLs keeps its admission step
+and has no completed legacy/body/border paint (PB9/PB10). The public facade then
+returns `null` with outcome `unavailable` and a face step whose reason is
+`engine:PB9:cinf:NULL` ([push-button.md](engine/push-button.md) PF3). It never
+returns a transparent buffer or reports `themed` without a completed face paint.
+Consumers show the native baseline button (PF5). Legacy nine-slice occupancy remains an
 explicit compatibility operation for unmigrated bevel, including caller PNG alpha
 and clipped raster geometry; it is not a replacement for PB9.
 
@@ -56,6 +59,8 @@ options, ordered resolution steps, and an outcome (`themed`, `unavailable`, or
 `error`). A themed outcome also records the returned pixel dimensions. An
 unavailable outcome means the compositor returned null; it does not establish
 that no applicable original resource exists or that procedural fallback is valid.
+For push, `themed` requires a completed face paint stage; found art whose face
+cinf is proven NULL is `unavailable` (PF3).
 
 Each step records its role, canonical requested ID, action, reason, evidence basis
 and usage. Owner identity includes the owning theme's `baseUrl` and zero-based
@@ -252,7 +257,8 @@ render must supply its actual modern face-paint identity. This comparison reuses
 the existing renders and remains limited to empty normal faces under the explicit
 measured profile. The fifteen recorded states of System7, Apple Platinum2, Black
 Platinum, Platinum8 and Slimes now have explicit unassessed current comparisons:
-PB9 admits their art without completed face paint. Their original images, hashes,
+PB9 admits their art without completed face paint, and the facade reports them
+unavailable (PF3). Their original images, hashes,
 profiles and full current planes remain retained; a passing modern boundary
 assertion is not a new native match or a historical-ledger status change. System
 7's palette/gamma association is cross-run; masks, font,

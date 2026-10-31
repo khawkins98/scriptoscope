@@ -173,7 +173,7 @@ for (const mode of ['source', 'built']) test(`${mode}: missing or unsupported bo
         theme.manifest.patterns={mustNotLoad:{sourcePpatId:17,asset:'/missing-unsupported-body-must-not-load.png'}};return theme;
       };
       const requests=[null,{mode:5,resourceId:17},{mode:0,resourceId:-99}],rows=[];
-      for(const request of requests){const theme=await make(request);try{let trace;const out=await api.composeButton(theme,{label:'',diagnostics:{onComplete:t=>trace=t}});rows.push({request,pixel:[...out.getPixel(10,3)],trace});}finally{theme.dispose();}}
+      for(const request of requests){const theme=await make(request);try{let trace;const out=await api.composeButton(theme,{label:'',diagnostics:{onComplete:t=>trace=t}});rows.push({request,pixel:out?[...out.getPixel(10,3)]:null,trace});}finally{theme.dispose();}}
       const theme=await make({mode:0,resourceId:-99});
       const input = { controlOrigin: [3, 5], portOrigin: [0, 0], patternOrigin: { status: 'unknown' }, clip: { kind: 'unbounded' } }, traces = [];
       const element = await api.interactiveButton(theme, { label: '', compositionContext: input, diagnostics: { onComplete: trace => {
@@ -186,7 +186,13 @@ for (const mode of ['source', 'built']) test(`${mode}: missing or unsupported bo
       theme.dispose();return { rows, traces, callerOrigin: input.controlOrigin, invalidTrace, callbacks, errorName };
     }, mode);
     for (const row of result.rows) {
-      expect(row.pixel).toEqual(row.request?[255,255,255,255]:[0,0,0,0]);
+      if(!row.request){
+        // push-button.md PF3 (#608): face art with no cinf at all is null/unavailable, not a transparent buffer.
+        expect(row.pixel).toBeNull();expect(row.trace.outcome.status).toBe('unavailable');
+        expect(row.trace.steps.at(-1)).toMatchObject({role:'face',action:'missing',basis:'source-dispatch',usage:'paint',reason:'engine:PB9:cinf:NULL'});
+        expect(row.trace.steps.filter(step=>step.role==='body-fill')).toEqual([]);expect(row.trace.bandPaints??[]).toEqual([]);continue;
+      }
+      expect(row.pixel).toEqual([255,255,255,255]);
       expect(row.trace.composition).toMatchObject({ originalPortState: 'unverified', appliedUnknownPatternOffset: true,
         context: { basis: 'compatibility-default', controlOrigin: [0, 0], portOrigin: [0, 0], patternOrigin: { status: 'unknown' }, clip: { kind: 'unknown' } } });
       const decisions=row.trace.steps.filter(step=>step.role==='body-fill');

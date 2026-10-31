@@ -1,4 +1,3 @@
-import {createHash} from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { test, expect, openHarness, attachCase, attachObservations } from './fixtures.mjs';
 import { listCases } from './cases.mjs';
@@ -18,12 +17,18 @@ function assertOutput(result,c,slug){
   const noCinfPush=['apple-platinum-2','black-platinum','platinum-8','slimes','system7-nostalgia-silver'].includes(slug)&&['push','default'].includes(c.family);
   expect(result.status,result.error??c.id).not.toBe('error');
   if(noCinfPush&&c.mode==='direct'){
-    expect(result.status).toBe('rendered');expect(result.resolutionTrace.outcome.status).toBe('themed');
+    // push-button.md PF3 (#608): known art with exact cinf and cinf0 NULL is
+    // null/unavailable whatever the label or caller colours; never transparent themed.
+    expect(result.status).toBe('unavailable');expect(result.resolutionTrace.outcome.status).toBe('unavailable');
     const id=c.options.disabled?-10240:c.options.pressed?-10238:-10239;
     const admitted=result.resolutionTrace.steps.find(s=>s.role==='face'&&s.action==='selected'&&s.resource?.type==='cicn');
     expect(admitted).toBeDefined();expect(admitted.resource.signedId).toBe(id);expect(admitted.owner.chainDepth).toBe(0);expect(admitted.resource.manifestKey).toBeTruthy();
-    const nulls=result.resolutionTrace.steps.filter(s=>s.role==='face'&&s.action==='missing'&&s.reason.includes('cinf'));
+    const nulls=result.resolutionTrace.steps.filter(s=>s.role==='face'&&s.action==='missing'&&s.usage==='admission'&&s.reason.includes('cinf'));
     expect(nulls.map(s=>s.requestedId)).toEqual([id,0]);
+    expect(result.resolutionTrace.steps.at(-1)).toMatchObject({role:'face',action:'missing',basis:'source-dispatch',usage:'paint',reason:'engine:PB9:cinf:NULL'});
+    expect(result.resolutionTrace.legacyFacePaint).toBeUndefined();
+    expect((result.resolutionTrace.bandPaints??[]).filter(b=>b.role==='face')).toEqual([]);
+    expect(result.resolutionTrace.steps.some(s=>s.role==='face'&&s.bodyPaint)).toBe(false);
   }
   if (result.status === 'unavailable') {
     expect(c.mode, 'only direct compositor calls may report missing themed art').toBe('direct');
@@ -35,13 +40,7 @@ function assertOutput(result,c,slug){
   // remains subject to style, focus, geometry and source/built screenshot checks.
   for (const canvas of result.canvases) {
     expect(canvas.width).toBeGreaterThan(0); expect(canvas.height).toBeGreaterThan(0);
-    if(noCinfPush&&c.mode==='direct'){
-      if(!c.options.fg||!c.options.label)expect(canvas.opaqueBounds,'PB9 double-NULL retains transparent admission').toBeNull();
-      else{expect(canvas.opaqueBounds,'explicit caller foreground paints modern label ink').not.toBeNull();if(result.resolutionTrace.textColors)expect(result.resolutionTrace.textColors).toMatchObject({policy:'caller-override',labelPainted:true});}
-      expect(result.resolutionTrace.legacyFacePaint).toBeUndefined();
-      expect(result.resolutionTrace.bandPaints??[]).toEqual([]);
-      expect(result.resolutionTrace.steps.some(s=>s.bodyPaint)).toBe(false);
-    }else expect(canvas.opaqueBounds,'a rendered canvas contains art').not.toBeNull();
+    expect(canvas.opaqueBounds,'a rendered canvas contains art').not.toBeNull();
     expect(canvas.rect.width, 'CSS must not squash backing width').toBeCloseTo(canvas.width, 4);
     expect(canvas.rect.height, 'CSS must not squash backing height').toBeCloseTo(canvas.height, 4);
   }
@@ -158,14 +157,15 @@ for (const { slug } of catalog) test(`${slug}: option contracts and source/built
         resolutionTraces[mode] = result.resolutionTrace;
         assertOutput(result,c,slug);
         if(c.mode==='direct'&&['push','default'].includes(c.family)&&['apple-platinum-2','black-platinum','platinum-8','slimes','system7-nostalgia-silver'].includes(slug)&&!checkedDirectNegative){
-          const missing=structuredClone(result);missing.canvases=[];expect(()=>assertOutput(missing,c,slug),'missing direct canvas cannot pass PB9 admission').toThrow();
-          const unavailable=structuredClone(result);unavailable.status='unavailable';expect(()=>assertOutput(unavailable,c,slug),'unavailable cannot pass reached metadata NULL').toThrow();checkedDirectNegative=true;
+          const rendered=structuredClone(result);rendered.status='rendered';rendered.resolutionTrace.outcome={status:'themed',width:64,height:24};rendered.canvases=[{width:64,height:24,opaqueBounds:null,rect:{width:64,height:24}}];expect(()=>assertOutput(rendered,c,slug),'PF3: a transparent themed buffer cannot pass').toThrow();
+          const themedNull=structuredClone(result);themedNull.resolutionTrace.outcome={status:'themed'};expect(()=>assertOutput(themedNull,c,slug),'PF6: unavailable must pair with null, never themed').toThrow();
+          const noPb9=structuredClone(result);noPb9.resolutionTrace.steps.pop();expect(()=>assertOutput(noPb9,c,slug),'PF3: the PB9 face step is required').toThrow();checkedDirectNegative=true;
         }
         if (c.mode === 'declarative' && c.family === 'tab') await assertTabLayout(activePage, result);
         // Full exact PNG parity is captured in fresh neutral state before input.
         versions[mode]={status:result.status,pixels:await pixels(activePage,result.canvases)};
-        if(c.mode==='direct'&&(!c.options.fg||!c.options.label)&&['push','default'].includes(c.family)&&['apple-platinum-2','black-platinum','platinum-8','slimes','system7-nostalgia-silver'].includes(slug)){
-          expect(versions[mode].pixels).toEqual(result.canvases.map(canvas=>({width:canvas.width,height:canvas.height,sha256:createHash('sha256').update(new Uint8Array(canvas.width*canvas.height*4)).digest('hex')})));
+        if(c.mode==='direct'&&['push','default'].includes(c.family)&&['apple-platinum-2','black-platinum','platinum-8','slimes','system7-nostalgia-silver'].includes(slug)){
+          expect(versions[mode].pixels,'PF3: no transparent canvas is presented').toEqual([]);
         }
         if (c.mode === 'declarative' && result.canvases.length === 0) {
           presentationStates[mode]=await activePage.evaluate(({root,controls})=>{

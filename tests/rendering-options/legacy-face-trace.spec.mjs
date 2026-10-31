@@ -14,7 +14,10 @@ function join(row) {
   const bytes=compareByteProvenance(admission,row.owner,pin,{role:'face',usage:'admission',baseUrl:'/themes/system7-nostalgia-silver',chainDepth:row.inherited?1:0,signedId:-10239,sourceCinfId:null,manifestKey:'active-push-button'});
   if(bytes.status!=='passed')return bytes;
   const errors=[];
-  if(row.trace.outcome.status!=='themed'||row.trace.family!=='push-button'||row.trace.requested.default)errors.push('Wrong admission outcome');
+  // push-button.md PF3 (#608): admitted art with both cinfs NULL is null/unavailable with a terminal PB9 face step.
+  const last=row.trace.steps.at(-1);
+  if(row.size!==null||row.trace.outcome.status!=='unavailable'||row.trace.family!=='push-button'||row.trace.requested.default)errors.push('Wrong admission outcome');
+  if(!(last?.role==='face'&&last.action==='missing'&&last.basis==='source-dispatch'&&last.usage==='paint'&&last.reason==='engine:PB9:cinf:NULL'))errors.push('Missing terminal PB9 face step');
   if(row.observedOccupancy!==0||row.trace.legacyFacePaint||(row.trace.bandPaints??[]).length||row.trace.steps.some(s=>s.bodyPaint))errors.push('Invented no-cinf completed paint');
   if(admission.resource.byteProvenance.cicnResourceIndex!==50||admission.resource.assetUrl!==row.actualAsset)errors.push('Wrong admitted occurrence');
   return{status:errors.length?'failed':'passed',errors};
@@ -37,12 +40,12 @@ for (const mode of ['source', 'built']) {
           const options = { label: '', minWidth: 80, height: 20, default: false };
           const buffer = await api.composeButton(theme, { ...options, diagnostics: { correlationId, onComplete } });
           const plain = await api.composeButton(theme, options), trace = traces.get(correlationId), paint = trace.legacyFacePaint;
-          const facePlane = Array.from({ length: 20 }, (_, y) => Array.from({ length: 80 }, (_, x) => [...buffer.getPixel(x + 4, y + 4)])).flat(2);
+          const facePlane = buffer ? Array.from({ length: 20 }, (_, y) => Array.from({ length: 80 }, (_, x) => [...buffer.getPixel(x + 4, y + 4)])).flat(2) : [];
           return { inherited, profile: owner.manifest.displayProfile?.id ?? null, count: counts.get(correlationId), trace,
             actualAsset: owner.manifest.chromeElements['active-push-button'].asset,
             owner: { baseUrl: owner.baseUrl, byteProvenance: { ...owner.byteProvenance, resources: owner.byteProvenance.resources.filter(r => r.resourceIndex === 50) } },
-            size: [buffer.width, buffer.height], frozen: frozen(trace), pixelsEqual: buffer.data.every((v, i) => v === plain.data[i]),
-            facePlane: { rect: [4, 4, 80, 20], encoding: 'base64-rgba8', rgba: btoa(String.fromCharCode(...facePlane)) },
+            size: buffer ? [buffer.width, buffer.height] : null, frozen: frozen(trace), pixelsEqual: buffer === null ? plain === null : !!plain && buffer.data.every((v, i) => v === plain.data[i]),
+            facePlane: buffer ? { rect: [4, 4, 80, 20], encoding: 'base64-rgba8', rgba: btoa(String.fromCharCode(...facePlane)) } : null,
             observedOccupancy: facePlane.filter((_, i) => i % 4 === 3).filter(a => a > 0).length,
             selectedOnly: trace.steps.filter(s => s.role === 'face' && s.action === 'selected'), stage: paint?.operation };
         })));
@@ -52,7 +55,7 @@ for (const mode of ['source', 'built']) {
     for (const row of rows) {
       expect(join(row)).toEqual({ status: 'passed', errors: [] });
       expect(row.count).toBe(1); expect(row.frozen).toBe(true); expect(row.pixelsEqual).toBe(true);
-      expect(row.size).toEqual([88,28]);expect(row.observedOccupancy).toBe(0);
+      expect(row.size).toBeNull();expect(row.facePlane).toBeNull();expect(row.observedOccupancy).toBe(0);
       expect(row.trace.bandPaints??[]).toEqual([]);expect(row.trace.legacyFacePaint).toBeUndefined();
       for (const [name, mutate] of Object.entries({
         missing:r=>{r.trace.steps=r.trace.steps.filter(s=>s.resource?.type!=='cicn');},
@@ -65,13 +68,15 @@ for (const mode of ['source', 'built']) {
         asset:r=>{r.actualAsset+='#wrong';},
         missingProvenance:r=>{delete r.trace.steps.find(s=>s.resource?.type==='cicn').resource.byteProvenance;},
         painted:r=>{r.observedOccupancy=1596;r.trace.legacyFacePaint={operation:'legacy-nine-slice-and-sample-fill'};},
+        transparentThemed:r=>{r.size=[88,28];r.trace.outcome={status:'themed',width:88,height:28};},
+        noPb9:r=>{r.trace.steps.pop();},
       })) {
         const changed = structuredClone(row); mutate(changed); const result = join(changed);
         expect(result.status, name).not.toBe('passed'); negatives.push({ profile: row.profile, inherited: row.inherited, name, result });
       }
     }
     await attachObservations(info, 'legacy-face-trace', `${mode}-actual`, { mode, rows, negatives, pin,
-      limits:'Actual art admission only; PB9 double metadata NULL skips paint. No original provider/fidelity claim; historical legacy occupancy is retained externally.' });
+      limits:'Actual art admission only; PB9 double metadata NULL skips paint and the facade returns null (PF3, #608). No original provider/fidelity claim; historical legacy occupancy is retained externally.' });
   });
 
   test(`${mode}: unmigrated bevel legacy occupancy is clipped before text and keeps on/off pixels and decodes`, async ({ page, servers }, info) => {
