@@ -72,6 +72,8 @@
     "lint:themes": "node scripts/lint-themes.mjs",
     "baseline:scenes": "node scripts/capture-visual-baselines.mjs",
     "verify:scenes": "node scripts/verify-visual-baselines.mjs",
+    "baseline:scenes:container": "node tests/rendering-options/container.mjs scenes-record",
+    "verify:scenes:container": "node tests/rendering-options/container.mjs scenes-verify",
     "test:visual-baselines": "node --test --experimental-strip-types tests/visual-baselines/boot-affordance.spec.mjs tests/visual-baselines/window-promotion.spec.mjs tests/visual-baselines/mobile-layout.spec.mjs tests/visual-baselines/control-template-size.spec.mjs tests/visual-baselines/control-background-sample.spec.mjs tests/visual-baselines/window-shell-style.spec.mjs tests/visual-baselines/control-ring.spec.mjs tests/visual-baselines/diagnostic-hash.spec.mjs",
     "audit:scenes": "node scripts/scene-coverage-audit.mjs",
     "test": "node --experimental-strip-types --test tools/theme-loader/*.test.mjs tools/sit-wasm/*.test.mjs src/declarative/*.test.mjs src/*.test.mjs src/engine/*.test.mjs src/engine/*/*.test.mjs tests/rendering-requirements/*.test.mjs tests/control-availability/*.test.mjs tests/reference-captures/*.test.mjs tests/source-inputs/*.test.mjs tests/research-observations/*.test.mjs tests/rendering-options/*.test.mjs tests/acceptance-bindings/*.test.mjs tests/engine-diff/*.test.mjs scripts/*.test.mjs",

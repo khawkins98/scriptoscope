@@ -8,8 +8,28 @@ compositor tests separately check allocation and original corpus RGBA pixels.
 
 ## Capture and compare
 
-Install the locked development dependencies and Chromium (Scene capture remains
-separate from `npm test`):
+The committed fixtures are recorded and verified in the pinned Playwright image
+the rendering goldens use (`mcr.microsoft.com/playwright:v1.64.0-noble@sha256:06a9…`,
+Chromium 156.0.8078.4, Linux amd64). The comparison is byte-exact, so a capture
+from any other OS, browser build or font set drifts without any renderer change.
+Docker is required:
+
+```sh
+npm run verify:scenes:container                     # capture all themes to scratch, compare
+npm run verify:scenes:container -- monkey-paradise  # one theme
+npm run baseline:scenes:container                   # overwrite all committed fixtures
+npm run baseline:scenes:container -- platinum-8     # overwrite one committed fixture
+```
+
+These run `npm ci`, `npm run build:themes` and then `verify:scenes` or
+`baseline:scenes` in the image (`tests/rendering-options/container.mjs`), with the
+repository bind-mounted and `node_modules` in a container volume. On an arm64 host
+the image runs under amd64 emulation; the release gate's `scenes` job verifies the
+same fixtures natively on `ubuntu-24.04`. Run one container at a time: each runs
+a Chromium and concurrent containers have crashed it under memory pressure.
+
+The host commands below stay useful for local iteration, but their captures are
+not comparable with the committed fixtures unless the host is the pinned image:
 
 ```sh
 npm ci
@@ -33,7 +53,8 @@ the previous scratch set; pass the same slug to subsequent `--diff-only` checks.
 
 By default capture starts an isolated Vite server on an available localhost port
 and closes it and Chromium in `finally`, including on failure or SIGINT/SIGTERM.
-It never silently reuses a server on port 5173. Set `BASE` explicitly to use an
+It never silently reuses a server on port 5173. Chromium launches with
+`--disable-partial-raster`, as the goldens profile does (#526). Set `BASE` explicitly to use an
 existing dev or preview site; the script leaves that server running. Root URLs,
 path prefixes, and landing-page URLs resolve to their sibling `diagnostic.html`:
 
@@ -46,9 +67,9 @@ The default navigation/readiness timeout is 30 seconds per operation; owned Vite
 startup is capped at 15 seconds. The script logs its Chromium version. Use the
 same browser build, OS, and fonts when interpreting byte comparisons: browser
 layout, clipping, antialiasing, and PNG encoding can change without a renderer bug.
-These Scene captures remain a separate diagnostic workflow. The mandatory
-[control rendering matrix](../rendering-options/README.md) uses pinned Linux
-Chromium for CI; these historical macOS Scene fixtures are not its golden seed.
+These Scene captures remain a separate diagnostic workflow from the mandatory
+[control rendering matrix](../rendering-options/README.md), but since #599 they
+share its pinned image, and the release gate requires `verify:scenes`.
 
 ## When to refresh
 
@@ -56,13 +77,18 @@ Review fresh images against the committed ones after an intentional renderer,
 decoder, theme, or diagnostic scene change. Keep the reference source images
 unchanged. Only regenerate the affected scene fixtures after checking the diff.
 
-The 2026-10-18 refresh uses Chromium 156.0.8078.4 on macOS after the whole-tile
-allocation correction and migration of the scene to `diagnostic.html`. All 18
-captures repeated byte for byte in independent runs. Fourteen retained their
-exact dimensions; apple-lisa, slimes, windows-31, and windows-95 gained one pixel
-of screenshot height from layout/clipping rounding. All remain 1024 pixels wide.
-The combined PNG size changed from 545,675 to 544,743 bytes. The side-by-side panel
-retains the same intended live scene and reference content.
+The 2026-10-31 refresh (#599) moves the fixtures from macOS to the pinned image.
+All 18 captures repeated byte for byte in three runs, with and without
+`--disable-partial-raster` (identical output either way). Every fixture changed:
+the diagnostic page restyle (#252, #280) moved the panel and grew it 13-18 px, and
+the engine-driver migrations since 2026-10-18 changed scrollbars, progress bars,
+checkables, push buttons, default rings and window frames. The PR records the
+per-scene review. These are regression fixtures of current output, not fidelity
+evidence; in particular the five built-in-frame schemes currently show a blank
+On/Off/OK row (see the #599 PR).
+
+The 2026-10-18 refresh used Chromium 156.0.8078.4 on macOS after the whole-tile
+allocation correction and migration of the scene to `diagnostic.html`.
 
 ## Manual browser suites (`npm run test:visual-baselines`)
 
