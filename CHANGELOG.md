@@ -133,8 +133,10 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   longer act on the bar. A press ends on window blur, when the page is hidden,
   and on a move with no button down, so a lost release can't leave a hold
   repeating. Bar steps from keys, arrows and the track now add whole pixels to
-  the scroll position, and wheel deltas are rounded to whole pixels. This
-  fixes WebKit, where a step could land a pixel short (#556).
+  the scroll position. The wheel also moves in whole pixels, carrying each
+  event's fraction to the next, so slow trackpad scrolls add up to their sum
+  in both directions. This fixes WebKit, where a step could land a pixel
+  short (#556).
 
 ## [0.7.0] — 2026-10-29
 

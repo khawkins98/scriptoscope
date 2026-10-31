@@ -422,3 +422,26 @@ for (const mode of ['source', 'built']) for (const slug of SLUGS) {
     await page.mouse.up();
   });
 }
+
+// Slow wheel and trackpad deltas add up to their sum in whole pixels, symmetrically up and
+// down (#556 review): the fraction of each event carries to the next instead of being rounded away.
+for (const mode of ['source', 'built']) {
+  test(`${mode} windows-95: fractional wheel deltas move the window scrollbar by their sum (#567)`, async ({ page, servers }) => {
+    await setup(page, servers, mode, 'windows-95');
+    const moves = new Map();
+    for (const delta of [0.5, -0.5, 0.7, -0.7, 1.5, -1.5]) {
+      const moved = await page.evaluate(async delta => {
+        const s = window.__sp.scrollEl;
+        s.scrollTo({ top: 500, behavior: 'instant' });
+        await window.__sp.frames(2);
+        const from = s.scrollTop;
+        for (let i = 0; i < 10; i++) s.dispatchEvent(new WheelEvent('wheel', { deltaY: delta, bubbles: true, cancelable: true }));
+        await window.__sp.frames(2);
+        return s.scrollTop - from;
+      }, delta);
+      expect(Math.abs(moved - 10 * delta), `10 wheel events of ${delta} move ${10 * delta} px (moved ${moved})`).toBeLessThanOrEqual(1);
+      moves.set(delta, moved);
+    }
+    for (const d of [0.5, 0.7, 1.5]) expect(moves.get(-d), `wheel ${d} is symmetric up and down`).toBe(-moves.get(d));
+  });
+}

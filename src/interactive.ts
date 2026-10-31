@@ -1708,11 +1708,19 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     // Wheel: vertical bar handles deltaY (the dominant axis for mouse wheels); horizontal bar handles
     // deltaX (trackpad horizontal swipe) AND shift+deltaY (the convention for "wheel to scroll
     // horizontally"). Attach to the SAME scroll element — both listeners fire; each takes its axis.
+    // Whole pixels, as every bar step (#556): the fraction carries to the next event, so slow
+    // trackpad scrolls add up to their sum in either direction. A reversal drops the remainder,
+    // so the leftover of the old direction never cancels the first step of the new one.
+    let carry = 0;
     scrollEl.addEventListener('wheel', (e) => {
       const delta = vertical || e.shiftKey ? e.deltaY : e.deltaX;
       if (Math.abs(delta) < 0.5) return;
       e.preventDefault();
-      move(Math.round(delta));                             // whole pixels, as every bar step (#556)
+      if (carry * delta < 0) carry = 0;
+      carry += delta;
+      const px = Math.trunc(carry);
+      carry -= px;
+      if (px) move(px);
     }, { passive: false, signal });
 
     // Arrow keys / page keys on the bar.
