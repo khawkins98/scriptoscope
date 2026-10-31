@@ -85,6 +85,12 @@ export interface ProceduralFrameInput {
   visible?: boolean;
   /** The window's colour table: the alert colour table (`actb` −14336) or the default. */
   colorTable?: 'actb' | 'default';
+  /**
+   * §3.6 entry 0 of the window's colour table when the caller resolved it (a
+   * dialog or alert kind's content colour). Absent: the `actb` entry for
+   * `colorTable: 'actb'`, else the declared default (white).
+   */
+  windowContent?: { readonly rgb16: readonly [number, number, number]; readonly rgb: readonly [number, number, number] };
   /** StringWidth(title): document in the system font, utility in the UI9 font (bold); 0 or absent for an empty title. */
   titleWidth?: number;
   /** Utility UT1: StringWidth(title) in bold + condensed. Absent: the bold width stands (traced). */
@@ -223,7 +229,8 @@ export function colorTableEntry(t: PfColorTable, n: number): { entry: PfColorTab
 }
 
 /** §3.5 alert colouring (document family), first matching row. */
-function alertColouring(st: ProceduralFrameState, chain: ResourceChain, colorTable: 'actb' | 'default', trace?: EngineTrace):
+function alertColouring(st: ProceduralFrameState, chain: ResourceChain, colorTable: 'actb' | 'default', windowContent: ProceduralFrameInput['windowContent'],
+  trace?: EngineTrace):
   { alert: boolean; row: string; actb: PfColorTable | null } {
   let actb: PfColorTable | null = null;
   for (const r of PF_ALERT) {
@@ -237,10 +244,11 @@ function alertColouring(st: ProceduralFrameState, chain: ResourceChain, colorTab
         break;
       }
       case 'colorTable': {
-        // The window's colour table is either actb itself or the default table (entry 0 declared white).
+        // The window's colour table is either actb itself or another table: the caller's
+        // §3.6 content colour, else the default table (entry 0 declared white).
         // "Entry 0" is found by value (CT1–CT3); the comparison is the stored 16-bit channels (CT4).
         const theirs = colorTableEntry(actb!, PF_ALERT_TABLE.entry);
-        const mine = colorTable === 'actb' ? theirs.entry?.rgb16 : PF_DECLARED.defaultContent.rgb16;
+        const mine = colorTable === 'actb' ? theirs.entry?.rgb16 : windowContent?.rgb16 ?? PF_DECLARED.defaultContent.rgb16;
         const equal = !!theirs.entry && !!mine && theirs.entry.rgb16.every((c, i) => c === mine[i]);
         return { alert: equal, row: `${r.id},${theirs.row},${PF_COLOR_LOOKUP.stored.id}`, actb };
       }
@@ -329,7 +337,7 @@ function documentGeometry(input: ProceduralFrameInput, st: ProceduralFrameState,
     titleText = rect(T.top + Lm.textInsetV, left, T.bottom - Lm.textInsetV, left + w);
   }
   // §3.5 alert colouring.
-  const a = chain ? alertColouring(st, chain, input.colorTable ?? 'default', trace) : { alert: false, row: PF_ALERT[0]!.id };
+  const a = chain ? alertColouring(st, chain, input.colorTable ?? 'default', input.windowContent, trace) : { alert: false, row: PF_ALERT[0]!.id };
   rows.push(a.row);
   const content = st.collapsed ? EMPTY : C;
   return {
@@ -1051,12 +1059,17 @@ export function drawProceduralFrame(port: Pixmap, chain: ResourceChain, input: P
   if (!row) { trace?.drawOps.push({ op: 'skip', row: PF_DRAW_PART_NONE.id, part }); return { geometry: g, drawn: false, toggle }; }
   if (row.action === 'frame') {
     if (st.titled) drawTitleBar(port, chain, g, opts, trace);
-    // §5A gap colour: entry 0 of the window colour table (actb, or the declared default), found by value (CT1–CT3).
+    // §5A gap colour: entry 0 of the window colour table (actb, the caller's §3.6 content
+    // colour, or the declared default), found by value (CT1–CT3).
     let gap: Rgba | null = null;
     if (input.colorTable === 'actb') {
       const t = chain.getResource<PfColorTable>(PF_ALERT_TABLE.type, PF_ALERT_TABLE.id, req(trace, PF_GAP.id))?.value ?? null;
       const e = t ? colorTableEntry(t, PF_GAP.entry) : null;
       if (e?.entry) gap = { r: e.entry.rgb[0], g: e.entry.rgb[1], b: e.entry.rgb[2], a: 255 };
+    }
+    if (!gap && input.windowContent) {
+      const [r, g, b] = input.windowContent.rgb;
+      gap = { r, g, b, a: 255 };
     }
     if (st.kind === PF_KIND.document || st.kind === PF_KIND.noGrowDocument) drawDocumentFrame(port, chain, g, trace);
     else drawDialogFrame(port, chain, g, gap, trace);

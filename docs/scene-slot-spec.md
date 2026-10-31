@@ -107,6 +107,8 @@ The content area behind the Options dialog (`no-title-utility-window`).
 | T2 | `ppat--9568` (resolved by canonical resource id) | Canonical kDEF utility-window cinf slot — schemes that don't ship `ppat-42` may carry the utility pattern under cinf -9568 instead (1990 lands here). |
 | T3 | `flat #ffffff` | Period default for schemes that ship no utility pattern at all (the corner-sprite Platinums, the Windows ports, dolphin-som, etc.). |
 
+For the dialog and alert kinds (`dialog`, `movable-modal`, `alert`, `movable-alert`), T3 and the colour under a T1/T2 pattern are the scheme's dialog content colour instead of white: entry 0 of `dctb` -14336 (dialogs) or `actb` -14336 (alerts), else Kaleidoscope's own `#DDDD`/`#DDDE` grey. This is what Kaleidoscope's GetResource patch gives those windows ([`spec/engine/procedural-frame.md`](./spec/engine/procedural-frame.md) §3.6). Entry 2 of the same table is the body's text colour. Consumers override them with `--scriptoscope-dialog-background` and `--scriptoscope-dialog-text`. The utility kinds, including the Options dialog, keep the white T3.
+
 The Finder Icon-View ppat (`bodyBackground.pattern`, cinf -9551) is **never** reused for utility bodies — that's the army-camo-wrapping-the-Options-dialog regression class (the document-window's body texture isn't meant for modal interiors).
 
 An earlier iteration retired the hierarchy after a visual misread that thought all the references showed flat. The user's screenshot review on 2026-05-29 surfaced that monkey-paradise / 1990 / etc. references actually show a themed utility body; reinstated the structured-field walk.

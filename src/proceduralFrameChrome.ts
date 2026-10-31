@@ -25,6 +25,7 @@ import { PF_DRAW_PARTS, PF_UTILITY_INPUTS, PF_WINDOW_SLUGS } from './engine/tabl
 import { createTrace, type EngineTrace } from './engine/trace.js';
 import { equivalentWindowTypeKeys } from './wndCascade.js';
 import { rect } from './engine/qd/rect.js';
+import { dialogContentColour } from './dialogContent.js';
 import type { Pixmap } from './engine/qd/types.js';
 
 /** Runtime title size: the system font is 12 pt (procedural-frame §3.2); Charcoal 12 is pinned to its own grid by rasterizeTitle. */
@@ -83,12 +84,15 @@ export async function composeProceduralFrameChrome(theme: ThemeInput | ThemeView
     try { await document.fonts.load(`${TITLE_PX}px Charcoal`); } catch { /* ignore */ }
   }
   const utility = row.family === 'utility';
+  // §3.6: a dialog or alert kind's colour table entry 0 (also the body fill in renderWindow).
+  const content = dialogContentColour(owner, row.slug);
   const px = utility ? PF_UTILITY_INPUTS.font.size : TITLE_PX;
   const raster = (text: string, colour: string) => rasterizeTitle(text, px, colour, utility ? { exactPx: true } : {});
   const measured = title ? raster(title, '#000000') : null;
   const base: Omit<ProceduralFrameInput, 'content'> = {
     variation: row.variation, family: row.family, hilited, goAway: row.goAway, shadeOn: row.shadeOn, collapsed,
     colorTable: row.colorTable, titleWidth: measured?.advance ?? 0,
+    ...(content ? { windowContent: { rgb16: content.rgb16, rgb: content.rgb } } : {}),
     ...(utility && measured ? { font: { ascent: measured.fontAscent, descent: measured.fontDescent } } : {}),
   };
   // Collapsed: the content is a degenerate rect (a side utility bar keeps its height, §9.2 UG3).

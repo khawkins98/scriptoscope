@@ -426,9 +426,10 @@ export interface ThemeInspector {
   /** First-occurrence 16 × 16 ics# planes by id string: 64 raw bytes, the
    * 32-byte 1-bit image then the 32-byte mask (rows of 2 bytes, MSB first). */
   iconMaskPlanes?: Record<string, number[]>;
-  /** Colour-table resources (`actb`, `clut`) keyed `type:id`, entries in index
+  /** Colour-table resources (`actb`, `dctb`, `clut`) keyed `type:id`, entries in index
    * order: stored 16-bit channels plus the display colour under the load's
-   * display policy. Read by engine families (procedural-frame §3.5, §5A). */
+   * display policy. Read by engine families (procedural-frame §3.5, §3.6, §5A)
+   * and the dialog/alert body colour in renderWindow. */
   colorTables?: Record<string, { entries: Array<{ value: number; rgb16: [number, number, number]; rgb: [number, number, number] }> }>;
   iconIndex: Array<{
     id: number;

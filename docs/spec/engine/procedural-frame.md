@@ -205,6 +205,24 @@ The table conflicts with two published labels. `kdef231-reference.md` §2.1 call
 
 **Sampling.** P(x, y) is the colour of the frame cicn's pixel at column x, row y. It comes from the cicn's own colour table. For line drawing the cicn's mask is not consulted (`0xf9f6`, `0xfa8a`).
 
+### 3.6 Dialog and alert content colour (PACH 130)
+
+kDEF 0 reads the window colour table but does not choose it (§3.5). Kaleidoscope's 68k patches (PACH 130, `68k Patches`) choose it for dialogs and alerts by intercepting GetResource. The handler is a type switch at `0x10d26`.
+
+| id | rule | source |
+|---|---|---|
+| DC1 | At scheme load, entry 0 (the content colour) and entry 2 of `dctb` -14336 are copied to the patch globals. Entry 0 of `actb` -14336 is copied the same way. The lookup goes through the scheme file first, then Kaleidoscope's own control-panel file, which ships both tables | `0x20d0`–`0x21e8`, `0x10a32` (UseResFile, then GetResource) |
+| DC2 | `actb` request: the application's own table is returned when it exists. Otherwise the patch returns Kaleidoscope's template `actb` -14305 with entry 0 replaced by the DC1 alert colour. Every alert without its own table therefore gets it | `0x1193e`–`0x119a0` |
+| DC3 | `dctb` request: the same substitution with `dctb` -14305 and the DC1 dialog colours (entries 0 and 2), for themed dialogs. These are dialogs whose `DITL` holds a standard 32 × 32 stop/note/caution icon at the top left (`0x10976`), dialogs whose `dlgx` sets the theme-background flag (bit 0), and a few listed ids. Other dialogs keep their own colours | `0x119d4`–`0x11b0a`, `0x10976`–`0x10a2a` |
+| DC4 | DC1 nudges one 16-bit channel of each copied colour by ±4 (dialog red, alert green). This changes the low byte only and is not modelled | `0x2134`–`0x2142`, `0x21c0`–`0x21ce` |
+| DC5 | Kaleidoscope 2.3.1's own tables: `actb` -14336 entry 0 = `#DDDE DDDE DDDE`, `dctb` -14336 entry 0 = `#DDDD DDDD DDDD`; the -14305 templates are white | control-panel resource fork |
+
+In the corpus, seven bundles ship both tables: 1984, apple-platinum-2, black-platinum, crayon-os, platinum-8, slimes and system7-nostalgia-silver. floppies ships only `dctb` -14336. The other ten ship neither and fall back to Kaleidoscope's grey. QuickDraw `#DDDD` was measured as `#E7E7E7` in the 8-bit reference emulator (the same index as `GetCPixel = dddd` in `tests/reference-captures/evolution-normal`). Under the default Mac → sRGB display policy it is `#E3E3E3`.
+
+**Runtime policy.** The public `dialog` and `movable-modal` types are taken to be themed dialogs (DC3), and `alert` and `movable-alert` alerts with no table of their own (DC2). Their content colour is entry 0 of the scheme's table (or a base's), else DC5 (`src/dialogContent.ts`). It fills the body (`renderWindow`) and, for this unit, is the window colour table entry 0 used by the gap (§5A) and by alert colouring (§3.5 AL5). Entry 2 of the same table (Kaleidoscope's black when absent) is the body's inherited text colour, since the patch's GetThemeTextColor answers DialogActive (1) and AlertActive (3) with it (`0xb3b4`, cases at `0xb47c` and `0xb4d0`). Document and utility types keep the white default. Consumers override the two with `--scriptoscope-dialog-background` and `--scriptoscope-dialog-text`.
+
+**Not modelled.** A 56-byte `cinf` -9776..-9773 replaces these colours (`0x6902`, `0x1072`–`0x11bc`); every corpus `cinf` at those ids is 18 bytes, so none does. The Appearance brush path for the same ids (`0xa4e0`) is not traced.
+
 ## 4. Document frame (kinds 0, 4): drawing
 
 Let F be the document cicn (16 × 16). Let *L* = *C*.l − 6, *R* = *C*.r + 6 and *B* = *C*.b + 6, all exclusive (`0x12dc0`–`0x12df8`). Nothing is drawn if F is absent (`0x12e24`).

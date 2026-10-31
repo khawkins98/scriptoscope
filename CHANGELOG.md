@@ -18,6 +18,7 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ### Fixed
 
+- **Dialog and alert bodies use the scheme's dialog colour instead of white.** In real Kaleidoscope 2.3.1, an alert and a themed dialog get their content colour from the scheme's `actb`/`dctb` -14336 (entry 0), or from Kaleidoscope's own copies (`#DDDE`/`#DDDD` grey) when the scheme ships none; document windows stay white. Scriptoscope now fills the `dialog`, `movable-modal`, `alert` and `movable-alert` bodies the same way, and the built-in frame's 3 px gap around a dialog matches the body. For example, apple-platinum-2 and every scheme without the tables get the light grey (`#E3E3E3` under the default display policy), 1984 its dark blue. The body's default text colour is entry 2 of the same table (black, or white on 1984), so for these window types it replaces a `color` set on the host. Override them with `--scriptoscope-dialog-background` and `--scriptoscope-dialog-text`. Slotted content still paints over the fill. Source: Kaleidoscope's PACH 130 GetResource patch (docs/spec/engine/procedural-frame.md §3.6). Found while testing authored schemes in real Kaleidoscope ([#540](https://github.com/khawkins98/scriptoscope/issues/540)).
 - The demo's `mountExplicitPage` (`demo/explicit-host.mjs`) now adds
   `.scriptoscope-ready`, removes `data-scriptoscope-loading`, lifts the root's
   boot `inert`, fires `ready` and resolves only after every boot reveal has
