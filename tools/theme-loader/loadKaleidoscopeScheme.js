@@ -13,7 +13,7 @@ import { snapshotCicnTransfer, bindCicnTransfer } from './cicn-transfer-results.
 
 import { assertCinfEnvironment, bindCinfEnvironment, finalizeCinfTheme, finalizeCinfResourceOwner } from './cinf-environment.js';
 import { beginLoadProvenance } from './loadProvenance.js';
-import { createRasterAssetOwner, bindRasterOwner } from './rasterAssets.js';
+import { createRasterAssetOwner, bindRasterOwner, bindRasterLifetime } from './rasterAssets.js';
 import { convertScheme } from './convert.js';
 import { displayRealizer } from './display-profile.js';
 import { unwrapToResourceFork, detectContainer } from './containers.js';
@@ -120,6 +120,7 @@ export async function loadKaleidoscopeScheme(input, options = {}) {
   try {
     const result = assembleTheme(converted, await owner.imageUrls(), sliderLayoutBinding, byteProvenance, options, owner);
     owner.releasePixels();
+    bindRasterLifetime(owner.dispose, owner);
     return result;
   } catch (error) { owner.dispose(); throw error; }
 }

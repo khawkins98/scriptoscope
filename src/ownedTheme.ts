@@ -1,7 +1,7 @@
 import type { LoadedTheme, ChromeElement } from './types.js';
 import { loadCicnBuffer, rasterDimensions } from './cicnImage.js';
 import { PixelBuffer } from './pixelBuffer.js';
-import { rasterOwner } from '../tools/theme-loader/rasterAssets.js';
+import { rasterOwner, rasterLifetime } from '../tools/theme-loader/rasterAssets.js';
 
 /** Render-focused source. Asset strings under source are references, not image URLs. */
 export interface OwnedTheme {
@@ -61,14 +61,14 @@ export function themeView(input: ThemeInput | ThemeView): ThemeView {
       get byteProvenance() { return source().byteProvenance; },
       get origin() { return owned ? input.origin : input.baseUrl; },
       get base() { return input.base ? themeView(input.base) : undefined; },
-      get lifetime() { return rasterOwner(source()); },
+      get lifetime() { return rasterLifetime(source()); },
       asset(ref) {
-        const owner = rasterOwner(source());
+        const owner = rasterOwner(source()), life = owner ?? rasterLifetime(source());
         const external = /^(?:blob:|https?:|data:)/.test(ref);
         const entry = owner && !external ? owner.capture(ref) : undefined;
         const key = entry?.key ?? (owned ? ref : assetUrl(input, ref));
         const exportImage = owned && !entry && !external ? input.imageUrl.bind(input, ref) : () => Promise.resolve(key);
-        const current = () => { if (owner?.disposed) throw new DOMException('Raster owner disposed', 'AbortError'); };
+        const current = () => { if (life?.disposed) throw new DOMException('Raster owner disposed', 'AbortError'); };
         return {
           key,
           ...(!external ? { path: ref } : {}),

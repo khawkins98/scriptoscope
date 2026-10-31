@@ -137,7 +137,7 @@
     },
     {
       "path": "tools/theme-loader/loadKaleidoscopeScheme.js",
-      "sha256": "0d1c7b1f8d6c90500716351111ef480d1924a7812a0ce32b743e21d042e2bbe0"
+      "sha256": "d2d20a53bf7d60b7897cb0450581adebcf86e92b68ee25cde917f9f5dbd349e4"
     },
     {
       "path": "tools/theme-loader/loadProvenance.js",
@@ -149,7 +149,7 @@
     },
     {
       "path": "tools/theme-loader/rasterAssets.js",
-      "sha256": "8cbb4c084c038875bc7a02284d67886cb0526bcb7a020aa8d16cefa901c32aa7"
+      "sha256": "2443d67f981ecbb2c512b5002f209e54d9ae51d45454d15ea9ee722e54f4b4d3"
     },
     {
       "path": "tools/theme-loader/resource-fork.js",

@@ -98,7 +98,13 @@ diagnostics materialize selected image URLs instead of exposing private referenc
 
 Existing `loadTheme` and `loadKaleidoscopeScheme` calls still return ready image URL
 strings. They eagerly materialize the same owner implementation and then release
-its private pixel references. Existing synchronous image consumers stay supported.
+its private pixel references, keeping only a pixel-free lifetime marker bound to
+their `dispose`. After `dispose()`, every renderer rejects the theme, and any copy
+that carries the same `dispose` function, with `AbortError` before decoding, even
+where a browser still serves a revoked image URL. A composition already decoding when
+`dispose()` runs may instead reject with the browser's decode error (for example
+`EncodingError`); it still publishes no buffer. Existing synchronous image consumers
+stay supported.
 
 ## Ownership and validation
 

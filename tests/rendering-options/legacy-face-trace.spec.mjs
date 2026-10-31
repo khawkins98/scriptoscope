@@ -78,7 +78,7 @@ for (const mode of ['source', 'built']) {
     await openHarness(page, servers, mode);
     const rows = await page.evaluate(async mode => {
       const api = await import(mode === 'built' ? '/dist/scriptoscope.js' : '/src/index.ts');
-      const source = api.PixelBuffer.alloc(7, 7); source.fillRect({ x: 0, y: 0, w: 7, h: 7 }, 20, 40, 60, 128);
+      const source = api.PixelBuffer.alloc(7, 7); source.fillRect({ x: 0, y: 0, w: 7, h: 7 }, 131, 193, 255, 128);
       const blank = api.PixelBuffer.alloc(7, 7);
       const context = rect => ({ controlOrigin: [10, 20], portOrigin: [0, 0], patternOrigin: { status: 'unknown' }, clip: { kind: 'rect', rect } });
       const cases = [
@@ -109,9 +109,9 @@ for (const mode of ['source', 'built']) {
     for (const row of rows) { expect(row.same).toBe(true); expect([row.offDecodes, row.onDecodes]).toEqual([1, 1]); }
     const clipped = rows.find(r => r.name === 'clipped');
     expect(clipped.trace.legacyFacePaint).toMatchObject({ retainedNonzeroAlphaPixels: 12, controlOrigin: [10, 20],
-      effectiveFaceClip: { x: 2, y: 1, w: 3, h: 4 }, centerFill: { sourcePoint: [2, 2], sampledDisplayRgba: [20, 40, 60, 128], outputAlpha: 255 } });
+      effectiveFaceClip: { x: 2, y: 1, w: 3, h: 4 }, centerFill: { sourcePoint: [2, 2], sampledDisplayRgba: [131, 193, 255, 128], outputAlpha: 255 } });
     const literal = Array.from({ length: 29 * 7 }, (_, i) => { const x = i % 29, y = Math.floor(i / 29);
-      return x >= 2 && x < 5 && y >= 1 && y < 5 ? [20, 40, 60, y >= 2 ? 255 : 128] : [0, 0, 0, 0]; }).flat();
+      return x >= 2 && x < 5 && y >= 1 && y < 5 ? [131, 193, 255, y >= 2 ? 255 : 128] : [0, 0, 0, 0]; }).flat();
     expect(clipped.rgba).toEqual(literal);
     expect(rows.find(r => r.name === 'empty-clip').trace.legacyFacePaint).toBeUndefined();
     const text = rows.find(r => r.name === 'transparent-label'); expect(text.trace.legacyFacePaint).toBeUndefined(); expect(text.rgba.some((v, i) => i % 4 === 3 && v > 0)).toBe(true);
