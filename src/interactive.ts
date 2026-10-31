@@ -91,6 +91,7 @@ import {
 } from './controls.js';
 import { newProgressRecord, progressIdleAdvance, progressSetData, type ProgressRecord } from './engine/families/progress.js';
 import { PROGRESS_DATA, PROGRESS_FACADE_TICKS } from './engine/tables/progress.js';
+import { SLIDER_HOST_BODY_BACKGROUND } from './engine/tables/slider.js';
 import { platinumSliderWithLayout, platinumScrollbar } from './platinum.js';
 import { findPositionedAncestor, offsetInContainingBlock, pointInElement, viewportFrame } from './positioning.js';
 import { debug } from './debug.js';
@@ -570,13 +571,17 @@ function sliderPressTracker(el: HTMLElement): {
   };
 }
 
+/** The DOM host's slider: R erased to the composited window body (slider BG6a, #596). */
+const composeHostSlider = (theme: ThemeInput, opts: SliderOptions, signal: AbortSignal): Promise<SliderFrame | null | typeof ENDED> =>
+  composeSliderEnded(composeSliderWithLayout(theme, { ...opts, background: SLIDER_HOST_BODY_BACKGROUND }, signal));
+
 export async function interactiveNativeSlider(theme: ThemeInput, input: HTMLInputElement,
   active: () => boolean): Promise<HTMLElement> {
   const el = document.createElement('span'); el.className = 'scriptoscope-slider';
   const press = sliderPressTracker(el);
   await buildDraggable(el, 'horizontal', nativeRangeValue(input), 1,
     async (value, state, signal) => {
-      const frame = await composeSliderEnded(composeSliderWithLayout(theme, { orientation: 'horizontal', length: 120, value, ...press.pressed(state) }, signal));
+      const frame = await composeHostSlider(theme, { orientation: 'horizontal', length: 120, value, ...press.pressed(state) }, signal);
       if (signal.aborted || frame === ENDED) return null;
       press.painted(frame, state);
       return frame ?? platinumSliderWithLayout({ orientation: 'horizontal', length: 120, value });
@@ -593,7 +598,7 @@ export async function interactiveSlider(theme: ThemeInput, opts: InteractiveSlid
   const press = sliderPressTracker(el);
   await buildDraggable(el, orientation, value, scale,
     async (v, state, signal) => {
-      const frame = await composeSliderEnded(composeSliderWithLayout(theme, { orientation, length, value: v, ...press.pressed(state) }, signal));
+      const frame = await composeHostSlider(theme, { orientation, length, value: v, ...press.pressed(state) }, signal);
       if (signal.aborted || frame === ENDED) return null;
       press.painted(frame, state);
       return frame ?? platinumSliderWithLayout({ orientation, length, value: v });
@@ -1627,7 +1632,11 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       const epoch = paintEpoch;
       try {
         const opts = { orientation: axis, length: Math.round(barLenCss / scale), value };
-        const themed = await composeScrollbarFrame(entry.theme, pressed ? { ...opts, state: 'pressed', pressedPart: pressed } : opts);
+        // State tier (scrollbar §4.2 TR1-TR4): an inactive window's bars draw tier 0 (#594). Each
+        // activation flip re-renders and re-wires, repainting the bar in place. Inactive wins
+        // over a press, as in TR1, though an inactive window holds none (see pointerdown).
+        const themed = await composeScrollbarFrame(entry.theme, !entry.active ? { ...opts, state: 'inactive' }
+          : pressed ? { ...opts, state: 'pressed', pressedPart: pressed } : opts);
         if (!current() || epoch !== paintEpoch) return;
         painted = themed;
         paintedScrollbars.set(bar, themed);
@@ -1682,6 +1691,10 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       e.preventDefault(); e.stopPropagation();
       if (e.pointerType === 'mouse' && e.button !== 0) return;
       endPress?.();
+      // A first press on an inactive window only activates it (#594). Decode: an inactive control
+      // hit-tests to part 0 (scrollbar.md HT1). Compatibility policy: dropping the click mirrors the
+      // classic Toolbox app behaviour of selecting the window without passing the click on.
+      if (!entry.active) { this.claimFocus(entry, bar); void this.focus(entry); return; }
       // Nothing painted yet: no part to press. The procedural fallback (no frame) drags.
       const part = painted ? paintedPartAt(bar, e, painted) : bar.querySelector('canvas') ? 'thumb' : null;
       if (!part) return;                                   // part 0: outside the control

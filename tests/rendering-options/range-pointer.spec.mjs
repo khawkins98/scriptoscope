@@ -55,7 +55,11 @@ async function setup(page, servers, mode, kind = 'windows-95') {
     root.append(form);
     const { attachNativeSources } = await import('/tests/rendering-options/explicit-native-host.mjs');
     const handle = await attachNativeSources(api, { root, theme, controls: [form.querySelector('input')] });
-    window.pointerFixture = { api, theme, root, handle, events, kind, pointerSamples: [], pointerEvents: new AbortController() };
+    // The promoted range is a DOM slider path: its host supplies a fully transparent erase background, so R
+    // composites to the window body already drawn behind the canvas (slider.md §4.10 BG4; the host input of BG6;
+    // #596 compatibility policy). Standalone composeSlider keeps BG6's opaque-white default.
+    const hostBackground = { r: 0, g: 0, b: 0, a: 0 };
+    window.pointerFixture = { api, theme, root, handle, events, kind, hostBackground, pointerSamples: [], pointerEvents: new AbortController() };
     for (const type of ['pointerdown', 'pointermove']) window.addEventListener(type, e => { window.pointerFixture.pointerSamples.push({ type, x: e.clientX, y: e.clientY }); }, { signal: window.pointerFixture.pointerEvents.signal });
   }, { mode, kind });
   await expect(page.locator('#pointer-root .scriptoscope-slider canvas')).toHaveCount(1);
@@ -71,7 +75,7 @@ async function setValue(page, attributes) {
     const normalized = (input.valueAsNumber - Number(input.min)) / (Number(input.max) - Number(input.min));
     // This public rendering comparison only waits for the async visual setter;
     // pointer acceptance below uses independently declared thumb extents.
-    const buffer = await f.api.composeSlider(f.theme, { length: 120, value: normalized })
+    const buffer = await f.api.composeSlider(f.theme, { length: 120, value: normalized, background: f.hostBackground })
       ?? f.api.platinumSlider({ length: 120, value: normalized });
     f.expectedPaint = f.api.bufferToCanvas(buffer).toDataURL();
     return { exact: input.value, normalized };
@@ -370,8 +374,8 @@ for (const mode of ['source', 'built']) {
       const out = await test.step('compare committed normal and stale pressed canvases', () => page.evaluate(async () => {
         const f = window.pointerFixture; f.observer.disconnect();
         const url = b => f.api.bufferToCanvas(b).toDataURL();
-        const normal = url(await f.api.composeSlider(f.theme, { length: 120, value: 0.25 }));
-        const pressed = url(await f.api.composeSlider(f.theme, { length: 120, value: 0.25, state: 'pressed' }));
+        const normal = url(await f.api.composeSlider(f.theme, { length: 120, value: 0.25, background: f.hostBackground }));
+        const pressed = url(await f.api.composeSlider(f.theme, { length: 120, value: 0.25, state: 'pressed', background: f.hostBackground }));
         const canvas = document.querySelector('#pointer-root canvas');
         return { distinct: normal !== pressed, final: canvas.toDataURL() === normal, height: canvas.height,
           pressedCommits: f.commits.filter(c => c.toDataURL() === pressed).length, replaced: canvas !== f.initialCanvas };

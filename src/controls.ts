@@ -335,10 +335,12 @@ export interface SliderOptions {
   /** Control rect cross size in px. Default 16, or 32 with tick marks on a directional variant (facade policy). */
   thickness?: number;
   /**
-   * The colour R is erased to before the art is drawn (slider O3/O4; the
-   * 2.3.1 CDEF repaints the whole control rect opaque). Default white.
+   * The colour R is erased to before the art is drawn (slider O3/O4, BG5; the
+   * 2.3.1 CDEF repaints the whole control rect). Default opaque white (BG6).
+   * `a` (default 255) lets a host that composites the window body behind the
+   * control pass its brush as transparency (BG6a; the DOM host passes 0).
    */
-  background?: { r: number; g: number; b: number };
+  background?: { r: number; g: number; b: number; a?: number };
 }
 
 /** @internal A composed slider plus its part test and tracking (slider §4.9, §5.6). */
@@ -403,7 +405,7 @@ export async function composeSliderWithLayout(
     if (!init) return endpoint ? unsupported('handed off (no slider cinf)') : null;
     const out = PixelBuffer.alloc(R.right, R.bottom);
     const bg = opts.background ?? SLIDER_FACADE_BACKGROUND;
-    const { state } = drawSlider(out, chain, init.record, input, { background: { r: bg.r, g: bg.g, b: bg.b, a: 255 } }, trace);
+    const { state } = drawSlider(out, chain, init.record, input, { background: { r: bg.r, g: bg.g, b: bg.b, a: bg.a ?? SLIDER_FACADE_BACKGROUND.a } }, trace);
     if (!state) return endpoint ? unsupported('handed off (no slider cinf)') : null;
     const Th = state.Th && !(state.Th.right <= state.Th.left || state.Th.bottom <= state.Th.top) ? state.Th : null;
     const c = state.c ?? 0, travel = Math.max(0, init.record.travel ?? 0);
@@ -428,6 +430,11 @@ export async function composeSliderWithLayout(
   });
 }
 
+const DISCLOSURE_IDS = {
+  right: { normal: -10111, pressed: -10110, inactive: -10112 },
+  down: { normal: -10103, pressed: -10102, inactive: -10104 },
+} as const;
+
 export interface DisclosureOptions {
   direction?: 'right' | 'down';
   state?: ControlState;
@@ -440,10 +447,12 @@ export interface DisclosureOptions {
  * disclosure triangle or falls to the procedural Platinum one — it does not
  * inherit the base bundle's (the replica ships -9990/-9991 triangles that would
  * otherwise leak into every cicn-less scheme via the chain). Resolution order on
- * the scheme itself: (1) the named disclosure chromeElement (texture schemes),
- * (2) the canonical kDEF id family -10102..-10112 (right/down × normal/pressed/
- * inactive; no corpus scheme ships it as a cicn today, kept for completeness),
- * (3) the scheme's OWN ics4 triangle pictogram. apple-platinum-2 is the only
+ * the scheme itself: (1) the canonical signed state id (DISCLOSURE_IDS), then
+ * the same direction's normal id — that missing-state reuse (crayon-os ships
+ * only the two normals) is COMPATIBILITY POLICY, not decode; only the state ids
+ * themselves are evidenced (author labels, kdef-faithfulness-ledger.md
+ * manifest→decode), (2) a named disclosure chromeElement with no
+ * canonical id, (3) the scheme's OWN ics4 triangle pictogram. apple-platinum-2 is the only
  * corner-sprite scheme that ships a disclosure triangle: a pixel-VERIFIED clean
  * pair under the NON-canonical positive ics4 ids 3060 (right/collapsed) and 3061
  * (down/expanded) — wired here by id. platinum-8 + system7-nostalgia-silver ship
@@ -456,24 +465,25 @@ export async function composeDisclosure(
   return withThemeView(inputTheme, async theme => {
     const dir = opts.direction ?? 'right';
     const state = opts.state ?? 'normal';
-    const prefix = state === 'pressed' ? 'pressed-' : state === 'disabled' || state === 'inactive' ? 'inactive-' : '';
-    // note: the bundle has a typo "tringle" for inactive-right
-    const keys = [
-      `${prefix}${dir}-pointing-disclosure-triangle`,
-      `${prefix}${dir}-pointing-disclosure-tringle`,
-      `${dir}-pointing-disclosure-triangle`,
-    ];
-    for (const k of keys) {
+    const tier = state === 'pressed' ? 'pressed' : state === 'disabled' || state === 'inactive' ? 'inactive' : 'normal';
+    // Canonical signed state ids first (#595), self-only as a cicn, then as an
+    // ics4 glyph. Author labels name them across the corpus (1138, animals,
+    // beos-r503, 1990, 1984, floppies, …): right -10111 normal / -10110 pressed /
+    // -10112 inactive; down -10103 / -10102 / -10104. A missing pressed or
+    // inactive state falls back to the same direction's normal (crayon-os ships
+    // only the two normals).
+    const ids = DISCLOSURE_IDS[dir];
+    for (const id of new Set([ids[tier], ids.normal])) {
+      const byId = (await loadByIdSelf(theme, id)) ?? (await loadGlyphByIdSelf(theme, id));
+      if (byId) return byId;
+    }
+    // Named chromeElements without a canonical id (note the "tringle" typo).
+    const prefix = tier === 'normal' ? '' : `${tier}-`;
+    for (const k of [`${prefix}${dir}-pointing-disclosure-triangle`, `${prefix}${dir}-pointing-disclosure-tringle`,
+      `${dir}-pointing-disclosure-triangle`]) {
       const g = await loadByKeySelf(theme, k);
       if (g) return g;
     }
-    // Canonical kDEF disclosure-triangle id family (docs/spec/kdef231-reference.md
-    // §2.6): -10102..-10112, right/down × normal/pressed/inactive (rows of 5 per
-    // the period doc; we map only the normal right/down here, which is all the
-    // renderer needs). Resolved self-only as a cicn, then as an ics4 glyph.
-    const canonical = dir === 'right' ? 10102 : 10103;
-    const byId = (await loadByIdSelf(theme, canonical)) ?? (await loadGlyphByIdSelf(theme, -canonical));
-    if (byId) return byId;
     // apple-platinum-2's pixel-verified own triangles (non-canonical positive ics4
     // ids — see the doc-comment). 3060 = right/collapsed, 3061 = down/expanded.
     return loadGlyphByIdSelf(theme, dir === 'right' ? 3060 : 3061);
