@@ -7,10 +7,21 @@ on:
         type: choice
         default: all
         options: [all, chromium, firefox, webkit]
+  # The release tier (release-gate.yml) calls this matrix rather than copying it.
+  workflow_call:
+    inputs:
+      browsers:
+        description: Browser coverage (all, chromium, firefox or webkit)
+        type: string
+        default: all
 # Deliberately explicit: the bounded Chromium suite runs on every code PR in CI.
+# When called, github.workflow is the caller's name, so a manual run of this
+# file and a release-gate run on the same ref never cancel each other.
 concurrency:
-  group: rendering-extended-${{ github.ref }}
+  group: ${{ github.workflow }}-rendering-extended-${{ github.ref }}
   cancel-in-progress: true
+permissions:
+  contents: read
 # Sharded since #576: serially the four projects (3876 tests) ran far past the
 # former 40-minute limit. Each project is split into EXTENDED_SHARDS jobs by
 # Playwright's test-count sharding, which keeps a file's tests that share a
