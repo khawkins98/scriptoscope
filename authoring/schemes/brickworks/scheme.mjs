@@ -18,7 +18,8 @@
 //   controls.mjs    push buttons, default ring, checkboxes, radios
 //   scrollbars.mjs  scroll bars, thumbs, ghosts, little arrows
 //   extras.mjs      progress bar, sliders, tabs, list headers, disclosure triangles, grow box
-//   patterns.mjs    baseplate document body, utility body, Finder colours
+//   patterns.mjs    baseplate document body, utility body, the baseplate desktop, Finder colours
+//   icon.mjs        the scheme's picker icon (a red 2×2 brick)
 import { encodeCicn, encodeWnd, encodeColr, encodeVers, stripLayout } from '../../../tools/theme-author/index.js';
 import { windowTypes, paintFrame } from './frames.mjs';
 import { pressedStrip } from './widgets.mjs';
@@ -26,8 +27,9 @@ import * as controls from './controls.mjs';
 import * as scrollbars from './scrollbars.mjs';
 import * as extras from './extras.mjs';
 import * as patterns from './patterns.mjs';
+import * as icon from './icon.mjs';
 
-const PARTS = { 'controls.mjs': controls, 'scrollbars.mjs': scrollbars, 'extras.mjs': extras, 'patterns.mjs': patterns };
+const PARTS = { 'controls.mjs': controls, 'scrollbars.mjs': scrollbars, 'extras.mjs': extras, 'patterns.mjs': patterns, 'icon.mjs': icon };
 
 export async function buildScheme() {
   const resources = [];

@@ -17,6 +17,16 @@ fidelity evidence. The general findings about tall frames are in
 | `desktop-before-repaint@2x.png` | the 2026-10-30 build, before the paint-over from the concept art |
 | `water-zoom-before-redesign@4x.png` | the build before the visual design pass |
 
+## 2026-10-31: classic extras added, not yet verified in Kaleidoscope
+
+Added after the run below: the scheme picker icon (`ICN#`/`icl8`/`icl4`/
+`ics#`/`ics8`/`ics4` -16455, a five-petal cherry blossom with a yellow heart,
+the close box's flower, drawn separately at 32×32 and 16×16). This reverses
+the earlier "blank by design" decision. The desktop pattern was already there.
+Built with `npm run author` (no errors) and checked in the 8-bit simulation,
+but these have **not been verified in real Kaleidoscope yet**: the screenshots
+and notes below predate them.
+
 ## 2026-10-31: after the paint-over
 
 One clean boot that switched Halcyon → Castle → Brickworks → Bonn → Midnight
@@ -25,8 +35,8 @@ One clean boot that switched Halcyon → Castle → Brickworks → Bonn → Midn
 
 - **Loading:** no errors either time. The panel reads "Bonn / 0.1 Bonn
   (Scriptoscope authoring)". The scheme picker shows a **blank icon** (Bonn
-  ships no picker icon, by design). The menu bar (peach with a red rule) and
-  the blossom desktop pattern are themed.
+  shipped no picker icon then; one has since been added, see above). The
+  menu bar (peach with a red rule) and the blossom desktop pattern are themed.
 - **The skyline on the code-6 caps beside the title: the original engine
   places it the same way as the web runtime.** Measured at the same outer
   width (609 px) against `demo/authoring-preview.html`:

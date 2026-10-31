@@ -10,7 +10,9 @@ import { buildScheme } from '../../authoring/schemes/bonn/scheme.mjs';
 import { checkScheme } from './check-scheme.js';
 import { writeResourceFork } from './resource-fork-writer.js';
 import { writeMacBinary } from './macbinary.js';
-import { convertChrome } from '../theme-loader/convert.js';
+import { convertChrome, convertIcons } from '../theme-loader/convert.js';
+import { decodePpat } from '../theme-loader/decoders/ppat.js';
+import { SYSTEM_PALETTE_256 } from './encode-icons.js';
 import { decodeCicn } from '../theme-loader/decoders/cicn.js';
 import { decodeWnd } from '../theme-loader/decoders/wnd.js';
 
@@ -46,6 +48,21 @@ test('the skyline stands over the title caps (code 6) and one bridge is centred 
   const w = widths(wnd.topSide);
   assert.ok(w[2] > 30 && w[4] > 30, 'the caps are wide enough to carry the Minster and the Town Hall');
   assert.deepEqual(codes(wnd.bottomSide), [1, 0, 11, 1, 8, 1]);
+});
+
+test('classic extras: the picker icon family (-16455) and a power-of-two desktop pattern (ppat 17) in exact 8-bit system colours', () => {
+  const { index } = convertIcons(fork, { ids: [-16455] });
+  assert.deepEqual(index.map((i) => i.type).sort(), ['icl4', 'icl8', 'ics4', 'ics8']);
+  assert.ok(index.every((i) => i.masked), 'every icon plane has its ICN#/ics# mask');
+  for (const type of ['ICN#', 'ics#']) assert.ok(find(type, -16455), `${type} -16455`);
+  const desktop = decodePpat(find('ppat', 17).data);
+  const pow2 = (n) => (n & (n - 1)) === 0;
+  assert.ok(pow2(desktop.width) && pow2(desktop.height), `desktop ${desktop.width}x${desktop.height}`);
+  const system = new Set(SYSTEM_PALETTE_256.map((c) => c.join()));
+  for (let i = 0; i < desktop.rgba.length; i += 4) {
+    const rgb = [...desktop.rgba.subarray(i, i + 3)].join();
+    assert.ok(system.has(rgb), `desktop colour ${rgb} is a system palette entry`);
+  }
 });
 
 test('committed bonn scheme.rsrc and scheme.bin match a fresh build (run `npm run author -- authoring/schemes/bonn`)', () => {

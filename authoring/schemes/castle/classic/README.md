@@ -16,6 +16,15 @@ title bar, narrow-window behaviour, 8 bpp colour shifts) are in
 | `desktop-before-repaint@2x.png` | the 2026-10-30 build, before the paint-over from the concept art |
 | `desktop-before-redesign@2x.png` | the build before the visual design pass |
 
+## 2026-10-31: classic extras added, not yet verified in Kaleidoscope
+
+Added after the run below: a desktop pattern (`ppat 17`, 64×64: flat sky
+`#6699cc` with a sparse grain of pale `#99cccc` wisps, exact system-palette
+entries stored raw). The picker icon was already there. Built with `npm run
+author` (no errors) and checked in the 8-bit simulation, but it has **not been
+verified in real Kaleidoscope yet**: the screenshots and notes below predate
+it.
+
 ## 2026-10-31: after the paint-over
 
 Taken in one clean boot that switched Halcyon → Castle → Brickworks → Bonn →
@@ -34,7 +43,8 @@ Midnight 2027 through **Select Scheme…**. `scheme.bin` sha256
   - the Finder's info bar and column-header band are drawn tan
     (`#b38754`), a strip the web preview has no equivalent for;
   - the desktop stays the system grey: Castle ships no desktop pattern
-    (`Desktop Pattern` is greyed in the panel);
+    (`Desktop Pattern` is greyed in the panel; one has since been added,
+    see above);
   - colours sit on the 8 bpp palette levels (e.g. cream body, tan header);
     no banding was visible in the stone or the title plate.
 - Art above the title bar: these windows were dragged clear of the menu bar,

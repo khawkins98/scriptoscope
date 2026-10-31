@@ -32,14 +32,15 @@
 //   families.mjs    sliders, tabs + panes, bevel buttons, popup pieces
 //   progress.mjs    progress bar + barge, list headers, disclosure, grow boxes
 //   menus.mjs       menu bar, pull-down and pop-up menus, the grabber
+//   icon.mjs        the scheme's picker icon (a cherry blossom)
 //
-// Not themed (falls back): the scheme's picker icon, popup / side-floating /
-// no-title utility windows, text fields (CSS on the web).
+// Not themed (falls back): popup / side-floating / no-title utility windows,
+// text fields (CSS on the web).
 import { encodeCicn, encodeWnd, encodeColr, encodeVers, stripLayout } from '../../../tools/theme-author/index.js';
 import { windowTypes, paintFrame } from './frames.mjs';
 import { pressedStrip } from './widgets.mjs';
 
-const PARTS = ['controls', 'scrollbars', 'patterns', 'families', 'progress', 'menus'];
+const PARTS = ['controls', 'scrollbars', 'patterns', 'families', 'progress', 'menus', 'icon'];
 
 export async function buildScheme() {
   const resources = [];

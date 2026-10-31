@@ -17,6 +17,17 @@ fidelity evidence. The general findings about tall frames are in
 | `desktop-before-repaint@2x.png` | the 2026-10-30 build, before the paint-over from the concept art |
 | `corner-zoom-before-redesign@6x.png` | the build before the visual design pass |
 
+## 2026-10-31: classic extras added, not yet verified in Kaleidoscope
+
+Added after the run below: the scheme picker icon (`ICN#`/`icl8`/`icl4`/
+`ics#`/`ics8`/`ics4` -16455, a red 2×2 brick with four studs in three-quarter
+view, drawn separately at 32×32 and 16×16) and a desktop pattern (`ppat 17`,
+16×16: a muted green baseplate `#669966` with one stud per tile, rims
+`#99cc99` / `#336633`, exact system-palette entries stored raw). Menus are
+still not themed. Built with `npm run author` (no errors) and checked in the
+8-bit simulation, but these have **not been verified in real Kaleidoscope
+yet**: the screenshots and notes below predate them.
+
 ## 2026-10-31: after the paint-over
 
 One clean boot that switched Halcyon → Castle → Brickworks → Bonn → Midnight
@@ -25,8 +36,9 @@ One clean boot that switched Halcyon → Castle → Brickworks → Bonn → Midn
 
 - **Loading:** no errors. The panel reads "Brickworks / 0.1 Brickworks
   (Scriptoscope authoring)". The scheme picker shows a **blank icon** for
-  Brickworks (no scheme icon is shipped), and the menu bar and desktop stay on
-  the system defaults (no menus module, no desktop pattern).
+  Brickworks (no scheme icon was shipped), and the menu bar and desktop stay on
+  the system defaults (no menus module, no desktop pattern). The icon and the
+  desktop pattern have since been added; see above.
 - **The tiled stud row over the title plate: the original engine tiles it the
   same way as the web runtime.** Both were measured at the same outer widths
   (618 and 522 px) against `demo/authoring-preview.html`, by the window-relative

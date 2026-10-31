@@ -30,7 +30,7 @@
 //   families.mjs    sliders (shield thumbs) and merlon tabs + panes
 //   progress.mjs    progress bar + fringe barber pole, list headers, disclosure, portcullis grow box
 //   menus.mjs       menu bar and menus (classic only), the scheme icon
-//   patterns.mjs    parchment body (every window type), Finder colours
+//   patterns.mjs    parchment body (every window type), the sky desktop, Finder colours
 import { encodeCicn, encodeWnd, encodeColr, encodeVers } from '../../../tools/theme-author/index.js';
 import { windowTypes, paintFrame } from './frames.mjs';
 import { stripLayout } from '../../../tools/theme-author/index.js';

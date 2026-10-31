@@ -9,7 +9,9 @@ import { buildScheme } from '../../authoring/schemes/brickworks/scheme.mjs';
 import { checkScheme } from './check-scheme.js';
 import { writeResourceFork } from './resource-fork-writer.js';
 import { writeMacBinary } from './macbinary.js';
-import { convertChrome } from '../theme-loader/convert.js';
+import { convertChrome, convertIcons } from '../theme-loader/convert.js';
+import { decodePpat } from '../theme-loader/decoders/ppat.js';
+import { SYSTEM_PALETTE_256 } from './encode-icons.js';
 import { decodeCicn } from '../theme-loader/decoders/cicn.js';
 import { decodeWnd } from '../theme-loader/decoders/wnd.js';
 
@@ -42,6 +44,21 @@ test('stud runs tile one brick from the title outward (code 11 left, code 8 righ
   }
   const doc = decodeWnd(find('wnd#', -14336).data).topSide.map((e) => e.part);
   assert.equal(doc.filter((p) => p === 10).length, 1, `document top recipe ${doc}`);
+});
+
+test('classic extras: the picker icon family (-16455) and a power-of-two desktop pattern (ppat 17) in exact 8-bit system colours', () => {
+  const { index } = convertIcons(fork, { ids: [-16455] });
+  assert.deepEqual(index.map((i) => i.type).sort(), ['icl4', 'icl8', 'ics4', 'ics8']);
+  assert.ok(index.every((i) => i.masked), 'every icon plane has its ICN#/ics# mask');
+  for (const type of ['ICN#', 'ics#']) assert.ok(find(type, -16455), `${type} -16455`);
+  const desktop = decodePpat(find('ppat', 17).data);
+  const pow2 = (n) => (n & (n - 1)) === 0;
+  assert.ok(pow2(desktop.width) && pow2(desktop.height), `desktop ${desktop.width}x${desktop.height}`);
+  const system = new Set(SYSTEM_PALETTE_256.map((c) => c.join()));
+  for (let i = 0; i < desktop.rgba.length; i += 4) {
+    const rgb = [...desktop.rgba.subarray(i, i + 3)].join();
+    assert.ok(system.has(rgb), `desktop colour ${rgb} is a system palette entry`);
+  }
 });
 
 test('committed brickworks scheme.rsrc and scheme.bin match a fresh build (run `npm run author -- authoring/schemes/brickworks`)', () => {
