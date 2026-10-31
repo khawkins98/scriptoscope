@@ -51,27 +51,30 @@ export const DISC = [
 ];
 export const DISC_SIZE = 13;
 
-// The 15px title-bar knob: the same stair rim, lit arc and shade, one size up.
+// The 17px title-bar knob (the concept's widget size at 1x): the same stair
+// rim, lit arc upper left and shade lower right.
 export const KNOB = [
-  '.....ooooo.....',
-  '...oohhhbboo...',
-  '..ohhbbbbbbbo..',
-  '.ohhbbbbbbbbbo.',
-  '.ohbbbbbbbbbbo.',
-  'ohbbbbbbbbbbbbo',
-  'ohbbbbbbbbbbbbo',
-  'obbbbbbbbbbbbbo',
-  'obbbbbbbbbbbblo',
-  'obbbbbbbbbbbblo',
-  '.obbbbbbbbbblo.',
-  '.obbbbbbbbbllo.',
-  '..obbbbbbbllo..',
-  '...oollllloo...',
-  '.....ooooo.....',
+  '......ooooo......',
+  '....oohhhbboo....',
+  '...ohhbbbbbbbo...',
+  '..ohhbbbbbbbbbo..',
+  '.ohbbbbbbbbbbbbo.',
+  '.ohbbbbbbbbbbbbo.',
+  'ohbbbbbbbbbbbbbbo',
+  'ohbbbbbbbbbbbbbbo',
+  'obbbbbbbbbbbbbblo',
+  'obbbbbbbbbbbbbblo',
+  'obbbbbbbbbbbbbblo',
+  '.obbbbbbbbbbbblo.',
+  '.obbbbbbbbbbbblo.',
+  '..obbbbbbbbbllo..',
+  '...obbbbbbbllo...',
+  '....oollllloo....',
+  '......ooooo......',
 ];
-export const KNOB_SIZE = 15;
+export const KNOB_SIZE = 17;
 
-// 7×7 glyphs, whole pixels, centred on the knob's centre pixel (7, 7). The ×
+// 7×7 glyphs, whole pixels, centred on the knob's centre pixel (8, 8). The ×
 // doubles its strokes on the stair steps so it weighs the same as the bars.
 export const GLYPH = {
   close: ['X.....X', 'XX...XX', '.XX.XX.', '..XXX..', '.XX.XX.', 'XX...XX', 'X.....X'],
@@ -124,3 +127,29 @@ export const WHEEL = [
   '...oottttttoo...',
   '.....oooooo.....',
 ];
+
+// Studs in the concept's three-quarter view, lifted from concept.jpg with
+// `npm run paint-over` and cleaned: an elliptical lit top, a cylinder side in
+// the brick's lo tone, a rim in the brick's deep tone (d) or the outline (o)
+// where the stud stands against the sky.
+export const TOP_STUD = [
+  '..dddddddd..',
+  '.dhhbbbbbbd.',
+  'dhbbbbbbbbbd',
+  'dlbhhhhhbbld',
+  'dlllllllllld',
+  '.dllllllldd.',
+  '..dddddddd..',
+];
+export const TOP_STUD_W = 12;
+// The baseplate's studs, smaller and flatter.
+export const PLATE_STUD = [
+  '..oooooo..',
+  '.ohhbbbbo.',
+  'ohbbbbbbbo',
+  'olhhhhhhlo',
+  'ollllllllo',
+  '.ollllllo.',
+  '..oooooo..',
+];
+export const PLATE_STUD_W = 10;
