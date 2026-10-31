@@ -6,7 +6,7 @@
 // right. The glyph sits inside on whole pixels:
 //
 //   close     a cherry rosette
-//   zoom      a plain shield, red over yellow on the diagonal
+//   zoom      a shield inspired by Bonn's arms: black cross on white over a gold lion on red
 //   collapse  a breaking teal wave
 //
 // Pressed: the face drops to the shade colour and the lit and shaded arcs swap
@@ -55,17 +55,20 @@ const ROSE = [
   '.aaddd.',
   '..a.d..',
 ];
-// A plain shield split on the diagonal, red over yellow (no charges: not a coat of arms).
+// A stylised shield inspired by the City of Bonn's arms: a white top with a
+// black cross, a red bottom with a gold lion walking to the left, tail up.
+// At this size the lion is a blob with a head, legs and a raised tail.
 const SHIELD = [
-  'ooooooo',
-  'oRRRRYo',
-  'oRRRYYo',
-  'oRRYYYo',
-  'oRYYYYo',
-  '.oYYYo.',
-  '.oYYYo.',
-  '..oYo..',
-  '...o...',
+  'ooooooooo',
+  'oWWWkWWWo',
+  'okkkkkkko',
+  'oWWWkWWWo',
+  'oRRRRRRYo',
+  'oYYRRRYRo',
+  'oYYYYYYRo',
+  '.oYRRYRo.',
+  '..oRRRo..',
+  '...ooo...',
 ];
 // A breaking wave: lit crest, teal body, deep base.
 const WAVE = [
@@ -100,7 +103,8 @@ export function drawZoom(r, b, state, pressed = false) {
   if (state !== 'active') { disc(r, b, k.p, k); return; }
   const a = C.active;
   disc(r, b, k.p, k);
-  glyph(r, b, SHIELD, { o: a.outline, R: pressed ? a.redLo : a.red, Y: pressed ? a.stoneLo : a.yellow });
+  const A = a.arms;
+  glyph(r, b, SHIELD, { o: a.outline, W: A.white, k: A.cross, R: pressed ? A.redLo : A.red, Y: pressed ? A.goldLo : A.gold });
 }
 
 export function drawCollapse(r, b, state, pressed = false) {

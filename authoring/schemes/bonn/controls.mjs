@@ -3,7 +3,7 @@
 // (the city colours: red with a yellow inner line) and checkboxes / radio
 // buttons (cream boxes, red marks). Every edge is whole pixels.
 //
-// Push faces (docs/authoring-a-scheme.md §5 item 3): the engine copies the four
+// Push faces (docs/authoring-a-scheme.md §6.1): the engine copies the four
 // cornerSize corners 1:1, stretches the sideThickness bands, and fills the
 // middle with ONE colour read at bgPixel. So shading may only live in the side
 // bands (uniform along them) and the corners.

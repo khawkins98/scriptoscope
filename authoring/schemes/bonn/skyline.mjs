@@ -1,34 +1,43 @@
-// Bonn's skyline, the cherry bough and the small ornaments above the bar,
-// painted over the concept (concept/concept.jpg, measured at 3 concept px per
-// pixel with `npm run paint-over`) and redrawn by hand on whole pixels:
+// Bonn's skyline, Beethoven, the cherry bough and the small ornaments above
+// the bar. First painted over the concept (concept/concept.jpg, 3 concept px
+// per pixel, `npm run paint-over`), then redrawn by hand on whole pixels from
+// what makes each real building recognisable:
 //
-//   - the Minster: a sandstone church with a tall teal spire on its crossing
-//     tower, two flanking towers with spires and a teal gable;
-//   - the pink Old Town Hall: a slate mansard with dormers, a pediment over
-//     the centre bay, a ridge turret, three floors of windows and the stair;
-//   - the Post Tower: a teal glass slab with a lit edge, floor bands and a mast;
-//   - dark riverside trees behind them, and the cherry bough in the corner.
+//   - the Minster (Romanesque): a tall octagonal crossing tower (three faces
+//     showing: lit, front, shade) under a green-grey slate spire, a ring of
+//     gables at its foot, round-arched windows, a dwarf gallery and grey tufa
+//     string courses on the sandstone; the pair of slimmer east towers with
+//     their own pointed spires either side;
+//   - the Altes Rathaus (rococo): a rose facade with white cornice, pilasters
+//     and window frames, a grey mansard with dormers, a small bell lantern on
+//     the ridge, gold over the door, and the double outside staircase with a
+//     gilded balustrade climbing to it;
+//   - the Post Tower: two offset glass half-ellipses with a gap between them,
+//     very tall and slender, blue-green with horizontal banding (three tones
+//     across each half for the curve);
+//   - the Langer Eugen: a slim pale slab with a dense grid of dark window strips;
+//   - Beethoven: a bust on a sandstone plinth (wild grey hair, a frown, a white
+//     stock and red scarf), as on the monument in front of the Minster.
 //
 // Each building is built on a material grid (one letter per pixel), toned in
-// three steps (lit face on the left, body, shade face on the right; light
-// from the upper left), given its own 1px dark outline, and laid back to
-// front. The state's palette paints it, so active and inactive are one drawing.
+// three steps (light from the upper left), given its own 1px dark outline and
+// laid back to front, so towers stand clear of what is behind them. The
+// state's palette paints it: active and inactive are one drawing.
 //
 // Placement (frames.mjs): the Minster stands over the pennant's left cap and
-// the Town Hall over its right cap, so the skyline straddles the title and
-// moves with it, as in the concept; the Post Tower stands over the right
-// corner, above the zoom and collapse boxes.
+// the Rathaus over its right cap, so the skyline straddles the title and moves
+// with it; the Post Tower and the Langer Eugen stand over the right corner,
+// above the zoom and collapse boxes; Beethoven and the bough over the left one.
 
 export const SKY_ROWS = 78;    // rows above the bar (the spire's tip is on row 1)
 export const MINSTER_W = 40;   // the left cap: Minster + trees
 export const HALL_W = 48;      // the right cap: Town Hall + trees
-export const TOWER_X = 8;      // the Post Tower's left column inside the right corner
 export const BOUGH_W = 40;     // the left corner: the cherry bough
 export const SPRIG_W = 24;     // dialog top ornament
 export const ALERT_W = 24;     // alert top ornament
 
 // Body materials → [lit, shade] tone letters.
-const TONES = { A: ['a', 'z'], R: ['r', 'x'], H: ['h', 'y'], M: ['m', 'n'], G: ['g', 'q'], T: ['t', null] };
+const TONES = { A: ['a', 'z'], U: ['u', 'v'], R: ['r', 'x'], H: ['h', 'y'], M: ['m', 'n'], G: ['g', 'q'], E: ['e', 'f'], T: ['t', null] };
 
 class Grid {
   constructor(w, h) { this.w = w; this.h = h; this.m = Array.from({ length: h }, () => Array(w).fill(null)); }
@@ -73,8 +82,10 @@ class Grid {
   paint(r, x0, y0, p) {
     const S = p.sky3;
     const map = {
-      o: p.outline, w: p.window, W: p.trim, Y: p.lamp,
+      o: p.outline, w: p.window, W: p.trim, Y: p.lamp, K: S.gold, k: S.goldLo, s: S.strip,
       A: S.stone, a: S.stoneHi, z: S.stoneLo,
+      U: S.tufa, u: S.tufaHi, v: S.tufaLo,
+      E: S.concrete, e: S.concreteHi, f: S.concreteLo,
       R: S.roof, r: S.roofHi, x: S.roofLo,
       H: S.hall, h: S.hallHi, y: S.hallLo,
       M: S.slate, m: S.slateHi, n: S.slateLo,
@@ -117,105 +128,176 @@ function trees(g, clumps) {
   for (let y = 1; y < g.h; y++) for (let x = 1; x < g.w; x++) if (g.get(x, y) === 'T' && g.get(x, y - 1) === 'o' && g.get(x - 1, y) === 'o') g.set(x, y, 't');
 }
 
-/** The Minster, 37 wide, centred on column c; its base is the grid's bottom row (77). */
+/** A round-arched window, w wide (odd) and h tall, top-left (x, y). */
+const arch = (g, x, y, w, h, v = 'w') => { g.rect(x + 1, y, w - 2, 1, v).rect(x, y + 1, w, h - 1, v); };
+
+/** The Minster, centred on column c; its base is the grid's bottom row (77). */
 function minster(g, c) {
   const B = g.h - 1;
-  // The nave and west front behind the towers.
-  layer(g, (q) => q.rect(c - 10, 50, 21, B - 49, 'A'));
-  // Flanking towers: 7 wide, spires from row 37.
-  for (const cx of [c - 14, c + 14]) layer(g, (q) => {
-    q.spire(cx, 37, [0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3], 'R');
-    q.rect(cx - 3, 50, 7, B - 49, 'A');
+  // Nave and choir behind everything, under a slate roof.
+  layer(g, (q) => { q.rect(c - 11, 49, 23, 1, 'R').rect(c - 13, 50, 27, 2, 'R'); q.rect(c - 14, 52, 29, B - 51, 'A'); });
+  // The two slim east towers: square, with pointed slate spires.
+  for (const cx of [c - 11, c + 11]) layer(g, (q) => {
+    q.spire(cx, 15, [0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3], 'R');
+    q.rect(cx - 3, 26, 7, B - 25, 'A');
   });
-  // The crossing tower and its long spire (tip on row 1, so the outline is row 0).
+  // The octagonal crossing tower: a ring of gables, then the tall spire.
   layer(g, (q) => {
-    q.spire(c, 1, [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4], 'R');
-    q.rect(c - 7, 34, 15, 29, 'A');
+    q.spire(c, 1, [0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4], 'R');
+    for (const gx of [c - 4, c, c + 4]) q.spire(gx, 26, [0, 1, 2, 2], 'A');
+    q.rect(c - 6, 30, 13, 35, 'A');
   });
-  // The teal gable over the west front.
-  layer(g, (q) => q.spire(c, 55, [0, 1, 2, 3, 4, 5, 6, 7], 'R'));
-  // Cornice under the gable, then the west front.
-  layer(g, (q) => q.rect(c - 10, 63, 21, B - 62, 'A'));
-  // Windows: paired belfry lancets, tower lights, the rose and the portal.
-  windows(g, [c - 4, c - 2, c + 2, c + 4], [37, 44], 'w', 1, 4);
-  windows(g, [c - 14, c + 14], [53, 60, 67], 'w', 1, 3);
-  windows(g, [c - 7, c - 4, c + 4, c + 7], [66], 'w', 1, 3);
-  g.rect(c - 1, 65, 3, 3, 'w').set(c, 66, 'Y');
-  g.rect(c - 2, 71, 5, B - 70, 'w').set(c - 2, 71, 'A').set(c + 2, 71, 'A').rect(c, 72, 1, B - 71, 'Y');
-  for (const y of [57, 70]) for (const cx of [c - 14, c + 14]) g.rect(cx - 2, y, 5, 1, 'z');   // string courses
+  // The octagon's faces: lit on the left, shaded on the right, front between.
+  for (let y = 26; y < 65; y++) for (let x = c - 6; x <= c + 6; x++) {
+    const v = g.get(x, y);
+    if (v !== 'A' && v !== 'a' && v !== 'z') continue;
+    g.set(x, y, x <= c - 4 ? 'a' : x >= c + 4 ? 'z' : 'A');
+  }
+  // Grey tufa string courses (on the faces: lit, body, shade tufa).
+  const course = (y, x0, x1) => { for (let x = x0; x <= x1; x++) { const v = g.get(x, y); if ('Aaz'.includes(v ?? '.')) g.set(x, y, v === 'a' ? 'u' : v === 'z' ? 'v' : 'U'); } };
+  for (const y of [34, 43, 52, 61]) course(y, c - 6, c + 6);
+  for (const y of [33, 44, 55, 65]) { course(y, c - 14, c - 8); course(y, c + 8, c + 14); }
+  course(66, c - 14, c + 14);
+  // Round-arched windows: two per stage on the octagon's front, one per stage on the east towers.
+  for (const y of [36, 45]) { arch(g, c - 3, y, 3, 5); arch(g, c + 1, y, 3, 5); }
+  for (const cx of [c - 11, c + 11]) for (const y of [28, 36, 46, 57]) arch(g, cx - 1, y, 3, 5);
+  // The dwarf gallery: a row of little arches under the third course.
+  for (let x = c - 5; x <= c + 5; x += 2) g.rect(x, 54, 1, 3, 'w');
+  // The west portal, round-headed, and a rose window over it.
+  arch(g, c - 2, 70, 5, B - 69);
+  g.rect(c - 1, 68, 3, 1, 'Y');
 }
 
-/** The Old Town Hall, 46 wide, x = its left column. */
+/** The Altes Rathaus, 46 wide, x = its left column. */
 function townHall(g, x) {
   const B = g.h - 1, w = 46, c = x + 22;               // centre bay columns c, c+1
-  // The ridge turret: finial, lantern, slate drum.
-  layer(g, (q) => { q.rect(c, 29, 2, 4, 'M'); q.rect(c - 1, 33, 4, 4, 'M'); q.rect(c - 2, 37, 6, 11, 'M'); }, 1);
+  // The bell lantern on the ridge: a gold finial, a slate cap, an open arch with the bell.
+  layer(g, (q) => { q.rect(c, 31, 2, 2, 'M').rect(c - 1, 33, 4, 1, 'M').rect(c - 1, 34, 4, 10, 'M'); }, 1);
+  g.rect(c, 29, 2, 2, 'K').rect(c, 36, 2, 4, 'w').set(c, 38, 'K').set(c + 1, 38, 'k');
+  // Grey mansard and the rose front.
   layer(g, (q) => {
-    q.rect(x + 4, 48, w - 8, 1, 'M').rect(x + 3, 49, w - 6, 1, 'M').rect(x + 2, 50, w - 4, 1, 'M').rect(x + 1, 51, w - 2, 7, 'M');
-    q.rect(x, 58, w, B - 57, 'H');
+    q.rect(x + 5, 44, w - 10, 1, 'M').rect(x + 3, 45, w - 6, 1, 'M').rect(x + 2, 46, w - 4, 1, 'M').rect(x + 1, 47, w - 2, 7, 'M');
+    q.rect(x, 54, w, B - 53, 'H');
   });
-  // Pediment over the centre bay, rising into the roof, with a clock.
-  for (let k = 0; k < 6; k++) g.rect(c - 1 - k, 49 + k, 4 + 2 * k, 1, 'H');
-  g.rect(c - 6, 55, 14, 3, 'H').rect(c, 51, 2, 2, 'W');
-  // Dormers in the roof.
-  for (const dx of [6, 13, 31, 38]) g.rect(x + dx, 52, 3, 4, 'H').rect(x + dx + 1, 53, 1, 2, 'w');
-  // White cornice, its shadow, and the centre bay's pilasters.
-  g.rect(x, 58, w, 1, 'W').rect(x, 59, w - 2, 1, 'y');
-  g.rect(c - 7, 60, 1, B - 66, 'W').rect(c + 8, 60, 1, B - 66, 'y');
-  // Three floors of windows, 2×3 on a 4px rhythm, with sills.
-  const xs = [x + 2, x + 6, x + 10, x + 32, x + 36, x + 40], bay = [c - 4, c, c + 4];
-  for (const y of [61, 66]) { windows(g, [...xs, ...bay], [y], 'w', 2, 3); for (const wx of [...xs, ...bay]) g.rect(wx, y + 3, 2, 1, 'W'); }
-  windows(g, xs, [71], 'w', 2, 3);
-  // The door and the outside stair: two flights climbing to it.
-  g.rect(c - 1, 70, 4, 3, 'w');
-  g.rect(c - 3, 73, 8, 1, 'A').rect(c - 5, 74, 12, 1, 'A').rect(c - 7, 75, 16, 1, 'A').rect(c - 9, 76, 20, 2, 'A');
-  for (let k = 0; k < 4; k++) g.set(c - 3 - 2 * k, 73 + k, 'a').set(c + 4 + 2 * k, 73 + k, 'z');
+  // White dormers.
+  for (const dx of [6, 13, 30, 37]) g.rect(x + dx, 47, 3, 4, 'W').rect(x + dx + 1, 48, 1, 3, 'w');
+  // White cornice and its shadow; white pilasters at the corners and either side of the centre bay.
+  g.rect(x, 54, w, 1, 'W').rect(x + 1, 55, w - 3, 1, 'y');
+  for (const px of [x + 1, c - 6, c + 7]) g.rect(px, 56, 1, B - 56, 'W');
+  // Windows in white frames: a small top floor, a tall piano nobile, the ground floor.
+  const bays = [x + 4, x + 9, x + 14, x + 29, x + 34, x + 39];
+  for (const bx of bays) {
+    g.rect(bx - 1, 56, 4, 1, 'W').rect(bx, 57, 2, 2, 'w');
+    g.rect(bx - 1, 60, 4, 1, 'W').rect(bx, 61, 2, 4, 'w').rect(bx - 1, 65, 4, 1, 'W');
+    g.rect(bx - 1, 68, 4, 1, 'W').rect(bx, 69, 2, 4, 'w');
+  }
+  for (const bx of [c - 3, c + 3]) g.rect(bx - 1, 56, 4, 1, 'W').rect(bx, 57, 2, 2, 'w');
+  // The door to the piano nobile with gold over it.
+  g.rect(c - 2, 58, 6, 1, 'K').rect(c - 1, 59, 4, 1, 'k').set(c, 57, 'K').set(c + 1, 57, 'K');
+  g.rect(c - 1, 60, 4, 1, 'W').rect(c, 61, 2, 6, 'w');
+  // The double outside staircase: a landing at the door, two flights down to
+  // the street either side, a gilded balustrade along the top of all three.
+  g.rect(c - 5, 67, 12, 2, 'A').rect(c - 5, 66, 12, 1, 'K').rect(c - 5, 69, 12, 1, 'z');
+  for (let k = 0; k <= 9; k++) {
+    const y = 67 + k + 1;
+    // Each flight is a 3px band of treads, with the facade showing under it.
+    g.rect(c - 8 - k, y, 3, 1, 'A').set(c - 8 - k, y, 'a').set(c - 6 - k, y, 'z');
+    g.rect(c + 7 + k, y, 3, 1, 'A').set(c + 7 + k, y, 'a').set(c + 9 + k, y, 'z');
+    g.set(c - 8 - k, y - 1, k % 2 ? 'k' : 'K').set(c + 9 + k, y - 1, k % 2 ? 'k' : 'K');
+  }
+  for (let px = c - 5; px <= c + 6; px += 2) g.set(px, 66, 'k');               // balusters
+  g.rect(c, 70, 2, B - 69, 'w');                                               // the street door under the landing
 }
 
-/** The Post Tower, 22 wide, x = its left column. */
+/** The Post Tower: two offset glass half-ellipses with a gap, x = left column. */
 function postTower(g, x) {
   const B = g.h - 1;
-  layer(g, (q) => q.rect(x + 15, 20, 7, B - 19, 'G'), 2);
-  layer(g, (q) => { q.rect(x + 6, 10, 1, 5, 'M'); q.rect(x, 15, 14, B - 14, 'G'); }, 3);
-  g.rect(x + 14, 20, 1, B - 19, 'x');                    // the slot between the halves
-  for (let y = 18; y < B - 1; y += 4) { g.rect(x + 1, y, 10, 1, 'q'); g.rect(x + 16, y + 2, 4, 1, 'q'); }
-  g.rect(x + 1, 16, 2, B - 16, 'g');                    // the lit edge catching the sky
+  layer(g, (q) => q.rect(x + 11, 11, 6, B - 10, 'G'), 2);                    // the lower half, behind
+  layer(g, (q) => q.rect(x, 4, 8, B - 3, 'G'), 3);                           // the taller half
+  // Horizontal banding every third row, and the lit crowns.
+  for (let y = 6; y < B; y += 3) for (let i = x; i <= x + 17; i++) if (g.get(i, y) === 'G') g.set(i, y, 'q');
+  g.rect(x + 1, 4, 6, 1, 'g').rect(x + 12, 11, 4, 1, 'g');
+}
+
+/** The Langer Eugen: a slim pale slab with a dense grid of dark window strips, x = left column. */
+function langerEugen(g, x) {
+  const B = g.h - 1;
+  layer(g, (q) => { q.rect(x + 2, 21, 5, 2, 'E'); q.rect(x, 23, 9, B - 22, 'E'); }, 2);
+  for (let y = 25; y < B - 1; y++) if (y % 4) for (const i of [x + 2, x + 4, x + 6]) g.set(i, y, 's');
 }
 
 /** The left cap's sky: the Minster among trees. */
 export function drawMinsterCap(r, x, base, p) {
   const g = new Grid(MINSTER_W, SKY_ROWS);
-  trees(g, [[0, 12, 54], [26, 40, 56]]);
+  trees(g, [[0, 10, 56], [30, 40, 56]]);
   minster(g, 20);
   g.paint(r, x, base - SKY_ROWS, p);
 }
 
-/** The right cap's sky: the Town Hall among trees. */
+/** The right cap's sky: the Rathaus among trees. */
 export function drawHallCap(r, x, base, p) {
   const g = new Grid(HALL_W, SKY_ROWS);
-  trees(g, [[0, 14, 55], [32, 48, 54]]);
+  trees(g, [[0, 14, 52], [32, 48, 52]]);
   townHall(g, 1);
   g.paint(r, x, base - SKY_ROWS, p);
 }
 
-/** The right corner's sky: the Post Tower among trees (`w` = corner width). */
+/** The right corner's sky: the Post Tower and the Langer Eugen among trees (`w` = corner width). */
 export function drawTowerCorner(r, x, base, w, p) {
   const g = new Grid(w, SKY_ROWS);
-  trees(g, [[1, w - 1, 57]]);
-  postTower(g, TOWER_X);
+  trees(g, [[0, w, 58]]);
+  postTower(g, 3);
+  langerEugen(g, 24);
   g.paint(r, x, base - SKY_ROWS, p);
 }
 
+// Beethoven: a bust on a plinth, 15 wide. o outline, h/H/d hair (body, lit,
+// shade), f/s skin (lit, shade), e brows, eyes and mouth, w the white stock,
+// r the red scarf, c the coat.
+const BEETHOVEN = [
+  '..o.oo.oo.o....',
+  '.ohohhohhohoo..',
+  'ohHHhhhhhhhhhoo',
+  'oHHhhhhhhhhhhdo',
+  'ohHhhhhhhhhhddo',
+  'ohhhffffffhhddo',
+  'ohheeeffeeehddo',
+  'ohhfefffffefhdo',
+  '.ohffffsfffhddo',
+  '.ohffffsffshdo.',
+  '.ohhfseeesshdo.',
+  '..ohfsfffsshdo.',
+  '..oohsssssooo..',
+  '..owwwrrwwwo...',
+  '.occwwrrrwccco.',
+  'occccwrrwccccco',
+  'occcccwwccccccco'.slice(0, 15),
+  'ooooooooooooooo',
+];
+const PLINTH = [
+  '.ooooooooooooo.',
+  '.oaaaaaaaaaaao.',
+  '.oaAAAAAAAAAzo.',
+  '.ozzzzzzzzzzzo.',
+  'ooooooooooooooo',
+];
+
+export function drawBeethoven(r, x, yb, p) {
+  const S = p.sky3, P = p.pier;
+  const top = yb - PLINTH.length - BEETHOVEN.length;
+  r.sprite(x, top, BEETHOVEN, { o: p.outline, h: S.hair, H: S.hairHi, d: S.hairLo, f: S.skin, s: S.skinLo, e: p.outline, w: p.trim, r: S.scarf, c: S.coat });
+  r.sprite(x, yb - PLINTH.length, PLINTH, { o: p.outline, a: P.hi, A: P.face, z: P.lo });
+}
+
 /**
- * The left corner's sky: the cherry bough rising from the corner up to the
- * right, with clusters of rosettes, in front of a clump of trees.
+ * The left corner's sky: Beethoven on his plinth, and the cherry bough rising
+ * beside him up to the right with clusters of rosettes, in front of trees.
  */
 export function drawBough(r, x, yb, w, p) {
   const g = new Grid(w, SKY_ROWS);
-  trees(g, [[6, w, 50]]);
+  trees(g, [[14, w, 50]]);
   g.paint(r, x, yb - SKY_ROWS, p);
   const L = blossomLegend(p);
-  // The bough: 3px at the frame edge, a 2px limb up to the right, a twig off it.
   const limb = (x0, y0, x1, y1, thick) => {
     const n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0));
     for (let i = 0; i <= n; i++) {
@@ -224,12 +306,12 @@ export function drawBough(r, x, yb, w, p) {
       for (let t = 1; t < thick; t++) r.set(x + px, py + t, L.b);
     }
   };
-  limb(0, yb - 4, 12, yb - 9, 3);
-  limb(12, yb - 9, 30, yb - 17, 2);
-  limb(30, yb - 17, 38, yb - 19, 2);
-  limb(14, yb - 10, 20, yb - 22, 2);
-  limb(24, yb - 14, 28, yb - 8, 1);
-  for (const [dx, dy] of [[2, -14], [8, -15], [13, -19], [17, -26], [21, -23], [25, -20], [30, -23], [34, -21], [27, -12], [20, -13], [5, -9], [33, -16]]) rosette(r, x + dx, yb + dy, p);
+  limb(16, yb - 3, 22, yb - 8, 3);
+  limb(22, yb - 8, 34, yb - 16, 2);
+  limb(34, yb - 16, 38, yb - 18, 2);
+  limb(24, yb - 9, 27, yb - 21, 2);
+  for (const [dx, dy] of [[17, -12], [22, -15], [24, -25], [28, -21], [32, -22], [29, -13], [33, -17], [19, -9]]) rosette(r, x + dx, yb + dy, p);
+  drawBeethoven(r, x + 1, yb, p);
 }
 
 // ── Blossom ────────────────────────────────────────────────────────────────

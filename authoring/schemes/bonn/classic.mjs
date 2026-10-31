@@ -1,8 +1,9 @@
 // Bonn's control-panel extras (classic Kaleidoscope only; the web runtime
 // draws none of them). Builders and ids: tools/theme-author/classic-extras.js,
-// docs/authoring-a-scheme.md §6.
+// docs/authoring-a-scheme.md §7.2.
 //
-//   About This Scheme   DLOG/DITL -14320 + cicn 128 (the picker icon) + STR# -14320
+//   About This Scheme   DLOG/DITL -14320 + cicn 128 (the picker icon: a shield inspired
+//                       by Bonn's arms) + STR# -14320
 //   Arrow Cursor        crsr 0 and the Finder's -20486/-20487/-20488: the frame's
 //                       near-black outline colour with a cream edge (exact
 //                       system-palette entries). The first build used the Rhine
@@ -25,7 +26,7 @@ export function build(add) {
   const resources = [
     ...aboutBox({
       name: 'Bonn',
-      description: 'Bonn’s skyline and the Rhine in cherry-blossom time.',
+      description: 'Bonn on the Rhine in cherry-blossom time: the Minster, the Altes Rathaus, the Post Tower and the Langer Eugen, with Beethoven.',
       year: 2026,
       icon: rasterFromIconFamily(family), iconGamma: false,
     }),

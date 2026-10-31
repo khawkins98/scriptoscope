@@ -1,80 +1,90 @@
-// Bonn's scheme icon: the picture Kaleidoscope's scheme picker shows.
+// Bonn's scheme icon: the picture Kaleidoscope's scheme picker shows, also
+// the about box's icon (classic.mjs).
 //
 //   ICN# icl8 icl4 ics# ics8 ics4  -16455  "Kaleidoscope Scheme Icon"
 //
-// One cherry blossom, the flower of the close box and the branch along the
-// title bar, seen face on: five notched petals lit from the upper left, pale
-// creases between them, a yellow heart with a red eye, and the frame's
-// near-black outline. Blossom pinks, outline and city colours from
-// palette.mjs, on whole pixels. Each size is drawn at its own scale (the
-// 16×16 one is not a scaled-down 32×32). Original art: no coat of arms, logo
-// or traced photo.
+// A stylised shield inspired by the City of Bonn's arms, drawn as a simple
+// pixel emblem rather than a heraldic reproduction: a white top with a black
+// cross, a thin black division, and a red bottom with a gold lion walking to
+// the left, head turned out, one forepaw raised and its tail curled up over
+// its back. Light from the upper left: a lit edge inside the outline on the
+// left, a shaded one on the right. Each size is drawn at its own scale (the
+// 16×16 one is not a scaled-down 32×32). Colours are exact system-palette
+// entries from palette.mjs.
 import { Raster } from '../../../tools/theme-author/index.js';
 import { encodeIconFamily } from '../../../tools/theme-author/encode-icons.js';
 import { C } from './palette.mjs';
 
-const A = C.active;
+const A = C.active, ARMS = A.arms;
 
-// Per size: centre, petal centre distance d and radius rp, notch depth, heart
-// radius. Petal 0 points straight up.
-const SPEC = {
-  32: { c: 16, d: 8.5, rp: 6.8, notch: 2.2, heart: 2.9 },
-  16: { c: 8, d: 4, rp: 3.6, notch: 0, heart: 1.5 },
-};
+// The lion, 18 × 10, facing left: maned head with eyes and mouth, a raised
+// forepaw, four legs, the tail looping up over the back. K gold, k shaded
+// gold, e the eyes and mouth.
+const LION_32 = [
+  '..KKKK............',
+  '.KKkkKK.....KKK...',
+  'KKeKKeKK...K...K..',
+  'KKKKKKKK...K.K.K..',
+  '.KKeeKKKKKKKKKK...',
+  '..kKKKKKKKKKKKK...',
+  'KKkkKKKKKKKKKKK...',
+  '.KK.KK.....KK.KK..',
+  '....KK.....KK..KK.',
+  '...KKK....KKK..KKK',
+];
+const LION_16 = [
+  'KK.....K',
+  'KKKKKKKK',
+  '.KKKKKK.',
+  '.K.K.K.K',
+];
 
-export function schemeIcon(size) {
-  const s = SPEC[size];
-  if (!s) throw new Error(`Bonn icon: no spec for ${size}×${size}`);
-  const { c, d, rp, notch, heart } = s;
-  const petals = [0, 1, 2, 3, 4].map((k) => {
-    const a = -Math.PI / 2 + (k * 2 * Math.PI) / 5;
-    return { a, x: c + d * Math.cos(a), y: c + d * Math.sin(a) };
-  });
-  // Which petal a pixel belongs to (the nearest petal centre that covers it), or -1.
-  const petalOf = (px, py) => {
-    let best = -1, bestD = Infinity;
-    petals.forEach((p, k) => {
-      const dd = Math.hypot(px - p.x, py - p.y);
-      if (dd > rp || dd >= bestD) return;
-      // The notch: a V cut into the petal's outer tip.
-      if (notch) {
-        const along = (px - c) * Math.cos(p.a) + (py - c) * Math.sin(p.a);
-        const across = Math.abs(-(px - c) * Math.sin(p.a) + (py - c) * Math.cos(p.a));
-        if (along > d + rp - notch + across * 1.1) return;
-      }
-      best = k; bestD = dd;
-    });
-    if (best < 0 && Math.hypot(px - c, py - c) <= d - 1) return 0; // fill the middle
-    return best;
+/**
+ * The shield: x0..x1 columns, y0..y1 rows, the top straight, the sides
+ * straight down to `curve`, then a round bottom to a point.
+ */
+function shieldMask(x0, x1, y0, y1, curve) {
+  const cx = (x0 + x1) / 2, hw = (x1 - x0) / 2, depth = y1 - curve;
+  return (x, y) => {
+    if (y < y0 || y > y1 || x < x0 || x > x1) return false;
+    if (y <= curve) return true;
+    const t = (y - curve) / depth;                       // 0 … 1 down the curve
+    return Math.abs(x - cx) <= hw * Math.sqrt(Math.max(0, 1 - t * t)) + 0.4;
   };
+}
+
+function emblem(size) {
+  const big = size === 32;
   const r = new Raster(size, size);
-  const at = (x, y) => (x < 0 || y < 0 || x >= size || y >= size ? -1 : petalOf(x + 0.5, y + 0.5));
-  const inside = (x, y) => at(x, y) >= 0;
+  const m = big ? shieldMask(3, 28, 1, 30, 17) : shieldMask(1, 14, 0, 15, 8);
+  const split = big ? 14 : 7;                            // the division row (black)
+  const cx = big ? [14, 17] : [7, 8], cy = big ? [6, 8] : [3, 3];
+  const inside = (x, y) => m(x, y);
   const edge = (x, y) => inside(x, y) && !(inside(x - 1, y) && inside(x + 1, y) && inside(x, y - 1) && inside(x, y + 1));
   for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
     if (!inside(x, y)) continue;
-    // Outline ring, then a lit ring where the petal faces up or left and a
-    // shaded ring where it faces down or right (light from the upper left).
-    let col = A.blossom;
-    if (edge(x, y)) col = A.outline;
-    else if (edge(x, y - 1) || edge(x - 1, y)) col = A.blossomHi;
-    else if (edge(x, y + 1) || edge(x + 1, y)) col = A.blossomLo;
-    r.set(x, y, col);
+    let c;
+    if (edge(x, y)) c = A.outline;
+    else if (y < split) c = (x >= cx[0] && x <= cx[1]) || (y >= cy[0] && y <= cy[1]) ? ARMS.cross : ARMS.white;
+    else if (y === split) c = ARMS.cross;
+    else c = ARMS.red;
+    // Light from the upper left: a lit column inside the left edge, a shaded one inside the right.
+    if (c === ARMS.red && edge(x + 1, y) && !edge(x, y)) c = ARMS.redLo;
+    r.set(x, y, c);
   }
-  // Creases between neighbouring petals, from the heart outwards.
-  for (let k = 0; k < 5; k++) {
-    const a = petals[k].a + Math.PI / 5;
-    for (let t = heart + 0.5; t < d - 1; t += 0.5) {
-      const x = Math.floor(c + t * Math.cos(a)), y = Math.floor(c + t * Math.sin(a));
-      if (r.get(x, y) && at(x, y) >= 0) r.set(x, y, A.blossomLo);
-    }
+  // The lion, with its own dark outline on the red.
+  const lion = big ? LION_32 : LION_16, lx = big ? 7 : 4, ly = big ? 17 : 9;
+  const at = (x, y) => { const row = lion[y - ly]; return row ? 'Kke'.includes(row[x - lx] ?? '.') : false; };
+  for (let y = ly - 1; y <= ly + lion.length; y++) for (let x = lx - 1; x <= lx + lion[0].length; x++) {
+    if (!at(x, y) && inside(x, y) && !edge(x, y) && y > split && (at(x - 1, y) || at(x + 1, y) || at(x, y - 1) || at(x, y + 1)) && big) r.set(x, y, A.outline);
   }
-  // The heart: yellow, with a red eye (city colours).
-  for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
-    const dd = Math.hypot(x + 0.5 - c, y + 0.5 - c);
-    if (dd <= heart) r.set(x, y, dd <= heart * 0.45 ? A.red : A.yellow);
-  }
+  r.sprite(lx, ly, lion, { K: ARMS.gold, k: ARMS.goldLo, e: A.outline });
   return r;
+}
+
+export function schemeIcon(size) {
+  if (size !== 32 && size !== 16) throw new Error(`Bonn icon: no spec for ${size}×${size}`);
+  return emblem(size);
 }
 
 export function build(add) {

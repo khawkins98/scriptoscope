@@ -1,29 +1,28 @@
 // Bonn — an original first-party Kaleidoscope scheme, authored in code.
 //
-// Look: a window on the Rhine in blossom season. Every document window carries
-// the Bonn skyline as one outlined silhouette standing on a sandstone title
-// bar (the Minster with its spire and four flanking towers, the pink Old Town
-// Hall with its outside stair, the glass Post Tower), drawn once whatever the
-// window's width (a droppable code-10 cell). A cherry branch with five-pixel
-// rosettes runs along the bar's top edge from the left corner. The title hangs
-// on a red city pennant. Sandstone ashlar piers run down both sides, and the
-// Rhine runs along the bottom: an embankment, two flat teal bands with foam
-// dashes, a stone arch bridge in the middle and a mooring bollard on the
-// bottom-right pier. Widgets are one family of 14px sandstone discs carrying a
-// rosette (close), the city colours with a square (zoom) and a wave
+// Look: a window on the Rhine in blossom season, painted over the concept art
+// (concept/concept.jpg). The Bonn skyline stands on an orange-sandstone title
+// bar: the Romanesque Minster and the rococo Altes Rathaus either side of the
+// red ribbon that carries the title (they stand over its code-6 end caps, so
+// they move and drop with the title), and the Post Tower and the Langer Eugen
+// over the right corner. Beethoven's bust and a cherry bough stand over the
+// left corner. Thick sandstone ashlar piers run down both sides, and the Rhine
+// runs along the bottom with one stone arch bridge centred on open water.
+// Widgets are one family of 14px sandstone discs: a cherry rosette (close), a
+// shield inspired by the City of Bonn's arms (zoom) and a breaking wave
 // (collapse), clickable on the web through the pressed strip (cicn -14330;
-// classic utility windows read -14298). Red is the title's colour: the
-// pennant, the default ring, checked marks and arrowheads only. Light comes
-// from the upper left. Everything is drawn on whole pixels with colours of the
-// 8-bit system palette, so classic and web look alike.
-// Original art; no photos, coat of arms or logos.
+// classic utility windows read -14298). Light comes from the upper left; the
+// outline is the concept's near-black. Everything is drawn on whole pixels
+// with colours of the 8-bit system palette, so classic and web look alike.
+// Original pixel art; no photos or traced artworks. The shield is a simplified
+// emblem inspired by the arms, not a heraldic reproduction (meta.json).
 //
 // Build:   npm run author -- authoring/schemes/bonn
 // Guides:  docs/authoring-a-scheme.md, docs/authoring-exotic-frames.md
 //
 // Files:
 //   frames.mjs      window types (frameLayout) and the frame painter
-//   skyline.mjs     the skyline, the blossom branch, the dialog/alert ornaments
+//   skyline.mjs     the landmarks, Beethoven, the cherry bough, the dialog/alert ornaments
 //   widgets.mjs     close / zoom / collapse art and the pressed strip
 //   pixels.mjs      whole-pixel rounded shapes with outline and bevel rings
 //   controls.mjs    push buttons, default ring, checkboxes, radios
@@ -32,7 +31,7 @@
 //   families.mjs    sliders, tabs + panes, bevel buttons, popup pieces
 //   progress.mjs    progress bar + barge, list headers, disclosure, grow boxes
 //   menus.mjs       menu bar, pull-down and pop-up menus, the grabber
-//   icon.mjs        the scheme's picker icon (a cherry blossom)
+//   icon.mjs        the scheme's picker and about-box icon (the shield inspired by Bonn's arms)
 //   classic.mjs     control-panel extras (classic only): about box, arrow cursor, WindowShade sounds
 //
 // Not themed (falls back): popup / side-floating / no-title utility windows,
