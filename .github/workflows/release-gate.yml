@@ -3,11 +3,14 @@ name: Release gate
 # pull request; this workflow is the heavier set that must be green on the exact
 # commit before it is tagged (CONTRIBUTING "Cutting a release"). It reuses the
 # extended matrix through workflow_call instead of copying it.
+# The Firefox/WebKit interaction contracts moved here from the PR tier by
+# maintainer decision (#598); the gate requires them.
 on:
   workflow_dispatch:
   # Weekly, Monday 05:00 UTC. A red scheduled run opens or updates one
-  # `release-gate` issue; the next green run on main closes it. It does not
-  # block merges.
+  # `release-gate` issue; the next green run on main closes it. It blocks the
+  # next release (the tag check below needs a green run on the tagged commit),
+  # not merges (maintainer decision, #598).
   schedule:
     - cron: '0 5 * * 1'
   # GitHub filters pull_request by base branch only; the `scope` job below
@@ -90,6 +93,103 @@ jobs:
     uses: ./.github/workflows/rendering-extended.yml
     with:
       browsers: all
+
+  # Firefox/WebKit interaction contracts (#598). Moved here from the PR tier by
+  # maintainer decision (DECISIONS #14): the specs where engines genuinely differ
+  # on pointer capture, sub-pixel pointer coordinates and focus, listed in
+  # tests/rendering-options/interaction-specs.mjs, at DPR 1, source and built
+  # modes, one leg per engine. The extended matrix above also runs these specs in
+  # both engines inside its full inventory; this job keeps the named subset as
+  # its own required check with a per-spec, per-engine execution check below.
+  interaction:
+    name: Interaction contracts (${{ matrix.browser }})
+    needs: [scope]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble@sha256:06a9939e57531807f8d5fd76ce44b53165ffb7d7501d87ab10e285c20b1e971f
+      # Match the Actions-mounted home owner, as in Playwright's CI example.
+      # Firefox refuses a root process with a non-root-owned home directory.
+      options: --ipc=host --user 1001
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [firefox, webkit]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run build:themes
+      # Builds the library and demo (the built-mode specs need dist/), then runs
+      # the interaction list at DPR 1 in this engine only.
+      - name: Interaction contracts (${{ matrix.browser }}-dpr1)
+        env:
+          SCRIPTOSCOPE_RENDERING_BROWSERS: ${{ matrix.browser }}
+        run: |
+          export SCRIPTOSCOPE_RENDERING_JSON_REPORT="$GITHUB_WORKSPACE/test-results/interaction-report/report.json"
+          npm run test:rendering:interaction
+      # Fixed name (overwritten on re-run) so the coverage job sees exactly one per engine.
+      - name: Upload interaction test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: interaction-report-${{ matrix.browser }}
+          path: test-results/interaction-report/report.json
+          if-no-files-found: ignore
+          overwrite: true
+          retention-days: 14
+      - name: Upload interaction failure evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: interaction-contracts-${{ matrix.browser }}-${{ github.run_attempt }}
+          path: |
+            test-results/rendering-options/
+            playwright-report/rendering-options/
+            test-results/rendering-failure-archive/
+          if-no-files-found: ignore
+          retention-days: 14
+
+  # The interaction subset is not fed into the extended shard parity. Every test
+  # in its own `--list` ran exactly once, in Firefox and WebKit, and every listed
+  # spec file listed and ran at least one test per engine, so a renamed or
+  # emptied spec fails rather than passing as "nothing listed, nothing ran".
+  interaction-coverage:
+    name: Interaction contract coverage (firefox, webkit)
+    needs: [scope, interaction]
+    if: ${{ always() && needs.scope.result == 'success' }}
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: interaction-report-*
+          path: test-results/interaction-reports
+      - name: Interaction inventory vs engine reports
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p test-results
+          SCRIPTOSCOPE_RENDERING_SUITE=interaction SCRIPTOSCOPE_RENDERING_BROWSERS=firefox,webkit \
+            npx playwright test --config tests/rendering-options/playwright.config.mjs --list --reporter=json > test-results/interaction-list.json
+          files="$(node --input-type=module -e "import { INTERACTION_SPECS } from './tests/rendering-options/interaction-specs.mjs'; console.log(INTERACTION_SPECS.join(','))")"
+          node tests/rendering-options/shards.mjs parity --list test-results/interaction-list.json --expect-reports 2 \
+            --require-projects firefox-dpr1,webkit-dpr1 --require-files "$files" \
+            test-results/interaction-reports/interaction-report-firefox/report.json \
+            test-results/interaction-reports/interaction-report-webkit/report.json
 
   goldens:
     name: Pinned-container golden verify
@@ -255,7 +355,7 @@ jobs:
 
   gate:
     name: Release gate
-    needs: [scope, extended, goldens, checks, scenes, trend]
+    needs: [scope, extended, interaction, interaction-coverage, goldens, checks, scenes, trend]
     if: ${{ always() && needs.scope.result == 'success' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 5
@@ -269,7 +369,7 @@ jobs:
           const fs = require('node:fs');
           const needs = JSON.parse(process.env.RESULTS);
           // scenes is report-only until #599.
-          const required = ['extended', 'goldens', 'checks', 'trend'];
+          const required = ['extended', 'interaction', 'interaction-coverage', 'goldens', 'checks', 'trend'];
           const failed = required.filter(name => needs[name].result !== 'success');
           const rows = Object.entries(needs).filter(([name]) => name !== 'scope').map(([name, job]) =>
             `| ${name} | ${job.result}${name === 'scenes' ? ` (report-only, #599; verify:scenes ${job.outputs?.outcome || 'not run'})` : ''} |`);

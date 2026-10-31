@@ -100,15 +100,19 @@ does not depend on it.
 
 ## Firefox and WebKit interaction contracts (#598)
 
-The PR tier also runs a narrow required job, **Interaction contracts (firefox)**
-and **(webkit)**, one matrix leg per engine at DPR 1 in the same pinned container.
+The release tier (`.github/workflows/release-gate.yml`) runs a narrow required
+job, **Interaction contracts (firefox)** and **(webkit)**, one matrix leg per
+engine at DPR 1 in the same pinned container. It ran on every PR until the
+maintainer moved it to the release tier (#598, DECISIONS #14); the PR tier is now
+Chromium-only, and Chromium still runs these specs on every PR in the bounded shards.
 It runs only the specs listed in [`interaction-specs.mjs`](./interaction-specs.mjs),
 where engines genuinely differ on pointer capture, sub-pixel pointer coordinates
 and focus: `window-pointer-drag`, `growbox-zero-delta`, `growbox-zone`,
 `posture-b` and `transformed-ancestors` (95 tests per engine). Pixel and trace
-contracts stay Chromium-only in this tier; the extended matrix runs them in
-every engine. `scrollbar-parts` is green in both engines but its hold-to-repeat
-cases cost about 4.7 minutes per engine, so it stays in the extended matrix.
+contracts are not part of this job; the extended matrix, which the release gate
+also runs, covers every spec (these included) in every engine. `scrollbar-parts`
+is green in both engines but its hold-to-repeat cases cost about 4.7 minutes per
+engine, so it is covered only by the extended matrix.
 
 Locally, `npm run test:rendering:interaction` builds the library and demo, then
 runs the list in Firefox and WebKit (`SCRIPTOSCOPE_RENDERING_SUITE=interaction`;
@@ -116,9 +120,10 @@ runs the list in Firefox and WebKit (`SCRIPTOSCOPE_RENDERING_SUITE=interaction`;
 the only place the spec set is named: the config, the npm script and the CI
 check all read it.
 
-The aggregate needs this job and fails unless both legs succeeded. It is a subset
-by design, so it is not fed into the Chromium shard parity. Instead the aggregate
-lists the interaction inventory and runs `shards.mjs parity` with
+The **Release gate** aggregate needs this job and fails unless both legs
+succeeded. It is a subset by design, so it is not fed into the extended shard
+parity. Instead the release gate's **Interaction contract coverage (firefox,
+webkit)** job, also required by the aggregate, lists the interaction inventory and runs `shards.mjs parity` with
 `--require-projects firefox-dpr1,webkit-dpr1 --require-files <list>`: every listed
 test ran exactly once, and each listed spec file listed and ran at least one test
 in each engine. A renamed or emptied spec fails rather than passing as "nothing
