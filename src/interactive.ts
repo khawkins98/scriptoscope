@@ -1686,8 +1686,9 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       e.preventDefault(); e.stopPropagation();
       if (e.pointerType === 'mouse' && e.button !== 0) return;
       endPress?.();
-      // A first press on an inactive window only activates it, as a classic first click (#594).
-      // The inactive frame has no parts, and the activation re-wire would end a press anyway.
+      // A first press on an inactive window only activates it (#594). Decode: an inactive control
+      // hit-tests to part 0 (scrollbar.md HT1). Compatibility policy: dropping the click mirrors the
+      // classic Toolbox app behaviour of selecting the window without passing the click on.
       if (!entry.active) { this.claimFocus(entry, bar); void this.focus(entry); return; }
       // Nothing painted yet: no part to press. The procedural fallback (no frame) drags.
       const part = painted ? paintedPartAt(bar, e, painted) : bar.querySelector('canvas') ? 'thumb' : null;
