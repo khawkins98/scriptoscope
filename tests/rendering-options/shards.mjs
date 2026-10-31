@@ -13,6 +13,11 @@
 //     Compare `playwright test --list --reporter=json` for the unsharded config
 //     with the union of the shard JSON reports: every listed test must have run
 //     exactly once in exactly one shard, and nothing else may have run.
+//     A subset suite (the #598 interaction job) adds
+//     --require-projects <p,...> and --require-files <f,...>: each required
+//     project must be listed, and each required spec file must have listed and
+//     run at least one test in it, so a renamed or emptied spec cannot pass as
+//     "nothing listed, nothing ran".
 import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -83,7 +88,7 @@ export function reportTests(report) {
   return rows;
 }
 
-export function compareParity(list, shards) {
+export function compareParity(list, shards, { requireProjects = [], requireFiles = [] } = {}) {
   const listed = reportTests(list), errors = [];
   const listedIds = new Set(listed.map(row => row.id));
   if (!listed.length) errors.push('the unsharded list is empty');
@@ -102,7 +107,18 @@ export function compareParity(list, shards) {
   const statuses = {};
   for (const { row } of ran.values()) statuses[row.status] = (statuses[row.status] ?? 0) + 1;
   const perShard = shards.map((_, index) => [...ran.values()].filter(entry => entry.shard === index + 1).length);
-  return { listed: listed.length, ran: ran.size, files: perFile.size, perFile, perShard, statuses, errors };
+  const projectOf = id => id.slice(0, id.indexOf(' › '));
+  const listedProjects = new Set(listed.map(row => projectOf(row.id)));
+  for (const project of requireProjects) if (!listedProjects.has(project)) errors.push(`required project not listed: ${project}`);
+  const required = [];
+  if (requireFiles.length) for (const project of requireProjects.length ? requireProjects : [...listedProjects].sort()) for (const file of requireFiles) {
+    const count = rows => rows.filter(row => projectOf(row.id) === project && row.file === file).length;
+    const entry = { project, file, listed: count(listed), ran: count([...ran.values()].map(({ row }) => row)) };
+    required.push(entry);
+    if (!entry.listed) errors.push(`required spec lists no tests: ${project} ${file}`);
+    else if (!entry.ran) errors.push(`required spec ran no tests: ${project} ${file}`);
+  }
+  return { listed: listed.length, ran: ran.size, files: perFile.size, perFile, perShard, statuses, required, errors };
 }
 
 function main(argv) {
@@ -118,14 +134,17 @@ function main(argv) {
     return 0;
   }
   if (command === 'parity') {
-    if (!options.list || !positional.length) throw new Error('usage: shards.mjs parity --list <list.json> [--expect-reports N] <report.json>...');
+    if (!options.list || !positional.length) throw new Error('usage: shards.mjs parity --list <list.json> [--expect-reports N] [--require-projects p,...] [--require-files f,...] <report.json>...');
     const read = path => JSON.parse(readFileSync(path, 'utf8'));
-    const result = compareParity(read(options.list), positional.map(read));
+    const split = value => value ? value.split(',').map(item => item.trim()).filter(Boolean) : [];
+    const result = compareParity(read(options.list), positional.map(read),
+      { requireProjects: split(options['require-projects']), requireFiles: split(options['require-files']) });
     if (options['expect-reports'] !== undefined && positional.length !== Number(options['expect-reports']))
       result.errors.unshift(`expected ${options['expect-reports']} shard reports, found ${positional.length}`);
     console.log(`shards: listed ${result.listed} tests in ${result.files} files; ran ${result.ran} across ${positional.length} shards (${result.perShard.join(' + ')})`);
     console.log(`shards: statuses ${JSON.stringify(result.statuses)}`);
     for (const [file, { listed, ran }] of [...result.perFile].sort()) if (listed !== ran) console.log(`shards: ${file}: listed ${listed}, ran ${ran}`);
+    for (const { project, file, listed, ran } of result.required) console.log(`shards: required ${project} ${file}: listed ${listed}, ran ${ran}`);
     for (const error of result.errors.slice(0, 50)) console.error(`shards: ${error}`);
     if (result.errors.length > 50) console.error(`shards: ... ${result.errors.length - 50} more`);
     return result.errors.length ? 1 : 0;
