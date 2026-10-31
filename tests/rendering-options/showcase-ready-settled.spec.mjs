@@ -132,6 +132,13 @@ for (const mode of ['source', 'built']) {
   // A reveal whose clock stops (hidden tab, off-screen iframe, other code) must not hold
   // ready back: the boot finishes it once its wait has lasted twice the 180 ms reveal. The
   // bound allows for the boot steps between the last reveal starting and that wait.
+  // The probe cannot see when that wait starts, so the bound is measured from the last
+  // reveal start and has to absorb the boot tail too. 1000 ms was too tight on a loaded CI
+  // runner (1006 ms, chromium-dpr2, run 41202348318; up to 1352 ms locally under 4x CDP CPU
+  // throttling). 2000 ms still discriminates: without the fallback the 'slow' reveal (1.8 s
+  // at 1 %) ends after 180 s, 90x the bound, and 'paused' and 'zero' never end, so ready
+  // never lands and the 15 s wait below fails (7.5x the bound).
+  const STALL_READY_BOUND_MS = 2000;
   for (const stall of ['slow', 'paused', 'zero']) {
     test(`${mode} showcase: a ${stall} reveal is finished and ready still lands within the fallback bound (#565)`, async ({ page, demo, production }) => {
       await page.addInitScript(probe, { stall });
@@ -140,7 +147,7 @@ for (const mode of ['source', 'built']) {
       const settled = await page.evaluate(() => window.__ready565.settled());
       const result = await page.evaluate(() => window.__ready565);
       expect(result.reveals.length).toBeGreaterThan(0);
-      expect(result.atReady.sinceLastReveal, 'ready within the 360 ms fallback (plus the boot tail)').toBeLessThan(1000);
+      expect(result.atReady.sinceLastReveal, 'ready within the 360 ms fallback (plus the boot tail)').toBeLessThan(STALL_READY_BOUND_MS);
       expect(result.atReady.running, 'every reveal finished at ready').toBe(0);
       for (const state of result.atReady.states) expect(['finished', 'idle'], 'reveal finished or cancelled').toContain(state);
       expect(new Set(result.atReady.clips), 'no window still clipped').toEqual(new Set(['none']));
