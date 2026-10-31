@@ -182,7 +182,7 @@ Inventory 1.0.18 (title-text-colour note, PR #540) refreshes only the full
 "Title text colour is SAMPLED" note replaced its stale "use black" decision with the
 implemented sample (`docs/spec/engine/window-widgets.md` TC1–TC5). No case-cited
 address line changed; all 27 case inputs, outcomes, payload pins and ring dispatch
-claims are unchanged. The 1.0.17 review is archived verbatim; the 1.0.18 label is
-PENDING an independent hash-only review. The 459 lifecycle tests peel this bump
+claims are unchanged. The 1.0.17 review is archived verbatim; 1.0.18 carries the Tier 0
+hash-only check of PR #540. The 459 lifecycle tests peel this bump
 (`tests/rendering-options/controls459/hash-only-bumps.mjs`) to recover the exact
 1.0.17 inventory they pin; a later hash-only bump adds its row there.

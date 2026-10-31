@@ -2164,7 +2164,7 @@
   "review": {
     "date": "2026-10-31",
     "reviewers": [
-      "PENDING: independent hash-only review of PR #540: 1.0.17 -> 1.0.18 changes only the nine kdef231-reference.md documentSha256 values (ce33a576 -> 3efc5f35) after the section 1.4 title-text-colour note was updated to the implemented TC1-TC5 sample; 1.0.17 review archived verbatim; all 27 case inputs, outcomes and cited addresses unchanged; not original provider or pixel-fidelity approval"
+      "Tier 0 hash-only check of PR #540, 2026-10-31, run by the maintainer's assistant at the maintainer's direction (maintainer authorized landing; not test-author self-approval of availability claims): lane-ready isHashOnlyBump(merge-base, head) true; all nine pins equal sha256(kdef231-reference.md) 3efc5f35; the doc diff touches only the section 1.4 note and no case-cited address line (0x758e, 0x76c4, 0x76d2, 0x76fe). 1.0.17 -> 1.0.18 changes only the nine kdef231-reference.md documentSha256 values (ce33a576 -> 3efc5f35) after the section 1.4 title-text-colour note was updated to the implemented TC1-TC5 sample; 1.0.17 review archived verbatim; all 27 case inputs, outcomes and cited addresses unchanged; not original provider or pixel-fidelity approval"
     ],
     "inventoryVersion": "1.0.18",
     "inventorySha256": "82fc404e8d9db93789c90d6e65830c9c995955591bf37124d2a0d1ef6ee80bb5",

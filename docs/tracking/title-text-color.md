@@ -16,7 +16,7 @@
 > "Scriptoscope shipped decision: use black" paragraph in
 > `docs/spec/kdef231-reference.md` §1.4 was stale; it was rewritten and
 > re-pinned on 2026-10-31 (`tests/control-availability` inventory 1.0.18,
-> hash-only, `ce33a576` -> `3efc5f35`; review label PENDING).
+> hash-only, `ce33a576` -> `3efc5f35`; Tier 0 hash-only check, PR #540).
 
 ## Symptom
 Rendered window-title text colour doesn't match the period references:
