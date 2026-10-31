@@ -10,6 +10,8 @@ export class PagePromotionError extends Error {
   }
 }
 const mountedSources = new WeakMap();
+// The boot reveal's length. Ready waits for it, finishing it after twice this (#565).
+const REVEAL_MS = 180;
 function nativeShape(source) {
   const rect=source.getBoundingClientRect(), style=getComputedStyle(source);
   return [rect.width,rect.height,source.scrollWidth,source.scrollHeight,
@@ -69,10 +71,35 @@ export async function mountExplicitPage(opts) {
     if (kind==='windows' && opts.bootAffordance!=='none' && opts.bootAffordance!==false &&
         !matchMedia('(prefers-reduced-motion: reduce)').matches) {
       const animation=host.animate([{clipPath:'inset(0 0 100% 0)'},{clipPath:'inset(0)'}],
-        {duration:180,easing:'steps(8,end)'});
+        {duration:REVEAL_MS,easing:'steps(8,end)'});
       bootAnimations.add(animation);
       void animation.finished.catch(()=>{}).finally(()=>bootAnimations.delete(animation));
     }
+  }
+  // #565: `.scriptoscope-ready` (and the `ready` event) mean "interactive". While a reveal
+  // runs, its clip-path hides the lower part of the window and a click there falls through
+  // to the page, so boot waits for every reveal to end. Reduced motion never starts one
+  // (see success()). A reveal cancelled by other code rejects `finished`, which is caught,
+  // so it ends the wait. Reveals that are not advancing must not hold ready back: a hidden
+  // document, an off-screen iframe and a paused animation all stop the clock. So the wait
+  // finishes them when the document is or becomes hidden, and in any case once the wait has
+  // lasted twice their duration. Every path ends with the reveals finished, so ready still
+  // means clickable. The timer and listener are removed when the wait ends.
+  async function settleBootReveals() {
+    const pending=[...bootAnimations];
+    if (!pending.length) return;
+    const finishAll=()=>{
+      for (const animation of pending) {
+        if (animation.playState==='finished' || animation.playState==='idle') continue;
+        try { animation.finish(); } catch { animation.cancel(); }
+      }
+    };
+    const stop=new AbortController();
+    const fallback=setTimeout(finishAll,REVEAL_MS*2);
+    document.addEventListener('visibilitychange',()=>{ if (document.visibilityState==='hidden') finishAll(); },{signal:stop.signal});
+    if (document.visibilityState==='hidden') finishAll();
+    try { await Promise.all(pending.map(animation => animation.finished.catch(() => {}))); }
+    finally { clearTimeout(fallback); stop.abort(); }
   }
   const emit = (type, detail) => events.dispatchEvent(new CustomEvent(type,{detail}));
   const fixedRefs = new Map();
@@ -412,7 +439,9 @@ export async function mountExplicitPage(opts) {
       picker = await promotion;
     }
     for (const win of windows.values()) await win.consumerManager.refreshScrollbars(win.host);
-    if (opts.rejectOnEmptyMount && hasTargets && !successes) throw new PagePromotionError('No selected source could be promoted', failures); 
+    if (opts.rejectOnEmptyMount && hasTargets && !successes) throw new PagePromotionError('No selected source could be promoted', failures);
+    await settleBootReveals();
+    if (disposed) throw new Error('Disconnected during load');
     restoreInert();
     root.removeAttribute('data-scriptoscope-loading');
     root.classList.add('scriptoscope-ready');
