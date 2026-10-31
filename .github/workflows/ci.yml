@@ -32,8 +32,9 @@ concurrency:
 # `--list` inventory, and the merged requirement execution evidence validates.
 # Shard count only changes balance (Playwright splits by test count, keeping a
 # file's same-worker tests together); tests/rendering-options/shards.mjs proves coverage parity every run.
-# Since #598 the aggregate also requires the Firefox/WebKit interaction job,
-# checked against its own subset inventory rather than the Chromium shards'.
+# The Firefox/WebKit interaction contracts (#598) ran here as part of the
+# aggregate until the maintainer moved them to the release tier
+# (release-gate.yml, DECISIONS #14). The PR tier is Chromium-only.
 env:
   RENDERING_SHARDS: 5
 
@@ -255,76 +256,10 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
-  # #598 PR tier: the interaction specs again under Firefox and WebKit, where
-  # engines genuinely differ on pointer capture, sub-pixel pointer coordinates
-  # and focus. The list lives in tests/rendering-options/interaction-specs.mjs.
-  # It is a defined subset by design, so it is not part of the Chromium shard
-  # parity; the aggregate checks it separately against its own `--list`.
-  interaction:
-    name: Interaction contracts (${{ matrix.browser }})
-    runs-on: ubuntu-24.04
-    container:
-      image: mcr.microsoft.com/playwright:v1.64.0-noble@sha256:06a9939e57531807f8d5fd76ce44b53165ffb7d7501d87ab10e285c20b1e971f
-      # Match the Actions-mounted home owner, as in Playwright's CI example.
-      # Firefox refuses a root process with a non-root-owned home directory.
-      options: --ipc=host --user 1001
-    timeout-minutes: 20
-    strategy:
-      fail-fast: false
-      matrix:
-        browser: [firefox, webkit]
-
-    steps:
-      - uses: actions/checkout@v6
-
-      - name: Set up Node
-        uses: actions/setup-node@v6
-        with:
-          node-version: '24'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Bake theme derivatives
-        run: npm run build:themes
-
-      # Builds the library and demo (the built-mode specs need dist/), then runs
-      # the interaction list at DPR 1 in this engine only.
-      - name: Interaction contracts (${{ matrix.browser }}-dpr1)
-        env:
-          SCRIPTOSCOPE_RENDERING_BROWSERS: ${{ matrix.browser }}
-        run: |
-          export SCRIPTOSCOPE_RENDERING_JSON_REPORT="$GITHUB_WORKSPACE/test-results/interaction-report/report.json"
-          npm run test:rendering:interaction
-
-      # Fixed name (overwritten on re-run) so the aggregate sees exactly one per engine.
-      - name: Upload interaction test report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: interaction-report-${{ matrix.browser }}
-          path: test-results/interaction-report/report.json
-          if-no-files-found: ignore
-          overwrite: true
-          retention-days: 14
-
-      - name: Upload interaction failure evidence
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: interaction-contracts-${{ matrix.browser }}-${{ github.run_attempt }}
-          path: |
-            test-results/rendering-options/
-            playwright-report/rendering-options/
-            test-results/rendering-failure-archive/
-          if-no-files-found: ignore
-          retention-days: 14
-
   test:
     # The historical required check name; now the aggregate of the jobs above.
     name: Gates + build + browser contracts
-    needs: [gates, rendering, goldens, interaction]
+    needs: [gates, rendering, goldens]
     if: ${{ always() }}
     runs-on: ubuntu-24.04
     timeout-minutes: 15
@@ -356,12 +291,6 @@ jobs:
           pattern: rendering-shard-report-*
           path: test-results/shard-reports
 
-      - name: Download interaction test reports
-        uses: actions/download-artifact@v4
-        with:
-          pattern: interaction-report-*
-          path: test-results/interaction-reports
-
       # Every test in the unsharded inventory ran exactly once across the shards.
       - name: Rendering contract coverage parity (shards vs unsharded list)
         shell: bash
@@ -371,22 +300,6 @@ jobs:
           reports=()
           for i in $(seq 1 "$RENDERING_SHARDS"); do reports+=("test-results/shard-reports/rendering-shard-report-$i/report.json"); done
           node tests/rendering-options/shards.mjs parity --list test-results/rendering-list.json --expect-reports "$RENDERING_SHARDS" "${reports[@]}"
-
-      # The interaction subset (#598): every test in its own `--list` ran exactly
-      # once, in Firefox and WebKit, and every listed spec file listed and ran
-      # at least one test per engine.
-      - name: Interaction contract coverage (firefox, webkit)
-        if: always()
-        shell: bash
-        run: |
-          set -euo pipefail
-          SCRIPTOSCOPE_RENDERING_SUITE=interaction SCRIPTOSCOPE_RENDERING_BROWSERS=firefox,webkit \
-            npx playwright test --config tests/rendering-options/playwright.config.mjs --list --reporter=json > test-results/interaction-list.json
-          files="$(node --input-type=module -e "import { INTERACTION_SPECS } from './tests/rendering-options/interaction-specs.mjs'; console.log(INTERACTION_SPECS.join(','))")"
-          node tests/rendering-options/shards.mjs parity --list test-results/interaction-list.json --expect-reports 2 \
-            --require-projects firefox-dpr1,webkit-dpr1 --require-files "$files" \
-            test-results/interaction-reports/interaction-report-firefox/report.json \
-            test-results/interaction-reports/interaction-report-webkit/report.json
 
       # Shard order is run order, then goldens, as in the former serial job.
       - name: Merge rendering observations
