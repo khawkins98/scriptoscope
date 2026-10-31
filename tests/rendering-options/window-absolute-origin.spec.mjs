@@ -11,6 +11,7 @@ const CSS = `
   #o-stage { position: absolute; left: 20px; top: 20px; z-index: 1000; width: 900px; height: 640px;
     margin: 0; padding: 10px; border: 3px solid #888; background: #fff; }
   #o-stage.scaled { transform: scale(0.75); transform-origin: 0 0; }
+  #o-stage.unpositioned { position: static; margin: 20px; }
   #o-stage .o-spacer { height: 40px; }
   .o-abs { position: absolute; }
   .o-fix { position: fixed; }
@@ -27,6 +28,7 @@ const CASES = {
   'consumer CSS left/top in %': { cls: 'o-pct' },
   'left/top auto (static position)': { cls: '' },
   'consumer CSS px under a scale(0.75) ancestor': { cls: 'o-px', scaled: true },
+  'consumer CSS px under a non-positioned scale(0.75) ancestor': { cls: 'o-px', scaled: true, unpositioned: true },
   'declarative window made absolute by a consumer class': { cls: 'o-abs o-px', declarative: true },
   'position: fixed host on a scrolled page': { cls: 'o-fixed', fixed: true },
   'declarative window made fixed by a consumer class on a scrolled page': { cls: 'o-fix o-fixed', declarative: true, fixed: true },
@@ -52,12 +54,13 @@ async function setup(page, servers, mode) {
       for (let i = 0; i < 2; i++) await new Promise(r => requestAnimationFrame(r));
     };
     let dispose = () => {};
-    const make = async ({ cls, scaled, declarative: decl, fixed }) => {
+    const make = async ({ cls, scaled, unpositioned, declarative: decl, fixed }) => {
       dispose();
       scrollTo(0, fixed ? 60 : 0);
       const stage = document.createElement('div');
       stage.id = 'o-stage';
       if (scaled) stage.classList.add('scaled');
+      if (unpositioned) stage.classList.add('unpositioned');
       stage.innerHTML = '<div class="o-spacer"></div>';
       document.body.prepend(stage);
       let host, unmount;

@@ -1089,9 +1089,8 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     const inline = host.style.position;
     if (inline === 'absolute' || inline === 'fixed' || cs.position === 'absolute' || cs.position === 'fixed') {
       if (!inline) host.style.position = cs.position;
-      const at = (used: string, own: string, offset: number, margin: string): number =>
-        used.endsWith('px') ? parseFloat(used) : parseFloat(own) || offset - (parseFloat(margin) || 0);
-      return { x: at(cs.left, host.style.left, host.offsetLeft, cs.marginLeft), y: at(cs.top, host.style.top, host.offsetTop, cs.marginTop) };
+      // Only a display:none or detached host has no used px; it falls back to inline, then 0.
+      return { x: parseFloat(cs.left) || parseFloat(host.style.left) || 0, y: parseFloat(cs.top) || parseFloat(host.style.top) || 0 };
     }
     const anc = host.parentElement ? findPositionedAncestor(host) : null;
     const offset = offsetInContainingBlock(viewportFrame(host).origin, anc);
