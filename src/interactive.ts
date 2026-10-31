@@ -115,6 +115,23 @@ const growZone = (c: ComposedChrome): { w: number; h: number } => c.growBox
   ? { w: c.fullWidth - c.growBox.x, h: c.fullHeight - c.growBox.y }
   : { w: c.frame.right + 15, h: c.frame.bottom + 15 };
 
+// One window drag (title bar or grow box) from pointerdown to release (#563). Capturing the pointer on
+// `el` keeps moves arriving from outside the window, even over elements that swallow them. A
+// pointercancel or lost capture ends the drag through `cancel`, so nothing is left to commit later.
+function trackDrag(el: HTMLElement, down: PointerEvent, move: (e: PointerEvent) => void,
+  up: (e: PointerEvent) => void, cancel: () => void): void {
+  const id = down.pointerId;
+  const on = (f: (e: PointerEvent) => void) => (e: PointerEvent): void => {
+    if (e.pointerId !== id) return;
+    if (e.type !== 'pointermove') for (const [t, l] of listeners) document.removeEventListener(t, l);
+    f(e);
+  };
+  const listeners = [['pointermove', on(move)], ['pointerup', on(up)],
+    ['pointercancel', on(cancel)], ['lostpointercapture', on(cancel)]] as const;
+  for (const [t, l] of listeners) document.addEventListener(t, l);
+  try { el.setPointerCapture(id); } catch { /* the pointer is already gone: document tracking still ends it */ }
+}
+
 // Internal ownership hook used by declarative promotion. Not part of the package exports.
 const controlDisposers = new WeakMap<HTMLElement, () => void>();
 export function disposeInteractiveControl(el: HTMLElement): void {
@@ -759,8 +776,8 @@ interface ManagedWindow<Theme extends ThemeInput> {
   /** Persistent light-DOM consumer content, projected through the continuously mounted slot. */
   contentEl?: HTMLElement;
   /** Outer-box bounds (chrome included, unscaled px) per axis (#526). A bounded axis's
-   *  content size is re-derived as `bound - frame` on every expanded render, so it follows
-   *  the scheme's frame through retheme. Unbounded axes use `opts` as the content size.
+   *  content size is re-derived as `bound - frame` on every render (width only while
+   *  collapsed), so it follows the scheme's frame through retheme. Unbounded axes use `opts`.
    *  Explicit content sizes (setContentSize, grow box, zoom, applyState) clear the axis. */
   outer?: OuterSize | undefined;
   /** Frame totals of the last expanded commit; see chromeExtent(). */
@@ -773,13 +790,14 @@ export interface OuterSize { width?: number; height?: number }
 export interface ChromeExtent { x: number; y: number }
 
 /** The outer/content conversion's one source of truth: the frame totals of a
- *  prepared window, read from its full footprint (both renderWindow paths set the
- *  root's width/height to the full chrome size) minus the content it was given. */
+ *  prepared window, read from its full footprint minus its content box (both
+ *  renderWindow paths size the root and `.scriptoscope-content` inline). */
 function measureExtent(win: HTMLElement, opts: RenderWindowOptions): ChromeExtent {
   const scale = Math.max(1, Math.round(opts.scale ?? 1));
+  const content = win.querySelector<HTMLElement>('.scriptoscope-content')!.style;
   return {
-    x: Math.round(parseFloat(win.style.width) / scale) - (opts.width ?? 240),
-    y: Math.round(parseFloat(win.style.height) / scale) - (opts.height ?? 120),
+    x: Math.round((parseFloat(win.style.width) - parseFloat(content.width)) / scale),
+    y: Math.round((parseFloat(win.style.height) - parseFloat(content.height)) / scale),
   };
 }
 
@@ -976,7 +994,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       ...(extra.collapsed ? { collapsed: true } : {}),
       ...(extra.contentEl ? { contentEl: extra.contentEl } : {}),
       ...(extra.enabledWidgets !== undefined ? { enabledWidgets: extra.enabledWidgets } : {}),
-      outer: withoutAxes(extra.outerSize, false, false),
+      outer: extra.outerSize,
     };
     if (extra.z != null && extra.z > this.zClock) this.zClock = extra.z; // keep clock above declared
     this.windows.push(entry);
@@ -1116,16 +1134,19 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
   /** Re-render at OUTER-box bounds (chrome included, unscaled px) for the given axes; an
    *  omitted axis keeps its current size and mode. The content size of a bounded axis is
    *  `bound - frame`, re-derived for each scheme's frame on retheme, so the window's
-   *  footprint stays inside the bound (#526). No-op if the host isn't managed or unchanged. */
+   *  footprint stays inside the bound (#526). No-op if the host isn't managed or unchanged.
+   *  While zoomed the window shows its standard (zoomed) state, so the bound updates the
+   *  saved user state that unzoom restores, as the Mac's userState/stdState pair (#542). */
   async setOuterSize(host: HTMLElement, size: OuterSize): Promise<void> {
     const entry = this.windows.find((w) => w.host === host);
-    if (!entry) return;
-    const outer: OuterSize = { ...entry.outer };
+    const target = entry?.zoomed ? entry.userSize : entry;
+    if (!entry || !target) return;
+    const outer: OuterSize = { ...target.outer };
     if (size.width !== undefined) outer.width = size.width;
     if (size.height !== undefined) outer.height = size.height;
-    if (outer.width === entry.outer?.width && outer.height === entry.outer?.height) return;
-    entry.outer = outer;
-    await this.render(entry);
+    if (outer.width === target.outer?.width && outer.height === target.outer?.height) return;
+    target.outer = outer;
+    if (!entry.zoomed) await this.render(entry);
   }
 
   /** Frame totals of the window's last expanded render (`x` = left + right, `y` = top +
@@ -1269,12 +1290,17 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
         // Never lend a live pooled canvas to an asynchronous preparation.
       });
     };
-    // A collapsed render has no content rect to resolve; it keeps the last expanded
-    // content size, and the next expanded render resolves the bound for its theme.
-    const outer = collapsed ? undefined : entry.outer;
-    if (!outer) {
+    const outer = entry.outer;
+    if (collapsed || !outer) {
       const win = await prepare(entry.opts);
-      return { win, collapsed, opts: entry.opts, ...(collapsed ? {} : { extent: measureExtent(win, entry.opts) }) };
+      if (!collapsed) return { win, collapsed, opts: entry.opts, extent: measureExtent(win, entry.opts) };
+      // A collapsed render has no content height to resolve, and the built-in frame hides
+      // the content (a side utility is a bare bar), so only a visible content box says
+      // what the frame's width is. Fit that to the width bound, re-preparing at most
+      // once; otherwise keep the last expanded content size (#542).
+      const opts = outer?.width === undefined || win.querySelector<HTMLElement>('.scriptoscope-content')!.hidden
+        ? entry.opts : contentFor(entry.opts, { width: outer.width }, measureExtent(win, entry.opts));
+      return { win: opts.width === entry.opts.width ? win : await prepare(opts), collapsed, opts };
     }
     // Outer bounds (#526): content = bound - frame, where the frame is whatever this
     // theme/variant actually composes. Guess from the cache, then verify against the
@@ -1706,43 +1732,48 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     win.addEventListener('pointerdown', (e) => {
       if (!inFrame(e)) return; // inside the content body — not a drag handle
       if (e.pointerType === 'mouse' && e.button !== 0) return; // only primary mouse button initiates drag
+      if (!e.isPrimary) return; // a second touch or pen contact doesn't start a second drag
       e.preventDefault();
       this.claimFocus(entry, moveBtn);
       void this.focus(entry);
-      // Posture B handoff: in-flow hosts (the Posture-B default) need to
-      // flip to `position: absolute` before drag math can write top/left.
-      // `toAbsolute` is the chokepoint — captures the host's current
-      // visible page position, computes coords relative to its positioned
-      // ancestor (using the canonical containing-block walker that handles
-      // transformed/filtered ancestors correctly — the duplicated ad-hoc
-      // walker that lived here pre-2026-05-31 missed those cases),
-      // returns the now-applied (x, y). No visual jump.
-      const { x: x0, y: y0 } = this.toAbsolute(host);
       // Pointer positions are viewport pixels; left/top are the containing
       // block's CSS pixels. They differ inside a scaled (#515), rotated or
       // skewed (#519) ancestor, so map each position and subtract.
       const frame = viewportFrame(host);
       const start = frame.toLocal(e.clientX, e.clientY);
-      const at = (ev: PointerEvent): { x: number; y: number } => {
+      const delta = (ev: PointerEvent): { x: number; y: number } => {
         const p = frame.toLocal(ev.clientX, ev.clientY);
-        return { x: x0 + p.x - start.x, y: y0 + p.y - start.y };
+        return { x: Math.round(p.x - start.x), y: Math.round(p.y - start.y) };
       };
+      // Like DragWindow, a press that never changes the window's position is no move (#561):
+      // the Posture-B handoff waits for the first move of at least 0.5 CSS px. `toAbsolute`
+      // is the chokepoint — it lifts an in-flow host to `position: absolute` at its current
+      // page position (canonical containing-block walker, so transformed/filtered ancestors
+      // are handled) behind a same-size placeholder. No visual jump.
+      let origin: { x: number; y: number } | undefined;
       // Hot-loop bypass: pointermove writes left/top directly at 60Hz for
       // smoothness. Calling setPosition() per move would fire onChange on
       // every frame and thrash persistence + consumer listeners. Acceptable
       // because pointerup commits through setPosition once below — the
       // chokepoint's contract is "every COMMITTED move", not every frame.
-      const mv = (ev: PointerEvent): void => { const p = at(ev); host.style.left = `${p.x}px`; host.style.top = `${p.y}px`; };
-      const up = (ev: PointerEvent): void => {
-        document.removeEventListener('pointermove', mv);
-        document.removeEventListener('pointerup', up);
+      const place = (d: { x: number; y: number }): void => {
+        if (!origin) { if (!d.x && !d.y) return; origin = this.toAbsolute(host); }
+        host.style.left = `${origin.x + d.x}px`; host.style.top = `${origin.y + d.y}px`;
+      };
+      trackDrag(win, e, ev => place(delta(ev)), (ev) => {
+        const d = delta(ev);
+        place(d);
+        // Never moved, or released back at the start: nothing to commit, no onChange.
+        if (!origin || (!d.x && !d.y)) return;
         // Commit through the chokepoint so persistence + future v2 reflow
         // features (snap-to-grid, collision) see the move. setPosition
         // fires onChange for us; no explicit call needed.
-        const p = at(ev);
-        this.setPosition(host, p.x, p.y);
-      };
-      document.addEventListener('pointermove', mv); document.addEventListener('pointerup', up);
+        this.setPosition(host, origin.x + d.x, origin.y + d.y);
+      }, () => {
+        // Cancelled (#563): back to the start, uncommitted. Reuses the hot-loop writer, so the
+        // setPosition chokepoint still sees every committed move.
+        place({ x: 0, y: 0 });
+      });
     }, { signal });
 
     // KEYBOARD MOVE HANDLE — focusable transparent button overlaying the title region. Closes the
@@ -1856,7 +1887,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     // Swallow dblclick on the gripper too, else "inFrame at the bottom-right" would shade-on-dblclick.
     corner.addEventListener('dblclick', (e) => { e.stopPropagation(); }, { signal });
     corner.addEventListener('pointerdown', (e) => {
-      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      if ((e.pointerType === 'mouse' && e.button !== 0) || !e.isPrimary) return;
       e.preventDefault(); e.stopPropagation();
       this.claimFocus(entry, corner);
       void this.focus(entry);
@@ -1890,8 +1921,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
         outline.style.width = `${hw0 + (nw - w0) * scale}px`;
         outline.style.height = `${hh0 + (nh - h0) * scale}px`;
       };
-      const up = (): void => {
-        document.removeEventListener('pointermove', mv); document.removeEventListener('pointerup', up);
+      trackDrag(corner, e, mv, () => {
         outline?.remove();
         // Unchanged size (never moved, or dragged back to the start): no commit, no event.
         if (nw === w0 && nh === h0) return;
@@ -1903,8 +1933,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
         host.dispatchEvent(new CustomEvent('scriptoscope:userresize', {
           detail: { w: nw, h: nh }, bubbles: true,
         }));
-      };
-      document.addEventListener('pointermove', mv); document.addEventListener('pointerup', up);
+      }, () => outline?.remove()); // cancelled (#563): no commit, no event
     }, { signal });
   }
 
