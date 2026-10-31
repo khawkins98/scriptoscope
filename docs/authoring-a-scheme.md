@@ -93,7 +93,8 @@ into one ordinary file, which StuffIt Expander, MacBinary utilities and
 hfsutils (`hcopy -m`) turn back into a real scheme file.
 
 If you edit a first-party scheme, rebuild it before running `npm test`: tests
-check that the committed `scheme.rsrc` and `scheme.bin` match a fresh build.
+check that the committed `scheme.rsrc` matches a fresh build (`scheme.bin` is
+generated for emulator use and untracked in git to keep the repository small).
 
 Try it: change a colour in `authoring/schemes/kingfisher/palette.mjs`, rebuild,
 and reload the preview.

@@ -61,9 +61,10 @@ test('classic extras: the picker icon family (-16455) and a power-of-two desktop
   }
 });
 
-test('committed brickworks scheme.rsrc and scheme.bin match a fresh build (run `npm run author -- authoring/schemes/brickworks`)', () => {
+test('committed brickworks scheme.rsrc matches a fresh build, and MacBinary packaging unwraps cleanly', async () => {
   const dir = new URL('../../authoring/schemes/brickworks/', import.meta.url);
   assert.ok(Buffer.from(fork).equals(readFileSync(new URL('scheme.rsrc', dir))), 'scheme.rsrc is stale; rebuild it');
+  const { unwrapToResourceFork } = await import('../theme-loader/containers.js');
   const bin = writeMacBinary({ name: 'Brickworks', resourceFork: fork });
-  assert.ok(Buffer.from(bin).equals(readFileSync(new URL('scheme.bin', dir))), 'scheme.bin is stale; rebuild it');
+  assert.ok(Buffer.from(unwrapToResourceFork(bin)).equals(Buffer.from(fork)));
 });

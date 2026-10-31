@@ -55,9 +55,10 @@ test('pressed strip -14330 is close | zoom | collapse at the document widget siz
   for (const part of [2, 3]) { const r = util.find((x) => x.part === part).rect; assert.equal(r.right - r.left, 0); }
 });
 
-test('committed new-year-2027 scheme.rsrc and scheme.bin match a fresh build (run `npm run author -- authoring/schemes/new-year-2027`)', () => {
+test('committed new-year-2027 scheme.rsrc matches a fresh build, and MacBinary packaging unwraps cleanly', async () => {
   const dir = new URL('../../authoring/schemes/new-year-2027/', import.meta.url);
   assert.ok(Buffer.from(fork).equals(readFileSync(new URL('scheme.rsrc', dir))), 'scheme.rsrc is stale; rebuild it');
+  const { unwrapToResourceFork } = await import('../theme-loader/containers.js');
   const bin = writeMacBinary({ name: 'Midnight 2027', resourceFork: fork });
-  assert.ok(Buffer.from(bin).equals(readFileSync(new URL('scheme.bin', dir))), 'scheme.bin is stale; rebuild it');
+  assert.ok(Buffer.from(unwrapToResourceFork(bin)).equals(Buffer.from(fork)));
 });

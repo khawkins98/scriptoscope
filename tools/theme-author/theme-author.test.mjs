@@ -264,12 +264,13 @@ test('MacBinary output carries type/creator and unwraps to the same fork', async
   assert.throws(() => writeMacBinary({ name: 'a:b', resourceFork: fork }), /file name/);
 });
 
-test('committed kingfisher scheme.bin matches a fresh build', async () => {
-  const { readFileSync } = await import('node:fs');
+test('kingfisher MacBinary packaging unwraps cleanly', async () => {
   const { writeMacBinary } = await import('./macbinary.js');
-  const committed = readFileSync(new URL('../../authoring/schemes/kingfisher/scheme.bin', import.meta.url));
+  const { unwrapToResourceFork } = await import('../theme-loader/containers.js');
   const { resources } = await buildScheme();
-  assert.ok(Buffer.from(writeMacBinary({ name: 'Kingfisher', resourceFork: writeResourceFork(resources) })).equals(committed), 'scheme.bin is stale; rebuild it');
+  const fork = writeResourceFork(resources);
+  const bin = writeMacBinary({ name: 'Kingfisher', resourceFork: fork });
+  assert.ok(Buffer.from(unwrapToResourceFork(bin)).equals(Buffer.from(fork)));
 });
 
 test('png-decode reads what png-encode writes, and palette PNGs from claude-pxl', async () => {
