@@ -98,6 +98,33 @@ check. Playwright shards by test count and keeps a file's tests that share a
 worker in one shard, so the balance between shards is approximate. Coverage
 does not depend on it.
 
+## Firefox and WebKit interaction contracts (#598)
+
+The PR tier also runs a narrow required job, **Interaction contracts (firefox)**
+and **(webkit)**, one matrix leg per engine at DPR 1 in the same pinned container.
+It runs only the specs listed in [`interaction-specs.mjs`](./interaction-specs.mjs),
+where engines genuinely differ on pointer capture, sub-pixel pointer coordinates
+and focus: `window-pointer-drag`, `growbox-zero-delta`, `growbox-zone`,
+`posture-b` and `transformed-ancestors` (95 tests per engine). Pixel and trace
+contracts stay Chromium-only in this tier; the extended matrix runs them in
+every engine. `scrollbar-parts` is green in both engines but its hold-to-repeat
+cases cost about 4.7 minutes per engine, so it stays in the extended matrix.
+
+Locally, `npm run test:rendering:interaction` builds the library and demo, then
+runs the list in Firefox and WebKit (`SCRIPTOSCOPE_RENDERING_SUITE=interaction`;
+`SCRIPTOSCOPE_RENDERING_BROWSERS` narrows or widens the engines). The list file is
+the only place the spec set is named: the config, the npm script and the CI
+check all read it.
+
+The aggregate needs this job and fails unless both legs succeeded. It is a subset
+by design, so it is not fed into the Chromium shard parity. Instead the aggregate
+lists the interaction inventory and runs `shards.mjs parity` with
+`--require-projects firefox-dpr1,webkit-dpr1 --require-files <list>`: every listed
+test ran exactly once, and each listed spec file listed and ran at least one test
+in each engine. A renamed or emptied spec fails rather than passing as "nothing
+listed, nothing ran". Failure evidence uploads as
+`interaction-contracts-<browser>-<attempt>`.
+
 ## Current coverage boundaries
 
 Source/built parity uses the same semantic decoder, resolver, compositor and text

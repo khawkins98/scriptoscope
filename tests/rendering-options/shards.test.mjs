@@ -42,3 +42,16 @@ test('parity fails on missing, duplicated, unlisted and empty runs', () => {
   assert.match(compareParity(list, [report(['t1', true], ['t2', true], ['t3', true])]).errors.join('\n'), /ran but not listed: .*t3/);
   assert.match(compareParity(report(), [report()]).errors.join('\n'), /list is empty/);
 });
+
+test('a subset suite requires every listed project and spec file to list and run tests', () => {
+  const at = (project, file, title, ran) => ({ title: file, file, specs: [{ title, file, line: 1, column: 1, tests: [{ projectName: project, status: 'expected', results: ran ? [{ status: 'passed' }] : [] }] }] });
+  const list = { suites: [at('firefox-dpr1', 'a.spec.mjs', 't', false), at('firefox-dpr1', 'b.spec.mjs', 't', false)] };
+  const ran = { suites: [at('firefox-dpr1', 'a.spec.mjs', 't', true), at('firefox-dpr1', 'b.spec.mjs', 't', true)] };
+  const ok = compareParity(list, [ran], { requireProjects: ['firefox-dpr1'], requireFiles: ['a.spec.mjs', 'b.spec.mjs'] });
+  assert.deepEqual(ok.errors, []);
+  assert.deepEqual(ok.required.map(r => [r.file, r.listed, r.ran]), [['a.spec.mjs', 1, 1], ['b.spec.mjs', 1, 1]]);
+  // A renamed or emptied spec: nothing listed, nothing ran, plain parity would pass.
+  assert.match(compareParity(list, [ran], { requireFiles: ['a.spec.mjs', 'c.spec.mjs'] }).errors.join('\n'), /required spec lists no tests: firefox-dpr1 c\.spec\.mjs/);
+  assert.match(compareParity(list, [ran], { requireProjects: ['firefox-dpr1', 'webkit-dpr1'], requireFiles: ['a.spec.mjs'] }).errors.join('\n'), /required project not listed: webkit-dpr1/);
+  assert.match(compareParity(list, [{ suites: [at('firefox-dpr1', 'a.spec.mjs', 't', true)] }], { requireFiles: ['b.spec.mjs'] }).errors.join('\n'), /required spec ran no tests: firefox-dpr1 b\.spec\.mjs/);
+});
