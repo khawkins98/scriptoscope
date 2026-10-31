@@ -6,21 +6,23 @@ name: Release gate
 on:
   workflow_dispatch:
   # Weekly, Monday 05:00 UTC. A red scheduled run opens or updates one
-  # `release-gate` issue; the next green one closes it. It does not block merges.
+  # `release-gate` issue; the next green run on main closes it. It does not
+  # block merges.
   schedule:
     - cron: '0 5 * * 1'
   # GitHub filters pull_request by base branch only; the `scope` job below
-  # limits PR runs to heads named release/*.
+  # limits PR runs to same-repository heads named release/*.
   pull_request:
     branches: [main]
-  # Final confirmation on the tagged commit.
+  # A tag push does not re-run the matrix: the `tagged` job only confirms that
+  # the tagged commit already has a green release-gate run (CONTRIBUTING step 4).
   push:
     tags: ['v*']
 
 concurrency:
   group: release-gate-${{ github.ref }}
-  # Only superseded PR pushes are cancelled; a scheduled, manual or tag run
-  # always finishes so its result can be cited.
+  # Only superseded PR pushes are cancelled; a scheduled or manual run always
+  # finishes so its result can be cited.
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 # Least privilege: nothing by default, each job asks for what it needs.
@@ -29,11 +31,51 @@ permissions: {}
 jobs:
   scope:
     name: Release scope
-    if: ${{ github.event_name != 'pull_request' || startsWith(github.head_ref, 'release/') }}
+    # Full runs: schedule, dispatch, and release/* PRs from this repository (a
+    # fork PR named release/* does not get the full matrix). Never tag pushes.
+    if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && startsWith(github.head_ref, 'release/') && github.event.pull_request.head.repo.full_name == github.repository) }}
     runs-on: ubuntu-24.04
     timeout-minutes: 2
     steps:
       - run: echo "Release gate for ${{ github.event_name }} on ${{ github.ref }} at ${{ github.sha }}"
+
+  # Tag pushes: fail unless the tagged commit already has a successful
+  # release-gate run (normally the post-merge dispatch on main), and link it.
+  tagged:
+    name: Tagged commit has a green release gate
+    if: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
+    runs-on: ubuntu-24.04
+    permissions:
+      actions: read
+    timeout-minutes: 5
+    steps:
+      - name: Find a successful release-gate run for this commit
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          runs="$(gh run list --workflow release-gate.yml --commit "$GITHUB_SHA" --status success --limit 20 --json databaseId,url,event,createdAt)"
+          count="$(jq 'length' <<<"$runs")"
+          if [ "$count" -gt 0 ]; then
+            url="$(jq -r '.[0].url' <<<"$runs")"; event="$(jq -r '.[0].event' <<<"$runs")"
+            echo "Release gate for $TAG at $GITHUB_SHA: $url ($event)"
+            {
+              echo "### Release gate for \`$TAG\`"
+              echo
+              echo "\`$GITHUB_SHA\` has $count successful release-gate run(s). Latest: $url ($event). Link it from the GitHub release notes."
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "::error title=No green release gate::$TAG points at $GITHUB_SHA, which has no successful release-gate run. Run the gate on that commit (CONTRIBUTING \"Cutting a release\" step 4)."
+            {
+              echo "### Release gate for \`$TAG\`: MISSING"
+              echo
+              echo "\`$GITHUB_SHA\` has no successful release-gate run. This tag was pushed before the gate passed."
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
 
   # Chromium DPR 1 and 2, Firefox and WebKit, every spec, 3 shards each, plus the
   # coverage parity job (#583).
@@ -192,10 +234,12 @@ jobs:
         run: |
           set -euo pipefail
           git fetch --force --tags origin
-          # On a tag push, HEAD is the new release; measure against the one before.
-          from=HEAD
-          if [ "$GITHUB_REF_TYPE" = tag ]; then from=HEAD^; fi
-          prev="$(git describe --tags --abbrev=0 --match 'v[0-9]*' "$from")"
+          # A release PR or the post-merge run measures against the latest tag.
+          if ! prev="$(git describe --tags --abbrev=0 --match 'v[0-9]*' HEAD 2>/dev/null)"; then
+            echo "no previous v* tag; trend skipped"
+            echo "### Runtime size trend: no previous v* tag; trend skipped" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
           table="$(node scripts/src-loc.mjs HEAD --base "$prev")"
           echo "$table"
           {
@@ -260,7 +304,7 @@ jobs:
             if [ -n "$open" ]; then
               gh issue comment "$open" --body "$body"
             else
-              gh issue create --title "Release gate failing on main" --label release-gate --body "$body"$'\n\n'"Part of #598. This issue closes itself on the next green scheduled run."
+              gh issue create --title "Release gate failing on main" --label release-gate --body "$body"$'\n\n'"Part of #598. This issue closes itself on the next green run on main."
             fi
           elif [ -n "$open" ]; then
             gh issue close "$open" --comment "Green again at \`$SHA\` ($EVENT): $RUN_URL"

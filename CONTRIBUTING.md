@@ -192,20 +192,22 @@ CI runs in two tiers ([DECISIONS](./docs/v2/DECISIONS.md) #14, [#598](https://gi
 - **Release tier** (`.github/workflows/release-gate.yml`). It runs the full extended matrix (`rendering-extended.yml` via `workflow_call`: Chromium at DPR 1 and 2, Firefox and WebKit, every spec, with shard parity), the pinned-container golden verify, `lint:themes -- --strict --decoded`, the installed package consumer contract and the `loc:src` trend against the previous release tag, which it posts to the job summary. `verify:scenes` runs report-only until [#599](https://github.com/khawkins98/scriptoscope/issues/599) refreshes the stale scene fixtures. The aggregate job is **Release gate**. Triggers:
   - manual (`gh workflow run release-gate.yml --ref <branch>`);
   - weekly (Monday 05:00 UTC) on `main`;
-  - pull requests from `release/*` branches;
-  - pushes of `v*` tags, as a final confirmation.
+  - pull requests from `release/*` branches in this repository (not forks);
+  - pushes of `v*` tags. These do not re-run the matrix: a single job fails unless the tagged commit already has a successful release-gate run, and links that run in the summary.
 
-  A red scheduled run opens or updates one issue labelled `release-gate`, and the next green scheduled run closes it. It does not block merges; it blocks the next release.
+  A red scheduled run opens or updates one issue labelled `release-gate`, and the next green run on `main` (scheduled or manual) closes it. It does not block merges; it blocks the next release.
+
+  Never make **Release gate** a required branch-protection check. On ordinary PRs every job in it is skipped, and GitHub counts a skipped required check as passing, so it would look green without having run.
 
 ## Cutting a release
 
 Releases are GitHub-only: a tag plus a GitHub release, with no npm publication.
 
 1. Branch `release/X.Y.Z` from `main`. Commit `chore(release): prepare X.Y.Z`: bump `package.json`, `package-lock.json` and `VERSION` in `src/renderer.ts`; date the CHANGELOG section and end it with `npm run loc:src -- HEAD --base <previous tag>`; leave an empty Unreleased heading; update docs that describe the release as unreleased.
-2. Open the release PR (`release: X.Y.Z`) against `main`. The PR tier and the release tier both run on it. Link the green **Release gate** run in the PR body.
+2. Open the release PR (`release: X.Y.Z`) against `main`. The PR tier and the release tier both run on it. Link the green **Release gate** run in the PR body. This is the early signal; it does not replace step 4.
 3. Merge after independent review.
 4. Identify the commit to tag (normally the merge commit on `main`). It needs its own green **Release gate** run: the PR run checked the merge preview, which is a different commit. Run `gh workflow run release-gate.yml --ref main`, then check that `gh run list --workflow release-gate.yml --branch main --json headSha,conclusion,url` shows `success` with `headSha` equal to that commit. Do not tag on red, and do not tag a commit whose run is still in progress. If `main` moves before the run finishes, start again on the new commit, or tag the commit that did pass.
-5. Tag `vX.Y.Z` on that commit and push the tag. The tag push runs the release gate again as a final confirmation; if it fails, fix it and cut a new patch release rather than moving the tag.
+5. Tag `vX.Y.Z` on that commit and push the tag. The tag push does not re-run the matrix. It checks that the tagged commit has a successful release-gate run and links it in the run summary. If it fails, the tag went on the wrong commit or was pushed too early: delete the tag before creating a release, then go back to step 4.
 6. Create the GitHub release. Its notes link the green release-gate run from step 4 (as 0.7.0 linked its release CI) and include the size trend.
 7. Smoke-check the deployed Pages site.
 
