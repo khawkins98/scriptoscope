@@ -13,6 +13,7 @@ import { TITLE_TEXT } from './engine/tables/window.js';
 import { PixelBuffer } from './pixelBuffer.js';
 import { resolveWindowSelection } from './resolveWindowType.js';
 import { canonicalWindowTypeSlug } from './wndCascade.js';
+import { dialogContentColour, rgbHex } from './dialogContent.js';
 
 export interface RenderWindowOptions {
   /** Window-type slug. Default `'document-window'`. */
@@ -372,7 +373,8 @@ async function buildBaselineWindow(
   opts: { title: string; state: WindowState; contentW: number; contentH: number; scale: number; utility?: boolean; slug?: string },
 ): Promise<HTMLElement> {
   const { title, state, contentW, contentH, scale, utility, slug = '' } = opts;
-  const background = await bodyBackgroundStyle(theme, scale, utility ? 'utility' : undefined, theme.manifest.bodyBackground?.pattern ?? null);
+  const background = await bodyBackgroundStyle(theme, scale, dialogContentColour(theme, slug) ? slug : utility ? 'utility' : undefined,
+    theme.manifest.bodyBackground?.pattern ?? null);
   assertThemeAlive(theme);
   const hc = (state === 'inactive' ? theme.manifest.headerColors?.inactive : theme.manifest.headerColors?.active) ?? {};
   const fill = hc.fill ?? '#cccccc';
@@ -495,8 +497,17 @@ const HEADLESS_TITLE_SLUG_RE = /utility|mini|floating|palette|^dialog$|^alert$/;
  *                                            animals ship `ppat-42`).
  *       T2  `patterns['ppat--9568']`       — canonical kDEF utility-window
  *                                            cinf slot.
- *       T3  flat `#ffffff`                 — period default for schemes that
- *                                            ship no utility pattern.
+ *       T3  flat fill                      — white, except for dialog and
+ *                                            alert kinds (below).
+ *
+ *   - Dialog and alert kinds (`dialog`, `alert`, `movable-modal`,
+ *     `movable-alert`) fill with the content colour Kaleidoscope gives them
+ *     (`dialogContentColour`, procedural-frame §3.6): entry 0 of the scheme's
+ *     `dctb` / `actb` -14336, else Kaleidoscope's own grey. It is the flat fill
+ *     and the colour under a T1/T2 pattern; entry 2 of the same table is the
+ *     inherited text colour. Consumers override them with
+ *     `--scriptoscope-dialog-background` / `--scriptoscope-dialog-text`;
+ *     slotted content paints over the fill.
  *
  * The earlier "flat white for everything utility-ish" rule was over-applied:
  * verified against the user's reference screenshots, monkey-paradise + animals
@@ -531,14 +542,19 @@ async function bodyBackgroundStyle(theme: ThemeView, scale: number, slug?: strin
   const ref = isUtility
     ? patternByResourceId(theme, 42) ?? patternByResourceId(theme, -9568)
     : theme.manifest.bodyBackground?.pattern;
-  if (!ref) return { background: '#ffffff' };
+  const content = slug ? dialogContentColour(theme, slug) : null;
+  const fill = content ? `var(--scriptoscope-dialog-background, ${rgbHex(content.rgb)})` : '#ffffff';
+  // The paired text colour (entry 2) keeps default text readable on a dark fill (1984).
+  const text = content ? { color: `var(--scriptoscope-dialog-text, ${rgbHex(content.text)})` } : {};
+  if (!ref) return { background: fill, ...text };
   // Baseline windows historically size from the document pattern, including
   // utility windows. Preserve that policy separately from CSS tile selection.
   const sizeRef = sizingPattern === undefined ? ref : sizingPattern;
   const [url, tile] = await Promise.all([theme.asset(ref).imageUrl(),
     scale > 1 && sizeRef ? theme.asset(sizeRef).dimensions().catch(() => undefined) : undefined]);
   return {
-    backgroundColor: '#ffffff',
+    ...text,
+    backgroundColor: fill,
     backgroundImage: `url("${url}")`,
     backgroundRepeat: 'repeat',
     imageRendering: 'pixelated',
