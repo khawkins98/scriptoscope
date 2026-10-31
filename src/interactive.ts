@@ -84,7 +84,7 @@ import { ManagedContentPort, type ManagedControlPort } from './managedContentPor
 import { resolveWindowSelection, resolveCollapsedWindowTypeSlug } from './resolveWindowType.js';
 import { listenUntilAborted } from './listenUntilAborted.js';
 import {
-  composeDisclosure, composeSliderWithLayout, composeScrollbar, composeScrollbarFrame, type SliderFrame, type SliderOptions,
+  composeDisclosure, composeSliderWithLayout, composeScrollbarFrame, type SliderFrame, type SliderOptions,
   type ScrollbarFrame, type ScrollbarOptions,
   baselineButton, bufferToCanvas, KEY_ACTIVATE,
   type ButtonOptions, type ControlState, composeProgressFrame, type ProgressOptions,
@@ -103,6 +103,17 @@ import { themeView, type ThemeInput } from './ownedTheme.js';
 
 type Orientation = 'horizontal' | 'vertical';
 const clamp01 = (n: number): number => Math.min(1, Math.max(0, n));
+
+type ScrollbarPart = NonNullable<ScrollbarOptions['pressedPart']>;
+// Window scrollbar auto-repeat (#567). Compatibility policy, not decode: TrackControl repeats the
+// application's action procedure for as long as the button is held, and no docs/spec source gives a
+// delay or rate. These approximate the classic keyboard repeat defaults: a pause, then ~20 steps/s.
+const REPEAT_DELAY_MS = 400;
+const REPEAT_INTERVAL_MS = 50;
+// The frame each window scrollbar last painted (null: the procedural fallback), keyed by its
+// persistent bar element (#535). A re-wire keeps hit-testing the canvas still on screen until
+// its own first paint lands, instead of treating a press as a drag (#567).
+const paintedScrollbars = new WeakMap<HTMLElement, ScrollbarFrame | null>();
 
 // The bottom-right resize zone, measured inward from the window's right/bottom edges (unscaled px).
 // One rect shared by the grow-box button and the scrollbars' corner clearance, so a drawn arrow is
@@ -1582,19 +1593,26 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     bar.tabIndex = 0;
 
     let raf = 0, paintEpoch = 0;
+    // The held part (#567) draws pressed; `painted` is the engine frame on screen, whose §4.8 part
+    // test a press hit-tests. The procedural fallback has no part geometry (painted stays null).
+    let pressed: ScrollbarPart | null = null, painted = paintedScrollbars.get(bar) ?? null;
+    let endPress: (() => void) | null = null;
     signal.addEventListener('abort', () => {
       if (raf) cancelAnimationFrame(raf);
       raf = 0;
+      endPress?.();
     }, { once: true });
     const repaint = async (): Promise<void> => {
       if (!current()) return;
       const epoch = paintEpoch;
       try {
         const opts = { orientation: axis, length: Math.round(barLenCss / scale), value };
-        const themed = await composeScrollbar(entry.theme, opts);
+        const themed = await composeScrollbarFrame(entry.theme, pressed ? { ...opts, state: 'pressed', pressedPart: pressed } : opts);
         if (!current() || epoch !== paintEpoch) return;
+        painted = themed;
+        paintedScrollbars.set(bar, themed);
         // thumbExtent shapes only the procedural fallback, never the engine thumb.
-        const buf = themed ?? platinumScrollbar({ ...opts, thumbExtent });
+        const buf = themed?.buffer ?? platinumScrollbar({ ...opts, thumbExtent });
         bar.replaceChildren(bufferToCanvas(buf, scale));
         bar.setAttribute('aria-valuenow', String(Math.round(opts.value * 100)));
       } catch (error) {
@@ -1615,49 +1633,108 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     // 'instant' overrides a consumer's `scroll-behavior: smooth`, so the next step reads the
     // target, not the start of an animation. Syncing at once (not on the scroll event)
     // invalidates a paint still in flight for the old value.
-    const setValue = (v: number): void => {
-      scrollEl.scrollTo({ [vertical ? 'top' : 'left']: clamp01(v) * maxScroll, behavior: 'instant' });
+    const scrollToPx = (px: number): void => {
+      scrollEl.scrollTo({ [vertical ? 'top' : 'left']: Math.min(maxScroll, Math.max(0, px)), behavior: 'instant' });
       sync();
     };
+    const setValue = (v: number): void => scrollToPx(clamp01(v) * maxScroll);
     scrollEl.addEventListener('scroll', sync, { passive: true, signal });
 
-    // Drag the thumb (pointer = touch + mouse + pen).
+    // Line and page amounts, shared by keys and the arrows/track (#567). Compatibility policy: the
+    // original left them to the application's action procedure. A page keeps one line of overlap,
+    // the classic application convention, so the reader keeps context across the step.
+    const LINE = 24;
+    const PAGE = Math.max(LINE, trackLen - LINE);
+    // Steps add whole pixels to the real position (read even before its scroll event fires). Going
+    // through the 0..1 value lands a hair short (123.99…), which WebKit truncates a pixel short (#556).
+    const move = (px: number): void => scrollToPx(pos() + px);
+    const PART_STEP: Partial<Record<ScrollbarPart, number>> = { up: -LINE, down: LINE, pageUp: -PAGE, pageDown: PAGE };
+
+    // Press a part (#567), as the classic Control Manager tracks one: an arrow steps a line and the
+    // track a page at once, then repeat while the pointer stays in that part, which draws pressed
+    // meanwhile. A page part stops once the thumb reaches the pointer (the part under it changes).
+    // The thumb, and any press on the procedural fallback, drags to the pointer fraction.
     const valueAtPointer = (e: PointerEvent): number => {
       const p = pointInElement(bar, e.clientX, e.clientY);
       return clamp01(vertical ? p.y / p.height : p.x / p.width);
     };
     bar.addEventListener('pointerdown', (e) => {
       e.preventDefault(); e.stopPropagation();
-      setValue(valueAtPointer(e));
-      const mv = (ev: PointerEvent): void => setValue(valueAtPointer(ev));
-      const up = (): void => { window.removeEventListener('pointermove', mv); window.removeEventListener('pointerup', up); };
-      window.addEventListener('pointermove', mv, { signal }); window.addEventListener('pointerup', up, { signal });
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      endPress?.();
+      // Nothing painted yet: no part to press. The procedural fallback (no frame) drags.
+      const part = painted ? paintedPartAt(bar, e, painted) : bar.querySelector('canvas') ? 'thumb' : null;
+      if (!part) return;                                   // part 0: outside the control
+      const id = e.pointerId, step = PART_STEP[part];
+      const live = new AbortController();
+      let at = e, timer = 0;
+      const end = (): void => {
+        if (live.signal.aborted) return;
+        live.abort(); clearTimeout(timer); endPress = null;
+        if (bar.hasPointerCapture?.(id)) bar.releasePointerCapture(id);
+        if (pressed) { pressed = null; paintEpoch++; scheduleRepaint(); }
+      };
+      endPress = end;
+      try { bar.setPointerCapture(id); } catch { /* not an active pointer: the window listeners below still end it */ }
+      const mine = (fn: (ev: PointerEvent) => void) => (ev: Event): void => { if ((ev as PointerEvent).pointerId === id) fn(ev as PointerEvent); };
+      // A move with no button down means the pointerup was lost (released outside the page).
+      window.addEventListener('pointermove', mine(ev => {
+        if (!ev.buttons) return end();
+        at = ev; if (step === undefined) setValue(valueAtPointer(ev));
+      }), { signal: live.signal });
+      for (const type of ['pointerup', 'pointercancel']) window.addEventListener(type, mine(end), { signal: live.signal });
+      bar.addEventListener('lostpointercapture', mine(end), { signal: live.signal });
+      // The page losing focus or visibility can swallow the pointerup: end rather than hold on.
+      window.addEventListener('blur', end, { signal: live.signal });
+      document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') end(); }, { signal: live.signal });
+      if (step === undefined) { setValue(valueAtPointer(e)); return; }
+      const tick = async (first: boolean): Promise<void> => {
+        const over = first || paintedPartAt(bar, at, painted) === part;
+        const from = pos(), was = pressed;
+        if (over) move(step);
+        pressed = over ? part : null;
+        // Repaint only on a change (a held arrow at either end changes nothing).
+        if (pos() !== from || pressed !== was) {
+          // Paint now, not next frame, so the next tick hit-tests the thumb where this step left it.
+          if (raf) { cancelAnimationFrame(raf); raf = 0; }
+          paintEpoch++;
+          await repaint();
+        }
+        if (!live.signal.aborted) timer = window.setTimeout(() => void tick(false), first ? REPEAT_DELAY_MS : REPEAT_INTERVAL_MS);
+      };
+      void tick(true);
     }, { signal });
 
     // Wheel: vertical bar handles deltaY (the dominant axis for mouse wheels); horizontal bar handles
     // deltaX (trackpad horizontal swipe) AND shift+deltaY (the convention for "wheel to scroll
     // horizontally"). Attach to the SAME scroll element — both listeners fire; each takes its axis.
+    // Whole pixels, as every bar step (#556): the fraction carries to the next event, so slow
+    // trackpad scrolls add up to their sum in either direction. A reversal drops the remainder,
+    // so the leftover of the old direction never cancels the first step of the new one.
+    let carry = 0;
     scrollEl.addEventListener('wheel', (e) => {
       const delta = vertical || e.shiftKey ? e.deltaY : e.deltaX;
       if (Math.abs(delta) < 0.5) return;
       e.preventDefault();
-      setValue((pos() + delta) / maxScroll);
+      if (carry * delta < 0) carry = 0;
+      carry += delta;
+      const px = Math.trunc(carry);
+      carry -= px;
+      if (px) move(px);
     }, { passive: false, signal });
 
     // Arrow keys / page keys on the bar.
+    // `move` syncs first, so a step starts from the real position even before its scroll event fires.
+    const KEY_PART = new Map<string, ScrollbarPart>([
+      [vertical ? 'ArrowDown' : 'ArrowRight', 'down'], [vertical ? 'ArrowUp' : 'ArrowLeft', 'up'], ['PageDown', 'pageDown'], ['PageUp', 'pageUp'],
+    ]);
     bar.addEventListener('keydown', (e) => {
-      const line = maxScroll > 0 ? 24 / maxScroll : 0;
-      const page = trackLen / maxScroll;
-      sync(); // step from the real position, even before its scroll event fires
-      let next = value;
-      if (e.key === (vertical ? 'ArrowDown' : 'ArrowRight')) next = value + line;
-      else if (e.key === (vertical ? 'ArrowUp' : 'ArrowLeft')) next = value - line;
-      else if (e.key === 'PageDown') next = value + page;
-      else if (e.key === 'PageUp') next = value - page;
-      else if (e.key === 'Home') next = 0;
-      else if (e.key === 'End') next = 1;
+      const part = KEY_PART.get(e.key);
+      if (e.key === 'Home') setValue(0);
+      else if (e.key === 'End') setValue(1);
+      else if (part) move(PART_STEP[part]!);
       else return;
-      e.preventDefault(); setValue(next);
+      e.preventDefault();
     }, { signal });
 
     void repaint(); // initial thumb paint (staleness-guarded inside)
