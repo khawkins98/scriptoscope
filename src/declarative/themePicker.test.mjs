@@ -162,3 +162,29 @@ test('owned active preview captures its base owner and exports only the selected
   assert.equal(el.children[0].children[0].src, 'blob:folder');
   assert.equal(owner.usage().images, 1);
 });
+
+test('multi-strip keyboard navigation: unselected strip retains tabindex="0" on first tile and supports ArrowDown/Up', async (t) => {
+  const { syncThemePickerActive } = await import('./themePicker.ts');
+  const el = setup(t);
+  const switches = [];
+  const picker = await promoteThemePicker(el, themes, {
+    initialSlug: 'other', loadTheme: async () => iconTheme, switchTheme: (slug) => switches.push(slug),
+  });
+  t.after(picker.teardown);
+  // None matched 'other', so the first tile must get tabindex="0" for keyboard entry
+  assert.equal(el.children[0].getAttribute('tabindex'), '0');
+  assert.equal(el.children[1].getAttribute('tabindex'), '-1');
+
+  // ArrowDown advances to next tile
+  el.children[0].focus();
+  const down = new Event('keydown', { cancelable: true });
+  Object.defineProperty(down, 'key', { value: 'ArrowDown' });
+  el.dispatchEvent(down);
+  assert.deepEqual(switches, ['two']);
+
+  // Syncing to an external slug resets active tiles but keeps first tile tabindex="0"
+  syncThemePickerActive(el, 'external-slug');
+  assert.equal(el.children[0].getAttribute('tabindex'), '0');
+  assert.equal(el.children[1].getAttribute('tabindex'), '-1');
+  assert.equal(el.children[0].getAttribute('aria-selected'), 'false');
+});

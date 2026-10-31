@@ -45,6 +45,7 @@ npm run gates              # umbrella pre-push gate: typecheck + test + lint --s
 
 # Scheme authoring (write side — workflow in docs/authoring-a-scheme.md §4)
 npm run author -- authoring/schemes/kingfisher   # build scheme.mjs → scheme.rsrc + scheme.bin, reload through convertChrome, run checkScheme (--sheet, --palette)
+npm run check:schemes                           # validate all 5 authored schemes: build cleanly, checkScheme passes, match committed scheme.rsrc
 # then npm run dev → http://localhost:5173/authoring-preview.html (dev-only page; ?scheme=<url> for another file)
 npm run paint-over -- concept.png --crop x,y,w,h --scale 3 --palette <dir>/palette.mjs   # concept crop → 1× palette-snapped raster
 npm run capture:authoring -- authoring/schemes/kingfisher   # preview.png + preview-sizes.png (needs npm run dev)

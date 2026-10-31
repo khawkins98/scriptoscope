@@ -82,7 +82,7 @@
     "lane:ready": "node scripts/lane-ready.mjs",
     "engine-diff": "node tests/engine-diff/run.mjs --check",
     "engine-diff:write": "node tests/engine-diff/run.mjs --write",
-    "gates": "npm run typecheck && npm run lint:cleanroom && npm test && npm run lint:themes -- --strict && npm run audit:scenes -- --check && npm run test:requirements && npm run test:availability:sources && npm run test:references && npm run test:source-inputs && npm run test:acceptance:bindings",
+    "gates": "npm run typecheck && npm run lint:cleanroom && npm run check:schemes && npm test && npm run lint:themes -- --strict && npm run audit:scenes -- --check && npm run test:requirements && npm run test:availability:sources && npm run test:references && npm run test:source-inputs && npm run test:acceptance:bindings",
     "test:rendering": "npm run build:demo && playwright test --config tests/rendering-options/playwright.config.mjs",
     "test:rendering:extended": "npm run build:demo && SCRIPTOSCOPE_RENDERING_PROFILE=extended playwright test --config tests/rendering-options/playwright.config.mjs",
     "test:rendering:interaction": "npm run build:demo && SCRIPTOSCOPE_RENDERING_SUITE=interaction playwright test --config tests/rendering-options/playwright.config.mjs",
@@ -98,6 +98,7 @@
     "loc:src": "node scripts/src-loc.mjs",
     "spike:runtime": "node tools/runtime-spike/run.mjs",
     "author": "node scripts/author-scheme.mjs",
+    "check:schemes": "node scripts/check-authored-schemes.mjs",
     "sim8": "node scripts/sim8.mjs",
     "paint-over": "node scripts/paint-over.mjs",
     "capture:authoring": "node scripts/capture-authoring-preview.mjs"
