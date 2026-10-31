@@ -3,7 +3,7 @@
 // What each one turns on, and the primary source for its ids, is in
 // docs/authoring-a-scheme.md §7.2 ("Control-panel extras").
 //
-//   aboutBox()      DLOG + DITL -14320, its icon (cicn 128) and the panel strings
+//   aboutBox()      DLOG + DITL -14320 sized to its text, its icon (cicn 128) and the panel strings
 //                   (STR# -14320): enables "About This Scheme"
 //   arrowCursors()  crsr 0 plus the Finder's -20486 / -20487 / -20488: enables "Arrow Cursor"
 //   shadeSounds()   snd -14336 (collapse) and -14335 (expand): enables "WindowShade Sounds"
@@ -21,20 +21,53 @@ import { SYSTEM_PALETTE_256 } from './encode-icons.js';
 export const ABOUT_ID = -14320;
 export const ABOUT_ICON_ID = 128;
 
-// A rough Chicago 12 advance (px per character) for sizing the text box. The
-// Dialog Manager wraps static text itself; this only decides the box height.
-const CHAR_W = 7, LINE_H = 16;
+// The About This Scheme panel draws the static text in the control panel's
+// small application font (Geneva 9 on the System 7.5.5 reference), not the
+// Chicago 12 the Dialog Manager would use, so the box is sized for that font.
+// Measured from the five first-party classic/about@2x.png screenshots
+// (2026-10-31): lines 13 px apart, the first baseline 10 px below the item's
+// top (so the capitals start 2 px down), and these advances in px per
+// character. Over the 13 measured lines the table is within -3.2 … +6.7 px
+// of the real width.
+const ABOUT_LINE_H = 13, ABOUT_CAP_TOP = 2;
+const ABOUT_MAX_TEXT_W = 300;                  // the widest text column
+const ABOUT_SLACK = 8;                         // box width over the widest line (covers the table's error)
+const ABOUT_MARGIN = 16;
 
-function wrappedLines(text, width) {
-  const perLine = Math.floor(width / CHAR_W);
-  let lines = 0;
+function aboutAdvance(ch) {
+  if (ch === ' ') return 3.2;
+  if (ch === 'i') return 4.6;
+  if ('lI'.includes(ch)) return ch === 'l' ? 4 : 3;
+  if (".,:;!|'\u2019".includes(ch)) return 3;
+  if ('tfj'.includes(ch)) return 4.5;
+  if ('mw'.includes(ch)) return 8;
+  if ('MW'.includes(ch)) return 9;
+  if (/[0-9]/.test(ch)) return 7;
+  if (/[A-Z]/.test(ch)) return 6.5;
+  if (ch === '-') return 5;
+  return 5.4;
+}
+
+/** The about box text's width in px, in the panel's font (the table above). */
+export function aboutTextWidth(line) {
+  let w = 0;
+  for (const ch of line) w += aboutAdvance(ch);
+  return w;
+}
+
+/**
+ * Word-wrap the about text to `width` px, in the panel's font. The result is
+ * stored with explicit line breaks, so the text item's height is exact.
+ */
+export function wrapAboutText(text, width = ABOUT_MAX_TEXT_W - ABOUT_SLACK) {
+  const lines = [];
   for (const para of text.split('\n')) {
-    let n = 1, len = 0;
+    let line = '';
     for (const word of para.split(' ')) {
-      const add = (len ? 1 : 0) + word.length;
-      if (len && len + add > perLine) { n++; len = word.length; } else len += add;
+      const next = line ? `${line} ${word}` : word;
+      if (line && aboutTextWidth(next) > width) { lines.push(line); line = word; } else line = next;
     }
-    lines += n;
+    lines.push(line);
   }
   return lines;
 }
@@ -58,23 +91,35 @@ export function rasterFromIconFamily(family) {
 }
 
 /**
- * The about box: the scheme's 32×32 icon on the left and static text on the
- * right (the text-only layout of Windows 3.1/95, plus an icon), with an
- * enabled user item over the whole box so a click anywhere hits an item (as
- * Windows 95's does). Also the control panel's name/description strings.
+ * The about box: the scheme's icon on the left and static text on the right
+ * (the text-only layout of Windows 3.1/95, plus an icon), with an enabled user
+ * item over the whole box so a click anywhere hits an item (as Windows 95's
+ * does). Also the control panel's name/description strings.
+ *
+ * The text is wrapped here (wrapAboutText) and the dialog sized to it: 16 px
+ * margins round the icon and the text, the text column as wide as its widest
+ * line plus a little slack, at most 300 px.
  * @param {{ name: string, description: string, year: number|string, icon: Raster, iconGamma?: boolean, panel?: string[] }} spec
+ *   icon: 32×32 (the picker icon, rasterFromIconFamily) or larger, up to 64×64;
  *   iconGamma: false for a raster in raw stored colours (rasterFromIconFamily);
  *   panel: the STR# lines (default: the name and "An original first-party scheme for Scriptoscope, <year>")
  */
 export function aboutBox({ name, description, year, icon, iconGamma = true, panel }) {
-  if (icon.width !== 32 || icon.height !== 32) throw new Error('aboutBox: the icon is a 32×32 raster');
-  const text = `${name}\n${description}\n\nAn original first-party scheme for Scriptoscope.\n${year}`;
-  const W = 380, textLeft = 64, textRight = W - 16, top = 14;
-  const textBottom = top + wrappedLines(text, textRight - textLeft) * LINE_H;
-  const H = Math.max(textBottom, 16 + 32) + 14;
+  if (icon.width < 32 || icon.height < 32 || icon.width > 64 || icon.height > 64) {
+    throw new Error('aboutBox: the icon is a raster from 32×32 to 64×64');
+  }
+  const lines = wrapAboutText(`${name}\n${description}\n\nAn original first-party scheme for Scriptoscope.\n${year}`);
+  const M = ABOUT_MARGIN;
+  const iconRect = { top: M, left: M, bottom: M + icon.height, right: M + icon.width };
+  const textLeft = iconRect.right + M, top = M - ABOUT_CAP_TOP;
+  const textRight = textLeft + Math.min(ABOUT_MAX_TEXT_W, Math.ceil(Math.max(...lines.map(aboutTextWidth))) + ABOUT_SLACK);
+  const textBottom = top + lines.length * ABOUT_LINE_H;
+  // The last line's descenders end a pixel above textBottom; the slack is
+  // already to the right of the text, so the right margin is M − 4.
+  const W = textRight + M - 4, H = Math.max(textBottom - 1, iconRect.bottom) + M;
   const items = [
-    { type: 'staticText', enabled: false, rect: { top, left: textLeft, bottom: textBottom, right: textRight }, text },
-    { type: 'icon', enabled: false, rect: { top: 16, left: 16, bottom: 48, right: 48 }, resourceId: ABOUT_ICON_ID },
+    { type: 'staticText', enabled: false, rect: { top, left: textLeft, bottom: textBottom, right: textRight }, text: lines.join('\n') },
+    { type: 'icon', enabled: false, rect: iconRect, resourceId: ABOUT_ICON_ID },
     { type: 'user', enabled: true, rect: { top: -1, left: -1, bottom: H + 1, right: W + 1 } },
   ];
   return [

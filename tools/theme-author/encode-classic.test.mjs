@@ -11,7 +11,7 @@ import { encodeStrList, toMacRoman } from './encode-strings.js';
 import { encodeDlog, encodeDitl, DITL_TYPE } from './encode-dialog.js';
 import { encodeCrsrRecord, encodeCrsr } from './encode-crsr.js';
 import { encodeSnd, synthesize, toOffsetBinary, SND_RATE } from './encode-snd.js';
-import { aboutBox, arrowCursors, shadeSounds, ARROW } from './classic-extras.js';
+import { aboutBox, arrowCursors, shadeSounds, ARROW, aboutTextWidth, wrapAboutText } from './classic-extras.js';
 import { Raster } from './raster.js';
 import { expandIndexedPixels } from '../theme-loader/decoders/shared.js';
 
@@ -183,6 +183,34 @@ test('aboutBox: DLOG -14320 names DITL -14320, whose icon item names cicn 128; t
   const str = get('STR#').data;
   assert.equal(String.fromCharCode(...str.subarray(3, 3 + str[2])), 'Test');
   assert.throws(() => aboutBox({ name: 'x', description: 'x', year: 1, icon: new Raster(16, 16) }), /32×32/);
+});
+
+test('aboutBox: the box is sized to its text in the panel font (Geneva 9, 13 px lines), and a larger icon moves the text over', () => {
+  // Widths measured in real Kaleidoscope (classic/about@2x.png, ink extent + 1):
+  // the table must stay within a few px, so the pre-wrapped lines fit their box.
+  for (const [line, px] of [['A stone keep with towers, banners and a portcullis.', 248], ['An original first-party scheme for Scriptoscope.', 238],
+    ['Chunky toy bricks in bright primary plastic.', 220], ['2026', 27]]) {
+    assert.ok(Math.abs(aboutTextWidth(line) - px) <= 7, `${line}: ${aboutTextWidth(line)} vs ${px}`);
+  }
+  // Kaleidoscope wrapped Kingfisher's description after "teal"; so does the table.
+  assert.deepEqual(wrapAboutText('A kingfisher lands on frosted glass: lavender, navy and teal water.'),
+    ['A kingfisher lands on frosted glass: lavender, navy and teal', 'water.']);
+  const box = (icon) => {
+    const res = aboutBox({ name: 'Test', description: 'A test scheme.', year: 2026, icon });
+    const dlog = view(res.find((r) => r.type === 'DLOG').data);
+    const { items } = parseDitl(res.find((r) => r.type === 'DITL').data);
+    return { w: dlog.getInt16(6) - dlog.getInt16(2), h: dlog.getInt16(4) - dlog.getInt16(0), text: items[0].rect, icon: items[1].rect };
+  };
+  const small = box(new Raster(32, 32).fillRect(0, 0, 32, 32, '#336699'));
+  assert.deepEqual(small.text, { top: 14, left: 64, bottom: 14 + 5 * 13, right: small.text.right });
+  assert.equal(small.h, 14 + 5 * 13 - 1 + 16);
+  assert.ok(small.w < 380 && small.text.right - small.text.left <= 300);
+  const big = box(new Raster(40, 48).fillRect(0, 0, 40, 48, '#336699'));
+  assert.deepEqual(big.icon, { top: 16, left: 16, bottom: 64, right: 56 });
+  assert.equal(big.text.left, 72);
+  assert.equal(big.h, small.h, 'five lines are taller than a 48 px icon');
+  assert.equal(box(new Raster(64, 64).fillRect(0, 0, 64, 64, '#336699')).h, 16 + 64 + 16, 'a 64 px icon sets the height');
+  assert.throws(() => aboutBox({ name: 'x', description: 'x', year: 1, icon: new Raster(80, 80) }), /64×64/);
 });
 
 test('shadeSounds: collapse is -14336, expand -14335', () => {

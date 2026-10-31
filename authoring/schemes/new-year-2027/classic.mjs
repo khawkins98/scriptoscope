@@ -29,7 +29,7 @@ export function build(add) {
   const resources = [
     ...aboutBox({
       name: 'Midnight 2027',
-      description: 'Fireworks over a midnight sky to ring in the New Year 2027.',
+      description: 'Fireworks over a midnight sky for New Year 2027.',
       year: 2026,
       icon: rasterFromIconFamily(family), iconGamma: false,
     }),

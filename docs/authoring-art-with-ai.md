@@ -5,8 +5,9 @@
 (step 2) and small sprites. Research log from 2026-10-30, updated with how the
 first-party concepts were made. Everything here was tried without setting up
 any new API keys: Google's Antigravity CLI (`agy` 1.4.10, already signed in),
-free local tools, and Claude. Raw outputs are in
-[`authoring/experiments/`](../authoring/experiments/).*
+free local tools, and Claude. The raw outputs were
+reviewed in PR [#540](https://github.com/khawkins98/scriptoscope/pull/540) and are kept
+there, not in the repo; links below point at that PR's commits.*
 
 ## Summary
 
@@ -52,21 +53,21 @@ What we found:
 - **A model can drive it with no extra setup.** We gave `agy`'s default model
   claude-pxl's own `SKILL.md` and `reference.md` and asked for eight Kingfisher
   sprites (checkboxes, radios, title buttons). It wrote a working file in one
-  go: [`kingfisher-agy.px.js`](../authoring/experiments/pxl/kingfisher-agy.px.js).
+  go: [`kingfisher-agy.px.js`](https://github.com/khawkins98/scriptoscope/blob/0daca6601342a1956189ac770b4bbd391fdebbb6/authoring/experiments/pxl/kingfisher-agy.px.js).
   Our own hand-written version
-  ([`kingfisher-claude.px.js`](../authoring/experiments/pxl/kingfisher-claude.px.js))
+  ([`kingfisher-claude.px.js`](https://github.com/khawkins98/scriptoscope/blob/0daca6601342a1956189ac770b4bbd391fdebbb6/authoring/experiments/pxl/kingfisher-claude.px.js))
   had an off-centre radio dot.
 - **Every sprite survives our pipeline exactly**: PNG, then `Raster`, then
   `encodeCicn`, then the runtime decoder
-  ([`png-to-cicn-check.mjs`](../authoring/experiments/pxl/png-to-cicn-check.mjs)).
+  ([`png-to-cicn-check.mjs`](https://github.com/khawkins98/scriptoscope/blob/0daca6601342a1956189ac770b4bbd391fdebbb6/authoring/experiments/pxl/png-to-cicn-check.mjs)).
 - **It works in a real scheme.**
-  [`authoring/experiments/pxl/variant/`](../authoring/experiments/pxl/variant/)
+  [`authoring/experiments/pxl/variant/`](https://github.com/khawkins98/scriptoscope/blob/0daca6601342a1956189ac770b4bbd391fdebbb6/authoring/experiments/pxl/variant/)
   is Kingfisher with its normal-state checkboxes and radios replaced by those
   sprites. It builds with no checker warnings and renders in the browser:
 
-![Kingfisher code-drawn vs claude-pxl sprites](../authoring/experiments/pxl/before-after.png)
+![Kingfisher code-drawn vs claude-pxl sprites](https://raw.githubusercontent.com/khawkins98/scriptoscope/0daca6601342a1956189ac770b4bbd391fdebbb6/authoring/experiments/pxl/before-after.png)
 
-![claude-pxl sprites: Claude-written (top) and agy-written (bottom)](../authoring/experiments/pxl/comparison.png)
+![claude-pxl sprites: Claude-written (top) and agy-written (bottom)](https://raw.githubusercontent.com/khawkins98/scriptoscope/0daca6601342a1956189ac770b4bbd391fdebbb6/authoring/experiments/pxl/comparison.png)
 
 To use it yourself:
 
@@ -78,7 +79,7 @@ node /tmp/pxl/bin/pxl.js ascii my-sprites.px.js checkbox_on   # check pixels as 
 
 Then load the PNGs into a scheme. `scripts/lib/png-decode.mjs` reads them, and
 `Raster.fromRgba()` wraps the pixels; see
-[`variant/scheme.mjs`](../authoring/experiments/pxl/variant/scheme.mjs).
+[`variant/scheme.mjs`](https://github.com/khawkins98/scriptoscope/blob/0daca6601342a1956189ac770b4bbd391fdebbb6/authoring/experiments/pxl/variant/scheme.mjs).
 `Raster.fromRgba()` snaps alpha to 0 or 255 and reports how many pixels it
 changed. This matters because the encoder treats alpha 1–127 as a hidden
 swatch, so an anti-aliased edge would otherwise turn into invisible palette
@@ -95,8 +96,12 @@ agy -p "Design pixel art as ASCII rows … Do not use tools." \
   --json-schema sprite-schema.json --output-format json --print-timeout 240s > b.json
 ```
 
-The schema is
-[`authoring/experiments/agy/sprite-schema.json`](../authoring/experiments/agy/sprite-schema.json).
+The schema (`sprite-schema.json`) is:
+
+```json
+{"type":"object","properties":{"rows":{"type":"array","items":{"type":"string"}},"legend":{"type":"object","additionalProperties":{"type":"string"}}},"required":["rows","legend"]}
+```
+
 Take `response` from the JSON, and use the rows with
 `new Raster(w, h).sprite(0, 0, rows, legend)`. For drawing code, paste the
 toolkit's method list into the prompt and ask for `{"code": "..."}`. Read the
@@ -124,9 +129,9 @@ contention. Honest caveats:
   didn't separate the good ones.
 - Both × glyphs in the drawing-code round have a heavy 2×2 centre at 12px.
 
-![Checkbox rows by model](../authoring/experiments/agy/model-comparison-rows.png)
+![Checkbox rows by model](https://raw.githubusercontent.com/khawkins98/scriptoscope/0daca6601342a1956189ac770b4bbd391fdebbb6/authoring/experiments/agy/model-comparison-rows.png)
 
-![Title-button drawing code, Opus (top) and Gemini Flash High (bottom)](../authoring/experiments/agy/model-comparison-code.png)
+![Title-button drawing code, Opus (top) and Gemini Flash High (bottom)](https://raw.githubusercontent.com/khawkins98/scriptoscope/0daca6601342a1956189ac770b4bbd391fdebbb6/authoring/experiments/agy/model-comparison-code.png)
 
 ## 3. The image route
 
@@ -178,9 +183,9 @@ Image generation isn't mentioned in the official
   drawn at the model's own size, a 20×20 box rather than 16×16. Shrinking it
   further would break the checkmark.
 
-![Raw image-generator output vs ASCII rows vs drawing code](../authoring/experiments/agy/comparison.png)
+![Raw image-generator output vs ASCII rows vs drawing code](https://raw.githubusercontent.com/khawkins98/scriptoscope/0daca6601342a1956189ac770b4bbd391fdebbb6/authoring/experiments/agy/comparison.png)
 
-![Flat green background, then proper-pixel-art](../authoring/experiments/agy/image-route-green-cleanup.png)
+![Flat green background, then proper-pixel-art](https://raw.githubusercontent.com/khawkins98/scriptoscope/0daca6601342a1956189ac770b4bbd391fdebbb6/authoring/experiments/agy/image-route-green-cleanup.png)
 
 To finish a cleaned image, ImageMagick can fit it to an exact size with a
 locked palette and a 1-bit mask:

@@ -1,1 +1,0 @@
-{"type":"object","properties":{"rows":{"type":"array","items":{"type":"string"}},"legend":{"type":"object","additionalProperties":{"type":"string"}}},"required":["rows","legend"]}

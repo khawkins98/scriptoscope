@@ -256,6 +256,9 @@ test('MacBinary output carries type/creator and unwraps to the same fork', async
   assert.equal(detectContainer(bin), 'macbinary');
   assert.deepEqual([...unwrapToResourceFork(bin)], [...fork]);
   assert.equal(String.fromCharCode(...bin.subarray(65, 73)), 'ColrAcid');
+  assert.equal((bin[73] << 8) | bin[101], 0x0400, 'kHasCustomIcon, as every corpus scheme file');
+  const plain = writeMacBinary({ name: 'Kingfisher', resourceFork: fork, finderFlags: 0 });
+  assert.equal(plain[73] | plain[101], 0);
   assert.equal((bin[124] << 8) | bin[125], crc16xmodem(bin.subarray(0, 124)));
   assert.equal(crc16xmodem(new TextEncoder().encode('123456789')), 0x31c3); // CRC-16/XMODEM check value
   assert.throws(() => writeMacBinary({ name: 'a:b', resourceFork: fork }), /file name/);
@@ -278,7 +281,7 @@ test('png-decode reads what png-encode writes, and palette PNGs from claude-pxl'
   assert.equal(back.width, 5);
   assert.deepEqual([...back.rgba], [...rgba]);
   // A committed claude-pxl sprite: an indexed (colour type 3) PNG with tRNS.
-  const sprite = decodePng(readFileSync(new URL('../../authoring/experiments/pxl/sprites/checkbox_on.png', import.meta.url)));
+  const sprite = decodePng(readFileSync(new URL('./fixtures/pxl-checkbox-indexed.png', import.meta.url)));
   assert.deepEqual([sprite.width, sprite.height], [14, 14]);
   assert.equal(sprite.rgba[3], 0, 'corner pixel is transparent');
   assert.throws(() => decodePng(Buffer.from('not a png')), /not a PNG/);
@@ -290,17 +293,6 @@ test('Raster.fromRgba snaps soft alpha so edges never become hidden swatches', (
   assert.equal(snapped, 2);
   assert.deepEqual([3, 7, 11, 15].map((i) => raster.rgba[i]), [255, 0, 255, 0]);
   assert.throws(() => Raster.fromRgba(3, 1, rgba), /expected 12 bytes/);
-});
-
-test('Kingfisher-pxl experiment builds cleanly', async () => {
-  // The experiment's scheme.rsrc isn't committed (it's rebuilt from Kingfisher on
-  // demand), so this only checks that it still builds and passes the checks.
-  const { buildScheme: buildPxl } = await import('../../authoring/experiments/pxl/variant/scheme.mjs');
-  const { resources } = await buildPxl();
-  const { errors, warnings } = checkScheme(resources);
-  assert.deepEqual(errors, []);
-  assert.deepEqual(warnings, []);
-  assert.ok(writeResourceFork(resources).length > 0);
 });
 
 test('encodePpat round-trips an indexed pattern and rejects bad sizes and transparency', async () => {

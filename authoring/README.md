@@ -8,8 +8,6 @@ First-party Kaleidoscope schemes written in code with
   and Midnight 2027 in `new-year-2027/`).
 - `preview-layouts/`: HTML fragments for the authoring preview's `?layout=`
   option; `sizes.html` is the stress layout.
-- `experiments/`: AI-tool experiments behind
-  [`docs/authoring-art-with-ai.md`](../docs/authoring-art-with-ai.md).
 
 Each scheme folder holds:
 

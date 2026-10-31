@@ -11,12 +11,23 @@
 //
 // Layout (MacBinary II): a 128-byte header, then the data fork padded to a
 // multiple of 128, then the resource fork padded the same way.
+//
+// Finder flags: every corpus scheme file has kHasCustomIcon (0x0400) set in
+// its archive (0x0500, 0x0580, 0x1480 or 0x1580 across the 13 .sit bundles),
+// so the Finder and Standard File draw the file with its own icon family
+// (ICN#/icl8/… -16455, the picker icon) rather than the generic document. The
+// writer sets it by default; the Finder ignores it when the fork has no -16455
+// family.
+
+/** Finder flag bits (Inside Macintosh: Macintosh Toolbox Essentials, "Finder Interface"). */
+export const FINDER_FLAGS = { hasCustomIcon: 0x0400 };
 
 /**
- * @param {{ name: string, type?: string, creator?: string, resourceFork: Uint8Array, dataFork?: Uint8Array, date?: Date }} file
+ * @param {{ name: string, type?: string, creator?: string, resourceFork: Uint8Array, dataFork?: Uint8Array, date?: Date, finderFlags?: number }} file
+ *   finderFlags: the 16-bit Finder flags (default kHasCustomIcon, as every corpus scheme)
  * @returns {Uint8Array}
  */
-export function writeMacBinary({ name, type = 'Colr', creator = 'Acid', resourceFork, dataFork = new Uint8Array(0), date = new Date(0) }) {
+export function writeMacBinary({ name, type = 'Colr', creator = 'Acid', resourceFork, dataFork = new Uint8Array(0), date = new Date(0), finderFlags = FINDER_FLAGS.hasCustomIcon }) {
   if (!name || name.length > 31 || /[^\x20-\x7e]/.test(name) || name.includes(':')) {
     throw new Error('writeMacBinary: name must be 1–31 printable ASCII characters without ":" (classic Mac file name rules)');
   }
@@ -32,6 +43,8 @@ export function writeMacBinary({ name, type = 'Colr', creator = 'Acid', resource
   ascii(2, name);
   ascii(65, type);
   ascii(69, creator);
+  out[73] = (finderFlags >> 8) & 0xff; // MacBinary II: Finder flags high byte here,
+  out[101] = finderFlags & 0xff;       // low byte here
   view.setUint32(83, dataFork.length);
   view.setUint32(87, resourceFork.length);
   // Mac dates count seconds from 1904-01-01. A fixed default keeps builds reproducible.

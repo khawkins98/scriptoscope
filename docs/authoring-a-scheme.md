@@ -85,15 +85,15 @@ printed but don't stop the build.
 **Why two files?** On a classic Mac a file has two parts (a data fork and a
 resource fork) plus Finder info: a 4-letter file *type* and *creator*. Every
 Kaleidoscope scheme has type `Colr` and creator `Acid`, and the resources live
-in the resource fork. Git keeps only one stream per file, so `scheme.rsrc`
+in the resource fork. Every corpus scheme file also has the Finder's
+"custom icon" flag set, so it shows its own icon family (`-16455`, the picker
+icon); `scheme.bin` sets it too. Git keeps only one stream per file, so `scheme.rsrc`
 holds just the resource bytes. MacBinary packs both forks and the Finder info
 into one ordinary file, which StuffIt Expander, MacBinary utilities and
 hfsutils (`hcopy -m`) turn back into a real scheme file.
 
 If you edit a first-party scheme, rebuild it before running `npm test`: tests
 check that the committed `scheme.rsrc` and `scheme.bin` match a fresh build.
-Experiments under `authoring/experiments/` don't commit their builds; run
-`npm run author` on them before previewing.
 
 Try it: change a colour in `authoring/schemes/kingfisher/palette.mjs`, rebuild,
 and reload the preview.
@@ -473,6 +473,12 @@ This Scheme dialog and the panel's name and description), `arrowCursors` and
 `shadeSounds` (WindowShade sounds from the small synthesizer in
 `encode-snd.js`). Copy any first-party `classic.mjs`.
 
+The panel draws the about box's text in its small application font (Geneva 9
+on the System 7.5.5 reference, 13 px lines), not Chicago 12, so `aboutBox`
+wraps the text itself and sizes the dialog to the lines, with 16 px margins.
+The icon can be the 32×32 picker icon or larger art up to 64×64 (Bonn's
+40×48 Beethoven bust); the text moves right to make room.
+
 Keep the cursor's fill and edge far apart in value and test it on the scheme's
 own desktop pattern: Bonn's first cursor, teal on a teal desktop, all but
 vanished in real Kaleidoscope. The web runtime draws none of these extras.
@@ -498,7 +504,7 @@ encoder is the inverse of a decoder there, and the tests prove the round trip.
 | `encode-crsr.js` | `encodeCrsr`: a 16×16 colour cursor from a raster |
 | `encode-snd.js` | `encodeSnd`: an 8-bit sampled `snd `; `synthesize`: a small deterministic synthesizer for original sounds |
 | `classic-extras.js` | `aboutBox`, `arrowCursors`, `shadeSounds`: the control-panel extras in one call each (§4.9) |
-| `macbinary.js` | `writeMacBinary`: packs the fork with type `Colr` / creator `Acid` for a classic Mac (§2) |
+| `macbinary.js` | `writeMacBinary`: packs the fork with type `Colr` / creator `Acid` and the custom-icon Finder flag for a classic Mac (§2) |
 | `resource-fork-writer.js` | `writeResourceFork(resources)`: builds the binary file |
 | `check-scheme.js` | `checkScheme(resources)`: the authoring checks (§8) |
 | `color.js` | colour parsing and the gamma pre-compensation (§3.4) |
