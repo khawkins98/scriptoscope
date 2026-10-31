@@ -3,7 +3,7 @@
 Issue [#597](https://github.com/khawkins98/scriptoscope/issues/597), 2026-10-31.
 Spec writer: lane 597 (decode researcher). Independent review: Tier 1 REQUEST CHANGES at `5aba2b9a` (decode confirmed, five spot-checks matched; citation, propagation and test-hook asks addressed in revision 2, 2026-10-31); **APPROVED** at `6d02a4e0` (Tier 1 re-check of the changed claims, PR #610). `kdef231-reference.md` still awaits the pinned-hash correction (evidence E1).
 Evidence appendix: [`hit-regions.evidence.md`](./hit-regions.evidence.md). Implementers must not read it.
-Revision 3 (2026-10-31, spec writer lane 597p): adds §9, the web host policy, from the maintainer's #597 decisions. §0–§7 (decode) are unchanged except U7's status; §9 is policy, not decode.
+Revision 3 (2026-10-31, spec writer lane 597p): adds §9, the web host policy, from the maintainer's #597 decisions. §0–§7 (decode) are unchanged except U7's status; §9 is policy, not decode. Revision 3b (same day): records the maintainer's answers to Q1–Q4 (§9.9) and adds HP38–HP41 and HPT18–HPT20.
 
 ## 0. Answer
 
@@ -353,6 +353,15 @@ Basis: maintainer decisions on #597, 2026-10-31.
 4. A ledger divergence records the gap until this ships
    (`kdef-faithfulness-ledger.md`, `host→decode`).
 
+Follow-up decisions on the §9.9 questions, 2026-10-31 (maintainer, via the PM):
+
+5. Q1: clip an inner layer, not the host (§9.5).
+6. Q2: match the original. A press that reaches non-Scriptoscope content
+   deactivates the active window (HP35, HP38–HP40).
+7. Q3: add a page-wide default, overridden per window, with the same
+   unknown-value handling (HP14, HP41).
+8. Q4: the bare `renderWindow()` element is never clipped (HP2).
+
 U7 is measured (issue #597): with the box hit area, 7 of the 13 recipe themes
 have frame gaps large enough to click on purpose in the document window, and
 `popup-window` has an 8–17% transparent band in 10 of 13.
@@ -362,7 +371,7 @@ have frame gaps large enough to click on purpose in the document window, and
 | id | rule | basis |
 |---|---|---|
 | HP1 | Every managed window has a requested hit mode and an effective hit mode, each `region` or `box`. **`box`**: the window's whole chrome box receives every press, as before #597. **`region`**: a point hits the window only if it lies in the structure region `S` (§4.2) built for the current commit. At any other point inside the box, the browser hit-tests whatever lies beneath (another window, page content or the document). | decision 1; SR10, WH1 |
-| HP2 | Scope: windows managed by `WindowManager`, both declarative (`data-scriptoscope-window`) and imperative (`WindowManager.add`). The bare `renderWindow()` element has no host, decoration layer or lifecycle, so it is never clipped (Q4). | policy |
+| HP2 | Scope: windows managed by `WindowManager`, both declarative (`data-scriptoscope-window`) and imperative (`WindowManager.add`). The bare `renderWindow()` element has no host, decoration layer or lifecycle, so it is never clipped. | decision 8 (Q4) |
 | HP3 | The requested mode defaults to `region`. The effective mode is decided at **each commit**. It is `region` iff the window type that actually rendered is a recipe window, i.e. after base-chain resolution (the resolved owner's window type, not the requested theme's slug), it has a `wnd#` recipe (model other than `corner-sprite`) and a loaded chrome template. Otherwise it is `box`. A `box` request always gives `box`. | decision 1; RT1, RT2, RT4 |
 | HP4 | **Built-in frame (no `wnd#`) is exempt:** the effective mode is `box`. This covers `apple-platinum-2`, `black-platinum`, `platinum-8`, `slimes` and `system7-nostalgia-silver`, plus any base chain that resolves to them. Why: PF1's only excluded pixels are the two 2-px notches at the ends of the shadow, 4 px per window. No 5 × 5 neighbourhood fits in them (U7), so nobody clicks there on purpose. Clipping would add a stacking context, the decoration layer (§9.5) and a per-commit path to five themes, for no usable gain. This is a permanent divergence, recorded in the ledger. | PF1, PF2; U7 |
 | HP5 | The rect-only procIDs 2, 3, 1040 and 1041 are unreachable: no public slug maps to them (WK5). If a mapping is added, they are recipe windows under HP3, and `S` is the SR1/SR2 rectangles. | SR1, SR2, WK2, WK5 |
@@ -375,11 +384,11 @@ have frame gaps large enough to click on purpose in the document window, and
 
 | id | rule | basis |
 |---|---|---|
-| HP10 | **Declarative:** `data-scriptoscope-hit` on the `data-scriptoscope-window` element. The value is trimmed and case-insensitive: `box` requests box; `region` requests region. Absent, empty or unknown values request `region`; an unknown value logs once through the runtime's `debug` channel. Like every window attribute, it is read at promotion. The host does not carry consumer `data-scriptoscope-*` attributes, so later edits to the source element are not observed; use HP11. | decision 2; `data-scriptoscope-*` surface (`parse.ts` conventions: trimmed, case-insensitive like `-widgets`; non-matching values fall back like `-state`) |
-| HP11 | **Imperative:** `WindowManager.add(theme, opts, handlers, { hit })` with `hit?: 'region' \| 'box'`. `applyState(host, { hit })` changes the request at runtime; omitted means unchanged, as for the other `ManagedWindowState` fields. `describe(host)` reports `hit` (requested) and `hitEffective`. A change of mode alone re-renders no chrome (render frequency contract): it switches the clip and `pointer-events` (HP26) in the same task. | decision 2 |
+| HP10 | **Declarative:** `data-scriptoscope-hit` on the `data-scriptoscope-window` element. The value is trimmed and case-insensitive: `box` requests box; `region` requests region. An absent attribute inherits the page-wide default (HP14). An empty or unknown value is ignored as if absent and logs once through the runtime's `debug` channel. Like every window attribute, it is read at promotion. The host does not carry consumer `data-scriptoscope-*` attributes, so later edits to the source element are not observed; use HP11. | decision 2; `data-scriptoscope-*` surface (`parse.ts` conventions: trimmed, case-insensitive like `-widgets`; non-matching values fall back like `-state`) |
+| HP11 | **Imperative:** `WindowManager.add(theme, opts, handlers, { hit })` with `hit?: 'region' \| 'box'`; omitted inherits the page-wide default (HP14). `applyState(host, { hit })` changes the window's own request at runtime, and `hit: null` clears it back to inheriting; omitted means unchanged, as for the other `ManagedWindowState` fields. String values from untyped callers are normalised as in HP10. `describe(host)` reports `hit` (the window's own request, or `undefined` when inheriting) and `hitEffective`. A change of mode alone re-renders no chrome (render frequency contract): it switches the clip and `pointer-events` (HP26) in the same task. | decision 2 |
 | HP12 | **Reflection:** after every commit and every mode change, the host carries `data-scriptoscope-hit-effective="region"` or `"box"`. It is read-only output; writing it has no effect. | policy |
 | HP13 | **Retheme:** the requested mode persists across retheme and is never reset. The effective mode and `S` are recomputed for the new theme in the same commit as the new chrome (HP19). A window rethemed to a built-in frame theme becomes effective `box`. Rethemed back to a recipe theme, it becomes `region` again, unless the consumer requested `box`. | decision 2; HP3 |
-| HP14 | There is no page-wide default (for example a `mountDeclarative` option) in this policy (Q3). | policy |
+| HP14 | **Page-wide default.** `mountDeclarative` was removed in 0.7.0 (#491), so the page-wide default lives on the object a page shares across its windows, the `WindowManager`: `new WindowManager({ hit })`, and `setDefaultHit(mode)` at runtime. Both the declarative path (`ScriptoscopeWindow.promote` receives the manager in its deps) and `WindowManager.add` use it. Absent, the default is `region`. The value is normalised as in HP10; an empty or unknown value is ignored, so the default stays `region`, and logs once. Example helpers that create a manager (such as the demo's `mountExplicitPage`) forward a `hit` option to it. Precedence: the window's own request (HP10, HP11), then the manager default, then `region`. | decision 7 (Q3) |
 
 ### 9.3 Region source, coordinates and representation
 
@@ -405,7 +414,7 @@ have frame gaps large enough to click on purpose in the document window, and
 ### 9.5 Layering: what is clipped
 
 The clip goes **inside** the host's shadow root, not on the host element
-(Q1). A `clip-path` on the host clips everything the host paints, including
+(decision 5, Q1). A `clip-path` on the host clips everything the host paints, including
 the shell shadow, the focus indicators and the resize outline. None of those
 could then escape without new light-DOM siblings next to the host, which
 in-flow (Posture B) hosts cannot position reliably. Clipping one level
@@ -415,7 +424,7 @@ implementer's choice.
 
 | id | rule | basis |
 |---|---|---|
-| HP26 | **Layers.** (L1) The `part="window"` element stays the **unclipped** element that bounds the chrome box. It keeps today's role, label and `::part(window)` contract, including the shell shadow. (L2) A single **clipped layer** with the same box sits inside L1 and carries the HP19 path. It contains every element that takes pointer input for the window: the chrome canvas, the content box with its slot, the grow sprite and the overlay controls (title widgets, move handle, grow box, window scrollbars). (L3) An **unclipped decoration** part inside L1, outside L2, with `pointer-events: none`, holds the focus indicator (HP28) and the resize outline (HP31). (L4) **`pointer-events`** in `region` mode: `none` on the host and on L1, `auto` on L2. Slotted content inherits from L2. In `box` mode there is no clip and no `pointer-events` change, so hits are exactly as before #597. L2 exists in both modes, giving one DOM structure. | decision 3; Q1 |
+| HP26 | **Layers.** (L1) The `part="window"` element stays the **unclipped** element that bounds the chrome box. It keeps today's role, label and `::part(window)` contract, including the shell shadow. (L2) A single **clipped layer** with the same box sits inside L1 and carries the HP19 path. It contains every element that takes pointer input for the window: the chrome canvas, the content box with its slot, the grow sprite and the overlay controls (title widgets, move handle, grow box, window scrollbars). (L3) An **unclipped decoration** part inside L1, outside L2, with `pointer-events: none`, holds the focus indicator (HP28) and the resize outline (HP31). (L4) **`pointer-events`** in `region` mode: `none` on the host and on L1, `auto` on L2. Slotted content inherits from L2. In `box` mode there is no clip and no `pointer-events` change, so hits are exactly as before #597. L2 exists in both modes, giving one DOM structure. | decisions 3, 5 (Q1) |
 | HP27 | **Host lockdown.** `clip-path: none` joins the locked host properties in both modes, so a consumer class cannot clip the host's decoration. `pointer-events` is set inline to `none` in `region` mode and cleared in `box` mode, where consumer CSS applies as before. The locked set still only grows. | Posture B lockdown |
 | HP28 | **Focus ring.** In `region` mode, the outline of a focused shadow-root control (title widget, move handle, grow box, window scrollbar) is drawn by L3. It is a ring with the control's border box, outset by the same offset and drawn in the same style as `box` mode, visible iff the control matches `:focus-visible`. It is repositioned on every commit, because controls move on resize. The control's own outline is suppressed in `region` mode, so no clipped partial ring doubles it. The result looks the same in both modes, including ring segments outside `S` or outside the chrome box (for example, the move handle's ring above the top edge). | WCAG 2.4.7; §8 "keyboard focus unaffected" |
 | HP29 | **Host and content focus.** The host's own focus outline (`scriptoscope.css`, `[data-scriptoscope-promoted]:focus-visible`) is on the unclipped host and is unchanged. Light-DOM content lies in `C`, which is inside `S` (SR11). Its focus rings are already clipped by the content box's own `overflow`, so they are unchanged too. | SR11 |
@@ -424,8 +433,22 @@ implementer's choice.
 | HP32 | **Overflowing descendants.** Content still scrolls inside `C`. Some consumer descendants escape the content box: `position: fixed` elements, or elements whose containing block lies outside it. In `region` mode they are clipped to `S`, because `clip-path` clips descendants whatever their containing block. Top-layer content is not clipped: native `<select>` pop-ups, `<dialog>.showModal()`, the Popover API and fullscreen. Consumer guidance: put menus and tooltips in the top layer or outside the window, or opt out with `box`. The runtime renders no pop-up inside L2 today. Any future runtime menu must use the top layer. | policy |
 | HP33 | **Posture B placeholder.** It is a light-DOM sibling of the host, `pointer-events: none` and hidden. It is never clipped and never a hit target. The handoff does not change `S` (HP24). | Posture B |
 | HP34 | **Drag, widgets and grow box.** A frame drag starts only from a point in `S`. The title-widget overlays keep their mask hit (window-widgets HT7, HT8) inside `S`. A widget-mask pixel outside `S` misses, because WH1 precedes the widget branch. The grow-box overlay, including WM381's enlarged overlay, keeps working at its points inside `S`. Points over excluded frame pixels miss, because WH1 precedes WH3 (T9). Every point of `C` hits (SR11). A drag or resize already in progress keeps pointer capture, so leaving `S` mid-gesture does not end it. | WH1, WH3, HT7, HT8, SR11; WM381 |
-| HP35 | **Activation on pass-through.** A press on an excluded pixel neither activates nor raises the window. Whatever receives it behaves as if the window were absent. Another managed window activates through its own handler. Page content gets trusted events with all default actions (focus, selection, links, form controls). Pressing page content does **not** deactivate the active window, the same as pressing page content outside the box before #597. In the #540 capture, a desktop click did deactivate the window (Q2). | OS3, OS4, U1; DECISIONS #12 unaffected |
+| HP35 | **Activation on pass-through.** A press on an excluded pixel neither activates nor raises the window it passed through. Whatever receives it behaves as if the window were absent. Another managed window activates through its own handler. Page content gets trusted events with all default actions (focus, selection, links, form controls), and the active window is then deactivated (HP38, HP39). This matches the #540 capture, where a desktop click deactivated the window. | decision 6 (Q2); OS3, OS4, U1; DECISIONS #12 unaffected |
 | HP36 | **Hover, cursor, wheel and touch** over excluded pixels go to the element beneath. Page scrolling and touch gestures work there; the window's `touch-action: none` applies only inside `S`. | policy |
+
+### 9.5a Deactivation by outside presses (decision 6, Q2)
+
+| id | rule | basis |
+|---|---|---|
+| HP38 | **Tracking.** Each `WindowManager` that manages at least one window holds one `pointerdown` listener on its document, in the capture phase and passive. It is removed when the last window is removed. A press is **inside** a window iff that window's host is in the event's `composedPath()`: a DOM-ancestry test, never a geometry test. So presses on shadow-root chrome, on light-DOM content, and on top-layer elements whose DOM lives in a window's content (popovers, `showModal` dialogs) count as inside that window. Every other press in the document is **outside**: page content, the Posture B placeholder's area, a press that passed through an excluded pixel (HP35), promoted controls that sit outside any window, and windows of a different manager. Only primary pointers count (`isPrimary`), with any button and any pointer type. | decision 6 |
+| HP39 | **Effect.** An outside press deactivates this manager's active window, if there is one. It becomes inactive, renders with its inactive template (an activation flip, so HP22c recomputes `S`) and drops the active z-index boost. Its order among the other windows is unchanged. No window becomes active, so the manager has no active window until a window is pressed or receives focus (#550). The listener never calls `preventDefault` or `stopPropagation`, and it does not wait for the render, so the page receives the press with all its default actions. An inside press keeps today's behaviour: that window activates and rises. A press on another window of the same manager therefore activates that window, through its own handler, and deactivates the previous one. | decision 6; SR14 |
+| HP40 | **Scope and limits.** HP38–HP39 apply to every window of the manager, in both hit modes and for built-in-frame themes too, because the trigger is where the press lands, not the clip. They do not cover the following, so the active window stays active: presses the document never sees (other applications, browser UI, cross-document iframes); the browser window losing focus; keyboard focus leaving every window. Activation by keyboard focus entering a window (#550) is unchanged. The first two are host limits, recorded in the ledger. Keyboard focus leaving is unchanged pending a separate decision. | decision 6; host limits |
+
+### 9.5b Page-wide default (decision 7, Q3)
+
+| id | rule | basis |
+|---|---|---|
+| HP41 | `setDefaultHit(mode)` re-derives the effective mode of every window that has no own request, in the same task, without re-rendering chrome (HP11). Windows with their own request are untouched. A retheme or a per-window `applyState` never changes the manager default. | decision 7 |
 
 ### 9.6 Accessibility
 
@@ -438,7 +461,8 @@ implementer's choice.
 The implementation commit documents these, without adding policy beyond §9:
 
 - `data-scriptoscope-hit` in the README attribute reference;
-- the `hit` option of `WindowManager.add`, `applyState` and `describe`;
+- the `hit` option of `WindowManager.add`, `applyState` and `describe`, and the page-wide default (`new WindowManager({ hit })`, `setDefaultHit`);
+- deactivation by outside presses (HP38–HP40), which changes behaviour for every managed window;
 - `data-scriptoscope-hit-effective`;
 - a CHANGELOG entry noting that the default hit area changes for recipe windows, with the opt-out;
 - HP32's pop-up guidance;
@@ -493,17 +517,21 @@ policy (hit-regions §9); the Window Manager half is U1".
 | HPT15 (HP37) | The accessibility snapshot and Tab order are identical in both modes. Keyboard move (move handle) and keyboard resize (grow box) work in `region` mode. | make L2 `inert`; set `aria-hidden` on L1 |
 | HPT16 (HP4) | platinum-8: the effective mode is `box`, and a PF1 notch pixel hits the window. | clip built-in frames by PF1 |
 | HPT17 (HP3) | Base chain: a requested theme whose window type resolves to a recipe owner is `region`, and one that resolves to a built-in-frame owner is `box` (corpus pair if the base chains provide one, else synthetic). | decide by the requested theme's slug |
+| HPT18 (HP35, HP38, HP39) | dolphin-som, `region` mode, window active, the sentinel a focusable `<button>`. A real click at `p_out`: the sentinel receives `pointerdown` and `click` and takes focus (default action intact). The window becomes inactive (`part="window"` reports `data-scriptoscope-current-state="inactive"`, `describe` reports no active window) after exactly one render, and its order relative to other windows is unchanged. A click on page content outside the box deactivates the same way, in `box` mode (windows-95) and for platinum-8. A click in `p_c` or on `p_in` keeps the window active. A `popover` opened from the content and shown outside the window box: a click inside it keeps the window active. Two windows A (active) and B, with B beneath A's `p_out`: a click there activates B and deactivates A. | deactivate only in `region` mode; call `stopPropagation` or `preventDefault` in the listener; classify by `event.target` instead of `composedPath()` (chrome presses then deactivate); classify by box geometry (the popover press then deactivates); keep the listener after the last window is removed |
+| HPT19 (HP40) | A press inside a same-origin iframe placed beside the window, and `window.blur()`, leave the window active. Tab from the window's content to a page link leaves it active. | deactivate on `blur` or on `focusout` |
+| HPT20 (HP10, HP11, HP14, HP41) | Manager `{ hit: 'box' }`: a window without the attribute is `box` (`p_out` hits the window); a window with `data-scriptoscope-hit="region"` is `region`. Manager default `region` with attribute `box`: `box`. Manager `{ hit: 'Boxed' }`: `region`, with one debug log. Attribute `"boxed"` under manager `box`: `box` (ignored, so it inherits). `setDefaultHit('region')`: the inheriting window becomes `region` and the window with its own `box` stays `box`, with no render. `applyState({ hit: null })` returns a window to inheriting. | the default overrides the attribute; ignore the default; `setDefaultHit` re-renders or changes windows with their own request; an unknown attribute value forces `region` instead of inheriting |
 
-### 9.9 Open questions (maintainer)
+### 9.9 Resolved questions (maintainer, 2026-10-31)
 
-- **Q1.** Decision 3 says "clip-path of the host". §9.5 clips one level inside
-  the shadow root and makes the host pointer-transparent, which gives the same
-  hit result. A literal host clip would remove the shell shadow, the
-  shadow-root focus rings and the resize outline, unless those moved to
-  light-DOM siblings. Confirm the inner clip.
-- **Q2.** HP35: pressing page content through a gap does not deactivate the
-  active window, unlike the #540 capture. Confirm, or ask for deactivation on
-  pass-through presses.
-- **Q3.** HP14: no page-wide default. Add a `mountDeclarative` option?
-- **Q4.** HP2: the bare `renderWindow()` element is not clipped. Its callers
-  get no pass-through unless they build their own clip.
+- **Q1.** Decision 3 said "clip-path of the host". **Resolved: clip an inner
+  layer**, as §9.5 specifies. The host becomes pointer-transparent; the hit
+  result is the same, and the shell shadow, focus rings and resize outline
+  stay unclipped.
+- **Q2.** Should pressing page content through a gap deactivate the active
+  window? **Resolved: match the original**, as in the #540 capture: HP35,
+  HP38–HP40, HPT18, HPT19.
+- **Q3.** A page-wide default? **Resolved: yes**, on the `WindowManager`
+  (`mountDeclarative` no longer exists), overridden per window, with the same
+  unknown-value handling: HP14, HP41, HPT20.
+- **Q4.** Is the bare `renderWindow()` element clipped? **Resolved: never**
+  (HP2).
