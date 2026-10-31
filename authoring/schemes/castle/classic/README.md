@@ -13,8 +13,6 @@ title bar, narrow-window behaviour, 8 bpp colour shifts) are in
 |---|---|
 | `desktop@2x.png` | the transfer disk's window (icon view) over the desktop pattern, the arrow cursor on the desktop (2026-10-31, control-panel extras run) |
 | `wide@2x.png` | the System Folder list view widened to 608 px (the earlier 2026-10-31 run) |
-| `desktop-before-repaint@2x.png` | the 2026-10-30 build, before the paint-over from the concept art |
-| `desktop-before-redesign@2x.png` | the build before the visual design pass |
 | `about@2x.png` | About This Scheme: the about box over the control panel |
 | `cursor@6x.png` | the arrow cursor over the desktop pattern (crop of `desktop@2x.png`) |
 | `scheme-picker@2x.png` | the Select Scheme list with the scheme icons |
@@ -103,5 +101,5 @@ Midnight 2027 through **Select Scheme…**. `scheme.bin` sha256
 ## Earlier run (2026-10-30)
 
 One clean boot; then redone after the visual design pass
-(`docs/authoring-visual-design.md`). Files named `*-before-redesign*` show
-that earlier build.
+(`docs/authoring-visual-design.md`). The screenshots of those earlier builds
+were removed when the scheme was repainted from its concept.

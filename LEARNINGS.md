@@ -1,11 +1,45 @@
 # Learnings
 
+## 2026-10-31 — Passing every check is not the same as looking good: design the window first
+
+The first versions of Halcyon, Castle, Brickworks and Bonn passed every
+authoring check and loaded in real Kaleidoscope, and still looked generated
+next to the best corpus schemes. Each had been designed cell by cell, so
+nothing set the overall weight of the frame. What fixed it, now the workflow
+in `docs/authoring-a-scheme.md` §4:
+
+- **Concept image first, then numbers.** An image model renders the finished
+  window; the brief turns it into pixel targets (band thicknesses, ornament
+  heights). Without numbers, every rebuild copied the motifs at sticker size.
+- **Paint over, don't redraw.** Redrawing ornaments from the concept by eye
+  kept the motifs and lost pose and proportion. `npm run paint-over` (shrink a
+  crop to 1×, per-block palette vote) and hand clean-up kept them. It fails on
+  thin detail (1 px mortar, firework rays), which is measured and redrawn.
+- **Design in the system palette, and simulate 8 bpp before booting.** Warm
+  greys came out pink in classic. `npm run sim8`, modelled on the Color
+  Manager's 4-bit inverse table, picks the entry classic drew for 92% of
+  frame pixels (exact nearest: 59%; quantising on-screen values without
+  undoing the gamma: 56%).
+- **The control panel's own help is the spec for the classic extras.** Each
+  "Use This Scheme's" option is greyed unless the scheme ships a named
+  resource (`TEXT 1005`); `classic-extras.js` now builds the about box,
+  cursors and WindowShade sounds. The Accent Color flag alone enables a popup
+  that changes nothing on `cicn`-themed menus.
+- **Testing authored schemes in the original engine found a runtime bug.**
+  Dialog and alert bodies are Kaleidoscope's grey (or the scheme's
+  `dctb`/`actb`), not white; fixed in #585.
+
+The dogfooding round logs and their lessons ledger (under
+`authoring/experiments/`) were folded into the guides and deleted on this
+date; the originals are in the git history of #540.
+
 ## 2026-10-30 — Dogfooding the authoring guides: a lesson isn't learned until it's adopted and backported
 
 Three schemes (Castle, then Brickworks and Bonn) were built by fresh agents
-from the guides alone, each keeping a friction log
-(`authoring/experiments/round-logs/`), with fixes folded in between rounds.
-`lessons-ledger.md` there tracks every proposed fix and what became of it.
+from the guides alone, each keeping a friction log, with fixes folded in
+between rounds. A lessons ledger tracked every proposed fix and what became
+of it. (Both were folded into the guides and removed on 2026-10-31, entry
+above.)
 What the rounds established:
 
 - **Exotic frames need explicit cell lists.** `frameLayout()` (per-edge
@@ -19,11 +53,14 @@ What the rounds established:
   twice, and Castle shipped one: its left banner ring's highlight sits in
   plate column 0 and is tiled every 12px along the coping
   (`castle/preview.png`). `layout.lint` with `uniform` groups catches all
-  three, but it didn't exist when Castle was built.
+  three, but it didn't exist when Castle was built. *(Since 2026-10-31 every
+  first-party scheme runs `lint` on every frame.)*
 - **Pressed-strip offsets are per window, in the decode itself** (WD9
   `stripSource`), not just on the web. Halcyon's utility windows have
   close + collapse without zoom, so their pressed collapse box reads the zoom
   piece of both `-14330` (web) and its three-piece `-14298` (classic).
+  *(Superseded 2026-10-31: the repainted Halcyon gives utility windows the
+  document's full widget set, and every first-party scheme ships `-14298`.)*
 - **Real Kaleidoscope 2.3.1** lets clicks through transparent frame pixels
   (the web doesn't: R15/R16), hides art above the bar under the menu bar, and
   shifts subtle colours at 8 bpp. The narrow-window "difference" recorded at
@@ -81,6 +118,8 @@ for classic Mac OS: the Finder type and creator are what make it a scheme.
 One fidelity finding came out of it: with no utility pattern, native dialog and
 alert bodies are the system dialog grey (`#E7E7E7`), while the web runtime
 paints them white. Screenshots: `authoring/schemes/halcyon/classic/`.
+*(Superseded: fixed in #585. The grey comes from Kaleidoscope's dialog
+colour tables, and the web now uses them.)*
 
 **AI-drawn art (2026-10-30, `docs/authoring-art-with-ai.md`):** ask models for
 code or text grids, never pictures. The best zero-key route was claude-pxl,
@@ -96,7 +135,7 @@ bevels/popups, progress/headers/disclosure/grow box, and menus/patterns/
 icons. That's 329 resources. New encoders (`ppat`, icon families, `clut`)
 round-trip the whole corpus. Real Kaleidoscope draws the menu bar, menus,
 desktop pattern and scheme icon from them. Rules found while building them
-are in the guide §4.5 and §5 item 6. Calibration again mattered: a "scroll
+are in the guide §3.5 and §6.3. Calibration again mattered: a "scroll
 pieces must be opaque" rule fired on 12 of 18 originals, so it's a guide
 note, not a check. Runtime findings, not fixed here:
 - the web runtime never passes inactive or pressed states to window
@@ -106,6 +145,9 @@ note, not a check. Runtime findings, not fixed here:
   Windows 95 draws the same box for all six states.
 
 Not yet done: text fields (CSS only), Finder icons, cursors, sounds, the About box, accent colours.
+*(Superseded 2026-10-31: cursors, WindowShade sounds and the about box are
+built by `classic-extras.js`; text fields, Finder icons and accent colours
+remain, see the guide §9.)*
 
 ## 2026-10-30 — Measured sizes are outer bounds; the host box is the chrome (#526)
 

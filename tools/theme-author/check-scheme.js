@@ -237,7 +237,7 @@ export function checkScheme(resources, theme) {
   const utilityStrip = utilityWidgets ? `; pressed utility widgets (cicn -14298) ${has('cicn', -14298) ? 'yes' : 'no (classic reads utility windows\' pressed art from it)'}` : '';
   // The control panel's "Use This Scheme's" options and buttons, and what
   // enables each (the panel's own help, TEXT 1005 "Using the Control Panel";
-  // docs/authoring-a-scheme.md §6). Finder Colors stays greyed on System 7
+  // docs/authoring-a-scheme.md §7.2). Finder Colors stays greyed on System 7
   // whatever the scheme ships.
   const finderColours = [-9552, -9551, -9550, -9549, -9548].every((id) => has('cicn', id));
   const finderIcons = ['ICN#', 'icl8', 'ics#', 'ics8', 'icns'].some((t) => resources.some((r) => r.type === t && r.id >= -4000 && r.id <= -3700));

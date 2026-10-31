@@ -8,9 +8,11 @@
 > top-left `(part0.left, part0.top)`, shadow = its right neighbour, read through
 > the palette with the mask ignored (`docs/spec/engine/window-widgets.md`
 > TC1–TC5, `tools/theme-loader/buildThemeJson.js` `windowTitleSamples`). The
-> first-party authored scheme `authoring/schemes/halcyon` is a
-> colour-customising test case: it stores slate `#1d2430` (active) and
-> `#9aa1ab` (inactive) on hidden swatches, and both render exactly. The
+> first-party authored scheme `authoring/schemes/halcyon` was the
+> colour-customising test case: its first build stored slate `#1d2430`
+> (active) and `#9aa1ab` (inactive) on hidden swatches, and both rendered
+> exactly (the repainted Halcyon uses system-palette black; Castle's cream
+> `#ffffcc` title is a current example). The
 > "Scriptoscope shipped decision: use black" paragraph in
 > `docs/spec/kdef231-reference.md` §1.4 is stale; that file is hash-pinned
 > evidence (`tests/control-availability`), so it is left for a re-pin.

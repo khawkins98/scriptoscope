@@ -50,7 +50,7 @@ one ripple; a round river pebble as the grow box.
 
 ## 2. Chosen target
 
-**`concept-1b.jpg`** (preview `concept-1b-preview.png`). It has the right scale of
+**`concept-1b`**, committed as `concept.jpg` (the other runs were not kept). It has the right scale of
 ornament (the bird is big, in the Animals register, and it rises above the bar),
 the clearest chrome (dark outline, raised title pill, crisp widgets at the right
 size) and the water band with the ripple. `concept-1c` is a good secondary
@@ -108,7 +108,7 @@ in the water. Ripple centred via 11/8 phase-locking (R3).
 swapped). One code-8 1 px grower each, from `A.top` (R1).
 
 **Corners** are a 1-2-1 pixel stair, radius 3, hard-edged (no matte, R17).
-Collapsed sliver: close the outline row under the bar (visual-design §1.1 #5).
+Collapsed sliver: close the outline row under the bar, so the shaded window has a bottom edge.
 
 **Drop from the concept because the format can't do it:** the blue sky gradient
 in the top band, the soft button shadows, the anti-aliased ripple, the

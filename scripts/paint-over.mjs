@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Shrink a region of a concept image to 1× and snap it to a palette, as the
 // starting point for hand-cleaned pixel art (tools/theme-author/paint-over.js,
-// docs/authoring-visual-design.md §3.3).
+// docs/authoring-a-scheme.md §4.3).
 //
 // Usage:
 //   npm run paint-over -- <concept.png> --crop x,y,w,h --scale 3 \

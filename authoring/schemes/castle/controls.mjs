@@ -2,7 +2,7 @@
 // ring (a brass band), and checkboxes / radio buttons (iron-bound stone
 // plates, shield bosses).
 //
-// Push faces (docs/authoring-a-scheme.md §5 item 3): the engine copies the four
+// Push faces (docs/authoring-a-scheme.md §6.1): the engine copies the four
 // cornerSize corners 1:1, stretches the sideThickness bands, and fills the
 // middle with ONE colour read at bgPixel. So the plank grain can only live in
 // the top/bottom bands (one row each, uniform along them) and the iron straps

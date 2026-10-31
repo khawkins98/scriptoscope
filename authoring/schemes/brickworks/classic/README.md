@@ -14,8 +14,6 @@ fidelity evidence. The general findings about tall frames are in
 | `control-panel@2x.png` | the Kaleidoscope control panel with Brickworks selected: Arrow Cursor, WindowShade Sounds, Desktop Pattern and About This Scheme enabled |
 | `title-plate-tiling@4x.png` | the stud row over the title plate in `wide@2x.png`, showing the seams at both plate edges |
 | `corner-zoom@6x.png` | the zoom and collapse widgets at the right end of the title bar |
-| `desktop-before-repaint@2x.png` | the 2026-10-30 build, before the paint-over from the concept art |
-| `corner-zoom-before-redesign@6x.png` | the build before the visual design pass |
 | `about@2x.png` | About This Scheme: the about box over the control panel |
 | `cursor@6x.png` | the arrow cursor over the desktop pattern (crop of `desktop@2x.png`) |
 | `scheme-picker@2x.png` | the Select Scheme list with the scheme icons |
@@ -114,5 +112,5 @@ One clean boot that switched Halcyon → Castle → Brickworks → Bonn → Midn
 ## Earlier run (2026-10-30)
 
 One clean boot; then redone after the visual design pass
-(`docs/authoring-visual-design.md`). Files named `*-before-redesign*` show
-that earlier build.
+(`docs/authoring-visual-design.md`). The screenshots of those earlier builds
+were removed when the scheme was repainted from its concept.

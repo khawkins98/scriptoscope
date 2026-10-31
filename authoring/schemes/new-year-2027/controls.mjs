@@ -2,7 +2,7 @@
 // ring (a gold band), and checkboxes / radio buttons (navy boxes and discs
 // with gold rims). Re-themed from Castle's controls.mjs.
 //
-// Push faces (docs/authoring-a-scheme.md §5 item 3): the engine copies the four
+// Push faces (docs/authoring-a-scheme.md §6.1): the engine copies the four
 // cornerSize corners 1:1, stretches the sideThickness bands, and fills the
 // middle with ONE colour read at bgPixel. So the face is a gold rim (lit
 // top/left, shaded bottom/right) round a flat navy middle. Everything is

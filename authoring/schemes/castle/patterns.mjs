@@ -9,7 +9,7 @@
 // ordinary window bodies (R22), so this is web-only decoration there.
 //
 // ppats tile in both directions, so the ordered dither (period 4) is fine as
-// long as the tile size is a multiple of 4 (authoring guide §4.5).
+// long as the tile size is a multiple of 4 (authoring guide §3.5).
 //
 // The desktop (ppat 17, classic only) is a calm sky behind the keep: grey
 // stone reads best against a cool, quiet ground, and stone or grass texture

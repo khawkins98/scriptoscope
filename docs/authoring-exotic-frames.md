@@ -1,22 +1,22 @@
-# Exotic window frames: what the format, our runtime and real Kaleidoscope support
+# Exotic window frames: rules R1–R30
 
-*For anyone building a frame that isn't a plain rounded rectangle. Read after
-`docs/authoring-a-scheme.md`. Every rule cites the spec row or code, gives a
-corpus precedent, and flags runtime limits. Paths are relative to the repo
-root. "Web" = Scriptoscope's runtime; "classic" = Kaleidoscope 2.3.1.*
+*A reference for building window frames: what the format, the web runtime and
+real Kaleidoscope support. Read [`authoring-a-scheme.md`](./authoring-a-scheme.md)
+first; it owns the workflow and links here by rule number. Every rule cites the
+spec row or code, gives a corpus precedent, and flags runtime limits. Paths are
+relative to the repo root. "Web" is Scriptoscope's runtime; "classic" is
+Kaleidoscope 2.3.1. Corpus recipes are written `code@border`, so `12@47` is a
+code-12 cell ending at border 47.*
 
-Evidence comes from the specs and code, plus headless renders through the
-real compositor (`dist/scriptoscope.js`, built 2026-10-30). The renders used
-small scratch scripts that aren't committed: one dumps every corpus `wnd#`, one
-prints a cicn mask as ASCII, and one composes a window on magenta so
-transparency shows.
+Evidence comes from the specs and code, plus headless renders of corpus
+windows through the real compositor.
 
 ---
 
 ## A. The geometry model in one paragraph (the thing everything else follows from)
 
-A window is drawn from one template cicn. The content rect `A` (rect-list
-part 0) splits it into four **bands**, and each band has a fixed thickness
+A window is drawn from one template cicn. The content rect `A` (rect
+0) splits it into four **bands**, and each band has a fixed thickness
 across its side:
 
 - **top**: rows `[0, A.top)`, the full width;
@@ -35,7 +35,7 @@ out past it.
 
 ---
 
-## 1. Part codes (rules R1–R12)
+## 1. Cell codes (rules R1–R12)
 
 **R1. Cells are end-based and only `[S[0], S[N])` is painted.** Cell *i* is
 `[S[i−1], S[i])` and takes `code(i)`; entry 0's code is never read.
@@ -99,7 +99,7 @@ out past it.
 window is big enough for a second copy).**
 - *Corpus:* animals' titled-utility top is one 154px code-12 cell, a whale
   that rises 55px above the bar. At content width 300 it draws once. At 520
-  it draws **three whales** (`png/animals-util.png`, `png/animals-util-wide.png`).
+  it draws **three whales**.
 - For art that must appear exactly once on a **titled** edge, use a **code-10
   cell** between growers (R12). Bonn's skyline does this. Code 10 is dropped
   when the window is narrower than the edge's fixed sum `F` (TS1: every code
@@ -110,12 +110,11 @@ window is big enough for a second copy).**
 - **Every fixed pixel on a titled edge is taken from the title's room.** The
   narrowest window that still shows a title is about the sum of the top edge's
   non-growing cells plus the title's width. `frameLayout` reports it as
-  `fixedTop` and `minWidthForTitle(px)`. Bonn's first 91px skyline made a 260px
-  window truncate its title and a 150px window lose it. The engine drops the
-  title before it drops a code-10 cell, so keep big ornaments narrow. Bonn's
-  document, as shipped, shows a whole 90px title from 238px, the skyline
-  alone (no title, TT3) between 128 and 150px, and neither below 128px
-  (checked with the runtime's `layoutWindow`).
+  `fixedTop` and `minWidthForTitle(px)`. The title is dropped at room ≤ 2
+  (TT3), long before a code-10 cell is dropped (`E < F`), so a window between
+  the two widths shows the ornament and no title. Bonn's first 91px skyline
+  made a 260px window truncate its title and a 150px window lose it. Keep big
+  ornaments narrow, and put big art on the bottom edge or on untitled windows.
 
 **R7. Code 18 = one scaled blit** (`0x10320`, nearest-neighbour
 `floor(k·sw/dw)`, declared modern policy, `qd-primitives.md` Q4).
@@ -216,10 +215,9 @@ exist only for the other edge's sake.
   - 1990's document top has eight 1px code-8 cells between fixed rivet/LED
     blocks;
   - evolution's pipe joints;
-  - floppies' bottom has 5 growers between fixed disk-shutter pieces
-    (`png/floppies-doc.png`).
-- Good for Bonn landmarks spaced along the bottom, castle arrow-slits down the
-  sides, or toy-brick seams.
+  - floppies' bottom has 5 growers between fixed disk-shutter pieces.
+- Good for landmarks spaced along the bottom, arrow-slits down the sides, or
+  toy-brick seams.
 
 ---
 
@@ -264,44 +262,44 @@ the page shows through. **But the window still owns those pixels.**
 - Title-widget hits are the only mask-shaped hit test (R24).
 
 **R16. Classic: transparent pixels show what's behind, and clicks on them pass
-through** (confirmed 2026-10-30, below).
+through.**
 - Halcyon's real-Kaleidoscope capture (`authoring/schemes/halcyon/classic/desktop@2x.png`)
-  shows its rounded-corner mask pixels displaying the desktop pattern
-  (`#E7E7E7`/`#DADAFF`) and the window behind. I sampled the pixels.
-- The original `wCalcRgns` (structure region) is still **not traced**
-  (`window-widgets.md` §1 out-of-scope, §6 Q3), so the click behaviour below
-  is an observation, not a decode.
-- The captures are illustrations, not admitted fidelity evidence (their READMEs).
-- **Click-through confirmed in real Kaleidoscope 2.3.1** (Castle and Brickworks,
-  2026-10-30). A single click on a gap between merlons or studs, where the
+  shows its rounded-corner mask pixels displaying the desktop pattern and the
+  window behind.
+- **Click-through, observed in real Kaleidoscope 2.3.1** (Castle and
+  Brickworks): a single click on a gap between merlons or studs, where the
   desktop disk icon showed through, selected the icon and made the window
   inactive. So classic leaves transparent frame pixels out of the window's
   region, while **the web keeps them in the window (R15). This is a divergence.**
-- Real-Kaleidoscope findings from the Castle / Brickworks / Bonn runs, for
+  The original `wCalcRgns` (structure region) is **not traced**
+  (`window-widgets.md` §1 out-of-scope, §6 Q3), so this is an observation, not
+  a decode.
+- The captures are illustrations, not admitted fidelity evidence (their READMEs).
+- What the real-Kaleidoscope runs of all five first-party schemes showed, for
   anyone designing tall or irregular frames:
   - **The menu bar covers art above the title bar.** A window placed just under
     the menu bar loses its tower tops or skyline beneath it
     (`authoring/schemes/bonn/classic/menubar-clips-skyline@3x.png`). Keep the
     essential look in the bar rows, and treat art above them as decoration.
-  - **Narrow windows lose the title first.** In classic, Bonn's narrow
-    window (about 105px wide; captured in the first run, before the redesign) lost its title, pennant and
-    skyline together. That is TS1: it is narrower than Bonn's fixed sum
-    (128px), and the web's `layoutWindow` drops the same cells at that width.
-    The web preview's "narrow" window is wider (160px), so it keeps the
-    skyline and shows "…" (R6). The two runs weren't at equal widths, so they
-    show no divergence. Castle kept "Sys…", and Brickworks only "…". Leave
-    plenty of title room (R6).
-  - **8 bpp shifts subtle colours.** Castle's warm beige stone came out grey with
-    pink mortar and yellow flecks, while Brickworks' saturated primaries and
-    Bonn held up. Pick key colours from `SYSTEM_PALETTE_256`, or at least check
-    them against it.
-  - **Classic dialogs keep a flat grey body.** Kaleidoscope's own notices use the
-    plain-dialog frame, and the patterned bodies are web-only (R22).
+  - **Narrow windows lose the title first, in both engines.** Below the top
+    edge's fixed sum (TS1) the title, its bezels and any code-10 ornament go
+    together; above it, the title truncates before anything else gives way
+    (R6). At equal widths the web's `layoutWindow` drops the same cells as
+    classic (`bonn/classic/narrow-title-drop@3x.png`). Classic titles are
+    bitmap Chicago 12, narrower than the web font, so classic keeps a few more
+    letters.
+  - **8 bpp shifts subtle colours.** A warm beige stone came out grey with
+    pink mortar and yellow flecks, while saturated cube colours held up. Pick
+    key colours from `SYSTEM_PALETTE_256` and run `npm run sim8` before the
+    boot.
+  - **Classic dialog and alert bodies are a flat colour, not a pattern**: the
+    scheme's `dctb`/`actb -14336`, or Kaleidoscope's light grey when it ships
+    none. The web uses the same colour, but patterned bodies are web-only (R22).
 
 **R17. Silhouette edges are 1-bit.**
 - cicn masks are binary, so there is no alpha.
 - Smooth curves need `matte`-blended edge pixels, and a matte only suits the
-  background you assume (authoring guide §4.5).
+  background you assume (authoring guide §3.5).
 - For battlements and towers seen against an unknown page, use hard pixel
   edges or a dark 1px outline.
 
@@ -328,7 +326,7 @@ the template.**
   so leave it `none` (`src/scriptoscope.css:28-31, 59-65`; LEARNINGS
   2026-10-20).
 
-**BeOS asymmetric tab, how it's built** (`beos-r503 -14336`, `png/beos-doc.png`, mask via `mask.mjs beos-r503 -14335`):
+**BeOS asymmetric tab, how it's built** (`beos-r503 -14336`):
 - Top recipe: `1@5 2@19 6@34 5@35 6@50 3@64 1@69 8@70 1@75`, with
   `A = [5,24,70,25]`.
 - The tab is the close gap, bezel, 1px plate, bezel, zoom gap and a fixed tab
@@ -340,7 +338,7 @@ the template.**
 - With no grower before the plate, the tab is left-pinned and grows with the
   title (TT7).
 - **Notched or zig-zag edges:** dolphin-som's document has saw-tooth outer
-  edges and a disc ornament on its corner, with all four insets 58 (`png/dolphin-doc.png`).
+  edges and a disc ornament on its corner, with all four insets 58.
 
 ---
 
@@ -397,9 +395,10 @@ there** (`src/renderWindow.ts:477-548`).
 **R22. Classic does not use these for ordinary window bodies.**
 - The kDEF never paints the content region. The application or Dialog
   Manager does.
-- In Halcyon's first build, which had no utility pattern, real dialogs and
-  alerts were system grey `#E7E7E7` where the web showed white (LEARNINGS
-  2026-10-30; Halcyon classic README).
+- Dialog and alert bodies are filled by Kaleidoscope's dialog patch from the
+  scheme's `dctb`/`actb -14336` colour tables, or its own light grey
+  (`procedural-frame.md` §3.6). The web uses the same colour, but still tiles
+  `ppat 42` over it, so a dialog pattern only shows on the web.
 - `-9551`/`-9550` are Finder Icon/List-View backgrounds, and the Finder
   Colors trigger isn't decoded.
 - The Appearance-brush peg (`docs/spec/apple-primary-source.md`) is an
@@ -438,23 +437,20 @@ web.**
   if the strip exists** (`widgetHittable … && !!strip`,
   `src/engine/families/window.ts:344-348`), and `overlayWidgets`
   (`src/interactive.ts:1767`) creates buttons only for hittable widgets.
-- `checkScheme` warns when a scheme has widgets but no `-14330` (Halcyon
-  shipped none at first, and its widgets were dead in the web).
+- `checkScheme` warns when a scheme has widgets but no `-14330`.
 - **Offsets are summed from the pressing window's own rects** (WD9/HT7,
   `stripSource`). This is the decoded kDEF rule, so it holds in classic too.
   A utility window with close + collapse but no zoom reads its collapse piece
   at `x = width(close)`, which in the document strip is the *zoom* piece.
   - On the web this can't be laid out away, because the web reads `-14330`
     for every window (below). Give every window the document's widget set
-    and sizes, or give utilities close only (Castle, Brickworks and Bonn do),
-    or make the zoom and collapse pressed art interchangeable.
+    and sizes (Halcyon), or give utilities close only (Castle, Brickworks,
+    Bonn), or make the zoom and collapse pressed art interchangeable.
   - In classic, utility windows read `-14298`, at the same per-window
     offsets. So lay `-14298` out from the **utility** window:
-    `stripLayout(utilityLayout)`. For a close-only utility at the document's
-    close size, the document strip is already right (Brickworks ships it).
-  - Halcyon is caught by this: its utility windows have close + collapse, and
-    its `-14298` is the three-piece document strip, so its pressed utility
-    collapse box shows the zoom glyph on the web and, by the decode, in classic.
+    `pressedStripFrom(stripLayout(utilityLayout), …)`. For a close-only
+    utility at the document's close size, the document strip is already
+    right (Brickworks ships it).
   - It affects 12 of 18 corpus schemes too, so it isn't a checker rule.
 - `pressedStripFrom` (`tools/theme-author/frame-layout.js`) builds the strip
   from the active frame. Each piece is the widget's own frame pixels with the
@@ -478,7 +474,7 @@ web.**
 - Ship `-14298`/`-14290` for classic, but give utility widgets the same rect
   sizes as the document widgets, so `-14330` also reads right on them.
   `npm run author` prints whether a scheme with utility widgets ships
-  `-14298` ("classic extras"). Castle and Bonn don't.
+  `-14298` ("classic extras"). All five first-party schemes do.
 - At rest, widget art is the frame's own pixels (WD10); there is no separate
   rollover art.
 
@@ -490,7 +486,7 @@ web.**
 - Shape: a narrow tab on the top side (code-5 anchor) above a body.
   Typically there's **no bottom recipe** (it sits on the screen edge).
 - *Corpus:* floppies' top is `1@10 8@11 1@35 6@45 5@48 6@58 1@81 8@82 1@94`,
-  with no bottom (`png/floppies-popup.png`).
+  with no bottom.
 - Placement is AP1 / PP1–PP7. The plate is placed from the popup data, not
   the title.
   - With the creation values (PP6: `pdLen 33`), the plate is
@@ -557,9 +553,8 @@ web.**
   in the sky. `frameLayout` enforces 17px. It isn't a checker rule, because most
   corpus title rects are shorter and their authors accepted the clipping.
   - So with `frameLayout` a titled utility's top band is at least 17px plus
-    whatever rises above the bar. Halcyon's 16px utility bar (title rect rows
-    2..14) is only possible through `windowLayout()`, which doesn't apply the
-    rule.
+    whatever rises above the bar. A slimmer utility bar is only possible
+    through `windowLayout()`, which doesn't apply the rule.
   - Make the *visible* plate art at least title size + 4 rows too, not just
     the rect. Brickworks' first 14-row utility tile clipped "Tools".
 - The ≤2px marker rect gives `titleRegion.midY` (`composeChrome.ts:211-221`),
@@ -590,7 +585,7 @@ web.**
 
 | Gap | Effect for builders | Source |
 |---|---|---|
-| Grow box on `wnd#` windows not drawn | `-14334`/`-14333` art is classic-only | authoring guide §8 |
+| Grow box on `wnd#` windows not drawn | `-14334`/`-14333` art is classic-only | authoring guide §9 |
 | One widget-presence flag | 15/16/17 always collapse; disabled widgets still show art | F7 |
 | No condensed title face | titles truncate sooner than classic | F11, TT2a |
 | Below-template budgets unclamped | tiny windows overlap cells | AW8; compositor-spec |
@@ -600,14 +595,17 @@ web.**
 | `altWidgets`/`sideTitle` never set | only `-14330` is used | R24 |
 | Big baked ornament split across a grower | the ornament repeats | 1984 V1(b), `glitch-punchlist.md` |
 | Classic structure region (click shape) untraced | classic lets clicks through transparent frame pixels (observed, R16); the web keeps them in the window | Q3, R15, R16 |
-| Grow box not drawn, but the resize overlay is live | the bottom-right corner of every `wnd#` window resizes with no visual cue | authoring guide §8 |
+| Grow box not drawn, but the resize overlay is live | the bottom-right corner of every `wnd#` window resizes with no visual cue | authoring guide §9 |
 | No golden reference diff | eyeball your classic test boot | ledger "What no automated net catches" |
 
 ---
 
-## 8. What `windowLayout()` (`tools/theme-author/window-layout.js`) can't express
+## 8. frameLayout and windowLayout
 
-**Use `frameLayout()` (`tools/theme-author/frame-layout.js`) for all of these.**
+`frameLayout()` (`tools/theme-author/frame-layout.js`) builds any frame these
+rules allow. `windowLayout()` (`tools/theme-author/window-layout.js`) is a
+shorter helper for a plain rounded rectangle; the table at the end lists what
+it can't express.
 
 ```js
 const layout = frameLayout({
@@ -630,14 +628,15 @@ stripLayout(layout);              // where each pressed piece goes in -14330 (R2
 `uniform: true` makes `lint` check that every column of the cell (every row,
 on the left and right) is the same. A 1px cell always passes that, so give 1px
 growers that should match each other one group name (`uniform: 'gap'`, `'bar'`)
-and `lint` compares them. Code-5 plates are always checked. Bonn and
-Brickworks run `lint` on every frame. Castle can't: its gatehouse plate
-carries stone texture.
-It was written for Castle from the proposal at the end of this section, and is
-now part of the toolkit. You give it explicit cell lists per edge
-(`{ code, w, name }`), the band sizes, the title cell and rows, and the widget
-boxes. It returns the template size, the content rect, the `wnd#`, and the
-named cell positions to paint by. It enforces:
+and `lint` compares them. Code-5 plates are always checked, or only their
+title rows when the cell is marked `tiled: true`. Every first-party scheme
+runs `lint` on every frame; stray art in a tiled cell was the bug every
+builder hit at least once.
+
+You give `frameLayout` explicit cell lists per edge (`{ code, w, name }`), the
+band sizes, the title cell and rows, and the widget boxes. It returns the
+template size, the content rect, the `wnd#`, and the named cell positions to
+paint by. Codes 0 and 10 are supported. It enforces:
 - top and bottom cells of equal total width, and left and right of equal height;
 - widgets in fixed top cells, inside the top band;
 - every code 12 with a same-allocation recipient, and one code-12 width per allocation;
@@ -645,8 +644,10 @@ named cell positions to paint by. It enforces:
 - a title rect of at least 17px, inside the top band, on the code-5 cell.
 
 `stripLayout()` and `pressedStripFrom()` lay out and build the `-14330` strip
-(and `-14298`, from the utility layout). The table below is what
-`windowLayout()` lacks.
+(and `-14298`, from the utility layout).
+
+What `windowLayout()` lacks, and the format feature that `frameLayout` gives
+you instead:
 
 | Limit in the helper | Needed by | Format feature |
 |---|---|---|
@@ -664,9 +665,8 @@ named cell positions to paint by. It enforces:
 | No popup or side-floating forms | those window types | R25, R26 |
 | No pressed-strip layout | working widgets in the web | `-14330` strip derived from the widget rects (R24) |
 
-That table was the proposal `frameLayout` was built from. What it still
-leaves to you:
-- the colour budget: call `fitPalette` on big frames (authoring guide §4.5);
+What `frameLayout` still leaves to you:
+- the colour budget: call `fitPalette` on big frames (authoring guide §3.5);
 - the title room: print `minWidthForTitle` and size ornaments by it (R6);
 - the strip offsets of windows with a different widget set (R24);
 - popup and side-floating forms (R25, R26), and the classic-only 2/3/4 and

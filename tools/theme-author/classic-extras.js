@@ -1,7 +1,7 @@
 // Builders for the extras real Kaleidoscope's control panel offers beyond the
 // window chrome. Each returns resources ({ type, id, data, name }) to add.
 // What each one turns on, and the primary source for its ids, is in
-// docs/authoring-a-scheme.md §6 ("Control panel extras").
+// docs/authoring-a-scheme.md §7.2 ("Control-panel extras").
 //
 //   aboutBox()      DLOG + DITL -14320, its icon (cicn 128) and the panel strings
 //                   (STR# -14320): enables "About This Scheme"

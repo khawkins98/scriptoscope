@@ -48,7 +48,7 @@ The original tooling — Greg Landweber and Arlo Rose's Kaleidoscope.app, Edwin 
 
 Nobody's authored a new Kaleidoscope scheme in roughly twenty years. The corpus is closed because the tools closed, not because the form ran out. If you want to be the one who reopens it, I'd love to help — [file an issue](https://github.com/khawkins98/scriptoscope/issues), mail me a `.rsrc`, draw a single button cicn and see what happens. The renderer doesn't know what year it is.
 
-There is now a modern starting point. [`tools/theme-author/`](./tools/theme-author/) writes real resource forks (`cicn`, `wnd#`, `cinf`, `Colr`, `vers`) from code and checks them against the rules the runtime follows. [`docs/authoring-a-scheme.md`](./docs/authoring-a-scheme.md) walks through it using **Halcyon** ([`authoring/schemes/halcyon/`](./authoring/schemes/halcyon/)), a first-party proof-of-concept scheme with frames, push buttons, checkboxes and radios. `npm run author -- authoring/schemes/halcyon` builds it; the result is an ordinary `.rsrc` you can drop on the demo like any other scheme.
+There is now a modern starting point. [`tools/theme-author/`](./tools/theme-author/) writes real resource forks from code and checks them against the rules the runtime follows. [`docs/authoring-a-scheme.md`](./docs/authoring-a-scheme.md) walks through the whole workflow, from a concept image to a scheme that loads in the original Kaleidoscope 2.3.1. Five first-party schemes in [`authoring/schemes/`](./authoring/schemes/) (Halcyon, Castle, Brickworks, Bonn and Midnight 2027) were made that way. `npm run author -- authoring/schemes/halcyon` builds one; the result is an ordinary `.rsrc` you can drop on the demo like any other scheme.
 
 ## Install
 

@@ -17,7 +17,7 @@
 //      MacBinary file with type 'Colr' / creator 'Acid', for a classic Mac).
 // Exit code 1 on any error (nothing is written). Warnings do not fail the build.
 //
-// Review aids (docs/authoring-visual-design.md §3.4), written even on errors:
+// Review aids (docs/authoring-a-scheme.md §4.5), written even on errors:
 //   --sheet    <dir>/sheet.png: every cicn and ppat at 4× by family, with an
 //              8-bit simulation panel beside it (don't commit it)
 //   --palette  prints the palette report for <dir>/palette.mjs: where each

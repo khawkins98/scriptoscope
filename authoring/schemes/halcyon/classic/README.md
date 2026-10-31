@@ -9,7 +9,6 @@ The `@2x` files are nearest-neighbour upscales of the native 640×480 frame.
 | File | What it shows |
 |---|---|
 | `desktop@2x.png` | the transfer disk's window (icon view) over the desktop pattern, the arrow cursor on the desktop (2026-10-31, control-panel extras run) |
-| `desktop-before-repaint@2x.png` | the same kind of shot from the 2026-10-30 build, before the paint-over from the concept art |
 | `menu-open@2x.png` | the Finder's File menu held open: teal title and item highlight |
 | `control-panel@2x.png` | the Kaleidoscope control panel with Halcyon selected: Arrow Cursor, WindowShade Sounds, Desktop Pattern and About This Scheme enabled; the navy cursor on the desktop |
 | `dialog@2x.png` | the stock "different Folder and Trash icons … restart" alert, with Halcyon's alert frame and default ring |
@@ -95,8 +94,8 @@ in turn through **Select Scheme…** (fresh copies of the v16l seeds, sound off)
   banding or dithering beyond that.
 - **Still different from the web preview** (`../preview.png`):
   - a plain alert/dialog body is the system dialog grey `#E7E7E7` under the
-    frame's white top band; the web runtime fills it white (runtime finding,
-    seen again);
+    frame's white top band; the web runtime filled it white at the time (since
+    fixed: the web now uses the same dialog colour, #585);
   - the title is bitmap Chicago 12, narrower than the web font, so the title
     pill is narrower;
   - Finder icons, cursors, sounds, Finder Colors and Accent Color stay on the

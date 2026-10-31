@@ -36,7 +36,7 @@ Light from the upper-left: `hi` on top edges of bricks, on the left arc of studs
 
 ## 2. Chosen target
 
-**`concept-2a.jpg`** (preview `concept-2a-preview.png`). It has the crane, the loose
+**`concept-2a`**, committed as `concept.jpg` (the other runs were not kept). It has the crane, the loose
 brick stack, the wheel grow box, the green stud baseplate, the staggered side
 courses, round-stud widgets, brick buttons and a brick progress bar; all in flat
 colour with crisp outlines. `concept-1a` is a cleaner but plainer version (useful

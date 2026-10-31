@@ -1,6 +1,6 @@
 // Midnight 2027's control-panel extras (classic Kaleidoscope only; the web
 // runtime draws none of them). Builders and ids:
-// tools/theme-author/classic-extras.js, docs/authoring-a-scheme.md §6.
+// tools/theme-author/classic-extras.js, docs/authoring-a-scheme.md §7.2.
 //
 //   About This Scheme   DLOG/DITL -14320 + cicn 128 (the picker icon) + STR# -14320
 //   Arrow Cursor        crsr 0 and the Finder's -20486/-20487/-20488: a navy

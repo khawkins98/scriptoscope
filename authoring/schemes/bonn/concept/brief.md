@@ -43,7 +43,7 @@ the discs; the right pier gets a 1 px `#cc9966` column; roofs lit on the left sl
 
 ## 2. Chosen target
 
-**`concept-1b.jpg`** (preview `concept-1b-preview.png`). Its skyline stands *on* the
+**`concept-1b`**, committed as `concept.jpg` (the other runs were not kept). Its skyline stands *on* the
 bar as a silhouette group that breaks the rectangle (the Animals way), the bridge
 arch cuts into the water band, the side piers are real ashlar, the pennant is the
 title, and the widgets are a matching disc family. `concept-1c` (the framed "view"
@@ -131,7 +131,7 @@ pixels around a `#cc6699` centre); zoom = disc halved red over yellow with a 3 �
   check. *Radio*: 12 px disc; on = `#cc0000` 5 px dot with 1 px `#ffcc00` ring.
 - *Scroll bar* 16 px: track = Rhine (`#339999` with white dashes), arrows =
   sandstone plates with 5 px `#cc0000` arrowheads (red stays small), thumb = a
-  sandstone block with three 1 px `#ffffff` foam dots (the visual-design fix).
+  sandstone block with three 1 px `#ffffff` foam dots (crisp grips, visual-design §2.2).
 - *Slider*: track = river band 5 px; thumb = the mooring bollard disc.
 - *Progress*: sandstone channel, fill = Rhine teal with foam dashes; indeterminate =
   a small barge silhouette (`#336666`, 12 × 5) moving along.

@@ -45,7 +45,7 @@ left tower. Roofs: lit tile rows on the left half, `#660000` on the right third.
 
 ## 2. Chosen target
 
-**`concept-1c.jpg`** (preview `concept-1c-preview.png`). It has the tower scale,
+**`concept-1c`**, committed as `concept.jpg` (the other runs were not kept). It has the tower scale,
 the merlon rhythm, the banner, the barrel thumb, the portcullis corner, the moat
 plinth and the arrow slits all at once, with the best-balanced stone (big blocks,
 flat faces). `concept-1a`/`1b` are the same composition with worse text.

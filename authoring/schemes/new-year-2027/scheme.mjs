@@ -11,7 +11,7 @@
 // are gold-rimmed navy discs with whole-pixel glyphs; push buttons are navy in
 // gold and invert to gold when pressed.
 //
-// Concept first (docs/authoring-visual-design.md §3.3): concept/brief.md,
+// Concept first (docs/authoring-a-scheme.md §4): concept/brief.md,
 // concept/brief-concept.txt → concept/concept.jpg, then paint-over
 // (npm run paint-over) at the concept's 3.7 px scale for the ornaments
 // (art.mjs says what was measured and how it was cleaned up).

@@ -1,5 +1,5 @@
 // Brickworks palette. Colours are what you want to SEE (sRGB); the encoder
-// applies the classic-Mac gamma pre-compensation (authoring guide §4.4).
+// applies the classic-Mac gamma pre-compensation (authoring guide §3.4).
 //
 // Flat glossy plastic, four steps per brick and nothing in between: `hi` (the
 // lit top row, the lit left arc of a stud), `base` (the face), `lo` (the

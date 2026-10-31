@@ -6,7 +6,7 @@
 // (pose, proportions, shading). Instead, take the region you want (the bird,
 // a corner tower, a widget), shrink it back to 1× here, snap every pixel to
 // your palette, and then clean the result up by hand in code: fix the outline,
-// straighten tiles, remove stray pixels. See docs/authoring-visual-design.md §3.3.
+// straighten tiles, remove stray pixels. See docs/authoring-a-scheme.md §4.3.
 //
 // Each output pixel looks at its scale × scale block of source pixels, snaps
 // each one to the nearest palette colour and keeps the most common colour

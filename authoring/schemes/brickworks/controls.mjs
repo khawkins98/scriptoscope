@@ -1,6 +1,6 @@
 // Brickworks push buttons, default ring, checkboxes and radio buttons.
 //
-// Push faces (authoring guide §5 item 3): the engine copies the four
+// Push faces (authoring guide §6.1): the engine copies the four
 // cornerSize corners 1:1, stretches the sideThickness bands, and fills the
 // middle with ONE colour read at bgPixel. So a button is a yellow brick whose
 // top band is transparent above a 1px outline, and each 9×9 corner carries

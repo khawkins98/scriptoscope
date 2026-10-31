@@ -1,32 +1,36 @@
 # Getting scheme art from AI tools
 
-*Research log, 2026-10-30. Companion to [`authoring-a-scheme.md`](./authoring-a-scheme.md).
-Everything here was tried without setting up any new API keys: Google's
-Antigravity CLI (`agy` 1.4.10, already signed in), free local tools, and
-Claude in this session. Raw outputs are in
+*A reference for the AI steps of the workflow in
+[`authoring-a-scheme.md`](./authoring-a-scheme.md) §4: the concept image
+(step 2) and small sprites. Research log from 2026-10-30, updated with how the
+first-party concepts were made. Everything here was tried without setting up
+any new API keys: Google's Antigravity CLI (`agy` 1.4.10, already signed in),
+free local tools, and Claude. Raw outputs are in
 [`authoring/experiments/`](../authoring/experiments/).*
 
 ## Summary
 
-**Ask a model for code or text grids, not pictures.** Kaleidoscope art has hard
-rules:
+**For final pixels, ask a model for code or text grids, not pictures.**
+Kaleidoscope art has hard rules:
 
 - exact pixel sizes;
 - a 1-bit mask;
-- at most 256 colours (`fitPalette` merges the rarest ones, authoring guide §4.5);
-- hidden swatch pixels at exact coordinates ([authoring guide §4](./authoring-a-scheme.md#4-five-ideas-you-need)).
+- at most 256 colours ([authoring guide §3.5](./authoring-a-scheme.md#35-smooth-edges-dithering-and-the-colour-budget));
+- hidden swatch pixels at exact coordinates ([authoring guide §3.3](./authoring-a-scheme.md#33-some-colours-live-on-hidden-pixels)).
 
 Text output lets the model commit to each pixel, and the result stays editable.
 Image models aim for a picture *of* pixel art, and their output can't be
-forced onto the right grid afterwards.
+forced onto the right grid afterwards. They are still the right tool for the
+**concept image**: a picture of the finished window to aim at and to paint
+over (`npm run paint-over`), never to ship as is.
 
 | Route | Result | Use it for |
 |---|---|---|
 | **claude-pxl + any good model** (model writes a `.px.js` file) | Exact sizes, alpha strictly 0/255, every sprite round-tripped exactly; a Halcyon variant rendered correctly | **Best zero-key route.** Control sprites, icons |
 | `agy` → ASCII rows (`--json-schema`) | Exact size and palette on the first try | Single small sprites |
 | `agy` → `Raster` drawing code (`--json-schema`) | Correct slider thumb and title buttons on the first try | Shapes with gradients; anything parametric |
-| `agy` image generator | 1024×1024 JPEG, painted checkerboard, wrong grid, ignored path | Mood boards only |
-| Image generator + flat green background + cleanup | Clean 3-colour sprite, but on the model's own grid (20×20, not 16×16) | Concept art you then redraw |
+| `agy` image generator | 1024×1024 JPEG, painted checkerboard, wrong grid, ignored path | **Concept images** (§3.1), which you then paint over |
+| Image generator + flat green background + cleanup | Clean 3-colour sprite, but on the model's own grid (20×20, not 16×16) | Not worth it for sprites |
 
 The best model inside `agy` was **Claude Opus 5.5 (medium)**: as good as the
 best Gemini output and about six times faster.
@@ -80,13 +84,6 @@ changed. This matters because the encoder treats alpha 1–127 as a hidden
 swatch, so an anti-aliased edge would otherwise turn into invisible palette
 pixels.
 
-**Unattended image runs are flaky.** Generating Midnight 2027's concept took
-five `agy` image runs; four ended "subagent cancelled" at the print timeout
-and produced nothing, two of them because runs overlapped. Run one image
-job at a time, give it a long `--print-timeout` (1500s), and expect to
-retry. Keep every prompt in the scheme's `concept/brief-*.txt` so a retry
-is one command.
-
 ## 2. Text routes in `agy`
 
 Run from a scratch directory, not the repo, and ask for structured output so
@@ -132,6 +129,29 @@ contention. Honest caveats:
 ![Title-button drawing code, Opus (top) and Gemini Flash High (bottom)](../authoring/experiments/agy/model-comparison-code.png)
 
 ## 3. The image route
+
+### 3.1 Concept images
+
+Every first-party concept (`authoring/schemes/*/concept/concept.jpg`) came
+from `agy`'s image generator, driven by Claude Opus 5.5 (medium), with the
+prompt in the scheme's `concept/brief-*.txt` and a few corpus schemes'
+reference images (`animals`, `monkey-paradise`, `evolution`, `crayon-os`)
+for the period look. The prompt names the scheme, the big idea, the
+signature ornaments and where they sit, the palette, and the window title
+text. Each scheme's `concept/brief.md` §2 records which run was chosen and
+why.
+
+- **Unattended runs are flaky.** Generating Midnight 2027's concept took
+  five runs; four ended "subagent cancelled" at the print timeout and
+  produced nothing, two of them because runs overlapped. Run one image job
+  at a time, give it a long `--print-timeout` (1500s), and expect to retry.
+- **Measure the result.** The concepts came out at 2.5–3.7 screen pixels per
+  art pixel; measure it before painting over (authoring guide §4.3).
+- **Expect to correct it.** Concepts put ornaments outside the window,
+  progress bars inside the frame art, or soft glows the format can't show.
+  Note the corrections in the brief.
+
+### 3.2 Sprites from an image model
 
 `agy`'s `image-generator` subagent calls a tool named `generate_image`. By the
 subagent's own description, the tool takes a prompt, a name, an aspect ratio
@@ -217,17 +237,18 @@ Agent Skills we found:
   to the model and asking it to fix its own sprite.
 - **Whole window frames from an image model or claude-pxl.** Frames have the
   tightest rules, so they need the checker in the loop. (Agents *have* written
-  whole frames as drawing code: Castle, Brickworks and Bonn were each built by
-  a fresh agent from the guides, with `frameLayout`'s checks and `checkScheme`
-  in the loop. Their friction logs are in
-  [`authoring/experiments/round-logs/`](../authoring/experiments/round-logs/).)
+  whole frames as drawing code: Castle, Brickworks and Bonn were each first
+  built by a fresh agent from these guides, with `frameLayout`'s checks and
+  `checkScheme` in the loop. What those rounds taught is now in the guides
+  and in `LEARNINGS.md`.)
 - **More states and sizes through claude-pxl:** pressed and disabled sprites,
   and larger art such as icons or frames.
 - **More drawing-code models:** beyond the two best row models, and more than
   one run per model, so we can't say how consistent any model is.
-- **Reference images for the image route.** `generate_image` accepts reference
-  images; giving it a template sprite or a palette strip might pull it onto the
-  right grid.
+- **Reference images for sprites.** `generate_image` accepts reference
+  images, and the concepts used corpus screenshots for the period look. Giving
+  it a template sprite or a palette strip might pull a sprite onto the right
+  grid; that hasn't been tried.
 - **Aseprite's command line** for indexed conversion, since it isn't installed here.
-- **Loading the claude-pxl variant in real Kaleidoscope.** Halcyon, Castle,
-  Brickworks and Bonn have been run in the emulator; the variant hasn't.
+- **Loading the claude-pxl variant in real Kaleidoscope.** All five
+  first-party schemes have been run in the emulator; the variant hasn't.

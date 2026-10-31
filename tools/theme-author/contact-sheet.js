@@ -2,8 +2,8 @@
 // grouped by family, with its id and size underneath. Optionally a second
 // panel shows the same images through the 8-bit simulation (sim8.js).
 //
-// It answers "do the widgets belong to one family?" in a glance (design guide
-// docs/authoring-visual-design.md §3, step 6). `npm run author -- <dir> --sheet`
+// It answers "do the widgets belong to one family?" in a glance
+// (docs/authoring-a-scheme.md §4.5). `npm run author -- <dir> --sheet`
 // writes it to <dir>/sheet.png; don't commit it.
 //
 // Pure and portable: takes resource entries ({ type, id, data }), returns
@@ -14,7 +14,7 @@ import { decodePpat } from '../theme-loader/decoders/ppat.js';
 import { gammaCorrectRgba } from '../theme-loader/mac-gamma.js';
 import { simulate8bit } from './sim8.js';
 
-// Families by id, in display order (docs/authoring-a-scheme.md §6).
+// Families by id, in display order (docs/authoring-a-scheme.md §7.1).
 const FAMILIES = [
   ['windows', (t, id) => t === 'cicn' && ((id >= -14336 && id <= -14284 && ![-14334, -14333, -14330, -14329, -14298, -14297].includes(id)) || id === -12320 || id === -12319)],
   ['window widgets', (t, id) => t === 'cicn' && [-14334, -14333, -14330, -14329, -14298, -14297].includes(id)],

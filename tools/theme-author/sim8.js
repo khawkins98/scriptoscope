@@ -10,7 +10,7 @@
 // The first step undoes the loader's 1.8 → 2.2 display transform
 // (tools/theme-loader/mac-gamma.js), the last one re-applies it, so the output
 // can sit next to a web preview. Quantising the on-screen values directly (as the
-// first prototype did, authoring/experiments/design-review/sim8.py) picks a
+// first Python prototype did) picks a
 // different entry for many mid-tones, because the gamma curve moves them across
 // palette cells.
 //

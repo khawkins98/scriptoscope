@@ -14,8 +14,6 @@ fidelity evidence. The general findings about tall frames are in
 | `narrow-title-drop@3x.png` | left: 153 px wide, title, cathedral and palace all gone; right: 188 px wide, "Sy…" with both landmarks back |
 | `menubar-clips-skyline@3x.png` | the window dragged up to the menu bar: the whole skyline is under it |
 | `water-zoom@4x.png` | the bridge and river in the bottom band |
-| `desktop-before-repaint@2x.png` | the 2026-10-30 build, before the paint-over from the concept art |
-| `water-zoom-before-redesign@4x.png` | the build before the visual design pass |
 | `about@2x.png` | About This Scheme: the about box over the control panel |
 | `cursor@6x.png` | the arrow cursor over the desktop pattern (crop of `desktop@2x.png`) |
 | `scheme-picker@2x.png` | the Select Scheme list with the scheme icons |
@@ -116,5 +114,5 @@ One clean boot that switched Halcyon → Castle → Brickworks → Bonn → Midn
 ## Earlier run (2026-10-30)
 
 One clean boot; then redone after the visual design pass
-(`docs/authoring-visual-design.md`). Files named `*-before-redesign*` show
-that earlier build.
+(`docs/authoring-visual-design.md`). The screenshots of those earlier builds
+were removed when the scheme was repainted from its concept.
