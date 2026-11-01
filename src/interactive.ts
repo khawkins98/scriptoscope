@@ -875,7 +875,7 @@ const shadowFocusSheet: CSSStyleSheet = (() => {
       outline: 2px solid Highlight;
       outline-offset: 1px;
     }
-    .scriptoscope-hit-layer[data-scriptoscope-clipped] :is(.scriptoscope-titlewidget, .scriptoscope-movehandle,
+    .scriptoscope-hit-layer :is(.scriptoscope-titlewidget, .scriptoscope-movehandle,
       .scriptoscope-growbox, .scriptoscope-window-scrollbar):focus-visible {
       outline: none;
     }
@@ -1383,12 +1383,12 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     if (!composed?.structure) return prepared;
     const title = entry.opts.title ?? '(untitled)';
     try {
-      const region = regionPath(composed.structure(), Math.max(1, Math.round(prepared.opts.scale ?? 1)));
+      const region = regionPath(composed.structure(prepared.collapsed), Math.max(1, Math.round(prepared.opts.scale ?? 1))); // HP8
       if (!region) throw new Error('empty structure region');
-      debug('region', `${title} — built`, { length: region.length });
+      debug('region', 'built', { title, length: region.length });
       return { ...prepared, region };
     } catch (error) {
-      debug('region', `${title} — build failed; box hit area for this commit`, { error }); // HP44
+      debug('region', 'build failed', { title, error }); // HP44: box hit area for this commit
       return { ...prepared, region: null };
     }
   }
@@ -1591,18 +1591,19 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     layers.hit.style.clipPath = region ? `path("${entry.region}")` : '';
     layers.hit.style.pointerEvents = region ? 'auto' : '';
     l1.style.pointerEvents = entry.host.style.pointerEvents = region ? 'none' : '';
-    layers.hit.toggleAttribute('data-scriptoscope-clipped', region);
     entry.host.setAttribute('data-scriptoscope-hit-effective', mode);
     this.placeRing(entry);
   }
 
-  /** HP28: in `region` mode L3 draws the focus ring of the focused title widget, grow box or window
-   *  scrollbar, with the control's border box and outline offset, iff it matches :focus-visible. */
+  /** HP28: L3 draws the focus ring of the focused chrome control (title widget, move handle, grow box,
+   *  window scrollbar), with its border box and outline offset, iff it matches :focus-visible. It does so
+   *  in both modes, so the ring is never clipped (region) or covered by a later overlay (box) and both
+   *  modes look the same. */
   private placeRing(entry: ManagedWindow<Theme>): void {
     const layers = entry.layers;
     if (!layers) return;
     const el = entry.host.shadowRoot?.activeElement as HTMLElement | null;
-    const show = !!el && layers.hit.hasAttribute('data-scriptoscope-clipped') && layers.hit.contains(el)
+    const show = !!el && layers.hit.contains(el)
       && el.matches(RING_CONTROLS) && el.matches(':focus-visible');
     layers.ring.hidden = !show;
     if (!show) return;
@@ -1618,7 +1619,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     if (entry.closedRoot === undefined && entry.host.isConnected) {
       const root = entry.host.getRootNode();
       entry.closedRoot = root instanceof ShadowRoot && root.mode === 'closed';
-      if (entry.closedRoot) debug('region', `${entry.opts.title ?? '(untitled)'} — in a closed shadow root; no outside-press deactivation`);
+      if (entry.closedRoot) debug('region', 'closed shadow root', { title: entry.opts.title ?? '(untitled)' });
     }
     return !entry.closedRoot;
   }

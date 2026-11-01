@@ -261,7 +261,8 @@ export function windowCell(layout: WindowLayout, side: number, i: number): { t: 
  * have no runtime input: no public window type maps to a rect-only procID (HP5), and a missing
  * template leaves the window on its box (HP7).
  */
-export function windowStructure(layout: WindowLayout, template: Pixmap, width: number, height: number): Region {
+export function windowStructure(layout: WindowLayout, template: Pixmap, width: number, height: number,
+  collapsed = layout.flags.collapsed): Region {
   const r = newRegion({ width, height }), { A, B, C, flags: f } = layout;
   if (C.right - C.left <= 1 && C.bottom - C.top <= 1) { // SR4; U4: the bottom term reads C.r, as decoded
     regionAddRect(r, rect(C.top - A.top + B.top, C.left - A.left + B.left, C.right - A.bottom + B.bottom, C.right - A.right + B.right));
@@ -269,7 +270,7 @@ export function windowStructure(layout: WindowLayout, template: Pixmap, width: n
   }
   regionAddRect(r, C); // SR5, SR11
   for (const sd of WINDOW_SIDES) {
-    if (f.collapsed && sd.horizontal === f.sideTitle) continue; // SR6
+    if (collapsed && sd.horizontal === f.sideTitle) continue; // SR6; HP8: the caller's collapsed state
     const s = layout.sides[sd.side];
     for (let i = 1; s && i < s.S.length; i++) {
       const { t, p } = windowCell(layout, sd.side, i);

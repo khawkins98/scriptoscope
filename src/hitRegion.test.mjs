@@ -64,3 +64,16 @@ for (const slug of ['dolphin-som', 'animals', '1984', 'windows-95']) {
     }
   });
 }
+
+test('animals collapsed titled utility: a collapsed build walks only the title-axis sides (SR6, HP8)', async () => {
+  const path = ['scheme.sit', 'scheme.rsrc'].map(p => new URL(p, new URL('../themes/animals/', import.meta.url))).find(existsSync);
+  const decoded = await loadKaleidoscopeScheme(readFileSync(path), { encodeAssets: false });
+  const wt = decoded.manifest.windowTypes['collapsed-titled-utility'] ?? decoded.manifest.windowTypes['titled-utility-window'];
+  const asset = decoded.assets.find(a => a.path === wt.chrome.active);
+  const c = composeWindowChrome(new PixelBuffer(asset.width, asset.height, new Uint8ClampedArray(asset.rgba)), wt, 320, 0);
+  const four = c.structure(), two = c.structure(true);
+  let dropped = 0, added = 0;
+  for (let i = 0; i < four.bits.length; i++) { if (four.bits[i] && !two.bits[i]) dropped++; if (two.bits[i] && !four.bits[i]) added++; }
+  assert.equal(added, 0);
+  assert.ok(dropped > 0, 'side cells drawn at height 0 leave the region');
+});

@@ -76,7 +76,7 @@ A pointer press on the frame or the grow box moves keyboard focus into that wind
 
 ### Focus rings
 
-- Chrome controls: a 2 px `Highlight` outline on `:focus-visible`, from a stylesheet the runtime adopts into every window's shadow root. It doesn't depend on `scriptoscope.css`. In `region` mode the ring of a title widget, the move handle, the grow box or a scroll bar is drawn by an unclipped decoration layer instead of the control itself, so it looks the same and stays whole over transparent frame pixels.
+- Chrome controls: a 2 px `Highlight` outline on `:focus-visible`, from a stylesheet the runtime adopts into every window's shadow root. It doesn't depend on `scriptoscope.css`. The ring of a title widget, the move handle, the grow box or a scroll bar is drawn by the window's unclipped decoration layer instead of the control itself, in both hit modes, so it stays whole over transparent frame pixels and is never covered by a neighbouring control.
 - With the optional `scriptoscope.css`: `[data-scriptoscope-promoted]:focus-visible` gets an outline in `--scriptoscope-focus-color` (default `rgb(0 95 204)`) at `--scriptoscope-focus-width` (default 2px). A separate rule, using the same two variables, paints focus of a promoted `<select>` on its wrapper (`.scriptoscope-select:focus-within`) and of a promoted range on its themed slider (`input[type=range][data-scriptoscope-promoted]:focus + .scriptoscope-slider`). It matches `:focus`, not `:focus-visible`, so it also shows after a pointer press.
 - Promoted checkboxes and radios draw a 2 px `currentColor` outline on their face while the native input has focus. This is inline, so it doesn't need the stylesheet.
 

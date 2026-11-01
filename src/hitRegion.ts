@@ -12,7 +12,7 @@ export function parseHit(value: unknown, where: string): HitMode | undefined {
   if (value == null) return undefined;
   const v = String(value).trim().toLowerCase();
   if (v === 'region' || v === 'box') return v;
-  debug('region', `${where}: ignored hit value ${JSON.stringify(value)}`);
+  debug('region', 'ignored hit value', { where, value });
   return undefined;
 }
 
