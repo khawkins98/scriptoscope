@@ -142,8 +142,8 @@
   },
   "provenance": {
     "gitCommit": null,
-    "bundleSha256": "8bd803019a32e9f3529a9be3377e229efe18ea1588a8eeb827771a0faa6f6845",
+    "bundleSha256": "9af525e75bec7b15f5f047f6f37bf018d19c9af896f24e954d7a4c5b7279e204",
     "stylesheetSha256": "9b8e012dd6d3865737e46c5679eb7b36ca20f50f3bd5ac3d36bfc30fa0cd65b3",
-    "packageLockSha256": "2ca4262d0293180368d884dcc5df9ec5f5fac065d1d4c84acebe1361bf0f1a9a"
+    "packageLockSha256": "29eb877dcc0ad0c0f99fcbbf4b1e71eaec1899eb8d68611ab47c1791d5c5fda4"
   }
 }
