@@ -40,6 +40,9 @@ const checkAgainst = (page, name, old, { limit = 400, opts = {} } = {}) => page.
   return { W: o.W, H: o.H, changed: changed.length, newlyOut: newlyOut.length, nowInC: nowInC.length, mismatches };
 }, { name, old, limit, opts });
 
+/** Ghost outlines anywhere on the window: L3 (HP31) or the host's light DOM. */
+const outlines = page => page.evaluate(() => { const h = window.__fpt.hosts.A.host;
+  return h.querySelectorAll(':scope > div[style*="dotted"]').length + h.shadowRoot.querySelectorAll('div[style*="dotted"]').length; });
 const growbox = (page, name) => page.evaluate(name => {
   const b = window.__fpt.hosts[name].host.shadowRoot.querySelector('button.scriptoscope-growbox'), r = b.getBoundingClientRect();
   return { x: r.x + r.width / 2, y: r.y + r.height / 2, rect: r.toJSON() };
@@ -316,6 +319,17 @@ for (const mode of MODES) {
       }
       await page.mouse.up(); await settle(page);
       expect(ink.every(n => n > 0), `${hit}: outline ink beyond the old box ${ink}`).toBe(true);
+      expect(await outlines(page), `${hit}: outline gone after release`).toBe(0);
+      // Ended by pointercancel at the capture target.
+      const gb2 = await growbox(page, 'A');
+      await page.evaluate(() => { addEventListener('pointerdown', e => { window.__pid30 = e.pointerId; }, { capture: true, once: true }); });
+      await page.mouse.move(gb2.x, gb2.y); await page.mouse.down(); await page.mouse.move(gb2.x + 40, gb2.y + 30, { steps: 4 });
+      expect(await outlines(page), `${hit}: outline shown before the cancel`).toBe(1);
+      await page.evaluate(() => { const b = window.__fpt.hosts.A.host.shadowRoot.querySelector('button.scriptoscope-growbox');
+        b.dispatchEvent(new PointerEvent('pointercancel', { pointerId: window.__pid30, pointerType: 'mouse', bubbles: true, composed: true })); });
+      await settle(page);
+      expect(await outlines(page), `${hit}: outline gone after pointercancel`).toBe(0);
+      await page.mouse.up(); await settle(page);
     }
   });
 
@@ -367,6 +381,29 @@ for (const mode of MODES) {
       expect((await events(page)).filter(e => e.at === 'sentinel' && ['pointerdown', 'pointerup', 'click'].includes(e.type)), `retheme=${retheme}: sentinel`).toEqual([]);
       expect(end.active, `retheme=${retheme}: still active`).toBe(true);
     }
+    // Pointer leaves the window: a grow-box resize dragged inward past the minimum size, released
+    // over page content (the sentinel covers the area around the box).
+    await page.evaluate(async () => { const f = window.__fpt; f.reset(); f.manager(); await f.add('A', { slug: 'dolphin-som', left: 400, top: 300, w: 200, h: 120 }); });
+    const shrink = async () => {
+      const gb = await growbox(page, 'A');
+      await events(page);
+      await page.mouse.move(gb.x, gb.y); await page.mouse.down();
+      await page.mouse.move(gb.x - 200, gb.y - 150, { steps: 5 }); await page.mouse.move(gb.x - 380, gb.y - 280, { steps: 5 });
+      const at = { x: gb.x - 380, y: gb.y - 280 };
+      const box = await page.evaluate(() => window.__fpt.hosts.A.host.getBoundingClientRect().toJSON());
+      await page.mouse.up(); await settle(page, 300);
+      return { at, outside: at.x < box.left || at.y < box.top, size: await page.evaluate(() => { const g = window.__fpt.geom('A'); return [g.W, g.H]; }) };
+    };
+    const size0 = await page.evaluate(() => { const g = window.__fpt.geom('A'); return [g.W, g.H]; });
+    const first = await shrink();
+    expect(first.outside, 'the release point is outside the window box').toBe(true);
+    expect(await page.evaluate(p => window.__fpt.hitAt(p.x, p.y), first.at), 'the page lies under the release point').toBe('sentinel');
+    expect((await events(page)).filter(e => e.at === 'sentinel' && ['pointerdown', 'pointerup', 'click'].includes(e.type)), 'sentinel: no press, release or click').toEqual([]);
+    expect(first.size[0] < size0[0] && first.size[1] < size0[1], `resize committed ${size0} -> ${first.size}`).toBe(true);
+    expect((await state(page, 'A')).active, 'still active').toBe(true);
+    const second = await shrink();
+    expect(second.size, 'committed at the minimum size (a further inward drag changes nothing)').toEqual(first.size);
+    expect((await state(page, 'A')).active).toBe(true);
   });
 
   for (const phase of ['commits', 'collapse']) test(`${mode}: HPT35 (${phase}) L2, the canvas and every overlay keep their identity${phase === 'commits' ? '; focus survives a retheme' : ' across collapse and expand'}`, async ({ page, servers }) => {
