@@ -190,8 +190,15 @@ for (const mode of MODES) {
     await settle(page, 300);
     expect((await events(page)).filter(e => e.at === 'sentinel').map(e => e.type), 'press over excluded pixels reaches the page').toContain('pointerdown');
     expect(await page.evaluate(() => { const g = window.__fpt.geom('G'); return [g.W, g.H]; }), 'no resize').toEqual([r.W, r.H]);
-    await page.mouse.move(r.inVp.x, r.inVp.y); await page.mouse.down(); await page.mouse.move(r.inVp.x + 30, r.inVp.y + 20, { steps: 4 }); await page.mouse.up();
-    await settle(page, 300);
+    // The pass-through press is an outside press, so it deactivated G (HP39, #620). By
+    // #614 IP14 the first grow-box press on the now inactive G only activates it; the
+    // next press inside C resizes.
+    expect((await state(page, 'G')).active, 'the outside press deactivated G').toBe(false);
+    const growInside = async () => { await page.mouse.move(r.inVp.x, r.inVp.y); await page.mouse.down(); await page.mouse.move(r.inVp.x + 30, r.inVp.y + 20, { steps: 4 }); await page.mouse.up(); await settle(page, 300); };
+    await growInside();
+    expect((await state(page, 'G')).active, 'press inside C activates G').toBe(true);
+    expect(await page.evaluate(() => { const g = window.__fpt.geom('G'); return [g.W, g.H]; }), 'first press on inactive G: no resize').toEqual([r.W, r.H]);
+    await growInside();
     expect(await page.evaluate(() => { const g = window.__fpt.geom('G'); return [g.W, g.H]; }), 'press inside C resizes').toEqual([r.W + 30, r.H + 20]);
   });
 
@@ -358,6 +365,13 @@ for (const mode of MODES) {
     await page.mouse.click(r.outVp.x, r.outVp.y); await settle(page);
     expect((await events(page)).filter(e => e.at === 'sentinel').map(e => e.type), 'outside S: the press reaches the page').toContain('pointerdown');
     expect(await page.evaluate(() => window.__closes), 'outside S: no handler').toBe(0);
+    // The pass-through press is an outside press, so it deactivated W (HP39, #620). By
+    // #614 IP1 the first click inside S on the now inactive W only activates it; the
+    // next click runs the handler.
+    expect((await state(page, 'W')).active, 'the outside press deactivated W').toBe(false);
+    await page.mouse.click(r.inVp.x, r.inVp.y); await settle(page);
+    expect((await state(page, 'W')).active, 'inside S: the press reaches W and activates it').toBe(true);
+    expect(await page.evaluate(() => window.__closes), 'inside S on inactive W: no handler yet').toBe(0);
     await page.mouse.click(r.inVp.x, r.inVp.y); await settle(page);
     expect(await page.evaluate(() => window.__closes), 'inside S: the handler runs').toBe(1);
   });
