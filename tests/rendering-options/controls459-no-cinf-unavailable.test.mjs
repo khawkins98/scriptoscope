@@ -3,8 +3,9 @@
 // every other byte of the 1.0.17 inventory is recoverable, and the cited PF section is pinned.
 import test from 'node:test';import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';import {createHash} from 'node:crypto';
 import {delta608 as delta,peel608,active608} from './controls459/peel-608.mjs';
+import {peel611} from './controls459/peel-611.mjs';
 const read=p=>JSON.parse(readFileSync(new URL(p,import.meta.url))),hash=b=>createHash('sha256').update(b).digest('hex');
-const live=read('../control-availability/expectations.json'),prior459=read('../control-availability/corrections/459-no-cinf-admission.json');
+const live=peel611(read('../control-availability/expectations.json')),prior459=read('../control-availability/corrections/459-no-cinf-admission.json');
 const terminal={role:'face',action:'missing',basis:'source-dispatch',usage:'paint',reason:'engine:PB9:cinf:NULL'};
 test('608 transition moves exactly the nine no-cinf rows to unavailable and nothing else',()=>{
  assert.equal(delta.status,'candidate-requires-independent-review');assert.equal(delta.unlistedAvailability,'unknown');
