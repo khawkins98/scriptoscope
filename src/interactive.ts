@@ -95,6 +95,7 @@ import { SLIDER_HOST_BODY_BACKGROUND } from './engine/tables/slider.js';
 import { platinumSliderWithLayout, platinumScrollbar } from './platinum.js';
 import { findPositionedAncestor, offsetInContainingBlock, pointInElement, viewportFrame } from './positioning.js';
 import { debug } from './debug.js';
+import { parseHit, regionPath, type HitMode } from './hitRegion.js';
 import { renderWindow, resolveTitleWidgetRects, type RenderWindowOptions } from './renderWindow.js';
 import type { PixelBuffer } from './pixelBuffer.js';
 import type { SliderComposition, SliderLayout } from './sliderLayout.js';
@@ -742,7 +743,7 @@ function readingOrder(hits: TitleWidgetHit[]): TitleWidgetHit[] {
 
 // ── Window focus manager ────────────────────────────────────────────────────
 /** A prepared, not yet committed render; `opts` carries the resolved content size. */
-interface PreparedRender { win: HTMLElement; collapsed: boolean; opts: RenderWindowOptions; extent?: ChromeExtent }
+interface PreparedRender { win: HTMLElement; collapsed: boolean; opts: RenderWindowOptions; extent?: ChromeExtent; region?: string | null }
 
 interface ManagedWindow<Theme extends ThemeInput> {
   contentPort: ManagedContentPort;
@@ -800,6 +801,20 @@ interface ManagedWindow<Theme extends ThemeInput> {
   outer?: OuterSize | undefined;
   /** Frame totals of the last expanded commit; see chromeExtent(). */
   extent?: ChromeExtent;
+  /** The window's own hit-mode request (hit-regions HP10, HP11); absent: inherits the manager default. */
+  hit?: HitMode | undefined;
+  /** `clip-path` path of the structure region built at the last commit (HP22): absent for a window
+   *  that is not a recipe window, null when the build failed or was empty (HP44). */
+  region?: string | null | undefined;
+  /** Inside an open `openModal` wrap (HP42). */
+  modal?: boolean;
+  /** Host found inside a closed shadow root (HP47). */
+  closedRoot?: boolean;
+  /** A captured frame drag or grow-box resize holds L2's clip suspended (HP49); `ending`: a resize was
+   *  released and its render commit restores the clip with the new region. */
+  gesture?: boolean | 'ending';
+  /** HP26/HP43: the clipped layer L2 and the decoration layer L3 (with its focus ring), created once. */
+  layers?: { hit: HTMLElement; decor: HTMLElement; ring: HTMLElement };
 }
 
 /** Outer-box size request per axis (chrome included, unscaled px). */
@@ -858,9 +873,14 @@ const shadowFocusSheet: CSSStyleSheet = (() => {
     .scriptoscope-titlewidget:focus-visible,
     .scriptoscope-movehandle:focus-visible,
     .scriptoscope-growbox:focus-visible,
-    .scriptoscope-window-scrollbar:focus-visible {
+    .scriptoscope-window-scrollbar:focus-visible,
+    .scriptoscope-focus-ring {
       outline: 2px solid Highlight;
       outline-offset: 1px;
+    }
+    .scriptoscope-hit-layer :is(.scriptoscope-titlewidget, .scriptoscope-movehandle,
+      .scriptoscope-growbox, .scriptoscope-window-scrollbar):focus-visible {
+      outline: none;
     }
   `);
   return sheet;
@@ -872,7 +892,16 @@ export interface ManagedWindowState {
   height?: number;
   z?: number;
   collapsed?: boolean;
+  /** The window's own hit mode (hit-regions HP11): `null` returns it to the manager default. A
+   *  hit-only change is mode-only: no render and no change-listener call. */
+  hit?: HitMode | null;
 }
+
+/** No-op, non-passive: see applyHit (HP36). */
+const mainThreadWheel = (): void => {};
+
+/** Controls a managed window's ring may outline in `region` mode (hit-regions HP28). */
+const RING_CONTROLS = '.scriptoscope-titlewidget, .scriptoscope-movehandle, .scriptoscope-growbox, .scriptoscope-window-scrollbar';
 
 export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
   private windows: ManagedWindow<Theme>[] = [];
@@ -882,6 +911,27 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
   private zClock = 0;
   /** Optional listener fired post-render() + post-title-drag-mouseup. Persistence layer hooks here. */
   private onChange?: WindowChangeListener;
+  /** Page-wide hit-mode default (hit-regions HP14). */
+  private defaultHit: HitMode;
+  /** Document listeners for outside-press deactivation, held while the active window is tracked (HP38). */
+  private outside?: AbortController;
+  /** A touch press outside every window, waiting for its click (HP39). */
+  private pendingTap: number | null = null;
+
+  /** `hit`: the page-wide default for windows without their own request (`'region'` when
+   *  absent; hit-regions HP14). */
+  constructor(options: { hit?: HitMode } = {}) {
+    this.defaultHit = parseHit(options.hit, 'WindowManager') ?? 'region';
+  }
+
+  /** Change the page-wide hit default at runtime (HP41). Windows with their own request keep it. */
+  setDefaultHit(mode: HitMode): void {
+    const hit = parseHit(mode, 'setDefaultHit');
+    if (!hit) return;
+    this.defaultHit = hit;
+    for (const entry of this.windows) if (entry.hit === undefined) this.applyHit(entry);
+    this.syncOutside();
+  }
 
   /** Subscribe to render-affecting state changes. Used by the persistence layer (#165) to serialize. */
   setChangeListener(cb: WindowChangeListener | undefined): void {
@@ -890,7 +940,11 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
 
   /** Public read access to a managed window's current state (size, collapsed, z). Used by the
    *  persistence layer to snapshot. Returns null if the host isn't managed. */
-  describe(host: HTMLElement): { width?: number; height?: number; collapsed: boolean; z: number; theme: Theme } | null {
+  describe(host: HTMLElement): {
+    width?: number; height?: number; collapsed: boolean; z: number; theme: Theme;
+    /** HP45: activation, the window's own hit request (undefined: inherits) and its effective mode. */
+    active: boolean; hit: HitMode | undefined; hitEffective: HitMode;
+  } | null {
     const entry = this.windows.find((w) => w.host === host);
     if (!entry) return null;
     return {
@@ -899,6 +953,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       collapsed: entry.collapsed === true,
       z: entry.z,
       theme: entry.theme,
+      active: entry.active, hit: entry.hit, hitEffective: this.hitEffective(entry),
     };
   }
 
@@ -910,6 +965,13 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     if (!entry || signal?.aborted) return;
     for (const value of [state.width, state.height, state.z]) {
       if (value !== undefined && !Number.isFinite(value)) throw new TypeError('Window state must be finite');
+    }
+    // HP11: a mode-only change, applied now; omitted or unknown values leave the request unchanged.
+    const hit = state.hit === null ? null : parseHit(state.hit, 'applyState');
+    if (hit !== undefined && (hit ?? undefined) !== entry.hit) {
+      entry.hit = hit ?? undefined;
+      this.applyHit(entry);
+      this.syncOutside();
     }
     const opts = { ...entry.opts,
       ...(state.width !== undefined ? { width: state.width } : {}),
@@ -939,6 +1001,8 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     if (!current()) return;
     entry.opts = opts;
     entry.outer = outer;
+    // HP49: a collapse or expand mid-gesture restores the clip with this commit, as toggleCollapse does.
+    if (collapsed !== (entry.collapsed === true)) entry.gesture = false;
     entry.collapsed = collapsed;
     entry.z = z;
     this.zClock = Math.max(this.zClock, z);
@@ -971,6 +1035,8 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       /** Outer-box bounds per axis (chrome included); see setOuterSize. A bounded axis
        *  ignores `opts.width`/`opts.height`. */
       outerSize?: OuterSize;
+      /** The window's own hit mode (hit-regions HP11); omitted inherits the manager default. */
+      hit?: HitMode;
     } = {},
   ): Promise<HTMLElement> {
     const host = document.createElement('div');
@@ -978,6 +1044,8 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     // also carry data-scriptoscope-promoted, so it cannot identify a window.
     host.setAttribute('data-scriptoscope-window-host', '');
     host.style.position = 'absolute';
+    // HP27: consumer CSS cannot clip the host's decoration layer.
+    host.style.clipPath = 'none';
     // SHADOW DOM (ADR-0001 Decision 2): attach a shadow root to the host. The window's chrome
     // canvas + DOM-twin widgets + grow box + themed scrollbars all live inside the shadow root —
     // shielded from host-page CSS that targets div/canvas/button universally or via resets. The
@@ -1013,6 +1081,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       ...(extra.contentEl ? { contentEl: extra.contentEl } : {}),
       ...(extra.enabledWidgets !== undefined ? { enabledWidgets: extra.enabledWidgets } : {}),
       outer: extra.outerSize,
+      hit: parseHit(extra.hit, 'WindowManager.add'),
     };
     if (extra.z != null && extra.z > this.zClock) this.zClock = extra.z; // keep clock above declared
     this.windows.push(entry);
@@ -1024,6 +1093,16 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     // already frontmost, so moves within it cost nothing; the render keeps overlays mounted (#533),
     // so focus stays put and no second focusin follows. z-order only: geometry is untouched.
     host.addEventListener('focusin', () => { if (!entry.active) void this.focus(entry); });
+    // HP42: openModal and promotion announce modal-wrap changes on the host.
+    host.addEventListener('scriptoscope:modalchange', () => {
+      if (!this.windows.includes(entry)) return;
+      const modal = !!host.closest('[data-scriptoscope-modal-open]');
+      if (modal !== !!entry.modal) { entry.modal = modal; this.applyHit(entry); }
+      this.syncOutside();
+    });
+    // HP28: the decoration ring follows keyboard focus among the window's controls.
+    for (const type of ['focusin', 'focusout']) host.shadowRoot?.addEventListener(type, () => queueMicrotask(() => this.placeRing(entry)));
+    this.syncOutside();
     try {
       await this.render(entry);
       entry.initializing = false;
@@ -1050,6 +1129,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     // The bars are reused across renders, so a removed window detaches them here.
     for (const axis of ['vertical', 'horizontal']) this.dropOverlay(this.windows[i]!, `window-scrollbar-${axis}`);
     this.windows.splice(i, 1);
+    this.syncOutside();
     // Drag-handoff placeholder cleanup (toAbsolute inserts one to keep the
     // page from shifting when an in-flow host lifts to absolute). Removed
     // here so the flow slot closes back up when the window unmounts.
@@ -1222,6 +1302,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
         const result = prepared.get(entry)!;
         entry.renderEpoch++; // invalidate any older standalone render
         entry.theme = theme;
+        entry.gesture = false; // ruling A: a retheme mid-gesture restores the clip with its commit
         this.commitRender(entry, result, false);
         if (themeRef !== undefined) entry.host.dataset.scriptoscopeTheme = themeRef;
       }
@@ -1248,6 +1329,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       if (w.active !== was) { w.renderEpoch++; changed.push(w); }
       else w.host.style.zIndex = this.zIndexFor(w);
     }
+    this.syncOutside();
     await Promise.all(changed.map(w => this.render(w)));
   }
 
@@ -1302,7 +1384,25 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
    *  normally prepares once. A wrong or missing entry costs one corrective pass. */
   private extentCache = new WeakMap<object, Map<string, ChromeExtent>>();
 
+  /** Prepare the chrome, then build the structure region for it (hit-regions HP15, HP20, HP22). */
   private async prepareRender(entry: ManagedWindow<Theme>, theme: Theme): Promise<PreparedRender> {
+    const prepared = await this.prepareChrome(entry, theme);
+    const composed = (prepared.win as unknown as { _scriptoscopeComposed?: ComposedChrome })._scriptoscopeComposed;
+    // Built whatever the requested or effective mode (HP22), so a later mode-only switch can apply it.
+    if (!composed?.structure) return prepared;
+    const title = entry.opts.title ?? '(untitled)';
+    try {
+      const region = regionPath(composed.structure(prepared.collapsed, composed.sideTitle), Math.max(1, Math.round(prepared.opts.scale ?? 1))); // HP8
+      if (!region) throw new Error('empty structure region');
+      debug('region', 'built', { title, length: region.length });
+      return { ...prepared, region };
+    } catch (error) {
+      debug('region', 'build failed', { title, error }); // HP44: box hit area for this commit
+      return { ...prepared, region: null };
+    }
+  }
+
+  private async prepareChrome(entry: ManagedWindow<Theme>, theme: Theme): Promise<PreparedRender> {
     const collapsed = entry.collapsed === true;
     const slug = this.effectiveSlug(entry, theme);
     const base = entry.opts.windowType ?? 'document-window';
@@ -1357,8 +1457,10 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     }
   }
 
-  private commitRender(entry: ManagedWindow<Theme>, { win, collapsed, opts, extent }: PreparedRender, notify = true): void {
+  private commitRender(entry: ManagedWindow<Theme>, { win, collapsed, opts, extent, region }: PreparedRender, notify = true): void {
     entry.commitEpoch++;
+    entry.region = region;
+    if (entry.gesture === 'ending') entry.gesture = false; // HP49: the resize commit restores the new S
     entry.opts = opts;
     if (extent) entry.extent = extent;
     // Host box = full chrome in every mode (#526). An absolute host already shrink-wraps
@@ -1389,9 +1491,12 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     }
     // Keep the rendered projection continuously mounted: replacing its ancestors cancels
     // a browser's pending native Space activation even when light-DOM focus survives.
+    // HP26/HP43: L1 (the `part="window"` root) holds L2 and L3. L2 holds the canvas, content and every
+    // overlay, move handle included (tab order); it and L3 keep their identity for the host's lifetime.
     const mount = entry.host.shadowRoot ?? entry.host;
-    const live = mount.firstChild as HTMLElement | null;
-    const content = live?.querySelector<HTMLElement>('.scriptoscope-content');
+    const layers = entry.layers ??= this.createLayers();
+    const l1 = layers.hit.parentElement, live = l1 && l1 === mount.firstChild ? l1 : null;
+    const content = live ? layers.hit.querySelector<HTMLElement>(':scope > .scriptoscope-content') : null;
     const preparedContent = win.querySelector<HTMLElement>('.scriptoscope-content');
     if (live && content && preparedContent) {
       const syncAttributes = (target: HTMLElement, source: HTMLElement): void => {
@@ -1407,15 +1512,19 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       // Overlay controls stay mounted (never detached, so focus and assistive-technology identity
       // survive) and stay last; the wiring below updates them in place (#533).
       const overlays = new Set<Node>(entry.overlays?.values());
-      for (const child of Array.from(live.childNodes)) if (child !== content && !overlays.has(child)) child.remove();
-      const tail = Array.from(live.childNodes).find(child => overlays.has(child)) ?? null;
+      for (const child of Array.from(layers.hit.childNodes)) if (child !== content && !overlays.has(child)) child.remove();
+      const tail = Array.from(layers.hit.childNodes).find(child => overlays.has(child)) ?? null;
       let beforeContent = true;
       for (const child of Array.from(win.childNodes)) {
         if (child === preparedContent) { beforeContent = false; continue; }
-        live.insertBefore(child, beforeContent ? content : tail);
+        layers.hit.insertBefore(child, beforeContent ? content : tail);
       }
       win = live;
-    } else mount.replaceChildren(win);
+    } else {
+      layers.hit.append(...Array.from(win.childNodes));
+      win.append(layers.hit, layers.decor);
+      mount.replaceChildren(win);
+    }
     // One signal per commit rebinds every overlay and frame listener, so none accumulate.
     entry.frameAbort?.abort();
     const signal = (entry.frameAbort = new AbortController()).signal;
@@ -1424,6 +1533,8 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     const viewport = win.querySelector<HTMLElement>('.scriptoscope-content');
     if (viewport) entry.contentPort.commit(entry.host, viewport, Math.max(1, Math.round(entry.opts.scale ?? 1)));
     else entry.contentPort.clear();
+    // HP21: the region built for these pixels is applied in the same synchronous commit.
+    this.applyHit(entry);
     // Themed scrollbar (replaces the native one) when the content overflows. Must run AFTER the window
     // is in the DOM — overflow can only be measured once the content is laid out.
     void this.wireScrollbars(entry, win, 0);
@@ -1445,14 +1556,141 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
    */
   private overlay<K extends 'button' | 'div'>(entry: ManagedWindow<Theme>, win: HTMLElement, key: string, tag: K): HTMLElementTagNameMap[K] {
     const overlays = (entry.overlays ??= new Map());
+    // HP26: every overlay lives in L2, in tab order; L3 draws their focus rings in region mode (HP28).
+    const parent = entry.layers?.hit ?? win;
     const kept = overlays.get(key);
-    if (kept?.parentNode === win) return kept as HTMLElementTagNameMap[K];
+    if (kept?.parentNode === parent) return kept as HTMLElementTagNameMap[K];
     const el = document.createElement(tag);
     const later = WindowManager.OVERLAYS.slice(WindowManager.OVERLAYS.indexOf(key) + 1)
-      .map(k => overlays.get(k)).find(o => o?.parentNode === win);
-    if (later) win.insertBefore(el, later); else win.appendChild(el);
+      .map(k => overlays.get(k)).find(o => o?.parentNode === parent);
+    if (later) parent.insertBefore(el, later); else parent.appendChild(el);
     overlays.set(key, el);
     return el;
+  }
+
+  /** L2 and L3 (hit-regions HP26). L2 fills L1's box exactly, with no part, border or padding (HP16). */
+  private createLayers(): NonNullable<ManagedWindow<Theme>['layers']> {
+    const box = { position: 'absolute', left: '0', top: '0', width: '100%', height: '100%', margin: '0', padding: '0', border: '0' };
+    const hit = document.createElement('div');
+    hit.className = 'scriptoscope-hit-layer';
+    Object.assign(hit.style, { ...box, zIndex: '0' });
+    const decor = document.createElement('div');
+    decor.className = 'scriptoscope-decoration';
+    decor.setAttribute('aria-hidden', 'true');
+    Object.assign(decor.style, { ...box, zIndex: '2', pointerEvents: 'none' });
+    const ring = document.createElement('div');
+    ring.className = 'scriptoscope-focus-ring';
+    ring.hidden = true;
+    Object.assign(ring.style, { position: 'absolute', boxSizing: 'border-box', pointerEvents: 'none' });
+    decor.append(ring);
+    return { hit, decor, ring };
+  }
+
+  private requestedHit(entry: ManagedWindow<Theme>): HitMode { return entry.hit ?? this.defaultHit; }
+
+  /** HP3: region iff requested, the last commit built a region (a recipe window, HP22, HP44) and not modal (HP42). */
+  private hitEffective(entry: ManagedWindow<Theme>): HitMode {
+    return this.requestedHit(entry) === 'region' && entry.region && !entry.modal ? 'region' : 'box';
+  }
+
+  /** Apply the effective mode: clip and pointer-events (HP19, HP26, HP27), reflection (HP12), focus ring (HP28). */
+  private applyHit(entry: ManagedWindow<Theme>): void {
+    const layers = entry.layers, l1 = layers?.hit.parentElement;
+    if (!layers || !l1) return;
+    const mode = this.hitEffective(entry), region = mode === 'region';
+    // PM ruling A (HPT36): while a captured drag or resize holds the pointer, hit-testing is moot and
+    // the pixels outside S are transparent, so the clip is suspended: WebKit otherwise re-rasterises
+    // the clipped layer on every move.
+    layers.hit.style.clipPath = region ? (entry.gesture ? 'none' : `path("${entry.region}")`) : '';
+    layers.hit.style.pointerEvents = region ? 'auto' : '';
+    // HPT33/HP36: WebKit's scrolling thread routes a wheel by the layer's area, not the clip, so a wheel
+    // over an excluded pixel never reached the page. A blocking (no-op) listener sends wheels over L2
+    // through the main thread, whose hit test honours the clip.
+    if (region) layers.hit.addEventListener('wheel', mainThreadWheel, { passive: false });
+    else layers.hit.removeEventListener('wheel', mainThreadWheel);
+    l1.style.pointerEvents = entry.host.style.pointerEvents = region ? 'none' : '';
+    entry.host.setAttribute('data-scriptoscope-hit-effective', mode);
+    this.placeRing(entry);
+  }
+
+  /** Start or end a captured pointer gesture (ruling A): suspend or restore the clip in this task. */
+  private suspendClip(entry: ManagedWindow<Theme>, on: boolean): void {
+    // Exact state: a new gesture must overwrite a resize still `ending`, or that resize's commit
+    // would restore the clip in the middle of the new drag.
+    if ((entry.gesture ?? false) === on) return;
+    entry.gesture = on;
+    const l2 = entry.layers?.hit;
+    if (l2 && this.hitEffective(entry) === 'region') l2.style.clipPath = on ? 'none' : `path("${entry.region}")`;
+  }
+
+  /** HP28: L3 draws the focus ring of the focused chrome control (title widget, move handle, grow box,
+   *  window scrollbar), with its border box and outline offset, iff it matches :focus-visible. It does so
+   *  in both modes, so the ring is never clipped (region) or covered by a later overlay (box) and both
+   *  modes look the same. */
+  private placeRing(entry: ManagedWindow<Theme>): void {
+    const layers = entry.layers;
+    if (!layers) return;
+    const el = entry.host.shadowRoot?.activeElement as HTMLElement | null;
+    const show = !!el && layers.hit.contains(el)
+      && el.matches(RING_CONTROLS) && el.matches(':focus-visible');
+    layers.ring.hidden = !show;
+    if (!show) return;
+    Object.assign(layers.ring.style, {
+      left: `${el.offsetLeft}px`, top: `${el.offsetTop}px`, width: `${el.offsetWidth}px`, height: `${el.offsetHeight}px`,
+      outlineOffset: getComputedStyle(el).outlineOffset,
+    });
+  }
+
+  /** HP38: tracked iff the requested mode is region, not modal-exempt and not in a closed shadow root (HP47). */
+  private tracked(entry: ManagedWindow<Theme>): boolean {
+    if (this.requestedHit(entry) !== 'region' || entry.modal) return false;
+    if (entry.closedRoot === undefined && entry.host.isConnected) {
+      const root = entry.host.getRootNode();
+      entry.closedRoot = root instanceof ShadowRoot && root.mode === 'closed';
+      if (entry.closedRoot) debug('region', 'closed shadow root', { title: entry.opts.title ?? '(untitled)' });
+    }
+    return !entry.closedRoot;
+  }
+
+  /** HP38: hold the document listeners exactly while the active window is tracked. */
+  private syncOutside(): void {
+    const active = this.windows.find(w => w.active), doc = active?.host.ownerDocument;
+    const on = !!doc && this.tracked(active);
+    if (on === !!this.outside) return;
+    this.pendingTap = null;
+    if (!on) { this.outside!.abort(); delete this.outside; return; }
+    const ac = this.outside = new AbortController();
+    const opts = { capture: true, passive: true, signal: ac.signal };
+    // DOM ancestry, never geometry: a press is inside a window iff its host is on the composed path.
+    const outside = (e: Event): boolean => {
+      const path = e.composedPath();
+      return !this.windows.some(w => path.includes(w.host));
+    };
+    // The active window may have been inserted into a closed shadow root since the last sync (HP47).
+    const live = (): boolean => { const a = this.windows.find(w => w.active); if (a && this.tracked(a)) return true; this.syncOutside(); return false; };
+    doc!.addEventListener('pointerdown', (e) => {
+      this.pendingTap = null; // a later press of any pointer discards a pending tap (HP39)
+      if (!e.isPrimary || !outside(e) || !live()) return;
+      if (e.pointerType === 'touch') this.pendingTap = e.pointerId; else this.deactivate();
+    }, opts);
+    doc!.addEventListener('pointercancel', (e) => { if (e.pointerId === this.pendingTap) this.pendingTap = null; }, opts);
+    doc!.addEventListener('click', (e) => {
+      const tap = this.pendingTap;
+      this.pendingTap = null;
+      if (tap !== null && outside(e) && live()) this.deactivate();
+    }, opts);
+    for (const type of ['keydown', 'contextmenu']) doc!.addEventListener(type, () => { this.pendingTap = null; }, opts);
+  }
+
+  /** HP39: an outside press leaves no window active; the window keeps its order and renders inactive. */
+  private deactivate(): void {
+    const entry = this.windows.find(w => w.active);
+    if (!entry) return;
+    entry.active = false;
+    debug('focus', `${entry.opts.title ?? '(untitled)'} — deactivated by an outside press`);
+    entry.host.style.zIndex = this.zIndexFor(entry);
+    this.syncOutside();
+    void this.render(entry);
   }
 
   /** Remove an overlay this render no longer has (the grow box while shaded, a scrollbar without
@@ -1562,6 +1800,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     } finally {
       if (!needV) this.dropOverlay(entry, 'window-scrollbar-vertical');
       if (!needH) this.dropOverlay(entry, 'window-scrollbar-horizontal');
+      this.placeRing(entry);
     }
   }
 
@@ -1776,6 +2015,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
   /** Toggle window-shade. Built-in for windows whose collapse widget has no explicit handler. */
   private async toggleCollapse(entry: ManagedWindow<Theme>): Promise<void> {
     entry.collapsed = !entry.collapsed;
+    entry.gesture = false; // ruling A: a collapse mid-gesture restores the clip with its commit
     debug('drag', `toggleCollapse ${entry.opts.title ?? ''} → collapsed=${entry.collapsed}`);
     await this.render(entry);
     entry.handlers.onCollapse?.();
@@ -1845,6 +2085,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       if (!e.isPrimary) return; // a second touch or pen contact doesn't start a second drag
       e.preventDefault();
       this.claimFocus(entry, moveBtn);
+      this.suspendClip(entry, true);
       void this.focus(entry);
       // Pointer positions are viewport pixels; left/top are the containing
       // block's CSS pixels. They differ inside a scaled (#515), rotated or
@@ -1873,6 +2114,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       trackDrag(win, e, ev => place(delta(ev)), (ev) => {
         const d = delta(ev);
         place(d);
+        this.suspendClip(entry, false);
         // Never moved, or released back at the start: nothing to commit, no onChange.
         if (!origin || (!d.x && !d.y)) return;
         // Commit through the chokepoint so persistence + future v2 reflow
@@ -1883,6 +2125,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
         // Cancelled (#563): back to the start, uncommitted. Reuses the hot-loop writer, so the
         // setPosition chokepoint still sees every committed move.
         place({ x: 0, y: 0 });
+        this.suspendClip(entry, false);
       });
     }, { signal });
 
@@ -2000,6 +2243,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       if ((e.pointerType === 'mouse' && e.button !== 0) || !e.isPrimary) return;
       e.preventDefault(); e.stopPropagation();
       this.claimFocus(entry, corner);
+      this.suspendClip(entry, true);
       void this.focus(entry);
       // Viewport to the host's CSS pixels under a transformed ancestor (#515, #519).
       // Taken before any handoff: toAbsolute doesn't move the host, so the map holds.
@@ -2020,30 +2264,35 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
           // Posture-B handoff: lift an in-flow host to absolute so it sizes to the chrome;
           // toAbsolute leaves a same-size placeholder so the page doesn't shift.
           this.toAbsolute(host);
-          hw0 = host.offsetWidth; hh0 = host.offsetHeight;
+          hw0 = win.offsetWidth; hh0 = win.offsetHeight;
           outline = document.createElement('div');
           Object.assign(outline.style, {
             position: 'absolute', left: '0', top: '0', width: `${hw0}px`, height: `${hh0}px`,
             border: '1px dotted #000', zIndex: '10', pointerEvents: 'none',
           } satisfies Partial<CSSStyleDeclaration>);
-          host.appendChild(outline);
+          // HP31: decoration, unclipped and outside the content box, in both modes.
+          entry.layers!.decor.appendChild(outline);
         }
         outline.style.width = `${hw0 + (nw - w0) * scale}px`;
         outline.style.height = `${hh0 + (nh - h0) * scale}px`;
       };
       trackDrag(corner, e, mv, () => {
         outline?.remove();
-        // Unchanged size (never moved, or dragged back to the start): no commit, no event.
-        if (nw === w0 && nh === h0) return;
+        // Unchanged size (never moved, or dragged back to the start): no commit, no event; HP49
+        // restores the clip in this task.
+        if (nw === w0 && nh === h0) { this.suspendClip(entry, false); return; }
         entry.opts = { ...entry.opts, width: nw, height: nh };
         delete entry.outer; // the user's grow-box size is an explicit content size
-        void this.render(entry);
+        // HP49: the clip stays suspended until this render commits, which restores the new S. If the
+        // render fails or is superseded without a commit, restore the last committed path then.
+        if (entry.gesture) entry.gesture = 'ending';
+        void this.render(entry).finally(() => { if (entry.gesture === 'ending') this.suspendClip(entry, false); });
         // Same userresize signal as the keyboard path — the declarative
         // layer's auto-fit disconnects on this event.
         host.dispatchEvent(new CustomEvent('scriptoscope:userresize', {
           detail: { w: nw, h: nh }, bubbles: true,
         }));
-      }, () => outline?.remove()); // cancelled (#563): no commit, no event
+      }, () => { outline?.remove(); this.suspendClip(entry, false); }); // cancelled (#563): no commit, no event
     }, { signal });
   }
 
@@ -2160,8 +2409,9 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     // never the focused one: moving a focused node blurs it. The rest are placed around it.
     if (placed.some((btn, i) => i > 0 && !(placed[i - 1]!.compareDocumentPosition(btn) & Node.DOCUMENT_POSITION_FOLLOWING))) {
       const pivot = Math.max(0, placed.indexOf(entry.host.shadowRoot?.activeElement as HTMLElement));
-      for (const btn of placed.slice(0, pivot)) win.insertBefore(btn, placed[pivot]!);
-      placed.slice(pivot + 1).reduce((prev, btn) => { win.insertBefore(btn, prev.nextSibling); return btn; }, placed[pivot]!);
+      const layer = entry.layers!.hit;
+      for (const btn of placed.slice(0, pivot)) layer.insertBefore(btn, placed[pivot]!);
+      placed.slice(pivot + 1).reduce((prev, btn) => { layer.insertBefore(btn, prev.nextSibling); return btn; }, placed[pivot]!);
     }
   }
 }

@@ -56,6 +56,7 @@ The behavioral reference is [window-widgets.md](engine/window-widgets.md).
 | `0x10320` | Code-18 scaled blit | `engine/qd/scale.ts` `scaleBlit` | Scaling policy is declared in qd-primitives; it does not establish original scaled-pixel fidelity. |
 | Structure rect from cicn | Frame/content extent | `frameFromBody`, `drawableExtent` in `composeChrome.ts` | Transparent-tail handling remains a runtime policy guarded by theme lint. |
 | Side without recipe | No cell draw | `layoutWindow` / `composeWindowChrome` skip absent sides | No invented seam fill; unpainted screen content is outside the decoded Q3 claim. |
+| `0x3df8`, `0x6390..0x6580`, `0x3f38..0x3f66` | Structure region and outer hit, SR5–SR12 / WH1 ([hit-regions](engine/hit-regions.md)) | `windowStructure` in `engine/families/window.ts` (SR4–SR12, TR1–TR4), applied by `WindowManager` as a `clip-path` on the window's inner layer | Implemented for managed windows in `region` mode ([hit-regions §9](engine/hit-regions.md#9-web-host-policy-597)); the residue is in `host→decode` below. |
 
 ## Data-shape assumptions (enforced by `lint:themes`)
 
@@ -97,6 +98,22 @@ Each entry below tags its divergence direction explicitly:
   - **What we do:** the engine implements HT2 as decoded, and the trace records it. But `renderWindow` and the declarative layer keep each widget a real, focusable button on inactive windows too. It can be clicked, and reached and activated from the keyboard.
   - **Why:** on the web a window is a region of the page, not the frontmost app window. Making a background window's controls inert would take them out of the tab order and away from screen readers, for no visual gain. Keyboard and assistive-technology users would have to activate a window before they could close it.
   - **Scope:** this only covers whether the widget responds. What the widgets look like still follows the decode: at rest, close and collapse art is part of the window's own (active or inactive) template pixels; the only widget draw gated on the active state is the partial-zoom widget (WD5) (WD rows). Any visual or behavioural change beyond keeping the button operable needs its own entry here.
+
+### host→decode
+
+- **The `host→decode` direction:** the decode says X. The web runtime does Y because a browser page is not the Mac Window Manager. Each entry names the rule, what we do instead, why, and whether the divergence is temporary.
+- **Frame pass-through hits: the web host's residue** ([#597](https://github.com/khawkins98/scriptoscope/issues/597), [hit-regions §9](engine/hit-regions.md#9-web-host-policy-597)).
+  - **The decode:** in `engine/hit-regions.md`, SR10 and WH1 say a recipe window's structure region excludes frame pixels whose template mask bit is clear, and `wHit` answers `wNoHit` (0) there. In #540, real Kaleidoscope on System 7.5.5 passed such a click to the desktop beneath. That is the Window Manager half, U1.
+  - **What we do:** managed recipe windows in `region` mode (the default) clip their inner layer to the structure region built from the template mask at every commit, so presses on excluded pixels reach the page beneath, and outside presses deactivate the active window. Implemented 2026-11-01.
+  - **Permanent residue (by design, hit-regions §9):**
+    - The built-in frame keeps its box, so its two 2-px shadow notches answer the window (HP4). Their outside-press deactivation still follows the requested mode, as in the #540 capture (HP38).
+    - Windows inside an open `openModal` wrap keep the box and are not deactivated by outside presses (HP42).
+    - A window whose chrome template is missing, or whose region build fails, keeps its box, not an empty region (HP7, HP44).
+    - Consumers may opt out with an explicit `box` request, per window or page-wide, to the full pre-#597 behaviour: no pass-through and no outside-press deactivation (HP1, HP10, HP14).
+    - The region follows the drawn template on every activation flip, though U2 is open (HP23).
+    - The bare `renderWindow()` element is not clipped (HP2).
+    - Outside presses deactivate the active window as in #540 whenever it requests or inherits `region`, whatever its effective mode, but touch deactivates only on a completed tap (HP38, HP39).
+    - Presses the document never sees (other applications, browser UI, cross-document iframes), the browser window losing focus, and windows inside closed shadow roots do not deactivate (HP40, HP47).
 
 ### decode→reference
 

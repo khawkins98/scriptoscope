@@ -163,6 +163,18 @@ export function regionAddMappedMask(r: Region, src: Pixmap, S: QdRect, D: QdRect
     if (si >= 0 && src.data[si + 3] !== 0 && x >= 0 && y >= 0 && x < r.width && y < r.height) r.bits[y * r.width + x] = 1;
   }
 }
+/** The masked source repeated 1:1 at its own pitch on both axes, clipped to `D`: forward from D's top-left,
+ *  reverse from its bottom-right (hit-regions TR3, TR4). */
+export function regionAddTiledMask(r: Region, src: Pixmap, S: QdRect, D: QdRect, direction: TileDirection): void {
+  if (emptyRect(S) || emptyRect(D)) return;
+  const sw = S.right - S.left, sh = S.bottom - S.top, fwd = direction === 1;
+  const ox = fwd ? D.left : D.right - sw * Math.ceil((D.right - D.left) / sw);
+  const oy = fwd ? D.top : D.bottom - sh * Math.ceil((D.bottom - D.top) / sh);
+  for (let y = oy; y < D.bottom; y += sh) for (let x = ox; x < D.right; x += sw) {
+    const l = Math.max(x, D.left), t = Math.max(y, D.top), rr = Math.min(x + sw, D.right), b = Math.min(y + sh, D.bottom);
+    regionAddMappedMask(r, src, offsetRect(rectXYWH(l, t, rr - l, b - t), S.left - x, S.top - y), rectXYWH(l, t, rr - l, b - t));
+  }
+}
 export function insideBounds(p: Pixmap, r: QdRect): boolean { return r.left >= 0 && r.top >= 0 && r.right <= p.width && r.bottom <= p.height; }
 export function iconBlit(dst: Pixmap, icon: IconSource, S: QdRect, D: QdRect, trace?: EngineTrace, row?: string): void {
   if (emptyRect(S) || emptyRect(D)) return;

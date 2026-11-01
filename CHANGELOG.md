@@ -7,6 +7,22 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+### Added
+
+- `data-scriptoscope-hit="region|box"`, a `hit` option on `WindowManager.add` and `WindowManager.applyState`, a page-wide default through `new WindowManager({ hit })` and `WindowManager.setDefaultHit(mode)`, and `active`, `hit` and `hitEffective` fields on `WindowManager.describe(host)`. Every window host reflects the mode in force as `data-scriptoscope-hit-effective`. A `region` category on `setDebug` logs each frame-region build ([#597](https://github.com/khawkins98/scriptoscope/issues/597)).
+
+### Changed
+
+- **Clicks pass through the transparent parts of window frames** ([#597](https://github.com/khawkins98/scriptoscope/issues/597)). In real Kaleidoscope 2.3.1 a window's region is its content plus the opaque pixels of its frame, so a click between a scheme's merlons, ornaments or studs reaches whatever is behind. Managed windows on `wnd#` schemes now do the same by default (`region` mode): a press, hover or wheel over a transparent frame pixel goes to the page or window beneath, with all its default actions. The content area and every opaque frame pixel still belong to the window, including title widgets and the grow box. The region follows the drawn frame on every resize, collapse, activation and theme change; keyboard focus, keyboard move and resize, and focus rings are unchanged. The bare `renderWindow()` element is never clipped.
+- **A press on page content now deactivates the active managed window**, as a click on the desktop did on the classic Mac. Mouse and pen deactivate on press; touch only on a completed tap, never on a scroll or swipe. The page still receives the event and its default actions. This applies to every window that requests or inherits `region`, including windows of built-in-frame schemes (`apple-platinum-2`, `black-platinum`, `platinum-8`, `slimes`, `system7-nostalgia-silver`), which keep their rectangular hit area.
+- **Opting out:** `data-scriptoscope-hit="box"` on a window, `{ hit: 'box' }` on `WindowManager.add`, or `new WindowManager({ hit: 'box' })` for the whole page restores the full previous behaviour: the whole rectangle takes input and outside presses leave the window active. Windows inside an open `openModal` wrap keep the box automatically, so a frame gap can never close the modal. In `region` mode, consumer content that escapes the content box (for example `position: fixed` children) is clipped to the frame: put menus and tooltips in the top layer or outside the window, or use `box`. Hosts inside a closed shadow root keep pass-through but are not deactivated by outside presses. A `box-shadow` on `::part(window)` keeps working.
+- Window hosts now carry `clip-path: none` inline, and `pointer-events: none` in `region` mode (the frame's clipped inner layer takes the input), so consumer CSS can't clip a window or disable it. The window's shadow root gains two inner layers inside `part="window"`: a clipped `.scriptoscope-hit-layer` holding the canvas, content and controls, and an unclipped `.scriptoscope-decoration` for focus rings and the resize outline.
+
+### Fixed
+
+- Focus rings of a window's chrome controls (title widgets, move handle, grow box, scroll bars) are no longer occluded: the window draws them on an unclipped decoration layer above its controls, in both hit modes. Before, the vertical scroll bar painted over part of the move handle's ring, and a ring could be cut off by the frame region ([#597](https://github.com/khawkins98/scriptoscope/issues/597)).
+- The grow-box resize outline is visible again beyond the window's old size; it was being clipped by the content area.
+
 ## [0.8.0] — 2026-11-01
 
 > **Breaking: auto-sized windows now fit their chrome inside the element's box**

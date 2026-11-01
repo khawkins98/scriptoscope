@@ -1,0 +1,99 @@
+{
+  "hook": "HPT40 (hit-regions §9.8)",
+  "note": "Pre-#597 main (merge base a6e4344c of feat/597-frame-pass-through), source mode, DPR 1, TAB_SCENARIO in frame-pass-through-tab-order.mjs. Keyed <process.platform>-<browserName>: macOS WebKit Tab skips <button>s by default (no full keyboard access); Linux WebKit does not. Re-record with frame-pass-through-tab-order.record.spec.mjs (README \"HPT40 Tab-order reference\").",
+  "sequences": {
+    "darwin-chromium": [
+      "in-content",
+      "Close window",
+      "Zoom window",
+      "Collapse window",
+      "Move window",
+      "Resize window",
+      "Scroll content vertically",
+      "Scroll content horizontally",
+      "tab-end"
+    ],
+    "darwin-firefox": [
+      "in-content",
+      "Close window",
+      "Zoom window",
+      "Collapse window",
+      "Move window",
+      "Resize window",
+      "Scroll content vertically",
+      "Scroll content horizontally",
+      "tab-end"
+    ],
+    "darwin-webkit": [
+      "Move window",
+      "Scroll content vertically",
+      "Scroll content horizontally",
+      "tab-end"
+    ],
+    "linux-chromium": [
+      "in-content",
+      "Close window",
+      "Zoom window",
+      "Collapse window",
+      "Move window",
+      "Resize window",
+      "Scroll content vertically",
+      "Scroll content horizontally",
+      "tab-end"
+    ],
+    "linux-firefox": [
+      "in-content",
+      "Close window",
+      "Zoom window",
+      "Collapse window",
+      "Move window",
+      "Resize window",
+      "Scroll content vertically",
+      "Scroll content horizontally",
+      "tab-end"
+    ],
+    "linux-webkit": [
+      "in-content",
+      "Close window",
+      "Zoom window",
+      "Collapse window",
+      "Move window",
+      "Resize window",
+      "Scroll content vertically",
+      "Scroll content horizontally",
+      "tab-end"
+    ]
+  },
+  "recordings": {
+    "darwin-chromium": {
+      "commit": "a6e4344c8b3dfa6591bf413ea979acfacb93b1db",
+      "browserVersion": "156.0.8078.4",
+      "recordedAt": "2026-11-01T10:55:54.319Z"
+    },
+    "darwin-firefox": {
+      "commit": "a6e4344c8b3dfa6591bf413ea979acfacb93b1db",
+      "browserVersion": "157.0",
+      "recordedAt": "2026-11-01T10:55:56.214Z"
+    },
+    "darwin-webkit": {
+      "commit": "a6e4344c8b3dfa6591bf413ea979acfacb93b1db",
+      "browserVersion": "27.2",
+      "recordedAt": "2026-11-01T10:55:58.194Z"
+    },
+    "linux-chromium": {
+      "commit": "a6e4344c8b3dfa6591bf413ea979acfacb93b1db",
+      "browserVersion": "156.0.8078.4",
+      "recordedAt": "2026-11-01T10:56:28.273Z"
+    },
+    "linux-firefox": {
+      "commit": "a6e4344c8b3dfa6591bf413ea979acfacb93b1db",
+      "browserVersion": "157.0",
+      "recordedAt": "2026-11-01T10:56:35.035Z"
+    },
+    "linux-webkit": {
+      "commit": "a6e4344c8b3dfa6591bf413ea979acfacb93b1db",
+      "browserVersion": "27.2",
+      "recordedAt": "2026-11-01T10:56:41.939Z"
+    }
+  }
+}

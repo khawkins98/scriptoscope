@@ -63,7 +63,9 @@ const PROBE = () => {
       grip: grip && box(grip), corner: corner && box(corner),
       state: root.querySelector('[data-scriptoscope-current-state]')?.dataset.scriptoscopeCurrentState,
       placeholders: document.querySelectorAll('[data-scriptoscope-placeholder]').length,
-      outlines: host.querySelectorAll(':scope > div[style*="dotted"]').length,
+      // HP31 (#597): the ghost outline is decoration in L3; count any left in the light DOM too.
+      outlines: host.querySelectorAll(':scope > div[style*="dotted"]').length
+        + root.querySelectorAll('.scriptoscope-decoration div[style*="dotted"]').length,
       userResize: window.__userResize.length,
     };
   };
@@ -309,23 +311,28 @@ for (const mode of ['source', 'built']) {
       await setup(page, servers, mode, slug);
       const elsewhere = { x: 1200, y: 300 };
       for (const which of ['flow', 'abs']) {
-        await activate(page, which);
         for (const type of ['pointercancel', 'lostpointercapture']) {
+          // The click elsewhere is an outside press that deactivates the window (#597 HP38/HP39,
+          // decision 12, also built-in frames): re-activate and zero the counters before each drag.
+          await activate(page, which);
           let before = await read(page, which);
           let run = await cancelledDrag(page, () => read(page, which), cancelOf(page, which, 'title'), centre(before.grip), { type, elsewhere });
           const why = `${slug} ${which} title drag ended by ${type}`;
           expect(Math.round(run.during.chrome.x - before.chrome.x), `${why}: followed the pointer first`).toBe(30);
           expectUnchanged(run.cancelled, before, why, { flow: false });
           expectUnchanged(run.later, before, `${why}, then release + click`, { flow: false });
-          expect.soft(run.later.changes, `${why}: onChange`).toBe(0);
+          expect.soft(run.cancelled.changes, `${why}: onChange before the outside click`).toBe(0);
+          expect.soft([run.later.changes, run.later.state], `${why}: onChange (only the outside-press deactivation)`).toEqual([1, 'inactive']);
 
+          await activate(page, which);
           before = await read(page, which);
           run = await cancelledDrag(page, () => read(page, which), cancelOf(page, which, 'grow'), centre(before.corner), { type, elsewhere });
           const grow = `${slug} ${which} grow ended by ${type}`;
           expect(run.during.outlines, `${grow}: outline shown first`).toBe(1);
           expectUnchanged(run.cancelled, before, grow, { flow: false });
           expectUnchanged(run.later, before, `${grow}, then release + click`, { flow: false });
-          expect.soft(run.later.changes, `${grow}: onChange`).toBe(0);
+          expect.soft(run.cancelled.changes, `${grow}: onChange before the outside click`).toBe(0);
+          expect.soft([run.later.changes, run.later.state], `${grow}: onChange (only the outside-press deactivation)`).toEqual([1, 'inactive']);
         }
       }
 
@@ -339,7 +346,7 @@ for (const mode of ['source', 'built']) {
       await page.mouse.move(p.x + 10, p.y + 10, { steps: 2 });
       await page.mouse.move(p.x + 30, p.y + down, { steps: 3 });
       const growing = await page.evaluate(() => {
-        const o = window.__h.hosts.abs.querySelector(':scope > div[style*="dotted"]'); return o && { w: parseFloat(o.style.width), h: parseFloat(o.style.height) };
+        const o = window.__h.hosts.abs.shadowRoot.querySelector('.scriptoscope-decoration div[style*="dotted"]'); return o && { w: parseFloat(o.style.width), h: parseFloat(o.style.height) };
       });
       await page.mouse.up();
       await settle(page);
@@ -367,7 +374,7 @@ for (const mode of ['source', 'built']) {
 
 // ── Other pointers, a second contact, and renders during a drag (#563 review) ─
 const outline = (page, which) => page.evaluate(w => {
-  const o = window.__h.hosts[w].querySelector(':scope > div[style*="dotted"]');
+  const o = window.__h.hosts[w].shadowRoot.querySelector('.scriptoscope-decoration div[style*="dotted"]'); // HP31 (#597)
   return o && { w: parseFloat(o.style.width), h: parseFloat(o.style.height) };
 }, which);
 // Another pointer's release, cancel and capture loss, sent where the drag listens.
