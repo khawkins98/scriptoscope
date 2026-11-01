@@ -133,6 +133,7 @@ const growZone = (c: ComposedChrome): { w: number; h: number } => c.growBox
 // pointercancel or lost capture ends the drag through `cancel`, so nothing is left to commit later.
 function trackDrag(el: HTMLElement, down: PointerEvent, move: (e: PointerEvent) => void,
   up: (e: PointerEvent) => void, cancel: () => void, signal?: AbortSignal): void {
+  if (signal?.aborted) return;
   const id = down.pointerId;
   const stop = (): void => {
     for (const [t, l] of listeners) document.removeEventListener(t, l);
@@ -143,7 +144,7 @@ function trackDrag(el: HTMLElement, down: PointerEvent, move: (e: PointerEvent) 
     try { if (el.hasPointerCapture(id)) el.releasePointerCapture(id); } catch { /* capture already ended */ }
   };
   const on = (f: (e: PointerEvent) => void) => (e: PointerEvent): void => {
-    if (e.pointerId !== id) return;
+    if (signal?.aborted || e.pointerId !== id) return;
     if (e.type !== 'pointermove') stop();
     f(e);
   };
@@ -2172,6 +2173,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       if (!e.isPrimary) return; // a second touch or pen contact doesn't start a second drag
       e.preventDefault();
       this.claimFocus(entry, moveBtn);
+      if (entry.lifetime.signal.aborted) return;
       this.suspendClip(entry, true);
       const gesture = entry.gesture;
       void this.focus(entry);
@@ -2212,8 +2214,10 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       }, () => {
         // Cancelled (#563): back to the start, uncommitted. Reuses the hot-loop writer, so the
         // setPosition chokepoint still sees every committed move.
-        place({ x: 0, y: 0 });
-        this.suspendClip(entry, false, gesture);
+        if (!entry.lifetime.signal.aborted) {
+          place({ x: 0, y: 0 });
+          this.suspendClip(entry, false, gesture);
+        }
       }, entry.lifetime.signal);
     }, { signal });
 
@@ -2334,6 +2338,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       // window only activates it and focuses the grow box: no resize and no frame drag.
       const inactive = !entry.active;
       this.claimFocus(entry, corner);
+      if (entry.lifetime.signal.aborted) return;
       if (inactive) { void this.focus(entry); return; }
       this.suspendClip(entry, true);
       const gesture = entry.gesture;
@@ -2385,7 +2390,10 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
         host.dispatchEvent(new CustomEvent('scriptoscope:userresize', {
           detail: { w: nw, h: nh }, bubbles: true,
         }));
-      }, () => { outline?.remove(); this.suspendClip(entry, false, gesture); }, entry.lifetime.signal); // cancelled (#563): no commit, no event
+      }, () => {
+        outline?.remove();
+        if (!entry.lifetime.signal.aborted) this.suspendClip(entry, false, gesture);
+      }, entry.lifetime.signal); // cancelled (#563): no commit, no event
     }, { signal });
   }
 
