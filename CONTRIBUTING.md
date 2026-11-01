@@ -2,7 +2,7 @@
 
 Thanks for your interest in contributing to Scriptoscope.
 
-> **Status (2026-10-30):** the current milestone is **incremental decode-first v2**, released per family. All work lands directly on `main` through focused PRs; the former `v2` integration branch is retired and frozen at 0.7.0 (`c5c09a20`, [DECISIONS](./docs/v2/DECISIONS.md) #1). The package version is **0.7.0**. Migration work is tracked in [issue #378](https://github.com/khawkins98/scriptoscope/issues/378); the [#459 batch](https://github.com/khawkins98/scriptoscope/issues/459) is complete. Not every family has migrated. The May “v2 clean-break” and “v3 part-code reset” are historical architecture names, distinct from the retired October `v2` branch and from package versions.
+> **Status (2026-11-01):** the current milestone is **incremental decode-first v2**, released per family. All work lands directly on `main` through focused PRs; the former `v2` integration branch is retired and frozen at 0.7.0 (`c5c09a20`, [DECISIONS](./docs/v2/DECISIONS.md) #1). The package version is **0.7.1**. Migration work is tracked in [issue #378](https://github.com/khawkins98/scriptoscope/issues/378); the [#459 batch](https://github.com/khawkins98/scriptoscope/issues/459) is complete. Not every family has migrated. The May “v2 clean-break” and “v3 part-code reset” are historical architecture names, distinct from the retired October `v2` branch and from package versions.
 
 ## Start with your role
 

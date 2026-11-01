@@ -7,6 +7,21 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+## [0.7.1] — 2026-11-01
+
+Patch release on 0.7.0, the first cut from `main` since the `v2` integration
+branch was retired. Auto-sized windows now fit their chrome inside the
+element's box ([#526](https://github.com/khawkins98/scriptoscope/issues/526)),
+which shrinks the content area on thick-framed schemes; declared
+`data-scriptoscope-width/-height` keep their content-size meaning. The rest are
+fixes: window drag, resize, collapse and scroll-bar behaviour now follows the
+classic Window and Control Managers, keyboard focus and screen-reader identity
+survive re-renders, dialog and alert bodies use the scheme's dialog colour,
+inactive scroll bars and disclosure triangles draw the scheme's own art,
+themed sliders let a patterned body show through, and showcase text and links
+reach WCAG AA contrast on the schemes where they fell short. GitHub release
+only; no npm publication.
+
 ### Added
 
 - `WindowManager.setOuterSize(host, { width?, height? })`, an `outerSize` option on `WindowManager.add`, and `WindowManager.chromeExtent(host)`, for imperative callers that size windows by their outer box. `setContentSize` keeps its content-size meaning.
@@ -35,7 +50,6 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   no reveal.
 - A press on the grow box that doesn't change the window's size is no longer a resize (#552). Releasing without moving, or after sub-pixel jitter under half a content pixel, used to switch an in-flow window to absolute positioning, insert the drag placeholder, re-render it at a different width and fire `scriptoscope:userresize`, which permanently turned auto-fit off. Like the classic Mac `GrowWindow`, which returns 0 when the size is unchanged, the window now stays in flow and no event fires. The hand-off waits for the first move that changes the size, and a drag released at its starting size commits nothing. A keyboard resize step that is clamped at the minimum size no longer hands off or fires the event either.
 - Keyboard focus entering a window now activates it and raises it to the front, as on the classic Mac, where keyboard focus is always in the front window ([#550](https://github.com/khawkins98/scriptoscope/issues/550)). Before, Tab could land on links and chrome controls (title widgets, move handle, grow box, scrollbars) of a background window that a higher window fully covered, so the focused control was invisible (WCAG 2.2 SC 2.4.11). Raising changes z-order only; the window does not move. Focus stays on the control through the activation render.
-
 - Showcase links keep WCAG AA contrast when hovered, pressed and focused. The
   browser's default focus ring put a light halo against 1990's and Evolution's
   light link text (1.3-2.0:1), so focused links now draw a solid 2px ring in
@@ -172,6 +186,23 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 ### Documentation
 
 - New [interaction reference](docs/interaction.md): what users can do with windows and controls (activation and focus, moving, resizing, title widgets, scroll bars, controls, modals), every `scriptoscope:*` event with its target and detail, keyboard equivalents, and touch, Firefox and WebKit differences. Checked against the code on `main`; linked from the README, `docs/integration-edge-cases.md` and the doc-sweep list.
+
+### Runtime size (0.7.0 → 0.7.1)
+
+`npm run loc:src -- HEAD --base v0.7.0`:
+
+| non-test source | 0.7.0 | 0.7.1 | delta |
+|---|---:|---:|---:|
+| logic | 16081 | 16654 | +573 |
+| cited engine tables | 2329 | 2380 | +51 |
+| total | 18410 | 19034 | +624 |
+
+Most of the growth is window-manager interaction in `src/interactive.ts`
+(click-versus-drag thresholds, cancel and revert, part-aware scroll-bar
+tracking with auto-repeat, focus activation, inactive scroll-bar repaint) and
+outer-box sizing in `ScriptoscopeWindow`. The dialog body colour adds
+`src/dialogContent.ts` and its cited table; the slider host-background policy
+adds table rows.
 
 ## [0.7.0] — 2026-10-29
 
