@@ -79,6 +79,10 @@ short. GitHub release only; no npm publication.
   arrow cursor, WindowShade sounds). It loads in Scriptoscope and in the
   original Kaleidoscope 2.3.1 on System 7.5.5. It is not part of the
   bundled corpus.
+- **Additional first-party schemes** in `authoring/schemes/`: Castle,
+  Brickworks, Bonn and Midnight 2027. Each uses the authoring toolkit and ships
+  source art, a concept brief, browser previews and native compatibility records.
+  They are separate from the bundled community corpus.
 - Authoring guides: `docs/authoring-a-scheme.md` (start here), with
   `docs/authoring-exotic-frames.md`, `docs/authoring-visual-design.md` and
   `docs/authoring-art-with-ai.md` as references (#540).
