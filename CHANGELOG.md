@@ -24,6 +24,9 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ### Fixed
 
+- Recipe utility windows use their alternate pressed-widget art: top-titled utilities request −14298, side-titled utilities −14290 with the decoded top-strip retry. The mapping follows the rendered utility type, including collapsed variants and aliases, and shares the same flag with title and widget consumers ([#624](https://github.com/khawkins98/scriptoscope/issues/624)).
+- A rendered `popup-window` ignores collapse requests and keeps its expanded content, frame and hit geometry. Initial state, state application, toggling and public state reporting consistently treat it as expanded, preserving its requested dimensions ([#625](https://github.com/khawkins98/scriptoscope/issues/625)). The engine-diff grid now pins both collapsed title axes, and a third golden contact-sheet page covers collapsed managed document and side-utility windows.
+
 - Shift+wheel over a window with themed scroll bars now scrolls only horizontally. The vertical bar ignored Shift, so a browser that doesn't convert Shift+wheel to `deltaX` moved both bars, and an event already converted to `deltaX` (with `deltaY` 0) moved neither. The horizontal bar takes `deltaX`, or `deltaY` when `deltaX` is 0; the event is consumed only when a themed bar takes it ([#614](https://github.com/khawkins98/scriptoscope/issues/614)).
 - Focus rings of a window's chrome controls (title widgets, move handle, grow box, scroll bars) are no longer occluded: the window draws them on an unclipped decoration layer above its controls, in both hit modes. Before, the vertical scroll bar painted over part of the move handle's ring, and a ring could be cut off by the frame region ([#597](https://github.com/khawkins98/scriptoscope/issues/597)).
 - The grow-box resize outline is visible again beyond the window's old size; it was being clipped by the content area.
