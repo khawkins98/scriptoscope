@@ -27,6 +27,15 @@ For layout, CSS and lifecycle gotchas see [integration-edge-cases.md](./integrat
 
 Both paths share every behaviour in sections 1 to 5. The differences are called out where they matter.
 
+Imperative owners can call `manager.dispose()` to stop managing every window at
+once. It performs the same cleanup as removing each window, including document
+listeners, pending touch taps, scrollbar listeners and pending render authority.
+It is safe to call repeatedly. Hosts stay in the caller's DOM and borrowed themes
+stay alive; remove the hosts or dispose themes through their owners as needed.
+The manager can accept new windows afterward. For a declaratively promoted
+window, use its `unmount()` or `restoreOriginalElement()` lifecycle; manager
+disposal alone does not restore the source element or emit `scriptoscope:close`.
+
 Activation, z-order and focus are per `WindowManager`. The example host uses one shared manager, but a window whose source (or an ancestor) has its own `data-scriptoscope-theme` gets a separate manager of its own. Such a window starts active, and activating other windows doesn't deactivate it.
 
 ## 1. Activation and focus
@@ -87,7 +96,7 @@ Many schemes have transparent pixels in their frames: merlons, ornaments, studs,
 
 **Modes.** Every managed window asks for a hit mode, `region` or `box`, and has an effective mode:
 
-- **`region`** (the default): the window takes a pointer only inside its structure region, which is the content area plus every opaque frame pixel of the frame template as drawn. Presses, hover, the cursor, wheel and touch gestures over a transparent frame pixel go to the page or window beneath, as trusted events with all their default actions (focus, selection, links, form controls). A press that passes through neither activates nor raises the window. Title widgets, the grow box and frame drags work wherever they are inside the region. The region is rebuilt with every chrome change (resize, collapse, activation, retheme), never while dragging or hovering, and it follows the active or inactive frame art as drawn.
+- **`region`** (the default): the window takes a pointer only inside its structure region, which is the content area plus every opaque frame pixel of the frame template as drawn. Presses, hover, the cursor, wheel and touch gestures over a transparent frame pixel go to the page or window beneath, as trusted events with all their default actions (focus, selection, links, form controls). A press that passes through neither activates nor raises the window. Title widgets, the grow box and frame drags work wherever they are inside the region. The region follows every chrome change (resize, collapse, activation, retheme), with reuse allowed when all region inputs are unchanged. It is never rebuilt while dragging or hovering, and it follows the active or inactive frame art as drawn.
 - **`box`**: the whole window rectangle takes every press, as before #597, and outside presses don't deactivate the window.
 
 The effective mode is `box`, whatever was asked for, for windows of the five built-in-frame schemes (`apple-platinum-2`, `black-platinum`, `platinum-8`, `slimes`, `system7-nostalgia-silver`; their only transparent pixels are two 2 px shadow notches), for windows inside an open `openModal` wrap, for the no-chrome fallback window, and for a commit whose region couldn't be built. The bare `renderWindow()` element is never clipped.
@@ -431,6 +440,26 @@ Keyboard equivalents for every pointer gesture:
 - If the browser takes over a gesture and sends `pointercancel`, a move or resize in progress is reverted rather than committed (#563).
 - In `region` mode, touch and pen over a transparent frame pixel reach the page beneath, so page scrolling works there; `touch-action: none` applies only inside the window's region. An outside touch deactivates the active window only on a completed tap (see [1a](#1a-hit-area-and-frame-pass-through)).
 - There's no touch-specific layout. See [integration-edge-cases.md](./integration-edge-cases.md#mobile--responsive).
+
+### Wheel routing and performance
+
+Region windows carry a non-passive no-op wheel listener on the clipped hit layer.
+This works around WebKit routing wheel input by the layer's rectangular area
+instead of its clip: without it, wheels over transparent frame gaps can fail to
+scroll the page beneath. The listener is currently retained in every engine
+because a reliable behavioral detection has not been established. It makes
+native wheel routing over this layer, including slotted content scrollers, depend
+on the main thread in Chromium and Firefox too. Idle-runner latency measurements
+cannot establish the cost when that thread is busy. `box` mode removes this
+listener. This workaround does not activate an inactive window when scrolling.
+
+During a captured frame drag or grow-box resize the clip is suspended for
+WebKit's rendering cost. A resize that finishes preparation during a newer frame
+drag keeps the clip suspended until that drag ends, then restores the latest
+committed region. HPT36 retains its WebKit limit of 3 ms above the same-run box
+frame-p95 baseline, using five interleaved trials; observations include runner
+identity, individual trials and release-to-next-frame time. Other engines report
+these timings without a performance gate.
 
 ### Firefox and WebKit
 
