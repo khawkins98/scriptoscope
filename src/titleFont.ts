@@ -28,15 +28,15 @@ export function rasterizeTitleFont(text: string, px: number, hex: string): Pixel
 }
 
 /** As {@link rasterizeTitleFont}, also returning the baseline row and advance. */
-export function measureTitle(text: string, px: number, opts: { exactPx?: boolean } = {}): Pick<TitleRaster, 'ascent' | 'advance'> | null {
+export function measureTitle(text: string, px: number, opts: { exactPx?: boolean; bold?: boolean } = {}): Pick<TitleRaster, 'ascent' | 'advance'> | null {
   return prepareTitle(text, px, '#000000', opts, true);
 }
 
-export function rasterizeTitle(text: string, px: number, hex: string, opts: { exactPx?: boolean } = {}): TitleRaster | null {
+export function rasterizeTitle(text: string, px: number, hex: string, opts: { exactPx?: boolean; bold?: boolean } = {}): TitleRaster | null {
   return prepareTitle(text, px, hex, opts, false) as TitleRaster | null;
 }
 
-function prepareTitle(text: string, px: number, hex: string, opts: { exactPx?: boolean }, measureOnly: boolean): TitleRaster | Pick<TitleRaster, 'ascent' | 'advance'> | null {
+function prepareTitle(text: string, px: number, hex: string, opts: { exactPx?: boolean; bold?: boolean }, measureOnly: boolean): TitleRaster | Pick<TitleRaster, 'ascent' | 'advance'> | null {
   if (typeof document === 'undefined' || !text) return null;
   // Charcoal 12 (Jeremy Sachs, CC BY-SA — a bitmap clone of Mac OS 8/9 Charcoal) is
   // crisp ONLY at its grid-native 16px: the finest design step (125 of 2000 em
@@ -48,9 +48,10 @@ function prepareTitle(text: string, px: number, hex: string, opts: { exactPx?: b
   // `exactPx` (the utility frame's 10-pt title) skips the 16px Charcoal 12 pin.
   const c12 = !opts.exactPx && !!document.fonts?.check?.('16px "Charcoal 12"');
   const size = c12 ? 16 : px;
-  const font = c12
+  const face = c12
     ? `16px "Charcoal 12", Charcoal, "Helvetica Neue", Arial, sans-serif`
     : `${px}px Charcoal, "Helvetica Neue", Arial, sans-serif`;
+  const font = `${opts.bold ? 'bold ' : ''}${face}`;
   const LS = c12 ? '0px' : '0.5px';
   const setLS = (c2d: CanvasRenderingContext2D): void => {
     try { (c2d as unknown as { letterSpacing: string }).letterSpacing = LS; } catch { /* unsupported */ }

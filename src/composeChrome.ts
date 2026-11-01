@@ -142,6 +142,8 @@ export interface ComposeWindowOptions {
   /** `sideTitle`: the title axis is left/right. The runtime sets it from the rendered window type
    *  (hit-regions HP48); it moves the collapsed walk to sides 2 and 3. Default false. */
   sideTitle?: boolean;
+  /** PM1: the resolved utility type selects alternate widgets and title face. */
+  altWidgets?: boolean;
   /** Draw one widget pressed (WD3 parameter 4 / 5 / 9, state 1). */
   pressedWidget?: TitleWidgetRole;
   trace?: EngineTrace;
@@ -174,7 +176,7 @@ export function composeWindowChrome(cicn: PixelBuffer, windowType: WindowType, c
     titleWidth: SW, titleWidthCondensed: opts.titleWidthCondensedPx ?? SW,
     titleLength: opts.titleLength ?? (SW > 0 ? 1 : 0),
     flags: { popupFamily: opts.popupFamily ?? false, drawActive: opts.active ?? true,
-      collapsed: opts.collapsed ?? false, sideTitle: opts.sideTitle ?? false },
+      collapsed: opts.collapsed ?? false, sideTitle: opts.sideTitle ?? false, altWidgets: opts.altWidgets ?? false },
   }, opts.trace);
 
   // ── draw the sides, collect the placement map in side order ───────────────
