@@ -186,12 +186,24 @@
  "document": {
   "path": "docs/spec/kdef231-reference.md",
   "beforeSha256": "ce33a576981b9c145a48b1a41e5a71ca1e33e1d292480b0c6e5f762ec343ab37",
-  "afterSha256": "2e9c6af805ab2d50ab9916419b97b96ace9b85d99a8c0878618b492ec993f2f9",
+  "afterSha256": "e54437199d29ece567f20bce9213fba00f3feaa2b960e8644e6df55dc2939e88",
   "authority": "docs/spec/engine/hit-regions.evidence.md E1 (#610)",
   "edits": [
    {
+    "before": "| gate | addr | family | wnd# id loaded | msg base into slot 6 |",
+    "after": "| gate | addr | family | wnd# id loaded | args into slot 6 (message / varCode) |"
+   },
+   {
     "before": "| slot 3 | `0x118b8` | document windows | `-14336` | per `0x28e0` table (1001..1009) |",
     "after": "| slot 3 | `0x118b8` | document windows | `-14336` | message unchanged; varCode mod 16 (corrected #611, was \"per `0x28e0` table (1001..1009)\"; see #610 and `engine/hit-regions.evidence.md` E1) |"
+   },
+   {
+    "before": "| slot 4 | `0x1525a` | utility windows | `-14304` | varCode + 1984 |",
+    "after": "| slot 4 | `0x1525a` | utility windows | `-14304` | message unchanged; varCode (v&15) + 1984 (a procID, family 124, not a message base; corrected #611, was \"varCode + 1984\" under \"msg base\"; see #610 and `engine/hit-regions.evidence.md` E1) |"
+   },
+   {
+    "before": "| slot 8 | `0x17452` | popup / tab / menu | `-12320` | varCode + 1008 (trampolined to a loaded `'WDEF', -14336` by a direct call) |",
+    "after": "| slot 8 | `0x17452` | popup / tab / menu | `-12320` | message unchanged; varCode (v&15) + 1008 (procID family 63), trampolined by a direct call through a loaded `'WDEF', -14336` handle, not `0x28e0` (corrected #611, was \"varCode + 1008\" under \"msg base\"; see #610 and `engine/hit-regions.evidence.md` E1) |"
    },
    {
     "before": "Slot 6 `0x28e0` is the **master compositor dispatcher** — receives msg\n1000 = INIT (called once at table install) + msgs 1001..1009 (per-side\nrecipe walk + draw). Its 9-entry dispatch fans out to the routines below\n(`0x356c`, `0x3680`, `0x3f2c`, `0x41ee`, ...).",
@@ -215,6 +227,6 @@
   "synthetic.raw-repurposed-only"
  ],
  "changedKey": "sourceEvidence[].documentSha256",
- "prospectiveAcceptedCaseSha256": "593f8df02c54ceddee07d1852e35319c7be50fdf0bba73bc1280a0f3e745495f",
+ "prospectiveAcceptedCaseSha256": "c108ea0c6e14a69b4cfd16409e4b3b735d6488abe6f1faa069cb7520b9bae5cb",
  "unlistedAvailability": "unknown"
 }

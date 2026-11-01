@@ -191,12 +191,13 @@ earlier correction proofs verify their own frozen state. The 1.0.18 transition c
 the independent Tier-2 review receipt of PR #612; the test author did not self-approve.
 
 Inventory 1.0.19 (#611) refreshes only the full `kdef231-reference.md` document hash
-(`ce33a576` -> `2e9c6af8`) in its nine pinned cases, after three §1.4 labels were
+(`ce33a576` -> `e5443719`) in its nine pinned cases, after the §1.4 dispatch labels were
 corrected per `docs/spec/engine/hit-regions.evidence.md` E1 (#610): slot 6 `0x28e0`
 dispatches the standard WDEF messages 0..8 plus 1000/1001 through the `0x148` switch
-table at `0x292e`, not verbs 1001..1009. No case-cited address line changed; all 27
+table at `0x292e`, not verbs 1001..1009, and the slot-3/4/8 gates pass the message
+unchanged and rewrite only the varCode (the gate column was "msg base into slot 6"). No case-cited address line changed; all 27
 case inputs, outcomes, payload pins and ring dispatch claims are unchanged.
-`corrections/611-reference-labels.json` archives the three exact label edits, the
+`corrections/611-reference-labels.json` archives the six exact label edits, the
 prior review and the 1.0.18 file hash; `controls459/peel-611.mjs` peels the bump back
 off so the 1.0.18 and earlier correction proofs keep verifying their own frozen state.
 The 1.0.18 review is archived verbatim; the 1.0.19 label is PENDING an independent

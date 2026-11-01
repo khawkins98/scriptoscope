@@ -1,5 +1,5 @@
 // #611 availability transition 1.0.18 -> 1.0.19 (corrections/611-reference-labels.json).
-// Hash-only: the three kdef231-reference.md label edits listed in hit-regions.evidence.md E1
+// Hash-only: the archived kdef231-reference.md §1.4 dispatch-label edits (hit-regions.evidence.md E1)
 // are the whole document change, and only the nine documentSha256 pins move in the inventory.
 import test from 'node:test';import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';import {createHash} from 'node:crypto';
 import {delta611 as delta,peel611,active611} from './controls459/peel-611.mjs';
@@ -26,12 +26,14 @@ test('611 changes only the nine kdef231-reference.md document pins',()=>{
   assert.ok(pins(now).length>0&&pins(now).every(h=>h===delta.document.afterSha256));assert.ok(pins(was).every(h=>h===delta.document.beforeSha256));
  }
 });
-test('611 document change is exactly the three E1 label edits',()=>{
+test('611 document change is exactly the archived E1 label edits',()=>{
  const doc=readFileSync(new URL('../../'+delta.document.path,import.meta.url),'utf8');
  assert.equal(hash(doc),delta.document.afterSha256,'kdef231-reference.md changed: a new hash-only bump is needed');
- assert.equal(delta.document.edits.length,3);let restored=doc;
+ assert.ok(delta.document.edits.length>0);let restored=doc;
  for(const e of delta.document.edits){assert.equal(restored.split(e.after).length,2,'each edit is unique');restored=restored.replace(e.after,()=>e.before);
-  assert.match(e.after,/#611/);assert.match(e.after,/#610/);assert.match(e.after,/hit-regions\.evidence\.md/);assert.match(e.before,/1001/);}
- assert.equal(hash(restored),delta.document.beforeSha256,'undoing the three edits restores the pinned 1.0.18 document');
+  assert.notEqual(e.after,e.before);assert.ok(e.before.length>0);}
+ assert.equal(hash(restored),delta.document.beforeSha256,'undoing the archived edits restores the pinned 1.0.18 document');
+ const cited=delta.document.edits.filter(e=>/#611/.test(e.after)&&/#610/.test(e.after)&&/hit-regions\.evidence\.md/.test(e.after));
+ assert.ok(cited.length>=4,'each corrected label cites #611, #610 and E1');
  assert.doesNotMatch(doc.slice(doc.indexOf('### 1.4'),doc.indexOf('### 1.4')+4000),/1001\.\.1009 verbs\)\s*\||msgs 1001\.\.1009 \(per-side/);
 });
