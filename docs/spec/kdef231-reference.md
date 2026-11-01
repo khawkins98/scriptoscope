@@ -154,11 +154,11 @@ compositor that owns the routines tabled below. On miss they fall back to
 either a system `'WDEF'` (slots 3, 8) or a private dispatch (slot 4). Full
 slot-by-slot trace: `docs/spec/kdef-service-handlers.md`.
 
-| gate | addr | family | wnd# id loaded | msg base into slot 6 |
+| gate | addr | family | wnd# id loaded | args into slot 6 (message / varCode) |
 |---|---|---|---:|---:|
 | slot 3 | `0x118b8` | document windows | `-14336` | message unchanged; varCode mod 16 (corrected #611, was "per `0x28e0` table (1001..1009)"; see #610 and `engine/hit-regions.evidence.md` E1) |
-| slot 4 | `0x1525a` | utility windows | `-14304` | varCode + 1984 |
-| slot 8 | `0x17452` | popup / tab / menu | `-12320` | varCode + 1008 (trampolined to a loaded `'WDEF', -14336` by a direct call) |
+| slot 4 | `0x1525a` | utility windows | `-14304` | message unchanged; varCode (v&15) + 1984 (a procID, family 124, not a message base; corrected #611, was "varCode + 1984" under "msg base"; see #610 and `engine/hit-regions.evidence.md` E1) |
+| slot 8 | `0x17452` | popup / tab / menu | `-12320` | message unchanged; varCode (v&15) + 1008 (procID family 63), trampolined by a direct call through a loaded `'WDEF', -14336` handle, not `0x28e0` (corrected #611, was "varCode + 1008" under "msg base"; see #610 and `engine/hit-regions.evidence.md` E1) |
 
 Slot 6 `0x28e0` is the **master compositor dispatcher** — it receives
 the standard WDEF messages 0..8 plus 1000 (INIT) and 1001, dispatched

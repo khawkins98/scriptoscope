@@ -36,10 +36,16 @@ standard WDEF messages 0..8 plus 1000/1001. `window-widgets.md` already uses
 `kdef-binary-inventory.md` (§1 heading and rows 1/2, §2 rows 6/7), and the
 evidence twins (`kdef231-reference.evidence.md` gate table, slot-6 paragraph and
 `0x28e0` row; the other two twins' stale rows marked superseded).
-`kdef231-reference.md` (§1.4 gate table "per `0x28e0` table (1001..1009)", the
-slot-6 paragraph "msgs 1001..1009", and the `0x28e0` row "dispatches msg-1001")
-was corrected in #611, with the hash-only control-availability bump 1.0.18 →
-1.0.19 that its nine `documentSha256` pins required.
+`kdef231-reference.md` §1.4 was corrected in #611: the gate-table column
+"msg base into slot 6" (now "args into slot 6 (message / varCode)") and its
+slot-3 "per `0x28e0` table (1001..1009)", slot-4 "varCode + 1984" and slot-8
+"varCode + 1008" cells (each gate passes the message unchanged and rewrites only
+the varCode), the slot-6 paragraph "msgs 1001..1009", and the `0x28e0` row
+"dispatches msg-1001". The non-pinned `kdef-binary-inventory.md` §2 row 4,
+`kdef-service-handlers.md` slot 4 and the `kdef-service-handlers.evidence.md`
+slot-4/8 rows were corrected or marked superseded in the same PR, which also
+made the hash-only control-availability bump 1.0.18 → 1.0.19 that the nine
+`documentSha256` pins required.
 
 **Correction (to `kdef-binary-inventory.md` §1 and `kdef-service-handlers.md`
 slot 7).** Slot 7 `0x1d3e` is CDEF-shaped, not the WDEF main:

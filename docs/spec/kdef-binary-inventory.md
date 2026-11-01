@@ -103,7 +103,7 @@ At `0x1c7c`, 9 internal-service function pointers: `0x6688, 0x997e, 0xdd22, 0x11
 | 1 | `0x997e` | scroll-bar CDEF (saves the kDEF globals pointer via `0x9930`; per-message state `0x9d84`; `docs/spec/engine/scrollbar.md`) — corrected 2026-10-21, was "re-entrant CDEF entry" |
 | 2 | `0xdd22` | GDevice-aware focus / state helper *(re-verify: rests on the former GetCTSeed trap name)* |
 | 3 | `0x118b8` | wnd# gate (document windows, id `-14336`) → slot 6 on hit; system `'WDEF'` fallback on miss |
-| 4 | `0x1525a` | wnd# gate (utility windows, id `-14304`) → slot 6 with msg-base `+1984` |
+| 4 | `0x1525a` | wnd# gate (utility windows, id `-14304`) → slot 6 with the message unchanged and varCode `(v&15) + 1984` (procID family 124, not a message base; corrected 2026-11-01, #611 (see #610 and `engine/hit-regions.evidence.md` E1), was "msg-base `+1984`") |
 | 5 | `0x8d36` | separate CDEF, undecoded (68 B aux, hit test returns part 10, `bevp` tags; likely bevel button) — **not** the scroll bar; corrected 2026-10-21 |
 | 6 | `0x28e0` | master compositor dispatcher: WDEF messages 0..8, 1000 = INIT, 1001 (switch table `0x292e`; corrected 2026-10-31, #597, was "1001..1009 verbs") |
 | 7 | `0x1d3e` | CDEF-shaped dispatcher, family undecoded (35-entry control-message table at `0x1d68`, see §1; corrected 2026-10-31, #597, was "WDEF main") |
