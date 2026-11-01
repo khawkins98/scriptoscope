@@ -38,11 +38,16 @@ async function frameP95(page, run) {
 
 for (const mode of MODES) {
   test(`${mode}: HPT36 region clip cost at 1280 × 800 vs a same-run box baseline (gated in WebKit)`, async ({ page, servers, browserName, browser }, info) => {
-    test.setTimeout(240_000);
+    test.setTimeout(600_000);
     await page.setViewportSize({ width: 1600, height: 1200 });
     await boot(page, servers, mode);
-    const results = {};
-    for (const hit of ['box', 'region']) {
+    // TRIALS interleaved box/region trials (order alternates), so drift and runner noise hit both
+    // modes alike. One sweep yields ~60-80 WebKit drag frames whose p95 moves in whole frames on a
+    // shared CI runner (run 41295623416: 22 vs 18 ms in one trial, equal in the other three), so
+    // each statistic is the median across trials, not one trial's value.
+    const TRIALS = 5;
+    const runs = { box: [], region: [] };
+    const measure = async hit => {
       await page.evaluate(async hit => { const f = window.__fpt; f.reset(); f.manager(); await f.add('A', { slug: 'dolphin-som', w: 1280, h: 800, left: 10, top: 10, hit }); }, hit);
       expect((await state(page, 'A')).hitEffective, `${hit} measurement runs in ${hit} mode`).toBe(hit);
       if (hit === 'region') expect(await page.evaluate(() => getComputedStyle(window.__fpt.layers('A').L2).clipPath.startsWith('path(')), 'the clip is applied (no size fallback, HP20)').toBe(true);
@@ -59,16 +64,21 @@ for (const mode of MODES) {
       await page.waitForFunction(() => window.__release !== null);
       const restoreMs = await page.evaluate(() => window.__release);
       await settle(page);
-      results[hit] = { median, hoverP95: hover.p95, dragP95: drag.p95, releaseToFrameMs: restoreMs, frames: [hover.frames, drag.frames] };
-    }
+      runs[hit].push({ median, hoverP95: hover.p95, dragP95: drag.p95, releaseToFrameMs: restoreMs, frames: [hover.frames, drag.frames] });
+    };
+    for (let t = 0; t < TRIALS; t++) for (const hit of t % 2 ? ['region', 'box'] : ['box', 'region']) await measure(hit);
+    const med = xs => { const v = [...xs].sort((a, b) => a - b); return v[Math.floor(v.length / 2)]; };
+    const summary = hit => ({ median: med(runs[hit].map(r => r.median)), hoverP95: med(runs[hit].map(r => r.hoverP95)), dragP95: med(runs[hit].map(r => r.dragP95)),
+      releaseToFrameMs: med(runs[hit].map(r => r.releaseToFrameMs)), trials: runs[hit] });
+    const results = { box: summary('box'), region: summary('region') };
     const observation = { browserName, browserVersion: browser.version(), mode, runner: runner(), baseline: results.box, region: results.region,
-      gate: browserName === 'webkit' ? 'gated' : 'report-only', ceilings: { medianMs: 3.0, p95OverBaselineMs: 3 } };
+      gate: browserName === 'webkit' ? 'gated' : 'report-only', ceilings: { medianMs: 3.0, p95OverBaselineMs: 3 }, statistic: `median of ${TRIALS} interleaved trials` };
     info.annotations.push({ type: 'observation', description: JSON.stringify(observation) });
     await info.attach('hpt36.json', { body: JSON.stringify(observation, null, 2), contentType: 'application/json' });
     console.log(`HPT36 ${JSON.stringify(observation)}`);
     if (browserName !== 'webkit') return;
-    expect(results.region.median, 'WebKit median elementFromPoint (ms)').toBeLessThanOrEqual(3.0);
-    expect(results.region.hoverP95, 'WebKit hover p95 vs baseline').toBeLessThanOrEqual(results.box.hoverP95 + 3);
-    expect(results.region.dragP95, 'WebKit drag p95 vs baseline').toBeLessThanOrEqual(results.box.dragP95 + 3);
+    expect(results.region.median, 'WebKit median elementFromPoint (ms), median of trials').toBeLessThanOrEqual(3.0);
+    expect(results.region.hoverP95, 'WebKit hover p95 vs baseline (medians of trials)').toBeLessThanOrEqual(results.box.hoverP95 + 3);
+    expect(results.region.dragP95, 'WebKit drag p95 vs baseline (medians of trials)').toBeLessThanOrEqual(results.box.dragP95 + 3);
   });
 }

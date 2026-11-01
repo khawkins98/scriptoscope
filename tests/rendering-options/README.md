@@ -674,3 +674,34 @@ An eighth mutation, the tab background sample read with x and y swapped, changed
 no corpus row. Width, panes, disabled/pressed tabs, the original pattern offset
 `R`, resource files and `composeListHeader` are not covered. No image or golden
 is added.
+
+## HPT40 Tab-order reference (#597)
+
+`frame-pass-through-layers.spec.mjs` HPT40 compares the Tab sequence through a recipe window
+with a reference recorded on pre-#597 main, keyed `<process.platform>-<browserName>` in
+`frame-pass-through-tab-order.json`. Keyboard access differs by platform (macOS WebKit's default
+Tab skips `<button>`s and links; Linux WebKit does not), so each platform the suite runs on needs
+its own entry from the same Playwright engine build. The scenario lives in
+`frame-pass-through-tab-order.mjs` and is shared by the check and the recorder.
+
+Re-record (only when the Playwright image or engine versions change, or the scenario does):
+
+```sh
+git worktree add --detach ../base a6e4344c          # pre-#597 main, the branch's merge base
+cp tests/rendering-options/frame-pass-through-tab-order{.record.spec.mjs,.mjs,.json} ../base/tests/rendering-options/
+cd ../base
+# macOS (darwin-*): local engines
+npm ci && SCRIPTOSCOPE_RECORD_TAB_ORDER=1 SCRIPTOSCOPE_RENDERING_BROWSERS=chromium,firefox,webkit \
+  npx playwright test --config tests/rendering-options/playwright.config.mjs frame-pass-through-tab-order.record
+# Linux (linux-*): the pinned image from container.mjs, as CI runs it
+docker run --rm --platform linux/amd64 --ipc=host --mount type=bind,source=$PWD,target=/work \
+  --mount type=volume,target=/work/node_modules --workdir /work \
+  --env SCRIPTOSCOPE_GIT_COMMIT=a6e4344c8b3dfa6591bf413ea979acfacb93b1db --env SCRIPTOSCOPE_RECORD_TAB_ORDER=1 \
+  --env SCRIPTOSCOPE_RENDERING_BROWSERS=chromium,firefox,webkit <image from container.mjs> \
+  bash -lc 'npm ci && npx playwright test --config tests/rendering-options/playwright.config.mjs frame-pass-through-tab-order.record'
+cp tests/rendering-options/frame-pass-through-tab-order.json <branch>/tests/rendering-options/
+```
+
+The recorder (`frame-pass-through-tab-order.record.spec.mjs`) is skipped unless
+`SCRIPTOSCOPE_RECORD_TAB_ORDER=1`; it writes each sequence with its commit and browser version
+under `recordings`.

@@ -4,7 +4,7 @@
 // hook says otherwise.
 import { readFileSync } from 'node:fs';
 import { TAB_SCENARIO, tabSequence } from './frame-pass-through-tab-order.mjs';
-import { test, expect, MODES, FIXTURES, NEGATIVE, EXEMPT, boot, fixture, hitAt, state, events, settle, capture } from './frame-pass-through-fixture.mjs';
+import { test, expect, MODES, FIXTURES, NEGATIVE, EXEMPT, boot, fixture, hitAt, state, events, settle, capture, pixel } from './frame-pass-through-fixture.mjs';
 
 const SHADOW = '4px 5px 0 rgb(1, 2, 3)';
 // #619 (pre-existing, Firefox): the content scroller (an unclassed DIV in these fixtures) can
@@ -79,11 +79,12 @@ for (const mode of MODES) {
       // Ring pixels: changed by focus. Outside S: decoded excluded pixels or beyond the box.
       const o = await page.evaluate(async () => { const f = window.__fpt, o = await f.oracle('A'), g = f.geom('A'); return { W: o.W, H: o.H, left: g.left, top: g.top, region: Array.from(o.region) }; });
       let ring = 0, outside = 0, above = 0;
+      // Captures are in device pixels (region.s per CSS px, 2 at DPR 2): map back to CSS, then chrome pixels.
       for (let y = 0; y < region.h; y++) for (let x = 0; x < region.w; x++) {
         const i = (y * region.w + x) * 4;
         if (region.data[i] === none.data[i] && region.data[i + 1] === none.data[i + 1] && region.data[i + 2] === none.data[i + 2]) continue;
         ring++;
-        const cx = region.x + x - o.left, cy = region.y + y - o.top;
+        const cx = Math.floor(region.x + x / region.s - o.left), cy = Math.floor(region.y + y / region.s - o.top);
         if (cy < 0) above++;
         if (cx < 0 || cy < 0 || cx >= o.W || cy >= o.H || o.region[cy * o.W + cx] === 0) outside++;
       }
@@ -106,7 +107,7 @@ for (const mode of MODES) {
         return { b: b.toJSON(), host: getComputedStyle(h).boxShadow, part: getComputedStyle(part).boxShadow, filter: getComputedStyle(part).filter }; });
       expect([r.host, r.part, r.filter], hit).toEqual(['none', 'rgb(1, 2, 3) 4px 5px 0px 0px', 'none']);
       const img = await capture(page, { x: r.b.right - 2, y: r.b.bottom - 2, width: 8, height: 8 });
-      const at = (x, y) => img.data.slice(((y - img.y) * img.w + (x - img.x)) * 4, ((y - img.y) * img.w + (x - img.x)) * 4 + 3);
+      const at = (x, y) => pixel(img, x + 0.5, y + 0.5).slice(0, 3); // device-pixel aware (DPR 2)
       expect(at(Math.round(r.b.right) + 2, Math.round(r.b.bottom) + 3), `${hit}: shadow colour`).toEqual([1, 2, 3]);
     }
   });
@@ -292,8 +293,10 @@ for (const mode of MODES) {
 
 
   test(`${mode}: HPT40 the Tab sequence matches the pre-#597 recording in both modes`, async ({ page, servers, browserName }, info) => {
-    const reference = TAB_REFERENCE.sequences[browserName];
-    expect(reference, `a ${browserName} reference recorded at ${TAB_REFERENCE.recordedAt}`).toBeTruthy();
+    // Keyboard access differs by platform (macOS WebKit's Tab skips buttons), so the reference is
+    // per platform and engine, recorded on pre-#597 main (frame-pass-through-tab-order.record.spec.mjs).
+    const key = `${process.platform}-${browserName}`, reference = TAB_REFERENCE.sequences[key];
+    expect(reference, `a ${key} reference (record it: README "HPT40 Tab-order reference")`).toBeTruthy();
     for (const hit of ['region', 'box']) {
       await page.goto(`${servers[mode]}/tests/rendering-options/native-dom-page.html`);
       await page.evaluate(TAB_SCENARIO, { mode, hit });

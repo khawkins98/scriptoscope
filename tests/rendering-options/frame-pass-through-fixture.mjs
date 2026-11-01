@@ -322,7 +322,8 @@ export async function capture(page, clip) {
     const canvas = new OffscreenCanvas(bitmap.width, bitmap.height), ctx = canvas.getContext('2d');
     ctx.drawImage(bitmap, 0, 0);
     return { w: bitmap.width, h: bitmap.height, x0: 0, data: Array.from(ctx.getImageData(0, 0, bitmap.width, bitmap.height).data) };
-  }, png.toString('base64')).then(r => ({ ...r, x: c.x, y: c.y }));
+  }, png.toString('base64')).then(r => ({ ...r, x: c.x, y: c.y, s: r.w / c.width }));
 }
 export const SENTINEL_RGB = [250, 240, 200];
-export const pixel = (img, x, y) => { const i = ((y - img.y) * img.w + (x - img.x)) * 4; return img.data.slice(i, i + 4); };
+/** The device pixel at CSS point (x, y): screenshots are in device pixels (`s` per CSS px). */
+export const pixel = (img, x, y) => { const i = (Math.floor((y - img.y) * img.s) * img.w + Math.floor((x - img.x) * img.s)) * 4; return img.data.slice(i, i + 4); };
