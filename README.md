@@ -273,7 +273,7 @@ document.body.addEventListener('scriptoscope:promoted', (e) => { /* e.detail = {
 // On the runtime-inserted HOST element: bubbling + composed CustomEvents that cross
 // the shadow boundary into your consumer wraps (modal overlays, etc.). Same listener
 // rule as scriptoscope:promoted — listen on an ancestor, not the original element.
-document.body.addEventListener('scriptoscope:close', (e) => { /* the close widget is unmounting this window; fires before the bare HTML is restored. Not fired by handle.disconnect() */ });
+document.body.addEventListener('scriptoscope:close', (e) => { /* the window is being unmounted (close widget or a direct ScriptoscopeWindow.unmount()); fires before the bare HTML is restored. Not fired by handle.disconnect() */ });
 document.body.addEventListener('scriptoscope:userresize', (e) => { /* user finished grow-box drag; e.detail = { w, h } */ });
 
 // On the ORIGINAL consumer element (or any ancestor): a per-target failure event

@@ -33,7 +33,7 @@ These are implementation observations from the current collection, not permanent
 ## Prioritized gaps
 
 1. Public scheme menu and cursor APIs are absent; keep the visible limitation until real composition/interaction surfaces exist.
-2. Full tab teardown remains a lifecycle follow-up; this example change fixes semantic ownership without extending scanner ownership.
+2. Tab teardown is limited to what `restoreTabs` restores, which the example host's `disconnect()` calls; see the Tabs row above.
 3. Header admission remains bounded, and column interaction is separate application work. Expand diagnostics only for concrete consumer needs.
 4. Prepared bitmap fonts/display profiles need independently justified caller data before a meaningful additional example can be provided.
 

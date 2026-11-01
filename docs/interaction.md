@@ -2,7 +2,7 @@
 
 What a user can do with a Scriptoscope window and its controls, and what a consumer can hook or opt out of. Every statement here was checked against the code on `main` (`src/interactive.ts`, `src/declarative/`, `src/controls.ts`, `demo/explicit-host.mjs`, `demo/explicit-layout.mjs`) and, where one exists, against a browser contract in `tests/rendering-options/`. Where the code and an older doc disagree, this page follows the code.
 
-For layout, CSS and lifecycle gotchas see [integration-edge-cases.md](./integration-edge-cases.md). For the attribute vocabulary see the [README](../README.md#the-full-data-scriptoscope-vocabulary).
+For layout, CSS and lifecycle gotchas see [integration-edge-cases.md](./integration-edge-cases.md). For the attribute vocabulary see the [README](../README.md#the-full-data-scriptoscope--vocabulary).
 
 **Contents**
 
@@ -69,12 +69,12 @@ Tab order inside one window is:
 
 The chrome controls (2 to 5) live in the host's shadow root. They keep their DOM identity across every re-render: activation, collapse, zoom, keyboard resize steps and retheme (#533, `window-overlay-identity.spec.mjs`). So focus stays on them and screen readers don't re-announce them. When a control goes away while it has focus (the grow box on collapse, a scroll bar when the overflow ends), focus moves to the move handle, never to `<body>`.
 
-A pointer press on the frame, the grow box or a scroll bar moves keyboard focus into that window (to the control pressed, without a visible focus ring) unless focus is already inside it. So after you drag window B, Tab continues from B, not from the window you were in before.
+A pointer press on the frame or the grow box moves keyboard focus into that window (to the move handle or the grow box, without a visible focus ring) unless focus is already inside it. So after you drag window B, Tab continues from B, not from the window you were in before. A scroll-bar press does this only on an inactive window (the press that activates it). On the active window a scroll-bar press leaves keyboard focus where it was, even outside the window.
 
 ### Focus rings
 
 - Chrome controls: a 2 px `Highlight` outline on `:focus-visible`, from a stylesheet the runtime adopts into every window's shadow root. It doesn't depend on `scriptoscope.css`.
-- With the optional `scriptoscope.css`: `[data-scriptoscope-promoted]:focus-visible` gets an outline in `--scriptoscope-focus-color` (default `rgb(0 95 204)`) at `--scriptoscope-focus-width` (default 2px). The same rule paints focus of a promoted `<select>` on its wrapper and of a promoted range on its themed slider.
+- With the optional `scriptoscope.css`: `[data-scriptoscope-promoted]:focus-visible` gets an outline in `--scriptoscope-focus-color` (default `rgb(0 95 204)`) at `--scriptoscope-focus-width` (default 2px). A separate rule, using the same two variables, paints focus of a promoted `<select>` on its wrapper (`.scriptoscope-select:focus-within`) and of a promoted range on its themed slider (`input[type=range][data-scriptoscope-promoted]:focus + .scriptoscope-slider`). It matches `:focus`, not `:focus-visible`, so it also shows after a pointer press.
 - Promoted checkboxes and radios draw a 2 px `currentColor` outline on their face while the native input has focus. This is inline, so it doesn't need the stylesheet.
 
 ## 2. Moving
@@ -271,7 +271,7 @@ The example host promotes checkboxes, radios, ranges and selects automatically. 
 - **Default button:** `data-scriptoscope-default` draws the OK ring only. There is no Return or Escape key handling (see [Not implemented](#not-implemented)).
 - **No themed art:** when a scheme lacks an admitted face, `interactiveButton` returns a native baseline (procedural Platinum) button with the same press feedback (#551).
 
-Imperative: `interactiveButton(theme, { label, default, disabled, onClick })` returns the `HTMLButtonElement` directly. `onClick` follows the native `click` (Enter can activate on keydown).
+Imperative: `interactiveButton(theme, { label, default, disabled, onClick })` is async: it returns a `Promise` that resolves to the `HTMLButtonElement` itself, with no wrapper. `onClick` follows the native `click` (Enter can activate on keydown).
 
 ### Checkboxes and radios
 
@@ -288,11 +288,10 @@ Pointer, on the themed canvas only (blank space around a stretched wrapper is in
 - Each change dispatches a synthetic `input` event on the native input. Releasing dispatches `change` if the value differs from where the drag began.
 - The value is set through the native input, so it's sanitized to `min`, `max` and `step`.
 - A disabled input ignores the pointer.
-- A vertical engine slider has its minimum at the bottom.
 
 The art follows `input`/`change` events, form reset, live `min`/`max`/`step`/`value`/`disabled` attribute changes and persisted `pageshow`. A bare `input.value = …` in script isn't observed until the next interaction, `pageshow` or retheme; dispatch `input` or `change` after setting it.
 
-Imperative `interactiveSlider(theme, { orientation, length, value, onChange })` uses a normalized 0..1 value. It is a focusable `role="slider"` with `aria-valuenow` 0..100, and the same thumb-grab and track-centre pointer policy. Arrow keys step 0.05 (Shift: 0.1); Right and Up increase. There's no Home, End or Page key handling. `onChange` fires on every change.
+Imperative `interactiveSlider(theme, { orientation, length, value, onChange })` uses a normalized 0..1 value. It is a focusable `role="slider"` with `aria-valuenow` 0..100, and the same thumb-grab and track-centre pointer policy. Arrow keys step 0.05 (Shift: 0.1); Right and Up increase. There's no Home, End or Page key handling. `onChange` fires on every change. Only this imperative slider can be vertical (promoted ranges are always horizontal); a vertical engine slider has its minimum at the bottom.
 
 Imperative `interactiveScrollbar` is a standalone drag surface: a press anywhere sets the value to the pointer position, and arrow keys step like the slider. It isn't the window scroll bar described in section 5.
 
@@ -324,7 +323,7 @@ Imperative only: there is no `data-scriptoscope-*` attribute. `interactiveDisclo
 - traps focus: any focus that lands outside the wrap is pulled back to the first focusable element inside it;
 - closes on **Escape** (a `keydown` listener on the document), on a click whose target is the wrap itself (the backdrop, not its children), on the inner window's `scriptoscope:close`, or on `handle.close()`.
 
-On close it removes the attribute and the listeners, lifts the inert state, returns focus (by default to the element focused when the modal opened; pass `returnFocusTo: null` to skip), then calls `onClose`. Calling `openModal` again on an open wrap returns the same handle.
+On close it removes the attribute and the listeners, lifts the inert state, returns focus (by default to the element focused when the modal opened; pass `returnFocusTo: null` to skip), then calls `onClose`. Calling `openModal` again on an open wrap opens nothing new: it returns a new `{ close }` object bound to the same close function, so either handle closes the modal.
 
 Windows of type `dialog`, `alert`, `movable-modal` and `movable-alert` that have a title carry `role="dialog"` and `aria-modal="true"`. Other utility and popup types get `role="dialog"`, and document windows `role="group"`. The runtime adds no backdrop or trap for these types by itself: `openModal` is what makes a modal modal.
 
@@ -335,7 +334,7 @@ Windows of type `dialog`, `alert`, `movable-modal` and `movable-alert` that have
 | Event | Target | Bubbles | Composed | Detail | When |
 |---|---|---|---|---|---|
 | `scriptoscope:userresize` | the window host | yes | no | `{ w, h }`: new content width and height in unscaled CSS px | After a grow-box resize by pointer (on release) or keyboard (each step) that changed the size. Fires before the new chrome finishes rendering. Not for zoom or programmatic sizing. Imperative windows fire it too. |
-| `scriptoscope:close` | the window host | yes | yes | none | Declarative windows only, when the close widget unmounts the window. Fires before teardown, so the host is still readable. Not fired by `handle.disconnect()`, by `restoreOriginalElement()` or by a failed promotion. |
+| `scriptoscope:close` | the window host | yes | yes | none | Declarative windows only, when the window is unmounted: by the close widget, or by a direct call to the public `ScriptoscopeWindow.unmount()` (as `demo/advertisement.mjs` does). Fires before teardown, so the host is still readable. Not fired by `restoreOriginalElement()` (which `handle.disconnect()` uses) or by a failed promotion. |
 | `input` | the native range input | yes | yes | none | A pointer drag on a promoted range changed its value. |
 | `change` | the native range input | yes | no | none | A pointer drag on a promoted range ended at a different value. |
 
@@ -376,7 +375,7 @@ Keyboard equivalents for every pointer gesture:
 | Tab click | Arrows, Home, End, Space, Enter |
 
 - Windows with a title are labelled by it (`aria-label`), with roles as in [Modals](#7-modals).
-- Keyboard focus is always in an active, frontmost window, so a focused control is never hidden under another window (#550, WCAG 2.2 SC 2.4.11). Title widgets follow visual reading order (#537, WCAG 2.4.3).
+- Within one `WindowManager`, keyboard focus is always in the active, frontmost window, so a focused control is never hidden under another of that manager's windows (#550, WCAG 2.2 SC 2.4.11). This isn't guaranteed across managers: a window with its own manager (see [Two ways in](#two-ways-in)) stays active alongside the others, and its z-index isn't coordinated with theirs. Title widgets follow visual reading order (#537, WCAG 2.4.3).
 - A window whose close widget isn't wired (or a shaded window's grow box) has no hidden focus stop.
 - The chrome has no hover states. That's deliberate; see the README's "A heads-up on hover".
 - **Reduced motion:** with `prefers-reduced-motion: reduce`, the example host plays no boot reveal and doesn't start `autoCycle`, and `scriptoscope.css` drops the wipe-in and the picker icon fade. Window moves, resizes, zoom and collapse are never animated, so nothing else changes.
@@ -395,7 +394,7 @@ Keyboard equivalents for every pointer gesture:
 
 Five interaction contracts run in Firefox and WebKit at DPR 1 in the release gate, and in Chromium on every PR: `window-pointer-drag`, `growbox-zero-delta`, `growbox-zone`, `posture-b` and `transformed-ancestors` (`tests/rendering-options/interaction-specs.mjs`, [CI.md](../tests/rendering-options/CI.md#firefox-and-webkit-interaction-contracts-598), #598). The extended matrix runs every spec, including `scrollbar-parts`, in every engine. Engine differences those contracts account for:
 
-- **Sub-pixel pointers.** Chromium delivers fractional `clientX`/`clientY`; Firefox and WebKit mice report whole CSS pixels. The runtime rounds whatever it receives, so "jitter under half a pixel is no move" (#561, #552) holds in all three; the contracts send sub-pixel moves as synthetic events where the mouse can't (`subpixel-pointer.mjs`).
+- **Sub-pixel pointers.** In the contract tests, Playwright's Chromium mouse delivers fractional `clientX`/`clientY`, while its Firefox and WebKit mice floor to whole CSS pixels (`subpixel-pointer.mjs`; this is about Playwright's test mice, not a claim about real devices). The runtime rounds whatever coordinates it receives, so "jitter under half a pixel is no move" (#561, #552) is the same rule in every engine; where the test mouse can't send a fraction, the contracts send the sub-pixel moves as synthetic pointer events.
 - **Lost capture timing.** WebKit delivers `lostpointercapture` only before the pointer's next event (#577), so a cancelled drag may revert on the next pointer event rather than at once.
 - **Pointer capture and focus.** The list file names pointer capture, sub-pixel coordinates and focus as the areas where engines genuinely differ, which is why these five specs are the ones run per engine.
 - **`scrollTo({ behavior: 'instant' })`** is used for scroll-bar steps; whole-pixel steps avoid WebKit truncating a fractional target a pixel short (#556).
