@@ -47,6 +47,13 @@ failing preparation. Keep any subsequent legitimate activation authoritative.
 Background preparation failures must be handled without unhandled promise
 rejections.
 
+A replacement render for the same still-managed provisional window may satisfy
+the add if that replacement has actually committed successfully, even when an
+earlier preparation failed after becoming stale. Resolve only after that valid
+initial chrome exists. A stale successful preparation with no committed chrome
+is not sufficient to resolve the add. Removal or disposal cannot be undone by
+a late preparation.
+
 ## Inactive widget focus (#628 L3)
 
 A real mouse press on an inactive title widget moves keyboard focus into that
