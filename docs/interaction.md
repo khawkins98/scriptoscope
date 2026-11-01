@@ -44,7 +44,9 @@ Activation, z-order and focus are per `WindowManager`. The example host uses one
 | Wheel over an inactive window that shows themed scroll bars | Scrolls it without activating it. |
 | Pointer press on page content outside every window of the manager | Deactivates the active window, unless it uses `box` (see [1a](#1a-hit-area-and-frame-pass-through)). No window is then active until one is pressed or focused. |
 
-A manager has at most one active window. A window that asks to start active (`data-scriptoscope-state="active"`, or `opts.state: 'active'` on `WindowManager.add`) becomes active when it is added, and the previously active window becomes inactive. If several windows ask, the last one added wins (for a declarative page, promotion order, normally document order). A window with no state request starts active only if it is the first window of its manager. A window that asks to start inactive (`data-scriptoscope-state="inactive"`, or `opts.state: 'inactive'`) never starts active; if the first window does, no window starts active. Windows with their own `data-scriptoscope-theme` have their own manager (#614, IP6–IP10).
+The inert first-widget press suppresses only its own gesture, including a release click delivered to that widget. A later standalone synthetic or assistive-technology click is handled normally even when its `detail` is nonzero (#628).
+
+A manager has at most one active window. If an added window fails its initial render, its active-state request is discarded and the previously active managed window stays active; a later successful active-state request still wins (#628). A window that asks to start active (`data-scriptoscope-state="active"`, or `opts.state: 'active'` on `WindowManager.add`) becomes active when it is added, and the previously active window becomes inactive. If several windows ask, the last one added wins (for a declarative page, promotion order, normally document order). A window with no state request starts active only if it is the first window of its manager. A window that asks to start inactive (`data-scriptoscope-state="inactive"`, or `opts.state: 'inactive'`) never starts active; if the first window does, no window starts active. Windows with their own `data-scriptoscope-theme` have their own manager (#614, IP6–IP10).
 
 `WindowManager` has no public "activate" method. A `pointerdown` event dispatched on the host activates the window without moving keyboard focus (`window-focus-raise.spec.mjs`, "programmatic activation").
 
@@ -61,13 +63,13 @@ Each window has a stacking number `z` from a per-manager clock. Every activation
 
 Tab order inside one window is:
 
-1. the slotted content, in its own DOM order;
+1. focusable elements in the slotted content, in their own DOM order;
 2. the title widgets that are wired, in visual reading order: rows top to bottom, left to right within a row (#537);
 3. the **Move window** handle;
 4. the **Resize window** grow box (absent while collapsed);
 5. the vertical scroll bar, then the horizontal one (only while the content overflows).
 
-The order is the same in `region` and `box` mode (see [1a](#1a-hit-area-and-frame-pass-through)).
+The order is the same in `region` and `box` mode (see [1a](#1a-hit-area-and-frame-pass-through)). Runtime-created content viewports and declarative scroll wrappers are excluded from Tab and Shift+Tab: the themed bars provide keyboard scrolling, so an anonymous viewport adds no operation. This stays the same after style rebuilds and retheme, including in Firefox (#619). Explicit application `tabindex` values on consumer content are preserved. Content controls keep their native click focus and action; a click into an inactive window activates and raises it (#550).
 
 The chrome controls (2 to 5) live in the host's shadow root. They keep their DOM identity across every re-render: activation, collapse, zoom, keyboard resize steps and retheme (#533, `window-overlay-identity.spec.mjs`). So focus stays on them and screen readers don't re-announce them. When a control goes away while it has focus (the grow box on collapse, a scroll bar when the overflow ends), focus moves to the move handle, never to `<body>`.
 
