@@ -810,8 +810,9 @@ interface ManagedWindow<Theme extends ThemeInput> {
   modal?: boolean;
   /** Host found inside a closed shadow root (HP47). */
   closedRoot?: boolean;
-  /** A captured frame drag or grow-box resize is in progress: L2's clip is suspended (PM ruling A). */
-  gesture?: boolean;
+  /** A captured frame drag or grow-box resize holds L2's clip suspended (HP49); `ending`: a resize was
+   *  released and its render commit restores the clip with the new region. */
+  gesture?: boolean | 'ending';
   /** HP26/HP43: the clipped layer L2 and the decoration layer L3 (with its focus ring), created once. */
   layers?: { hit: HTMLElement; decor: HTMLElement; ring: HTMLElement };
 }
@@ -1457,6 +1458,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
   private commitRender(entry: ManagedWindow<Theme>, { win, collapsed, opts, extent, region }: PreparedRender, notify = true): void {
     entry.commitEpoch++;
     entry.region = region;
+    if (entry.gesture === 'ending') entry.gesture = false; // HP49: the resize commit restores the new S
     entry.opts = opts;
     if (extent) entry.extent = extent;
     // Host box = full chrome in every mode (#526). An absolute host already shrink-wraps
@@ -1611,7 +1613,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
 
   /** Start or end a captured pointer gesture (ruling A): suspend or restore the clip in this task. */
   private suspendClip(entry: ManagedWindow<Theme>, on: boolean): void {
-    if (!!entry.gesture === on) return;
+    if (!entry.gesture === !on) return;
     entry.gesture = on;
     const l2 = entry.layers?.hit;
     if (l2 && this.hitEffective(entry) === 'region') l2.style.clipPath = on ? 'none' : `path("${entry.region}")`;
@@ -2272,12 +2274,15 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       };
       trackDrag(corner, e, mv, () => {
         outline?.remove();
-        this.suspendClip(entry, false);
-        // Unchanged size (never moved, or dragged back to the start): no commit, no event.
-        if (nw === w0 && nh === h0) return;
+        // Unchanged size (never moved, or dragged back to the start): no commit, no event; HP49
+        // restores the clip in this task.
+        if (nw === w0 && nh === h0) { this.suspendClip(entry, false); return; }
         entry.opts = { ...entry.opts, width: nw, height: nh };
         delete entry.outer; // the user's grow-box size is an explicit content size
-        void this.render(entry);
+        // HP49: the clip stays suspended until this render commits, which restores the new S. If the
+        // render fails or is superseded without a commit, restore the last committed path then.
+        if (entry.gesture) entry.gesture = 'ending';
+        void this.render(entry).finally(() => { if (entry.gesture === 'ending') this.suspendClip(entry, false); });
         // Same userresize signal as the keyboard path — the declarative
         // layer's auto-fit disconnects on this event.
         host.dispatchEvent(new CustomEvent('scriptoscope:userresize', {
