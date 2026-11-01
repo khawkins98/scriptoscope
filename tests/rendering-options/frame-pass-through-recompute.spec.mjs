@@ -230,7 +230,9 @@ for (const mode of MODES) {
     await page.mouse.move(gb.x + 25, gb.y + 15, { steps: 6 }); await page.mouse.move(gb.x + 50, gb.y + 30, { steps: 6 }); await settle(page);
     d = delta(c0, await counts());
     expect([d.builds, d.records], 'pointer resize before release').toEqual([0, 0]);
-    expect(await hitAt(page, fy.vp.p_out), 'old S during the resize').toBe('sentinel');
+    // HP49: the clip is suspended for the captured resize (pass-through mid-gesture is not
+    // required), and suspension is not a build (HP24): the counts above stay zero.
+    expect(await page.evaluate(() => getComputedStyle(window.__fpt.layers('A').L2).clipPath), 'clip suspended during the resize (HP49)').toBe('none');
     await page.mouse.up(); await settle(page, 300);
     d = delta(c0, await counts());
     expect(d.builds, 'release: one build').toBe(1);
