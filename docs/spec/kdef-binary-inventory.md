@@ -75,15 +75,17 @@ tab body painter, justify erasing semantic source pixels or close #223.
 
 ## New architectural findings (2.3.1, not in `kdef182-disassembly-findings.md`)
 
-### 1. WDEF message dispatch table
+### 1. Slot-7 message dispatch table (CDEF-shaped; formerly read as the WDEF dispatch)
+
+> **Corrected 2026-10-31 (#597).** The table below is a CDEF-shaped dispatcher (slot 7, `0x1d3e`): its message 0 tests `contrlVis` and its message 2 is `calcCRgns` (`_RectRgn` of the param region to `contrlRect`). The window messages of recipe windows are dispatched by slot 6 (`0x28e0`, switch table at `0x292e`, default `0x2ddc`): 0 draw `0x41ee`, 1 hit `0x3f2c`, 2 calc regions `0x3ac4`, 3 new `0x38fe`, 4 dispose `0x3aa8`, 5 `0x3e6c`, 6 `0x436c`, 7 features, 8 get region `0x2a5e`. See `engine/hit-regions.evidence.md` E1.
 
 `kDEF 0` at `0x1d68` — 35-entry indexed-jump table. Decoded:
 
 | msg | handler addr | role |
 |---:|---:|---|
 | 0 (wDraw) | 0x1dae | frame painting |
-| 1 (wHit) | 0x238a | hit testing |
-| 2 (wCalcRgns) | 0x23b2 | structure/content region |
+| 1 (wHit) | 0x238a | hit testing *(control hit, not `wHit`; see the correction above)* |
+| 2 (wCalcRgns) | 0x23b2 | structure/content region *(`calcCRgns`: `_RectRgn(param, contrlRect)`, not `wCalcRgns`)* |
 | 3 (wNew) | 0x23c6 | init |
 | 4 (wDispose) | 0x2610 | teardown |
 | 8 (wGrowIcon) | 0x2638 | grow box |
@@ -101,10 +103,10 @@ At `0x1c7c`, 9 internal-service function pointers: `0x6688, 0x997e, 0xdd22, 0x11
 | 1 | `0x997e` | scroll-bar CDEF (saves the kDEF globals pointer via `0x9930`; per-message state `0x9d84`; `docs/spec/engine/scrollbar.md`) — corrected 2026-10-21, was "re-entrant CDEF entry" |
 | 2 | `0xdd22` | GDevice-aware focus / state helper *(re-verify: rests on the former GetCTSeed trap name)* |
 | 3 | `0x118b8` | wnd# gate (document windows, id `-14336`) → slot 6 on hit; system `'WDEF'` fallback on miss |
-| 4 | `0x1525a` | wnd# gate (utility windows, id `-14304`) → slot 6 with msg-base `+1984` |
+| 4 | `0x1525a` | wnd# gate (utility windows, id `-14304`) → slot 6 with the message unchanged and varCode `(v&15) + 1984` (procID family 124, not a message base; corrected 2026-11-01, #611 (see #610 and `engine/hit-regions.evidence.md` E1), was "msg-base `+1984`") |
 | 5 | `0x8d36` | separate CDEF, undecoded (68 B aux, hit test returns part 10, `bevp` tags; likely bevel button) — **not** the scroll bar; corrected 2026-10-21 |
-| 6 | `0x28e0` | master compositor dispatcher (msg 1000 = INIT, 1001..1009 verbs) |
-| 7 | `0x1d3e` | WDEF main (35-entry msg table at `0x1d68`, see §1) |
+| 6 | `0x28e0` | master compositor dispatcher: WDEF messages 0..8, 1000 = INIT, 1001 (switch table `0x292e`; corrected 2026-10-31, #597, was "1001..1009 verbs") |
+| 7 | `0x1d3e` | CDEF-shaped dispatcher, family undecoded (35-entry control-message table at `0x1d68`, see §1; corrected 2026-10-31, #597, was "WDEF main") |
 | 8 | `0x17452` | wnd# gate (popup / tab, id `-12320`) → trampolines to a loaded `'WDEF', -14336` via a call through the loaded handle |
 
 The cinf consumer is `0x116f8` (see §3), **NOT** slot 3 `0x118b8` — slot 3 loads `'wnd#'`, not `'cinf'`. (Slots 3, 4, 8 are three parallel wnd#-loading family gates.)

@@ -177,12 +177,41 @@ gone). No case-cited address line changed; all 27 case inputs, outcomes, payload
 and ring dispatch claims are unchanged. The 1.0.13 review is archived verbatim; the
 1.0.14 label is PENDING an independent hash-only review.
 
-Inventory 1.0.18 (title-text-colour note, PR #540) refreshes only the full
-`kdef231-reference.md` document hash (`ce33a576` -> `3efc5f35`) after the §1.4
-"Title text colour is SAMPLED" note replaced its stale "use black" decision with the
-implemented sample (`docs/spec/engine/window-widgets.md` TC1–TC5). No case-cited
-address line changed; all 27 case inputs, outcomes, payload pins and ring dispatch
-claims are unchanged. The 1.0.17 review is archived verbatim; 1.0.18 carries the Tier 0
-hash-only check of PR #540. The 459 lifecycle tests peel this bump
-(`tests/rendering-options/controls459/hash-only-bumps.mjs`) to recover the exact
-1.0.17 inventory they pin; a later hash-only bump adds its row there.
+Inventory 1.0.18 (#608) moves the nine `push-no-cinf-admission` cases (three
+System7 push states and six synthetic fixtures) from `themed` to `unavailable`.
+`docs/spec/engine/push-button.md` PF3/PF6 supersede the 2026-10-23 themed-extent
+disposition: known art whose exact cinf and cinf0 are both proven NULL keeps its
+admission identity and NULL transcript, but the public facade returns `null` with
+outcome `unavailable` and a terminal face step `engine:PB9:cinf:NULL`. Each row
+changes only `proposed.outcome`, a new `proposed.terminal` and its notes; the rule
+keeps its id with an amended claim. `corrections/608-no-cinf-unavailable.json`
+archives the exact before/after rows, the prior review, the pinned PF section and
+the single `border-boundaries.spec.mjs` patch; `controls459/peel-608.mjs` lets the
+earlier correction proofs verify their own frozen state. The 1.0.18 transition carries
+the independent Tier-2 review receipt of PR #612; the test author did not self-approve.
+
+Inventory 1.0.19 (#611) refreshes only the full `kdef231-reference.md` document hash
+(`ce33a576` -> `bf390065`) in its nine pinned cases, after the §1.4 dispatch labels were
+corrected per `docs/spec/engine/hit-regions.evidence.md` E1 (#610): slot 6 `0x28e0`
+dispatches the standard WDEF messages 0..8 plus 1000/1001 through the `0x148` switch
+table at `0x292e`, not verbs 1001..1009, and the slot-3/4/8 gates pass the message
+unchanged and rewrite only the varCode (the gate column was "msg base into slot 6"),
+and slot 8 falls back on a miss to its private dispatch (`0x174c8`), not a system `'WDEF'`. No case-cited address line changed; all 27
+case inputs, outcomes, payload pins and ring dispatch claims are unchanged.
+`corrections/611-reference-labels.json` archives the seven exact label edits, the
+prior review and the 1.0.18 file hash; `controls459/peel-611.mjs` peels the bump back
+off so the 1.0.18 and earlier correction proofs keep verifying their own frozen state.
+The 1.0.18 review is archived verbatim; the 1.0.19 transition carries the independent
+Tier-1 review receipt of PR #615; the test author did not self-approve.
+
+Inventory 1.0.20 (PR #540, merged after #608/#611) refreshes only the nine
+`docs/spec/kdef231-reference.md` document hashes (`bf390065` -> `9c73533a`)
+after its title-colour note was updated to the implemented TC1–TC5 sample. The
+#611 dispatch-label corrections and #608 no-cinf unavailable outcomes remain
+unchanged. All 27 case inputs, policy rules, payload pins and case-cited addresses
+are preserved, and the complete 1.0.19 review is archived verbatim.
+`controls459/hash-only-bumps.mjs` peels this exact prose edit and inventory bump
+before the unchanged 611/608 helpers verify their historical receipts. The new
+transition carries the independent Tier 0 hash-only approval of `/root/astra_bonn`
+(2026-11-01), including six passing frozen proofs and in-memory mutation probes;
+it promotes no availability, native or pixel-fidelity claim.

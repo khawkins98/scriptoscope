@@ -24,7 +24,7 @@ bounded cases in Chromium at DPR 2, Firefox and WebKit at DPR 1 (install those
 browsers first). See the runner's configuration for selection and artifact paths.
 `npm run test:rendering:interaction` runs only the pointer and focus interaction
 specs in [`interaction-specs.mjs`](./interaction-specs.mjs) under Firefox and WebKit;
-CI requires it on every code PR ([details](./CI.md#firefox-and-webkit-interaction-contracts-598)).
+the release gate requires it before every release ([details](./CI.md#firefox-and-webkit-interaction-contracts-598)).
 These checks do not claim original-engine fidelity from agreement with ourselves.
 
 The separate golden workflow is explicit:

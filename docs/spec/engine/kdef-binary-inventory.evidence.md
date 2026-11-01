@@ -59,8 +59,8 @@ unar -q -forks visible -o /tmp/pach-review/payload "/tmp/pach-review/Kaleidoscop
 | 3 | `0x118b8` | wnd# gate (document windows, id `-14336`) → slot 6 on hit; system `'WDEF'` fallback on miss |
 | 4 | `0x1525a` | wnd# gate (utility windows, id `-14304`) → slot 6 with msg-base `+1984` |
 | 5 | `0x8d36` | second CDEF main (scrollbar / slider, 68 B aux) |
-| 6 | `0x28e0` | master compositor dispatcher (msg 1000 = INIT, 1001..1009 verbs) |
-| 7 | `0x1d3e` | WDEF main (35-entry msg table at `0x1d68`, see §1) |
+| 6 | `0x28e0` | master compositor dispatcher (msg 1000 = INIT, 1001..1009 verbs) — **superseded 2026-10-31 (#597): WDEF messages 0..8, 1000, 1001; switch table `0x292e`, default `0x2ddc`** |
+| 7 | `0x1d3e` | WDEF main (35-entry msg table at `0x1d68`, see §1) — **superseded 2026-10-31 (#597): CDEF-shaped dispatcher (msg 0 tests `contrlVis`, msg 2 = `calcCRgns`)** |
 | 8 | `0x17452` | wnd# gate (popup / tab, id `-12320`) → trampolines to a loaded `'WDEF', -14336` via `jsr a0@` |
 ````
 

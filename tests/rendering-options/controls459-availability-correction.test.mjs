@@ -1,11 +1,13 @@
-import {frozenPushSource} from './controls459/frozen-push-source.mjs';
 import {peelHashOnlyBumps} from './controls459/hash-only-bumps.mjs';
+import {frozenPushSource} from './controls459/frozen-push-source.mjs';
+import {peel608} from './controls459/peel-608.mjs';
+import {peel611} from './controls459/peel-611.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 const read=p=>JSON.parse(readFileSync(new URL(p,import.meta.url)));
-const live=peelHashOnlyBumps(read('../control-availability/expectations.json'));
+const live=peel608(peel611(peelHashOnlyBumps(read('../control-availability/expectations.json'))));
 const delta=read('../control-availability/corrections/459-push-strict-state.json');
 const hash=value=>createHash('sha256').update(value).digest('hex');
 test('459 correction preserves frozen draft and prior state through independently approved activation',()=>{

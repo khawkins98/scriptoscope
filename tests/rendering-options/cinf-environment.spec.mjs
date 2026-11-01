@@ -92,7 +92,7 @@ for (const runtime of ['source','built']) test(`${runtime}: explicit cinf enviro
     expect(held.trace.steps.find(s=>s.cinfLookup?.status==='ready').cinfLookup.selected).toEqual(held.original.selected);
     expect(held.trace.bandPaints.every(p=>p.resource.manifestKey==='face' && p.resource.byteProvenance.cicnResourceIndex===0)).toBe(true);
     const alias=rows.find(r=>r.kind==='positive-alias-absent');expect(alias.error).toBeUndefined();expect(alias.pixels).toBeNull();expect(alias.trace.outcome.status).toBe('unavailable');expect(alias.trace.bandPaints??[]).toEqual([]);
-    const empty=rows.find(r=>r.kind==='two-null');expect(empty.pixels).toEqual(Array(29*9*4).fill(0));
+    const empty=rows.find(r=>r.kind==='two-null');/* push-button.md PF3 (#608): declared double NULL is null/unavailable */expect(empty.error).toBeUndefined();expect(empty.pixels).toBeNull();expect(empty.trace.outcome.status).toBe('unavailable');expect(empty.trace.steps.at(-1)).toMatchObject({role:'face',action:'missing',basis:'source-dispatch',usage:'paint',reason:'engine:PB9:cinf:NULL'});
     expect(empty.trace.bandPaints??[]).toEqual([]);expect(empty.trace.legacyFacePaint).toBeUndefined();
     expect(empty.view.attempts.map(a=>[a.id,a.outcome])).toEqual([[-10239,'missing'],[0,'missing']]);
     for(const row of rows.filter(r=>r.kind.endsWith('rejected'))) {
