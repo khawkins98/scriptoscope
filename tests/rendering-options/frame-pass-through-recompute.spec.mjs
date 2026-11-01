@@ -1,6 +1,6 @@
 // #597 frame pass-through, recompute, identity and gesture hooks
 // (docs/spec/engine/hit-regions.md §9.4, §9.5, §9.8): HPT4, HPT5, HPT6, HPT13,
-// HPT14, HPT25, HPT26, HPT27, HPT30, HPT31, HPT32, HPT35, HPT38, HPT39.
+// HPT14, HPT25, HPT26, HPT27, HPT30, HPT31, HPT32, HPT35, HPT38, HPT39 (top- and side-titled).
 import { test, expect, MODES, boot, fixture, hitAt, state, events, settle, regionLogs, capture, SENTINEL_RGB } from './frame-pass-through-fixture.mjs';
 
 /** Snapshot the decoded S of `name` for a later comparison (chrome pixels; host origin fixed). */
@@ -377,13 +377,16 @@ for (const mode of MODES) {
       await f.add('B', { slug: 'dolphin-som', left: 700, top: 500 });
       const root = f.hosts.A.host.shadowRoot, { L2, canvas } = f.layers('A');
       L2.__mark = 'L2'; canvas.__mark = 'canvas';
+      const L3 = root.querySelector('.scriptoscope-decoration'); if (L3) L3.__mark = 'L3';
       for (const el of root.querySelectorAll('button, [role=scrollbar]')) el.__mark = el.getAttribute('aria-label');
     });
     const check = () => page.evaluate(async () => {
       const f = window.__fpt; await f.settle();
       const root = f.hosts.A.host.shadowRoot, { L1, L2, canvas, first } = f.layers('A');
       const overlays = [...root.querySelectorAll('button, [role=scrollbar]')].map(el => [el.getAttribute('aria-label'), el.__mark === el.getAttribute('aria-label') ? 'same' : 'new']);
-      return { L2: L2?.__mark ?? null, canvas: canvas.__mark ?? null, L1first: first === L1, L2inL1: !!L2 && L2 !== L1 && L1.contains(L2), overlays };
+      const L3 = root.querySelector('.scriptoscope-decoration');
+      return { L2: L2?.__mark ?? null, canvas: canvas.__mark ?? null, L3: L3?.__mark ?? null, L1first: first === L1, L2inL1: !!L2 && L2 !== L1 && L1.contains(L2), overlays,
+        grow: !!root.querySelector('button.scriptoscope-growbox') };
     });
     const start = await check();
     expect(start.L2inL1, 'L2 sits inside L1').toBe(true);
@@ -400,11 +403,18 @@ for (const mode of MODES) {
     ];
     // Collapse and expand are their own test: HP43 keeps every overlay for the window's
     // lifetime, including the grow box and scrollbar a collapsed window does not show.
+    let absentCollapsed = [];
     for (const [label, run] of steps.filter(([l]) => (phase === 'collapse') === (l === 'collapse' || l === 'expand'))) {
       await page.evaluate(`(${run.toString()})(window.__fpt)`);
       const s = await check();
-      expect([s.L2, s.canvas, s.L1first, s.L2inL1], label).toEqual(['L2', 'canvas', true, true]);
-      expect(s.overlays.filter(([, v]) => v !== 'same'), `${label}: overlays`).toEqual([]);
+      expect([s.L2, s.L3, s.canvas, s.L1first, s.L2inL1], label).toEqual(['L2', 'L3', 'canvas', true, true]);
+      // HP43 exception: the grow box exists only while expanded; its identity across collapse is not asserted.
+      // Overlays that do not exist while collapsed (HP43: only those in both states) are exempt on expand.
+      const exempt = phase === 'collapse' ? ['Resize window', ...(label === 'expand' ? absentCollapsed : [])] : [];
+      if (label === 'collapse') absentCollapsed = start.overlays.map(([l]) => l).filter(l => !s.overlays.some(([m]) => m === l));
+      expect(s.overlays.filter(([l, v]) => v !== 'same' && !exempt.includes(l)), `${label}: overlays`).toEqual([]);
+      if (label === 'collapse') expect(s.grow, 'collapsed: no grow box').toBe(false);
+      if (label === 'expand') expect(s.grow, 'expanded again: a grow box').toBe(true);
     }
     if (phase === 'collapse') return;
     // A focused title widget keeps focus across a retheme.
@@ -487,6 +497,57 @@ for (const mode of MODES) {
       expect(r.titled.filter(([, h]) => h !== 'host:U'), `${key}: title-axis pixels in S hit`).toEqual([]);
     }
     info.annotations.push({ type: 'observation', description: JSON.stringify(rows) });
+  });
+
+
+  test(`${mode}: HPT39 side-titled (HP48): a collapsed side utility keeps its left title strip and passes top/bottom cells`, async ({ page, servers }, info) => {
+    await boot(page, servers, mode);
+    // No corpus collapsed-side-utility recipe places top or bottom cells (1138, beos-r503 and
+    // crayon-os list none), so the top/bottom clause uses a synthetic 1138 whose collapsed side
+    // utility borrows the expanded side utility's top and bottom lists. The left list is the archive's own.
+    const r = await page.evaluate(async () => {
+      const f = window.__fpt; f.manager();
+      const dec = await f.decode('1138'), [bl, bt, , bb] = dec.manifest.windowTypes['collapsed-side-utility'].parts['part-0'].rect;
+      // The archive's collapsed template is transparent right of its title strip; make the top and
+      // bottom bands opaque there so the borrowed cells have mask pixels to place.
+      const { theme: base, synthetic } = await f.synth('1138', ['collapsed-side-utility'], (rgba, w, h) => {
+        for (let y = 0; y < h; y++) for (let x = bl; x < w; x++) if (y < bt || y >= bb) rgba[(y * w + x) * 4 + 3] = 255;
+      });
+      const withEdges = wts => ({ ...wts, 'collapsed-side-utility': { ...wts['collapsed-side-utility'],
+        edges: { ...wts['collapsed-side-utility'].edges, top: wts['side-floating-utility-window'].edges.top, bottom: wts['side-floating-utility-window'].edges.bottom } } });
+      const themeObject = { ...base, manifest: { ...base.manifest, windowTypes: withEdges(base.manifest.windowTypes) } };
+      await f.add('S', { themeObject, slug: '1138', synthetic, type: 'side-floating-utility-window', w: 120, h: 200, extra: { collapsed: true } });
+      const o = await f.oracle('S', { collapsed: true, type: 'collapsed-side-utility' });
+      const wt = withEdges(dec.manifest.windowTypes)['collapsed-side-utility'], [al, aTop] = wt.parts['part-0'].rect;
+      const build = (C, mutation) => f.rules.structureRegion({ windowType: wt, cicn: o.cicn, C, W: o.W, H: o.H, flags: { ...f.chromeRules.DECLARED_FLAGS }, collapsed: true, sideTitle: true, mutation });
+      // Configuration input: the empty-width content rect whose four-side decode reproduces the drawn chrome.
+      let solved = null;
+      // Either collapsed form: empty width (side-titled, SR6's C) or the runtime's empty height.
+      const candidates = [];
+      for (let l = al - 4; l <= al + 4; l++) for (let t = aTop - 4; t <= aTop + 4; t++) {
+        for (let h = Math.max(0, o.H - t - 60); h <= o.H - t; h++) candidates.push({ left: l, top: t, right: l, bottom: t + h });
+        for (let w = Math.max(0, o.W - l - 60); w <= o.W - l; w++) candidates.push({ left: l, top: t, right: l + w, bottom: t });
+      }
+      for (const C of candidates) if (!solved && f.crossCheck('S', { ...o, C, region: build(C, 'fourSidesCollapsed').region }).disagree === 0) solved = C;
+      if (!solved) return { unsolved: true, W: o.W, H: o.H };
+      const sr6 = build(solved), four = build(solved, 'fourSidesCollapsed'), at = p => { const v = f.vp('S', p); return f.hitAt(v.x, v.y); };
+      const strip = [], passes = [];
+      for (let y = 0; y < o.H; y++) for (let x = 0; x < o.W; x++) {
+        const j = y * o.W + x;
+        if (x < solved.left && sr6.region[j] === f.rules.IN && f.rules.uniform(sr6.region, o.W, o.H, x, y, f.rules.IN, 1)) strip.push([x, y]);
+        if (four.region[j] === f.rules.IN && sr6.region[j] === f.rules.OUT) passes.push([x, y]);
+      }
+      const pick = (l, n) => l.filter((_, i) => i % Math.max(1, Math.floor(l.length / n)) === 0);
+      return { W: o.W, H: o.H, C: solved, collapsed: f.hosts.S.m.describe(f.hosts.S.host).collapsed, effective: f.state('S').hitEffective,
+        strip: pick(strip, 40).map(p => [p, at(p)]), passes: pick(passes, 60).map(p => [p, at(p)]), nStrip: strip.length, nPasses: passes.length };
+    });
+    info.annotations.push({ type: 'observation', description: JSON.stringify({ W: r.W, H: r.H, C: r.C, strip: r.nStrip, passes: r.nPasses }) });
+    expect(r.unsolved, `a content rect reproduces the drawn chrome (${r.W}x${r.H})`).toBeUndefined();
+    expect([r.collapsed, r.effective]).toEqual([true, 'region']);
+    expect(r.nStrip, 'decoded left title-strip pixels in S').toBeGreaterThan(0);
+    expect(r.nPasses, 'decoded top/bottom cell pixels the layout places').toBeGreaterThan(0);
+    expect(r.strip.filter(([, h]) => h !== 'host:S'), 'the left title strip hits').toEqual([]);
+    expect(r.passes.filter(([, h]) => h !== 'sentinel'), 'top/bottom cell pixels pass (SR6 under HP48)').toEqual([]);
   });
 
 }
