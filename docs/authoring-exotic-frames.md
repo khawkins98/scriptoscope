@@ -264,7 +264,7 @@ the page shows through. **But the window still owns those pixels.**
 
 **R16. Classic: transparent pixels show what's behind, and clicks on them pass
 through.**
-- Kingfisher's real-Kaleidoscope capture (`authoring/schemes/kingfisher/classic/desktop@2x.png`)
+- Kingfisher's real-Kaleidoscope capture ([historical desktop capture](https://github.com/khawkins98/scriptoscope/blob/6c4067db5c760d617435188b5fb3e5c20a7e86d4/authoring/schemes/kingfisher/classic/desktop@2x.png))
   shows its rounded-corner mask pixels displaying the desktop pattern and the
   window behind.
 - **Click-through, observed in real Kaleidoscope 2.3.1** (Castle and
@@ -280,13 +280,13 @@ through.**
   anyone designing tall or irregular frames:
   - **The menu bar covers art above the title bar.** A window placed just under
     the menu bar loses its tower tops or skyline beneath it
-    (`authoring/schemes/bonn/classic/menubar-clips-skyline@3x.png`). Keep the
+    ([historical menu-bar capture](https://github.com/khawkins98/scriptoscope/blob/6c4067db5c760d617435188b5fb3e5c20a7e86d4/authoring/schemes/bonn/classic/menubar-clips-skyline@3x.png)). Keep the
     essential look in the bar rows, and treat art above them as decoration.
   - **Narrow windows lose the title first, in both engines.** Below the top
     edge's fixed sum (TS1) the title, its bezels and any code-10 ornament go
     together; above it, the title truncates before anything else gives way
     (R6). At equal widths the web's `layoutWindow` drops the same cells as
-    classic (`bonn/classic/narrow-title-drop@3x.png`). Classic titles are
+    classic ([historical narrow-window capture](https://github.com/khawkins98/scriptoscope/blob/6c4067db5c760d617435188b5fb3e5c20a7e86d4/authoring/schemes/bonn/classic/narrow-title-drop@3x.png)). Classic titles are
     bitmap Chicago 12, narrower than the web font, so classic keeps a few more
     letters.
   - **8 bpp shifts subtle colours.** A warm beige stone came out grey with

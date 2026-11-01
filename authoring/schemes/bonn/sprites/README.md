@@ -32,8 +32,8 @@ node authoring/schemes/bonn/concept/extract-assets.mjs /tmp/bonn-concept.png /tm
 ```
 
 The generated `*-6x.png` files are inspection previews only. The five named
-1× PNGs are authoritative. `extraction.json` records crops, traced masks and
-the shared palette. `skyline.mjs` reads the PNGs directly and fits each one
+1× PNGs are authoritative. The extraction script records crops, traced masks
+and the palette algorithm. `skyline.mjs` reads the PNGs directly and fits each one
 with a single uniform nearest-neighbor scale; its inactive treatment is a
 deterministic grayscale conversion. It does not reconstruct architecture.
 

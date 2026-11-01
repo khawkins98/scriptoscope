@@ -496,7 +496,7 @@ captures show; it must not imply a later art revision was tested.
 For substantially larger or novel frame recipes, run an early native smoke
 test before polishing every family, then repeat on the frozen final build.
 
-![Kingfisher in real Kaleidoscope: Finder window, menu bar and desktop pattern](../authoring/schemes/kingfisher/classic/desktop@2x.png)
+![Kingfisher in real Kaleidoscope: Finder window, menu bar and desktop pattern](../authoring/schemes/kingfisher/classic/refinement-desktop.png)
 
 Maintainers with the private reference emulator
 ([`maintainer-reference-environment.md`](./maintainer-reference-environment.md))

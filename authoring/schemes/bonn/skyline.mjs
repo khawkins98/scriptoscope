@@ -59,44 +59,6 @@ export function drawBridge(r, x, y, w, h, p) {
   drawConcept(r, 'bridge', x, y + h, w, h, p);
 }
 
-// Beethoven: a bust on a plinth, 15 wide. o outline, h/H/d hair (body, lit,
-// shade), f/s skin (lit, shade), e brows, eyes and mouth, w the white stock,
-// r the red scarf, c the coat.
-const BEETHOVEN = [
-  '..o.oo.oo.o....',
-  '.ohohhohhohoo..',
-  'ohHHhhhhhhhhhoo',
-  'oHHhhhhhhhhhhdo',
-  'ohHhhhhhhhhhddo',
-  'ohhhffffffhhddo',
-  'ohheeeffeeehddo',
-  'ohhfefffffefhdo',
-  '.ohffffsfffhddo',
-  '.ohffffsffshdo.',
-  '.ohhfseeesshdo.',
-  '..ohfsfffsshdo.',
-  '..oohsssssooo..',
-  '..owwwrrwwwo...',
-  '.occwwrrrwccco.',
-  'occccwrrwccccco',
-  'occcccwwccccccco'.slice(0, 15),
-  'ooooooooooooooo',
-];
-const PLINTH = [
-  '.ooooooooooooo.',
-  '.oaaaaaaaaaaao.',
-  '.oaAAAAAAAAAzo.',
-  '.ozzzzzzzzzzzo.',
-  'ooooooooooooooo',
-];
-
-export function drawBeethoven(r, x, yb, p) {
-  const S = p.sky3, P = p.pier;
-  const top = yb - PLINTH.length - BEETHOVEN.length;
-  r.sprite(x, top, BEETHOVEN, { o: p.outline, h: S.hair, H: S.hairHi, d: S.hairLo, f: S.skin, s: S.skinLo, e: p.outline, w: p.trim, r: S.scarf, c: S.coat });
-  r.sprite(x, yb - PLINTH.length, PLINTH, { o: p.outline, a: P.hi, A: P.face, z: P.lo });
-}
-
 /** Actual cherry bough from the concept, fitted uniformly without cropping. */
 export function drawBough(r, x, base, w, p) {
   drawConcept(r, 'cherry-bough', x, base, w, SKY_ROWS, p);
