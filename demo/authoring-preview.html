@@ -14,11 +14,15 @@
     ?active=<title or window type>
                      make that window the active one, e.g. ?active=Tools or
                      ?active=dialog (untitled dialogs and alerts match by type)
+    ?document=1      show only the document window; ?width=380&height=210
+                     sets CONTENT dimensions for matched concept comparisons
+    &composition=concept
+                     compose live controls, progress and active scrollbars
 
   Widgets are <button aria-label="Close window"> (etc.) inside each window's
-  shadow root, if you want to press them from a test. Progress bars, menus and
-  the desktop pattern aren't shown here; render them with the public compose
-  functions, or check them in real Kaleidoscope.
+  shadow root, if you want to press them from a test. The concept composition
+  includes a progress bar through the public renderer; menus and desktop
+  patterns still need real Kaleidoscope review.
 
   Shows every window type the scheme defines, plus push buttons, checkboxes,
   sliders, popup menus, text fields, tabs and scrollbars, through the same explicit host the showcase uses. Reload after
@@ -30,17 +34,26 @@
   <title>Scheme authoring preview</title>
   <link rel="stylesheet" href="scriptoscope.css">
   <style>
+    /* Same licensed font substitutes as the diagnostic demo; credits/terms
+       live beside the existing WOFF files in assets/fonts/. */
+    @font-face { font-family: Charcoal; src: local('Charcoal'), url('assets/fonts/virtue.woff') format('woff'); }
+    @font-face { font-family: 'Charcoal 12'; src: url('assets/fonts/charcoal-12.woff') format('woff'); }
     body { margin: 0; background: #7f8fa3; font: 13px/1.4 system-ui, sans-serif; color: #111; }
     #status { position: fixed; right: 8px; top: 4px; color: #fff; font: 12px ui-monospace, monospace; }
     #desk { position: relative; min-height: 1060px; }
+    #desk.overview { display: grid; grid-template-columns: max-content max-content; align-items: start; gap: 40px 24px; padding: 24px; }
     .pad { padding: 10px 14px; }
     .row { display: flex; gap: 10px; align-items: center; margin: 8px 0; }
     label { display: inline-flex; gap: 6px; align-items: center; }
+    .concept-scene { box-sizing: border-box; padding: 24px; min-width: calc(var(--scene-width) + 24px); min-height: calc(var(--scene-height) + 24px); font: 12px/1.4 Charcoal, Geneva, sans-serif; }
+    .concept-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 24px; width: calc(var(--scene-width) - 64px); }
+    .concept-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: calc(var(--scene-width) - 64px); margin-top: 32px; }
+    .concept-actions .row { margin: 0; }
   </style>
 </head>
 <body>
   <div id="desk">
-    <article data-scriptoscope-window data-scriptoscope-title="Document Window" data-scriptoscope-x="24" data-scriptoscope-y="24"
+    <article data-scriptoscope-window data-scriptoscope-title="Document Window"
       data-scriptoscope-width="380" data-scriptoscope-height="210">
       <div class="pad">
         <p>An active document window with live HTML inside.</p>
@@ -62,35 +75,35 @@
     </article>
 
     <!-- Double-click a title bar to see the collapsed (window-shade) frame. -->
-    <article data-scriptoscope-window data-scriptoscope-title="Inactive Window" data-scriptoscope-x="480" data-scriptoscope-y="24"
+    <article data-scriptoscope-window data-scriptoscope-title="Inactive Window"
       data-scriptoscope-width="260" data-scriptoscope-height="120" data-scriptoscope-state="inactive">
       <div class="pad"><p>Behind the active window.</p></div>
     </article>
 
     <article data-scriptoscope-window data-scriptoscope-title="Movable Modal" data-scriptoscope-window-type="movable-modal"
-      data-scriptoscope-x="24" data-scriptoscope-y="370" data-scriptoscope-width="300" data-scriptoscope-height="110">
+      data-scriptoscope-width="300" data-scriptoscope-height="110">
       <div class="pad"><p>Save changes before closing?</p>
         <div class="row"><button data-scriptoscope-button>Don’t Save</button><button data-scriptoscope-button data-scriptoscope-default>Save</button></div>
       </div>
     </article>
 
     <article data-scriptoscope-window data-scriptoscope-window-type="dialog"
-      data-scriptoscope-x="400" data-scriptoscope-y="370" data-scriptoscope-width="260" data-scriptoscope-height="90">
+      data-scriptoscope-width="260" data-scriptoscope-height="90">
       <div class="pad"><p>A plain dialog has no title bar.</p></div>
     </article>
 
     <article data-scriptoscope-window data-scriptoscope-title="Tools" data-scriptoscope-window-type="titled-utility-window"
-      data-scriptoscope-x="740" data-scriptoscope-y="370" data-scriptoscope-width="150" data-scriptoscope-height="90">
+      data-scriptoscope-width="150" data-scriptoscope-height="90">
       <div class="pad"><p>Utility palette</p></div>
     </article>
 
     <article data-scriptoscope-window data-scriptoscope-window-type="alert"
-      data-scriptoscope-x="400" data-scriptoscope-y="540" data-scriptoscope-width="260" data-scriptoscope-height="80">
+      data-scriptoscope-width="260" data-scriptoscope-height="80">
       <div class="pad"><p>An alert.</p></div>
     </article>
 
     <!-- Control families (sliders, popups, fields, tabs, scrollbars). -->
-    <article data-scriptoscope-window data-scriptoscope-title="Controls" data-scriptoscope-x="24" data-scriptoscope-y="700"
+    <article data-scriptoscope-window data-scriptoscope-title="Controls"
       data-scriptoscope-width="420" data-scriptoscope-height="250" data-scriptoscope-state="inactive">
       <div class="pad">
         <div class="row"><label>Volume <input type="range" min="0" max="100" value="40"></label></div>
@@ -105,7 +118,7 @@
       </div>
     </article>
 
-    <article data-scriptoscope-window data-scriptoscope-title="Long document" data-scriptoscope-x="520" data-scriptoscope-y="700"
+    <article data-scriptoscope-window data-scriptoscope-title="Long document"
       data-scriptoscope-width="300" data-scriptoscope-height="200" data-scriptoscope-state="inactive">
       <div class="pad" style="width: 520px">
         <p>This window's content is taller and wider than the window, so it scrolls with the scheme's scrollbars.</p>
@@ -118,16 +131,50 @@
   <script type="module">
     import { loadOwnedKaleidoscopeScheme } from '../src/loadKaleidoscopeScheme.ts';
     import { mountExplicitPage } from './explicit-host.mjs';
+    import { composeProgress, bufferToCanvas } from '../src/renderer.ts';
 
     const status = document.getElementById('status');
     const params = new URL(location.href).searchParams;
     const url = params.get('scheme') ?? '/authoring/schemes/kingfisher/scheme.rsrc';
     try {
+      // Canvas text is synchronous: wait before first paint, rather than
+      // capturing a permanent sans-serif fallback in the chrome bitmap.
+      await Promise.all([document.fonts.load('12px "Charcoal 12"'), document.fonts.load('13px Charcoal')]);
       const desk = document.getElementById('desk');
+      if (params.has('document') && params.has('layout')) throw new Error('Choose document mode or a custom layout, not both');
+      if (params.has('document')) {
+        const doc = desk.querySelector('[data-scriptoscope-window]');
+        for (const dimension of ['width', 'height']) {
+          const value = Number(params.get(dimension) ?? (dimension === 'width' ? 380 : 210));
+          if (!Number.isInteger(value) || value < 1 || value > 2000) throw new Error(`${dimension} must be a whole number from 1 to 2000`);
+          doc.setAttribute(`data-scriptoscope-${dimension}`, String(value));
+        }
+        desk.replaceChildren(doc);
+        if (params.get('composition') === 'concept') {
+          doc.innerHTML = `<div class="concept-scene">
+            <div class="concept-controls">
+              <label><input type="checkbox" checked> Enabled</label><label><input type="radio" name="concept-radio" checked> Selected</label>
+              <label><input type="checkbox"> Unchecked</label><label><input type="radio" name="concept-radio"> Unselected</label>
+              <label><input type="checkbox" data-mixed> Mixed</label><label><input type="radio" disabled> Disabled</label>
+            </div>
+            <div class="concept-actions"><span data-authoring-progress role="progressbar" aria-label="Progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="65"></span>
+              <div class="row"><button data-scriptoscope-button>Cancel</button><button data-scriptoscope-button data-scriptoscope-default>OK</button></div>
+            </div>
+          </div>`;
+          const scene = doc.querySelector('.concept-scene');
+          scene.style.setProperty('--scene-width', `${doc.dataset.scriptoscopeWidth}px`);
+          scene.style.setProperty('--scene-height', `${doc.dataset.scriptoscopeHeight}px`);
+          doc.querySelector('[data-mixed]').indeterminate = true;
+        }
+      }
       if (params.get('layout')) {
         const res = await fetch(params.get('layout'), { cache: 'no-store' });
         if (!res.ok) throw new Error(`${res.status} fetching layout ${params.get('layout')}`);
         desk.innerHTML = await res.text();
+      }
+      if (!params.has('document') && !params.has('layout')) {
+        // Let tall schemes set row height instead of overlapping fixed rows.
+        desk.classList.add('overview');
       }
       if (params.get('active')) {
         // The window manager activates the first window it mounts, so the
@@ -143,6 +190,11 @@
       if (!res.ok) throw new Error(`${res.status} fetching ${url}`);
       const blob = await res.blob();
       const theme = await loadOwnedKaleidoscopeScheme(blob, { meta: { name: url.split('/').slice(-2, -1)[0] }, source: url });
+      const progress = desk.querySelector('[data-authoring-progress]');
+      if (progress) {
+        const length = Math.max(32, Math.min(120, Number(params.get('width') ?? 380) - 220));
+        progress.append(bufferToCanvas(await composeProgress(theme, { length, value: 0.65 })));
+      }
       await mountExplicitPage({
         root: document.getElementById('desk'),
         registeredThemes: [['authored', theme]],

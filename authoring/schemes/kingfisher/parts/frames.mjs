@@ -1,6 +1,6 @@
 // Kingfisher window frames (concept/concept.jpg, paint-over pass): a rounded
 // frame with a navy outline, a slate ring and a white inner rim around
-// lavender glass; a tall glass header with the title capsule and three glass
+// frosted glass; a tall glass header with the title capsule and three glass
 // beads along its top and the kingfisher on its branch in its lower left; a
 // navy border round the content; and a blue-grey water band with the ripple
 // along the bottom.
@@ -33,10 +33,9 @@
 //   - The title rect is the capsule's rows at the top of the header; the
 //     engine puts the baseline at its bottom − 4 (R28), so the title sits in
 //     the capsule near the top, not in the middle of the tall header.
-import { Raster, frameLayout, stripLayout, pressedStripFrom, encodeCicn, encodeWnd, SYSTEM_PALETTE_256 } from '../../../../tools/theme-author/index.js';
-import { srgbToStored } from '../../../../tools/theme-author/color.js';
-import { C, sys } from '../palette.mjs';
-import { ORNAMENT, ORNAMENT_LEGEND, RIPPLE } from './sprites/ornament.mjs';
+import { Raster, frameLayout, stripLayout, pressedStripFrom, encodeCicn, encodeWnd } from '../../../../tools/theme-author/index.js';
+import { C } from '../palette.mjs';
+import { SPRITES } from './sprites/ornament.mjs';
 
 const BEAD_D = 15;      // widget bead diameter
 const SIDE = 6;         // side band: outline, ring, rim, glass, glass, border
@@ -67,7 +66,7 @@ function spec(kind, { collapsed = false, widgets = false } = {}) {
       { name: 'right', code: 1, w: g.rightCell },
     ]
     : [{ name: 'capL', code: 1, w: 12 }, bar('grow', 8), { name: 'capR', code: 1, w: 12 }];
-  const rip = RIPPLE[0].length + 2;
+  const rip = SPRITES.active.ripple.width + 2;
   const fixed = 2 * 10 + rip + 2;
   let W = top.reduce((s, c) => s + c.w, 0);
   if (W < fixed) { // the bottom needs more room: widen the (uniform) growers
@@ -153,25 +152,11 @@ export function drawDisc(r, { x, y }, state, role, pressed = false) {
 }
 
 // ── The ornament, active and inactive ──────────────────────────────────────
-// Inactive greys the bird rather than hiding it: each colour is pulled toward
-// its own grey, lifted toward white, and snapped to the nearest system entry.
-const SYS = SYSTEM_PALETTE_256;
-function quiet(color) {
-  const [r, g, b] = srgbToStored(color);
-  const y = 0.3 * r + 0.59 * g + 0.11 * b;
-  const t = [r, g, b].map((v) => v + (y - v) * 0.6).map((v) => v + (255 - v) * 0.3);
-  let best = SYS[0], bd = Infinity;
-  for (const e of SYS) { const d = (e[0] - t[0]) ** 2 + (e[1] - t[1]) ** 2 + (e[2] - t[2]) ** 2; if (d < bd) { bd = d; best = e; } }
-  return sys(`#${best.map((v) => v.toString(16).padStart(2, '0')).join('')}`);
-}
-const ORNAMENT_QUIET = Object.fromEntries(Object.entries(ORNAMENT_LEGEND).map(([k, v]) => [k, quiet(v)]));
-
 function paintOrnament(r, layout, g, state) {
-  const cell = layout.named('bird'), legend = state === 'active' ? ORNAMENT_LEGEND : ORNAMENT_QUIET;
+  const bird = SPRITES[state].bird;
   // Clip at the content border: the tail and the branch's low end pass behind it.
-  const rows = ORNAMENT.slice(0, Math.max(0, layout.top - 1 - g.bird.y));
-  r.sprite(g.bird.x, g.bird.y, rows, legend);
-  void cell;
+  const height = Math.min(bird.height, Math.max(0, layout.top - 1 - g.bird.y));
+  if (height) r.blit({ width: bird.width, height, rgba: bird.rgba }, g.bird.x, g.bird.y);
 }
 
 // ── Frame ──────────────────────────────────────────────────────────────────
@@ -185,15 +170,14 @@ function inset(x, y, W, H) {
 }
 
 /**
- * Header glass colour for row y: a vertical gradient in three system-palette
- * steps (pale sky, lavender, deeper sky), each band change softened by two
- * interleaved rows. One colour per row, so the 1px stretch columns repeat it
- * cleanly; a dither ALONG the row would turn into stripes when stretched.
+ * A broad frosted reflection with a shaded lower bevel, rather than three
+ * equally prominent colour bands. One colour per row keeps the 1px growers
+ * seamless; horizontal dithering would stretch into stripes.
  */
 function skyRow(y, T, sky) {
   const t = (y - 3) / Math.max(1, T - 5);
-  const band = (a, b, edge) => (t < edge - 0.04 ? a : t < edge + 0.04 ? (y % 2 ? b : a) : b);
-  return t < 0.5 ? band(sky[0], sky[1], 0.3) : band(sky[1], sky[2], 0.78);
+  if (y === 4) return C.white; // narrow upper reflection inside the frame rim
+  return t < 0.8 ? sky[0] : t < 0.94 ? sky[1] : sky[2];
 }
 
 function paintFrameRings(r, layout, p) {
@@ -224,10 +208,10 @@ function paintPill(r, layout, g, p) {
   r.blit(pill, x0, y0);
 }
 
-function paintRipple(r, layout, p) {
-  const rip = layout.named('ripple'), L = p.lake;
+function paintRipple(r, layout, state) {
+  const rip = layout.named('ripple');
   const y0 = layout.content.bottom + 2;
-  r.sprite(rip.x0 + 1, y0, RIPPLE, { l: L.ripple, g: L.lilac, w: L.glint });
+  r.blit(SPRITES[state].ripple, rip.x0 + 1, y0);
 }
 
 /** Paint one frame image for a window type in a state ('active' | 'inactive'). */
@@ -239,7 +223,7 @@ export function paintFrame(t, state) {
   paintFrameRings(r, layout, p);
   if (layout.titled) paintPill(r, layout, g, p);
   if (g.bird) paintOrnament(r, layout, g, state);
-  if (!layout.collapsed) paintRipple(r, layout, p);
+  if (!layout.collapsed) paintRipple(r, layout, state);
   for (const [role, box] of Object.entries(layout.widgets)) drawDisc(r, box, state, role);
   const A = layout.content;
   r.fillRect(A.left, A.top, A.right - A.left, A.bottom - A.top, null);

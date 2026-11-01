@@ -9,9 +9,9 @@
 // banner, the oak and the parchment around it.
 //
 // Ramps (light from the upper left on everything):
-//   stone   lit #bbbbbb · A #999999 · B #888888 · shade #666666 · mortar #555555 · outline #222222
-//           (a step darker than pass 1, sampled from the concept: its stone is ~#878787
-//           with near-black outlines)
+//   stone   lit #aaaaaa · A #999999 · B #888888 · shade/mortar #666666 · outline #222222
+//           (quiet interior joints and highlights let the masses read first;
+//           near-black silhouette outlines keep the concept's weight)
 //   roof    lit #cc6666 · tile #993333 · shade #660000
 //   cloth   lit #cc3333 · cloth #990000 · fold #660000 ;  gold #ffcc33 / #cc9900
 //   oak     grain #cc9966 · face #996633 · shade #663300
@@ -26,7 +26,7 @@ export const C = {
   // What controls sit on: the parchment body (mattes and hidden swatches).
   body: '#efe8d8',
   active: {
-    stone: ['#999999', '#888888'], stoneHi: '#bbbbbb', stoneLo: '#666666', mortar: '#555555', outline: '#222222',
+    stone: ['#999999', '#888888'], stoneHi: '#aaaaaa', stoneLo: '#666666', mortar: '#666666', outline: '#222222',
     roof: '#993333', roofHi: '#cc6666', roofLo: '#660000',
     flag: '#cc3333', flagLo: '#990000',
     cloth: '#990000', clothHi: '#cc3333', clothLo: '#660000',
@@ -43,7 +43,7 @@ export const C = {
   // coloured goes to the grey ramp (a desaturated red would snap pink at 8 bpp),
   // glyphs drop, the title is dark on the grey banner (no shadow).
   inactive: {
-    stone: ['#bbbbbb', '#aaaaaa'], stoneHi: '#dddddd', stoneLo: '#999999', mortar: '#888888', outline: '#666666',
+    stone: ['#bbbbbb', '#aaaaaa'], stoneHi: '#cccccc', stoneLo: '#999999', mortar: '#999999', outline: '#666666',
     roof: '#999999', roofHi: '#aaaaaa', roofLo: '#777777',
     flag: '#aaaaaa', flagLo: '#888888',
     cloth: '#999999', clothHi: '#aaaaaa', clothLo: '#777777',

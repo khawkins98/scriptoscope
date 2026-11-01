@@ -1,17 +1,19 @@
 // Brickworks push buttons, default ring, checkboxes and radio buttons.
 //
 // Push faces (authoring guide §6.1): the engine copies the four
-// cornerSize corners 1:1, stretches the sideThickness bands, and fills the
+// cornerSize corners 1:1, repeats the sideThickness bands, and fills the
 // middle with ONE colour read at bgPixel. So a button is a yellow brick whose
 // top band is transparent above a 1px outline, and each 9×9 corner carries
-// one 6px stud standing on it (the same stud sprite as the frames): a long
-// brick with a stud at each end, at any width. Flat plastic: base face, one
+// one 6px stud standing on it. The 8px middle band carries another stud and
+// a 2px gap, repeated by cinf.tileSides, so the whole button reads as one
+// studded brick at any width. Flat plastic: base face, one
 // hi row on top, one lo column on the right, the warm outline.
 import { Raster, encodeCicn, encodeCinf } from '../../../tools/theme-author/index.js';
 import { BRICK, OUTLINE, INK } from './palette.mjs';
 import { STUD_SMALL as STUD } from './sprites.mjs';
 
-const BTN = { size: 24, corner: 9, side: 6, bodyTop: 4 };
+// 26 − 2×9 = 8px repeat: one 6px stud plus its 2px gap.
+const BTN = { size: 26, corner: 9, side: 6, bodyTop: 4 };
 
 function pushFace(b, { text, outline }) {
   const { size, bodyTop } = BTN;
@@ -20,13 +22,13 @@ function pushFace(b, { text, outline }) {
   r.hline(1, bodyTop + 1, size - 2, b.hi);
   r.vline(size - 2, bodyTop + 1, size - bodyTop - 2, b.lo);
   r.strokeRect(0, bodyTop, size, size - bodyTop, outline);
-  for (const sx of [2, size - 8]) r.sprite(sx, 0, STUD, { o: outline, h: b.hi, b: b.base, d: b.lo });
+  for (const sx of [2, 10, size - 8]) r.sprite(sx, 0, STUD, { o: outline, h: b.hi, b: b.base, d: b.lo });
   r.swatch(size - 1, 0, text); // hidden label colour on a pixel that stays transparent
   return r;
 }
 
 const pushCinf = () => encodeCinf({
-  cornerSize: BTN.corner, sideThickness: BTN.side, tileSides: 0, patternAnchor: 0, bgPatternId: 0,
+  cornerSize: BTN.corner, sideThickness: BTN.side, tileSides: 1, patternAnchor: 0, bgPatternId: 0,
   bgPixel: { x: 12, y: 14 }, textPixel: { x: BTN.size - 1, y: 0 }, embossPixel: { x: 0, y: 0 },
 });
 
@@ -34,7 +36,7 @@ const pushCinf = () => encodeCinf({
 // 1:1, so everything inside the band is transparent. A red plate frame: an
 // outline, 2px of red (lit on the top and left) and an outline.
 function ringFace(band, hi, edge) {
-  const size = 32; // the face is 24, the ring sits 4px outside it
+  const size = 32; // independent ring template; cinf controls its four-pixel outset
   const r = new Raster(size, size);
   r.strokeRect(0, 0, size, size, edge).strokeRect(3, 3, size - 6, size - 6, edge);
   r.strokeRect(1, 1, size - 2, size - 2, band).strokeRect(2, 2, size - 4, size - 4, band);

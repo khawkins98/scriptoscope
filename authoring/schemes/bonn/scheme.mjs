@@ -4,17 +4,17 @@
 // (concept/concept.jpg). The Bonn skyline stands on an orange-sandstone title
 // bar: the Romanesque Minster and the rococo Altes Rathaus either side of the
 // red ribbon that carries the title (they stand over its code-6 end caps, so
-// they move and drop with the title), and the Post Tower and the Langer Eugen
-// over the right corner. Beethoven's bust and a cherry bough stand over the
-// left corner. Thick sandstone ashlar piers run down both sides, and the Rhine
+// they move and drop with the title), and the Post Tower over the right corner.
+// A cherry bough stands over the left corner; Beethoven appears in About.
+// Thick sandstone ashlar piers run down both sides, and the Rhine
 // runs along the bottom with one stone arch bridge centred on open water.
-// Widgets are one family of 14px sandstone discs: a cherry rosette (close), a
+// Widgets are one family of 26px sandstone medallions: a cherry rosette (close), a
 // shield inspired by the City of Bonn's arms (zoom) and a breaking wave
 // (collapse), clickable on the web through the pressed strip (cicn -14330;
 // classic utility windows read -14298). Light comes from the upper left; the
-// outline is the concept's near-black. Everything is drawn on whole pixels
-// with colours of the 8-bit system palette, so classic and web look alike.
-// Original pixel art; no photos or traced artworks. The shield is a simplified
+// outline is the concept's near-black. Extracted PNGs retain source-derived
+// palettes; procedural surfaces use system-palette colours. See sprites/README.md
+// for reproducible crops and masks. The shield is a simplified
 // emblem inspired by the arms, not a heraldic reproduction (meta.json).
 //
 // Build:   npm run author -- authoring/schemes/bonn

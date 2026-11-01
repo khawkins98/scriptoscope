@@ -11,6 +11,9 @@
 const key = (r, g, b) => (r << 16) | (g << 8) | b;
 
 export function fitPalette(raster, max = 254) {
+  if (!Number.isInteger(max) || max < 1 || max > 256) {
+    throw new Error('fitPalette: max must be an integer from 1 to 256');
+  }
   const { rgba } = raster;
   const count = new Map(), locked = new Set();
   for (let i = 0; i < rgba.length; i += 4) {
@@ -20,6 +23,9 @@ export function fitPalette(raster, max = 254) {
     if (rgba[i + 3] < 128) locked.add(k);
   }
   if (count.size <= max) return raster;
+  if (locked.size > max) {
+    throw new Error(`fitPalette: ${locked.size} protected swatch colours exceed the ${max}-colour limit`);
+  }
   const rgb = (k) => [(k >> 16) & 255, (k >> 8) & 255, k & 255];
   const dist = (a, b) => { const [r1, g1, b1] = rgb(a), [r2, g2, b2] = rgb(b); return 2 * (r1 - r2) ** 2 + 4 * (g1 - g2) ** 2 + 3 * (b1 - b2) ** 2; };
   const map = new Map();

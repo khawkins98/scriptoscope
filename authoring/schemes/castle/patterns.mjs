@@ -8,9 +8,6 @@
 // Classic Kaleidoscope uses -9551/-9550 for Finder icon/list views, not for
 // ordinary window bodies (R22), so this is web-only decoration there.
 //
-// ppats tile in both directions, so the ordered dither (period 4) is fine as
-// long as the tile size is a multiple of 4 (authoring guide §3.5).
-//
 // The desktop (ppat 17, classic only) is a calm sky behind the keep: grey
 // stone reads best against a cool, quiet ground, and stone or grass texture
 // would fight the frames. See `desktop()`.
@@ -19,24 +16,16 @@ import { C } from './palette.mjs';
 
 export const PARCHMENT_PPAT = 42;
 
-/**
- * 64×64 parchment for every body: flat parchment (C.body) with eight barely darker flecks
- * scattered by hand: the brief's one per 16×16, on a grid, read as graph
- * paper at 2x, so they are sparser and off-grid. Single pixels far apart,
- * so nothing aliases with letter stems (visual design §2.4). Both colours map to neutral greys at 8 bpp
- * (palette.mjs), so a classic screen shows a flat light grey.
- */
-const FLECKS = [[5, 3], [41, 11], [22, 24], [58, 30], [9, 44], [35, 50], [50, 61], [27, 37]];
+// Flat parchment keeps the live content quieter than the masonry. A minimal
+// 8×8 pattern preserves the body/background wiring without decorative flecks.
 function parchment() {
-  const N = 64, r = new Raster(N, N).fillRect(0, 0, N, N, C.body);
-  for (const [x, y] of FLECKS) r.set(x, y, '#e3dccb');
-  return r;
+  return new Raster(8, 8).fillRect(0, 0, 8, 8, C.body);
 }
 
 /**
  * 64×64 desktop: a high, quiet sky. Flat #6699cc (the moat's lit blue) with a
  * sparse grain of short, pale #99cccc wisps, one to three pixels long,
- * scattered by hand like the parchment's flecks: off any grid and far apart,
+ * scattered by hand: off any grid and far apart,
  * so at 1x it reads as a still sky and the tile never shows as rows.
  * Both are exact 8-bit system palette entries, stored raw (gamma: false), as
  * Kingfisher's, Bonn's and Midnight 2027's desktops are.

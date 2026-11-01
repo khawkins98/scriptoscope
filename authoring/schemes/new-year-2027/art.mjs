@@ -1,28 +1,10 @@
-// Midnight 2027's ornaments, cleaned up from the concept by paint-over
-// (concept/concept.jpg, scale 3.7 source px per art pixel; see concept/brief.md).
-//
-// `npm run paint-over` gave each piece at 1× snapped to the palette. Those
-// rasters were the measuring stick, not the pixels: at 1× the concept's bursts
-// come out as a few hundred noisy dots and its numerals with JPEG-ragged
-// edges. So each piece is redrawn here on whole pixels, to the numbers the
-// paint-over gave:
-//
-//   big burst    50×44 at 1× in the concept, drawn 41×43: 24 rays from one
-//                centre in three lengths, a white core in a champagne disc,
-//                solid gold inner halves, pink (two in three) or gold outer
-//                halves dotted like trailing sparks, white tips, loose sparks
-//   cyan burst   30×23 at 1×, drawn 31×25: 16 rays, white core, cyan rays
-//   "2027"       55×22 at 1× (11×17 digits, 2px gaps), drawn as four 10×16
-//                bold digit masks plus a 1px bronze drop shadow: gold face,
-//                champagne lit edge top/left, gold shade bottom/right
-//   clock        17×17 at 1× in the concept's corner, drawn 13–15px:
-//                bronze ring, gold rim lit top-left, white face, ticks at
-//                12/3/6/9, both hands on 12
-//   discs        15×15 (close / zoom / collapse): bronze ring, gold rim, navy
-//                face, a 5×5 whole-pixel gold glyph
-//
-// Rays are Bresenham lines (one pixel per step, no anti-aliasing), so the
-// bursts stay crisp at 1× and identical at 8 bpp (visual design §2.2).
+// Midnight 2027's whole-pixel ornaments. The composition pass measures the
+// concept at the same outer window width, rather than keeping its motifs at
+// sticker size: a ~66×70 gold/pink burst, a 44×35 cyan burst, 75×28 foil year,
+// 23px widget discs and 25px corner clock. No antialiasing or soft glow.
+// Rays use bright two-pixel inner clusters and sparse outer trails; numerals
+// use chunky masks with lit faces, a gold shade and a bronze drop shadow.
+// Smaller clocks and bursts remain available to controls and utility windows.
 import { Raster } from '../../../tools/theme-author/index.js';
 import { C } from './palette.mjs';
 
@@ -46,7 +28,7 @@ function linePoints(x0, y0, x1, y1) {
  * never reaches a neighbouring recipe cell (a code-5 plate tiles whatever
  * lands in it).
  * @param {{ rays: number, rx: number, ry: number, hot?: string, inner: string, outer: string[], core: string, tip: string,
- *   sparks?: number[][], phase?: number, clip?: number[], coreR?: number }} spec
+ *   sparks?: number[][], phase?: number, clip?: number[], coreR?: number, bend?: number }} spec
  *   hot: the core disc and the rays' first third; inner: their middle; outer: the dotted outer part, per ray in turn
  */
 export function burst(r, cx, cy, spec) {
@@ -58,19 +40,39 @@ export function burst(r, cx, cy, spec) {
     const a = phase + (i * 2 * Math.PI) / rays;
     const long = LENGTH[i % LENGTH.length];
     const ex = Math.round(cx + Math.cos(a) * rx * long), ey = Math.round(cy + Math.sin(a) * ry * long);
-    const pts = linePoints(cx, cy, ex, ey);
+    let pts = linePoints(cx, cy, ex, ey);
+    if (spec.bend) {
+      // Gravity bows the warm trails downward; short whole-pixel segments
+      // preserve the gaps and never escape the ornament's horizontal cell.
+      pts = [[cx, cy]];
+      const steps = Math.max(Math.abs(ex - cx), Math.abs(ey - cy));
+      for (let k = 1; k <= steps; k++) {
+        const t = k / steps;
+        const x = Math.round(cx + (ex - cx) * t), y = Math.round(cy + (ey - cy) * t + spec.bend * t * t);
+        pts.push(...linePoints(...pts.at(-1), x, y).slice(1));
+      }
+    }
     const n = pts.length;
     pts.forEach(([x, y], k) => {
       const t = k / (n - 1 || 1);
-      if (t > 0.55 && k % 2 === 1 && k !== n - 1) return;   // dotted outer part: sparks trailing off
-      put(x, y, k === n - 1 ? tip : t < 0.3 ? hot : t < 0.55 ? inner : outer[i % outer.length]);
+      // Keep the ray's shape intact before its final spark trail. Alternating
+      // every outer pixel made the small burst look like unrelated confetti.
+      if (t > 0.72 && k % 3 === 1 && k !== n - 1) return;
+      const end = k === n - 1 && i % 3 === 0;
+      const color = end ? tip : t < 0.3 ? hot : t < 0.55 ? inner : outer[i % outer.length];
+      put(x, y, color);
+      if (rx > 25 && i % 3 !== 1 && t > 0.18 && t < 0.84) {
+        // Selected broad warm trails alternate with thin rays and dark gaps.
+        const across = Math.abs(ex - cx) > Math.abs(ey - cy);
+        put(x + (across ? 0 : 1), y + (across ? 1 : 0), color);
+      }
     });
   }
   // Core: a white centre in a champagne disc.
   const R = Math.ceil(coreR);
   for (let dy = -R; dy <= R; dy++) for (let dx = -R; dx <= R; dx++) {
     const d = Math.hypot(dx, dy);
-    if (d <= coreR) put(cx + dx, cy + dy, d <= coreR - 1.2 ? core : hot);
+    if (d <= coreR) put(cx + dx, cy + dy, d <= coreR - (rx > 25 ? 2.3 : 1.2) ? core : hot);
   }
   for (const [dx, dy, which] of sparks) put(cx + dx, cy + dy, which === 1 ? tip : outer[0]);
 }
@@ -78,8 +80,8 @@ export function burst(r, cx, cy, spec) {
 /** The big gold-and-pink burst (left of the title plate). */
 export function bigBurst(r, cx, cy, p, clip, scale = 1) {
   burst(r, cx, cy, {
-    rays: 24, rx: Math.round(20 * scale), ry: Math.round(21 * scale), phase: 0.09, coreR: scale >= 1 ? 2.6 : 1.6,
-    hot: p.goldHi, inner: p.gold, outer: [p.pink, p.pink, p.goldLo], core: p.spark, tip: p.spark, clip,
+    rays: scale >= 1 ? 32 : 18, rx: Math.round(20 * scale), ry: Math.round(21 * scale), phase: 0.09, coreR: scale >= 1 ? 2.6 * scale : 1.6,
+    hot: scale > 1 ? p.gold : p.goldHi, inner: p.gold, outer: [p.pink, p.pink, p.goldLo], core: p.spark, tip: p.spark, clip, bend: scale > 1 ? 6 : 0,
     sparks: scale >= 1 ? [[-17, -14, 1], [15, -17, 0], [-19, 7, 0], [18, 10, 1], [-6, 21, 1], [7, -21, 1], [12, 19, 0]] : [[-9, -6, 1], [9, 5, 1]],
   });
 }
@@ -151,26 +153,30 @@ const DIGITS = {
     '...###....',
   ],
 };
-export const YEAR = { digitW: 10, digitH: 16, gap: 2, width: 4 * 10 + 3 * 2 + 1, height: 16 + 1 };
+export const YEAR = { digitW: 16, digitH: 26, gap: 3, width: 4 * 16 + 3 * 3 + 2, height: 26 + 2 };
 
 /**
  * "2027" at (x, y): bold gold digits, lit on their top/left edges, shaded on
- * their bottom/right, with a 1px bronze drop shadow down-right (the concept's
+ * their bottom/right, with a 2px bronze drop shadow down-right (the concept's
  * chunky foil numerals). Original letterforms.
  */
 export function drawYear(r, x, y, p) {
   const mask = new Set();
-  [2, 0, 2, 7].forEach((d, i) => DIGITS[d].forEach((row, dy) => [...row].forEach((ch, dx) => {
-    if (ch === '#') mask.add(`${x + i * (YEAR.digitW + YEAR.gap) + dx},${y + dy}`);
-  })));
+  [2, 0, 2, 7].forEach((d, i) => {
+    for (let dy = 0; dy < YEAR.digitH; dy++) for (let dx = 0; dx < YEAR.digitW; dx++) {
+      if (DIGITS[d][Math.floor(dy * 16 / YEAR.digitH)][Math.floor(dx * 10 / YEAR.digitW)] === '#') {
+        mask.add(`${x + i * (YEAR.digitW + YEAR.gap) + dx},${y + dy}`);
+      }
+    }
+  });
   const has = (px, py) => mask.has(`${px},${py}`);
   for (const k of mask) {
     const [px, py] = k.split(',').map(Number);
-    if (!has(px + 1, py + 1)) r.set(px + 1, py + 1, p.bronze);
+    if (!has(px + 2, py + 2)) r.set(px + 2, py + 2, p.bronze);
   }
   for (const k of mask) {
     const [px, py] = k.split(',').map(Number);
-    let c = p.gold;
+    let c = py - y < 8 ? p.goldHi : py - y < 12 ? p.gold : py - y < 15 ? p.goldHi : p.gold;
     if (!has(px, py - 1) || !has(px - 1, py)) c = p.goldHi;
     else if (!has(px, py + 1) || !has(px + 1, py)) c = p.goldLo;
     r.set(px, py, c);
@@ -184,7 +190,7 @@ export function drawYear(r, x, y, p) {
  * the upper left, white face, ticks at 12/3/6/9, both hands on 12.
  */
 export function clockFace(r, x, y, size, state) {
-  const p = C[state];
+  const p = typeof state === 'string' ? C[state] : state;
   const c = (size - 1) / 2, R = size / 2;
   for (let py = 0; py < size; py++) for (let px = 0; px < size; px++) {
     const d = Math.hypot(px - c, py - c);
@@ -205,28 +211,31 @@ export function clockFace(r, x, y, size, state) {
 
 // ── Title-bar discs ───────────────────────────────────────────────────────
 
-export const WIDGET = 15;
+export const WIDGET = 23;
 const GLYPHS = {
   close: ['#...#', '.#.#.', '..#..', '.#.#.', '#...#'],
   zoom: ['#####', '#...#', '#...#', '#...#', '#####'],
   collapse: ['.....', '.....', '#####', '.....', '.....'],
 };
 
-/** A 15×15 disc: bronze ring, gold rim lit upper-left, navy face, a whole-pixel glyph. */
+/** A 23×23 disc: bronze ring, gold rim lit upper-left, navy face, a 10px glyph. */
 export function disc(r, b, role, state, pressed = false) {
   const p = C[state];
   const c = (WIDGET - 1) / 2;
   for (let py = 0; py < WIDGET; py++) for (let px = 0; px < WIDGET; px++) {
     const d = Math.hypot(px - c, py - c);
-    if (d > 7.4) continue;
+    if (d > 11.4) continue;
     let col = pressed ? p.gold : p.disc;
-    if (d > 6.4) col = p.bronze;
-    else if (d > 4.9) col = px + py < 2 * c - 1 ? p.goldHi : px + py > 2 * c + 1 ? p.goldLo : p.gold;
-    else if (!pressed && d > 3.9 && px + py < 2 * c) col = p.discHi;
+    if (d > 10.4) col = p.bronze;
+    else if (d > 8.3) col = px + py < 2 * c - 1 ? p.goldHi : px + py > 2 * c + 1 ? p.goldLo : p.gold;
+    else if (!pressed && d > 7.3 && px + py < 2 * c) col = p.discHi;
     r.set(b.x + px, b.y + py, col);
   }
   if (state !== 'active') return r;
-  r.sprite(b.x + 5, b.y + 5, GLYPHS[role], { '#': pressed ? p.sky : p.glyph });
+  const glyph = GLYPHS[role];
+  for (let y = 0; y < 10; y++) for (let x = 0; x < 10; x++) {
+    if (glyph[Math.floor(y / 2)][Math.floor(x / 2)] === '#') r.set(b.x + 6 + x, b.y + 6 + y, pressed ? p.sky : p.glyph);
+  }
   return r;
 }
 

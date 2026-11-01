@@ -1,6 +1,6 @@
 # Kingfisher in real Kaleidoscope 2.3.1
 
-Screenshots of `../scheme.bin` loaded in the original Kaleidoscope 2.3.1
+Historical screenshots of the pre-frosted-pass build loaded in the original Kaleidoscope 2.3.1
 control panel on System 7.5.5. They were taken in the maintainers' private
 reference emulator (Basilisk II, 8 bpp, sound off; see
 [`docs/maintainer-reference-environment.md`](../../../../docs/maintainer-reference-environment.md)).
@@ -17,11 +17,29 @@ palette condition); no golden or ledger row depends on them.
 | `about@2x.png` | About This Scheme over the control panel |
 | `scheme-picker@2x.png` | the Select Scheme list with the scheme icons |
 | `dialog@2x.png` | the stock "different Folder and Trash icons … restart" alert, with Kingfisher's alert frame and default ring |
-| `windowshade@2x.png` | the System Folder window shaded (collapsed): only the top band is left (2026-10-31 paint-over run; art unchanged since) |
+| `windowshade@2x.png` | the System Folder window shaded (collapsed): only the top band is left (2026-10-31 paint-over run, before the frosted pass) |
 | `utility-collapse-pressed@6x.png` | the Kaleidoscope shareware notice (a utility window): zoom box, and the collapse box held down (dark teal, from `cicn -14298`) |
 | `cursor@6x.png` | the arrow cursor over the desktop pattern (crop of `desktop@2x.png`) |
 
-## 2026-10-31 (final): before PR #540
+## Current art revision (2026-10-31)
+
+The current `../scheme.rsrc` has a quieter frosted header: a broad pale field,
+a white upper reflection and a narrow lavender/blue lower bevel replace the
+three broad colour bands. Frame geometry, title room and bird/ripple pixels
+are unchanged. The decorative ASCII grids were exported losslessly to the
+editable 1× PNGs in `../parts/sprites/`; that conversion alone produced an
+identical resource fork.
+
+This revision was built, loaded in the web preview and checked in the 8-bit
+simulation, then recaptured in real Kaleidoscope in the refinement run below.
+The older unprefixed files remain historical captures of the earlier header.
+
+Current hashes:
+
+- `scheme.rsrc`: `1b7abc936ac2cba6ea12a2f6d31ce7ddb86c00236377cedfd4c7f3175d854572`
+- generated `scheme.bin`: `ed557d103c0454a5993b3b61d52b0dbe234e3aa7473bd40786f4e8e0e1ba0d1b`
+
+## 2026-10-31 capture run (before the frosted pass)
 
 Two clean boots, each from fresh copies of the v16l system and transfer seeds,
 sound off (`nosound true`), 8 bpp. The five schemes were copied to the transfer
@@ -55,7 +73,7 @@ Every file in the table above except `windowshade@2x.png` is from this run.
   (`cicn -14298`) in classic, as R24 describes.
 - **WindowShade sounds:** not audibly verified (sound off).
 
-## Still true from earlier runs (2026-10-30, 2026-10-31)
+## Earlier observations (2026-10-30, 2026-10-31; before the frosted pass)
 
 - **Art above the title bar goes under the menu bar.** The top band is 62 px;
   the title strip is its top ~20 px. Windows that open at their saved Finder
@@ -81,3 +99,55 @@ Every file in the table above except `windowshade@2x.png` is from this run.
   `-12240` menu family. Shipping the flag would offer a popup that does nothing.
 - **2026-10-30:** the first complete build drew tab-pane labels white on white;
   fixed and confirmed in a later boot.
+
+## 2026-10-31 refinement compatibility run
+
+The `refinement-*.png` files are new, native 640×480 captures of the current
+build, taken at 1×. The older unprefixed captures above remain historical.
+This is a visual compatibility smoke test, not admitted fidelity evidence.
+
+One fresh boot of the immutable v16l system and transfer seeds was used for
+Apple Lisa → Kingfisher → Castle → Brickworks, selected through the native
+**Select Scheme…** UI. The seed's default 8 bpp condition was retained; no
+depth-switch helper ran. Basilisk II JS/WASM used 64 MB, `nosound true`, and a
+640×480 display. The seed's automatically reopened colour-query app was quit
+before the first scheme selection. Each exact MacBinary package was staged
+with `hcopy -m` while the emulator was stopped and HFS was unmounted before
+boot. No scheme-load error or guest crash was observed. Sounds were not
+audibly tested. The browser and media server were stopped before preparing
+fresh media for the later Bonn/Midnight run; this was a host stop, not a guest
+Shutdown test.
+
+Private raw frames, browser input receipts, frozen package bytes, seed hashes
+and stopped disk copies are retained in maintainer workspace
+`authoring-refinement-20261101-zjanp4pi` (capture timestamps are 2026-10-31 UTC).
+Seed hashes were checked unchanged after this boot. The two seeds were
+`system755-after-v16l.dsk` (`1ccaa14f906abcda136ec19566d06f319b4444dee2f2533f86789fadd11257ed`)
+and `transfer-v16l.dsk` (`0c03ecf688d82a76a971ab203a3953c88f30ef7e51ac3c13986528da75930b4a`).
+
+Current source/package hashes:
+
+- `scheme.rsrc`: `1b7abc936ac2cba6ea12a2f6d31ce7ddb86c00236377cedfd4c7f3175d854572`
+- `scheme.bin`: `ed557d103c0454a5993b3b61d52b0dbe234e3aa7473bd40786f4e8e0e1ba0d1b`
+
+- The broad frosted header and narrow lavender/blue lower bevel draw in the
+  original engine; the bird and ripple retain their earlier cleaned pixels.
+- The About text fits. The Finder shows the custom kingfisher icon, and the
+  native picker lists all five authored scheme icons.
+- Narrow and wider Finder windows retain the title pill; the narrower title
+  is shortened by the native Finder. The File menu, held default alert button
+  and held utility collapse widget are captured separately.
+- Switching away from Apple Lisa produced the expected Folder/Trash-icon
+  restart notice. Its default button was held down for the pressed capture;
+  no restart was performed during this boot.
+
+| New capture | Observation |
+|---|---|
+| `refinement-desktop.png` | Wider active Finder window, current frame and desktop |
+| `refinement-control-panel.png` | Current scheme selected; classic options enabled |
+| `refinement-about.png` | About This Scheme, text and icon |
+| `refinement-scheme-picker.png` | Native Select Scheme list and short/wide buttons |
+| `refinement-narrow.png` | Narrower Finder window and title behavior |
+| `refinement-menu-open.png` | File menu held open |
+| `refinement-default-pressed.png` | Default native button held down |
+| `refinement-utility-pressed.png` | Utility collapse widget held down |

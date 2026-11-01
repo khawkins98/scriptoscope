@@ -1,5 +1,41 @@
 # Learnings
 
+## 2026-11-01 — Preserve the concept's pixels, and verify the actual build
+
+Bonn's hand-drawn replacements depicted the right buildings but lost the
+concept's distinctive roofs, shading and blossoms. Adding more drawing code
+did not recover that character. Extracting the buildings, cherry bough and
+bridge from the selected concept did; the implementation now places PNGs
+instead of reconstructing their illustration in code.
+
+- **Extract strong concept art before redrawing it.** Record the original
+  image, crop coordinates, pixel-grid sampling, mask and palette decisions.
+  Preserve proportions and intentional outlines. Repair only detail the
+  source cannot supply, and identify those repairs. Bonn's
+  [extraction recipe](authoring/schemes/bonn/sprites/README.md) is reproducible.
+- **Keep approved assets stable while iterating.** The bridge has its own
+  palette so adding it does not requantize the approved buildings and bough.
+  Its arch opening is transparent, allowing the frame's river to show through.
+  Check crops and extracted assets at matching sizes, with binary alpha.
+- **Geometry serves the composition.** Window buttons have authored positions
+  and sizes; Bonn uses 26px window medallions. Match the normal and pressed masks,
+  cumulative pressed-strip offsets, utility resources and title reservations.
+  Inspect the actual narrow-window behavior rather than assuming a fixed
+  platform button size or inventing an ornament-removal order.
+- **Structural, visual and native checks answer different questions.** Valid
+  resources do not establish fidelity. Compare the complete live window with
+  the concept at matched outer widths, then check 1×, narrow/wide and 8-bit
+  output. Record VM results against exact resource and package hashes; a
+  subsequent art edit needs a fresh native result.
+- **Compact repeated source art before expanding it.** A larger Bonn source
+  failed in the native engine; a compact repeat loaded. This is an observed
+  compatibility lesson, not evidence of a universal size limit. Probe novel
+  geometry early and preserve failed captures and build identities.
+
+The [creation guide](docs/authoring-a-scheme.md#4-the-workflow) owns the steps;
+the [brief template](authoring/concept-brief-template.md) records decisions.
+Keep those current instead of maintaining a second process in this ledger.
+
 ## 2026-10-31 — Passing every check is not the same as looking good: design the window first
 
 *(Naming note: Halcyon was renamed Kingfisher, `authoring/schemes/kingfisher/`, on 2026-10-31. These entries keep the name it had at the time.)*

@@ -88,12 +88,20 @@ if (wantSheet) {
 }
 if (wantPalette) await printPaletteReport();
 if (errors.length) { console.error(`✗ ${errors.length} error(s); ${out} was not written.`); process.exit(1); }
-writeFileSync(out, fork);
-console.log(`Wrote ${out} (${fork.length.toLocaleString()} bytes, ${resources.length} resources)`);
 // The classic Mac file name comes from meta.json (max 31 characters).
 const macName = String(meta.name ?? 'Untitled Scheme').slice(0, 31);
 const bin = resolve(schemeDir, 'scheme.bin');
-writeFileSync(bin, writeMacBinary({ name: macName, resourceFork: fork }));
+// Validate packaging before replacing either scheme output.
+let macBinary;
+try {
+  macBinary = writeMacBinary({ name: macName, resourceFork: fork });
+} catch (err) {
+  console.error(`✗ MacBinary packaging failed: ${err instanceof Error ? err.message : err}`);
+  process.exit(1);
+}
+writeFileSync(out, fork);
+console.log(`Wrote ${out} (${fork.length.toLocaleString()} bytes, ${resources.length} resources)`);
+writeFileSync(bin, macBinary);
 console.log(`Wrote ${bin} (MacBinary "${macName}", type Colr, creator Acid)`);
 console.log('✓ Loads through the runtime converter. Preview: npm run dev, then open /authoring-preview.html (or drop scheme.rsrc on the showcase).');
 

@@ -433,7 +433,13 @@ A cut-through is not optional polish — it's part of how the project stays trus
 
 ## Adding a theme (porting a Kaleidoscope scheme)
 
-Scriptoscope is a Kaleidoscope-compatibility runtime — themes are *ported* (not hand-authored) from existing `.ksc` schemes. Authoring entirely new chrome means using period Kaleidoscope authoring tools (ResEdit + the Kaleidoscope SDK on classic Mac OS or under SheepShaver), then porting the resulting `.ksc` through the same flow.
+Scriptoscope loads Kaleidoscope resource forks. To create a new scheme, use
+[`tools/theme-author/`](./tools/theme-author/) and the
+[creation guide](./docs/authoring-a-scheme.md), starting with the
+[concept brief template](./authoring/concept-brief-template.md). That workflow
+covers concept extraction, geometry, browser and 8-bit review, and validation
+in native Kaleidoscope. Period tools such as ResEdit remain another way to
+produce a scheme. To port an existing scheme, follow the flow below.
 
 The porting flow below applies to the 18 bundled schemes listed in
 [`demo/themes-manifest.json`](./demo/themes-manifest.json). Use a full scheme,
@@ -452,7 +458,8 @@ so they are atypical examples:
 
 The complete step-by-step walk-through (with troubleshooting for common pitfalls) is in [`docs/porting-a-kaleidoscope-scheme.md`](./docs/porting-a-kaleidoscope-scheme.md).
 
-Hand-authoring CSS or SVG chrome as a "first-party Scriptoscope theme" is **out of scope** — the 2026-05-17 LEARNINGS entry "Scriptoscope is a Kaleidoscope-compatibility runtime, not a Platinum re-author" records why. If you want to author a new look, the recommended path is ResEdit + Kaleidoscope SDK on classic Mac OS / SheepShaver, then port the resulting `.ksc` through this flow.
+New first-party looks must also be real Kaleidoscope schemes. CSS or SVG
+chrome that bypasses the resource-fork runtime is outside this workflow.
 
 ## Reporting bugs
 

@@ -1,254 +1,62 @@
-// Bonn's skyline, Beethoven, the cherry bough and the small ornaments above
-// the bar. First painted over the concept (concept/concept.jpg, 3 concept px
-// per pixel, `npm run paint-over`), then redrawn by hand on whole pixels from
-// what makes each real building recognisable:
-//
-//   - the Minster (Romanesque): a tall octagonal crossing tower (three faces
-//     showing: lit, front, shade) under a green-grey slate spire, a ring of
-//     gables at its foot, round-arched windows, a dwarf gallery and grey tufa
-//     string courses on the sandstone; the pair of slimmer east towers with
-//     their own pointed spires either side;
-//   - the Altes Rathaus (rococo): a rose facade with white cornice, pilasters
-//     and window frames, a grey mansard with dormers, a small bell lantern on
-//     the ridge, gold over the door, and the double outside staircase with a
-//     gilded balustrade climbing to it;
-//   - the Post Tower: two offset glass half-ellipses with a gap between them,
-//     very tall and slender, blue-green with horizontal banding (three tones
-//     across each half for the curve);
-//   - the Langer Eugen: a slim pale slab with a dense grid of dark window strips;
-//   - Beethoven: a bust on a sandstone plinth (wild grey hair, a frown, a white
-//     stock and red scarf), as on the monument in front of the Minster.
-//
-// Each building is built on a material grid (one letter per pixel), toned in
-// three steps (light from the upper left), given its own 1px dark outline and
-// laid back to front, so towers stand clear of what is behind them. The
-// state's palette paints it: active and inactive are one drawing.
-//
-// Placement (frames.mjs): the Minster stands over the pennant's left cap and
-// the Rathaus over its right cap, so the skyline straddles the title and moves
-// with it; the Post Tower and the Langer Eugen stand over the right corner,
-// above the zoom and collapse boxes; Beethoven and the bough over the left one.
+// Landmark and main cherry-bough art is extracted from concept/concept.jpg.
+// The editable1× PNGs in sprites/ are authoritative; no procedural building
+// reconstruction or additional architectural detail is painted over them.
+// concept/extract-assets.mjs records the original crop/mask/3px sampling.
+// Layout fitting uses one uniform nearest-neighbor scale per asset.
+import { readFileSync } from 'node:fs';
+import { decodePng } from '../../../scripts/lib/png-decode.mjs';
 
-export const SKY_ROWS = 78;    // rows above the bar (the spire's tip is on row 1)
-export const MINSTER_W = 40;   // the left cap: Minster + trees
-export const HALL_W = 48;      // the right cap: Town Hall + trees
-export const BOUGH_W = 40;     // the left corner: the cherry bough
-export const SPRIG_W = 24;     // dialog top ornament
-export const ALERT_W = 24;     // alert top ornament
+export const SKY_ROWS = 110;
+export const MINSTER_W = 64;
+export const HALL_W = 72;
+export const BOUGH_W = 72;
+export const SPRIG_W = 24;
+export const ALERT_W = 24;
 
-// Body materials → [lit, shade] tone letters.
-const TONES = { A: ['a', 'z'], U: ['u', 'v'], R: ['r', 'x'], H: ['h', 'y'], M: ['m', 'n'], G: ['g', 'q'], E: ['e', 'f'], T: ['t', null] };
+const ASSETS = Object.fromEntries(['minster', 'rathaus', 'post-tower', 'cherry-bough', 'bridge'].map(name => {
+  const image = decodePng(readFileSync(new URL(`./sprites/${name}.png`, import.meta.url)));
+  for (let i = 3; i < image.rgba.length; i += 4) {
+    if (image.rgba[i] !== 0 && image.rgba[i] !== 255) throw new Error(`${name}: concept sprites require a binary mask`);
+  }
+  return [name, image];
+}));
 
-class Grid {
-  constructor(w, h) { this.w = w; this.h = h; this.m = Array.from({ length: h }, () => Array(w).fill(null)); }
-  in(x, y) { return x >= 0 && y >= 0 && x < this.w && y < this.h; }
-  get(x, y) { return this.in(x, y) ? this.m[y][x] : null; }
-  set(x, y, v) { if (this.in(x, y)) this.m[y][x] = v; return this; }
-  rect(x, y, w, h, v) { for (let j = y; j < y + h; j++) for (let i = x; i < x + w; i++) this.set(i, j, v); return this; }
-  /** A pointed roof: tip at (cx, y0), half-width from the `halves` table per row (last value repeats). */
-  spire(cx, y0, halves, v) { halves.forEach((k, i) => this.rect(cx - k, y0 + i, 2 * k + 1, 1, v)); return this; }
-  outline() {
-    const add = [];
-    for (let y = 0; y < this.h; y++) for (let x = 0; x < this.w; x++) {
-      if (this.get(x, y)) continue;
-      if ([[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => { const v = this.get(x + dx, y + dy); return v && v !== 'o'; })) add.push([x, y]);
+/** Uniform fit preserves the extracted composition. Output pixels sample
+ * one source pixel; no filtering, smoothing, new outlines or detail passes. */
+function drawConcept(r, name, x, base, maxW, maxH, p) {
+  const image = ASSETS[name];
+  const scale = Math.min(maxW / image.width, maxH / image.height);
+  const w = Math.max(1, Math.round(image.width * scale));
+  const h = Math.max(1, Math.round(image.height * scale));
+  const left = x + Math.floor((maxW - w) / 2), top = base - h;
+  const inactive = p.outline === '#777777';
+  for (let oy = 0; oy < h; oy++) for (let ox = 0; ox < w; ox++) {
+    const sx = Math.min(image.width - 1, Math.floor((ox + 0.5) / scale));
+    const sy = Math.min(image.height - 1, Math.floor((oy + 0.5) / scale));
+    const i = (sy * image.width + sx) * 4;
+    if (!image.rgba[i + 3]) continue;
+    let rgb = Array.from(image.rgba.subarray(i, i + 3));
+    if (inactive) {
+      const gray = Math.round(110 + (0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2]) * 0.5);
+      rgb = [gray, gray, gray];
     }
-    for (const [x, y] of add) this.set(x, y, 'o');
-    return this;
-  }
-  /** Three tones along each row of a material run: spires split lit / shade, walls get a lit left column and a shade face. */
-  tone(shade = 2) {
-    const out = this.m.map((row) => row.slice());
-    for (let y = 0; y < this.h; y++) {
-      for (let x = 0; x < this.w;) {
-        const v = this.m[y][x];
-        if (!TONES[v]) { x++; continue; }
-        let e = x; while (e < this.w && this.m[y][e] === v) e++;
-        const n = e - x, [lit, dark] = TONES[v];
-        for (let i = 0; i < n; i++) {
-          const dl = i, dr = n - 1 - i;
-          let t = v;
-          if (v === 'R' && n <= 9) t = n < 2 ? v : dl < dr ? lit : dl > dr ? dark : v;
-          else if (dark && dr < shade && n > 2) t = dark;
-          else if (lit && dl === 0 && n > 2) t = lit;
-          out[y][x + i] = t;
-        }
-        x = e;
-      }
-    }
-    this.m = out;
-    return this;
-  }
-  paint(r, x0, y0, p) {
-    const S = p.sky3;
-    const map = {
-      o: p.outline, w: p.window, W: p.trim, Y: p.lamp, K: S.gold, k: S.goldLo, s: S.strip,
-      A: S.stone, a: S.stoneHi, z: S.stoneLo,
-      U: S.tufa, u: S.tufaHi, v: S.tufaLo,
-      E: S.concrete, e: S.concreteHi, f: S.concreteLo,
-      R: S.roof, r: S.roofHi, x: S.roofLo,
-      H: S.hall, h: S.hallHi, y: S.hallLo,
-      M: S.slate, m: S.slateHi, n: S.slateLo,
-      G: S.glass, g: S.glassHi, q: S.glassLo,
-      T: S.tree, t: S.treeHi,
-    };
-    for (let y = 0; y < this.h; y++) for (let x = 0; x < this.w; x++) {
-      const v = this.m[y][x];
-      if (v) r.set(x0 + x, y0 + y, map[v]);
-    }
+    r.set(left + ox, top + oy, `#${rgb.map(v => v.toString(16).padStart(2, '0')).join('')}`);
   }
 }
 
-/** Draw one component on its own grid, tone and outline it, then lay it over `g` (back to front). */
-function layer(g, draw, shade) {
-  const part = new Grid(g.w, g.h);
-  draw(part);
-  part.tone(shade).outline();
-  for (let y = 0; y < g.h; y++) for (let x = 0; x < g.w; x++) if (part.m[y][x]) g.m[y][x] = part.m[y][x];
-}
-const windows = (g, xs, ys, v, w = 1, h = 3) => { for (const x of xs) for (const y of ys) g.rect(x, y, w, h, v); };
-
-/**
- * Riverside trees, laid first: each clump [x0, x1, top] is a run of rounded
- * crowns about 7px wide whose tops step up and down by a few rows.
- */
-function trees(g, clumps) {
-  layer(g, (q) => {
-    for (const [x0, x1, top] of clumps) {
-      for (let cx = x0, n = 0; cx < x1; cx += 6, n++) {
-        const t = top + [0, 3, 1, 4, 2][n % 5], w = Math.min(8, x1 - cx);
-        for (let y = t; y < g.h; y++) {
-          const k = y - t, inset = k === 0 ? 2 : k === 1 ? 1 : 0;
-          if (w - 2 * inset > 0) q.rect(cx + inset, y, w - 2 * inset, 1, 'T');
-        }
-      }
-    }
-  });
-  // A lit pixel on the upper left of each crown.
-  for (let y = 1; y < g.h; y++) for (let x = 1; x < g.w; x++) if (g.get(x, y) === 'T' && g.get(x, y - 1) === 'o' && g.get(x - 1, y) === 'o') g.set(x, y, 't');
-}
-
-/** A round-arched window, w wide (odd) and h tall, top-left (x, y). */
-const arch = (g, x, y, w, h, v = 'w') => { g.rect(x + 1, y, w - 2, 1, v).rect(x, y + 1, w, h - 1, v); };
-
-/** The Minster, centred on column c; its base is the grid's bottom row (77). */
-function minster(g, c) {
-  const B = g.h - 1;
-  // Nave and choir behind everything, under a slate roof.
-  layer(g, (q) => { q.rect(c - 11, 49, 23, 1, 'R').rect(c - 13, 50, 27, 2, 'R'); q.rect(c - 14, 52, 29, B - 51, 'A'); });
-  // The two slim east towers: square, with pointed slate spires.
-  for (const cx of [c - 11, c + 11]) layer(g, (q) => {
-    q.spire(cx, 15, [0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3], 'R');
-    q.rect(cx - 3, 26, 7, B - 25, 'A');
-  });
-  // The octagonal crossing tower: a ring of gables, then the tall spire.
-  layer(g, (q) => {
-    q.spire(c, 1, [0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4], 'R');
-    for (const gx of [c - 4, c, c + 4]) q.spire(gx, 26, [0, 1, 2, 2], 'A');
-    q.rect(c - 6, 30, 13, 35, 'A');
-  });
-  // The octagon's faces: lit on the left, shaded on the right, front between.
-  for (let y = 26; y < 65; y++) for (let x = c - 6; x <= c + 6; x++) {
-    const v = g.get(x, y);
-    if (v !== 'A' && v !== 'a' && v !== 'z') continue;
-    g.set(x, y, x <= c - 4 ? 'a' : x >= c + 4 ? 'z' : 'A');
-  }
-  // Grey tufa string courses (on the faces: lit, body, shade tufa).
-  const course = (y, x0, x1) => { for (let x = x0; x <= x1; x++) { const v = g.get(x, y); if ('Aaz'.includes(v ?? '.')) g.set(x, y, v === 'a' ? 'u' : v === 'z' ? 'v' : 'U'); } };
-  for (const y of [34, 43, 52, 61]) course(y, c - 6, c + 6);
-  for (const y of [33, 44, 55, 65]) { course(y, c - 14, c - 8); course(y, c + 8, c + 14); }
-  course(66, c - 14, c + 14);
-  // Round-arched windows: two per stage on the octagon's front, one per stage on the east towers.
-  for (const y of [36, 45]) { arch(g, c - 3, y, 3, 5); arch(g, c + 1, y, 3, 5); }
-  for (const cx of [c - 11, c + 11]) for (const y of [28, 36, 46, 57]) arch(g, cx - 1, y, 3, 5);
-  // The dwarf gallery: a row of little arches under the third course.
-  for (let x = c - 5; x <= c + 5; x += 2) g.rect(x, 54, 1, 3, 'w');
-  // The west portal, round-headed, and a rose window over it.
-  arch(g, c - 2, 70, 5, B - 69);
-  g.rect(c - 1, 68, 3, 1, 'Y');
-}
-
-/** The Altes Rathaus, 46 wide, x = its left column. */
-function townHall(g, x) {
-  const B = g.h - 1, w = 46, c = x + 22;               // centre bay columns c, c+1
-  // The bell lantern on the ridge: a gold finial, a slate cap, an open arch with the bell.
-  layer(g, (q) => { q.rect(c, 31, 2, 2, 'M').rect(c - 1, 33, 4, 1, 'M').rect(c - 1, 34, 4, 10, 'M'); }, 1);
-  g.rect(c, 29, 2, 2, 'K').rect(c, 36, 2, 4, 'w').set(c, 38, 'K').set(c + 1, 38, 'k');
-  // Grey mansard and the rose front.
-  layer(g, (q) => {
-    q.rect(x + 5, 44, w - 10, 1, 'M').rect(x + 3, 45, w - 6, 1, 'M').rect(x + 2, 46, w - 4, 1, 'M').rect(x + 1, 47, w - 2, 7, 'M');
-    q.rect(x, 54, w, B - 53, 'H');
-  });
-  // White dormers.
-  for (const dx of [6, 13, 30, 37]) g.rect(x + dx, 47, 3, 4, 'W').rect(x + dx + 1, 48, 1, 3, 'w');
-  // White cornice and its shadow; white pilasters at the corners and either side of the centre bay.
-  g.rect(x, 54, w, 1, 'W').rect(x + 1, 55, w - 3, 1, 'y');
-  for (const px of [x + 1, c - 6, c + 7]) g.rect(px, 56, 1, B - 56, 'W');
-  // Windows in white frames: a small top floor, a tall piano nobile, the ground floor.
-  const bays = [x + 4, x + 9, x + 14, x + 29, x + 34, x + 39];
-  for (const bx of bays) {
-    g.rect(bx - 1, 56, 4, 1, 'W').rect(bx, 57, 2, 2, 'w');
-    g.rect(bx - 1, 60, 4, 1, 'W').rect(bx, 61, 2, 4, 'w').rect(bx - 1, 65, 4, 1, 'W');
-    g.rect(bx - 1, 68, 4, 1, 'W').rect(bx, 69, 2, 4, 'w');
-  }
-  for (const bx of [c - 3, c + 3]) g.rect(bx - 1, 56, 4, 1, 'W').rect(bx, 57, 2, 2, 'w');
-  // The door to the piano nobile with gold over it.
-  g.rect(c - 2, 58, 6, 1, 'K').rect(c - 1, 59, 4, 1, 'k').set(c, 57, 'K').set(c + 1, 57, 'K');
-  g.rect(c - 1, 60, 4, 1, 'W').rect(c, 61, 2, 6, 'w');
-  // The double outside staircase: a landing at the door, two flights down to
-  // the street either side, a gilded balustrade along the top of all three.
-  g.rect(c - 5, 67, 12, 2, 'A').rect(c - 5, 66, 12, 1, 'K').rect(c - 5, 69, 12, 1, 'z');
-  for (let k = 0; k <= 9; k++) {
-    const y = 67 + k + 1;
-    // Each flight is a 3px band of treads, with the facade showing under it.
-    g.rect(c - 8 - k, y, 3, 1, 'A').set(c - 8 - k, y, 'a').set(c - 6 - k, y, 'z');
-    g.rect(c + 7 + k, y, 3, 1, 'A').set(c + 7 + k, y, 'a').set(c + 9 + k, y, 'z');
-    g.set(c - 8 - k, y - 1, k % 2 ? 'k' : 'K').set(c + 9 + k, y - 1, k % 2 ? 'k' : 'K');
-  }
-  for (let px = c - 5; px <= c + 6; px += 2) g.set(px, 66, 'k');               // balusters
-  g.rect(c, 70, 2, B - 69, 'w');                                               // the street door under the landing
-}
-
-/** The Post Tower: two offset glass half-ellipses with a gap, x = left column. */
-function postTower(g, x) {
-  const B = g.h - 1;
-  layer(g, (q) => q.rect(x + 11, 11, 6, B - 10, 'G'), 2);                    // the lower half, behind
-  layer(g, (q) => q.rect(x, 4, 8, B - 3, 'G'), 3);                           // the taller half
-  // Horizontal banding every third row, and the lit crowns.
-  for (let y = 6; y < B; y += 3) for (let i = x; i <= x + 17; i++) if (g.get(i, y) === 'G') g.set(i, y, 'q');
-  g.rect(x + 1, 4, 6, 1, 'g').rect(x + 12, 11, 4, 1, 'g');
-}
-
-/** The Langer Eugen: a slim pale slab with a dense grid of dark window strips, x = left column. */
-function langerEugen(g, x) {
-  const B = g.h - 1;
-  layer(g, (q) => { q.rect(x + 2, 21, 5, 2, 'E'); q.rect(x, 23, 9, B - 22, 'E'); }, 2);
-  for (let y = 25; y < B - 1; y++) if (y % 4) for (const i of [x + 2, x + 4, x + 6]) g.set(i, y, 's');
-}
-
-/** The left cap's sky: the Minster among trees. */
 export function drawMinsterCap(r, x, base, p) {
-  const g = new Grid(MINSTER_W, SKY_ROWS);
-  trees(g, [[0, 10, 56], [30, 40, 56]]);
-  minster(g, 20);
-  g.paint(r, x, base - SKY_ROWS, p);
+  drawConcept(r, 'minster', x, base, MINSTER_W, SKY_ROWS, p);
 }
-
-/** The right cap's sky: the Rathaus among trees. */
 export function drawHallCap(r, x, base, p) {
-  const g = new Grid(HALL_W, SKY_ROWS);
-  trees(g, [[0, 14, 52], [32, 48, 52]]);
-  townHall(g, 1);
-  g.paint(r, x, base - SKY_ROWS, p);
+  drawConcept(r, 'rathaus', x, base, HALL_W, SKY_ROWS, p);
+}
+export function drawTowerCorner(r, x, base, w, p) {
+  drawConcept(r, 'post-tower', x, base, w, SKY_ROWS, p);
 }
 
-/** The right corner's sky: the Post Tower and the Langer Eugen among trees (`w` = corner width). */
-export function drawTowerCorner(r, x, base, w, p) {
-  const g = new Grid(w, SKY_ROWS);
-  trees(g, [[0, w, 58]]);
-  postTower(g, 3);
-  langerEugen(g, 24);
-  g.paint(r, x, base - SKY_ROWS, p);
+/** The extracted stone arch overlays the frame's river pixels. */
+export function drawBridge(r, x, y, w, h, p) {
+  drawConcept(r, 'bridge', x, y + h, w, h, p);
 }
 
 // Beethoven: a bust on a plinth, 15 wide. o outline, h/H/d hair (body, lit,
@@ -289,29 +97,9 @@ export function drawBeethoven(r, x, yb, p) {
   r.sprite(x, yb - PLINTH.length, PLINTH, { o: p.outline, a: P.hi, A: P.face, z: P.lo });
 }
 
-/**
- * The left corner's sky: Beethoven on his plinth, and the cherry bough rising
- * beside him up to the right with clusters of rosettes, in front of trees.
- */
-export function drawBough(r, x, yb, w, p) {
-  const g = new Grid(w, SKY_ROWS);
-  trees(g, [[14, w, 50]]);
-  g.paint(r, x, yb - SKY_ROWS, p);
-  const L = blossomLegend(p);
-  const limb = (x0, y0, x1, y1, thick) => {
-    const n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0));
-    for (let i = 0; i <= n; i++) {
-      const px = Math.round(x0 + ((x1 - x0) * i) / n), py = Math.round(y0 + ((y1 - y0) * i) / n);
-      r.set(x + px, py, L.k);
-      for (let t = 1; t < thick; t++) r.set(x + px, py + t, L.b);
-    }
-  };
-  limb(16, yb - 3, 22, yb - 8, 3);
-  limb(22, yb - 8, 34, yb - 16, 2);
-  limb(34, yb - 16, 38, yb - 18, 2);
-  limb(24, yb - 9, 27, yb - 21, 2);
-  for (const [dx, dy] of [[17, -12], [22, -15], [24, -25], [28, -21], [32, -22], [29, -13], [33, -17], [19, -9]]) rosette(r, x + dx, yb + dy, p);
-  drawBeethoven(r, x + 1, yb, p);
+/** Actual cherry bough from the concept, fitted uniformly without cropping. */
+export function drawBough(r, x, base, w, p) {
+  drawConcept(r, 'cherry-bough', x, base, w, SKY_ROWS, p);
 }
 
 // ── Blossom ────────────────────────────────────────────────────────────────

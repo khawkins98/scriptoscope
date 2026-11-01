@@ -47,9 +47,9 @@ import { bigBurst, cyanBurst, drawYear, YEAR, clockFace, disc, WIDGET, twinkle }
 // the page except for the ornaments). side/bottomH: band sizes.
 const BAR_TILE = 32;
 const G = {
-  doc: { T: 50, barTop: 22, cornerL: 22, cornerR: 38, burst: 42, year: 50, cap: 6, side: 9, bottomH: 15, corner: 24, clock: 24, sideTile: 24, twinkle: 24 },
-  util: { T: 28, barTop: 8, cornerL: 20, cornerR: 20, cap: 5, side: 6, bottomH: 8, corner: 16, sideTile: 16, twinkle: 16 },
-  plain: { T: 28, barTop: 13, cornerL: 14, cornerR: 14, crest: 38, side: 9, bottomH: 15, corner: 24, sideTile: 24, twinkle: 24 },
+  doc: { T: 86, barTop: 18, cornerL: 29, cornerR: 55, burst: 68, year: 79, cap: 8, side: 13, bottomH: 25, corner: 28, clock: 31, sideTile: 32, twinkle: 24 },
+  util: { T: 38, barTop: 8, cornerL: 29, cornerR: 29, cap: 5, side: 7, bottomH: 10, corner: 16, sideTile: 16, twinkle: 16 },
+  plain: { T: 42, barTop: 18, cornerL: 16, cornerR: 16, crest: 54, side: 10, bottomH: 18, corner: 24, sideTile: 24, twinkle: 24 },
 };
 
 /** Build the frameLayout spec for one window type. */
@@ -95,13 +95,14 @@ function spec(kind, { collapsed = false, widgets = 'none', clock = false, crest 
     topH: g.T, sideL: g.side, sideR: g.side, bottomH: g.bottomH, collapsed,
     top, bottom, left: side('L'), right: side('R'),
     // The title sits on the plate: baseline at bottom − 4, descenders on the plate's lower rows.
-    ...(titled ? { title: { cell: 'plate', top: plate.bot + 1 - 18, bottom: plate.bot + 1 } } : {}),
+    ...(titled ? { title: { cell: 'plate', top: Math.floor((plate.top + plate.bot) / 2) - 8, bottom: Math.floor((plate.top + plate.bot) / 2) + 10 } } : {}),
     widgets: wset,
   };
 }
 
-/** The plate's rows: bronze edge, a lit row, gold, a shade row, bronze edge. */
+/** The plate's rows: bronze edge, champagne light, pale foil face and gold shade. */
 function plateRows(g) {
+  if (g === G.doc) return { top: g.barTop + 19, bot: g.barTop + 45 };
   const top = g.barTop + (g.T - g.barTop >= 26 ? 3 : 1);
   const bot = g.T - (g.T - g.barTop >= 26 ? 5 : 2);           // the last gold row's shade sits at bot, edge at bot+1
   return { top, bot };
@@ -110,12 +111,12 @@ function plateRows(g) {
 // ── Painting ─────────────────────────────────────────────────────────────
 
 /**
- * Stars on the night, in one phase across the template (x mod 32): a dim
- * star, a bright one and a gold confetti fleck per tile, at rows chosen so
+ * Stars on the night, in one phase across the template (x mod 32): one dim
+ * star and one gold confetti fleck per tile, at rows chosen so
  * they don't line up into a dotted rule. Rows are counted from the band's
  * first navy row; `rows` is how many there are.
  */
-const BAR_STARS = [[4, 0.35, 'star'], [13, 0.7, 'starHi'], [22, 0.2, 'star'], [27, 0.55, 'fleck']];
+const BAR_STARS = [[5, 0.2, 'starHi'], [16, 0.72, 'star'], [25, 0.5, 'fleck']];
 function starAt(x, ry, rows, p) {
   const tx = ((x % BAR_TILE) + BAR_TILE) % BAR_TILE;
   for (const [sx, f, kind] of BAR_STARS) {
@@ -155,7 +156,8 @@ function paintTopBand(r, layout, kind, state, typeKind) {
 function paintPlate(r, layout, g, p) {
   const capL = layout.named('capL'), capR = layout.named('capR');
   const { top, bot } = plateRows(g);
-  const rowColour = (y) => (y === top - 1 || y === bot + 1 ? p.bronze : y === top ? p.goldHi : y === bot ? p.goldLo : p.gold);
+  r.fillRect(capL.x0 + 2, top, capR.x1 - capL.x0 - 2, bot - top + 4, p.skyLo);
+  const rowColour = (y) => (y === top - 1 || y === bot + 1 ? p.bronze : y <= top + 1 ? p.goldHi : y >= bot - 1 ? p.goldLo : p.plate);
   for (let x = capL.x0 + 1; x < capR.x1 - 1; x++) {
     // Rounded ends: the outer two columns of each cap lose their corners (2-1 stair).
     const fromL = x - (capL.x0 + 1), fromR = capR.x1 - 2 - x;
@@ -219,7 +221,7 @@ function paintBottom(r, layout, kind, state) {
   r.set(0, H - 1, null).set(1, H - 1, null).set(0, H - 2, null);
   r.set(W - 1, H - 1, null).set(W - 2, H - 1, null).set(W - 1, H - 2, null);
   const clock = layout.cells.bottom.find((c) => c.name === 'clock');
-  if (clock) clockFace(r, W - 15, A.bottom + 1, 13, state);
+  if (clock) clockFace(r, W - 29, A.bottom, 25, state);
   const mid = layout.named('mid');
   if (g.bottomH >= 12) twinkle(r, mid.x0 + Math.floor(mid.w / 2), A.bottom + Math.floor(g.bottomH / 2), p);
 }
@@ -229,9 +231,9 @@ function paintOrnaments(r, layout, kind, state, typeKind) {
   const g = G[kind], p = C[state];
   if (kind === 'doc') {
     const b = layout.named('burst');
-    bigBurst(r, b.x0 + Math.floor(b.w / 2), g.barTop, p, [b.x0, b.x1]);
+    bigBurst(r, b.x0 + Math.floor(b.w / 2), g.barTop + 23, p, [b.x0, b.x1], 1.65);
     const y = layout.named('year');
-    cyanBurst(r, y.x0 + Math.floor(y.w / 2), 13, p, [y.x0, y.x1]);
+    cyanBurst(r, y.x0 + Math.floor(y.w / 2), g.barTop + 16, p, [y.x0, y.x1], 1.45);
     drawYear(r, y.x0 + Math.floor((y.w - YEAR.width) / 2), g.T - 3 - YEAR.height, p);
   } else if (kind === 'util') {
     const c = layout.named('cornerR');

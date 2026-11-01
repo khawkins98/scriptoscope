@@ -29,11 +29,12 @@ const P = {
 };
 
 // ── 1. Progress bar (CDEF 5; docs/spec/engine/progress.md) ──
-// 14 rows. Frame -10080 active / -10077 inactive is a 9-slice with no body:
+// 20 rows. Frame -10080 active / -10077 inactive is a 9-slice with no body:
 // corners c×c copied 1:1, edge bands s thick. Fill (+1) and track (+2) are
 // drawn into the frame inset by c across and s down: 3-slices with caps of
-// cinf byte 0 and ONE stretched middle column. c = s = 3, inner 8 rows.
-const BAR = { width: 8, height: 14, corner: 3, inner: 8, cap: 3 };
+// cinf byte 0. The fill tiles an 8px champagne segment (SLICE6/7); the track
+// stretches one navy middle column. c = s = 3, inner 14 rows.
+const BAR = { width: 14, height: 20, corner: 3, inner: 14, cap: 3 };
 
 function progressFrame(p) {
   const { width: W, height: H } = BAR;
@@ -44,19 +45,22 @@ function progressFrame(p) {
   return r;
 }
 
-/** The fill: champagne rising. A pale lit row, gold, a gold shade row, a bronze leading edge. */
+/** Champagne segments: lit upper faces, foil reflection, shaded feet and dark separators. */
 function progressFill(p) {
-  const w = 2 * BAR.cap + 1, h = BAR.inner;
-  const r = new Raster(w, h).fillRect(0, 0, w, h, p.gold);
-  r.hline(0, 0, w, p.lit).hline(0, h - 1, w, p.goldLo);
-  r.vline(w - 1, 0, h, p.bronze);
+  const period = 8, w = 2 * BAR.cap + period, h = BAR.inner;
+  const r = new Raster(w, h);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const u = ((x - BAR.cap) % period + period) % period;
+    const rows = y < 2 ? p.lit : y < 5 ? p.gold : y < 8 ? p.lit : y < h - 2 ? p.gold : p.goldLo;
+    r.set(x, y, u === 0 ? p.floor : u === 1 ? p.lit : u === period - 1 ? p.bronze : rows);
+  }
   return r;
 }
 
 const progressTrack = (p) => new Raster(3, BAR.inner).fillRect(0, 0, 3, BAR.inner, p.floor).hline(0, 0, 3, p.shade);
 
 const frameCinf = () => encodeCinf({ cornerSize: BAR.corner, sideThickness: BAR.corner, tileSides: 1 });
-const sliceCinf = (cap) => encodeCinf({ cornerSize: cap, sideThickness: 0, tileSides: 0, patternAnchor: 0 });
+const sliceCinf = (cap, tileSides = 0) => encodeCinf({ cornerSize: cap, sideThickness: 0, tileSides, patternAnchor: 0 });
 
 // Indeterminate: ppat id = base + phase (8 steps, base -10080 active / -10072
 // inactive), phased at the inner rect's top-left (rows 0..7 show). Confetti
@@ -133,7 +137,7 @@ export function build(add) {
     add('cicn', base, encodeCicn(progressFrame(p)), `${label}Progress Indicator Frame`);
     add('cinf', base, frameCinf(), `${label}Progress Indicator Frame`);
     add('cicn', base + 1, encodeCicn(progressFill(p)), `${label}Full Progress Indicator Section`);
-    add('cinf', base + 1, sliceCinf(BAR.cap), `${label}Progress Indicator Fill`);
+    add('cinf', base + 1, sliceCinf(BAR.cap, 1), `${label}Progress Indicator Fill`);
     add('cicn', base + 2, encodeCicn(progressTrack(p)), `${label}Progress Indicator Track`);
     add('cinf', base + 2, sliceCinf(1), `${label}Progress Indicator Track`);
   }

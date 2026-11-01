@@ -101,10 +101,11 @@ window is big enough for a second copy).**
   that rises 55px above the bar. At content width 300 it draws once. At 520
   it draws **three whales**.
 - For art that must appear exactly once on a **titled** edge, use a **code-10
-  cell** between growers (R12). Bonn's skyline does this. Code 10 is dropped
+  cell** between growers (R12). Kingfisher's bird uses this arrangement. Code 10 is dropped
   when the window is narrower than the edge's fixed sum `F` (TS1: every code
   1/2/3/4/10 cell; bezels, plate and growers don't count), together with the
-  title and bezels. Bonn's document template is 155px wide and `F` is 128px.
+  title and bezels. Bonn's early prototype used this arrangement too; its
+  historical 155px template and 128px `F` are not the current skyline geometry.
   A fixed code-1 cell also works, but never gives way: below `F` its
   neighbours overlap (AW8).
 - **Every fixed pixel on a titled edge is taken from the title's room.** The

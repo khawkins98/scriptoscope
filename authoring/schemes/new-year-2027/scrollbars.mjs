@@ -13,6 +13,8 @@
 // shade and its far lip lit; plates and the watch case are lit on their
 // top/left.
 import { Raster, encodeCicn } from '../../../tools/theme-author/index.js';
+import { clockFace } from './art.mjs';
+import { C } from './palette.mjs';
 
 const SB = {
   line: '#000022',      // hairline facing the content, the arrow dividers, outlines
@@ -50,7 +52,7 @@ function paintTrack(b, cross, along, look = SB) {
 
 /** Arrowheads pointing to the low end (up / left); flipped along v for the high end. */
 const HEAD = {
-  big: ['....#....', '...###...', '..#####..', '.#######.', '#########'],
+  big: ['......#......', '.....###.....', '....#####....', '...#######...', '..#########..', '.###########.', '#############'],
   small: ['..#..', '.###.', '#####'],
 };
 
@@ -105,9 +107,19 @@ function inactiveImage(horizontal, t) {
  */
 function thumbImage(horizontal, t, pressed, ghost = false) {
   const small = t <= 11;
-  const along = small ? 16 : 23;
+  const along = small ? 16 : 31;
   const b = barRaster(horizontal, t, along);
   paintTrack(b, t, along);
+  if (!small && !ghost) {
+    const size = 21, x = Math.floor((b.r.width - size) / 2), y = Math.floor((b.r.height - size) / 2);
+    const p = { ...C.active, face: pressed ? SB.pressedFace : SB.face, gold: pressed ? SB.pressedCase : SB.case };
+    clockFace(b.r, x, y, size, p);
+    if (y >= 4) {
+      const cx = x + (size - 1) / 2;
+      b.r.strokeRect(cx - 2, y - 4, 5, 4, SB.case).hline(cx - 1, y - 1, 3, SB.rim);
+    }
+    return b.r;
+  }
   const u0 = 2, u1 = t - 1;                     // the case's span [u0, u1), clear of the hairline
   const v0 = 1, v1 = along - 1;                 // [v0, v1)
   const span = (v) => {
@@ -176,7 +188,7 @@ function littleArrows(look, part = 'both') {
 export function build(add) {
   const orient = [['Horizontal', true, -8288], ['Vertical', false, -8280]];
   for (const [label, horizontal, base] of orient) {
-    for (const [size, t, off, dbl] of [['', 16, 0, 4], ['Small ', 11, 18, 22]]) {
+    for (const [size, t, off, dbl] of [['', 24, 0, 4], ['Small ', 11, 18, 22]]) {
       add('cicn', base + off, encodeCicn(inactiveImage(horizontal, t)), `Inactive ${size}${label} Scroll Bar`);
       for (const [tier, look, what] of [[1, 'off', 'Nothing To Scroll'], [2, 'normal', ''], [3, 'pressed', 'Pressed']]) {
         const name = (pre) => `${what ? `${what} ` : ''}${size}${pre}${label} Scroll Bar`;
@@ -187,12 +199,12 @@ export function build(add) {
   }
   for (const [id, horizontal, pressed] of [[-10208, false, false], [-10207, false, true], [-10206, true, false], [-10205, true, true]]) {
     const label = `${pressed ? 'Pressed ' : ''}${horizontal ? 'Horizontal' : 'Vertical'} Thumb`;
-    add('cicn', id, encodeCicn(thumbImage(horizontal, 16, pressed)), label);
+    add('cicn', id, encodeCicn(thumbImage(horizontal, 24, pressed)), label);
     add('cicn', id + 1956, encodeCicn(thumbImage(horizontal, 11, pressed)), `Small ${label}`);
   }
   for (const [id, horizontal] of [[-8272, false], [-8271, true]]) {
     const label = `${horizontal ? 'Horizontal' : 'Vertical'} Ghost Thumb`;
-    add('cicn', id, encodeCicn(thumbImage(horizontal, 16, false, true)), label);
+    add('cicn', id, encodeCicn(thumbImage(horizontal, 24, false, true)), label);
     add('cicn', id + 18, encodeCicn(thumbImage(horizontal, 11, false, true)), `Small ${label}`);
   }
   add('cicn', -10048, encodeCicn(littleArrows('inactive')), 'Inactive Little Arrows');

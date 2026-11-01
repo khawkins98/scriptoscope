@@ -5,7 +5,7 @@
 // bar with sparse stars carries a champagne-gold title plate; a big gold and
 // pink firework bursts through the bar's top edge left of the plate, and
 // "2027" in bold gold numerals stands on the bar right of it under a cyan
-// burst. Thin navy sides and bottom with a gold rule round a plain white body;
+// burst. Bevelled navy sides and bottom with a gold rule round a plain white body;
 // the clock at midnight sits in the bottom-right corner, and again as the
 // scroll thumb (a pocket watch), the alert crest and the grow box. Widgets
 // are gold-rimmed navy discs with whole-pixel glyphs; push buttons are navy in
@@ -68,7 +68,7 @@ export async function buildScheme() {
 
   // Pressed widgets (R24): close | zoom | collapse laid out from the document
   // window's rects. The web reads it for every window; the utility window has
-  // a close box only, at the same 15px, so its close piece is the same x = 0
+  // a close box only, at the same 23px, so its close piece is the same x = 0
   // column. Classic reads -14298 for utility windows, at offsets summed from
   // the utility's own rects, so that one is built from the utility frame.
   add('cicn', -14330, encodeCicn(pressed(stripLayout(activeDoc.layout), activeDoc.frame)), 'Pressed Widgets');

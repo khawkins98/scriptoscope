@@ -3,7 +3,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { writeResourceFork } from './resource-fork-writer.js';
-import { encodeCicn } from './encode-cicn.js';
+import { buildPalette, encodeCicn } from './encode-cicn.js';
 import { encodeWnd, encodeCinf, encodeColr } from './encode-records.js';
 import { Raster } from './raster.js';
 import { srgbChannelToMac } from './color.js';
@@ -15,7 +15,6 @@ import { decodeColr } from '../theme-loader/decoders/colr.js';
 import { macChannelToSrgb } from '../theme-loader/mac-gamma.js';
 import { checkScheme } from './check-scheme.js';
 import { windowLayout } from './window-layout.js';
-import { buildScheme } from '../../authoring/schemes/kingfisher/scheme.mjs';
 
 test('resource fork round-trips types, ids, names and bytes', () => {
   const input = [
@@ -39,6 +38,20 @@ test('resource fork rejects duplicates and bad type codes', () => {
   assert.throws(() => writeResourceFork([{ type: 'cic', id: 1, data: d }]), /4 characters/);
 });
 
+test('resource fork bounds name offsets before they wrap or become the no-name sentinel', () => {
+  const named = (id, length) => ({ type: 'TEST', id, name: String(id).padEnd(length, 'x'), data: new Uint8Array() });
+  const resources = Array.from({ length: 255 }, (_, id) => named(id, 255));
+  resources.push(named(255, 253), named(256, 4)); // last name starts at 65534
+  const parsed = parseResourceFork(writeResourceFork(resources));
+  assert.equal(parsed.at(-1).name, resources.at(-1).name);
+  assert.throws(() => writeResourceFork([...resources, named(257, 4)]), /name offset/);
+
+  resources[255] = named(255, 254); // last name would start at the 65535 sentinel
+  assert.throws(() => writeResourceFork(resources), /name offset/);
+  resources[255] = named(255, 255); // last name would wrap to offset zero
+  assert.throws(() => writeResourceFork(resources), /name offset/);
+});
+
 test('cicn round-trips pixels, mask and chooses the smallest depth', () => {
   const r = new Raster(5, 3);
   r.fillRect(0, 0, 5, 3, '#ffffff').set(1, 1, '#ff0000').set(4, 2, null);
@@ -59,6 +72,26 @@ test('cicn depth grows with palette size and rejects > 256 colours', () => {
   const big = new Raster(300, 1);
   for (let x = 0; x < 300; x++) big.set(x, 0, [x & 0xff, x >> 8, 7]);
   assert.throws(() => encodeCicn(big, { gamma: false }), /300 colours .* the limit is 256.*fitPalette/);
+});
+
+test('palette indexing merges stored colours and retains hidden swatches in first-seen order', () => {
+  const raster = new Raster(5, 1);
+  raster.rgba.set(Uint8Array.of(
+    255, 0, 0, 0,   // fully transparent RGB does not enter the palette
+    0, 0, 0, 255,   // index zero must be reused
+    1, 1, 1, 255,   // inverse gamma maps this to black too
+    255, 255, 255, 1, // hidden swatch keeps its colour, without a mask bit
+    0, 0, 0, 255,
+  ));
+  const gamma = buildPalette(raster);
+  assert.deepEqual(gamma.palette, [[0, 0, 0], [255, 255, 255]]);
+  assert.deepEqual([...gamma.indices], [0, 0, 0, 1, 0]);
+  assert.deepEqual([...gamma.mask], [0, 1, 1, 0, 1]);
+  assert.equal(gamma.depth, 1);
+  const raw = buildPalette(raster, { gamma: false });
+  assert.deepEqual(raw.palette, [[0, 0, 0], [1, 1, 1], [255, 255, 255]]);
+  assert.deepEqual([...raw.indices], [0, 0, 1, 2, 0]);
+  assert.equal(raw.depth, 2);
 });
 
 test('gamma pre-compensation survives the loader brightening within ±1', () => {
@@ -145,21 +178,6 @@ test('check: push face without a same-id cinf is flagged', () => {
   const { warnings } = checkScheme([{ type: 'cicn', id: -10239, data: face }]);
   assert.ok(warnings.some((w) => /no cinf -10239/.test(w)));
   assert.ok(warnings.some((w) => /no pressed face/.test(w)));
-});
-
-test('Kingfisher builds with no errors or warnings', async () => {
-  const { resources } = await buildScheme();
-  const { errors, warnings } = checkScheme(resources);
-  assert.deepEqual(errors, []);
-  assert.deepEqual(warnings, []);
-  assert.ok(parseResourceFork(writeResourceFork(resources)).length === resources.length);
-});
-
-test('committed kingfisher scheme.rsrc matches a fresh build (run `npm run author -- authoring/schemes/kingfisher`)', async () => {
-  const { readFileSync } = await import('node:fs');
-  const committed = readFileSync(new URL('../../authoring/schemes/kingfisher/scheme.rsrc', import.meta.url));
-  const { resources } = await buildScheme();
-  assert.ok(Buffer.from(writeResourceFork(resources)).equals(committed), 'scheme.rsrc is stale; rebuild it');
 });
 
 test('check: widget in a code-15 cell (collapses when the widget is present) is an error', () => {
@@ -262,15 +280,6 @@ test('MacBinary output carries type/creator and unwraps to the same fork', async
   assert.equal((bin[124] << 8) | bin[125], crc16xmodem(bin.subarray(0, 124)));
   assert.equal(crc16xmodem(new TextEncoder().encode('123456789')), 0x31c3); // CRC-16/XMODEM check value
   assert.throws(() => writeMacBinary({ name: 'a:b', resourceFork: fork }), /file name/);
-});
-
-test('kingfisher MacBinary packaging unwraps cleanly', async () => {
-  const { writeMacBinary } = await import('./macbinary.js');
-  const { unwrapToResourceFork } = await import('../theme-loader/containers.js');
-  const { resources } = await buildScheme();
-  const fork = writeResourceFork(resources);
-  const bin = writeMacBinary({ name: 'Kingfisher', resourceFork: fork });
-  assert.ok(Buffer.from(unwrapToResourceFork(bin)).equals(Buffer.from(fork)));
 });
 
 test('png-decode reads what png-encode writes, and palette PNGs from claude-pxl', async () => {

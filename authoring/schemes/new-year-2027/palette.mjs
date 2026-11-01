@@ -21,7 +21,7 @@ export const C = {
   active: {
     outline: '#000022', sky: '#000033', skyHi: '#003366', skyLo: '#000022',
     star: '#6699cc', starHi: '#ffffcc', spark: '#ffffff',
-    gold: '#ffcc33', goldHi: '#ffffcc', goldLo: '#cc9933', bronze: '#996600',
+    gold: '#ffcc33', goldHi: '#ffffcc', goldLo: '#cc9933', bronze: '#996600', plate: '#ffcc66',
     pink: '#ff66cc', pinkLo: '#cc3399', cyan: '#33ccff', cyanLo: '#0099cc',
     title: '#000033', titleShadow: '#000033',
     face: '#ffffff', hand: '#000033', glyph: '#ffcc33',
@@ -30,7 +30,7 @@ export const C = {
   inactive: {
     outline: '#333366', sky: '#666699', skyHi: '#9999cc', skyLo: '#333366',
     star: '#9999cc', starHi: '#cccccc', spark: '#dddddd',
-    gold: '#cccccc', goldHi: '#eeeeee', goldLo: '#999999', bronze: '#777777',
+    gold: '#cccccc', goldHi: '#eeeeee', goldLo: '#999999', bronze: '#777777', plate: '#cccccc',
     pink: '#aaaaaa', pinkLo: '#888888', cyan: '#aaaaaa', cyanLo: '#888888',
     title: '#333333', titleShadow: '#333333',
     face: '#eeeeee', hand: '#666666', glyph: null,

@@ -3,6 +3,8 @@
 First-party Kaleidoscope schemes written in code with
 [`tools/theme-author/`](../tools/theme-author/). Start with
 [`docs/authoring-a-scheme.md`](../docs/authoring-a-scheme.md).
+Use the [concept brief template](./concept-brief-template.md) for a new scheme;
+it separates art direction, measured geometry, visual decisions and VM results.
 
 - `schemes/<name>/`: one folder per scheme (Kingfisher, Castle, Brickworks, Bonn,
   and Midnight 2027 in `new-year-2027/`).
@@ -15,7 +17,13 @@ Each scheme folder holds:
   of resources. Bigger schemes split it into one file per family
   (`frames.mjs`, `controls.mjs`, `classic.mjs` …; Kingfisher keeps them in
   `parts/`).
-- `palette.mjs`: every colour, all on 8-bit system-palette entries.
+- `palette.mjs`: named colours for procedural surfaces and controls. Extracted
+  illustrations can carry source-derived palettes; review both through the
+  8-bit simulation and native engine.
+- Decorative illustrations may live as editable transparent 1× PNGs beside
+  their painter. Keep repeating surfaces and frame geometry in code; load
+  PNG pixels through `decodePng` and `Raster.fromRgba`, then apply hidden
+  colour swatches in the frame painter rather than embedding them in the PNG.
 - `concept/`: `brief.md` (the art direction and build numbers), the image
   prompt (`brief-*.txt`) and `concept.jpg`, the concept image.
 - `scheme.rsrc`: the built scheme, committed so you can drop it on the demo

@@ -14,8 +14,8 @@ made with the tools described here:
 | Kingfisher | `kingfisher/` | the main worked example: a kingfisher on a frosted window; control families in `parts/`, one file each |
 | Castle | `castle/` | towers above the title bar, whole merlons, stone drawn on a measured grid |
 | Brickworks | `brickworks/` | whole studs (`13 \| 12 \| 13`), a centred ornament on untitled windows |
-| Bonn | `bonn/` | a draw-once skyline (code 10) and what it costs the title, a narrower bottom edge (code 0) |
-| Midnight 2027 | `new-year-2027/` | the newest one, made concept-first from the start; its `concept/brief.md` is the best brief to copy |
+| Bonn | `bonn/` | landmarks on the moving title caps, a centred bridge, and the title-space cost of ornaments |
+| Midnight 2027 | `new-year-2027/` | fireworks and numerals that drop whole on narrow windows |
 
 ![Kingfisher in the authoring preview](../authoring/schemes/kingfisher/preview.png)
 
@@ -101,6 +101,12 @@ and MacBinary round-tripping).
 
 Try it: change a colour in `authoring/schemes/kingfisher/palette.mjs`, rebuild,
 and reload the preview.
+
+For a new scheme, copy an example to `authoring/schemes/<slug>/`, update its
+`meta.json`, version/about strings and palette, then simplify its frame to a
+buildable skeleton. Start its `concept/brief.md` from the brief template.
+Keep the initial inherited art clearly marked until it is replaced; do not
+start a second theme catalog or duplicate the shared validation suite.
 
 To view any other scheme file, use
 `authoring-preview.html?scheme=/authoring/schemes/<name>/scheme.rsrc`, or drop
@@ -198,7 +204,7 @@ Classic Macs displayed colours darker than modern screens (gamma 1.8 against
 as that colour in the browser. Pass `{ gamma: false }` only if you need raw
 stored values.
 
-Choose every colour from the 8-bit system palette (`SYSTEM_PALETTE_256`,
+For procedural surfaces and controls, prefer the 8-bit system palette (`SYSTEM_PALETTE_256`,
 exported from the toolkit): the 6×6×6 cube (`00 33 66 99 cc ff` per channel)
 plus the grey ramp. Then an 8 bpp classic screen picks the colour you meant
 instead of a neighbour of a different hue. The schemes write these colours in
@@ -206,112 +212,118 @@ one of two ways; pick one per scheme and say which in `palette.mjs`'s header:
 
 - **`sys('#336699')`** (Kingfisher): returns the colour the loader shows for that
   stored entry, so web and classic show exactly the same colour.
-- **Plain cube hex** (Castle, Brickworks, Bonn, Midnight 2027): the encoder
+- **Plain cube hex** (Castle, Brickworks, Midnight 2027, Bonn's procedural art): the encoder
   pre-compensates it, and an 8 bpp screen snaps it back to the same entry. The
   classic screen then shows it a little brighter than the web
   (`#993333` → `#a84444`), but never a different hue.
+
+Extracted illustrations may use a bounded source-derived palette to preserve
+shading and character, as Bonn's PNGs do. Review the complete frame through
+the 8-bit simulation and native engine: source colours can merge or shift.
+Keep desktop patterns on exact system-palette entries.
 
 `npm run author -- <dir> --palette` lists each colour's 8-bit entry and flags
 any that drift or collapse onto one entry (§4.5).
 
 ### 3.5 Smooth edges, dithering and the colour budget
 
-A 1-bit mask means a pixel can't be half transparent, but edges can still
-look smooth:
+The mask is binary. Smooth-shape helpers blend edge colours against opaque
+pixels or an explicit `matte`; without a matte, transparent edges stay hard.
+Use smooth curves against known surfaces, not thin glyphs or window edges
+that may sit over any desktop. Add hidden swatches after painting.
+This is a limitation of the scheme's `cicn` mask, not all classic Mac graphics:
+QuickDraw supported deep-mask blending from System 7 ([Apple's technical
+journal, p.26](https://vintageapple.org/develop/pdf/develop-06_9104_Spring_1991.pdf)).
+That does not add partial alpha to a Kaleidoscope window-frame resource.
 
-- **Smooth shapes** (`fillRoundRectSmooth`, `fillCircleSmooth`,
-  `strokeLineSmooth`, and the general `paintCoverage`) measure how much of each
-  edge pixel the shape covers, then blend:
-  - over a pixel that's already opaque, with that pixel (a fill meeting its
-    outline, a glyph on a button);
-  - over a transparent pixel, with `matte`, the colour the art normally sits
-    on. A checkbox on the white window body uses `{ matte: '#ffffff' }`.
-    Without a matte, the outer edge stays hard; that's right for window
-    corners, which can sit on any background.
+`ditheredGradient` mixes a few colours with a 4×4 pattern. The repeat must
+wrap at the tile boundary: never dither across a 1px growing cell, since its
+repeated column becomes stripes. Use one colour per row there. Title plates
+should also be seamless at partial final tiles; multi-pixel motifs need an
+explicit `tiled` plate and linted title rows. Patterns (`ppat`) repeat both ways.
 
-  Use them for curves, not for thin strokes: a smooth stroke under 2 px is a
-  grey smear at 1× ([visual design §2.2](./authoring-visual-design.md#22-outlines-and-highlights)).
-- **`ditheredGradient`** mixes a few evenly spaced colours in the classic 4×4
-  pattern, so a gradient looks smooth in few colours:
-  - **Never dither a 1 px grow cell.** It repeats one column (or row), and a
-    repeated dithered column becomes stripes. Use one colour per row.
-  - **A multi-pixel tile repeats whole**, so texture inside it is fine if it
-    wraps at the tile size. For the 4×4 dither, the tile must be a multiple of 4
-    along that axis.
-  - **Keep the title plate (code 5) one colour per row.** It ends on a partial
-    tile, so a dither there shows a seam at the right end cap.
-  - **Patterns (`ppat`) tile in both directions**, so a dither that wraps at
-    the tile size is fine there.
-  - `ditheredGradient(start, length, stops, { axis: 'x' })` runs left to right;
-    `bayer(x, y)` gives the raw threshold for your own patterns.
-- **Mind the colour budget.** A `cicn` holds at most 256 colours. Every
-  smooth edge pixel is a new blend, and `mix()` against a per-row colour adds
-  one per row. A `ditheredGradient` costs only its `levels` colours. The
-  encoder's error gives the actual count. Call `fitPalette(raster)` before
-  encoding a big frame: it merges the rarest colours (usually edge blends)
-  first and never touches hidden swatches. If you build with flat ramps on
-  system-palette colours, it has nothing to do.
-- **Hidden swatches and mattes interact.** A matte makes every partly covered
-  edge pixel opaque, so put swatches on pixels you know stay fully transparent.
+A `cicn` holds at most 256 colours. Smooth blends can exceed that quickly;
+flat system-palette ramps keep the budget predictable. `fitPalette(raster)`
+merges rare colours while preserving hidden swatches, and rejects impossible
+protected-colour limits. Inspect the result: an automatic merge may remove a
+one-pixel highlight. See [visual design §2](./authoring-visual-design.md#2-pixel-ui-guidance-for-this-format)
+for outline, contrast and texture rules.
 
 ## 4. The workflow
 
-Every first-party scheme went through these steps. The first versions of the
-schemes were designed cell by cell instead; they passed every check and still
-looked thin and generic next to the best corpus schemes, because nothing ever
-set the overall weight of the frame. Painting a picture of the finished
-window first, and then rebuilding it in code, is what fixed that.
+Design the whole window before detailing individual cells. Structural checks
+and visual review answer different questions; both are part of this workflow.
 
 | Step | You produce | Command |
 |---|---|---|
-| 1. Brief | `concept/brief.md`, `concept/brief-*.txt` | |
+| 1. Brief and skeleton | `concept/brief.md`, a buildable frame recipe and geometry sheet | `node scripts/authoring-concept.mjs` |
 | 2. Concept image | `concept/concept.jpg` | an image model ([AI routes](./authoring-art-with-ai.md#3-the-image-route)) |
-| 3. Paint-over | 1× rasters of the key ornaments | `npm run paint-over` |
-| 4. Clean-up | sprite modules and frame painters in code | |
+| 3. Extraction | 1× rasters of the key ornaments, with reproducible crops and masks | `npm run paint-over` or a recorded extraction script |
+| 4. Clean-up | editable 1× PNG illustrations; frame geometry and repeating surfaces in code | |
 | 5. Build and check | `scheme.rsrc`, `scheme.bin` | `npm run author` (`--sheet`, `--palette`) |
 | 6. Preview and capture | `preview.png`, `preview-sizes.png` | `npm run dev`, `npm run capture:authoring` |
 | 7. 8-bit check | a simulated classic screenshot | `npm run sim8` |
-| 8. Real Kaleidoscope | `classic/*.png`, `classic/README.md` | the maintainers' emulator |
-| 9. Classic extras | about box, cursor, sounds | `classic.mjs` |
+| 8. Classic extras | about box, cursor, sounds included in the build | `classic.mjs` (§4.9) |
+| 9. Real Kaleidoscope | captures of the exact frozen build, hashes and observations | the maintainers' emulator (§4.8) |
 
-Steps 5–7 repeat after every change to a tile, a ramp or a widget.
+Repeat the affected build, preview and 8-bit checks after art changes. Include
+the classic extras before freezing the build for the VM. A later byte change
+makes earlier VM screenshots historical; test the revised file again before
+calling that revision classic-tested.
 
 ### 4.1 Write the brief
 
-`concept/brief.md` is the art direction. Copy the structure of
-`authoring/schemes/new-year-2027/concept/brief.md`:
+`concept/brief.md` is the art direction. Start with the
+[brief template](../authoring/concept-brief-template.md); the existing schemes'
+briefs also preserve historical plans, which may differ from their current recipes:
 
-1. **Art direction.** The big idea in one sentence; **the one silhouette that
-   carries the theme** (name it, and check it survives every pass); the
-   materials; the light direction; and a palette table of exact
-   `SYSTEM_PALETTE_256` entries for every role, active and inactive.
-2. **Concept image.** How it was made, which run was chosen, and its measured
-   scale (step 3).
-3. **Build translation.** The template size and content rect, and a table that
-   maps each concept feature to a cell (name, code, size in px). Give
-   numbers, not adjectives: band thicknesses, ornament heights, how far
-   ornaments rise above the bar.
+Record the signature silhouette, materials, lighting and active/inactive
+palette. Map concept features to measured cells and reserve room for a
+representative title. Save the selected concept, prompt, crop and measured
+scale so another author can reproduce the translation.
 
 Keep the image prompt in `concept/brief-*.txt`, so a retry is one command.
+Separate the original target, the current implementation and deliberate
+departures. Record measured title room and ornament behavior from the built
+recipe; a concept prompt is not evidence of how the engine drops or tiles art.
 What makes a good brief (numeric targets, calm bodies, the title-room budget)
 is in [visual design §3](./authoring-visual-design.md#3-designing-from-a-concept).
 
 ### 4.2 Make the concept image
 
+Set the frame geometry before asking for art. Once a skeleton scheme builds,
+generate its source-template sheet:
+
+```sh
+node scripts/authoring-concept.mjs authoring/schemes/<name> --out /tmp/concept-review.html
+```
+
+This writes a self-contained HTML reference and a sibling `*-template.svg`,
+drawn from the document window's actual `wnd#` and frame dimensions. Attach
+the SVG to the concept brief: fixed cells carry the silhouettes, growing
+cells must repeat cleanly, and the dashed title/widget boxes must stay usable.
+The sheet shows source-art coordinates, before the engine stretches them;
+it is a geometry constraint, not a prediction of the final window width.
+The skeleton is provisional: enlarge bands, ornaments and control art when
+the measured concept needs it. Do not shrink the concept into an inherited
+thin frame just to keep old source dimensions or tests unchanged.
+
 An image model renders the finished window as a mockup, saved as
 `concept/concept.jpg`. [`authoring-art-with-ai.md`](./authoring-art-with-ai.md#3-the-image-route)
-has the route the first-party schemes used and its pitfalls (run one image job
-at a time, with a long timeout, and expect to retry).
+describes the available routes and their limits.
 
-The concept is a target to look at and a source to paint over. It is never
-final pixels: image models draw on their own grid, with soft edges and JPEG
-noise.
+The concept supplies the composition and source illustrations. Prepare its
+pixels for the target grid, palette and binary mask before importing them:
+the raw mockup may contain soft edges, JPEG noise or a painted background.
 
 ### 4.3 Paint over the concept
 
 Redrawing ornaments from the concept by eye keeps the motifs and loses the
-pose and proportions. Instead, shrink the concept back to 1× and snap it to
-your palette:
+pose and proportions. Instead, extract the concept back to 1×. Use the scheme
+palette when it preserves the artwork; a source-derived palette can retain
+more of its shading, within the resource's colour budget. Bonn's recorded
+extraction uses grid-center samples and explicit background masks for this
+reason. The general paint-over tool offers a palette-voting route:
 
 1. **Measure the scale**: how many concept pixels make one art pixel. Use the
    outline width or a widget's diameter. The concepts so far were 2.5×
@@ -338,11 +350,19 @@ size, count and colour, then redraw them.
 
 ### 4.4 Clean up by hand
 
-Put the cleaned art in a sprite module (Kingfisher's is
-`parts/sprites/ornament.mjs`, rows of characters with a legend) and paint the
-rest of the frame in code. Typical clean-up:
+When the concept already contains the illustration you want, extract that
+art first. Do not replace it with a procedural approximation just because
+the subject can be described as rectangles or circles. Bonn's building,
+blossom and bridge assets show reproducible crops, traced background masks
+and source-derived palettes in `concept/extract-assets.mjs` and `sprites/`.
 
-- one crisp outline: thin doubled outline pixels into the fill;
+Keep detailed illustrations as editable transparent 1× PNGs (Kingfisher's
+`parts/sprites/` is an example), small glyphs as short grids if useful, and
+repeating materials and frame geometry in code. Import PNGs with `decodePng`
+and `Raster.fromRgba`; reject a nonzero returned `snapped` count, keep paired states the same size,
+and add hidden colour swatches in the frame painter after import. Typical clean-up:
+
+- repair the mask and background contamination while retaining intentional outlines;
 - vote out JPEG speckles; fill back anything the `--key` removed by mistake;
 - draw single-pixel sparks and stars *after* any outline pass, or the outline
   pass turns them into outline colour;
@@ -350,6 +370,11 @@ rest of the frame in code. Typical clean-up:
   so they tile;
 - check the art against [visual design §2](./authoring-visual-design.md#2-pixel-ui-guidance-for-this-format):
   one light direction, whole-pixel glyphs, short ramps.
+
+Make one visual change per comparison: silhouette or spacing first, then
+surface contrast, then fine detail. Reject a technically valid pass if it
+loses the concept's defining material or silhouette. Reducing saturation
+alone does not make glass, and removing every joint does not make better stone.
 
 Then fit the art to the cells in the brief. Call `layout.lint(raster)` after
 painting each frame: it catches stray art in tiled cells, the bug every
@@ -369,7 +394,7 @@ Read the whole output, not just the exit code:
   hidden swatches without a browser;
 - warnings (§8);
 - a **classic extras** line: what real Kaleidoscope will show beyond the
-  windows (step 9).
+  windows (step 8).
 
 Two flags add review aids, written even when the checks fail:
 
@@ -402,10 +427,34 @@ rebuild.
   for untitled windows).
 - Click a window body to activate it, double-click a title bar to see the
   collapsed frame, and hold the mouse down on a widget to see its pressed art.
-- Progress bars, menus and the desktop pattern aren't shown (§9).
+- The default layout omits progress; `--concept` includes it. Menus and the
+  desktop pattern need classic review (§9).
 
 The concepts were drawn at about 3×, so a 1× preview next to one always looks
 thinner. Compare at the same scale before deciding a pass is under-scaled.
+
+For a composition review, capture just one active document window at DPR 1
+and compare it with a crop of the concept's corresponding window:
+
+```sh
+npm run capture:authoring -- authoring/schemes/kingfisher --document --out /tmp/document.png
+node scripts/authoring-concept.mjs authoring/schemes/kingfisher \
+  --render /tmp/document.png --crop 182,162,773,532 --out /tmp/concept-review.html
+```
+
+Open `/tmp/concept-review.html` directly in a browser; all images are embedded.
+`--crop` is `x,y,width,height` in the original concept image, including the
+whole outer frame. The two windows share a displayed outer width and retain
+their own aspect ratios, so height differences remain visible. `--scale 2`
+is the default display enlargement. Capture options `--width 380 --height 210`
+set **content** pixels; the PNG includes the full outer chrome. The comparison
+script's `--concept <path>` selects a different PNG or JPEG than `concept/concept.jpg`.
+These review files are temporary; keep the brief and finished captures in git.
+
+Use the capture command's `--concept` instead of `--document` for a fuller scene: live checkboxes,
+radios and action buttons, a progress bar composed from the scheme, and active
+scrollbars. This exposes missing material/scale across control families that
+a mostly empty document hides. It uses the same content-size options.
 
 When it looks right, capture the committed previews:
 
@@ -413,9 +462,11 @@ When it looks right, capture the committed previews:
 npm run capture:authoring -- authoring/schemes/<name>   # needs npm run dev; --base for another port
 ```
 
-It writes `preview.png` (the default layout at DPR 2) and `preview-sizes.png`
-(the stress layout), at the same viewport for every scheme so they compare
-side by side.
+It writes `preview.png` (a flowing overview at DPR 2, full height at a 960px
+viewport width) and `preview-sizes.png` (the fixed stress layout at DPR 1).
+The overview loads the bundled classic-style fonts before drawing canvas
+text and lets tall frames determine row heights. Use the single-window
+comparison for composition judgments rather than comparing overview heights.
 
 ### 4.7 Check it at 8 bits
 
@@ -440,8 +491,10 @@ expensive and should confirm, not discover.
 ### 4.8 Test in real Kaleidoscope
 
 All five first-party schemes have been loaded in the original Kaleidoscope
-2.3.1 on System 7.5.5; screenshots and notes are in each scheme's
-`classic/README.md`.
+2.3.1 on System 7.5.5. Each `classic/README.md` identifies which revision its
+captures show; it must not imply a later art revision was tested.
+For substantially larger or novel frame recipes, run an early native smoke
+test before polishing every family, then repeat on the frozen final build.
 
 ![Kingfisher in real Kaleidoscope: Finder window, menu bar and desktop pattern](../authoring/schemes/kingfisher/classic/desktop@2x.png)
 
@@ -449,17 +502,40 @@ Maintainers with the private reference emulator
 ([`maintainer-reference-environment.md`](./maintainer-reference-environment.md))
 can repeat it:
 
-1. Make fresh copies of the known-working system and transfer seeds (never boot the originals).
-2. Copy the scheme onto a disk copy with hfsutils, which unpacks MacBinary:
-   `HOME=<scratch> hcopy -m scheme.bin :Kingfisher`. Setting `HOME` keeps
-   hfsutils' mount state out of your real home directory. Confirm type `Colr` /
-   creator `Acid` with `hls -l`. The seed system disk has about 1.4 MB free; for
-   more than one or two schemes, use the transfer-disk copy.
-3. Boot with sound off, open the Kaleidoscope control panel, click **Select
-   Scheme…**, pick the file, and click **Open**.
-4. Capture the desktop, the control panel, a dialog, a narrow window and a
-   collapsed window, and write up what differs from the web preview in
-   `classic/README.md`.
+1. Finish browser and 8-bit review first. Build every candidate with
+   `npm run author -- <dir>` and run `npm run check:schemes`. Record SHA-256
+   hashes of both `scheme.rsrc` and `scheme.bin`; stage that exact batch for the VM.
+2. Make fresh copies of the known-working system and transfer seeds. Keep
+   private ROM/system bytes outside this repository. Use one owned emulator
+   session and isolated HFS mount state; never mount a disk while it is running
+   in the emulator, and never boot the immutable seeds.
+3. Copy the MacBinary files to the stopped transfer-disk copy with the
+   maintainer toolkit's isolated hfsutils wrapper (`hcopy -m`), then unmount
+   before boot. Confirm Finder type `Colr`, creator `Acid` and the custom-icon
+   flag. The system seed has little free space; use the transfer disk for a batch.
+4. Boot System 7.5.5 / Kaleidoscope 2.3.1 at the recorded depth, normally 8 bpp,
+   with sound off for this WASM build. Open the control panel and use **Select
+   Scheme…** → **Open** for each candidate. Select the scheme before launching
+   any native test fixture; do not switch schemes while that fixture is running.
+5. Check an ordinary and narrow document, active/inactive appearance, a dialog,
+   pressed widgets and a collapsed window. Inspect menus, picker icon, About
+   text and cursor against the desktop. Record what was actually exercised;
+   sound-off runs do not verify audible WindowShade sounds.
+6. Capture the relevant views and record the date, environment, staged hashes,
+   selection/load outcome and visible issues in `classic/README.md`. Preserve
+   older captures as history. Stop the owned VM before any HFS inspection.
+
+Batch several frozen schemes into one prepared transfer disk, but record a
+separate outcome for each. If a failure requires a fix, rebuild and re-test
+that scheme's new hash. These are visual compatibility checks, not automatic
+admission into the original-reference corpus or permission to refresh goldens.
+
+Prefer compact source templates over copying long regions that will repeat.
+The larger Bonn revision passed browser/authoring checks but produced a native
+system error; shortening its canopy repeat preserved the visible dimensions
+and loaded successfully. This is an observed compatibility result, not proof
+of a universal resource-size limit. Preserve failed builds and change one
+factor at a time when diagnosing native-only failures.
 
 What classic shows differently, and what the tall frames taught, is in
 [R16](./authoring-exotic-frames.md#2-art-outside-the-body--irregular-silhouettes-r13r19).
@@ -538,9 +614,12 @@ to every scheme. Kingfisher has every family, so this section follows it.
 
 Three faces (inactive `-10240`, normal `-10239`, pressed `-10238`), each with a
 **same-id `cinf`**. Without the `cinf`, the runtime silently draws Platinum
-instead. The engine copies the four `cornerSize` corners 1:1, stretches the
-edges, and fills the middle with *one* colour read at `bgPixel`. Gradients
-inside the face are lost, so a face is an outline around a flat fill.
+instead. The engine copies the four `cornerSize` corners 1:1, draws the
+edge bands, and fills the middle with *one* colour read at `bgPixel`.
+`cinf.tileSides` chooses repeated rather than stretched edges. For a repeated
+stud row, the source middle width is the repeat period; Brickworks uses an
+8px period. Check short, long, default and pressed buttons in both renderers.
+Gradients inside the face are lost.
 
 The default ring (`-10232` inactive, `-10231` normal) is drawn 4 px outside
 the face and *after* it. Only its corners and edge bands are drawn, never its
@@ -582,6 +661,18 @@ pixel.
   `stripLayout` and `pressedStripFrom`, and give every window the same widget
   set and sizes, or utility windows close only ([R24](./authoring-exotic-frames.md#5-pressed-widgets-r24)).
 
+Window-button size and placement are authored, not fixed by the OS look.
+The `wnd#` rectangles for parts 1, 2 and 3 define close, zoom and collapse;
+`frameLayout({ widgets: { close: { x, y, w, h }, … } })` writes them. For
+the helper's top-band layout, keep each box inside fixed cells, away from
+the title and ornaments. The three roles need not share one size, and their
+positions need not match standard Platinum corners. Rebuild the pressed
+strip from those same boxes: its mask supplies the hit shape, and its piece
+offsets use the cumulative rectangle widths. Corresponding utility widgets
+must fit the document strip in the current web path; classic has its own
+utility strip. Check every state, narrow widths and native hit behavior after
+moving or enlarging a button. See [R24](./authoring-exotic-frames.md#5-pressed-widgets-r24).
+
 ### 6.4 Reuse a family from another scheme
 
 Every first-party scheme copied its control families from an earlier one and
@@ -602,21 +693,13 @@ so there is nothing to copy for it.
 
 ### 6.5 How Kingfisher is laid out
 
-| File | Holds |
-|---|---|
-| `palette.mjs` | every colour, through `sys()`, and the `CONTRAST` pairs |
-| `scheme.mjs` | push buttons, the default ring, checkboxes and radios, and `buildScheme()`, which loads every file in `parts/` |
-| `parts/frames.mjs` | the window types (`frameLayout`), the frame painter, the title-bar beads and the pressed strips |
-| `parts/sprites/ornament.mjs` | the kingfisher and the ripple, painted over from the concept |
-| `parts/scrollbars.mjs` | scroll bars (normal, small, double-headed, every state), thumbs, drag ghosts, little arrows |
-| `parts/controls.mjs` | sliders, tabs and tab panes, bevel buttons, popup-button pieces |
-| `parts/progress.mjs` | progress bars and the barber-pole patterns, Finder list headers, disclosure triangles, grow boxes |
-| `parts/menus.mjs` | menu bar and menus, desktop and utility patterns, Finder colours, header colour tables, the scheme icon |
-| `parts/classic.mjs` | the control-panel extras |
-
-Each part exports `build(add, { C })`. Two parts adding the same id is an
-error that names both files. Set `KINGFISHER_PARTS=scrollbars` to build only some
-parts while you work on one.
+`scheme.mjs` builds push/checkable controls and loads the family builders in
+`parts/`. `palette.mjs` owns the colours; `parts/frames.mjs` owns recipes,
+frame painting and pressed strips. Decorative PNGs are described in
+[Kingfisher's editing guide](../authoring/schemes/kingfisher/README.md).
+Each part exports `build(add, { C })`; duplicate resource ids report both
+owners. `KINGFISHER_PARTS=scrollbars` builds selected families while iterating,
+but final validation must use a complete build.
 
 ## 7. Id cheat-sheet
 
@@ -689,39 +772,23 @@ scheme's `classic/README.md`.
 
 ## 8. What the checks catch
 
-The loader is forgiving because it has to accept 1990s files, so most mistakes
-render wrong without failing. `npm run author` runs `checkScheme` to catch the
-common ones. Each rule was also run over all 18 corpus schemes; a rule that
-fires on an original scheme is at most a warning.
+`npm run author` runs `checkScheme` because a forgiving loader can accept
+resources that render incorrectly. Read its diagnostics and the sampled
+colours; do not rely on the exit code alone.
 
-| Severity | Check |
+| Result | Main checks |
 |---|---|
-| error | a `wnd#` without its frame image; active and inactive frames of different sizes |
-| error | a widget overlapping a cell that stretches or collapses (codes 0, 8, 11–18) |
-| error | no content rectangle (rect 0), or one that is empty or inside out |
-| error | a rect-list rectangle that lies outside the frame image (warning on collapsed windows) |
-| warning | a `cicn` whose every pixel is transparent |
-| warning | no active frame (`cicn` id + 1), so the inactive frame is used for both states |
-| warning | an edge recipe that ends past the edge of the frame image |
-| warning | visible pixels outside an edge's recipe span (they are never drawn) |
-| warning | an edge with no growing cell (the window can't resize that way) |
-| warning | windows with widgets but no pressed-widget strip (`cicn -14330`): the widgets aren't clickable on the web |
-| warning | a push face with no same-id `cinf` (the runtime silently draws Platinum instead) |
-| warning | a face or ring `cinf` whose sample pixels fall outside its image, or whose `cornerSize` is more than half the image |
-| warning | no pressed push face; an incomplete checkbox/radio set |
-| warning | a title bar too short for the title (title size is `clamp(content.top − 6, 8, 13)`) |
-| warning | a menu, tab, Finder header or progress image without its same-id `cinf` |
-| warning | a progress frame `cinf` whose corner is larger than its side |
-| warning | a `cinf` whose text and background sample the same colour (text on that piece is invisible) |
-| warning | title text against the title bar below 2:1 (active) or 1.4:1 (inactive), from the swatch and the bar's commonest colour in the glyph rows |
-| warning | a push or pressed push label against its face below 2:1 |
-| warning | an about box (`DLOG -14320`) whose `DITL` is missing, or whose icon or picture item names a `cicn`/`ICON` or `PICT` the scheme doesn't ship |
+| Error | missing/mismatched frames, missing or empty content rect, widgets in moving cells, out-of-image rectangles (warning for collapsed windows) |
+| Warning | invisible/missing state art, clipped recipe spans, missing growers or pressed strips |
+| Warning | absent same-id `cinf`, invalid corner/sample geometry, incomplete control states, invisible labels or low contrast |
+| Warning | About box references to missing dialog/art resources |
+| Summary | loaded window types, sampled title/button colours and classic extras supplied |
 
-The two contrast warnings are set low on purpose: no corpus scheme goes below
-them, while the design floors (4.5:1 for an active title, 3:1 inactive) would
-fire on 5 and 6 of the 18. Use the printed ratios and `--palette` for those.
-The classic extras line isn't a warning either, because plenty of corpus
-schemes skip them.
+Warnings are calibrated against the corpus, so the design contrast floors
+are stricter than the warning floors. Use `--palette` and the
+[visual review checklist](./authoring-visual-design.md#4-review-checklist)
+for design acceptance. The actual diagnostics live in
+[`check-scheme.js`](../tools/theme-author/check-scheme.js).
 
 Frames built with `frameLayout` get more checks when they're built: widgets
 in fixed cells, code-12 recipients, the 17 px title rect, and, through
@@ -754,11 +821,10 @@ runtime doesn't draw that family from the scheme: menus; popup buttons; small
 and double-headed scroll bars, ghosts and little arrows; tab panes; grow boxes
 on `wnd#` windows; disclosure rotation frames; and the control-panel extras.
 
-Progress bars sit in between: the runtime draws them from the scheme
-(`composeProgress`, exported from the renderer entry), but the declarative
-layer has no progress element, so `authoring-preview.html` can't show them.
-Check them by calling `composeProgress` from a page or script, or in real
-Kaleidoscope.
+The declarative layer has no progress element. The authoring preview's
+`--concept` scene calls the public `composeProgress` renderer explicitly to
+show the scheme's progress art; consumers can do the same. Menus and other
+classic-only families still need native review.
 
 ## 10. Where the rules come from
 

@@ -1,7 +1,7 @@
 # Visual design for authored schemes
 
 *A reference for making a scheme look good, not just load. The workflow
-(brief, concept, paint-over, build, preview, 8-bit check) is in
+(brief, concept, extraction, build, preview, 8-bit and native checks) is in
 [`authoring-a-scheme.md`](./authoring-a-scheme.md) §4, and the engine
 mechanics this doc assumes (masks, the 256-colour budget, hidden swatches,
 gamma, dithering) are in its §3. Nothing here asks the format for something
@@ -9,25 +9,12 @@ it can't do.*
 
 ## 1. What separates a good scheme
 
-The first versions of the four early schemes (Kingfisher, Castle, Brickworks,
-Bonn) were structurally sound and passed every check, and they still looked
-generated next to the best corpus schemes (`animals`, `evolution`, `1984`).
-A design review traced that to three habits, none of them a format limit:
-
-- **Textures made of edges instead of surfaces.** Castle's first stone gave
-  every block a lit row, a shaded row, a mortar line and speckle, so at 1× it
-  read as a grey mesh.
-- **Soft strokes where a 1-bit format wants whole pixels.** Title-bar glyphs,
-  arrowheads and thumb grips drawn with 1–1.7 px anti-aliased strokes came out
-  as grey smears.
-- **Palettes chosen in sRGB without checking the 8-bit system palette.** A
-  warm grey 10–20 units off the grey axis showed as pink at 8 bpp, and five
-  stone tones within 20 units of each other collapsed onto one entry.
-
-The fix for all three was the same: design the whole window first as a
-concept image, then rebuild it on whole pixels in system-palette colours
-(the workflow in the authoring guide). Section 2 is the pixel guidance that
-came out of the review; section 3 is what the concept passes taught.
+Structural correctness does not establish visual quality. Review silhouette,
+material, lighting and live-text readability at 1×, then at narrow and wide
+sizes. Common failures are excessive internal edges, thin antialiased glyphs
+and ramps that collapse or shift at 8 bpp. The
+[workflow](./authoring-a-scheme.md#4-the-workflow) covers how to build and test;
+these are the visual decisions to make during that process.
 
 ## 2. Pixel-UI guidance for this format
 
@@ -131,6 +118,12 @@ does not (R22). Two rules:
 
 ### 2.5 Ornaments, tiling and size
 
+- Before generating the concept, use the [geometry reference and matched-width
+  review](./authoring-a-scheme.md#42-make-the-concept-image). Give the artist the
+  actual fixed/growing cells and reserved title/widget rectangles. Review one
+  rendered window beside the matching concept crop at the same outer width;
+  keep aspect ratios intact so a compressed silhouette or an oversized band
+  cannot hide behind a different screenshot scale.
 - Put ornaments in **fixed** cells (code 1 or 10), never in a 1 px grower,
   and keep one plain column between an ornament and a grower. `layout.lint`
   catches art that leaks into a tiled cell.
@@ -146,12 +139,17 @@ does not (R22). Two rules:
 - **Big windows amplify.** At 900 px wide the bar is 70 copies of the tile.
   Any 1 px feature per tile becomes a dotted line; any dither becomes
   stripes. Check the `sizes.html` preview layout after every tile change.
-- **Small windows subtract.** List what each window type sheds in order
-  (ornament, then the second widget, then the title end caps) and make sure
-  what's left still looks like the scheme.
+- **Small windows subtract.** Measure what each actual recipe loses as it
+  narrows; there is no universal removal order. Make sure the surviving
+  silhouette is deliberate and record when the title stops fitting.
 
 ### 2.6 Widget families and states
 
+- **Use the available space deliberately.** Window-button rectangles are
+  scheme-defined. A larger detailed badge can sit at a different offset
+  inside a fixed frame cell; it does not have to remain a tiny standard
+  corner button. Budget its footprint alongside the title and ornaments,
+  and rebuild/verify the pressed mask rather than enlarging only the picture.
 - **One silhouette, one rim, one glyph grammar** for close, zoom and
   collapse. Three discs with different glyphs are a family; a shield, an arch
   and a plate are a collection. Variety belongs in the *fill*, not the shape.
@@ -172,63 +170,53 @@ does not (R22). Two rules:
 
 ### 2.7 Avoiding the generated look
 
-The tells, in the order reviewers notice them:
-
-1. Anti-aliased strokes under 2 px (§2.2).
-2. Every element highlighted and outlined; no flat surface anywhere.
-3. Ramps of five near-identical tones, and gradients where a 1 px highlight
-   was wanted.
-4. Hashed "random" variation on every pixel (speckle, grit) instead of a few
-   deliberate chips.
-5. Smooth circles for things that should be pixel clusters (trees, blossoms,
-   studs).
-6. A different idea for each widget.
-7. Palettes chosen by name in sRGB rather than against the system palette
-   and against each other.
-
-The opposite of each is cheap in this toolkit: `r.set` and `r.sprite` on
-whole pixels, `hline`/`vline` for highlights, a 3-tone ramp, and a hash that
-chooses *which* block gets the chip rather than *whether each pixel* does.
+Use whole-pixel glyphs, short material ramps and deliberate clusters. Avoid
+outlining every internal surface or scattering pseudo-random speckles.
+The symptom table in the [review checklist](#4-review-checklist) identifies
+concrete corrections; the preceding sections explain their geometry and palette
+constraints. Repeated stylistic rules are not additional build gates.
 
 ## 3. Designing from a concept
 
-These are the lessons from running the concept workflow (brief, concept,
-paint-over, clean-up) on all five schemes. They belong in the brief.
+Use the [brief template](../authoring/concept-brief-template.md) to record
+these decisions:
 
-- **Start from references.** Before the brief, look at three to five photos
-  of the real material and at corpus schemes with the same ambition
-  (`themes/<slug>/` reference images: `animals` for ornament, `beos-r503` for
-  asymmetry, `1984`, `crayon-os`, `dolphin-som`). Write down the light
-  direction and the one memorable thing.
-- **Give numbers, not adjectives.** The first implementation of each concept
-  copied the motifs and missed the scale: the right objects at sticker size on
-  the old thin frame. A second pass with numeric targets measured off the
-  concept fixed it. The targets that worked for a document window of about
-  400×260: side bands 14–18 px of real material; a top band of 34–44 px plus
-  ornaments that stand 16–40 px above the bar; a bottom band of 14–22 px with
-  its own motif. A restrained scheme can keep thin sides and put the weight
-  into one ornament (Kingfisher: 6 px sides and one big bird).
-- **Silhouette beats texture.** One scale-up pass of Castle thickened the
-  walls but shrank the conical roofs into pepper-pots, and it read less like a
-  castle than before. Name the one silhouette that carries the theme in the
-  brief, and check it survives every pass.
-- **Budget the title's room.** Ornaments in the top edge's fixed cells raise
-  the width at which the title appears, and a narrow window shows the
-  ornament and "…". Decide that trade-off on purpose
-  ([R6](./authoring-exotic-frames.md#1-cell-codes-rules-r1r12)).
-- **Keep the essential look in the bar rows.** In classic, a window at the
-  top of the screen has everything above its title bar under the menu bar
-  (R16). Art above the bar is decoration.
-- **Calm bodies.** Asked for "parchment", agents reach for a saturated
-  butter-yellow. Give a low-chroma hex range and check it in the 8-bit
-  simulation: `#e8e0cc` snapped to pink at 8 bpp, while `#efe8d8` maps to a
-  neutral grey.
-- **A title plate can carry a repeat.** The engine tiles the code-5 plate
-  across the title width, so a stud row or a fringe can run over the title.
-  Mark the cell `tiled: true` in `frameLayout`, and `lint` checks only the
-  title rows.
+- Name the one memorable silhouette and the material reference.
+- Measure band/ornament sizes and title space instead of asking for “larger”
+  or “more ornate.” Check the expanded window, not only the source template.
+- Preserve recognizable silhouettes before adding texture; an elaborate
+  surface cannot rescue the wrong proportions.
+- Preserve identity details from the actual concept. Try extracting its
+  pixel clusters before reconstructing a landmark, blossom or bridge in code.
+  Compare the crop and extracted PNG at the same size; retain proportions,
+  shading and character. Redraw only details extraction cannot recover, and
+  distinguish those repairs from source pixels. Bonn's concept-derived PNGs
+  replaced recognizable subjects whose procedural versions still felt wrong.
+- Keep the essential look in the bar rows. Art above a title bar may disappear
+  under the classic menu bar ([R16](./authoring-exotic-frames.md#2-art-outside-the-body--irregular-silhouettes-r13r19)).
+- Use low-chroma bodies and test palette snapping; subtle warm grey can turn
+  pink at 8 bpp.
+- A code-5 plate can carry a small repeat above/below the text. Mark it
+  `tiled: true` and lint the title rows; accept a partial repeat at the end.
 
 ## 4. Review checklist
+
+For an existing scheme, save a before capture and change one visual problem
+at a time. Keep the signature silhouette and behavior while changing its
+surroundings. Useful diagnoses from the first-party reviews:
+
+| Symptom | Check first | Prefer |
+|---|---|---|
+| Castle-like stone reads as a wire grid | joint and highlight contrast at 1× | larger quiet faces and fewer bright internal edges |
+| Brick-like controls look unrelated to the frame | the full repeated stud row at short and long widths | the same stud spacing and light direction across controls |
+| A skyline reads as disconnected icons | gaps between silhouettes at the final expanded width | a low connecting mass that respects fixed/title-cap/growing cells |
+| Fireworks read as confetti | whether ray directions and empty space survive at 1× | coherent warm rays and deliberate dark gaps, with the year kept legible |
+| Frosted glass becomes a flat panel | broad reflections, value transitions and palette limits | preserve the material's defining light; do not equate desaturation with depth |
+
+Check the whole window again after changing a local motif. Repeating a better
+tile 70 times can still make a worse surface. Use before/after and concept
+comparisons as visual decisions, not as a reason to add pixel snapshots for
+every illustration. Keep tests for the reusable geometry and resource rules.
 
 Copy this into the scheme's PR description:
 
@@ -241,8 +229,10 @@ Copy this into the scheme's PR description:
 - [ ] Ornaments in fixed or droppable cells; `sizes.html` clean at 160 px and 900 px.
 - [ ] Widgets share silhouette, rim and radius; pressed is inverted, inactive is quieter.
 - [ ] The signature silhouette from the brief is intact at 1×.
+- [ ] A matched-width concept comparison preserves aspect ratios; deliberate departures are recorded.
 - [ ] `npm run sim8` output looks like the web preview, give or take a step.
-- [ ] Classic captures (if taken) match the simulation.
+- [ ] Classic extras are included before the final VM build is frozen.
+- [ ] VM observations identify exact `.rsrc`/`.bin` hashes and tested states; later edits are not labelled as already tested.
 
 Attach, or regenerate locally for review: `preview.png` and
 `preview-sizes.png` (`npm run capture:authoring`), the `sim8` image, the

@@ -21,8 +21,8 @@
 //   palette.mjs     every colour (system-palette entries) and contrast pairs
 //   parts/frames.mjs            window types (frameLayout), the frame painter,
 //                               title-bar beads and the pressed-widget strips
-//   parts/sprites/ornament.mjs  the kingfisher on its branch and the ripple,
-//                               painted over from concept/concept.jpg
+//   parts/sprites/*.png        editable 1× kingfisher and ripple art, active/inactive
+//   parts/sprites/ornament.mjs  PNG import with binary-alpha validation
 //   parts/*.mjs     other control families: controls (sliders, tabs, bevels, popups),
 //                   menus (menus, desktop, Finder colours, icon), progress
 //                   (progress, headers, triangles, grow boxes), scrollbars, classic

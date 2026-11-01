@@ -1,5 +1,5 @@
-// Bonn window frames, painted over the concept (concept/concept.jpg, 3
-// concept px per pixel): a sandstone title bar with the Bonn skyline standing
+// Bonn frame geometry places the actual concept-extracted PNGs (3 source
+// pixels per native pixel): a sandstone title bar with the Bonn skyline standing
 // tall on it, the Minster and the Old Town Hall either side of a red ribbon
 // that carries the title and the Post Tower over the right corner; a cherry
 // bough rising from the left corner; thick sandstone ashlar piers down both
@@ -15,52 +15,36 @@
 //   bottom (document)      blockL 1 | skip 0 | water 11 | bridge 1 | water 8 | blockR 1
 //   bottom (others)        blockL 1 | skip 0 | water 11 | water 8 | blockR 1
 //
-// Band sizes (concept px ÷ 3): document 99 top (78 sky + 21 bar) / 18 sides /
-// 27 bottom; movable modal 99 / 14 / 20; titled utility 37 / 12 / 18; dialog
-// and alert 21 / 12 / 18.
+// Current geometry: document 144 top (110 sky + 34 ribbon/bar), 22px sides,
+// 40px river. Landmarks occupy 64/72px title caps; corners 72/58px. The
+// 266px fixed budget leaves 158px title room at 424px outer width. A 145px
+// title needs 411px outer width. Narrow windows shed both landmark caps with
+// the title; corner blossoms/glass, sandstone and river remain.
 //
-// Why these codes (docs/authoring-exotic-frames.md, compositor-spec TT1–TT10):
-//   - The concept stands the skyline over and around the title. The plate
-//     (code 5) is a 1px tiled cell, so nothing can stand above the title text
-//     itself; but the code-6 caps either side of it are fixed cells that move
-//     with the title, are drawn over the whole band height and drop with it
-//     (R10, TT3). So the Minster stands in the sky over the left cap and the
-//     Town Hall over the right cap: the skyline straddles the title wherever
-//     it is, and goes when the title goes. The pennant's tails sit in the
-//     caps' bar rows next to the plate. The Post Tower stands over the right
-//     corner (fixed anyway, above the zoom and collapse boxes), as in the
-//     concept. Caps cost title room like any fixed cell, so the Minster and
-//     the Hall are kept to the concept's widths (R6).
-//   - The bough is a fixed drawing in the left corner (the concept's single
-//     branch, not a repeat); the 1px growers either side of the caps are
-//     plain bar, transparent above it.
-//   - The bridge is one fixed cell between two code-11/8 water tiles in one
-//     allocation: both growers get equal shares, so the bridge stays centred
-//     on open water at any width (R3, the "fixed ornament centred on an
-//     untitled edge" row). The water is one 24px period of foam dashes.
-//   - The bottom needs less width than the top, so a code-0 cell next to the
-//     left block skips the spare template columns (R9).
-//   - The side piers tile a 16-row period (two 8-row courses), so the courses
-//     wrap cleanly at any height (R2).
+// The 12px growers and code-5 plate tile only the low contoured tree canopy
+// above the text. The plate is explicitly tiled and lint validates its title
+// rows. Landmarks remain draw-once code-6 cells; no building is repeated.
+// Bottom: one 120px bridge between equal 11/8 water allocations. Side ashlar
+// uses 22px tile periods (two 11px courses). No runtime special cases.
 import { Raster, frameLayout, fitPalette } from '../../../tools/theme-author/index.js';
 import { C } from './palette.mjs';
 import { DRAW, WIDGET } from './widgets.mjs';
 import {
-  drawMinsterCap, drawHallCap, drawTowerCorner, drawBough, drawBranchTile, drawBranchCorner, drawSprig, drawAlertDisc,
+  drawMinsterCap, drawHallCap, drawTowerCorner, drawBough, drawBridge, drawBranchTile, drawBranchCorner, drawSprig, drawAlertDisc,
   SKY_ROWS, MINSTER_W, HALL_W, BOUGH_W, SPRIG_W, ALERT_W, BRANCH_TILE_W,
 } from './skyline.mjs';
 
-const COURSE = 8;         // ashlar course height; the side tile is two courses
+const COURSE = 11;         // ashlar course height; the side tile is two courses
 const WATER = 24;         // water tile period
-const BRIDGE = 76;        // the bridge: two 13px piers and a 50px arch
-const TAIL = 6;           // the pennant's tails, inside the caps' bar rows
+const BRIDGE = 120;       // broad stone arch and two substantial piers
+const TAIL = 12;          // tails extend into the caps, leaving 6px beside the title after the notch/hem
 
 // Per family: sky = rows above the bar, bar = bar rows, side = pier width,
 // bottom = river band rows, corners, what stands over the caps.
 const G = {
-  doc: { sky: SKY_ROWS, bar: 21, side: 18, bottom: 27, cornerL: BOUGH_W, cornerR: 36, skyline: true, tower: true, bough: true, bridge: true },
-  modal: { sky: SKY_ROWS, bar: 21, side: 14, bottom: 20, cornerL: 16, cornerR: 16, skyline: true },
-  util: { sky: 16, bar: 21, side: 12, bottom: 18, cornerL: 24, cornerR: 14, branch: true },
+  doc: { sky: SKY_ROWS, bar: 34, side: 22, bottom: 40, cornerL: BOUGH_W, cornerR: 58, skyline: true, tower: true, bough: true, bridge: true },
+  modal: { sky: SKY_ROWS, bar: 34, side: 14, bottom: 20, cornerL: 16, cornerR: 16, skyline: true },
+  util: { sky: 16, bar: 34, side: 12, bottom: 18, cornerL: 34, cornerR: 14, branch: true },
   plain: { sky: 11, bar: 10, side: 12, bottom: 18, cornerL: 25, cornerR: 25 },
 };
 
@@ -73,19 +57,19 @@ function spec(geom, kind, { collapsed = false, widgets = 'none' } = {}) {
   if (titled) {
     top = [
       { name: 'cornerL', code: 1, w: g.cornerL },
-      g.branch ? { name: 'branch', code: 8, w: BRANCH_TILE_W } : { name: 'barL', code: 11, w: 1, uniform: 'bar' },
+      g.branch ? { name: 'branch', code: 8, w: BRANCH_TILE_W } : { name: 'barL', code: 11, w: g.skyline ? 12 : 1 },
       { name: 'capL', code: 6, w: g.skyline ? MINSTER_W : TAIL },
-      { name: 'plate', code: 5, w: 1 },
+      { name: 'plate', code: 5, w: g.skyline ? 12 : 1, tiled: !!g.skyline },
       { name: 'capR', code: 6, w: g.skyline ? HALL_W : TAIL },
-      { name: 'barR', code: 8, w: 1, uniform: 'bar' },
+      { name: 'barR', code: 8, w: g.skyline ? 12 : 1 },
       { name: 'cornerR', code: 1, w: g.cornerR },
     ];
   } else {
     top = [
       { name: 'cornerL', code: 1, w: g.cornerL },
-      { name: 'barL', code: 11, w: 1, uniform: 'bar' },
+      { name: 'barL', code: 11, w: g.skyline ? 12 : 1 },
       { name: 'ornament', code: 1, w: kind === 'alert' ? ALERT_W : SPRIG_W },
-      { name: 'barR', code: 8, w: 1, uniform: 'bar' },
+      { name: 'barR', code: 8, w: g.skyline ? 12 : 1 },
       { name: 'cornerR', code: 1, w: g.cornerR },
     ];
   }
@@ -101,21 +85,23 @@ function spec(geom, kind, { collapsed = false, widgets = 'none' } = {}) {
     { name: 'waterR', code: 8, w: WATER },
     { name: 'blockR', code: 1, w: g.side },
   ];
-  // Widgets centred on the bar's face rows: close in the left corner, zoom + collapse in the right.
-  const wy = yb + Math.floor((g.bar - 3 - WIDGET) / 2) + 1;
+  // wnd# widget rects are custom positions, not standard OS coordinates.
+  // Keep every hit rectangle inside its fixed cell: the close medallion sits
+  // under the bough's right end; the two right medallions sit below the towers.
+  const wy = yb + 4;
   const box = (x) => ({ x, y: wy, w: WIDGET, h: WIDGET });
   const wset = {};
-  if (widgets !== 'none') wset.close = box(4);
+  if (widgets !== 'none') wset.close = box(g.cornerL - WIDGET - 5);
   if (widgets === 'all') {
-    wset.zoom = box(W - g.cornerR + 3);
-    wset.collapse = box(W - g.cornerR + 3 + WIDGET + 1);
+    wset.zoom = box(W - g.cornerR + 2);
+    wset.collapse = box(W - g.cornerR + WIDGET + 4);
   }
   return {
     topH: T, sideL: g.side, sideR: g.side, bottomH: g.bottom, collapsed,
     top, bottom,
     left: [{ name: 'pierL', code: 8, w: 2 * COURSE }],
     right: [{ name: 'pierR', code: 8, w: 2 * COURSE }],
-    ...(titled ? { title: { cell: 'plate', top: yb + 1, bottom: yb + pennantRows(g) + 1 } } : {}),
+    ...(titled ? { title: { cell: 'plate', top: yb + 7, bottom: yb + 25 } } : {}),
     widgets: wset,
   };
 }
@@ -187,10 +173,11 @@ function pierColour(S, i, k, p, side) {
   if (role === 'lo') return k % COURSE === COURSE - 1 ? P.mortar : P.lo;
   const j = order.indexOf('s') <= i ? i - order.indexOf('s') : 0;
   const course = Math.floor(k / COURSE) % 2, row = k % COURSE;
-  const joint = course === 0 ? [Math.floor(m * 0.6)] : [Math.floor(m * 0.3), Math.floor(m * 0.85)];
+  // One staggered joint per course; the tiny blocks used to make the piers
+  // read as a bright ladder beside the quiet sandstone in the concept.
+  const joint = [Math.floor(m * (course === 0 ? 0.65 : 0.3))];
   if (row === COURSE - 1 || joint.includes(j)) return P.mortar;
-  if (joint.includes(j + 1)) return P.lo;               // the right end of a block
-  if (row === 0 || joint.includes(j - 1)) return P.hi;  // the lit top and left of a block
+  if (row === 0) return P.hi;                          // light across a whole course
   return P.face;
 }
 
@@ -226,51 +213,10 @@ function blockPixel(S, i, k, H, p, side) {
   const inner = side === 'left' ? i === S - 1 : i === 0;
   if (outer || inner || k === H - 1 || k === 0) return p.outline;
   if (k === 1) return P.hi;
-  const kk = k - 1, row = kk % 6, course = Math.floor(kk / 6) % 2;
-  const j = side === 'left' ? i - 1 : i - 1, m = S - 2;
-  const joint = course === 0 ? Math.floor(m / 2) : Math.floor(m / 4);
-  if (row === 5 || j === joint) return P.mortar;
-  if (j === joint - 1 || j === m - 1) return P.lo;
-  if (row === 0 || j === joint + 1 || j === 0) return P.hi;
-  return P.face;
-}
-
-/** The bridge, 76 wide: a deck on the kerb, two piers, one round arch with the river through it. */
-function bridgePixel(i, k, H, p) {
-  const P = p.pier;
-  const cx = BRIDGE / 2, rx = 25, spring = H - 4, ry = spring - 7;
-  const open = (x, y) => {
-    if (y < 5 || y > H - 2 || x < 0 || x >= BRIDGE) return false;
-    const dx = (x + 0.5 - cx) / rx;
-    if (y >= spring) return Math.abs(dx) <= 1;
-    const dy = (y + 0.5 - spring) / ry;
-    return dx * dx + dy * dy <= 1;
-  };
-  if (k === H - 1) return p.outline;
-  if (open(i, k)) {
-    if (!open(i, k - 2)) return p.waterLo;                          // the vault's shadow on the water
-    return waterPixel((i + 6) % WATER, k, H, p);
-  }
-  const near = (d) => { for (let dy = -d; dy <= d; dy++) for (let dx = -d; dx <= d; dx++) if (Math.abs(dx) + Math.abs(dy) <= d && open(i + dx, k + dy)) return true; return false; };
-  // The deck and parapet over the kerb rows, with end posts.
-  if (k <= 4) {
-    if (k === 0) return p.outline;
-    if (i <= 1 || i >= BRIDGE - 2) return k === 1 ? P.hi : i === 0 || i === BRIDGE - 1 ? p.outline : P.face;
-    if (k === 1) return P.hi;
-    if (k === 4) return P.mortar;
-    return k === 3 ? P.lo : P.face;
-  }
-  if (i === 0 || i === BRIDGE - 1) return p.outline;                // the piers' outer faces meet the river
-  if (near(1)) return p.outline;                                    // the arch's inner edge
-  if (near(3)) {                                                     // voussoirs, the keystone lit
-    if (Math.abs(i + 0.5 - cx) < 2) return P.hi;
-    return (i + k) % 4 === 0 ? P.mortar : i < cx ? P.hi : P.face;
-  }
-  if (i === 1) return P.hi;
-  if (i === BRIDGE - 2) return P.lo;
-  if (k === 5) return P.hi;
-  if ((k - 5) % 6 === 5) return P.mortar;                          // courses on the piers and spandrels
-  if (k > spring - 4 && (i === 12 || i === BRIDGE - 13)) return i < cx ? P.lo : P.hi;
+  // The river corners are broad plinth blocks, not more miniature ashlar.
+  if (k === H - 3) return P.mortar;
+  if (k === H - 2 || i === S - 2) return P.lo;
+  if (i === 1 || k === 2) return P.hi;
   return P.face;
 }
 
@@ -278,8 +224,15 @@ function paintBottom(r, layout, g, p) {
   const { content: A, height: H } = layout;
   const y0 = A.bottom, BH = H - y0;
   const each = (cell, fn) => { for (let k = 0; k < BH; k++) for (let i = 0; i < cell.w; i++) r.set(cell.x0 + i, y0 + k, fn(i, k)); };
-  for (const n of ['waterL', 'waterR']) { const c = layout.named(n); each(c, (i, k) => waterPixel(((c.x0 + i) % WATER + WATER) % WATER, k, BH, p)); }
-  if (g.bridge) each(layout.named('bridge'), (i, k) => bridgePixel(i, k, BH, p));
+  for (const n of ['waterL', ...(g.bridge ? ['bridge'] : []), 'waterR']) {
+    const c = layout.named(n);
+    each(c, (i, k) => waterPixel(((c.x0 + i) % WATER + WATER) % WATER, k, BH, p));
+  }
+  if (g.bridge) {
+    // Actual concept masonry; its transparent arch exposes the river below.
+    const bridge = layout.named('bridge');
+    drawBridge(r, bridge.x0, y0, bridge.w, BH, p);
+  }
   each(layout.named('blockL'), (i, k) => blockPixel(g.side, i, k, BH, p, 'left'));
   each(layout.named('blockR'), (i, k) => blockPixel(g.side, i, k, BH, p, 'right'));
 }
@@ -292,6 +245,19 @@ export function paintFrame(t, state) {
   const r = new Raster(layout.width, layout.height);
   const W = layout.width, yb = g.sky;
   if (layout.titled) {
+    // A low continuous canopy grounds the separated landmarks. It is one
+    // colour per row through the growers and title plate, so it stretches
+    // cleanly without changing the title-room budget or repeating buildings.
+    if (g.skyline) {
+      // A continuous riverside tree line, including above the growing title
+      // plate. Each tile begins/ends at the same height; only its sky rows
+      // carry the silhouette, so the title's sampled rows remain uniform.
+      const crown = [20,22,25,28,28,28,25,24,22,21,22,20];
+      for (const name of ['cornerL', 'barL', 'capL', 'plate', 'capR', 'barR', 'cornerR']) {
+        const c = layout.named(name);
+        for (let i = 0; i < c.w; i++) r.vline(c.x0 + i, yb - crown[i % crown.length] - 8, crown[i % crown.length] + 8, p.sky3.tree);
+      }
+    }
     const cl = layout.named('cornerL'), cr = layout.named('cornerR');
     if (g.bough) drawBough(r, cl.x0, yb, cl.w, p);
     if (g.tower) drawTowerCorner(r, cr.x0, yb, cr.w, p);
@@ -319,8 +285,8 @@ export function paintFrame(t, state) {
     paintBottom(r, layout, g, p);
   }
   for (const [role, box] of Object.entries(layout.widgets)) DRAW[role](r, box, state);
-  // The guard for exotic-frames R2/R8: the plate must be one column repeated
-  // and the 1px bar growers must match each other; lint fails the build otherwise.
+  // R2/R8: the tiled plate must remain uniform through all live title rows.
+  // Canopy silhouette variations are confined to the sky above those rows.
   try { layout.lint(r); } catch (err) { throw new Error(`bonn: ${t.name} (${state}): ${err.message}`); }
   const A = layout.content;
   r.fillRect(A.left, A.top, A.right - A.left, A.bottom - A.top, null);

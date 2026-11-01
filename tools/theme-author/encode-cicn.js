@@ -21,7 +21,7 @@
 //   • Colours: converted from display sRGB to stored Mac values (color.js).
 
 import { ByteWriter, rowBytesFor } from './bytes.js';
-import { srgbToStored, to16 } from './color.js';
+import { srgbChannelToMac, to16 } from './color.js';
 
 const DPI_72 = 0x00480000; // Fixed-point 72.0, what every corpus cicn stores
 
@@ -90,19 +90,25 @@ export function buildPalette(raster, { gamma = true, label = 'encode' } = {}) {
     const alpha = rgba[i * 4 + 3];
     if (alpha === 0) continue;   // transparent, colour irrelevant (palette index 0)
     mask[i] = alpha >= 128 ? 1 : 0;
-    const stored = srgbToStored([rgba[i * 4], rgba[i * 4 + 1], rgba[i * 4 + 2]], { gamma });
-    const key = stored.join(',');
-    if (!indexOf.has(key)) {
+    const r = gamma ? srgbChannelToMac(rgba[i * 4]) : rgba[i * 4];
+    const g = gamma ? srgbChannelToMac(rgba[i * 4 + 1]) : rgba[i * 4 + 1];
+    const b = gamma ? srgbChannelToMac(rgba[i * 4 + 2]) : rgba[i * 4 + 2];
+    // Key by the stored colour: inverse gamma can merge distinct display
+    // colours. Packed RGB avoids allocating arrays and strings per pixel.
+    const key = (r << 16) | (g << 8) | b;
+    let index = indexOf.get(key);
+    if (index === undefined) {
       if (palette.length === 256) {
         const total = new Set();
         for (let j = 0; j < width * height; j++) if (rgba[j * 4 + 3]) total.add(`${rgba[j * 4]},${rgba[j * 4 + 1]},${rgba[j * 4 + 2]}`);
         throw new Error(`${label}: ${total.size} colours in a ${width}x${height} image, but the limit is 256. ` +
           'Smooth edges and gradients add colours fast: call fitPalette(raster) (tools/theme-author/fit-palette.js) before encoding, or use fewer gradient steps');
       }
-      indexOf.set(key, palette.length);
-      palette.push(stored);
+      index = palette.length;
+      indexOf.set(key, index);
+      palette.push([r, g, b]);
     }
-    indices[i] = indexOf.get(key);
+    indices[i] = index;
   }
   if (palette.length === 0) palette.push([255, 255, 255]); // fully transparent image
   const depth = [1, 2, 4, 8].find((d) => palette.length <= 1 << d);

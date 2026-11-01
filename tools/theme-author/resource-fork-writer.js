@@ -67,6 +67,8 @@ export function writeResourceFork(resources) {
   const nameBytes = [];
   for (const r of ordered) {
     if (!r.name) continue;
+    // 0xFFFF is the no-name sentinel; larger offsets would wrap on write.
+    if (nameBytes.length >= 0xffff) throw new Error('writeResourceFork: resource name offset exceeds 65534 bytes');
     nameOffsets.set(r, nameBytes.length);
     nameBytes.push(r.name.length, ...[...r.name].map((ch) => ch.charCodeAt(0)));
   }

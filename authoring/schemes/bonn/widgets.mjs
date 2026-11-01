@@ -1,127 +1,111 @@
-// Title-bar widgets, drawn straight onto the frame, plus the pressed-widget
-// strip (cicn -14330, and -14298 for classic utility windows).
+// Bonn's 26px title-bar medallions: a five-petal cherry rose, a shield inspired
+// by the city's arms, and a breaking Rhine wave. Art is placed at the custom
+// wnd# rectangles supplied by frames.mjs, always inside fixed cells.
 //
-// One family: every widget is the same 14px sandstone disc with a dark
-// 1-2-1 stair rim, a lit arc on the upper left and a shaded arc on the lower
-// right. The glyph sits inside on whole pixels:
-//
-//   close     a cherry rosette
-//   zoom      a shield inspired by Bonn's arms: black cross on white over a gold lion on red
-//   collapse  a breaking teal wave
-//
-// Pressed: the face drops to the shade colour and the lit and shaded arcs swap
-// (the disc is pushed in). Inactive: a grey disc, no glyph. The pressed
-// strip's mask is the hit region (exotic-frames R24), so each pressed piece
-// keeps exactly the disc's silhouette.
+// Pressed art reverses the sandstone bevel and darkens the motif. Inactive
+// medallions keep a legible grey motif. The pressed strip is cut from the same
+// draw functions, so its mask matches the disc rather than a square hit box.
 import { pressedStripFrom } from '../../../tools/theme-author/index.js';
 import { C } from './palette.mjs';
 
-export const WIDGET = 14;
-
-// o rim, f face, L lit arc, D shaded arc.
-const DISC = [
-  '.....oooo.....',
-  '...ooLLLLoo...',
-  '..oLLffffffo..',
-  '.oLffffffffDo.',
-  '.oLffffffffDo.',
-  'oLffffffffffDo',
-  'oLffffffffffDo',
-  'oLffffffffffDo',
-  'oLffffffffffDo',
-  '.oLffffffffDo.',
-  '.offffffffDDo.',
-  '..offfffDDDo..',
-  '...ooDDDDoo...',
-  '.....oooo.....',
-];
-
-function disc(r, b, p, { face, lit, shade, top, bottom }) {
-  const half = (y) => (top && bottom ? (y < 7 ? top : bottom) : face);
-  DISC.forEach((row, y) => [...row].forEach((ch, x) => {
-    if (ch === '.') return;
-    const c = ch === 'o' ? p.outline : ch === 'L' ? (top ? half(y) : lit) : ch === 'D' ? (bottom ? half(y) : shade) : half(y);
-    r.set(b.x + x, b.y + y, c);
-  }));
-}
-
-// Glyphs, centred in the 14px disc (offset (14 − size) / 2).
-const ROSE = [
-  '..l.a..',
-  '.llaaa.',
-  'laaaaad',
-  '.aacad.',
-  'aaaaadd',
-  '.aaddd.',
-  '..a.d..',
-];
-// A stylised shield inspired by the City of Bonn's arms: a white top with a
-// black cross, a red bottom with a gold lion walking to the left, tail up.
-// At this size the lion is a blob with a head, legs and a raised tail.
-const SHIELD = [
-  'ooooooooo',
-  'oWWWkWWWo',
-  'okkkkkkko',
-  'oWWWkWWWo',
-  'oRRRRRRYo',
-  'oYYRRRYRo',
-  'oYYYYYYRo',
-  '.oYRRYRo.',
-  '..oRRRo..',
-  '...ooo...',
-];
-// A breaking wave: lit crest, teal body, deep base.
-const WAVE = [
-  '....ttt..',
-  '..ttTTTt.',
-  '.tTTt..t.',
-  'tTTt.....',
-  'tTTt..t..',
-  'ttttttt..',
-];
-const glyph = (r, b, rows, legend, dy = 0) => {
-  const ox = Math.floor((WIDGET - rows[0].length) / 2), oy = Math.floor((WIDGET - rows.length) / 2) + dy;
-  r.sprite(b.x + ox, b.y + oy, rows, legend);
-};
+export const WIDGET = 26;
 
 function look(state, pressed) {
   const p = C[state];
-  if (state !== 'active') return { p, face: '#cccccc', lit: '#dddddd', shade: '#bbbbbb' };
-  return pressed ? { p, face: p.stoneLo, lit: p.mortar, shade: p.stone } : { p, face: p.stone, lit: p.stoneHi, shade: p.stoneLo };
+  return { p, face: pressed ? p.stoneLo : p.stone,
+    lit: pressed ? p.mortar : p.stoneHi, shade: pressed ? p.stone : p.stoneLo };
 }
 
+// Whole-pixel circle with an outlined rim, two-pixel bevel and inset face.
+function disc(r, b, k) {
+  for (let y = 0; y < WIDGET; y++) for (let x = 0; x < WIDGET; x++) {
+    const dx = x - 12.5, dy = y - 12.5, d = Math.hypot(dx, dy);
+    if (d > 12.5) continue;
+    const c = d > 11.5 ? k.p.outline : d > 9.5 ? (dx + dy < 0 ? k.lit : k.shade) : k.face;
+    r.set(b.x + x, b.y + y, c);
+  }
+}
+
+// Five petals with one shared outline, a lit upper-left face, shaded folds,
+// and a gold centre. Each petal is painted directly on the native pixel grid.
+const PETALS = [[12, 7], [17, 10], [15, 16], [9, 16], [7, 10]];
+const inRose = (x, y) => PETALS.some(([cx, cy]) => (x - cx) ** 2 + (y - cy) ** 2 <= 16);
 export function drawClose(r, b, state, pressed = false) {
-  const k = look(state, pressed);
-  disc(r, b, k.p, k);
-  if (state !== 'active') return;
-  const a = C.active;
-  glyph(r, b, ROSE, { l: a.blossomHi, a: a.blossom, d: a.blossomLo, c: pressed ? a.yellow : a.blossomLo });
+  const k = look(state, pressed), p = k.p;
+  disc(r, b, k);
+  for (let y = 3; y <= 20; y++) for (let x = 3; x <= 21; x++) {
+    if (!inRose(x, y)) continue;
+    const edge = !inRose(x - 1, y) || !inRose(x + 1, y) || !inRose(x, y - 1) || !inRose(x, y + 1);
+    const nearest = PETALS.reduce((a, c) => (x - c[0]) ** 2 + (y - c[1]) ** 2 < (x - a[0]) ** 2 + (y - a[1]) ** 2 ? c : a);
+    const [cx, cy] = nearest;
+    const c = edge ? p.blossomLo : x + y < cx + cy ? p.blossomHi : pressed ? p.blossomLo : p.blossom;
+    r.set(b.x + x, b.y + y, c);
+  }
+  for (let y = 10; y <= 14; y++) for (let x = 10; x <= 14; x++) {
+    const d = (x - 12) ** 2 + (y - 12) ** 2;
+    if (d <= 5) r.set(b.x + x, b.y + y, d >= 4 ? p.outline : pressed ? p.arms.goldLo : p.arms.gold);
+  }
 }
 
+// A broad white chief and black cross above a red field with a walking gold
+// lion. It is a stylised emblem inspired by the arms, not an official crest.
+function shieldLeft(y) { return y < 14 ? 5 : y < 17 ? 6 : y < 19 ? 7 : y - 11; }
+function inShield(x, y) { return y >= 3 && y <= 23 && x >= shieldLeft(y) && x <= 25 - shieldLeft(y); }
+const LION = [
+  '..........gg.',
+  '.gg......g.g.',
+  'ggggg...gg...',
+  '.gggggggg....',
+  '..ggggggg....',
+  '.gg.ggg.g....',
+  '.g..g..gg....',
+  '.gg.....gg...',
+];
 export function drawZoom(r, b, state, pressed = false) {
-  const k = look(state, pressed);
-  if (state !== 'active') { disc(r, b, k.p, k); return; }
-  const a = C.active;
-  disc(r, b, k.p, k);
-  const A = a.arms;
-  glyph(r, b, SHIELD, { o: a.outline, W: A.white, k: A.cross, R: pressed ? A.redLo : A.red, Y: pressed ? A.goldLo : A.gold });
+  const k = look(state, pressed), p = k.p, a = p.arms;
+  disc(r, b, k);
+  for (let y = 3; y <= 23; y++) for (let x = 4; x <= 21; x++) {
+    if (!inShield(x, y)) continue;
+    const edge = !inShield(x - 1, y) || !inShield(x + 1, y) || !inShield(x, y - 1) || !inShield(x, y + 1);
+    const upper = y <= 11;
+    const c = edge ? p.outline : upper ? (x === 12 || x === 13 || y === 7 || y === 8 ? a.cross : a.white) : pressed ? a.redLo : a.red;
+    r.set(b.x + x, b.y + y, c);
+  }
+  LION.forEach((row, y) => [...row].forEach((ch, x) => {
+    const dx = x + 6, dy = y + 13;
+    if (ch === 'g' && inShield(dx - 1, dy) && inShield(dx + 1, dy) && inShield(dx, dy + 1))
+      r.set(b.x + dx, b.y + dy, pressed ? a.goldLo : a.gold);
+  }));
 }
 
+// The curling crest keeps a clear inner opening; a short foam line follows
+// the top edge instead of filling the whole wave with white.
+const WAVE = [
+  '.......oooo.......',
+  '.....ooFFFFoo.....',
+  '...ooFFTTTTTTo....',
+  '..oFFTTTo...oTo...',
+  '.oFFTTTo....oTo...',
+  '.oFTTTo.....oTo...',
+  'oFTTTo......oo....',
+  'oTTTTo............',
+  'oTTTTTo....ooo....',
+  '.oTTTTTooooFFTo...',
+  '..oTTTTTTTTTTTo...',
+  '...ooooooooooo....',
+];
 export function drawCollapse(r, b, state, pressed = false) {
-  const k = look(state, pressed);
-  disc(r, b, k.p, k);
-  if (state !== 'active') return;
-  const a = C.active;
-  glyph(r, b, WAVE, { t: a.waterLo, T: pressed ? a.foam : a.water });
+  const k = look(state, pressed), p = k.p;
+  disc(r, b, k);
+  r.sprite(b.x + 4, b.y + 7, WAVE, {
+    o: p.waterLo, F: pressed ? p.waterHi : p.foam, T: pressed ? p.waterLo : p.water,
+  });
 }
 
 export const DRAW = { close: drawClose, zoom: drawZoom, collapse: drawCollapse };
 
-/**
- * The pressed strip, built with the toolkit's pressedStripFrom: each piece is
- * the widget's own frame pixels with the pressed art on top, and the widget
- * silhouette is the click area.
- */
+// Classic utilities use -14298; the web uses -14330. Both use26px close
+// pieces, so the document strip is compatible with close-only utilities.
 export function pressedStrip(strip, activeFrame) {
   return pressedStripFrom({ strip, activeFrame, draw: (role, raster, box) => DRAW[role](raster, box, 'active', true) });
 }

@@ -40,8 +40,8 @@ export const C = {
     // Frame rings, outside in (concept): navy outline, slate ring, white rim,
     // lavender glass; a navy border round the content.
     frame: { outline: sys('#003366'), ring: sys('#336699'), rim: white, glass: sys('#ccccff'), border: sys('#003366') },
-    // Header glass, top to bottom: pale sky, lavender, a deeper sky above the content border.
-    sky: [sys('#ccffff'), sys('#ccccff'), sys('#99ccff')],
+    // Header glass: a broad frosted reflection, a lavender lower bevel, then a blue lip.
+    sky: [sys('#eeeeee'), sys('#ccccff'), sys('#99ccff')],
     pill: { face: white, shade: sys('#ccccff'), outline: sys('#003366') },
     bead: { rim: sys('#336699'), inner: sys('#ccffff'), face: white, faceLo: sys('#eeeeee'), glyph: sys('#006699') },
     lake: { top: sys('#99ccff'), body: sys('#6699cc'), low: sys('#99cccc'), deep: sys('#336699'), ripple: sys('#99ccff'), lilac: sys('#ccccff'), glint: white },
