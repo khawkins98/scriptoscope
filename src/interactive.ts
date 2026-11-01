@@ -1132,7 +1132,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     }), { signal: entry.lifetime.signal });
     this.syncOutside();
     try {
-      await this.render(entry);
+      await this.render(entry, true);
       entry.initializing = false;
       return host;
     } catch (error) {
@@ -1412,15 +1412,24 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
    * to introduce — measured baseline is 2 renders on focus-change between two
    * windows, N renders on a theme switch (one per window). Don't regress this.
    */
-  private async render(entry: ManagedWindow<Theme>): Promise<void> {
+  private async render(entry: ManagedWindow<Theme>, initial = false): Promise<void> {
     const epoch = ++entry.renderEpoch;
+    const initializing = entry.initializing;
     let prepared;
     try { prepared = await this.prepareRender(entry, entry.theme); }
     catch (error) {
-      if (epoch !== entry.renderEpoch || !this.windows.includes(entry)) return;
+      if (!this.windows.includes(entry)) return;
+      // Only add owns initialization failure; supersession alone cannot make it succeed.
+      if (initial) { if (entry.commitEpoch === 0) throw error; return; }
+      if (initializing || epoch !== entry.renderEpoch) return;
       throw error;
     }
-    if (epoch !== entry.renderEpoch || !this.windows.includes(entry)) return;
+    if (!this.windows.includes(entry)) return;
+    if (epoch !== entry.renderEpoch) {
+      // A stale preparation is not a committed initial window. Prepare current state if needed.
+      if (initial && entry.commitEpoch === 0) await this.render(entry, true);
+      return;
+    }
     this.commitRender(entry, prepared);
   }
 
