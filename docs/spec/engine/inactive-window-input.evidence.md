@@ -52,6 +52,7 @@ d6 is loaded at the routine's entry: `0x1381a` `moveb %a0@(111),%d6`
 | `0x1740e..0x17428` | `tstb %a0@(111)`; `bnes`; `tstb %a4@(1145)`; `bnes`; 0 / 1 | *active* = `hilited` or *alwaysActive* | C |
 | `0x15b26..0x15b2c` | `bsrl 0x1740e`; `moveb %d0,%d3` | *active* kept in d3 | C |
 | `0x15baa` | `tstb %d3` | after the title-rect test: inactive skips UH4–UH6 | C |
+| `0x15b76..0x15b8c`, `0x15c20..0x15c88` | content test (UH3), then drag band (UH7) → 2, else 1 (UH8) | inactive grow rect: inside C → 1; outer 2 px (C.r..C.r+2, C.b..C.b+2, UG10 `0x173b4..0x1740c`) fall in the band (box right − 1 minus inset 6 reaches C.r − 1) → 2. Independent review at `49ae4b48` (A1) | C (reviewer) |
 | `0x16736`, `0x16756..0x16758` | `tstb %d3`; `beqw 0x16838` | stripes, then widgets, only when *active* | C |
 
 ## E6. Apple sources consulted
@@ -64,7 +65,7 @@ d6 is loaded at the routine's entry: `0x1381a` `moveb %a0@(111),%d6`
   mouse-down events, Listing 4-9), 4-56 (Listing 4-12, `ZoomWindow(thisWindow,
   zoomInOrOut, (thisWindow = FrontWindow))`), 4-93 (FindWindow description:
   "an active window's close box", "an active window's zoom box"), 4-94 to 4-95
-  (DragWindow), 4-102 (ZoomWindow `front`), 4-103 to 4-104 (TrackGoAway),
+  (DragWindow), 4-102 to 4-103 (ZoomWindow; the `front` text is on 4-103), 4-103 to 4-104 (TrackGoAway),
   4-122 ("Return the constants wInGrow, wInGoAway, wInZoomIn, and wInZoomOut
   only if the window is active … is reported as wInDrag").
 - Universal Interfaces 3.2 `MacWindows.h` (elliotnunn/UniversalInterfaces,

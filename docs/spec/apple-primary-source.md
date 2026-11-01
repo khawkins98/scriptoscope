@@ -184,7 +184,7 @@ Apple behaviour, not Kaleidoscope's. Used by [`engine/inactive-window-input.md`]
 | Press in an inactive window | `inContent` and not `FrontWindow` → `SelectWindow`; the sample "merely activates the window … it does not make a selection in the newly activated window in response to the first click" | pp. 4-43 to 4-45, Listing 4-9 |
 | Close and zoom tracking | `inGoAway` → `TrackGoAway`; `inZoomIn`/`inZoomOut` → `TrackBox` | Listing 4-9; pp. 4-103 to 4-104 |
 | Drag activates | `DragWindow` makes an inactive window active on release unless the Command key was down | pp. 4-45, 4-95 |
-| Zoom and the front flag | `ZoomWindow(…, front)`: TRUE → "the frontmost, active window"; FALSE → list position unchanged. Sample passes `thisWindow = FrontWindow` | pp. 4-102, 4-56 (Listing 4-12) |
+| Zoom and the front flag | `ZoomWindow(…, front)`: TRUE → "the frontmost, active window"; FALSE → list position unchanged. Sample passes `thisWindow = FrontWindow` | pp. 4-102 to 4-103, 4-56 (Listing 4-12) |
 
 The 1994 book predates the collapse box; its active-only status in Apple's Mac OS 8 pages was not checked.
 
