@@ -101,6 +101,7 @@ function verdictZero(code: number, f: WindowFlags, drop: boolean): boolean {
 export function layoutWindow(input: WindowLayoutInput, trace?: EngineTrace): WindowLayout {
   const { source: _s, ...defaults } = WINDOW_DECLARED_DEFAULTS;
   const flags: WindowFlags = { ...defaults, drawActive: true, popupFamily: false, ...input.flags };
+  if (flags.popupFamily) flags.collapsed = false; // §2.2 `collapsed`: cleared for the popup family
   const A = rectOfType(input.rects, WINDOW_RECT_TYPE.body), T4 = rectOfType(input.rects, WINDOW_RECT_TYPE.title);
   const sides = WINDOW_SIDES.map(sd => {
     const list = input.sides[sd.side];
@@ -255,6 +256,12 @@ export function windowCell(layout: WindowLayout, side: number, i: number): { t: 
     : { t: rect(s0, t0, s1, t1), p: rect(p0, t0 + d, p1, t1 + d) };
 }
 
+/** WD4 / SR6: whether a side is walked. All four sides; when `collapsed`, only the title-axis
+ *  sides: 0 and 1 (top, bottom), or 2 and 3 (left, right) under `sideTitle`. */
+export function sideWalked(horizontal: boolean, collapsed: boolean, sideTitle: boolean): boolean {
+  return !collapsed || horizontal !== sideTitle;
+}
+
 /**
  * hit-regions §4.2–§4.3: the structure region in the coordinates of `C`, built from the chrome
  * template's mask (SR4–SR12, TR1–TR4); its draw-time pixels are never consulted (SR13). SR1–SR3
@@ -270,7 +277,7 @@ export function windowStructure(layout: WindowLayout, template: Pixmap, width: n
   }
   regionAddRect(r, C); // SR5, SR11
   for (const sd of WINDOW_SIDES) {
-    if (collapsed && sd.horizontal === sideTitle) continue; // SR6; HP8, HP48: the caller's collapsed state and title axis
+    if (!sideWalked(sd.horizontal, collapsed, sideTitle)) continue; // SR6, HP8; the drawing walks the same sides (WD4)
     const s = layout.sides[sd.side];
     for (let i = 1; s && i < s.S.length; i++) {
       const { t, p } = windowCell(layout, sd.side, i);

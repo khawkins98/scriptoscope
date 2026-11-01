@@ -22,6 +22,7 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 - Focus rings of a window's chrome controls (title widgets, move handle, grow box, scroll bars) are no longer occluded: the window draws them on an unclipped decoration layer above its controls, in both hit modes. Before, the vertical scroll bar painted over part of the move handle's ring, and a ring could be cut off by the frame region ([#597](https://github.com/khawkins98/scriptoscope/issues/597)).
 - The grow-box resize outline is visible again beyond the window's old size; it was being clipped by the content area.
+- **Collapsed `wnd#` windows draw only their title-bar sides** ([#617](https://github.com/khawkins98/scriptoscope/issues/617)). Kaleidoscope 2.3.1 draws a collapsed window from the two sides along its title axis: top and bottom for top-titled windows, left and right for the side-titled `side-floating-utility-window` and `collapsed-side-utility`. The runtime drew all four sides at content height 0, which left stray frame pixels (16 px on animals' collapsed titled utility, 3 px on its collapsed no-title utility). Side-titled windows now also collapse to zero content width, keeping their height, as the original does, where they used to collapse to zero height. The frame region now comes straight from the layout that drew the frame, so drawing and hit area agree. `renderWindow()` gains a `collapsed` option (pass the expanded content size); `WindowManager` sets it.
 
 ## [0.8.0] — 2026-11-01
 

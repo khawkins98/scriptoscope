@@ -33,6 +33,12 @@ export interface RenderWindowOptions {
    *  built-in frame's pressed icon (procedural-frame §2 parts 4/5/9), or a wnd# scheme's
    *  pressed strip cicn (window-widgets WD9; none drawn when the scheme ships none). */
   pressedWidget?: TitleWidgetRole;
+  /** The window is collapsed (window-shade). WindowManager sets it; pass the EXPANDED content size.
+   *  The content rect is emptied on the rendered type's title axis (window-widgets §2.1 `C`,
+   *  hit-regions HP48): zero height for top-titled types, zero width for side-titled ones (the
+   *  height is kept). A `wnd#` layout then draws only the title-axis sides (WD4, SR6). The
+   *  built-in frame and the procedural fallback keep their zero-height collapse. Default false. */
+  collapsed?: boolean;
   /** Optional canvas element to REUSE for the chrome painting (saves a per-render
    *  allocation). Width and height are reset to the new chrome size, which clears
    *  the buffer; we then putImageData the new pixels. WindowManager passes this
@@ -86,8 +92,10 @@ export async function renderWindow(
   const slug = canonicalWindowTypeSlug(requestedSlug);
   const state: WindowState = opts.state ?? 'active';
   const title = opts.title ?? '';
-  const contentW = opts.width ?? 240;
-  const contentH = opts.height ?? 120;
+  const collapsed = opts.collapsed === true;
+  const expandedH = opts.height ?? 120;
+  let contentW = opts.width ?? 240;
+  let contentH = collapsed ? 0 : expandedH;
   const scale = Math.max(1, Math.round(opts.scale ?? 1));
 
   // Find the first theme in the base chain with renderable chrome for this slug.
@@ -179,12 +187,15 @@ export async function renderWindow(
     // art still follows the decode.
     const ids = widgetCicnIds();
     const strip = (await themeResourceChain(owner, ids.map((id) => ({ type: 'cicn', id })))).probe<IconSource>('cicn', ids);
+    // hit-regions HP48: the title axis comes from the type that rendered, never from a layout default.
+    const sideTitle = SIDE_TITLED_TYPES.has(canonicalWindowTypeSlug(key));
+    // window-widgets §2.1 `C`: a collapsed side-titled window empties its width, not its height.
+    if (collapsed && sideTitle) { contentW = 0; contentH = expandedH; }
     composed = composeWindowChrome(cicn!, wt, contentW, contentH, {
       cinf: wt.cinf ?? null, titleWidthPx: measured?.advance ?? 0, titleLength: measured ? title.length : 0,
-      popupFamily: slug === 'popup-window', widgetCicn: strip?.value.pixmap ?? null,
+      popupFamily: slug === 'popup-window', widgetCicn: strip?.value.pixmap ?? null, collapsed, sideTitle,
       ...(opts.pressedWidget ? { pressedWidget: opts.pressedWidget } : {}),
     });
-    composed.sideTitle = SIDE_TITLED_TYPES.has(canonicalWindowTypeSlug(key)); // hit-regions HP48
   }
   const { frame, fullWidth, fullHeight } = composed;
 

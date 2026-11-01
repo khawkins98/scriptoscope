@@ -65,28 +65,39 @@ for (const slug of ['dolphin-som', 'animals', '1984', 'windows-95']) {
   });
 }
 
-test('animals collapsed titled utility: a collapsed build walks only the title-axis sides (SR6, HP8)', async () => {
-  const path = ['scheme.sit', 'scheme.rsrc'].map(p => new URL(p, new URL('../themes/animals/', import.meta.url))).find(existsSync);
+async function template(slug, type) {
+  const path = ['scheme.sit', 'scheme.rsrc'].map(p => new URL(p, new URL(`../themes/${slug}/`, import.meta.url))).find(existsSync);
   const decoded = await loadKaleidoscopeScheme(readFileSync(path), { encodeAssets: false });
-  const wt = decoded.manifest.windowTypes['collapsed-titled-utility'] ?? decoded.manifest.windowTypes['titled-utility-window'];
+  const wt = decoded.manifest.windowTypes[type];
   const asset = decoded.assets.find(a => a.path === wt.chrome.active);
-  const c = composeWindowChrome(new PixelBuffer(asset.width, asset.height, new Uint8ClampedArray(asset.rgba)), wt, 320, 0);
-  const four = c.structure(), two = c.structure(true);
-  let dropped = 0, added = 0;
-  for (let i = 0; i < four.bits.length; i++) { if (four.bits[i] && !two.bits[i]) dropped++; if (two.bits[i] && !four.bits[i]) added++; }
-  assert.equal(added, 0);
-  assert.ok(dropped > 0, 'side cells drawn at height 0 leave the region');
-});
+  return { wt, source: new PixelBuffer(asset.width, asset.height, new Uint8ClampedArray(asset.rgba)) };
+}
+const opaque = (c) => { let n = 0; for (let y = 0; y < c.fullHeight; y++) for (let x = 0; x < c.fullWidth; x++) if (c.buffer.getPixel(x, y)[3] > 0) n++; return n; };
+/** S agrees with the drawn alpha (C is empty while collapsed, CN2). */
+function agrees(c) {
+  const S = c.structure();
+  let mismatches = 0;
+  for (let y = 0; y < c.fullHeight; y++) for (let x = 0; x < c.fullWidth; x++) if (regionHas(S, x, y) !== (c.buffer.getPixel(x, y)[3] > 0)) mismatches++;
+  return mismatches;
+}
 
-test('1138 collapsed side utility: the collapsed region walks the left/right title axis (HP48)', async () => {
-  const path = ['scheme.sit', 'scheme.rsrc'].map(p => new URL(p, new URL('../themes/1138/', import.meta.url))).find(existsSync);
-  const decoded = await loadKaleidoscopeScheme(readFileSync(path), { encodeAssets: false });
-  const wt = decoded.manifest.windowTypes['collapsed-side-utility'];
-  const asset = decoded.assets.find(a => a.path === wt.chrome.active);
-  const c = composeWindowChrome(new PixelBuffer(asset.width, asset.height, new Uint8ClampedArray(asset.rgba)), wt, 120, 0);
-  const all = c.structure(), side = c.structure(true, true), top = c.structure(true, false);
-  const count = r => r.bits.reduce((n, b) => n + b, 0);
-  assert.ok(side.bits.every((b, i) => !b || all.bits[i]), 'side walk is a subset of the four-side walk');
-  assert.notDeepEqual(Array.from(side.bits), Array.from(top.bits), 'the axis decides which sides are walked');
-  assert.ok(count(side) > 0);
+for (const type of ['collapsed-titled-utility', 'collapsed-no-title-utility']) {
+  test(`animals ${type}: collapsed draws and walks only the title-axis sides (WD4, SR6, HP8)`, async () => {
+    const { wt, source } = await template('animals', type);
+    const four = composeWindowChrome(source, wt, 320, 0);
+    const two = composeWindowChrome(source, wt, 320, 0, { collapsed: true });
+    assert.equal(two.layout.flags.collapsed, true);
+    assert.ok(opaque(two) < opaque(four), 'side cells non-empty at height 0 are no longer drawn');
+    assert.equal(agrees(two), 0, 'the region matches the collapsed drawing');
+    assert.ok(two.placement.every(p => p.edge !== 'left' && p.edge !== 'right'));
+  });
+}
+
+test('1138 collapsed side utility: zero content width, left/right sides only (§2.1 C, WD4, HP48)', async () => {
+  const { wt, source } = await template('1138', 'collapsed-side-utility');
+  const c = composeWindowChrome(source, wt, 0, 120, { collapsed: true, sideTitle: true });
+  assert.equal(c.fullWidth, c.frame.left + c.frame.right);
+  assert.ok(opaque(c) > 0);
+  assert.equal(agrees(c), 0, 'the region matches the collapsed drawing');
+  assert.ok(c.placement.every(p => p.edge !== 'top' && p.edge !== 'bottom'));
 });
