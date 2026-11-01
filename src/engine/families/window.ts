@@ -14,6 +14,7 @@
 //   - TT2 needs a condensed StringWidth; the declared default is TT2a.
 import type { Pixmap, QdRect } from '../qd/types.js';
 import type { EngineTrace } from '../trace.js';
+import type { ResourceChain, ResourceHit } from '../resources/chain.js';
 import { emptyRect, rect } from '../qd/rect.js';
 import { newRegion, regionAddMappedMask, regionAddRect, regionAddTiledMask, scaleBlit, type Region } from '../../raster.js';
 import { windowBlitRow } from '../tables/windowBlit.js';
@@ -352,6 +353,11 @@ export function widgetCicnIds(flags: Partial<WindowFlags> = {}): number[] {
   const f = { ...WINDOW_DECLARED_DEFAULTS, ...flags }, d = WIDGET_DRAW.WD11;
   const base = d.base + (f.altWidgets ? d.altWidgets + (f.sideTitle ? d.altSideTitle : 0) : 0);
   return f.sideTitle ? [base, base + WIDGET_DRAW.WD9.sideTitleOffset] : [base];
+}
+
+/** WD9 / HT7: the pressed strip, `base` then (under `sideTitle`) the retry `base − 8`; null when neither exists. */
+export function probeWidgetStrip<T>(chain: ResourceChain, flags: Partial<WindowFlags> = {}, trace?: EngineTrace): (ResourceHit<T> & { id: number }) | null {
+  return chain.probe<T>('cicn', widgetCicnIds(flags), { row: WIDGET_DRAW.WD9.id, ...(trace ? { trace } : {}) });
 }
 
 /** WD9 / HT7 source sub-rect in the pressed strip. */

@@ -2,7 +2,7 @@ import type { WindowState, WindowType } from './types.js';
 import { themeView, assertThemeAlive, type ThemeInput, type ThemeView } from './ownedTheme.js';
 import { composeWindowChrome, type ComposedChrome, type TitleWidgetRole } from './composeChrome.js';
 import { themeResourceChain } from './engine/resources/theme.js';
-import { widgetCicnIds } from './engine/families/window.js';
+import { probeWidgetStrip, widgetCicnIds } from './engine/families/window.js';
 import type { IconSource } from './raster.js';
 // The built-in frame (the `wt.model === 'corner-sprite'` branch: schemes with no
 // wnd# recipe) draws through the v2 engine family proceduralFrame, dynamically
@@ -185,10 +185,11 @@ export async function renderWindow(
     // makes an inactive window's widgets inert (window-widgets HT2); we keep focusable, operable
     // buttons so keyboard and assistive-technology users can act on background windows. Widget
     // art still follows the decode.
-    const ids = widgetCicnIds();
-    const strip = (await themeResourceChain(owner, ids.map((id) => ({ type: 'cicn', id })))).probe<IconSource>('cicn', ids);
     // hit-regions HP48: the title axis comes from the type that rendered, never from a layout default.
+    // It is the layout's one `sideTitle` flag (window-widgets §2.3), so the widget-cicn ids read it too.
     const sideTitle = SIDE_TITLED_TYPES.has(canonicalWindowTypeSlug(key));
+    const ids = widgetCicnIds({ sideTitle });
+    const strip = probeWidgetStrip<IconSource>(await themeResourceChain(owner, ids.map((id) => ({ type: 'cicn', id }))), { sideTitle });
     // window-widgets §2.1 `C`: a collapsed side-titled window empties its width, not its height.
     if (collapsed && sideTitle) { contentW = 0; contentH = expandedH; }
     composed = composeWindowChrome(cicn!, wt, contentW, contentH, {
