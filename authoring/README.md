@@ -33,3 +33,15 @@ own final bytes.
 Kingfisher demonstrates imported illustrations, frame recipes and control-family
 builders. `preview-layouts/` holds HTML fragments for `?layout=`, including the
 narrow/wide stress layout.
+
+## Additional themes
+
+These schemes build on the same toolkit and Kingfisher reference. Each includes
+source art, a concept brief, browser previews and exact-build native observations.
+
+| Scheme | Useful example |
+|---|---|
+| [Castle](schemes/castle/README.md) | Towers, masonry, whole crenellations and banner title |
+| [Brickworks](schemes/brickworks/README.md) | Toy-brick materials and repeating studded controls |
+| [Bonn](schemes/bonn/README.md) | Concept-derived landmarks, blossoms, bridge and custom medallions |
+| [Midnight 2027](schemes/new-year-2027/concept/brief.md) | Fireworks, large numerals and segmented progress |

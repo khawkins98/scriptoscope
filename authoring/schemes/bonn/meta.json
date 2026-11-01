@@ -1,0 +1,13 @@
+{
+  "name": "Bonn",
+  "author": {
+    "name": "Scriptoscope contributors"
+  },
+  "origin": {
+    "kind": "first-party-authored",
+    "originalFormat": "rsrc",
+    "originalLicense": "Same license as the Scriptoscope repository. An original design celebrating the city of Bonn: stylised pixel-art landmarks (the Minster, the Altes Rathaus, the Post Tower, the Langer Eugen), a Beethoven bust and a stylised shield inspired by the City of Bonn's arms, drawn in code; no photographs or traced artworks.",
+    "sourceUrl": "https://github.com/khawkins98/scriptoscope/tree/main/authoring/schemes/bonn"
+  },
+  "notes": "The zoom box and the scheme icon show a stylised shield inspired by the City of Bonn's arms (a black cross on white over a gold lion on red), a simplified pixel emblem rather than a heraldic reproduction of the arms."
+}
