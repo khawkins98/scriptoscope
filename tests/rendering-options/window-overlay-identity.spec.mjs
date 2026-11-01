@@ -229,19 +229,32 @@ for (const mode of ['source', 'built']) for (const slug of SLUGS) {
     expect((await state(page, 'A')).active).toBe('inactive');
   });
 
+  // #614 IP14: the first grow-box press on inactive B only activates it and focuses
+  // the grow box; the next press on the now active B resizes.
   test(`${mode} ${slug}: pointer-resizing B's grow box moves focus into B and still resizes`, async ({ page, servers }) => {
     await setup(page, servers, mode, slug);
     expect(await focus(page, 'A', 'Move window')).toBe(true);
     const b0 = await state(page, 'B');
-    const grip = await page.evaluate(() => {
+    expect(b0.active).toBe('inactive');
+    const grip = () => page.evaluate(() => {
       const r = window.overlayFixture.control('B', 'Resize window').getBoundingClientRect();
       return { x: r.right - 3, y: r.bottom - 3 };
     });
-    await page.mouse.move(grip.x, grip.y);
-    await page.mouse.down();
-    await page.mouse.move(grip.x + 24, grip.y + 16, { steps: 3 });
-    await page.mouse.up();
+    const drag = async () => {
+      const g = await grip();
+      await page.mouse.move(g.x, g.y);
+      await page.mouse.down();
+      await page.mouse.move(g.x + 24, g.y + 16, { steps: 3 });
+      await page.mouse.up();
+    };
+    await drag();
+    await expect.poll(async () => (await state(page, 'B')).active).toBe('active');
+    expect((await focusState(page)).where, 'the first press moved focus into B').toBe('B:Resize window');
+    expect(await state(page, 'B'), 'the first press on inactive B did not resize').toMatchObject({ width: b0.width, height: b0.height, left: b0.left });
+    expect((await state(page, 'A')).active).toBe('inactive');
+    await drag();
     await expect.poll(async () => (await state(page, 'B')).width).toBe(b0.width + 24);
+    expect((await state(page, 'B')).height).toBe(b0.height + 16);
     expect((await focusState(page)).where).toMatch(/^B:/);
   });
 }
