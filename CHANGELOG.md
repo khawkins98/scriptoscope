@@ -169,6 +169,10 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 - A themed slider no longer sits in a white box on a patterned window body ([#596](https://github.com/khawkins98/scriptoscope/issues/596)). Kaleidoscope's slider erases its control rectangle to the background the Control Manager sets up for the control, which on a themed window is the window's own background (docs/spec/engine/slider.md §4.10 BG4–BG6). Under the BG6a host policy, the interactive and promoted (`<input type="range">`) sliders now leave every pixel outside the track and thumb masks transparent, so the window body shows through as it does around buttons, checkboxes and tabs. `composeSlider` keeps its opaque white default; its `background` option now takes an optional alpha `a`.
 - `composeButton` no longer returns a blank, fully transparent push button for apple-platinum-2, black-platinum, platinum-8, slimes and system7-nostalgia-silver ([#608](https://github.com/khawkins98/scriptoscope/issues/608)). These schemes ship push-face art but no `cinf` for it, so the engine paints nothing (docs/spec/engine/push-button.md PB9/PB10). Since #468 the facade had still returned that empty image and reported it as `themed`. It now returns `null` with outcome `unavailable` (PF3). The diagnostic Scene panel and controls row show the native button, as `promoteButton`, `interactiveButton` and declarative buttons already did, and the capabilities page shows the case as unavailable. A caller-supplied label colour no longer draws label-only ink on these five schemes.
 
+### Documentation
+
+- New [interaction reference](docs/interaction.md): what users can do with windows and controls (activation and focus, moving, resizing, title widgets, scroll bars, controls, modals), every `scriptoscope:*` event with its target and detail, keyboard equivalents, and touch, Firefox and WebKit differences. Checked against the code on `main`; linked from the README, `docs/integration-edge-cases.md` and the doc-sweep list.
+
 ## [0.7.0] — 2026-10-29
 
 Pre-launch release from the `v2` integration branch, continuing 0.y.z initial

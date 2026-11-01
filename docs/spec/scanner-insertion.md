@@ -1,5 +1,7 @@
 # Declarative added-subtree scanning
 
+> **Retired (#491).** This describes the `mountDeclarative` scanner, which has been removed along with `mountDeclarative` and `mountOwnedDeclarative`. Nothing scans for added DOM any more: hosts promote explicitly, and the example host uses `handle.attach()` / `handle.detach()`. Kept as a historical record; see [`docs/v2/integration-release-notes.md`](../v2/integration-release-notes.md) and [`docs/interaction.md`](../interaction.md).
+
 `mountDeclarative({ root })` initially scans descendants of `root`; an Element
 root is a scope, not itself a promotion target. After that initial pass, the
 observer scans each added Element including the added node itself. This covers
