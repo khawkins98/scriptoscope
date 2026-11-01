@@ -31,6 +31,12 @@ export function parseArgs(args, { verify = false } = {}) {
   return { slug, outDir, diffOnly };
 }
 
+// Full-tile raster, as the goldens profile does (tests/rendering-options/
+// playwright.config.mjs, #526): partial raster left anti-aliased edges +/-1-2
+// levels apart between golden runs. Scene captures were byte-identical with and
+// without it in the pinned image (#599), so this is defensive, not corrective.
+export const sceneLaunchArgs = ['--disable-partial-raster'];
+
 // Vite 7 treats port:0 as its default port. Ask the OS for an ephemeral port,
 // then use strictPort so a rare bind race fails instead of silently choosing
 // another server/port. We never probe or reuse an ambient :5173 instance.
@@ -54,7 +60,7 @@ async function bounded(promise, ms, label) {
 /** Own an isolated Vite instance unless BASE explicitly names an existing site.
  * The verifier calls this in-process and writes directly to scratch, so neither
  * failed capture nor interruption can overwrite the committed fixtures. */
-export async function captureVisualBaselines({ slug, outDir = baselineDir, base = process.env.BASE } = {}) {
+export async function captureVisualBaselines({ slug, outDir = baselineDir, base = process.env.BASE, launchArgs = sceneLaunchArgs } = {}) {
   const themes = selectedThemes(slug);
   const timeout = Number(process.env.CAPTURE_TIMEOUT_MS ?? 30000);
   if (!Number.isFinite(timeout) || timeout <= 0) throw new Error('CAPTURE_TIMEOUT_MS must be a positive number');
@@ -84,7 +90,7 @@ export async function captureVisualBaselines({ slug, outDir = baselineDir, base 
     const site = new URL(base);
     if (!site.pathname.endsWith('/') && !site.pathname.endsWith('.html')) site.pathname += '/';
     if (interrupted) throw new Error('Capture interrupted');
-    browser = await chromium.launch({ timeout });
+    browser = await chromium.launch({ timeout, args: launchArgs });
     console.log(`  Chromium: ${browser.version()}`);
     if (interrupted) throw new Error('Capture interrupted');
     const context = await browser.newContext({ viewport: { width: 1024, height: 720 }, deviceScaleFactor: 1 });
