@@ -117,7 +117,9 @@ export interface ComposedChrome {
   /** Builds the structure region (hit-regions §4.2) from this layout and template, in buffer
    *  pixels. wnd# windows only; built on demand, never from the drawn pixels (HP15). `collapsed`
    *  walks only the title-axis sides (SR6, HP8), whatever the drawn layout's collapsed flag. */
-  structure?: (collapsed?: boolean) => Region;
+  structure?: (collapsed?: boolean, sideTitle?: boolean) => Region;
+  /** HP48: the rendered window type's title axis is left/right (set by renderWindow). */
+  sideTitle?: boolean;
   /** The grow box as a separate overlay sprite (built-in frame only). */
   growBox?: { buffer: PixelBuffer; x: number; y: number; w: number; h: number } | undefined;
 }
@@ -229,7 +231,7 @@ export function composeWindowChrome(cicn: PixelBuffer, windowType: WindowType, c
     titleRect: xywh(remapWidget(layout, layout.T4)),
     widgets: hittable.map(w => ({ role: w.row.role, rect: xywh(w.rect) })),
     hitWidget: (x, y) => widgetHit(layout, widgets, strip, x, y).role,
-    structure: (collapsed = false) => windowStructure(layout, cicn, fullW, fullH, collapsed),
+    structure: (collapsed = false, sideTitle?: boolean) => windowStructure(layout, cicn, fullW, fullH, collapsed, sideTitle),
   };
 }
 

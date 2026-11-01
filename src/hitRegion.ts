@@ -3,6 +3,10 @@
 import type { Region } from './raster.js';
 import { debug } from './debug.js';
 
+/** HP48: the public window types whose title axis is left/right (canonical slugs; aliases resolve
+ *  through `canonicalWindowTypeSlug`). Every other type is top-titled. A declared mapping, not a decode. */
+export const SIDE_TITLED_TYPES: ReadonlySet<string> = new Set(['side-floating-utility-window', 'collapsed-side-floating-utility-window']);
+
 /** A window's hit mode (HP1). */
 export type HitMode = 'region' | 'box';
 

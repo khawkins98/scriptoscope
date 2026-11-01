@@ -14,6 +14,7 @@ import { PixelBuffer } from './pixelBuffer.js';
 import { resolveWindowSelection } from './resolveWindowType.js';
 import { canonicalWindowTypeSlug } from './wndCascade.js';
 import { dialogContentColour, rgbHex } from './dialogContent.js';
+import { SIDE_TITLED_TYPES } from './hitRegion.js';
 
 export interface RenderWindowOptions {
   /** Window-type slug. Default `'document-window'`. */
@@ -156,8 +157,9 @@ export async function renderWindow(
   // (docs/spec/engine/procedural-frame.md), title text and pressed widget included.
   let composed;
   let contentCollapsed = false;
+  // The window type that actually rendered, after collapsed-variant and base-chain resolution.
+  const key = Object.entries(owner.manifest.windowTypes ?? {}).find(([, v]) => v === wt)?.[0] ?? slug;
   if (builtInFrame) {
-    const key = Object.entries(owner.manifest.windowTypes ?? {}).find(([, v]) => v === wt)?.[0] ?? slug;
     const { composeProceduralFrameChrome } = await import('./proceduralFrameChrome.js');
     // The built-in utility frame derives its bar height from the title (procedural-frame §9.1
     // UI10), and collapsing does not change the window record, so the collapsed titled utility
@@ -182,6 +184,7 @@ export async function renderWindow(
       popupFamily: slug === 'popup-window', widgetCicn: strip?.value.pixmap ?? null,
       ...(opts.pressedWidget ? { pressedWidget: opts.pressedWidget } : {}),
     });
+    composed.sideTitle = SIDE_TITLED_TYPES.has(canonicalWindowTypeSlug(key)); // hit-regions HP48
   }
   const { frame, fullWidth, fullHeight } = composed;
 

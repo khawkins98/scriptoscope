@@ -77,3 +77,16 @@ test('animals collapsed titled utility: a collapsed build walks only the title-a
   assert.equal(added, 0);
   assert.ok(dropped > 0, 'side cells drawn at height 0 leave the region');
 });
+
+test('1138 collapsed side utility: the collapsed region walks the left/right title axis (HP48)', async () => {
+  const path = ['scheme.sit', 'scheme.rsrc'].map(p => new URL(p, new URL('../themes/1138/', import.meta.url))).find(existsSync);
+  const decoded = await loadKaleidoscopeScheme(readFileSync(path), { encodeAssets: false });
+  const wt = decoded.manifest.windowTypes['collapsed-side-utility'];
+  const asset = decoded.assets.find(a => a.path === wt.chrome.active);
+  const c = composeWindowChrome(new PixelBuffer(asset.width, asset.height, new Uint8ClampedArray(asset.rgba)), wt, 120, 0);
+  const all = c.structure(), side = c.structure(true, true), top = c.structure(true, false);
+  const count = r => r.bits.reduce((n, b) => n + b, 0);
+  assert.ok(side.bits.every((b, i) => !b || all.bits[i]), 'side walk is a subset of the four-side walk');
+  assert.notDeepEqual(Array.from(side.bits), Array.from(top.bits), 'the axis decides which sides are walked');
+  assert.ok(count(side) > 0);
+});

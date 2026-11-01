@@ -1383,7 +1383,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     if (!composed?.structure) return prepared;
     const title = entry.opts.title ?? '(untitled)';
     try {
-      const region = regionPath(composed.structure(prepared.collapsed), Math.max(1, Math.round(prepared.opts.scale ?? 1))); // HP8
+      const region = regionPath(composed.structure(prepared.collapsed, composed.sideTitle), Math.max(1, Math.round(prepared.opts.scale ?? 1))); // HP8
       if (!region) throw new Error('empty structure region');
       debug('region', 'built', { title, length: region.length });
       return { ...prepared, region };
