@@ -19,7 +19,7 @@ verifier reports or original listings. Keep independent test authorship separate
 **Current orientation (2026-10-24; branch note 2026-10-30):** October’s incremental
 decode-first v2 milestone is distinct from May’s v2/v3 resets. Its former `v2`
 integration branch was retired on 2026-10-30; all work now lands on `main`
-([DECISIONS #1](../v2/DECISIONS.md)). The package version is 0.7.0;
+([DECISIONS #1](../v2/DECISIONS.md)). The package version is 0.8.0;
 not every family has migrated. Migration work is tracked in [issue #378](https://github.com/khawkins98/scriptoscope/issues/378);
 the [#459 batch](https://github.com/khawkins98/scriptoscope/issues/459) is complete. See
 [DECISIONS #8](../v2/DECISIONS.md) and, for integration owners/spec writers,
