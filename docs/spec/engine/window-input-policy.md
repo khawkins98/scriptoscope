@@ -40,6 +40,14 @@ still wins, and only one managed window is active. Do not resurrect a window tha
 was removed, or overwrite a subsequent deliberate activation during asynchronous
 preparation.
 
+Overlapping provisional active claims that all fail do not establish successful
+activation authority. If two or more explicitly active adds overlap and all
+reject, preserve the last successfully managed active window and its active
+chrome unless a later legitimate activation, explicit outside deactivation or
+removal superseded restoration. Failure completion order does not change this
+rule. Never restore a removed window, and never override a later successful
+active add or activation caused by focus inside another managed window.
+
 A concurrent activation or superseding operation must not convert a failed initial
 render into a successful add. If no initial render can successfully commit, reject
 the add and remove its provisional entry even when other work superseded the
