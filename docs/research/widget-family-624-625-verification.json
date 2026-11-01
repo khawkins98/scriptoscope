@@ -1,0 +1,183 @@
+{
+  "schema": 1,
+  "role": "independent verifier and acceptance-test author; not runtime implementer or spec author",
+  "issues": [
+    624,
+    625
+  ],
+  "date": "2026-11-02",
+  "access": "Verifier/PM material: do not hand this report or independent test/oracle sources to runtime implementers.",
+  "result": "Spec verified; independent acceptance authored; pre-implementation behavioral failures established; implementation acceptance pending candidate.",
+  "specVerification": {
+    "initialProposal": "c08b6465baaf564d77a542a0574e388787d55c28",
+    "initialLocalCommit": "dc12ab5164fa1929a6aed86270590594aff4e3f0",
+    "initialBlob": "f11e299df93b0d353e95553470362618590ad043",
+    "scopeDeltaProposal": "13a7d08b",
+    "scopeDeltaLocalCommit": "61be08138a8b816cea881a1516c64eb7804c301a",
+    "verifiedPath": "docs/spec/engine/window-widgets.md",
+    "verifiedBlob": "9c7f85c16612bf7cbea6c540f6c7a5ad31984e73",
+    "verdict": "pass: exact local and proposal blobs match; PF1-PF4 retraced independently, PM1-PM2 explicitly declared modern policy; scope delta consistently retains defaults for other flags and existing title suppression.",
+    "unresolvedBlockingQuestions": []
+  },
+  "originalProvenance": {
+    "/Users/khawkins/Documents/Scriptoscope-maintainer-assets/recovery-2026-10-19/originals/Kaleidoscope231US.bin": {
+      "bytes": 1908736,
+      "sha256": "4173477d60f3081e03e4b18bd1cf17da16ad5381315ff04d8f51e8bb4cb7012a"
+    },
+    "/tmp/widget-verifier-624-625/installer/Kaleidoscope 2.3.1 Installer": {
+      "bytes": 1687965,
+      "sha256": "8aad109da26d11791d9ada2e8cf92327af1d617f396659cc63bd7ce70a0b01ce"
+    },
+    "/tmp/widget-verifier-624-625/payload/Kaleidoscope 2.3.1 Installer/Kaleidoscope.rsrc": {
+      "bytes": 1005617,
+      "sha256": "b5fd81a12072da1e3a1af9fedd9f6846d88e2e5187a8dd152266a00aa0cfba6c"
+    },
+    "resourceFork": {
+      "bytes": 1005535,
+      "sha256": "0d4af8bab15e467f00b9dfaac99bb9adec6ee884e12e04f3de03d74b3fdc9c0b"
+    },
+    "kDEF0": {
+      "bytes": 107726,
+      "sha256": "2c027276dae2355964a0dde1ace31f60ba845ab2c5fbf0496fd34ab2afe7c342"
+    },
+    "listing": {
+      "sha256": "fe26499e938bef940bdd1401a1fb52081e8f57f8920038a7f48cd4e7fe487120",
+      "comparedBytes": 104538,
+      "mismatchCount": 0,
+      "firstMismatches": []
+    }
+  },
+  "extraction": {
+    "execution": "Static archive extraction only; neither installer nor original engine executed.",
+    "tool": "/opt/homebrew/bin/unar",
+    "toolSha256": "088e447a9fa8ab818768e7e9f48d6a7666f6a2f32c2ecc508f9904b4654adcd0",
+    "steps": [
+      "unar -q -forks visible: installer MacBinary to data fork",
+      "unar -q -forks visible: extracted installer data fork to payload",
+      "Independent Python big-endian AppleDouble entry-2 extraction and resource-map parsing: select kDEF ID 0",
+      "Compare every parsed address/hex-word listing span against the freshly extracted resource"
+    ],
+    "listingComparisonLimit": "104538 represented bytes compared, zero mismatches; the listing omits or renders some of the 107726-byte resource outside the parsed word-line representation. No claim that listing text encodes every resource byte.",
+    "originalBytesInRepository": false
+  },
+  "independentTrace": [
+    {
+      "claim": "altWidgets and sideTitle reset each message; only families 66, 67, 124 set alternate selection. Every low-nibble variation qualifies.",
+      "addresses": [
+        "0x2e3e..0x2e42",
+        "0x3116..0x3156",
+        "0x31ae..0x3204"
+      ],
+      "detail": "Family 67 sets sideTitle; family 124 variation bit 3 sets sideTitle. The variation/partial-zoom tests follow alternate assignment, so do not gate it."
+    },
+    {
+      "claim": "Popup family 63 clears collapsed after state helper; content dimensions remain nonempty and title-axis collapsed side restriction does not apply.",
+      "addresses": [
+        "0x3204..0x321a",
+        "0x47ea..0x4802",
+        "0x58b8..0x58d8"
+      ]
+    },
+    {
+      "claim": "Pressed draw and mask-hit use base -14330, +32 when alternate, and another +8 only under alternate AND sideTitle; missing side strip retries -8.",
+      "addresses": [
+        "0x607a..0x608e",
+        "0x6158..0x62ee",
+        "0x5df6..0x5e44"
+      ],
+      "detail": "Results: ordinary -14330; unalternated side retry -14338; alternate top -14298; alternate side -14290 with retry -14298. Partial-zoom WD8 base+1/base-7 remains outside public mapping because partialZoom stays clear."
+    },
+    {
+      "claim": "Alternate title face is bold for initial measurement/draw, with bold-condense during decoded narrowing, restored to bold.",
+      "addresses": [
+        "0x3308..0x332c",
+        "0x4f0e..0x4f3c",
+        "0x5608..0x561a",
+        "0x5708..0x5718"
+      ],
+      "detail": "Tests assert existing visible titled-utility surface and substituted browser face; no new side/no-title drawing surface or exact native glyph oracle."
+    },
+    {
+      "claim": "HG3 native grow helper selects 16 when alternate clear, 11 when alternate and utilityFrame, otherwise 15; optional +3 depends on noWidgets and utilityFrame.",
+      "addresses": [
+        "0x480a..0x4876",
+        "0x3f86..0x3f94"
+      ],
+      "detail": "Caller overwrites right/bottom with structure bounds. PM1 maps alternate only; it does not map utilityFrame or growEnabled. No exposed runtime native HG3 classifier was found, so independent runtime coverage is limited to existing modern grow overlays."
+    }
+  ],
+  "policyReview": {
+    "PM1": "Public utility/collapsed utility identity mapping is declared policy. Slug names and wnd# IDs do not independently prove procID family; alias normalization, actual rendered fallback type and owning base theme are tested.",
+    "PM2": "Popup add/apply/toggle and describe effective-collapse rules are modern lifecycle policy aligned with PF4, not decoded web operations. Requested expanded dimensions must survive actual-popup fallback and later type transition.",
+    "scope": "Recipe windows only; built-in procedural frame keeps its own rules. Existing no-title/side title suppression, utilityFrame, growEnabled and noWidgets defaults unchanged."
+  },
+  "acceptance": {
+    "testsCommit": "375fe0d9e6953c771179b1d9343ae37a22d6445e",
+    "testsTree": "211903c729b605708a69f09d0956c7babc4368f5",
+    "files": [
+      "tests/rendering-options/widget-family-fixture.mjs",
+      "tests/rendering-options/widget-family-policy.spec.mjs",
+      "tests/rendering-options/popup-collapse-policy.spec.mjs",
+      "tests/rendering-options/widget-family-acceptance.test.mjs",
+      "tests/rendering-options/widget-family-mutations.mjs"
+    ],
+    "oracle": "Hand-authored synthetic templates, typed resource colors, two-row asymmetric masks, explicit expected IDs and fixed input-space coordinates. Runtime outputs supply observations only, never expected values.",
+    "coverage": [
+      "16 ordinary/utility/collapsed public and legacy/canonical type names",
+      "Alternate and side offsets, typed resource identity and provider priority",
+      "Missing side primary retry; missing alternate must not use ordinary strip",
+      "Actual side-to-top and utility-to-document fallback and base owner selection",
+      "Pressed color and mask membership; expanded/collapsed strip rows for close, zoom and collapse",
+      "Bold measurement and draw for visible titled utility; plain document control",
+      "Popup direct render and actual-popup fallback; initial/add, apply and frame-toggle effective state; public describe and requested dimensions; document transition",
+      "Top/side collapsed content axis, footprint and second strip row",
+      "Existing modern grow overlay dimensions and continued availability for effectively expanded popup"
+    ],
+    "commands": [
+      {
+        "command": "npm run build",
+        "exit": 0,
+        "runtimeHead": "61be08138a8b816cea881a1516c64eb7804c301a",
+        "note": "Pre-implementation bundle, runtime tree identical to cf401fcb; later commits only spec/tests/report."
+      },
+      {
+        "command": "node tests/rendering-options/widget-family-mutations.mjs",
+        "exit": 0,
+        "control": "3 tests pass",
+        "mutations": {
+          "omitAlternate": "killed by assertion",
+          "omitSideOffset": "killed by assertion",
+          "keepPopupCollapsed": "killed by assertion",
+          "useFirstRow": "killed by assertion"
+        },
+        "method": "In-memory Node module load transformation; zero src file edits; verifies mutations bind and fail with ERR_ASSERTION rather than import/setup errors."
+      },
+      {
+        "command": "npx playwright test --config tests/rendering-options/playwright.config.mjs widget-family-policy.spec.mjs popup-collapse-policy.spec.mjs",
+        "runtime": "pre-implementation",
+        "exit": 1,
+        "result": "12 behavioral contract failures, source and built, at the committed tests 375fe0d9; no setup/import failures.",
+        "executedHead": "375fe0d9e6953c771179b1d9343ae37a22d6445e",
+        "logSha256": "980f627d08b6c7c3a9b8ea8724531fa77df1b48ab2e6e6e58a4e182ef8ffc463"
+      }
+    ],
+    "environment": {
+      "node": "v24.18.0",
+      "chromium": "156.0.8078.4",
+      "projects": [
+        "chromium-dpr1"
+      ],
+      "preexistingDirtyPath": "package-lock.json (not edited/staged by verifier)"
+    },
+    "implementationAcceptance": "Pending PM candidate transfer; do not interpret pre-implementation failures as an implementation verdict."
+  },
+  "coverageLimits": [
+    "No native acquisition or emulator execution, golden images, or broad engine-diff grid; separate author/integration lane owns those.",
+    "Synthetic browser cases establish public adapter behavior; they do not exhaust all 18 real archives or prove native device/font raster fidelity.",
+    "The runtime exposes modern grow overlays rather than the original HG3 outer hit classifier. HG3 source geometry is independently verified, but numerical native grow precedence is not asserted by these runtime tests.",
+    "PartialZoom remains false by declared defaults; WD8 partial-zoom resource IDs and exact-point fallback are not newly exposed or implemented.",
+    "Current title suppression stays as specified. Only existing reachable titled-utility text is tested for alternate bold face; hidden side/no-title text is not invented.",
+    "Mutation probes target real low-level selection/collapse/draw logic. Public default-mapping rejection is additionally demonstrated by the pre-implementation browser red run; positive candidate run remains pending.",
+    "No full gates, full rendering matrix, Linux goldens or lane:ready were claimed for this tests-only contribution; final integrated candidate retains normal required validation."
+  ]
+}
