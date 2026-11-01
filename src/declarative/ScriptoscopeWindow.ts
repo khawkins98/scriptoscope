@@ -152,6 +152,7 @@ export class ScriptoscopeWindow<Theme extends ThemeInput = LoadedTheme> {
     // CSS scopes off it to tell "is this content currently inside chrome?".
     const slot = document.createElement('div');
     slot.className = SCRIPTOSCOPE_SLOT_CLASS;
+    slot.tabIndex = -1; // Themed bars own keyboard scrolling; descendants retain their Tab order.
     Object.assign(slot.style, { width: '100%', height: '100%', boxSizing: 'border-box', overflow: 'auto' });
     const fit = document.createElement('div');
     fit.className = 'scriptoscope-fit';
