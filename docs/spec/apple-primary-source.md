@@ -173,6 +173,21 @@ When asked for an icon at a destination rectangle, PlotIconID picks **WITHIN fam
 
 This means our codex tier hierarchies that fall back "from -3790 to -14336" have **no Apple precedent** — they were our invention to cover slots Apple's Finder source would have filled by other means we don't have access to. The reference-image pixel-probe (`scripts/probe-reference-slot.mjs`) is the way to verify what the Finder actually did.
 
+## Window Manager mouse-down conventions (Inside Macintosh: Macintosh Toolbox Essentials, ch. 2 and 4)
+
+Apple behaviour, not Kaleidoscope's. Used by [`engine/inactive-window-input.md`](engine/inactive-window-input.md) §3 (#614). Printed page numbers; the PDF hash is in that file's evidence appendix.
+
+| Rule | Quote / constant | Source |
+|---|---|---|
+| Widget parts are active-window only | "Return the constants wInGrow, wInGoAway, wInZoomIn, and wInZoomOut only if the window is active … In an inactive document window, for example, a mouse-down event in the part of the title bar that would contain the close box if the window were active is reported as wInDrag." | p. 4-122; `MacWindows.h` `wInDrag` 2, `wInGrow` 3, `wInGoAway` 4, `wInZoomIn` 5, `wInZoomOut` 6, `wInCollapseBox` 9 (Mac OS 8) |
+| FindWindow | `inGoAway` for "an active window's close box"; `inZoomIn`/`inZoomOut` for "an active window's zoom box"; Event Manager list: `inGrow`, `inGoAway`, `inZoomIn`, `inZoomOut` "(active window only)" | pp. 4-93, 2-36; `MacWindows.h` `inDrag` 4, `inGrow` 5, `inGoAway` 6, `inZoomIn` 7, `inZoomOut` 8, `inCollapseBox` 11 (Mac OS 8) |
+| Press in an inactive window | `inContent` and not `FrontWindow` → `SelectWindow`; the sample "merely activates the window … it does not make a selection in the newly activated window in response to the first click" | pp. 4-43 to 4-45, Listing 4-9 |
+| Close and zoom tracking | `inGoAway` → `TrackGoAway`; `inZoomIn`/`inZoomOut` → `TrackBox` | Listing 4-9; pp. 4-103 to 4-104 |
+| Drag activates | `DragWindow` makes an inactive window active on release unless the Command key was down | pp. 4-45, 4-95 |
+| Zoom and the front flag | `ZoomWindow(…, front)`: TRUE → "the frontmost, active window"; FALSE → list position unchanged. Sample passes `thisWindow = FrontWindow` | pp. 4-102 to 4-103, 4-56 (Listing 4-12) |
+
+The 1994 book predates the collapse box; its active-only status in Apple's Mac OS 8 pages was not checked.
+
 ## Local primary-source decompile work
 
 Three companion docs in `docs/spec/` cover the Apple-side reverse-engineering already done locally:
