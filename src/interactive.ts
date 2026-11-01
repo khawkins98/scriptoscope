@@ -810,6 +810,8 @@ interface ManagedWindow<Theme extends ThemeInput> {
   modal?: boolean;
   /** Host found inside a closed shadow root (HP47). */
   closedRoot?: boolean;
+  /** A captured frame drag or grow-box resize is in progress: L2's clip is suspended (PM ruling A). */
+  gesture?: boolean;
   /** HP26/HP43: the clipped layer L2 and the decoration layer L3 (with its focus ring), created once. */
   layers?: { hit: HTMLElement; decor: HTMLElement; ring: HTMLElement };
 }
@@ -1297,6 +1299,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
         const result = prepared.get(entry)!;
         entry.renderEpoch++; // invalidate any older standalone render
         entry.theme = theme;
+        entry.gesture = false; // ruling A: a retheme mid-gesture restores the clip with its commit
         this.commitRender(entry, result, false);
         if (themeRef !== undefined) entry.host.dataset.scriptoscopeTheme = themeRef;
       }
@@ -1591,7 +1594,10 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     const layers = entry.layers, l1 = layers?.hit.parentElement;
     if (!layers || !l1) return;
     const mode = this.hitEffective(entry), region = mode === 'region';
-    layers.hit.style.clipPath = region ? `path("${entry.region}")` : '';
+    // PM ruling A (HPT36): while a captured drag or resize holds the pointer, hit-testing is moot and
+    // the pixels outside S are transparent, so the clip is suspended: WebKit otherwise re-rasterises
+    // the clipped layer on every move.
+    layers.hit.style.clipPath = region ? (entry.gesture ? 'none' : `path("${entry.region}")`) : '';
     layers.hit.style.pointerEvents = region ? 'auto' : '';
     // HPT33/HP36: WebKit's scrolling thread routes a wheel by the layer's area, not the clip, so a wheel
     // over an excluded pixel never reached the page. A blocking (no-op) listener sends wheels over L2
@@ -1601,6 +1607,14 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     l1.style.pointerEvents = entry.host.style.pointerEvents = region ? 'none' : '';
     entry.host.setAttribute('data-scriptoscope-hit-effective', mode);
     this.placeRing(entry);
+  }
+
+  /** Start or end a captured pointer gesture (ruling A): suspend or restore the clip in this task. */
+  private suspendClip(entry: ManagedWindow<Theme>, on: boolean): void {
+    if (!!entry.gesture === on) return;
+    entry.gesture = on;
+    const l2 = entry.layers?.hit;
+    if (l2 && this.hitEffective(entry) === 'region') l2.style.clipPath = on ? 'none' : `path("${entry.region}")`;
   }
 
   /** HP28: L3 draws the focus ring of the focused chrome control (title widget, move handle, grow box,
@@ -1995,6 +2009,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
   /** Toggle window-shade. Built-in for windows whose collapse widget has no explicit handler. */
   private async toggleCollapse(entry: ManagedWindow<Theme>): Promise<void> {
     entry.collapsed = !entry.collapsed;
+    entry.gesture = false; // ruling A: a collapse mid-gesture restores the clip with its commit
     debug('drag', `toggleCollapse ${entry.opts.title ?? ''} → collapsed=${entry.collapsed}`);
     await this.render(entry);
     entry.handlers.onCollapse?.();
@@ -2064,6 +2079,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       if (!e.isPrimary) return; // a second touch or pen contact doesn't start a second drag
       e.preventDefault();
       this.claimFocus(entry, moveBtn);
+      this.suspendClip(entry, true);
       void this.focus(entry);
       // Pointer positions are viewport pixels; left/top are the containing
       // block's CSS pixels. They differ inside a scaled (#515), rotated or
@@ -2092,6 +2108,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       trackDrag(win, e, ev => place(delta(ev)), (ev) => {
         const d = delta(ev);
         place(d);
+        this.suspendClip(entry, false);
         // Never moved, or released back at the start: nothing to commit, no onChange.
         if (!origin || (!d.x && !d.y)) return;
         // Commit through the chokepoint so persistence + future v2 reflow
@@ -2102,6 +2119,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
         // Cancelled (#563): back to the start, uncommitted. Reuses the hot-loop writer, so the
         // setPosition chokepoint still sees every committed move.
         place({ x: 0, y: 0 });
+        this.suspendClip(entry, false);
       });
     }, { signal });
 
@@ -2219,6 +2237,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       if ((e.pointerType === 'mouse' && e.button !== 0) || !e.isPrimary) return;
       e.preventDefault(); e.stopPropagation();
       this.claimFocus(entry, corner);
+      this.suspendClip(entry, true);
       void this.focus(entry);
       // Viewport to the host's CSS pixels under a transformed ancestor (#515, #519).
       // Taken before any handoff: toAbsolute doesn't move the host, so the map holds.
@@ -2253,6 +2272,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       };
       trackDrag(corner, e, mv, () => {
         outline?.remove();
+        this.suspendClip(entry, false);
         // Unchanged size (never moved, or dragged back to the start): no commit, no event.
         if (nw === w0 && nh === h0) return;
         entry.opts = { ...entry.opts, width: nw, height: nh };
@@ -2263,7 +2283,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
         host.dispatchEvent(new CustomEvent('scriptoscope:userresize', {
           detail: { w: nw, h: nh }, bubbles: true,
         }));
-      }, () => outline?.remove()); // cancelled (#563): no commit, no event
+      }, () => { outline?.remove(); this.suspendClip(entry, false); }); // cancelled (#563): no commit, no event
     }, { signal });
   }
 
