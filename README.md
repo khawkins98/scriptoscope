@@ -50,6 +50,8 @@ Nobody's authored a new Kaleidoscope scheme in roughly twenty years. The corpus 
 
 ## Install
 
+> **Upgrading to 0.8.0:** auto-sized windows now fit their chrome inside the element's box; see the Breaking note in the [CHANGELOG](CHANGELOG.md).
+>
 > **0.7.0:** applications own window/control attachment and lifetime through
 > explicit promotion primitives; the old `mountDeclarative` front door is gone. See
 > the [installation and migration guide](docs/v2/integration-release-notes.md).
