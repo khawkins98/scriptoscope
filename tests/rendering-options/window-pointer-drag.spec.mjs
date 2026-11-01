@@ -179,6 +179,10 @@ for (const mode of ['source', 'production']) {
       expectUnchanged(run.later, before, `${slug} hero release + click after the cancel`, { flow: false });
 
       // Cancelled grow: the outline goes, the size is unchanged, no userresize.
+      // #614 IP14: a first grow-box press on an inactive window only activates it, so
+      // activate the picker first with a stationary title-bar press (#561: no move).
+      await press(page, centre((await readShowcase(page, picker)).grip));
+      expect((await readShowcase(page, picker)).state, `${slug}: picker activated before the grow`).toBe('active');
       before = await readShowcase(page, picker);
       run = await cancelledDrag(page, () => readShowcase(page, picker), type => page.locator(picker).first().evaluate((h, t) => window.__cancel(h, 'grow', t), type), centre(before.corner), { dx: -40, dy: 30, elsewhere });
       expect(run.during.outlines, `${slug}: picker grow outline shown before the cancel`).toBe(1);
