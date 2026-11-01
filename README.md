@@ -40,7 +40,7 @@ Want more? Two community archives where Scriptoscope's drop-zone can read scheme
 
 Both let you grab a `.sit` and drop it on the demo to see it render live without a build step.
 
-> **Status (pre-1.0, 2026-10-29):** The package version is **0.7.0**. The current **incremental decode-first v2** milestone moves families onto `src/engine/` through focused PRs to `main` and per-family releases ([decision #8](./docs/v2/DECISIONS.md)); the former `v2` integration branch was retired on 2026-10-30 ([decision #1](./docs/v2/DECISIONS.md)). Scroll bars, sliders, progress, procedural frames, window recipe/widgets, push/default-ring buttons and checkboxes/radios have engine drivers; follow-up work and review state are tracked in [issue #459](https://github.com/khawkins98/scriptoscope/issues/459). This is not an all-family cutover. `src/composeChrome.ts` is now a facade over `src/engine/families/window.ts`; the engine holds the decoded layout/widget rules. The May “v2 clean-break” and “v3 reset” names describe earlier architecture generations, not the retired October `v2` branch or package versions. Runtime contributors start with the [implementer brief](./docs/spec/engine/IMPLEMENTER-BRIEF.md) and assigned safe family spec; unresolved rules become spec questions. Consumers can use the imperative and declarative examples below.
+> **Status (pre-1.0, 2026-11-01):** The package version is **0.8.0**. The current **incremental decode-first v2** milestone moves families onto `src/engine/` through focused PRs to `main` and per-family releases ([decision #8](./docs/v2/DECISIONS.md)); the former `v2` integration branch was retired on 2026-10-30 ([decision #1](./docs/v2/DECISIONS.md)). Scroll bars, sliders, progress, procedural frames, window recipe/widgets, push/default-ring buttons and checkboxes/radios have engine drivers; follow-up work and review state are tracked in [issue #459](https://github.com/khawkins98/scriptoscope/issues/459). This is not an all-family cutover. `src/composeChrome.ts` is now a facade over `src/engine/families/window.ts`; the engine holds the decoded layout/widget rules. The May “v2 clean-break” and “v3 reset” names describe earlier architecture generations, not the retired October `v2` branch or package versions. Runtime contributors start with the [implementer brief](./docs/spec/engine/IMPLEMENTER-BRIEF.md) and assigned safe family spec; unresolved rules become spec questions. Consumers can use the imperative and declarative examples below.
 
 ## If you build a scheme
 
@@ -52,6 +52,8 @@ There is now a modern starting point. [`tools/theme-author/`](./tools/theme-auth
 
 ## Install
 
+> **Upgrading to 0.8.0:** auto-sized windows now fit their chrome inside the element's box; see the Breaking note in the [CHANGELOG](CHANGELOG.md).
+>
 > **0.7.0:** applications own window/control attachment and lifetime through
 > explicit promotion primitives; the old `mountDeclarative` front door is gone. See
 > the [installation and migration guide](docs/v2/integration-release-notes.md).

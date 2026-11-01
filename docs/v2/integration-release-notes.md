@@ -18,13 +18,13 @@ npm run preview:demo
 ```
 
 Open the printed local `/scriptoscope/` URL. The public Pages site serves the
-`main` build, which matches 0.7.0 at release. For self-hosting, copy the runtime chunks, CSS, helper modules and themes
+`main` build, which matches the latest release when it is cut. For self-hosting, copy the runtime chunks, CSS, helper modules and themes
 from the **same demo build**, following [vendoring](../../README.md#vendoring-if-you-dont-want-a-third-party-cdn-dependency).
 Do not mix the old deployment with the new example helper.
 
 To try the library in a separate npm consumer, run `npm run build`, then
 `npm pack --ignore-scripts` in this checkout and install the resulting tarball
-by local path. Its filename is `scriptoscope-0.7.0.tgz`. This does not publish a package.
+by local path. Its filename is `scriptoscope-<version>.tgz` (for example `scriptoscope-0.8.0.tgz`). This does not publish a package.
 
 | Import | Intended use |
 |---|---|
