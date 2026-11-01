@@ -35,6 +35,8 @@ export const INTERACTION_SPECS = Object.freeze([
   // and touch, per-frame pressed-art sampling); Shift+wheel axis mapping with cancelable events.
   'inactive-window-input.spec.mjs',
   'inactive-window-wheel.spec.mjs',
+  // Deterministic content Tab stops and gesture/add failure lifetime (#619, #628).
+  'window-input-policy.spec.mjs',
 ]);
 
 // Not in this list: scrollbar-parts.spec.mjs (#567) is green in Firefox and

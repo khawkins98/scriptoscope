@@ -152,9 +152,11 @@ for (const mode of ['source', 'built']) for (const kind of ['viewport', 'supplie
         el.style.willChange = 'transform'; void el.offsetHeight;
         el.style.willChange = ''; el.style.clipPath = 'inset(0px)'; void el.offsetHeight; el.style.clipPath = '';
       }
+      host.shadowRoot.querySelector('.scriptoscope-content').addEventListener('click', () => {});
+      f.manager.setDefaultHit('region');
       await f.settle();
     });
-    await check('style rebuild');
+    await check('style rebuild and region hit mode');
     await page.evaluate(async () => { const f = window.inputPolicy; await f.manager.retheme(f.theme); await f.settle(); });
     await check('retheme');
   });
@@ -166,8 +168,8 @@ for (const mode of ['source', 'built']) test(`${mode}: #619 native content click
     const f = window.inputPolicy; f.hosts.A = await f.add('A'); f.calls = 0;
     const content = document.createElement('div');
     content.style.cssText = 'height:100%;overflow:auto';
-    content.innerHTML = '<button id="content-action">Content action</button><div style="height:500px">Prose</div>';
-    content.querySelector('button').addEventListener('click', () => f.calls++);
+    content.innerHTML = '<input id="content-action" aria-label="Content field"><div style="height:500px">Prose</div>';
+    content.querySelector('input').addEventListener('click', () => f.calls++);
     f.hosts.B = await f.manager.add(f.theme, { title: 'B', width: 240, height: 120 }, {}, { contentEl: content });
     document.querySelector('#after').before(f.hosts.B); f.manager.setPosition(f.hosts.B, 400, 70);
     await f.settle();
@@ -179,3 +181,28 @@ for (const mode of ['source', 'built']) test(`${mode}: #619 native content click
     return { active: [f.manager.describe(f.hosts.A).active, f.manager.describe(f.hosts.B).active], focused: document.activeElement.id, calls: f.calls };
   })).toEqual({ active: [false, true], focused: 'content-action', calls: 1 });
 });
+
+for (const mode of ['source', 'built']) for (const concurrent of ['activation', 'removal', 'active add']) {
+  test(`${mode}: #628 L2 rejected active add respects subsequent ${concurrent}`, async ({ page, servers }) => {
+    await boot(page, servers, mode);
+    const result = await page.evaluate(async concurrent => {
+      const f = window.inputPolicy, A = await f.add('A'), B = await f.add('B');
+      const broken = Object.create(f.theme);
+      Object.defineProperty(broken, 'manifest', { get() { throw new Error('expected concurrent render failure'); } });
+      const failure = f.manager.add(broken, { title: 'Failed', state: 'active' }).then(() => null, e => e.message);
+      let C;
+      // These actions happen before the rejected add promise is observed. They must
+      // remain authoritative after its cleanup, rather than restoring a stale claim.
+      if (concurrent === 'activation') B.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+      if (concurrent === 'removal') { f.manager.remove(A); A.remove(); }
+      if (concurrent === 'active add') C = await f.add('C', 'active');
+      const error = await failure; await f.settle();
+      return { error, A: f.manager.describe(A)?.active ?? null, B: f.manager.describe(B)?.active ?? null,
+        C: C ? f.manager.describe(C)?.active : null };
+    }, concurrent);
+    expect(result.error).toContain('expected concurrent render failure');
+    if (concurrent === 'activation') expect(result).toMatchObject({ A: false, B: true });
+    if (concurrent === 'removal') expect(result).toMatchObject({ A: null, B: false });
+    if (concurrent === 'active add') expect(result).toMatchObject({ A: false, B: false, C: true });
+  });
+}
