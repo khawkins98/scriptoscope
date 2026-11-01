@@ -2,7 +2,8 @@
 // the region clip at the corpus's largest path (dolphin-som document-window,
 // content 1280 × 800), against a same-run `hit: 'box'` baseline (no clip).
 // WebKit is gated (median elementFromPoint ≤ 3.0 ms; frame p95 ≤ baseline + 3 ms).
-// Chromium and Firefox report only. Every engine records the runner identity and
+// Chromium and Firefox report only. The release-to-next-frame time (HP49 clip restore) is
+// reported in every engine, never gated. Every engine records the runner identity and
 // both medians, so a slow runner can be told apart from a regression.
 import os from 'node:os';
 import { test, expect, MODES, boot, state, settle } from './frame-pass-through-fixture.mjs';
@@ -50,10 +51,15 @@ for (const mode of MODES) {
       const hover = await frameP95(page, async () => { await page.mouse.move(20, title.out.y); await page.mouse.move(1290, title.out.y, { steps: 200 }); });
       const drag = await frameP95(page, async () => {
         await page.mouse.move(title.in.x, title.in.y); await page.mouse.down();
-        await page.mouse.move(title.in.x + 200, title.in.y + 100, { steps: 200 }); await page.mouse.up();
+        await page.mouse.move(title.in.x + 200, title.in.y + 100, { steps: 200 });
+        // HP49 restore cost (report-only): pointerup to the next frame.
+        await page.evaluate(() => { window.__release = null; addEventListener('pointerup', () => { const t = performance.now(); requestAnimationFrame(() => { window.__release = performance.now() - t; }); }, { capture: true, once: true }); });
+        await page.mouse.up();
       });
+      await page.waitForFunction(() => window.__release !== null);
+      const restoreMs = await page.evaluate(() => window.__release);
       await settle(page);
-      results[hit] = { median, hoverP95: hover.p95, dragP95: drag.p95, frames: [hover.frames, drag.frames] };
+      results[hit] = { median, hoverP95: hover.p95, dragP95: drag.p95, releaseToFrameMs: restoreMs, frames: [hover.frames, drag.frames] };
     }
     const observation = { browserName, browserVersion: browser.version(), mode, runner: runner(), baseline: results.box, region: results.region,
       gate: browserName === 'webkit' ? 'gated' : 'report-only', ceilings: { medianMs: 3.0, p95OverBaselineMs: 3 } };

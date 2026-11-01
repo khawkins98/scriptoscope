@@ -73,6 +73,7 @@ function snapshot(page) {
       scrollTop: descendants.reduce((sum, e) => sum + e.scrollTop, 0),
       placeholders: document.querySelectorAll('[data-scriptoscope-placeholder]').length,
       userResize: window.__userResize.length,
+      hitEffective: host.getAttribute('data-scriptoscope-hit-effective'),
     };
   }, PICKER);
 }
@@ -137,8 +138,13 @@ for (const mode of ['source', 'production']) {
     test(`${mode}: ${slug} bottom-right corner pixel still resizes (#524)`, async ({ page, demo, production }) => {
       await openShowcase(page, mode === 'source' ? demo : production, slug);
       const before = await snapshot(page);
-      const x = Math.ceil(before.chrome.x + before.chrome.w) - 1;
-      const y = Math.ceil(before.chrome.y + before.chrome.h) - 1;
+      // hit-regions HP18, PM ruling B (#597): in region mode at a fractional host position the clip
+      // edge may snap to a whole pixel (Firefox), so the outermost pixel is pressed one pixel inward.
+      // Whole-pixel positions and box mode stay exact at the outermost pixel.
+      const r = before.chrome.x + before.chrome.w, b = before.chrome.y + before.chrome.h;
+      const inset = before.hitEffective === 'region' && !(Number.isInteger(r) && Number.isInteger(b)) ? 1 : 0;
+      const x = Math.ceil(r) - 1 - inset;
+      const y = Math.ceil(b) - 1 - inset;
       const hit = await hitAt(page, x, y);
       await page.mouse.move(x, y);
       await page.mouse.down();
@@ -147,7 +153,7 @@ for (const mode of ['source', 'production']) {
       await page.mouse.up();
       await page.waitForTimeout(300);
       const after = await snapshot(page);
-      const why = `${slug} corner (${x}, ${y}) hit ${hit}`;
+      const why = `${slug} corner (${x}, ${y})${inset ? ' (1 px inward: region mode, fractional host)' : ''} hit ${hit}`;
       expect(after.userResize, `${why}: no scriptoscope:userresize`).toBeGreaterThan(0);
       expect(after.chrome.h, `${why}: height unchanged`).toBeGreaterThan(before.chrome.h + 10);
       expect(after.chrome.w, `${why}: width unchanged`).toBeLessThan(before.chrome.w - 10);

@@ -1,6 +1,6 @@
 // #597 frame pass-through, recompute, identity and gesture hooks
 // (docs/spec/engine/hit-regions.md §9.4, §9.5, §9.8): HPT4, HPT5, HPT6, HPT13,
-// HPT14, HPT25, HPT26, HPT27, HPT30, HPT31, HPT32, HPT35, HPT38, HPT39 (top- and side-titled).
+// HPT14, HPT25, HPT26, HPT27, HPT30, HPT31, HPT32, HPT35, HPT38, HPT39 (top- and side-titled), HPT41.
 import { test, expect, MODES, boot, fixture, hitAt, state, events, settle, regionLogs, capture, SENTINEL_RGB } from './frame-pass-through-fixture.mjs';
 
 /** Snapshot the decoded S of `name` for a later comparison (chrome pixels; host origin fixed). */
@@ -555,6 +555,109 @@ for (const mode of MODES) {
     expect(synth.nPasses, 'synthetic: decoded top/bottom cell pixels the layout places').toBeGreaterThan(0);
     expect(synth.passes.filter(([, h]) => h !== 'sentinel'), 'synthetic: top/bottom cell pixels pass (SR6 under HP48)').toEqual([]);
     expect(synth.strip.filter(([, h]) => h !== 'host:S'), 'synthetic: the left title strip still hits').toEqual([]);
+  });
+
+
+  for (const part of ['pointer', 'pointercancel', 'lostpointercapture', 'collapse', 'retheme', 'keyboard']) test(`${mode}: HPT41 (${part}) the clip is suspended during a captured drag or resize and restored when it ends (HP49)`, async ({ page, servers }) => {
+    test.setTimeout(180_000);
+    await boot(page, servers, mode);
+    // A timeline of L2 clip-path writes and gesture events, in the order the page sees them.
+    const setup = () => page.evaluate(async () => {
+      const f = window.__fpt; f.reset(); f.manager(); await f.add('A', { slug: 'dolphin-som', left: 100, top: 120 });
+      const { L2 } = f.layers('A');
+      window.__tl = [];
+      window.__mo?.disconnect();
+      window.__mo = new MutationObserver(() => window.__tl.push(`clip:${L2.style.clipPath.startsWith('path(') ? 'path' : L2.style.clipPath || 'unset'}`));
+      window.__mo.observe(L2, { attributes: true, attributeFilter: ['style'] });
+      if (!window.__tlEvents) {
+        window.__tlEvents = true;
+        for (const t of ['pointerup', 'pointercancel', 'lostpointercapture']) addEventListener(t, e => { window.__pid = e.pointerId; window.__tl.push(t); }, true);
+        addEventListener('pointerdown', e => { window.__pid = e.pointerId; }, true);
+      }
+    });
+    const clip = () => page.evaluate(() => { const v = getComputedStyle(window.__fpt.layers('A').L2).clipPath; return v.startsWith('path(') ? v : v; });
+    const tl = () => page.evaluate(async () => { await new Promise(r => setTimeout(r, 50)); return window.__tl.slice(); });
+    const isPath = v => v.startsWith('path(');
+    const begin = async (p, dx = 30, dy = 20) => { await page.mouse.move(p.x, p.y); await page.mouse.down(); await page.mouse.move(p.x + dx / 2, p.y + dy / 2, { steps: 2 }); await page.mouse.move(p.x + dx, p.y + dy, { steps: 2 }); };
+
+    let fix;
+    if (part === 'pointer') {
+    // Title-bar drag, ended by pointerup.
+    await setup();
+    fix = await fixture(page, 'A');
+    const committed = await clip();
+    expect(isPath(committed), 'committed clip').toBe(true);
+    await begin(fix.vp.p_in);
+    expect(await clip(), 'drag: suspended after the first move').toBe('none');
+    // Mid-drag capture with the pointer still matches box mode at the same position (HP49: invisible).
+    const box = await page.evaluate(() => window.__fpt.hosts.A.host.getBoundingClientRect().toJSON());
+    const shot = { x: box.x - 4, y: box.y - 4, width: box.width + 8, height: box.height + 8 };
+    const mid = await capture(page, shot);
+    await page.mouse.up(); await settle(page);
+    expect(await clip(), 'drag: restored to the committed path').toBe(committed);
+    const t = await tl();
+    expect(t.indexOf('pointerup') >= 0 && t.lastIndexOf('clip:path') > t.indexOf('pointerup'), `drag: restored only after the capture ends ${t}`).toBe(true);
+    fix = await fixture(page, 'A');
+    expect(await hitAt(page, fix.vp.p_out), 'drag: p_out passes again').toBe('sentinel');
+    await page.evaluate(async () => { const f = window.__fpt; await f.hosts.A.m.applyState(f.hosts.A.host, { hit: 'box' }); await f.settle(); });
+    const boxShot = await capture(page, shot);
+    let diff = 0; for (let k = 0; k < mid.data.length; k += 4) if (Math.abs(mid.data[k] - boxShot.data[k]) + Math.abs(mid.data[k + 1] - boxShot.data[k + 1]) + Math.abs(mid.data[k + 2] - boxShot.data[k + 2]) > 6) diff++;
+    expect(diff, 'mid-drag capture matches box mode at the same position').toBe(0);
+
+    // Grow-box resize: restored with the new commit's S.
+    await setup();
+    fix = await fixture(page, 'A');
+    const before = await clip();
+    const gb = await page.evaluate(() => { const r = window.__fpt.hosts.A.host.shadowRoot.querySelector('button.scriptoscope-growbox').getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; });
+    await begin(gb, 40, 30);
+    expect(await clip(), 'resize: suspended after the first move').toBe('none');
+    await page.mouse.up(); await settle(page, 300);
+    const after = await clip();
+    expect(isPath(after) && after !== before, 'resize: restored with a new path').toBe(true);
+    const t2 = await tl();
+    expect(t2.lastIndexOf('clip:path') > t2.indexOf('pointerup'), `resize: restored after pointerup ${t2}`).toBe(true);
+    const newFix = await fixture(page, 'A');
+    expect(await hitAt(page, newFix.vp.p_out), 'resize: the new S applies').toBe('sentinel');
+    }
+
+    // Ended by pointercancel, by lostpointercapture, by a collapse and by a retheme mid-drag.
+    for (const ending of ['pointercancel', 'lostpointercapture', 'collapse', 'retheme'].filter(e => e === part)) {
+      await setup();
+      fix = await fixture(page, 'A');
+      const committedNow = await clip();
+      await begin(fix.vp.p_in);
+      expect(await clip(), `${ending}: suspended`).toBe('none');
+      await page.evaluate(async ending => {
+        const f = window.__fpt, host = f.hosts.A.host, L1 = host.shadowRoot.firstElementChild;
+        if (ending === 'pointercancel') L1.dispatchEvent(new PointerEvent('pointercancel', { pointerId: window.__pid, pointerType: 'mouse', bubbles: true, composed: true }));
+        else if (ending === 'lostpointercapture') L1.releasePointerCapture(window.__pid);
+        else if (ending === 'collapse') await f.hosts.A.m.applyState(host, { collapsed: true });
+        else { await f.managers[0].retheme(await f.theme('1984')); f.hosts.A.slug = '1984'; }
+        await f.settle();
+      }, ending);
+      // WebKit delivers lostpointercapture with the pointer's next event (#577).
+      if (ending === 'lostpointercapture') await page.mouse.move(fix.vp.p_in.x + 31, fix.vp.p_in.y + 21);
+      await settle(page);
+      const restored = await clip();
+      expect(restored.slice(0, 12) + (isPath(restored) ? "" : ` effective=${(await state(page, "A")).hitEffective}`), `${ending}: restored while the button is still down`).toMatch(/^path\(/);
+      if (ending === 'retheme' || ending === 'collapse') expect(restored, `${ending}: the new commit's path`).not.toBe(committedNow);
+      else expect(restored, `${ending}: the committed path`).toBe(committedNow);
+      await page.mouse.up(); await settle(page);
+      expect(isPath(await clip()), `${ending}: still restored after release`).toBe(true);
+    }
+
+    if (part !== 'keyboard') return;
+    // Keyboard move and resize steps never touch the clip.
+    await setup();
+    await page.evaluate(() => { window.__tl.length = 0; });
+    for (const sel of ['.scriptoscope-movehandle', 'button.scriptoscope-growbox']) {
+      await page.evaluate(sel => window.__fpt.hosts.A.host.shadowRoot.querySelector(sel).focus(), sel);
+      for (let i = 0; i < 3; i++) await page.keyboard.press('ArrowRight'); // real (composed) key events
+    }
+    await settle(page, 300);
+    expect(await page.evaluate(() => window.__fpt.geom('A').W), 'keyboard steps happened').toBeGreaterThan(0);
+    expect((await tl()).filter(x => x === 'clip:none'), 'keyboard steps: never suspended').toEqual([]);
+    expect(isPath(await clip())).toBe(true);
   });
 
 }
