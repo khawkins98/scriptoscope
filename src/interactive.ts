@@ -939,6 +939,10 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
   private pendingTap: number | null = null;
   /** A later deliberate activation supersedes an initial add's rollback authority. */
   private activationEpoch = 0;
+  /** Provisional claims keep request order but cannot replace successful restoration authority. */
+  private activeClaim = 0;
+  private successfulClaim = 0;
+  private activeAuthority: ManagedWindow<Theme> | undefined;
 
   /** `hit`: the page-wide default for windows without their own request (`'region'` when
    *  absent; hit-regions HP14). */
@@ -1093,8 +1097,8 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     // Initial focus (#614 IP6-IP8): an explicit 'active' request wins, the last one added; with no
     // request only the first window starts active. An explicit 'inactive' never starts active.
     const claims = opts.state === 'active';
-    const priorActive = this.windows.find(w => w.active);
-    const activation = claims ? ++this.activationEpoch : this.activationEpoch;
+    const activation = this.activationEpoch;
+    const claim = claims ? ++this.activeClaim : 0;
     const entry: ManagedWindow<Theme> = {
       theme, opts, handlers, host, renderEpoch: 0, commitEpoch: 0, applyStateEpoch: 0, initializing: true, contentPort: new ManagedContentPort(), lifetime: new AbortController(),
       ...(opts.reuseCanvas ? { chromeCanvas: opts.reuseCanvas } : {}),
@@ -1134,17 +1138,23 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     try {
       await this.render(entry, true);
       entry.initializing = false;
+      if (this.windows.includes(entry) && activation === this.activationEpoch) {
+        if (claims && claim > this.successfulClaim) {
+          this.successfulClaim = claim;
+          this.activeAuthority = entry;
+          // A newer pending claim still owns provisional chrome until it settles.
+          if (!this.windows.some(w => w !== entry && w.active && w.initializing)) await this.focus(entry, true);
+        } else if (!claims && entry.active) this.activeAuthority = entry;
+      }
       return host;
     } catch (error) {
       // The caller never receives this detached host when preparation fails.
       // Drop its entry/listeners here so retrying does not leave a phantom
       // window behind or make the first successful window start inactive.
       this.remove(host);
-      if (claims && activation === this.activationEpoch && priorActive && this.windows.includes(priorActive)) {
-        priorActive.active = true;
-        this.syncOutside();
-        await this.render(priorActive);
-      }
+      const authority = this.activeAuthority;
+      if (claims && activation === this.activationEpoch && !this.windows.some(w => w.active)
+        && authority && this.windows.includes(authority)) await this.focus(authority, true);
       throw error;
     }
   }
@@ -1155,6 +1165,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
   remove(host: HTMLElement): void {
     const i = this.windows.findIndex((w) => w.host === host);
     if (i < 0) return;
+    if (this.activeAuthority === this.windows[i]) this.activeAuthority = undefined;
     this.windows[i]!.renderEpoch++;
     this.windows[i]!.widgetGesture?.abort();
     this.windows[i]!.lifetime.abort();
@@ -1354,10 +1365,13 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     }
   }
 
-  private async focus(entry: ManagedWindow<Theme>): Promise<void> {
+  private async focus(entry: ManagedWindow<Theme>, automatic = false): Promise<void> {
     if (!this.windows.includes(entry)) return;
-    this.activationEpoch++;
-    entry.z = ++this.zClock; // raise above all (even if already active — re-clicking a window fronts it)
+    if (!automatic) {
+      this.activationEpoch++;
+      this.activeAuthority = entry;
+      entry.z = ++this.zClock; // re-clicking an active window still fronts it
+    }
     if (entry.active) {
       debug('focus', `${entry.opts.title ?? '(untitled)'} — already active, z=${entry.z}`);
       entry.host.style.zIndex = this.zIndexFor(entry);
@@ -1758,6 +1772,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     const entry = this.windows.find(w => w.active);
     if (!entry) return;
     this.activationEpoch++;
+    this.activeAuthority = undefined;
     entry.active = false;
     debug('focus', `${entry.opts.title ?? '(untitled)'} — deactivated by an outside press`);
     entry.host.style.zIndex = this.zIndexFor(entry);
