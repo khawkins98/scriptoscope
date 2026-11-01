@@ -21,10 +21,19 @@ const { WindowManager } = await import('./interactive.ts');
 
 class Host extends EventTarget {
   style = {};
+  offsetWidth = 260; offsetHeight = 160;
+  getBoundingClientRect() { return { left: 0, top: 0, width: 260, height: 160 }; }
+  appendChild() {}
+  remove() {}
+  captures = 0;
+  setPointerCapture() { this.captures++; }
+  hasPointerCapture() { return true; }
+  releasePointerCapture() {}
   setAttribute() {}
   attachShadow() { this.shadowRoot = new EventTarget(); }
 }
-globalThis.document = { createElement: () => new Host() };
+globalThis.document = Object.assign(new EventTarget(), { createElement: () => new Host() });
+globalThis.getComputedStyle = () => ({ transform: 'none' });
 const deferred = () => {
   let resolve, reject;
   const promise = new Promise((yes, no) => { resolve = yes; reject = no; });
@@ -100,3 +109,41 @@ for (const operation of ['focus', 'deactivate', 'remove', 'dispose']) test(`${op
   await focused;
   assert.deepEqual(h.active(), operation === 'focus' ? ['D'] : []);
 });
+
+// Implementation-owned reentrancy checks from window-hit-policy.md, without browser fixtures.
+function pointer(target, type, x = 1) {
+  const event = new Event(type, { cancelable: true });
+  Object.assign(event, { pointerId: 7, pointerType: 'mouse', button: 0, isPrimary: true, clientX: x, clientY: x });
+  target.dispatchEvent(event);
+}
+for (const kind of ['move', 'resize']) for (const phase of ['setup', 'moving']) {
+  for (const operation of ['remove', 'dispose']) test(`${operation} during ${kind} ${phase} ends the gesture`, async () => {
+    const h = harness(), host = await h.add('A');
+    const entry = h.manager.windows[0], win = new Host(), controls = new Map();
+    entry.layers = { decor: new Host(), hit: new Host() };
+    entry.frameAbort = new AbortController();
+    win._scriptoscopeComposed = { frame: { left: 10, right: 10, top: 10, bottom: 10 }, fullWidth: 260, fullHeight: 160 };
+    h.manager.overlay = (_entry, _win, role) => {
+      const control = new Host(); controls.set(role, control); return control;
+    };
+    h.manager.toAbsolute = () => ({ x: 0, y: 0 });
+    const end = () => operation === 'remove' ? h.manager.remove(host) : h.manager.dispose();
+    h.manager.claimFocus = () => { if (phase === 'setup') end(); };
+    h.manager.wireMoveResize(entry, win, entry.frameAbort.signal);
+    const target = kind === 'move' ? win : controls.get('growbox');
+    let listenerAdds = 0;
+    const originalAdd = document.addEventListener;
+    document.addEventListener = function (...args) { listenerAdds++; return originalAdd.apply(this, args); };
+    try {
+      pointer(target, 'pointerdown');
+      if (phase === 'moving') { pointer(document, 'pointermove', 20); end(); }
+      const snapshot = { ...host.style }, count = listenerAdds;
+      await h.add('fresh');
+      pointer(document, 'pointermove', 40); pointer(document, 'pointerup', 40);
+      assert.deepEqual(host.style, snapshot);
+      assert.equal(listenerAdds, count);
+      assert.equal(target.captures, phase === 'setup' ? 0 : 1);
+      if (phase === 'setup') assert.equal(listenerAdds, 0);
+    } finally { document.addEventListener = originalAdd; }
+  });
+}
