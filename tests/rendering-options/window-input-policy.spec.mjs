@@ -287,9 +287,10 @@ for (const mode of ['source', 'built']) for (const order of ['B,C', 'C,B']) {
         }]));
         for (const title of order.split(',')) {
           f.claims[title].release();
-          outcomes.push(await f.claims[title].outcome);
           await f.settle(); snapshots.push(snapshot());
         }
+        outcomes.push(...await Promise.all(order.split(',').map(title => f.claims[title].outcome)));
+        await f.settle(); snapshots.push(snapshot());
         // Remove all successful windows: a new default add must be first/active,
         // proving neither rejected provisional entry remains managed.
         for (const host of Object.values(f.hosts)) { f.manager.remove(host); host.remove(); }
@@ -329,3 +330,83 @@ for (const mode of ['source', 'built']) test(`${mode}: #628 L2 immediate overlap
   expect(result.statuses).toEqual(['rejected', 'rejected']);
   expect(result).toMatchObject({ active: true, chrome: 'active' });
 });
+
+for (const mode of ['source', 'built']) {
+  for (const schedule of ['C fails, B succeeds', 'B succeeds, C fails', 'C succeeds, B succeeds', 'B succeeds, C succeeds']) {
+    for (const authority of ['none', 'inside focus', 'outside deactivation', 'unrelated removal']) {
+      test(`${mode}: #628 L2 pending request order ${schedule} with ${authority}`, async ({ page, servers }) => {
+        const errors = [];
+        page.on('pageerror', error => errors.push(error.message));
+        await boot(page, servers, mode);
+        await page.evaluate(async () => {
+          const f = window.inputPolicy;
+          f.hosts.A = await f.add('A');
+          const content = document.createElement('input'); content.id = 'order-focus';
+          f.hosts.D = await f.manager.add(f.theme, { title: 'D', state: 'inactive' }, {}, { contentEl: content });
+          document.querySelector('#after').before(f.hosts.D);
+          f.claims = {};
+          for (const title of ['B', 'C']) {
+            let release, entered;
+            const gate = new Promise(resolve => { release = resolve; });
+            const started = new Promise(resolve => { entered = resolve; });
+            const urls = new Map();
+            const manifest = JSON.parse(JSON.stringify(f.theme.manifest, (_key, value) => {
+              if (typeof value !== 'string' || !/^(blob:|data:|https?:)/.test(value)) return value;
+              const ref = `held-${urls.size}`; urls.set(ref, value); return ref;
+            }));
+            const theme = { kind: 'owned-theme', source: { manifest }, origin: `order-${title}`,
+              async imageUrl(ref) {
+                entered(); const fail = await gate;
+                if (fail) throw new Error(`expected ordered failure ${title}`);
+                if (!urls.has(ref)) throw new Error(`unexpected fixture asset ${ref}`);
+                return urls.get(ref);
+              }, dispose() {} };
+            const outcome = f.manager.add(theme, { title, state: 'active' }).then(host => {
+              f.hosts[title] = host; document.querySelector('#after').before(host); return 'succeeded';
+            }, error => error.message);
+            f.claims[title] = { release, started, outcome };
+          }
+          await Promise.all(Object.values(f.claims).map(claim => claim.started));
+        });
+        if (authority === 'inside focus') await page.locator('#order-focus').focus();
+        if (authority === 'outside deactivation') await page.locator('#before').click();
+        if (authority === 'unrelated removal') await page.evaluate(() => {
+          const f = window.inputPolicy; f.manager.remove(f.hosts.D); f.hosts.D.remove(); delete f.hosts.D;
+        });
+        const result = await page.evaluate(async schedule => {
+          const f = window.inputPolicy, outcomes = [], snapshots = [];
+          for (const step of schedule.split(', ')) {
+            const [title, outcome] = step.split(' ');
+            f.claims[title].release(outcome === 'fails');
+            // A failed claim must not require an older pending claim to finish
+            // before restoring a successful window. Observe that intermediate state
+            // before releasing the next gate; collect all outcomes afterward.
+            if (outcome === 'succeeds') await f.claims[title].outcome;
+            await f.settle();
+            snapshots.push(Object.fromEntries(Object.entries(f.hosts).map(([title, host]) => [title, {
+              active: f.manager.describe(host)?.active,
+              chrome: host.shadowRoot.querySelector('[data-scriptoscope-current-state]')?.dataset.scriptoscopeCurrentState,
+            }])));
+          }
+          outcomes.push(...await Promise.all(schedule.split(', ').map(step => f.claims[step[0]].outcome)));
+          await f.settle();
+          snapshots.push(Object.fromEntries(Object.entries(f.hosts).map(([title, host]) => [title, {
+            active: f.manager.describe(host)?.active,
+            chrome: host.shadowRoot.querySelector('[data-scriptoscope-current-state]')?.dataset.scriptoscopeCurrentState,
+          }])));
+          return { outcomes, snapshots };
+        }, schedule);
+        expect(result.outcomes).toEqual(schedule.split(', ').map(step => step.endsWith('fails') ? `expected ordered failure ${step[0]}` : 'succeeded'));
+        expect(errors).toEqual([]);
+        const expectedWinner = authority === 'inside focus' ? 'D' : authority === 'outside deactivation' ? null : schedule.includes('C fails') ? 'B' : 'C';
+        for (const [title, value] of Object.entries(result.snapshots.at(-1))) expect(value, `final ${title}: successful request order and user authority`).toEqual({ active: title === expectedWinner, chrome: title === expectedWinner ? 'active' : 'inactive' });
+        if (schedule === 'C fails, B succeeds' && ['none', 'unrelated removal'].includes(authority)) {
+          expect(result.snapshots[0].A, 'failed C restores successful A while B remains pending').toEqual({ active: true, chrome: 'active' });
+        }
+        if (schedule === 'B succeeds, C fails' && ['none', 'unrelated removal'].includes(authority)) {
+          expect(result.snapshots.at(-1).B, 'failed C restores already-successful B').toEqual({ active: true, chrome: 'active' });
+        }
+      });
+    }
+  }
+}
