@@ -338,8 +338,9 @@ sizes make centered dots easier. Verify state masks and glyph alignment.
 - **Window widgets:** author rectangle sizes/positions inside fixed cells.
   Normal/pressed masks must match. Generate `-14330` with `stripLayout` and
   `pressedStripFrom`; cumulative widths determine offsets. Classic utilities
-  use their own `-14298`. The web uses the document strip for every window,
-  so corresponding utility pieces must remain compatible. See [R24](./authoring-exotic-frames.md#5-pressed-widgets-r24).
+  use their own `-14298`. Web document and titled-utility windows use the
+  document strip; side-titled forms also try `-14338`. Corresponding utility
+  pieces must remain compatible. See [R24](./authoring-exotic-frames.md#5-pressed-widgets-r24).
 
 ### 6.4 Reuse a family from another scheme
 

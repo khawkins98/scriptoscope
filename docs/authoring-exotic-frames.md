@@ -81,9 +81,11 @@ ornament, not just the title bar. Leave sky between ornaments transparent.
 requires an enclosing side band. Transparent gutter pixels consume content
 inset too. Left and right insets may differ.
 
-**R15. Web hit shape remains rectangular.** Transparent frame pixels expose
-the backdrop visually but remain within the window's drag area. Widget hits
-use their masks.
+**R15. Managed recipe windows use mask-shaped hit regions.** Transparent frame
+pixels pass pointer input to what lies beneath by default. `hit: "box"` opts
+out; bare `renderWindow()` and modal-exempt hosts retain box behavior. Widget
+hits must also lie within the frame region. See the
+[web host policy](./spec/engine/hit-regions.md) for scope and exceptions.
 
 **R16. Native observations are separate evidence.** Kaleidoscope 2.3.1 has been
 observed to pass clicks through transparent frame pixels, clip above-bar art
@@ -134,7 +136,8 @@ outside slider/track masks should remain transparent to expose the actual body.
 ## 5. Pressed widgets (R24)
 
 **R24. Pressed strips are geometry, not just alternate pictures.** The web needs
-`cicn -14330` for clickable window widgets. Close, zoom and collapse pieces use
+a pressed strip for clickable window widgets (normally `cicn -14330`). Close,
+zoom and collapse pieces use
 cumulative rectangle widths; a second row can contain collapsed states when the
 strip is at least twice the widget height. Mask coordinates must match 1:1.
 The resting picture is already in the frame; there is no rollover state.
@@ -143,8 +146,9 @@ Widget sizes are scheme-defined, not fixed at 14 px. Budget each rectangle
 inside fixed cells and regenerate the strip when changing sizes or positions.
 Review title room, masks and native behavior at the chosen sizes.
 
-The web uses `-14330` for all windows. Native titled utilities use `-14298`, and
-side-floating windows use `-14290`. Offsets are calculated from each window's
+Web document and titled-utility windows use `-14330`; side-titled forms also
+try `-14338`. Native titled utilities use `-14298`; native side-title lookup
+starts at `-14290` with `-14298` fallback. Offsets come from each window's
 own rectangle list: omitting zoom can make collapse read the strip's zoom piece.
 Use matching corresponding pieces, or a simpler compatible widget set. Generate
 strips with `stripLayout()` / `pressedStripFrom()` and test normal/pressed masks
@@ -160,9 +164,10 @@ popup authoring as limited support and test it explicitly.
 
 **R26. Side-floating forms have separate resources.** Side-floating uses
 `-14296`, collapsed `-14292`; no-title utility uses `-14288` / `-14284`.
-The web hides their titles, does not set the side-title flag and can compute the
-wrong collapsed height. It also uses the document pressed strip. Do not assume
-ordinary document behavior applies to these forms.
+The web hides their titles but sets the side-title flag from the rendered type.
+Collapsing a side-titled recipe empties content width and draws only left/right
+sides; ordinary collapse empties height and draws top/bottom. Side-titled
+pressed-strip lookup follows R24.
 
 ## 7. Other features and known gaps (R27–R30)
 
@@ -179,14 +184,18 @@ letters; a tall rectangle cannot rescue a short painted plate.
 **R29. Window identities are canonical.** Use
 [`window-type-identities.js`](../tools/theme-loader/window-type-identities.js)
 for resource IDs. A `wnd#` N pairs with inactive `cicn` N and active N+1, with
-equal dimensions. Collapsed forms have title-band-only recipes. Web titles are
+equal dimensions. Collapsed drawing uses only title-axis sides; author collapsed
+art accordingly. Web titles are
 hidden on dialog, alert, no-title utility and side-floating forms; document,
 titled utility, movable modal/alert and popup can show titles.
 
 **R30. Remaining web gaps.** `wnd#` grow-box art is not drawn although the
 bottom-right resize overlay is live. Widget-presence branches, condensed titles,
 below-template budgets, per-window `cinf`, popups and side-floating forms have
-the limitations above. Native clicks through transparent chrome also differ.
+the limitations above. Native inactive title widgets answer as drag-region
+presses; the web keeps public widgets operable. See
+[widget input](./spec/engine/window-widgets.md) and the
+[interaction guide](./interaction.md) for that distinction.
 Use exact-build native captures rather than treating browser output as a golden
 reference for those behaviors.
 

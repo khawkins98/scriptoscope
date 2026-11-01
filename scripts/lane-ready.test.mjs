@@ -439,10 +439,12 @@ test('package.json wires lane:ready and ledger:sync, and gates keeps lint:cleanr
   assert.match(scripts.test, /scripts\/\*\.test\.mjs/);
 });
 
-test('the docs + ledger workflow runs on every main PR and push (no paths filter) with the no-browser checks', () => {
+test('the docs + ledger workflow runs on every PR including stacks, and main pushes, with no paths filter', () => {
   const wf = readFileSync(join(repo, '.github/workflows/v2-docs.yml'), 'utf8');
   assert.doesNotMatch(wf, /paths(-ignore)?:/);
-  assert.match(wf, /pull_request:\n\s+branches: \[main\]/);
+  assert.match(wf, /^  pull_request:[ \t]*$/m);
+  const prConfig = wf.split('  pull_request:\n')[1].split(/^  \w+:/m)[0];
+  assert.doesNotMatch(prConfig, /branches(?:-ignore)?:/, 'stacked PR targets must receive the same checks');
   assert.match(wf, /push:\n\s+branches: \[main\]/);
   // Push runs each check one ledger-history delta (event.before..sha): never cancel or queue-replace them.
   assert.match(wf, /concurrency:\n\s+group: v2-docs-\$\{\{ github\.event_name == 'pull_request' && github\.ref \|\| github\.sha \}\}\n\s+cancel-in-progress: \$\{\{ github\.event_name == 'pull_request' \}\}/);
@@ -455,6 +457,8 @@ test('the docs + ledger workflow runs on every main PR and push (no paths filter
 
 test('CI builds the Pages demo and loader after the library build, without deploying', () => {
   const wf = readFileSync(join(repo, '.github/workflows/ci.yml'), 'utf8');
+  const prConfig = wf.split('  pull_request:\n')[1].split(/^\S/m)[0];
+  assert.doesNotMatch(prConfig, /branches(?:-ignore)?:/, 'stacked PR targets receive regular CI');
   const lib = wf.indexOf('run: npm run build\n'), demo = wf.indexOf('run: npm run build:demo');
   assert.ok(lib > 0 && demo > lib, 'build:demo runs after the library build');
   assert.doesNotMatch(wf, /deploy-pages|upload-pages-artifact/);
