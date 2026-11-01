@@ -8,7 +8,8 @@ export type SizeMode = 'declared' | 'fit';
 export interface ParsedWindow {
   windowType: string; // default 'document-window'
   title?: string;
-  state: 'active' | 'inactive'; // default 'active'
+  /** Omitted when undeclared (#614 IP9): only the first window of a manager starts active then. */
+  state?: 'active' | 'inactive';
   x?: number;
   y?: number;
   width?: number; // CONTENT width (px)
@@ -83,10 +84,10 @@ export function parseWindowAttrs(d: Record<string, string | undefined>): ParsedW
       );
   return {
     windowType: d.scriptoscopeWindowType?.trim() || 'document-window',
-    state: d.scriptoscopeState === 'inactive' ? 'inactive' : 'active',
     sizeMode: width === undefined && height === undefined ? 'fit' : 'declared',
     collapsed: present(d.scriptoscopeCollapsed),
     ...(enabledWidgets !== undefined ? { enabledWidgets } : {}),
+    ...(d.scriptoscopeState === 'active' || d.scriptoscopeState === 'inactive' ? { state: d.scriptoscopeState } : {}),
     ...(d.scriptoscopeTitle != null ? { title: d.scriptoscopeTitle } : {}),
     ...(x !== undefined ? { x } : {}),
     ...(y !== undefined ? { y } : {}),

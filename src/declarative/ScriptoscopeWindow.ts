@@ -247,7 +247,8 @@ export class ScriptoscopeWindow<Theme extends ThemeInput = LoadedTheme> {
         deps.theme,
         {
           // A bounded (outer) axis ignores its width/height here.
-          windowType: parsed.windowType, width: w0, height: h0, state: parsed.state,
+          windowType: parsed.windowType, width: w0, height: h0,
+          ...(parsed.state ? { state: parsed.state } : {}),
           ...(parsed.title != null ? { title: parsed.title } : {}),
         },
         { onClose: () => inst?.unmount() },

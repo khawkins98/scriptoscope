@@ -758,6 +758,9 @@ interface ManagedWindow<Theme extends ThemeInput> {
   handlers: TitleWidgetHandlers;
   host: HTMLElement;
   active: boolean;
+  /** #614 IP1: the last widget pointer press began on an inactive window, so the click ending that
+   *  gesture runs no action. Kept on the entry: the activation commit rebinds the widget listeners. */
+  inertClick?: boolean;
   /** Stacking order. Bumped to the top each focus; render() maps it to z-index (active windows sit
    *  above inactive ones at the same recency). Generalizes the old two-level (1/2) z so 3+ windows
    *  and modals stack correctly. */
@@ -1068,12 +1071,13 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     // NB: role + aria-label live on the INNER `.scriptoscope-window` element built by renderWindow.ts (which
     // emits role=dialog for utility windows, role=group otherwise; aria-label=title). Don't duplicate
     // them on the host — double-labelling makes screen readers announce the window twice.
-    // Initial focus: the first window added is active — UNLESS it explicitly requests inactive
-    // (so a declarative `data-scriptoscope-state="inactive"` is honored; then no window starts focused).
+    // Initial focus (#614 IP6-IP8): an explicit 'active' request wins, the last one added; with no
+    // request only the first window starts active. An explicit 'inactive' never starts active.
+    const claims = opts.state === 'active';
     const entry: ManagedWindow<Theme> = {
       theme, opts, handlers, host, renderEpoch: 0, commitEpoch: 0, applyStateEpoch: 0, initializing: true, contentPort: new ManagedContentPort(),
       ...(opts.reuseCanvas ? { chromeCanvas: opts.reuseCanvas } : {}),
-      active: this.windows.length === 0 && opts.state !== 'inactive',
+      active: claims || (this.windows.length === 0 && opts.state !== 'inactive'),
       // Declared z (data-scriptoscope-z) wins; else take the next stacking-clock tick. We still bump the
       // clock either way so subsequent focus events stay monotonic relative to any declared values.
       z: extra.z ?? ++this.zClock,
@@ -1084,6 +1088,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       hit: parseHit(extra.hit, 'WindowManager.add'),
     };
     if (extra.z != null && extra.z > this.zClock) this.zClock = extra.z; // keep clock above declared
+    for (const w of claims ? this.windows : []) if (w.active) { w.active = false; w.host.style.zIndex = this.zIndexFor(w); void this.render(w); }
     this.windows.push(entry);
     // mousedown (not click) so focus lands before any inner control acts.
     host.addEventListener('pointerdown', () => { void this.focus(entry); });
@@ -1977,15 +1982,16 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       void tick(true);
     }, { signal });
 
-    // Wheel: vertical bar handles deltaY (the dominant axis for mouse wheels); horizontal bar handles
-    // deltaX (trackpad horizontal swipe) AND shift+deltaY (the convention for "wheel to scroll
-    // horizontally"). Attach to the SAME scroll element — both listeners fire; each takes its axis.
+    // Wheel (#614 IP11-IP13): without Shift the vertical bar takes deltaY and the horizontal bar
+    // deltaX. With Shift the vertical bar takes nothing and the horizontal bar takes deltaX, or deltaY
+    // when the browser has not converted it. Both listeners sit on the SAME scroll element; each
+    // consumes the event only when its own amount counts.
     // Whole pixels, as every bar step (#556): the fraction carries to the next event, so slow
     // trackpad scrolls add up to their sum in either direction. A reversal drops the remainder,
     // so the leftover of the old direction never cancels the first step of the new one.
     let carry = 0;
     scrollEl.addEventListener('wheel', (e) => {
-      const delta = vertical || e.shiftKey ? e.deltaY : e.deltaX;
+      const delta = e.shiftKey ? (vertical ? 0 : e.deltaX || e.deltaY) : vertical ? e.deltaY : e.deltaX;
       if (Math.abs(delta) < 0.5) return;
       e.preventDefault();
       if (carry * delta < 0) carry = 0;
@@ -2022,11 +2028,9 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
   }
 
   /** Toggle zoom: grow to fit the content (capped), or restore the user/declared size.
-   *  Bumps z-order so a background window zoomed-to-fit comes to the front (otherwise it'd
-   *  re-render at the new size but stay buried — UX bug surfaced by 2026-05-28 review). */
+   *  Leaves z alone (#614 IP5): the widget click activates and raises an inactive window first. */
   private async toggleZoom(entry: ManagedWindow<Theme>): Promise<void> {
     if (entry.collapsed) entry.collapsed = false; // zooming an un-shades first
-    entry.z = ++this.zClock;                       // raise to front (fix from 2026-05-28 review)
     if (!entry.zoomed) {
       entry.userSize = { width: entry.opts.width, height: entry.opts.height, outer: entry.outer }; // may be undefined — preserved
       delete entry.outer; // the zoomed size is an explicit content size
@@ -2242,7 +2246,11 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     corner.addEventListener('pointerdown', (e) => {
       if ((e.pointerType === 'mouse' && e.button !== 0) || !e.isPrimary) return;
       e.preventDefault(); e.stopPropagation();
+      // #614 IP14: read before claimFocus, whose focusin activates. A first press on an inactive
+      // window only activates it and focuses the grow box: no resize and no frame drag.
+      const inactive = !entry.active;
       this.claimFocus(entry, corner);
+      if (inactive) { void this.focus(entry); return; }
       this.suspendClip(entry, true);
       void this.focus(entry);
       // Viewport to the host's CSS pixels under a transformed ancestor (#515, #519).
@@ -2363,7 +2371,25 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       const onWidget = (e: MouseEvent): boolean => !composed?.hitWidget
         || composed.hitWidget(Math.floor((hit.rect.x + e.offsetX) / scale), Math.floor((hit.rect.y + e.offsetY) / scale)) === hit.role;
       // A keyboard or assistive-technology click (detail 0) has no pointer position: it always acts (DECISIONS #12).
-      btn.addEventListener('click', (e) => { if (e.detail !== 0 && !onWidget(e)) return; e.stopPropagation(); if (currentChrome()) handler(); }, { signal });
+      // A pointer click ending a press that began on an inactive window runs nothing (#614 IP1).
+      btn.addEventListener('click', (e) => {
+        if (e.detail !== 0 && (entry.inertClick || !onWidget(e))) { entry.inertClick = false; return; }
+        e.stopPropagation();
+        if (!currentChrome()) return;
+        // IP5: zoom and collapse activate and raise an inactive window first; close does not.
+        if (hit.role === 'close' || entry.active) handler();
+        else void this.focus(entry).then(() => { if (this.windows.includes(entry)) handler(); });
+      }, { signal });
+      // IP1: read the window's state before anything activates it. On an inactive window the press is
+      // a frame press: it propagates to the frame's drag handler and the host, which activate and
+      // raise, and draws no pressed art. On the active window, stopPropagation keeps the host's
+      // focus handler from re-rendering (rebinding this button) mid-press.
+      let pressArt: (() => Promise<void>) | undefined;
+      btn.addEventListener('pointerdown', (e) => {
+        entry.inertClick = !entry.active;
+        if (entry.inertClick || !onWidget(e)) return;
+        e.preventDefault(); e.stopPropagation(); void pressArt?.();
+      }, { signal });
       if (chrome && cctx) {
         let pressedCanvas: HTMLCanvasElement | null | undefined;
         let cacheEpoch = -1, pressEpoch = -1, pressGeneration = 0;
@@ -2397,9 +2423,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
           if (currentChrome() && pressEpoch === entry.renderEpoch && normalSnap) cctx.drawImage(normalSnap, 0, 0);
           normalSnap = null;
         };
-        // stopPropagation so the window's mousedown→focus handler doesn't re-render (which would
-        // rebind this button mid-press); a widget press shouldn't require focusing the window first.
-        btn.addEventListener('pointerdown', (e) => { if (!onWidget(e)) return; e.preventDefault(); e.stopPropagation(); void press(); }, { signal });
+        pressArt = press;
         btn.addEventListener('pointerup', release, { signal });
         btn.addEventListener('pointerleave', release, { signal });
       }

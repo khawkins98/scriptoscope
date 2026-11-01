@@ -175,8 +175,9 @@ export async function renderWindow(
     // The pressed strip (WD11) gates every widget hit and draws the pressed widget (WD9, HT7).
     // Accessibility divergence (DECISIONS #12): `active` is deliberately not passed. The decode
     // makes an inactive window's widgets inert (window-widgets HT2); we keep focusable, operable
-    // buttons so keyboard and assistive-technology users can act on background windows. Widget
-    // art still follows the decode.
+    // buttons so keyboard and assistive-technology users can act on background windows. Pointer
+    // presses follow the decode in the interactive layer instead (#614 IP1). Widget art still
+    // follows the decode.
     const ids = widgetCicnIds();
     const strip = (await themeResourceChain(owner, ids.map((id) => ({ type: 'cicn', id })))).probe<IconSource>('cicn', ids);
     composed = composeWindowChrome(cicn!, wt, contentW, contentH, {
