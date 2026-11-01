@@ -17,7 +17,18 @@ async function setup(page, servers, mode) {
       // Preserve its original value, loader, archive, assets and composition.
       Object.defineProperty(type, 'model', { configurable: true, get() { selection.push({ owner: ['beos-r503', 'system7-nostalgia-silver', '1138'][i], key, model: model ?? 'sliced' }); return model; } });
     }
-    window.aliases = { runtime, themes, selection, snapshot(win) {
+    // #617: the collapsed content rect is emptied on the rendered type's title axis (window-widgets
+    // §2.1 C, CN2; hit-regions HP8/HP48): zero width for side-titled types (height kept), zero
+    // height otherwise. Frame-policy independent check: growing the expanded size by (dw, dh)
+    // must grow a collapsed side-titled window by (0, dh) and a top-titled one by (dw, 0).
+    const SIDE = new Set(['collapsed-side-utility', 'collapsed-side-floating-utility-window']);
+    const axisGrowth = async (theme, key) => {
+      if (theme.manifest.windowTypes[key].model) return null; // the built-in frame keeps its zero-height collapse
+      const size = async (w, h) => { const win = await runtime.renderWindow(theme, { width: w, height: h, title: 'Tools', windowType: key, collapsed: true }); const c = win.querySelector('canvas.scriptoscope-chrome'); return [c.width, c.height]; };
+      const [a, b] = [await size(180, 75), await size(220, 115)];
+      return { growth: [b[0] - a[0], b[1] - a[1]], expected: SIDE.has(key) ? [0, 40] : [40, 0] };
+    };
+    window.aliases = { runtime, themes, selection, axisGrowth, snapshot(win) {
       const canvas = win.querySelector('canvas.scriptoscope-chrome'), composed = win._scriptoscopeComposed;
       return { selected: selection.at(-1), width: canvas?.width, height: canvas?.height, frame: composed?.frame,
         pixels: canvas?.toDataURL(), background: win.querySelector('.scriptoscope-content')?.style.cssText };
@@ -55,13 +66,16 @@ for (const mode of ['source', 'built']) {
       const f = window.aliases, results = [];
       for (const theme of f.themes) for (const pair of pairs) {
         if (!theme.manifest.windowTypes[pair.legacy]) continue;
-        const expected = f.snapshot(await f.runtime.renderWindow(theme, { width: 180, height: 0, title: 'Tools', windowType: pair.legacy }));
+        // #617: the reference is the legacy collapsed type rendered collapsed at the expanded size.
+        const expected = f.snapshot(await f.runtime.renderWindow(theme, { width: 180, height: 75, title: 'Tools', windowType: pair.legacy, collapsed: true }));
+        const decoded = await f.axisGrowth(theme, pair.legacy);
         for (const base of [pair.base, `wnd-${pair.id - 4}`]) {
           const manager = new f.runtime.WindowManager();
           const host = await manager.add(theme, { width: 180, height: 75, title: 'Tools', windowType: base }, {}, { collapsed: true }); document.body.append(host);
           const actual = f.snapshot(host.shadowRoot.querySelector('.scriptoscope-window'));
           results.push({ owner: expected.selected.owner, base, expectedKey: pair.legacy, actualKey: actual.selected.key, model: actual.selected.model,
-            collapsed: manager.describe(host).collapsed, actualSize: [actual.width, actual.height], expectedSize: [expected.width, expected.height], samePixels: actual.pixels === expected.pixels });
+            collapsed: manager.describe(host).collapsed, actualSize: [actual.width, actual.height], expectedSize: [expected.width, expected.height], samePixels: actual.pixels === expected.pixels,
+            decodedSize: decoded });
           manager.remove(host);
         }
       }
@@ -70,6 +84,11 @@ for (const mode of ['source', 'built']) {
     await attachObservations(testInfo, 'window-aliases', `${mode}-manager`, { mode, observations });
     expect(observations).toHaveLength(18);
     expect(observations.filter(r => r.actualKey !== r.expectedKey || !r.collapsed || !r.samePixels || String(r.actualSize) !== String(r.expectedSize))).toEqual([]);
+    // Independent of the renderer: sliced collapsed sizes follow the title-axis rule from the decode.
+    // Sliced collapsed windows empty the title axis's cross dimension only (window-widgets §2.1 C, HP48).
+    expect(observations.filter(r => r.decodedSize && String(r.decodedSize.growth) !== String(r.decodedSize.expected))).toEqual([]);
+    expect(observations.filter(r => r.decodedSize).length, 'sliced rows checked').toBeGreaterThan(0);
+    expect(observations.filter(r => r.decodedSize && r.expectedKey === 'collapsed-side-utility').length, 'side-titled rows checked').toBeGreaterThan(0);
   });
 
   test(`${mode}: actual frame collapse and expansion restore authored geometry`, async ({ page, servers }, testInfo) => {
@@ -90,13 +109,15 @@ for (const mode of ['source', 'built']) {
         };
         await gesture();
         const collapsed = f.snapshot(host.shadowRoot.querySelector('.scriptoscope-window'));
-        const expected = f.snapshot(await f.runtime.renderWindow(theme, { width: 180, height: 0, title: 'Tools', windowType: pair.legacy }));
+        const expected = f.snapshot(await f.runtime.renderWindow(theme, { width: 180, height: 75, title: 'Tools', windowType: pair.legacy, collapsed: true }));
+        const decoded = await f.axisGrowth(theme, pair.legacy);
         const isCollapsed = manager.describe(host).collapsed;
         await gesture();
         const restored = f.snapshot(host.shadowRoot.querySelector('.scriptoscope-window'));
         results.push({ owner: expected.selected.owner, type: pair.base, collapsedKey: collapsed.selected.key,
           expectedKey: pair.legacy, isCollapsed, sameCollapsedPixels: collapsed.pixels === expected.pixels,
           sameExpandedPixels: restored.pixels === expanded.pixels, restoredHeight: manager.describe(host).height,
+          decodedSize: decoded,
           restoredExpanded: !manager.describe(host).collapsed });
         manager.remove(host);
       }
@@ -105,6 +126,7 @@ for (const mode of ['source', 'built']) {
     await attachObservations(testInfo, 'window-aliases', `${mode}-gesture`, { mode, observations });
     expect(observations).toHaveLength(9);
     expect(observations.filter(r => r.collapsedKey !== r.expectedKey || !r.isCollapsed || !r.sameCollapsedPixels || !r.sameExpandedPixels || !r.restoredExpanded || r.restoredHeight !== 75)).toEqual([]);
+    expect(observations.filter(r => r.decodedSize && String(r.decodedSize.growth) !== String(r.decodedSize.expected))).toEqual([]);
   });
 
   test(`${mode}: expanded-owner selection and exact conflicting aliases remain authoritative`, async ({ page, servers }, testInfo) => {
@@ -131,10 +153,12 @@ for (const mode of ['source', 'built']) {
           windowTypes: hasChildFrame ? { 'document-window': childSource.manifest.windowTypes['document-window'] } : {} } };
         const expectedOwner = hasChildFrame ? childSource : system7;
         const expectedKey = hasChildFrame ? 'document-window' : 'collapsed-titled-utility';
-        const expected = f.snapshot(await f.runtime.renderWindow(expectedOwner, { ...options, windowType: hasChildFrame ? 'titled-utility-window' : expectedKey }));
+        // #617: the manager collapses at the expanded size; the reference renders collapsed too.
+        const collapsedOpts = { ...options, height: 75, collapsed: true };
+        const expected = f.snapshot(await f.runtime.renderWindow(expectedOwner, { ...collapsedOpts, windowType: hasChildFrame ? 'titled-utility-window' : expectedKey }));
         // Reference child's retained fallback through the same public API, with
         // no base that could accidentally supply its collapsed art.
-        if (hasChildFrame) Object.assign(expected, f.snapshot(await f.runtime.renderWindow({ ...child, base: undefined }, { ...options, windowType: 'titled-utility-window' })));
+        if (hasChildFrame) Object.assign(expected, f.snapshot(await f.runtime.renderWindow({ ...child, base: undefined }, { ...collapsedOpts, windowType: 'titled-utility-window' })));
         const manager = new f.runtime.WindowManager();
         const host = await manager.add(child, { ...options, height: 75, windowType: 'titled-utility-window' }, {}, { collapsed: true });
         document.body.append(host);
