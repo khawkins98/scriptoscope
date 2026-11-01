@@ -52,7 +52,7 @@ d6 is loaded at the routine's entry: `0x1381a` `moveb %a0@(111),%d6`
 | `0x1740e..0x17428` | `tstb %a0@(111)`; `bnes`; `tstb %a4@(1145)`; `bnes`; 0 / 1 | *active* = `hilited` or *alwaysActive* | C |
 | `0x15b26..0x15b2c` | `bsrl 0x1740e`; `moveb %d0,%d3` | *active* kept in d3 | C |
 | `0x15baa` | `tstb %d3` | after the title-rect test: inactive skips UH4–UH6 | C |
-| `0x15b76..0x15b8c`, `0x15c20..0x15c88` | content test (UH3), then drag band (UH7) → 2, else 1 (UH8) | inactive grow rect: inside C → 1; outer 2 px (C.r..C.r+2, C.b..C.b+2, UG10 `0x173b4..0x1740c`) fall in the band (box right − 1 minus inset 6 reaches C.r − 1) → 2. Independent review at `49ae4b48` (A1) | C (reviewer) |
+| `0x15b76..0x15b8c`, `0x15c20..0x15c88` | content test (UH3), then drag band (UH7) → 2, else 1 (UH8) | inactive grow rect: inside C → 1; outer 2 px (C.r..C.r+2, C.b..C.b+2, UG10 `0x173b4..0x1740c`) fall in the band → 2. Structure: F = C outset 4 (`_InsetRect -4,-4` at `0x15984`); shadow = F's box with right/bottom − 1, shifted +2 (`0x15a4a..0x15a5e`), so box.r = C.r + 5. Band: box.r − 1 = C.r + 4 (`0x15c2e..0x15c32`), minus box inset 6 (`0x15c52`), so x ∈ [C.r − 2, C.r + 4). x = C.r + 4 (outermost shadow column) → 1. C.r − 2 and C.r − 1 lie in C, where UH3 answers first, except in the *smallGrow* cut-out (UG4), where they answer 2. Independent reviews at `49ae4b48` (A1) and `f8804cd4` (B1–B3) | C (reviewer) |
 | `0x16736`, `0x16756..0x16758` | `tstb %d3`; `beqw 0x16838` | stripes, then widgets, only when *active* | C |
 
 ## E6. Apple sources consulted
