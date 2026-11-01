@@ -233,7 +233,7 @@ function readCase(id) {
   const nativeState = native ? { ...elementMetadata(native), value: native.value ?? null,
     checked: native.checked ?? null, disabled: native.disabled ?? null, tag: native.tagName.toLowerCase() } : null;
   return { ...c, slug: record.slug, baseSlug: record.baseSlug ?? null, status: record.status, error: record.error ?? null,
-    runtimeUrl, cssUrl, devicePixelRatio, sourceZoom, labelZoom, renderPath: c.mode === 'managed' ? 'public-window-manager' : c.mode === 'direct' ? 'public-compositor' : 'public-declarative',
+    runtimeUrl, cssUrl, devicePixelRatio, sourceZoom, labelZoom, renderPath: c.mode === 'window' ? 'public-window-renderer' : c.mode === 'managed' ? 'public-window-manager' : c.mode === 'direct' ? 'public-compositor' : 'public-declarative',
     selector: selector(article), outputSelector: selector(output),
     canvases: [...(controlRoot ?? output).querySelectorAll('canvas')].map(canvasMetadata),
     native: nativeState, controls, windows: [...output.querySelectorAll('.matrix-window')].filter(e => e.shadowRoot).map(windowMetadata),
@@ -261,7 +261,8 @@ async function runCase(c, { slug, baseSlug, retain = false, includeReferences = 
   article.append(heading, output, section); matrix.append(article);
   const record = { c, slug, baseSlug, article, output, windowScale, status: 'rendered', reference: null }; records.set(key, record);
   try {
-    if (c.mode === 'managed') {
+    if (c.mode === 'window') output.append(await runtime.renderWindow(theme, c.options));
+    else if (c.mode === 'managed') {
       const manager = new runtime.WindowManager();
       const host = await manager.add(theme, c.options, {}, { collapsed: true });
       host.classList.add('matrix-window'); host.style.position = 'relative';

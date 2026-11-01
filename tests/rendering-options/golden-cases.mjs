@@ -11,5 +11,10 @@ export function goldenCasePages() {
     family: 'window', mode: 'managed', state: 'collapsed',
     options: { windowType, title: 'Collapsed inspector', width: 180, height: 100 },
   })));
+  pages.at(-1).push(...['titled-utility-window', 'side-floating-utility-window'].map(windowType => ({
+    id: `window/${windowType}/collapsed/pressed-close`, group: 'window/collapsed/pressed-close',
+    family: 'window', mode: 'window', state: 'collapsed-pressed-close',
+    options: { windowType, title: 'Pressed inspector', width: 180, height: 100, collapsed: true, pressedWidget: 'close' },
+  })));
   return pages;
 }

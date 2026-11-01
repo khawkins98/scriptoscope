@@ -52,7 +52,8 @@ Golden recording and verification are separate commands:
 
 All 70 bounded cases are captured in two independent contact-sheet pages per
 corpus theme (at most 35 cases each), yielding 36 controls PNGs. A third page adds two collapsed managed windows
-(document and side utility) per theme, for 54 PNGs in total. Each page gets
+(document and side utility) and two directly rendered collapsed utilities with
+the close widget pressed (top and side title axes) per theme, for 54 PNGs in total. Each page gets
 its own browser context, limiting retained DOM and capture size. The manifest
 records the exact per-page case inventory.
 The manifest gates browser/Playwright versions, platform, fonts, archive hashes,
