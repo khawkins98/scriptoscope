@@ -19,6 +19,14 @@ export const INTERACTION_SPECS = Object.freeze([
   'posture-b.spec.mjs',
   // Promote measurement and pointer tracking under transformed ancestors (#519).
   'transformed-ancestors.spec.mjs',
+  // Frame pass-through (#597, hit-regions §9.8 HPT1–HPT38): clip-path hit testing,
+  // real and synthetic pointer types, focus rings, outside-press deactivation.
+  'frame-pass-through.spec.mjs',
+  'frame-pass-through-recompute.spec.mjs',
+  'frame-pass-through-deactivation.spec.mjs',
+  'frame-pass-through-layers.spec.mjs',
+  // HPT36 is gated in WebKit (release tier) and report-only in Chromium and Firefox.
+  'frame-pass-through-perf.spec.mjs',
 ]);
 
 // Not in this list: scrollbar-parts.spec.mjs (#567) is green in Firefox and
