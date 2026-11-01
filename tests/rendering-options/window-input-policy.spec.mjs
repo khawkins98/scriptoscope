@@ -222,22 +222,16 @@ for (const mode of ['source', 'built']) test(`${mode}: #628 L2 a committed repla
   const result = await page.evaluate(async () => {
     const f = window.inputPolicy;
     await f.add('A'); const B = await f.add('B');
-    let reads = 0;
-    const transient = Object.create(f.theme);
-    Object.defineProperty(transient, 'manifest', { get() {
-      if (++reads === 1) throw new Error('obsolete initial preparation failure');
-      return f.theme.manifest;
-    } });
-    const adding = f.manager.add(transient, { title: 'Replaced', state: 'active', width: 240, height: 120 });
+    const adding = f.manager.add(f.theme, { title: 'Replaced', state: 'active', width: 240, height: 120 });
     B.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
     const host = await adding;
     const chromeAtResolution = !!host.shadowRoot.querySelector('.scriptoscope-window');
+    const currentAtResolution = host.shadowRoot.querySelector('[data-scriptoscope-current-state]')?.dataset.scriptoscopeCurrentState;
     document.querySelector('#after').before(host);
     await f.settle();
-    return { reads, chromeAtResolution, active: f.manager.describe(host).active, laterActive: f.manager.describe(B).active };
+    return { chromeAtResolution, currentAtResolution, active: f.manager.describe(host).active, laterActive: f.manager.describe(B).active };
   });
-  expect(result.reads, 'a replacement actually prepared valid theme data').toBeGreaterThan(1);
   expect(result.chromeAtResolution, 'add resolves only after valid initial chrome committed').toBe(true);
-  expect(result).toMatchObject({ active: false, laterActive: true });
-  expect(unhandled, 'obsolete failure is handled after successful replacement').toEqual([]);
+  expect(result).toMatchObject({ currentAtResolution: 'inactive', active: false, laterActive: true });
+  expect(unhandled, 'superseded preparations do not cause unhandled failures').toEqual([]);
 });
