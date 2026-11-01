@@ -761,6 +761,7 @@ interface ManagedWindow<Theme extends ThemeInput> {
   /** #614 IP1: the last widget pointer press began on an inactive window, so the click ending that
    *  gesture runs no action. Kept on the entry: the activation commit rebinds the widget listeners. */
   inertClick?: boolean;
+  widgetGesture?: AbortController;
   /** Stacking order. Bumped to the top each focus; render() maps it to z-index (active windows sit
    *  above inactive ones at the same recency). Generalizes the old two-level (1/2) z so 3+ windows
    *  and modals stack correctly. */
@@ -920,6 +921,8 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
   private outside?: AbortController;
   /** A touch press outside every window, waiting for its click (HP39). */
   private pendingTap: number | null = null;
+  /** A later deliberate activation supersedes an initial add's rollback authority. */
+  private activationEpoch = 0;
 
   /** `hit`: the page-wide default for windows without their own request (`'region'` when
    *  absent; hit-regions HP14). */
@@ -1074,6 +1077,8 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     // Initial focus (#614 IP6-IP8): an explicit 'active' request wins, the last one added; with no
     // request only the first window starts active. An explicit 'inactive' never starts active.
     const claims = opts.state === 'active';
+    const priorActive = this.windows.find(w => w.active);
+    const activation = claims ? ++this.activationEpoch : this.activationEpoch;
     const entry: ManagedWindow<Theme> = {
       theme, opts, handlers, host, renderEpoch: 0, commitEpoch: 0, applyStateEpoch: 0, initializing: true, contentPort: new ManagedContentPort(),
       ...(opts.reuseCanvas ? { chromeCanvas: opts.reuseCanvas } : {}),
@@ -1117,6 +1122,11 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       // Drop its entry/listeners here so retrying does not leave a phantom
       // window behind or make the first successful window start inactive.
       this.remove(host);
+      if (claims && activation === this.activationEpoch && priorActive && this.windows.includes(priorActive)) {
+        priorActive.active = true;
+        this.syncOutside();
+        await this.render(priorActive);
+      }
       throw error;
     }
   }
@@ -1128,6 +1138,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     const i = this.windows.findIndex((w) => w.host === host);
     if (i < 0) return;
     this.windows[i]!.renderEpoch++;
+    this.windows[i]!.widgetGesture?.abort();
     this.windows[i]!.contentPort.dispose();
     this.windows[i]?.scrollAbort?.abort();
     this.windows[i]?.frameAbort?.abort();
@@ -1318,6 +1329,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
 
   private async focus(entry: ManagedWindow<Theme>): Promise<void> {
     if (!this.windows.includes(entry)) return;
+    this.activationEpoch++;
     entry.z = ++this.zClock; // raise above all (even if already active — re-clicking a window fronts it)
     if (entry.active) {
       debug('focus', `${entry.opts.title ?? '(untitled)'} — already active, z=${entry.z}`);
@@ -1697,6 +1709,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
   private deactivate(): void {
     const entry = this.windows.find(w => w.active);
     if (!entry) return;
+    this.activationEpoch++;
     entry.active = false;
     debug('focus', `${entry.opts.title ?? '(untitled)'} — deactivated by an outside press`);
     entry.host.style.zIndex = this.zIndexFor(entry);
@@ -2379,7 +2392,9 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       // A keyboard or assistive-technology click (detail 0) has no pointer position: it always acts (DECISIONS #12).
       // A pointer click ending a press that began on an inactive window runs nothing (#614 IP1).
       btn.addEventListener('click', (e) => {
-        if (e.detail !== 0 && (entry.inertClick || !onWidget(e))) { entry.inertClick = false; return; }
+        const suppressed = entry.inertClick;
+        entry.widgetGesture?.abort();
+        if (e.detail !== 0 && (suppressed || !onWidget(e))) return;
         e.stopPropagation();
         if (!currentChrome()) return;
         // IP5: zoom and collapse activate and raise an inactive window first; close does not.
@@ -2392,7 +2407,26 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       // focus handler from re-rendering (rebinding this button) mid-press.
       let pressArt: (() => Promise<void>) | undefined;
       btn.addEventListener('pointerdown', (e) => {
+        entry.widgetGesture?.abort();
         entry.inertClick = !entry.active;
+        if (entry.inertClick) {
+          const gesture = entry.widgetGesture = new AbortController();
+          const doc = entry.host.ownerDocument;
+          const clear = (): void => gesture.abort();
+          let timer: ReturnType<typeof setTimeout> | undefined;
+          gesture.signal.addEventListener('abort', () => {
+            clearTimeout(timer); entry.inertClick = false;
+            if (entry.widgetGesture === gesture) delete entry.widgetGesture;
+          }, { once: true });
+          // A native click follows pointerup in the same task. Keep its verdict through that click,
+          // then expire even when capture retargets it away from the widget or no click is generated.
+          doc.addEventListener('pointerup', ev => {
+            if (ev.pointerId === e.pointerId) timer = setTimeout(clear, 0);
+          }, { capture: true, signal: gesture.signal });
+          doc.addEventListener('pointercancel', ev => { if (ev.pointerId === e.pointerId) clear(); }, { capture: true, signal: gesture.signal });
+          for (const type of ['pointerdown', 'keydown', 'contextmenu'])
+            doc.addEventListener(type, clear, { capture: true, signal: gesture.signal });
+        }
         if (entry.inertClick || !onWidget(e)) return;
         e.preventDefault(); e.stopPropagation(); void pressArt?.();
       }, { signal });
