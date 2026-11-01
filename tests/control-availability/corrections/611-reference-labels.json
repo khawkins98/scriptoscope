@@ -186,9 +186,13 @@
  "document": {
   "path": "docs/spec/kdef231-reference.md",
   "beforeSha256": "ce33a576981b9c145a48b1a41e5a71ca1e33e1d292480b0c6e5f762ec343ab37",
-  "afterSha256": "e54437199d29ece567f20bce9213fba00f3feaa2b960e8644e6df55dc2939e88",
+  "afterSha256": "bf390065139b311c00bd71b9f8c642798753cba14711ed6a52bca774f733441a",
   "authority": "docs/spec/engine/hit-regions.evidence.md E1 (#610)",
   "edits": [
+   {
+    "before": "compositor that owns the routines tabled below. On miss they fall back to\neither a system `'WDEF'` (slots 3, 8) or a private dispatch (slot 4). Full\nslot-by-slot trace: `docs/spec/kdef-service-handlers.md`.",
+    "after": "compositor that owns the routines tabled below. On miss they fall back to\neither a system `'WDEF'` (slot 3) or a private dispatch (slots 4, 8; slot 8's\nmiss path is `0x174c8` → table `0x174e8`). *(Corrected #611: was \"a system\n`'WDEF'` (slots 3, 8) or a private dispatch (slot 4)\"; see #610 and\n`engine/hit-regions.evidence.md` E1.)* Full\nslot-by-slot trace: `docs/spec/kdef-service-handlers.md`."
+   },
    {
     "before": "| gate | addr | family | wnd# id loaded | msg base into slot 6 |",
     "after": "| gate | addr | family | wnd# id loaded | args into slot 6 (message / varCode) |"
@@ -227,6 +231,6 @@
   "synthetic.raw-repurposed-only"
  ],
  "changedKey": "sourceEvidence[].documentSha256",
- "prospectiveAcceptedCaseSha256": "c108ea0c6e14a69b4cfd16409e4b3b735d6488abe6f1faa069cb7520b9bae5cb",
+ "prospectiveAcceptedCaseSha256": "2a9ce3c0ea3a59be1707fe54b1551daa7a5d9a1670da679173eeaff47f971463",
  "unlistedAvailability": "unknown"
 }

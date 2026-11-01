@@ -33,7 +33,11 @@ test('611 document change is exactly the archived E1 label edits',()=>{
  for(const e of delta.document.edits){assert.equal(restored.split(e.after).length,2,'each edit is unique');restored=restored.replace(e.after,()=>e.before);
   assert.notEqual(e.after,e.before);assert.ok(e.before.length>0);}
  assert.equal(hash(restored),delta.document.beforeSha256,'undoing the archived edits restores the pinned 1.0.18 document');
- const cited=delta.document.edits.filter(e=>/#611/.test(e.after)&&/#610/.test(e.after)&&/hit-regions\.evidence\.md/.test(e.after));
- assert.ok(cited.length>=4,'each corrected label cites #611, #610 and E1');
+ // Every corrected edit cites #611, #610 and E1; only the renamed gate-table header carries no citation.
+ for(const e of delta.document.edits){
+  if(/^\| gate \| addr \|/.test(e.before)&&/^\| gate \| addr \|/.test(e.after)){assert.doesNotMatch(e.after,/\n/,'the header edit is one line');continue;}
+  assert.match(e.after,/#611/);assert.match(e.after,/#610/);assert.match(e.after,/hit-regions\.evidence\.md` E1/);
+ }
+ assert.equal(delta.document.edits.filter(e=>/^\| gate \| addr \|/.test(e.after)).length,1,'exactly one uncited header edit');
  assert.doesNotMatch(doc.slice(doc.indexOf('### 1.4'),doc.indexOf('### 1.4')+4000),/1001\.\.1009 verbs\)\s*\||msgs 1001\.\.1009 \(per-side/);
 });

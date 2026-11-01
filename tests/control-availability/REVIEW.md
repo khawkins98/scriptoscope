@@ -132,10 +132,10 @@ entry in `expectations.json`.
 
 Hash-only. The nine `kdef231-reference.md` `documentSha256` pins (Animals/Monkey push
 normal, the three Windows95 default cases and synthetic child-repurposed,
-named-preference, active-to-pressed, raw-repurposed-only) move `ce33a576` -> `e5443719`
+named-preference, active-to-pressed, raw-repurposed-only) move `ce33a576` -> `bf390065`
 after the §1.4 dispatch labels were corrected per `docs/spec/engine/hit-regions.evidence.md`
-E1 in six edits: the gate column "msg base into slot 6", the slot-3/4/8 gate cells, the
-slot-6 paragraph and the `0x28e0` row. The 0x758e and 0x76c4 lines these cases cite are byte-identical.
+E1 in seven edits: the gate intro's slot-8 miss path, the gate column "msg base into
+slot 6", the slot-3/4/8 gate cells, the slot-6 paragraph and the `0x28e0` row. The 0x758e and 0x76c4 lines these cases cite are byte-identical.
 Inputs, outcomes, identities, evidence and the other 18 rows are unchanged. The exact
 delta is `corrections/611-reference-labels.json`. The test author does not self-approve;
 the independent reviewer replaces the 1.0.19 reviewer entry in `expectations.json` with
