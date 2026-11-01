@@ -43,9 +43,9 @@ save the selected image and exact prompt under `concept/`.
 An image model may invent its own grid, soft edges or painted transparency.
 Measure the resulting scale and try extracting the actual illustration before
 asking a model to redraw it. `npm run paint-over` is an initial sampling route;
-Bonn's [crop recipe](../authoring/schemes/bonn/sprites/README.md) shows explicit
-masks and reproducible source-derived palettes. Record crops, sampling, masks,
-palette changes and any repairs. Thin rays or glyphs may need final-grid drawing.
+use explicit masks and a source-derived palette if voting loses important detail.
+Record crops, sampling, masks, palette changes and any repairs so extraction can
+be repeated. Thin rays or glyphs may need final-grid drawing.
 
 Keep alpha binary: values 1–127 have hidden-swatch meaning in the encoder.
 Apply hidden colour samples in code after import. Preserve approved crops and

@@ -75,8 +75,8 @@ the web font; classic alert/dialog bodies are system grey (`#E7E7E7`).
 The original white-on-white tab-pane labels were fixed and rechecked.
 
 Finder flags `0x0400` enabled custom Finder icons; picker icons did not need
-that flag. Highlighted picker rows becoming generic are documented in
-[Castle's record](../../castle/classic/README.md). Finder Colors is disabled
+that flag. Highlighted picker rows became generic in the native Standard File
+list. Finder Colors is disabled
 under System 7; Finder Icons, Accent Color and Alternate Checkboxes were not
 shipped. A historical `Colr 129` byte-3 experiment enabled the fixed-name
 Accent popup but changed no visible modern-family menu art; it was not shipped

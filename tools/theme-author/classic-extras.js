@@ -24,8 +24,8 @@ export const ABOUT_ICON_ID = 128;
 // The About This Scheme panel draws the static text in the control panel's
 // small application font (Geneva 9 on the System 7.5.5 reference), not the
 // Chicago 12 the Dialog Manager would use, so the box is sized for that font.
-// Measured from the five first-party classic/about@2x.png screenshots
-// (2026-10-31): lines 13 px apart, the first baseline 10 px below the item's
+// Measured in native Kaleidoscope 2.3.1 on System 7.5.5: lines 13 px apart,
+// the first baseline 10 px below the item's
 // top (so the capitals start 2 px down), and these advances in px per
 // character. Over the 13 measured lines the table is within -3.2 … +6.7 px
 // of the real width.

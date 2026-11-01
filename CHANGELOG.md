@@ -55,12 +55,11 @@ short. GitHub release only; no npm publication.
   scheme's review previews; `npm run author -- <dir> --sheet` and `--palette`
   write a contact sheet and a palette and contrast report. A dev-only page,
   `authoring-preview.html`, previews a scheme in the browser.
-- **Five first-party schemes** in `authoring/schemes/` (#540): Kingfisher, Castle,
-  Brickworks, Bonn and Midnight 2027, each designed from a concept image and
-  covering window frames, every themed control family, menus, the desktop
+- **Kingfisher reference scheme** in `authoring/schemes/` (#540), designed from
+  a concept image and covering window frames, themed control families, menus, the desktop
   pattern, a picker icon and the classic control-panel extras (about box,
-  arrow cursor, WindowShade sounds). All five load in Scriptoscope and in the
-  original Kaleidoscope 2.3.1 on System 7.5.5. They are not part of the
+  arrow cursor, WindowShade sounds). It loads in Scriptoscope and in the
+  original Kaleidoscope 2.3.1 on System 7.5.5. It is not part of the
   bundled corpus.
 - Authoring guides: `docs/authoring-a-scheme.md` (start here), with
   `docs/authoring-exotic-frames.md`, `docs/authoring-visual-design.md` and

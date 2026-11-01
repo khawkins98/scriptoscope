@@ -139,9 +139,9 @@ cumulative rectangle widths; a second row can contain collapsed states when the
 strip is at least twice the widget height. Mask coordinates must match 1:1.
 The resting picture is already in the frame; there is no rollover state.
 
-Widget sizes are scheme-defined, not fixed at 14 px. Bonn's 26 px medallions and
-Midnight's 23 px discs are working examples. Place rectangles inside fixed cells
-and regenerate the strip when changing sizes or positions.
+Widget sizes are scheme-defined, not fixed at 14 px. Budget each rectangle
+inside fixed cells and regenerate the strip when changing sizes or positions.
+Review title room, masks and native behavior at the chosen sizes.
 
 The web uses `-14330` for all windows. Native titled utilities use `-14298`, and
 side-floating windows use `-14290`. Offsets are calculated from each window's

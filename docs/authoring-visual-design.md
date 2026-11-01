@@ -116,8 +116,10 @@ when necessary to preserve the composition.
 
 Try extracting distinctive illustration pixels before reconstructing them.
 Preserve proportions, shading and character; record crop, sampling, masks,
-palette choices and repairs. Bonn's [extraction recipe](../authoring/schemes/bonn/sprites/README.md)
-provides a reproducible example. Keep placement and repeats in code.
+palette choices and repairs so another author can reproduce the extraction.
+Keep placement and repeats in code; Kingfisher's
+[editable illustrations](../authoring/schemes/kingfisher/README.md) demonstrate
+separating PNG art from frame geometry.
 
 Use a matched-width comparison with both aspect ratios intact. Judge silhouette,
 composition, material and texture separately. Keep essential identity in the bar

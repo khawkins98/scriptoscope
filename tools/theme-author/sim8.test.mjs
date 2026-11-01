@@ -57,7 +57,7 @@ test('sim8: known off-palette colours land on their documented entries', () => {
   // The same bytes read as stored values snap to #009999 (what the prototype,
   // which skipped the gamma step, reported).
   assert.deepEqual(systemEntryFor([0x16, 0x89, 0xa8], { gamma: false }).entry, [0, 153, 153]);
-  // Castle's first warm stone: a warm grey goes to a plain grey.
+  // Warm stone: a warm grey goes to a plain grey.
   assert.equal(systemEntryFor('#a59e91', { output: 'stored' }).display, '#888888');
   // The capture output uses the committed Basilisk II levels (51 → 84, 153 → 179).
   assert.equal(systemEntryFor([51, 153, 255], { gamma: false, output: 'capture' }).display, '#54b3ff');

@@ -10,8 +10,7 @@
 //   - its own bottom cell list (a wave, a plinth, R20);
 //   - code-0 skips (R9) and droppable code-10 ornaments (R12): any code is
 //     accepted, these two are just the ones windowLayout() can't write.
-// Promoted from the Castle scheme (authoring/schemes/castle/), where it was
-// first written; windowLayout() stays as the simple path.
+// windowLayout() stays as the simple path for ordinary rounded frames.
 //
 // A cell is { code, w, name?, uniform? }. Mark a cell `uniform: true` when every
 // column of it (every row, on the left and right edges) should look the same:
@@ -19,14 +18,13 @@
 // fails if stray art reaches into it, which would be tiled across the window.
 // Code-5 plates are always checked. The engine tiles a plate's src across the
 // measured title width (compositor-spec "Title TEXT + plate"), so a plate wider
-// than 1px may carry a repeating motif above or below the text (Brickworks'
-// stud row): mark it `tiled: true` and lint checks only the title rows. The
+// than 1px may carry a repeating motif above or below the text (a stud row,
+// for example): mark it `tiled: true` and lint checks only the title rows. The
 // repeat starts at the plate's left edge and is cut wherever the title ends,
 // so keep the motif small or accept a partial repeat at the right. A 1px cell is trivially uniform, so give
 // 1px growers that should match each other the same group name instead,
 // `uniform: 'bar'`: every cell of one edge in a group must then show the same
-// column as the others (Bonn's blossom tree reached 1px into a bar grower,
-// and the grower stopped matching its neighbours). lint also fails a wholly
+// column as the others. lint also fails a wholly
 // transparent last column or (non-collapsed) last row, which the web trims
 // off the template (R18).
 //
@@ -34,7 +32,7 @@
 // doesn't grow. On a titled edge all of it comes out of the title's room:
 // `layout.minWidthForTitle(px)` is the narrowest window (whole width) that
 // still shows a title `px` wide; it matches the runtime's plate width exactly
-// (TT1, TT3). Bonn's first 91px skyline cost a 260px window its title. Codes
+// (TT1, TT3). Codes
 // 15/16/17 don't count: the web always has every widget, so they are zero (F7).
 //
 // For left and right cells, x0/x1 are rows (y), not columns. Top and bottom cells run across the full width

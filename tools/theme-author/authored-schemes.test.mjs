@@ -2,7 +2,7 @@
 // in the individual scheme tests so changing art doesn't duplicate this suite.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readdirSync, readFileSync } from 'node:fs';
+import { readdirSync, readFileSync, existsSync } from 'node:fs';
 import { checkScheme } from './check-scheme.js';
 import { writeResourceFork } from './resource-fork-writer.js';
 import { writeMacBinary } from './macbinary.js';
@@ -16,12 +16,12 @@ import { decodeWnd } from '../theme-loader/decoders/wnd.js';
 
 const root = new URL('../../authoring/schemes/', import.meta.url);
 const systemColours = new Set(SYSTEM_PALETTE_256.map((c) => c.join()));
-const slugs = readdirSync(root, { withFileTypes: true }).filter((e) => e.isDirectory()).map((e) => e.name).sort();
+const slugs = readdirSync(root, { withFileTypes: true })
+  .filter((e) => e.isDirectory() && existsSync(new URL(`${e.name}/scheme.mjs`, root)))
+  .map((e) => e.name).sort();
 
-test('shared contracts cover every shipped first-party scheme', () => {
-  for (const slug of ['bonn', 'brickworks', 'castle', 'kingfisher', 'new-year-2027']) {
-    assert.ok(slugs.includes(slug), `missing authored scheme ${slug}`);
-  }
+test('shared contracts include the Kingfisher reference implementation', () => {
+  assert.ok(slugs.includes('kingfisher'), 'missing Kingfisher reference implementation');
 });
 
 for (const slug of slugs) {

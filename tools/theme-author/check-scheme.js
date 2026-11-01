@@ -226,12 +226,11 @@ export function checkScheme(resources, theme) {
   }
 
   // What classic Kaleidoscope will show beyond the windows (not warnings:
-  // plenty of corpus schemes skip these). Castle and Brickworks shipped none
-  // of them and their builders didn't notice until the emulator run.
+  // plenty of corpus schemes skip these).
   const has = (type, id) => !!find(type, id);
   const yes = (b) => (b ? 'yes' : 'no (system default)');
   // Classic reads utility windows' pressed widgets from -14298, not -14330 (R24,
-  // WD11 altWidgets); the web never does. Castle and Bonn shipped none.
+  // WD11 altWidgets); the web never does.
   const utilityWidgets = resources.some((r) => r.type === 'wnd#' && /utility/.test(known.get(r.id) ?? '')
     && decodeWnd(r.data).rectangles.some((x) => x.part >= 1 && x.part <= 3 && x.rect.right > x.rect.left));
   const utilityStrip = utilityWidgets ? `; pressed utility widgets (cicn -14298) ${has('cicn', -14298) ? 'yes' : 'no (classic reads utility windows\' pressed art from it)'}` : '';

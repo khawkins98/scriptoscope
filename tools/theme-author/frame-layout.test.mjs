@@ -84,7 +84,7 @@ test('lint compares 1px growers in a uniform group, checks every edge, and enfor
   const l = frameLayout(s);
   const paint = () => new Raster(l.width, l.height).fillRect(0, 0, l.width, l.height, '#888888');
   l.lint(paint());
-  // A 1px grower is trivially uniform on its own; only the group catches stray art in it (Bonn's tree).
+  // A 1px grower is trivially uniform on its own; only the group catches stray art in it.
   const tree = paint().set(l.named('fillR').x0, 3, '#ff0000');
   assert.throws(() => l.lint(tree), /cell fillR doesn't match fillL/);
   // Left and right cells run down the side: compare rows.

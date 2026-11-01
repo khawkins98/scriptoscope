@@ -45,7 +45,7 @@ Both let you grab a `.sit` and drop it on the demo to see it render live without
 Start with the [creation guide](./docs/authoring-a-scheme.md). It covers concept
 art, frame geometry, editable sprites, control families and visual review.
 [`tools/theme-author/`](./tools/theme-author/) builds real Kaleidoscope resource
-forks; the five [first-party schemes](./authoring/schemes/) provide working examples.
+forks; [Kingfisher](./authoring/schemes/kingfisher/) is the worked reference implementation.
 
 Run `npm run author -- authoring/schemes/kingfisher` to build an example. Load
 the resulting `scheme.rsrc` in the browser demo, or transfer the generated

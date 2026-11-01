@@ -222,9 +222,11 @@ test('first-party schemes ship the control-panel extras: about box, panel string
   const { readFileSync } = await import('node:fs');
   const { SYSTEM_PALETTE_256 } = await import('./encode-icons.js');
   const system = new Set(SYSTEM_PALETTE_256.map((c) => c.map((v) => (v << 8) | v).join()));
-  const names = { kingfisher: 'Kingfisher', 'new-year-2027': 'Midnight 2027', castle: 'Castle', brickworks: 'Brickworks', bonn: 'Bonn' };
-  for (const [dir, name] of Object.entries(names)) {
-    const res = parseResourceFork(new Uint8Array(readFileSync(new URL(`../../authoring/schemes/${dir}/scheme.rsrc`, import.meta.url))));
+  const authored = new URL('../../authoring/schemes/', import.meta.url);
+  const dirs = readdirSync(authored).filter((dir) => existsSync(new URL(`${dir}/scheme.mjs`, authored)));
+  for (const dir of dirs) {
+    const { name } = JSON.parse(readFileSync(new URL(`${dir}/meta.json`, authored), 'utf8'));
+    const res = parseResourceFork(new Uint8Array(readFileSync(new URL(`${dir}/scheme.rsrc`, authored))));
     const get = (t, id) => res.find((r) => r.type === t && r.id === id);
     for (const [t, id] of [['DLOG', -14320], ['DITL', -14320], ['STR#', -14320], ['cicn', 128], ['crsr', 0], ['crsr', -20486], ['crsr', -20487], ['crsr', -20488], ['snd ', -14336], ['snd ', -14335], ['cicn', -12240]]) {
       assert.ok(get(t, id), `${dir}: ${t} ${id}`);

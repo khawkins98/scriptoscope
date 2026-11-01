@@ -1,9 +1,10 @@
 # Authored schemes
 
 Start with the [authoring guide](../docs/authoring-a-scheme.md) and
-[brief template](./concept-brief-template.md). These first-party examples live
-outside the community corpus in `themes/`; corpus rendering gates do not cover
-them. Scheme checks discover new directories automatically.
+[brief template](./concept-brief-template.md). Kingfisher is the worked reference
+implementation, separate from the community corpus in `themes/`; corpus
+rendering gates do not cover authored schemes. Scheme checks discover new
+directories automatically.
 
 ```sh
 npm run author -- authoring/schemes/kingfisher
@@ -29,7 +30,6 @@ semi-transparent alpha. Copying an example's source does not transfer its review
 or VM proof. Update identity and credits, regenerate previews and validate your
 own final bytes.
 
-Examples: Kingfisher for imported illustrations, Castle for towers and stone,
-Brickworks for whole repeating studs, Bonn for extracted landmarks/title caps,
-and `new-year-2027` for fireworks and large numerals. `preview-layouts/` holds
-HTML fragments for `?layout=`, including the narrow/wide stress layout.
+Kingfisher demonstrates imported illustrations, frame recipes and control-family
+builders. `preview-layouts/` holds HTML fragments for `?layout=`, including the
+narrow/wide stress layout.

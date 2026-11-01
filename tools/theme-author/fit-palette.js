@@ -1,5 +1,5 @@
-// fitPalette: keep an image inside the 256-colour limit (promoted from the Bonn
-// scheme, which hit 290 colours on its first build). A cicn is indexed (256 colours at most, encode-cicn.js),
+// fitPalette: keep an image inside the 256-colour limit.
+// A cicn is indexed (256 colours at most, encode-cicn.js),
 // and a big frame with smooth (anti-aliased) shapes, gradients and a dithered
 // river easily makes more. `fitPalette` merges the rarest colours into their
 // nearest remaining neighbour until the image fits. Hidden swatches (alpha 1)

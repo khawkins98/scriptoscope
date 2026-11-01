@@ -4,7 +4,7 @@
 
 Bonn's procedural replacements depicted the right subjects but lost their
 recognizable roofs, shading and blossoms. Extracting the actual concept pixels
-preserved that character. Its [reproducible recipe](authoring/schemes/bonn/sprites/README.md)
+preserved that character. The [extraction workflow](docs/authoring-a-scheme.md#43-paint-over-the-concept)
 records crops, sampling, masks and repairs. The bridge has a separate palette so
 adding it does not requantize approved buildings and bough; its transparent arch
 reveals the frame's river.

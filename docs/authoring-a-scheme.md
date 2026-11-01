@@ -54,10 +54,9 @@ classic validation claims forward as proof of your new build. New directories
 are discovered automatically by scheme checks; no registry edit is required.
 Open the explicit preview URL for your slug. Showcase integration is optional.
 
-Examples: Kingfisher for imported illustrations; Castle for towers and stone;
-Brickworks for whole repeating studs; Bonn for extracted landmarks on title
-caps; Midnight 2027 for fireworks and large numerals. Keep authored schemes
-outside the community corpus in `themes/`.
+Kingfisher is the worked reference for imported illustrations, frame recipes
+and control-family builders. Keep authored schemes outside the community corpus
+in `themes/`.
 
 ## 3. Five ideas you need
 
@@ -160,9 +159,9 @@ Save the selected image and exact prompt under `concept/`.
 
 Extract strong illustration before reconstructing it. Measure the source grid,
 sample at that scale, remove the backdrop with a binary mask and preserve its
-proportions/outlines. Repair detail the source cannot supply. Bonn's
-[recorded extraction](../authoring/schemes/bonn/sprites/README.md) uses explicit
-masks and source-derived palettes; the general palette-voting tool is:
+proportions/outlines. Repair detail the source cannot supply. Use explicit
+background masks and a source-derived palette when palette voting loses the
+illustration's character. The general palette-voting tool is:
 
 ```sh
 # Convert JPEG to lossless PNG first, e.g. with sips or ImageMagick.
@@ -173,7 +172,8 @@ npm run paint-over -- /tmp/concept.png --crop 40,10,300,190 --scale 3 \
 `mode` preserves the most common palette colour per sampled block; `mean`
 helps soft areas. Record crop, scale, masks and palette changes. Thin rays,
 stars and glyphs may require whole-pixel repairs rather than downsampling.
-Keep approved assets stable: adding a bridge should not requantize buildings.
+Keep approved assets stable: adding an unrelated sprite should not requantize
+illustrations already reviewed.
 
 ### 4.4 Clean up by hand
 
@@ -252,9 +252,9 @@ evidence. Recheck after palette or art changes.
 ### 4.8 Test in real Kaleidoscope
 
 First test novel geometry with a skeleton, then test the finished **exact
-bytes**. Compact a repeated source before expanding it: a large Bonn template
-failed where a smaller repeat loaded. That observation establishes neither a
-universal size limit nor the failure's internal cause.
+bytes**. Keep repeated source periods compact and probe unusually large source
+templates early. Browser validation does not establish native compatibility;
+there is no established universal source-size limit to substitute for testing.
 
 Use the [private maintainer environment](./maintainer-reference-environment.md)
 when available; it is not a public build dependency:
@@ -330,8 +330,8 @@ sizes make centered dots easier. Verify state masks and glyph alignment.
 - **Sliders:** leave pixels outside track/thumb masks transparent; they expose
   the body. Keep track pixels under thumb edges to avoid a white matte box.
 - **Progress:** frame corner and side thickness should match. Fill/track
-  `cinf.tileSides` controls repeating versus stretched source; Midnight's
-  segmented fill is a working example. Indeterminate frames must loop cleanly.
+  `cinf.tileSides` controls repeating versus stretched source. Use a multi-pixel
+  repeat for segmented fills. Indeterminate frames must loop cleanly.
 - **Tab panes:** `textPixel` and `bgPixel` must not sample the same colour.
 - **Menus:** same-id `cinf` supplies fill/text samples; test in classic.
 - **Desktop:** `ppat` must be opaque and power-of-two; prefer system colours.

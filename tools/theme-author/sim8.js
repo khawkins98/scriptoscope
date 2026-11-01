@@ -18,9 +18,9 @@
 // cut to its top `itabRes` bits (4 by default, the classic Mac default),
 // widened back by repeating those bits (so 0xA5 becomes 0xAA), then matched to the nearest
 // entry by Euclidean RGB distance. Checked against the real Kaleidoscope
-// 2.3.1 captures in authoring/schemes/*/classic/ (8 bpp, Basilisk II): over
-// 16,716 pixels of the fixed top-left corners of Castle's, Bonn's, Brickworks'
-// and Kingfisher's frames, located in the captures by search, 4-bit cells pick
+// 2.3.1 historical captures (8 bpp, Basilisk II): over 16,716 pixels of the
+// fixed top-left corners of four authored frames, located in the captures
+// by search, 4-bit cells pick
 // the entry classic drew for 92% of pixels (85–95% per scheme). Most misses
 // are one grey step near a cell edge, or pixels where something else is drawn
 // over the frame. Exact nearest (`itabRes: 0`) gets 59%, and quantising the

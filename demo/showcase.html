@@ -800,7 +800,7 @@
     const powersSection = document.getElementById('powers');
     const toggleBtn = document.getElementById('powers-skin-toggle');
     const foldersEl = document.querySelector('[data-scriptoscope-theme-picker]');
-    const FIRST_PARTY = [['kingfisher', 'Kingfisher'], ['castle', 'Castle'], ['brickworks', 'Brickworks'], ['bonn', 'Bonn'], ['new-year-2027', 'Midnight 2027']]
+    const FIRST_PARTY = [['kingfisher', 'Kingfisher']]
       .map(([dir, name]) => ({ slug: `./authoring/schemes/${dir}`, name, author: 'Scriptoscope', year: 2026, source: 'scheme.rsrc' }));
     const ALL_THEMES = [...THEMES, ...FIRST_PARTY];
     const firstPartyEl = document.getElementById('powers-first-party');
