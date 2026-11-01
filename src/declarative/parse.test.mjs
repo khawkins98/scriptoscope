@@ -6,10 +6,11 @@ import {
   parseWindowAttrs, parseButtonAttrs, resolveThemeRef, themeRefToUrl, isThemeUrl,
 } from './parse.ts';
 
-test('parseWindowAttrs: defaults (no attrs) → document-window, active, fit', () => {
+test('parseWindowAttrs: defaults (no attrs) → document-window, no state request, fit', () => {
   const p = parseWindowAttrs({});
   assert.equal(p.windowType, 'document-window');
-  assert.equal(p.state, 'active');
+  assert.equal(p.state, undefined); // #614 IP9: "not declared" stays distinct from active
+  assert.equal(parseWindowAttrs({ scriptoscopeState: 'active' }).state, 'active');
   assert.equal(p.sizeMode, 'fit');
   assert.equal(p.title, undefined);
   assert.equal(p.x, undefined);

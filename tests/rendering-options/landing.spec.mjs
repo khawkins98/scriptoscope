@@ -35,7 +35,13 @@ test('portrait rethemes preserve geometry, keyboard focus and closed windows; re
   await smile.getByRole('button', { name: 'Move window', exact: true }).focus();
   await page.keyboard.press('Shift+ArrowRight');
   await expect.poll(() => smile.evaluate(el => parseFloat(el.style.left))).toBe(before + 32);
-  await hosts(page).nth(2).getByRole('button', { name: 'Close window', exact: true }).click();
+  // #614 IP1: the first pointer click on an inactive window's close only activates it.
+  const third = hosts(page).nth(2), thirdState = third.locator('[data-scriptoscope-current-state]');
+  await expect(thirdState).toHaveAttribute('data-scriptoscope-current-state', 'inactive');
+  await third.getByRole('button', { name: 'Close window', exact: true }).click();
+  await expect(thirdState).toHaveAttribute('data-scriptoscope-current-state', 'active');
+  await expect(hosts(page)).toHaveCount(5);
+  await third.getByRole('button', { name: 'Close window', exact: true }).click();
   await expect(hosts(page)).toHaveCount(4);
   const beos = page.getByRole('button', { name: 'BeOS R5.0.3', exact: true });
   await beos.focus();

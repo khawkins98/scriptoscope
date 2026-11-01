@@ -90,6 +90,19 @@ for (const mode of ['source', 'built']) {
         host.shadowRoot.addEventListener('pointerdown', e => targets.push(e.target.className), true);
         window.wm381 = { api, theme, manager, host, actions, resize, targets };
       }, { mode, state, scale });
+      // #614 IP1: the first press on an inactive window's widget only activates it.
+      // The widget still owns the point (the press reaches the collapse button, not
+      // the grow box), and the next click on the now active window acts.
+      let activation = null;
+      if (state === 'inactive') {
+        await page.mouse.click(100 + 8 * scale, 120 + 34 * scale);
+        activation = await page.evaluate(async () => {
+          const { manager, host, actions, resize } = window.wm381;
+          await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+          const d = manager.describe(host);
+          return { actions: [...actions], resize: [...resize], active: d.active, size: [d.width, d.height] };
+        });
+      }
       // Fixed input-space point, with the consumer's explicit host origin.
       await page.mouse.click(100 + 8 * scale, 120 + 34 * scale);
       const click = await page.evaluate(() => ({ actions: [...window.wm381.actions], resize: [...window.wm381.resize] }));
@@ -108,7 +121,7 @@ for (const mode of ['source', 'built']) {
       }, { state, scale });
       await page.keyboard.press('Enter');
       const keyboardAction = await page.evaluate(() => { const { manager, host, theme, actions } = window.wm381; const result = [...actions]; manager.remove(host); host.remove(); theme.dispose?.(); return result; });
-      rows.push({ ...row, click, keyboardAction });
+      rows.push({ ...row, click, keyboardAction, activation });
     }
     // A larger ordinary window has an uncovered bottom-right grow target.
     // Its measured root corner is an interaction location only: expected size
@@ -134,6 +147,9 @@ for (const mode of ['source', 'built']) {
     await attachObservations(info, 'window-widget-collision', mode, { mode, policy: 'WM381 modern compatibility; original numeric overlap unknown', rows, pointer, keyboardResize });
     for (const row of rows) {
       const label = `${row.state} scale ${row.scale}`;
+      if (row.state === 'inactive')
+        expect(row.activation, `${label}: the first click only activates (#614 IP1)`).toEqual({ actions: [], resize: [], active: true, size: [2, 35] });
+      else expect(row.activation, label).toBeNull();
       expect(row.click, `${label}: one stationary click, one title action`).toEqual({ actions: ['collapse'], resize: [] });
       expect(row.keyboardAction, `${label}: keyboard activation remains available`).toEqual([...row.actions, 'collapse']);
       expect(row.targets.every(target => target.includes('titlewidget-collapse')), label).toBe(true);
