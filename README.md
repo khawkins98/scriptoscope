@@ -218,6 +218,7 @@ await mountExplicitPage({
   pageThemeDefault: '1138',         // theme slug or URL for windows w/o explicit data-scriptoscope-theme
   persistKey: 'my-app-layout',      // optional: save window positions to localStorage.scriptoscope:layout:<key>
   baseSlug: 'apple-platinum-2',     // optional: base scheme to inherit from (any slug in your themeBaseUrl)
+  hit: 'box',                       // optional: page-wide frame hit mode, 'region' (default) or 'box' (#597)
   root: document.body,              // optional: application-owned source-selection boundary
   themes: THEMES,                   // optional: catalog for <div data-scriptoscope-theme-picker> tiles + autoCycle.
                                     //   ThemeEntry[] — { slug, name?, author?, year?, source?, meta? }. Imported from

@@ -875,7 +875,7 @@ const shadowFocusSheet: CSSStyleSheet = (() => {
       outline: 2px solid Highlight;
       outline-offset: 1px;
     }
-    .scriptoscope-hit-layer[data-scriptoscope-clipped] :is(.scriptoscope-titlewidget,
+    .scriptoscope-hit-layer[data-scriptoscope-clipped] :is(.scriptoscope-titlewidget, .scriptoscope-movehandle,
       .scriptoscope-growbox, .scriptoscope-window-scrollbar):focus-visible {
       outline: none;
     }
@@ -895,7 +895,7 @@ export interface ManagedWindowState {
 }
 
 /** Controls a managed window's ring may outline in `region` mode (hit-regions HP28). */
-const RING_CONTROLS = '.scriptoscope-titlewidget, .scriptoscope-growbox, .scriptoscope-window-scrollbar';
+const RING_CONTROLS = '.scriptoscope-titlewidget, .scriptoscope-movehandle, .scriptoscope-growbox, .scriptoscope-window-scrollbar';
 
 export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
   private windows: ManagedWindow<Theme>[] = [];
@@ -1481,8 +1481,8 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     }
     // Keep the rendered projection continuously mounted: replacing its ancestors cancels
     // a browser's pending native Space activation even when light-DOM focus survives.
-    // HP26/HP43: L1 (the `part="window"` root) holds L2, the move handle and L3. L2 holds the canvas,
-    // content and every pointer-taking overlay; it and L3 keep their identity for the host's lifetime.
+    // HP26/HP43: L1 (the `part="window"` root) holds L2 and L3. L2 holds the canvas, content and every
+    // overlay, move handle included (tab order); it and L3 keep their identity for the host's lifetime.
     const mount = entry.host.shadowRoot ?? entry.host;
     const layers = entry.layers ??= this.createLayers();
     const l1 = layers.hit.parentElement, live = l1 && l1 === mount.firstChild ? l1 : null;
@@ -1546,12 +1546,12 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
    */
   private overlay<K extends 'button' | 'div'>(entry: ManagedWindow<Theme>, win: HTMLElement, key: string, tag: K): HTMLElementTagNameMap[K] {
     const overlays = (entry.overlays ??= new Map());
-    // HP26: pointer-taking overlays live in L2; the keyboard-only move handle sits in L1, outside the clip.
-    const layers = entry.layers, parent = key === 'movehandle' || !layers ? win : layers.hit;
+    // HP26: every overlay lives in L2, in tab order; L3 draws their focus rings in region mode (HP28).
+    const parent = entry.layers?.hit ?? win;
     const kept = overlays.get(key);
     if (kept?.parentNode === parent) return kept as HTMLElementTagNameMap[K];
     const el = document.createElement(tag);
-    const later = layers && parent === win ? layers.decor : WindowManager.OVERLAYS.slice(WindowManager.OVERLAYS.indexOf(key) + 1)
+    const later = WindowManager.OVERLAYS.slice(WindowManager.OVERLAYS.indexOf(key) + 1)
       .map(k => overlays.get(k)).find(o => o?.parentNode === parent);
     if (later) parent.insertBefore(el, later); else parent.appendChild(el);
     overlays.set(key, el);

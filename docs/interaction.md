@@ -64,11 +64,11 @@ Tab order inside one window is:
 
 1. the slotted content, in its own DOM order;
 2. the title widgets that are wired, in visual reading order: rows top to bottom, left to right within a row (#537);
-3. the **Resize window** grow box (absent while collapsed);
-4. the vertical scroll bar, then the horizontal one (only while the content overflows);
-5. the **Move window** handle.
+3. the **Move window** handle;
+4. the **Resize window** grow box (absent while collapsed);
+5. the vertical scroll bar, then the horizontal one (only while the content overflows).
 
-The move handle comes last because it sits outside the window's clipped hit layer (see [1a](#1a-hit-area-and-frame-pass-through)), so its focus ring is never clipped. The order is the same in `region` and `box` mode.
+The order is the same in `region` and `box` mode (see [1a](#1a-hit-area-and-frame-pass-through)).
 
 The chrome controls (2 to 5) live in the host's shadow root. They keep their DOM identity across every re-render: activation, collapse, zoom, keyboard resize steps and retheme (#533, `window-overlay-identity.spec.mjs`). So focus stays on them and screen readers don't re-announce them. When a control goes away while it has focus (the grow box on collapse, a scroll bar when the overflow ends), focus moves to the move handle, never to `<body>`.
 
@@ -76,7 +76,7 @@ A pointer press on the frame or the grow box moves keyboard focus into that wind
 
 ### Focus rings
 
-- Chrome controls: a 2 px `Highlight` outline on `:focus-visible`, from a stylesheet the runtime adopts into every window's shadow root. It doesn't depend on `scriptoscope.css`. In `region` mode the ring of a title widget, the grow box or a scroll bar is drawn by an unclipped decoration layer instead of the control itself, so it looks the same and stays whole over transparent frame pixels.
+- Chrome controls: a 2 px `Highlight` outline on `:focus-visible`, from a stylesheet the runtime adopts into every window's shadow root. It doesn't depend on `scriptoscope.css`. In `region` mode the ring of a title widget, the move handle, the grow box or a scroll bar is drawn by an unclipped decoration layer instead of the control itself, so it looks the same and stays whole over transparent frame pixels.
 - With the optional `scriptoscope.css`: `[data-scriptoscope-promoted]:focus-visible` gets an outline in `--scriptoscope-focus-color` (default `rgb(0 95 204)`) at `--scriptoscope-focus-width` (default 2px). A separate rule, using the same two variables, paints focus of a promoted `<select>` on its wrapper (`.scriptoscope-select:focus-within`) and of a promoted range on its themed slider (`input[type=range][data-scriptoscope-promoted]:focus + .scriptoscope-slider`). It matches `:focus`, not `:focus-visible`, so it also shows after a pointer press.
 - Promoted checkboxes and radios draw a 2 px `currentColor` outline on their face while the native input has focus. This is inline, so it doesn't need the stylesheet.
 
@@ -95,6 +95,7 @@ The effective mode is `box`, whatever was asked for, for windows of the five bui
 
 - per window: `data-scriptoscope-hit="box"` (or `"region"`), read at promotion; `manager.add(theme, opts, handlers, { hit: 'box' })`; `manager.applyState(host, { hit: 'box' })` at runtime, and `{ hit: null }` to inherit again;
 - page-wide: `new WindowManager({ hit: 'box' })`, or `manager.setDefaultHit('box')` at runtime, which changes only windows without their own request.
+- with the example host: `mountExplicitPage({ hit: 'box', … })` passes the default to every manager it creates (the shared one and the per-theme ones).
 
 Values are trimmed and case-insensitive. An empty or unknown value is ignored (the window inherits) and logs once on the `region` debug category. Changing the mode doesn't re-render the chrome or call the change listener, and isn't persisted: it's page configuration, so re-apply it on reload. The host reports the mode in force as `data-scriptoscope-hit-effective="region"` or `"box"` (read-only).
 
@@ -106,7 +107,7 @@ Values are trimmed and case-insensitive. An empty or unknown value is ignored (t
 - The deactivated window re-renders with its inactive art and loses the active z-index boost but keeps its order. The page always gets the event: the listeners are passive and never cancel or stop it.
 - Presses the document never sees (other applications, browser UI, cross-origin iframes), the browser window losing focus, and Tab moving focus out of every window don't deactivate.
 
-**Layers.** Inside the shadow root, `part="window"` holds a clipped `.scriptoscope-hit-layer` (canvas, content, grow box, title widgets, scroll bars), the move handle, and an unclipped `.scriptoscope-decoration` (focus ring, resize outline). In effective `region` mode the hit layer carries a `clip-path: path(…)` and `pointer-events: auto`, and the host and `part="window"` get `pointer-events: none`. Every host carries `clip-path: none` inline, so consumer CSS can't clip it. The `::part(window)` shadow is unchanged and never catches clicks.
+**Layers.** Inside the shadow root, `part="window"` holds a clipped `.scriptoscope-hit-layer` (canvas, content, title widgets, move handle, grow box, scroll bars) and an unclipped `.scriptoscope-decoration` (focus ring, resize outline). In effective `region` mode the hit layer carries a `clip-path: path(…)` and `pointer-events: auto`, and the host and `part="window"` get `pointer-events: none`. Every host carries `clip-path: none` inline, so consumer CSS can't clip it. The `::part(window)` shadow is unchanged and never catches clicks.
 
 **Content that escapes the content box** (for example `position: fixed` children) is clipped to the region in `region` mode. Put menus and tooltips in the top layer (`popover`, `<dialog>.showModal()`, native `<select>`) or outside the window, or use `box`.
 
