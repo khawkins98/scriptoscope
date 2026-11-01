@@ -27,7 +27,7 @@ ownership, pending render suppression and the unchanged HPT36 ceiling.
 - `SCRIPTOSCOPE_RENDERING_BROWSERS=chromium,firefox,webkit npx playwright test --config tests/rendering-options/playwright.config.mjs frame-pass-through-lifecycle.spec.mjs`:
   HPT42 passed source and built in every engine (6 passes). HPT43 failed source
   and built in every engine because `WindowManager.dispose` does not exist (6
-  expected failures). Log: `/tmp/621-lifecycle-base.log`.
+  expected failures). Log: `test-results/621-independent/621-lifecycle-base.log`.
 - HPT42 holds `document.fonts.load`, starts a grow resize with real mouse input,
   releases it while preparation is pending, then starts and verifies real frame
   pointer capture. It unblocks the resize and checks style writes and computed
@@ -39,7 +39,7 @@ ownership, pending render suppression and the unchanged HPT36 ceiling.
   `!!entry.gesture === on`, otherwise call the original. Source Chromium failed
   at “older resize commit leaves newer drag suspended”: the resize commit
   restored a path while the newer drag remained captured. Exit 1,
-  `/tmp/621-race-mutant.log`. The test-only injection was removed after the run.
+  `test-results/621-independent/621-race-mutant.log`. The test-only injection was removed after the run.
 - HPT43 tracks the five HP38 document listener signals, disposes while a render
   is pending, checks idempotence, detached management and retained host ownership,
   releases the pending work and checks no canvas commit or callback, then verifies
@@ -60,6 +60,6 @@ Run the wheel probe and unchanged HPT36 in the PM's serialized timing window.
 Integrate the independently implemented runtime, run HPT43 green, region
 correctness/recompute and relevant pointer/resize browser checks in all engines,
 and record preparation/reuse evidence and final docs. The PM owns final coherent
-PR, exact-head gates and independent review. Existing package-lock changes were
-present before this session (removed optional platform libc metadata); left
-untouched pending confirmed setup provenance.
+PR, exact-head gates and independent review. Existing package-lock changes predated this session (removed optional platform
+libc metadata). The PM confirmed generated setup drift matching fresh worktrees;
+that specific diff was restored to HEAD, with no dependency version changes.
