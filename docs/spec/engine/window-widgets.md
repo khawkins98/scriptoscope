@@ -83,10 +83,21 @@ F10 (title text), and corrects F6's scope.
 
 The runtime has no procID. Declared defaults (modern policy, not original
 observations): `popupFamily` from the `popup-window` request (service slot 8),
-`partialZoom`, `partialZoomColumn`, `altWidgets`, `sideTitle`, `collapsed`,
+`partialZoom`, `partialZoomColumn`, `altWidgets`, `collapsed`,
 `outlineDraw` and `noWidgets` clear, `widgetFrame` set, `drawActive` from the
 window's active state. `hasClose`, `hasZoom` and `collapseRequested` are
-currently one runtime flag (finding F7).
+currently one runtime flag (finding F7). `sideTitle` is not a fixed default.
+It is set from the rendered public window type by the declared mapping in
+[`hit-regions.md`](hit-regions.md) HP48: set for `side-floating-utility-window`
+and `collapsed-side-utility`, clear for every other type. As in the decode
+(§2.2), it is **one** flag, and every row that reads `sideTitle` uses that same
+value: the collapsed `C` axis (§2.1), WD4's collapsed side walk, the retry ids
+of WD8 (`base−7`), WD9 and HT7 (`base−8`), and WD11's `+8`. WD11 adds `+8` only
+under `altWidgets`, which stays clear, so the requested base stays −14330. A
+side-titled type only adds the WD9/HT7 retry at −14338 when −14330 is missing
+(WD8's −14337 needs `partialZoom`, which is also clear). Corpus impact: none.
+All 18 bundles ship −14330, and none ships −14337 or −14338 (re-derived
+2026-11-01).
 
 ## 3. Outputs
 

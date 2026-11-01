@@ -8,6 +8,7 @@ import type { LoadedTheme } from '../types.js';
 import type { ThemeInput } from '../ownedTheme.js';
 import type { TitleWidget, WindowManager } from '../interactive.js';
 import { parseWindowAttrs } from './parse.js';
+import { parseHit } from '../hitRegion.js';
 import { debug } from '../debug.js';
 import { sharedRO } from './sharedResizeObserver.js';
 import { SCRIPTOSCOPE_SLOT_CLASS } from './markers.js';
@@ -104,6 +105,8 @@ export class ScriptoscopeWindow<Theme extends ThemeInput = LoadedTheme> {
   ): Promise<ScriptoscopeWindow<Theme>> {
     if (deps.signal?.aborted) throw new DOMException('Window promotion cancelled', 'AbortError');
     const parsed = parseWindowAttrs(el.dataset as Record<string, string | undefined>);
+    // hit-regions HP10: absent, empty or unknown values inherit the manager default.
+    const hit = parseHit(el.dataset.scriptoscopeHit, 'data-scriptoscope-hit');
     // ── POSTURE B: in-flow host by default; absolute opt-in via -x/-y ─────────
     // The host is created as a `position: static` block element sitting in the
     // same DOM position the source element occupied. The browser's own layout
@@ -253,6 +256,7 @@ export class ScriptoscopeWindow<Theme extends ThemeInput = LoadedTheme> {
           ...(parsed.z != null ? { z: parsed.z } : {}),
           ...(parsed.collapsed ? { collapsed: true } : {}),
           ...(enabledWidgets !== undefined ? { enabledWidgets } : {}),
+          ...(hit ? { hit } : {}),
         },
       );
       inst = new ScriptoscopeWindow(
@@ -390,6 +394,8 @@ export class ScriptoscopeWindow<Theme extends ThemeInput = LoadedTheme> {
       restore.el.remove();
       committed = true;
       focused?.focus({ preventScroll: true });
+      // HP42: a window promoted into an already open modal wrap is exempt from region mode.
+      host.dispatchEvent(new Event('scriptoscope:modalchange'));
 
       // Once the user manually resizes the window via the chrome grow box
       // (or the keyboard arrow-resize), they OWN the size. Auto-fit's

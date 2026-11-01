@@ -28,7 +28,8 @@ export async function mountExplicitPage(opts) {
   const resolver = createOwnedThemeResolver(opts);
   // Application-owned decoded themes are borrowed before the initial paint.
   for (const [ref, theme] of opts.registeredThemes ?? []) resolver.register(ref, theme);
-  const manager = new WindowManager();
+  // `hit`: the page-wide frame hit mode, 'region' (default) or 'box' (#597).
+  const manager = new WindowManager(opts.hit !== undefined ? { hit: opts.hit } : {});
   const life = new AbortController();
   const layout = ownLayout(opts,life.signal);
   const windows = new Map();
@@ -406,7 +407,7 @@ export async function mountExplicitPage(opts) {
     for (const source of sources) {
       try {
         const windowTheme = await targetTheme(source,theme);
-        const windowManager = fixedRefs.has(source) ? new WindowManager() : manager;
+        const windowManager = fixedRefs.has(source) ? new WindowManager(opts.hit !== undefined ? { hit: opts.hit } : {}) : manager;
         const restoreLayoutAttrs=layout.initialAttrs(source,sources.indexOf(source));
         const explicitHeight=source.getAttribute('data-scriptoscope-height');
         const previous=mountedSources.get(source);

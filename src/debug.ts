@@ -13,6 +13,8 @@
 //   promote     — declarative promotion (window / button / control)
 //   unmount     — ScriptoscopeWindow unmount + manager.remove
 //   shadow      — shadow root attach + light-DOM slot operations
+//   region      — one event per structure-region build (or failed build), ignored hit values,
+//                 closed-shadow-root hosts (frame pass-through, hit-regions §9)
 //
 // USAGE FROM A DEMO/CONSUMER:
 //   import { setDebug } from 'scriptoscope';

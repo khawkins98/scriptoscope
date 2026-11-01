@@ -8,6 +8,7 @@ For layout, CSS and lifecycle gotchas see [integration-edge-cases.md](./integrat
 
 - [Two ways in](#two-ways-in)
 - [1. Activation and focus](#1-activation-and-focus)
+- [1a. Hit area and frame pass-through](#1a-hit-area-and-frame-pass-through)
 - [2. Moving](#2-moving)
 - [3. Resizing](#3-resizing)
 - [4. Title-bar widgets](#4-title-bar-widgets)
@@ -19,7 +20,6 @@ For layout, CSS and lifecycle gotchas see [integration-edge-cases.md](./integrat
 - [10. Platform differences](#10-platform-differences)
 - [Not implemented](#not-implemented)
 - [Known issues](#known-issues)
-- [Upcoming: frame pass-through (#597)](#upcoming-frame-pass-through-597)
 
 ## Two ways in
 
@@ -42,6 +42,7 @@ Activation, z-order and focus are per `WindowManager`. The example host uses one
 | Pointer click on a title widget of an inactive window | The widget acts (close, zoom, collapse) and the window **stays inactive**. The widget's press doesn't reach the window's activation handler. Known issue: this differs from the classic first-click rule ([#614](https://github.com/khawkins98/scriptoscope/issues/614)). |
 | Keyboard focus entering the window (Tab, Shift+Tab, script `focus()`), in the chrome or the slotted content | Activates the window and raises it, without moving or resizing it (#550, `window-focus-raise.spec.mjs`). |
 | Wheel over an inactive window that shows themed scroll bars | Scrolls it without activating it. |
+| Pointer press on page content outside every window of the manager | Deactivates the active window, unless it uses `box` (see [1a](#1a-hit-area-and-frame-pass-through)). No window is then active until one is pressed or focused. |
 
 The first window added to a manager starts active, unless it asks to start inactive (`data-scriptoscope-state="inactive"`, or `opts.state: 'inactive'`); in that case no window starts active. `data-scriptoscope-state="active"` on any later window has no effect, because only the first window can start active (known issue, [#614](https://github.com/khawkins98/scriptoscope/issues/614)).
 
@@ -67,15 +68,48 @@ Tab order inside one window is:
 4. the **Resize window** grow box (absent while collapsed);
 5. the vertical scroll bar, then the horizontal one (only while the content overflows).
 
+The order is the same in `region` and `box` mode (see [1a](#1a-hit-area-and-frame-pass-through)).
+
 The chrome controls (2 to 5) live in the host's shadow root. They keep their DOM identity across every re-render: activation, collapse, zoom, keyboard resize steps and retheme (#533, `window-overlay-identity.spec.mjs`). So focus stays on them and screen readers don't re-announce them. When a control goes away while it has focus (the grow box on collapse, a scroll bar when the overflow ends), focus moves to the move handle, never to `<body>`.
 
 A pointer press on the frame or the grow box moves keyboard focus into that window (to the move handle or the grow box, without a visible focus ring) unless focus is already inside it. So after you drag window B, Tab continues from B, not from the window you were in before. A scroll-bar press does this only on an inactive window (the press that activates it). On the active window a scroll-bar press leaves keyboard focus where it was, even outside the window.
 
 ### Focus rings
 
-- Chrome controls: a 2 px `Highlight` outline on `:focus-visible`, from a stylesheet the runtime adopts into every window's shadow root. It doesn't depend on `scriptoscope.css`.
+- Chrome controls: a 2 px `Highlight` outline on `:focus-visible`, from a stylesheet the runtime adopts into every window's shadow root. It doesn't depend on `scriptoscope.css`. The ring of a title widget, the move handle, the grow box or a scroll bar is drawn by the window's unclipped decoration layer instead of the control itself, in both hit modes, so it stays whole over transparent frame pixels and is never covered by a neighbouring control.
 - With the optional `scriptoscope.css`: `[data-scriptoscope-promoted]:focus-visible` gets an outline in `--scriptoscope-focus-color` (default `rgb(0 95 204)`) at `--scriptoscope-focus-width` (default 2px). A separate rule, using the same two variables, paints focus of a promoted `<select>` on its wrapper (`.scriptoscope-select:focus-within`) and of a promoted range on its themed slider (`input[type=range][data-scriptoscope-promoted]:focus + .scriptoscope-slider`). It matches `:focus`, not `:focus-visible`, so it also shows after a pointer press.
 - Promoted checkboxes and radios draw a 2 px `currentColor` outline on their face while the native input has focus. This is inline, so it doesn't need the stylesheet.
+
+## 1a. Hit area and frame pass-through
+
+Many schemes have transparent pixels in their frames: merlons, ornaments, studs, the band beside a popup window's tab. In Kaleidoscope those pixels aren't part of the window, so a click there reaches whatever is behind. Scriptoscope does the same (#597, policy in [`docs/spec/engine/hit-regions.md`](./spec/engine/hit-regions.md) §9).
+
+**Modes.** Every managed window asks for a hit mode, `region` or `box`, and has an effective mode:
+
+- **`region`** (the default): the window takes a pointer only inside its structure region, which is the content area plus every opaque frame pixel of the frame template as drawn. Presses, hover, the cursor, wheel and touch gestures over a transparent frame pixel go to the page or window beneath, as trusted events with all their default actions (focus, selection, links, form controls). A press that passes through neither activates nor raises the window. Title widgets, the grow box and frame drags work wherever they are inside the region. The region is rebuilt with every chrome change (resize, collapse, activation, retheme), never while dragging or hovering, and it follows the active or inactive frame art as drawn.
+- **`box`**: the whole window rectangle takes every press, as before #597, and outside presses don't deactivate the window.
+
+The effective mode is `box`, whatever was asked for, for windows of the five built-in-frame schemes (`apple-platinum-2`, `black-platinum`, `platinum-8`, `slimes`, `system7-nostalgia-silver`; their only transparent pixels are two 2 px shadow notches), for windows inside an open `openModal` wrap, for the no-chrome fallback window, and for a commit whose region couldn't be built. The bare `renderWindow()` element is never clipped.
+
+**Choosing a mode.** The window's own request wins, then the manager default, then `region`:
+
+- per window: `data-scriptoscope-hit="box"` (or `"region"`), read at promotion; `manager.add(theme, opts, handlers, { hit: 'box' })`; `manager.applyState(host, { hit: 'box' })` at runtime, and `{ hit: null }` to inherit again;
+- page-wide: `new WindowManager({ hit: 'box' })`, or `manager.setDefaultHit('box')` at runtime, which changes only windows without their own request.
+- with the example host: `mountExplicitPage({ hit: 'box', … })` passes the default to every manager it creates (the shared one and the per-theme ones).
+
+Values are trimmed and case-insensitive. An empty or unknown value is ignored (the window inherits) and logs once on the `region` debug category. Changing the mode doesn't re-render the chrome or call the change listener, and isn't persisted: it's page configuration, so re-apply it on reload. The host reports the mode in force as `data-scriptoscope-hit-effective="region"` or `"box"` (read-only).
+
+**Outside presses deactivate.** A window that asks for or inherits `region` is deactivated by a press anywhere in the document outside every window of its manager: page content, a pass-through press on a frame gap, a promoted control outside any window, a window of another manager. This follows the request, not the effective mode, so built-in-frame windows deactivate too unless `box` was asked for. Windows in an open `openModal` wrap and windows inside a closed shadow root never do.
+
+- Mouse (any button) and pen deactivate on `pointerdown`.
+- Touch deactivates only on the `click` of a completed tap. A scroll, swipe or pinch (`pointercancel`), another press, a key press or a context menu before that click cancels it. A click that wasn't preceded by a touch press outside (keyboard, `element.click()`) never deactivates.
+- "Inside" means the window's host is on the event's `composedPath()`, so pop-overs and `showModal()` dialogs opened from a window's content count as inside it.
+- The deactivated window re-renders with its inactive art and loses the active z-index boost but keeps its order. The page always gets the event: the listeners are passive and never cancel or stop it.
+- Presses the document never sees (other applications, browser UI, cross-origin iframes), the browser window losing focus, and Tab moving focus out of every window don't deactivate.
+
+**Layers.** Inside the shadow root, `part="window"` holds a clipped `.scriptoscope-hit-layer` (canvas, content, title widgets, move handle, grow box, scroll bars) and an unclipped `.scriptoscope-decoration` (focus ring, resize outline). In effective `region` mode the hit layer carries a `clip-path: path(…)` and `pointer-events: auto`, and the host and `part="window"` get `pointer-events: none`. Every host carries `clip-path: none` inline, so consumer CSS can't clip it. The `::part(window)` shadow is unchanged and never catches clicks.
+
+**Content that escapes the content box** (for example `position: fixed` children) is clipped to the region in `region` mode. Put menus and tooltips in the top layer (`popover`, `<dialog>.showModal()`, native `<select>`) or outside the window, or use `box`.
 
 ## 2. Moving
 
@@ -130,6 +164,8 @@ The library has no persistence. It exposes the pieces: `setChangeListener`, `des
 
 ### Grow box (pointer)
 
+The ghost outline shown during a pointer resize is drawn in the window's decoration layer, so it stays visible beyond the old window size and over transparent frame pixels.
+
 Drag the window's bottom-right corner. The hit zone is the scheme's own grow box when it has one; otherwise it's the frame corner plus the classic 15 px square where the two scroll-bar gutters meet. The scroll bars stop short of that zone, so their end arrows are never under it (#524, `growbox-zone.spec.mjs`). Only the corner resizes: the right and bottom edges don't.
 
 - Primary mouse button or primary pointer only. The pointer is captured on the grow box.
@@ -175,7 +211,7 @@ The scheme's art decides which widgets a window type shows and where. A transpar
 | Collapse | Built-in window-shade (below). | `handlers.onCollapse` if given, **instead of** the built-in. |
 
 - **Zoom** grows the window to show all its content (the content element's scroll size, at least the current size), capped at 760 × 560 px of content. A window without a content element grows to 1.5 times its size. Zoom un-shades a collapsed window first and raises it (see [Z-order](#z-order)). Zooming again restores the size from before the zoom, including "no size" for a window that had none. While zoomed, `setOuterSize` updates the size that un-zoom restores (#542).
-- **Collapse (window-shade)** rolls the window up to its title bar, using the scheme's collapsed art when it has some, and hides the content (the content nodes stay in place). The grow box and scroll bars go away while collapsed. Collapsing again restores it.
+- **Collapse (window-shade)** rolls the window up to its title bar, using the scheme's collapsed art when it has some, and hides the content (the content nodes stay in place). On `wnd#` schemes a side-titled palette (`side-floating-utility-window`) collapses sideways: it keeps its height and rolls up to its vertical title strip (#617). The grow box and scroll bars go away while collapsed. Collapsing again restores it.
 - **Double-click any frame edge** toggles window-shade too, including on side-titled palettes. Double-clicks on widgets, scroll bars and the grow box don't. This path always runs the built-in shade, and afterwards calls `handlers.onCollapse` if there is one.
 - `data-scriptoscope-collapsed`, `extra.collapsed` or `applyState(host, { collapsed })` set the shade state without running any handler.
 
@@ -321,6 +357,7 @@ Imperative only: there is no `data-scriptoscope-*` attribute. `interactiveDisclo
 - makes the rest of the page `inert`: the wrap's siblings at every level up to `<body>`, skipping elements that were already inert, and restores exactly those on close;
 - focuses, in a microtask, the first focusable element inside the wrap: light-DOM content first, then the window chrome's controls. If there are none, it focuses the wrap itself (adding `tabindex="-1"`);
 - traps focus: any focus that lands outside the wrap is pulled back to the first focusable element inside it;
+- keeps every window host inside the wrap on the `box` hit area while open, so a press on a frame gap stays with the modal window and never reaches the backdrop, and outside presses don't deactivate it (#597). After close the windows return to their requested mode. A window promoted into an already open wrap is covered too;
 - closes on **Escape** (a `keydown` listener on the document), on a click whose target is the wrap itself (the backdrop, not its children), on the inner window's `scriptoscope:close`, or on `handle.close()`.
 
 On close it removes the attribute and the listeners, lifts the inert state, returns focus (by default to the element focused when the modal opened; pass `returnFocusTo: null` to skip), then calls `onClose`. Calling `openModal` again on an open wrap opens nothing new: it returns a new `{ close }` object bound to the same close function, so either handle closes the modal.
@@ -343,7 +380,9 @@ The original element is removed when a window is promoted, so listen for host ev
 ### Callbacks (imperative)
 
 - `handlers.onClose`, `onZoom`, `onCollapse` on `WindowManager.add` (section 4).
-- `manager.setChangeListener(host => …)`: one listener per manager, called after every committed render (activation flips, resizes, collapse, zoom, retheme, outer-size changes) and every committed move (`setPosition`: end of a pointer drag, each keyboard move step, restore). It isn't called per frame during a drag. Read state back with `describe(host)` and `host.style.left/top`.
+- `manager.setChangeListener(host => …)`: one listener per manager, called after every committed render (activation flips, including deactivation by an outside press, resizes, collapse, zoom, retheme, outer-size changes) and every committed move (`setPosition`: end of a pointer drag, each keyboard move step, restore). It isn't called per frame during a drag, or for hit-mode changes. Read state back with `describe(host)` and `host.style.left/top`.
+- `manager.describe(host)` returns `width`, `height`, `collapsed`, `z`, `theme`, and (#597) `active`, `hit` (the window's own hit request, `undefined` when it inherits) and `hitEffective` (`'region'` or `'box'`).
+- Debugging: `setDebug({ categories: ['region'] })` logs one event per region build (`built`, or `build failed`, after which the window keeps the box for that commit), ignored hit values, and hosts found inside closed shadow roots.
 - `interactiveSlider`/`interactiveScrollbar` `onChange(value)`, `interactiveDisclosure` `onToggle(open)`, `interactiveButton` `onClick()`.
 
 ### Example host events (`demo/explicit-host.mjs`)
@@ -388,6 +427,7 @@ Keyboard equivalents for every pointer gesture:
 - The window chrome, the grow box, the window scroll bars and sliders set `touch-action: none`, so dragging them doesn't scroll or zoom the page. The content area resets `touch-action: auto`, so ordinary content can be swiped.
 - A window that shows themed scroll bars has `overflow: hidden` on the scrolled axis, so swiping its content doesn't scroll it. Use the bars.
 - If the browser takes over a gesture and sends `pointercancel`, a move or resize in progress is reverted rather than committed (#563).
+- In `region` mode, touch and pen over a transparent frame pixel reach the page beneath, so page scrolling works there; `touch-action: none` applies only inside the window's region. An outside touch deactivates the active window only on a completed tap (see [1a](#1a-hit-area-and-frame-pass-through)).
 - There's no touch-specific layout. See [integration-edge-cases.md](./integration-edge-cases.md#mobile--responsive).
 
 ### Firefox and WebKit
@@ -413,7 +453,3 @@ These are absent on `main`. Don't rely on them.
 ## Known issues
 
 [#614](https://github.com/khawkins98/scriptoscope/issues/614) tracks the inactive-window behaviours marked above: widget clicks that skip activation, live invisible widgets on built-in-frame schemes, zoom leaving a window behind, `data-scriptoscope-state="active"` on later windows, and Shift+wheel moving both scroll bars. This page will be updated when they're fixed.
-
-## Upcoming: frame pass-through (#597)
-
-Classic Mac OS passes a click on a transparent frame pixel (outside the window's structure region) through to whatever is behind it. On the web today the whole host box is the window: such a click activates and can drag the window. The web host policy for #597 is specified in `docs/spec/engine/hit-regions.md` §9 on the branch `feat/597-frame-pass-through`. It isn't on `main` and isn't shipped, so none of it is described above as current behaviour. This page will be updated when it lands.

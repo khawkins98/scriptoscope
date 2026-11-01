@@ -49,7 +49,9 @@ function snapshot(page) {
       chrome: rect(host.shadowRoot.querySelector('canvas.scriptoscope-chrome')),
       corner: rect(corner),
       placeholders: document.querySelectorAll('[data-scriptoscope-placeholder]').length,
-      outlines: host.querySelectorAll(':scope > div[style*="dotted"]').length,
+      // HP31 (#597): the ghost outline moved to the shadow decoration layer L3; count both places.
+      outlines: host.querySelectorAll(':scope > div[style*="dotted"]').length
+        + host.shadowRoot.querySelectorAll('.scriptoscope-decoration div[style*="dotted"]').length,
       userResize: window.__userResize.length,
     };
   }, PICKER);

@@ -108,7 +108,8 @@ Chromium-only, and Chromium still runs these specs on every PR in the bounded sh
 It runs only the specs listed in [`interaction-specs.mjs`](./interaction-specs.mjs),
 where engines genuinely differ on pointer capture, sub-pixel pointer coordinates
 and focus: `window-pointer-drag`, `growbox-zero-delta`, `growbox-zone`,
-`posture-b` and `transformed-ancestors` (95 tests per engine). Pixel and trace
+`posture-b`, `transformed-ancestors` and the five `frame-pass-through*` specs of
+#597 (hit-regions §9.8; HPT36's WebKit budget is gated only in that engine). Pixel and trace
 contracts are not part of this job; the extended matrix, which the release gate
 also runs, covers every spec (these included) in every engine. `scrollbar-parts`
 is green in both engines but its hold-to-repeat cases cost about 4.7 minutes per

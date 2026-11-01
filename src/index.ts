@@ -21,6 +21,7 @@ export {
   type InteractiveSliderOptions, type InteractiveScrollbarOptions,
   type TitleWidget, type TitleWidgetHandlers, type TitleWidgetHit,
 } from './interactive.js';
+export type { HitMode } from './hitRegion.js';
 
 export {
   ScriptoscopeWindow, type ScriptoscopeWindowDeps,

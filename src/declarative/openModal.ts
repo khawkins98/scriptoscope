@@ -48,6 +48,13 @@ function findFocusable(root: Element): HTMLElement[] {
   });
 }
 
+/** Window hosts inside the wrap re-derive their modal hit exemption (hit-regions HP42). */
+function notifyHosts(wrap: HTMLElement): void {
+  for (const host of Array.from(wrap.querySelectorAll('[data-scriptoscope-window-host]'))) {
+    host.dispatchEvent(new Event('scriptoscope:modalchange'));
+  }
+}
+
 export interface OpenModalOptions {
   /** Fires after close has completed (after focus restore). */
   onClose?: (() => void) | undefined;
@@ -79,6 +86,7 @@ export function openModal(wrap: HTMLElement, options: OpenModalOptions = {}): Op
   // Flip the attribute → consumer CSS makes the wrap visible. Single
   // toggle the consumer wires their fade/scale transition off.
   wrap.setAttribute('data-scriptoscope-modal-open', '');
+  notifyHosts(wrap);
   // Polite + role for screen readers (the consumer markup doesn't need
   // role=dialog because the themed window inside ALREADY has it — the
   // wrap is just the backdrop chrome).
@@ -170,6 +178,7 @@ export function openModal(wrap: HTMLElement, options: OpenModalOptions = {}): Op
     if (closed) return;
     closed = true;
     wrap.removeAttribute('data-scriptoscope-modal-open');
+    notifyHosts(wrap);
     wrap.removeEventListener('click', onBackdropClick);
     document.removeEventListener('keydown', onKeyDown);
     document.removeEventListener('focusin', onFocusIn);
