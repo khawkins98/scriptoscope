@@ -149,7 +149,7 @@ for (const mode of MODES) {
     // Manager { hit: 'Boxed' }: region, logged once.
     const logs = await run({ hit: 'Boxed' }, [['X', undefined, 120]]);
     expect((await state(page, 'X')).hitEffective).toBe('region');
-    expect(logs.filter(t => t.includes('Boxed')), 'unknown manager default logs once').toHaveLength(1);
+    expect(logs.filter(t => t.includes('ignored hit value') && t.includes('Boxed')), 'unknown manager default: one `ignored hit value` event').toHaveLength(1);
     // Attribute "boxed" under manager box: ignored, so it inherits box.
     await run({ hit: 'box' }, [['Y', 'boxed', 120]]);
     expect((await state(page, 'Y')).hitEffective).toBe('box');
@@ -193,18 +193,24 @@ for (const mode of MODES) {
     expect(r.hit, 'p_out returns the window element').toBe(true);
   });
 
-  test(`${mode}: HPT22 no-chrome baseline and a recipe whose template fails to load are box`, async ({ page, servers }) => {
+  test(`${mode}: HPT22 no-chrome baseline, a recipe with no chrome template and a failed region build are box`, async ({ page, servers }) => {
     await boot(page, servers, mode);
     const dolphin = await page.evaluate(async () => { const f = window.__fpt; f.manager(); await f.add('ref', { slug: 'dolphin-som' }); const o = await f.oracle('ref'); const p = f.points(o); f.drop('ref'); return p; });
-    for (const variant of ['no-chrome', 'missing-template']) {
+    for (const variant of ['no-chrome', 'no-template', 'failed-build']) {
       const r = await page.evaluate(async ({ variant, p }) => {
         const f = window.__fpt; f.reset(); f.manager();
         const base = await f.theme('dolphin-som');
         const windowTypes = variant === 'no-chrome' ? {} : { ...base.manifest.windowTypes,
-          'document-window': { ...base.manifest.windowTypes['document-window'], chrome: { active: '/themes/dolphin-som/fpt-missing-active.png', inactive: '/themes/dolphin-som/fpt-missing-inactive.png' } } };
+          'document-window': { ...base.manifest.windowTypes['document-window'], chrome: {} } }; // HP7: no template (a load failure rejects add(), out of scope)
         const themeObject = { ...base, base: undefined, manifest: { ...base.manifest, windowTypes, chromeElements: variant === 'no-chrome' ? {} : base.manifest.chromeElements } };
         let error = null;
-        try { await f.add('S', { themeObject, slug: 'dolphin-som' }); } catch (e) { error = String(e); }
+        try {
+          if (variant === 'failed-build') {
+            // HP7b/HP44: fully mask-clear templates, collapsed, so S is empty (as HPT38).
+            const { theme, synthetic } = await f.synth('1984', ['document-window', 'collapsed-document-window'], rgba => { for (let i = 3; i < rgba.length; i += 4) rgba[i] = 0; });
+            await f.add('S', { themeObject: theme, slug: '1984', synthetic, extra: { collapsed: true } });
+          } else await f.add('S', { themeObject, slug: 'dolphin-som' });
+        } catch (e) { error = String(e); }
         if (error) return { error };
         // The box: the host's border box (there may be no chrome canvas without chrome).
         const b = f.hosts.S.host.getBoundingClientRect(), s = f.state('S');
@@ -212,14 +218,11 @@ for (const mode of MODES) {
         const cr = f.hosts.S.contentEl.getBoundingClientRect();
         return { s, frame: f.hitAt(frame.x, frame.y), corner: f.hitAt(corner.x, corner.y), content: f.hitAt(cr.x + cr.width / 2, cr.y + cr.height / 2) };
       }, { variant, p: dolphin });
-      // HP7 reachability: a template that cannot be decoded rejects add() (pre-#597
-      // behaviour), so no public input reaches "recipe without a template" this way.
-      if (r.error && variant === 'missing-template') { test.info().annotations.push({ type: 'observation', description: `HP7 unreachable through an undecodable template: ${r.error}` }); continue; }
       expect(r.error, `${variant}: the window still mounts`).toBeUndefined();
       expect([r.s.hitEffective, r.s.attr], variant).toEqual(['box', 'box']);
       expect(r.frame, `${variant}: frame point`).toMatch(/^(host|content):S$/);
       expect(r.corner, `${variant}: corner`).toMatch(/^(host|content):S$/);
-      expect(r.content, `${variant}: p_c`).toMatch(/^(host|content):S$/);
+      if (variant !== 'failed-build') expect(r.content, `${variant}: p_c`).toMatch(/^(host|content):S$/); // collapsed: no content area
     }
   });
 

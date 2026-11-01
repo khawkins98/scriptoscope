@@ -88,10 +88,13 @@ for (const mode of MODES) {
   test(`${mode}: HPT18 inside presses (p_c, p_in, a popover from the content) keep the window active; B beneath A's gap takes over`, async ({ page, servers }) => {
     await boot(page, servers, mode, { sentinel: 'button' });
     const fix = await twoWindows(page);
+    const c0 = (await state(page, 'A')).changes;
     await page.mouse.click(fix.vp.p_c.x, fix.vp.p_c.y); await settle(page);
     expect((await state(page, 'A')).active, 'p_c').toBe(true);
     await page.mouse.click(fix.vp.p_in.x, fix.vp.p_in.y); await settle(page);
     expect((await state(page, 'A')).active, 'p_in').toBe(true);
+    // Inside presses are not deactivate-then-reactivate pairs: no commit at all.
+    expect((await state(page, 'A')).changes - c0, 'inside presses: no change-listener call').toBe(0);
     const pop = await page.evaluate(async () => {
       const f = window.__fpt, p = document.createElement('div');
       p.setAttribute('popover', 'manual'); p.textContent = 'popover';
@@ -121,9 +124,10 @@ for (const mode of MODES) {
     await boot(page, servers, mode, { sentinel: 'button' });
     const cases = {
       'platinum-8': async f => { await f.add('X', { slug: 'platinum-8' }); },
+      // HP7 (PM ruling): a recipe whose window type names no chrome template.
       'no-template': async f => {
         const base = await f.theme('dolphin-som');
-        const themeObject = { ...base, manifest: { ...base.manifest, windowTypes: { ...base.manifest.windowTypes, 'document-window': { ...base.manifest.windowTypes['document-window'], chrome: { active: '/themes/dolphin-som/fpt-missing.png', inactive: '/themes/dolphin-som/fpt-missing.png' } } } } };
+        const themeObject = { ...base, manifest: { ...base.manifest, windowTypes: { ...base.manifest.windowTypes, 'document-window': { ...base.manifest.windowTypes['document-window'], chrome: {} } } } };
         await f.add('X', { themeObject, slug: 'dolphin-som' });
       },
       'failed-build': async f => {
@@ -133,8 +137,6 @@ for (const mode of MODES) {
     };
     for (const [label, make] of Object.entries(cases)) {
       const error = await page.evaluate(`(async f => { f.reset(); f.manager(); try { await (${make.toString()})(f); return null; } catch (e) { return String(e); } })(window.__fpt)`);
-      // See HPT22: an undecodable template rejects add(), so HP7 has no public input.
-      if (error && label === 'no-template') { test.info().annotations.push({ type: 'observation', description: `HP7 unreachable: ${error}` }); continue; }
       expect(error, `${label}: mounts`).toBeNull();
       const s0 = await state(page, 'X');
       expect([s0.active, s0.hitEffective, s0.hit], `${label}: active, effective box, inherited request`).toEqual([true, 'box', undefined]);
@@ -169,10 +171,11 @@ for (const mode of MODES) {
     await page.evaluate(() => document.getElementById('page-btn').focus());
     await page.keyboard.press('Enter'); await settle(page);
     expect((await state(page, 'A')).active, 'cancelled touchend then Enter').toBe(true);
-    // A pending tap discarded by a later (inside) pointerdown.
+    // A pending tap discarded by a later pointerdown (inside, with no click of its own),
+    // so the following click carries no pending tap.
     fix = await twoWindows(page);
     await synth(page, fix.vp.p_out, [['pointerdown', 'touch']]);
-    await page.mouse.click(fix.vp.p_c.x, fix.vp.p_c.y);
+    await synth(page, fix.vp.p_c, [['pointerdown', 'mouse', { pointerId: 1 }], ['pointerup', 'mouse', { pointerId: 1 }]]);
     await page.evaluate(() => document.getElementById('page-btn').click()); await settle(page);
     expect((await state(page, 'A')).active, 'pending tap discarded by a later pointerdown').toBe(true);
     // Lifecycle: A tracked (inherited region), B explicit box.
@@ -246,6 +249,9 @@ for (const mode of MODES) {
     await page.mouse.click(fix.vp.p_out.x, fix.vp.p_out.y); await settle(page);
     expect(await page.evaluate(() => document.getElementById('wrap').hasAttribute('data-scriptoscope-modal-open')), 'the gap press does not close the modal').toBe(true);
     expect((await state(page, 'M')).changes - c0, 'no change-listener call').toBe(0);
+    // A commit while exempt still builds S (HP22), so close can apply it without a commit.
+    await page.evaluate(async () => { const f = window.__fpt; await f.hosts.M.m.applyState(f.hosts.M.host, { width: 340, height: 210 }); await f.settle(); });
+    const fixOpen = await fixture(page, 'M');
     // Backdrop press: the window is not deactivated by it (the click then closes the modal).
     await page.mouse.move(1200, 900); await page.mouse.down(); await settle(page);
     expect((await state(page, 'M')).active, 'backdrop press does not deactivate the modal').toBe(true);
@@ -253,6 +259,7 @@ for (const mode of MODES) {
     expect(await page.evaluate(() => document.getElementById('wrap').hasAttribute('data-scriptoscope-modal-open')), 'backdrop click closed it').toBe(false);
     s = await state(page, 'M');
     expect(s.hitEffective, 'after close: region again').toBe('region');
+    expect(await hitAt(page, fixOpen.vp.p_out), 'after close: the S built while exempt is applied').not.toMatch(/:M$/);
     // A window promoted into the wrap while it is open.
     await page.evaluate(async () => {
       const f = window.__fpt; window.__modal = f.decl.openModal(document.getElementById('wrap')); await f.settle();
@@ -284,8 +291,8 @@ for (const mode of MODES) {
     expect(r.active).toBe(true);
     const c0 = (await state(page, 'Z')).changes;
     await page.mouse.click(r.pc.x, r.pc.y); await settle(page);
-    // HP47: logged once (at insertion, or at the latest by the first press).
-    const logs = await page.evaluate(() => window.__fpt.logs.filter(l => l.category !== 'shadow' && /closed/i.test(l.text)).map(l => `${l.category}: ${l.text}`));
+    // HP47 (PM ruling): one `closed shadow root` event by the first sync or press after insertion.
+    const logs = await page.evaluate(() => window.__fpt.region().filter(l => /closed shadow root/.test(l.label)).map(l => l.label));
     expect(logs, 'one debug log for the closed root').toHaveLength(1);
     expect((await state(page, 'Z')).changes - c0, 'no deactivate-then-reactivate').toBe(0);
     expect((await state(page, 'Z')).active).toBe(true);

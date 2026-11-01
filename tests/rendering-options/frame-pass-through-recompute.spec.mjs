@@ -1,6 +1,6 @@
 // #597 frame pass-through, recompute, identity and gesture hooks
 // (docs/spec/engine/hit-regions.md §9.4, §9.5, §9.8): HPT4, HPT5, HPT6, HPT13,
-// HPT14, HPT25, HPT26, HPT27, HPT30, HPT31, HPT32, HPT35, HPT38.
+// HPT14, HPT25, HPT26, HPT27, HPT30, HPT31, HPT32, HPT35, HPT38, HPT39.
 import { test, expect, MODES, boot, fixture, hitAt, state, events, settle, regionLogs, capture, SENTINEL_RGB } from './frame-pass-through-fixture.mjs';
 
 /** Snapshot the decoded S of `name` for a later comparison (chrome pixels; host origin fixed). */
@@ -430,7 +430,7 @@ for (const mode of MODES) {
     });
     expect(r0.W * r0.H, 'the chrome still commits').toBeGreaterThan(0);
     expect(r0.state.hitEffective).toBe('box');
-    expect(r0.region.filter(t => /fail|empty|error|throw/i.test(t)), `one failure log ${JSON.stringify(r0.region)}`).toHaveLength(1);
+    expect(r0.region.filter(t => /build failed/.test(t)), `one \`build failed\` event ${JSON.stringify(r0.region)}`).toHaveLength(1);
     const before = await regionLogs(page);
     await page.evaluate(async () => { const f = window.__fpt; await f.hosts.F.m.applyState(f.hosts.F.host, { hit: 'region' }); });
     const s1 = await state(page, 'F');
@@ -443,4 +443,50 @@ for (const mode of MODES) {
     const pts = await page.evaluate(() => { const f = window.__fpt, g = f.geom('F'), top = f.vp('F', [Math.floor(g.W / 2), 2]), c = f.vp('F', [Math.floor(g.W / 2), Math.floor(g.H / 2)]); return { top: f.hitAt(top.x, top.y), c: f.hitAt(c.x, c.y) }; });
     expect(pts).toEqual({ top: 'sentinel', c: 'content:F' });
   });
+
+  test(`${mode}: HPT39 collapsed: only the title-axis sides are in S (animals collapsed utilities)`, async ({ page, servers }, info) => {
+    await boot(page, servers, mode);
+    const rows = [];
+    for (const [type, key] of [['titled-utility-window', 'collapsed-titled-utility'], ['no-title-utility-window', 'collapsed-no-title-utility']]) {
+      const r = await page.evaluate(async ({ type, key }) => {
+        const f = window.__fpt; f.reset(); f.manager();
+        await f.add('U', { slug: 'animals', type, w: 320, h: 120, extra: { collapsed: true } });
+        const o = await f.oracle('U', { collapsed: true, type: key });
+        // Configuration input, not points: the runtime lays the collapsed window out at content
+        // height 0 with all four sides (HP8) and its own frame placement. Solve C as the content
+        // rect whose four-side decode reproduces the drawn chrome exactly (HP15 cross-check), then
+        // take every point from the decode: SR6 (title-axis sides only) vs the four-side layout.
+        const dec = await f.decode('animals'), wt = dec.manifest.windowTypes[key], [al, aTop] = wt.parts['part-0'].rect;
+        const build = (C, mutation) => f.rules.structureRegion({ windowType: wt, cicn: o.cicn, C, W: o.W, H: o.H, flags: { ...f.chromeRules.DECLARED_FLAGS }, collapsed: true, mutation });
+        let solved = null;
+        for (let l = al - 4; l <= al + 4 && !solved; l++) for (let t = aTop - 4; t <= aTop + 4 && !solved; t++)
+          for (let w = o.W - l - 40; w <= o.W - l && !solved; w++) {
+            const C = { left: l, top: t, right: l + w, bottom: t };
+            if (f.crossCheck('U', { ...o, C, region: build(C, 'fourSidesCollapsed').region }).disagree === 0) solved = C;
+          }
+        if (!solved) return { unsolved: true, W: o.W, H: o.H };
+        const sr6 = { ...o, C: solved, region: build(solved).region }, four = build(solved, 'fourSidesCollapsed');
+        const cc = { disagree: 0 };
+        const extra = [], titled = [];
+        for (let y = 0; y < sr6.H; y++) for (let x = 0; x < sr6.W; x++) {
+          const j = y * sr6.W + x;
+          if (four.region[j] === f.rules.IN && sr6.region[j] === f.rules.OUT) extra.push([x, y]);
+          else if (sr6.region[j] === f.rules.IN && f.rules.uniform(sr6.region, sr6.W, sr6.H, x, y, f.rules.IN, 1) && titled.length < 400) titled.push([x, y]);
+        }
+        const at = p => { const v = f.vp('U', p); return f.hitAt(v.x, v.y); };
+        return { W: sr6.W, H: sr6.H, C: solved, collapsed: f.hosts.U.m.describe(f.hosts.U.host).collapsed, cc, extra: extra.map(p => [p, at(p)]),
+          titled: titled.filter((_, i) => i % 20 === 0).map(p => [p, at(p)]), effective: f.state('U').hitEffective };
+      }, { type, key });
+      expect(r.unsolved, `${key}: a content rect reproduces the drawn chrome`).toBeUndefined();
+      rows.push({ key, W: r.W, H: r.H, C: r.C, extra: r.extra.length });
+      expect(r.collapsed, key).toBe(true);
+      expect(r.cc.disagree, `${key}: the four-side reading matches the drawn chrome`).toBe(0);
+      expect(r.extra.length, `${key}: decoded side-cell pixels the four-side layout adds`).toBeGreaterThan(0);
+      expect(r.effective, key).toBe('region');
+      expect(r.extra.filter(([, h]) => h !== 'sentinel'), `${key}: left/right cell pixels pass (SR6)`).toEqual([]);
+      expect(r.titled.filter(([, h]) => h !== 'host:U'), `${key}: title-axis pixels in S hit`).toEqual([]);
+    }
+    info.annotations.push({ type: 'observation', description: JSON.stringify(rows) });
+  });
+
 }

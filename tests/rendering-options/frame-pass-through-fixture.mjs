@@ -80,6 +80,8 @@ const BOOT = async ({ mode, sentinel: sentinelTag }) => {
   };
   api.setDebug(true);
   const region = () => logs.filter(l => l.category === 'region');
+  // HP45: one `built` event per successful build of S (labels: built, build failed, ignored hit value, closed shadow root).
+  const builds = () => region().filter(l => /\bbuilt\b/.test(l.label) && !/fail/i.test(l.label));
 
   // ── Themes and the decode ─────────────────────────────────────────────────
   const themes = new Map(), decoded = new Map();
@@ -289,7 +291,7 @@ const BOOT = async ({ mode, sentinel: sentinelTag }) => {
   };
 
   window.__fpt = { vpT, synth, drop, reset, pageButton, api, decl, rules, chromeRules, theme, decode, manager, managers, add, promote, hosts, geom, vp, oracle, points, value,
-    hitAt, state, events, logs, region, watch, crossCheck, records, layers, settle, sentinel, changes, hostDowns };
+    hitAt, state, events, logs, region, builds, watch, crossCheck, records, layers, settle, sentinel, changes, hostDowns };
   await document.fonts.ready;
 };
 
@@ -307,7 +309,7 @@ export async function fixture(page, name, opts = {}) {
 export const hitAt = (page, p) => page.evaluate(({ x, y }) => window.__fpt.hitAt(x, y), p);
 export const state = (page, name) => page.evaluate(name => window.__fpt.state(name), name);
 export const events = page => page.evaluate(() => window.__fpt.events.splice(0));
-export const regionLogs = page => page.evaluate(() => window.__fpt.region().length);
+export const regionLogs = page => page.evaluate(() => window.__fpt.builds().length);
 export const settle = (page, ms) => page.evaluate(ms => window.__fpt.settle(ms), ms);
 
 /** Screenshot pixels of a viewport clip, decoded in the page: `{ w, h, data }` (RGBA, CSS px at DPR 1). */

@@ -1,0 +1,35 @@
+{
+  "hook": "HPT40 (hit-regions §9.8)",
+  "recordedAt": "a6e4344c8b3dfa6591bf413ea979acfacb93b1db",
+  "note": "Pre-#597 main (merge base of feat/597-frame-pass-through), source mode, DPR 1, scenario TAB_SCENARIO in frame-pass-through-tab-order.mjs. WebKit Tab skips <button>s by default (no full keyboard access).",
+  "sequences": {
+    "chromium": [
+      "in-content",
+      "Close window",
+      "Zoom window",
+      "Collapse window",
+      "Move window",
+      "Resize window",
+      "Scroll content vertically",
+      "Scroll content horizontally",
+      "tab-end"
+    ],
+    "firefox": [
+      "in-content",
+      "Close window",
+      "Zoom window",
+      "Collapse window",
+      "Move window",
+      "Resize window",
+      "Scroll content vertically",
+      "Scroll content horizontally",
+      "tab-end"
+    ],
+    "webkit": [
+      "Move window",
+      "Scroll content vertically",
+      "Scroll content horizontally",
+      "tab-end"
+    ]
+  }
+}

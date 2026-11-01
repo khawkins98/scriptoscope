@@ -1,10 +1,13 @@
 // #597 layering, focus, shadow, transforms and accessibility hooks
 // (docs/spec/engine/hit-regions.md §9.3, §9.5, §9.6, §9.8): HPT8, HPT9, HPT10,
-// HPT11, HPT12, HPT15, HPT28, HPT29. Captures run at DPR 1, k = 1 (HP18) unless a
+// HPT11, HPT12, HPT15, HPT28, HPT29, HPT33, HPT40. Captures run at DPR 1, k = 1 (HP18) unless a
 // hook says otherwise.
-import { test, expect, MODES, FIXTURES, NEGATIVE, EXEMPT, boot, fixture, hitAt, state, settle, capture } from './frame-pass-through-fixture.mjs';
+import { readFileSync } from 'node:fs';
+import { TAB_SCENARIO, tabSequence } from './frame-pass-through-tab-order.mjs';
+import { test, expect, MODES, FIXTURES, NEGATIVE, EXEMPT, boot, fixture, hitAt, state, events, settle, capture } from './frame-pass-through-fixture.mjs';
 
 const SHADOW = '4px 5px 0 rgb(1, 2, 3)';
+const TAB_REFERENCE = JSON.parse(readFileSync(new URL('./frame-pass-through-tab-order.json', import.meta.url), 'utf8'));
 const setHit = (page, name, hit) => page.evaluate(async ({ name, hit }) => { const f = window.__fpt; await f.hosts[name].m.applyState(f.hosts[name].host, { hit }); await f.settle(); }, { name, hit });
 // Pixels that differ by more than 2 levels in a channel. Firefox composites a clipped layer
 // with ±1-level blending differences on anti-aliased ring edges; a clipped or missing ring
@@ -218,6 +221,9 @@ for (const mode of MODES) {
       await setHit(page, 'A', 'box');
       expect(await page.evaluate(() => getComputedStyle(window.__fpt.hosts.A.host).pointerEvents), `${kind} box: consumer pointer-events applies`).toBe('none');
       expect(await hitAt(page, fix.vp.p_in), `${kind} box: the consumer's pointer-events: none applies again`).toBe('sentinel');
+      expect(await page.evaluate(() => window.__fpt.hosts.A.host.style.pointerEvents), `${kind} box: no inline pointer-events`).toBe('');
+      await page.evaluate(() => window.__fpt.hosts.A.host.classList.remove('hostile'));
+      expect(await hitAt(page, fix.vp.p_in), `${kind} box: without the consumer rule the host hits again`).toBe('host:A');
     }
   });
 
@@ -241,4 +247,41 @@ for (const mode of MODES) {
       expect(diffCount(region, box), `${label}: differing pixels`).toBe(0);
     }
   });
+
+  test(`${mode}: HPT33 at p_out hover, cursor and wheel go to the page beneath`, async ({ page, servers }) => {
+    await boot(page, servers, mode);
+    await page.evaluate(async () => {
+      const f = window.__fpt; f.manager();
+      f.sentinel.style.overflow = 'auto';
+      const tall = document.createElement('div'); tall.style.cssText = 'height:4000px;width:10px'; f.sentinel.append(tall);
+      const content = document.createElement('div'); content.innerHTML = '<p>Tall content</p>'.repeat(40);
+      Object.assign(content.style, { height: '100%', overflow: 'auto', boxSizing: 'border-box' });
+      await f.add('A', { slug: 'dolphin-som', content });
+    });
+    const fix = await fixture(page, 'A');
+    await page.mouse.move(fix.vp.p_c.x, fix.vp.p_c.y);
+    await events(page);
+    await page.mouse.move(fix.vp.p_out.x, fix.vp.p_out.y);
+    await settle(page);
+    expect((await events(page)).filter(e => e.at === 'sentinel').map(e => e.type), 'pointerover on the sentinel').toContain('pointerover');
+    const cursor = await page.evaluate(p => { const el = document.elementFromPoint(p.x, p.y); return { sentinel: el === window.__fpt.sentinel, cursor: getComputedStyle(el).cursor }; }, fix.vp.p_out);
+    expect(cursor, 'the computed cursor is the sentinel\'s').toEqual({ sentinel: true, cursor: 'crosshair' });
+    await page.mouse.wheel(0, 300); await settle(page, 300);
+    const scroll = await page.evaluate(() => ({ sentinel: window.__fpt.sentinel.scrollTop, content: window.__fpt.hosts.A.contentEl.scrollTop }));
+    expect(scroll.sentinel, 'the wheel scrolls the page beneath').toBeGreaterThan(0);
+    expect(scroll.content, 'not the window content').toBe(0);
+  });
+
+
+  test(`${mode}: HPT40 the Tab sequence matches the pre-#597 recording in both modes`, async ({ page, servers, browserName }) => {
+    const reference = TAB_REFERENCE.sequences[browserName];
+    expect(reference, `a ${browserName} reference recorded at ${TAB_REFERENCE.recordedAt}`).toBeTruthy();
+    for (const hit of ['region', 'box']) {
+      await page.goto(`${servers[mode]}/tests/rendering-options/native-dom-page.html`);
+      await page.evaluate(TAB_SCENARIO, { mode, hit });
+      expect(await page.evaluate(() => window.__tabHost.getAttribute('data-scriptoscope-hit-effective')), hit).toBe(hit);
+      expect(await tabSequence(page), `${hit} mode`).toEqual(reference);
+    }
+  });
+
 }
