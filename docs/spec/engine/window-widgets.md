@@ -109,7 +109,12 @@ aliases. It is **one** flag: every decoded use reads the same value, including
 collapsed `C`, WD4, WD8/WD9/HT7 retries and WD11. Together PM1 and WD11 request
 −14298 for top-titled utilities and −14290 for side-titled utilities; WD9/HT7
 retry the side strip at −14298 when −14290 is absent. Other types request
-−14330. This is a shared type mapping, never an archive-name branch. These
+−14330. This is a shared type mapping, never an archive-name branch. PM1 changes only `altWidgets`; it does not establish new mappings for
+`utilityFrame`, `growEnabled`, `noWidgets` or title suppression. Keep their
+existing declared defaults and caller rules. Every existing decoded consumer
+of `altWidgets` uses the same mapped value, including TT2/TX5/TX9's bold
+face and HG3's size choice when that row is reachable. Do not add a separate
+widget-only flag or infer other utility flags from PM1. These
 rows govern recipe windows; the recipe-less built-in frame retains its own
 family and resource rules in `procedural-frame.md`.
 
