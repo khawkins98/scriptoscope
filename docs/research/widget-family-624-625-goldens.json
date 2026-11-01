@@ -1,0 +1,233 @@
+{
+  "schema": 1,
+  "role": "integration acquisition; independent approval is separate",
+  "issues": [
+    624,
+    625
+  ],
+  "workflow": "https://github.com/khawkins98/scriptoscope/actions/runs/41362350628",
+  "inputCommit": "0091b71e9437641b98c3de45d70e7fb44a9f5497",
+  "conclusion": "record and exact verify passed, 54 sheets each",
+  "environment": {
+    "schema": 1,
+    "platform": "linux",
+    "arch": "x64",
+    "browser": "chromium",
+    "browserVersion": "156.0.8078.4",
+    "playwrightVersion": "1.64.0",
+    "deviceScaleFactor": 1,
+    "viewport": [
+      1280,
+      960
+    ],
+    "caseDigest": "64498e6f97d1c6345315588a8745eb1413886afd5418413434727b84cf7d0766",
+    "casePages": [
+      [
+        "direct/push/auto/labeled/horizontal/0.5/true/normal",
+        "direct/push/small/empty/horizontal/0.5/true/pressed",
+        "direct/push/standard/long/horizontal/0.5/true/disabled",
+        "direct/push/large/ink/horizontal/0.5/true/normal",
+        "direct/push/auto/ink/horizontal/0.5/true/normal",
+        "direct/push/auto/ink/horizontal/0.5/true/pressed",
+        "direct/push/auto/ink/horizontal/0.5/true/disabled",
+        "declarative/push/auto/ink/horizontal/0.5/true/normal",
+        "declarative/push/auto/ink/horizontal/0.5/true/disabled",
+        "direct/default/auto/labeled/horizontal/0.5/true/normal",
+        "direct/default/small/empty/horizontal/0.5/true/pressed",
+        "direct/default/standard/long/horizontal/0.5/true/disabled",
+        "direct/default/large/ink/horizontal/0.5/true/normal",
+        "direct/default/auto/ink/horizontal/0.5/true/normal",
+        "direct/default/auto/ink/horizontal/0.5/true/pressed",
+        "direct/default/auto/ink/horizontal/0.5/true/disabled",
+        "declarative/default/auto/ink/horizontal/0.5/true/normal",
+        "declarative/default/auto/ink/horizontal/0.5/true/disabled",
+        "direct/bevel/auto/labeled/horizontal/0.5/true/normal",
+        "direct/bevel/small/empty/horizontal/0.5/true/pressed",
+        "direct/bevel/standard/long/horizontal/0.5/true/disabled",
+        "direct/bevel/large/ink/horizontal/0.5/true/on",
+        "direct/list-header/auto/labeled/horizontal/0.5/true/normal",
+        "direct/list-header/small/empty/horizontal/0.5/true/inactive",
+        "direct/list-header/standard/long/horizontal/0.5/true/normal",
+        "direct/list-header/large/ink/horizontal/0.5/true/inactive",
+        "direct/checkbox/auto/labeled/horizontal/0.5/true/normal",
+        "direct/checkbox/auto/empty/horizontal/0.5/true/checked",
+        "direct/checkbox/auto/long/horizontal/0.5/true/mixed",
+        "direct/checkbox/auto/ink/horizontal/0.5/true/disabled",
+        "declarative/checkbox/auto/ink/horizontal/0.5/true/normal",
+        "declarative/checkbox/auto/ink/horizontal/0.5/true/checked",
+        "declarative/checkbox/auto/ink/horizontal/0.5/true/disabled",
+        "direct/radio/auto/labeled/horizontal/0.5/true/normal",
+        "direct/radio/auto/empty/horizontal/0.5/true/checked"
+      ],
+      [
+        "direct/radio/auto/long/horizontal/0.5/true/mixed",
+        "direct/radio/auto/ink/horizontal/0.5/true/disabled",
+        "declarative/radio/auto/ink/horizontal/0.5/true/normal",
+        "declarative/radio/auto/ink/horizontal/0.5/true/checked",
+        "declarative/radio/auto/ink/horizontal/0.5/true/disabled",
+        "declarative/select/auto/labeled/horizontal/0.5/true/normal",
+        "declarative/select/auto/empty/horizontal/0.5/true/disabled",
+        "declarative/select/auto/long/horizontal/0.5/true/normal",
+        "declarative/select/auto/ink/horizontal/0.5/true/disabled",
+        "direct/slider/auto/empty/horizontal/0/true/normal",
+        "direct/slider/small/empty/vertical/0.5/true/pressed",
+        "direct/slider/standard/empty/horizontal/1/true/disabled",
+        "direct/slider/large/empty/vertical/0/true/inactive",
+        "declarative/slider/auto/empty/horizontal/0.5/true/normal",
+        "direct/progress/auto/empty/horizontal/0/true/normal",
+        "direct/progress/small/empty/horizontal/0.5/true/inactive",
+        "direct/progress/standard/empty/horizontal/1/true/normal",
+        "direct/progress/large/empty/horizontal/0/true/inactive",
+        "direct/tab/auto/labeled/horizontal/0.5/true/normal",
+        "direct/tab/auto/empty/horizontal/0.5/true/selected",
+        "direct/tab/auto/long/horizontal/0.5/true/normal",
+        "direct/tab/auto/ink/horizontal/0.5/true/selected",
+        "declarative/tab/auto/ink/horizontal/0.5/true/normal",
+        "declarative/tab/auto/ink/horizontal/0.5/true/selected",
+        "direct/scrollbar/auto/empty/horizontal/0/true/normal",
+        "direct/scrollbar/small/empty/vertical/0.5/false/pressed",
+        "direct/scrollbar/standard/empty/horizontal/1/true/disabled",
+        "direct/scrollbar/large/empty/vertical/0/false/inactive",
+        "direct/disclosure/auto/empty/horizontal/0.5/true/normal",
+        "direct/disclosure/auto/empty/vertical/0.5/true/pressed",
+        "direct/disclosure/auto/empty/horizontal/0.5/true/disabled",
+        "direct/disclosure/auto/empty/vertical/0.5/true/inactive",
+        "direct/growbox/auto/empty/horizontal/0.5/true/normal",
+        "direct/growbox/auto/empty/horizontal/0.5/true/inactive",
+        "direct/push/auto/ink/horizontal/0.5/true/normal/custom-fg"
+      ],
+      [
+        "managed/window/document-window/collapsed",
+        "managed/window/side-floating-utility-window/collapsed",
+        "window/titled-utility-window/collapsed/pressed-close",
+        "window/side-floating-utility-window/collapsed/pressed-close"
+      ]
+    ],
+    "themeSlugs": [
+      "1138",
+      "1984",
+      "1990",
+      "animals",
+      "apple-lisa",
+      "apple-platinum-2",
+      "beos-r503",
+      "black-platinum",
+      "crayon-os",
+      "dolphin-som",
+      "evolution",
+      "floppies",
+      "monkey-paradise",
+      "platinum-8",
+      "slimes",
+      "system7-nostalgia-silver",
+      "windows-31",
+      "windows-95"
+    ],
+    "requiredContainerImage": "mcr.microsoft.com/playwright:v1.64.0-noble@sha256:06a9939e57531807f8d5fd76ce44b53165ffb7d7501d87ab10e285c20b1e971f",
+    "fonts": {
+      "virtue.woff": "5904ff4adfe027aab96d72fc992a5c5d39c5f09b883f11dc91a4ac3a2a1e6ac7",
+      "charcoal-12.woff": "7fd728b7e3ade54de0aca65a7c8a1a720b8f8ba9d2eabb3b2790099fa349eab7"
+    },
+    "sourceArchives": {
+      "1138": "2b14d10e0907e058474b980df57713191a9e1bf1b39c4ed7df8f82ba3ac1fcdb",
+      "1984": "1fbf62f376ad4f7277ea8cd87cf379c7ea71382e84d83f88e96d5c6502022c21",
+      "1990": "767bd46d55b98c55ac891ad3e917993681571a4485880e7105f01abd7224768a",
+      "animals": "e579b5c52d462ae6c6affa8cb504886b00da7cc15486bf2b84eff9c6360264c3",
+      "apple-lisa": "22ce015a371c187db7c7ab112a4f59b089f21c9433144e3b9021bd61579ab93d",
+      "apple-platinum-2": "ab667ce7ee19b2495413b25782013137a5e891adbe12c54143ed8f7ece34e091",
+      "beos-r503": "04b315396840c5f6e53555381d51ab86087169d5687640261d92c3f85510c0c0",
+      "black-platinum": "84b1b90c49909cdf2107759784c0c5aa2da14499dec1cc070e9a67eac77db9fc",
+      "crayon-os": "df2a57487c4ee86033e7cf143337c9a0407a3186141966c276d2dcfbbcbdd74f",
+      "dolphin-som": "fc48448f8c322dda0a8704380d3f3b9823afbb3524b48f2db54423f60b4e3c15",
+      "evolution": "9491fd7a68134249988b07971d222527709636438c59ca1d0daf5ade82a26740",
+      "floppies": "45557a8b2eae7419b5175c02f46363b9edb2efe2cdf109ef1bf70806acadf5c9",
+      "monkey-paradise": "2694f0b976eb8928e82a55f1509537865776c5dba932d7a9f8446fe2b4fcab42",
+      "platinum-8": "1f064eb95c8c7ba5b71bf97b91b79bec08177ed289a44b985b5af9d3ac5683b7",
+      "slimes": "4c87df6b3d0ef2852458f6ebaee818db8b20f12edd75afac68a6f077d063372b",
+      "system7-nostalgia-silver": "693915a19b9f3111abd73fe4af9025403e4ad9eab107b72953e3731b624c9beb",
+      "windows-31": "1daeb997cb3a84d96d2ac31680fe2cf099ef962cc80ca2bded3256b2243642e6",
+      "windows-95": "57a00943640bf92f1b8dd2482ee22f96b625bbca45032a1284442756770d8622"
+    },
+    "sourceZoom": 4,
+    "labelZoom": 1,
+    "runtime": "built-public-entry",
+    "browserArgs": [
+      "--disable-partial-raster"
+    ]
+  },
+  "execution": {
+    "browserVersion": "156.0.8078.4",
+    "browserName": "chromium",
+    "configuredDeviceScaleFactor": 1,
+    "executionCommit": "0091b71e9437641b98c3de45d70e7fb44a9f5497",
+    "workingTreeDirty": true,
+    "identitySource": "git-checkout",
+    "declaredCommits": {
+      "SCRIPTOSCOPE_GIT_COMMIT": "0091b71e9437641b98c3de45d70e7fb44a9f5497",
+      "GITHUB_SHA": "0091b71e9437641b98c3de45d70e7fb44a9f5497"
+    },
+    "declarationsMatchCheckout": true,
+    "builtBundleSha256": "ba5bcf0c06584e7fcea4ebbe8b00138445aef7cb8fa1b1280bafa5bf9b3a8143",
+    "builtStylesheetSha256": "9b8e012dd6d3865737e46c5679eb7b36ca20f50f3bd5ac3d36bfc30fa0cd65b3",
+    "packageLockSha256": "29eb877dcc0ad0c0f99fcbbf4b1e71eaec1899eb8d68611ab47c1791d5c5fda4",
+    "playwrightVersion": "1.64.0",
+    "platform": "linux",
+    "arch": "x64",
+    "declaredRuntimeModes": [
+      "built"
+    ],
+    "suppliedExecutionDisagreements": []
+  },
+  "observationSummary": {
+    "pages": 54,
+    "cases": {
+      "rendered": 1163,
+      "unavailable": 169
+    },
+    "renderPaths": [
+      "public-compositor",
+      "public-declarative",
+      "public-window-manager",
+      "public-window-renderer"
+    ],
+    "actualCommitMatchesDeclaration": true,
+    "candidateWorkingTreeDirty": [
+      true
+    ]
+  },
+  "diff": {
+    "existingSheetsByteIdentical": 36,
+    "newPage3Sheets": 18,
+    "newCasesPerTheme": 4
+  },
+  "authorVisualInspection": [
+    "All18 new page3 sheets in a montage; Animals and BeOS at full sheet size.",
+    "Archive-derived alternate-strip source panel:25 supplied cicns across13 recipe archives; native device/font equivalence is not established."
+  ],
+  "limits": [
+    "Modern regression candidates, not native screenshots or original-engine certification.",
+    "Candidate record/verify tree is dirty because the manifest and new PNGs are generated. A committed clean-head verification remains the PR CI obligation.",
+    "Five recipe-less archives retain distinct existing managed/direct collapsed utility behavior; no procedural family mapping is changed.",
+    "Independent visual/red-team acceptance remains owned by a fresh reviewer; this acquisition report does not self-approve images."
+  ],
+  "newImageSha256": {
+    "1138-page-3.png": "3ebd0fbb3f13f54bba6366054bff207387b4ee18ac1df1f5362f1f3b2482cfcd",
+    "1984-page-3.png": "dd46125bde2f231b50ca89232f533e2662da4357a811921a39c48b674fc0a8b9",
+    "1990-page-3.png": "4d9d01d18d77b87a00b60e24f2bba16355b5e46e62d70f8f87e3d0ca62c0c8d6",
+    "animals-page-3.png": "1270159116988772a363e2b6147c6f2609225dd7cba030565a93b959fb4ee98d",
+    "apple-lisa-page-3.png": "6dd15562350ed114abeff331e88816335d7f3fcbdac31ad14d755be3d9051be0",
+    "apple-platinum-2-page-3.png": "fbec230f563d53ead6141e4e31f3e06c08e9cbe8859f9db951f2595f89868a11",
+    "beos-r503-page-3.png": "4475074d7a2cb6a3d4fa9d77a3f08c85f64863bcb44901fb6155867b472600b7",
+    "black-platinum-page-3.png": "7853babb1f53f58da9644af4f6cb06806c888c652727e3da21722b84c74e084d",
+    "crayon-os-page-3.png": "4b303acb1106523654314e107d83f8924d1dce1f5f675b97405185dba3f80d89",
+    "dolphin-som-page-3.png": "8fcb76ac7e4d1ed398a6e2d609285cc7493b0004d458df0fb2d433a73bf3b4f0",
+    "evolution-page-3.png": "9763ad5496689c413e20f12c9376fdba39a585640881b2d5073db195c2a5c533",
+    "floppies-page-3.png": "ca0caa32785f14680ea41e415d6152d52b76af56fe437a89733fda3b1c1d9398",
+    "monkey-paradise-page-3.png": "88e8e225ffc4b1f98521d0627825ee2c9d76fcfadaaa4314d667b011f4349c5f",
+    "platinum-8-page-3.png": "2ec1553b189e18a52c4b90372087ed3186a99c59d4676361b4ad274fcca179af",
+    "slimes-page-3.png": "39db6852b8fa4a87ce283be41894d956905ddce851a3d03debb7545dc1eadf06",
+    "system7-nostalgia-silver-page-3.png": "25b41f1ece37a0e3e80d045aa06353eeaaf2aa2b013993f21f4c297061f78116",
+    "windows-31-page-3.png": "7686710ccce132dda7a729adf384b71d1a9607da41d1c824c48595425dce6af4",
+    "windows-95-page-3.png": "f8320ccf0fd4a929c78635340721176aac36ad993c1520c41c0d46720b503e78"
+  }
+}

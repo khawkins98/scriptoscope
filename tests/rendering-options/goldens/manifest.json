@@ -11,7 +11,7 @@
       1280,
       960
     ],
-    "caseDigest": "50fcf036b89da45ffb1ade9864fcc77fee76a53af8e646ebff0c61087ab1ab9c",
+    "caseDigest": "64498e6f97d1c6345315588a8745eb1413886afd5418413434727b84cf7d0766",
     "casePages": [
       [
         "direct/push/auto/labeled/horizontal/0.5/true/normal",
@@ -86,6 +86,12 @@
         "direct/growbox/auto/empty/horizontal/0.5/true/normal",
         "direct/growbox/auto/empty/horizontal/0.5/true/inactive",
         "direct/push/auto/ink/horizontal/0.5/true/normal/custom-fg"
+      ],
+      [
+        "managed/window/document-window/collapsed",
+        "managed/window/side-floating-utility-window/collapsed",
+        "window/titled-utility-window/collapsed/pressed-close",
+        "window/side-floating-utility-window/collapsed/pressed-close"
       ]
     ],
     "themeSlugs": [
@@ -141,8 +147,8 @@
     ]
   },
   "provenance": {
-    "gitCommit": null,
-    "bundleSha256": "9af525e75bec7b15f5f047f6f37bf018d19c9af896f24e954d7a4c5b7279e204",
+    "gitCommit": "0091b71e9437641b98c3de45d70e7fb44a9f5497",
+    "bundleSha256": "ba5bcf0c06584e7fcea4ebbe8b00138445aef7cb8fa1b1280bafa5bf9b3a8143",
     "stylesheetSha256": "9b8e012dd6d3865737e46c5679eb7b36ca20f50f3bd5ac3d36bfc30fa0cd65b3",
     "packageLockSha256": "29eb877dcc0ad0c0f99fcbbf4b1e71eaec1899eb8d68611ab47c1791d5c5fda4"
   }

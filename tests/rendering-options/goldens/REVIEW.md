@@ -1,3 +1,11 @@
+# #624/#625 collapsed and alternate-widget candidate acquisition — 2026-11-02
+
+The new page-3 sheets are regression candidates from [workflow 41362350628](https://github.com/khawkins98/scriptoscope/actions/runs/41362350628), actual input commit `0091b71e9437641b98c3de45d70e7fb44a9f5497`. Recording and exact verification passed all54 sheets. The36 existing controls images are byte-identical;18 new sheets add collapsed managed documents and side utilities, plus directly rendered collapsed top/side utilities with close pressed. Source archives, fonts and case inventory remain pinned in the manifest.
+
+Author inspection covered the18-sheet montage, Animals and BeOS full sheets, and the25 archive-derived alternate source strips. This is acquisition and author QA; independent visual/red-team approval belongs to a separate lane. These modern images establish regression coverage, not native fidelity. Actual checkout identity matches declarations; the acquisition verification tree is dirty from generated candidates. Clean committed-head verification is still required. See [acquisition receipt](../../../docs/research/widget-family-624-625-goldens.json) and the separate [independent behavioral report](../../../docs/research/widget-family-624-625-verification.json).
+
+The earlier36-sheet approval below retains its original scope.
+
 # Reviewed #459 controls regression baseline — 2026-10-23
 
 The retained 36 sheets are approved as bounded controls regression expectations.
