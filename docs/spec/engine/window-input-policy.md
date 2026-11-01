@@ -48,6 +48,16 @@ removal superseded restoration. Failure completion order does not change this
 rule. Never restore a removed window, and never override a later successful
 active add or activation caused by focus inside another managed window.
 
+For a successful active A followed by pending explicitly active B and C, failure
+of C while B is pending restores A, not provisional B. B may become active when
+it later succeeds unless a later legitimate activation, outside deactivation or
+successful newer active claim superseded it. If B already succeeded when C
+fails, restore B. Among successful explicit active requests, request order wins
+rather than preparation completion order; subsequent user activation or outside
+deactivation remains authoritative. Removing an unrelated window does not
+permanently invalidate a pending successful claim, and removed targets must
+never be restored.
+
 A concurrent activation or superseding operation must not convert a failed initial
 render into a successful add. If no initial render can successfully commit, reject
 the add and remove its provisional entry even when other work superseded the
