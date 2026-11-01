@@ -40,6 +40,13 @@ still wins, and only one managed window is active. Do not resurrect a window tha
 was removed, or overwrite a subsequent deliberate activation during asynchronous
 preparation.
 
+A concurrent activation or superseding operation must not convert a failed initial
+render into a successful add. If no initial render can successfully commit, reject
+the add and remove its provisional entry even when other work superseded the
+failing preparation. Keep any subsequent legitimate activation authoritative.
+Background preparation failures must be handled without unhandled promise
+rejections.
+
 ## Inactive widget focus (#628 L3)
 
 A real mouse press on an inactive title widget moves keyboard focus into that
