@@ -15,7 +15,8 @@
 import type { Pixmap, QdRect } from '../qd/types.js';
 import type { EngineTrace } from '../trace.js';
 import { emptyRect, rect } from '../qd/rect.js';
-import { scaleBlit } from '../../raster.js';
+import { newRegion, regionAddMappedMask, regionAddRect, regionAddTiledMask, scaleBlit, type Region } from '../../raster.js';
+import { windowBlitRow } from '../tables/windowBlit.js';
 import {
   ALLOCATION, ALLOCATION_PATH, CELL_RECT, CELL_WIDTH, LAYOUT_SUMS, PART_VERDICT, POPUP_PLACEMENT, TITLED_SIDE, TOO_SHORT,
   WIDGET_DRAW, WIDGET_HIT, WIDGET_PARTS, WINDOW_DECLARED_DEFAULTS, WINDOW_RECT_TYPE, WINDOW_SIDES,
@@ -252,6 +253,34 @@ export function windowCell(layout: WindowLayout, side: number, i: number): { t: 
   return s.horizontal
     ? { t: rect(t0, s0, t1, s1), p: rect(t0 + d, p0, t1 + d, p1) }
     : { t: rect(s0, t0, s1, t1), p: rect(p0, t0 + d, p1, t1 + d) };
+}
+
+/**
+ * hit-regions §4.2–§4.3: the structure region in the coordinates of `C`, built from the chrome
+ * template's mask (SR4–SR12, TR1–TR4); its draw-time pixels are never consulted (SR13). SR1–SR3
+ * have no runtime input: no public window type maps to a rect-only procID (HP5), and a missing
+ * template leaves the window on its box (HP7).
+ */
+export function windowStructure(layout: WindowLayout, template: Pixmap, width: number, height: number): Region {
+  const r = newRegion({ width, height }), { A, B, C, flags: f } = layout;
+  if (C.right - C.left <= 1 && C.bottom - C.top <= 1) { // SR4; U4: the bottom term reads C.r, as decoded
+    regionAddRect(r, rect(C.top - A.top + B.top, C.left - A.left + B.left, C.right - A.bottom + B.bottom, C.right - A.right + B.right));
+    return r;
+  }
+  regionAddRect(r, C); // SR5, SR11
+  for (const sd of WINDOW_SIDES) {
+    if (f.collapsed && sd.horizontal === f.sideTitle) continue; // SR6
+    const s = layout.sides[sd.side];
+    for (let i = 1; s && i < s.S.length; i++) {
+      const { t, p } = windowCell(layout, sd.side, i);
+      if (emptyRect(p) || emptyRect(t)) continue; // SR7: an empty source has no mask to place
+      const row = windowBlitRow(s.codes[i]!), sw = t.right - t.left, sh = t.bottom - t.top;
+      if (row.blit === 'scale' || sw <= 1 || sh <= 1 || (sw === p.right - p.left && sh === p.bottom - p.top)) {
+        regionAddMappedMask(r, template, t, p); // SR8, TR1, TR2
+      } else regionAddTiledMask(r, template, t, p, row.direction!); // SR9, TR3, TR4
+    }
+  }
+  return r;
 }
 
 /** §4.9 widget rect remap (RM2–RM8; RM1 does not arise: a layout always has its template). */

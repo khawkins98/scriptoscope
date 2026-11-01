@@ -16,11 +16,12 @@
 import { PixelBuffer } from './pixelBuffer.js';
 import { rect, rectXYWH } from './engine/qd/rect.js';
 import type { Pixmap, QdRect, Transfer } from './engine/qd/types.js';
-import { scaleBlit, tileBlit } from './raster.js';
+import { scaleBlit, tileBlit, type Region } from './raster.js';
 import { windowBlitRow } from './engine/tables/windowBlit.js';
 import { CELL_WIDTH, WINDOW_SIDES } from './engine/tables/window.js';
 import {
-  drawPressedWidget, layoutWindow, popupRawBlits, remapWidget, widgetHit, widgetHittable, windowCell, windowWidgets, type WindowLayout,
+  drawPressedWidget, layoutWindow, popupRawBlits, remapWidget, widgetHit, widgetHittable, windowCell, windowStructure, windowWidgets,
+  type WindowLayout,
 } from './engine/families/window.js';
 import type { EngineTrace } from './engine/trace.js';
 import type { WindowType, WindowCinf, Rect } from './types.js';
@@ -113,6 +114,9 @@ export interface ComposedChrome {
   hitWidget?: (x: number, y: number) => TitleWidgetRole | null;
   /** The engine layout (sides, placed borders, rows taken), for diagnostics. */
   layout?: WindowLayout;
+  /** Builds the structure region (hit-regions §4.2) from this layout and template, in buffer
+   *  pixels. wnd# windows only; built on demand, never from the drawn pixels (HP15). */
+  structure?: () => Region;
   /** The grow box as a separate overlay sprite (built-in frame only). */
   growBox?: { buffer: PixelBuffer; x: number; y: number; w: number; h: number } | undefined;
 }
@@ -224,6 +228,7 @@ export function composeWindowChrome(cicn: PixelBuffer, windowType: WindowType, c
     titleRect: xywh(remapWidget(layout, layout.T4)),
     widgets: hittable.map(w => ({ role: w.row.role, rect: xywh(w.rect) })),
     hitWidget: (x, y) => widgetHit(layout, widgets, strip, x, y).role,
+    structure: () => windowStructure(layout, cicn, fullW, fullH),
   };
 }
 
