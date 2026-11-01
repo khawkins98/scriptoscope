@@ -502,33 +502,35 @@ for (const mode of MODES) {
 
   test(`${mode}: HPT39 side-titled (HP48): a collapsed side utility keeps its left title strip and passes top/bottom cells`, async ({ page, servers }, info) => {
     await boot(page, servers, mode);
-    // No corpus collapsed-side-utility recipe places top or bottom cells (1138, beos-r503 and
-    // crayon-os list none), so the top/bottom clause uses a synthetic 1138 whose collapsed side
-    // utility borrows the expanded side utility's top and bottom lists. The left list is the archive's own.
-    const r = await page.evaluate(async () => {
-      const f = window.__fpt; f.manager();
+    // Corpus 1138: the left title strip hits. No corpus collapsed-side-utility places top or bottom
+    // cell pixels at the runtime's collapsed size (HP8, spec 5b7a5f4c), so the pass-through clause
+    // uses a synthetic 1138 whose collapsed side utility borrows the expanded side utility's top and
+    // bottom lists, with opaque template bands right of the strip for their mask.
+    const run = variant => page.evaluate(async variant => {
+      const f = window.__fpt; f.reset(); f.manager();
       const dec = await f.decode('1138'), [bl, bt, , bb] = dec.manifest.windowTypes['collapsed-side-utility'].parts['part-0'].rect;
-      // The archive's collapsed template is transparent right of its title strip; make the top and
-      // bottom bands opaque there so the borrowed cells have mask pixels to place.
-      const { theme: base, synthetic } = await f.synth('1138', ['collapsed-side-utility'], (rgba, w, h) => {
-        for (let y = 0; y < h; y++) for (let x = bl; x < w; x++) if (y < bt || y >= bb) rgba[(y * w + x) * 4 + 3] = 255;
-      });
-      const withEdges = wts => ({ ...wts, 'collapsed-side-utility': { ...wts['collapsed-side-utility'],
-        edges: { ...wts['collapsed-side-utility'].edges, top: wts['side-floating-utility-window'].edges.top, bottom: wts['side-floating-utility-window'].edges.bottom } } });
-      const themeObject = { ...base, manifest: { ...base.manifest, windowTypes: withEdges(base.manifest.windowTypes) } };
-      await f.add('S', { themeObject, slug: '1138', synthetic, type: 'side-floating-utility-window', w: 120, h: 200, extra: { collapsed: true } });
-      const o = await f.oracle('S', { collapsed: true, type: 'collapsed-side-utility' });
-      const wt = withEdges(dec.manifest.windowTypes)['collapsed-side-utility'], [al, aTop] = wt.parts['part-0'].rect;
-      const build = (C, mutation) => f.rules.structureRegion({ windowType: wt, cicn: o.cicn, C, W: o.W, H: o.H, flags: { ...f.chromeRules.DECLARED_FLAGS }, collapsed: true, sideTitle: true, mutation });
-      // Configuration input: the empty-width content rect whose four-side decode reproduces the drawn chrome.
-      let solved = null;
-      // Either collapsed form: empty width (side-titled, SR6's C) or the runtime's empty height.
-      const candidates = [];
-      for (let l = al - 4; l <= al + 4; l++) for (let t = aTop - 4; t <= aTop + 4; t++) {
-        for (let h = Math.max(0, o.H - t - 60); h <= o.H - t; h++) candidates.push({ left: l, top: t, right: l, bottom: t + h });
-        for (let w = Math.max(0, o.W - l - 60); w <= o.W - l; w++) candidates.push({ left: l, top: t, right: l + w, bottom: t });
+      let themeObject, synthetic, wt = dec.manifest.windowTypes['collapsed-side-utility'];
+      if (variant === 'synthetic') {
+        const made = await f.synth('1138', ['collapsed-side-utility'], (rgba, w, h) => {
+          for (let y = 0; y < h; y++) for (let x = bl; x < w; x++) if (y < bt || y >= bb) rgba[(y * w + x) * 4 + 3] = 255;
+        });
+        const withEdges = wts => ({ ...wts, 'collapsed-side-utility': { ...wts['collapsed-side-utility'],
+          edges: { ...wts['collapsed-side-utility'].edges, top: wts['side-floating-utility-window'].edges.top, bottom: wts['side-floating-utility-window'].edges.bottom } } });
+        themeObject = { ...made.theme, manifest: { ...made.theme.manifest, windowTypes: withEdges(made.theme.manifest.windowTypes) } };
+        synthetic = made.synthetic; wt = withEdges(dec.manifest.windowTypes)['collapsed-side-utility'];
       }
-      for (const C of candidates) if (!solved && f.crossCheck('S', { ...o, C, region: build(C, 'fourSidesCollapsed').region }).disagree === 0) solved = C;
+      await f.add('S', { ...(themeObject ? { themeObject, synthetic } : {}), slug: '1138', type: 'side-floating-utility-window', w: 120, h: 200, extra: { collapsed: true } });
+      const o = await f.oracle('S', { collapsed: true, type: 'collapsed-side-utility' });
+      const build = (C, mutation) => f.rules.structureRegion({ windowType: wt, cicn: o.cicn, C, W: o.W, H: o.H, flags: { ...f.chromeRules.DECLARED_FLAGS }, collapsed: true, sideTitle: true, mutation });
+      // Configuration input: the committed content rect, nearest the template body inset, whose
+      // four-side decode reproduces the drawn chrome (either collapsed form).
+      const candidates = [];
+      for (let l = bl - 4; l <= bl + 4; l++) for (let t = bt - 4; t <= bt + 4; t++) {
+        for (let w = Math.max(0, o.W - l - 60); w <= o.W - l; w++) candidates.push({ left: l, top: t, right: l + w, bottom: t });
+        for (let h = Math.max(0, o.H - t - 60); h <= o.H - t; h++) candidates.push({ left: l, top: t, right: l, bottom: t + h });
+      }
+      candidates.sort((a, b) => (Math.abs(a.left - bl) + Math.abs(a.top - bt)) - (Math.abs(b.left - bl) + Math.abs(b.top - bt)));
+      const solved = candidates.find(C => f.crossCheck('S', { ...o, C, region: build(C, 'fourSidesCollapsed').region }).disagree === 0);
       if (!solved) return { unsolved: true, W: o.W, H: o.H };
       const sr6 = build(solved), four = build(solved, 'fourSidesCollapsed'), at = p => { const v = f.vp('S', p); return f.hitAt(v.x, v.y); };
       const strip = [], passes = [];
@@ -540,14 +542,19 @@ for (const mode of MODES) {
       const pick = (l, n) => l.filter((_, i) => i % Math.max(1, Math.floor(l.length / n)) === 0);
       return { W: o.W, H: o.H, C: solved, collapsed: f.hosts.S.m.describe(f.hosts.S.host).collapsed, effective: f.state('S').hitEffective,
         strip: pick(strip, 40).map(p => [p, at(p)]), passes: pick(passes, 60).map(p => [p, at(p)]), nStrip: strip.length, nPasses: passes.length };
-    });
-    info.annotations.push({ type: 'observation', description: JSON.stringify({ W: r.W, H: r.H, C: r.C, strip: r.nStrip, passes: r.nPasses }) });
-    expect(r.unsolved, `a content rect reproduces the drawn chrome (${r.W}x${r.H})`).toBeUndefined();
-    expect([r.collapsed, r.effective]).toEqual([true, 'region']);
-    expect(r.nStrip, 'decoded left title-strip pixels in S').toBeGreaterThan(0);
-    expect(r.nPasses, 'decoded top/bottom cell pixels the layout places').toBeGreaterThan(0);
-    expect(r.strip.filter(([, h]) => h !== 'host:S'), 'the left title strip hits').toEqual([]);
-    expect(r.passes.filter(([, h]) => h !== 'sentinel'), 'top/bottom cell pixels pass (SR6 under HP48)').toEqual([]);
+    }, variant);
+    const corpus = await run('corpus'), synth = await run('synthetic');
+    info.annotations.push({ type: 'observation', description: JSON.stringify([corpus, synth].map(r => ({ W: r.W, H: r.H, C: r.C, strip: r.nStrip, passes: r.nPasses }))) });
+    for (const [label, r] of [['corpus', corpus], ['synthetic', synth]]) {
+      expect(r.unsolved, `${label}: a content rect reproduces the drawn chrome (${r.W}x${r.H})`).toBeUndefined();
+      expect([r.collapsed, r.effective], label).toEqual([true, 'region']);
+    }
+    expect(corpus.nStrip, 'corpus: decoded left title-strip pixels in S').toBeGreaterThan(0);
+    expect(corpus.strip.filter(([, h]) => h !== 'host:S'), 'corpus: the left title strip hits').toEqual([]);
+    expect(corpus.passes, 'corpus: no top/bottom cell pixels at this size (HP8)').toEqual([]);
+    expect(synth.nPasses, 'synthetic: decoded top/bottom cell pixels the layout places').toBeGreaterThan(0);
+    expect(synth.passes.filter(([, h]) => h !== 'sentinel'), 'synthetic: top/bottom cell pixels pass (SR6 under HP48)').toEqual([]);
+    expect(synth.strip.filter(([, h]) => h !== 'host:S'), 'synthetic: the left title strip still hits').toEqual([]);
   });
 
 }

@@ -166,19 +166,23 @@ for (const mode of MODES) {
   });
 
   test(`${mode}: HPT15 accessibility tree and Tab order are identical in both modes; keyboard move and resize work in region mode`, async ({ page, servers }) => {
-    await boot(page, servers, mode);
-    await page.evaluate(async () => {
-      const f = window.__fpt; f.manager();
-      const content = document.createElement('div'); content.innerHTML = '<p>Tall</p>'.repeat(30) + '<button id="in-content">inside</button>';
-      Object.assign(content.style, { height: '100%', overflow: 'auto', boxSizing: 'border-box' });
-      await f.add('A', { slug: 'dolphin-som', content, title: 'Accessible', handlers: { onClose() {}, onZoom() {} } });
-      // Bracket the window between two page controls, so the sequence never wraps into browser UI.
-      const b = document.createElement('input'); b.id = 'tab-start'; b.style.cssText = 'position:absolute;left:1100px;top:900px;z-index:5;width:60px'; document.body.prepend(b);
-      const e = document.createElement('input'); e.id = 'tab-end'; e.style.cssText = 'position:absolute;left:1180px;top:900px;z-index:5;width:60px'; f.hosts.A.host.after(e);
-    });
-    expect((await state(page, 'A')).hitEffective).toBe('region');
+    // Each mode in a fresh, fully settled page with the same layout history: Firefox's tab stop on a
+    // scrollable content element depends on style-change history, not on the hit mode (#619).
+    const open = async hit => {
+      await boot(page, servers, mode);
+      await page.evaluate(async hit => {
+        const f = window.__fpt; f.manager();
+        const content = document.createElement('div'); content.innerHTML = '<p>Tall</p>'.repeat(30) + '<button id="in-content">inside</button>';
+        Object.assign(content.style, { height: '100%', overflow: 'auto', boxSizing: 'border-box' });
+        await f.add('A', { slug: 'dolphin-som', content, title: 'Accessible', hit, handlers: { onClose() {}, onZoom() {} } });
+        // Bracket the window between two page controls, so the sequence never wraps into browser UI.
+        const b = document.createElement('input'); b.id = 'tab-start'; b.style.cssText = 'position:absolute;left:1100px;top:900px;z-index:5;width:60px'; document.body.prepend(b);
+        const e = document.createElement('input'); e.id = 'tab-end'; e.style.cssText = 'position:absolute;left:1180px;top:900px;z-index:5;width:60px'; f.hosts.A.host.after(e);
+        await f.settle(400);
+      }, hit);
+      expect((await state(page, 'A')).hitEffective).toBe(hit);
+    };
     const order = async () => {
-      // A fixed starting point: a page button before everything else.
       await page.evaluate(() => document.getElementById('tab-start').focus());
       const out = [];
       for (let i = 0; i < 20 && out.at(-1) !== 'tab-end'; i++) {
@@ -187,13 +191,13 @@ for (const mode of MODES) {
       }
       return out;
     };
-    const regionTree = await page.locator('body').ariaSnapshot(), regionOrder = await order();
-    await setHit(page, 'A', 'box');
+    await open('box');
     const boxTree = await page.locator('body').ariaSnapshot(), boxOrder = await order();
+    await open('region');
+    const regionTree = await page.locator('body').ariaSnapshot(), regionOrder = await order();
     expect(regionTree).toBe(boxTree);
     expect(regionOrder).toEqual(boxOrder);
     expect(regionOrder, 'the Tab sequence reaches the window').toContain('Move window');
-    await setHit(page, 'A', 'region');
     const left0 = parseFloat((await state(page, 'A')).left);
     expect(await tabTo(page, 'Move window')).toBe('Move window');
     await page.keyboard.press('ArrowRight'); await page.keyboard.press('ArrowRight'); await settle(page);
