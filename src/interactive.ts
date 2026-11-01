@@ -1593,11 +1593,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     const mode = this.hitEffective(entry), region = mode === 'region';
     layers.hit.style.clipPath = region ? `path("${entry.region}")` : '';
     layers.hit.style.pointerEvents = region ? 'auto' : '';
-    // HP20: composite the clipped layer so a move translates it instead of re-rasterising the
-    // clip (WebKit repainted the whole path every drag frame). Opacity, not transform: no new
-    // containing block for fixed-position content.
-    layers.hit.style.willChange = region ? 'opacity' : '';
-    // HP36: WebKit's scrolling thread routes a wheel by the layer's area, not the clip, so a wheel
+    // HPT33/HP36: WebKit's scrolling thread routes a wheel by the layer's area, not the clip, so a wheel
     // over an excluded pixel never reached the page. A blocking (no-op) listener sends wheels over L2
     // through the main thread, whose hit test honours the clip.
     if (region) layers.hit.addEventListener('wheel', mainThreadWheel, { passive: false });
