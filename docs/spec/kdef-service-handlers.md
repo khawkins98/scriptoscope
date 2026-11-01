@@ -57,7 +57,7 @@ opcode — see slot 6 below. (Listing excerpt and line range in evidence.)
 | 1 | `0x997e` | **Scroll-bar CDEF** — handle-locked dispatcher that saves the kDEF globals pointer (`0x9930`), rebuilds its per-message scroll-bar state (`0x9d84`) and dispatches through a 15-entry message table at `0x99ce`; its message 34 answers the `sbap/sbae/sbar/sbax/sbgh/sbth/sbtp` FourCCs (`0x9b42`). Behavioural spec: `docs/spec/engine/scrollbar.md` | (caller's) | `kdef231-reference.md §1.1`; corrected 2026-10-21 (was "re-entrant CDEF entry") |
 | 2 | `0xdd22` | **Auxiliary CDEF** — second control-record dispatcher, lighter (no 32-byte `'Acid'` allocate, sentinels `0xff/0xfe` in the control record's contrlHilite byte only). Likely Appearance-era **embedded / focus-ring helper** | none | new — adds row to §1.3 |
 | 3 | `0x118b8` | **wnd# → WDEF gate (document-window family)** — `GetResource('wnd#', -14336)`; on hit → calls `0x28e0` (slot 6); on miss → loads system `'WDEF', -14330` and forwards. This is **NOT the cinf consumer** (that's `0x116f8`, see `kdef231-reference.md §1.6`) | — | corrects `kdef-binary-inventory.md §2` |
-| 4 | `0x1525a` | **wnd# → WDEF gate (utility-window family)** — same shape, id `-14304`, message base `+1984` (added at `0x15274`). On miss, falls into a 9-entry private dispatch (`0x152fc`) | — | new — adds row to §1.4; aligns with §2.1 `-14304..-14295` utility band |
+| 4 | `0x1525a` | **wnd# → WDEF gate (utility-window family)** — same shape, id `-14304`, message unchanged, varCode `(v&15) + 1984` (procID family 124, added at `0x15274`; corrected 2026-11-01, #611 (see #610 and `engine/hit-regions.evidence.md` E1), was "message base `+1984`"). On miss, falls into a 9-entry private dispatch (`0x152fc`) | — | new — adds row to §1.4; aligns with §2.1 `-14304..-14295` utility band |
 | 5 | `0x8d36` | **Separate CDEF, undecoded (likely bevel button)** — same dispatch shape as `0x6688`, allocates a 68-byte aux block (`_NewHandle`, trap `A122`, at `0x8df6`); its hit test returns part 10 and its message 34 (`0x98ca`) answers `bevp`-family tags. **Not** the scroll bar: nothing in `0x8d36..0x991e` reaches `0x9d84` or the scroll-bar drawers | 68 B | corrected 2026-10-21 (was "second CDEF main — scrollbar / slider") |
 | 6 | `0x28e0` | **Master compositor dispatcher** — receives `(param, msg, handle, varCode)`, stores them in the compositor's work struct, dispatches the standard WDEF messages 0..8 plus 1000 (INIT) and 1001, dispatched through the `0x148` switch table at `0x292e` (default `0x2ddc`): 0 draw `0x41ee`, 1 `wHit` `0x3f2c`, 2 `wCalcRgns` `0x3ac4`, 3 new `0x38fe`, 4 dispose `0x3aa8`, 5 grow outline `0x3e6c`, 6 grow icon `0x436c`, 7 features (`0x29be`, calls `0x4924`), 8 get region `0x2a5e`. msg 1000 = INIT (hit at boot). *(Corrected 2026-10-31, #597: was read as a `msg − 1001` dispatch over verbs 1001..1009; see `engine/hit-regions.evidence.md` E1.)* **This is what the inventory labelled "wnd# dispatcher"** — but the wnd# load happens in slot 3; slot 6 walks the recipe AFTER it's loaded | — | covers §1.4 `0x3680..0x4138` block from above |
 | 7 | `0x1d3e` | **CDEF-shaped dispatcher, family undecoded** — 35-entry message table at `0x1d68` (control messages 0..34: message 0 tests `contrlVis`, message 2 is `calcCRgns`, `_RectRgn(param, contrlRect)`). *(Corrected 2026-10-31, #597: was "WDEF main … wDraw, wHit, wCalcRgns …"; window messages go through slot 6.)* | — | `kdef-binary-inventory.md §1` (corrected); `engine/hit-regions.evidence.md` E1 |
@@ -159,12 +159,14 @@ recipe in hand.
 
 ### Slot 4 — `0x1525a` (wnd# → WDEF gate, utility family)
 
-Entry reads message, param and varCode; the family message base is
-varCode mod 16 plus 1984 (`0x15270`/`0x15274`). Then:
+Entry reads message, param and varCode; the varCode passed on is
+varCode mod 16 plus 1984 (`0x15270`/`0x15274`; procID family 124, not a
+message base; corrected 2026-11-01, #611 (see #610 and `engine/hit-regions.evidence.md` E1)). Then:
 
 1. `_GetResource('wnd#', -14304)` — the UTILITY-WINDOW family id (§2.1)
    (`0x1528c..0x15296`).
-2. On non-null: calls slot 6 with message base 1984 (`0x152a2..0x152ae`).
+2. On non-null: calls slot 6 with the message unchanged and that varCode
+   (`0x152a2..0x152ae`).
 3. On null (`0x152be`): private dispatch — a precompute call `0x1547e` on the
    message (`0x152e0`), range check (result above 8 → `0x15466`), then a
    9-entry private table at `0x152fc..0x15308` (msg 0..8: `0x1530e`,
@@ -175,8 +177,11 @@ varCode mod 16 plus 1984 (`0x15270`/`0x15274`). Then:
 
 **Diagnosis.** Same gate shape as slot 3, but for the **utility-window
 band** (`-14304..-14296` from `kdef231-reference.md §2.1`). The `+1984`
-message-base offset distinguishes it: when slot 6 sees msg in [1984, 1992]
-it knows "utility family", not "document family". This is how the
+varCode offset distinguishes it: slot 6's precompute `0x2e02` tests
+`varCode >> 4 == 124` at `0x31ae..0x31b8` (after the `0x2e6c` procID switch,
+which has no family-124 case, defaults to `0x3116`) and sets the utility frame
+flags 506/500/505 plus 508/499/501/507 from the variant bits. (Corrected #611;
+was read as a message range [1984, 1992].) This is how the
 compositor multiplexes per-window-type recipes through a single core.
 
 ### Slot 5 — `0x8d36` (separate CDEF, undecoded; not the scroll bar)
@@ -286,7 +291,8 @@ the dereferenced handle), passing varCode `(var & 15) + 1008` — not a message
 base: the push order (`0x174a4` varCode, `0x174a6` window, `0x174a8` message,
 `0x174ac` param) makes it the WDEF variation code, so the kDEF sees procID
 family 63 and sets its family-63 window byte (`0x3210`; corrected 2026-10-21,
-lane K PR #377 review). That WDEF -14336 forwards the varCode unchanged into
+lane K PR #377 review). The precompute tests `varCode >> 4 == 63` at
+`0x3204..0x320e`, then sets byte 509 and clears 510 (`0x3210..0x3216`; #611). That WDEF -14336 forwards the varCode unchanged into
 `0x28e0` is inferred, not shown in this listing. This is how
 Kaleidoscope's popup/tab theming defers to a "trampoline" WDEF that knows
 the popup geometry while inheriting the cicn art from the scheme. The
