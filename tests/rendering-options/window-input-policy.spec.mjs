@@ -235,3 +235,97 @@ for (const mode of ['source', 'built']) test(`${mode}: #628 L2 a committed repla
   expect(result).toMatchObject({ currentAtResolution: 'inactive', active: false, laterActive: true });
   expect(unhandled, 'superseded preparations do not cause unhandled failures').toEqual([]);
 });
+
+// Public theme asset promises hold initial rendering without patching manager internals.
+// Both provisional active adds exist before either failure is released. Release order
+// distinguishes restoring through an earlier failed claim from restoring to a removed one.
+for (const mode of ['source', 'built']) for (const order of ['B,C', 'C,B']) {
+  for (const authority of ['prior A', 'successful active add', 'inside focus', 'outside deactivation', 'removed A']) {
+    test(`${mode}: #628 L2 overlapping failures ${order} preserve ${authority}`, async ({ page, servers }) => {
+      const unhandled = [];
+      page.on('pageerror', error => unhandled.push(error.message));
+      await boot(page, servers, mode);
+      await page.evaluate(async () => {
+        const f = window.inputPolicy;
+        f.hosts.A = await f.add('A');
+        const content = document.createElement('input'); content.id = 'later-focus';
+        f.hosts.D = await f.manager.add(f.theme, { title: 'D', state: 'inactive' }, {}, { contentEl: content });
+        document.querySelector('#after').before(f.hosts.D);
+        f.claims = {};
+        for (const title of ['B', 'C']) {
+          let release, entered;
+          const gate = new Promise(resolve => { release = resolve; });
+          const started = new Promise(resolve => { entered = resolve; });
+          const manifest = JSON.parse(JSON.stringify(f.theme.manifest, (_key, value) =>
+            typeof value === 'string' && /^(blob:|data:|https?:)/.test(value) ? 'held-chrome' : value));
+          const broken = {
+            kind: 'owned-theme', source: { manifest }, origin: `overlap-${title}`,
+            async imageUrl() { entered(); await gate; throw new Error(`expected overlapping failure ${title}`); },
+            dispose() {},
+          };
+          const outcome = f.manager.add(broken, { title, state: 'active' }).then(
+            () => ({ resolved: true }), error => ({ rejected: error.message }));
+          f.claims[title] = { release, started, outcome };
+        }
+        await Promise.all(Object.values(f.claims).map(claim => claim.started));
+      });
+      // A legitimate operation occurs while both claims are pending. Its authority
+      // must survive each failure, including when the last claimant fails first.
+      if (authority === 'successful active add') await page.evaluate(async () => {
+        const f = window.inputPolicy; f.hosts.E = await f.add('E', 'active');
+      });
+      if (authority === 'inside focus') await page.locator('#later-focus').focus();
+      if (authority === 'outside deactivation') await page.locator('#before').click();
+      if (authority === 'removed A') await page.evaluate(() => {
+        const f = window.inputPolicy; f.manager.remove(f.hosts.A); f.hosts.A.remove();
+      });
+      const result = await page.evaluate(async order => {
+        const f = window.inputPolicy, outcomes = [], snapshots = [];
+        const snapshot = () => Object.fromEntries(Object.entries(f.hosts).map(([title, host]) => [title, {
+          active: f.manager.describe(host)?.active ?? null,
+          chrome: host.shadowRoot.querySelector('[data-scriptoscope-current-state]')?.dataset.scriptoscopeCurrentState,
+        }]));
+        for (const title of order.split(',')) {
+          f.claims[title].release();
+          outcomes.push(await f.claims[title].outcome);
+          await f.settle(); snapshots.push(snapshot());
+        }
+        // Remove all successful windows: a new default add must be first/active,
+        // proving neither rejected provisional entry remains managed.
+        for (const host of Object.values(f.hosts)) { f.manager.remove(host); host.remove(); }
+        const retry = await f.add('Retry');
+        return { outcomes, snapshots, retryActive: f.manager.describe(retry).active };
+      }, order);
+      expect(result.outcomes).toEqual(order.split(',').map(title => ({ rejected: `expected overlapping failure ${title}` })));
+      expect(result.retryActive, 'both failed provisional entries were removed').toBe(true);
+      expect(unhandled, 'initial and superseding background failures are handled').toEqual([]);
+      const final = result.snapshots.at(-1);
+      if (authority === 'prior A') expect(final.A, 'all failed claims restore successfully managed A and active chrome').toEqual({ active: true, chrome: 'active' });
+      if (authority === 'removed A') expect(final.A.active, 'removed A is never resurrected').toBeNull();
+      if (authority === 'outside deactivation') {
+        for (const snapshot of result.snapshots) for (const value of Object.values(snapshot)) expect(value).toEqual({ active: false, chrome: 'inactive' });
+      }
+      if (authority === 'successful active add' || authority === 'inside focus') {
+        const winner = authority === 'inside focus' ? 'D' : 'E';
+        for (const snapshot of result.snapshots) {
+          for (const [title, value] of Object.entries(snapshot)) expect(value).toEqual({ active: title === winner, chrome: title === winner ? 'active' : 'inactive' });
+        }
+      }
+    });
+  }
+}
+
+for (const mode of ['source', 'built']) test(`${mode}: #628 L2 immediate overlapping failures restore prior A`, async ({ page, servers }) => {
+  await boot(page, servers, mode);
+  const result = await page.evaluate(async () => {
+    const f = window.inputPolicy, A = await f.add('A');
+    const broken = Object.create(f.theme);
+    Object.defineProperty(broken, 'manifest', { get() { throw new Error('expected immediate failure'); } });
+    const outcomes = await Promise.allSettled(['B', 'C'].map(title => f.manager.add(broken, { title, state: 'active' })));
+    await f.settle();
+    return { statuses: outcomes.map(outcome => outcome.status), active: f.manager.describe(A).active,
+      chrome: A.shadowRoot.querySelector('[data-scriptoscope-current-state]').dataset.scriptoscopeCurrentState };
+  });
+  expect(result.statuses).toEqual(['rejected', 'rejected']);
+  expect(result).toMatchObject({ active: true, chrome: 'active' });
+});
