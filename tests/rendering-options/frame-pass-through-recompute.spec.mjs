@@ -367,7 +367,7 @@ for (const mode of MODES) {
     }
   });
 
-  test(`${mode}: HPT35 L2, the canvas and every overlay keep their identity; focus survives a retheme`, async ({ page, servers }) => {
+  for (const phase of ['commits', 'collapse']) test(`${mode}: HPT35 (${phase}) L2, the canvas and every overlay keep their identity${phase === 'commits' ? '; focus survives a retheme' : ' across collapse and expand'}`, async ({ page, servers }) => {
     await boot(page, servers, mode);
     await page.evaluate(async () => {
       const f = window.__fpt; f.manager();
@@ -398,12 +398,15 @@ for (const mode of MODES) {
       ['mode box', f => f.hosts.A.m.applyState(f.hosts.A.host, { hit: 'box' })],
       ['mode region', f => f.hosts.A.m.applyState(f.hosts.A.host, { hit: 'region' })],
     ];
-    for (const [label, run] of steps) {
+    // Collapse and expand are their own test: HP43 keeps every overlay for the window's
+    // lifetime, including the grow box and scrollbar a collapsed window does not show.
+    for (const [label, run] of steps.filter(([l]) => (phase === 'collapse') === (l === 'collapse' || l === 'expand'))) {
       await page.evaluate(`(${run.toString()})(window.__fpt)`);
       const s = await check();
       expect([s.L2, s.canvas, s.L1first, s.L2inL1], label).toEqual(['L2', 'canvas', true, true]);
       expect(s.overlays.filter(([, v]) => v !== 'same'), `${label}: overlays`).toEqual([]);
     }
+    if (phase === 'collapse') return;
     // A focused title widget keeps focus across a retheme.
     const focus = await page.evaluate(async () => {
       const f = window.__fpt, root = f.hosts.A.host.shadowRoot, close = [...root.querySelectorAll('button')].find(b => b.getAttribute('aria-label') === 'Close window');

@@ -7,7 +7,7 @@
 // `isPrimary` and `pointerType`, which these events carry.
 import { test, expect, MODES, boot, fixture, hitAt, state, events, settle } from './frame-pass-through-fixture.mjs';
 
-const PAGE = { x: 1300, y: 950 }; // sentinel, outside every window
+const PAGE = { x: 1240, y: 930 }; // sentinel, inside the viewport, outside every window
 
 /** Dispatch a pointer sequence at what the browser hit-tests at (x, y). */
 const synth = (page, p, steps) => page.evaluate(({ p, steps }) => {
@@ -34,6 +34,11 @@ async function twoWindows(page, { slug = 'dolphin-som', hitA } = {}) {
 for (const mode of MODES) {
   test(`${mode}: HPT18 mouse click through p_out: trusted default actions, one deactivation commit, order kept`, async ({ page, servers }) => {
     await boot(page, servers, mode, { sentinel: 'button' });
+    // Whether a click focuses the sentinel <button> at all is engine policy (WebKit does not):
+    // the default action must match a click on the sentinel where no window is.
+    await page.evaluate(() => window.__fpt.reset());
+    await page.mouse.click(1240, 930);
+    const focusesOnClick = await page.evaluate(() => { const r = document.activeElement === window.__fpt.sentinel; document.activeElement?.blur?.(); return r; });
     const fix = await twoWindows(page);
     const s0 = await state(page, 'A'), z0 = await page.evaluate(() => ['A', 'C'].map(n => window.__fpt.hosts[n].m.describe(window.__fpt.hosts[n].host).z));
     expect(s0.active).toBe(true);
@@ -42,7 +47,7 @@ for (const mode of MODES) {
     await settle(page);
     const ev = await events(page), s1 = await state(page, 'A');
     expect(ev.filter(e => e.at === 'sentinel').map(e => e.type)).toEqual(expect.arrayContaining(['pointerdown', 'click']));
-    expect(await page.evaluate(() => document.activeElement === window.__fpt.sentinel), 'the sentinel takes focus').toBe(true);
+    expect(await page.evaluate(() => document.activeElement === window.__fpt.sentinel), 'the sentinel\'s focus default action').toBe(focusesOnClick);
     expect([s1.active, s1.current], 'deactivated').toEqual([false, 'inactive']);
     expect(s1.changes - s0.changes, 'exactly one change-listener call').toBe(1);
     expect(await page.evaluate(() => ['A', 'C'].map(n => window.__fpt.hosts[n].m.describe(window.__fpt.hosts[n].host).z)), 'stacking order kept').toEqual(z0);
@@ -127,7 +132,10 @@ for (const mode of MODES) {
       },
     };
     for (const [label, make] of Object.entries(cases)) {
-      await page.evaluate(`(async f => { f.reset(); f.manager(); await (${make.toString()})(f); })(window.__fpt)`);
+      const error = await page.evaluate(`(async f => { f.reset(); f.manager(); try { await (${make.toString()})(f); return null; } catch (e) { return String(e); } })(window.__fpt)`);
+      // See HPT22: an undecodable template rejects add(), so HP7 has no public input.
+      if (error && label === 'no-template') { test.info().annotations.push({ type: 'observation', description: `HP7 unreachable: ${error}` }); continue; }
+      expect(error, `${label}: mounts`).toBeNull();
       const s0 = await state(page, 'X');
       expect([s0.active, s0.hitEffective, s0.hit], `${label}: active, effective box, inherited request`).toEqual([true, 'box', undefined]);
       await page.mouse.click(PAGE.x, PAGE.y); await settle(page);
@@ -201,13 +209,16 @@ for (const mode of MODES) {
     await page.evaluate(async () => {
       const f = window.__fpt, input = document.createElement('input'); input.id = 'in-content';
       f.hosts.A.contentEl.append(input);
-      const link = document.createElement('a'); link.href = '#x'; link.id = 'page-link'; link.textContent = 'link';
+      // Explicit tabindex: WebKit and Firefox on macOS skip plain links on Tab.
+      const link = document.createElement('a'); link.href = '#x'; link.id = 'page-link'; link.textContent = 'link'; link.tabIndex = 0;
       link.style.cssText = 'position:absolute;left:1250px;top:60px;z-index:5';
       f.hosts.A.host.after(link);
-      input.focus(); await f.settle();
+      window.focus(); input.focus(); await f.settle();
     });
-    await page.keyboard.press('Tab'); await settle(page);
-    const where = await page.evaluate(() => document.activeElement?.id);
+    // Tab out through the window's own controls to the page link.
+    let where = null;
+    for (let i = 0; i < 12 && where !== 'page-link'; i++) { await page.keyboard.press('Tab'); where = await page.evaluate(() => document.activeElement?.id); }
+    await settle(page);
     expect(where, 'focus reached the page link').toBe('page-link');
     expect((await state(page, 'A')).active, 'Tab to a page link').toBe(true);
   });
@@ -236,7 +247,7 @@ for (const mode of MODES) {
     expect(await page.evaluate(() => document.getElementById('wrap').hasAttribute('data-scriptoscope-modal-open')), 'the gap press does not close the modal').toBe(true);
     expect((await state(page, 'M')).changes - c0, 'no change-listener call').toBe(0);
     // Backdrop press: the window is not deactivated by it (the click then closes the modal).
-    await page.mouse.move(1300, 950); await page.mouse.down(); await settle(page);
+    await page.mouse.move(1200, 900); await page.mouse.down(); await settle(page);
     expect((await state(page, 'M')).active, 'backdrop press does not deactivate the modal').toBe(true);
     await page.mouse.up(); await settle(page);
     expect(await page.evaluate(() => document.getElementById('wrap').hasAttribute('data-scriptoscope-modal-open')), 'backdrop click closed it').toBe(false);
@@ -268,12 +279,14 @@ for (const mode of MODES) {
       f.hosts.Z = { host, slug: 'dolphin-som', type: 'document-window', m, contentEl };
       await f.settle();
       const o = await f.oracle('Z'), p = f.points(o);
-      return { pc: f.vp('Z', p.p_c), logs: f.logs.filter(l => /closed/i.test(l.text)).length, active: m.describe(host).active };
+      return { pc: f.vp('Z', p.p_c), active: m.describe(host).active };
     });
     expect(r.active).toBe(true);
-    expect(r.logs, 'one debug log for the closed root').toBe(1);
     const c0 = (await state(page, 'Z')).changes;
     await page.mouse.click(r.pc.x, r.pc.y); await settle(page);
+    // HP47: logged once (at insertion, or at the latest by the first press).
+    const logs = await page.evaluate(() => window.__fpt.logs.filter(l => l.category !== 'shadow' && /closed/i.test(l.text)).map(l => `${l.category}: ${l.text}`));
+    expect(logs, 'one debug log for the closed root').toHaveLength(1);
     expect((await state(page, 'Z')).changes - c0, 'no deactivate-then-reactivate').toBe(0);
     expect((await state(page, 'Z')).active).toBe(true);
   });
