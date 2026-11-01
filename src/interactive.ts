@@ -1001,6 +1001,8 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     if (!current()) return;
     entry.opts = opts;
     entry.outer = outer;
+    // HP49: a collapse or expand mid-gesture restores the clip with this commit, as toggleCollapse does.
+    if (collapsed !== (entry.collapsed === true)) entry.gesture = false;
     entry.collapsed = collapsed;
     entry.z = z;
     this.zClock = Math.max(this.zClock, z);
