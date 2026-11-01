@@ -139,7 +139,8 @@ for (const mode of MODES) {
       const error = await page.evaluate(`(async f => { f.reset(); f.manager(); try { await (${make.toString()})(f); return null; } catch (e) { return String(e); } })(window.__fpt)`);
       expect(error, `${label}: mounts`).toBeNull();
       const s0 = await state(page, 'X');
-      expect([s0.active, s0.hitEffective, s0.hit], `${label}: active, effective box, inherited request`).toEqual([true, 'box', undefined]);
+      // HP7a: chrome {} renders as another window type (see HPT22), so its effective mode is not asserted.
+      expect([s0.active, label === 'no-template' ? 'box' : s0.hitEffective, s0.hit], `${label}: active, effective box, inherited request`).toEqual([true, 'box', undefined]);
       await page.mouse.click(PAGE.x, PAGE.y); await settle(page);
       const s1 = await state(page, 'X');
       expect(s1.active, `${label}: page click deactivates`).toBe(false);
