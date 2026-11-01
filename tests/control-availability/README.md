@@ -201,5 +201,5 @@ case inputs, outcomes, payload pins and ring dispatch claims are unchanged.
 `corrections/611-reference-labels.json` archives the seven exact label edits, the
 prior review and the 1.0.18 file hash; `controls459/peel-611.mjs` peels the bump back
 off so the 1.0.18 and earlier correction proofs keep verifying their own frozen state.
-The 1.0.18 review is archived verbatim; the 1.0.19 label is PENDING an independent
-hash-only review.
+The 1.0.18 review is archived verbatim; the 1.0.19 transition carries the independent
+Tier-1 review receipt of PR #615; the test author did not self-approve.

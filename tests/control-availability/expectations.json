@@ -2227,7 +2227,7 @@
   "review": {
     "date": "2026-11-01",
     "reviewers": [
-      "PENDING independent review: #611 hash-only 1.0.19 bump by the test author (lane-611), not self-approval. The independent reviewer replaces this entry with its receipt."
+      "Independent Tier-1 reviewer for PR #615 (worktree scriptoscope-lanes/rev-615), not the test author; APPROVE on frozen head 2695a6f4c97b6a596bb4718d602acaa504be4d44 after two REQUEST CHANGES rounds (8e623502: slot-4/8 gate cells read as message bases; 8fd7054e: slot-4 family test cited at 0x2e6c). Checked against the 2.3.1 kDEF 0 decompile: switch table 0x292e (default 0x2ddc; 0..8 -> 0x41ee/0x3f2c/0x3ac4/0x38fe/0x3aa8/0x3e6c/0x436c/0x29be/0x2a5e, 1000 -> 0x2dbc, 1001 -> 0x2dd0); gates 0x118b8/0x1525a/0x17452 pass the message unchanged with varCode v&15 / (v&15)+1984 / (v&15)+1008; family tests 0x31ae (124) and 0x3204 (63); slot-3 miss loads WDEF -14330, slot-8 miss -> 0x174c8/0x174e8. Hash-only: deep diff vs origin/main changes only inventoryVersion, inventorySha256 (2a9ce3c0, recomputes), review, and nine documentSha256 leaves ce33a576 -> bf390065; archive prior file/review/document hashes exact; peel611 reproduces the 1.0.18 file byte for byte; frozen-proof wrappers add only peel611, no assertion changed; controls459 suites pass. Mutations fail as required: dropping peel611 from the 1.0.18 proof, an unrelated row edit, a document edit, the archived review tampered, an archived edit dropped, an edit with after == before, an edit stripped of its #610/E1 citation. No availability, native, pixel, golden or release promotion."
     ],
     "inventoryVersion": "1.0.19",
     "inventorySha256": "2a9ce3c0ea3a59be1707fe54b1551daa7a5d9a1670da679173eeaff47f971463",

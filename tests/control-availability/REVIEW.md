@@ -128,7 +128,7 @@ identities, evidence and the other 18 rows are unchanged. The exact delta is
 approved the transition on head 3afad856 and its receipt is the 1.0.18 reviewer
 entry in `expectations.json`.
 
-## #611 revision 1.0.19 (PENDING independent review)
+## #611 revision 1.0.19 (independently reviewed, PR #615)
 
 Hash-only. The nine `kdef231-reference.md` `documentSha256` pins (Animals/Monkey push
 normal, the three Windows95 default cases and synthetic child-repurposed,
@@ -137,6 +137,6 @@ after the §1.4 dispatch labels were corrected per `docs/spec/engine/hit-regions
 E1 in seven edits: the gate intro's slot-8 miss path, the gate column "msg base into
 slot 6", the slot-3/4/8 gate cells, the slot-6 paragraph and the `0x28e0` row. The 0x758e and 0x76c4 lines these cases cite are byte-identical.
 Inputs, outcomes, identities, evidence and the other 18 rows are unchanged. The exact
-delta is `corrections/611-reference-labels.json`. The test author does not self-approve;
-the independent reviewer replaces the 1.0.19 reviewer entry in `expectations.json` with
-its receipt.
+delta is `corrections/611-reference-labels.json`. The independent Tier-1 reviewer of PR #615
+approved the transition on head 2695a6f4 and its receipt is the 1.0.19 reviewer entry in
+`expectations.json`; the test author did not self-approve.
