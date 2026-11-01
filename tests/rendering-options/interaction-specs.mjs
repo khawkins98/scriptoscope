@@ -30,6 +30,8 @@ export const INTERACTION_SPECS = Object.freeze([
   // #621 overlapping capture lifetimes and manager disposal.
   'frame-pass-through-lifecycle.spec.mjs',
   'frame-pass-through-cache.spec.mjs',
+  // #621 native wheel observations remain report-only; HPT33 gates routing.
+  'frame-pass-through-wheel-cost.spec.mjs',
   // Inactive-window input (#614, inactive-window-input.md §8 IPT1–IPT14): the first pointer
   // press on an inactive window's widget or grow box only activates (real mouse, synthetic pen
   // and touch, per-frame pressed-art sampling); Shift+wheel axis mapping with cancelable events.
