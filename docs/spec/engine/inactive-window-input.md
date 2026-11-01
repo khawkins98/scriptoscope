@@ -2,6 +2,7 @@
 
 Issue [#614](https://github.com/khawkins98/scriptoscope/issues/614), 2026-11-01.
 Spec writer: lane 614 (decode researcher). Independent review: pending.
+Revision 2 (2026-11-01): maintainer decisions on #614 recorded. §7 IP1–IP4 are decided, IP14 adds the grow-box rule (§7.4) with hooks IPT12–IPT14, and DECISIONS #12 and the faithfulness ledger record the narrowing. The decode in §0–§6 is unchanged.
 Evidence appendix: [`inactive-window-input.evidence.md`](./inactive-window-input.evidence.md). Implementers must not read it.
 
 This file has two halves that must not be mixed:
@@ -157,7 +158,7 @@ None beyond the cited specs. Widget and grow rectangles are as
 - **U4.** The Command-key exception of OS5 (drag without activating) has no
   web counterpart in this policy.
 
-## 7. Web compatibility policy (#614) — recommendation, not decode
+## 7. Web compatibility policy (#614) — policy, not decode
 
 The decode and Apple agree (IW12, OS1–OS5): a press on an inactive window's
 widget is a drag-region press, so it activates the window and never runs the
@@ -165,17 +166,21 @@ widget. #594 adopted the same rule for scroll bars ("a first press on an
 inactive window only activates it"). DECISIONS #12 keeps inactive-window
 widgets real, focusable and operable for keyboard and assistive technology.
 These rows keep #12 for keyboard and assistive technology. For pointers they
-apply the decode. **That narrows #12's pointer half and needs the maintainer's
-confirmation, recorded in DECISIONS #12 and the faithfulness ledger.**
+apply the decode.
+
+**Status.** IP1–IP4 (items 1–2) and IP14 (grow box) are **decided** by the
+maintainer (2026-11-01, recorded on #614). They narrow the pointer half of
+DECISIONS #12, which records the narrowing, as does the faithfulness ledger's
+`accessibility→decode` entry. IP5–IP13 (items 3–5) remain recommendations.
 
 ### 7.1 Widgets on an inactive window (items 1–3)
 
 | id | rule | basis |
 |---|---|---|
-| IP1 | **Pointer press on a widget of an inactive window.** A primary press (mouse primary button; touch or pen primary pointer) on a title-widget button whose window is inactive when the press begins is handled as a **frame press**. It activates and raises the window, moves keyboard focus into it as a frame press does, and can start a move under the existing threshold (#561). It draws no pressed widget art, and the `click` that ends the gesture runs no widget action, even though the window is active by then. The window's activation state is read **at `pointerdown`**, not at `click`. This holds for both families and both hit modes. | IW2, IW6, IW9, OS1, OS5; #594 |
-| IP2 | **A second press acts.** Once the window is active, presses on its widgets work as today (pressed art, action on `click`, release outside cancels). | OS4 |
-| IP3 | **Keyboard and assistive technology unchanged (DECISIONS #12).** The widget buttons stay in the DOM, in the tab order and in the accessibility tree on inactive windows, with stable identity (#533). Focus entering one activates the window first (#550). Enter, Space and a `click` with `detail` 0 (keyboard, `element.click()`, assistive technology) act, on active and inactive windows. | DECISIONS #12 |
-| IP4 | **Built-in frame (item 1).** An inactive built-in-frame window keeps drawing no widgets (IW8, IW11). Its widget buttons stay in place (IP3) and are inert to pointers by IP1, so a press where an invisible widget sits activates the window and can move it. When keyboard focus reaches such a button, the window activates and re-renders with its widgets drawn, so a focused widget is visible once that render commits. Removing the buttons on inactive windows is **rejected**: it breaks IP3 and #533. | IW8, IW11, IW12 |
+| IP1 | **Decided.** **Pointer press on a widget of an inactive window.** A primary press (mouse primary button; touch or pen primary pointer) on a title-widget button whose window is inactive when the press begins is handled as a **frame press**. It activates and raises the window, moves keyboard focus into it as a frame press does, and can start a move under the existing threshold (#561). It draws no pressed widget art, and the `click` that ends the gesture runs no widget action, even though the window is active by then. The window's activation state is read **at `pointerdown`**, not at `click`. This holds for both families and both hit modes. | IW2, IW6, IW9, OS1, OS5; #594 |
+| IP2 | **Decided.** **A second press acts.** Once the window is active, presses on its widgets work as today (pressed art, action on `click`, release outside cancels). | OS4 |
+| IP3 | **Decided.** **Keyboard and assistive technology unchanged (DECISIONS #12).** The widget buttons stay in the DOM, in the tab order and in the accessibility tree on inactive windows, with stable identity (#533). Focus entering one activates the window first (#550). Enter, Space and a `click` with `detail` 0 (keyboard, `element.click()`, assistive technology) act, on active and inactive windows. | DECISIONS #12 |
+| IP4 | **Decided.** **Built-in frame (item 1).** An inactive built-in-frame window keeps drawing no widgets (IW8, IW11). Its widget buttons stay in place (IP3) and are inert to pointers by IP1, so a press where an invisible widget sits activates the window and can move it. When keyboard focus reaches such a button, the window activates and re-renders with its widgets drawn, so a focused widget is visible once that render commits. Removing the buttons on inactive windows is **rejected**: it breaks IP3 and #533. | IW8, IW11, IW12 |
 | IP5 | **Widget actions activate (item 3).** If a zoom or collapse action runs on an inactive window, which after IP1 only a `detail` 0 click can cause, the manager first activates and raises that window through its ordinary activation path. It then runs the action. This applies to the built-in zoom and collapse and to a consumer `onZoom`/`onCollapse` handler alike. Close does not activate (the window is going away, and in the imperative path the consumer decides whether to remove it). Zoom no longer bumps the stacking number by itself: a window's `z` changes only with an activation, a press on the active window, or `applyState`. No input leaves a window raised but inactive. | OS6 (`front` TRUE); #550 keyboard invariant (focus is always in the active, frontmost window) |
 
 IP5 picks OS6's `front` = TRUE reading. Apple's sample instead passes FALSE
@@ -211,12 +216,16 @@ verified in a browser).** The horizontal bar reads `deltaY` whenever Shift is
 held. An event that a browser has already converted (`deltaX` set, `deltaY`
 0, `shiftKey` true) would then move neither bar. IPT10 case (b) checks this.
 
-### 7.4 Adjacent observation, not in #614 (maintainer decision needed)
+### 7.4 Grow box on an inactive window (decided)
 
 The grow box of an inactive window answers `wInContent` (IW3, IW7, IW10), so
-classically a first press there only activates (OS3). The runtime's grow box
-activates **and** resizes on the first press. This policy does not change it.
-If it should match IP1, that is a separate decision.
+classically a first press there is a content press and only activates (OS3).
+Before this policy the runtime's grow box activated **and** resized on the
+first press.
+
+| id | rule | basis |
+|---|---|---|
+| IP14 | **Decided.** A primary pointer press on the grow box of a window that is inactive when the press begins activates and raises the window, and moves keyboard focus to the grow box as a grow-box press does. Nothing else follows from that gesture: no resize outline, no Posture-B handoff, no size commit, no `scriptoscope:userresize`, and no frame drag (it is a content press, not a drag-region press). The activation state is read **at `pointerdown`**. The next press on the grow box of the now active window resizes as today. Keyboard resize (arrows on the focused grow box) is unchanged on active and inactive windows: focus entering activates first (#550). | IW3, IW7, IW10, OS3; maintainer 2026-11-01 |
 
 ## 8. Test hooks
 
@@ -240,6 +249,9 @@ change-listener count, `onClose`/`onZoom`/`onCollapse` call counts, the
 | IPT9 (IP10) | A window with its own `data-scriptoscope-theme` beside an IPT8 (c) page stays active in its own manager. | apply IP7 across managers |
 | IPT10 (IP11–IP13) | windows-95 window with both themed bars, scrolled to the middle. Dispatch synthetic `WheelEvent`s on the content: (a) `{deltaY: 120, shiftKey: true}`: only `scrollLeft` changes, by 120; (b) `{deltaX: 120, deltaY: 0, shiftKey: true}`: only `scrollLeft` changes; (c) `{deltaY: 120}`: only `scrollTop`; (d) `{deltaX: 120}`: only `scrollLeft`. Each event is `defaultPrevented`. A window with only a vertical bar, case (a): nothing scrolls and the event is not `defaultPrevented`. Run in Chromium, Firefox and WebKit. | the vertical bar ignores Shift (today: (a) moves both); the horizontal bar reads `deltaY` under Shift ((b) moves nothing); always `preventDefault` (vertical-only case fails) |
 | IPT11 (IW14) | dolphin-som, `region` mode, B inactive. A press on a transparent pixel inside B's close rectangle reaches the page beneath and does not activate B. | route widget-rect presses to activation before the region test |
+| IPT12 (IP14) | windows-95 and platinum-8 `document-window`, B inactive, in-flow (Posture B) and absolutely placed. Press B's grow box, drag 40 px right and 30 px down, release. B is active and above A; B's content size, host position and `position` style are unchanged; no `scriptoscope:userresize` fired; no resize outline element appeared during the drag; no `region` `built` event beyond the activation commit; keyboard focus is on B's grow box. A second identical drag resizes B by (40, 30) / scale and fires `scriptoscope:userresize` once. A press without movement on the inactive grow box also only activates. | resize on the first press (today); read activation at `pointerup` (the press activated B, so the release would commit); treat the press as a frame drag (B moves by 40, 30); stop propagation without activating (B stays inactive) |
+| IPT13 (IP14) | Touch and pen on B's inactive grow box: same as IPT12's first drag. | apply IP14 to mouse only |
+| IPT14 (IP14, IP3) | Tab to B's grow box while B is inactive: B activates on focus. ArrowRight resizes B by 8 px. | apply IP14's first-press rule to keyboard resize |
 
 Rule-row hooks for the decode rows (IW2, IW3, IW6–IW11) already exist as
 window-widgets HT2/HG2 and procedural-frame HT2, HT5–HT8, UH2, UH4–UH7 test
