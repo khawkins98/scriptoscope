@@ -184,6 +184,8 @@ for (const mode of ['source', 'built']) test(`${mode}: #619 native content click
 
 for (const mode of ['source', 'built']) for (const concurrent of ['activation', 'removal', 'active add']) {
   test(`${mode}: #628 L2 rejected active add respects subsequent ${concurrent}`, async ({ page, servers }) => {
+    const unhandled = [];
+    page.on('pageerror', error => unhandled.push(error.message));
     await boot(page, servers, mode);
     const result = await page.evaluate(async concurrent => {
       const f = window.inputPolicy, A = await f.add('A'), B = await f.add('B');
@@ -197,12 +199,45 @@ for (const mode of ['source', 'built']) for (const concurrent of ['activation', 
       if (concurrent === 'removal') { f.manager.remove(A); A.remove(); }
       if (concurrent === 'active add') C = await f.add('C', 'active');
       const error = await failure; await f.settle();
-      return { error, A: f.manager.describe(A)?.active ?? null, B: f.manager.describe(B)?.active ?? null,
+      const states = { error, A: f.manager.describe(A)?.active ?? null, B: f.manager.describe(B)?.active ?? null,
         C: C ? f.manager.describe(C)?.active : null };
+      for (const host of [A, B, C].filter(Boolean)) { f.manager.remove(host); host.remove(); }
+      const retry = await f.add('Retry');
+      return { ...states, retryActive: f.manager.describe(retry).active };
     }, concurrent);
+    expect(unhandled, 'background preparation failures are handled').toEqual([]);
     expect(result.error).toContain('expected concurrent render failure');
+    expect(result.retryActive, 'failed provisional entry was removed; next default add is first and active').toBe(true);
     if (concurrent === 'activation') expect(result).toMatchObject({ A: false, B: true });
     if (concurrent === 'removal') expect(result).toMatchObject({ A: null, B: false });
     if (concurrent === 'active add') expect(result).toMatchObject({ A: false, B: false, C: true });
   });
 }
+
+
+for (const mode of ['source', 'built']) test(`${mode}: #628 L2 a committed replacement can satisfy a superseded initial add`, async ({ page, servers }) => {
+  const unhandled = [];
+  page.on('pageerror', error => unhandled.push(error.message));
+  await boot(page, servers, mode);
+  const result = await page.evaluate(async () => {
+    const f = window.inputPolicy;
+    await f.add('A'); const B = await f.add('B');
+    let reads = 0;
+    const transient = Object.create(f.theme);
+    Object.defineProperty(transient, 'manifest', { get() {
+      if (++reads === 1) throw new Error('obsolete initial preparation failure');
+      return f.theme.manifest;
+    } });
+    const adding = f.manager.add(transient, { title: 'Replaced', state: 'active', width: 240, height: 120 });
+    B.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+    const host = await adding;
+    const chromeAtResolution = !!host.shadowRoot.querySelector('.scriptoscope-window');
+    document.querySelector('#after').before(host);
+    await f.settle();
+    return { reads, chromeAtResolution, active: f.manager.describe(host).active, laterActive: f.manager.describe(B).active };
+  });
+  expect(result.reads, 'a replacement actually prepared valid theme data').toBeGreaterThan(1);
+  expect(result.chromeAtResolution, 'add resolves only after valid initial chrome committed').toBe(true);
+  expect(result).toMatchObject({ active: false, laterActive: true });
+  expect(unhandled, 'obsolete failure is handled after successful replacement').toEqual([]);
+});
