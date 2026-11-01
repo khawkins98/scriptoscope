@@ -177,9 +177,11 @@ message base; corrected 2026-11-01, #611 (see #610 and `engine/hit-regions.evide
 
 **Diagnosis.** Same gate shape as slot 3, but for the **utility-window
 band** (`-14304..-14296` from `kdef231-reference.md §2.1`). The `+1984`
-varCode offset distinguishes it: slot 6's procID switch (`0x2e6c`) sees a
-family-124 procID, not a document-family one (corrected #611; was read as
-a message range [1984, 1992]). This is how the
+varCode offset distinguishes it: slot 6's precompute `0x2e02` tests
+`varCode >> 4 == 124` at `0x31ae..0x31b8` (after the `0x2e6c` procID switch,
+which has no family-124 case, defaults to `0x3116`) and sets the utility frame
+flags 506/500/505 plus 508/499/501/507 from the variant bits. (Corrected #611;
+was read as a message range [1984, 1992].) This is how the
 compositor multiplexes per-window-type recipes through a single core.
 
 ### Slot 5 — `0x8d36` (separate CDEF, undecoded; not the scroll bar)
@@ -289,7 +291,8 @@ the dereferenced handle), passing varCode `(var & 15) + 1008` — not a message
 base: the push order (`0x174a4` varCode, `0x174a6` window, `0x174a8` message,
 `0x174ac` param) makes it the WDEF variation code, so the kDEF sees procID
 family 63 and sets its family-63 window byte (`0x3210`; corrected 2026-10-21,
-lane K PR #377 review). That WDEF -14336 forwards the varCode unchanged into
+lane K PR #377 review). The precompute tests `varCode >> 4 == 63` at
+`0x3204..0x320e`, then sets byte 509 and clears 510 (`0x3210..0x3216`; #611). That WDEF -14336 forwards the varCode unchanged into
 `0x28e0` is inferred, not shown in this listing. This is how
 Kaleidoscope's popup/tab theming defers to a "trampoline" WDEF that knows
 the popup geometry while inheriting the cicn art from the scheme. The

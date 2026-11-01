@@ -151,7 +151,10 @@ window operation enters the kDEF through one of these three parallel
 `GetResource('wnd#', -id)` routers, each scoped to a different window
 family. On hit they hand off to **slot 6 `0x28e0`** — the master
 compositor that owns the routines tabled below. On miss they fall back to
-either a system `'WDEF'` (slots 3, 8) or a private dispatch (slot 4). Full
+either a system `'WDEF'` (slot 3) or a private dispatch (slots 4, 8; slot 8's
+miss path is `0x174c8` → table `0x174e8`). *(Corrected #611: was "a system
+`'WDEF'` (slots 3, 8) or a private dispatch (slot 4)"; see #610 and
+`engine/hit-regions.evidence.md` E1.)* Full
 slot-by-slot trace: `docs/spec/kdef-service-handlers.md`.
 
 | gate | addr | family | wnd# id loaded | args into slot 6 (message / varCode) |

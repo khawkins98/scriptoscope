@@ -40,8 +40,9 @@ evidence twins (`kdef231-reference.evidence.md` gate table, slot-6 paragraph and
 "msg base into slot 6" (now "args into slot 6 (message / varCode)") and its
 slot-3 "per `0x28e0` table (1001..1009)", slot-4 "varCode + 1984" and slot-8
 "varCode + 1008" cells (each gate passes the message unchanged and rewrites only
-the varCode), the slot-6 paragraph "msgs 1001..1009", and the `0x28e0` row
-"dispatches msg-1001". The non-pinned `kdef-binary-inventory.md` §2 row 4,
+the varCode), the slot-6 paragraph "msgs 1001..1009", the `0x28e0` row
+"dispatches msg-1001", and the gate intro's miss path (slot 8 falls back to the
+private dispatch `0x174c8` → table `0x174e8`, not a system `'WDEF'`). The non-pinned `kdef-binary-inventory.md` §2 row 4,
 `kdef-service-handlers.md` slot 4 and the `kdef-service-handlers.evidence.md`
 slot-4/8 rows were corrected or marked superseded in the same PR, which also
 made the hash-only control-availability bump 1.0.18 → 1.0.19 that the nine
