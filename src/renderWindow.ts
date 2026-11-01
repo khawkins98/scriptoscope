@@ -107,7 +107,7 @@ export async function renderWindow(
   // (North Star: render any scheme).
   const resolved = resolveWindowSelection(theme, requestedSlug, state);
   if (!resolved) {
-    const utility = /utility|mini|floating|palette/.test(slug);
+    const utility = /utility|mini|floating|palette/.test(slug); // (no-chrome baseline window; not the title gate)
     return buildBaselineWindow(theme, { title, state, contentW, contentH, scale, utility, slug });
   }
   const { owner, wt, cicnPath } = resolved;
@@ -121,12 +121,19 @@ export async function renderWindow(
   // Options windows all had labels. side-floating-utility / no-title-utility / mini / palette
   // types stay headless (they either have a vertical side strip with no room for horizontal text,
   // or are named "no-title" for a reason).
-  // The showTitle gate uses the SAME predicate as bodyBackgroundStyle's slug check —
-  // see UTILITY_SLUG_RE below. Two definitions of "utility-ish" silently drifting
-  // was the bug class the title-bar + body-bg regressions split into.
+  // `isUtility` (body treatment, window root class) uses UTILITY_SLUG_RE below. The
+  // title gate is deliberately NARROWER (HEADLESS_TITLE_SLUG_RE): movable modals,
+  // movable alerts and popups keep their title. The kDEF draws the title whenever the
+  // window has one and a chrome template (window-widgets TX2), and corpus movable-
+  // modal / popup recipes carry a title rect (part 4) and plate (code 5) for it.
+  // Sharing one regex for both (7ef7c373) hid those titles as a side effect. Plain
+  // `dialog` / `alert` stay headless: Toolbox alerts have no title bar, callers pass
+  // a title only for aria-label, and 1984's alert title rect sits on its right
+  // border (a visible title would draw a 1px-wide sliver there).
   const isUtility = UTILITY_SLUG_RE.test(slug);
-  const isTitledUtility = /^titled-utility-window/.test(slug);
-  const showTitle = !!title && (!isUtility || isTitledUtility);
+  // The shaded form keeps its title bar, so it keeps its title too.
+  const isTitledUtility = /^(collapsed-)?titled-utility/.test(slug);
+  const showTitle = !!title && (!HEADLESS_TITLE_SLUG_RE.test(slug) || isTitledUtility);
 
   // ── title width: rasterize the title BEFORE composing; its width is the layout's
   // `SW` (window-widgets LS6, TT rows), which sizes the code-5 plate. ──
@@ -478,13 +485,19 @@ async function buildBaselineWindow(
 }
 
 /** Canonical "this windowType is a utility / dialog / palette" predicate, shared
- *  by `isUtility` (showTitle gate) and `bodyBackgroundStyle` (Icon-View ppat gate)
- *  so the two never drift. Extended over the previous narrower set to also catch
+ *  by `isUtility` (window root class) and `bodyBackgroundStyle` (Icon-View ppat
+ *  gate) so the two never drift. The title gate uses HEADLESS_TITLE_SLUG_RE. Extended over the previous narrower set to also catch
  *  `movable-modal` and `popup-window` — those windowTypes ship in the corpus and
  *  also wanted the utility body treatment (the prior regex left them painting
  *  the Finder Icon-View ppat as their body, same regression class as the
  *  Options dialog before the slug gate landed). */
 const UTILITY_SLUG_RE = /utility|mini|floating|palette|dialog|alert|modal|popup/;
+
+/** Window types whose title text is screen-reader-only (no visible title): the
+ *  utility / palette family plus the plain (non-movable) dialog and alert. A strict
+ *  subset of UTILITY_SLUG_RE; keep it separate so body-background changes cannot
+ *  hide titles again (see the showTitle gate). */
+const HEADLESS_TITLE_SLUG_RE = /utility|mini|floating|palette|^dialog$|^alert$/;
 
 /**
  * Content-area background style. Two paths:

@@ -450,10 +450,11 @@ export async function mountExplicitPage(opts) {
     const stopCycle = () => clearInterval(timer);
     for (const type of ['pointerdown','keydown','wheel']) root.addEventListener(type,stopCycle,
       {once:true,passive:true,signal:life.signal});
-    if (opts.autoCycle && opts.themes.length && !deep && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const cycle=opts.cycleThemes ?? opts.themes; // the showcase cycles the corpus only
+    if (opts.autoCycle && cycle.length && !deep && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
       timer=setInterval(() => {
-        const index=opts.themes.findIndex(t => t.slug === ref);
-        void retheme(opts.themes[(index+1)%opts.themes.length].slug).catch(console.error);
+        const index=cycle.findIndex(t => t.slug === ref);
+        void retheme(cycle[(index+1)%cycle.length].slug).catch(console.error);
       },opts.autoCycle);
     }
     for (const switcher of switchers) {

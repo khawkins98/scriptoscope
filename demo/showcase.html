@@ -472,6 +472,9 @@
       color: #5a5a5a; min-height: 1em;
     }
     #powers .powers-credit:empty { display: none; }
+    /* First-party schemes: a second strip under the corpus tiles, with the
+       scheme's own picker icon (-16455) as the tile icon. */
+    #powers .powers-first-party-heading { margin: 10px 4px 2px; font: italic 11.5px/1.4 "Times New Roman", Times, serif; color: #5a5a5a; }
     #powers .powers-credit strong { font-style: normal; font-weight: 600; color: #1c1c1c; }
     /* BYO MODAL — fixed-position backdrop + themed modal window inside.
        Initially hidden (visibility + opacity for transition, pointer-events
@@ -623,6 +626,13 @@
                name on the first line). The full About dialog awaits the
                P1/P2 menu bar work (Apple menu → About this Scheme). Boot
                text seeded by the first retheme event from the runtime. -->
+          <!-- FIRST-PARTY SCHEMES — original schemes authored in this repo
+               (authoring/schemes/), kept apart from the 18-scheme corpus:
+               not in themes-manifest.json, so the corpus gates never see
+               them. Loaded from ./authoring/schemes/<slug>/scheme.rsrc. -->
+          <p class="powers-first-party-heading" aria-hidden="true">First-party schemes, made for Scriptoscope</p>
+          <div data-scriptoscope-theme-picker id="powers-first-party" class="powers-folders"
+               data-scriptoscope-theme-picker-icon-id="-16455" aria-label="First-party schemes"></div>
           <p class="powers-credit" id="powers-credit" aria-live="polite"></p>
         </article>
       </div>
@@ -790,6 +800,11 @@
     const powersSection = document.getElementById('powers');
     const toggleBtn = document.getElementById('powers-skin-toggle');
     const foldersEl = document.querySelector('[data-scriptoscope-theme-picker]');
+    const FIRST_PARTY = [['kingfisher', 'Kingfisher']]
+      .map(([dir, name]) => ({ slug: `./authoring/schemes/${dir}`, name, author: 'Scriptoscope', year: 2026, source: 'scheme.rsrc' }));
+    const ALL_THEMES = [...THEMES, ...FIRST_PARTY];
+    const firstPartyEl = document.getElementById('powers-first-party');
+    const strips = [[foldersEl, THEMES], ...(firstPartyEl ? [[firstPartyEl, FIRST_PARTY]] : [])];
     let mountToken = 0;
     let handle = null;
     let mountingPowers = null;
@@ -806,8 +821,8 @@
     document.addEventListener('focusin', (event) => {
       if (mountingPowers && event.target instanceof HTMLElement) mountFocus = event.target;
     }, appEvents);
-    const pickerResolver = createOwnedThemeResolver({ themeBaseUrl, themes: THEMES });
-    let picker;
+    const pickerResolver = createOwnedThemeResolver({ themeBaseUrl, themes: ALL_THEMES });
+    let pickers = [];
     const pickerNodes = new Set();
     let userInteracted = false;
     for (const type of ['pointerdown', 'keydown', 'wheel']) {
@@ -844,10 +859,11 @@
           themeBaseUrl,
           pageThemeDefault: requestedRef,
           registeredThemes,
-          themes: THEMES,
+          themes: ALL_THEMES,
+          cycleThemes: THEMES,
           sources: { ...selectPageSources(powersSection), picker: null },
           syncToUrlParam: false,
-          autoCycle: userInteracted || THEMES.some(t => t.slug === new URL(location.href).searchParams.get('theme')) ? 0 : 4000,
+          autoCycle: userInteracted || ALL_THEMES.some(t => t.slug === new URL(location.href).searchParams.get('theme')) ? 0 : 4000,
           rejectOnEmptyMount: true,
         });
       } catch (err) {
@@ -881,11 +897,11 @@
     const commitTheme = (ref) => {
       activeRef = ref;
       requestedTheme = ref;
-      syncThemePickerActive(foldersEl, ref);
+      for (const [el] of strips) syncThemePickerActive(el, ref);
       const url = new URL(location.href);
       url.searchParams.set('theme', ref);
       history.replaceState(history.state, '', url);
-      const entry = THEMES.find(t => t.slug === ref);
+      const entry = ALL_THEMES.find(t => t.slug === ref);
       const credit = document.getElementById('powers-credit');
       if (credit) {
         credit.replaceChildren();
@@ -1006,7 +1022,7 @@
       leaving = true; ++dropGeneration;
       appLife.abort();
       clearTimeout(pulseTimer);
-      picker?.teardown();
+      for (const p of pickers) p?.teardown();
       for (const node of pickerNodes) node.remove();
       pickerNodes.clear();
       pickerResolver.dispose();
@@ -1039,6 +1055,10 @@
         return;
       }
     }, { capture: true, signal: appLife.signal });
+    firstPartyEl?.addEventListener('click', (e) => {
+      const choice = e.target.closest('[data-slug]');
+      if (!handle && choice) mountFocus = choice;
+    }, { capture: true, signal: appLife.signal });
     foldersEl.classList.add('powers-pulse');
     const dropPulse = () => foldersEl.classList.remove('powers-pulse');
     foldersEl.addEventListener('mouseenter', dropPulse, { once: true, signal: appLife.signal });
@@ -1050,14 +1070,17 @@
     slider?.addEventListener('input', () => { if (sliderOut) sliderOut.textContent = `${slider.value}%`; }, appEvents);
     queueMicrotask(async () => {
       const slug = new URL(location.href).searchParams.get('theme');
-      activeRef = requestedTheme = THEMES.some(t => t.slug === slug) ? slug : randomDefaultSlug;
-      const before = new Set(foldersEl.childNodes);
-      const promotion = promoteThemePicker(foldersEl, THEMES, {
-        loadTheme: slug => pickerResolver.load(slug), switchTheme, initialSlug: activeRef,
+      activeRef = requestedTheme = ALL_THEMES.some(t => t.slug === slug) ? slug : randomDefaultSlug;
+      const promotions = strips.map(([el, themes]) => {
+        const before = new Set(el.childNodes);
+        const promotion = promoteThemePicker(el, themes, {
+          loadTheme: slug => pickerResolver.load(slug), switchTheme, initialSlug: activeRef,
+        });
+        for (const node of el.childNodes) if (!before.has(node)) pickerNodes.add(node);
+        return promotion;
       });
-      for (const node of foldersEl.childNodes) if (!before.has(node)) pickerNodes.add(node);
-      picker = await promotion;
-      if (leaving) { picker?.teardown(); return; }
+      pickers = await Promise.all(promotions);
+      if (leaving) { for (const p of pickers) p?.teardown(); return; }
       await mountPowers();
       if (location.hash === '#bring-your-own') openModal();
     });

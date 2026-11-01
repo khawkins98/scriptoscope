@@ -188,7 +188,7 @@ feat(api)!: rename ScriptoscopeWindow constructor option `theme` to `themeId`
 
 CI runs in two tiers ([DECISIONS](./docs/v2/DECISIONS.md) #14, [#598](https://github.com/khawkins98/scriptoscope/issues/598)).
 
-- **PR tier** (`.github/workflows/ci.yml`, every pull request to `main`, required). It runs gates, the engine diff and the builds; the bounded Chromium rendering contracts, sharded; the exact Linux goldens; and the installed package consumer contract. The required check is the aggregate **Gates + build + browser contracts**. The PR tier is Chromium-only: since the maintainer decision on [#598](https://github.com/khawkins98/scriptoscope/issues/598) the Firefox/WebKit interaction contracts run in the release tier, not on every PR.
+- **PR tier** (`.github/workflows/ci.yml`, every pull request including stacks; required for `main`). It runs gates, the engine diff and the builds; the bounded Chromium rendering contracts, sharded; the exact Linux goldens; and the installed package consumer contract. The required check is the aggregate **Gates + build + browser contracts**. The PR tier is Chromium-only: since the maintainer decision on [#598](https://github.com/khawkins98/scriptoscope/issues/598) the Firefox/WebKit interaction contracts run in the release tier, not on every PR.
 - **Release tier** (`.github/workflows/release-gate.yml`). It runs the full extended matrix (`rendering-extended.yml` via `workflow_call`: Chromium at DPR 1 and 2, Firefox and WebKit, every spec, with shard parity), the Firefox/WebKit interaction contracts (**Interaction contracts (firefox)** and **(webkit)**: the pointer, focus and resize specs in [`interaction-specs.mjs`](./tests/rendering-options/interaction-specs.mjs), source and built, with a per-spec, per-engine coverage check), the pinned-container golden verify, `lint:themes -- --strict --decoded`, the installed package consumer contract, `verify:scenes` against the scene fixtures (recorded in the same pinned image, [#599](https://github.com/khawkins98/scriptoscope/issues/599)) and the `loc:src` trend against the previous release tag, which it posts to the job summary. The aggregate job is **Release gate**. Triggers:
   - manual (`gh workflow run release-gate.yml --ref <branch>`);
   - weekly (Monday 05:00 UTC) on `main`;
@@ -433,7 +433,13 @@ A cut-through is not optional polish — it's part of how the project stays trus
 
 ## Adding a theme (porting a Kaleidoscope scheme)
 
-Scriptoscope is a Kaleidoscope-compatibility runtime — themes are *ported* (not hand-authored) from existing `.ksc` schemes. Authoring entirely new chrome means using period Kaleidoscope authoring tools (ResEdit + the Kaleidoscope SDK on classic Mac OS or under SheepShaver), then porting the resulting `.ksc` through the same flow.
+Scriptoscope loads Kaleidoscope resource forks. To create a new scheme, use
+[`tools/theme-author/`](./tools/theme-author/) and the
+[creation guide](./docs/authoring-a-scheme.md), starting with the
+[concept brief template](./authoring/concept-brief-template.md). That workflow
+covers concept extraction, geometry, browser and 8-bit review, and validation
+in native Kaleidoscope. Period tools such as ResEdit remain another way to
+produce a scheme. To port an existing scheme, follow the flow below.
 
 The porting flow below applies to the 18 bundled schemes listed in
 [`demo/themes-manifest.json`](./demo/themes-manifest.json). Use a full scheme,
@@ -452,7 +458,8 @@ so they are atypical examples:
 
 The complete step-by-step walk-through (with troubleshooting for common pitfalls) is in [`docs/porting-a-kaleidoscope-scheme.md`](./docs/porting-a-kaleidoscope-scheme.md).
 
-Hand-authoring CSS or SVG chrome as a "first-party Scriptoscope theme" is **out of scope** — the 2026-05-17 LEARNINGS entry "Scriptoscope is a Kaleidoscope-compatibility runtime, not a Platinum re-author" records why. If you want to author a new look, the recommended path is ResEdit + Kaleidoscope SDK on classic Mac OS / SheepShaver, then port the resulting `.ksc` through this flow.
+New first-party looks must also be real Kaleidoscope schemes. CSS or SVG
+chrome that bypasses the resource-fork runtime is outside this workflow.
 
 ## Reporting bugs
 

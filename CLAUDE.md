@@ -44,6 +44,14 @@ npm run audit:scenes -- --write   # regenerate docs/scene-codex.md from the audi
 npm run audit:scenes -- --check   # CI signal: exit 1 if any slot fell to its hard fallback (for slots where the floor is a regression candidate)
 npm run gates              # umbrella pre-push gate: typecheck + test + lint --strict + audit --check (use this before pushing)
 
+# Scheme authoring (write side — workflow in docs/authoring-a-scheme.md §4)
+npm run author -- authoring/schemes/kingfisher   # build scheme.mjs → scheme.rsrc + scheme.bin, reload through convertChrome, run checkScheme (--sheet, --palette)
+npm run check:schemes                           # validate all 5 authored schemes: build cleanly, checkScheme passes, match committed scheme.rsrc
+# then npm run dev → http://localhost:5173/authoring-preview.html (dev-only page; ?scheme=<url> for another file)
+npm run paint-over -- concept.png --crop x,y,w,h --scale 3 --palette <dir>/palette.mjs   # concept crop → 1× palette-snapped raster
+npm run capture:authoring -- authoring/schemes/kingfisher   # preview.png + preview-sizes.png (needs npm run dev)
+npm run sim8 -- <dir>/preview.png /tmp/sim8.png --dpr 2  # 8 bpp classic-screen simulation
+
 # Diagnostics (consume the locally-baked derivatives — run `build:themes` first if needed)
 npm run diag:render        # render a window off a bundle to a PNG for eyeballing
 npm run diag:audit         # audit part placement against the recipe
@@ -57,7 +65,7 @@ The runtime is a short pipeline: theme bundle → loader → compositor → pixe
 
 ### The five layers (kept separable for a possible future repo split)
 
-1. **Conversion** — `tools/theme-loader/` (`.sit`/`.rsrc` → in-memory `LoadedTheme`, pure/portable, no fs/zlib/canvas/src deps), plus `tools/sit-wasm/` (StuffIt decoder used by both the drop-zone and the runtime `.sit` path; lazy-loaded — `.rsrc` skips it). **Runtime dependency, not just a build-time tool**: `src/loadTheme.ts` calls `loadKaleidoscopeScheme` on every bundle load.
+1. **Conversion** — `tools/theme-loader/` (`.sit`/`.rsrc` → in-memory `LoadedTheme`, pure/portable, no fs/zlib/canvas/src deps). Its write-side twin is `tools/theme-author/` (encoders for cicn/wnd#/cinf/ppat/clut/icons/dialogs/cursors/sounds/Colr/vers + a resource-fork writer + `frameLayout` + `checkScheme` + the paint-over and 8-bit-simulation engines; same purity rules; build-time only, never imported by `src/`). Plus `tools/sit-wasm/` (StuffIt decoder used by both the drop-zone and the runtime `.sit` path; lazy-loaded — `.rsrc` skips it). **Runtime dependency, not just a build-time tool**: `src/loadTheme.ts` calls `loadKaleidoscopeScheme` on every bundle load.
 2. **Asset I/O shells** — PNG encode / OffscreenCanvas wrappers.
 3. **Runtime** — `src/` (the published library).
 4. **Visualization / controls** — themed (`src/controls.ts`, cicn-rendered) + procedural Platinum fallback (`src/platinum.ts`) for widgets a scheme omits.
@@ -135,5 +143,6 @@ The corpus (18 bundles): `1138`, `1984`, `1990`, `animals`, `apple-lisa`, `apple
 - `docs/spec/apple-appearancelib-spike.md` + `apple-cdef-{geometry,button-geometry}.md` — Apple Mac OS 8.5 System file decompile. DrawThemeButton TVector decoded (thin dispatcher → theme-provider vtable +0xCC, data/drawer split).
 - `docs/theme-bundle-layout.md` — `theme.json` schema.
 - `docs/porting-a-kaleidoscope-scheme.md` — full porting walk-through.
+- `docs/authoring-a-scheme.md` — making a NEW scheme in code (`tools/theme-author/`); owns the workflow (brief → concept → extraction → build → preview → 8-bit check → real Kaleidoscope). References it links to: `authoring-exotic-frames.md` (frame rules R1–R30), `authoring-visual-design.md` (pixel/design guidance, PR checklist), `authoring-art-with-ai.md` (AI tool routes). Kingfisher is the reference under `authoring/schemes/`, separate from `themes/` — the 18-bundle corpus and its gates stay community-only.
 - `docs/adr/0001` — the consumption-layer architecture decision. **Decision 1 RETIRED (2026-05-28)** after three CSS-emitter spike rounds couldn't reach fidelity on exotic schemes (BeOS asymmetric title bar, etc.); architecture is now explicitly "DOM structure + canvas decoration" — what already ships. Decisions 2 (Shadow DOM), 3 (`data-scriptoscope-*` front door), 4 (ingestion) all accepted/shipped.
 - `LEARNINGS.md` — running log of gotchas; the historical record matters, so mark superseded entries rather than deleting them.
