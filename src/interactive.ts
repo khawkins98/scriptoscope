@@ -132,16 +132,25 @@ const growZone = (c: ComposedChrome): { w: number; h: number } => c.growBox
 // `el` keeps moves arriving from outside the window, even over elements that swallow them. A
 // pointercancel or lost capture ends the drag through `cancel`, so nothing is left to commit later.
 function trackDrag(el: HTMLElement, down: PointerEvent, move: (e: PointerEvent) => void,
-  up: (e: PointerEvent) => void, cancel: () => void): void {
+  up: (e: PointerEvent) => void, cancel: () => void, signal?: AbortSignal): void {
   const id = down.pointerId;
+  const stop = (): void => {
+    for (const [t, l] of listeners) document.removeEventListener(t, l);
+    signal?.removeEventListener('abort', abort);
+  };
+  const abort = (): void => {
+    stop(); cancel();
+    try { if (el.hasPointerCapture(id)) el.releasePointerCapture(id); } catch { /* capture already ended */ }
+  };
   const on = (f: (e: PointerEvent) => void) => (e: PointerEvent): void => {
     if (e.pointerId !== id) return;
-    if (e.type !== 'pointermove') for (const [t, l] of listeners) document.removeEventListener(t, l);
+    if (e.type !== 'pointermove') stop();
     f(e);
   };
   const listeners = [['pointermove', on(move)], ['pointerup', on(up)],
     ['pointercancel', on(cancel)], ['lostpointercapture', on(cancel)]] as const;
   for (const [t, l] of listeners) document.addEventListener(t, l);
+  signal?.addEventListener('abort', abort, { once: true });
   // demo/explicit-layout.mjs uses this capture (gotpointercapture / lostpointercapture) as
   // its drag-active signal, so it never persists the hot loop's uncommitted left/top (#581).
   try { el.setPointerCapture(id); } catch { /* the pointer is already gone: document tracking still ends it */ }
@@ -742,8 +751,13 @@ function readingOrder(hits: TitleWidgetHit[]): TitleWidgetHit[] {
 }
 
 // ── Window focus manager ────────────────────────────────────────────────────
+/** Successful region preparation, retained only by its committed window. */
+interface RegionPreparation {
+  theme: ThemeInput; template: NonNullable<ComposedChrome['structureTemplate']>;
+  pixels: Uint8ClampedArray; key: string; path: string;
+}
 /** A prepared, not yet committed render; `opts` carries the resolved content size. */
-interface PreparedRender { win: HTMLElement; collapsed: boolean; opts: RenderWindowOptions; extent?: ChromeExtent; region?: string | null }
+interface PreparedRender { win: HTMLElement; collapsed: boolean; opts: RenderWindowOptions; extent?: ChromeExtent; region?: string | null; regionCache?: RegionPreparation }
 
 interface ManagedWindow<Theme extends ThemeInput> {
   contentPort: ManagedContentPort;
@@ -789,6 +803,8 @@ interface ManagedWindow<Theme extends ThemeInput> {
   scrollAbort?: AbortController;
   /** Root handlers are rebound without ending an already active document-level drag. */
   frameAbort?: AbortController;
+  /** Host listeners and captured gestures last until removal, independently of chrome rebinds. */
+  lifetime: AbortController;
   /** Overlay controls by role key, reused across renders (#533); see WindowManager.overlay. */
   overlays?: Map<string, HTMLElement>;
   /** Pooled chrome canvas — keeps its DOM identity across state changes (see #171 and
@@ -810,13 +826,13 @@ interface ManagedWindow<Theme extends ThemeInput> {
   /** `clip-path` path of the structure region built at the last commit (HP22): absent for a window
    *  that is not a recipe window, null when the build failed or was empty (HP44). */
   region?: string | null | undefined;
+  regionCache?: RegionPreparation | undefined;
   /** Inside an open `openModal` wrap (HP42). */
   modal?: boolean;
   /** Host found inside a closed shadow root (HP47). */
   closedRoot?: boolean;
-  /** A captured frame drag or grow-box resize holds L2's clip suspended (HP49); `ending`: a resize was
-   *  released and its render commit restores the clip with the new region. */
-  gesture?: boolean | 'ending';
+  /** Each captured gesture owns its suspension; a released resize waits for its own render. */
+  gesture?: { ending: boolean } | undefined;
   /** HP26/HP43: the clipped layer L2 and the decoration layer L3 (with its focus ring), created once. */
   layers?: { hit: HTMLElement; decor: HTMLElement; ring: HTMLElement };
 }
@@ -1008,7 +1024,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     entry.opts = opts;
     entry.outer = outer;
     // HP49: a collapse or expand mid-gesture restores the clip with this commit, as toggleCollapse does.
-    if (collapsed !== (entry.collapsed === true)) entry.gesture = false;
+    if (collapsed !== (entry.collapsed === true)) entry.gesture = undefined;
     entry.collapsed = collapsed;
     entry.z = z;
     this.zClock = Math.max(this.zClock, z);
@@ -1080,7 +1096,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     const priorActive = this.windows.find(w => w.active);
     const activation = claims ? ++this.activationEpoch : this.activationEpoch;
     const entry: ManagedWindow<Theme> = {
-      theme, opts, handlers, host, renderEpoch: 0, commitEpoch: 0, applyStateEpoch: 0, initializing: true, contentPort: new ManagedContentPort(),
+      theme, opts, handlers, host, renderEpoch: 0, commitEpoch: 0, applyStateEpoch: 0, initializing: true, contentPort: new ManagedContentPort(), lifetime: new AbortController(),
       ...(opts.reuseCanvas ? { chromeCanvas: opts.reuseCanvas } : {}),
       active: claims || (this.windows.length === 0 && opts.state !== 'inactive'),
       // Declared z (data-scriptoscope-z) wins; else take the next stacking-clock tick. We still bump the
@@ -1096,22 +1112,24 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     for (const w of claims ? this.windows : []) if (w.active) { w.active = false; w.host.style.zIndex = this.zIndexFor(w); void this.render(w); }
     this.windows.push(entry);
     // mousedown (not click) so focus lands before any inner control acts.
-    host.addEventListener('pointerdown', () => { void this.focus(entry); });
+    host.addEventListener('pointerdown', () => { void this.focus(entry); }, { signal: entry.lifetime.signal });
     // Keyboard focus entering a window (shadow chrome or slotted content) activates and raises it,
     // as classic Mac keeps keyboard focus in the front window. Otherwise Tab can land on a control
     // a higher window covers (WCAG 2.2 SC 2.4.11 Focus Not Obscured, #550). The active window is
     // already frontmost, so moves within it cost nothing; the render keeps overlays mounted (#533),
     // so focus stays put and no second focusin follows. z-order only: geometry is untouched.
-    host.addEventListener('focusin', () => { if (!entry.active) void this.focus(entry); });
+    host.addEventListener('focusin', () => { if (!entry.active) void this.focus(entry); }, { signal: entry.lifetime.signal });
     // HP42: openModal and promotion announce modal-wrap changes on the host.
     host.addEventListener('scriptoscope:modalchange', () => {
       if (!this.windows.includes(entry)) return;
       const modal = !!host.closest('[data-scriptoscope-modal-open]');
       if (modal !== !!entry.modal) { entry.modal = modal; this.applyHit(entry); }
       this.syncOutside();
-    });
+    }, { signal: entry.lifetime.signal });
     // HP28: the decoration ring follows keyboard focus among the window's controls.
-    for (const type of ['focusin', 'focusout']) host.shadowRoot?.addEventListener(type, () => queueMicrotask(() => this.placeRing(entry)));
+    for (const type of ['focusin', 'focusout']) host.shadowRoot?.addEventListener(type, () => queueMicrotask(() => {
+      if (this.windows.includes(entry)) this.placeRing(entry);
+    }), { signal: entry.lifetime.signal });
     this.syncOutside();
     try {
       await this.render(entry);
@@ -1139,6 +1157,8 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     if (i < 0) return;
     this.windows[i]!.renderEpoch++;
     this.windows[i]!.widgetGesture?.abort();
+    this.windows[i]!.lifetime.abort();
+    this.windows[i]!.layers?.hit.removeEventListener('wheel', mainThreadWheel);
     this.windows[i]!.contentPort.dispose();
     this.windows[i]?.scrollAbort?.abort();
     this.windows[i]?.frameAbort?.abort();
@@ -1154,6 +1174,13 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       placeholder.remove();
       delete (host as unknown as { __scriptoscopePlaceholder?: HTMLElement }).__scriptoscopePlaceholder;
     }
+  }
+
+  /** Empty the manager while leaving hosts and themes owned by the caller. May be reused. */
+  dispose(): void {
+    this.themeEpoch++;
+    for (const entry of [...this.windows]) this.remove(entry.host);
+    this.pendingTap = null;
   }
 
   /** Set a window host's absolute-coordinate position. The chokepoint for ALL geometry
@@ -1318,7 +1345,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
         const result = prepared.get(entry)!;
         entry.renderEpoch++; // invalidate any older standalone render
         entry.theme = theme;
-        entry.gesture = false; // ruling A: a retheme mid-gesture restores the clip with its commit
+        entry.gesture = undefined; // ruling A: a retheme mid-gesture restores the clip with its commit
         this.commitRender(entry, result, false);
         if (themeRef !== undefined) entry.host.dataset.scriptoscopeTheme = themeRef;
       }
@@ -1409,11 +1436,23 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     if (!composed?.structure) return prepared;
     const title = entry.opts.title ?? '(untitled)';
     try {
+      const template = composed.structureTemplate;
+      const key = JSON.stringify([composed.layout, composed.fullWidth, composed.fullHeight,
+        prepared.opts.scale ?? 1, prepared.opts.title, composed.titleRegion, prepared.collapsed,
+        template?.width, template?.height]);
+      const cached = entry.regionCache;
+      if (template && cached?.theme === theme && cached.template === template && cached.key === key
+        && cached.pixels.length === template.data.length && cached.pixels.every((v, i) => v === template.data[i]))
+        return { ...prepared, region: cached.path, regionCache: cached };
       // HP8, HP15: the layout that drew this commit carries the collapsed state and title axis (SR6, WD4).
-      const region = regionPath(composed.structure(), Math.max(1, Math.round(prepared.opts.scale ?? 1)));
+      const layout = composed.layout;
+      // SR4's tiny-content special case is not the ordinary solid-C construction.
+      const content = layout && !prepared.collapsed && (layout.C.right - layout.C.left > 1 || layout.C.bottom - layout.C.top > 1)
+        ? layout.C : undefined;
+      const region = regionPath(composed.structure(), Math.max(1, Math.round(prepared.opts.scale ?? 1)), content);
       if (!region) throw new Error('empty structure region');
       debug('region', 'built', { title, length: region.length });
-      return { ...prepared, region };
+      return { ...prepared, region, ...(template ? { regionCache: { theme, template, pixels: template.data.slice(), key, path: region } } : {}) };
     } catch (error) {
       debug('region', 'build failed', { title, error }); // HP44: box hit area for this commit
       return { ...prepared, region: null };
@@ -1480,10 +1519,11 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     }
   }
 
-  private commitRender(entry: ManagedWindow<Theme>, { win, collapsed, opts, extent, region }: PreparedRender, notify = true): void {
+  private commitRender(entry: ManagedWindow<Theme>, { win, collapsed, opts, extent, region, regionCache }: PreparedRender, notify = true): void {
     entry.commitEpoch++;
     entry.region = region;
-    if (entry.gesture === 'ending') entry.gesture = false; // HP49: the resize commit restores the new S
+    entry.regionCache = regionCache;
+    if (entry.gesture?.ending) entry.gesture = undefined; // A newer captured drag keeps its suspension.
     entry.opts = opts;
     if (extent) entry.extent = extent;
     // Host box = full chrome in every mode (#526). An absolute host already shrink-wraps
@@ -1628,7 +1668,8 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     layers.hit.style.pointerEvents = region ? 'auto' : '';
     // HPT33/HP36: WebKit's scrolling thread routes a wheel by the layer's area, not the clip, so a wheel
     // over an excluded pixel never reached the page. A blocking (no-op) listener sends wheels over L2
-    // through the main thread, whose hit test honours the clip.
+    // through the main thread, whose hit test honours the clip. This routes wheel handling through
+    // that thread in every engine; scope it to effective region windows and release it on removal.
     if (region) layers.hit.addEventListener('wheel', mainThreadWheel, { passive: false });
     else layers.hit.removeEventListener('wheel', mainThreadWheel);
     l1.style.pointerEvents = entry.host.style.pointerEvents = region ? 'none' : '';
@@ -1637,11 +1678,9 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
   }
 
   /** Start or end a captured pointer gesture (ruling A): suspend or restore the clip in this task. */
-  private suspendClip(entry: ManagedWindow<Theme>, on: boolean): void {
-    // Exact state: a new gesture must overwrite a resize still `ending`, or that resize's commit
-    // would restore the clip in the middle of the new drag.
-    if ((entry.gesture ?? false) === on) return;
-    entry.gesture = on;
+  private suspendClip(entry: ManagedWindow<Theme>, on: boolean, owner = entry.gesture): void {
+    if (!on && entry.gesture !== owner) return;
+    entry.gesture = on ? { ending: false } : undefined;
     const l2 = entry.layers?.hit;
     if (l2 && this.hitEffective(entry) === 'region') l2.style.clipPath = on ? 'none' : `path("${entry.region}")`;
   }
@@ -1737,6 +1776,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
   }
 
   private notifyChange(entry: ManagedWindow<Theme>): void {
+    if (!this.windows.includes(entry)) return;
     if (this.onChange) try { this.onChange(entry.host); } catch (err) { console.error('[scriptoscope] onChange threw:', err); }
   }
 
@@ -2040,7 +2080,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
   /** Toggle window-shade. Built-in for windows whose collapse widget has no explicit handler. */
   private async toggleCollapse(entry: ManagedWindow<Theme>): Promise<void> {
     entry.collapsed = !entry.collapsed;
-    entry.gesture = false; // ruling A: a collapse mid-gesture restores the clip with its commit
+    entry.gesture = undefined; // ruling A: a collapse mid-gesture restores the clip with its commit
     debug('drag', `toggleCollapse ${entry.opts.title ?? ''} → collapsed=${entry.collapsed}`);
     await this.render(entry);
     entry.handlers.onCollapse?.();
@@ -2109,6 +2149,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       e.preventDefault();
       this.claimFocus(entry, moveBtn);
       this.suspendClip(entry, true);
+      const gesture = entry.gesture;
       void this.focus(entry);
       // Pointer positions are viewport pixels; left/top are the containing
       // block's CSS pixels. They differ inside a scaled (#515), rotated or
@@ -2137,7 +2178,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       trackDrag(win, e, ev => place(delta(ev)), (ev) => {
         const d = delta(ev);
         place(d);
-        this.suspendClip(entry, false);
+        this.suspendClip(entry, false, gesture);
         // Never moved, or released back at the start: nothing to commit, no onChange.
         if (!origin || (!d.x && !d.y)) return;
         // Commit through the chokepoint so persistence + future v2 reflow
@@ -2148,8 +2189,8 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
         // Cancelled (#563): back to the start, uncommitted. Reuses the hot-loop writer, so the
         // setPosition chokepoint still sees every committed move.
         place({ x: 0, y: 0 });
-        this.suspendClip(entry, false);
-      });
+        this.suspendClip(entry, false, gesture);
+      }, entry.lifetime.signal);
     }, { signal });
 
     // KEYBOARD MOVE HANDLE — focusable transparent button overlaying the title region. Closes the
@@ -2271,6 +2312,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       this.claimFocus(entry, corner);
       if (inactive) { void this.focus(entry); return; }
       this.suspendClip(entry, true);
+      const gesture = entry.gesture;
       void this.focus(entry);
       // Viewport to the host's CSS pixels under a transformed ancestor (#515, #519).
       // Taken before any handoff: toAbsolute doesn't move the host, so the map holds.
@@ -2307,19 +2349,19 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
         outline?.remove();
         // Unchanged size (never moved, or dragged back to the start): no commit, no event; HP49
         // restores the clip in this task.
-        if (nw === w0 && nh === h0) { this.suspendClip(entry, false); return; }
+        if (nw === w0 && nh === h0) { this.suspendClip(entry, false, gesture); return; }
         entry.opts = { ...entry.opts, width: nw, height: nh };
         delete entry.outer; // the user's grow-box size is an explicit content size
         // HP49: the clip stays suspended until this render commits, which restores the new S. If the
         // render fails or is superseded without a commit, restore the last committed path then.
-        if (entry.gesture) entry.gesture = 'ending';
-        void this.render(entry).finally(() => { if (entry.gesture === 'ending') this.suspendClip(entry, false); });
+        if (entry.gesture === gesture && gesture) gesture.ending = true;
+        void this.render(entry).finally(() => { if (entry.gesture === gesture && gesture?.ending) this.suspendClip(entry, false, gesture); });
         // Same userresize signal as the keyboard path — the declarative
         // layer's auto-fit disconnects on this event.
         host.dispatchEvent(new CustomEvent('scriptoscope:userresize', {
           detail: { w: nw, h: nh }, bubbles: true,
         }));
-      }, () => { outline?.remove(); this.suspendClip(entry, false); }); // cancelled (#563): no commit, no event
+      }, () => { outline?.remove(); this.suspendClip(entry, false, gesture); }, entry.lifetime.signal); // cancelled (#563): no commit, no event
     }, { signal });
   }
 
