@@ -108,3 +108,73 @@ for (const mode of MODES) {
     } finally { await releaseFonts(page); }
   });
 }
+
+for (const mode of MODES) for (const action of ['remove', 'dispose']) {
+  for (const gesture of ['drag', 'resize']) for (const timing of ['setup callback', 'mid gesture']) {
+    test(`${mode}: ended lifetime blocks ${gesture} after ${action} during ${timing}`, async ({ page, servers }) => {
+      const errors = [];
+      page.on('pageerror', error => errors.push(error.message));
+      await boot(page, servers, mode);
+      await page.evaluate(async ({ action, gesture, timing }) => {
+        const f = window.__fpt; f.manager();
+        await f.add('A', { slug: 'dolphin-som', title: 'Retained ended host', left: 90, top: 90 });
+        const { host, m } = f.hosts.A;
+        const outside = document.createElement('button'); outside.textContent = 'Outside focus';
+        document.body.append(outside); outside.focus();
+        const log = window.__endedGesture = { ended: false, endCalls: 0, capture: [], listeners: [], changes: 0, resizeEvents: 0 };
+        log.geometry = () => {
+          const r = host.getBoundingClientRect();
+          return { x: r.x, y: r.y, w: r.width, h: r.height, width: m.describe(host)?.width ?? null };
+        };
+        log.end = () => {
+          log.endCalls++;
+          if (action === 'dispose') m.dispose(); else m.remove(host);
+          log.ended = true; log.before = log.geometry();
+        };
+        const add = document.addEventListener;
+        document.addEventListener = function (type, listener, options) {
+          if (log.ended && ['pointermove', 'pointerup', 'pointercancel', 'lostpointercapture'].includes(type)) log.listeners.push(type);
+          return add.call(this, type, listener, options);
+        };
+        const capture = Element.prototype.setPointerCapture;
+        Element.prototype.setPointerCapture = function (id) {
+          if (log.ended) log.capture.push(id);
+          return capture.call(this, id);
+        };
+        log.restore = () => { document.addEventListener = add; Element.prototype.setPointerCapture = capture; };
+        m.setChangeListener(() => { if (log.ended) log.changes++; });
+        host.addEventListener('scriptoscope:userresize', () => { if (log.ended) log.resizeEvents++; });
+        if (timing === 'setup callback') host.shadowRoot.querySelector(gesture === 'drag' ? '.scriptoscope-movehandle' : '.scriptoscope-growbox').addEventListener('focus', log.end, { once: true });
+      }, { action, gesture, timing });
+      const start = gesture === 'drag' ? (await fixture(page, 'A')).vp.p_in : await page.evaluate(() => {
+        const r = window.__fpt.hosts.A.host.shadowRoot.querySelector('.scriptoscope-growbox').getBoundingClientRect();
+        return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
+      });
+      await page.mouse.move(start.x, start.y); await page.mouse.down();
+      if (timing === 'mid gesture') {
+        await page.mouse.move(start.x + 12, start.y + 8);
+        await page.evaluate(() => window.__endedGesture.end());
+      }
+      await page.mouse.move(start.x + 55, start.y + 38, { steps: 3 });
+      await page.mouse.up(); await settle(page);
+      const result = await page.evaluate(() => {
+        const log = window.__endedGesture, { host, m } = window.__fpt.hosts.A;
+        log.restore();
+        return { endCalls: log.endCalls, before: log.before, after: log.geometry(), capture: log.capture,
+          listeners: log.listeners, changes: log.changes, resizeEvents: log.resizeEvents,
+          described: m.describe(host), port: m.contentPort(host), connected: host.isConnected };
+      });
+      // Evaluate all observables before asserting so capture/listener leaks and
+      // host movement remain available together in the failure artifact.
+      expect(result).toEqual({ endCalls: 1, before: result.before, after: result.before, capture: [], listeners: [],
+        changes: 0, resizeEvents: 0, described: null, port: null, connected: true });
+      expect(errors, 'ended setup cannot leave a continuation throwing on removed layers').toEqual([]);
+      await page.evaluate(async () => { const f = window.__fpt; await f.add('B', { slug: 'dolphin-som', m: f.managers[0], left: 500, top: 100 }); });
+      const next = (await fixture(page, 'B')).vp.p_in;
+      const left = await page.evaluate(() => window.__fpt.hosts.B.host.getBoundingClientRect().x);
+      await page.mouse.move(next.x, next.y); await page.mouse.down();
+      await page.mouse.move(next.x + 24, next.y + 16); await page.mouse.up(); await settle(page);
+      expect(await page.evaluate(() => window.__fpt.hosts.B.host.getBoundingClientRect().x), 'new lifetime on reused manager still supports real dragging').toBe(left + 24);
+    });
+  }
+}
