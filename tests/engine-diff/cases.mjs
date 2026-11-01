@@ -60,6 +60,10 @@ const xywh = r => r && { x: r.x, y: r.y, w: r.w, h: r.h };
 // native content size, 97x53 and 320x160, each with no title and a 60 px title. The
 // popup-window type is traced again as the popup family (`/popup` keys), the way
 // renderWindow draws it (window-widgets AP1/PP rows, WD6).
+// Collapsed-* recipes also run with /collapsed keys: empty-height C for top
+// titles, empty-width C for side titles (window-widgets §2.1, WD4; HP48).
+// Existing keys retain their expanded inputs. This facade does not draw pressed
+// widget strips, so this grid does not claim WD9/HT7 second-row coverage.
 // composeWindowChrome carries no EngineTrace, so the cell trace is built from its
 // public result: the template cicn resolved, the frame/title rects, and the
 // placement map in draw order (edge, part code, mode, source band, destination rects).
@@ -78,13 +82,18 @@ async function* windowCells({ decoded, mutate = x => x }) {
       const cicnId = elements.find(e => e.asset === wt.chrome[state])?.sourceCicnId ?? null;
       const [l, t, r, b] = wt.parts['part-0'].rect;
       for (const popupFamily of type === 'popup-window' ? [false, true] : [false])
+      for (const collapsed of type.startsWith('collapsed-') ? [false, true] : [false])
       for (const size of WINDOW_SIZES) for (const titleWidthPx of WINDOW_TITLES) {
-        const [w, h] = size ?? [Math.max(0, r - l), Math.max(0, b - t)];
-        const key = `${type}/${state}/${size ? `${w}x${h}` : 'native'}/t${titleWidthPx}${popupFamily ? '/popup' : ''}`;
-        const inputs = { type, state, w, h, titleWidthPx, ...(popupFamily ? { popupFamily } : {}), recipeSha256: sha(JSON.stringify(wt.edges)) };
+        const [expandedW, expandedH] = size ?? [Math.max(0, r - l), Math.max(0, b - t)];
+        const sideTitle = type === 'collapsed-side-utility' || type === 'collapsed-side-floating-utility-window';
+        const w = collapsed && sideTitle ? 0 : expandedW;
+        const h = collapsed && !sideTitle ? 0 : expandedH;
+        const collapseOptions = collapsed ? { collapsed: true, sideTitle } : {};
+        const key = `${type}/${state}/${size ? `${expandedW}x${expandedH}` : 'native'}/t${titleWidthPx}${popupFamily ? '/popup' : ''}${collapsed ? '/collapsed' : ''}`;
+        const inputs = { type, state, w, h, titleWidthPx, ...(popupFamily ? { popupFamily } : {}), ...collapseOptions, ...(collapsed ? { expandedW, expandedH } : {}), recipeSha256: sha(JSON.stringify(wt.edges)) };
         const source = new PixelBuffer(asset.width, asset.height, new Uint8ClampedArray(asset.rgba));
         let c;
-        try { c = composeWindowChrome(source, wt, w, h, { titleWidthPx, popupFamily }); }
+        try { c = composeWindowChrome(source, wt, w, h, { titleWidthPx, popupFamily, ...collapseOptions }); }
         catch (e) { yield { key, trace: { family: 'window', inputs, error: String(e.message) } }; continue; }
         yield {
           key,

@@ -50,3 +50,15 @@ judged all at once:
 ledger evidence ids are read from the head tree. A PR that edits them changes
 its own judge, so reviewers read those diffs. Only `cases.mjs` is also run from
 the base.
+
+## Collapsed recipe coverage (#625)
+
+The window grid preserves its expanded cells and adds `/collapsed` cells for
+all authored collapsed recipe types, both activation states, all three sizes
+and both title widths. Keys name the expanded input size. The actual content
+rect is empty in height for top titles and empty in width for side titles;
+`collapsed` and `sideTitle` are passed together to the layout (window-widgets
+§2.1, WD4; hit-regions HP48). No theme-specific branch selects the axis.
+The facade grid covers chrome cells, not pressed widget-strip selection:
+WD9/HT7's collapsed second row requires the separate widget contracts.
+Added digests are regression seeds, not independently established native pixels.
