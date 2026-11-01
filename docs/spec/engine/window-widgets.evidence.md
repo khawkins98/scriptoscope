@@ -839,7 +839,9 @@ unknown and no further acquisition was undertaken.
 ## #624/#625 family and collapse retrace (2026-11-02)
 
 Spec-author lane `widgets-collapse-624-625`; independent verification remains
-separate. No runtime file was read or changed by this lane. The public
+separate. Source retrace and the behavioural handoff were completed before
+runtime-file inspection. No runtime fixes were authored in this lane; later
+mechanical integration transfers separately authored runtime/test commits. The public
 behavioural handoff is window-widgets §2.3 PF1–PF4/PM1–PM2; this appendix must
 not be handed to runtime implementers.
 
