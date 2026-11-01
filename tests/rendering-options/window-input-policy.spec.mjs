@@ -247,6 +247,7 @@ for (const mode of ['source', 'built']) for (const order of ['B,C', 'C,B']) {
       await boot(page, servers, mode);
       await page.evaluate(async () => {
         const f = window.inputPolicy;
+        f.manager.setDefaultHit('region');
         f.hosts.A = await f.add('A');
         const content = document.createElement('input'); content.id = 'later-focus';
         f.hosts.D = await f.manager.add(f.theme, { title: 'D', state: 'inactive' }, {}, { contentEl: content });
@@ -340,6 +341,7 @@ for (const mode of ['source', 'built']) {
         await boot(page, servers, mode);
         await page.evaluate(async () => {
           const f = window.inputPolicy;
+          f.manager.setDefaultHit('region');
           f.hosts.A = await f.add('A');
           const content = document.createElement('input'); content.id = 'order-focus';
           f.hosts.D = await f.manager.add(f.theme, { title: 'D', state: 'inactive' }, {}, { contentEl: content });
