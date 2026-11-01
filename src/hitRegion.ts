@@ -10,8 +10,8 @@ export const SIDE_TITLED_TYPES: ReadonlySet<string> = new Set(['side-floating-ut
 /** A window's hit mode (HP1). */
 export type HitMode = 'region' | 'box';
 
-/** HP10: trimmed and case-insensitive. Absent, empty or unknown values are `undefined`
- *  (the caller inherits); a non-empty unknown value logs once per call through `debug`. */
+/** HP10: trimmed and case-insensitive. Absent, empty or unknown values are `undefined` (the caller
+ *  inherits); an empty or unknown value (anything but absent) logs once per call through `debug`. */
 export function parseHit(value: unknown, where: string): HitMode | undefined {
   if (value == null) return undefined;
   const v = String(value).trim().toLowerCase();

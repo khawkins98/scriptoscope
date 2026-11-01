@@ -1615,7 +1615,9 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
 
   /** Start or end a captured pointer gesture (ruling A): suspend or restore the clip in this task. */
   private suspendClip(entry: ManagedWindow<Theme>, on: boolean): void {
-    if (!entry.gesture === !on) return;
+    // Exact state: a new gesture must overwrite a resize still `ending`, or that resize's commit
+    // would restore the clip in the middle of the new drag.
+    if ((entry.gesture ?? false) === on) return;
     entry.gesture = on;
     const l2 = entry.layers?.hit;
     if (l2 && this.hitEffective(entry) === 'region') l2.style.clipPath = on ? 'none' : `path("${entry.region}")`;

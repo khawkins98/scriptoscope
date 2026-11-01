@@ -195,7 +195,7 @@ If you set a px-valued `max-width` / `max-height` on the host via CSS (a class o
 
 ## Class inheritance and the locked-down properties
 
-The runtime copies the source element's `id`, classes, ARIA attributes, non-`data-scriptoscope-*` `data-*`, `lang`, `dir`, and `title` onto the host so your selectors keep matching after promotion. Ten layout/decoration properties are then **locked down** via inline styles on the host, overriding any inherited class CSS:
+The runtime copies the source element's `id`, classes, ARIA attributes, non-`data-scriptoscope-*` `data-*`, `lang`, `dir`, and `title` onto the host so your selectors keep matching after promotion. Eleven layout/decoration properties are then **locked down** via inline styles on the host, overriding any inherited class CSS, plus `pointer-events` while the window is in `region` hit mode:
 
 - `display: block` — your `.card { display: grid }` would collapse the host's box and decouple it from the chrome canvas.
 - `box-sizing: border-box`
@@ -204,6 +204,8 @@ The runtime copies the source element's `id`, classes, ARIA attributes, non-`dat
 - `background: transparent` — paints under the chrome (invisible if chrome is opaque, ugly if chrome has transparent corners).
 - `overflow: visible` — the runtime pins the host's `width`/`height` to the full chrome, so normally nothing overhangs. A consumer `max-width`/`max-height` smaller than a declared size plus its frame would squeeze the box, and a consumer `overflow: auto` would then clip the chrome. The slot inside still has its own `overflow: auto` for content scrolling.
 - `margin: 0` — would shift the host away from its source DOM position.
+- `clip-path: none` — set on every managed host (imperative ones too), so a consumer clip can't hide the window's frame, focus rings or resize outline (#597).
+- `pointer-events: none` in `region` hit mode only (cleared in `box` mode, where your CSS applies): the window's inner clipped layer takes the input, so presses on transparent frame pixels reach the page (#597).
 - `transform: none` / `filter: none` / `contain: none` — would silently turn the host into the positioned ancestor for its own absolute descendants (CSS containing-block rule — the same iOS scroll-perf hack pattern that breaks naive `findPositionedAncestor` walks). `contain: layout` / `contain: paint` create a containing block the same way; modern utility CSS frameworks (Material, Tailwind v4) ship `contain` rules.
 
 Consumer styles for color, font, `position` (yes — `position: relative` from your class works), `max-width`/`max-height` (px caps), and custom properties still apply — they're not in the lockdown set. The set grows monotonically as new consumer-CSS bleeds surface; see `LEARNINGS.md` for the history.
