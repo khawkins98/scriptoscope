@@ -73,7 +73,7 @@ F10 (title text), and corrects F6's scope.
 | `drawActive` | the window's `hilited` (classic `WindowRecord` layout; an inference from the layout, see §6 Q7), forced on for some procID families | `0x2e52`, `0x315e`, `0x31d4` |
 | `collapsed` | the window is collapsed: the result of a helper that asks the Appearance Manager (`$AA74` selector 16, identity not in the pinned Traps.h) or else an auxiliary-window flag bit (`0xf078`). Cleared for the popup family | `0x2e62`, `0x3216` |
 | `partialZoom`, `partialZoomColumn` | the vertical/horizontal-zoom document variants (procIDs 1026–1029; the column flag for 1026/1027) and families 66/67 with some variations | `0x2fba..0x3038`, `0x3194`, `0x31a8` |
-| `altWidgets` | alternate widget cicn set (+32) and bold title face | `0x3132`, `0x31ba`, read `0x4f0e`, `0x607e` |
+| `altWidgets` | alternate widget cicn set (+32) and bold title face; set exactly for procID families 66, 67 and 124, regardless of variation (PF1–PF3) | `0x3132`, `0x31ba`, read `0x4f0e`, `0x607e` |
 | `sideTitle` | side-titled variant: widget id +8 only when `altWidgets` is also set (WD11); on a missing widget cicn, retry id −8 under `sideTitle`; collapsed content zeroes width not height | `0x3150`, `0x31fe` |
 | `popupFamily` | procID family 63 | `0x3210` |
 | `outlineDraw` | draw parameter 0 draws the outline instead of the frame | `0x428c..0x4292` |
@@ -81,23 +81,37 @@ F10 (title text), and corrects F6's scope.
 
 ### 2.3 Scriptoscope mapping and declared defaults
 
-The runtime has no procID. Declared defaults (modern policy, not original
-observations): `popupFamily` from the `popup-window` request (service slot 8),
-`partialZoom`, `partialZoomColumn`, `altWidgets`, `collapsed`,
-`outlineDraw` and `noWidgets` clear, `widgetFrame` set, `drawActive` from the
-window's active state. `hasClose`, `hasZoom` and `collapseRequested` are
-currently one runtime flag (finding F7). `sideTitle` is not a fixed default.
-It is set from the rendered public window type by the declared mapping in
-[`hit-regions.md`](hit-regions.md) HP48: set for `side-floating-utility-window`
-and `collapsed-side-utility`, clear for every other type. As in the decode
-(§2.2), it is **one** flag, and every row that reads `sideTitle` uses that same
-value: the collapsed `C` axis (§2.1), WD4's collapsed side walk, the retry ids
-of WD8 (`base−7`), WD9 and HT7 (`base−8`), and WD11's `+8`. WD11 adds `+8` only
-under `altWidgets`, which stays clear, so the requested base stays −14330. A
-side-titled type only adds the WD9/HT7 retry at −14338 when −14330 is missing
-(WD8's −14337 needs `partialZoom`, which is also clear). Corpus impact: none.
-All 18 bundles ship −14330, and none ships −14337 or −14338 (re-derived
-2026-11-01).
+The runtime has no procID. The following rows distinguish the original
+per-message decode from the declared public-type adapter. A procID family is
+its signed 16-bit value divided by 16 with arithmetic right-shift semantics;
+variation is its low four bits. The original resets both widget flags before
+family selection on every message.
+
+| row | condition | result | source |
+|---|---|---|---|
+| PF1 | procID family 66 or 67 (1056–1087) | `altWidgets = true`; `sideTitle = true` only for family 67. Every variation qualifies, including 0–3 and 12–15; partial zoom does not gate alternate art | `0x2e3e..0x2e42`, `0x3116..0x3156` |
+| PF2 | procID family 124 (1984–1999) | `altWidgets = true`; `sideTitle` from variation bit 3 | `0x31ae..0x3204` |
+| PF3 | every other procID family | `altWidgets = false`; no other path in this selection sets it | `0x2e3e`, `0x2e6c..0x321a` |
+| PF4 | procID family 63 (1008–1023) | `popupFamily = true`, `collapsed = false` even when the window-state helper reports collapse. Content rect `C` keeps both dimensions (§2.1); WD4 walks four sides; WD9/HT7 do not select a collapsed second row | `0x3204..0x321a`, `0x47ea..0x4802` |
+| PM1 | actual rendered type is `titled-utility-window`, `no-title-utility-window`, `side-floating-utility-window`, or a collapsed variant of one of them | **Declared mapping:** `altWidgets = true`. This includes legacy `collapsed-titled-utility`, `collapsed-no-title-utility`, `collapsed-side-utility` and their canonical aliases. All other rendered public types have `altWidgets = false`. Resolve aliases, collapsed variants and base-chain fallback first; use the type that actually rendered, as HP48 does for the title axis | PF1–PF3; modern adapter policy, #624 |
+| PM2 | actual rendered type is `popup-window` | **Modern policy, PM ruling 2026-11-02 (#625):** ignore a collapse request. Effective `collapsed` is false for rendering, content visibility, hit geometry and public state reporting, including initial/add, apply and toggle paths. Keep the requested expanded width and height for later type/state transitions; never pre-empty a dimension. This normalizes the web state to PF4; the original decode does not define these web lifecycle operations | PF4; PM ruling |
+
+Other declared defaults (modern policy, not original observations):
+`popupFamily` from the `popup-window` request (service slot 8),
+`partialZoom`, `partialZoomColumn`, `outlineDraw` and `noWidgets` clear,
+`widgetFrame` set, `drawActive` from the window's active state. `collapsed`
+comes from the caller/window state, subject to PM2. `hasClose`, `hasZoom` and
+`collapseRequested` are currently one runtime flag (finding F7).
+
+`sideTitle` is set from the actual rendered type by
+[`hit-regions.md`](hit-regions.md) HP48, including collapsed and canonical
+aliases. It is **one** flag: every decoded use reads the same value, including
+collapsed `C`, WD4, WD8/WD9/HT7 retries and WD11. Together PM1 and WD11 request
+−14298 for top-titled utilities and −14290 for side-titled utilities; WD9/HT7
+retry the side strip at −14298 when −14290 is absent. Other types request
+−14330. This is a shared type mapping, never an archive-name branch. These
+rows govern recipe windows; the recipe-less built-in frame retains its own
+family and resource rules in `procedural-frame.md`.
 
 ## 3. Outputs
 
