@@ -48,6 +48,16 @@ caller-owned host elements or release caller-owned themes. It is not a
 A new window may be added after disposal: disposal empties the manager using
 its normal removal semantics, rather than introducing a terminal manager state.
 
+## Disposal during gesture setup
+
+If a consumer callback during pointer-gesture setup synchronously removes the
+window or disposes its manager, the ended window lifetime blocks all remaining
+work for that gesture. No later setup or continuation may acquire pointer
+capture, install document listeners, move or resize the retained host, or emit
+consumer callbacks. The same guarantee applies when removal or disposal occurs
+mid-gesture. Reusing the manager for a new window does not revive gestures from
+an ended window lifetime.
+
 ## Resize release followed by drag
 
 If a grow-box resize is released and a frame drag starts before its asynchronous
