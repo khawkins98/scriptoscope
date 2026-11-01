@@ -763,7 +763,7 @@ interface ManagedWindow<Theme extends ThemeInput> {
    *  and modals stack correctly. */
   z: number;
   /** Window-shade (classic Mac "collapse"): when true, render() rolls the window up to its title bar
-   *  (collapsed window-type slug + zero-height body, content hidden). `opts.height` is left at the
+   *  (collapsed window-type slug, body emptied on the title axis, content hidden). `opts.height` is left at the
    *  EXPANDED height, so un-shading just renders again — no separate stash needed. */
   collapsed?: boolean;
   /** Subset of widgets whose click handlers ARE wired. Set to `undefined`
@@ -1392,7 +1392,8 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     if (!composed?.structure) return prepared;
     const title = entry.opts.title ?? '(untitled)';
     try {
-      const region = regionPath(composed.structure(prepared.collapsed, composed.sideTitle), Math.max(1, Math.round(prepared.opts.scale ?? 1))); // HP8
+      // HP8, HP15: the layout that drew this commit carries the collapsed state and title axis (SR6, WD4).
+      const region = regionPath(composed.structure(), Math.max(1, Math.round(prepared.opts.scale ?? 1)));
       if (!region) throw new Error('empty structure region');
       debug('region', 'built', { title, length: region.length });
       return { ...prepared, region };
@@ -1412,7 +1413,8 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       return renderWindow(theme, {
         ...options,
         windowType: shut ? slug : base,
-        ...(shut ? { height: 0 } : {}),
+        // The expanded content size goes with the flag: renderWindow empties C on the title axis.
+        ...(shut ? { collapsed: true } : {}),
         state,
         // Never lend a live pooled canvas to an asynchronous preparation.
       });
@@ -1436,7 +1438,11 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       // frame width and is refit; a side utility's bare bar does not follow its content
       // width, so it keeps the last expanded content size (#542, #566).
       let ext: ChromeExtent | undefined = measureExtent(win, entry.opts);
-      if (win.querySelector<HTMLElement>('.scriptoscope-content')!.hidden) {
+      const hole = win.querySelector<HTMLElement>('.scriptoscope-content')!;
+      // A side-titled wnd# window collapses to zero content width (window-widgets §2.1 `C`):
+      // its bar does not follow the content width either, so it keeps the expanded size.
+      if (parseFloat(hole.style.width) === 0) return { win, collapsed, opts: entry.opts };
+      if (hole.hidden) {
         let full = byTheme.get(cacheKey);
         if (!full) byTheme.set(cacheKey, full = measureExtent(await prepare(entry.opts, false), entry.opts));
         if (full.x !== ext.x) ext = undefined;
