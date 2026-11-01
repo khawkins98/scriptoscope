@@ -1,5 +1,11 @@
 # Learnings
 
+## 2026-11-02 — Resolve window flags before sizing content (#624, #625)
+
+A flag set only inside the layout cannot recover dimensions already discarded by its public adapter. The popup family clears `collapsed`, so pre-emptying its content height produced an expanded four-side recipe around a zero-height body. Public rendering and managed state now normalize popup collapse before sizing, keep the requested dimensions and report the effective expanded state. This lifecycle policy is explicit in [window-widgets §2.3](./docs/spec/engine/window-widgets.md).
+
+Alternate widget selection also belongs to the resolved window type, after aliases and base-chain fallback. Recipe utilities use one `altWidgets` flag for strip selection, hit masks and existing title consumers. The original families are decoded separately from this declared public mapping; a side title alone does not authorize the alternate base. Collapsed coverage must pass both the state flag and the appropriate empty content axis, rather than merely choosing a resource named “collapsed”.
+
 ## 2026-10-30 — Measured sizes are outer bounds; the host box is the chrome (#526)
 
 The declarative layer passed every size it handled to `WindowManager.add` as a CONTENT size: the auto-captured rect, `extra-*`, px `max-*` caps and declared width/height alike. The renderer then drew the frame outside it (`fullWidth = content + frame`). An in-flow host takes its container's width, so the chrome overhung it by exactly frame left + right: 104 px on evolution and 116 px on dolphin-som. On the 1280 px showcase the page scrolled sideways, and the `max-height: 280px` cards overlapped the footer. The comments and docs said the overhang was "2-6 px". That figure dated from 2026-05-31, when the same frames were already in the corpus, so it was never measured on a thick theme.
