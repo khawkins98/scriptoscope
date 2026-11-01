@@ -7,7 +7,7 @@
   ],
   "date": "2026-11-02",
   "access": "Verifier/PM material: do not hand this report or independent test/oracle sources to runtime implementers.",
-  "result": "Spec verified; independent acceptance authored; pre-implementation behavioral failures established; implementation acceptance pending candidate.",
+  "result": "Pass: exact safe spec independently verified; original byte provenance reconstructed; unchanged independent browser acceptance fails 12/12 before implementation and passes 12/12 on supplied candidate; four meaningful mutations killed.",
   "specVerification": {
     "initialProposal": "c08b6465baaf564d77a542a0574e388787d55c28",
     "initialLocalCommit": "dc12ab5164fa1929a6aed86270590594aff4e3f0",
@@ -159,6 +159,23 @@
         "result": "12 behavioral contract failures, source and built, at the committed tests 375fe0d9; no setup/import failures.",
         "executedHead": "375fe0d9e6953c771179b1d9343ae37a22d6445e",
         "logSha256": "980f627d08b6c7c3a9b8ea8724531fa77df1b48ab2e6e6e58a4e182ef8ffc463"
+      },
+      {
+        "command": "npm run build",
+        "exit": 0,
+        "head": "ff5975bcfa606121adc5cf14115b25b459e053eb"
+      },
+      {
+        "command": "npx playwright test --config tests/rendering-options/playwright.config.mjs widget-family-policy.spec.mjs popup-collapse-policy.spec.mjs",
+        "exit": 0,
+        "head": "ff5975bcfa606121adc5cf14115b25b459e053eb",
+        "result": "12/12 pass in Chromium DPR1 across source+built, 8.6 seconds"
+      },
+      {
+        "command": "node tests/rendering-options/widget-family-mutations.mjs",
+        "exit": 0,
+        "head": "ff5975bcfa606121adc5cf14115b25b459e053eb",
+        "result": "Control 3/3 pass; omitAlternate, omitSideOffset, keepPopupCollapsed and useFirstRow all killed by ERR_ASSERTION."
       }
     ],
     "environment": {
@@ -169,7 +186,14 @@
       ],
       "preexistingDirtyPath": "package-lock.json (not edited/staged by verifier)"
     },
-    "implementationAcceptance": "Pending PM candidate transfer; do not interpret pre-implementation failures as an implementation verdict."
+    "implementationAcceptance": {
+      "verdict": "pass for bounded independent acceptance",
+      "suppliedCandidate": "b7be769d92edf2b80ed670029ebc0f11df1af98b",
+      "localCandidate": "ff5975bcfa606121adc5cf14115b25b459e053eb",
+      "testedTree": "7144902e6b160539be2bbe0d59473d4cd01c3e49",
+      "testSourcesUnchangedSince": "375fe0d9e6953c771179b1d9343ae37a22d6445e",
+      "runtimeAuthorship": "Only PM-supplied runtime commit mechanically cherry-picked; verifier authored no runtime corrections."
+    }
   },
   "coverageLimits": [
     "No native acquisition or emulator execution, golden images, or broad engine-diff grid; separate author/integration lane owns those.",
@@ -177,7 +201,19 @@
     "The runtime exposes modern grow overlays rather than the original HG3 outer hit classifier. HG3 source geometry is independently verified, but numerical native grow precedence is not asserted by these runtime tests.",
     "PartialZoom remains false by declared defaults; WD8 partial-zoom resource IDs and exact-point fallback are not newly exposed or implemented.",
     "Current title suppression stays as specified. Only existing reachable titled-utility text is tested for alternate bold face; hidden side/no-title text is not invented.",
-    "Mutation probes target real low-level selection/collapse/draw logic. Public default-mapping rejection is additionally demonstrated by the pre-implementation browser red run; positive candidate run remains pending.",
+    "Mutation probes target real low-level selection/collapse/draw logic. Public default-mapping rejection is additionally demonstrated by the pre-implementation browser red run; the unchanged public browser tests pass on the supplied candidate.",
     "No full gates, full rendering matrix, Linux goldens or lane:ready were claimed for this tests-only contribution; final integrated candidate retains normal required validation."
-  ]
+  ],
+  "retainedArtifacts": {
+    "directory": "/Users/khawkins/Documents/Scriptoscope-maintainer-assets/widgets-collapse-624-625/independent-verification-20261102",
+    "files": {
+      "provenance.json": "45c05bb52ca6cb98c31112e728e3c023da765ef9bf19a2315c7b5f7e6d85a036",
+      "build-before.log": "f51a4703deecc7873b60697bcb463d8c5c3f6424c320511a411524172469533b",
+      "browser-before-375fe0d9.log": "980f627d08b6c7c3a9b8ea8724531fa77df1b48ab2e6e6e58a4e182ef8ffc463",
+      "mutations.log": "df0c3b3387eedf2297470545690c39c937cadfb1e8af0368e42cebeba6bb8682",
+      "build-candidate.log": "52bfa88e18cfc0b5882c411d7d9b7cefa8b57d62f4b7e39b453e6fc563ce3119",
+      "browser-candidate.log": "92047c5d3475954f39ff7092ed127d8ea4d8cf86a90d521ad6d64f829451ce78",
+      "mutations-candidate.log": "df0c3b3387eedf2297470545690c39c937cadfb1e8af0368e42cebeba6bb8682"
+    }
+  }
 }
