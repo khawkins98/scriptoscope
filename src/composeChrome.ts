@@ -20,7 +20,7 @@ import { scaleBlit, tileBlit, type Region } from './raster.js';
 import { windowBlitRow } from './engine/tables/windowBlit.js';
 import { CELL_WIDTH, WINDOW_SIDES } from './engine/tables/window.js';
 import {
-  drawPressedWidget, layoutWindow, popupRawBlits, remapWidget, widgetHit, widgetHittable, windowCell, windowStructure, windowWidgets,
+  drawPressedWidget, layoutWindow, popupRawBlits, remapWidget, sideWalked, widgetHit, widgetHittable, windowCell, windowStructure, windowWidgets,
   type WindowLayout,
 } from './engine/families/window.js';
 import type { EngineTrace } from './engine/trace.js';
@@ -115,11 +115,9 @@ export interface ComposedChrome {
   /** The engine layout (sides, placed borders, rows taken), for diagnostics. */
   layout?: WindowLayout;
   /** Builds the structure region (hit-regions §4.2) from this layout and template, in buffer
-   *  pixels. wnd# windows only; built on demand, never from the drawn pixels (HP15). `collapsed`
-   *  walks only the title-axis sides (SR6, HP8), whatever the drawn layout's collapsed flag. */
-  structure?: (collapsed?: boolean, sideTitle?: boolean) => Region;
-  /** HP48: the rendered window type's title axis is left/right (set by renderWindow). */
-  sideTitle?: boolean;
+   *  pixels. wnd# windows only; built on demand, never from the drawn pixels (HP15). It walks the
+   *  sides the drawing walked (SR6, WD4): the layout's `collapsed` and `sideTitle` flags. */
+  structure?: () => Region;
   /** The grow box as a separate overlay sprite (built-in frame only). */
   growBox?: { buffer: PixelBuffer; x: number; y: number; w: number; h: number } | undefined;
 }
@@ -138,6 +136,12 @@ export interface ComposeWindowOptions {
   active?: boolean;
   /** The pressed-widget strip cicn (WD11 `base`); without it no widget is drawn pressed or hit (WD9, HT7). */
   widgetCicn?: Pixmap | null;
+  /** `collapsed` (window-widgets §2.2): the full draw walks only the title-axis sides (WD4). The
+   *  caller passes `C` already emptied on that axis (§2.1 `C`). Default false. */
+  collapsed?: boolean;
+  /** `sideTitle`: the title axis is left/right. The runtime sets it from the rendered window type
+   *  (hit-regions HP48); it moves the collapsed walk to sides 2 and 3. Default false. */
+  sideTitle?: boolean;
   /** Draw one widget pressed (WD3 parameter 4 / 5 / 9, state 1). */
   pressedWidget?: TitleWidgetRole;
   trace?: EngineTrace;
@@ -169,7 +173,8 @@ export function composeWindowChrome(cicn: PixelBuffer, windowType: WindowType, c
     // so without a measured condensed width SWc = SW (TT2 does not narrow the plate).
     titleWidth: SW, titleWidthCondensed: opts.titleWidthCondensedPx ?? SW,
     titleLength: opts.titleLength ?? (SW > 0 ? 1 : 0),
-    flags: { popupFamily: opts.popupFamily ?? false, drawActive: opts.active ?? true },
+    flags: { popupFamily: opts.popupFamily ?? false, drawActive: opts.active ?? true,
+      collapsed: opts.collapsed ?? false, sideTitle: opts.sideTitle ?? false },
   }, opts.trace);
 
   // ── draw the sides, collect the placement map in side order ───────────────
@@ -185,6 +190,7 @@ export function composeWindowChrome(cicn: PixelBuffer, windowType: WindowType, c
   for (const sd of WINDOW_SIDES) { // WD4: sides 0..3, top, bottom, left, right
     const s = layout.sides[sd.side];
     if (!s) continue;
+    if (!sideWalked(sd.horizontal, layout.flags.collapsed, layout.flags.sideTitle)) continue; // WD4: collapsed, title-axis sides only
     const slices = bySide[sd.side]!;
     const N = s.S.length - 1;
     const band = (i: number) => windowCell(layout, sd.side, i);
@@ -231,7 +237,7 @@ export function composeWindowChrome(cicn: PixelBuffer, windowType: WindowType, c
     titleRect: xywh(remapWidget(layout, layout.T4)),
     widgets: hittable.map(w => ({ role: w.row.role, rect: xywh(w.rect) })),
     hitWidget: (x, y) => widgetHit(layout, widgets, strip, x, y).role,
-    structure: (collapsed = false, sideTitle?: boolean) => windowStructure(layout, cicn, fullW, fullH, collapsed, sideTitle),
+    structure: () => windowStructure(layout, cicn, fullW, fullH),
   };
 }
 

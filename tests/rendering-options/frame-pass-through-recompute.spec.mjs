@@ -507,107 +507,69 @@ for (const mode of MODES) {
     expect(pts).toEqual({ top: 'sentinel', c: 'content:F' });
   });
 
-  test(`${mode}: HPT39 collapsed: only the title-axis sides are in S (animals collapsed utilities)`, async ({ page, servers }, info) => {
+  // HPT39 (HP8, HP48, SR6; window-widgets WD4 since #617): a collapsed recipe window draws and
+  // hit-tests only its title-axis sides, with C emptied on the title axis's cross dimension (zero
+  // height for top-titled kinds, zero width for side-titled ones). The drawing and S come from one
+  // walk, so the decode's SR6 region must equal the drawn chrome exactly, and hits must follow it.
+  const collapsedCase = (page, { slug, type, key, side }) => page.evaluate(async ({ slug, type, key, side }) => {
+    const f = window.__fpt; f.reset(); f.manager();
+    await f.add('U', { slug, type, w: 320, h: 120, extra: { collapsed: true } });
+    const o = await f.oracle('U', { collapsed: true, type: key });
+    const dec = await f.decode(slug), wt = dec.manifest.windowTypes[key], [al, at] = wt.parts['part-0'].rect;
+    const build = (C, mutation) => f.rules.structureRegion({ windowType: wt, cicn: o.cicn, C, W: o.W, H: o.H, flags: { ...f.chromeRules.DECLARED_FLAGS }, collapsed: true, sideTitle: side, mutation });
+    // Configuration input: the committed content rect, empty on the title axis's cross dimension
+    // (side-titled: zero width; otherwise zero height), nearest the template body inset, whose SR6
+    // decode reproduces the drawn chrome. Only those forms are tried.
+    const candidates = [];
+    for (let l = al - 4; l <= al + 4; l++) for (let t = at - 4; t <= at + 4; t++) {
+      if (side) for (let h = Math.max(0, o.H - t - 80); h <= o.H - t; h++) candidates.push({ left: l, top: t, right: l, bottom: t + h });
+      else for (let w = Math.max(0, o.W - l - 80); w <= o.W - l; w++) candidates.push({ left: l, top: t, right: l + w, bottom: t });
+    }
+    candidates.sort((a, b) => (Math.abs(a.left - al) + Math.abs(a.top - at)) - (Math.abs(b.left - al) + Math.abs(b.top - at)));
+    const solved = candidates.find(C => f.crossCheck('U', { ...o, C, region: build(C).region }).disagree === 0);
+    const at0 = p => { const v = f.vp('U', p); return f.hitAt(v.x, v.y); };
+    if (!solved) {
+      // Report how far the nearest candidate is from the drawing, for the failure message.
+      const best = candidates.slice(0, 200).map(C => ({ C, d: f.crossCheck('U', { ...o, C, region: build(C).region }).disagree })).sort((a, b) => a.d - b.d)[0];
+      return { unsolved: true, W: o.W, H: o.H, best };
+    }
+    const sr6 = build(solved), four = build(solved, 'fourSidesCollapsed'), cc = f.crossCheck('U', { ...o, C: solved, region: sr6.region });
+    const extra = [], titled = [];
+    for (let y = 0; y < o.H; y++) for (let x = 0; x < o.W; x++) {
+      const j = y * o.W + x;
+      if (four.region[j] === f.rules.IN && sr6.region[j] === f.rules.OUT) extra.push([x, y]);
+      if (sr6.region[j] === f.rules.IN && f.rules.uniform(sr6.region, o.W, o.H, x, y, f.rules.IN, 1)) titled.push([x, y]);
+    }
+    const pick = (l, n) => l.filter((_, i) => i % Math.max(1, Math.floor(l.length / n)) === 0);
+    return { W: o.W, H: o.H, C: solved, cc, collapsed: f.hosts.U.m.describe(f.hosts.U.host).collapsed, effective: f.state('U').hitEffective,
+      nExtra: extra.length, nTitled: titled.length, extra: pick(extra, 60).map(p => [p, at0(p)]), titled: pick(titled, 60).map(p => [p, at0(p)]) };
+  }, { slug, type, key, side });
+
+  const CASES = [
+    { slug: 'animals', type: 'titled-utility-window', key: 'collapsed-titled-utility', side: false },
+    { slug: 'animals', type: 'no-title-utility-window', key: 'collapsed-no-title-utility', side: false },
+    { slug: '1138', type: 'side-floating-utility-window', key: 'collapsed-side-utility', side: true },
+    { slug: 'beos-r503', type: 'side-floating-utility-window', key: 'collapsed-side-utility', side: true },
+    { slug: 'crayon-os', type: 'side-floating-utility-window', key: 'collapsed-side-utility', side: true },
+  ];
+  for (const titled of ['top', 'side']) test(`${mode}: HPT39 (${titled}-titled) collapsed windows draw and hit-test only the title-axis sides`, async ({ page, servers }, info) => {
     await boot(page, servers, mode);
     const rows = [];
-    for (const [type, key] of [['titled-utility-window', 'collapsed-titled-utility'], ['no-title-utility-window', 'collapsed-no-title-utility']]) {
-      const r = await page.evaluate(async ({ type, key }) => {
-        const f = window.__fpt; f.reset(); f.manager();
-        await f.add('U', { slug: 'animals', type, w: 320, h: 120, extra: { collapsed: true } });
-        const o = await f.oracle('U', { collapsed: true, type: key });
-        // Configuration input, not points: the runtime lays the collapsed window out at content
-        // height 0 with all four sides (HP8) and its own frame placement. Solve C as the content
-        // rect whose four-side decode reproduces the drawn chrome exactly (HP15 cross-check), then
-        // take every point from the decode: SR6 (title-axis sides only) vs the four-side layout.
-        const dec = await f.decode('animals'), wt = dec.manifest.windowTypes[key], [al, aTop] = wt.parts['part-0'].rect;
-        const build = (C, mutation) => f.rules.structureRegion({ windowType: wt, cicn: o.cicn, C, W: o.W, H: o.H, flags: { ...f.chromeRules.DECLARED_FLAGS }, collapsed: true, mutation });
-        let solved = null;
-        for (let l = al - 4; l <= al + 4 && !solved; l++) for (let t = aTop - 4; t <= aTop + 4 && !solved; t++)
-          for (let w = o.W - l - 40; w <= o.W - l && !solved; w++) {
-            const C = { left: l, top: t, right: l + w, bottom: t };
-            if (f.crossCheck('U', { ...o, C, region: build(C, 'fourSidesCollapsed').region }).disagree === 0) solved = C;
-          }
-        if (!solved) return { unsolved: true, W: o.W, H: o.H };
-        const sr6 = { ...o, C: solved, region: build(solved).region }, four = build(solved, 'fourSidesCollapsed');
-        const cc = { disagree: 0 };
-        const extra = [], titled = [];
-        for (let y = 0; y < sr6.H; y++) for (let x = 0; x < sr6.W; x++) {
-          const j = y * sr6.W + x;
-          if (four.region[j] === f.rules.IN && sr6.region[j] === f.rules.OUT) extra.push([x, y]);
-          else if (sr6.region[j] === f.rules.IN && f.rules.uniform(sr6.region, sr6.W, sr6.H, x, y, f.rules.IN, 1) && titled.length < 400) titled.push([x, y]);
-        }
-        const at = p => { const v = f.vp('U', p); return f.hitAt(v.x, v.y); };
-        return { W: sr6.W, H: sr6.H, C: solved, collapsed: f.hosts.U.m.describe(f.hosts.U.host).collapsed, cc, extra: extra.map(p => [p, at(p)]),
-          titled: titled.filter((_, i) => i % 20 === 0).map(p => [p, at(p)]), effective: f.state('U').hitEffective };
-      }, { type, key });
-      expect(r.unsolved, `${key}: a content rect reproduces the drawn chrome`).toBeUndefined();
-      rows.push({ key, W: r.W, H: r.H, C: r.C, extra: r.extra.length });
-      expect(r.collapsed, key).toBe(true);
-      expect(r.cc.disagree, `${key}: the four-side reading matches the drawn chrome`).toBe(0);
-      expect(r.extra.length, `${key}: decoded side-cell pixels the four-side layout adds`).toBeGreaterThan(0);
-      expect(r.effective, key).toBe('region');
-      expect(r.extra.filter(([, h]) => h !== 'sentinel'), `${key}: left/right cell pixels pass (SR6)`).toEqual([]);
-      expect(r.titled.filter(([, h]) => h !== 'host:U'), `${key}: title-axis pixels in S hit`).toEqual([]);
-    }
-    info.annotations.push({ type: 'observation', description: JSON.stringify(rows) });
-  });
-
-
-  test(`${mode}: HPT39 side-titled (HP48): a collapsed side utility keeps its left title strip and passes top/bottom cells`, async ({ page, servers }, info) => {
-    await boot(page, servers, mode);
-    // Corpus 1138: the left title strip hits. No corpus collapsed-side-utility places top or bottom
-    // cell pixels at the runtime's collapsed size (HP8, spec 5b7a5f4c), so the pass-through clause
-    // uses a synthetic 1138 whose collapsed side utility borrows the expanded side utility's top and
-    // bottom lists, with opaque template bands right of the strip for their mask.
-    const run = variant => page.evaluate(async variant => {
-      const f = window.__fpt; f.reset(); f.manager();
-      const dec = await f.decode('1138'), [bl, bt, , bb] = dec.manifest.windowTypes['collapsed-side-utility'].parts['part-0'].rect;
-      let themeObject, synthetic, wt = dec.manifest.windowTypes['collapsed-side-utility'];
-      if (variant === 'synthetic') {
-        const made = await f.synth('1138', ['collapsed-side-utility'], (rgba, w, h) => {
-          for (let y = 0; y < h; y++) for (let x = bl; x < w; x++) if (y < bt || y >= bb) rgba[(y * w + x) * 4 + 3] = 255;
-        });
-        const withEdges = wts => ({ ...wts, 'collapsed-side-utility': { ...wts['collapsed-side-utility'],
-          edges: { ...wts['collapsed-side-utility'].edges, top: wts['side-floating-utility-window'].edges.top, bottom: wts['side-floating-utility-window'].edges.bottom } } });
-        themeObject = { ...made.theme, manifest: { ...made.theme.manifest, windowTypes: withEdges(made.theme.manifest.windowTypes) } };
-        synthetic = made.synthetic; wt = withEdges(dec.manifest.windowTypes)['collapsed-side-utility'];
-      }
-      await f.add('S', { ...(themeObject ? { themeObject, synthetic } : {}), slug: '1138', type: 'side-floating-utility-window', w: 120, h: 200, extra: { collapsed: true } });
-      const o = await f.oracle('S', { collapsed: true, type: 'collapsed-side-utility' });
-      const build = (C, mutation) => f.rules.structureRegion({ windowType: wt, cicn: o.cicn, C, W: o.W, H: o.H, flags: { ...f.chromeRules.DECLARED_FLAGS }, collapsed: true, sideTitle: true, mutation });
-      // Configuration input: the committed content rect, nearest the template body inset, whose
-      // four-side decode reproduces the drawn chrome (either collapsed form).
-      const candidates = [];
-      for (let l = bl - 4; l <= bl + 4; l++) for (let t = bt - 4; t <= bt + 4; t++) {
-        for (let w = Math.max(0, o.W - l - 60); w <= o.W - l; w++) candidates.push({ left: l, top: t, right: l + w, bottom: t });
-        for (let h = Math.max(0, o.H - t - 60); h <= o.H - t; h++) candidates.push({ left: l, top: t, right: l, bottom: t + h });
-      }
-      candidates.sort((a, b) => (Math.abs(a.left - bl) + Math.abs(a.top - bt)) - (Math.abs(b.left - bl) + Math.abs(b.top - bt)));
-      const solved = candidates.find(C => f.crossCheck('S', { ...o, C, region: build(C, 'fourSidesCollapsed').region }).disagree === 0);
-      if (!solved) return { unsolved: true, W: o.W, H: o.H };
-      const sr6 = build(solved), four = build(solved, 'fourSidesCollapsed'), at = p => { const v = f.vp('S', p); return f.hitAt(v.x, v.y); };
-      const strip = [], passes = [];
-      for (let y = 0; y < o.H; y++) for (let x = 0; x < o.W; x++) {
-        const j = y * o.W + x;
-        if (x < solved.left && sr6.region[j] === f.rules.IN && f.rules.uniform(sr6.region, o.W, o.H, x, y, f.rules.IN, 1)) strip.push([x, y]);
-        if (four.region[j] === f.rules.IN && sr6.region[j] === f.rules.OUT) passes.push([x, y]);
-      }
-      const pick = (l, n) => l.filter((_, i) => i % Math.max(1, Math.floor(l.length / n)) === 0);
-      return { W: o.W, H: o.H, C: solved, collapsed: f.hosts.S.m.describe(f.hosts.S.host).collapsed, effective: f.state('S').hitEffective,
-        strip: pick(strip, 40).map(p => [p, at(p)]), passes: pick(passes, 60).map(p => [p, at(p)]), nStrip: strip.length, nPasses: passes.length };
-    }, variant);
-    const corpus = await run('corpus'), synth = await run('synthetic');
-    info.annotations.push({ type: 'observation', description: JSON.stringify([corpus, synth].map(r => ({ W: r.W, H: r.H, C: r.C, strip: r.nStrip, passes: r.nPasses }))) });
-    for (const [label, r] of [['corpus', corpus], ['synthetic', synth]]) {
-      expect(r.unsolved, `${label}: a content rect reproduces the drawn chrome (${r.W}x${r.H})`).toBeUndefined();
+    for (const c of CASES.filter(c => c.side === (titled === 'side'))) {
+      const r = await collapsedCase(page, c), label = `${c.slug} ${c.key}`;
+      rows.push({ label, W: r.W, H: r.H, C: r.C, extra: r.nExtra, titled: r.nTitled, best: r.best });
+      expect(r.unsolved, `${label}: the drawn chrome is the SR6 decode with C empty on the ${c.side ? 'width' : 'height'} (${r.W}x${r.H}, nearest ${JSON.stringify(r.best)})`).toBeUndefined();
       expect([r.collapsed, r.effective], label).toEqual([true, 'region']);
+      // window-widgets §2.1 C: the other dimension keeps the expanded content size (320 × 120).
+      expect(c.side ? r.C.bottom - r.C.top : r.C.right - r.C.left, `${label}: ${c.side ? 'height' : 'width'} kept`).toBe(c.side ? 120 : 320);
+      expect(r.cc.disagree, `${label}: region decode equals the drawn pixels`).toBe(0);
+      expect(r.nTitled, `${label}: title-axis pixels in S`).toBeGreaterThan(0);
+      expect(r.titled.filter(([, h]) => h !== 'host:U'), `${label}: title-axis pixels hit`).toEqual([]);
+      // Cells the other axis would place are neither drawn (cross-check above) nor hit.
+      expect(r.extra.filter(([, h]) => h !== 'sentinel'), `${label}: other-axis cell pixels pass`).toEqual([]);
     }
-    expect(corpus.nStrip, 'corpus: decoded left title-strip pixels in S').toBeGreaterThan(0);
-    expect(corpus.strip.filter(([, h]) => h !== 'host:S'), 'corpus: the left title strip hits').toEqual([]);
-    expect(corpus.passes, 'corpus: no top/bottom cell pixels at this size (HP8)').toEqual([]);
-    expect(synth.nPasses, 'synthetic: decoded top/bottom cell pixels the layout places').toBeGreaterThan(0);
-    expect(synth.passes.filter(([, h]) => h !== 'sentinel'), 'synthetic: top/bottom cell pixels pass (SR6 under HP48)').toEqual([]);
-    expect(synth.strip.filter(([, h]) => h !== 'host:S'), 'synthetic: the left title strip still hits').toEqual([]);
+    if (titled === 'top') expect(rows.reduce((n, r) => n + r.extra, 0), 'the four-side layout adds pixels SR6 excludes (animals)').toBeGreaterThan(0);
+    info.annotations.push({ type: 'observation', description: JSON.stringify(rows) });
   });
 
 
