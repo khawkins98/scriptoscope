@@ -461,11 +461,11 @@ these timings without a performance gate.
 
 ### Firefox and WebKit
 
-Five interaction contracts run in Firefox and WebKit at DPR 1 in the release gate, and in Chromium on every PR: `window-pointer-drag`, `growbox-zero-delta`, `growbox-zone`, `posture-b` and `transformed-ancestors` (`tests/rendering-options/interaction-specs.mjs`, [CI.md](../tests/rendering-options/CI.md#firefox-and-webkit-interaction-contracts-598), #598). The extended matrix runs every spec, including `scrollbar-parts`, in every engine. Engine differences those contracts account for:
+Pointer, focus, resize, frame pass-through and inactive-window interaction contracts run in Firefox and WebKit at DPR 1 in the release gate, and in Chromium on every PR, including `window-pointer-drag`, `growbox-zero-delta`, `growbox-zone`, `posture-b` and `transformed-ancestors` (`tests/rendering-options/interaction-specs.mjs`, [CI.md](../tests/rendering-options/CI.md#firefox-and-webkit-interaction-contracts-598), #598). The extended matrix runs every spec, including `scrollbar-parts`, in every engine. Engine differences those contracts account for:
 
 - **Sub-pixel pointers.** In the contract tests, Playwright's Chromium mouse delivers fractional `clientX`/`clientY`, while its Firefox and WebKit mice floor to whole CSS pixels (`subpixel-pointer.mjs`; this is about Playwright's test mice, not a claim about real devices). The runtime rounds whatever coordinates it receives, so "jitter under half a pixel is no move" (#561, #552) is the same rule in every engine; where the test mouse can't send a fraction, the contracts send the sub-pixel moves as synthetic pointer events.
 - **Lost capture timing.** WebKit delivers `lostpointercapture` only before the pointer's next event (#577), so a cancelled drag may revert on the next pointer event rather than at once.
-- **Pointer capture and focus.** The list file names pointer capture, sub-pixel coordinates and focus as the areas where engines genuinely differ, which is why these five specs are the ones run per engine.
+- **Pointer capture and focus.** The list file names pointer capture, sub-pixel coordinates and focus as the areas where engines genuinely differ, which is why the interaction suite runs per engine.
 - **`scrollTo({ behavior: 'instant' })`** is used for scroll-bar steps; whole-pixel steps avoid WebKit truncating a fractional target a pixel short (#556).
 
 ## Not implemented
