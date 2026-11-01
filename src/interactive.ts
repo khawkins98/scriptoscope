@@ -82,6 +82,7 @@ import { ManagedContentPort, type ManagedControlPort } from './managedContentPor
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { resolveWindowSelection, resolveCollapsedWindowTypeSlug } from './resolveWindowType.js';
+import { canonicalWindowTypeSlug } from './wndCascade.js';
 import { listenUntilAborted } from './listenUntilAborted.js';
 import {
   composeDisclosure, composeSliderWithLayout, composeScrollbarFrame, type SliderFrame, type SliderOptions,
@@ -980,7 +981,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       ...(state.width !== undefined ? { width: state.width } : {}),
       ...(state.height !== undefined ? { height: state.height } : {}),
     };
-    const collapsed = state.collapsed ?? (entry.collapsed === true);
+    const collapsed = this.effectiveCollapsed(entry, entry.theme, state.collapsed ?? (entry.collapsed === true));
     const z = state.z ?? entry.z;
     // A restored width/height is an explicit content size: it replaces that axis's outer bound.
     const outer = withoutAxes(entry.outer, state.width !== undefined, state.height !== undefined);
@@ -1081,7 +1082,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       // Declared z (data-scriptoscope-z) wins; else take the next stacking-clock tick. We still bump the
       // clock either way so subsequent focus events stay monotonic relative to any declared values.
       z: extra.z ?? ++this.zClock,
-      ...(extra.collapsed ? { collapsed: true } : {}),
+      collapsed: extra.collapsed ?? opts.collapsed ?? false,
       ...(extra.contentEl ? { contentEl: extra.contentEl } : {}),
       ...(extra.enabledWidgets !== undefined ? { enabledWidgets: extra.enabledWidgets } : {}),
       outer: extra.outerSize,
@@ -1343,12 +1344,20 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     return String((entry.active ? 100_000 : 0) + entry.z);
   }
 
+  /** PM2: public popup collapse requests keep the expanded state and dimensions. */
+  private effectiveCollapsed(entry: ManagedWindow<Theme>, theme = entry.theme, requested = entry.collapsed === true): boolean {
+    if (!requested) return false;
+    const base = entry.opts.windowType ?? 'document-window';
+    const type = resolveWindowSelection(themeView(theme), base, entry.active ? 'active' : 'inactive')?.renderedType ?? canonicalWindowTypeSlug(base);
+    return type !== 'popup-window';
+  }
+
   /** The window-type slug actually rendered: the collapsed variant when shaded, else the base type. */
   private effectiveSlug(entry: ManagedWindow<Theme>, theme = entry.theme): string {
     const base = entry.opts.windowType ?? 'document-window';
     // Window-shade: render the collapsed chrome variant (title-bar-only art) if the theme ships one,
     // else fall back to the same type at zero body height — both roll the window up to the title bar.
-    return entry.collapsed ? (resolveCollapsedWindowTypeSlug(themeView(theme), base, entry.active ? 'active' : 'inactive') ?? base) : base;
+    return this.effectiveCollapsed(entry, theme) ? (resolveCollapsedWindowTypeSlug(themeView(theme), base, entry.active ? 'active' : 'inactive') ?? base) : base;
   }
 
   /**
@@ -1409,7 +1418,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
   }
 
   private async prepareChrome(entry: ManagedWindow<Theme>, theme: Theme): Promise<PreparedRender> {
-    const collapsed = entry.collapsed === true;
+    const collapsed = this.effectiveCollapsed(entry, theme);
     const slug = this.effectiveSlug(entry, theme);
     const base = entry.opts.windowType ?? 'document-window';
     const state = entry.active ? 'active' : 'inactive';
@@ -1419,7 +1428,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
         ...options,
         windowType: shut ? slug : base,
         // The expanded content size goes with the flag: renderWindow empties C on the title axis.
-        ...(shut ? { collapsed: true } : {}),
+        collapsed: shut,
         state,
         // Never lend a live pooled canvas to an asynchronous preparation.
       });
@@ -1473,6 +1482,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     entry.region = region;
     if (entry.gesture === 'ending') entry.gesture = false; // HP49: the resize commit restores the new S
     entry.opts = opts;
+    entry.collapsed = collapsed;
     if (extent) entry.extent = extent;
     // Host box = full chrome in every mode (#526). An absolute host already shrink-wraps
     // the window; an in-flow block would otherwise take its container's width, leaving
@@ -2026,6 +2036,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
 
   /** Toggle window-shade. Built-in for windows whose collapse widget has no explicit handler. */
   private async toggleCollapse(entry: ManagedWindow<Theme>): Promise<void> {
+    if (!this.effectiveCollapsed(entry, entry.theme, true)) return;
     entry.collapsed = !entry.collapsed;
     entry.gesture = false; // ruling A: a collapse mid-gesture restores the clip with its commit
     debug('drag', `toggleCollapse ${entry.opts.title ?? ''} → collapsed=${entry.collapsed}`);
