@@ -7,6 +7,37 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+## [0.8.0] — 2026-11-01
+
+> **Breaking: auto-sized windows now fit their chrome inside the element's box**
+> ([#526](https://github.com/khawkins98/scriptoscope/issues/526), #541). A
+> window with no declared size used to take the element's measured size as its
+> *content* size and draw the frame outside it. The measured size,
+> `data-scriptoscope-extra-width/-height` and px `max-width`/`max-height` caps
+> now bound the *whole* window, frame included. Thick-framed schemes therefore
+> get a smaller content area (on dolphin-som, the measured width less 116 px),
+> and content reflows when a theme switch changes the frame. Every window host
+> now carries an inline `width`/`height` equal to the chrome, so in-flow hosts
+> no longer stretch to their container.
+>
+> To keep a fixed content area, declare `data-scriptoscope-width` and
+> `data-scriptoscope-height`: declared sizes are still content dimensions, with
+> the frame drawn outside them. Imperative `WindowManager.add` options
+> `width`/`height` and `setContentSize` also stay content sizes. To bound an
+> imperative window by its outer box instead, pass `outerSize` to
+> `WindowManager.add` or call `WindowManager.setOuterSize`;
+> `WindowManager.chromeExtent` reports the frame totals.
+
+Minor release on 0.7.0, the first cut from `main` since the `v2` integration
+branch was retired. It is 0.8.0 rather than a patch because of the sizing change
+above. The rest are fixes: window drag, resize, collapse and scroll-bar
+behaviour now follows the classic Window and Control Managers, keyboard focus
+and screen-reader identity survive re-renders, dialog and alert bodies use the
+scheme's dialog colour, inactive scroll bars and disclosure triangles draw the
+scheme's own art, themed sliders let a patterned body show through, and
+showcase text and links reach WCAG AA contrast on the schemes where they fell
+short. GitHub release only; no npm publication.
+
 ### Added
 
 - `data-scriptoscope-hit="region|box"`, a `hit` option on `WindowManager.add` and `WindowManager.applyState`, a page-wide default through `new WindowManager({ hit })` and `WindowManager.setDefaultHit(mode)`, and `active`, `hit` and `hitEffective` fields on `WindowManager.describe(host)`. Every window host reflects the mode in force as `data-scriptoscope-hit-effective`. A `region` category on `setDebug` logs each frame-region build ([#597](https://github.com/khawkins98/scriptoscope/issues/597)).
@@ -43,7 +74,6 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   no reveal.
 - A press on the grow box that doesn't change the window's size is no longer a resize (#552). Releasing without moving, or after sub-pixel jitter under half a content pixel, used to switch an in-flow window to absolute positioning, insert the drag placeholder, re-render it at a different width and fire `scriptoscope:userresize`, which permanently turned auto-fit off. Like the classic Mac `GrowWindow`, which returns 0 when the size is unchanged, the window now stays in flow and no event fires. The hand-off waits for the first move that changes the size, and a drag released at its starting size commits nothing. A keyboard resize step that is clamped at the minimum size no longer hands off or fires the event either.
 - Keyboard focus entering a window now activates it and raises it to the front, as on the classic Mac, where keyboard focus is always in the front window ([#550](https://github.com/khawkins98/scriptoscope/issues/550)). Before, Tab could land on links and chrome controls (title widgets, move handle, grow box, scrollbars) of a background window that a higher window fully covered, so the focused control was invisible (WCAG 2.2 SC 2.4.11). Raising changes z-order only; the window does not move. Focus stays on the control through the activation render.
-
 - Showcase links keep WCAG AA contrast when hovered, pressed and focused. The
   browser's default focus ring put a light halo against 1990's and Evolution's
   light link text (1.3-2.0:1), so focused links now draw a solid 2px ring in
@@ -180,6 +210,54 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 ### Documentation
 
 - New [interaction reference](docs/interaction.md): what users can do with windows and controls (activation and focus, moving, resizing, title widgets, scroll bars, controls, modals), every `scriptoscope:*` event with its target and detail, keyboard equivalents, and touch, Firefox and WebKit differences. Checked against the code on `main`; linked from the README, `docs/integration-edge-cases.md` and the doc-sweep list.
+
+### Contributor workflow
+
+- All work lands on `main` through focused PRs; `v2` is retired as the
+  integration branch (#534, #544). CI and the lane tools (`lane:ready`, ledger
+  history, coverage report, `loc:src`) default to `origin/main`, and
+  CONTRIBUTING, DECISIONS #1/#8, README, PRD, the spec index and history no
+  longer describe `v2` as live. The branch is deleted; its frozen head
+  (`c5c09a20`, 0.7.0) is kept as the tag `archive/v2`.
+- CI runs in two tiers (#598, DECISIONS #14). The **PR tier** (`ci.yml`) splits
+  the required job into gates, five Chromium rendering shards and the exact
+  Linux goldens, behind a parity-checked aggregate that keeps the required check
+  name `Gates + build + browser contracts` (#583; required wall clock 11.5-15.3
+  min, down from 37-54, after #575 had raised the timeout to 75 min). The
+  **release tier** (`release-gate.yml`, aggregate `Release gate`) runs weekly on
+  `main`, on manual dispatch and on same-repository `release/*` PRs: the full
+  extended matrix, the pinned-container golden verify,
+  `lint:themes --strict --decoded`, the package consumer contract and the
+  `loc:src` trend against the previous tag (#602). A `v*` tag push only checks
+  that the tagged commit has its own green run. CONTRIBUTING gains "CI tiers"
+  and "Cutting a release".
+- The Firefox and WebKit interaction contracts (pointer, focus and resize specs
+  in `interaction-specs.mjs`) were added to the PR tier (#600) and then moved
+  to the release tier as required jobs with a per-spec, per-engine coverage
+  check (#609). Chromium still runs those specs on every PR.
+- The scene fixtures are recorded and verified in the pinned Playwright image,
+  and `verify:scenes` is a required part of the release gate (#599, #607).
+- Spec docs: the slider's host-background policy for DOM paths (BG6a in
+  `docs/spec/engine/slider.md`, #606); window structure regions and frame
+  hit-testing (`docs/spec/engine/hit-regions.md`, #597, #610); and corrected
+  slot-6 dispatch labels in `docs/spec/kdef231-reference.md` (#611, #615).
+
+### Runtime size (0.7.0 → 0.8.0)
+
+`npm run loc:src -- HEAD --base v0.7.0`:
+
+| non-test source | 0.7.0 | 0.8.0 | delta |
+|---|---:|---:|---:|
+| logic | 16081 | 16654 | +573 |
+| cited engine tables | 2329 | 2380 | +51 |
+| total | 18410 | 19034 | +624 |
+
+Most of the growth is window-manager interaction in `src/interactive.ts`
+(click-versus-drag thresholds, cancel and revert, part-aware scroll-bar
+tracking with auto-repeat, focus activation, inactive scroll-bar repaint) and
+outer-box sizing in `ScriptoscopeWindow`. The dialog body colour adds
+`src/dialogContent.ts` and its cited table; the slider host-background policy
+adds table rows.
 
 ## [0.7.0] — 2026-10-29
 

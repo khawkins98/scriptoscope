@@ -14,7 +14,7 @@ export type { ControlCompositionContext, ControlCompositionSnapshot, ControlPoin
 
 // Pre-1.0 — release version is tracked in package.json. Keep this constant aligned
 // with the package.json `version` field.
-export const VERSION = '0.7.0';
+export const VERSION = '0.8.0';
 
 export { setDebug, isDebug, debug, type DebugOpts } from './debug.js';
 
