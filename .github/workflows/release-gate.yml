@@ -258,13 +258,10 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
-  # Report-only until #599: all 18 committed scene fixtures predate the
-  # diagnostic restyle and the engine migrations, so a fresh capture drifts on
-  # every theme. The job stays green but posts the drift count and a warning in
-  # every run. When #599 lands, drop continue-on-error and add `scenes` to the
-  # gate's required list.
+  # Scene fixtures (#599): recorded with `npm run baseline:scenes:container` in
+  # this same pinned image, so the byte comparison is exact. Required.
   scenes:
-    name: "Scene fixtures (report-only, #599)"
+    name: Scene fixtures
     needs: [scope]
     runs-on: ubuntu-24.04
     permissions:
@@ -273,8 +270,6 @@ jobs:
       image: mcr.microsoft.com/playwright:v1.64.0-noble@sha256:06a9939e57531807f8d5fd76ce44b53165ffb7d7501d87ab10e285c20b1e971f
       options: --ipc=host
     timeout-minutes: 20
-    outputs:
-      outcome: ${{ steps.verify.outcome }}
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
@@ -284,8 +279,6 @@ jobs:
       - run: npm ci
       - run: npm run build:themes
       - name: verify:scenes
-        id: verify
-        continue-on-error: true
         shell: bash
         run: |
           set -o pipefail
@@ -293,23 +286,17 @@ jobs:
       - name: Report
         if: always()
         shell: bash
-        env:
-          OUTCOME: ${{ steps.verify.outcome }}
         run: |
           {
-            echo "### verify:scenes (report-only, #599)"
-            echo
-            echo "Outcome: **$OUTCOME**. Not part of the gate until #599 regenerates the fixtures."
+            echo "### verify:scenes"
             echo
             echo '```'
             grep -E 'drifted|changed|missing-|✗' scenes.log || echo 'no verify:scenes output'
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
-          if [ "$OUTCOME" != success ]; then
-            echo "::warning title=verify:scenes drift (report-only)::verify:scenes failed; excluded from the release gate until #599"
-          fi
+      # Fresh captures for review whenever the comparison fails.
       - uses: actions/upload-artifact@v4
-        if: always()
+        if: failure()
         with:
           name: release-scenes-fresh-${{ github.run_attempt }}
           path: .tmp/visual-baselines/fresh/
@@ -368,11 +355,10 @@ jobs:
         run: |
           const fs = require('node:fs');
           const needs = JSON.parse(process.env.RESULTS);
-          // scenes is report-only until #599.
-          const required = ['extended', 'interaction', 'interaction-coverage', 'goldens', 'checks', 'trend'];
+          const required = ['extended', 'interaction', 'interaction-coverage', 'goldens', 'checks', 'scenes', 'trend'];
           const failed = required.filter(name => needs[name].result !== 'success');
           const rows = Object.entries(needs).filter(([name]) => name !== 'scope').map(([name, job]) =>
-            `| ${name} | ${job.result}${name === 'scenes' ? ` (report-only, #599; verify:scenes ${job.outputs?.outcome || 'not run'})` : ''} |`);
+            `| ${name} | ${job.result} |`);
           const summary = [`### Release gate: ${failed.length ? 'FAILED' : 'passed'} at \`${process.env.SHA}\``, '',
             '| part | result |', '|---|---|', ...rows, ''].join('\n');
           fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary + '\n');

@@ -124,7 +124,7 @@ The full porting flow is in [`docs/porting-a-kaleidoscope-scheme.md`](./porting-
 2. Drop the original `.sit` (preferred) at `themes/<slug>/scheme.sit` — or unwrapped `.rsrc` if no `.sit` is reachable — and author `meta.json` + `PROVENANCE.md` beside it.
 3. Run `npm run import -- <slug>` for a guided one-command flow, or `node scripts/extract-scheme.mjs <slug>` for the bare bake.
 4. Run `npm run lint:themes -- --update <slug>` to lint + refresh the baseline.
-5. Run `npm run baseline:scenes -- <slug>` to capture the Scene panel for visual regression.
+5. Run `npm run baseline:scenes:container -- <slug>` to capture the Scene panel for visual regression in the pinned image (Docker). A host `baseline:scenes` capture isn't comparable with the fixtures the release gate verifies.
 6. Open a PR with the bundle, the updated `themes/lint-baseline.json`, and the captured scene baseline.
 
 ## What's *not* in a bundle

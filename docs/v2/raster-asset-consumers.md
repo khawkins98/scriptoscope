@@ -81,8 +81,9 @@ inventory images lazily. Detached panels ignore late image results. Final mounte
 performance and retained-memory measurements remain open.
 
 `WindowManager<Theme>` now stores and returns the original input identity; its
-default remains `LoadedTheme`. `mountOwnedDeclarative` uses the same scanner
-and resolver lifecycle through this boundary.
+default remains `LoadedTheme`. `createOwnedThemeResolver` (used by the example
+host `mountExplicitPage`) uses the same resolver lifecycle through this boundary;
+`mountOwnedDeclarative` and its scanner were removed in #491.
 
 ## Owner-local transport retirement
 

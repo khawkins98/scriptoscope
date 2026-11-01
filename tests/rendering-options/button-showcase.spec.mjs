@@ -32,7 +32,7 @@ for(const mode of ['source','production']) test(`${mode}: showcase No theme rest
  page.on('console',m=>{if(m.type()==='error'||m.type()==='warning')consoleMessages.push(m.text());});
  page.on('pageerror',e=>consoleMessages.push(e.message));
  // Positive controls establish Windows95 has raw metadata and System7 has true
- // local same-ID/default NULL; no declaration based solely on missing CSS class.
+ // local same-ID/default NULL (PF3: null/unavailable); no declaration based solely on missing CSS class.
  const probe=await page.context().newPage();
  try{
   const runtimeMode=mode==='source'?'source':'built';await openHarness(probe,transports,runtimeMode);
@@ -42,7 +42,7 @@ for(const mode of ['source','production']) test(`${mode}: showcase No theme rest
     const api=await import(mode==='source'?'/src/index.ts':'/dist/scriptoscope.js');
     const theme=await api.loadTheme('/themes/'+slug,{source,provenance:true});
     try{let trace;const out=await api.composeButton(theme,{label:'',default:false,diagnostics:{onComplete:t=>trace=t}});
-     return {slug,trace,input:theme.byteProvenance.input,fork:theme.byteProvenance.fork,resources:theme.byteProvenance.resources,opaque:out?[...out.data].filter((v,i)=>i%4===3&&v).length:0};
+     return {slug,trace,input:theme.byteProvenance.input,fork:theme.byteProvenance.fork,resources:theme.byteProvenance.resources,size:out?[out.width,out.height]:null,opaque:out?[...out.data].filter((v,i)=>i%4===3&&v).length:0};
     }finally{theme.dispose();}
    },{mode:runtimeMode,slug,source:c.path.split('/').at(-1)});
    expect(result.input.sha256).toBe(c.archiveSha256);expect(result.fork.sha256).toBe(c.forkSha256);
@@ -50,8 +50,11 @@ for(const mode of ['source','production']) test(`${mode}: showcase No theme rest
    const face=result.trace.steps.find(s=>s.role==='face'&&s.usage==='admission'&&s.action==='selected');
    expect(face.resource).toMatchObject({type:'cicn',signedId:-10239});
    const local=result.resources.filter(r=>r.type==='cinf'&&[-10239,0].includes(r.signedId));
-   if(slug==='windows-95'){expect(local.some(r=>r.signedId===-10239&&r.status==='decoded')).toBe(true);expect(result.opaque).toBeGreaterThan(0);}
-   else {expect(local).toEqual([]);expect(result.opaque).toBe(0);expect(result.trace.steps.some(s=>s.bodyPaint||s.role==='face'&&s.usage==='paint'&&s.action==='selected')).toBe(false);}
+   if(slug==='windows-95'){expect(local.some(r=>r.signedId===-10239&&r.status==='decoded')).toBe(true);expect(result.size).not.toBeNull();expect(result.trace.outcome.status).toBe('themed');expect(result.opaque).toBeGreaterThan(0);}
+   // push-button.md PF3 (#608): known art with both cinfs NULL is null/unavailable, never a transparent themed buffer.
+   else {expect(local).toEqual([]);expect(result.size).toBeNull();expect(result.trace.outcome.status).toBe('unavailable');
+    expect(result.trace.steps.some(s=>s.role==='face'&&s.action==='missing'&&s.usage==='paint'&&s.reason==='engine:PB9:cinf:NULL')).toBe(true);
+    expect(result.trace.steps.some(s=>s.bodyPaint||s.role==='face'&&s.usage==='paint'&&s.action==='selected')).toBe(false);}
    publicControls.push(result);
   }
  }finally{await probe.close();await attachJson(info,'independent-public-theme-controls.json',publicControls);}

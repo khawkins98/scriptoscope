@@ -242,6 +242,7 @@ export async function composeEnginePush(theme: ThemeView, opts: ButtonOptions = 
         if (paint) diagnostics?.bitmapTextPaint(paint);
       } else if (browser) browserPass(out, pass, browser.font, opts.fg);
     };
+    let faceUnavailable = false;
     try {
       const drawn = drawPreparedPushButton(out, chain, { rect: D, hilite: native.hilite, visible: true, defaultDataValid: true,
         defaultFlag: opts.default ? 1 : 0, depth: 32, lowDepth: false, label }, {
@@ -254,6 +255,9 @@ export async function composeEnginePush(theme: ThemeView, opts: ButtonOptions = 
       }, trace);
       if (drawn.unsupported) throw new Error(`Unsupported push-button output: ${drawn.unsupported}`);
       if (!drawn.faceFound) return null;
+      // PF3/PF6: found art whose face paint stage did not complete (PB9 both
+      // cinfs NULL) is unavailable, never a transparent `themed` buffer.
+      if (drawn.face?.drawn !== true) { faceUnavailable = true; return null; }
       if (drawn.face?.colorsAvailable && drawn.face.textRGB) {
         const face = drawn.face;
         const decision = opts.fg ? 'caller-override' : face.embossRGB ? 'present'
@@ -273,7 +277,11 @@ export async function composeEnginePush(theme: ThemeView, opts: ButtonOptions = 
       result = { buffer: out, layout: { faceRect: { x: outset, y: outset, w: width, h: height } } };
       recordButtonFaceStage(result, drawn.face?.drawn === true);
       return out;
-    } finally { publishEngineTrace(trace, diagnostics, result !== null); }
+    } finally {
+      publishEngineTrace(trace, diagnostics, result !== null);
+      if (faceUnavailable) diagnostics?.record({ role: 'face', requestedId: id, action: 'missing', basis: 'source-dispatch',
+        usage: 'paint', reason: `engine:${P.PB9.id}:cinf:NULL` });
+    }
   });
   return result;
 }

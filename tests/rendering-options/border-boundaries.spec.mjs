@@ -95,7 +95,7 @@ for (const mode of ['source', 'built']) for (const choice of boundarySources)
           const verifyNoCinfAdmission=(composed,key,expected)=>{
             check(expected.status==='missing-cinf'&&expected.cinfResourceIndex===null,'Admission requires independent known absent local cinf');
             const identity={role:'face',usage:'admission',ownerId:'actual-theme',chainDepth:0,type:'cicn',signedId:expected.signedId,sourceCinfId:null,manifestKey:key};
-            const errors=compareNoCinfAdmission({family:'push-button',proposed:{admission:[identity],metadataAbsence:{type:'cinf',kind:'known-null-in-declared-theme-chain',requestedIds:[expected.signedId,0]}}},
+            const errors=compareNoCinfAdmission({family:'push-button',proposed:{outcome:'unavailable',admission:[identity],metadataAbsence:{type:'cinf',kind:'known-null-in-declared-theme-chain',requestedIds:[expected.signedId,0]}}},
               {result:{kind:composed.buffer?'themed':'unavailable',width:composed.buffer?.width,height:composed.buffer?.height},owners:{'actual-theme':theme.baseUrl},traces:[composed.trace]});
             check(errors.length===0,errors.join('; '));
           };
@@ -104,6 +104,18 @@ for (const mode of ['source', 'built']) for (const choice of boundarySources)
             // Selection-only probe: no pixel correctness assertion at this size.
             const probe = await compose(variant, minimum, 1);
             const selected = selectedFace(probe.trace,variant.family==='push'&&!declared);
+            if (!probe.buffer && selected && variant.family === 'push' && !declared) {
+              // push-button.md PF3 (#608): known art with exact cinf and cinf0 NULL is
+              // null/unavailable at every size; the admission identity is kept.
+              const { key, expected } = join(selected.resource);
+              verifyNoCinfAdmission(probe, key, expected);
+              const omitted = await compose(variant, null, null, false, true);
+              check(omitted.buffer === null, 'PF3: omitted dimensions returned a buffer');
+              verifyNoCinfAdmission(omitted, key, expected);
+              rows.push({ variant, key, status: expected.status, selection: probe.trace.steps,
+                defaultDimensions: { size: null, allocation: null, omittedOptions: ['minWidth', 'height'],
+                  status: 'unavailable-pf3', asserted: 0, unassessed: null, selection: omitted.trace.steps } }); continue;
+            }
             if (!probe.buffer) {
               check(!selected && probe.trace.outcome.status === 'unavailable', 'Unavailable face reported selected');
               const omitted = await compose(variant, null, null, false, true);

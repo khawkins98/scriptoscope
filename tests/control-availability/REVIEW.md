@@ -114,3 +114,16 @@ as a cicn/cinf pair or dropping the extra trace. Revised candidate digest:
 Root independently selected both raw forks and checked exact cinf mode2, ppat
 IDs/payloads and the unchanged remainder on 2026-10-19; this dependency delta
 is approved.
+
+## #608 revision 1.0.18 (independently reviewed, PR #612)
+
+The nine `push-no-cinf-admission` rows (System7 push normal/pressed/disabled and
+synthetic child-canonical, child-missing, child-repurposed, named-preference,
+active-to-pressed, raw-repurposed-only) change `themed` -> `unavailable` under
+`docs/spec/engine/push-button.md` PF3/PF6. The table above is the historical 1.0.7
+record; for these rows the face identity is now admission only, with exact cinf and
+cinf0 NULL and a terminal `engine:PB9:cinf:NULL` face step. Inputs, options,
+identities, evidence and the other 18 rows are unchanged. The exact delta is
+`corrections/608-no-cinf-unavailable.json`. The independent Tier-2 reviewer of PR #612
+approved the transition on head 3afad856 and its receipt is the 1.0.18 reviewer
+entry in `expectations.json`.

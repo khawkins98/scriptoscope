@@ -176,3 +176,16 @@ corrected: -8288/-8280 are the scroll-bar track tier 0 (inactive), not pressed, 
 gone). No case-cited address line changed; all 27 case inputs, outcomes, payload pins
 and ring dispatch claims are unchanged. The 1.0.13 review is archived verbatim; the
 1.0.14 label is PENDING an independent hash-only review.
+
+Inventory 1.0.18 (#608) moves the nine `push-no-cinf-admission` cases (three
+System7 push states and six synthetic fixtures) from `themed` to `unavailable`.
+`docs/spec/engine/push-button.md` PF3/PF6 supersede the 2026-10-23 themed-extent
+disposition: known art whose exact cinf and cinf0 are both proven NULL keeps its
+admission identity and NULL transcript, but the public facade returns `null` with
+outcome `unavailable` and a terminal face step `engine:PB9:cinf:NULL`. Each row
+changes only `proposed.outcome`, a new `proposed.terminal` and its notes; the rule
+keeps its id with an amended claim. `corrections/608-no-cinf-unavailable.json`
+archives the exact before/after rows, the prior review, the pinned PF section and
+the single `border-boundaries.spec.mjs` patch; `controls459/peel-608.mjs` lets the
+earlier correction proofs verify their own frozen state. The 1.0.18 transition carries
+the independent Tier-2 review receipt of PR #612; the test author did not self-approve.

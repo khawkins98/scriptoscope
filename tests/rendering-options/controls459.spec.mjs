@@ -32,7 +32,14 @@ for(const mode of ['source','built'])test(`${mode}: independent 459 public compo
       const records=row.diagnostics.flatMap(d=>d.steps??[]);
       // Public dimensions and logical-face allocation policy: reserve 4 on all
       // sides when ring resources exist (all 18 corpus forks have ring cicns).
-      if(JSON.stringify(row.size)!==JSON.stringify([65,29]))failures.push({row,why:'push allocation'});
+      // push-button.md PF3 (#608): the five schemes ship face art but no same-ID
+      // cinf or cinf0, so every state is null/unavailable with a terminal PB9 step.
+      const pf3=['apple-platinum-2','black-platinum','platinum-8','slimes','system7-nostalgia-silver'].includes(row.slug);
+      if(pf3){
+        if(row.size!==null||row.diagnostics[0]?.outcome?.status!=='unavailable')failures.push({row,why:'PF3 null/unavailable'});
+        const last=records.at(-1);
+        if(!(last?.role==='face'&&last.action==='missing'&&last.usage==='paint'&&last.basis==='source-dispatch'&&last.reason==='engine:PB9:cinf:NULL'))failures.push({row,why:'PF3 terminal PB9 step'});
+      } else if(JSON.stringify(row.size)!==JSON.stringify([65,29]))failures.push({row,why:'push allocation'});
       if(JSON.stringify(row.layout?.faceRect)!==JSON.stringify({x:0,y:0,w:57,h:21}))failures.push({row,why:'logical face layout'});
       const typed=records.filter(r=>/^engine:[^:]+:cicn:/.test(r.reason));
       if(typed[0]?.requestedId!==face(h))failures.push({row,why:'push signed face selection'});
@@ -100,7 +107,7 @@ for(const mode of ['source','built'])test(`${mode}: independent declared body en
  for(let y=0;y<9;y++)for(let x=0;x<29;x++)if((x>=3&&x<26&&y>=1&&y<8)||(x>=1&&x<28&&y>=3&&y<6))set(x,y,[48,48,48]);set(0,0,[0,0,255]);
  expect(observed.good.error).toBeUndefined();expect(observed.good.pixels).toEqual(expected);
  expect(observed.view.environmentId).toBe(observed.environmentId);expect(observed.view.selected.signedId).toBe(0);expect(observed.view.selected.providerId).toBe('independent-default');
- expect(observed.nulls.pixels).toEqual(Array(29*9*4).fill(0));expect(observed.nullView.attempts.map(a=>[a.id,a.outcome])).toEqual([[-10239,'missing'],[0,'missing']]);
+ /* push-button.md PF3 (#608): a declared environment proving both cinfs NULL gives null/unavailable */expect(observed.nulls.error).toBeUndefined();expect(observed.nulls.pixels).toBeNull();expect(observed.nulls.trace.outcome.status).toBe('unavailable');expect(observed.nulls.trace.steps.at(-1)).toMatchObject({role:'face',action:'missing',basis:'source-dispatch',usage:'paint',reason:'engine:PB9:cinf:NULL'});expect(observed.nullView.attempts.map(a=>[a.id,a.outcome])).toEqual([[-10239,'missing'],[0,'missing']]);
  const bitmapExpected=expected.slice();bitmapExpected.splice((5*29+13)*4,4,0,0,255,255);expect(observed.bitmap.error).toBeUndefined();expect(observed.bitmap.pixels).toEqual(bitmapExpected);expect(observed.bitmap.trace.bitmapTextPaint.pen).toEqual([13,5]);
  expect(observed.browser.error).toBeUndefined();expect(observed.browser.trace.bitmapTextPaint).toBeUndefined();expect(observed.browser.trace.textColors.foreground).toBe('rgb(0, 0, 255)');
  for(const boundary of ['default','base','identity','mode5','display'])expect(observed[boundary].error.code).toBe('UNSUPPORTED_CINF_ENVIRONMENT');

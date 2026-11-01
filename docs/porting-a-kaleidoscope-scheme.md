@@ -278,8 +278,13 @@ maintainers can verify nothing regressed against your port:
 
 ```sh
 npm run lint:themes -- --update <your-slug>     # adds your bundle's row to themes/lint-baseline.json
-npm run baseline:scenes -- <your-slug>          # captures tests/visual-baselines/scenes/<your-slug>.png
+npm run baseline:scenes:container -- <your-slug>  # captures tests/visual-baselines/scenes/<your-slug>.png in the pinned image (Docker)
 ```
+
+Record the scene fixture with the container command. The release gate verifies
+fixtures byte-for-byte in the pinned Playwright image, so a host `baseline:scenes`
+capture (macOS, other Chromium builds or fonts) isn't comparable and fails the gate.
+See [`tests/visual-baselines/README.md`](../tests/visual-baselines/README.md).
 
 Then commit and push:
 
