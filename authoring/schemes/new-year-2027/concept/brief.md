@@ -1,4 +1,4 @@
-# Midnight 2027 — concept and current implementation
+# Midnight 2027 — concept brief
 
 ## Art direction
 
@@ -15,11 +15,9 @@ The selected target is `concept.jpg`, generated from `brief-concept.txt`.
 A full active-window crop is `245,205,895,632`. The image includes imagined
 controls and painted text; it is a composition reference, not final pixels.
 
-## Composition pass, 2026-10-31
+## Composition
 
-The earlier implementation preserved the motifs but shrank the concept into
-a 50px header, 16px numerals, 15px widgets and a tiny clock. The current pass
-measures the target at the rendered window's outer width:
+Measure the target at the rendered window's outer width:
 
 | Feature | Current source art / geometry | Behavior |
 |---|---|---|
@@ -70,5 +68,4 @@ check the original art in the classic VM. The low-level resource geometry,
 pressed strip and title budget remain authoritative.
 
 Keep the `.rsrc` and `.bin` frozen for the exact-build classic run. Its hashes,
-conditions and observed states belong in `../classic/README.md`; older images
-do not validate this larger revision.
+conditions and observed states belong in [`classic/README.md`](../classic/README.md).

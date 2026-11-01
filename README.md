@@ -30,8 +30,6 @@ The runtime is a clean-room reimplementation of the scheme-rendering interpreter
 
 The bundled scheme files in `themes/` are a separate matter: third-party freeware from the 1990s whose authors are largely unreachable today. Scriptoscope ships them under the same good-faith preservation posture [Macintosh Garden](https://macintoshgarden.org/) and the [Internet Archive's classic-software collection](https://archive.org/details/softwarelibrary_apple) use for orphan classic-software, including the take-down-on-request commitment. This project is a hobby, MIT-licensed, no profit motive, no advertising. If any of the original authors object, I'll take it down.
 
-**Beyond the legal questions:** this is really a technical curiosity, a way to bring back to life a corner of computing that's effectively dead and bit-rotting. The corpus is closed because the tools closed; nobody's authored a new Kaleidoscope scheme in roughly twenty years. Maybe someone will be crazy enough to code up a new one. If you do, [the door's open](#if-you-build-a-scheme).
-
 The current corpus of bundles lives under [`themes/`](./themes/): `1138`, `1984`, `1990`, `animals`, `apple-lisa`, `apple-platinum-2`, `beos-r503`, `black-platinum`, `crayon-os`, `dolphin-som`, `evolution`, `floppies`, `monkey-paradise`, `platinum-8`, `slimes`, `system7-nostalgia-silver`, `windows-31`, `windows-95`. Each bundle ships only the original archive (`scheme.sit` or `scheme.rsrc`) + `meta.json` + `PROVENANCE.md` — the runtime decodes them client-side, no pre-extraction in git.
 
 Want more? Two community archives where Scriptoscope's drop-zone can read schemes from directly:
@@ -44,11 +42,15 @@ Both let you grab a `.sit` and drop it on the demo to see it render live without
 
 ## If you build a scheme
 
-The original tooling — Greg Landweber and Arlo Rose's Kaleidoscope.app, Edwin Wong's Scheme Factory, the various ResEdit templates that floated around Info-Mac — is gone, or close enough. But the *format* isn't. Scriptoscope reads the same `cicn` / `wnd#` / `cinf` / `ppat` / `Colr` records the 1999 control panel did, so a scheme authored today against this runtime will render the same way an Erik Ekengren scheme from 1998 does.
+Start with the [creation guide](./docs/authoring-a-scheme.md). It covers concept
+art, frame geometry, editable sprites, control families and visual review.
+[`tools/theme-author/`](./tools/theme-author/) builds real Kaleidoscope resource
+forks; the five [first-party schemes](./authoring/schemes/) provide working examples.
 
-Nobody's authored a new Kaleidoscope scheme in roughly twenty years. The corpus is closed because the tools closed, not because the form ran out. If you want to be the one who reopens it, I'd love to help — [file an issue](https://github.com/khawkins98/scriptoscope/issues), mail me a `.rsrc`, draw a single button cicn and see what happens. The renderer doesn't know what year it is.
-
-There is now a modern starting point. [`tools/theme-author/`](./tools/theme-author/) writes real resource forks from code and checks them against the rules the runtime follows. [`docs/authoring-a-scheme.md`](./docs/authoring-a-scheme.md) walks through the whole workflow, from a concept image to a scheme that loads in the original Kaleidoscope 2.3.1. Five first-party schemes in [`authoring/schemes/`](./authoring/schemes/) (Kingfisher, Castle, Brickworks, Bonn and Midnight 2027) were made that way. `npm run author -- authoring/schemes/kingfisher` builds one; the result is an ordinary `.rsrc` you can drop on the demo like any other scheme.
+Run `npm run author -- authoring/schemes/kingfisher` to build an example. Load
+the resulting `scheme.rsrc` in the browser demo, or transfer the generated
+MacBinary `scheme.bin` to a classic Mac. Validate the final build in the browser,
+at 8-bit colour and in native Kaleidoscope before publishing it.
 
 ## Install
 

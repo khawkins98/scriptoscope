@@ -2,192 +2,83 @@
 
 ## 2026-11-01 — Preserve the concept's pixels, and verify the actual build
 
-Bonn's hand-drawn replacements depicted the right buildings but lost the
-concept's distinctive roofs, shading and blossoms. Adding more drawing code
-did not recover that character. Extracting the buildings, cherry bough and
-bridge from the selected concept did; the implementation now places PNGs
-instead of reconstructing their illustration in code.
+Bonn's procedural replacements depicted the right subjects but lost their
+recognizable roofs, shading and blossoms. Extracting the actual concept pixels
+preserved that character. Its [reproducible recipe](authoring/schemes/bonn/sprites/README.md)
+records crops, sampling, masks and repairs. The bridge has a separate palette so
+adding it does not requantize approved buildings and bough; its transparent arch
+reveals the frame's river.
 
-- **Extract strong concept art before redrawing it.** Record the original
-  image, crop coordinates, pixel-grid sampling, mask and palette decisions.
-  Preserve proportions and intentional outlines. Repair only detail the
-  source cannot supply, and identify those repairs. Bonn's
-  [extraction recipe](authoring/schemes/bonn/sprites/README.md) is reproducible.
-- **Keep approved assets stable while iterating.** The bridge has its own
-  palette so adding it does not requantize the approved buildings and bough.
-  Its arch opening is transparent, allowing the frame's river to show through.
-  Check crops and extracted assets at matching sizes, with binary alpha.
-- **Geometry serves the composition.** Window buttons have authored positions
-  and sizes; Bonn uses 26px window medallions. Match the normal and pressed masks,
-  cumulative pressed-strip offsets, utility resources and title reservations.
-  Inspect the actual narrow-window behavior rather than assuming a fixed
-  platform button size or inventing an ornament-removal order.
-- **Structural, visual and native checks answer different questions.** Valid
-  resources do not establish fidelity. Compare the complete live window with
-  the concept at matched outer widths, then check 1×, narrow/wide and 8-bit
-  output. Record VM results against exact resource and package hashes; a
-  subsequent art edit needs a fresh native result.
-- **Compact repeated source art before expanding it.** A larger Bonn source
-  failed in the native engine; a compact repeat loaded. This is an observed
-  compatibility lesson, not evidence of a universal size limit. Probe novel
-  geometry early and preserve failed captures and build identities.
+Window controls have authored sizes, not a fixed platform limit: Bonn uses
+26px medallions. Their rectangles, normal masks, cumulative pressed-strip offsets
+and utility resources must agree. Geometry should preserve the concept's
+relative scale and reserve title room, not merely fit smaller versions of its
+motifs into a preselected frame.
 
-The [creation guide](docs/authoring-a-scheme.md#4-the-workflow) owns the steps;
-the [brief template](authoring/concept-brief-template.md) records decisions.
-Keep those current instead of maintaining a second process in this ledger.
+A larger Bonn source failed in native Kaleidoscope while a compact repeat loaded.
+This establishes an observed compatibility constraint, not a universal size limit.
+Probe unfamiliar geometry early. Structural checks, visual comparison and native
+validation answer different questions; later art edits require validation of the
+new bytes. The [workflow](docs/authoring-a-scheme.md#4-the-workflow) owns the steps.
 
 ## 2026-10-31 — Passing every check is not the same as looking good: design the window first
 
-*(Naming note: Halcyon was renamed Kingfisher, `authoring/schemes/kingfisher/`, on 2026-10-31. These entries keep the name it had at the time.)*
+Halcyon (renamed Kingfisher), Castle, Brickworks and Bonn loaded in Kaleidoscope
+and passed authoring checks before they had convincing visual composition.
+Designing cell by cell had left the overall frame weight undefined. A complete
+concept, measured relative proportions and matched-width comparison exposed the
+missing silhouette and material hierarchy. Extraction preserves pose and shading;
+thin rays or mortar may still need final-grid repair.
 
-The first versions of Halcyon, Castle, Brickworks and Bonn passed every
-authoring check and loaded in real Kaleidoscope, and still looked generated
-next to the best corpus schemes. Each had been designed cell by cell, so
-nothing set the overall weight of the frame. What fixed it, now the workflow
-in `docs/authoring-a-scheme.md` §4:
+Warm greys shifted pink at 8 bits. The system-palette simulation is useful for
+spotting collapsed ramps, but is an approximation of native display, not proof.
+Source-derived illustration palettes remain valid within each `cicn` budget.
 
-- **Concept image first, then numbers.** An image model renders the finished
-  window; the brief turns it into pixel targets (band thicknesses, ornament
-  heights). Without numbers, every rebuild copied the motifs at sticker size.
-- **Paint over, don't redraw.** Redrawing ornaments from the concept by eye
-  kept the motifs and lost pose and proportion. `npm run paint-over` (shrink a
-  crop to 1×, per-block palette vote) and hand clean-up kept them. It fails on
-  thin detail (1 px mortar, firework rays), which is measured and redrawn.
-- **Design in the system palette, and simulate 8 bpp before booting.** Warm
-  greys came out pink in classic. `npm run sim8`, modelled on the Color
-  Manager's 4-bit inverse table, picks the entry classic drew for 92% of
-  frame pixels (exact nearest: 59%; quantising on-screen values without
-  undoing the gamma: 56%).
-- **The control panel's own help is the spec for the classic extras.** Each
-  "Use This Scheme's" option is greyed unless the scheme ships a named
-  resource (`TEXT 1005`); `classic-extras.js` now builds the about box,
-  cursors and WindowShade sounds. The Accent Color flag alone enables a popup
-  that changes nothing on `cicn`-themed menus.
-- **Testing authored schemes in the original engine found a runtime bug.**
-  Dialog and alert bodies are Kaleidoscope's grey (or the scheme's
-  `dctb`/`actb`), not white; fixed in #585.
-
-The dogfooding round logs and their lessons ledger (under
-`authoring/experiments/`) were folded into the guides and deleted on this
-date; the originals are in the git history of #540.
+The control panel's own help explains classic extras: named resources enable
+"Use This Scheme's" options. An Accent Color flag can enable a popup without
+changing `cicn`-themed menus. Native testing also established that dialog/alert
+bodies use Kaleidoscope's grey or scheme colour tables, leading to runtime fix #585.
 
 ## 2026-10-30 — Dogfooding the authoring guides: a lesson isn't learned until it's adopted and backported
 
-Three schemes (Castle, then Brickworks and Bonn) were built by fresh agents
-from the guides alone, each keeping a friction log, with fixes folded in
-between rounds. A lessons ledger tracked every proposed fix and what became
-of it. (Both were folded into the guides and removed on 2026-10-31, entry
-above.)
-What the rounds established:
+Building multiple schemes from the guides exposed reusable constraints:
 
-- **Exotic frames need explicit cell lists.** `frameLayout()` (per-edge
-  `{ code, w, name }` lists with named cells to paint by) was written for
-  Castle and promoted unchanged. No builder hit an art/recipe off-by-one
-  after it existed.
-- **Every fixed pixel on a titled edge comes out of the title's room** (TT1,
-  TT3). The engine drops the title long before a code-10 ornament (TS1).
-  `minWidthForTitle` matches the runtime's plate width exactly.
-- **Stray art in a tiled cell was the bug that kept coming back.** Bonn hit it
-  twice, and Castle shipped one: its left banner ring's highlight sits in
-  plate column 0 and is tiled every 12px along the coping
-  (`castle/preview.png`). `layout.lint` with `uniform` groups catches all
-  three, but it didn't exist when Castle was built. *(Since 2026-10-31 every
-  first-party scheme runs `lint` on every frame.)*
-- **Pressed-strip offsets are per window, in the decode itself** (WD9
-  `stripSource`), not just on the web. Halcyon's utility windows have
-  close + collapse without zoom, so their pressed collapse box reads the zoom
-  piece of both `-14330` (web) and its three-piece `-14298` (classic).
-  *(Superseded 2026-10-31: the repainted Halcyon gives utility windows the
-  document's full widget set, and every first-party scheme ships `-14298`.)*
-- **Real Kaleidoscope 2.3.1** lets clicks through transparent frame pixels
-  (the web doesn't: R15/R16), hides art above the bar under the menu bar, and
-  shifts subtle colours at 8 bpp. The narrow-window "difference" recorded at
-  first was two different window widths. At 105px, Bonn is below TS1 in both
-  engines.
+- Explicit named cell lists prevent painting/recipe off-by-one mistakes.
+  Fixed titled-edge pixels spend title room; code-10 art can outlast the title.
+- Stray highlights in a repeating column become visible across the whole bar.
+  Declared uniform groups in `layout.lint` catch this only when the checks run.
+- Pressed-strip offsets come from each window's rectangle list. Omitting zoom
+  can make collapse read a different piece; document and utility strips must
+  match their own geometry. Native utility uses `-14298`, web uses `-14330`.
+- Native transparent-frame clicks, menu-bar clipping and title fitting differ
+  from the web. Compare equal-sized windows before diagnosing a rendering gap.
 
-The meta-lesson came from red-teaming the rounds. Three fixes had been
-"incorporated" without taking effect: `layout.lint` was promoted from Bonn
-but no scheme called it (and it skipped the 1px cells Bonn's bug was in);
-the R24 rule from round 1 was never applied back to Halcyon; and both
-Castle and Brickworks kept private copies of `outlineEdges`. When a lesson
-lands, apply it to the earlier schemes too, and make the toolkit check run
-by default where it can.
+A helper or corrected rule is useful only when earlier examples adopt it too.
+Put common checks in the shared build path instead of relying on a lessons log.
 
 ## 2026-10-30 — Authoring a scheme from scratch exposed rules the reading side never needed
 
-We wrote a scheme writer (`tools/theme-author/`) and a first-party scheme,
-Halcyon (`authoring/schemes/halcyon/`), to test whether the decode is complete
-enough to *produce* schemes. It is: the runtime loads the generated file
-through the same `convertChrome` path as any corpus scheme. As proof that the
-writers are correct, all 18 corpus forks re-serialize byte for byte, and all
-3,325 corpus `cicn`s re-encode to identical pixels. Things the reading side
-never forced us to state:
+The writer was calibrated by reserializing all 18 corpus forks byte for byte
+and re-encoding all 3,325 corpus `cicn`s to identical pixels. Reader knowledge
+became several concrete authoring rules:
 
-- **Nothing outside `[first border, last border)` is painted** (window-widgets
-  LS9). Corpus recipes start at 0 and close with explicit code-1 corner cells.
-  Our first frames started their recipe at the corner's end and lost the corners.
-  `checkScheme` now warns about visible art outside the span.
-- **Title text colour is a hidden swatch** at `(part0.left, part0.top)`, read
-  ignoring the mask (TC1–TC5). `kdef231-reference.md` §1.4 still says the
-  runtime uses black. That file is hash-pinned by `tests/control-availability`,
-  so the correction lives in `docs/tracking/title-text-color.md` until a re-pin.
-- **The default ring's corners are copied after the face**, so the ring's
-  interior must be transparent or it erases the face's corners.
-- **A push face without a same-id `cinf` silently becomes Platinum.** Authors
-  get no signal; `checkScheme` warns.
-- **Authors must pre-compensate gamma.** The loader brightens stored colours
-  (1.8 → 2.2), so the encoder stores the inverse. Halcyon's title text renders
-  at exactly the typed `#1d2430`.
-- **Runtime regression found:** 7ef7c373 merged the title gate with the
-  body-background slug regex, so movable-modal, movable-alert and popup windows
-  lost their titles. The decode draws a title whenever there is one (TX2), and
-  corpus movable-modal recipes carry a title rect and plate. The two predicates
-  are separate again (`HEADLESS_TITLE_SLUG_RE` in `src/renderWindow.ts`).
-- **Authoring checks have to be calibrated against the corpus.** Three first-draft
-  rules (recipe running past the image, title marker ≤ 2px, mandatory N+1
-  active frame) fired on original schemes. They were dropped or became warnings:
-  the originals define what is valid.
+- Only `[first border,last border)` is painted; include explicit starting and
+  closing borders. Corpus-valid unusual recipes must not become writer errors.
+- Title RGB is sampled at the content rectangle's top-left, ignoring its mask;
+  shadow is one pixel right. The title-colour correction is documented in
+  [the tracking note](docs/tracking/title-text-color.md) and pinned reference.
+- Default-ring corners draw after the face; opaque ring interiors erase it.
+- Push art needs usable `cinf` metadata: same-ID is preferred, `cinf 0` is a
+  supported fallback, and absence can make a face unavailable.
+- The encoder stores inverse gamma so authors type intended displayed colours.
+- Imported art needs binary alpha: values 1–127 encode hidden swatches rather
+  than ordinary partial transparency.
 
-**Confirmed in the original engine (2026-10-30):** the generated `scheme.bin`
-(MacBinary, type `Colr` / creator `Acid`) loads in real Kaleidoscope 2.3.1 on
-System 7.5.5 in the reference emulator. It took one boot with no errors, and a
-Windows 95 control run behaved the same. The raw `.rsrc` alone was not enough
-for classic Mac OS: the Finder type and creator are what make it a scheme.
-One fidelity finding came out of it: with no utility pattern, native dialog and
-alert bodies are the system dialog grey (`#E7E7E7`), while the web runtime
-paints them white. Screenshots: `authoring/schemes/halcyon/classic/`.
-*(Superseded: fixed in #585. The grey comes from Kaleidoscope's dialog
-colour tables, and the web now uses them.)*
-
-**AI-drawn art (2026-10-30, `docs/authoring-art-with-ai.md`):** ask models for
-code or text grids, never pictures. The best zero-key route was claude-pxl,
-with the model writing the `.px.js` file; its PNGs round-tripped exactly into
-cicns. Image generators (agy's included) drew on their own grid with fake
-transparency, and grid-recovery cleanup couldn't put the art back at the
-requested size. One trap found: the encoder reads alpha 1–127 as a hidden
-swatch, so imported art must have its alpha snapped first (`Raster.fromRgba`).
-
-**Holistic Halcyon (2026-10-30):** four family modules (`parts/`), each
-written by a separate agent against the decoded specs: scrollbars, sliders/tabs/
-bevels/popups, progress/headers/disclosure/grow box, and menus/patterns/
-icons. That's 329 resources. New encoders (`ppat`, icon families, `clut`)
-round-trip the whole corpus. Real Kaleidoscope draws the menu bar, menus,
-desktop pattern and scheme icon from them. Rules found while building them
-are in the guide §3.5 and §6.3. Calibration again mattered: a "scroll
-pieces must be opaque" rule fired on 12 of 18 originals, so it's a guide
-note, not a check. Runtime findings, not fixed here:
-- the web runtime never passes inactive or pressed states to window
-  scrollbars;
-- `composeDisclosure`'s id fallback maps right → -10102 and down → -10103,
-  ignoring state. In the corpus -10111 is the normal right triangle, so
-  Windows 95 draws the same box for all six states.
-*(Superseded 2026-10-31: both fixed on main, inactive scroll bars in #594/#605
-and disclosure ids in #595/#604; the slider white box in #596/#603.)*
-
-Not yet done: text fields (CSS only), Finder icons, cursors, sounds, the About box, accent colours.
-*(Superseded 2026-10-31: cursors, WindowShade sounds and the about box are
-built by `classic-extras.js`; text fields, Finder icons and accent colours
-remain, see the guide §9.)*
+MacBinary with Finder type `Colr` and creator `Acid` loaded in Kaleidoscope 2.3.1;
+a raw resource fork alone lacked the Finder identity needed for normal transfer.
+The writer also supports patterns, icons, cursors, sounds and About resources.
+Tool-specific experiments and superseded runtime defects belong in git history;
+current constraints and remaining gaps live in the authoring guides.
 
 ## 2026-10-30 — Measured sizes are outer bounds; the host box is the chrome (#526)
 

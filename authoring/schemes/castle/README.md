@@ -1,15 +1,13 @@
 # Castle
 
-A stone keep with red conical roofs, pennants and a red title banner. Its
-concept is in [`concept/concept.jpg`](concept/concept.jpg); `frames.mjs` and
-`stone.mjs` keep repeating masonry procedural and place fixed towers and slits.
+A stone keep with conical roofs, pennants and a red title banner. The
+[concept brief](concept/brief.md) defines its art direction. `frames.mjs`
+and `stone.mjs` combine repeating masonry with fixed towers and slits.
 
-The surface pass keeps the frame silhouette and all recipe geometry. Interior
-mortar and lit stone are closer in value to the stone faces, so the keep reads
-as larger masses and the banner remains the focal point. Near-black silhouette
-outlines, dark openings and the red/gold accents retain their contrast. The
-parchment body is a flat 8×8 pattern instead of a flecked 64×64 texture; this
-reduces decoration behind live text and removes an unnecessary scatter table.
+Keep interior mortar and highlights close to the stone faces so the keep
+reads as large masses and the banner remains the focal point. Silhouette
+outlines and openings carry the stronger contrast. The body uses a flat 8×8
+parchment pattern to keep live text readable.
 
 ```sh
 npm run author -- authoring/schemes/castle
@@ -17,5 +15,5 @@ npm run check:schemes
 npm run capture:authoring -- authoring/schemes/castle
 ```
 
-The committed web previews show the current surface pass. Real-Kaleidoscope
-capture conditions and build hashes are recorded in [`classic/README.md`](classic/README.md).
+`preview.png` and `preview-sizes.png` show the browser render.
+[Native checks](classic/README.md) record capture conditions and build hashes.
