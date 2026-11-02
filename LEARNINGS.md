@@ -1,5 +1,31 @@
 # Learnings
 
+## 2026-11-02 — Native target ancestry does not preserve pointer coordinates (#631)
+
+A pointer-transparent clipped layer can keep native descendants interactive,
+but native wheel ownership must be checked separately from DOM hit testing.
+Escaped fixed content and chrome controls overlapping frame gaps can change
+the native routing result. A passing simple gap sample is not a generic
+replacement for the retained wheel workaround.
+
+Putting exact native target children inside an existing button preserves its
+event ancestry and node identity, but changes the target-relative `offsetX/Y`
+reference. Original widget masks still need a point in the original control's
+coordinate model, including scale and transformed ancestors. Matched native
+presses can expose a rejected action even when frame routing, focus and a
+different browser's center click work. Correcting those coordinates and
+verifying mask/action behavior are required delivery work, not optional polish.
+
+Native wheel deltas also do not promise identical scroll displacement across
+engines: a browser can limit one input by the scroll viewport's page amount.
+Check the intended scroll owner, unchanged unintended owners and further
+movement for continued valid input. Keep control calibration failures and
+routing failures distinct. Idle observations and a one-shot DOM prototype
+establish neither compositor cost under contention nor lifecycle correctness;
+the [native-target contract](./docs/spec/engine/window-wheel-targets.md) keeps
+those obligations explicit and leaves the current workaround in place until
+a complete runtime replacement is validated.
+
 ## 2026-11-02 — Resolve window flags before sizing content (#624, #625)
 
 A flag set only inside the layout cannot recover dimensions already discarded by its public adapter. The popup family clears `collapsed`, so pre-emptying its content height produced an expanded four-side recipe around a zero-height body. Public rendering and managed state now normalize popup collapse before sizing, keep the requested dimensions and report the effective expanded state. This lifecycle policy is explicit in [window-widgets §2.3](./docs/spec/engine/window-widgets.md).

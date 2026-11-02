@@ -435,6 +435,18 @@ which in-flow (Posture B) hosts cannot position reliably. Clipping one level
 inside gives the same hit result, and everything stays inside the window's own
 shadow tree.
 
+The direct hit-layer policy below describes the retained wheel workaround.
+The alternative in [`window-wheel-targets.md`](window-wheel-targets.md) replaces
+HP26's `auto` hit layer with a pointer-transparent clipped layer and exact
+native frame/control targets. It preserves HP27's host locks and the original
+canvas, content and control identities of HP43. Private nonfocusable target
+children may be reconciled without replacing those original elements. Pointer
+mask/action decisions must remain in the original control's coordinate model,
+and HP32 escaped-content clipping is unchanged. This alternative is authorized
+only with the complete native-target contract, including trusted routing,
+keyboard, gesture, lifetime and unchanged performance requirements; a
+routing-only prototype is not a waiver.
+
 | id | rule | basis |
 |---|---|---|
 | HP26 | **Layers.** (L1) The `part="window"` element remains the shadow root's first child and the **unclipped** element that bounds the chrome box. It keeps today's role, label and `::part(window)` contract, including the shell shadow. (L2) A single **clipped layer** with L1's box sits inside L1 and carries the HP19 path. It contains every element that takes pointer input for the window: the chrome canvas, the content box with its slot, the grow sprite, the title-widget overlays, the grow-box overlay and the window scrollbars. It also contains the move handle. **Tab order:** every focusable element of the chrome keeps its pre-#597 DOM order inside L2, so the tab order is unchanged in both modes. The move handle stays in its old position relative to the title widgets, the grow box and the window scrollbars (PM ruling, 2026-11-01). (L3) An **unclipped decoration** part inside L1, outside L2, with `pointer-events: none`, holds the focus ring of HP28 and the resize outline of HP31. (L4) **`pointer-events`** in effective `region` mode: `none` on the host and on L1, `auto` on L2. Slotted content inherits from L2. In effective `box` mode there is no clip and no `pointer-events` change, so hits are exactly as before #597. | decisions 3, 5; PM ruling 2026-11-01 (tab order) |

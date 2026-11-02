@@ -453,6 +453,17 @@ on the main thread in Chromium and Firefox too. Idle-runner latency measurements
 cannot establish the cost when that thread is busy. `box` mode removes this
 listener. This workaround does not activate an inactive window when scrolling.
 
+The specified replacement is [native window targets](./spec/engine/window-wheel-targets.md):
+keep the paint/content clip, make its broad hit surface pointer-transparent,
+and use native region-bounded frame targets and children of the original
+chrome controls. The original controls keep focus, keyboard behavior and
+identity; pointer decisions must use their original coordinates, not offsets
+relative to a new child. Fixed/escaped content must remain clipped to the
+region. This is a replacement contract, not an enabled runtime change: retain
+the listener until native routing, control actions, lifetime behavior and the
+existing performance limits pass. Native wheel ownership and continued
+movement matter; browsers need not scroll identical pixels per delta.
+
 During a captured frame drag or grow-box resize the clip is suspended for
 WebKit's rendering cost. A resize that finishes preparation during a newer frame
 drag keeps the clip suspended until that drag ends, then restores the latest

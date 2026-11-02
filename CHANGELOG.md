@@ -9,6 +9,7 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ### Added
 
+- A standalone [native wheel-target routing contract](./docs/spec/engine/window-wheel-targets.md) defines region-bounded native targets, original-control pointer coordinates, trusted scroll ownership and existing clipping/lifetime guarantees ([#631](https://github.com/khawkins98/scriptoscope/issues/631)). The current runtime retains its wheel-routing workaround until a complete replacement is validated; this documentation does not enable one.
 - `WindowManager.dispose()` releases its windows, pending work and document listeners without removing caller-owned hosts or releasing themes. Calls are idempotent, and the manager can be reused ([#621](https://github.com/khawkins98/scriptoscope/issues/621)).
 - `data-scriptoscope-hit="region|box"`, a `hit` option on `WindowManager.add` and `WindowManager.applyState`, a page-wide default through `new WindowManager({ hit })` and `WindowManager.setDefaultHit(mode)`, and `active`, `hit` and `hitEffective` fields on `WindowManager.describe(host)`. Every window host reflects the mode in force as `data-scriptoscope-hit-effective`. A `region` category on `setDebug` logs each frame-region build ([#597](https://github.com/khawkins98/scriptoscope/issues/597)).
 
