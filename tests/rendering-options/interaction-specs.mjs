@@ -34,6 +34,8 @@ export const INTERACTION_SPECS = Object.freeze([
   'frame-pass-through-wheel-cost.spec.mjs',
   // #631 native first/continued wheel ownership, lifetime and child-target coordinates.
   'frame-native-wheel-acceptance.spec.mjs',
+  // #631 retained scrollbar placement must update native owners before asynchronous paint.
+  'scrollbar-target-placement.spec.mjs',
   // Inactive-window input (#614, inactive-window-input.md §8 IPT1–IPT14): the first pointer
   // press on an inactive window's widget or grow box only activates (real mouse, synthetic pen
   // and touch, per-frame pressed-art sampling); Shift+wheel axis mapping with cancelable events.
