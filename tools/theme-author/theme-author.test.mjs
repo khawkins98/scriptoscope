@@ -351,12 +351,14 @@ test('check: same-id cinf families and progress geometry', () => {
 });
 
 test('two Kingfisher parts adding the same id is an error naming both files', async () => {
-  const { mkdtempSync, cpSync, writeFileSync, rmSync } = await import('node:fs');
+  const { mkdtempSync, mkdirSync, cpSync, writeFileSync, rmSync } = await import('node:fs');
   const { join } = await import('node:path');
   const { pathToFileURL } = await import('node:url');
-  // Copy the scheme next to the repo's toolkit so its relative imports still resolve.
+  // Keep the fixture at the same depth for relative imports, outside scheme discovery.
   const root = new URL('../../authoring/schemes/', import.meta.url);
-  const dir = mkdtempSync(join(root.pathname, '.clash-'));
+  const fixtures = new URL('../../.tmp/theme-author/', import.meta.url);
+  mkdirSync(fixtures, { recursive: true });
+  const dir = mkdtempSync(join(fixtures.pathname, '.clash-'));
   try {
     for (const f of ['scheme.mjs', 'palette.mjs']) cpSync(new URL(`kingfisher/${f}`, root), join(dir, f));
     cpSync(new URL('kingfisher/parts', root), join(dir, 'parts'), { recursive: true });
