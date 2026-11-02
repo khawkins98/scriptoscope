@@ -2,9 +2,10 @@
 
 ## Status and scope
 
-PM modern compatibility policy, 2026-11-02. This contract supplements TF1–TF6
-and F11 in [window-widgets.md](window-widgets.md). It does not establish original
-font, QuickDraw raster or cross-platform pixel equivalence.
+PM modern compatibility policy, 2026-11-02. This self-contained title handoff
+includes the required TF1–TF6 and F11 rules; the full legacy widget and
+procedural-frame documents are not required implementation reading. It does
+not establish original font, QuickDraw raster or cross-platform pixel equivalence.
 
 Recipe-window style selection uses the complete requested title before
 horizontal truncation. Shared title measurement and painting also serve built-in
@@ -12,9 +13,35 @@ procedural frames; those consumers retain their own geometry, font-selection,
 baseline, clipping and truncation policies. This contract does not apply recipe
 size reduction to procedural frames.
 
+## Existing recipe placement and horizontal truncation
+
+TF1 measures and draws at full width (`SWc = SW`), without a condensed face.
+Here `t4p` is the actual remapped title rectangle and `plate` is the title plate.
+The horizontal room is
+`min(t4p.width + 2, max(plate.right - t4p.left, t4p.width))`.
+Keep the whole requested title when its advance fits that room. Otherwise use
+the longest Unicode code-point prefix followed by `…` whose advance fits;
+if no nonempty prefix plus ellipsis fits, use the ellipsis alone, even when
+the marker itself exceeds room. This does not enlarge the destination clip:
+retain `t4p` widened by two pixels on the right, with unchanged vertical bounds,
+so a marker wider than room retains its existing clipped behavior.
+
+F11 keeps the pen at `t4p.left` and the alphabetic baseline at
+`max(t4p.bottom - 4, t4p.top + nominalAscent)`. The nominal baseline metric
+remains `max(1, ceil(actualBoundingBoxAscent || size * .72))` for the text being
+measured in the resolved style: the complete request during candidate fitting,
+and the displayed title/prefix/marker during publication. This metric is
+distinct from the baseline's row in a scratch raster and from any padded or
+cropped raster origin; correcting coverage must not substitute those storage
+coordinates for the nominal metric or move the published baseline. Keep main
+and shadow clipping, shadow offset (+1, +1), and shadow-before-main paint order.
+
 ## Style and fit
 
-Preserve the preferred family, required plain/bold face and spacing. Keep the
+Preserve the preferred family, required plain/bold face and spacing: recipe
+titles are bold when the mapped `altWidgets` flag is set and plain otherwise.
+The existing recipe preferred size is `max(8, min(13, frameTop - 6))`;
+the preferred-font policy described below may pin it to 16 pixels. Keep the
 preferred style when it fits. Otherwise choose the largest positive integer
 pixel size no greater than the preferred size that fits, preserving family,
 face and spacing. Candidate geometry uses the existing layout constructor and
@@ -127,6 +154,32 @@ explicit integration/review disposition. Do not turn a performance concern into
 silent input rejection, incomplete observation or weakened alpha semantics.
 
 ## Measurement and publication consumers
+
+The procedural callback retains its own placement contract: `pass.x` is the
+text pen, `pass.y` is the alphabetic baseline, `pass.clip` is the destination
+clip, and `pass.truncateTo` is that pass's own horizontal limit (undefined
+means no truncation). Raster padding/cropping must preserve that pen and
+baseline when compositing into the destination. Preserve the same advance
+(`ceil(measureText(text).width)`) and `fontAscent`/`fontDescent` metrics used by
+procedural geometry. Those font metrics remain
+`ceil(fontBoundingBoxAscent || nominalAscent)` and
+`ceil(fontBoundingBoxDescent || max(0, ceil(actualBoundingBoxDescent || 0)))`;
+they are distinct from raster/crop offsets.
+
+Keep the current preferred-font policy: nonutility procedural titles request
+12 pixels and use the available Charcoal 12 face at its preferred 16-pixel grid
+with zero spacing; otherwise they use the Charcoal, Helvetica Neue, Arial,
+sans-serif stack at the requested size with 0.5-pixel spacing. Utility titles
+use exact 10-pixel sizing, bypass the Charcoal 12 pin, and retain that latter
+stack and spacing. Procedural titles retain their current plain face. Recipe
+titles use the same preferred-font policy with their requested size and required
+face, followed by the recipe fit rules above. Do not apply recipe TF2–TF6 size
+reduction to procedural consumers.
+
+Keep procedural truncation unchanged: retain the whole title when its advance
+fits the pass limit; otherwise shorten the existing UTF-16 prefix from the end
+until prefix plus ellipsis fits, returning no text if none fits. This pass
+policy remains distinct from TF1's code-point-prefix and ellipsis-alone rule.
 
 Recipe and procedural measurement, advance acquisition and truncation decisions
 must be metrics-only operations. They must not allocate full requested-title
