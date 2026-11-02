@@ -45,6 +45,15 @@ function unavailable(reason: string): never {
   throw error;
 }
 
+function measurement<T>(operation: () => T): T {
+  try {
+    return operation();
+  } catch (error) {
+    if (error instanceof Error && error.name === 'TitleCoverageUnavailableError') throw error;
+    unavailable(error instanceof Error ? error.message : 'host measurement failure');
+  }
+}
+
 function measurementContext(): CanvasRenderingContext2D | null {
   if (typeof document === 'undefined') return null;
   try {
@@ -69,13 +78,30 @@ function translated(value: number, origin: number): number {
   return result;
 }
 
+function advance(width: number): number {
+  coordinate(width);
+  if (width < 0) unavailable('unusable advance');
+  return coordinate(Math.ceil(width));
+}
+
+function nominalAscent(actualAscent: number, style: TitleFontStyle): number {
+  coordinate(actualAscent); coordinate(style.size);
+  if (style.size <= 0) unavailable('unusable font size');
+  return coordinate(Math.max(1, Math.ceil(actualAscent || style.size * .72)));
+}
+
 function metrics(ctx: CanvasRenderingContext2D, text: string, style: TitleFontStyle): TitleMetrics {
   const tm = ctx.measureText(text);
-  const ascent = Math.max(1, Math.ceil(tm.actualBoundingBoxAscent || style.size * .72));
+  const ascent = nominalAscent(tm.actualBoundingBoxAscent, style);
+  coordinate(tm.actualBoundingBoxDescent);
+  if (coordinate(tm.actualBoundingBoxAscent + tm.actualBoundingBoxDescent) < 0) unavailable('unusable actual bounds');
+  // Font bounds may be absent or zero; other unusable reports must not select a fallback.
+  if (tm.fontBoundingBoxAscent !== undefined) coordinate(tm.fontBoundingBoxAscent);
+  if (tm.fontBoundingBoxDescent !== undefined) coordinate(tm.fontBoundingBoxDescent);
   const descent = Math.max(0, Math.ceil(tm.actualBoundingBoxDescent || 0));
-  return { ascent, advance: Math.ceil(tm.width),
-    fontAscent: Math.ceil(tm.fontBoundingBoxAscent || ascent),
-    fontDescent: Math.ceil(tm.fontBoundingBoxDescent || descent) };
+  return { ascent, advance: advance(tm.width),
+    fontAscent: coordinate(Math.ceil(tm.fontBoundingBoxAscent || ascent)),
+    fontDescent: coordinate(Math.ceil(tm.fontBoundingBoxDescent || descent)) };
 }
 
 /** P1: signed complete-request bounds plus the declared em and pixel allowance. */
@@ -112,7 +138,7 @@ function scratch(width: number, height: number, style: TitleFontStyle) {
 export function resolveTitleStyle(text: string, px: number,
   clipForAdvance: (advance: number) => { x?: number; y?: number; w: number; h: number },
   opts: TitleFontOptions = {}): { style: TitleFontStyle; omitInk: boolean } {
-  const preferred = preferredStyle(px, opts);
+  const preferred = measurement(() => preferredStyle(px, opts));
   const probe = measurementContext();
   if (!probe || !text) return { style: preferred, omitInk: false };
   // A single fixed raster is reused across every tile and candidate.
@@ -120,12 +146,12 @@ export function resolveTitleStyle(text: string, px: number,
   const fits = (style: TitleFontStyle): boolean => {
     setStyle(probe, style);
     const tm = probe.measureText(text);
-    const clip = clipForAdvance(coordinate(Math.ceil(tm.width)));
+    const clip = clipForAdvance(advance(tm.width));
     if (clip.w <= 0 || clip.h <= 0) return style === preferred;
     const x = coordinate(clip.x ?? 0), top = coordinate(clip.y ?? 0);
     const bottom = coordinate(top + clip.h);
     coordinate(clip.w); coordinate(clip.h);
-    const ascent = Math.max(1, Math.ceil(tm.actualBoundingBoxAscent || style.size * .72));
+    const ascent = nominalAscent(tm.actualBoundingBoxAscent, style);
     const baseline = coordinate(Math.max(bottom - TITLE_TEXT.TX8.baselineAbove, top + ascent));
     const bounds = envelope(tm, style, x, baseline);
     if (bounds.top >= top && bounds.bottom <= bottom) return true;
@@ -175,9 +201,11 @@ export function measureTitle(text: string, px: number, opts: TitleFontOptions = 
   if (typeof document === 'undefined' || !text) return null;
   const probe = measurementContext();
   if (!probe) return null;
-  const style = opts.style ?? preferredStyle(px, opts);
-  setStyle(probe, style);
-  return metrics(probe, text, style);
+  return measurement(() => {
+    const style = opts.style ?? preferredStyle(px, opts);
+    setStyle(probe, style);
+    return metrics(probe, text, style);
+  });
 }
 
 /** Paint at the public pen/baseline through scratch bounded by the destination. */
@@ -208,11 +236,18 @@ export function paintTitle(target: PixelBuffer, text: string, px: number, hex: s
 
 /** TX5 / TruncString at end: retain the ellipsis even when no prefix fits. */
 export function truncateTitle(text: string, room: number, measure: (text: string) => number): string {
-  if (measure(text) <= room) return text;
+  const measured = (value: string) => measurement(() => {
+    const width = measure(value);
+    coordinate(width);
+    if (width < 0) unavailable('unusable advance');
+    return width;
+  });
+  if (measured(text) <= room) return text;
   const glyphs = Array.from(text);
   for (let n = glyphs.length - 1; n > 0; n--) {
     const candidate = `${glyphs.slice(0, n).join('')}…`;
-    if (measure(candidate) <= room) return candidate;
+    if (measured(candidate) <= room) return candidate;
   }
+  measured('…');
   return '…';
 }
