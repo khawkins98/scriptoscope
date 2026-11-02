@@ -1,5 +1,37 @@
 # Learnings
 
+## 2026-11-02 — Bounded title coverage needs a declared raster envelope (#637)
+
+Canvas metrics can miss fallback ink. The modern P1 policy therefore assumes
+that all nonzero main coverage of the complete shaped request lies within its
+signed actual bounds on both axes, expanded on every side by one candidate em
+plus one internal-raster pixel and rounded outward. That allowance is a support
+premise, not a measured maximum or arbitrary-font proof. Transparent borders
+cannot rule out disconnected ink farther away, and finite samples cannot
+certify arbitrary fallback fonts or native typography equivalence. Keep stable
+loaded text state and integer tile translations that preserve raster phase;
+unusable metrics, unsupported phase, known premise violations and host
+allocation/readback failures reject the operation with an error named
+`TitleCoverageUnavailableError`. Unavailable coverage is neither demonstrated
+nonfit nor TF5, and cannot justify a smaller style.
+
+Signed bearings and ascent/descent locate coverage; padded raster and crop
+origins locate storage. Neither replaces the nominal ascent used by the recipe
+baseline, nor the procedural pen, baseline or geometry metrics. Carry crop
+origins through publication so correcting coverage preserves overhang and rows
+without moving the title or changing the existing clip/truncation policy.
+Recipe size reduction does not apply to procedural frames. See the
+[title-coverage contract](./docs/spec/engine/window-title-fit.md).
+
+A coverage canvas of at most 4096×32 pixels and same-size RGBA readback bound
+the two explicit RGBA planes to 1,048,576 bytes. Destination-sized publication
+and frame output are separate, as are input strings, opaque host shaping memory
+and garbage-collection behavior. Fixed scratch does not bound total memory or
+make work linear: drawing the complete request for each tile can be quadratic,
+though traversal is finite under P1's finite-host premise. There is no hard
+realtime guarantee. Independent native acceptance and CPU review disposition
+remain pending for this candidate; unit/type checks do not establish them.
+
 ## 2026-11-02 — Calibrate browser title references independently (#634)
 
 The long title ending in `g` does not force a smaller full-request style than
@@ -13,11 +45,13 @@ face, style, truncation, glyph-row, clip and plate checks and meaningful negativ
 A stronger cedilla input exposed a separate substitute-font defect: local
 Firefox/WebKit can paint fallback ink outside the bounds reported by text
 metrics. The rejected full-width raster observer also grew memory with the
-untruncated request. These findings remain open in [#637](https://github.com/khawkins98/scriptoscope/issues/637),
-with original failures and platform limits preserved. A calibration repair does
-not resolve them or prove all arbitrary-font ink fits. A complete runtime fix
-needs bounded resources and an explicit finite-coverage support premise;
-transparent sampled borders alone cannot certify arbitrary disconnected ink.
+untruncated request. At the time of the calibration repair, these findings were
+left open in [#637](https://github.com/khawkins98/scriptoscope/issues/637),
+with original failures and platform limits preserved. The calibration repair
+alone did not resolve them or prove all arbitrary-font ink fits. The #637
+replacement described above supersedes the metrics-only coverage and full-width
+observation limitations under P1; it does not erase these observations or turn
+transparent sampled borders into proof of arbitrary disconnected ink.
 
 ## 2026-11-02 — Native target ancestry does not preserve pointer coordinates (#631)
 

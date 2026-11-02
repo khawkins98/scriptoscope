@@ -567,6 +567,19 @@ const win = await renderWindow(theme, {
 document.body.appendChild(win);
 ```
 
+Window titles use substitute browser fonts. Recipe titles fit the complete request
+vertically before horizontal truncation, keeping the required face and preferred
+family; an impossible slot omits ink but preserves the full accessibility title.
+Coverage relies on the explicit modern **P1 finite raster envelope assumption**
+for the loaded fallback stack, not arbitrary-font proof or native typography
+equivalence. Unsupported metrics or raster phase, or host allocation/readback
+failure, reject the render/update with an error named `TitleCoverageUnavailableError`;
+handle that operation's rejection rather than expecting a smaller style or omitted
+ink. Coverage scratch is fixed-size; publication follows the destination clip and
+frame dimensions. Work is finite but can be quadratic, with no hard realtime or
+total-memory guarantee. See the [title-coverage contract](./docs/spec/engine/window-title-fit.md)
+for the support premise and resource limits.
+
 `loadTheme` tries `scheme.sit` first, then falls back to `scheme.rsrc` by default. When you already know which form the bundle ships (e.g. from a catalog manifest), pass `{ source: 'scheme.sit' }` to skip the cascade and avoid the dev-console 404 noise on `.rsrc`-only bundles:
 
 ```ts
