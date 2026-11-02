@@ -1,0 +1,177 @@
+# Substitute window-title coverage
+
+## Status and scope
+
+PM modern compatibility policy, 2026-11-02. This contract supplements TF1–TF6
+and F11 in [window-widgets.md](window-widgets.md). It does not establish original
+font, QuickDraw raster or cross-platform pixel equivalence.
+
+Recipe-window style selection uses the complete requested title before
+horizontal truncation. Shared title measurement and painting also serve built-in
+procedural frames; those consumers retain their own geometry, font-selection,
+baseline, clipping and truncation policies. This contract does not apply recipe
+size reduction to procedural frames.
+
+## Style and fit
+
+Preserve the preferred family, required plain/bold face and spacing. Keep the
+preferred style when it fits. Otherwise choose the largest positive integer
+pixel size no greater than the preferred size that fits, preserving family,
+face and spacing. Candidate geometry uses the existing layout constructor and
+the candidate's complete-title advance with the caller's unchanged inputs.
+Do not assume fit is monotonic with size or infer fit from a later prefix.
+
+For each candidate, keep the existing adjusted baseline and actual remapped
+vertical title clip. Fit requires every main glyph pixel of the complete
+requested title with nonzero alpha to lie inside that vertical interval.
+Fallback glyphs, disconnected marks and faint coverage count. There is no
+alpha threshold, permitted lost row, replacement face or enlarged clip/plate.
+Shadow retains its existing clipped semantics and does not enlarge the fit
+budget.
+
+One resolved style governs advance, layout, truncation/marker measurements and
+painting. Preserve existing full-width, longest-prefix and marker rules, colour
+sampling, main/shadow order and offsets, title data and accessibility name.
+The existing baseline rule remains unchanged for measurement and publication;
+scratch padding or cropping must not move the published pen or baseline.
+
+Existing empty-title, suppressed-title and empty-clip behavior is unchanged.
+TF5 applies only after every eligible candidate has demonstrated nonfit. It
+retains preferred geometry and full title/accessibility data while omitting
+both main and shadow ink. An unavailable coverage result is never TF5 and
+cannot justify choosing a smaller candidate while a larger one is unresolved.
+
+## P1 supported-renderer premise
+
+P1 is an explicit compatibility assumption about supported modern browser
+Canvas 2D rendering, not a bound derived from a standard or a proof over
+arbitrary fonts. It applies to stable loaded text state on the existing host
+fallback stack, with the existing family order, face and spacing. It assumes
+finite host operations and finite main raster support for the complete shaped
+request, including every resolved fallback and sequence.
+
+Observation uses the library's native internal raster resolution, alphabetic
+baseline, identity raster scale and unchanged fractional pen/baseline phase.
+CSS presentation scaling and device pixel ratio do not change that internal
+raster. Main-coverage observation excludes shadow and filters and preserves
+the painter's text shaping state. Integer translations into scratch tiles must
+preserve the original coverage; drawing a clipped whole request must not require
+a hidden full-advance pixel surface. These are supported-renderer assumptions,
+not guarantees about opaque browser implementations.
+
+The finite envelope is the complete request's signed actual bounding rectangle
+on **both axes**, expanded on each side by one candidate font em plus one
+internal-raster pixel, then rounded outward to integer pixel boundaries.
+At the identity raster scale the expansion is the candidate pixel size plus
+one pixel. Horizontal bounds use the alignment-relative actual left/right
+bounds, including negative bearings; vertical bounds use baseline-relative
+actual ascent/descent, including negative descent. Preserve the actual alignment
+point and baseline. Advance width and first-font metrics do not replace actual
+ink bounds. Do not clamp signed bounds to zero.
+
+P1 assumes all nonzero main raster coverage lies in this envelope. The expansion
+is independent of title advance and length; it varies with candidate size.
+Its em and pixel terms are declared support allowances, not maximum contour,
+metric-error or antialias widths established by measurement. Finite samples may
+falsify this assumption but cannot prove arbitrary-fallback completeness.
+A transparent observed border does not establish absence of ink beyond it.
+No runtime claim is made that unseen violations of P1 can always be detected.
+
+The measured request and every observation/publication pass must share stable
+font resolution and text state. A result cached across a font-state change
+is invalid. An unsupported transform/phase or known premise violation cannot
+silently reuse P1. This policy does not change the fallback stack to obtain a
+bound and does not require resolving font identities that Canvas does not expose.
+
+## Bounded observation and finite completion
+
+Coverage observation scratch is bounded by one canvas of at most 4096 by 32
+internal-raster pixels and one equally bounded RGBA readback. Reuse storage;
+do not retain a list of tile rasters, an envelope-sized pixel array or a
+full-untruncated-title bitmap. The two explicit RGBA planes total at most
+1,048,576 bytes, apart from fixed browser overhead. This is independent of
+the complete request's advance for fixed font and clip inputs.
+
+Every raster observation must shape/draw the identical complete request with
+the candidate's exact text state. Integer tile translations preserve the original
+coordinate phase and absolute baseline relationship. Substring, glyph, word,
+cluster or directional-run splitting, horizontal compression and `maxWidth`
+fitting do not substitute for complete-request observation.
+
+An envelope wholly inside the vertical clip establishes fit conditional on P1
+without raster observation. Otherwise account for the finite envelope completely
+at the original raster resolution. Any nonzero-alpha pixel outside the vertical
+clip establishes nonfit and permits early termination for that candidate.
+Fit requires complete coverage of the possible exterior ink; interior pixels
+cannot affect this verdict, so observing only the envelope's exterior regions
+is permitted. Do not treat the envelope's excess height itself as nonfit.
+
+Traversal has a finite bound determined by the envelope and fixed tile
+dimensions. There is no open-ended border-growth retry, fixed tile-count cutoff
+or title-length cap. Bounds, origins, translated coordinates and traversal
+counts must remain finite and safely representable within the supported host's
+numeric/raster coordinate range. Missing, nonfinite, inconsistent or unusable
+metrics do not establish empty ink or fit. Zero actual bounds alone do not
+establish empty raster; account for the expanded envelope.
+
+Fixed scratch does not imply linear CPU. If observation visits N tiles and a
+complete-string host operation costs S, its work may include N times S per
+candidate. With advance proportional to input size this can be quadratic;
+the existing prefix-truncation work must also be included in performance
+assessment. Neither a browser cache nor an expected early nonfit witness is a
+worst-case work guarantee. Before landing, bounded public-render measurements
+must demonstrate acceptable added fit and total-render cost against unchanged
+behavior on long ordinary and fallback requests, including fitting requests
+that require complete traversal. Preserve the measured costs and obtain an
+explicit integration/review disposition. Do not turn a performance concern into
+silent input rejection, incomplete observation or weakened alpha semantics.
+
+## Measurement and publication consumers
+
+Recipe and procedural measurement, advance acquisition and truncation decisions
+must be metrics-only operations. They must not allocate full requested-title
+bitmaps merely to obtain advance, ascent or font metrics. Coverage needed for
+recipe style selection uses the bounded observation above.
+
+Window-title paint scratch/readbacks must be bounded by the actual destination
+clip/output and fixed observation scratch, rather than by the full untruncated
+advance. Final window/frame storage may follow the requested window dimensions;
+that inherently sized output is separate from coverage scratch. Preserve each
+consumer's own baseline, font policy, geometry, colours and clipping.
+
+Published glyph coverage must not lose rows or overhang that were accounted for
+during fit solely because an intermediate raster used narrower measured bounds.
+Coverage padding/crop origins remain explicit in placement: they must not be
+mistaken for the public pen, baseline or framebuffer origin. Complete-request
+shaping is required for coverage fitting; final painting retains existing
+displayed-prefix/marker shaping and clipping semantics with the resolved style.
+
+A separately live, explicitly requested full-text raster output may remain
+proportional to the requested output dimensions. It must not be used as hidden
+pretruncation observation or measurement storage. Preserve such a consumer's
+placement contract when correcting coverage. If no live/public consumer needs
+that output, retirement requires an explicit caller audit; do not keep a private
+full-raster path solely to evade the scratch bound. Input strings and opaque
+browser shaping metadata may scale with input size; this contract does not
+claim constant total memory including input, output and host internals.
+
+## Coverage unavailable
+
+Unusable metrics or coordinates, unsupported observation state, known breach
+of P1, and host allocation/readback/security failure yield a distinct
+coverage-unavailable failure. Do not reinterpret it as nonfit, empty ink, TF5,
+successful clipping, a smaller fitting style or an automatic metrics-only
+fallback. Do not retry indefinitely. A caller may distinguish this failure
+from a successfully resolved impossible slot.
+
+Use the existing error/throw/rejection convention of the consuming operation;
+do not add a general new configuration or transaction API. A failed render/update
+must not publish a partially resolved style or replace a prior successful
+render/accessibility result outside the existing update transaction semantics.
+No successful new result is returned on first-render failure. Requested title
+data is not shortened or rewritten.
+
+Existing non-DOM and unavailable-Canvas-context fallback behavior remains
+unchanged. It is not a new coverage-unavailable branch merely because Canvas
+is absent. Successful supported rendering retains the established behavior
+specified above; unsupported/failed observation is the distinct failure path.
