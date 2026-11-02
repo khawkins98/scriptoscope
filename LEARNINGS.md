@@ -9,10 +9,12 @@ Alternate widget selection also belongs to the resolved window type, after alias
 A substitute bold face can need more vertical space than its plain reference. The modern title-fit policy therefore measures the full requested title with each candidate style against its actual remapped clip, using geometry-only preparations through the existing layout constructor. It preserves an already fitting preferred style, otherwise resolves one smaller fitting size for both advance/layout and paint. The clip and baseline stay fixed, and independent title references must compare the appropriate face and resolved size rather than weaken glyph-row assertions.
 ## 2026-11-01 — Preserve the concept's pixels, and verify the actual build
 
-Choose the authoritative source per feature: extract distinctive illustration
-from the concept, but use existing geometric brand definitions for logos. The
-Scriptoscope reference follows the site's tile dimensions, gaps and rotation
-rather than tracing the image model's approximation.
+Choose the authoritative source per feature: use existing brand definitions for
+logos and preserve the concept's defining frame details independently. The first
+Scriptoscope pass kept the palette but flattened corner cuts, layered rails and
+control bevels. A matched-width image alone did not catch that loss: review an
+explicit feature inventory, including enlarged corners and the same control
+composition, before calling an implementation faithful.
 
 Bonn's procedural replacements depicted the right subjects but lost their
 recognizable roofs, shading and blossoms. Extracting the actual concept pixels

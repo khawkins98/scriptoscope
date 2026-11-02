@@ -155,7 +155,9 @@ Supply its SVG, the brief, title/widget reservations and a target outer size
 to the artist. It shows **source cells before stretching**, not the final
 composition. Revise the skeleton if the concept needs larger forms; do not
 squeeze a strong concept into inherited dimensions to preserve old tests.
-Save the selected image and exact prompt under `concept/`.
+Save the selected image and exact prompt under `concept/`. Measure the finished
+concept and complete the brief’s defining-feature inventory before painting;
+the initial skeleton is a proposal, not a fidelity constraint.
 
 ### 4.3 Paint over the concept
 
@@ -223,14 +225,16 @@ selects the active window. Inspect pressed widgets and collapse/restore too.
 For matched composition, capture the live control scene:
 
 ```sh
-npm run capture:authoring -- authoring/schemes/scriptoscope --concept --out /tmp/window.png
+npm run capture:authoring -- authoring/schemes/scriptoscope --concept \
+  --width 400 --height 204 --out /tmp/window.png
 node scripts/authoring-concept.mjs authoring/schemes/scriptoscope \
   --render /tmp/window.png --concept authoring/schemes/scriptoscope/concept/concept.png \
-  --crop 188,178,1248,765 --out /tmp/comparison.html
+  --crop 190,180,1242,762 --out /tmp/comparison.html
 ```
 
 The self-contained comparison matches **outer widths**, preserves both aspect
-ratios and shows the source geometry separately. The crop includes the full
+ratios and shows the source geometry separately. Also match the scene’s control
+layout and inspect enlarged corners/rails against the brief’s feature inventory. The crop includes the full
 concept window. Capture `--width`/`--height` are **content** pixels; defaults
 are 380×210. `--document` uses the ordinary content instead of live controls,
 progress and active scrollbars. The comparison script's `--concept <path>`
@@ -411,7 +415,8 @@ than corpus-calibrated warning floors; visual acceptance remains separate.
 - The declarative preview does not expose mixed checkbox state.
 - Text fields are CSS in the web; popup-button pieces, menus and several
   classic control variants are not exposed by the authoring preview.
-- `--concept` explicitly calls public `composeProgress`; there is no declarative
+- `--concept` calls public `composeSlider` and `composeProgress` for sized
+  specimens alongside live buttons/checkables/tabs; there is no declarative
   progress element. A browser preview is not proof that the same native control
   was exercised in a VM run.
 - Window grow-box art and control-panel extras need native review. Popup and

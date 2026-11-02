@@ -17,7 +17,8 @@ links for the destination folder.
 Build a skeleton and generate its geometry sheet:
 `node scripts/authoring-concept.mjs <scheme-dir> --out /tmp/geometry.html`.
 The SVG describes source cells, not the expanded window. Match the concept's
-relative header, ornament, title and control sizes; revise geometry when needed.
+relative header, ornament, title and control sizes. Measure the finished concept
+and revise the initial skeleton; inherited compact dimensions are not binding.
 
 | Feature | Fixed / growing / title-cap behavior | Source size | Narrow-window outcome |
 |---|---|---|---|
@@ -35,6 +36,18 @@ relative header, ornament, title and control sizes; revise geometry when needed.
 Try extracting distinctive illustration pixels before reconstructing them.
 Keep approved crops and palettes stable while adding assets.
 
+Record a small inventory of defining features before implementation. For an
+adaptation, state the design reason or evidenced runtime limitation; code
+simplicity and successful builds are not fidelity evidence. Using original
+geometric logo artwork does not authorize simplifying other concept details.
+
+| Defining feature | Measured geometry / layer order | Preserve or adapt; reason | Live comparison result |
+|---|---|---|---|
+| Outer mask and corner cuts | | | |
+| Border rails and inlays, outside to inside | | | |
+| Material shading and highlights | | | |
+| Controls: sizes, depth and gaps | | | |
+
 - Full-window concept crop (`x,y,width,height`) and measured grid scale:
 - Editable PNGs, paired state dimensions and source-derived palettes:
 - Reproducible crop/sampling/mask recipe and final-grid repairs:
@@ -43,7 +56,8 @@ Keep approved crops and palettes stable while adding assets.
 
 Compare concept and live scene at equal outer widths without changing aspect
 ratios. Review silhouette, composition, materials and texture at 1×, narrow/wide
-and 8 bits. Use behavioral tests for title room and complete ornaments rather
+and 8 bits; inspect each inventory entry, including enlarged corner/border detail.
+Matching width and broad palette alone is insufficient. Use behavioral tests for title room and complete ornaments rather
 than locking incidental illustration dimensions.
 
 ## Native validation

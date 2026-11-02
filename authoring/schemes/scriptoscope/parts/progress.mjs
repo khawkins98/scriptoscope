@@ -1,4 +1,4 @@
-import { Raster, encodeCicn, encodeCinf, encodePpat } from '../../../../tools/theme-author/index.js';
+import { Raster, mix, encodeCicn, encodeCinf, encodePpat } from '../../../../tools/theme-author/index.js';
 
 // Material roles for progress, list headers, disclosures and native grow boxes.
 const family = (C) => ({
@@ -29,41 +29,30 @@ let P;
 // uncovered columns between the side band and I). I is then 8 rows tall.
 const BAR = { width: 8, height: 14, corner: 3, inner: 8 };
 
-/** Cut the 2-1 stair off all four corners of a w×h raster. */
-function stair(r) {
-  const { width: w, height: h } = r;
-  for (const [x, y] of [
-    [0, 0],
-    [1, 0],
-    [0, 1],
-  ]) {
-    r.set(x, y, null)
-      .set(w - 1 - x, y, null)
-      .set(x, h - 1 - y, null)
-      .set(w - 1 - x, h - 1 - y, null);
-  }
-  return r;
-}
-
 function progressFrame(p) {
   // A sunk channel: outline, then the shade on the inner top and left, white trough.
   // The frame's middle (rows 3..10) is never drawn; painting it keeps the
   // image readable in ResEdit-style tools.
   const { width: W, height: H } = BAR;
-  const r = stair(new Raster(W, H).fillRect(0, 0, W, H, p.trough)).outlineEdges(0, 0, W, H, p.outline);
-  return r
-    .hline(2, 1, W - 4, p.troughShade)
-    .vline(1, 2, H - 4, p.troughShade)
-    .set(1, 1, null);
+  const r = new Raster(W, H).fillRect(0, 0, W, H, p.trough).outlineEdges(0, 0, W, H, p.outline);
+  return r.hline(2, 1, W - 4, p.troughShade).vline(1, 2, H - 4, p.troughShade);
 }
 
-// The entire 24px fill period repeats: six coloured segments with paper gaps.
+// One compact 216px repeat: each brand colour occupies six 6px segments.
+// A paper gap and lit top/left versus shaded bottom/right give each block depth.
 function progressFill(p) {
-  const w = 24,
-    h = BAR.inner,
-    r = new Raster(w, h).fillRect(0, 0, w, h, p.trough);
-  for (let x = 0; x < w; x++)
-    for (let y = 1; y < h - 1; y++) if (x % 4 !== 3) r.set(x, y, p.colors[Math.floor(x / 4)]);
+  const width = 216;
+  const height = BAR.inner;
+  const r = new Raster(width, height).fillRect(0, 0, width, height, p.trough);
+  for (let segment = 0; segment < width / 6; segment++) {
+    const x = segment * 6;
+    const color = p.colors[Math.floor(segment / 6)];
+    const light = mix(color, '#ffffff', 0.35);
+    const dark = mix(color, '#28251f', 0.3);
+    r.fillRect(x, 0, 5, height, color);
+    r.hline(x, 0, 5, light).vline(x, 0, height, light);
+    r.hline(x, height - 1, 5, dark).vline(x + 4, 1, height - 1, dark);
+  }
   return r;
 }
 

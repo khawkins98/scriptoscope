@@ -170,7 +170,7 @@ const finderCinf = () =>
   });
 
 // Original picker icon: six site-mark tiles, rotated -8 degrees with binary masks.
-export function schemeIcon(size) {
+export function schemeIcon(size, colors = C.mark) {
   const r = new Raster(size, size),
     scale = size / 32,
     angle = (8 * Math.PI) / 180;
@@ -188,7 +188,7 @@ export function schemeIcon(size) {
       const col = Math.floor(u / stepX),
         row = Math.floor(v / stepY);
       if (u >= 0 && u < 21 && v >= 0 && v < 21 && u % stepX < width && v % stepY < height)
-        r.set(x, y, C.mark[row * 3 + col]);
+        r.set(x, y, colors[row * 3 + col]);
     }
   return r;
 }

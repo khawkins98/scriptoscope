@@ -159,7 +159,7 @@ function inactiveImage(horizontal, t) {
   return b.r;
 }
 
-/** Thumb: an opaque image of track with a rounded pill on it. */
+/** Thumb: an opaque track image carrying the concept’s square enamel slider and brass grip. */
 function thumbImage(horizontal, t, pressed, ghost = false) {
   const small = t <= 11;
   const along = small ? 16 : 23;
@@ -175,9 +175,9 @@ function thumbImage(horizontal, t, pressed, ghost = false) {
     return b.r;
   }
   paintTrack(b, t, along);
-  b.round(inset, 1, w, h, Math.min(rad, 3), pressed ? C.accentDeep : SB.thumbEdge);
-  b.round(inset + 1, 2, w - 2, h - 2, Math.min(rad, 3) - 1, pressed ? C.accent : C.enamelHi);
-  b.round(inset + 2, 3, w - 3, h - 3, Math.min(rad, 3) - 1, pressed ? C.accentDeep : C.enamel);
+  b.fill(inset, 1, w, h, pressed ? C.accentDeep : SB.thumbEdge);
+  b.fill(inset + 1, 2, w - 2, h - 2, pressed ? C.accent : C.enamelHi);
+  b.fill(inset + 2, 3, w - 3, h - 3, pressed ? C.accentDeep : C.enamel);
   // Grip: 1px lines on whole rows, two pixels apart, centred on the pill
   // (pill pixels u = inset … inset + w − 1, v = 1 … along − 2).
   const grip = pressed ? C.white : SB.grip;

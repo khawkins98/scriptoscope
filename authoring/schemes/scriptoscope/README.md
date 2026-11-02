@@ -1,9 +1,9 @@
 # Scriptoscope Reference
 
-An original reference scheme based on the Scriptoscope site's geometric maker
-mark and editorial palette. The charcoal bezel surrounds a flat paper title
-plaque; controls use paper, ink and restrained brass. The six colours appear in
-the rotated maker mark and repeating segmented progress fill.
+An original reference based on the Scriptoscope site's maker mark and editorial
+palette. Chamfered corners carry layered brass rails around charcoal enamel;
+the ivory title plaque is recessed, with bevelled widgets and square controls.
+The mark and chunky segmented progress use the six brand colours.
 
 ```sh
 npm run author -- authoring/schemes/scriptoscope --sheet --palette
@@ -11,6 +11,8 @@ npm run check:schemes
 npm run dev
 # /authoring-preview.html?scheme=/authoring/schemes/scriptoscope/scheme.rsrc
 npm run capture:authoring -- authoring/schemes/scriptoscope
+npm run capture:authoring -- authoring/schemes/scriptoscope --concept \
+  --width 400 --height 204 --out preview-concept.png
 ```
 
 - `scheme.mjs`: push/check controls, metadata and family assembly with duplicate-id checks.
@@ -19,18 +21,17 @@ npm run capture:authoring -- authoring/schemes/scriptoscope
 - Other `parts/` files: control families and native control-panel extras.
 - `concept/`: design intent, selected generated concept and exact prompt.
 
-The concept established composition and material hierarchy. Its illustration was
-not used as a source for the logo: the maker mark is reconstructed directly from
-the site's six exact colours, order, spacing and -8° rotation using whole-pixel
-sampling. Repeating surfaces and glyphs are deterministic raster geometry.
+[The concept brief](concept/brief.md) maps the defining silhouette, rail layers,
+materials, spacing and deliberate adaptations. `preview-concept.png` matches the
+concept's composition; `preview.png` and `preview-sizes.png` exercise the wider
+control family and narrow/wide windows.
 
-The document's warm-paper background uses `cinf` → `ppat 42`. Ordinary classic
-applications still own their content drawing. The footer hatch is painted inside
-a fixed cell; separate grow-box resources serve native content corners.
+The logo follows the site's source geometry rather than the generated image's
+approximation. Header and footer periods remain compact; growing cells never
+stretch a corner or widget. The paper body uses `cinf` → `ppat 42`; ordinary
+classic applications still own their content drawing.
 
-Browser previews cover active/inactive, narrow/wide and long titles. The 8-bit
-simulation retains readable labels and distinct tile colours, while warm paper
-becomes neutral and dark enamel shades merge. These are accepted palette
-adaptations, not evidence of native fidelity. Native compatibility smoke passed for the final identity, normal frame, About
-and picker; broader state checks used the preceding logo-only build. See
-[classic/README.md](classic/README.md) for exact hashes, captures and limits.
+Review the 1× composition and enlarged corners before accepting a change.
+8-bit simulation loses some warm paper/near-black shading, so it supplements
+visual review rather than proving native fidelity. Exact-build native checks
+and their limits are recorded in [classic/README.md](classic/README.md).

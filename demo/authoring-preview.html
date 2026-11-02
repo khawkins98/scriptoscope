@@ -21,7 +21,7 @@
 
   Widgets are <button aria-label="Close window"> (etc.) inside each window's
   shadow root, if you want to press them from a test. The concept composition
-  includes a progress bar through the public renderer; menus and desktop
+  uses renderer-composed slider/progress specimens alongside live buttons and tabs; menus and desktop
   patterns still need real Kaleidoscope review.
 
   Shows every window type the scheme defines, plus push buttons, checkboxes,
@@ -45,10 +45,15 @@
     .pad { padding: 10px 14px; }
     .row { display: flex; gap: 10px; align-items: center; margin: 8px 0; }
     label { display: inline-flex; gap: 6px; align-items: center; }
-    .concept-scene { box-sizing: border-box; padding: 24px; min-width: calc(var(--scene-width) + 24px); min-height: calc(var(--scene-height) + 24px); font: 12px/1.4 Charcoal, Geneva, sans-serif; }
-    .concept-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 24px; width: calc(var(--scene-width) - 64px); }
-    .concept-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: calc(var(--scene-width) - 64px); margin-top: 32px; }
+    .concept-scene { box-sizing: border-box; padding: 10px; min-width: calc(var(--scene-width) + 1px); min-height: calc(var(--scene-height) + 1px); font: 12px/1.4 Charcoal, Geneva, sans-serif; }
+    .concept-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 1px 24px; width: calc(var(--scene-width) - 40px); margin: 4px 0; }
+    .concept-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: calc(var(--scene-width) - 40px); margin: 0 0 4px; }
     .concept-actions .row { margin: 0; }
+    .concept-scene [data-scriptoscope-tabs] { width: calc(var(--scene-width) - 40px); }
+    .concept-slider { display: block; width: calc(var(--scene-width) - 40px); margin: 4px 0; }
+    .concept-scene [data-scriptoscope-tabs] > [data-scriptoscope-panel] { padding: 0; border: 0; }
+    .concept-scene [data-authoring-progress] { display: block; line-height: 0; }
+    .concept-scene [data-scriptoscope-tablist] { border-bottom: 1px solid currentColor; }
   </style>
 </head>
 <body>
@@ -131,7 +136,7 @@
   <script type="module">
     import { loadOwnedKaleidoscopeScheme } from '../src/loadKaleidoscopeScheme.ts';
     import { mountExplicitPage } from './explicit-host.mjs';
-    import { composeProgress, bufferToCanvas } from '../src/renderer.ts';
+    import { composeProgress, composeSlider, bufferToCanvas } from '../src/renderer.ts';
 
     const status = document.getElementById('status');
     const params = new URL(location.href).searchParams;
@@ -152,14 +157,22 @@
         desk.replaceChildren(doc);
         if (params.get('composition') === 'concept') {
           doc.innerHTML = `<div class="concept-scene">
+            <div class="concept-actions"><button data-scriptoscope-button>Cancel</button><button data-scriptoscope-button data-scriptoscope-default>OK</button><button data-scriptoscope-button>Apply</button></div>
             <div class="concept-controls">
               <label><input type="checkbox" checked> Enabled</label><label><input type="radio" name="concept-radio" checked> Selected</label>
               <label><input type="checkbox"> Unchecked</label><label><input type="radio" name="concept-radio"> Unselected</label>
               <label><input type="checkbox" disabled> Disabled</label><label><input type="radio" disabled> Disabled</label>
             </div>
-            <div class="concept-actions"><span data-authoring-progress role="progressbar" aria-label="Progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="65"></span>
-              <div class="row"><button data-scriptoscope-button>Cancel</button><button data-scriptoscope-button data-scriptoscope-default>OK</button></div>
+            <div data-scriptoscope-tabs>
+              <button data-scriptoscope-tab="general" data-scriptoscope-selected>General</button>
+              <button data-scriptoscope-tab="display">Display</button>
+              <button data-scriptoscope-tab="network">Network</button>
+              <div data-scriptoscope-panel="general"></div>
+              <div data-scriptoscope-panel="display"></div>
+              <div data-scriptoscope-panel="network"></div>
             </div>
+            <span class="concept-slider" data-authoring-slider role="img" aria-label="Slider at 40 percent"></span>
+            <span data-authoring-progress role="progressbar" aria-label="Progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="65"></span>
           </div>`;
           const scene = doc.querySelector('.concept-scene');
           scene.style.setProperty('--scene-width', `${doc.dataset.scriptoscopeWidth}px`);
@@ -191,8 +204,12 @@
       const theme = await loadOwnedKaleidoscopeScheme(blob, { meta: { name: url.split('/').slice(-2, -1)[0] }, source: url });
       const progress = desk.querySelector('[data-authoring-progress]');
       if (progress) {
-        const length = Math.max(32, Math.min(120, Number(params.get('width') ?? 380) - 220));
+        const length = Math.max(32, Number(params.get('width') ?? 380) - 40);
         progress.append(bufferToCanvas(await composeProgress(theme, { length, value: 0.65 })));
+        const slider = await composeSlider(theme, { length, value: 0.4,
+          variant: 'pointsDownOrRight', tickMarks: 24, thickness: 26,
+          background: { r: 0, g: 0, b: 0, a: 0 } });
+        if (slider) desk.querySelector('[data-authoring-slider]').append(bufferToCanvas(slider));
       }
       await mountExplicitPage({
         root: document.getElementById('desk'),

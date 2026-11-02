@@ -7,30 +7,16 @@ import { C } from './palette.mjs';
 // same-id cinf. The engine copies the four c×c corners 1:1, stretches the
 // s-thick edge bands from one column/row, and fills the middle with ONE
 // colour read at bgPixel. s = 2 keeps the sheen row and the bottom shade row.
-// Corners are a hard 3px pixel stair, the same as the window's.
+// Square faces keep the concept's shallow upper-left light and lower-right shade.
 const BUTTON = { size: 20, corner: 4, side: 2 };
-
-/** A rectangle with 2-1 stair corners: rows 0 and h−1 lose 2px at each end, rows 1 and h−2 lose 1. */
-function stairRect(w, h, fill) {
-  const r = new Raster(w, h).fillRect(0, 0, w, h, fill);
-  for (const [y, n] of [
-    [0, 2],
-    [1, 1],
-    [h - 2, 1],
-    [h - 1, 2],
-  ]) {
-    for (let k = 0; k < n; k++) r.set(k, y, null).set(w - 1 - k, y, null);
-  }
-  return r;
-}
 
 function pushFace({ face, edge, text, top, bottom }) {
   const { size } = BUTTON;
-  const r = stairRect(size, size, face);
-  r.hline(2, 1, size - 4, top).vline(1, 2, size - 4, top); // sheen
-  r.hline(2, size - 2, size - 4, bottom).vline(size - 2, 2, size - 4, bottom); // shade
+  const r = new Raster(size, size).fillRect(0, 0, size, size, face);
+  r.hline(1, 1, size - 2, top).vline(1, 1, size - 2, top); // shallow light rim
+  r.hline(1, size - 2, size - 2, bottom).vline(size - 2, 1, size - 2, bottom); // shade
   r.outlineEdges(0, 0, size, size, edge);
-  r.swatch(0, 0, text); // hidden: a transparent corner pixel carries the label colour
+  r.swatch(9, 10, text); // hidden in the sampled-fill center, never copied by the compositor
   return r;
 }
 
@@ -42,27 +28,20 @@ const pushCinf = () =>
     patternAnchor: 0,
     bgPatternId: 0,
     bgPixel: { x: 10, y: 10 },
-    textPixel: { x: 0, y: 0 },
+    textPixel: { x: 9, y: 10 },
     embossPixel: { x: 0, y: 0 },
   });
 
-// Default ring: drawn outset round the face and AFTER it, corners copied 1:1,
-// face's stair grown by the gap, so the two stay parallel.
+// A square brass dash ring surrounds the face without painting over it.
+// Its 6px middle bands contain two 3px periods; tileSides repeats both axes.
 function ringFace(color) {
-  const size = 24,
-    r = new Raster(size, size);
-  const outer = (x, y) => {
-    const dx = Math.min(x, size - 1 - x),
-      dy = Math.min(y, size - 1 - y);
-    return dx + dy >= 3 || (dx >= 1 && dy >= 1);
-  };
-  const inner = (x, y) => {
-    const dx = Math.min(x, size - 1 - x) - 2,
-      dy = Math.min(y, size - 1 - y) - 2;
-    return dx >= 0 && dy >= 0 && (dx + dy >= 3 || (dx >= 1 && dy >= 1));
-  };
-  for (let y = 0; y < size; y++)
-    for (let x = 0; x < size; x++) if (outer(x, y) && !inner(x, y)) r.set(x, y, color);
+  const size = 24;
+  const r = new Raster(size, size);
+  for (let p = 0; p < size; p++) {
+    if (p % 3 === 2) continue;
+    r.fillRect(p, 0, 1, 2, color).fillRect(p, size - 2, 1, 2, color);
+    r.fillRect(0, p, 2, 1, color).fillRect(size - 2, p, 2, 1, color);
+  }
   return r;
 }
 
@@ -70,7 +49,7 @@ const ringCinf = () =>
   encodeCinf({
     cornerSize: 9,
     sideThickness: 4,
-    tileSides: 0,
+    tileSides: 1,
     patternAnchor: 0,
     bgPatternId: 0,
     bgPixel: { x: 12, y: 12 },

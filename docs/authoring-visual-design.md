@@ -112,7 +112,15 @@ system. Surface detail should support the silhouette, not substitute for it.
 Record the selected image, prompt and measurements in the
 [brief](../authoring/concept-brief-template.md). Measure relative header,
 ornament, title and control sizes against the complete window. Change geometry
-when necessary to preserve the composition.
+when necessary to preserve the composition. Measure the finished concept, then
+revise the initial skeleton; compact inherited dimensions are not a constraint
+on the selected design.
+
+Before painting, inventory its few defining features: outer contour and corner
+cuts, border/inlay layers in order, material shading, and control sizes/gaps.
+For each, record **preserve** or **adapt**, with measured geometry and the reason
+for any adaptation. Cite the actual runtime limitation when one forces a change;
+simpler code or a successful build does not justify losing a defining feature.
 
 Try extracting distinctive illustration pixels before reconstructing them.
 Preserve proportions, shading and character; record crop, sampling, masks,
@@ -120,9 +128,13 @@ palette choices and repairs so another author can reproduce the extraction.
 Keep placement and repeats in code. Use source geometry for existing geometric
 branding rather than tracing a generated approximation; the
 [reference brief](../authoring/schemes/scriptoscope/concept/brief.md) records that choice.
+That substitution applies to the brand asset, not to the frame's other details.
 
 Use a matched-width comparison with both aspect ratios intact. Judge silhouette,
-composition, material and texture separately. Keep essential identity in the bar
+composition, material and texture separately, checking each inventoried feature
+against the live result. Equal widths and a matching palette alone do not establish
+fidelity: inspect the transparent outer mask, corner cuts, ordered rails/inlays
+and spacing at 1× and enlarged before approving. Keep essential identity in the bar
 rows too: native menu bars may cover art above a window near the screen top.
 
 ## 4. Review checklist
@@ -139,7 +151,8 @@ Save a before capture when improving an existing scheme. Useful diagnoses:
 
 Before review, check:
 
-- Signature silhouette, material and relative scale survive at 1×.
+- Inventoried contour, border layers, material and spacing survive at 1×;
+  adaptations have explicit reasons rather than retrospective approval of loss.
 - Title, widget glyphs and live content remain readable in active/inactive states.
 - Normal and pressed widgets align; narrow/wide windows have deliberate outcomes.
 - Repeats join cleanly; palette fitting and `sim8` preserve defining details.

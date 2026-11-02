@@ -16,8 +16,8 @@ import { Raster, encodeCicn, encodeCinf } from '../../../../tools/theme-author/i
 // is drawn on whole pixels with hard edges, like the frames: the slider groove
 const K = (C) => ({
   groove: {
-    normal: { top: C.accentDeep, fill: C.accent },
-    pressed: { top: C.accentDeep, fill: C.accent },
+    normal: { top: C.ink, fill: C.deep },
+    pressed: { top: C.ink, fill: C.deep },
     inactive: { top: C.deep, fill: C.shade },
   },
   tab: {
@@ -87,20 +87,15 @@ const sdRoundRect = (x0, y0, x1, y1, rad) => (px, py) => {
 // 1 normal, 2 pressed, 3 ghost. Copied 1:1, masked, over the track, so its
 // edge pixels are blended with what lies under them in that row.
 // c = byte 0 of cinf gb also insets the thumb's travel (ID6, §5.2).
-const SLIDER = { k: 2, trackH: 4, thumbW: 15, cell: 16, band: 16 };
+const SLIDER = { k: 2, trackH: 8, thumbW: 15, cell: 16, band: 16 };
 
-/** Groove: a 4px sunk channel, its top row the deep edge, ends cut square-round. */
+/** Fine neutral rail with dark end stops; its one middle column stays uniform. */
 function trackArt(t) {
-  const { k, trackH } = SLIDER,
-    w = 2 * k + 1;
-  const r = new Raster(w, trackH).fillRect(0, 0, w, trackH, t.fill).hline(0, 0, w, t.top);
-  return r
-    .set(0, 0, null)
-    .set(w - 1, 0, null)
-    .set(0, trackH - 1, null)
-    .set(w - 1, trackH - 1, null)
-    .set(0, 1, t.top)
-    .set(w - 1, 1, t.top);
+  const { k, trackH } = SLIDER;
+  const width = 2 * k + 1;
+  return new Raster(width, trackH)
+    .hline(0, 3, width, t.top).hline(0, 4, width, t.fill)
+    .vline(0, 0, trackH, t.top).vline(width - 1, 0, trackH, t.top);
 }
 
 const TAB13 = [
