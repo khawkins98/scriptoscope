@@ -2,12 +2,12 @@
 <!--
   Dev-only authoring preview. Not part of the GitHub Pages build.
 
-  npm run author -- authoring/schemes/kingfisher
+  npm run author -- authoring/schemes/scriptoscope
   npm run dev
-  open http://localhost:5173/authoring-preview.html?scheme=/authoring/schemes/kingfisher/scheme.rsrc
+  open http://localhost:5173/authoring-preview.html?scheme=/authoring/schemes/scriptoscope/scheme.rsrc
 
   Options:
-    ?scheme=<url>    the scheme to load (default Kingfisher)
+    ?scheme=<url>    the scheme to load (default Scriptoscope reference)
     ?layout=<url>    replace the windows below with an HTML fragment, e.g.
                      /authoring/preview-layouts/sizes.html (small, large, long
                      titles, an active scroller)
@@ -135,7 +135,7 @@
 
     const status = document.getElementById('status');
     const params = new URL(location.href).searchParams;
-    const url = params.get('scheme') ?? '/authoring/schemes/kingfisher/scheme.rsrc';
+    const url = params.get('scheme') ?? '/authoring/schemes/scriptoscope/scheme.rsrc';
     try {
       // Canvas text is synchronous: wait before first paint, rather than
       // capturing a permanent sans-serif fallback in the chrome bitmap.
@@ -155,7 +155,7 @@
             <div class="concept-controls">
               <label><input type="checkbox" checked> Enabled</label><label><input type="radio" name="concept-radio" checked> Selected</label>
               <label><input type="checkbox"> Unchecked</label><label><input type="radio" name="concept-radio"> Unselected</label>
-              <label><input type="checkbox" data-mixed> Mixed</label><label><input type="radio" disabled> Disabled</label>
+              <label><input type="checkbox" disabled> Disabled</label><label><input type="radio" disabled> Disabled</label>
             </div>
             <div class="concept-actions"><span data-authoring-progress role="progressbar" aria-label="Progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="65"></span>
               <div class="row"><button data-scriptoscope-button>Cancel</button><button data-scriptoscope-button data-scriptoscope-default>OK</button></div>
@@ -164,7 +164,6 @@
           const scene = doc.querySelector('.concept-scene');
           scene.style.setProperty('--scene-width', `${doc.dataset.scriptoscopeWidth}px`);
           scene.style.setProperty('--scene-height', `${doc.dataset.scriptoscopeHeight}px`);
-          doc.querySelector('[data-mixed]').indeterminate = true;
         }
       }
       if (params.get('layout')) {

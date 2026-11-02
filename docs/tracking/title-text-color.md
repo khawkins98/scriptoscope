@@ -8,7 +8,7 @@
 > top-left `(part0.left, part0.top)`, shadow = its right neighbour, read through
 > the palette with the mask ignored (`docs/spec/engine/window-widgets.md`
 > TC1–TC5, `tools/theme-loader/buildThemeJson.js` `windowTitleSamples`). The
-> first-party authored scheme `authoring/schemes/kingfisher` was the
+> first-party authored scheme [historical Kingfisher](https://github.com/khawkins98/scriptoscope/tree/19d09d5927aa2bce55b7b76a14e33576cccef2b5/authoring/schemes/kingfisher) was the
 > colour-customising test case: its first build stored slate `#1d2430`
 > (active) and `#9aa1ab` (inactive) on hidden swatches, and both rendered
 > exactly (the repainted Kingfisher uses system-palette black; Castle's cream

@@ -45,11 +45,11 @@ npm run audit:scenes -- --check   # CI signal: exit 1 if any slot fell to its ha
 npm run gates              # umbrella pre-push gate: typecheck + test + lint --strict + audit --check (use this before pushing)
 
 # Scheme authoring (write side — workflow in docs/authoring-a-scheme.md §4)
-npm run author -- authoring/schemes/kingfisher   # build scheme.mjs → scheme.rsrc + scheme.bin, reload through convertChrome, run checkScheme (--sheet, --palette)
+npm run author -- authoring/schemes/scriptoscope   # build scheme.mjs → scheme.rsrc + scheme.bin, reload through convertChrome, run checkScheme (--sheet, --palette)
 npm run check:schemes                           # validate all 5 authored schemes: build cleanly, checkScheme passes, match committed scheme.rsrc
 # then npm run dev → http://localhost:5173/authoring-preview.html (dev-only page; ?scheme=<url> for another file)
 npm run paint-over -- concept.png --crop x,y,w,h --scale 3 --palette <dir>/palette.mjs   # concept crop → 1× palette-snapped raster
-npm run capture:authoring -- authoring/schemes/kingfisher   # preview.png + preview-sizes.png (needs npm run dev)
+npm run capture:authoring -- authoring/schemes/scriptoscope   # preview.png + preview-sizes.png (needs npm run dev)
 npm run sim8 -- <dir>/preview.png /tmp/sim8.png --dpr 2  # 8 bpp classic-screen simulation
 
 # Diagnostics (consume the locally-baked derivatives — run `build:themes` first if needed)

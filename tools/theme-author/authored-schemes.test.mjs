@@ -20,8 +20,8 @@ const slugs = readdirSync(root, { withFileTypes: true })
   .filter((e) => e.isDirectory() && existsSync(new URL(`${e.name}/scheme.mjs`, root)))
   .map((e) => e.name).sort();
 
-test('shared contracts include the Kingfisher reference implementation', () => {
-  assert.ok(slugs.includes('kingfisher'), 'missing Kingfisher reference implementation');
+test('shared contracts include the Scriptoscope reference implementation', () => {
+  assert.ok(slugs.includes('scriptoscope'), 'missing Scriptoscope reference implementation');
 });
 
 for (const slug of slugs) {
@@ -39,8 +39,7 @@ for (const slug of slugs) {
       assert.deepEqual(errors, []);
       assert.deepEqual(warnings, []);
       assert.equal(parseResourceFork(fork).length, resources.length);
-      // Kingfisher uses a solid body; the other shipped schemes promise a pattern.
-      if (slug !== 'kingfisher') assert.ok(theme.bodyBackground?.pattern, 'document body pattern is wired');
+      assert.ok(theme.bodyBackground?.pattern, 'document body pattern is wired');
     });
 
     await t.test('pressed document strip matches close, zoom and collapse widget widths', () => {

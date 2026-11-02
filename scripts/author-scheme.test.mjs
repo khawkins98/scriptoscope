@@ -8,7 +8,7 @@ import { spawnSync } from 'node:child_process';
 
 test('author command validates MacBinary packaging before writing either scheme output', () => {
   const dir = mkdtempSync(join(tmpdir(), 'author-scheme-'));
-  const source = new URL('../authoring/schemes/kingfisher/scheme.mjs', import.meta.url).href;
+  const source = new URL('../authoring/schemes/scriptoscope/scheme.mjs', import.meta.url).href;
   try {
     writeFileSync(join(dir, 'scheme.mjs'), `export { buildScheme } from ${JSON.stringify(source)};\n`);
     writeFileSync(join(dir, 'meta.json'), JSON.stringify({ name: 'Invalid:Name' }));

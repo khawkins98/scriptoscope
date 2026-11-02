@@ -1,0 +1,30 @@
+// Display sRGB from the Scriptoscope site; short material ramps limit palette drift.
+export const C = {
+  body: '#f4f0e6',
+  white: '#fffdf5',
+  black: '#10100f',
+  paper: '#f4f0e6',
+  ink: '#28251f',
+  brass: '#765222',
+  mutedBrass: '#a89a75',
+  enamel: '#151512',
+  enamelHi: '#45443c',
+  mark: ['#70ab65', '#e5c34a', '#dc8f42', '#b95c87', '#8174ae', '#5d99b6'],
+  shade: '#cfc7b8',
+  deep: '#948c7c',
+  outline: '#28251f',
+  accent: '#765222',
+  accentDeep: '#503718',
+  accentLight: '#e8c975',
+  text: '#28251f',
+  textOff: '#766e60',
+  active: { title: '#28251f', plate: '#f4f0e6', rule: '#cfc7b8', frame: '#151512' },
+  inactive: { title: '#605c51', plate: '#dcd8ce', rule: '#a89a75', frame: '#282823' },
+};
+export const CONTRAST = [
+  [C.ink, C.paper, 'label'],
+  [C.active.title, C.active.plate, 'active title'],
+  [C.inactive.title, C.inactive.plate, 'inactive title'],
+  [C.ink, C.paper, 'glyph'],
+  [C.black, C.body, 'outline'],
+];

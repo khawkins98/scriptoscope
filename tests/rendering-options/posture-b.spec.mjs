@@ -168,9 +168,9 @@ for (const mode of ['source', 'built']) {
 
   test(`${mode}: a first-party tile rethemes every window from authoring/schemes`, async ({ page, demo, production }) => {
     await openShowcase(page, baseOf({ demo, production }));
-    const kingfisher = './authoring/schemes/kingfisher';
-    await page.locator(`#powers-first-party .scriptoscope-theme-picker-tile[data-slug="${kingfisher}"]`).click();
-    await expect.poll(() => page.locator(`#powers [data-scriptoscope-window-host]:not([data-scriptoscope-theme="${kingfisher}"])`).count()).toBe(0);
+    const scriptoscope = './authoring/schemes/scriptoscope';
+    await page.locator(`#powers-first-party .scriptoscope-theme-picker-tile[data-slug="${scriptoscope}"]`).click();
+    await expect.poll(() => page.locator(`#powers [data-scriptoscope-window-host]:not([data-scriptoscope-theme="${scriptoscope}"])`).count()).toBe(0);
     await expect(page.locator('#powers-credit')).toContainText('Scriptoscope Reference Native');
   });
 }

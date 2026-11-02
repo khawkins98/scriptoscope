@@ -7,10 +7,10 @@ rendering gates do not cover authored schemes. Scheme checks discover new
 directories automatically.
 
 ```sh
-npm run author -- authoring/schemes/kingfisher
+npm run author -- authoring/schemes/scriptoscope
 npm run check:schemes
 npm run dev
-# /authoring-preview.html?scheme=/authoring/schemes/kingfisher/scheme.rsrc
+# /authoring-preview.html?scheme=/authoring/schemes/scriptoscope/scheme.rsrc
 ```
 
 | Path in `schemes/<slug>/` | Purpose |
@@ -30,6 +30,6 @@ semi-transparent alpha. Copying an example's source does not transfer its review
 or VM proof. Update identity and credits, regenerate previews and validate your
 own final bytes.
 
-Scriptoscope Reference Native Theme demonstrates imported illustrations, frame recipes and control-family
+The reference demonstrates branded frame recipes, geometric artwork and control-family
 builders. `preview-layouts/` holds HTML fragments for `?layout=`, including the
 narrow/wide stress layout.

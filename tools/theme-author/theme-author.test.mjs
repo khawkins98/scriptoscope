@@ -270,12 +270,12 @@ test('MacBinary output carries type/creator and unwraps to the same fork', async
   const { writeMacBinary, crc16xmodem } = await import('./macbinary.js');
   const { detectContainer, unwrapToResourceFork } = await import('../theme-loader/containers.js');
   const fork = writeResourceFork([{ type: 'Colr', id: 129, data: encodeColr() }]);
-  const bin = writeMacBinary({ name: 'Kingfisher', resourceFork: fork });
+  const bin = writeMacBinary({ name: 'Scriptoscope reference', resourceFork: fork });
   assert.equal(detectContainer(bin), 'macbinary');
   assert.deepEqual([...unwrapToResourceFork(bin)], [...fork]);
   assert.equal(String.fromCharCode(...bin.subarray(65, 73)), 'ColrAcid');
   assert.equal((bin[73] << 8) | bin[101], 0x0400, 'kHasCustomIcon, as every corpus scheme file');
-  const plain = writeMacBinary({ name: 'Kingfisher', resourceFork: fork, finderFlags: 0 });
+  const plain = writeMacBinary({ name: 'Scriptoscope reference', resourceFork: fork, finderFlags: 0 });
   assert.equal(plain[73] | plain[101], 0);
   assert.equal((bin[124] << 8) | bin[125], crc16xmodem(bin.subarray(0, 124)));
   assert.equal(crc16xmodem(new TextEncoder().encode('123456789')), 0x31c3); // CRC-16/XMODEM check value
@@ -350,7 +350,7 @@ test('check: same-id cinf families and progress geometry', () => {
   assert.ok(bad.warnings.some((w) => /cornerSize 4 > sideThickness 2/.test(w)));
 });
 
-test('two Kingfisher parts adding the same id is an error naming both files', async () => {
+test('two Scriptoscope reference parts adding the same id is an error naming both files', async () => {
   const { mkdtempSync, mkdirSync, cpSync, writeFileSync, rmSync } = await import('node:fs');
   const { join } = await import('node:path');
   const { pathToFileURL } = await import('node:url');
@@ -360,8 +360,8 @@ test('two Kingfisher parts adding the same id is an error naming both files', as
   mkdirSync(fixtures, { recursive: true });
   const dir = mkdtempSync(join(fixtures.pathname, '.clash-'));
   try {
-    for (const f of ['scheme.mjs', 'palette.mjs']) cpSync(new URL(`kingfisher/${f}`, root), join(dir, f));
-    cpSync(new URL('kingfisher/parts', root), join(dir, 'parts'), { recursive: true });
+    for (const f of ['scheme.mjs', 'palette.mjs']) cpSync(new URL(`scriptoscope/${f}`, root), join(dir, f));
+    cpSync(new URL('scriptoscope/parts', root), join(dir, 'parts'), { recursive: true });
     writeFileSync(join(dir, 'parts', 'zz-clash.mjs'), "export function build(add) { add('Colr', 129, new Uint8Array(16)); }\n");
     const { buildScheme: build } = await import(pathToFileURL(join(dir, 'scheme.mjs')).href);
     await assert.rejects(build(), /Colr 129 is added by both scheme\.mjs and parts\/zz-clash\.mjs/);

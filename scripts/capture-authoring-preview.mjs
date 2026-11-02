@@ -4,8 +4,8 @@
 // at DPR 1), at the same viewport for every scheme so they compare side by side.
 //
 // Usage (with `npm run dev` running):
-//   npm run capture:authoring -- authoring/schemes/kingfisher [--base http://localhost:5173]
-//   npm run capture:authoring -- authoring/schemes/kingfisher --document --out /tmp/document.png
+//   npm run capture:authoring -- authoring/schemes/scriptoscope [--base http://localhost:5173]
+//   npm run capture:authoring -- authoring/schemes/scriptoscope --document --out /tmp/document.png
 //       [--width 380 --height 210] (CONTENT pixels; screenshot contains the full outer frame)
 //   Add --concept for a composed control scene with progress and active scrollbars.
 //

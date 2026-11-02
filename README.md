@@ -45,9 +45,9 @@ Both let you grab a `.sit` and drop it on the demo to see it render live without
 Start with the [creation guide](./docs/authoring-a-scheme.md). It covers concept
 art, frame geometry, editable sprites, control families and visual review.
 [`tools/theme-author/`](./tools/theme-author/) builds real Kaleidoscope resource
-forks; [Scriptoscope Reference Native Theme](./authoring/schemes/kingfisher/) is the worked reference implementation.
+forks; [Scriptoscope Reference Native Theme](./authoring/schemes/scriptoscope/) is the worked reference implementation.
 
-Run `npm run author -- authoring/schemes/kingfisher` to build an example. Load
+Run `npm run author -- authoring/schemes/scriptoscope` to build an example. Load
 the resulting `scheme.rsrc` in the browser demo, or transfer the generated
 MacBinary `scheme.bin` to a classic Mac. Validate the final build in the browser,
 at 8-bit colour and in native Kaleidoscope before publishing it.

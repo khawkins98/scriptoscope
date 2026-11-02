@@ -30,7 +30,7 @@ the family. A successful load alone does not establish a complete scheme.
 
 ```sh
 npm install
-npm run author -- authoring/schemes/kingfisher
+npm run author -- authoring/schemes/scriptoscope
 npm run dev
 # open http://localhost:5173/authoring-preview.html
 ```
@@ -54,8 +54,8 @@ classic validation claims forward as proof of your new build. New directories
 are discovered automatically by scheme checks; no registry edit is required.
 Open the explicit preview URL for your slug. Showcase integration is optional.
 
-Scriptoscope Reference Native Theme is the worked reference for imported illustrations, frame recipes
-and control-family builders. Keep authored schemes outside the community corpus
+Scriptoscope Reference Native Theme is the worked reference for branded frame recipes,
+geometric artwork and control-family builders. Keep authored schemes outside the community corpus
 in `themes/`.
 
 ## 3. Five ideas you need
@@ -103,13 +103,15 @@ an edge is allowed, but fractional coordinates are not.
 
 Encoders pre-compensate for the loader's classic-Mac-to-modern display gamma.
 Use display sRGB in artwork; `{ gamma: false }` is for deliberately raw stored
-values. Scriptoscope Reference Native Theme's `sys()` palette helper instead starts from a chosen
-stored system-palette entry and returns its display colour.
+values. Exact brand colours may move under native 8-bit palette mapping; inspect
+the final result rather than assuming a display hex value is a device entry.
 
 Prefer system-palette entries for procedural controls and desktop patterns:
 the 6×6×6 cube (`00 33 66 99 cc ff`) plus grey/channel ramps. Extracted
 illustrations may retain source-derived palettes to preserve shading. Every
-compiled `cicn` must still fit 256 colours. Check `author --palette` and the
+compiled `cicn` must still fit 256 colours. The reference checks require exact
+stored system-palette entries for desktop patterns and native cursors; use
+`gamma: false` for those deliberate raw values. Check `author --palette` and the
 8-bit simulation for hue shifts, collapsed ramps and lost outlines; neither
 palette choice guarantees identical display conditions on every machine.
 
@@ -166,7 +168,7 @@ illustration's character. The general palette-voting tool is:
 ```sh
 # Convert JPEG to lossless PNG first, e.g. with sips or ImageMagick.
 npm run paint-over -- /tmp/concept.png --crop 40,10,300,190 --scale 3 \
-  --palette authoring/schemes/kingfisher/palette.mjs --key '#c8d4e4' --out /tmp/bird.png
+  --palette authoring/schemes/scriptoscope/palette.mjs --key '#c8d4e4' --out /tmp/ornament.png
 ```
 
 `mode` preserves the most common palette colour per sampled block; `mean`
@@ -221,9 +223,10 @@ selects the active window. Inspect pressed widgets and collapse/restore too.
 For matched composition, capture the live control scene:
 
 ```sh
-npm run capture:authoring -- authoring/schemes/kingfisher --concept --out /tmp/window.png
-node scripts/authoring-concept.mjs authoring/schemes/kingfisher \
-  --render /tmp/window.png --crop 182,162,773,532 --out /tmp/comparison.html
+npm run capture:authoring -- authoring/schemes/scriptoscope --concept --out /tmp/window.png
+node scripts/authoring-concept.mjs authoring/schemes/scriptoscope \
+  --render /tmp/window.png --concept authoring/schemes/scriptoscope/concept/concept.png \
+  --crop 188,178,1248,765 --out /tmp/comparison.html
 ```
 
 The self-contained comparison matches **outer widths**, preserves both aspect
@@ -351,9 +354,9 @@ not merely share its accent colour.
 
 ### 6.5 Reference implementation layout
 
-[`scheme.mjs`](../authoring/schemes/kingfisher/scheme.mjs) builds the resource
-list and calls `parts/` family builders. Frames and imported PNGs are separate
-from controls. The builder reports duplicate type/id pairs with both owners.
+[`scheme.mjs`](../authoring/schemes/scriptoscope/scheme.mjs) builds the resource
+list and calls `parts/` family builders. Frame geometry, brand artwork and
+control painters stay separate. The builder reports duplicate type/id pairs with both owners.
 This is an example organization, not another abstraction a new scheme needs.
 
 ## 7. Id cheat-sheet
@@ -405,6 +408,7 @@ than corpus-calibrated warning floors; visual acceptance remains separate.
 
 ## 9. Not covered yet
 
+- The declarative preview does not expose mixed checkbox state.
 - Text fields are CSS in the web; popup-button pieces, menus and several
   classic control variants are not exposed by the authoring preview.
 - `--concept` explicitly calls public `composeProgress`; there is no declarative

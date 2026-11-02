@@ -23,8 +23,7 @@ node /path/to/claude-pxl/bin/pxl.js ascii my-sprites.px.js checkbox_on
 
 Import through `decodePng` → `Raster.fromRgba`. Keep large illustrations as
 editable PNGs instead of translating them into hundreds of character-grid rows.
-Scriptoscope Reference Native Theme's [`parts/sprites/`](../authoring/schemes/kingfisher/parts/sprites/)
-shows binary-alpha checks and paired state dimensions.
+Keep active/inactive dimensions matched and reject partial alpha on import.
 
 ## 2. Text routes in `agy`
 
@@ -46,6 +45,10 @@ asking a model to redraw it. `npm run paint-over` is an initial sampling route;
 use explicit masks and a source-derived palette if voting loses important detail.
 Record crops, sampling, masks, palette changes and any repairs so extraction can
 be repeated. Thin rays or glyphs may need final-grid drawing.
+
+For an existing geometric brand mark, use its source geometry and colours. The
+[reference theme](../authoring/schemes/scriptoscope/concept/brief.md) uses its AI
+concept for composition, then builds the site mark, rules and repeats in code.
 
 Keep alpha binary: values 1–127 have hidden-swatch meaning in the encoder.
 Apply hidden colour samples in code after import. Preserve approved crops and
