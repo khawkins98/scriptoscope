@@ -1991,6 +1991,8 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
         : { bottom: `${composed.frame.bottom * scale}px`, left: `${composed.frame.left * scale}px` }
       ),
     } satisfies Partial<CSSStyleDeclaration>);
+    // Retained bars move before replacement paint; intersect their current box with committed S now.
+    this.syncTargets(entry);
     bar.setAttribute('role', 'scrollbar');
     bar.setAttribute('aria-orientation', axis);
     bar.setAttribute('aria-valuemin', '0');
