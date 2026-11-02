@@ -45,9 +45,7 @@ to 208/239 ms from 7 ms. This measures selected host calls, excluding JavaScript
 scan/dispatch and garbage collection; it is neither whole JavaScript fit latency
 nor CPU cycles. More than 16,000 prefix measurements remain in the long cases,
 with seconds-scale existing truncation cost and potentially quadratic work.
-There is no arbitrary-input realtime promise. PM accepts this finite added cost
-for #637 conditional on final review and CI; independent reviewer cost
-disposition and the two remaining native browser-engine outcomes are pending.
+There is no arbitrary-input realtime promise.
 
 ## 2026-11-02 — Calibrate browser title references independently (#634)
 
