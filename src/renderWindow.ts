@@ -312,6 +312,7 @@ export async function renderWindow(
   // .scriptoscope-content can still receive direct children — no behavioural change.
   const content = document.createElement('div');
   content.className = 'scriptoscope-content';
+  content.tabIndex = -1; // Anonymous viewport: click/programmatic focus, never an inferred Tab stop.
   // The decoded collapsed frame has no content region (§3.3 / §9.2). Keep the
   // slot and caller-owned children, but remove their layout and interaction.
   content.hidden = contentCollapsed;
@@ -482,6 +483,7 @@ async function buildBaselineWindow(
 
   const content = document.createElement('div');
   content.className = 'scriptoscope-content';
+  content.tabIndex = -1;
   Object.assign(content.style, {
     position: 'relative', width: `${contentW * scale}px`, height: `${contentH * scale}px`,
     overflow: 'hidden', boxSizing: 'border-box',

@@ -27,6 +27,15 @@ For layout, CSS and lifecycle gotchas see [integration-edge-cases.md](./integrat
 
 Both paths share every behaviour in sections 1 to 5. The differences are called out where they matter.
 
+Imperative owners can call `manager.dispose()` to stop managing every window at
+once. It performs the same cleanup as removing each window, including document
+listeners, pending touch taps, scrollbar listeners and pending render authority.
+It is safe to call repeatedly. Hosts stay in the caller's DOM and borrowed themes
+stay alive; remove the hosts or dispose themes through their owners as needed.
+The manager can accept new windows afterward. For a declaratively promoted
+window, use its `unmount()` or `restoreOriginalElement()` lifecycle; manager
+disposal alone does not restore the source element or emit `scriptoscope:close`.
+
 Activation, z-order and focus are per `WindowManager`. The example host uses one shared manager, but a window whose source (or an ancestor) has its own `data-scriptoscope-theme` gets a separate manager of its own. Such a window starts active, and activating other windows doesn't deactivate it.
 
 ## 1. Activation and focus
@@ -44,7 +53,9 @@ Activation, z-order and focus are per `WindowManager`. The example host uses one
 | Wheel over an inactive window that shows themed scroll bars | Scrolls it without activating it. |
 | Pointer press on page content outside every window of the manager | Deactivates the active window, unless it uses `box` (see [1a](#1a-hit-area-and-frame-pass-through)). No window is then active until one is pressed or focused. |
 
-A manager has at most one active window. A window that asks to start active (`data-scriptoscope-state="active"`, or `opts.state: 'active'` on `WindowManager.add`) becomes active when it is added, and the previously active window becomes inactive. If several windows ask, the last one added wins (for a declarative page, promotion order, normally document order). A window with no state request starts active only if it is the first window of its manager. A window that asks to start inactive (`data-scriptoscope-state="inactive"`, or `opts.state: 'inactive'`) never starts active; if the first window does, no window starts active. Windows with their own `data-scriptoscope-theme` have their own manager (#614, IP6–IP10).
+The inert first-widget press suppresses only its own gesture, including a release click delivered to that widget. A later standalone synthetic or assistive-technology click is handled normally even when its `detail` is nonzero (#628).
+
+A manager has at most one active window. If an added window fails its initial render, its active-state request is discarded and the previously active managed window stays active; a later successful active-state request still wins (#628). A window that asks to start active (`data-scriptoscope-state="active"`, or `opts.state: 'active'` on `WindowManager.add`) becomes active when it is added, and the previously active window becomes inactive. If several windows ask, the last one added wins (for a declarative page, promotion order, normally document order). A window with no state request starts active only if it is the first window of its manager. A window that asks to start inactive (`data-scriptoscope-state="inactive"`, or `opts.state: 'inactive'`) never starts active; if the first window does, no window starts active. Windows with their own `data-scriptoscope-theme` have their own manager (#614, IP6–IP10).
 
 `WindowManager` has no public "activate" method. A `pointerdown` event dispatched on the host activates the window without moving keyboard focus (`window-focus-raise.spec.mjs`, "programmatic activation").
 
@@ -61,13 +72,13 @@ Each window has a stacking number `z` from a per-manager clock. Every activation
 
 Tab order inside one window is:
 
-1. the slotted content, in its own DOM order;
+1. focusable elements in the slotted content, in their own DOM order;
 2. the title widgets that are wired, in visual reading order: rows top to bottom, left to right within a row (#537);
 3. the **Move window** handle;
 4. the **Resize window** grow box (absent while collapsed);
 5. the vertical scroll bar, then the horizontal one (only while the content overflows).
 
-The order is the same in `region` and `box` mode (see [1a](#1a-hit-area-and-frame-pass-through)).
+The order is the same in `region` and `box` mode (see [1a](#1a-hit-area-and-frame-pass-through)). Runtime-created content viewports and declarative scroll wrappers are excluded from Tab and Shift+Tab: the themed bars provide keyboard scrolling, so an anonymous viewport adds no operation. This stays the same after style rebuilds and retheme, including in Firefox (#619). Explicit application `tabindex` values on consumer content are preserved. Content controls keep their native click focus and action; a click into an inactive window activates and raises it (#550).
 
 The chrome controls (2 to 5) live in the host's shadow root. They keep their DOM identity across every re-render: activation, collapse, zoom, keyboard resize steps and retheme (#533, `window-overlay-identity.spec.mjs`). So focus stays on them and screen readers don't re-announce them. When a control goes away while it has focus (the grow box on collapse, a scroll bar when the overflow ends), focus moves to the move handle, never to `<body>`.
 
@@ -85,7 +96,7 @@ Many schemes have transparent pixels in their frames: merlons, ornaments, studs,
 
 **Modes.** Every managed window asks for a hit mode, `region` or `box`, and has an effective mode:
 
-- **`region`** (the default): the window takes a pointer only inside its structure region, which is the content area plus every opaque frame pixel of the frame template as drawn. Presses, hover, the cursor, wheel and touch gestures over a transparent frame pixel go to the page or window beneath, as trusted events with all their default actions (focus, selection, links, form controls). A press that passes through neither activates nor raises the window. Title widgets, the grow box and frame drags work wherever they are inside the region. The region is rebuilt with every chrome change (resize, collapse, activation, retheme), never while dragging or hovering, and it follows the active or inactive frame art as drawn.
+- **`region`** (the default): the window takes a pointer only inside its structure region, which is the content area plus every opaque frame pixel of the frame template as drawn. Presses, hover, the cursor, wheel and touch gestures over a transparent frame pixel go to the page or window beneath, as trusted events with all their default actions (focus, selection, links, form controls). A press that passes through neither activates nor raises the window. Title widgets, the grow box and frame drags work wherever they are inside the region. The region follows every chrome change (resize, collapse, activation, retheme), with reuse allowed when all region inputs are unchanged. It is never rebuilt while dragging or hovering, and it follows the active or inactive frame art as drawn.
 - **`box`**: the whole window rectangle takes every press, as before #597, and outside presses don't deactivate the window.
 
 The effective mode is `box`, whatever was asked for, for windows of the five built-in-frame schemes (`apple-platinum-2`, `black-platinum`, `platinum-8`, `slimes`, `system7-nostalgia-silver`; their only transparent pixels are two 2 px shadow notches), for windows inside an open `openModal` wrap, for the no-chrome fallback window, and for a commit whose region couldn't be built. The bare `renderWindow()` element is never clipped.
@@ -430,13 +441,33 @@ Keyboard equivalents for every pointer gesture:
 - In `region` mode, touch and pen over a transparent frame pixel reach the page beneath, so page scrolling works there; `touch-action: none` applies only inside the window's region. An outside touch deactivates the active window only on a completed tap (see [1a](#1a-hit-area-and-frame-pass-through)).
 - There's no touch-specific layout. See [integration-edge-cases.md](./integration-edge-cases.md#mobile--responsive).
 
+### Wheel routing and performance
+
+Region windows carry a non-passive no-op wheel listener on the clipped hit layer.
+This works around WebKit routing wheel input by the layer's rectangular area
+instead of its clip: without it, wheels over transparent frame gaps can fail to
+scroll the page beneath. The listener is currently retained in every engine
+because a reliable behavioral detection has not been established. It makes
+native wheel routing over this layer, including slotted content scrollers, depend
+on the main thread in Chromium and Firefox too. Idle-runner latency measurements
+cannot establish the cost when that thread is busy. `box` mode removes this
+listener. This workaround does not activate an inactive window when scrolling.
+
+During a captured frame drag or grow-box resize the clip is suspended for
+WebKit's rendering cost. A resize that finishes preparation during a newer frame
+drag keeps the clip suspended until that drag ends, then restores the latest
+committed region. HPT36 retains its WebKit limit of 3 ms above the same-run box
+frame-p95 baseline, using five interleaved trials; observations include runner
+identity, individual trials and release-to-next-frame time. Other engines report
+these timings without a performance gate.
+
 ### Firefox and WebKit
 
-Five interaction contracts run in Firefox and WebKit at DPR 1 in the release gate, and in Chromium on every PR: `window-pointer-drag`, `growbox-zero-delta`, `growbox-zone`, `posture-b` and `transformed-ancestors` (`tests/rendering-options/interaction-specs.mjs`, [CI.md](../tests/rendering-options/CI.md#firefox-and-webkit-interaction-contracts-598), #598). The extended matrix runs every spec, including `scrollbar-parts`, in every engine. Engine differences those contracts account for:
+Pointer, focus, resize, frame pass-through and inactive-window interaction contracts run in Firefox and WebKit at DPR 1 in the release gate, and in Chromium on every PR, including `window-pointer-drag`, `growbox-zero-delta`, `growbox-zone`, `posture-b` and `transformed-ancestors` (`tests/rendering-options/interaction-specs.mjs`, [CI.md](../tests/rendering-options/CI.md#firefox-and-webkit-interaction-contracts-598), #598). The extended matrix runs every spec, including `scrollbar-parts`, in every engine. Engine differences those contracts account for:
 
 - **Sub-pixel pointers.** In the contract tests, Playwright's Chromium mouse delivers fractional `clientX`/`clientY`, while its Firefox and WebKit mice floor to whole CSS pixels (`subpixel-pointer.mjs`; this is about Playwright's test mice, not a claim about real devices). The runtime rounds whatever coordinates it receives, so "jitter under half a pixel is no move" (#561, #552) is the same rule in every engine; where the test mouse can't send a fraction, the contracts send the sub-pixel moves as synthetic pointer events.
 - **Lost capture timing.** WebKit delivers `lostpointercapture` only before the pointer's next event (#577), so a cancelled drag may revert on the next pointer event rather than at once.
-- **Pointer capture and focus.** The list file names pointer capture, sub-pixel coordinates and focus as the areas where engines genuinely differ, which is why these five specs are the ones run per engine.
+- **Pointer capture and focus.** The list file names pointer capture, sub-pixel coordinates and focus as the areas where engines genuinely differ, which is why the interaction suite runs per engine.
 - **`scrollTo({ behavior: 'instant' })`** is used for scroll-bar steps; whole-pixel steps avoid WebKit truncating a fractional target a pixel short (#556).
 
 ## Not implemented

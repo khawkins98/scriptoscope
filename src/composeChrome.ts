@@ -118,6 +118,8 @@ export interface ComposedChrome {
    *  pixels. wnd# windows only; built on demand, never from the drawn pixels (HP15). It walks the
    *  sides the drawing walked (SR6, WD4): the layout's `collapsed` and `sideTitle` flags. */
   structure?: () => Region;
+  /** Exact source identity/content for per-window preparation reuse (window-hit-policy). */
+  structureTemplate?: Pixmap;
   /** The grow box as a separate overlay sprite (built-in frame only). */
   growBox?: { buffer: PixelBuffer; x: number; y: number; w: number; h: number } | undefined;
 }
@@ -243,6 +245,7 @@ export function composeWindowChrome(cicn: PixelBuffer, windowType: WindowType, c
     widgets: hittable.map(w => ({ role: w.row.role, rect: xywh(w.rect) })),
     hitWidget: (x, y) => widgetHit(layout, widgets, strip, x, y).role,
     structure: () => windowStructure(layout, cicn, fullW, fullH),
+    structureTemplate: cicn,
   };
 }
 
