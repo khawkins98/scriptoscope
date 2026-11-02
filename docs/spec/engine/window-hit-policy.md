@@ -36,6 +36,13 @@ wheel routing. If retaining it, document its main-thread routing cost and report
 same-run wheel measurements; synthetic dispatch alone cannot establish native
 scrolling-thread performance.
 
+The replacement contract is defined in
+[`window-wheel-targets.md`](window-wheel-targets.md). It separates the paint
+clip from native hit surfaces while requiring original-control coordinate
+equivalence, trusted wheel ownership, escaped-content clipping and existing
+identity, gesture and lifetime guarantees. A routing-only prototype does not
+waive any of those requirements or the performance limits below.
+
 ## Manager disposal
 
 `WindowManager.dispose(): void` releases all of its managed windows through the
