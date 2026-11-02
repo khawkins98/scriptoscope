@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { readdirSync, readFileSync, existsSync } from 'node:fs';
 import { checkScheme } from './check-scheme.js';
 import { writeResourceFork } from './resource-fork-writer.js';
-import { writeMacBinary } from './macbinary.js';
+import { writeMacBinary, schemeFileName } from './macbinary.js';
 import { SYSTEM_PALETTE_256 } from './encode-icons.js';
 import { convertChrome, convertIcons } from '../theme-loader/convert.js';
 import { parseResourceFork } from '../theme-loader/resource-fork.js';
@@ -67,7 +67,7 @@ for (const slug of slugs) {
 
     await t.test('committed resource fork matches the build and MacBinary round-trips', () => {
       assert.ok(Buffer.from(fork).equals(readFileSync(new URL('scheme.rsrc', dir))), `stale scheme.rsrc; run npm run author -- authoring/schemes/${slug}`);
-      const bin = writeMacBinary({ name: meta.name, resourceFork: fork });
+      const bin = writeMacBinary({ name: schemeFileName(meta.name), resourceFork: fork });
       assert.deepEqual(unwrapToResourceFork(bin), fork);
     });
   });

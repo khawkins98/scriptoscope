@@ -22,7 +22,7 @@ const REF_ENTRY_SIZE = 12;
 
 /**
  * @typedef {object} ResourceInput
- * @property {string} type        4-character type code, e.g. 'cicn' or 'wnd#'
+ * @property {string} type        4-byte type code (characters 0–255), e.g. 'cicn' or 'wnd#'
  * @property {number} id          signed 16-bit resource id
  * @property {string} [name]      optional resource name: one character per byte
  *                                (codes 0–255), max 255 bytes — the same form the
@@ -135,8 +135,8 @@ export function writeResourceFork(resources) {
 function validate(resources) {
   const seen = new Set();
   for (const r of resources) {
-    if (typeof r.type !== 'string' || r.type.length !== 4) {
-      throw new Error(`writeResourceFork: type must be 4 characters (got ${JSON.stringify(r.type)})`);
+    if (typeof r.type !== 'string' || r.type.length !== 4 || /[^\x00-\xff]/.test(r.type)) {
+      throw new Error(`writeResourceFork: type must be 4 characters with byte values 0–255 (got ${JSON.stringify(r.type)})`);
     }
     if (!Number.isInteger(r.id) || r.id < -32768 || r.id > 32767) {
       throw new Error(`writeResourceFork: ${r.type} id ${r.id} is not a signed 16-bit integer`);

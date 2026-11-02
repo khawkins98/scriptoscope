@@ -36,6 +36,11 @@ test('resource fork rejects duplicates and bad type codes', () => {
   const d = new Uint8Array(0);
   assert.throws(() => writeResourceFork([{ type: 'cicn', id: 1, data: d }, { type: 'cicn', id: 1, data: d }]), /duplicate/);
   assert.throws(() => writeResourceFork([{ type: 'cic', id: 1, data: d }]), /4 characters/);
+  assert.throws(() => writeResourceFork([
+    { type: 'TEST', id: 1, data: d }, { type: 'ŔEST', id: 1, data: d },
+  ]), /byte values/);
+  const byteType = parseResourceFork(writeResourceFork([{ type: 'ÿEST', id: 1, data: d }]));
+  assert.equal(byteType[0].type, 'ÿEST', 'Latin-1 byte codes remain valid');
 });
 
 test('resource fork bounds name offsets before they wrap or become the no-name sentinel', () => {
@@ -195,6 +200,20 @@ test('Raster.blit keeps hidden swatches', () => {
   assert.deepEqual([...dst.rgba.subarray(8, 11)], [0x12, 0x34, 0x56]);
 });
 
+test('Raster.blit rejects off-grid offsets before changing any pixel', () => {
+  const source = new Raster(1, 1).fillRect(0, 0, 1, 1, '#ff0000');
+  const target = new Raster(2, 1).fillRect(0, 0, 2, 1, '#111111');
+  const before = target.rgba.slice();
+  for (const [x, y] of [[0.5, 0], [0, 0.5], [-0.5, 0], [NaN, 0], [0, Infinity]]) {
+    assert.throws(() => target.blit(source, x, y), /not on the grid/);
+    assert.deepEqual(target.rgba, before);
+  }
+  target.blit(source, -1, 0); // Integer clipping still works.
+  assert.deepEqual(target.rgba, before);
+  target.blit(source, 1, 0);
+  assert.deepEqual([...target.rgba.subarray(4)], [255, 0, 0, 255]);
+});
+
 // ── Red-team regressions ──
 
 test('check: the remaining window rules can each fire', () => {
@@ -280,6 +299,9 @@ test('MacBinary output carries type/creator and unwraps to the same fork', async
   assert.equal((bin[124] << 8) | bin[125], crc16xmodem(bin.subarray(0, 124)));
   assert.equal(crc16xmodem(new TextEncoder().encode('123456789')), 0x31c3); // CRC-16/XMODEM check value
   assert.throws(() => writeMacBinary({ name: 'a:b', resourceFork: fork }), /file name/);
+  for (const field of ['type', 'creator']) {
+    assert.throws(() => writeMacBinary({ name: 'Test', resourceFork: fork, [field]: 'ŔEST' }), /byte values/);
+  }
 });
 
 test('png-decode reads what png-encode writes, and palette PNGs from claude-pxl', async () => {
@@ -295,6 +317,20 @@ test('png-decode reads what png-encode writes, and palette PNGs from claude-pxl'
   assert.deepEqual([sprite.width, sprite.height], [14, 14]);
   assert.equal(sprite.rgba[3], 0, 'corner pixel is transparent');
   assert.throws(() => decodePng(Buffer.from('not a png')), /not a PNG/);
+});
+
+test('png-decode preserves RGB and greyscale colour-key transparency', async () => {
+  const { decodePng } = await import('../../scripts/lib/png-decode.mjs');
+  // Independent Pillow PNGs: three 8-bit pixels, with only the exact key transparent.
+  const fixtures = [
+    { mode: 'RGB', png: 'iVBORw0KGgoAAAANSUhEUgAAAAMAAAABCAIAAACUgoPjAAAABnRSTlMA/wAAAP+JwC+QAAAAEklEQVR4nGP8z/CfgeE/IwMjABQEAwF6zwrCAAAAAElFTkSuQmCC', rgba: [255, 0, 255, 0, 255, 0, 254, 255, 0, 0, 255, 255] },
+    { mode: 'L', png: 'iVBORw0KGgoAAAANSUhEUgAAAAMAAAABCAAAAAA+i0toAAAAAnRSTlMA/1uRIrUAAAAMSURBVHicY/j/jwEABP0B/k4gerEAAAAASUVORK5CYII=', rgba: [255, 255, 255, 0, 254, 254, 254, 255, 0, 0, 0, 255] },
+  ];
+  for (const { mode, png, rgba } of fixtures) {
+    const decoded = decodePng(Buffer.from(png, 'base64'));
+    assert.deepEqual([decoded.width, decoded.height], [3, 1], mode);
+    assert.deepEqual([...decoded.rgba], rgba, mode);
+  }
 });
 
 test('Raster.fromRgba snaps soft alpha so edges never become hidden swatches', () => {

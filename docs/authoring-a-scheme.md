@@ -42,6 +42,8 @@ the runtime converter and checks them. With no errors it writes:
 - `scheme.bin`: generated MacBinary with Finder type `Colr`, creator `Acid`
   and the custom-icon flag; use it for a classic Mac, but do not commit it.
 
+The native filename uses the first 31 characters of `meta.name`; the full display
+name stays in metadata. Native filenames must be printable ASCII without `:`.
 MacBinary preserves the resource fork and Finder information in one file.
 StuffIt Expander, MacBinary utilities or `hcopy -m` restore a classic file.
 Warnings require inspection even when the command exits successfully.
@@ -287,7 +289,7 @@ Compatibility smoke tests do not admit fidelity evidence or refresh goldens.
 
 ### 4.9 Add the classic extras
 
-Copy an example's `classic.mjs`: `aboutBox`, `arrowCursors`, `shadeSounds` build
+Copy the reference’s `parts/classic.mjs`: `aboutBox`, `arrowCursors`, `shadeSounds` build
 the About dialog/panel strings, cursor and WindowShade sounds. Include them
 before the final freeze. `aboutBox` wraps/sizes for the panel's small font
 (Geneva 9 in the reference environment), not Chicago title text. Inspect its

@@ -29,7 +29,7 @@ import { writeFileSync, readFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { writeResourceFork } from '../tools/theme-author/resource-fork-writer.js';
-import { writeMacBinary } from '../tools/theme-author/macbinary.js';
+import { writeMacBinary, schemeFileName } from '../tools/theme-author/macbinary.js';
 import { checkScheme, titleContrast } from '../tools/theme-author/check-scheme.js';
 import { contactSheet } from '../tools/theme-author/contact-sheet.js';
 import { paletteReport, formatPaletteReport } from '../tools/theme-author/palette-report.js';
@@ -89,7 +89,7 @@ if (wantSheet) {
 if (wantPalette) await printPaletteReport();
 if (errors.length) { console.error(`✗ ${errors.length} error(s); ${out} was not written.`); process.exit(1); }
 // The classic Mac file name comes from meta.json (max 31 characters).
-const macName = String(meta.name ?? 'Untitled Scheme').slice(0, 31);
+const macName = schemeFileName(meta.name);
 const bin = resolve(schemeDir, 'scheme.bin');
 // Validate packaging before replacing either scheme output.
 let macBinary;

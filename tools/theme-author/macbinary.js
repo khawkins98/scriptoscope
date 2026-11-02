@@ -22,17 +22,24 @@
 /** Finder flag bits (Inside Macintosh: Macintosh Toolbox Essentials, "Finder Interface"). */
 export const FINDER_FLAGS = { hasCustomIcon: 0x0400 };
 
+/** Display names may be longer; every scheme command uses the same native filename. */
+export function schemeFileName(name) {
+  return String(name ?? 'Untitled Scheme').slice(0, 31);
+}
+
 /**
  * @param {{ name: string, type?: string, creator?: string, resourceFork: Uint8Array, dataFork?: Uint8Array, date?: Date, finderFlags?: number }} file
  *   finderFlags: the 16-bit Finder flags (default kHasCustomIcon, as every corpus scheme)
  * @returns {Uint8Array}
  */
 export function writeMacBinary({ name, type = 'Colr', creator = 'Acid', resourceFork, dataFork = new Uint8Array(0), date = new Date(0), finderFlags = FINDER_FLAGS.hasCustomIcon }) {
-  if (!name || name.length > 31 || /[^\x20-\x7e]/.test(name) || name.includes(':')) {
+  if (typeof name !== 'string' || !name || name.length > 31 || /[^\x20-\x7e]/.test(name) || name.includes(':')) {
     throw new Error('writeMacBinary: name must be 1–31 printable ASCII characters without ":" (classic Mac file name rules)');
   }
   for (const [label, code] of [['type', type], ['creator', creator]]) {
-    if (code.length !== 4) throw new Error(`writeMacBinary: ${label} must be 4 characters`);
+    if (typeof code !== 'string' || code.length !== 4 || /[^\x00-\xff]/.test(code)) {
+      throw new Error(`writeMacBinary: ${label} must be 4 characters with byte values 0–255`);
+    }
   }
   const pad = (n) => Math.ceil(n / 128) * 128;
   const out = new Uint8Array(128 + pad(dataFork.length) + pad(resourceFork.length));

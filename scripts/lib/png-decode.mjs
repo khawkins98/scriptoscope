@@ -5,7 +5,8 @@
 //
 // Supports what pixel-art tools write: non-interlaced, bit depth 8 for
 // grey / grey+alpha / RGB / RGBA, and bit depth 1, 2, 4 or 8 for palette
-// images (with optional tRNS transparency). Anything else throws.
+// images. Colour-key tRNS transparency is supported for grey/RGB and palette
+// images. Anything else throws.
 import { inflateSync } from 'node:zlib';
 
 const SIGNATURE = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
@@ -35,6 +36,13 @@ export function decodePng(buf) {
     throw new Error(`decodePng: unsupported bit depth ${depth} for colour type ${colorType}; re-save as 8-bit`);
   }
   if (colorType === 3 && !plte) throw new Error('decodePng: palette image without PLTE');
+  if (trns && ((colorType === 0 && trns.length !== 2) || (colorType === 2 && trns.length !== 6))) {
+    throw new Error('decodePng: invalid tRNS colour key');
+  }
+  // PNG stores colour keys as 16-bit samples even when the image is 8-bit.
+  const transparentGrey = trns && colorType === 0 ? trns.readUInt16BE(0) : undefined;
+  const transparentRgb = trns && colorType === 2
+    ? [trns.readUInt16BE(0), trns.readUInt16BE(2), trns.readUInt16BE(4)] : null;
 
   const channels = CHANNELS[colorType];
   const bitsPerPixel = channels * depth;
@@ -78,10 +86,12 @@ export function decodePng(buf) {
     const s = row + x * channels;
     if (colorType === 0 || colorType === 4) {
       rgba[out] = rgba[out + 1] = rgba[out + 2] = rows[s];
-      rgba[out + 3] = colorType === 4 ? rows[s + 1] : 255;
+      rgba[out + 3] = colorType === 4 ? rows[s + 1] : rows[s] === transparentGrey ? 0 : 255;
     } else {
       rgba[out] = rows[s]; rgba[out + 1] = rows[s + 1]; rgba[out + 2] = rows[s + 2];
-      rgba[out + 3] = colorType === 6 ? rows[s + 3] : 255;
+      const keyed = transparentRgb && rows[s] === transparentRgb[0]
+        && rows[s + 1] === transparentRgb[1] && rows[s + 2] === transparentRgb[2];
+      rgba[out + 3] = colorType === 6 ? rows[s + 3] : keyed ? 0 : 255;
     }
   }
   return { width, height, rgba };

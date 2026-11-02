@@ -11,7 +11,7 @@ import { readdirSync, existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { writeResourceFork } from '../tools/theme-author/resource-fork-writer.js';
-import { writeMacBinary } from '../tools/theme-author/macbinary.js';
+import { writeMacBinary, schemeFileName } from '../tools/theme-author/macbinary.js';
 import { checkScheme } from '../tools/theme-author/check-scheme.js';
 import { convertChrome } from '../tools/theme-loader/convert.js';
 import { unwrapToResourceFork } from '../tools/theme-loader/containers.js';
@@ -60,7 +60,7 @@ for (const slug of slugs) {
       continue;
     }
 
-    const bin = writeMacBinary({ name: meta.name ?? slug, resourceFork: fork });
+    const bin = writeMacBinary({ name: schemeFileName(meta.name), resourceFork: fork });
     const unwrapped = unwrapToResourceFork(bin);
     if (!Buffer.from(unwrapped).equals(Buffer.from(fork))) {
       console.error(`✗ ${slug}: MacBinary packaging failed to round-trip`);

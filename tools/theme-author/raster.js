@@ -234,6 +234,9 @@ export class Raster {
 
   /** Copy another raster in. Transparent source pixels are skipped; hidden swatches are kept. */
   blit(src, x, y) {
+    if (!Number.isInteger(x) || !Number.isInteger(y)) {
+      throw new Error(`Raster.blit: offset (${x}, ${y}) is not on the grid; round coordinates with Math.floor or Math.round`);
+    }
     for (let sy = 0; sy < src.height; sy++) for (let sx = 0; sx < src.width; sx++) {
       const si = (sy * src.width + sx) * 4;
       if (src.rgba[si + 3] === 0 || !this.inBounds(x + sx, y + sy)) continue;
