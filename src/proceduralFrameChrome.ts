@@ -15,7 +15,7 @@ import type { WindowState } from './types.js';
 import type { ComposedChrome, PlacementSlice } from './composeChrome.js';
 import { themeView, type ThemeInput, type ThemeView } from './ownedTheme.js';
 import { PixelBuffer } from './pixelBuffer.js';
-import { rasterizeTitle } from './titleFont.js';
+import { measureTitle, paintTitle } from './titleFont.js';
 import { themeResourceChain } from './engine/resources/theme.js';
 import {
   drawProceduralFrame, drawProceduralFrameGrowIcon, proceduralFrameGeometry, proceduralFrameResourceIds, proceduralFrameSlug,
@@ -28,7 +28,7 @@ import { rect } from './engine/qd/rect.js';
 import { dialogContentColour } from './dialogContent.js';
 import type { Pixmap } from './engine/qd/types.js';
 
-/** Runtime title size: the system font is 12 pt (procedural-frame §3.2); Charcoal 12 is pinned to its own grid by rasterizeTitle. */
+/** Runtime title size: the system font is 12 pt (procedural-frame §3.2); Charcoal 12 is pinned to its own grid by the preferred title style. */
 const TITLE_PX = 12;
 
 export interface ProceduralFrameChromeOptions {
@@ -87,8 +87,9 @@ export async function composeProceduralFrameChrome(theme: ThemeInput | ThemeView
   // §3.6: a dialog or alert kind's colour table entry 0 (also the body fill in renderWindow).
   const content = dialogContentColour(owner, row.slug);
   const px = utility ? PF_UTILITY_INPUTS.font.size : TITLE_PX;
-  const raster = (text: string, colour: string) => rasterizeTitle(text, px, colour, utility ? { exactPx: true } : {});
-  const measured = title ? raster(title, '#000000') : null;
+  const fontOptions = utility ? { exactPx: true } : {};
+  const measure = (text: string) => measureTitle(text, px, fontOptions);
+  const measured = title ? measure(title) : null;
   const base: Omit<ProceduralFrameInput, 'content'> = {
     variation: row.variation, family: row.family, hilited, goAway: row.goAway, shadeOn: row.shadeOn, collapsed,
     colorTable: row.colorTable, titleWidth: measured?.advance ?? 0,
@@ -107,26 +108,21 @@ export async function composeProceduralFrameChrome(theme: ThemeInput | ThemeView
   const buffer = PixelBuffer.alloc(W, Hh);
   const trace = opts.trace ? createTrace('proceduralFrame', { key, state, contentW, contentH, title }) : undefined;
   if (record.fallback) trace?.drawOps.push({ op: 'note', row: 'facade.record', unspecified: `no window record for "${key}"; document-window record used` });
-  const colored = new Map<string, ReturnType<typeof rasterizeTitle>>();
   // UT3 truncEnd (TruncString): drop characters until the text plus an ellipsis fits.
   const truncated = (limit: number | undefined): string => {
     if (limit === undefined || (measured?.advance ?? 0) <= limit) return title;
     for (let n = title.length - 1; n > 0; n--) {
       const t = `${title.slice(0, n)}…`;
-      if ((raster(t, '#000000')?.advance ?? 0) <= limit) return t;
+      if ((measure(t)?.advance ?? 0) <= limit) return t;
     }
     return '';
   };
   const renderTitle = (port: Pixmap, pass: PfTextPass): void => {
     const text = truncated(pass.truncateTo);
     if (!text) return;
-    const k = `${hex(pass.rgb)}|${text}`;
-    if (!colored.has(k)) colored.set(k, raster(text, hex(pass.rgb)));
-    const g = colored.get(k);
-    if (!g) return;
-    (port as PixelBuffer).drawOver(g.buffer, pass.x, pass.y - g.ascent, {
+    paintTitle(port as PixelBuffer, text, px, hex(pass.rgb), pass.x, pass.y, {
       x: pass.clip.left, y: pass.clip.top, w: pass.clip.right - pass.clip.left, h: pass.clip.bottom - pass.clip.top,
-    });
+    }, fontOptions);
   };
   const { geometry: g } = drawProceduralFrame(buffer, chain, input, { renderTitle }, trace);
   if (utility && g.state.grow && !g.state.smallGrow) drawProceduralFrameGrowIcon(buffer, chain, input, trace);
