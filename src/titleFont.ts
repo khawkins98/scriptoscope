@@ -37,6 +37,7 @@ function setStyle(ctx: CanvasRenderingContext2D, style: TitleFontStyle): void {
 }
 
 const TILE_WIDTH = 4096, TILE_HEIGHT = 32;
+const QUERY_WIDTH = TILE_WIDTH - 2, QUERY_HEIGHT = TILE_HEIGHT - 2;
 type TitleClip = { x: number; y: number; w: number; h: number };
 
 function unavailable(reason: string): never {
@@ -111,14 +112,35 @@ function envelope(tm: TextMetrics, style: TitleFontStyle, x: number, baseline: n
   if (values.some(v => !Number.isFinite(v)) || tm.width < 0 || style.size <= 0 ||
       tm.actualBoundingBoxLeft + tm.actualBoundingBoxRight < 0 ||
       tm.actualBoundingBoxAscent + tm.actualBoundingBoxDescent < 0) unavailable('unusable actual bounds');
+  values.forEach(coordinate);
+  const metricLeft = coordinate(x - tm.actualBoundingBoxLeft);
+  const metricRight = coordinate(x + tm.actualBoundingBoxRight);
+  const metricTop = coordinate(baseline - tm.actualBoundingBoxAscent);
+  const metricBottom = coordinate(baseline + tm.actualBoundingBoxDescent);
+  if (metricLeft > metricRight || metricTop > metricBottom) unavailable('unusable actual bounds');
   const padding = style.size + 1;
-  const left = coordinate(Math.floor(x - tm.actualBoundingBoxLeft - padding));
-  const right = coordinate(Math.ceil(x + tm.actualBoundingBoxRight + padding));
-  const top = coordinate(Math.floor(baseline - tm.actualBoundingBoxAscent - padding));
-  const bottom = coordinate(Math.ceil(baseline + tm.actualBoundingBoxDescent + padding));
+  const left = coordinate(Math.floor(metricLeft - padding));
+  const right = coordinate(Math.ceil(metricRight + padding));
+  const top = coordinate(Math.floor(metricTop - padding));
+  const bottom = coordinate(Math.ceil(metricBottom + padding));
   const width = coordinate(right - left), height = coordinate(bottom - top);
-  if (!Number.isSafeInteger(Math.ceil(width / TILE_WIDTH) * Math.ceil(height / TILE_HEIGHT))) unavailable('unusable traversal');
-  return { left, right, top, bottom };
+  const columns = Math.ceil(width / QUERY_WIDTH), rows = Math.ceil(height / QUERY_HEIGHT);
+  if (width <= 0 || height <= 0 || !Number.isSafeInteger(columns * rows)) unavailable('unusable traversal');
+  return { left, right, top, bottom, columns, rows, metricLeft, metricRight, metricTop, metricBottom };
+}
+
+/** Exact per-axis projection construction; query ownership is independent of paint overlap. */
+function paintInterval(first: number, last: number, metricFirst: number, metricLast: number, limit: number) {
+  const extent = coordinate(last - first);
+  const midpoint = coordinate(first + extent / 2);
+  if (midpoint - first !== extent / 2) unavailable('unrepresentable query midpoint');
+  const anchor = Math.max(metricFirst, Math.min(metricLast, midpoint));
+  const origin = coordinate(Math.min(first, Math.floor(anchor)) - 1);
+  const end = coordinate(Math.max(last, Math.ceil(anchor)) + 1);
+  const size = coordinate(end - origin);
+  if (!Number.isSafeInteger(size) || size <= 0 || size > limit ||
+      origin >= first || end <= last || origin >= anchor || end <= anchor) unavailable('unusable paint window');
+  return { origin, size };
 }
 
 function scratch(width: number, height: number, style: TitleFontStyle) {
@@ -131,7 +153,7 @@ function scratch(width: number, height: number, style: TitleFontStyle) {
   if (!ctx) unavailable('scratch context');
   setStyle(ctx, style);
   ctx.textBaseline = 'alphabetic';
-  return ctx;
+  return { canvas, ctx };
 }
 
 /** TF2–TF5: resolve the full request; unknown coverage throws before any smaller candidate. */
@@ -142,7 +164,7 @@ export function resolveTitleStyle(text: string, px: number,
   const probe = measurementContext();
   if (!probe || !text) return { style: preferred, omitInk: false };
   // A single fixed raster is reused across every tile and candidate.
-  let tile: CanvasRenderingContext2D | undefined;
+  let tile: ReturnType<typeof scratch> | undefined;
   const fits = (style: TitleFontStyle): boolean => {
     setStyle(probe, style);
     const tm = probe.measureText(text);
@@ -156,28 +178,39 @@ export function resolveTitleStyle(text: string, px: number,
     const bounds = envelope(tm, style, x, baseline);
     if (bounds.top >= top && bounds.bottom <= bottom) return true;
     tile ??= scratch(TILE_WIDTH, TILE_HEIGHT, style);
-    setStyle(tile, style);
-    // Only exterior rows can disprove fit. Every tile shapes the identical full request.
-    const regions: [number, number][] = [[bounds.top, Math.min(bounds.bottom, Math.ceil(top))],
-      [Math.max(bounds.top, Math.floor(bottom)), bounds.bottom]];
-    for (const [first, last] of regions) {
-      for (let y = first; y < last;) {
-        const h = Math.min(TILE_HEIGHT, last - y);
-        for (let left = bounds.left; left < bounds.right;) {
-          const w = Math.min(TILE_WIDTH, bounds.right - left);
-          tile.clearRect(0, 0, TILE_WIDTH, TILE_HEIGHT);
-          tile.fillText(text, translated(x, left), translated(baseline, y));
-          const image = tile.getImageData(0, 0, w, h);
-          if (image.data.length !== w * h * 4) unavailable('incomplete readback');
-          for (let row = 0; row < h; row++) {
-            if (y + row >= top && y + row + 1 <= bottom) continue;
-            for (let column = 0; column < w; column++) {
-              if (image.data[(row * w + column) * 4 + 3] !== 0) return false;
-            }
-          }
-          left += w;
+    // The disjoint envelope partition owns every absolute exterior pixel once.
+    // P1 query equivalence remains a supported-placement premise, not a culling proof.
+    for (let rowIndex = 0; rowIndex < bounds.rows; rowIndex++) {
+      const first = coordinate(bounds.top + coordinate(rowIndex * QUERY_HEIGHT));
+      const last = coordinate(first + Math.min(QUERY_HEIGHT, bounds.bottom - first));
+      if (first >= top && last <= bottom) continue;
+      const vertical = paintInterval(first, last, bounds.metricTop, bounds.metricBottom, TILE_HEIGHT);
+      for (let columnIndex = 0; columnIndex < bounds.columns; columnIndex++) {
+        const left = coordinate(bounds.left + coordinate(columnIndex * QUERY_WIDTH));
+        const right = coordinate(left + Math.min(QUERY_WIDTH, bounds.right - left));
+        const horizontal = paintInterval(left, right, bounds.metricLeft, bounds.metricRight, TILE_WIDTH);
+        const pen = translated(x, horizontal.origin), baselineRow = translated(baseline, vertical.origin);
+        // Resize the same canvas, dropping its backing height before changing width.
+        // No intermediate store exceeds the fixed bound, even at a partial corner.
+        if (tile.canvas.width !== horizontal.size || tile.canvas.height !== vertical.size) {
+          tile.canvas.height = 0;
+          tile.canvas.width = horizontal.size; tile.canvas.height = vertical.size;
+          if (tile.canvas.width !== horizontal.size || tile.canvas.height !== vertical.size) unavailable('scratch allocation');
         }
-        y += h;
+        setStyle(tile.ctx, style);
+        tile.ctx.textBaseline = 'alphabetic';
+        tile.ctx.clearRect(0, 0, horizontal.size, vertical.size);
+        tile.ctx.fillText(text, pen, baselineRow);
+        const w = right - left, h = last - first;
+        const image = tile.ctx.getImageData(left - horizontal.origin, first - vertical.origin, w, h);
+        if (image.data.length !== w * h * 4) unavailable('incomplete readback');
+        for (let row = 0; row < h; row++) {
+          const absoluteRow = coordinate(first + row);
+          if (absoluteRow >= top && absoluteRow + 1 <= bottom) continue;
+          for (let column = 0; column < w; column++) {
+            if (image.data[(row * w + column) * 4 + 3] !== 0) return false;
+          }
+        }
       }
     }
     return true;
@@ -221,7 +254,7 @@ export function paintTitle(target: PixelBuffer, text: string, px: number, hex: s
     const bottom = coordinate(Math.min(target.height, Math.ceil(clip.y + clip.h)));
     if (right <= left || bottom <= top) return true;
     const style = opts.style ?? preferredStyle(px, opts);
-    const ctx = scratch(right - left, bottom - top, style);
+    const { ctx } = scratch(right - left, bottom - top, style);
     ctx.fillStyle = hex;
     ctx.fillText(text, translated(x, left), translated(baseline, top));
     const img = ctx.getImageData(0, 0, right - left, bottom - top);
