@@ -8,9 +8,8 @@ import type { IconSource } from './raster.js';
 // wnd# recipe) draws through the v2 engine family proceduralFrame, dynamically
 // imported so the 13 wnd# themes don't load it on first paint.
 import { rasterizeText } from './textRaster.js';
-import { measureTitle, rasterizeTitle, resolveTitleStyle, truncateTitle, type TitleFontStyle } from './titleFont.js';
+import { measureTitle, paintTitle, resolveTitleStyle, truncateTitle, type TitleFontStyle } from './titleFont.js';
 import { TITLE_TEXT } from './engine/tables/window.js';
-import { PixelBuffer } from './pixelBuffer.js';
 import { alternateWindowWidgets, resolveWindowSelection } from './resolveWindowType.js';
 import { canonicalWindowTypeSlug } from './wndCascade.js';
 import { dialogContentColour, rgbHex } from './dialogContent.js';
@@ -138,7 +137,7 @@ export async function renderWindow(
   const isTitledUtility = /^(collapsed-)?titled-utility/.test(slug);
   const showTitle = !!title && (!HEADLESS_TITLE_SLUG_RE.test(slug) || isTitledUtility);
 
-  // ── title width: rasterize the title BEFORE composing; its width is the layout's
+  // ── title width: measure the title BEFORE composing; its width is the layout's
   // `SW` (window-widgets LS6, TT rows), which sizes the code-5 plate. ──
   const frameTop = wt.parts['part-0']?.rect[1] ?? 0;
   const builtInFrame = wt.model === 'corner-sprite';
@@ -146,12 +145,6 @@ export async function renderWindow(
   let titleStyle: TitleFontStyle | undefined;
   let omitTitleInk = false;
   // Pen advance (StringWidth) and baseline row; the pixel rasterizer (non-DOM) has neither, so its box stands in.
-  const raster = (text: string, hex: string): { buffer: PixelBuffer; ascent: number; advance: number } => {
-    const r = rasterizeTitle(text, textH, hex, { bold: altWidgets, style: titleStyle });
-    if (r) return r;
-    const b = rasterizeText(text, textH, hex);
-    return { buffer: b, ascent: b.height, advance: b.width };
-  };
   const measure = (text: string): { ascent: number; advance: number } => {
     const measured = measureTitle(text, textH, { bold: altWidgets, style: titleStyle });
     if (measured) return measured;
@@ -243,7 +236,7 @@ export async function renderWindow(
       // title font is taller than the original's: when its ascent would start above the title
       // rect, the baseline moves down by exactly that overflow, so every glyph stays inside.
       const baseline = Math.max(t4p.y + t4p.h - TITLE_TEXT.TX8.baselineAbove, t4p.y + base.ascent);
-      const x0 = t4p.x, y0 = baseline - base.ascent;
+      const x0 = t4p.x;
       const clip = { x: t4p.x, y: t4p.y, w: t4p.w + TITLE_TEXT.TX4.widenRight, h: t4p.h };
       // TC1–TC5: samples belong to the selected template, before remapping or PNG
       // transport. Compare full RGB16, even when display conversion merges colours.
@@ -252,10 +245,14 @@ export async function renderWindow(
       const paint = (sample: NonNullable<typeof samples>['text'], dx: number, dy: number): void => {
         if (!sample) return; // unspecified input: never invent a swatch colour
         const hex = `#${sample.displayRgb.map(v => v.toString(16).padStart(2, '0')).join('')}`;
-        const glyph = raster(dispTitle, hex);
+        const painted = paintTitle(composed.buffer, dispTitle, textH, hex, x0 + dx, baseline + dy,
+          clip, { bold: altWidgets, style: titleStyle });
         // Substitute-font policy: transparent coverage, alpha-over (control-text-colors
         // Runtime painting). Native TX6 TextMode srcOr is not a bitwise RGB operation here.
-        composed.buffer.drawOver(glyph.buffer, x0 + dx, y0 + dy, clip);
+        if (!painted) {
+          const glyph = rasterizeText(dispTitle, textH, hex);
+          composed.buffer.drawOver(glyph, x0 + dx, baseline - glyph.height + dy, clip);
+        }
       };
       if (samples?.text && samples.shadow && samples.text.rgb16.some((v, i) => v !== samples.shadow!.rgb16[i])) {
         paint(samples.shadow, TITLE_TEXT.TX7.offsetX, TITLE_TEXT.TX7.offsetY);

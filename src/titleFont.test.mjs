@@ -1,3 +1,4 @@
+// Implementation-owned synthetic truncation checks; no independent pixel oracle.
 import '../tests/helpers/registerTs.mjs';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';

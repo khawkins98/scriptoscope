@@ -567,6 +567,41 @@ const win = await renderWindow(theme, {
 document.body.appendChild(win);
 ```
 
+Window titles use substitute browser fonts. Recipe titles fit every nonzero-alpha
+main glyph pixel of the complete request vertically before horizontal truncation.
+They retain the preferred family and required face, choosing the largest fitting
+eligible size; one resolved style governs advance, layout, prefix/ellipsis
+measurement and painting. A demonstrated impossible slot omits ink while
+preserving the full accessibility title. Procedural frames retain their own
+font, geometry, baseline and truncation policies.
+
+Coverage relies on the explicit modern **P1 finite envelope and guarded-placement
+query-equivalence assumptions** for stable loaded text state. The signed actual
+bounds expand on each side by the candidate size plus one internal-raster pixel.
+Bounded guarded paint windows draw the complete request at translated coordinates;
+owned query pixels must retain the original pen/baseline phase and coverage.
+Geometric containment, a metric anchor or transparent readback cannot prove this
+premise for arbitrary fonts, fallback sequences or native culling. This is
+conditional modern compatibility, not native typography equivalence.
+
+Every consumed measurement must be usable, including metrics-only advance,
+prefix/ellipsis and procedural measurements. Unusable metrics/coordinates,
+unsupported observation state, known envelope or placement violations, or host
+allocation/readback/security failure reject the render/update with an error named
+`TitleCoverageUnavailableError`. Handle that operation's failure; unresolved
+coverage cannot silently select a smaller style, ellipsis or TF5 ink omission.
+Existing non-DOM and null-Canvas-context fallbacks remain unchanged.
+
+Coverage scratch is one canvas of at most 4096×32 pixels plus same-size RGBA
+readback: at most 1,048,576 bytes across those two explicit RGBA planes.
+Destination-sized publication/frame output, input strings, opaque host memory,
+garbage collection and cumulative readback traffic are separate. Work is finite
+but can be quadratic, with no hard realtime or total-memory guarantee.
+[Measured long-title costs](./LEARNINGS.md#2026-11-02--bounded-title-coverage-needs-a-declared-raster-envelope-637)
+include seconds-scale regressions with guarded observation. See the
+[title-coverage contract](./docs/spec/engine/window-title-fit.md) for support
+premises, placement, failure semantics and resource limits.
+
 `loadTheme` tries `scheme.sit` first, then falls back to `scheme.rsrc` by default. When you already know which form the bundle ships (e.g. from a catalog manifest), pass `{ source: 'scheme.sit' }` to skip the cascade and avoid the dev-console 404 noise on `.rsrc`-only bundles:
 
 ```ts

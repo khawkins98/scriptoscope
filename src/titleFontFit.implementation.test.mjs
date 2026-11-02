@@ -20,7 +20,7 @@ const hooks = registerHooks({
     return next(url, context);
   },
 });
-const { resolveTitleStyle, measureTitle, rasterizeTitle, truncateTitle } = await import('./titleFont.ts');
+const { resolveTitleStyle, measureTitle, paintTitle, truncateTitle } = await import('./titleFont.ts');
 const { PixelBuffer } = await import('./pixelBuffer.ts');
 const { themeView } = await import('./ownedTheme.ts');
 const { renderWindow } = await import('./renderWindow.ts');
@@ -45,15 +45,28 @@ beforeEach(() => {
         setAttribute(key, value) { this.attributes[key] = value; },
         append(...children) { this.children.push(...children); },
         appendChild(child) { this.children.push(child); },
-        getContext() { return {
+        getContext() { let ink, observation = false; return {
           font: '', letterSpacing: '',
           measureText(text) {
             const size = Number(this.font.match(/([\d.]+)px/)[1]);
             measurements.push({ text, font: this.font, spacing: this.letterSpacing });
-            return { width: text.length * size, ...metrics(size) };
+            return { width: text.length * size, actualBoundingBoxLeft: 0, actualBoundingBoxRight: text.length * size, ...metrics(size) };
           },
-          fillText(text) { paints.push({ text, font: this.font, spacing: this.letterSpacing }); },
-          getImageData(_x, _y, width, height) { return { data: new Uint8ClampedArray(width * height * 4).fill(255) }; },
+          clearRect() { ink = undefined; observation = true; },
+          fillText(text, x, y) {
+            if (!observation) paints.push({ text, font: this.font, spacing: this.letterSpacing });
+            const size = Number(this.font.match(/([\d.]+)px/)[1]);
+            const m = metrics(size);
+            ink = { left: x, right: x + text.length * size,
+              top: y - m.actualBoundingBoxAscent, bottom: y + m.actualBoundingBoxDescent };
+          },
+          getImageData(sx, sy, width, height) {
+            const data = new Uint8ClampedArray(width * height * 4);
+            for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
+              if (ink && sx + x >= ink.left && sx + x < ink.right && sy + y >= ink.top && sy + y < ink.bottom) data[(y * width + x) * 4 + 3] = 255;
+            }
+            return { data };
+          },
           putImageData() {},
         }; },
       };
@@ -92,7 +105,7 @@ test('descending integer candidates use full-title advances and retain family, b
   const measure = text => measureTitle(text, 13, { style: result.style }).advance;
   assert.equal(measure('Full gy'), 77);
   const shortened = truncateTitle('Full gy', 35, measure);
-  rasterizeTitle(shortened, 13, '#ffffff', { style: result.style });
+  paintTitle(PixelBuffer.alloc(35, 11), shortened, 13, '#ffffff', 0, 8, { x: 0, y: 0, w: 35, h: 11 }, { style: result.style });
   assert.ok(measurements.every(call => call.font.startsWith('bold 11px ') && call.spacing === '0px'));
   assert.equal(paints[0].font, measurements[0].font);
 });

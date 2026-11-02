@@ -9,7 +9,7 @@ const { composeWindowChrome } = await import('./composeChrome.ts');
 const { widgetCicnIds } = await import('./engine/families/window.ts');
 const { PixelBuffer } = await import('./pixelBuffer.ts');
 const { WindowManager } = await import('./interactive.ts');
-const { measureTitle, rasterizeTitle } = await import('./titleFont.ts');
+const { measureTitle, paintTitle } = await import('./titleFont.ts');
 
 const frame = () => ({ chrome: { active: 'frame' }, parts: { 'part-0': { rect: [2, 5, 18, 18] } } });
 const theme = (windowTypes, base) => ({ manifest: { windowTypes }, ...(base ? { base } : {}) });
@@ -80,12 +80,12 @@ test('PM1 title measurement and drawing share the bold face', () => {
   globalThis.document = { createElement: () => ({ getContext: () => ({
     set font(value) { fonts.push(value); },
     measureText: () => ({ width: 8, actualBoundingBoxAscent: 7, actualBoundingBoxDescent: 2 }),
-    fillText() {}, getImageData: () => ({ data: new Uint8ClampedArray(9 * 9 * 4) }),
+    fillText() {}, getImageData: (_x, _y, w, h) => ({ data: new Uint8ClampedArray(w * h * 4) }),
   }) }) };
   try {
     measureTitle('Tool', 12, { bold: true });
-    rasterizeTitle('Tool', 12, '#000000', { bold: true });
-    assert.equal(fonts.length, 3);
+    paintTitle(PixelBuffer.alloc(9, 9), 'Tool', 12, '#000000', 0, 7, { x: 0, y: 0, w: 9, h: 9 }, { bold: true });
+    assert.equal(fonts.length, 2);
     assert.ok(fonts.every(font => font.startsWith('bold ')));
     fonts.length = 0;
     measureTitle('Document', 12);

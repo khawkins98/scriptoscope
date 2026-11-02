@@ -5,27 +5,12 @@
 import { PixelBuffer } from './pixelBuffer.js';
 import { TITLE_TEXT } from './engine/tables/window.js';
 
-/** The ink-tight raster with its baseline row and the pen advance (StringWidth). */
-export interface TitleRaster {
-  buffer: PixelBuffer;
-  /** Row of the alphabetic baseline inside `buffer`. */
+/** Metrics retain the consumer's nominal baseline, independently of raster storage. */
+export interface TitleMetrics {
   ascent: number;
-  /** Pen advance in px (the StringWidth the frame measures). */
   advance: number;
-  /** The font's ascent and descent (not the ink box): the metrics a frame's baseline rule uses. */
   fontAscent: number;
   fontDescent: number;
-}
-
-/**
- * Rasterize the window title in a real FONT (the CSS "Charcoal" stack — a local
- * Charcoal if installed, else the bundled stand-in) via an offscreen canvas, so
- * the title reads as period anti-aliased type rather than the bitmap rasterizer.
- * Browser-only: returns null in a non-DOM context so the caller falls back to
- * rasterizeText (the crisp pixel path, used by node tooling).
- */
-export function rasterizeTitleFont(text: string, px: number, hex: string): PixelBuffer | null {
-  return rasterizeTitle(text, px, hex)?.buffer ?? null;
 }
 
 /** A resolved substitute style; supplying it prevents later preferred-size pinning. */
@@ -51,82 +36,251 @@ function setStyle(ctx: CanvasRenderingContext2D, style: TitleFontStyle): void {
   try { (ctx as unknown as { letterSpacing: string }).letterSpacing = style.spacing; } catch { /* unsupported */ }
 }
 
-/** TF2–TF5: fit the full title once, before advance/layout or horizontal truncation. */
-export function resolveTitleStyle(text: string, px: number, clipForAdvance: (advance: number) => { w: number; h: number }, opts: TitleFontOptions = {}): { style: TitleFontStyle; omitInk: boolean } {
-  const preferred = preferredStyle(px, opts);
-  const probe = typeof document === 'undefined' ? null : document.createElement('canvas').getContext('2d');
+const TILE_WIDTH = 4096, TILE_HEIGHT = 32;
+const QUERY_WIDTH = TILE_WIDTH - 2, QUERY_HEIGHT = TILE_HEIGHT - 2;
+type TitleClip = { x: number; y: number; w: number; h: number };
+
+function unavailable(reason: string): never {
+  const error = new Error(`Title coverage unavailable: ${reason}`);
+  error.name = 'TitleCoverageUnavailableError';
+  throw error;
+}
+
+function measurement<T>(operation: () => T): T {
+  try {
+    return operation();
+  } catch (error) {
+    if (error instanceof Error && error.name === 'TitleCoverageUnavailableError') throw error;
+    unavailable(error instanceof Error ? error.message : 'host measurement failure');
+  }
+}
+
+function measurementContext(): CanvasRenderingContext2D | null {
+  if (typeof document === 'undefined') return null;
+  try {
+    const canvas = document.createElement('canvas');
+    // Metrics need no pixel backing store.
+    canvas.height = 0; canvas.width = 0;
+    return canvas.getContext('2d');
+  } catch (error) {
+    unavailable(error instanceof Error ? error.message : 'host context failure');
+  }
+}
+
+function coordinate(value: number): number {
+  if (!Number.isFinite(value) || Math.abs(value) > Number.MAX_SAFE_INTEGER) unavailable('unusable coordinate');
+  return value;
+}
+
+/** Integer storage translations must retain the original subpixel phase. */
+function translated(value: number, origin: number): number {
+  const result = coordinate(value - origin);
+  if (result - Math.floor(result) !== value - Math.floor(value)) unavailable('unrepresentable raster phase');
+  return result;
+}
+
+function advance(width: number): number {
+  coordinate(width);
+  if (width < 0) unavailable('unusable advance');
+  return coordinate(Math.ceil(width));
+}
+
+function nominalAscent(actualAscent: number, style: TitleFontStyle): number {
+  coordinate(actualAscent); coordinate(style.size);
+  if (style.size <= 0) unavailable('unusable font size');
+  return coordinate(Math.max(1, Math.ceil(actualAscent || style.size * .72)));
+}
+
+function metrics(ctx: CanvasRenderingContext2D, text: string, style: TitleFontStyle): TitleMetrics {
+  const tm = ctx.measureText(text);
+  const ascent = nominalAscent(tm.actualBoundingBoxAscent, style);
+  coordinate(tm.actualBoundingBoxDescent);
+  if (coordinate(tm.actualBoundingBoxAscent + tm.actualBoundingBoxDescent) < 0) unavailable('unusable actual bounds');
+  // Font bounds may be absent or zero; other unusable reports must not select a fallback.
+  if (tm.fontBoundingBoxAscent !== undefined) coordinate(tm.fontBoundingBoxAscent);
+  if (tm.fontBoundingBoxDescent !== undefined) coordinate(tm.fontBoundingBoxDescent);
+  const descent = Math.max(0, Math.ceil(tm.actualBoundingBoxDescent || 0));
+  return { ascent, advance: advance(tm.width),
+    fontAscent: coordinate(Math.ceil(tm.fontBoundingBoxAscent || ascent)),
+    fontDescent: coordinate(Math.ceil(tm.fontBoundingBoxDescent || descent)) };
+}
+
+/** P1: signed complete-request bounds plus the declared em and pixel allowance. */
+function envelope(tm: TextMetrics, style: TitleFontStyle, x: number, baseline: number) {
+  const values = [tm.width, tm.actualBoundingBoxLeft, tm.actualBoundingBoxRight,
+    tm.actualBoundingBoxAscent, tm.actualBoundingBoxDescent, style.size];
+  if (values.some(v => !Number.isFinite(v)) || tm.width < 0 || style.size <= 0 ||
+      tm.actualBoundingBoxLeft + tm.actualBoundingBoxRight < 0 ||
+      tm.actualBoundingBoxAscent + tm.actualBoundingBoxDescent < 0) unavailable('unusable actual bounds');
+  values.forEach(coordinate);
+  const metricLeft = coordinate(x - tm.actualBoundingBoxLeft);
+  const metricRight = coordinate(x + tm.actualBoundingBoxRight);
+  const metricTop = coordinate(baseline - tm.actualBoundingBoxAscent);
+  const metricBottom = coordinate(baseline + tm.actualBoundingBoxDescent);
+  if (metricLeft > metricRight || metricTop > metricBottom) unavailable('unusable actual bounds');
+  const padding = style.size + 1;
+  const left = coordinate(Math.floor(metricLeft - padding));
+  const right = coordinate(Math.ceil(metricRight + padding));
+  const top = coordinate(Math.floor(metricTop - padding));
+  const bottom = coordinate(Math.ceil(metricBottom + padding));
+  const width = coordinate(right - left), height = coordinate(bottom - top);
+  const columns = Math.ceil(width / QUERY_WIDTH), rows = Math.ceil(height / QUERY_HEIGHT);
+  if (width <= 0 || height <= 0 || !Number.isSafeInteger(columns * rows)) unavailable('unusable traversal');
+  return { left, right, top, bottom, columns, rows, metricLeft, metricRight, metricTop, metricBottom };
+}
+
+/** Exact per-axis projection construction; query ownership is independent of paint overlap. */
+function paintInterval(first: number, last: number, metricFirst: number, metricLast: number, limit: number) {
+  const extent = coordinate(last - first);
+  const midpoint = coordinate(first + extent / 2);
+  if (midpoint - first !== extent / 2) unavailable('unrepresentable query midpoint');
+  const anchor = Math.max(metricFirst, Math.min(metricLast, midpoint));
+  const origin = coordinate(Math.min(first, Math.floor(anchor)) - 1);
+  const end = coordinate(Math.max(last, Math.ceil(anchor)) + 1);
+  const size = coordinate(end - origin);
+  if (!Number.isSafeInteger(size) || size <= 0 || size > limit ||
+      origin >= first || end <= last || origin >= anchor || end <= anchor) unavailable('unusable paint window');
+  return { origin, size };
+}
+
+function scratch(width: number, height: number, style: TitleFontStyle) {
+  const canvas = document.createElement('canvas');
+  // Drop the default backing store before widening; every resize stays bounded.
+  canvas.height = 0;
+  canvas.width = width; canvas.height = height;
+  if (canvas.width !== width || canvas.height !== height) unavailable('scratch allocation');
+  const ctx = canvas.getContext('2d');
+  if (!ctx) unavailable('scratch context');
+  setStyle(ctx, style);
+  ctx.textBaseline = 'alphabetic';
+  return { canvas, ctx };
+}
+
+/** TF2–TF5: resolve the full request; unknown coverage throws before any smaller candidate. */
+export function resolveTitleStyle(text: string, px: number,
+  clipForAdvance: (advance: number) => { x?: number; y?: number; w: number; h: number },
+  opts: TitleFontOptions = {}): { style: TitleFontStyle; omitInk: boolean } {
+  const preferred = measurement(() => preferredStyle(px, opts));
+  const probe = measurementContext();
   if (!probe || !text) return { style: preferred, omitInk: false };
+  // A single fixed raster is reused across every tile and candidate.
+  let tile: ReturnType<typeof scratch> | undefined;
   const fits = (style: TitleFontStyle): boolean => {
     setStyle(probe, style);
     const tm = probe.measureText(text);
-    const clip = clipForAdvance(Math.ceil(tm.width));
-    // Keep an already empty preferred slot; smaller empty slots cannot establish a fit.
+    const clip = clipForAdvance(advance(tm.width));
     if (clip.w <= 0 || clip.h <= 0) return style === preferred;
-    if (tm.actualBoundingBoxAscent === 0 && tm.actualBoundingBoxDescent === 0) return true;
-    const ascent = Math.max(1, Math.ceil(tm.actualBoundingBoxAscent || style.size * 0.72));
-    // Ink can end above the baseline (negative descent), unlike the allocated raster box.
-    const descent = Math.ceil(tm.actualBoundingBoxDescent || 0);
-    // F11 keeps the decoded baseline, moving down only by the ascent overflow.
-    return Math.max(clip.h - TITLE_TEXT.TX8.baselineAbove, ascent) + descent <= clip.h;
+    const x = coordinate(clip.x ?? 0), top = coordinate(clip.y ?? 0);
+    const bottom = coordinate(top + clip.h);
+    coordinate(clip.w); coordinate(clip.h);
+    const ascent = nominalAscent(tm.actualBoundingBoxAscent, style);
+    const baseline = coordinate(Math.max(bottom - TITLE_TEXT.TX8.baselineAbove, top + ascent));
+    const bounds = envelope(tm, style, x, baseline);
+    if (bounds.top >= top && bounds.bottom <= bottom) return true;
+    tile ??= scratch(TILE_WIDTH, TILE_HEIGHT, style);
+    // The disjoint envelope partition owns every absolute exterior pixel once.
+    // P1 query equivalence remains a supported-placement premise, not a culling proof.
+    for (let rowIndex = 0; rowIndex < bounds.rows; rowIndex++) {
+      const first = coordinate(bounds.top + coordinate(rowIndex * QUERY_HEIGHT));
+      const last = coordinate(first + Math.min(QUERY_HEIGHT, bounds.bottom - first));
+      if (first >= top && last <= bottom) continue;
+      const vertical = paintInterval(first, last, bounds.metricTop, bounds.metricBottom, TILE_HEIGHT);
+      for (let columnIndex = 0; columnIndex < bounds.columns; columnIndex++) {
+        const left = coordinate(bounds.left + coordinate(columnIndex * QUERY_WIDTH));
+        const right = coordinate(left + Math.min(QUERY_WIDTH, bounds.right - left));
+        const horizontal = paintInterval(left, right, bounds.metricLeft, bounds.metricRight, TILE_WIDTH);
+        const pen = translated(x, horizontal.origin), baselineRow = translated(baseline, vertical.origin);
+        // Resize the same canvas, dropping its backing height before changing width.
+        // No intermediate store exceeds the fixed bound, even at a partial corner.
+        if (tile.canvas.width !== horizontal.size || tile.canvas.height !== vertical.size) {
+          tile.canvas.height = 0;
+          tile.canvas.width = horizontal.size; tile.canvas.height = vertical.size;
+          if (tile.canvas.width !== horizontal.size || tile.canvas.height !== vertical.size) unavailable('scratch allocation');
+        }
+        setStyle(tile.ctx, style);
+        tile.ctx.textBaseline = 'alphabetic';
+        tile.ctx.clearRect(0, 0, horizontal.size, vertical.size);
+        tile.ctx.fillText(text, pen, baselineRow);
+        const w = right - left, h = last - first;
+        const image = tile.ctx.getImageData(left - horizontal.origin, first - vertical.origin, w, h);
+        if (image.data.length !== w * h * 4) unavailable('incomplete readback');
+        for (let row = 0; row < h; row++) {
+          const absoluteRow = coordinate(first + row);
+          if (absoluteRow >= top && absoluteRow + 1 <= bottom) continue;
+          for (let column = 0; column < w; column++) {
+            if (image.data[(row * w + column) * 4 + 3] !== 0) return false;
+          }
+        }
+      }
+    }
+    return true;
   };
-  if (fits(preferred)) return { style: preferred, omitInk: false };
-  for (let size = Math.floor(preferred.size); size > 0; size--) {
-    if (size === preferred.size) continue;
-    const style = { ...preferred, size };
-    if (fits(style)) return { style, omitInk: false };
+  try {
+    if (fits(preferred)) return { style: preferred, omitInk: false };
+    for (let size = Math.floor(preferred.size); size > 0; size--) {
+      if (size === preferred.size) continue;
+      const style = { ...preferred, size };
+      if (fits(style)) return { style, omitInk: false };
+    }
+    return { style: preferred, omitInk: true };
+  } catch (error) {
+    if (error instanceof Error && error.name === 'TitleCoverageUnavailableError') throw error;
+    unavailable(error instanceof Error ? error.message : 'host observation failure');
   }
-  return { style: preferred, omitInk: true };
 }
 
-/** As {@link rasterizeTitleFont}, also returning the baseline row and advance. */
-export function measureTitle(text: string, px: number, opts: TitleFontOptions = {}): Pick<TitleRaster, 'ascent' | 'advance'> | null {
-  return prepareTitle(text, px, '#000000', opts, true);
-}
-
-export function rasterizeTitle(text: string, px: number, hex: string, opts: TitleFontOptions = {}): TitleRaster | null {
-  return prepareTitle(text, px, hex, opts, false) as TitleRaster | null;
-}
-
-function prepareTitle(text: string, px: number, hex: string, opts: TitleFontOptions, measureOnly: boolean): TitleRaster | Pick<TitleRaster, 'ascent' | 'advance'> | null {
+/** Measurement never allocates a requested-title pixel surface. */
+export function measureTitle(text: string, px: number, opts: TitleFontOptions = {}): TitleMetrics | null {
   if (typeof document === 'undefined' || !text) return null;
-  const style = opts.style ?? preferredStyle(px, opts);
-  const size = style.size;
-  const probe = document.createElement('canvas').getContext('2d');
+  const probe = measurementContext();
   if (!probe) return null;
-  setStyle(probe, style);
-  const tm = probe.measureText(text);
-  const w = Math.max(1, Math.ceil(tm.width) + 1);
-  // Buffer sized tight to the text's ink box; the compositor centres this buffer in
-  // the title bar (sgy, ~L220 below), so an ink-tight buffer lands the title without
-  // any line-height fudge. Baseline at the ink ascent.
-  const asc = Math.max(1, Math.ceil(tm.actualBoundingBoxAscent || size * 0.72));
-  const desc = Math.max(0, Math.ceil(tm.actualBoundingBoxDescent || 0));
-  const h = Math.max(1, asc + desc);
-  if (measureOnly) return { ascent: asc, advance: Math.ceil(tm.width) };
-  const c = document.createElement('canvas');
-  c.width = w; c.height = h;
-  const ctx = c.getContext('2d');
-  if (!ctx) return null;
-  setStyle(ctx, style);
-  ctx.fillStyle = hex;
-  ctx.textBaseline = 'alphabetic';
-  ctx.fillText(text, 0, asc);
-  const img = ctx.getImageData(0, 0, w, h);
-  const buf = PixelBuffer.alloc(w, h);
-  buf.data.set(img.data);
-  const fontAscent = Math.ceil(tm.fontBoundingBoxAscent || asc);
-  const fontDescent = Math.ceil(tm.fontBoundingBoxDescent || desc);
-  return { buffer: buf, ascent: asc, advance: Math.ceil(tm.width), fontAscent, fontDescent };
+  return measurement(() => {
+    const style = opts.style ?? preferredStyle(px, opts);
+    setStyle(probe, style);
+    return metrics(probe, text, style);
+  });
 }
 
+/** Paint at the public pen/baseline through scratch bounded by the destination. */
+export function paintTitle(target: PixelBuffer, text: string, px: number, hex: string,
+  x: number, baseline: number, clip: TitleClip, opts: TitleFontOptions = {}): boolean {
+  if (typeof document === 'undefined' || !text) return false;
+  const probe = measurementContext();
+  if (!probe) return false;
+  try {
+    const left = coordinate(Math.max(0, Math.floor(clip.x)));
+    const top = coordinate(Math.max(0, Math.floor(clip.y)));
+    const right = coordinate(Math.min(target.width, Math.ceil(clip.x + clip.w)));
+    const bottom = coordinate(Math.min(target.height, Math.ceil(clip.y + clip.h)));
+    if (right <= left || bottom <= top) return true;
+    const style = opts.style ?? preferredStyle(px, opts);
+    const { ctx } = scratch(right - left, bottom - top, style);
+    ctx.fillStyle = hex;
+    ctx.fillText(text, translated(x, left), translated(baseline, top));
+    const img = ctx.getImageData(0, 0, right - left, bottom - top);
+    if (img.data.length !== (right - left) * (bottom - top) * 4) unavailable('incomplete publication readback');
+    target.drawOver(new PixelBuffer(right - left, bottom - top, img.data), left, top, clip);
+    return true;
+  } catch (error) {
+    if (error instanceof Error && error.name === 'TitleCoverageUnavailableError') throw error;
+    unavailable(error instanceof Error ? error.message : 'host publication failure');
+  }
+}
 
 /** TX5 / TruncString at end: retain the ellipsis even when no prefix fits. */
 export function truncateTitle(text: string, room: number, measure: (text: string) => number): string {
-  if (measure(text) <= room) return text;
+  const measured = (value: string) => measurement(() => {
+    const width = measure(value);
+    coordinate(width);
+    if (width < 0) unavailable('unusable advance');
+    return width;
+  });
+  if (measured(text) <= room) return text;
   const glyphs = Array.from(text);
   for (let n = glyphs.length - 1; n > 0; n--) {
     const candidate = `${glyphs.slice(0, n).join('')}…`;
-    if (measure(candidate) <= room) return candidate;
+    if (measured(candidate) <= room) return candidate;
   }
+  measured('…');
   return '…';
 }

@@ -445,6 +445,12 @@ empty-title, title-suppression and empty-clip behavior stays unchanged.
 | TF5 | the preferred style does not fit TF3, and no positive integer candidate at or below the preferred size fits a nonempty vertical clip | Omit title ink, **both main and shadow**, rather than introduce a new typed public failure. Keep the full title and accessibility name, and keep the preferred family/face/size/spacing for advance and layout geometry. Preserve the frame, plate and clip. This is an explicit finite substitute-font fallback for a physically impossible slot, not a native-fidelity or universal no-glyph-loss claim. A slot with a fitting candidate must still retain its fitting glyph rows; do not weaken that assertion to permit clipping or omission | PM modern policy, 2026-11-02 |
 | TF6 | candidate geometry needed to resolve TF3 | Prepare the candidate's full-title advance and actual remapped TX4 vertical bounds using the **same existing layout constructor**, with the same selected type, activation/collapse state, content size and other caller inputs, and that candidate's family/face/size/spacing. Geometry-only intermediate layouts are permitted for the preferred style and the finite descending integer candidates; none is painted or committed. The selected candidate governs the final advance, layout, truncation and draw. Do not duplicate the renderer/pipeline, or substitute raw template type-4 height unless allowed rules establish exact equivalence for that input | PM dependency clarification, 2026-11-02 |
 
+The [substitute title coverage contract](window-title-fit.md) supplies the
+modern P1 finite-envelope support assumption, strict nonzero-alpha observation,
+bounded scratch and finite-completion requirements shared with title painting.
+It preserves the complete-request and largest-fitting-style rules here and
+distinguishes coverage unavailable from TF5's demonstrated impossible slot.
+
 These rules amend F11's substitute-font sizing only. Its baseline adjustment,
 the decoded clip, TF1's horizontal fit/truncation contract and the existing
 text/shadow paint order remain unchanged. They add no original typography or

@@ -445,3 +445,66 @@ The first re-record was not reproducible. The rounded anti-aliased edges of the 
 
 Acquisition: `npm run test:rendering:container -- record` on the partial-raster harness commit (pinned Linux/amd64 image, digest in manifest.json), exit 0, 36/36. Compared with the reviewed candidates, 30 sheets are identical in RGB. Six differ only at the CSS fallback button edges (≤ 2 levels): apple-platinum-2, black-platinum, platinum-8, slimes and system7-nostalgia-silver page 2 (56 px each, two buttons), and system7-nostalgia-silver page 1 (28 px, one button). Determinism: two further records are byte-identical to the committed PNGs on all 36 sheets, and three consecutive `-- verify` runs exited 0 with every page on the canonical branch.
 
+
+
+## Reviewed substitute-title bearing delta — #637, 2026-11-02
+
+Only four page-3 PNGs are adopted, byte-for-byte from the actual attachments in
+[CI verification artifact 13147377918](https://github.com/khawkins98/scriptoscope/actions/runs/41458229104/artifacts/13147377918),
+job `125320305735`. That run checked merge preview
+`8e02a35d2f1e00a43a233096edc039399d0d375d`, whose source tree equals
+`fbbc5a2e4576230340d2e0aa7279a109344eb768` (tree
+`9aae465b5584df2466fe74baa61706dfd6103b14`); bundle SHA256
+`9683cb7917167b7dd229532d89c39225259fbf95260612934ca4d07c50afd258`.
+It was a verification run with four failures, not a fresh 54-sheet recording.
+The global manifest and other 50 PNGs retain their prior capture provenance.
+
+| PNG | adopted SHA256 | changed raw RGBA pixels |
+|---|---|---:|
+| 1138-page-3.png | `4586b7b74e86198466146a7038c8d8888953634f27028291d71c5ebfc10676d8` | 2 |
+| 1984-page-3.png | `5b2859af414fb794f822604124fab97abbedbd2e8d95d5121fa57ca5390a211c` | 1 |
+| floppies-page-3.png | `29f0a0a0cafb173e2206b3ee5b81b093a7b27c6216dc67c009ee9b8ddefcc68d` | 2 |
+| crayon-os-page-3.png | `b9eaab812d8c5486702b54bb0a6172f77ff3fae5ef61208e9bf6fb9803516c97` | 2 |
+
+The seven changed pixels across the four complete sheets are confined to the
+third card, `window/titled-utility-window/collapsed/pressed-close`. Case inputs
+are title `Pressed inspector`, titled utility, width 180, height 100,
+collapsed true, pressed widget close, default active state. The loaded preferred
+stack is `"Charcoal 12", Charcoal, "Helvetica Neue", Arial, sans-serif`, bold,
+preferred 16px with zero spacing; independently resolved sizes are 16/15/15/16px
+in table order. Existing baselines, clips, dimensions and other cases remain
+unchanged. Shadow offset (+1,+1) brings negative-left-bearing source coverage
+into the clip's left column; main coverage before the pen remains clipped.
+
+Independent review recomputed all 6,776 title-region pixels: independently
+composed expected == fresh unflagged output == retained flagged CI actual,
+including every nonzero alpha value. Cropping only the pre-pen source columns
+reproduces the old expected regions exactly. All six alternatives (missing
+shadow, zero offset, reversed order, forced opaque, half alpha and precrop)
+discriminate over the complete regions. This explains the bounded delta without
+claiming to reconstruct historical crop internals.
+
+The initial proof passed but explicitly left golden approval open because its
+browser state differed from old CI. The reviewer subsequently approved only
+these four retained actual PNGs and withdrew the proposed extra matching-flag
+replay based on complete observed-value equivalence, retaining a mandatory fresh
+native CI 54-sheet seal on the final integrated candidate. No matching-flag
+replay was executed. This baseline approval does not certify final exact-head
+readiness, fresh native CI or final source review.
+
+Both executions used Playwright 1.64.0, Chromium 156.0.8078.4, Linux/amd64,
+DPR1 and viewport 1280×960, with matching recorded font/archive identities.
+The private proof used pinned image
+`mcr.microsoft.com/playwright:v1.64.0-noble@sha256:06a9939e57531807f8d5fd76ce44b53165ffb7d7501d87ab10e285c20b1e971f`
+under ARM64-host amd64 emulation, with `browserArgs: []`; old CI used
+`["--disable-partial-raster"]`. These are not identical environments, and exact
+observed equality does not prove flag irrelevance or historical loaded-font-state
+identity. The proof also retained one unattributed `ERR_EMPTY_RESPONSE` console
+entry and Canvas readback warnings; all required font/archive/render operations
+completed, but the failed resource URL was not logged.
+
+Approval is for these modern regression baselines only. The [title contract](../../../docs/spec/engine/window-title-fit.md)
+retains P1's finite-envelope and chosen-placement query-equivalence assumptions;
+guards, metric anchors and finite samples cannot certify arbitrary fallback
+fonts or native culling. Original typography, QuickDraw transfer, whole-window
+fidelity and ledger status are not promoted.

@@ -45,16 +45,17 @@ export const titleFace = key => {
   throw new Error(`No independent title-face rule for ${key}`);
 };
 
-// README's title-font policy declares Charcoal 12 with Virtue fallback; the
-// shared harness loads Virtue as Charcoal. Keep that fallback: Charcoal 12 lacks
-// U+2026, while Virtue supplies it. TF4 keeps the primary's native 16px preferred
-// pin. None of these inputs comes from a runtime draw or font resolver.
+// The declared policy retains the entire fallback order. The shared harness
+// loads Virtue as Charcoal; loading those faces does not establish that every
+// requested glyph resolves there. Keep the full independently declared stack
+// and the primary's native 16px preferred pin, never a runtime-resolved input.
 const TITLE_FAMILY = 'Charcoal 12';
+const TITLE_STACK = `"${TITLE_FAMILY}", Charcoal, "Helvetica Neue", Arial, sans-serif`;
 export const PREFERRED_TITLE_SIZE = 16;
 const glyphCache = new Map();
 
-/** Inspect a runtime draw only as an actual value, never as reference input.
- * Fallback-family lists are immaterial because the harness loads this face. */
+/** Inspect only the primary style of a runtime draw as an actual value.
+ * Record the full observed descriptor/state separately for fallback diagnosis. */
 export function titleFontStyle(font) {
   const match = font?.match(/^(?:(bold|normal)\s+)?(\d+(?:\.\d+)?)px\s+("[^"]+"|[^,]+)/);
   return match ? { face: match[1] === 'bold' ? 'bold' : 'normal', size: Number(match[2]), family: match[3].replaceAll('"', '').trim() } : null;
@@ -82,7 +83,7 @@ export function titleReference(text, { face, size }) {
   const cacheKey = JSON.stringify([text, face, size]);
   if (glyphCache.has(cacheKey)) return glyphCache.get(cacheKey);
   const canvas = document.createElement('canvas');
-  const font = `${face} ${size}px "${TITLE_FAMILY}", Charcoal`;
+  const font = `${face} ${size}px ${TITLE_STACK}`;
   const measure = canvas.getContext('2d');
   measure.font = font;
   const metrics = measure.measureText(text);
