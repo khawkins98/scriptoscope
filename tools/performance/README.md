@@ -68,19 +68,54 @@ mixed. The algorithm saves allocation/layout work generally, but elapsed gains
 depend on target geometry and count. Other machine activity was uncontrolled;
 these observations are not CI deadlines. Raw samples remain local run artifacts.
 
+## Control and title allocation follow-up
+
+A second comparison against `195e8fd2` exercises shared control/title paths:
+
+| Probe | Before → after |
+| --- | ---: |
+| 12 standalone slider updates, new canvases | 12 → 0 |
+| 8 selections across 4 tabs, new canvases | 96 → 64 |
+| 3 long, truncated window titles, new canvases | 435 → 15 |
+| Same titles, `measureText` calls | 417 → 411 |
+| 100 idle managed controls over 20 frames, serialized measurements | 2,000 → 0 |
+
+Standalone slider and tab face canvases now keep their identity. Promoted native
+ranges preserve their existing canvas publication lifecycle, which the packaged
+consumer repaint contract requires. Remaining tab canvases are
+composition surfaces. Private synchronous canvas uploads avoid an intermediate
+pixel copy; public `toImageData()` still returns an independent snapshot. Title
+probes share one lazy context and only the last measurement within each request,
+so font changes are observed on subsequent renders. Managed controls still read
+fresh geometry/styles each frame; only identical frozen results are reused.
+All sampled slider, tab and long-title pixel hashes matched the baseline.
+The follow-up also ran all 18 themes at both sizes: all 72 active/inactive window
+pixel configurations matched. Across themes, the median after/before ratio of
+per-theme medians was 0.93 for small-window rendering, 0.94 for small focus commits,
+0.79 for large-window rendering and 0.83 for large focus commits. Some individual
+results regressed (large Monkey Paradise focus: 9.7 → 12.5 ms; Platinum 8 render:
+2.7 → 3.5 ms). This single pair is observational and does not establish a universal
+speedup; the allocation counts above are the more direct evidence.
+
+Retheme-only scrollbar deferral was trialled and removed: an eight-window probe
+still forced nine layouts. Broader layout batching needs a separate measured
+change that preserves gutter-dependent dimensions and commit ordering.
+
 ## Regression checks
 
 ```sh
-SCRIPTOSCOPE_PERF_URL=http://127.0.0.1:5173 node --test src/windowRegionReuse.implementation.test.mjs
+SCRIPTOSCOPE_PERF_URL=http://127.0.0.1:5173 node --test src/windowRegionReuse.implementation.test.mjs src/controlReuse.implementation.test.mjs
 ```
 
 Regressions cover exact matches, recycling, duplicates, reordering, external
 removal/reparenting, mutated inputs, RGB/alpha changes, scaling and failure recovery. The two-state region
 cache retains one additional source snapshot/path per window.
 
-Production demo build, full gates, 190 focused Chromium contracts and 24 focused
-Firefox/WebKit contracts passed, including native wheel, masks and target placement.
-Full rendering-matrix, pinned golden and cross-engine release checks remain separate.
+Follow-up validation passed: theme extraction, production demo build, full gates,
+packaged consumer, 106 focused Chromium source/production contracts and 26 final
+range rechecks. Firefox/WebKit added 50 passes; two WebKit shared-storage cases
+were skipped. Both opt-in implementation browser regressions passed. Full
+rendering-matrix, pinned golden and cross-engine release checks remain for CI.
 
 `PERF_STAGES=1` enables inclusive internal-method diagnostics, including startup
 and warmups. Nested/overlapping timings and Promise microtask delay mean stage

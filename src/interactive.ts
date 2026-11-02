@@ -1,5 +1,6 @@
 import { prepareButtonPainter, registerButtonPainter, unregisterButtonPainter } from './buttonComposition.js';
 import { ManagedContentPort, type ManagedControlPort } from './managedContentPort.js';
+import { repaintControlCanvas } from './canvasPublication.js';
 // Interactivity layer — wires real interaction onto the rendered chrome/controls.
 //
 // The compositor already renders per-STATE cicns (ControlState normal/pressed/
@@ -295,6 +296,7 @@ async function buildDraggable(
   let raf = 0;
   let paintVersion = 0;
   let paintedLayout: SliderLayout | null = null;
+  let paintedCanvas: HTMLCanvasElement | null = null;
   let nativeDrag: { axisLength: number; travel: number; pointer: number; value: number; exact: string; direction: 1 | -1 } | null = null;
   const events = new AbortController();
   controlDisposers.set(el, () => {
@@ -340,8 +342,14 @@ async function buildDraggable(
     if (buf) {
       // Canvas and the geometry that actually drew it commit together. A stale
       // async pressed/normal paint may replace neither half of this pair.
-      const canvas = bufferToCanvas(buf, scale);
-      el.replaceChildren(canvas);
+      if (paintedCanvas && !native) {
+        repaintControlCanvas(paintedCanvas, buf, scale);
+        if (paintedCanvas.parentElement !== el) el.replaceChildren(paintedCanvas);
+      }
+      else {
+        paintedCanvas = bufferToCanvas(buf, scale);
+        el.replaceChildren(paintedCanvas);
+      }
       paintedLayout = frame?.layout ?? null;
     }
     if (!native) el.setAttribute('aria-valuenow', String(Math.round(value * 100)));

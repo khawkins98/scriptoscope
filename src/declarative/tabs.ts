@@ -20,6 +20,7 @@
 
 import type { ThemeInput } from '../ownedTheme.js';
 import { composeTab, bufferToCanvas } from '../controls.js';
+import { repaintControlCanvas } from '../canvasPublication.js';
 import { debug } from '../debug.js';
 import { OwnedMutations } from './restoration.js';
 
@@ -207,7 +208,11 @@ export async function promoteTabs(
       if (s.face.tagName === 'SPAN') {
         const buf = await composeTab(theme, { label: s.tab.textContent ?? '', selected: isSel });
         if (generations.get(el) !== generation || (opts.signal && !el.isConnected)) return;
-        if (buf) s.face.replaceChildren(bufferToCanvas(buf, 1));
+        if (buf) {
+          const canvas = s.face.querySelector('canvas');
+          if (canvas) repaintControlCanvas(canvas, buf);
+          else s.face.replaceChildren(bufferToCanvas(buf, 1));
+        }
       }
     }
     for (const panel of panels) {

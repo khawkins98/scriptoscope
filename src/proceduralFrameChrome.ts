@@ -15,7 +15,7 @@ import type { WindowState } from './types.js';
 import type { ComposedChrome, PlacementSlice } from './composeChrome.js';
 import { themeView, type ThemeInput, type ThemeView } from './ownedTheme.js';
 import { PixelBuffer } from './pixelBuffer.js';
-import { measureTitle, paintTitle } from './titleFont.js';
+import { createTitleRequest, measureTitle, paintTitle } from './titleFont.js';
 import { themeResourceChain } from './engine/resources/theme.js';
 import {
   drawProceduralFrame, drawProceduralFrameGrowIcon, proceduralFrameGeometry, proceduralFrameResourceIds, proceduralFrameSlug,
@@ -87,7 +87,7 @@ export async function composeProceduralFrameChrome(theme: ThemeInput | ThemeView
   // §3.6: a dialog or alert kind's colour table entry 0 (also the body fill in renderWindow).
   const content = dialogContentColour(owner, row.slug);
   const px = utility ? PF_UTILITY_INPUTS.font.size : TITLE_PX;
-  const fontOptions = utility ? { exactPx: true } : {};
+  const fontOptions = { ...(utility ? { exactPx: true } : {}), request: createTitleRequest() };
   const measure = (text: string) => measureTitle(text, px, fontOptions);
   const measured = title ? measure(title) : null;
   const base: Omit<ProceduralFrameInput, 'content'> = {

@@ -51,3 +51,38 @@ for (const method of ['copyBits', 'drawOver']) test(`${method} preserves travers
     assert.deepEqual([0, 1, 2, 3, 4].map(x => data[x * 4]), forward ? [1, 1, 1, 1, 1] : [2, 3, 4, 5, 5]);
   }
 });
+
+
+test('private canvas publication uses the exact view while public images remain snapshots', async () => {
+  const { publishPixels, repaintControlCanvas } = await import('./canvasPublication.ts');
+  const original = globalThis.ImageData;
+  globalThis.ImageData = class {
+    constructor(data, width, height) {
+      if (typeof data === 'number') { height = width; width = data; data = new Uint8ClampedArray(width * height * 4); }
+      Object.assign(this, { data, width, height });
+    }
+  };
+  try {
+    const backing = new Uint8ClampedArray(12); backing.set([1, 2, 3, 255], 4);
+    const buffer = new PixelBuffer(1, 1, backing.subarray(4, 8));
+    let uploaded, pixels;
+    const context = { putImageData(image) { uploaded = image; pixels = image.data.slice(); } };
+    publishPixels(context, buffer);
+    assert.equal(uploaded.data.buffer, backing.buffer);
+    assert.equal(uploaded.data.byteOffset, 4);
+    assert.deepEqual([...pixels], [1, 2, 3, 255]);
+    const snapshot = buffer.toImageData();
+    buffer.data[0] = 9;
+    assert.equal(snapshot.data[0], 1);
+    assert.equal(pixels[0], 1);
+    let resets = 0;
+    const canvas = { get width() { return 1; }, set width(_) { resets++; },
+      get height() { return 1; }, set height(_) { resets++; }, style: {}, getContext: () => context };
+    repaintControlCanvas(canvas, buffer, 2);
+    assert.equal(resets, 0);
+    assert.equal(canvas.style.width, '2px');
+    assert.equal(pixels[0], 9);
+    publishPixels(context, new PixelBuffer(1, 1, new Uint8ClampedArray([7, 8])));
+    assert.deepEqual([...pixels], [7, 8, 0, 0]);
+  } finally { globalThis.ImageData = original; }
+});
