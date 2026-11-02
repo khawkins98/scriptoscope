@@ -51,14 +51,16 @@ Golden recording and verification are separate commands:
   failures, restores exact expected bytes, then verifies the restored sheet.
 
 All 70 bounded cases are captured in two independent contact-sheet pages per
-corpus theme (at most 35 cases each), yielding 36 reviewable PNGs. Each page gets
+corpus theme (at most 35 cases each), yielding 36 controls PNGs. A third page adds two collapsed managed windows
+(document and side utility) and two directly rendered collapsed utilities with
+the close widget pressed (top and side title axes) per theme, for 54 PNGs in total. Each page gets
 its own browser context, limiting retained DOM and capture size. The manifest
 records the exact per-page case inventory.
 The manifest gates browser/Playwright versions, platform, fonts, archive hashes,
 case inventory and display zoom. Commit and built-bundle hashes are provenance
 only, so ordinary code changes still compare against the approved images.
 
-CI compares all 36 [reviewed seed images](./goldens/REVIEW.md) exactly on every
+CI compares the [reviewed seed images](./goldens/REVIEW.md) exactly on every
 code-changing PR, alongside the independent browser contracts. Missing images,
 manifest/input drift and even one changed pixel fail verification. Updates remain
 an explicit candidate-and-review operation. Image equality is a regression signal;

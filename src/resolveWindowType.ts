@@ -67,12 +67,18 @@ function looksLikeWindow(theme: Pick<LoadedTheme, 'manifest'>, wt: WindowType): 
 /** The existing child-first render policy, shared by rendering and collapse.
  * A child heuristic selection still wins over an exact type in its base. */
 export function resolveWindowSelection<Theme extends { manifest: LoadedTheme['manifest']; readonly base?: Theme | undefined }>(theme: Theme, slug: string, state: WindowState = 'active'):
-  { owner: Theme; wt: WindowType; cicnPath: string } | undefined {
+  { owner: Theme; wt: WindowType; cicnPath: string; renderedType: string } | undefined {
   return resolveInChain(theme, owner => {
     const wt = resolveWindowType(owner, slug);
     const cicnPath = wt ? (wt.chrome[state] ?? wt.chrome.active) : undefined;
-    return wt && cicnPath ? { owner, wt, cicnPath } : null;
+    const key = Object.entries(owner.manifest.windowTypes ?? {}).find(([, value]) => value === wt)?.[0] ?? slug;
+    return wt && cicnPath ? { owner, wt, cicnPath, renderedType: canonicalWindowTypeSlug(key) } : null;
   });
+}
+
+/** PM1: alternate art and title face follow the resolved public type. */
+export function alternateWindowWidgets(renderedType: string): boolean {
+  return /^(collapsed-)?(titled-utility|no-title-utility|side-floating-utility)-window$/.test(canonicalWindowTypeSlug(renderedType));
 }
 
 /** Discover authored collapsed art only in the owner selected for the expanded

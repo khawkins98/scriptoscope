@@ -1,6 +1,6 @@
 import type { WindowState, WindowType } from './types.js';
 import { themeView, assertThemeAlive, type ThemeInput, type ThemeView } from './ownedTheme.js';
-import { composeWindowChrome, type ComposedChrome, type TitleWidgetRole } from './composeChrome.js';
+import { composeWindowChrome, layoutWindowChrome, type ComposedChrome, type TitleWidgetRole } from './composeChrome.js';
 import { themeResourceChain } from './engine/resources/theme.js';
 import { probeWidgetStrip, widgetCicnIds } from './engine/families/window.js';
 import type { IconSource } from './raster.js';
@@ -8,10 +8,10 @@ import type { IconSource } from './raster.js';
 // wnd# recipe) draws through the v2 engine family proceduralFrame, dynamically
 // imported so the 13 wnd# themes don't load it on first paint.
 import { rasterizeText } from './textRaster.js';
-import { measureTitle, rasterizeTitle, truncateTitle } from './titleFont.js';
+import { measureTitle, rasterizeTitle, resolveTitleStyle, truncateTitle, type TitleFontStyle } from './titleFont.js';
 import { TITLE_TEXT } from './engine/tables/window.js';
 import { PixelBuffer } from './pixelBuffer.js';
-import { resolveWindowSelection } from './resolveWindowType.js';
+import { alternateWindowWidgets, resolveWindowSelection } from './resolveWindowType.js';
 import { canonicalWindowTypeSlug } from './wndCascade.js';
 import { dialogContentColour, rgbHex } from './dialogContent.js';
 import { SIDE_TITLED_TYPES } from './hitRegion.js';
@@ -92,10 +92,8 @@ export async function renderWindow(
   const slug = canonicalWindowTypeSlug(requestedSlug);
   const state: WindowState = opts.state ?? 'active';
   const title = opts.title ?? '';
-  const collapsed = opts.collapsed === true;
   const expandedH = opts.height ?? 120;
   let contentW = opts.width ?? 240;
-  let contentH = collapsed ? 0 : expandedH;
   const scale = Math.max(1, Math.round(opts.scale ?? 1));
 
   // Find the first theme in the base chain with renderable chrome for this slug.
@@ -106,11 +104,16 @@ export async function renderWindow(
   // procedural default window from the (original) scheme's header colors renders
   // (North Star: render any scheme).
   const resolved = resolveWindowSelection(theme, requestedSlug, state);
+  const key = resolved?.renderedType ?? slug;
+  // PM2: normalize before emptying either content dimension.
+  const collapsed = opts.collapsed === true && key !== 'popup-window';
+  let contentH = collapsed ? 0 : expandedH;
   if (!resolved) {
     const utility = /utility|mini|floating|palette/.test(slug);
     return buildBaselineWindow(theme, { title, state, contentW, contentH, scale, utility, slug });
   }
   const { owner, wt, cicnPath } = resolved;
+  const altWidgets = wt.model !== 'corner-sprite' && alternateWindowWidgets(key);
 
   // The sliced path walks the chrome cicn; the built-in frame loads its own art by id.
   const cicn = wt.model === 'corner-sprite' ? null : await owner.asset(cicnPath).pixels();
@@ -133,15 +136,17 @@ export async function renderWindow(
   const frameTop = wt.parts['part-0']?.rect[1] ?? 0;
   const builtInFrame = wt.model === 'corner-sprite';
   let textH = 0;
+  let titleStyle: TitleFontStyle | undefined;
+  let omitTitleInk = false;
   // Pen advance (StringWidth) and baseline row; the pixel rasterizer (non-DOM) has neither, so its box stands in.
   const raster = (text: string, hex: string): { buffer: PixelBuffer; ascent: number; advance: number } => {
-    const r = rasterizeTitle(text, textH, hex);
+    const r = rasterizeTitle(text, textH, hex, { bold: altWidgets, style: titleStyle });
     if (r) return r;
     const b = rasterizeText(text, textH, hex);
     return { buffer: b, ascent: b.height, advance: b.width };
   };
   const measure = (text: string): { ascent: number; advance: number } => {
-    const measured = measureTitle(text, textH);
+    const measured = measureTitle(text, textH, { bold: altWidgets, style: titleStyle });
     if (measured) return measured;
     const b = rasterizeText(text, textH, '#000000');
     return { ascent: b.height, advance: b.width };
@@ -156,17 +161,12 @@ export async function renderWindow(
       try { await document.fonts.load(`16px "Charcoal 12"`); } catch { /* ignore */ }
       try { await document.fonts.load(`${textH}px Charcoal`); } catch { /* ignore */ }
     }
-    // Title in the "Charcoal" font (period anti-aliased type); pixel rasterizer
-    // is the fallback (non-DOM contexts). Width pass; recoloured below.
-    measured = measure(title);
   }
   // Built-in frame windows (no wnd# recipe: apple-platinum-2, black-platinum,
   // platinum-8, slimes, system7-nostalgia-silver) draw through the v2 engine
   // (docs/spec/engine/procedural-frame.md), title text and pressed widget included.
   let composed;
   let contentCollapsed = false;
-  // The window type that actually rendered, after collapsed-variant and base-chain resolution.
-  const key = Object.entries(owner.manifest.windowTypes ?? {}).find(([, v]) => v === wt)?.[0] ?? slug;
   if (builtInFrame) {
     const { composeProceduralFrameChrome } = await import('./proceduralFrameChrome.js');
     // The built-in utility frame derives its bar height from the title (procedural-frame §9.1
@@ -189,14 +189,28 @@ export async function renderWindow(
     // hit-regions HP48: the title axis comes from the type that rendered, never from a layout default.
     // It is the layout's one `sideTitle` flag (window-widgets §2.3), so the widget-cicn ids read it too.
     const sideTitle = SIDE_TITLED_TYPES.has(canonicalWindowTypeSlug(key));
-    const ids = widgetCicnIds({ sideTitle });
-    const strip = probeWidgetStrip<IconSource>(await themeResourceChain(owner, ids.map((id) => ({ type: 'cicn', id }))), { sideTitle });
+    const widgetFlags = { sideTitle, altWidgets };
+    const ids = widgetCicnIds(widgetFlags);
+    const strip = probeWidgetStrip<IconSource>(await themeResourceChain(owner, ids.map((id) => ({ type: 'cicn', id }))), widgetFlags);
     // window-widgets §2.1 `C`: a collapsed side-titled window empties its width, not its height.
     if (collapsed && sideTitle) { contentW = 0; contentH = expandedH; }
-    composed = composeWindowChrome(cicn!, wt, contentW, contentH, {
-      cinf: wt.cinf ?? null, titleWidthPx: measured?.advance ?? 0, titleLength: measured ? title.length : 0,
-      popupFamily: slug === 'popup-window', widgetCicn: strip?.value.pixmap ?? null, collapsed, sideTitle,
+    const chromeOptions = {
+      cinf: wt.cinf ?? null, popupFamily: key === 'popup-window',
+      widgetCicn: strip?.value.pixmap ?? null, collapsed, ...widgetFlags,
       ...(opts.pressedWidget ? { pressedWidget: opts.pressedWidget } : {}),
+    };
+    if (textH) {
+      // TF6: candidate advances prepare only geometry through the final layout constructor.
+      const resolvedTitle = resolveTitleStyle(title, textH, advance =>
+        layoutWindowChrome(cicn!, wt, contentW, contentH, {
+          ...chromeOptions, titleWidthPx: advance, titleLength: title.length,
+        }).titleRect, { bold: altWidgets });
+      titleStyle = resolvedTitle.style;
+      omitTitleInk = resolvedTitle.omitInk;
+      measured = measure(title);
+    }
+    composed = composeWindowChrome(cicn!, wt, contentW, contentH, {
+      ...chromeOptions, titleWidthPx: measured?.advance ?? 0, titleLength: measured ? title.length : 0,
     });
   }
   const { frame, fullWidth, fullHeight } = composed;
@@ -205,10 +219,10 @@ export async function renderWindow(
   // empty title (TX2) or an empty `t4p`. Left-aligned, baseline 4 above its bottom (TX8),
   // clipped to `t4p` widened by 2 on the right (TX4). The layout centres `t4p` on the content
   // (TT6/TT7). DIVERGENCES (runtime): TX5 condenses before TruncString, but the runtime has
-  // no condensed face, so it only truncates (plain face, ellipsis); the text is drawn
+  // no condensed face, so it only truncates (required face, ellipsis); the text is drawn
   // after every side, not right after the side holding T4 (TX1).
   const t4p = composed.titleRect;
-  if (measured && t4p && t4p.w > 0 && t4p.h > 0) {
+  if (measured && !omitTitleInk && t4p && t4p.w > 0 && t4p.h > 0) {
     // DECISIONS #13: the plate fits the text as drawn. TX5's truncation room is the title rect
     // + 2; where the rect ends flush with the plate (dolphin-som, evolution) that put ink 1 px
     // past it, so the room stops at the plate's right edge, but never below the title rect's own

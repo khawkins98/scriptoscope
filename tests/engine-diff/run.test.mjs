@@ -246,7 +246,7 @@ test('CLI: a cases.mjs edit cannot hide a runtime regression; the base copy of t
   write(cases, read(cases, 'utf8').replace(PIXELS, 'pixels: sha((c.buffer.data[0] ^= 1, c.buffer.data)),'));
   r = run();
   assert.equal(r.status, 1, r.stdout + r.stderr);
-  assert.match(r.stdout, /engine-diff: window: 1\d{3} cells, 0 changed/, 'the edited head harness hides the change');
+  assert.match(r.stdout, new RegExp(`engine-diff: window: ${Object.keys(committed('window')).length} cells, 0 changed`), 'the edited head harness hides the change');
   assert.match(r.stderr, /window: the base copy of cases\.mjs sees \S+ change .* the head harness may be hiding a runtime change/);
   assert.deepEqual(readdirSync(join(wt, 'tests/engine-diff')).filter(n => n.startsWith('.cases-base-')), [], 'the temporary base harness is removed');
 

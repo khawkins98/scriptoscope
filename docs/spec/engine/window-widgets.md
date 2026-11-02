@@ -73,7 +73,7 @@ F10 (title text), and corrects F6's scope.
 | `drawActive` | the window's `hilited` (classic `WindowRecord` layout; an inference from the layout, see §6 Q7), forced on for some procID families | `0x2e52`, `0x315e`, `0x31d4` |
 | `collapsed` | the window is collapsed: the result of a helper that asks the Appearance Manager (`$AA74` selector 16, identity not in the pinned Traps.h) or else an auxiliary-window flag bit (`0xf078`). Cleared for the popup family | `0x2e62`, `0x3216` |
 | `partialZoom`, `partialZoomColumn` | the vertical/horizontal-zoom document variants (procIDs 1026–1029; the column flag for 1026/1027) and families 66/67 with some variations | `0x2fba..0x3038`, `0x3194`, `0x31a8` |
-| `altWidgets` | alternate widget cicn set (+32) and bold title face | `0x3132`, `0x31ba`, read `0x4f0e`, `0x607e` |
+| `altWidgets` | alternate widget cicn set (+32) and bold title face; set exactly for procID families 66, 67 and 124, regardless of variation (PF1–PF3) | `0x3132`, `0x31ba`, read `0x4f0e`, `0x607e` |
 | `sideTitle` | side-titled variant: widget id +8 only when `altWidgets` is also set (WD11); on a missing widget cicn, retry id −8 under `sideTitle`; collapsed content zeroes width not height | `0x3150`, `0x31fe` |
 | `popupFamily` | procID family 63 | `0x3210` |
 | `outlineDraw` | draw parameter 0 draws the outline instead of the frame | `0x428c..0x4292` |
@@ -81,23 +81,42 @@ F10 (title text), and corrects F6's scope.
 
 ### 2.3 Scriptoscope mapping and declared defaults
 
-The runtime has no procID. Declared defaults (modern policy, not original
-observations): `popupFamily` from the `popup-window` request (service slot 8),
-`partialZoom`, `partialZoomColumn`, `altWidgets`, `collapsed`,
-`outlineDraw` and `noWidgets` clear, `widgetFrame` set, `drawActive` from the
-window's active state. `hasClose`, `hasZoom` and `collapseRequested` are
-currently one runtime flag (finding F7). `sideTitle` is not a fixed default.
-It is set from the rendered public window type by the declared mapping in
-[`hit-regions.md`](hit-regions.md) HP48: set for `side-floating-utility-window`
-and `collapsed-side-utility`, clear for every other type. As in the decode
-(§2.2), it is **one** flag, and every row that reads `sideTitle` uses that same
-value: the collapsed `C` axis (§2.1), WD4's collapsed side walk, the retry ids
-of WD8 (`base−7`), WD9 and HT7 (`base−8`), and WD11's `+8`. WD11 adds `+8` only
-under `altWidgets`, which stays clear, so the requested base stays −14330. A
-side-titled type only adds the WD9/HT7 retry at −14338 when −14330 is missing
-(WD8's −14337 needs `partialZoom`, which is also clear). Corpus impact: none.
-All 18 bundles ship −14330, and none ships −14337 or −14338 (re-derived
-2026-11-01).
+The runtime has no procID. The following rows distinguish the original
+per-message decode from the declared public-type adapter. A procID family is
+its signed 16-bit value divided by 16 with arithmetic right-shift semantics;
+variation is its low four bits. The original resets both widget flags before
+family selection on every message.
+
+| row | condition | result | source |
+|---|---|---|---|
+| PF1 | procID family 66 or 67 (1056–1087) | `altWidgets = true`; `sideTitle = true` only for family 67. Every variation qualifies, including 0–3 and 12–15; partial zoom does not gate alternate art | `0x2e3e..0x2e42`, `0x3116..0x3156` |
+| PF2 | procID family 124 (1984–1999) | `altWidgets = true`; `sideTitle` from variation bit 3 | `0x31ae..0x3204` |
+| PF3 | every other procID family | `altWidgets = false`; no other path in this selection sets it | `0x2e3e`, `0x2e6c..0x321a` |
+| PF4 | procID family 63 (1008–1023) | `popupFamily = true`, `collapsed = false` even when the window-state helper reports collapse. Content rect `C` keeps both dimensions (§2.1); WD4 walks four sides; WD9/HT7 do not select a collapsed second row | `0x3204..0x321a`, `0x47ea..0x4802` |
+| PM1 | actual rendered type is `titled-utility-window`, `no-title-utility-window`, `side-floating-utility-window`, or a collapsed variant of one of them | **Declared mapping:** `altWidgets = true`. This includes legacy `collapsed-titled-utility`, `collapsed-no-title-utility`, `collapsed-side-utility` and their canonical aliases. All other rendered public types have `altWidgets = false`. Resolve aliases, collapsed variants and base-chain fallback first; use the type that actually rendered, as HP48 does for the title axis | PF1–PF3; modern adapter policy, #624 |
+| PM2 | actual rendered type is `popup-window` | **Modern policy, PM ruling 2026-11-02 (#625):** ignore a collapse request. Effective `collapsed` is false for rendering, content visibility, hit geometry and public state reporting, including initial/add, apply and toggle paths. Keep the requested expanded width and height for later type/state transitions; never pre-empty a dimension. This normalizes the web state to PF4; the original decode does not define these web lifecycle operations | PF4; PM ruling |
+
+Other declared defaults (modern policy, not original observations):
+`popupFamily` from the `popup-window` request (service slot 8),
+`partialZoom`, `partialZoomColumn`, `outlineDraw` and `noWidgets` clear,
+`widgetFrame` set, `drawActive` from the window's active state. `collapsed`
+comes from the caller/window state, subject to PM2. `hasClose`, `hasZoom` and
+`collapseRequested` are currently one runtime flag (finding F7).
+
+`sideTitle` is set from the actual rendered type by
+[`hit-regions.md`](hit-regions.md) HP48, including collapsed and canonical
+aliases. It is **one** flag: every decoded use reads the same value, including
+collapsed `C`, WD4, WD8/WD9/HT7 retries and WD11. Together PM1 and WD11 request
+−14298 for top-titled utilities and −14290 for side-titled utilities; WD9/HT7
+retry the side strip at −14298 when −14290 is absent. Other types request
+−14330. This is a shared type mapping, never an archive-name branch. PM1 changes only `altWidgets`; it does not establish new mappings for
+`utilityFrame`, `growEnabled`, `noWidgets` or title suppression. Keep their
+existing declared defaults and caller rules. Every existing decoded consumer
+of `altWidgets` uses the same mapped value, including TT2/TX5/TX9's bold
+face and HG3's size choice when that row is reachable. Do not add a separate
+widget-only flag or infer other utility flags from PM1. These
+rows govern recipe windows; the recipe-less built-in frame retains its own
+family and resource rules in `procedural-frame.md`.
 
 ## 3. Outputs
 
@@ -411,6 +430,24 @@ The title sizing, clip and baseline policies remain those of DECISIONS #13.
 | id | condition | runtime font policy | authority |
 |---|---|---|---|
 | TF1 (`window.title-fit`) | substitute title font, every sliced archive | Measure and draw at full width (`SWc = SW`). Preserve a whole title whenever its measured width fits `room = min(t4p.width + 2, max(plate.right − t4p.left, t4p.width))`; otherwise retain the longest prefix plus ellipsis that fits, or ellipsis alone when no glyph-plus-ellipsis fits (even when the marker itself exceeds room). Keep TX4's clip and the DECISIONS #13 baseline adjustment. This is a finite substitute-font sizing contract, not whole typography fidelity or an original-font raster claim. | DECISIONS #13; TX5 truncEnd; declared substitute marker policy |
+
+**TF2–TF5 amendment (PM modern policy, 2026-11-02, #624/#625).**
+These rows resolve substitute-font vertical fit; they are not a new original
+font decode. They apply to drawn recipe-window titles under TF1. Existing
+empty-title, title-suppression and empty-clip behavior stays unchanged.
+
+| id | condition | runtime font policy | authority |
+|---|---|---|---|
+| TF2 | a nonempty title is eligible to draw in a nonempty clip | Keep the required face: bold when the single mapped `altWidgets` flag is set, plain otherwise. Obtain the preferred family, size and spacing from the existing substitute-font policy. Keep that preferred style when it fits TF3; do not replace bold with plain to obtain a fit | PM modern policy; PM1; TT2, TX5, TX9 |
+| TF3 | vertical fit of a candidate style | Evaluate the **full requested title**, before TF1 horizontal truncation, with F11's unchanged adjusted baseline. A fit means all main glyph ink lies within the vertical interval of the candidate's actual remapped TX4 clip (TF6), kept unchanged. If the preferred style does not fit, choose the largest positive integer pixel size no greater than the preferred size whose ink fits, keeping the same preferred family, required face and spacing. Shadow keeps its existing clipped semantics and does not enlarge the fit budget. No per-theme branch or clip/plate expansion is permitted | PM modern policy, 2026-11-02 |
+| TF4 | TF3 resolves a fitting style | Use the identical resolved family, face, size and spacing for the full-title advance (`SW = SWc`), layout, TF1 truncation/ellipsis measurement and drawing. Resolve the style before those dependent measurements; do not shrink only at paint time. The Charcoal 12 native 16-pixel pin remains the preferred size when it fits, but the same preferred family may use a smaller fitting size. A later measurement or draw must not reapply the preferred pin over that resolved size. Resolve one style from the full requested title (TF6 candidate preparations are permitted); do not refit from a later truncated string. The same resolved style governs any truncated string or ellipsis | PM modern policy; TF1; TT2a amendment |
+| TF5 | the preferred style does not fit TF3, and no positive integer candidate at or below the preferred size fits a nonempty vertical clip | Omit title ink, **both main and shadow**, rather than introduce a new typed public failure. Keep the full title and accessibility name, and keep the preferred family/face/size/spacing for advance and layout geometry. Preserve the frame, plate and clip. This is an explicit finite substitute-font fallback for a physically impossible slot, not a native-fidelity or universal no-glyph-loss claim. A slot with a fitting candidate must still retain its fitting glyph rows; do not weaken that assertion to permit clipping or omission | PM modern policy, 2026-11-02 |
+| TF6 | candidate geometry needed to resolve TF3 | Prepare the candidate's full-title advance and actual remapped TX4 vertical bounds using the **same existing layout constructor**, with the same selected type, activation/collapse state, content size and other caller inputs, and that candidate's family/face/size/spacing. Geometry-only intermediate layouts are permitted for the preferred style and the finite descending integer candidates; none is painted or committed. The selected candidate governs the final advance, layout, truncation and draw. Do not duplicate the renderer/pipeline, or substitute raw template type-4 height unless allowed rules establish exact equivalence for that input | PM dependency clarification, 2026-11-02 |
+
+These rules amend F11's substitute-font sizing only. Its baseline adjustment,
+the decoded clip, TF1's horizontal fit/truncation contract and the existing
+text/shadow paint order remain unchanged. They add no original typography or
+device-equivalence claim.
 
 ## 5. Geometry
 

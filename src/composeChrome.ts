@@ -144,6 +144,8 @@ export interface ComposeWindowOptions {
   /** `sideTitle`: the title axis is left/right. The runtime sets it from the rendered window type
    *  (hit-regions HP48); it moves the collapsed walk to sides 2 and 3. Default false. */
   sideTitle?: boolean;
+  /** PM1: the resolved utility type selects alternate widgets and title face. */
+  altWidgets?: boolean;
   /** Draw one widget pressed (WD3 parameter 4 / 5 / 9, state 1). */
   pressedWidget?: TitleWidgetRole;
   trace?: EngineTrace;
@@ -152,19 +154,14 @@ export interface ComposeWindowOptions {
 const xywh = (r: QdRect): PixRectXY => ({ x: r.left, y: r.top, w: r.right - r.left, h: r.bottom - r.top });
 const partCode = (slug: string): number => { const m = /^part-(-?\d+)$/.exec(slug); return m ? Number(m[1]) : -1; };
 
-/**
- * Compose a window's chrome into a pixel buffer at native resolution. The
- * content rect (contentW × contentH) is left transparent so DOM content shows
- * through when the buffer is drawn behind it.
- */
-export function composeWindowChrome(cicn: PixelBuffer, windowType: WindowType, contentW: number, contentH: number,
-  opts: ComposeWindowOptions = {}): ComposedChrome {
+/** Shared geometry preparation: candidate title layouts allocate and paint no pixels. */
+export function layoutWindowChrome(cicn: PixelBuffer, windowType: WindowType, contentW: number, contentH: number,
+  opts: ComposeWindowOptions = {}) {
   const body = windowType.parts['part-0'];
   if (!body) throw new Error('composeWindowChrome: windowType has no part-0 body rect');
   const { w: drawW, h: drawH } = drawableExtent(cicn);
   const frame = frameFromBody(body.rect, drawW, drawH);
   const fullW = frame.left + contentW + frame.right, fullH = frame.top + contentH + frame.bottom;
-  const out = PixelBuffer.alloc(fullW, fullH);
 
   const rects = Object.entries(windowType.parts).map(([slug, p]) => ({ type: partCode(slug), rect: rect(p.rect[1], p.rect[0], p.rect[3], p.rect[2]) }));
   const SW = opts.titleWidthPx ?? 0;
@@ -176,8 +173,16 @@ export function composeWindowChrome(cicn: PixelBuffer, windowType: WindowType, c
     titleWidth: SW, titleWidthCondensed: opts.titleWidthCondensedPx ?? SW,
     titleLength: opts.titleLength ?? (SW > 0 ? 1 : 0),
     flags: { popupFamily: opts.popupFamily ?? false, drawActive: opts.active ?? true,
-      collapsed: opts.collapsed ?? false, sideTitle: opts.sideTitle ?? false },
+      collapsed: opts.collapsed ?? false, sideTitle: opts.sideTitle ?? false, altWidgets: opts.altWidgets ?? false },
   }, opts.trace);
+  return { frame, fullWidth: fullW, fullHeight: fullH, layout, titleRect: xywh(remapWidget(layout, layout.T4)) };
+}
+
+/** Compose native-resolution chrome, leaving the content rect transparent. */
+export function composeWindowChrome(cicn: PixelBuffer, windowType: WindowType, contentW: number, contentH: number,
+  opts: ComposeWindowOptions = {}): ComposedChrome {
+  const { frame, fullWidth: fullW, fullHeight: fullH, layout, titleRect } = layoutWindowChrome(cicn, windowType, contentW, contentH, opts);
+  const out = PixelBuffer.alloc(fullW, fullH);
 
   // ── draw the sides, collect the placement map in side order ───────────────
   const bySide: PlacementSlice[][] = WINDOW_SIDES.map(() => []);
@@ -236,7 +241,7 @@ export function composeWindowChrome(cicn: PixelBuffer, windowType: WindowType, c
   };
   return {
     buffer: out, frame, fullWidth: fullW, fullHeight: fullH, titleRegion, placement, layout,
-    titleRect: xywh(remapWidget(layout, layout.T4)),
+    titleRect,
     widgets: hittable.map(w => ({ role: w.row.role, rect: xywh(w.rect) })),
     hitWidget: (x, y) => widgetHit(layout, widgets, strip, x, y).role,
     structure: () => windowStructure(layout, cicn, fullW, fullH),

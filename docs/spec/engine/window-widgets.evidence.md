@@ -835,3 +835,64 @@ resize preserved, DECISIONS #12 unchanged. WM381 is a modern compatibility
 rule, not a correction to HG precedence or a fidelity promotion. It resolves
 public overlay policy only; the original numeric 1138 intersection remains
 unknown and no further acquisition was undertaken.
+
+## #624/#625 family and collapse retrace (2026-11-02)
+
+Spec-author lane `widgets-collapse-624-625`; independent verification remains
+separate. Source retrace and the behavioural handoff were completed before
+runtime-file inspection. No runtime fixes were authored in this lane; later
+mechanical integration transfers separately authored runtime/test commits. The public
+behavioural handoff is window-widgets §2.3 PF1–PF4/PM1–PM2; this appendix must
+not be handed to runtime implementers.
+
+### Source identity and reproduction
+
+Authorized private root: `~/Documents/Scriptoscope-maintainer-assets`.
+Fresh extraction used `unar` twice, first on
+`recovery-2026-10-19/originals/Kaleidoscope231US.bin`, then on the resulting
+`Kaleidoscope 2.3.1 Installer`. The control panel's resource fork was read
+through `Kaleidoscope/..namedfork/rsrc`. It is 1,005,535 bytes, SHA-256
+`0d4af8bab15e467f00b9dfaac99bb9adec6ee884e12e04f3de03d74b3fdc9c0b`.
+The payload at resource-fork offset 612937, length 107726, has SHA-256
+`2c027276dae2355964a0dde1ace31f60ba845ab2c5fbf0496fd34ab2afe7c342`.
+This agrees with the inventory's original kDEF 0 pin. Extraction output stays
+private under `widgets-collapse-624-625/source/`; no native code was executed.
+
+The existing private listing
+`campaign-20261021/lanes/RE-advisory/work/asm/kDEF0.asm` has SHA-256
+`fe26499e938bef940bdd1401a1fb52081e8f57f8920038a7f48cd4e7fe487120`.
+Every printed instruction/data byte starting in `[0x148,0x170)`,
+`[0x2e02,0x321a)`, `[0x4778,0x480a)` and `[0x607a,0x6090)` was compared with
+the freshly extracted payload: all 1,256 bytes agree. This is a bounded
+listing-byte check, not a whole-listing or installation-state certification.
+
+### Bounded control-flow ruling
+
+The clear block resets offsets 506 and 507 at `0x2e3e`/`0x2e42`.
+The initial exact-procID table uses helper `0x148` and its signed,
+word-relative destinations; its selected branches converge on `0x3116`.
+None writes offset 506. At `0x3116..0x3128`, arithmetic division by 16
+selects family 66 or 67; both enter `0x3132`, which writes 1 to offset 506.
+Family 67 alone writes offset 507 at `0x3150`. Variation-specific zoom
+checks happen later (`0x3172..0x31a8`), so variations 0–3 and 12–15 also
+get alternate art. At `0x31ae..0x31ba`, family 124 independently writes
+1 to offset 506; variation bit 3 controls offset 507 at `0x31f6..0x31fe`.
+There are no other setters in this per-message selection. Thus PF1–PF3
+cover exactly procIDs 1056–1087 and 1984–1999, not all non-document kinds.
+
+`0x607a..0x608e` starts at −14330, adds **32** when offset 506 is set,
+and adds 8 only inside that branch when offset 507 is also set. Issue
+#624's opening “+8 when altWidgets” is a typo: its resulting ids −14298
+and −14290 correspond to +32 and then +8, as WD11 already states.
+The public utility mapping is explicitly a modern adapter choice, not a
+recovered public-slug-to-procID table. Recipe-less windows keep their own rules.
+
+At `0x3204..0x3216`, family 63 sets offset 509 and clears offset 510,
+overriding the state-helper result assigned at `0x2e62`. The content helper
+`0x4778` only empties a dimension after testing offset 510 at `0x47ea`;
+therefore family 63 retains the supplied expanded C on both axes. WD4's
+four-side walk and ordinary widget row follow from the cleared flag.
+This establishes native family-63 drawing semantics, not web state APIs.
+PM2 separately records the coordinator's explicit normalization policy for
+initial/add/apply/toggle and public state reporting. Neither native popup
+interaction nor a native screenshot was acquired in this bounded static retrace.

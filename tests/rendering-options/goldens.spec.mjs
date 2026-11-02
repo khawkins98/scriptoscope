@@ -59,12 +59,22 @@ for (const { slug } of catalog) for (const [pageIndex, cases] of pages.entries()
       result = await page.evaluate(({ c, slug }) => window.controlMatrix.runCase(c, { slug, retain: true, includeReferences: false }), { c, slug });
       observed.push({ id: c.id, family: c.family, mode: c.mode, options: c.options, status: result.status,
         renderPath: result.renderPath, canvases: result.canvases.map(({ width, height, opaqueBounds }) => ({ width, height, opaqueBounds })),
-        controlRects: result.controls.map(({ rect }) => rect), error: result.error, resolutionTrace: result.resolutionTrace });
+        controlRects: result.controls.map(({ rect }) => rect), windows: result.windows, error: result.error, resolutionTrace: result.resolutionTrace });
       expect(result.status, result.error ?? c.id).not.toBe('error');
     }
     // Hide transient server URLs; the cases, labels, dimensions and native DOM
     // stay visible. Backing font binaries and viewport are pinned above.
     await page.locator('#status').evaluate(el => el.remove());
+    // Screenshot-relative case bounds make a changed-pixel audit attributable
+    // to consumer cases without guessing grid row heights from the PNG.
+    const sheetRects = await page.locator('#matrix').evaluate(matrix => {
+      const sheet = matrix.getBoundingClientRect();
+      return [...matrix.children].map(article => {
+        const r = article.getBoundingClientRect();
+        return { x: r.x - sheet.x, y: r.y - sheet.y, width: r.width, height: r.height };
+      });
+    });
+    observed.forEach((row, index) => { row.sheetRect = sheetRects[index]; });
     await expect(page.locator('#matrix')).toHaveScreenshot(`${slug}-page-${pageIndex + 1}.png`, {
       animations: 'disabled', caret: 'hide', threshold: 0, maxDiffPixels: 0,
     });

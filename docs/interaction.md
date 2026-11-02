@@ -223,7 +223,7 @@ The scheme's art decides which widgets a window type shows and where. A transpar
 - **Zoom** grows the window to show all its content (the content element's scroll size, at least the current size), capped at 760 × 560 px of content. A window without a content element grows to 1.5 times its size. Zoom un-shades a collapsed window first and raises it (see [Z-order](#z-order)). Zooming again restores the size from before the zoom, including "no size" for a window that had none. While zoomed, `setOuterSize` updates the size that un-zoom restores (#542).
 - **Collapse (window-shade)** rolls the window up to its title bar, using the scheme's collapsed art when it has some, and hides the content (the content nodes stay in place). On `wnd#` schemes a side-titled palette (`side-floating-utility-window`) collapses sideways: it keeps its height and rolls up to its vertical title strip (#617). The grow box and scroll bars go away while collapsed. Collapsing again restores it.
 - **Double-click any frame edge** toggles window-shade too, including on side-titled palettes. Double-clicks on widgets, scroll bars and the grow box don't. This path always runs the built-in shade, and afterwards calls `handlers.onCollapse` if there is one.
-- `data-scriptoscope-collapsed`, `extra.collapsed` or `applyState(host, { collapsed })` set the shade state without running any handler.
+- `data-scriptoscope-collapsed`, `extra.collapsed` or `applyState(host, { collapsed })` set the shade state without running any handler. A rendered `popup-window` ignores collapse requests, remains expanded and reports `collapsed: false`; its requested content size is preserved (#625). This applies to initial state and toggling too.
 
 ### Press feedback and activation
 

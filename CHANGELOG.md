@@ -26,6 +26,11 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ### Fixed
 
+- Window titles reduce a too-tall substitute font within the same required face and preferred family, using one resolved style for advance, layout and painting. Titles that already fit retain their preferred style. This keeps bold utility text inside the authored title slot without widening its clip; a slot that fits no positive integer size retains its full accessibility title while omitting title ink ([#624](https://github.com/khawkins98/scriptoscope/issues/624)).
+
+- Recipe utility windows use their alternate pressed-widget art: top-titled utilities request −14298, side-titled utilities −14290 with the decoded top-strip retry. The mapping follows the rendered utility type, including collapsed variants and aliases, and shares the same flag with title and widget consumers ([#624](https://github.com/khawkins98/scriptoscope/issues/624)).
+- A rendered `popup-window` ignores collapse requests and keeps its expanded content, frame and hit geometry. Initial state, state application, toggling and public state reporting consistently treat it as expanded, preserving its requested dimensions ([#625](https://github.com/khawkins98/scriptoscope/issues/625)). The engine-diff grid now pins both collapsed title axes, and a third golden contact-sheet page covers collapsed managed document and side-utility windows plus pressed top/side utility widgets.
+
 - Anonymous window content viewports stay out of sequential Tab navigation across browser layout rebuilds, while explicit consumer tab stops and native content click focus are preserved ([#619](https://github.com/khawkins98/scriptoscope/issues/619)).
 - An inactive widget's activation gesture no longer suppresses an unrelated later click. A failed initial active-window render preserves the prior active window, and tests independently cover mouse focus and click-time suppression ([#628](https://github.com/khawkins98/scriptoscope/issues/628)).
 - A pending resize commit cannot restore the frame clip during a newer captured drag; removing or disposing a window also releases captured-gesture listeners ([#621](https://github.com/khawkins98/scriptoscope/issues/621)).
