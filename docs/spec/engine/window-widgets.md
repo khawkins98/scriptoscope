@@ -431,6 +431,23 @@ The title sizing, clip and baseline policies remain those of DECISIONS #13.
 |---|---|---|---|
 | TF1 (`window.title-fit`) | substitute title font, every sliced archive | Measure and draw at full width (`SWc = SW`). Preserve a whole title whenever its measured width fits `room = min(t4p.width + 2, max(plate.right − t4p.left, t4p.width))`; otherwise retain the longest prefix plus ellipsis that fits, or ellipsis alone when no glyph-plus-ellipsis fits (even when the marker itself exceeds room). Keep TX4's clip and the DECISIONS #13 baseline adjustment. This is a finite substitute-font sizing contract, not whole typography fidelity or an original-font raster claim. | DECISIONS #13; TX5 truncEnd; declared substitute marker policy |
 
+**TF2–TF5 amendment (PM modern policy, 2026-11-02, #624/#625).**
+These rows resolve substitute-font vertical fit; they are not a new original
+font decode. They apply to drawn recipe-window titles under TF1. Existing
+empty-title, title-suppression and empty-clip behavior stays unchanged.
+
+| id | condition | runtime font policy | authority |
+|---|---|---|---|
+| TF2 | a nonempty title is eligible to draw in a nonempty clip | Keep the required face: bold when the single mapped `altWidgets` flag is set, plain otherwise. Obtain the preferred family, size and spacing from the existing substitute-font policy. Keep that preferred style when it fits TF3; do not replace bold with plain to obtain a fit | PM modern policy; PM1; TT2, TX5, TX9 |
+| TF3 | vertical fit of a candidate style | Evaluate the **full requested title**, before TF1 horizontal truncation, with F11's unchanged adjusted baseline. A fit means all main glyph ink lies within the vertical interval of the unchanged TX4 clip. If the preferred style does not fit, choose the largest positive integer pixel size no greater than the preferred size whose ink fits, keeping the same preferred family, required face and spacing. Shadow keeps its existing clipped semantics and does not enlarge the fit budget. No per-theme branch or clip/plate expansion is permitted | PM modern policy, 2026-11-02 |
+| TF4 | TF3 resolves a fitting style | Use the identical resolved family, face, size and spacing for the full-title advance (`SW = SWc`), layout, TF1 truncation/ellipsis measurement and drawing. Resolve the style before those dependent measurements; do not shrink only at paint time. The Charcoal 12 native 16-pixel pin remains the preferred size when it fits, but the same preferred family may use a smaller fitting size. A later measurement or draw must not reapply the preferred pin over that resolved size. Fitting is evaluated once for the full requested title; the same resolved style governs any truncated string or ellipsis | PM modern policy; TF1; TT2a amendment |
+| TF5 | no positive integer candidate at or below the preferred size fits a nonempty vertical clip | Omit title ink, **both main and shadow**, rather than introduce a new typed public failure. Keep the full title and accessibility name, and keep the preferred family/face/size/spacing for advance and layout geometry. Preserve the frame, plate and clip. This is an explicit finite substitute-font fallback for a physically impossible slot, not a native-fidelity or universal no-glyph-loss claim. A slot with a fitting candidate must still retain its fitting glyph rows; do not weaken that assertion to permit clipping or omission | PM modern policy, 2026-11-02 |
+
+These rules amend F11's substitute-font sizing only. Its baseline adjustment,
+the decoded clip, TF1's horizontal fit/truncation contract and the existing
+text/shadow paint order remain unchanged. They add no original typography or
+device-equivalence claim.
+
 ## 5. Geometry
 
 - **Placed extent.** `E = (S[N] − S[0]) + (C.right − C.left) − (A.right − A.left)`
