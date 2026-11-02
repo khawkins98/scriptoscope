@@ -7,6 +7,22 @@ wheel-routing workaround with native target surfaces. Removing that workaround
 requires the complete contract below in Chromium, Firefox and WebKit; support
 for a CSS property or a DOM hit-test result alone is insufficient.
 
+## Scrollbar and resize corner compatibility policy
+
+The app-layer window scrollbar clears actual grow-box artwork and the opposite
+scrollbar gutter. Without grow-box artwork, a single-axis scrollbar reaches
+the content edge; no empty content square is reserved for resizing. Two-axis
+overflow still reserves the meeting gutter.
+
+Without artwork, the resize button's corner box extends 15 unscaled pixels
+along each frame edge beyond the frame corner. Its pointer surface is clipped
+to an L consisting only of the right and bottom frame strips in that box.
+This retains a longer resize target on thin frames without covering the
+scrollbar's end arrow or adding replacement artwork. Keyboard resizing remains
+available through the same button. Retheming to artwork removes this clip and
+uses the artwork's rectangle and clearance again. This is web compatibility
+policy, not an original-engine geometry claim (#524, #640).
+
 ## Region and coordinates
 
 `S` is the structure region prepared for the current committed recipe window.

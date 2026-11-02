@@ -119,10 +119,9 @@ const REPEAT_INTERVAL_MS = 50;
 const paintedScrollbars = new WeakMap<HTMLElement, ScrollbarFrame | null>();
 
 // The bottom-right resize zone, measured inward from the window's right/bottom edges (unscaled px).
-// One rect shared by the grow-box button and the scrollbars' corner clearance, so a drawn arrow is
-// never under the button. A scheme grow box sets it to its own gripper (built-in frame: 15 px inside
-// the content corner plus its outer lip). Without one, any gripper is frame art, so the zone is the
-// frame corner plus the classic 15 px square where the two scrollbar gutters meet.
+// A scheme grow box sets the button and scrollbar clearance to its own gripper. Without artwork,
+// this is only the button's bounding box: its hit surface is clipped to an L along the frame,
+// leaving the content corner available to a single-axis scrollbar (#640).
 // Compatibility policy, not decoded kDEF behaviour: window scrollbars and this button are an
 // app-layer overlay (#524).
 const growZone = (c: ComposedChrome): { w: number; h: number } => c.growBox
@@ -1969,11 +1968,13 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     const contentLen = vertical ? scrollEl.scrollHeight : scrollEl.scrollWidth;
     const maxScroll = contentLen - trackLen;
     const thumbExtent = Math.max(0.08, trackLen / contentLen);
-    // Stop short of the bottom-right corner: the OPPOSITE axis's gutter (when both bars present) or
-    // the grow zone's reach into the content, whichever is larger — so the end arrow clears it.
+    // Clear the opposite scrollbar and actual grow-box artwork. A no-art resize target occupies
+    // only the frame, so it needs no blank content clearance for a single-axis bar (#640).
     const oppositeGutter = (vertical ? flags.needH : flags.needV) ? 15 : 0;
     const zone = growZone(composed);
-    const cornerClearance = Math.max(oppositeGutter, vertical ? zone.h - composed.frame.bottom : zone.w - composed.frame.right);
+    const artworkClearance = composed.growBox
+      ? (vertical ? zone.h - composed.frame.bottom : zone.w - composed.frame.right) : 0;
+    const cornerClearance = Math.max(oppositeGutter, artworkClearance);
     const barLenCss = Math.max(32, trackLen - cornerClearance * scale);
 
     // The value is always derived from scrollEl's real position (#549): content also scrolls by
@@ -2342,8 +2343,9 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
 
     // RESIZE — drag ONLY the bottom-right corner (the grow-box gripper), like classic Mac. NOT the
     // right/bottom edges: those run the length of the borders where the scrollbar tracks sit, and a
-    // resize band there would steal their clicks. The corner is safe because the scrollbars stop
-    // short of the same growZone rect. Ghost outline; commit on release.
+    // resize band there would steal their clicks. Artwork reserves its own corner clearance;
+    // without artwork the button is clipped to the frame strips of its corner box (#640).
+    // Ghost outline; commit on release.
     // Mac OS hard minimum window width is 110px (native): clamp the CONTENT width so the FULL window
     // (content + chrome, chrome being constant) never drops below it.
     const minContentW = Math.max(40, 110 - (composed.fullWidth - (entry.opts.width ?? 240)));
@@ -2358,6 +2360,8 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       cursor: 'nwse-resize', zIndex: '4', touchAction: 'none', // touch-drag must not page-scroll
       padding: '0', margin: '0', border: '0', background: 'transparent',
       outlineOffset: '2px',
+      // Retained buttons must reset the clip when rethemed to a scheme with grow-box artwork.
+      clipPath: composed.growBox ? '' : `polygon(${15 * scale}px 0, 100% 0, 100% 100%, 0 100%, 0 ${15 * scale}px, ${15 * scale}px ${15 * scale}px)`,
     } satisfies Partial<CSSStyleDeclaration>);
     // Keyboard alternative for the pointer-driven resize: arrow keys nudge size by 8px; Shift×4.
     // (Scriptoscope's growbox is otherwise pointer-only — and an a11y dead-end if a keyboard user wants to
