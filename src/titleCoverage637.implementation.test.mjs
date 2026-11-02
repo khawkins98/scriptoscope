@@ -3,7 +3,7 @@
 import '../tests/helpers/registerTs.mjs';
 import assert from 'node:assert/strict';
 import { afterEach, beforeEach, test } from 'node:test';
-const { resolveTitleStyle, measureTitle, paintTitle } = await import('./titleFont.ts');
+const { resolveTitleStyle, measureTitle, paintTitle, truncateTitle } = await import('./titleFont.ts');
 const { PixelBuffer } = await import('./pixelBuffer.ts');
 const { composeProceduralFrameChrome } = await import('./proceduralFrameChrome.ts');
 
@@ -241,4 +241,83 @@ test('title canvas storage stays within its role bound throughout initialization
     if (previous) Object.defineProperty(globalThis, 'document', previous);
     else delete globalThis.document;
   }
+});
+
+test('metrics-only consumers reject unusable consumed reports without raster allocation', () => {
+  const original = report;
+  for (const changed of [
+    { width: NaN }, { width: Infinity }, { width: -1 }, { width: 2 ** 53 },
+    { actualBoundingBoxAscent: undefined }, { actualBoundingBoxAscent: NaN },
+    { actualBoundingBoxDescent: undefined }, { actualBoundingBoxDescent: Infinity },
+    { actualBoundingBoxAscent: -2, actualBoundingBoxDescent: 1 },
+    { fontBoundingBoxAscent: NaN }, { fontBoundingBoxDescent: Infinity },
+  ]) {
+    report = () => ({ ...original(), ...changed });
+    assert.throws(() => measureTitle('complete request', 12), unknown);
+  }
+  assert.equal(draws.length, 0);
+  assert.ok(canvases.every(c => c.width === 0 && c.height === 0));
+});
+
+test('metrics-only fallbacks preserve nominal formulas and valid signed font metrics', () => {
+  report = () => ({ width: 3.2, actualBoundingBoxAscent: 0, actualBoundingBoxDescent: 0 });
+  assert.deepEqual(measureTitle('zero', 12), { advance: 4, ascent: 9, fontAscent: 9, fontDescent: 0 });
+  report = () => ({ width: 3.2, actualBoundingBoxAscent: -2, actualBoundingBoxDescent: 3.2,
+    fontBoundingBoxAscent: 0, fontBoundingBoxDescent: 0 });
+  assert.deepEqual(measureTitle('signed', 12), { advance: 4, ascent: 1, fontAscent: 1, fontDescent: 4 });
+  report = () => ({ width: 3.2, actualBoundingBoxAscent: 7.2, actualBoundingBoxDescent: -2,
+    fontBoundingBoxAscent: -1.2, fontBoundingBoxDescent: 3.2 });
+  assert.deepEqual(measureTitle('signed font', 12), { advance: 4, ascent: 8, fontAscent: -1, fontDescent: 4 });
+  assert.equal(draws.length, 0);
+});
+
+test('host measurement exceptions reject distinctly for measurement, fitting and truncation', () => {
+  report = () => { throw new Error('synthetic native measurement failure'); };
+  const measure = text => measureTitle(text, 12).advance;
+  assert.throws(() => measure('complete'), unknown);
+  assert.throws(() => resolveTitleStyle('complete', 12, slot), unknown);
+  assert.throws(() => truncateTitle('complete', 20, measure), unknown);
+  assert.equal(draws.length, 0);
+});
+
+test('truncation cannot skip an invalid full request, prefix or end-marker measurement', () => {
+  for (const invalid of [NaN, Infinity, -1, 2 ** 53]) {
+    for (const rejected of ['ABC', 'AB…', '…']) {
+      const visited = [];
+      assert.throws(() => truncateTitle('ABC', 0, text => {
+        visited.push(text);
+        return text === rejected ? invalid : text.length * 5;
+      }), unknown);
+      assert.equal(visited.at(-1), rejected);
+    }
+  }
+  for (const rejected of ['AB…', '…']) {
+    assert.throws(() => truncateTitle('ABC', 0, text => {
+      if (text === rejected) throw new Error('synthetic prefix measurement failure');
+      return text.length * 5;
+    }), unknown);
+  }
+});
+
+test('procedural preparation rejects invalid complete title metrics and host failures', async () => {
+  const original = report;
+  const theme = { manifest: { windowTypes: {}, chromeElements: {}, patterns: {} } };
+  for (const stage of ['complete', 'host']) {
+    report = (size, text) => {
+      if (stage === 'host') throw new Error('synthetic native measurement failure');
+      return { ...original(size, text), width: NaN };
+    };
+    await assert.rejects(composeProceduralFrameChrome(theme, 'document-window', 'active', 100, 50,
+      { title: `${stage}A`.repeat(1000) }), unknown, stage);
+  }
+  assert.equal(draws.length, 0);
+});
+
+test('absent DOM and null Canvas context keep existing measurement and style fallback behavior', () => {
+  delete globalThis.document;
+  assert.equal(measureTitle('complete', 12), null);
+  assert.equal(resolveTitleStyle('complete', 12, slot).style.size, 12);
+  globalThis.document = { createElement: () => ({ getContext: () => null }) };
+  assert.equal(measureTitle('complete', 12), null);
+  assert.equal(resolveTitleStyle('complete', 12, slot).omitInk, false);
 });
