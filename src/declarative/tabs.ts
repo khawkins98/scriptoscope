@@ -20,6 +20,7 @@
 
 import type { ThemeInput } from '../ownedTheme.js';
 import { composeTab, bufferToCanvas } from '../controls.js';
+import { repaintControlCanvas } from '../canvasPublication.js';
 import { debug } from '../debug.js';
 import { OwnedMutations } from './restoration.js';
 
@@ -191,9 +192,13 @@ export async function promoteTabs(
 
   /** Apply selection — flip ARIA + tabindex on tabs, hide/show panels, and (if available) swap
    *  the canvas face for the new selected state. */
+  let selectionEpoch = 0;
   const setSelected = async (newId: string): Promise<void> => {
     if (generations.get(el) !== generation || (opts.signal && !el.isConnected)) return;
+    const epoch = ++selectionEpoch;
+    const stale = (): boolean => epoch !== selectionEpoch || generations.get(el) !== generation || !!(opts.signal && !el.isConnected);
     selectedId = newId;
+    // Publish semantic selection together before any raster preparation yields.
     for (const s of skinned) {
       const isSel = s.panelId === newId;
       set(s.tab, 'aria-selected', isSel ? 'true' : 'false');
@@ -202,12 +207,21 @@ export async function promoteTabs(
         s.face.setAttribute('aria-selected', isSel ? 'true' : 'false');
         s.face.setAttribute('tabindex', isSel ? '0' : '-1');
       }
+    }
+    for (const s of skinned) {
+      const isSel = s.panelId === newId;
       // Swap the canvas face if we're using the themed path. CSS fallback uses [aria-selected]
       // selectors on the native button, so no canvas swap needed there.
       if (s.face.tagName === 'SPAN') {
-        const buf = await composeTab(theme, { label: s.tab.textContent ?? '', selected: isSel });
-        if (generations.get(el) !== generation || (opts.signal && !el.isConnected)) return;
-        if (buf) s.face.replaceChildren(bufferToCanvas(buf, 1));
+        let buf;
+        try { buf = await composeTab(theme, { label: s.tab.textContent ?? '', selected: isSel }); }
+        catch (error) { if (stale()) return; throw error; }
+        if (stale()) return;
+        if (buf) {
+          const canvas = s.face.querySelector('canvas');
+          if (canvas) repaintControlCanvas(canvas, buf);
+          else s.face.replaceChildren(bufferToCanvas(buf, 1));
+        }
       }
     }
     for (const panel of panels) {

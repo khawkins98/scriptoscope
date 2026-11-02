@@ -20,7 +20,7 @@ const hooks = registerHooks({
     return next(url, context);
   },
 });
-const { resolveTitleStyle, measureTitle, paintTitle, truncateTitle } = await import('./titleFont.ts');
+const { createTitleRequest, resolveTitleStyle, measureTitle, paintTitle, truncateTitle } = await import('./titleFont.ts');
 const { PixelBuffer } = await import('./pixelBuffer.ts');
 const { themeView } = await import('./ownedTheme.ts');
 const { renderWindow } = await import('./renderWindow.ts');
@@ -158,4 +158,26 @@ test('impossible slots suppress main and shadow while retaining preferred geomet
 test('empty text and preferred empty clips keep existing behavior', () => {
   assert.equal(resolveTitleStyle('', 13, clip(1)).omitInk, false);
   assert.equal(resolveTitleStyle('Full gy', 13, clip(0)).style.size, 16);
+});
+
+
+test('title requests reuse only their last matching measurement and fresh requests remeasure', () => {
+  const request = createTitleRequest();
+  const style = { family: 'Synthetic', size: 12, bold: false, spacing: '0px' };
+  const options = { request, style };
+  measureTitle('Same', 12, options);
+  const context = request.context;
+  measureTitle('Same', 12, options);
+  assert.equal(measurements.length, 1);
+  assert.equal(request.context, context);
+  style.spacing = '1px';
+  measureTitle('Same', 12, options);
+  assert.equal(measurements.length, 2);
+  measureTitle('Other', 12, options);
+  measureTitle('Same', 12, options);
+  assert.equal(measurements.length, 4);
+  const fresh = createTitleRequest();
+  measureTitle('Same', 12, { request: fresh, style });
+  assert.equal(measurements.length, 5);
+  assert.notEqual(fresh.context, context);
 });

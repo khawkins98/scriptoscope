@@ -1,4 +1,5 @@
 import { composeButtonWithLayout, bufferToCanvas, type ButtonOptions } from './controls.js';
+import { publishPixels } from './canvasPublication.js';
 import { snapshotControlComposition, buttonFaceStageUnavailable, type ButtonComposition, type ControlCompositionContext, type ControlCompositionSnapshot } from './controlComposition.js';
 import type { ThemeInput } from './ownedTheme.js';
 import type { ManagedControlPort, ManagedPortMeasurement } from './managedContentPort.js';
@@ -97,8 +98,9 @@ export class ButtonPainter {
   private paint(): void {
     const buffer = (this.down ? this.pair.pressed : this.pair.normal).buffer;
     const oldW = this.canvas.width, oldH = this.canvas.height;
-    this.canvas.width = buffer.width; this.canvas.height = buffer.height;
-    this.canvas.getContext('2d')!.putImageData(buffer.toImageData(), 0, 0);
+    if (this.canvas.width !== buffer.width) this.canvas.width = buffer.width;
+    if (this.canvas.height !== buffer.height) this.canvas.height = buffer.height;
+    publishPixels(this.canvas.getContext('2d')!, buffer);
     if (this.binding) this.binding.adopt();
     else {
       if (this.canvas.style.width === `${oldW * this.scale}px`) this.canvas.style.width = `${buffer.width * this.scale}px`;

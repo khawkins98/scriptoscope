@@ -1,4 +1,5 @@
 import type { WindowState, WindowType } from './types.js';
+import { publishPixels } from './canvasPublication.js';
 import { themeView, assertThemeAlive, type ThemeInput, type ThemeView } from './ownedTheme.js';
 import { composeWindowChrome, layoutWindowChrome, type ComposedChrome, type TitleWidgetRole } from './composeChrome.js';
 import { themeResourceChain } from './engine/resources/theme.js';
@@ -8,7 +9,7 @@ import type { IconSource } from './raster.js';
 // wnd# recipe) draws through the v2 engine family proceduralFrame, dynamically
 // imported so the 13 wnd# themes don't load it on first paint.
 import { rasterizeText } from './textRaster.js';
-import { measureTitle, paintTitle, resolveTitleStyle, truncateTitle, type TitleFontStyle } from './titleFont.js';
+import { createTitleRequest, measureTitle, paintTitle, resolveTitleStyle, truncateTitle, type TitleFontStyle } from './titleFont.js';
 import { TITLE_TEXT } from './engine/tables/window.js';
 import { alternateWindowWidgets, resolveWindowSelection } from './resolveWindowType.js';
 import { canonicalWindowTypeSlug } from './wndCascade.js';
@@ -144,9 +145,10 @@ export async function renderWindow(
   let textH = 0;
   let titleStyle: TitleFontStyle | undefined;
   let omitTitleInk = false;
+  const titleRequest = createTitleRequest();
   // Pen advance (StringWidth) and baseline row; the pixel rasterizer (non-DOM) has neither, so its box stands in.
   const measure = (text: string): { ascent: number; advance: number } => {
-    const measured = measureTitle(text, textH, { bold: altWidgets, style: titleStyle });
+    const measured = measureTitle(text, textH, { bold: altWidgets, style: titleStyle, request: titleRequest });
     if (measured) return measured;
     const b = rasterizeText(text, textH, '#000000');
     return { ascent: b.height, advance: b.width };
@@ -204,7 +206,7 @@ export async function renderWindow(
       const resolvedTitle = resolveTitleStyle(title, textH, advance =>
         layoutWindowChrome(cicn!, wt, contentW, contentH, {
           ...chromeOptions, titleWidthPx: advance, titleLength: title.length,
-        }).titleRect, { bold: altWidgets });
+        }).titleRect, { bold: altWidgets, request: titleRequest });
       titleStyle = resolvedTitle.style;
       omitTitleInk = resolvedTitle.omitInk;
       measured = measure(title);
@@ -246,7 +248,7 @@ export async function renderWindow(
         if (!sample) return; // unspecified input: never invent a swatch colour
         const hex = `#${sample.displayRgb.map(v => v.toString(16).padStart(2, '0')).join('')}`;
         const painted = paintTitle(composed.buffer, dispTitle, textH, hex, x0 + dx, baseline + dy,
-          clip, { bold: altWidgets, style: titleStyle });
+          clip, { bold: altWidgets, style: titleStyle, request: titleRequest });
         // Substitute-font policy: transparent coverage, alpha-over (control-text-colors
         // Runtime painting). Native TX6 TextMode srcOr is not a bitwise RGB operation here.
         if (!painted) {
@@ -294,7 +296,7 @@ export async function renderWindow(
   canvas.height = fullHeight;
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('renderWindow: no 2d context');
-  ctx.putImageData(composed.buffer.toImageData(), 0, 0);
+  publishPixels(ctx, composed.buffer);
   Object.assign(canvas.style, {
     position: 'absolute',
     left: '0',

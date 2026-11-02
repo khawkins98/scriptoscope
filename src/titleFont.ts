@@ -20,7 +20,13 @@ export interface TitleFontStyle {
   bold: boolean;
   spacing: string;
 }
-type TitleFontOptions = { exactPx?: boolean; bold?: boolean; style?: TitleFontStyle | undefined };
+interface TitleRequest {
+  context?: CanvasRenderingContext2D;
+  last?: { text: string; style: TitleFontStyle; metrics: TextMetrics };
+}
+/** One render owns this lazy probe; keep no font or prefix cache across requests. */
+export const createTitleRequest = (): TitleRequest => ({});
+type TitleFontOptions = { exactPx?: boolean; bold?: boolean; style?: TitleFontStyle | undefined; request?: TitleRequest };
 
 function preferredStyle(px: number, opts: TitleFontOptions): TitleFontStyle {
   // Charcoal 12 (Jeremy Sachs, CC BY-SA) prefers its crisp 16px grid, zero tracking; exactPx skips the pin.
@@ -55,13 +61,16 @@ function measurement<T>(operation: () => T): T {
   }
 }
 
-function measurementContext(): CanvasRenderingContext2D | null {
+function measurementContext(request?: TitleRequest): CanvasRenderingContext2D | null {
+  if (request?.context) return request.context;
   if (typeof document === 'undefined') return null;
   try {
     const canvas = document.createElement('canvas');
     // Metrics need no pixel backing store.
     canvas.height = 0; canvas.width = 0;
-    return canvas.getContext('2d');
+    const context = canvas.getContext('2d');
+    if (request && context) request.context = context;
+    return context;
   } catch (error) {
     unavailable(error instanceof Error ? error.message : 'host context failure');
   }
@@ -91,8 +100,18 @@ function nominalAscent(actualAscent: number, style: TitleFontStyle): number {
   return coordinate(Math.max(1, Math.ceil(actualAscent || style.size * .72)));
 }
 
-function metrics(ctx: CanvasRenderingContext2D, text: string, style: TitleFontStyle): TitleMetrics {
-  const tm = ctx.measureText(text);
+function textMetrics(ctx: CanvasRenderingContext2D, text: string, style: TitleFontStyle, request?: TitleRequest): TextMetrics {
+  setStyle(ctx, style);
+  const last = request?.last;
+  if (last?.text === text && last.style.family === style.family && last.style.size === style.size &&
+      last.style.bold === style.bold && last.style.spacing === style.spacing) return last.metrics;
+  const measured = ctx.measureText(text);
+  if (request) request.last = { text, style: { ...style }, metrics: measured };
+  return measured;
+}
+
+function metrics(ctx: CanvasRenderingContext2D, text: string, style: TitleFontStyle, request?: TitleRequest): TitleMetrics {
+  const tm = textMetrics(ctx, text, style, request);
   const ascent = nominalAscent(tm.actualBoundingBoxAscent, style);
   coordinate(tm.actualBoundingBoxDescent);
   if (coordinate(tm.actualBoundingBoxAscent + tm.actualBoundingBoxDescent) < 0) unavailable('unusable actual bounds');
@@ -149,7 +168,9 @@ function scratch(width: number, height: number, style: TitleFontStyle) {
   canvas.height = 0;
   canvas.width = width; canvas.height = height;
   if (canvas.width !== width || canvas.height !== height) unavailable('scratch allocation');
-  const ctx = canvas.getContext('2d');
+  // These offscreen surfaces are read back for coverage and publication on every
+  // use. Keep their pixels CPU-accessible instead of synchronizing GPU readback.
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
   if (!ctx) unavailable('scratch context');
   setStyle(ctx, style);
   ctx.textBaseline = 'alphabetic';
@@ -161,13 +182,12 @@ export function resolveTitleStyle(text: string, px: number,
   clipForAdvance: (advance: number) => { x?: number; y?: number; w: number; h: number },
   opts: TitleFontOptions = {}): { style: TitleFontStyle; omitInk: boolean } {
   const preferred = measurement(() => preferredStyle(px, opts));
-  const probe = measurementContext();
+  const probe = measurementContext(opts.request);
   if (!probe || !text) return { style: preferred, omitInk: false };
   // A single fixed raster is reused across every tile and candidate.
   let tile: ReturnType<typeof scratch> | undefined;
   const fits = (style: TitleFontStyle): boolean => {
-    setStyle(probe, style);
-    const tm = probe.measureText(text);
+    const tm = textMetrics(probe, text, style, opts.request);
     const clip = clipForAdvance(advance(tm.width));
     if (clip.w <= 0 || clip.h <= 0) return style === preferred;
     const x = coordinate(clip.x ?? 0), top = coordinate(clip.y ?? 0);
@@ -232,12 +252,11 @@ export function resolveTitleStyle(text: string, px: number,
 /** Measurement never allocates a requested-title pixel surface. */
 export function measureTitle(text: string, px: number, opts: TitleFontOptions = {}): TitleMetrics | null {
   if (typeof document === 'undefined' || !text) return null;
-  const probe = measurementContext();
+  const probe = measurementContext(opts.request);
   if (!probe) return null;
   return measurement(() => {
     const style = opts.style ?? preferredStyle(px, opts);
-    setStyle(probe, style);
-    return metrics(probe, text, style);
+    return metrics(probe, text, style, opts.request);
   });
 }
 
@@ -245,7 +264,7 @@ export function measureTitle(text: string, px: number, opts: TitleFontOptions = 
 export function paintTitle(target: PixelBuffer, text: string, px: number, hex: string,
   x: number, baseline: number, clip: TitleClip, opts: TitleFontOptions = {}): boolean {
   if (typeof document === 'undefined' || !text) return false;
-  const probe = measurementContext();
+  const probe = measurementContext(opts.request);
   if (!probe) return false;
   try {
     const left = coordinate(Math.max(0, Math.floor(clip.x)));

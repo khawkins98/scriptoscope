@@ -143,8 +143,10 @@ export class ManagedContentPort {
   }
 
   /** @internal One shared pass token caches each committed viewport measurement. */
-  measureInFrame(canvas: HTMLCanvasElement, faceRect: ControlRect, frame: object): ManagedPortMeasurement {
-    const unsupported = (reason: UnsupportedReason): ManagedPortMeasurement => Object.freeze({ status: 'unsupported', portId: this.id, reason });
+  measureInFrame(canvas: HTMLCanvasElement, faceRect: ControlRect, frame: object, previous?: ManagedPortMeasurement): ManagedPortMeasurement {
+    const unsupported = (reason: UnsupportedReason): ManagedPortMeasurement =>
+      previous?.status === 'unsupported' && previous.portId === this.id && previous.reason === reason
+        ? previous : Object.freeze({ status: 'unsupported', portId: this.id, reason });
     if (![faceRect.x, faceRect.y, faceRect.w, faceRect.h].every(Number.isInteger) || faceRect.x < 0 || faceRect.y < 0 || faceRect.w <= 0 || faceRect.h <= 0 || faceRect.x + faceRect.w > canvas.width || faceRect.y + faceRect.h > canvas.height) return unsupported('face-layout');
     if (this.committed && this.committed.host.ownerDocument !== canvas.ownerDocument) return unsupported('document-mismatch');
     const geometry = this.geometry(frame);
@@ -165,6 +167,11 @@ export class ManagedContentPort {
     const w = integer(width / unit), h = integer(height / unit);
     if (x === null || y === null || w === null || h === null) return unsupported('fractional-coordinate');
     if (x < -32768 || y < -32768 || x + faceRect.w > 32767 || y + faceRect.h > 32767 || w > 32767 || h > 32767) return unsupported('coordinate-range');
+    // Reuse only the prior result from this binding, after all fresh layout checks.
+    // No geometry or computed style is retained across frames.
+    if (previous?.status === 'ready' && previous.portId === this.id && previous.scale === unit &&
+        previous.context.controlOrigin[0] === x && previous.context.controlOrigin[1] === y &&
+        previous.context.clip.kind === 'rect' && previous.context.clip.rect.w === w && previous.context.clip.rect.h === h) return previous;
     return Object.freeze({ status: 'ready', portId: this.id, scale: unit, context: Object.freeze({
       basis: 'managed-content-port', controlOrigin: Object.freeze([x, y]) as readonly [number, number], portOrigin: Object.freeze([0, 0]) as readonly [number, number],
       patternOrigin: Object.freeze({ status: 'unknown' }), clip: Object.freeze({ kind: 'rect', rect: Object.freeze({ x: 0, y: 0, w, h }) }),
@@ -234,14 +241,13 @@ export function trackManagedContent(
     tracker = { bindings: new Set(), frame: null, wake: null, wakeFromResize: null };
     trackers.set(view, tracker);
   }
-  let live = true, previous = '';
+  let live = true, previous: ManagedPortMeasurement | undefined;
   const binding: PortBinding = { canvas, active: true, refresh(frame = {}) {
     if (!live) return;
-    const measurement = port.measureInFrame(canvas, faceRect(), frame);
+    const measurement = port.measureInFrame(canvas, faceRect(), frame, previous);
     binding.active = measurement.status === 'ready' || !['uncommitted', 'hidden', 'detached', 'outside-port', 'port-removed'].includes(measurement.reason);
-    const signature = JSON.stringify(measurement);
-    if (signature === previous) return;
-    previous = signature;
+    if (measurement === previous) return;
+    previous = measurement;
     changed(measurement);
   } };
   tracker.bindings.add(binding);

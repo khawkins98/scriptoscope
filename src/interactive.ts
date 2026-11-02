@@ -1,5 +1,6 @@
 import { prepareButtonPainter, registerButtonPainter, unregisterButtonPainter } from './buttonComposition.js';
 import { ManagedContentPort, type ManagedControlPort } from './managedContentPort.js';
+import { repaintControlCanvas } from './canvasPublication.js';
 // Interactivity layer — wires real interaction onto the rendered chrome/controls.
 //
 // The compositor already renders per-STATE cicns (ControlState normal/pressed/
@@ -295,6 +296,7 @@ async function buildDraggable(
   let raf = 0;
   let paintVersion = 0;
   let paintedLayout: SliderLayout | null = null;
+  let paintedCanvas: HTMLCanvasElement | null = null;
   let nativeDrag: { axisLength: number; travel: number; pointer: number; value: number; exact: string; direction: 1 | -1 } | null = null;
   const events = new AbortController();
   controlDisposers.set(el, () => {
@@ -340,8 +342,14 @@ async function buildDraggable(
     if (buf) {
       // Canvas and the geometry that actually drew it commit together. A stale
       // async pressed/normal paint may replace neither half of this pair.
-      const canvas = bufferToCanvas(buf, scale);
-      el.replaceChildren(canvas);
+      if (paintedCanvas && !native) {
+        repaintControlCanvas(paintedCanvas, buf, scale);
+        if (paintedCanvas.parentElement !== el) el.replaceChildren(paintedCanvas);
+      }
+      else {
+        paintedCanvas = bufferToCanvas(buf, scale);
+        el.replaceChildren(paintedCanvas);
+      }
       paintedLayout = frame?.layout ?? null;
     }
     if (!native) el.setAttribute('aria-valuenow', String(Math.round(value * 100)));
@@ -757,6 +765,11 @@ interface RegionPreparation {
   theme: ThemeInput; template: NonNullable<ComposedChrome['structureTemplate']>;
   pixels: Uint8ClampedArray; key: string; geometry: RegionGeometry;
 }
+function sameRegionPixels(saved: Uint8ClampedArray, current: Uint8ClampedArray): boolean {
+  if (saved.length !== current.length) return false;
+  for (let i = 0; i < saved.length; i++) if (saved[i] !== current[i]) return false;
+  return true;
+}
 /** A prepared, not yet committed render; `opts` carries the resolved content size. */
 interface PreparedRender { win: HTMLElement; collapsed: boolean; opts: RenderWindowOptions; extent?: ChromeExtent; region?: string | null; regionCache?: RegionPreparation; geometry?: RegionGeometry }
 
@@ -828,6 +841,8 @@ interface ManagedWindow<Theme extends ThemeInput> {
    *  that is not a recipe window, null when the build failed or was empty (HP44). */
   region?: string | null | undefined;
   regionCache?: RegionPreparation | undefined;
+  /** One alternate committed state, so active/inactive flips can reuse both paths. */
+  previousRegionCache?: RegionPreparation | undefined;
   geometry?: RegionGeometry | undefined;
   targets?: Map<HTMLElement, { key: string; nodes: HTMLElement[] }> | undefined;
   /** Inside an open `openModal` wrap (HP42). */
@@ -1474,9 +1489,14 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       const key = JSON.stringify([composed.layout, composed.fullWidth, composed.fullHeight,
         prepared.opts.scale ?? 1, prepared.opts.title, composed.titleRegion, prepared.collapsed, drawnState,
         template?.width, template?.height]);
-      const cached = entry.regionCache;
-      if (template && cached?.theme === theme && cached.template === template && cached.key === key
-        && cached.pixels.length === template.data.length && cached.pixels.every((v, i) => v === template.data[i]))
+      // Owned decoded assets may wrap the same resource data in a fresh PixelBuffer.
+      // Compare backing-data identity as well as dimensions, and still verify bytes:
+      // public pixel buffers remain mutable between preparations.
+      const cached = template && [entry.regionCache, entry.previousRegionCache].find(candidate =>
+        candidate?.theme === theme && candidate.key === key &&
+        candidate.template.width === template.width && candidate.template.height === template.height &&
+        candidate.template.data === template.data && sameRegionPixels(candidate.pixels, template.data));
+      if (cached)
         return { ...prepared, region: cached.geometry.path, geometry: cached.geometry, regionCache: cached };
       // HP8, HP15: the layout that drew this commit carries the collapsed state and title axis (SR6, WD4).
       const layout = composed.layout;
@@ -1558,6 +1578,8 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     entry.commitEpoch++;
     entry.region = region;
     entry.geometry = geometry;
+    if (!regionCache || entry.regionCache?.theme !== regionCache.theme) entry.previousRegionCache = undefined;
+    else if (entry.regionCache !== regionCache) entry.previousRegionCache = entry.regionCache;
     entry.regionCache = regionCache;
     if (entry.gesture?.ending) entry.gesture = undefined; // A newer captured drag keeps its suspension.
     entry.opts = opts;
@@ -1612,7 +1634,12 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       // Overlay controls stay mounted (never detached, so focus and assistive-technology identity
       // survive) and stay last; the wiring below updates them in place (#533).
       const overlays = new Set<Node>(entry.overlays?.values());
-      for (const child of Array.from(layers.hit.childNodes)) if (child !== content && !overlays.has(child)) child.remove();
+      // Frame targets belong to this persistent layer too. Keep them mounted so
+      // syncTargets can reuse unchanged rectangles instead of rebuilding the DOM.
+      // Its normal reconciliation still replaces changed geometry before commit ends.
+      const frameTargets = new Set<Node>(entry.targets?.get(layers.hit)?.nodes);
+      for (const child of Array.from(layers.hit.childNodes))
+        if (child !== content && !overlays.has(child) && !frameTargets.has(child)) child.remove();
       const tail = Array.from(layers.hit.childNodes).find(child => overlays.has(child)) ?? null;
       let beforeContent = true;
       for (const child of Array.from(win.childNodes)) {
@@ -1660,6 +1687,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     const parent = entry.layers?.hit ?? win;
     const kept = overlays.get(key);
     if (kept?.parentNode === parent) return kept as HTMLElementTagNameMap[K];
+    if (kept) this.dropOverlay(entry, key); // Release targets owned by a replaced overlay.
     const el = document.createElement(tag);
     const later = WindowManager.OVERLAYS.slice(WindowManager.OVERLAYS.indexOf(key) + 1)
       .map(k => overlays.get(k)).find(o => o?.parentNode === parent);
@@ -1721,19 +1749,48 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       const key = JSON.stringify(rectangles);
       let saved = targets.get(parent);
       if (!saved || saved.key !== key || saved.nodes.some(n => n.parentElement !== parent)) {
-        for (const node of saved?.nodes ?? []) node.remove();
-        const nodes = rectangles.map(r => {
-          const node = document.createElement('span');
-          node.className = 'scriptoscope-native-target';
-          node.setAttribute('aria-hidden', 'true');
-          Object.assign(node.style, { position: 'absolute', display: 'block', margin: '0', padding: '0', border: '0',
-            left: `${r.left}px`, top: `${r.top}px`, width: `${r.right - r.left}px`, height: `${r.bottom - r.top}px` });
-          parent.append(node);
+        // Match exact rectangles first, then recycle the remaining owned spans.
+        // The serialized snapshot stays valid even if the input array is mutated.
+        const rectKey = (r: NativeRect): string => `${r.left},${r.top},${r.right},${r.bottom}`;
+        const previous: NativeRect[] = saved ? JSON.parse(saved.key) : [];
+        const matches = new Map<string, HTMLElement[]>();
+        for (let i = (saved?.nodes.length ?? 0) - 1; i >= 0; i--) {
+          const node = saved!.nodes[i]!;
+          if (node.parentElement !== parent) { node.remove(); continue; }
+          const id = rectKey(previous[i]!), group = matches.get(id);
+          if (group) group.push(node); else matches.set(id, [node]);
+        }
+        const exact = rectangles.map(r => matches.get(rectKey(r))?.pop());
+        const spare = [...matches.values()].flat();
+        const nodes = rectangles.map((r, i) => {
+          let node = exact[i] ?? spare.pop();
+          if (!node) {
+            node = document.createElement('span');
+            node.className = 'scriptoscope-native-target';
+            node.setAttribute('aria-hidden', 'true');
+            Object.assign(node.style, { position: 'absolute', display: 'block', margin: '0', padding: '0', border: '0' });
+          }
+          if (!exact[i]) {
+            // Old positions of recycled spans must not force moves of exact matches.
+            node.remove();
+            Object.assign(node.style, {
+              left: `${r.left}px`, top: `${r.top}px`, width: `${r.right - r.left}px`, height: `${r.bottom - r.top}px`,
+            });
+          }
           return node;
         });
+        for (const node of spare) node.remove();
+        // Keep generation order and control ancestry without moving spans already in place.
+        let next: ChildNode | null = null;
+        for (let i = nodes.length - 1; i >= 0; i--) {
+          const node = nodes[i]!;
+          if (node.parentElement !== parent || node.nextSibling !== next) parent.insertBefore(node, next);
+          next = node;
+        }
         targets.set(parent, saved = { key, nodes });
       }
-      for (const node of saved.nodes) node.style.pointerEvents = region ? 'auto' : 'none';
+      const pointerEvents = region ? 'auto' : 'none';
+      for (const node of saved.nodes) if (node.style.pointerEvents !== pointerEvents) node.style.pointerEvents = pointerEvents;
     };
     install(layer, geometry?.frame ?? []);
     for (const [key, control] of entry.overlays ?? []) {

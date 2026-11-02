@@ -58,7 +58,14 @@ test('window-local pointer map ignores child origins under scale, rotation and s
 class Element {
   style = {}; children = []; attributes = new Map();
   setAttribute(k, v) { this.attributes.set(k, v); }
-  append(node) { node.parentElement = this; this.children.push(node); }
+  append(node) { this.insertBefore(node, null); }
+  insertBefore(node, next) {
+    node.remove();
+    const i = next === null ? this.children.length : this.children.indexOf(next);
+    assert.ok(i >= 0);
+    node.parentElement = this; this.children.splice(i, 0, node);
+  }
+  get nextSibling() { return this.parentElement?.children[this.parentElement.children.indexOf(this) + 1] ?? null; }
   remove() { if (this.parentElement) this.parentElement.children = this.parentElement.children.filter(n => n !== this); this.parentElement = null; }
   querySelector(selector) { return selector.includes('content') ? this.content ?? null : null; }
   querySelectorAll() { return []; }
@@ -98,4 +105,49 @@ test('mode changes reuse surfaces, gesture ownership keeps latest path, ended li
   assert.ok(newNodes.length > 0 && newNodes.every(n => !nodes.includes(n)));
   manager.syncTargets(entry); assert.ok(nodes.every(n => !n.parentElement));
   manager.dispose();
+});
+
+test('changed rectangles retain exact matches, recycle owned spans and repair only missing targets', () => {
+  let created = 0;
+  globalThis.document = { createElement: () => { created++; return new Element(); } };
+  const manager = Object.create(WindowManager.prototype);
+  manager.defaultHit = 'region';
+  const parent = new Element(), root = new Element(), host = new Element();
+  root.append(parent);
+  const content = new Element(), overlay = new Element(), sentinels = [content];
+  parent.append(content);
+  const box = left => ({ left, top: 0, right: left + 1, bottom: 2 });
+  const entry = { host, layers: { hit: parent }, region: 'prepared',
+    geometry: { frame: [box(0), box(2), box(0)] }, lifetime: new AbortController() };
+  const install = rects => {
+    entry.geometry.frame = rects; manager.syncTargets(entry);
+    const nodes = entry.targets.get(parent).nodes;
+    assert.deepEqual(parent.children, [...sentinels, ...nodes]);
+    assert.deepEqual(nodes.map(n => [parseFloat(n.style.left), parseFloat(n.style.top),
+      parseFloat(n.style.width), parseFloat(n.style.height)]), rects.map(r => [r.left, r.top, r.right - r.left, r.bottom - r.top]));
+    return nodes;
+  };
+  const first = install(entry.geometry.frame);
+  parent.append(overlay); sentinels.push(overlay);
+  const grown = install([box(0), box(4), box(0), box(6)]);
+  assert.equal(created, 4);
+  assert.equal(grown[0], first[0]); assert.equal(grown[2], first[2]);
+  assert.equal(grown[1], first[1]);
+  const shrunk = install([box(6), box(0)]);
+  assert.equal(created, 4);
+  assert.equal(shrunk[0], grown[3]); assert.equal(shrunk[1], first[0]);
+  assert.ok(!first[1].parentElement && !first[2].parentElement);
+  shrunk[0].remove();
+  const repaired = install(entry.geometry.frame);
+  assert.equal(created, 5); assert.equal(repaired[1], shrunk[1]);
+  const foreign = new Element(); foreign.append(repaired[1]);
+  const reparented = install(entry.geometry.frame);
+  assert.equal(created, 6); assert.equal(reparented[0], repaired[0]);
+  assert.equal(foreign.children.length, 0);
+  install([]); assert.deepEqual(parent.children, sentinels); assert.equal(created, 6);
+  const original = [box(0), box(2)], originalNodes = install(original);
+  original[0].left = 4; original[0].right = 5;
+  const mutated = install([box(4), box(0), box(2)]);
+  assert.equal(mutated[1], originalNodes[0]); assert.equal(mutated[2], originalNodes[1]);
+  assert.equal(created, 9);
 });
