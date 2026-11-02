@@ -97,7 +97,8 @@ family selection on every message.
 | PM2 | actual rendered type is `popup-window` | **Modern policy, PM ruling 2026-11-02 (#625):** ignore a collapse request. Effective `collapsed` is false for rendering, content visibility, hit geometry and public state reporting, including initial/add, apply and toggle paths. Keep the requested expanded width and height for later type/state transitions; never pre-empty a dimension. This normalizes the web state to PF4; the original decode does not define these web lifecycle operations | PF4; PM ruling |
 
 Other declared defaults (modern policy, not original observations):
-`popupFamily` from the `popup-window` request (service slot 8),
+`popupFamily` from the actual rendered type being `popup-window` (service slot 8),
+after alias and fallback resolution, consistent with PM2,
 `partialZoom`, `partialZoomColumn`, `outlineDraw` and `noWidgets` clear,
 `widgetFrame` set, `drawActive` from the window's active state. `collapsed`
 comes from the caller/window state, subject to PM2. `hasClose`, `hasZoom` and
