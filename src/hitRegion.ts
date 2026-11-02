@@ -26,8 +26,13 @@ export function parseHit(value: unknown, where: string): HitMode | undefined {
  * run list form a band; each run of a band is one rectangle subpath, coordinates times the
  * integer display scale `k` (HP16). Empty string for an empty region.
  */
-export function regionPath(r: Region, k: number, content?: QdRect): string {
-  const out: string[] = [];
+export interface NativeRect { left: number; top: number; right: number; bottom: number }
+export interface RegionGeometry { path: string; rectangles: NativeRect[]; frame: NativeRect[] }
+
+/** Prepare the paint path and native surfaces from one exact band decomposition. */
+export function regionGeometry(r: Region, k: number, content?: QdRect): RegionGeometry {
+  const frame: NativeRect[] = [];
+  const rectangles: NativeRect[] = [];
   // SR11: C is solid. Emit it once and scan only the frame on either side, preserving holes
   // and disconnected runs without revisiting the content's area for every preparation.
   const solid = content && {
@@ -35,12 +40,12 @@ export function regionPath(r: Region, k: number, content?: QdRect): string {
     right: Math.min(r.width, content.right), bottom: Math.min(r.height, content.bottom),
   };
   if (solid && solid.right > solid.left && solid.bottom > solid.top)
-    out.push(`M${solid.left * k} ${solid.top * k}H${solid.right * k}V${solid.bottom * k}H${solid.left * k}Z`);
+    rectangles.push({ left: solid.left * k, top: solid.top * k, right: solid.right * k, bottom: solid.bottom * k });
   let band: number[] = [], top = 0;
   const flush = (bottom: number): void => {
     for (let i = 0; i < band.length; i += 2) {
       const l = band[i]! * k, rr = band[i + 1]! * k;
-      out.push(`M${l} ${top * k}H${rr}V${bottom * k}H${l}Z`);
+      frame.push({ left: l, top: top * k, right: rr, bottom: bottom * k });
     }
   };
   for (let y = 0; y <= r.height; y++) {
@@ -60,5 +65,20 @@ export function regionPath(r: Region, k: number, content?: QdRect): string {
     flush(y);
     band = runs; top = y;
   }
-  return out.join('');
+  rectangles.push(...frame);
+  return { rectangles, frame, path: rectangles.map(r => `M${r.left} ${r.top}H${r.right}V${r.bottom}H${r.left}Z`).join('') };
+}
+
+export function regionPath(r: Region, k: number, content?: QdRect): string {
+  return regionGeometry(r, k, content).path;
+}
+
+/** Exact intersections, expressed relative to the original control's origin. */
+export function targetIntersections(rectangles: readonly NativeRect[], box: NativeRect): NativeRect[] {
+  return rectangles.flatMap(r => {
+    const left = Math.max(r.left, box.left), top = Math.max(r.top, box.top);
+    const right = Math.min(r.right, box.right), bottom = Math.min(r.bottom, box.bottom);
+    return right > left && bottom > top
+      ? [{ left: left - box.left, top: top - box.top, right: right - box.left, bottom: bottom - box.top }] : [];
+  });
 }
