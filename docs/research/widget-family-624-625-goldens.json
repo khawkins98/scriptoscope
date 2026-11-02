@@ -1,15 +1,15 @@
 {
-  "schema": 1,
-  "role": "integration acquisition; independent approval is separate",
+  "schema": 2,
+  "role": "integration acquisition and author QA; separate reviewer owns approval",
   "issues": [
     624,
     625
   ],
-  "workflow": "https://github.com/khawkins98/scriptoscope/actions/runs/41362350628",
-  "inputCommit": "0091b71e9437641b98c3de45d70e7fb44a9f5497",
-  "conclusion": "record and exact verify passed, 54 sheets each",
+  "workflow": "https://github.com/khawkins98/scriptoscope/actions/runs/41368788539",
+  "inputCommit": "7df9bcea953e76715f80591ef2ab96d117a7842a",
+  "baseMainCommit": "99ca7618745d6ec354940c5c4b842f94fd007439",
+  "conclusion": "record and exact verify passed all 54 sheets",
   "environment": {
-    "schema": 1,
     "platform": "linux",
     "arch": "x64",
     "browser": "chromium",
@@ -21,153 +21,26 @@
       960
     ],
     "caseDigest": "64498e6f97d1c6345315588a8745eb1413886afd5418413434727b84cf7d0766",
-    "casePages": [
-      [
-        "direct/push/auto/labeled/horizontal/0.5/true/normal",
-        "direct/push/small/empty/horizontal/0.5/true/pressed",
-        "direct/push/standard/long/horizontal/0.5/true/disabled",
-        "direct/push/large/ink/horizontal/0.5/true/normal",
-        "direct/push/auto/ink/horizontal/0.5/true/normal",
-        "direct/push/auto/ink/horizontal/0.5/true/pressed",
-        "direct/push/auto/ink/horizontal/0.5/true/disabled",
-        "declarative/push/auto/ink/horizontal/0.5/true/normal",
-        "declarative/push/auto/ink/horizontal/0.5/true/disabled",
-        "direct/default/auto/labeled/horizontal/0.5/true/normal",
-        "direct/default/small/empty/horizontal/0.5/true/pressed",
-        "direct/default/standard/long/horizontal/0.5/true/disabled",
-        "direct/default/large/ink/horizontal/0.5/true/normal",
-        "direct/default/auto/ink/horizontal/0.5/true/normal",
-        "direct/default/auto/ink/horizontal/0.5/true/pressed",
-        "direct/default/auto/ink/horizontal/0.5/true/disabled",
-        "declarative/default/auto/ink/horizontal/0.5/true/normal",
-        "declarative/default/auto/ink/horizontal/0.5/true/disabled",
-        "direct/bevel/auto/labeled/horizontal/0.5/true/normal",
-        "direct/bevel/small/empty/horizontal/0.5/true/pressed",
-        "direct/bevel/standard/long/horizontal/0.5/true/disabled",
-        "direct/bevel/large/ink/horizontal/0.5/true/on",
-        "direct/list-header/auto/labeled/horizontal/0.5/true/normal",
-        "direct/list-header/small/empty/horizontal/0.5/true/inactive",
-        "direct/list-header/standard/long/horizontal/0.5/true/normal",
-        "direct/list-header/large/ink/horizontal/0.5/true/inactive",
-        "direct/checkbox/auto/labeled/horizontal/0.5/true/normal",
-        "direct/checkbox/auto/empty/horizontal/0.5/true/checked",
-        "direct/checkbox/auto/long/horizontal/0.5/true/mixed",
-        "direct/checkbox/auto/ink/horizontal/0.5/true/disabled",
-        "declarative/checkbox/auto/ink/horizontal/0.5/true/normal",
-        "declarative/checkbox/auto/ink/horizontal/0.5/true/checked",
-        "declarative/checkbox/auto/ink/horizontal/0.5/true/disabled",
-        "direct/radio/auto/labeled/horizontal/0.5/true/normal",
-        "direct/radio/auto/empty/horizontal/0.5/true/checked"
-      ],
-      [
-        "direct/radio/auto/long/horizontal/0.5/true/mixed",
-        "direct/radio/auto/ink/horizontal/0.5/true/disabled",
-        "declarative/radio/auto/ink/horizontal/0.5/true/normal",
-        "declarative/radio/auto/ink/horizontal/0.5/true/checked",
-        "declarative/radio/auto/ink/horizontal/0.5/true/disabled",
-        "declarative/select/auto/labeled/horizontal/0.5/true/normal",
-        "declarative/select/auto/empty/horizontal/0.5/true/disabled",
-        "declarative/select/auto/long/horizontal/0.5/true/normal",
-        "declarative/select/auto/ink/horizontal/0.5/true/disabled",
-        "direct/slider/auto/empty/horizontal/0/true/normal",
-        "direct/slider/small/empty/vertical/0.5/true/pressed",
-        "direct/slider/standard/empty/horizontal/1/true/disabled",
-        "direct/slider/large/empty/vertical/0/true/inactive",
-        "declarative/slider/auto/empty/horizontal/0.5/true/normal",
-        "direct/progress/auto/empty/horizontal/0/true/normal",
-        "direct/progress/small/empty/horizontal/0.5/true/inactive",
-        "direct/progress/standard/empty/horizontal/1/true/normal",
-        "direct/progress/large/empty/horizontal/0/true/inactive",
-        "direct/tab/auto/labeled/horizontal/0.5/true/normal",
-        "direct/tab/auto/empty/horizontal/0.5/true/selected",
-        "direct/tab/auto/long/horizontal/0.5/true/normal",
-        "direct/tab/auto/ink/horizontal/0.5/true/selected",
-        "declarative/tab/auto/ink/horizontal/0.5/true/normal",
-        "declarative/tab/auto/ink/horizontal/0.5/true/selected",
-        "direct/scrollbar/auto/empty/horizontal/0/true/normal",
-        "direct/scrollbar/small/empty/vertical/0.5/false/pressed",
-        "direct/scrollbar/standard/empty/horizontal/1/true/disabled",
-        "direct/scrollbar/large/empty/vertical/0/false/inactive",
-        "direct/disclosure/auto/empty/horizontal/0.5/true/normal",
-        "direct/disclosure/auto/empty/vertical/0.5/true/pressed",
-        "direct/disclosure/auto/empty/horizontal/0.5/true/disabled",
-        "direct/disclosure/auto/empty/vertical/0.5/true/inactive",
-        "direct/growbox/auto/empty/horizontal/0.5/true/normal",
-        "direct/growbox/auto/empty/horizontal/0.5/true/inactive",
-        "direct/push/auto/ink/horizontal/0.5/true/normal/custom-fg"
-      ],
-      [
-        "managed/window/document-window/collapsed",
-        "managed/window/side-floating-utility-window/collapsed",
-        "window/titled-utility-window/collapsed/pressed-close",
-        "window/side-floating-utility-window/collapsed/pressed-close"
-      ]
-    ],
-    "themeSlugs": [
-      "1138",
-      "1984",
-      "1990",
-      "animals",
-      "apple-lisa",
-      "apple-platinum-2",
-      "beos-r503",
-      "black-platinum",
-      "crayon-os",
-      "dolphin-som",
-      "evolution",
-      "floppies",
-      "monkey-paradise",
-      "platinum-8",
-      "slimes",
-      "system7-nostalgia-silver",
-      "windows-31",
-      "windows-95"
-    ],
     "requiredContainerImage": "mcr.microsoft.com/playwright:v1.64.0-noble@sha256:06a9939e57531807f8d5fd76ce44b53165ffb7d7501d87ab10e285c20b1e971f",
     "fonts": {
       "virtue.woff": "5904ff4adfe027aab96d72fc992a5c5d39c5f09b883f11dc91a4ac3a2a1e6ac7",
       "charcoal-12.woff": "7fd728b7e3ade54de0aca65a7c8a1a720b8f8ba9d2eabb3b2790099fa349eab7"
-    },
-    "sourceArchives": {
-      "1138": "2b14d10e0907e058474b980df57713191a9e1bf1b39c4ed7df8f82ba3ac1fcdb",
-      "1984": "1fbf62f376ad4f7277ea8cd87cf379c7ea71382e84d83f88e96d5c6502022c21",
-      "1990": "767bd46d55b98c55ac891ad3e917993681571a4485880e7105f01abd7224768a",
-      "animals": "e579b5c52d462ae6c6affa8cb504886b00da7cc15486bf2b84eff9c6360264c3",
-      "apple-lisa": "22ce015a371c187db7c7ab112a4f59b089f21c9433144e3b9021bd61579ab93d",
-      "apple-platinum-2": "ab667ce7ee19b2495413b25782013137a5e891adbe12c54143ed8f7ece34e091",
-      "beos-r503": "04b315396840c5f6e53555381d51ab86087169d5687640261d92c3f85510c0c0",
-      "black-platinum": "84b1b90c49909cdf2107759784c0c5aa2da14499dec1cc070e9a67eac77db9fc",
-      "crayon-os": "df2a57487c4ee86033e7cf143337c9a0407a3186141966c276d2dcfbbcbdd74f",
-      "dolphin-som": "fc48448f8c322dda0a8704380d3f3b9823afbb3524b48f2db54423f60b4e3c15",
-      "evolution": "9491fd7a68134249988b07971d222527709636438c59ca1d0daf5ade82a26740",
-      "floppies": "45557a8b2eae7419b5175c02f46363b9edb2efe2cdf109ef1bf70806acadf5c9",
-      "monkey-paradise": "2694f0b976eb8928e82a55f1509537865776c5dba932d7a9f8446fe2b4fcab42",
-      "platinum-8": "1f064eb95c8c7ba5b71bf97b91b79bec08177ed289a44b985b5af9d3ac5683b7",
-      "slimes": "4c87df6b3d0ef2852458f6ebaee818db8b20f12edd75afac68a6f077d063372b",
-      "system7-nostalgia-silver": "693915a19b9f3111abd73fe4af9025403e4ad9eab107b72953e3731b624c9beb",
-      "windows-31": "1daeb997cb3a84d96d2ac31680fe2cf099ef962cc80ca2bded3256b2243642e6",
-      "windows-95": "57a00943640bf92f1b8dd2482ee22f96b625bbca45032a1284442756770d8622"
-    },
-    "sourceZoom": 4,
-    "labelZoom": 1,
-    "runtime": "built-public-entry",
-    "browserArgs": [
-      "--disable-partial-raster"
-    ]
+    }
   },
+  "manifestSha256": "89e789a05318c618c44261ae88da03c41ed9d673d51098540225c86d7d07e870",
   "execution": {
     "browserVersion": "156.0.8078.4",
     "browserName": "chromium",
     "configuredDeviceScaleFactor": 1,
-    "executionCommit": "0091b71e9437641b98c3de45d70e7fb44a9f5497",
+    "executionCommit": "7df9bcea953e76715f80591ef2ab96d117a7842a",
     "workingTreeDirty": true,
     "identitySource": "git-checkout",
     "declaredCommits": {
-      "SCRIPTOSCOPE_GIT_COMMIT": "0091b71e9437641b98c3de45d70e7fb44a9f5497",
-      "GITHUB_SHA": "0091b71e9437641b98c3de45d70e7fb44a9f5497"
+      "SCRIPTOSCOPE_GIT_COMMIT": "7df9bcea953e76715f80591ef2ab96d117a7842a",
+      "GITHUB_SHA": "7df9bcea953e76715f80591ef2ab96d117a7842a"
     },
     "declarationsMatchCheckout": true,
-    "builtBundleSha256": "ba5bcf0c06584e7fcea4ebbe8b00138445aef7cb8fa1b1280bafa5bf9b3a8143",
+    "builtBundleSha256": "cb66d40c9702940cbd19b54918cd55df393173c186b1718651bbc8f7696eb231",
     "builtStylesheetSha256": "9b8e012dd6d3865737e46c5679eb7b36ca20f50f3bd5ac3d36bfc30fa0cd65b3",
     "packageLockSha256": "29eb877dcc0ad0c0f99fcbbf4b1e71eaec1899eb8d68611ab47c1791d5c5fda4",
     "playwrightVersion": "1.64.0",
@@ -184,50 +57,367 @@
       "rendered": 1163,
       "unavailable": 169
     },
-    "renderPaths": [
-      "public-compositor",
-      "public-declarative",
-      "public-window-manager",
-      "public-window-renderer"
-    ],
     "actualCommitMatchesDeclaration": true,
-    "candidateWorkingTreeDirty": [
-      true
+    "candidateWorkingTreeDirty": true
+  },
+  "deltaVsPriorCommittedHead": {
+    "head": "debb91868091d89d8ec2b82af7c474ac468850d9",
+    "method": "exact file-byte and RGBA comparison of every sheet; case bounds measured in the final contact sheet",
+    "totalSheets": 54,
+    "byteIdenticalSheets": 49,
+    "pixelChangedSheets": 5,
+    "changedCases": 5,
+    "changedPixels": 3984,
+    "unattributedPixels": 0,
+    "unchangedSheets": [
+      "1138-page-1.png",
+      "1138-page-2.png",
+      "1138-page-3.png",
+      "1984-page-1.png",
+      "1984-page-2.png",
+      "1990-page-1.png",
+      "1990-page-2.png",
+      "animals-page-1.png",
+      "animals-page-2.png",
+      "animals-page-3.png",
+      "apple-lisa-page-1.png",
+      "apple-lisa-page-2.png",
+      "apple-lisa-page-3.png",
+      "apple-platinum-2-page-1.png",
+      "apple-platinum-2-page-2.png",
+      "apple-platinum-2-page-3.png",
+      "beos-r503-page-1.png",
+      "beos-r503-page-2.png",
+      "beos-r503-page-3.png",
+      "black-platinum-page-1.png",
+      "black-platinum-page-2.png",
+      "black-platinum-page-3.png",
+      "crayon-os-page-1.png",
+      "crayon-os-page-2.png",
+      "crayon-os-page-3.png",
+      "dolphin-som-page-1.png",
+      "dolphin-som-page-2.png",
+      "dolphin-som-page-3.png",
+      "evolution-page-1.png",
+      "evolution-page-2.png",
+      "evolution-page-3.png",
+      "floppies-page-1.png",
+      "floppies-page-2.png",
+      "monkey-paradise-page-1.png",
+      "monkey-paradise-page-2.png",
+      "monkey-paradise-page-3.png",
+      "platinum-8-page-1.png",
+      "platinum-8-page-2.png",
+      "platinum-8-page-3.png",
+      "slimes-page-1.png",
+      "slimes-page-2.png",
+      "slimes-page-3.png",
+      "system7-nostalgia-silver-page-1.png",
+      "system7-nostalgia-silver-page-2.png",
+      "system7-nostalgia-silver-page-3.png",
+      "windows-31-page-1.png",
+      "windows-31-page-2.png",
+      "windows-95-page-1.png",
+      "windows-95-page-2.png"
+    ],
+    "changedSheets": [
+      {
+        "sheet": "1984-page-3.png",
+        "oldSha256": "dd46125bde2f231b50ca89232f533e2662da4357a811921a39c48b674fc0a8b9",
+        "newSha256": "83451a7b74f513e3a9421565a3039bedc8e83b72c6d5b854a749dedad306922a",
+        "byteIdentical": false,
+        "oldSize": [
+          1248,
+          414
+        ],
+        "newSize": [
+          1248,
+          414
+        ],
+        "pixelsIdentical": false,
+        "changedPixels": 772,
+        "diffBounds": [
+          883,
+          57,
+          1001,
+          69
+        ],
+        "cases": [
+          {
+            "id": "window/titled-utility-window/collapsed/pressed-close",
+            "changedPixels": 772,
+            "candidateCardBounds": [
+              840,
+              0,
+              1248,
+              125
+            ],
+            "diffBoundsWithinCard": [
+              43,
+              57,
+              161,
+              69
+            ]
+          }
+        ],
+        "attributedCasePixels": 772,
+        "unattributedPixels": 0
+      },
+      {
+        "sheet": "1990-page-3.png",
+        "oldSha256": "4d9d01d18d77b87a00b60e24f2bba16355b5e46e62d70f8f87e3d0ca62c0c8d6",
+        "newSha256": "79fd09ff47a7164c4ac448591008551100610edccaaf124cfcc24b7d17ffc28a",
+        "byteIdentical": false,
+        "oldSize": [
+          1248,
+          436
+        ],
+        "newSize": [
+          1248,
+          436
+        ],
+        "pixelsIdentical": false,
+        "changedPixels": 766,
+        "diffBounds": [
+          878,
+          51,
+          996,
+          63
+        ],
+        "cases": [
+          {
+            "id": "window/titled-utility-window/collapsed/pressed-close",
+            "changedPixels": 766,
+            "candidateCardBounds": [
+              840,
+              0,
+              1248,
+              125
+            ],
+            "diffBoundsWithinCard": [
+              38,
+              51,
+              156,
+              63
+            ]
+          }
+        ],
+        "attributedCasePixels": 766,
+        "unattributedPixels": 0
+      },
+      {
+        "sheet": "floppies-page-3.png",
+        "oldSha256": "ca0caa32785f14680ea41e415d6152d52b76af56fe437a89733fda3b1c1d9398",
+        "newSha256": "e14df2d17bfaf492d9e8c9f317c1f3c617d4de63000c78a02a21f3d85888cdf3",
+        "byteIdentical": false,
+        "oldSize": [
+          1248,
+          412
+        ],
+        "newSize": [
+          1248,
+          412
+        ],
+        "pixelsIdentical": false,
+        "changedPixels": 918,
+        "diffBounds": [
+          899,
+          54,
+          1018,
+          66
+        ],
+        "cases": [
+          {
+            "id": "window/titled-utility-window/collapsed/pressed-close",
+            "changedPixels": 918,
+            "candidateCardBounds": [
+              840,
+              0,
+              1248,
+              125
+            ],
+            "diffBoundsWithinCard": [
+              59,
+              54,
+              178,
+              66
+            ]
+          }
+        ],
+        "attributedCasePixels": 918,
+        "unattributedPixels": 0
+      },
+      {
+        "sheet": "windows-31-page-3.png",
+        "oldSha256": "7686710ccce132dda7a729adf384b71d1a9607da41d1c824c48595425dce6af4",
+        "newSha256": "d1bd3dff49cf124fbd9e8a688db1fde90eb0d5d2ba1b248f27c748587dc64fdf",
+        "byteIdentical": false,
+        "oldSize": [
+          1248,
+          427
+        ],
+        "newSize": [
+          1248,
+          427
+        ],
+        "pixelsIdentical": false,
+        "changedPixels": 764,
+        "diffBounds": [
+          899,
+          54,
+          1017,
+          66
+        ],
+        "cases": [
+          {
+            "id": "window/titled-utility-window/collapsed/pressed-close",
+            "changedPixels": 764,
+            "candidateCardBounds": [
+              840,
+              0,
+              1248,
+              125
+            ],
+            "diffBoundsWithinCard": [
+              59,
+              54,
+              177,
+              66
+            ]
+          }
+        ],
+        "attributedCasePixels": 764,
+        "unattributedPixels": 0
+      },
+      {
+        "sheet": "windows-95-page-3.png",
+        "oldSha256": "f8320ccf0fd4a929c78635340721176aac36ad993c1520c41c0d46720b503e78",
+        "newSha256": "1a907e108dad4359902fffff30344f500e7415f254a60670ea891bb4c4d175aa",
+        "byteIdentical": false,
+        "oldSize": [
+          1248,
+          423
+        ],
+        "newSize": [
+          1248,
+          423
+        ],
+        "pixelsIdentical": false,
+        "changedPixels": 764,
+        "diffBounds": [
+          870,
+          55,
+          988,
+          67
+        ],
+        "cases": [
+          {
+            "id": "window/titled-utility-window/collapsed/pressed-close",
+            "changedPixels": 764,
+            "candidateCardBounds": [
+              840,
+              0,
+              1248,
+              125
+            ],
+            "diffBoundsWithinCard": [
+              30,
+              55,
+              148,
+              67
+            ]
+          }
+        ],
+        "attributedCasePixels": 764,
+        "unattributedPixels": 0
+      }
     ]
   },
-  "diff": {
-    "existingSheetsByteIdentical": 36,
-    "newPage3Sheets": 18,
-    "newCasesPerTheme": 4
+  "sourceFreezeFailure": {
+    "workflow": "https://github.com/khawkins98/scriptoscope/actions/runs/41368673687",
+    "job": "https://github.com/khawkins98/scriptoscope/actions/runs/41368673687/job/125034214945",
+    "interpretation": "The old-PNG failure named exactly these five sheets. Its original diagnostics are retained separately; this inventory counts all RGBA pixel deltas."
   },
   "authorVisualInspection": [
-    "All 18 new page3 sheets in a montage; Animals and BeOS at full sheet size.",
-    "Archive-derived alternate-strip source panel: 25 supplied cicns across13 recipe archives; native device/font equivalence is not established."
+    "All five changed case before/after/diff crops inspected: 1984,1990,floppies,windows-31,windows-95.",
+    "All changed pixels are in window/titled-utility-window/collapsed/pressed-close; no sheet dimensions changed or changed pixels fell outside that case.",
+    "The five crops show the required bold substitute title fitting the existing title slot; preferred fitting outputs remain byte-identical in the other 49 sampled sheets."
+  ],
+  "independentTitleEvidence": {
+    "testCommit": "dfa34084bd8d5561651bc093103df49d13581657",
+    "reportedSourceBuiltContracts": "6/6 pass, opposite-face and finite fallback controls retained, original cases preserved plus tail-descender cases",
+    "retainedReportSha256": "95fba1b1def15ea2291a5fe1ff64ee14b43732e9f0383297598786a1fdaab94a",
+    "coherentIntegratedTargetedContracts": "18/18 title/widget/popup tests passed on current main source"
+  },
+  "historicalReceipts": [
+    {
+      "status": "superseded as the current acquisition by the font-fit source",
+      "inputCommit": "0091b71e9437641b98c3de45d70e7fb44a9f5497",
+      "candidateWorkflow": "https://github.com/khawkins98/scriptoscope/actions/runs/41362350628",
+      "cleanVerifyWorkflow": "https://github.com/khawkins98/scriptoscope/actions/runs/41363018937",
+      "committedReceipt": "https://github.com/khawkins98/scriptoscope/blob/debb91868091d89d8ec2b82af7c474ac468850d9/docs/research/widget-family-624-625-goldens.json"
+    }
   ],
   "limits": [
-    "Modern regression candidates, not native screenshots or original-engine certification.",
-    "Candidate record/verify tree is dirty because the manifest and new PNGs are generated. A committed clean-head verification remains the PR CI obligation.",
-    "Five recipe-less archives retain distinct existing managed/direct collapsed utility behavior; no procedural family mapping is changed.",
-    "Independent visual/red-team acceptance remains owned by a fresh reviewer; this acquisition report does not self-approve images."
+    "Modern regression candidates and finite substitute-font policy, not native font/device screenshots or original-engine fidelity certification.",
+    "Acquisition verification reports dirty=true from generated images/manifest; committed clean-head verification is a distinct final check.",
+    "Independent changed-source/test/pixel approval is separate from acquisition author QA.",
+    "No ledger status or original font transfer equivalence is promoted."
   ],
-  "newImageSha256": {
+  "imageSha256": {
+    "1138-page-1.png": "feb15b9c201e995761cd7e4a7ec6250a749d94e8bb13c25661cb8e251d27a911",
+    "1138-page-2.png": "09800e63263b9e9cb65d6339872359d4a8eda13ccf5cddfb81255fbf7a7cc4d4",
     "1138-page-3.png": "3ebd0fbb3f13f54bba6366054bff207387b4ee18ac1df1f5362f1f3b2482cfcd",
-    "1984-page-3.png": "dd46125bde2f231b50ca89232f533e2662da4357a811921a39c48b674fc0a8b9",
-    "1990-page-3.png": "4d9d01d18d77b87a00b60e24f2bba16355b5e46e62d70f8f87e3d0ca62c0c8d6",
+    "1984-page-1.png": "28fd8cef21ff9780aa4772a6406fb005ed97b9448be553038bd8a6f94e85835a",
+    "1984-page-2.png": "f01c546d07c36de2e1161931f711eb8014a6f18c0747fcb328b8811e56ed9d16",
+    "1984-page-3.png": "83451a7b74f513e3a9421565a3039bedc8e83b72c6d5b854a749dedad306922a",
+    "1990-page-1.png": "310ef73e92427565d7661a2cef9df1cde4135c992cf939a12968b04a59b43363",
+    "1990-page-2.png": "ac50c86451bba58eba7163e4ec4b4648b6d381990a328564fd5a7054ef4795a3",
+    "1990-page-3.png": "79fd09ff47a7164c4ac448591008551100610edccaaf124cfcc24b7d17ffc28a",
+    "animals-page-1.png": "3079e8b494d24801c8aaf8a8cc23d921a38e9bbf0d8e38e38791e4975bc623d8",
+    "animals-page-2.png": "cc0bc4db6711f5c8c6698959f618700a29beed8ebbae57e13cd0935bfd38d98b",
     "animals-page-3.png": "1270159116988772a363e2b6147c6f2609225dd7cba030565a93b959fb4ee98d",
+    "apple-lisa-page-1.png": "1baa33c5cbb710b7bec3a3a9fca66ae4529ed6c7cd0c0bb7778088794cd0a9a2",
+    "apple-lisa-page-2.png": "b24af547c2253bcdef10927f24edd46493f0a826b4af2f1665c66b2fcfa34512",
     "apple-lisa-page-3.png": "6dd15562350ed114abeff331e88816335d7f3fcbdac31ad14d755be3d9051be0",
+    "apple-platinum-2-page-1.png": "5539c4ae5a945ef458a13cf25571cc17b4cd6b5cd8776d96c82e3c8949295967",
+    "apple-platinum-2-page-2.png": "a5523ca4d9f15a3f6176625eaf479368e6d4e86f142e49a72cdfbab80226daf4",
     "apple-platinum-2-page-3.png": "fbec230f563d53ead6141e4e31f3e06c08e9cbe8859f9db951f2595f89868a11",
+    "beos-r503-page-1.png": "13bc1a87224b71788394ac95e76f210a44fd10b622ff0217c20aa027c09420a4",
+    "beos-r503-page-2.png": "d1a1e66367622ed15808a66dd351b182b4a557c7a73300ab20d18b4057aecadd",
     "beos-r503-page-3.png": "4475074d7a2cb6a3d4fa9d77a3f08c85f64863bcb44901fb6155867b472600b7",
+    "black-platinum-page-1.png": "caeaf9bde3b26a691c3d7aa7f97a15e0566c06543c6b329b5be71e5ee0c46b7f",
+    "black-platinum-page-2.png": "9eeed8e72367739c4e73a01ca417c2f6ff95efd0cd27b83420ec76986801dda7",
     "black-platinum-page-3.png": "7853babb1f53f58da9644af4f6cb06806c888c652727e3da21722b84c74e084d",
+    "crayon-os-page-1.png": "285cb24597a547d37bc1583ced78c47fe2a94a791851508564d80e3bfbf9f465",
+    "crayon-os-page-2.png": "77ad34a0b581c2d014c9ee6007f889a42957cb2effe208a74e766fb85fd26222",
     "crayon-os-page-3.png": "4b303acb1106523654314e107d83f8924d1dce1f5f675b97405185dba3f80d89",
+    "dolphin-som-page-1.png": "46ee39d1cb94a2659c1b84aeeb36a3fac9c7ffe0fd873801c4640f092579f111",
+    "dolphin-som-page-2.png": "cd2aadf1419eb4944601af7e2a8f634105d0c3d12633fcb8ed32e364888878b6",
     "dolphin-som-page-3.png": "8fcb76ac7e4d1ed398a6e2d609285cc7493b0004d458df0fb2d433a73bf3b4f0",
+    "evolution-page-1.png": "838bfcb8b9c1288e1d34c7f5b7b2c3b0e5ce96123d1eead910a9c246373be19d",
+    "evolution-page-2.png": "4cc5fadd7bcea019650e2247406b3efca1c0c7ff65157faaf15ff13eeb93f149",
     "evolution-page-3.png": "9763ad5496689c413e20f12c9376fdba39a585640881b2d5073db195c2a5c533",
-    "floppies-page-3.png": "ca0caa32785f14680ea41e415d6152d52b76af56fe437a89733fda3b1c1d9398",
+    "floppies-page-1.png": "57992dbda63e4c01f007e17bf3849b9126936daf6ee07f20417980654e43b333",
+    "floppies-page-2.png": "19fd48ed09e71d27485694f3347c46fdd4f2428561d95b8f1100262842c43ba0",
+    "floppies-page-3.png": "e14df2d17bfaf492d9e8c9f317c1f3c617d4de63000c78a02a21f3d85888cdf3",
+    "monkey-paradise-page-1.png": "c78208137ba78ce055eeaa240ad186e3434e6935c2290aa95745d01554755801",
+    "monkey-paradise-page-2.png": "ec6b58edc1aadd2137fe63397b7059a1fcff2037691be748cba467f74f8f4623",
     "monkey-paradise-page-3.png": "88e8e225ffc4b1f98521d0627825ee2c9d76fcfadaaa4314d667b011f4349c5f",
+    "platinum-8-page-1.png": "ea8edef4e6cc660272678dbd5e3b9d5b9a4d0427ced96321fd768ea3d3d43b3d",
+    "platinum-8-page-2.png": "dba6c2172b15e9b4f8c07eb963eba88bacf04d01a4f08eff6e6bf2d6731a167c",
     "platinum-8-page-3.png": "2ec1553b189e18a52c4b90372087ed3186a99c59d4676361b4ad274fcca179af",
+    "slimes-page-1.png": "869f5c8a11967de17f963c81389e12c7e9093d0b42da99a0838a475a8918a648",
+    "slimes-page-2.png": "eed0bb35670a4a462c699045b4f5b871d081bcf3d451a07e77487bd3b1ac896f",
     "slimes-page-3.png": "39db6852b8fa4a87ce283be41894d956905ddce851a3d03debb7545dc1eadf06",
+    "system7-nostalgia-silver-page-1.png": "f4bf398eadd310fd95ab93f5866d1573c844290efe1e625479ecc0d09321570c",
+    "system7-nostalgia-silver-page-2.png": "41f93fbcbdfbfd9165be0fa2c6ebf2c131fd896c6cd4fb0dca37b9bc091df566",
     "system7-nostalgia-silver-page-3.png": "25b41f1ece37a0e3e80d045aa06353eeaaf2aa2b013993f21f4c297061f78116",
-    "windows-31-page-3.png": "7686710ccce132dda7a729adf384b71d1a9607da41d1c824c48595425dce6af4",
-    "windows-95-page-3.png": "f8320ccf0fd4a929c78635340721176aac36ad993c1520c41c0d46720b503e78"
+    "windows-31-page-1.png": "8e361bafd463f7c6cbb7b0fd2a3434509aa5d15314bac2794effe38badc9bb39",
+    "windows-31-page-2.png": "7ce45213ace460740c015aefff99e80cbb12f1d824e79091b843085a53fdd2e0",
+    "windows-31-page-3.png": "d1bd3dff49cf124fbd9e8a688db1fde90eb0d5d2ba1b248f27c748587dc64fdf",
+    "windows-95-page-1.png": "87dd0f8be1e8f19e9500c215464343f2f181e6673a2a043796e2a991473ee36f",
+    "windows-95-page-2.png": "7ff51ac9d892bb690f4a97d6566b16a10e7ebde72e17556be380751c62927c5b",
+    "windows-95-page-3.png": "1a907e108dad4359902fffff30344f500e7415f254a60670ea891bb4c4d175aa"
   }
 }

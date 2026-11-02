@@ -1,3 +1,13 @@
+# #624/#625 font-fit candidate acquisition — 2026-11-02
+
+Current candidates come from [workflow 41368788539](https://github.com/khawkins98/scriptoscope/actions/runs/41368788539), actual source/input `7df9bcea953e76715f80591ef2ab96d117a7842a` including main `99ca7618`. Recording and verification passed all 54 sheets. Every sheet was compared against committed `debb9186`: 49 are byte-identical and five page-3 sheets changed (1984, 1990, floppies, windows-31, windows-95). The exact RGBA audit attributes all 3,984 changed pixels to each sheet's `window/titled-utility-window/collapsed/pressed-close` case, with unchanged image dimensions and no unattributed pixels.
+
+Author QA inspected every changed case's before/after/diff crop. These are finite same-face substitute-font fit changes under TF2–TF6; unchanged preferred styles stay intact. This is acquisition and author inspection, not independent approval or a native font-fidelity claim. A fresh reviewer owns the changed runtime/oracle/pixel decision. Full hashes, case/region bounds, original red-run attribution and historical links are in the [current acquisition receipt](../../../docs/research/widget-family-624-625-goldens.json).
+
+The entries below are historical acquisitions, superseded as current-candidate receipts by this font-fit capture. Their original scope and byte identities are preserved.
+
+---
+
 # #624/#625 collapsed and alternate-widget candidate acquisition — 2026-11-02
 
 The new page-3 sheets are regression candidates from [workflow 41362350628](https://github.com/khawkins98/scriptoscope/actions/runs/41362350628), actual input commit `0091b71e9437641b98c3de45d70e7fb44a9f5497`. Recording and exact verification passed all 54 sheets. The 36 existing controls images are byte-identical; 18 new sheets add collapsed managed documents and side utilities, plus directly rendered collapsed top/side utilities with close pressed. Source archives, fonts and case inventory remain pinned in the manifest.
