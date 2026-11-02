@@ -20,40 +20,53 @@ window elements after every case. `render` measures the `renderWindow` promise.
 Frames run between activations, outside the timer. Loading and presentation are
 excluded: these measurements are not INP. Avoid concurrent builds/tests when timing.
 
+## Shared target reconciliation
+
+For frames and control targets, exact rectangle matches remain mounted. Other
+still-owned spans are reassigned; only the remaining count difference allocates
+or removes elements. Reconciliation preserves rectangle order and repairs removed
+or reparented targets. It uses the saved coordinate snapshot, not mutable inputs.
+There are no theme-specific branches or persistent spare-node pools.
+
+In a large Animals focus probe, creation/removal fell from 3,230 elements each to
+34 each: 3,098 exact matches stayed untouched and 98 spans were updated/reinserted.
+
 ## Observations, 2026-11-02
 
-Apple M5, macOS, Chromium 156.0.8078.4. Two interleaved comparisons against
-unchanged main (`d0eac009`), all 18 themes at both sizes. All 72 sampled
-active/inactive pixel configurations matched in both pairs. This is regression
-coverage, not independent original-engine fidelity evidence.
+Apple M5, macOS, Chromium 156.0.8078.4. The latest comparison isolates general
+reconciliation against `b8baec95`, which already contains the region cache and
+unchanged-target retention. All 18 themes ran at both sizes; six themes were
+repeated in a second before/after pair. All 72 sampled active/inactive pixel
+configurations matched in the full run, as did all 24 repeated configurations.
+This is regression coverage, not original-engine fidelity evidence.
 
-Large-window focus-commit medians, milliseconds:
+Large-window focus-commit medians, milliseconds (— means not repeated):
 
-| Theme | Pair 1 baseline → candidate | Pair 2 baseline → candidate |
+| Theme | Full run before → after | Repeat before → after |
 | --- | ---: | ---: |
-| 1138 | 7.9 → 5.8 | 9.3 → 9.8 |
-| 1984 | 10.2 → 6.3 | 9.0 → 9.3 |
-| 1990 | 14.2 → 8.1 | 19.0 → 10.4 |
-| animals | 27.3 → 24.0 | 32.6 → 32.9 |
-| apple-lisa | 6.9 → 5.1 | 9.9 → 7.4 |
-| apple-platinum-2 | 8.2 → 8.3 | 7.0 → 7.8 |
-| beos-r503 | 7.3 → 5.2 | 11.4 → 7.0 |
-| black-platinum | 6.5 → 6.4 | 8.3 → 7.9 |
-| crayon-os | 8.3 → 6.2 | 9.9 → 7.1 |
-| dolphin-som | 52.0 → 17.1 | 58.0 → 21.5 |
-| evolution | 15.9 → 9.2 | 16.0 → 9.3 |
-| floppies | 11.1 → 7.5 | 16.7 → 12.4 |
-| monkey-paradise | 19.3 → 8.9 | 27.2 → 15.6 |
-| platinum-8 | 6.8 → 6.6 | 9.4 → 11.3 |
-| slimes | 6.2 → 6.2 | 8.9 → 11.3 |
-| system7-nostalgia-silver | 6.6 → 6.2 | 8.5 → 10.9 |
-| windows-31 | 7.8 → 5.8 | 9.1 → 7.3 |
-| windows-95 | 8.0 → 5.9 | 11.0 → 9.1 |
+| 1138 | 6.7 → 7.3 | — |
+| 1984 | 8.0 → 8.0 | — |
+| 1990 | 9.7 → 10.1 | — |
+| animals | 26.3 → 15.9 | 24.4 → 19.4 |
+| apple-lisa | 6.3 → 6.7 | — |
+| apple-platinum-2 | 8.4 → 7.6 | — |
+| beos-r503 | 6.2 → 6.4 | 6.6 → 6.5 |
+| black-platinum | 6.6 → 8.1 | — |
+| crayon-os | 7.4 → 7.3 | — |
+| dolphin-som | 20.6 → 20.4 | 23.6 → 22.9 |
+| evolution | 12.4 → 11.3 | 10.2 → 10.1 |
+| floppies | 10.2 → 8.8 | — |
+| monkey-paradise | 12.0 → 11.1 | 9.6 → 11.2 |
+| platinum-8 | 8.4 → 7.8 | 7.3 → 6.9 |
+| slimes | 8.0 → 7.0 | — |
+| system7-nostalgia-silver | 7.7 → 6.9 | — |
+| windows-31 | 7.6 → 6.5 | — |
+| windows-95 | 8.3 → 6.5 | — |
 
-Complex recipe frames show the largest repeated gains. Some timings varied
-substantially; 1138, 1984 and Animals had mixed second-pair focus results, and
-Animals remains slower. Standalone rendering and procedural-frame results varied.
-Other machine activity was uncontrolled; these observations are not CI deadlines.
+Animals improved in both comparisons; other results were unchanged, improved or
+mixed. The algorithm saves allocation/layout work generally, but elapsed gains
+depend on target geometry and count. Other machine activity was uncontrolled;
+these observations are not CI deadlines. Raw samples remain local run artifacts.
 
 ## Regression checks
 
@@ -61,13 +74,13 @@ Other machine activity was uncontrolled; these observations are not CI deadlines
 SCRIPTOSCOPE_PERF_URL=http://127.0.0.1:5173 node --test src/windowRegionReuse.implementation.test.mjs
 ```
 
-The regression covers retained/repaired/replaced targets, isolated RGB/alpha
-mutations, scale/theme changes and failed-build recovery. The two-state region
+Regressions cover exact matches, recycling, duplicates, reordering, external
+removal/reparenting, mutated inputs, RGB/alpha changes, scaling and failure recovery. The two-state region
 cache retains one additional source snapshot/path per window.
 
-Production demo build, full gates, 190 focused Chromium source/production browser
-contracts and 27 affected implementation unit checks passed. Full rendering-matrix,
-pinned golden and cross-engine release checks remain separate.
+Production demo build, full gates, 190 focused Chromium contracts and 24 focused
+Firefox/WebKit contracts passed, including native wheel, masks and target placement.
+Full rendering-matrix, pinned golden and cross-engine release checks remain separate.
 
 `PERF_STAGES=1` enables inclusive internal-method diagnostics, including startup
 and warmups. Nested/overlapping timings and Promise microtask delay mean stage

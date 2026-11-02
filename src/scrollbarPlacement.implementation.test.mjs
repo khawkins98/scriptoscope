@@ -22,9 +22,17 @@ class Element {
   listeners = new Map();
   attributes = new Map();
   setAttribute(key, value) { this.attributes.set(key, value); }
-  append(node) { node.parentElement = this; this.children.push(node); }
+  append(node) { this.insertBefore(node, null); }
+  insertBefore(node, next) {
+    node.remove();
+    const i = next === null ? this.children.length : this.children.indexOf(next);
+    assert.ok(i >= 0);
+    node.parentElement = this; this.children.splice(i, 0, node);
+  }
+  get nextSibling() { return this.parentElement?.children[this.parentElement.children.indexOf(this) + 1] ?? null; }
   prepend(node) { node.parentElement = this; this.children.unshift(node); }
   remove() {
+    if (!this.parentElement) return;
     const siblings = this.parentElement.children;
     siblings.splice(siblings.indexOf(this), 1);
     this.parentElement = null;

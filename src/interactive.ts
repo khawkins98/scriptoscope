@@ -1740,19 +1740,48 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       const key = JSON.stringify(rectangles);
       let saved = targets.get(parent);
       if (!saved || saved.key !== key || saved.nodes.some(n => n.parentElement !== parent)) {
-        for (const node of saved?.nodes ?? []) node.remove();
-        const nodes = rectangles.map(r => {
-          const node = document.createElement('span');
-          node.className = 'scriptoscope-native-target';
-          node.setAttribute('aria-hidden', 'true');
-          Object.assign(node.style, { position: 'absolute', display: 'block', margin: '0', padding: '0', border: '0',
-            left: `${r.left}px`, top: `${r.top}px`, width: `${r.right - r.left}px`, height: `${r.bottom - r.top}px` });
-          parent.append(node);
+        // Match exact rectangles first, then recycle the remaining owned spans.
+        // The serialized snapshot stays valid even if the input array is mutated.
+        const rectKey = (r: NativeRect): string => `${r.left},${r.top},${r.right},${r.bottom}`;
+        const previous: NativeRect[] = saved ? JSON.parse(saved.key) : [];
+        const matches = new Map<string, HTMLElement[]>();
+        for (let i = (saved?.nodes.length ?? 0) - 1; i >= 0; i--) {
+          const node = saved!.nodes[i]!;
+          if (node.parentElement !== parent) { node.remove(); continue; }
+          const id = rectKey(previous[i]!), group = matches.get(id);
+          if (group) group.push(node); else matches.set(id, [node]);
+        }
+        const exact = rectangles.map(r => matches.get(rectKey(r))?.pop());
+        const spare = [...matches.values()].flat();
+        const nodes = rectangles.map((r, i) => {
+          let node = exact[i] ?? spare.pop();
+          if (!node) {
+            node = document.createElement('span');
+            node.className = 'scriptoscope-native-target';
+            node.setAttribute('aria-hidden', 'true');
+            Object.assign(node.style, { position: 'absolute', display: 'block', margin: '0', padding: '0', border: '0' });
+          }
+          if (!exact[i]) {
+            // Old positions of recycled spans must not force moves of exact matches.
+            node.remove();
+            Object.assign(node.style, {
+              left: `${r.left}px`, top: `${r.top}px`, width: `${r.right - r.left}px`, height: `${r.bottom - r.top}px`,
+            });
+          }
           return node;
         });
+        for (const node of spare) node.remove();
+        // Keep generation order and control ancestry without moving spans already in place.
+        let next: ChildNode | null = null;
+        for (let i = nodes.length - 1; i >= 0; i--) {
+          const node = nodes[i]!;
+          if (node.parentElement !== parent || node.nextSibling !== next) parent.insertBefore(node, next);
+          next = node;
+        }
         targets.set(parent, saved = { key, nodes });
       }
-      for (const node of saved.nodes) node.style.pointerEvents = region ? 'auto' : 'none';
+      const pointerEvents = region ? 'auto' : 'none';
+      for (const node of saved.nodes) if (node.style.pointerEvents !== pointerEvents) node.style.pointerEvents = pointerEvents;
     };
     install(layer, geometry?.frame ?? []);
     for (const [key, control] of entry.overlays ?? []) {

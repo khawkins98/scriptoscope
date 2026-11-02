@@ -30,7 +30,8 @@ test('region reuse survives owned wrappers and activation, but invalidates on ch
         frameTargets[0].remove();
         await manager.render(entry);
         const repairedTargets = entry.targets.get(entry.layers.hit).nodes.length === frameTargets.length &&
-          entry.targets.get(entry.layers.hit).nodes.every(node => node.isConnected && !frameTargets.includes(node));
+          entry.targets.get(entry.layers.hit).nodes.every((node, i) => node.isConnected &&
+            (i === 0 ? node !== frameTargets[0] : node === frameTargets[i]));
         // Exercise internal awaited focus rather than measuring event dispatch.
         const second = await manager.add(theme, { width: 240, height: 160 });
         document.body.append(second);
@@ -61,9 +62,14 @@ test('region reuse survives owned wrappers and activation, but invalidates on ch
         const beforeResizeTargets = entry.targets.get(entry.layers.hit).nodes;
         await manager.applyState(host, { width: 260 });
         const invalidatedSize = entry.geometry !== beforeResize;
-        const replacedTargets = beforeResizeTargets.length > 0 && beforeResizeTargets.every(node => !node.isConnected) &&
-          entry.targets.get(entry.layers.hit).nodes.length > 0 &&
-          entry.targets.get(entry.layers.hit).nodes.every(node => node.isConnected);
+        const resizedTargets = entry.targets.get(entry.layers.hit).nodes;
+        const reconciledTargets = beforeResizeTargets.some(node => resizedTargets.includes(node)) &&
+          resizedTargets.length === entry.geometry.frame.length && resizedTargets.every((node, i) => {
+            const r = entry.geometry.frame[i];
+            return node.parentElement === entry.layers.hit && parseFloat(node.style.left) === r.left &&
+              parseFloat(node.style.top) === r.top && parseFloat(node.style.width) === r.right - r.left &&
+              parseFloat(node.style.height) === r.bottom - r.top;
+          });
         const beforeScale = entry.geometry;
         entry.opts = { ...entry.opts, scale: 2 };
         await manager.render(entry);
@@ -83,12 +89,12 @@ test('region reuse survives owned wrappers and activation, but invalidates on ch
         const beforeTheme = entry.geometry;
         await manager.retheme(other);
         const invalidatedTheme = entry.geometry !== beforeTheme && entry.previousRegionCache === undefined;
-        return { retainedTargets, repairedTargets, replacedTargets, reusedActive, reusedInactive, freshWrapper,
+        return { retainedTargets, repairedTargets, reconciledTargets, reusedActive, reusedInactive, freshWrapper,
           invalidatedPixels, invalidatedAlpha, invalidatedSize, invalidatedScale,
           clearedFailure, retriedFailure, invalidatedTheme };
       } finally { manager.dispose(); theme.dispose(); other.dispose(); }
     }, `/@fs${fileURLToPath(new URL('./index.ts', import.meta.url))}`);
-    assert.deepEqual(checks, { retainedTargets: true, repairedTargets: true, replacedTargets: true,
+    assert.deepEqual(checks, { retainedTargets: true, repairedTargets: true, reconciledTargets: true,
       reusedActive: true, reusedInactive: true, freshWrapper: true,
       invalidatedPixels: true, invalidatedAlpha: true, invalidatedSize: true, invalidatedScale: true, clearedFailure: true,
       retriedFailure: true, invalidatedTheme: true });
