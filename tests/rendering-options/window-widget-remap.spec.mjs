@@ -38,9 +38,9 @@ for (const mode of ['source', 'built']) {
           const at = win.querySelector('canvas.scriptoscope-chrome')?.getBoundingClientRect();
           const old = at && ten ? host.shadowRoot.elementFromPoint(at.x + (cl + cr) / 2, at.y + ten.rects[0].y + (ct - ten.src.y) + (cb - ct) / 2) : null;
           rows.push({ slug, grow, template: [cl, ct, cr - cl, cb - ct], tenSrcY: ten?.src.y, tenDstY: ten?.rects[0].y, tenH: ten?.rects[0].h,
-            oldPointIsCollapse: !!old?.classList?.contains('scriptoscope-titlewidget-collapse'),
+            oldPointIsCollapse: !!btn && old?.closest('button') === btn,
             overlay: btn ? [Number.parseFloat(btn.style.left), Number.parseFloat(btn.style.top), Number.parseFloat(btn.style.width), Number.parseFloat(btn.style.height)] : null,
-            screen: box && origin ? [box.x - origin.x, box.y - origin.y] : null, hitIsButton: hitEl === btn, hit: hitEl?.className ?? String(hitEl) });
+            screen: box && origin ? [box.x - origin.x, box.y - origin.y] : null, hitIsButton: !!btn && hitEl?.closest('button') === btn, hit: hitEl?.className ?? String(hitEl) });
           manager.remove(host);
         }
         theme.dispose?.();
@@ -87,8 +87,9 @@ for (const mode of ['source', 'built']) {
           { onClose() { actions.push('close'); }, onZoom() { actions.push('zoom'); }, onCollapse() { actions.push('collapse'); } });
         host.style.left = '100px'; host.style.top = '120px'; document.body.append(host);
         host.addEventListener('scriptoscope:userresize', e => resize.push(e.detail));
-        host.shadowRoot.addEventListener('pointerdown', e => targets.push(e.target.className), true);
-        window.wm381 = { api, theme, manager, host, actions, resize, targets };
+        const original = host.shadowRoot.querySelector('.scriptoscope-titlewidget-collapse');
+        host.shadowRoot.addEventListener('pointerdown', e => targets.push({ native: e.target.className, originalOwner: e.target.closest?.('button') === original, trusted: e.isTrusted }), true);
+        window.wm381 = { api, theme, manager, host, actions, resize, targets, original };
       }, { mode, state, scale });
       // #614 IP1: the first press on an inactive window's widget only activates it.
       // The widget still owns the point (the press reaches the collapse button, not
@@ -111,12 +112,12 @@ for (const mode of ['source', 'built']) {
       await page.mouse.move(100 + 14 * scale, 120 + 38 * scale, { steps: 3 });
       await page.mouse.up();
       const row = await page.evaluate(async ({ state, scale }) => {
-        const { manager, host, actions, resize, targets, theme } = window.wm381;
+        const { manager, host, actions, resize, targets, theme, original } = window.wm381;
         const btn = host.shadowRoot.querySelector('.scriptoscope-titlewidget-collapse');
         const keyboard = { label: btn?.getAttribute('aria-label'), disabled: btn?.disabled, tabIndex: btn?.tabIndex };
         btn?.focus(); keyboard.focused = host.shadowRoot.activeElement === btn;
         const result = { state, scale, actions: [...actions], resize: [...resize], targets: [...targets], keyboard,
-          width: manager.describe(host).width, height: manager.describe(host).height };
+          width: manager.describe(host).width, height: manager.describe(host).height, originalRetained: btn === original };
         return result;
       }, { state, scale });
       await page.keyboard.press('Enter');
@@ -152,7 +153,9 @@ for (const mode of ['source', 'built']) {
       else expect(row.activation, label).toBeNull();
       expect(row.click, `${label}: one stationary click, one title action`).toEqual({ actions: ['collapse'], resize: [] });
       expect(row.keyboardAction, `${label}: keyboard activation remains available`).toEqual([...row.actions, 'collapse']);
-      expect(row.targets.every(target => target.includes('titlewidget-collapse')), label).toBe(true);
+      expect(row.targets.length, `${label}: native presses observed`).toBeGreaterThan(0);
+      expect(row.targets.every(target => target.originalOwner && target.trusted), `${label}: trusted targets belong to the original collapse control`).toBe(true);
+      expect(row.originalRetained, `${label}: original collapse control retained`).toBe(true);
       expect(row.actions[0], label).toBe('collapse');
       expect(row.actions.every(action => action === 'collapse'), label).toBe(true);
       expect(row.actions.length, label).toBeGreaterThanOrEqual(1);
