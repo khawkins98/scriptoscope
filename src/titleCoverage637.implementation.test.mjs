@@ -176,3 +176,69 @@ test('procedural titles retain requested size, UTF-16 truncation policy and metr
   await composeProceduralFrameChrome(theme, 'titled-utility-window', 'active', 100, 50, { title: 'Tool' });
   assert.ok(measures.every(m => m.font.startsWith('10px ')));
 });
+
+// Observe every explicit storage resize, including states before context use.
+test('title canvas storage stays within its role bound throughout initialization', () => {
+  const previous = Object.getOwnPropertyDescriptor(globalThis, 'document');
+  const storage = [];
+  globalThis.document = {
+    fonts: { check: () => false },
+    createElement(name) {
+      assert.equal(name, 'canvas');
+      let width = 300, height = 150;
+      const states = [];
+      const canvas = {
+        get width() { return width; },
+        set width(value) { width = value; states.push([width, height]); },
+        get height() { return height; },
+        set height(value) { height = value; states.push([width, height]); },
+        getContext(kind) {
+          assert.equal(kind, '2d');
+          return {
+            canvas,
+            measureText: () => ({ width: 20000, actualBoundingBoxLeft: 2,
+              actualBoundingBoxRight: 20002, actualBoundingBoxAscent: 8,
+              actualBoundingBoxDescent: 2, fontBoundingBoxAscent: 8,
+              fontBoundingBoxDescent: 2 }),
+            clearRect() {},
+            fillText() {},
+            getImageData: (_x, _y, w, h) => ({ data: new Uint8ClampedArray(w * h * 4) }),
+          };
+        },
+      };
+      storage.push({ canvas, states });
+      return canvas;
+    },
+  };
+  const bounded = (entry, maxWidth, maxHeight) => {
+    assert.ok(entry.states.length > 0);
+    for (const [width, height] of entry.states) {
+      assert.ok(width === 0 || height === 0 || (width <= maxWidth && height <= maxHeight),
+        `intermediate ${width}x${height} exceeds ${maxWidth}x${maxHeight}`);
+    }
+    assert.equal(entry.canvas.width, maxWidth);
+    assert.equal(entry.canvas.height, maxHeight);
+  };
+  try {
+    assert.equal(measureTitle('complete request', 12).advance, 20000);
+    bounded(storage.shift(), 0, 0);
+
+    assert.equal(resolveTitleStyle('complete request', 12, () => ({ w: 80, h: 10 })).omitInk, false);
+    bounded(storage.shift(), 0, 0);
+    bounded(storage.shift(), 4096, 32);
+
+    for (const [width, height] of [[6000, 8], [8, 5], [8, 200]]) {
+      let publications = 0;
+      const target = { width, height, drawOver() { publications++; } };
+      assert.equal(paintTitle(target, 'complete request', 12, '#123456', 0, 8,
+        { x: 0, y: 0, w: width, h: height }), true);
+      assert.equal(publications, 1);
+      bounded(storage.shift(), 0, 0);
+      bounded(storage.shift(), width, height);
+    }
+    assert.equal(storage.length, 0);
+  } finally {
+    if (previous) Object.defineProperty(globalThis, 'document', previous);
+    else delete globalThis.document;
+  }
+});
