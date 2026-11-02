@@ -45,16 +45,16 @@ beforeEach(() => {
         setAttribute(key, value) { this.attributes[key] = value; },
         append(...children) { this.children.push(...children); },
         appendChild(child) { this.children.push(child); },
-        getContext() { const canvas = this; let ink; return {
+        getContext() { let ink, observation = false; return {
           font: '', letterSpacing: '',
           measureText(text) {
             const size = Number(this.font.match(/([\d.]+)px/)[1]);
             measurements.push({ text, font: this.font, spacing: this.letterSpacing });
             return { width: text.length * size, actualBoundingBoxLeft: 0, actualBoundingBoxRight: text.length * size, ...metrics(size) };
           },
-          clearRect() { ink = undefined; },
+          clearRect() { ink = undefined; observation = true; },
           fillText(text, x, y) {
-            if (canvas.width !== 4096 || canvas.height !== 32) paints.push({ text, font: this.font, spacing: this.letterSpacing });
+            if (!observation) paints.push({ text, font: this.font, spacing: this.letterSpacing });
             const size = Number(this.font.match(/([\d.]+)px/)[1]);
             const m = metrics(size);
             ink = { left: x, right: x + text.length * size,

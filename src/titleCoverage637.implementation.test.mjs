@@ -57,10 +57,10 @@ test('complete finite exterior traversal uses one fixed tile and preserves full 
   const result = resolveTitleStyle(text, 13, slot);
   assert.equal(result.style.size, 13);
   assert.equal(result.omitInk, false);
-  // Envelope [-10, 9019) by [-14, 22): two exterior strips, three columns each.
+  // Envelope [-10, 9019) by [-14, 22): two query rows, three columns each.
   assert.equal(draws.length, 6);
   assert.equal(canvases.filter(c => c.width > 0).length, 1);
-  assert.ok(canvases.every(c => c.width === 0 || (c.width === 4096 && c.height === 32)));
+  assert.ok(canvases.every(c => c.width === 0 || (c.width <= 4096 && c.height <= 32)));
   assert.ok(reads.every(r => r.w <= 4096 && r.h <= 32));
   assert.ok(draws.every(p => p.text === text && p.extra.length === 0 && p.spacing === '0.5px'));
   assert.ok(draws.every(p => p.x - Math.floor(p.x) === .25 && p.y - Math.floor(p.y) === .5));
@@ -210,14 +210,16 @@ test('title canvas storage stays within its role bound throughout initialization
       return canvas;
     },
   };
-  const bounded = (entry, maxWidth, maxHeight) => {
+  const bounded = (entry, maxWidth, maxHeight, partial = false) => {
     assert.ok(entry.states.length > 0);
     for (const [width, height] of entry.states) {
       assert.ok(width === 0 || height === 0 || (width <= maxWidth && height <= maxHeight),
         `intermediate ${width}x${height} exceeds ${maxWidth}x${maxHeight}`);
     }
-    assert.equal(entry.canvas.width, maxWidth);
-    assert.equal(entry.canvas.height, maxHeight);
+    if (!partial) {
+      assert.equal(entry.canvas.width, maxWidth);
+      assert.equal(entry.canvas.height, maxHeight);
+    }
   };
   try {
     assert.equal(measureTitle('complete request', 12).advance, 20000);
@@ -225,7 +227,7 @@ test('title canvas storage stays within its role bound throughout initialization
 
     assert.equal(resolveTitleStyle('complete request', 12, () => ({ w: 80, h: 10 })).omitInk, false);
     bounded(storage.shift(), 0, 0);
-    bounded(storage.shift(), 4096, 32);
+    bounded(storage.shift(), 4096, 32, true);
 
     for (const [width, height] of [[6000, 8], [8, 5], [8, 200]]) {
       let publications = 0;
@@ -320,4 +322,56 @@ test('absent DOM and null Canvas context keep existing measurement and style fal
   globalThis.document = { createElement: () => ({ getContext: () => null }) };
   assert.equal(measureTitle('complete', 12), null);
   assert.equal(resolveTitleStyle('complete', 12, slot).omitInk, false);
+});
+
+test('guarded queries retain exact projected metric anchors on both axes and own every exterior pixel', () => {
+  const x = -3.25, top = 2.5, height = 12;
+  // The nominal ascent puts the absolute baseline at 68.5.
+  const metric = { left: x - 2.5, right: x + 8168.25, top: 68.5 - 65.25, bottom: 68.5 - 1.5 };
+  report = () => ({ width: 8200, actualBoundingBoxLeft: 2.5, actualBoundingBoxRight: 8168.25,
+    actualBoundingBoxAscent: 65.25, actualBoundingBoxDescent: -1.5 });
+  const result = resolveTitleStyle('whole guarded request', 13, () => ({ x, y: top, w: 30, h: height }));
+  assert.equal(result.style.size, 13);
+  const envelope = { left: Math.floor(metric.left - 14), right: Math.ceil(metric.right + 14),
+    top: Math.floor(metric.top - 14), bottom: Math.ceil(metric.bottom + 14) };
+  let index = 0, ownedExteriorArea = 0;
+  for (let first = envelope.top; first < envelope.bottom; first += 30) {
+    const last = Math.min(first + 30, envelope.bottom);
+    if (first >= top && last <= top + height) continue;
+    for (let left = envelope.left; left < envelope.right; left += 4094) {
+      const right = Math.min(left + 4094, envelope.right);
+      const read = reads[index++], paint = read.paint;
+      const anchorX = Math.max(metric.left, Math.min(metric.right, left + (right - left) / 2));
+      const anchorY = Math.max(metric.top, Math.min(metric.bottom, first + (last - first) / 2));
+      const originX = Math.min(left, Math.floor(anchorX)) - 1;
+      const originY = Math.min(first, Math.floor(anchorY)) - 1;
+      assert.deepEqual([paint.x, paint.y], [x - originX, 68.5 - originY]);
+      assert.deepEqual([read.sx, read.sy, read.w, read.h], [left - originX, first - originY, right - left, last - first]);
+      assert.deepEqual([paint.width, paint.height], [Math.max(right, Math.ceil(anchorX)) + 1 - originX,
+        Math.max(last, Math.ceil(anchorY)) + 1 - originY]);
+      assert.ok(anchorX > originX && anchorX < originX + paint.width);
+      assert.ok(anchorY > originY && anchorY < originY + paint.height);
+      assert.ok(read.sx >= 1 && read.sy >= 1 && read.sx + read.w < paint.width && read.sy + read.h < paint.height);
+      for (let row = first; row < last; row++) {
+        if (row < top || row + 1 > top + height) ownedExteriorArea += right - left;
+      }
+    }
+  }
+  assert.equal(index, reads.length);
+  const interiorRows = Math.max(0, Math.floor(top + height) - Math.ceil(top));
+  assert.equal(ownedExteriorArea, (envelope.right - envelope.left) * (envelope.bottom - envelope.top - interiorRows));
+  assert.ok(reads.some(r => r.w < 4094 && r.h < 30));
+  assert.ok(reads.some(r => r.sx > 1 && r.sy > 1));
+});
+
+test('partial corner owns faint alpha while interior rows never disprove fit', () => {
+  report = () => ({ width: 8200, actualBoundingBoxLeft: 0, actualBoundingBoxRight: 8200,
+    actualBoundingBoxAscent: 7, actualBoundingBoxDescent: 1 });
+  points = size => size === 13 ? [[8205, 10, 1]] : [];
+  assert.equal(resolveTitleStyle('corner', 13, slot).style.size, 12);
+  // Preferred envelope bottom is 22: this point is in its final corner query.
+  assert.ok(draws.some(p => p.size === 13 && p.x < -8000));
+  assert.ok(measures.length > 1);
+  points = () => [[8200, -7, 1], [0, 0, 1]];
+  assert.equal(resolveTitleStyle('inside', 13, slot).style.size, 13);
 });
