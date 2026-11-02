@@ -53,7 +53,7 @@ function fixture(t, encoder) {
   win.querySelector = () => scroll;
   const host = { shadowRoot: { firstChild: win }, isConnected: true };
   const ac = new AbortController();
-  const entry = { theme, opts: {}, host, renderEpoch: 0, scrollAbort: ac, contentPort: { dispose() {} } };
+  const entry = { theme, opts: {}, host, renderEpoch: 0, lifetime: new AbortController(), scrollAbort: ac, contentPort: { dispose() {} } };
   manager.windows = [entry];
   const wire = () => manager.wireScrollbarAxis('vertical', entry, win, scroll, composed, 1, ac.signal, { needV: true, needH: false });
   const wheel = () => {

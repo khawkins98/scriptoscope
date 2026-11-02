@@ -138,6 +138,8 @@ async function expectActivatedAbove(page, why) {
 
 // ── IPT1 (IP1, IP2) ──────────────────────────────────────────────────────────
 // The first click on an inactive window's widget only activates it; the second acts.
+// Frame drag capture retargets the real mouse click away from the widget in every
+// engine. IPT1 cannot guard the click-time check; IPT3 is its only guard.
 // beos-r503 has no collapse widget; collapse is exercised on windows-95.
 for (const mode of MODES) for (const slug of ['windows-95', 'beos-r503']) {
   test(`${mode}: IPT1 ${slug} first click on an inactive window's close, zoom or collapse only activates; the second acts`, async ({ page, servers }) => {
@@ -152,6 +154,8 @@ for (const mode of MODES) for (const slug of ['windows-95', 'beos-r503']) {
       await page.mouse.click(p.x, p.y);
       await settle(page);
       await expectActivatedAbove(page, `${why} first click`);
+      expect(await iw(page, (iw, f) => iw.root('B').activeElement?.className ?? ''),
+        `${why}: first press moves keyboard focus to B's move handle (IP1)`).toContain('scriptoscope-movehandle');
       const first = await snap(page, 'B');
       expect(first.exists, `${why}: B still exists`).toBe(true);
       expect([first.close, first.closeEvents], `${why}: no close on the first click`).toEqual([0, 0]);
