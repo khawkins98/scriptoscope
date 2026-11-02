@@ -115,60 +115,149 @@ for (const mode of ['source', 'built']) {
   });
 }
 
-// Adopted P1 (7f7c7c6a): finite samples can falsify, never prove, the host
-// envelope and integer-translation premise. These direct browser rasters are
-// independent of runtime output and do not alter window-title-rules.mjs.
-for (const mode of ['source', 'built']) test(`${mode}: P1 signed envelope and whole-request tile phase controls`, async ({ page, servers }, info) => {
+// P1-G / c09e8d21: independently construct guarded paint windows and owned
+// queries from the adopted contract. This is finite native-premise falsification,
+// not a proof for arbitrary fonts or an import of candidate geometry code.
+for (const mode of ['source', 'built']) test(`${mode}: P1-G guarded queries preserve owned exterior coverage and phase`, async ({ page, servers }, info) => {
   await openHarness(page, servers, mode);
-  const rows = await page.evaluate(() => {
-    const rows = [];
+  const result = await page.evaluate(() => {
+    const axis = (u, v, l, r) => {
+      const anchor = Math.max(l, Math.min(r, (u + v) / 2));
+      return { lo: Math.min(u, Math.floor(anchor)) - 1, hi: Math.max(v, Math.ceil(anchor)) + 1, anchor };
+    };
+    const plan = (metric, size, clip) => {
+      if (!(size > 0 && size <= 16) || !Object.values(metric).every(Number.isFinite) || metric.l > metric.r || metric.t > metric.b) throw new Error('Independent guarded geometry unavailable');
+      const g = size + 1;
+      const envelope = { l: Math.floor(metric.l - g), r: Math.ceil(metric.r + g), t: Math.floor(metric.t - g), b: Math.ceil(metric.b + g) };
+      const queries = [];
+      for (let t = envelope.t; t < envelope.b; t += 30) for (let l = envelope.l; l < envelope.r; l += 4094) {
+        const q = { l, r: Math.min(l + 4094, envelope.r), t, b: Math.min(t + 30, envelope.b) };
+        const x = axis(q.l, q.r, metric.l, metric.r), y = axis(q.t, q.b, metric.t, metric.b);
+        const p = { l: x.lo, r: x.hi, t: y.lo, b: y.hi };
+        const outsideRows = Math.max(0, Math.min(q.b, clip.t) - q.t) + Math.max(0, q.b - Math.max(q.t, clip.b));
+        queries.push({ q, p, anchor: { x: x.anchor, y: y.anchor }, width: p.r - p.l, height: p.b - p.t,
+          xBound: Math.max(q.r - q.l + 2, Math.ceil(g) + 3), yBound: Math.max(q.b - q.t + 2, Math.ceil(g) + 3),
+          exteriorArea: (q.r - q.l) * outsideRows });
+      }
+      let overlapArea = 0;
+      for (let i = 0; i < queries.length; i++) for (let j = i + 1; j < queries.length; j++) {
+        const a = queries[i].q, b = queries[j].q;
+        overlapArea += Math.max(0, Math.min(a.r, b.r) - Math.max(a.l, b.l)) * Math.max(0, Math.min(a.b, b.b) - Math.max(a.t, b.t));
+      }
+      const width = envelope.r - envelope.l, height = envelope.b - envelope.t;
+      return { metric, size, g, clip, envelope, queries, overlapArea, expectedQueries: Math.ceil(width / 4094) * Math.ceil(height / 30),
+        queryArea: queries.reduce((sum, { q }) => sum + (q.r - q.l) * (q.b - q.t), 0), envelopeArea: width * height,
+        exteriorArea: queries.reduce((sum, q) => sum + q.exteriorArea, 0),
+        expectedExteriorArea: width * (height - Math.max(0, Math.min(envelope.b, clip.b) - Math.max(envelope.t, clip.t))) };
+    };
+    const geometryInputs = [
+      { name: 'wide-partial-core-fringe-corners', size: 16, metric: { l: 100.25, r: 8300.75, t: 21.125, b: 66.875 } },
+      { name: 'signed-bearing-negative-descent', size: 12, metric: { l: -3.75, r: 21.125, t: -14.5, b: -2.25 } },
+      { name: 'fractional-point', size: 15.5, metric: { l: -.25, r: -.25, t: -.75, b: -.75 }, expectedEnvelope: [-17, -18, 17, 16] },
+      { name: 'vertical-line', size: 10, metric: { l: 6.5, r: 6.5, t: -60.25, b: 60.25 } },
+      { name: 'horizontal-line', size: 16, metric: { l: -5000.25, r: 5000.25, t: 1.5, b: 1.5 } },
+      { name: 'zero-metric-point', size: 16, metric: { l: 0, r: 0, t: 0, b: 0 } },
+      { name: 'fractional-halo-not-rounded-ceil-bound', size: 10.25, metric: { l: .75, r: 4082.9, t: .75, b: 18.9 }, expectedEnvelope: [-11, -11, 4095, 31], fringeExtent: 15 },
+      { name: 'exact-full-query', size: 10, metric: { l: 0, r: 4072, t: 0, b: 8 }, expectedEnvelope: [-11, -11, 4083, 19] },
+    ];
+    const geometry = geometryInputs.map(input => ({ name: input.name, expectedEnvelope: input.expectedEnvelope, fringeExtent: input.fringeExtent, ...plan(input.metric, input.size, { t: 0, b: 12 }) }));
+    const rejected = [];
+    for (const metric of [{ l: 1, r: 0, t: 0, b: 1 }, { l: 0, r: 1, t: 1, b: 0 }, { l: NaN, r: 1, t: 0, b: 1 }, { l: 0, r: Infinity, t: 0, b: 1 }]) {
+      try { plan(metric, 16, { t: 0, b: 12 }); rejected.push(false); } catch { rejected.push(true); }
+    }
+    const cases = [];
     const titles = ['j---', 'Áj\u0323\u0301\u0308Ç', `j${'WINDOW '.repeat(96)}Ç\u0323`];
-    for (const title of titles) for (const size of [10, 16]) for (const face of ['normal', 'bold']) for (const phase of [0, 0.5]) {
+    for (const title of titles) for (const size of [10, 16]) for (const face of ['normal', 'bold']) for (const phase of [0, .5]) cases.push({ title, size, face, phaseX: phase, phaseY: phase, kind: 'retained-positive' });
+    const cedilla = `Tools ${'WINDOW '.repeat(12)}Ç`;
+    cases.push({ title: cedilla, size: 12, face: 'bold', phaseX: 0, phaseY: 0, kind: 'previous-red-exact-input' }, { title: cedilla, size: 10, face: 'bold', phaseX: 0, phaseY: 0, kind: 'same-input-fitting-control' });
+    cases.push({ title: titles[0], size: 16, face: 'bold', phaseX: .5, phaseY: 0, kind: 'mixed-axis-phase' }, { title: titles[0], size: 16, face: 'bold', phaseX: 0, phaseY: .5, kind: 'mixed-axis-phase' });
+    cases.push({ title: titles[0], size: 15.5, face: 'normal', phaseX: .5, phaseY: 0, kind: 'fractional-size' }, { title: titles[0], size: 10.25, face: 'bold', phaseX: 0, phaseY: .5, kind: 'fractional-size' });
+    const rows = [];
+    for (const input of cases) {
       const full = document.createElement('canvas'); full.width = 8192; full.height = 128;
-      const c = full.getContext('2d'), penX = 64 + phase, baseline = 64 + phase;
-      c.font = `${face} ${size}px "Charcoal 12", Charcoal, "Helvetica Neue", Arial, sans-serif`;
-      c.textBaseline = 'alphabetic'; c.textAlign = 'left';
-      const m = c.measureText(title), halo = size + 1;
-      const envelope = { l: Math.floor(penX - m.actualBoundingBoxLeft - halo), r: Math.ceil(penX + m.actualBoundingBoxRight + halo),
-        t: Math.floor(baseline - m.actualBoundingBoxAscent - halo), b: Math.ceil(baseline + m.actualBoundingBoxDescent + halo) };
-      if (envelope.l < 1 || envelope.r >= full.width || envelope.t < 1 || envelope.b >= full.height) throw new Error('Independent P1 probe exceeds its fixed reference surface');
-      c.fillText(title, penX, baseline);
-      const image = c.getImageData(0, 0, full.width, full.height);
-      let ink = 0, outside = 0, border = 0, mismatch = 0, seamInk = 0;
-      for (let y = 0; y < full.height; y++) for (let x = 0; x < full.width; x++) {
-        if (!image.data[(y * full.width + x) * 4 + 3]) continue;
-        ink++;
-        if (x < envelope.l || x >= envelope.r || y < envelope.t || y >= envelope.b) outside++;
-        if (x === 0 || y === 0 || x === full.width - 1 || y === full.height - 1) border++;
-        if (x >= 4094 && x <= 4097) seamInk++;
+      const c = full.getContext('2d'), penX = 64 + input.phaseX, baseline = 64 + input.phaseY;
+      const font = `${input.face} ${input.size}px "Charcoal 12", Charcoal, "Helvetica Neue", Arial, sans-serif`;
+      c.font = font; c.textBaseline = 'alphabetic'; c.textAlign = 'left'; c.letterSpacing = '0px';
+      const m = c.measureText(input.title), nominal = Math.max(1, Math.ceil(m.actualBoundingBoxAscent || input.size * .72));
+      const clipHeight = input.face === 'bold' ? 12 : 18, clipTop = 64 - Math.max(clipHeight - 4, nominal);
+      const construction = plan({ l: penX - m.actualBoundingBoxLeft, r: penX + m.actualBoundingBoxRight, t: baseline - m.actualBoundingBoxAscent, b: baseline + m.actualBoundingBoxDescent }, input.size, { t: clipTop, b: clipTop + clipHeight });
+      const E = construction.envelope;
+      if (E.l < 1 || E.r >= full.width || E.t < 1 || E.b >= full.height) throw new Error('Independent guarded oracle exceeds fixed unclipped reference');
+      c.fillText(input.title, penX, baseline);
+      const image = c.getImageData(0, 0, full.width, full.height).data;
+      let referenceInk = 0, outsideEnvelope = 0, border = 0;
+      for (let y = 0; y < full.height; y++) for (let x = 0; x < full.width; x++) if (image[(y * full.width + x) * 4 + 3]) {
+        referenceInk++; if (x < E.l || x >= E.r || y < E.t || y >= E.b) outsideEnvelope++;
+        if (!x || !y || x === full.width - 1 || y === full.height - 1) border++;
       }
       const tile = document.createElement('canvas'); tile.height = 32; tile.width = 4096;
-      const ctx = tile.getContext('2d'); ctx.font = c.font; ctx.textAlign = c.textAlign; ctx.textBaseline = c.textBaseline;
-      // Every tile shapes the identical complete input; subtract integer origins
-      // only, including at the x=4096 seam and both sides of the baseline.
-      for (let y = 0; y < full.height; y += 32) for (let x = 0; x < full.width; x += 4096) {
+      let exteriorMismatch = 0, allQueryMismatch = 0, insetMutationMismatch = 0, referenceExteriorInk = 0, observedExteriorInk = 0, queriedExteriorArea = 0;
+      const paints = [];
+      for (const placement of construction.queries) {
+        if (!placement.exteriorArea) continue;
+        const { q, p } = placement, qw = q.r - q.l, qh = q.b - q.t;
+        tile.height = placement.height; tile.width = placement.width;
+        const ctx = tile.getContext('2d'); ctx.font = font; ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left'; ctx.letterSpacing = '0px';
         ctx.clearRect(0, 0, tile.width, tile.height);
-        ctx.fillText(title, penX - x, baseline - y);
-        const data = ctx.getImageData(0, 0, tile.width, tile.height).data;
-        for (let ty = 0; ty < 32; ty++) for (let tx = 0; tx < 4096; tx++) {
-          if (data[(ty * 4096 + tx) * 4 + 3] !== image.data[((ty + y) * full.width + tx + x) * 4 + 3]) mismatch++;
+        ctx.fillText(input.title, penX - p.l, baseline - p.t);
+        paints.push({ q, p, anchor: placement.anchor, width: tile.width, height: tile.height, font: ctx.font, penX: penX - p.l, baseline: baseline - p.t,
+          phaseX: (penX - p.l) - Math.floor(penX - p.l), phaseY: (baseline - p.t) - Math.floor(baseline - p.t) });
+        // Interior read pixels are diagnostic only. Only owned absolute exterior
+        // rows contribute to the fit comparison, never paint-window guard ink.
+        let rgba = ctx.getImageData(q.l - p.l, q.t - p.t, qw, qh).data;
+        for (let y = 0; y < qh; y++) for (let x = 0; x < qw; x++) {
+          const ax = q.l + x, ay = q.t + y, expected = image[(ay * full.width + ax) * 4 + 3], actual = rgba[(y * qw + x) * 4 + 3];
+          if (expected !== actual) allQueryMismatch++;
+          if (ay >= construction.clip.t && ay < construction.clip.b) continue;
+          queriedExteriorArea++; if (expected) referenceExteriorInk++; if (actual) observedExteriorInk++;
+          if (expected !== actual) exteriorMismatch++;
+        }
+        rgba = null;
+        const wrongInset = ctx.getImageData(0, 0, qw, qh).data;
+        for (let y = 0; y < qh; y++) for (let x = 0; x < qw; x++) {
+          const ay = q.t + y; if (ay >= construction.clip.t && ay < construction.clip.b) continue;
+          if (wrongInset[(y * qw + x) * 4 + 3] !== image[(ay * full.width + q.l + x) * 4 + 3]) insetMutationMismatch++;
         }
       }
-      rows.push({ title, size, face, phase, font: c.font, envelope, ink, outside, border, mismatch, seamInk,
-        metrics: { left: m.actualBoundingBoxLeft, right: m.actualBoundingBoxRight, ascent: m.actualBoundingBoxAscent, descent: m.actualBoundingBoxDescent } });
+      rows.push({ ...input, font: c.font, penX, baseline, referenceInk, border, outsideEnvelope, construction, paints,
+        exteriorMismatch, allQueryMismatch, insetMutationMismatch, referenceExteriorInk, observedExteriorInk, queriedExteriorArea });
     }
-    return rows;
+    return { geometry, rejected, rows };
   });
-  await attachObservations(info, 'window-title-ink', `${mode}-P1`, { mode, rows });
-  expect(rows).toHaveLength(24);
-  for (const row of rows) {
-    const label = `${row.face} ${row.size}px phase=${row.phase} length=${row.title.length}`;
-    expect.soft(row.ink, label).toBeGreaterThan(0);
-    expect.soft(row.border, `${label}: independent raster is unclipped`).toBe(0);
-    expect.soft(row.outside, `${label}: P1 falsification`).toBe(0);
-    expect.soft(row.mismatch, `${label}: whole-request integer tile translation`).toBe(0);
+  await attachObservations(info, 'window-title-ink', `${mode}-P1-G`, { mode, ...result });
+  const checkGeometry = (row, label) => {
+    expect.soft(row.overlapArea, `${label}: disjoint owned queries`).toBe(0);
+    expect.soft(row.queries.length, `${label}: finite exact partition`).toBe(row.expectedQueries);
+    expect.soft(row.queryArea, `${label}: complete envelope coverage`).toBe(row.envelopeArea);
+    expect.soft(row.exteriorArea, `${label}: complete uniquely owned exterior`).toBe(row.expectedExteriorArea);
+    for (const { q, p, anchor, width, height, xBound, yBound } of row.queries) {
+      expect.soft(q.l >= row.envelope.l && q.r <= row.envelope.r && q.t >= row.envelope.t && q.b <= row.envelope.b && q.r > q.l && q.b > q.t && q.r - q.l <= 4094 && q.b - q.t <= 30, `${label}: nonempty owned query stays inside the finite envelope`).toBe(true);
+      expect.soft([q.l - p.l, p.r - q.r, q.t - p.t, p.b - q.b].every(g => g >= 1), `${label}: four guarded query edges`).toBe(true);
+      expect.soft(anchor.x > p.l && anchor.x < p.r && anchor.y > p.t && anchor.y < p.b, `${label}: strict projected metric anchor`).toBe(true);
+      expect.soft(width <= 4096 && height <= 32 && width <= xBound && height <= yBound, `${label}: bounded paint plane`).toBe(true);
+      expect.soft([p.l, p.r, p.t, p.b].every(Number.isSafeInteger), `${label}: integer origins preserve phase`).toBe(true);
+    }
+  };
+  expect(result.geometry).toHaveLength(8); expect(result.rejected).toEqual([true, true, true, true]);
+  for (const row of result.geometry) {
+    checkGeometry(row, row.name);
+    if (row.expectedEnvelope) expect([row.envelope.l, row.envelope.t, row.envelope.r, row.envelope.b], `${row.name}: halo uses size+1 before outward rounding`).toEqual(row.expectedEnvelope);
+    if (row.fringeExtent) expect(row.queries.some(q => q.width === row.fringeExtent && q.height === row.fringeExtent), 'fractional fringe uses ceil(g)+3 bound').toBe(true);
   }
-  expect(rows.some(row => row.seamInk > 0), 'long control actually exercises the tile seam').toBe(true);
+  expect(result.rows).toHaveLength(30);
+  for (const row of result.rows) {
+    const label = `${row.kind} ${row.face} ${row.size}px phase=${row.phaseX},${row.phaseY}`;
+    checkGeometry(row.construction, label);
+    expect.soft(row.referenceInk, label).toBeGreaterThan(0);
+    expect.soft(row.border, `${label}: unclipped independent reference`).toBe(0);
+    expect.soft(row.outsideEnvelope, `${label}: finite P1-envelope falsification`).toBe(0);
+    expect.soft(row.queriedExteriorArea, `${label}: every owned exterior pixel visited exactly once`).toBe(row.construction.expectedExteriorArea);
+    expect.soft(row.exteriorMismatch, `${label}: chosen-placement owned-query equivalence`).toBe(0);
+    expect.soft(row.observedExteriorInk, `${label}: every nonzero-alpha witness retained`).toBe(row.referenceExteriorInk);
+    expect.soft(row.paints.every(p => p.phaseX === row.phaseX && p.phaseY === row.phaseY), `${label}: both original coordinate phases preserved`).toBe(true);
+  }
+  expect(result.rows.some(row => row.referenceExteriorInk > 0), 'nonfit witness calibration').toBe(true);
+  expect(result.rows.some(row => row.insetMutationMismatch > 0), 'wrong query-inset mapping must be rejected').toBe(true);
 });
 
 // TC4/TC5 replay from an independently placed raster: no assumption that a

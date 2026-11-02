@@ -251,3 +251,148 @@ for (const mode of ['source', 'built']) test(`${mode}: resource guard rejects fu
   expect(row.delegatedUnsafeSetter).toBe(false);
   expect(row.resultReturned).toBe(false);
 });
+
+// Generic measurement consumers must reject their own unavailable results;
+// successful full-request recipe coverage is not a licence to consume a later
+// prefix/marker width or procedural metric that is nonfinite or throws.
+for (const mode of ['source', 'built']) test(`${mode}: later title measurements propagate unavailable without a new result`, async ({ page, servers }, info) => {
+  const cases = [
+    ['1984', 'titled-utility-window', 'prefix-width-nan'],
+    ['1984', 'titled-utility-window', 'prefix-native-throw'],
+    ['platinum-8', 'document-window', 'procedural-width-nan'],
+    ['platinum-8', 'titled-utility-window', 'procedural-width-nan'],
+    ['platinum-8', 'document-window', 'procedural-native-throw'],
+    ['platinum-8', 'titled-utility-window', 'procedural-native-throw'],
+  ];
+  const rows = [];
+  for (const [slug, key, failure] of cases) {
+    await openHarness(page, servers, mode);
+    rows.push(await page.evaluate(async ({ mode, slug, key, failure }) => {
+      const api = await import(mode === 'built' ? '/dist/scriptoscope.js' : '/src/index.ts');
+      const theme = await api.loadTheme(`/themes/${slug}`);
+      const title = slug === '1984' ? `Tools ${'WINDOW '.repeat(12)}Ç` : 'Palette '.repeat(32) + 'Ç';
+      const measure = CanvasRenderingContext2D.prototype.measureText;
+      const targets = []; let fullRequestedMeasurements = 0, result, error, recovered, recoveryError;
+      try {
+        CanvasRenderingContext2D.prototype.measureText = function (text) {
+          if (text === title) fullRequestedMeasurements++;
+          const target = failure.startsWith('prefix-') ? text !== title && text.endsWith('…') : text === title;
+          if (!target) return measure.call(this, text);
+          targets.push({ text, font: this.font, stage: failure.startsWith('prefix-') ? 'later-prefix-or-marker' : 'procedural-metrics-only' });
+          if (failure.endsWith('native-throw')) throw new Error('Independent native title measurement failure');
+          const metrics = measure.call(this, text);
+          return new Proxy(metrics, { get(object, property) { return property === 'width' ? NaN : Reflect.get(object, property, object); } });
+        };
+        result = await api.renderWindow(theme, { title, width: 240, height: 120, windowType: key });
+      } catch (caught) { error = { name: caught.name, message: caught.message }; }
+      finally { CanvasRenderingContext2D.prototype.measureText = measure; }
+      try { recovered = await api.renderWindow(theme, { title, width: 240, height: 120, windowType: key }); }
+      catch (caught) { recoveryError = String(caught); }
+      finally { theme.dispose?.(); }
+      return { slug, key, failure, title, targets, fullRequestedMeasurements, error, resultReturned: !!result,
+        recoveryError, recoveredName: recovered?.getAttribute('aria-label') };
+    }, { mode, slug, key, failure }));
+  }
+  await attachObservations(info, 'window-title-resources', `${mode}-later-measurements`, { mode, rows });
+  for (const row of rows) {
+    const label = `${row.slug} ${row.key} ${row.failure}`;
+    expect.soft(row.targets.length, `${label}: exact intended host boundary reached`).toBeGreaterThan(0);
+    if (row.failure.startsWith('prefix-')) {
+      expect.soft(row.fullRequestedMeasurements, `${label}: healthy full request measured before later failure`).toBeGreaterThan(0);
+      expect.soft(row.targets.every(target => target.text !== row.title && target.text.endsWith('…')), label).toBe(true);
+    }
+    expect.soft(row.error, `${label}: distinct consuming-operation rejection`).toBeDefined();
+    expect.soft(row.error?.name, `${label}: declared unavailable conversion, including native failures`).toBe('TitleCoverageUnavailableError');
+    expect.soft(row.resultReturned, `${label}: no smaller/TF5/truncated success`).toBe(false);
+    expect.soft(row.recoveryError, label).toBeUndefined();
+    expect.soft(row.recoveredName, `${label}: complete request survives recovery`).toBe(row.title);
+  }
+});
+
+for (const mode of ['source', 'built']) test(`${mode}: zero and absent procedural font bounds retain declared metric fallbacks`, async ({ page, servers }, info) => {
+  const rows = [];
+  for (const key of ['document-window', 'titled-utility-window']) {
+    await openHarness(page, servers, mode);
+    rows.push(await page.evaluate(async ({ mode, key }) => {
+      const api = await import(mode === 'built' ? '/dist/scriptoscope.js' : '/src/index.ts');
+      const R = await import('/tests/rendering-options/window-title-rules.mjs');
+      const theme = await api.loadTheme('/themes/platinum-8'), title = 'Inspector';
+      const measure = CanvasRenderingContext2D.prototype.measureText, fill = CanvasRenderingContext2D.prototype.fillText;
+      let injected = 0, result, error; const draws = [];
+      const overrides = { actualBoundingBoxAscent: 0, actualBoundingBoxDescent: 0, fontBoundingBoxAscent: undefined, fontBoundingBoxDescent: undefined };
+      try {
+        CanvasRenderingContext2D.prototype.measureText = function (text) {
+          const metrics = measure.call(this, text); if (text !== title) return metrics; injected++;
+          return new Proxy(metrics, { get(object, property) { return Object.hasOwn(overrides, property) ? overrides[property] : Reflect.get(object, property, object); } });
+        };
+        CanvasRenderingContext2D.prototype.fillText = function (text, ...args) { draws.push({ text, style: R.titleFontStyle(this.font) }); return fill.call(this, text, ...args); };
+        result = await api.renderWindow(theme, { title, width: 240, height: 120, windowType: key });
+      } catch (caught) { error = String(caught); }
+      finally { CanvasRenderingContext2D.prototype.measureText = measure; CanvasRenderingContext2D.prototype.fillText = fill; theme.dispose?.(); }
+      const canvas = result?.querySelector('canvas');
+      return { key, injected, zeroActualBounds: true, absentFontBounds: true, error, name: result?.getAttribute('aria-label'),
+        size: canvas && [canvas.width, canvas.height], draw: draws.at(-1),
+        loadedFaces: [...document.fonts].map(face => ({ family: face.family, status: face.status })) };
+    }, { mode, key }));
+  }
+  await attachObservations(info, 'window-title-resources', `${mode}-valid-metric-fallbacks`, { mode, rows });
+  for (const row of rows) {
+    expect.soft(row.injected, row.key).toBeGreaterThan(0);
+    expect.soft(row.error, `${row.key}: valid zero/absent metrics are not unavailable`).toBeUndefined();
+    expect.soft(row.name, row.key).toBe('Inspector');
+    expect.soft(row.size?.every(n => Number.isFinite(n) && n > 0), row.key).toBe(true);
+    expect.soft(row.draw?.style, `${row.key}: procedural preferred font preserved`).toEqual(row.key === 'document-window'
+      ? { face: 'normal', size: 16, family: 'Charcoal 12' } : { face: 'normal', size: 10, family: 'Charcoal' });
+  }
+});
+
+for (const mode of ['source', 'built']) test(`${mode}: unavailable shared title measurement preserves a prior window update`, async ({ page, servers }, info) => {
+  const rows = [];
+  for (const slug of ['1984', 'platinum-8']) {
+    await openHarness(page, servers, mode);
+    rows.push(await page.evaluate(async ({ mode, slug }) => {
+      const api = await import(mode === 'built' ? '/dist/scriptoscope.js' : '/src/index.ts');
+      const theme = await api.loadTheme(`/themes/${slug}`), manager = new api.WindowManager();
+      const title = slug === '1984' ? `Tools ${'WINDOW '.repeat(12)}Ç` : 'Palette '.repeat(32) + 'Ç';
+      let host;
+      try {
+        host = await manager.add(theme, { title, width: 240, height: 120, windowType: 'titled-utility-window' }); document.body.append(host);
+        await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        const snapshot = () => {
+          const state = manager.describe(host);
+          return { state: { width: state.width, height: state.height, collapsed: state.collapsed, z: state.z, active: state.active },
+            labels: [host, ...(host.shadowRoot?.querySelectorAll('[aria-label]') ?? [])].map(el => el.getAttribute('aria-label')).filter(label => label !== null),
+            canvases: [...(host.shadowRoot?.querySelectorAll('canvas') ?? [])].map(canvas => ({ width: canvas.width, height: canvas.height, png: canvas.toDataURL() })) };
+        };
+        const before = snapshot(), measure = CanvasRenderingContext2D.prototype.measureText, targets = [];
+        let error, recoveryError;
+        try {
+          CanvasRenderingContext2D.prototype.measureText = function (text) {
+            const target = slug === '1984' ? text !== title && text.endsWith('…') : text === title;
+            if (!target) return measure.call(this, text);
+            targets.push(text); throw new Error('Independent update title measurement failure');
+          };
+          await manager.applyState(host, { width: 260, height: 120 });
+        } catch (caught) { error = { name: caught.name, message: caught.message }; }
+        finally { CanvasRenderingContext2D.prototype.measureText = measure; }
+        const afterFailure = snapshot();
+        try { await manager.applyState(host, { width: 260, height: 120 }); }
+        catch (caught) { recoveryError = String(caught); }
+        const afterRecovery = snapshot();
+        return { slug, title, targets, before, afterFailure, afterRecovery, error, recoveryError };
+      } finally { if (host) { manager.remove(host); host.remove(); } theme.dispose?.(); }
+    }, { mode, slug }));
+  }
+  await attachObservations(info, 'window-title-resources', `${mode}-update-unavailable`, { mode, rows });
+  for (const row of rows) {
+    expect.soft(row.targets.length, `${row.slug}: intended update measurement consumed`).toBeGreaterThan(0);
+    expect.soft(row.error, row.slug).toBeDefined();
+    expect.soft(row.error?.name, `${row.slug}: update propagates declared unavailable conversion`).toBe('TitleCoverageUnavailableError');
+    expect.soft(row.before.labels, `${row.slug}: prior accessible full title`).toContain(row.title);
+    expect.soft(row.before.canvases.length, `${row.slug}: prior published chrome exists`).toBeGreaterThan(0);
+    expect.soft(row.afterFailure, `${row.slug}: prior public state/chrome/a11y retained`).toEqual(row.before);
+    expect.soft(row.recoveryError, row.slug).toBeUndefined();
+    expect.soft(row.afterRecovery.state.width, `${row.slug}: recovery publishes requested update`).toBe(260);
+    expect.soft(row.afterRecovery.labels, row.slug).toContain(row.title);
+  }
+});
