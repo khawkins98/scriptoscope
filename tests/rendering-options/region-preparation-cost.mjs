@@ -4,9 +4,9 @@ import { readFileSync, existsSync } from 'node:fs';
 import os from 'node:os';
 import '../../tests/helpers/registerTs.mjs';
 import { loadKaleidoscopeScheme } from '../../tools/theme-loader/loadKaleidoscopeScheme.js';
-import { PixelBuffer } from '../../src/pixelBuffer.ts';
-import { composeWindowChrome } from '../../src/composeChrome.ts';
-import { regionPath } from '../../src/hitRegion.ts';
+const { PixelBuffer } = await import('../../src/pixelBuffer.ts');
+const { composeWindowChrome } = await import('../../src/composeChrome.ts');
+const { regionPath } = await import('../../src/hitRegion.ts');
 
 const median = values => [...values].sort((a, b) => a - b)[Math.floor(values.length / 2)];
 const measure = fn => {
