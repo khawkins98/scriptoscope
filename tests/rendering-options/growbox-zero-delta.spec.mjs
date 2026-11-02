@@ -78,9 +78,14 @@ async function openShowcase(page, url, slug) {
   return settled(page);
 }
 
-/** Press the grow box at its centre, optionally jitter by `jitter` px, release. */
+// #640: the no-art resize surface follows the frame, so its bounding-box
+// centre is content, not a resize affordance. The lower-right frame corner
+// is usable with both artwork and frame-only targets.
+const resizePoint = corner => ({ x: corner.x + corner.w - 2, y: corner.y + corner.h - 2 });
+
+/** Press the frame corner, optionally jitter by `jitter` px, release. */
 async function press(page, corner, jitter = 0) {
-  const p = { x: corner.x + corner.w / 2, y: corner.y + corner.h / 2 };
+  const p = resizePoint(corner);
   await pressAt(page, p);
   // Sub-pixel moves need a mouse that keeps fractional clientX; elsewhere they are the
   // pressed pointer's own PointerEvents (#588, subpixel-pointer.mjs).
@@ -120,7 +125,7 @@ for (const mode of ['source', 'production']) {
 
     test(`${mode}: ${slug} showcase grow-box drag resizes and emits userresize once (#552)`, async ({ page, demo, production }) => {
       const before = await openShowcase(page, mode === 'source' ? demo : production, slug);
-      const x = before.corner.x + before.corner.w / 2, y = before.corner.y + before.corner.h / 2;
+      const { x, y } = resizePoint(before.corner);
       await page.mouse.move(x, y);
       await page.mouse.down();
       await page.mouse.move(x - 20, y + 15, { steps: 4 });
@@ -188,7 +193,7 @@ for (const mode of ['source', 'built']) {
           expect.soft(after.host, `${why}: host box`).toEqual(before.host);
           expect.soft(after.changes, `${why}: onChange`).toBe(0);
         }
-        const x = before.corner.x + before.corner.w / 2, y = before.corner.y + before.corner.h / 2;
+        const { x, y } = resizePoint(before.corner);
         // 0.4 content px rounds to 0 and the commit uses this last move: no resize. Ending on a
         // sub-threshold positive move separates round from ceil on an already-absolute host.
         await pressAt(page, { x, y });
@@ -237,7 +242,7 @@ for (const mode of ['source', 'built']) {
       });
       const before = await state(page);
       expect(before.position, `${slug}: in flow`).toBe('static');
-      const x = before.corner.x + before.corner.w / 2, y = before.corner.y + before.corner.h / 2;
+      const { x, y } = resizePoint(before.corner);
       await page.mouse.move(x, y);
       await page.mouse.down();
       await page.mouse.move(x, y - 10, { steps: 2 });
@@ -260,7 +265,7 @@ for (const mode of ['source', 'built']) {
       const height = () => page.evaluate(() => window.__zd.manager.windows.find(w => w.host === window.__zd.host).opts.height);
       expect(await height(), `${label}: declared height`).toBe(30);
       const before = await state(page);
-      const x = before.corner.x + before.corner.w / 2, y = before.corner.y + before.corner.h / 2;
+      const { x, y } = resizePoint(before.corner);
       const drag = async (dy, subpixel = false) => {
         if (subpixel) {
           await pressAt(page, { x, y });

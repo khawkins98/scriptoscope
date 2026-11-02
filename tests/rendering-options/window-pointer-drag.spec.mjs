@@ -82,6 +82,9 @@ const settle = page => page.evaluate(async () => {
   for (let i = 0; i < 2; i++) await new Promise(r => requestAnimationFrame(r));
 });
 const centre = b => ({ x: b.x + b.w / 2, y: b.y + b.h / 2 });
+// #640: no-art resize buttons have a frame-only surface, so use the
+// lower-right frame corner rather than the centre of their bounding box.
+const resizePoint = b => ({ x: b.x + b.w - 2, y: b.y + b.h - 2 });
 
 /** Press at `p`, optionally jitter by `jitter` px, release. */
 async function press(page, p, jitter = 0) {
@@ -184,7 +187,7 @@ for (const mode of ['source', 'production']) {
       await press(page, centre((await readShowcase(page, picker)).grip));
       expect((await readShowcase(page, picker)).state, `${slug}: picker activated before the grow`).toBe('active');
       before = await readShowcase(page, picker);
-      run = await cancelledDrag(page, () => readShowcase(page, picker), type => page.locator(picker).first().evaluate((h, t) => window.__cancel(h, 'grow', t), type), centre(before.corner), { dx: -40, dy: 30, elsewhere });
+      run = await cancelledDrag(page, () => readShowcase(page, picker), type => page.locator(picker).first().evaluate((h, t) => window.__cancel(h, 'grow', t), type), resizePoint(before.corner), { dx: -40, dy: 30, elsewhere });
       expect(run.during.outlines, `${slug}: picker grow outline shown before the cancel`).toBe(1);
       expectUnchanged(run.cancelled, before, `${slug} picker cancelled grow`, { flow: false });
       expectUnchanged(run.later, before, `${slug} picker release + click after the cancel`, { flow: false });
@@ -330,7 +333,7 @@ for (const mode of ['source', 'built']) {
 
           await activate(page, which);
           before = await read(page, which);
-          run = await cancelledDrag(page, () => read(page, which), cancelOf(page, which, 'grow'), centre(before.corner), { type, elsewhere });
+          run = await cancelledDrag(page, () => read(page, which), cancelOf(page, which, 'grow'), resizePoint(before.corner), { type, elsewhere });
           const grow = `${slug} ${which} grow ended by ${type}`;
           expect(run.during.outlines, `${grow}: outline shown first`).toBe(1);
           expectUnchanged(run.cancelled, before, grow, { flow: false });
@@ -343,7 +346,7 @@ for (const mode of ['source', 'built']) {
       // The grow box's outline keeps following over the blocker (window still at the top).
       await activate(page, 'abs');
       let before = await read(page, 'abs');
-      let p = centre(before.corner);
+      let p = resizePoint(before.corner);
       const down = 600 - p.y;
       await page.mouse.move(p.x, p.y);
       await page.mouse.down();
@@ -414,7 +417,7 @@ for (const mode of ['source', 'built']) {
       // Grow box: the outline keeps following, and the size commits once, on the real release.
       await page.evaluate(() => window.__h.changes.clear());
       before = await read(page, 'abs');
-      p = centre(before.corner);
+      p = resizePoint(before.corner);
       await page.mouse.move(p.x, p.y);
       await page.mouse.down();
       await page.mouse.move(p.x + 10, p.y + 10, { steps: 2 });
@@ -438,7 +441,7 @@ for (const mode of ['source', 'built']) {
         await activate(page, which);
         for (const part of ['title', 'grow']) {
           const before = await read(page, which);
-          const p = centre(part === 'title' ? before.grip : before.corner);
+          const p = part === 'title' ? centre(before.grip) : resizePoint(before.corner);
           await page.evaluate(({ w, part, p }) => {
             const host = window.__h.hosts[w];
             const target = part === 'grow' ? host.shadowRoot.querySelector('button.scriptoscope-growbox') : host.shadowRoot.querySelector('canvas.scriptoscope-chrome');
@@ -480,7 +483,7 @@ for (const mode of ['source', 'built']) {
       // Collapsing mid-grow drops the grow box: the drag cancels, no resize lands.
       await page.evaluate(() => window.__h.changes.clear());
       before = await read(page, 'abs');
-      p = centre(before.corner);
+      p = resizePoint(before.corner);
       await page.mouse.move(p.x, p.y);
       await page.mouse.down();
       await page.mouse.move(p.x + 20, p.y + 20, { steps: 2 });

@@ -256,8 +256,9 @@ for (const mode of ['source', 'built']) {
 // are created. One live window is rethemed between a grow-box scheme and one
 // without, and its scale is changed. Expected sizes are the reviewer's
 // independent measurements of fresh windows (200 × 140 content, scale 1):
-// the button is 22 × 22 on apple-platinum-2 and 21 × 40 on windows-95, and a
-// single-axis bar stops 15 px short of the content corner. Scale 2 doubles.
+// the button is 22 × 22 on apple-platinum-2 and 21 × 40 on windows-95. An
+// artwork bar stops 15 px short of the content corner; the no-art bar
+// reaches the content edge (#640). Scale 2 doubles.
 const BUTTON = { 'apple-platinum-2': [22, 22], 'windows-95': [21, 40] };
 const STEPS = [['apple-platinum-2', 1], ['windows-95', 1], ['windows-95', 2], ['apple-platinum-2', 2], ['apple-platinum-2', 1], ['windows-95', 1]];
 
@@ -288,7 +289,9 @@ for (const mode of ['source', 'built']) {
         expect(state.reused, `${label}: resize button reused`).toBe(true);
         expect(state.button, `${label}: resize button size`).toEqual(BUTTON[slug].map(n => n * scale));
         const { bar } = await zoneState(page, axis);
-        expect(axis === 'vertical' ? bar.h : bar.w, `${label}: bar length`).toBe((axis === 'vertical' ? 125 : 185) * scale);
+        const contentLength = axis === 'vertical' ? 140 : 200;
+        const clearance = slug === 'apple-platinum-2' ? 15 : 0;
+        expect(axis === 'vertical' ? bar.h : bar.w, `${label}: bar length`).toBe((contentLength - clearance) * scale);
         const thickness = axis === 'vertical' ? bar.w : bar.h;
         await expectArrowScrolls(page, axis, 2, label);
         await page.evaluate(axis => { window.__growZone.content[axis === 'vertical' ? 'scrollTop' : 'scrollLeft'] = 0; }, axis);
