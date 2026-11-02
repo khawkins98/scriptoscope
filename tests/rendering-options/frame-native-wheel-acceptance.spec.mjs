@@ -64,7 +64,8 @@ for (const mode of MODES) {
     await page.evaluate(async () => { const f = window.__fpt, h = f.hosts.A; await h.m.applyState(h.host, { hit: 'box' }); await h.m.applyState(h.host, { hit: 'region' }); await f.settle(); });
     expect((await state(page, 'A')).hitEffective).toBe('region');
     await wheel(page, fix.vp.p_out, 'sentinel');
-    await page.evaluate(async () => { const f = window.__fpt, h = f.hosts.A; await h.m.applyState(h.host, { active: false }); await f.settle(); });
+    await page.mouse.click(fix.vp.p_out.x, fix.vp.p_out.y); await settle(page);
+    expect((await state(page, 'A')).active, 'outside native press deactivates the window').toBe(false);
     await wheel(page, fix.vp.p_out, 'sentinel');
     // Removal and reuse keep native content caller-owned; stale hit planes may
     // not swallow the page beneath a now unmanaged host.
@@ -98,6 +99,27 @@ for (const mode of MODES) {
     expect(await positions(page), 'canceling native control suppresses all scroll displacement').toEqual(before);
     await page.evaluate(() => { window.__nw.nested.removeEventListener('wheel', window.__nw.cancel); window.__fpt.sentinel.style.overflow = 'visible'; });
     await wheel(page, fix.vp.p_out, 'page');
+  });
+
+  test(`${mode}: issue631 native frame double-click survives activation reconciliation`, async ({ page, servers }) => {
+    await boot(page, servers, mode);
+    const p = await page.evaluate(async () => {
+      const f = window.__fpt, { widgetFamilyTheme } = await import('/tests/rendering-options/widget-family-fixture.mjs');
+      f.manager();
+      const theme = widgetFamilyTheme(['document-window']);
+      await f.add('Other', { slug: 'independent-synthetic', themeObject: theme, w: 60, h: 40, left: 700, top: 500 });
+      await f.add('A', { slug: 'independent-synthetic', themeObject: theme, w: 60, h: 40 });
+      // The fixture's solid top edge at (30,2) is outside all three widget
+      // rectangles [6,4,10,8], [12,4,16,8], [18,4,22,8].
+      window.__nwDoubles = [];
+      f.layers('A').L1.addEventListener('dblclick', e => window.__nwDoubles.push(e.isTrusted), { passive: true });
+      return f.vp('A', [30, 2]);
+    });
+    expect((await state(page, 'A')).active, 'first native press starts inactive').toBe(false);
+    await page.mouse.dblclick(p.x, p.y, { delay: 70 });
+    await expect.poll(() => page.evaluate(() => window.__fpt.hosts.A.m.describe(window.__fpt.hosts.A.host).collapsed)).toBe(true);
+    expect((await state(page, 'A')).active).toBe(true);
+    expect(await page.evaluate(() => window.__nwDoubles), 'browser-native double-click reaches retained frame ancestry').toEqual([true]);
   });
 
   test(`${mode}: issue631 child-origin title-widget masks preserve native pointer and keyboard coordinates under scale`, async ({ page, servers }) => {
