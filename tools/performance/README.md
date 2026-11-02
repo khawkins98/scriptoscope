@@ -1,20 +1,6 @@
-# Runtime rendering and focus benchmark
+# Runtime performance benchmark
 
-Focus commits used to remove frame hit-target nodes and recreate them even when
-their geometry was unchanged. The manager now retains those nodes and lets its
-existing rectangle reconciliation replace changed geometry and repair detached
-nodes. A bounded two-state region cache also reuses active/inactive preparations
-across fresh wrappers of the same decoded resource, checking backing-data identity,
-exact pixel bytes and complete layout/state keys. Failed builds remain retryable.
-
-Title scratch canvases request CPU-friendly readback, and template extent scanning
-reads alpha directly without creating per-pixel tuples. Visible canvases retain
-their existing rendering path. The region cache costs one additional source
-snapshot/path per managed window; it is cleared on theme changes and failed builds.
-
-## Running the benchmark
-
-Start `npm run dev` in one terminal, then run:
+Start `npm run dev`, then run:
 
 ```sh
 npm run bench:render
@@ -22,37 +8,26 @@ PERF_THEMES=all npm run bench:render
 PERF_THEMES=beos-r503,evolution,animals npm run bench:render
 ```
 
-The default selection is Dolphin SOM and Platinum 8. `all` reads the demo theme
-manifest. Both content sizes, 480×320 and 1280×800, are measured for each theme.
-Use `PERF_URL=http://127.0.0.1:5174` for another dev-server origin. Install the
-repository Chromium with `npx playwright install chromium` if necessary.
+The default selection is Dolphin SOM and Platinum 8; `all` uses the demo manifest.
+Both 480×320 and 1280×800 content sizes run five warmups and 40 measured samples.
+`PERF_URL` overrides the dev-server origin. Install Chromium with
+`npx playwright install chromium` if needed. JSON results go to stdout; save raw
+samples as run artifacts rather than committing them to the repository.
 
-Each isolated case loads the bundled Charcoal 12 and Virtue fonts before timing.
-It reports median, p95 and every sample after five warmups. The host contains two
-managed windows and is cleaned between cases: manager disposal alone intentionally
-leaves caller-owned hosts mounted. Theme/font/module loading is excluded.
+The isolated host loads the bundled fonts before timing and removes caller-owned
+window elements after every case. `render` measures the `renderWindow` promise.
+`focusCommit` measures synthetic pointer activation until both windows commit.
+Frames run between activations, outside the timer. Loading and presentation are
+excluded: these measurements are not INP. Avoid concurrent builds/tests when timing.
 
-`render` measures the public `renderWindow` promise through detached canvas and
-DOM construction. `focusCommit` measures synthetic pointer activation until both
-affected windows commit their chrome and regions. Frames run between activations,
-outside that timer. These are runtime work measurements, not INP or actual
-input-to-presentation latency. Run comparisons on the same browser and machine
-without concurrent builds, tests or profiling; timings are report-only.
+## Observations, 2026-11-02
 
-## All-theme observations (2026-11-02)
+Apple M5, macOS, Chromium 156.0.8078.4. Two interleaved comparisons against
+unchanged main (`d0eac009`), all 18 themes at both sizes. All 72 sampled
+active/inactive pixel configurations matched in both pairs. This is regression
+coverage, not independent original-engine fidelity evidence.
 
-Apple M5, macOS, Chromium 156.0.8078.4. Two interleaved baseline/candidate pairs,
-40 samples per case per run. Baseline is unchanged `main` at
-`d0eac0096e9c8efbf946ac7aa1865f7f3a2b3317`; the candidate is the complete runtime
-patch in this PR. Source/diff hashes and raw samples are recorded in
-[measurements.json](./measurements.json). No other test/build jobs from this task
-ran during measurement; other machine activity is uncontrolled.
-
-All 72 sampled active/inactive chrome configurations match baseline pixel hashes
-in both pairs. This is regression evidence for sampled output, not a new claim of
-independent fidelity to the original engine.
-
-Large-window (1280×800 content) focus-commit medians, in milliseconds:
+Large-window focus-commit medians, milliseconds:
 
 | Theme | Pair 1 baseline → candidate | Pair 2 baseline → candidate |
 | --- | ---: | ---: |
@@ -75,36 +50,26 @@ Large-window (1280×800 content) focus-commit medians, in milliseconds:
 | windows-31 | 7.8 → 5.8 | 9.1 → 7.3 |
 | windows-95 | 8.0 → 5.9 | 11.0 → 9.1 |
 
-The largest repeated focus gains occur in complex recipe frames: Dolphin SOM,
-1990, Evolution and Monkey Paradise. Other recipe themes also improve in many
-cases, while 1138, 1984 and Animals have mixed second-pair focus results. Animals
-remains a slower case. Procedural-frame themes and standalone rendering show
-run-to-run variation; these data do not establish a universal rendering speedup.
-Both sizes, render timings, p95s and individual samples are retained in the JSON.
+Complex recipe frames show the largest repeated gains. Some timings varied
+substantially; 1138, 1984 and Animals had mixed second-pair focus results, and
+Animals remains slower. Standalone rendering and procedural-frame results varied.
+Other machine activity was uncontrolled; these observations are not CI deadlines.
 
-## Diagnostics and validation
-
-For inclusive per-method diagnostics, run:
+## Regression checks
 
 ```sh
-PERF_STAGES=1 npm run bench:render
 SCRIPTOSCOPE_PERF_URL=http://127.0.0.1:5173 node --test src/windowRegionReuse.implementation.test.mjs
 ```
 
-Stage samples include initialization and all activations, including warmups.
-Methods nest and asynchronous calls overlap; `.finally()` timing may include
-microtask delay. Do not sum stage medians or interpret them as synchronous self
-time. Keep instrumentation disabled for before/after comparisons.
+The regression covers retained/repaired/replaced targets, isolated RGB/alpha
+mutations, scale/theme changes and failed-build recovery. The two-state region
+cache retains one additional source snapshot/path per window.
 
-Validation on the runtime patch: fresh production demo build, full `gates` with
-zero failures, 190 focused Chromium source/production browser contracts, 27
-implementation unit checks and the cache/target browser regression passed.
-The browser checks cover trusted wheel routing, frame holes, widget masks,
-inactive input, scrollbar target placement, overlay identity, pointer drag and
-resize. The implementation-owned regression checks retained/repaired/replaced
-targets and isolated RGB/alpha mutations, scale, theme and failure invalidation.
-Independent agent review found no concrete runtime defect; test feedback was
-addressed. Full rendering-matrix, pinned goldens and cross-engine release checks
-remain CI responsibilities. Performance measurements are not CI deadlines.
+Production demo build, full gates, 190 focused Chromium source/production browser
+contracts and 27 affected implementation unit checks passed. Full rendering-matrix,
+pinned golden and cross-engine release checks remain separate.
 
-Readback hint semantics: [HTML canvas specification](https://html.spec.whatwg.org/dev/canvas.html).
+`PERF_STAGES=1` enables inclusive internal-method diagnostics, including startup
+and warmups. Nested/overlapping timings and Promise microtask delay mean stage
+medians must not be summed or interpreted as synchronous self time. Disable this
+instrumentation for before/after comparisons.
