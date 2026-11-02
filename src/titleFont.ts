@@ -3,6 +3,7 @@
 // policy, not a decoded rule: the original draws in the system font (Chicago);
 // the runtime substitutes the bundled Charcoal faces.
 import { PixelBuffer } from './pixelBuffer.js';
+import { TITLE_TEXT } from './engine/tables/window.js';
 
 /** The ink-tight raster with its baseline row and the pen advance (StringWidth). */
 export interface TitleRaster {
@@ -27,39 +28,72 @@ export function rasterizeTitleFont(text: string, px: number, hex: string): Pixel
   return rasterizeTitle(text, px, hex)?.buffer ?? null;
 }
 
+/** A resolved substitute style; supplying it prevents later preferred-size pinning. */
+export interface TitleFontStyle {
+  family: string;
+  size: number;
+  bold: boolean;
+  spacing: string;
+}
+type TitleFontOptions = { exactPx?: boolean; bold?: boolean; style?: TitleFontStyle | undefined };
+
+function preferredStyle(px: number, opts: TitleFontOptions): TitleFontStyle {
+  // Charcoal 12 (Jeremy Sachs, CC BY-SA) prefers its crisp 16px grid, zero tracking; exactPx skips the pin.
+  const c12 = !opts.exactPx && typeof document !== 'undefined' && !!document.fonts?.check?.('16px "Charcoal 12"');
+  return {
+    family: `${c12 ? '"Charcoal 12", ' : ''}Charcoal, "Helvetica Neue", Arial, sans-serif`,
+    size: c12 ? 16 : px, bold: opts.bold ?? false, spacing: c12 ? '0px' : '0.5px',
+  };
+}
+
+function setStyle(ctx: CanvasRenderingContext2D, style: TitleFontStyle): void {
+  ctx.font = `${style.bold ? 'bold ' : ''}${style.size}px ${style.family}`;
+  try { (ctx as unknown as { letterSpacing: string }).letterSpacing = style.spacing; } catch { /* unsupported */ }
+}
+
+/** TF2–TF5: fit the full title once, before advance/layout or horizontal truncation. */
+export function resolveTitleStyle(text: string, px: number, clipForAdvance: (advance: number) => { w: number; h: number }, opts: TitleFontOptions = {}): { style: TitleFontStyle; omitInk: boolean } {
+  const preferred = preferredStyle(px, opts);
+  const probe = typeof document === 'undefined' ? null : document.createElement('canvas').getContext('2d');
+  if (!probe || !text) return { style: preferred, omitInk: false };
+  const fits = (style: TitleFontStyle): boolean => {
+    setStyle(probe, style);
+    const tm = probe.measureText(text);
+    const clip = clipForAdvance(Math.ceil(tm.width));
+    // Keep an already empty preferred slot; smaller empty slots cannot establish a fit.
+    if (clip.w <= 0 || clip.h <= 0) return style === preferred;
+    if (tm.actualBoundingBoxAscent === 0 && tm.actualBoundingBoxDescent === 0) return true;
+    const ascent = Math.max(1, Math.ceil(tm.actualBoundingBoxAscent || style.size * 0.72));
+    // Ink can end above the baseline (negative descent), unlike the allocated raster box.
+    const descent = Math.ceil(tm.actualBoundingBoxDescent || 0);
+    // F11 keeps the decoded baseline, moving down only by the ascent overflow.
+    return Math.max(clip.h - TITLE_TEXT.TX8.baselineAbove, ascent) + descent <= clip.h;
+  };
+  if (fits(preferred)) return { style: preferred, omitInk: false };
+  for (let size = Math.floor(preferred.size); size > 0; size--) {
+    if (size === preferred.size) continue;
+    const style = { ...preferred, size };
+    if (fits(style)) return { style, omitInk: false };
+  }
+  return { style: preferred, omitInk: true };
+}
+
 /** As {@link rasterizeTitleFont}, also returning the baseline row and advance. */
-export function measureTitle(text: string, px: number, opts: { exactPx?: boolean; bold?: boolean } = {}): Pick<TitleRaster, 'ascent' | 'advance'> | null {
+export function measureTitle(text: string, px: number, opts: TitleFontOptions = {}): Pick<TitleRaster, 'ascent' | 'advance'> | null {
   return prepareTitle(text, px, '#000000', opts, true);
 }
 
-export function rasterizeTitle(text: string, px: number, hex: string, opts: { exactPx?: boolean; bold?: boolean } = {}): TitleRaster | null {
+export function rasterizeTitle(text: string, px: number, hex: string, opts: TitleFontOptions = {}): TitleRaster | null {
   return prepareTitle(text, px, hex, opts, false) as TitleRaster | null;
 }
 
-function prepareTitle(text: string, px: number, hex: string, opts: { exactPx?: boolean; bold?: boolean }, measureOnly: boolean): TitleRaster | Pick<TitleRaster, 'ascent' | 'advance'> | null {
+function prepareTitle(text: string, px: number, hex: string, opts: TitleFontOptions, measureOnly: boolean): TitleRaster | Pick<TitleRaster, 'ascent' | 'advance'> | null {
   if (typeof document === 'undefined' || !text) return null;
-  // Charcoal 12 (Jeremy Sachs, CC BY-SA — a bitmap clone of Mac OS 8/9 Charcoal) is
-  // crisp ONLY at its grid-native 16px: the finest design step (125 of 2000 em
-  // units) maps to exactly 1px there, so every brick edge lands on a pixel. When
-  // it's loaded we pin to 16px with ZERO tracking (off-grid advances would
-  // re-introduce anti-aliasing) and an integer baseline — the native buffer then
-  // upscales pixelated, keeping it blocky-crisp. Otherwise fall back to the
-  // Charcoal stack (Virtue) at the requested px with a hair of tracking for air.
-  // `exactPx` (the utility frame's 10-pt title) skips the 16px Charcoal 12 pin.
-  const c12 = !opts.exactPx && !!document.fonts?.check?.('16px "Charcoal 12"');
-  const size = c12 ? 16 : px;
-  const face = c12
-    ? `16px "Charcoal 12", Charcoal, "Helvetica Neue", Arial, sans-serif`
-    : `${px}px Charcoal, "Helvetica Neue", Arial, sans-serif`;
-  const font = `${opts.bold ? 'bold ' : ''}${face}`;
-  const LS = c12 ? '0px' : '0.5px';
-  const setLS = (c2d: CanvasRenderingContext2D): void => {
-    try { (c2d as unknown as { letterSpacing: string }).letterSpacing = LS; } catch { /* unsupported */ }
-  };
+  const style = opts.style ?? preferredStyle(px, opts);
+  const size = style.size;
   const probe = document.createElement('canvas').getContext('2d');
   if (!probe) return null;
-  probe.font = font;
-  setLS(probe);
+  setStyle(probe, style);
   const tm = probe.measureText(text);
   const w = Math.max(1, Math.ceil(tm.width) + 1);
   // Buffer sized tight to the text's ink box; the compositor centres this buffer in
@@ -73,8 +107,7 @@ function prepareTitle(text: string, px: number, hex: string, opts: { exactPx?: b
   c.width = w; c.height = h;
   const ctx = c.getContext('2d');
   if (!ctx) return null;
-  ctx.font = font;
-  setLS(ctx);
+  setStyle(ctx, style);
   ctx.fillStyle = hex;
   ctx.textBaseline = 'alphabetic';
   ctx.fillText(text, 0, asc);
