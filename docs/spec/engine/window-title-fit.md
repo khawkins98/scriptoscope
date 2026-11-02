@@ -81,10 +81,10 @@ Observation uses the library's native internal raster resolution, alphabetic
 baseline, identity raster scale and unchanged fractional pen/baseline phase.
 CSS presentation scaling and device pixel ratio do not change that internal
 raster. Main-coverage observation excludes shadow and filters and preserves
-the painter's text shaping state. Integer translations into scratch tiles must
-preserve the original coverage; drawing a clipped whole request must not require
-a hidden full-advance pixel surface. These are supported-renderer assumptions,
-not guarantees about opaque browser implementations.
+the painter's text shaping state. Drawing a clipped whole request must not
+require a hidden full-advance pixel surface. The chosen observation placements
+must preserve queried coverage as specified below. These are supported-renderer
+assumptions, not guarantees about opaque browser implementations.
 
 The finite envelope is the complete request's signed actual bounding rectangle
 on **both axes**, expanded on each side by one candidate font em plus one
@@ -103,6 +103,18 @@ metric-error or antialias widths established by measurement. Finite samples may
 falsify this assumption but cannot prove arbitrary-fallback completeness.
 A transparent observed border does not establish absence of ink beyond it.
 No runtime claim is made that unseen violations of P1 can always be detected.
+
+P1 also assumes **query equivalence for the chosen placements**: after reversing
+the integer translation, each queried pixel has the same native main raster
+coverage as the complete request at its original pen, baseline and fractional
+phase. This includes every nonzero alpha value. Envelope containment alone is
+insufficient: a clipped complete-request draw can be unusable for a query even
+when the query lies inside the envelope. Neither a geometric guard, a retained
+metric anchor nor transparent readback proves query equivalence. This is no
+universal theorem about native culling. Finite supported-renderer checks may
+falsify the chosen-placement assumption but cannot prove completeness for
+arbitrary fonts, fallback sequences or titles. A known unusable placement is
+unavailable, not evidence of empty coverage.
 
 The measured request and every observation/publication pass must share stable
 font resolution and text state. A result cached across a font-state change
@@ -125,6 +137,71 @@ coordinate phase and absolute baseline relationship. Substring, glyph, word,
 cluster or directional-run splitting, horizontal compression and `maxWidth`
 fitting do not substitute for complete-request observation.
 
+### Finite guarded paint windows and owned queries
+
+Distinguish the **paint window**, into which the complete request is drawn,
+from the **query rectangle**, whose pixels contribute to the coverage verdict.
+They need not coincide. Paint windows may overlap on both axes; a query must
+be contained in its paint window, and the chosen placement must satisfy P1's
+query-equivalence assumption. Paint-window geometry is observation geometry
+only and does not widen the published destination clip.
+
+A concrete finite construction follows. Let `M` be the closed actual metric
+rectangle in absolute raster coordinates at the unchanged pen and baseline,
+with ordered signed endpoints on each axis. Either extent may be zero.
+Let `g = candidate size + 1`, and let `E` be the existing outward-rounded
+expanded envelope. Existing recipe candidates have positive integer sizes at
+most 16, including the preferred-font pin, so `g <= 17`. This uses the existing
+size domain and P1 allowance; it introduces no title, font or work cap.
+
+Partition `E` into disjoint integer half-open query rectangles of width at
+most `4096 - 2` and height at most `32 - 2`. Keep the smaller final strips
+and corner rectangles. For each axis independently, let `[u,v)` be the query
+interval, `[l,r]` the closed metric interval, and `a` the projection of the
+query midpoint `(u + v) / 2` onto `[l,r]`. The paint interval is
+`[min(u, floor(a)) - 1, max(v, ceil(a)) + 1)`.
+The product of the two paint intervals contains the whole query with a
+one-pixel guard on every side and contains the reported-metric anchor
+`(a_x,a_y)` strictly inside. Draw with the original absolute pen and baseline
+translated by the integer paint-window origin, preserving fractional phase.
+Clear the reused observation scratch before each complete-request draw.
+Do not replace the pen or baseline with the anchor or a raster/crop origin.
+
+The per-axis paint extent is at most
+`max(v - u + 2, g + 3)`. If the query interval meets the closed metric interval,
+the projected anchor lies in the query's closure and the extent is `v - u + 2`.
+Otherwise the anchor is the nearest metric endpoint; outward rounding of `E`
+and rounding that endpoint cost at most one further pixel beyond `g`, giving
+the bound `g + 3` including the two guard pixels. Thus the horizontal extent
+is at most 4096 and the vertical extent at most 32. Applying this argument on
+each axis covers the metric core, either side's halo, corners and partial
+queries. Negative bearings, signed ascent/descent and zero-width, zero-height
+or point metric rectangles use the same construction without clamping or
+discarding their expanded envelope. A line or point anchor is not evidence
+that native raster coverage is empty or nonempty. Reversed or unusable metric
+intervals are unavailable, not degenerate empty coverage.
+
+The construction proves finite geometric containment and scratch bounds; it
+does not prove native raster preservation. In particular, retaining a metric
+anchor does not imply that native culling accepts the draw or preserves any
+query. If this finite construction cannot supply safe placements under P1 for
+a state, expose coverage unavailable. An alternative finite partition or
+placement needs an explicit argument for complete query coverage, contained
+guarded queries, retained metric anchors where needed, bounded paint windows
+and finite traversal, as well as the chosen-placement query-equivalence
+support premise. A guard alone cannot discharge that premise. Do not invent
+an unbounded placement search, retry loop or cutoff to bridge an unknown.
+
+Every possible exterior pixel has exactly one owning query in the partition.
+Read only that query's owned exterior pixels for the verdict, using their
+original absolute rows and the unchanged vertical clip. Extra pixels in an
+overlapping paint window, including other queries' pixels and interior rows,
+do not gain ownership or change classification. If an equivalent construction
+uses overlapping query readings, it must assign each absolute exterior pixel
+one owner and neither omit it nor count it as a different row after translation.
+Reuse the bounded canvas and readback between placements; do not accumulate
+rasters or a pixel ownership array. Ownership follows from the finite partition.
+
 An envelope wholly inside the vertical clip establishes fit conditional on P1
 without raster observation. Otherwise account for the finite envelope completely
 at the original raster resolution. Any nonzero-alpha pixel outside the vertical
@@ -133,8 +210,11 @@ Fit requires complete coverage of the possible exterior ink; interior pixels
 cannot affect this verdict, so observing only the envelope's exterior regions
 is permitted. Do not treat the envelope's excess height itself as nonfit.
 
-Traversal has a finite bound determined by the envelope and fixed tile
-dimensions. There is no open-ended border-growth retry, fixed tile-count cutoff
+The concrete partition has at most
+`ceil(E.width / (4096 - 2)) * ceil(E.height / (32 - 2))` queries, with no
+observations needed for wholly interior queries. Traversal has a finite bound
+determined by the envelope and query dimensions, including partial queries.
+There is no open-ended border-growth retry, fixed tile-count cutoff
 or title-length cap. Bounds, origins, translated coordinates and traversal
 counts must remain finite and safely representable within the supported host's
 numeric/raster coordinate range. Missing, nonfinite, inconsistent or unusable
@@ -211,8 +291,12 @@ claim constant total memory including input, output and host internals.
 ## Coverage unavailable
 
 Unusable metrics or coordinates, unsupported observation state, known breach
-of P1, and host allocation/readback/security failure yield a distinct
-coverage-unavailable failure. Do not reinterpret it as nonfit, empty ink, TF5,
+of either P1's envelope or chosen-placement query equivalence, inability to
+establish a finite safe placement/query construction for the state, and host
+allocation/readback/security failure yield a distinct coverage-unavailable
+failure. A known culled or otherwise unusable placement cannot supply a fit or
+nonfit verdict, including when its readback is transparent. Do not reinterpret
+unavailable coverage as nonfit, empty ink, TF5,
 successful clipping, a smaller fitting style or an automatic metrics-only
 fallback. Do not retry indefinitely. A caller may distinguish this failure
 from a successfully resolved impossible slot.
