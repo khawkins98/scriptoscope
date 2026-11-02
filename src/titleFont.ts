@@ -62,12 +62,13 @@ export function resolveTitleStyle(text: string, px: number, clipForAdvance: (adv
     const clip = clipForAdvance(Math.ceil(tm.width));
     // Keep an already empty preferred slot; smaller empty slots cannot establish a fit.
     if (clip.w <= 0 || clip.h <= 0) return style === preferred;
-    if (tm.actualBoundingBoxAscent === 0 && tm.actualBoundingBoxDescent === 0) return true;
     const ascent = Math.max(1, Math.ceil(tm.actualBoundingBoxAscent || style.size * 0.72));
-    // Ink can end above the baseline (negative descent), unlike the allocated raster box.
-    const descent = Math.ceil(tm.actualBoundingBoxDescent || 0);
+    const ink = titleInk(text, style, tm, '#000000');
+    if (!ink) return false;
+    if (ink.top === ink.bottom) return true;
     // F11 keeps the decoded baseline, moving down only by the ascent overflow.
-    return Math.max(clip.h - TITLE_TEXT.TX8.baselineAbove, ascent) + descent <= clip.h;
+    const baseline = Math.max(clip.h - TITLE_TEXT.TX8.baselineAbove, ascent);
+    return baseline + ink.top >= 0 && baseline + ink.bottom <= clip.h;
   };
   if (fits(preferred)) return { style: preferred, omitInk: false };
   for (let size = Math.floor(preferred.size); size > 0; size--) {
@@ -87,6 +88,36 @@ export function rasterizeTitle(text: string, px: number, hex: string, opts: Titl
   return prepareTitle(text, px, hex, opts, false) as TitleRaster | null;
 }
 
+/** Observe painted coverage outside the reported metrics before any title clipping. */
+function titleInk(text: string, style: TitleFontStyle, tm: TextMetrics, hex: string) {
+  let padding = Math.max(1, Math.ceil(Math.max(style.size, tm.fontBoundingBoxAscent || 0,
+    tm.fontBoundingBoxDescent || 0, Math.abs(tm.actualBoundingBoxAscent || 0),
+    Math.abs(tm.actualBoundingBoxDescent || 0), Math.abs(tm.actualBoundingBoxLeft || 0),
+    Math.abs(tm.actualBoundingBoxRight || 0) - tm.width)));
+  const width = Math.max(1, Math.ceil(tm.width) + 1);
+  for (;;) {
+    const c = document.createElement('canvas');
+    c.width = width + padding * 2; c.height = padding * 2 + 1;
+    const ctx = c.getContext('2d');
+    if (!ctx) return null;
+    setStyle(ctx, style);
+    ctx.fillStyle = hex;
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillText(text, padding, padding);
+    const img = ctx.getImageData(0, 0, c.width, c.height);
+    let top = c.height, bottom = 0, edge = false;
+    for (let y = 0; y < c.height; y++) {
+      for (let x = 0; x < c.width; x++) {
+        if (img.data[(y * c.width + x) * 4 + 3] === 0) continue;
+        top = Math.min(top, y); bottom = Math.max(bottom, y + 1);
+        edge ||= x === 0 || x === c.width - 1 || y === 0 || y === c.height - 1;
+      }
+    }
+    if (!edge) return { ctx, padding, width, top: bottom ? top - padding : 0, bottom: bottom ? bottom - padding : 0 };
+    padding *= 2;
+  }
+}
+
 function prepareTitle(text: string, px: number, hex: string, opts: TitleFontOptions, measureOnly: boolean): TitleRaster | Pick<TitleRaster, 'ascent' | 'advance'> | null {
   if (typeof document === 'undefined' || !text) return null;
   const style = opts.style ?? preferredStyle(px, opts);
@@ -95,28 +126,20 @@ function prepareTitle(text: string, px: number, hex: string, opts: TitleFontOpti
   if (!probe) return null;
   setStyle(probe, style);
   const tm = probe.measureText(text);
-  const w = Math.max(1, Math.ceil(tm.width) + 1);
-  // Buffer sized tight to the text's ink box; the compositor centres this buffer in
-  // the title bar (sgy, ~L220 below), so an ink-tight buffer lands the title without
-  // any line-height fudge. Baseline at the ink ascent.
   const asc = Math.max(1, Math.ceil(tm.actualBoundingBoxAscent || size * 0.72));
   const desc = Math.max(0, Math.ceil(tm.actualBoundingBoxDescent || 0));
-  const h = Math.max(1, asc + desc);
   if (measureOnly) return { ascent: asc, advance: Math.ceil(tm.width) };
-  const c = document.createElement('canvas');
-  c.width = w; c.height = h;
-  const ctx = c.getContext('2d');
-  if (!ctx) return null;
-  setStyle(ctx, style);
-  ctx.fillStyle = hex;
-  ctx.textBaseline = 'alphabetic';
-  ctx.fillText(text, 0, asc);
-  const img = ctx.getImageData(0, 0, w, h);
-  const buf = PixelBuffer.alloc(w, h);
+  const ink = titleInk(text, style, tm, hex);
+  if (!ink) return null;
+  // Keep the pen advance and horizontal source extent; retain every painted row.
+  const top = Math.min(-asc, ink.top), bottom = Math.max(desc, ink.bottom);
+  const h = Math.max(1, bottom - top);
+  const img = ink.ctx.getImageData(ink.padding, ink.padding + top, ink.width, h);
+  const buf = PixelBuffer.alloc(ink.width, h);
   buf.data.set(img.data);
   const fontAscent = Math.ceil(tm.fontBoundingBoxAscent || asc);
   const fontDescent = Math.ceil(tm.fontBoundingBoxDescent || desc);
-  return { buffer: buf, ascent: asc, advance: Math.ceil(tm.width), fontAscent, fontDescent };
+  return { buffer: buf, ascent: -top, advance: Math.ceil(tm.width), fontAscent, fontDescent };
 }
 
 
