@@ -28,9 +28,9 @@ const { composeWindowChrome } = await import('./composeChrome.ts');
 after(() => hooks.deregister());
 
 const originalDocument = globalThis.document, originalImageData = globalThis.ImageData;
-let pinned, metrics, measurements, paints;
+let pinned, metrics, measurements, paints, publications;
 beforeEach(() => {
-  pinned = true; measurements = []; paints = [];
+  pinned = true; measurements = []; paints = []; publications = [];
   metrics = size => ({ actualBoundingBoxAscent: Math.ceil(size * 0.7), actualBoundingBoxDescent: Math.ceil(size * 0.2) });
   globalThis.ImageData = class {
     constructor(data, width, height) {
@@ -46,15 +46,36 @@ beforeEach(() => {
         append(...children) { this.children.push(...children); },
         appendChild(child) { this.children.push(child); },
         getContext() { return {
-          font: '', letterSpacing: '',
+          font: '', letterSpacing: '', glyph: null,
           measureText(text) {
             const size = Number(this.font.match(/([\d.]+)px/)[1]);
             measurements.push({ text, font: this.font, spacing: this.letterSpacing });
             return { width: text.length * size, ...metrics(size) };
           },
-          fillText(text) { paints.push({ text, font: this.font, spacing: this.letterSpacing }); },
-          getImageData(_x, _y, width, height) { return { data: new Uint8ClampedArray(width * height * 4).fill(255) }; },
-          putImageData() {},
+          fillText(text, x, y) {
+            const size = Number(this.font.match(/([\d.]+)px/)[1]);
+            const metric = metrics(size);
+            this.glyph = { text, x, y, width: text.length * size,
+              top: -metric.actualBoundingBoxAscent, bottom: metric.actualBoundingBoxDescent,
+              font: this.font, spacing: this.letterSpacing, color: this.fillStyle };
+            paints.push(this.glyph);
+          },
+          getImageData(x, y, width, height) {
+            const data = new Uint8ClampedArray(width * height * 4);
+            const glyph = this.glyph;
+            if (glyph) {
+              const rgb = glyph.color.slice(1).match(/../g).map(value => parseInt(value, 16));
+              for (let row = 0; row < height; row++) {
+                for (let col = 0; col < width; col++) {
+                  if (x + col < glyph.x || x + col >= glyph.x + glyph.width ||
+                      y + row < glyph.y + glyph.top || y + row >= glyph.y + glyph.bottom) continue;
+                  data.set([...rgb, 255], (row * width + col) * 4);
+                }
+              }
+            }
+            return { data, width, height };
+          },
+          putImageData(image, x, y) { publications.push({ data: image.data.slice(), width: image.width, height: image.height, x, y }); },
         }; },
       };
     },
@@ -94,7 +115,7 @@ test('descending integer candidates use full-title advances and retain family, b
   const shortened = truncateTitle('Full gy', 35, measure);
   rasterizeTitle(shortened, 13, '#ffffff', { style: result.style });
   assert.ok(measurements.every(call => call.font.startsWith('bold 11px ') && call.spacing === '0px'));
-  assert.equal(paints[0].font, measurements[0].font);
+  assert.equal(paints.at(-1).font, measurements[0].font);
 });
 
 test('fit checks signed ink descent rather than transparent raster allocation', () => {
@@ -122,9 +143,25 @@ test('renderer resolves once from the full title before truncation and both pain
   const { view } = fixture();
   const win = await renderWindow(view, { windowType: 'titled-utility-window', title: 'Full gy', width: 45 });
   assert.equal(win.attributes['aria-label'], 'Full gy');
-  assert.equal(paints.length, 2);
-  assert.ok(paints.every(call => call.font.startsWith('bold 11px ') && call.spacing === '0px'));
-  assert.ok(paints.every(call => call.text.endsWith('…')));
+  // Full-title coverage probes are allowed; only the final paints use the truncated title.
+  const finalPaints = paints.filter(call => call.text.endsWith('…'));
+  assert.equal(finalPaints.length, 2);
+  assert.ok(finalPaints.every(call => call.font.startsWith('bold 11px ') && call.spacing === '0px'));
+  assert.deepEqual(finalPaints.map(call => call.color), ['#c8c8c8', '#000000']);
+  assert.ok(paints.filter(call => !call.text.endsWith('…')).every(call => call.text === 'Full gy'));
+  assert.equal(publications.length, 1);
+  const actual = win._scriptoscopeComposed;
+  assert.deepEqual(publications[0].data, actual.buffer.data);
+  const { x, y, w, h } = actual.titleRect;
+  const pixel = (px, py) => Array.from(publications[0].data.slice((py * publications[0].width + px) * 4, (py * publications[0].width + px) * 4 + 4));
+  // Synthetic size 11 has eight ascent rows and three descent rows. Main ink
+  // reaches both vertical bounds; the one-pixel shadow survives on its right.
+  assert.equal(h, 11);
+  assert.deepEqual(pixel(x, y), [0, 0, 0, 255]);
+  assert.deepEqual(pixel(x, y + h - 1), [0, 0, 0, 255]);
+  const advance = finalPaints[0].text.length * 11;
+  assert.ok(advance < w + 2, 'fixture leaves room for the clipped shadow');
+  assert.deepEqual(pixel(x + advance, y + 1), [200, 200, 200, 255]);
 });
 
 test('impossible slots suppress main and shadow while retaining preferred geometry and accessible title', async () => {
@@ -134,7 +171,9 @@ test('impossible slots suppress main and shadow while retaining preferred geomet
   const win = await renderWindow(view, { windowType: 'titled-utility-window', title, width: 240 });
   const expected = composeWindowChrome(cicn, wt, 240, 120, { altWidgets: true, titleWidthPx: title.length * 16, titleLength: title.length });
   const actual = win._scriptoscopeComposed;
-  assert.equal(paints.length, 0);
+  assert.ok(paints.every(call => call.text === title && call.color === '#000000'), 'only full-title coverage probes may paint');
+  assert.equal(publications.length, 1);
+  assert.deepEqual(publications[0].data, expected.buffer.data);
   assert.equal(win.attributes['aria-label'], title);
   assert.deepEqual(actual.titleRect, expected.titleRect);
   assert.deepEqual(actual.titleRegion, expected.titleRegion);
