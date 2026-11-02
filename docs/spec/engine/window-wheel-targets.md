@@ -128,6 +128,16 @@ Target preparation uses local committed geometry and may reuse unchanged
 inputs under the existing region reuse rules. A relevant template, state,
 layout, size, collapse or display-scale change invalidates affected geometry.
 
+Whenever retained scrollbar placement changes, the original control's native
+targets must synchronously cover the intersection of its current hit box with
+the currently committed `S`, including all runs and holes. This applies before
+any replacement paint resolves; awaiting that paint must not leave targets at
+the previous placement. Placement alone does not rebuild or replace `S`.
+The original control retains its identity, and its current painted control
+actions and mask rules remain authoritative until a valid replacement paint
+commits. Pending, stale or ended-lifetime work must not restore obsolete
+placement, targets or actions.
+
 Pointer moves, hover, dragging, resize outlines, scrolling, z-order-only
 changes and mode-only switches do not rebuild the structure region. There is
 no size-based fallback to `box`. Mode-only changes use the saved committed
