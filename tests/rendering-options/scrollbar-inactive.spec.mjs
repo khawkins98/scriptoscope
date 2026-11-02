@@ -164,7 +164,7 @@ for (const mode of ['source', 'built']) for (const slug of SLUGS) {
     });
     expect(await page.evaluate(([x, y]) => {
       const host = window.__sp.hosts.B;
-      return host.shadowRoot.elementFromPoint(x, y) === window.__sp.canvas('B', 'vertical');
+      return host.shadowRoot.elementFromPoint(x, y)?.closest('[role=scrollbar]') === window.__sp.bar('B', 'vertical');
     }, [p.x, p.y]), `${why}: the press lands on B's bar`).toBe(true);
     await page.mouse.move(p.x, p.y); await page.mouse.down();
     await expect.poll(() => page.evaluate(() => window.__sp.current('B')), `${why}: the press activates B`).toBe('active');

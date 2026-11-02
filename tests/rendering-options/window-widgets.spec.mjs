@@ -19,6 +19,7 @@ for (const mode of ['source', 'built']) {
         document.body.append(fixture.host);
         Object.assign(fixture.host.style, { position: 'absolute', left: '30px', top: '40px' });
         manager.setChangeListener(() => fixture.commits++);
+        fixture.originalCollapse = fixture.host.shadowRoot.querySelector('.scriptoscope-titlewidget-collapse');
         window.widgets = fixture;
       }, { mode, slug });
       const slots = async () => page.evaluate(slug => {
@@ -65,7 +66,10 @@ for (const mode of ['source', 'built']) {
       expect(await page.getByRole('button', { name: 'Resize window', exact: true }).count()).toBe(0);
       await expect.poll(async () => (await slots())[2]?.label).toBe('Collapse window');
       const collapsed = await slots();
-      expect(await page.evaluate(({ x, y }) => window.widgets.host.shadowRoot.elementFromPoint(x, y)?.getAttribute('aria-label'), collapsed[2])).toBe('Collapse window');
+      expect(await page.evaluate(({ x, y }) => {
+        const f = window.widgets, owner = f.host.shadowRoot.elementFromPoint(x, y)?.closest('button');
+        return { original: owner === f.originalCollapse, label: owner?.getAttribute('aria-label') };
+      }, collapsed[2])).toEqual({ original: true, label: 'Collapse window' });
       await page.mouse.click(collapsed[2].x, collapsed[2].y);
       await expect.poll(() => page.evaluate(() => window.widgets.commits)).toBe(2);
       await expect.poll(() => page.evaluate(() => window.widgets.manager.describe(window.widgets.host).collapsed)).toBe(false);

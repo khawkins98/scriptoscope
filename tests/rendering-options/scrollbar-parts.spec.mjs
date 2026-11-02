@@ -325,7 +325,8 @@ for (const mode of ['source', 'built']) for (const slug of SLUGS) {
     // The bar is hit-testable at its centre, not under another window.
     expect(await host.evaluate(h => {
       const bar = h.shadowRoot.querySelector('[role=scrollbar][aria-orientation=vertical]'), r = bar.getBoundingClientRect();
-      return h.shadowRoot.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2) === bar.querySelector('canvas');
+      const native = h.shadowRoot.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+      return !!bar.querySelector('canvas') && native?.closest('[role=scrollbar]') === bar;
     })).toBe(true);
     await page.evaluate(() => window.__sp.frames(4));
     await exercise(page, 'vertical', { why: `${mode} showcase ${slug}` });
