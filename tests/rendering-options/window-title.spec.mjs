@@ -178,7 +178,10 @@ for (const mode of ['source', 'built']) {
         const theme = await api.loadTheme('/themes/1984');
         const decoded = await api.loadKaleidoscopeScheme(new Uint8Array(await (await fetch(`/themes/1984/${file}`)).arrayBuffer()), { encodeAssets: false });
         R.isolateGlyphs(theme);
-        const wt = decoded.manifest.windowTypes[key], title = 'Tools';
+        // WebKit can thicken primary-font Tools without changing its bounds.
+        // The bundled fallback cedilla makes both faces differ in extent at
+        // these recipe heights, so the exact geometry mutant stays meaningful.
+        const wt = decoded.manifest.windowTypes[key], title = 'Tools Ç';
         const clipHeight = R.topTitleHeight(wt);
         const required = R.resolveTitleStyle(title, key, clipHeight);
         const opposite = required.face === 'bold' ? 'normal' : 'bold';
