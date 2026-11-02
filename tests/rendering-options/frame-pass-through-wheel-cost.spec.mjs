@@ -1,6 +1,8 @@
 // #621 report-only native-wheel cost probe. HPT33 remains the pass-through gate.
 // Compare the same clipped window with and without only the no-op L2 listener;
 // this isolates the routing workaround from geometry and themed scrollbar costs.
+// Listener-free native targets have no installed/removed comparison: retain
+// native scrolling evidence, but never label two identical policies as a pair.
 import os from 'node:os';
 import { test, expect, MODES, boot, settle } from './frame-pass-through-fixture.mjs';
 
@@ -27,6 +29,23 @@ for (const mode of MODES) test(`${mode}: HPT44 native content wheel with and wit
   });
   const location = await page.evaluate(() => { const r = window.__nativeScroller.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + 60 }; });
   await page.mouse.move(location.x, location.y);
+  if (listeners.length === 0) {
+    await page.evaluate(() => {
+      window.__nativeWheelTrusted = null;
+      window.__nativeScroller.addEventListener('wheel', e => { window.__nativeWheelTrusted = e.isTrusted; }, { once: true, passive: true });
+    });
+    await page.mouse.wheel(0, 120);
+    await expect.poll(() => page.evaluate(() => window.__nativeScroller.scrollTop), 'trusted native content wheel still scrolls without a hit-layer listener').toBeGreaterThan(0);
+    const native = await page.evaluate(() => ({ top: window.__nativeScroller.scrollTop, trusted: window.__nativeWheelTrusted }));
+    expect(native.trusted).toBe(true);
+    const observation = { mode, browserName, browserVersion: browser.version(), listeners, native,
+      gate: 'routing-only', comparison: 'not-applicable: no hit-layer wheel listener is installed', trials: [],
+      limitation: 'No installed/removed policies to compare; no timing or compositor-presentation claim.' };
+    info.annotations.push({ type: 'observation', description: JSON.stringify(observation) });
+    await info.attach('hpt44-wheel.json', { body: JSON.stringify(observation, null, 2), contentType: 'application/json' });
+    console.log(`HPT44 ${JSON.stringify(observation)}`);
+    return;
+  }
   const rows = [];
   // Alternate order; no background CPU load is injected. These are idle-runner
   // observations and cannot prove compositor-thread behavior under contention.
