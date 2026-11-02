@@ -9,21 +9,26 @@
 // `npm run dev` for the demo preview.
 
 import { defineConfig } from 'vite';
-import { resolve } from 'node:path';
+import { resolve, sep } from 'node:path';
 import { existsSync, statSync, createReadStream } from 'node:fs';
 
 // Tiny middleware to serve canonical theme bundles from `themes/<slug>/` at
 // `/themes/<slug>/...` during dev. Phase 4 runtime (`loadTheme()`) fetches
 // bundles by URL; this makes the repo-root `themes/` dir reachable from the
-// demo's dev server (where Vite's root is `demo/`).
+// demo's dev server (where Vite's root is `demo/`). `/authoring/` is served the
+// same way so the dev-only authoring preview (demo/authoring-preview.html) can
+// fetch freshly built `authoring/schemes/<slug>/scheme.rsrc` files.
 const serveThemesPlugin = () => ({
   name: 'serve-themes-dir',
   configureServer(server) {
     server.middlewares.use((req, res, next) => {
-      if (!req.url || !req.url.startsWith('/themes/')) return next();
-      const url = req.url.split('?')[0];
+      if (!req.url || !(req.url.startsWith('/themes/') || req.url.startsWith('/authoring/'))) return next();
+      const url = decodeURIComponent(req.url.split('?')[0]);
       const filepath = resolve(import.meta.dirname, '.' + url);
-      // Return a real 404 for missing files INSIDE /themes/ — falling through to
+      // Stay inside the two served directories (no `/themes/../package.json`).
+      const allowed = ['themes', 'authoring'].map((d) => resolve(import.meta.dirname, d) + sep);
+      if (!allowed.some((root) => filepath.startsWith(root))) { res.statusCode = 404; res.end(); return; }
+      // Return a real 404 for missing files INSIDE /themes/ (and /authoring/) — falling through to
       // next() would let Vite serve the demo HTML for `/themes/<slug>/missing.json`,
       // which then 200s with HTML bytes and breaks `loadTheme`'s scheme.sit ←→
       // scheme.rsrc fallback (it would decode the HTML as a fork and explode).

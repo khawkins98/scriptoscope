@@ -162,3 +162,55 @@ test('owned active preview captures its base owner and exports only the selected
   assert.equal(el.children[0].children[0].src, 'blob:folder');
   assert.equal(owner.usage().images, 1);
 });
+
+test('multi-strip keyboard navigation: unselected strip retains tabindex="0" on first tile and supports ArrowDown/Up', async (t) => {
+  const { syncThemePickerActive } = await import('./themePicker.ts');
+  const el = setup(t);
+  const switches = [];
+  const picker = await promoteThemePicker(el, themes, {
+    initialSlug: 'other', loadTheme: async () => iconTheme, switchTheme: (slug) => switches.push(slug),
+  });
+  t.after(picker.teardown);
+  // None matched 'other', so the first tile must get tabindex="0" for keyboard entry
+  assert.equal(el.children[0].getAttribute('tabindex'), '0');
+  assert.equal(el.children[1].getAttribute('tabindex'), '-1');
+
+  // ArrowDown advances to next tile
+  el.children[0].focus();
+  const down = new Event('keydown', { cancelable: true });
+  Object.defineProperty(down, 'key', { value: 'ArrowDown' });
+  el.dispatchEvent(down);
+  assert.deepEqual(switches, ['two']);
+
+  // ArrowUp wraps back to previous tile
+  const up = new Event('keydown', { cancelable: true });
+  Object.defineProperty(up, 'key', { value: 'ArrowUp' });
+  el.dispatchEvent(up);
+  assert.deepEqual(switches, ['two', 'one']);
+
+  // ArrowLeft wraps around to last tile
+  const left = new Event('keydown', { cancelable: true });
+  Object.defineProperty(left, 'key', { value: 'ArrowLeft' });
+  el.dispatchEvent(left);
+  assert.deepEqual(switches, ['two', 'one', 'two']);
+
+  // ArrowRight wraps around to first tile
+  const right = new Event('keydown', { cancelable: true });
+  Object.defineProperty(right, 'key', { value: 'ArrowRight' });
+  el.dispatchEvent(right);
+  assert.deepEqual(switches, ['two', 'one', 'two', 'one']);
+
+  // Keydown when activeElement is not a tile safely uses tabindex="0" tile
+  el.blur?.();
+  if (globalThis.document) Object.defineProperty(document, 'activeElement', { value: null, configurable: true });
+  const downFromNull = new Event('keydown', { cancelable: true });
+  Object.defineProperty(downFromNull, 'key', { value: 'ArrowDown' });
+  el.dispatchEvent(downFromNull);
+  assert.equal(switches[switches.length - 1], 'two');
+
+  // Syncing to an external slug resets active tiles but keeps first tile tabindex="0"
+  syncThemePickerActive(el, 'external-slug');
+  assert.equal(el.children[0].getAttribute('tabindex'), '0');
+  assert.equal(el.children[1].getAttribute('tabindex'), '-1');
+  assert.equal(el.children[0].getAttribute('aria-selected'), 'false');
+});

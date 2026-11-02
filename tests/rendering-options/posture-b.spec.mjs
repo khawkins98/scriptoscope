@@ -1,5 +1,5 @@
 import { createServer } from 'node:http';
-import { createReadStream } from 'node:fs';
+import { createReadStream, readdirSync, existsSync } from 'node:fs';
 import { stat } from 'node:fs/promises';
 import { resolve, extname, sep } from 'node:path';
 import { expect } from '@playwright/test';
@@ -16,6 +16,9 @@ import { test as demoTest } from './demo-fixtures.mjs';
 // the Schemes Folder, Controls and "Use it on your page" windows.
 
 const SLUG = '1138';
+const AUTHORED = new URL('../../authoring/schemes/', import.meta.url);
+const authoredSchemeCount = readdirSync(AUTHORED)
+  .filter(slug => existsSync(new URL(`${slug}/scheme.mjs`, AUTHORED))).length;
 const IN_FLOW = { '.powers-picker': 'static', '.powers-hero-window': 'relative', '.powers-install-host': 'static' };
 
 const test = demoTest.extend({
@@ -46,7 +49,8 @@ async function openShowcase(page, base, slug = SLUG) {
   await page.setViewportSize({ width: 1280, height: 960 });
   await page.goto(`${base}/showcase.html?theme=${slug}`);
   await expect(page.locator('#powers.scriptoscope-ready')).toBeVisible();
-  await expect(page.locator('#powers .scriptoscope-theme-picker-tile')).toHaveCount(18);
+  await expect(page.locator('#powers-folders .scriptoscope-theme-picker-tile')).toHaveCount(18);
+  await expect(page.locator('#powers-first-party .scriptoscope-theme-picker-tile')).toHaveCount(authoredSchemeCount);
   // Content-fit and the cascade may adjust boxes after ready: wait for two equal reads a frame pair apart.
   await expect.poll(async () => {
     const a = await boxes(page);
@@ -148,7 +152,7 @@ for (const mode of ['source', 'built']) {
     });
     await page.locator('[data-special="none"]').click();
     await expect(page.locator('#powers [data-scriptoscope-window-host]')).toHaveCount(0);
-    await expect(page.locator('.scriptoscope-theme-picker-tile')).toHaveCount(18);
+    await expect(page.locator('#powers-folders .scriptoscope-theme-picker-tile')).toHaveCount(18);
     // OFF-mode tile click remounts (the demo's capture listener).
     await page.locator('.scriptoscope-theme-picker-tile[data-slug="windows-31"]').click();
     await expect(page.locator('#powers.scriptoscope-ready')).toBeVisible();
@@ -160,6 +164,14 @@ for (const mode of ['source', 'built']) {
     await expect.poll(async () => (await chrome())?.theme, 'rethemed to evolution').toBe('evolution');
     await expect.poll(async () => (await chrome())?.pixels !== win31.pixels, 'chrome repainted after the second tile click').toBe(true);
     await expect(page.locator('#powers [data-scriptoscope-window-host]:not([data-scriptoscope-theme="evolution"])')).toHaveCount(0);
+  });
+
+  test(`${mode}: a first-party tile rethemes every window from authoring/schemes`, async ({ page, demo, production }) => {
+    await openShowcase(page, baseOf({ demo, production }));
+    const kingfisher = './authoring/schemes/kingfisher';
+    await page.locator(`#powers-first-party .scriptoscope-theme-picker-tile[data-slug="${kingfisher}"]`).click();
+    await expect.poll(() => page.locator(`#powers [data-scriptoscope-window-host]:not([data-scriptoscope-theme="${kingfisher}"])`).count()).toBe(0);
+    await expect(page.locator('#powers-credit')).toContainText('Kingfisher');
   });
 }
 

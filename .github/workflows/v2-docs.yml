@@ -1,6 +1,6 @@
 name: docs + ledger
 
-# Lightweight checks for every PR into main, including docs-only PRs. ci.yml keeps
+# Lightweight checks for every PR, including stacked and docs-only PRs. ci.yml keeps
 # its paths-ignore (docs/** and *.md skip the browser job), so without this
 # workflow a spec or ledger-prose PR would merge with no check at all. No browser:
 # the clean-room linter, the trap table's structure, the routine coverage pins,
@@ -17,7 +17,6 @@ name: docs + ledger
 # lands on main (docs/v2/DECISIONS.md #1).
 on:
   pull_request:
-    branches: [main]
   push:
     branches: [main]
 

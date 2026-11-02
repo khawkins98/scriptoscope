@@ -1,3 +1,4 @@
+import {peelHashOnlyBumps,peelHashOnlyDocument} from './controls459/hash-only-bumps.mjs';
 // #611 availability transition 1.0.18 -> 1.0.19 (corrections/611-reference-labels.json).
 // Hash-only: the archived kdef231-reference.md §1.4 dispatch-label edits (hit-regions.evidence.md E1)
 // are the whole document change, and only the nine documentSha256 pins move in the inventory.
@@ -5,7 +6,7 @@ import test from 'node:test';import assert from 'node:assert/strict';import {rea
 import {delta611 as delta,peel611,active611} from './controls459/peel-611.mjs';
 import {delta608} from './controls459/peel-608.mjs';
 const read=p=>JSON.parse(readFileSync(new URL(p,import.meta.url))),hash=b=>createHash('sha256').update(b).digest('hex');
-const live=read('../control-availability/expectations.json');
+const live=peelHashOnlyBumps(read('../control-availability/expectations.json'));
 test('611 changes only the nine kdef231-reference.md document pins',()=>{
  assert.equal(delta.status,'hash-only-requires-independent-review');assert.equal(delta.unlistedAvailability,'unknown');
  assert.equal(delta.priorInventoryVersion,delta608.candidateInventoryVersion,'611 follows the 608 transition');
@@ -27,7 +28,7 @@ test('611 changes only the nine kdef231-reference.md document pins',()=>{
  }
 });
 test('611 document change is exactly the archived E1 label edits',()=>{
- const doc=readFileSync(new URL('../../'+delta.document.path,import.meta.url),'utf8');
+ const doc=peelHashOnlyDocument(delta.document.path,readFileSync(new URL('../../'+delta.document.path,import.meta.url),'utf8'));
  assert.equal(hash(doc),delta.document.afterSha256,'kdef231-reference.md changed: a new hash-only bump is needed');
  assert.ok(delta.document.edits.length>0);let restored=doc;
  for(const e of delta.document.edits){assert.equal(restored.split(e.after).length,2,'each edit is unique');restored=restored.replace(e.after,()=>e.before);

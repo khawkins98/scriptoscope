@@ -2,6 +2,22 @@
 
 *Listing-level narrative (registers, frame offsets, instruction excerpts) for this document lives in [`spec/engine/title-text-color.evidence.md`](../spec/engine/title-text-color.evidence.md) — spec writers and verifiers only.*
 
+
+> **Update 2026-10-30 (authoring).** The runtime now samples the title colour
+> rather than using black: text = the frame cicn pixel at the content rect's
+> top-left `(part0.left, part0.top)`, shadow = its right neighbour, read through
+> the palette with the mask ignored (`docs/spec/engine/window-widgets.md`
+> TC1–TC5, `tools/theme-loader/buildThemeJson.js` `windowTitleSamples`). The
+> first-party authored scheme `authoring/schemes/kingfisher` was the
+> colour-customising test case: its first build stored slate `#1d2430`
+> (active) and `#9aa1ab` (inactive) on hidden swatches, and both rendered
+> exactly (the repainted Kingfisher uses system-palette black; Castle's cream
+> `#ffffcc` title is a current example). The
+> "Scriptoscope shipped decision: use black" paragraph in
+> `docs/spec/kdef231-reference.md` §1.4 was stale; it was rewritten and
+> re-pinned on 2026-10-31 (`tests/control-availability` inventory 1.0.18,
+> hash-only, `ce33a576` -> `3efc5f35`; Tier 0 hash-only check, PR #540).
+
 ## Symptom
 Rendered window-title text colour doesn't match the period references:
 

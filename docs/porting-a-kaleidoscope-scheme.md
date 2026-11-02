@@ -354,7 +354,7 @@ tools. Re-download the `.sit` and use `unar` on the original, then re-copy the
 ## What you don't need to do
 
 - **Don't hand-edit `theme.json`** — it's generated. Edit `meta.json` and re-run `extract-scheme.mjs`. Hand edits get clobbered on the next extract.
-- **Don't author CSS, SVG, or any chrome assets from scratch.** The 2026-05-17 Kaleidoscope-runtime pivot establishes that Scriptoscope doesn't hand-author chrome — it renders what Kaleidoscope schemes provide. If you want new chrome, use Kaleidoscope's own authoring tools (ResEdit + Kaleidoscope SDK under SheepShaver) to produce a `.ksc` and port it through this flow.
+- **Don't author CSS, SVG, or any chrome assets from scratch.** The 2026-05-17 Kaleidoscope-runtime pivot establishes that Scriptoscope doesn't hand-author chrome — it renders what Kaleidoscope schemes provide. If you want new chrome, make a new *scheme*: either with Kaleidoscope's own tools (ResEdit + Kaleidoscope SDK under SheepShaver, then port it through this flow), or in code with `tools/theme-author/` ([`authoring-a-scheme.md`](./authoring-a-scheme.md)). Both produce a real resource fork that the runtime renders like any other scheme; neither adds a second rendering path.
 - **Don't worry about sounds or desktop backgrounds.** Kaleidoscope schemes in practice didn't carry them; Scriptoscope doesn't fabricate them. The `chromeElements`, `windowTypes`, `patterns`, and `headerColors` sections are the full bundle surface.
 
 ---

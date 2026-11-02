@@ -7,6 +7,85 @@ A flag set only inside the layout cannot recover dimensions already discarded by
 Alternate widget selection also belongs to the resolved window type, after aliases and base-chain fallback. Recipe utilities use one `altWidgets` flag for strip selection, hit masks and existing title consumers. The original families are decoded separately from this declared public mapping; a side title alone does not authorize the alternate base. Collapsed coverage must pass both the state flag and the appropriate empty content axis, rather than merely choosing a resource named “collapsed”.
 
 A substitute bold face can need more vertical space than its plain reference. The modern title-fit policy therefore measures the full requested title with each candidate style against its actual remapped clip, using geometry-only preparations through the existing layout constructor. It preserves an already fitting preferred style, otherwise resolves one smaller fitting size for both advance/layout and paint. The clip and baseline stay fixed, and independent title references must compare the appropriate face and resolved size rather than weaken glyph-row assertions.
+## 2026-11-01 — Preserve the concept's pixels, and verify the actual build
+
+Bonn's procedural replacements depicted the right subjects but lost their
+recognizable roofs, shading and blossoms. Extracting the actual concept pixels
+preserved that character. The [extraction workflow](docs/authoring-a-scheme.md#43-paint-over-the-concept)
+records crops, sampling, masks and repairs. The bridge has a separate palette so
+adding it does not requantize approved buildings and bough; its transparent arch
+reveals the frame's river.
+
+Window controls have authored sizes, not a fixed platform limit: Bonn uses
+26px medallions. Their rectangles, normal masks, cumulative pressed-strip offsets
+and utility resources must agree. Geometry should preserve the concept's
+relative scale and reserve title room, not merely fit smaller versions of its
+motifs into a preselected frame.
+
+A larger Bonn source failed in native Kaleidoscope while a compact repeat loaded.
+This establishes an observed compatibility constraint, not a universal size limit.
+Probe unfamiliar geometry early. Structural checks, visual comparison and native
+validation answer different questions; later art edits require validation of the
+new bytes. The [workflow](docs/authoring-a-scheme.md#4-the-workflow) owns the steps.
+
+## 2026-10-31 — Passing every check is not the same as looking good: design the window first
+
+Halcyon (renamed Kingfisher), Castle, Brickworks and Bonn loaded in Kaleidoscope
+and passed authoring checks before they had convincing visual composition.
+Designing cell by cell had left the overall frame weight undefined. A complete
+concept, measured relative proportions and matched-width comparison exposed the
+missing silhouette and material hierarchy. Extraction preserves pose and shading;
+thin rays or mortar may still need final-grid repair.
+
+Warm greys shifted pink at 8 bits. The system-palette simulation is useful for
+spotting collapsed ramps, but is an approximation of native display, not proof.
+Source-derived illustration palettes remain valid within each `cicn` budget.
+
+The control panel's own help explains classic extras: named resources enable
+"Use This Scheme's" options. An Accent Color flag can enable a popup without
+changing `cicn`-themed menus. Native testing also established that dialog/alert
+bodies use Kaleidoscope's grey or scheme colour tables, leading to runtime fix #585.
+
+## 2026-10-30 — Dogfooding the authoring guides: a lesson isn't learned until it's adopted and backported
+
+Building multiple schemes from the guides exposed reusable constraints:
+
+- Explicit named cell lists prevent painting/recipe off-by-one mistakes.
+  Fixed titled-edge pixels spend title room; code-10 art can outlast the title.
+- Stray highlights in a repeating column become visible across the whole bar.
+  Declared uniform groups in `layout.lint` catch this only when the checks run.
+- Pressed-strip offsets come from each window's rectangle list. Omitting zoom
+  can make collapse read a different piece; document and utility strips must
+  match their own geometry. Native utility uses `-14298`, web uses `-14330`.
+- Native transparent-frame clicks, menu-bar clipping and title fitting differ
+  from the web. Compare equal-sized windows before diagnosing a rendering gap.
+
+A helper or corrected rule is useful only when earlier examples adopt it too.
+Put common checks in the shared build path instead of relying on a lessons log.
+
+## 2026-10-30 — Authoring a scheme from scratch exposed rules the reading side never needed
+
+The writer was calibrated by reserializing all 18 corpus forks byte for byte
+and re-encoding all 3,325 corpus `cicn`s to identical pixels. Reader knowledge
+became several concrete authoring rules:
+
+- Only `[first border,last border)` is painted; include explicit starting and
+  closing borders. Corpus-valid unusual recipes must not become writer errors.
+- Title RGB is sampled at the content rectangle's top-left, ignoring its mask;
+  shadow is one pixel right. The title-colour correction is documented in
+  [the tracking note](docs/tracking/title-text-color.md) and pinned reference.
+- Default-ring corners draw after the face; opaque ring interiors erase it.
+- Push art needs usable `cinf` metadata: same-ID is preferred, `cinf 0` is a
+  supported fallback, and absence can make a face unavailable.
+- The encoder stores inverse gamma so authors type intended displayed colours.
+- Imported art needs binary alpha: values 1–127 encode hidden swatches rather
+  than ordinary partial transparency.
+
+MacBinary with Finder type `Colr` and creator `Acid` loaded in Kaleidoscope 2.3.1;
+a raw resource fork alone lacked the Finder identity needed for normal transfer.
+The writer also supports patterns, icons, cursors, sounds and About resources.
+Tool-specific experiments and superseded runtime defects belong in git history;
+current constraints and remaining gaps live in the authoring guides.
 
 ## 2026-10-30 — Measured sizes are outer bounds; the host box is the chrome (#526)
 
