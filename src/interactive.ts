@@ -96,7 +96,7 @@ import { SLIDER_HOST_BODY_BACKGROUND } from './engine/tables/slider.js';
 import { platinumSliderWithLayout, platinumScrollbar } from './platinum.js';
 import { findPositionedAncestor, offsetInContainingBlock, pointInElement, viewportFrame } from './positioning.js';
 import { debug } from './debug.js';
-import { parseHit, regionPath, type HitMode } from './hitRegion.js';
+import { parseHit, regionGeometry, targetIntersections, type RegionGeometry, type NativeRect, type HitMode } from './hitRegion.js';
 import { renderWindow, resolveTitleWidgetRects, type RenderWindowOptions } from './renderWindow.js';
 import type { PixelBuffer } from './pixelBuffer.js';
 import type { SliderComposition, SliderLayout } from './sliderLayout.js';
@@ -756,10 +756,10 @@ function readingOrder(hits: TitleWidgetHit[]): TitleWidgetHit[] {
 /** Successful region preparation, retained only by its committed window. */
 interface RegionPreparation {
   theme: ThemeInput; template: NonNullable<ComposedChrome['structureTemplate']>;
-  pixels: Uint8ClampedArray; key: string; path: string;
+  pixels: Uint8ClampedArray; key: string; geometry: RegionGeometry;
 }
 /** A prepared, not yet committed render; `opts` carries the resolved content size. */
-interface PreparedRender { win: HTMLElement; collapsed: boolean; opts: RenderWindowOptions; extent?: ChromeExtent; region?: string | null; regionCache?: RegionPreparation }
+interface PreparedRender { win: HTMLElement; collapsed: boolean; opts: RenderWindowOptions; extent?: ChromeExtent; region?: string | null; regionCache?: RegionPreparation; geometry?: RegionGeometry }
 
 interface ManagedWindow<Theme extends ThemeInput> {
   contentPort: ManagedContentPort;
@@ -829,6 +829,8 @@ interface ManagedWindow<Theme extends ThemeInput> {
    *  that is not a recipe window, null when the build failed or was empty (HP44). */
   region?: string | null | undefined;
   regionCache?: RegionPreparation | undefined;
+  geometry?: RegionGeometry | undefined;
+  targets?: Map<HTMLElement, { key: string; nodes: HTMLElement[] }> | undefined;
   /** Inside an open `openModal` wrap (HP42). */
   modal?: boolean;
   /** Host found inside a closed shadow root (HP47). */
@@ -918,9 +920,6 @@ export interface ManagedWindowState {
    *  hit-only change is mode-only: no render and no change-listener call. */
   hit?: HitMode | null;
 }
-
-/** No-op, non-passive: see applyHit (HP36). */
-const mainThreadWheel = (): void => {};
 
 /** Controls a managed window's ring may outline in `region` mode (hit-regions HP28). */
 const RING_CONTROLS = '.scriptoscope-titlewidget, .scriptoscope-movehandle, .scriptoscope-growbox, .scriptoscope-window-scrollbar';
@@ -1171,7 +1170,9 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     this.windows[i]!.renderEpoch++;
     this.windows[i]!.widgetGesture?.abort();
     this.windows[i]!.lifetime.abort();
-    this.windows[i]!.layers?.hit.removeEventListener('wheel', mainThreadWheel);
+    for (const surfaces of this.windows[i]!.targets?.values() ?? [])
+      for (const node of surfaces.nodes) node.remove();
+    this.windows[i]!.targets?.clear();
     this.windows[i]!.contentPort.dispose();
     this.windows[i]?.scrollAbort?.abort();
     this.windows[i]?.frameAbort?.abort();
@@ -1463,6 +1464,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
 
   /** Prepare the chrome, then build the structure region for it (hit-regions HP15, HP20, HP22). */
   private async prepareRender(entry: ManagedWindow<Theme>, theme: Theme): Promise<PreparedRender> {
+    const drawnState = entry.active ? 'active' : 'inactive';
     const prepared = await this.prepareChrome(entry, theme);
     const composed = (prepared.win as unknown as { _scriptoscopeComposed?: ComposedChrome })._scriptoscopeComposed;
     // Built whatever the requested or effective mode (HP22), so a later mode-only switch can apply it.
@@ -1471,21 +1473,22 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     try {
       const template = composed.structureTemplate;
       const key = JSON.stringify([composed.layout, composed.fullWidth, composed.fullHeight,
-        prepared.opts.scale ?? 1, prepared.opts.title, composed.titleRegion, prepared.collapsed,
+        prepared.opts.scale ?? 1, prepared.opts.title, composed.titleRegion, prepared.collapsed, drawnState,
         template?.width, template?.height]);
       const cached = entry.regionCache;
       if (template && cached?.theme === theme && cached.template === template && cached.key === key
         && cached.pixels.length === template.data.length && cached.pixels.every((v, i) => v === template.data[i]))
-        return { ...prepared, region: cached.path, regionCache: cached };
+        return { ...prepared, region: cached.geometry.path, geometry: cached.geometry, regionCache: cached };
       // HP8, HP15: the layout that drew this commit carries the collapsed state and title axis (SR6, WD4).
       const layout = composed.layout;
       // SR4's tiny-content special case is not the ordinary solid-C construction.
       const content = layout && !prepared.collapsed && (layout.C.right - layout.C.left > 1 || layout.C.bottom - layout.C.top > 1)
         ? layout.C : undefined;
-      const region = regionPath(composed.structure(), Math.max(1, Math.round(prepared.opts.scale ?? 1)), content);
+      const geometry = regionGeometry(composed.structure(), Math.max(1, Math.round(prepared.opts.scale ?? 1)), content);
+      const region = geometry.path;
       if (!region) throw new Error('empty structure region');
       debug('region', 'built', { title, length: region.length });
-      return { ...prepared, region, ...(template ? { regionCache: { theme, template, pixels: template.data.slice(), key, path: region } } : {}) };
+      return { ...prepared, region, geometry, ...(template ? { regionCache: { theme, template, pixels: template.data.slice(), key, geometry } } : {}) };
     } catch (error) {
       debug('region', 'build failed', { title, error }); // HP44: box hit area for this commit
       return { ...prepared, region: null };
@@ -1552,9 +1555,10 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     }
   }
 
-  private commitRender(entry: ManagedWindow<Theme>, { win, collapsed, opts, extent, region, regionCache }: PreparedRender, notify = true): void {
+  private commitRender(entry: ManagedWindow<Theme>, { win, collapsed, opts, extent, region, regionCache, geometry }: PreparedRender, notify = true): void {
     entry.commitEpoch++;
     entry.region = region;
+    entry.geometry = geometry;
     entry.regionCache = regionCache;
     if (entry.gesture?.ending) entry.gesture = undefined; // A newer captured drag keeps its suspension.
     entry.opts = opts;
@@ -1699,16 +1703,52 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     // the pixels outside S are transparent, so the clip is suspended: WebKit otherwise re-rasterises
     // the clipped layer on every move.
     layers.hit.style.clipPath = region ? (entry.gesture ? 'none' : `path("${entry.region}")`) : '';
-    layers.hit.style.pointerEvents = region ? 'auto' : '';
-    // HPT33/HP36: WebKit's scrolling thread routes a wheel by the layer's area, not the clip, so a wheel
-    // over an excluded pixel never reached the page. A blocking (no-op) listener sends wheels over L2
-    // through the main thread, whose hit test honours the clip. This routes wheel handling through
-    // that thread in every engine; scope it to effective region windows and release it on removal.
-    if (region) layers.hit.addEventListener('wheel', mainThreadWheel, { passive: false });
-    else layers.hit.removeEventListener('wheel', mainThreadWheel);
+    layers.hit.style.pointerEvents = region ? 'none' : '';
     l1.style.pointerEvents = entry.host.style.pointerEvents = region ? 'none' : '';
+    this.syncTargets(entry);
     entry.host.setAttribute('data-scriptoscope-hit-effective', mode);
     this.placeRing(entry);
+  }
+
+  /** Native rectangles inherit the original controls' ancestry, cursor and gesture policy. */
+  private syncTargets(entry: ManagedWindow<Theme>): void {
+    const layer = entry.layers?.hit, geometry = entry.geometry;
+    if (!layer || entry.lifetime.signal.aborted) return;
+    const region = this.hitEffective(entry) === 'region';
+    const content = layer.querySelector<HTMLElement>(':scope > .scriptoscope-content');
+    if (content) content.style.pointerEvents = region ? 'auto' : '';
+    const targets = entry.targets ??= new Map<HTMLElement, { key: string; nodes: HTMLElement[] }>();
+    const install = (parent: HTMLElement, rectangles: NativeRect[]): void => {
+      const key = JSON.stringify(rectangles);
+      let saved = targets.get(parent);
+      if (!saved || saved.key !== key || saved.nodes.some(n => n.parentElement !== parent)) {
+        for (const node of saved?.nodes ?? []) node.remove();
+        const nodes = rectangles.map(r => {
+          const node = document.createElement('span');
+          node.className = 'scriptoscope-native-target';
+          node.setAttribute('aria-hidden', 'true');
+          Object.assign(node.style, { position: 'absolute', display: 'block', margin: '0', padding: '0', border: '0',
+            left: `${r.left}px`, top: `${r.top}px`, width: `${r.right - r.left}px`, height: `${r.bottom - r.top}px` });
+          parent.append(node);
+          return node;
+        });
+        targets.set(parent, saved = { key, nodes });
+      }
+      for (const node of saved.nodes) node.style.pointerEvents = region ? 'auto' : 'none';
+    };
+    install(layer, geometry?.frame ?? []);
+    for (const [key, control] of entry.overlays ?? []) {
+      if (key === 'movehandle') continue; // keyboard handle; frame targets bubble to the window.
+      control.style.pointerEvents = region ? 'none' : '';
+      // All overlay boxes use the same local padding-box coordinates as the chrome canvas.
+      const width = parseFloat(control.style.width) || 0, height = parseFloat(control.style.height) || 0;
+      const left = control.style.left ? parseFloat(control.style.left)
+        : parseFloat(layer.parentElement!.style.width) - parseFloat(control.style.right || '0') - width;
+      const top = control.style.top ? parseFloat(control.style.top)
+        : parseFloat(layer.parentElement!.style.height) - parseFloat(control.style.bottom || '0') - height;
+      install(control, geometry ? targetIntersections(geometry.rectangles, { left, top, right: left + width, bottom: top + height }) : []);
+      for (const canvas of control.querySelectorAll('canvas')) canvas.style.pointerEvents = region ? 'none' : '';
+    }
   }
 
   /** Start or end a captured pointer gesture (ruling A): suspend or restore the clip in this task. */
@@ -1796,6 +1836,9 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
   private dropOverlay(entry: ManagedWindow<Theme>, key: string): void {
     const el = entry.overlays?.get(key);
     if (!el) return;
+    const surfaces = entry.targets?.get(el);
+    for (const node of surfaces?.nodes ?? []) node.remove();
+    entry.targets?.delete(el);
     entry.overlays!.delete(key);
     const focused = entry.host.shadowRoot?.activeElement === el;
     el.remove();
@@ -1948,6 +1991,8 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
         : { bottom: `${composed.frame.bottom * scale}px`, left: `${composed.frame.left * scale}px` }
       ),
     } satisfies Partial<CSSStyleDeclaration>);
+    // Retained bars move before replacement paint; intersect their current box with committed S now.
+    this.syncTargets(entry);
     bar.setAttribute('role', 'scrollbar');
     bar.setAttribute('aria-orientation', axis);
     bar.setAttribute('aria-valuemin', '0');
@@ -1980,7 +2025,11 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
         paintedScrollbars.set(bar, themed);
         // thumbExtent shapes only the procedural fallback, never the engine thumb.
         const buf = themed?.buffer ?? platinumScrollbar({ ...opts, thumbExtent });
-        bar.replaceChildren(bufferToCanvas(buf, scale));
+        const canvas = bufferToCanvas(buf, scale);
+        const previous = bar.querySelector('canvas');
+        if (previous) previous.replaceWith(canvas); else bar.prepend(canvas);
+        Object.assign(bar.style, { width: `${buf.width * scale}px`, height: `${buf.height * scale}px` });
+        this.syncTargets(entry);
         bar.setAttribute('aria-valuenow', String(Math.round(opts.value * 100)));
       } catch (error) {
         if (current() && epoch === paintEpoch && !(error instanceof DOMException && error.name === 'AbortError'))
@@ -2472,8 +2521,12 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
         cursor: 'default', zIndex: '5',
       } satisfies Partial<CSSStyleDeclaration>);
       // HT7: inside the rect, only the pressed strip's mask hits; elsewhere the event passes to the window.
-      const onWidget = (e: MouseEvent): boolean => !composed?.hitWidget
-        || composed.hitWidget(Math.floor((hit.rect.x + e.offsetX) / scale), Math.floor((hit.rect.y + e.offsetY) / scale)) === hit.role;
+      const onWidget = (e: MouseEvent): boolean => {
+        if (!composed?.hitWidget) return true;
+        const point = viewportFrame(win).toLocal(e.clientX, e.clientY);
+        return composed.hitWidget(Math.floor((point.x - win.clientLeft) / scale),
+          Math.floor((point.y - win.clientTop) / scale)) === hit.role;
+      };
       // A keyboard or assistive-technology click (detail 0) has no pointer position: it always acts (DECISIONS #12).
       // A pointer click ending a press that began on an inactive window runs nothing (#614 IP1).
       btn.addEventListener('click', (e) => {

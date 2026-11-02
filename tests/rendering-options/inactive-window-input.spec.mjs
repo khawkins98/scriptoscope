@@ -50,14 +50,17 @@ async function bootIW(page, servers, mode) {
         + f.hosts[name].host.querySelectorAll(':scope > div[style*="dotted"]').length,
       /**
        * A viewport point over `el` (a node in window `name`'s shadow root) that the browser
-       * hit-tests to it, nearest the element's centre. Null when none.
+       * hit-tests to the original control or one of its native target children,
+       * nearest the element's centre. Null when none.
        */
       pointOn(name, el) {
         const host = f.hosts[name].host, r = el.getBoundingClientRect(), cx = r.x + r.width / 2, cy = r.y + r.height / 2;
         let best = null;
         for (let y = Math.floor(r.top); y < r.bottom; y++) for (let x = Math.floor(r.left); x < r.right; x++) {
           const px = x + 0.5, py = y + 0.5;
-          if (document.elementFromPoint(px, py) !== host || host.shadowRoot.elementFromPoint(px, py) !== el) continue;
+          const native = host.shadowRoot.elementFromPoint(px, py);
+          const original = native === el || native?.closest('button,[role=scrollbar]') === el;
+          if (document.elementFromPoint(px, py) !== host || !original) continue;
           const dist = (px - cx) ** 2 + (py - cy) ** 2;
           if (!best || dist < best.dist) best = { x: px, y: py, dist };
         }
@@ -71,7 +74,7 @@ async function bootIW(page, servers, mode) {
       pixel(name, cx, cy) { return Array.from(iw.canvas(name).getContext('2d').getImageData(cx, cy, 1, 1).data); },
       image(name) { const c = iw.canvas(name); return { w: c.width, h: c.height, data: Array.from(c.getContext('2d').getImageData(0, 0, c.width, c.height).data) }; },
       /** Dispatch a pen or touch pointer sequence at the element the browser hit-tests at `p`. */
-      synth(name, p, steps) {
+      synth(name, p, steps, original) {
         const host = f.hosts[name].host, target = host.shadowRoot.elementFromPoint(p.x, p.y) ?? host;
         for (const [type, pointerType, dx = 0, dy = 0] of steps) {
           const init = { bubbles: true, composed: true, cancelable: true, clientX: p.x + dx, clientY: p.y + dy, pointerType, isPrimary: true,
@@ -79,7 +82,7 @@ async function bootIW(page, servers, mode) {
             ...(type === 'click' ? { detail: 1 } : {}) };
           target.dispatchEvent(new PointerEvent(type, init));
         }
-        return target.className || target.tagName;
+        return { native: target.className || target.tagName, originalOwner: !!original && (target === original || target.closest?.('button,[role=scrollbar]') === original) };
       },
     };
   });
@@ -314,7 +317,7 @@ for (const mode of MODES) for (const pointerType of ['touch', 'pen']) {
     await pair(page, { slug: 'windows-95' });
     const p = await pointOn(page, 'B', 'close');
     const tap = [['pointerdown', pointerType], ['pointerup', pointerType], ['click', pointerType]];
-    expect(await iw(page, (iw, f, [p, tap]) => iw.synth('B', p, tap), [p, tap])).toContain('scriptoscope-titlewidget-close');
+    expect(await iw(page, (iw, f, [p, tap]) => iw.synth('B', p, tap, iw.widget('B', 'close')), [p, tap])).toMatchObject({ originalOwner: true });
     await settle(page);
     await expectActivatedAbove(page, `${pointerType} tap`);
     const first = await snap(page, 'B');
@@ -547,7 +550,7 @@ for (const mode of MODES) {
       const cv = iw.canvas('B').getBoundingClientRect(), k = cv.width / iw.canvas('B').width;
       // Canvas pixel (C.r + 1, C.b + 1): inside the grow rect (C.r − 14 … C.r + 2), past the content edges.
       const x = c.right + 1.5 * k, y = c.bottom + 1.5 * k;
-      return { x, y, hit: host.shadowRoot.elementFromPoint(x, y) === iw.grow('B') && document.elementFromPoint(x, y) === host };
+      return { x, y, hit: host.shadowRoot.elementFromPoint(x, y)?.closest('button') === iw.grow('B') && document.elementFromPoint(x, y) === host };
     });
     expect(p.hit, 'the outer-2px point is on B\'s grow overlay').toBe(true);
     const before = await snap(page, 'B');
@@ -567,7 +570,7 @@ for (const mode of MODES) for (const pointerType of ['touch', 'pen']) {
     const drag = [['pointerdown', pointerType], ['pointermove', pointerType, 20, 15], ['pointermove', pointerType, 40, 30], ['pointerup', pointerType, 40, 30]];
     const before = await snap(page, 'B');
     const p = await pointOn(page, 'B', 'grow');
-    expect(await iw(page, (iw, f, [p, drag]) => iw.synth('B', p, drag), [p, drag])).toContain('scriptoscope-growbox');
+    expect(await iw(page, (iw, f, [p, drag]) => iw.synth('B', p, drag, iw.grow('B')), [p, drag])).toMatchObject({ originalOwner: true });
     await settle(page);
     await expectActivatedAbove(page, `${pointerType} grow drag`);
     const after = await snap(page, 'B');

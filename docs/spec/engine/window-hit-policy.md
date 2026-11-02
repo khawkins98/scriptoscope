@@ -36,6 +36,20 @@ wheel routing. If retaining it, document its main-thread routing cost and report
 same-run wheel measurements; synthetic dispatch alone cannot establish native
 scrolling-thread performance.
 
+The replacement contract is defined in
+[`window-wheel-targets.md`](window-wheel-targets.md). It separates the paint
+clip from native hit surfaces while requiring original-control coordinate
+equivalence, trusted wheel ownership, escaped-content clipping and existing
+identity, gesture and lifetime guarantees. A routing-only prototype does not
+waive any of those requirements or the performance limits below.
+
+Retained scrollbar placement changes require synchronous updates to the
+original control's native target intersections with the current committed
+structure region, even while replacement paint is pending. The exact runs
+and holes, original control identity and current painted control actions
+remain binding; placement alone does not rebuild the region. Stale work and
+work from an ended window lifetime cannot restore obsolete targets or actions.
+
 ## Manager disposal
 
 `WindowManager.dispose(): void` releases all of its managed windows through the

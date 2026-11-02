@@ -12,9 +12,29 @@ class Element extends EventTarget {
   attributes = new Map();
   children = [];
   parentNode = null;
+  constructor(tag = 'div') { super(); this.tagName = tag.toUpperCase(); }
   setAttribute(key, value) { this.attributes.set(key, value); }
   scrollTo({ top, left }) { if (top != null) this.scrollTop = top; if (left != null) this.scrollLeft = left; }
-  appendChild(child) { child.remove(); child.parentNode = this; this.children.push(child); return child; }
+  insertBefore(child, reference) {
+    child.remove(); child.parentNode = this;
+    const index = reference == null ? this.children.length : this.children.indexOf(reference);
+    if (index < 0) throw new Error('Reference child is absent');
+    this.children.splice(index, 0, child);
+    // Count published canvases, independent of the DOM replacement API used.
+    if (child.tagName === 'CANVAS') this.paints = (this.paints ?? 0) + 1;
+    return child;
+  }
+  appendChild(child) { return this.insertBefore(child, null); }
+  prepend(...children) { const reference = this.children[0] ?? null; for (const child of children) this.insertBefore(child, reference); }
+  replaceWith(...children) {
+    const parent = this.parentNode; if (!parent) return;
+    const reference = parent.children[parent.children.indexOf(this) + 1] ?? null;
+    this.remove(); for (const child of children) parent.insertBefore(child, reference);
+  }
+  querySelector(selector) {
+    if (selector !== 'canvas') throw new Error(`Unsupported fixture selector: ${selector}`);
+    return this.children.find(child => child.tagName === 'CANVAS') ?? null;
+  }
   remove() {
     if (!this.parentNode) return;
     this.parentNode.children.splice(this.parentNode.children.indexOf(this), 1);
@@ -23,7 +43,6 @@ class Element extends EventTarget {
   replaceChildren(...children) {
     for (const child of [...this.children]) child.remove();
     for (const child of children) this.appendChild(child);
-    this.paints = (this.paints ?? 0) + 1;
   }
 }
 function fixture(t, encoder) {
@@ -37,7 +56,7 @@ function fixture(t, encoder) {
   t.after(() => Object.assign(globalThis, priorFrames));
   t.mock.method(console, 'error', (...args) => errors.push(args));
   const priorDocument = globalThis.document;
-  globalThis.document = { createElement: () => new Element() };
+  globalThis.document = { createElement: tag => new Element(tag) };
   t.after(() => { globalThis.document = priorDocument; });
   const owner = createRasterAssetOwner(['face', 'replacement'].map(path => ({ path, width: 1, height: 1, rgba: new Uint8Array([1, 2, 3, 255]) })),
     (_rgba, _width, _height, path) => { encodes++; begin(); return encoder ? encoder(path) : held; }, true);
@@ -129,8 +148,8 @@ for (const reversed of [false, true]) test(`scrollbar value changes invalidate e
   const priorImage = globalThis.Image;
   globalThis.Image = class { naturalWidth = 1; naturalHeight = 1; async decode() {} };
   t.after(() => { globalThis.Image = priorImage; });
-  globalThis.document.createElement = () => {
-    const element = new Element();
+  globalThis.document.createElement = tag => {
+    const element = new Element(tag);
     element.getContext = (_kind, opts) => opts?.willReadFrequently ? {
       drawImage() {}, getImageData: () => ({ data: new Uint8ClampedArray([1, 2, 3, 255]) }),
     } : null;

@@ -117,7 +117,7 @@ Values are trimmed and case-insensitive. An empty or unknown value is ignored (t
 - The deactivated window re-renders with its inactive art and loses the active z-index boost but keeps its order. The page always gets the event: the listeners are passive and never cancel or stop it.
 - Presses the document never sees (other applications, browser UI, cross-origin iframes), the browser window losing focus, and Tab moving focus out of every window don't deactivate.
 
-**Layers.** Inside the shadow root, `part="window"` holds a clipped `.scriptoscope-hit-layer` (canvas, content, title widgets, move handle, grow box, scroll bars) and an unclipped `.scriptoscope-decoration` (focus ring, resize outline). In effective `region` mode the hit layer carries a `clip-path: path(…)` and `pointer-events: auto`, and the host and `part="window"` get `pointer-events: none`. Every host carries `clip-path: none` inline, so consumer CSS can't clip it. The `::part(window)` shadow is unchanged and never catches clicks.
+**Layers.** Inside the shadow root, `part="window"` holds a clipped `.scriptoscope-hit-layer` (canvas, content, title widgets, move handle, grow box, scroll bars) and an unclipped `.scriptoscope-decoration` (focus ring, resize outline). In effective `region` mode the hit layer carries a `clip-path: path(…)`; the host, `part="window"`, hit layer and chrome paint are pointer-transparent. Native targets cover the region's frame and the region-bounded hit areas inside the original controls, while the content viewport restores native pointer participation. The original controls retain keyboard behavior, focus and identity; private target children add no tab stops. Every host carries `clip-path: none` inline, so consumer CSS can't clip it. The `::part(window)` shadow is unchanged and never catches clicks.
 
 **Content that escapes the content box** (for example `position: fixed` children) is clipped to the region in `region` mode. Put menus and tooltips in the top layer (`popover`, `<dialog>.showModal()`, native `<select>`) or outside the window, or use `box`.
 
@@ -443,15 +443,25 @@ Keyboard equivalents for every pointer gesture:
 
 ### Wheel routing and performance
 
-Region windows carry a non-passive no-op wheel listener on the clipped hit layer.
-This works around WebKit routing wheel input by the layer's rectangular area
-instead of its clip: without it, wheels over transparent frame gaps can fail to
-scroll the page beneath. The listener is currently retained in every engine
-because a reliable behavioral detection has not been established. It makes
-native wheel routing over this layer, including slotted content scrollers, depend
-on the main thread in Chromium and Firefox too. Idle-runner latency measurements
-cannot establish the cost when that thread is busy. `box` mode removes this
-listener. This workaround does not activate an inactive window when scrolling.
+Region windows use [native window targets](./spec/engine/window-wheel-targets.md)
+while retaining the paint/content clip. The broad clipped layer is
+pointer-transparent; native region-bounded frame targets and children of the
+original chrome controls receive trusted input. Pointer decisions use the
+original control's coordinates, including under scale and transforms, rather
+than offsets relative to a new child. Fixed/escaped content remains clipped
+to the region. Mode changes, commits and disposal maintain or release the
+targets with their window lifetime.
+
+This replaces the routing-only non-passive no-op wheel listener on the hit
+layer without user-agent selection or synthetic forwarding. Gap wheels reach
+the underlying scroll owner; native content and nested scrollers retain their
+normal ownership where the existing themed-scrollbar policy does not intercept
+input. Themed scrollbar consumption and `preventDefault` behavior are unchanged.
+Wheel input does not activate an inactive window. Native ownership and further
+movement for continued input are preserved; browsers need not scroll identical
+pixels per delta. Removing the routing-only listener does not establish a
+compositor latency bound or remove consumer/themed non-passive handlers.
+Idle-runner callback measurements cannot establish cost under contention.
 
 During a captured frame drag or grow-box resize the clip is suspended for
 WebKit's rendering cost. A resize that finishes preparation during a newer frame
