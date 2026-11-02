@@ -50,7 +50,7 @@ function measurementContext(): CanvasRenderingContext2D | null {
   try {
     const canvas = document.createElement('canvas');
     // Metrics need no pixel backing store.
-    canvas.width = 0; canvas.height = 0;
+    canvas.height = 0; canvas.width = 0;
     return canvas.getContext('2d');
   } catch (error) {
     unavailable(error instanceof Error ? error.message : 'host context failure');
@@ -97,6 +97,8 @@ function envelope(tm: TextMetrics, style: TitleFontStyle, x: number, baseline: n
 
 function scratch(width: number, height: number, style: TitleFontStyle) {
   const canvas = document.createElement('canvas');
+  // Drop the default backing store before widening; every resize stays bounded.
+  canvas.height = 0;
   canvas.width = width; canvas.height = height;
   if (canvas.width !== width || canvas.height !== height) unavailable('scratch allocation');
   const ctx = canvas.getContext('2d');
