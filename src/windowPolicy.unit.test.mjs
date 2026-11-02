@@ -80,7 +80,21 @@ test('PM1 title measurement and drawing share the bold face', () => {
   globalThis.document = { createElement: () => ({ getContext: () => ({
     set font(value) { fonts.push(value); },
     measureText: () => ({ width: 8, actualBoundingBoxAscent: 7, actualBoundingBoxDescent: 2 }),
-    fillText() {}, getImageData: () => ({ data: new Uint8ClampedArray(9 * 9 * 4) }),
+    glyph: null,
+    fillText(text, x, y) { this.glyph = { x, y }; },
+    getImageData(x, y, width, height) {
+      const data = new Uint8ClampedArray(width * height * 4);
+      // The synthetic advance is eight pixels, with seven ascent and two descent rows.
+      for (let row = 0; row < height; row++) {
+        for (let col = 0; col < width; col++) {
+          if (this.glyph && x + col >= this.glyph.x && x + col < this.glyph.x + 8 &&
+              y + row >= this.glyph.y - 7 && y + row < this.glyph.y + 2) {
+            data[(row * width + col) * 4 + 3] = 255;
+          }
+        }
+      }
+      return { data, width, height };
+    },
   }) }) };
   try {
     measureTitle('Tool', 12, { bold: true });
