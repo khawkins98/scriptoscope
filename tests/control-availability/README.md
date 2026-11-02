@@ -203,3 +203,15 @@ prior review and the 1.0.18 file hash; `controls459/peel-611.mjs` peels the bump
 off so the 1.0.18 and earlier correction proofs keep verifying their own frozen state.
 The 1.0.18 review is archived verbatim; the 1.0.19 transition carries the independent
 Tier-1 review receipt of PR #615; the test author did not self-approve.
+
+Inventory 1.0.20 (PR #540, merged after #608/#611) refreshes only the nine
+`docs/spec/kdef231-reference.md` document hashes (`bf390065` -> `9c73533a`)
+after its title-colour note was updated to the implemented TC1–TC5 sample. The
+#611 dispatch-label corrections and #608 no-cinf unavailable outcomes remain
+unchanged. All 27 case inputs, policy rules, payload pins and case-cited addresses
+are preserved, and the complete 1.0.19 review is archived verbatim.
+`controls459/hash-only-bumps.mjs` peels this exact prose edit and inventory bump
+before the unchanged 611/608 helpers verify their historical receipts. The new
+transition carries the independent Tier 0 hash-only approval of `/root/astra_bonn`
+(2026-11-01), including six passing frozen proofs and in-memory mutation probes;
+it promotes no availability, native or pixel-fidelity claim.

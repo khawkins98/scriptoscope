@@ -145,6 +145,9 @@ export async function promoteThemePicker(
     el.appendChild(tile);
     tiles.set(t.slug, tile);
   }
+  if (tiles.size > 0 && !tiles.has(deps.initialSlug)) {
+    tiles.values().next().value?.setAttribute('tabindex', '0');
+  }
 
   // Keyboard nav — the ARIA APG tablist pattern. Arrow/Home/End move focus +
   // activate the tile (consumers expect a single key to switch themes).
@@ -152,9 +155,11 @@ export async function promoteThemePicker(
     const all = [...el.querySelectorAll<HTMLButtonElement>('.scriptoscope-theme-picker-tile')];
     if (!all.length) return;
     const i = all.findIndex((t) => t === document.activeElement);
-    let next = i;
-    if (e.key === 'ArrowRight') next = (i + 1 + all.length) % all.length;
-    else if (e.key === 'ArrowLeft') next = (i - 1 + all.length) % all.length;
+    const current = i >= 0 ? i : all.findIndex((t) => t.getAttribute('tabindex') === '0');
+    const start = current >= 0 ? current : 0;
+    let next = start;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next = (start + 1) % all.length;
+    else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') next = (start - 1 + all.length) % all.length;
     else if (e.key === 'Home') next = 0;
     else if (e.key === 'End') next = all.length - 1;
     else return;
@@ -368,10 +373,19 @@ export async function promoteThemePicker(
  *  handle.retheme(slug) from a different control). Called by the scanner's
  *  retheme cascade so all promoted pickers stay in lockstep. */
 export function syncThemePickerActive(el: HTMLElement, slug: string): void {
-  for (const tile of el.querySelectorAll<HTMLButtonElement>('.scriptoscope-theme-picker-tile')) {
+  const tiles = Array.from(el.querySelectorAll<HTMLButtonElement>('.scriptoscope-theme-picker-tile'));
+  let hasActive = false;
+  for (const tile of tiles) {
     const isActive = tile.dataset.slug === slug;
+    if (isActive) hasActive = true;
     tile.classList.toggle('active', isActive);
     tile.setAttribute('aria-selected', isActive ? 'true' : 'false');
     tile.setAttribute('tabindex', isActive ? '0' : '-1');
+  }
+  // When no tile is active in this picker (e.g. multi-picker strip setups
+  // where the selected theme is in another strip), ensure the first tile
+  // remains tab-focusable (tabindex="0") so keyboard/SR users can Tab in.
+  if (!hasActive && tiles.length > 0) {
+    tiles[0]?.setAttribute('tabindex', '0');
   }
 }

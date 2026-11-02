@@ -101,6 +101,19 @@ for (const slug of await readdir(themesDir)) {
   }
 }
 
+// First-party schemes (authoring/schemes/<slug>/, original designs) for the
+// showcase's separate "First-party schemes" strip. Only the built fork and
+// meta.json ship; the build scripts, concepts and classic screenshots don't.
+// They stay out of themes/ so the corpus manifest and gates never list them.
+const authoredDir = resolve(root, 'authoring/schemes');
+for (const slug of await readdir(authoredDir)) {
+  const srcDir = resolve(authoredDir, slug);
+  if (!(await exists(resolve(srcDir, 'scheme.rsrc')))) continue;
+  const dstDir = resolve(root, 'dist/demo/authoring/schemes', slug);
+  await mkdir(dstDir, { recursive: true });
+  for (const f of ['scheme.rsrc', 'meta.json']) await copy(resolve(srcDir, f), resolve(dstDir, f));
+}
+
 // ── Library files for integrators ──────────────────────────────────────
 // The published GH Pages deploy doubles as a stable URL host for the
 // runtime itself — consumers who want to integrate Scriptoscope into
