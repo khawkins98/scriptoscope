@@ -1,5 +1,24 @@
 # Learnings
 
+## 2026-11-02 — Calibrate browser title references independently (#634)
+
+The long title ending in `g` does not force a smaller full-request style than
+its displayed prefix in Firefox/WebKit with the harness fonts, although it
+does in Chromium. An assertion that every engine must discriminate this input
+therefore confuses a fixture limitation with a renderer failure. Retain it as
+ordinary positive coverage and establish discriminatory inputs from independent
+unclipped raster references before comparing runtime output. Preserve strict
+face, style, truncation, glyph-row, clip and plate checks and meaningful negatives.
+
+A stronger cedilla input exposed a separate substitute-font defect: local
+Firefox/WebKit can paint fallback ink outside the bounds reported by text
+metrics. The rejected full-width raster observer also grew memory with the
+untruncated request. These findings remain open in [#637](https://github.com/khawkins98/scriptoscope/issues/637),
+with original failures and platform limits preserved. A calibration repair does
+not resolve them or prove all arbitrary-font ink fits. A complete runtime fix
+needs bounded resources and an explicit finite-coverage support premise;
+transparent sampled borders alone cannot certify arbitrary disconnected ink.
+
 ## 2026-11-02 — Native target ancestry does not preserve pointer coordinates (#631)
 
 A pointer-transparent clipped layer can keep native descendants interactive,

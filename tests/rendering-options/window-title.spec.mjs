@@ -13,10 +13,11 @@ const archives = Object.fromEntries(SLICED.map(slug => [slug, ['scheme.sit', 'sc
   .find(f => existsSync(new URL(`../../themes/${slug}/${f}`, import.meta.url)))]));
 const PLATE = ['evolution', 'dolphin-som', 'beos-r503'];
 const TOPS = ['1990', 'windows-95', '1984', 'floppies', 'windows-31'];
-// The final descender is beyond the truncated prefix: TF3 must resolve the full
-// requested title, rather than choosing a larger style after truncation.
+// Retain the ordinary descender as positive coverage. The separate accented
+// ascender exercises full-request fit beyond the truncated prefix (TF3).
 const DESCENDER_TAIL = `Tools ${'WINDOW '.repeat(12)}g`;
-const TITLES = ['Tools', 'Hdgy Window Title', 'A much longer window title that will not fit', DESCENDER_TAIL];
+const ASCENDER_TAIL = `Tools ${'WINDOW '.repeat(12)}Å`;
+const TITLES = ['Tools', 'Hdgy Window Title', 'A much longer window title that will not fit', DESCENDER_TAIL, ASCENDER_TAIL];
 for (const mode of ['source', 'built']) {
   test(`${mode}: title ink stays in its plate, keeps every glyph row and never leaves the decoded clip`, async ({ page, servers }, info) => {
     test.setTimeout(300_000);
@@ -83,7 +84,7 @@ for (const mode of ['source', 'built']) {
       expect.soft(row.outsideClip, `${label}: ink outside t4p widened by 2 (${JSON.stringify(row.t4p)} vs ${JSON.stringify(row.box)})`).toBe(0);
     }
     expect(rows.filter(r => r.n > 0).length).toBeGreaterThan(rows.length * 0.8);
-    expect(rows.some(r => r.title === DESCENDER_TAIL && r.key === 'titled-utility-window' && r.displayed !== r.title && r.style.size < r.prefixOnlySize),
+    expect(rows.some(r => r.title === ASCENDER_TAIL && r.key === 'titled-utility-window' && r.displayed !== r.title && r.style.size < r.prefixOnlySize),
       'TF3 calibration: resolving only the truncated prefix would select a larger, wrong style').toBe(true);
     // A: the plate fits the drawn text.
     const plateRows = rows.filter(r => PLATE.includes(r.slug));
@@ -102,6 +103,65 @@ for (const mode of ['source', 'built']) {
   });
 }
 
+// Same requested title as the positive matrix; force only its final truncated
+// draw to the independently resolved prefix-only style. Candidate rasters and
+// layout still see the full request, so this is a painter-boundary sensitivity
+// check, not a second implementation of title selection.
+for (const mode of ['source', 'built']) {
+  test(`${mode}: title references reject the same input drawn at the prefix-only style`, async ({ page, servers }, info) => {
+    const rows = [];
+    for (const mutated of [false, true]) {
+      await openHarness(page, servers, mode);
+      rows.push(await page.evaluate(async ({ mode, title, mutated }) => {
+        const api = await import(mode === 'built' ? '/dist/scriptoscope.js' : '/src/index.ts');
+        const R = await import('/tests/rendering-options/window-title-rules.mjs');
+        const theme = await api.loadTheme('/themes/1984');
+        R.isolateGlyphs(theme);
+        const key = 'titled-utility-window', clipHeight = R.topTitleHeight(theme.manifest.windowTypes[key]);
+        const required = R.resolveTitleStyle(title, key, clipHeight);
+        const fillText = CanvasRenderingContext2D.prototype.fillText;
+        const calls = [];
+        try {
+          CanvasRenderingContext2D.prototype.fillText = function titleDraw(text, ...args) {
+            if (text !== title && text.endsWith('…')) {
+              // Keep the independent prefix raster outside the mutation.
+              let prefixOnly;
+              CanvasRenderingContext2D.prototype.fillText = fillText;
+              try { prefixOnly = R.resolveTitleStyle(text, key, clipHeight); }
+              finally { CanvasRenderingContext2D.prototype.fillText = titleDraw; }
+              if (mutated) this.font = prefixOnly.reference.font;
+              calls.push({ text, style: R.titleFontStyle(this.font), prefixOnly: prefixOnly.reference.fontStyle });
+            }
+            return fillText.call(this, text, ...args);
+          };
+          const win = await api.renderWindow(theme, { title, width: 240, height: 120, windowType: key, state: 'active' });
+          const c = win._scriptoscopeComposed;
+          return { mutated, title, required: required.reference.fontStyle, calls, t4p: c.titleRect, plate: R.plateOf(c) };
+        } finally {
+          CanvasRenderingContext2D.prototype.fillText = fillText;
+          theme.dispose?.();
+        }
+      }, { mode, title: ASCENDER_TAIL, mutated }));
+    }
+    await attachObservations(info, 'window-title', `${mode}-prefix-only`, { mode, rows });
+    for (const row of rows) {
+      const actual = row.calls.at(-1);
+      expect(actual, 'truncated title draw reached the painter').toBeDefined();
+      expect(actual.text).not.toBe(row.title);
+      expect(actual.prefixOnly.size, 'prefix-only style is a larger wrong size').toBeGreaterThan(row.required.size);
+      if (row.mutated) {
+        expect(actual.style, 'prefix-only style mutation reached the painter').toEqual(actual.prefixOnly);
+        expect(actual.style, 'same-input prefix-only style rejected by exact style oracle').not.toEqual(row.required);
+      } else {
+        expect.soft(actual.style, 'same-input full-title style accepted').toEqual(row.required);
+      }
+    }
+    expect(rows[1].t4p, 'mutation preserves the decoded clip').toEqual(rows[0].t4p);
+    expect(rows[1].plate, 'mutation preserves the plate').toEqual(rows[0].plate);
+    expect(rows[1].calls.at(-1).text, 'mutation draws the same truncated text').toBe(rows[0].calls.at(-1).text);
+  });
+}
+
 // Negative calibration at the browser font boundary, with no runtime edits.
 // Reload between cases so a cached glyph cannot conceal the forced wrong face.
 for (const mode of ['source', 'built']) {
@@ -115,7 +175,9 @@ for (const mode of ['source', 'built']) {
         const theme = await api.loadTheme('/themes/1984');
         const decoded = await api.loadKaleidoscopeScheme(new Uint8Array(await (await fetch(`/themes/1984/${file}`)).arrayBuffer()), { encodeAssets: false });
         R.isolateGlyphs(theme);
-        const wt = decoded.manifest.windowTypes[key], title = 'Tools';
+        // The accented fallback changes exact face geometry where primary Tools
+        // can have equal extents after browser synthetic bolding.
+        const wt = decoded.manifest.windowTypes[key], title = 'Tools Å';
         const clipHeight = R.topTitleHeight(wt);
         const required = R.resolveTitleStyle(title, key, clipHeight);
         const opposite = required.face === 'bold' ? 'normal' : 'bold';
