@@ -112,7 +112,9 @@ jobs:
       # Match the Actions-mounted home owner, as in Playwright's CI example.
       # Firefox refuses a root process with a non-root-owned home directory.
       options: --ipc=host --user 1001
-    timeout-minutes: 20
+    # #634: serial WebKit projects to ~25m; allow 30% variance plus 2m for
+    # report upload/cleanup, rounded up, without changing per-test budgets.
+    timeout-minutes: 35
     strategy:
       fail-fast: false
       matrix:
