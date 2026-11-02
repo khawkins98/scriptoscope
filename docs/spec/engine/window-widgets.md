@@ -450,6 +450,9 @@ the decoded clip, TF1's horizontal fit/truncation contract and the existing
 text/shadow paint order remain unchanged. They add no original typography or
 device-equivalence claim.
 
+For the meaning of **all main glyph ink**, including nonzero-alpha raster
+rows of fallback glyphs, see [Substitute window-title ink fit](window-title-fit.md).
+
 ## 5. Geometry
 
 - **Placed extent.** `E = (S[N] − S[0]) + (C.right − C.left) − (A.right − A.left)`
