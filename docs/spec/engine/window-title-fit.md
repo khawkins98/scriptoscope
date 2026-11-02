@@ -150,9 +150,11 @@ A concrete finite construction follows. Let `M` be the closed actual metric
 rectangle in absolute raster coordinates at the unchanged pen and baseline,
 with ordered signed endpoints on each axis. Either extent may be zero.
 Let `g = candidate size + 1`, and let `E` be the existing outward-rounded
-expanded envelope. Existing recipe candidates have positive integer sizes at
-most 16, including the preferred-font pin, so `g <= 17`. This uses the existing
-size domain and P1 allowance; it introduces no title, font or work cap.
+expanded envelope. Existing recipe preferred sizes are no greater than 16,
+including the preferred-font pin. An already fitting preferred size may be
+fractional; reduced candidates retain the positive-integer search. Thus
+`0 < g <= 17` and `ceil(g) <= 17`. This preserves the existing size domain and
+P1 allowance; it introduces no title, font or work cap.
 
 Partition `E` into disjoint integer half-open query rectangles of width at
 most `4096 - 2` and height at most `32 - 2`. Keep the smaller final strips
@@ -168,11 +170,11 @@ Clear the reused observation scratch before each complete-request draw.
 Do not replace the pen or baseline with the anchor or a raster/crop origin.
 
 The per-axis paint extent is at most
-`max(v - u + 2, g + 3)`. If the query interval meets the closed metric interval,
+`max(v - u + 2, ceil(g) + 3)`. If the query interval meets the closed metric interval,
 the projected anchor lies in the query's closure and the extent is `v - u + 2`.
 Otherwise the anchor is the nearest metric endpoint; outward rounding of `E`
-and rounding that endpoint cost at most one further pixel beyond `g`, giving
-the bound `g + 3` including the two guard pixels. Thus the horizontal extent
+and rounding that endpoint cost at most one further pixel beyond `ceil(g)`,
+giving the bound `ceil(g) + 3` including the two guard pixels. Thus the horizontal extent
 is at most 4096 and the vertical extent at most 32. Applying this argument on
 each axis covers the metric core, either side's halo, corners and partial
 queries. Negative bearings, signed ascent/descent and zero-width, zero-height
