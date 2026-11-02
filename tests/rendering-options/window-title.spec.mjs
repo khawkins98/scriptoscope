@@ -13,16 +13,17 @@ const archives = Object.fromEntries(SLICED.map(slug => [slug, ['scheme.sit', 'sc
   .find(f => existsSync(new URL(`../../themes/${slug}/${f}`, import.meta.url)))]));
 const PLATE = ['evolution', 'dolphin-som', 'beos-r503'];
 const TOPS = ['1990', 'windows-95', '1984', 'floppies', 'windows-31'];
-// The final descender is beyond the truncated prefix: TF3 must resolve the full
-// requested title, rather than choosing a larger style after truncation.
-const DESCENDER_TAIL = `Tools ${'WINDOW '.repeat(12)}g`;
+// The final cedilla uses the bundled Virtue fallback and stays beyond the
+// truncated prefix. Unlike primary-font g, its ink exceeds short utility clips
+// across engines: TF3 must resolve the full request before truncation.
+const DESCENDER_TAIL = `Tools ${'WINDOW '.repeat(12)}Ç`;
 const TITLES = ['Tools', 'Hdgy Window Title', 'A much longer window title that will not fit', DESCENDER_TAIL];
 for (const mode of ['source', 'built']) {
   test(`${mode}: title ink stays in its plate, keeps every glyph row and never leaves the decoded clip`, async ({ page, servers }, info) => {
     test.setTimeout(300_000);
     info.annotations.push({ type: 'fidelity-assertion', description: 'window.title-fit' });
     await openHarness(page, servers, mode);
-    const rows = await page.evaluate(async ({ mode, archives, TITLES, PLATE }) => {
+    const rows = await page.evaluate(async ({ mode, archives, TITLES, PLATE, DESCENDER_TAIL }) => {
       const api = await import(mode === 'built' ? '/dist/scriptoscope.js' : '/src/index.ts');
       const R = await import('/tests/rendering-options/window-title-rules.mjs');
       const out = [];
@@ -37,7 +38,9 @@ for (const mode of ['source', 'built']) {
           for (const state of ['active', 'inactive']) {
             const a = d.assets.find(x => x.path === wt.chrome[state]), cicn = new api.PixelBuffer(a.width, a.height, new Uint8ClampedArray(a.rgba));
             const widths = PLATE.includes(slug) ? [r - l, r - l + 40, 240] : [240];
-            for (const width of widths) for (const title of TITLES) {
+            // Keep the same fallback tail whole once, so its faint outer row
+            // is checked directly as well as through TF3 before truncation.
+            for (const title of TITLES) for (const width of widths.concat(slug === '1984' && title === DESCENDER_TAIL ? [1200] : [])) {
               const calls = [], fillText = CanvasRenderingContext2D.prototype.fillText;
               CanvasRenderingContext2D.prototype.fillText = function (text, ...args) { calls.push({ text, font: this.font }); return fillText.call(this, text, ...args); };
               let win;
@@ -66,7 +69,7 @@ for (const mode of ['source', 'built']) {
         theme.dispose?.();
       }
       return out;
-    }, { mode, archives, TITLES, PLATE });
+    }, { mode, archives, TITLES, PLATE, DESCENDER_TAIL });
     await attachObservations(info, 'window-title', mode, { mode, rows });
     // Every rendered title was isolated and drew ink.
     for (const row of rows) {
@@ -78,7 +81,8 @@ for (const mode of ['source', 'built']) {
         expect.soft(row.displayed, `${label}: TF1 longest fitting title at the resolved style`).toBe(row.expectedDisplayed);
       }
       // At 240 px every sampled window has room; narrower plates may drop the title (TT3).
-      if (row.width === 240) expect.soft(row.n, `${label}: ink`).toBeGreaterThan(0);
+      if (row.width === 240 || row.width === 1200) expect.soft(row.n, `${label}: ink`).toBeGreaterThan(0);
+      if (row.width === 1200) expect.soft(row.displayed, `${label}: fallback tail remains whole`).toBe(row.title);
       // C: TX4's clip is the decoded one.
       expect.soft(row.outsideClip, `${label}: ink outside t4p widened by 2 (${JSON.stringify(row.t4p)} vs ${JSON.stringify(row.box)})`).toBe(0);
     }
@@ -99,6 +103,65 @@ for (const mode of ['source', 'built']) {
       expect.soft(row.box.b - row.box.t, `${label}: ${ref.face} glyph rows drawn`).toBe(ref.box.b - ref.box.t);
       expect.soft(row.box.t >= row.t4p.y && row.box.b <= row.t4p.y + row.t4p.h, `${label}: ink inside the title rect rows`).toBe(true);
     }
+  });
+}
+
+// Same requested title as the positive matrix; force only its final truncated
+// draw to the independently resolved prefix-only style. Candidate rasters and
+// layout still see the full request, so this is a painter-boundary sensitivity
+// check, not a second implementation of title selection.
+for (const mode of ['source', 'built']) {
+  test(`${mode}: title references reject the same input drawn at the prefix-only style`, async ({ page, servers }, info) => {
+    const rows = [];
+    for (const mutated of [false, true]) {
+      await openHarness(page, servers, mode);
+      rows.push(await page.evaluate(async ({ mode, title, mutated }) => {
+        const api = await import(mode === 'built' ? '/dist/scriptoscope.js' : '/src/index.ts');
+        const R = await import('/tests/rendering-options/window-title-rules.mjs');
+        const theme = await api.loadTheme('/themes/1984');
+        R.isolateGlyphs(theme);
+        const key = 'titled-utility-window', clipHeight = R.topTitleHeight(theme.manifest.windowTypes[key]);
+        const required = R.resolveTitleStyle(title, key, clipHeight);
+        const fillText = CanvasRenderingContext2D.prototype.fillText;
+        const calls = [];
+        try {
+          CanvasRenderingContext2D.prototype.fillText = function titleDraw(text, ...args) {
+            if (text !== title && text.endsWith('…')) {
+              // Keep the independent prefix raster outside the mutation.
+              let prefixOnly;
+              CanvasRenderingContext2D.prototype.fillText = fillText;
+              try { prefixOnly = R.resolveTitleStyle(text, key, clipHeight); }
+              finally { CanvasRenderingContext2D.prototype.fillText = titleDraw; }
+              if (mutated) this.font = prefixOnly.reference.font;
+              calls.push({ text, style: R.titleFontStyle(this.font), prefixOnly: prefixOnly.reference.fontStyle });
+            }
+            return fillText.call(this, text, ...args);
+          };
+          const win = await api.renderWindow(theme, { title, width: 240, height: 120, windowType: key, state: 'active' });
+          const c = win._scriptoscopeComposed;
+          return { mutated, title, required: required.reference.fontStyle, calls, t4p: c.titleRect, plate: R.plateOf(c) };
+        } finally {
+          CanvasRenderingContext2D.prototype.fillText = fillText;
+          theme.dispose?.();
+        }
+      }, { mode, title: DESCENDER_TAIL, mutated }));
+    }
+    await attachObservations(info, 'window-title', `${mode}-prefix-only`, { mode, rows });
+    for (const row of rows) {
+      const actual = row.calls.at(-1);
+      expect(actual, 'truncated title draw reached the painter').toBeDefined();
+      expect(actual.text).not.toBe(row.title);
+      expect(actual.prefixOnly.size, 'prefix-only style is a larger wrong size').toBeGreaterThan(row.required.size);
+      if (row.mutated) {
+        expect(actual.style, 'prefix-only style mutation reached the painter').toEqual(actual.prefixOnly);
+        expect(actual.style, 'same-input prefix-only style rejected by exact style oracle').not.toEqual(row.required);
+      } else {
+        expect.soft(actual.style, 'same-input full-title style accepted').toEqual(row.required);
+      }
+    }
+    expect(rows[1].t4p, 'mutation preserves the decoded clip').toEqual(rows[0].t4p);
+    expect(rows[1].plate, 'mutation preserves the plate').toEqual(rows[0].plate);
+    expect(rows[1].calls.at(-1).text, 'mutation draws the same truncated text').toBe(rows[0].calls.at(-1).text);
   });
 }
 
