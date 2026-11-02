@@ -5,8 +5,8 @@
 A pointer-transparent clipped layer can keep native descendants interactive,
 but native wheel ownership must be checked separately from DOM hit testing.
 Escaped fixed content and chrome controls overlapping frame gaps can change
-the native routing result. A passing simple gap sample is not a generic
-replacement for the retained wheel workaround.
+the native routing result. During investigation, a passing simple gap sample
+was not enough to replace the retained wheel workaround.
 
 Putting exact native target children inside an existing button preserves its
 event ancestry and node identity, but changes the target-relative `offsetX/Y`
@@ -23,8 +23,9 @@ movement for continued valid input. Keep control calibration failures and
 routing failures distinct. Idle observations and a one-shot DOM prototype
 establish neither compositor cost under contention nor lifecycle correctness;
 the [native-target contract](./docs/spec/engine/window-wheel-targets.md) keeps
-those obligations explicit and leaves the current workaround in place until
-a complete runtime replacement is validated.
+those obligations explicit. Routing observations alone did not authorize
+removing the workaround; the complete runtime replacement needed its own
+coordinate, action, lifetime and performance validation.
 
 ## 2026-11-02 — Resolve window flags before sizing content (#624, #625)
 
