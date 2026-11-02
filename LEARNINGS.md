@@ -4813,3 +4813,21 @@ cinf role view from completed bands. The independent browser suite caught it;
 overlay the consumed lookup on the captured identity without re-reading mutable
 asset metadata. Exact transport parity and deletion of a registry do not establish
 net code reduction or retained-memory improvement; record those independently.
+
+## 2026-11-02 — Browser text bounds can miss faint title ink (#634)
+
+Browser nominal and text bounds can underestimate fallback glyph coverage:
+faint rows with nonzero alpha still belong to the painted title. Extending the
+title-fit policy recorded under #624, evaluate the full requested title before
+truncation against the unchanged remapped clip and baseline. Carry one resolved
+family, face and size through layout, truncation and drawing. Shared raster
+coverage and baseline-relative paint placement correct the lost rows without
+enlarging the clip or adding theme, browser or glyph exceptions. This is a modern
+compatibility correction, with no claim of original typography, native
+equivalence or improved performance.
+
+Independent bounded title checks cover source and built output in Chromium,
+Firefox and WebKit. Valid reference output alone does not make an input a useful
+regression discriminator: the older `g` and `Tools` fixtures did not always expose
+the failure. Stronger calibration inputs preserve strict glyph-row expectations
+instead of relaxing them to accommodate the renderer.

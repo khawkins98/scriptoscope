@@ -28,6 +28,7 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ### Fixed
 
+- Window title fitting now accounts for faint fallback-font glyph rows that browser text bounds can miss, preventing lost title pixels within the existing clip. The full requested title determines the fitting style before truncation, and layout, truncation and drawing share the resolved family, face and size ([#634](https://github.com/khawkins98/scriptoscope/issues/634)).
 - Window titles reduce a too-tall substitute font within the same required face and preferred family, using one resolved style for advance, layout and painting. Titles that already fit retain their preferred style. This keeps bold utility text inside the authored title slot without widening its clip; a slot that fits no positive integer size retains its full accessibility title while omitting title ink ([#624](https://github.com/khawkins98/scriptoscope/issues/624)).
 
 - Recipe utility windows use their alternate pressed-widget art: top-titled utilities request −14298, side-titled utilities −14290 with the decoded top-strip retry. The mapping follows the rendered utility type, including collapsed variants and aliases, and shares the same flag with title and widget consumers ([#624](https://github.com/khawkins98/scriptoscope/issues/624)).
