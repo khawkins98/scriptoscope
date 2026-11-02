@@ -149,7 +149,9 @@ function scratch(width: number, height: number, style: TitleFontStyle) {
   canvas.height = 0;
   canvas.width = width; canvas.height = height;
   if (canvas.width !== width || canvas.height !== height) unavailable('scratch allocation');
-  const ctx = canvas.getContext('2d');
+  // These offscreen surfaces are read back for coverage and publication on every
+  // use. Keep their pixels CPU-accessible instead of synchronizing GPU readback.
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
   if (!ctx) unavailable('scratch context');
   setStyle(ctx, style);
   ctx.textBaseline = 'alphabetic';

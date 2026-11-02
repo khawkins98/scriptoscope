@@ -46,8 +46,9 @@ export function frameFromBody(bodyRect: Rect, cicnW: number, cicnH: number): Fra
 /** The template's drawable extent: last opaque column/row + 1 (beos's padded active document window is the one case it trims). */
 function drawableExtent(cicn: PixelBuffer): { w: number; h: number } {
   let maxX = -1, maxY = -1;
+  const data = cicn.data;
   for (let y = 0; y < cicn.height; y++) for (let x = 0; x < cicn.width; x++) {
-    if (cicn.getPixel(x, y)[3] > 16) { if (x > maxX) maxX = x; if (y > maxY) maxY = y; }
+    if (data[(y * cicn.width + x) * 4 + 3]! > 16) { if (x > maxX) maxX = x; if (y > maxY) maxY = y; }
   }
   return { w: maxX < 0 ? cicn.width : maxX + 1, h: maxY < 0 ? cicn.height : maxY + 1 };
 }

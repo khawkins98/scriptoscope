@@ -67,6 +67,7 @@
     "preview:demo": "vite preview --config vite.demo.config.js --port 4173",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "build:themes": "node scripts/extract-scheme.mjs --all && node scripts/extract-icons.mjs --all && node scripts/index-rasters.mjs && node scripts/gen-resource-roles.mjs && node scripts/gen-themes-manifest.mjs",
+    "bench:render": "node tools/performance/benchmark.mjs",
     "diag:render": "node scripts/render-window.mjs",
     "diag:audit": "node scripts/audit-placement.mjs",
     "lint:themes": "node scripts/lint-themes.mjs",

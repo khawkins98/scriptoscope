@@ -757,6 +757,11 @@ interface RegionPreparation {
   theme: ThemeInput; template: NonNullable<ComposedChrome['structureTemplate']>;
   pixels: Uint8ClampedArray; key: string; geometry: RegionGeometry;
 }
+function sameRegionPixels(saved: Uint8ClampedArray, current: Uint8ClampedArray): boolean {
+  if (saved.length !== current.length) return false;
+  for (let i = 0; i < saved.length; i++) if (saved[i] !== current[i]) return false;
+  return true;
+}
 /** A prepared, not yet committed render; `opts` carries the resolved content size. */
 interface PreparedRender { win: HTMLElement; collapsed: boolean; opts: RenderWindowOptions; extent?: ChromeExtent; region?: string | null; regionCache?: RegionPreparation; geometry?: RegionGeometry }
 
@@ -828,6 +833,8 @@ interface ManagedWindow<Theme extends ThemeInput> {
    *  that is not a recipe window, null when the build failed or was empty (HP44). */
   region?: string | null | undefined;
   regionCache?: RegionPreparation | undefined;
+  /** One alternate committed state, so active/inactive flips can reuse both paths. */
+  previousRegionCache?: RegionPreparation | undefined;
   geometry?: RegionGeometry | undefined;
   targets?: Map<HTMLElement, { key: string; nodes: HTMLElement[] }> | undefined;
   /** Inside an open `openModal` wrap (HP42). */
@@ -1474,9 +1481,14 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       const key = JSON.stringify([composed.layout, composed.fullWidth, composed.fullHeight,
         prepared.opts.scale ?? 1, prepared.opts.title, composed.titleRegion, prepared.collapsed, drawnState,
         template?.width, template?.height]);
-      const cached = entry.regionCache;
-      if (template && cached?.theme === theme && cached.template === template && cached.key === key
-        && cached.pixels.length === template.data.length && cached.pixels.every((v, i) => v === template.data[i]))
+      // Owned decoded assets may wrap the same resource data in a fresh PixelBuffer.
+      // Compare backing-data identity as well as dimensions, and still verify bytes:
+      // public pixel buffers remain mutable between preparations.
+      const cached = template && [entry.regionCache, entry.previousRegionCache].find(candidate =>
+        candidate?.theme === theme && candidate.key === key &&
+        candidate.template.width === template.width && candidate.template.height === template.height &&
+        candidate.template.data === template.data && sameRegionPixels(candidate.pixels, template.data));
+      if (cached)
         return { ...prepared, region: cached.geometry.path, geometry: cached.geometry, regionCache: cached };
       // HP8, HP15: the layout that drew this commit carries the collapsed state and title axis (SR6, WD4).
       const layout = composed.layout;
@@ -1558,6 +1570,8 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     entry.commitEpoch++;
     entry.region = region;
     entry.geometry = geometry;
+    if (!regionCache || entry.regionCache?.theme !== regionCache.theme) entry.previousRegionCache = undefined;
+    else if (entry.regionCache !== regionCache) entry.previousRegionCache = entry.regionCache;
     entry.regionCache = regionCache;
     if (entry.gesture?.ending) entry.gesture = undefined; // A newer captured drag keeps its suspension.
     entry.opts = opts;
@@ -1612,7 +1626,12 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
       // Overlay controls stay mounted (never detached, so focus and assistive-technology identity
       // survive) and stay last; the wiring below updates them in place (#533).
       const overlays = new Set<Node>(entry.overlays?.values());
-      for (const child of Array.from(layers.hit.childNodes)) if (child !== content && !overlays.has(child)) child.remove();
+      // Frame targets belong to this persistent layer too. Keep them mounted so
+      // syncTargets can reuse unchanged rectangles instead of rebuilding the DOM.
+      // Its normal reconciliation still replaces changed geometry before commit ends.
+      const frameTargets = new Set<Node>(entry.targets?.get(layers.hit)?.nodes);
+      for (const child of Array.from(layers.hit.childNodes))
+        if (child !== content && !overlays.has(child) && !frameTargets.has(child)) child.remove();
       const tail = Array.from(layers.hit.childNodes).find(child => overlays.has(child)) ?? null;
       let beforeContent = true;
       for (const child of Array.from(win.childNodes)) {
